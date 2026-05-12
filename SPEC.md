@@ -2,7 +2,7 @@
 
 > **Status**: Draft — Edition Vader 1.0 (target for bootstrap)
 > **Author**: Mathieu BROUTIN
-> **Last revision**: 2026-05-06
+> **Last revision**: 2026-05-12
 
 This document describes the Vader language, its execution model, type system, MVP standard library, and bootstrap strategy. It serves as the reference for the TypeScript implementation of the compiler, then for its self-rewrite in Vader.
 
@@ -68,24 +68,24 @@ The canonical IR is a **stack-based bytecode**. This IR is the pivot of the ecos
 
 ### Comptime ↔ monomorphization
 
-The compile-time execution (CTE) engine and generic monomorphization are the **same machinery**. When `List(i32)` is instantiated, the engine evaluates at compile time to generate the specialized code. For a `@comptime fn`, the same VM executes the bytecode.
+The compile-time execution (CTE) engine and generic monomorphization are the **same machinery**. When `List[i32]` is instantiated, the engine evaluates at compile time to generate the specialized code. For a `@comptime fn`, the same VM executes the bytecode.
 
 The pipeline is therefore **incremental**: to evaluate a `@comptime`, its dependencies must be compiled-to-bytecode, executed, and the result injected into the AST before continuing.
 
 ### Monomorphization
 
-Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `List(i32)`, `Map(string, User)`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct(args)` reference points to a freshly-emitted concrete decl, and every generic-fn call is rewritten to call its specialised instance.
+Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `List[i32]`, `Map[string, User]`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct(args)` reference points to a freshly-emitted concrete decl, and every generic-fn call is rewritten to call its specialised instance.
 
-Registry collection is **transitive**: when `outer<i32>` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn<i32>`), every `for x in arr` over `T[]` (registers `ArrayIterator(i32)`), and every substituted struct/trait reference inside the body (so e.g. `Yielded(string)` materialises when `next` is monomorphised over a `string[]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
+Registry collection is **transitive**: when `outer[i32]` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn[i32]`), every `for x in arr` over `T[]` (registers `ArrayIterator[i32]`), and every substituted struct/trait reference inside the body (so e.g. `Yielded[string]` materialises when `next` is monomorphised over a `string[]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
 
-Lowering and every downstream phase therefore see only concrete types — they never have to invent dispatch logic for `$T`.
+Lowering and every downstream phase therefore see only concrete types — they never have to invent dispatch logic for an unbound type parameter.
 
 ### Lowered AST
 
 The lowerer consumes the monomorphised typed AST and produces a **separate, smaller AST** (the *Lowered AST*) where high-level constructs are desugared into a fixed set of primitive operations the backends understand. The original typed AST is never mutated. Specifically the lowerer:
 
 - **Pattern match → if/else chains.** Naive linear lowering: each arm becomes a guarded `if` whose predicate is the pattern's discriminator (type tag, struct shape, literal equality) ∧ its optional `if`-guard. Bindings introduced by `is T as x` and struct destructuring become local lets at the head of the arm body. No decision-tree compilation in MVP — naive code is fine for the bytecode emitter to optimise later.
-- **`expr?` → `match`.** Lowered to `match expr { is Error e -> return e; is T t -> t }` over the typed scrutinee. Every `Error`-implementing variant routes to a `return` of that same value; the happy variant becomes the expression's result.
+- **`expr?` → `match`.** Lowered to `match expr { is Error as e -> return e is T as t -> t }` over the typed scrutinee. Every `Error`-implementing variant routes to a `return` of that same value; the happy variant becomes the expression's result.
 - **String interpolation → builder intrinsics.** Each `"…${x}…"` lowers to a sequence of `builder.new`, `builder.append_str`, `builder.append_display(x)`, `builder.finish` intrinsic calls. The runtime (which `std/string_builder` wraps) provides the actual implementation; the lowerer only emits the call chain. `builder.append_display` is dispatched statically per the post-mono `Display` impl table.
 - **`defer` → exit-point duplication.** The lowerer keeps a per-block stack of pending defers (LIFO) and inlines them physically at every textual exit of the block: implicit fallthrough, `return`, `break`, `continue`. Panics are **not** unwound through defers in MVP (panics abort the program). Defers do not propagate across function boundaries.
 - **Trait calls → static dispatch.** Because monomorphization has stripped abstract generics, every trait-method call site has a concrete receiver type. The lowerer rewrites `recv.to_string()` to a direct call of the specific impl's function. No vtable / dynamic dispatch in MVP.
@@ -290,7 +290,7 @@ Field access : .name
 Index access : [expr]
 ```
 
-`in` and `!in` desugar to a method call on the `Contains($T)` trait (see §11). Char comparisons (`<`, `<=`, `>`, `>=`) work on codepoint order (`char` is wire-compatible with `u32`).
+`in` and `!in` desugar to a method call on the `Contains[T]` trait (see §11). Char comparisons (`<`, `<=`, `>`, `>=`) work on codepoint order (`char` is wire-compatible with `u32`).
 
 ### Operator precedence
 
@@ -374,7 +374,7 @@ x := a + \
 | Null | `null` |
 | Metatype | `type` (comptime-only — see below) |
 
-`type` is the **metatype** : a value of static type `type` *is* a Vader type. It is **comptime-only** — values never reach runtime, so `: type` is only meaningful in comptime contexts (currently the `($T: type)` struct-head bound, soon `let T: type = i32` and the result type of intrinsics like `@type_of(x)`). The compiler enforces that any expression typed `type` is comptime-evaluable ; emitting one in a runtime slot is an internal-bug error in the bytecode emitter.
+`type` is the **metatype** : a value of static type `type` *is* a Vader type. It is **comptime-only** — values never reach runtime, so `: type` is only meaningful in comptime contexts (currently the bracketed `[T: type]` generic-param head, soon `let T: type = i32` and the result type of intrinsics like `@type_of(x)`). The compiler enforces that any expression typed `type` is comptime-evaluable ; emitting one in a runtime slot is an internal-bug error in the bytecode emitter.
 
 ### Built-in type aliases
 
@@ -455,7 +455,7 @@ Into :: trait[Target] {
 }
 ```
 
-The compiler probes `S implements Into(T)` whenever a value of type `S` is about to reach a slot expecting `T` and `isAssignable(S, T)` already failed. When the impl is found the typer records the site and the lowerer inserts the matching `value.into()` call before the consumer sees the value.
+The compiler probes `S implements Into[T]` whenever a value of type `S` is about to reach a slot expecting `T` and `isAssignable(S, T)` already failed. When the impl is found the typer records the site and the lowerer inserts the matching `value.into()` call before the consumer sees the value.
 
 **Sites of implicit coercion**
 - A call argument whose corresponding parameter has a typed annotation.
@@ -467,15 +467,15 @@ The compiler probes `S implements Into(T)` whenever a value of type `S` is about
 The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and `char` targets keep their primitive cast semantics (`u32(x)`, `i64(c)`) ; non-numeric targets and numeric targets fed a non-numeric source route through `tryInto` and emit the matching `value.into()` call. The two paths share the same impl registry, so the implicit and explicit forms always agree on which method runs.
 
 **Rules**
-- **Target must be concrete or a trait.** `Struct`, `Enum`, `Primitive`, and `Trait` targets trigger the probe ; `Union` and `TypeParam` slots are excluded. A union target leaves the typer unable to pick a variant ; a `TypeParam` slot resolves after mono. Direct trait widening (when `S` already implements `T`) runs first via `isAssignable`, so `tryInto` only fires for `Trait` targets when the source needs an actual conversion (the canonical case being `T[] → Iterator(T)` via the blanket `T[] implements[T] Into(Iterator(T))`).
-- **No identity.** `T implements Into(T)` is forbidden (diagnostic **T3039** at the impl site) — it would shadow simple assignment and clutter the registry.
-- **No transitive chains.** The lookup is a single registry probe. `S → U → T` never auto-composes ; if both impls exist, the user must declare `S implements Into(T)` explicitly to bridge them. (Mirrors Rust's `Into` strictness ; prevents the "where did this allocation come from?" debugging trap.)
+- **Target must be concrete or a trait.** `Struct`, `Enum`, `Primitive`, and `Trait` targets trigger the probe ; `Union` and `TypeParam` slots are excluded. A union target leaves the typer unable to pick a variant ; a `TypeParam` slot resolves after mono. Direct trait widening (when `S` already implements `T`) runs first via `isAssignable`, so `tryInto` only fires for `Trait` targets when the source needs an actual conversion (the canonical case being `T[] → Iterator[T]` via the blanket `T[] implements[T] Into[Iterator[T]]`).
+- **No identity.** `T implements Into[T]` is forbidden (diagnostic **T3039** at the impl site) — it would shadow simple assignment and clutter the registry.
+- **No transitive chains.** The lookup is a single registry probe. `S → U → T` never auto-composes ; if both impls exist, the user must declare `S implements Into[T]` explicitly to bridge them. (Mirrors Rust's `Into` strictness ; prevents the "where did this allocation come from?" debugging trap.)
 - **One impl per `(Source, Target)`.** Duplicate impls are caught by the standard resolver duplicate-impl diagnostic.
 - **Overload resolution is decided first.** When a call has overloaded candidates, the typer ranks them *without* `Into` ; the second-pass with `Into` only fires if no exact-match overload was found.
 
 **Built-in coercions**
-- `T[] → Iterator(T)` — raw arrays auto-wrap into `ArrayIterator(T)` on entry to an `Iterator(T)` slot, materialised by the blanket impl `T[] implements[T] Into(Iterator(T))` in `std/core`. Driven through the `Into` probe, not a special-cased typer rule.
-- `T → string` when `T: Display` — anything implementing `Display` flowing into a `string`-typed slot is rewritten as a call to the impl's `to_string` member, via the blanket `T implements[T: Display] Into(string)` in `std/core`. The string-interpolation path (`"${value}"`) bypasses `Into` and routes through the builder intrinsics directly.
+- `T[] → Iterator[T]` — raw arrays auto-wrap into `ArrayIterator[T]` on entry to an `Iterator[T]` slot, materialised by the blanket impl `T[] implements[T] Into[Iterator[T]]` in `std/core`. Driven through the `Into` probe, not a special-cased typer rule.
+- `T → string` when `T: Display` — anything implementing `Display` flowing into a `string`-typed slot is rewritten as a call to the impl's `to_string` member, via the blanket `T implements[T: Display] Into[string]` in `std/core`. The string-interpolation path (`"${value}"`) bypasses `Into` and routes through the builder intrinsics directly.
 - `FreeInt → i32` / `FreeFloat → f64` and friends — unsuffixed literals defaulting to their canonical width at the typer level. Unrelated to `Into` ; happens before any coercion lookup.
 - Concrete `S → Trait` when `S` impl `Trait` — virtual dispatch boxing. Distinct from `Into` ; the value flows in unchanged and runtime dispatch resolves the method by tag.
 
@@ -485,7 +485,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 3. Otherwise, `T3001` / `T3020` mismatch fires.
 
 **Diagnostics**
-- `T3039` — `Into(T)` identity impl rejected (emitted at the impl site, not at the call site).
+- `T3039` — `Into[T]` identity impl rejected (emitted at the impl site, not at the call site).
 - `T3001` / `T3020` — type mismatch ; the message indicates no coercion was found.
 
 ### Signed overflow
@@ -498,10 +498,10 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - Immutable. Concatenation allocates.
 - `byte_len()` returns the number of UTF-8 **bytes**. The byte vs. codepoint distinction is forced into the name : there is no plain `len()` on strings, callers pick `byte_len()` for byte arithmetic or `count_chars()` for codepoint arithmetic.
 - `count_chars()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths).
-- `chars()` returns an iterator of `char` (`StringChars implements Iterator(char)`) ; pair with `for c in s.chars()` for a true Unicode loop.
-- `bytes()` returns an iterator of `u8` (`StringBytes implements Iterator(u8)`) ; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). Strings are deliberately **not** `Iterable` — there's no canonical "default" between bytes and codepoints, so `for x in s` is a compile error and the caller picks `s.bytes()` or `s.chars()` explicitly.
+- `chars()` returns an iterator of `char` (`StringChars implements Iterator[char]`) ; pair with `for c in s.chars()` for a true Unicode loop.
+- `bytes()` returns an iterator of `u8` (`StringBytes implements Iterator[u8]`) ; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). Strings are deliberately **not** `Iterable` — there's no canonical "default" between bytes and codepoints, so `for x in s` is a compile error and the caller picks `s.bytes()` or `s.chars()` explicitly.
 - `is_empty()` — sugar for `byte_len() == 0` (codepoint count and byte count agree on emptiness).
-- **Subscript** `s[i]` returns the Unicode codepoint at *byte* offset `i` (via `string implements Index(i32, char)` in `std/core`). Indexing into the middle of a multi-byte codepoint returns garbage — for codepoint-safe iteration use `chars()`. There is no `IndexSet` impl ; strings are immutable.
+- **Subscript** `s[i]` returns the Unicode codepoint at *byte* offset `i` (via `string implements Index[usize, char]` in `std/core`). Indexing into the middle of a multi-byte codepoint returns garbage — for codepoint-safe iteration use `chars()`. There is no `IndexSet` impl ; strings are immutable.
 - Literals stored in the binary's data section.
 
 ### Arrays
@@ -843,7 +843,7 @@ Local bindings come in four shapes that share a single `LetStmt` AST node ; the 
 | `name: T : value`     | immutable  | typed       | `cap: usize : 1024`           |
 | `name: T = value`     | mutable    | typed       | `count: u64 = 0`              |
 
-The typed forms run the same bidirectional inference as the inferred forms — `T` is propagated as the expected type, so free numeric literals adopt it (`x: i64 = 42` ⇒ `42: i64`) and trait-typed slots trigger the implicit-coercion machinery (e.g. `T[]` → `Iterator(T)`, see §11).
+The typed forms run the same bidirectional inference as the inferred forms — `T` is propagated as the expected type, so free numeric literals adopt it (`x: i64 = 42` ⇒ `42: i64`) and trait-typed slots trigger the implicit-coercion machinery (e.g. `T[]` → `Iterator[T]`, see §11).
 
 Reassignment uses `=` and is only valid on mutable bindings :
 
@@ -891,12 +891,11 @@ n: i32 | Error = parse_int("42")
 
 ### Generics
 
-The canonical Path 2 surface is the bracketed `[T]` form. The `$T` inline introduction syntax remains parser-supported during the migration window for backwards compatibility but is **deprecated** — new code should use `[T]` exclusively, and existing code should migrate over time. Both forms compile to the same `TypeParam[]` shape on the underlying `FnDecl` / `StructDecl` ; inline `$T` introductions appearing in value-arg types of a fn declared with the bracketed form are merged in (the bracketed list takes precedence on name collisions).
+Type parameters are introduced with the bracketed `[T]` form at the declaration site. The legacy inline `$T` introduction syntax (Odin-style — type-param declared at first use in a signature) remains parser-accepted for now but is **deprecated** ; new code should use `[T]` exclusively. Both forms compile to the same `TypeParam[]` shape on the underlying `FnDecl` / `StructDecl`.
 
 **Generic functions**:
 
 ```vader
-// Canonical bracketed form — explicit at the declaration site.
 map :: fn[T, U](items: T[], f: fn(T) -> U) -> U[] {
     result: U[] = []
     for x in items {
@@ -904,25 +903,12 @@ map :: fn[T, U](items: T[], f: fn(T) -> U) -> U[] {
     }
     return result
 }
-
-// Legacy inline form (deprecated, still parser-accepted) —
-// type-param introduced by `$T` at first use.
-map :: fn(items: $T[], f: fn(T) -> $U) -> U[] {
-    // … same body
-}
 ```
 
 **Generic structs**:
 
 ```vader
-// Canonical bracketed form
 List :: struct[T] {
-    items: T[]
-    len: u32
-}
-
-// Legacy form (deprecated)
-List :: struct($T) {
     items: T[]
     len: u32
 }
@@ -930,14 +916,14 @@ List :: struct($T) {
 list := List[i32] { .items = [1, 2, 3], .len = 3 }
 ```
 
-**Constraints**. The canonical form is the inline bracketed bound `[T: A & B]`, multi-trait composed with `&` (mirroring type intersection — `&` reads as « satisfies both »).
+**Constraints**. Inline bracketed bounds with `&` for trait intersection (« satisfies both ») :
 
 ```vader
 sort :: fn[T: Comparable](items: T[]) {
     // ...
 }
 
-put :: fn[K: Hash & Equalsuals, V](self: MutableMap[K, V], key: K, value: V) {
+put :: fn[K: Hash & Equals, V](self: MutableMap[K, V], key: K, value: V) {
     // ...
 }
 ```
@@ -947,17 +933,17 @@ put :: fn[K: Hash & Equalsuals, V](self: MutableMap[K, V], key: K, value: V) {
 **Compile-time values** (post-MVP candidate):
 
 ```vader
-make_buffer :: fn($N: i32) -> [N]u8 { ... }
+make_buffer :: fn[N: i32]() -> [N]u8 { ... }
 ```
 
 **Implementation**: monomorphization at compile time, driven by the comptime engine. Single specialization machinery.
 
 **Bound enforcement and trait-method dispatch on type parameters**: both wired since Layer 7e. The typechecker:
-- Resolves `key.hash()` inside a generic body where `key: $K` and `K: Hash` to the trait method statically, then mono-substitutes it to the concrete type's impl member.
+- Resolves `key.hash()` inside a generic body where `key: K` and `K: Hash` to the trait method statically, then mono-substitutes it to the concrete type's impl member.
 - At every call site of a generic fn, walks the call-site type-args against each type-param's bracketed bound (`[T: Trait]`). Any concrete type lacking an explicit `T implements Trait` impl yields T3006 (« trait not satisfied »).
 
 **Limitations (MVP)**:
-- **No "associated functions"** (Java-style static methods) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap(K, V) { ... }` for struct-literal construction. Post-MVP candidate.
+- **No "associated functions"** (Java-style static methods) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap[K, V] { ... }` for struct-literal construction. Post-MVP candidate.
 
 Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `[T: Add]` succeeds for every primitive numeric type as well as for `string` (concat). `Hash` and `Equals` impls are user-explicit (only `i32`/`u32`/`usize`/`string` carry them today) ; extend per use case.
 
@@ -994,18 +980,18 @@ When the impl introduces its own type parameters (with optional bounds), the `[T
 ```vader
 // Borrowing T from the struct head — no impl-level typeParams.
 ArrayIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Done | Yielded(T) { /* … */ }
+    next :: fn(self) -> Done | Yielded[T] { /* … */ }
 }
 
 // Bounded blanket impl — Range[T] coerces into an Iterator when T
 // satisfies both Comparable and Step.
 Range[T] implements[T: Comparable & Step] Iterator[T] {
-    next :: fn(self) -> Done | Yielded(T) { /* … */ }
+    next :: fn(self) -> Done | Yielded[T] { /* … */ }
 }
 
 // Blanket on a structural source (any array, any Display-bound type).
-T[] implements[T]          Into(Iterator(T)) { /* … */ }
-T   implements[T: Display] Into(string)      { /* … */ }
+T[] implements[T]          Into[Iterator[T]] { /* … */ }
+T   implements[T: Display] Into[string]      { /* … */ }
 ```
 
 The bracket list after `implements` introduces the typeParams *for the entire impl block* — the for-type, the trait args, and every method body resolve against them. Multi-bound (`[T: A & B]`) is identical to the bound grammar on fn / struct heads.
@@ -1021,7 +1007,7 @@ A trait can compose other traits — i.e. require its implementor to satisfy eac
 Numeric :: trait[T] = Add & Sub & Mul
 
 // With own methods — Hashable requires Hash and Equals, plus declares its own.
-Hashable :: trait[T] : Hash & Equalsuals {
+Hashable :: trait[T] : Hash & Equals {
     fingerprint :: fn(self: T) -> u64
 }
 ```
@@ -1038,9 +1024,9 @@ report :: fn(e: Error) -> string {
 }
 ```
 
-The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that monomorphization has materialised. Non-generic impls contribute one arm each ; generic impls (`Foo($T) implements Trait { ... }`) contribute one arm per observed concrete `(struct, args)` pair, since each instance has a distinct runtime tag (`is Foo(i32)`, `is Foo(string)`, …). Trait args on the receiver itself are substituted into the method's signature, so e.g. `it: Iterator(i32); it.next()` returns `Done | Yielded(i32)` — not the unsubstituted `Done | Yielded($T)`. Primitive impls remain skipped (the dispatch chain assumes struct-tagged boxes).
+The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that monomorphization has materialised. Non-generic impls contribute one arm each ; generic impls (`Foo[T] implements Trait { ... }`) contribute one arm per observed concrete `(struct, args)` pair, since each instance has a distinct runtime tag (`is Foo[i32]`, `is Foo[string]`, …). Trait args on the receiver itself are substituted into the method's signature, so e.g. `it: Iterator[i32]; it.next()` returns `Done | Yielded[i32]` — not the unsubstituted `Done | Yielded[T]`. Primitive impls remain skipped (the dispatch chain assumes struct-tagged boxes).
 
-Inside a generic body, `key.method()` where `key: $T` and `T: Trait` resolves at typecheck and is monomorphised statically — each call site gets a direct call to the concrete impl member after substitution. No runtime dispatch.
+Inside a generic body, `key.method()` where `key: T` and `T: Trait` resolves at typecheck and is monomorphised statically — each call site gets a direct call to the concrete impl member after substitution. No runtime dispatch.
 
 #### Single-method trait sugar (SAM)
 
@@ -1067,8 +1053,8 @@ string implements Hash {
 }
 
 // Classic form — required for traits with two or more methods.
-ArrayIterator($T) implements Iterator(T) {
-    next :: fn(self) -> Done | Yielded(T) { ... }
+ArrayIterator[T] implements Iterator[T] {
+    next :: fn(self) -> Done | Yielded[T] { ... }
 }
 ```
 
@@ -1117,9 +1103,9 @@ Built-in operators dispatch through stdlib traits when the operand types are not
 | `a % b`         | `Rem`              | `rem :: fn(self, other: Self) -> Self`      |
 | `a == b`        | `Equals`           | `equals :: fn(self, other: Self) -> bool`   |
 | `a < b` / `<=` / `>` / `>=` | `Comparable` | `compare :: fn(self, other: Self) -> i32` |
-| `a[i]`          | `Index($I, $T)`    | `at :: fn(self, i: I) -> T`                 |
-| `a[i] = v`      | `IndexSet($I, $T)` | `set_at :: fn(self, i: I, v: T)`            |
-| `v in a`        | `Contains($T)`     | `contains :: fn(self, v: T) -> bool`        |
+| `a[i]`          | `Index[I, T]`      | `at :: fn(self, i: I) -> T`                 |
+| `a[i] = v`      | `IndexSet[I, T]`   | `set_at :: fn(self, i: I, v: T)`            |
+| `v in a`        | `Contains[T]`      | `contains :: fn(self, v: T) -> bool`        |
 
 Compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`) desugar to `lhs = lhs <op> rhs` at parse time, so they reuse the corresponding trait dispatch.
 
@@ -1139,7 +1125,7 @@ Resolution rule for **ordering** (`< <= > >=`) :
 2. User-struct operands look up the `Comparable` impl ; the lowerer rewrites `a < b` to `compare(a, b) < 0` (and analogously for the other three operators) over the i32 result.
 3. If no impl matches, T3017.
 
-Index access (`a[i]`) and `in` follow the same fallback : built-in array / range first, then trait dispatch through `Index($I, $T)::at` / `Contains($T)::contains` — the trait path covers struct receivers AND primitives (`string implements Index(i32, char)` enables `s[i]` without importing anything). Index assignment (`a[i] = v`) dispatches through `IndexSet($I, $T)::set_at`.
+Index access (`a[i]`) and `in` follow the same fallback : built-in array / range first, then trait dispatch through `Index[I, T]::at` / `Contains[T]::contains` — the trait path covers struct receivers AND primitives (`string implements Index[usize, char]` enables `s[i]` without importing anything). Index assignment (`a[i] = v`) dispatches through `IndexSet[I, T]::set_at`.
 
 ### Nullability
 
@@ -1184,7 +1170,7 @@ To compare two structs structurally, implement `Equals` or call `equals(a, b)`.
 
 For deep immutability of collections, use **stdlib convention** :
 - raw `T[]` arrays are mutable (Java-style — `arr.push`, `arr[i] = v`)
-- read-only `List(T)` / `Map(K, V)` / `Set(T)` will pair with mutable variants when implemented (post-MVP — currently struct stubs in `std/collections`)
+- read-only `List[T]` / `Map[K, V]` / `Set[T]` will pair with mutable variants when implemented (post-MVP — currently struct stubs in `std/collections`)
 
 ### Explicit type annotations
 
@@ -1321,7 +1307,7 @@ Two free functions with the same name **may coexist in the same module** when th
 
 ```vader
 size :: fn(self: Path) -> i32 { ... }
-size :: fn(self: MutableMap($K, $V)) -> usize { ... }
+size :: fn[K, V](self: MutableMap[K, V]) -> usize { ... }
 
 p.size()            // resolves to the Path version
 m.size()            // resolves to the MutableMap version
@@ -1329,7 +1315,7 @@ m.size()            // resolves to the MutableMap version
 
 Rules :
 - Overload candidates must differ in their first parameter type. Differing only on later parameters is **not** an overload (post-MVP — see TODO).
-- Type-param receivers (`fn(self: $T)`) are wildcards and conflict with every concrete-receiver overload of the same name.
+- Type-param receivers (`fn[T](self: T)`) are wildcards and conflict with every concrete-receiver overload of the same name.
 - Resolution is performed at typecheck after the receiver type is known. Errors out with `R2004` if two candidates match.
 - A **local fn coexists with a same-named imported fn** as overloads. The local fn takes the primary slot in the module's symbol table (so unqualified references pick it), and the imported fn stays reachable through UFCS dispatch by receiver type. So `std/path` legally both imports `is_empty` from `std/string` and exports its own `is_empty(self: Path)` — `self.repr.is_empty()` picks the string version inside the module while `p.is_empty()` at a call site picks the Path version.
 
@@ -1419,31 +1405,33 @@ for 0..<GENERATIONS {
 
 The single-expression form `for <expr> { body }` is dispatched by the type of `<expr>` :
 - `bool` — true while-loop, body runs while the condition holds.
-- iterable (built-in array, `Iterator(T)`, `Range`, …) — equivalent to `for _ in <expr>`, body runs once per element with the value discarded.
+- iterable (built-in array, `Iterator[T]`, `Range`, …) — equivalent to `for _ in <expr>`, body runs once per element with the value discarded.
 
 `T3019` fires when the expression is neither — the diagnostic catches a misplaced struct cond as well as a non-`Iterator` user type.
 
 The iteration form `for x in expr` accepts three shapes for `expr`:
-1. A built-in array `T[]` — auto-wrapped in `ArrayIterator(T)`.
-2. A value of type `Iterator(T)` — used directly.
-3. A value implementing `Iterable(T)` — `expr.iter()` is auto-called and the result drives the loop.
+1. A built-in array `T[]` — auto-wrapped in `ArrayIterator[T]`.
+2. A value of type `Iterator[T]` — used directly.
+3. A value implementing `Iterable[T]` — `expr.iter()` is auto-called and the result drives the loop.
 
-Raw `T[]` arrays are auto-wrapped in `ArrayIterator(T)`, and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Iterable(T)` so `for x in coll { ... }` works without an explicit `coll.iter()`.
+Raw `T[]` arrays are auto-wrapped in `ArrayIterator[T]`, and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Iterable[T]` so `for x in coll { ... }` works without an explicit `coll.iter()`.
 
-The same auto-wrap fires at any *concrete* `Iterator(T)` slot — function arguments, `return` expressions, and typed `let` bindings — so `T[]` flows transparently :
+The same auto-wrap fires at any *concrete* `Iterator[T]` slot — function arguments, `return` expressions, and typed `let` bindings — so `T[]` flows transparently :
 
 ```vader
-walk :: fn(it: Iterator(i32)) -> i32 { ... }
+walk :: fn(it: Iterator[i32]) -> i32 { ... }
 walk([10, 20, 30])                            // call-arg coercion
-fold :: fn() -> Iterator(i32) { return [1, 2, 3] }   // return coercion
-buf: Iterator(i32) : [4, 5, 6]                // typed-let coercion
+fold :: fn() -> Iterator[i32] { return [1, 2, 3] }   // return coercion
+buf: Iterator[i32] : [4, 5, 6]                // typed-let coercion
 ```
 
-The coercion is gated on **canonical symbol identity** of `std/core::Iterator` ; a user-defined trait that happens to be named `Iterator` is left alone. It does **not** fire on a generic `Iterator($T)` parameter — type-arg inference can't bind `T` from a `T[]` argument across the widening, so combinators that take `Iterator($T)` still need an explicit `ArrayIterator(T) { ... }` wrap (or an array-driven overload). Concrete trait-instance receivers (`Iterator(i32)`, `Iterator(string)`, …) are unaffected.
+The coercion is gated on **canonical symbol identity** of `std/core::Iterator` ; a user-defined trait that happens to be named `Iterator` is left alone. It does **not** fire on a generic `Iterator[T]` parameter — type-arg inference can't bind `T` from a `T[]` argument across the widening, so combinators that take `Iterator[T]` still need an explicit `ArrayIterator[T] { ... }` wrap (or an array-driven overload). Concrete trait-instance receivers (`Iterator[i32]`, `Iterator[string]`, …) are unaffected.
 
 ```vader
-Iterable :: trait($T) {
-    fn iter(self) -> Iterator(T)
+// Planned — not yet exported from std/core. Today user types iterate
+// via a direct `Iterator[T]` impl on the collection itself.
+Iterable :: trait[T] {
+    iter :: fn(self) -> Iterator[T]
 }
 ```
 
@@ -1843,7 +1831,7 @@ build_lookup_table :: fn() -> [u32] {
 
 ### Synergy with generics
 
-A call `List(i32)` is a `@comptime` expression (the engine resolves the type, instantiates the generic struct, generates the specialized code).
+A call `List[i32]` is a `@comptime` expression (the engine resolves the type, instantiates the generic struct, generates the specialized code).
 
 ### Sandbox
 
@@ -1894,21 +1882,21 @@ Future intrinsics planned for Layer 6 of the type-first design (`docs/DESIGN_TYP
 
 ### `std/core` (auto-imported)
 
-Traits : `Display`, `Equals`, `Comparable`, `Step`, `Into(Target)`, `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Hash`, `Clone`, `Iterator(T)`, `Iterable(T)`, `Contains(T)`, `Index(I, T)`, `IndexSet(I, T)`, `Error`.
+Traits : `Display`, `Equals`, `Comparable`, `Step`, `Into[Target]`, `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Hash`, `Clone`, `Iterator[T]`, `Iterable[T]`, `Contains[T]`, `Index[I, T]`, `IndexSet[I, T]`, `Error`.
 
-Types : `Done`, `Yielded(T)`, `Range`, `ArrayIterator(T)`.
+Types : `Done`, `Yielded[T]`, `Range`, `ArrayIterator[T]`.
 
-Primitive trait impls : `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index(i32, char)` (powers `s[i]`), and `Equals`/`Hash`/`Comparable`/`Step` on the integer primitives + `char`. `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. `Comparable` and `Step` impls are written in Vader (arrow form) ; the rest are `@intrinsic` and bodies are host-provided.
+Primitive trait impls : `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index[usize, char]` (powers `s[i]`), and `Equals`/`Hash`/`Comparable`/`Step` on the integer primitives + `char`. `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. `Comparable` and `Step` impls are written in Vader (arrow form) ; the rest are `@intrinsic` and bodies are host-provided.
 
-The `Contains(T)` trait powers the `in` / `!in` operators :
+The `Contains[T]` trait powers the `in` / `!in` operators :
 
 ```vader
-Contains :: trait($T) {
+Contains :: trait[T] {
     contains :: fn(self, value: T) -> bool
 }
 
-// `Range implements Contains(i32)` is shipped, so `5 in 0..<10` works
-// out of the box. User types opt in by implementing the trait.
+// `Range[i32] implements Contains[i32]` is shipped, so `5 in 0..<10`
+// works out of the box. User types opt in by implementing the trait.
 ```
 
 Trait-method dispatch on a bounded type param (`f :: fn[T: Hash](x: T) { x.hash() }`) resolves at typecheck and is monomorphised statically — each call site lands on the concrete impl member after substitution. Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is FNV-1a over the UTF-8 bytes (`@intrinsic string implements Hash` — host-provided method).
@@ -1943,9 +1931,8 @@ Width-based helpers (`pad_start`, `pad_end`) measure bytes, not codepoints.
 
 ```vader
 // Core access (intrinsics — no body in Vader).
-byte_len    :: fn(s: string) -> i32                  // UTF-8 bytes ; pair with count_chars() for codepoints
-slice       :: fn(s: string, start: i32, end: i32) -> string
-char_at     :: fn(s: string, i: i32) -> char         // also reachable via `s[i]` (Index impl in std/core)
+byte_len    :: fn(s: string) -> usize                  // UTF-8 bytes ; pair with count_chars() for codepoints
+slice       :: fn(s: string, start: usize, end: usize) -> string
 contains    :: fn(s: string, sub: string) -> bool
 starts_with :: fn(s: string, prefix: string) -> bool
 ends_with   :: fn(s: string, suffix: string) -> bool
@@ -1956,22 +1943,24 @@ to_lower    :: fn(s: string) -> string
 parse_int   :: fn(s: string) -> i32!
 parse_float :: fn(s: string) -> f64!
 
-// Codepoint walkers.
+// Codepoint walkers. `s[i]` (Index impl in std/core) replaces the old
+// `char_at` surface.
 is_empty         :: fn(s: string) -> bool                       // sugar for byte_len() == 0
-count_chars      :: fn(s: string) -> i32                        // codepoint count, allocation-free
-chars            :: fn(s: string) -> StringChars                // StringChars implements Iterator(char)
-decode_codepoint :: fn(s: string, i: i32) -> [char, i32]        // (codepoint, byte width)
+count_chars      :: fn(s: string) -> usize                      // codepoint count, allocation-free
+chars            :: fn(s: string) -> StringChars                // StringChars implements Iterator[char]
+decode_codepoint :: fn(s: string, i: usize) -> [char, usize]    // (codepoint, byte width)
 
 // Byte walkers (raw UTF-8 — for ASCII / binary protocols / BOM detection).
-byte_at :: fn(s: string, i: i32) -> u8
-bytes   :: fn(s: string) -> StringBytes                         // StringBytes implements Iterator(u8)
+byte_at :: fn(s: string, i: usize) -> u8
+bytes   :: fn(s: string) -> StringBytes                         // StringBytes implements Iterator[u8]
 
-// Indexing helpers.
-last_index_of :: fn(s: string, c: char, min_index: i32) -> i32
+// Indexing helpers. `min_index` and the result use `isize` so the
+// `-1`-on-miss sentinel stays expressible without a `usize | null`.
+last_index_of :: fn(s: string, c: char, min_index: isize) -> isize
 
 // Format helpers (pure Vader).
-pad_start :: fn(s: string, width: i32, fill: char) -> string
-pad_end   :: fn(s: string, width: i32, fill: char) -> string
+pad_start :: fn(s: string, width: usize, fill: char) -> string
+pad_end   :: fn(s: string, width: usize, fill: char) -> string
 
 // Char predicates (universal — useful for any DSL or text scanner).
 is_alpha         :: fn(c: char) -> bool                         // a-z, A-Z
@@ -2015,7 +2004,7 @@ To append a decoded codepoint to a `StringBuilder`, call
 codepoint canonically, no `append_codepoint` wrapper needed.
 
 ```vader
-codepoint_byte_len :: fn(c: char) -> i32           // 1..4 — UTF-8 width of a codepoint
+codepoint_byte_len :: fn(c: char) -> usize         // 1..4 — UTF-8 width of a codepoint
 ```
 
 ### `std/string_builder`
@@ -2040,7 +2029,7 @@ append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void  // pret
 All hash-based mutable collections live in a single module. Sequence
 collections use raw `T[]` arrays (which already support `push`, `len`,
 indexed access, mutation, and `for x in arr`) — no `MutableList` wrapper
-in MVP. Immutable `List<T>` will pair with arrays once read-only views
+in MVP. Immutable `List[T]` will pair with arrays once read-only views
 land (post-MVP).
 
 ```vader
@@ -2058,11 +2047,11 @@ values       :: fn(self: MutableMap[K, V]) -> V[]
 // Hash set — wraps a `MutableMap[T, bool]` (Java HashSet pattern). Lookups
 // inherit the chained-bucket O(1) behaviour from the underlying map.
 MutableSet[T: Hash & Equals]
-Set(T)             // read-only (struct stub, post-MVP API)
-add      :: fn(self: MutableSet(T), value: T) -> bool   // true if newly added
-contains :: fn(self: MutableSet(T), value: T) -> bool
-len      :: fn(self: MutableSet(T)) -> usize
-is_empty :: fn(self: MutableSet(T)) -> bool
+Set[T]             // read-only (struct stub, post-MVP API)
+add      :: fn(self: MutableSet[T], value: T) -> bool   // true if newly added
+contains :: fn(self: MutableSet[T], value: T) -> bool
+len      :: fn(self: MutableSet[T]) -> usize
+is_empty :: fn(self: MutableSet[T]) -> bool
 ```
 
 `MutableMap` carries `Index[K, V | null]` / `IndexSet[K, V]` / `Contains[K]`
@@ -2084,7 +2073,7 @@ semantics, and `s.add(v)` reads more clearly than `s[v] = true` ever could.
 // Comparison + helpers — overloaded on `i32` and `f64`. A generic
 // `Comparable`-driven variant (one fn body for any `T: Comparable`) is post-MVP : the
 // body needs to default-init a slot of type `T` before threading it through
-// `compare`, which is gated on `Default(T)` / a `zero<T>()` intrinsic.
+// `compare`, which is gated on `Default[T]` / a `zero[T]()` intrinsic.
 min   :: fn(a: i32, b: i32) -> i32
 min   :: fn(a: f64, b: f64) -> f64
 max   :: fn(a: i32, b: i32) -> i32
@@ -2111,16 +2100,16 @@ const e:  f64
 
 ### `std/iter`
 
-The iterator trait lives in `std/core` (auto-imported), using a `Done | Yielded(T)` `next()` result rather than `T | null` so iterators over nullable element types stay unambiguous:
+The iterator trait lives in `std/core` (auto-imported), using a `Done | Yielded[T]` `next()` result rather than `T | null` so iterators over nullable element types stay unambiguous:
 
 ```vader
 Done    :: struct {}
-Yielded :: struct($T) { value: T }
+Yielded :: struct[T] { value: T }
 
-Iterator(T) :: trait {
-    next     :: fn(self) -> Done | Yielded(T)
+Iterator :: trait[T] {
+    next     :: fn(self) -> Done | Yielded[T]
     is_empty :: fn(self) -> bool                  // default — derives from next
-    count    :: fn(self) -> i32                   // default — drains, returns total
+    count    :: fn(self) -> usize                 // default — drains, returns total
     last     :: fn(self) -> T | null              // default — drains, last yielded
 }
 ```
@@ -2134,19 +2123,19 @@ to provide `next`.
 ```vader
 // Iterator-driven, concrete trait instance — `it.next()` dispatches via the
 // virtual chain over each materialised impl :
-walk :: fn(it: Iterator(i32)) -> i32
+walk :: fn(it: Iterator[i32]) -> i32
 
 // Array-driven (closure-friendly; eager — return `T[]` or a single value):
-map    :: fn(arr: $T[], f: fn(T) -> $U)        -> U[]
-filter :: fn(arr: $T[], pred: fn(T) -> bool)   -> T[]
-fold   :: fn(arr: $T[], init: $U, f: fn(U, T) -> U) -> U
+map    :: fn[T, U](arr: T[], f: fn(T) -> U)        -> U[]
+filter :: fn[T](arr: T[], pred: fn(T) -> bool)     -> T[]
+fold   :: fn[T, U](arr: T[], init: U, f: fn(U, T) -> U) -> U
 sum    :: fn(arr: i32[]) -> i32
-take   :: fn(arr: $T[], n: i32) -> T[]
-skip   :: fn(arr: $T[], n: i32) -> T[]
-slice  :: fn(arr: $T[], start: i32, end: i32) -> T[]    // bounds clamped, end exclusive
+take   :: fn[T](arr: T[], n: usize) -> T[]
+skip   :: fn[T](arr: T[], n: usize) -> T[]
+slice  :: fn[T](arr: T[], start: usize, end: usize) -> T[]    // bounds clamped, end exclusive
 ```
 
-Stdlib combinators today take a concrete `T[]` rather than `Iterator($T)` because the inference engine can't bind a free type-param across the `T[]` → `Iterator(T)` widening : `count_it(arr)` would need to unify `i32[]` against `Iterator($T)` to set `T = i32`, and that path isn't wired. Combinators specialised for a concrete element type (`fn walk(it: Iterator(i32))`) work end-to-end ; bridging from an iterator to the array-driven family goes through `collect(it)`. Lifting the inference gap is tracked separately and would let the two flavours converge.
+Stdlib combinators today take a concrete `T[]` rather than `Iterator[T]` because the inference engine can't bind a free type-param across the `T[]` → `Iterator[T]` widening : `count_it(arr)` would need to unify `i32[]` against `Iterator[T]` to set `T = i32`, and that path isn't wired. Combinators specialised for a concrete element type (`fn walk(it: Iterator[i32])`) work end-to-end ; bridging from an iterator to the array-driven family goes through `collect(it)`. Lifting the inference gap is tracked separately and would let the two flavours converge.
 
 ### `std/runtime`
 
@@ -2217,7 +2206,7 @@ JsonNumber :: struct { value: f64 }
 JsonBool   :: struct { value: bool }
 JsonNull   :: struct {}
 JsonArray  :: struct { items: [JsonValue] }
-JsonObject :: struct { entries: MutableMap(string, JsonValue) }
+JsonObject :: struct { entries: MutableMap[string, JsonValue] }
 
 JsonError  :: struct { msg: string, pos: i32 }   // implements Error
 
@@ -2266,7 +2255,7 @@ Possibly post-MVP, in `std/thread`, **not available on the WASM target** (compil
 ### Native (Linux, macOS, Windows)
 
 - Backend = **portable C emission**, invokes `cc` (gcc, clang, or tcc depending on availability).
-- Minimal C runtime: GC mark-sweep + string helpers + I/O helpers via libc.
+- Minimal C runtime: Cheney semi-space copying GC + string helpers + I/O helpers via libc.
 - Future possibility: direct ASM backends per target.
 
 ### WebAssembly
@@ -2612,7 +2601,7 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 11. **C emitter**: from bytecode
 12. **WASM emitter**: from bytecode
 13. **Stdlib in Vader**: core, io, string, collections, math, builder, iter
-14. **C runtime**: mark-sweep stop-the-world GC, string helpers, basic syscalls
+14. **C runtime**: Cheney semi-space copying GC (stop-the-world, shadow-stack roots), string helpers, basic syscalls
 15. **CLI**: `run`, `build` (with `--target=ir|native|wasm`), `fmt`, `test`, `dump`, REPL
 16. **Snapshot tests**: for each sample, snapshot the output of every stage
 
