@@ -9,12 +9,14 @@
 // actually traps). `@assert` is a comptime-only top-level decorator and is
 // *not* what these run-time assertions hook into.
 
-import "std/math" { abs }
-
 /// Trap the current execution with `msg`. Surface for the VM is a thrown
 /// `VmError`; on native, the process aborts after printing to stderr.
 /// Kept private — external callers should reach for `fail(msg)` instead.
 @intrinsic panic :: fn(msg: string) -> void
+
+/// Local f64-abs — kept inline to avoid a `std/math` import, which would
+/// create a cycle the moment any `std/math` test imports back into here.
+abs_f64 :: fn(x: f64) = if x < 0.0 { -x } else { x }
 
 /// Plain boolean assertion. `assert(false, "...")` traps with `msg`.
 export assert :: fn(cond: bool, msg: string) -> void {
@@ -73,7 +75,7 @@ export assert_gte :: fn[T: Display & Comparable](actual: T, bound: T) -> void {
 
 /// Assert `|actual - expected| <= eps`. Float-friendly equality.
 export assert_close :: fn(actual: f64, expected: f64, eps: f64) -> void {
-    if abs(actual - expected) > eps {
+    if abs_f64(actual - expected) > eps {
         panic("assert_close failed: ${actual} not within ${eps} of ${expected}")
     }
 }

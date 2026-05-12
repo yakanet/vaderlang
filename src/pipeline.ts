@@ -78,19 +78,37 @@ export async function pipelineAst(file: string): Promise<AstResult> {
 }
 
 export async function pipelineResolved(file: string): Promise<ResolvedResult> {
-  const source = await Bun.file(file).text();
+  // Entry can be either a single file or a folder module (e.g. `vader/lexer/`,
+  // which `vader test` hands in to compile the whole sibling set as one unit).
+  // Single-file entries pre-read `source` so diagnostic rendering has it ;
+  // folder entries leave it empty — the renderer falls back to re-reading
+  // each individual file when surfacing per-diagnostic context.
+  const entryIsDir = await isDirectory(file);
+  const source = entryIsDir ? "" : await Bun.file(file).text();
   const diagnostics = new DiagnosticCollector();
   const project = resolveProject({ entryPath: file, diags: diagnostics });
   // The entry file's parsed Program lives inside project.modules; surface it
-  // directly so callers don't need to walk the modules map.
+  // directly so callers don't need to walk the modules map. For folder
+  // entries, pick any of the module's files — downstream consumers (lower,
+  // emit) iterate `project.modules` themselves and don't depend on the
+  // `program` field being the "entry" module.
   let program: Program | undefined;
   for (const p of project.modules.values()) {
-    if (p.module.files.some((f) => f.path === file)) {
+    if (entryIsDir ? p.module.rootDir === file : p.module.files.some((f) => f.path === file)) {
       program = p.source;
       break;
     }
   }
   return { file, source, program: program ?? p404(file), project, diagnostics };
+}
+
+async function isDirectory(path: string): Promise<boolean> {
+  try {
+    const { statSync } = await import("node:fs");
+    return statSync(path).isDirectory();
+  } catch {
+    return false;
+  }
 }
 
 export async function pipelineTyped(file: string): Promise<TypedResult> {
@@ -123,15 +141,15 @@ export async function pipelineLowered(
 }
 
 export async function pipelineDced(
-  file: string, opts?: { allowEnv?: boolean },
+  file: string, opts?: { allowEnv?: boolean; keepTests?: boolean },
 ): Promise<DcedResult> {
   const r = await pipelineLowered(file, opts);
-  const dced = pruneUnreachable(r.lowered);
+  const dced = pruneUnreachable(r.lowered, { keepTests: opts?.keepTests });
   return { ...r, dced };
 }
 
 export async function pipelineCfg(
-  file: string, opts?: { allowEnv?: boolean },
+  file: string, opts?: { allowEnv?: boolean; keepTests?: boolean },
 ): Promise<CfgResult> {
   const r = await pipelineDced(file, opts);
   // SSA round-trip is behaviour-neutral; escape analysis runs on SSA to
@@ -143,7 +161,7 @@ export async function pipelineCfg(
 }
 
 export async function pipelineBytecode(
-  file: string, opts?: { allowEnv?: boolean; bytecodeOpt?: boolean },
+  file: string, opts?: { allowEnv?: boolean; bytecodeOpt?: boolean; keepTests?: boolean },
 ): Promise<BytecodeResult> {
   const r = await pipelineCfg(file, opts);
   const implRegistry = buildImplRegistry(r.evaluated.typed.resolved);

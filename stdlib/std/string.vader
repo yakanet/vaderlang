@@ -360,3 +360,115 @@ export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
     }
     return out
 }
+
+// ---------------------------------------------------------------------- tests
+
+import "std/testing" { assert, assert_eq, assert_close }
+
+@test test_byte_len :: fn() -> void {
+    assert_eq(byte_len(""), usize(0))
+    assert_eq(byte_len("abc"), usize(3))
+    assert_eq(byte_len("héllo"), usize(6))
+}
+
+@test test_is_empty :: fn() -> void {
+    assert(is_empty(""), "empty string should be empty")
+    assert(!is_empty("x"), "non-empty string should not be empty")
+}
+
+@test test_slice :: fn() -> void {
+    assert_eq(slice("hello", usize(0), usize(5)), "hello")
+    assert_eq(slice("hello", usize(1), usize(4)), "ell")
+    assert_eq(slice("hello", usize(0), usize(0)), "")
+}
+
+@test test_contains :: fn() -> void {
+    assert(contains("hello world", "world"), "contains world")
+    assert(contains("abc", "a"), "contains first char")
+    assert(!contains("abc", "z"), "does not contain z")
+    assert(contains("anything", ""), "every string contains empty")
+}
+
+@test test_starts_ends_with :: fn() -> void {
+    assert(starts_with("hello", "hell"), "starts_with hell")
+    assert(!starts_with("hello", "world"), "does not start_with world")
+    assert(ends_with("hello", "llo"), "ends_with llo")
+    assert(!ends_with("hello", "world"), "does not end_with world")
+}
+
+@test test_trim :: fn() -> void {
+    assert_eq(trim("  hello  "), "hello")
+    assert_eq(trim("\t\nhi\r\n"), "hi")
+    assert_eq(trim("clean"), "clean")
+    assert_eq(trim("   "), "")
+}
+
+@test test_case :: fn() -> void {
+    assert_eq(to_upper("hello"), "HELLO")
+    assert_eq(to_lower("HeLLo"), "hello")
+    assert_eq(to_upper(""), "")
+}
+
+@test test_parse_int_ok :: fn() -> void {
+    match parse_int("42") {
+        is i32 as v -> assert_eq(v, 42)
+        is Error -> assert(false, "expected ok i32")
+    }
+    match parse_int("-7") {
+        is i32 as v -> assert_eq(v, -7)
+        is Error -> assert(false, "expected ok i32")
+    }
+}
+
+@test test_parse_int_err :: fn() -> void {
+    match parse_int("abc") {
+        is i32 -> assert(false, "expected err on abc")
+        is Error -> {}
+    }
+}
+
+@test test_parse_float :: fn() -> void {
+    match parse_float("3.14") {
+        is f64 as v -> assert_close(v, 3.14, 0.000001)
+        is Error -> assert(false, "expected ok f64")
+    }
+}
+
+@test test_pad :: fn() -> void {
+    assert_eq(pad_start("42", usize(5), '0'), "00042")
+    assert_eq(pad_end("hi", usize(5), '.'), "hi...")
+    assert_eq(pad_start("already long", usize(3), 'x'), "already long")
+}
+
+@test test_char_predicates :: fn() -> void {
+    assert(is_white_char(' '), "space is whitespace")
+    assert(is_white_char('\t'), "tab is whitespace")
+    assert(is_white_char('\n'), "newline is whitespace")
+    assert(!is_white_char('a'), "letter is not whitespace")
+    assert(is_digit('5'), "5 is a digit")
+    assert(!is_digit('a'), "a is not a digit")
+    assert(is_alpha('a'), "a is alpha")
+    assert(is_alpha('Z'), "Z is alpha")
+    assert(!is_alpha('5'), "5 is not alpha")
+    assert(is_alnum('x'), "x is alnum")
+    assert(is_alnum('7'), "7 is alnum")
+    assert(!is_alnum(' '), "space is not alnum")
+}
+
+@test test_trim_prefix_suffix :: fn() -> void {
+    assert_eq(trim_prefix("hello.world", "hello."), "world")
+    assert_eq(trim_prefix("no-match", "xxx"), "no-match")
+    assert_eq(trim_suffix("file.txt", ".txt"), "file")
+    assert_eq(trim_suffix("no-match", "xxx"), "no-match")
+}
+
+@test test_count_chars :: fn() -> void {
+    assert_eq(count_chars(""), usize(0))
+    assert_eq(count_chars("abc"), usize(3))
+    assert_eq(count_chars("héllo"), usize(5))
+}
+
+@test test_last_index_of :: fn() -> void {
+    assert_eq(last_index_of("a/b/c", '/', isize(-1)), isize(3))
+    assert_eq(last_index_of("none", '/', isize(-1)), isize(-1))
+}

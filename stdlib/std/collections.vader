@@ -363,3 +363,58 @@ SetIterator[T] implements Iterator[T] {
         return Done {}
     }
 }
+
+// ---------------------------------------------------------------------- tests
+
+import "std/testing" { assert, assert_eq }
+
+@test test_map_put_get :: fn() -> void {
+    m := MutableMap(string, i32) { .buckets = [], .size = usize(0) }
+    m["one"] = 1
+    m["two"] = 2
+    m["three"] = 3
+    assert_eq(m.len(), usize(3))
+    match m.get("two") {
+        is i32 as v -> assert_eq(v, 2)
+        is null -> assert(false, "expected key two")
+    }
+    match m.get("missing") {
+        is i32 -> assert(false, "expected null on missing")
+        is null -> {}
+    }
+}
+
+@test test_map_overwrite :: fn() -> void {
+    m := MutableMap(string, i32) { .buckets = [], .size = usize(0) }
+    m["k"] = 1
+    m["k"] = 99
+    assert_eq(m.len(), usize(1))
+    match m.get("k") {
+        is i32 as v -> assert_eq(v, 99)
+        is null -> assert(false, "key k expected")
+    }
+}
+
+@test test_map_contains_key :: fn() -> void {
+    m := MutableMap(string, i32) { .buckets = [], .size = usize(0) }
+    m["k"] = 1
+    assert(m.contains_key("k"), "should contain k")
+    assert(!m.contains_key("nope"), "should not contain nope")
+}
+
+@test test_map_is_empty :: fn() -> void {
+    m := MutableMap(string, i32) { .buckets = [], .size = usize(0) }
+    assert(m.is_empty(), "fresh map is empty")
+    m["x"] = 1
+    assert(!m.is_empty(), "after put no longer empty")
+}
+
+@test test_set_add_contains :: fn() -> void {
+    s := MutableSet(i32) { .inner = MutableMap(i32, bool) { .buckets = [], .size = usize(0) } }
+    s.add(10)
+    s.add(20)
+    s.add(10)
+    assert_eq(s.len(), usize(2))
+    assert(s.contains(10), "should contain 10")
+    assert(!s.contains(99), "should not contain 99")
+}

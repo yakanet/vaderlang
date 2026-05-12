@@ -33,7 +33,7 @@ import {
   computeLiveness, countUses, dstOf, forEachReadInTerminator, forEachReadLocal,
   instructionHasSideEffect,
 } from "./analyses.ts";
-import { forEachReference, type RefVisitor, type VirtualCallVisitor } from "./lowered_walk.ts";
+import { forEachReference, structInstKey, type RefVisitor, type StructInstVisitor, type VirtualCallVisitor } from "./lowered_walk.ts";
 
 import type { LoweredDecl, LoweredModule, LoweredProject } from "../lower/index.ts";
 import { isStdlibModule } from "../resolver/module.ts";
@@ -49,39 +49,73 @@ const NO_DECORATORS: readonly Decorator[] = [];
 // the bytecode emit's per-decl walks both see the same pruned LoweredProject.
 // =============================================================================
 
-export function pruneUnreachable(lp: LoweredProject): LoweredProject {
+export interface PruneOpts {
+  /** When true, `@test` fns count as roots — they get preserved through DCE
+   *  so `vader test` can dispatch to them after compilation. Defaults to
+   *  false : regular `vader run` / `vader build` drop tests so the bytecode
+   *  (and emitted C) doesn't carry stdlib test code that callers can't
+   *  reach. */
+  readonly keepTests?: boolean;
+}
+
+export function pruneUnreachable(lp: LoweredProject, opts: PruneOpts = {}): LoweredProject {
+  // Two indexes : the symbol-keyed map covers fns, consts, and the generic
+  // struct shape (typeArgs.length === 0). The instance-keyed map covers
+  // mono struct variants so the walker can push the *correct* mono decl
+  // for a given concrete type — without the split, every `MutableMap.put`
+  // call site (sym-id-based) would push whichever Entry mono `bySymId`
+  // happened to store last, and that variant's self-reference would mark
+  // its own key reachable even when nothing else points at it.
   const bySymId = new Map<number, LoweredDecl>();
+  const byStructInstance = new Map<string, LoweredDecl>();
   const reachable = new Set<number>();
+  const reachableStructs = new Set<string>();
   const worklist: LoweredDecl[] = [];
+  const keepTests = opts.keepTests ?? false;
 
   // Whole-program reachability is gated on the project actually exposing a
   // `main`. When it does, we treat user code uniformly with stdlib (root from
-  // main + every @export/@test/@extern, prune the rest). When it doesn't —
-  // library target, snapshot fixture, single-file `vader run` of a non-main
-  // file — every user decl stays a root, matching the prior behavior so
-  // those workflows don't lose their decls.
+  // main + every @export/@extern + optionally @test, prune the rest). When
+  // it doesn't — library target, snapshot fixture, single-file `vader run`
+  // of a non-main file — every user decl stays a root, matching the prior
+  // behavior so those workflows don't lose their decls.
   const hasMain = projectHasMain(lp);
 
   for (const m of lp.modules.values()) {
     const fromStdlib = isStdlibModule(m.displayPath);
     for (const d of m.decls) {
       const sym = d.origin.symbol;
-      if (sym !== null) bySymId.set(sym.id, d);
-      if (!isRoot(d, fromStdlib, hasMain)) continue;
-      if (sym !== null) reachable.add(sym.id);
+      if (sym !== null) {
+        if (d.kind === "LoweredStructDecl" && d.origin.typeArgs.length > 0) {
+          byStructInstance.set(structInstKey(sym.id, d.origin.typeArgs), d);
+        } else {
+          bySymId.set(sym.id, d);
+        }
+      }
+      if (!isRoot(d, fromStdlib, hasMain, keepTests)) continue;
+      if (sym !== null) {
+        reachable.add(sym.id);
+        if (d.kind === "LoweredStructDecl" && d.origin.typeArgs.length > 0) {
+          reachableStructs.add(structInstKey(sym.id, d.origin.typeArgs));
+        }
+      }
       worklist.push(d);
     }
   }
 
-  // (trait, method) -> impl fn symbol ids. VirtualCall sites only carry the
-  // trait/method strings, so without this lookup DCE would drop the impl fns
-  // that satisfy the call.
-  const implsByVtableKey = new Map<string, number[]>();
+  // (trait, method) -> impl fn symbol ids, paired with the receiver struct's
+  // symbol so DCE can keep only the impls whose receiver is itself reachable.
+  // Without the filter, every `iter.next()` virtual call drags in *every*
+  // impl of `Iterator.next` across all monomorphic instantiations — even the
+  // `ArrayIterator(string)` impl when the program only uses `i32` arrays.
+  interface VtableImpl { readonly fnId: number; readonly structSymId: number | null }
+  const implsByVtableKey = new Map<string, VtableImpl[]>();
   for (const e of lp.vtableEntries) {
     const key = `${e.traitName}|${e.methodName}`;
     let bucket = implsByVtableKey.get(key);
     if (bucket === undefined) { bucket = []; implsByVtableKey.set(key, bucket); }
-    bucket.push(e.fnSymbol.id);
+    const structSymId = e.structType.kind === "Struct" ? e.structType.symbol.id : null;
+    bucket.push({ fnId: e.fnSymbol.id, structSymId });
   }
 
   const visit: RefVisitor = (id) => {
@@ -90,15 +124,46 @@ export function pruneUnreachable(lp: LoweredProject): LoweredProject {
     const decl = bySymId.get(id);
     if (decl !== undefined) worklist.push(decl);
   };
-  const visitVirtual: VirtualCallVisitor = (trait, method) => {
-    const ids = implsByVtableKey.get(`${trait}|${method}`);
-    if (ids !== undefined) for (const id of ids) visit(id);
+  const visitStructInst: StructInstVisitor = (key) => {
+    if (reachableStructs.has(key)) return;
+    reachableStructs.add(key);
+    const decl = byStructInstance.get(key);
+    if (decl !== undefined) worklist.push(decl);
   };
-  while (worklist.length > 0) forEachReference(worklist.pop()!, visit, visitVirtual);
+  // Defer virtual visits until the main walk stabilises — at the moment a
+  // virtual call is first encountered, its receiver struct may not yet be
+  // marked reachable. We collect (trait, method) pairs and re-process them
+  // to fixpoint after the worklist drains.
+  const pendingVirtual: Array<[string, string]> = [];
+  const visitVirtual: VirtualCallVisitor = (trait, method) => {
+    pendingVirtual.push([trait, method]);
+  };
+  const drainPending = (): boolean => {
+    let changed = false;
+    for (const [trait, method] of pendingVirtual) {
+      const entries = implsByVtableKey.get(`${trait}|${method}`);
+      if (entries === undefined) continue;
+      for (const e of entries) {
+        // Non-struct impls (primitive receivers) have no concrete struct to
+        // gate on — keep them ; concrete-struct impls only count when the
+        // receiver type has been reached through some other path.
+        if (e.structSymId !== null && !reachable.has(e.structSymId)) continue;
+        if (!reachable.has(e.fnId)) {
+          visit(e.fnId);
+          changed = true;
+        }
+      }
+    }
+    return changed;
+  };
+  for (;;) {
+    while (worklist.length > 0) forEachReference(worklist.pop()!, visit, visitVirtual, visitStructInst);
+    if (!drainPending()) break;
+  }
 
   const modules = new Map<string, LoweredModule>();
   for (const [id, m] of lp.modules) {
-    const kept = m.decls.filter((d) => d.origin.symbol === null || reachable.has(d.origin.symbol.id));
+    const kept = m.decls.filter((d) => declSurvives(d, reachable, reachableStructs));
     modules.set(id, kept.length === m.decls.length ? m : {
       moduleId: m.moduleId, displayPath: m.displayPath, decls: kept,
     });
@@ -108,7 +173,23 @@ export function pruneUnreachable(lp: LoweredProject): LoweredProject {
   return { modules, vtableEntries: lp.vtableEntries };
 }
 
-function isRoot(d: LoweredDecl, fromStdlib: boolean, hasMain: boolean): boolean {
+function declSurvives(
+  d: LoweredDecl, reachable: ReadonlySet<number>, reachableStructs: ReadonlySet<string>,
+): boolean {
+  const sym = d.origin.symbol;
+  if (sym === null) return true;
+  if (!reachable.has(sym.id)) return false;
+  // For struct decls, the symbol filter alone is too coarse — every mono
+  // instance of `MutableMap(K, V)` shares one symbol id, so once any variant
+  // is reachable the others would pass too. Match the decl's own typeArgs
+  // against the per-instance reachability set.
+  if (d.kind === "LoweredStructDecl" && d.origin.typeArgs.length > 0) {
+    return reachableStructs.has(structInstKey(sym.id, d.origin.typeArgs));
+  }
+  return true;
+}
+
+function isRoot(d: LoweredDecl, fromStdlib: boolean, hasMain: boolean, keepTests: boolean): boolean {
   // No `main` anywhere — every user decl stays a root so library targets,
   // snapshot fixtures, and `vader run` of a script without `main` keep
   // their decls intact. Stdlib is always reachability-only.
@@ -118,9 +199,11 @@ function isRoot(d: LoweredDecl, fromStdlib: boolean, hasMain: boolean): boolean 
     if (d.origin.isMain) return true;
   }
   const decs = d.origin.decl.kind === "ImplDecl" ? NO_DECORATORS : d.origin.decl.decorators;
-  return hasDecorator(decs, DEC.export)
-      || hasDecorator(decs, DEC.test)
-      || hasDecorator(decs, DEC.extern);
+  if (hasDecorator(decs, DEC.export) || hasDecorator(decs, DEC.extern)) return true;
+  // @test fns only count as roots in test-runner builds. Regular run/build
+  // drops them so the bytecode doesn't carry stdlib test code that nothing
+  // can dispatch to.
+  return keepTests && hasDecorator(decs, DEC.test);
 }
 
 function projectHasMain(lp: LoweredProject): boolean {

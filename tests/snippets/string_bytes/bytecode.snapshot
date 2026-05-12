@@ -1,17 +1,12 @@
 module _main
 type 0 struct std_core$Done {  }
-type 1 struct std_core$Yielded__char { value:2 }
-type 2 primitive char
-type 3 struct std_core$Yielded__i32 { value:4 }
-type 4 primitive i32
-type 5 struct std_core$Yielded__u8 { value:6 }
-type 6 primitive u8
-type 7 struct std_core$Yielded__usize { value:8 }
-type 8 primitive usize
-type 9 struct std_string$StringBytes { s:10,cursor:8,length:8 }
-type 10 primitive string
-type 11 struct std_string_builder$StringBuilder { parts:12 }
-type 12 array 10
+type 1 struct std_core$Yielded__u8 { value:2 }
+type 2 primitive u8
+type 3 struct std_string$StringBytes { s:4,cursor:5,length:5 }
+type 4 primitive string
+type 5 primitive usize
+type 6 struct std_string_builder$StringBuilder { parts:7 }
+type 7 array 4
 string 0 "-- ascii --"
 string 1 "vader"
 string 2 "sum="
@@ -71,7 +66,7 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
       if $L2 void   ; _main.vader:8:5
       else   ; _main.vader:8:5
         local.get 2   ; _main.vader:8:5
-        struct.get 5 0   ; _main.vader:8:5
+        struct.get 1 0   ; _main.vader:8:5
         u8.to_u32   ; _main.vader:9:21
         local.set 19   ; _main.vader:9:21
         local.get 1   ; _main.vader:9:15
@@ -107,7 +102,7 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
       if $L5 void   ; _main.vader:15:5
       else   ; _main.vader:15:5
         local.get 5   ; _main.vader:15:5
-        struct.get 5 0   ; _main.vader:15:5
+        struct.get 1 0   ; _main.vader:15:5
         local.set 17   ; _main.vader:15:5
         intrinsic builder.new   ; _main.vader:16:17
         local.tee 18   ; _main.vader:16:17
@@ -234,10 +229,10 @@ fn 1 std_string$StringBytes$Iterator$next (ref) -> ref
   local "$field_9#21" usize
   local "$add_11#23" usize
   local.get 0   ; string.vader:57:13
-  struct.get 9 1   ; string.vader:57:13
+  struct.get 3 1   ; string.vader:57:13
   local.set 1   ; string.vader:57:13
   local.get 0   ; string.vader:57:28
-  struct.get 9 2   ; string.vader:57:28
+  struct.get 3 2   ; string.vader:57:28
   local.set 2   ; string.vader:57:28
   local.get 1   ; string.vader:57:13
   local.get 2   ; string.vader:57:13
@@ -247,17 +242,17 @@ fn 1 std_string$StringBytes$Iterator$next (ref) -> ref
     return   ; string.vader:58:13
   else   ; string.vader:57:9
     local.get 0   ; string.vader:60:14
-    struct.get 9 0   ; string.vader:60:14
+    struct.get 3 0   ; string.vader:60:14
     local.set 3   ; string.vader:60:14
     local.get 0   ; string.vader:60:29
-    struct.get 9 1   ; string.vader:60:29
+    struct.get 3 1   ; string.vader:60:29
     local.set 4   ; string.vader:60:29
     local.get 3   ; string.vader:60:14
     local.get 4   ; string.vader:60:14
     call.import 2   ; string.vader:60:14
     local.set 5   ; string.vader:60:9
     local.get 0   ; string.vader:61:23
-    struct.get 9 1   ; string.vader:61:23
+    struct.get 3 1   ; string.vader:61:23
     local.set 6   ; string.vader:61:23
     local.get 6   ; string.vader:61:23
     i64.const 1   ; string.vader:61:23
@@ -266,9 +261,9 @@ fn 1 std_string$StringBytes$Iterator$next (ref) -> ref
     local.set 7   ; string.vader:61:23
     local.get 0   ; string.vader:61:9
     local.get 7   ; string.vader:61:9
-    struct.set 9 1   ; string.vader:61:9
+    struct.set 3 1   ; string.vader:61:9
     local.get 5   ; string.vader:62:16
-    struct.new 5   ; string.vader:62:16
+    struct.new 1   ; string.vader:62:16
     return   ; string.vader:62:9
   end $L0   ; string.vader:57:9
 end
@@ -285,6 +280,6 @@ fn 2 std_string$bytes (string) -> ref
   local.get 0   ; string.vader:76:12
   local.get 1   ; string.vader:76:12
   local.get 2   ; string.vader:76:12
-  struct.new 9   ; string.vader:76:12
+  struct.new 3   ; string.vader:76:12
   return   ; string.vader:76:5
 end

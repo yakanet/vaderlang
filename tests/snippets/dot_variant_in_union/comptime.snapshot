@@ -3,6 +3,10 @@
 ## tests/snippets/dot_variant_in_union/_main.vader
 
 ## generic instances
+  assert_eq(i32)
+  assert_eq(isize)
+  assert_eq(string)
+  assert_eq(usize)
   Yielded(char)
   Yielded(i32)
   Yielded(u8)

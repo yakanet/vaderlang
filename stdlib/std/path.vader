@@ -250,3 +250,61 @@ export normalize :: fn(self: Path) -> Path {
     }
     return Path { .repr = out }
 }
+
+// ---------------------------------------------------------------------- tests
+
+import "std/testing" { assert, assert_eq }
+
+@test test_to_path :: fn() -> void {
+    p :: to_path("a/b/c")
+    assert_eq(p.as_string(), "a/b/c")
+}
+
+@test test_empty_path :: fn() -> void {
+    p :: empty_path()
+    assert(p.is_empty(), "empty_path should be empty")
+    assert_eq(p.as_string(), "")
+}
+
+@test test_is_absolute :: fn() -> void {
+    assert(to_path("/usr/bin").is_absolute(), "/usr/bin is absolute")
+    assert(!to_path("relative/path").is_absolute(), "relative/path is not absolute")
+    assert(!empty_path().is_absolute(), "empty path is not absolute")
+}
+
+@test test_parent :: fn() -> void {
+    assert_eq(to_path("a/b/c").parent().as_string(), "a/b")
+    assert_eq(to_path("a").parent().as_string(), "")
+    assert_eq(to_path("/usr/bin/cat").parent().as_string(), "/usr/bin")
+}
+
+@test test_filename :: fn() -> void {
+    assert_eq(to_path("a/b/c").filename(), "c")
+    assert_eq(to_path("file.txt").filename(), "file.txt")
+    assert_eq(to_path("a/b/").filename(), "")
+}
+
+@test test_extension :: fn() -> void {
+    assert_eq(to_path("file.txt").extension(), "txt")
+    assert_eq(to_path("a/b/c.tar.gz").extension(), "gz")
+    assert_eq(to_path("no_ext").extension(), "")
+    assert_eq(to_path("README").extension(), "")
+}
+
+@test test_stem :: fn() -> void {
+    assert_eq(to_path("file.txt").stem(), "file")
+    assert_eq(to_path("a/b/file.txt").stem(), "file")
+    assert_eq(to_path("README").stem(), "README")
+}
+
+@test test_join :: fn() -> void {
+    assert_eq(to_path("a").join("b").as_string(), "a/b")
+    assert_eq(to_path("a/").join("b").as_string(), "a/b")
+    assert_eq(empty_path().join("b").as_string(), "b")
+}
+
+@test test_starts_ends_with :: fn() -> void {
+    assert(to_path("a/b/c").starts_with(to_path("a/b")), "a/b/c starts with a/b")
+    assert(to_path("a/b/c").ends_with(to_path("b/c")), "a/b/c ends with b/c")
+    assert(!to_path("a/b/c").starts_with(to_path("x")), "a/b/c does not start with x")
+}

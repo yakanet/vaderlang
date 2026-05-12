@@ -933,3 +933,52 @@ export tokenize :: fn(source: string, file: string) -> Lexer {
     l.emit(make_token(.Eof, "", eof_span))
     return l
 }
+
+// ---------------------------------------------------------------------- tests
+
+import "std/testing" { assert, assert_eq }
+
+@test test_tokenize_ident :: fn() -> void {
+    l :: tokenize("foo", "test.vader")
+    assert_eq(l.tokens.len(), usize(2)) // ident + eof
+    assert_eq(l.tokens[usize(0)].text, "foo")
+}
+
+@test test_tokenize_int :: fn() -> void {
+    l :: tokenize("42", "test.vader")
+    assert_eq(l.tokens.len(), usize(2)) // int + eof
+    assert_eq(l.tokens[usize(0)].text, "42")
+}
+
+@test test_tokenize_keyword :: fn() -> void {
+    l :: tokenize("fn", "test.vader")
+    assert_eq(l.tokens.len(), usize(2)) // fn + eof
+    assert_eq(l.tokens[usize(0)].text, "fn")
+}
+
+@test test_tokenize_string :: fn() -> void {
+    l :: tokenize("\"hello\"", "test.vader")
+    // Plain string emits begin / part / end + eof
+    assert(l.tokens.len() >= usize(4), "string should emit at least 4 tokens")
+}
+
+@test test_tokenize_empty :: fn() -> void {
+    l :: tokenize("", "test.vader")
+    assert_eq(l.tokens.len(), usize(1)) // just eof
+}
+
+@test test_tokenize_arith :: fn() -> void {
+    l :: tokenize("1 + 2", "test.vader")
+    assert(l.tokens.len() >= usize(4), "arith yields int + op + int + eof")
+}
+
+@test test_tokenize_comment_skipped :: fn() -> void {
+    l :: tokenize("// comment\n42", "test.vader")
+    // Line comment is consumed ; only the int + eof remain.
+    assert_eq(l.tokens[usize(0)].text, "42")
+}
+
+@test test_tokenize_no_errors_on_valid_source :: fn() -> void {
+    l :: tokenize("fn foo() { return 42 }", "test.vader")
+    assert_eq(l.errors.len(), usize(0))
+}

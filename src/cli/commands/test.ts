@@ -1,5 +1,5 @@
-import { readdirSync, statSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { basename, dirname, join, relative, resolve } from "node:path";
 
 import type { GlobalOpts } from "../options.ts";
 import { pipelineBytecode } from "../../pipeline.ts";
@@ -19,17 +19,29 @@ export async function cmdTest(opts: GlobalOpts, args: string[]): Promise<number>
   const target = resolve(args[0] ?? ".");
   const files = discoverFiles(target);
   if (files.length === 0) {
-    console.error(`vader test: no .vader files found under ${target}`);
+    console.error(`vader test: no .vader files found under ${displayPath(process.cwd(), target)}`);
     return 2;
   }
 
+  // Group by parent directory : folder modules (vader/lexer/, etc.) hold
+  // siblings that reference each other, so building one file in isolation
+  // misses cross-file symbols. The resolver auto-loads sibling .vader files
+  // when given any single file in the folder, so we pick one representative
+  // per dir and let it pull the rest in.
+  const reps = pickModuleRepresentatives(files);
+
   const cwd = process.cwd();
+  const ranTests = new Set<string>();
   let totalPass = 0;
   let totalFail = 0;
   let filesWithTests = 0;
 
-  for (const file of files) {
-    const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt });
+  for (const file of reps) {
+    const r = await pipelineBytecode(file, {
+      allowEnv: opts.allowEnv,
+      bytecodeOpt: opts.bytecodeOpt,
+      keepTests: true,
+    });
     const diags = r.diagnostics.sorted();
     if (diags.some((d) => d.severity === "error")) {
       if (opts.diagnostics === "json") {
@@ -41,13 +53,17 @@ export async function cmdTest(opts: GlobalOpts, args: string[]): Promise<number>
       continue;
     }
 
-    const tests = findTests(r.dced);
+    // Filter out tests we already ran from an earlier representative — the
+    // stdlib modules show up under nearly every build because they're imported
+    // transitively. Each unique @test fn runs once per `vader test` invocation.
+    const tests = findTests(r.dced).filter((t) => !ranTests.has(t.mangled));
     if (tests.length === 0) continue;
     filesWithTests += 1;
 
     console.log(displayPath(cwd, file));
     const host = makeBindings(defaultHostIO());
     for (const t of tests) {
+      ranTests.add(t.mangled);
       const start = performance.now();
       try {
         runFn(r.bytecode, t.mangled, [], { host });
@@ -73,6 +89,68 @@ export async function cmdTest(opts: GlobalOpts, args: string[]): Promise<number>
   console.log("");
   console.log(`${total} test${total === 1 ? "" : "s"} | ${totalPass} pass | ${totalFail} fail`);
   return totalFail === 0 ? 0 : 1;
+}
+
+/** Pick the smallest set of entry paths that, when compiled by the test
+ *  runner, transitively cover every `.vader` file under the target. Three
+ *  dir shapes are handled :
+ *   1. **Single-file dir** — only one `.vader`, pass it through.
+ *   2. **Folder module** — multiple files that share scope (no sibling-by-
+ *      name imports). E.g. `vader/lexer/`. Pass the *dir* so the resolver
+ *      loads every sibling as one module.
+ *   3. **Per-file modules** — siblings import each other by name (E.g.
+ *      `vader/fmt/cli` imports `vader/fmt/format`). Pass only the files
+ *      that no sibling imports — those are the entry points. Their
+ *      transitive imports drag the rest of the dir into the build, so
+ *      every test fn is reachable without trying to standalone-compile
+ *      library files whose types only resolve via the entry's context. */
+function pickModuleRepresentatives(files: readonly string[]): string[] {
+  const byDir = new Map<string, string[]>();
+  for (const f of files) {
+    const d = dirname(f);
+    const bucket = byDir.get(d) ?? [];
+    bucket.push(f);
+    byDir.set(d, bucket);
+  }
+  const out: string[] = [];
+  for (const [dir, group] of byDir) {
+    if (group.length <= 1) {
+      out.push(group[0]!);
+      continue;
+    }
+    if (isFolderModule(dir, group)) {
+      out.push(dir);
+      continue;
+    }
+    // Per-file dir : only files no sibling imports become entries. Files
+    // imported by a sibling are reached transitively from those entries.
+    const importedSiblings = collectSiblingImports(group);
+    for (const f of group) {
+      const name = basename(f, ".vader");
+      if (!importedSiblings.has(name)) out.push(f);
+    }
+  }
+  return out.sort();
+}
+
+function isFolderModule(_dir: string, files: readonly string[]): boolean {
+  return collectSiblingImports(files).size === 0;
+}
+
+function collectSiblingImports(files: readonly string[]): Set<string> {
+  const siblings = new Set(files.map((f) => basename(f, ".vader")));
+  const out: Set<string> = new Set();
+  for (const f of files) {
+    let text;
+    try { text = readFileSync(f, "utf8"); } catch { continue; }
+    const re = /import\s+"([^"\n]+)"/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text)) !== null) {
+      const last = m[1]!.split("/").pop() ?? "";
+      if (siblings.has(last)) out.add(last);
+    }
+  }
+  return out;
 }
 
 function discoverFiles(target: string): string[] {

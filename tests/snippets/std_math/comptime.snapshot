@@ -1,3 +1,6 @@
 # Comptime
 
 ## tests/snippets/std_math/_main.vader
+
+## generic instances
+  assert_eq(i32)

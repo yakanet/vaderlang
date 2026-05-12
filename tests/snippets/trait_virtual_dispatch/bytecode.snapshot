@@ -2,7 +2,6 @@ module _main
 type 0 struct tests_snippets_trait_virtual_dispatch__main_vader$ParseErr { msg:1 }
 type 1 primitive string
 type 2 struct tests_snippets_trait_virtual_dispatch__main_vader$NetErr { reason:1 }
-type 3 struct std_io$IOError { msg:1 }
 string 0 "parse: "
 string 1 "net: "
 string 2 "bad token"
@@ -64,10 +63,4 @@ fn 3 tests_snippets_trait_virtual_dispatch__main_vader$main () -> i32
   call.import 0   ; _main.vader:23:5
   i32.const 0   ; _main.vader:24:12
   return   ; _main.vader:24:5
-end
-
-fn 4 std_io$IOError$Error$message (ref) -> string
-  local.get 0   ; io.vader:13:44
-  struct.get 3 0   ; io.vader:13:44
-  return   ; io.vader:13:37
 end
