@@ -118,7 +118,7 @@ function pickModuleRepresentatives(files: readonly string[]): string[] {
       out.push(group[0]!);
       continue;
     }
-    if (isFolderModule(dir, group)) {
+    if (isFolderModule(group)) {
       out.push(dir);
       continue;
     }
@@ -133,7 +133,7 @@ function pickModuleRepresentatives(files: readonly string[]): string[] {
   return out.sort();
 }
 
-function isFolderModule(_dir: string, files: readonly string[]): boolean {
+function isFolderModule(files: readonly string[]): boolean {
   return collectSiblingImports(files).size === 0;
 }
 

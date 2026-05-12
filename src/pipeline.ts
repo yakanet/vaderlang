@@ -9,7 +9,7 @@ import { DiagnosticCollector } from "./diagnostics/collector.ts";
 import { parseSource } from "./parser/pipeline.ts";
 import type { Program } from "./parser/ast.ts";
 import { UNASSIGNED_NODE_ID } from "./parser/ast.ts";
-import { defaultProjectRoot } from "./resolver/module.ts";
+import { defaultProjectRoot, pathKind } from "./resolver/module.ts";
 import { resolveProject } from "./resolver/index.ts";
 import type { ResolvedProject } from "./resolver/resolved-ast.ts";
 import { checkProject } from "./typecheck/index.ts";
@@ -83,7 +83,7 @@ export async function pipelineResolved(file: string): Promise<ResolvedResult> {
   // Single-file entries pre-read `source` so diagnostic rendering has it ;
   // folder entries leave it empty — the renderer falls back to re-reading
   // each individual file when surfacing per-diagnostic context.
-  const entryIsDir = await isDirectory(file);
+  const entryIsDir = pathKind(file) === "dir";
   const source = entryIsDir ? "" : await Bun.file(file).text();
   const diagnostics = new DiagnosticCollector();
   const project = resolveProject({ entryPath: file, diags: diagnostics });
@@ -102,14 +102,6 @@ export async function pipelineResolved(file: string): Promise<ResolvedResult> {
   return { file, source, program: program ?? p404(file), project, diagnostics };
 }
 
-async function isDirectory(path: string): Promise<boolean> {
-  try {
-    const { statSync } = await import("node:fs");
-    return statSync(path).isDirectory();
-  } catch {
-    return false;
-  }
-}
 
 export async function pipelineTyped(file: string): Promise<TypedResult> {
   const r = await pipelineResolved(file);

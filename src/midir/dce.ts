@@ -58,6 +58,20 @@ export interface PruneOpts {
   readonly keepTests?: boolean;
 }
 
+/** Vtable entry index : per (trait, method) we keep every impl fn plus the
+ *  receiver struct's symbol so the virtual-call walker can drop impls whose
+ *  receiver isn't reachable on its own. */
+interface VtableImpl { readonly fnId: number; readonly structSymId: number | null }
+
+/** Mono variants of a generic struct share their base symbol id but live as
+ *  separate `LoweredStructDecl`s with distinct `typeArgs`. The DCE indexes
+ *  them on a `(symbol.id, canonicalArgsKey)` key so it can prune unused
+ *  variants — `reachable.has(sym.id)` alone would keep every variant alive
+ *  as soon as any one of them was reached. */
+function isMonoStructInstance(d: LoweredDecl): boolean {
+  return d.kind === "LoweredStructDecl" && d.origin.typeArgs.length > 0;
+}
+
 export function pruneUnreachable(lp: LoweredProject, opts: PruneOpts = {}): LoweredProject {
   // Two indexes : the symbol-keyed map covers fns, consts, and the generic
   // struct shape (typeArgs.length === 0). The instance-keyed map covers
@@ -86,7 +100,7 @@ export function pruneUnreachable(lp: LoweredProject, opts: PruneOpts = {}): Lowe
     for (const d of m.decls) {
       const sym = d.origin.symbol;
       if (sym !== null) {
-        if (d.kind === "LoweredStructDecl" && d.origin.typeArgs.length > 0) {
+        if (isMonoStructInstance(d)) {
           byStructInstance.set(structInstKey(sym.id, d.origin.typeArgs), d);
         } else {
           bySymId.set(sym.id, d);
@@ -95,7 +109,7 @@ export function pruneUnreachable(lp: LoweredProject, opts: PruneOpts = {}): Lowe
       if (!isRoot(d, fromStdlib, hasMain, keepTests)) continue;
       if (sym !== null) {
         reachable.add(sym.id);
-        if (d.kind === "LoweredStructDecl" && d.origin.typeArgs.length > 0) {
+        if (isMonoStructInstance(d)) {
           reachableStructs.add(structInstKey(sym.id, d.origin.typeArgs));
         }
       }
@@ -103,12 +117,6 @@ export function pruneUnreachable(lp: LoweredProject, opts: PruneOpts = {}): Lowe
     }
   }
 
-  // (trait, method) -> impl fn symbol ids, paired with the receiver struct's
-  // symbol so DCE can keep only the impls whose receiver is itself reachable.
-  // Without the filter, every `iter.next()` virtual call drags in *every*
-  // impl of `Iterator.next` across all monomorphic instantiations — even the
-  // `ArrayIterator(string)` impl when the program only uses `i32` arrays.
-  interface VtableImpl { readonly fnId: number; readonly structSymId: number | null }
   const implsByVtableKey = new Map<string, VtableImpl[]>();
   for (const e of lp.vtableEntries) {
     const key = `${e.traitName}|${e.methodName}`;
@@ -179,11 +187,7 @@ function declSurvives(
   const sym = d.origin.symbol;
   if (sym === null) return true;
   if (!reachable.has(sym.id)) return false;
-  // For struct decls, the symbol filter alone is too coarse — every mono
-  // instance of `MutableMap(K, V)` shares one symbol id, so once any variant
-  // is reachable the others would pass too. Match the decl's own typeArgs
-  // against the per-instance reachability set.
-  if (d.kind === "LoweredStructDecl" && d.origin.typeArgs.length > 0) {
+  if (isMonoStructInstance(d)) {
     return reachableStructs.has(structInstKey(sym.id, d.origin.typeArgs));
   }
   return true;
