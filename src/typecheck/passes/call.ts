@@ -25,6 +25,7 @@ import { tryInto } from "./coerce.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkExpr } from "./expr.ts";
 import { inferTypeConstructorCall } from "./cast.ts";
+import { primitiveFromName } from "./type-expr.ts";
 import {
   fnOverloadsForSymbol,
   inferGenericUfcsCall,
@@ -115,7 +116,56 @@ export function inferCall(
       }
     }
   }
+  // `arr.push(x)` against an array whose element type wasn't pinned by an
+  // annotation or earlier elements: lift the local's type from `[?]` to
+  // `[typeof x]` so subsequent reads (`arr[i]`, `${arr[i]}`, …) see a
+  // concrete element type instead of falling back to a boxed `any`.
+  refineArrayLocalFromPush(expr, t);
   return calleeType.returnType;
+}
+
+function refineArrayLocalFromPush(expr: A.CallExpr, t: MutableTyped): void {
+  if (expr.callee.kind !== "FieldExpr") return;
+  const fr = t.fieldResolutions.get(expr.callee);
+  if (fr?.kind !== "array-op" || fr.op !== "push") return;
+  if (expr.args.length === 0) return;
+  const target = expr.callee.target;
+  if (target.kind !== "IdentExpr") return;
+  const sym = t.resolved.idents.get(target);
+  if (sym === undefined || sym.source.kind !== "local") return;
+  const binding = sym.source.binding;
+  const current = t.localTypes.get(binding);
+  if (current?.kind !== "Array" || current.element.kind !== "Unresolved") return;
+  const inferred = pushArgConcreteType(expr.args[0]!.value, t);
+  if (inferred === null) return;
+  // Safe to mutate mid-fn-check: every `IdentExpr` typecheck re-reads
+  // `localTypes` (no per-fn cache), so later reads see the refined element.
+  t.localTypes.set(binding, { kind: "Array", element: inferred });
+}
+
+/** Best-effort element-type inference for `arr.push(x)` against an `arr` whose
+ *  static type hasn't been pinned yet. The arg's `exprTypes` entry may have
+ *  already been defaulted to `Unresolved` (FreeInt + Unresolved expected →
+ *  Unresolved by `checkExpr`); for literal shapes, derive the concrete type
+ *  from the AST so the common `arr.push(1)` lands on `i32` rather than
+ *  disappearing into a boxed slot. */
+function pushArgConcreteType(arg: A.Expr, t: MutableTyped): Type | null {
+  switch (arg.kind) {
+    case "IntLitExpr":
+      return arg.suffix !== null ? primitiveFromName(arg.suffix) ?? TY.unresolved : TY.i32;
+    case "FloatLitExpr":
+      return arg.suffix !== null ? primitiveFromName(arg.suffix) ?? TY.unresolved : TY.f64;
+    case "BoolLitExpr":   return TY.bool;
+    case "NullLitExpr":   return TY.null;
+    case "CharLitExpr":   return TY.char;
+    case "StringLitExpr": return TY.string;
+    default: {
+      const argTy = t.exprTypes.get(arg);
+      if (argTy === undefined) return null;
+      const def = defaultIfFree(argTy);
+      return def.kind === "Unresolved" ? null : def;
+    }
+  }
 }
 
 function inferGenericFnCall(

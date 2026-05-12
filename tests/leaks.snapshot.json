@@ -15,6 +15,10 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
+  "array_push": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
   "bound_enforced": {
     "leakedNodes": 0,
     "leakedBytes": 0

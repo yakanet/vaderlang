@@ -1,2 +1,6 @@
-# runtime error
-vm: expected string, got i32 (at tests_snippets_array_push__main_vader$main+36 @ tests/snippets/array_push/_main.vader:9:14)
+# stdout
+3
+1
+3
+# exit
+0
