@@ -940,19 +940,32 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
  */
 
 /* Captured pipes from the most recent `vader_spawn_run`. Buffers are
- * `vader_string_alloc`-ed (GC-arena-safe, leaks for the program's lifetime
- * — same convention as `vader_read_file`'s result). Each new spawn replaces
- * the buffers : `vader_string_alloc` is non-freeing so the previous strings
- * remain valid until the program exits, which dodges a use-after-free for
- * any Vader value still referencing the previous result. */
+ * `vader_string_alloc`-ed and ownership is transferred to the caller when
+ * it consumes `vader_spawn_last_stdout` / `_stderr` — the getter clears the
+ * globals so the Vader-side `vader_string_t` becomes the sole reference.
+ *
+ * If a `spawn_run` fires before the previous capture was consumed (a caller
+ * that drops the result on the floor), `capture_spawn_output` reclaims the
+ * abandoned buffer. This avoids the O(N) leak that an idle long-running
+ * process — LSP, watch-mode — would otherwise accumulate. The transferred
+ * buffer in the consumed case still leaks under the broader string-arena
+ * policy ; that's the larger fix tracked separately. */
 static char*  g_spawn_stdout_buf = NULL;
 static size_t g_spawn_stdout_len = 0;
 static char*  g_spawn_stderr_buf = NULL;
 static size_t g_spawn_stderr_len = 0;
 
 static void capture_spawn_output(char** dst_buf, size_t* dst_len, char* src, size_t src_len) {
+    /* Reclaim the previous capture if the caller never consumed it.
+     * Safe because a consumer (`vader_spawn_last_stdout` / `_stderr`)
+     * clears the slot to NULL on extraction — a non-NULL `*dst_buf` here
+     * is guaranteed to be the unique reference. */
+    if (*dst_buf != NULL) {
+        free(*dst_buf);
+        *dst_buf = NULL;
+        *dst_len = 0;
+    }
     if (src == NULL || src_len == 0) {
-        *dst_buf = NULL; *dst_len = 0;
         if (src != NULL) free(src);
         return;
     }
@@ -1266,17 +1279,31 @@ fail_free_cargv:
 
 #endif  /* _WIN32 / POSIX */
 
+/* Transfer ownership of the captured buffer to the caller. The Vader-side
+ * `vader_string_t` becomes the unique reference ; the next `spawn_run`
+ * therefore won't touch this memory and the caller is free to keep it
+ * around (it'll live under the same leak budget as every other
+ * `vader_string_alloc` result — see the file-top comment on string memory).
+ *
+ * Before any spawn ran, both buf and len are 0 — hand back the empty
+ * sentinel so callers can safely `memcpy` / `fwrite` zero bytes from
+ * `.ptr` without dereferencing NULL. Calling the getter twice without an
+ * intervening `spawn_run` yields the empty sentinel on the second call,
+ * which matches the documented non-reentrant "last call wins" contract. */
 vader_string_t vader_spawn_last_stdout(void) {
-    /* Before any spawn ran, both buf and len are 0 — hand back the empty
-     * sentinel so callers can safely `memcpy` / `fwrite` zero bytes from
-     * `.ptr` without dereferencing NULL. */
-    return vader_string_new(g_spawn_stdout_buf != NULL ? g_spawn_stdout_buf : "",
-                            g_spawn_stdout_len);
+    char*  buf = g_spawn_stdout_buf;
+    size_t len = g_spawn_stdout_len;
+    g_spawn_stdout_buf = NULL;
+    g_spawn_stdout_len = 0;
+    return vader_string_new(buf != NULL ? buf : "", len);
 }
 
 vader_string_t vader_spawn_last_stderr(void) {
-    return vader_string_new(g_spawn_stderr_buf != NULL ? g_spawn_stderr_buf : "",
-                            g_spawn_stderr_len);
+    char*  buf = g_spawn_stderr_buf;
+    size_t len = g_spawn_stderr_len;
+    g_spawn_stderr_buf = NULL;
+    g_spawn_stderr_len = 0;
+    return vader_string_new(buf != NULL ? buf : "", len);
 }
 
 /* ----------------------------------------------------------------- traps */

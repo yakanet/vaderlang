@@ -1,9 +1,17 @@
 /* Vader native runtime — public API consumed by the C emitter (§1.9).
  *
- * Memory: every allocation is leaked for MVP. The 1.11 phase adds a real
- * mark-sweep collector behind this same surface.
+ * Memory: Cheney semi-space copying GC backs structs, arrays, fn closures.
+ * See `vader_gc_*` below and the implementation header in `vader_runtime.c`
+ * for the arena layout, shadow-stack root enumeration, and the per-module
+ * `vader_type_info_table` the scanner consults.
  *
- * Strings are fat values (ptr + len), copied at every assignment. UTF-8.
+ * String buffers (the `char*` behind every `vader_string_t`) live OUTSIDE
+ * the GC arena and are currently leaked for the lifetime of the program —
+ * `vader_string_t` is a fat ptr-len value copied at every assignment, and
+ * a moving GC would need a back-mapping from char-ptr to header on every
+ * scan. Acceptable for short-lived CLI invocations; problematic for
+ * long-running processes (LSP, watch-mode). Reclaiming string buffers is
+ * tracked as a separate phase.
  *
  * Boxes (`vader_box_t`) carry a runtime tag that maps 1:1 to a `BcType` index
  * in the originating bytecode module. `type_check` pattern matches against
