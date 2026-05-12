@@ -431,11 +431,11 @@ A literal float with no suffix **infers to `f64`** (`x := 3.14` ⇒ `x: f64`).
 
 ### Implicit numeric coercion
 
-There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exception is unsuffixed numeric literals: `let x: i64 = 42` works because `42` is left flexible until it lands in a typed context.
+There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exception is unsuffixed numeric literals: `x: i64 = 42` works because `42` is left flexible until it lands in a typed context.
 
 ### Numeric-literal context-sensitivity (Zig comptime-int style)
 
-An unsuffixed integer literal stays as a *free* (untyped) numeric until its surrounding context provides a concrete width ; at that point it adopts the slot's type *without* a runtime conversion. This is what makes `let x: usize = 5`, `Box { .size = 10 }`, `arr.slice(0, n - 1)`, `if usz == 42`, and `g: i64 = -50` all compile without explicit casts even though `5`, `10`, `0`, `42`, `50` would otherwise default to `i32`.
+An unsuffixed integer literal stays as a *free* (untyped) numeric until its surrounding context provides a concrete width ; at that point it adopts the slot's type *without* a runtime conversion. This is what makes `x: usize = 5`, `Box { .size = 10 }`, `arr.slice(0, n - 1)`, `if usz == 42`, and `g: i64 = -50` all compile without explicit casts even though `5`, `10`, `0`, `42`, `50` would otherwise default to `i32`.
 
 The flow is bidirectional :
 - **Top-down (slot expected)** — typed lets, struct-field defaults, fn-arg slots, struct-lit field values, return-type-annotated `return …`, indexed `arr[i]` (slot is the impl's `I` type), comparison/arithmetic where one side has a concrete numeric type. The literal repins to the expected width.
@@ -460,7 +460,7 @@ The compiler probes `S implements Into[T]` whenever a value of type `S` is about
 **Sites of implicit coercion**
 - A call argument whose corresponding parameter has a typed annotation.
 - A `return v` (or block-trailing expression) of a fn with an annotated return type.
-- A `let x: T = v` with an annotation.
+- A `x: T = v` typed binding with an annotation.
 - A struct-literal field whose declared type differs from the argument's.
 
 **Explicit form**
@@ -506,7 +506,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 ### Arrays
 
-- `T[]` (postfix) is a dynamic array (runtime length). `int[]`, `string[]`, `Foo(i32)[]`, ... `int[][]` is an array of int arrays.
+- `T[]` (postfix) is a dynamic array (runtime length). `int[]`, `string[]`, `Foo[i32][]`, ... `int[][]` is an array of int arrays.
 - **Implicit reference** semantics: `arr2 := arr` copies the reference; use `clone(arr)` (free function) for a real copy.
 - Indexing: `arr[i]`. Bounds-checked in debug (panic), elidable in release.
 - Slicing: `arr[0..<3]` (to validate in MVP, otherwise deferred).
@@ -528,7 +528,7 @@ println(pair.1)      // "answer"
 - **Disambiguation of seq literals** is contextual (TS-style) :
   - `[1, 2, 3]` → array (homogeneous, no annotation).
   - `[1, "x"]` → tuple (heterogeneous, no annotation).
-  - With an annotation, the annotation wins : `let xs: int[] = [1, 2, 3]` is array ; `let p: [int, string] = [1, "x"]` is tuple.
+  - With an annotation, the annotation wins : `xs: int[] = [1, 2, 3]` is array ; `p: [int, string] = [1, "x"]` is tuple.
 - **Tuples are not arrays** : `[i32, i32]` is not assignable to `i32[]` even though every element type unifies.
 
 ### Destructuring
@@ -611,9 +611,9 @@ mix  :: P { ...base, ...other, .b = 7 }                 // 'other' wins for non-
 
 The spread source's static type must be assignable to the literal's struct type.
 
-#### Struct literals in `if` / `for` / `match` / `while` conditions
+#### Struct literals in `if` / `for` / `match` conditions
 
-A `Foo { ... }` literal opens a `{` that would collide with the body brace of a control-flow statement. To keep the grammar unambiguous, struct literals are **not allowed at the top level** of the condition expression of `if`, `for`, `match`, and (future) `while`. Wrap in parentheses if needed:
+A `Foo { ... }` literal opens a `{` that would collide with the body brace of a control-flow statement. To keep the grammar unambiguous, struct literals are **not allowed at the top level** of the condition expression of `if`, `for`, and `match`. (Vader has no `while` keyword — `for cond { ... }` covers the same case.) Wrap in parentheses if needed:
 
 ```vader
 // Error: ambiguous between struct literal and if-body
@@ -851,7 +851,7 @@ Reassignment uses `=` and is only valid on mutable bindings :
 n := 0          // mutable, inferred i32
 n = n + 1       // OK
 k :: 0          // immutable
-k = 1           // T3017 — cannot reassign immutable binding
+k = 1           // ERROR — cannot reassign immutable binding (diagnostic not yet emitted ; see follow-up)
 ```
 
 Top-level constants follow the same pattern but are restricted to compile-time expressions (`PI :: 3.14`, `MAX: u64 : 1_000_000`).
@@ -930,10 +930,10 @@ put :: fn[K: Hash & Equals, V](self: MutableMap[K, V], key: K, value: V) {
 
 `&` mirrors `|` (union) — `K: A | B` would mean K satisfies either, `K: A & B` means K satisfies both. **Only `&` (intersection) is in MVP scope** ; `|` on bounds is post-MVP. A future predicate-bound escape hatch (`[T: @size_of <= 64]`-style ; DESIGN_TYPE_FIRST.md §13 Layer 7d) is reserved for non-trait constraints once they land.
 
-**Compile-time values** (post-MVP candidate):
+**Compile-time values** (post-MVP candidate ; the fixed-size array surface itself is not designed yet — the example below uses placeholder syntax):
 
 ```vader
-make_buffer :: fn[N: i32]() -> [N]u8 { ... }
+make_buffer :: fn[N: i32]() -> FixedArray[u8, N] { ... }
 ```
 
 **Implementation**: monomorphization at compile time, driven by the comptime engine. Single specialization machinery.
@@ -1038,14 +1038,14 @@ i32   implements Hash   -> u64(self)
 i32   implements Equals -> self == other
 
 // With generic trait args.
-Tutu  implements Toto(i32, i64) -> i64(self + other)
+Tutu  implements Toto[i32, i64] -> i64(self + other)
 
 // Block form — multi-statement body.
 string implements Hash {
     h: u64 = 14695981039346656037
-    n: usize = self.length()
+    n: usize = self.byte_len()
     i: usize = 0
-    while i < n {
+    for i < n {
         h = (h ^ u64(self[i])) * 1099511628211
         i = i + 1
     }
@@ -1176,7 +1176,7 @@ For deep immutability of collections, use **stdlib convention** :
 
 ```vader
 x: i64 = 42
-buffer: [u8] = []
+buffer: u8[] = []
 name: string | null = null
 ```
 
@@ -1778,18 +1778,19 @@ and passes `-lenv` (or equivalent) to `cc`.
 
 ### String marshalling — no magic in MVP
 
-To pass a Vader string to an external function:
+A Vader string is laid out at runtime as a fat value `(ptr, len)`. Crossing the FFI boundary requires the user to surface that pair explicitly — today the surface for projecting a string into its `(ptr, len)` halves is **not yet designed** (no `.ptr` / `.len` accessor on `string`). When it lands the call site will look like :
 
 ```vader
 @extern("env", "console_log")
 console_log :: fn(ptr: i32, len: i32)
 
 print_message :: fn(msg: string) {
-    console_log(msg.ptr, msg.len)
+    // Placeholder — exact accessor TBD (Issue: §13 string→FFI lowering).
+    console_log(/* msg.ptr */, /* msg.len */)
 }
 ```
 
-The user writes the host-side glue (JS, C) themselves. The Vader JS stdlib provides helpers `vader_string_decode(memory, ptr, len)`.
+The user writes the host-side glue (JS, C) themselves. The Vader JS stdlib will provide helpers `vader_string_decode(memory, ptr, len)`.
 
 ### `@export` — exposing a function
 
@@ -1904,24 +1905,27 @@ Trait-method dispatch on a bounded type param (`f :: fn[T: Hash](x: T) { x.hash(
 ### `std/io`
 
 ```vader
-print      :: fn(msg: Display) -> void
-println    :: fn(msg: Display) -> void
-eprint     :: fn(msg: Display) -> void
-eprintln   :: fn(msg: Display) -> void
+print      :: fn(msg: string) -> void
+println    :: fn(msg: string) -> void
+eprint     :: fn(msg: string) -> void
+eprintln   :: fn(msg: string) -> void
 read_line  :: fn() -> string!
+read_stdin :: fn(n: usize) -> string!         // read up to n bytes from stdin
 read_file  :: fn(path: string) -> string!
 write_file :: fn(path: string, content: string) -> void!
 exists     :: fn(path: string) -> bool
+is_dir     :: fn(path: string) -> bool
+read_dir   :: fn(path: string) -> string[]!   // names only (no recursion)
 ```
 
-`print` / `println` / `eprint` / `eprintln` accept any `Display` — pass a
-primitive, a struct with a `to_string` impl, or a `StringBuilder` directly.
-At each call site the lowerer rewrites the argument into a static call to
-the matching `<T>.Display.to_string` impl member ; the host hook itself
-receives a flat `string`, so there is no per-type wrapper and no virtual
-dispatch (see `lower/passes/display-coerce.ts`). The same machinery applies
-to any future `@intrinsic` declaration whose parameter is a Display-typed
-slot.
+`print` / `println` / `eprint` / `eprintln` declare a `string` parameter ;
+the call site accepts any `Display`-implementing argument and the lowerer
+inserts a static call to the matching `<T>.Display.to_string` impl member,
+so `println(42)` and `println(my_struct)` both compile to a single
+`string`-typed call (see `lower/passes/display-coerce.ts`). No per-type
+wrapper, no virtual dispatch. The same machinery applies to any future
+`@intrinsic` declaration whose parameter is a string-typed slot reached
+through the `Display → string` blanket impl in `std/core`.
 
 I/O is **synchronous blocking** only in MVP.
 
@@ -2367,7 +2371,7 @@ Diagnostic plumbing is **MVP-mandatory** even though the LSP itself is post-self
 
 **Design principles**:
 
-- **Structured, not stringly-typed**. Every diagnostic carries `severity` (`error` / `warning` / `info` / `hint`), `code` (stable identifier like `E0001`), `message`, primary `span`, optional secondary spans (with their own labels), optional `notes`, and optional machine-readable `fixes`.
+- **Structured, not stringly-typed**. Every diagnostic carries `severity` (`error` / `warning` / `info` / `hint`), `code` (stable identifier like `T3001`), `message`, primary `span`, optional secondary spans (with their own labels), optional `notes`, and optional machine-readable `fixes`.
 - **Continuation after error**. No phase aborts on the first diagnostic. The lexer recovers at the next newline; the parser at the next top-level keyword or matching brace; the type-checker continues per-declaration. The user sees a maximal harvest of issues in one run.
 - **Two output modes from the same data**:
   - **Terminal**: rich rendering with source snippet, primary-span underline, color, fix hints — Rust/Elm-style.
@@ -2445,14 +2449,16 @@ main :: fn() -> i32 {
 ### Fibonacci
 
 ```vader
+import "std/io" { println }
+
 fib :: fn(n: u32) -> u64 {
-    if (n < 2) return u64(n)
+    if n < 2 { return u64(n) }
     return fib(n - 1) + fib(n - 2)
 }
 
 main :: fn() -> i32 {
     for i in 0..<10 {
-        println("fib($i) = ${fib(i)}")
+        println("fib(${i}) = ${fib(i)}")
     }
     return 0
 }
@@ -2505,19 +2511,19 @@ main :: fn() -> i32 {
 ### Pattern matching + errors
 
 ```vader
-import "std/io" { read_file }
-import "std/string" { parse_int }
+import "std/io" { read_file, println }
+import "std/string" { parse_int, trim }
 
 read_count :: fn(path: string) -> i32! {
     raw := read_file(path)?
-    n   := parse_int(raw.trim())?
+    n   := parse_int(trim(raw))?
     return n
 }
 
 main :: fn() -> i32 {
     match read_count("count.txt") {
-        is i32   -> println("Count: $value")
-        is Error -> println("Error: ${value.message()}")
+        is i32   as count -> println("Count: ${count}")
+        is Error as err   -> println("Error: ${err.message()}")
     }
     return 0
 }
@@ -2528,19 +2534,20 @@ main :: fn() -> i32 {
 ```vader
 import "std/io" { println }
 
-squares :: fn() -> [u32] {
-    result: [u32] = []
+squares :: fn() -> u32[] {
+    result: u32[] = []
     for i in 0..<10 {
         result.push(u32(i * i))
     }
     return result
 }
 
-SQUARES :: @comptime squares()
+@comptime
+SQUARES :: squares()
 
 main :: fn() -> i32 {
     for s in SQUARES {
-        println("$s")
+        println("${s}")
     }
     return 0
 }
@@ -2553,9 +2560,10 @@ main :: fn() -> i32 {
 js_alert :: fn(ptr: i32, len: i32)
 
 @export("greet")
-greet :: fn() {
+greet :: fn() -> void {
     msg :: "Hello from Vader!"
-    js_alert(msg.ptr, msg.len)
+    // Placeholder — exact `string` → `(ptr, len)` accessor TBD.
+    js_alert(/* msg.ptr */, /* msg.len */)
 }
 
 main :: fn() -> i32 {
