@@ -40,7 +40,7 @@ import type { ImplEntry, ImplRegistry } from "../impls.ts";
 import type { Substitution } from "../types.ts";
 import { CORE_TRAITS, TY, equalsType, isAssignable, substitute, type Type } from "../types.ts";
 import type { MutableTyped } from "../ctx.ts";
-import { unifyTypeParam } from "./call.ts";
+import { unifyTypeParam } from "./unify.ts";
 
 /** True iff `target` is the kind of type we'll attempt an `Into` lookup
  *  against. Union / TypeParam / Unresolved are excluded — see the rules
