@@ -8,6 +8,7 @@
 #include "vader.h"
 
 #include <ctype.h>
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +23,7 @@
 #  include <io.h>      /* _setmode, _fileno */
 #  include <fcntl.h>   /* _O_BINARY */
 #else
+#  include <pthread.h> /* pthread_get_stackaddr_np / pthread_attr_getstack */
 #  include <spawn.h>
 #  include <sys/wait.h>
 #  include <unistd.h>
@@ -53,6 +55,11 @@ static size_t        g_total_copied = 0;
  * precise roots. */
 vader_gc_frame_t* vader_gc_top = NULL;
 
+/* String mark-sweep — defined further down (it needs the type info table
+ * + the spawn globals it scans as roots). Forward-declared here because
+ * vader_gc_collect calls it at the end of every cycle. */
+static void vader_string_gc_collect(void);
+
 static size_t vader_gc_align(size_t n) {
     return (n + (VADER_GC_ALIGN - 1u)) & ~(size_t)(VADER_GC_ALIGN - 1u);
 }
@@ -80,10 +87,24 @@ void vader_gc_shutdown(void) {
     g_gc_initialized = 0;
 }
 
+/* Adaptive trigger for the string sweep. Starts at 1 MB ; after each
+ * collect, retargets to 2× the surviving live set (floor 1 MB). This
+ * matches Go's classic "heap target = 2× live" pacing — programs holding
+ * lots of strings collect rarely, programs that churn through transient
+ * strings collect often, neither pays a worst-case cost. */
+#ifndef VADER_STRING_GC_THRESHOLD_FLOOR
+#define VADER_STRING_GC_THRESHOLD_FLOOR (1u * 1024u * 1024u)
+#endif
+static size_t g_string_gc_threshold = VADER_STRING_GC_THRESHOLD_FLOOR;
+
+static size_t g_string_total_bytes;  /* tentative def — see string arena */
+
 void* vader_gc_alloc(size_t bytes) {
     if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
     size_t aligned = vader_gc_align(bytes);
-    if (VADER_UNLIKELY(g_from_space.cur + aligned > g_from_space.end)) {
+    int need_collect = (g_from_space.cur + aligned > g_from_space.end)
+                    || (g_string_total_bytes > g_string_gc_threshold);
+    if (VADER_UNLIKELY(need_collect)) {
         vader_gc_collect();
         if (VADER_UNLIKELY(g_from_space.cur + aligned > g_from_space.end)) {
             vader_trap("vader_gc_alloc: out of memory after collection");
@@ -238,6 +259,10 @@ void vader_gc_collect(void) {
     g_to_space.cur  = g_to_space.base;
 
     g_total_collections++;
+
+    /* 4. String mark-sweep — runs AFTER the swap so the from-space walk
+     *    sees the compacted live set, not the (now-empty) old from-space. */
+    vader_string_gc_collect();
 }
 
 vader_gc_stats_t vader_gc_get_stats(void) {
@@ -249,21 +274,261 @@ vader_gc_stats_t vader_gc_get_stats(void) {
     return s;
 }
 
-/* String char buffer allocator — strings are immutable value types {ptr,len}
- * passed by copy. Tracking those copies through the moving GC would require a
- * lookup from char-ptr to header on every scan; the MVP picks the pragmatic
- * trade-off and leaks string buffers outside the arena.
+/* ----------------------------------------------------------------- string arena
  *
- * Zero-length requests return a process-lifetime sentinel rather than a
- * fresh 1-byte allocation: the caller never writes (every write site is a
- * `memcpy` of `bytes` bytes, which is a no-op for zero) so const aliasing
- * is safe, and we save one malloc per empty-string operation. */
+ * Strings are immutable value types `{ptr, len}` passed by copy. The buffer
+ * behind `ptr` lives in a dedicated mark-sweep arena (non-moving — so the
+ * fat-ptr's address stays stable across collections), separate from the
+ * Cheney semi-space which holds structs/arrays/fns.
+ *
+ * Tracking: each allocation carries a `vader_string_header_t` immediately
+ * before the user-visible payload. Headers are chained through `next` so the
+ * collector can walk all live buffers; `mark` is the per-cycle reachability
+ * bit. `size` is the payload byte count (used by stats + sweep).
+ *
+ * Collection: triggered exclusively from `vader_gc_collect` so that the
+ * standard "any vader_gc_alloc may collect" safepoint contract covers
+ * strings too. Never triggered from inside `vader_string_alloc` itself —
+ * that would create unsafe collection points mid-runtime call where freshly
+ * minted buffers aren't yet reachable from any root.
+ *
+ * Roots:
+ *   - shadow stack `vader_box_t*` (payload union read conservatively)
+ *   - Cheney from-space — each live object's pointer-bearing slots
+ *   - module globals (`g_spawn_*`)
+ *   - the C stack between `g_stack_bottom` and the collector's frame
+ *     (conservative — any word that looks like a string ptr keeps the
+ *     buffer alive). Covers `vader_string_t` raw values transiting in
+ *     local variables or callee-saved registers during a runtime call. */
+
+typedef struct vader_string_header {
+    struct vader_string_header* next;
+    size_t  size;
+    uint8_t mark;
+    uint8_t _pad[7];
+} vader_string_header_t;
+
+static vader_string_header_t* g_string_head = NULL;
+static size_t                  g_string_total_bytes = 0;
+static size_t                  g_string_total_count = 0;
+
+/* Zero-length requests return a process-lifetime sentinel rather than a
+ * fresh allocation: the caller never writes (every write site is a `memcpy`
+ * of `bytes` bytes, which is a no-op for zero) so const aliasing is safe,
+ * we save one malloc per empty-string operation, and the sentinel sits
+ * outside the arena so the sweep can skip it via a NULL-header probe. */
 static char vader_string_empty_sentinel[1] = { 0 };
+
 static void* vader_string_alloc(size_t bytes) {
     if (bytes == 0) return vader_string_empty_sentinel;
-    void* p = malloc(bytes);
-    if (p == NULL) vader_trap("vader_string_alloc: malloc failed");
-    return p;
+    vader_string_header_t* hdr =
+        (vader_string_header_t*) malloc(sizeof(*hdr) + bytes);
+    if (hdr == NULL) vader_trap("vader_string_alloc: malloc failed");
+    hdr->next = g_string_head;
+    hdr->size = bytes;
+    hdr->mark = 0;
+    g_string_head = hdr;
+    g_string_total_bytes += bytes;
+    g_string_total_count += 1;
+    return (void*)(hdr + 1);
+}
+
+/* Free a tracked buffer explicitly — used by runtime helpers that own a
+ * buffer privately and replace it before any alias can escape (the builder
+ * growing its backing buffer, the spawn capture replacing an unconsumed
+ * previous result). NULL and the empty sentinel are both no-ops, which
+ * matches the discipline of standard `free`. */
+static void vader_string_free(void* p) {
+    if (p == NULL || p == vader_string_empty_sentinel) return;
+    vader_string_header_t* hdr = ((vader_string_header_t*) p) - 1;
+    /* Unlink — O(n) walk of the live list. This path only fires from the
+     * runtime helpers above (a handful of sites), and the list stays short
+     * because the collector compacts it; not worth a doubly-linked list
+     * for the savings. */
+    vader_string_header_t** cursor = &g_string_head;
+    while (*cursor != NULL && *cursor != hdr) {
+        cursor = &(*cursor)->next;
+    }
+    if (*cursor == NULL) {
+        vader_trap("vader_string_free: pointer not in arena");
+    }
+    *cursor = hdr->next;
+    g_string_total_bytes -= hdr->size;
+    g_string_total_count -= 1;
+    free(hdr);
+}
+
+/* ---------- string mark-sweep collector ---------- */
+
+/* Forward declarations for module globals defined further down (in the
+ * spawn section) ; the string GC scans them as additional roots. C allows
+ * a tentative definition (no initializer) followed by a real definition
+ * elsewhere, so the actual initializers remain co-located with their use. */
+static char* g_spawn_stdout_buf;
+static char* g_spawn_stderr_buf;
+
+/* Bottom of the C stack (the HIGH address, since stacks grow down on every
+ * platform we target). Captured lazily on first collection — calling main()
+ * before this point isn't required, the pthread/Win32 query is self-sufficient. */
+static const void* g_stack_bottom = NULL;
+
+static void vader_string_gc_capture_stack_bottom(void) {
+    if (g_stack_bottom != NULL) return;
+#if defined(_WIN32)
+    ULONG_PTR low = 0, high = 0;
+    GetCurrentThreadStackLimits(&low, &high);
+    g_stack_bottom = (const void*) high;
+#elif defined(__APPLE__)
+    g_stack_bottom = pthread_get_stackaddr_np(pthread_self());
+#else
+    /* glibc / musl path : query the attr block, then add the stack size to
+     * the low address. pthread_get_stackaddr_np is BSD/macOS only. */
+    pthread_attr_t attr;
+    if (pthread_getattr_np(pthread_self(), &attr) == 0) {
+        void*  base = NULL;
+        size_t size = 0;
+        if (pthread_attr_getstack(&attr, &base, &size) == 0) {
+            g_stack_bottom = (const char*) base + size;
+        }
+        pthread_attr_destroy(&attr);
+    }
+#endif
+}
+
+/* Mark the buffer that contains `p` (if any). Interior pointers are
+ * supported — `vader_string_slice` returns `s.ptr + start`, so any byte
+ * inside a live buffer is a valid root. O(n) over the live list per call ;
+ * with arenas of a few thousand strings this is fine. */
+static void vader_string_mark_ptr(const void* p) {
+    if (p == NULL || p == vader_string_empty_sentinel) return;
+    for (vader_string_header_t* h = g_string_head; h != NULL; h = h->next) {
+        const char* start = (const char*) (h + 1);
+        const char* end   = start + h->size;
+        if ((const char*) p >= start && (const char*) p < end) {
+            h->mark = 1;
+            return;
+        }
+    }
+}
+
+/* Conservatively read every 8-byte aligned word in [lo, hi) and mark whatever
+ * each word points at. Used for the C-stack scan and the saved-register
+ * dump from setjmp. Hi-low inversion safely no-ops. */
+static void vader_string_scan_words(const void* lo, const void* hi) {
+    if (lo == NULL || hi == NULL || lo >= hi) return;
+    uintptr_t s = ((uintptr_t) lo + (sizeof(void*) - 1u)) & ~(uintptr_t)(sizeof(void*) - 1u);
+    uintptr_t e = (uintptr_t) hi & ~(uintptr_t)(sizeof(void*) - 1u);
+    const void* const* start = (const void* const*) s;
+    const void* const* end   = (const void* const*) e;
+    for (const void* const* w = start; w < end; w++) {
+        vader_string_mark_ptr(*w);
+    }
+}
+
+/* Walk a Cheney from-space object's pointer-bearing slots, marking any
+ * string buffer reachable via embedded `vader_box_t` payloads. Mirrors the
+ * Cheney scan's slot iteration but for marks only, not forwards. */
+static void vader_string_mark_obj(char* scan, uint32_t type_index) {
+    if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
+        vader_array_buf_t* buf = (vader_array_buf_t*) scan;
+        for (size_t i = 0; i < buf->length; i++) {
+            /* payload.s.ptr aliases payload.obj / payload.i — same 8 bytes.
+             * Reading it conservatively works for every tag. */
+            vader_string_mark_ptr((const void*) buf->slots[i].payload.s.ptr);
+        }
+        return;
+    }
+    if (type_index >= vader_type_info_count) return;
+    const vader_type_info_t* info = &vader_type_info_table[type_index];
+    if (info->kind == VADER_TYPE_KIND_FN || info->kind == VADER_TYPE_KIND_ARRAY) {
+        /* FN/ARRAY kinds have raw void* slots, not boxes — they hold no
+         * string pointers themselves. The strings live inside the boxes
+         * carried by the object they point to, which Cheney will scan in
+         * its own pass through this loop. */
+        return;
+    }
+    for (uint16_t i = 0; i < info->ptr_count; i++) {
+        vader_box_t* bp = (vader_box_t*) (scan + info->ptr_offsets[i]);
+        vader_string_mark_ptr((const void*) bp->payload.s.ptr);
+    }
+}
+
+/* Full mark-sweep cycle. Runs after Cheney has compacted from-space, so the
+ * arena walk hits exactly the live struct/array/fn set. */
+static void vader_string_gc_collect(void) {
+    if (g_string_head == NULL) return;
+
+    /* 1. Reset all marks. */
+    for (vader_string_header_t* h = g_string_head; h != NULL; h = h->next) {
+        h->mark = 0;
+    }
+
+    /* 2. Mark via module globals. */
+    vader_string_mark_ptr(g_spawn_stdout_buf);
+    vader_string_mark_ptr(g_spawn_stderr_buf);
+
+    /* 3. Mark via shadow stack — each frame's vader_box_t* roots. */
+    for (vader_gc_frame_t* fr = vader_gc_top; fr != NULL; fr = fr->prev) {
+        if (fr->ptrs == NULL) continue;
+        for (uint32_t i = 0; i < fr->nrefs; i++) {
+            vader_box_t* bp = fr->ptrs[i];
+            if (bp != NULL) vader_string_mark_ptr((const void*) bp->payload.s.ptr);
+        }
+    }
+
+    /* 4. Mark via Cheney from-space — every live object's box slots. */
+    char* scan = g_from_space.base;
+    while (scan < g_from_space.cur) {
+        vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
+        uint32_t type_index = hdr->type_index;
+        size_t   bytes      = 0;
+        if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
+            vader_array_buf_t* buf = (vader_array_buf_t*) scan;
+            bytes = sizeof(vader_array_buf_t) + buf->capacity * sizeof(vader_box_t);
+        } else if (type_index < vader_type_info_count) {
+            bytes = vader_type_info_table[type_index].size;
+        }
+        if (bytes == 0) break;                /* corrupt header — bail */
+        vader_string_mark_obj(scan, type_index);
+        scan += vader_gc_align(bytes);
+    }
+
+    /* 5. Conservative C-stack scan. setjmp dumps callee-saved registers
+     *    that might still hold raw `vader_string_t` payloads from the user
+     *    frame the GC was triggered out of ; the stack scan picks up
+     *    everything spilled to memory between this frame and the bottom. */
+    vader_string_gc_capture_stack_bottom();
+    if (g_stack_bottom != NULL) {
+        jmp_buf jb;
+        (void) setjmp(jb);
+        vader_string_scan_words(&jb, (const char*) &jb + sizeof(jb));
+        const void* top = __builtin_frame_address(0);
+        if (top != NULL && top < g_stack_bottom) {
+            vader_string_scan_words(top, g_stack_bottom);
+        }
+    }
+
+    /* 6. Sweep — free every unmarked buffer. */
+    vader_string_header_t** cursor = &g_string_head;
+    while (*cursor != NULL) {
+        if ((*cursor)->mark == 0) {
+            vader_string_header_t* dead = *cursor;
+            *cursor = dead->next;
+            g_string_total_bytes -= dead->size;
+            g_string_total_count -= 1;
+            free(dead);
+        } else {
+            cursor = &(*cursor)->next;
+        }
+    }
+
+    /* 7. Retarget the next sweep — 2× the live set, floored. Programs that
+     *    persistently hold ~N bytes of strings will sweep when usage doubles,
+     *    so the running-time bound stays O(live + transient) per cycle. */
+    size_t target = g_string_total_bytes * 2u;
+    g_string_gc_threshold = target > VADER_STRING_GC_THRESHOLD_FLOOR
+        ? target
+        : VADER_STRING_GC_THRESHOLD_FLOOR;
 }
 
 /* ----------------------------------------------------------------- string */
@@ -442,11 +707,11 @@ vader_string_t vader_string_to_lower(vader_string_t s) {
 }
 
 vader_box_t vader_string_parse_int(vader_string_t s, uint32_t ok_tag, uint32_t err_tag) {
-    /* The NUL-terminated copy is a scratch buffer (consumed before strtol
-     * returns). It can sit on the stack for typical inputs but heap-fall-back
-     * for very long strings keeps the implementation simple — leak the scratch
-     * since it's transient. */
-    char* p = (char*) vader_string_alloc(s.len + 1);
+    /* The NUL-terminated copy is a scratch buffer consumed before strtol
+     * returns — plain `malloc`/`free` is enough; the tracked string arena is
+     * for buffers whose pointer escapes the function. */
+    char* p = (char*) malloc(s.len + 1);
+    if (p == NULL) vader_trap("parse_int: malloc failed");
     memcpy(p, s.ptr, s.len); p[s.len] = '\0';
     char* end;
     long v = strtol(p, &end, 10);
@@ -459,7 +724,8 @@ vader_box_t vader_string_parse_int(vader_string_t s, uint32_t ok_tag, uint32_t e
 }
 
 vader_box_t vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag) {
-    char* p = (char*) vader_string_alloc(s.len + 1);
+    char* p = (char*) malloc(s.len + 1);
+    if (p == NULL) vader_trap("parse_float: malloc failed");
     memcpy(p, s.ptr, s.len); p[s.len] = '\0';
     char* end;
     double v = strtod(p, &end);
@@ -566,12 +832,13 @@ static void builder_reserve(vader_builder_t* b, size_t extra) {
     size_t cap = b->cap == 0 ? 64 : b->cap;
     while (cap < b->len + extra) cap *= 2;
     /* The buf is handed out as a vader_string_t by `vader_builder_finish`, so
-     * it must live off the GC arena (same constraint as `vader_string_alloc`
-     * callers). The previous buf is private until finish — no aliases — so we
-     * `free` it after copying the contents to the fresh allocation. */
+     * it lives in the tracked string arena. The previous buf is private until
+     * finish — no Vader-visible aliases — so we can free it explicitly via
+     * `vader_string_free` once the contents have been copied to the fresh
+     * allocation, instead of waiting for the next sweep to reclaim it. */
     char* fresh = (char*) vader_string_alloc(cap);
     if (b->len > 0) memcpy(fresh, b->buf, b->len);
-    free(b->buf);
+    vader_string_free(b->buf);
     b->buf = fresh;
     b->cap = cap;
 }
@@ -724,7 +991,8 @@ void vader_eprintln(vader_string_t s) { fwrite(s.ptr, 1, s.len, stderr); fputc('
 /* Tag-aware variants — the emitter passes the BcType indices for the success
  * and error variants. Caller-side boxing keeps the runtime tag-agnostic. */
 vader_box_t vader_read_file(vader_string_t path, uint32_t ok_tag, uint32_t err_tag) {
-    char* p = (char*) vader_string_alloc(path.len + 1);
+    char* p = (char*) malloc(path.len + 1);
+    if (p == NULL) vader_trap("read_file: malloc failed");
     memcpy(p, path.ptr, path.len); p[path.len] = '\0';
     FILE* f = fopen(p, "rb");
     free(p);
@@ -748,13 +1016,20 @@ vader_box_t vader_read_file(vader_string_t path, uint32_t ok_tag, uint32_t err_t
     char* buf = (char*) vader_string_alloc((size_t) size);
     size_t n = fread(buf, 1, (size_t) size, f);
     fclose(f);
-    if (n != (size_t) size) return vader_box_string(err_tag, vader_string_new("short read", 10));
+    if (n != (size_t) size) {
+        /* Short read — return error and release the partial buffer; the
+         * tracked arena would eventually sweep it but explicit free keeps
+         * the live-list short. */
+        vader_string_free(buf);
+        return vader_box_string(err_tag, vader_string_new("short read", 10));
+    }
     return vader_box_string(ok_tag, vader_string_new(buf, (size_t) size));
 }
 
 vader_box_t vader_write_file(vader_string_t path, vader_string_t content,
                              uint32_t ok_tag, uint32_t err_tag) {
-    char* p = (char*) vader_string_alloc(path.len + 1);
+    char* p = (char*) malloc(path.len + 1);
+    if (p == NULL) vader_trap("write_file: malloc failed");
     memcpy(p, path.ptr, path.len); p[path.len] = '\0';
     FILE* f = fopen(p, "wb");
     free(p);
@@ -825,7 +1100,8 @@ vader_box_t vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag) {
 }
 
 vader_bool_t vader_exists(vader_string_t path) {
-    char* p = (char*) vader_string_alloc(path.len + 1);
+    char* p = (char*) malloc(path.len + 1);
+    if (p == NULL) vader_trap("exists: malloc failed");
     memcpy(p, path.ptr, path.len); p[path.len] = '\0';
     FILE* f = fopen(p, "rb");
     free(p);
@@ -835,14 +1111,15 @@ vader_bool_t vader_exists(vader_string_t path) {
 }
 
 /* `is_dir` / `read_dir` — directory traversal split across POSIX (`dirent.h`,
- * `sys/stat.h`) and Windows (`FindFirstFileA` / `GetFileAttributesA`). Same
- * `vader_string_alloc` discipline as the rest of the IO surface: any owned
- * char buffer escaping the function lives off the GC arena. */
+ * `sys/stat.h`) and Windows (`FindFirstFileA` / `GetFileAttributesA`).
+ * Scratch buffers for NUL-terminating the path use plain `malloc`/`free`;
+ * the per-entry strings escape and go through `vader_string_alloc`. */
 
 #if defined(_WIN32)
 
 vader_bool_t vader_is_dir(vader_string_t path) {
-    char* p = (char*) vader_string_alloc(path.len + 1);
+    char* p = (char*) malloc(path.len + 1);
+    if (p == NULL) vader_trap("is_dir: malloc failed");
     memcpy(p, path.ptr, path.len); p[path.len] = '\0';
     DWORD attr = GetFileAttributesA(p);
     free(p);
@@ -852,7 +1129,8 @@ vader_bool_t vader_is_dir(vader_string_t path) {
 vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
                            uint32_t str_type, uint32_t err_tag) {
     /* FindFirstFileA expects a glob — append "\\*". */
-    char* pat = (char*) vader_string_alloc(path.len + 3);
+    char* pat = (char*) malloc(path.len + 3);
+    if (pat == NULL) vader_trap("read_dir: malloc failed");
     memcpy(pat, path.ptr, path.len);
     size_t pat_len = path.len;
     if (pat_len > 0 && pat[pat_len - 1] != '\\' && pat[pat_len - 1] != '/') {
@@ -889,7 +1167,8 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
 #include <sys/stat.h>
 
 vader_bool_t vader_is_dir(vader_string_t path) {
-    char* p = (char*) vader_string_alloc(path.len + 1);
+    char* p = (char*) malloc(path.len + 1);
+    if (p == NULL) vader_trap("is_dir: malloc failed");
     memcpy(p, path.ptr, path.len); p[path.len] = '\0';
     struct stat st;
     int rc = stat(p, &st);
@@ -899,7 +1178,8 @@ vader_bool_t vader_is_dir(vader_string_t path) {
 
 vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
                            uint32_t str_type, uint32_t err_tag) {
-    char* p = (char*) vader_string_alloc(path.len + 1);
+    char* p = (char*) malloc(path.len + 1);
+    if (p == NULL) vader_trap("read_dir: malloc failed");
     memcpy(p, path.ptr, path.len); p[path.len] = '\0';
     DIR* d = opendir(p);
     free(p);
@@ -946,10 +1226,11 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
  *
  * If a `spawn_run` fires before the previous capture was consumed (a caller
  * that drops the result on the floor), `capture_spawn_output` reclaims the
- * abandoned buffer. This avoids the O(N) leak that an idle long-running
- * process — LSP, watch-mode — would otherwise accumulate. The transferred
- * buffer in the consumed case still leaks under the broader string-arena
- * policy ; that's the larger fix tracked separately. */
+ * abandoned buffer via `vader_string_free`. This avoids the O(N) growth a
+ * long-running process — LSP, watch-mode — would otherwise hit. The
+ * transferred buffer in the consumed case stays alive in the tracked
+ * string arena until it becomes unreachable, at which point the next sweep
+ * collects it. */
 static char*  g_spawn_stdout_buf = NULL;
 static size_t g_spawn_stdout_len = 0;
 static char*  g_spawn_stderr_buf = NULL;
@@ -961,7 +1242,7 @@ static void capture_spawn_output(char** dst_buf, size_t* dst_len, char* src, siz
      * clears the slot to NULL on extraction — a non-NULL `*dst_buf` here
      * is guaranteed to be the unique reference. */
     if (*dst_buf != NULL) {
-        free(*dst_buf);
+        vader_string_free(*dst_buf);
         *dst_buf = NULL;
         *dst_len = 0;
     }
