@@ -21,10 +21,10 @@ import type { Op } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
 
 import {
-  cTypeFor, cTypeForVal, cTypeForValBare, emitFunctions,
-  emitVtableDispatchers, emitVtableForwardDecls, isRefVal, signatureFor,
-  valTypeOfBcType, zeroInit,
+  cTypeFor, cTypeForVal, cTypeForValBare, emitFunctions, isRefVal,
+  signatureFor, valTypeOfBcType, zeroInit,
 } from "./body.ts";
+import { emitVtableDispatchers, emitVtableForwardDecls } from "./ops.ts";
 
 export function emitC(m: BytecodeModule): string {
   const ctx = newCtx(m);
