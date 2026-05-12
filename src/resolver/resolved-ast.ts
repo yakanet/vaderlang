@@ -9,7 +9,7 @@
 
 import type * as A from "../parser/ast.ts";
 import type { Module } from "./module.ts";
-import type { Symbol } from "./symbol.ts";
+import type { Symbol, SymbolFactory } from "./symbol.ts";
 import type { ImportTargetTable } from "./wire.ts";
 
 export interface ResolvedProgram {
@@ -75,7 +75,7 @@ export interface ResolvedProject {
   readonly importTargets: ImportTargetTable;
   /** Shared symbol id allocator — downstream phases that mint synthetic
    *  symbols (typecheck, lower) must use this so ids stay globally unique. */
-  readonly factory: import("./symbol.ts").SymbolFactory;
+  readonly factory: SymbolFactory;
   /** Cross-module typeParam table — every TypeParam AST node maps to its
    *  canonical Symbol regardless of which module declared the type. */
   readonly typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>;

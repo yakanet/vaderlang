@@ -10,7 +10,7 @@ import type * as A from "../parser/ast.ts";
 import type { Module } from "../resolver/module.ts";
 import type { IntoCoercion } from "./typed-ast.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
-import type { ModuleId, Symbol } from "../resolver/symbol.ts";
+import type { ModuleId, Symbol, SymbolFactory } from "../resolver/symbol.ts";
 import type {
   BinaryOpResolution,
   FieldResolution,
@@ -50,13 +50,13 @@ export interface Globals {
   /** Shared symbol id allocator from the resolver — typecheck mints
    *  synthetic locals (e.g. the `for <iter>` discard binding) through this
    *  so ids stay globally unique across phases. */
-  factory: import("../resolver/symbol.ts").SymbolFactory;
+  factory: SymbolFactory;
 }
 
 export function newGlobals(
   typeParamSymbols: ReadonlyMap<A.TypeParam, Symbol>,
   typeParamBounds: ReadonlyMap<number, readonly Symbol[]>,
-  factory: import("../resolver/symbol.ts").SymbolFactory,
+  factory: SymbolFactory,
 ): Globals {
   return {
     declTypes: new Map(), paramTypes: new Map(), typeExprTypes: new Map(),

@@ -9,7 +9,7 @@
 // invocation pays the VM-bootstrap cost.
 
 import { test, expect } from "bun:test";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const ENABLED = process.env.RUN_FMT_TESTS === "1";
@@ -21,8 +21,7 @@ const STDLIB_ROOT = join(process.cwd(), "stdlib", "std");
 // the per-module folder convention if a future stdlib reorganises.
 function listStdlibFiles(): string[] {
   if (!existsSync(STDLIB_ROOT)) return [];
-  const fs = require("node:fs") as typeof import("node:fs");
-  return fs.readdirSync(STDLIB_ROOT)
+  return readdirSync(STDLIB_ROOT)
     .filter((n) => n.endsWith(".vader"))
     .map((n) => join(STDLIB_ROOT, n))
     .sort();

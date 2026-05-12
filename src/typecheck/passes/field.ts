@@ -9,6 +9,7 @@
 // belong logically with UFCS dispatch and unblock the cycle with `call.ts`.
 
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
+import type { Span } from "../../diagnostics/diagnostic.ts";
 import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf, sourceStructDecl, sourceTraitDecl } from "../../resolver/symbol.ts";
@@ -434,7 +435,7 @@ export function recordGenericCallSite(
 /** Walk the impl registry for a method matching the target type + name. */
 function findImplMethod(
   impls: ImplRegistry, targetType: Type, name: string, t: MutableTyped,
-  fieldSpan: import("../../diagnostics/diagnostic.ts").Span | null,
+  fieldSpan: Span | null,
   diags: DiagnosticCollector | null,
 ): MethodResolution | null {
   // Walk every distinct trait that any impl on `targetType`'s symbol claims,

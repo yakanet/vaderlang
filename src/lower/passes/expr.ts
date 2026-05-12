@@ -9,7 +9,7 @@ import type { Type } from "../../typecheck/types.ts";
 import { CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
-import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStructLitField } from "../lowered-ast.ts";
+import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt, LoweredStructLitField } from "../lowered-ast.ts";
 import { err } from "../diag.ts";
 
 import { lowerBlock } from "./block.ts";
@@ -753,7 +753,7 @@ function lowerStructLit(ctx: FnLowerCtx, expr: A.StructLitExpr, exprType: Type):
     else spreadItems.push(item);
   }
 
-  const stmts: import("../lowered-ast.ts").LoweredStmt[] = [];
+  const stmts: LoweredStmt[] = [];
   let spreadSym: Symbol | null = null;
   for (const sp of spreadItems) {
     const value = lowerExpr(ctx, sp.expr);
