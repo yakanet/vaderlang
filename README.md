@@ -14,8 +14,9 @@ beyond experimentation. The legacy `LoweredAST → bytecode` walker was retired 
 now the single backend backbone. WASM emitter is next. See [`TODO.md`](./TODO.md) for the live roadmap
 and [`SPEC.md`](./SPEC.md) for the language reference.
 
-A self-host port of the compiler in Vader itself is underway: the lexer (102/104 parity) and parser
-(128/130 byte-for-byte parity with the TS reference) are ported, plus a top-level-decl resolver MVP.
+A self-host port of the compiler in Vader itself is underway: the lexer and parser reach 191/191
+byte-for-byte parity with the TS reference across the full snippet corpus, plus a top-level-decl
+resolver MVP.
 
 ---
 
@@ -287,9 +288,9 @@ The full roadmap lives in [`TODO.md`](./TODO.md). The high-level milestones are:
 | **0 — Bootstrap** | Project scaffold, test runner, CLI stub | ✓ done |
 | **1 — MVP (TypeScript compiler)** | Lexer → parser → resolver → type-checker → comptime engine → monomorphizer → lowerer → midir CFG/SSA (DCE + escape + stack-alloc + scheduler) → bytecode emitter → VM (`vader run`) → C emitter with precise Cheney GC (`vader build --target=native`). Trait-object boxing, tuples, `@assert`/`@deprecated`/`@partial`, implicit selector exprs all landed (May 2026). WASM emitter still pending. | in progress |
 | **1.10 — WASM emitter** | Bytecode → binary WASM with GC types, importable in the browser or via wasmtime. | next |
-| **1.11–1.15 — Runtime, stdlib, CLI, formatter** | Full `std/` in Vader, `vader test`, `vader fmt`, manifest-mode build. | pending |
-| **2 — Self-hosting** | Port the compiler to Vader; bootstrap check (`compiler_v2 == compiler_v3`). Lexer + parser + diagnostics + CLI + resolver MVP already ported (parity 102/104 lex, 128/130 parse). | in progress |
-| **3 — Post-MVP** | Concurrency, networking, generational GC, LSP, VS Code extension, CI pipeline for linux/macOS/Windows. | pending |
+| **1.11–1.15 — Runtime, stdlib, CLI, formatter** | Full `std/` in Vader, `vader test`, manifest-mode build. `vader fmt` MVP landed (written in Vader, idempotent + parse round-trip on the stdlib). | in progress |
+| **2 — Self-hosting** | Port the compiler to Vader; bootstrap check (`compiler_v2 == compiler_v3`). Lexer + parser + diagnostics + CLI + resolver MVP + formatter + LSP already ported (191/191 lex + parse parity); LSP semantic classification is currently lexer-based and being upgraded to an AST-based pipeline. | in progress |
+| **3 — Post-MVP** | Concurrency, networking, generational GC, VS Code extension, CI pipeline for linux/macOS/Windows. | pending |
 
 ---
 
