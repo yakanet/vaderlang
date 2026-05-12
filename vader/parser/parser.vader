@@ -2204,7 +2204,18 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
             .args   = args,
         }
     }
-    // .LBracket is the only remaining postfix.
+    // .LBracket — two readings :
+    //   `T[]`  (empty brackets) → ArrayTypeExpr ; type-only construct,
+    //                             typechecker rejects it in value position.
+    //   `T[i]` (with index)     → IndexExpr (ordinary value-level indexing).
+    if p.check_at(.RBracket, 1) {
+        p.advance()  // [
+        rb :: p.advance()  // ]
+        return ArrayTypeExpr {
+            .span    = Span { .start = left.span.start, .end = rb.span.end },
+            .element = left,
+        }
+    }
     p.advance()
     index :: p.parse_expr(0)
     p.expect(.RBracket, "`]` to close index")
