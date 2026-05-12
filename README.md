@@ -8,7 +8,7 @@ Vader is a general-purpose, statically-typed language with type inference, targe
 monomorphizer → lowerer) feeds **midir** — a CFG/SSA mid-IR (build → SSA + peephole → DCE → escape
 analysis → stack-allocation → scheduler → fromSSA) — which then emits the stack-machine **bytecode**
 (round-trippable as `.vir` binary or `.virt` text). The **bytecode VM** (powering `vader run`) and the **C emitter**
-(powering `vader build --target=native`, backed by a precise Cheney semi-space GC) both run the
+(powering `vader build --target=native`, backed by a precise generational Cheney GC) both run the
 example programs end-to-end, but they are not battle-tested and should not be relied on for anything
 beyond experimentation. The legacy `LoweredAST → bytecode` walker was retired on 2026-05-09; midir is
 now the single backend backbone. A WASM emitter is on the post-MVP roadmap (Phase 3) — the C
@@ -290,7 +290,7 @@ The full roadmap lives in [`TODO.md`](./TODO.md). The high-level milestones are:
 | **1 — MVP (TypeScript compiler)** | Lexer → parser → resolver → type-checker → comptime engine → monomorphizer → lowerer → midir CFG/SSA (DCE + escape + stack-alloc + scheduler) → bytecode emitter → VM (`vader run`) → C emitter with precise Cheney GC (`vader build --target=native`). Trait-object boxing, tuples, `@assert`/`@deprecated`/`@partial`, implicit selector exprs, typed enums, `vader test` + `std/testing` runtime assertions all landed (May 2026). Polish items (slot reuse, C-emit `#line` directives, REPL, manifest mode, static methods, type-first reflection layers) tracked under §1.5 / §1.9 / §1.12 / §1.18b / §1.19 in [`TODO.md`](./TODO.md). | MVP cut shipped |
 | **1.11–1.15 — Runtime, stdlib, CLI, formatter** | `std/` covers io / string / math / collections / iter / sort / json / path / process / runtime / testing. `vader fmt` MVP landed (written in Vader, idempotent + parse round-trip on the stdlib). `vader test` runs `@test` fns through the VM with per-file pass/fail reporting. Manifest-mode build and REPL deferred. | MVP cut shipped |
 | **2 — Self-hosting** | Port the compiler to Vader; bootstrap check (`compiler_v2 == compiler_v3`). Lexer + parser + diagnostics + CLI + resolver MVP + formatter + LSP already ported (191/191 lex + parse parity); LSP semantic classification is currently lexer-based and being upgraded to an AST-based pipeline. | in progress |
-| **3 — Post-MVP** | WASM emitter (bytecode → binary WASM with GC types, importable in the browser / wasmtime), concurrency, networking, generational GC, VS Code extension, CI pipeline for linux/macOS/Windows. | pending |
+| **3 — Post-MVP** | WASM emitter (bytecode → binary WASM with GC types, importable in the browser / wasmtime), concurrency, networking, VS Code extension, CI pipeline for linux/macOS/Windows. | pending |
 
 ---
 

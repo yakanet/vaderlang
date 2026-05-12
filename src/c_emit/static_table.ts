@@ -116,7 +116,7 @@ export function tryEmitStaticTable(
     out.push(`static const ${info.resultStructName} ${tableName}[${info.entries.length}] = {`);
     for (const entry of info.entries) {
       const fieldInits = entry.map((cv, i) => renderConstValue(cv, info.fields[i]!.val, info.fields[i]!.cType)).join(", ");
-      out.push(`    { { ${tag}u, 0u, NULL }, ${fieldInits} },`);
+      out.push(`    { { ${tag}u, 0u, 0u, 0u, NULL }, ${fieldInits} },`);
     }
     out.push(`};`);
     out.push(`static vader_box_t ${fnName}(${paramCType} l0) {`);

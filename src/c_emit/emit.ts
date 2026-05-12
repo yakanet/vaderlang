@@ -328,7 +328,7 @@ function emitFnTrampolines(ctx: EmitCtx, out: string[]): void {
       out.push(`    return ${cname}(${argList});`);
     }
     out.push(`}`);
-    out.push(`static vader_fn_t vader_fn_static_${fnIndex} = { { ${typeIndex}u, 0u, NULL }, (void*) &vader_fn_tramp_${fnIndex}, NULL };`);
+    out.push(`static vader_fn_t vader_fn_static_${fnIndex} = { { ${typeIndex}u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_${fnIndex}, NULL };`);
   }
 
   // Lifted-lambda wrappers — the bytecode signature of a lifted fn is

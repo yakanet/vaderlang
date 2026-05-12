@@ -1,8 +1,13 @@
 /* Vader native runtime — implementation. See `vader.h` for the public API.
  *
- * Memory model: Cheney semi-space copying GC. Two arenas of equal size; the
- * from-space is bump-allocated by `vader_gc_alloc`; when full, `vader_gc_collect`
- * copies live objects to to-space (driven by the shadow stack) and swaps.
+ * Memory model: generational Cheney copying GC. Two generations (young, old);
+ * each is itself a pair of Cheney semi-spaces. `vader_gc_alloc` bumps the
+ * young from-space; on overflow, `vader_minor_collect` copies young survivors
+ * to young to-space (or to old if their `age` has reached the tenure
+ * threshold). When promotion would overflow old, a `vader_major_collect`
+ * drains young into old, then Cheney-collects old itself. Cross-generation
+ * references are tracked by a card table written from the C-emit-issued
+ * `VADER_WRITE_BARRIER` macro and consumed as additional roots by minor.
  */
 
 #include "vader.h"
@@ -32,10 +37,6 @@ extern char** environ;
 
 /* ----------------------------------------------------------------- gc arena */
 
-#ifndef VADER_GC_ARENA_BYTES
-#define VADER_GC_ARENA_BYTES (16u * 1024u * 1024u)   /* 16 MB per semi-space */
-#endif
-
 #define VADER_GC_ALIGN 8u
 
 typedef struct {
@@ -44,11 +45,41 @@ typedef struct {
     char* end;
 } vader_arena_t;
 
-static vader_arena_t g_from_space = { NULL, NULL, NULL };
-static vader_arena_t g_to_space   = { NULL, NULL, NULL };
+/* A generation is just a pair of semi-spaces. Both pairs are backed by a
+ * single contiguous malloc per generation so the card table can index by
+ * `(ptr - base) / VADER_CARD_BYTES` without worrying about the swap. */
+typedef struct {
+    vader_arena_t from;
+    vader_arena_t to;
+    char*         block;        /* malloc'd contiguous backing — span both semi-spaces */
+    size_t        half_bytes;   /* size of one semi-space */
+} vader_gen_t;
+
+static vader_gen_t g_young = { {NULL,NULL,NULL}, {NULL,NULL,NULL}, NULL, 0 };
+static vader_gen_t g_old   = { {NULL,NULL,NULL}, {NULL,NULL,NULL}, NULL, 0 };
+
 static int           g_gc_initialized = 0;
 static size_t        g_total_collections = 0;
 static size_t        g_total_copied = 0;
+
+/* Current cycle. Drives both `vader_gc_forward` (which arena to copy into)
+ * and the collection counter (sub-cycles don't bump it independently). */
+typedef enum {
+    VADER_CYCLE_NONE = 0,         /* no cycle running */
+    VADER_CYCLE_MINOR,            /* standalone minor */
+    VADER_CYCLE_MAJOR_DRAIN,      /* minor running as the first step of a major */
+    VADER_CYCLE_MAJOR,            /* old→old Cheney pass of a major */
+} vader_cycle_t;
+static vader_cycle_t g_cycle = VADER_CYCLE_NONE;
+
+/* Card table — one byte per VADER_CARD_BYTES of contiguous old-gen memory.
+ * Sized to cover both old semi-spaces so an entry indexes either side after
+ * a swap. Exposed (non-static) because the inline `VADER_WRITE_BARRIER` macro
+ * needs the address from emitted C code. */
+uint8_t*   vader_card_table = NULL;
+uintptr_t  vader_old_base   = 0;
+uintptr_t  vader_old_end    = 0;
+static size_t g_card_count = 0;
 
 /* Shadow-stack head. Each emitted C function pushes/pops a frame chained
  * through `prev`; the GC walks this list at collection time to enumerate
@@ -64,27 +95,75 @@ static size_t vader_gc_align(size_t n) {
     return (n + (VADER_GC_ALIGN - 1u)) & ~(size_t)(VADER_GC_ALIGN - 1u);
 }
 
+static int vader_in_young_from(const void* p) {
+    return (const char*)p >= g_young.from.base && (const char*)p < g_young.from.end;
+}
+
+static int vader_in_old_from(const void* p) {
+    return (const char*)p >= g_old.from.base && (const char*)p < g_old.from.end;
+}
+
+static int vader_in_old_any(const void* p) {
+    return (const char*)p >= (const char*)vader_old_base
+        && (const char*)p < (const char*)vader_old_end;
+}
+
 void vader_gc_init(void) {
     if (g_gc_initialized) return;
-    g_from_space.base = (char*) malloc(VADER_GC_ARENA_BYTES);
-    g_to_space.base   = (char*) malloc(VADER_GC_ARENA_BYTES);
-    if (g_from_space.base == NULL || g_to_space.base == NULL) {
-        vader_trap("vader_gc_init: arena malloc failed");
-    }
-    g_from_space.cur = g_from_space.base;
-    g_from_space.end = g_from_space.base + VADER_GC_ARENA_BYTES;
-    g_to_space.cur   = g_to_space.base;
-    g_to_space.end   = g_to_space.base + VADER_GC_ARENA_BYTES;
+
+    /* Young: one malloc spanning both semi-spaces. */
+    size_t young_bytes = (size_t)VADER_GC_YOUNG_BYTES;
+    g_young.block = (char*) malloc(young_bytes * 2u);
+    if (g_young.block == NULL) vader_trap("vader_gc_init: young arena malloc failed");
+    g_young.half_bytes = young_bytes;
+    g_young.from.base = g_young.block;
+    g_young.from.cur  = g_young.block;
+    g_young.from.end  = g_young.block + young_bytes;
+    g_young.to.base   = g_young.block + young_bytes;
+    g_young.to.cur    = g_young.to.base;
+    g_young.to.end    = g_young.to.base + young_bytes;
+
+    /* Old: one malloc spanning both semi-spaces, contiguous to ease the
+     * card-table indexing. */
+    size_t old_bytes = (size_t)VADER_GC_OLD_BYTES;
+    g_old.block = (char*) malloc(old_bytes * 2u);
+    if (g_old.block == NULL) vader_trap("vader_gc_init: old arena malloc failed");
+    g_old.half_bytes = old_bytes;
+    g_old.from.base = g_old.block;
+    g_old.from.cur  = g_old.block;
+    g_old.from.end  = g_old.block + old_bytes;
+    g_old.to.base   = g_old.block + old_bytes;
+    g_old.to.cur    = g_old.to.base;
+    g_old.to.end    = g_old.to.base + old_bytes;
+
+    /* Card table covers both old semi-spaces so an entry remains valid after
+     * a major swap. Total old span = 2 * old_bytes, sized at one byte per
+     * VADER_CARD_BYTES. */
+    g_card_count = (old_bytes * 2u + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
+    vader_card_table = (uint8_t*) calloc(g_card_count, 1u);
+    if (vader_card_table == NULL) vader_trap("vader_gc_init: card-table malloc failed");
+    vader_old_base = (uintptr_t) g_old.block;
+    vader_old_end  = (uintptr_t) (g_old.block + old_bytes * 2u);
+
     g_gc_initialized = 1;
 }
 
 void vader_gc_shutdown(void) {
     if (!g_gc_initialized) return;
-    free(g_from_space.base);
-    free(g_to_space.base);
-    g_from_space.base = g_from_space.cur = g_from_space.end = NULL;
-    g_to_space.base   = g_to_space.cur   = g_to_space.end   = NULL;
-    g_gc_initialized = 0;
+    free(g_young.block);
+    free(g_old.block);
+    free(vader_card_table);
+    g_young.block = NULL;
+    g_old.block   = NULL;
+    g_young.from.base = g_young.from.cur = g_young.from.end = NULL;
+    g_young.to.base   = g_young.to.cur   = g_young.to.end   = NULL;
+    g_old.from.base   = g_old.from.cur   = g_old.from.end   = NULL;
+    g_old.to.base     = g_old.to.cur     = g_old.to.end     = NULL;
+    vader_card_table  = NULL;
+    vader_old_base    = 0;
+    vader_old_end     = 0;
+    g_card_count      = 0;
+    g_gc_initialized  = 0;
 }
 
 /* Adaptive trigger for the string sweep. Starts at 1 MB ; after each
@@ -99,26 +178,56 @@ static size_t g_string_gc_threshold = VADER_STRING_GC_THRESHOLD_FLOOR;
 
 static size_t g_string_total_bytes;  /* tentative def — see string arena */
 
-void* vader_gc_alloc(size_t bytes) {
-    if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
-    size_t aligned = vader_gc_align(bytes);
-    int need_collect = (g_from_space.cur + aligned > g_from_space.end)
-                    || (g_string_total_bytes > g_string_gc_threshold);
-    if (VADER_UNLIKELY(need_collect)) {
-        vader_gc_collect();
-        if (VADER_UNLIKELY(g_from_space.cur + aligned > g_from_space.end)) {
-            vader_trap("vader_gc_alloc: out of memory after collection");
-        }
-    }
-    void* p = g_from_space.cur;
-    g_from_space.cur += aligned;
+/* Internal bump in the young from-space. Caller must have ensured capacity. */
+static void* vader_gc_alloc_young_unchecked(size_t aligned) {
+    void* p = g_young.from.cur;
+    g_young.from.cur += aligned;
     return p;
 }
 
-/* ---------- Cheney semi-space copying GC ---------- */
+/* Bump in old.from — used by promotion during minor and by major's evacuation
+ * into the spare old semi-space (where `to` is the active target). The
+ * `target` arena is whichever old semi-space the caller is filling. */
+static void* vader_gc_alloc_in_old(vader_arena_t* target, size_t bytes) {
+    size_t aligned = vader_gc_align(bytes);
+    if (target->cur + aligned > target->end) {
+        return NULL;                                     /* caller handles overflow */
+    }
+    void* p = target->cur;
+    target->cur += aligned;
+    return p;
+}
 
-/* Size of an object in the from-space, in bytes. For variable-length
- * buffers (ARRAY_BUF sentinel) the size is read off the object itself; for
+void* vader_gc_alloc(size_t bytes) {
+    if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
+    size_t aligned = vader_gc_align(bytes);
+    /* A single allocation that exceeds a young semi-space can never fit, so
+     * no amount of collection will help. Trap early to avoid two wasted
+     * cycles. Bump VADER_GC_YOUNG_BYTES if user code legitimately needs it. */
+    if (VADER_UNLIKELY(aligned > g_young.half_bytes)) {
+        vader_trap("vader_gc_alloc: requested size exceeds young semi-space");
+    }
+    int young_full = (g_young.from.cur + aligned > g_young.from.end);
+    int strings_hot = (g_string_total_bytes > g_string_gc_threshold);
+    if (VADER_UNLIKELY(young_full || strings_hot)) {
+        vader_minor_collect();
+        if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
+            /* Minor didn't free enough — young is overcommitted by long-
+             * lived young objects (tenuring will fix it on the next cycle).
+             * Force a major to age survivors into old and retry. */
+            vader_major_collect();
+            if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
+                vader_trap("vader_gc_alloc: out of memory after collection");
+            }
+        }
+    }
+    return vader_gc_alloc_young_unchecked(aligned);
+}
+
+/* ---------- generational Cheney copying GC ---------- */
+
+/* Size of an object in a from-space, in bytes. For variable-length buffers
+ * (ARRAY_BUF sentinel) the size is read off the object itself; for
  * everything else the type info table provides a static size. Returns 0
  * for non-heap kinds (caller skips). */
 static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
@@ -132,41 +241,74 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
     return info->size;
 }
 
-/* Forward-copy `obj` (typed by `type_index`) to to-space. Returns the new
- * address, or the existing forwarding address if already copied this cycle.
- * NULL inputs round-trip as NULL.
+/* Place a copy of `obj` in `target` and return the new address. Updates the
+ * source header's `forward` slot, clears the destination's so the freshly
+ * copied object looks live (not yet forwarded) within this cycle. The
+ * destination's age is overwritten by the caller to reflect promotion
+ * semantics. Returns NULL if `target` doesn't have room — the caller is
+ * expected to react (promotion overflow → escalate to major). */
+static void* vader_gc_copy_into(void* obj, size_t bytes, vader_arena_t* target) {
+    size_t aligned = vader_gc_align(bytes);
+    if (target->cur + aligned > target->end) return NULL;
+    void* dst = target->cur;
+    target->cur += aligned;
+    memcpy(dst, obj, bytes);
+    g_total_copied += bytes;
+    ((vader_obj_header_t*) obj)->forward = dst;
+    ((vader_obj_header_t*) dst)->forward = NULL;
+    return dst;
+}
+
+/* Forward-copy `obj` (typed by `type_index`) following `g_cycle`:
  *
- * Pointers outside the from-space arena are treated as immortal — static
- * compile-time data (lookup tables, interned constants) lives in the C data
- * segment and is never copied. The C-emit may emit such tables for fns
- * matching the `match enum -> StructLit constant` pattern (TODO §3.5 Prop 2).
+ *   minor or major-drain : young objects move to young.to (or promote to
+ *     old.from once age ≥ tenure); old objects are stable.
+ *   major (Cheney on old)  : old.from objects move to old.to.
+ *
+ * Pointers outside any GC arena are immortal — static compile-time data
+ * (lookup tables, interned constants) lives in the C data segment and is
+ * never copied. The C-emit may emit such tables for fns matching the
+ * `match enum -> StructLit constant` pattern (TODO §3.5 Prop 2).
  * Constraint: a static object MUST NOT contain any pointer to a dynamic
  * (arena-allocated) object — the Cheney scan never visits it, so any inner
  * dynamic ref would be missed and freed under your feet. */
 static void* vader_gc_forward(void* obj, uint32_t type_index) {
     if (obj == NULL) return NULL;
-    if ((char*) obj < g_from_space.base || (char*) obj >= g_from_space.end) {
-        return obj;                                    /* static / immortal */
+
+    if (g_cycle == VADER_CYCLE_MAJOR) {
+        if (!vader_in_old_from(obj)) return obj;        /* immortal or stale young */
+        vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
+        if (hdr->forward != NULL) return hdr->forward;
+        size_t bytes = vader_gc_obj_size(obj, type_index);
+        if (bytes == 0) return obj;
+        void* dst = vader_gc_copy_into(obj, bytes, &g_old.to);
+        if (dst == NULL) vader_trap("vader_gc: old to-space overflow during major");
+        return dst;
     }
+
+    if (vader_in_old_any(obj)) return obj;              /* stable during minor */
+    if (!vader_in_young_from(obj)) return obj;          /* immortal */
+
     vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
-    if (hdr->forward != NULL) return hdr->forward;     /* already moved */
+    if (hdr->forward != NULL) return hdr->forward;
+
     size_t bytes = vader_gc_obj_size(obj, type_index);
-    /* Defensive: a non-heap kind in the type info table (or an unknown
-     * type_index) is a no-op forward — emitter-produced objects shouldn't
-     * land here, but a future allocator that forgets the header init would. */
     if (bytes == 0) return obj;
-    size_t aligned = vader_gc_align(bytes);
-    if (g_to_space.cur + aligned > g_to_space.end) {
-        vader_trap("vader_gc: to-space overflow during copy");
+
+    /* Promote into old.from once the object has earned its tenure. If old
+     * can't fit it, fall back to surviving another cycle in young.to — the
+     * retry path in vader_gc_alloc will escalate to a major. */
+    if (hdr->age + 1u >= VADER_TENURE_AGE) {
+        void* promoted = vader_gc_copy_into(obj, bytes, &g_old.from);
+        if (promoted != NULL) {
+            ((vader_obj_header_t*) promoted)->age = (uint8_t)(hdr->age + 1u);
+            return promoted;
+        }
     }
-    void* dst = g_to_space.cur;
-    g_to_space.cur += aligned;
-    memcpy(dst, obj, bytes);
-    g_total_copied += bytes;
-    /* Mark the original as forwarded; clear forward on the new copy so it
-     * appears live (not yet forwarded) within this cycle. */
-    hdr->forward = dst;
-    ((vader_obj_header_t*) dst)->forward = NULL;
+
+    void* dst = vader_gc_copy_into(obj, bytes, &g_young.to);
+    if (dst == NULL) vader_trap("vader_gc: young to-space overflow during minor");
+    ((vader_obj_header_t*) dst)->age = (uint8_t)(hdr->age + 1u);
     return dst;
 }
 
@@ -186,89 +328,185 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
  * header to get its type, forwards, updates. Used for fn closure envs. */
 static void vader_gc_scan_raw(void** slot) {
     if (slot == NULL || *slot == NULL) return;
-    if ((char*) *slot < g_from_space.base || (char*) *slot >= g_from_space.end) {
-        return;                                        /* static / immortal */
-    }
     vader_obj_header_t* hdr = (vader_obj_header_t*) *slot;
-    /* Watch for a forwarding pointer left over from this cycle. */
     if (hdr->forward != NULL) { *slot = hdr->forward; return; }
     *slot = vader_gc_forward(*slot, hdr->type_index);
 }
 
-void vader_gc_collect(void) {
-    if (!g_gc_initialized) return;
+/* Scan one heap object's pointer-bearing slots and forward whatever they
+ * reference. Returns the byte length of the object so a Cheney scan can
+ * advance its cursor. Returns 0 for malformed headers — callers treat that
+ * as a stop condition. */
+static size_t vader_gc_scan_object(char* scan) {
+    vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
+    uint32_t type_index = hdr->type_index;
+    if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
+        vader_array_buf_t* buf = (vader_array_buf_t*) scan;
+        for (size_t i = 0; i < buf->length; i++) {
+            vader_gc_scan_box(&buf->slots[i]);
+        }
+        return vader_gc_align(sizeof(vader_array_buf_t)
+                              + buf->capacity * sizeof(vader_box_t));
+    }
+    if (type_index >= vader_type_info_count) {
+        vader_trap("vader_gc: scanned object with unknown type_index");
+    }
+    const vader_type_info_t* info = &vader_type_info_table[type_index];
+    for (uint16_t i = 0; i < info->ptr_count; i++) {
+        char* field = scan + info->ptr_offsets[i];
+        if (info->kind == VADER_TYPE_KIND_FN
+            || info->kind == VADER_TYPE_KIND_ARRAY) {
+            vader_gc_scan_raw((void**) field);
+        } else {
+            vader_gc_scan_box((vader_box_t*) field);
+        }
+    }
+    return vader_gc_align(info->size);
+}
 
-    /* Reset to-space — last cycle's swap left it as the spare. */
-    g_to_space.cur = g_to_space.base;
-    char* scan = g_to_space.cur;
-
-    /* 1. Walk the shadow stack to copy the root set. Each frame's `ptrs`
-     *    array points to vader_box_t cells in the C-emit'd locals. */
+/* Walk the shadow stack and forward every root cell. Used by both cycles. */
+static void vader_gc_scan_roots(void) {
     for (vader_gc_frame_t* fr = vader_gc_top; fr != NULL; fr = fr->prev) {
         if (fr->ptrs == NULL) continue;
         for (uint32_t i = 0; i < fr->nrefs; i++) {
             vader_gc_scan_box(fr->ptrs[i]);
         }
     }
+}
 
-    /* 2. Cheney scan loop — walk objects newly-copied to to-space, scan their
-     *    internal references via the per-type pointer maps, copy whatever
-     *    they point to. The to-space `cur` advances as we discover and copy
-     *    more reachable objects. */
-    while (scan < g_to_space.cur) {
+/* Walk old.from and forward pointer-bearing slots of every object that
+ * sits in (or spans) a dirty card. Clean cards are skipped wholesale: those
+ * objects can't reference young, by the write-barrier invariant.
+ *
+ * The card table is *not* cleared by minor. A card stays dirty until the
+ * next major resets the whole table — that's deliberate: scanning a still-
+ * dirty card across multiple minors costs at most O(card_count) extra
+ * memory reads, while clearing in minor would require rescanning to
+ * decide whether the card still has a live old→young reference. */
+static void vader_gc_scan_old_dirty_cards(void) {
+    char*     base   = g_old.block;
+    uintptr_t arena0 = (uintptr_t) base;
+    char*     scan   = g_old.from.base;
+    while (scan < g_old.from.cur) {
         vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
         uint32_t type_index = hdr->type_index;
+        size_t bytes = vader_gc_obj_size(scan, type_index);
+        if (bytes == 0) return;                         /* corrupt header — bail */
+        size_t step = vader_gc_align(bytes);
 
-        if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
-            /* Variable-length object — scan the live slots, advance by the
-             * full capacity since allocations are sized by capacity. */
-            vader_array_buf_t* buf = (vader_array_buf_t*) scan;
-            for (size_t i = 0; i < buf->length; i++) {
-                vader_gc_scan_box(&buf->slots[i]);
-            }
-            scan += vader_gc_align(sizeof(vader_array_buf_t)
-                                   + buf->capacity * sizeof(vader_box_t));
-            continue;
+        /* An object's slot writes mark whichever card holds the object header;
+         * arrays whose buf lives elsewhere mark the buf separately. So the
+         * relevant cards for this object are the ones spanning [scan, scan+bytes). */
+        uintptr_t off_start = (uintptr_t) scan - arena0;
+        uintptr_t off_end   = off_start + bytes - 1u;
+        size_t card_start = off_start / VADER_CARD_BYTES;
+        size_t card_end   = off_end   / VADER_CARD_BYTES;
+        int dirty = 0;
+        for (size_t c = card_start; c <= card_end; c++) {
+            if (vader_card_table[c]) { dirty = 1; break; }
         }
+        if (dirty) {
+            (void) vader_gc_scan_object(scan);
+        }
+        scan += step;
+    }
+}
 
-        if (type_index >= vader_type_info_count) {
-            vader_trap("vader_gc: scanned object with unknown type_index");
-        }
-        const vader_type_info_t* info = &vader_type_info_table[type_index];
-        for (uint16_t i = 0; i < info->ptr_count; i++) {
-            char* field = scan + info->ptr_offsets[i];
-            if (info->kind == VADER_TYPE_KIND_FN
-                || info->kind == VADER_TYPE_KIND_ARRAY) {
-                /* fn:   only `env` is a heap ref; raw void*.
-                 * array: `buf` is a raw pointer to a vader_array_buf_t with
-                 *        its own header — same scan_raw treatment. */
-                vader_gc_scan_raw((void**) field);
-            } else {
-                vader_gc_scan_box((vader_box_t*) field);
-            }
-        }
-        scan += vader_gc_align(info->size);
+/* Forward every pointer slot of every object in `[scan, arena->cur)`. Re-
+ * reads `arena->cur` each iteration so objects appended by forwarding
+ * during the scan are picked up before the loop ends. Returns the final
+ * scan position. */
+static char* vader_gc_drain(char* scan, const vader_arena_t* arena) {
+    while (scan < arena->cur) {
+        size_t step = vader_gc_scan_object(scan);
+        if (step == 0) break;
+        scan += step;
+    }
+    return scan;
+}
+
+void vader_minor_collect(void) {
+    if (!g_gc_initialized) return;
+    vader_cycle_t saved = g_cycle;
+    if (saved == VADER_CYCLE_NONE) g_cycle = VADER_CYCLE_MINOR;
+    /* MAJOR_DRAIN is preserved if the caller is `vader_major_collect`. */
+
+    g_young.to.cur = g_young.to.base;
+    char* young_scan       = g_young.to.base;
+    char* old_promote_scan = g_old.from.cur;            /* promotions land past here */
+
+    vader_gc_scan_roots();
+    vader_gc_scan_old_dirty_cards();
+
+    /* Drain both cursors until neither advances — forwarding a young root
+     * can promote into old, and forwarding an old promote can pull more
+     * young objects across, so the two sources feed each other. */
+    for (;;) {
+        char* y0 = young_scan;
+        char* o0 = old_promote_scan;
+        young_scan       = vader_gc_drain(young_scan, &g_young.to);
+        old_promote_scan = vader_gc_drain(old_promote_scan, &g_old.from);
+        if (young_scan == y0 && old_promote_scan == o0) break;
     }
 
-    /* 3. Swap arenas. The new from-space is yesterday's to-space, fully
-     *    populated with the live set; the new to-space is the old from-space,
-     *    reset for next cycle. */
-    vader_arena_t tmp = g_from_space;
-    g_from_space    = g_to_space;
-    g_to_space      = tmp;
-    g_to_space.cur  = g_to_space.base;
+    vader_arena_t tmp = g_young.from;
+    g_young.from   = g_young.to;
+    g_young.to     = tmp;
+    g_young.to.cur = g_young.to.base;
 
-    g_total_collections++;
+    /* A preliminary minor inside a major counts as part of that major. */
+    if (saved == VADER_CYCLE_NONE) g_total_collections++;
+    g_cycle = saved;
 
-    /* 4. String mark-sweep — runs AFTER the swap so the from-space walk
-     *    sees the compacted live set, not the (now-empty) old from-space. */
+    /* String mark-sweep runs after the swap so it walks the freshly
+     * compacted survivor set. */
     vader_string_gc_collect();
+}
+
+void vader_major_collect(void) {
+    if (!g_gc_initialized) return;
+
+    /* Drain young first so old can be Cheney-collected as a self-contained
+     * set. Surviving young objects (those that didn't promote) are treated
+     * as immortal during the old pass — old can only reach young via the
+     * card table, which the minor consumed. */
+    g_cycle = VADER_CYCLE_MAJOR_DRAIN;
+    vader_minor_collect();
+
+    g_cycle = VADER_CYCLE_MAJOR;
+    g_old.to.cur = g_old.to.base;
+
+    vader_gc_scan_roots();
+    (void) vader_gc_drain(g_young.from.base, &g_young.from);
+    (void) vader_gc_drain(g_old.to.base, &g_old.to);
+
+    vader_arena_t tmp = g_old.from;
+    g_old.from   = g_old.to;
+    g_old.to     = tmp;
+    g_old.to.cur = g_old.to.base;
+    memset(vader_card_table, 0, g_card_count);
+
+    g_cycle = VADER_CYCLE_NONE;
+    g_total_collections++;
+    vader_string_gc_collect();
+}
+
+/* Public alias. `runtime.collect()` in Vader maps here; tests rely on it
+ * forcing a full collection (Cheney over old, not just minor). */
+void vader_gc_collect(void) {
+    vader_major_collect();
 }
 
 vader_gc_stats_t vader_gc_get_stats(void) {
     vader_gc_stats_t s;
-    s.arena_size = VADER_GC_ARENA_BYTES;
-    s.bytes_used = g_gc_initialized ? (size_t)(g_from_space.cur - g_from_space.base) : 0;
+    s.arena_size = VADER_GC_OLD_BYTES;
+    if (g_gc_initialized) {
+        size_t young_used = (size_t)(g_young.from.cur - g_young.from.base);
+        size_t old_used   = (size_t)(g_old.from.cur   - g_old.from.base);
+        s.bytes_used = young_used + old_used;
+    } else {
+        s.bytes_used = 0;
+    }
     s.total_collections = g_total_collections;
     s.total_copied = g_total_copied;
     return s;
@@ -279,7 +517,7 @@ vader_gc_stats_t vader_gc_get_stats(void) {
  * Strings are immutable value types `{ptr, len}` passed by copy. The buffer
  * behind `ptr` lives in a dedicated mark-sweep arena (non-moving — so the
  * fat-ptr's address stays stable across collections), separate from the
- * Cheney semi-space which holds structs/arrays/fns.
+ * Cheney heap that holds structs/arrays/fns.
  *
  * Tracking: each allocation carries a `vader_string_header_t` immediately
  * before the user-visible payload. Headers are chained through `next` so the
@@ -476,21 +714,20 @@ static void vader_string_gc_collect(void) {
         }
     }
 
-    /* 4. Mark via Cheney from-space — every live object's box slots. */
-    char* scan = g_from_space.base;
-    while (scan < g_from_space.cur) {
-        vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
-        uint32_t type_index = hdr->type_index;
-        size_t   bytes      = 0;
-        if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
-            vader_array_buf_t* buf = (vader_array_buf_t*) scan;
-            bytes = sizeof(vader_array_buf_t) + buf->capacity * sizeof(vader_box_t);
-        } else if (type_index < vader_type_info_count) {
-            bytes = vader_type_info_table[type_index].size;
+    /* 4. Mark via Cheney from-spaces — every live object's box slots, in
+     *    both young and old. After a minor cycle young.from holds the
+     *    survivor set; after a major both halves are freshly compacted. */
+    const vader_arena_t* gens[2] = { &g_young.from, &g_old.from };
+    for (int g = 0; g < 2; g++) {
+        char* scan = gens[g]->base;
+        while (scan < gens[g]->cur) {
+            vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
+            uint32_t type_index = hdr->type_index;
+            size_t bytes = vader_gc_obj_size(scan, type_index);
+            if (bytes == 0) break;            /* corrupt header — bail */
+            vader_string_mark_obj(scan, type_index);
+            scan += vader_gc_align(bytes);
         }
-        if (bytes == 0) break;                /* corrupt header — bail */
-        vader_string_mark_obj(scan, type_index);
-        scan += vader_gc_align(bytes);
     }
 
     /* 5. Conservative C-stack scan. setjmp dumps callee-saved registers
@@ -622,6 +859,9 @@ vader_box_t vader_array_get(vader_array_t* a, size_t i) {
 void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
     if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
     a->buf->slots[i] = v;
+    /* Mark the card holding `a->buf` if it lives in old: subsequent minors
+     * must treat that card as a root since the new slot may point at young. */
+    VADER_WRITE_BARRIER(a->buf);
 }
 
 /* If `a` was relocated by a collection that fired during a recent allocation,
@@ -649,10 +889,13 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
         fresh->length = a->length;
         a->buf = fresh;
         a->capacity = cap;
+        /* `a` may be old while `fresh` is young — mark the card holding `a`. */
+        VADER_WRITE_BARRIER(a);
     }
     a->buf->slots[a->length] = v;
     a->length += 1;
     a->buf->length = a->length;
+    VADER_WRITE_BARRIER(a->buf);
 }
 
 /* ----------------------------------------------------------------- std/string */

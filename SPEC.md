@@ -1522,7 +1522,11 @@ All non-primitive values (struct, array, string buffer contents, future stdlib t
 
 ### GC backends
 
-- **Native (C)**: hand-written **Cheney semi-space copying GC** (stop-the-world), in C, linked into the binary. Two arenas of equal size (16 MB each by default); allocation is bump-pointer; collection copies live objects from the from-space to the to-space and swaps. Roots are enumerated **precisely** via a shadow stack: every emitted C function pushes a `vader_gc_frame_t` chained through `prev` containing the addresses of its ref-typed locals, popped on return. Per-type pointer maps emitted by the compiler tell the scanner where the heap pointers live inside each object.
+- **Native (C)**: hand-written **generational Cheney copying GC** (stop-the-world), in C, linked into the binary. Two generations:
+  - **Young** (Eden + Survivor): two 4 MB semi-spaces collected by minor cycles. Every allocation lands here.
+  - **Old**: two 16 MB semi-spaces collected by major cycles. Objects that survive `VADER_TENURE_AGE` (=2) minors are promoted in.
+
+  Both generations use the same Cheney semi-space algorithm. A **card table** (one byte per 512 bytes of old) tracks cross-generation pointers: the C emitter inserts a `VADER_WRITE_BARRIER` after every store of a pointer field into a heap object, marking the card if the target lives in old. Minor cycles use the shadow stack plus marked cards as roots — clean cards are skipped wholesale. Major cycles run a preliminary minor to drain young, then Cheney-collect old and reset the card table. Roots are enumerated **precisely** via the shadow stack: every emitted C function pushes a `vader_gc_frame_t` chained through `prev` containing the addresses of its ref-typed locals, popped on return. Per-type pointer maps emitted by the compiler tell the scanner where the heap pointers live inside each object.
 - **WASM**: uses the `(ref struct)`, `(ref array)`, `anyref` types of the WASM GC proposal (the host runtime — wasmtime / V8 — performs GC).
 
 ### Storage semantics

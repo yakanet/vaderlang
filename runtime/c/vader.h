@@ -1,17 +1,16 @@
 /* Vader native runtime — public API consumed by the C emitter (§1.9).
  *
- * Memory: Cheney semi-space copying GC backs structs, arrays, fn closures.
+ * Memory: generational Cheney copying GC backs structs, arrays, fn closures.
  * See `vader_gc_*` below and the implementation header in `vader_runtime.c`
- * for the arena layout, shadow-stack root enumeration, and the per-module
- * `vader_type_info_table` the scanner consults.
+ * for the two-generation arena layout, shadow-stack root enumeration, card
+ * table, and the per-module `vader_type_info_table` the scanner consults.
  *
  * String buffers (the `char*` behind every `vader_string_t`) live OUTSIDE
- * the GC arena and are currently leaked for the lifetime of the program —
- * `vader_string_t` is a fat ptr-len value copied at every assignment, and
- * a moving GC would need a back-mapping from char-ptr to header on every
- * scan. Acceptable for short-lived CLI invocations; problematic for
- * long-running processes (LSP, watch-mode). Reclaiming string buffers is
- * tracked as a separate phase.
+ * the GC arenas — a moving GC would need a back-mapping from char-ptr to
+ * header on every scan, and `vader_string_t` is a fat ptr-len value copied
+ * at every assignment. They're tracked separately in a non-moving mark-
+ * sweep arena that runs after each Cheney cycle (see `vader_string_alloc`
+ * in the implementation).
  *
  * Boxes (`vader_box_t`) carry a runtime tag that maps 1:1 to a `BcType` index
  * in the originating bytecode module. `type_check` pattern matches against
@@ -120,23 +119,31 @@ static inline vader_box_t vader_box_null(void) {
  * slots. Only the header layout is fixed by the runtime; everything else is
  * code-generated.
  *
- * GC convention (Cheney semi-space copying — Phase 2):
+ * GC convention (generational Cheney copying):
  *   - `type_index` identifies the layout (size + pointer offsets) via the
  *     per-module type info table emitted alongside.
+ *   - `age` counts the number of minor cycles the object has survived in
+ *     the young generation. Once it reaches VADER_TENURE_AGE the next minor
+ *     promotes the object to the old generation.
+ *   - `mark` is reserved for future use (string-GC currently keeps its own
+ *     mark bit on its arena headers).
  *   - `forward` is NULL for live objects in from-space and non-NULL when the
  *     object has been copied to to-space during a collection. The GC walks
- *     forwards transparently when scanning roots.
- *   - `_pad` is reserved for future flags (e.g. mark bit for incremental GC). */
+ *     forwards transparently when scanning roots. */
 typedef struct {
     uint32_t type_index;
-    uint32_t _pad;
+    uint8_t  age;
+    uint8_t  mark;
+    uint16_t _reserved;
     void*    forward;
 } vader_obj_header_t;
 
 static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
     vader_obj_header_t* h = (vader_obj_header_t*) obj;
     h->type_index = type_index;
-    h->_pad       = 0;
+    h->age        = 0;
+    h->mark       = 0;
+    h->_reserved  = 0;
     h->forward    = NULL;
 }
 
@@ -180,20 +187,57 @@ void           vader_array_push(vader_array_t* a, vader_box_t v);
  * keep in registers. */
 static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
 
-/* Phase 2 — Cheney semi-space copying GC.
+/* Generational Cheney copying GC.
  *
- * Two arenas (from / to). `vader_gc_alloc` bumps the from-space pointer
- * forward; when the arena fills, `vader_gc_collect` copies live objects to
- * to-space and swaps. Roots are enumerated via the shadow stack emitted by
- * the C codegen (see `vader_gc_frame_t` below). */
+ * Two generations: a small young (Eden + Survivor) collected often by minor
+ * cycles, and a larger old collected rarely by major cycles. Each generation
+ * is its own Cheney semi-space pair, so the algorithmic core stays uniform.
+ * Allocation always lands in young from-space; on minor, surviving objects
+ * are forwarded to young to-space (or promoted to old once they've reached
+ * `VADER_TENURE_AGE`). A major runs a minor first to drain young, then
+ * Cheney-collects old. Roots are enumerated via the shadow stack emitted by
+ * the C codegen (see `vader_gc_frame_t` below).
+ *
+ * Cross-generation references from old to young are tracked by a card
+ * table: every write of a pointer field into an old object marks the card
+ * containing that object, so the next minor scans only marked cards as
+ * additional roots instead of the entire old space. */
+
+/* Heap sizing — tunable at compile time via `-D` flags. */
+#ifndef VADER_GC_YOUNG_BYTES
+#define VADER_GC_YOUNG_BYTES (4u * 1024u * 1024u)    /* 4 MB per young semi-space */
+#endif
+#ifndef VADER_GC_OLD_BYTES
+#define VADER_GC_OLD_BYTES   (16u * 1024u * 1024u)   /* 16 MB per old semi-space */
+#endif
+#ifndef VADER_TENURE_AGE
+#define VADER_TENURE_AGE     2u                      /* minor cycles before promotion */
+#endif
+#ifndef VADER_CARD_BYTES
+#define VADER_CARD_BYTES     512u                    /* one card per 512 bytes of old */
+#endif
 
 void vader_gc_init(void);
 void vader_gc_shutdown(void);
+
+/* Run a full collection (minor + Cheney on old). Exposed to user Vader code
+ * via the `runtime.collect()` intrinsic, and used by stress tests that want
+ * to force reclamation between allocations. */
 void vader_gc_collect(void);
 
-/* Allocate `bytes` from the from-space arena. May trigger a collection if
- * the arena is full. Returned memory is uninitialised — caller is responsible
- * for writing the header (when the allocation represents a typed object).
+/* Minor: collect the young generation only, using the shadow stack and any
+ * marked cards in old as roots. Promotes survivors that have aged past
+ * `VADER_TENURE_AGE` into old. */
+void vader_minor_collect(void);
+
+/* Major: drain young (via a minor) then Cheney-collect old. Triggered when
+ * promotion would overflow old, and when the user explicitly calls collect. */
+void vader_major_collect(void);
+
+/* Allocate `bytes` from the young from-space. May trigger a minor collection
+ * if young is full, and a major if promotion during that minor would overflow
+ * old. Returned memory is uninitialised — caller is responsible for writing
+ * the header (when the allocation represents a typed object).
  *
  * Used by the C emit for typed allocations (structs, fn objects). For arrays,
  * see `vader_array_new` which lays out the struct + initial buf in a single
@@ -201,11 +245,27 @@ void vader_gc_collect(void);
  * (see `vader_string_alloc` in the implementation). */
 void* vader_gc_alloc(size_t bytes);
 
+/* Card-table write barrier — called by the C-emit after every store of a
+ * pointer-bearing field into a heap object. No-op for objects outside the
+ * old generation (young objects can freely point anywhere; minor scans
+ * young fully). Inlined as a macro so the hot path is two loads + a compare
+ * + an optional byte store. */
+extern uint8_t*   vader_card_table;
+extern uintptr_t  vader_old_base;
+extern uintptr_t  vader_old_end;
+
+#define VADER_WRITE_BARRIER(obj) do {                                          \
+    uintptr_t __vb = (uintptr_t)(obj);                                         \
+    if (__vb >= vader_old_base && __vb < vader_old_end) {                      \
+        vader_card_table[(__vb - vader_old_base) / VADER_CARD_BYTES] = 1u;     \
+    }                                                                          \
+} while (0)
+
 /* Stats — exposed for tests / `runtime_gc_stats()` in stdlib. */
 typedef struct {
-    size_t arena_size;        /* size of each semi-space, in bytes */
-    size_t bytes_used;        /* live bytes in from-space (post-collection) */
-    size_t total_collections; /* GC cycles run since process start */
+    size_t arena_size;        /* size of each old semi-space, in bytes */
+    size_t bytes_used;        /* live bytes across young+old (post-collection) */
+    size_t total_collections; /* full + minor cycles run since process start */
     size_t total_copied;      /* cumulative bytes copied across all cycles */
 } vader_gc_stats_t;
 vader_gc_stats_t vader_gc_get_stats(void);

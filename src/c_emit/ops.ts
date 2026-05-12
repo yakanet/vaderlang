@@ -325,6 +325,10 @@ export function emitStructSet(s: FnState, op: Extract<Op, { kind: "struct.set" }
   const f = t.fields[op.fieldIndex]!;
   const fval = valTypeOfField(s.ctx, f.typeIndex);
   line(s, `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)} = ${coerce(s, value.name, value.val, fval)};`);
+  // Emitted unconditionally — the macro filters at runtime against the old
+  // generation's address range. A future pass could elide it for tmps known
+  // to come from `struct.new_stack`.
+  line(s, `VADER_WRITE_BARRIER((${cname}*) ${asObjPtr(obj)});`);
 }
 
 /** Coerce a stack value holding a heap reference to a `void*`. Boxed values
