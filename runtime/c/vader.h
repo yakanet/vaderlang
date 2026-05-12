@@ -113,6 +113,15 @@ static inline vader_box_t vader_box_null(void) {
     vader_box_t bx; bx.tag = VADER_BOX_TAG_NULL; bx._pad = 0; bx.payload.obj = NULL; return bx;
 }
 
+/* Identity equality between two boxes — tag plus the raw 8-byte payload slot
+ * (which aliases every union member, so it covers refs, primitives, and
+ * string fat-ptrs that occupy the first word). Emitted by the C codegen for
+ * `ref.eq` / `ref.ne` because direct `==` on a `vader_box_t` struct is not
+ * legal C. */
+static inline bool vader_box_eq(vader_box_t a, vader_box_t b) {
+    return a.tag == b.tag && a.payload.obj == b.payload.obj;
+}
+
 /* ----------------------------------------------------------------- struct */
 
 /* Each emitted struct decl produces a C struct with a header and per-field

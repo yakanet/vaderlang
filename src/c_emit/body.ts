@@ -561,9 +561,11 @@ export function pushBinop(s: FnState, _t: ValType, op: string, resultT: ValType)
 export function pushBinopAny(s: FnState, op: string, resultT: ValType): void {
   const r = pop(s); const l = pop(s);
   const tmp = newTmp(s, resultT);
-  // Box/ref equality: compare object identity for heap kinds. With γ
-  // representation, both sides are `void*` if they're refs, so direct compare.
-  line(s, `${decl(s, resultT, tmp)} = (${l.name} ${op} ${r.name});`);
+  // C forbids `==` directly on a struct, and `vader_box_t` *is* the γ
+  // representation for `ref`/`any` slots — so route through the runtime
+  // helper which compares the tag plus the payload word.
+  const neg = op === "!=" ? "!" : "";
+  line(s, `${decl(s, resultT, tmp)} = ${neg}vader_box_eq(${l.name}, ${r.name});`);
 }
 
 export function pushUnop(s: FnState, _t: ValType, op: string, resultT: ValType): void {

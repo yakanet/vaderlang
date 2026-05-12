@@ -327,6 +327,10 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
+  "null_blockres": {
+    "leakedNodes": 0,
+    "leakedBytes": 0
+  },
   "numeric_add_trait": {
     "leakedNodes": 0,
     "leakedBytes": 0
