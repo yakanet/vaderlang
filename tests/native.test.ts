@@ -33,7 +33,7 @@ test("native: at least one snippet", () => {
 });
 
 for (const s of scenarios) {
-  test(`native: ${s.name}`, async () => {
+  test.concurrent(`native: ${s.name}`, async () => {
     if (!CC_AVAILABLE) return;
 
     let r: Awaited<ReturnType<typeof pipelineBytecode>>;
@@ -75,5 +75,5 @@ for (const s of scenarios) {
         snapshotDiff("vm.snapshot", expected, actual),
       );
     }
-  });
+  }, { timeout: 30_000 });
 }

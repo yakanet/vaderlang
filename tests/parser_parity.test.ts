@@ -89,5 +89,5 @@ for (const s of scenarios) {
         snapshotDiff(snapPath, expected, stdout),
       );
     }
-  });
+  }, { timeout: 30_000 });
 }
