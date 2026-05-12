@@ -1,0 +1,40 @@
+module _main
+string 0 " "
+import 0 println std_io$println (string) -> void
+
+fn 0 tests_snippets_enum_to_repr_cast__main_vader$main () -> i32
+  local "c#22" i32
+  local "__sb_0#26" any
+  i32.const 1   ; _main.vader:23:17
+  u8.to_i32   ; _main.vader:23:10
+  local.set 0   ; _main.vader:23:10
+  intrinsic builder.new   ; _main.vader:25:13
+  local.tee 1   ; _main.vader:25:13
+  i32.const 2   ; _main.vader:25:14
+  i32.to_u8   ; _main.vader:25:14
+  intrinsic builder.append_display   ; _main.vader:25:14
+  local.get 1   ; _main.vader:25:18
+  string.const 0   ; _main.vader:25:18
+  intrinsic builder.append_str   ; _main.vader:25:18
+  local.get 1   ; _main.vader:25:19
+  i32.const 4000000000   ; _main.vader:25:19
+  i32.to_u32   ; _main.vader:25:19
+  intrinsic builder.append_display   ; _main.vader:25:19
+  local.get 1   ; _main.vader:25:23
+  string.const 0   ; _main.vader:25:23
+  intrinsic builder.append_str   ; _main.vader:25:23
+  local.get 1   ; _main.vader:25:24
+  local.get 0   ; _main.vader:25:24
+  intrinsic builder.append_display   ; _main.vader:25:24
+  local.get 1   ; _main.vader:25:28
+  string.const 0   ; _main.vader:25:28
+  intrinsic builder.append_str   ; _main.vader:25:28
+  local.get 1   ; _main.vader:25:29
+  i32.const 1   ; _main.vader:25:29
+  intrinsic builder.append_display   ; _main.vader:25:29
+  local.get 1   ; _main.vader:25:13
+  intrinsic builder.finish   ; _main.vader:25:13
+  call.import 0   ; _main.vader:25:5
+  i32.const 0   ; _main.vader:26:12
+  return   ; _main.vader:26:5
+end

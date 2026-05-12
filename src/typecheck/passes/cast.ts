@@ -62,6 +62,16 @@ export function inferTypeConstructorCall(
       `cast target must be a primitive numeric type, char, or have an \`Into(${displayType(target)})\` impl, got ${displayType(target)}`);
     return target;
   }
+  // Enum source : only the enum's declared repr is a valid cast target.
+  // `Day :: enum(u8)` accepts `u8(value)`; for wider/narrower types the
+  // user chains `i32(u8(value))` explicitly. Keeps casts one-step and
+  // sidesteps signedness/width ambiguity.
+  if (argType.kind === "Enum") {
+    if (target.kind === "Primitive" && target.name === argType.repr) return target;
+    err(diags, "T3010", expr.callee.span,
+      `cannot cast ${displayType(argType)} (enum repr ${argType.repr}) to ${displayType(target)} ; write ${argType.repr}(value) first, e.g. ${displayType(target)}(${argType.repr}(value))`);
+    return target;
+  }
   const sourceOk = isNumeric(argType)
     || isPrimitive(argType, "char")
     || argType.kind === "Unresolved"

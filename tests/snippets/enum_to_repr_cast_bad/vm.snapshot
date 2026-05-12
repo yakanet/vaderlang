@@ -1,0 +1,4 @@
+# compile errors
+[T3010] invalid cast: cannot cast Day (enum repr u8) to i32 ; write u8(value) first, e.g. i32(u8(value))
+[T3010] invalid cast: cannot cast Day (enum repr u8) to f32 ; write u8(value) first, e.g. f32(u8(value))
+[T3010] invalid cast: cannot cast Day (enum repr u8) to char ; write u8(value) first, e.g. char(u8(value))

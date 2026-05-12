@@ -11,9 +11,7 @@ import "std/collections" { MutableMap }
 import "vader/lsp/transport" { write_frame }
 import "vader/lsp/rpc" { encode_notification }
 
-/// Severity tag per LSP spec. The integer wire-format is derived through
-/// `level_code` rather than a direct enum-to-int cast, because Vader's
-/// typechecker forbids the latter on `enum(i32)` types.
+/// Severity tag per LSP spec.
 export LogLevel :: enum(i32) {
     Error = 1,
     Warning = 2,
@@ -22,21 +20,10 @@ export LogLevel :: enum(i32) {
     Debug = 5,
 }
 
-level_code :: fn(l: LogLevel) -> i32 {
-    match l {
-        .Error   -> { return 1 }
-        .Warning -> { return 2 }
-        .Info    -> { return 3 }
-        .Log     -> { return 4 }
-        .Debug   -> { return 5 }
-    }
-    return 4
-}
-
 /// Emit a `window/logMessage` notification.
 export log :: fn(level: LogLevel, message: string) -> void {
     params_map :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
-    params_map["type"]    = JsonNumber { .value = f64(level_code(level)) }
+    params_map["type"]    = JsonNumber { .value = f64(i32(level)) }
     params_map["message"] = JsonString { .value = message }
     params :: JsonObject { .entries = params_map }
     write_frame(encode_notification("window/logMessage", params))

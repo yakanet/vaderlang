@@ -1,0 +1,32 @@
+# Typecheck
+
+## tests/snippets/enum_to_repr_cast/_main.vader
+  EnumDecl       Big                  :: Big
+  EnumDecl       Color                :: Color
+  EnumDecl       Day                  :: Day
+  FnDecl         main                 :: fn() -> i32
+  expr 21:10    CallExpr       :: u8
+  expr 21:10    IdentExpr      :: type
+  expr 21:13    FieldExpr      :: Day
+  expr 21:13    IdentExpr      :: Day
+  expr 22:10    CallExpr       :: u32
+  expr 22:10    IdentExpr      :: type
+  expr 22:14    FieldExpr      :: Big
+  expr 22:14    IdentExpr      :: Big
+  expr 23:10    CallExpr       :: i32
+  expr 23:10    IdentExpr      :: type
+  expr 23:14    CallExpr       :: u8
+  expr 23:14    IdentExpr      :: type
+  expr 23:17    FieldExpr      :: Day
+  expr 23:17    IdentExpr      :: Day
+  expr 24:10    CallExpr       :: i32
+  expr 24:10    IdentExpr      :: type
+  expr 24:14    FieldExpr      :: Color
+  expr 24:14    IdentExpr      :: Color
+  expr 25:13    StringLitExpr  :: string
+  expr 25:16    IdentExpr      :: u8
+  expr 25:21    IdentExpr      :: u32
+  expr 25:26    IdentExpr      :: i32
+  expr 25:31    IdentExpr      :: i32
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(string) -> void

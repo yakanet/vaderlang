@@ -1,0 +1,23 @@
+# Typecheck
+
+## tests/snippets/enum_to_repr_cast_bad/_main.vader
+  EnumDecl       Day                  :: Day
+  FnDecl         main                 :: fn() -> i32
+  expr 10:12    IdentExpr      :: i32
+  expr 7:10     CallExpr       :: i32
+  expr 7:10     IdentExpr      :: type
+  expr 7:14     FieldExpr      :: Day
+  expr 7:14     IdentExpr      :: Day
+  expr 8:10     CallExpr       :: f32
+  expr 8:10     IdentExpr      :: type
+  expr 8:14     FieldExpr      :: Day
+  expr 8:14     IdentExpr      :: Day
+  expr 9:10     CallExpr       :: char
+  expr 9:10     IdentExpr      :: type
+  expr 9:15     FieldExpr      :: Day
+  expr 9:15     IdentExpr      :: Day
+
+# Diagnostics
+[7:10] error[T3010] invalid cast: cannot cast Day (enum repr u8) to i32 ; write u8(value) first, e.g. i32(u8(value))
+[8:10] error[T3010] invalid cast: cannot cast Day (enum repr u8) to f32 ; write u8(value) first, e.g. f32(u8(value))
+[9:10] error[T3010] invalid cast: cannot cast Day (enum repr u8) to char ; write u8(value) first, e.g. char(u8(value))

@@ -1,0 +1,27 @@
+import "std/io" { println }
+
+Day :: enum(u8) {
+    Mon = 1,
+    Tue,
+    Wed = 200,
+}
+
+Big :: enum(u32) {
+    A = 0,
+    B = 4_000_000_000,
+}
+
+Color :: enum {
+    Red,
+    Green,
+    Blue,
+}
+
+main :: fn() -> i32 {
+    a :: u8(Day.Tue)
+    b :: u32(Big.B)
+    c :: i32(u8(Day.Mon))
+    d :: i32(Color.Green)
+    println("${a} ${b} ${c} ${d}")
+    return 0
+}
