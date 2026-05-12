@@ -5,6 +5,7 @@
 import type * as A from "../../parser/ast.ts";
 import type { Span } from "../../diagnostics/diagnostic.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
+import { sourceStructDecl } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
 import { TY } from "../../typecheck/types.ts";
 
@@ -13,6 +14,16 @@ import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt } from "../lower
 
 import { lowerExpr } from "./expr.ts";
 import { freshSyntheticSymbol, loweredEnumVariant, lowerCellInit, wrapAsBlock } from "./helpers.ts";
+
+/** Look up the static type of a struct field on its declaration. Returns
+ *  `TY.unresolved` for non-Struct targets or fields the typechecker hasn't
+ *  resolved (e.g. recovery after a parse error). */
+function structFieldType(ctx: FnLowerCtx, targetType: Type, fieldName: string): Type {
+  if (targetType.kind !== "Struct") return TY.unresolved;
+  const decl = sourceStructDecl(targetType.symbol);
+  const field = decl?.fields.find((fd) => fd.name === fieldName);
+  return field !== undefined ? ctx.types.typeExprType(field.type) : TY.unresolved;
+}
 
 export function lowerMatch(ctx: FnLowerCtx, expr: A.MatchExpr, exprType: Type): LoweredExpr {
   const scrutType = ctx.types.exprType(expr.scrutinee);
@@ -221,13 +232,14 @@ function walkPatternBindings(
     case "StructPattern": {
       for (const f of pattern.fields) {
         if (f.value.kind !== "binding") continue;
+        const fieldType = structFieldType(ctx, targetType, f.name);
         const fieldAccess: LoweredExpr = {
-          kind: "LoweredFieldAccess", span: f.span, type: TY.unresolved,
+          kind: "LoweredFieldAccess", span: f.span, type: fieldType,
           target, field: f.name,
         };
         const sym = ctx.typed.resolved.patternBindings.get(f)
           ?? freshSyntheticSymbol(ctx, f.value.name);
-        const init = lowerCellInit(ctx, sym, fieldAccess, TY.unresolved, f.span);
+        const init = lowerCellInit(ctx, sym, fieldAccess, fieldType, f.span);
         out.push({
           kind: "LoweredLet", span: f.span, name: f.value.name, symbol: sym,
           type: init.slotType, value: init.value,

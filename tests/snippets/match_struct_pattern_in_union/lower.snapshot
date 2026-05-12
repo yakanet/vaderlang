@@ -21,12 +21,12 @@
                     is Point :bool
                       __scrut_0 :null | Point
                   then:
-                    let x: ? =
-                      .x :?
+                    let x: i32 =
+                      .x :i32
                         cast → Point
                           __scrut_0 :null | Point
-                    let y: ? =
-                      .y :?
+                    let y: i32 =
+                      .y :i32
                         cast → Point
                           __scrut_0 :null | Point
                     ~>

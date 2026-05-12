@@ -9,9 +9,9 @@ fn tests_snippets_match_struct_pattern_in_union__main_vader$describe(%0: null | 
     %2 $type_check_2#18: bool
     %3 $type_check_5#20: bool
     %4 $cast_7#21: Point
-    %5 x#22: ? (binding x)
+    %5 x#22: i32 (binding x)
     %6 $cast_10#23: Point
-    %7 y#24: ? (binding y)
+    %7 y#24: i32 (binding y)
     %8 $intrinsic_13#25: ?
     %9 __sb_1#26: ? (synthetic __sb_1)
     %10 $k_15#27: string
@@ -36,9 +36,9 @@ fn tests_snippets_match_struct_pattern_in_union__main_vader$describe(%0: null | 
     return %16
   bb4:
     %4 = cast %1 :Point
-    %5 = field_get %4.x :?
+    %5 = field_get %4.x :i32
     %6 = cast %1 :Point
-    %7 = field_get %6.y :?
+    %7 = field_get %6.y :i32
     %8 = intrinsic builder.new()
     %9 = move %8
     %10 = const string(#1) :string

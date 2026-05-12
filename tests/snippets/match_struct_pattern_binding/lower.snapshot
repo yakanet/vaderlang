@@ -16,8 +16,8 @@
             is P :bool
               __scrut_0 :P
           then:
-            let name: ? =
-              .name :?
+            let name: string =
+              .name :string
                 __scrut_0 :P
             ~>
               call :void
