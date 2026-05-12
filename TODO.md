@@ -287,29 +287,19 @@ the midir refactor and mimics WASM's structured control flow (`block`/`loop`/
 `if`/`else`/`end` + `br <depth>`) even though the VM and C-emit don't need that
 shape.
 
-**Two-format split (#1 — sure win, no semantic debate)**
+**Two-format split (#1 — done)**
 
-- [ ] Rename the current text format to `.virt` (textual). All snapshot tests
-      and CLI flags follow.
-- [ ] Add a new binary `.vir` format alongside, with a proper header :
+- [x] Renamed the textual format to `.virt`. CLI : `vader build --target=ir-text` writes `.virt`, `vader run` sniffs by extension. Snapshot tests follow.
+- [x] Binary `.vir` format alongside (`src/bytecode/binary.ts`, ~720 lines). Header layout :
       ```
-      magic     "VADR"  (4 bytes)
-      version   u32     (semver compact: major<<16 | minor<<8 | patch)
-      flags     u32     (debug-info-present, target hint, …)
-      sections  [ TypeSection, StringSection, ImportSection, ExportSection,
-                  FnSection, VtableSection, ImplSection, DebugSection ]
+      magic     "VADR"  (4 bytes : 0x56 0x41 0x44 0x52)
+      version   u32     (BYTECODE_VERSION = major<<16 | minor<<8 | patch ; today 0.1.1, hard error on mismatch)
+      flags     u32     (FLAG_HAS_DEBUG = 0x0001 ; rest reserved)
       ```
-- [ ] No backwards compatibility — the format is single-version and any
-      mismatch is a hard error. We're pre-1.0, no on-disk artifacts to
-      preserve.
-- [ ] Both formats round-trip the same `BytecodeModule`. CLI flag :
-      `vader build --target=ir` defaults to `.vir` (binary) ; `--target=ir-text`
-      (or similar) for `.virt`.
-- [ ] Header flags worth carrying : `target = native | wasm | vm-only`,
-      `has_debug_info`, `module_id` (content hash for incremental cache later),
-      `producer` (compiler version that emitted this).
-
-Effort estimate : 2-3 days. Independent of the architectural question below.
+      Followed by 9 length-prefixed sections : moduleName, types, strings, imports, exports, vtables, implTable, debugFiles, functions. Multi-byte ints little-endian ; strings u32-prefixed UTF-8 ; ValType is a 1-byte tag against `VAL_TYPES` ; op kinds are a u16 tag against `OP_KINDS`.
+- [x] Both formats round-trip the same `BytecodeModule`. Verified : `vader build hello.vader --target=ir --out=hello.vir && vader run hello.vir` ✓ ; same with `--target=ir-text` → `.virt`.
+- [x] CLI : `--target=ir` defaults to binary `.vir` ; `--target=ir-text` writes `.virt`. `vader run` accepts `.vader` / `.vir` / `.virt` (extension-sniffing in `src/cli/commands/run.ts:16-17`).
+- [~] Header flags worth carrying : `has_debug_info` (`FLAG_HAS_DEBUG`) ✓. `target = native | wasm | vm-only` and `module_id` (content hash for incremental cache later) deferred — picked up when the WASM emitter / cache work lands.
 
 **"Plus IR-like" — open architecture question (#2 — discuss before coding)**
 
