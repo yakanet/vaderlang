@@ -76,18 +76,18 @@ export scan_comments :: fn(source: string) -> CommentMap {
         // Newline tracking. `\n` only — CR is normalised elsewhere.
         if b == BYTE_LF {
             line = line + 1
-            i = i + usize(1)
+            i = i + 1
             continue
         }
 
         // `//` line comment (or `///` vaderdoc line).
-        if b == BYTE_SLASH && i + usize(1) < n && source.byte_at(i + usize(1)) == BYTE_SLASH {
+        if b == BYTE_SLASH && i + 1 < n && source.byte_at(i + 1) == BYTE_SLASH {
             start :: i
             start_line :: line
-            is_doc :: i + usize(2) < n && source.byte_at(i + usize(2)) == BYTE_SLASH
-            j: usize = i + usize(2)
+            is_doc :: i + 2 < n && source.byte_at(i + 2) == BYTE_SLASH
+            j: usize = i + 2
             for j < n && source.byte_at(j) != BYTE_LF {
-                j = j + usize(1)
+                j = j + 1
             }
             text :: source.slice_text(start, j)
             kind: CommentKind = if is_doc { .DocLine } else { .Line }
@@ -106,29 +106,29 @@ export scan_comments :: fn(source: string) -> CommentMap {
         // `/* … */` block comment, nesting-aware. SPEC §3 dropped the
         // `/** … */` doc-comment form ; `/**` is treated as a plain block
         // comment to keep round-trip semantics for any legacy source.
-        if b == BYTE_SLASH && i + usize(1) < n && source.byte_at(i + usize(1)) == BYTE_STAR {
+        if b == BYTE_SLASH && i + 1 < n && source.byte_at(i + 1) == BYTE_STAR {
             start :: i
             start_line :: line
-            j: usize = i + usize(2)
+            j: usize = i + 2
             depth: i32 = 1
             for j < n && depth > 0 {
                 cur :: source.byte_at(j)
                 if cur == BYTE_LF {
                     line = line + 1
-                    j = j + usize(1)
+                    j = j + 1
                     continue
                 }
-                if cur == BYTE_SLASH && j + usize(1) < n && source.byte_at(j + usize(1)) == BYTE_STAR {
+                if cur == BYTE_SLASH && j + 1 < n && source.byte_at(j + 1) == BYTE_STAR {
                     depth = depth + 1
-                    j = j + usize(2)
+                    j = j + 2
                     continue
                 }
-                if cur == BYTE_STAR && j + usize(1) < n && source.byte_at(j + usize(1)) == BYTE_SLASH {
+                if cur == BYTE_STAR && j + 1 < n && source.byte_at(j + 1) == BYTE_SLASH {
                     depth = depth - 1
-                    j = j + usize(2)
+                    j = j + 2
                     continue
                 }
-                j = j + usize(1)
+                j = j + 1
             }
             text :: source.slice_text(start, j)
             kind: CommentKind = .Block
@@ -149,15 +149,15 @@ export scan_comments :: fn(source: string) -> CommentMap {
         // we don't care what's *inside* the literal, only the closing quote.
         if b == BYTE_DQUOTE {
             // Triple-quoted ?
-            if i + usize(2) < n && source.byte_at(i + usize(1)) == BYTE_DQUOTE && source.byte_at(i + usize(2)) == BYTE_DQUOTE {
-                j: usize = i + usize(3)
-                for j + usize(2) < n {
-                    if source.byte_at(j) == BYTE_DQUOTE && source.byte_at(j + usize(1)) == BYTE_DQUOTE && source.byte_at(j + usize(2)) == BYTE_DQUOTE {
-                        j = j + usize(3)
+            if i + 2 < n && source.byte_at(i + 1) == BYTE_DQUOTE && source.byte_at(i + 2) == BYTE_DQUOTE {
+                j: usize = i + 3
+                for j + 2 < n {
+                    if source.byte_at(j) == BYTE_DQUOTE && source.byte_at(j + 1) == BYTE_DQUOTE && source.byte_at(j + 2) == BYTE_DQUOTE {
+                        j = j + 3
                         break
                     }
                     if source.byte_at(j) == BYTE_LF { line = line + 1 }
-                    j = j + usize(1)
+                    j = j + 1
                 }
                 i = j
                 continue
@@ -166,35 +166,35 @@ export scan_comments :: fn(source: string) -> CommentMap {
             // recurse into `${expr}` interpolation : a closing `"` inside an
             // interp expression is rare and we accept the small risk of
             // misclassification.
-            j: usize = i + usize(1)
+            j: usize = i + 1
             for j < n {
                 c :: source.byte_at(j)
-                if c == BYTE_BSLASH && j + usize(1) < n {
-                    j = j + usize(2)
+                if c == BYTE_BSLASH && j + 1 < n {
+                    j = j + 2
                     continue
                 }
                 if c == BYTE_DQUOTE {
-                    j = j + usize(1)
+                    j = j + 1
                     break
                 }
                 if c == BYTE_LF { line = line + 1 }
-                j = j + usize(1)
+                j = j + 1
             }
             i = j
             continue
         }
 
         // Raw string `r"…"`.
-        if b == BYTE_R && i + usize(1) < n && source.byte_at(i + usize(1)) == BYTE_DQUOTE {
-            j: usize = i + usize(2)
+        if b == BYTE_R && i + 1 < n && source.byte_at(i + 1) == BYTE_DQUOTE {
+            j: usize = i + 2
             for j < n {
                 c :: source.byte_at(j)
                 if c == BYTE_DQUOTE {
-                    j = j + usize(1)
+                    j = j + 1
                     break
                 }
                 if c == BYTE_LF { line = line + 1 }
-                j = j + usize(1)
+                j = j + 1
             }
             i = j
             continue
@@ -202,27 +202,27 @@ export scan_comments :: fn(source: string) -> CommentMap {
 
         // Char literal `'…'`. Same escape rules as strings.
         if b == BYTE_SQUOTE {
-            j: usize = i + usize(1)
+            j: usize = i + 1
             for j < n {
                 c :: source.byte_at(j)
-                if c == BYTE_BSLASH && j + usize(1) < n {
-                    j = j + usize(2)
+                if c == BYTE_BSLASH && j + 1 < n {
+                    j = j + 2
                     continue
                 }
                 if c == BYTE_SQUOTE {
-                    j = j + usize(1)
+                    j = j + 1
                     break
                 }
-                j = j + usize(1)
+                j = j + 1
             }
             i = j
             continue
         }
 
-        i = i + usize(1)
+        i = i + 1
     }
 
-    return CommentMap { .comments = out, .cursor = usize(0) }
+    return CommentMap { .comments = out, .cursor = 0 }
 }
 
 // True when at least one un-emitted comment has `offset < before`. The
@@ -245,7 +245,7 @@ export peek_before :: fn(self: CommentMap, before: usize) -> Comment[] {
         c :: self.comments[k]
         if c.offset >= before { break }
         out.push(c)
-        k = k + usize(1)
+        k = k + 1
     }
     return out
 }
@@ -259,7 +259,7 @@ export take_before :: fn(self: CommentMap, before: usize) -> Comment[] {
         c :: self.comments[self.cursor]
         if c.offset >= before { break }
         out.push(c)
-        self.cursor = self.cursor + usize(1)
+        self.cursor = self.cursor + 1
     }
     return out
 }
@@ -272,7 +272,7 @@ export take_trailing :: fn(self: CommentMap, node_end_line: i32, node_end_offset
     if self.cursor >= self.comments.len() { return null }
     c :: self.comments[self.cursor]
     if c.line == node_end_line && c.offset >= node_end_offset {
-        self.cursor = self.cursor + usize(1)
+        self.cursor = self.cursor + 1
         return c
     }
     return null
@@ -284,7 +284,7 @@ export drain_remaining :: fn(self: CommentMap) -> Comment[] {
     out: Comment[] = []
     for self.cursor < self.comments.len() {
         out.push(self.comments[self.cursor])
-        self.cursor = self.cursor + usize(1)
+        self.cursor = self.cursor + 1
     }
     return out
 }

@@ -51,13 +51,9 @@ export handle_definition :: fn(state: ServerState, params: JsonValue) -> JsonVal
                     // target module, and surface its decl's location.
                     nm :: index.name_at(line, character)
                     ext :: resolve(state, index, nm)
-                    match ext {
-                        is null -> { return JsonNull {} }
-                        is ExternalHit as hit -> {
-                            origin :: index.span_at(line, character)
-                            return def_response(state, origin, hit.uri, hit.target.name_span, hit.target.full_span)
-                        }
-                    }
+                    if ext == null { return JsonNull {} }
+                    origin :: index.span_at(line, character)
+                    return def_response(state, origin, ext.uri, ext.target.name_span, ext.target.full_span)
                 }
             }
         }

@@ -64,7 +64,7 @@ export index_for :: fn(self: ServerState, uri: string) -> DocIndex | null {
 export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
-    if uri.byte_len() == usize(0) { return }
+    if uri.byte_len() == 0 { return }
     text :: get_string(td, "text")
     self.docs[uri] = text
     self.indices[uri] = build_index(uri, text)
@@ -77,11 +77,11 @@ export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
 export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
-    if uri.byte_len() == usize(0) { return }
+    if uri.byte_len() == 0 { return }
     changes :: get_field(params, "contentChanges")
     match changes {
         is JsonArray as a -> {
-            if a.items.len() > usize(0) {
+            if a.items.len() > 0 {
                 first :: a.items[0]
                 text :: get_string(first, "text")
                 self.docs[uri] = text
@@ -97,7 +97,7 @@ export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
 export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
-    if uri.byte_len() == usize(0) { return }
+    if uri.byte_len() == 0 { return }
     self.docs[uri] = ""
     // Indices map carries the parsed AST + tokens — drop the entry so
     // a stale index never serves a closed-doc request. MutableMap has

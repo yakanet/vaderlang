@@ -125,7 +125,7 @@ export build_index :: fn(uri: string, source: string) -> DocIndex {
 export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | null {
     offset :: lsp_to_offset(idx.source, line, character)
     name :: token_name_at(idx.tokens, offset)
-    if name.byte_len() == usize(0) { return null }
+    if name.byte_len() == 0 { return null }
     return lookup_innermost(idx.decls, name, offset)
 }
 
@@ -261,10 +261,10 @@ doc_boundary_offset :: fn(decl_start: usize, decorators: Decorator[]) -> usize {
 // Used to absorb `export`/visibility prefixes that the parser doesn't
 // include in a decl's `span.start`.
 line_start_offset :: fn(source: string, pos: usize) -> usize {
-    if pos == usize(0) { return 0 }
+    if pos == 0 { return 0 }
     i: i32 = i32(pos) - 1
     for i >= 0 {
-        if source.byte_at(usize(i)) == BYTE_LF { return usize(i) + usize(1) }
+        if source.byte_at(usize(i)) == BYTE_LF { return usize(i) + 1 }
         i = i - 1
     }
     return 0
@@ -401,7 +401,7 @@ local_sig :: fn(
     name: string, type_hint: string,
     decl_start: usize, scope_end: usize, source: string,
 ) -> string {
-    if type_hint.byte_len() > usize(0) {
+    if type_hint.byte_len() > 0 {
         return name + ": " + type_hint
     }
     return slice_to_eol(source, decl_start, scope_end)
@@ -629,7 +629,7 @@ head_signature :: fn(span: Span, source: string) -> string {
         if b == u8(u32('{')) { break }
         if b == u8(u32('=')) { break }
         if b == BYTE_LF { break }
-        cursor = cursor + usize(1)
+        cursor = cursor + 1
     }
     return source.slice(start, cursor).trim()
 }
@@ -644,7 +644,7 @@ slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
     for cursor < up {
         b :: source.byte_at(cursor)
         if b == BYTE_LF { break }
-        cursor = cursor + usize(1)
+        cursor = cursor + 1
     }
     return source.slice(start, cursor).trim()
 }
@@ -666,7 +666,7 @@ param_signature_slice :: fn(span: Span, fallback: string, source: string) -> str
 // joins with `\n`.
 leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string {
     n :: cmap.comments.len()
-    if n == usize(0) { return "" }
+    if n == 0 { return "" }
     next_boundary := decl_start
     first_idx: i32 = -1
     i: i32 = i32(n) - 1
@@ -690,12 +690,12 @@ leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string
         if c.kind != .DocLine { break }
         if c.offset >= decl_start { break }
         line :: strip_doc_prefix(c.text)
-        if out.byte_len() == usize(0) {
+        if out.byte_len() == 0 {
             out = line
         } else {
             out = out + "\n" + line
         }
-        j = j + usize(1)
+        j = j + 1
     }
     return out
 }
@@ -707,17 +707,17 @@ whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
         if b != BYTE_SPACE && b != BYTE_TAB && b != BYTE_LF && b != BYTE_CR {
             return false
         }
-        cursor = cursor + usize(1)
+        cursor = cursor + 1
     }
     return true
 }
 
 strip_doc_prefix :: fn(text: string) -> string {
     n :: text.byte_len()
-    if n < usize(3) { return text }
+    if n < 3 { return text }
     cursor: usize = 3
     if cursor < n && text.byte_at(cursor) == BYTE_SPACE {
-        cursor = cursor + usize(1)
+        cursor = cursor + 1
     }
     return text.slice(cursor, n)
 }
@@ -749,27 +749,27 @@ token_span_at :: fn(tokens: Token[], offset: usize) -> Span | null {
 lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclEntry | null {
     has_best := false
     best_idx: usize = 0
-    best_size: usize = usize(0)
+    best_size: usize = 0
     i: usize = 0
     n :: decls.len()
     for i < n {
         d :: decls[i]
         if d.name != name {
-            i = i + usize(1)
+            i = i + 1
             continue
         }
         match d.scope_span {
             is null -> {
                 if !has_best {
                     best_idx = i
-                    best_size = usize(0)
+                    best_size = 0
                     has_best = true
                 }
             }
             is Span as sp -> {
                 if sp.start.offset <= offset && offset < sp.end.offset {
                     size :: sp.end.offset - sp.start.offset
-                    if !has_best || best_size == usize(0) || size < best_size {
+                    if !has_best || best_size == 0 || size < best_size {
                         best_idx = i
                         best_size = size
                         has_best = true
@@ -777,7 +777,7 @@ lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclE
                 }
             }
         }
-        i = i + usize(1)
+        i = i + 1
     }
     if !has_best { return null }
     return decls[best_idx]
@@ -793,7 +793,7 @@ lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
     for cursor < n {
         if cur_line == line { break }
         b :: source.byte_at(cursor)
-        cursor = cursor + usize(1)
+        cursor = cursor + 1
         if b == BYTE_LF { cur_line = cur_line + 1 }
     }
     if character <= 0 { return cursor }

@@ -39,10 +39,8 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
                     // signature + vaderdoc by cross-file resolution.
                     nm :: index.name_at(line, character)
                     ext :: resolve(state, index, nm)
-                    match ext {
-                        is null -> { return JsonNull {} }
-                        is ExternalHit as hit -> { return hover_json(hit.target) }
-                    }
+                    if ext == null { return JsonNull {} }
+                    return hover_json(ext.target)
                 }
             }
         }
@@ -59,7 +57,7 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
 // collapse everything onto a single line.
 hover_json :: fn(d: DeclEntry) -> JsonValue {
     body := "```vader\n" + d.signature + "\n```"
-    if d.doc.byte_len() > usize(0) {
+    if d.doc.byte_len() > 0 {
         body = body + "\n\n" + format_vaderdoc(d.doc)
     }
     contents :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
@@ -86,24 +84,24 @@ hover_json :: fn(d: DeclEntry) -> JsonValue {
 // must sit on its own line ; multi-line @tag continuations are kept
 // verbatim in the body for now.
 format_vaderdoc :: fn(raw: string) -> string {
-    if raw.byte_len() == usize(0) { return raw }
+    if raw.byte_len() == 0 { return raw }
     lines :: raw.split("\n")
     body: string[] = []
     tags: string[] = []
     for ln in lines {
         rest :: ln.trim()
         if rest.starts_with("@param ") || rest == "@param" {
-            payload :: rest.slice(usize(6), rest.byte_len()).trim()
+            payload :: rest.slice(6, rest.byte_len()).trim()
             tags.push("- **param** " + format_param_payload(payload))
             continue
         }
         if rest.starts_with("@return ") || rest == "@return" {
-            payload :: rest.slice(usize(7), rest.byte_len()).trim()
+            payload :: rest.slice(7, rest.byte_len()).trim()
             tags.push("- **returns** " + payload)
             continue
         }
         if rest.starts_with("@error ") || rest == "@error" {
-            payload :: rest.slice(usize(6), rest.byte_len()).trim()
+            payload :: rest.slice(6, rest.byte_len()).trim()
             tags.push("- **error** " + payload)
             continue
         }
@@ -112,9 +110,9 @@ format_vaderdoc :: fn(raw: string) -> string {
             // lines (often indented backtick-quoted snippets) follow
             // it visually. Insert a blank line before the header so
             // it stands out as its own paragraph.
-            payload :: rest.slice(usize(8), rest.byte_len()).trim()
-            if body.len() > usize(0) { body.push("") }
-            if payload.byte_len() > usize(0) {
+            payload :: rest.slice(8, rest.byte_len()).trim()
+            if body.len() > 0 { body.push("") }
+            if payload.byte_len() > 0 {
                 body.push("**Example** " + payload)
             } else {
                 body.push("**Example**")
@@ -124,8 +122,8 @@ format_vaderdoc :: fn(raw: string) -> string {
         body.push(ln)
     }
     out := join_lines(body)
-    if tags.len() > usize(0) {
-        if out.byte_len() > usize(0) { out = out + "\n\n" }
+    if tags.len() > 0 {
+        if out.byte_len() > 0 { out = out + "\n\n" }
         out = out + join_lines(tags)
     }
     return out
@@ -136,19 +134,19 @@ format_vaderdoc :: fn(raw: string) -> string {
 // when no whitespace separates name from description.
 format_param_payload :: fn(payload: string) -> string {
     n :: payload.byte_len()
-    if n == usize(0) { return payload }
+    if n == 0 { return payload }
     space :: u8(u32(' '))
     tab   :: u8(u32('\t'))
     i: usize = 0
     for i < n {
         b :: payload.byte_at(i)
         if b == space || b == tab { break }
-        i = i + usize(1)
+        i = i + 1
     }
     if i == 0 || i >= n { return payload }
-    name :: payload.slice(usize(0), i)
+    name :: payload.slice(0, i)
     desc :: payload.slice(i, n).trim()
-    if desc.byte_len() == usize(0) { return "`" + name + "`" }
+    if desc.byte_len() == 0 { return "`" + name + "`" }
     return "`" + name + "` — " + desc
 }
 

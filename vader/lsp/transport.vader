@@ -40,12 +40,12 @@ export read_frame :: fn() -> string! {
     line_buf := new_builder()
     finished := false
     for !finished {
-        b :: read_stdin(usize(1))
+        b :: read_stdin(1)
         match b {
             is Error -> { return TransportError { .msg = "EOF in header" } }
             is string as s -> {
                 if s == "\r" {
-                    nl :: read_stdin(usize(1))
+                    nl :: read_stdin(1)
                     match nl {
                         is Error -> { return TransportError { .msg = "EOF after CR" } }
                         is string as t -> {
@@ -53,7 +53,7 @@ export read_frame :: fn() -> string! {
                                 return TransportError { .msg = "expected LF after CR in header" }
                             }
                             line :: line_buf.to_string()
-                            if line.byte_len() == usize(0) {
+                            if line.byte_len() == 0 {
                                 // Blank line = end of headers.
                                 finished = true
                             } else {
@@ -99,10 +99,10 @@ trim_ascii :: fn(s: string) -> string {
     start: usize = 0
     end := n
     for start < end {
-        if is_ascii_space(s[start]) { start = start + usize(1) } else { break }
+        if is_ascii_space(s[start]) { start = start + 1 } else { break }
     }
     for end > start {
-        if is_ascii_space(s[end - usize(1)]) { end = end - usize(1) } else { break }
+        if is_ascii_space(s[end - 1]) { end = end - 1 } else { break }
     }
     return s.slice(start, end)
 }

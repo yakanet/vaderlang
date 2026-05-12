@@ -433,6 +433,18 @@ A literal float with no suffix **infers to `f64`** (`x := 3.14` ⇒ `x: f64`).
 
 There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exception is unsuffixed numeric literals: `let x: i64 = 42` works because `42` is left flexible until it lands in a typed context.
 
+### Numeric-literal context-sensitivity (Zig comptime-int style)
+
+An unsuffixed integer literal stays as a *free* (untyped) numeric until its surrounding context provides a concrete width ; at that point it adopts the slot's type *without* a runtime conversion. This is what makes `let x: usize = 5`, `Box { .size = 10 }`, `arr.slice(0, n - 1)`, `if usz == 42`, and `g: i64 = -50` all compile without explicit casts even though `5`, `10`, `0`, `42`, `50` would otherwise default to `i32`.
+
+The flow is bidirectional :
+- **Top-down (slot expected)** — typed lets, struct-field defaults, fn-arg slots, struct-lit field values, return-type-annotated `return …`, indexed `arr[i]` (slot is the impl's `I` type), comparison/arithmetic where one side has a concrete numeric type. The literal repins to the expected width.
+- **Unary `-`, `~`** — the operand inherits the operator's outer expected type, so `g: i64 = -50` lowers the inner `50` as `i64`, not `i32`.
+- **Generic call sites** — after type-parameter unification, FreeInt args adopt the substituted concrete width. Works through plain calls, generic UFCS, and import aliases.
+- **Cross-branch in `if`** — when one branch of an if-expression produces a concrete numeric type and the other is a Free literal, the Free side repins to match (so `if c { 0 } else { width: usize }` types to `usize`, not `{integer} | usize`).
+
+When no context applies, the literal falls back to its **default** (`i32` for integers, `f64` for floats). The default is what `x := 42` records.
+
 ### Type coercion via `Into`
 
 User-defined cross-type conversions go through the `Into[Target]` trait in `std/core`. The trait is single-method :
@@ -635,6 +647,45 @@ show :: fn(r: Result) -> string {
 - `T | null` is the standard idiom for nullability.
 - A union `A | B` satisfies a trait `T` if **and only if** both `A` and `B` implement it.
 - Runtime representation: `(tag, payload)` (tagged sum). The compiler chooses the tag size.
+
+#### Common-field access
+
+When every variant of a union carries a field of the same name, the field is accessible directly on the union value — no outer `match` required :
+
+```vader
+Cat :: struct { name: string, age: i32 }
+Dog :: struct { name: string, age: i32 }
+Animal :: Cat | Dog
+
+animal_name :: fn(a: Animal) -> string {
+    return a.name        // OK — both Cat and Dog have a `name` field
+}
+```
+
+The resolution applies to inline unions (`a: Cat | Dog`), to `::` type-aliases (`Animal :: Cat | Dog`), and to discriminated unions of structs/tuples. When the field types match across variants (`Cat.name: string`, `Dog.name: string`), the result is that shared type. When they diverge (`Cat.age: i32`, `Pig.age: i64`), the result is their union (`i32 | i64`) — the caller narrows with `match` to discriminate.
+
+Lowering emits either a single same-offset read (when every variant stores the field at the same struct slot with the same resolved type) or a variant-dispatch cascade (`if a is Cat { (Cat) a.f } else if a is Dog { (Dog) a.f } else …`).
+
+#### Flow-narrowing on `T | null`
+
+The typechecker narrows an identifier's type inside an `if` branch whose condition discriminates against `null` :
+
+```vader
+greet :: fn(a: Animal | null) -> string {
+    if a != null {
+        return "hi ${a.name}"     // `a` narrowed to `Animal` here
+    }
+    return "no animal"
+}
+
+// `if x == null { return }` propagates the narrowing past the guard.
+must_greet :: fn(a: Animal | null) -> string {
+    if a == null { return "missing" }
+    return a.name                  // `a` narrowed to `Animal` for the rest of the block
+}
+```
+
+Mirrors the per-arm narrowing inside `match`. Today the rule fires on `BinaryExpr(.Eq | .Neq, ident, NullLit)` where `ident` is a `local` / `param` / `binding` whose static type is a union containing `null` ; both orderings (`x == null` / `null == x`) and both branches (`if`-true and `else`) are covered. Divergent branches (then-block ends in `return` / `break` / `continue`) propagate the complement narrowing to the subsequent statements of the enclosing block.
 
 ### Enums
 

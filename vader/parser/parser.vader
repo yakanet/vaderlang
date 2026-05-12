@@ -65,7 +65,7 @@ peek :: fn(p: Parser) -> Token {
 peek_at :: fn(p: Parser, offset: i32) -> Token {
     n :: i32(p.tokens.len())
     i :: p.pos + offset
-    if i < 0 { return p.tokens[usize(0)] }
+    if i < 0 { return p.tokens[0] }
     if i < n { return p.tokens[usize(i)] }
     return p.tokens[usize(n - 1)]
 }
@@ -816,10 +816,7 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
                     _            -> {}
                 }
             }
-            is_comptime_value := match bound {
-                is null -> false
-                _       -> true
-            }
+            is_comptime_value := bound != null
         out.push(TypeParam {
             .span              = p.span_of(start, p.peek_at(-1)),
             .name              = name.text,

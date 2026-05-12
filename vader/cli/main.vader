@@ -125,11 +125,11 @@ parse_global_opts :: fn(args: string[]) -> ParseGlobalsResult {
 
 main :: fn(argv: string[]) -> i32 {
     // argv[0] is the binary path ; meaningful args start at index 1.
-    // Explicit `usize(1)` because the typechecker's FreeInt repinning doesn't
+    // Explicit `1` because the typechecker's FreeInt repinning doesn't
     // currently propagate through the `slice as slice_arr` import alias on
     // generic-fn callees ; the literal stays `i32` and trips a tag mismatch
     // when `slice`'s body indexes into `usize`-typed locals.
-    args :: argv.slice_arr(usize(1), argv.len())
+    args :: argv.slice_arr(1, argv.len())
     if args.len() == 0 { return cmd_repl() }
 
     r :: parse_global_opts(args)
@@ -141,7 +141,7 @@ main :: fn(argv: string[]) -> i32 {
     if rest.len() == 0 { return cmd_repl() }
 
     cmd :: rest[0]
-    cmd_args :: rest.slice_arr(usize(1), rest.len())
+    cmd_args :: rest.slice_arr(1, rest.len())
 
     if cmd == "--help" || cmd == "-h" || cmd == "help" {
         println(HELP)
