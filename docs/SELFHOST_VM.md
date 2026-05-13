@@ -57,7 +57,7 @@ traits/vtables, binary `.vir`.
 | 4 (b4) | `fn.ref` + `call.indirect` — plain fn-values (no env capture yet) ✅ | `vm_fn_value_local`, `vm_fn_value_callback`, `vm_fn_value_struct` |
 | 4 (b5) | `make_closure` + env capture — closures with captured locals ✅ | `vm_closure_capture`, `vm_closure_mutating`, `vm_closure_as_arg` |
 | 5a | `null.const` / `bool.const(true|false)` / `bool.{eq,ne,and,or,not}` / `char.const N` / `char.{eq,ne,lt,le,gt,ge}` / `drop` / `ref.{eq,ne}` + `i32.*` cmp ops push `BoolVal` ; `if` / `br_if` accept both `BoolVal` and `I32Val` via `read_truthy` ✅ | unblocks 8 snippets (90 / 176 = 51% acceptance) |
-| 5b | `type_check N` op (primitive / struct / array / union variants) | unblocks ~14 `if-narrow` snippets |
+| 5b | `type_check N` op (PrimitiveType / StructType / ArrayType / UnionType) ✅ | +12 snippets (`closure_pattern_binding`, `if_is_narrow`, `if_null_narrow`, `match_*`, `null_blockres`, `array_of_union`, `custom_iter*`, `generic_type_alias`) — 102/176 = 58 % |
 | 5c | extended `call.import` host surface (`string.*`, hash, file I/O, `std_runtime$collections`) | unblocks ~15 stdlib-heavy snippets |
 | 5d | missing intrinsics (`size_of`, `type_kind`, `satisfies`) | unblocks `intrinsic_*` |
 | 6 | `virtual.call` + trait vtables | unblocks `trait_*` |

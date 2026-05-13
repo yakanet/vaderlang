@@ -12,7 +12,7 @@ import "std/string_builder" { StringBuilder, new_builder, append }
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -117,6 +117,12 @@ export RefCast :: struct {}
 /// on it for static type narrowing only. Sprint 4 (b2) addition ;
 /// later sprints may distinguish widths and emit width-specific arms.
 export Convert :: struct {}
+
+/// Pop one value and push a `BoolVal` indicating whether its runtime
+/// type matches `module.types[type_id]`. Mirrors `src/vm/exec.ts`'s
+/// `type_check` op ; recurses through `UnionType` variants. Drives
+/// `match` arm dispatch and `if x is T` narrowing. Sprint 5b addition.
+export TypeCheck :: struct { type_id: i32 }
 
 /// Allocate a fresh empty `BuilderVal` and push it onto the value stack.
 /// Sprint 4 (b3) addition — backs Vader's `"${...}"` string interpolation
@@ -246,10 +252,11 @@ export BytecodeFunction :: struct {
 }
 
 /// Module-level type table entry, indexed by the `.virt`'s `type N ...`
-/// ordinal. Sprint 4 (b1) only consumes `StructType.field_count` — the
-/// other variants are placeholders so the parser can register every type
-/// slot without diagnostics (which preserves the ordinal indexing).
-export TypeDecl :: PrimitiveType | StructType | ArrayType | RefType | FnType
+/// ordinal. Sprint 4 (b1) only consumed `StructType.field_count` ;
+/// Sprint 5b adds `UnionType.variant_type_ids` for `type_check`'s
+/// recursive union matching. `RefType` / `FnType` are still placeholders
+/// (trait-typed type_check lands in Sprint 6 with `virtual.call`).
+export TypeDecl :: PrimitiveType | StructType | ArrayType | RefType | FnType | UnionType
 
 /// `primitive i32` / `primitive string` / `primitive bool` / etc.
 export PrimitiveType :: struct { kind: string }
@@ -271,6 +278,11 @@ export RefType :: struct {}
 /// `fn (TIDs) -> TID` — function-pointer type. Sprint 4 (b1) records
 /// it but doesn't use it ; `call.indirect` lookups will at (b4).
 export FnType :: struct { parameter_type_ids: i32[], return_type_id: i32 }
+
+/// `union T1,T2,...` — tagged-union type id whose variants are listed
+/// as a comma-separated set of type ids. `type_check` matches by
+/// recursing into each variant. Sprint 5b addition.
+export UnionType :: struct { variant_type_ids: i32[] }
 
 /// Top-level holder for a parsed .virt module. `main_index` points
 /// at the entry function in `functions` — populated by the parser

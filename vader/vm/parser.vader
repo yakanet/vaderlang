@@ -14,7 +14,7 @@
 
 import "std/string" { byte_len, slice, starts_with, ends_with, trim, split, contains, index_of }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType }
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps
@@ -231,6 +231,10 @@ parse_type_decl :: fn(cleaned: string, types: TypeDecl[]) -> void {
         types.push(parse_fn_type(rest))
         return
     }
+    if rest.starts_with("union ") {
+        types.push(parse_union_type(rest))
+        return
+    }
     // Unknown kind — push a placeholder so the type-id ordinal isn't shifted.
     types.push(RefType {})
 }
@@ -248,6 +252,34 @@ parse_struct_type :: fn(rest: string) -> StructType {
     return StructType { .name = name, .field_count = count_delimited_items(after_struct, '{', '}') }
 }
 
+/// Parse `union T1,T2,...` into a `UnionType`. Sprint 5b consumes this
+/// in `type_check`'s recursive variant matching.
+///
+/// @param rest  the type-decl body starting with `union `.
+/// @return      a `UnionType` ; malformed input yields an empty variant
+///              list (the resulting type matches nothing).
+parse_union_type :: fn(rest: string) -> UnionType {
+    after :: rest.slice("union ".byte_len(), rest.byte_len()).trim()
+    return UnionType { .variant_type_ids = parse_int_list(after) }
+}
+
+/// Parse a comma-separated list of base-10 i32s — used by both
+/// `parse_union_type` (variant list) and `parse_fn_type` (param-type list).
+/// Malformed entries are skipped silently ; an empty input yields `[]`.
+///
+/// @param csv  string body, e.g. `"1,2,3"` or `""`.
+/// @return     parsed ids, in order.
+parse_int_list :: fn(csv: string) -> i32[] {
+    ids: i32[] = []
+    if csv.byte_len() == 0 { return ids }
+    parts :: csv.split(",")
+    for part in parts {
+        parsed :: parse_int_in_base(part.trim(), 10)
+        if !(parsed is Error) { ids.push(i32(parsed)) }
+    }
+    return ids
+}
+
 /// Parse `fn (TIDs) -> TID` into a `FnType`. Sprint 4 (b1) records
 /// this but doesn't use the data ; `call.indirect` will at (b4).
 ///
@@ -257,16 +289,10 @@ parse_struct_type :: fn(rest: string) -> StructType {
 parse_fn_type :: fn(rest: string) -> FnType {
     open :: rest.index_of('(', 0)
     close :: rest.index_of(')', 0)
-    parameter_type_ids: i32[] = []
-    if open >= 0 && close >= 0 && close > open + 1 {
-        inner :: rest.slice(usize(open) + 1, usize(close)).trim()
-        if inner.byte_len() > 0 {
-            parts :: inner.split(",")
-            for part in parts {
-                parsed :: parse_int_in_base(part.trim(), 10)
-                if !(parsed is Error) { parameter_type_ids.push(i32(parsed)) }
-            }
-        }
+    parameter_type_ids: i32[] = if open >= 0 && close >= 0 && close > open + 1 {
+        parse_int_list(rest.slice(usize(open) + 1, usize(close)).trim())
+    } else {
+        []
     }
     return_type_id := 0
     arrow :: rest.index_of('>', 0)
@@ -434,6 +460,7 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
         is RefEq                 as o -> { ops.push(o)  true }
         is RefNe                 as o -> { ops.push(o)  true }
         is Drop                  as o -> { ops.push(o)  true }
+        is TypeCheck             as o -> { ops.push(o)  true }
         is I32Add          as o -> { ops.push(o)  true }
         is I32Sub          as o -> { ops.push(o)  true }
         is I32Mul          as o -> { ops.push(o)  true }
@@ -635,6 +662,7 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if cleaned == "ref.eq"      { return RefEq {} }
     if cleaned == "ref.ne"      { return RefNe {} }
     if cleaned == "drop"        { return Drop {} }
+    if cleaned.starts_with("type_check ")   { return parse_type_check(cleaned) }
     if cleaned == "i32.add"                     { return I32Add {} }
     if cleaned == "i32.sub"                     { return I32Sub {} }
     if cleaned == "i32.mul"                     { return I32Mul {} }
@@ -775,6 +803,12 @@ parse_make_closure :: fn(line: string) -> Op | null {
     pair :: parse_int_pair_after_prefix(line, "make_closure ")
     if pair is null { return null }
     return MakeClosure { .function_index = pair.first }
+}
+
+parse_type_check :: fn(line: string) -> Op | null {
+    parsed :: parse_int_after_prefix(line, "type_check ")
+    if parsed is null { return null }
+    return TypeCheck { .type_id = parsed }
 }
 
 parse_local_tee :: fn(line: string) -> Op | null {

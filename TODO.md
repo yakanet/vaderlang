@@ -491,6 +491,12 @@ Patterns counted on the existing Vader code (`vader/` ≈ 11.7k lines) that pay 
 
   Suggested diagnostic at the *mutation* site (not the declaration) : `"essaye de réafecter une variable constante"` (English equivalent : `"cannot reassign constant binding 'x' (declared with '::', use ':=' to allow mutation)"`), pointing at the `::` decl as a secondary span. Touches the typechecker pass that handles `AssignStmt` / compound-assign / increment ops — early bail when the LHS resolves to a const-bound symbol. Cheap to land, removes a class of silent miscompiles that survive lexer + parser + typecheck today.
 
+- [ ] **`if v is T { v.field }` doesn't narrow `v` for field access** — surfaced at Sprint 5a/5b writing `vader/vm/exec.vader`. The early-return form `if v is Trap { return v }` narrows correctly (used everywhere in `read_*` helpers), but `if v is StructVal { return v.type_id == n }` compiles to C that does `vader_unreachable("...")` then `vader_box_eq(0, n)` (comparing a still-boxed `v` against an i32 literal — type error at `cc`).
+
+  Real-world hit : `struct_typeid_matches` / `array_typeid_matches` / `read_truthy` all had to be rewritten as expression-bodied `match v { is StructVal as s -> s.type_id == n ; _ -> false }` because the natural `if`-chain form fails at C-emit. The `match` form with explicit `as` alias works correctly. Probable root cause : the narrowing flow in `src/typecheck/passes/narrow.ts` updates the binding's narrowed type for `return`-style uses but doesn't propagate it to `.field` access reads in the same branch. Field access keeps reading through the union box.
+
+  Repro : write `f :: fn(v: I32Val | StringVal) -> bool { if v is I32Val { return v.value == 0 } return false }` ; `bun src/index.ts build --target=native` produces a C compile error. Wrap as `match v { is I32Val as i -> i.value == 0 ; _ -> false }` and it compiles. Workaround applied at `vader/vm/exec.vader` `struct_typeid_matches` / `array_typeid_matches` (Sprint 5b) ; `read_truthy` (Sprint 5a) ; and via `scalar_*_eq` splits in `value_ref_eq` (Sprint 5b /simplify). The pattern is too common to keep working around — every union-based VM helper has to use match-arm narrowing.
+
 - [ ] **Tuple destructure after `[T, U] | null` narrow fails** — surfaced at sprint 4 (b1)/(b2) writing `vader/vm/parser.vader`. Promoted from §3.8 (2026-05-13) — keeps recurring as a real ergonomics tax on the self-host port. Pattern :
 
   ```vader

@@ -19,7 +19,7 @@
 
 import "std/io" { read_file, eprintln, println }
 import "std/string_builder" { StringBuilder, new_builder, append }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, StructType, ArrayType, FnType, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, NullVal, BoolVal, CharVal, display_value }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, NullVal, BoolVal, CharVal, display_value }
 import "vader/vm/parser" { parse_virt }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -319,29 +319,97 @@ apply_char_cmp :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string
 /// @error         either operand is a heap-allocated `StructVal` /
 ///                `ArrayVal` / `BuilderVal` / `FnVal`.
 value_ref_eq :: fn(a: Value, b: Value, at_pc: i32, label: string) -> bool | Trap {
-    if a is NullVal {
-        if b is NullVal { return true }
-        return false
+    return match a {
+        is NullVal         -> b is NullVal
+        is I32Val    as ai -> match b { is I32Val    as bi -> ai.value == bi.value, _ -> false }
+        is BoolVal   as ab -> match b { is BoolVal   as bb -> ab.value == bb.value, _ -> false }
+        is CharVal   as ac -> match b { is CharVal   as bc -> ac.value == bc.value, _ -> false }
+        is StringVal as ax -> match b { is StringVal as bx -> ax.value == bx.value, _ -> false }
+        // Heap-allocated variants (Struct/Array/Builder/Fn) : trap
+        // rather than silently return false (the lowerer emits ref.eq
+        // only against null or between freshly-built sentinels in practice).
+        _                  -> Trap { .message = "${label} on ${describe_value_tag(a)} not supported at pc=${at_pc} (only null + primitive operands)" }
     }
-    if a is I32Val {
-        if b is I32Val { return a.value == b.value }
-        return false
+}
+
+/// Type-check : does `v`'s runtime tag match the type at `module.types[type_id]` ?
+/// Mirrors `typeMatches` + `matchTo` in `src/vm/exec.ts`. Sprint 5b
+/// supports `PrimitiveType` (`i32` / `string` / `bool` / `null` / `char`),
+/// `StructType` (tag match + type-id match), `ArrayType` (same), and
+/// `UnionType` (recurse for each variant). `RefType` (trait-typed) and
+/// `FnType` are placeholders today : Sprint 6 wires trait vtables and
+/// will extend this to full ref/trait dispatch ; for now any `type_check`
+/// against those returns `false` (the snippet won't trap but the
+/// type-narrowing won't fire either).
+///
+/// @param module   the running module (for type-table recursion).
+/// @param v        the value to test.
+/// @param type_id  the candidate type's ordinal in `module.types`.
+/// @return         `true` iff `v` matches the type.
+type_matches :: fn(module: Module, v: Value, type_id: i32) -> bool {
+    // Defensive bounds check : guards the recursion from `union_matches`
+    // against a malformed `variant_type_ids` entry. The `TypeCheck` op
+    // arm already validates `op.type_id` before calling here.
+    if type_id < 0 || usize(type_id) >= module.types.len() { return false }
+    type_decl :: module.types[usize(type_id)]
+    return match type_decl {
+        is PrimitiveType as p -> primitive_matches(v, p.kind)
+        is StructType         -> match v {
+            is StructVal as s -> s.type_id == type_id
+            _                 -> false
+        }
+        is ArrayType          -> match v {
+            is ArrayVal as a  -> a.type_id == type_id
+            _                 -> false
+        }
+        is UnionType     as u -> union_matches(module, v, u.variant_type_ids)
+        is RefType            -> false
+        is FnType             -> false
     }
-    if a is BoolVal {
-        if b is BoolVal { return a.value == b.value }
-        return false
+}
+
+/// Match a value against a `PrimitiveType.kind` string. The kinds are
+/// the names emitted by `src/bytecode/text.ts` for primitive types.
+/// Direct kinds (`i32` / `string` / `bool` / `null` / `char`) lookup
+/// reuses `describe_value_tag` — adding a new primitive `Value` variant
+/// in the future only requires updating `describe_value_tag`, not this
+/// function. Width-suffixed integer kinds collapse onto `I32Val` because
+/// the VM doesn't yet carry width tags ; **this is a latent miscompile
+/// risk** : a snippet `if x is i64 { ... }` against an I32Val will match
+/// and run the i64 branch with i32 semantics. Sprint 5d / width-typed
+/// values must replace the alias collapse with a real check.
+primitive_matches :: fn(v: Value, kind: string) -> bool {
+    if kind == describe_value_tag(v) { return true }
+    if is_integer_alias(kind) { return v is I32Val }
+    return false
+}
+
+/// Width-suffixed integer kinds that the VM currently aliases to
+/// `I32Val` (no width tags yet). See `primitive_matches` for the
+/// latent-miscompile caveat — Sprint 5d will widen `Value` and replace
+/// this lookup with a per-width check.
+is_integer_alias :: fn(kind: string) -> bool {
+    if kind == "i8"  { return true }
+    if kind == "i16" { return true }
+    if kind == "i64" { return true }
+    if kind == "isize" { return true }
+    if kind == "u8"  { return true }
+    if kind == "u16" { return true }
+    if kind == "u32" { return true }
+    if kind == "u64" { return true }
+    if kind == "usize" { return true }
+    return false
+}
+
+/// Match a value against a union's set of variant type ids by recursing
+/// through `type_matches` on each.
+union_matches :: fn(module: Module, v: Value, variant_type_ids: i32[]) -> bool {
+    i: usize = 0
+    for i < variant_type_ids.len() {
+        if type_matches(module, v, variant_type_ids[i]) { return true }
+        i += 1
     }
-    if a is CharVal {
-        if b is CharVal { return a.value == b.value }
-        return false
-    }
-    if a is StringVal {
-        if b is StringVal { return a.value == b.value }
-        return false
-    }
-    // Reaching here means `a` is a heap-allocated variant
-    // (Struct/Array/Builder/Fn) ; trap rather than silently return false.
-    return Trap { .message = "${label} on ${describe_value_tag(a)} not supported at pc=${at_pc} (only null + primitive operands)" }
+    return false
 }
 
 /// Apply an i32 comparison (Eq/Ne/Lt/Le/Gt/Ge) on top-of-stack. The
@@ -770,6 +838,15 @@ export exec :: fn(module: Module) -> VmResult {
             is Drop -> {
                 if frame.sp == 0 { return Trap { .message = "drop on empty stack at pc=${frame.pc}" } }
                 frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+            }
+            is TypeCheck -> {
+                if frame.sp == 0 { return Trap { .message = "type_check on empty stack at pc=${frame.pc}" } }
+                if op.type_id < 0 || usize(op.type_id) >= module.types.len() {
+                    return Trap { .message = "type_check type ${op.type_id} out of range at pc=${frame.pc}" }
+                }
+                matched :: type_matches(module, frame.stack[frame.sp - 1], op.type_id)
+                frame.stack[frame.sp - 1] = BoolVal { .value = matched }
+                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
             }
             is Block -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
             is Loop  -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }

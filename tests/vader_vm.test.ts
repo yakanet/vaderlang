@@ -66,26 +66,20 @@ beforeAll(async () => {
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
-  // Post Sprint 5a (2026-05-13). 90 / 176 snippets that emit a
-  // `bytecode.snapshot.virt` (compile-error tests filtered out) pass
-  // end-to-end through the Vader VM. Remaining failures by category :
-  //   - `type_check` op (Sprint 5b) — unblocks the 14 "if condition got
-  //     struct" cases (closure_pattern_binding, if_is_narrow, etc.).
-  //   - Missing host imports (Sprint 5c) — string ops, hash, file I/O,
-  //     std_runtime$collections, std_math, std_sort.
-  //   - Missing intrinsics (Sprint 5d) — `size_of`, `type_kind`, traits.
-  //   - `virtual.call` + trait vtables (Sprint 6) — trait_dispatch_*.
-  //   - Tuple destructure + enum dispatch — Sprint 5e?
+  // Post Sprint 5b (2026-05-13). type_check op + UnionType : 12 new
+  // snippets pass over Sprint 5a. 102 / 176 = 58 % acceptance.
+  // Remaining failures :
+  //   - Missing host imports (Sprint 5c) — string ops, hash, file I/O.
+  //   - Missing intrinsics (Sprint 5d) — `size_of`, `type_kind`, `satisfies`.
+  //   - `virtual.call` + trait vtables (Sprint 6) — trait_dispatch_*, op_overload_*.
+  //   - Enum dispatch (Sprint 5e?) — enum_*, dot_variant_in_union.
+  //   - Tuple destructure (Sprint 5e?) — tuple_*.
   "array_iter",
-  "array_of_union",
   "bound_enforced",
   "char_range_contains",
-  "closure_pattern_binding",
   "collection_index_sugar",
   "comptime_type_alias",
   "contains_op",
-  "custom_iter",
-  "custom_iter_generic",
   "dot_variant_in_union",
   "enum_match",
   "enum_to_repr_cast",
@@ -96,9 +90,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   "gc_array_survive",
   "gc_chain_survive",
   "gc_multi_collect",
-  "generic_type_alias",
-  "if_is_narrow",
-  "if_null_narrow",
   "implicit_dot_variant",
   "intrinsic_size_of",
   "intrinsic_type_kind",
@@ -111,15 +102,10 @@ const KNOWN_DIVERGENT = new Set<string>([
   "json_basics",
   "let_type_alias",
   "map_set_iter",
-  "match_is_as_binding",
-  "match_struct_pattern_binding",
-  "match_struct_pattern_in_union",
-  "match_union",
   "multiline_string",
   "mutable_map",
   "mutable_map_string",
   "mutable_set",
-  "null_blockres",
   "numeric_context_sensitivity",
   "op_overload_arith",
   "op_overload_compound",
@@ -183,8 +169,10 @@ for (const s of scenarios) {
     // (typecheck failures don't halt the pipeline before bytecode),
     // but the snippet is a diagnostic test — the TS VM never runs it.
     // Skip cleanly rather than report a spurious parity failure.
-    if (vmSnap.startsWith("# compile errors") || vmSnap.startsWith("# pipeline error") ||
-        vmSnap.startsWith("# internal error") || vmSnap.startsWith("# no main function")) {
+    if (vmSnap.startsWith("# compile errors")
+        || vmSnap.startsWith("# pipeline error")
+        || vmSnap.startsWith("# internal error")
+        || vmSnap.startsWith("# no main function")) {
       continue;
     }
   }
