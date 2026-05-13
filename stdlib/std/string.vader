@@ -207,7 +207,7 @@ export last_index_of :: fn(s: string, c: char, min_index: isize) -> isize {
 /// @return      byte offset of the match, or `-1` if absent.
 export index_of :: fn(s: string, c: char, from: usize) -> isize {
     n :: s.byte_len()
-    i :: from
+    i := from
     for i < n {
         [cp, width] :: s.decode_codepoint(i)
         if cp == c { return isize(i) }

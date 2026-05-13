@@ -35,22 +35,24 @@ PendingBranch :: struct {
     target_label: string
 }
 
-// Strip a trailing `; ...` comment (the .virt format glues a source-
-// span annotation after every op). The semicolon never appears inside
-// an op payload today, so a first-occurrence split is correct.
+/// Strip a trailing `; ...` comment (the .virt format glues a source-
+/// span annotation after every op). The semicolon never appears inside
+/// an op payload today, so a first-occurrence split is correct. Uses
+/// `index_of` + `slice` to avoid allocating a segment array per line.
 strip_comment :: fn(line: string) -> string {
-    parts :: line.split(";")
-    if parts.len() == 0 { return line }
-    return parts[0].trim()
+    semi :: line.index_of(';', 0)
+    if semi < 0 { return line.trim() }
+    return line.slice(0, usize(semi)).trim()
 }
 
-// First whitespace-separated token after `prefix` — the structured ops
-// embed their label here (`block $L0 void` → `$L0`).
+/// First whitespace-separated token after `prefix` — the structured
+/// ops embed their label here (`block $L0 void` → `$L0`). Zero-alloc :
+/// trims the prefix, finds the next space, slices.
 first_token_after :: fn(cleaned: string, prefix: string) -> string {
     rest :: cleaned.slice(prefix.byte_len(), cleaned.byte_len()).trim()
-    parts :: rest.split(" ")
-    if parts.len() == 0 { return "" }
-    return parts[0]
+    space :: rest.index_of(' ', 0)
+    if space < 0 { return rest }
+    return rest.slice(0, usize(space))
 }
 
 // Walk every line of the .virt source. Headers (`module`, `string`,
@@ -119,18 +121,14 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> void {
     strings.push(body)
 }
 
-// Parse `import N name mangled (params) -> ret`.
+/// Parse `import N name mangled (params) -> ret`.
 parse_import_decl :: fn(cleaned: string, imports: ImportInfo[]) -> void {
     after :: cleaned.slice("import ".byte_len(), cleaned.byte_len())
     parts :: after.split(" ")
     if parts.len() < 4 { return }
-    // parts[0] = index, parts[1] = name, parts[2] = mangled, rest = signature
     name    :: parts[1]
     mangled :: parts[2]
-    // The signature starts at parts[3] and runs to the end. Count
-    // parameters by walking the chars of the first `(...)` group.
     param_count :: count_import_params(cleaned)
-    // `-> void` means no return, anything else does.
     has_return :: !cleaned.contains("-> void")
     imports.push(ImportInfo {
         .name        = name,
@@ -251,7 +249,7 @@ defer_or_resolve_branch :: fn(
     label :: first_token_after(cleaned, prefix)
     sp :: scope_sp[0]
     // Find the matching scope by label from the top.
-    i :: i32(sp) - 1
+    i := i32(sp) - 1
     found_idx := -1
     for i >= 0 {
         if scopes[usize(i)].label == label {

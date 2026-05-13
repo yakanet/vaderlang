@@ -15,18 +15,32 @@ import "std/io" { read_file, eprintln, println }
 import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, StringConst, CallImport, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, MainBody, Module, Value, I32Val, StringVal }
 import "vader/vm/parser" { parse_virt }
 
-// Tagged outcome of an `exec` call. `Ok` carries the program's i32
-// return value ; `Trap` carries a debug-friendly message so the host
-// can surface it instead of a generic runtime abort.
+/// Tagged outcome of an `exec` call. `Ok` carries the program's i32
+/// return value ; `Trap` carries a debug-friendly message so the host
+/// can surface it instead of a generic runtime abort.
 export VmResult :: Ok | Trap
 export Ok   :: struct { value: i32 }
 export Trap :: struct { message: string }
 
-// Default-zero `Value`, used to size the locals frame at fn entry.
+// Mangled host-import names. Lifted to module-scope so the dispatch
+// chain reads as identifier comparisons rather than raw-string
+// literals — also avoids re-allocating the strings per op execution.
+// Raw form (`r"..."`) bypasses Vader's `$<ident>` interpolation
+// syntax, which would otherwise try to resolve `println` etc. as
+// inline expressions.
+STDIO_PRINTLN  :: r"std_io$println"
+STDIO_PRINT    :: r"std_io$print"
+STDIO_EPRINTLN :: r"std_io$eprintln"
+
+/// Default-zero `Value`, used to size the locals frame at fn entry.
 zero_value :: fn() -> Value { return I32Val { .n = 0 } }
 
-// Push `value` at the cursor position, growing the backing array
-// when needed (Vader has `push` but not capacity-managed insert).
+// NB: `(I32Val | StringVal)[]` is inlined here (and at the call sites
+// below) as a work-around for a Vader compiler bug — the `Value`
+// alias doesn't expand in `Alias[]` fn signatures across module
+// boundaries (TODO §3.8). Revert to `stack: Value[]` once it lands.
+/// Push `value` at the cursor position, growing the backing array
+/// when needed (Vader has `push` but not capacity-managed insert).
 push_value :: fn(stack: (I32Val | StringVal)[], cursor: usize, value: (I32Val | StringVal)) -> void {
     if cursor == stack.len() { stack.push(value) }
     else                     { stack[cursor] = value }
@@ -263,9 +277,9 @@ export exec :: fn(module: Module) -> VmResult {
     return Ok { .value = 0 }
 }
 
-// Unwrap an `i32` from a `Value` or return a `Trap` describing the
-// expected slot when the tag mismatches. `where` is a short label
-// (`"i32.add left"`, `"if condition"`) so the message is actionable.
+/// Unwrap an `i32` from a `Value` or return a `Trap` describing the
+/// expected slot when the tag mismatches. `label` is a short tag
+/// (`"i32.add left"`, `"if condition"`) so the message is actionable.
 read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
     if v is I32Val { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected i32, got string" }
@@ -289,19 +303,20 @@ export HostOk :: struct { value: (I32Val | StringVal) }
 // added later (e.g. `read_line`, `read_file`, the integer / float
 // `print` formatters) lands as a new arm here.
 dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
-    if info.mangled == r"std_io$println" {
+    if info.mangled == STDIO_PRINTLN {
         arg :: read_string(stack[arg_base], at_pc, "println")
         if arg is Trap { return arg }
         println(arg.s)
         return HostOk { .value = zero_value() }
     }
-    if info.mangled == r"std_io$print" {
+    if info.mangled == STDIO_PRINT {
         arg :: read_string(stack[arg_base], at_pc, "print")
         if arg is Trap { return arg }
-        println(arg.s)   // TODO route to stdout w/o newline (sprint 4 wires std/io.print exactly)
+        // TODO route to stdout w/o newline (sprint 4 wires std/io.print exactly)
+        println(arg.s)
         return HostOk { .value = zero_value() }
     }
-    if info.mangled == r"std_io$eprintln" {
+    if info.mangled == STDIO_EPRINTLN {
         arg :: read_string(stack[arg_base], at_pc, "eprintln")
         if arg is Trap { return arg }
         eprintln(arg.s)
