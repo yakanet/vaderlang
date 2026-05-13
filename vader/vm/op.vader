@@ -12,7 +12,7 @@ import "std/string_builder" { StringBuilder, new_builder, append }
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | VirtualCall | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | I32Neg | I32BitNot | I32BitAnd | I32BitOr | I32BitXor | I32Shl | I32Shr | I32ShrU | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | StringEq | StringNe | StringConcat | IntToChar | CharToInt | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | F64Const | CallImport | Call | FnRef | MakeClosure | CallIndirect | VirtualCall | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | I32Neg | I32BitNot | I32BitAnd | I32BitOr | I32BitXor | I32Shl | I32Shr | I32ShrU | F64Add | F64Sub | F64Mul | F64Div | F64Neg | F64Eq | F64Ne | F64Lt | F64Le | F64Gt | F64Ge | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | StringEq | StringNe | StringConcat | IntToChar | CharToInt | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -170,6 +170,32 @@ export I32Le :: struct {}
 export I32Gt :: struct {}
 /// Pop two i32 (left, right) ; push `1` if left >= right, `0` otherwise.
 export I32Ge :: struct {}
+/// Push a constant f64 onto the value stack. The .virt format encodes
+/// the literal in decimal with optional fraction (`f64.const 3.5`).
+export F64Const :: struct { value: f64 }
+/// Pop two f64 (left, right) ; push `left + right` as F64Val.
+export F64Add :: struct {}
+/// Pop two f64 (left, right) ; push `left - right` as F64Val.
+export F64Sub :: struct {}
+/// Pop two f64 (left, right) ; push `left * right` as F64Val.
+export F64Mul :: struct {}
+/// Pop two f64 (left, right) ; push `left / right` as F64Val.
+export F64Div :: struct {}
+/// Pop one f64 ; push `-value`.
+export F64Neg :: struct {}
+/// Pop two f64 ; push `BoolVal` for ordered equality.
+export F64Eq :: struct {}
+/// Pop two f64 ; push `BoolVal` for ordered inequality.
+export F64Ne :: struct {}
+/// Pop two f64 (left, right) ; push `BoolVal` for `left < right`.
+export F64Lt :: struct {}
+/// Pop two f64 (left, right) ; push `BoolVal` for `left <= right`.
+export F64Le :: struct {}
+/// Pop two f64 (left, right) ; push `BoolVal` for `left > right`.
+export F64Gt :: struct {}
+/// Pop two f64 (left, right) ; push `BoolVal` for `left >= right`.
+export F64Ge :: struct {}
+
 // The seven ops below are width-aliased : every integer-width sibling
 // (`isize.neg`, `u32.bitand`, ...) collapses onto its `I32X` variant
 // because the VM aliases every integer width to `I32Val`. See
@@ -379,10 +405,14 @@ export Module :: struct {
 /// intrinsics ; Sprint 4 (b4) added `FnVal` for `fn.ref` / `call.indirect` ;
 /// Sprint 5a adds `NullVal` / `BoolVal` / `CharVal` for the corresponding
 /// const + comparison op families. Mirrors `src/vm/value.ts`.
-export Value :: I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal
+export Value :: I32Val | F64Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal
 
 /// 32-bit integer payload.
 export I32Val :: struct { value: i32 }
+
+/// 64-bit float payload. Used for `f64` (and aliased `f32`) values
+/// flowing through `f64.const` and the `f64.*` arithmetic family.
+export F64Val :: struct { value: f64 }
 
 /// String payload — the underlying buffer is borrowed from the
 /// module's `strings` pool, so the VM never has to allocate.
@@ -463,6 +493,10 @@ I32Val implements Display {
     to_string :: fn(self) -> string = "${self.value}"
 }
 
+F64Val implements Display {
+    to_string :: fn(self) -> string = "${self.value}"
+}
+
 StringVal implements Display {
     to_string :: fn(self) -> string = self.value
 }
@@ -533,6 +567,7 @@ ArrayVal implements Display {
 ///           `to_string` impl.
 export display_value :: fn(v: Value) -> string = match v {
     is I32Val     as i -> i.to_string()
+    is F64Val     as f -> f.to_string()
     is StringVal  as s -> s.to_string()
     is StructVal  as s -> s.to_string()
     is ArrayVal   as a -> a.to_string()

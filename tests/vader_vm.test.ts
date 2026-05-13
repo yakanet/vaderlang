@@ -67,6 +67,23 @@ ${err}`);
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
+  // Post Sprint 10 (2026-05-13). f64 support added : `F64Val` value
+  // variant, every `f64.<op>` parser + exec arm, `parse_decimal_f64`
+  // for the `f64.const` literal, and `std/math` host arms (`sqrt` /
+  // `pow` / `floor` / `ceil` / `round` / `abs` / `min` / `max` /
+  // `clamp` + the integer-typed `_` variants). `parse_float` host
+  // and the `std_core$f64$Display$to_string` mangling are routed too.
+  // 7 snippets unblock (`expr_bodied_fn`, `json_basics`,
+  // `overload_first_param`, `std_math`, `tuple_comptime`,
+  // `tuple_struct_field`, `tuple_triple_quad`). 166 / 176 = 94 %.
+  // Remaining 10 failures cluster around :
+  //   - `ErrorVal` value variant (not yet added) — `parse_int_match`,
+  //     `io_roundtrip`, `try_op`.
+  //   - `is Trait` impl table (.virt format gap) — `vm_trait_dispatch`,
+  //     `trait_box_range_iter`.
+  //   - Width truncation (no `u32`-typed `Value`) —
+  //     `enum_to_repr_cast`, `numeric_context_sensitivity`, `type_aliases`.
+  //   - Misc : `dot_variant_in_union`, `process_spawn` (spawn host).
   // Post Sprint 9 (2026-05-13). Multi-front widening of the Vader VM :
   //   - String `Hash$hash` host (FNV-1a-32-low) + `parse_int` /
   //     `panic` / `<width>$Display$to_string` (every primitive) hosts.
@@ -106,19 +123,12 @@ const KNOWN_DIVERGENT = new Set<string>([
   //   - Misc : process_spawn (spawn_run host).
   "dot_variant_in_union",
   "enum_to_repr_cast",
-  "expr_bodied_fn",
   "io_roundtrip",
-  "json_basics",
   "numeric_context_sensitivity",
-  "overload_first_param",
   "parse_int_match",
   "process_spawn",
-  "std_math",
   "trait_box_range_iter",
   "try_op",
-  "tuple_comptime",
-  "tuple_struct_field",
-  "tuple_triple_quad",
   "type_aliases",
   "vm_trait_dispatch",
 ]);

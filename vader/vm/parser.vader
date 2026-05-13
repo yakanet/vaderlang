@@ -15,7 +15,7 @@
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, StringEq, StringNe, StringConcat, IntToChar, CharToInt, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, F64Const, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU, F64Add, F64Sub, F64Mul, F64Div, F64Neg, F64Eq, F64Ne, F64Lt, F64Le, F64Gt, F64Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, StringEq, StringNe, StringConcat, IntToChar, CharToInt, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry }
 
 /// ASCII byte constants — spelled out as `u8(u32('x'))` to keep the source
 /// readable. Match the convention used in `vader/fmt/comments.vader`.
@@ -24,6 +24,11 @@ BYTE_UNDERSCORE :: u8(u32('_'))
 BYTE_BACKSLASH  :: u8(u32('\\'))
 BYTE_DQUOTE     :: u8(u32('"'))
 BYTE_SEMICOLON  :: u8(u32(';'))
+BYTE_DOT        :: u8(u32('.'))
+BYTE_MINUS      :: u8(u32('-'))
+BYTE_PLUS       :: u8(u32('+'))
+BYTE_LOWER_E    :: u8(u32('e'))
+BYTE_UPPER_E    :: u8(u32('E'))
 BYTE_LOWER_N    :: u8(u32('n'))
 BYTE_LOWER_T    :: u8(u32('t'))
 BYTE_LOWER_R    :: u8(u32('r'))
@@ -691,6 +696,18 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
         is I32Shl          as o -> { ops.push(o)  true }
         is I32Shr          as o -> { ops.push(o)  true }
         is I32ShrU         as o -> { ops.push(o)  true }
+        is F64Const        as o -> { ops.push(o)  true }
+        is F64Add          as o -> { ops.push(o)  true }
+        is F64Sub          as o -> { ops.push(o)  true }
+        is F64Mul          as o -> { ops.push(o)  true }
+        is F64Div          as o -> { ops.push(o)  true }
+        is F64Neg          as o -> { ops.push(o)  true }
+        is F64Eq           as o -> { ops.push(o)  true }
+        is F64Ne           as o -> { ops.push(o)  true }
+        is F64Lt           as o -> { ops.push(o)  true }
+        is F64Le           as o -> { ops.push(o)  true }
+        is F64Gt           as o -> { ops.push(o)  true }
+        is F64Ge           as o -> { ops.push(o)  true }
         is Block           as o -> { ops.push(o)  true }
         is Loop            as o -> { ops.push(o)  true }
         is If              as o -> { ops.push(o)  true }
@@ -923,6 +940,18 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     // has its high bit set ; lower bits behave identically.
     if is_signed_int_op(cleaned, "shr")   { return I32Shr {} }
     if is_unsigned_int_op(cleaned, "shr") { return I32ShrU {} }
+    if cleaned.starts_with("f64.const ") { return parse_f64_const(cleaned) }
+    if cleaned == "f64.add"     { return F64Add {} }
+    if cleaned == "f64.sub"     { return F64Sub {} }
+    if cleaned == "f64.mul"     { return F64Mul {} }
+    if cleaned == "f64.div"     { return F64Div {} }
+    if cleaned == "f64.neg"     { return F64Neg {} }
+    if cleaned == "f64.eq"      { return F64Eq {} }
+    if cleaned == "f64.ne"      { return F64Ne {} }
+    if cleaned == "f64.lt"      { return F64Lt {} }
+    if cleaned == "f64.le"      { return F64Le {} }
+    if cleaned == "f64.gt"      { return F64Gt {} }
+    if cleaned == "f64.ge"      { return F64Ge {} }
     if cleaned.starts_with("block ")            { return Block {} }
     if cleaned.starts_with("loop ")             { return Loop {} }
     if cleaned.starts_with("if ")               { return If {} }
@@ -1065,6 +1094,104 @@ parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
     if parsed is null { return null }
     if is_get { return LocalGet { .slot = parsed } }
     return LocalSet { .slot = parsed }
+}
+
+/// Parse `f64.const N.M` where the operand is a decimal float literal
+/// in the shape `<int>(.<frac>)?(e<int>)?` with an optional leading
+/// minus. The TS-side `formatF64` (`src/bytecode/text.ts`) is the
+/// canonical writer ; this parser mirrors its inverse.
+///
+/// @param line  the comment-stripped op line.
+/// @return      `F64Const { value }` on success, `null` on malformed
+///              input.
+parse_f64_const :: fn(line: string) -> Op | null {
+    rest :: line.slice("f64.const ".byte_len(), line.byte_len()).trim()
+    parsed :: parse_decimal_f64(rest)
+    if parsed is null { return null }
+    return F64Const { .value = parsed }
+}
+
+/// Decimal float parser for `<int>(.<frac>)?(e<int>)?` (sign, exponent,
+/// and fractional parts all optional). Sufficient for `f64.const` — full
+/// IEEE-754 round-tripping (subnormals, hex floats, infinity / NaN) is
+/// out of scope. Walks the string once to find the `.` and `e` markers,
+/// then re-extracts the integer / fractional / exponent pieces via
+/// `parse_int_in_base`. Note : Vader's parser is sensitive to certain
+/// `if / else if` chains in this file, hence the explicit
+/// `if X { … } if !X { … }` shapes below — do not "simplify" to
+/// `else if` without retesting the build.
+///
+/// **Precision** : `parse_int_in_base` returns `i64`. Integer mantissas
+/// above 2^53 lose low bits when cast to `f64` — the same loss IEEE-754
+/// mandates for any decimal → f64 conversion, so no extra hardening is
+/// needed.
+///
+/// @param s  the decimal literal (digits only — no `f` / `d` suffix).
+/// @return   the parsed `f64`, or `null` on malformed input.
+export parse_decimal_f64 :: fn(s: string) -> f64 | null {
+    n :: s.byte_len()
+    if n == 0 { return null }
+    cursor: usize = 0
+    negative := false
+    first_byte :: s.byte_at(0)
+    if first_byte == BYTE_MINUS {
+        negative = true
+        cursor = 1
+    }
+    if first_byte == BYTE_PLUS { cursor = 1 }
+    dot_index: i32 = -1
+    exp_index: i32 = -1
+    i: usize = cursor
+    for i < n {
+        b :: s.byte_at(i)
+        if b == BYTE_DOT { if dot_index < 0 { if exp_index < 0 { dot_index = i32(i) } } }
+        if b == BYTE_LOWER_E { if exp_index < 0 { exp_index = i32(i) } }
+        if b == BYTE_UPPER_E { if exp_index < 0 { exp_index = i32(i) } }
+        i += 1
+    }
+    int_end: usize = n
+    if dot_index >= 0 { int_end = usize(dot_index) }
+    if dot_index < 0 { if exp_index >= 0 { int_end = usize(exp_index) } }
+    int_text :: s.slice(cursor, int_end)
+    int_part :: parse_int_in_base(int_text, 10)
+    if int_part is Error { return null }
+    result: f64 = f64(int_part)
+    if dot_index >= 0 {
+        frac_end: usize = n
+        if exp_index >= 0 { frac_end = usize(exp_index) }
+        frac_text :: s.slice(usize(dot_index) + 1, frac_end)
+        if frac_text.byte_len() > 0 {
+            frac_part :: parse_int_in_base(frac_text, 10)
+            if frac_part is Error { return null }
+            divisor: f64 = f64(1)
+            d: usize = 0
+            for d < frac_text.byte_len() {
+                divisor = divisor * f64(10)
+                d += 1
+            }
+            result = result + f64(frac_part) / divisor
+        }
+    }
+    if exp_index >= 0 {
+        exp_text :: s.slice(usize(exp_index) + 1, n)
+        exp_part :: parse_int_in_base(exp_text, 10)
+        if exp_part is Error { return null }
+        abs_exp: i64 = exp_part
+        if abs_exp < 0 { abs_exp = -abs_exp }
+        // `f64.pow` isn't available at parse time (intrinsic, host-only),
+        // so iterate `* 10.0` to build the scale factor. Bounded by the
+        // literal's exponent — typical `.virt` snippets stay under 1e10.
+        scale: f64 = f64(1)
+        k: i64 = 0
+        for k < abs_exp {
+            scale = scale * f64(10)
+            k = k + 1
+        }
+        if exp_part >= 0 { result = result * scale }
+        if exp_part < 0 { result = result / scale }
+    }
+    if negative { return -result }
+    return result
 }
 
 parse_string_const :: fn(line: string) -> Op | null {
