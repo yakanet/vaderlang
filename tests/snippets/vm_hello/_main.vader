@@ -1,0 +1,8 @@
+// Sprint 3 acceptance: string literal + println host import.
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    println("hello, vader!")
+    return 0
+}

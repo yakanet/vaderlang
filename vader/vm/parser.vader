@@ -1,4 +1,4 @@
-// vader/vm/parser — read a `.virt` text bytecode dump into a `MainBody`.
+// vader/vm/parser — read a `.virt` text bytecode dump into a `Module`.
 //
 // The format is the one produced by `vader build --target=ir-text` —
 // stable enough that the Vader-side VM can validate end-to-end against
@@ -6,19 +6,21 @@
 // emit port (TODO §2.4, docs/SELFHOST_VM.md).
 //
 // Sprint coverage so far: i32 const / arith / cmp, locals, structured
-// `block`/`loop`/`if`/`else`/`end`, `br`/`br_if`, `return`. The parser
+// `block`/`loop`/`if`/`else`/`end`, `br`/`br_if`, `return`, string-pool
+// literals + host imports (`string.const`, `call.import`). The parser
 // resolves every branching op's target pc in a single pass via a scope
 // stack keyed on the label names the `.virt` format carries
 // (`if $L0`, `loop $L1`, `br $L1`, `end $L1`, etc).
 
-import "std/string" { byte_len, slice, starts_with, trim, split }
+import "std/string" { byte_len, slice, starts_with, trim, split, contains, index_of }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Br, BrIf, Return, MainBody }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, StringConst, CallImport, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, MainBody, Module }
 
-// A scope entry built when we see `block`/`loop`/`if`. `kind` is "loop"
-// for back-edges (br jumps to opener+1), anything else jumps past the
-// matching `end`. `label` is the textual `$LN` ; an `end LABEL` line
-// closes the matching entry (the formatter guarantees uniqueness).
+// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
+// true for back-edges (br jumps to opener+1) ; anything else jumps
+// past the matching `end`. `label` is the textual `$LN` ; an
+// `end LABEL` line closes the matching entry (the formatter
+// guarantees uniqueness within a function body).
 ScopeEntry :: struct {
     label:     string
     is_loop:   bool
@@ -28,8 +30,8 @@ ScopeEntry :: struct {
 // A `br`/`br_if` we couldn't resolve yet because its target scope
 // hasn't closed. Held in a side list, drained when the matching end
 // pops the target scope.
-PendingBr :: struct {
-    br_pc:        i32
+PendingBranch :: struct {
+    branch_pc:    i32
     target_label: string
 }
 
@@ -51,10 +53,14 @@ first_token_after :: fn(cleaned: string, prefix: string) -> string {
     return parts[0]
 }
 
-// Walk every line of the .virt source. The first `fn` opener starts
-// the body ; we collect `local` decls (to size the locals frame) and
-// ops, resolving every branching op's jump target via a scope stack.
-export parse_virt :: fn(src: string) -> MainBody {
+// Walk every line of the .virt source. Headers (`module`, `string`,
+// `import`) populate the module-level pool ; the first `fn` opens
+// the body, and we collect `local` decls (to size the locals frame)
+// + ops there. Every branching op's jump target gets resolved in the
+// same pass via a label-keyed scope stack.
+export parse_virt :: fn(source: string) -> Module {
+    strings: string[] = []
+    imports: ImportInfo[] = []
     ops:         Op[] = []
     table:       i32[] = []
     local_count := 0
@@ -63,22 +69,29 @@ export parse_virt :: fn(src: string) -> MainBody {
     // Scope stack — grown via push, logical top tracked by `scope_sp`.
     // Vader has no `inout`/`ref` params for primitives, so the cursor
     // lives in a 1-element `usize[]` we pass by handle and mutate
-    // element 0 of. Same trick for the pending-br cursor below.
+    // element 0 of. Same trick for the pending-branch cursor below.
     scopes: ScopeEntry[] = []
     scope_sp: usize[] = [0]
-    pending: PendingBr[] = []
+    pending: PendingBranch[] = []
     pending_sp: usize[] = [0]
 
-    lines :: src.split("\n")
+    lines :: source.split("\n")
     for line in lines {
         cleaned :: strip_comment(line)
         if cleaned.byte_len() == 0 { continue }
-        if cleaned.starts_with("fn ") {
-            if in_fn { break }
-            in_fn = true
+
+        if !in_fn {
+            // Module-level directives — only meaningful before the first fn.
+            if cleaned.starts_with("string ")  { parse_string_decl(cleaned, strings)  continue }
+            if cleaned.starts_with("import ")  { parse_import_decl(cleaned, imports)  continue }
+            if cleaned.starts_with("fn ")      { in_fn = true  continue }
+            // `module <name>` and any unknown header line are ignored ;
+            // sprint 4+ may surface diagnostics here once the format
+            // stabilises.
             continue
         }
-        if !in_fn { continue }
+
+        // Inside the body now.
         if cleaned.starts_with("local ") {
             local_count += 1
             continue
@@ -91,7 +104,54 @@ export parse_virt :: fn(src: string) -> MainBody {
         table.push(-1)
         wire_control_flow(cleaned, pc, ops, table, scopes, scope_sp, pending, pending_sp)
     }
-    return MainBody { .ops = ops, .local_count = local_count, .jump_table = table }
+    body :: MainBody { .ops = ops, .local_count = local_count, .jump_table = table }
+    return Module { .strings = strings, .imports = imports, .main = body }
+}
+
+/// Parse `string N "..."`. Anything inside the quotes is taken
+/// verbatim (the .virt encoder doesn't currently emit escapes for the
+/// inner content, so a naive first-quote / last-quote split is right).
+parse_string_decl :: fn(cleaned: string, strings: string[]) -> void {
+    after :: cleaned.slice("string ".byte_len(), cleaned.byte_len())
+    first_quote :: after.index_of('"', 0)
+    if first_quote < 0 { return }
+    body :: after.slice((usize)(first_quote) + 1, after.byte_len() - 1)
+    strings.push(body)
+}
+
+// Parse `import N name mangled (params) -> ret`.
+parse_import_decl :: fn(cleaned: string, imports: ImportInfo[]) -> void {
+    after :: cleaned.slice("import ".byte_len(), cleaned.byte_len())
+    parts :: after.split(" ")
+    if parts.len() < 4 { return }
+    // parts[0] = index, parts[1] = name, parts[2] = mangled, rest = signature
+    name    :: parts[1]
+    mangled :: parts[2]
+    // The signature starts at parts[3] and runs to the end. Count
+    // parameters by walking the chars of the first `(...)` group.
+    param_count :: count_import_params(cleaned)
+    // `-> void` means no return, anything else does.
+    has_return :: !cleaned.contains("-> void")
+    imports.push(ImportInfo {
+        .name        = name,
+        .mangled     = mangled,
+        .param_count = param_count,
+        .has_return  = has_return,
+    })
+}
+
+/// Count parameter types in the first `(...)` group of an import
+/// signature. An empty `()` means zero. Sprint 3 only needs unary
+/// printer imports so this is naively comma-counted ; sprint 4 will
+/// see multi-arg imports (`std_io$write_file(string, string)`) and
+/// the same shape still works.
+count_import_params :: fn(line: string) -> usize {
+    open :: line.index_of('(', 0)
+    close :: line.index_of(')', 0)
+    if open < 0 || close < 0 || close <= open + 1 { return 0 }
+    inner :: line.slice((usize)(open) + 1, (usize)(close)).trim()
+    if inner.byte_len() == 0 { return 0 }
+    return (usize)(inner.split(",").len())
 }
 
 // Push the op for `cleaned` onto `ops`. Returns `true` if a known op
@@ -99,29 +159,31 @@ export parse_virt :: fn(src: string) -> MainBody {
 // handle) are silently dropped so they don't shift pc indices.
 try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
     return match parse_op_line(cleaned) {
-        is null          -> false
-        is I32Const as o -> { ops.push(o)  true }
-        is LocalGet as o -> { ops.push(o)  true }
-        is LocalSet as o -> { ops.push(o)  true }
-        is I32Add   as o -> { ops.push(o)  true }
-        is I32Sub   as o -> { ops.push(o)  true }
-        is I32Mul   as o -> { ops.push(o)  true }
-        is I32Div   as o -> { ops.push(o)  true }
-        is I32Mod   as o -> { ops.push(o)  true }
-        is I32Eq    as o -> { ops.push(o)  true }
-        is I32Ne    as o -> { ops.push(o)  true }
-        is I32Lt    as o -> { ops.push(o)  true }
-        is I32Le    as o -> { ops.push(o)  true }
-        is I32Gt    as o -> { ops.push(o)  true }
-        is I32Ge    as o -> { ops.push(o)  true }
-        is Block    as o -> { ops.push(o)  true }
-        is Loop     as o -> { ops.push(o)  true }
-        is If       as o -> { ops.push(o)  true }
-        is Else     as o -> { ops.push(o)  true }
-        is End      as o -> { ops.push(o)  true }
-        is Br       as o -> { ops.push(o)  true }
-        is BrIf     as o -> { ops.push(o)  true }
-        is Return   as o -> { ops.push(o)  true }
+        is null            -> false
+        is I32Const    as o -> { ops.push(o)  true }
+        is LocalGet    as o -> { ops.push(o)  true }
+        is LocalSet    as o -> { ops.push(o)  true }
+        is StringConst as o -> { ops.push(o)  true }
+        is CallImport  as o -> { ops.push(o)  true }
+        is I32Add      as o -> { ops.push(o)  true }
+        is I32Sub      as o -> { ops.push(o)  true }
+        is I32Mul      as o -> { ops.push(o)  true }
+        is I32Div      as o -> { ops.push(o)  true }
+        is I32Mod      as o -> { ops.push(o)  true }
+        is I32Eq       as o -> { ops.push(o)  true }
+        is I32Ne       as o -> { ops.push(o)  true }
+        is I32Lt       as o -> { ops.push(o)  true }
+        is I32Le       as o -> { ops.push(o)  true }
+        is I32Gt       as o -> { ops.push(o)  true }
+        is I32Ge       as o -> { ops.push(o)  true }
+        is Block       as o -> { ops.push(o)  true }
+        is Loop        as o -> { ops.push(o)  true }
+        is If          as o -> { ops.push(o)  true }
+        is Else        as o -> { ops.push(o)  true }
+        is End         as o -> { ops.push(o)  true }
+        is Branch      as o -> { ops.push(o)  true }
+        is BranchIf    as o -> { ops.push(o)  true }
+        is Return      as o -> { ops.push(o)  true }
     }
 }
 
@@ -129,22 +191,20 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
 // after `try_push_op` so the op is already appended.
 wire_control_flow :: fn(
     cleaned: string, pc: i32, ops: Op[], table: i32[],
-    scopes: ScopeEntry[], scope_sp_box: usize[],
-    pending: PendingBr[], pending_sp_box: usize[],
+    scopes: ScopeEntry[], scope_sp: usize[],
+    pending: PendingBranch[], pending_sp: usize[],
 ) -> void {
     if cleaned.starts_with("block ") {
-        push_scope(scopes, scope_sp_box, ScopeEntry { .label = first_token_after(cleaned, "block "), .is_loop = false, .opener_pc = pc })
+        push_scope(scopes, scope_sp, ScopeEntry { .label = first_token_after(cleaned, "block "), .is_loop = false, .opener_pc = pc })
     } else if cleaned.starts_with("loop ") {
         // Loop target is the start of its body (opener_pc + 1) — known
         // immediately, so we fill `table[pc]` up front.
-        push_scope(scopes, scope_sp_box, ScopeEntry { .label = first_token_after(cleaned, "loop "), .is_loop = true, .opener_pc = pc })
+        push_scope(scopes, scope_sp, ScopeEntry { .label = first_token_after(cleaned, "loop "), .is_loop = true, .opener_pc = pc })
         table[pc] = pc + 1
     } else if cleaned.starts_with("if ") {
-        push_scope(scopes, scope_sp_box, ScopeEntry { .label = first_token_after(cleaned, "if "), .is_loop = false, .opener_pc = pc })
+        push_scope(scopes, scope_sp, ScopeEntry { .label = first_token_after(cleaned, "if "), .is_loop = false, .opener_pc = pc })
     } else if cleaned == "else" {
-        // Find the open if scope (the topmost non-loop) ; its fall-
-        // through target is the op past the else.
-        sp :: scope_sp_box[0]
+        sp :: scope_sp[0]
         if sp > 0 {
             top :: scopes[sp - 1]
             table[top.opener_pc] = pc + 1
@@ -153,52 +213,43 @@ wire_control_flow :: fn(
             scopes[sp - 1] = ScopeEntry { .label = top.label, .is_loop = false, .opener_pc = pc }
         }
     } else if cleaned.starts_with("end") {
-        sp :: scope_sp_box[0]
+        sp :: scope_sp[0]
         if sp > 0 {
             top :: scopes[sp - 1]
-            scope_sp_box[0] -= 1
+            scope_sp[0] -= 1
             // Block/if/else fall-through target = past the end. Loops
             // don't fall through via the opener — their `table[opener]`
             // already points at the body start.
             if !top.is_loop && table[top.opener_pc] < 0 {
                 table[top.opener_pc] = pc + 1
             }
-            // Else entries (we repurposed the if's slot above) also
-            // need their pc → past-end mapping.
-            if !top.is_loop && top.opener_pc != pc {
-                // top.opener_pc still points at the else's pc, fill it.
-                if table[top.opener_pc] < 0 || table[top.opener_pc] == pc + 1 {
-                    table[top.opener_pc] = pc + 1
-                }
-            }
-            // Drain pending brs targeting this scope's label.
-            drain_pending(pending, pending_sp_box, top.label, top.is_loop, top.opener_pc, pc, table)
+            drain_pending(pending, pending_sp, top.label, top.is_loop, top.opener_pc, pc, table)
         }
     } else if cleaned.starts_with("br ") {
-        defer_or_resolve_br(cleaned, "br ", pc, scopes, scope_sp_box, pending, pending_sp_box, table)
+        defer_or_resolve_branch(cleaned, "br ", pc, scopes, scope_sp, pending, pending_sp, table)
     } else if cleaned.starts_with("br_if ") {
-        defer_or_resolve_br(cleaned, "br_if ", pc, scopes, scope_sp_box, pending, pending_sp_box, table)
+        defer_or_resolve_branch(cleaned, "br_if ", pc, scopes, scope_sp, pending, pending_sp, table)
     }
 }
 
 push_scope :: fn(scopes: ScopeEntry[], sp_box: usize[], entry: ScopeEntry) -> void {
     sp :: sp_box[0]
     if sp == scopes.len() { scopes.push(entry) }
-    else { scopes[sp] = entry }
+    else                  { scopes[sp] = entry }
     sp_box[0] += 1
 }
 
 // `br`/`br_if` to a loop label resolves immediately (loop start known).
 // Branches to a block/if/else label are deferred until that scope's
 // `end` is seen — they're appended to `pending`.
-defer_or_resolve_br :: fn(
+defer_or_resolve_branch :: fn(
     cleaned: string, prefix: string, pc: i32,
-    scopes: ScopeEntry[], scope_sp_box: usize[],
-    pending: PendingBr[], pending_sp_box: usize[],
+    scopes: ScopeEntry[], scope_sp: usize[],
+    pending: PendingBranch[], pending_sp: usize[],
     table: i32[],
 ) -> void {
     label :: first_token_after(cleaned, prefix)
-    sp :: scope_sp_box[0]
+    sp :: scope_sp[0]
     // Find the matching scope by label from the top.
     i :: (i32)(sp) - 1
     found_idx := -1
@@ -210,35 +261,35 @@ defer_or_resolve_br :: fn(
             i -= 1
         }
     }
-    if found_idx < 0 { return }             // unresolved — bytecode invariant
+    if found_idx < 0 { return }
     target :: scopes[(usize)(found_idx)]
     if target.is_loop {
         table[pc] = target.opener_pc + 1
     } else {
-        psp :: pending_sp_box[0]
-        entry :: PendingBr { .br_pc = pc, .target_label = label }
+        psp :: pending_sp[0]
+        entry :: PendingBranch { .branch_pc = pc, .target_label = label }
         if psp == pending.len() { pending.push(entry) }
-        else { pending[psp] = entry }
-        pending_sp_box[0] += 1
+        else                    { pending[psp] = entry }
+        pending_sp[0] += 1
     }
 }
 
-// When a scope ends, fill in every pending `br`/`br_if` that named it.
+// When a scope ends, fill in every pending branch that named it.
 drain_pending :: fn(
-    pending: PendingBr[], pending_sp_box: usize[],
+    pending: PendingBranch[], pending_sp: usize[],
     label: string, is_loop: bool, opener_pc: i32, end_pc: i32,
     table: i32[],
 ) -> void {
-    psp :: pending_sp_box[0]
+    psp :: pending_sp[0]
     new_sp := 0
     i := 0
     for i < (i32)(psp) {
         entry :: pending[(usize)(i)]
         if entry.target_label == label {
             if is_loop {
-                table[entry.br_pc] = opener_pc + 1
+                table[entry.branch_pc] = opener_pc + 1
             } else {
-                table[entry.br_pc] = end_pc + 1
+                table[entry.branch_pc] = end_pc + 1
             }
         } else {
             pending[(usize)(new_sp)] = entry
@@ -246,58 +297,64 @@ drain_pending :: fn(
         }
         i += 1
     }
-    pending_sp_box[0] = (usize)(new_sp)
+    pending_sp[0] = (usize)(new_sp)
 }
 
 // Returns `null` for unrecognised ops so the parser can keep going past
 // directives a sprint doesn't yet handle.
 parse_op_line :: fn(cleaned: string) -> Op | null {
-    if cleaned.starts_with("i32.const ") {
-        return parse_int_arg(cleaned, "i32.const ")
-    }
-    if cleaned.starts_with("local.get ") {
-        return parse_slot_arg(cleaned, "local.get ", true)
-    }
-    if cleaned.starts_with("local.set ") {
-        return parse_slot_arg(cleaned, "local.set ", false)
-    }
-    if cleaned == "i32.add" { return I32Add {} }
-    if cleaned == "i32.sub" { return I32Sub {} }
-    if cleaned == "i32.mul" { return I32Mul {} }
-    if cleaned == "i32.div" { return I32Div {} }
-    if cleaned == "i32.mod" { return I32Mod {} }
-    if cleaned == "i32.eq"  { return I32Eq {} }
-    if cleaned == "i32.ne"  { return I32Ne {} }
-    if cleaned == "i32.lt"  { return I32Lt {} }
-    if cleaned == "i32.le"  { return I32Le {} }
-    if cleaned == "i32.gt"  { return I32Gt {} }
-    if cleaned == "i32.ge"  { return I32Ge {} }
+    if cleaned.starts_with("i32.const ")    { return parse_int_arg(cleaned, "i32.const ") }
+    if cleaned.starts_with("local.get ")    { return parse_slot_arg(cleaned, "local.get ", true) }
+    if cleaned.starts_with("local.set ")    { return parse_slot_arg(cleaned, "local.set ", false) }
+    if cleaned.starts_with("string.const ") { return parse_string_const(cleaned) }
+    if cleaned.starts_with("call.import ")  { return parse_call_import(cleaned) }
+    if cleaned == "i32.add"  { return I32Add {} }
+    if cleaned == "i32.sub"  { return I32Sub {} }
+    if cleaned == "i32.mul"  { return I32Mul {} }
+    if cleaned == "i32.div"  { return I32Div {} }
+    if cleaned == "i32.mod"  { return I32Mod {} }
+    if cleaned == "i32.eq"   { return I32Eq {} }
+    if cleaned == "i32.ne"   { return I32Ne {} }
+    if cleaned == "i32.lt"   { return I32Lt {} }
+    if cleaned == "i32.le"   { return I32Le {} }
+    if cleaned == "i32.gt"   { return I32Gt {} }
+    if cleaned == "i32.ge"   { return I32Ge {} }
     if cleaned.starts_with("block ") { return Block {} }
-    if cleaned.starts_with("loop ")  { return Loop  {} }
-    if cleaned.starts_with("if ")    { return If    {} }
-    if cleaned == "else"             { return Else  {} }
-    if cleaned.starts_with("end")    { return End   {} }
-    if cleaned.starts_with("br_if ") { return BrIf  {} }
-    if cleaned.starts_with("br ")    { return Br    {} }
+    if cleaned.starts_with("loop ")  { return Loop {} }
+    if cleaned.starts_with("if ")    { return If {} }
+    if cleaned == "else"             { return Else {} }
+    if cleaned.starts_with("end")    { return End {} }
+    if cleaned.starts_with("br_if ") { return BranchIf {} }
+    if cleaned.starts_with("br ")    { return Branch {} }
     if cleaned == "return"           { return Return {} }
     return null
 }
 
 parse_int_arg :: fn(line: string, prefix: string) -> Op | null {
     rest :: line.slice(prefix.byte_len(), line.byte_len()).trim()
-    return match parse_int_in_base(rest, 10) {
-        is i64 as n -> I32Const { .value = (i32)(n) }
-        is Error    -> null
-    }
+    parsed :: parse_int_in_base(rest, 10)
+    if parsed is Error { return null }
+    return I32Const { .value = (i32)(parsed) }
 }
 
 parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
     rest :: line.slice(prefix.byte_len(), line.byte_len()).trim()
-    return match parse_int_in_base(rest, 10) {
-        is i64 as n -> {
-            if is_get { LocalGet { .slot = (i32)(n) } }
-            else      { LocalSet { .slot = (i32)(n) } }
-        }
-        is Error -> null
-    }
+    parsed :: parse_int_in_base(rest, 10)
+    if parsed is Error { return null }
+    if is_get { return LocalGet { .slot = (i32)(parsed) } }
+    return LocalSet { .slot = (i32)(parsed) }
+}
+
+parse_string_const :: fn(line: string) -> Op | null {
+    rest :: line.slice("string.const ".byte_len(), line.byte_len()).trim()
+    parsed :: parse_int_in_base(rest, 10)
+    if parsed is Error { return null }
+    return StringConst { .index = (i32)(parsed) }
+}
+
+parse_call_import :: fn(line: string) -> Op | null {
+    rest :: line.slice("call.import ".byte_len(), line.byte_len()).trim()
+    parsed :: parse_int_in_base(rest, 10)
+    if parsed is Error { return null }
+    return CallImport { .index = (i32)(parsed) }
 }

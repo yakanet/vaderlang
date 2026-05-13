@@ -1,17 +1,18 @@
 // vader/vm/exec — stack-machine interpreter for the .virt bytecode.
 //
-// Reads a parsed `MainBody` (see `parser.vader`) and runs it to completion.
-// The op set grows sprint by sprint (docs/SELFHOST_VM.md); the stack is
-// `i32[]` until sprint 3+ widens it to a tagged `Value` union mirroring
-// `src/vm/value.ts`.
+// Reads a parsed `Module` (see `parser.vader`) and runs its `main`
+// function. The op set grows sprint by sprint (docs/SELFHOST_VM.md) ;
+// the value stack is `Value[]` (tagged union), promoted from the raw
+// `i32[]` of sprints 1-2 so strings and host calls can flow through.
 //
-// Errors raised by the VM itself (stack underflow, malformed bytecode,
-// unsupported op) come back as a `Trap` variant of `VmResult` with a
-// labelled message — the runtime's generic "array index out of bounds"
-// would otherwise mask compiler / parser bugs.
+// VM-level errors (stack underflow, malformed bytecode, unsupported
+// op, host-import dispatch miss) come back as a `Trap` variant of
+// `VmResult` with a labelled message — the runtime's generic
+// "array index out of bounds" would otherwise mask compiler / parser
+// bugs.
 
-import "std/io" { read_file, eprintln }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Br, BrIf, Return, MainBody }
+import "std/io" { read_file, eprintln, println }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, StringConst, CallImport, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, MainBody, Module, Value, I32Val, StringVal }
 import "vader/vm/parser" { parse_virt }
 
 // Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -19,132 +20,203 @@ import "vader/vm/parser" { parse_virt }
 // can surface it instead of a generic runtime abort.
 export VmResult :: Ok | Trap
 export Ok   :: struct { value: i32 }
-export Trap :: struct { msg: string }
+export Trap :: struct { message: string }
+
+// Default-zero `Value`, used to size the locals frame at fn entry.
+zero_value :: fn() -> Value { return I32Val { .n = 0 } }
+
+// Push `value` at the cursor position, growing the backing array
+// when needed (Vader has `push` but not capacity-managed insert).
+push_value :: fn(stack: (I32Val | StringVal)[], cursor: usize, value: (I32Val | StringVal)) -> void {
+    if cursor == stack.len() { stack.push(value) }
+    else                     { stack[cursor] = value }
+}
 
 // Stack-machine interpreter, pc-based to support structured `if/else`
 // jumps. Stack management uses a logical `sp` cursor over a grow-only
-// `i32[]` — Vader arrays support `push` but not `pop`, so the cursor
-// pattern keeps the inner loop allocation-free.
-export exec :: fn(body: MainBody) -> VmResult {
-    stack:  i32[] = []
+// `Value[]` — Vader arrays support `push` but not `pop`, so the
+// cursor pattern keeps the inner loop allocation-free.
+export exec :: fn(module: Module) -> VmResult {
+    body :: module.main
+    stack:  (I32Val | StringVal)[] = []
     sp: usize = 0
-    locals: i32[] = []
+    locals: (I32Val | StringVal)[] = []
     i := 0
     for i < body.local_count {
-        locals.push(0)
+        locals.push(zero_value())
         i += 1
     }
     pc := 0
-    n :: body.ops.len()
-    for pc < (i32)(n) {
+    op_count :: body.ops.len()
+    for pc < (i32)(op_count) {
         op :: body.ops[pc]
         match op {
-            is I32Const as ic -> {
-                if sp == stack.len() { stack.push(ic.value) }
-                else { stack[sp] = ic.value }
+            is I32Const -> {
+                push_value(stack, sp, I32Val { .n = op.value })
                 sp += 1
                 pc += 1
             }
-            is LocalGet as lg -> {
-                if lg.slot < 0 || (usize)(lg.slot) >= locals.len() {
-                    return Trap { .msg = "local.get slot ${lg.slot} out of range at pc=${pc}" }
+            is LocalGet -> {
+                if op.slot < 0 || (usize)(op.slot) >= locals.len() {
+                    return Trap { .message = "local.get slot ${op.slot} out of range at pc=${pc}" }
                 }
-                v :: locals[lg.slot]
-                if sp == stack.len() { stack.push(v) }
-                else { stack[sp] = v }
+                push_value(stack, sp, locals[op.slot])
                 sp += 1
                 pc += 1
             }
-            is LocalSet as ls -> {
+            is LocalSet -> {
                 if sp == 0 {
-                    return Trap { .msg = "local.set on empty stack at pc=${pc}" }
+                    return Trap { .message = "local.set on empty stack at pc=${pc}" }
                 }
-                if ls.slot < 0 || (usize)(ls.slot) >= locals.len() {
-                    return Trap { .msg = "local.set slot ${ls.slot} out of range at pc=${pc}" }
+                if op.slot < 0 || (usize)(op.slot) >= locals.len() {
+                    return Trap { .message = "local.set slot ${op.slot} out of range at pc=${pc}" }
                 }
                 sp -= 1
-                locals[ls.slot] = stack[sp]
+                locals[op.slot] = stack[sp]
+                pc += 1
+            }
+            is StringConst -> {
+                if op.index < 0 || (usize)(op.index) >= module.strings.len() {
+                    return Trap { .message = "string.const index ${op.index} out of range at pc=${pc}" }
+                }
+                push_value(stack, sp, StringVal { .s = module.strings[op.index] })
+                sp += 1
+                pc += 1
+            }
+            is CallImport -> {
+                if op.index < 0 || (usize)(op.index) >= module.imports.len() {
+                    return Trap { .message = "call.import ${op.index} out of range at pc=${pc}" }
+                }
+                info :: module.imports[op.index]
+                if sp < info.param_count {
+                    return Trap { .message = "call.import '${info.mangled}' needs ${info.param_count} arg(s) but stack has ${sp} at pc=${pc}" }
+                }
+                arg_base :: sp - info.param_count
+                dispatch_outcome :: dispatch_import(info, stack, arg_base, pc)
+                if dispatch_outcome is Trap {
+                    return dispatch_outcome
+                }
+                sp = arg_base
+                if info.has_return {
+                    push_value(stack, sp, dispatch_outcome.value)
+                    sp += 1
+                }
                 pc += 1
             }
             is I32Add -> {
-                if sp < 2 { return Trap { .msg = "i32.add stack underflow at pc=${pc}" } }
-                stack[sp - 2] = stack[sp - 2] + stack[sp - 1]
+                left :: read_i32(stack[sp - 2], pc, "i32.add left")
+                right :: read_i32(stack[sp - 1], pc, "i32.add right")
+                if left is Trap  { return left }
+                if right is Trap { return right }
+                stack[sp - 2] = I32Val { .n = left.n + right.n }
                 sp -= 1
                 pc += 1
             }
             is I32Sub -> {
-                if sp < 2 { return Trap { .msg = "i32.sub stack underflow at pc=${pc}" } }
-                stack[sp - 2] = stack[sp - 2] - stack[sp - 1]
+                left :: read_i32(stack[sp - 2], pc, "i32.sub left")
+                right :: read_i32(stack[sp - 1], pc, "i32.sub right")
+                if left is Trap  { return left }
+                if right is Trap { return right }
+                stack[sp - 2] = I32Val { .n = left.n - right.n }
                 sp -= 1
                 pc += 1
             }
             is I32Mul -> {
-                if sp < 2 { return Trap { .msg = "i32.mul stack underflow at pc=${pc}" } }
-                stack[sp - 2] = stack[sp - 2] * stack[sp - 1]
+                left :: read_i32(stack[sp - 2], pc, "i32.mul left")
+                right :: read_i32(stack[sp - 1], pc, "i32.mul right")
+                if left is Trap  { return left }
+                if right is Trap { return right }
+                stack[sp - 2] = I32Val { .n = left.n * right.n }
                 sp -= 1
                 pc += 1
             }
             is I32Div -> {
-                if sp < 2 { return Trap { .msg = "i32.div stack underflow at pc=${pc}" } }
-                if stack[sp - 1] == 0 { return Trap { .msg = "i32.div by zero at pc=${pc}" } }
-                stack[sp - 2] = stack[sp - 2] / stack[sp - 1]
+                left :: read_i32(stack[sp - 2], pc, "i32.div left")
+                right :: read_i32(stack[sp - 1], pc, "i32.div right")
+                if left is Trap  { return left }
+                if right is Trap { return right }
+                if right.n == 0 { return Trap { .message = "i32.div by zero at pc=${pc}" } }
+                stack[sp - 2] = I32Val { .n = left.n / right.n }
                 sp -= 1
                 pc += 1
             }
             is I32Mod -> {
-                if sp < 2 { return Trap { .msg = "i32.mod stack underflow at pc=${pc}" } }
-                if stack[sp - 1] == 0 { return Trap { .msg = "i32.mod by zero at pc=${pc}" } }
-                stack[sp - 2] = stack[sp - 2] % stack[sp - 1]
+                left :: read_i32(stack[sp - 2], pc, "i32.mod left")
+                right :: read_i32(stack[sp - 1], pc, "i32.mod right")
+                if left is Trap  { return left }
+                if right is Trap { return right }
+                if right.n == 0 { return Trap { .message = "i32.mod by zero at pc=${pc}" } }
+                stack[sp - 2] = I32Val { .n = left.n % right.n }
                 sp -= 1
                 pc += 1
             }
             is I32Eq -> {
-                if sp < 2 { return Trap { .msg = "i32.eq stack underflow at pc=${pc}" } }
-                stack[sp - 2] = if stack[sp - 2] == stack[sp - 1] { 1 } else { 0 }
+                left :: read_i32(stack[sp - 2], pc, "i32.eq left")
+                right :: read_i32(stack[sp - 1], pc, "i32.eq right")
+                if left is Trap  { return left }
+                if right is Trap { return right }
+                stack[sp - 2] = I32Val { .n = if left.n == right.n { 1 } else { 0 } }
                 sp -= 1
                 pc += 1
             }
             is I32Ne -> {
-                if sp < 2 { return Trap { .msg = "i32.ne stack underflow at pc=${pc}" } }
-                stack[sp - 2] = if stack[sp - 2] != stack[sp - 1] { 1 } else { 0 }
+                left :: read_i32(stack[sp - 2], pc, "i32.ne left")
+                right :: read_i32(stack[sp - 1], pc, "i32.ne right")
+                if left is Trap  { return left }
+                if right is Trap { return right }
+                stack[sp - 2] = I32Val { .n = if left.n != right.n { 1 } else { 0 } }
                 sp -= 1
                 pc += 1
             }
             is I32Lt -> {
-                if sp < 2 { return Trap { .msg = "i32.lt stack underflow at pc=${pc}" } }
-                stack[sp - 2] = if stack[sp - 2] <  stack[sp - 1] { 1 } else { 0 }
+                left :: read_i32(stack[sp - 2], pc, "i32.lt left")
+                right :: read_i32(stack[sp - 1], pc, "i32.lt right")
+                if left is Trap  { return left }
+                if right is Trap { return right }
+                stack[sp - 2] = I32Val { .n = if left.n < right.n { 1 } else { 0 } }
                 sp -= 1
                 pc += 1
             }
             is I32Le -> {
-                if sp < 2 { return Trap { .msg = "i32.le stack underflow at pc=${pc}" } }
-                stack[sp - 2] = if stack[sp - 2] <= stack[sp - 1] { 1 } else { 0 }
+                left :: read_i32(stack[sp - 2], pc, "i32.le left")
+                right :: read_i32(stack[sp - 1], pc, "i32.le right")
+                if left is Trap  { return left }
+                if right is Trap { return right }
+                stack[sp - 2] = I32Val { .n = if left.n <= right.n { 1 } else { 0 } }
                 sp -= 1
                 pc += 1
             }
             is I32Gt -> {
-                if sp < 2 { return Trap { .msg = "i32.gt stack underflow at pc=${pc}" } }
-                stack[sp - 2] = if stack[sp - 2] >  stack[sp - 1] { 1 } else { 0 }
+                left :: read_i32(stack[sp - 2], pc, "i32.gt left")
+                right :: read_i32(stack[sp - 1], pc, "i32.gt right")
+                if left is Trap  { return left }
+                if right is Trap { return right }
+                stack[sp - 2] = I32Val { .n = if left.n > right.n { 1 } else { 0 } }
                 sp -= 1
                 pc += 1
             }
             is I32Ge -> {
-                if sp < 2 { return Trap { .msg = "i32.ge stack underflow at pc=${pc}" } }
-                stack[sp - 2] = if stack[sp - 2] >= stack[sp - 1] { 1 } else { 0 }
+                left :: read_i32(stack[sp - 2], pc, "i32.ge left")
+                right :: read_i32(stack[sp - 1], pc, "i32.ge right")
+                if left is Trap  { return left }
+                if right is Trap { return right }
+                stack[sp - 2] = I32Val { .n = if left.n >= right.n { 1 } else { 0 } }
                 sp -= 1
                 pc += 1
             }
             is Block -> { pc += 1 }
             is Loop  -> { pc += 1 }
             is If -> {
-                if sp == 0 { return Trap { .msg = "if on empty stack at pc=${pc}" } }
+                if sp == 0 { return Trap { .message = "if on empty stack at pc=${pc}" } }
                 sp -= 1
-                if stack[sp] != 0 {
+                cond :: read_i32(stack[sp], pc, "if condition")
+                if cond is Trap { return cond }
+                if cond.n != 0 {
                     pc += 1
                 } else {
                     target :: body.jump_table[pc]
                     if target < 0 {
-                        return Trap { .msg = "if has no jump target at pc=${pc} (bad bytecode)" }
+                        return Trap { .message = "if has no jump target at pc=${pc} (bad bytecode)" }
                     }
                     pc = target
                 }
@@ -152,25 +224,27 @@ export exec :: fn(body: MainBody) -> VmResult {
             is Else -> {
                 target :: body.jump_table[pc]
                 if target < 0 {
-                    return Trap { .msg = "else has no jump target at pc=${pc} (bad bytecode)" }
+                    return Trap { .message = "else has no jump target at pc=${pc} (bad bytecode)" }
                 }
                 pc = target
             }
             is End -> { pc += 1 }
-            is Br -> {
+            is Branch -> {
                 target :: body.jump_table[pc]
                 if target < 0 {
-                    return Trap { .msg = "br has no jump target at pc=${pc} (bad bytecode)" }
+                    return Trap { .message = "br has no jump target at pc=${pc} (bad bytecode)" }
                 }
                 pc = target
             }
-            is BrIf -> {
-                if sp == 0 { return Trap { .msg = "br_if on empty stack at pc=${pc}" } }
+            is BranchIf -> {
+                if sp == 0 { return Trap { .message = "br_if on empty stack at pc=${pc}" } }
                 sp -= 1
-                if stack[sp] != 0 {
+                cond :: read_i32(stack[sp], pc, "br_if condition")
+                if cond is Trap { return cond }
+                if cond.n != 0 {
                     target :: body.jump_table[pc]
                     if target < 0 {
-                        return Trap { .msg = "br_if has no jump target at pc=${pc} (bad bytecode)" }
+                        return Trap { .message = "br_if has no jump target at pc=${pc} (bad bytecode)" }
                     }
                     pc = target
                 } else {
@@ -179,7 +253,9 @@ export exec :: fn(body: MainBody) -> VmResult {
             }
             is Return -> {
                 if sp == 0 { return Ok { .value = 0 } }
-                return Ok { .value = stack[sp - 1] }
+                top :: read_i32(stack[sp - 1], pc, "return")
+                if top is Trap { return top }
+                return Ok { .value = top.n }
             }
         }
     }
@@ -187,12 +263,55 @@ export exec :: fn(body: MainBody) -> VmResult {
     return Ok { .value = 0 }
 }
 
+// Unwrap an `i32` from a `Value` or return a `Trap` describing the
+// expected slot when the tag mismatches. `where` is a short label
+// (`"i32.add left"`, `"if condition"`) so the message is actionable.
+read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
+    if v is I32Val { return v }
+    return Trap { .message = "${label} at pc=${at_pc}: expected i32, got string" }
+}
+
+// Same shape as `read_i32` for the string side. Used by the host
+// dispatcher to recover the `string` payload of a `println` argument.
+read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Trap {
+    if v is StringVal { return v }
+    return Trap { .message = "${label} at pc=${at_pc}: expected string, got i32" }
+}
+
+// Outcome of a successful host call. `value` is unused when the
+// import has `has_return == false` — the exec checks the import's
+// signature before pushing.
+export HostCallResult :: HostOk | Trap
+export HostOk :: struct { value: (I32Val | StringVal) }
+
+// Sprint 3 host surface — only the three plain string-printer imports
+// that show up in `vm_hello` and its near siblings. Each new import
+// added later (e.g. `read_line`, `read_file`, the integer / float
+// `print` formatters) lands as a new arm here.
+dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
+    if info.mangled == r"std_io$println" {
+        arg :: read_string(stack[arg_base], at_pc, "println")
+        if arg is Trap { return arg }
+        println(arg.s)
+        return HostOk { .value = zero_value() }
+    }
+    if info.mangled == r"std_io$print" {
+        arg :: read_string(stack[arg_base], at_pc, "print")
+        if arg is Trap { return arg }
+        println(arg.s)   // TODO route to stdout w/o newline (sprint 4 wires std/io.print exactly)
+        return HostOk { .value = zero_value() }
+    }
+    if info.mangled == r"std_io$eprintln" {
+        arg :: read_string(stack[arg_base], at_pc, "eprintln")
+        if arg is Trap { return arg }
+        eprintln(arg.s)
+        return HostOk { .value = zero_value() }
+    }
+    return Trap { .message = "unbound host import '${info.mangled}' at pc=${at_pc}" }
+}
+
 // ---- entry --------------------------------------------------------------
 
-// Read + parse + execute. Returns the program's exit value on success,
-// or 1 (with eprintln of the trap message) on a VM-level failure. The
-// `i32!` cross-module match-as-expression bug (TODO §2.4) keeps us
-// from returning a richer `i32!` to the caller for now.
 export run_virt :: fn(path: string) -> i32 {
     source :: read_file(path)
     if source is Error {
@@ -202,7 +321,7 @@ export run_virt :: fn(path: string) -> i32 {
     return match exec(parse_virt(source)) {
         is Ok   as o -> o.value
         is Trap as t -> {
-            eprintln("vader vm: ${t.msg}")
+            eprintln("vader vm: ${t.message}")
             1
         }
     }

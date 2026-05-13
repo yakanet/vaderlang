@@ -6,11 +6,13 @@
 // pre-computed `jump_table` on `MainBody` (see `parser.vader`) holds
 // the target pc for each branching op-index.
 
-export Op :: I32Const | LocalGet | LocalSet | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Br | BrIf | Return
+export Op :: I32Const | LocalGet | LocalSet | StringConst | CallImport | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
-export I32Const :: struct { value: i32 }
-export LocalGet :: struct { slot: i32 }
-export LocalSet :: struct { slot: i32 }
+export I32Const    :: struct { value: i32 }
+export LocalGet    :: struct { slot: i32 }
+export LocalSet    :: struct { slot: i32 }
+export StringConst :: struct { index: i32 }
+export CallImport  :: struct { index: i32 }
 export I32Add   :: struct {}
 export I32Sub   :: struct {}
 export I32Mul   :: struct {}
@@ -27,9 +29,20 @@ export Loop     :: struct {}             // marker — exec just bumps pc
 export If       :: struct {}             // jump target lives in `jump_table[pc]`
 export Else     :: struct {}             // ditto
 export End      :: struct {}             // marker — exec just bumps pc
-export Br       :: struct {}             // jump target lives in `jump_table[pc]`
-export BrIf     :: struct {}             // ditto, conditional
+export Branch   :: struct {}             // jump target lives in `jump_table[pc]`
+export BranchIf :: struct {}             // ditto, conditional
 export Return   :: struct {}
+
+// Host-side description of an import — name + arity. The exec uses
+// `mangled` to dispatch (`std_io$println` etc.) ; `param_count` tells
+// it how many values to pop / pass back. Sprint 3 keeps this minimal :
+// arity + return-shape will widen with `print` / `read_line` / etc.
+export ImportInfo :: struct {
+    name:        string
+    mangled:     string
+    param_count: usize
+    has_return:  bool
+}
 
 // One function's body. `jump_table[pc]`:
 //   - `If`   → pc just past the matching `Else` (or `End` if none)
@@ -40,3 +53,21 @@ export MainBody :: struct {
     local_count: i32
     jump_table:  i32[]
 }
+
+/// Top-level holder for the .virt module. Sprint 3 still runs only the
+/// first function (`main`) ; the strings pool and imports are needed
+/// alongside it for `string.const` / `call.import` to dispatch.
+export Module :: struct {
+    strings: string[]
+    imports: ImportInfo[]
+    main:    MainBody
+}
+
+/// Tagged runtime value carried on the VM's stack. Sprint 3 widens the
+/// stack representation from raw `i32[]` to this union so strings can
+/// flow through `string.const` / `call.import` alongside numerics.
+/// Future sprints add bool / char / struct / array variants ; mirrors
+/// `src/vm/value.ts` and grows in lock-step with the op set.
+export Value :: I32Val | StringVal
+export I32Val    :: struct { n: i32 }
+export StringVal :: struct { s: string }

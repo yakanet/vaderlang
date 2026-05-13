@@ -172,19 +172,46 @@ export compare_ascending :: fn(a: string, b: string) -> bool {
 /// `isize` return type lets callers branch on `result < 0` ; `usize` would
 /// have collapsed "absent" into "0" ambiguously.
 /// @param s          source string.
+/// Byte offset of the *last* occurrence of `c` in `s`. Walks `s`
+/// codepoint-by-codepoint (UTF-8 safe — the byte cursor advances by
+/// each codepoint's encoded width, so multi-byte sequences are never
+/// sliced mid-stream), tracking the latest matching position. The
+/// returned offset is a leading-byte index ; valid input to `slice`.
+///
+/// @param s          source string.
 /// @param c          codepoint to find.
-/// @param min_index  earliest position considered (inclusive). Pass `0`
-///                   to search the whole string.
-/// @return           byte offset of the match, or `-1` if absent.
+/// @param min_index  earliest leading-byte position to keep as a
+///                   match (later matches still win). Pass `0` to
+///                   accept every position.
+/// @return           byte offset of the latest match, or `-1` if absent.
 export last_index_of :: fn(s: string, c: char, min_index: isize) -> isize {
     n :: s.byte_len()
-    if n == 0 { return -1 }
-    i: isize = isize(n) - 1
-    for i >= min_index {
-        if s[usize(i)] == c {
-            return i
-        }
-        i = i - 1
+    last: isize = -1
+    i: usize = 0
+    for i < n {
+        [cp, width] :: s.decode_codepoint(i)
+        if isize(i) >= min_index && cp == c { last = isize(i) }
+        i += width
+    }
+    return last
+}
+
+/// Byte offset of the *first* occurrence of `c` in `s`, starting at
+/// the codepoint that begins at byte `from` (inclusive). UTF-8 safe —
+/// see `last_index_of` for the iteration model. `from` should align
+/// to a leading byte ; out-of-range values short-circuit to `-1`.
+///
+/// @param s     source string.
+/// @param c     codepoint to find.
+/// @param from  earliest leading-byte position considered.
+/// @return      byte offset of the match, or `-1` if absent.
+export index_of :: fn(s: string, c: char, from: usize) -> isize {
+    n :: s.byte_len()
+    i :: from
+    for i < n {
+        [cp, width] :: s.decode_codepoint(i)
+        if cp == c { return isize(i) }
+        i += width
     }
     return -1
 }
