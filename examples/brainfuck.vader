@@ -47,9 +47,12 @@ is_bf_char :: fn(c: char) -> bool {
            c == '[' || c == ']'
 }
 
-// Collect every BF codepoint from `source` in order. `chars()` decodes
-// UTF-8 lazily ; `std/iter.filter` operates on arrays, so we materialise
-// the codepoints once with `collect()` and let `filter` drop comments.
+// Decode codepoints from `source` and keep the eight BF characters. The
+// natural chain `source.chars().filter(is_bf_char)` doesn't typecheck yet
+// — `filter` is only declared on `T[]` in `std/iter`, and UFCS won't
+// bridge a concrete `StringChars` receiver to a hypothetical
+// `Iterator(T)` first-param overload. Materialise the codepoints once,
+// filter the array.
 tokenize_bf :: fn(source: string) -> char[] {
     all_chars: char[] = []
     for c in source.chars() { all_chars.push(c) }
