@@ -97,11 +97,12 @@ function unifyTraitParamWithConcrete(
     // the struct's). Match the impl's `forType` against the concrete argType
     // to bind each impl typeParam, then substitute the trait args before
     // unifying with the caller's param.
-    const implSubst: Substitution = { typeParams: new Map() };
+    const implTypeParams = new Map<number, Type>();
     const implForType = t.globals.typeExprTypes.get(entry.decl.forType);
     if (implForType !== undefined) {
-      unifyTypeParam(implForType, argType, implSubst.typeParams!, impls, t);
+      unifyTypeParam(implForType, argType, implTypeParams, impls, t);
     }
+    const implSubst: Substitution = { typeParams: implTypeParams };
     for (let i = 0; i < paramType.args.length && i < implTraitArgs.length; i++) {
       unifyTypeParam(paramType.args[i]!, substitute(implTraitArgs[i]!, implSubst), out, impls, t);
     }
