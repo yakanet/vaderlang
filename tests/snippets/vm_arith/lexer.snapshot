@@ -1,0 +1,30 @@
+# Tokens
+[4:1-4:5    ] ident          "main"
+[4:6-4:8    ] decl_const     "::"
+[4:9-4:11   ] kw_fn          "fn"
+[4:11-4:12  ] lparen         "("
+[4:12-4:13  ] rparen         ")"
+[4:14-4:16  ] arrow          "->"
+[4:17-4:20  ] ident          "i32"
+[4:21-4:22  ] lbrace         "{"
+[5:1-5:1    ] newline        "\n"
+[5:5-5:6    ] ident          "a"
+[5:7-5:9    ] decl_const     "::"
+[5:10-5:11  ] int_literal    "7" =7n
+[6:1-6:1    ] newline        "\n"
+[6:5-6:6    ] ident          "b"
+[6:7-6:9    ] decl_const     "::"
+[6:10-6:11  ] int_literal    "5" =5n
+[7:1-7:1    ] newline        "\n"
+[7:5-7:11   ] kw_return      "return"
+[7:12-7:13  ] ident          "a"
+[7:14-7:15  ] star           "*"
+[7:16-7:17  ] ident          "b"
+[7:18-7:19  ] plus           "+"
+[7:20-7:21  ] int_literal    "3" =3n
+[7:22-7:23  ] minus          "-"
+[7:24-7:25  ] int_literal    "2" =2n
+[8:1-8:1    ] newline        "\n"
+[8:1-8:2    ] rbrace         "}"
+[9:1-9:1    ] newline        "\n"
+[9:1-9:1    ] eof            ""

@@ -1,0 +1,26 @@
+# Lower
+
+## tests/snippets/vm_for/_main.vader
+  fn tests_snippets_vm_for__main_vader$main() -> i32
+    let sum: i32 = int(0) :i32
+    let i: i32 = int(1) :i32
+    loop while (<…>)
+      assign
+        target:
+          sum :i32
+        value:
+          add :i32
+            l:
+              sum :i32
+            r:
+              i :i32
+      assign
+        target:
+          i :i32
+        value:
+          add :i32
+            l:
+              i :i32
+            r:
+              int(1) :i32
+    return sum :i32

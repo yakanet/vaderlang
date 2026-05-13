@@ -1,0 +1,42 @@
+// vader/vm/op — bytecode op shapes shared by `parser.vader` and `exec.vader`.
+//
+// One variant per supported op kind. The union grows sprint by sprint
+// in lock-step with the acceptance snippets (docs/SELFHOST_VM.md).
+// Control-flow ops (`If`, `Else`, `End`) carry no operands here — the
+// pre-computed `jump_table` on `MainBody` (see `parser.vader`) holds
+// the target pc for each branching op-index.
+
+export Op :: I32Const | LocalGet | LocalSet | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Br | BrIf | Return
+
+export I32Const :: struct { value: i32 }
+export LocalGet :: struct { slot: i32 }
+export LocalSet :: struct { slot: i32 }
+export I32Add   :: struct {}
+export I32Sub   :: struct {}
+export I32Mul   :: struct {}
+export I32Div   :: struct {}
+export I32Mod   :: struct {}
+export I32Eq    :: struct {}
+export I32Ne    :: struct {}
+export I32Lt    :: struct {}
+export I32Le    :: struct {}
+export I32Gt    :: struct {}
+export I32Ge    :: struct {}
+export Block    :: struct {}             // marker — exec just bumps pc
+export Loop     :: struct {}             // marker — exec just bumps pc
+export If       :: struct {}             // jump target lives in `jump_table[pc]`
+export Else     :: struct {}             // ditto
+export End      :: struct {}             // marker — exec just bumps pc
+export Br       :: struct {}             // jump target lives in `jump_table[pc]`
+export BrIf     :: struct {}             // ditto, conditional
+export Return   :: struct {}
+
+// One function's body. `jump_table[pc]`:
+//   - `If`   → pc just past the matching `Else` (or `End` if none)
+//   - `Else` → pc just past the matching `End`
+//   - everything else → -1 (sentinel, exec ignores)
+export MainBody :: struct {
+    ops:         Op[]
+    local_count: i32
+    jump_table:  i32[]
+}

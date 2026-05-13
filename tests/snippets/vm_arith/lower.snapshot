@@ -1,0 +1,20 @@
+# Lower
+
+## tests/snippets/vm_arith/_main.vader
+  fn tests_snippets_vm_arith__main_vader$main() -> i32
+    let a: i32 = int(7) :i32
+    let b: i32 = int(5) :i32
+    return
+      sub :i32
+        l:
+          add :i32
+            l:
+              mul :i32
+                l:
+                  a :i32
+                r:
+                  b :i32
+            r:
+              int(3) :i32
+        r:
+          int(2) :i32

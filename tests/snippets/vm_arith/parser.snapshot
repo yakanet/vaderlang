@@ -1,0 +1,85 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "a"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "7n",
+              "suffix": null
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "b"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "5n",
+              "suffix": null
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "sub",
+              "left": {
+                "kind": "BinaryExpr",
+                "op": "add",
+                "left": {
+                  "kind": "BinaryExpr",
+                  "op": "mul",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "a"
+                  },
+                  "right": {
+                    "kind": "IdentExpr",
+                    "name": "b"
+                  }
+                },
+                "right": {
+                  "kind": "IntLitExpr",
+                  "value": "3n",
+                  "suffix": null
+                }
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "2n",
+                "suffix": null
+              }
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

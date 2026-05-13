@@ -1,0 +1,80 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "5n",
+              "suffix": null
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "IfExpr",
+              "cond": {
+                "kind": "BinaryExpr",
+                "op": "gt",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "n"
+                },
+                "right": {
+                  "kind": "IntLitExpr",
+                  "value": "3n",
+                  "suffix": null
+                }
+              },
+              "then": {
+                "kind": "BlockExpr",
+                "stmts": [
+                  {
+                    "kind": "ReturnStmt",
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "1n",
+                      "suffix": null
+                    }
+                  }
+                ],
+                "trailing": null
+              },
+              "else": null
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

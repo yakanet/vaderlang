@@ -1,0 +1,12 @@
+// Sprint 2c acceptance: locals + comparisons + for loop.
+// `sum(1..=10) = 55`.
+
+main :: fn() -> i32 {
+    sum := 0
+    i := 1
+    for i <= 10 {
+        sum = sum + i
+        i = i + 1
+    }
+    return sum
+}

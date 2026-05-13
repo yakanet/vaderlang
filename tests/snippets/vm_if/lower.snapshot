@@ -1,0 +1,15 @@
+# Lower
+
+## tests/snippets/vm_if/_main.vader
+  fn tests_snippets_vm_if__main_vader$main() -> i32
+    let n: i32 = int(5) :i32
+    if :void
+      cond:
+        gt :bool
+          l:
+            n :i32
+          r:
+            int(3) :i32
+      then:
+        return int(1) :i32
+    return int(0) :i32

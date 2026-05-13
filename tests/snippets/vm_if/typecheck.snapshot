@@ -1,0 +1,7 @@
+# Typecheck
+
+## tests/snippets/vm_if/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 6:5      IfExpr         :: void
+  expr 6:8      BinaryExpr     :: bool
+  expr 6:8      IdentExpr      :: i32
