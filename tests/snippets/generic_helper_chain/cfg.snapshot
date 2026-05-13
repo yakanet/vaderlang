@@ -1,0 +1,98 @@
+# CFG
+
+## tests/snippets/generic_helper_chain/_main.vader
+
+fn tests_snippets_generic_helper_chain__main_vader$main() -> i32
+  locals:
+    %0 $k_0#17: i32
+    %1 $call_1#18: Box(Box(i32))
+    %2 a#19: Box(Box(i32)) (local a)
+    %3 $k_3#20: string
+    %4 $call_4#21: Box(Box(string))
+    %5 b#22: Box(Box(string)) (local b)
+    %6 $intrinsic_6#23: ?
+    %7 __sb_0#24: ? (synthetic __sb_0)
+    %8 $field_8#25: Box(i32)
+    %9 $field_9#26: i32
+    %10 $intrinsic_10#27: string
+    %11 $intrinsic_11#28: ?
+    %12 __sb_1#29: ? (synthetic __sb_1)
+    %13 $field_13#30: Box(string)
+    %14 $field_14#31: string
+    %15 $intrinsic_15#32: string
+    %16 $k_16#33: i32
+  bb0:
+    %0 = const int(42) :i32
+    %1 = call outer(%0) :Box(Box(i32))
+    %2 = move %1
+    %3 = const string(#0) :string
+    %4 = call outer(%3) :Box(Box(string))
+    %5 = move %4
+    %6 = intrinsic builder.new()
+    %7 = move %6
+    %8 = field_get %2.value :Box(i32)
+    %9 = field_get %8.value :i32
+    intrinsic builder.append_display(%7, %9)
+    %10 = intrinsic builder.finish(%7)
+    call println(%10) :void
+    %11 = intrinsic builder.new()
+    %12 = move %11
+    %13 = field_get %5.value :Box(string)
+    %14 = field_get %13.value :string
+    intrinsic builder.append_display(%12, %14)
+    %15 = intrinsic builder.finish(%12)
+    call println(%15) :void
+    %16 = const int(0) :i32
+    return %16
+
+fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__i32(%0: i32) -> i32
+  locals:
+    %0 x: i32 (param x)
+  bb0:
+    return %0
+
+fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__string(%0: string) -> string
+  locals:
+    %0 x: string (param x)
+  bb0:
+    return %0
+
+fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__i32(%0: i32) -> Box(i32)
+  locals:
+    %0 x: i32 (param x)
+    %1 $call_1#3: i32
+    %2 $struct_2#4: Box(i32)
+  bb0:
+    %1 = call inner(%0) :i32
+    %2 = struct_new Box(i32)(%1)
+    return %2
+
+fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__string(%0: string) -> Box(string)
+  locals:
+    %0 x: string (param x)
+    %1 $call_1#3: string
+    %2 $struct_2#4: Box(string)
+  bb0:
+    %1 = call inner(%0) :string
+    %2 = struct_new Box(string)(%1)
+    return %2
+
+fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__i32(%0: i32) -> Box(Box(i32))
+  locals:
+    %0 x: i32 (param x)
+    %1 $call_1#3: Box(i32)
+    %2 $struct_2#4: Box(Box(i32))
+  bb0:
+    %1 = call middle(%0) :Box(i32)
+    %2 = struct_new Box(Box(i32))(%1)
+    return %2
+
+fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__string(%0: string) -> Box(Box(string))
+  locals:
+    %0 x: string (param x)
+    %1 $call_1#3: Box(string)
+    %2 $struct_2#4: Box(Box(string))
+  bb0:
+    %1 = call middle(%0) :Box(string)
+    %2 = struct_new Box(Box(string))(%1)
+    return %2

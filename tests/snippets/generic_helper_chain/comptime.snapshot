@@ -1,0 +1,15 @@
+# Comptime
+
+## tests/snippets/generic_helper_chain/_main.vader
+
+## generic instances
+  Box(i32)
+  Box(string)
+  Box(Box(i32))
+  Box(Box(string))
+  inner(i32)
+  inner(string)
+  middle(i32)
+  middle(string)
+  outer(i32)
+  outer(string)

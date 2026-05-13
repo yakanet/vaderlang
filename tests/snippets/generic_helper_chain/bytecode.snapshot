@@ -1,0 +1,88 @@
+module _main
+type 0 struct tests_snippets_generic_helper_chain__main_vader$Box__i32 { value:1 }
+type 1 primitive i32
+type 2 struct tests_snippets_generic_helper_chain__main_vader$Box__string { value:3 }
+type 3 primitive string
+type 4 struct tests_snippets_generic_helper_chain__main_vader$Box__Box_i32_ { value:0 }
+type 5 struct tests_snippets_generic_helper_chain__main_vader$Box__Box_string_ { value:2 }
+string 0 "ok"
+import 0 println std_io$println (string) -> void
+
+fn 0 tests_snippets_generic_helper_chain__main_vader$main () -> i32
+  local "a#19" ref
+  local "b#22" ref
+  local "__sb_0#24" any
+  local "$field_9#26" i32
+  local "__sb_1#29" any
+  local "$field_14#31" string
+  i32.const 42   ; _main.vader:21:16
+  call 5   ; _main.vader:21:10
+  local.set 0   ; _main.vader:21:5
+  string.const 0   ; _main.vader:22:16
+  call 6   ; _main.vader:22:10
+  local.set 1   ; _main.vader:22:5
+  intrinsic builder.new   ; _main.vader:23:13
+  local.set 2   ; _main.vader:23:13
+  local.get 0   ; _main.vader:23:16
+  struct.get 4 0   ; _main.vader:23:16
+  struct.get 0 0   ; _main.vader:23:16
+  local.set 3   ; _main.vader:23:16
+  local.get 2   ; _main.vader:23:14
+  local.get 3   ; _main.vader:23:14
+  intrinsic builder.append_display   ; _main.vader:23:14
+  local.get 2   ; _main.vader:23:13
+  intrinsic builder.finish   ; _main.vader:23:13
+  call.import 0   ; _main.vader:23:5
+  intrinsic builder.new   ; _main.vader:24:13
+  local.set 4   ; _main.vader:24:13
+  local.get 1   ; _main.vader:24:16
+  struct.get 5 0   ; _main.vader:24:16
+  struct.get 2 0   ; _main.vader:24:16
+  local.set 5   ; _main.vader:24:16
+  local.get 4   ; _main.vader:24:14
+  local.get 5   ; _main.vader:24:14
+  intrinsic builder.append_display   ; _main.vader:24:14
+  local.get 4   ; _main.vader:24:13
+  intrinsic builder.finish   ; _main.vader:24:13
+  call.import 0   ; _main.vader:24:5
+  i32.const 0   ; _main.vader:25:12
+  return   ; _main.vader:25:5
+end
+
+fn 1 tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__i32 (i32) -> i32
+  local.get 0   ; _main.vader:10:29
+  return   ; _main.vader:10:29
+end
+
+fn 2 tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__string (string) -> string
+  local.get 0   ; _main.vader:10:29
+  return   ; _main.vader:10:29
+end
+
+fn 3 tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__i32 (i32) -> ref
+  local.get 0   ; _main.vader:13:30
+  call 1   ; _main.vader:13:30
+  struct.new 0   ; _main.vader:13:12
+  return   ; _main.vader:13:5
+end
+
+fn 4 tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__string (string) -> ref
+  local.get 0   ; _main.vader:13:30
+  call 2   ; _main.vader:13:30
+  struct.new 2   ; _main.vader:13:12
+  return   ; _main.vader:13:5
+end
+
+fn 5 tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__i32 (i32) -> ref
+  local.get 0   ; _main.vader:17:35
+  call 3   ; _main.vader:17:35
+  struct.new 4   ; _main.vader:17:12
+  return   ; _main.vader:17:5
+end
+
+fn 6 tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__string (string) -> ref
+  local.get 0   ; _main.vader:17:35
+  call 4   ; _main.vader:17:35
+  struct.new 5   ; _main.vader:17:12
+  return   ; _main.vader:17:5
+end

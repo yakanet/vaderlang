@@ -1,0 +1,95 @@
+# Lower
+
+## tests/snippets/generic_helper_chain/_main.vader
+  fn tests_snippets_generic_helper_chain__main_vader$main() -> i32
+    let a: Box(Box(i32)) =
+      call :Box(Box(i32))
+        callee:
+          outer :Box(Box(i32))
+        arg0:
+          int(42) :i32
+    let b: Box(Box(string)) =
+      call :Box(Box(string))
+        callee:
+          outer :Box(Box(string))
+        arg0:
+          "ok" :string
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            .value :i32
+              .value :Box(i32)
+                a :Box(Box(i32))
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_display <for string> :void
+            __sb_1 :?
+            .value :string
+              .value :Box(string)
+                b :Box(Box(string))
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    return int(0) :i32
+  struct tests_snippets_generic_helper_chain__main_vader$Box__i32 { value: i32 }
+  struct tests_snippets_generic_helper_chain__main_vader$Box__string { value: string }
+  struct tests_snippets_generic_helper_chain__main_vader$Box__Box_i32_ { value: Box(i32) }
+  struct tests_snippets_generic_helper_chain__main_vader$Box__Box_string_ { value: Box(string) }
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__i32(x: i32) -> i32
+    return x :i32
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__string(x: string) -> string
+    return x :string
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__i32(x: i32) -> Box(i32)
+    return
+      Box(i32) {
+        value:
+          call :i32
+            callee:
+              inner :i32
+            arg0:
+              x :i32
+      }
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__string(x: string) -> Box(string)
+    return
+      Box(string) {
+        value:
+          call :string
+            callee:
+              inner :string
+            arg0:
+              x :string
+      }
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__i32(x: i32) -> Box(Box(i32))
+    return
+      Box(Box(i32)) {
+        value:
+          call :Box(i32)
+            callee:
+              middle :Box(i32)
+            arg0:
+              x :i32
+      }
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__string(x: string) -> Box(Box(string))
+    return
+      Box(Box(string)) {
+        value:
+          call :Box(string)
+            callee:
+              middle :Box(string)
+            arg0:
+              x :string
+      }

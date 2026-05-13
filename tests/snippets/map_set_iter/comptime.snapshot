@@ -13,6 +13,8 @@
   Entry(string, i32)
   MutableMap(i32, bool)
   MutableMap(string, i32)
+  ensure_buckets(i32, bool)
+  ensure_buckets(string, i32)
   put(i32, bool)
   put(string, i32)
   get(i32, bool)

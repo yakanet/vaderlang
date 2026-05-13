@@ -58,6 +58,20 @@ bucket_index :: fn(h: u64) -> i32 {
     return i32(h % u64(BUCKET_COUNT))
 }
 
+/// Lazy-initialise the bucket array on the first call to `put` (or anything
+/// else that needs a populated chain head). After this the receiver carries
+/// `BUCKET_COUNT` null-headed chains, ready for insertion. No-op when the
+/// buckets have already been allocated, so it's cheap to call from every
+/// mutating entry point.
+/// @param self  the map receiver whose buckets get materialised.
+ensure_buckets :: fn[K, V](self: MutableMap(K, V)) -> void {
+    if self.buckets.len() == 0 {
+        for 0..<BUCKET_COUNT {
+            self.buckets.push(null)
+        }
+    }
+}
+
 /// Insert or overwrite `key → value`. The chain at `bucket_index(hash(key))`
 /// is walked ; if `key` is already present its value is replaced in place,
 /// otherwise a fresh entry is prepended to the chain head.
@@ -65,15 +79,7 @@ bucket_index :: fn(h: u64) -> i32 {
 /// @param key    key with which `value` is associated.
 /// @param value  the new value.
 put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void {
-    // Lazy bucket init — inlined here because nested generic calls aren't
-    // observed by the comptime InstanceRegistry yet (transitive
-    // monomorphization is deferred), so a `private ensure_buckets($K, $V)`
-    // helper would not get materialised at the right K/V instantiation.
-    if self.buckets.len() == 0 {
-        for 0..<BUCKET_COUNT {
-            self.buckets.push(null)
-        }
-    }
+    self.ensure_buckets()
     h :: key.hash()
     idx :: bucket_index(h)
 
