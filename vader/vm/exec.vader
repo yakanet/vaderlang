@@ -32,7 +32,7 @@ export exec :: fn(body: MainBody) -> VmResult {
     i := 0
     for i < body.local_count {
         locals.push(0)
-        i = i + 1
+        i += 1
     }
     pc := 0
     n :: body.ops.len()
@@ -42,8 +42,8 @@ export exec :: fn(body: MainBody) -> VmResult {
             is I32Const as ic -> {
                 if sp == stack.len() { stack.push(ic.value) }
                 else { stack[sp] = ic.value }
-                sp = sp + 1
-                pc = pc + 1
+                sp += 1
+                pc += 1
             }
             is LocalGet as lg -> {
                 if lg.slot < 0 || (usize)(lg.slot) >= locals.len() {
@@ -52,8 +52,8 @@ export exec :: fn(body: MainBody) -> VmResult {
                 v :: locals[lg.slot]
                 if sp == stack.len() { stack.push(v) }
                 else { stack[sp] = v }
-                sp = sp + 1
-                pc = pc + 1
+                sp += 1
+                pc += 1
             }
             is LocalSet as ls -> {
                 if sp == 0 {
@@ -62,85 +62,85 @@ export exec :: fn(body: MainBody) -> VmResult {
                 if ls.slot < 0 || (usize)(ls.slot) >= locals.len() {
                     return Trap { .msg = "local.set slot ${ls.slot} out of range at pc=${pc}" }
                 }
-                sp = sp - 1
+                sp -= 1
                 locals[ls.slot] = stack[sp]
-                pc = pc + 1
+                pc += 1
             }
             is I32Add -> {
                 if sp < 2 { return Trap { .msg = "i32.add stack underflow at pc=${pc}" } }
                 stack[sp - 2] = stack[sp - 2] + stack[sp - 1]
-                sp = sp - 1
-                pc = pc + 1
+                sp -= 1
+                pc += 1
             }
             is I32Sub -> {
                 if sp < 2 { return Trap { .msg = "i32.sub stack underflow at pc=${pc}" } }
                 stack[sp - 2] = stack[sp - 2] - stack[sp - 1]
-                sp = sp - 1
-                pc = pc + 1
+                sp -= 1
+                pc += 1
             }
             is I32Mul -> {
                 if sp < 2 { return Trap { .msg = "i32.mul stack underflow at pc=${pc}" } }
                 stack[sp - 2] = stack[sp - 2] * stack[sp - 1]
-                sp = sp - 1
-                pc = pc + 1
+                sp -= 1
+                pc += 1
             }
             is I32Div -> {
                 if sp < 2 { return Trap { .msg = "i32.div stack underflow at pc=${pc}" } }
                 if stack[sp - 1] == 0 { return Trap { .msg = "i32.div by zero at pc=${pc}" } }
                 stack[sp - 2] = stack[sp - 2] / stack[sp - 1]
-                sp = sp - 1
-                pc = pc + 1
+                sp -= 1
+                pc += 1
             }
             is I32Mod -> {
                 if sp < 2 { return Trap { .msg = "i32.mod stack underflow at pc=${pc}" } }
                 if stack[sp - 1] == 0 { return Trap { .msg = "i32.mod by zero at pc=${pc}" } }
                 stack[sp - 2] = stack[sp - 2] % stack[sp - 1]
-                sp = sp - 1
-                pc = pc + 1
+                sp -= 1
+                pc += 1
             }
             is I32Eq -> {
                 if sp < 2 { return Trap { .msg = "i32.eq stack underflow at pc=${pc}" } }
                 stack[sp - 2] = if stack[sp - 2] == stack[sp - 1] { 1 } else { 0 }
-                sp = sp - 1
-                pc = pc + 1
+                sp -= 1
+                pc += 1
             }
             is I32Ne -> {
                 if sp < 2 { return Trap { .msg = "i32.ne stack underflow at pc=${pc}" } }
                 stack[sp - 2] = if stack[sp - 2] != stack[sp - 1] { 1 } else { 0 }
-                sp = sp - 1
-                pc = pc + 1
+                sp -= 1
+                pc += 1
             }
             is I32Lt -> {
                 if sp < 2 { return Trap { .msg = "i32.lt stack underflow at pc=${pc}" } }
                 stack[sp - 2] = if stack[sp - 2] <  stack[sp - 1] { 1 } else { 0 }
-                sp = sp - 1
-                pc = pc + 1
+                sp -= 1
+                pc += 1
             }
             is I32Le -> {
                 if sp < 2 { return Trap { .msg = "i32.le stack underflow at pc=${pc}" } }
                 stack[sp - 2] = if stack[sp - 2] <= stack[sp - 1] { 1 } else { 0 }
-                sp = sp - 1
-                pc = pc + 1
+                sp -= 1
+                pc += 1
             }
             is I32Gt -> {
                 if sp < 2 { return Trap { .msg = "i32.gt stack underflow at pc=${pc}" } }
                 stack[sp - 2] = if stack[sp - 2] >  stack[sp - 1] { 1 } else { 0 }
-                sp = sp - 1
-                pc = pc + 1
+                sp -= 1
+                pc += 1
             }
             is I32Ge -> {
                 if sp < 2 { return Trap { .msg = "i32.ge stack underflow at pc=${pc}" } }
                 stack[sp - 2] = if stack[sp - 2] >= stack[sp - 1] { 1 } else { 0 }
-                sp = sp - 1
-                pc = pc + 1
+                sp -= 1
+                pc += 1
             }
-            is Block -> { pc = pc + 1 }
-            is Loop  -> { pc = pc + 1 }
+            is Block -> { pc += 1 }
+            is Loop  -> { pc += 1 }
             is If -> {
                 if sp == 0 { return Trap { .msg = "if on empty stack at pc=${pc}" } }
-                sp = sp - 1
+                sp -= 1
                 if stack[sp] != 0 {
-                    pc = pc + 1
+                    pc += 1
                 } else {
                     target :: body.jump_table[pc]
                     if target < 0 {
@@ -156,7 +156,7 @@ export exec :: fn(body: MainBody) -> VmResult {
                 }
                 pc = target
             }
-            is End -> { pc = pc + 1 }
+            is End -> { pc += 1 }
             is Br -> {
                 target :: body.jump_table[pc]
                 if target < 0 {
@@ -166,7 +166,7 @@ export exec :: fn(body: MainBody) -> VmResult {
             }
             is BrIf -> {
                 if sp == 0 { return Trap { .msg = "br_if on empty stack at pc=${pc}" } }
-                sp = sp - 1
+                sp -= 1
                 if stack[sp] != 0 {
                     target :: body.jump_table[pc]
                     if target < 0 {
@@ -174,7 +174,7 @@ export exec :: fn(body: MainBody) -> VmResult {
                     }
                     pc = target
                 } else {
-                    pc = pc + 1
+                    pc += 1
                 }
             }
             is Return -> {
@@ -194,20 +194,16 @@ export exec :: fn(body: MainBody) -> VmResult {
 // `i32!` cross-module match-as-expression bug (TODO §2.4) keeps us
 // from returning a richer `i32!` to the caller for now.
 export run_virt :: fn(path: string) -> i32 {
-    r :: read_file(path)
-    return match r {
-        is Error -> {
-            eprintln("vader run: cannot read ${path}")
+    source :: read_file(path)
+    if source is Error {
+        eprintln("vader run: cannot read ${path}")
+        return 1
+    }
+    return match exec(parse_virt(source)) {
+        is Ok   as o -> o.value
+        is Trap as t -> {
+            eprintln("vader vm: ${t.msg}")
             1
-        }
-        is string -> {
-            match exec(parse_virt(r)) {
-                is Ok   as o -> o.value
-                is Trap as t -> {
-                    eprintln("vader vm: ${t.msg}")
-                    1
-                }
-            }
         }
     }
 }

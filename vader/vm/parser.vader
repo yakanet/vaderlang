@@ -80,7 +80,7 @@ export parse_virt :: fn(src: string) -> MainBody {
         }
         if !in_fn { continue }
         if cleaned.starts_with("local ") {
-            local_count = local_count + 1
+            local_count += 1
             continue
         }
         // Every accepted op gets its own table entry (always -1 sentinel
@@ -156,7 +156,7 @@ wire_control_flow :: fn(
         sp :: scope_sp_box[0]
         if sp > 0 {
             top :: scopes[sp - 1]
-            scope_sp_box[0] = sp - 1
+            scope_sp_box[0] -= 1
             // Block/if/else fall-through target = past the end. Loops
             // don't fall through via the opener — their `table[opener]`
             // already points at the body start.
@@ -185,7 +185,7 @@ push_scope :: fn(scopes: ScopeEntry[], sp_box: usize[], entry: ScopeEntry) -> vo
     sp :: sp_box[0]
     if sp == scopes.len() { scopes.push(entry) }
     else { scopes[sp] = entry }
-    sp_box[0] = sp + 1
+    sp_box[0] += 1
 }
 
 // `br`/`br_if` to a loop label resolves immediately (loop start known).
@@ -207,7 +207,7 @@ defer_or_resolve_br :: fn(
             found_idx = i
             i = -1                          // break
         } else {
-            i = i - 1
+            i -= 1
         }
     }
     if found_idx < 0 { return }             // unresolved — bytecode invariant
@@ -219,7 +219,7 @@ defer_or_resolve_br :: fn(
         entry :: PendingBr { .br_pc = pc, .target_label = label }
         if psp == pending.len() { pending.push(entry) }
         else { pending[psp] = entry }
-        pending_sp_box[0] = psp + 1
+        pending_sp_box[0] += 1
     }
 }
 
@@ -242,9 +242,9 @@ drain_pending :: fn(
             }
         } else {
             pending[(usize)(new_sp)] = entry
-            new_sp = new_sp + 1
+            new_sp += 1
         }
-        i = i + 1
+        i += 1
     }
     pending_sp_box[0] = (usize)(new_sp)
 }
