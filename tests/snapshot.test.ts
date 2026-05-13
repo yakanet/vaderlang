@@ -20,7 +20,10 @@ const PHASES = [
   { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptime,  usePath: true  },
   { name: "lower",     snap: "lower.snapshot",     dump: dumpLower,     usePath: true  },
   { name: "cfg",       snap: "cfg.snapshot",       dump: dumpCfg,       usePath: true  },
-  { name: "bytecode",  snap: "bytecode.snapshot",  dump: dumpBytecode,  usePath: true  },
+  // `.virt` suffix : the bytecode snapshot is the `.virt` text-IR dump and
+  // is consumed verbatim by the Vader CLI (`./build/vader run`) in the
+  // `tests/vader_vm.test.ts` parity test.
+  { name: "bytecode",  snap: "bytecode.snapshot.virt",  dump: dumpBytecode,  usePath: true  },
 ] as const;
 
 const scenarios = listSnippets("tests/snippets");
