@@ -47,14 +47,28 @@ function lowerExprAsTypeInner(expr: A.Expr, t: MutableTyped, diags: DiagnosticCo
       return typeFromSymbol(sym, [], expr, t, diags);
     }
     case "GenericInstExpr": {
-      // Type-position GenericInstExpr : the callee is always an IdentExpr by
-      // parser invariant (Layer 1.B.4 merge). Looking up its symbol is the
-      // right move ; non-IdentExpr callees in this position are a parser bug.
-      if (expr.callee.kind !== "IdentExpr") return TY.unresolved;
-      const sym = t.resolved.types.get(expr.callee);
+      // Type-position GenericInstExpr : the callee is an IdentExpr for
+      // bare names (`Foo[i32]`) or a FieldExpr for qualified names
+      // (`op.Foo[i32]`). The qualified form pulls the resolved symbol
+      // out of `fieldRefs` (populated by `resolveType`'s FieldExpr arm).
+      let sym: Symbol | undefined;
+      if (expr.callee.kind === "IdentExpr") {
+        sym = t.resolved.types.get(expr.callee);
+      } else if (expr.callee.kind === "FieldExpr") {
+        const ref = t.resolved.fieldRefs.get(expr.callee);
+        if (ref?.kind === "namespace") sym = ref.symbol;
+      }
       if (sym === undefined) return TY.unresolved;
       const args = expr.typeArgs.map((a) => lowerExprAsType(a, t, diags));
       return typeFromSymbol(sym, args, expr, t, diags);
+    }
+    case "FieldExpr": {
+      // Qualified type reference `module.Type` — the resolver bound the
+      // exported symbol into `fieldRefs` with kind "namespace". The typer
+      // serves it like a bare type name.
+      const ref = t.resolved.fieldRefs.get(expr);
+      if (ref?.kind !== "namespace") return TY.unresolved;
+      return typeFromSymbol(ref.symbol, [], expr, t, diags);
     }
     case "BinaryExpr": {
       // Type-position `T | U` is a `bitor` chain since 1.B.5.

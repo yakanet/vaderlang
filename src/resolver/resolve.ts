@@ -461,11 +461,57 @@ function resolveType(t: A.TypeExpr, scope: Scope, p: MutableProgram, input: Reso
       for (const e of t.elements) resolveType(e as A.TypeExpr, scope, p, input);
       return;
     case "GenericInstExpr":
-      // Type-position GenericInstExpr : the callee is always an IdentExpr by
-      // parser invariant. Treat it as a type-position name reference.
-      if (t.callee.kind === "IdentExpr") resolveType(t.callee, scope, p, input);
+      // Type-position GenericInstExpr : the callee is either a bare ident
+      // (`Foo[i32]`) or a qualified name (`op.Foo[i32]`) — both are
+      // re-routed through `resolveType` so the same namespace-lookup path
+      // handles them.
+      if (t.callee.kind === "IdentExpr" || t.callee.kind === "FieldExpr") {
+        resolveType(t.callee, scope, p, input);
+      }
       for (const arg of t.typeArgs) resolveType(arg, scope, p, input);
       return;
+    case "FieldExpr": {
+      // Qualified type reference : `module.Type` where the leading ident
+      // is a namespace import-binding. Mirrors `resolveFieldExpr`'s
+      // value-side namespace path, but binds the resolved symbol into
+      // `fieldRefs` so `lowerExprAsType` can consult it the same way the
+      // value typer consults it for `module.value` access.
+      if (t.target.kind !== "IdentExpr") {
+        err(input.diags, "R2007", t.span, "qualified type names must start with an imported module name");
+        return;
+      }
+      const targetSym = lookup(scope, t.target.name);
+      if (targetSym === null) {
+        err(input.diags, "R2007", t.target.span, `\`${t.target.name}\``);
+        return;
+      }
+      // Record the leading ident's binding so downstream passes (incl.
+      // the typer) can chase the namespace alias.
+      p.idents.set(t.target, targetSym);
+      if (targetSym.kind !== "import-binding") {
+        err(input.diags, "R2007", t.target.span,
+          `\`${t.target.name}\` is not an imported namespace`);
+        return;
+      }
+      const importTarget = input.importTargets.get(targetSym.id);
+      if (importTarget === undefined || importTarget.kind !== "module") {
+        err(input.diags, "R2007", t.target.span,
+          `\`${t.target.name}\` is not a module namespace`);
+        return;
+      }
+      const exported = importTarget.module.symbols.get(t.field);
+      if (exported === undefined) {
+        err(input.diags, "R2003", t.fieldSpan,
+          `\`${t.field}\` from module \`${importTarget.module.displayPath}\``);
+        return;
+      }
+      if (exported.visibility === "private") {
+        err(input.diags, "R2008", t.fieldSpan, `\`${t.field}\``);
+        return;
+      }
+      p.fieldRefs.set(t, { kind: "namespace", symbol: exported });
+      return;
+    }
   }
 }
 

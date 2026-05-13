@@ -177,7 +177,24 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
   }
   if (t.kind === "ident") {
     const name = p.advance();
-    const named: A.IdentExpr = { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: name.span, name: name.text };
+    let head: A.Expr = { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: name.span, name: name.text };
+    // Qualified namespace : `module.Type` — applies when the leading ident
+    // is an `import "X" as alias` (or destructured-namespace) binding. The
+    // resolver follows the chain to the exported type in the target module.
+    // Built as a `FieldExpr` so the existing field-resolution machinery
+    // (which already handles `module.value` for call expressions) can
+    // serve type-position lookups too.
+    while (p.check("dot")) {
+      const dot = p.advance();
+      const field = p.expect("ident", "field name after `.` in qualified type");
+      head = {
+        kind: "FieldExpr",
+        id: UNASSIGNED_NODE_ID, span: { start: head.span.start, end: field.span.end },
+        target: head,
+        field: field.text,
+        fieldSpan: field.span,
+      };
+    }
     // Generic instantiation : two forms during the Layer 4-sugar migration —
     //   `Foo(i32, U)`   (legacy paren form, still accepted)
     //   `Foo[i32, U]`   (Layer 4-sugar bracketed form, canonical)
@@ -185,13 +202,13 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
     // syntax `T[]` requires *empty* brackets and is handled later in the
     // postfix loop, so a non-empty `Foo[...]` is unambiguously generic-inst.
     // `Foo[]` (empty) skips through to let the outer postfix loop see it.
-    if (p.check("lbracket") && p.check("rbracket", 1)) return named;
+    if (p.check("lbracket") && p.check("rbracket", 1)) return head;
     const args = parseGenericArgList(p, "generic argument list");
-    if (args === null) return named;
+    if (args === null) return head;
     return {
       kind: "GenericInstExpr",
       id: UNASSIGNED_NODE_ID, span: p.spanOf(name, p.peek(-1)),
-      callee: named,
+      callee: head,
       typeArgs: args.items,
     };
   }

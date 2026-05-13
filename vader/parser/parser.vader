@@ -1212,17 +1212,34 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
     }
     if t.kind == .Ident {
         name :: p.advance()
-        named :: ident_expr(name.span, name.text)
+        head: Expr = ident_expr(name.span, name.text)
+        // Qualified namespace : `module.Type` — applies when the leading
+        // ident is an `import "X" as alias` (or destructured-namespace)
+        // binding. The resolver follows the chain to the exported type in
+        // the target module. Built as a `FieldExpr` so the existing
+        // field-resolution machinery (which already handles `module.value`
+        // for call expressions) serves type-position lookups too.
+        for p.check(.Dot) {
+            p.advance()
+            field :: p.expect(.Ident, "field name after `.` in qualified type")
+            head = FieldExpr {
+                .span       = Span { .start = head.span.start, .end = field.span.end },
+                .target     = head,
+                .field      = field.text,
+                .field_span = field.span,
+                .is_numeric = false,
+            }
+        }
         // Generic instantiation : `Foo[i32]` (canonical) or `Foo(i32)`
         // (legacy paren). `Foo[]` (empty brackets) is the postfix array
         // shape, handled by the outer postfix loop — fall through.
-        if p.check(.LBracket) && p.check_at(.RBracket, 1) { return named }
+        if p.check(.LBracket) && p.check_at(.RBracket, 1) { return head }
         if p.match_kind(.LBracket).matched {
             args :: p.parse_type_list_until(.RBracket)
             end :: p.expect(.RBracket, "`]` to close generic argument list")
             return GenericInstExpr {
                 .span      = p.span_of(name, end),
-                .callee    = named,
+                .callee    = head,
                 .type_args = args,
             }
         }
@@ -1231,11 +1248,11 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
             end :: p.expect(.RParen, "`)` to close generic argument list")
             return GenericInstExpr {
                 .span      = p.span_of(name, end),
-                .callee    = named,
+                .callee    = head,
                 .type_args = args,
             }
         }
-        return named
+        return head
     }
     p.error(.ExpectedType, t.span, "got ${describe_token(t)}")
     p.advance()
@@ -2221,13 +2238,29 @@ parse_postfix :: fn(p: Parser, left: Expr, t: Token) -> Expr {
             }
         }
         name :: p.expect(.Ident, "field name after `.`")
-        return FieldExpr {
+        field_expr :: FieldExpr {
             .span       = Span { .start = left.span.start, .end = name.span.end },
             .target     = left,
             .field      = name.text,
             .field_span = name.span,
             .is_numeric = false,
         }
+        // Qualified struct literal : `module.Type { .field = …, … }`. The
+        // bare-ident path goes through `parse_ident_or_struct_lit` at
+        // prefix time ; the qualified form lands here because `module` was
+        // already consumed as the prefix expression and `.Type` is a
+        // postfix `dot`. Same struct-lit gate as the bare path.
+        if p.allow_struct_lit && p.check(.LBrace) && looks_like_struct_lit_body(p.tokens, p.pos) {
+            p.advance()
+            items :: p.parse_struct_lit_fields()
+            rb :: p.expect(.RBrace, "`}` to close struct literal")
+            return StructLitExpr {
+                .span      = Span { .start = left.span.start, .end = rb.span.end },
+                .type_name = field_expr,
+                .items     = items,
+            }
+        }
+        return field_expr
     }
     if t.kind == .LParen {
         p.advance()

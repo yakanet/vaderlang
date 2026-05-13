@@ -339,13 +339,30 @@ function parsePostfix(p: Parser, left: A.Expr, t: Token): A.Expr {
       };
     }
     const name = p.expect("ident", "field name after `.`");
-    return {
+    const fieldExpr: A.FieldExpr = {
       kind: "FieldExpr",
       id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: name.span.end },
       target: left,
       field: name.text,
       fieldSpan: name.span,
     };
+    // Qualified struct literal : `module.Type { .field = …, … }`. The
+    // bare-ident path goes through `parseIdentOrStructLit` at prefix
+    // time ; the qualified form lands here because `module` was already
+    // consumed as the prefix expression and `.Type` is a postfix `dot`.
+    // Same struct-lit gate as the bare path.
+    if (p.allowStructLit && p.check("lbrace") && looksLikeStructLitBody(p.tokens, p.pos)) {
+      p.advance(); // {
+      const items = parseStructLitFields(p);
+      const rb = p.expect("rbrace", "`}` to close struct literal");
+      return {
+        kind: "StructLitExpr",
+        id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: rb.span.end },
+        typeName: fieldExpr,
+        items,
+      };
+    }
+    return fieldExpr;
   }
   if (t.kind === "lparen") {
     // Call OR cast (cast: callee is a NamedType reference, but at parse time we represent both as CallExpr;
