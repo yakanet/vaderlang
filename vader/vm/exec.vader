@@ -260,6 +260,23 @@ apply_f64_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: strin
     return null
 }
 
+/// Pop one f64, apply `op`, push as F64Val. Used by `F64Neg`.
+///
+/// @param frame      current top frame.
+/// @param top        index of `frame` within `frames`.
+/// @param frames     the frame stack.
+/// @param op_label   trap label.
+/// @param op         the f64 unary op to apply.
+/// @return           `null` on success, `Trap` on type mismatch.
+/// @error            the operand isn't an `F64Val`.
+apply_f64_unop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, op: fn(f64) -> f64) -> Trap | null {
+    operand :: read_f64(frame.stack[frame.sp - 1], frame.pc, op_label)
+    if operand is Trap { return operand }
+    frame.stack[frame.sp - 1] = F64Val { .value = op(operand.value) }
+    frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+    return null
+}
+
 /// Pop two f64 operands, apply `cmp`, push the boolean as BoolVal. Used
 /// by every `f64.<cmp>` arm.
 ///
@@ -977,11 +994,8 @@ export exec :: fn(module: Module) -> VmResult {
                 if outcome is Trap { return outcome }
             }
             is F64Neg -> {
-                if frame.sp == 0 { return Trap { .message = "f64.neg on empty stack at pc=${frame.pc}" } }
-                operand :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64.neg")
-                if operand is Trap { return operand }
-                frame.stack[frame.sp - 1] = F64Val { .value = -operand.value }
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                outcome :: apply_f64_unop(frame, top, frames, "f64.neg", (a) -> -a)
+                if outcome is Trap { return outcome }
             }
             is F64Eq -> {
                 outcome :: apply_f64_cmp(frame, top, frames, "f64.eq", (a, b) -> a == b)

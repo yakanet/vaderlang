@@ -1164,9 +1164,10 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
             frac_part :: parse_int_in_base(frac_text, 10)
             if frac_part is Error { return null }
             divisor: f64 = f64(1)
+            frac_ten :: f64(10)
             d: usize = 0
             for d < frac_text.byte_len() {
-                divisor = divisor * f64(10)
+                divisor = divisor * frac_ten
                 d += 1
             }
             result = result + f64(frac_part) / divisor
@@ -1181,10 +1182,12 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
         // `f64.pow` isn't available at parse time (intrinsic, host-only),
         // so iterate `* 10.0` to build the scale factor. Bounded by the
         // literal's exponent — typical `.virt` snippets stay under 1e10.
+        // `ten` is hoisted to skip the int→f64 cast inside the loop.
+        ten :: f64(10)
         scale: f64 = f64(1)
         k: i64 = 0
         for k < abs_exp {
-            scale = scale * f64(10)
+            scale = scale * ten
             k = k + 1
         }
         if exp_part >= 0 { result = result * scale }
