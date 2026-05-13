@@ -1,0 +1,10 @@
+// Sprint 4 acceptance: direct Vader-to-Vader call.
+// `add(40, 2) = 42` — exercises the new `Call` op and the Frame stack.
+
+add :: fn(a: i32, b: i32) -> i32 {
+    return a + b
+}
+
+main :: fn() -> i32 {
+    return add(40, 2)
+}

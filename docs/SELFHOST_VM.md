@@ -50,7 +50,8 @@ traits/vtables, binary `.vir`.
 |---|---|---|
 | 2 | locals, binops (i32 arith + cmp), `if`/`block`/`loop`/`br`/`br_if` | most numeric snippets |
 | 3 | strings + `vader_println` host fn → "hello world" | `hello_world`, `interp_string` |
-| 4 | structs, arrays, `call`, `call.import` | most struct/array snippets |
+| 4 (a) | direct `call` + Frame stack — multi-fn modules ✅ | `vm_call_simple`, `vm_call_chain`, `vm_call_recursive` |
+| 4 (b) | structs, arrays, `call.import` extended | most struct/array snippets |
 | 5 | `type_check`, `ref.cast`, virtual.call, intrinsics, traits/vtables | nearly all snippets |
 | 6 | binary `.vir` loader (alternative to text) | shipping-perf gains |
 | 7 | Split `vader/vm/exec.vader` into `vader/bytecode/{types,ops,module,text}.vader` + `vader/vm/{value,exec,host}.vader` once the single file becomes unwieldy (probably mid-sprint 3 or 4). |

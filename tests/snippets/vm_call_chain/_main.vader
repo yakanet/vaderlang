@@ -1,0 +1,19 @@
+// Sprint 4 acceptance: 3-deep call chain.
+// `outer(7)` calls `middle(7)` calls `inner(7)`, each adds something.
+// Result : `7 + 1 + 10 + 100 = 118`.
+
+inner :: fn(n: i32) -> i32 {
+    return n + 100
+}
+
+middle :: fn(n: i32) -> i32 {
+    return inner(n) + 10
+}
+
+outer :: fn(n: i32) -> i32 {
+    return middle(n) + 1
+}
+
+main :: fn() -> i32 {
+    return outer(7)
+}

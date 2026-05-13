@@ -5,6 +5,12 @@
 // the value stack is `Value[]` (tagged union), promoted from the raw
 // `i32[]` of sprints 1-2 so strings and host calls can flow through.
 //
+// Sprint 4 introduces explicit `Frame` records and a frame stack —
+// each Vader-side `call N` pushes a callee frame, `return` pops it
+// and pushes the return value onto the caller's stack. Locals live
+// in the frame's `slots` array (params at the bottom, then declared
+// locals) ; the value stack is per-frame.
+//
 // VM-level errors (stack underflow, malformed bytecode, unsupported
 // op, host-import dispatch miss) come back as a `Trap` variant of
 // `VmResult` with a labelled message — the runtime's generic
@@ -12,7 +18,7 @@
 // bugs.
 
 import "std/io" { read_file, eprintln, println }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, StringConst, CallImport, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, MainBody, Module, Value, I32Val, StringVal }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, StringConst, CallImport, Call, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, Value, I32Val, StringVal }
 import "vader/vm/parser" { parse_virt }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -32,294 +38,491 @@ STDIO_PRINTLN  :: r"std_io$println"
 STDIO_PRINT    :: r"std_io$print"
 STDIO_EPRINTLN :: r"std_io$eprintln"
 
-/// Default-zero `Value`, used to size the locals frame at fn entry.
-zero_value :: fn() -> Value { return I32Val { .n = 0 } }
+// Maximum frame depth — guards against runaway recursion (the
+// callee-frame allocation could otherwise grow unbounded). Picked
+// well above what hand-written snippets need ; large enough that
+// genuine recursive workloads pass, small enough to surface a Trap
+// before the host runs out of memory.
+MAX_FRAME_DEPTH :: 1024
 
-// NB: `(I32Val | StringVal)[]` is inlined here (and at the call sites
-// below) as a work-around for a Vader compiler bug — the `Value`
-// alias doesn't expand in `Alias[]` fn signatures across module
-// boundaries (TODO §3.8). Revert to `stack: Value[]` once it lands.
+/// A single call frame on the VM's frame stack. `slots[0..parameter_count]`
+/// hold the params bound at `Call` time, followed by `local_count` zero-
+/// initialised locals. `stack` is per-frame ; `sp` is the logical top
+/// cursor (the array is grow-only, see `push_value`). `pc` indexes into
+/// the function's `ops` array.
+///
+/// `slots` and `stack` use the inlined `(I32Val | StringVal)[]` shape
+/// (rather than `Value[]`) as a work-around for a Vader compiler bug —
+/// the `Value` alias doesn't expand in `Alias[]` fn signatures across
+/// module boundaries (TODO §3.8).
+Frame :: struct {
+    function_index: i32
+    slots:          (I32Val | StringVal)[]
+    stack:          (I32Val | StringVal)[]
+    sp:             usize
+    pc:             i32
+}
+
+/// Default-zero `Value`, used to size each frame's locals at fn entry.
+///
+/// @return  a fresh `I32Val { .value = 0 }`.
+zero_value :: fn() -> Value { return I32Val { .value = 0 } }
+
 /// Push `value` at the cursor position, growing the backing array
 /// when needed (Vader has `push` but not capacity-managed insert).
+///
+/// @param stack   the grow-only value stack (mutated in place).
+/// @param cursor  logical top index — `cursor == stack.len()` means a
+///                fresh slot is needed, otherwise an existing one is
+///                overwritten (cheaper than `push`).
+/// @param value   the value to write.
 push_value :: fn(stack: (I32Val | StringVal)[], cursor: usize, value: (I32Val | StringVal)) -> void {
     if cursor == stack.len() { stack.push(value) }
     else                     { stack[cursor] = value }
 }
 
-// Stack-machine interpreter, pc-based to support structured `if/else`
-// jumps. Stack management uses a logical `sp` cursor over a grow-only
-// `Value[]` — Vader arrays support `push` but not `pop`, so the
-// cursor pattern keeps the inner loop allocation-free.
-export exec :: fn(module: Module) -> VmResult {
-    body :: module.main
-    stack:  (I32Val | StringVal)[] = []
-    sp: usize = 0
-    locals: (I32Val | StringVal)[] = []
-    i := 0
-    for i < body.local_count {
-        locals.push(zero_value())
-        i += 1
+/// Append `new_frame` at `cursor[0]`, growing `frames` if needed. The
+/// `frames` array is grow-only — `pop_frame` only decrements the cursor,
+/// the underlying slot is reused on the next push. Same cursor pattern
+/// used elsewhere in the VM (scope stack, pending branches).
+///
+/// @param frames     the grow-only frame stack (mutated in place).
+/// @param cursor     1-element box — `[0]` is the logical top index.
+/// @param new_frame  the callee frame to push.
+push_frame :: fn(frames: Frame[], cursor: usize[], new_frame: Frame) -> void {
+    if cursor[0] == frames.len() { frames.push(new_frame) }
+    else                         { frames[cursor[0]] = new_frame }
+    cursor[0] += 1
+}
+
+/// Decrement the frame cursor by 1. The released slot stays in
+/// `frames` (carrying its now-unreferenced `slots` / `stack` arrays
+/// until the next push overwrites it).
+///
+/// @param cursor  1-element box — `[0]` is the logical top index.
+pop_frame :: fn(cursor: usize[]) -> void {
+    cursor[0] -= 1
+}
+
+/// Build a new `Frame` for a callee. Params are copied straight from
+/// `args_source[args_offset .. args_offset + parameter_count]` into
+/// `slots[0..parameter_count]` — typically `args_source` is the caller's
+/// stack and `args_offset` is its post-pop cursor. Locals (`local_count`
+/// of them) follow, zero-initialised.
+///
+/// @param function_index  module-level index of the callee (recorded on
+///                        the frame so the executor can look up the body).
+/// @param callee          the callee's `BytecodeFunction` (read for the
+///                        slot counts).
+/// @param args_source     the array to read params from.
+/// @param args_offset     start offset of the params within `args_source`.
+/// @return                a fresh `Frame` ready to be pushed.
+build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_source: (I32Val | StringVal)[], args_offset: usize) -> Frame {
+    slots: (I32Val | StringVal)[] = []
+    parameter_index: usize = 0
+    for parameter_index < callee.parameter_count {
+        slots.push(args_source[args_offset + parameter_index])
+        parameter_index += 1
     }
-    pc := 0
-    op_count :: body.ops.len()
-    for pc < i32(op_count) {
-        op :: body.ops[pc]
+    local_index: usize = 0
+    for local_index < callee.local_count {
+        slots.push(zero_value())
+        local_index += 1
+    }
+    return Frame {
+        .function_index = function_index,
+        .slots          = slots,
+        .stack          = [],
+        .sp             = 0,
+        .pc             = 0,
+    }
+}
+
+/// Return a copy of `frame` with `sp` / `pc` updated. The slots and
+/// stack arrays are shared (Vader arrays are reference-typed), so
+/// mutations through `frame.stack[...]` / `frame.slots[...]` are
+/// visible after the write-back.
+///
+/// @param frame  the frame to update.
+/// @param sp     new value stack cursor.
+/// @param pc     new program counter (next op index).
+/// @return       a fresh `Frame` carrying the new sp/pc, with the same
+///               slots / stack array references.
+with_sp_pc :: fn(frame: Frame, sp: usize, pc: i32) -> Frame {
+    return Frame {
+        .function_index = frame.function_index,
+        .slots          = frame.slots,
+        .stack          = frame.stack,
+        .sp             = sp,
+        .pc             = pc,
+    }
+}
+
+/// Apply a pure i32-to-i32 binary op (Add/Sub/Mul) on top-of-stack.
+/// Pops two i32 from `frame.stack`, runs `op`, writes the result, and
+/// advances pc + sp.
+///
+/// @param frame      current top frame.
+/// @param top        index of `frame` within `frames` (for the write-back).
+/// @param frames     the frame stack (mutated via `frames[top] = ...`).
+/// @param op_label   short label used in the Trap message on type mismatch.
+/// @param op         the i32 binary op to apply to (left, right).
+/// @return           `null` on success, or a `Trap` if either operand
+///                   isn't an i32 (caller surfaces it).
+/// @error            type mismatch on the left or right operand.
+apply_arith_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, op: fn(i32, i32) -> i32) -> Trap | null {
+    left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, op_label)
+    right :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
+    if left  is Trap { return left  }
+    if right is Trap { return right }
+    frame.stack[frame.sp - 2] = I32Val { .value = op(left.value, right.value) }
+    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    return null
+}
+
+/// Variant of `apply_arith_binop` that traps when the right operand
+/// is zero — used by `i32.div` and `i32.mod` so division-by-zero
+/// surfaces a labelled Trap rather than a host-level abort.
+///
+/// @param frame      current top frame.
+/// @param top        index of `frame` within `frames`.
+/// @param frames     the frame stack (mutated via `frames[top] = ...`).
+/// @param op_label   short label used in Trap messages.
+/// @param op         the i32 binary op (`div` or `mod`).
+/// @return           `null` on success, or a `Trap` on type mismatch /
+///                   division by zero.
+/// @error            type mismatch ; right operand equal to zero.
+apply_div_mod_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, op: fn(i32, i32) -> i32) -> Trap | null {
+    left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, op_label)
+    right :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
+    if left  is Trap { return left  }
+    if right is Trap { return right }
+    if right.value == 0 { return Trap { .message = "${op_label} by zero at pc=${frame.pc}" } }
+    frame.stack[frame.sp - 2] = I32Val { .value = op(left.value, right.value) }
+    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    return null
+}
+
+/// Apply an i32 comparison (Eq/Ne/Lt/Le/Gt/Ge) on top-of-stack. The
+/// boolean result is pushed back as an i32 `1` / `0` (matching the
+/// wasm-style stack-machine convention).
+///
+/// @param frame      current top frame.
+/// @param top        index of `frame` within `frames`.
+/// @param frames     the frame stack (mutated via `frames[top] = ...`).
+/// @param op_label   short label used in the Trap message on type mismatch.
+/// @param cmp        the i32 comparison predicate.
+/// @return           `null` on success, or a `Trap` on type mismatch.
+/// @error            type mismatch on either operand.
+apply_cmp_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, cmp: fn(i32, i32) -> bool) -> Trap | null {
+    left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, op_label)
+    right :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
+    if left  is Trap { return left  }
+    if right is Trap { return right }
+    result :: if cmp(left.value, right.value) { 1 } else { 0 }
+    frame.stack[frame.sp - 2] = I32Val { .value = result }
+    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    return null
+}
+
+/// Stack-machine interpreter, frame-based to support direct Vader-side
+/// calls. One outer-loop iteration dispatches one op on the top frame ;
+/// the op's effect mutates the top frame's stack / slots / sp / pc and
+/// (for `Call` / `Return`) pushes or pops the frame stack itself.
+///
+/// @param module  a parsed `.virt` module — `main_index` must point at
+///                a valid entry in `functions`.
+/// @return        `Ok(value)` when `main` returns an i32 ; `Trap(message)`
+///                on any VM-level error (malformed bytecode, type
+///                mismatch, division by zero, call-stack overflow, etc).
+/// @error         missing or out-of-range `main_index` ; type mismatch
+///                in any op ; div / mod by zero ; unknown host import ;
+///                call to a non-existent function index ; call stack
+///                deeper than `MAX_FRAME_DEPTH`.
+export exec :: fn(module: Module) -> VmResult {
+    if module.main_index < 0 || usize(module.main_index) >= module.functions.len() {
+        return Trap { .message = "module has no entry function (main_index=${module.main_index})" }
+    }
+
+    frames: Frame[] = []
+    frame_count: usize[] = [0]
+
+    main_function :: module.functions[usize(module.main_index)]
+    main_frame :: build_callee_frame(module.main_index, main_function, [], 0)
+    push_frame(frames, frame_count, main_frame)
+
+    for frame_count[0] > 0 {
+        top :: frame_count[0] - 1
+        frame :: frames[top]
+        body :: module.functions[usize(frame.function_index)]
+        op_count :: body.ops.len()
+
+        // Fell off the end of the body without an explicit `return`.
+        // Treat like `return` with no value on the stack — pops the
+        // frame and surfaces 0 to the caller (or to the host if main).
+        if frame.pc >= i32(op_count) {
+            pop_frame(frame_count)
+            if frame_count[0] == 0 { return Ok { .value = 0 } }
+            continue
+        }
+
+        op :: body.ops[frame.pc]
         match op {
             is I32Const -> {
-                push_value(stack, sp, I32Val { .n = op.value })
-                sp += 1
-                pc += 1
+                push_value(frame.stack, frame.sp, I32Val { .value = op.value })
+                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
             }
             is LocalGet -> {
-                if op.slot < 0 || usize(op.slot) >= locals.len() {
-                    return Trap { .message = "local.get slot ${op.slot} out of range at pc=${pc}" }
+                if op.slot < 0 || usize(op.slot) >= frame.slots.len() {
+                    return Trap { .message = "local.get slot ${op.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
-                push_value(stack, sp, locals[op.slot])
-                sp += 1
-                pc += 1
+                push_value(frame.stack, frame.sp, frame.slots[op.slot])
+                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
             }
             is LocalSet -> {
-                if sp == 0 {
-                    return Trap { .message = "local.set on empty stack at pc=${pc}" }
+                if frame.sp == 0 {
+                    return Trap { .message = "local.set on empty stack at pc=${frame.pc} in '${body.name}'" }
                 }
-                if op.slot < 0 || usize(op.slot) >= locals.len() {
-                    return Trap { .message = "local.set slot ${op.slot} out of range at pc=${pc}" }
+                if op.slot < 0 || usize(op.slot) >= frame.slots.len() {
+                    return Trap { .message = "local.set slot ${op.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
-                sp -= 1
-                locals[op.slot] = stack[sp]
-                pc += 1
+                frame.slots[op.slot] = frame.stack[frame.sp - 1]
+                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
             }
             is StringConst -> {
                 if op.index < 0 || usize(op.index) >= module.strings.len() {
-                    return Trap { .message = "string.const index ${op.index} out of range at pc=${pc}" }
+                    return Trap { .message = "string.const index ${op.index} out of range at pc=${frame.pc}" }
                 }
-                push_value(stack, sp, StringVal { .s = module.strings[op.index] })
-                sp += 1
-                pc += 1
+                push_value(frame.stack, frame.sp, StringVal { .value = module.strings[op.index] })
+                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
             }
             is CallImport -> {
                 if op.index < 0 || usize(op.index) >= module.imports.len() {
-                    return Trap { .message = "call.import ${op.index} out of range at pc=${pc}" }
+                    return Trap { .message = "call.import ${op.index} out of range at pc=${frame.pc}" }
                 }
                 info :: module.imports[op.index]
-                if sp < info.param_count {
-                    return Trap { .message = "call.import '${info.mangled}' needs ${info.param_count} arg(s) but stack has ${sp} at pc=${pc}" }
+                if frame.sp < info.parameter_count {
+                    return Trap { .message = "call.import '${info.mangled}' needs ${info.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
-                arg_base :: sp - info.param_count
-                dispatch_outcome :: dispatch_import(info, stack, arg_base, pc)
+                arg_base :: frame.sp - info.parameter_count
+                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, frame.pc)
                 if dispatch_outcome is Trap {
                     return dispatch_outcome
                 }
-                sp = arg_base
+                new_sp := arg_base
                 if info.has_return {
-                    push_value(stack, sp, dispatch_outcome.value)
-                    sp += 1
+                    push_value(frame.stack, new_sp, dispatch_outcome.value)
+                    new_sp += 1
                 }
-                pc += 1
+                frames[top] = with_sp_pc(frame, new_sp, frame.pc + 1)
+            }
+            is Call -> {
+                if op.function_index < 0 || usize(op.function_index) >= module.functions.len() {
+                    return Trap { .message = "call to function ${op.function_index} out of range at pc=${frame.pc}" }
+                }
+                callee :: module.functions[usize(op.function_index)]
+                if frame.sp < callee.parameter_count {
+                    return Trap { .message = "call to '${callee.name}' needs ${callee.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
+                }
+                arg_base :: frame.sp - callee.parameter_count
+                // Build the callee frame *before* writing back the caller :
+                // `build_callee_frame` reads from `frame.stack[arg_base..]`,
+                // which stays valid since arrays are reference-typed and the
+                // sp shrink below is purely cursor-level.
+                callee_frame :: build_callee_frame(op.function_index, callee, frame.stack, arg_base)
+                frames[top] = with_sp_pc(frame, arg_base, frame.pc + 1)
+                push_frame(frames, frame_count, callee_frame)
+                if frame_count[0] > usize(MAX_FRAME_DEPTH) {
+                    return Trap { .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${callee.name}'" }
+                }
             }
             is I32Add -> {
-                left :: read_i32(stack[sp - 2], pc, "i32.add left")
-                right :: read_i32(stack[sp - 1], pc, "i32.add right")
-                if left is Trap  { return left }
-                if right is Trap { return right }
-                stack[sp - 2] = I32Val { .n = left.n + right.n }
-                sp -= 1
-                pc += 1
+                outcome :: apply_arith_binop(frame, top, frames, "i32.add", (a, b) -> a + b)
+                if outcome is Trap { return outcome }
             }
             is I32Sub -> {
-                left :: read_i32(stack[sp - 2], pc, "i32.sub left")
-                right :: read_i32(stack[sp - 1], pc, "i32.sub right")
-                if left is Trap  { return left }
-                if right is Trap { return right }
-                stack[sp - 2] = I32Val { .n = left.n - right.n }
-                sp -= 1
-                pc += 1
+                outcome :: apply_arith_binop(frame, top, frames, "i32.sub", (a, b) -> a - b)
+                if outcome is Trap { return outcome }
             }
             is I32Mul -> {
-                left :: read_i32(stack[sp - 2], pc, "i32.mul left")
-                right :: read_i32(stack[sp - 1], pc, "i32.mul right")
-                if left is Trap  { return left }
-                if right is Trap { return right }
-                stack[sp - 2] = I32Val { .n = left.n * right.n }
-                sp -= 1
-                pc += 1
+                outcome :: apply_arith_binop(frame, top, frames, "i32.mul", (a, b) -> a * b)
+                if outcome is Trap { return outcome }
             }
             is I32Div -> {
-                left :: read_i32(stack[sp - 2], pc, "i32.div left")
-                right :: read_i32(stack[sp - 1], pc, "i32.div right")
-                if left is Trap  { return left }
-                if right is Trap { return right }
-                if right.n == 0 { return Trap { .message = "i32.div by zero at pc=${pc}" } }
-                stack[sp - 2] = I32Val { .n = left.n / right.n }
-                sp -= 1
-                pc += 1
+                outcome :: apply_div_mod_binop(frame, top, frames, "i32.div", (a, b) -> a / b)
+                if outcome is Trap { return outcome }
             }
             is I32Mod -> {
-                left :: read_i32(stack[sp - 2], pc, "i32.mod left")
-                right :: read_i32(stack[sp - 1], pc, "i32.mod right")
-                if left is Trap  { return left }
-                if right is Trap { return right }
-                if right.n == 0 { return Trap { .message = "i32.mod by zero at pc=${pc}" } }
-                stack[sp - 2] = I32Val { .n = left.n % right.n }
-                sp -= 1
-                pc += 1
+                outcome :: apply_div_mod_binop(frame, top, frames, "i32.mod", (a, b) -> a % b)
+                if outcome is Trap { return outcome }
             }
             is I32Eq -> {
-                left :: read_i32(stack[sp - 2], pc, "i32.eq left")
-                right :: read_i32(stack[sp - 1], pc, "i32.eq right")
-                if left is Trap  { return left }
-                if right is Trap { return right }
-                stack[sp - 2] = I32Val { .n = if left.n == right.n { 1 } else { 0 } }
-                sp -= 1
-                pc += 1
+                outcome :: apply_cmp_binop(frame, top, frames, "i32.eq", (a, b) -> a == b)
+                if outcome is Trap { return outcome }
             }
             is I32Ne -> {
-                left :: read_i32(stack[sp - 2], pc, "i32.ne left")
-                right :: read_i32(stack[sp - 1], pc, "i32.ne right")
-                if left is Trap  { return left }
-                if right is Trap { return right }
-                stack[sp - 2] = I32Val { .n = if left.n != right.n { 1 } else { 0 } }
-                sp -= 1
-                pc += 1
+                outcome :: apply_cmp_binop(frame, top, frames, "i32.ne", (a, b) -> a != b)
+                if outcome is Trap { return outcome }
             }
             is I32Lt -> {
-                left :: read_i32(stack[sp - 2], pc, "i32.lt left")
-                right :: read_i32(stack[sp - 1], pc, "i32.lt right")
-                if left is Trap  { return left }
-                if right is Trap { return right }
-                stack[sp - 2] = I32Val { .n = if left.n < right.n { 1 } else { 0 } }
-                sp -= 1
-                pc += 1
+                outcome :: apply_cmp_binop(frame, top, frames, "i32.lt", (a, b) -> a < b)
+                if outcome is Trap { return outcome }
             }
             is I32Le -> {
-                left :: read_i32(stack[sp - 2], pc, "i32.le left")
-                right :: read_i32(stack[sp - 1], pc, "i32.le right")
-                if left is Trap  { return left }
-                if right is Trap { return right }
-                stack[sp - 2] = I32Val { .n = if left.n <= right.n { 1 } else { 0 } }
-                sp -= 1
-                pc += 1
+                outcome :: apply_cmp_binop(frame, top, frames, "i32.le", (a, b) -> a <= b)
+                if outcome is Trap { return outcome }
             }
             is I32Gt -> {
-                left :: read_i32(stack[sp - 2], pc, "i32.gt left")
-                right :: read_i32(stack[sp - 1], pc, "i32.gt right")
-                if left is Trap  { return left }
-                if right is Trap { return right }
-                stack[sp - 2] = I32Val { .n = if left.n > right.n { 1 } else { 0 } }
-                sp -= 1
-                pc += 1
+                outcome :: apply_cmp_binop(frame, top, frames, "i32.gt", (a, b) -> a > b)
+                if outcome is Trap { return outcome }
             }
             is I32Ge -> {
-                left :: read_i32(stack[sp - 2], pc, "i32.ge left")
-                right :: read_i32(stack[sp - 1], pc, "i32.ge right")
-                if left is Trap  { return left }
-                if right is Trap { return right }
-                stack[sp - 2] = I32Val { .n = if left.n >= right.n { 1 } else { 0 } }
-                sp -= 1
-                pc += 1
+                outcome :: apply_cmp_binop(frame, top, frames, "i32.ge", (a, b) -> a >= b)
+                if outcome is Trap { return outcome }
             }
-            is Block -> { pc += 1 }
-            is Loop  -> { pc += 1 }
+            is Block -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
+            is Loop  -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
             is If -> {
-                if sp == 0 { return Trap { .message = "if on empty stack at pc=${pc}" } }
-                sp -= 1
-                cond :: read_i32(stack[sp], pc, "if condition")
+                if frame.sp == 0 { return Trap { .message = "if on empty stack at pc=${frame.pc} in '${body.name}'" } }
+                cond :: read_i32(frame.stack[frame.sp - 1], frame.pc, "if condition")
                 if cond is Trap { return cond }
-                if cond.n != 0 {
-                    pc += 1
+                new_sp :: frame.sp - 1
+                if cond.value != 0 {
+                    frames[top] = with_sp_pc(frame, new_sp, frame.pc + 1)
                 } else {
-                    target :: body.jump_table[pc]
+                    target :: body.jump_table[frame.pc]
                     if target < 0 {
-                        return Trap { .message = "if has no jump target at pc=${pc} (bad bytecode)" }
+                        return Trap { .message = "if has no jump target at pc=${frame.pc} (bad bytecode)" }
                     }
-                    pc = target
+                    frames[top] = with_sp_pc(frame, new_sp, target)
                 }
             }
             is Else -> {
-                target :: body.jump_table[pc]
+                target :: body.jump_table[frame.pc]
                 if target < 0 {
-                    return Trap { .message = "else has no jump target at pc=${pc} (bad bytecode)" }
+                    return Trap { .message = "else has no jump target at pc=${frame.pc} (bad bytecode)" }
                 }
-                pc = target
+                frames[top] = with_sp_pc(frame, frame.sp, target)
             }
-            is End -> { pc += 1 }
+            is End -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
             is Branch -> {
-                target :: body.jump_table[pc]
+                target :: body.jump_table[frame.pc]
                 if target < 0 {
-                    return Trap { .message = "br has no jump target at pc=${pc} (bad bytecode)" }
+                    return Trap { .message = "br has no jump target at pc=${frame.pc} (bad bytecode)" }
                 }
-                pc = target
+                frames[top] = with_sp_pc(frame, frame.sp, target)
             }
             is BranchIf -> {
-                if sp == 0 { return Trap { .message = "br_if on empty stack at pc=${pc}" } }
-                sp -= 1
-                cond :: read_i32(stack[sp], pc, "br_if condition")
+                if frame.sp == 0 { return Trap { .message = "br_if on empty stack at pc=${frame.pc} in '${body.name}'" } }
+                cond :: read_i32(frame.stack[frame.sp - 1], frame.pc, "br_if condition")
                 if cond is Trap { return cond }
-                if cond.n != 0 {
-                    target :: body.jump_table[pc]
+                new_sp :: frame.sp - 1
+                if cond.value != 0 {
+                    target :: body.jump_table[frame.pc]
                     if target < 0 {
-                        return Trap { .message = "br_if has no jump target at pc=${pc} (bad bytecode)" }
+                        return Trap { .message = "br_if has no jump target at pc=${frame.pc} (bad bytecode)" }
                     }
-                    pc = target
+                    frames[top] = with_sp_pc(frame, new_sp, target)
                 } else {
-                    pc += 1
+                    frames[top] = with_sp_pc(frame, new_sp, frame.pc + 1)
                 }
             }
             is Return -> {
-                if sp == 0 { return Ok { .value = 0 } }
-                top :: read_i32(stack[sp - 1], pc, "return")
-                if top is Trap { return top }
-                return Ok { .value = top.n }
+                has_value :: frame.sp > 0
+                return_value: (I32Val | StringVal) = I32Val { .value = 0 }
+                if has_value { return_value = frame.stack[frame.sp - 1] }
+                pop_frame(frame_count)
+                if frame_count[0] == 0 {
+                    // Returning from main — surface the i32 to the host.
+                    if has_value {
+                        unwrapped :: read_i32(return_value, frame.pc, "return from main")
+                        if unwrapped is Trap { return unwrapped }
+                        return Ok { .value = unwrapped.value }
+                    }
+                    return Ok { .value = 0 }
+                }
+                // Push return value onto caller's stack (if any).
+                if has_value {
+                    new_top :: frame_count[0] - 1
+                    caller :: frames[new_top]
+                    push_value(caller.stack, caller.sp, return_value)
+                    frames[new_top] = with_sp_pc(caller, caller.sp + 1, caller.pc)
+                }
             }
         }
     }
-    // Fall-through with no return — defensive, mirror the TS VM with 0.
+    // Frame stack drained without an explicit main-return — surface 0.
     return Ok { .value = 0 }
 }
 
 /// Unwrap an `i32` from a `Value` or return a `Trap` describing the
-/// expected slot when the tag mismatches. `label` is a short tag
-/// (`"i32.add left"`, `"if condition"`) so the message is actionable.
+/// expected slot when the tag mismatches.
+///
+/// @param v       the tagged value to inspect.
+/// @param at_pc   pc of the op doing the read (for the Trap message).
+/// @param label   short context label (`"i32.add left"`, `"if condition"`)
+///                so the surfaced message is actionable.
+/// @return        the `I32Val` payload on success, or a `Trap` on
+///                type mismatch.
+/// @error         the value's tag is `StringVal`, not `I32Val`.
 read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
     if v is I32Val { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected i32, got string" }
 }
 
-// Same shape as `read_i32` for the string side. Used by the host
-// dispatcher to recover the `string` payload of a `println` argument.
+/// Unwrap a `string` from a `Value`, mirroring `read_i32`. Used by the
+/// host dispatcher to recover the `string` payload of a `println`-style
+/// argument.
+///
+/// @param v       the tagged value to inspect.
+/// @param at_pc   pc of the op doing the read.
+/// @param label   short context label (`"println"`, `"eprintln"`).
+/// @return        the `StringVal` payload on success, or a `Trap` on
+///                type mismatch.
+/// @error         the value's tag is `I32Val`, not `StringVal`.
 read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Trap {
     if v is StringVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected string, got i32" }
 }
 
-// Outcome of a successful host call. `value` is unused when the
-// import has `has_return == false` — the exec checks the import's
-// signature before pushing.
+/// Outcome of a successful host call. `value` is unused when the
+/// import has `has_return == false` — the exec checks the import's
+/// signature before pushing.
 export HostCallResult :: HostOk | Trap
 export HostOk :: struct { value: (I32Val | StringVal) }
 
-// Sprint 3 host surface — only the three plain string-printer imports
-// that show up in `vm_hello` and its near siblings. Each new import
-// added later (e.g. `read_line`, `read_file`, the integer / float
-// `print` formatters) lands as a new arm here.
+/// Sprint 3 host surface — only the three plain string-printer imports
+/// that show up in `vm_hello` and its near siblings. Each new import
+/// added later (e.g. `read_line`, `read_file`, the integer / float
+/// `print` formatters) lands as a new arm here.
+///
+/// @param info      the import descriptor (used for `mangled` dispatch).
+/// @param stack     the caller's value stack — args live at and above
+///                  `arg_base`.
+/// @param arg_base  index of the first arg within `stack`.
+/// @param at_pc     pc of the `call.import` op (for the Trap message).
+/// @return          `HostOk(value)` carrying a zero-Value for void
+///                  imports, or `Trap` for unknown imports or arg-type
+///                  mismatches.
+/// @error           unknown `mangled` name ; argument type mismatch.
 dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
     if info.mangled == STDIO_PRINTLN {
         arg :: read_string(stack[arg_base], at_pc, "println")
         if arg is Trap { return arg }
-        println(arg.s)
+        println(arg.value)
         return HostOk { .value = zero_value() }
     }
     if info.mangled == STDIO_PRINT {
         arg :: read_string(stack[arg_base], at_pc, "print")
         if arg is Trap { return arg }
-        // TODO route to stdout w/o newline (sprint 4 wires std/io.print exactly)
-        println(arg.s)
+        // TODO route to stdout w/o newline (sprint 4+ wires std/io.print exactly)
+        println(arg.value)
         return HostOk { .value = zero_value() }
     }
     if info.mangled == STDIO_EPRINTLN {
         arg :: read_string(stack[arg_base], at_pc, "eprintln")
         if arg is Trap { return arg }
-        eprintln(arg.s)
+        eprintln(arg.value)
         return HostOk { .value = zero_value() }
     }
     return Trap { .message = "unbound host import '${info.mangled}' at pc=${at_pc}" }
@@ -327,6 +530,15 @@ dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal)[], arg_base:
 
 // ---- entry --------------------------------------------------------------
 
+/// CLI entry — read a `.virt` text dump from `path`, parse it, run it,
+/// and return an exit code. Diagnostics go to stderr.
+///
+/// @param path  filesystem path to the `.virt` file.
+/// @return      the i32 the program's `main` returned (or `0` if it
+///              fell through without an explicit `return`) ; `1` when
+///              the file can't be read or the VM trapped — the error
+///              message goes to stderr in both cases.
+/// @error       missing file ; any VM trap surfaced by `exec`.
 export run_virt :: fn(path: string) -> i32 {
     source :: read_file(path)
     if source is Error {

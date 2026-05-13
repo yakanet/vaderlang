@@ -1,0 +1,14 @@
+// Sprint 4 acceptance: self-recursion through the Frame stack.
+// `factorial(5) = 120`. The Vader VM caps frame depth at 1024,
+// well above what this snippet needs.
+
+factorial :: fn(n: i32) -> i32 {
+    if n <= 1 {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
+
+main :: fn() -> i32 {
+    return factorial(5)
+}

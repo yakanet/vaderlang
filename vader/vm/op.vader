@@ -2,72 +2,129 @@
 //
 // One variant per supported op kind. The union grows sprint by sprint
 // in lock-step with the acceptance snippets (docs/SELFHOST_VM.md).
-// Control-flow ops (`If`, `Else`, `End`) carry no operands here — the
-// pre-computed `jump_table` on `MainBody` (see `parser.vader`) holds
-// the target pc for each branching op-index.
+// Control-flow ops (`If`, `Else`, `End`, `Branch`, `BranchIf`) carry
+// no operand here — their target pc lives in `BytecodeFunction.jump_table[pc]`.
 
-export Op :: I32Const | LocalGet | LocalSet | StringConst | CallImport | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
+/// The full op set understood by the Vader-side VM. Each variant is
+/// pure data — the executor's `match` arms in `exec.vader` carry the
+/// semantics. New ops are appended (never reshaped), so the existing
+/// pattern-match arms keep compiling across sprints.
+export Op :: I32Const | LocalGet | LocalSet | StringConst | CallImport | Call | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
-export I32Const    :: struct { value: i32 }
-export LocalGet    :: struct { slot: i32 }
-export LocalSet    :: struct { slot: i32 }
+/// Push a constant i32 onto the value stack.
+export I32Const :: struct { value: i32 }
+/// Read `slots[slot]` onto the value stack.
+export LocalGet :: struct { slot: i32 }
+/// Pop the value stack into `slots[slot]`.
+export LocalSet :: struct { slot: i32 }
+/// Push `module.strings[index]` onto the value stack.
 export StringConst :: struct { index: i32 }
-export CallImport  :: struct { index: i32 }
-export I32Add   :: struct {}
-export I32Sub   :: struct {}
-export I32Mul   :: struct {}
-export I32Div   :: struct {}
-export I32Mod   :: struct {}
-export I32Eq    :: struct {}
-export I32Ne    :: struct {}
-export I32Lt    :: struct {}
-export I32Le    :: struct {}
-export I32Gt    :: struct {}
-export I32Ge    :: struct {}
-export Block    :: struct {}             // marker — exec just bumps pc
-export Loop     :: struct {}             // marker — exec just bumps pc
-export If       :: struct {}             // jump target lives in `jump_table[pc]`
-export Else     :: struct {}             // ditto
-export End      :: struct {}             // marker — exec just bumps pc
-export Branch   :: struct {}             // jump target lives in `jump_table[pc]`
-export BranchIf :: struct {}             // ditto, conditional
-export Return   :: struct {}
+/// Invoke a host-side import (e.g. `println`) — `index` keys into `module.imports`.
+export CallImport :: struct { index: i32 }
+/// Invoke a Vader-side function — `function_index` keys into `module.functions`.
+/// Sprint 4 addition : the executor pops `parameter_count` values
+/// from the caller's stack, builds a new `Frame`, and pushes it.
+export Call :: struct { function_index: i32 }
+/// Pop two i32 (left, right) ; push left + right.
+export I32Add :: struct {}
+/// Pop two i32 (left, right) ; push left - right.
+export I32Sub :: struct {}
+/// Pop two i32 (left, right) ; push left * right.
+export I32Mul :: struct {}
+/// Pop two i32 (left, right) ; push left / right. Traps on right == 0.
+export I32Div :: struct {}
+/// Pop two i32 (left, right) ; push left % right. Traps on right == 0.
+export I32Mod :: struct {}
+/// Pop two i32 ; push `1` if equal, `0` otherwise.
+export I32Eq :: struct {}
+/// Pop two i32 ; push `1` if not equal, `0` otherwise.
+export I32Ne :: struct {}
+/// Pop two i32 (left, right) ; push `1` if left < right, `0` otherwise.
+export I32Lt :: struct {}
+/// Pop two i32 (left, right) ; push `1` if left <= right, `0` otherwise.
+export I32Le :: struct {}
+/// Pop two i32 (left, right) ; push `1` if left > right, `0` otherwise.
+export I32Gt :: struct {}
+/// Pop two i32 (left, right) ; push `1` if left >= right, `0` otherwise.
+export I32Ge :: struct {}
+/// Marker — the executor just bumps pc. Opens a forward-jumping scope.
+export Block :: struct {}
+/// Marker — the executor just bumps pc. Opens a backward-jumping scope
+/// (`Branch` to a loop label resolves to the body start, not past-end).
+export Loop  :: struct {}
+/// Pops one i32 condition. Non-zero falls through ; zero jumps to the
+/// matching `Else` (or past the matching `End` if none). The actual
+/// target pc lives in the enclosing function's `jump_table[pc]`.
+export If    :: struct {}
+/// Reached only when the matching `If` took the truthy path — jumps
+/// past the matching `End`. Target pc in `jump_table[pc]`.
+export Else  :: struct {}
+/// Marker — closes the matching `Block`/`Loop`/`If`/`Else`. The
+/// executor bumps pc through it ; the parser uses `End` lines to
+/// resolve every still-pending `Branch` / `BranchIf`.
+export End   :: struct {}
+/// Unconditional jump to the labelled scope's target (`jump_table[pc]`).
+export Branch :: struct {}
+/// Pops one i32 condition. Non-zero jumps ; zero falls through.
+export BranchIf :: struct {}
+/// Return from the current function. The top of the value stack
+/// (if any) becomes the value pushed onto the caller's stack ;
+/// the executor pops the current `Frame` and resumes the parent.
+export Return :: struct {}
 
-// Host-side description of an import — name + arity. The exec uses
-// `mangled` to dispatch (`std_io$println` etc.) ; `param_count` tells
-// it how many values to pop / pass back. Sprint 3 keeps this minimal :
-// arity + return-shape will widen with `print` / `read_line` / etc.
+/// Host-side description of a `call.import` target. The `mangled`
+/// name is the key the executor's dispatcher matches on
+/// (`std_io$println` etc.) ; `parameter_count` tells it how many
+/// values to pop from the caller's stack before the host call ;
+/// `has_return` controls whether a value gets pushed back afterwards.
 export ImportInfo :: struct {
-    name:        string
-    mangled:     string
-    param_count: usize
-    has_return:  bool
+    name:            string
+    mangled:         string
+    parameter_count: usize
+    has_return:      bool
 }
 
-// One function's body. `jump_table[pc]`:
-//   - `If`   → pc just past the matching `Else` (or `End` if none)
-//   - `Else` → pc just past the matching `End`
-//   - everything else → -1 (sentinel, exec ignores)
-export MainBody :: struct {
-    ops:         Op[]
-    local_count: i32
-    jump_table:  i32[]
+/// One Vader-side function body. `jump_table[pc]` is filled by the
+/// parser for every branching op, and is `-1` for all others :
+///   - `If`     → pc just past the matching `Else` (or `End` if none)
+///   - `Else`   → pc just past the matching `End`
+///   - `Loop`   → opener_pc + 1 (back-edge target for `Branch`)
+///   - `Branch` / `BranchIf` → resolved scope target
+///   - every other op → `-1` sentinel, the executor ignores it
+///
+/// `parameter_count` is the number of arguments the caller pops from
+/// its stack at the `Call` site ; `local_count` is the number of
+/// *additional* locals declared in the body. The frame's slot array
+/// is sized `parameter_count + local_count`, with params at the bottom.
+export BytecodeFunction :: struct {
+    name:            string
+    parameter_count: usize
+    local_count:     usize
+    ops:             Op[]
+    jump_table:      i32[]
 }
 
-/// Top-level holder for the .virt module. Sprint 3 still runs only the
-/// first function (`main`) ; the strings pool and imports are needed
-/// alongside it for `string.const` / `call.import` to dispatch.
+/// Top-level holder for a parsed .virt module. `main_index` points
+/// at the entry function in `functions` — populated by the parser
+/// from the `export main N` directive, with a fallback search for a
+/// mangled name ending in `$main` if the directive is absent.
 export Module :: struct {
-    strings: string[]
-    imports: ImportInfo[]
-    main:    MainBody
+    strings:    string[]
+    imports:    ImportInfo[]
+    functions:  BytecodeFunction[]
+    main_index: i32
 }
 
-/// Tagged runtime value carried on the VM's stack. Sprint 3 widens the
-/// stack representation from raw `i32[]` to this union so strings can
-/// flow through `string.const` / `call.import` alongside numerics.
-/// Future sprints add bool / char / struct / array variants ; mirrors
+/// Tagged runtime value carried on the VM's value stack. Sprint 3
+/// widened the stack from raw `i32[]` to this union so strings flow
+/// through `string.const` / `call.import` alongside numerics. Future
+/// sprints add bool / char / struct / array variants ; mirrors
 /// `src/vm/value.ts` and grows in lock-step with the op set.
 export Value :: I32Val | StringVal
-export I32Val    :: struct { n: i32 }
-export StringVal :: struct { s: string }
+
+/// 32-bit integer payload.
+export I32Val :: struct { value: i32 }
+
+/// String payload — the underlying buffer is borrowed from the
+/// module's `strings` pool, so the VM never has to allocate.
+export StringVal :: struct { value: string }
