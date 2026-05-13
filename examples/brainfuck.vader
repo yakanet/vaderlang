@@ -28,7 +28,8 @@
 // path is the supported runtime today.
 
 import "std/io" { eprintln, read_file }
-import "std/string" { byte_at, byte_len }
+import "std/iter" { filter }
+import "std/string" { chars }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "vader/vm/parser" { parse_virt }
 import "vader/vm/exec" { exec, VmResult, Ok, Trap }
@@ -37,23 +38,22 @@ DEFAULT_PATH :: "examples/hello.bf"
 
 // ---- BF lexer ------------------------------------------------------------
 
-// Walk source byte-by-byte ; collect the eight BF chars verbatim (as
-// their ASCII bytes), drop everything else.
-tokenize_bf :: fn(source: string) -> i32[] {
-    out: i32[] = []
-    i: usize = 0
-    n :: source.byte_len()
-    for i < n {
-        b :: i32(source.byte_at(i))
-        if b == i32('>') || b == i32('<') ||
-           b == i32('+') || b == i32('-') ||
-           b == i32('.') || b == i32(',') ||
-           b == i32('[') || b == i32(']') {
-            out.push(b)
-        }
-        i += 1
-    }
-    return out
+// True for the eight Brainfuck characters. UTF-8 codepoints outside this
+// set count as comments and get filtered away by `tokenize_bf`.
+is_bf_char :: fn(c: char) -> bool {
+    return c == '>' || c == '<' ||
+           c == '+' || c == '-' ||
+           c == '.' || c == ',' ||
+           c == '[' || c == ']'
+}
+
+// Collect every BF codepoint from `source` in order. `chars()` decodes
+// UTF-8 lazily ; `std/iter.filter` operates on arrays, so we materialise
+// the codepoints once with `collect()` and let `filter` drop comments.
+tokenize_bf :: fn(source: string) -> char[] {
+    all_chars: char[] = []
+    for c in source.chars() { all_chars.push(c) }
+    return all_chars.filter(is_bf_char)
 }
 
 // ---- bracket matcher -----------------------------------------------------
@@ -61,7 +61,7 @@ tokenize_bf :: fn(source: string) -> i32[] {
 // For every `[` / `]` token, partner[i] is the index of its match.
 // Non-bracket tokens get -1. Mismatched brackets return an empty array
 // (caller detects and bails).
-match_brackets :: fn(tokens: i32[]) -> i32[] {
+match_brackets :: fn(tokens: char[]) -> i32[] {
     n :: tokens.len()
     partner: i32[] = []
     i: usize = 0
@@ -73,12 +73,12 @@ match_brackets :: fn(tokens: i32[]) -> i32[] {
     sp: usize = 0
     j: usize = 0
     for j < n {
-        b :: tokens[j]
-        if b == i32('[') {
+        c :: tokens[j]
+        if c == '[' {
             if sp == stack.len() { stack.push(j) }
             else                 { stack[sp] = j }
             sp += 1
-        } else if b == i32(']') {
+        } else if c == ']' {
             if sp == 0 {
                 return []
             }
@@ -99,28 +99,79 @@ match_brackets :: fn(tokens: i32[]) -> i32[] {
 //   local 0 = __mem  (i32[])
 //   local 1 = __ptr  (i32)
 //   local 2 = __i    (i32, only used by the init loop)
-emit_bf_char :: fn(sb: StringBuilder, b: i32, idx: usize, partner: i32[]) -> void {
-    if b == i32('>') {
-        sb.append("  local.get 1\n  i32.const 1\n  i32.add\n  local.set 1\n")
-    } else if b == i32('<') {
-        sb.append("  local.get 1\n  i32.const 1\n  i32.sub\n  local.set 1\n")
-    } else if b == i32('+') {
+emit_bf_char :: fn(sb: StringBuilder, c: char, idx: usize, partner: i32[]) -> void {
+    if c == '>' {
+        sb.append("""
+  local.get 1
+  i32.const 1
+  i32.add
+  local.set 1
+""")
+    } else if c == '<' {
+        sb.append("""
+  local.get 1
+  i32.const 1
+  i32.sub
+  local.set 1
+""")
+    } else if c == '+' {
         // mem[ptr] = mem[ptr] + 1  — duplicate (mem, ptr) on stack so
         // both array.get and array.set see them.
-        sb.append("  local.get 0\n  local.get 1\n  local.get 0\n  local.get 1\n  array.get 1\n  i32.const 1\n  i32.add\n  array.set 1\n")
-    } else if b == i32('-') {
-        sb.append("  local.get 0\n  local.get 1\n  local.get 0\n  local.get 1\n  array.get 1\n  i32.const 1\n  i32.sub\n  array.set 1\n")
-    } else if b == i32('.') {
-        sb.append("  local.get 0\n  local.get 1\n  array.get 1\n  call 0\n")
-    } else if b == i32(',') {
+        sb.append("""
+  local.get 0
+  local.get 1
+  local.get 0
+  local.get 1
+  array.get 1
+  i32.const 1
+  i32.add
+  array.set 1
+""")
+    } else if c == '-' {
+        sb.append("""
+  local.get 0
+  local.get 1
+  local.get 0
+  local.get 1
+  array.get 1
+  i32.const 1
+  i32.sub
+  array.set 1
+""")
+    } else if c == '.' {
+        sb.append("""
+  local.get 0
+  local.get 1
+  array.get 1
+  call 0
+""")
+    } else if c == ',' {
         // Input not wired ; deliver 0 so naive programs reading EOF still
         // see a sentinel rather than uninitialised state.
-        sb.append("  local.get 0\n  local.get 1\n  i32.const 0\n  array.set 1\n")
-    } else if b == i32('[') {
-        sb.append("  block bf_block_${idx}\n  loop bf_loop_${idx}\n  local.get 0\n  local.get 1\n  array.get 1\n  i32.const 0\n  i32.eq\n  br_if bf_block_${idx}\n")
-    } else if b == i32(']') {
+        sb.append("""
+  local.get 0
+  local.get 1
+  i32.const 0
+  array.set 1
+""")
+    } else if c == '[' {
+        sb.append("""
+  block bf_block_${idx}
+  loop bf_loop_${idx}
+  local.get 0
+  local.get 1
+  array.get 1
+  i32.const 0
+  i32.eq
+  br_if bf_block_${idx}
+""")
+    } else if c == ']' {
         open_idx :: usize(partner[idx])
-        sb.append("  br bf_loop_${open_idx}\n  end\n  end\n")
+        sb.append("""
+  br bf_loop_${open_idx}
+  end
+  end
+""")
     }
 }
 
@@ -128,63 +179,70 @@ compile_brainfuck :: fn(source: string) -> string {
     tokens  :: tokenize_bf(source)
     partner :: match_brackets(tokens)
     if tokens.len() > 0 && partner.len() == 0 {
-        // Mismatched brackets — emit a .virt that traps with a readable
-        // message rather than failing here, so the caller's `Trap` path
-        // surfaces a uniform error.
-        return "module brainfuck\n\nfn 0 bf_main () -> i32\n  unreachable\nend\n\nexport main 0\n"
+        // Mismatched brackets — emit a `.virt` whose `main` returns 1
+        // so the caller surfaces a non-zero exit. `main()` also prints
+        // a readable diagnostic ahead of calling `exec`.
+        return """
+module brainfuck
+
+fn 0 bf_main () -> i32
+  i32.const 1
+  return
+end
+
+export main 0
+"""
     }
 
     sb :: new_builder()
-    sb.append("module brainfuck\n\n")
-    sb.append("type 0 primitive i32\n")
-    sb.append("type 1 array 0\n\n")
-    sb.append(r"import 0 print std_io$print (string) -> void" + "\n\n")
+    sb.append(r"""module brainfuck
 
-    // ---- fn 0 : print_byte(b: i32) -> void --------------------------------
-    sb.append("fn 0 print_byte (i32) -> void\n")
-    sb.append("  local \"__sb\" any\n")
-    sb.append("  intrinsic builder.new\n")
-    sb.append("  local.set 1\n")
-    sb.append("  local.get 1\n")
-    sb.append("  local.get 0\n")
-    sb.append("  i32.to_char\n")
-    sb.append("  intrinsic builder.append_display\n")
-    sb.append("  local.get 1\n")
-    sb.append("  intrinsic builder.finish\n")
-    sb.append("  call.import 0\n")
-    sb.append("  return\n")
-    sb.append("end\n\n")
+type 0 primitive i32
+type 1 array 0
 
-    // ---- fn 1 : bf_main() -> i32 ------------------------------------------
-    sb.append("fn 1 bf_main () -> i32\n")
-    sb.append("  local \"__mem\" any\n")
-    sb.append("  local \"__ptr\" any\n")
-    sb.append("  local \"__i\" any\n")
-    // mem = []
-    sb.append("  array.new 1 0\n")
-    sb.append("  local.set 0\n")
-    // ptr = 0
-    sb.append("  i32.const 0\n")
-    sb.append("  local.set 1\n")
-    // i = 0 ; while i < 30000 { mem.push(0) ; i += 1 }
-    sb.append("  i32.const 0\n")
-    sb.append("  local.set 2\n")
-    sb.append("  block bf_init_done\n")
-    sb.append("    loop bf_init_loop\n")
-    sb.append("      local.get 2\n")
-    sb.append("      i32.const 30000\n")
-    sb.append("      i32.ge\n")
-    sb.append("      br_if bf_init_done\n")
-    sb.append("      local.get 0\n")
-    sb.append("      i32.const 0\n")
-    sb.append("      array.push 1\n")
-    sb.append("      local.get 2\n")
-    sb.append("      i32.const 1\n")
-    sb.append("      i32.add\n")
-    sb.append("      local.set 2\n")
-    sb.append("      br bf_init_loop\n")
-    sb.append("    end\n")
-    sb.append("  end\n")
+import 0 print std_io$print (string) -> void
+
+fn 0 print_byte (i32) -> void
+  local "__sb" any
+  intrinsic builder.new
+  local.set 1
+  local.get 1
+  local.get 0
+  i32.to_char
+  intrinsic builder.append_display
+  local.get 1
+  intrinsic builder.finish
+  call.import 0
+  return
+end
+
+fn 1 bf_main () -> i32
+  local "__mem" any
+  local "__ptr" any
+  local "__i" any
+  array.new 1 0
+  local.set 0
+  i32.const 0
+  local.set 1
+  i32.const 0
+  local.set 2
+  block bf_init_done
+    loop bf_init_loop
+      local.get 2
+      i32.const 30000
+      i32.ge
+      br_if bf_init_done
+      local.get 0
+      i32.const 0
+      array.push 1
+      local.get 2
+      i32.const 1
+      i32.add
+      local.set 2
+      br bf_init_loop
+    end
+  end
+""")
 
     // BF body
     k: usize = 0
@@ -194,12 +252,13 @@ compile_brainfuck :: fn(source: string) -> string {
         k += 1
     }
 
-    // return 0
-    sb.append("  i32.const 0\n")
-    sb.append("  return\n")
-    sb.append("end\n\n")
+    sb.append("""
+  i32.const 0
+  return
+end
 
-    sb.append("export main 1\n")
+export main 1
+""")
     return "${sb}"
 }
 
@@ -210,6 +269,11 @@ main :: fn(argv: string[]) -> i32 {
     src :: read_file(path)
     if src is Error {
         eprintln("brainfuck: cannot read ${path}")
+        return 1
+    }
+    tokens :: tokenize_bf(src)
+    if tokens.len() > 0 && match_brackets(tokens).len() == 0 {
+        eprintln("brainfuck: ${path} has unmatched `[` or `]`")
         return 1
     }
     virt_text :: compile_brainfuck(src)
