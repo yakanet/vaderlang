@@ -66,19 +66,22 @@ beforeAll(async () => {
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
-  // Post Sprint 5b (2026-05-13). type_check op + UnionType : 12 new
-  // snippets pass over Sprint 5a. 102 / 176 = 58 % acceptance.
-  // Remaining failures :
-  //   - Missing host imports (Sprint 5c) — string ops, hash, file I/O.
+  // Post Sprint 5c (2026-05-13). Host imports for std/string + width-
+  // suffixed integer consts (`i64.const` / `u32.const` / `usize.const`
+  // / ...) + `StringBuilder.to_string` : 5 new snippets pass (`primitive_hash_eq`,
+  // `sam_impl`, `std_string`, `std_string_builder`, `comptime_type_alias`).
+  // 107 / 176 = 61 % acceptance. Remaining failures :
   //   - Missing intrinsics (Sprint 5d) — `size_of`, `type_kind`, `satisfies`.
   //   - `virtual.call` + trait vtables (Sprint 6) — trait_dispatch_*, op_overload_*.
+  //   - Float / math support (Sprint 5e?) — std_math, expr_bodied_fn.
   //   - Enum dispatch (Sprint 5e?) — enum_*, dot_variant_in_union.
   //   - Tuple destructure (Sprint 5e?) — tuple_*.
+  //   - GC root intrinsics + std_runtime$collections — gc_*, mutable_*.
+  //   - Misc : io_roundtrip, regex_helpers, runtime_argv, etc.
   "array_iter",
   "bound_enforced",
   "char_range_contains",
   "collection_index_sugar",
-  "comptime_type_alias",
   "contains_op",
   "dot_variant_in_union",
   "enum_match",
@@ -90,6 +93,7 @@ const KNOWN_DIVERGENT = new Set<string>([
   "gc_array_survive",
   "gc_chain_survive",
   "gc_multi_collect",
+  "generic_fn",
   "implicit_dot_variant",
   "intrinsic_size_of",
   "intrinsic_type_kind",
@@ -100,7 +104,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   "iter_lazy",
   "iter_zip_chain",
   "json_basics",
-  "let_type_alias",
   "map_set_iter",
   "multiline_string",
   "mutable_map",
@@ -114,19 +117,15 @@ const KNOWN_DIVERGENT = new Set<string>([
   "overload_first_param",
   "parse_int_match",
   "path_basics",
-  "primitive_hash_eq",
   "process_spawn",
   "range_widths",
   "regex_helpers",
   "runtime_argv",
-  "sam_impl",
   "seq_lit_inference",
   "spread_destructure",
   "std_cli_basic",
   "std_math",
   "std_sort",
-  "std_string",
-  "std_string_builder",
   "string_bytes",
   "string_chars",
   "string_codepoints",

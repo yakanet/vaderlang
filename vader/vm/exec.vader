@@ -19,6 +19,7 @@
 
 import "std/io" { read_file, eprintln, println }
 import "std/string_builder" { StringBuilder, new_builder, append }
+import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, contains, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
 import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, NullVal, BoolVal, CharVal, display_value }
 import "vader/vm/parser" { parse_virt }
 
@@ -1163,6 +1164,68 @@ export HostOk :: struct { value: Value }
 ///                  imports, or `Trap` for unknown imports or arg-type
 ///                  mismatches.
 /// @error           unknown `mangled` name ; argument type mismatch.
+/// Pop one string from the caller stack, run `op`, wrap the result back
+/// into a `StringVal`. Used by every host import shaped `(string) -> string`
+/// — `trim` / `to_upper` / `to_lower` etc.
+///
+/// @param stack     caller stack.
+/// @param arg_base  cursor of the first arg.
+/// @param at_pc     pc for diagnostics.
+/// @param label     short host-import name for the Trap message.
+/// @param op        the stdlib fn (`fn(string) -> string`).
+/// @return          `HostOk(StringVal)` on success, `Trap` on type mismatch.
+host_str_to_str :: fn(stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[], arg_base: usize, at_pc: i32, label: string, op: fn(string) -> string) -> HostCallResult {
+    s :: read_string(stack[arg_base], at_pc, label)
+    if s is Trap { return s }
+    return HostOk { .value = StringVal { .value = op(s.value) } }
+}
+
+/// Pop two strings, run a binary predicate, wrap the result as `BoolVal`.
+/// Used by `starts_with` / `ends_with` / `contains` etc.
+///
+/// @param stack     caller stack.
+/// @param arg_base  cursor of the first arg.
+/// @param at_pc     pc for diagnostics.
+/// @param label     short host-import name for the Trap message.
+/// @param op        the stdlib predicate (`fn(string, string) -> bool`).
+/// @return          `HostOk(BoolVal)` on success, `Trap` on type mismatch.
+host_str_pair_to_bool :: fn(stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[], arg_base: usize, at_pc: i32, label: string, op: fn(string, string) -> bool) -> HostCallResult {
+    a :: read_string(stack[arg_base    ], at_pc, "${label} receiver")
+    b :: read_string(stack[arg_base + 1], at_pc, "${label} arg")
+    if a is Trap { return a }
+    if b is Trap { return b }
+    return HostOk { .value = BoolVal { .value = op(a.value, b.value) } }
+}
+
+/// Flush a `StringBuilder` `StructVal` into a `StringVal`. The user-side
+/// `std/string_builder.StringBuilder` struct has a single field `parts:
+/// string[]` ; we reach into `sv.fields[0]` (an `ArrayVal` of `StringVal`),
+/// concatenate via a fresh native `StringBuilder`, and wrap as a string.
+///
+/// The structural assumption (one field, an `ArrayVal` of `StringVal`)
+/// is the cross-module contract with `stdlib/std/string_builder.vader` —
+/// hiding it here so the `dispatch_import` arm stays a one-liner and
+/// future struct-layout drift breaks loudly at a single labelled Trap.
+///
+/// @param sv      the `StringBuilder` struct value.
+/// @param at_pc   pc for diagnostics.
+/// @return        `HostOk(StringVal)` on success, `Trap` on layout mismatch.
+/// @error         the first field isn't an `ArrayVal` of `StringVal`s.
+stringbuilder_to_string :: fn(sv: StructVal, at_pc: i32) -> HostCallResult {
+    if sv.fields.len() == 0 { return Trap { .message = "StringBuilder.to_string : empty fields at pc=${at_pc}" } }
+    parts_array :: read_array(sv.fields[0], at_pc, "StringBuilder.parts")
+    if parts_array is Trap { return parts_array }
+    flush :: new_builder()
+    i: usize = 0
+    for i < parts_array.elements.len() {
+        piece :: read_string(parts_array.elements[i], at_pc, "StringBuilder.parts[i]")
+        if piece is Trap { return piece }
+        flush.append(piece.value)
+        i += 1
+    }
+    return HostOk { .value = StringVal { .value = "${flush}" } }
+}
+
 dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
     if info.mangled == STDIO_PRINTLN {
         arg :: read_string(stack[arg_base], at_pc, "println")
@@ -1182,6 +1245,85 @@ dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal |
         if arg is Trap { return arg }
         eprintln(arg.value)
         return HostOk { .value = zero_value() }
+    }
+    // ---- std/string family ----------------------------------------------
+    if info.mangled == r"std_string$byte_len" {
+        s :: read_string(stack[arg_base], at_pc, "byte_len")
+        if s is Trap { return s }
+        return HostOk { .value = I32Val { .value = i32(s.value.byte_len()) } }
+    }
+    if info.mangled == r"std_string$starts_with" { return host_str_pair_to_bool(stack, arg_base, at_pc, "starts_with", (a, b) -> a.starts_with(b)) }
+    if info.mangled == r"std_string$ends_with"   { return host_str_pair_to_bool(stack, arg_base, at_pc, "ends_with",   (a, b) -> a.ends_with(b)) }
+    if info.mangled == r"std_string$contains"    { return host_str_pair_to_bool(stack, arg_base, at_pc, "contains",    (a, b) -> a.contains(b)) }
+    if info.mangled == r"std_string$slice" {
+        s     :: read_string(stack[arg_base    ], at_pc, "slice receiver")
+        start :: read_i32   (stack[arg_base + 1], at_pc, "slice start")
+        end   :: read_i32   (stack[arg_base + 2], at_pc, "slice end")
+        if s     is Trap { return s }
+        if start is Trap { return start }
+        if end   is Trap { return end }
+        return HostOk { .value = StringVal { .value = s.value.slice(usize(start.value), usize(end.value)) } }
+    }
+    if info.mangled == r"std_string$trim"     { return host_str_to_str(stack, arg_base, at_pc, "trim",     (s) -> s.trim()) }
+    if info.mangled == r"std_string$to_upper" { return host_str_to_str(stack, arg_base, at_pc, "to_upper", (s) -> s.to_upper()) }
+    if info.mangled == r"std_string$to_lower" { return host_str_to_str(stack, arg_base, at_pc, "to_lower", (s) -> s.to_lower()) }
+    if info.mangled == r"std_string$byte_at" {
+        s :: read_string(stack[arg_base    ], at_pc, "byte_at receiver")
+        i :: read_i32   (stack[arg_base + 1], at_pc, "byte_at index")
+        if s is Trap { return s }
+        if i is Trap { return i }
+        return HostOk { .value = I32Val { .value = i32(s.value.byte_at(usize(i.value))) } }
+    }
+    if info.mangled == r"std_string$index_of" {
+        s    :: read_string(stack[arg_base    ], at_pc, "index_of receiver")
+        c    :: read_char  (stack[arg_base + 1], at_pc, "index_of char")
+        from :: read_i32   (stack[arg_base + 2], at_pc, "index_of from")
+        if s    is Trap { return s }
+        if c    is Trap { return c }
+        if from is Trap { return from }
+        return HostOk { .value = I32Val { .value = i32(s.value.index_of(c.value, usize(from.value))) } }
+    }
+    if info.mangled == r"std_string_builder$StringBuilder$Display$to_string" {
+        sv :: read_struct(stack[arg_base], at_pc, "StringBuilder.to_string receiver")
+        if sv is Trap { return sv }
+        return stringbuilder_to_string(sv, at_pc)
+    }
+    if info.mangled == r"std_string$split" {
+        s   :: read_string(stack[arg_base    ], at_pc, "split receiver")
+        sep :: read_string(stack[arg_base + 1], at_pc, "split sep")
+        if s   is Trap { return s }
+        if sep is Trap { return sep }
+        s_str   :: s.value
+        sep_str :: sep.value
+        parts :: s_str.split(sep_str)
+        // Inline-union element type : §3.8 alias-expansion bug — `Value[]`
+        // in array slots resolves to the wrong precedence cross-module.
+        elements: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[] = []
+        i: usize = 0
+        for i < parts.len() {
+            elements.push(StringVal { .value = parts[i] })
+            i += 1
+        }
+        // type_id 0 : bound-checks use elements.len(), not the type table.
+        return HostOk { .value = ArrayVal { .type_id = 0, .elements = elements } }
+    }
+    if info.mangled == r"std_core$string$Index$at" {
+        s :: read_string(stack[arg_base    ], at_pc, "string[] receiver")
+        i :: read_i32   (stack[arg_base + 1], at_pc, "string[] index")
+        if s is Trap { return s }
+        if i is Trap { return i }
+        s_str :: s.value
+        [cp, width] :: s_str.decode_codepoint(usize(i.value))
+        return HostOk { .value = CharVal { .value = cp } }
+    }
+    if info.mangled == r"std_string$last_index_of" {
+        s         :: read_string(stack[arg_base    ], at_pc, "last_index_of receiver")
+        c         :: read_char  (stack[arg_base + 1], at_pc, "last_index_of char")
+        min_index :: read_i32   (stack[arg_base + 2], at_pc, "last_index_of min_index")
+        if s         is Trap { return s }
+        if c         is Trap { return c }
+        if min_index is Trap { return min_index }
+        return HostOk { .value = I32Val { .value = i32(s.value.last_index_of(c.value, isize(min_index.value))) } }
     }
     return Trap { .message = "unbound host import '${info.mangled}' at pc=${at_pc}" }
 }

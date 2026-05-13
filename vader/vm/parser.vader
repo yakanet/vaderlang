@@ -616,6 +616,17 @@ drain_pending :: fn(state: ParserState, label: string, is_loop: bool, opener_pc:
 ///                 doesn't yet handle (no pc shift, no diagnostic).
 parse_op_line :: fn(cleaned: string) -> Op | null {
     if cleaned.starts_with("i32.const ")        { return parse_int_arg(cleaned, "i32.const ") }
+    // Width-suffixed integer constants — see `primitive_matches` in
+    // `vader/vm/exec.vader` for the latent width-collapse miscompile risk.
+    if cleaned.starts_with("i8.const ")         { return parse_int_arg(cleaned, "i8.const ") }
+    if cleaned.starts_with("i16.const ")        { return parse_int_arg(cleaned, "i16.const ") }
+    if cleaned.starts_with("i64.const ")        { return parse_int_arg(cleaned, "i64.const ") }
+    if cleaned.starts_with("isize.const ")      { return parse_int_arg(cleaned, "isize.const ") }
+    if cleaned.starts_with("u8.const ")         { return parse_int_arg(cleaned, "u8.const ") }
+    if cleaned.starts_with("u16.const ")        { return parse_int_arg(cleaned, "u16.const ") }
+    if cleaned.starts_with("u32.const ")        { return parse_int_arg(cleaned, "u32.const ") }
+    if cleaned.starts_with("u64.const ")        { return parse_int_arg(cleaned, "u64.const ") }
+    if cleaned.starts_with("usize.const ")      { return parse_int_arg(cleaned, "usize.const ") }
     if cleaned.starts_with("local.get ")        { return parse_slot_arg(cleaned, "local.get ", true) }
     if cleaned.starts_with("local.set ")        { return parse_slot_arg(cleaned, "local.set ", false) }
     if cleaned.starts_with("local.tee ")        { return parse_local_tee(cleaned) }
