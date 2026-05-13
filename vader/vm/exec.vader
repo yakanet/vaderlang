@@ -22,7 +22,44 @@ import "std/numbers" { parse_int_in_base }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, contains, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, F64Const, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU, F64Add, F64Sub, F64Mul, F64Div, F64Neg, F64Eq, F64Ne, F64Lt, F64Le, F64Gt, F64Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, StringEq, StringNe, StringConcat, IntToChar, CharToInt, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry, Value, I32Val, F64Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, NullVal, BoolVal, CharVal, display_value }
+import "vader/vm/op" {
+    // Op tag union + each op variant the executor and parser dispatch on.
+    Op,
+    // Stack / locals.
+    I32Const, F64Const, StringConst, NullConst, BoolConst, CharConst,
+    LocalGet, LocalSet, LocalTee, Drop,
+    // Calls.
+    CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall,
+    // Structs.
+    StructNew, StructGet, StructSet,
+    // Arrays.
+    ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen,
+    // Type conversion + checks.
+    RefCast, Convert, TypeCheck, IntToChar, CharToInt,
+    // String-builder intrinsics.
+    BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
+    // i32 arithmetic + comparison + unary + bitwise.
+    I32Add, I32Sub, I32Mul, I32Div, I32Mod,
+    I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge,
+    I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU,
+    // f64 arithmetic + comparison + unary.
+    F64Add, F64Sub, F64Mul, F64Div, F64Neg,
+    F64Eq, F64Ne, F64Lt, F64Le, F64Gt, F64Ge,
+    // bool / char / string / ref ops.
+    BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot,
+    CharEq, CharNe, CharLt, CharLe, CharGt, CharGe,
+    StringEq, StringNe, StringConcat,
+    RefEq, RefNe,
+    // Structured control flow.
+    Block, Loop, If, Else, End, Branch, BranchIf, Return,
+    // Module shape.
+    ImportInfo, BytecodeFunction, Module, Vtable, VtableEntry,
+    // Type-table variants.
+    TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType,
+    // Runtime value variants + display.
+    Value, I32Val, F64Val, StringVal, StructVal, ArrayVal, BuilderVal,
+    FnVal, NullVal, BoolVal, CharVal, display_value,
+}
 import "vader/vm/parser" { parse_virt, parse_decimal_f64 }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
