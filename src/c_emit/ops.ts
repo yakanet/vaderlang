@@ -20,10 +20,10 @@ import type { EmitCtx } from "./emit.ts";
 import { cStringLit, cStringLitFromBytes, escapeC, sanitise } from "./emit.ts";
 import {
   boxExpr, boxExprUnknown, coerce, coerceExpr, cTypeFor, cTypeForVal,
-  cTypeForValBare, decl, isRefVal, line, nameOf, newTmp, peek, pop,
-  primitiveMatchesType, pushBinop, pushBinopAny, pushFnCall2, pushLit,
-  pushLocalRef, pushUnop, signatureFor, unboxExpr, valTypeOfBcType,
-  valTypeOfField, zeroInit,
+  cTypeForValBare, decl, isRefVal, isStackAllocVal, line, markTopStackAlloc,
+  nameOf, newTmp, peek, pop, popRaw, primitiveMatchesType, pushBinop,
+  pushBinopAny, pushFnCall2, pushLit, pushLocalRef, pushUnop, signatureFor,
+  unboxExpr, valTypeOfBcType, valTypeOfField, zeroInit,
   type FnState,
 } from "./body.ts";
 
@@ -271,11 +271,11 @@ export function displayCoerce(name: string, v: ValType): string {
 
 export function emitStructNew(
   s: FnState, op: Extract<Op, { kind: "struct.new" | "struct.new_stack" }>,
-  onStack: boolean,
 ): void {
   const t = s.ctx.module.types[op.typeIndex]!;
   if (t.kind !== "struct") return;
   const cname = s.ctx.structNames[op.typeIndex]!;
+  const onStack = op.kind === "struct.new_stack";
   // Pop fields right-to-left.
   const fieldVals: { name: string; val: ValType }[] = [];
   for (let i = t.fields.length - 1; i >= 0; i--) fieldVals.unshift(pop(s));
@@ -303,6 +303,7 @@ export function emitStructNew(
   // through `ref` slots and across fn boundaries. struct.get unboxes via
   // .payload.obj before downcasting.
   line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${tmp}_obj);`);
+  if (onStack) markTopStackAlloc(s);
 }
 
 export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }>): void {
@@ -321,14 +322,20 @@ export function emitStructSet(s: FnState, op: Extract<Op, { kind: "struct.set" }
   if (t.kind !== "struct") return;
   const cname = s.ctx.structNames[op.typeIndex]!;
   const value = pop(s);
-  const obj = pop(s);
+  const objRaw = popRaw(s);
+  const objName = objRaw !== null ? nameOf(objRaw) : "0";
+  const objVal: ValType = objRaw?.val ?? "ref";
+  const obj = { name: objName, val: objVal };
   const f = t.fields[op.fieldIndex]!;
   const fval = valTypeOfField(s.ctx, f.typeIndex);
   line(s, `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)} = ${coerce(s, value.name, value.val, fval)};`);
-  // Emitted unconditionally — the macro filters at runtime against the old
-  // generation's address range. A future pass could elide it for tmps known
-  // to come from `struct.new_stack`.
-  line(s, `VADER_WRITE_BARRIER((${cname}*) ${asObjPtr(obj)});`);
+  // Skip the write barrier when the target is provably stack-allocated —
+  // the runtime macro is a no-op for a stack address but still pays 3 loads
+  // + a compare per emitted call site. The flag is set by `struct.new_stack`
+  // and propagated through `local.set`/`local.get`.
+  if (!isStackAllocVal(s, objRaw)) {
+    line(s, `VADER_WRITE_BARRIER((${cname}*) ${asObjPtr(obj)});`);
+  }
 }
 
 /** Coerce a stack value holding a heap reference to a `void*`. Boxed values

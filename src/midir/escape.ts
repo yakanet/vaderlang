@@ -129,10 +129,17 @@ function computeEscaping(fn: CFGFunction, allocLocals: ReadonlySet<LocalId>): Se
           appendAlias(aliasOf, ins.dst, ins.value);
           break;
         case "FieldSet":
+          // The value escapes (stored where the GC can reach it). The target
+          // does NOT escape via this op alone — mutating a field doesn't
+          // hand a reference to the target out. If the target later flows
+          // into a Call/Return/etc., that op marks it independently.
+          see(ins.value);
+          break;
         case "ArraySet":
         case "ArrayPush":
-          // The value escapes (stored where the GC can reach it) ; the target
-          // also escapes since it now holds heap-reachable refs.
+          // Arrays always heap-allocate today (no `array.new_stack`), so
+          // `see(target)` is free; revisit if array-buf stack-allocation
+          // ever lands.
           see(ins.value);
           see(ins.target);
           break;

@@ -88,6 +88,7 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
     scopeStack: [],
     refTmpIndices: [],
     noFrame,
+    stackAllocSlots: new Set(),
   };
 
   // Pre-declare every block result tmp so jumps can assign without scope
@@ -212,7 +213,7 @@ function emitLocalDecls(
  *  output by skipping the constant-then-immediately-used boilerplate
  *  (`int32_t t6 = INT32_C(1); l4 = t6;` → `l4 = 1;`). */
 export type StackVal =
-  | { kind: "tmp";       name: string; val: ValType }
+  | { kind: "tmp";       name: string; val: ValType; stackAlloc?: boolean }
   | { kind: "literal";   text: string; val: ValType }
   | { kind: "local-ref"; slot:  number; val: ValType };
 
@@ -231,6 +232,12 @@ export interface FnState {
   /** True when the fn is provably no-alloc (per `EmitCtx.mayAlloc`). Tells
    *  `emitReturn` to skip the `vader_gc_top = gc_frame.prev` restore. */
   readonly noFrame: boolean;
+  /** Local slots whose current value comes from a `struct.new_stack` — the
+   *  payload pointer lives on the C stack, so any later write-barrier
+   *  emission against this target is provably a no-op. Populated by
+   *  `local.set`/`local.tee` from a stack-allocated source, cleared by any
+   *  reassignment from elsewhere. */
+  readonly stackAllocSlots: Set<number>;
 }
 
 export interface OpenLabel {
@@ -308,6 +315,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
       if (val === "ref" || val === "any") {
         const t = newTmp(s, val);
         line(s, `${decl(s, val, t)} = l${op.slot};`);
+        if (s.stackAllocSlots.has(op.slot)) markTopStackAlloc(s);
       } else {
         pushLocalRef(s, op.slot, val);
       }
@@ -317,21 +325,28 @@ function emitOp(s: FnState, ip: number, op: Op): void {
       const slotVal = slotValType(s, op.slot);
       if (slotVal === "void") return;   // void slots: nothing on the stack to consume
       materializeStackForSlot(s, op.slot);
-      const v = pop(s);
-      line(s, `l${op.slot} = ${coerce(s, v.name, v.val, slotVal)};`);
+      const v = popRaw(s);
+      const name = v !== null ? nameOf(v) : "0";
+      const val = v?.val ?? "i32";
+      line(s, `l${op.slot} = ${coerce(s, name, val, slotVal)};`);
+      propagateStackAllocOnSet(s, op.slot, v);
       return;
     }
     case "local.tee": {
       const slotVal = slotValType(s, op.slot);
       if (slotVal === "void") return;
       materializeStackForSlot(s, op.slot);
-      const v = pop(s);
-      line(s, `l${op.slot} = ${coerce(s, v.name, v.val, slotVal)};`);
+      const v = popRaw(s);
+      const name = v !== null ? nameOf(v) : "0";
+      const val = v?.val ?? "i32";
+      line(s, `l${op.slot} = ${coerce(s, name, val, slotVal)};`);
+      propagateStackAllocOnSet(s, op.slot, v);
       // Push a fresh snapshot — primitives inline as `lN`, refs/any need
       // a refTmp for GC-precision (see local.get).
       if (slotVal === "ref" || slotVal === "any") {
         const t = newTmp(s, slotVal);
         line(s, `${decl(s, slotVal, t)} = l${op.slot};`);
+        if (s.stackAllocSlots.has(op.slot)) markTopStackAlloc(s);
       } else {
         pushLocalRef(s, op.slot, slotVal);
       }
@@ -401,8 +416,8 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "make_closure": return emitMakeClosure(s, op);
     case "intrinsic":    return emitIntrinsic(s, op);
 
-    case "struct.new":   return emitStructNew(s, op, /*onStack*/ false);
-    case "struct.new_stack": return emitStructNew(s, op, /*onStack*/ true);
+    case "struct.new":
+    case "struct.new_stack": return emitStructNew(s, op);
     case "struct.get":   return emitStructGet(s, op);
     case "struct.set":   return emitStructSet(s, op);
 
@@ -593,6 +608,34 @@ export function pushLocalRef(s: FnState, slot: number, val: ValType): void {
   s.stack.push({ kind: "local-ref", slot, val });
 }
 
+/** Flag the value at the top of the value stack as backed by a stack-
+ *  allocated struct (its payload pointer lives on the C stack). Lets
+ *  `emitStructSet` skip the no-op write barrier. Only tmps carry the flag;
+ *  literals can't refer to heap, local-refs are looked up via
+ *  `stackAllocSlots`. */
+export function markTopStackAlloc(s: FnState): void {
+  const top = s.stack[s.stack.length - 1];
+  if (top !== undefined && top.kind === "tmp") top.stackAlloc = true;
+}
+
+/** Returns true if the popped value provably points at stack-allocated
+ *  storage — used by `emitStructSet` to skip emitting `VADER_WRITE_BARRIER`
+ *  whose runtime check would always be a no-op. */
+export function isStackAllocVal(s: FnState, v: StackVal | null): boolean {
+  if (v === null) return false;
+  if (v.kind === "tmp") return v.stackAlloc === true;
+  if (v.kind === "local-ref") return s.stackAllocSlots.has(v.slot);
+  return false;
+}
+
+/** Update `stackAllocSlots` after a `local.set N` (or `tee`): if the source
+ *  was a stack-allocated value, the slot inherits the property ; otherwise
+ *  any prior stack-alloc origin is cleared. */
+export function propagateStackAllocOnSet(s: FnState, slot: number, v: StackVal | null): void {
+  if (isStackAllocVal(s, v)) s.stackAllocSlots.add(slot);
+  else s.stackAllocSlots.delete(slot);
+}
+
 /** Materialise a fresh `tN` on the stack and emit its declaration. Used
  *  by every push that produces a value with side effects (calls, allocs,
  *  ops between non-literals, ref/any results). */
@@ -627,6 +670,13 @@ export function pop(s: FnState): { name: string; val: ValType } {
   const v = s.stack.pop();
   if (v === undefined) return { name: "0", val: "i32" };  // defensive — emitter bug
   return { name: nameOf(v), val: v.val };
+}
+
+/** Pop and return the raw `StackVal` — used by `emitStructSet` to inspect
+ *  the `stackAlloc` flag for the barrier-skip optimization. Returns `null`
+ *  on empty-stack (same defensive sentinel as `pop`). */
+export function popRaw(s: FnState): StackVal | null {
+  return s.stack.pop() ?? null;
 }
 
 export function peek(s: FnState): { name: string; val: ValType } {
