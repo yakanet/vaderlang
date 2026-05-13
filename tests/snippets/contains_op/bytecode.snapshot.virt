@@ -10,6 +10,9 @@ string 3 "set has 4"
 string 4 "set lacks 5"
 string 5 "set has 7"
 import 0 println std_io$println (string) -> void
+impl 0 Contains
+impl 2 Contains
+impl 2 Iterator
 
 fn 0 tests_snippets_contains_op__main_vader$DigitSet$Contains$contains (ref,i32) -> bool
   local "or_res#18" bool

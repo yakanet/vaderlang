@@ -20,6 +20,11 @@ string 6 "has 99? "
 string 7 "v1b: missing"
 string 8 "v1b = "
 import 0 println std_io$println (string) -> void
+impl 3 Contains
+impl 3 Iterator
+impl 9 Index
+impl 9 IndexSet
+impl 9 Contains
 
 fn 0 tests_snippets_mutable_map__main_vader$main () -> i32
   local "$arr_0#65" ref

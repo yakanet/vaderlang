@@ -11,6 +11,9 @@ import 0 to_string std_core$i32$Display$to_string (i32) -> string
 import 1 to_string std_core$usize$Display$to_string (usize) -> string
 import 2 to_string std_core$bool$Display$to_string (bool) -> string
 import 3 println std_io$println (string) -> void
+impl 0 Iterator
+impl 4 Contains
+impl 4 Iterator
 
 fn 0 tests_snippets_iter_defaults__main_vader$Countdown$Iterator$next (ref) -> ref
   local "$field_1#10" i32

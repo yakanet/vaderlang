@@ -8,6 +8,7 @@ type 5 primitive usize
 string 0 "sum = "
 string 1 "count = "
 import 0 println std_io$println (string) -> void
+impl 3 Iterator
 
 fn 0 tests_snippets_array_iter__main_vader$main () -> i32
   local "arr#39" ref

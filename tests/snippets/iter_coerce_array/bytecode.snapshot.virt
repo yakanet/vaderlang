@@ -9,6 +9,7 @@ string 0 "a="
 string 1 " b="
 string 2 " c="
 import 0 println std_io$println (string) -> void
+impl 3 Iterator
 
 fn 0 tests_snippets_iter_coerce_array__main_vader$walk (ref) -> i32
   local "sum#11" i32

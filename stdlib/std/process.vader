@@ -30,9 +30,9 @@ export ProcessResult :: struct {
     stderr: string
 }
 
-spawn_run         :: fn(argv: string[]) -> i32
-spawn_last_stdout :: fn() -> string
-spawn_last_stderr :: fn() -> string
+export spawn_run         :: fn(argv: string[]) -> i32
+export spawn_last_stdout :: fn() -> string
+export spawn_last_stderr :: fn() -> string
 
 /// Run `argv[0]` with `argv[1..]` as arguments, block until exit, and
 /// return the exit code plus captured stdout/stderr. Native-only — on

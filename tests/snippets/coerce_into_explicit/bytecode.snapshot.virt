@@ -5,6 +5,8 @@ string 0 "user_"
 string 1 "n="
 string 2 "s="
 import 0 println std_io$println (string) -> void
+impl 0 Into
+impl 0 Into
 
 fn 0 tests_snippets_coerce_into_explicit__main_vader$UserId$Into$into (ref) -> i32
   local.get 0   ; _main.vader:11:38

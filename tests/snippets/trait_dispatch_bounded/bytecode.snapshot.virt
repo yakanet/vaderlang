@@ -14,6 +14,8 @@ string 1 "bar"
 string 2 "baz"
 import 0 hash std_core$string$Hash$hash (string) -> u64
 import 1 println std_io$println (string) -> void
+impl 5 Iterator
+impl 8 Iterator
 
 fn 0 tests_snippets_trait_dispatch_bounded__main_vader$main () -> i32
   local "nums#30" ref

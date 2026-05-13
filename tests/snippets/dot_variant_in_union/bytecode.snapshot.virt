@@ -12,6 +12,8 @@ string 3 "S"
 string 4 "W"
 string 5 "err"
 import 0 println std_io$println (string) -> void
+impl 0 Error
+impl 2 Display
 
 fn 0 tests_snippets_dot_variant_in_union__main_vader$parse (char) -> ref
   local.get 0   ; _main.vader:12:8

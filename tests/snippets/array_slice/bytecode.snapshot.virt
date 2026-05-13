@@ -14,6 +14,9 @@ string 3 "s3.len = "
 string 4 "s4.len = "
 string 5 "s5.len = "
 import 0 println std_io$println (string) -> void
+impl 3 Contains
+impl 3 Iterator
+impl 5 Iterator
 
 fn 0 tests_snippets_array_slice__main_vader$main () -> i32
   local "arr#143" ref

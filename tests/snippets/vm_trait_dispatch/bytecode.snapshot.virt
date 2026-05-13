@@ -7,6 +7,8 @@ type 4 primitive i32
 type 5 ref Printable
 string 0 "Rex"
 string 1 "Whiskers"
+impl 0 Printable
+impl 3 Printable
 
 fn 0 tests_snippets_vm_trait_dispatch__main_vader$describe (ref) -> i32
   local "if_res#8" i32

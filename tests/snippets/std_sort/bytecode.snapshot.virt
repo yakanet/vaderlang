@@ -24,6 +24,11 @@ string 5 "date"
 import 0 at std_core$string$Index$at (string,usize) -> char
 import 1 println std_io$println (string) -> void
 import 2 byte_len std_string$byte_len (string) -> usize
+impl 7 Contains
+impl 7 Iterator
+impl 9 Iterator
+impl 11 Iterator
+impl 13 Display
 
 fn 0 tests_snippets_std_sort__main_vader$i32_lt (i32,i32) -> bool
   local.get 0   ; _main.vader:5:47

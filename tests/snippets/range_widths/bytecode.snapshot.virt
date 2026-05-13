@@ -22,6 +22,16 @@ string 2 "isize sum="
 string 3 "u8 sum="
 string 4 "i16 sum="
 import 0 println std_io$println (string) -> void
+impl 11 Contains
+impl 11 Iterator
+impl 13 Contains
+impl 13 Iterator
+impl 14 Contains
+impl 14 Iterator
+impl 15 Contains
+impl 15 Iterator
+impl 16 Contains
+impl 16 Iterator
 
 fn 0 tests_snippets_range_widths__main_vader$main () -> i32
   local "__iter_0#88" ref

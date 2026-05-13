@@ -13,6 +13,7 @@ string 4 " b="
 string 5 " tail.len="
 string 6 "short.len="
 import 0 println std_io$println (string) -> void
+impl 3 Iterator
 
 fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
   local "arr#81" ref

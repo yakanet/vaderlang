@@ -3,6 +3,8 @@ type 0 struct tests_snippets_trait_method_ambig__main_vader$Cat { name:1 }
 type 1 primitive string
 string 0 "G:"
 string 1 "x"
+impl 0 Greet
+impl 0 Annot
 
 fn 0 tests_snippets_trait_method_ambig__main_vader$Cat$Greet$greet (ref) -> string
   local "__sb_0#7" any

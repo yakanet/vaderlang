@@ -16,6 +16,12 @@ string 1 "len = "
 string 2 "has 10? "
 string 3 "has 30? "
 import 0 println std_io$println (string) -> void
+impl 3 Contains
+impl 3 Iterator
+impl 9 Index
+impl 9 IndexSet
+impl 9 Contains
+impl 11 Contains
 
 fn 0 tests_snippets_mutable_set__main_vader$main () -> i32
   local "$arr_0#40" ref

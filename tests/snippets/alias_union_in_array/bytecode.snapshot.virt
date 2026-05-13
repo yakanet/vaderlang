@@ -15,6 +15,7 @@ string 1 "dog "
 string 2 "Whiskers"
 string 3 "Rex"
 import 0 println std_io$println (string) -> void
+impl 5 Iterator
 
 fn 0 tests_snippets_alias_union_in_array__main_vader$push_pet (ref,ref) -> void
   local.get 0   ; _main.vader:16:5

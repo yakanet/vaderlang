@@ -8,6 +8,8 @@ string 3 "  c>a "
 string 4 "  a>=b "
 string 5 "  c<=c "
 import 0 println std_io$println (string) -> void
+impl 0 Equals
+impl 0 Comparable
 
 fn 0 tests_snippets_op_overload_eq_ord__main_vader$Money$Equals$equals (ref,ref) -> bool
   local "$field_2#5" i32

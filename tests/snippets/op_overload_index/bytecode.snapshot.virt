@@ -15,6 +15,9 @@ string 3 " b="
 string 4 " c="
 string 5 "c"
 import 0 println std_io$println (string) -> void
+impl 0 Index
+impl 0 IndexSet
+impl 7 Iterator
 
 fn 0 tests_snippets_op_overload_index__main_vader$Cell$Index$at (ref,string) -> i32
   local "$field_4#19" ref

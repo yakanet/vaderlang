@@ -135,6 +135,7 @@ export parse_virt :: fn(source: string) -> op.Module {
     imports: op.ImportInfo[] = []
     types: op.TypeDecl[] = []
     functions: op.BytecodeFunction[] = []
+    impls: op.Impl[] = []
     main_index := -1
 
     // Per-function metadata held outside the state bundle since they're
@@ -165,6 +166,7 @@ export parse_virt :: fn(source: string) -> op.Module {
             if cleaned.starts_with("type ")   { parse_type_decl(cleaned, types) continue }
             if cleaned.starts_with("string ") { parse_string_decl(cleaned, strings) continue }
             if cleaned.starts_with("import ") { parse_import_decl(cleaned, imports) continue }
+            if cleaned.starts_with("impl ")   { parse_impl_decl(cleaned, impls) continue }
             if cleaned.starts_with("export ") {
                 found :: parse_export_main_index(cleaned)
                 if found >= 0 { main_index = found }
@@ -223,6 +225,7 @@ export parse_virt :: fn(source: string) -> op.Module {
         .types      = types,
         .functions  = functions,
         .vtables    = build_vtables(functions, types),
+        .impls      = impls,
         .main_index = main_index,
     }
 }
@@ -323,6 +326,19 @@ find_struct_type_id :: fn(types: op.TypeDecl[], target: string) -> i32 {
         if type_id_match { return i32(i) }
         i += 1
     }
+    // Trait impls on primitives (e.g. `i32 implements Doubler`) carry a
+    // type prefix like `<module>$i32` — the receiver type is a
+    // PrimitiveType, not a StructType. Match the last `$`-segment of
+    // `target` against each PrimitiveType.kind so the vtable lookup
+    // can resolve a primitive receiver to a real type-id.
+    last_dollar :: last_index_of_dollar(target)
+    primitive_name: string = target
+    if last_dollar >= 0 { primitive_name = target.slice(usize(last_dollar + 1), target.byte_len()) }
+    j: usize = 0
+    for j < types.len() {
+        if primitive_name_matches(types[j], primitive_name) { return i32(j) }
+        j += 1
+    }
     return -1
 }
 
@@ -331,6 +347,13 @@ find_struct_type_id :: fn(types: op.TypeDecl[], target: string) -> i32 {
 struct_name_matches :: fn(td: op.TypeDecl, target: string) -> bool = match td {
     is op.StructType as s -> s.name == target
     _                  -> false
+}
+
+/// Same shape for the primitive-name lookup used by primitive trait
+/// receivers (e.g. matching `i32` against `PrimitiveType { kind: "i32" }`).
+primitive_name_matches :: fn(td: op.TypeDecl, target: string) -> bool = match td {
+    is op.PrimitiveType as p -> p.kind == target
+    _                        -> false
 }
 
 /// Index of the last `$` strictly before `end_exclusive`, or `-1`.
@@ -558,6 +581,31 @@ parse_import_decl :: fn(cleaned: string, imports: op.ImportInfo[]) -> void {
 /// @param cleaned  the .virt line, already comment-stripped.
 /// @return         the function index when the export name is `main`,
 ///                 or `-1` for any other export or a malformed line.
+/// Parse `impl TYPE_ID TRAIT_NAME`. Records a `(type_id, trait_name)`
+/// pair so `ref_type_matches` can answer `is Trait` patterns without
+/// needing the trait method to survive DCE. The .virt writer emits one
+/// such directive per `(type, trait)` entry in `BytecodeModule.implTable`.
+///
+/// @param cleaned  the .virt line (comment-stripped).
+/// @param impls    the module impl table, appended to in place.
+parse_impl_decl :: fn(cleaned: string, impls: op.Impl[]) -> void {
+    after :: cleaned.slice("impl ".byte_len(), cleaned.byte_len()).trim()
+    space :: after.index_of(' ', 0)
+    if space < 0 { return }
+    type_id_text :: after.slice(0, usize(space)).trim()
+    parsed :: parse_int_in_base(type_id_text, 10)
+    if parsed is Error { return }
+    trait_name :: after.slice(usize(space) + 1, after.byte_len()).trim()
+    // Drop surrounding `"..."` quotes if the writer chose to quote a
+    // non-ident trait name. Today every emitted trait name is a bare
+    // identifier so this only triggers if a future writer adds quotes.
+    unquoted: string = trait_name
+    if trait_name.byte_len() >= 2 && trait_name.byte_at(0) == BYTE_DQUOTE && trait_name.byte_at(trait_name.byte_len() - 1) == BYTE_DQUOTE {
+        unquoted = trait_name.slice(1, trait_name.byte_len() - 1)
+    }
+    impls.push(op.Impl { .type_id = i32(parsed), .trait_name = unquoted })
+}
+
 parse_export_main_index :: fn(cleaned: string) -> i32 {
     after :: cleaned.slice("export ".byte_len(), cleaned.byte_len()).trim()
     parts :: after.split(" ")

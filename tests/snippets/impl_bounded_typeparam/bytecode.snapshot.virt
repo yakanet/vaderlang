@@ -8,6 +8,10 @@ string 0 "Mira"
 string 1 "Rex"
 string 2 "wrapped"
 import 0 println std_io$println (string) -> void
+impl 0 Tag
+impl 2 Tag
+impl 3 Display
+impl 4 Display
 
 fn 0 tests_snippets_impl_bounded_typeparam__main_vader$main () -> i32
   local "a#11" ref

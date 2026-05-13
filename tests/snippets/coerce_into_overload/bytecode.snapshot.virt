@@ -4,6 +4,7 @@ type 1 primitive i32
 string 0 "a="
 string 1 "b="
 import 0 println std_io$println (string) -> void
+impl 0 Into
 
 fn 0 tests_snippets_coerce_into_overload__main_vader$UserId$Into$into (ref) -> i32
   local.get 0   ; _main.vader:10:38

@@ -26,6 +26,8 @@ import 3 slice std_string$slice (string,usize,usize) -> string
 import 4 starts_with std_string$starts_with (string,string) -> bool
 import 5 ends_with std_string$ends_with (string,string) -> bool
 import 6 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+impl 3 Iterator
+impl 6 Display
 
 fn 0 tests_snippets_regex_helpers__main_vader$is_non_id (char) -> bool
   local "and_res#25" bool

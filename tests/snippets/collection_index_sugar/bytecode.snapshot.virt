@@ -30,6 +30,15 @@ string 10 "1 in s"
 string 11 "3 not in s"
 import 0 hash std_core$string$Hash$hash (string) -> u64
 import 1 println std_io$println (string) -> void
+impl 3 Contains
+impl 3 Iterator
+impl 12 Index
+impl 12 IndexSet
+impl 12 Contains
+impl 14 Index
+impl 14 IndexSet
+impl 14 Contains
+impl 16 Contains
 
 fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
   local "$arr_0#50" ref

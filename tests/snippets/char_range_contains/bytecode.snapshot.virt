@@ -17,6 +17,8 @@ string 9 "5 is not alpha"
 string 10 "a..=e count = "
 string 11 "0..<5 count = "
 import 0 println std_io$println (string) -> void
+impl 3 Contains
+impl 3 Iterator
 
 fn 0 tests_snippets_char_range_contains__main_vader$is_digit (char) -> bool
   char.const 48   ; _main.vader:11:17

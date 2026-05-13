@@ -4,6 +4,7 @@ type 1 primitive i32
 type 2 struct std_core$Done {  }
 type 3 struct std_core$Yielded__i32 { value:1 }
 import 0 println std_io$println (string) -> void
+impl 0 Iterator
 
 fn 0 tests_snippets_custom_iter__main_vader$Countdown$Iterator$next (ref) -> ref
   local "$field_1#10" i32

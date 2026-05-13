@@ -8,6 +8,10 @@ type 5 primitive bool
 type 6 struct std_core$ArrayIterator__i32 { arr:7,cursor:8,length:8 }
 type 7 array 3
 type 8 primitive usize
+impl 0 Greeter
+impl 4 Contains
+impl 4 Iterator
+impl 6 Iterator
 
 fn 0 tests_snippets_trait_box_range_iter__main_vader$Hello$Greeter$greet (ref) -> i32
   i32.const 100   ; _main.vader:28:39

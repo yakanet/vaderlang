@@ -2,6 +2,8 @@ module _main
 type 0 struct std_core$Range__i32 { start:1,end:1,inclusive:2,cursor:1 }
 type 1 primitive i32
 type 2 primitive bool
+impl 0 Contains
+impl 0 Iterator
 
 fn 0 tests_snippets_expressions__main_vader$add (i32,i32) -> i32
   local.get 0   ; _main.vader:2:12

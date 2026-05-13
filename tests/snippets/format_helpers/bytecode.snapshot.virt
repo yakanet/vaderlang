@@ -19,6 +19,7 @@ string 11 "0"
 import 0 println std_io$println (string) -> void
 import 1 byte_len std_string$byte_len (string) -> usize
 import 2 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+impl 0 Display
 
 fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   local "__sb_0#72" any

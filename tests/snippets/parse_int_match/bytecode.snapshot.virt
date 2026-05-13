@@ -15,6 +15,7 @@ string 6 "float err"
 import 0 println std_io$println (string) -> void
 import 1 parse_int std_string$parse_int (string) -> ref
 import 2 parse_float std_string$parse_float (string) -> ref
+impl 0 Display
 
 fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
   local "__scrut_0#31" ref

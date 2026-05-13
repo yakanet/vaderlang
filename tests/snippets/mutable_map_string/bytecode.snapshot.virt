@@ -27,6 +27,11 @@ string 12 "missing"
 string 13 "hello updated = "
 import 0 hash std_core$string$Hash$hash (string) -> u64
 import 1 println std_io$println (string) -> void
+impl 3 Contains
+impl 3 Iterator
+impl 10 Index
+impl 10 IndexSet
+impl 10 Contains
 
 fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
   local "$arr_0#77" ref

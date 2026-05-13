@@ -386,18 +386,28 @@ export VtableEntry :: struct {
     function_index: i32
 }
 
+/// Records a `<type_id> implements <trait_name>` pair from the .virt
+/// `impl` directive. Used by `ref_type_matches` to answer `is Trait`
+/// patterns where the trait body wouldn't otherwise survive DCE.
+export Impl :: struct {
+    type_id:    i32
+    trait_name: string
+}
+
 /// Top-level holder for a parsed .virt module. `main_index` points
 /// at the entry function in `functions` — populated by the parser
 /// from the `export main N` directive, with a fallback search for a
 /// mangled name ending in `$main` if the directive is absent. `vtables`
 /// is built lazily after parse by `build_vtables` from the trait-method
-/// fn-name convention (no .virt directive carries it).
+/// fn-name convention. `impls` is populated directly from the
+/// `impl TYPE_ID TRAIT_NAME` directives the .virt writer emits.
 export Module :: struct {
     strings:    string[]
     imports:    ImportInfo[]
     types:      TypeDecl[]
     functions:  BytecodeFunction[]
     vtables:    Vtable[]
+    impls:      Impl[]
     main_index: i32
 }
 

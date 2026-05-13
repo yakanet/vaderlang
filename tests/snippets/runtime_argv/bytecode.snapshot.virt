@@ -7,6 +7,7 @@ type 4 array 2
 type 5 primitive usize
 string 0 "argc="
 import 0 println std_io$println (string) -> void
+impl 3 Iterator
 
 fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
   local "__sb_0#19" any

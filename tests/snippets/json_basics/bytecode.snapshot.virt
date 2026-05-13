@@ -115,6 +115,21 @@ import 4 slice std_string$slice (string,usize,usize) -> string
 import 5 ends_with std_string$ends_with (string,string) -> bool
 import 6 parse_float std_string$parse_float (string) -> ref
 import 7 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+impl 22 Contains
+impl 22 Iterator
+impl 24 Contains
+impl 24 Iterator
+impl 25 Contains
+impl 25 Iterator
+impl 26 Iterator
+impl 28 Iterator
+impl 30 Iterator
+impl 40 Error
+impl 42 Iterator
+impl 43 Display
+impl 46 Index
+impl 46 IndexSet
+impl 46 Contains
 
 fn 0 tests_snippets_json_basics__main_vader$show (string,string) -> void
   local "parsed#55" ref

@@ -10,6 +10,8 @@ string 3 "ret "
 string 4 "field tag="
 string 5 " n="
 import 0 println std_io$println (string) -> void
+impl 0 Into
+impl 0 Into
 
 fn 0 tests_snippets_coerce_into_basic__main_vader$UserId$Into$into (ref) -> i32
   local.get 0   ; _main.vader:8:38

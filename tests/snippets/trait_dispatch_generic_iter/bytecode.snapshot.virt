@@ -8,6 +8,8 @@ type 5 struct std_core$Yielded__i32 { value:1 }
 string 0 "repeat="
 string 1 "once="
 import 0 println std_io$println (string) -> void
+impl 0 Iterator
+impl 2 Iterator
 
 fn 0 tests_snippets_trait_dispatch_generic_iter__main_vader$walk (ref) -> i32
   local "sum#11" i32

@@ -67,6 +67,30 @@ ${err}`);
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
+  // Post Sprint 12 (2026-05-13). Four trait-dispatch and host gaps
+  // closed in one batch :
+  //   - `.virt` writer now emits `impl TYPE_ID TRAIT_NAME` directives
+  //     from the bytecode `implTable` (was internal-only) ; the Vader
+  //     VM parser registers them on `op.Module.impls`. `ref_type_matches`
+  //     consults this table to answer `is Trait` patterns where the
+  //     trait method got stripped by DCE — fixes `vm_trait_dispatch`,
+  //     `dot_variant_in_union`.
+  //   - `receiver_type_id_of` now looks up `PrimitiveType.kind` in the
+  //     module type table so primitive trait receivers (e.g. `i32
+  //     implements Doubler`) resolve a real type_id ; `find_struct_type_id`
+  //     gained a primitive-name fallback so `build_vtables` registers
+  //     `<module>$i32$Trait$method` against the i32 PrimitiveType entry.
+  //     Fixes `trait_box_range_iter`.
+  //   - New `std_process$spawn_run` / `spawn_last_stdout` /
+  //     `spawn_last_stderr` host arms call into the native stdlib
+  //     intrinsics. Fixes `process_spawn`.
+  // 4 snippets unblock — 176 / 179 = 98 % acceptance. Remaining 3 :
+  //   - Integer width truncation : `enum_to_repr_cast`,
+  //     `numeric_context_sensitivity`, `type_aliases`. The Vader VM
+  //     aliases every integer width onto `I32Val` ; values above 2^31
+  //     wrap. Adding an `I64Val` (or `U64Val`) variant is the next
+  //     sprint.
+  //
   // Post Sprint 11 (2026-05-13). `ErrorVal` added to the `Value` union :
   // `RefType` learns its `trait_name` (was empty placeholder), and the
   // new `ref_type_matches` routes `is Error` to `op.ErrorVal` checks (and
@@ -139,13 +163,9 @@ const KNOWN_DIVERGENT = new Set<string>([
   //   - Width truncation (u32 wrap missing) — numeric_context_sensitivity,
   //     enum_to_repr_cast, type_aliases.
   //   - Misc : process_spawn (spawn_run host).
-  "dot_variant_in_union",
   "enum_to_repr_cast",
   "numeric_context_sensitivity",
-  "process_spawn",
-  "trait_box_range_iter",
   "type_aliases",
-  "vm_trait_dispatch",
 ]);
 
 const scenarios = listSnippets("tests/snippets");

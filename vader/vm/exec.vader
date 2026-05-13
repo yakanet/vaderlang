@@ -18,6 +18,7 @@
 // bugs.
 
 import "std/io" { read_file, write_file, exists, eprintln, println, print }
+import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/numbers" { parse_int_in_base }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/string_builder" { StringBuilder, new_builder, append }
@@ -457,26 +458,39 @@ type_matches :: fn(module: op.Module, v: op.Value, type_id: i32) -> bool {
             _                 -> false
         }
         is op.UnionType     as u -> union_matches(module, v, u.variant_type_ids)
-        is op.RefType       as r -> ref_type_matches(v, r.trait_name)
+        is op.RefType       as r -> ref_type_matches(module, v, r.trait_name)
         is op.FnType             -> false
     }
 }
 
 /// Match a value against a `ref Trait` type. Mirrors `matchTo`'s
 /// `case "ref"` arm in `src/vm/exec.ts` :
-///   - `is Error`         → matches every `ErrorVal`.
+///   - `is Error`         → matches `ErrorVal` (host-built errors) or
+///                          any `StructVal` whose type registers an
+///                          `Error` impl in the synthesised vtables
+///                          (user-defined errors like `ParseError`).
 ///   - `is _` (wildcard)  → matches any heap-allocated value (struct /
 ///                          array / builder / fn) so legacy `ref _`
 ///                          patterns still bind.
-///   - Other trait names  → fall back to `false` until a `.virt`-side
-///                          impl table lands (vm_trait_dispatch / similar
-///                          stay in `KNOWN_DIVERGENT` until that work).
+///   - Other trait names  → resolve through the vtable as well : a
+///                          struct implements a trait iff a `<Trait>.<*>`
+///                          vtable entry exists for its `type_id`.
+///                          Matches the impl-table heuristic the TS VM
+///                          falls back on.
 ///
+/// @param module      the running module — supplies the vtable index
+///                    for the impl-table lookup.
 /// @param v           the value to test.
 /// @param trait_name  the trait name carried on the `RefType`.
 /// @return            `true` iff `v` matches the trait.
-ref_type_matches :: fn(v: op.Value, trait_name: string) -> bool {
-    if trait_name == "Error" { return v is op.ErrorVal }
+ref_type_matches :: fn(module: op.Module, v: op.Value, trait_name: string) -> bool {
+    if trait_name == "Error" {
+        if v is op.ErrorVal { return true }
+        return match v {
+            is op.StructVal as s -> trait_implemented_by(module, "Error", s.type_id)
+            _                    -> false
+        }
+    }
     if trait_name == "" {
         return match v {
             is op.StructVal  -> true
@@ -486,16 +500,80 @@ ref_type_matches :: fn(v: op.Value, trait_name: string) -> bool {
             _                -> false
         }
     }
+    return match v {
+        is op.StructVal as s -> trait_implemented_by(module, trait_name, s.type_id)
+        _                    -> false
+    }
+}
+
+/// True iff `type_id` is registered as an implementer of `trait_name`.
+/// Consults `module.impls` first (populated from `impl TYPE_ID TRAIT`
+/// directives in the .virt) — that source survives DCE because the
+/// writer emits one entry per implTable pair regardless of whether the
+/// method bodies are reachable. Falls back to scanning `module.vtables`
+/// for legacy modules whose .virt predates the directive.
+///
+/// @param module      the running module.
+/// @param trait_name  the trait being queried.
+/// @param type_id     the receiver struct's ordinal in `module.types`.
+/// @return            `true` iff any impl directive registers the pair,
+///                    or any vtable entry covers it.
+trait_implemented_by :: fn(module: op.Module, trait_name: string, type_id: i32) -> bool {
+    i: usize = 0
+    for i < module.impls.len() {
+        if module.impls[i].type_id == type_id && module.impls[i].trait_name == trait_name {
+            return true
+        }
+        i += 1
+    }
+    prefix :: "${trait_name}."
+    j: usize = 0
+    for j < module.vtables.len() {
+        if module.vtables[j].key.starts_with(prefix) {
+            k: usize = 0
+            for k < module.vtables[j].entries.len() {
+                if module.vtables[j].entries[k].type_id == type_id { return true }
+                k += 1
+            }
+        }
+        j += 1
+    }
     return false
 }
 
 /// Receiver `type_id` extraction for `virtual.call`. Struct / Array
-/// receivers carry their type_id directly. Primitives don't have one,
-/// so they return -1 (the caller traps with "no impl for tag").
-receiver_type_id_of :: fn(v: op.Value) -> i32 = match v {
-    is op.StructVal as s -> s.type_id
-    is op.ArrayVal  as a -> a.type_id
-    _                 -> -1
+/// receivers carry their type_id directly ; primitives (i32, char, …)
+/// need a module-level lookup against the type table to find the
+/// `PrimitiveType` entry that matches the value's runtime tag.
+/// Returns `-1` when nothing matches (caller traps).
+///
+/// @param module  the running module — supplies the type table for the
+///                primitive-tag → type-id lookup.
+/// @param v       the receiver value.
+/// @return        the receiver's type-id, or `-1` for unmatched values.
+receiver_type_id_of :: fn(module: op.Module, v: op.Value) -> i32 {
+    return match v {
+        is op.StructVal as s -> s.type_id
+        is op.ArrayVal  as a -> a.type_id
+        _                    -> primitive_type_id(module, v)
+    }
+}
+
+/// Find the `PrimitiveType` entry in `module.types` whose `kind` matches
+/// the value's runtime tag. Used by `receiver_type_id_of` to dispatch
+/// trait methods implemented on primitives (e.g. `i32 implements
+/// Doubler`).
+primitive_type_id :: fn(module: op.Module, v: op.Value) -> i32 {
+    tag :: describe_value_tag(v)
+    i: usize = 0
+    for i < module.types.len() {
+        match module.types[i] {
+            is op.PrimitiveType as p -> { if p.kind == tag { return i32(i) } }
+            _                        -> { }
+        }
+        i += 1
+    }
+    return -1
 }
 
 /// Look up the function index in the vtable for `key` by receiver
@@ -737,7 +815,7 @@ export exec :: fn(module: op.Module) -> VmResult {
                 }
                 receiver_index :: frame.sp - usize(instr.parameter_count)
                 receiver :: frame.stack[receiver_index]
-                receiver_type_id :: receiver_type_id_of(receiver)
+                receiver_type_id :: receiver_type_id_of(module, receiver)
                 if receiver_type_id < 0 {
                     return Trap { .message = "virtual.call '${instr.vtable_key}' : receiver tag ${describe_value_tag(receiver)} has no type id at pc=${frame.pc}" }
                 }
@@ -1867,6 +1945,34 @@ dispatch_import :: fn(info: op.ImportInfo, stack: op.Value[], arg_base: usize, g
         path :: read_string(stack[arg_base], at_pc, "exists")
         if path is Trap { return path }
         return HostOk { .value = op.BoolVal { .value = exists(path.value) } }
+    }
+    // ---- std/process spawn ----------------------------------------------
+    // `spawn_run` takes a `string[]` argv and returns the child's exit
+    // code. `spawn_last_stdout` / `spawn_last_stderr` retrieve the
+    // captured streams from the last `spawn_run` call (last-call-wins,
+    // single-threaded — matches the native runtime's static buffers).
+    if info.mangled == r"std_process$spawn_run" {
+        argv :: read_array(stack[arg_base], at_pc, "spawn_run argv")
+        if argv is Trap { return argv }
+        // Re-materialise the `string[]` for the native call. Each element
+        // must be a `StringVal` ; bail with a trap if anything else slipped
+        // in (the typer should have caught it but be defensive).
+        argv_strings: string[] = []
+        i: usize = 0
+        for i < argv.elements.len() {
+            element :: read_string(argv.elements[i], at_pc, "spawn_run argv element")
+            if element is Trap { return element }
+            argv_strings.push(element.value)
+            i += 1
+        }
+        code :: spawn_run(argv_strings)
+        return HostOk { .value = op.I32Val { .value = code } }
+    }
+    if info.mangled == r"std_process$spawn_last_stdout" {
+        return HostOk { .value = op.StringVal { .value = spawn_last_stdout() } }
+    }
+    if info.mangled == r"std_process$spawn_last_stderr" {
+        return HostOk { .value = op.StringVal { .value = spawn_last_stderr() } }
     }
     // ---- std/testing -----------------------------------------------------
     if info.mangled == r"std_testing$panic" {

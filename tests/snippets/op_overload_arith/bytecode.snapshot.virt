@@ -9,6 +9,11 @@ string 4 ") q=("
 string 5 ") r=("
 string 6 ")"
 import 0 println std_io$println (string) -> void
+impl 0 Add
+impl 0 Sub
+impl 0 Mul
+impl 0 Div
+impl 0 Rem
 
 fn 0 tests_snippets_op_overload_arith__main_vader$Vec$Add$add (ref,ref) -> ref
   local "$field_2#9" i32

@@ -21,6 +21,8 @@ string 10 "done"
 import 0 at std_core$string$Index$at (string,usize) -> char
 import 1 println std_io$println (string) -> void
 import 2 byte_len std_string$byte_len (string) -> usize
+impl 3 Iterator
+impl 6 Display
 
 fn 0 tests_snippets_string_chars__main_vader$main () -> i32
   local "__iter_0#52" ref

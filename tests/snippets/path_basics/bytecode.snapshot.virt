@@ -59,6 +59,7 @@ import 3 slice std_string$slice (string,usize,usize) -> string
 import 4 starts_with std_string$starts_with (string,string) -> bool
 import 5 ends_with std_string$ends_with (string,string) -> bool
 import 6 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+impl 2 Display
 
 fn 0 tests_snippets_path_basics__main_vader$show_path (string,ref) -> void
   local "__sb_0#8" any

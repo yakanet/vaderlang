@@ -36,6 +36,12 @@ string 10 "cherry"
 string 11 ": "
 string 12 "b="
 import 0 println std_io$println (string) -> void
+impl 12 Contains
+impl 12 Iterator
+impl 14 Iterator
+impl 16 Iterator
+impl 18 Iterator
+impl 20 Iterator
 
 fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   local "nums#107" ref

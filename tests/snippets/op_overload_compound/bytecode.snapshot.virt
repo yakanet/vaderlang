@@ -6,6 +6,8 @@ string 1 "  v=("
 string 2 ","
 string 3 ")"
 import 0 println std_io$println (string) -> void
+impl 0 Add
+impl 0 Sub
 
 fn 0 tests_snippets_op_overload_compound__main_vader$Vec$Add$add (ref,ref) -> ref
   local "$field_2#9" i32

@@ -21,6 +21,8 @@ string 7 "isz_neg ok"
 string 8 "slice_array: "
 string 9 "returned: "
 import 0 println std_io$println (string) -> void
+impl 6 Contains
+impl 6 Iterator
 
 fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   local "d64#93" i64

@@ -23,6 +23,16 @@ export function writeVir(m: BytecodeModule): string {
   for (let i = 0; i < m.types.length; i++) out.push(`type ${i} ${formatType(m.types[i]!)}`);
   for (let i = 0; i < m.strings.length; i++) out.push(`string ${i} ${formatString(m.strings[i]!)}`);
   for (let i = 0; i < m.imports.length; i++) out.push(`import ${i} ${formatImport(m.imports[i]!)}`);
+  // Trait-impl directives — one `impl TYPE_ID TRAIT_NAME` line per (type, trait)
+  // pair that the typechecker registered, so consumers (Vader-VM, C-emit
+  // re-parse) can answer `is Trait` patterns without a struct-name heuristic.
+  // Sorted by type-id to keep the snapshot stable.
+  const implTypeIds = [...m.implTable.keys()].sort((a, b) => a - b);
+  for (const typeIdx of implTypeIds) {
+    for (const trait of m.implTable.get(typeIdx)!) {
+      out.push(`impl ${typeIdx} ${quoteIdent(trait)}`);
+    }
+  }
   for (const e of m.exports) out.push(`export ${quoteIdent(e.externName)} ${e.fnIndex}`);
 
   for (let i = 0; i < m.functions.length; i++) {
@@ -193,17 +203,18 @@ interface MutableModule {
   functions: BcFunction[];
   imports: BcImport[];
   exports: BcExport[];
+  implTable: Map<number, string[]>;
 }
 
 function newMutableModule(): MutableModule {
-  return { name: "", types: [], strings: [], functions: [], imports: [], exports: [] };
+  return { name: "", types: [], strings: [], functions: [], imports: [], exports: [], implTable: new Map() };
 }
 
 function finalizeModule(m: MutableModule): BytecodeModule {
   return {
     name: m.name, types: m.types, strings: m.strings,
     functions: m.functions, imports: m.imports, exports: m.exports,
-    implTable: new Map(),
+    implTable: m.implTable,
     vtables: new Map(),
   };
 }
@@ -247,6 +258,15 @@ function parseHeaderLine(line: string, m: MutableModule, ctx: ParseCtx): void {
         externName: unquoteIdent(externName ?? ""),
         fnIndex: Number(fnIdxStr),
       });
+      return;
+    }
+    case "impl": {
+      const [idxStr, ...rest2] = rest.split(/\s+/);
+      const idx = Number(idxStr);
+      const trait = unquoteIdent(rest2.join(" "));
+      const list = m.implTable.get(idx);
+      if (list !== undefined) list.push(trait);
+      else m.implTable.set(idx, [trait]);
       return;
     }
     case "fn":
