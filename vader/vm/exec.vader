@@ -1,0 +1,134 @@
+// vader/vm/exec — Sprint 1 of the self-host VM port (docs/SELFHOST_VM.md).
+//
+// Reads a `.virt` text dump produced by `vader build --target=ir-text`
+// and runs the entry function. The bytecode shape and op coverage are
+// intentionally minimal — sprint 1 only needs `i32.const` + `return`
+// to validate the bootstrap loop. Subsequent sprints widen the op set
+// and the value representation in lock-step.
+
+import "std/io" { read_file, eprintln }
+import "std/string" { byte_len, slice, starts_with, trim, split }
+import "std/numbers" { parse_int_in_base }
+
+// Op union — sprint 1 only carries the two ops needed to exercise the
+// loop. Adding a variant is the canonical extension path : new struct,
+// new arm in `parse_op_line`, new arm in `exec`.
+export Op :: I32Const | Return
+
+I32Const :: struct { value: i32 }
+Return   :: struct {}
+
+// One function's body. Sprint 1 only reads `main` ; future sprints
+// promote this to a full `BytecodeModule` mirror.
+MainBody :: struct {
+    ops: Op[]
+}
+
+// ---- parser -------------------------------------------------------------
+
+// Strip a trailing `; ...` comment (the .virt format glues a source-span
+// annotation after every op). The semicolon never appears inside an op
+// payload today, so a first-occurrence split is correct.
+strip_comment :: fn(line: string) -> string {
+    parts :: line.split(";")
+    if parts.len() == 0 { return line }
+    return parts[0].trim()
+}
+
+// Walk every line of the .virt source. Outside a function body we look
+// for the `fn ...` opener of the first function (sprint 1 assumes `main`
+// is fn 0 and runs only its body). Inside a body we collect ops until
+// `end`. Unknown directives are silently skipped — sprint 2 will tighten
+// this once we cover more ops.
+export parse_virt :: fn(src: string) -> MainBody {
+    ops: Op[] = []
+    in_fn := false
+    lines :: src.split("\n")
+    for line in lines {
+        cleaned :: strip_comment(line)
+        if cleaned.byte_len() == 0 { continue }
+        if cleaned.starts_with("fn ") {
+            // Sprint 1: only the first fn matters and we assume it's `main`.
+            // Sprint 4 will store fns by index and dispatch through `call`.
+            if in_fn { break }
+            in_fn = true
+            continue
+        }
+        if cleaned == "end" {
+            // First fn over — anything else in the file is post-main and
+            // not exercised by sprint 1 snippets.
+            break
+        }
+        if !in_fn { continue }
+        op :: parse_op_line(cleaned)
+        match op {
+            is I32Const -> { ops.push(op) }
+            is Return   -> { ops.push(op) }
+            is null     -> { /* unknown op: ignored in sprint 1, see header */ }
+        }
+    }
+    return MainBody { .ops = ops }
+}
+
+// Returns `null` for unrecognised ops so the parser can keep going past
+// directives sprint 1 doesn't need (e.g. local decls in fns with locals,
+// or any non-const/non-return op).
+parse_op_line :: fn(cleaned: string) -> Op | null {
+    if cleaned.starts_with("i32.const ") {
+        rest :: cleaned.slice("i32.const ".byte_len(), cleaned.byte_len()).trim()
+        v :: parse_int_in_base(rest, 10)
+        match v {
+            is i64 as n -> { return I32Const { .value = (i32)(n) } }
+            is Error    -> { return null }
+        }
+    }
+    if cleaned == "return" {
+        return Return {}
+    }
+    return null
+}
+
+// ---- exec ---------------------------------------------------------------
+
+// Stack-machine interpreter. The stack is `i32[]` for sprint 1 ; once
+// strings / structs / arrays land in sprint 3+ this widens to a tagged
+// `Value` union mirroring `src/vm/value.ts`.
+export exec :: fn(body: MainBody) -> i32 {
+    stack: i32[] = []
+    for op in body.ops {
+        match op {
+            is I32Const as ic -> {
+                stack.push(ic.value)
+            }
+            is Return -> {
+                if stack.len() == 0 {
+                    // Void return — the .virt encoder still emits a
+                    // `return` op even for `void` fns. Treat as exit-0.
+                    return 0
+                }
+                return stack[stack.len() - 1]
+            }
+        }
+    }
+    // Fall-through with no return — the lower normally guarantees a
+    // terminator, so this is defensive. Mirror the TS VM: 0.
+    return 0
+}
+
+// ---- entry --------------------------------------------------------------
+
+// Read + parse + execute. Returns the program's exit value on success,
+// or 1 with an eprintln on read failure — until the cross-module
+// `i32!` match-as-expression bug is fixed we can't propagate the
+// `Error` to the caller cleanly (TODO §2.4 — surfaces when a match on
+// `(i32 | Error)` is consumed inside a fn with deep module imports).
+export run_virt :: fn(path: string) -> i32 {
+    r :: read_file(path)
+    return match r {
+        is Error -> {
+            eprintln("vader run: cannot read ${path}")
+            1
+        }
+        is string -> exec(parse_virt(r))
+    }
+}

@@ -9,7 +9,7 @@
 // "not yet implemented" message.
 
 import "std/io" { println, eprintln, read_file }
-import "std/string" { byte_len, slice, starts_with }
+import "std/string" { byte_len, slice, starts_with, ends_with }
 import "std/iter" { slice as slice_arr }
 import "vader/version" { CLI_VERSION }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
@@ -18,6 +18,7 @@ import "vader/resolver/symbol" { new_factory }
 import "vader/resolver/resolve" { ResolvedProject, ResolvedModule, resolve_module }
 import "vader/resolver/dump" { dump_project }
 import "vader/fmt/cli" { run_fmt }
+import "vader/vm/exec" { run_virt }
 
 // Byte-for-byte copy of `HELP` in `src/cli.ts`. Triple-quoted strings drop
 // the newline immediately after the opening `"""`, so the body starts at
@@ -175,8 +176,15 @@ cmd_run :: fn(args: string[]) -> i32 {
         eprintln("vader run: expected a file argument")
         return 1
     }
-    // TS implements `run` ; self-hosted can't yet (no comptime/VM in Vader).
-    eprintln("vader run: not yet implemented")
+    path :: args[0]
+    // Sprint 1 of the self-host VM (docs/SELFHOST_VM.md): only `.virt`
+    // text bytecode is supported today, with the trivial op set
+    // (`i32.const` + `return`). Source `.vader` files and `.vir` binary
+    // bytecode still route to the TS host.
+    if path.ends_with(".virt") {
+        return run_virt(path)
+    }
+    eprintln("vader run: not yet implemented (only .virt for now)")
     return 2
 }
 

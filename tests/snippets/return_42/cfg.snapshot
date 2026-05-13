@@ -1,0 +1,10 @@
+# CFG
+
+## tests/snippets/return_42/_main.vader
+
+fn tests_snippets_return_42__main_vader$main() -> i32
+  locals:
+    %0 $k_0#1: i32
+  bb0:
+    %0 = const int(42) :i32
+    return %0

@@ -1,0 +1,32 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "42n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

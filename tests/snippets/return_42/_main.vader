@@ -1,0 +1,7 @@
+// Minimal snippet: the Vader VM (in self-host) should run this through
+// `.virt` text dump and exit 42. First acceptance test of the bootstrap
+// sprint (docs/SELFHOST_VM.md).
+
+main :: fn() -> i32 {
+    return 42
+}

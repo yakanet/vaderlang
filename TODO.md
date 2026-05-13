@@ -816,7 +816,14 @@ Stand up a `vader` binary written in Vader so each ported phase can compare its 
 
 ### 2.4 Port the VM
 
-- [ ] Port to Vader
+Incremental strategy + sprint breakdown: [`docs/SELFHOST_VM.md`](./docs/SELFHOST_VM.md).
+The Vader VM reads the same `.virt` text dump the TS toolchain produces,
+so each sprint validates against the live TS pipeline without waiting on
+the typer/lower/bytecode emit port (§2.6 / §2.3).
+
+- [ ] **Sprint 1** — `i32.const` + `return` only ; `vader run return_42.virt` exits 42
+- [ ] Sprints 2-5 — locals, binops, control flow, strings, structs, arrays, calls, type checks
+- [ ] Sprint 6 — binary `.vir` loader (optional ; the text loader keeps parity through 2-5)
 - [ ] Verify it runs `examples/` against the TS VM
 
 ### 2.5 Port the WASM emitter — gated on Phase 3 (§3.10)
