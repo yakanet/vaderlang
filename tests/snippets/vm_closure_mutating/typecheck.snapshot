@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/vm_closure_mutating/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 10:10    CallExpr       :: i32
+  expr 10:10    IdentExpr      :: fn() -> i32
+  expr 11:10    CallExpr       :: i32
+  expr 11:10    IdentExpr      :: fn() -> i32
+  expr 12:10    CallExpr       :: i32
+  expr 12:10    IdentExpr      :: fn() -> i32
+  expr 13:10    CallExpr       :: i32
+  expr 13:10    IdentExpr      :: fn() -> i32
+  expr 14:12    BinaryExpr     :: i32
+  expr 14:12    BinaryExpr     :: i32
+  expr 14:12    BinaryExpr     :: i32
+  expr 14:12    IdentExpr      :: i32
+  expr 14:16    IdentExpr      :: i32
+  expr 14:20    IdentExpr      :: i32
+  expr 14:24    IdentExpr      :: i32
+  expr 6:12     LambdaExpr     :: fn() -> i32
+  expr 7:13     BinaryExpr     :: i32
+  expr 7:13     IdentExpr      :: i32
+  expr 7:9      IdentExpr      :: i32
+  expr 8:16     IdentExpr      :: i32

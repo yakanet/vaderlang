@@ -12,7 +12,7 @@ import "std/string_builder" { StringBuilder, new_builder, append }
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | CallImport | Call | FnRef | CallIndirect | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -35,15 +35,26 @@ export Call :: struct { function_index: i32 }
 
 /// Push a function reference (`FnVal`) for `function_index`. Used when
 /// a fn is stored in a struct field, passed as an argument, or bound to
-/// a local. Sprint 4 (b4) addition ; closures with captured env are
-/// not yet supported (deferred to b5+).
+/// a local. Sprint 4 (b4) addition ; the resulting `FnVal.env` is
+/// always `null` — closures with captured state come from `MakeClosure`.
 export FnRef :: struct { function_index: i32 }
+
+/// Build a closure : pop an `env` value (typically a `StructVal`
+/// carrying the captured cells) and push a `FnVal { function_index, env }`.
+/// The lifted fn's signature has an extra leading `env` parameter ;
+/// `CallIndirect` prepends `env` as `slot 0` when invoking. `type_id`
+/// is informational (mirrors `fn.ref`'s static-type hint). Sprint 4 (b5)
+/// addition.
+export MakeClosure :: struct { function_index: i32 }
 
 /// Invoke a function through a `FnVal` on top of the value stack.
 /// `type_id` indexes into `module.types` and resolves to a `FnType`
-/// whose `parameter_type_ids.len()` tells the executor how many args
-/// to pop from the caller stack before binding them to the callee's
-/// `slots[0..N]`. Sprint 4 (b4) addition.
+/// whose `parameter_type_ids.len()` tells the executor how many
+/// **user-visible** args to pop from the caller stack ; if the popped
+/// `FnVal` carries a non-`null` `env`, the executor prepends it as
+/// `slot 0` before binding the user args (matching how the lifted
+/// closure body expects them). Sprint 4 (b4) addition ; (b5) added the
+/// env-prepend path.
 export CallIndirect :: struct { type_id: i32 }
 
 /// Allocate a struct of type `type_id`. Pops `field_count` values (in
@@ -282,13 +293,16 @@ export BuilderVal :: struct {
 }
 
 /// Function-reference payload — the runtime value pushed by `fn.ref`
-/// and consumed by `call.indirect`. `function_index` keys into
-/// `Module.functions` (same index space as the direct `Call` op).
-/// Sprint 4 (b4) only supports plain fn-refs ; closures with captured
-/// env (`make_closure` op) will add an optional `env: Value | null`
-/// field in a future sprint.
+/// and `make_closure`, consumed by `call.indirect`. `function_index`
+/// keys into `Module.functions` (same index space as the direct `Call`
+/// op). `env` is `null` for plain fn-refs (Sprint 4 (b4)) and a captured
+/// value (typically a `StructVal` holding the cell-wrapped captures)
+/// for closures (Sprint 4 (b5)). At `CallIndirect` time, a non-`null`
+/// `env` is bound to the callee's `slot 0` before the user args fill
+/// `slot 1 ..`.
 export FnVal :: struct {
     function_index: i32
+    env:            Value | null
 }
 
 // ---- Display impls on each `Value` variant --------------------------------
@@ -318,7 +332,7 @@ BuilderVal implements Display {
 }
 
 FnVal implements Display {
-    to_string :: fn(self) -> string = "<fn ${self.function_index}>"
+    to_string :: fn(self) -> string = if self.env is null { "<fn ${self.function_index}>" } else { "<fn ${self.function_index}+env>" }
 }
 
 /// Renders as `<type_id>{ field0, field1, … }` — type_id is the ordinal

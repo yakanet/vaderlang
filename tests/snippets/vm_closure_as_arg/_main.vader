@@ -1,0 +1,15 @@
+// Sprint 4 (b5) acceptance: closure passed as a callback. `apply` takes
+// a fn-value, the caller passes in a closure that captures `bias`.
+// `apply(add_bias, 7) = (7 + 5) = 12`.
+
+apply :: fn(f: fn(i32) -> i32, n: i32) -> i32 {
+    return f(n)
+}
+
+main :: fn() -> i32 {
+    bias := 5
+    add_bias :: fn(n: i32) -> i32 {
+        return n + bias
+    }
+    return apply(add_bias, 7)
+}

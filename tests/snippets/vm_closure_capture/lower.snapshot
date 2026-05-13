@@ -1,0 +1,22 @@
+# Lower
+
+## tests/snippets/vm_closure_capture/_main.vader
+  fn tests_snippets_vm_closure_capture__main_vader$main() -> i32
+    let x: ? =
+      LoweredCellNew
+    let add_x: fn(i32) -> i32 =
+      LoweredMakeClosure
+    return
+      call :i32
+        callee:
+          add_x :fn(i32) -> i32
+        arg0:
+          int(5) :i32
+  struct __lambda_env_2 { cap_0: ? }
+  fn __lambda_1(__env_0: __lambda_env_2, y: i32) -> i32
+    return
+      add :i32
+        l:
+          LoweredCellGet
+        r:
+          y :i32

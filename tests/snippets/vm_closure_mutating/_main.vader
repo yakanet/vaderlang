@@ -1,0 +1,15 @@
+// Sprint 4 (b5) acceptance: closure mutating a captured local through
+// a Cell-wrapped env field. 4 calls to `inc` produce 1+2+3+4 = 10.
+
+main :: fn() -> i32 {
+    n := 0
+    inc :: fn() -> i32 {
+        n = n + 1
+        return n
+    }
+    a := inc()
+    b := inc()
+    c := inc()
+    d := inc()
+    return a + b + c + d
+}
