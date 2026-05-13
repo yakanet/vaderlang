@@ -98,7 +98,7 @@ export parse_virt :: fn(source: string) -> Module {
         }
         // Every accepted op gets its own table entry (always -1 sentinel
         // by default ; branching ops fill it before exec sees them).
-        pc :: (i32)(ops.len())
+        pc :: i32(ops.len())
         appended :: try_push_op(cleaned, ops)
         if !appended { continue }
         table.push(-1)
@@ -115,7 +115,7 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> void {
     after :: cleaned.slice("string ".byte_len(), cleaned.byte_len())
     first_quote :: after.index_of('"', 0)
     if first_quote < 0 { return }
-    body :: after.slice((usize)(first_quote) + 1, after.byte_len() - 1)
+    body :: after.slice(usize(first_quote) + 1, after.byte_len() - 1)
     strings.push(body)
 }
 
@@ -149,9 +149,9 @@ count_import_params :: fn(line: string) -> usize {
     open :: line.index_of('(', 0)
     close :: line.index_of(')', 0)
     if open < 0 || close < 0 || close <= open + 1 { return 0 }
-    inner :: line.slice((usize)(open) + 1, (usize)(close)).trim()
+    inner :: line.slice(usize(open) + 1, usize(close)).trim()
     if inner.byte_len() == 0 { return 0 }
-    return (usize)(inner.split(",").len())
+    return usize(inner.split(",").len())
 }
 
 // Push the op for `cleaned` onto `ops`. Returns `true` if a known op
@@ -251,10 +251,10 @@ defer_or_resolve_branch :: fn(
     label :: first_token_after(cleaned, prefix)
     sp :: scope_sp[0]
     // Find the matching scope by label from the top.
-    i :: (i32)(sp) - 1
+    i :: i32(sp) - 1
     found_idx := -1
     for i >= 0 {
-        if scopes[(usize)(i)].label == label {
+        if scopes[usize(i)].label == label {
             found_idx = i
             i = -1                          // break
         } else {
@@ -262,7 +262,7 @@ defer_or_resolve_branch :: fn(
         }
     }
     if found_idx < 0 { return }
-    target :: scopes[(usize)(found_idx)]
+    target :: scopes[usize(found_idx)]
     if target.is_loop {
         table[pc] = target.opener_pc + 1
     } else {
@@ -283,8 +283,8 @@ drain_pending :: fn(
     psp :: pending_sp[0]
     new_sp := 0
     i := 0
-    for i < (i32)(psp) {
-        entry :: pending[(usize)(i)]
+    for i < i32(psp) {
+        entry :: pending[usize(i)]
         if entry.target_label == label {
             if is_loop {
                 table[entry.branch_pc] = opener_pc + 1
@@ -292,12 +292,12 @@ drain_pending :: fn(
                 table[entry.branch_pc] = end_pc + 1
             }
         } else {
-            pending[(usize)(new_sp)] = entry
+            pending[usize(new_sp)] = entry
             new_sp += 1
         }
         i += 1
     }
-    pending_sp[0] = (usize)(new_sp)
+    pending_sp[0] = usize(new_sp)
 }
 
 // Returns `null` for unrecognised ops so the parser can keep going past
@@ -334,27 +334,27 @@ parse_int_arg :: fn(line: string, prefix: string) -> Op | null {
     rest :: line.slice(prefix.byte_len(), line.byte_len()).trim()
     parsed :: parse_int_in_base(rest, 10)
     if parsed is Error { return null }
-    return I32Const { .value = (i32)(parsed) }
+    return I32Const { .value = i32(parsed) }
 }
 
 parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
     rest :: line.slice(prefix.byte_len(), line.byte_len()).trim()
     parsed :: parse_int_in_base(rest, 10)
     if parsed is Error { return null }
-    if is_get { return LocalGet { .slot = (i32)(parsed) } }
-    return LocalSet { .slot = (i32)(parsed) }
+    if is_get { return LocalGet { .slot = i32(parsed) } }
+    return LocalSet { .slot = i32(parsed) }
 }
 
 parse_string_const :: fn(line: string) -> Op | null {
     rest :: line.slice("string.const ".byte_len(), line.byte_len()).trim()
     parsed :: parse_int_in_base(rest, 10)
     if parsed is Error { return null }
-    return StringConst { .index = (i32)(parsed) }
+    return StringConst { .index = i32(parsed) }
 }
 
 parse_call_import :: fn(line: string) -> Op | null {
     rest :: line.slice("call.import ".byte_len(), line.byte_len()).trim()
     parsed :: parse_int_in_base(rest, 10)
     if parsed is Error { return null }
-    return CallImport { .index = (i32)(parsed) }
+    return CallImport { .index = i32(parsed) }
 }

@@ -48,7 +48,7 @@ export exec :: fn(module: Module) -> VmResult {
     }
     pc := 0
     op_count :: body.ops.len()
-    for pc < (i32)(op_count) {
+    for pc < i32(op_count) {
         op :: body.ops[pc]
         match op {
             is I32Const -> {
@@ -57,7 +57,7 @@ export exec :: fn(module: Module) -> VmResult {
                 pc += 1
             }
             is LocalGet -> {
-                if op.slot < 0 || (usize)(op.slot) >= locals.len() {
+                if op.slot < 0 || usize(op.slot) >= locals.len() {
                     return Trap { .message = "local.get slot ${op.slot} out of range at pc=${pc}" }
                 }
                 push_value(stack, sp, locals[op.slot])
@@ -68,7 +68,7 @@ export exec :: fn(module: Module) -> VmResult {
                 if sp == 0 {
                     return Trap { .message = "local.set on empty stack at pc=${pc}" }
                 }
-                if op.slot < 0 || (usize)(op.slot) >= locals.len() {
+                if op.slot < 0 || usize(op.slot) >= locals.len() {
                     return Trap { .message = "local.set slot ${op.slot} out of range at pc=${pc}" }
                 }
                 sp -= 1
@@ -76,7 +76,7 @@ export exec :: fn(module: Module) -> VmResult {
                 pc += 1
             }
             is StringConst -> {
-                if op.index < 0 || (usize)(op.index) >= module.strings.len() {
+                if op.index < 0 || usize(op.index) >= module.strings.len() {
                     return Trap { .message = "string.const index ${op.index} out of range at pc=${pc}" }
                 }
                 push_value(stack, sp, StringVal { .s = module.strings[op.index] })
@@ -84,7 +84,7 @@ export exec :: fn(module: Module) -> VmResult {
                 pc += 1
             }
             is CallImport -> {
-                if op.index < 0 || (usize)(op.index) >= module.imports.len() {
+                if op.index < 0 || usize(op.index) >= module.imports.len() {
                     return Trap { .message = "call.import ${op.index} out of range at pc=${pc}" }
                 }
                 info :: module.imports[op.index]
