@@ -12,7 +12,7 @@ import "std/string_builder" { StringBuilder, new_builder, append }
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | VirtualCall | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -63,6 +63,15 @@ export MakeClosure :: struct { function_index: i32 }
 /// closure body expects them). Sprint 4 (b4) addition ; (b5) added the
 /// env-prepend path.
 export CallIndirect :: struct { type_id: i32 }
+
+/// Trait-method virtual dispatch — pops the receiver from the top of
+/// the stack, looks up its type id in the per-(trait, method) vtable
+/// keyed by `vtable_key` (format `"<TraitName>.<MethodName>"`), then
+/// invokes the resolved fn with `[receiver, ...args]`. `parameter_count`
+/// includes the receiver — so the executor pops `parameter_count - 1`
+/// user args plus the receiver itself. Mirrors `src/vm/exec.ts:306-330`.
+/// Sprint 6 addition.
+export VirtualCall :: struct { parameter_count: i32, vtable_key: string }
 
 /// Allocate a struct of type `type_id`. Pops `field_count` values (in
 /// field-declaration order) from the value stack and wraps them in a
@@ -284,15 +293,37 @@ export FnType :: struct { parameter_type_ids: i32[], return_type_id: i32 }
 /// recursing into each variant. Sprint 5b addition.
 export UnionType :: struct { variant_type_ids: i32[] }
 
+/// One trait-method vtable, keyed by `<TraitName>.<MethodName>` and
+/// holding a list of `(type_id → function_index)` entries — one per
+/// implementing struct. Built post-parse by `build_vtables` (in
+/// `parser.vader`) which scans every function's mangled name for the
+/// `…$<TypeName>$<TraitName>$<MethodName>` suffix that the lowerer
+/// emits, then matches `<TypeName>` against `module.types[i]`'s
+/// `StructType.name`. The `.virt` text format itself does not carry
+/// vtable directives — they're entirely a runtime-side synthesis.
+export Vtable :: struct {
+    key:     string
+    entries: VtableEntry[]
+}
+
+/// One `(type_id, function_index)` row of a vtable.
+export VtableEntry :: struct {
+    type_id:        i32
+    function_index: i32
+}
+
 /// Top-level holder for a parsed .virt module. `main_index` points
 /// at the entry function in `functions` — populated by the parser
 /// from the `export main N` directive, with a fallback search for a
-/// mangled name ending in `$main` if the directive is absent.
+/// mangled name ending in `$main` if the directive is absent. `vtables`
+/// is built lazily after parse by `build_vtables` from the trait-method
+/// fn-name convention (no .virt directive carries it).
 export Module :: struct {
     strings:    string[]
     imports:    ImportInfo[]
     types:      TypeDecl[]
     functions:  BytecodeFunction[]
+    vtables:    Vtable[]
     main_index: i32
 }
 

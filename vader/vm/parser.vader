@@ -12,9 +12,14 @@
 // op's target pc is resolved in a single pass via a label-keyed scope
 // stack that resets at each fn boundary.
 
-import "std/string" { byte_len, slice, starts_with, ends_with, trim, split, contains, index_of }
+import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry }
+
+/// ASCII byte constants — spelled out as `u8(u32('x'))` to keep the source
+/// readable. Match the convention used in `vader/fmt/comments.vader`.
+BYTE_DOLLAR     :: u8(u32('$'))
+BYTE_UNDERSCORE :: u8(u32('_'))
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps
@@ -188,8 +193,143 @@ export parse_virt :: fn(source: string) -> Module {
         .imports    = imports,
         .types      = types,
         .functions  = functions,
+        .vtables    = build_vtables(functions, types),
         .main_index = main_index,
     }
+}
+
+/// Synthesise the per-(trait, method) vtables by scanning every function's
+/// mangled name for the `…$<TypeName>$<TraitName>$<MethodName>` suffix
+/// that the lowerer emits when materialising a trait impl. The TypeName
+/// segment is matched against `module.types[i]`'s `StructType.name`
+/// (which contains the same module-path-qualified prefix). The `.virt`
+/// text format itself doesn't carry vtable directives — this is a
+/// runtime-side reconstruction. Mirrors `src/bytecode/emit.ts:buildVtables`.
+///
+/// @param functions  the module's function table.
+/// @param types      the module's type table.
+/// @return           a list of `Vtable { key = "<TraitName>.<MethodName>",
+///                   entries = [(type_id, function_index), …] }`. Empty
+///                   when no function's name matches the trait-impl shape.
+build_vtables :: fn(functions: BytecodeFunction[], types: TypeDecl[]) -> Vtable[] {
+    vtables: Vtable[] = []
+    function_index: usize = 0
+    for function_index < functions.len() {
+        function_name :: functions[function_index].name
+        slot :: parse_trait_impl_name(function_name, types)
+        if slot is null {
+            function_index += 1
+            continue
+        }
+        register_vtable_entry(vtables, slot.vtable_key, VtableEntry {
+            .type_id        = slot.type_id,
+            .function_index = i32(function_index),
+        })
+        function_index += 1
+    }
+    return vtables
+}
+
+/// Holds the pieces extracted from a `…$<TypeName>$<TraitName>$<MethodName>`
+/// mangled fn name : the `(TraitName, MethodName)` join keys the vtable,
+/// and `type_id` is the receiver type's ordinal in `module.types`.
+TraitImplSlot :: struct {
+    vtable_key: string
+    type_id:    i32
+}
+
+/// Inspect `function_name` for the trait-impl mangling shape. Returns `null`
+/// when the name is a regular function (no `$<TraitName>$<MethodName>`
+/// suffix matching a registered `StructType`).
+parse_trait_impl_name :: fn(function_name: string, types: TypeDecl[]) -> TraitImplSlot | null {
+    last_dollar :: last_index_of_dollar(function_name)
+    if last_dollar < 0 { return null }
+    second_last :: last_index_of_dollar_before(function_name, last_dollar)
+    if second_last < 0 { return null }
+    // Require a module prefix `$` before the `<Type>$<Trait>$<Method>` tail —
+    // bare `$Type$Method` shapes (no module) are never trait impls.
+    if last_index_of_dollar_before(function_name, second_last) < 0 { return null }
+    method_full :: function_name.slice(usize(last_dollar + 1), function_name.byte_len())
+    // Generic-monomorphised impls mangle as `<Type>__T1[..]$<Trait>$<method>__T1[..]`,
+    // so the `__T...` tail on the method name mirrors the receiver type's own
+    // suffix. Detach it from the method name and append it to the type prefix
+    // before looking the struct up. Non-generic impls just see an empty suffix.
+    underscore_at :: find_double_underscore(method_full, 0)
+    method_name := method_full
+    generic_suffix := ""
+    if underscore_at >= 0 {
+        method_name = method_full.slice(0, usize(underscore_at))
+        generic_suffix = method_full.slice(usize(underscore_at), method_full.byte_len())
+    }
+    trait_name :: function_name.slice(usize(second_last + 1), usize(last_dollar))
+    type_prefix :: function_name.slice(0, usize(second_last))
+    type_name :: "${type_prefix}${generic_suffix}"
+    type_id :: find_struct_type_id(types, type_name)
+    if type_id < 0 { return null }
+    return TraitImplSlot {
+        .vtable_key = "${trait_name}.${method_name}",
+        .type_id    = type_id,
+    }
+}
+
+/// Index of the first `__` at or after `start`, or `-1` if absent.
+find_double_underscore :: fn(s: string, start: usize) -> i32 {
+    n :: s.byte_len()
+    if n < 2 { return -1 }
+    i := start
+    for i + 1 < n {
+        if s.byte_at(i) == BYTE_UNDERSCORE && s.byte_at(i + 1) == BYTE_UNDERSCORE {
+            return i32(i)
+        }
+        i += 1
+    }
+    return -1
+}
+
+/// Walk `types` for a `StructType` whose mangled `name` equals `target`.
+find_struct_type_id :: fn(types: TypeDecl[], target: string) -> i32 {
+    i: usize = 0
+    for i < types.len() {
+        type_id_match :: struct_name_matches(types[i], target)
+        if type_id_match { return i32(i) }
+        i += 1
+    }
+    return -1
+}
+
+/// `match`-bodied because of the §1.13e narrowing bug : `if td is StructType { td.name == target }`
+/// fails at C-emit time.
+struct_name_matches :: fn(td: TypeDecl, target: string) -> bool = match td {
+    is StructType as s -> s.name == target
+    _                  -> false
+}
+
+/// Index of the last `$` strictly before `end_exclusive`, or `-1`.
+last_index_of_dollar_before :: fn(s: string, end_exclusive: i32) -> i32 {
+    i: i32 = end_exclusive - 1
+    for i >= 0 {
+        if s.byte_at(usize(i)) == BYTE_DOLLAR { return i }
+        i -= 1
+    }
+    return -1
+}
+
+/// Index of the last `$` in `s`, or `-1` if none. Thin alias over
+/// `last_index_of_dollar_before` with the byte length as the exclusive end.
+last_index_of_dollar :: fn(s: string) -> i32 = last_index_of_dollar_before(s, i32(s.byte_len()))
+
+/// Append an entry into the vtable for `key` (creates the vtable if absent).
+register_vtable_entry :: fn(vtables: Vtable[], key: string, entry: VtableEntry) -> void {
+    i: usize = 0
+    for i < vtables.len() {
+        if vtables[i].key == key {
+            vtables[i].entries.push(entry)
+            return
+        }
+        i += 1
+    }
+    fresh_entries: VtableEntry[] = [entry]
+    vtables.push(Vtable { .key = key, .entries = fresh_entries })
 }
 
 /// Parse `type N KIND ...` and append the entry to `types`. The
@@ -429,6 +569,7 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
         is FnRef           as o -> { ops.push(o)  true }
         is MakeClosure     as o -> { ops.push(o)  true }
         is CallIndirect    as o -> { ops.push(o)  true }
+        is VirtualCall     as o -> { ops.push(o)  true }
         is StructNew       as o -> { ops.push(o)  true }
         is StructGet       as o -> { ops.push(o)  true }
         is StructSet       as o -> { ops.push(o)  true }
@@ -633,6 +774,7 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if cleaned.starts_with("string.const ")     { return parse_string_const(cleaned) }
     if cleaned.starts_with("call.import ")      { return parse_call_import(cleaned) }
     if cleaned.starts_with("call.indirect ")    { return parse_call_indirect(cleaned) }
+    if cleaned.starts_with("virtual.call ")     { return parse_virtual_call(cleaned) }
     if cleaned.starts_with("call ")             { return parse_call(cleaned) }
     if cleaned.starts_with("fn.ref ")           { return parse_fn_ref(cleaned) }
     if cleaned.starts_with("make_closure ")     { return parse_make_closure(cleaned) }
@@ -790,6 +932,23 @@ parse_call_indirect :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "call.indirect ")
     if parsed is null { return null }
     return CallIndirect { .type_id = parsed }
+}
+
+/// Parse `virtual.call PARAM_COUNT VTABLE_KEY` — the vtable key is the
+/// remainder of the line (it contains a `.`, never a space).
+///
+/// @param line  the .virt line (comment-stripped).
+/// @return      `VirtualCall { parameter_count, vtable_key }`, or `null`
+///              on malformed input.
+parse_virtual_call :: fn(line: string) -> Op | null {
+    rest :: line.slice("virtual.call ".byte_len(), line.byte_len()).trim()
+    space :: rest.index_of(' ', 0)
+    if space < 0 { return null }
+    pc_text :: rest.slice(0, usize(space)).trim()
+    parsed_pc :: parse_int_in_base(pc_text, 10)
+    if parsed_pc is Error { return null }
+    key :: rest.slice(usize(space) + 1, rest.byte_len()).trim()
+    return VirtualCall { .parameter_count = i32(parsed_pc), .vtable_key = key }
 }
 
 /// Parse `fn.ref FN_INDEX TYPE_ID` — the TYPE_ID operand is parsed

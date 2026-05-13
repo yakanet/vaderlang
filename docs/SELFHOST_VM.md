@@ -61,7 +61,7 @@ traits/vtables, binary `.vir`.
 | 5c | extended host imports : `std/string` family (`byte_len` / `byte_at` / `slice` / `starts_with` / `ends_with` / `contains` / `trim` / `to_upper` / `to_lower` / `index_of` / `last_index_of` / `split`) + `std_core$string$Index$at` + `StringBuilder.to_string` ; width-suffixed integer const ops (`i64.const` / `u32.const` / `usize.const` / etc.) ✅ | +5 snippets (`primitive_hash_eq`, `sam_impl`, `std_string`, `std_string_builder`, `comptime_type_alias`) — 107/176 = 61 % |
 | 5c | extended `call.import` host surface (`string.*`, hash, file I/O, `std_runtime$collections`) | unblocks ~15 stdlib-heavy snippets |
 | 5d | missing intrinsics (`size_of`, `type_kind`, `satisfies`) | unblocks `intrinsic_*` |
-| 6 | `virtual.call` + trait vtables | unblocks `trait_*` |
+| 6 | `virtual.call` + trait vtables synthesised from fn-name mangling (`<Type>$<Trait>$<method>[__T…]`) — receiver `type_id` looked up in per-`(Trait, method)` vtable, dispatched through `dispatch_call_into`. ✅ | +2 snippets (`trait_virtual_dispatch`, `trait_dispatch_generic_iter`) — 109/176 = 62 % |
 | 5 | `type_check`, `ref.cast`, virtual.call, intrinsics, traits/vtables | nearly all snippets |
 | 6 | binary `.vir` loader (alternative to text) | shipping-perf gains |
 | 7 | Split `vader/vm/exec.vader` into `vader/bytecode/{types,ops,module,text}.vader` + `vader/vm/{value,exec,host}.vader` once the single file becomes unwieldy (probably mid-sprint 3 or 4). |

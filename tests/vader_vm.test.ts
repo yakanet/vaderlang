@@ -66,17 +66,22 @@ beforeAll(async () => {
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
-  // Post Sprint 5c (2026-05-13). Host imports for std/string + width-
-  // suffixed integer consts (`i64.const` / `u32.const` / `usize.const`
-  // / ...) + `StringBuilder.to_string` : 5 new snippets pass (`primitive_hash_eq`,
-  // `sam_impl`, `std_string`, `std_string_builder`, `comptime_type_alias`).
-  // 107 / 176 = 61 % acceptance. Remaining failures :
+  // Post Sprint 6 (2026-05-13). `virtual.call` + trait vtables : the Vader
+  // VM now synthesises a per-`(Trait, method)` vtable from the mangled
+  // fn-name convention (`<Type>$<Trait>$<method>[__T…]`) and dispatches
+  // through it. `trait_virtual_dispatch` + `trait_dispatch_generic_iter`
+  // unblock (109 / 176 = 62 % acceptance). Remaining failures :
   //   - Missing intrinsics (Sprint 5d) — `size_of`, `type_kind`, `satisfies`.
-  //   - `virtual.call` + trait vtables (Sprint 6) — trait_dispatch_*, op_overload_*.
-  //   - Float / math support (Sprint 5e?) — std_math, expr_bodied_fn.
-  //   - Enum dispatch (Sprint 5e?) — enum_*, dot_variant_in_union.
-  //   - Tuple destructure (Sprint 5e?) — tuple_*.
+  //   - Float / math support — std_math, expr_bodied_fn.
+  //   - Enum dispatch — enum_*, dot_variant_in_union.
+  //   - Tuple destructure — tuple_*.
   //   - GC root intrinsics + std_runtime$collections — gc_*, mutable_*.
+  //   - Range / iterator state mutation across virtual.call boundaries
+  //     (struct.set vs StructVal aliasing) — for_range, iter_*, array_iter,
+  //     trait_dispatch_bounded, op_overload_*.
+  //   - `is Trait` pattern matching needs an impl table (.virt format gap) —
+  //     vm_trait_dispatch, op_overload_index.
+  //   - Primitive trait receivers (i32 / usize as `self`) — trait_box_range_iter.
   //   - Misc : io_roundtrip, regex_helpers, runtime_argv, etc.
   "array_iter",
   "bound_enforced",
@@ -131,9 +136,7 @@ const KNOWN_DIVERGENT = new Set<string>([
   "string_codepoints",
   "trait_box_range_iter",
   "trait_dispatch_bounded",
-  "trait_dispatch_generic_iter",
   "trait_dispatch_param",
-  "trait_virtual_dispatch",
   "transitive_mono",
   "try_op",
   "tuple_comptime",
