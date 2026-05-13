@@ -17,7 +17,8 @@
     "dist:darwin-arm64": "bun scripts/dist.ts darwin-arm64",
     "dist:linux-x64": "bun scripts/dist.ts linux-x64",
     "dist:windows-x64": "bun scripts/dist.ts windows-x64",
-    "dist:all": "bun scripts/dist.ts all"
+    "dist:all": "bun scripts/dist.ts all",
+    "cloc": "npx cloc@latest --read-lang-def=vader-cloc.txt --exclude-dir=editors,docs,scripts --vcs=git ."
   },
   "devDependencies": {
     "@types/bun": "latest",
