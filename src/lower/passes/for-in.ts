@@ -79,8 +79,22 @@ export function lowerForIn(
     }
   }
 
-  const stepInfo = findIteratorStepImpl(ctx, iterType);
-  if (stepInfo === null) {
+  // Two dispatch paths :
+  //   - concrete iter (e.g. `Range[i32]`, `ArrayIter[T]`) → look up the
+  //     Iterator impl statically and emit a direct `LoweredCall`.
+  //   - trait-typed iter (`Iterator(T)` itself, as produced by trait-arg
+  //     coercion or an `Iterator(T)`-typed local) → emit `LoweredVirtualCall`
+  //     so the runtime dispatches through the per-(trait, method) vtable
+  //     by the receiver's concrete tag.
+  const iteratorSym = findCoreTrait(ctx.project, CORE_TRAITS.Iterator);
+  const traitTypedElement = iteratorSym !== null
+    && iterType.kind === "Trait"
+    && iterType.symbol.id === iteratorSym.id
+    && iterType.args.length > 0
+    ? iterType.args[0]!
+    : null;
+  const stepInfo = traitTypedElement === null ? findIteratorStepImpl(ctx, iterType) : null;
+  if (traitTypedElement === null && stepInfo === null) {
     err(ctx.project.diags, "B5001", span,
       `\`for x in iter\` requires Iterator impl on ${displayType(iterType)} (deferred — see TODO §1.5b iterators)`);
     return { kind: "LoweredExprStmt", span, expr: {
@@ -88,8 +102,8 @@ export function lowerForIn(
       reason: `no Iterator impl on ${displayType(iterType)}`,
     } };
   }
+  const elementType = traitTypedElement ?? stepInfo!.elementType;
 
-  const elementType = stepInfo.elementType;
   const doneType = findCoreType(ctx, CORE_STRUCTS.Done, []);
   const yieldedType = findCoreType(ctx, CORE_STRUCTS.Yielded, [elementType]);
   if (doneType === null || yieldedType === null) {
@@ -114,14 +128,19 @@ export function lowerForIn(
     { kind: "LoweredLet", span, name: iterSym.name, symbol: iterSym, type: iterType, value: iterLowered },
   ];
 
-  // step(__iter)
-  const stepCall: LoweredExpr = {
-    kind: "LoweredCall", span, type: stepUnion,
-    callee: {
-      kind: "LoweredIdent", span, type: TY.unresolved, symbol: stepInfo.fnSymbol,
-    },
-    args: [{ kind: "LoweredIdent", span, type: iterType, symbol: iterSym }],
-  };
+  // next(__iter) — direct call for concrete iter, virtual dispatch for trait-typed.
+  const iterRef: LoweredExpr = { kind: "LoweredIdent", span, type: iterType, symbol: iterSym };
+  const stepCall: LoweredExpr = traitTypedElement !== null
+    ? {
+        kind: "LoweredVirtualCall", span, type: stepUnion,
+        traitName: iteratorSym!.name, method: "next",
+        receiver: iterRef, args: [],
+      }
+    : {
+        kind: "LoweredCall", span, type: stepUnion,
+        callee: { kind: "LoweredIdent", span, type: TY.unresolved, symbol: stepInfo!.fnSymbol },
+        args: [iterRef],
+      };
 
   // if (step is Done) { break } else { x = step.value; <body> }
   const stepRef = (): LoweredExpr => ({

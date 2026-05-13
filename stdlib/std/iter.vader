@@ -74,6 +74,23 @@ export filter :: fn[T](arr: T[], pred: fn(T) -> bool) -> T[] {
     return out
 }
 
+/// Drain `it`, keeping only items for which `pred` returns `true`. Lets
+/// `s.chars().filter(...)` and similar iterator chains dispatch to this
+/// overload instead of forcing a `.collect()` round-trip. Eager — for a
+/// lazy form, construct `FilterIterator(T)` directly.
+/// @param it    source iterator (anything implementing `Iterator(T)`).
+/// @param pred  predicate invoked on each element ; truthy → kept.
+/// @return      a fresh array of the kept elements.
+export filter :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> T[] {
+    out: T[] = []
+    for x in it {
+        if pred(x) {
+            out.push(x)
+        }
+    }
+    return out
+}
+
 /// Left-fold the array with seed `init`. `f(acc, x)` is called for every
 /// element in order ; the final accumulator is returned.
 /// @param arr   source array.

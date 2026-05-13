@@ -1,0 +1,123 @@
+# Lower
+
+## tests/snippets/for_in_iter_trait/_main.vader
+  fn tests_snippets_for_in_iter_trait__main_vader$sum_iter(it: Iterator(i32)) -> i32
+    let total: i32 = int(0) :i32
+    block :void
+      let __iter_0: Iterator(i32) = it :Iterator(i32)
+      loop
+        let __step_1: Done | Yielded(i32) =
+          vcall Iterator.next :Done | Yielded(i32)
+            recv:
+              __iter_0 :Iterator(i32)
+        if :void
+          cond:
+            is Done :bool
+              __step_1 :Done | Yielded(i32)
+          then:
+            break
+          else:
+            let x: i32 =
+              .value :i32
+                cast → Yielded(i32)
+                  __step_1 :Done | Yielded(i32)
+            assign
+              target:
+                total :i32
+              value:
+                add :?
+                  l:
+                    total :i32
+                  r:
+                    x :?
+    return total :i32
+  fn tests_snippets_for_in_iter_trait__main_vader$is_l(c: char) -> bool
+    return
+      eq :bool
+        l:
+          c :char
+        r:
+          char(0x6c)
+  fn tests_snippets_for_in_iter_trait__main_vader$count_ls(s: string) -> usize
+    return
+      LoweredArrayLen
+  fn tests_snippets_for_in_iter_trait__main_vader$main() -> i32
+    let a: i32 =
+      call :i32
+        callee:
+          sum_iter :fn(Iterator(i32)) -> i32
+        arg0:
+          Range(i32) {
+            start: int(0) :i32
+            end: int(5) :i32
+            inclusive: false
+            cursor: int(0) :i32
+          }
+    let b: i32 =
+      call :i32
+        callee:
+          sum_iter :fn(Iterator(i32)) -> i32
+        arg0:
+          call :Iterator(i32)
+            callee:
+              into :Iterator(i32)
+            arg0:
+              array :i32[]
+                int(10) :i32
+                int(20) :i32
+                int(30) :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "range sum  = " :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            a :i32
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "array sum  = " :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            b :i32
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    let n: usize =
+      call :usize
+        callee:
+          count_ls :fn(string) -> usize
+        arg0:
+          "hello, world!" :string
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "l count    = " :string
+          @builder.append_display <for usize> :void
+            __sb_2 :?
+            n :usize
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    return int(0) :i32

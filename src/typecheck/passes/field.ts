@@ -18,7 +18,7 @@ import { err } from "../diag.ts";
 import type { ImplEntry, ImplRegistry } from "../impls.ts";
 import type { MethodResolution, TraitMethodResolution } from "../typed-ast.ts";
 import type { Substitution, Type } from "../types.ts";
-import { TY, defaultIfFree, displayType, isAssignable, substitute, unionOf } from "../types.ts";
+import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute, unionOf } from "../types.ts";
 
 import { buildStructSubst, tryStructSubst } from "../ctx.ts";
 import { findIntoImpl, tryInto } from "./coerce.ts";
@@ -292,6 +292,19 @@ export function rankOverloadsByFirstParam(
       if (wildcard === null) wildcard = cand;
       continue;
     }
+    // Trait-typed first param like `Iterator(T)` : accept the candidate
+    // when the receiver implements the trait. Unification of the trait's
+    // typeparam(s) against the receiver's impl happens later in
+    // `inferGenericUfcsCall` via `unifyTraitParamWithConcrete`. Classified
+    // alongside `symMatch` (sibling-symbol match) since both are
+    // "structurally compatible with type-param holes still open" matches —
+    // strictly weaker than a fully concrete `isAssignable` hit.
+    if (firstParam.kind === "Trait" && impls !== undefined
+        && (recvType.kind === "Struct" || recvType.kind === "Primitive" || recvType.kind === "Array")
+        && receiverImplementsTrait(recvType, firstParam.symbol, impls)) {
+      if (symMatch === null) symMatch = cand;
+      continue;
+    }
     if (typeContainsTypeParam(firstParam)) continue;
     if (!isAssignable(recvType, firstParam)) {
       // No direct flow ; probe `Into(firstParam)` as a last-resort fallback.
@@ -347,6 +360,25 @@ function matchesByStructSymbol(firstParam: Type, receiver: Type): boolean {
   }
   if (firstParam.kind === "Array" && receiver.kind === "Array") {
     return typeContainsTypeParam(firstParam.element);
+  }
+  return false;
+}
+
+/** True when `recvType` can flow into a trait-typed slot of `traitSym`
+ *  — either through an explicit impl entry (struct / primitive / enum)
+ *  or via the built-in `T[]` → `Iterator(T)` widening (which has no
+ *  user-declared impl decl). Mirrors `isAssignable`'s trait-widening
+ *  branch ; used by `rankOverloadsByFirstParam` to accept overloads
+ *  whose first parameter is a trait with open type-params. */
+function receiverImplementsTrait(
+  recvType: Type, traitSym: Symbol, impls: ImplRegistry,
+): boolean {
+  if (recvType.kind === "Struct" || recvType.kind === "Primitive" || recvType.kind === "Enum") {
+    return impls.findFor(recvType, traitSym) !== null;
+  }
+  if (recvType.kind === "Array") {
+    const iter = impls.coreTrait(CORE_TRAITS.Iterator);
+    return iter !== null && iter.id === traitSym.id;
   }
   return false;
 }

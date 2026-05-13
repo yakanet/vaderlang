@@ -1,0 +1,45 @@
+// `for x in iter` where `iter` has trait type `Iterator(T)` dispatches
+// `next()` through `LoweredVirtualCall` instead of looking up a static
+// impl on a concrete struct. Same surface, but the receiver may be a
+// `Range`, `ArrayIterator`, or any user struct implementing `Iterator(T)`
+// — the runtime dispatches by tag.
+//
+// Before this fix, `for x in it` on a trait-typed `it` errored with
+// B5001 ("requires Iterator impl on Iterator(T)") because the lowerer
+// only knew the static-impl path. Companion entry point : the UFCS
+// dispatch `iter.fn(...)` on a trait-typed-first-param overload (e.g.
+// `std/iter.filter(it: Iterator(T), pred)`) is now also routable.
+
+import "std/io" { println }
+import "std/iter" { filter }
+import "std/string" { chars }
+
+// Sum every element delivered by a trait-typed iterator. Inside the
+// body, `for x in it` lowers to a `next()` virtual call on `it`.
+sum_iter :: fn(it: Iterator(i32)) -> i32 {
+    total := 0
+    for x in it {
+        total = total + x
+    }
+    return total
+}
+
+// Count items via a chained `Iterator(T)`-receiver call. UFCS picks the
+// new `filter :: fn[T](it: Iterator(T), …) -> T[]` overload, so the
+// `StringChars` receiver flows straight into the trait-typed first
+// param without an intermediate `.collect()`.
+is_l :: fn(c: char) -> bool { return c == 'l' }
+count_ls :: fn(s: string) -> usize {
+    return s.chars().filter(is_l).len()
+}
+
+main :: fn() -> i32 {
+    a :: sum_iter(0..<5)               // 0+1+2+3+4 = 10
+    b :: sum_iter([10, 20, 30])        // T[] → Iterator(T) coercion
+    println("range sum  = ${a}")
+    println("array sum  = ${b}")
+
+    n :: count_ls("hello, world!")
+    println("l count    = ${n}")
+    return 0
+}
