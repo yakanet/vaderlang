@@ -1,0 +1,224 @@
+// Brainfuck → Vader VM compiler.
+//
+// Reads a `.bf` source file, translates it to a `.virt` text dump (the
+// pivot format consumed by `vader run`), feeds that text through the
+// Vader VM's parser to get an in-memory `Module`, and runs it through
+// `exec()` — no subprocess, no intermediate file.
+//
+// Memory model :
+//   - One i32[] local holds 30000 zero-initialised cells.
+//   - One i32 local holds the data pointer (cell index).
+//   - BF cells are i32-wide (no wrap at 256) — matches the VM's native int.
+//
+// Output (`.`) routes through a helper fn `print_byte(b: i32) -> void`
+// emitted inline in the produced `.virt` ; it builds a 1-char string via
+// the builder-display path and calls `std_io.print`.
+//
+// Input (`,`) is **not** wired (no `read_byte` host today) — the compiler
+// emits a "store 0" sequence and the BF program sees end-of-stream as 0.
+//
+// Usage :
+//   vader run examples/brainfuck.vader              # defaults to examples/hello.bf
+//   vader run examples/brainfuck.vader path/to.bf   # arbitrary BF source
+//
+// **`--target=native` is not supported yet** — the native runtime's GC
+// scans values via a statically-built type-index table, but `parse_virt`
+// + `exec` materialise types (`i32[]` cells, builder slots, ...) at
+// runtime, so the GC traps on `unknown type_index`. The interpreted
+// path is the supported runtime today.
+
+import "std/io" { eprintln, read_file }
+import "std/string" { byte_at, byte_len }
+import "std/string_builder" { StringBuilder, new_builder, append }
+import "vader/vm/parser" { parse_virt }
+import "vader/vm/exec" { exec, VmResult, Ok, Trap }
+
+DEFAULT_PATH :: "examples/hello.bf"
+
+// ---- BF lexer ------------------------------------------------------------
+
+// Walk source byte-by-byte ; collect the eight BF chars verbatim (as
+// their ASCII bytes), drop everything else.
+tokenize_bf :: fn(source: string) -> i32[] {
+    out: i32[] = []
+    i: usize = 0
+    n :: source.byte_len()
+    for i < n {
+        b :: i32(source.byte_at(i))
+        if b == i32('>') || b == i32('<') ||
+           b == i32('+') || b == i32('-') ||
+           b == i32('.') || b == i32(',') ||
+           b == i32('[') || b == i32(']') {
+            out.push(b)
+        }
+        i += 1
+    }
+    return out
+}
+
+// ---- bracket matcher -----------------------------------------------------
+
+// For every `[` / `]` token, partner[i] is the index of its match.
+// Non-bracket tokens get -1. Mismatched brackets return an empty array
+// (caller detects and bails).
+match_brackets :: fn(tokens: i32[]) -> i32[] {
+    n :: tokens.len()
+    partner: i32[] = []
+    i: usize = 0
+    for i < n {
+        partner.push(-1)
+        i += 1
+    }
+    stack: usize[] = []
+    sp: usize = 0
+    j: usize = 0
+    for j < n {
+        b :: tokens[j]
+        if b == i32('[') {
+            if sp == stack.len() { stack.push(j) }
+            else                 { stack[sp] = j }
+            sp += 1
+        } else if b == i32(']') {
+            if sp == 0 {
+                return []
+            }
+            sp -= 1
+            open_idx :: stack[sp]
+            partner[open_idx] = i32(j)
+            partner[j] = i32(open_idx)
+        }
+        j += 1
+    }
+    if sp != 0 { return [] }
+    return partner
+}
+
+// ---- .virt emitter -------------------------------------------------------
+
+// Per-character op emission. Indices refer to local slots :
+//   local 0 = __mem  (i32[])
+//   local 1 = __ptr  (i32)
+//   local 2 = __i    (i32, only used by the init loop)
+emit_bf_char :: fn(sb: StringBuilder, b: i32, idx: usize, partner: i32[]) -> void {
+    if b == i32('>') {
+        sb.append("  local.get 1\n  i32.const 1\n  i32.add\n  local.set 1\n")
+    } else if b == i32('<') {
+        sb.append("  local.get 1\n  i32.const 1\n  i32.sub\n  local.set 1\n")
+    } else if b == i32('+') {
+        // mem[ptr] = mem[ptr] + 1  — duplicate (mem, ptr) on stack so
+        // both array.get and array.set see them.
+        sb.append("  local.get 0\n  local.get 1\n  local.get 0\n  local.get 1\n  array.get 1\n  i32.const 1\n  i32.add\n  array.set 1\n")
+    } else if b == i32('-') {
+        sb.append("  local.get 0\n  local.get 1\n  local.get 0\n  local.get 1\n  array.get 1\n  i32.const 1\n  i32.sub\n  array.set 1\n")
+    } else if b == i32('.') {
+        sb.append("  local.get 0\n  local.get 1\n  array.get 1\n  call 0\n")
+    } else if b == i32(',') {
+        // Input not wired ; deliver 0 so naive programs reading EOF still
+        // see a sentinel rather than uninitialised state.
+        sb.append("  local.get 0\n  local.get 1\n  i32.const 0\n  array.set 1\n")
+    } else if b == i32('[') {
+        sb.append("  block bf_block_${idx}\n  loop bf_loop_${idx}\n  local.get 0\n  local.get 1\n  array.get 1\n  i32.const 0\n  i32.eq\n  br_if bf_block_${idx}\n")
+    } else if b == i32(']') {
+        open_idx :: usize(partner[idx])
+        sb.append("  br bf_loop_${open_idx}\n  end\n  end\n")
+    }
+}
+
+compile_brainfuck :: fn(source: string) -> string {
+    tokens  :: tokenize_bf(source)
+    partner :: match_brackets(tokens)
+    if tokens.len() > 0 && partner.len() == 0 {
+        // Mismatched brackets — emit a .virt that traps with a readable
+        // message rather than failing here, so the caller's `Trap` path
+        // surfaces a uniform error.
+        return "module brainfuck\n\nfn 0 bf_main () -> i32\n  unreachable\nend\n\nexport main 0\n"
+    }
+
+    sb :: new_builder()
+    sb.append("module brainfuck\n\n")
+    sb.append("type 0 primitive i32\n")
+    sb.append("type 1 array 0\n\n")
+    sb.append(r"import 0 print std_io$print (string) -> void" + "\n\n")
+
+    // ---- fn 0 : print_byte(b: i32) -> void --------------------------------
+    sb.append("fn 0 print_byte (i32) -> void\n")
+    sb.append("  local \"__sb\" any\n")
+    sb.append("  intrinsic builder.new\n")
+    sb.append("  local.set 1\n")
+    sb.append("  local.get 1\n")
+    sb.append("  local.get 0\n")
+    sb.append("  i32.to_char\n")
+    sb.append("  intrinsic builder.append_display\n")
+    sb.append("  local.get 1\n")
+    sb.append("  intrinsic builder.finish\n")
+    sb.append("  call.import 0\n")
+    sb.append("  return\n")
+    sb.append("end\n\n")
+
+    // ---- fn 1 : bf_main() -> i32 ------------------------------------------
+    sb.append("fn 1 bf_main () -> i32\n")
+    sb.append("  local \"__mem\" any\n")
+    sb.append("  local \"__ptr\" any\n")
+    sb.append("  local \"__i\" any\n")
+    // mem = []
+    sb.append("  array.new 1 0\n")
+    sb.append("  local.set 0\n")
+    // ptr = 0
+    sb.append("  i32.const 0\n")
+    sb.append("  local.set 1\n")
+    // i = 0 ; while i < 30000 { mem.push(0) ; i += 1 }
+    sb.append("  i32.const 0\n")
+    sb.append("  local.set 2\n")
+    sb.append("  block bf_init_done\n")
+    sb.append("    loop bf_init_loop\n")
+    sb.append("      local.get 2\n")
+    sb.append("      i32.const 30000\n")
+    sb.append("      i32.ge\n")
+    sb.append("      br_if bf_init_done\n")
+    sb.append("      local.get 0\n")
+    sb.append("      i32.const 0\n")
+    sb.append("      array.push 1\n")
+    sb.append("      local.get 2\n")
+    sb.append("      i32.const 1\n")
+    sb.append("      i32.add\n")
+    sb.append("      local.set 2\n")
+    sb.append("      br bf_init_loop\n")
+    sb.append("    end\n")
+    sb.append("  end\n")
+
+    // BF body
+    k: usize = 0
+    n :: tokens.len()
+    for k < n {
+        emit_bf_char(sb, tokens[k], k, partner)
+        k += 1
+    }
+
+    // return 0
+    sb.append("  i32.const 0\n")
+    sb.append("  return\n")
+    sb.append("end\n\n")
+
+    sb.append("export main 1\n")
+    return "${sb}"
+}
+
+// ---- entry point ---------------------------------------------------------
+
+main :: fn(argv: string[]) -> i32 {
+    path :: if argv.len() > 1 { argv[1] } else { DEFAULT_PATH }
+    src :: read_file(path)
+    if src is Error {
+        eprintln("brainfuck: cannot read ${path}")
+        return 1
+    }
+    virt_text :: compile_brainfuck(src)
+    module    :: parse_virt(virt_text)
+    return match exec(module) {
+        is Ok   as ok -> ok.value
+        is Trap as t  -> {
+            eprintln("brainfuck: vm trap — ${t.message}")
+            1
+        }
+    }
+}
