@@ -67,22 +67,21 @@ ${err}`);
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
-  // Post Sprint 7 (2026-05-13). Integer arithmetic completion : `i32.neg`
-  // / `i32.bitnot` / `i32.bitand` / `i32.bitor` / `i32.bitxor` / `i32.shl`
-  // / `i32.shr` (and all `<width>.<verb>` siblings aliased to `I32Val`).
-  // Previously the parser silently dropped these ops, which made e.g.
-  // `std_core$i32$Comparable$compare` return `1` instead of `-1` — a
-  // cascading bug that broke every `Range`-driven test (for-loop,
-  // iterators, op-overloads). 22 new snippets unblock (131 / 176 = 74 %
-  // acceptance). Remaining failures :
-  //   - Missing intrinsics — `type_kind`, `satisfies`.
-  //   - Float / math support — std_math, expr_bodied_fn, f64.* ops.
+  // Post Sprint 8 (2026-05-13). String op completion : `string.eq` /
+  // `string.ne` / `string.concat` + decoded backslash escapes in the
+  // `.virt` string table (`\n` / `\t` / `\r` / `\"` / `\\` / `\0`) +
+  // `print` (no newline) routed through `std/io.print` instead of
+  // collapsed onto `println`. 4 snippets unblock (`intrinsic_type_kind`,
+  // `multiline_string`, `op_overload_index`, `tuple_match_union`) —
+  // 135 / 176 = 77 % acceptance. Remaining failures :
+  //   - Float / math support — std_math, expr_bodied_fn, f64.* ops, tuple_struct_field.
   //   - Enum dispatch — enum_to_repr_cast, dot_variant_in_union.
-  //   - Tuple destructure — tuple_*.
+  //   - Tuple destructure — tuple_comptime, tuple_triple_quad.
   //   - GC root intrinsics + std_runtime$collections — gc_*, mutable_*.
   //   - `is Trait` pattern matching needs an impl table (.virt format gap)
-  //     — vm_trait_dispatch, op_overload_*, trait_dispatch_bounded.
+  //     — vm_trait_dispatch, op_overload_arith, op_overload_compound, trait_dispatch_bounded.
   //   - Primitive trait receivers (i32 / usize as `self`) — trait_box_range_iter.
+  //   - `u32.shr` signed-vs-unsigned shift semantics — u32_bitops.
   //   - Misc : io_roundtrip, regex_helpers, runtime_argv, etc.
   "bound_enforced",
   "char_range_contains",
@@ -94,21 +93,18 @@ const KNOWN_DIVERGENT = new Set<string>([
   "gc_array_survive",
   "gc_chain_survive",
   "gc_multi_collect",
-  "intrinsic_type_kind",
   "io_roundtrip",
   "iter_combinators",
   "iter_defaults",
   "iter_lazy",
   "json_basics",
   "map_set_iter",
-  "multiline_string",
   "mutable_map",
   "mutable_map_string",
   "mutable_set",
   "numeric_context_sensitivity",
   "op_overload_arith",
   "op_overload_compound",
-  "op_overload_index",
   "overload_first_param",
   "parse_int_match",
   "path_basics",
@@ -123,7 +119,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   "trait_dispatch_bounded",
   "try_op",
   "tuple_comptime",
-  "tuple_match_union",
   "tuple_struct_field",
   "tuple_triple_quad",
   "type_aliases",

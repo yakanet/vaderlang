@@ -13,13 +13,20 @@
 // stack that resets at each fn boundary.
 
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of }
+import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, StringEq, StringNe, StringConcat, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry }
 
 /// ASCII byte constants — spelled out as `u8(u32('x'))` to keep the source
 /// readable. Match the convention used in `vader/fmt/comments.vader`.
 BYTE_DOLLAR     :: u8(u32('$'))
 BYTE_UNDERSCORE :: u8(u32('_'))
+BYTE_BACKSLASH  :: u8(u32('\\'))
+BYTE_DQUOTE     :: u8(u32('"'))
+BYTE_LOWER_N    :: u8(u32('n'))
+BYTE_LOWER_T    :: u8(u32('t'))
+BYTE_LOWER_R    :: u8(u32('r'))
+BYTE_ZERO       :: u8(u32('0'))
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps
@@ -455,7 +462,48 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> void {
     first_quote :: after.index_of('"', 0)
     if first_quote < 0 { return }
     body :: after.slice(usize(first_quote) + 1, after.byte_len() - 1)
-    strings.push(body)
+    strings.push(decode_string_escapes(body))
+}
+
+/// Decode the standard backslash escape sequences emitted by the `.virt`
+/// text writer (`\n` / `\t` / `\r` / `\"` / `\\` / `\0`). Unknown escapes
+/// pass through with the backslash dropped — matches the TS side which
+/// uses `JSON.parse` for the same job. Unicode `\uXXXX` is not handled
+/// yet (no snippet currently emits one).
+///
+/// @param body  the raw between-quotes payload.
+/// @return      the decoded string with escape sequences replaced.
+decode_string_escapes :: fn(body: string) -> string {
+    // Fast path : strings without a backslash (the overwhelming majority
+    // of literals) skip the per-byte rebuild and return the original
+    // payload. `contains` is a single O(n) memcmp scan in the runtime.
+    if !body.contains("\\") { return body }
+    out :: new_builder()
+    n :: body.byte_len()
+    i: usize = 0
+    for i < n {
+        b :: body.byte_at(i)
+        if b != BYTE_BACKSLASH {
+            out.append(body.slice(i, i + 1))
+            i += 1
+            continue
+        }
+        if i + 1 >= n {
+            out.append(body.slice(i, i + 1))
+            i += 1
+            continue
+        }
+        next :: body.byte_at(i + 1)
+        if      next == BYTE_LOWER_N  { out.append("\n") }
+        else if next == BYTE_LOWER_T  { out.append("\t") }
+        else if next == BYTE_LOWER_R  { out.append("\r") }
+        else if next == BYTE_DQUOTE   { out.append("\"") }
+        else if next == BYTE_BACKSLASH { out.append("\\") }
+        else if next == BYTE_ZERO     { out.append("\0") }
+        else                          { out.append(body.slice(i + 1, i + 2)) }
+        i += 2
+    }
+    return out.to_string()
 }
 
 /// Parse `import N name mangled (params) -> ret`.
@@ -598,6 +646,9 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
         is CharLe                as o -> { ops.push(o)  true }
         is CharGt                as o -> { ops.push(o)  true }
         is CharGe                as o -> { ops.push(o)  true }
+        is StringEq              as o -> { ops.push(o)  true }
+        is StringNe              as o -> { ops.push(o)  true }
+        is StringConcat          as o -> { ops.push(o)  true }
         is RefEq                 as o -> { ops.push(o)  true }
         is RefNe                 as o -> { ops.push(o)  true }
         is Drop                  as o -> { ops.push(o)  true }
@@ -813,6 +864,9 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if cleaned == "char.le"     { return CharLe {} }
     if cleaned == "char.gt"     { return CharGt {} }
     if cleaned == "char.ge"     { return CharGe {} }
+    if cleaned == "string.eq"     { return StringEq {} }
+    if cleaned == "string.ne"     { return StringNe {} }
+    if cleaned == "string.concat" { return StringConcat {} }
     if cleaned == "ref.eq"      { return RefEq {} }
     if cleaned == "ref.ne"      { return RefNe {} }
     if cleaned == "drop"        { return Drop {} }

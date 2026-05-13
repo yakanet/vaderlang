@@ -12,7 +12,7 @@ import "std/string_builder" { StringBuilder, new_builder, append }
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | VirtualCall | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | I32Neg | I32BitNot | I32BitAnd | I32BitOr | I32BitXor | I32Shl | I32Shr | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | VirtualCall | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | I32Neg | I32BitNot | I32BitAnd | I32BitOr | I32BitXor | I32Shl | I32Shr | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | StringEq | StringNe | StringConcat | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -215,6 +215,13 @@ export CharLe :: struct {}
 export CharGt :: struct {}
 /// Pop two chars (left, right) ; push `BoolVal` (left >= right).
 export CharGe :: struct {}
+/// Pop two strings (left, right) ; push `BoolVal` for byte-equality.
+export StringEq :: struct {}
+/// Pop two strings (left, right) ; push `BoolVal` for byte-inequality.
+export StringNe :: struct {}
+/// Pop two strings (left, right) ; push their concatenation as a
+/// fresh `StringVal`.
+export StringConcat :: struct {}
 /// Pop two references ; push `BoolVal` for identity equality. In the
 /// VM today, all reference-typed Values are heap-allocated so identity
 /// matches Vader's reference semantics for struct / array / fn / builder.

@@ -17,10 +17,10 @@
 // "array index out of bounds" would otherwise mask compiler / parser
 // bugs.
 
-import "std/io" { read_file, eprintln, println }
+import "std/io" { read_file, eprintln, println, print }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, contains, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, NullVal, BoolVal, CharVal, display_value }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, StringEq, StringNe, StringConcat, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, NullVal, BoolVal, CharVal, display_value }
 import "vader/vm/parser" { parse_virt }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -316,6 +316,27 @@ apply_bool_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: stri
 apply_char_cmp :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, cmp: fn(char, char) -> bool) -> Trap | null {
     left  :: read_char(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_char(frame.stack[frame.sp - 1], frame.pc, op_label)
+    if left  is Trap { return left  }
+    if right is Trap { return right }
+    frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
+    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    return null
+}
+
+/// String binary comparator : pop two strings, push `BoolVal` of
+/// `cmp(left, right)`. Used by `string.eq` / `string.ne`.
+///
+/// @param frame      current top frame.
+/// @param top        index of `frame` within `frames` (for the write-back).
+/// @param frames     the frame stack (mutated via `frames[top] = ...`).
+/// @param op_label   short label used in the Trap message on type mismatch.
+/// @param cmp        the string comparator to apply.
+/// @return           `null` on success, or a `Trap` if either operand
+///                   isn't a string.
+/// @error            type mismatch on the left or right operand.
+apply_string_cmp :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, cmp: fn(string, string) -> bool) -> Trap | null {
+    left  :: read_string(frame.stack[frame.sp - 2], frame.pc, op_label)
+    right :: read_string(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
@@ -925,6 +946,23 @@ export exec :: fn(module: Module) -> VmResult {
                 outcome :: apply_char_cmp(frame, top, frames, "char.ge", (a, b) -> a >= b)
                 if outcome is Trap { return outcome }
             }
+            is StringEq -> {
+                outcome :: apply_string_cmp(frame, top, frames, "string.eq", (a, b) -> a == b)
+                if outcome is Trap { return outcome }
+            }
+            is StringNe -> {
+                outcome :: apply_string_cmp(frame, top, frames, "string.ne", (a, b) -> a != b)
+                if outcome is Trap { return outcome }
+            }
+            is StringConcat -> {
+                if frame.sp < 2 { return Trap { .message = "string.concat needs 2 strings on stack at pc=${frame.pc}" } }
+                left  :: read_string(frame.stack[frame.sp - 2], frame.pc, "string.concat")
+                right :: read_string(frame.stack[frame.sp - 1], frame.pc, "string.concat")
+                if left  is Trap { return left  }
+                if right is Trap { return right }
+                frame.stack[frame.sp - 2] = StringVal { .value = "${left.value}${right.value}" }
+                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+            }
             is RefEq -> {
                 if frame.sp < 2 { return Trap { .message = "ref.eq needs 2 values on stack at pc=${frame.pc}" } }
                 outcome :: value_ref_eq(frame.stack[frame.sp - 2], frame.stack[frame.sp - 1], frame.pc, "ref.eq")
@@ -1339,8 +1377,7 @@ dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal |
     if info.mangled == STDIO_PRINT {
         arg :: read_string(stack[arg_base], at_pc, "print")
         if arg is Trap { return arg }
-        // TODO route to stdout w/o newline (sprint 4+ wires std/io.print exactly)
-        println(arg.value)
+        print(arg.value)
         return HostOk { .value = zero_value() }
     }
     if info.mangled == STDIO_EPRINTLN {
