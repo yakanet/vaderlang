@@ -67,6 +67,24 @@ ${err}`);
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
+  // Post Sprint 11 (2026-05-13). `ErrorVal` added to the `Value` union :
+  // `RefType` learns its `trait_name` (was empty placeholder), and the
+  // new `ref_type_matches` routes `is Error` to `op.ErrorVal` checks (and
+  // the bare `ref _` to "any heap variant" per `src/vm/exec.ts:matchTo`).
+  // `parse_int` / `parse_float` host arms now return `op.ErrorVal` on
+  // failure instead of trapping the whole VM. `read_file` / `write_file`
+  // / `exists` host arms land, each wired through the native stdlib
+  // intrinsic with `Error` propagation. `STDIO_PRINTLN` / `STDIO_PRINT`
+  // / `STDIO_EPRINTLN` constants inlined at their three call sites.
+  // 3 snippets unblock (`parse_int_match`, `io_roundtrip`, `try_op`) —
+  // 172 / 179 = 96 % acceptance. Remaining 7 :
+  //   - `is Trait` impl table (non-`Error` traits, no .virt directive
+  //     for it yet) — `vm_trait_dispatch`.
+  //   - Primitive trait receivers — `trait_box_range_iter`.
+  //   - Width truncation (no `u32`-typed `Value`) — `enum_to_repr_cast`,
+  //     `numeric_context_sensitivity`, `type_aliases`.
+  //   - Misc : `dot_variant_in_union`, `process_spawn`.
+  //
   // Post Sprint 10 (2026-05-13). f64 support added : `F64Val` value
   // variant, every `f64.<op>` parser + exec arm, `parse_decimal_f64`
   // for the `f64.const` literal, and `std/math` host arms (`sqrt` /
@@ -123,12 +141,9 @@ const KNOWN_DIVERGENT = new Set<string>([
   //   - Misc : process_spawn (spawn_run host).
   "dot_variant_in_union",
   "enum_to_repr_cast",
-  "io_roundtrip",
   "numeric_context_sensitivity",
-  "parse_int_match",
   "process_spawn",
   "trait_box_range_iter",
-  "try_op",
   "type_aliases",
   "vm_trait_dispatch",
 ]);

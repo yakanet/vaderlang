@@ -347,11 +347,16 @@ export StructType :: struct { name: string, field_count: usize }
 /// `array TID` — single-element-type heap-grown array.
 export ArrayType :: struct { element_type_id: i32 }
 
-/// `ref _` — opaque reference type (the `_` is the .virt placeholder
-/// for "any referent kind"). Used by the bytecode pipeline to type
-/// local slots that hold a struct / array / closure reference without
-/// a concrete underlying decl.
-export RefType :: struct {}
+/// Trait-typed (or opaque) reference. `trait_name` carries the name
+/// from the `.virt` `ref NAME` directive (`ref Error`, `ref Iterator`,
+/// …) ; `""` for the wildcard `ref _` form, which the bytecode pipeline
+/// emits for slots that hold any heap-allocated reference without a
+/// concrete underlying decl. Used by `type_matches` (via
+/// `ref_type_matches` in `exec.vader`) to route `is Trait` patterns —
+/// `is Error` matches when the value is an `ErrorVal` ; the wildcard
+/// matches any struct / array / builder / fn ; other trait names fall
+/// back to `false` until a `.virt` impl table directive lands.
+export RefType :: struct { trait_name: string }
 
 /// `fn (TIDs) -> TID` — function-pointer type. Sprint 4 (b1) records
 /// it but doesn't use it ; `call.indirect` lookups will at (b4).
@@ -405,7 +410,7 @@ export Module :: struct {
 /// intrinsics ; Sprint 4 (b4) added `FnVal` for `fn.ref` / `call.indirect` ;
 /// Sprint 5a adds `NullVal` / `BoolVal` / `CharVal` for the corresponding
 /// const + comparison op families. Mirrors `src/vm/value.ts`.
-export Value :: I32Val | F64Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal
+export Value :: I32Val | F64Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal | ErrorVal
 
 /// 32-bit integer payload.
 export I32Val :: struct { value: i32 }
@@ -475,6 +480,14 @@ export BoolVal :: struct { value: bool }
 /// codepoint ; equality and ordering use the underlying numeric.
 export CharVal :: struct { value: char }
 
+/// Error value — the Vader runtime sentinel for a failed fallible call.
+/// Carries a short diagnostic. Matches against any `is Error` pattern
+/// (where `Error` is the stdlib trait every concrete error implements).
+/// Host imports for `parse_int` / `parse_float` / `read_file` / `write_file`
+/// produce one of these on failure ; the user-side `match … { is Error -> … }`
+/// or `?` propagation pick it up.
+export ErrorVal :: struct { message: string }
+
 // ---- Display impls on each `Value` variant --------------------------------
 //
 // Every variant carries its own `Display` impl so the dispatcher below
@@ -519,6 +532,10 @@ BoolVal implements Display {
 
 CharVal implements Display {
     to_string :: fn(self) -> string = "${self.value}"
+}
+
+ErrorVal implements Display {
+    to_string :: fn(self) -> string = "<error: ${self.message}>"
 }
 
 /// Renders as `<type_id>{ field0, field1, … }` — type_id is the ordinal
@@ -576,4 +593,5 @@ export display_value :: fn(v: Value) -> string = match v {
     is NullVal    as n -> n.to_string()
     is BoolVal    as b -> b.to_string()
     is CharVal    as c -> c.to_string()
+    is ErrorVal   as e -> e.to_string()
 }

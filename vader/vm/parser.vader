@@ -371,7 +371,7 @@ register_vtable_entry :: fn(vtables: op.Vtable[], key: string, entry: op.VtableE
 parse_type_decl :: fn(cleaned: string, types: op.TypeDecl[]) -> void {
     after_type :: cleaned.slice("type ".byte_len(), cleaned.byte_len()).trim()
     first_space :: after_type.index_of(' ', 0)
-    if first_space < 0 { types.push(op.RefType {}) return }
+    if first_space < 0 { types.push(op.RefType { .trait_name = "" }) return }
     rest :: after_type.slice(usize(first_space) + 1, after_type.byte_len()).trim()
 
     if rest.starts_with("struct ") {
@@ -386,14 +386,18 @@ parse_type_decl :: fn(cleaned: string, types: op.TypeDecl[]) -> void {
     if rest.starts_with("array ") {
         element_text :: rest.slice("array ".byte_len(), rest.byte_len()).trim()
         parsed :: parse_int_in_base(element_text, 10)
-        if parsed is Error { types.push(op.RefType {}) return }
+        if parsed is Error { types.push(op.RefType { .trait_name = "" }) return }
         types.push(op.ArrayType { .element_type_id = i32(parsed) })
         return
     }
     if rest.starts_with("ref ") {
-        // The `ref NAME` referent (e.g. `Error`, `_`) is informational ;
-        // the VM doesn't currently use it.
-        types.push(op.RefType {})
+        // The `ref NAME` referent (e.g. `Error`, `_`) keys the trait
+        // dispatch in `type_matches` : `is Error` patterns succeed when
+        // the value is an `ErrorVal`. `_` (wildcard) stays as the empty
+        // string and matches no specific trait.
+        name :: rest.slice("ref ".byte_len(), rest.byte_len()).trim()
+        normalised: string = if name == "_" { "" } else { name }
+        types.push(op.RefType { .trait_name = normalised })
         return
     }
     if rest.starts_with("fn ") {
@@ -405,7 +409,7 @@ parse_type_decl :: fn(cleaned: string, types: op.TypeDecl[]) -> void {
         return
     }
     // Unknown kind — push a placeholder so the type-id ordinal isn't shifted.
-    types.push(op.RefType {})
+    types.push(op.RefType { .trait_name = "" })
 }
 
 /// Parse `struct NAME { field:tid, ... }` into a `op.StructType`.

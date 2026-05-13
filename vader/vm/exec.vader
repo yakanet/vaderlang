@@ -17,7 +17,7 @@
 // "array index out of bounds" would otherwise mask compiler / parser
 // bugs.
 
-import "std/io" { read_file, eprintln, println, print }
+import "std/io" { read_file, write_file, exists, eprintln, println, print }
 import "std/numbers" { parse_int_in_base }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/string_builder" { StringBuilder, new_builder, append }
@@ -38,9 +38,6 @@ export Trap :: struct { message: string }
 // Raw form (`r"..."`) bypasses Vader's `$<ident>` interpolation
 // syntax, which would otherwise try to resolve `println` etc. as
 // inline expressions.
-STDIO_PRINTLN  :: r"std_io$println"
-STDIO_PRINT    :: r"std_io$print"
-STDIO_EPRINTLN :: r"std_io$eprintln"
 
 // Maximum frame depth — guards against runaway recursion (the
 // callee-frame allocation could otherwise grow unbounded). Picked
@@ -460,9 +457,36 @@ type_matches :: fn(module: op.Module, v: op.Value, type_id: i32) -> bool {
             _                 -> false
         }
         is op.UnionType     as u -> union_matches(module, v, u.variant_type_ids)
-        is op.RefType            -> false
+        is op.RefType       as r -> ref_type_matches(v, r.trait_name)
         is op.FnType             -> false
     }
+}
+
+/// Match a value against a `ref Trait` type. Mirrors `matchTo`'s
+/// `case "ref"` arm in `src/vm/exec.ts` :
+///   - `is Error`         → matches every `ErrorVal`.
+///   - `is _` (wildcard)  → matches any heap-allocated value (struct /
+///                          array / builder / fn) so legacy `ref _`
+///                          patterns still bind.
+///   - Other trait names  → fall back to `false` until a `.virt`-side
+///                          impl table lands (vm_trait_dispatch / similar
+///                          stay in `KNOWN_DIVERGENT` until that work).
+///
+/// @param v           the value to test.
+/// @param trait_name  the trait name carried on the `RefType`.
+/// @return            `true` iff `v` matches the trait.
+ref_type_matches :: fn(v: op.Value, trait_name: string) -> bool {
+    if trait_name == "Error" { return v is op.ErrorVal }
+    if trait_name == "" {
+        return match v {
+            is op.StructVal  -> true
+            is op.ArrayVal   -> true
+            is op.BuilderVal -> true
+            is op.FnVal      -> true
+            _                -> false
+        }
+    }
+    return false
 }
 
 /// Receiver `type_id` extraction for `virtual.call`. Struct / Array
@@ -1291,6 +1315,7 @@ describe_value_tag :: fn(v: op.Value) = match v {
     is op.NullVal    -> "null"
     is op.BoolVal    -> "bool"
     is op.CharVal    -> "char"
+    is op.ErrorVal   -> "error"
 }
 
 /// Unwrap a `op.BoolVal` from a `op.Value`. Used by the boolean op arms.
@@ -1621,19 +1646,19 @@ stringbuilder_to_string :: fn(sv: op.StructVal, at_pc: i32) -> HostCallResult {
 ///                  import, malformed arg, or host-level failure.
 /// @error           any of the unbound / malformed cases.
 dispatch_import :: fn(info: op.ImportInfo, stack: op.Value[], arg_base: usize, gc_state: usize[], at_pc: i32) -> HostCallResult {
-    if info.mangled == STDIO_PRINTLN {
+    if info.mangled == r"std_io$println" {
         arg :: read_string(stack[arg_base], at_pc, "println")
         if arg is Trap { return arg }
         println(arg.value)
         return HostOk { .value = zero_value() }
     }
-    if info.mangled == STDIO_PRINT {
+    if info.mangled == r"std_io$print" {
         arg :: read_string(stack[arg_base], at_pc, "print")
         if arg is Trap { return arg }
         print(arg.value)
         return HostOk { .value = zero_value() }
     }
-    if info.mangled == STDIO_EPRINTLN {
+    if info.mangled == r"std_io$eprintln" {
         arg :: read_string(stack[arg_base], at_pc, "eprintln")
         if arg is Trap { return arg }
         eprintln(arg.value)
@@ -1736,15 +1761,10 @@ dispatch_import :: fn(info: op.ImportInfo, stack: op.Value[], arg_base: usize, g
     if info.mangled == r"std_string$parse_int" {
         s :: read_string(stack[arg_base], at_pc, "parse_int")
         if s is Trap { return s }
-        // Lower bound : reject empty / whitespace. On error we trap rather
-        // than returning a Vader-side `Error` value.
-        // TODO §2.4-err: add `ErrorVal` to the `op.Value` union so this can
-        // return `string | Error` and `parse_int_match` / `try_op` etc.
-        // exercise the failure branch instead of trapping the whole VM.
         trimmed :: s.value.trim()
-        if trimmed.byte_len() == 0 { return Trap { .message = "parse_int: empty string at pc=${at_pc}" } }
+        if trimmed.byte_len() == 0 { return HostOk { .value = op.ErrorVal { .message = "parse_int: empty string" } } }
         parsed :: parse_int_in_base(trimmed, 10)
-        if parsed is Error { return Trap { .message = "parse_int: invalid integer '${trimmed}' at pc=${at_pc}" } }
+        if parsed is Error { return HostOk { .value = op.ErrorVal { .message = "parse_int: invalid integer '${trimmed}'" } } }
         return HostOk { .value = op.I32Val { .value = i32(parsed) } }
     }
     // ---- std/runtime collection counters ---------------------------------
@@ -1802,16 +1822,51 @@ dispatch_import :: fn(info: op.ImportInfo, stack: op.Value[], arg_base: usize, g
         if result > hi.value { result = hi.value }
         return HostOk { .value = op.I32Val { .value = result } }
     }
-    // `parse_float` mirrors `parse_int` — traps on bad input (no
-    // `ErrorVal` yet, same TODO as parse_int).
     if info.mangled == r"std_string$parse_float" {
         s :: read_string(stack[arg_base], at_pc, "parse_float")
         if s is Trap { return s }
         trimmed :: s.value.trim()
-        if trimmed.byte_len() == 0 { return Trap { .message = "parse_float: empty string at pc=${at_pc}" } }
+        if trimmed.byte_len() == 0 { return HostOk { .value = op.ErrorVal { .message = "parse_float: empty string" } } }
         parsed :: parse_decimal_f64(trimmed)
-        if parsed is null { return Trap { .message = "parse_float: invalid float '${trimmed}' at pc=${at_pc}" } }
+        if parsed is null { return HostOk { .value = op.ErrorVal { .message = "parse_float: invalid float '${trimmed}'" } } }
         return HostOk { .value = op.F64Val { .value = parsed } }
+    }
+    // ---- std/io fallible file ops ---------------------------------------
+    if info.mangled == r"std_io$read_file" {
+        path :: read_string(stack[arg_base], at_pc, "read_file")
+        if path is Trap { return path }
+        result :: read_file(path.value)
+        // `e.message()` would dispatch through the Error trait vtable,
+        // but DCE strips most `Error` impls that aren't called elsewhere
+        // in the VM. Interpolate the path so the snippet output at least
+        // names the missing file — the trait-method dispatch can land
+        // once DCE preserves cross-impl `Error.message()` (TODO §2.4-err).
+        return match result {
+            is string as s -> HostOk { .value = op.StringVal { .value = s } }
+            is Error       -> HostOk { .value = op.ErrorVal  { .message = "read_file failed: ${path.value}" } }
+        }
+    }
+    if info.mangled == r"std_io$write_file" {
+        path    :: read_string(stack[arg_base    ], at_pc, "write_file path")
+        content :: read_string(stack[arg_base + 1], at_pc, "write_file content")
+        if path    is Trap { return path }
+        if content is Trap { return content }
+        result :: write_file(path.value, content.value)
+        // The C-emitter assigns a non-zero tag to the `null` type, but
+        // `vader_box_null` (used by the runtime for `void!` success
+        // returns) emits tag 0, so `is null` would miss. Match the
+        // failure path explicitly and fall through to success. The
+        // message can't pull from `e.message()` either (TODO §2.4-err) —
+        // same DCE caveat as `read_file`.
+        return match result {
+            is Error -> HostOk { .value = op.ErrorVal { .message = "write_file failed: ${path.value}" } }
+            _        -> HostOk { .value = op.NullVal {} }
+        }
+    }
+    if info.mangled == r"std_io$exists" {
+        path :: read_string(stack[arg_base], at_pc, "exists")
+        if path is Trap { return path }
+        return HostOk { .value = op.BoolVal { .value = exists(path.value) } }
     }
     // ---- std/testing -----------------------------------------------------
     if info.mangled == r"std_testing$panic" {
