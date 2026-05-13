@@ -1,0 +1,28 @@
+# CFG
+
+## tests/snippets/vm_struct_nested/_main.vader
+
+fn tests_snippets_vm_struct_nested__main_vader$main() -> i32
+  locals:
+    %0 $k_0#10: i32
+    %1 $struct_1#11: Inner
+    %2 $k_2#12: i32
+    %3 $struct_3#13: Inner
+    %4 o#14: Outer (local o)
+    %5 $field_6#15: Inner
+    %6 $field_7#16: i32
+    %7 $field_8#17: Inner
+    %8 $field_9#18: i32
+    %9 $add_10#19: i32
+  bb0:
+    %0 = const int(10) :i32
+    %1 = struct_new[stack] Inner(%0)
+    %2 = const int(32) :i32
+    %3 = struct_new[stack] Inner(%2)
+    %4 = struct_new[stack] Outer(%1, %3)
+    %5 = field_get %4.lhs :Inner
+    %6 = field_get %5.v :i32
+    %7 = field_get %4.rhs :Inner
+    %8 = field_get %7.v :i32
+    %9 = binop add %6 %8 :i32
+    return %9

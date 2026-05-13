@@ -14,7 +14,7 @@
 
 import "std/string" { byte_len, slice, starts_with, ends_with, trim, split, contains, index_of }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, StringConst, CallImport, Call, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, StructNew, StructGet, StructSet, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType }
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps
@@ -99,6 +99,7 @@ first_token_after :: fn(cleaned: string, prefix: string) -> string {
 export parse_virt :: fn(source: string) -> Module {
     strings: string[] = []
     imports: ImportInfo[] = []
+    types: TypeDecl[] = []
     functions: BytecodeFunction[] = []
     main_index := -1
 
@@ -125,8 +126,9 @@ export parse_virt :: fn(source: string) -> Module {
 
         if !in_function {
             // Module-level directives. The set is closed for now ;
-            // unknown header lines (`module NAME`, `type ...`, ...)
-            // are ignored ; sprint 5+ may surface diagnostics here.
+            // unknown header lines (`module NAME`, ...) are ignored ;
+            // sprint 5+ may surface diagnostics here.
+            if cleaned.starts_with("type ")   { parse_type_decl(cleaned, types) continue }
             if cleaned.starts_with("string ") { parse_string_decl(cleaned, strings) continue }
             if cleaned.starts_with("import ") { parse_import_decl(cleaned, imports) continue }
             if cleaned.starts_with("export ") {
@@ -136,7 +138,7 @@ export parse_virt :: fn(source: string) -> Module {
             }
             if cleaned.starts_with("fn ") {
                 current_name = read_fn_mangled_name(cleaned)
-                current_parameter_count = count_signature_parameters(cleaned)
+                current_parameter_count = count_delimited_items(cleaned, '(', ')')
                 current_local_count = 0
                 state.ops = []
                 state.table = []
@@ -184,9 +186,96 @@ export parse_virt :: fn(source: string) -> Module {
     return Module {
         .strings    = strings,
         .imports    = imports,
+        .types      = types,
         .functions  = functions,
         .main_index = main_index,
     }
+}
+
+/// Parse `type N KIND ...` and append the entry to `types`. The
+/// ordinal is implicit in the array index — every `type` line emits
+/// one entry, including unknown KINDs (a `RefType` placeholder is
+/// pushed so subsequent ordinals stay aligned).
+///
+/// @param cleaned  the .virt line (comment-stripped).
+/// @param types    the module type table, appended to in place.
+parse_type_decl :: fn(cleaned: string, types: TypeDecl[]) -> void {
+    after_type :: cleaned.slice("type ".byte_len(), cleaned.byte_len()).trim()
+    first_space :: after_type.index_of(' ', 0)
+    if first_space < 0 { types.push(RefType {}) return }
+    rest :: after_type.slice(usize(first_space) + 1, after_type.byte_len()).trim()
+
+    if rest.starts_with("struct ") {
+        types.push(parse_struct_type(rest))
+        return
+    }
+    if rest.starts_with("primitive ") {
+        kind :: rest.slice("primitive ".byte_len(), rest.byte_len()).trim()
+        types.push(PrimitiveType { .kind = kind })
+        return
+    }
+    if rest.starts_with("array ") {
+        element_text :: rest.slice("array ".byte_len(), rest.byte_len()).trim()
+        parsed :: parse_int_in_base(element_text, 10)
+        if parsed is Error { types.push(RefType {}) return }
+        types.push(ArrayType { .element_type_id = i32(parsed) })
+        return
+    }
+    if rest.starts_with("ref ") {
+        // The `ref NAME` referent (e.g. `Error`, `_`) is informational ;
+        // the VM doesn't currently use it.
+        types.push(RefType {})
+        return
+    }
+    if rest.starts_with("fn ") {
+        types.push(parse_fn_type(rest))
+        return
+    }
+    // Unknown kind — push a placeholder so the type-id ordinal isn't shifted.
+    types.push(RefType {})
+}
+
+/// Parse `struct NAME { field:tid, ... }` into a `StructType`.
+///
+/// @param rest  the type-decl body after the `type N ` prefix, starting
+///              with `struct `.
+/// @return      a `StructType` carrying the mangled name and the count
+///              of comma-separated fields (0 for `{ }`).
+parse_struct_type :: fn(rest: string) -> StructType {
+    after_struct :: rest.slice("struct ".byte_len(), rest.byte_len())
+    open :: after_struct.index_of('{', 0)
+    name :: if open < 0 { after_struct.trim() } else { after_struct.slice(0, usize(open)).trim() }
+    return StructType { .name = name, .field_count = count_delimited_items(after_struct, '{', '}') }
+}
+
+/// Parse `fn (TIDs) -> TID` into a `FnType`. Sprint 4 (b1) records
+/// this but doesn't use the data ; `call.indirect` will at (b4).
+///
+/// @param rest  the type-decl body starting with `fn `.
+/// @return      a `FnType` ; on malformed input, returns one with an
+///              empty parameter list and `return_type_id = 0`.
+parse_fn_type :: fn(rest: string) -> FnType {
+    open :: rest.index_of('(', 0)
+    close :: rest.index_of(')', 0)
+    parameter_type_ids: i32[] = []
+    if open >= 0 && close >= 0 && close > open + 1 {
+        inner :: rest.slice(usize(open) + 1, usize(close)).trim()
+        if inner.byte_len() > 0 {
+            parts :: inner.split(",")
+            for part in parts {
+                parsed :: parse_int_in_base(part.trim(), 10)
+                if !(parsed is Error) { parameter_type_ids.push(i32(parsed)) }
+            }
+        }
+    }
+    return_type_id := 0
+    arrow :: rest.index_of('>', 0)
+    if arrow >= 0 {
+        ret_text :: rest.slice(usize(arrow) + 1, rest.byte_len()).trim()
+        parsed :: parse_int_in_base(ret_text, 10)
+        if !(parsed is Error) { return_type_id = i32(parsed) }
+    }
+    return FnType { .parameter_type_ids = parameter_type_ids, .return_type_id = return_type_id }
 }
 
 /// Parse `string N "..."`. Anything inside the quotes is taken
@@ -213,7 +302,7 @@ parse_import_decl :: fn(cleaned: string, imports: ImportInfo[]) -> void {
     if parts.len() < 4 { return }
     name    :: parts[1]
     mangled :: parts[2]
-    parameter_count :: count_signature_parameters(cleaned)
+    parameter_count :: count_delimited_items(cleaned, '(', ')')
     has_return :: !cleaned.contains("-> void")
     imports.push(ImportInfo {
         .name            = name,
@@ -269,18 +358,22 @@ read_fn_mangled_name :: fn(cleaned: string) -> string {
     return parts[1]
 }
 
-/// Count parameter types in the first `(...)` group of a signature.
-/// An empty `()` means zero. Both function headers (`fn N name
-/// (i32,i32) -> i32`) and imports use this — comma-counted, which
-/// is sufficient until parameter types carry inner commas (none do
-/// in the current .virt format).
+/// Count comma-separated items in the first `open_char .. close_char`
+/// group of `line`. Used by struct field-count (`{...}`), function
+/// signature param-count (`(...)`), and fn-type param-count. An empty
+/// body or missing delimiters returns 0. Inner items aren't split
+/// further — they may carry whitespace or `:` (e.g. struct `name:tid`).
 ///
-/// @param line  the .virt line (comment-stripped) carrying the signature.
-/// @return      the number of comma-separated tokens inside the first
-///              `(...)` group, or `0` if the group is empty or absent.
-count_signature_parameters :: fn(line: string) -> usize {
-    open :: line.index_of('(', 0)
-    close :: line.index_of(')', 0)
+/// @param line        the .virt line (comment-stripped).
+/// @param open_char   opening delimiter (`'('` for fn / import / fn-type,
+///                    `'{'` for struct decl).
+/// @param close_char  matching closing delimiter.
+/// @return            comma-separated item count inside the first
+///                    `open .. close` group, or `0` if the group is
+///                    empty or absent.
+count_delimited_items :: fn(line: string, open_char: char, close_char: char) -> usize {
+    open :: line.index_of(open_char, 0)
+    close :: line.index_of(close_char, 0)
     if open < 0 || close < 0 || close <= open + 1 { return 0 }
     inner :: line.slice(usize(open + 1), usize(close)).trim()
     if inner.byte_len() == 0 { return 0 }
@@ -299,32 +392,36 @@ count_signature_parameters :: fn(line: string) -> usize {
 ///                 don't shift pc indices).
 try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
     return match parse_op_line(cleaned) {
-        is null            -> false
-        is I32Const    as o -> { ops.push(o)  true }
-        is LocalGet    as o -> { ops.push(o)  true }
-        is LocalSet    as o -> { ops.push(o)  true }
-        is StringConst as o -> { ops.push(o)  true }
-        is CallImport  as o -> { ops.push(o)  true }
-        is Call        as o -> { ops.push(o)  true }
-        is I32Add      as o -> { ops.push(o)  true }
-        is I32Sub      as o -> { ops.push(o)  true }
-        is I32Mul      as o -> { ops.push(o)  true }
-        is I32Div      as o -> { ops.push(o)  true }
-        is I32Mod      as o -> { ops.push(o)  true }
-        is I32Eq       as o -> { ops.push(o)  true }
-        is I32Ne       as o -> { ops.push(o)  true }
-        is I32Lt       as o -> { ops.push(o)  true }
-        is I32Le       as o -> { ops.push(o)  true }
-        is I32Gt       as o -> { ops.push(o)  true }
-        is I32Ge       as o -> { ops.push(o)  true }
-        is Block       as o -> { ops.push(o)  true }
-        is Loop        as o -> { ops.push(o)  true }
-        is If          as o -> { ops.push(o)  true }
-        is Else        as o -> { ops.push(o)  true }
-        is End         as o -> { ops.push(o)  true }
-        is Branch      as o -> { ops.push(o)  true }
-        is BranchIf    as o -> { ops.push(o)  true }
-        is Return      as o -> { ops.push(o)  true }
+        is null                  -> false
+        is I32Const        as o -> { ops.push(o)  true }
+        is LocalGet        as o -> { ops.push(o)  true }
+        is LocalSet        as o -> { ops.push(o)  true }
+        is LocalTee        as o -> { ops.push(o)  true }
+        is StringConst     as o -> { ops.push(o)  true }
+        is CallImport      as o -> { ops.push(o)  true }
+        is Call            as o -> { ops.push(o)  true }
+        is StructNew       as o -> { ops.push(o)  true }
+        is StructGet       as o -> { ops.push(o)  true }
+        is StructSet       as o -> { ops.push(o)  true }
+        is I32Add          as o -> { ops.push(o)  true }
+        is I32Sub          as o -> { ops.push(o)  true }
+        is I32Mul          as o -> { ops.push(o)  true }
+        is I32Div          as o -> { ops.push(o)  true }
+        is I32Mod          as o -> { ops.push(o)  true }
+        is I32Eq           as o -> { ops.push(o)  true }
+        is I32Ne           as o -> { ops.push(o)  true }
+        is I32Lt           as o -> { ops.push(o)  true }
+        is I32Le           as o -> { ops.push(o)  true }
+        is I32Gt           as o -> { ops.push(o)  true }
+        is I32Ge           as o -> { ops.push(o)  true }
+        is Block           as o -> { ops.push(o)  true }
+        is Loop            as o -> { ops.push(o)  true }
+        is If              as o -> { ops.push(o)  true }
+        is Else            as o -> { ops.push(o)  true }
+        is End             as o -> { ops.push(o)  true }
+        is Branch          as o -> { ops.push(o)  true }
+        is BranchIf        as o -> { ops.push(o)  true }
+        is Return          as o -> { ops.push(o)  true }
     }
 }
 
@@ -460,12 +557,22 @@ drain_pending :: fn(state: ParserState, label: string, is_loop: bool, opener_pc:
 ///                 the parser keeps going past directives a sprint
 ///                 doesn't yet handle (no pc shift, no diagnostic).
 parse_op_line :: fn(cleaned: string) -> Op | null {
-    if cleaned.starts_with("i32.const ")    { return parse_int_arg(cleaned, "i32.const ") }
-    if cleaned.starts_with("local.get ")    { return parse_slot_arg(cleaned, "local.get ", true) }
-    if cleaned.starts_with("local.set ")    { return parse_slot_arg(cleaned, "local.set ", false) }
-    if cleaned.starts_with("string.const ") { return parse_string_const(cleaned) }
-    if cleaned.starts_with("call.import ")  { return parse_call_import(cleaned) }
-    if cleaned.starts_with("call ")         { return parse_call(cleaned) }
+    if cleaned.starts_with("i32.const ")        { return parse_int_arg(cleaned, "i32.const ") }
+    if cleaned.starts_with("local.get ")        { return parse_slot_arg(cleaned, "local.get ", true) }
+    if cleaned.starts_with("local.set ")        { return parse_slot_arg(cleaned, "local.set ", false) }
+    if cleaned.starts_with("local.tee ")        { return parse_local_tee(cleaned) }
+    if cleaned.starts_with("string.const ")     { return parse_string_const(cleaned) }
+    if cleaned.starts_with("call.import ")      { return parse_call_import(cleaned) }
+    if cleaned.starts_with("call ")             { return parse_call(cleaned) }
+    // `struct.new` / `struct.new_stack` and `struct.set` / `struct.set_stack`
+    // collapse into one VM op each — the heap/stack split is a codegen
+    // concern. `_stack` prefixes are checked first since they share the
+    // base prefix.
+    if cleaned.starts_with("struct.new_stack ") { return parse_struct_new_after(cleaned, "struct.new_stack ") }
+    if cleaned.starts_with("struct.new ")       { return parse_struct_new_after(cleaned, "struct.new ") }
+    if cleaned.starts_with("struct.get ")       { return parse_struct_get(cleaned) }
+    if cleaned.starts_with("struct.set_stack ") { return parse_struct_set_after(cleaned, "struct.set_stack ") }
+    if cleaned.starts_with("struct.set ")       { return parse_struct_set_after(cleaned, "struct.set ") }
     if cleaned == "i32.add"  { return I32Add {} }
     if cleaned == "i32.sub"  { return I32Sub {} }
     if cleaned == "i32.mul"  { return I32Mul {} }
@@ -533,4 +640,50 @@ parse_call :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "call ")
     if parsed is null { return null }
     return Call { .function_index = parsed }
+}
+
+parse_local_tee :: fn(line: string) -> Op | null {
+    parsed :: parse_int_after_prefix(line, "local.tee ")
+    if parsed is null { return null }
+    return LocalTee { .slot = parsed }
+}
+
+parse_struct_new_after :: fn(line: string, prefix: string) -> Op | null {
+    parsed :: parse_int_after_prefix(line, prefix)
+    if parsed is null { return null }
+    return StructNew { .type_id = parsed }
+}
+
+/// Holds the two base-10 ints parsed off a `struct.get` / `struct.set`
+/// line — a small named struct instead of a tuple because Vader's
+/// `[T, U] | null` doesn't destructure after a null-narrow today.
+TypeFieldPair :: struct { type_id: i32, field_index: i32 }
+
+/// Parse `struct.get TYPE_ID FIELD_INDEX` / `struct.set ...` — two
+/// space-separated base-10 ints after the prefix.
+///
+/// @param line    the .virt line (comment-stripped).
+/// @param prefix  literal prefix (`"struct.get "` or `"struct.set "`).
+/// @return        the parsed pair ; `null` on malformed input.
+parse_type_field_pair :: fn(line: string, prefix: string) -> TypeFieldPair | null {
+    rest :: line.slice(prefix.byte_len(), line.byte_len()).trim()
+    space :: rest.index_of(' ', 0)
+    if space < 0 { return null }
+    a :: parse_int_in_base(rest.slice(0, usize(space)).trim(), 10)
+    if a is Error { return null }
+    b :: parse_int_in_base(rest.slice(usize(space) + 1, rest.byte_len()).trim(), 10)
+    if b is Error { return null }
+    return TypeFieldPair { .type_id = i32(a), .field_index = i32(b) }
+}
+
+parse_struct_get :: fn(line: string) -> Op | null {
+    pair :: parse_type_field_pair(line, "struct.get ")
+    if pair is null { return null }
+    return StructGet { .type_id = pair.type_id, .field_index = pair.field_index }
+}
+
+parse_struct_set_after :: fn(line: string, prefix: string) -> Op | null {
+    pair :: parse_type_field_pair(line, prefix)
+    if pair is null { return null }
+    return StructSet { .type_id = pair.type_id, .field_index = pair.field_index }
 }

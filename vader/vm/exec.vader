@@ -18,7 +18,7 @@
 // bugs.
 
 import "std/io" { read_file, eprintln, println }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, StringConst, CallImport, Call, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, Value, I32Val, StringVal }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, StructNew, StructGet, StructSet, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, StructType, Value, I32Val, StringVal, StructVal }
 import "vader/vm/parser" { parse_virt }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -51,14 +51,15 @@ MAX_FRAME_DEPTH :: 1024
 /// cursor (the array is grow-only, see `push_value`). `pc` indexes into
 /// the function's `ops` array.
 ///
-/// `slots` and `stack` use the inlined `(I32Val | StringVal)[]` shape
-/// (rather than `Value[]`) as a work-around for a Vader compiler bug —
-/// the `Value` alias doesn't expand in `Alias[]` fn signatures across
-/// module boundaries (TODO §3.8).
+/// `slots` and `stack` use the inlined `(I32Val | StringVal | StructVal)[]`
+/// shape (rather than `Value[]`) as a work-around for TODO §3.8 — the
+/// `Value` alias doesn't expand correctly in `Alias[]` array slots when
+/// the alias was imported from another module (cross-module `: Value`
+/// scalars work fine ; only the array case is broken).
 Frame :: struct {
     function_index: i32
-    slots:          (I32Val | StringVal)[]
-    stack:          (I32Val | StringVal)[]
+    slots:          (I32Val | StringVal | StructVal)[]
+    stack:          (I32Val | StringVal | StructVal)[]
     sp:             usize
     pc:             i32
 }
@@ -76,7 +77,7 @@ zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 ///                fresh slot is needed, otherwise an existing one is
 ///                overwritten (cheaper than `push`).
 /// @param value   the value to write.
-push_value :: fn(stack: (I32Val | StringVal)[], cursor: usize, value: (I32Val | StringVal)) -> void {
+push_value :: fn(stack: (I32Val | StringVal | StructVal)[], cursor: usize, value: Value) -> void {
     if cursor == stack.len() { stack.push(value) }
     else                     { stack[cursor] = value }
 }
@@ -117,8 +118,8 @@ pop_frame :: fn(cursor: usize[]) -> void {
 /// @param args_source     the array to read params from.
 /// @param args_offset     start offset of the params within `args_source`.
 /// @return                a fresh `Frame` ready to be pushed.
-build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_source: (I32Val | StringVal)[], args_offset: usize) -> Frame {
-    slots: (I32Val | StringVal)[] = []
+build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_source: (I32Val | StringVal | StructVal)[], args_offset: usize) -> Frame {
+    slots: (I32Val | StringVal | StructVal)[] = []
     parameter_index: usize = 0
     for parameter_index < callee.parameter_count {
         slots.push(args_source[args_offset + parameter_index])
@@ -289,6 +290,16 @@ export exec :: fn(module: Module) -> VmResult {
                 frame.slots[op.slot] = frame.stack[frame.sp - 1]
                 frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
             }
+            is LocalTee -> {
+                if frame.sp == 0 {
+                    return Trap { .message = "local.tee on empty stack at pc=${frame.pc} in '${body.name}'" }
+                }
+                if op.slot < 0 || usize(op.slot) >= frame.slots.len() {
+                    return Trap { .message = "local.tee slot ${op.slot} out of range at pc=${frame.pc} in '${body.name}'" }
+                }
+                frame.slots[op.slot] = frame.stack[frame.sp - 1]
+                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+            }
             is StringConst -> {
                 if op.index < 0 || usize(op.index) >= module.strings.len() {
                     return Trap { .message = "string.const index ${op.index} out of range at pc=${frame.pc}" }
@@ -335,6 +346,35 @@ export exec :: fn(module: Module) -> VmResult {
                 if frame_count[0] > usize(MAX_FRAME_DEPTH) {
                     return Trap { .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${callee.name}'" }
                 }
+            }
+            is StructNew -> {
+                outcome :: build_struct(module, op.type_id, frame)
+                if outcome is Trap { return outcome }
+                frames[top] = outcome
+            }
+            is StructGet -> {
+                if frame.sp == 0 {
+                    return Trap { .message = "struct.get on empty stack at pc=${frame.pc}" }
+                }
+                struct_unwrap :: read_struct(frame.stack[frame.sp - 1], frame.pc, "struct.get receiver")
+                if struct_unwrap is Trap { return struct_unwrap }
+                if op.field_index < 0 || usize(op.field_index) >= struct_unwrap.fields.len() {
+                    return Trap { .message = "struct.get field ${op.field_index} out of range (struct has ${struct_unwrap.fields.len()} fields) at pc=${frame.pc}" }
+                }
+                frame.stack[frame.sp - 1] = struct_unwrap.fields[usize(op.field_index)]
+                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+            }
+            is StructSet -> {
+                if frame.sp < 2 {
+                    return Trap { .message = "struct.set needs receiver + value on stack at pc=${frame.pc}" }
+                }
+                struct_unwrap :: read_struct(frame.stack[frame.sp - 2], frame.pc, "struct.set receiver")
+                if struct_unwrap is Trap { return struct_unwrap }
+                if op.field_index < 0 || usize(op.field_index) >= struct_unwrap.fields.len() {
+                    return Trap { .message = "struct.set field ${op.field_index} out of range (struct has ${struct_unwrap.fields.len()} fields) at pc=${frame.pc}" }
+                }
+                struct_unwrap.fields[usize(op.field_index)] = frame.stack[frame.sp - 1]
+                frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
             }
             is I32Add -> {
                 outcome :: apply_arith_binop(frame, top, frames, "i32.add", (a, b) -> a + b)
@@ -429,7 +469,7 @@ export exec :: fn(module: Module) -> VmResult {
             }
             is Return -> {
                 has_value :: frame.sp > 0
-                return_value: (I32Val | StringVal) = I32Val { .value = 0 }
+                return_value: Value = I32Val { .value = 0 }
                 if has_value { return_value = frame.stack[frame.sp - 1] }
                 pop_frame(frame_count)
                 if frame_count[0] == 0 {
@@ -470,6 +510,59 @@ read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
     return Trap { .message = "${label} at pc=${at_pc}: expected i32, got string" }
 }
 
+/// Unwrap a `StructVal` from a `Value`, mirroring `read_i32`. Used by
+/// the struct-op arms to recover the receiver on top of the stack.
+///
+/// @param v       the tagged value to inspect.
+/// @param at_pc   pc of the op doing the read.
+/// @param label   short context label (`"struct.get receiver"`).
+/// @return        the `StructVal` payload on success, or a `Trap` on
+///                type mismatch.
+/// @error         the value's tag is `I32Val` or `StringVal`.
+read_struct :: fn(v: Value, at_pc: i32, label: string) -> StructVal | Trap {
+    if v is StructVal { return v }
+    if v is I32Val    { return Trap { .message = "${label} at pc=${at_pc}: expected struct, got i32" } }
+    return Trap { .message = "${label} at pc=${at_pc}: expected struct, got string" }
+}
+
+/// Body of the `StructNew` arm — the .virt text format emits two
+/// variants (`struct.new` and `struct.new_stack`) but the VM treats
+/// them identically (the heap/stack split is a codegen concern).
+/// Pops `field_count` values from `frame.stack` (in field-declaration
+/// order), wraps them in a `StructVal`, and pushes the result.
+///
+/// @param module   the running module (used to look up `types`).
+/// @param type_id  the struct type's ordinal in `module.types`.
+/// @param frame    current top frame.
+/// @return         a fresh `Frame` (sp / pc advanced) on success, or a
+///                 `Trap` describing the failure.
+/// @error          `type_id` out of range ; type-table entry isn't a
+///                 `StructType` ; stack carries fewer than `field_count`
+///                 values.
+build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Frame | Trap {
+    if type_id < 0 || usize(type_id) >= module.types.len() {
+        return Trap { .message = "struct.new type ${type_id} out of range at pc=${frame.pc}" }
+    }
+    type_decl :: module.types[usize(type_id)]
+    if !(type_decl is StructType) {
+        return Trap { .message = "struct.new type ${type_id} is not a struct at pc=${frame.pc}" }
+    }
+    field_count :: type_decl.field_count
+    if frame.sp < field_count {
+        return Trap { .message = "struct.new type ${type_id} needs ${field_count} field value(s) but stack has ${frame.sp} at pc=${frame.pc}" }
+    }
+    arg_base :: frame.sp - field_count
+    fields: (I32Val | StringVal | StructVal)[] = []
+    field_index: usize = 0
+    for field_index < field_count {
+        fields.push(frame.stack[arg_base + field_index])
+        field_index += 1
+    }
+    new_struct :: StructVal { .type_id = type_id, .fields = fields }
+    push_value(frame.stack, arg_base, new_struct)
+    return with_sp_pc(frame, arg_base + 1, frame.pc + 1)
+}
+
 /// Unwrap a `string` from a `Value`, mirroring `read_i32`. Used by the
 /// host dispatcher to recover the `string` payload of a `println`-style
 /// argument.
@@ -489,7 +582,7 @@ read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Trap {
 /// import has `has_return == false` — the exec checks the import's
 /// signature before pushing.
 export HostCallResult :: HostOk | Trap
-export HostOk :: struct { value: (I32Val | StringVal) }
+export HostOk :: struct { value: Value }
 
 /// Sprint 3 host surface — only the three plain string-printer imports
 /// that show up in `vm_hello` and its near siblings. Each new import
@@ -505,7 +598,7 @@ export HostOk :: struct { value: (I32Val | StringVal) }
 ///                  imports, or `Trap` for unknown imports or arg-type
 ///                  mismatches.
 /// @error           unknown `mangled` name ; argument type mismatch.
-dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
+dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
     if info.mangled == STDIO_PRINTLN {
         arg :: read_string(stack[arg_base], at_pc, "println")
         if arg is Trap { return arg }

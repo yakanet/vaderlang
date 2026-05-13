@@ -9,7 +9,7 @@
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | StringConst | CallImport | Call | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | CallImport | Call | StructNew | StructGet | StructSet | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -17,14 +17,35 @@ export I32Const :: struct { value: i32 }
 export LocalGet :: struct { slot: i32 }
 /// Pop the value stack into `slots[slot]`.
 export LocalSet :: struct { slot: i32 }
+/// Write the top of the value stack into `slots[slot]` *without*
+/// popping — useful when the bytecode wants both side-effect and the
+/// value still available (e.g. just after `struct.new_stack`).
+export LocalTee :: struct { slot: i32 }
 /// Push `module.strings[index]` onto the value stack.
 export StringConst :: struct { index: i32 }
 /// Invoke a host-side import (e.g. `println`) — `index` keys into `module.imports`.
 export CallImport :: struct { index: i32 }
 /// Invoke a Vader-side function — `function_index` keys into `module.functions`.
-/// Sprint 4 addition : the executor pops `parameter_count` values
+/// Sprint 4 (a) addition : the executor pops `parameter_count` values
 /// from the caller's stack, builds a new `Frame`, and pushes it.
 export Call :: struct { function_index: i32 }
+
+/// Allocate a struct of type `type_id`. Pops `field_count` values (in
+/// field-declaration order) from the value stack and wraps them in a
+/// `StructVal`. The bytecode pipeline emits two variants — `struct.new`
+/// and `struct.new_stack` — that share this VM op : the heap/stack
+/// distinction is a codegen concern, not a runtime one (TS VM
+/// `src/vm/exec.ts` collapses both cases too). Sprint 4 (b1) addition.
+export StructNew :: struct { type_id: i32 }
+/// Pop a `StructVal`, push `struct.fields[field_index]`. `type_id` is
+/// kept for diagnostics (the executor traps if the popped value's
+/// tag doesn't match). Sprint 4 (b1) addition.
+export StructGet :: struct { type_id: i32, field_index: i32 }
+/// Pop the new field value, then the struct ; mutate `struct.fields[
+/// field_index]` to the new value. Statement-form — no value pushed
+/// back. Mirrors `StructNew` in collapsing the heap/stack variants
+/// (`struct.set` / `struct.set_stack`) into one VM op. Sprint 4 (b1).
+export StructSet :: struct { type_id: i32, field_index: i32 }
 /// Pop two i32 (left, right) ; push left + right.
 export I32Add :: struct {}
 /// Pop two i32 (left, right) ; push left - right.
@@ -104,6 +125,33 @@ export BytecodeFunction :: struct {
     jump_table:      i32[]
 }
 
+/// Module-level type table entry, indexed by the `.virt`'s `type N ...`
+/// ordinal. Sprint 4 (b1) only consumes `StructType.field_count` — the
+/// other variants are placeholders so the parser can register every type
+/// slot without diagnostics (which preserves the ordinal indexing).
+export TypeDecl :: PrimitiveType | StructType | ArrayType | RefType | FnType
+
+/// `primitive i32` / `primitive string` / `primitive bool` / etc.
+export PrimitiveType :: struct { kind: string }
+
+/// `struct NAME { field0:tid0, field1:tid1, ... }`. `field_count` is
+/// the number of values `struct.new` / `struct.new_stack` pop from the
+/// value stack and the number of slots in `StructVal.fields`.
+export StructType :: struct { name: string, field_count: usize }
+
+/// `array TID` — single-element-type heap-grown array.
+export ArrayType :: struct { element_type_id: i32 }
+
+/// `ref _` — opaque reference type (the `_` is the .virt placeholder
+/// for "any referent kind"). Used by the bytecode pipeline to type
+/// local slots that hold a struct / array / closure reference without
+/// a concrete underlying decl.
+export RefType :: struct {}
+
+/// `fn (TIDs) -> TID` — function-pointer type. Sprint 4 (b1) records
+/// it but doesn't use it ; `call.indirect` lookups will at (b4).
+export FnType :: struct { parameter_type_ids: i32[], return_type_id: i32 }
+
 /// Top-level holder for a parsed .virt module. `main_index` points
 /// at the entry function in `functions` — populated by the parser
 /// from the `export main N` directive, with a fallback search for a
@@ -111,16 +159,18 @@ export BytecodeFunction :: struct {
 export Module :: struct {
     strings:    string[]
     imports:    ImportInfo[]
+    types:      TypeDecl[]
     functions:  BytecodeFunction[]
     main_index: i32
 }
 
 /// Tagged runtime value carried on the VM's value stack. Sprint 3
 /// widened the stack from raw `i32[]` to this union so strings flow
-/// through `string.const` / `call.import` alongside numerics. Future
-/// sprints add bool / char / struct / array variants ; mirrors
+/// through `string.const` / `call.import` alongside numerics ; Sprint
+/// 4 (b1) adds `StructVal` for `struct.new` / `struct.get` / `struct.set`.
+/// Future sprints add bool / char / array / closure variants ; mirrors
 /// `src/vm/value.ts` and grows in lock-step with the op set.
-export Value :: I32Val | StringVal
+export Value :: I32Val | StringVal | StructVal
 
 /// 32-bit integer payload.
 export I32Val :: struct { value: i32 }
@@ -128,3 +178,12 @@ export I32Val :: struct { value: i32 }
 /// String payload — the underlying buffer is borrowed from the
 /// module's `strings` pool, so the VM never has to allocate.
 export StringVal :: struct { value: string }
+
+/// Heap-allocated struct payload. `type_id` indexes into `Module.types`
+/// (used for diagnostics + future `type_check` op) ; `fields[i]` carries
+/// the i-th declared field. `Value[]` resolves intra-module so the
+/// alias-expansion bug (TODO §3.8, cross-module-only) doesn't bite here.
+export StructVal :: struct {
+    type_id: i32
+    fields:  Value[]
+}

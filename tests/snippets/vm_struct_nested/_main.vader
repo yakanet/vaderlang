@@ -1,0 +1,14 @@
+// Sprint 4 (b1) acceptance: struct as a field of another struct.
+// Exercises the `Value[]` self-reference inside `StructVal` — fields
+// can themselves be `StructVal`s. `10 + 32 = 42`.
+
+Inner :: struct { v: i32 }
+Outer :: struct { lhs: Inner, rhs: Inner }
+
+main :: fn() -> i32 {
+    o :: Outer {
+        .lhs = Inner { .v = 10 },
+        .rhs = Inner { .v = 32 },
+    }
+    return o.lhs.v + o.rhs.v
+}

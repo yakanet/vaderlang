@@ -1,0 +1,162 @@
+# AST
+{
+  "kind": "Program",
+  "decls": [
+    {
+      "kind": "StructDecl",
+      "name": "Inner",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "v",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "visibility": "private",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Outer",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "lhs",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "Inner"
+          },
+          "visibility": "private",
+          "default": null
+        },
+        {
+          "name": "rhs",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "Inner"
+          },
+          "visibility": "private",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "o"
+            },
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "Outer"
+              },
+              "items": [
+                {
+                  "kind": "field",
+                  "name": "lhs",
+                  "value": {
+                    "kind": "StructLitExpr",
+                    "typeName": {
+                      "kind": "IdentExpr",
+                      "name": "Inner"
+                    },
+                    "items": [
+                      {
+                        "kind": "field",
+                        "name": "v",
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "10n",
+                          "suffix": null
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "kind": "field",
+                  "name": "rhs",
+                  "value": {
+                    "kind": "StructLitExpr",
+                    "typeName": {
+                      "kind": "IdentExpr",
+                      "name": "Inner"
+                    },
+                    "items": [
+                      {
+                        "kind": "field",
+                        "name": "v",
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "32n",
+                          "suffix": null
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "o"
+                  },
+                  "field": "lhs"
+                },
+                "field": "v"
+              },
+              "right": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "o"
+                  },
+                  "field": "rhs"
+                },
+                "field": "v"
+              }
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

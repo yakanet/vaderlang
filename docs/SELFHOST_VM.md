@@ -51,7 +51,10 @@ traits/vtables, binary `.vir`.
 | 2 | locals, binops (i32 arith + cmp), `if`/`block`/`loop`/`br`/`br_if` | most numeric snippets |
 | 3 | strings + `vader_println` host fn → "hello world" | `hello_world`, `interp_string` |
 | 4 (a) | direct `call` + Frame stack — multi-fn modules ✅ | `vm_call_simple`, `vm_call_chain`, `vm_call_recursive` |
-| 4 (b) | structs, arrays, `call.import` extended | most struct/array snippets |
+| 4 (b1) | type table + struct ops (`struct.new(_stack)`, `struct.get`, `struct.set(_stack)`, `local.tee`) ✅ | `vm_struct_point`, `vm_struct_nested`, `vm_struct_mutate` |
+| 4 (b2) | array ops (`array.new`, `array.push`, `array.get`, `array.len`) | most array snippets |
+| 4 (b3) | intrinsic builder.* — unblocks `"${}"` interpolation | most println-heavy snippets |
+| 4 (b4) | `fn.ref` + `call.indirect` — fn-values stored in fields / arrays | `fn_value_*` |
 | 5 | `type_check`, `ref.cast`, virtual.call, intrinsics, traits/vtables | nearly all snippets |
 | 6 | binary `.vir` loader (alternative to text) | shipping-perf gains |
 | 7 | Split `vader/vm/exec.vader` into `vader/bytecode/{types,ops,module,text}.vader` + `vader/vm/{value,exec,host}.vader` once the single file becomes unwieldy (probably mid-sprint 3 or 4). |

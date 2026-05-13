@@ -1,0 +1,16 @@
+# Typecheck
+
+## tests/snippets/vm_struct_nested/_main.vader
+  StructDecl     Inner                :: Inner
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Outer                :: Outer
+  expr 10:16    StructLitExpr  :: Inner
+  expr 11:16    StructLitExpr  :: Inner
+  expr 13:12    BinaryExpr     :: i32
+  expr 13:12    FieldExpr      :: Inner
+  expr 13:12    FieldExpr      :: i32
+  expr 13:12    IdentExpr      :: Outer
+  expr 13:22    FieldExpr      :: Inner
+  expr 13:22    FieldExpr      :: i32
+  expr 13:22    IdentExpr      :: Outer
+  expr 9:10     StructLitExpr  :: Outer

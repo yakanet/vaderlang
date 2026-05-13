@@ -1,0 +1,9 @@
+// Sprint 4 (b1) acceptance: struct.new_stack + struct.get on a
+// trivial 2-field struct. `3 + 4 = 7`.
+
+Point :: struct { x: i32, y: i32 }
+
+main :: fn() -> i32 {
+    p :: Point { .x = 3, .y = 4 }
+    return p.x + p.y
+}
