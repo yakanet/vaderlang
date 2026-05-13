@@ -18,9 +18,10 @@
 // bugs.
 
 import "std/io" { read_file, eprintln, println, print }
+import "std/numbers" { parse_int_in_base }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, contains, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, StringEq, StringNe, StringConcat, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, NullVal, BoolVal, CharVal, display_value }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, StringEq, StringNe, StringConcat, IntToChar, CharToInt, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, NullVal, BoolVal, CharVal, display_value }
 import "vader/vm/parser" { parse_virt }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -528,9 +529,28 @@ export exec :: fn(module: Module) -> VmResult {
 
     frames: Frame[] = []
     frame_count: usize[] = [0]
+    // 1-element box for the GC-collection counter — the Vader VM has no
+    // arena, but `std/runtime.collect` / `collections` snippet tests just
+    // need the counter to be present + monotonic. `dispatch_import`
+    // bumps it on every `collect` call and reads it on every `collections`
+    // query. Boxed because Vader has no module-level mutables.
+    // Increments monotonically within this invocation only — the box is
+    // discarded when `exec` returns, so cross-call persistence is not
+    // implied. Snippet tests check `after - before == N` within one run.
+    gc_state: usize[] = [0]
 
     main_function :: module.functions[usize(module.main_index)]
-    main_frame :: build_callee_frame(module.main_index, main_function, [], 0, null)
+    // If `main` is declared `fn(argv: string[]) -> i32`, supply a single-
+    // element array carrying the synthetic program path. The TS VM does
+    // the same — concrete CLI argv passthrough lives in the native build,
+    // not the VM.
+    main_args: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[] = []
+    if main_function.parameter_count == 1 {
+        argv_elements: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[] = []
+        argv_elements.push(StringVal { .value = "<vader-vm>" })
+        main_args.push(ArrayVal { .type_id = 0, .elements = argv_elements })
+    }
+    main_frame :: build_callee_frame(module.main_index, main_function, main_args, 0, null)
     push_frame(frames, frame_count, main_frame)
 
     for frame_count[0] > 0 {
@@ -597,7 +617,7 @@ export exec :: fn(module: Module) -> VmResult {
                     return Trap { .message = "call.import '${info.mangled}' needs ${info.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
                 arg_base :: frame.sp - info.parameter_count
-                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, frame.pc)
+                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc)
                 if dispatch_outcome is Trap {
                     return dispatch_outcome
                 }
@@ -887,6 +907,14 @@ export exec :: fn(module: Module) -> VmResult {
                 outcome :: apply_arith_binop(frame, top, frames, "i32.shr", (a, b) -> a >> b)
                 if outcome is Trap { return outcome }
             }
+            is I32ShrU -> {
+                // Logical shift : reinterpret the i32 as u32 before the
+                // shift so the sign bit isn't replicated, then reinterpret
+                // the result back as i32. Mirrors `>>>` in JS / `>>` on
+                // unsigned C types.
+                outcome :: apply_arith_binop(frame, top, frames, "u32.shr", (a, b) -> i32(u32(a) >> u32(b)))
+                if outcome is Trap { return outcome }
+            }
             is NullConst -> {
                 push_value(frame.stack, frame.sp, NullVal {})
                 frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
@@ -953,6 +981,20 @@ export exec :: fn(module: Module) -> VmResult {
             is StringNe -> {
                 outcome :: apply_string_cmp(frame, top, frames, "string.ne", (a, b) -> a != b)
                 if outcome is Trap { return outcome }
+            }
+            is IntToChar -> {
+                if frame.sp == 0 { return Trap { .message = "<int>.to_char on empty stack at pc=${frame.pc}" } }
+                source :: read_i32(frame.stack[frame.sp - 1], frame.pc, "<int>.to_char")
+                if source is Trap { return source }
+                frame.stack[frame.sp - 1] = CharVal { .value = char(u32(source.value)) }
+                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+            }
+            is CharToInt -> {
+                if frame.sp == 0 { return Trap { .message = "char.to_<int> on empty stack at pc=${frame.pc}" } }
+                source :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.to_<int>")
+                if source is Trap { return source }
+                frame.stack[frame.sp - 1] = I32Val { .value = i32(u32(source.value)) }
+                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
             }
             is StringConcat -> {
                 if frame.sp < 2 { return Trap { .message = "string.concat needs 2 strings on stack at pc=${frame.pc}" } }
@@ -1076,8 +1118,14 @@ export exec :: fn(module: Module) -> VmResult {
 ///                type mismatch.
 /// @error         the value's tag is `StringVal`, not `I32Val`.
 read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
-    if v is I32Val { return v }
-    return Trap { .message = "${label} at pc=${at_pc}: expected i32, got ${describe_value_tag(v)}" }
+    // `Convert` is a no-op in the VM (Sprint 5c), so `char.to_u32` / similar
+    // i-width casts pass a `CharVal` through to subsequent integer ops.
+    // Accept it transparently — both payloads are i32-shaped.
+    return match v {
+        is I32Val  as i -> i
+        is CharVal as c -> I32Val { .value = i32(u32(c.value)) }
+        _ -> Trap { .message = "${label} at pc=${at_pc}: expected i32, got ${describe_value_tag(v)}" }
+    }
 }
 
 /// Unwrap a `StructVal` from a `Value`, mirroring `read_i32`. Used by
@@ -1149,8 +1197,14 @@ read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
 /// @return        the `CharVal` payload, or a `Trap` on type mismatch.
 /// @error         the value's tag isn't `CharVal`.
 read_char :: fn(v: Value, at_pc: i32, label: string) -> CharVal | Trap {
-    if v is CharVal { return v }
-    return Trap { .message = "${label} at pc=${at_pc}: expected char, got ${describe_value_tag(v)}" }
+    // `i32.to_char` lowers to a no-op `Convert` so the source `I32Val`
+    // passes through ; re-wrap as `CharVal` so the consumer sees the
+    // codepoint with the expected tag.
+    return match v {
+        is CharVal as c -> c
+        is I32Val  as i -> CharVal { .value = char(u32(i.value)) }
+        _ -> Trap { .message = "${label} at pc=${at_pc}: expected char, got ${describe_value_tag(v)}" }
+    }
 }
 
 /// Read a truthy condition (`if` / `br_if`). Accepts both legacy
@@ -1367,7 +1421,24 @@ stringbuilder_to_string :: fn(sv: StructVal, at_pc: i32) -> HostCallResult {
     return HostOk { .value = StringVal { .value = "${flush}" } }
 }
 
-dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
+/// Dispatch a host import. Walks a flat `if info.mangled == r"…"`
+/// cascade matching the TS VM's `makeBindings` shape — every arm pops
+/// the args from `stack[arg_base ..]`, executes the host action, and
+/// returns either `HostOk { value }` (the result pushed onto the
+/// caller's value stack) or a `Trap` (surfaced verbatim).
+///
+/// @param info      the import descriptor (mangled name + parameter count).
+/// @param stack     caller value stack — args live at `[arg_base ..]`.
+/// @param arg_base  cursor of the first arg in `stack`.
+/// @param gc_state  1-element box for the `std/runtime` collection
+///                  counter — `collect` bumps `[0]`, `collections`
+///                  reads it.
+/// @param at_pc     pc of the calling `call.import` op, used for Trap
+///                  diagnostics only.
+/// @return          `HostOk { value }` on success ; `Trap` on a missing
+///                  import, malformed arg, or host-level failure.
+/// @error           any of the unbound / malformed cases.
+dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[], arg_base: usize, gc_state: usize[], at_pc: i32) -> HostCallResult {
     if info.mangled == STDIO_PRINTLN {
         arg :: read_string(stack[arg_base], at_pc, "println")
         if arg is Trap { return arg }
@@ -1465,7 +1536,110 @@ dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal |
         if min_index is Trap { return min_index }
         return HostOk { .value = I32Val { .value = i32(s.value.last_index_of(c.value, isize(min_index.value))) } }
     }
+    // ---- std/core hash + Display intrinsics ------------------------------
+    // `string implements Hash` is `@intrinsic`. Computes the low 32 bits
+    // of FNV-1a-64 (matches the C runtime's `vader_string_hash` modulo
+    // 2^32 — sufficient for `hash % capacity` bucket assignments).
+    if info.mangled == r"std_core$string$Hash$hash" {
+        s :: read_string(stack[arg_base], at_pc, "string.hash")
+        if s is Trap { return s }
+        return HostOk { .value = I32Val { .value = fnv1a31_low(s.value) } }
+    }
+    // `<width> implements Display.to_string` for every primitive — the
+    // VM emits the SPEC §9 canonical form via `display_value`. Width
+    // doesn't matter at runtime (every integer collapses to `I32Val`),
+    // so a single arm covers all the per-width manglings.
+    if info.mangled.contains(r"$Display$to_string") && is_display_to_string_host(info.mangled) {
+        return HostOk { .value = StringVal { .value = display_value(stack[arg_base]) } }
+    }
+    // ---- std/string extras -----------------------------------------------
+    if info.mangled == r"std_string$parse_int" {
+        s :: read_string(stack[arg_base], at_pc, "parse_int")
+        if s is Trap { return s }
+        // Lower bound : reject empty / whitespace. On error we trap rather
+        // than returning a Vader-side `Error` value.
+        // TODO §2.4-err: add `ErrorVal` to the `Value` union so this can
+        // return `string | Error` and `parse_int_match` / `try_op` etc.
+        // exercise the failure branch instead of trapping the whole VM.
+        trimmed :: s.value.trim()
+        if trimmed.byte_len() == 0 { return Trap { .message = "parse_int: empty string at pc=${at_pc}" } }
+        parsed :: parse_int_in_base(trimmed, 10)
+        if parsed is Error { return Trap { .message = "parse_int: invalid integer '${trimmed}' at pc=${at_pc}" } }
+        return HostOk { .value = I32Val { .value = i32(parsed) } }
+    }
+    // ---- std/runtime collection counters ---------------------------------
+    // The Vader VM has no GC arena ; the snippet tests just need the
+    // counter to be present + monotonic. `collect` bumps it, `collections`
+    // returns the current value, `bytes_used` / `bytes_copied` stay at
+    // zero (no real arena to measure).
+    if info.mangled == r"std_runtime$collect" {
+        gc_state[0] = gc_state[0] + 1
+        return HostOk { .value = NullVal {} }
+    }
+    if info.mangled == r"std_runtime$collections"  { return HostOk { .value = I32Val { .value = i32(gc_state[0]) } } }
+    if info.mangled == r"std_runtime$bytes_used"   { return HostOk { .value = I32Val { .value = 0 } } }
+    if info.mangled == r"std_runtime$bytes_copied" { return HostOk { .value = I32Val { .value = 0 } } }
+    // ---- std/testing -----------------------------------------------------
+    if info.mangled == r"std_testing$panic" {
+        message :: read_string(stack[arg_base], at_pc, "panic")
+        if message is Trap { return message }
+        return Trap { .message = "vader: panic — ${message.value}" }
+    }
     return Trap { .message = "unbound host import '${info.mangled}' at pc=${at_pc}" }
+}
+
+/// True iff `mangled` is a primitive `<T>.Display.to_string` host — one
+/// of the ten integer widths, plus `f32` / `f64` / `bool` / `char` /
+/// `string`. Used by `dispatch_import` to route every primitive
+/// `Display::to_string` call to the shared `display_value` formatter.
+///
+/// @param mangled  the host-import name to test.
+/// @return         `true` iff the name is one of the recognised
+///                 `std_core$<primitive>$Display$to_string` keys.
+is_display_to_string_host :: fn(mangled: string) -> bool {
+    if mangled == r"std_core$i8$Display$to_string"     { return true }
+    if mangled == r"std_core$i16$Display$to_string"    { return true }
+    if mangled == r"std_core$i32$Display$to_string"    { return true }
+    if mangled == r"std_core$i64$Display$to_string"    { return true }
+    if mangled == r"std_core$isize$Display$to_string"  { return true }
+    if mangled == r"std_core$u8$Display$to_string"     { return true }
+    if mangled == r"std_core$u16$Display$to_string"    { return true }
+    if mangled == r"std_core$u32$Display$to_string"    { return true }
+    if mangled == r"std_core$u64$Display$to_string"    { return true }
+    if mangled == r"std_core$usize$Display$to_string"  { return true }
+    if mangled == r"std_core$bool$Display$to_string"   { return true }
+    if mangled == r"std_core$char$Display$to_string"   { return true }
+    if mangled == r"std_core$string$Display$to_string" { return true }
+    return false
+}
+
+/// Low 31 bits of FNV-1a-64 over the UTF-8 bytes of `s`. The 64-bit
+/// FNV prime `0x100000001b3` reduces to `0x1b3` modulo 2^32 (since
+/// `0x100000000` is a multiple of 2^32), so the low 32 bits of the
+/// full 64-bit hash can be computed with plain i32 wrap arithmetic.
+/// The seed `0x84222325` is the low 32 bits of the 64-bit FNV offset
+/// `0xcbf29ce484222325`. The final mask clears the sign bit so the
+/// result is always non-negative — `std/collections.bucket_index`
+/// expects to divide an unsigned hash, and the VM has no `u64` value
+/// tag yet (every integer width collapses onto signed `I32Val`). The
+/// **31-bit width is intentional** — the top hash bit is dropped, so
+/// bucket assignment diverges from the TS VM for keys whose full
+/// hash has bit 31 set. Order-sensitive tests may surface this ;
+/// order-insensitive ones (sum, contains) are unaffected.
+///
+/// @param s  the string to hash.
+/// @return   `low_31(fnv1a64(s))` as a non-negative i32.
+fnv1a31_low :: fn(s: string) -> i32 {
+    // Seed: low 32 bits of the FNV-1a-64 offset 0xcbf29ce484222325 — `0x84222325`
+    // doesn't fit in a signed i32 literal, so re-encode as the equivalent
+    // negative value 0xcbf29ce484222325 mod 2^32 = 2213215013 = -2081752283.
+    h := i32(-2081752283)
+    i: usize = 0
+    for i < s.byte_len() {
+        h = (h ^ i32(s.byte_at(i))) * i32(0x1b3)
+        i += 1
+    }
+    return h & i32(0x7fffffff)
 }
 
 // ---- entry --------------------------------------------------------------

@@ -15,7 +15,7 @@
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, StringEq, StringNe, StringConcat, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, StringEq, StringNe, StringConcat, IntToChar, CharToInt, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry }
 
 /// ASCII byte constants — spelled out as `u8(u32('x'))` to keep the source
 /// readable. Match the convention used in `vader/fmt/comments.vader`.
@@ -23,6 +23,7 @@ BYTE_DOLLAR     :: u8(u32('$'))
 BYTE_UNDERSCORE :: u8(u32('_'))
 BYTE_BACKSLASH  :: u8(u32('\\'))
 BYTE_DQUOTE     :: u8(u32('"'))
+BYTE_SEMICOLON  :: u8(u32(';'))
 BYTE_LOWER_N    :: u8(u32('n'))
 BYTE_LOWER_T    :: u8(u32('t'))
 BYTE_LOWER_R    :: u8(u32('r'))
@@ -77,9 +78,25 @@ ParserState :: struct {
 /// @return      the line with its trailing comment removed, also trimmed
 ///              of surrounding whitespace.
 strip_comment :: fn(line: string) -> string {
-    semi :: line.index_of(';', 0)
-    if semi < 0 { return line.trim() }
-    return line.slice(0, usize(semi)).trim()
+    // Walk the line and find the first `;` that's not inside a double-
+    // quoted string. The `.virt` writer keeps the comment delimiter
+    // literal so a `;` inside a quoted payload (e.g. `string 3 "GC;..."`)
+    // must not be treated as the start of a comment.
+    n :: line.byte_len()
+    in_quote := false
+    i: usize = 0
+    for i < n {
+        b :: line.byte_at(i)
+        if b == BYTE_BACKSLASH && in_quote && i + 1 < n {
+            // Skip the escaped byte so `\"` doesn't close the string.
+            i += 2
+            continue
+        }
+        if b == BYTE_DQUOTE { in_quote = !in_quote }
+        else if b == BYTE_SEMICOLON && !in_quote { return line.slice(0, i).trim() }
+        i += 1
+    }
+    return line.trim()
 }
 
 /// First whitespace-separated token after `prefix` — the structured
@@ -649,6 +666,8 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
         is StringEq              as o -> { ops.push(o)  true }
         is StringNe              as o -> { ops.push(o)  true }
         is StringConcat          as o -> { ops.push(o)  true }
+        is IntToChar             as o -> { ops.push(o)  true }
+        is CharToInt             as o -> { ops.push(o)  true }
         is RefEq                 as o -> { ops.push(o)  true }
         is RefNe                 as o -> { ops.push(o)  true }
         is Drop                  as o -> { ops.push(o)  true }
@@ -671,6 +690,7 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
         is I32BitXor       as o -> { ops.push(o)  true }
         is I32Shl          as o -> { ops.push(o)  true }
         is I32Shr          as o -> { ops.push(o)  true }
+        is I32ShrU         as o -> { ops.push(o)  true }
         is Block           as o -> { ops.push(o)  true }
         is Loop            as o -> { ops.push(o)  true }
         is If              as o -> { ops.push(o)  true }
@@ -845,6 +865,8 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if cleaned.starts_with("array.set ")        { return parse_array_set(cleaned) }
     if cleaned == "array.len"                   { return ArrayLen {} }
     if cleaned.starts_with("ref.cast ")         { return RefCast {} }
+    if cleaned.starts_with("char.to_")          { return CharToInt {} }
+    if cleaned.ends_with(".to_char")            { return IntToChar {} }
     if is_numeric_convert(cleaned)              { return Convert {} }
     if cleaned == "intrinsic builder.new"             { return BuilderNew {} }
     if cleaned == "intrinsic builder.append_str"      { return BuilderAppendStr {} }
@@ -882,7 +904,7 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if is_int_op(cleaned, "sub")    { return I32Sub {} }
     if is_int_op(cleaned, "mul")    { return I32Mul {} }
     if is_int_op(cleaned, "div")    { return I32Div {} }
-    if is_int_op(cleaned, "mod")    { return I32Mod {} }
+    if is_int_op(cleaned, "rem")    { return I32Mod {} }
     if is_int_op(cleaned, "eq")     { return I32Eq {} }
     if is_int_op(cleaned, "ne")     { return I32Ne {} }
     if is_int_op(cleaned, "lt")     { return I32Lt {} }
@@ -895,7 +917,12 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if is_int_op(cleaned, "bitor")  { return I32BitOr {} }
     if is_int_op(cleaned, "bitxor") { return I32BitXor {} }
     if is_int_op(cleaned, "shl")    { return I32Shl {} }
-    if is_int_op(cleaned, "shr")    { return I32Shr {} }
+    // `shr` splits by signedness : signed widths keep the arithmetic
+    // shift (`I32Shr`), unsigned widths route to the logical-shift
+    // variant (`I32ShrU`). The two diverge only when the source operand
+    // has its high bit set ; lower bits behave identically.
+    if is_signed_int_op(cleaned, "shr")   { return I32Shr {} }
+    if is_unsigned_int_op(cleaned, "shr") { return I32ShrU {} }
     if cleaned.starts_with("block ")            { return Block {} }
     if cleaned.starts_with("loop ")             { return Loop {} }
     if cleaned.starts_with("if ")               { return If {} }
@@ -959,6 +986,36 @@ is_int_op :: fn(cleaned: string, verb: string) -> bool {
     width :: cleaned.slice(0, usize(dot))
     suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
     return is_int_width(width) && suffix == verb
+}
+
+/// True iff `cleaned` is `<signed-width>.<verb>` (i8 / i16 / i32 / i64
+/// / isize). Used to split `shr` into arithmetic / logical variants.
+///
+/// @param cleaned  the comment-stripped op line.
+/// @param verb     the verb suffix.
+/// @return         `true` when the prefix is a signed integer width.
+is_signed_int_op :: fn(cleaned: string, verb: string) -> bool {
+    dot :: cleaned.index_of('.', 0)
+    if dot < 0 { return false }
+    width :: cleaned.slice(0, usize(dot))
+    if width != "i8" && width != "i16" && width != "i32" && width != "i64" && width != "isize" { return false }
+    suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
+    return suffix == verb
+}
+
+/// True iff `cleaned` is `<unsigned-width>.<verb>` (u8 / u16 / u32 / u64
+/// / usize).
+///
+/// @param cleaned  the comment-stripped op line.
+/// @param verb     the verb suffix.
+/// @return         `true` when the prefix is an unsigned integer width.
+is_unsigned_int_op :: fn(cleaned: string, verb: string) -> bool {
+    dot :: cleaned.index_of('.', 0)
+    if dot < 0 { return false }
+    width :: cleaned.slice(0, usize(dot))
+    if width != "u8" && width != "u16" && width != "u32" && width != "u64" && width != "usize" { return false }
+    suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
+    return suffix == verb
 }
 
 /// Strip `prefix` from `line`, trim, and parse the rest as a base-10

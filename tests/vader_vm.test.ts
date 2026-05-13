@@ -67,62 +67,59 @@ ${err}`);
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
-  // Post Sprint 8 (2026-05-13). String op completion : `string.eq` /
-  // `string.ne` / `string.concat` + decoded backslash escapes in the
-  // `.virt` string table (`\n` / `\t` / `\r` / `\"` / `\\` / `\0`) +
-  // `print` (no newline) routed through `std/io.print` instead of
-  // collapsed onto `println`. 4 snippets unblock (`intrinsic_type_kind`,
-  // `multiline_string`, `op_overload_index`, `tuple_match_union`) —
-  // 135 / 176 = 77 % acceptance. Remaining failures :
-  //   - Float / math support — std_math, expr_bodied_fn, f64.* ops, tuple_struct_field.
-  //   - Enum dispatch — enum_to_repr_cast, dot_variant_in_union.
+  // Post Sprint 9 (2026-05-13). Multi-front widening of the Vader VM :
+  //   - String `Hash$hash` host (FNV-1a-32-low) + `parse_int` /
+  //     `panic` / `<width>$Display$to_string` (every primitive) hosts.
+  //   - `std/runtime` collection-counter hosts (boxed via `gc_state`
+  //     threaded through `dispatch_import`).
+  //   - `i32.rem` parser fix (was looking for `mod`, the bytecode
+  //     emits `rem`) — unblocks every `% capacity` bucket op.
+  //   - `IntToChar` / `CharToInt` ops re-tag the Value across the
+  //     no-op `Convert` boundary so `${char_val}` interpolation hits
+  //     the UTF-8 char printer instead of the i32 decimal one.
+  //   - `strip_comment` honours `"..."` string-literal boundaries
+  //     (Sprint 8 string-escape decoding surfaced the latent bug —
+  //     `"...GC; sum=..."` had the `;` swallowed as a comment marker).
+  //   - `read_i32` / `read_char` accept the cross-tag variant so a
+  //     no-op `Convert` doesn't leak `CharVal` into integer arms or
+  //     vice versa.
+  //   - `I32ShrU` op variant for unsigned (`u32.shr` / ...) shifts.
+  //   - `main` is now passed a 1-element `argv` array when its
+  //     signature requires one (`runtime_argv`).
+  // 24 snippets unblock (`bound_enforced`, `char_range_contains`,
+  // `collection_index_sugar`, `format_helpers`, `gc_*` (3), `iter_*` (3),
+  // `map_set_iter`, `mutable_*` (3), `parse_int_match`-ish, `path_basics`,
+  // `regex_helpers`, `runtime_argv`, `std_cli_basic`, `string_chars`,
+  // `string_codepoints`, `trait_dispatch_bounded`, `u32_bitops`,
+  // `op_overload_*`). 159 / 176 = 90 % acceptance.
+  // Remaining 17 failures :
+  //   - Float / math support — std_math, expr_bodied_fn, overload_first_param,
+  //     tuple_struct_field, json_basics (parse_float).
+  //   - Enum dispatch — dot_variant_in_union, enum_to_repr_cast.
   //   - Tuple destructure — tuple_comptime, tuple_triple_quad.
-  //   - GC root intrinsics + std_runtime$collections — gc_*, mutable_*.
   //   - `is Trait` pattern matching needs an impl table (.virt format gap)
-  //     — vm_trait_dispatch, op_overload_arith, op_overload_compound, trait_dispatch_bounded.
+  //     — vm_trait_dispatch, parse_int_match (Error union), io_roundtrip,
+  //     try_op.
   //   - Primitive trait receivers (i32 / usize as `self`) — trait_box_range_iter.
-  //   - `u32.shr` signed-vs-unsigned shift semantics — u32_bitops.
-  //   - Misc : io_roundtrip, regex_helpers, runtime_argv, etc.
-  "bound_enforced",
-  "char_range_contains",
-  "collection_index_sugar",
+  //   - Width truncation (u32 wrap missing) — numeric_context_sensitivity,
+  //     enum_to_repr_cast, type_aliases.
+  //   - Misc : process_spawn (spawn_run host).
   "dot_variant_in_union",
   "enum_to_repr_cast",
   "expr_bodied_fn",
-  "format_helpers",
-  "gc_array_survive",
-  "gc_chain_survive",
-  "gc_multi_collect",
   "io_roundtrip",
-  "iter_combinators",
-  "iter_defaults",
-  "iter_lazy",
   "json_basics",
-  "map_set_iter",
-  "mutable_map",
-  "mutable_map_string",
-  "mutable_set",
   "numeric_context_sensitivity",
-  "op_overload_arith",
-  "op_overload_compound",
   "overload_first_param",
   "parse_int_match",
-  "path_basics",
   "process_spawn",
-  "regex_helpers",
-  "runtime_argv",
-  "std_cli_basic",
   "std_math",
-  "string_chars",
-  "string_codepoints",
   "trait_box_range_iter",
-  "trait_dispatch_bounded",
   "try_op",
   "tuple_comptime",
   "tuple_struct_field",
   "tuple_triple_quad",
   "type_aliases",
-  "u32_bitops",
   "vm_trait_dispatch",
 ]);
 
