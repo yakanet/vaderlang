@@ -163,9 +163,14 @@ const KNOWN_DIVERGENT = new Set<string>([
   //   - Width truncation (u32 wrap missing) — numeric_context_sensitivity,
   //     enum_to_repr_cast, type_aliases.
   //   - Misc : process_spawn (spawn_run host).
-  "enum_to_repr_cast",
+  //
+  // Post Sprint 13 (2026-05-14). I64Val + 13 I64 ops land : `i64` / `u64`
+  // arithmetic stops wrapping to i32. Unblocks `enum_to_repr_cast` and
+  // `type_aliases`. `usize` / `isize` still ride the I32 path (carve-out
+  // tracked in `vader/vm/parser.vader::parse_wide_int_op`). 178 / 179.
+  // Remaining 1 : `numeric_context_sensitivity` needs a `U64Val` to
+  // round-trip `u64.MAX`-ish literals — i64 wrap clips them today.
   "numeric_context_sensitivity",
-  "type_aliases",
 ]);
 
 const scenarios = listSnippets("tests/snippets");

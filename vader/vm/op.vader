@@ -12,7 +12,7 @@ import "std/string_builder" { StringBuilder, new_builder, append }
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | F64Const | CallImport | Call | FnRef | MakeClosure | CallIndirect | VirtualCall | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | I32Neg | I32BitNot | I32BitAnd | I32BitOr | I32BitXor | I32Shl | I32Shr | I32ShrU | F64Add | F64Sub | F64Mul | F64Div | F64Neg | F64Eq | F64Ne | F64Lt | F64Le | F64Gt | F64Ge | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | StringEq | StringNe | StringConcat | IntToChar | CharToInt | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | F64Const | I64Const | CallImport | Call | FnRef | MakeClosure | CallIndirect | VirtualCall | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | I32Neg | I32BitNot | I32BitAnd | I32BitOr | I32BitXor | I32Shl | I32Shr | I32ShrU | I64Add | I64Sub | I64Mul | I64Div | I64Mod | I64Neg | I64Eq | I64Ne | I64Lt | I64Le | I64Gt | I64Ge | F64Add | F64Sub | F64Mul | F64Div | F64Neg | F64Eq | F64Ne | F64Lt | F64Le | F64Gt | F64Ge | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | StringEq | StringNe | StringConcat | IntToChar | CharToInt | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -173,6 +173,21 @@ export I32Ge :: struct {}
 /// Push a constant f64 onto the value stack. The .virt format encodes
 /// the literal in decimal with optional fraction (`f64.const 3.5`).
 export F64Const :: struct { value: f64 }
+/// Push a constant i64 onto the value stack.
+export I64Const :: struct { value: i64 }
+/// I64 arithmetic + comparison ops mirroring the I32 family.
+export I64Add :: struct {}
+export I64Sub :: struct {}
+export I64Mul :: struct {}
+export I64Div :: struct {}
+export I64Mod :: struct {}
+export I64Neg :: struct {}
+export I64Eq  :: struct {}
+export I64Ne  :: struct {}
+export I64Lt  :: struct {}
+export I64Le  :: struct {}
+export I64Gt  :: struct {}
+export I64Ge  :: struct {}
 /// Pop two f64 (left, right) ; push `left + right` as F64Val.
 export F64Add :: struct {}
 /// Pop two f64 (left, right) ; push `left - right` as F64Val.
@@ -420,10 +435,15 @@ export Module :: struct {
 /// intrinsics ; Sprint 4 (b4) added `FnVal` for `fn.ref` / `call.indirect` ;
 /// Sprint 5a adds `NullVal` / `BoolVal` / `CharVal` for the corresponding
 /// const + comparison op families. Mirrors `src/vm/value.ts`.
-export Value :: I32Val | F64Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal | ErrorVal
+export Value :: I32Val | I64Val | F64Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal | ErrorVal
 
 /// 32-bit integer payload.
 export I32Val :: struct { value: i32 }
+
+/// 64-bit integer payload. Carries `i64.const` literals plus the results
+/// of the `I64*` arithmetic / comparison ops (and any `I32Val` widened
+/// by `read_i64`).
+export I64Val :: struct { value: i64 }
 
 /// 64-bit float payload. Used for `f64` (and aliased `f32`) values
 /// flowing through `f64.const` and the `f64.*` arithmetic family.
@@ -520,6 +540,10 @@ F64Val implements Display {
     to_string :: fn(self) -> string = "${self.value}"
 }
 
+I64Val implements Display {
+    to_string :: fn(self) -> string = "${self.value}"
+}
+
 StringVal implements Display {
     to_string :: fn(self) -> string = self.value
 }
@@ -594,6 +618,7 @@ ArrayVal implements Display {
 ///           `to_string` impl.
 export display_value :: fn(v: Value) -> string = match v {
     is I32Val     as i -> i.to_string()
+    is I64Val     as i -> i.to_string()
     is F64Val     as f -> f.to_string()
     is StringVal  as s -> s.to_string()
     is StructVal  as s -> s.to_string()

@@ -749,6 +749,19 @@ try_push_op :: fn(cleaned: string, ops: op.Op[]) -> bool {
         is op.I32Shr          as o -> { ops.push(o)  true }
         is op.I32ShrU         as o -> { ops.push(o)  true }
         is op.F64Const        as o -> { ops.push(o)  true }
+        is op.I64Const        as o -> { ops.push(o)  true }
+        is op.I64Add          as o -> { ops.push(o)  true }
+        is op.I64Sub          as o -> { ops.push(o)  true }
+        is op.I64Mul          as o -> { ops.push(o)  true }
+        is op.I64Div          as o -> { ops.push(o)  true }
+        is op.I64Mod          as o -> { ops.push(o)  true }
+        is op.I64Neg          as o -> { ops.push(o)  true }
+        is op.I64Eq           as o -> { ops.push(o)  true }
+        is op.I64Ne           as o -> { ops.push(o)  true }
+        is op.I64Lt           as o -> { ops.push(o)  true }
+        is op.I64Le           as o -> { ops.push(o)  true }
+        is op.I64Gt           as o -> { ops.push(o)  true }
+        is op.I64Ge           as o -> { ops.push(o)  true }
         is op.F64Add          as o -> { ops.push(o)  true }
         is op.F64Sub          as o -> { ops.push(o)  true }
         is op.F64Mul          as o -> { ops.push(o)  true }
@@ -969,6 +982,12 @@ parse_op_line :: fn(cleaned: string) -> op.Op | null {
     // u64 / usize) routes to the same arm. `is_int_op` enumerates the
     // width prefixes ; mirrors the width-collapse already done for
     // `<width>.const` (Sprint 5c).
+    // Wide widths (i64 / u64 / usize / isize) route to the `I64*` op
+    // family — values above 2^31 don't fit in `I32Val`. Narrow widths
+    // (i8 / i16 / i32 / u8 / u16 / u32) fall through to the `I32*`
+    // family. Single split keeps the slice cost to one extraction.
+    wide_op :: parse_wide_int_op(cleaned)
+    if !(wide_op is null) { return wide_op }
     if is_int_op(cleaned, "add")    { return op.I32Add {} }
     if is_int_op(cleaned, "sub")    { return op.I32Sub {} }
     if is_int_op(cleaned, "mul")    { return op.I32Mul {} }
@@ -1028,7 +1047,22 @@ try_parse_int_const :: fn(cleaned: string) -> op.Op | null {
     if !is_int_width(width) { return null }
     suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
     if !suffix.starts_with("const ") { return null }
-    return parse_int_arg(cleaned, "${width}.const ")
+    rest :: suffix.slice("const ".byte_len(), suffix.byte_len()).trim()
+    return parse_int_const_text(rest)
+}
+
+/// Parse the operand of `<width>.const N`. Values that fit signed-i32
+/// stay as `I32Const` ; values outside that range promote to `I64Const`
+/// so the unsigned wide widths (e.g. `u32.const 4000000000`) survive
+/// without wraparound. Downstream `read_i32` truncates the i64 back to
+/// i32 when an i32 consumer wants it.
+parse_int_const_text :: fn(rest: string) -> op.Op | null {
+    parsed :: parse_int_in_base(rest, 10)
+    if parsed is Error { return null }
+    if parsed > i64(0x7fffffff) || parsed < i64(-0x80000000) {
+        return op.I64Const { .value = parsed }
+    }
+    return op.I32Const { .value = i32(parsed) }
 }
 
 /// True iff `width` is one of the 10 integer prefixes the VM recognises
@@ -1067,6 +1101,35 @@ is_int_op :: fn(cleaned: string, verb: string) -> bool {
     width :: cleaned.slice(0, usize(dot))
     suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
     return is_int_width(width) && suffix == verb
+}
+
+/// Recognise `<wide-int>.<verb>` and return the matching `I64*` op.
+/// Only `i64` / `u64` currently route to the I64 family ; `usize` /
+/// `isize` stay on the I32 path until the GC handles the extra boxing
+/// pressure (see `TODO.md` self-host VM section).
+///
+/// Splitting the dispatch into one helper keeps `parse_op_line` cheap :
+/// the width / suffix slices happen once per line, not 12×.
+parse_wide_int_op :: fn(cleaned: string) -> op.Op | null {
+    dot :: cleaned.index_of('.', 0)
+    if dot < 0 { return null }
+    width_len :: usize(dot)
+    width :: cleaned.slice(0, width_len)
+    if width != "i64" && width != "u64" { return null }
+    suffix :: cleaned.slice(width_len + usize(1), cleaned.byte_len())
+    if suffix == "add" { return op.I64Add {} }
+    if suffix == "sub" { return op.I64Sub {} }
+    if suffix == "mul" { return op.I64Mul {} }
+    if suffix == "div" { return op.I64Div {} }
+    if suffix == "rem" { return op.I64Mod {} }
+    if suffix == "eq"  { return op.I64Eq {} }
+    if suffix == "ne"  { return op.I64Ne {} }
+    if suffix == "lt"  { return op.I64Lt {} }
+    if suffix == "le"  { return op.I64Le {} }
+    if suffix == "gt"  { return op.I64Gt {} }
+    if suffix == "ge"  { return op.I64Ge {} }
+    if suffix == "neg" { return op.I64Neg {} }
+    return null
 }
 
 /// True iff `cleaned` is `<signed-width>.<verb>` (i8 / i16 / i32 / i64
