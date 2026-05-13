@@ -12,7 +12,7 @@ import "std/string_builder" { StringBuilder, new_builder, append }
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | CallImport | Call | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | CallImport | Call | FnRef | CallIndirect | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -32,6 +32,19 @@ export CallImport :: struct { index: i32 }
 /// Sprint 4 (a) addition : the executor pops `parameter_count` values
 /// from the caller's stack, builds a new `Frame`, and pushes it.
 export Call :: struct { function_index: i32 }
+
+/// Push a function reference (`FnVal`) for `function_index`. Used when
+/// a fn is stored in a struct field, passed as an argument, or bound to
+/// a local. Sprint 4 (b4) addition ; closures with captured env are
+/// not yet supported (deferred to b5+).
+export FnRef :: struct { function_index: i32 }
+
+/// Invoke a function through a `FnVal` on top of the value stack.
+/// `type_id` indexes into `module.types` and resolves to a `FnType`
+/// whose `parameter_type_ids.len()` tells the executor how many args
+/// to pop from the caller stack before binding them to the callee's
+/// `slots[0..N]`. Sprint 4 (b4) addition.
+export CallIndirect :: struct { type_id: i32 }
 
 /// Allocate a struct of type `type_id`. Pops `field_count` values (in
 /// field-declaration order) from the value stack and wraps them in a
@@ -225,10 +238,11 @@ export Module :: struct {
 /// through `string.const` / `call.import` alongside numerics ; Sprint
 /// 4 (b1) added `StructVal` for `struct.new` / `struct.get` / `struct.set` ;
 /// Sprint 4 (b2) added `ArrayVal` for the array ops ; Sprint 4 (b3)
-/// adds `BuilderVal` for `${…}` interpolation via the `builder.*`
-/// intrinsics. Future sprints add bool / char / closure variants ;
-/// mirrors `src/vm/value.ts`.
-export Value :: I32Val | StringVal | StructVal | ArrayVal | BuilderVal
+/// added `BuilderVal` for `${…}` interpolation via the `builder.*`
+/// intrinsics ; Sprint 4 (b4) adds `FnVal` for `fn.ref` / `call.indirect`.
+/// Future sprints add bool / char / closure variants ; mirrors
+/// `src/vm/value.ts`.
+export Value :: I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal
 
 /// 32-bit integer payload.
 export I32Val :: struct { value: i32 }
@@ -267,6 +281,16 @@ export BuilderVal :: struct {
     parts: string[]
 }
 
+/// Function-reference payload — the runtime value pushed by `fn.ref`
+/// and consumed by `call.indirect`. `function_index` keys into
+/// `Module.functions` (same index space as the direct `Call` op).
+/// Sprint 4 (b4) only supports plain fn-refs ; closures with captured
+/// env (`make_closure` op) will add an optional `env: Value | null`
+/// field in a future sprint.
+export FnVal :: struct {
+    function_index: i32
+}
+
 // ---- Display impls on each `Value` variant --------------------------------
 //
 // Every variant carries its own `Display` impl so the dispatcher below
@@ -291,6 +315,10 @@ StringVal implements Display {
 
 BuilderVal implements Display {
     to_string :: fn(self) -> string = "<builder len=${self.parts.len()}>"
+}
+
+FnVal implements Display {
+    to_string :: fn(self) -> string = "<fn ${self.function_index}>"
 }
 
 /// Renders as `<type_id>{ field0, field1, … }` — type_id is the ordinal
@@ -343,4 +371,5 @@ export display_value :: fn(v: Value) -> string = match v {
     is StructVal  as s -> s.to_string()
     is ArrayVal   as a -> a.to_string()
     is BuilderVal as b -> b.to_string()
+    is FnVal      as f -> f.to_string()
 }

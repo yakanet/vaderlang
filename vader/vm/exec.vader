@@ -19,7 +19,7 @@
 
 import "std/io" { read_file, eprintln, println }
 import "std/string_builder" { StringBuilder, new_builder, append }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, StructType, ArrayType, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, display_value }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, FnRef, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, StructType, ArrayType, FnType, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, display_value }
 import "vader/vm/parser" { parse_virt }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -52,15 +52,15 @@ MAX_FRAME_DEPTH :: 1024
 /// cursor (the array is grow-only, see `push_value`). `pc` indexes into
 /// the function's `ops` array.
 ///
-/// `slots` and `stack` use the inlined `(I32Val | StringVal | StructVal | ArrayVal | BuilderVal)[]`
+/// `slots` and `stack` use the inlined `(I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[]`
 /// shape (rather than `Value[]`) as a work-around for TODO §3.8 — the
 /// `Value` alias doesn't expand correctly in `Alias[]` array slots when
 /// the alias was imported from another module (cross-module `: Value`
 /// scalars work fine ; only the array case is broken).
 Frame :: struct {
     function_index: i32
-    slots:          (I32Val | StringVal | StructVal | ArrayVal | BuilderVal)[]
-    stack:          (I32Val | StringVal | StructVal | ArrayVal | BuilderVal)[]
+    slots:          (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[]
+    stack:          (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[]
     sp:             usize
     pc:             i32
 }
@@ -78,7 +78,7 @@ zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 ///                fresh slot is needed, otherwise an existing one is
 ///                overwritten (cheaper than `push`).
 /// @param value   the value to write.
-push_value :: fn(stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal)[], cursor: usize, value: Value) -> void {
+push_value :: fn(stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[], cursor: usize, value: Value) -> void {
     if cursor == stack.len() { stack.push(value) }
     else                     { stack[cursor] = value }
 }
@@ -119,8 +119,8 @@ pop_frame :: fn(cursor: usize[]) -> void {
 /// @param args_source     the array to read params from.
 /// @param args_offset     start offset of the params within `args_source`.
 /// @return                a fresh `Frame` ready to be pushed.
-build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_source: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal)[], args_offset: usize) -> Frame {
-    slots: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal)[] = []
+build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_source: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[], args_offset: usize) -> Frame {
+    slots: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[] = []
     parameter_index: usize = 0
     for parameter_index < callee.parameter_count {
         slots.push(args_source[args_offset + parameter_index])
@@ -342,6 +342,47 @@ export exec :: fn(module: Module) -> VmResult {
                 // which stays valid since arrays are reference-typed and the
                 // sp shrink below is purely cursor-level.
                 callee_frame :: build_callee_frame(op.function_index, callee, frame.stack, arg_base)
+                frames[top] = with_sp_pc(frame, arg_base, frame.pc + 1)
+                push_frame(frames, frame_count, callee_frame)
+                if frame_count[0] > usize(MAX_FRAME_DEPTH) {
+                    return Trap { .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${callee.name}'" }
+                }
+            }
+            is FnRef -> {
+                if op.function_index < 0 || usize(op.function_index) >= module.functions.len() {
+                    return Trap { .message = "fn.ref function ${op.function_index} out of range at pc=${frame.pc}" }
+                }
+                push_value(frame.stack, frame.sp, FnVal { .function_index = op.function_index })
+                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+            }
+            is CallIndirect -> {
+                // Resolve param count via the FnType in the type table —
+                // the `call.indirect` op carries the type_id, not the count
+                // directly (mirrors `src/vm/exec.ts` which does the same lookup).
+                if op.type_id < 0 || usize(op.type_id) >= module.types.len() {
+                    return Trap { .message = "call.indirect type ${op.type_id} out of range at pc=${frame.pc}" }
+                }
+                fn_type_decl :: module.types[usize(op.type_id)]
+                if !(fn_type_decl is FnType) {
+                    return Trap { .message = "call.indirect type ${op.type_id} is not a fn type at pc=${frame.pc}" }
+                }
+                indirect_arity :: fn_type_decl.parameter_type_ids.len()
+                // Stack layout : [args..., fn_ref]. Pop fn_ref first, then
+                // read the arg block beneath it.
+                if frame.sp < 1 + indirect_arity {
+                    return Trap { .message = "call.indirect needs ${indirect_arity} arg(s) + fn-ref but stack has ${frame.sp} at pc=${frame.pc}" }
+                }
+                fn_unwrap :: read_fn(frame.stack[frame.sp - 1], frame.pc, "call.indirect receiver")
+                if fn_unwrap is Trap { return fn_unwrap }
+                if fn_unwrap.function_index < 0 || usize(fn_unwrap.function_index) >= module.functions.len() {
+                    return Trap { .message = "call.indirect to function ${fn_unwrap.function_index} out of range at pc=${frame.pc}" }
+                }
+                callee :: module.functions[usize(fn_unwrap.function_index)]
+                if callee.parameter_count != indirect_arity {
+                    return Trap { .message = "call.indirect to '${callee.name}' expects ${callee.parameter_count} param(s) but FnType declares ${indirect_arity} at pc=${frame.pc}" }
+                }
+                arg_base :: frame.sp - 1 - indirect_arity
+                callee_frame :: build_callee_frame(fn_unwrap.function_index, callee, frame.stack, arg_base)
                 frames[top] = with_sp_pc(frame, arg_base, frame.pc + 1)
                 push_frame(frames, frame_count, callee_frame)
                 if frame_count[0] > usize(MAX_FRAME_DEPTH) {
@@ -641,13 +682,29 @@ read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal | Trap {
 /// any future `Value` variant added without updating this fn.
 ///
 /// @param v  the tagged value.
-/// @return   `"i32"` / `"string"` / `"struct"` / `"array"` / `"builder"`.
+/// @return   `"i32"` / `"string"` / `"struct"` / `"array"` / `"builder"` / `"fn"`.
 describe_value_tag :: fn(v: Value) = match v {
     is I32Val     -> "i32"
     is StringVal  -> "string"
     is StructVal  -> "struct"
     is ArrayVal   -> "array"
     is BuilderVal -> "builder"
+    is FnVal      -> "fn"
+}
+
+/// Unwrap a `FnVal` from a `Value`, mirroring `read_builder` etc. Used
+/// by the `CallIndirect` arm to recover the function reference on top
+/// of the stack.
+///
+/// @param v       the tagged value to inspect.
+/// @param at_pc   pc of the op doing the read.
+/// @param label   short context label (e.g. `"call.indirect receiver"`).
+/// @return        the `FnVal` payload on success, or a `Trap` on type
+///                mismatch.
+/// @error         the value's tag isn't `FnVal`.
+read_fn :: fn(v: Value, at_pc: i32, label: string) -> FnVal | Trap {
+    if v is FnVal { return v }
+    return Trap { .message = "${label} at pc=${at_pc}: expected fn, got ${describe_value_tag(v)}" }
 }
 
 /// Unwrap a `BuilderVal` from a `Value`, mirroring `read_struct` /
@@ -686,7 +743,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Frame | Trap {
         return Trap { .message = "array.new type ${type_id} needs ${needed} initial element(s) but stack has ${frame.sp} at pc=${frame.pc}" }
     }
     arg_base :: frame.sp - needed
-    elements: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal)[] = []
+    elements: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[] = []
     element_index: usize = 0
     for element_index < needed {
         elements.push(frame.stack[arg_base + element_index])
@@ -724,7 +781,7 @@ build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Frame | Trap {
         return Trap { .message = "struct.new type ${type_id} needs ${field_count} field value(s) but stack has ${frame.sp} at pc=${frame.pc}" }
     }
     arg_base :: frame.sp - field_count
-    fields: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal)[] = []
+    fields: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[] = []
     field_index: usize = 0
     for field_index < field_count {
         fields.push(frame.stack[arg_base + field_index])
@@ -770,7 +827,7 @@ export HostOk :: struct { value: Value }
 ///                  imports, or `Trap` for unknown imports or arg-type
 ///                  mismatches.
 /// @error           unknown `mangled` name ; argument type mismatch.
-dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
+dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
     if info.mangled == STDIO_PRINTLN {
         arg :: read_string(stack[arg_base], at_pc, "println")
         if arg is Trap { return arg }

@@ -54,8 +54,8 @@ traits/vtables, binary `.vir`.
 | 4 (b1) | type table + struct ops (`struct.new(_stack)`, `struct.get`, `struct.set(_stack)`, `local.tee`) ✅ | `vm_struct_point`, `vm_struct_nested`, `vm_struct_mutate` |
 | 4 (b2) | array ops (`array.new`, `array.push`, `array.get`, `array.set`, `array.len`) + no-op `ref.cast` / `*.to_*` conversions ✅ | `vm_array_basic`, `vm_array_push_len`, `vm_array_mutate` |
 | 4 (b3) | `intrinsic builder.*` (`new` / `append_str` / `append_display` / `finish`) — unblocks `"${…}"` interpolation ✅ | `vm_interp_basic`, `vm_interp_mixed`, `vm_interp_loop` |
-| 4 (b3) | intrinsic builder.* — unblocks `"${}"` interpolation | most println-heavy snippets |
-| 4 (b4) | `fn.ref` + `call.indirect` — fn-values stored in fields / arrays | `fn_value_*` |
+| 4 (b4) | `fn.ref` + `call.indirect` — plain fn-values (no env capture yet) ✅ | `vm_fn_value_local`, `vm_fn_value_callback`, `vm_fn_value_struct` |
+| 4 (b5) | `make_closure` + env capture — closures with captured locals | `closure_*` |
 | 5 | `type_check`, `ref.cast`, virtual.call, intrinsics, traits/vtables | nearly all snippets |
 | 6 | binary `.vir` loader (alternative to text) | shipping-perf gains |
 | 7 | Split `vader/vm/exec.vader` into `vader/bytecode/{types,ops,module,text}.vader` + `vader/vm/{value,exec,host}.vader` once the single file becomes unwieldy (probably mid-sprint 3 or 4). |

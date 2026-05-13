@@ -1,0 +1,16 @@
+// Sprint 4 (b4) acceptance: fn-value stored in a struct field, accessed
+// via struct.get + call.indirect. Mirror of the pre-existing
+// `fn_value_struct` snippet, adapted into the vm_ family.
+
+Calculator :: struct {
+    op: fn(i32, i32) -> i32
+}
+
+mul :: fn(a: i32, b: i32) -> i32 {
+    return a * b
+}
+
+main :: fn() -> i32 {
+    c :: Calculator { .op = mul }
+    return c.op(6, 7)
+}

@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/vm_fn_value_struct/_main.vader
+  StructDecl     Calculator           :: Calculator
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         mul                  :: fn(i32, i32) -> i32
+  expr 10:12    BinaryExpr     :: i32
+  expr 10:12    IdentExpr      :: i32
+  expr 10:16    IdentExpr      :: i32
+  expr 14:10    StructLitExpr  :: Calculator
+  expr 14:29    IdentExpr      :: fn(i32, i32) -> i32
+  expr 15:12    CallExpr       :: i32
+  expr 15:12    FieldExpr      :: fn(i32, i32) -> i32
+  expr 15:12    IdentExpr      :: Calculator

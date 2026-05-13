@@ -1,0 +1,14 @@
+// Sprint 4 (b4) acceptance: fn-value passed as a parameter and invoked
+// inside the callee. `apply(triple, 7) = 21`.
+
+triple :: fn(n: i32) -> i32 {
+    return n * 3
+}
+
+apply :: fn(f: fn(i32) -> i32, n: i32) -> i32 {
+    return f(n)
+}
+
+main :: fn() -> i32 {
+    return apply(triple, 7)
+}

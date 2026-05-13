@@ -14,7 +14,7 @@
 
 import "std/string" { byte_len, slice, starts_with, ends_with, trim, split, contains, index_of }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, FnRef, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType }
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps
@@ -400,6 +400,8 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
         is StringConst     as o -> { ops.push(o)  true }
         is CallImport      as o -> { ops.push(o)  true }
         is Call            as o -> { ops.push(o)  true }
+        is FnRef           as o -> { ops.push(o)  true }
+        is CallIndirect    as o -> { ops.push(o)  true }
         is StructNew       as o -> { ops.push(o)  true }
         is StructGet       as o -> { ops.push(o)  true }
         is StructSet       as o -> { ops.push(o)  true }
@@ -574,7 +576,9 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if cleaned.starts_with("local.tee ")        { return parse_local_tee(cleaned) }
     if cleaned.starts_with("string.const ")     { return parse_string_const(cleaned) }
     if cleaned.starts_with("call.import ")      { return parse_call_import(cleaned) }
+    if cleaned.starts_with("call.indirect ")    { return parse_call_indirect(cleaned) }
     if cleaned.starts_with("call ")             { return parse_call(cleaned) }
+    if cleaned.starts_with("fn.ref ")           { return parse_fn_ref(cleaned) }
     // `struct.new` / `struct.new_stack` and `struct.set` / `struct.set_stack`
     // collapse into one VM op each — the heap/stack split is a codegen
     // concern. `_stack` prefixes are checked first since they share the
@@ -685,6 +689,25 @@ parse_call :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "call ")
     if parsed is null { return null }
     return Call { .function_index = parsed }
+}
+
+parse_call_indirect :: fn(line: string) -> Op | null {
+    parsed :: parse_int_after_prefix(line, "call.indirect ")
+    if parsed is null { return null }
+    return CallIndirect { .type_id = parsed }
+}
+
+/// Parse `fn.ref FN_INDEX TYPE_ID` — the TYPE_ID operand is consumed by
+/// the parser but not stored on the op : it's a static-type hint, not
+/// needed at runtime since `call.indirect` carries its own type_id
+/// that drives the call's parameter count.
+///
+/// @param line  the .virt line (comment-stripped).
+/// @return      `FnRef { function_index }`, or `null` on malformed input.
+parse_fn_ref :: fn(line: string) -> Op | null {
+    pair :: parse_int_pair_after_prefix(line, "fn.ref ")
+    if pair is null { return null }
+    return FnRef { .function_index = pair.first }
 }
 
 parse_local_tee :: fn(line: string) -> Op | null {
