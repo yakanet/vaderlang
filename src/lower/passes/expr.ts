@@ -438,7 +438,7 @@ function declaredTypeOfSymbol(ctx: FnLowerCtx, sym: Symbol): Type | null {
 
 function lowerBinary(ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type): LoweredExpr {
   if (expr.op === "is") {
-    const checkType = ctx.types.exprType(expr.right);
+    const checkType = ctx.typed.binaryIsCheckTypes.get(expr) ?? ctx.types.exprType(expr.right);
     return {
       kind: "LoweredTypeCheck", span: expr.span, type: TY.bool,
       value: lowerExpr(ctx, expr.left), checkType,

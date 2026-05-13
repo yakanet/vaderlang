@@ -2486,10 +2486,7 @@ parse_single_param_lambda_tail :: fn(p: Parser, param_ident: IdentExpr) -> Lambd
 // one. Keeps the AST shape `LambdaExpr.body: BlockExpr` stable for
 // downstream consumers.
 wrap_as_block :: fn(body: Expr) -> BlockExpr {
-    match body {
-        is BlockExpr as b -> { return b }
-        _ -> {}
-    }
+    if body is BlockExpr { return body }
     return BlockExpr {
         .span     = body.span,
         .stmts    = [],

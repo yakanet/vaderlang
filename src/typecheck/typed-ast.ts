@@ -140,6 +140,9 @@ export interface TypedProgram {
   readonly intoCoercions: ReadonlyMap<A.Expr, IntoCoercion>;
   /** Operator overload resolutions. See `BinaryOpResolution`. */
   readonly binaryOpResolutions: ReadonlyMap<A.BinaryExpr, BinaryOpResolution>;
+  /** Type-position resolution of `x is T` right-hand sides. See
+   *  `MutableTyped.binaryIsCheckTypes`. */
+  readonly binaryIsCheckTypes: ReadonlyMap<A.BinaryExpr, Type>;
   /** Per-`IndexExpr` dispatch — `mode: "read"` for `a[i]` and `mode: "write"`
    *  for `a[i] = v`. A node appears in exactly one context, so the previous
    *  twin Maps (`indexResolutions` + `indexSetResolutions`) collapse here. */

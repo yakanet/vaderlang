@@ -24,7 +24,7 @@ import { inferBinary } from "./binary.ts";
 import { inferCall, inferField } from "./call.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { inferMatch } from "./match.ts";
-import { detectNullCheck, popNarrowing, pushNarrowing } from "./narrow.ts";
+import { detectVariantNarrowing, popNarrowing, pushNarrowing } from "./narrow.ts";
 import { checkBlock } from "./stmt.ts";
 import { inferStructLit } from "./struct-lit.ts";
 import { inferTry } from "./try.ts";
@@ -386,16 +386,12 @@ function inferIf(
   const cond = checkExpr(expr.cond, TY.bool, t, impls, diags, fn);
   if (!isAssignable(cond, TY.bool)) err(diags, "T3019", expr.cond.span);
 
-  const nullCheck = detectNullCheck(expr.cond, t);
-  const thenNarrow = nullCheck === null ? null
-                   : nullCheck.op === "neq" ? nullCheck.nonNull : TY.null;
-  const elseNarrow = nullCheck === null ? null
-                   : nullCheck.op === "eq"  ? nullCheck.nonNull : TY.null;
+  const split = detectVariantNarrowing(expr.cond, t);
 
   let prevThen: Type | undefined;
-  if (nullCheck !== null && thenNarrow !== null) prevThen = pushNarrowing(t, nullCheck.symId, thenNarrow);
+  if (split !== null) prevThen = pushNarrowing(t, split.symId, split.thenType);
   const thenT = checkBlock(expr.then, expected, t, impls, diags, fn);
-  if (nullCheck !== null && thenNarrow !== null) popNarrowing(t, nullCheck.symId, prevThen);
+  if (split !== null) popNarrowing(t, split.symId, prevThen);
 
   if (expr.else === null) return thenT.kind === "Never" ? TY.void : unionOf([thenT, TY.void]);
 
@@ -405,11 +401,11 @@ function inferIf(
   const elseExpected = expected ?? (isNumeric(thenT) ? thenT : null);
 
   let prevElse: Type | undefined;
-  if (nullCheck !== null && elseNarrow !== null) prevElse = pushNarrowing(t, nullCheck.symId, elseNarrow);
+  if (split !== null) prevElse = pushNarrowing(t, split.symId, split.elseType);
   const elseT = expr.else.kind === "IfExpr"
     ? checkExpr(expr.else, elseExpected, t, impls, diags, fn)
     : checkBlock(expr.else, elseExpected, t, impls, diags, fn);
-  if (nullCheck !== null && elseNarrow !== null) popNarrowing(t, nullCheck.symId, prevElse);
+  if (split !== null) popNarrowing(t, split.symId, prevElse);
 
   if (expected === null && (thenT.kind === "FreeInt" || thenT.kind === "FreeFloat") && isNumeric(elseT)) {
     const trailing = expr.then.trailing;

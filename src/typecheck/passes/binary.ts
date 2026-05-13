@@ -18,12 +18,26 @@ import {
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkExpr } from "./expr.ts";
 import { findGlobalTrait } from "./traits.ts";
+import { lowerExprAsType } from "./type-expr.ts";
 
 export function inferBinary(
   expr: A.BinaryExpr, t: MutableTyped, impls: ImplRegistry,
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
   const left = checkExpr(expr.left, null, t, impls, diags, fn);
+  // `is` is special : the RHS is parsed as a value expression but
+  // interpreted as a type. Route through `lowerExprAsType` so primitive
+  // names (`i32`, `string`) resolve to their actual primitive type
+  // instead of `TypeMeta`, and record the resolved type for the lowerer
+  // and the narrowing detector.
+  if (expr.op === "is") {
+    const checkType = lowerExprAsType(expr.right, t, diags);
+    t.binaryIsCheckTypes.set(expr, checkType);
+    // Mirror to exprTypes for legacy consumers ; new code reads from
+    // `binaryIsCheckTypes`.
+    t.exprTypes.set(expr.right, checkType);
+    return TY.bool;
+  }
   // For arithmetic / comparison / equality, pass left's concrete type as expected
   // context so free numeric literals on the right adopt it (e.g. `self.size + 1`
   // → `1: usize`, `if u64_var == 0` → `0: u64`).
@@ -55,9 +69,6 @@ export function inferBinary(
     case "and": case "or":
       if (!isPrimitive(left, "bool") && left.kind !== "Unresolved") err(diags, "T3017", expr.left.span);
       if (!isPrimitive(right, "bool") && right.kind !== "Unresolved") err(diags, "T3017", expr.right.span);
-      return TY.bool;
-    case "is":
-      // `lhs is RHS`: lhs is a value, rhs would be a type ident; MVP accepts.
       return TY.bool;
     case "in": case "not_in":
       // `x in coll` / `x !in coll`: collection-side must implement Contains($T)

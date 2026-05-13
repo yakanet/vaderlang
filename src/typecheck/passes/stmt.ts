@@ -16,7 +16,7 @@ import { sourceStructDecl } from "../../resolver/symbol.ts";
 import { tryInto } from "./coerce.ts";
 import { looksLikeTypeExpression } from "./decl.ts";
 import { checkExpr, resolveIndexTrait } from "./expr.ts";
-import { popNarrowing, postStmtNullNarrowing, pushNarrowing } from "./narrow.ts";
+import { popNarrowing, postStmtNarrowing, pushNarrowing } from "./narrow.ts";
 import { lowerExprAsType } from "./type-expr.ts";
 
 /** Substitute `Self` in this fn's param/return types now that we know the
@@ -76,7 +76,7 @@ export function checkBlock(
   const persistedNarrowings: { symId: number; prev: Type | undefined }[] = [];
   for (const stmt of block.stmts) {
     checkStmt(stmt, t, impls, diags, fn);
-    const post = postStmtNullNarrowing(stmt, t);
+    const post = postStmtNarrowing(stmt, t);
     if (post !== null) {
       const prev = pushNarrowing(t, post.symId, post.type);
       persistedNarrowings.push({ symId: post.symId, prev });

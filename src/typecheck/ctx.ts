@@ -98,6 +98,12 @@ export interface MutableTyped {
   readonly intoCoercions: Map<A.Expr, IntoCoercion>;
   /** Operator-overload dispatch sites. See `TypedProgram.binaryOpResolutions`. */
   readonly binaryOpResolutions: Map<A.BinaryExpr, BinaryOpResolution>;
+  /** Type-position resolution of the RHS of every `BinaryExpr` with `op:"is"`.
+   *  The RHS is parsed as a value expression but interpreted as a type by
+   *  `lowerExprAsType` ; consumers (lowerer, narrowing detector) read here
+   *  instead of `exprTypes` so primitive type-names (`i32`, `string`, ...)
+   *  resolve to their actual primitive type rather than `TypeMeta`. */
+  readonly binaryIsCheckTypes: Map<A.BinaryExpr, Type>;
   /** Index / IndexSet trait dispatch sites — `mode` field distinguishes
    *  read (`a[i]`) from write (`a[i] = v`). */
   readonly indexResolutions: Map<A.IndexExpr, IndexResolution>;

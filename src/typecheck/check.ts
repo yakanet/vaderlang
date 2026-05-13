@@ -47,6 +47,7 @@ export function declareModule(
     directCallOverloads: new Map(),
     intoCoercions: new Map(),
     binaryOpResolutions: new Map(),
+    binaryIsCheckTypes: new Map(),
     indexResolutions: new Map(),
     whileAsForIn: new Map(),
   };
@@ -71,6 +72,7 @@ export function checkProgram(
     directCallOverloads: new Map(),
     intoCoercions: new Map(),
     binaryOpResolutions: new Map(),
+    binaryIsCheckTypes: new Map(),
     indexResolutions: new Map(),
     whileAsForIn: new Map(),
   };
@@ -161,6 +163,7 @@ export function checkProgram(
     directCallOverloads: t.directCallOverloads,
     intoCoercions: t.intoCoercions,
     binaryOpResolutions: t.binaryOpResolutions,
+    binaryIsCheckTypes: t.binaryIsCheckTypes,
     indexResolutions: t.indexResolutions,
     whileAsForIn: t.whileAsForIn,
   };
@@ -216,6 +219,7 @@ export function inferExprBodiedReturns(
         directCallOverloads: new Map(),
         intoCoercions: new Map(),
         binaryOpResolutions: new Map(),
+        binaryIsCheckTypes: new Map(),
         indexResolutions: new Map(),
         whileAsForIn: new Map(),
       };
