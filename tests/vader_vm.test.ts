@@ -14,7 +14,7 @@
 // removed as Sprint 5+ lands.
 
 import { test, beforeAll } from "bun:test";
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 import { formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
@@ -66,54 +66,40 @@ beforeAll(async () => {
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
-  // Initial baseline (2026-05-13) — captured at the end of Sprint 4 (b5),
-  // when the Vader VM covers : direct calls, structs, arrays, builder.*
-  // interpolation, fn-values, closures. The 115 entries below trap or
-  // diverge on ops Sprint 5+ will deliver (`bool.*` / `null.const` /
-  // `virtual.call` / `type_check` / `intrinsic` beyond `builder.*` /
-  // extra host imports / tuple destructure / enum dispatch / GC roots).
-  //
-  // 82 / 197 snippets currently pass through the Vader VM end-to-end.
+  // Post Sprint 5a (2026-05-13). 90 / 176 snippets that emit a
+  // `bytecode.snapshot.virt` (compile-error tests filtered out) pass
+  // end-to-end through the Vader VM. Remaining failures by category :
+  //   - `type_check` op (Sprint 5b) — unblocks the 14 "if condition got
+  //     struct" cases (closure_pattern_binding, if_is_narrow, etc.).
+  //   - Missing host imports (Sprint 5c) — string ops, hash, file I/O,
+  //     std_runtime$collections, std_math, std_sort.
+  //   - Missing intrinsics (Sprint 5d) — `size_of`, `type_kind`, traits.
+  //   - `virtual.call` + trait vtables (Sprint 6) — trait_dispatch_*.
+  //   - Tuple destructure + enum dispatch — Sprint 5e?
   "array_iter",
   "array_of_union",
   "bound_enforced",
   "char_range_contains",
   "closure_pattern_binding",
-  "coerce_into_chain_no",
-  "coerce_into_identity_rejected",
-  "coerce_into_union_target_no",
   "collection_index_sugar",
   "comptime_type_alias",
   "contains_op",
   "custom_iter",
   "custom_iter_generic",
-  "decorators_ok",
   "dot_variant_in_union",
-  "enum_basic",
   "enum_match",
   "enum_to_repr_cast",
   "enum_typed",
   "expr_bodied_fn",
-  "expr_bodied_recursive_fn",
-  "expressions",
-  "fn_decl",
-  "for_loop",
   "for_range",
   "format_helpers",
   "gc_array_survive",
   "gc_chain_survive",
   "gc_multi_collect",
-  "generic_eq",
   "generic_type_alias",
-  "if_branches",
   "if_is_narrow",
   "if_null_narrow",
-  "if_without_else_stmt",
   "implicit_dot_variant",
-  "interp_display",
-  "interp_string",
-  "interpolation_tokens",
-  "intrinsic_satisfies",
   "intrinsic_size_of",
   "intrinsic_type_kind",
   "io_roundtrip",
@@ -125,7 +111,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   "json_basics",
   "let_type_alias",
   "map_set_iter",
-  "match_expr",
   "match_is_as_binding",
   "match_struct_pattern_binding",
   "match_struct_pattern_in_union",
@@ -136,7 +121,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   "mutable_set",
   "null_blockres",
   "numeric_context_sensitivity",
-  "numerics",
   "op_overload_arith",
   "op_overload_compound",
   "op_overload_eq_ord",
@@ -150,7 +134,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   "regex_helpers",
   "runtime_argv",
   "sam_impl",
-  "self_ref_struct",
   "seq_lit_inference",
   "spread_destructure",
   "std_cli_basic",
@@ -161,34 +144,24 @@ const KNOWN_DIVERGENT = new Set<string>([
   "string_bytes",
   "string_chars",
   "string_codepoints",
-  "strings",
-  "struct_decl",
-  "struct_defaults",
   "trait_box_range_iter",
   "trait_dispatch_bounded",
   "trait_dispatch_generic_iter",
   "trait_dispatch_param",
-  "trait_impl",
-  "trait_method_ambig",
   "trait_virtual_dispatch",
   "transitive_mono",
   "try_op",
   "tuple_comptime",
-  "tuple_destructure_nested",
-  "tuple_destructure_wildcard",
   "tuple_for_destructure",
   "tuple_in_array",
-  "tuple_match_nested",
   "tuple_match_union",
   "tuple_struct_field",
   "tuple_triple_quad",
   "type_aliases",
-  "type_valued_local_rejected",
   "u32_bitops",
   "usize_arith",
   "usize_basic",
   "vm_trait_dispatch",
-  "void_ident_rejected",
 ]);
 
 const scenarios = listSnippets("tests/snippets");
@@ -202,6 +175,18 @@ for (const s of scenarios) {
   if (!existsSync(virtPath)) {
     // No bytecode emitted — typically compile-error tests. Skip.
     continue;
+  }
+  const vmSnapPath = `${s.dir}/vm.snapshot`;
+  if (existsSync(vmSnapPath)) {
+    const vmSnap = readFileSync(vmSnapPath, "utf8");
+    // Compile-error tests : bytecode phase still emits a `.virt`
+    // (typecheck failures don't halt the pipeline before bytecode),
+    // but the snippet is a diagnostic test — the TS VM never runs it.
+    // Skip cleanly rather than report a spurious parity failure.
+    if (vmSnap.startsWith("# compile errors") || vmSnap.startsWith("# pipeline error") ||
+        vmSnap.startsWith("# internal error") || vmSnap.startsWith("# no main function")) {
+      continue;
+    }
   }
   test.concurrent(`vader-vm: ${s.name}`, async () => {
     const proc = Bun.spawn(

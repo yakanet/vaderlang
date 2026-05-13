@@ -14,7 +14,7 @@
 
 import "std/string" { byte_len, slice, starts_with, ends_with, trim, split, contains, index_of }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType }
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps
@@ -417,6 +417,23 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
         is BuilderAppendStr      as o -> { ops.push(o)  true }
         is BuilderAppendDisplay  as o -> { ops.push(o)  true }
         is BuilderFinish         as o -> { ops.push(o)  true }
+        is NullConst             as o -> { ops.push(o)  true }
+        is BoolConst             as o -> { ops.push(o)  true }
+        is CharConst             as o -> { ops.push(o)  true }
+        is BoolEq                as o -> { ops.push(o)  true }
+        is BoolNe                as o -> { ops.push(o)  true }
+        is BoolAnd               as o -> { ops.push(o)  true }
+        is BoolOr                as o -> { ops.push(o)  true }
+        is BoolNot               as o -> { ops.push(o)  true }
+        is CharEq                as o -> { ops.push(o)  true }
+        is CharNe                as o -> { ops.push(o)  true }
+        is CharLt                as o -> { ops.push(o)  true }
+        is CharLe                as o -> { ops.push(o)  true }
+        is CharGt                as o -> { ops.push(o)  true }
+        is CharGe                as o -> { ops.push(o)  true }
+        is RefEq                 as o -> { ops.push(o)  true }
+        is RefNe                 as o -> { ops.push(o)  true }
+        is Drop                  as o -> { ops.push(o)  true }
         is I32Add          as o -> { ops.push(o)  true }
         is I32Sub          as o -> { ops.push(o)  true }
         is I32Mul          as o -> { ops.push(o)  true }
@@ -601,6 +618,23 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if cleaned == "intrinsic builder.append_str"      { return BuilderAppendStr {} }
     if cleaned == "intrinsic builder.append_display"  { return BuilderAppendDisplay {} }
     if cleaned == "intrinsic builder.finish"          { return BuilderFinish {} }
+    if cleaned == "null.const"  { return NullConst {} }
+    if cleaned.starts_with("bool.const ")             { return parse_bool_const(cleaned) }
+    if cleaned == "bool.eq"     { return BoolEq {} }
+    if cleaned == "bool.ne"     { return BoolNe {} }
+    if cleaned == "bool.and"    { return BoolAnd {} }
+    if cleaned == "bool.or"     { return BoolOr {} }
+    if cleaned == "bool.not"    { return BoolNot {} }
+    if cleaned.starts_with("char.const ")             { return parse_char_const(cleaned) }
+    if cleaned == "char.eq"     { return CharEq {} }
+    if cleaned == "char.ne"     { return CharNe {} }
+    if cleaned == "char.lt"     { return CharLt {} }
+    if cleaned == "char.le"     { return CharLe {} }
+    if cleaned == "char.gt"     { return CharGt {} }
+    if cleaned == "char.ge"     { return CharGe {} }
+    if cleaned == "ref.eq"      { return RefEq {} }
+    if cleaned == "ref.ne"      { return RefNe {} }
+    if cleaned == "drop"        { return Drop {} }
     if cleaned == "i32.add"                     { return I32Add {} }
     if cleaned == "i32.sub"                     { return I32Sub {} }
     if cleaned == "i32.mul"                     { return I32Mul {} }
@@ -691,6 +725,26 @@ parse_call :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "call ")
     if parsed is null { return null }
     return Call { .function_index = parsed }
+}
+
+/// Parse `bool.const true` / `bool.const false`. The TS bytecode
+/// writer (`src/bytecode/text.ts`) only emits the textual literal —
+/// no numeric path to support.
+///
+/// @param line  the .virt line (comment-stripped).
+/// @return      `BoolConst { value }`, or `null` on malformed input.
+parse_bool_const :: fn(line: string) -> Op | null {
+    rest :: line.slice("bool.const ".byte_len(), line.byte_len()).trim()
+    if rest == "true"  { return BoolConst { .value = true  } }
+    if rest == "false" { return BoolConst { .value = false } }
+    return null
+}
+
+/// Parse `char.const N` where N is the codepoint as a base-10 integer.
+parse_char_const :: fn(line: string) -> Op | null {
+    parsed :: parse_int_after_prefix(line, "char.const ")
+    if parsed is null { return null }
+    return CharConst { .value = char(u32(parsed)) }
 }
 
 parse_call_indirect :: fn(line: string) -> Op | null {

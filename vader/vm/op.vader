@@ -12,7 +12,7 @@ import "std/string_builder" { StringBuilder, new_builder, append }
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -26,6 +26,13 @@ export LocalSet :: struct { slot: i32 }
 export LocalTee :: struct { slot: i32 }
 /// Push `module.strings[index]` onto the value stack.
 export StringConst :: struct { index: i32 }
+/// Push the singleton `NullVal` (the runtime `null`). Sprint 5a addition.
+export NullConst :: struct {}
+/// Push a `BoolVal { value }`. Sprint 5a addition.
+export BoolConst :: struct { value: bool }
+/// Push a `CharVal { value }`. The codepoint is parsed from the .virt
+/// as a base-10 integer (u32 range) and stored as a `char`. Sprint 5a.
+export CharConst :: struct { value: char }
 /// Invoke a host-side import (e.g. `println`) — `index` keys into `module.imports`.
 export CallImport :: struct { index: i32 }
 /// Invoke a Vader-side function — `function_index` keys into `module.functions`.
@@ -148,6 +155,39 @@ export I32Le :: struct {}
 export I32Gt :: struct {}
 /// Pop two i32 (left, right) ; push `1` if left >= right, `0` otherwise.
 export I32Ge :: struct {}
+/// Pop two bools ; push `BoolVal` (equal). Sprint 5a addition.
+export BoolEq :: struct {}
+/// Pop two bools ; push `BoolVal` (not equal). Sprint 5a addition.
+export BoolNe :: struct {}
+/// Pop two bools ; push `BoolVal` (logical AND). Sprint 5a addition.
+export BoolAnd :: struct {}
+/// Pop two bools ; push `BoolVal` (logical OR). Sprint 5a addition.
+export BoolOr :: struct {}
+/// Pop one bool ; push `BoolVal` (logical NOT). Sprint 5a addition.
+export BoolNot :: struct {}
+/// Pop two chars ; push `BoolVal` (equal). Sprint 5a addition.
+export CharEq :: struct {}
+/// Pop two chars ; push `BoolVal` (not equal). Sprint 5a addition.
+export CharNe :: struct {}
+/// Pop two chars (left, right) ; push `BoolVal` (left < right).
+export CharLt :: struct {}
+/// Pop two chars (left, right) ; push `BoolVal` (left <= right).
+export CharLe :: struct {}
+/// Pop two chars (left, right) ; push `BoolVal` (left > right).
+export CharGt :: struct {}
+/// Pop two chars (left, right) ; push `BoolVal` (left >= right).
+export CharGe :: struct {}
+/// Pop two references ; push `BoolVal` for identity equality. In the
+/// VM today, all reference-typed Values are heap-allocated so identity
+/// matches Vader's reference semantics for struct / array / fn / builder.
+/// Sprint 5a addition.
+export RefEq :: struct {}
+/// Pop two references ; push `BoolVal` for identity inequality.
+export RefNe :: struct {}
+/// Pop and discard the top of the value stack. Sprint 5a addition —
+/// emitted by the lowerer when a value is computed but never read
+/// (e.g. an expression-statement whose result is unused).
+export Drop :: struct {}
 /// Marker — the executor just bumps pc. Opens a forward-jumping scope.
 export Block :: struct {}
 /// Marker — the executor just bumps pc. Opens a backward-jumping scope
@@ -250,10 +290,10 @@ export Module :: struct {
 /// 4 (b1) added `StructVal` for `struct.new` / `struct.get` / `struct.set` ;
 /// Sprint 4 (b2) added `ArrayVal` for the array ops ; Sprint 4 (b3)
 /// added `BuilderVal` for `${…}` interpolation via the `builder.*`
-/// intrinsics ; Sprint 4 (b4) adds `FnVal` for `fn.ref` / `call.indirect`.
-/// Future sprints add bool / char / closure variants ; mirrors
-/// `src/vm/value.ts`.
-export Value :: I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal
+/// intrinsics ; Sprint 4 (b4) added `FnVal` for `fn.ref` / `call.indirect` ;
+/// Sprint 5a adds `NullVal` / `BoolVal` / `CharVal` for the corresponding
+/// const + comparison op families. Mirrors `src/vm/value.ts`.
+export Value :: I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal
 
 /// 32-bit integer payload.
 export I32Val :: struct { value: i32 }
@@ -305,6 +345,20 @@ export FnVal :: struct {
     env:            Value | null
 }
 
+/// Singleton runtime `null`. Has no fields — `is NullVal` is the only
+/// way to discriminate. Sprint 5a addition.
+export NullVal :: struct {}
+
+/// Boolean payload. Sprint 5a addition — drives `if` / `br_if` once a
+/// snippet's comparison chain uses `bool.*` ops (legacy `i32.*` cmp
+/// arms still push `I32Val { 0|1 }` for back-compat with vm_if/vm_for).
+export BoolVal :: struct { value: bool }
+
+/// Unicode codepoint payload. Sprint 5a addition. Mirrors `src/vm/value.ts`'s
+/// `char` tag — the bytecode emits `char.const N` where N is the u32
+/// codepoint ; equality and ordering use the underlying numeric.
+export CharVal :: struct { value: char }
+
 // ---- Display impls on each `Value` variant --------------------------------
 //
 // Every variant carries its own `Display` impl so the dispatcher below
@@ -333,6 +387,18 @@ BuilderVal implements Display {
 
 FnVal implements Display {
     to_string :: fn(self) -> string = if self.env is null { "<fn ${self.function_index}>" } else { "<fn ${self.function_index}+env>" }
+}
+
+NullVal implements Display {
+    to_string :: fn(self) -> string = "null"
+}
+
+BoolVal implements Display {
+    to_string :: fn(self) -> string = if self.value { "true" } else { "false" }
+}
+
+CharVal implements Display {
+    to_string :: fn(self) -> string = "${self.value}"
 }
 
 /// Renders as `<type_id>{ field0, field1, … }` — type_id is the ordinal
@@ -386,4 +452,7 @@ export display_value :: fn(v: Value) -> string = match v {
     is ArrayVal   as a -> a.to_string()
     is BuilderVal as b -> b.to_string()
     is FnVal      as f -> f.to_string()
+    is NullVal    as n -> n.to_string()
+    is BoolVal    as b -> b.to_string()
+    is CharVal    as c -> c.to_string()
 }

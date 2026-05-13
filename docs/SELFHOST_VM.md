@@ -56,6 +56,11 @@ traits/vtables, binary `.vir`.
 | 4 (b3) | `intrinsic builder.*` (`new` / `append_str` / `append_display` / `finish`) — unblocks `"${…}"` interpolation ✅ | `vm_interp_basic`, `vm_interp_mixed`, `vm_interp_loop` |
 | 4 (b4) | `fn.ref` + `call.indirect` — plain fn-values (no env capture yet) ✅ | `vm_fn_value_local`, `vm_fn_value_callback`, `vm_fn_value_struct` |
 | 4 (b5) | `make_closure` + env capture — closures with captured locals ✅ | `vm_closure_capture`, `vm_closure_mutating`, `vm_closure_as_arg` |
+| 5a | `null.const` / `bool.const(true|false)` / `bool.{eq,ne,and,or,not}` / `char.const N` / `char.{eq,ne,lt,le,gt,ge}` / `drop` / `ref.{eq,ne}` + `i32.*` cmp ops push `BoolVal` ; `if` / `br_if` accept both `BoolVal` and `I32Val` via `read_truthy` ✅ | unblocks 8 snippets (90 / 176 = 51% acceptance) |
+| 5b | `type_check N` op (primitive / struct / array / union variants) | unblocks ~14 `if-narrow` snippets |
+| 5c | extended `call.import` host surface (`string.*`, hash, file I/O, `std_runtime$collections`) | unblocks ~15 stdlib-heavy snippets |
+| 5d | missing intrinsics (`size_of`, `type_kind`, `satisfies`) | unblocks `intrinsic_*` |
+| 6 | `virtual.call` + trait vtables | unblocks `trait_*` |
 | 5 | `type_check`, `ref.cast`, virtual.call, intrinsics, traits/vtables | nearly all snippets |
 | 6 | binary `.vir` loader (alternative to text) | shipping-perf gains |
 | 7 | Split `vader/vm/exec.vader` into `vader/bytecode/{types,ops,module,text}.vader` + `vader/vm/{value,exec,host}.vader` once the single file becomes unwieldy (probably mid-sprint 3 or 4). |

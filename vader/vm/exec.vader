@@ -19,7 +19,7 @@
 
 import "std/io" { read_file, eprintln, println }
 import "std/string_builder" { StringBuilder, new_builder, append }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, StructType, ArrayType, FnType, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, display_value }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, StructType, ArrayType, FnType, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, NullVal, BoolVal, CharVal, display_value }
 import "vader/vm/parser" { parse_virt }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -52,15 +52,15 @@ MAX_FRAME_DEPTH :: 1024
 /// cursor (the array is grow-only, see `push_value`). `pc` indexes into
 /// the function's `ops` array.
 ///
-/// `slots` and `stack` use the inlined `(I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[]`
+/// `slots` and `stack` use the inlined `(I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[]`
 /// shape (rather than `Value[]`) as a work-around for TODO §3.8 — the
 /// `Value` alias doesn't expand correctly in `Alias[]` array slots when
 /// the alias was imported from another module (cross-module `: Value`
 /// scalars work fine ; only the array case is broken).
 Frame :: struct {
     function_index: i32
-    slots:          (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[]
-    stack:          (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[]
+    slots:          (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[]
+    stack:          (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[]
     sp:             usize
     pc:             i32
 }
@@ -78,7 +78,7 @@ zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 ///                fresh slot is needed, otherwise an existing one is
 ///                overwritten (cheaper than `push`).
 /// @param value   the value to write.
-push_value :: fn(stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[], cursor: usize, value: Value) -> void {
+push_value :: fn(stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[], cursor: usize, value: Value) -> void {
     if cursor == stack.len() { stack.push(value) }
     else                     { stack[cursor] = value }
 }
@@ -169,8 +169,8 @@ dispatch_call_into :: fn(frame: Frame, top: usize, frames: Frame[], frame_count:
 /// @param env             closure env — bound to `slot 0` when non-`null` ;
 ///                        pass `null` for direct / plain `fn.ref` calls.
 /// @return                a fresh `Frame` ready to be pushed.
-build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_source: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[], args_offset: usize, env: Value | null) -> Frame {
-    slots: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[] = []
+build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_source: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[], args_offset: usize, env: Value | null) -> Frame {
+    slots: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[] = []
     user_arg_count: usize = callee.parameter_count
     if !(env is null) {
         slots.push(env)
@@ -260,9 +260,95 @@ apply_div_mod_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: s
     return null
 }
 
+/// Apply a `bool` binary op (eq / ne / and / or) on top-of-stack.
+/// Pops two `BoolVal`s, runs `op`, pushes a `BoolVal`.
+///
+/// @param frame      current top frame.
+/// @param top        index of `frame` in `frames`.
+/// @param frames     the frame stack.
+/// @param op_label   short label used in mismatch Traps.
+/// @param op         the boolean binary op.
+/// @return           `null` on success, or a `Trap` on operand type mismatch.
+/// @error            either operand isn't a `BoolVal`.
+apply_bool_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, op: fn(bool, bool) -> bool) -> Trap | null {
+    left  :: read_bool(frame.stack[frame.sp - 2], frame.pc, op_label)
+    right :: read_bool(frame.stack[frame.sp - 1], frame.pc, op_label)
+    if left  is Trap { return left  }
+    if right is Trap { return right }
+    frame.stack[frame.sp - 2] = BoolVal { .value = op(left.value, right.value) }
+    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    return null
+}
+
+/// Apply a `char` comparison on top-of-stack. Pops two `CharVal`s,
+/// runs `cmp`, pushes a `BoolVal`.
+///
+/// @param frame      current top frame.
+/// @param top        index of `frame` in `frames`.
+/// @param frames     the frame stack.
+/// @param op_label   short label used in mismatch Traps.
+/// @param cmp        the char comparison predicate.
+/// @return           `null` on success, or a `Trap` on operand type mismatch.
+/// @error            either operand isn't a `CharVal`.
+apply_char_cmp :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, cmp: fn(char, char) -> bool) -> Trap | null {
+    left  :: read_char(frame.stack[frame.sp - 2], frame.pc, op_label)
+    right :: read_char(frame.stack[frame.sp - 1], frame.pc, op_label)
+    if left  is Trap { return left  }
+    if right is Trap { return right }
+    frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
+    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    return null
+}
+
+/// Reference-equality of two `Value`s. Mirrors `src/vm/value.ts`'s
+/// `refEq` shape : `NullVal` is the singleton (any two are equal),
+/// the four scalar variants (`I32Val` / `BoolVal` / `CharVal` /
+/// `StringVal`) fall back to payload equality. Heap-allocated variants
+/// (`StructVal` / `ArrayVal` / `BuilderVal` / `FnVal`) Trap rather than
+/// silently lie : Vader doesn't expose pointer identity to value-level
+/// code, and the lowerer only emits `ref.eq` against `null` or between
+/// freshly-built sentinels — if a snippet ever hits the heap path,
+/// surfacing it loudly beats returning `false` for two valid structures.
+///
+/// @param a       left value.
+/// @param b       right value.
+/// @param at_pc   pc of the `ref.eq` / `ref.ne` op (for diagnostics).
+/// @param label   short context label (`"ref.eq"` / `"ref.ne"`).
+/// @return        `true` if structurally equal, `false` otherwise, or
+///                a `Trap` for the unsupported heap-vs-heap case.
+/// @error         either operand is a heap-allocated `StructVal` /
+///                `ArrayVal` / `BuilderVal` / `FnVal`.
+value_ref_eq :: fn(a: Value, b: Value, at_pc: i32, label: string) -> bool | Trap {
+    if a is NullVal {
+        if b is NullVal { return true }
+        return false
+    }
+    if a is I32Val {
+        if b is I32Val { return a.value == b.value }
+        return false
+    }
+    if a is BoolVal {
+        if b is BoolVal { return a.value == b.value }
+        return false
+    }
+    if a is CharVal {
+        if b is CharVal { return a.value == b.value }
+        return false
+    }
+    if a is StringVal {
+        if b is StringVal { return a.value == b.value }
+        return false
+    }
+    // Reaching here means `a` is a heap-allocated variant
+    // (Struct/Array/Builder/Fn) ; trap rather than silently return false.
+    return Trap { .message = "${label} on ${describe_value_tag(a)} not supported at pc=${at_pc} (only null + primitive operands)" }
+}
+
 /// Apply an i32 comparison (Eq/Ne/Lt/Le/Gt/Ge) on top-of-stack. The
-/// boolean result is pushed back as an i32 `1` / `0` (matching the
-/// wasm-style stack-machine convention).
+/// boolean result is pushed back as a `BoolVal` — matches `src/vm/value.ts`
+/// where comparisons live in `bool` tag-space. `read_truthy` consumes
+/// either `BoolVal` or `I32Val` so legacy bytecode that conflated `0`/`1`
+/// with bool still flows through `if` / `br_if`.
 ///
 /// @param frame      current top frame.
 /// @param top        index of `frame` within `frames`.
@@ -276,8 +362,7 @@ apply_cmp_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: strin
     right :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
-    result :: if cmp(left.value, right.value) { 1 } else { 0 }
-    frame.stack[frame.sp - 2] = I32Val { .value = result }
+    frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
     frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
     return null
 }
@@ -609,14 +694,91 @@ export exec :: fn(module: Module) -> VmResult {
                 outcome :: apply_cmp_binop(frame, top, frames, "i32.ge", (a, b) -> a >= b)
                 if outcome is Trap { return outcome }
             }
+            is NullConst -> {
+                push_value(frame.stack, frame.sp, NullVal {})
+                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+            }
+            is BoolConst -> {
+                push_value(frame.stack, frame.sp, BoolVal { .value = op.value })
+                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+            }
+            is CharConst -> {
+                push_value(frame.stack, frame.sp, CharVal { .value = op.value })
+                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+            }
+            is BoolEq -> {
+                outcome :: apply_bool_binop(frame, top, frames, "bool.eq", (a, b) -> a == b)
+                if outcome is Trap { return outcome }
+            }
+            is BoolNe -> {
+                outcome :: apply_bool_binop(frame, top, frames, "bool.ne", (a, b) -> a != b)
+                if outcome is Trap { return outcome }
+            }
+            is BoolAnd -> {
+                outcome :: apply_bool_binop(frame, top, frames, "bool.and", (a, b) -> a && b)
+                if outcome is Trap { return outcome }
+            }
+            is BoolOr -> {
+                outcome :: apply_bool_binop(frame, top, frames, "bool.or", (a, b) -> a || b)
+                if outcome is Trap { return outcome }
+            }
+            is BoolNot -> {
+                if frame.sp == 0 { return Trap { .message = "bool.not on empty stack at pc=${frame.pc}" } }
+                operand :: read_bool(frame.stack[frame.sp - 1], frame.pc, "bool.not")
+                if operand is Trap { return operand }
+                frame.stack[frame.sp - 1] = BoolVal { .value = !operand.value }
+                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+            }
+            is CharEq -> {
+                outcome :: apply_char_cmp(frame, top, frames, "char.eq", (a, b) -> a == b)
+                if outcome is Trap { return outcome }
+            }
+            is CharNe -> {
+                outcome :: apply_char_cmp(frame, top, frames, "char.ne", (a, b) -> a != b)
+                if outcome is Trap { return outcome }
+            }
+            is CharLt -> {
+                outcome :: apply_char_cmp(frame, top, frames, "char.lt", (a, b) -> a < b)
+                if outcome is Trap { return outcome }
+            }
+            is CharLe -> {
+                outcome :: apply_char_cmp(frame, top, frames, "char.le", (a, b) -> a <= b)
+                if outcome is Trap { return outcome }
+            }
+            is CharGt -> {
+                outcome :: apply_char_cmp(frame, top, frames, "char.gt", (a, b) -> a > b)
+                if outcome is Trap { return outcome }
+            }
+            is CharGe -> {
+                outcome :: apply_char_cmp(frame, top, frames, "char.ge", (a, b) -> a >= b)
+                if outcome is Trap { return outcome }
+            }
+            is RefEq -> {
+                if frame.sp < 2 { return Trap { .message = "ref.eq needs 2 values on stack at pc=${frame.pc}" } }
+                outcome :: value_ref_eq(frame.stack[frame.sp - 2], frame.stack[frame.sp - 1], frame.pc, "ref.eq")
+                if outcome is Trap { return outcome }
+                frame.stack[frame.sp - 2] = BoolVal { .value = outcome }
+                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+            }
+            is RefNe -> {
+                if frame.sp < 2 { return Trap { .message = "ref.ne needs 2 values on stack at pc=${frame.pc}" } }
+                outcome :: value_ref_eq(frame.stack[frame.sp - 2], frame.stack[frame.sp - 1], frame.pc, "ref.ne")
+                if outcome is Trap { return outcome }
+                frame.stack[frame.sp - 2] = BoolVal { .value = !outcome }
+                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+            }
+            is Drop -> {
+                if frame.sp == 0 { return Trap { .message = "drop on empty stack at pc=${frame.pc}" } }
+                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+            }
             is Block -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
             is Loop  -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
             is If -> {
                 if frame.sp == 0 { return Trap { .message = "if on empty stack at pc=${frame.pc} in '${body.name}'" } }
-                cond :: read_i32(frame.stack[frame.sp - 1], frame.pc, "if condition")
+                cond :: read_truthy(frame.stack[frame.sp - 1], frame.pc, "if condition")
                 if cond is Trap { return cond }
                 new_sp :: frame.sp - 1
-                if cond.value != 0 {
+                if cond {
                     frames[top] = with_sp_pc(frame, new_sp, frame.pc + 1)
                 } else {
                     target :: body.jump_table[frame.pc]
@@ -643,10 +805,10 @@ export exec :: fn(module: Module) -> VmResult {
             }
             is BranchIf -> {
                 if frame.sp == 0 { return Trap { .message = "br_if on empty stack at pc=${frame.pc} in '${body.name}'" } }
-                cond :: read_i32(frame.stack[frame.sp - 1], frame.pc, "br_if condition")
+                cond :: read_truthy(frame.stack[frame.sp - 1], frame.pc, "br_if condition")
                 if cond is Trap { return cond }
                 new_sp :: frame.sp - 1
-                if cond.value != 0 {
+                if cond {
                     target :: body.jump_table[frame.pc]
                     if target < 0 {
                         return Trap { .message = "br_if has no jump target at pc=${frame.pc} (bad bytecode)" }
@@ -734,7 +896,8 @@ read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal | Trap {
 /// any future `Value` variant added without updating this fn.
 ///
 /// @param v  the tagged value.
-/// @return   `"i32"` / `"string"` / `"struct"` / `"array"` / `"builder"` / `"fn"`.
+/// @return   `"i32"` / `"string"` / `"struct"` / `"array"` / `"builder"` /
+///           `"fn"` / `"null"` / `"bool"` / `"char"`.
 describe_value_tag :: fn(v: Value) = match v {
     is I32Val     -> "i32"
     is StringVal  -> "string"
@@ -742,6 +905,50 @@ describe_value_tag :: fn(v: Value) = match v {
     is ArrayVal   -> "array"
     is BuilderVal -> "builder"
     is FnVal      -> "fn"
+    is NullVal    -> "null"
+    is BoolVal    -> "bool"
+    is CharVal    -> "char"
+}
+
+/// Unwrap a `BoolVal` from a `Value`. Used by the boolean op arms.
+///
+/// @param v       the tagged value.
+/// @param at_pc   pc of the op doing the read.
+/// @param label   short context label.
+/// @return        the `BoolVal` payload, or a `Trap` on type mismatch.
+/// @error         the value's tag isn't `BoolVal`.
+read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
+    if v is BoolVal { return v }
+    return Trap { .message = "${label} at pc=${at_pc}: expected bool, got ${describe_value_tag(v)}" }
+}
+
+/// Unwrap a `CharVal` from a `Value`. Used by the char comparison arms.
+///
+/// @param v       the tagged value.
+/// @param at_pc   pc of the op doing the read.
+/// @param label   short context label.
+/// @return        the `CharVal` payload, or a `Trap` on type mismatch.
+/// @error         the value's tag isn't `CharVal`.
+read_char :: fn(v: Value, at_pc: i32, label: string) -> CharVal | Trap {
+    if v is CharVal { return v }
+    return Trap { .message = "${label} at pc=${at_pc}: expected char, got ${describe_value_tag(v)}" }
+}
+
+/// Read a truthy condition (`if` / `br_if`). Accepts both legacy
+/// numeric form (`I32Val` — non-zero is true) and modern bool form
+/// (`BoolVal`). Other variants Trap.
+///
+/// @param v       the tagged condition value.
+/// @param at_pc   pc of the conditional op.
+/// @param label   short context label (`"if condition"`, `"br_if condition"`).
+/// @return        `true` / `false`, or a `Trap` on a non-bool / non-i32 value.
+/// @error         value's tag isn't `BoolVal` or `I32Val`.
+read_truthy :: fn(v: Value, at_pc: i32, label: string) -> bool | Trap {
+    return match v {
+        is BoolVal as b -> b.value
+        is I32Val  as i -> i.value != 0
+        _               -> Trap { .message = "${label} at pc=${at_pc}: expected bool or i32, got ${describe_value_tag(v)}" }
+    }
 }
 
 /// Unwrap a `FnVal` from a `Value`, mirroring `read_builder` etc. Used
@@ -795,7 +1002,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Frame | Trap {
         return Trap { .message = "array.new type ${type_id} needs ${needed} initial element(s) but stack has ${frame.sp} at pc=${frame.pc}" }
     }
     arg_base :: frame.sp - needed
-    elements: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[] = []
+    elements: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[] = []
     element_index: usize = 0
     for element_index < needed {
         elements.push(frame.stack[arg_base + element_index])
@@ -833,7 +1040,7 @@ build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Frame | Trap {
         return Trap { .message = "struct.new type ${type_id} needs ${field_count} field value(s) but stack has ${frame.sp} at pc=${frame.pc}" }
     }
     arg_base :: frame.sp - field_count
-    fields: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[] = []
+    fields: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[] = []
     field_index: usize = 0
     for field_index < field_count {
         fields.push(frame.stack[arg_base + field_index])
@@ -879,7 +1086,7 @@ export HostOk :: struct { value: Value }
 ///                  imports, or `Trap` for unknown imports or arg-type
 ///                  mismatches.
 /// @error           unknown `mangled` name ; argument type mismatch.
-dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
+dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
     if info.mangled == STDIO_PRINTLN {
         arg :: read_string(stack[arg_base], at_pc, "println")
         if arg is Trap { return arg }
