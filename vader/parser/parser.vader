@@ -1013,6 +1013,16 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
 // `name :: value` — untyped top-level const. The typed shape uses the
 // Odin-style `name : Type : value` form parsed by `parse_typed_const_decl`.
 parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> ConstDecl {
+    // Multi-line union with a leading pipe :
+    //   T ::
+    //       | A
+    //       | B
+    //       | C
+    // The lexer's `suppresses_newline_before` drops the newlines before
+    // each `|`, so the token stream looks like `T :: | A | B | C`.
+    // Consume the optional leading `|` so the infix-Pratt path picks up
+    // the rest as a left-associative `bitor` chain.
+    p.match_kind(.Pipe)
     value :: p.parse_expr(0)
     return ConstDecl {
         .span       = p.span_of(name_tok, p.peek_at(-1)),
@@ -1062,6 +1072,11 @@ ident_expr :: fn(span: Span, name: string) -> IdentExpr {
 parse_type :: fn(p: Parser) -> TypeExpr {
     // Precedence : postfix `[]` `!` (tightest), then `&` intersection,
     // then `|` union (loosest). Mirrors the value-side Pratt table.
+    // Optional leading `|` lets multi-line unions read cleanly in the
+    // Haskell / Rust style. The lexer's `suppresses_newline_before` on
+    // `Pipe` drops the newline before each leading `|` so the tokens
+    // look identical to `T :: | A | B | C`.
+    p.match_kind(.Pipe)
     head := p.parse_type_intersection()
     // `T | U | V` — left-associative `bitor` chain.
     if p.check(.Pipe) {

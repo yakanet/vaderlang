@@ -837,19 +837,110 @@ emit_const_decl :: fn(self: Printer, d: ConstDecl) -> void {
     // Typed const-decls (`NAME: T :: value`) skip name-column alignment :
     // the `: T` segment breaks the per-name column anyway, so a uniform
     // single-space `::` reads cleaner.
+    name_width: usize = 0
     match d.ty {
         is null -> {
             self.write_name_padded(d.name)
             self.write(" :: ")
+            target :: self.align_name_width
+            n :: d.name.byte_len()
+            name_width = if target > n { target } else { n }
         }
         _ -> {
             self.write(d.name)
             self.write(": ")
             self.emit_type_expr(d.ty)
             self.write(" :: ")
+            name_width = 0  // typed form skips multi-line union layout
+        }
+    }
+    // Multi-line union layout : if the RHS is a `|` chain and the single-
+    // line rendering wouldn't fit, break with leading pipes aligned with
+    // the first variant :
+    //   T :: A
+    //       | B
+    //       | C
+    // Typed constants skip this path (the `: T :` segment makes the prefix
+    // shape too irregular for the simple align rule to read cleanly).
+    if d.ty is null && is_bitor_chain(d.value) {
+        prefix_width :: usize(self.depth) * usize(4) + name_width + usize(4) // " :: "
+        rendered :: render_expr_for_measure(self.source, d.value)
+        if prefix_width + rendered.byte_len() > usize(MAX_LINE) {
+            self.emit_union_multiline(d.value, name_width)
+            return
         }
     }
     self.emit_expr(d.value)
+}
+
+// True iff `e` is a `BinaryExpr` with `BitOr` op — i.e. a union RHS
+// candidate for the multi-line layout in `emit_const_decl`.
+is_bitor_chain :: fn(e: Expr) -> bool {
+    return match e {
+        is BinaryExpr as b -> b.op == .BitOr
+        _ -> false
+    }
+}
+
+// Flatten a left-associative `BitOr` chain into its leaf variants :
+// `((A | B) | C) | D` → `[A, B, C, D]`. Right-leaning bits (rare — the
+// parser builds left-associative chains) get collected too via the
+// recursive walk.
+collect_bitor_variants :: fn(e: Expr) -> Expr[] {
+    out: Expr[] = []
+    append_bitor_variants(e, out)
+    return out
+}
+
+append_bitor_variants :: fn(e: Expr, out: Expr[]) -> void {
+    match e {
+        is BinaryExpr as b -> {
+            if b.op == .BitOr {
+                append_bitor_variants(b.left, out)
+                append_bitor_variants(b.right, out)
+                return
+            }
+            out.push(e)
+        }
+        _ -> out.push(e)
+    }
+}
+
+// Render `e` into a fresh standalone string. Used only for measuring
+// the would-be single-line width of a union RHS so `emit_const_decl`
+// can decide between the inline and multi-line layouts. Comments are
+// skipped (the measurement only cares about visible characters).
+render_expr_for_measure :: fn(source: string, e: Expr) -> string {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = usize(0) })
+    sub.emit_expr(e)
+    return sub.finish()
+}
+
+emit_union_multiline :: fn(self: Printer, value: Expr, name_width: usize) -> void {
+    variants :: collect_bitor_variants(value)
+    if variants.len() < usize(2) {
+        // Defensive fallback : a degenerate chain (or a single-variant
+        // `BitOr` that shouldn't exist) renders inline.
+        self.emit_expr(value)
+        return
+    }
+    self.emit_binary_operand(variants[0], .BitOr, true)
+    // Leading-pipe indent : `depth*4` for the base indent + `name_width`
+    // to step past the name column + 2 more cols so the `|` lands one
+    // space before each variant's column (matches the first variant).
+    pad :: usize(self.depth) * usize(4) + name_width + usize(2)
+    i: usize = 1
+    for i < variants.len() {
+        self.newline()
+        k: usize = 0
+        for k < pad {
+            self.buf.append(" ")
+            k = k + usize(1)
+        }
+        self.write("| ")
+        self.emit_binary_operand(variants[i], .BitOr, false)
+        i = i + usize(1)
+    }
 }
 
 emit_assert_decl :: fn(self: Printer, d: AssertDecl) -> void {
@@ -926,9 +1017,56 @@ emit_let_stmt :: fn(self: Printer, s: LetStmt) -> void {
 }
 
 emit_assign_stmt :: fn(self: Printer, s: AssignStmt) -> void {
-    self.emit_expr(s.target)
-    self.write(" = ")
-    self.emit_expr(s.value)
+    // Recover compound assignment (`+=`, `-=`, `*=`, `/=`, `%=`). The
+    // parser desugars `lhs += rhs` into `AssignStmt { target = lhs,
+    // value = BinaryExpr(op, lhs, rhs) }`, reusing the same `lhs` node
+    // for `target` and `value.left` ; identical spans + a compound-
+    // eligible op means the source had the augmented form. Falling
+    // back to `=` for anything else preserves the desugared expansion
+    // when the user typed it manually.
+    aug :: compound_assign_symbol(s)
+    match aug {
+        is null -> {
+            self.emit_expr(s.target)
+            self.write(" = ")
+            self.emit_expr(s.value)
+        }
+        is string as sym -> {
+            self.emit_expr(s.target)
+            self.write(" ")
+            self.write(sym)
+            self.write(" ")
+            // `value` is a BinaryExpr with `lhs` on the left ; emit only
+            // the right operand so `i += 1` round-trips as `i += 1`.
+            match s.value {
+                is BinaryExpr as b -> self.emit_expr(b.right)
+                _ -> self.emit_expr(s.value)   // unreachable per `aug`
+            }
+        }
+    }
+}
+
+// Return the augmented-assignment symbol (`"+="`, `"-="`, …) iff `s`
+// matches the parser's compound-assign desugar shape : `target` and
+// `value.left` are the same source span, and the binary op is one of
+// the compound-eligible arithmetic ops. Returns `null` otherwise so the
+// caller falls back to the plain `=` rendering.
+compound_assign_symbol :: fn(s: AssignStmt) -> string | null {
+    return match s.value {
+        is BinaryExpr as b -> {
+            if b.left.span.start.offset != s.target.span.start.offset { return null }
+            if b.left.span.end.offset != s.target.span.end.offset { return null }
+            match b.op {
+                .Add -> "+="
+                .Sub -> "-="
+                .Mul -> "*="
+                .Div -> "/="
+                .Mod -> "%="
+                _    -> null
+            }
+        }
+        _ -> null
+    }
 }
 
 emit_return_stmt :: fn(self: Printer, s: ReturnStmt) -> void {

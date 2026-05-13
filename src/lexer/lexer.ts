@@ -37,6 +37,25 @@ const SUPPRESS_AFTER: ReadonlySet<TokenKind> = new Set<TokenKind>([
   "assign", "plus_assign", "minus_assign", "star_assign", "slash_assign", "percent_assign",
   "colon", "arrow", "fat_arrow",
   "comma",
+  // `T ::\n    A | B | C` — allow the RHS of a `::` / `:=` binding to
+  // wrap onto the next line. Mirrors the existing pipe / arrow / colon
+  // continuation so multi-line union declarations read cleanly.
+  "decl_const", "decl_var",
+]);
+
+// Tokens that "eat" a preceding newline — when this token is emitted
+// and the previous token is a `newline`, the newline is dropped. Lets
+// type-position `|` / `&` (and a few other binary operators) appear as
+// leading tokens on a new line :
+//   T ::
+//       | A
+//       | B
+//       | C
+// without the parser having to thread newline-skipping through every
+// continuation. Mirrors how `decl_const` etc. in SUPPRESS_AFTER drop
+// the newline immediately after themselves.
+const SUPPRESS_BEFORE: ReadonlySet<TokenKind> = new Set<TokenKind>([
+  "pipe", "amp",
 ]);
 
 const TWO_CHAR_OPS: ReadonlyMap<string, TokenKind> = new Map([
@@ -204,6 +223,14 @@ class Lexer {
 
   /** Single point where every token enters the stream — keeps `lastKind` honest. */
   private push(kind: TokenKind, text: string, start: Position, extra: Partial<Token> = {}): void {
+    // `SUPPRESS_BEFORE` retroactively drops a just-emitted newline so a
+    // leading `|` / `&` on the next line continues the previous
+    // expression. The check stays cheap : one `lastKind` test, one
+    // array pop in the rare hit.
+    if (SUPPRESS_BEFORE.has(kind) && this.lastKind === "newline") {
+      this.tokens.pop();
+      this.lastKind = this.tokens.length === 0 ? null : this.tokens[this.tokens.length - 1]!.kind;
+    }
     this.tokens.push({ kind, text, span: { start, end: this.posHere() }, ...extra });
     this.lastKind = kind;
   }

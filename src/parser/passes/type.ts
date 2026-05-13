@@ -20,6 +20,18 @@ export function parseType(p: Parser): A.TypeExpr {
   //   infix   `|`          (union — loosest)
   // Mirrors the value-side Pratt precedence (`amp` BP 60, `pipe` BP 40)
   // so `T | U & V` parses as `T | (U & V)` everywhere.
+  //
+  // Optional leading `|` lets multi-line unions read cleanly in the
+  // Haskell / Rust style :
+  //   T ::
+  //       | A
+  //       | B
+  //       | C
+  // The lexer's `SUPPRESS_BEFORE` on `pipe` drops the newline before
+  // each leading `|` so the tokens look identical to `T :: | A | B | C`.
+  if (p.match("pipe") !== null) {
+    /* leading pipe consumed — first variant follows */
+  }
   let head = parseTypeIntersection(p);
   // Union: `T | U | V` — built as a left-associative `bitor` chain.
   if (p.check("pipe")) {

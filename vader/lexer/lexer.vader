@@ -104,7 +104,28 @@ suppresses_newline_after :: fn(k: TokenKind) = match k {
     .Arrow     -> true
     .FatArrow  -> true
     .Comma     -> true
+    // `T ::\n    A | B | C` — let the RHS of a `::` / `:=` binding wrap
+    // onto the next line. Mirrors the existing pipe / arrow continuation
+    // so multi-line union declarations read cleanly.
+    .DeclConst -> true
+    .DeclVar   -> true
     _          -> false
+}
+
+// Tokens that "eat" a preceding newline — when this token is emitted
+// and the previous token is a `Newline`, the newline is dropped. Lets
+// type-position `|` / `&` appear as leading tokens on a new line :
+//   T ::
+//       | A
+//       | B
+//       | C
+// without the parser having to thread newline-skipping through every
+// continuation. Mirrors how the suppress-after set drops the newline
+// immediately AFTER themselves.
+suppresses_newline_before :: fn(k: TokenKind) = match k {
+    .Pipe -> true
+    .Amp  -> true
+    _     -> false
 }
 
 // ---- cursor helpers -------------------------------------------------------
@@ -224,10 +245,39 @@ handle_newline :: fn(l: Lexer) -> void {
     if l.paren_depth > 0 { return }
     if l.last_kind.suppresses_newline_after() { return }
     if l.last_kind == .Newline { return }
+    // Lookahead-suppress : if the next non-whitespace character starts a
+    // `suppresses_newline_before` token (`|`, `&`), don't emit the
+    // newline so a leading-pipe / leading-amp continues the previous
+    // expression. Mirrors the trailing-pipe rule on the suppress-after
+    // side.
+    if l.peeks_leading_continuation() { return }
 
     here := l.position_here()
     span := Span { .start = here, .end = here }
     l.emit(make_token(.Newline, "\n", span))
+}
+
+// Look past spaces / tabs / cross-line whitespace to see whether the
+// next significant character would emit a `suppresses_newline_before`
+// token. Multi-character ops (`||`, `&&`) are filtered out so a
+// short-circuit operator on the next line doesn't suppress the
+// statement terminator — only the bare `|` / `&` continuation forms
+// count.
+peeks_leading_continuation :: fn(l: Lexer) -> bool {
+    i: usize = 0
+    for {
+        c :: l.peek_at(i)
+        if c == ' ' || c == '\t' || c == '\r' || c == '\n' { i = i + 1  continue }
+        if c == '|' {
+            next :: l.peek_at(i + usize(1))
+            return next != '|' && next != '='
+        }
+        if c == '&' {
+            next :: l.peek_at(i + usize(1))
+            return next != '&' && next != '='
+        }
+        return false
+    }
 }
 
 // ---- identifiers ----------------------------------------------------------

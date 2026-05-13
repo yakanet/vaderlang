@@ -12,7 +12,106 @@ import "std/string_builder" { StringBuilder, new_builder, append }
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | F64Const | I64Const | CallImport | Call | FnRef | MakeClosure | CallIndirect | VirtualCall | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | I32Neg | I32BitNot | I32BitAnd | I32BitOr | I32BitXor | I32Shl | I32Shr | I32ShrU | I64Add | I64Sub | I64Mul | I64Div | I64Mod | I64Neg | I64Eq | I64Ne | I64Lt | I64Le | I64Gt | I64Ge | F64Add | F64Sub | F64Mul | F64Div | F64Neg | F64Eq | F64Ne | F64Lt | F64Le | F64Gt | F64Ge | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | StringEq | StringNe | StringConcat | IntToChar | CharToInt | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const
+    | LocalGet
+    | LocalSet
+    | LocalTee
+    | StringConst
+    | NullConst
+    | BoolConst
+    | CharConst
+    | F64Const
+    | I64Const
+    | CallImport
+    | Call
+    | FnRef
+    | MakeClosure
+    | CallIndirect
+    | VirtualCall
+    | StructNew
+    | StructGet
+    | StructSet
+    | ArrayNew
+    | ArrayPush
+    | ArrayGet
+    | ArraySet
+    | ArrayLen
+    | RefCast
+    | Convert
+    | TypeCheck
+    | BuilderNew
+    | BuilderAppendStr
+    | BuilderAppendDisplay
+    | BuilderFinish
+    | I32Add
+    | I32Sub
+    | I32Mul
+    | I32Div
+    | I32Mod
+    | I32Eq
+    | I32Ne
+    | I32Lt
+    | I32Le
+    | I32Gt
+    | I32Ge
+    | I32Neg
+    | I32BitNot
+    | I32BitAnd
+    | I32BitOr
+    | I32BitXor
+    | I32Shl
+    | I32Shr
+    | I32ShrU
+    | I64Add
+    | I64Sub
+    | I64Mul
+    | I64Div
+    | I64Mod
+    | I64Neg
+    | I64Eq
+    | I64Ne
+    | I64Lt
+    | I64Le
+    | I64Gt
+    | I64Ge
+    | F64Add
+    | F64Sub
+    | F64Mul
+    | F64Div
+    | F64Neg
+    | F64Eq
+    | F64Ne
+    | F64Lt
+    | F64Le
+    | F64Gt
+    | F64Ge
+    | BoolEq
+    | BoolNe
+    | BoolAnd
+    | BoolOr
+    | BoolNot
+    | CharEq
+    | CharNe
+    | CharLt
+    | CharLe
+    | CharGt
+    | CharGe
+    | StringEq
+    | StringNe
+    | StringConcat
+    | IntToChar
+    | CharToInt
+    | RefEq
+    | RefNe
+    | Drop
+    | Block
+    | Loop
+    | If
+    | Else
+    | End
+    | Branch
+    | BranchIf
+    | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -182,12 +281,12 @@ export I64Mul :: struct {}
 export I64Div :: struct {}
 export I64Mod :: struct {}
 export I64Neg :: struct {}
-export I64Eq  :: struct {}
-export I64Ne  :: struct {}
-export I64Lt  :: struct {}
-export I64Le  :: struct {}
-export I64Gt  :: struct {}
-export I64Ge  :: struct {}
+export I64Eq :: struct {}
+export I64Ne :: struct {}
+export I64Lt :: struct {}
+export I64Le :: struct {}
+export I64Gt :: struct {}
+export I64Ge :: struct {}
 /// Pop two f64 (left, right) ; push `left + right` as F64Val.
 export F64Add :: struct {}
 /// Pop two f64 (left, right) ; push `left - right` as F64Val.
@@ -291,18 +390,18 @@ export Drop :: struct {}
 export Block :: struct {}
 /// Marker — the executor just bumps pc. Opens a backward-jumping scope
 /// (`Branch` to a loop label resolves to the body start, not past-end).
-export Loop  :: struct {}
+export Loop :: struct {}
 /// Pops one i32 condition. Non-zero falls through ; zero jumps to the
 /// matching `Else` (or past the matching `End` if none). The actual
 /// target pc lives in the enclosing function's `jump_table[pc]`.
-export If    :: struct {}
+export If :: struct {}
 /// Reached only when the matching `If` took the truthy path — jumps
 /// past the matching `End`. Target pc in `jump_table[pc]`.
-export Else  :: struct {}
+export Else :: struct {}
 /// Marker — closes the matching `Block`/`Loop`/`If`/`Else`. The
 /// executor bumps pc through it ; the parser uses `End` lines to
 /// resolve every still-pending `Branch` / `BranchIf`.
-export End   :: struct {}
+export End :: struct {}
 /// Unconditional jump to the labelled scope's target (`jump_table[pc]`).
 export Branch :: struct {}
 /// Pops one i32 condition. Non-zero jumps ; zero falls through.
@@ -318,10 +417,10 @@ export Return :: struct {}
 /// values to pop from the caller's stack before the host call ;
 /// `has_return` controls whether a value gets pushed back afterwards.
 export ImportInfo :: struct {
-    name:            string
-    mangled:         string
+    name: string
+    mangled: string
     parameter_count: usize
-    has_return:      bool
+    has_return: bool
 }
 
 /// One Vader-side function body. `jump_table[pc]` is filled by the
@@ -337,11 +436,11 @@ export ImportInfo :: struct {
 /// *additional* locals declared in the body. The frame's slot array
 /// is sized `parameter_count + local_count`, with params at the bottom.
 export BytecodeFunction :: struct {
-    name:            string
+    name: string
     parameter_count: usize
-    local_count:     usize
-    ops:             Op[]
-    jump_table:      i32[]
+    local_count: usize
+    ops: Op[]
+    jump_table: i32[]
 }
 
 /// Module-level type table entry, indexed by the `.virt`'s `type N ...`
@@ -391,13 +490,13 @@ export UnionType :: struct { variant_type_ids: i32[] }
 /// `StructType.name`. The `.virt` text format itself does not carry
 /// vtable directives — they're entirely a runtime-side synthesis.
 export Vtable :: struct {
-    key:     string
+    key: string
     entries: VtableEntry[]
 }
 
 /// One `(type_id, function_index)` row of a vtable.
 export VtableEntry :: struct {
-    type_id:        i32
+    type_id: i32
     function_index: i32
 }
 
@@ -405,7 +504,7 @@ export VtableEntry :: struct {
 /// `impl` directive. Used by `ref_type_matches` to answer `is Trait`
 /// patterns where the trait body wouldn't otherwise survive DCE.
 export Impl :: struct {
-    type_id:    i32
+    type_id: i32
     trait_name: string
 }
 
@@ -417,12 +516,12 @@ export Impl :: struct {
 /// fn-name convention. `impls` is populated directly from the
 /// `impl TYPE_ID TRAIT_NAME` directives the .virt writer emits.
 export Module :: struct {
-    strings:    string[]
-    imports:    ImportInfo[]
-    types:      TypeDecl[]
-    functions:  BytecodeFunction[]
-    vtables:    Vtable[]
-    impls:      Impl[]
+    strings: string[]
+    imports: ImportInfo[]
+    types: TypeDecl[]
+    functions: BytecodeFunction[]
+    vtables: Vtable[]
+    impls: Impl[]
     main_index: i32
 }
 
@@ -435,7 +534,18 @@ export Module :: struct {
 /// intrinsics ; Sprint 4 (b4) added `FnVal` for `fn.ref` / `call.indirect` ;
 /// Sprint 5a adds `NullVal` / `BoolVal` / `CharVal` for the corresponding
 /// const + comparison op families. Mirrors `src/vm/value.ts`.
-export Value :: I32Val | I64Val | F64Val | StringVal | StructVal | ArrayVal | BuilderVal | FnVal | NullVal | BoolVal | CharVal | ErrorVal
+export Value :: I32Val
+       | I64Val
+       | F64Val
+       | StringVal
+       | StructVal
+       | ArrayVal
+       | BuilderVal
+       | FnVal
+       | NullVal
+       | BoolVal
+       | CharVal
+       | ErrorVal
 
 /// 32-bit integer payload.
 export I32Val :: struct { value: i32 }
@@ -459,7 +569,7 @@ export StringVal :: struct { value: string }
 /// alias-expansion bug (TODO §3.8, cross-module-only) doesn't bite here.
 export StructVal :: struct {
     type_id: i32
-    fields:  Value[]
+    fields: Value[]
 }
 
 /// Heap-allocated array payload — grow-only via `array.push`, fixed-size
@@ -468,7 +578,7 @@ export StructVal :: struct {
 /// contents (declared element-type is informational, not enforced).
 /// Same intra-module `Value[]` trick as `StructVal`.
 export ArrayVal :: struct {
-    type_id:  i32
+    type_id: i32
     elements: Value[]
 }
 
@@ -493,7 +603,7 @@ export BuilderVal :: struct {
 /// `slot 1 ..`.
 export FnVal :: struct {
     function_index: i32
-    env:            Value | null
+    env: Value | null
 }
 
 /// Singleton runtime `null`. Has no fields — `is NullVal` is the only
@@ -617,16 +727,16 @@ ArrayVal implements Display {
 /// @return   the human-readable representation, computed by the variant's
 ///           `to_string` impl.
 export display_value :: fn(v: Value) -> string = match v {
-    is I32Val     as i -> i.to_string()
-    is I64Val     as i -> i.to_string()
-    is F64Val     as f -> f.to_string()
-    is StringVal  as s -> s.to_string()
-    is StructVal  as s -> s.to_string()
-    is ArrayVal   as a -> a.to_string()
+    is I32Val as i -> i.to_string()
+    is I64Val as i -> i.to_string()
+    is F64Val as f -> f.to_string()
+    is StringVal as s -> s.to_string()
+    is StructVal as s -> s.to_string()
+    is ArrayVal as a -> a.to_string()
     is BuilderVal as b -> b.to_string()
-    is FnVal      as f -> f.to_string()
-    is NullVal    as n -> n.to_string()
-    is BoolVal    as b -> b.to_string()
-    is CharVal    as c -> c.to_string()
-    is ErrorVal   as e -> e.to_string()
+    is FnVal as f -> f.to_string()
+    is NullVal as n -> n.to_string()
+    is BoolVal as b -> b.to_string()
+    is CharVal as c -> c.to_string()
+    is ErrorVal as e -> e.to_string()
 }

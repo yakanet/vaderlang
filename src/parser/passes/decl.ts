@@ -835,6 +835,16 @@ function parseConstDecl(
   visibility: A.Visibility,
   nameTok: Token,
 ): A.ConstDecl {
+  // Multi-line union with a leading pipe :
+  //   T ::
+  //       | A
+  //       | B
+  //       | C
+  // The lexer's `SUPPRESS_BEFORE` drops the newlines before each `|`, so
+  // the token stream looks like `T :: | A | B | C`. Consume the optional
+  // leading `|` so the normal infix-Pratt path picks up the rest as a
+  // left-associative `bitor` chain — same shape `A | B | C` produces.
+  p.match("pipe");
   const value = parseExpr(p, 0);
   return {
     kind: "ConstDecl",
