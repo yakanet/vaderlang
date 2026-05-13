@@ -54,7 +54,8 @@ beforeAll(async () => {
   const code = await proc.exited;
   if (code !== 0) {
     const err = await new Response(proc.stderr).text();
-    throw new Error(`vader CLI build failed (exit ${code}):\n${err}`);
+    throw new Error(`vader CLI build failed (exit ${code}):
+${err}`);
   }
 });
 
@@ -66,48 +67,38 @@ beforeAll(async () => {
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
-  // Post Sprint 6 (2026-05-13). `virtual.call` + trait vtables : the Vader
-  // VM now synthesises a per-`(Trait, method)` vtable from the mangled
-  // fn-name convention (`<Type>$<Trait>$<method>[__T…]`) and dispatches
-  // through it. `trait_virtual_dispatch` + `trait_dispatch_generic_iter`
-  // unblock (109 / 176 = 62 % acceptance). Remaining failures :
-  //   - Missing intrinsics (Sprint 5d) — `size_of`, `type_kind`, `satisfies`.
-  //   - Float / math support — std_math, expr_bodied_fn.
-  //   - Enum dispatch — enum_*, dot_variant_in_union.
+  // Post Sprint 7 (2026-05-13). Integer arithmetic completion : `i32.neg`
+  // / `i32.bitnot` / `i32.bitand` / `i32.bitor` / `i32.bitxor` / `i32.shl`
+  // / `i32.shr` (and all `<width>.<verb>` siblings aliased to `I32Val`).
+  // Previously the parser silently dropped these ops, which made e.g.
+  // `std_core$i32$Comparable$compare` return `1` instead of `-1` — a
+  // cascading bug that broke every `Range`-driven test (for-loop,
+  // iterators, op-overloads). 22 new snippets unblock (131 / 176 = 74 %
+  // acceptance). Remaining failures :
+  //   - Missing intrinsics — `type_kind`, `satisfies`.
+  //   - Float / math support — std_math, expr_bodied_fn, f64.* ops.
+  //   - Enum dispatch — enum_to_repr_cast, dot_variant_in_union.
   //   - Tuple destructure — tuple_*.
   //   - GC root intrinsics + std_runtime$collections — gc_*, mutable_*.
-  //   - Range / iterator state mutation across virtual.call boundaries
-  //     (struct.set vs StructVal aliasing) — for_range, iter_*, array_iter,
-  //     trait_dispatch_bounded, op_overload_*.
-  //   - `is Trait` pattern matching needs an impl table (.virt format gap) —
-  //     vm_trait_dispatch, op_overload_index.
+  //   - `is Trait` pattern matching needs an impl table (.virt format gap)
+  //     — vm_trait_dispatch, op_overload_*, trait_dispatch_bounded.
   //   - Primitive trait receivers (i32 / usize as `self`) — trait_box_range_iter.
   //   - Misc : io_roundtrip, regex_helpers, runtime_argv, etc.
-  "array_iter",
   "bound_enforced",
   "char_range_contains",
   "collection_index_sugar",
-  "contains_op",
   "dot_variant_in_union",
-  "enum_match",
   "enum_to_repr_cast",
-  "enum_typed",
   "expr_bodied_fn",
-  "for_range",
   "format_helpers",
   "gc_array_survive",
   "gc_chain_survive",
   "gc_multi_collect",
-  "generic_fn",
-  "implicit_dot_variant",
-  "intrinsic_size_of",
   "intrinsic_type_kind",
   "io_roundtrip",
-  "iter_coerce_array",
   "iter_combinators",
   "iter_defaults",
   "iter_lazy",
-  "iter_zip_chain",
   "json_basics",
   "map_set_iter",
   "multiline_string",
@@ -117,38 +108,26 @@ const KNOWN_DIVERGENT = new Set<string>([
   "numeric_context_sensitivity",
   "op_overload_arith",
   "op_overload_compound",
-  "op_overload_eq_ord",
   "op_overload_index",
   "overload_first_param",
   "parse_int_match",
   "path_basics",
   "process_spawn",
-  "range_widths",
   "regex_helpers",
   "runtime_argv",
-  "seq_lit_inference",
-  "spread_destructure",
   "std_cli_basic",
   "std_math",
-  "std_sort",
-  "string_bytes",
   "string_chars",
   "string_codepoints",
   "trait_box_range_iter",
   "trait_dispatch_bounded",
-  "trait_dispatch_param",
-  "transitive_mono",
   "try_op",
   "tuple_comptime",
-  "tuple_for_destructure",
-  "tuple_in_array",
   "tuple_match_union",
   "tuple_struct_field",
   "tuple_triple_quad",
   "type_aliases",
   "u32_bitops",
-  "usize_arith",
-  "usize_basic",
   "vm_trait_dispatch",
 ]);
 
@@ -192,8 +171,11 @@ for (const s of scenarios) {
     const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
     if (!cmp.ok) {
       throw new Error(
-        `vader-vm parity mismatch: ${s.name}\n` +
-        `  snap: ${cmp.snapPath}\n\n` +
+        `vader-vm parity mismatch: ${s.name}
+` +
+        `  snap: ${cmp.snapPath}
+
+` +
         snapshotDiff(cmp.snapPath, cmp.expected, actual),
       );
     }

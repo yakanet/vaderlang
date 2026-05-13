@@ -20,7 +20,7 @@
 import "std/io" { read_file, eprintln, println }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, contains, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, NullVal, BoolVal, CharVal, display_value }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry, Value, I32Val, StringVal, StructVal, ArrayVal, BuilderVal, FnVal, NullVal, BoolVal, CharVal, display_value }
 import "vader/vm/parser" { parse_virt }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -235,6 +235,28 @@ apply_arith_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: str
     if right is Trap { return right }
     frame.stack[frame.sp - 2] = I32Val { .value = op(left.value, right.value) }
     frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    return null
+}
+
+/// Unary i32 op : pop one i32, push `op(value)`. Used by `i32.neg` /
+/// `i32.bitnot` and their width-suffixed siblings (all aliased to
+/// `I32Val`). The `op_label` reflects the canonical i32 form even when
+/// the source op was width-suffixed — width info isn't carried on the
+/// `Op` variant, so trap diagnostics lose the originating width.
+///
+/// @param frame      current top frame.
+/// @param top        index of `frame` within `frames` (for the write-back).
+/// @param frames     the frame stack (mutated via `frames[top] = ...`).
+/// @param op_label   short label used in the Trap message on type mismatch.
+/// @param op         the i32 unary op to apply.
+/// @return           `null` on success, or a `Trap` if the operand isn't
+///                   an i32 (caller surfaces it).
+/// @error            type mismatch on the operand.
+apply_arith_unop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, op: fn(i32) -> i32) -> Trap | null {
+    operand :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
+    if operand is Trap { return operand }
+    frame.stack[frame.sp - 1] = I32Val { .value = op(operand.value) }
+    frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
     return null
 }
 
@@ -814,6 +836,34 @@ export exec :: fn(module: Module) -> VmResult {
             }
             is I32Ge -> {
                 outcome :: apply_cmp_binop(frame, top, frames, "i32.ge", (a, b) -> a >= b)
+                if outcome is Trap { return outcome }
+            }
+            is I32Neg -> {
+                outcome :: apply_arith_unop(frame, top, frames, "i32.neg", (a) -> -a)
+                if outcome is Trap { return outcome }
+            }
+            is I32BitNot -> {
+                outcome :: apply_arith_unop(frame, top, frames, "i32.bitnot", (a) -> ~a)
+                if outcome is Trap { return outcome }
+            }
+            is I32BitAnd -> {
+                outcome :: apply_arith_binop(frame, top, frames, "i32.bitand", (a, b) -> a & b)
+                if outcome is Trap { return outcome }
+            }
+            is I32BitOr -> {
+                outcome :: apply_arith_binop(frame, top, frames, "i32.bitor", (a, b) -> a | b)
+                if outcome is Trap { return outcome }
+            }
+            is I32BitXor -> {
+                outcome :: apply_arith_binop(frame, top, frames, "i32.bitxor", (a, b) -> a ^ b)
+                if outcome is Trap { return outcome }
+            }
+            is I32Shl -> {
+                outcome :: apply_arith_binop(frame, top, frames, "i32.shl", (a, b) -> a << b)
+                if outcome is Trap { return outcome }
+            }
+            is I32Shr -> {
+                outcome :: apply_arith_binop(frame, top, frames, "i32.shr", (a, b) -> a >> b)
                 if outcome is Trap { return outcome }
             }
             is NullConst -> {

@@ -12,7 +12,7 @@ import "std/string_builder" { StringBuilder, new_builder, append }
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | VirtualCall | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | NullConst | BoolConst | CharConst | CallImport | Call | FnRef | MakeClosure | CallIndirect | VirtualCall | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | TypeCheck | BuilderNew | BuilderAppendStr | BuilderAppendDisplay | BuilderFinish | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | I32Neg | I32BitNot | I32BitAnd | I32BitOr | I32BitXor | I32Shl | I32Shr | BoolEq | BoolNe | BoolAnd | BoolOr | BoolNot | CharEq | CharNe | CharLt | CharLe | CharGt | CharGe | RefEq | RefNe | Drop | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -170,6 +170,29 @@ export I32Le :: struct {}
 export I32Gt :: struct {}
 /// Pop two i32 (left, right) ; push `1` if left >= right, `0` otherwise.
 export I32Ge :: struct {}
+// The seven ops below are width-aliased : every integer-width sibling
+// (`isize.neg`, `u32.bitand`, ...) collapses onto its `I32X` variant
+// because the VM aliases every integer width to `I32Val`. See
+// `is_int_op` in `vader/vm/parser.vader` for the parser-side collapse.
+/// Pop one i32 ; push `-value`.
+export I32Neg :: struct {}
+/// Pop one i32 ; push `~value`.
+export I32BitNot :: struct {}
+/// Pop two i32 (left, right) ; push `left & right`.
+export I32BitAnd :: struct {}
+/// Pop two i32 (left, right) ; push `left | right`.
+export I32BitOr :: struct {}
+/// Pop two i32 (left, right) ; push `left ^ right`.
+export I32BitXor :: struct {}
+/// Pop two i32 (left, right) ; push `left << right`.
+export I32Shl :: struct {}
+/// Pop two i32 (left, right) ; push `left >> right` (arithmetic shift).
+/// `u32.shr` collapses onto this op too — **this is a latent miscompile
+/// risk** : the executed shift is arithmetic (signed) even when the
+/// source op was `u32.shr` (logical / unsigned). Resolved once width-
+/// typed values land. Mirrors the warning in `primitive_matches`
+/// (`vader/vm/exec.vader`).
+export I32Shr :: struct {}
 /// Pop two bools ; push `BoolVal` (equal). Sprint 5a addition.
 export BoolEq :: struct {}
 /// Pop two bools ; push `BoolVal` (not equal). Sprint 5a addition.

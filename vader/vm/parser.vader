@@ -14,7 +14,7 @@
 
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, NullConst, BoolConst, CharConst, CallImport, Call, FnRef, MakeClosure, CallIndirect, VirtualCall, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, TypeCheck, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, I32Neg, I32BitNot, I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot, CharEq, CharNe, CharLt, CharLe, CharGt, CharGe, RefEq, RefNe, Drop, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType, UnionType, Vtable, VtableEntry }
 
 /// ASCII byte constants — spelled out as `u8(u32('x'))` to keep the source
 /// readable. Match the convention used in `vader/fmt/comments.vader`.
@@ -613,6 +613,13 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
         is I32Le           as o -> { ops.push(o)  true }
         is I32Gt           as o -> { ops.push(o)  true }
         is I32Ge           as o -> { ops.push(o)  true }
+        is I32Neg          as o -> { ops.push(o)  true }
+        is I32BitNot       as o -> { ops.push(o)  true }
+        is I32BitAnd       as o -> { ops.push(o)  true }
+        is I32BitOr        as o -> { ops.push(o)  true }
+        is I32BitXor       as o -> { ops.push(o)  true }
+        is I32Shl          as o -> { ops.push(o)  true }
+        is I32Shr          as o -> { ops.push(o)  true }
         is Block           as o -> { ops.push(o)  true }
         is Loop            as o -> { ops.push(o)  true }
         is If              as o -> { ops.push(o)  true }
@@ -756,18 +763,12 @@ drain_pending :: fn(state: ParserState, label: string, is_loop: bool, opener_pc:
 ///                 the parser keeps going past directives a sprint
 ///                 doesn't yet handle (no pc shift, no diagnostic).
 parse_op_line :: fn(cleaned: string) -> Op | null {
-    if cleaned.starts_with("i32.const ")        { return parse_int_arg(cleaned, "i32.const ") }
-    // Width-suffixed integer constants — see `primitive_matches` in
-    // `vader/vm/exec.vader` for the latent width-collapse miscompile risk.
-    if cleaned.starts_with("i8.const ")         { return parse_int_arg(cleaned, "i8.const ") }
-    if cleaned.starts_with("i16.const ")        { return parse_int_arg(cleaned, "i16.const ") }
-    if cleaned.starts_with("i64.const ")        { return parse_int_arg(cleaned, "i64.const ") }
-    if cleaned.starts_with("isize.const ")      { return parse_int_arg(cleaned, "isize.const ") }
-    if cleaned.starts_with("u8.const ")         { return parse_int_arg(cleaned, "u8.const ") }
-    if cleaned.starts_with("u16.const ")        { return parse_int_arg(cleaned, "u16.const ") }
-    if cleaned.starts_with("u32.const ")        { return parse_int_arg(cleaned, "u32.const ") }
-    if cleaned.starts_with("u64.const ")        { return parse_int_arg(cleaned, "u64.const ") }
-    if cleaned.starts_with("usize.const ")      { return parse_int_arg(cleaned, "usize.const ") }
+    // Width-suffixed integer constants — every `<width>.const N` collapses
+    // to `I32Const` (the VM aliases all integer widths to `I32Val`). See
+    // `primitive_matches` in `vader/vm/exec.vader` for the latent width-
+    // collapse miscompile risk.
+    int_const :: try_parse_int_const(cleaned)
+    if !(int_const is null) { return int_const }
     if cleaned.starts_with("local.get ")        { return parse_slot_arg(cleaned, "local.get ", true) }
     if cleaned.starts_with("local.set ")        { return parse_slot_arg(cleaned, "local.set ", false) }
     if cleaned.starts_with("local.tee ")        { return parse_local_tee(cleaned) }
@@ -816,17 +817,31 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if cleaned == "ref.ne"      { return RefNe {} }
     if cleaned == "drop"        { return Drop {} }
     if cleaned.starts_with("type_check ")   { return parse_type_check(cleaned) }
-    if cleaned == "i32.add"                     { return I32Add {} }
-    if cleaned == "i32.sub"                     { return I32Sub {} }
-    if cleaned == "i32.mul"                     { return I32Mul {} }
-    if cleaned == "i32.div"                     { return I32Div {} }
-    if cleaned == "i32.mod"                     { return I32Mod {} }
-    if cleaned == "i32.eq"                      { return I32Eq {} }
-    if cleaned == "i32.ne"                      { return I32Ne {} }
-    if cleaned == "i32.lt"                      { return I32Lt {} }
-    if cleaned == "i32.le"                      { return I32Le {} }
-    if cleaned == "i32.gt"                      { return I32Gt {} }
-    if cleaned == "i32.ge"                      { return I32Ge {} }
+    // Integer arithmetic / comparison / unary / bitwise ops. The Vader
+    // VM aliases every integer width to `I32Val`, so each verb collapses
+    // onto a single `I32X` op : `<width>.<verb>` for any of the 10
+    // supported widths (i8 / i16 / i32 / i64 / isize / u8 / u16 / u32 /
+    // u64 / usize) routes to the same arm. `is_int_op` enumerates the
+    // width prefixes ; mirrors the width-collapse already done for
+    // `<width>.const` (Sprint 5c).
+    if is_int_op(cleaned, "add")    { return I32Add {} }
+    if is_int_op(cleaned, "sub")    { return I32Sub {} }
+    if is_int_op(cleaned, "mul")    { return I32Mul {} }
+    if is_int_op(cleaned, "div")    { return I32Div {} }
+    if is_int_op(cleaned, "mod")    { return I32Mod {} }
+    if is_int_op(cleaned, "eq")     { return I32Eq {} }
+    if is_int_op(cleaned, "ne")     { return I32Ne {} }
+    if is_int_op(cleaned, "lt")     { return I32Lt {} }
+    if is_int_op(cleaned, "le")     { return I32Le {} }
+    if is_int_op(cleaned, "gt")     { return I32Gt {} }
+    if is_int_op(cleaned, "ge")     { return I32Ge {} }
+    if is_int_op(cleaned, "neg")    { return I32Neg {} }
+    if is_int_op(cleaned, "bitnot") { return I32BitNot {} }
+    if is_int_op(cleaned, "bitand") { return I32BitAnd {} }
+    if is_int_op(cleaned, "bitor")  { return I32BitOr {} }
+    if is_int_op(cleaned, "bitxor") { return I32BitXor {} }
+    if is_int_op(cleaned, "shl")    { return I32Shl {} }
+    if is_int_op(cleaned, "shr")    { return I32Shr {} }
     if cleaned.starts_with("block ")            { return Block {} }
     if cleaned.starts_with("loop ")             { return Loop {} }
     if cleaned.starts_with("if ")               { return If {} }
@@ -836,6 +851,60 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if cleaned.starts_with("br ")               { return Branch {} }
     if cleaned == "return"                      { return Return {} }
     return null
+}
+
+/// Recognise `<width>.const N` for any integer width and return the
+/// resulting `I32Const` (the VM aliases every integer width to `I32Val`).
+/// Returns `null` when `cleaned` isn't a width-suffixed integer constant.
+///
+/// @param cleaned  the comment-stripped op line.
+/// @return         an `I32Const` op on success, `null` otherwise.
+try_parse_int_const :: fn(cleaned: string) -> Op | null {
+    dot :: cleaned.index_of('.', 0)
+    if dot < 0 { return null }
+    width :: cleaned.slice(0, usize(dot))
+    if !is_int_width(width) { return null }
+    suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
+    if !suffix.starts_with("const ") { return null }
+    return parse_int_arg(cleaned, "${width}.const ")
+}
+
+/// True iff `width` is one of the 10 integer prefixes the VM recognises
+/// (`i8` / `i16` / `i32` / `i64` / `isize` / `u8` / `u16` / `u32` / `u64`
+/// / `usize`). Shared by `is_int_op` and `is_numeric_convert` so the
+/// width set lives in one place — adding a new width is one edit.
+///
+/// @param width  the prefix to test.
+/// @return       `true` if `width` is a recognised integer width.
+is_int_width :: fn(width: string) -> bool {
+    if width == "i32"   { return true }
+    if width == "i8"    { return true }
+    if width == "i16"   { return true }
+    if width == "i64"   { return true }
+    if width == "isize" { return true }
+    if width == "u8"    { return true }
+    if width == "u16"   { return true }
+    if width == "u32"   { return true }
+    if width == "u64"   { return true }
+    if width == "usize" { return true }
+    return false
+}
+
+/// True iff `cleaned` is `<width>.<verb>` for any of the 10 integer
+/// widths. Used by `parse_op_line` to collapse every integer-width-
+/// suffixed arithmetic / unary / bitwise op onto its `I32X` equivalent
+/// (the VM aliases all integer widths to `I32Val`).
+///
+/// @param cleaned  the comment-stripped op line.
+/// @param verb     the verb suffix (e.g. `"add"`, `"neg"`, `"bitand"`).
+/// @return         `true` when `cleaned` matches `<width>.<verb>` for
+///                 any recognised integer width ; `false` otherwise.
+is_int_op :: fn(cleaned: string, verb: string) -> bool {
+    dot :: cleaned.index_of('.', 0)
+    if dot < 0 { return false }
+    width :: cleaned.slice(0, usize(dot))
+    suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
+    return is_int_width(width) && suffix == verb
 }
 
 /// Strip `prefix` from `line`, trim, and parse the rest as a base-10
@@ -866,15 +935,12 @@ parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
 /// @return         `true` if the op is a no-op-runtime numeric cast,
 ///                 `false` otherwise.
 is_numeric_convert :: fn(cleaned: string) -> bool {
-    if cleaned.starts_with("i32.to_")   { return true }
-    if cleaned.starts_with("i64.to_")   { return true }
-    if cleaned.starts_with("u8.to_")    { return true }
-    if cleaned.starts_with("u16.to_")   { return true }
-    if cleaned.starts_with("u32.to_")   { return true }
-    if cleaned.starts_with("u64.to_")   { return true }
-    if cleaned.starts_with("usize.to_") { return true }
-    if cleaned.starts_with("isize.to_") { return true }
-    return false
+    dot :: cleaned.index_of('.', 0)
+    if dot < 0 { return false }
+    width :: cleaned.slice(0, usize(dot))
+    if !is_int_width(width) { return false }
+    suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
+    return suffix.starts_with("to_")
 }
 
 parse_int_arg :: fn(line: string, prefix: string) -> Op | null {
