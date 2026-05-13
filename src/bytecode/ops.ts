@@ -94,6 +94,10 @@ export type Op =
   | { readonly kind: "struct.new_stack"; readonly typeIndex: number }
   | { readonly kind: "struct.get"; readonly typeIndex: number; readonly fieldIndex: number }
   | { readonly kind: "struct.set"; readonly typeIndex: number; readonly fieldIndex: number }
+  // Field write to a target the escape analysis proved stack-allocated. The
+  // C-emit skips the `VADER_WRITE_BARRIER` macro it would otherwise emit
+  // after the store ; runtime semantics are identical to `struct.set`.
+  | { readonly kind: "struct.set_stack"; readonly typeIndex: number; readonly fieldIndex: number }
 
   // -- Array --------------------------------------------------------------
   | { readonly kind: "array.new"; readonly typeIndex: number; readonly length: number }

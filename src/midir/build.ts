@@ -335,7 +335,7 @@ function buildAssign(fn: FnCtx, s: L.LoweredAssign): void {
       if (tgt === null || value === null) return;
       const fieldName = target.field;
       emit(fn, {
-        kind: "FieldSet", target: tgt, field: fieldName, value, span: s.span,
+        kind: "FieldSet", target: tgt, field: fieldName, value, barrierless: false, span: s.span,
       });
       return;
     }

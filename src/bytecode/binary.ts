@@ -96,7 +96,7 @@ function buildOpKinds(): readonly string[] {
   out.push("br", "br_if", "return", "unreachable");
   out.push("call", "call.import", "call.indirect", "fn.ref", "make_closure",
            "intrinsic", "virtual.call");
-  out.push("struct.new", "struct.new_stack", "struct.get", "struct.set");
+  out.push("struct.new", "struct.new_stack", "struct.get", "struct.set", "struct.set_stack");
   out.push("array.new", "array.get", "array.set", "array.len", "array.push");
   out.push("string.concat");
   out.push("type_check");
@@ -395,7 +395,7 @@ function writeOp(w: Writer, op: Op): void {
       w.u32(op.paramCount); w.string(op.vtableKey); return;
     case "struct.new": case "struct.new_stack":
       w.u32(op.typeIndex); return;
-    case "struct.get": case "struct.set":
+    case "struct.get": case "struct.set": case "struct.set_stack":
       w.u32(op.typeIndex); w.u32(op.fieldIndex); return;
     case "array.new":
       w.u32(op.typeIndex); w.u32(op.length); return;
@@ -707,7 +707,7 @@ function readOp(r: Reader): Op {
       return { kind: "virtual.call", paramCount: r.u32(), vtableKey: r.string() };
     case "struct.new": case "struct.new_stack":
       return { kind, typeIndex: r.u32() } as Op;
-    case "struct.get": case "struct.set":
+    case "struct.get": case "struct.set": case "struct.set_stack":
       return { kind, typeIndex: r.u32(), fieldIndex: r.u32() } as Op;
     case "array.new":
       return { kind: "array.new", typeIndex: r.u32(), length: r.u32() };

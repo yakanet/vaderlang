@@ -346,7 +346,10 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       f.stack.push(v.fields[op.fieldIndex] ?? VOID);
       f.ip++; return;
     }
-    case "struct.set": {
+    case "struct.set":
+    case "struct.set_stack": {
+      // The VM has no write barrier — both ops have identical runtime
+      // semantics; only the native C-emit differentiates them.
       const value = f.stack.pop()!;
       const v = asStruct(f.stack.pop()!);
       v.fields[op.fieldIndex] = value;

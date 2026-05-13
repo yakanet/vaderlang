@@ -58,31 +58,72 @@ export function annotateEscape(p: CFGProject): { project: CFGProject; stats: Esc
 }
 
 function annotateFunction(fn: CFGFunction): CFGFunction {
+  // Walk blocks once to collect both `allocLocals` (the union driving the
+  // escape analysis) and `structNews` (the subset needed to seed the
+  // stack-origin forward pass below). Their block ids are saved so the
+  // seeding can gate on `inLoop` without re-walking.
   const allocLocals = new Set<LocalId>();
+  const structNews: { dst: LocalId; block: BlockId }[] = [];
   for (const b of fn.blocks) {
     for (const ins of b.instructions) {
-      if (ins.kind === "StructNew" || ins.kind === "ArrayNew") allocLocals.add(ins.dst);
+      if (ins.kind === "StructNew") {
+        allocLocals.add(ins.dst);
+        structNews.push({ dst: ins.dst, block: b.id });
+      } else if (ins.kind === "ArrayNew") {
+        allocLocals.add(ins.dst);
+      }
     }
   }
   if (allocLocals.size === 0) return fn;
 
-  const escaping = computeEscaping(fn, allocLocals);
+  const { escaping, aliasOf, aliasFrom } = computeEscaping(fn, allocLocals);
   const inLoop = computeBlocksInLoops(fn);
+
+  // Forward-propagate `barrierless` through Move/Phi/Cast. A Phi/Move with
+  // any non-stack source stays out — one heap origin requires the barrier.
+  const stackOrigin = new Set<LocalId>();
+  const worklist: LocalId[] = [];
+  for (const sn of structNews) {
+    if (escaping.has(sn.dst) || inLoop.has(sn.block)) continue;
+    stackOrigin.add(sn.dst);
+    worklist.push(sn.dst);
+  }
+  while (worklist.length > 0) {
+    const src = worklist.pop()!;
+    const consumers = aliasFrom.get(src);
+    if (consumers === undefined) continue;
+    for (const dst of consumers) {
+      if (stackOrigin.has(dst)) continue;
+      const sources = aliasOf.get(dst);
+      if (sources !== undefined && sources.every((s) => stackOrigin.has(s))) {
+        stackOrigin.add(dst);
+        worklist.push(dst);
+      }
+    }
+  }
 
   let mutated = false;
   const newBlocks = fn.blocks.map((b) => {
     let blockMutated = false;
     const instructions = b.instructions.map((ins) => {
-      if (ins.kind !== "StructNew" && ins.kind !== "ArrayNew") return ins;
-      if (!allocLocals.has(ins.dst)) return ins;
-      // Stack-allocate iff the value doesn't escape and the alloc isn't in
-      // a loop body. The C-emit declares the storage as a block-scoped local,
-      // which would alias across iterations of the same back-edge — keep
-      // those on the heap so each iteration's value is a fresh allocation.
-      const stack = !escaping.has(ins.dst) && !inLoop.has(b.id);
-      if (stack === ins.stack) return ins;
-      blockMutated = true;
-      return { ...ins, stack };
+      if (ins.kind === "StructNew" || ins.kind === "ArrayNew") {
+        if (!allocLocals.has(ins.dst)) return ins;
+        // Stack-allocate iff the value doesn't escape and the alloc isn't
+        // in a loop body. The C-emit declares the storage as a block-scoped
+        // local, which would alias across iterations of the same back-edge
+        // — keep those on the heap so each iteration is a fresh allocation.
+        const stack = !escaping.has(ins.dst) && !inLoop.has(b.id);
+        if (stack === ins.stack) return ins;
+        blockMutated = true;
+        return { ...ins, stack };
+      }
+      if (ins.kind === "FieldSet") {
+        const barrierless = stackOrigin.has(ins.target);
+        if (barrierless === ins.barrierless) return ins;
+        blockMutated = true;
+        return { ...ins, barrierless };
+      }
+      return ins;
     });
     if (!blockMutated) return b;
     mutated = true;
@@ -107,10 +148,19 @@ function computeBlocksInLoops(fn: CFGFunction): ReadonlySet<BlockId> {
 /** Worklist: start with all locals known to escape (returned values, call
  *  args, cell-stored values, struct fields of escaping values, ...) and
  *  propagate backward via Move and Phi sources. Allocs whose dst isn't in
- *  the resulting set are stack-allocatable. */
-function computeEscaping(fn: CFGFunction, allocLocals: ReadonlySet<LocalId>): Set<LocalId> {
+ *  the resulting set are stack-allocatable. Returns both directions of the
+ *  aliasing relation so callers can drive forward or backward worklists
+ *  off the same data. */
+function computeEscaping(
+  fn: CFGFunction, allocLocals: ReadonlySet<LocalId>,
+): {
+  escaping: Set<LocalId>;
+  aliasOf: Map<LocalId, LocalId[]>;
+  aliasFrom: Map<LocalId, LocalId[]>;
+} {
   const escaping = new Set<LocalId>();
   const aliasOf = new Map<LocalId, LocalId[]>();      // dst → producers (Move src or Phi sources)
+  const aliasFrom = new Map<LocalId, LocalId[]>();    // src → consumers (reverse of aliasOf)
 
   const see = (l: LocalId): void => { escaping.add(l); };
 
@@ -118,15 +168,15 @@ function computeEscaping(fn: CFGFunction, allocLocals: ReadonlySet<LocalId>): Se
     for (const ins of b.instructions) {
       switch (ins.kind) {
         case "Move":
-          appendAlias(aliasOf, ins.dst, ins.src);
+          recordAlias(aliasOf, aliasFrom, ins.dst, ins.src);
           break;
         case "Phi":
-          for (const s of ins.sources) appendAlias(aliasOf, ins.dst, s.value);
+          for (const s of ins.sources) recordAlias(aliasOf, aliasFrom, ins.dst, s.value);
           break;
         case "Cast":
           // Type casts don't change identity ; treat the cast result as an
           // alias of its source.
-          appendAlias(aliasOf, ins.dst, ins.value);
+          recordAlias(aliasOf, aliasFrom, ins.dst, ins.value);
           break;
         case "FieldSet":
           // The value escapes (stored where the GC can reach it). The target
@@ -163,10 +213,13 @@ function computeEscaping(fn: CFGFunction, allocLocals: ReadonlySet<LocalId>): Se
           break;
         case "StructNew":
           // Field initialisers become reachable through the struct ; if dst
-          // escapes later, every field escapes too.
+          // escapes later, every field escapes too. Forward-only — `dst` is
+          // a stack-origin seed, never propagates *from* a field, so we
+          // bypass `recordAlias` (which would pollute `aliasFrom`).
           for (const f of ins.fields) appendAlias(aliasOf, ins.dst, f);
           break;
         case "ArrayNew":
+          // Same forward-only rationale as StructNew above.
           for (const e of ins.elements) appendAlias(aliasOf, ins.dst, e);
           break;
         case "Const":
@@ -209,11 +262,21 @@ function computeEscaping(fn: CFGFunction, allocLocals: ReadonlySet<LocalId>): Se
   // We only care about alloc locals — the rest of the set is incidental.
   const allocEscaping = new Set<LocalId>();
   for (const a of allocLocals) if (escaping.has(a)) allocEscaping.add(a);
-  return allocEscaping;
+  return { escaping: allocEscaping, aliasOf, aliasFrom };
 }
 
 function appendAlias(map: Map<LocalId, LocalId[]>, dst: LocalId, src: LocalId): void {
   let arr = map.get(dst);
   if (arr === undefined) { arr = []; map.set(dst, arr); }
   arr.push(src);
+}
+
+/** Record `dst aliases src` in both the forward and reverse alias maps so
+ *  callers can drive worklists in either direction off the same edge. */
+function recordAlias(
+  aliasOf: Map<LocalId, LocalId[]>, aliasFrom: Map<LocalId, LocalId[]>,
+  dst: LocalId, src: LocalId,
+): void {
+  appendAlias(aliasOf, dst, src);
+  appendAlias(aliasFrom, src, dst);
 }

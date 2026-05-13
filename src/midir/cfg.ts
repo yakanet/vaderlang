@@ -255,6 +255,11 @@ export interface InstrFieldSet extends InstrBase {
   readonly target: LocalId;
   readonly field: string;
   readonly value: LocalId;
+  /** When true, the target is provably stack-allocated and the C emit can
+   *  skip the write-barrier macro. Set by the escape-analysis pass after
+   *  forward-propagating stack-alloc origin through Move/Phi/Cast aliasing ;
+   *  defaults to false (barrier emitted) when unset. */
+  readonly barrierless: boolean;
 }
 
 export interface InstrArrayGet extends InstrBase {

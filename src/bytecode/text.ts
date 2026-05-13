@@ -131,6 +131,7 @@ function formatOp(op: Op): string {
     case "struct.new_stack": return `struct.new_stack ${op.typeIndex}`;
     case "struct.get":   return `struct.get ${op.typeIndex} ${op.fieldIndex}`;
     case "struct.set":   return `struct.set ${op.typeIndex} ${op.fieldIndex}`;
+    case "struct.set_stack": return `struct.set_stack ${op.typeIndex} ${op.fieldIndex}`;
     case "array.new":    return `array.new ${op.typeIndex} ${op.length}`;
     case "array.get":    return `array.get ${op.typeIndex}`;
     case "array.set":    return `array.set ${op.typeIndex}`;
@@ -440,6 +441,10 @@ function parseOp(text: string, scopes: { name: string }[], ctx: ParseCtx): Op {
     case "struct.set": {
       const [t, f] = tail.split(/\s+/);
       return { kind: "struct.set", typeIndex: Number(t), fieldIndex: Number(f) };
+    }
+    case "struct.set_stack": {
+      const [t, f] = tail.split(/\s+/);
+      return { kind: "struct.set_stack", typeIndex: Number(t), fieldIndex: Number(f) };
     }
     case "array.new": {
       const [t, l] = tail.split(/\s+/);

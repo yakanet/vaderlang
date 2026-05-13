@@ -486,7 +486,11 @@ function emitFieldSet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "FieldSe
   }
   emitFirstOperand(ctx, ins, ins.target, ins.span);
   emitGet(ctx, ins.value, ins.span);
-  pushOp(ctx.emit, { kind: "struct.set", typeIndex, fieldIndex }, ins.span);
+  pushOp(ctx.emit,
+    ins.barrierless
+      ? { kind: "struct.set_stack", typeIndex, fieldIndex }
+      : { kind: "struct.set", typeIndex, fieldIndex },
+    ins.span);
 }
 
 function emitArrayGet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "ArrayGet" }>): void {

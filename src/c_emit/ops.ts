@@ -20,10 +20,10 @@ import type { EmitCtx } from "./emit.ts";
 import { cStringLit, cStringLitFromBytes, escapeC, sanitise } from "./emit.ts";
 import {
   boxExpr, boxExprUnknown, coerce, coerceExpr, cTypeFor, cTypeForVal,
-  cTypeForValBare, decl, isRefVal, isStackAllocVal, line, markTopStackAlloc,
-  nameOf, newTmp, peek, pop, popRaw, primitiveMatchesType, pushBinop,
-  pushBinopAny, pushFnCall2, pushLit, pushLocalRef, pushUnop, signatureFor,
-  unboxExpr, valTypeOfBcType, valTypeOfField, zeroInit,
+  cTypeForValBare, decl, isRefVal, line, nameOf, newTmp, peek, pop,
+  primitiveMatchesType, pushBinop, pushBinopAny, pushFnCall2, pushLit,
+  pushLocalRef, pushUnop, signatureFor, unboxExpr, valTypeOfBcType,
+  valTypeOfField, zeroInit,
   type FnState,
 } from "./body.ts";
 
@@ -303,7 +303,6 @@ export function emitStructNew(
   // through `ref` slots and across fn boundaries. struct.get unboxes via
   // .payload.obj before downcasting.
   line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${tmp}_obj);`);
-  if (onStack) markTopStackAlloc(s);
 }
 
 export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }>): void {
@@ -317,23 +316,21 @@ export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }
   line(s, `${decl(s, fval, tmp)} = ((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)};`);
 }
 
-export function emitStructSet(s: FnState, op: Extract<Op, { kind: "struct.set" }>): void {
+export function emitStructSet(
+  s: FnState, op: Extract<Op, { kind: "struct.set" | "struct.set_stack" }>,
+): void {
   const t = s.ctx.module.types[op.typeIndex]!;
   if (t.kind !== "struct") return;
   const cname = s.ctx.structNames[op.typeIndex]!;
   const value = pop(s);
-  const objRaw = popRaw(s);
-  const objName = objRaw !== null ? nameOf(objRaw) : "0";
-  const objVal: ValType = objRaw?.val ?? "ref";
-  const obj = { name: objName, val: objVal };
+  const obj = pop(s);
   const f = t.fields[op.fieldIndex]!;
   const fval = valTypeOfField(s.ctx, f.typeIndex);
   line(s, `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)} = ${coerce(s, value.name, value.val, fval)};`);
-  // Skip the write barrier when the target is provably stack-allocated —
-  // the runtime macro is a no-op for a stack address but still pays 3 loads
-  // + a compare per emitted call site. The flag is set by `struct.new_stack`
-  // and propagated through `local.set`/`local.get`.
-  if (!isStackAllocVal(s, objRaw)) {
+  // `struct.set_stack` opts out — midir's escape analysis proved the
+  // target is stack-allocated, so the runtime check inside the macro would
+  // be a no-op anyway.
+  if (op.kind === "struct.set") {
     line(s, `VADER_WRITE_BARRIER((${cname}*) ${asObjPtr(obj)});`);
   }
 }
