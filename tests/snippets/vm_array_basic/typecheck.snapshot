@@ -1,0 +1,13 @@
+# Typecheck
+
+## tests/snippets/vm_array_basic/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 5:18     SeqLitExpr     :: i32[]
+  expr 6:12     BinaryExpr     :: i32
+  expr 6:12     BinaryExpr     :: i32
+  expr 6:12     IdentExpr      :: i32[]
+  expr 6:12     IndexExpr      :: i32
+  expr 6:21     IdentExpr      :: i32[]
+  expr 6:21     IndexExpr      :: i32
+  expr 6:30     IdentExpr      :: i32[]
+  expr 6:30     IndexExpr      :: i32

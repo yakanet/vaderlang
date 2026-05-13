@@ -1,0 +1,40 @@
+# Lower
+
+## tests/snippets/vm_array_mutate/_main.vader
+  fn tests_snippets_vm_array_mutate__main_vader$main() -> i32
+    let arr: i32[] =
+      array :i32[]
+        int(10) :i32
+        int(20) :i32
+        int(30) :i32
+    assign
+      target:
+        index :i32
+          on:
+            arr :i32[]
+          ix:
+            int(1) :i32
+      value:
+        int(99) :i32
+    return
+      add :i32
+        l:
+          add :i32
+            l:
+              index :i32
+                on:
+                  arr :i32[]
+                ix:
+                  int(0) :i32
+            r:
+              index :i32
+                on:
+                  arr :i32[]
+                ix:
+                  int(1) :i32
+        r:
+          index :i32
+            on:
+              arr :i32[]
+            ix:
+              int(2) :i32

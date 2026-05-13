@@ -14,7 +14,7 @@
 
 import "std/string" { byte_len, slice, starts_with, ends_with, trim, split, contains, index_of }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, StructNew, StructGet, StructSet, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType }
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps
@@ -403,6 +403,13 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
         is StructNew       as o -> { ops.push(o)  true }
         is StructGet       as o -> { ops.push(o)  true }
         is StructSet       as o -> { ops.push(o)  true }
+        is ArrayNew        as o -> { ops.push(o)  true }
+        is ArrayPush       as o -> { ops.push(o)  true }
+        is ArrayGet        as o -> { ops.push(o)  true }
+        is ArraySet        as o -> { ops.push(o)  true }
+        is ArrayLen        as o -> { ops.push(o)  true }
+        is RefCast         as o -> { ops.push(o)  true }
+        is Convert         as o -> { ops.push(o)  true }
         is I32Add          as o -> { ops.push(o)  true }
         is I32Sub          as o -> { ops.push(o)  true }
         is I32Mul          as o -> { ops.push(o)  true }
@@ -573,25 +580,32 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if cleaned.starts_with("struct.get ")       { return parse_struct_get(cleaned) }
     if cleaned.starts_with("struct.set_stack ") { return parse_struct_set_after(cleaned, "struct.set_stack ") }
     if cleaned.starts_with("struct.set ")       { return parse_struct_set_after(cleaned, "struct.set ") }
-    if cleaned == "i32.add"  { return I32Add {} }
-    if cleaned == "i32.sub"  { return I32Sub {} }
-    if cleaned == "i32.mul"  { return I32Mul {} }
-    if cleaned == "i32.div"  { return I32Div {} }
-    if cleaned == "i32.mod"  { return I32Mod {} }
-    if cleaned == "i32.eq"   { return I32Eq {} }
-    if cleaned == "i32.ne"   { return I32Ne {} }
-    if cleaned == "i32.lt"   { return I32Lt {} }
-    if cleaned == "i32.le"   { return I32Le {} }
-    if cleaned == "i32.gt"   { return I32Gt {} }
-    if cleaned == "i32.ge"   { return I32Ge {} }
-    if cleaned.starts_with("block ") { return Block {} }
-    if cleaned.starts_with("loop ")  { return Loop {} }
-    if cleaned.starts_with("if ")    { return If {} }
-    if cleaned == "else"             { return Else {} }
-    if cleaned.starts_with("end")    { return End {} }
-    if cleaned.starts_with("br_if ") { return BranchIf {} }
-    if cleaned.starts_with("br ")    { return Branch {} }
-    if cleaned == "return"           { return Return {} }
+    if cleaned.starts_with("array.new ")        { return parse_array_new(cleaned) }
+    if cleaned.starts_with("array.push ")       { return parse_array_push(cleaned) }
+    if cleaned.starts_with("array.get ")        { return parse_array_get(cleaned) }
+    if cleaned.starts_with("array.set ")        { return parse_array_set(cleaned) }
+    if cleaned == "array.len"                   { return ArrayLen {} }
+    if cleaned.starts_with("ref.cast ")         { return RefCast {} }
+    if is_numeric_convert(cleaned)              { return Convert {} }
+    if cleaned == "i32.add"                     { return I32Add {} }
+    if cleaned == "i32.sub"                     { return I32Sub {} }
+    if cleaned == "i32.mul"                     { return I32Mul {} }
+    if cleaned == "i32.div"                     { return I32Div {} }
+    if cleaned == "i32.mod"                     { return I32Mod {} }
+    if cleaned == "i32.eq"                      { return I32Eq {} }
+    if cleaned == "i32.ne"                      { return I32Ne {} }
+    if cleaned == "i32.lt"                      { return I32Lt {} }
+    if cleaned == "i32.le"                      { return I32Le {} }
+    if cleaned == "i32.gt"                      { return I32Gt {} }
+    if cleaned == "i32.ge"                      { return I32Ge {} }
+    if cleaned.starts_with("block ")            { return Block {} }
+    if cleaned.starts_with("loop ")             { return Loop {} }
+    if cleaned.starts_with("if ")               { return If {} }
+    if cleaned == "else"                        { return Else {} }
+    if cleaned.starts_with("end")               { return End {} }
+    if cleaned.starts_with("br_if ")            { return BranchIf {} }
+    if cleaned.starts_with("br ")               { return Branch {} }
+    if cleaned == "return"                      { return Return {} }
     return null
 }
 
@@ -609,6 +623,29 @@ parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
     parsed :: parse_int_in_base(rest, 10)
     if parsed is Error { return null }
     return i32(parsed)
+}
+
+/// True iff `cleaned` is a numeric width-to-width conversion op
+/// (`i32.to_usize`, `usize.to_i32`, `i64.to_i32`, ...). The shape is
+/// `<numeric-prefix>.to_<...>`. Restricting to a known set of numeric
+/// from-types (vs the broader `.contains(".to_")`) avoids future
+/// collisions with non-numeric `.to_*` mnemonics like
+/// `string.to_bytes` or hypothetical `i32.to_f32` (which would need
+/// an actual conversion, not a no-op).
+///
+/// @param cleaned  the .virt line, already comment-stripped.
+/// @return         `true` if the op is a no-op-runtime numeric cast,
+///                 `false` otherwise.
+is_numeric_convert :: fn(cleaned: string) -> bool {
+    if cleaned.starts_with("i32.to_")   { return true }
+    if cleaned.starts_with("i64.to_")   { return true }
+    if cleaned.starts_with("u8.to_")    { return true }
+    if cleaned.starts_with("u16.to_")   { return true }
+    if cleaned.starts_with("u32.to_")   { return true }
+    if cleaned.starts_with("u64.to_")   { return true }
+    if cleaned.starts_with("usize.to_") { return true }
+    if cleaned.starts_with("isize.to_") { return true }
+    return false
 }
 
 parse_int_arg :: fn(line: string, prefix: string) -> Op | null {
@@ -654,18 +691,22 @@ parse_struct_new_after :: fn(line: string, prefix: string) -> Op | null {
     return StructNew { .type_id = parsed }
 }
 
-/// Holds the two base-10 ints parsed off a `struct.get` / `struct.set`
-/// line — a small named struct instead of a tuple because Vader's
-/// `[T, U] | null` doesn't destructure after a null-narrow today.
-TypeFieldPair :: struct { type_id: i32, field_index: i32 }
+/// Two i32s parsed from a line — used by ops carrying exactly two
+/// integer operands (`struct.get TID FI`, `struct.set TID FI`,
+/// `array.new TID LEN`, ...). Generic field names since the meaning
+/// depends on the op. A named struct rather than a tuple because
+/// Vader's `[T, U] | null` doesn't destructure after a null-narrow
+/// today (TODO §3.8).
+IntPair :: struct { first: i32, second: i32 }
 
-/// Parse `struct.get TYPE_ID FIELD_INDEX` / `struct.set ...` — two
-/// space-separated base-10 ints after the prefix.
+/// Parse two space-separated base-10 ints after `prefix`. Used by
+/// every op carrying exactly two int operands (struct.get/set's
+/// TID + FIELD_INDEX, array.new's TID + LENGTH, ...).
 ///
 /// @param line    the .virt line (comment-stripped).
-/// @param prefix  literal prefix (`"struct.get "` or `"struct.set "`).
+/// @param prefix  literal prefix to skip (e.g. `"struct.get "`).
 /// @return        the parsed pair ; `null` on malformed input.
-parse_type_field_pair :: fn(line: string, prefix: string) -> TypeFieldPair | null {
+parse_int_pair_after_prefix :: fn(line: string, prefix: string) -> IntPair | null {
     rest :: line.slice(prefix.byte_len(), line.byte_len()).trim()
     space :: rest.index_of(' ', 0)
     if space < 0 { return null }
@@ -673,17 +714,41 @@ parse_type_field_pair :: fn(line: string, prefix: string) -> TypeFieldPair | nul
     if a is Error { return null }
     b :: parse_int_in_base(rest.slice(usize(space) + 1, rest.byte_len()).trim(), 10)
     if b is Error { return null }
-    return TypeFieldPair { .type_id = i32(a), .field_index = i32(b) }
+    return IntPair { .first = i32(a), .second = i32(b) }
 }
 
 parse_struct_get :: fn(line: string) -> Op | null {
-    pair :: parse_type_field_pair(line, "struct.get ")
+    pair :: parse_int_pair_after_prefix(line, "struct.get ")
     if pair is null { return null }
-    return StructGet { .type_id = pair.type_id, .field_index = pair.field_index }
+    return StructGet { .type_id = pair.first, .field_index = pair.second }
 }
 
 parse_struct_set_after :: fn(line: string, prefix: string) -> Op | null {
-    pair :: parse_type_field_pair(line, prefix)
+    pair :: parse_int_pair_after_prefix(line, prefix)
     if pair is null { return null }
-    return StructSet { .type_id = pair.type_id, .field_index = pair.field_index }
+    return StructSet { .type_id = pair.first, .field_index = pair.second }
+}
+
+parse_array_new :: fn(line: string) -> Op | null {
+    pair :: parse_int_pair_after_prefix(line, "array.new ")
+    if pair is null { return null }
+    return ArrayNew { .type_id = pair.first, .length = pair.second }
+}
+
+parse_array_push :: fn(line: string) -> Op | null {
+    parsed :: parse_int_after_prefix(line, "array.push ")
+    if parsed is null { return null }
+    return ArrayPush { .type_id = parsed }
+}
+
+parse_array_get :: fn(line: string) -> Op | null {
+    parsed :: parse_int_after_prefix(line, "array.get ")
+    if parsed is null { return null }
+    return ArrayGet { .type_id = parsed }
+}
+
+parse_array_set :: fn(line: string) -> Op | null {
+    parsed :: parse_int_after_prefix(line, "array.set ")
+    if parsed is null { return null }
+    return ArraySet { .type_id = parsed }
 }

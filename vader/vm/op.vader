@@ -9,7 +9,7 @@
 /// pure data — the executor's `match` arms in `exec.vader` carry the
 /// semantics. New ops are appended (never reshaped), so the existing
 /// pattern-match arms keep compiling across sprints.
-export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | CallImport | Call | StructNew | StructGet | StructSet | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
+export Op :: I32Const | LocalGet | LocalSet | LocalTee | StringConst | CallImport | Call | StructNew | StructGet | StructSet | ArrayNew | ArrayPush | ArrayGet | ArraySet | ArrayLen | RefCast | Convert | I32Add | I32Sub | I32Mul | I32Div | I32Mod | I32Eq | I32Ne | I32Lt | I32Le | I32Gt | I32Ge | Block | Loop | If | Else | End | Branch | BranchIf | Return
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -46,6 +46,43 @@ export StructGet :: struct { type_id: i32, field_index: i32 }
 /// back. Mirrors `StructNew` in collapsing the heap/stack variants
 /// (`struct.set` / `struct.set_stack`) into one VM op. Sprint 4 (b1).
 export StructSet :: struct { type_id: i32, field_index: i32 }
+
+/// Allocate an `ArrayVal` of type `type_id`. If `length > 0`, pops
+/// `length` initial elements from the value stack (in caller-push
+/// order — first pushed becomes `elements[0]`) and uses them as the
+/// initial contents ; if `length == 0`, creates a fresh empty array
+/// ready for `array.push`. Sprint 4 (b2) addition.
+export ArrayNew :: struct { type_id: i32, length: i32 }
+/// Pop a value, then an array ; append the value to `array.elements`.
+/// Statement-form, no value pushed back. Sprint 4 (b2) addition.
+export ArrayPush :: struct { type_id: i32 }
+/// Pop an index (i32) and an array ; push `array.elements[index]`.
+/// Traps on out-of-bounds index. Sprint 4 (b2) addition.
+export ArrayGet :: struct { type_id: i32 }
+/// Pop the new element value, an index, and an array ; mutate
+/// `array.elements[index]` in place. Statement-form, no push back.
+/// Sprint 4 (b2) addition.
+export ArraySet :: struct { type_id: i32 }
+/// Pop an array, push its element count (approximated as an i32 ;
+/// the TS VM pushes a usize but our `Value` doesn't carry width tags).
+/// Sprint 4 (b2) addition.
+export ArrayLen :: struct {}
+
+/// No-op runtime cast — the .virt format emits `ref.cast TID` after
+/// every `array.get` / `struct.get` to narrow the static type from
+/// `ref` to a concrete element type. Our VM's Values already carry
+/// their concrete tag, so the cast is purely informational ; the op's
+/// type_id operand is intentionally dropped at parse time. Sprint 4
+/// (b2) addition (mirrors `src/vm/exec.ts` which also bumps pc).
+export RefCast :: struct {}
+
+/// No-op runtime numeric conversion — the .virt format emits
+/// `<from>.to_<to>` (e.g. `usize.to_i32`, `i32.to_i64`) at every cast
+/// site. Our VM stores every integer as an `I32Val` (no width tags
+/// yet), so the conversion is a no-op ; the bytecode pipeline relies
+/// on it for static type narrowing only. Sprint 4 (b2) addition ;
+/// later sprints may distinguish widths and emit width-specific arms.
+export Convert :: struct {}
 /// Pop two i32 (left, right) ; push left + right.
 export I32Add :: struct {}
 /// Pop two i32 (left, right) ; push left - right.
@@ -167,10 +204,10 @@ export Module :: struct {
 /// Tagged runtime value carried on the VM's value stack. Sprint 3
 /// widened the stack from raw `i32[]` to this union so strings flow
 /// through `string.const` / `call.import` alongside numerics ; Sprint
-/// 4 (b1) adds `StructVal` for `struct.new` / `struct.get` / `struct.set`.
-/// Future sprints add bool / char / array / closure variants ; mirrors
-/// `src/vm/value.ts` and grows in lock-step with the op set.
-export Value :: I32Val | StringVal | StructVal
+/// 4 (b1) added `StructVal` for `struct.new` / `struct.get` / `struct.set` ;
+/// Sprint 4 (b2) adds `ArrayVal` for the array ops. Future sprints
+/// add bool / char / closure variants ; mirrors `src/vm/value.ts`.
+export Value :: I32Val | StringVal | StructVal | ArrayVal
 
 /// 32-bit integer payload.
 export I32Val :: struct { value: i32 }
@@ -186,4 +223,14 @@ export StringVal :: struct { value: string }
 export StructVal :: struct {
     type_id: i32
     fields:  Value[]
+}
+
+/// Heap-allocated array payload — grow-only via `array.push`, fixed-size
+/// indexed access via `array.get` / `array.set`. `type_id` indexes into
+/// `Module.types` (an `ArrayType`) ; `elements` carries the runtime
+/// contents (declared element-type is informational, not enforced).
+/// Same intra-module `Value[]` trick as `StructVal`.
+export ArrayVal :: struct {
+    type_id:  i32
+    elements: Value[]
 }

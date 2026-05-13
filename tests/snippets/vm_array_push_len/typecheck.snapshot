@@ -1,0 +1,19 @@
+# Typecheck
+
+## tests/snippets/vm_array_push_len/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 5:18     SeqLitExpr     :: i32[]
+  expr 6:5      CallExpr       :: void
+  expr 6:5      FieldExpr      :: fn(i32) -> void
+  expr 6:5      IdentExpr      :: i32[]
+  expr 7:5      CallExpr       :: void
+  expr 7:5      FieldExpr      :: fn(i32) -> void
+  expr 7:5      IdentExpr      :: i32[]
+  expr 8:5      CallExpr       :: void
+  expr 8:5      FieldExpr      :: fn(i32) -> void
+  expr 8:5      IdentExpr      :: i32[]
+  expr 9:12     CallExpr       :: i32
+  expr 9:12     IdentExpr      :: type
+  expr 9:16     CallExpr       :: usize
+  expr 9:16     FieldExpr      :: fn() -> usize
+  expr 9:16     IdentExpr      :: i32[]

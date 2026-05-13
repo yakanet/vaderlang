@@ -18,7 +18,7 @@
 // bugs.
 
 import "std/io" { read_file, eprintln, println }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, StructNew, StructGet, StructSet, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, StructType, Value, I32Val, StringVal, StructVal }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, StructType, ArrayType, Value, I32Val, StringVal, StructVal, ArrayVal }
 import "vader/vm/parser" { parse_virt }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -51,15 +51,15 @@ MAX_FRAME_DEPTH :: 1024
 /// cursor (the array is grow-only, see `push_value`). `pc` indexes into
 /// the function's `ops` array.
 ///
-/// `slots` and `stack` use the inlined `(I32Val | StringVal | StructVal)[]`
+/// `slots` and `stack` use the inlined `(I32Val | StringVal | StructVal | ArrayVal)[]`
 /// shape (rather than `Value[]`) as a work-around for TODO §3.8 — the
 /// `Value` alias doesn't expand correctly in `Alias[]` array slots when
 /// the alias was imported from another module (cross-module `: Value`
 /// scalars work fine ; only the array case is broken).
 Frame :: struct {
     function_index: i32
-    slots:          (I32Val | StringVal | StructVal)[]
-    stack:          (I32Val | StringVal | StructVal)[]
+    slots:          (I32Val | StringVal | StructVal | ArrayVal)[]
+    stack:          (I32Val | StringVal | StructVal | ArrayVal)[]
     sp:             usize
     pc:             i32
 }
@@ -77,7 +77,7 @@ zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 ///                fresh slot is needed, otherwise an existing one is
 ///                overwritten (cheaper than `push`).
 /// @param value   the value to write.
-push_value :: fn(stack: (I32Val | StringVal | StructVal)[], cursor: usize, value: Value) -> void {
+push_value :: fn(stack: (I32Val | StringVal | StructVal | ArrayVal)[], cursor: usize, value: Value) -> void {
     if cursor == stack.len() { stack.push(value) }
     else                     { stack[cursor] = value }
 }
@@ -118,8 +118,8 @@ pop_frame :: fn(cursor: usize[]) -> void {
 /// @param args_source     the array to read params from.
 /// @param args_offset     start offset of the params within `args_source`.
 /// @return                a fresh `Frame` ready to be pushed.
-build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_source: (I32Val | StringVal | StructVal)[], args_offset: usize) -> Frame {
-    slots: (I32Val | StringVal | StructVal)[] = []
+build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_source: (I32Val | StringVal | StructVal | ArrayVal)[], args_offset: usize) -> Frame {
+    slots: (I32Val | StringVal | StructVal | ArrayVal)[] = []
     parameter_index: usize = 0
     for parameter_index < callee.parameter_count {
         slots.push(args_source[args_offset + parameter_index])
@@ -376,6 +376,63 @@ export exec :: fn(module: Module) -> VmResult {
                 struct_unwrap.fields[usize(op.field_index)] = frame.stack[frame.sp - 1]
                 frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
             }
+            is ArrayNew -> {
+                outcome :: build_array(op.type_id, op.length, frame)
+                if outcome is Trap { return outcome }
+                frames[top] = outcome
+            }
+            is ArrayPush -> {
+                if frame.sp < 2 {
+                    return Trap { .message = "array.push needs array + value on stack at pc=${frame.pc}" }
+                }
+                array_unwrap :: read_array(frame.stack[frame.sp - 2], frame.pc, "array.push receiver")
+                if array_unwrap is Trap { return array_unwrap }
+                array_unwrap.elements.push(frame.stack[frame.sp - 1])
+                frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
+            }
+            is ArrayGet -> {
+                if frame.sp < 2 {
+                    return Trap { .message = "array.get needs array + index on stack at pc=${frame.pc}" }
+                }
+                index_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "array.get index")
+                if index_unwrap is Trap { return index_unwrap }
+                array_unwrap :: read_array(frame.stack[frame.sp - 2], frame.pc, "array.get receiver")
+                if array_unwrap is Trap { return array_unwrap }
+                if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.elements.len() {
+                    return Trap { .message = "array.get index ${index_unwrap.value} out of bounds (len=${array_unwrap.elements.len()}) at pc=${frame.pc}" }
+                }
+                frame.stack[frame.sp - 2] = array_unwrap.elements[usize(index_unwrap.value)]
+                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+            }
+            is ArraySet -> {
+                if frame.sp < 3 {
+                    return Trap { .message = "array.set needs array + index + value on stack at pc=${frame.pc}" }
+                }
+                index_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "array.set index")
+                if index_unwrap is Trap { return index_unwrap }
+                array_unwrap :: read_array(frame.stack[frame.sp - 3], frame.pc, "array.set receiver")
+                if array_unwrap is Trap { return array_unwrap }
+                if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.elements.len() {
+                    return Trap { .message = "array.set index ${index_unwrap.value} out of bounds (len=${array_unwrap.elements.len()}) at pc=${frame.pc}" }
+                }
+                array_unwrap.elements[usize(index_unwrap.value)] = frame.stack[frame.sp - 1]
+                frames[top] = with_sp_pc(frame, frame.sp - 3, frame.pc + 1)
+            }
+            is ArrayLen -> {
+                if frame.sp == 0 {
+                    return Trap { .message = "array.len on empty stack at pc=${frame.pc}" }
+                }
+                array_unwrap :: read_array(frame.stack[frame.sp - 1], frame.pc, "array.len receiver")
+                if array_unwrap is Trap { return array_unwrap }
+                frame.stack[frame.sp - 1] = I32Val { .value = i32(array_unwrap.elements.len()) }
+                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+            }
+            is RefCast -> {
+                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+            }
+            is Convert -> {
+                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+            }
             is I32Add -> {
                 outcome :: apply_arith_binop(frame, top, frames, "i32.add", (a, b) -> a + b)
                 if outcome is Trap { return outcome }
@@ -507,7 +564,7 @@ export exec :: fn(module: Module) -> VmResult {
 /// @error         the value's tag is `StringVal`, not `I32Val`.
 read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
     if v is I32Val { return v }
-    return Trap { .message = "${label} at pc=${at_pc}: expected i32, got string" }
+    return Trap { .message = "${label} at pc=${at_pc}: expected i32, got ${describe_value_tag(v)}" }
 }
 
 /// Unwrap a `StructVal` from a `Value`, mirroring `read_i32`. Used by
@@ -518,11 +575,71 @@ read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
 /// @param label   short context label (`"struct.get receiver"`).
 /// @return        the `StructVal` payload on success, or a `Trap` on
 ///                type mismatch.
-/// @error         the value's tag is `I32Val` or `StringVal`.
+/// @error         the value's tag isn't `StructVal`.
 read_struct :: fn(v: Value, at_pc: i32, label: string) -> StructVal | Trap {
     if v is StructVal { return v }
-    if v is I32Val    { return Trap { .message = "${label} at pc=${at_pc}: expected struct, got i32" } }
-    return Trap { .message = "${label} at pc=${at_pc}: expected struct, got string" }
+    return Trap { .message = "${label} at pc=${at_pc}: expected struct, got ${describe_value_tag(v)}" }
+}
+
+/// Unwrap an `ArrayVal` from a `Value`, mirroring `read_struct`. Used
+/// by the array-op arms (`array.push`, `array.get`, `array.set`,
+/// `array.len`) to recover the receiver from the stack.
+///
+/// @param v       the tagged value to inspect.
+/// @param at_pc   pc of the op doing the read.
+/// @param label   short context label (`"array.get receiver"`).
+/// @return        the `ArrayVal` payload on success, or a `Trap` on
+///                type mismatch.
+/// @error         the value's tag isn't `ArrayVal`.
+read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal | Trap {
+    if v is ArrayVal { return v }
+    return Trap { .message = "${label} at pc=${at_pc}: expected array, got ${describe_value_tag(v)}" }
+}
+
+/// Short human-readable name of the value's variant — used by every
+/// `read_*` helper's mismatch Trap so messages don't fan out per pair
+/// of expected/actual tags. Exhaustive `match` so the compiler catches
+/// any future `Value` variant added without updating this fn.
+///
+/// @param v  the tagged value.
+/// @return   `"i32"` / `"string"` / `"struct"` / `"array"`.
+describe_value_tag :: fn(v: Value) = match v {
+    is I32Val    -> "i32"
+    is StringVal -> "string"
+    is StructVal -> "struct"
+    is ArrayVal  -> "array"
+}
+
+/// Build an `ArrayVal` of `type_id` with `length` initial elements
+/// popped from the stack. If `length == 0`, allocates an empty
+/// grow-only array ready for `array.push`.
+///
+/// @param type_id  index into `Module.types` — informational, not
+///                 validated against `ArrayType` (the bytecode pipeline
+///                 already guarantees consistency).
+/// @param length   initial element count to consume from the stack.
+/// @param frame    current top frame.
+/// @return         a fresh `Frame` (sp/pc advanced) on success, or a
+///                 `Trap` if the stack is too short.
+/// @error          stack underflow when `frame.sp < length`.
+build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Frame | Trap {
+    if length < 0 {
+        return Trap { .message = "array.new length ${length} is negative at pc=${frame.pc}" }
+    }
+    needed :: usize(length)
+    if frame.sp < needed {
+        return Trap { .message = "array.new type ${type_id} needs ${needed} initial element(s) but stack has ${frame.sp} at pc=${frame.pc}" }
+    }
+    arg_base :: frame.sp - needed
+    elements: (I32Val | StringVal | StructVal | ArrayVal)[] = []
+    element_index: usize = 0
+    for element_index < needed {
+        elements.push(frame.stack[arg_base + element_index])
+        element_index += 1
+    }
+    new_array :: ArrayVal { .type_id = type_id, .elements = elements }
+    push_value(frame.stack, arg_base, new_array)
+    return with_sp_pc(frame, arg_base + 1, frame.pc + 1)
 }
 
 /// Body of the `StructNew` arm — the .virt text format emits two
@@ -552,7 +669,7 @@ build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Frame | Trap {
         return Trap { .message = "struct.new type ${type_id} needs ${field_count} field value(s) but stack has ${frame.sp} at pc=${frame.pc}" }
     }
     arg_base :: frame.sp - field_count
-    fields: (I32Val | StringVal | StructVal)[] = []
+    fields: (I32Val | StringVal | StructVal | ArrayVal)[] = []
     field_index: usize = 0
     for field_index < field_count {
         fields.push(frame.stack[arg_base + field_index])
@@ -575,7 +692,7 @@ build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Frame | Trap {
 /// @error         the value's tag is `I32Val`, not `StringVal`.
 read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Trap {
     if v is StringVal { return v }
-    return Trap { .message = "${label} at pc=${at_pc}: expected string, got i32" }
+    return Trap { .message = "${label} at pc=${at_pc}: expected string, got ${describe_value_tag(v)}" }
 }
 
 /// Outcome of a successful host call. `value` is unused when the
@@ -598,7 +715,7 @@ export HostOk :: struct { value: Value }
 ///                  imports, or `Trap` for unknown imports or arg-type
 ///                  mismatches.
 /// @error           unknown `mangled` name ; argument type mismatch.
-dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
+dispatch_import :: fn(info: ImportInfo, stack: (I32Val | StringVal | StructVal | ArrayVal)[], arg_base: usize, at_pc: i32) -> HostCallResult {
     if info.mangled == STDIO_PRINTLN {
         arg :: read_string(stack[arg_base], at_pc, "println")
         if arg is Trap { return arg }

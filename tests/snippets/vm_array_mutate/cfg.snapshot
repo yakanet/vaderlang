@@ -1,0 +1,37 @@
+# CFG
+
+## tests/snippets/vm_array_mutate/_main.vader
+
+fn tests_snippets_vm_array_mutate__main_vader$main() -> i32
+  locals:
+    %0 $k_0#14: i32
+    %1 $k_1#15: i32
+    %2 $k_2#16: i32
+    %3 arr#17: i32[] (local arr)
+    %4 $k_5#18: i32
+    %5 $k_6#19: i32
+    %6 $k_7#20: i32
+    %7 $idx_8#21: i32
+    %8 $k_9#22: i32
+    %9 $idx_10#23: i32
+    %10 $add_11#24: i32
+    %11 $k_12#25: i32
+    %12 $idx_13#26: i32
+    %13 $add_14#27: i32
+  bb0:
+    %0 = const int(10) :i32
+    %1 = const int(20) :i32
+    %2 = const int(30) :i32
+    %3 = array_new i32[][3](%0, %1, %2)
+    %4 = const int(1) :i32
+    %5 = const int(99) :i32
+    array_set %3[%4] = %5
+    %6 = const int(0) :i32
+    %7 = array_get %3[%6] :i32
+    %8 = const int(1) :i32
+    %9 = array_get %3[%8] :i32
+    %10 = binop add %7 %9 :i32
+    %11 = const int(2) :i32
+    %12 = array_get %3[%11] :i32
+    %13 = binop add %10 %12 :i32
+    return %13

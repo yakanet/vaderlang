@@ -1,0 +1,10 @@
+// Sprint 4 (b2) acceptance: empty array + push + len.
+// 3 pushes → len = 3.
+
+main :: fn() -> i32 {
+    arr: i32[] = []
+    arr.push(7)
+    arr.push(8)
+    arr.push(9)
+    return i32(arr.len())
+}

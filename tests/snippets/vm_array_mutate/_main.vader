@@ -1,0 +1,8 @@
+// Sprint 4 (b2) acceptance: array.set in place.
+// arr[1] reassigned from 20 to 99 ; sum = 10 + 99 + 30 = 139.
+
+main :: fn() -> i32 {
+    arr: i32[] = [10, 20, 30]
+    arr[1] = 99
+    return arr[0] + arr[1] + arr[2]
+}

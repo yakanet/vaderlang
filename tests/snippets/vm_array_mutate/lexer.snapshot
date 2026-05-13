@@ -1,0 +1,50 @@
+# Tokens
+[4:1-4:5    ] ident          "main"
+[4:6-4:8    ] decl_const     "::"
+[4:9-4:11   ] kw_fn          "fn"
+[4:11-4:12  ] lparen         "("
+[4:12-4:13  ] rparen         ")"
+[4:14-4:16  ] arrow          "->"
+[4:17-4:20  ] ident          "i32"
+[4:21-4:22  ] lbrace         "{"
+[5:1-5:1    ] newline        "\n"
+[5:5-5:8    ] ident          "arr"
+[5:8-5:9    ] colon          ":"
+[5:10-5:13  ] ident          "i32"
+[5:13-5:14  ] lbracket       "["
+[5:14-5:15  ] rbracket       "]"
+[5:16-5:17  ] assign         "="
+[5:18-5:19  ] lbracket       "["
+[5:19-5:21  ] int_literal    "10" =10n
+[5:21-5:22  ] comma          ","
+[5:23-5:25  ] int_literal    "20" =20n
+[5:25-5:26  ] comma          ","
+[5:27-5:29  ] int_literal    "30" =30n
+[5:29-5:30  ] rbracket       "]"
+[6:1-6:1    ] newline        "\n"
+[6:5-6:8    ] ident          "arr"
+[6:8-6:9    ] lbracket       "["
+[6:9-6:10   ] int_literal    "1" =1n
+[6:10-6:11  ] rbracket       "]"
+[6:12-6:13  ] assign         "="
+[6:14-6:16  ] int_literal    "99" =99n
+[7:1-7:1    ] newline        "\n"
+[7:5-7:11   ] kw_return      "return"
+[7:12-7:15  ] ident          "arr"
+[7:15-7:16  ] lbracket       "["
+[7:16-7:17  ] int_literal    "0" =0n
+[7:17-7:18  ] rbracket       "]"
+[7:19-7:20  ] plus           "+"
+[7:21-7:24  ] ident          "arr"
+[7:24-7:25  ] lbracket       "["
+[7:25-7:26  ] int_literal    "1" =1n
+[7:26-7:27  ] rbracket       "]"
+[7:28-7:29  ] plus           "+"
+[7:30-7:33  ] ident          "arr"
+[7:33-7:34  ] lbracket       "["
+[7:34-7:35  ] int_literal    "2" =2n
+[7:35-7:36  ] rbracket       "]"
+[8:1-8:1    ] newline        "\n"
+[8:1-8:2    ] rbrace         "}"
+[9:1-9:1    ] newline        "\n"
+[9:1-9:1    ] eof            ""
