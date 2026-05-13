@@ -1,0 +1,55 @@
+module _main
+string 0 "i="
+string 1 " sum="
+import 0 println std_io$println (string) -> void
+
+fn 0 tests_snippets_vm_interp_loop__main_vader$main () -> i32
+  local "sum#12" i32
+  local "i#13" i32
+  local "sum#16" i32
+  local "__sb_0#18" any
+  i32.const 0   ; _main.vader:7:12
+  local.set 0   ; _main.vader:7:12
+  i32.const 0   ; _main.vader:8:10
+  local.set 1   ; _main.vader:8:10
+  block $L0 void   ; _main.vader:9:5
+    loop $L1 void   ; _main.vader:9:5
+      local.get 1   ; _main.vader:9:9
+      i32.const 5   ; _main.vader:9:9
+      i32.lt   ; _main.vader:9:9
+      if $L2 void   ; _main.vader:9:9
+        local.get 0   ; _main.vader:10:9
+        local.get 1   ; _main.vader:10:9
+        i32.add   ; _main.vader:10:9
+        local.set 2   ; _main.vader:10:9
+        intrinsic builder.new   ; _main.vader:11:17
+        local.set 3   ; _main.vader:11:17
+        local.get 3   ; _main.vader:11:18
+        string.const 0   ; _main.vader:11:18
+        intrinsic builder.append_str   ; _main.vader:11:18
+        local.get 3   ; _main.vader:11:20
+        local.get 1   ; _main.vader:11:20
+        intrinsic builder.append_display   ; _main.vader:11:20
+        local.get 3   ; _main.vader:11:24
+        string.const 1   ; _main.vader:11:24
+        intrinsic builder.append_str   ; _main.vader:11:24
+        local.get 3   ; _main.vader:11:29
+        local.get 2   ; _main.vader:11:29
+        intrinsic builder.append_display   ; _main.vader:11:29
+        local.get 3   ; _main.vader:11:17
+        intrinsic builder.finish   ; _main.vader:11:17
+        call.import 0   ; _main.vader:11:9
+        local.get 1   ; _main.vader:12:9
+        i32.const 1   ; _main.vader:12:9
+        i32.add   ; _main.vader:12:9
+        local.set 1   ; _main.vader:12:9
+        local.get 2   ; _main.vader:9:5
+        local.set 0   ; _main.vader:9:5
+        br $L1   ; _main.vader:9:5
+      else   ; _main.vader:9:9
+      end $L2   ; _main.vader:9:9
+    end $L1   ; _main.vader:9:5
+  end $L0   ; _main.vader:9:5
+  local.get 0   ; _main.vader:14:5
+  return   ; _main.vader:14:5
+end

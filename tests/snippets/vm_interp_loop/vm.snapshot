@@ -1,0 +1,8 @@
+# stdout
+i=0 sum=0
+i=1 sum=1
+i=2 sum=3
+i=3 sum=6
+i=4 sum=10
+# exit
+10

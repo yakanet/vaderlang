@@ -1,0 +1,12 @@
+// Sprint 4 (b3) acceptance: string interpolation mixing i32 + string.
+// Prints "result: 7 (name=alice age=30)" then returns 0.
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    sum :: 7
+    who :: "alice"
+    age :: 30
+    println("result: ${sum} (name=${who} age=${age})")
+    return 0
+}

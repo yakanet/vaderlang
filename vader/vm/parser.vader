@@ -14,7 +14,7 @@
 
 import "std/string" { byte_len, slice, starts_with, ends_with, trim, split, contains, index_of }
 import "std/numbers" { parse_int_in_base }
-import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType }
+import "vader/vm/op" { Op, I32Const, LocalGet, LocalSet, LocalTee, StringConst, CallImport, Call, StructNew, StructGet, StructSet, ArrayNew, ArrayPush, ArrayGet, ArraySet, ArrayLen, RefCast, Convert, BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge, Block, Loop, If, Else, End, Branch, BranchIf, Return, ImportInfo, BytecodeFunction, Module, TypeDecl, PrimitiveType, StructType, ArrayType, RefType, FnType }
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps
@@ -407,9 +407,13 @@ try_push_op :: fn(cleaned: string, ops: Op[]) -> bool {
         is ArrayPush       as o -> { ops.push(o)  true }
         is ArrayGet        as o -> { ops.push(o)  true }
         is ArraySet        as o -> { ops.push(o)  true }
-        is ArrayLen        as o -> { ops.push(o)  true }
-        is RefCast         as o -> { ops.push(o)  true }
-        is Convert         as o -> { ops.push(o)  true }
+        is ArrayLen              as o -> { ops.push(o)  true }
+        is RefCast               as o -> { ops.push(o)  true }
+        is Convert               as o -> { ops.push(o)  true }
+        is BuilderNew            as o -> { ops.push(o)  true }
+        is BuilderAppendStr      as o -> { ops.push(o)  true }
+        is BuilderAppendDisplay  as o -> { ops.push(o)  true }
+        is BuilderFinish         as o -> { ops.push(o)  true }
         is I32Add          as o -> { ops.push(o)  true }
         is I32Sub          as o -> { ops.push(o)  true }
         is I32Mul          as o -> { ops.push(o)  true }
@@ -587,6 +591,10 @@ parse_op_line :: fn(cleaned: string) -> Op | null {
     if cleaned == "array.len"                   { return ArrayLen {} }
     if cleaned.starts_with("ref.cast ")         { return RefCast {} }
     if is_numeric_convert(cleaned)              { return Convert {} }
+    if cleaned == "intrinsic builder.new"             { return BuilderNew {} }
+    if cleaned == "intrinsic builder.append_str"      { return BuilderAppendStr {} }
+    if cleaned == "intrinsic builder.append_display"  { return BuilderAppendDisplay {} }
+    if cleaned == "intrinsic builder.finish"          { return BuilderFinish {} }
     if cleaned == "i32.add"                     { return I32Add {} }
     if cleaned == "i32.sub"                     { return I32Sub {} }
     if cleaned == "i32.mul"                     { return I32Mul {} }

@@ -1,0 +1,11 @@
+// Sprint 4 (b3) acceptance: string interpolation with a single i32.
+// Exercises `builder.new` + `builder.append_str` + `builder.append_display`
+// + `builder.finish` + `call.import println`.
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    n :: 42
+    println("answer is ${n}")
+    return 0
+}

@@ -1,0 +1,17 @@
+# Typecheck
+
+## tests/snippets/vm_interp_loop/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  expr 10:16    IdentExpr      :: i32
+  expr 10:9     BinaryExpr     :: i32
+  expr 10:9     IdentExpr      :: i32
+  expr 11:17    StringLitExpr  :: string
+  expr 11:22    IdentExpr      :: i32
+  expr 11:31    IdentExpr      :: i32
+  expr 11:9     CallExpr       :: void
+  expr 11:9     IdentExpr      :: fn(string) -> void
+  expr 12:9     BinaryExpr     :: i32
+  expr 12:9     IdentExpr      :: i32
+  expr 14:12    IdentExpr      :: i32
+  expr 9:9      BinaryExpr     :: bool
+  expr 9:9      IdentExpr      :: i32
