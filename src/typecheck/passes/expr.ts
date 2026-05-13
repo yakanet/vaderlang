@@ -287,12 +287,34 @@ export function typeOfSymbol(sym: Symbol, t: MutableTyped): Type {
   }
 }
 
+/** True when `t` is a `std/core.Range[*]` struct type. Used by `inferIndex`
+ *  to route `arr[r]` to the slice path when `r` has range type. */
+function isRangeType(ty: Type, t: MutableTyped): ty is Type & { kind: "Struct"; args: readonly Type[] } {
+  if (ty.kind !== "Struct") return false;
+  const rangeSym = t.globals.coreSymbols?.get(CORE_STRUCTS.Range);
+  return rangeSym !== undefined && ty.symbol.id === rangeSym.id;
+}
+
 function inferIndex(
   expr: A.IndexExpr, t: MutableTyped, impls: ImplRegistry,
   diags: DiagnosticCollector, fn: FnContext | null,
 ): Type {
   const target = checkExpr(expr.target, null, t, impls, diags, fn);
   const indexTy = checkExpr(expr.index, null, t, impls, diags, fn);
+  // Slice : `arr[r]` where `r : Range[<integer>]` returns a fresh `T[]`
+  // with the elements in `[r.start, r.end)` (or `..=` for inclusive).
+  // Detect on the index *type*, not on `RangeExpr` AST kind, so a value
+  // of Range type held in a local works too (`s :: 0..<3 ; arr[s]`). Any
+  // integer-bounded range is accepted ; the lowerer casts to `usize` at
+  // the use site since array indexing is usize-typed at the runtime level.
+  if (target.kind === "Array" && isRangeType(indexTy, t)) {
+    const bound = indexTy.args[0];
+    if (bound === undefined || !isInteger(defaultIfFree(bound))) {
+      err(diags, "T3001", expr.index.span,
+        `slice index must be a Range over an integer type, got ${displayType(indexTy)}`);
+    }
+    return target;
+  }
   if (target.kind === "Array") return target.element;
   // Trait dispatch via `Index($I, $T)` when the target isn't a built-in array.
   // Both struct receivers and primitive receivers (e.g. `string implements

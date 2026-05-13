@@ -85,7 +85,12 @@ export function inferField(
   // `e` is `A | B | C` succeeds when every variant carries a field
   // named `f`. The result type is the union of each variant's field
   // type (canonicalised by `unionOf` so identical types collapse).
-  // Hints if any variant is missing the field, listing the offenders.
+  //
+  // Three outcomes :
+  //   - every variant has the field           → record `union-field`, return the union of field types.
+  //   - some variants have it, others don't   → emit T3009 (likely a typo, list the offenders).
+  //   - no variant has it                     → fall through (a free fn with this union as first
+  //                                              param can pick it up via UFCS below).
   if (targetType.kind === "Union") {
     const fieldTypes: Type[] = [];
     const missing: string[] = [];
@@ -109,11 +114,13 @@ export function inferField(
       });
       return unionOf(fieldTypes);
     }
-    if (missing.length > 0) {
+    if (fieldTypes.length > 0) {
       err(diags, "T3009", expr.fieldSpan,
         `\`${expr.field}\` not on every variant of ${displayType(targetType)}: missing on ${missing.join(", ")}`);
       return TY.unresolved;
     }
+    // No variant has the field — fall through to UFCS/impl-method lookup
+    // so a free fn `name(v: ThisUnion, ...)` can match via dot-notation.
   }
 
   // No struct field — try impl-method lookup. Records into `methodResolutions`

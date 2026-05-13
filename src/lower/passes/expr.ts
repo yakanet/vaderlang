@@ -6,7 +6,7 @@ import { staticStringValue, unreachableTypeExprInValuePosition } from "../../par
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
+import { CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, isPrimitive, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt, LoweredStructLitField } from "../lowered-ast.ts";
@@ -258,6 +258,13 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       if (indexRes !== undefined) {
         return lowerIndexTraitCall(ctx, expr, exprType, indexRes, /*extraArgs*/ []);
       }
+      // Slice : `arr[r]` where `r : Range[usize]` (literal `0..<3` or any
+      // value of Range type) desugars to a copy loop producing a fresh
+      // `T[]`. The typechecker returns the array type (not the element
+      // type) when the index has Range type — that's how we know to slice.
+      if (exprType.kind === "Array" && ctx.types.exprType(expr.target).kind === "Array") {
+        return lowerArraySlice(ctx, expr, exprType);
+      }
       return {
         kind: "LoweredIndex", span: expr.span, type: exprType,
         target: lowerExpr(ctx, expr.target),
@@ -505,6 +512,144 @@ export function lowerIndexTraitCall(
     callee: { kind: "LoweredIdent", span: expr.span, type: exprType, symbol: entry.symbol },
     args: [lowerExpr(ctx, expr.target), lowerExpr(ctx, expr.index), ...extraArgs],
   };
+}
+
+/** Desugar `arr[r]` (where `r : Range[usize]`) into a block that copies
+ *  the requested half-open / closed slice into a fresh `T[]`. The shape :
+ *
+ *      {
+ *          let __src = <arr>;
+ *          let __lo  = <r.start>;     // or r literal's lower bound
+ *          let __hi  = <r.end>;       // or r literal's upper bound
+ *          let __inc = <r.inclusive>; // or false / true for literal `..<` / `..=`
+ *          let __out: T[] = [];
+ *          let __i   = __lo;
+ *          loop while (__inc ? __i <= __hi : __i < __hi) {
+ *              __out.push(__src[__i]);
+ *              __i = __i + 1;
+ *          };
+ *          __out
+ *      }
+ *
+ *  Two shapes for the bounds :
+ *   - `RangeExpr` literal (`0..<3`) → use `lower` / `upper` AST nodes directly,
+ *     fold `inclusive` to a const bool.
+ *   - Range struct value (`let r = 0..<3 ; arr[r]`) → bind the value to a
+ *     temp and read `.start` / `.end` / `.inclusive` fields. */
+function lowerArraySlice(
+  ctx: FnLowerCtx, expr: A.IndexExpr, exprType: Type & { kind: "Array" },
+): LoweredExpr {
+  const span = expr.span;
+  const elemType = exprType.element;
+
+  const srcSym = freshSyntheticSymbol(ctx, "slice_src");
+  const loSym  = freshSyntheticSymbol(ctx, "slice_lo");
+  const hiSym  = freshSyntheticSymbol(ctx, "slice_hi");
+  const incSym = freshSyntheticSymbol(ctx, "slice_inc");
+  const outSym = freshSyntheticSymbol(ctx, "slice_out");
+  const iSym   = freshSyntheticSymbol(ctx, "slice_i");
+
+  const stmts: LoweredStmt[] = [];
+
+  stmts.push({
+    kind: "LoweredLet", span, name: srcSym.name, symbol: srcSym,
+    type: exprType, value: lowerExpr(ctx, expr.target),
+  });
+
+  // Extract lo / hi / inclusive — fast path for `RangeExpr` literals,
+  // generic path that reads struct fields for any other Range-typed expr.
+  // Bounds are cast to `usize` (array index width at the runtime level) ;
+  // the typechecker has already enforced an integer-bounded Range so the
+  // cast is always a width adjust, never a kind change.
+  let loValue: LoweredExpr;
+  let hiValue: LoweredExpr;
+  let incValue: LoweredExpr;
+  if (expr.index.kind === "RangeExpr") {
+    loValue = castToUsize(lowerExpr(ctx, expr.index.lower), span);
+    hiValue = castToUsize(lowerExpr(ctx, expr.index.upper), span);
+    incValue = { kind: "LoweredBoolLit", span, type: TY.bool, value: expr.index.inclusive };
+  } else {
+    const rangeSym = freshSyntheticSymbol(ctx, "slice_r");
+    const rangeType = ctx.types.exprType(expr.index);
+    stmts.push({
+      kind: "LoweredLet", span, name: rangeSym.name, symbol: rangeSym,
+      type: rangeType, value: lowerExpr(ctx, expr.index),
+    });
+    const rangeRef: LoweredExpr = { kind: "LoweredIdent", span, type: rangeType, symbol: rangeSym };
+    const boundType = rangeType.kind === "Struct" && rangeType.args.length > 0 ? rangeType.args[0]! : TY.usize;
+    loValue  = castToUsize({ kind: "LoweredFieldAccess", span, type: boundType, target: rangeRef, field: "start" }, span);
+    hiValue  = castToUsize({ kind: "LoweredFieldAccess", span, type: boundType, target: rangeRef, field: "end"   }, span);
+    incValue = { kind: "LoweredFieldAccess", span, type: TY.bool, target: rangeRef, field: "inclusive" };
+  }
+
+  stmts.push({ kind: "LoweredLet", span, name: loSym.name,  symbol: loSym,  type: TY.usize, value: loValue });
+  stmts.push({ kind: "LoweredLet", span, name: hiSym.name,  symbol: hiSym,  type: TY.usize, value: hiValue });
+  stmts.push({ kind: "LoweredLet", span, name: incSym.name, symbol: incSym, type: TY.bool,  value: incValue });
+
+  const emptyArr: LoweredExpr = {
+    kind: "LoweredArrayLit", span, type: exprType, elements: [],
+  };
+  stmts.push({
+    kind: "LoweredLet", span, name: outSym.name, symbol: outSym,
+    type: exprType, value: emptyArr,
+  });
+
+  const loRef: LoweredExpr  = { kind: "LoweredIdent", span, type: TY.usize, symbol: loSym };
+  const hiRef: LoweredExpr  = { kind: "LoweredIdent", span, type: TY.usize, symbol: hiSym };
+  const incRef: LoweredExpr = { kind: "LoweredIdent", span, type: TY.bool,  symbol: incSym };
+  const srcRef: LoweredExpr = { kind: "LoweredIdent", span, type: exprType, symbol: srcSym };
+  const outRef: LoweredExpr = { kind: "LoweredIdent", span, type: exprType, symbol: outSym };
+
+  stmts.push({
+    kind: "LoweredLet", span, name: iSym.name, symbol: iSym, type: TY.usize, value: loRef,
+  });
+  const iRef: LoweredExpr = { kind: "LoweredIdent", span, type: TY.usize, symbol: iSym };
+
+  // cond = inc ? (i <= hi) : (i < hi)  — desugared as an If expression
+  // returning bool so the loop's `cond` slot stays a single LoweredExpr.
+  const lt: LoweredExpr = {
+    kind: "LoweredBinary", span, type: TY.bool, op: "lt", left: iRef, right: hiRef,
+  };
+  const lte: LoweredExpr = {
+    kind: "LoweredBinary", span, type: TY.bool, op: "lte", left: iRef, right: hiRef,
+  };
+  const cond: LoweredExpr = {
+    kind: "LoweredIf", span, type: TY.bool,
+    cond: incRef,
+    then: wrapAsBlock(lte, span),
+    else: wrapAsBlock(lt, span),
+  };
+
+  const pushStmt: LoweredStmt = {
+    kind: "LoweredExprStmt", span,
+    expr: {
+      kind: "LoweredArrayPush", span, type: TY.void, target: outRef,
+      value: { kind: "LoweredIndex", span, type: elemType, target: srcRef, index: iRef },
+    },
+  };
+  const incStmt: LoweredStmt = {
+    kind: "LoweredAssign", span, target: iRef,
+    value: {
+      kind: "LoweredBinary", span, type: TY.usize, op: "add",
+      left: iRef,
+      right: { kind: "LoweredIntLit", span, type: TY.usize, value: 1n },
+    },
+  };
+
+  stmts.push({
+    kind: "LoweredLoop", span, label: null, cond,
+    body: { kind: "LoweredBlock", span, type: TY.void, stmts: [pushStmt, incStmt], trailing: null },
+  });
+
+  return { kind: "LoweredBlock", span, type: exprType, stmts, trailing: outRef };
+}
+
+/** Wrap `value` in a `LoweredCast` to `usize` unless it's already typed
+ *  `usize`. Used by the array-slice lowering since the runtime array
+ *  index is usize, but the user's range bounds may default to i32. */
+function castToUsize(value: LoweredExpr, span: A.Span): LoweredExpr {
+  if (isPrimitive(value.type, "usize")) return value;
+  return { kind: "LoweredCast", span, type: TY.usize, value };
 }
 
 /** Rewrite `a <op> b` into a direct call against the impl member resolved by

@@ -24,7 +24,7 @@ import {defaultIfFree, displayType, isAssignable, isPrimitive, TY} from "./types
 import type {Globals, MutableTyped} from "./ctx.ts";
 import {checkExpr} from "./passes/expr.ts";
 import {bindSelfTypes, checkBlock, checkFnBody} from "./passes/stmt.ts";
-import {declareType} from "./passes/decl.ts";
+import {declareType, looksLikeTypeExpression} from "./passes/decl.ts";
 
 export type { Globals } from "./ctx.ts";
 export { newGlobals } from "./ctx.ts";
@@ -37,7 +37,7 @@ export { newGlobals } from "./ctx.ts";
  *  lowering time. Enums never reference other user types, so the split is safe. */
 export function declareModule(
   program: ResolvedProgram, globals: Globals, diags: DiagnosticCollector,
-  phase: "enums" | "rest" | "all" = "all",
+  phase: "enums" | "type-aliases" | "rest" | "all" = "all",
 ): void {
   const t: MutableTyped = {
     resolved: program, globals,
@@ -53,9 +53,23 @@ export function declareModule(
   };
   for (const decl of program.source.decls) {
     if (phase === "enums" && decl.kind !== "EnumDecl") continue;
-    if (phase === "rest" && decl.kind === "EnumDecl") continue;
+    if (phase === "type-aliases" && !isTypeAliasingDecl(decl, t)) continue;
+    if (phase === "rest" && (decl.kind === "EnumDecl" || isTypeAliasingDecl(decl, t))) continue;
     declareType(decl, t, diags);
   }
+}
+
+/** True if `decl` introduces a name that resolves to a type — either an
+ *  explicit `T :: type = …` (TypeAliasDecl) or an implicit `T :: A | B`
+ *  (ConstDecl whose RHS syntactically looks like a type expression). These
+ *  must be declared before consumer modules' fn signatures so cross-module
+ *  uses of the alias in fn-param positions (`fn(x: T[])`) see a populated
+ *  `constTypeAliases` entry — otherwise `typeFromSymbol` returns Unresolved
+ *  and the param shows up as `?[]` instead of the expanded union. */
+function isTypeAliasingDecl(decl: A.Decl, t: MutableTyped): boolean {
+  if (decl.kind === "TypeAliasDecl") return true;
+  if (decl.kind === "ConstDecl") return looksLikeTypeExpression(decl.value, t);
+  return false;
 }
 
 export function checkProgram(

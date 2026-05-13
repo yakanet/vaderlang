@@ -1,0 +1,36 @@
+// UFCS dispatch on a union receiver (§3.8). When the target of a `.method()`
+// call has a union type and no variant carries a struct field of that name,
+// the typechecker falls through to UFCS free-fn lookup with the union as
+// the first-param type. Free fn `describe(v: Shape) -> string` is reachable
+// as `shape.describe()` without an explicit `match`.
+
+import "std/io" { println }
+
+Circle :: struct { radius: i32 }
+Square :: struct { side: i32 }
+
+Shape :: Circle | Square
+
+describe :: fn(s: Shape) -> string {
+    return match s {
+        is Circle as c -> "circle(${c.radius})"
+        is Square as sq -> "square(${sq.side})"
+    }
+}
+
+area :: fn(s: Shape) -> i32 {
+    return match s {
+        is Circle as c -> c.radius * c.radius * 3
+        is Square as sq -> sq.side * sq.side
+    }
+}
+
+main :: fn() -> i32 {
+    a: Shape = Circle { .radius = 5 }
+    b: Shape = Square { .side = 4 }
+    println(a.describe())
+    println(b.describe())
+    println("a.area = ${a.area()}")
+    println("b.area = ${b.area()}")
+    return 0
+}

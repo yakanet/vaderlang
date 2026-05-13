@@ -1,0 +1,7 @@
+# stdout
+circle(5)
+square(4)
+a.area = 75
+b.area = 16
+# exit
+0

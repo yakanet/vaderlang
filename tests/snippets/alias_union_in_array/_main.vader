@@ -1,0 +1,34 @@
+// Cross-module type-alias unions in array slots (§3.8). Before this fix
+// `V[]` in a fn-param or local-let position only expanded the alias
+// correctly *within the defining module* — consumer modules saw `?[]`
+// because the implicit-type-alias `Pet :: Cat | Dog` was declared in the
+// same typecheck phase as the consumer's fn signatures, so the alias
+// hadn't been registered yet when the param type was lowered.
+//
+// A dedicated `type-aliases` phase between `enums` and `rest` resolves
+// the dependency : every `T :: …` is registered project-wide before any
+// fn signature gets lowered.
+
+import "std/io" { println }
+import "./types" { Cat, Dog, Pet }
+
+push_pet :: fn(arr: Pet[], p: Pet) -> void {
+    arr.push(p)
+}
+
+describe :: fn(p: Pet) -> string {
+    return match p {
+        is Cat as c -> "cat ${c.name}"
+        is Dog as d -> "dog ${d.name}"
+    }
+}
+
+main :: fn() -> i32 {
+    pets: Pet[] = []
+    push_pet(pets, Cat { .name = "Whiskers" })
+    push_pet(pets, Dog { .name = "Rex" })
+    for p in pets {
+        println(describe(p))
+    }
+    return 0
+}

@@ -1,0 +1,10 @@
+# Comptime
+
+## tests/snippets/array_slice/_main.vader
+
+## generic instances
+  Yielded(i32)
+  Yielded(usize)
+  Range(i32)
+  Range(usize)
+  ArrayIterator(i32)

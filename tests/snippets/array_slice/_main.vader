@@ -1,0 +1,40 @@
+// Array slicing — `arr[r]` returns a fresh `T[]` over the half-open range
+// `[r.start, r.end)` (or closed `[r.start, r.end]` when the range is `..=`).
+// The typechecker dispatches on the *type* of the index : any
+// `Range[<integer>]` slot triggers the slice path, so literal range
+// expressions, let-bound range values, and usize-typed bounds all work.
+// Empty slices (`arr[i..<i]`) produce a zero-length array.
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    arr: i32[] = [10, 20, 30, 40, 50]
+
+    // half-open literal range
+    s1 :: arr[1..<4]
+    println("s1.len = ${s1.len()}")
+    for v in s1 { println("  ${v}") }
+
+    // inclusive literal range
+    s2 :: arr[0..=2]
+    println("s2.len = ${s2.len()}")
+    for v in s2 { println("  ${v}") }
+
+    // let-bound range value
+    r :: 2..<5
+    s3 :: arr[r]
+    println("s3.len = ${s3.len()}")
+    for v in s3 { println("  ${v}") }
+
+    // usize-typed bounds
+    n: usize = 3
+    s4 :: arr[0..<n]
+    println("s4.len = ${s4.len()}")
+    for v in s4 { println("  ${v}") }
+
+    // empty slice
+    s5 :: arr[2..<2]
+    println("s5.len = ${s5.len()}")
+
+    return 0
+}

@@ -1,0 +1,9 @@
+# Comptime
+
+## tests/snippets/alias_union_in_array/_main.vader
+
+## tests/snippets/alias_union_in_array/types
+
+## generic instances
+  Yielded(Cat | Dog)
+  ArrayIterator(Cat | Dog)

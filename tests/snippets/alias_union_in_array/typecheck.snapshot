@@ -1,0 +1,40 @@
+# Typecheck
+
+## tests/snippets/alias_union_in_array/_main.vader
+  FnDecl         describe             :: fn(Cat | Dog) -> string
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         push_pet             :: fn(Cat | Dog[], Cat | Dog) -> void
+  expr 16:14    IdentExpr      :: Cat | Dog
+  expr 16:5     CallExpr       :: void
+  expr 16:5     FieldExpr      :: fn(Cat | Dog) -> void
+  expr 16:5     IdentExpr      :: Cat | Dog[]
+  expr 20:12    MatchExpr      :: string
+  expr 20:18    IdentExpr      :: Cat | Dog
+  expr 21:24    StringLitExpr  :: string
+  expr 21:31    FieldExpr      :: string
+  expr 21:31    IdentExpr      :: Cat
+  expr 22:24    StringLitExpr  :: string
+  expr 22:31    FieldExpr      :: string
+  expr 22:31    IdentExpr      :: Dog
+  expr 27:19    SeqLitExpr     :: Cat | Dog[]
+  expr 28:14    IdentExpr      :: Cat | Dog[]
+  expr 28:20    StructLitExpr  :: Cat
+  expr 28:34    StringLitExpr  :: string
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(Cat | Dog[], Cat | Dog) -> void
+  expr 29:14    IdentExpr      :: Cat | Dog[]
+  expr 29:20    StructLitExpr  :: Dog
+  expr 29:34    StringLitExpr  :: string
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(Cat | Dog[], Cat | Dog) -> void
+  expr 30:14    IdentExpr      :: Cat | Dog[]
+  expr 31:17    CallExpr       :: string
+  expr 31:17    IdentExpr      :: fn(Cat | Dog) -> string
+  expr 31:26    IdentExpr      :: Cat | Dog
+  expr 31:9     CallExpr       :: void
+  expr 31:9     IdentExpr      :: fn(string) -> void
+
+## tests/snippets/alias_union_in_array/types
+  StructDecl     Cat                  :: Cat
+  StructDecl     Dog                  :: Dog
+  ConstDecl      Pet                  :: type
