@@ -12,6 +12,7 @@
     "build": "bun build src/index.ts --target=bun --outdir=dist",
     "build:cli": "bun src/index.ts build vader/cli/main.vader --release --target=native --out=build/vader",
     "typecheck": "tsc --noEmit",
+    "bench": "bun bench/run.ts",
     "dist": "bun scripts/dist.ts current",
     "dist:current": "bun scripts/dist.ts current",
     "dist:darwin-arm64": "bun scripts/dist.ts darwin-arm64",

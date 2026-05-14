@@ -1,0 +1,47 @@
+/// Mandelbrot kernel — counts iterations until escape for every pixel of a
+/// fixed grid and prints a single-line checksum. Sized so that the natively
+/// compiled binary takes 100-300 ms on a 2026-era laptop ; the VM-interpreted
+/// run takes a few seconds. The `bench/` peers (TS, Go) compute the same
+/// checksum so cross-language equivalence is easy to verify.
+
+import "std/io" { println }
+
+WIDTH    :: 240
+HEIGHT   :: 180
+MAX_ITER :: 500
+
+X_MIN :: -2.0
+X_MAX ::  1.0
+Y_MIN :: -1.0
+Y_MAX ::  1.0
+
+iterations :: fn(cx: f64, cy: f64) -> i32 {
+    zx := 0.0
+    zy := 0.0
+    for iter in 0..<MAX_ITER {
+        zx_squared :: zx * zx
+        zy_squared :: zy * zy
+        if zx_squared + zy_squared > 4.0 {
+            return iter
+        }
+        new_zy :: 2.0 * zx * zy + cy
+        zx = zx_squared - zy_squared + cx
+        zy = new_zy
+    }
+    return MAX_ITER
+}
+
+main :: fn() -> i32 {
+    dx :: (X_MAX - X_MIN) / f64(WIDTH)
+    dy :: (Y_MAX - Y_MIN) / f64(HEIGHT)
+    checksum := 0
+    for row in 0..<HEIGHT {
+        cy :: Y_MIN + f64(row) * dy
+        for col in 0..<WIDTH {
+            cx :: X_MIN + f64(col) * dx
+            checksum = checksum + iterations(cx, cy)
+        }
+    }
+    println("mandelbrot ${WIDTH}x${HEIGHT} iter=${MAX_ITER} checksum=${checksum}")
+    return 0
+}

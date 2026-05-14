@@ -13,3 +13,12 @@ coverage/
 !.vscode/settings.json
 !.vscode/extensions.json
 .idea/
+
+# Bench artifacts — native binaries + generated C from `bench/run.ts`
+bench/mandelbrot
+bench/mandelbrot.c
+bench/mandelbrot_go
+bench/primes
+bench/primes.c
+bench/primes_go
+*.dSYM/

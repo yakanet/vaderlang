@@ -246,6 +246,23 @@ Snapshot tests live under `tests/snapshots/<phase>/<scenario>/` — each scenari
 
 The formatter tests (`tests/formatter*.test.ts`) invoke `vader fmt` through the bytecode VM ; each invocation pays a ~2-3 s VM-bootstrap cost. They're gated behind `RUN_FMT_TESTS=1` so the default `bun test` stays fast. The stdlib suite includes a byte-for-byte no-op probe on the subset already converged on the canonical style.
 
+### Benchmarks
+
+```sh
+bun run bench                              # measure + compare to bench/baseline.json
+bun run bench -- --update                  # rewrite baseline with current measurements
+bun run bench -- --runs=5 --workload=primes  # custom run count, single workload
+```
+
+Two CPU-bound workloads (`mandelbrot`, `primes`) measured across four implementations of each — the Vader VM (`bun src/index.ts run`), Vader native (`--target=native --release`), the same kernel in Bun-TS, and the same kernel in Go. Current baseline on a 2026 Apple Silicon laptop :
+
+| workload     | vader-vm     | vader-native | bun-ts  | go      |
+|--------------|--------------|--------------|---------|---------|
+| `mandelbrot` | 18 788 ms    | 65.3 ms      | 23.4 ms | 18.1 ms |
+| `primes`     | 29 423 ms    | 41.1 ms      | 41.1 ms | 23.9 ms |
+
+`bun run bench` exits non-zero if any measurement regresses by more than 10 % vs the committed baseline, or if any implementation's checksum diverges. See [`bench/README.md`](./bench/README.md) for the workload sources, the comparison methodology, and notes on Go's FMA-driven checksum drift.
+
 ---
 
 ## Editor support

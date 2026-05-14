@@ -1,0 +1,41 @@
+/// Count primes ≤ N by trial division — for each candidate n, walk divisors
+/// from 2 up to floor(sqrt(n)) and reject the moment one divides evenly.
+/// Sized so the natively compiled binary runs in ~100 ms ; VM in ~1-2 s.
+///
+/// We use trial division (not a sieve) on purpose : Vader's `bool[]` stores
+/// every element as a 16-byte `vader_box_t`, so a 10 M-element sieve would
+/// allocate 160 MB and exceed the 4 MB young semi-space. Trial division is
+/// allocation-free and scales linearly with the CPU workload — the right
+/// shape for a perf benchmark.
+///
+/// `count` and `sum` are i64 — the sum of primes ≤ 200 K is ~1.7·10⁹ which
+/// already overflows i32.
+
+import "std/io" { println }
+
+N :: 1_000_000
+
+is_prime :: fn(n: i32) -> bool {
+    if n < 2  { return false }
+    if n < 4  { return true }
+    if n % 2 == 0 { return false }
+    d := 3
+    for d * d <= n {
+        if n % d == 0 { return false }
+        d = d + 2
+    }
+    return true
+}
+
+main :: fn() -> i32 {
+    count: i64 = 0
+    sum: i64 = 0
+    for n in 2..=N {
+        if is_prime(n) {
+            count = count + 1
+            sum = sum + i64(n)
+        }
+    }
+    println("primes N=${N} count=${count} sum=${sum}")
+    return 0
+}
