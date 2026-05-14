@@ -1,0 +1,108 @@
+# Lower
+
+## tests/snippets/match_field_narrow/_main.vader
+  struct tests_snippets_match_field_narrow__main_vader$Bag { items: i32[] | null }
+  fn tests_snippets_match_field_narrow__main_vader$count(items: i32[]) -> i32
+    return
+      cast → i32
+        LoweredArrayLen
+  fn tests_snippets_match_field_narrow__main_vader$main() -> i32
+    let b: Bag =
+      Bag {
+        items:
+          array :i32[]
+            int(1) :i32
+            int(2) :i32
+            int(3) :i32
+      }
+    block :void
+      let __scrut_0: i32[] | null =
+        .items :i32[] | null
+          b :Bag
+      ~>
+        if :void
+          cond:
+            is null :bool
+              __scrut_0 :i32[] | null
+          then:
+            ~>
+              block :void
+                ~>
+                  call :void
+                    callee:
+                      println :fn(string) -> void
+                    arg0:
+                      "empty" :string
+          else:
+            ~>
+              block :void
+                ~>
+                  call :void
+                    callee:
+                      println :fn(string) -> void
+                    arg0:
+                      block :string
+                        let __sb_1: ? =
+                          @builder.new :?
+                        @builder.append_str :void
+                          __sb_1 :?
+                          "count=" :string
+                        @builder.append_display <for i32> :void
+                          __sb_1 :?
+                          call :i32
+                            callee:
+                              count :fn(i32[]) -> i32
+                            arg0:
+                              .items :i32[]
+                                b :Bag
+                        ~>
+                          @builder.finish :string
+                            __sb_1 :?
+    let empty: Bag =
+      Bag {
+        items: null
+      }
+    block :void
+      let __scrut_2: i32[] | null =
+        .items :i32[] | null
+          empty :Bag
+      ~>
+        if :void
+          cond:
+            is null :bool
+              __scrut_2 :i32[] | null
+          then:
+            ~>
+              block :void
+                ~>
+                  call :void
+                    callee:
+                      println :fn(string) -> void
+                    arg0:
+                      "empty" :string
+          else:
+            ~>
+              block :void
+                ~>
+                  call :void
+                    callee:
+                      println :fn(string) -> void
+                    arg0:
+                      block :string
+                        let __sb_3: ? =
+                          @builder.new :?
+                        @builder.append_str :void
+                          __sb_3 :?
+                          "count=" :string
+                        @builder.append_display <for i32> :void
+                          __sb_3 :?
+                          call :i32
+                            callee:
+                              count :fn(i32[]) -> i32
+                            arg0:
+                              .items :i32[]
+                                empty :Bag
+                        ~>
+                          @builder.finish :string
+                            __sb_3 :?
+    return int(0) :i32

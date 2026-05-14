@@ -385,10 +385,9 @@ emit_import :: fn(self: Printer, d: p.ImportDecl) -> void {
             self.write(" :: import \"")
             self.write(d.path)
             self.write("\"")
-            r :: nn.restricted
-            match r {
+            match nn.restricted {
                 is null -> {}
-                _       -> { self.emit_import_name_block(d, r) }
+                _       -> { self.emit_import_name_block(d, nn.restricted) }
             }
         }
         is p.DestructureImport as dst -> {

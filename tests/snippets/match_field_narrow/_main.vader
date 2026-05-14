@@ -1,0 +1,28 @@
+// `match expr.field { is null -> ... ; _ -> use expr.field }` must narrow
+// the field's type in the wildcard arm. Without the per-field narrowing
+// the wildcard sees `i32[] | null` and trying to read `.len()` on it
+// (or pass it to a fn expecting the non-null variant) raises T3001.
+
+import "std/io" { println }
+
+Bag :: struct {
+    items: i32[] | null
+}
+
+count :: fn(items: i32[]) -> i32 {
+    return i32(items.len())
+}
+
+main :: fn() -> i32 {
+    b :: Bag { .items = [1, 2, 3] }
+    match b.items {
+        is null -> { println("empty") }
+        _       -> { println("count=${count(b.items)}") }
+    }
+    empty :: Bag { .items = null }
+    match empty.items {
+        is null -> { println("empty") }
+        _       -> { println("count=${count(empty.items)}") }
+    }
+    return 0
+}

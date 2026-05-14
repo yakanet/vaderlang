@@ -25,6 +25,7 @@ import { findIntoImpl, tryInto } from "./coerce.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { checkExpr, typeOfSymbol } from "./expr.ts";
+import { fieldNarrowKey } from "./narrow.ts";
 import { mergeSubst, typeContainsTypeParam, unifyTypeParam } from "./unify.ts";
 
 export function inferField(
@@ -36,6 +37,17 @@ export function inferField(
   if (fieldRef?.kind === "namespace") return typeOfSymbol(fieldRef.symbol, t);
 
   const targetType = checkExpr(expr.target, null, t, impls, diags, fn);
+  // Field-expr flow narrowing : when an enclosing `match foo.field { ... }`
+  // has pushed a narrowing for the same `(targetSym, fieldName)` pair,
+  // return the narrowed type. Gated on `narrowedFields.size` to keep the
+  // alloc-free hot path (most field reads aren't inside a narrowed match).
+  if (t.narrowedFields.size !== 0 && expr.target.kind === "IdentExpr") {
+    const targetSym = t.resolved.idents.get(expr.target);
+    if (targetSym !== undefined) {
+      const narrowed = t.narrowedFields.get(fieldNarrowKey(targetSym.id, expr.field));
+      if (narrowed !== undefined) return narrowed;
+    }
+  }
   if (targetType.kind === "Array") {
     if (expr.field === "len") {
       t.fieldResolutions.set(expr, { kind: "array-op", op: "len" });

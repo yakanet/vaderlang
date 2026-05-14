@@ -13,10 +13,24 @@
 // nesting works because push returns the prior entry and pop restores it.
 
 import type * as A from "../../parser/ast.ts";
+import type { Symbol } from "../../resolver/symbol.ts";
 import type { MutableTyped } from "../ctx.ts";
 import { typeOfSymbol } from "./expr.ts";
 import type { Type } from "../types.ts";
 import { TY, equalsType, unionOf } from "../types.ts";
+
+/** Resolve a plain `IdentExpr` to its symbol *only* when that symbol is a
+ *  flow-narrowable kind (local / param / binding). Shared between match's
+ *  scrutinee detection (`match.ts`) and the if-condition flow detector
+ *  (`detectVariantNarrowing` below) — both reject anything else. */
+export function resolveNarrowableIdent(
+  ident: A.IdentExpr, t: MutableTyped,
+): Symbol | null {
+  const sym = t.resolved.idents.get(ident);
+  if (sym === undefined) return null;
+  if (sym.kind !== "local" && sym.kind !== "param" && sym.kind !== "binding") return null;
+  return sym;
+}
 
 export function pushNarrowing(t: MutableTyped, symId: number, narrow: Type): Type | undefined {
   const prev = t.narrowed.get(symId);
@@ -27,6 +41,32 @@ export function pushNarrowing(t: MutableTyped, symId: number, narrow: Type): Typ
 export function popNarrowing(t: MutableTyped, symId: number, prev: Type | undefined): void {
   if (prev === undefined) t.narrowed.delete(symId);
   else t.narrowed.set(symId, prev);
+}
+
+export function fieldNarrowKey(symId: number, fieldName: string): string {
+  return `${symId}#${fieldName}`;
+}
+
+/** Field narrowing mirrors the symbol-id flavour : a push registers a more
+ *  specific type for `targetSym.field` reads inside the scope, a pop
+ *  restores the prior entry. Same staleness caveat as `pushNarrowing` —
+ *  a mutation of `targetSym.field` inside the scope isn't observed ;
+ *  Vader's MVP idiom doesn't reassign fields mid-match. */
+export function pushFieldNarrowing(
+  t: MutableTyped, symId: number, fieldName: string, narrow: Type,
+): Type | undefined {
+  const k = fieldNarrowKey(symId, fieldName);
+  const prev = t.narrowedFields.get(k);
+  t.narrowedFields.set(k, narrow);
+  return prev;
+}
+
+export function popFieldNarrowing(
+  t: MutableTyped, symId: number, fieldName: string, prev: Type | undefined,
+): void {
+  const k = fieldNarrowKey(symId, fieldName);
+  if (prev === undefined) t.narrowedFields.delete(k);
+  else t.narrowedFields.set(k, prev);
 }
 
 /** Detect a variant-narrowing condition on a single ident scrutinee.
@@ -72,9 +112,8 @@ export function detectVariantNarrowing(
 function narrowFromIdent(
   ident: A.IdentExpr, checkType: Type, t: MutableTyped,
 ): { symId: number; thenType: Type; elseType: Type } | null {
-  const sym = t.resolved.idents.get(ident);
-  if (sym === undefined) return null;
-  if (sym.kind !== "local" && sym.kind !== "param" && sym.kind !== "binding") return null;
+  const sym = resolveNarrowableIdent(ident, t);
+  if (sym === null) return null;
   const current = typeOfSymbol(sym, t);
   if (current.kind !== "Union") return null;
   const matching: Type[] = [];

@@ -41,7 +41,7 @@ export function declareModule(
 ): void {
   const t: MutableTyped = {
     resolved: program, globals,
-    exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
+    exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(), narrowedFields: new Map(),
     fieldResolutions: new Map(),
     genericFnCalls: new Map(),
     directCallOverloads: new Map(),
@@ -80,7 +80,7 @@ export function checkProgram(
 ): TypedProgram {
   const t: MutableTyped = {
     resolved: program, globals,
-    exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
+    exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(), narrowedFields: new Map(),
     fieldResolutions: new Map(),
     genericFnCalls: new Map(),
     directCallOverloads: new Map(),
@@ -227,7 +227,7 @@ export function inferExprBodiedReturns(
       const scratch = new DiagnosticCollector();
       const t: MutableTyped = {
         resolved: item.program, globals,
-        exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(),
+        exprTypes: new Map(), localTypes: new Map(), narrowed: new Map(), narrowedFields: new Map(),
         fieldResolutions: new Map(),
         genericFnCalls: new Map(),
         directCallOverloads: new Map(),

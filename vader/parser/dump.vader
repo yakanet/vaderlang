@@ -175,10 +175,9 @@ write_import_binding :: fn(sb: StringBuilder, b: ImportBinding, level: i32) -> v
             sb.entry(false, level + 1, "name")
             sb.write_string(b.name)
             sb.entry(false, level + 1, "restricted")
-            r :: b.restricted
-            match r {
+            match b.restricted {
                 is null -> { sb.append("null") }
-                _       -> { sb.write_import_names(r, level + 1) }
+                _       -> { sb.write_import_names(b.restricted, level + 1) }
             }
         }
         is DestructureImport -> {

@@ -1,0 +1,40 @@
+# Typecheck
+
+## tests/snippets/match_field_narrow/_main.vader
+  StructDecl     Bag                  :: Bag
+  FnDecl         count                :: fn(i32[]) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 13:12    CallExpr       :: i32
+  expr 13:12    IdentExpr      :: type
+  expr 13:16    CallExpr       :: usize
+  expr 13:16    FieldExpr      :: fn() -> usize
+  expr 13:16    IdentExpr      :: i32[]
+  expr 17:10    StructLitExpr  :: Bag
+  expr 17:25    SeqLitExpr     :: i32[]
+  expr 18:11    FieldExpr      :: i32[] | null
+  expr 18:11    IdentExpr      :: Bag
+  expr 18:5     MatchExpr      :: void
+  expr 19:22    CallExpr       :: void
+  expr 19:22    IdentExpr      :: fn(string) -> void
+  expr 19:30    StringLitExpr  :: string
+  expr 20:22    CallExpr       :: void
+  expr 20:22    IdentExpr      :: fn(string) -> void
+  expr 20:30    StringLitExpr  :: string
+  expr 20:39    CallExpr       :: i32
+  expr 20:39    IdentExpr      :: fn(i32[]) -> i32
+  expr 20:45    FieldExpr      :: i32[]
+  expr 20:45    IdentExpr      :: Bag
+  expr 22:14    StructLitExpr  :: Bag
+  expr 23:11    FieldExpr      :: i32[] | null
+  expr 23:11    IdentExpr      :: Bag
+  expr 23:5     MatchExpr      :: void
+  expr 24:22    CallExpr       :: void
+  expr 24:22    IdentExpr      :: fn(string) -> void
+  expr 24:30    StringLitExpr  :: string
+  expr 25:22    CallExpr       :: void
+  expr 25:22    IdentExpr      :: fn(string) -> void
+  expr 25:30    StringLitExpr  :: string
+  expr 25:39    CallExpr       :: i32
+  expr 25:39    IdentExpr      :: fn(i32[]) -> i32
+  expr 25:45    FieldExpr      :: i32[]
+  expr 25:45    IdentExpr      :: Bag
