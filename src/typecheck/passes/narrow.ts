@@ -69,52 +69,115 @@ export function popFieldNarrowing(
   else t.narrowedFields.set(k, prev);
 }
 
-/** Detect a variant-narrowing condition on a single ident scrutinee.
- *  Three shapes are recognised :
- *    1. `ident is T`              ⇒ then = T ; else = current minus T
- *    2. `ident == null`           ⇒ then = null ; else = current minus null
- *    3. `ident != null`           ⇒ then = current minus null ; else = null
- *  Plus leading `!` flips then/else. Bails (returns null) when the ident
- *  isn't a narrowable scrutinee (local/param/binding), when its type isn't
- *  a Union, or when the check is statically vacuous (variant absent or sole
- *  member of the union). */
+/** Subset of `NarrowingSplit` carrying only the scrutinee identity — what
+ *  `pushSplit` / `popSplit` need to route to the right (symbol vs field)
+ *  narrowing map. Lets callers persist narrowings without dragging the
+ *  then/else types around (e.g. the `postStmtNarrowing` flow in
+ *  `stmt.ts` keeps only one of the two types per branch). */
+export interface NarrowingScope {
+  readonly symId: number;
+  readonly fieldName: string | null;
+}
+
+/** Push `type` into whichever narrowing slot `split` describes (symbol-id
+ *  or `(symId, fieldName)` field). Mirror `popSplit` below. Returns the
+ *  prior entry the pop should restore. */
+export function pushSplit(
+  t: MutableTyped, split: NarrowingScope, type: Type,
+): Type | undefined {
+  return split.fieldName === null
+    ? pushNarrowing(t, split.symId, type)
+    : pushFieldNarrowing(t, split.symId, split.fieldName, type);
+}
+
+export function popSplit(
+  t: MutableTyped, split: NarrowingScope, prev: Type | undefined,
+): void {
+  if (split.fieldName === null) popNarrowing(t, split.symId, prev);
+  else popFieldNarrowing(t, split.symId, split.fieldName, prev);
+}
+
+/** Result of a flow-narrowing detection. `fieldName === null` means the
+ *  scrutinee was a plain ident — push through `pushNarrowing` on
+ *  `symId`. When `fieldName` is set, the scrutinee was `ident.field` —
+ *  push through `pushFieldNarrowing` on the `(symId, fieldName)` pair. */
+export interface NarrowingSplit {
+  readonly symId: number;
+  readonly fieldName: string | null;
+  readonly thenType: Type;
+  readonly elseType: Type;
+}
+
+/** Detect a variant-narrowing condition on a single scrutinee. Scrutinee
+ *  shapes accepted : a plain ident (`x`) or a one-level field access
+ *  (`x.field`) where the ident binds a local / param / binding. Three
+ *  comparison shapes :
+ *    1. `scrut is T`              ⇒ then = T ; else = current minus T
+ *    2. `scrut == null`           ⇒ then = null ; else = current minus null
+ *    3. `scrut != null`           ⇒ then = current minus null ; else = null
+ *  Plus leading `!` flips then/else. Bails (returns null) when the
+ *  scrutinee isn't narrowable, the static type isn't a Union, or the
+ *  check is statically vacuous. */
 export function detectVariantNarrowing(
   cond: A.Expr, t: MutableTyped,
-): { symId: number; thenType: Type; elseType: Type } | null {
+): NarrowingSplit | null {
   if (cond.kind === "UnaryExpr" && cond.op === "not") {
     const inner = detectVariantNarrowing(cond.operand, t);
     if (inner === null) return null;
-    return { symId: inner.symId, thenType: inner.elseType, elseType: inner.thenType };
+    return { ...inner, thenType: inner.elseType, elseType: inner.thenType };
   }
   if (cond.kind !== "BinaryExpr") return null;
   if (cond.op === "is") {
-    if (cond.left.kind !== "IdentExpr") return null;
     const checkType = t.binaryIsCheckTypes.get(cond);
     if (checkType === undefined) return null;
-    return narrowFromIdent(cond.left, checkType, t);
+    return narrowFromScrutinee(cond.left, checkType, t);
   }
   if (cond.op === "eq" || cond.op === "neq") {
     const { left, right } = cond;
-    const ident = left.kind === "IdentExpr" && right.kind === "NullLitExpr" ? left
-                : right.kind === "IdentExpr" && left.kind === "NullLitExpr" ? right
+    const scrut = right.kind === "NullLitExpr" ? left
+                : left.kind === "NullLitExpr"  ? right
                 : null;
-    if (ident === null) return null;
-    const split = narrowFromIdent(ident, TY.null, t);
+    if (scrut === null) return null;
+    const split = narrowFromScrutinee(scrut, TY.null, t);
     if (split === null) return null;
     if (cond.op === "neq") {
-      return { symId: split.symId, thenType: split.elseType, elseType: split.thenType };
+      return { ...split, thenType: split.elseType, elseType: split.thenType };
     }
     return split;
   }
   return null;
 }
 
-function narrowFromIdent(
-  ident: A.IdentExpr, checkType: Type, t: MutableTyped,
-): { symId: number; thenType: Type; elseType: Type } | null {
-  const sym = resolveNarrowableIdent(ident, t);
-  if (sym === null) return null;
-  const current = typeOfSymbol(sym, t);
+/** Compute the matching / complementary pair for a narrowable scrutinee
+ *  (plain ident or `ident.field`) against `checkType`. Returns null on
+ *  any of the bail conditions documented on `detectVariantNarrowing`. */
+function narrowFromScrutinee(
+  scrut: A.Expr, checkType: Type, t: MutableTyped,
+): NarrowingSplit | null {
+  if (scrut.kind === "IdentExpr") {
+    const sym = resolveNarrowableIdent(scrut, t);
+    if (sym === null) return null;
+    return splitUnion(typeOfSymbol(sym, t), checkType, sym.id, null);
+  }
+  if (scrut.kind === "FieldExpr" && scrut.target.kind === "IdentExpr") {
+    const sym = resolveNarrowableIdent(scrut.target, t);
+    if (sym === null) return null;
+    // The condition expression has already been type-checked, so the
+    // field expression's type sits in `exprTypes`. The `?? TY.unresolved`
+    // is defensive — a missing entry means a preceding pass failed to
+    // type the cond, in which case `splitUnion` bails on the non-union
+    // type below and no narrowing fires.
+    const current = t.exprTypes.get(scrut) ?? TY.unresolved;
+    return splitUnion(current, checkType, sym.id, scrut.field);
+  }
+  // Nested paths (`a.b.c`) and non-Ident bases are deferred — the
+  // narrowing map keys on a single `(symId, fieldName)` pair.
+  return null;
+}
+
+function splitUnion(
+  current: Type, checkType: Type, symId: number, fieldName: string | null,
+): NarrowingSplit | null {
   if (current.kind !== "Union") return null;
   const matching: Type[] = [];
   const remaining: Type[] = [];
@@ -126,7 +189,7 @@ function narrowFromIdent(
   if (remaining.length === 0) return null;    // would collapse to Never
   const thenType = matching.length === 1 ? matching[0]! : unionOf(matching);
   const elseType = unionOf(remaining);
-  return { symId: sym.id, thenType, elseType };
+  return { symId, fieldName, thenType, elseType };
 }
 
 /** True when every control-flow path through this block ends in a
@@ -146,10 +209,11 @@ export function blockDiverges(block: A.BlockExpr): boolean {
  *  the subsequent code is reachable only when the guard was false ; push
  *  the complementary narrowing so subsequent references see the narrowed
  *  type. Returns the narrowing to apply to the *rest* of the enclosing
- *  block, or null when the shape doesn't qualify. */
+ *  block, or null when the shape doesn't qualify. `fieldName` mirrors
+ *  `NarrowingSplit` — null for symbol scrutinees, set for `ident.field`. */
 export function postStmtNarrowing(
   stmt: A.Stmt, t: MutableTyped,
-): { symId: number; type: Type } | null {
+): { symId: number; fieldName: string | null; type: Type } | null {
   if (stmt.kind !== "ExprStmt" || stmt.expr.kind !== "IfExpr") return null;
   const ifExpr = stmt.expr;
   const split = detectVariantNarrowing(ifExpr.cond, t);
@@ -158,10 +222,10 @@ export function postStmtNarrowing(
   const elseBlock = ifExpr.else;
   const elseDiverges = elseBlock !== null && elseBlock.kind === "BlockExpr" && blockDiverges(elseBlock);
   if (thenDiverges && !elseDiverges) {
-    return { symId: split.symId, type: split.elseType };
+    return { symId: split.symId, fieldName: split.fieldName, type: split.elseType };
   }
   if (elseDiverges && !thenDiverges) {
-    return { symId: split.symId, type: split.thenType };
+    return { symId: split.symId, fieldName: split.fieldName, type: split.thenType };
   }
   return null;
 }

@@ -1,0 +1,57 @@
+# Typecheck
+
+## tests/snippets/if_field_narrow/_main.vader
+  StructDecl     Bag                  :: Bag
+  FnDecl         count                :: fn(i32[]) -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         report               :: fn(Bag) -> void
+  FnDecl         total                :: fn(Bag) -> i32
+  expr 13:12    CallExpr       :: i32
+  expr 13:12    IdentExpr      :: type
+  expr 13:16    CallExpr       :: usize
+  expr 13:16    FieldExpr      :: fn() -> usize
+  expr 13:16    IdentExpr      :: i32[]
+  expr 18:5     IfExpr         :: void
+  expr 18:8     BinaryExpr     :: bool
+  expr 18:8     FieldExpr      :: i32[] | null
+  expr 18:8     IdentExpr      :: Bag
+  expr 19:17    StringLitExpr  :: string
+  expr 19:26    CallExpr       :: i32
+  expr 19:26    IdentExpr      :: fn(i32[]) -> i32
+  expr 19:32    FieldExpr      :: i32[]
+  expr 19:32    IdentExpr      :: Bag
+  expr 19:9     CallExpr       :: void
+  expr 19:9     IdentExpr      :: fn(string) -> void
+  expr 21:17    StringLitExpr  :: string
+  expr 21:9     CallExpr       :: void
+  expr 21:9     IdentExpr      :: fn(string) -> void
+  expr 27:33    UnaryExpr      :: i32
+  expr 27:5     IfExpr         :: void
+  expr 27:8     BinaryExpr     :: bool
+  expr 27:8     FieldExpr      :: i32[] | null
+  expr 27:8     IdentExpr      :: Bag
+  expr 28:12    CallExpr       :: i32
+  expr 28:12    IdentExpr      :: fn(i32[]) -> i32
+  expr 28:18    FieldExpr      :: i32[]
+  expr 28:18    IdentExpr      :: Bag
+  expr 32:13    StructLitExpr  :: Bag
+  expr 32:28    SeqLitExpr     :: i32[]
+  expr 33:14    StructLitExpr  :: Bag
+  expr 34:12    IdentExpr      :: Bag
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(Bag) -> void
+  expr 35:12    IdentExpr      :: Bag
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(Bag) -> void
+  expr 36:13    StringLitExpr  :: string
+  expr 36:22    CallExpr       :: i32
+  expr 36:22    IdentExpr      :: fn(Bag) -> i32
+  expr 36:28    IdentExpr      :: Bag
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(string) -> void
+  expr 37:13    StringLitExpr  :: string
+  expr 37:22    CallExpr       :: i32
+  expr 37:22    IdentExpr      :: fn(Bag) -> i32
+  expr 37:28    IdentExpr      :: Bag
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(string) -> void

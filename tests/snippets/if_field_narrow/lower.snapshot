@@ -1,0 +1,127 @@
+# Lower
+
+## tests/snippets/if_field_narrow/_main.vader
+  struct tests_snippets_if_field_narrow__main_vader$Bag { items: i32[] | null }
+  fn tests_snippets_if_field_narrow__main_vader$count(items: i32[]) -> i32
+    return
+      cast → i32
+        LoweredArrayLen
+  fn tests_snippets_if_field_narrow__main_vader$report(b: Bag) -> void
+    ~>
+      if :void
+        cond:
+          not :bool
+            is null :bool
+              .items :i32[] | null
+                b :Bag
+        then:
+          ~>
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_0: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_0 :?
+                    "count=" :string
+                  @builder.append_display <for i32> :void
+                    __sb_0 :?
+                    call :i32
+                      callee:
+                        count :fn(i32[]) -> i32
+                      arg0:
+                        .items :i32[]
+                          b :Bag
+                  ~>
+                    @builder.finish :string
+                      __sb_0 :?
+        else:
+          ~>
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                "empty" :string
+  fn tests_snippets_if_field_narrow__main_vader$total(b: Bag) -> i32
+    if :void
+      cond:
+        is null :bool
+          .items :i32[] | null
+            b :Bag
+      then:
+        return
+          neg :i32
+            int(1) :i32
+    return
+      call :i32
+        callee:
+          count :fn(i32[]) -> i32
+        arg0:
+          .items :i32[]
+            b :Bag
+  fn tests_snippets_if_field_narrow__main_vader$main() -> i32
+    let full: Bag =
+      Bag {
+        items:
+          array :i32[]
+            int(1) :i32
+            int(2) :i32
+            int(3) :i32
+      }
+    let empty: Bag =
+      Bag {
+        items: null
+      }
+    call :void
+      callee:
+        report :fn(Bag) -> void
+      arg0:
+        full :Bag
+    call :void
+      callee:
+        report :fn(Bag) -> void
+      arg0:
+        empty :Bag
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "total=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            call :i32
+              callee:
+                total :fn(Bag) -> i32
+              arg0:
+                full :Bag
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "total=" :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            call :i32
+              callee:
+                total :fn(Bag) -> i32
+              arg0:
+                empty :Bag
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    return int(0) :i32

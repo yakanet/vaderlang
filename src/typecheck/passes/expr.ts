@@ -24,7 +24,7 @@ import { inferBinary } from "./binary.ts";
 import { inferCall, inferField } from "./call.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { inferMatch } from "./match.ts";
-import { detectVariantNarrowing, popNarrowing, pushNarrowing } from "./narrow.ts";
+import { detectVariantNarrowing, popSplit, pushSplit } from "./narrow.ts";
 import { checkBlock } from "./stmt.ts";
 import { inferStructLit } from "./struct-lit.ts";
 import { inferTry } from "./try.ts";
@@ -411,9 +411,9 @@ function inferIf(
   const split = detectVariantNarrowing(expr.cond, t);
 
   let prevThen: Type | undefined;
-  if (split !== null) prevThen = pushNarrowing(t, split.symId, split.thenType);
+  if (split !== null) prevThen = pushSplit(t, split, split.thenType);
   const thenT = checkBlock(expr.then, expected, t, impls, diags, fn);
-  if (split !== null) popNarrowing(t, split.symId, prevThen);
+  if (split !== null) popSplit(t, split, prevThen);
 
   if (expr.else === null) return thenT.kind === "Never" ? TY.void : unionOf([thenT, TY.void]);
 
@@ -423,11 +423,11 @@ function inferIf(
   const elseExpected = expected ?? (isNumeric(thenT) ? thenT : null);
 
   let prevElse: Type | undefined;
-  if (split !== null) prevElse = pushNarrowing(t, split.symId, split.elseType);
+  if (split !== null) prevElse = pushSplit(t, split, split.elseType);
   const elseT = expr.else.kind === "IfExpr"
     ? checkExpr(expr.else, elseExpected, t, impls, diags, fn)
     : checkBlock(expr.else, elseExpected, t, impls, diags, fn);
-  if (split !== null) popNarrowing(t, split.symId, prevElse);
+  if (split !== null) popSplit(t, split, prevElse);
 
   if (expected === null && (thenT.kind === "FreeInt" || thenT.kind === "FreeFloat") && isNumeric(elseT)) {
     const trailing = expr.then.trailing;

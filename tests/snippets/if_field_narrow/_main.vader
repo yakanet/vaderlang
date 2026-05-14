@@ -1,0 +1,39 @@
+// `if expr.field != null { ... }` and the divergent-early-return form
+// `if expr.field == null { return ... }` must narrow the field's type
+// in the matching branch. Without per-field flow narrowing the body
+// sees `i32[] | null` and a fn boundary expecting `i32[]` raises T3001.
+
+import "std/io" { println }
+
+Bag :: struct {
+    items: i32[] | null
+}
+
+count :: fn(items: i32[]) -> i32 {
+    return i32(items.len())
+}
+
+// Truthy `!= null` form : narrows `b.items` to `i32[]` in the then-branch.
+report :: fn(b: Bag) -> void {
+    if b.items != null {
+        println("count=${count(b.items)}")
+    } else {
+        println("empty")
+    }
+}
+
+// Divergent `== null` early return : narrows for the rest of the body.
+total :: fn(b: Bag) -> i32 {
+    if b.items == null { return -1 }
+    return count(b.items)
+}
+
+main :: fn() -> i32 {
+    full :: Bag { .items = [1, 2, 3] }
+    empty :: Bag { .items = null }
+    report(full)
+    report(empty)
+    println("total=${total(full)}")
+    println("total=${total(empty)}")
+    return 0
+}
