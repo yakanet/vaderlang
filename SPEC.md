@@ -509,7 +509,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - `T[]` (postfix) is a dynamic array (runtime length). `int[]`, `string[]`, `Foo[i32][]`, ... `int[][]` is an array of int arrays.
 - **Implicit reference** semantics: `arr2 := arr` copies the reference; use `clone(arr)` (free function) for a real copy.
 - Indexing: `arr[i]`. Bounds-checked in debug (panic), elidable in release.
-- Slicing: `arr[0..<3]` (to validate in MVP, otherwise deferred).
+- **Slicing**: `arr[r]` where `r : Range[<integer>]` returns a fresh `T[]` over the requested span. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and let-bound range values work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted ; bounds are coerced to `usize` at the use site. The result is a fresh array, not a view : mutations to the slice don't propagate back to the source. Lowering desugars to a copy loop using the existing array primitives ; no dedicated bytecode op.
 - Postfix `[]` binds tighter than `!` and `|` ; use parens to group : `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U", `int[]!` is `int[] | Error`.
 
 ### Tuples
@@ -822,15 +822,23 @@ match value {
     is Point { x: 0, y } -> "Y axis at $y"
     is Point { x, y }    -> "($x, $y)"
     is null              -> "nothing"
-    _                    -> "other"
+    42                   -> "the answer"
+    'A'                  -> "letter A"
+    "ok"                 -> "literal ok"
+    rest                 -> "anything else, bound as `rest`"
+    _                    -> "wildcard catch-all"
 }
 ```
 
-- `is Type` for narrowing
-- Struct patterns with bindings and constraints
-- Guards via `if cond`
-- Wildcard `_`
-- **Exhaustiveness checked** by the compiler. For union scrutinees, every variant must be covered (or matched by a wildcard `_`). For non-union scrutinees a wildcard arm is required, since the compiler cannot enumerate all values of, say, `i32`.
+- `is Type` for type narrowing.
+- **Literal-value patterns** : `42` / `'A'` / `"ok"` / `true` / `false` / `null` / `-1` directly match a scalar value. The literal's type is checked against the scrutinee (T3001 on mismatch) and the lowerer emits a `scrutinee == literal` predicate. Or-patterns (`'a' | 'b' -> …`) and range-patterns (`'a'..='z' -> …`) are deferred.
+- Struct patterns with bindings and constraints.
+- **Binding patterns** : a bare identifier `name -> …` matches every remaining value and binds it to `name`. Combined with `is`-narrowing of prior arms, the binding sees the *narrowed* type, not the full scrutinee — `match v { is null -> {} ; pet -> use(pet) }` narrows `pet` to "scrutinee − null".
+- Guards via `if cond`.
+- Wildcard `_` — same flow-narrowing as binding arms.
+- **Flow narrowing through wildcard / binding arms** : after one or more `is X` arms (without inner struct refinement), the subsequent `_` or `name` arm sees the scrutinee narrowed to `union − matched`. Lets `match p: Pet | null { is null -> "no" ; _ -> p.name }` read the common field without a wrapping cast.
+- **`is T` reachability** (`T3040`) : an `is T` arm whose `T` can never be a value of the scrutinee's static type is rejected at compile time. `match p: Pet { is Bird -> … }` errors when `Bird` is not part of `Pet`'s union ; same rule fires for `if x is T` expressions outside `match`. The check uses the symmetric `intersects(T, scrutinee)` predicate ; unknowns (`Unresolved`, `TypeParam`) suppress cascading.
+- **Exhaustiveness checked** by the compiler. For union scrutinees, every variant must be covered (or matched by a wildcard `_` / binding arm). For non-union scrutinees a wildcard or binding arm is required, since the compiler cannot enumerate all values of, say, `i32`.
 
 ### Variable bindings
 
@@ -1328,6 +1336,15 @@ plus(2, 3)
 
 `a.f(b)` is desugared to `f(a, b)` at compile time. There are **no methods** in Vader, only free functions + UFCS.
 
+UFCS dispatch works against three shapes of receiver–first-param relation, ranked weakest-wins-only-on-tie :
+1. **Concrete match** : the receiver's static type is assignable to the first param. `s.byte_len()` where `byte_len :: fn(s: string) -> usize`.
+2. **Symbolic match** : the receiver and the first param share a struct/trait symbol but differ in their type-args (e.g. `MutableList[i32]` against `fn[T](self: MutableList[T])`). The generic-fn-dispatch path closes over the type-args at the call site.
+3. **Trait-typed first param** : when the first param has trait type `Trait[T]` and the receiver implements that trait, UFCS dispatches to it. `source.chars().filter(is_bf_char)` resolves through `std/iter.filter :: fn[T](it: Iterator[T], pred) -> T[]` because `StringChars` implements `Iterator[char]`. Trait-typeparam unification happens through `unifyTraitParamWithConcrete`.
+4. **Union receivers** : `value.method()` on a union-typed `value` falls through to free-fn UFCS when no variant carries a struct field by that name. The first-param type can be the *union itself* (`fn read_i32(v: Value, …)`) — receiver and param match directly.
+5. **`Into[Target]` last-resort coercion** : strictly weaker than every other rank ; only fires when no direct candidate exists.
+
+Specifically — a partial match where some variants of a union scrutinee carry the field and others don't still raises `T3009` ; the fall-through to UFCS only triggers when *no* variant has the field at all.
+
 #### Function overloading
 
 Two free functions with the same name **may coexist in the same module** when they differ in the type of their **first parameter** (the receiver). The resolver dispatches based on the receiver's type at the call site.
@@ -1392,11 +1409,13 @@ result :: match value {
     is i32 if value > 0 -> "pos"
     is i32              -> "non-pos"
     is string           -> "str: $value"
+    42                  -> "literal int"
+    'A'                 -> "literal char"
     _                   -> "?"
 }
 ```
 
-Exhaustive match on unions, checked at compile time.
+Exhaustive match on unions, checked at compile time. See §4 *Pattern matching* for the full grammar — `is`-narrowing, literal patterns, binding patterns with flow narrowing, struct refinement, guards, and the `T3040` reachability rule.
 
 ### `for` (universal loop)
 
@@ -1438,7 +1457,9 @@ The single-expression form `for <expr> { body }` is dispatched by the type of `<
 
 The iteration form `for x in expr` accepts three shapes for `expr`:
 1. A built-in array `T[]` — auto-wrapped in `ArrayIterator[T]`.
-2. A value of type `Iterator[T]` — used directly.
+2. A value of type `Iterator[T]` — used directly. Two dispatch flavours :
+   - **Concrete iter** (`Range[T]`, `ArrayIterator[T]`, a user struct implementing `Iterator[T]`) — the `next()` call resolves statically against the impl-method.
+   - **Trait-typed iter** (`Iterator[T]` itself, e.g. a fn param `fn count[T](it: Iterator[T])`) — the `next()` call dispatches dynamically through the per-(trait, method) vtable. Lets generic fns drive `for x in it { … }` against any concrete iterator the caller supplies.
 3. A value implementing `Iterable[T]` — `expr.iter()` is auto-called and the result drives the loop.
 
 Raw `T[]` arrays are auto-wrapped in `ArrayIterator[T]`, and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Iterable[T]` so `for x in coll { ... }` works without an explicit `coll.iter()`.
