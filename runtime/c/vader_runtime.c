@@ -325,24 +325,37 @@ static void* vader_gc_forward(void* obj, uint32_t type_index) {
 }
 
 /* Scan a `vader_box_t` slot — if the tag identifies a heap-allocated kind and
- * the payload holds a pointer, forward it and update the slot in place. */
+ * the payload holds a pointer, forward it and update the slot in place.
+ *
+ * If `boxp` lives in an old-gen object and the forwarded ref ends up in
+ * young, mark the card dirty: future minors must rescan this slot, and
+ * neither the original `array_push` write barrier (fired on user mutation,
+ * not on this Cheney write) nor scan_old_dirty_cards covers it. */
 static void vader_gc_scan_box(vader_box_t* boxp) {
     if (boxp == NULL) return;
     if (boxp->tag >= vader_type_info_count) return;
     const vader_type_info_t* info = &vader_type_info_table[boxp->tag];
     if (info->kind == VADER_TYPE_KIND_NONE) return;
-    /* For ARRAY-kind tags the payload is a vader_array_t* — forward it; the
-     * Cheney scan will walk its `buf` ref afterwards. */
     boxp->payload.obj = vader_gc_forward(boxp->payload.obj, boxp->tag);
+    if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
+        && boxp->payload.obj != NULL
+        && !vader_in_old_any(boxp->payload.obj)) {
+        VADER_WRITE_BARRIER(boxp);
+    }
 }
 
 /* Scan a raw `void*` slot whose pointee is a heap object. Reads the pointee's
- * header to get its type, forwards, updates. Used for fn closure envs. */
+ * header to get its type, forwards, updates. Used for fn closure envs.
+ * Same write-barrier rule as `vader_gc_scan_box`. */
 static void vader_gc_scan_raw(void** slot) {
     if (slot == NULL || *slot == NULL) return;
     vader_obj_header_t* hdr = (vader_obj_header_t*) *slot;
-    if (hdr->forward != NULL) { *slot = hdr->forward; return; }
-    *slot = vader_gc_forward(*slot, hdr->type_index);
+    if (hdr->forward != NULL) { *slot = hdr->forward; }
+    else { *slot = vader_gc_forward(*slot, hdr->type_index); }
+    if ((uintptr_t)slot >= vader_old_base && (uintptr_t)slot < vader_old_end
+        && *slot != NULL && !vader_in_old_any(*slot)) {
+        VADER_WRITE_BARRIER(slot);
+    }
 }
 
 /* Scan one heap object's pointer-bearing slots and forward whatever they
@@ -496,7 +509,12 @@ void vader_major_collect(void) {
     g_old.from   = g_old.to;
     g_old.to     = tmp;
     g_old.to.cur = g_old.to.base;
-    memset(vader_card_table, 0, g_card_count);
+    /* Conservatively mark all cards dirty rather than clearing. The drain
+     * passes above may have forwarded young-pointing refs back into the
+     * fresh old.from copies without writing a barrier, so any old→young
+     * reference's card would be lost if we cleared. Scanning a few extra
+     * cards on the next minor is far cheaper than missing a root. */
+    memset(vader_card_table, 1, g_card_count);
 
     g_cycle = VADER_CYCLE_NONE;
     g_total_collections++;
@@ -863,12 +881,22 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length) {
     return a;
 }
 
+static vader_array_t* vader_array_resolve(vader_array_t* a);
+
 vader_box_t vader_array_get(vader_array_t* a, size_t i) {
+    a = vader_array_resolve(a);
+    if (a->buf != NULL && a->buf->header.forward != NULL) {
+        a->buf = (vader_array_buf_t*) a->buf->header.forward;
+    }
     if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
     return a->buf->slots[i];
 }
 
 void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
+    a = vader_array_resolve(a);
+    if (a->buf != NULL && a->buf->header.forward != NULL) {
+        a->buf = (vader_array_buf_t*) a->buf->header.forward;
+    }
     if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
     a->buf->slots[i] = v;
     /* Mark the card holding `a->buf` if it lives in old: subsequent minors
