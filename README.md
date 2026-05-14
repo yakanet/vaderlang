@@ -254,15 +254,15 @@ bun run bench -- --update                  # rewrite baseline with current measu
 bun run bench -- --runs=5 --workload=primes  # custom run count, single workload
 ```
 
-Five workloads measured across four implementations of each — the Vader VM (`bun src/index.ts run`), Vader native (`--target=native --release`), the same kernel in Bun-TS, and the same kernel in Go. Current baseline on a 2026 Apple Silicon laptop :
+Five workloads measured across five implementations of each — the Vader VM (`bun src/index.ts run`), Vader native (`--target=native --release`), the same kernel in Bun-TS, the same in Go, and the same in Java 25 (via the single-source-file launcher, `java bench/<name>.java`). Current baseline on a 2026 Apple Silicon laptop :
 
-| workload         | vader-vm     | vader-native | bun-ts  | go      |
-|------------------|--------------|--------------|---------|---------|
-| `mandelbrot`     | 12 933 ms    | 15.3 ms      | 22.7 ms | 17.3 ms |
-| `primes`         | 27 497 ms    | 25.0 ms      | 40.5 ms | 24.5 ms |
-| `iter_chain`     |  2 482 ms    | 29.0 ms      | 36.0 ms |  2.8 ms |
-| `binary_trees`   |    517 ms    | 20.7 ms      | 12.4 ms |  8.0 ms |
-| `string_builder` |    101 ms    |  3.9 ms      | 11.9 ms |  4.1 ms |
+| workload         | vader-vm     | vader-native | bun-ts  | go      | java    |
+|------------------|--------------|--------------|---------|---------|---------|
+| `mandelbrot`     | 12 685 ms    | 15.2 ms      | 22.5 ms | 17.5 ms | 241.8 ms |
+| `primes`         | 27 058 ms    | 23.4 ms      | 40.2 ms | 24.0 ms | 246.8 ms |
+| `iter_chain`     |  2 475 ms    | 29.8 ms      | 35.3 ms |  3.7 ms | 235.1 ms |
+| `binary_trees`   |    514 ms    | 21.2 ms      | 11.9 ms |  7.4 ms | 236.0 ms |
+| `string_builder` |     95 ms    |  4.1 ms      |  9.8 ms |  4.9 ms | 226.8 ms |
 
 `bun run bench` exits non-zero if any measurement regresses by more than 15 % vs the committed baseline (10 % was too tight for the < 20 ms native workloads — OS noise alone clears that), or if any implementation's checksum diverges. See [`bench/README.md`](./bench/README.md) for the workload sources, the comparison methodology, and notes on Go's FMA-driven checksum drift on `mandelbrot`.
 

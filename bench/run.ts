@@ -57,10 +57,34 @@ const WORKLOADS: readonly Workload[] = [
 
 interface Impl {
   readonly name: string;
-  /** Optional one-shot build step. Runs once before any timed run. */
-  build?: (workload: string) => void;
+  /** Optional one-shot build step. Runs once per workload up-front, before
+   *  any timed runs ; all `build` invocations are scheduled together via
+   *  `Promise.all` so independent compilers (Vader native + Go) can use
+   *  every available core. Measurements remain serial — concurrent
+   *  CPU-bound timed runs would contend on caches / thermal headroom and
+   *  destroy the signal. */
+  build?: (workload: string) => Promise<void>;
   /** Command + args to invoke for a single timed run. */
   run: (workload: string) => { cmd: string; args: readonly string[] };
+}
+
+async function runBuild(cmd: string, args: readonly string[], label: string): Promise<void> {
+  // Pipe stdio so a build's chatter doesn't interleave line-by-line with
+  // a sibling build's. We swallow the output on success ; on failure we
+  // surface it together with the failure marker.
+  const proc = Bun.spawn([cmd, ...args], {
+    cwd: REPO, stdout: "pipe", stderr: "pipe",
+  });
+  const [stdout, stderr, code] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ]);
+  if (code !== 0) {
+    process.stderr.write(stdout);
+    process.stderr.write(stderr);
+    throw new Error(`${label} failed (exit ${code})`);
+  }
 }
 
 const IMPLS: readonly Impl[] = [
@@ -70,10 +94,7 @@ const IMPLS: readonly Impl[] = [
   },
   {
     name: "vader-native",
-    build: (w) => {
-      const r = spawnSync("bun", ["src/index.ts", "build", "--target=native", "--release", `bench/${w}.vader`], { cwd: REPO, stdio: "inherit" });
-      if (r.status !== 0) throw new Error(`vader build for ${w} failed`);
-    },
+    build: (w) => runBuild("bun", ["src/index.ts", "build", "--target=native", "--release", `bench/${w}.vader`], `vader build for ${w}`),
     run: (w) => ({ cmd: `./bench/${w}`, args: [] }),
   },
   {
@@ -82,11 +103,12 @@ const IMPLS: readonly Impl[] = [
   },
   {
     name: "go",
-    build: (w) => {
-      const r = spawnSync("go", ["build", "-o", `bench/${w}_go`, `bench/${w}.go`], { cwd: REPO, stdio: "inherit" });
-      if (r.status !== 0) throw new Error(`go build for ${w} failed`);
-    },
+    build: (w) => runBuild("go", ["build", "-o", `bench/${w}_go`, `bench/${w}.go`], `go build for ${w}`),
     run: (w) => ({ cmd: `./bench/${w}_go`, args: [] }),
+  },
+  {
+    name: "java",
+    run: (w) => ({ cmd: "java", args: [`bench/${w}.java`] }),
   },
 ];
 
@@ -117,7 +139,7 @@ function median(xs: readonly number[]): number {
 }
 
 function measure(impl: Impl, workload: Workload, runs: number): SampleResult {
-  if (impl.build) impl.build(workload.name);
+  // Build steps already ran upfront in parallel — see `buildAll` below.
   // One warmup invocation so JIT-ish runtimes (Bun) and OS caches are warm,
   // then `runs` measured samples.
   timedRun(impl, workload.name);
@@ -195,11 +217,27 @@ function compareWithBaseline(results: readonly SampleResult[], baseline: Baselin
   return { regressions, checksumDrift };
 }
 
+async function buildAll(workloads: readonly Workload[]): Promise<void> {
+  const tasks: Promise<void>[] = [];
+  for (const w of workloads) {
+    for (const impl of IMPLS) {
+      if (!impl.build) continue;
+      tasks.push(impl.build(w.name));
+    }
+  }
+  if (tasks.length === 0) return;
+  console.log(`# building ${tasks.length} artefacts in parallel ...`);
+  const start = performance.now();
+  await Promise.all(tasks);
+  console.log(`# build done in ${((performance.now() - start) / 1000).toFixed(1)} s`);
+}
+
 async function main(): Promise<void> {
   const args = parseArgs();
   const workloads = args.workloads === null
     ? WORKLOADS
     : WORKLOADS.filter((w) => args.workloads!.includes(w.name));
+  await buildAll(workloads);
   const results: SampleResult[] = [];
   for (const w of workloads) {
     for (const impl of IMPLS) {

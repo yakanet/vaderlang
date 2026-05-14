@@ -20,8 +20,15 @@ Every program prints a one-line checksum so cross-language equivalence is verifi
 | `vader-native`    | `bench/<name>.vader` → native binary         | `bun src/index.ts build --target=native --release`, then exec |
 | `bun-ts`          | `bench/<name>.ts`                            | direct `bun bench/<name>.ts`                          |
 | `go`              | `bench/<name>.go` → native binary            | `go build`, then exec                                 |
+| `java`            | `bench/<name>.java`                          | `java bench/<name>.java` — single-source-file launcher (Java 11+), no separate `javac` step |
 
-The harness times each invocation with `performance.now()` around a `spawnSync`, so what's measured is the **process wall-clock** — startup, runtime initialization, kernel, I/O, teardown. For the VM path that bundles the entire Vader compile pipeline ; the figure is what a user would see typing `vader run`.
+The harness times each invocation with `performance.now()` around a `spawnSync`, so what's measured is the **process wall-clock** — startup, runtime initialization, kernel, I/O, teardown. For the VM path that bundles the entire Vader compile pipeline ; the figure is what a user would see typing `vader run`. For Java the figure includes ~200 ms of JVM startup + class loading + JIT warmup that fires fresh on every invocation ; that's the cost of `java MyFile.java`-style scripting, not steady-state Java throughput.
+
+### Build parallelism
+
+The two implementations that need a build step (`vader-native` via the Vader compiler + `cc`, and `go` via `go build`) are batched up-front in a single `Promise.all` so they use every available core. Compiling all 5 workloads × 2 implementations finishes in 1-3 s instead of the 15+ s a serial compile would take.
+
+**Measurements stay strictly serial.** Running two CPU-bound benchmarks concurrently on the same machine corrupts the signal — they steal cycles from each other, contend on L3 + memory bandwidth, and on Apple Silicon shuffle between P/E cores. Wall-clock numbers from parallel measurements aren't comparable across runs, which is exactly the opposite of what a regression-detection bench needs.
 
 ## Running the bench
 
@@ -42,22 +49,23 @@ We compare on `min(samples)` rather than the median because these workloads fini
 
 Captured on a 2026 Apple Silicon laptop, `bun bench/run.ts --runs=5 --update`:
 
-| workload         | vader-vm     | vader-native | bun-ts  | go      |
-|------------------|--------------|--------------|---------|---------|
-| `mandelbrot`     | 12 933 ms    | 15.3 ms      | 22.7 ms | 17.3 ms |
-| `primes`         | 27 497 ms    | 25.0 ms      | 40.5 ms | 24.5 ms |
-| `iter_chain`     |  2 482 ms    | 29.0 ms      | 36.0 ms |  2.8 ms |
-| `binary_trees`   |    517 ms    | 20.7 ms      | 12.4 ms |  8.0 ms |
-| `string_builder` |    101 ms    |  3.9 ms      | 11.9 ms |  4.1 ms |
+| workload         | vader-vm     | vader-native | bun-ts  | go      | java     |
+|------------------|--------------|--------------|---------|---------|----------|
+| `mandelbrot`     | 12 685 ms    | 15.2 ms      | 22.5 ms | 17.5 ms | 241.8 ms |
+| `primes`         | 27 058 ms    | 23.4 ms      | 40.2 ms | 24.0 ms | 246.8 ms |
+| `iter_chain`     |  2 475 ms    | 29.8 ms      | 35.3 ms |  3.7 ms | 235.1 ms |
+| `binary_trees`   |    514 ms    | 21.2 ms      | 11.9 ms |  7.4 ms | 236.0 ms |
+| `string_builder` |     95 ms    |  4.1 ms      |  9.8 ms |  4.9 ms | 226.8 ms |
 
 Reading the table :
 
-- **VM vs native** — the VM path is 100-1000 × slower than native. Most of that wall-clock is the Vader compile pipeline (parse → typecheck → lower → bytecode), not the VM loop itself. The smaller workloads (`string_builder` 101 ms) make this visible : even with N=50 000 the compile dominates the VM run.
+- **VM vs native** — the VM path is 100-1000 × slower than native. Most of that wall-clock is the Vader compile pipeline (parse → typecheck → lower → bytecode), not the VM loop itself. The smaller workloads (`string_builder` 95 ms) make this visible : even with N=50 000 the compile dominates the VM run.
 - **`mandelbrot`** — after the for-over-integer-range counter-loop lowering landed (commit `1e268fd3`), Vader native beats Bun-TS (1.5 ×) and is at parity with Go (within noise). The float kernel reaches a state where clang `-O3` is doing essentially the same work as `gc`.
 - **`primes`** — Vader native ties Go (within noise). Trial division is mostly integer modulo, which both compilers turn into the same `udiv` / `msub` sequence.
-- **`iter_chain`** — Vader native is **10 × slower than Go's direct loop**. Each chain step allocates a `Yielded(T)` union per yielded item — the workload that justifies the deferred "inline small tagged unions" perf piste in `TODO.md §3.5`. Bun-TS's generator chain (35 ms) lands in the same zone as Vader, confirming the cost is the lazy-chain pattern, not Vader specifically.
-- **`binary_trees`** — Vader native is **2 × slower than Go**. The gap is GC overhead : Cheney semi-space copying + write barriers + per-fn `gc_frame` push/pop. Reducing this is the target of any future generational tuning.
-- **`string_builder`** — Vader native (3.9 ms) wins outright. The Vader `StringBuilder` stores fragment refs in a `string[]` and flushes once via the `Display::to_string` intrinsic — no per-iter copy. Go's `strings.Builder` and Bun's `[].join("")` both pay extra copies.
+- **`iter_chain`** — Vader native is **8 × slower than Go's direct loop**. Each chain step allocates a `Yielded(T)` union per yielded item — the workload that justifies the deferred "inline small tagged unions" perf piste in `TODO.md §3.5`. Bun-TS's generator chain (35 ms) lands in the same zone as Vader, confirming the cost is the lazy-chain pattern, not Vader specifically.
+- **`binary_trees`** — Vader native is **3 × slower than Go**. The gap is GC overhead : Cheney semi-space copying + write barriers + per-fn `gc_frame` push/pop. Reducing this is the target of any future generational tuning.
+- **`string_builder`** — Vader native (4.1 ms) wins outright. The Vader `StringBuilder` stores fragment refs in a `string[]` and flushes once via the `Display::to_string` intrinsic — no per-iter copy. Go's `strings.Builder` and Bun's `[].join("")` both pay extra copies.
+- **`java`** — every Java row sits at 225-247 ms, regardless of workload. That floor is JVM startup + class loading + cold JIT for the single-source-file launcher. For a one-shot run it dominates the actual computation ; for steady-state throughput (a long-running JVM warming its JIT over millions of iterations) Java would land much closer to Go and Vader native. We're benching cold script invocations on purpose — that's what a user types `java foo.java` to do.
 
 The `mandelbrot` checksum diverges by ~16 k iterations between the Go peer and the C/Vader/TS peers, because Go fuses `a*b + c` into a single FMA instruction with one rounding step on arm64. Both results are mathematically correct ; only the rounding model differs.
 
