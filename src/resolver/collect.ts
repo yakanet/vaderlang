@@ -164,15 +164,11 @@ function collectImport(
   imports.push({ span: decl.span, fromFile, path: decl.path, resolvedTo });
 
   switch (decl.binding.kind) {
-    case "namespace": {
-      // SPEC §11: bare `import "std/io"` exposes the path's last segment.
-      const segments = decl.path.split("/");
-      const local = segments[segments.length - 1] ?? decl.path;
-      bindImport(symbols, input, local, decl, null, decl.span);
-      break;
-    }
-    case "alias":
-      bindImport(symbols, input, decl.binding.alias, decl, null, decl.span);
+    case "named-namespace":
+      // `name :: import "..."` (with optional `{ a, b, c }` scope list).
+      // Binds `name` as a namespace ; the `restricted` list, when set,
+      // is consulted at field-lookup time to limit reachable members.
+      bindImport(symbols, input, decl.binding.name, decl, null, decl.span);
       break;
     case "destructure":
       for (const n of decl.binding.names) {

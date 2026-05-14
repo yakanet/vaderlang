@@ -298,49 +298,86 @@ parse_decorators :: fn(p: Parser) -> Decorator[] {
     return out
 }
 
+/// Statement-position `import "..." { a, b }`. Rejects the legacy bare
+/// `import "..."` (implicit-last-segment) and `import "..." as name`
+/// forms — both are now spelled `name :: import "..."`.
 parse_import_decl :: fn(p: Parser, decorators: Decorator[]) -> ImportDecl {
     start :: p.advance()  // `import`
     path_info :: p.expect_string_literal("import path")
-    binding: ImportBinding = NamespaceImport {}
 
-    if p.match_kind(.KwAs).matched {
-        alias :: p.expect(.Ident, "alias name after `as`")
-        binding = AliasImport { .alias = alias.text }
-    } else if p.match_kind(.LBrace).matched {
-        names: ImportName[] = []
-        p.skip_newlines()
-        if !p.check(.RBrace) {
-            first := true
-            for {
-                if !first {
-                    if !p.match_kind(.Comma).matched { break }
-                }
-                first = false
-                p.skip_newlines()
-                if p.check(.RBrace) { break }
-                name :: p.expect(.Ident, "imported name")
-                alias_str: string | null = null
-                if p.match_kind(.KwAs).matched {
-                    alias_str = p.expect(.Ident, "alias after `as`").text
-                }
-                names.push(ImportName {
-                    .name  = name.text,
-                    .alias = alias_str,
-                    .span  = p.span_of(name, p.peek_at(-1)),
-                })
-                p.skip_newlines()
-            }
-        }
-        p.skip_newlines()
-        p.expect(.RBrace, "`}` to close import list")
-        binding = DestructureImport { .names = names }
+    if p.check(.KwAs) {
+        as_tok :: p.peek()
+        p.error(.ExpectedDeclaration, as_tok.span,
+            "the `import \"...\" as name` form was removed ; write `name :: import \"...\"` instead")
+        p.advance()
+        if p.check(.Ident) { p.advance() }
+    }
+
+    names: ImportName[] = []
+    if !p.match_kind(.LBrace).matched {
+        p.error(.ExpectedDeclaration, p.peek().span,
+            "the bare `import \"...\"` form was removed ; use either `name :: import \"...\"` for a namespace binding or `import \"...\" { a, b }` to destructure")
+    } else {
+        names = p.parse_import_name_list_rest()
     }
     return ImportDecl {
         .span       = p.span_of(start, p.peek_at(-1)),
         .path       = path_info.text,
-        .binding    = binding,
+        .binding    = DestructureImport { .names = names },
         .decorators = decorators,
     }
+}
+
+/// Named-decl-position `name :: import "..."` (with optional scoped
+/// `{ a, b, c }`). Routed from `parse_named_decl` when the RHS keyword
+/// after `::` is `import`.
+parse_named_import_decl :: fn(p: Parser, decorators: Decorator[], name_tok: Token) -> ImportDecl {
+    p.advance()  // `import`
+    path_info :: p.expect_string_literal("import path")
+    restricted: ImportName[] | null = null
+    if p.match_kind(.LBrace).matched {
+        // `name :: import "..." { a, b }` — scoped namespace. Only the
+        // listed names are reachable via `name.X`.
+        restricted = p.parse_import_name_list_rest()
+    }
+    return ImportDecl {
+        .span       = p.span_of(name_tok, p.peek_at(-1)),
+        .path       = path_info.text,
+        .binding    = NamedNamespaceImport { .name = name_tok.text, .restricted = restricted },
+        .decorators = decorators,
+    }
+}
+
+/// Parse `a, b as c` …` with the leading `{` already consumed. Closes
+/// on the matching `}`.
+parse_import_name_list_rest :: fn(p: Parser) -> ImportName[] {
+    names: ImportName[] = []
+    p.skip_newlines()
+    if !p.check(.RBrace) {
+        first := true
+        for {
+            if !first {
+                if !p.match_kind(.Comma).matched { break }
+            }
+            first = false
+            p.skip_newlines()
+            if p.check(.RBrace) { break }
+            name :: p.expect(.Ident, "imported name")
+            alias_str: string | null = null
+            if p.match_kind(.KwAs).matched {
+                alias_str = p.expect(.Ident, "alias after `as`").text
+            }
+            names.push(ImportName {
+                .name  = name.text,
+                .alias = alias_str,
+                .span  = p.span_of(name, p.peek_at(-1)),
+            })
+            p.skip_newlines()
+        }
+    }
+    p.skip_newlines()
+    p.expect(.RBrace, "`}` to close import list")
+    return names
 }
 
 StringLitInfo :: struct { text: string, span: Span }
@@ -593,6 +630,7 @@ parse_named_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     if p.check(.KwStruct) { return p.parse_struct_decl(decorators, visibility, name_tok) }
     if p.check(.KwEnum)   { return p.parse_enum_decl(decorators, visibility, name_tok) }
     if p.check(.KwTrait)  { return p.parse_trait_decl(decorators, visibility, name_tok) }
+    if p.check(.KwImport) { return p.parse_named_import_decl(decorators, name_tok) }
     return p.parse_const_decl(decorators, visibility, name_tok)
 }
 

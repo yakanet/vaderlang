@@ -25,7 +25,7 @@ import "std/string" { byte_len, byte_at, slice, trim }
 import "vader/parser" {
     parse_source,
     Decl,
-    ImportDecl, ImportBinding, AliasImport, DestructureImport, NamespaceImport,
+    ImportDecl, ImportBinding, NamedNamespaceImport, DestructureImport,
     FnDecl, StructDecl, EnumDecl, TraitDecl, TypeAliasDecl, ConstDecl,
     ImplDecl, AssertDecl,
     Decorator,
@@ -593,8 +593,7 @@ walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
 
 collect_import :: fn(d: ImportDecl, imports: ImportEntry[]) -> void {
     match d.binding {
-        is NamespaceImport -> {}     // `import "x"` — no local name
-        is AliasImport as a -> {}    // `import "x" as Y` — Y is a namespace, not a value
+        is NamedNamespaceImport -> {} // `name :: import "..."` — name is a namespace, not a value
         is DestructureImport as de -> {
             for n in de.names {
                 local_name := n.name

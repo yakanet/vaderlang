@@ -10,7 +10,7 @@ import "std/string_builder" { StringBuilder, new_builder, append, append_char, a
 import "std/string" { byte_len, byte_at, slice as str_slice }
 import "std/io" { eprintln }
 import "vader/diagnostics/diagnostic" { Span, Position }
-import "vader/parser" as p
+p :: import "vader/parser"
 import "vader/fmt/style" { INDENT, MAX_LINE, NL, binary_op_symbol, unary_op_symbol }
 import "vader/fmt/comments" { CommentMap, Comment, CommentKind, has_before, peek_before, take_before, take_trailing, drain_remaining }
 
@@ -379,43 +379,53 @@ emit_visibility :: fn(self: Printer, v: p.Visibility) -> void {
 
 emit_import :: fn(self: Printer, d: p.ImportDecl) -> void {
     self.emit_decorators(d.decorators, d.span.start.line)
-    self.write("import \"")
-    self.write(d.path)
-    self.write("\"")
     match d.binding {
-        is p.NamespaceImport -> {}
-        is p.AliasImport as a -> {
-            self.write(" as ")
-            self.write(a.alias)
-        }
-        is p.DestructureImport as dst -> {
-            // Preserve the source's choice : if the destructure spanned
-            // multiple lines, keep it multi-line ; else single-line.
-            multi := d.span.start.line != d.span.end.line
-            if multi {
-                self.write(" {")
-                self.depth = self.depth + 1
-                i: usize = 0
-                for i < dst.names.len() {
-                    self.nl_indent()
-                    self.emit_import_name(dst.names[i])
-                    self.write(",")
-                    i = i + 1
-                }
-                self.depth = self.depth - 1
-                self.nl_indent()
-                self.write("}")
-            } else {
-                self.write(" { ")
-                i: usize = 0
-                for i < dst.names.len() {
-                    if i > 0 { self.write(", ") }
-                    self.emit_import_name(dst.names[i])
-                    i = i + 1
-                }
-                self.write(" }")
+        is p.NamedNamespaceImport as nn -> {
+            self.write(nn.name)
+            self.write(" :: import \"")
+            self.write(d.path)
+            self.write("\"")
+            r :: nn.restricted
+            match r {
+                is null -> {}
+                _       -> { self.emit_import_name_block(d, r) }
             }
         }
+        is p.DestructureImport as dst -> {
+            self.write("import \"")
+            self.write(d.path)
+            self.write("\"")
+            self.emit_import_name_block(d, dst.names)
+        }
+    }
+}
+
+emit_import_name_block :: fn(self: Printer, d: p.ImportDecl, names: p.ImportName[]) -> void {
+    // Preserve the source's choice : if the block spanned multiple
+    // lines, keep it multi-line ; else single-line.
+    multi := d.span.start.line != d.span.end.line
+    if multi {
+        self.write(" {")
+        self.depth = self.depth + 1
+        i: usize = 0
+        for i < names.len() {
+            self.nl_indent()
+            self.emit_import_name(names[i])
+            self.write(",")
+            i = i + 1
+        }
+        self.depth = self.depth - 1
+        self.nl_indent()
+        self.write("}")
+    } else {
+        self.write(" { ")
+        i: usize = 0
+        for i < names.len() {
+            if i > 0 { self.write(", ") }
+            self.emit_import_name(names[i])
+            i = i + 1
+        }
+        self.write(" }")
     }
 }
 

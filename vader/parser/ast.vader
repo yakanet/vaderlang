@@ -22,7 +22,7 @@ export UNASSIGNED_NODE_ID :: usize(0)
 
 export Decl :: ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDecl | TypeAliasDecl | ConstDecl | AssertDecl
 
-export ImportBinding :: NamespaceImport | AliasImport | DestructureImport
+export ImportBinding :: NamedNamespaceImport | DestructureImport
 
 export Stmt :: LetStmt | AssignStmt | ExprStmt | ReturnStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
 
@@ -101,8 +101,12 @@ export ImportDecl :: struct {
     decorators: Decorator[]
 }
 
-export NamespaceImport  :: struct {}
-export AliasImport      :: struct { alias: string }
+/// `name :: import "..."`            — restricted = null (unrestricted).
+/// `name :: import "..." { a, b }`   — restricted = [a, b] (scoped).
+export NamedNamespaceImport :: struct {
+    name:       string
+    restricted: ImportName[] | null
+}
 export DestructureImport :: struct { names: ImportName[] }
 
 export ImportName :: struct {

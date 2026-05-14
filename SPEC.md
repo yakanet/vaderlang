@@ -199,7 +199,7 @@ self
 @<decorator>
 ```
 
-The identifier `void` is **reserved** : binding it as a fn name, struct name, parameter, local, type-param, pattern binding, or import alias raises `R2019`. The name describes the type of expressions that yield no value and is never user-facing in source code.
+The identifier `void` is **reserved** : binding it as a fn name, struct name, parameter, local, type-param, pattern binding, or namespace-import name raises `R2019`. The name describes the type of expressions that yield no value and is never user-facing in source code.
 
 ### Literals
 
@@ -440,7 +440,7 @@ An unsuffixed integer literal stays as a *free* (untyped) numeric until its surr
 The flow is bidirectional :
 - **Top-down (slot expected)** — typed lets, struct-field defaults, fn-arg slots, struct-lit field values, return-type-annotated `return …`, indexed `arr[i]` (slot is the impl's `I` type), comparison/arithmetic where one side has a concrete numeric type. The literal repins to the expected width.
 - **Unary `-`, `~`** — the operand inherits the operator's outer expected type, so `g: i64 = -50` lowers the inner `50` as `i64`, not `i32`.
-- **Generic call sites** — after type-parameter unification, FreeInt args adopt the substituted concrete width. Works through plain calls, generic UFCS, and import aliases.
+- **Generic call sites** — after type-parameter unification, FreeInt args adopt the substituted concrete width. Works through plain calls, generic UFCS, and namespace imports.
 - **Cross-branch in `if`** — when one branch of an if-expression produces a concrete numeric type and the other is a Free literal, the Free side repins to match (so `if c { 0 } else { width: usize }` types to `usize`, not `{integer} | usize`).
 
 When no context applies, the literal falls back to its **default** (`i32` for integers, `f64` for floats). The default is what `x := 42` records.
@@ -1694,10 +1694,12 @@ match r {
 ### Imports
 
 ```vader
-import "std/io"                              // access via prefix : io.read_file()
-import "std/io" as fs                        // alias : fs.read_file()
+io :: import "std/io"                        // namespace : io.read_file()
+io :: import "std/io" { read_file }          // scoped namespace : only `read_file` reachable as io.read_file
 import "std/io" { read_file, write_file }    // destructuring : read_file() direct
 ```
+
+A namespace import always names its binding explicitly (`name :: import "..."`) — there is no implicit last-segment binding and no `as` suffix. The destructure form (`import "..." { a, b }`) pulls names into the importing module's top-level scope. The combined form (`name :: import "..." { a, b, c }`) is **scoped** : only the listed names are reachable through `name.X` ; the rest of the target module is hidden, and the listed names are NOT also pulled into top-level scope.
 
 ### Path resolution
 

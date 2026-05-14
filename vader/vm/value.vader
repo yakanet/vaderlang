@@ -11,7 +11,7 @@
 // import cycle with the executor.
 
 import "std/string" { starts_with }
-import "vader/vm/op" as op
+op :: import "vader/vm/op"
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
 /// return value ; `Trap` carries a debug-friendly message so the host

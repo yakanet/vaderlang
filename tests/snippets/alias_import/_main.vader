@@ -1,4 +1,4 @@
-import "std/io" as fs
+fs :: import "std/io"
 
 main :: fn() -> i32 {
     fs.println("aliased")

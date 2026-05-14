@@ -110,48 +110,94 @@ function parseDecorators(p: Parser): A.Decorator[] {
   return out;
 }
 
+/** Statement-position `import "..." { a, b }`. Rejects the legacy bare
+ *  `import "..."` (implicit-last-segment binding) and `import "..." as
+ *  name` forms — both are now spelled `name :: import "..."` at the
+ *  named-decl dispatcher. */
 function parseImportDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImportDecl {
   const start = p.advance(); // consume `import`
   const pathTok = expectStringLiteral(p, "import path");
   const path = pathTok.text;
 
-  let binding: A.ImportBinding = { kind: "namespace" };
-  if (p.match("kw_as") !== null) {
-    const alias = p.expect("ident", "alias name after `as`");
-    binding = { kind: "alias", alias: alias.text };
-  } else if (p.match("lbrace") !== null) {
-    const names: A.ImportName[] = [];
-    p.skipNewlines();
-    if (!p.check("rbrace")) {
-      do {
-        p.skipNewlines();
-        if (p.check("rbrace")) break;
-        const name = p.expect("ident", "imported name");
-        let alias: string | null = null;
-        if (p.match("kw_as") !== null) {
-          alias = p.expect("ident", "alias after `as`").text;
-        }
-        names.push({
-          id: UNASSIGNED_NODE_ID,
-          name: name.text,
-          alias,
-          span: p.spanOf(name, p.peek(-1)),
-        });
-        p.skipNewlines();
-      } while (p.match("comma") !== null);
-    }
-    p.skipNewlines();
-    p.expect("rbrace", "`}` to close import list");
-    binding = { kind: "destructure", names };
+  if (p.check("kw_as")) {
+    const as = p.peek();
+    p.error("P1006", as.span,
+      "the `import \"...\" as name` form was removed ; write `name :: import \"...\"` instead");
+    p.advance();                                // consume `as`
+    if (p.check("ident")) p.advance();          // and the would-be alias, to keep parsing going
   }
 
+  if (p.match("lbrace") === null) {
+    p.error("P1006", p.peek().span,
+      "the bare `import \"...\"` form was removed ; use either `name :: import \"...\"` for a namespace binding or `import \"...\" { a, b }` to destructure");
+    return {
+      kind: "ImportDecl",
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
+      path,
+      binding: { kind: "destructure", names: [] },
+      decorators,
+    };
+  }
+
+  const names = parseImportNameListRest(p);
   return {
     kind: "ImportDecl",
     id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
     path,
-    binding,
+    binding: { kind: "destructure", names },
     decorators,
   };
+}
+
+/** Named-decl-position `name :: import "..."` or `name :: import "..." { a, b }`.
+ *  The named-decl dispatcher routes here when it sees `kw_import` as the
+ *  RHS keyword. */
+function parseNamedImportDecl(
+  p: Parser, decorators: readonly A.Decorator[], nameTok: Token,
+): A.ImportDecl {
+  p.advance(); // consume `import`
+  const pathTok = expectStringLiteral(p, "import path");
+  const path = pathTok.text;
+
+  let restricted: readonly A.ImportName[] | null = null;
+  if (p.match("lbrace") !== null) restricted = parseImportNameListRest(p);
+
+  return {
+    kind: "ImportDecl",
+    id: UNASSIGNED_NODE_ID, span: p.spanOf(nameTok, p.peek(-1)),
+    path,
+    binding: { kind: "named-namespace", name: nameTok.text, restricted },
+    decorators,
+  };
+}
+
+/** Parse `a, b as c, …}` (with the leading `{` already consumed).
+ *  Shared by the statement-position destructure form and the named-decl
+ *  scoped-namespace form. */
+function parseImportNameListRest(p: Parser): A.ImportName[] {
+  const names: A.ImportName[] = [];
+  p.skipNewlines();
+  if (!p.check("rbrace")) {
+    do {
+      p.skipNewlines();
+      if (p.check("rbrace")) break;
+      const name = p.expect("ident", "imported name");
+      let alias: string | null = null;
+      if (p.match("kw_as") !== null) {
+        alias = p.expect("ident", "alias after `as`").text;
+      }
+      names.push({
+        id: UNASSIGNED_NODE_ID,
+        name: name.text,
+        alias,
+        span: p.spanOf(name, p.peek(-1)),
+      });
+      p.skipNewlines();
+    } while (p.match("comma") !== null);
+  }
+  p.skipNewlines();
+  p.expect("rbrace", "`}` to close import list");
+  return names;
 }
 
 function expectStringLiteral(p: Parser, what: string): { text: string; span: Span } {
@@ -401,6 +447,7 @@ function parseNamedDecl(p: Parser, decorators: readonly A.Decorator[], visibilit
   if (p.check("kw_struct")) return parseStructDecl(p, decorators, visibility, nameTok);
   if (p.check("kw_enum")) return parseEnumDecl(p, decorators, visibility, nameTok);
   if (p.check("kw_trait")) return parseTraitDecl(p, decorators, visibility, nameTok);
+  if (p.check("kw_import")) return parseNamedImportDecl(p, decorators, nameTok);
 
   return parseConstDecl(p, decorators, visibility, nameTok);
 }

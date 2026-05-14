@@ -8,7 +8,7 @@
 
 import "std/string" { compare_ascending }
 import "std/sort" { sort }
-import "vader/parser" { Program, Decl, ImportDecl, FnDecl, StructDecl, EnumDecl, TraitDecl, ImplDecl, TypeAliasDecl, ConstDecl, AssertDecl, Visibility, ImportBinding, AliasImport, DestructureImport, NamespaceImport }
+import "vader/parser" { Program, Decl, ImportDecl, FnDecl, StructDecl, EnumDecl, TraitDecl, ImplDecl, TypeAliasDecl, ConstDecl, AssertDecl, Visibility, ImportBinding, NamedNamespaceImport, DestructureImport }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory, make }
 
 // One resolver output entry per source module. `path` mirrors the TS
@@ -54,17 +54,16 @@ collect_decl :: fn(d: Decl, module_path: string, factory: SymbolFactory) -> Symb
     is AssertDecl    -> null
 }
 
-// Imports introduce one local-name binding each. Namespace and alias
-// imports yield a single name ; destructure imports yield one per `name`.
-// MVP : only the *first* binding of a destructure is returned to keep the
-// signature simple. Full coverage lands when the loader wires real
-// multi-name handling.
+// Imports introduce one local-name binding each. Named-namespace
+// imports yield one (the namespace name) ; destructure imports yield
+// one per `name`. MVP : only the *first* binding of a destructure is
+// returned to keep the signature simple. Full coverage lands when the
+// loader wires real multi-name handling.
 collect_import :: fn(d: ImportDecl, module_path: string, factory: SymbolFactory) -> Symbol | null {
     b :: d.binding
     return match b {
-        is AliasImport       -> factory.make(.ImportBinding, b.alias, module_path, .Private, d.span)
-        is DestructureImport -> destructure_first(b, module_path, factory)
-        is NamespaceImport   -> null
+        is NamedNamespaceImport -> factory.make(.ImportBinding, b.name, module_path, .Private, d.span)
+        is DestructureImport    -> destructure_first(b, module_path, factory)
     }
 }
 

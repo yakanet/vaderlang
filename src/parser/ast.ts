@@ -49,9 +49,19 @@ export interface ImportDecl extends AstNode {
   readonly decorators: readonly Decorator[];
 }
 
+/** How an `import` binds names into the importing module's scope.
+ *  - `named-namespace` : `name :: import "..."` — binds `name` as a
+ *    namespace. When `restricted` is non-null, only the listed names are
+ *    reachable via `name.X` (the combined `name :: import "..." { a, b }`
+ *    form). When `restricted` is null, every public export of the target
+ *    module is reachable through `name`.
+ *  - `destructure` : `import "..." { a, b }` — pulls `a` and `b` into
+ *    the importing module's scope directly, with no namespace prefix.
+ *  Bare `import "..."` (last-path-segment implicit binding) and
+ *  `import "..." as name` were removed in favour of the explicit
+ *  `name :: import "..."` form. */
 export type ImportBinding =
-  | { readonly kind: "namespace" }
-  | { readonly kind: "alias"; readonly alias: string }
+  | { readonly kind: "named-namespace"; readonly name: string; readonly restricted: readonly ImportName[] | null }
   | { readonly kind: "destructure"; readonly names: readonly ImportName[] };
 
 export interface ImportName extends AstNode {

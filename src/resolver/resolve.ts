@@ -499,6 +499,11 @@ function resolveType(t: A.TypeExpr, scope: Scope, p: MutableProgram, input: Reso
           `\`${t.target.name}\` is not a module namespace`);
         return;
       }
+      if (!isReachableInRestriction(targetSym, t.field)) {
+        err(input.diags, "R2003", t.fieldSpan,
+          `\`${t.field}\` is not in the scoped import list of \`${t.target.name}\``);
+        return;
+      }
       const exported = importTarget.module.symbols.get(t.field);
       if (exported === undefined) {
         err(input.diags, "R2003", t.fieldSpan,
@@ -689,6 +694,11 @@ function resolveFieldExpr(expr: A.FieldExpr, scope: Scope, p: MutableProgram, in
     if (targetSym !== undefined && targetSym.kind === "import-binding") {
       const importTarget = input.importTargets.get(targetSym.id);
       if (importTarget !== undefined && importTarget.kind === "module") {
+        if (!isReachableInRestriction(targetSym, expr.field)) {
+          err(input.diags, "R2003", expr.fieldSpan,
+            `\`${expr.field}\` is not in the scoped import list of \`${(expr.target as A.IdentExpr).name}\``);
+          return;
+        }
         const exported = importTarget.module.symbols.get(expr.field);
         if (exported === undefined) {
           err(input.diags, "R2003", expr.fieldSpan,
@@ -782,4 +792,18 @@ function resolveImportRedirect(sym: Symbol, input: ResolveModuleInput): Symbol {
   const target = input.importTargets.get(sym.id);
   if (target === undefined || target.kind !== "symbol") return sym;
   return target.symbol;
+}
+
+/** For `name :: import "..." { a, b, c }` the namespace `name` only
+ *  reveals `a`/`b`/`c` via `name.X`. Returns true when `field` is
+ *  reachable through the namespace binding `sym` (always true for the
+ *  unrestricted `name :: import "..."` form). */
+function isReachableInRestriction(sym: Symbol, field: string): boolean {
+  if (sym.source.kind !== "import") return true;
+  const binding = sym.source.decl.binding;
+  if (binding.kind !== "named-namespace" || binding.restricted === null) return true;
+  for (const n of binding.restricted) {
+    if ((n.alias ?? n.name) === field) return true;
+  }
+  return false;
 }

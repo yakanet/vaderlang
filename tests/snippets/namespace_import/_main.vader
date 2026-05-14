@@ -1,4 +1,4 @@
-import "std/io"
+io :: import "std/io"
 
 main :: fn() -> i32 {
     io.println("hi")

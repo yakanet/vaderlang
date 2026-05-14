@@ -6,8 +6,9 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "alias",
-        "alias": "fs"
+        "kind": "named-namespace",
+        "name": "fs",
+        "restricted": null
       },
       "decorators": []
     },

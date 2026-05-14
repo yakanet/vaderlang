@@ -14,7 +14,7 @@ import "std/numbers" { parse_int_in_base }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/string_builder" { new_builder, append }
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, contains, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
-import "vader/vm/op" as op
+op :: import "vader/vm/op"
 import "vader/vm/parser" { parse_decimal_f64 }
 import "vader/vm/value" {
     Trap, zero_value,

@@ -6,7 +6,9 @@
       "kind": "ImportDecl",
       "path": "std/io",
       "binding": {
-        "kind": "namespace"
+        "kind": "named-namespace",
+        "name": "io",
+        "restricted": null
       },
       "decorators": []
     },

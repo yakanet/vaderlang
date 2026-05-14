@@ -14,7 +14,7 @@
 
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of, decode_escapes }
 import "std/numbers" { parse_int_in_base, parse_uint_in_base }
-import "vader/vm/op" as op
+op :: import "vader/vm/op"
 
 /// ASCII byte constants — spelled out as `u8('x')` to keep the source
 /// readable. Match the convention used in `vader/fmt/comments.vader`.
