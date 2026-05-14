@@ -1,0 +1,53 @@
+// vader/lsp/tokens — shared `RawToken` + `TokenType` definitions used by
+// the lexer-based scanner (`semantic_tokens.vader`) and the AST-driven
+// walker (`ast_tokens.vader`). Keeping these in their own module breaks
+// what would otherwise be a circular import between the two producers.
+
+/// LSP semantic-token types. Indices into `TOKEN_TYPES` are what travels
+/// on the wire ; the legend (sent on `initialize`) maps each index to
+/// the canonical type name. Order MUST stay in sync with `TOKEN_TYPES` in
+/// `semantic_tokens.vader`.
+export TokenType :: enum(u8) {
+    Namespace,    // import path
+    Type,         // UpperCase ident (struct / trait / enum)
+    Function,     // fn name in `name :: fn(...)` and call sites
+    Parameter,    // fn params + vaderdoc `@param name`
+    Variable,     // locals, fields, generic catch-all idents
+    Keyword,      // language keywords + fn/struct/trait/enum/etc.
+    String,       // string literals
+    Number,       // int / float literals
+    Comment,      // `//` and `/* */`
+    Operator,     // arithmetic / comparison / logical / etc.
+    Decorator,    // `@intrinsic`, `@partial`, vaderdoc tags
+    EnumMember,   // `.Variant` dot-shorthand
+}
+
+// Indices into the on-the-wire token-type array. Vader's `enum(u8)`
+// values match their declaration position 0..N, so the integer view of
+// each variant is exactly the legend index.
+export token_type_int :: fn(t: TokenType) -> i32 {
+    match t {
+        .Namespace  -> { return i32(0) }
+        .Type       -> { return i32(1) }
+        .Function   -> { return i32(2) }
+        .Parameter  -> { return i32(3) }
+        .Variable   -> { return i32(4) }
+        .Keyword    -> { return i32(5) }
+        .String     -> { return i32(6) }
+        .Number     -> { return i32(7) }
+        .Comment    -> { return i32(8) }
+        .Operator   -> { return i32(9) }
+        .Decorator  -> { return i32(10) }
+        .EnumMember -> { return i32(11) }
+    }
+    return i32(-1)   // unreachable
+}
+
+/// One raw token before delta-encoding. Lines + columns are 0-based.
+export RawToken :: struct {
+    line:      i32
+    col:       i32
+    length:    i32
+    tok_type:  i32
+    modifiers: i32
+}
