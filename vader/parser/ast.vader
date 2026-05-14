@@ -1,11 +1,11 @@
 // vader/parser/ast — AST node types.
 //
-// Layout note : the resolver requires every `::` union alias to be
-// declared *before* the struct that references it, so all aliases live at
-// the top of the file and the concrete structs follow. Type-bearing
-// fields are renamed `ty` (since `type` was historically a keyword) ; the
-// dumper emits the JSON key as `"type"` so snapshots stay byte-identical
-// with TS.
+// Layout note : declaration order is free — the resolver collects every
+// decl name in a first pass before walking types in the second, so a
+// union alias can sit before or after the variant structs it lists.
+// Type-bearing fields are renamed `ty` (since `type` was historically a
+// keyword) ; the dumper emits the JSON key as `"type"` so snapshots
+// stay byte-identical with TS.
 
 import "vader/diagnostics/diagnostic" { Span }
 
@@ -24,11 +24,7 @@ export Decl :: ImportDecl | FnDecl | StructDecl | EnumDecl | TraitDecl | ImplDec
 
 export ImportBinding :: NamedNamespaceImport | DestructureImport
 
-export Stmt :: LetStmt | AssignStmt | ExprStmt | ReturnStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
-
 export ForForm :: InfiniteFor | WhileFor | InFor
-
-export DeferBody :: DeferStmtBody | DeferBlockBody
 
 export Expr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr | IdentExpr | CallExpr | FieldExpr | IndexExpr | UnaryExpr | BinaryExpr | IfExpr | MatchExpr | BlockExpr | LambdaExpr | StructLitExpr | SeqLitExpr | RangeExpr | TryExpr | CastExpr | GenericInstExpr | IntrinsicCallExpr | DotVariantExpr | FnTypeExpr | ArrayTypeExpr
 
@@ -364,6 +360,12 @@ export DeferStmt :: struct {
 
 export DeferStmtBody  :: struct { stmt: Stmt }
 export DeferBlockBody :: struct { block: BlockExpr }
+
+// `Stmt` / `DeferBody` declared after their variant structs — the
+// resolver collects all decl names first then resolves types in a
+// second pass, so use-before-decl order works.
+export Stmt :: LetStmt | AssignStmt | ExprStmt | ReturnStmt | ForStmt | BreakStmt | ContinueStmt | DeferStmt
+export DeferBody :: DeferStmtBody | DeferBlockBody
 
 // ============================================================================
 // Expressions
