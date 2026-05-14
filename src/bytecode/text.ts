@@ -64,8 +64,11 @@ function formatImport(i: BcImport): string {
 }
 
 function formatSignature(s: BcSignature): string {
-  const params = s.params.map((p, i) => `${p}:${s.paramTypes[i]}`).join(",");
-  return `(${params}) -> ${s.result}:${s.resultType}`;
+  // `paramTypes` / `resultType` are deliberately not emitted — they're
+  // in-memory metadata for c-emit's B1 boundary detection and not part
+  // of the on-disk contract. Keeping the textual form minimal also
+  // makes the snapshot suites less noisy.
+  return `(${s.params.join(",")}) -> ${s.result}`;
 }
 
 function formatFunction(fn: BcFunction, idx: number, out: string[]): void {
@@ -320,34 +323,19 @@ function parseImport(spec: string, ctx: ParseCtx): BcImport {
 }
 
 function parseSignatureBody(params: string, result: string, ctx: ParseCtx): BcSignature {
-  const paramVals: ValType[] = [];
-  const paramTypes: number[] = [];
-  if (params !== "") {
-    for (const slot of params.split(",")) {
-      const parsed = parseSignatureSlot(slot.trim(), ctx);
-      paramVals.push(parsed.val);
-      paramTypes.push(parsed.typeIdx);
-    }
-  }
-  const resultSlot = parseSignatureSlot(result.trim(), ctx);
+  const paramVals = params === ""
+    ? []
+    : params.split(",").map((s) => expectValType(s.trim(), ctx));
+  // `paramTypes` / `resultType` aren't emitted in the text form — see
+  // `formatSignature`. Fill with zero placeholders so the in-memory
+  // shape stays uniform ; c-emit on a parsed module would fall back
+  // to the non-B1 ABI.
   return {
     params: paramVals,
-    result: resultSlot.val,
-    paramTypes,
-    resultType: resultSlot.typeIdx,
+    result: expectValType(result.trim(), ctx),
+    paramTypes: new Array(paramVals.length).fill(0),
+    resultType: 0,
   };
-}
-
-/** Parse a single `valtype:typeidx` slot. The `:typeidx` half threads the
- *  `BcType` index downstream consumers need for B1 — the text format
- *  never omits it. */
-function parseSignatureSlot(s: string, ctx: ParseCtx): { val: ValType; typeIdx: number } {
-  const i = s.indexOf(":");
-  if (i < 0) fail(ctx, `malformed signature slot "${s}" (expected "<valtype>:<typeidx>")`);
-  const val = expectValType(s.slice(0, i), ctx);
-  const typeIdx = Number(s.slice(i + 1));
-  if (!Number.isFinite(typeIdx) || typeIdx < 0) fail(ctx, `bad type index in "${s}"`);
-  return { val, typeIdx };
 }
 
 function parseFn(headerLine: string, m: MutableModule, ctx: ParseCtx): void {

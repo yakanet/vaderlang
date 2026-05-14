@@ -9,10 +9,10 @@ string 0 "hash(a) = "
 string 1 "a == b : "
 string 2 "a == c : "
 string 3 "hash(n) = "
-import 0 to_string std_core$u64$Display$to_string (u64:2) -> string:4
-import 1 println std_io$println (string:4) -> void:5
+import 0 to_string std_core$u64$Display$to_string (u64) -> string
+import 1 println std_io$println (string) -> void
 
-fn 0 tests_snippets_primitive_hash_eq__main_vader$main () -> i32:1
+fn 0 tests_snippets_primitive_hash_eq__main_vader$main () -> i32
   local a i32
   local __sb_0 any
   local $call_10 string
@@ -89,13 +89,13 @@ fn 0 tests_snippets_primitive_hash_eq__main_vader$main () -> i32:1
   return   ; _main.vader:13:5
 end
 
-fn 1 std_core$i32$Hash$hash (i32:1) -> u64:2
+fn 1 std_core$i32$Hash$hash (i32) -> u64
   local.get 0   ; core.vader:325:26
   i32.to_u64   ; core.vader:325:26
   return   ; core.vader:325:23
 end
 
-fn 2 std_core$usize$Hash$hash (usize:3) -> u64:2
+fn 2 std_core$usize$Hash$hash (usize) -> u64
   local.get 0   ; core.vader:332:26
   usize.to_u64   ; core.vader:332:26
   return   ; core.vader:332:23

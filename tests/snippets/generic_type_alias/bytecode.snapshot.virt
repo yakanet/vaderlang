@@ -10,9 +10,9 @@ string 3 "y = "
 string 4 "hello"
 string 5 "pair int   = "
 string 6 "pair str   = "
-import 0 println std_io$println (string:2) -> void:3
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32:1
+fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
   local x ref
   local y ref
   local __scrut_0 ref

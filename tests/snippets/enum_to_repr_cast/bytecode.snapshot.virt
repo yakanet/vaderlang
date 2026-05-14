@@ -5,10 +5,10 @@ type 2 primitive string
 type 3 primitive u32
 type 4 primitive void
 string 0 " "
-import 0 to_string std_core$u32$Display$to_string (u32:3) -> string:2
-import 1 println std_io$println (string:2) -> void:4
+import 0 to_string std_core$u32$Display$to_string (u32) -> string
+import 1 println std_io$println (string) -> void
 
-fn 0 tests_snippets_enum_to_repr_cast__main_vader$main () -> i32:1
+fn 0 tests_snippets_enum_to_repr_cast__main_vader$main () -> i32
   local c i32
   local __sb_0 any
   local $call_16 string

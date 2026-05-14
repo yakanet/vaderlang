@@ -18,19 +18,19 @@ impl 7 Contains
 impl 7 Iterator
 impl 11 Iterator
 
-fn 0 tests_snippets_trait_box_range_iter__main_vader$Hello$Greeter$greet (ref:1) -> i32:2
+fn 0 tests_snippets_trait_box_range_iter__main_vader$Hello$Greeter$greet (ref) -> i32
   i32.const 100   ; _main.vader:28:39
   return   ; _main.vader:28:32
 end
 
-fn 1 tests_snippets_trait_box_range_iter__main_vader$i32$Doubler$doubled (i32:2) -> i32:2
+fn 1 tests_snippets_trait_box_range_iter__main_vader$i32$Doubler$doubled (i32) -> i32
   local.get 0   ; _main.vader:35:41
   local.get 0   ; _main.vader:35:41
   i32.add   ; _main.vader:35:41
   return   ; _main.vader:35:34
 end
 
-fn 2 tests_snippets_trait_box_range_iter__main_vader$main () -> i32:2
+fn 2 tests_snippets_trait_box_range_iter__main_vader$main () -> i32
   local a i32
   local b i32
   local c i32
@@ -65,7 +65,7 @@ fn 2 tests_snippets_trait_box_range_iter__main_vader$main () -> i32:2
   return   ; _main.vader:51:5
 end
 
-fn 3 tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$count__i32 (ref:3) -> i32:2
+fn 3 tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$count__i32 (ref) -> i32
   local n i32
   local cont bool
   local __scrut_0 ref
@@ -106,19 +106,19 @@ fn 3 tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_ra
   return   ; _main.vader:20:5
 end
 
-fn 4 tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$invoke__i32 (ref:4) -> i32:2
+fn 4 tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$invoke__i32 (ref) -> i32
   local.get 0   ; _main.vader:39:12
   virtual.call 1 Greeter.greet   ; _main.vader:39:12
   return   ; _main.vader:39:5
 end
 
-fn 5 tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$twice__i32 (ref:5) -> i32:2
+fn 5 tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$twice__i32 (ref) -> i32
   local.get 0   ; _main.vader:43:12
   virtual.call 1 Doubler.doubled   ; _main.vader:43:12
   return   ; _main.vader:43:5
 end
 
-fn 6 std_core$i32$Comparable$compare (i32:2,i32:2) -> i32:2
+fn 6 std_core$i32$Comparable$compare (i32,i32) -> i32
   local if_res i32
   local if_res i32
   local.get 0   ; core.vader:347:35
@@ -146,7 +146,7 @@ fn 6 std_core$i32$Comparable$compare (i32:2,i32:2) -> i32:2
   return   ; core.vader:347:29
 end
 
-fn 7 std_core$i32$Comparable$gt (i32:2,i32:2) -> bool:6
+fn 7 std_core$i32$Comparable$gt (i32,i32) -> bool
   local $call_2 i32
   local.get 0   ; core.vader:45:51
   local.get 1   ; core.vader:45:51
@@ -158,7 +158,7 @@ fn 7 std_core$i32$Comparable$gt (i32:2,i32:2) -> bool:6
   return   ; core.vader:45:44
 end
 
-fn 8 std_core$i32$Comparable$gte (i32:2,i32:2) -> bool:6
+fn 8 std_core$i32$Comparable$gte (i32,i32) -> bool
   local $call_2 i32
   local.get 0   ; core.vader:46:51
   local.get 1   ; core.vader:46:51
@@ -170,14 +170,14 @@ fn 8 std_core$i32$Comparable$gte (i32:2,i32:2) -> bool:6
   return   ; core.vader:46:44
 end
 
-fn 9 std_core$i32$Step$step (i32:2) -> i32:2
+fn 9 std_core$i32$Step$step (i32) -> i32
   local.get 0   ; core.vader:365:26
   i32.const 1   ; core.vader:365:26
   i32.add   ; core.vader:365:26
   return   ; core.vader:365:23
 end
 
-fn 10 std_core$Range$Iterator$next__i32 (ref:7) -> ref:8
+fn 10 std_core$Range$Iterator$next__i32 (ref) -> ref
   local if_res bool
   local $field_3 i32
   local $field_4 i32
@@ -231,7 +231,7 @@ fn 10 std_core$Range$Iterator$next__i32 (ref:7) -> ref:8
   end $L1   ; core.vader:225:9
 end
 
-fn 11 std_core$ArrayIterator$Iterator$next__i32 (ref:11) -> ref:8
+fn 11 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -280,7 +280,7 @@ fn 11 std_core$ArrayIterator$Iterator$next__i32 (ref:11) -> ref:8
   end $L0   ; core.vader:244:9
 end
 
-fn 12 "std_core$?$Into$into__i32" (ref:12) -> ref:3
+fn 12 "std_core$?$Into$into__i32" (ref) -> ref
   local $cast_2 usize
   local $len_3 usize
   i32.const 0   ; core.vader:256:64

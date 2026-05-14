@@ -10,9 +10,9 @@ string 0 "null"
 string 1 "P.x = "
 string 2 "Q.y = "
 string 3 "hello"
-import 0 println std_io$println (string:4) -> void:6
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref:1) -> string:4
+fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref) -> string
   local __scrut_0 ref
   local p ref
   local __sb_2 any
@@ -73,7 +73,7 @@ fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref:1) -> string:4
   end $L0   ; _main.vader:13:9
 end
 
-fn 1 tests_snippets_match_is_as_binding__main_vader$main () -> i32:5
+fn 1 tests_snippets_match_is_as_binding__main_vader$main () -> i32
   i32.const 42   ; _main.vader:20:27
   struct.new 2   ; _main.vader:20:18
   call 0   ; _main.vader:20:13

@@ -22,12 +22,12 @@ string 8 "ws_space="
 string 9 "ws_a="
 string 10 "ws_tab="
 string 11 "0"
-import 0 println std_io$println (string:2) -> void:7
-import 1 byte_len std_string$byte_len (string:2) -> usize:4
-import 2 to_string std_string_builder$StringBuilder$Display$to_string (ref:9) -> string:2
+import 0 println std_io$println (string) -> void
+import 1 byte_len std_string$byte_len (string) -> usize
+import 2 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 9 Display
 
-fn 0 tests_snippets_format_helpers__main_vader$main () -> i32:1
+fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
   local __sb_0 any
   local $call_6 string
   local __sb_1 any
@@ -221,7 +221,7 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32:1
   return   ; _main.vader:22:5
 end
 
-fn 1 std_string$pad_start (string:2,usize:4,char:6) -> string:2
+fn 1 std_string$pad_start (string,usize,char) -> string
   local n usize
   local sb ref
   local i usize
@@ -266,7 +266,7 @@ fn 1 std_string$pad_start (string:2,usize:4,char:6) -> string:2
   end $L0   ; string.vader:271:5
 end
 
-fn 2 std_string$pad_end (string:2,usize:4,char:6) -> string:2
+fn 2 std_string$pad_end (string,usize,char) -> string
   local n usize
   local sb ref
   local i usize
@@ -310,7 +310,7 @@ fn 2 std_string$pad_end (string:2,usize:4,char:6) -> string:2
   end $L0   ; string.vader:288:5
 end
 
-fn 3 std_string$is_white_char (char:6) -> bool:5
+fn 3 std_string$is_white_char (char) -> bool
   local or_res bool
   local or_res bool
   local or_res bool
@@ -350,7 +350,7 @@ fn 3 std_string$is_white_char (char:6) -> bool:5
   return   ; string.vader:303:39
 end
 
-fn 4 std_numbers$hex_digit (u64:3) -> char:6
+fn 4 std_numbers$hex_digit (u64) -> char
   local $cast_2 u64
   local $cast_5 u32
   local $cast_6 u32
@@ -398,7 +398,7 @@ fn 4 std_numbers$hex_digit (u64:3) -> char:6
   end $L0   ; numbers.vader:92:5
 end
 
-fn 5 std_numbers$to_hex (u64:3) -> string:2
+fn 5 std_numbers$to_hex (u64) -> string
   local rev ref
   local base u64
   local x u64
@@ -490,7 +490,7 @@ fn 5 std_numbers$to_hex (u64:3) -> string:2
   end $L0   ; numbers.vader:106:5
 end
 
-fn 6 std_numbers$to_bin (u64:3) -> string:2
+fn 6 std_numbers$to_bin (u64) -> string
   local rev ref
   local two u64
   local x u64
@@ -591,13 +591,13 @@ fn 6 std_numbers$to_bin (u64:3) -> string:2
   end $L0   ; numbers.vader:133:5
 end
 
-fn 7 std_string_builder$new_builder () -> ref:9
+fn 7 std_string_builder$new_builder () -> ref
   array.new 8 0   ; string_builder.vader:25:37
   struct.new 9   ; string_builder.vader:25:12
   return   ; string_builder.vader:25:5
 end
 
-fn 8 std_string_builder$append (ref:9,string:2) -> void:7
+fn 8 std_string_builder$append (ref,string) -> void
   local.get 0   ; string_builder.vader:33:5
   struct.get 9 0   ; string_builder.vader:33:5
   local.get 1   ; string_builder.vader:33:5
@@ -605,7 +605,7 @@ fn 8 std_string_builder$append (ref:9,string:2) -> void:7
   return   ; string_builder.vader:32:61
 end
 
-fn 9 std_string_builder$append_char (ref:9,char:6) -> void:7
+fn 9 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local __sb_0 any
   local $intrinsic_5 string

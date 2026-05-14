@@ -5,9 +5,9 @@ type 2 primitive string
 type 3 primitive void
 string 0 "weekend"
 string 1 "weekday"
-import 0 println std_io$println (string:2) -> void:3
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_match_partial__main_vader$weekend_only (i32:1) -> string:2
+fn 0 tests_snippets_match_partial__main_vader$weekend_only (i32) -> string
   local __scrut_0 i32
   local.get 0   ; _main.vader:10:27
   local.set 1   ; _main.vader:10:27
@@ -70,7 +70,7 @@ fn 0 tests_snippets_match_partial__main_vader$weekend_only (i32:1) -> string:2
   end $L0   ; _main.vader:11:9
 end
 
-fn 1 tests_snippets_match_partial__main_vader$main () -> i32:1
+fn 1 tests_snippets_match_partial__main_vader$main () -> i32
   i32.const 5   ; _main.vader:22:26
   call 0   ; _main.vader:22:13
   call.import 0   ; _main.vader:22:5

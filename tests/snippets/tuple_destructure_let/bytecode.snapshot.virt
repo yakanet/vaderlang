@@ -7,16 +7,16 @@ type 4 primitive void
 string 0 "hello"
 string 1 "n = "
 string 2 "s = "
-import 0 println std_io$println (string:3) -> void:4
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_tuple_destructure_let__main_vader$make_pair () -> ref:1
+fn 0 tests_snippets_tuple_destructure_let__main_vader$make_pair () -> ref
   i32.const 10   ; _main.vader:4:12
   string.const 0   ; _main.vader:4:12
   struct.new 1   ; _main.vader:4:12
   return   ; _main.vader:4:5
 end
 
-fn 1 tests_snippets_tuple_destructure_let__main_vader$main () -> i32:2
+fn 1 tests_snippets_tuple_destructure_let__main_vader$main () -> i32
   local __tup_0 ref
   local n i32
   local s string

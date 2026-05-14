@@ -10,9 +10,9 @@ type 7 struct __Tuple_23 { _0:1,_1:2,_2:4,_3:3 }
 string 0 "x"
 string 1 " "
 string 2 "q"
-import 0 println std_io$println (string:2) -> void:5
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_tuple_triple_quad__main_vader$main () -> i32:1
+fn 0 tests_snippets_tuple_triple_quad__main_vader$main () -> i32
   local triple ref
   local __sb_0 any
   local $field_7 i32

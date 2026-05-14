@@ -8,16 +8,16 @@ type 5 primitive void
 string 0 "length="
 string 1 "not found"
 string 2 "found "
-import 0 println std_io$println (string:4) -> void:5
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_b1_fn_boundary__main_vader$cons (i32:1,ref:2) -> ref:2
+fn 0 tests_snippets_b1_fn_boundary__main_vader$cons (i32,ref) -> ref
   local.get 0   ; _main.vader:15:12
   local.get 1   ; _main.vader:15:12
   struct.new 3   ; _main.vader:15:12
   return   ; _main.vader:15:5
 end
 
-fn 1 tests_snippets_b1_fn_boundary__main_vader$find (ref:2,i32:1) -> ref:2
+fn 1 tests_snippets_b1_fn_boundary__main_vader$find (ref,i32) -> ref
   local __scrut_0 ref
   local h ref
   local if_res ref
@@ -54,7 +54,7 @@ fn 1 tests_snippets_b1_fn_boundary__main_vader$find (ref:2,i32:1) -> ref:2
   end $L0   ; _main.vader:20:9
 end
 
-fn 2 tests_snippets_b1_fn_boundary__main_vader$length (ref:2) -> i32:1
+fn 2 tests_snippets_b1_fn_boundary__main_vader$length (ref) -> i32
   local __scrut_0 ref
   local h ref
   local $call_11 i32
@@ -84,7 +84,7 @@ fn 2 tests_snippets_b1_fn_boundary__main_vader$length (ref:2) -> i32:1
   end $L0   ; _main.vader:27:9
 end
 
-fn 3 tests_snippets_b1_fn_boundary__main_vader$main () -> i32:1
+fn 3 tests_snippets_b1_fn_boundary__main_vader$main () -> i32
   local $k_3 null
   local $call_4 ref
   local $call_5 ref

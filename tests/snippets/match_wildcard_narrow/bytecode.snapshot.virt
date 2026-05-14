@@ -13,9 +13,9 @@ string 3 "Whiskers"
 string 4 "Rex"
 string 5 "Mittens"
 string 6 "Buddy"
-import 0 println std_io$println (string:4) -> void:6
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_match_wildcard_narrow__main_vader$greet_wildcard (ref:1) -> string:4
+fn 0 tests_snippets_match_wildcard_narrow__main_vader$greet_wildcard (ref) -> string
   local if_res string
   local __sb_1 any
   local $field_10 string
@@ -44,7 +44,7 @@ fn 0 tests_snippets_match_wildcard_narrow__main_vader$greet_wildcard (ref:1) -> 
   return   ; _main.vader:26:5
 end
 
-fn 1 tests_snippets_match_wildcard_narrow__main_vader$greet_binding (ref:1) -> string:4
+fn 1 tests_snippets_match_wildcard_narrow__main_vader$greet_binding (ref) -> string
   local __scrut_0 ref
   local if_res string
   local pet ref
@@ -78,7 +78,7 @@ fn 1 tests_snippets_match_wildcard_narrow__main_vader$greet_binding (ref:1) -> s
   return   ; _main.vader:40:5
 end
 
-fn 2 tests_snippets_match_wildcard_narrow__main_vader$main () -> i32:5
+fn 2 tests_snippets_match_wildcard_narrow__main_vader$main () -> i32
   string.const 3   ; _main.vader:47:42
   struct.new 2   ; _main.vader:47:28
   call 0   ; _main.vader:47:13

@@ -16,11 +16,11 @@ string 3 "a="
 string 4 " b="
 string 5 " tail.len="
 string 6 "short.len="
-import 0 to_string std_core$usize$Display$to_string (usize:7) -> string:6
-import 1 println std_io$println (string:6) -> void:9
+import 0 to_string std_core$usize$Display$to_string (usize) -> string
+import 1 println std_io$println (string) -> void
 impl 2 Iterator
 
-fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32:1
+fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
   local arr ref
   local __tup_0 ref
   local first i32
@@ -316,7 +316,7 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32:1
   return   ; _main.vader:18:5
 end
 
-fn 1 std_core$ArrayIterator$Iterator$next__i32 (ref:2) -> ref:3
+fn 1 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref

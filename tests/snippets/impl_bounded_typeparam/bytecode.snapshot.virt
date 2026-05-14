@@ -10,13 +10,13 @@ type 7 primitive void
 string 0 "Mira"
 string 1 "Rex"
 string 2 "wrapped"
-import 0 println std_io$println (string:3) -> void:7
+import 0 println std_io$println (string) -> void
 impl 2 Display
 impl 4 Display
 impl 5 Tag
 impl 6 Tag
 
-fn 0 tests_snippets_impl_bounded_typeparam__main_vader$main () -> i32:1
+fn 0 tests_snippets_impl_bounded_typeparam__main_vader$main () -> i32
   local a ref
   local b ref
   string.const 0   ; _main.vader:25:45
@@ -37,12 +37,12 @@ fn 0 tests_snippets_impl_bounded_typeparam__main_vader$main () -> i32:1
   return   ; _main.vader:29:5
 end
 
-fn 1 tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Cat (ref:2) -> string:3
+fn 1 tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Cat (ref) -> string
   string.const 2   ; _main.vader:20:16
   return   ; _main.vader:20:9
 end
 
-fn 2 tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Dog (ref:4) -> string:3
+fn 2 tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Dog (ref) -> string
   string.const 2   ; _main.vader:20:16
   return   ; _main.vader:20:9
 end

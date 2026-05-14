@@ -18,13 +18,13 @@ string 6 "spawn: failed to launch \""
 string 7 "\""
 string 8 "spawn: \""
 string 9 "\" terminated by signal"
-import 0 println std_io$println (string:2) -> void:3
-import 1 spawn_run std_process$spawn_run (ref:5) -> i32:1
-import 2 spawn_last_stdout std_process$spawn_last_stdout () -> string:2
-import 3 spawn_last_stderr std_process$spawn_last_stderr () -> string:2
+import 0 println std_io$println (string) -> void
+import 1 spawn_run std_process$spawn_run (ref) -> i32
+import 2 spawn_last_stdout std_process$spawn_last_stdout () -> string
+import 3 spawn_last_stderr std_process$spawn_last_stderr () -> string
 impl 6 Error
 
-fn 0 tests_snippets_process_spawn__main_vader$main () -> i32:1
+fn 0 tests_snippets_process_spawn__main_vader$main () -> i32
   local r ref
   local __scrut_0 ref
   local __sb_2 any
@@ -97,13 +97,13 @@ fn 0 tests_snippets_process_spawn__main_vader$main () -> i32:1
   end $L0   ; _main.vader:11:9
 end
 
-fn 1 std_process$ProcessError$Error$message (ref:6) -> string:2
+fn 1 std_process$ProcessError$Error$message (ref) -> string
   local.get 0   ; process.vader:21:44
   struct.get 6 0   ; process.vader:21:44
   return   ; process.vader:21:37
 end
 
-fn 2 std_process$spawn (ref:5) -> ref:7
+fn 2 std_process$spawn (ref) -> ref
   local $len_1 usize
   local code i32
   local out string

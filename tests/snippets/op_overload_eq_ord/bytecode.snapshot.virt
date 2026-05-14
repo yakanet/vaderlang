@@ -11,11 +11,11 @@ string 2 "a<c "
 string 3 "  c>a "
 string 4 "  a>=b "
 string 5 "  c<=c "
-import 0 println std_io$println (string:4) -> void:5
+import 0 println std_io$println (string) -> void
 impl 1 Equals
 impl 1 Comparable
 
-fn 0 tests_snippets_op_overload_eq_ord__main_vader$Money$Equals$equals (ref:1,ref:1) -> bool:2
+fn 0 tests_snippets_op_overload_eq_ord__main_vader$Money$Equals$equals (ref,ref) -> bool
   local $field_2 i32
   local $field_3 i32
   local.get 0   ; _main.vader:14:28
@@ -30,7 +30,7 @@ fn 0 tests_snippets_op_overload_eq_ord__main_vader$Money$Equals$equals (ref:1,re
   return   ; _main.vader:14:25
 end
 
-fn 1 tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$compare (ref:1,ref:1) -> i32:3
+fn 1 tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$compare (ref,ref) -> i32
   local $field_2 i32
   local $field_3 i32
   local $field_7 i32
@@ -68,7 +68,7 @@ fn 1 tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$compare (ref
   end $L0   ; _main.vader:17:9
 end
 
-fn 2 tests_snippets_op_overload_eq_ord__main_vader$main () -> i32:3
+fn 2 tests_snippets_op_overload_eq_ord__main_vader$main () -> i32
   local a ref
   local b ref
   local c ref

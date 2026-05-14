@@ -19,21 +19,21 @@ string 7 "hello world"
 string 8 "你好嗎？"
 string 9 "a,b,c"
 string 10 ","
-import 0 to_string std_core$usize$Display$to_string (usize:3) -> string:2
-import 1 at std_core$string$Index$at (string:2,usize:3) -> char:5
-import 2 println std_io$println (string:2) -> void:6
-import 3 byte_len std_string$byte_len (string:2) -> usize:3
-import 4 slice std_string$slice (string:2,usize:3,usize:3) -> string:2
-import 5 contains std_string$contains (string:2,string:2) -> bool:4
-import 6 starts_with std_string$starts_with (string:2,string:2) -> bool:4
-import 7 ends_with std_string$ends_with (string:2,string:2) -> bool:4
-import 8 split std_string$split (string:2,string:2) -> ref:7
-import 9 trim std_string$trim (string:2) -> string:2
-import 10 to_upper std_string$to_upper (string:2) -> string:2
-import 11 to_lower std_string$to_lower (string:2) -> string:2
+import 0 to_string std_core$usize$Display$to_string (usize) -> string
+import 1 at std_core$string$Index$at (string,usize) -> char
+import 2 println std_io$println (string) -> void
+import 3 byte_len std_string$byte_len (string) -> usize
+import 4 slice std_string$slice (string,usize,usize) -> string
+import 5 contains std_string$contains (string,string) -> bool
+import 6 starts_with std_string$starts_with (string,string) -> bool
+import 7 ends_with std_string$ends_with (string,string) -> bool
+import 8 split std_string$split (string,string) -> ref
+import 9 trim std_string$trim (string) -> string
+import 10 to_upper std_string$to_upper (string) -> string
+import 11 to_lower std_string$to_lower (string) -> string
 impl 8 Display
 
-fn 0 tests_snippets_std_string__main_vader$main () -> i32:1
+fn 0 tests_snippets_std_string__main_vader$main () -> i32
   local s string
   local __sb_0 any
   local $call_5 string

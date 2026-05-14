@@ -10,9 +10,9 @@ string 0 "answer"
 string 1 "id="
 string 2 " label="
 string 3 " active="
-import 0 println std_io$println (string:2) -> void:4
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_tuple_match_nested__main_vader$main () -> i32:1
+fn 0 tests_snippets_tuple_match_nested__main_vader$main () -> i32
   local $struct_2 ref
   local __scrut_0 ref
   local id i32

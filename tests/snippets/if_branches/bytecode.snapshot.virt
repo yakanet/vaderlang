@@ -6,7 +6,7 @@ string 0 "positive"
 string 1 "negative"
 string 2 "zero"
 
-fn 0 tests_snippets_if_branches__main_vader$classify (i32:1) -> string:2
+fn 0 tests_snippets_if_branches__main_vader$classify (i32) -> string
   local if_res string
   local if_res string
   local.get 0   ; _main.vader:2:16

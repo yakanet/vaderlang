@@ -10,11 +10,11 @@ type 7 struct std_core$Yielded__string { value:2 }
 type 8 primitive usize
 type 9 primitive void
 string 0 "argc="
-import 0 to_string std_core$usize$Display$to_string (usize:8) -> string:2
-import 1 println std_io$println (string:2) -> void:9
+import 0 to_string std_core$usize$Display$to_string (usize) -> string
+import 1 println std_io$println (string) -> void
 impl 4 Iterator
 
-fn 0 tests_snippets_runtime_argv__main_vader$main (ref:1) -> i32:3
+fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
   local __sb_0 any
   local $len_4 usize
   local $call_7 string
@@ -81,7 +81,7 @@ fn 0 tests_snippets_runtime_argv__main_vader$main (ref:1) -> i32:3
   return   ; _main.vader:16:5
 end
 
-fn 1 std_core$ArrayIterator$Iterator$next__string (ref:4) -> ref:5
+fn 1 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref

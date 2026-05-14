@@ -6,7 +6,7 @@ string 0 "Hello, "
 string 1 "! You are "
 string 2 " years old."
 
-fn 0 tests_snippets_interp_string__main_vader$greet (string:1,i32:2) -> string:1
+fn 0 tests_snippets_interp_string__main_vader$greet (string,i32) -> string
   local __sb_0 any
   intrinsic builder.new   ; _main.vader:2:12
   local.set 2   ; _main.vader:2:12

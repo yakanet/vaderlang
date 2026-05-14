@@ -57,16 +57,16 @@ string 42 "/a//b"
 string 43 ""
 string 44 "/"
 string 45 "."
-import 0 at std_core$string$Index$at (string:1,usize:6) -> char:8
-import 1 println std_io$println (string:1) -> void:3
-import 2 byte_len std_string$byte_len (string:1) -> usize:6
-import 3 slice std_string$slice (string:1,usize:6,usize:6) -> string:1
-import 4 starts_with std_string$starts_with (string:1,string:1) -> bool:7
-import 5 ends_with std_string$ends_with (string:1,string:1) -> bool:7
-import 6 to_string std_string_builder$StringBuilder$Display$to_string (ref:11) -> string:1
+import 0 at std_core$string$Index$at (string,usize) -> char
+import 1 println std_io$println (string) -> void
+import 2 byte_len std_string$byte_len (string) -> usize
+import 3 slice std_string$slice (string,usize,usize) -> string
+import 4 starts_with std_string$starts_with (string,string) -> bool
+import 5 ends_with std_string$ends_with (string,string) -> bool
+import 6 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 11 Display
 
-fn 0 tests_snippets_path_basics__main_vader$show_path (string:1,ref:2) -> void:3
+fn 0 tests_snippets_path_basics__main_vader$show_path (string,ref) -> void
   local __sb_0 any
   local $call_5 string
   intrinsic builder.new   ; _main.vader:10:13
@@ -88,7 +88,7 @@ fn 0 tests_snippets_path_basics__main_vader$show_path (string:1,ref:2) -> void:3
   return   ; _main.vader:9:56
 end
 
-fn 1 tests_snippets_path_basics__main_vader$main () -> i32:4
+fn 1 tests_snippets_path_basics__main_vader$main () -> i32
   local p ref
   local __sb_0 any
   local $call_7 string
@@ -425,32 +425,32 @@ fn 1 tests_snippets_path_basics__main_vader$main () -> i32:4
   return   ; _main.vader:46:5
 end
 
-fn 2 std_path$to_path (string:1) -> ref:2
+fn 2 std_path$to_path (string) -> ref
   local.get 0   ; path.vader:30:12
   struct.new 2   ; path.vader:30:12
   return   ; path.vader:30:5
 end
 
-fn 3 std_path$empty_path () -> ref:2
+fn 3 std_path$empty_path () -> ref
   string.const 43   ; path.vader:35:27
   struct.new 2   ; path.vader:35:12
   return   ; path.vader:35:5
 end
 
-fn 4 std_path$as_string (ref:2) -> string:1
+fn 4 std_path$as_string (ref) -> string
   local.get 0   ; path.vader:42:12
   struct.get 2 0   ; path.vader:42:12
   return   ; path.vader:42:5
 end
 
-fn 5 std_path$is_empty (ref:2) -> bool:7
+fn 5 std_path$is_empty (ref) -> bool
   local.get 0   ; path.vader:47:12
   struct.get 2 0   ; path.vader:47:12
   call 15   ; path.vader:47:12
   return   ; path.vader:47:5
 end
 
-fn 6 std_path$is_absolute (ref:2) -> bool:7
+fn 6 std_path$is_absolute (ref) -> bool
   local $field_4 string
   local $call_6 char
   local.get 0   ; path.vader:53:8
@@ -474,7 +474,7 @@ fn 6 std_path$is_absolute (ref:2) -> bool:7
   end $L0   ; path.vader:53:5
 end
 
-fn 7 std_path$parent (ref:2) -> ref:2
+fn 7 std_path$parent (ref) -> ref
   local $field_1 string
   local idx isize
   local $field_14 string
@@ -523,7 +523,7 @@ fn 7 std_path$parent (ref:2) -> ref:2
   end $L0   ; path.vader:67:5
 end
 
-fn 8 std_path$filename (ref:2) -> string:1
+fn 8 std_path$filename (ref) -> string
   local $field_1 string
   local idx isize
   local $field_9 string
@@ -571,7 +571,7 @@ fn 8 std_path$filename (ref:2) -> string:1
   end $L0   ; path.vader:83:5
 end
 
-fn 9 std_path$extension (ref:2) -> string:1
+fn 9 std_path$extension (ref) -> string
   local name string
   local idx isize
   local $cast_10 usize
@@ -613,7 +613,7 @@ fn 9 std_path$extension (ref:2) -> string:1
   end $L0   ; path.vader:97:5
 end
 
-fn 10 std_path$stem (ref:2) -> string:1
+fn 10 std_path$stem (ref) -> string
   local name string
   local idx isize
   local $cast_10 usize
@@ -646,7 +646,7 @@ fn 10 std_path$stem (ref:2) -> string:1
   end $L0   ; path.vader:110:5
 end
 
-fn 11 std_path$join (ref:2,string:1) -> ref:2
+fn 11 std_path$join (ref,string) -> ref
   local $call_4 char
   local $field_11 string
   local $call_13 usize
@@ -722,7 +722,7 @@ fn 11 std_path$join (ref:2,string:1) -> ref:2
   end $L0   ; path.vader:125:5
 end
 
-fn 12 std_path$starts_with (ref:2,ref:2) -> bool:7
+fn 12 std_path$starts_with (ref,ref) -> bool
   local $field_2 string
   local $field_3 string
   local $call_8 usize
@@ -818,7 +818,7 @@ fn 12 std_path$starts_with (ref:2,ref:2) -> bool:7
   end $L0   ; path.vader:148:5
 end
 
-fn 13 std_path$ends_with (ref:2,ref:2) -> bool:7
+fn 13 std_path$ends_with (ref,ref) -> bool
   local $field_2 string
   local $field_3 string
   local $call_8 usize
@@ -919,7 +919,7 @@ fn 13 std_path$ends_with (ref:2,ref:2) -> bool:7
   end $L0   ; path.vader:167:5
 end
 
-fn 14 std_path$normalize (ref:2) -> ref:2
+fn 14 std_path$normalize (ref) -> ref
   local abs bool
   local segments ref
   local count usize
@@ -1199,7 +1199,7 @@ fn 14 std_path$normalize (ref:2) -> ref:2
   end $L0   ; path.vader:195:5
 end
 
-fn 15 std_string$is_empty (string:1) -> bool:7
+fn 15 std_string$is_empty (string) -> bool
   local $call_1 usize
   local.get 0   ; string.vader:22:36
   call.import 2   ; string.vader:22:36
@@ -1211,7 +1211,7 @@ fn 15 std_string$is_empty (string:1) -> bool:7
   return   ; string.vader:22:36
 end
 
-fn 16 std_string$decode_codepoint (string:1,usize:6) -> ref:10
+fn 16 std_string$decode_codepoint (string,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0   ; string.vader:132:10
@@ -1226,7 +1226,7 @@ fn 16 std_string$decode_codepoint (string:1,usize:6) -> ref:10
   return   ; string.vader:133:5
 end
 
-fn 17 std_string$last_index_of (string:1,char:8,isize:5) -> isize:5
+fn 17 std_string$last_index_of (string,char,isize) -> isize
   local n usize
   local last isize
   local i usize
@@ -1290,13 +1290,13 @@ fn 17 std_string$last_index_of (string:1,char:8,isize:5) -> isize:5
   return   ; string.vader:196:5
 end
 
-fn 18 std_string_builder$new_builder () -> ref:11
+fn 18 std_string_builder$new_builder () -> ref
   array.new 9 0   ; string_builder.vader:25:37
   struct.new 11   ; string_builder.vader:25:12
   return   ; string_builder.vader:25:5
 end
 
-fn 19 std_string_builder$append (ref:11,string:1) -> void:3
+fn 19 std_string_builder$append (ref,string) -> void
   local.get 0   ; string_builder.vader:33:5
   struct.get 11 0   ; string_builder.vader:33:5
   local.get 1   ; string_builder.vader:33:5
@@ -1304,7 +1304,7 @@ fn 19 std_string_builder$append (ref:11,string:1) -> void:3
   return   ; string_builder.vader:32:61
 end
 
-fn 20 std_utf8$codepoint_byte_len (char:8) -> usize:6
+fn 20 std_utf8$codepoint_byte_len (char) -> usize
   local cp u32
   local $cast_4 u32
   local $cast_8 u32

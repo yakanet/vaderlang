@@ -12,9 +12,9 @@ string 4 "halt"
 string 5 "push"
 string 6 "pop"
 string 7 "add"
-import 0 println std_io$println (string:2) -> void:4
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_enum_typed__main_vader$describe (u8:1) -> string:2
+fn 0 tests_snippets_enum_typed__main_vader$describe (u8) -> string
   local __scrut_0 u8
   local.get 0   ; _main.vader:18:18
   local.set 1   ; _main.vader:18:18
@@ -57,7 +57,7 @@ fn 0 tests_snippets_enum_typed__main_vader$describe (u8:1) -> string:2
   end $L0   ; _main.vader:19:9
 end
 
-fn 1 tests_snippets_enum_typed__main_vader$main () -> i32:3
+fn 1 tests_snippets_enum_typed__main_vader$main () -> i32
   local __scrut_0 u16
   i32.const 1   ; _main.vader:27:22
   call 0   ; _main.vader:27:13

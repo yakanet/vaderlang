@@ -8,7 +8,7 @@ string 1 "non-positive"
 string 2 "nothing"
 string 3 "?"
 
-fn 0 tests_snippets_match_expr__main_vader$classify (ref:1) -> string:3
+fn 0 tests_snippets_match_expr__main_vader$classify (ref) -> string
   local __scrut_0 ref
   local and_res bool
   local $cast_4 i32

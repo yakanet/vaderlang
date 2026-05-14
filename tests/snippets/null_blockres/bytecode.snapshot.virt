@@ -8,9 +8,9 @@ type 5 primitive void
 string 0 "got null"
 string 1 "got string"
 string 2 "nothing"
-import 0 println std_io$println (string:3) -> void:5
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_null_blockres__main_vader$pick (bool:1) -> ref:2
+fn 0 tests_snippets_null_blockres__main_vader$pick (bool) -> ref
   local if_res null
   local x null
   local $k_5 null
@@ -38,7 +38,7 @@ fn 0 tests_snippets_null_blockres__main_vader$pick (bool:1) -> ref:2
   end $L1   ; _main.vader:8:5
 end
 
-fn 1 tests_snippets_null_blockres__main_vader$main () -> i32:4
+fn 1 tests_snippets_null_blockres__main_vader$main () -> i32
   local __scrut_0 ref
   bool.const true   ; _main.vader:15:16
   call 0   ; _main.vader:15:11

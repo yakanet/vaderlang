@@ -17,12 +17,12 @@ string 2 "a="
 string 3 " b="
 string 4 " c="
 string 5 "c"
-import 0 println std_io$println (string:2) -> void:4
+import 0 println std_io$println (string) -> void
 impl 1 Index
 impl 1 IndexSet
 impl 7 Iterator
 
-fn 0 tests_snippets_op_overload_index__main_vader$Cell$Index$at (ref:1,string:2) -> i32:3
+fn 0 tests_snippets_op_overload_index__main_vader$Cell$Index$at (ref,string) -> i32
   local i i32
   local $field_4 ref
   local $len_7 usize
@@ -76,7 +76,7 @@ fn 0 tests_snippets_op_overload_index__main_vader$Cell$Index$at (ref:1,string:2)
   return   ; _main.vader:15:27
 end
 
-fn 1 tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at (ref:1,string:2,i32:3) -> void:4
+fn 1 tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at (ref,string,i32) -> void
   local i i32
   local $field_5 ref
   local $len_8 usize
@@ -137,7 +137,7 @@ fn 1 tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at (ref:1,st
   return   ; _main.vader:28:17
 end
 
-fn 2 tests_snippets_op_overload_index__main_vader$main () -> i32:3
+fn 2 tests_snippets_op_overload_index__main_vader$main () -> i32
   local $arr_0 ref
   local $arr_1 ref
   local c ref
@@ -204,7 +204,7 @@ fn 2 tests_snippets_op_overload_index__main_vader$main () -> i32:3
   return   ; _main.vader:43:5
 end
 
-fn 3 std_core$ArrayIterator$Iterator$next__string (ref:7) -> ref:8
+fn 3 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref

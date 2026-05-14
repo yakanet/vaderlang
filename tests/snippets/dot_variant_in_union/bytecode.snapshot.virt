@@ -15,11 +15,11 @@ string 2 "E"
 string 3 "S"
 string 4 "W"
 string 5 "err"
-import 0 println std_io$println (string:5) -> void:6
+import 0 println std_io$println (string) -> void
 impl 8 Error
 impl 9 Display
 
-fn 0 tests_snippets_dot_variant_in_union__main_vader$parse (char:1) -> ref:2
+fn 0 tests_snippets_dot_variant_in_union__main_vader$parse (char) -> ref
   local.get 0   ; _main.vader:12:8
   char.const 78   ; _main.vader:12:8
   char.eq   ; _main.vader:12:8
@@ -57,7 +57,7 @@ fn 0 tests_snippets_dot_variant_in_union__main_vader$parse (char:1) -> ref:2
   end $L0   ; _main.vader:12:5
 end
 
-fn 1 tests_snippets_dot_variant_in_union__main_vader$dir_label (i32:3) -> string:5
+fn 1 tests_snippets_dot_variant_in_union__main_vader$dir_label (i32) -> string
   local __scrut_0 i32
   local.get 0   ; _main.vader:20:11
   local.set 1   ; _main.vader:20:11
@@ -96,7 +96,7 @@ fn 1 tests_snippets_dot_variant_in_union__main_vader$dir_label (i32:3) -> string
   end $L0   ; _main.vader:21:9
 end
 
-fn 2 tests_snippets_dot_variant_in_union__main_vader$main () -> i32:3
+fn 2 tests_snippets_dot_variant_in_union__main_vader$main () -> i32
   local __scrut_0 ref
   local __scrut_1 ref
   char.const 78   ; _main.vader:29:17

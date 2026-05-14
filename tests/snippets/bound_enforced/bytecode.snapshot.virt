@@ -5,9 +5,9 @@ type 2 primitive string
 type 3 primitive bool
 type 4 primitive u64
 string 0 "foo"
-import 0 hash std_core$string$Hash$hash (string:2) -> u64:4
+import 0 hash std_core$string$Hash$hash (string) -> u64
 
-fn 0 tests_snippets_bound_enforced__main_vader$main () -> i32:1
+fn 0 tests_snippets_bound_enforced__main_vader$main () -> i32
   string.const 0   ; _main.vader:12:19
   call 1   ; _main.vader:12:8
   if $L0 void   ; _main.vader:12:5
@@ -19,7 +19,7 @@ fn 0 tests_snippets_bound_enforced__main_vader$main () -> i32:1
   end $L0   ; _main.vader:12:5
 end
 
-fn 1 tests_snippets_bound_enforced__main_vader$tests_snippets_bound_enforced__main_vader$needs_hash__string (string:2) -> bool:3
+fn 1 tests_snippets_bound_enforced__main_vader$tests_snippets_bound_enforced__main_vader$needs_hash__string (string) -> bool
   local h u64
   local $cast_4 u64
   local.get 0   ; _main.vader:7:10

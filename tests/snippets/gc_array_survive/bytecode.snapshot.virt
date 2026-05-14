@@ -8,11 +8,11 @@ string 0 "expected 1 collection, got "
 string 1 "sum mismatch: got "
 string 2 ", expected "
 string 3 "ok: 200 array elements survived GC; sum="
-import 0 println std_io$println (string:2) -> void:3
-import 1 collect std_runtime$collect () -> void:3
-import 2 collections std_runtime$collections () -> i32:1
+import 0 println std_io$println (string) -> void
+import 1 collect std_runtime$collect () -> void
+import 2 collections std_runtime$collections () -> i32
 
-fn 0 tests_snippets_gc_array_survive__main_vader$main () -> i32:1
+fn 0 tests_snippets_gc_array_survive__main_vader$main () -> i32
   local list ref
   local i i32
   local before i32

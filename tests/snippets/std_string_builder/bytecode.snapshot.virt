@@ -15,11 +15,11 @@ string 5 "baz"
 string 6 "empty='"
 string 7 "'"
 string 8 "n="
-import 0 println std_io$println (string:2) -> void:4
-import 1 to_string std_string_builder$StringBuilder$Display$to_string (ref:6) -> string:2
+import 0 println std_io$println (string) -> void
+import 1 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 6 Display
 
-fn 0 tests_snippets_std_string_builder__main_vader$main () -> i32:1
+fn 0 tests_snippets_std_string_builder__main_vader$main () -> i32
   local sb ref
   local sb2 ref
   local sb3 ref
@@ -112,13 +112,13 @@ fn 0 tests_snippets_std_string_builder__main_vader$main () -> i32:1
   return   ; _main.vader:37:5
 end
 
-fn 1 std_string_builder$new_builder () -> ref:6
+fn 1 std_string_builder$new_builder () -> ref
   array.new 5 0   ; string_builder.vader:25:37
   struct.new 6   ; string_builder.vader:25:12
   return   ; string_builder.vader:25:5
 end
 
-fn 2 std_string_builder$append (ref:6,string:2) -> void:4
+fn 2 std_string_builder$append (ref,string) -> void
   local.get 0   ; string_builder.vader:33:5
   struct.get 6 0   ; string_builder.vader:33:5
   local.get 1   ; string_builder.vader:33:5
@@ -126,7 +126,7 @@ fn 2 std_string_builder$append (ref:6,string:2) -> void:4
   return   ; string_builder.vader:32:61
 end
 
-fn 3 std_string_builder$append_char (ref:6,char:3) -> void:4
+fn 3 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local __sb_0 any
   local $intrinsic_5 string

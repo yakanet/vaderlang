@@ -10,11 +10,11 @@ string 0 "parse: "
 string 1 "net: "
 string 2 "bad token"
 string 3 "timeout"
-import 0 println std_io$println (string:2) -> void:6
+import 0 println std_io$println (string) -> void
 impl 1 Error
 impl 3 Error
 
-fn 0 tests_snippets_trait_virtual_dispatch__main_vader$ParseErr$Error$message (ref:1) -> string:2
+fn 0 tests_snippets_trait_virtual_dispatch__main_vader$ParseErr$Error$message (ref) -> string
   local __sb_0 any
   local $field_4 string
   intrinsic builder.new   ; _main.vader:11:44
@@ -33,7 +33,7 @@ fn 0 tests_snippets_trait_virtual_dispatch__main_vader$ParseErr$Error$message (r
   return   ; _main.vader:11:37
 end
 
-fn 1 tests_snippets_trait_virtual_dispatch__main_vader$NetErr$Error$message (ref:3) -> string:2
+fn 1 tests_snippets_trait_virtual_dispatch__main_vader$NetErr$Error$message (ref) -> string
   local __sb_0 any
   local $field_4 string
   intrinsic builder.new   ; _main.vader:14:44
@@ -52,13 +52,13 @@ fn 1 tests_snippets_trait_virtual_dispatch__main_vader$NetErr$Error$message (ref
   return   ; _main.vader:14:37
 end
 
-fn 2 tests_snippets_trait_virtual_dispatch__main_vader$report (ref:4) -> string:2
+fn 2 tests_snippets_trait_virtual_dispatch__main_vader$report (ref) -> string
   local.get 0   ; _main.vader:18:12
   virtual.call 1 Error.message   ; _main.vader:18:12
   return   ; _main.vader:18:5
 end
 
-fn 3 tests_snippets_trait_virtual_dispatch__main_vader$main () -> i32:5
+fn 3 tests_snippets_trait_virtual_dispatch__main_vader$main () -> i32
   string.const 2   ; _main.vader:22:38
   struct.new 1   ; _main.vader:22:20
   call 2   ; _main.vader:22:13

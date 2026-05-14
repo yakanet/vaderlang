@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 
-fn 0 tests_snippets_for_loop__main_vader$mixed_loops (i32:1) -> i32:1
+fn 0 tests_snippets_for_loop__main_vader$mixed_loops (i32) -> i32
   local n i32
   local i i32
   local $mod_9 i32

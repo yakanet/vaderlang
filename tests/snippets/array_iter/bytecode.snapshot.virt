@@ -11,10 +11,10 @@ type 8 array 1
 type 9 primitive void
 string 0 "sum = "
 string 1 "count = "
-import 0 println std_io$println (string:6) -> void:9
+import 0 println std_io$println (string) -> void
 impl 2 Iterator
 
-fn 0 tests_snippets_array_iter__main_vader$main () -> i32:1
+fn 0 tests_snippets_array_iter__main_vader$main () -> i32
   local arr ref
   local sum i32
   local $len_9 usize
@@ -120,7 +120,7 @@ fn 0 tests_snippets_array_iter__main_vader$main () -> i32:1
   return   ; _main.vader:18:5
 end
 
-fn 1 std_core$ArrayIterator$Iterator$next__i32 (ref:2) -> ref:3
+fn 1 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref

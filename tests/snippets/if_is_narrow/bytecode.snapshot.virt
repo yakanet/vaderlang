@@ -20,9 +20,9 @@ string 7 "woof"
 string 8 "garfield"
 string 9 "bark"
 string 10 "hello"
-import 0 println std_io$println (string:4) -> void:9
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_if_is_narrow__main_vader$direct (ref:1) -> string:4
+fn 0 tests_snippets_if_is_narrow__main_vader$direct (ref) -> string
   local __sb_0 any
   local $field_6 string
   local __sb_1 any
@@ -62,7 +62,7 @@ fn 0 tests_snippets_if_is_narrow__main_vader$direct (ref:1) -> string:4
   end $L0   ; _main.vader:15:5
 end
 
-fn 1 tests_snippets_if_is_narrow__main_vader$negated (ref:1) -> string:4
+fn 1 tests_snippets_if_is_narrow__main_vader$negated (ref) -> string
   local __sb_0 any
   local $field_7 string
   local __sb_1 any
@@ -103,7 +103,7 @@ fn 1 tests_snippets_if_is_narrow__main_vader$negated (ref:1) -> string:4
   end $L0   ; _main.vader:23:5
 end
 
-fn 2 tests_snippets_if_is_narrow__main_vader$cascade (ref:5) -> string:4
+fn 2 tests_snippets_if_is_narrow__main_vader$cascade (ref) -> string
   local __sb_0 any
   local $field_6 string
   local __sb_1 any
@@ -167,7 +167,7 @@ fn 2 tests_snippets_if_is_narrow__main_vader$cascade (ref:5) -> string:4
   end $L0   ; _main.vader:30:5
 end
 
-fn 3 tests_snippets_if_is_narrow__main_vader$primitive_is (ref:7) -> string:4
+fn 3 tests_snippets_if_is_narrow__main_vader$primitive_is (ref) -> string
   local __sb_0 any
   local $cast_5 i32
   local __sb_1 any
@@ -207,7 +207,7 @@ fn 3 tests_snippets_if_is_narrow__main_vader$primitive_is (ref:7) -> string:4
   end $L0   ; _main.vader:37:5
 end
 
-fn 4 tests_snippets_if_is_narrow__main_vader$main () -> i32:8
+fn 4 tests_snippets_if_is_narrow__main_vader$main () -> i32
   string.const 6   ; _main.vader:42:34
   struct.new 2   ; _main.vader:42:20
   call 0   ; _main.vader:42:13

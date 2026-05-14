@@ -5,7 +5,7 @@ type 2 struct tests_snippets_coerce_into_chain_no__main_vader$A { value:1 }
 type 3 struct tests_snippets_coerce_into_chain_no__main_vader$C { value:1 }
 impl 2 Into
 
-fn 0 tests_snippets_coerce_into_chain_no__main_vader$main () -> i32:1
+fn 0 tests_snippets_coerce_into_chain_no__main_vader$main () -> i32
   i32.const 1   ; _main.vader:18:23
   struct.new_stack 2   ; _main.vader:18:10
   struct.get 3 0   ; _main.vader:20:12

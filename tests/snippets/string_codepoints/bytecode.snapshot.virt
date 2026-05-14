@@ -32,14 +32,14 @@ string 16 "'a' width="
 string 17 "'é' width="
 string 18 "'你' width="
 string 19 "emoji width="
-import 0 to_string std_core$usize$Display$to_string (usize:3) -> string:2
-import 1 at std_core$string$Index$at (string:2,usize:3) -> char:4
-import 2 println std_io$println (string:2) -> void:7
-import 3 byte_len std_string$byte_len (string:2) -> usize:3
+import 0 to_string std_core$usize$Display$to_string (usize) -> string
+import 1 at std_core$string$Index$at (string,usize) -> char
+import 2 println std_io$println (string) -> void
+import 3 byte_len std_string$byte_len (string) -> usize
 impl 9 Iterator
 impl 12 Display
 
-fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32:1
+fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   local __sb_0 any
   local $call_5 string
   local $call_9 string
@@ -323,7 +323,7 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32:1
   return   ; _main.vader:29:5
 end
 
-fn 1 std_string$StringChars$Iterator$next (ref:9) -> ref:10
+fn 1 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 string
@@ -374,7 +374,7 @@ fn 1 std_string$StringChars$Iterator$next (ref:9) -> ref:10
   end $L0   ; string.vader:91:9
 end
 
-fn 2 std_string$StringChars$Iterator$count (ref:9) -> usize:3
+fn 2 std_string$StringChars$Iterator$count (ref) -> usize
   local total usize
   local finished bool
   local __scrut_0 ref
@@ -417,7 +417,7 @@ fn 2 std_string$StringChars$Iterator$count (ref:9) -> usize:3
   return   ; core.vader:151:9
 end
 
-fn 3 std_string$chars (string:2) -> ref:9
+fn 3 std_string$chars (string) -> ref
   local $cast_2 usize
   local $call_3 usize
   i32.const 0   ; string.vader:110:50
@@ -433,7 +433,7 @@ fn 3 std_string$chars (string:2) -> ref:9
   return   ; string.vader:110:5
 end
 
-fn 4 std_string$decode_codepoint (string:2,usize:3) -> ref:11
+fn 4 std_string$decode_codepoint (string,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0   ; string.vader:132:10
@@ -448,14 +448,14 @@ fn 4 std_string$decode_codepoint (string:2,usize:3) -> ref:11
   return   ; string.vader:133:5
 end
 
-fn 5 std_string$count_chars (string:2) -> usize:3
+fn 5 std_string$count_chars (string) -> usize
   local.get 0   ; string.vader:148:39
   call 3   ; string.vader:148:39
   call 2   ; string.vader:148:39
   return   ; string.vader:148:39
 end
 
-fn 6 std_utf8$codepoint_byte_len (char:4) -> usize:3
+fn 6 std_utf8$codepoint_byte_len (char) -> usize
   local cp u32
   local $cast_4 u32
   local $cast_8 u32

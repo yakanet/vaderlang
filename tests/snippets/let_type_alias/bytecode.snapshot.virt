@@ -8,10 +8,10 @@ string 0 "size i32      = "
 string 1 "size i64      = "
 string 2 "size union    = "
 string 3 "size array    = "
-import 0 to_string std_core$usize$Display$to_string (usize:3) -> string:2
-import 1 println std_io$println (string:2) -> void:4
+import 0 to_string std_core$usize$Display$to_string (usize) -> string
+import 1 println std_io$println (string) -> void
 
-fn 0 tests_snippets_let_type_alias__main_vader$main () -> i32:1
+fn 0 tests_snippets_let_type_alias__main_vader$main () -> i32
   local __sb_0 any
   local $call_4 string
   local __sb_1 any

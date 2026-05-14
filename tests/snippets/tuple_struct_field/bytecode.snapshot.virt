@@ -9,9 +9,9 @@ type 6 primitive void
 string 0 "id="
 string 1 " x="
 string 2 " y="
-import 0 println std_io$println (string:5) -> void:6
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_tuple_struct_field__main_vader$main () -> i32:1
+fn 0 tests_snippets_tuple_struct_field__main_vader$main () -> i32
   local $struct_3 ref
   local e ref
   local __sb_0 any

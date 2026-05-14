@@ -14,9 +14,9 @@ string 6 "or"
 string 7 "xor"
 string 8 "not_zero"
 string 9 "not_top"
-import 0 println std_io$println (string:1) -> void:3
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_u32_bitops__main_vader$check (string:1,bool:2) -> void:3
+fn 0 tests_snippets_u32_bitops__main_vader$check (string,bool) -> void
   local.get 1   ; _main.vader:10:5
   if $L0 void   ; _main.vader:10:5
     local.get 0   ; _main.vader:10:13
@@ -28,7 +28,7 @@ fn 0 tests_snippets_u32_bitops__main_vader$check (string:1,bool:2) -> void:3
   return   ; _main.vader:9:45
 end
 
-fn 1 tests_snippets_u32_bitops__main_vader$main () -> i32:4
+fn 1 tests_snippets_u32_bitops__main_vader$main () -> i32
   local a u32
   local b u32
   local $shr_6 u32

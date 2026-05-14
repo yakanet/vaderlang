@@ -322,8 +322,10 @@ function writeSignature(w: Writer, s: BcSignature): void {
   w.u32(s.params.length);
   for (const p of s.params) w.u8(valTypeTag(p));
   w.u8(valTypeTag(s.result));
-  for (const ti of s.paramTypes) w.u32(ti);
-  w.u32(s.resultType);
+  // `paramTypes` / `resultType` are deliberately omitted — they're
+  // consumed only by c-emit in-memory (for B1 detection at the fn
+  // boundary) and no `.vir → c-emit` workflow exists today. Re-add a
+  // pair of u32-arrays here if that path is ever introduced.
 }
 
 function writeFunctions(
@@ -618,10 +620,11 @@ function readSignature(r: Reader): BcSignature {
   const params: ValType[] = [];
   for (let i = 0; i < pc; i++) params.push(valTypeFromTag(r, r.u8()));
   const result = valTypeFromTag(r, r.u8());
-  const paramTypes: number[] = [];
-  for (let i = 0; i < pc; i++) paramTypes.push(r.u32());
-  const resultType = r.u32();
-  return { params, result, paramTypes, resultType };
+  // Fabricate `paramTypes` / `resultType` placeholders — the writer
+  // doesn't emit them and the VM doesn't read them. A c-emit pass over
+  // a deserialised module would see all zeros here and fall back to
+  // the non-B1 ABI ; that workflow doesn't exist today.
+  return { params, result, paramTypes: new Array(pc).fill(0), resultType: 0 };
 }
 
 function readDebugFiles(r: Reader): string[] {

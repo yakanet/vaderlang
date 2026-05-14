@@ -9,9 +9,9 @@ string 1 " b="
 string 2 " c="
 string 3 "upd:  a="
 string 4 "merged: a="
-import 0 println std_io$println (string:3) -> void:4
+import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_struct_spread__main_vader$main () -> i32:1
+fn 0 tests_snippets_struct_spread__main_vader$main () -> i32
   local base ref
   local __spread_0 ref
   local $field_6 i32

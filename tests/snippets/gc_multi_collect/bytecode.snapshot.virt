@@ -9,11 +9,11 @@ string 0 "expected 3 collections, got "
 string 1 "sum mismatch after 3 collections: "
 string 2 " vs "
 string 3 "ok: 50 nodes survived 3 collections; sum="
-import 0 println std_io$println (string:4) -> void:5
-import 1 collect std_runtime$collect () -> void:5
-import 2 collections std_runtime$collections () -> i32:1
+import 0 println std_io$println (string) -> void
+import 1 collect std_runtime$collect () -> void
+import 2 collections std_runtime$collections () -> i32
 
-fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32:1
+fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
   local head ref
   local i i32
   local c1 i32
