@@ -978,13 +978,28 @@ static vader_array_t* vader_array_resolve(vader_array_t* a) {
 
 void vader_array_push(vader_array_t* a, vader_box_t v) {
     if (a->length >= a->capacity) {
-        /* `v` is a by-value local invisible to Cheney's precise scan ;
-         * root it across the buf alloc so the collection updates its
-         * `payload.obj` instead of leaving a stale pre-collection ref. */
-        VADER_GC_PUSH1(v);
+        /* The grow path may run TWO GC cycles inside `vader_array_buf_alloc`
+         * (minor → major when the minor doesn't free enough). Each cycle
+         * forwards `a` and swaps young from/to halves ; by the second swap
+         * the *original* `a` address has been recycled and its forward
+         * pointer overwritten by a fresh allocation, so `vader_array_resolve`
+         * can't walk the chain anymore. Box `a` here and root the box so
+         * the GC's scan_box re-updates `a_box.payload.obj` through every
+         * cycle, then reload `a` from the box afterwards. Same trick for
+         * `v` whose payload may also need forwarding.
+         *
+         * `tag` is the array's BcType index — read off its header before
+         * the alloc, because by the time we'd query it post-alloc the
+         * original header memory may already be repurposed.
+         */
+        uint32_t tag = a->header.type_index;
+        vader_box_t a_box; a_box.tag = tag; a_box._pad = 0; a_box.payload.obj = a;
+        vader_box_t* roots[2] = { &a_box, &v };
+        vader_gc_frame_t frame = { vader_gc_top, 2u, 0u, roots };
+        vader_gc_top = &frame;
         size_t cap = a->capacity == 0 ? 4 : a->capacity * 2;
-        vader_array_buf_t* fresh = vader_array_buf_alloc(cap);  /* may collect */
-        a = vader_array_resolve(a);
+        vader_array_buf_t* fresh = vader_array_buf_alloc(cap);
+        a = (vader_array_t*) a_box.payload.obj;
         vader_array_buf_t* old = a->buf;
         while (old != NULL && old->header.forward != NULL) {
             old = (vader_array_buf_t*) old->header.forward;
@@ -997,7 +1012,7 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
         a->capacity = cap;
         /* `a` may be old while `fresh` is young — mark the card holding `a`. */
         VADER_WRITE_BARRIER(a);
-        VADER_GC_POP();
+        vader_gc_top = frame.prev;
     }
     a->buf->slots[a->length] = v;
     a->length += 1;
