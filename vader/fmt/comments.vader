@@ -21,17 +21,6 @@ export CommentKind :: enum(u8) {
     Block,    // `/* … */` (may contain nested `/* … */`)
 }
 
-// ASCII byte constants. Spelled out as `u8('x')` so the source reads as
-// a character rather than as a magic decimal — Vader has no `b'x'`
-// byte-literal syntax today.
-BYTE_LF     :: u8('\n')
-BYTE_SLASH  :: u8('/')
-BYTE_STAR   :: u8('*')
-BYTE_DQUOTE :: u8('"')
-BYTE_SQUOTE :: u8('\'')
-BYTE_BSLASH :: u8('\\')
-BYTE_R      :: u8('r')
-
 /// One scanned comment, ready for replay by the printer.
 export Comment :: struct {
     // Byte offset (inclusive) of the leading `/` in the source.
@@ -74,19 +63,19 @@ export scan_comments :: fn(source: string) -> CommentMap {
         b :: source.byte_at(i)
 
         // Newline tracking. `\n` only — CR is normalised elsewhere.
-        if b == BYTE_LF {
+        if b == b'\n' {
             line = line + 1
             i = i + 1
             continue
         }
 
         // `//` line comment (or `///` vaderdoc line).
-        if b == BYTE_SLASH && i + 1 < n && source.byte_at(i + 1) == BYTE_SLASH {
+        if b == b'/' && i + 1 < n && source.byte_at(i + 1) == b'/' {
             start :: i
             start_line :: line
-            is_doc :: i + 2 < n && source.byte_at(i + 2) == BYTE_SLASH
+            is_doc :: i + 2 < n && source.byte_at(i + 2) == b'/'
             j: usize = i + 2
-            for j < n && source.byte_at(j) != BYTE_LF {
+            for j < n && source.byte_at(j) != b'\n' {
                 j = j + 1
             }
             text :: source.slice_text(start, j)
@@ -106,24 +95,24 @@ export scan_comments :: fn(source: string) -> CommentMap {
         // `/* … */` block comment, nesting-aware. SPEC §3 dropped the
         // `/** … */` doc-comment form ; `/**` is treated as a plain block
         // comment to keep round-trip semantics for any legacy source.
-        if b == BYTE_SLASH && i + 1 < n && source.byte_at(i + 1) == BYTE_STAR {
+        if b == b'/' && i + 1 < n && source.byte_at(i + 1) == b'*' {
             start :: i
             start_line :: line
             j: usize = i + 2
             depth: i32 = 1
             for j < n && depth > 0 {
                 cur :: source.byte_at(j)
-                if cur == BYTE_LF {
+                if cur == b'\n' {
                     line = line + 1
                     j = j + 1
                     continue
                 }
-                if cur == BYTE_SLASH && j + 1 < n && source.byte_at(j + 1) == BYTE_STAR {
+                if cur == b'/' && j + 1 < n && source.byte_at(j + 1) == b'*' {
                     depth = depth + 1
                     j = j + 2
                     continue
                 }
-                if cur == BYTE_STAR && j + 1 < n && source.byte_at(j + 1) == BYTE_SLASH {
+                if cur == b'*' && j + 1 < n && source.byte_at(j + 1) == b'/' {
                     depth = depth - 1
                     j = j + 2
                     continue
@@ -147,16 +136,16 @@ export scan_comments :: fn(source: string) -> CommentMap {
         // String literals — skip the entire span so embedded `//` / `/*` don't
         // confuse the scanner. We don't handle interpolation specially since
         // we don't care what's *inside* the literal, only the closing quote.
-        if b == BYTE_DQUOTE {
+        if b == b'"' {
             // Triple-quoted ?
-            if i + 2 < n && source.byte_at(i + 1) == BYTE_DQUOTE && source.byte_at(i + 2) == BYTE_DQUOTE {
+            if i + 2 < n && source.byte_at(i + 1) == b'"' && source.byte_at(i + 2) == b'"' {
                 j: usize = i + 3
                 for j + 2 < n {
-                    if source.byte_at(j) == BYTE_DQUOTE && source.byte_at(j + 1) == BYTE_DQUOTE && source.byte_at(j + 2) == BYTE_DQUOTE {
+                    if source.byte_at(j) == b'"' && source.byte_at(j + 1) == b'"' && source.byte_at(j + 2) == b'"' {
                         j = j + 3
                         break
                     }
-                    if source.byte_at(j) == BYTE_LF { line = line + 1 }
+                    if source.byte_at(j) == b'\n' { line = line + 1 }
                     j = j + 1
                 }
                 i = j
@@ -169,15 +158,15 @@ export scan_comments :: fn(source: string) -> CommentMap {
             j: usize = i + 1
             for j < n {
                 c :: source.byte_at(j)
-                if c == BYTE_BSLASH && j + 1 < n {
+                if c == b'\\' && j + 1 < n {
                     j = j + 2
                     continue
                 }
-                if c == BYTE_DQUOTE {
+                if c == b'"' {
                     j = j + 1
                     break
                 }
-                if c == BYTE_LF { line = line + 1 }
+                if c == b'\n' { line = line + 1 }
                 j = j + 1
             }
             i = j
@@ -185,15 +174,15 @@ export scan_comments :: fn(source: string) -> CommentMap {
         }
 
         // Raw string `r"…"`.
-        if b == BYTE_R && i + 1 < n && source.byte_at(i + 1) == BYTE_DQUOTE {
+        if b == b'r' && i + 1 < n && source.byte_at(i + 1) == b'"' {
             j: usize = i + 2
             for j < n {
                 c :: source.byte_at(j)
-                if c == BYTE_DQUOTE {
+                if c == b'"' {
                     j = j + 1
                     break
                 }
-                if c == BYTE_LF { line = line + 1 }
+                if c == b'\n' { line = line + 1 }
                 j = j + 1
             }
             i = j
@@ -201,15 +190,15 @@ export scan_comments :: fn(source: string) -> CommentMap {
         }
 
         // Char literal `'…'`. Same escape rules as strings.
-        if b == BYTE_SQUOTE {
+        if b == b'\'' {
             j: usize = i + 1
             for j < n {
                 c :: source.byte_at(j)
-                if c == BYTE_BSLASH && j + 1 < n {
+                if c == b'\\' && j + 1 < n {
                     j = j + 2
                     continue
                 }
-                if c == BYTE_SQUOTE {
+                if c == b'\'' {
                     j = j + 1
                     break
                 }

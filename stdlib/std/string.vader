@@ -359,7 +359,7 @@ export decode_escapes :: fn(body: string) -> string {
     i: usize = 0
     for i < n {
         b :: body.byte_at(i)
-        if b != u8('\\') {
+        if b != b'\\' {
             out.append(body.slice(i, i + usize(1)))
             i += usize(1)
             continue
@@ -370,12 +370,12 @@ export decode_escapes :: fn(body: string) -> string {
             continue
         }
         next :: body.byte_at(i + usize(1))
-        if      next == u8('n')  { out.append("\n") }
-        else if next == u8('t')  { out.append("\t") }
-        else if next == u8('r')  { out.append("\r") }
-        else if next == u8('"')  { out.append("\"") }
-        else if next == u8('\\') { out.append("\\") }
-        else if next == u8('0')  { out.append("\0") }
+        if      next == b'n'  { out.append("\n") }
+        else if next == b't'  { out.append("\t") }
+        else if next == b'r'  { out.append("\r") }
+        else if next == b'"'  { out.append("\"") }
+        else if next == b'\\' { out.append("\\") }
+        else if next == b'0'  { out.append("\0") }
         else                     { out.append(body.slice(i + usize(1), i + usize(2))) }
         i += usize(2)
     }

@@ -1,0 +1,20 @@
+// `b'X'` evaluates to a `u8` at parse time — clearer than `u8('X')`
+// (one runtime cast) and `u8(u32('X'))` (the historical triple cast).
+// Covers plain ASCII, escapes (`\n`, `\t`, `\\`, `\'`, `\0`), and use
+// in comparisons.
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    a :: b'{'
+    nl :: b'\n'
+    bs :: b'\\'
+    sq :: b'\''
+    println("a=${i32(a)}")          // 123
+    println("nl=${i32(nl)}")        // 10
+    println("bs=${i32(bs)}")        // 92
+    println("sq=${i32(sq)}")        // 39
+    b: u8 = b'='
+    println("eq=${b == b'='}")      // true
+    return 0
+}

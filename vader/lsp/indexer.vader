@@ -49,12 +49,6 @@ import "vader/lexer" { Token, tokenize }
 import "vader/diagnostics/diagnostic" { Span, Position }
 import "vader/fmt/comments" { Comment, CommentKind, CommentMap, scan_comments }
 
-// ASCII byte constants for vaderdoc extraction.
-BYTE_LF      :: u8('\n')
-BYTE_SPACE   :: u8(' ')
-BYTE_TAB     :: u8('\t')
-BYTE_CR      :: u8('\r')
-
 /// What kind of declaration a DeclEntry points at. Drives the hover
 /// signature template + helps clients decide on icon / styling.
 export DeclKind :: enum(u8) {
@@ -264,7 +258,7 @@ line_start_offset :: fn(source: string, pos: usize) -> usize {
     if pos == 0 { return 0 }
     i: i32 = i32(pos) - 1
     for i >= 0 {
-        if source.byte_at(usize(i)) == BYTE_LF { return usize(i) + 1 }
+        if source.byte_at(usize(i)) == b'\n' { return usize(i) + 1 }
         i = i - 1
     }
     return 0
@@ -625,9 +619,9 @@ head_signature :: fn(span: Span, source: string) -> string {
     cursor: usize = start
     for cursor < upper {
         b :: source.byte_at(cursor)
-        if b == u8('{') { break }
-        if b == u8('=') { break }
-        if b == BYTE_LF { break }
+        if b == b'{' { break }
+        if b == b'=' { break }
+        if b == b'\n' { break }
         cursor = cursor + 1
     }
     return source.slice(start, cursor).trim()
@@ -642,7 +636,7 @@ slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
     cursor: usize = start
     for cursor < up {
         b :: source.byte_at(cursor)
-        if b == BYTE_LF { break }
+        if b == b'\n' { break }
         cursor = cursor + 1
     }
     return source.slice(start, cursor).trim()
@@ -703,7 +697,7 @@ whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
     cursor: usize = start
     for cursor < end {
         b :: source.byte_at(cursor)
-        if b != BYTE_SPACE && b != BYTE_TAB && b != BYTE_LF && b != BYTE_CR {
+        if b != b' ' && b != b'\t' && b != b'\n' && b != b'\r' {
             return false
         }
         cursor = cursor + 1
@@ -715,7 +709,7 @@ strip_doc_prefix :: fn(text: string) -> string {
     n :: text.byte_len()
     if n < 3 { return text }
     cursor: usize = 3
-    if cursor < n && text.byte_at(cursor) == BYTE_SPACE {
+    if cursor < n && text.byte_at(cursor) == b' ' {
         cursor = cursor + 1
     }
     return text.slice(cursor, n)
@@ -793,7 +787,7 @@ lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
         if cur_line == line { break }
         b :: source.byte_at(cursor)
         cursor = cursor + 1
-        if b == BYTE_LF { cur_line = cur_line + 1 }
+        if b == b'\n' { cur_line = cur_line + 1 }
     }
     if character <= 0 { return cursor }
     return cursor + usize(character)

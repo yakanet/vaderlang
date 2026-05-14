@@ -515,6 +515,54 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
     return cp
 }
 
+// ---- byte literals --------------------------------------------------------
+
+/// Byte literal `b'X'` — a single ASCII codepoint typed `u8`. Rides
+/// through the int-literal channel with an implicit `u8` suffix so
+/// downstream consumers (parser, typechecker) treat it like any other
+/// `0x7B_u8` ; no new AST node, no new ValType case.
+lex_byte_lit :: fn(l: Lexer) -> void {
+    start :: l.position_here()
+    l.advance(2)  // consume `b'`
+
+    cp: u32 = u32(0)
+    if l.peek() == '\\' {
+        cp = l.lex_escape()
+    } else if l.peek() == '\'' || l.peek() == '\n' || l.at_end() {
+        l.push_error(.InvalidCharacterLiteral, l.error_span(start),
+            "byte literal must contain exactly one ASCII character")
+        text :: l.src.slice(start.offset, l.pos)
+        t := make_token(.IntLit, text, l.error_span(start))
+        t.value = u64(0)
+        t.numeric_suffix = "u8"
+        l.emit(t)
+        return
+    } else {
+        c :: l.peek()
+        cp = u32(c)
+        l.advance(codepoint_byte_len(c))
+    }
+
+    if cp > u32(0xFF) {
+        l.push_error(.InvalidCharacterLiteral, l.error_span(start),
+            "byte literal must fit in u8")
+    }
+
+    if l.peek() == '\'' {
+        l.advance(1)
+    } else {
+        l.push_error(.InvalidCharacterLiteral, l.error_span(start),
+            "byte literal must contain exactly one byte")
+    }
+
+    text :: l.src.slice(start.offset, l.pos)
+    span :: Span { .start = start, .end = l.position_here() }
+    t := make_token(.IntLit, text, span)
+    t.value = u64(cp & u32(0xFF))
+    t.numeric_suffix = "u8"
+    l.emit(t)
+}
+
 // ---- char literals --------------------------------------------------------
 
 lex_char :: fn(l: Lexer) -> void {
@@ -897,6 +945,10 @@ lex_one :: fn(l: Lexer) -> void {
     // `r` is otherwise an identifier start.
     if c == 'r' && l.peek_at(1) == '"' {
         l.lex_string(true)
+        return
+    }
+    if c == 'b' && l.peek_at(1) == '\'' {
+        l.lex_byte_lit()
         return
     }
     if c.is_ident_start() {

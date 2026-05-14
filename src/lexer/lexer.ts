@@ -153,6 +153,10 @@ class Lexer {
       this.lexString({ raw: true });
       return;
     }
+    if (c === "b" && this.peekAt(1) === "'") {
+      this.lexByteLit();
+      return;
+    }
     if (isIdentStart(c)) {
       this.lexIdent();
       return;
@@ -440,6 +444,39 @@ class Lexer {
     }
 
     this.push("char_literal", this.src.slice(start.offset, this.pos), start, { charValue: codepoint });
+  }
+
+  /** Byte literal `b'X'` — a single ASCII codepoint typed `u8`. The token
+   *  rides through the int-literal channel with an implicit `u8` suffix so
+   *  every downstream consumer (parser, typechecker) treats it like any
+   *  other `0x7B_u8` — no new AST node, no new ValType case. */
+  private lexByteLit(): void {
+    const start = this.posHere();
+    this.advance(2); // `b` + `'`
+
+    let codepoint = 0;
+    if (this.peek() === "\\") {
+      codepoint = this.lexEscape();
+    } else if (this.peek() === "'" || this.peek() === "\n" || this.pos >= this.src.length) {
+      this.error("L0005", { start, end: this.posHere() }, "byte literal must contain exactly one ASCII character");
+      this.push("int_literal", this.src.slice(start.offset, this.pos), start,
+        { intValue: 0n, numericSuffix: "u8" });
+      return;
+    } else {
+      codepoint = this.peek().codePointAt(0) ?? 0;
+      this.advance(codepoint > 0xFFFF ? 2 : 1);
+    }
+
+    if (codepoint > 0xFF) {
+      this.error("L0005", { start, end: this.posHere() },
+        `byte literal must fit in u8 (got U+${codepoint.toString(16).toUpperCase()})`);
+    }
+
+    if (this.peek() === "'") this.advance(1);
+    else this.error("L0005", { start, end: this.posHere() }, "byte literal must contain exactly one byte");
+
+    this.push("int_literal", this.src.slice(start.offset, this.pos), start,
+      { intValue: BigInt(codepoint & 0xFF), numericSuffix: "u8" });
   }
 
   // ------------------------------------------------------------ strings

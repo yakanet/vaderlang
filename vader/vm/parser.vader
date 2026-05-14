@@ -16,19 +16,6 @@ import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, sp
 import "std/numbers" { parse_int_in_base, parse_uint_in_base }
 op :: import "vader/vm/op"
 
-/// ASCII byte constants — spelled out as `u8('x')` to keep the source
-/// readable. Match the convention used in `vader/fmt/comments.vader`.
-BYTE_DOLLAR     :: u8('$')
-BYTE_UNDERSCORE :: u8('_')
-BYTE_BACKSLASH  :: u8('\\')
-BYTE_DQUOTE     :: u8('"')
-BYTE_SEMICOLON  :: u8(';')
-BYTE_DOT        :: u8('.')
-BYTE_MINUS      :: u8('-')
-BYTE_PLUS       :: u8('+')
-BYTE_LOWER_E    :: u8('e')
-BYTE_UPPER_E    :: u8('E')
-
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps
 /// past the matching `end`. `label` is the textual `$LN` ; an
@@ -87,13 +74,13 @@ strip_comment :: fn(line: string) -> string {
     i: usize = 0
     for i < n {
         b :: line.byte_at(i)
-        if b == BYTE_BACKSLASH && in_quote && i + 1 < n {
+        if b == b'\\' && in_quote && i + 1 < n {
             // Skip the escaped byte so `\"` doesn't close the string.
             i += 2
             continue
         }
-        if b == BYTE_DQUOTE { in_quote = !in_quote }
-        else if b == BYTE_SEMICOLON && !in_quote { return line.slice(0, i).trim() }
+        if b == b'"' { in_quote = !in_quote }
+        else if b == b';' && !in_quote { return line.slice(0, i).trim() }
         i += 1
     }
     return line.trim()
@@ -314,7 +301,7 @@ find_double_underscore :: fn(s: string, start: usize) -> i32 {
     if n < 2 { return -1 }
     i := start
     for i + 1 < n {
-        if s.byte_at(i) == BYTE_UNDERSCORE && s.byte_at(i + 1) == BYTE_UNDERSCORE {
+        if s.byte_at(i) == b'_' && s.byte_at(i + 1) == b'_' {
             return i32(i)
         }
         i += 1
@@ -364,7 +351,7 @@ primitive_name_matches :: fn(td: op.TypeDecl, target: string) -> bool = match td
 last_index_of_dollar_before :: fn(s: string, end_exclusive: i32) -> i32 {
     i: i32 = end_exclusive - 1
     for i >= 0 {
-        if s.byte_at(usize(i)) == BYTE_DOLLAR { return i }
+        if s.byte_at(usize(i)) == b'$' { return i }
         i -= 1
     }
     return -1
@@ -566,7 +553,7 @@ parse_impl_decl :: fn(cleaned: string, impls: op.Impl[]) -> void {
     // non-ident trait name. Today every emitted trait name is a bare
     // identifier so this only triggers if a future writer adds quotes.
     unquoted: string = trait_name
-    if trait_name.byte_len() >= 2 && trait_name.byte_at(0) == BYTE_DQUOTE && trait_name.byte_at(trait_name.byte_len() - 1) == BYTE_DQUOTE {
+    if trait_name.byte_len() >= 2 && trait_name.byte_at(0) == b'"' && trait_name.byte_at(trait_name.byte_len() - 1) == b'"' {
         unquoted = trait_name.slice(1, trait_name.byte_len() - 1)
     }
     impls.push(op.Impl { .type_id = i32(parsed), .trait_name = unquoted })
@@ -1123,19 +1110,19 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
     cursor: usize = 0
     negative := false
     first_byte :: s.byte_at(0)
-    if first_byte == BYTE_MINUS {
+    if first_byte == b'-' {
         negative = true
         cursor = 1
     }
-    if first_byte == BYTE_PLUS { cursor = 1 }
+    if first_byte == b'+' { cursor = 1 }
     dot_index: i32 = -1
     exp_index: i32 = -1
     i: usize = cursor
     for i < n {
         b :: s.byte_at(i)
-        if b == BYTE_DOT { if dot_index < 0 { if exp_index < 0 { dot_index = i32(i) } } }
-        if b == BYTE_LOWER_E { if exp_index < 0 { exp_index = i32(i) } }
-        if b == BYTE_UPPER_E { if exp_index < 0 { exp_index = i32(i) } }
+        if b == b'.' { if dot_index < 0 { if exp_index < 0 { dot_index = i32(i) } } }
+        if b == b'e' { if exp_index < 0 { exp_index = i32(i) } }
+        if b == b'E' { if exp_index < 0 { exp_index = i32(i) } }
         i += 1
     }
     int_end: usize = n

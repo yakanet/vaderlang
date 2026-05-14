@@ -1,0 +1,8 @@
+# stdout
+a=123
+nl=10
+bs=92
+sq=39
+eq=true
+# exit
+0

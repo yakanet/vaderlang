@@ -92,6 +92,7 @@ export const LEXER_PARSER_CORPUS: ReadonlySet<string> = new Set([
   "arith",
   "closure_pattern_binding",
   "comptime_const",
+  "byte_literal",
   "contains_op",
   "decorators_ok",
   "defer_block",
