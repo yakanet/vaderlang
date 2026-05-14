@@ -147,6 +147,27 @@ function checkStmt(
       return;
     }
     case "AssignStmt": {
+      // Bare-ident assignment to a `::`-bound local is rejected — the
+      // binding form is the user's mutability contract, silently
+      // re-binding has produced miscompiles in self-host code. Compound
+      // assigns desugar to a plain `x = x op v` upstream, so this one
+      // check covers `=`, `+=`, `-=`, ... uniformly. Field / index
+      // writes (`s.f = v`, `a[i] = v`) stay allowed — a const binding
+      // pins the slot identity, not the slot contents' interior
+      // mutability.
+      if (stmt.target.kind === "IdentExpr") {
+        const targetSym = t.resolved.idents.get(stmt.target);
+        if (targetSym !== undefined && targetSym.kind === "local"
+            && targetSym.source.kind === "local"
+            && targetSym.source.stmt.mutable === false) {
+          err(diags, "T3041", stmt.target.span,
+            `\`${stmt.target.name}\` is declared with \`::\` — use \`:=\` to allow mutation`,
+            targetSym.definedAt !== null
+              ? [{ span: targetSym.definedAt, label: "declared here" }]
+              : undefined);
+          return;
+        }
+      }
       // `a[i] = v` on a non-array target dispatches through `IndexSet($I, $T)`.
       // The trait's `set_at` consumes the value's type as `T` ; we resolve the
       // impl on the target's static type and surface the value's expected type

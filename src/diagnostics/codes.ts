@@ -120,6 +120,7 @@ export const TYPECHECK = {
   T3038: "field already provided in struct literal",
   T3039: "`Into(T)` cannot use `T` as its target (identity coercion is forbidden)",
   T3040: "test can never match — operands have no overlapping values",
+  T3041: "cannot reassign a constant binding",
 } as const;
 
 export type TypecheckCode = keyof typeof TYPECHECK;

@@ -1,0 +1,26 @@
+// `name :: value` declares a constant binding ; subsequent
+// reassignment, compound-assign, etc. must be rejected at the
+// mutation site (not the declaration), with the `::` decl pointed at
+// as a secondary span. Compound assigns (`+=` / `-=` / ...) desugar
+// to a plain `x = x op v` upstream so the single check covers every
+// form.
+
+main :: fn() -> i32 {
+    x :: 42
+    x = 100        // T3041 — bare reassignment
+    x += 1         // T3041 — compound assign desugars to `x = x + 1`
+    x *= 2         // T3041 — same
+
+    // `:=` allows mutation as designed — no error here.
+    y := 1
+    y = 5
+    y += 1
+
+    // Struct fields are still writable through a `::` binding : the
+    // const pins the slot identity, not the interior contents.
+    p :: Point { .x = 1, .y = 2 }
+    p.x = 10       // allowed
+    return p.x + y
+}
+
+Point :: struct { x: i32, y: i32 }
