@@ -653,7 +653,19 @@ export type Pattern =
   | TuplePattern
   | WildcardPattern
   | BindingPattern
-  | EnumVariantPattern;
+  | EnumVariantPattern
+  | LiteralPattern;
+
+/** Match a literal value : `'a' -> …`, `42 -> …`, `"ok" -> …`, `true -> …`,
+ *  `null -> …`, `-1 -> …` (and any `-int_lit` / `-float_lit` form). The
+ *  inner `value` is the parsed literal as an Expr ; the lowerer emits
+ *  `scrutinee == value` as the arm predicate. Exhaustiveness is not
+ *  inferred for finite-domain types (bool, narrow ints) today — pair
+ *  with a `_` arm when the scrutinee type lacks a fixed variant list. */
+export interface LiteralPattern extends AstNode {
+  readonly kind: "LiteralPattern";
+  readonly value: Expr;
+}
 
 export interface IsPattern extends AstNode {
   readonly kind: "IsPattern";
@@ -729,6 +741,7 @@ export function forEachPatternBindingKey(
       return;
     case "WildcardPattern":
     case "EnumVariantPattern":
+    case "LiteralPattern":
       return;
   }
 }

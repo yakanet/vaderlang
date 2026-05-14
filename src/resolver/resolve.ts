@@ -762,6 +762,13 @@ function bindPattern(pat: A.Pattern, scope: Scope, p: MutableProgram, input: Res
       return;
     case "EnumVariantPattern":
       return;
+    case "LiteralPattern":
+      // Literal value patterns carry an Expr — walk it so any identifier
+      // inside (e.g. `const MAX :: 100 ; match x { MAX -> … }` once
+      // constant-as-pattern lands) gets resolved. Today this is a no-op
+      // for pure literal tokens, but the recursion costs nothing.
+      resolveExpr(pat.value, scope, p, input);
+      return;
   }
 }
 

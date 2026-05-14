@@ -47,6 +47,17 @@ export function inferMatch(
       coveredVariants.add(arm.pattern.variant);
       if (scrut.kind === "Enum") checkEnumVariant(scrut, arm.pattern.variant, arm.pattern.span, diags);
     }
+    if (arm.pattern.kind === "LiteralPattern") {
+      // Type-check the literal against the scrutinee : `'>' -> …` is only
+      // valid when scrut is `char`, `42 -> …` against integers, etc. The
+      // expected-type hint also pins free numeric literals to the scrutinee
+      // width so `match (n: i64) { 0 -> … }` doesn't drift to i32.
+      const litTy = checkExpr(arm.pattern.value, scrut, t, impls, diags, fn);
+      if (scrut.kind !== "Unresolved" && !isAssignable(litTy, scrut, impls)) {
+        err(diags, "T3001", arm.pattern.span,
+          `pattern literal of type ${displayType(litTy)} doesn't match scrutinee ${displayType(scrut)}`);
+      }
+    }
     const prev: Type | undefined = scrutSym !== null && narrowed !== null
       ? pushNarrowing(t, scrutSym.id, narrowed)
       : undefined;

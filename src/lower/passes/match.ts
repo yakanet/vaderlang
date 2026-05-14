@@ -137,6 +137,13 @@ function patternPredicate(
       const variantLit = loweredEnumVariant(targetType, pattern.variant, span);
       return { kind: "LoweredBinary", span, type: TY.bool, op: "eq", left: target, right: variantLit };
     }
+    case "LiteralPattern": {
+      // `lit -> body` matches when the scrutinee compares equal to `lit`.
+      // The typechecker already pinned the literal's type against the
+      // scrutinee, so the binary op picks the right primitive eq variant.
+      const lit = lowerExpr(ctx, pattern.value);
+      return { kind: "LoweredBinary", span, type: TY.bool, op: "eq", left: target, right: lit };
+    }
     case "TuplePattern": {
       // Tuple types are static — arity is guaranteed by typecheck. When the
       // scrutinee is a union, narrow it to the matching tuple variant so the
@@ -266,6 +273,7 @@ function walkPatternBindings(
     }
     case "WildcardPattern":
     case "EnumVariantPattern":
+    case "LiteralPattern":
       return;
   }
 }

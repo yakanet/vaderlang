@@ -73,6 +73,19 @@ export function parsePattern(p: Parser): A.Pattern {
   if (t.kind === "lbracket") {
     return parseTuplePattern(p);
   }
+  if (isLiteralStart(t)) {
+    // `'a' -> …` / `42 -> …` / `true -> …` / `null -> …` / `-1 -> …`.
+    // Delegate to the regular expression parser so each literal flavour
+    // (int / float / char / string / bool / null / unary-neg) is recognised
+    // exactly once. `parseExpr` stops at `->` because the arrow isn't an
+    // infix op — the arm's predicate stays the literal alone.
+    const value = parseExpr(p, 0);
+    return {
+      kind: "LiteralPattern",
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(t, p.peek(-1)),
+      value,
+    };
+  }
   p.error("P1007", t.span, `got ${describeToken(t)}`);
   p.advance();
   return { kind: "WildcardPattern", id: UNASSIGNED_NODE_ID, span: t.span };

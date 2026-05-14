@@ -350,6 +350,9 @@ function substituteIdentsInPattern(pat: A.Pattern, subst: ReadonlyMap<string, A.
     case "TuplePattern":
       for (const e of pat.elements) substituteIdentsInPattern(e, subst);
       return;
+    case "LiteralPattern":
+      mut(pat).value = substituteIdentsInExpr(pat.value, subst);
+      return;
     case "BindingPattern":
     case "WildcardPattern":
     case "EnumVariantPattern":
