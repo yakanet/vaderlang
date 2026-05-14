@@ -31,7 +31,7 @@ fn 0 tests_snippets_gc_chain_survive__main_vader$main () -> i32
   local.set 0   ; _main.vader:10:52
   i32.const 0   ; _main.vader:10:25
   local.get 0   ; _main.vader:10:25
-  struct.new_stack 0   ; _main.vader:10:25
+  struct.new 0   ; _main.vader:10:25
   local.set 1   ; _main.vader:10:25
   i32.const 1   ; _main.vader:11:10
   local.set 2   ; _main.vader:11:10

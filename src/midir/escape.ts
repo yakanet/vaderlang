@@ -15,10 +15,10 @@
 // reachable use are marked with `stack: true` for downstream codegen.
 
 import type {
-  BasicBlock, BlockId, CFGFunction, CFGModule, CFGProject, Instruction, LocalId,
+  BlockId, CFGFunction, CFGModule, CFGProject, Instruction, LocalId,
 } from "./cfg.ts";
 import {
-  computeDominators, naturalLoopBodies, predecessorsOf,
+  computeDominators, computeLiveness, dstOf, naturalLoopBodies, predecessorsOf,
 } from "./analyses.ts";
 
 export interface EscapeStats {
@@ -59,15 +59,14 @@ export function annotateEscape(p: CFGProject): { project: CFGProject; stats: Esc
 function annotateFunction(fn: CFGFunction): CFGFunction {
   // Walk blocks once to collect both `allocLocals` (the union driving the
   // escape analysis) and `structNews` (the subset needed to seed the
-  // stack-origin forward pass below). Their block ids are saved so the
-  // seeding can gate on `inLoop` without re-walking.
+  // stack-origin forward pass below).
   const allocLocals = new Set<LocalId>();
-  const structNews: { dst: LocalId; block: BlockId }[] = [];
+  const structNews: LocalId[] = [];
   for (const b of fn.blocks) {
     for (const ins of b.instructions) {
       if (ins.kind === "StructNew") {
         allocLocals.add(ins.dst);
-        structNews.push({ dst: ins.dst, block: b.id });
+        structNews.push(ins.dst);
       } else if (ins.kind === "ArrayNew") {
         allocLocals.add(ins.dst);
       }
@@ -76,16 +75,16 @@ function annotateFunction(fn: CFGFunction): CFGFunction {
   if (allocLocals.size === 0) return fn;
 
   const { escaping, aliasOf, aliasFrom } = computeEscaping(fn, allocLocals);
-  const inLoop = computeBlocksInLoops(fn);
+  const carriedAcrossLoop = computeCarriedAcrossLoopHeaders(fn, aliasOf);
 
   // Forward-propagate `barrierless` through Move/Cast. A Move/Cast with
   // any non-stack source stays out — one heap origin requires the barrier.
   const stackOrigin = new Set<LocalId>();
   const worklist: LocalId[] = [];
-  for (const sn of structNews) {
-    if (escaping.has(sn.dst) || inLoop.has(sn.block)) continue;
-    stackOrigin.add(sn.dst);
-    worklist.push(sn.dst);
+  for (const dst of structNews) {
+    if (escaping.has(dst) || carriedAcrossLoop.has(dst)) continue;
+    stackOrigin.add(dst);
+    worklist.push(dst);
   }
   while (worklist.length > 0) {
     const src = worklist.pop()!;
@@ -107,11 +106,12 @@ function annotateFunction(fn: CFGFunction): CFGFunction {
     const instructions = b.instructions.map((ins) => {
       if (ins.kind === "StructNew" || ins.kind === "ArrayNew") {
         if (!allocLocals.has(ins.dst)) return ins;
-        // Stack-allocate iff the value doesn't escape and the alloc isn't
-        // in a loop body. The C-emit declares the storage as a block-scoped
-        // local, which would alias across iterations of the same back-edge
-        // — keep those on the heap so each iteration is a fresh allocation.
-        const stack = !escaping.has(ins.dst) && !inLoop.has(b.id);
+        // Stack-allocate iff the value doesn't escape its function AND
+        // no forward alias of the value is live across a loop back-edge.
+        // The second condition catches `x = Node { .next = x }` patterns
+        // where the C storage slot would be clobbered on the next iter
+        // while the previous iter's reference is still alive.
+        const stack = !escaping.has(ins.dst) && !carriedAcrossLoop.has(ins.dst);
         if (stack === ins.stack) return ins;
         blockMutated = true;
         return { ...ins, stack };
@@ -131,17 +131,57 @@ function annotateFunction(fn: CFGFunction): CFGFunction {
   return mutated ? { ...fn, blocks: newBlocks } : fn;
 }
 
-/** Union of every natural-loop body in the CFG — blocks where stack-allocation
- *  is unsafe because the C-emit's block-scoped storage would alias across
- *  iterations. */
-function computeBlocksInLoops(fn: CFGFunction): ReadonlySet<BlockId> {
+/** Returns the set of locals whose value is loop-carried — i.e. reassigned
+ *  inside a loop body while also being live at the loop header. Such a
+ *  local crosses the back-edge from the previous iteration, so an alloc
+ *  whose result reaches it can't safely reuse a stack slot.
+ *
+ *  Pattern that triggers : `head = Node { .next = head }` — `head` is
+ *  written in the loop body, read at the header on the next iteration.
+ *  Pattern that doesn't : `arr :: [10, 20, 30]; for v in arr { ... }` —
+ *  `arr` is live across the loop but never reassigned inside it. */
+function computeCarriedAcrossLoopHeaders(
+  fn: CFGFunction, aliasOf: ReadonlyMap<LocalId, LocalId[]>,
+): ReadonlySet<LocalId> {
   const preds = predecessorsOf(fn);
   const idom = computeDominators(fn, preds);
-  const inLoop = new Set<BlockId>();
-  for (const body of naturalLoopBodies(fn, preds, idom).values()) {
-    for (const b of body) inLoop.add(b);
+  const loops = naturalLoopBodies(fn, preds, idom);
+  if (loops.size === 0) return new Set();
+
+  const { liveIn } = computeLiveness(fn);
+
+  // Seed : for each loop, intersect liveIn[header] with the locals defined
+  // somewhere in the loop body. A local that's live at the header but
+  // never written inside the loop is loop-invariant — not loop-carried.
+  const carried = new Set<LocalId>();
+  for (const [header, body] of loops) {
+    const defsInBody = new Set<LocalId>();
+    for (const b of body) {
+      const block = fn.blocks[b]!;
+      for (const ins of block.instructions) {
+        const d = dstOf(ins);
+        if (d !== null) defsInBody.add(d);
+      }
+    }
+    for (const l of liveIn[header]!) {
+      if (defsInBody.has(l)) carried.add(l);
+    }
   }
-  return inLoop;
+
+  // Backward-propagate via `aliasOf` (Move/Cast producers) : if a carried
+  // local is fed by some upstream alloc result, that alloc itself is carried.
+  const work: LocalId[] = [...carried];
+  while (work.length > 0) {
+    const cur = work.pop()!;
+    const producers = aliasOf.get(cur);
+    if (producers === undefined) continue;
+    for (const p of producers) {
+      if (carried.has(p)) continue;
+      carried.add(p);
+      work.push(p);
+    }
+  }
+  return carried;
 }
 
 /** Worklist: start with all locals known to escape (returned values, call
