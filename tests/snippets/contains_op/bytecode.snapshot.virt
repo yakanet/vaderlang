@@ -4,32 +4,15 @@ type 1 struct tests_snippets_contains_op__main_vader$DigitSet { bits:2 }
 type 2 primitive i32
 type 3 primitive bool
 type 4 struct std_core$Range__i32 { start:2,end:2,inclusive:3,cursor:2 }
-type 5 primitive i8
-type 6 primitive string
-type 7 primitive i16
-type 8 primitive i64
-type 9 primitive isize
-type 10 primitive u8
-type 11 primitive u16
-type 12 primitive u32
-type 13 primitive u64
-type 14 primitive usize
-type 15 primitive f32
-type 16 primitive f64
-type 17 primitive char
-type 18 primitive void
-type 19 union 20,6
-type 20 ref Error
-type 21 union 20,0
-type 22 union 20,23
-type 23 array 6
+type 5 primitive string
+type 6 primitive void
 string 0 "range yes"
 string 1 "range !in yes"
 string 2 "range incl yes"
 string 3 "set has 4"
 string 4 "set lacks 5"
 string 5 "set has 7"
-import 0 println std_io$println (string:6) -> void:18
+import 0 println std_io$println (string:5) -> void:6
 impl 1 Contains
 impl 4 Contains
 impl 4 Iterator

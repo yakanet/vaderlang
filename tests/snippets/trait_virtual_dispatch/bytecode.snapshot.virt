@@ -5,29 +5,12 @@ type 2 primitive string
 type 3 struct tests_snippets_trait_virtual_dispatch__main_vader$NetErr { reason:2 }
 type 4 ref Error
 type 5 primitive i32
-type 6 primitive i8
-type 7 primitive i16
-type 8 primitive i64
-type 9 primitive isize
-type 10 primitive u8
-type 11 primitive u16
-type 12 primitive u32
-type 13 primitive u64
-type 14 primitive usize
-type 15 primitive f32
-type 16 primitive f64
-type 17 primitive bool
-type 18 primitive char
-type 19 primitive void
-type 20 union 4,2
-type 21 union 4,0
-type 22 union 4,23
-type 23 array 2
+type 6 primitive void
 string 0 "parse: "
 string 1 "net: "
 string 2 "bad token"
 string 3 "timeout"
-import 0 println std_io$println (string:2) -> void:19
+import 0 println std_io$println (string:2) -> void:6
 impl 1 Error
 impl 3 Error
 

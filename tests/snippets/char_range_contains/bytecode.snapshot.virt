@@ -7,24 +7,8 @@ type 4 struct std_core$Range__char { start:1,end:1,inclusive:2,cursor:1 }
 type 5 union 6,7
 type 6 struct std_core$Done {  }
 type 7 struct std_core$Yielded__char { value:1 }
-type 8 primitive i8
-type 9 primitive string
-type 10 primitive i16
-type 11 primitive i64
-type 12 primitive isize
-type 13 primitive u8
-type 14 primitive u16
-type 15 primitive u32
-type 16 primitive u64
-type 17 primitive usize
-type 18 primitive f32
-type 19 primitive f64
-type 20 primitive void
-type 21 union 22,9
-type 22 ref Error
-type 23 union 22,0
-type 24 union 22,25
-type 25 array 9
+type 8 primitive string
+type 9 primitive void
 string 0 "5 is digit"
 string 1 "a is not digit"
 string 2 "0 is digit"
@@ -37,7 +21,7 @@ string 8 "Z is alpha"
 string 9 "5 is not alpha"
 string 10 "a..=e count = "
 string 11 "0..<5 count = "
-import 0 println std_io$println (string:9) -> void:20
+import 0 println std_io$println (string:8) -> void:9
 impl 4 Contains
 impl 4 Iterator
 

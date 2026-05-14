@@ -41,7 +41,7 @@ import {
   predecessorsOf, reversePostorder, successorsOf,
 } from "./analyses.ts";
 import { NO_HINTS, scheduleStack, type ScheduleHints } from "./scheduler.ts";
-import { pruneUnusedImports } from "./dce.ts";
+import { pruneUnusedImports, pruneUnusedTypes } from "./dce.ts";
 
 // ============================================================================
 // Project-level entry point
@@ -92,6 +92,11 @@ export function emitBytecodeFromCFG(
   }
 
   pruneUnusedImports(ctx);
+  // Vtables must be built BEFORE type-table DCE so their struct type
+  // indices are visible to the prune pass — otherwise the impl entries
+  // would point at slots we'd just dropped.
+  const vtables = buildVtables(ctx, cfg.vtableEntries);
+  pruneUnusedTypes(ctx, vtables);
 
   return {
     name,
@@ -101,7 +106,7 @@ export function emitBytecodeFromCFG(
     imports:   ctx.imports,
     exports:   ctx.exports,
     implTable: ctx.implTable,
-    vtables:   buildVtables(ctx, cfg.vtableEntries),
+    vtables,
   };
 }
 

@@ -3,31 +3,15 @@ type 0 primitive null
 type 1 array 2
 type 2 primitive string
 type 3 primitive i32
-type 4 struct std_core$ArrayIterator__string { arr:1,cursor:16,length:16 }
+type 4 struct std_core$ArrayIterator__string { arr:1,cursor:8,length:8 }
 type 5 union 6,7
 type 6 struct std_core$Done {  }
 type 7 struct std_core$Yielded__string { value:2 }
-type 8 primitive i8
-type 9 primitive i16
-type 10 primitive i64
-type 11 primitive isize
-type 12 primitive u8
-type 13 primitive u16
-type 14 primitive u32
-type 15 primitive u64
-type 16 primitive usize
-type 17 primitive f32
-type 18 primitive f64
-type 19 primitive bool
-type 20 primitive char
-type 21 primitive void
-type 22 union 23,2
-type 23 ref Error
-type 24 union 23,0
-type 25 union 23,1
+type 8 primitive usize
+type 9 primitive void
 string 0 "argc="
-import 0 to_string std_core$usize$Display$to_string (usize:16) -> string:2
-import 1 println std_io$println (string:2) -> void:21
+import 0 to_string std_core$usize$Display$to_string (usize:8) -> string:2
+import 1 println std_io$println (string:2) -> void:9
 impl 4 Iterator
 
 fn 0 tests_snippets_runtime_argv__main_vader$main (ref:1) -> i32:3

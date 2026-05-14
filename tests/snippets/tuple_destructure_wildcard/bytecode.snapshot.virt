@@ -4,28 +4,11 @@ type 1 struct __Tuple_1 { _0:2,_1:3,_2:4 }
 type 2 primitive i32
 type 3 primitive string
 type 4 primitive bool
-type 5 primitive i8
-type 6 primitive i16
-type 7 primitive i64
-type 8 primitive isize
-type 9 primitive u8
-type 10 primitive u16
-type 11 primitive u32
-type 12 primitive u64
-type 13 primitive usize
-type 14 primitive f32
-type 15 primitive f64
-type 16 primitive char
-type 17 primitive void
-type 18 union 19,3
-type 19 ref Error
-type 20 union 19,0
-type 21 union 19,22
-type 22 array 3
+type 5 primitive void
 string 0 "ignored"
 string 1 "a = "
 string 2 "c = "
-import 0 println std_io$println (string:3) -> void:17
+import 0 println std_io$println (string:3) -> void:5
 
 fn 0 tests_snippets_tuple_destructure_wildcard__main_vader$triple () -> ref:1
   i32.const 7   ; _main.vader:4:12

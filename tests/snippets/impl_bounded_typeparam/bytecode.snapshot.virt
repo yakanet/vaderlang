@@ -6,29 +6,11 @@ type 3 primitive string
 type 4 struct tests_snippets_impl_bounded_typeparam__main_vader$Wrap__Dog { value:6 }
 type 5 struct tests_snippets_impl_bounded_typeparam__main_vader$Cat { name:3 }
 type 6 struct tests_snippets_impl_bounded_typeparam__main_vader$Dog { name:3 }
-type 7 primitive i8
-type 8 primitive i16
-type 9 primitive i64
-type 10 primitive isize
-type 11 primitive u8
-type 12 primitive u16
-type 13 primitive u32
-type 14 primitive u64
-type 15 primitive usize
-type 16 primitive f32
-type 17 primitive f64
-type 18 primitive bool
-type 19 primitive char
-type 20 primitive void
-type 21 union 22,3
-type 22 ref Error
-type 23 union 22,0
-type 24 union 22,25
-type 25 array 3
+type 7 primitive void
 string 0 "Mira"
 string 1 "Rex"
 string 2 "wrapped"
-import 0 println std_io$println (string:3) -> void:20
+import 0 println std_io$println (string:3) -> void:7
 impl 2 Display
 impl 4 Display
 impl 5 Tag

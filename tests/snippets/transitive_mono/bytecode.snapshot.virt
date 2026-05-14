@@ -4,35 +4,19 @@ type 1 primitive i32
 type 2 array 1
 type 3 array 4
 type 4 primitive string
-type 5 struct std_core$ArrayIterator__i32 { arr:2,cursor:20,length:20 }
+type 5 struct std_core$ArrayIterator__i32 { arr:2,cursor:12,length:12 }
 type 6 union 7,8
 type 7 struct std_core$Done {  }
 type 8 struct std_core$Yielded__i32 { value:1 }
-type 9 struct std_core$ArrayIterator__string { arr:3,cursor:20,length:20 }
+type 9 struct std_core$ArrayIterator__string { arr:3,cursor:12,length:12 }
 type 10 union 7,11
 type 11 struct std_core$Yielded__string { value:4 }
-type 12 primitive i8
-type 13 primitive i16
-type 14 primitive i64
-type 15 primitive isize
-type 16 primitive u8
-type 17 primitive u16
-type 18 primitive u32
-type 19 primitive u64
-type 20 primitive usize
-type 21 primitive f32
-type 22 primitive f64
-type 23 primitive bool
-type 24 primitive char
-type 25 primitive void
-type 26 union 27,4
-type 27 ref Error
-type 28 union 27,0
-type 29 union 27,3
+type 12 primitive usize
+type 13 primitive void
 string 0 "a"
 string 1 "b"
 string 2 "c"
-import 0 println std_io$println (string:4) -> void:25
+import 0 println std_io$println (string:4) -> void:13
 impl 5 Iterator
 impl 9 Iterator
 

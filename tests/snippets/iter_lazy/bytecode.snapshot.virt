@@ -12,46 +12,30 @@ type 9 struct std_core$Yielded__i32 { value:1 }
 type 10 struct std_core$Range__usize { start:5,end:5,inclusive:4,cursor:5 }
 type 11 union 8,12
 type 12 struct std_core$Yielded__usize { value:5 }
-type 13 primitive i8
-type 14 primitive string
-type 15 primitive i16
-type 16 primitive i64
-type 17 primitive isize
-type 18 primitive u8
-type 19 primitive u16
-type 20 primitive u32
-type 21 primitive u64
-type 22 primitive f32
-type 23 primitive f64
-type 24 primitive char
-type 25 primitive void
-type 26 union 27,14
-type 27 ref Error
-type 28 union 27,0
-type 29 union 27,30
-type 30 array 14
-type 31 struct std_iter$MapIterator__i32__i32 { source:35,f:36 }
-type 32 struct std_iter$FilterIterator__i32 { source:35,pred:37 }
-type 33 struct std_iter$TakeIterator__i32 { source:35,remaining:5 }
-type 34 struct std_iter$SkipIterator__i32 { source:35,remaining:5 }
-type 35 ref Iterator
-type 36 fn (1) -> 1
-type 37 fn (1) -> 4
+type 13 primitive string
+type 14 primitive void
+type 15 struct std_iter$MapIterator__i32__i32 { source:19,f:20 }
+type 16 struct std_iter$FilterIterator__i32 { source:19,pred:21 }
+type 17 struct std_iter$TakeIterator__i32 { source:19,remaining:5 }
+type 18 struct std_iter$SkipIterator__i32 { source:19,remaining:5 }
+type 19 ref Iterator
+type 20 fn (1) -> 1
+type 21 fn (1) -> 4
 string 0 "map_sum="
 string 1 "evens count="
 string 2 " sum="
 string 3 "take_sum="
 string 4 "skip count="
 string 5 " first="
-import 0 println std_io$println (string:14) -> void:25
+import 0 println std_io$println (string:13) -> void:14
 impl 6 Contains
 impl 6 Iterator
 impl 10 Contains
 impl 10 Iterator
-impl 31 Iterator
-impl 32 Iterator
-impl 33 Iterator
-impl 34 Iterator
+impl 15 Iterator
+impl 16 Iterator
+impl 17 Iterator
+impl 18 Iterator
 
 fn 0 tests_snippets_iter_lazy__main_vader$main () -> i32:1
   local sq ref
@@ -83,7 +67,7 @@ fn 0 tests_snippets_iter_lazy__main_vader$main () -> i32:1
   local v i32
   local __sb_13 any
   struct.new 2   ; _main.vader:6:11
-  make_closure 1 36   ; _main.vader:6:11
+  make_closure 1 20   ; _main.vader:6:11
   local.set 0   ; _main.vader:6:11
   i32.const 0   ; _main.vader:7:45
   i32.const 5   ; _main.vader:7:45
@@ -91,7 +75,7 @@ fn 0 tests_snippets_iter_lazy__main_vader$main () -> i32:1
   i32.const 0   ; _main.vader:7:45
   struct.new 6   ; _main.vader:7:45
   local.get 0   ; _main.vader:7:11
-  struct.new 31   ; _main.vader:7:11
+  struct.new 15   ; _main.vader:7:11
   local.set 2   ; _main.vader:7:11
   i32.const 0   ; _main.vader:8:14
   local.set 1   ; _main.vader:8:14
@@ -126,7 +110,7 @@ fn 0 tests_snippets_iter_lazy__main_vader$main () -> i32:1
   intrinsic builder.finish   ; _main.vader:12:13
   call.import 0   ; _main.vader:12:5
   struct.new 3   ; _main.vader:15:16
-  make_closure 2 37   ; _main.vader:15:16
+  make_closure 2 21   ; _main.vader:15:16
   local.set 6   ; _main.vader:15:16
   i32.const 0   ; _main.vader:16:43
   i32.const 10   ; _main.vader:16:43
@@ -134,7 +118,7 @@ fn 0 tests_snippets_iter_lazy__main_vader$main () -> i32:1
   i32.const 0   ; _main.vader:16:43
   struct.new 6   ; _main.vader:16:43
   local.get 6   ; _main.vader:16:11
-  struct.new 32   ; _main.vader:16:11
+  struct.new 16   ; _main.vader:16:11
   local.set 9   ; _main.vader:16:11
   i32.const 0   ; _main.vader:17:19
   local.set 7   ; _main.vader:17:19
@@ -191,7 +175,7 @@ fn 0 tests_snippets_iter_lazy__main_vader$main () -> i32:1
   local.set 14   ; _main.vader:26:63
   local.get 13   ; _main.vader:26:11
   local.get 14   ; _main.vader:26:11
-  struct.new 33   ; _main.vader:26:11
+  struct.new 17   ; _main.vader:26:11
   local.set 16   ; _main.vader:26:11
   i32.const 0   ; _main.vader:27:17
   local.set 15   ; _main.vader:27:17
@@ -236,7 +220,7 @@ fn 0 tests_snippets_iter_lazy__main_vader$main () -> i32:1
   local.set 21   ; _main.vader:34:62
   local.get 20   ; _main.vader:34:11
   local.get 21   ; _main.vader:34:11
-  struct.new 34   ; _main.vader:34:11
+  struct.new 18   ; _main.vader:34:11
   local.set 24   ; _main.vader:34:11
   i32.const 0   ; _main.vader:35:19
   local.set 22   ; _main.vader:35:19
@@ -537,12 +521,12 @@ fn 12 std_core$Range$Iterator$next__usize (ref:10) -> ref:11
   end $L1   ; core.vader:225:9
 end
 
-fn 13 std_iter$MapIterator$Iterator$next__i32__i32 (ref:31) -> ref:7
+fn 13 std_iter$MapIterator$Iterator$next__i32__i32 (ref:15) -> ref:7
   local __scrut_0 ref
   local y ref
   local $field_9 ref
   local.get 0   ; iter.vader:256:15
-  struct.get 31 0   ; iter.vader:256:15
+  struct.get 15 0   ; iter.vader:256:15
   virtual.call 1 Iterator.next   ; iter.vader:256:15
   local.tee 1   ; iter.vader:256:15
   type_check 8   ; iter.vader:257:13
@@ -556,12 +540,12 @@ fn 13 std_iter$MapIterator$Iterator$next__i32__i32 (ref:31) -> ref:7
       local.get 1   ; iter.vader:258:13
       local.set 2   ; iter.vader:258:13
       local.get 0   ; iter.vader:258:66
-      struct.get 31 1   ; iter.vader:258:66
+      struct.get 15 1   ; iter.vader:258:66
       local.set 3   ; iter.vader:258:66
       local.get 2   ; iter.vader:258:73
       struct.get 9 0   ; iter.vader:258:73
       local.get 3   ; iter.vader:258:66
-      call.indirect 36   ; iter.vader:258:66
+      call.indirect 20   ; iter.vader:258:66
       struct.new 9   ; iter.vader:258:44
       return   ; iter.vader:258:37
     else   ; iter.vader:258:13
@@ -570,7 +554,7 @@ fn 13 std_iter$MapIterator$Iterator$next__i32__i32 (ref:31) -> ref:7
   end $L0   ; iter.vader:257:13
 end
 
-fn 14 std_iter$FilterIterator$Iterator$next__i32 (ref:32) -> ref:7
+fn 14 std_iter$FilterIterator$Iterator$next__i32 (ref:16) -> ref:7
   local finished bool
   local __scrut_0 ref
   local y ref
@@ -583,7 +567,7 @@ fn 14 std_iter$FilterIterator$Iterator$next__i32 (ref:32) -> ref:7
       bool.not   ; iter.vader:275:13
       if $L2 void   ; iter.vader:275:13
         local.get 0   ; iter.vader:276:19
-        struct.get 32 0   ; iter.vader:276:19
+        struct.get 16 0   ; iter.vader:276:19
         virtual.call 1 Iterator.next   ; iter.vader:276:19
         local.tee 2   ; iter.vader:276:19
         type_check 8   ; iter.vader:277:17
@@ -598,12 +582,12 @@ fn 14 std_iter$FilterIterator$Iterator$next__i32 (ref:32) -> ref:7
             local.get 2   ; iter.vader:278:17
             local.set 3   ; iter.vader:278:17
             local.get 0   ; iter.vader:279:24
-            struct.get 32 1   ; iter.vader:279:24
+            struct.get 16 1   ; iter.vader:279:24
             local.set 4   ; iter.vader:279:24
             local.get 3   ; iter.vader:279:34
             struct.get 9 0   ; iter.vader:279:34
             local.get 4   ; iter.vader:279:24
-            call.indirect 37   ; iter.vader:279:24
+            call.indirect 21   ; iter.vader:279:24
             if $L5 void   ; iter.vader:279:21
               local.get 3   ; iter.vader:280:54
               struct.get 9 0   ; iter.vader:280:54
@@ -624,14 +608,14 @@ fn 14 std_iter$FilterIterator$Iterator$next__i32 (ref:32) -> ref:7
   return   ; iter.vader:285:9
 end
 
-fn 15 std_iter$TakeIterator$Iterator$next__i32 (ref:33) -> ref:7
+fn 15 std_iter$TakeIterator$Iterator$next__i32 (ref:17) -> ref:7
   local $field_1 usize
   local __scrut_0 ref
   local y ref
   local $field_13 usize
   local $sub_15 usize
   local.get 0   ; iter.vader:300:12
-  struct.get 33 1   ; iter.vader:300:12
+  struct.get 17 1   ; iter.vader:300:12
   local.set 1   ; iter.vader:300:12
   local.get 1   ; iter.vader:300:12
   i64.const 0   ; iter.vader:300:12
@@ -642,7 +626,7 @@ fn 15 std_iter$TakeIterator$Iterator$next__i32 (ref:33) -> ref:7
     return   ; iter.vader:300:34
   else   ; iter.vader:300:9
     local.get 0   ; iter.vader:301:15
-    struct.get 33 0   ; iter.vader:301:15
+    struct.get 17 0   ; iter.vader:301:15
     virtual.call 1 Iterator.next   ; iter.vader:301:15
     local.tee 2   ; iter.vader:301:15
     type_check 8   ; iter.vader:302:13
@@ -656,7 +640,7 @@ fn 15 std_iter$TakeIterator$Iterator$next__i32 (ref:33) -> ref:7
         local.get 2   ; iter.vader:303:13
         local.set 3   ; iter.vader:303:13
         local.get 0   ; iter.vader:304:34
-        struct.get 33 1   ; iter.vader:304:34
+        struct.get 17 1   ; iter.vader:304:34
         local.set 4   ; iter.vader:304:34
         local.get 4   ; iter.vader:304:34
         i64.const 1   ; iter.vader:304:34
@@ -665,7 +649,7 @@ fn 15 std_iter$TakeIterator$Iterator$next__i32 (ref:33) -> ref:7
         local.set 5   ; iter.vader:304:34
         local.get 0   ; iter.vader:304:17
         local.get 5   ; iter.vader:304:17
-        struct.set 33 1   ; iter.vader:304:17
+        struct.set 17 1   ; iter.vader:304:17
         local.get 3   ; iter.vader:305:46
         struct.get 9 0   ; iter.vader:305:46
         struct.new 9   ; iter.vader:305:24
@@ -677,7 +661,7 @@ fn 15 std_iter$TakeIterator$Iterator$next__i32 (ref:33) -> ref:7
   end $L0   ; iter.vader:300:9
 end
 
-fn 16 std_iter$SkipIterator$Iterator$next__i32 (ref:34) -> ref:7
+fn 16 std_iter$SkipIterator$Iterator$next__i32 (ref:18) -> ref:7
   local $field_1 usize
   local __scrut_0 ref
   local $field_11 usize
@@ -686,7 +670,7 @@ fn 16 std_iter$SkipIterator$Iterator$next__i32 (ref:34) -> ref:7
   block $L0 void   ; iter.vader:323:9
     loop $L1 void   ; iter.vader:323:9
       local.get 0   ; iter.vader:323:13
-      struct.get 34 1   ; iter.vader:323:13
+      struct.get 18 1   ; iter.vader:323:13
       local.set 1   ; iter.vader:323:13
       local.get 1   ; iter.vader:323:13
       i64.const 0   ; iter.vader:323:13
@@ -694,7 +678,7 @@ fn 16 std_iter$SkipIterator$Iterator$next__i32 (ref:34) -> ref:7
       usize.gt   ; iter.vader:323:13
       if $L2 void   ; iter.vader:323:13
         local.get 0   ; iter.vader:324:19
-        struct.get 34 0   ; iter.vader:324:19
+        struct.get 18 0   ; iter.vader:324:19
         virtual.call 1 Iterator.next   ; iter.vader:324:19
         local.tee 2   ; iter.vader:324:19
         type_check 8   ; iter.vader:325:17
@@ -702,7 +686,7 @@ fn 16 std_iter$SkipIterator$Iterator$next__i32 (ref:34) -> ref:7
           local.get 0   ; iter.vader:326:21
           i64.const 0   ; iter.vader:326:21
           i64.to_usize   ; iter.vader:326:21
-          struct.set 34 1   ; iter.vader:326:21
+          struct.set 18 1   ; iter.vader:326:21
           struct.new 8   ; iter.vader:327:28
           return   ; iter.vader:327:21
         else   ; iter.vader:325:17
@@ -710,7 +694,7 @@ fn 16 std_iter$SkipIterator$Iterator$next__i32 (ref:34) -> ref:7
           type_check 9   ; iter.vader:329:17
           if $L4 void   ; iter.vader:329:17
             local.get 0   ; iter.vader:330:38
-            struct.get 34 1   ; iter.vader:330:38
+            struct.get 18 1   ; iter.vader:330:38
             local.set 3   ; iter.vader:330:38
             local.get 3   ; iter.vader:330:38
             i64.const 1   ; iter.vader:330:38
@@ -719,7 +703,7 @@ fn 16 std_iter$SkipIterator$Iterator$next__i32 (ref:34) -> ref:7
             local.set 4   ; iter.vader:330:38
             local.get 0   ; iter.vader:330:21
             local.get 4   ; iter.vader:330:21
-            struct.set 34 1   ; iter.vader:330:21
+            struct.set 18 1   ; iter.vader:330:21
             br $L1   ; iter.vader:323:9
           else   ; iter.vader:329:17
             unreachable   ; iter.vader:324:13
@@ -730,7 +714,7 @@ fn 16 std_iter$SkipIterator$Iterator$next__i32 (ref:34) -> ref:7
     end $L1   ; iter.vader:323:9
   end $L0   ; iter.vader:323:9
   local.get 0   ; iter.vader:334:15
-  struct.get 34 0   ; iter.vader:334:15
+  struct.get 18 0   ; iter.vader:334:15
   virtual.call 1 Iterator.next   ; iter.vader:334:15
   local.tee 5   ; iter.vader:334:15
   type_check 8   ; iter.vader:335:13

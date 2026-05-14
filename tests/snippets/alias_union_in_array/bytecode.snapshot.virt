@@ -7,28 +7,11 @@ type 4 struct tests_snippets_alias_union_in_array_types$Dog { name:6 }
 type 5 primitive void
 type 6 primitive string
 type 7 primitive i32
-type 8 struct std_core$ArrayIterator__Cat___Dog { arr:1,cursor:20,length:20 }
+type 8 struct std_core$ArrayIterator__Cat___Dog { arr:1,cursor:12,length:12 }
 type 9 union 10,11
 type 10 struct std_core$Done {  }
 type 11 struct std_core$Yielded__Cat___Dog { value:2 }
-type 12 primitive i8
-type 13 primitive i16
-type 14 primitive i64
-type 15 primitive isize
-type 16 primitive u8
-type 17 primitive u16
-type 18 primitive u32
-type 19 primitive u64
-type 20 primitive usize
-type 21 primitive f32
-type 22 primitive f64
-type 23 primitive bool
-type 24 primitive char
-type 25 union 26,6
-type 26 ref Error
-type 27 union 26,0
-type 28 union 26,29
-type 29 array 6
+type 12 primitive usize
 string 0 "cat "
 string 1 "dog "
 string 2 "Whiskers"

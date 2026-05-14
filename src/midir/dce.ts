@@ -40,6 +40,7 @@ import { isStdlibModule } from "../resolver/module.ts";
 import { DEC, hasDecorator } from "../parser/decorators.ts";
 import type { Decorator } from "../parser/ast.ts";
 import type { EmitterCtx } from "../bytecode/emit.ts";
+import type { BcType } from "../bytecode/types.ts";
 
 const NO_DECORATORS: readonly Decorator[] = [];
 
@@ -543,3 +544,165 @@ export function pruneUnusedImports(ctx: EmitterCtx): void {
   for (const e of kept) ctx.imports.push(e);
 }
 
+/** Drop bcType slots that no live fn body / live signature / live struct
+ *  field / live impl entry transitively reaches. Pass 1's signature
+ *  interning (in `paramsToSignature`) is eager : every fn and extern in
+ *  the CFG project gets its param/result types interned regardless of
+ *  whether it survives DCE. After `pruneUnusedImports` runs, the
+ *  ctx.types array still holds the orphaned signature types ; without
+ *  this prune, a `hello`-sized snippet inflates from 0 to 22 type-table
+ *  entries (every stdlib io extern's signature types stick around). */
+export function pruneUnusedTypes(
+  ctx: EmitterCtx, vtables: ReadonlyMap<string, Map<number, number>>,
+): void {
+  // Root set : every type idx that any live consumer references directly.
+  const reachable = new Set<number>();
+  reachable.add(0);                                          // null slot is load-bearing for the runtime
+  const visit = (idx: number): void => {
+    if (idx < 0 || reachable.has(idx)) return;
+    reachable.add(idx);
+    const t = ctx.types[idx];
+    if (t === undefined) return;
+    switch (t.kind) {
+      case "struct": for (const f of t.fields) visit(f.typeIndex); return;
+      case "union":  for (const v of t.variants)  visit(v); return;
+      case "array":  visit(t.element); return;
+      case "fn":     for (const p of t.params) visit(p); visit(t.returnType); return;
+      default:       return;
+    }
+  };
+  for (const fn of ctx.functions) {
+    visit(fn.signature.resultType);
+    for (const p of fn.signature.paramTypes) visit(p);
+    for (const op of fn.body) {
+      switch (op.kind) {
+        case "struct.new":
+        case "struct.new_stack":
+        case "struct.get":
+        case "struct.set":
+        case "struct.set_stack":
+        case "array.new":
+        case "array.get":
+        case "array.set":
+        case "array.push":
+        case "type_check":
+        case "ref.cast":
+        case "call.indirect":
+        case "fn.ref":
+        case "make_closure":
+          visit(op.typeIndex);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  for (const imp of ctx.imports) {
+    visit(imp.signature.resultType);
+    for (const p of imp.signature.paramTypes) visit(p);
+  }
+  for (const idx of ctx.implTable.keys()) visit(idx);
+  for (const table of vtables.values()) for (const idx of table.keys()) visit(idx);
+  if (reachable.size === ctx.types.length) return;
+
+  const remap = new Int32Array(ctx.types.length);
+  const kept: BcType[] = [];
+  for (let i = 0; i < ctx.types.length; i++) {
+    if (reachable.has(i)) {
+      remap[i] = kept.length;
+      kept.push(ctx.types[i]!);
+    } else {
+      remap[i] = -1;
+    }
+  }
+  const re = (idx: number): number => idx < 0 ? idx : (remap[idx] ?? -1);
+  for (let i = 0; i < kept.length; i++) {
+    const t = kept[i]!;
+    switch (t.kind) {
+      case "struct":
+        kept[i] = { kind: "struct", name: t.name,
+          fields: t.fields.map((f) => ({ name: f.name, typeIndex: re(f.typeIndex) })) };
+        break;
+      case "union":
+        kept[i] = { kind: "union", variants: t.variants.map(re) };
+        break;
+      case "array":
+        kept[i] = { kind: "array", element: re(t.element) };
+        break;
+      case "fn":
+        kept[i] = { kind: "fn", params: t.params.map(re), returnType: re(t.returnType) };
+        break;
+      default:
+        break;
+    }
+  }
+  ctx.types.length = 0;
+  for (const t of kept) ctx.types.push(t);
+  // Remap typeKey entries in place so any post-prune `internType` call
+  // (e.g. a late vtable build) lands on the compacted slots.
+  for (const [key, oldIdx] of [...ctx.typeKey]) {
+    const r = re(oldIdx);
+    if (r >= 0) ctx.typeKey.set(key, r);
+    else ctx.typeKey.delete(key);
+  }
+
+  // Remap every op type-index reference.
+  for (const fn of ctx.functions) {
+    (fn.signature as unknown as { paramTypes: number[]; resultType: number }).paramTypes =
+      fn.signature.paramTypes.map(re);
+    (fn.signature as unknown as { paramTypes: number[]; resultType: number }).resultType =
+      re(fn.signature.resultType);
+    for (let i = 0; i < fn.body.length; i++) {
+      const op = fn.body[i]!;
+      switch (op.kind) {
+        case "struct.new":
+        case "struct.new_stack":
+        case "array.new":
+        case "array.get":
+        case "array.set":
+        case "array.push":
+        case "type_check":
+        case "ref.cast":
+        case "call.indirect":
+          fn.body[i] = { ...op, typeIndex: re(op.typeIndex) } as typeof op;
+          break;
+        case "struct.get":
+        case "struct.set":
+        case "struct.set_stack":
+          fn.body[i] = { ...op, typeIndex: re(op.typeIndex) } as typeof op;
+          break;
+        case "fn.ref":
+        case "make_closure":
+          fn.body[i] = { ...op, typeIndex: re(op.typeIndex) } as typeof op;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  for (let i = 0; i < ctx.imports.length; i++) {
+    const imp = ctx.imports[i]!;
+    (imp.signature as unknown as { paramTypes: number[]; resultType: number }).paramTypes =
+      imp.signature.paramTypes.map(re);
+    (imp.signature as unknown as { paramTypes: number[]; resultType: number }).resultType =
+      re(imp.signature.resultType);
+  }
+  const newImpl = new Map<number, string[]>();
+  for (const [idx, traits] of ctx.implTable) {
+    const r = re(idx);
+    if (r >= 0) newImpl.set(r, traits);
+  }
+  ctx.implTable.clear();
+  for (const [k, v] of newImpl) ctx.implTable.set(k, v);
+
+  // Remap vtable keys (the receiver struct's type idx) in place.
+  for (const table of vtables.values()) {
+    const remapped = new Map<number, number>();
+    for (const [oldIdx, fnIdx] of table) {
+      const r = re(oldIdx);
+      if (r >= 0) remapped.set(r, fnIdx);
+    }
+    table.clear();
+    for (const [k, v] of remapped) table.set(k, v);
+  }
+}
