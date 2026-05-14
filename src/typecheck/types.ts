@@ -672,6 +672,51 @@ export function isAssignable(from: Type, to: Type, impls?: TraitOracle): boolean
   return false;
 }
 
+/** True iff some value can be of both type `a` and type `b` at runtime.
+ *  Used by `is`-pattern checks (match arm + `expr is T` binary) to flag
+ *  arms that are statically unreachable — e.g. `match p: Pet { is Bird }`
+ *  when `Bird` is not part of `Pet`'s union.
+ *
+ *  Conservative on unknowns : `Unresolved` and unresolved `TypeParam`
+ *  intersect anything (we already errored elsewhere ; cascading is noise).
+ *  For traits, "intersects" means the other side implements the trait —
+ *  same direction as `isAssignable`'s trait-widening rule. The two
+ *  trait branches below are *commutative in result* (a Struct intersects
+ *  a Trait iff it implements it, regardless of argument order) even
+ *  though the impl lookup is directional.
+ */
+export function intersects(a: Type, b: Type, impls?: TraitOracle): boolean {
+  if (a.kind === "Unresolved" || b.kind === "Unresolved") return true;
+  if (a.kind === "Never" || b.kind === "Never") return false;
+  if (a.kind === "TypeParam" || b.kind === "TypeParam") return true;
+  // Free numeric literals are open-ended — any numeric primitive can
+  // satisfy them. Treat as intersecting any numeric type.
+  if (a.kind === "FreeInt" || a.kind === "FreeFloat") return isNumeric(b) || b.kind === a.kind;
+  if (b.kind === "FreeInt" || b.kind === "FreeFloat") return isNumeric(a) || a.kind === b.kind;
+  if (equalsType(a, b)) return true;
+  // Union ∩ anything : some variant of the union must intersect.
+  if (a.kind === "Union") return a.variants.some((v) => intersects(v, b, impls));
+  if (b.kind === "Union") return b.variants.some((v) => intersects(a, v, impls));
+  // Trait : the non-trait side must implement the trait, mirroring the
+  // assignability rule. Two distinct traits without a shared
+  // implementor are deemed non-intersecting — coherent with the rest of
+  // the trait-typed checking surface.
+  if (a.kind === "Trait" && impls !== undefined) {
+    if (b.kind === "Struct")    return impls.hasUser(b.symbol, a.symbol);
+    if (b.kind === "Primitive") return impls.forPrimitive(b.name, a.symbol) !== null;
+    if (b.kind === "Trait")     return false;
+    return false;
+  }
+  if (b.kind === "Trait" && impls !== undefined) {
+    if (a.kind === "Struct")    return impls.hasUser(a.symbol, b.symbol);
+    if (a.kind === "Primitive") return impls.forPrimitive(a.name, b.symbol) !== null;
+    return false;
+  }
+  // Distinct concrete shapes never intersect : a value is exactly one
+  // kind at runtime.
+  return false;
+}
+
 // --------------------------------------------------------------- visit
 
 /** Visit a Type and all its structural children (post-order traversal). */

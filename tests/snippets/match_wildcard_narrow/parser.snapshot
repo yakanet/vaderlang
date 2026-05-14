@@ -61,19 +61,12 @@
         "kind": "BinaryExpr",
         "op": "bitor",
         "left": {
-          "kind": "BinaryExpr",
-          "op": "bitor",
-          "left": {
-            "kind": "IdentExpr",
-            "name": "Cat"
-          },
-          "right": {
-            "kind": "IdentExpr",
-            "name": "Dog"
-          }
+          "kind": "IdentExpr",
+          "name": "Cat"
         },
         "right": {
-          "kind": "NullLitExpr"
+          "kind": "IdentExpr",
+          "name": "Dog"
         }
       },
       "decorators": []
@@ -87,8 +80,16 @@
         {
           "name": "p",
           "type": {
-            "kind": "IdentExpr",
-            "name": "Pet"
+            "kind": "BinaryExpr",
+            "op": "bitor",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "Pet"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "null"
+            }
           },
           "defaultValue": null,
           "variadic": false
@@ -174,8 +175,16 @@
         {
           "name": "p",
           "type": {
-            "kind": "IdentExpr",
-            "name": "Pet"
+            "kind": "BinaryExpr",
+            "op": "bitor",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "Pet"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "null"
+            }
           },
           "defaultValue": null,
           "variadic": false

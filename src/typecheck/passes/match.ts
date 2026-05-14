@@ -11,7 +11,7 @@ import { sourceEnumDecl } from "../../resolver/symbol.ts";
 import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { Type } from "../types.ts";
-import { TY, displayType, equalsType, isAssignable, unionOf } from "../types.ts";
+import { TY, displayType, equalsType, intersects, isAssignable, unionOf } from "../types.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { popNarrowing, pushNarrowing } from "./narrow.ts";
@@ -50,6 +50,16 @@ export function inferMatch(
         : lowerExprAsType(arm.pattern.type, t, diags);
       coveredVariants.add(displayType(variantTy));
       narrowed = variantTy;
+      // Soundness : reject `is T -> …` when T can never be a value of
+      // the scrutinee's static type. The implicit-dot form already
+      // errors via `resolveImplicitDotVariant` when the variant isn't
+      // on the scrutinee, so skip it here (otherwise the same arm gets
+      // two diags).
+      if (!(arm.pattern.type.kind === "IdentExpr" && arm.pattern.type.implicitDot === true)
+          && !intersects(variantTy, scrut, impls)) {
+        err(diags, "T3040", arm.pattern.span,
+          `\`${displayType(variantTy)}\` is never a value of \`${displayType(scrut)}\``);
+      }
     }
     if (arm.pattern.kind === "EnumVariantPattern") {
       coveredVariants.add(arm.pattern.variant);

@@ -3,21 +3,26 @@
 // `name` arm sees the scrutinee narrowed to "union − matched". The
 // binding's static type picks up the narrowed shape, so reads inside
 // the body see common fields without a wrapping cast.
+//
+// `Pet` itself is `Cat | Dog` — optionality is expressed at the *use
+// site* via `Pet | null`, not baked into the type identity. Letting
+// the alias carry `null` would conflate "this is a pet" with "there's
+// no pet" and weaken the narrowing demo.
 
 import "std/io" { println }
 
 Cat :: struct { name: string }
 Dog :: struct { name: string }
-Pet :: Cat | Dog | null
+Pet :: Cat | Dog
 
 // Wildcard arm picks up the narrowed type.
 //
-// Without the flow-narrowing fix, `is null -> {}` in the prior arm
-// would not remove `null` from the wildcard arm's view of `p` — the
-// common-field access `p.name` would error (T3009 : `name` not on every
-// variant ; missing on null). With the fix, `p` is `Cat | Dog` in the
-// `_` arm body and the common-field path resolves cleanly.
-greet_wildcard :: fn(p: Pet) -> string {
+// Without the flow-narrowing fix, `is null -> {}` would not remove
+// `null` from the wildcard arm's view of `p` — the common-field access
+// `p.name` would error (T3009 : `name` not on every variant ; missing
+// on null). With the fix, `p` is `Pet` (= `Cat | Dog`) in the `_` arm
+// body and the common-field path resolves cleanly.
+greet_wildcard :: fn(p: Pet | null) -> string {
     return match p {
         is null -> "no pet"
         _       -> "hello ${p.name}"
@@ -26,12 +31,12 @@ greet_wildcard :: fn(p: Pet) -> string {
 
 // Binding-pattern arm also picks up the narrowed type.
 //
-// `pet` is bound here with the narrowed type `Cat | Dog`, not the full
-// scrutinee `Cat | Dog | null`. Calling `.name` reads the common field
+// `pet` is bound here with the narrowed type `Pet`, not the full
+// scrutinee `Pet | null`. Calling `.name` reads the common field
 // directly — same narrowing as the `_` arm above, but the binding form
 // is what lets you re-use the scrutinee value when the scrutinee
 // expression isn't a stable identifier (e.g. a field access).
-greet_binding :: fn(p: Pet) -> string {
+greet_binding :: fn(p: Pet | null) -> string {
     return match p {
         is null -> "no pet"
         pet     -> "howdy ${pet.name}"

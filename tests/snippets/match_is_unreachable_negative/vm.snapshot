@@ -1,0 +1,5 @@
+# compile errors
+[T3040] `is T` test cannot match this scrutinee (statically unreachable): `null` is never a value of `Cat | Dog`
+[T3040] `is T` test cannot match this scrutinee (statically unreachable): `Bird` is never a value of `Cat | Dog`
+[T3040] `is T` test cannot match this scrutinee (statically unreachable): `null` is never a value of `i32`
+[T3040] `is T` test cannot match this scrutinee (statically unreachable): `null` is never a value of `Cat | Dog`

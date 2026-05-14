@@ -11,7 +11,7 @@ import type { ImplRegistry } from "../impls.ts";
 import type { BinaryOpResolution } from "../typed-ast.ts";
 import type { Type } from "../types.ts";
 import {
-  CORE_TRAITS, TY, defaultIfFree, displayType, equalsType, isAssignable, isFloat,
+  CORE_TRAITS, TY, defaultIfFree, displayType, equalsType, intersects, isAssignable, isFloat,
   isInteger, isNumeric, isPrimitive,
 } from "../types.ts";
 
@@ -36,6 +36,15 @@ export function inferBinary(
     // Mirror to exprTypes for legacy consumers ; new code reads from
     // `binaryIsCheckTypes`.
     t.exprTypes.set(expr.right, checkType);
+    // Soundness check : `x is T` where T can never be a runtime value of
+    // x's static type is dead code — e.g. `if p is null` when `p: Pet`
+    // and Pet doesn't include null. Suppress for trivial `is Error` on a
+    // generic `?`-shaped union (the typer's free / unresolved arms have
+    // already been flagged elsewhere).
+    if (!intersects(checkType, left, impls)) {
+      err(diags, "T3040", expr.right.span,
+        `\`${displayType(checkType)}\` is never a value of \`${displayType(left)}\``);
+    }
     return TY.bool;
   }
   // For arithmetic / comparison / equality, pass left's concrete type as expected
