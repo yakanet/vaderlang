@@ -8,12 +8,12 @@ import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { ImplEntry } from "../../typecheck/impls.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_STRUCTS, CORE_TRAITS, TY, canonicalArgsKey, displayType, substitute } from "../../typecheck/types.ts";
+import { CORE_STRUCTS, CORE_TRAITS, TY, canonicalArgsKey, displayType, isInteger, substitute } from "../../typecheck/types.ts";
 import type { MonoEntry } from "../../comptime/specialize.ts";
 
 import type { FnLowerCtx, LowerProjectCtx } from "../ctx.ts";
 import { err } from "../diag.ts";
-import type { LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
+import type { LoweredBinaryOp, LoweredBlock, LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
 
 import { lowerBlock } from "./block.ts";
 import { findCoreTrait, findCoreType, unionOfDoneYielded } from "./core.ts";
@@ -64,6 +64,17 @@ export function lowerForIn(
   iterExpr: A.Expr, bindingName: string, bindingSym: Symbol | undefined,
 ): LoweredStmt {
   const span = stmt.span;
+
+  // Fast path : `for x in <lo>..<hi>` over an integer-typed range lowers to
+  // a direct counter loop, skipping the Range struct allocation and the
+  // per-iter `Iterator.next()` dispatch entirely. The slow path below stays
+  // in place for non-literal ranges, ranges over non-integer Step types
+  // (chars / user types), and any other iterable.
+  if (iterExpr.kind === "RangeExpr") {
+    const fast = tryLowerForInIntRange(ctx, stmt, iterExpr, bindingName, bindingSym);
+    if (fast !== null) return fast;
+  }
+
   let iterLowered = lowerExpr(ctx, iterExpr);
   let iterType = iterLowered.type;
 
@@ -187,6 +198,159 @@ export function lowerForIn(
   };
 
   return wrapStmts(span, [...setupStmts, loop]);
+}
+
+/** Counter-loop lowering for `for x in <int_range>`. Returns null when the
+ *  range's bound type isn't an integer ; caller falls back to the standard
+ *  Iterator-dispatch path. The lower bound becomes the counter's initial
+ *  value ; the upper bound is hoisted to a synthetic local if it isn't a
+ *  cheap idempotent read (avoids recomputing a method call per iter). */
+function tryLowerForInIntRange(
+  ctx: FnLowerCtx, stmt: A.ForStmt, range: A.RangeExpr,
+  bindingName: string, bindingSym: Symbol | undefined,
+): LoweredStmt | null {
+  if (bindingSym === undefined) return null;
+  const loType = ctx.typed.exprTypes.get(range.lower);
+  if (loType === undefined || !isInteger(loType)) return null;
+
+  const span = stmt.span;
+  const lo = lowerExpr(ctx, range.lower);
+  const hi = lowerExpr(ctx, range.upper);
+
+  const hoistStmts: LoweredStmt[] = [];
+  let hiExpr: LoweredExpr = hi;
+  if (!isCheapInvariant(hi)) {
+    const hiSym = freshSyntheticSymbol(ctx, "for_hi");
+    hoistStmts.push({
+      kind: "LoweredLet", span, name: hiSym.name, symbol: hiSym,
+      type: loType, value: hi,
+    });
+    hiExpr = { kind: "LoweredIdent", span, type: loType, symbol: hiSym };
+  }
+
+  const counterInit: LoweredStmt = {
+    kind: "LoweredLet", span, name: bindingName, symbol: bindingSym,
+    type: loType, value: lo,
+  };
+  const counterRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: loType, symbol: bindingSym,
+  });
+  const cmpOp: LoweredBinaryOp = range.inclusive ? "lte" : "lt";
+  const cond: LoweredExpr = {
+    kind: "LoweredBinary", span, type: TY.bool, op: cmpOp,
+    left: counterRef(), right: hiExpr,
+  };
+  const incStmt: LoweredStmt = {
+    kind: "LoweredAssign", span,
+    target: counterRef(),
+    value: {
+      kind: "LoweredBinary", span, type: loType, op: "add",
+      left: counterRef(),
+      right: { kind: "LoweredIntLit", span, type: loType, value: 1n },
+    },
+  };
+
+  const userBody = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ true);
+  // `continue` would otherwise skip the increment and spin on the same
+  // counter value. Rewrite each `continue` that targets this loop to
+  // `{ counter += 1 ; continue }` so the next iteration sees the next
+  // value. Continues in nested loops keep their original target.
+  const advancedBody = prependIncBeforeMatchingContinue(userBody, incStmt, stmt.label);
+
+  const loopBody: LoweredBlock = {
+    kind: "LoweredBlock", span, type: TY.void,
+    stmts: [...blockStmtsWithTrailing(advancedBody), incStmt],
+    trailing: null,
+  };
+  const loop: LoweredStmt = {
+    kind: "LoweredLoop", span, label: stmt.label, cond, body: loopBody,
+  };
+
+  return wrapStmts(span, [...hoistStmts, counterInit, loop]);
+}
+
+/** Reads cheap enough to inline into the loop condition (one read per iter).
+ *  IntLit/CharLit are constants ; Idents and FieldAccesses are single memory
+ *  loads with no side effect. Everything else hoists. */
+function isCheapInvariant(e: LoweredExpr): boolean {
+  return e.kind === "LoweredIdent"
+    || e.kind === "LoweredFieldAccess"
+    || e.kind === "LoweredIntLit"
+    || e.kind === "LoweredCharLit";
+}
+
+/** Walks a block and prefixes `inc` before every `LoweredContinue` whose
+ *  target is the loop we're emitting (matches when both labels are null, or
+ *  when the continue's label matches `loopLabel`). Nested loops with their
+ *  own labels intercept unlabeled continues, so we stop the rewrite at their
+ *  body unless `loopLabel` is set and a labeled `continue loopLabel` could
+ *  still target us through them. */
+function prependIncBeforeMatchingContinue(
+  block: LoweredBlock, inc: LoweredStmt, loopLabel: string | null,
+): LoweredBlock {
+  function matchesContinue(cLabel: string | null, insideNestedLoop: boolean): boolean {
+    if (cLabel === null) return !insideNestedLoop && loopLabel === null;
+    return cLabel === loopLabel;
+  }
+
+  function rewriteStmt(s: LoweredStmt, insideNestedLoop: boolean): LoweredStmt {
+    switch (s.kind) {
+      case "LoweredContinue":
+        if (matchesContinue(s.label, insideNestedLoop)) {
+          return {
+            kind: "LoweredExprStmt", span: s.span,
+            expr: {
+              kind: "LoweredBlock", span: s.span, type: TY.void,
+              stmts: [inc, s], trailing: null,
+            },
+          };
+        }
+        return s;
+      case "LoweredLoop": {
+        if (loopLabel === null) return s;       // no label → no labeled continue can target us
+        return { ...s, body: rewriteBlock(s.body, /*insideNestedLoop*/ true) };
+      }
+      case "LoweredExprStmt":
+        return { ...s, expr: rewriteExpr(s.expr, insideNestedLoop) };
+      case "LoweredLet":
+        return { ...s, value: rewriteExpr(s.value, insideNestedLoop) };
+      case "LoweredAssign":
+        return { ...s, target: rewriteExpr(s.target, insideNestedLoop), value: rewriteExpr(s.value, insideNestedLoop) };
+      case "LoweredReturn":
+        return s.value === null ? s : { ...s, value: rewriteExpr(s.value, insideNestedLoop) };
+      case "LoweredCellSet":
+        return { ...s, target: rewriteExpr(s.target, insideNestedLoop), value: rewriteExpr(s.value, insideNestedLoop) };
+      case "LoweredBreak":
+        return s;
+    }
+  }
+
+  function rewriteBlock(b: LoweredBlock, insideNestedLoop: boolean): LoweredBlock {
+    return {
+      ...b,
+      stmts: b.stmts.map((s) => rewriteStmt(s, insideNestedLoop)),
+      trailing: b.trailing === null ? null : rewriteExpr(b.trailing, insideNestedLoop),
+    };
+  }
+
+  function rewriteExpr(e: LoweredExpr, insideNestedLoop: boolean): LoweredExpr {
+    switch (e.kind) {
+      case "LoweredBlock":
+        return rewriteBlock(e, insideNestedLoop);
+      case "LoweredIf":
+        return {
+          ...e,
+          then: rewriteBlock(e.then, insideNestedLoop),
+          else: e.else === null ? null : rewriteBlock(e.else, insideNestedLoop),
+        };
+      // Other expression kinds only contain sub-expressions, not stmts that
+      // could carry a LoweredContinue — they don't need walking here.
+      default:
+        return e;
+    }
+  }
+
+  return rewriteBlock(block, false);
 }
 
 interface StepImpl {
