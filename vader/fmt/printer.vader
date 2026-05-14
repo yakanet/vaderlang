@@ -10,34 +10,7 @@ import "std/string_builder" { StringBuilder, new_builder, append, append_char, a
 import "std/string" { byte_len, byte_at, slice as str_slice }
 import "std/io" { eprintln }
 import "vader/diagnostics/diagnostic" { Span, Position }
-import "vader/parser" {
-    Program, Decl,
-    ImportDecl, ImportBinding, NamespaceImport, AliasImport, DestructureImport, ImportName,
-    FnDecl, FnParam,
-    StructDecl, StructField,
-    EnumDecl, EnumVariant,
-    TraitDecl, ImplDecl,
-    TypeAliasDecl, ConstDecl, AssertDecl,
-    Decorator, TypeParam, Visibility,
-    Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, ForStmt, BreakStmt, ContinueStmt, DeferStmt,
-    LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
-    ForForm, InfiniteFor, WhileFor, InFor,
-    DeferBody, DeferStmtBody, DeferBlockBody,
-    Expr, TypeExpr,
-    IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr, StringLitExpr, StringLitPart, StringLitText, StringLitInterp,
-    IdentExpr, CallExpr, CallArg, FieldExpr, IndexExpr,
-    UnaryExpr, BinaryExpr, UnaryOp, BinaryOp,
-    IfExpr, IfElse, IfElseIf, IfElseBlock,
-    MatchExpr, MatchArm,
-    BlockExpr, LambdaExpr,
-    StructLitExpr, StructLitField, StructLitSpread,
-    SeqLitExpr, RangeExpr, TryExpr, CastExpr, GenericInstExpr,
-    IntrinsicCallExpr, DotVariantExpr,
-    FnTypeExpr, ArrayTypeExpr,
-    Pattern, IsPattern, StructPattern, StructPatternField, TuplePattern,
-    PatternFieldValue, PatternBinding, PatternLiteral,
-    WildcardPattern, BindingPattern, EnumVariantPattern, LiteralPattern,
-}
+import "vader/parser" as p
 import "vader/fmt/style" { INDENT, MAX_LINE, NL, binary_op_symbol, unary_op_symbol }
 import "vader/fmt/comments" { CommentMap, Comment, CommentKind, has_before, peek_before, take_before, take_trailing, drain_remaining }
 
@@ -167,8 +140,8 @@ flush_remaining_comments :: fn(self: Printer) -> void {
 // Program
 // ============================================================================
 
-export emit_program :: fn(self: Printer, p: Program) -> string {
-    decls :: p.decls
+export emit_program :: fn(self: Printer, prog: p.Program) -> string {
+    decls :: prog.decls
     // Group-alignment pre-pass. Resolved here once so `emit_fn_decl` /
     // `emit_const_decl` can look up their group's max-name width without
     // re-scanning siblings each time.
@@ -208,17 +181,17 @@ export emit_program :: fn(self: Printer, p: Program) -> string {
 // Declarations
 // ============================================================================
 
-emit_decl :: fn(self: Printer, d: Decl) -> void {
+emit_decl :: fn(self: Printer, d: p.Decl) -> void {
     match d {
-        is ImportDecl    as x -> self.emit_import(x)
-        is FnDecl        as x -> self.emit_fn_decl(x)
-        is StructDecl    as x -> self.emit_struct_decl(x)
-        is EnumDecl      as x -> self.emit_enum_decl(x)
-        is TraitDecl     as x -> self.emit_trait_decl(x)
-        is ImplDecl      as x -> self.emit_impl_decl(x)
-        is TypeAliasDecl as x -> self.emit_type_alias(x)
-        is ConstDecl     as x -> self.emit_const_decl(x)
-        is AssertDecl    as x -> self.emit_assert_decl(x)
+        is p.ImportDecl    as x -> self.emit_import(x)
+        is p.FnDecl        as x -> self.emit_fn_decl(x)
+        is p.StructDecl    as x -> self.emit_struct_decl(x)
+        is p.EnumDecl      as x -> self.emit_enum_decl(x)
+        is p.TraitDecl     as x -> self.emit_trait_decl(x)
+        is p.ImplDecl      as x -> self.emit_impl_decl(x)
+        is p.TypeAliasDecl as x -> self.emit_type_alias(x)
+        is p.ConstDecl     as x -> self.emit_const_decl(x)
+        is p.AssertDecl    as x -> self.emit_assert_decl(x)
     }
 }
 
@@ -226,23 +199,23 @@ emit_decl :: fn(self: Printer, d: Decl) -> void {
 // alignment within a group. Signature-only fns and consts both fit ;
 // fns with a body (block or expression) don't — the existing stdlib
 // convention is single-space `::` for those.
-decl_is_alignable :: fn(d: Decl) -> bool {
+decl_is_alignable :: fn(d: p.Decl) -> bool {
     match d {
-        is FnDecl as x -> {
+        is p.FnDecl as x -> {
             if x.sam_synthetic        { return false }
             if x.is_expression_bodied { return false }
             return x.body == null
         }
-        is ConstDecl -> { return true }
+        is p.ConstDecl -> { return true }
         _            -> { return false }
     }
     return false   // unreachable, see note in cli.vader
 }
 
-decl_alignable_name :: fn(d: Decl) -> string {
+decl_alignable_name :: fn(d: p.Decl) -> string {
     match d {
-        is FnDecl     as x -> { return x.name }
-        is ConstDecl  as x -> { return x.name }
+        is p.FnDecl     as x -> { return x.name }
+        is p.ConstDecl  as x -> { return x.name }
         _                  -> { return "" }
     }
     return ""   // unreachable
@@ -250,7 +223,7 @@ decl_alignable_name :: fn(d: Decl) -> string {
 
 // True iff `a` and `b` carry the same ordered list of decorator names.
 // Walks both lists in lock-step — no intermediate `string[]` allocation.
-decorators_equal :: fn(a: Decorator[], b: Decorator[]) -> bool {
+decorators_equal :: fn(a: p.Decorator[], b: p.Decorator[]) -> bool {
     if a.len() != b.len() { return false }
     i: usize = 0
     for i < a.len() {
@@ -264,23 +237,23 @@ decorators_equal :: fn(a: Decorator[], b: Decorator[]) -> bool {
 // same body shape (only signature-only fns are alignable), same
 // visibility, same decorator names, and visually adjacent (no blank line
 // between `prev.end` and `cur.first_line`).
-decls_in_same_group :: fn(prev: Decl, cur: Decl) -> bool {
+decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
     if !decl_is_alignable(prev) { return false }
     if !decl_is_alignable(cur)  { return false }
     if decl_first_line(cur) != decl_span(prev).end.line + 1 { return false }
     match prev {
-        is FnDecl as pf -> {
+        is p.FnDecl as pf -> {
             match cur {
-                is FnDecl as cf -> {
+                is p.FnDecl as cf -> {
                     if pf.visibility != cf.visibility { return false }
                     return decorators_equal(pf.decorators, cf.decorators)
                 }
                 _ -> { return false }
             }
         }
-        is ConstDecl as pc -> {
+        is p.ConstDecl as pc -> {
             match cur {
-                is ConstDecl as cc -> {
+                is p.ConstDecl as cc -> {
                     if pc.visibility != cc.visibility { return false }
                     return decorators_equal(pc.decorators, cc.decorators)
                 }
@@ -298,7 +271,7 @@ decls_in_same_group :: fn(prev: Decl, cur: Decl) -> bool {
 // get `0`, which disables padding. Groups extending across two or more
 // decls all see the same width — the max name length in the group — so
 // every name in the group aligns to the same column.
-compute_decl_alignment_widths :: fn(decls: Decl[]) -> usize[] {
+compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> usize[] {
     out: usize[] = []
     i: usize = 0
     for i < decls.len() {
@@ -324,34 +297,34 @@ compute_decl_alignment_widths :: fn(decls: Decl[]) -> usize[] {
     return out
 }
 
-decl_span :: fn(d: Decl) -> Span {
+decl_span :: fn(d: p.Decl) -> Span {
     match d {
-        is ImportDecl    as x -> x.span
-        is FnDecl        as x -> x.span
-        is StructDecl    as x -> x.span
-        is EnumDecl      as x -> x.span
-        is TraitDecl     as x -> x.span
-        is ImplDecl      as x -> x.span
-        is TypeAliasDecl as x -> x.span
-        is ConstDecl     as x -> x.span
-        is AssertDecl    as x -> x.span
+        is p.ImportDecl    as x -> x.span
+        is p.FnDecl        as x -> x.span
+        is p.StructDecl    as x -> x.span
+        is p.EnumDecl      as x -> x.span
+        is p.TraitDecl     as x -> x.span
+        is p.ImplDecl      as x -> x.span
+        is p.TypeAliasDecl as x -> x.span
+        is p.ConstDecl     as x -> x.span
+        is p.AssertDecl    as x -> x.span
     }
 }
 
 // Decorators sit OUTSIDE the decl's own span — they're collected separately
 // by the parser. For "what line does this decl visually start on" we want
 // the first decorator's line if any, else the decl's own span start.
-decl_first_line :: fn(d: Decl) -> i32 {
-    decos: Decorator[] = match d {
-        is ImportDecl    as x -> x.decorators
-        is FnDecl        as x -> x.decorators
-        is StructDecl    as x -> x.decorators
-        is EnumDecl      as x -> x.decorators
-        is TraitDecl     as x -> x.decorators
-        is ImplDecl      as x -> x.decorators
-        is TypeAliasDecl as x -> x.decorators
-        is ConstDecl     as x -> x.decorators
-        is AssertDecl    as x -> x.decorators
+decl_first_line :: fn(d: p.Decl) -> i32 {
+    decos: p.Decorator[] = match d {
+        is p.ImportDecl    as x -> x.decorators
+        is p.FnDecl        as x -> x.decorators
+        is p.StructDecl    as x -> x.decorators
+        is p.EnumDecl      as x -> x.decorators
+        is p.TraitDecl     as x -> x.decorators
+        is p.ImplDecl      as x -> x.decorators
+        is p.TypeAliasDecl as x -> x.decorators
+        is p.ConstDecl     as x -> x.decorators
+        is p.AssertDecl    as x -> x.decorators
     }
     if decos.len() > 0 { return decos[0].span.start.line }
     return decl_span(d).start.line
@@ -362,7 +335,7 @@ decl_first_line :: fn(d: Decl) -> i32 {
 // decorator on the same line as the decl). `decl_start_line` is the line
 // of the decl's first non-decorator token — the printer's call site picks
 // it (`name_span.start.line` for named decls, fallback to `span.start.line`).
-emit_decorators :: fn(self: Printer, decos: Decorator[], decl_start_line: i32) -> void {
+emit_decorators :: fn(self: Printer, decos: p.Decorator[], decl_start_line: i32) -> void {
     i: usize = 0
     for i < decos.len() {
         deco :: decos[i]
@@ -395,7 +368,7 @@ emit_decorators :: fn(self: Printer, decos: Decorator[], decl_start_line: i32) -
     }
 }
 
-emit_visibility :: fn(self: Printer, v: Visibility) -> void {
+emit_visibility :: fn(self: Printer, v: p.Visibility) -> void {
     match v {
         .Public  -> self.write("export ")
         .Private -> {}
@@ -404,18 +377,18 @@ emit_visibility :: fn(self: Printer, v: Visibility) -> void {
 
 // ---- Import ----
 
-emit_import :: fn(self: Printer, d: ImportDecl) -> void {
+emit_import :: fn(self: Printer, d: p.ImportDecl) -> void {
     self.emit_decorators(d.decorators, d.span.start.line)
     self.write("import \"")
     self.write(d.path)
     self.write("\"")
     match d.binding {
-        is NamespaceImport -> {}
-        is AliasImport as a -> {
+        is p.NamespaceImport -> {}
+        is p.AliasImport as a -> {
             self.write(" as ")
             self.write(a.alias)
         }
-        is DestructureImport as dst -> {
+        is p.DestructureImport as dst -> {
             // Preserve the source's choice : if the destructure spanned
             // multiple lines, keep it multi-line ; else single-line.
             multi := d.span.start.line != d.span.end.line
@@ -446,7 +419,7 @@ emit_import :: fn(self: Printer, d: ImportDecl) -> void {
     }
 }
 
-emit_import_name :: fn(self: Printer, n: ImportName) -> void {
+emit_import_name :: fn(self: Printer, n: p.ImportName) -> void {
     self.write(n.name)
     match n.alias {
         is null -> {}
@@ -459,7 +432,7 @@ emit_import_name :: fn(self: Printer, n: ImportName) -> void {
 
 // ---- Fn ----
 
-emit_fn_decl :: fn(self: Printer, d: FnDecl) -> void {
+emit_fn_decl :: fn(self: Printer, d: p.FnDecl) -> void {
     if d.sam_synthetic { return }   // parser-fabricated, not source
 
     self.emit_decorators(d.decorators, d.name_span.start.line)
@@ -475,12 +448,12 @@ emit_fn_decl :: fn(self: Printer, d: FnDecl) -> void {
         // stmts + trailing expr. Re-emit the trailing expr alone.
         match d.body {
             is null -> self.write("/* missing body */")
-            is BlockExpr as b -> self.emit_expr(b.trailing)
+            is p.BlockExpr as b -> self.emit_expr(b.trailing)
         }
     } else {
         match d.body {
             is null -> {}    // signature-only (@intrinsic / @extern)
-            is BlockExpr as b -> {
+            is p.BlockExpr as b -> {
                 self.write(" ")
                 self.emit_block_expr(b)
             }
@@ -488,7 +461,7 @@ emit_fn_decl :: fn(self: Printer, d: FnDecl) -> void {
     }
 }
 
-emit_type_params :: fn(self: Printer, params: TypeParam[]) -> void {
+emit_type_params :: fn(self: Printer, params: p.TypeParam[]) -> void {
     if params.len() == 0 { return }
     self.write("[")
     i: usize = 0
@@ -502,7 +475,7 @@ emit_type_params :: fn(self: Printer, params: TypeParam[]) -> void {
     self.write("]")
 }
 
-emit_fn_params :: fn(self: Printer, params: FnParam[]) -> void {
+emit_fn_params :: fn(self: Printer, params: p.FnParam[]) -> void {
     self.write("(")
     i: usize = 0
     for i < params.len() {
@@ -519,7 +492,7 @@ emit_fn_params :: fn(self: Printer, params: FnParam[]) -> void {
 
 // ---- Struct ----
 
-emit_struct_decl :: fn(self: Printer, d: StructDecl) -> void {
+emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
@@ -554,7 +527,7 @@ emit_struct_decl :: fn(self: Printer, d: StructDecl) -> void {
     self.write("}")
 }
 
-emit_struct_field :: fn(self: Printer, f: StructField) -> void {
+emit_struct_field :: fn(self: Printer, f: p.StructField) -> void {
     self.emit_visibility(f.visibility)
     self.write(f.name)
     self.write(": ")
@@ -564,7 +537,7 @@ emit_struct_field :: fn(self: Printer, f: StructField) -> void {
 
 // ---- Enum ----
 
-emit_enum_decl :: fn(self: Printer, d: EnumDecl) -> void {
+emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
@@ -606,7 +579,7 @@ emit_enum_decl :: fn(self: Printer, d: EnumDecl) -> void {
     self.write("}")
 }
 
-emit_enum_variant :: fn(self: Printer, v: EnumVariant) -> void {
+emit_enum_variant :: fn(self: Printer, v: p.EnumVariant) -> void {
     self.write(v.name)
     match v.value {
         is null -> {}
@@ -619,7 +592,7 @@ emit_enum_variant :: fn(self: Printer, v: EnumVariant) -> void {
 
 // ---- Trait / Impl ----
 
-emit_trait_decl :: fn(self: Printer, d: TraitDecl) -> void {
+emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
@@ -673,7 +646,7 @@ emit_trait_decl :: fn(self: Printer, d: TraitDecl) -> void {
 // `::` column alignment inside trait / impl bodies. Same group rule :
 // consecutive signature-only fns with matching visibility and decorator
 // set share a group.
-compute_fn_alignment_widths :: fn(members: FnDecl[]) -> usize[] {
+compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> usize[] {
     out: usize[] = []
     i: usize = 0
     for i < members.len() {
@@ -711,7 +684,7 @@ compute_fn_alignment_widths :: fn(members: FnDecl[]) -> usize[] {
     return out
 }
 
-emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
+emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
     self.emit_decorators(d.decorators, d.for_type.span.start.line)
     self.emit_type_expr(d.for_type)
     self.write(" implements")
@@ -768,7 +741,7 @@ emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
         m :: d.members[0]
         match m.body {
             is null -> {}
-            is BlockExpr as b -> {
+            is p.BlockExpr as b -> {
                 // Arrow form : block body is a no-stmt wrapper around the
                 // trailing expr.
                 if b.stmts.len() == 0 {
@@ -821,7 +794,7 @@ emit_impl_decl :: fn(self: Printer, d: ImplDecl) -> void {
 
 // ---- TypeAlias / Const / Assert ----
 
-emit_type_alias :: fn(self: Printer, d: TypeAliasDecl) -> void {
+emit_type_alias :: fn(self: Printer, d: p.TypeAliasDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
@@ -831,7 +804,7 @@ emit_type_alias :: fn(self: Printer, d: TypeAliasDecl) -> void {
     self.emit_type_expr(d.aliased)
 }
 
-emit_const_decl :: fn(self: Printer, d: ConstDecl) -> void {
+emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     // Typed const-decls (`NAME: T :: value`) skip name-column alignment :
@@ -875,9 +848,9 @@ emit_const_decl :: fn(self: Printer, d: ConstDecl) -> void {
 
 // True iff `e` is a `BinaryExpr` with `BitOr` op — i.e. a union RHS
 // candidate for the multi-line layout in `emit_const_decl`.
-is_bitor_chain :: fn(e: Expr) -> bool {
+is_bitor_chain :: fn(e: p.Expr) -> bool {
     return match e {
-        is BinaryExpr as b -> b.op == .BitOr
+        is p.BinaryExpr as b -> b.op == .BitOr
         _ -> false
     }
 }
@@ -886,15 +859,15 @@ is_bitor_chain :: fn(e: Expr) -> bool {
 // `((A | B) | C) | D` → `[A, B, C, D]`. Right-leaning bits (rare — the
 // parser builds left-associative chains) get collected too via the
 // recursive walk.
-collect_bitor_variants :: fn(e: Expr) -> Expr[] {
-    out: Expr[] = []
+collect_bitor_variants :: fn(e: p.Expr) -> p.Expr[] {
+    out: p.Expr[] = []
     append_bitor_variants(e, out)
     return out
 }
 
-append_bitor_variants :: fn(e: Expr, out: Expr[]) -> void {
+append_bitor_variants :: fn(e: p.Expr, out: p.Expr[]) -> void {
     match e {
-        is BinaryExpr as b -> {
+        is p.BinaryExpr as b -> {
             if b.op == .BitOr {
                 append_bitor_variants(b.left, out)
                 append_bitor_variants(b.right, out)
@@ -910,13 +883,13 @@ append_bitor_variants :: fn(e: Expr, out: Expr[]) -> void {
 // the would-be single-line width of a union RHS so `emit_const_decl`
 // can decide between the inline and multi-line layouts. Comments are
 // skipped (the measurement only cares about visible characters).
-render_expr_for_measure :: fn(source: string, e: Expr) -> string {
+render_expr_for_measure :: fn(source: string, e: p.Expr) -> string {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = usize(0) })
     sub.emit_expr(e)
     return sub.finish()
 }
 
-emit_union_multiline :: fn(self: Printer, value: Expr, name_width: usize) -> void {
+emit_union_multiline :: fn(self: Printer, value: p.Expr, name_width: usize) -> void {
     variants :: collect_bitor_variants(value)
     if variants.len() < usize(2) {
         // Defensive fallback : a degenerate chain (or a single-variant
@@ -943,7 +916,7 @@ emit_union_multiline :: fn(self: Printer, value: Expr, name_width: usize) -> voi
     }
 }
 
-emit_assert_decl :: fn(self: Printer, d: AssertDecl) -> void {
+emit_assert_decl :: fn(self: Printer, d: p.AssertDecl) -> void {
     self.emit_decorators(d.decorators, d.span.start.line)
     self.write("@assert(")
     self.emit_expr(d.condition)
@@ -954,28 +927,28 @@ emit_assert_decl :: fn(self: Printer, d: AssertDecl) -> void {
 // Statements
 // ============================================================================
 
-emit_stmt :: fn(self: Printer, s: Stmt) -> void {
+emit_stmt :: fn(self: Printer, s: p.Stmt) -> void {
     match s {
-        is LetStmt      as x -> self.emit_let_stmt(x)
-        is AssignStmt   as x -> self.emit_assign_stmt(x)
-        is ExprStmt     as x -> self.emit_expr(x.expr)
-        is ReturnStmt   as x -> self.emit_return_stmt(x)
-        is ForStmt      as x -> self.emit_for_stmt(x)
-        is BreakStmt    as x -> self.emit_break_stmt(x)
-        is ContinueStmt as x -> self.emit_continue_stmt(x)
-        is DeferStmt    as x -> self.emit_defer_stmt(x)
+        is p.LetStmt      as x -> self.emit_let_stmt(x)
+        is p.AssignStmt   as x -> self.emit_assign_stmt(x)
+        is p.ExprStmt     as x -> self.emit_expr(x.expr)
+        is p.ReturnStmt   as x -> self.emit_return_stmt(x)
+        is p.ForStmt      as x -> self.emit_for_stmt(x)
+        is p.BreakStmt    as x -> self.emit_break_stmt(x)
+        is p.ContinueStmt as x -> self.emit_continue_stmt(x)
+        is p.DeferStmt    as x -> self.emit_defer_stmt(x)
     }
 }
 
-emit_let_binding :: fn(self: Printer, b: LetBinding) -> void {
+emit_let_binding :: fn(self: Printer, b: p.LetBinding) -> void {
     match b {
-        is SimpleBinding   as x -> self.write(x.name)
-        is WildcardBinding     -> self.write("_")
-        is RestBinding     as x -> {
+        is p.SimpleBinding   as x -> self.write(x.name)
+        is p.WildcardBinding     -> self.write("_")
+        is p.RestBinding     as x -> {
             self.write("...")
             self.write(x.name)
         }
-        is TupleBinding    as x -> {
+        is p.TupleBinding    as x -> {
             self.write("[")
             i: usize = 0
             for i < x.elements.len() {
@@ -988,7 +961,7 @@ emit_let_binding :: fn(self: Printer, b: LetBinding) -> void {
     }
 }
 
-emit_let_stmt :: fn(self: Printer, s: LetStmt) -> void {
+emit_let_stmt :: fn(self: Printer, s: p.LetStmt) -> void {
     // Surface forms (mirrors the parser) :
     //   immutable                 name :: value
     //   immutable typed           name: T = value      (parsed-as immutable)
@@ -1016,7 +989,7 @@ emit_let_stmt :: fn(self: Printer, s: LetStmt) -> void {
     self.emit_expr(s.value)
 }
 
-emit_assign_stmt :: fn(self: Printer, s: AssignStmt) -> void {
+emit_assign_stmt :: fn(self: Printer, s: p.AssignStmt) -> void {
     // Recover compound assignment (`+=`, `-=`, `*=`, `/=`, `%=`). The
     // parser desugars `lhs += rhs` into `AssignStmt { target = lhs,
     // value = BinaryExpr(op, lhs, rhs) }`, reusing the same `lhs` node
@@ -1039,7 +1012,7 @@ emit_assign_stmt :: fn(self: Printer, s: AssignStmt) -> void {
             // `value` is a BinaryExpr with `lhs` on the left ; emit only
             // the right operand so `i += 1` round-trips as `i += 1`.
             match s.value {
-                is BinaryExpr as b -> self.emit_expr(b.right)
+                is p.BinaryExpr as b -> self.emit_expr(b.right)
                 _ -> self.emit_expr(s.value)   // unreachable per `aug`
             }
         }
@@ -1051,9 +1024,9 @@ emit_assign_stmt :: fn(self: Printer, s: AssignStmt) -> void {
 // `value.left` are the same source span, and the binary op is one of
 // the compound-eligible arithmetic ops. Returns `null` otherwise so the
 // caller falls back to the plain `=` rendering.
-compound_assign_symbol :: fn(s: AssignStmt) -> string | null {
+compound_assign_symbol :: fn(s: p.AssignStmt) -> string | null {
     return match s.value {
-        is BinaryExpr as b -> {
+        is p.BinaryExpr as b -> {
             if b.left.span.start.offset != s.target.span.start.offset { return null }
             if b.left.span.end.offset != s.target.span.end.offset { return null }
             match b.op {
@@ -1069,12 +1042,12 @@ compound_assign_symbol :: fn(s: AssignStmt) -> string | null {
     }
 }
 
-emit_return_stmt :: fn(self: Printer, s: ReturnStmt) -> void {
+emit_return_stmt :: fn(self: Printer, s: p.ReturnStmt) -> void {
     self.write("return")
     self.emit_expr_with_prefix(" ", s.value)
 }
 
-emit_for_stmt :: fn(self: Printer, s: ForStmt) -> void {
+emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
     match s.label {
         is null -> {}
         is string as l -> {
@@ -1084,12 +1057,12 @@ emit_for_stmt :: fn(self: Printer, s: ForStmt) -> void {
     }
     self.write("for")
     match s.form {
-        is InfiniteFor -> {}
-        is WhileFor as w -> {
+        is p.InfiniteFor -> {}
+        is p.WhileFor as w -> {
             self.write(" ")
             self.emit_expr(w.cond)
         }
-        is InFor as f -> {
+        is p.InFor as f -> {
             self.write(" ")
             self.write(f.binding)
             self.write(" in ")
@@ -1100,7 +1073,7 @@ emit_for_stmt :: fn(self: Printer, s: ForStmt) -> void {
     self.emit_block_expr(s.body)
 }
 
-emit_break_stmt :: fn(self: Printer, s: BreakStmt) -> void {
+emit_break_stmt :: fn(self: Printer, s: p.BreakStmt) -> void {
     self.write("break")
     match s.label {
         is null -> {}
@@ -1111,7 +1084,7 @@ emit_break_stmt :: fn(self: Printer, s: BreakStmt) -> void {
     }
 }
 
-emit_continue_stmt :: fn(self: Printer, s: ContinueStmt) -> void {
+emit_continue_stmt :: fn(self: Printer, s: p.ContinueStmt) -> void {
     self.write("continue")
     match s.label {
         is null -> {}
@@ -1122,11 +1095,11 @@ emit_continue_stmt :: fn(self: Printer, s: ContinueStmt) -> void {
     }
 }
 
-emit_defer_stmt :: fn(self: Printer, s: DeferStmt) -> void {
+emit_defer_stmt :: fn(self: Printer, s: p.DeferStmt) -> void {
     self.write("defer ")
     match s.body {
-        is DeferStmtBody as b  -> self.emit_stmt(b.stmt)
-        is DeferBlockBody as b -> self.emit_block_expr(b.block)
+        is p.DeferStmtBody as b  -> self.emit_stmt(b.stmt)
+        is p.DeferBlockBody as b -> self.emit_block_expr(b.block)
     }
 }
 
@@ -1137,38 +1110,38 @@ emit_defer_stmt :: fn(self: Printer, s: DeferStmt) -> void {
 // `Expr | null` accepted so callers with optional slots don't need a
 // per-call match dispatch. `null` is a no-op : the surrounding context is
 // responsible for emitting (or not emitting) any prefix.
-emit_expr :: fn(self: Printer, e: Expr | null) -> void {
+emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
     match e {
         is null                  -> {}
-        is IntLitExpr        as x -> self.emit_int_lit(x)
-        is FloatLitExpr      as x -> self.emit_float_lit(x)
-        is BoolLitExpr       as x -> self.write(if x.value { "true" } else { "false" })
-        is NullLitExpr           -> self.write("null")
-        is CharLitExpr       as x -> self.emit_char_lit(x)
-        is StringLitExpr     as x -> self.emit_string_lit(x)
-        is IdentExpr         as x -> self.emit_ident(x)
-        is CallExpr          as x -> self.emit_call(x)
-        is FieldExpr         as x -> self.emit_field(x)
-        is IndexExpr         as x -> self.emit_index(x)
-        is UnaryExpr         as x -> self.emit_unary(x)
-        is BinaryExpr        as x -> self.emit_binary(x)
-        is IfExpr            as x -> self.emit_if(x)
-        is MatchExpr         as x -> self.emit_match(x)
-        is BlockExpr         as x -> self.emit_block_expr(x)
-        is LambdaExpr        as x -> self.emit_lambda(x)
-        is StructLitExpr     as x -> self.emit_struct_lit(x)
-        is SeqLitExpr        as x -> self.emit_seq_lit(x)
-        is RangeExpr         as x -> self.emit_range(x)
-        is TryExpr           as x -> self.emit_try(x)
-        is CastExpr          as x -> self.emit_cast(x)
-        is GenericInstExpr   as x -> self.emit_generic_inst(x)
-        is IntrinsicCallExpr as x -> self.emit_intrinsic_call(x)
-        is DotVariantExpr    as x -> {
+        is p.IntLitExpr        as x -> self.emit_int_lit(x)
+        is p.FloatLitExpr      as x -> self.emit_float_lit(x)
+        is p.BoolLitExpr       as x -> self.write(if x.value { "true" } else { "false" })
+        is p.NullLitExpr           -> self.write("null")
+        is p.CharLitExpr       as x -> self.emit_char_lit(x)
+        is p.StringLitExpr     as x -> self.emit_string_lit(x)
+        is p.IdentExpr         as x -> self.emit_ident(x)
+        is p.CallExpr          as x -> self.emit_call(x)
+        is p.FieldExpr         as x -> self.emit_field(x)
+        is p.IndexExpr         as x -> self.emit_index(x)
+        is p.UnaryExpr         as x -> self.emit_unary(x)
+        is p.BinaryExpr        as x -> self.emit_binary(x)
+        is p.IfExpr            as x -> self.emit_if(x)
+        is p.MatchExpr         as x -> self.emit_match(x)
+        is p.BlockExpr         as x -> self.emit_block_expr(x)
+        is p.LambdaExpr        as x -> self.emit_lambda(x)
+        is p.StructLitExpr     as x -> self.emit_struct_lit(x)
+        is p.SeqLitExpr        as x -> self.emit_seq_lit(x)
+        is p.RangeExpr         as x -> self.emit_range(x)
+        is p.TryExpr           as x -> self.emit_try(x)
+        is p.CastExpr          as x -> self.emit_cast(x)
+        is p.GenericInstExpr   as x -> self.emit_generic_inst(x)
+        is p.IntrinsicCallExpr as x -> self.emit_intrinsic_call(x)
+        is p.DotVariantExpr    as x -> {
             self.write(".")
             self.write(x.variant)
         }
-        is FnTypeExpr        as x -> self.emit_fn_type(x)
-        is ArrayTypeExpr     as x -> {
+        is p.FnTypeExpr        as x -> self.emit_fn_type(x)
+        is p.ArrayTypeExpr     as x -> {
             // Postfix `[]` binds tighter than `|` / `&` — `A | B[]` parses
             // as `A | (B[])`. If the element is a union/intersection
             // BinaryExpr, wrap it so the round-trip stays semantically
@@ -1182,9 +1155,9 @@ emit_expr :: fn(self: Printer, e: Expr | null) -> void {
 // Wraps the element of an `ArrayTypeExpr` (or any other tighter-than-pipe
 // postfix) in parens iff it's a `BinaryExpr.BitOr` or `BinaryExpr.BitAnd`,
 // preserving the source-level precedence.
-emit_array_or_union_element :: fn(self: Printer, e: Expr) -> void {
+emit_array_or_union_element :: fn(self: Printer, e: p.Expr) -> void {
     match e {
-        is BinaryExpr as b -> {
+        is p.BinaryExpr as b -> {
             if b.op == .BitOr || b.op == .BitAnd {
                 self.write("(")
                 self.emit_expr(e)
@@ -1200,14 +1173,14 @@ emit_array_or_union_element :: fn(self: Printer, e: Expr) -> void {
 // Type-position emission forwards. Vader's union-alias `TypeExpr` flattens
 // identically to `Expr` for the typechecker, so the same dispatcher serves
 // both positions.
-emit_type_expr :: fn(self: Printer, t: TypeExpr | null) -> void {
+emit_type_expr :: fn(self: Printer, t: p.TypeExpr | null) -> void {
     self.emit_expr(t)
 }
 
 // Emit `prefix` followed by the expression, but only when non-null. Saves
 // every caller from a repeated `match { is null -> {} _ -> { write prefix ;
 // emit } }` boilerplate.
-emit_expr_with_prefix :: fn(self: Printer, prefix: string, e: Expr | null) -> void {
+emit_expr_with_prefix :: fn(self: Printer, prefix: string, e: p.Expr | null) -> void {
     match e {
         is null -> {}
         _ -> {
@@ -1217,7 +1190,7 @@ emit_expr_with_prefix :: fn(self: Printer, prefix: string, e: Expr | null) -> vo
     }
 }
 
-emit_type_expr_with_prefix :: fn(self: Printer, prefix: string, t: TypeExpr | null) -> void {
+emit_type_expr_with_prefix :: fn(self: Printer, prefix: string, t: p.TypeExpr | null) -> void {
     match t {
         is null -> {}
         _ -> {
@@ -1229,7 +1202,7 @@ emit_type_expr_with_prefix :: fn(self: Printer, prefix: string, t: TypeExpr | nu
 
 // ---- literals ----
 
-emit_int_lit :: fn(self: Printer, x: IntLitExpr) -> void {
+emit_int_lit :: fn(self: Printer, x: p.IntLitExpr) -> void {
     // The AST stores the decoded `i64` value but discards the source radix
     // (`0x` / `0b` / `0o` / decimal) plus any underscore separators. To
     // round-trip the spelling, emit the verbatim source slice. The slice
@@ -1237,7 +1210,7 @@ emit_int_lit :: fn(self: Printer, x: IntLitExpr) -> void {
     self.write(self.source_slice(x.span))
 }
 
-emit_float_lit :: fn(self: Printer, x: FloatLitExpr) -> void {
+emit_float_lit :: fn(self: Printer, x: p.FloatLitExpr) -> void {
     // Same rationale as `emit_int_lit` — preserve underscores and the
     // exact mantissa / exponent formatting from the source.
     self.write(self.source_slice(x.span))
@@ -1247,23 +1220,23 @@ emit_float_lit :: fn(self: Printer, x: FloatLitExpr) -> void {
 // raw/triple-quoted form, and `$ident` interp shorthand. The AST only retains
 // the decoded text + interpolation positions ; round-trip equality demands
 // the original surface form survives.
-emit_char_lit :: fn(self: Printer, x: CharLitExpr) -> void {
+emit_char_lit :: fn(self: Printer, x: p.CharLitExpr) -> void {
     self.write(self.source_slice(x.span))
 }
 
-emit_string_lit :: fn(self: Printer, x: StringLitExpr) -> void {
+emit_string_lit :: fn(self: Printer, x: p.StringLitExpr) -> void {
     self.write(self.source_slice(x.span))
 }
 
 // ---- ident / call / access ----
 
-emit_ident :: fn(self: Printer, x: IdentExpr) -> void {
+emit_ident :: fn(self: Printer, x: p.IdentExpr) -> void {
     if x.implicit_dot { self.write(".") }
     if x.is_type_param_intro { self.write("$") }
     self.write(x.name)
 }
 
-emit_call :: fn(self: Printer, x: CallExpr) -> void {
+emit_call :: fn(self: Printer, x: p.CallExpr) -> void {
     self.emit_expr(x.callee)
     self.write("(")
     i: usize = 0
@@ -1284,13 +1257,13 @@ emit_call :: fn(self: Printer, x: CallExpr) -> void {
     self.write(")")
 }
 
-emit_field :: fn(self: Printer, x: FieldExpr) -> void {
+emit_field :: fn(self: Printer, x: p.FieldExpr) -> void {
     self.emit_expr(x.target)
     self.write(".")
     self.write(x.field)
 }
 
-emit_index :: fn(self: Printer, x: IndexExpr) -> void {
+emit_index :: fn(self: Printer, x: p.IndexExpr) -> void {
     self.emit_expr(x.target)
     self.write("[")
     self.emit_expr(x.index)
@@ -1299,12 +1272,12 @@ emit_index :: fn(self: Printer, x: IndexExpr) -> void {
 
 // ---- operators ----
 
-emit_unary :: fn(self: Printer, x: UnaryExpr) -> void {
+emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
     self.write(unary_op_symbol(x.op))
     self.emit_expr(x.operand)
 }
 
-emit_binary :: fn(self: Printer, x: BinaryExpr) -> void {
+emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {
     // Recover the `T!` Error-union shorthand. The parser desugars `T!` to a
     // `BinaryExpr(.BitOr, T, Error)` whose right span is zero-width and sits
     // exactly on the `!` byte ; the source slice of the BinaryExpr's span
@@ -1332,9 +1305,9 @@ emit_binary :: fn(self: Printer, x: BinaryExpr) -> void {
 // parser is left-associative, so a right-hand BinaryExpr of the same rank
 // must be parenthesised to preserve evaluation order, but a left-hand one
 // doesn't.
-emit_binary_operand :: fn(self: Printer, operand: Expr, parent_op: BinaryOp, is_left: bool) -> void {
+emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp, is_left: bool) -> void {
     match operand {
-        is BinaryExpr as inner -> {
+        is p.BinaryExpr as inner -> {
             parent_rank :: binary_precedence(parent_op)
             child_rank  :: binary_precedence(inner.op)
             need_parens :: child_rank < parent_rank || (child_rank == parent_rank && !is_left)
@@ -1354,7 +1327,7 @@ emit_binary_operand :: fn(self: Printer, operand: Expr, parent_op: BinaryOp, is_
 // in `vader/parser/parser.vader::infix_bp` (the only authority on what
 // the parser actually accepts). Vader has no or-patterns so each variant
 // gets its own arm.
-binary_precedence :: fn(op: BinaryOp) -> i32 {
+binary_precedence :: fn(op: p.BinaryOp) -> i32 {
     match op {
         .Or     -> 1
         .And    -> 2
@@ -1382,14 +1355,14 @@ binary_precedence :: fn(op: BinaryOp) -> i32 {
 
 // ---- control-flow expressions ----
 
-emit_if :: fn(self: Printer, x: IfExpr) -> void {
+emit_if :: fn(self: Printer, x: p.IfExpr) -> void {
     self.write("if ")
     self.emit_expr(x.cond)
     self.write(" ")
     self.emit_block_expr(x.then_block)
     match x.else_branch {
         is null -> {}
-        is IfElseIf as ei -> {
+        is p.IfElseIf as ei -> {
             // Preserve source : if the `else if` branch started on a new
             // line, keep the break ; else inline. The discriminant is the
             // then_block's end line vs the else-branch's first line.
@@ -1402,7 +1375,7 @@ emit_if :: fn(self: Printer, x: IfExpr) -> void {
             self.write("else ")
             self.emit_if(ei.branch)
         }
-        is IfElseBlock as eb -> {
+        is p.IfElseBlock as eb -> {
             if eb.block.span.start.line > x.then_block.span.end.line {
                 self.newline()
                 self.indent()
@@ -1415,7 +1388,7 @@ emit_if :: fn(self: Printer, x: IfExpr) -> void {
     }
 }
 
-emit_match :: fn(self: Printer, x: MatchExpr) -> void {
+emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     if x.partial { self.write("@partial ") }
     self.write("match ")
     self.emit_expr(x.scrutinee)
@@ -1433,7 +1406,7 @@ emit_match :: fn(self: Printer, x: MatchExpr) -> void {
     self.write("}")
 }
 
-emit_block_expr :: fn(self: Printer, b: BlockExpr) -> void {
+emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
     // Empty block.
     if b.stmts.len() == 0 {
         match b.trailing {
@@ -1546,7 +1519,7 @@ flush_leading_comments_inline :: fn(self: Printer, before: usize, node_line: i32
     }
 }
 
-emit_lambda :: fn(self: Printer, x: LambdaExpr) -> void {
+emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
     self.write("fn")
     self.emit_fn_params(x.params)
     self.emit_type_expr_with_prefix(" -> ", x.return_type)
@@ -1556,7 +1529,7 @@ emit_lambda :: fn(self: Printer, x: LambdaExpr) -> void {
 
 // ---- aggregates ----
 
-emit_struct_lit :: fn(self: Printer, x: StructLitExpr) -> void {
+emit_struct_lit :: fn(self: Printer, x: p.StructLitExpr) -> void {
     self.emit_type_expr(x.type_name)
     self.write(" {")
     if x.items.len() == 0 {
@@ -1569,13 +1542,13 @@ emit_struct_lit :: fn(self: Printer, x: StructLitExpr) -> void {
         if i > 0 { self.write(", ") }
         it :: x.items[i]
         match it {
-            is StructLitField as f -> {
+            is p.StructLitField as f -> {
                 self.write(".")
                 self.write(f.name)
                 self.write(" = ")
                 self.emit_expr(f.value)
             }
-            is StructLitSpread as s -> {
+            is p.StructLitSpread as s -> {
                 self.write("...")
                 self.emit_expr(s.expr)
             }
@@ -1585,7 +1558,7 @@ emit_struct_lit :: fn(self: Printer, x: StructLitExpr) -> void {
     self.write(" }")
 }
 
-emit_seq_lit :: fn(self: Printer, x: SeqLitExpr) -> void {
+emit_seq_lit :: fn(self: Printer, x: p.SeqLitExpr) -> void {
     self.write("[")
     i: usize = 0
     for i < x.elements.len() {
@@ -1596,7 +1569,7 @@ emit_seq_lit :: fn(self: Printer, x: SeqLitExpr) -> void {
     self.write("]")
 }
 
-emit_range :: fn(self: Printer, x: RangeExpr) -> void {
+emit_range :: fn(self: Printer, x: p.RangeExpr) -> void {
     self.emit_expr(x.lower)
     if x.inclusive { self.write("..=") } else { self.write("..<") }
     self.emit_expr(x.upper)
@@ -1604,26 +1577,26 @@ emit_range :: fn(self: Printer, x: RangeExpr) -> void {
 
 // ---- error / cast / generic / variant ----
 
-emit_try :: fn(self: Printer, x: TryExpr) -> void {
+emit_try :: fn(self: Printer, x: p.TryExpr) -> void {
     self.emit_expr(x.inner)
     self.write("?")
 }
 
-emit_cast :: fn(self: Printer, x: CastExpr) -> void {
+emit_cast :: fn(self: Printer, x: p.CastExpr) -> void {
     self.emit_type_expr(x.target)
     self.write("(")
     self.emit_expr(x.value)
     self.write(")")
 }
 
-emit_generic_inst :: fn(self: Printer, x: GenericInstExpr) -> void {
+emit_generic_inst :: fn(self: Printer, x: p.GenericInstExpr) -> void {
     // Verbatim from source to preserve `[T, U]` vs `(T, U)` choice — both
     // shapes collapse to the same AST node and the surrounding context drives
     // the surface form.
     self.write(self.source_slice(x.span))
 }
 
-emit_intrinsic_call :: fn(self: Printer, x: IntrinsicCallExpr) -> void {
+emit_intrinsic_call :: fn(self: Printer, x: p.IntrinsicCallExpr) -> void {
     self.write("@")
     self.write(x.name)
     self.write("(")
@@ -1636,7 +1609,7 @@ emit_intrinsic_call :: fn(self: Printer, x: IntrinsicCallExpr) -> void {
     self.write(")")
 }
 
-emit_fn_type :: fn(self: Printer, x: FnTypeExpr) -> void {
+emit_fn_type :: fn(self: Printer, x: p.FnTypeExpr) -> void {
     self.write("fn(")
     i: usize = 0
     for i < x.params.len() {
@@ -1652,48 +1625,48 @@ emit_fn_type :: fn(self: Printer, x: FnTypeExpr) -> void {
 // Patterns
 // ============================================================================
 
-emit_pattern :: fn(self: Printer, p: Pattern) -> void {
-    match p {
-        is IsPattern          as x -> self.emit_is_pattern(x)
-        is StructPattern      as x -> self.emit_struct_pattern(x)
-        is TuplePattern       as x -> self.emit_tuple_pattern(x)
-        is WildcardPattern        -> self.write("_")
-        is BindingPattern     as x -> self.write(x.name)
-        is EnumVariantPattern as x -> {
+emit_pattern :: fn(self: Printer, pat: p.Pattern) -> void {
+    match pat {
+        is p.IsPattern          as x -> self.emit_is_pattern(x)
+        is p.StructPattern      as x -> self.emit_struct_pattern(x)
+        is p.TuplePattern       as x -> self.emit_tuple_pattern(x)
+        is p.WildcardPattern        -> self.write("_")
+        is p.BindingPattern     as x -> self.write(x.name)
+        is p.EnumVariantPattern as x -> {
             self.write(".")
             self.write(x.variant)
         }
-        is LiteralPattern as x -> self.emit_expr(x.value)
+        is p.LiteralPattern as x -> self.emit_expr(x.value)
     }
 }
 
-emit_is_pattern :: fn(self: Printer, x: IsPattern) -> void {
+emit_is_pattern :: fn(self: Printer, x: p.IsPattern) -> void {
     self.write("is ")
     self.emit_type_expr(x.ty)
     match x.inner {
         is null -> {}
-        is IsPattern as inner -> {
+        is p.IsPattern as inner -> {
             self.write(" ")
             self.emit_is_pattern(inner)
         }
-        is StructPattern as inner -> {
+        is p.StructPattern as inner -> {
             self.write(" ")
             self.emit_struct_pattern(inner)
         }
-        is TuplePattern as inner -> {
+        is p.TuplePattern as inner -> {
             self.write(" ")
             self.emit_tuple_pattern(inner)
         }
-        is WildcardPattern -> self.write(" _")
-        is BindingPattern as inner -> {
+        is p.WildcardPattern -> self.write(" _")
+        is p.BindingPattern as inner -> {
             self.write(" ")
             self.write(inner.name)
         }
-        is EnumVariantPattern as inner -> {
+        is p.EnumVariantPattern as inner -> {
             self.write(" .")
             self.write(inner.variant)
         }
-        is LiteralPattern as inner -> {
+        is p.LiteralPattern as inner -> {
             self.write(" ")
             self.emit_expr(inner.value)
         }
@@ -1707,7 +1680,7 @@ emit_is_pattern :: fn(self: Printer, x: IsPattern) -> void {
     }
 }
 
-emit_struct_pattern :: fn(self: Printer, x: StructPattern) -> void {
+emit_struct_pattern :: fn(self: Printer, x: p.StructPattern) -> void {
     self.write("{ ")
     i: usize = 0
     for i < x.fields.len() {
@@ -1715,13 +1688,13 @@ emit_struct_pattern :: fn(self: Printer, x: StructPattern) -> void {
         f :: x.fields[i]
         self.write(f.name)
         match f.value {
-            is PatternBinding as pb -> {
+            is p.PatternBinding as pb -> {
                 if pb.name != f.name {
                     self.write(": ")
                     self.write(pb.name)
                 }
             }
-            is PatternLiteral as pl -> {
+            is p.PatternLiteral as pl -> {
                 self.write(" = ")
                 self.emit_expr(pl.value)
             }
@@ -1731,7 +1704,7 @@ emit_struct_pattern :: fn(self: Printer, x: StructPattern) -> void {
     self.write(" }")
 }
 
-emit_tuple_pattern :: fn(self: Printer, x: TuplePattern) -> void {
+emit_tuple_pattern :: fn(self: Printer, x: p.TuplePattern) -> void {
     self.write("[")
     i: usize = 0
     for i < x.elements.len() {
