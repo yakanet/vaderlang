@@ -6,84 +6,24 @@ fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(%0: Cell, %1: stri
   locals:
     %0 self: Cell (param self)
     %1 key: string (param key)
-    %2 $field_4#19: string[]
-    %3 $k_5#20: usize
-    %4 $field_6#21: string[]
-    %5 $len_7#22: usize
-    %6 __iter_0#23: ArrayIterator(string) (synthetic __iter_0)
-    %7 i#24: i32 (local i)
-    %8 $call_10#25: Done | Yielded(string)
-    %9 __step_1#26: Done | Yielded(string) (synthetic __step_1)
-    %10 $type_check_12#27: bool
-    %11 $k_21#28: i32
-    %12 $cast_13#29: Yielded(string)
-    %13 k#30: string (binding k)
-    %14 $eq_16#31: bool
-    %15 $field_17#32: i32[]
-    %16 $idx_18#33: i32
-    %17 $k_19#34: i32
-    %18 i#35: i32 (local i)
+    %2 i: i32 (local i)
+    %3 $field_4: string[]
+    %4 $k_5: usize
+    %5 $field_6: string[]
+    %6 $len_7: usize
+    %7 __iter_0: ArrayIterator(string) (synthetic __iter_0)
+    %8 $call_10: Done | Yielded(string)
+    %9 __step_1: Done | Yielded(string) (synthetic __step_1)
+    %10 $type_check_12: bool
+    %11 $cast_13: Yielded(string)
+    %12 k: string (binding k)
+    %13 $eq_16: bool
+    %14 $field_17: i32[]
+    %15 $idx_18: i32
+    %16 $k_19: i32
+    %17 $k_21: i32
   bb0:
-    %7 = const int(0) :i32
-    %2 = field_get %0.keys :string[]
-    %3 = const int(0) :usize
-    %4 = field_get %0.keys :string[]
-    %5 = array_len %4
-    %6 = struct_new ArrayIterator(string)(%2, %3, %5)
-    branch -> bb1
-  bb1:
-    branch -> bb2
-  bb2:
-    %8 = call next(%6) :Done | Yielded(string)
-    %9 = move %8
-    %10 = type_check %9 is Done
-    cond_branch %10 ? bb4 : bb5
-  bb3:
-    %11 = const int(0) :i32
-    return %11
-  bb4:
-    branch -> bb3
-  bb5:
-    %12 = cast %9 :Yielded(string)
-    %13 = field_get %12.value :string
-    %14 = binop eq %13 %1 :bool
-    cond_branch %14 ? bb7 : bb8
-  bb6:
-    %7 = move %18
-    branch -> bb1
-  bb7:
-    %15 = field_get %0.vals :i32[]
-    %16 = array_get %15[%7] :i32
-    return %16
-  bb8:
-    %17 = const int(1) :i32
-    %18 = binop add %7 %17 :i32
-    branch -> bb6
-
-fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(%0: Cell, %1: string, %2: i32) -> void
-  locals:
-    %0 self: Cell (param self)
-    %1 key: string (param key)
-    %2 v: i32 (param v)
-    %3 $field_5#20: string[]
-    %4 $k_6#21: usize
-    %5 $field_7#22: string[]
-    %6 $len_8#23: usize
-    %7 __iter_0#24: ArrayIterator(string) (synthetic __iter_0)
-    %8 i#25: i32 (local i)
-    %9 $call_11#26: Done | Yielded(string)
-    %10 __step_1#27: Done | Yielded(string) (synthetic __step_1)
-    %11 $type_check_13#28: bool
-    %12 $field_21#29: string[]
-    %13 $field_22#30: i32[]
-    %14 $cast_14#31: Yielded(string)
-    %15 k#32: string (binding k)
-    %16 $eq_17#33: bool
-    %17 $field_18#34: i32[]
-    %18 $k_19#35: i32
-    %19 i#36: i32 (local i)
-  bb0:
-    %8 = const int(0) :i32
+    %2 = const int(0) :i32
     %3 = field_get %0.keys :string[]
     %4 = const int(0) :usize
     %5 = field_get %0.keys :string[]
@@ -93,59 +33,115 @@ fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(%0: Cell, %
   bb1:
     branch -> bb2
   bb2:
-    %9 = call next(%7) :Done | Yielded(string)
+    %8 = call next(%7) :Done | Yielded(string)
+    %9 = move %8
+    %10 = type_check %9 is Done
+    cond_branch %10 ? bb4 : bb5
+  bb3:
+    %17 = const int(0) :i32
+    return %17
+  bb4:
+    branch -> bb3
+  bb5:
+    %11 = cast %9 :Yielded(string)
+    %12 = field_get %11.value :string
+    %13 = binop eq %12 %1 :bool
+    cond_branch %13 ? bb7 : bb8
+  bb6:
+    branch -> bb1
+  bb7:
+    %14 = field_get %0.vals :i32[]
+    %15 = array_get %14[%2] :i32
+    return %15
+  bb8:
+    %16 = const int(1) :i32
+    %2 = binop add %2 %16 :i32
+    branch -> bb6
+
+fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(%0: Cell, %1: string, %2: i32) -> void
+  locals:
+    %0 self: Cell (param self)
+    %1 key: string (param key)
+    %2 v: i32 (param v)
+    %3 i: i32 (local i)
+    %4 $field_5: string[]
+    %5 $k_6: usize
+    %6 $field_7: string[]
+    %7 $len_8: usize
+    %8 __iter_0: ArrayIterator(string) (synthetic __iter_0)
+    %9 $call_11: Done | Yielded(string)
+    %10 __step_1: Done | Yielded(string) (synthetic __step_1)
+    %11 $type_check_13: bool
+    %12 $cast_14: Yielded(string)
+    %13 k: string (binding k)
+    %14 $eq_17: bool
+    %15 $field_18: i32[]
+    %16 $k_19: i32
+    %17 $field_21: string[]
+    %18 $field_22: i32[]
+  bb0:
+    %3 = const int(0) :i32
+    %4 = field_get %0.keys :string[]
+    %5 = const int(0) :usize
+    %6 = field_get %0.keys :string[]
+    %7 = array_len %6
+    %8 = struct_new ArrayIterator(string)(%4, %5, %7)
+    branch -> bb1
+  bb1:
+    branch -> bb2
+  bb2:
+    %9 = call next(%8) :Done | Yielded(string)
     %10 = move %9
     %11 = type_check %10 is Done
     cond_branch %11 ? bb4 : bb5
   bb3:
-    %12 = field_get %0.keys :string[]
-    array_push %12, %1
-    %13 = field_get %0.vals :i32[]
-    array_push %13, %2
+    %17 = field_get %0.keys :string[]
+    array_push %17, %1
+    %18 = field_get %0.vals :i32[]
+    array_push %18, %2
     return
   bb4:
     branch -> bb3
   bb5:
-    %14 = cast %10 :Yielded(string)
-    %15 = field_get %14.value :string
-    %16 = binop eq %15 %1 :bool
-    cond_branch %16 ? bb7 : bb8
+    %12 = cast %10 :Yielded(string)
+    %13 = field_get %12.value :string
+    %14 = binop eq %13 %1 :bool
+    cond_branch %14 ? bb7 : bb8
   bb6:
-    %8 = move %19
     branch -> bb1
   bb7:
-    %17 = field_get %0.vals :i32[]
-    array_set %17[%8] = %2
+    %15 = field_get %0.vals :i32[]
+    array_set %15[%3] = %2
     return
   bb8:
-    %18 = const int(1) :i32
-    %19 = binop add %8 %18 :i32
+    %16 = const int(1) :i32
+    %3 = binop add %3 %16 :i32
     branch -> bb6
 
 fn tests_snippets_op_overload_index__main_vader$main() -> i32
   locals:
-    %0 $arr_0#22: string[]
-    %1 $arr_1#23: i32[]
-    %2 c#24: Cell (local c)
-    %3 $k_4#25: string
-    %4 $k_5#26: i32
-    %5 $k_6#27: string
-    %6 $k_7#28: i32
-    %7 $k_8#29: string
-    %8 $k_9#30: i32
-    %9 $intrinsic_10#31: ?
-    %10 __sb_0#32: ? (synthetic __sb_0)
-    %11 $k_12#33: string
-    %12 $k_13#34: string
-    %13 $call_14#35: i32
-    %14 $k_15#36: string
-    %15 $k_16#37: string
-    %16 $call_17#38: i32
-    %17 $k_18#39: string
-    %18 $k_19#40: string
-    %19 $call_20#41: i32
-    %20 $intrinsic_21#42: string
-    %21 $k_22#43: i32
+    %0 $arr_0: string[]
+    %1 $arr_1: i32[]
+    %2 c: Cell (local c)
+    %3 $k_4: string
+    %4 $k_5: i32
+    %5 $k_6: string
+    %6 $k_7: i32
+    %7 $k_8: string
+    %8 $k_9: i32
+    %9 $intrinsic_10: ?
+    %10 __sb_0: ? (synthetic __sb_0)
+    %11 $k_12: string
+    %12 $k_13: string
+    %13 $call_14: i32
+    %14 $k_15: string
+    %15 $k_16: string
+    %16 $call_17: i32
+    %17 $k_18: string
+    %18 $k_19: string
+    %19 $call_20: i32
+    %20 $intrinsic_21: string
+    %21 $k_22: i32
   bb0:
     %0 = array_new string[][0]()
     %1 = array_new i32[][0]()

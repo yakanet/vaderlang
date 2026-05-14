@@ -4,13 +4,13 @@
 
 fn tests_snippets_cast_test__main_vader$main() -> i32
   locals:
-    %0 n#7: i32 (local n)
-    %1 m#8: u64 (local m)
-    %2 $intrinsic_4#9: ?
-    %3 __sb_0#10: ? (synthetic __sb_0)
-    %4 $call_6#11: string
-    %5 $intrinsic_7#12: string
-    %6 $k_8#13: i32
+    %0 n: i32 (local n)
+    %1 m: u64 (local m)
+    %2 $intrinsic_4: ?
+    %3 __sb_0: ? (synthetic __sb_0)
+    %4 $call_6: string
+    %5 $intrinsic_7: string
+    %6 $k_8: i32
   bb0:
     %0 = const int(42) :i32
     %1 = cast %0 :u64

@@ -5,17 +5,14 @@
 fn tests_snippets_iter_coerce_array__main_vader$walk(%0: Iterator(i32)) -> i32
   locals:
     %0 it: Iterator(i32) (param it)
-    %1 sum#11: i32 (local sum)
-    %2 cont#12: bool (local cont)
-    %3 $vcall_5#13: Done | Yielded(i32)
-    %4 __scrut_0#14: Done | Yielded(i32) (synthetic __scrut_0)
-    %5 $type_check_7#15: bool
-    %6 $type_check_9#17: bool
-    %7 y#18: Yielded(i32) (binding y)
-    %8 $field_12#19: i32
-    %9 sum#20: i32 (local sum)
-    %10 sum#21: i32 (local sum)
-    %11 cont#22: bool (local cont)
+    %1 sum: i32 (local sum)
+    %2 cont: bool (local cont)
+    %3 $vcall_5: Done | Yielded(i32)
+    %4 __scrut_0: Done | Yielded(i32) (synthetic __scrut_0)
+    %5 $type_check_7: bool
+    %6 $type_check_9: bool
+    %7 y: Yielded(i32) (binding y)
+    %8 $field_12: i32
   bb0:
     %1 = const int(0) :i32
     %2 = const bool(true) :bool
@@ -30,35 +27,30 @@ fn tests_snippets_iter_coerce_array__main_vader$walk(%0: Iterator(i32)) -> i32
   bb3:
     return %1
   bb4:
-    %11 = const bool(false) :bool
-    %10 = move %1
+    %2 = const bool(false) :bool
     branch -> bb6
   bb5:
     %6 = type_check %4 is Yielded(i32)
     cond_branch %6 ? bb7 : bb8
   bb6:
-    %1 = move %10
-    %2 = move %11
     branch -> bb1
   bb7:
     %7 = cast %4 :Yielded(i32)
     %8 = field_get %7.value :i32
-    %9 = binop add %1 %8 :i32
+    %1 = binop add %1 %8 :i32
     branch -> bb9
   bb8:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb9:
-    %10 = move %9
-    %11 = move %2
     branch -> bb6
 
 fn tests_snippets_iter_coerce_array__main_vader$make_iter() -> Iterator(i32)
   locals:
-    %0 $k_0#5: i32
-    %1 $k_1#6: i32
-    %2 $k_2#7: i32
-    %3 arr#8: i32[] (local arr)
-    %4 $call_5#9: Iterator(i32)
+    %0 $k_0: i32
+    %1 $k_1: i32
+    %2 $k_2: i32
+    %3 arr: i32[] (local arr)
+    %4 $call_5: Iterator(i32)
   bb0:
     %0 = const int(100) :i32
     %1 = const int(200) :i32
@@ -69,39 +61,39 @@ fn tests_snippets_iter_coerce_array__main_vader$make_iter() -> Iterator(i32)
 
 fn tests_snippets_iter_coerce_array__main_vader$main() -> i32
   locals:
-    %0 $k_0#33: i32
-    %1 $k_1#34: i32
-    %2 $k_2#35: i32
-    %3 $arr_3#36: i32[]
-    %4 $call_4#37: Iterator(i32)
-    %5 $call_5#38: i32
-    %6 a#39: i32 (local a)
-    %7 $k_7#40: i32
-    %8 $k_8#41: i32
-    %9 $k_9#42: i32
-    %10 $k_10#43: i32
-    %11 $arr_11#44: i32[]
-    %12 $call_12#45: Iterator(i32)
-    %13 typed_iter_mut#46: Iterator(i32) (local typed_iter_mut)
-    %14 $k_14#47: i32
-    %15 $k_15#48: i32
-    %16 $k_16#49: i32
-    %17 $arr_17#50: i32[]
-    %18 $call_18#51: Iterator(i32)
-    %19 typed_iter_immut#52: Iterator(i32) (local typed_iter_immut)
-    %20 $call_20#53: i32
-    %21 $call_21#54: i32
-    %22 b#55: i32 (local b)
-    %23 $call_24#56: Iterator(i32)
-    %24 $call_25#57: i32
-    %25 c#58: i32 (local c)
-    %26 $intrinsic_27#59: ?
-    %27 __sb_0#60: ? (synthetic __sb_0)
-    %28 $k_29#61: string
-    %29 $k_30#62: string
-    %30 $k_31#63: string
-    %31 $intrinsic_32#64: string
-    %32 $k_33#65: i32
+    %0 $k_0: i32
+    %1 $k_1: i32
+    %2 $k_2: i32
+    %3 $arr_3: i32[]
+    %4 $call_4: Iterator(i32)
+    %5 $call_5: i32
+    %6 a: i32 (local a)
+    %7 $k_7: i32
+    %8 $k_8: i32
+    %9 $k_9: i32
+    %10 $k_10: i32
+    %11 $arr_11: i32[]
+    %12 $call_12: Iterator(i32)
+    %13 typed_iter_mut: Iterator(i32) (local typed_iter_mut)
+    %14 $k_14: i32
+    %15 $k_15: i32
+    %16 $k_16: i32
+    %17 $arr_17: i32[]
+    %18 $call_18: Iterator(i32)
+    %19 typed_iter_immut: Iterator(i32) (local typed_iter_immut)
+    %20 $call_20: i32
+    %21 $call_21: i32
+    %22 b: i32 (local b)
+    %23 $call_24: Iterator(i32)
+    %24 $call_25: i32
+    %25 c: i32 (local c)
+    %26 $intrinsic_27: ?
+    %27 __sb_0: ? (synthetic __sb_0)
+    %28 $k_29: string
+    %29 $k_30: string
+    %30 $k_31: string
+    %31 $intrinsic_32: string
+    %32 $k_33: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const int(20) :i32

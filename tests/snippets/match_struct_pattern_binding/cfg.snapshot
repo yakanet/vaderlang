@@ -4,17 +4,17 @@
 
 fn tests_snippets_match_struct_pattern_binding__main_vader$main() -> i32
   locals:
-    %0 $k_0#11: i32
-    %1 $k_1#12: string
-    %2 __scrut_0#13: P (synthetic __scrut_0)
-    %3 $type_check_5#14: bool
-    %4 name#15: string (binding name)
-    %5 $intrinsic_8#16: ?
-    %6 __sb_1#17: ? (synthetic __sb_1)
-    %7 $k_10#18: string
-    %8 $intrinsic_11#19: string
-    %9 $k_12#20: string
-    %10 $k_13#21: i32
+    %0 $k_0: i32
+    %1 $k_1: string
+    %2 __scrut_0: P (synthetic __scrut_0)
+    %3 $type_check_5: bool
+    %4 name: string (binding name)
+    %5 $intrinsic_8: ?
+    %6 __sb_1: ? (synthetic __sb_1)
+    %7 $k_10: string
+    %8 $intrinsic_11: string
+    %9 $k_12: string
+    %10 $k_13: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const string(#0) :string

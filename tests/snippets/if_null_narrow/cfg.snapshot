@@ -5,16 +5,16 @@
 fn tests_snippets_if_null_narrow__main_vader$greet(%0: Cat | Dog | null) -> string
   locals:
     %0 a: Cat | Dog | null (param a)
-    %1 $type_check_1#11: bool
-    %2 $not_2#12: bool
-    %3 $intrinsic_3#13: ?
-    %4 __sb_0#14: ? (synthetic __sb_0)
-    %5 $k_5#15: string
-    %6 $cast_6#16: Cat | Dog
-    %7 $cast_7#17: Cat
-    %8 $field_8#18: string
-    %9 $intrinsic_9#19: string
-    %10 $k_10#20: string
+    %1 $type_check_1: bool
+    %2 $not_2: bool
+    %3 $intrinsic_3: ?
+    %4 __sb_0: ? (synthetic __sb_0)
+    %5 $k_5: string
+    %6 $cast_6: Cat | Dog
+    %7 $cast_7: Cat
+    %8 $field_8: string
+    %9 $intrinsic_9: string
+    %10 $k_10: string
   bb0:
     %1 = type_check %0 is null
     %2 = unop not %1 :bool
@@ -37,15 +37,15 @@ fn tests_snippets_if_null_narrow__main_vader$greet(%0: Cat | Dog | null) -> stri
 fn tests_snippets_if_null_narrow__main_vader$greet_v2(%0: Cat | Dog | null) -> string
   locals:
     %0 a: Cat | Dog | null (param a)
-    %1 $type_check_1#10: bool
-    %2 $k_2#11: string
-    %3 $intrinsic_3#12: ?
-    %4 __sb_0#13: ? (synthetic __sb_0)
-    %5 $k_5#14: string
-    %6 $cast_6#15: Cat | Dog
-    %7 $cast_7#16: Cat
-    %8 $field_8#17: string
-    %9 $intrinsic_9#18: string
+    %1 $type_check_1: bool
+    %2 $k_2: string
+    %3 $intrinsic_3: ?
+    %4 __sb_0: ? (synthetic __sb_0)
+    %5 $k_5: string
+    %6 $cast_6: Cat | Dog
+    %7 $cast_7: Cat
+    %8 $field_8: string
+    %9 $intrinsic_9: string
   bb0:
     %1 = type_check %0 is null
     cond_branch %1 ? bb1 : bb2
@@ -67,16 +67,16 @@ fn tests_snippets_if_null_narrow__main_vader$greet_v2(%0: Cat | Dog | null) -> s
 fn tests_snippets_if_null_narrow__main_vader$greet_v3(%0: Cat | Dog | null) -> string
   locals:
     %0 a: Cat | Dog | null (param a)
-    %1 $type_check_1#11: bool
-    %2 $not_2#12: bool
-    %3 $intrinsic_3#13: ?
-    %4 __sb_0#14: ? (synthetic __sb_0)
-    %5 $k_5#15: string
-    %6 $cast_6#16: Cat | Dog
-    %7 $cast_7#17: Cat
-    %8 $field_8#18: string
-    %9 $intrinsic_9#19: string
-    %10 $k_10#20: string
+    %1 $type_check_1: bool
+    %2 $not_2: bool
+    %3 $intrinsic_3: ?
+    %4 __sb_0: ? (synthetic __sb_0)
+    %5 $k_5: string
+    %6 $cast_6: Cat | Dog
+    %7 $cast_7: Cat
+    %8 $field_8: string
+    %9 $intrinsic_9: string
+    %10 $k_10: string
   bb0:
     %1 = type_check %0 is null
     %2 = unop not %1 :bool
@@ -100,17 +100,17 @@ fn tests_snippets_if_null_narrow__main_vader$greet_v4(%0: Cat | Dog | null) -> s
   locals:
     %0 a: Cat | Dog | null (param a)
     %1 out: string (local out)
-    %2 $type_check_3#13: bool
-    %3 $not_4#14: bool
-    %4 $intrinsic_5#15: ?
-    %5 __sb_0#16: ? (synthetic __sb_0)
-    %6 $k_7#17: string
-    %7 $cast_8#18: Cat | Dog
-    %8 $cast_9#19: Cat
-    %9 $field_10#20: string
-    %10 $intrinsic_11#21: string
-    %11 out2#22: string (local out2)
-    %12 $k_13#23: string
+    %2 $type_check_3: bool
+    %3 $not_4: bool
+    %4 $intrinsic_5: ?
+    %5 __sb_0: ? (synthetic __sb_0)
+    %6 $k_7: string
+    %7 $cast_8: Cat | Dog
+    %8 $cast_9: Cat
+    %9 $field_10: string
+    %10 $intrinsic_11: string
+    %11 out2: string (local out2)
+    %12 $k_13: string
   bb0:
     %2 = type_check %0 is null
     %3 = unop not %2 :bool
@@ -137,20 +137,20 @@ fn tests_snippets_if_null_narrow__main_vader$combine(%0: Cat | Dog | null, %1: C
   locals:
     %0 a: Cat | Dog | null (param a)
     %1 b: Cat | Dog | null (param b)
-    %2 $type_check_2#16: bool
-    %3 $k_3#17: string
-    %4 $type_check_4#18: bool
-    %5 $k_5#19: string
-    %6 $intrinsic_6#20: ?
-    %7 __sb_0#21: ? (synthetic __sb_0)
-    %8 $cast_8#22: Cat | Dog
-    %9 $cast_9#23: Cat
-    %10 $field_10#24: string
-    %11 $k_11#25: string
-    %12 $cast_12#26: Cat | Dog
-    %13 $cast_13#27: Cat
-    %14 $field_14#28: string
-    %15 $intrinsic_15#29: string
+    %2 $type_check_2: bool
+    %3 $k_3: string
+    %4 $type_check_4: bool
+    %5 $k_5: string
+    %6 $intrinsic_6: ?
+    %7 __sb_0: ? (synthetic __sb_0)
+    %8 $cast_8: Cat | Dog
+    %9 $cast_9: Cat
+    %10 $field_10: string
+    %11 $k_11: string
+    %12 $cast_12: Cat | Dog
+    %13 $cast_13: Cat
+    %14 $field_14: string
+    %15 $intrinsic_15: string
   bb0:
     %2 = type_check %0 is null
     cond_branch %2 ? bb1 : bb2
@@ -181,25 +181,25 @@ fn tests_snippets_if_null_narrow__main_vader$combine(%0: Cat | Dog | null, %1: C
 
 fn tests_snippets_if_null_narrow__main_vader$main() -> i32
   locals:
-    %0 $k_0#19: string
-    %1 $k_1#20: i32
-    %2 cat#21: Cat | Dog | null (local cat)
-    %3 $k_4#22: string
-    %4 $k_5#23: i32
-    %5 dog#24: Cat | Dog | null (local dog)
-    %6 nothing#25: Cat | Dog | null (local nothing)
-    %7 $call_10#26: string
-    %8 $call_11#27: string
-    %9 $call_12#28: string
-    %10 $call_13#29: string
-    %11 $call_14#30: string
-    %12 $call_15#31: string
-    %13 $call_16#32: string
-    %14 $call_17#33: string
-    %15 $call_18#34: string
-    %16 $call_19#35: string
-    %17 $call_20#36: string
-    %18 $k_21#37: i32
+    %0 $k_0: string
+    %1 $k_1: i32
+    %2 cat: Cat | Dog | null (local cat)
+    %3 $k_4: string
+    %4 $k_5: i32
+    %5 dog: Cat | Dog | null (local dog)
+    %6 nothing: Cat | Dog | null (local nothing)
+    %7 $call_10: string
+    %8 $call_11: string
+    %9 $call_12: string
+    %10 $call_13: string
+    %11 $call_14: string
+    %12 $call_15: string
+    %13 $call_16: string
+    %14 $call_17: string
+    %15 $call_18: string
+    %16 $call_19: string
+    %17 $call_20: string
+    %18 $k_21: i32
   bb0:
     %0 = const string(#11) :string
     %1 = const int(3) :i32

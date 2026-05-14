@@ -6,7 +6,7 @@ string 3 "W"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_left (i32) -> i32
-  local "__scrut_0#14" i32
+  local __scrut_0 i32
   local.get 0   ; _main.vader:16:35
   local.set 1   ; _main.vader:16:35
   local.get 1   ; _main.vader:17:9
@@ -45,7 +45,7 @@ fn 0 tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_l
 end
 
 fn 1 tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_right (i32) -> i32
-  local "__scrut_0#14" i32
+  local __scrut_0 i32
   local.get 0   ; _main.vader:23:36
   local.set 1   ; _main.vader:23:36
   local.get 1   ; _main.vader:24:9
@@ -84,7 +84,7 @@ fn 1 tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_r
 end
 
 fn 2 tests_snippets_enum_trait_self_return__main_vader$Direction$Display$to_string (i32) -> any
-  local "__scrut_0#14" i32
+  local __scrut_0 i32
   local.get 0   ; _main.vader:32:35
   local.set 1   ; _main.vader:32:35
   local.get 1   ; _main.vader:33:9
@@ -123,7 +123,7 @@ fn 2 tests_snippets_enum_trait_self_return__main_vader$Direction$Display$to_stri
 end
 
 fn 3 tests_snippets_enum_trait_self_return__main_vader$main () -> i32
-  local "d#7" i32
+  local d i32
   i32.const 0   ; _main.vader:41:10
   local.tee 0   ; _main.vader:41:10
   call 2   ; _main.vader:42:13

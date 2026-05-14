@@ -6,7 +6,7 @@ fn tests_snippets_fn_decl__main_vader$add(%0: i32, %1: i32) -> i32
   locals:
     %0 a: i32 (param a)
     %1 b: i32 (param b)
-    %2 $add_2#3: i32
+    %2 $add_2: i32
   bb0:
     %2 = binop add %0 %1 :i32
     return %2

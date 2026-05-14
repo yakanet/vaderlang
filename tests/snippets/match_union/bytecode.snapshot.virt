@@ -9,7 +9,7 @@ string 3 "hi"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_match_union__main_vader$describe (ref) -> string
-  local "__scrut_0#8" ref
+  local __scrut_0 ref
   local.get 0   ; _main.vader:4:18
   local.tee 1   ; _main.vader:4:18
   type_check 0   ; _main.vader:5:9

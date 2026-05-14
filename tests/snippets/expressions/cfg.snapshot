@@ -6,28 +6,28 @@ fn tests_snippets_expressions__main_vader$add(%0: i32, %1: i32) -> i32
   locals:
     %0 x: i32 (param x)
     %1 y: i32 (param y)
-    %2 $add_2#3: i32
+    %2 $add_2: i32
   bb0:
     %2 = binop add %0 %1 :i32
     return %2
 
 fn tests_snippets_expressions__main_vader$demo() -> i32
   locals:
-    %0 $k_0#15: i32
-    %1 $k_1#16: i32
-    %2 $k_2#17: i32
-    %3 $mul_3#18: {integer}
-    %4 a#19: i32 (local a)
-    %5 $k_15#20: bool
-    %6 $not_16#21: bool
-    %7 and_res#24: bool
-    %8 $k_38#25: i32
-    %9 $k_39#26: i32
-    %10 $call_40#27: i32
-    %11 $k_42#28: i32
-    %12 $k_43#29: i32
-    %13 $call_44#30: i32
-    %14 cond#31: bool (local cond)
+    %0 $k_0: i32
+    %1 $k_1: i32
+    %2 $k_2: i32
+    %3 $mul_3: {integer}
+    %4 a: i32 (local a)
+    %5 $k_15: bool
+    %6 $not_16: bool
+    %7 and_res: bool
+    %8 $k_38: i32
+    %9 $k_39: i32
+    %10 $call_40: i32
+    %11 $k_42: i32
+    %12 $k_43: i32
+    %13 $call_44: i32
+    %14 cond: bool (local cond)
   bb0:
     %0 = const int(1) :i32
     %1 = const int(2) :i32

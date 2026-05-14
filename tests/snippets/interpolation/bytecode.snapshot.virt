@@ -6,7 +6,7 @@ string 3 " year(s) old."
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_interpolation__main_vader$main () -> i32
-  local "__sb_0#12" any
+  local __sb_0 any
   intrinsic builder.new   ; _main.vader:6:13
   local.set 0   ; _main.vader:6:13
   local.get 0   ; _main.vader:6:14

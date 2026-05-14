@@ -13,7 +13,7 @@ fn 0 tests_snippets_closure_callback__main_vader$apply (ref,i32) -> i32
 end
 
 fn 1 tests_snippets_closure_callback__main_vader$main () -> i32
-  local "biased#9" ref
+  local biased ref
   i32.const 100   ; _main.vader:6:13
   struct.new 4   ; _main.vader:6:5
   struct.new 0   ; _main.vader:7:15
@@ -26,7 +26,7 @@ fn 1 tests_snippets_closure_callback__main_vader$main () -> i32
 end
 
 fn 2 __lambda_1 (ref,i32) -> i32
-  local "$cell_get_3#6" i32
+  local $cell_get_3 i32
   local.get 0   ; _main.vader:8:20
   struct.get 0 0   ; _main.vader:8:20
   struct.get 4 0   ; _main.vader:8:20

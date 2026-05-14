@@ -25,11 +25,11 @@ fn 2 tests_snippets_coerce_into_overload__main_vader$preferred (ref) -> i32
 end
 
 fn 3 tests_snippets_coerce_into_overload__main_vader$main () -> i32
-  local "u#17" ref
-  local "a#20" i32
-  local "__sb_0#22" any
-  local "b#26" i32
-  local "__sb_1#28" any
+  local u ref
+  local a i32
+  local __sb_0 any
+  local b i32
+  local __sb_1 any
   i32.const 42   ; _main.vader:22:28
   struct.new 0   ; _main.vader:22:10
   local.tee 0   ; _main.vader:22:10

@@ -39,23 +39,23 @@ fn 2 tests_snippets_lambda_no_fn__main_vader$call_none (ref) -> i32
 end
 
 fn 3 tests_snippets_lambda_no_fn__main_vader$main () -> i32
-  local "__sb_0#51" any
-  local "$closure_4#54" ref
-  local "$call_6#56" i32
-  local "__sb_2#59" any
-  local "$closure_12#62" ref
-  local "$call_14#64" i32
-  local "__sb_4#67" any
-  local "$closure_20#70" ref
-  local "$call_22#72" i32
-  local "__sb_6#75" any
-  local "$closure_28#78" ref
-  local "$call_31#81" i32
-  local "__sb_8#84" any
-  local "$call_38#88" i32
-  local "$closure_41#91" ref
-  local "r#94" i32
-  local "__sb_11#96" any
+  local __sb_0 any
+  local $closure_4 ref
+  local $call_6 i32
+  local __sb_2 any
+  local $closure_12 ref
+  local $call_14 i32
+  local __sb_4 any
+  local $closure_20 ref
+  local $call_22 i32
+  local __sb_6 any
+  local $closure_28 ref
+  local $call_31 i32
+  local __sb_8 any
+  local $call_38 i32
+  local $closure_41 ref
+  local r i32
+  local __sb_11 any
   intrinsic builder.new   ; _main.vader:24:13
   local.set 0   ; _main.vader:24:13
   local.get 0   ; _main.vader:24:14
@@ -200,7 +200,7 @@ fn 8 __lambda_18 (ref) -> i32
 end
 
 fn 9 __lambda_21 (ref,i32) -> i32
-  local "tmp#5" i32
+  local tmp i32
   local.get 1   ; _main.vader:41:16
   local.get 1   ; _main.vader:41:16
   i32.mul   ; _main.vader:41:16

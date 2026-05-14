@@ -6,11 +6,11 @@ fn tests_snippets_path_basics__main_vader$show_path(%0: string, %1: Path) -> voi
   locals:
     %0 label: string (param label)
     %1 p: Path (param p)
-    %2 $intrinsic_2#7: ?
-    %3 __sb_0#8: ? (synthetic __sb_0)
-    %4 $k_4#9: string
-    %5 $call_5#10: string
-    %6 $intrinsic_6#11: string
+    %2 $intrinsic_2: ?
+    %3 __sb_0: ? (synthetic __sb_0)
+    %4 $k_4: string
+    %5 $call_5: string
+    %6 $intrinsic_6: string
   bb0:
     %2 = intrinsic builder.new()
     %3 = move %2
@@ -25,133 +25,133 @@ fn tests_snippets_path_basics__main_vader$show_path(%0: string, %1: Path) -> voi
 
 fn tests_snippets_path_basics__main_vader$main() -> i32
   locals:
-    %0 $k_0#127: string
-    %1 $call_1#128: Path
-    %2 p#129: Path (local p)
-    %3 $k_3#130: string
-    %4 $intrinsic_4#131: ?
-    %5 __sb_0#132: ? (synthetic __sb_0)
-    %6 $k_6#133: string
-    %7 $call_7#134: string
-    %8 $intrinsic_8#135: string
-    %9 $intrinsic_9#136: ?
-    %10 __sb_1#137: ? (synthetic __sb_1)
-    %11 $k_11#138: string
-    %12 $call_12#139: string
-    %13 $intrinsic_13#140: string
-    %14 $intrinsic_14#141: ?
-    %15 __sb_2#142: ? (synthetic __sb_2)
-    %16 $k_16#143: string
-    %17 $call_17#144: string
-    %18 $intrinsic_18#145: string
-    %19 $k_19#146: string
-    %20 $call_20#147: Path
-    %21 $k_21#148: string
-    %22 $call_22#149: Path
-    %23 $call_23#150: Path
-    %24 $k_24#151: string
-    %25 $call_25#152: Path
-    %26 abs#153: Path (local abs)
-    %27 $intrinsic_27#154: ?
-    %28 __sb_3#155: ? (synthetic __sb_3)
-    %29 $k_29#156: string
-    %30 $call_30#157: bool
-    %31 $intrinsic_31#158: string
-    %32 $k_32#159: string
-    %33 $call_33#160: Path
-    %34 $k_34#161: string
-    %35 $call_35#162: string
-    %36 $call_36#163: Path
-    %37 $k_37#164: string
-    %38 $call_38#165: Path
-    %39 $call_39#166: Path
-    %40 $intrinsic_40#167: ?
-    %41 __sb_4#168: ? (synthetic __sb_4)
-    %42 $k_42#169: string
-    %43 $call_43#170: Path
-    %44 $call_44#171: bool
-    %45 $intrinsic_45#172: string
-    %46 $intrinsic_46#173: ?
-    %47 __sb_5#174: ? (synthetic __sb_5)
-    %48 $k_48#175: string
-    %49 $call_49#176: bool
-    %50 $intrinsic_50#177: string
-    %51 $k_51#178: string
-    %52 $k_52#179: string
-    %53 $call_53#180: Path
-    %54 $k_54#181: string
-    %55 $call_55#182: Path
-    %56 $k_56#183: string
-    %57 $k_57#184: string
-    %58 $call_58#185: Path
-    %59 $k_59#186: string
-    %60 $call_60#187: Path
-    %61 $k_61#188: string
-    %62 $k_62#189: string
-    %63 $call_63#190: Path
-    %64 $k_64#191: string
-    %65 $call_65#192: Path
-    %66 $k_66#193: string
-    %67 $call_67#194: Path
-    %68 $k_68#195: string
-    %69 $call_69#196: Path
-    %70 $intrinsic_70#197: ?
-    %71 __sb_6#198: ? (synthetic __sb_6)
-    %72 $k_72#199: string
-    %73 $k_73#200: string
-    %74 $call_74#201: Path
-    %75 $k_75#202: string
-    %76 $call_76#203: Path
-    %77 $call_77#204: bool
-    %78 $intrinsic_78#205: string
-    %79 $intrinsic_79#206: ?
-    %80 __sb_7#207: ? (synthetic __sb_7)
-    %81 $k_81#208: string
-    %82 $k_82#209: string
-    %83 $call_83#210: Path
-    %84 $k_84#211: string
-    %85 $call_85#212: Path
-    %86 $call_86#213: bool
-    %87 $intrinsic_87#214: string
-    %88 $intrinsic_88#215: ?
-    %89 __sb_8#216: ? (synthetic __sb_8)
-    %90 $k_90#217: string
-    %91 $k_91#218: string
-    %92 $call_92#219: Path
-    %93 $k_93#220: string
-    %94 $call_94#221: Path
-    %95 $call_95#222: bool
-    %96 $intrinsic_96#223: string
-    %97 $intrinsic_97#224: ?
-    %98 __sb_9#225: ? (synthetic __sb_9)
-    %99 $k_99#226: string
-    %100 $k_100#227: string
-    %101 $call_101#228: Path
-    %102 $k_102#229: string
-    %103 $call_103#230: Path
-    %104 $call_104#231: bool
-    %105 $intrinsic_105#232: string
-    %106 $k_106#233: string
-    %107 $k_107#234: string
-    %108 $call_108#235: Path
-    %109 $call_109#236: Path
-    %110 $k_110#237: string
-    %111 $k_111#238: string
-    %112 $call_112#239: Path
-    %113 $call_113#240: Path
-    %114 $k_114#241: string
-    %115 $k_115#242: string
-    %116 $call_116#243: Path
-    %117 $call_117#244: Path
-    %118 $k_118#245: string
-    %119 $k_119#246: string
-    %120 $call_120#247: Path
-    %121 $call_121#248: Path
-    %122 $k_122#249: string
-    %123 $k_123#250: string
-    %124 $call_124#251: Path
-    %125 $call_125#252: Path
-    %126 $k_126#253: i32
+    %0 $k_0: string
+    %1 $call_1: Path
+    %2 p: Path (local p)
+    %3 $k_3: string
+    %4 $intrinsic_4: ?
+    %5 __sb_0: ? (synthetic __sb_0)
+    %6 $k_6: string
+    %7 $call_7: string
+    %8 $intrinsic_8: string
+    %9 $intrinsic_9: ?
+    %10 __sb_1: ? (synthetic __sb_1)
+    %11 $k_11: string
+    %12 $call_12: string
+    %13 $intrinsic_13: string
+    %14 $intrinsic_14: ?
+    %15 __sb_2: ? (synthetic __sb_2)
+    %16 $k_16: string
+    %17 $call_17: string
+    %18 $intrinsic_18: string
+    %19 $k_19: string
+    %20 $call_20: Path
+    %21 $k_21: string
+    %22 $call_22: Path
+    %23 $call_23: Path
+    %24 $k_24: string
+    %25 $call_25: Path
+    %26 abs: Path (local abs)
+    %27 $intrinsic_27: ?
+    %28 __sb_3: ? (synthetic __sb_3)
+    %29 $k_29: string
+    %30 $call_30: bool
+    %31 $intrinsic_31: string
+    %32 $k_32: string
+    %33 $call_33: Path
+    %34 $k_34: string
+    %35 $call_35: string
+    %36 $call_36: Path
+    %37 $k_37: string
+    %38 $call_38: Path
+    %39 $call_39: Path
+    %40 $intrinsic_40: ?
+    %41 __sb_4: ? (synthetic __sb_4)
+    %42 $k_42: string
+    %43 $call_43: Path
+    %44 $call_44: bool
+    %45 $intrinsic_45: string
+    %46 $intrinsic_46: ?
+    %47 __sb_5: ? (synthetic __sb_5)
+    %48 $k_48: string
+    %49 $call_49: bool
+    %50 $intrinsic_50: string
+    %51 $k_51: string
+    %52 $k_52: string
+    %53 $call_53: Path
+    %54 $k_54: string
+    %55 $call_55: Path
+    %56 $k_56: string
+    %57 $k_57: string
+    %58 $call_58: Path
+    %59 $k_59: string
+    %60 $call_60: Path
+    %61 $k_61: string
+    %62 $k_62: string
+    %63 $call_63: Path
+    %64 $k_64: string
+    %65 $call_65: Path
+    %66 $k_66: string
+    %67 $call_67: Path
+    %68 $k_68: string
+    %69 $call_69: Path
+    %70 $intrinsic_70: ?
+    %71 __sb_6: ? (synthetic __sb_6)
+    %72 $k_72: string
+    %73 $k_73: string
+    %74 $call_74: Path
+    %75 $k_75: string
+    %76 $call_76: Path
+    %77 $call_77: bool
+    %78 $intrinsic_78: string
+    %79 $intrinsic_79: ?
+    %80 __sb_7: ? (synthetic __sb_7)
+    %81 $k_81: string
+    %82 $k_82: string
+    %83 $call_83: Path
+    %84 $k_84: string
+    %85 $call_85: Path
+    %86 $call_86: bool
+    %87 $intrinsic_87: string
+    %88 $intrinsic_88: ?
+    %89 __sb_8: ? (synthetic __sb_8)
+    %90 $k_90: string
+    %91 $k_91: string
+    %92 $call_92: Path
+    %93 $k_93: string
+    %94 $call_94: Path
+    %95 $call_95: bool
+    %96 $intrinsic_96: string
+    %97 $intrinsic_97: ?
+    %98 __sb_9: ? (synthetic __sb_9)
+    %99 $k_99: string
+    %100 $k_100: string
+    %101 $call_101: Path
+    %102 $k_102: string
+    %103 $call_103: Path
+    %104 $call_104: bool
+    %105 $intrinsic_105: string
+    %106 $k_106: string
+    %107 $k_107: string
+    %108 $call_108: Path
+    %109 $call_109: Path
+    %110 $k_110: string
+    %111 $k_111: string
+    %112 $call_112: Path
+    %113 $call_113: Path
+    %114 $k_114: string
+    %115 $k_115: string
+    %116 $call_116: Path
+    %117 $call_117: Path
+    %118 $k_118: string
+    %119 $k_119: string
+    %120 $call_120: Path
+    %121 $call_121: Path
+    %122 $k_122: string
+    %123 $k_123: string
+    %124 $call_124: Path
+    %125 $call_125: Path
+    %126 $k_126: i32
   bb0:
     %0 = const string(#1) :string
     %1 = call to_path(%0) :Path

@@ -4,20 +4,20 @@
 
 fn tests_snippets_struct_lit_field_order__main_vader$main() -> i32
   locals:
-    %0 $k_0#14: i32
-    %1 $k_1#15: i32
-    %2 $k_2#16: i32
-    %3 p#17: P (local p)
-    %4 $intrinsic_5#18: ?
-    %5 __sb_0#19: ? (synthetic __sb_0)
-    %6 $k_7#20: string
-    %7 $field_8#21: i32
-    %8 $k_9#22: string
-    %9 $field_10#23: i32
-    %10 $k_11#24: string
-    %11 $field_12#25: i32
-    %12 $intrinsic_13#26: string
-    %13 $k_14#27: i32
+    %0 $k_0: i32
+    %1 $k_1: i32
+    %2 $k_2: i32
+    %3 p: P (local p)
+    %4 $intrinsic_5: ?
+    %5 __sb_0: ? (synthetic __sb_0)
+    %6 $k_7: string
+    %7 $field_8: i32
+    %8 $k_9: string
+    %9 $field_10: i32
+    %10 $k_11: string
+    %11 $field_12: i32
+    %12 $intrinsic_13: string
+    %13 $k_14: i32
   bb0:
     %0 = const int(1) :i32
     %1 = const int(2) :i32

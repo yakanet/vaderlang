@@ -7,8 +7,8 @@ impl 0 Greet
 impl 0 Annot
 
 fn 0 tests_snippets_trait_method_ambig__main_vader$Cat$Greet$greet (ref) -> string
-  local "__sb_0#7" any
-  local "$field_4#9" string
+  local __sb_0 any
+  local $field_4 string
   intrinsic builder.new   ; _main.vader:11:61
   local.set 1   ; _main.vader:11:61
   local.get 1   ; _main.vader:11:62

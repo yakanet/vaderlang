@@ -9,15 +9,15 @@ import 0 to_string std_core$u64$Display$to_string (u64) -> string
 import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_primitive_hash_eq__main_vader$main () -> i32
-  local "a#27" i32
-  local "__sb_0#31" any
-  local "$call_10#34" string
-  local "__sb_1#37" any
-  local "$call_15#39" bool
-  local "__sb_2#42" any
-  local "$call_20#44" bool
-  local "__sb_3#48" any
-  local "$call_28#51" string
+  local a i32
+  local __sb_0 any
+  local $call_10 string
+  local __sb_1 any
+  local $call_15 bool
+  local __sb_2 any
+  local $call_20 bool
+  local __sb_3 any
+  local $call_28 string
   i32.const 42   ; _main.vader:4:14
   local.set 0   ; _main.vader:4:14
   intrinsic builder.new   ; _main.vader:7:13

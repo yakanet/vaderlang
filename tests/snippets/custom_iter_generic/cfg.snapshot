@@ -4,64 +4,62 @@
 
 fn tests_snippets_custom_iter_generic__main_vader$main() -> i32
   locals:
-    %0 $k_0#13: i32
-    %1 $k_1#14: i32
-    %2 __iter_0#15: Repeat(i32) (synthetic __iter_0)
-    %3 sum#17: i32 (local sum)
-    %4 $call_7#18: Done | Yielded(i32)
-    %5 __step_1#19: Done | Yielded(i32) (synthetic __step_1)
-    %6 $type_check_9#20: bool
-    %7 $intrinsic_14#21: ?
-    %8 __sb_2#22: ? (synthetic __sb_2)
-    %9 $intrinsic_16#23: string
-    %10 $k_17#24: i32
-    %11 $cast_10#25: Yielded(i32)
-    %12 x#26: i32 (binding x)
-    %13 sum#27: i32 (local sum)
+    %0 $k_0: i32
+    %1 $k_1: i32
+    %2 sum: i32 (local sum)
+    %3 __iter_0: Repeat(i32) (synthetic __iter_0)
+    %4 $call_7: Done | Yielded(i32)
+    %5 __step_1: Done | Yielded(i32) (synthetic __step_1)
+    %6 $type_check_9: bool
+    %7 $cast_10: Yielded(i32)
+    %8 x: i32 (binding x)
+    %9 $intrinsic_14: ?
+    %10 __sb_2: ? (synthetic __sb_2)
+    %11 $intrinsic_16: string
+    %12 $k_17: i32
   bb0:
     %0 = const int(42) :i32
     %1 = const int(3) :i32
-    %2 = struct_new Repeat(i32)(%0, %1)
-    %3 = const int(0) :i32
+    %3 = struct_new Repeat(i32)(%0, %1)
+    %2 = const int(0) :i32
     branch -> bb1
   bb1:
     branch -> bb2
   bb2:
-    %4 = call next(%2) :Done | Yielded(i32)
+    %4 = call next(%3) :Done | Yielded(i32)
     %5 = move %4
     %6 = type_check %5 is Done
     cond_branch %6 ? bb4 : bb5
   bb3:
-    %7 = intrinsic builder.new()
-    %8 = move %7
-    intrinsic builder.append_display(%8, %3)
-    %9 = intrinsic builder.finish(%8)
-    call println(%9) :void
-    %10 = const int(0) :i32
-    return %10
+    %9 = intrinsic builder.new()
+    %10 = move %9
+    intrinsic builder.append_display(%10, %2)
+    %11 = intrinsic builder.finish(%10)
+    call println(%11) :void
+    %12 = const int(0) :i32
+    return %12
   bb4:
     branch -> bb3
   bb5:
-    %11 = cast %5 :Yielded(i32)
-    %12 = field_get %11.value :i32
-    %13 = binop add %3 %12 :i32
+    %7 = cast %5 :Yielded(i32)
+    %8 = field_get %7.value :i32
+    %2 = binop add %2 %8 :i32
     branch -> bb6
   bb6:
-    %3 = move %13
     branch -> bb1
 
 fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$next__i32(%0: Repeat(i32)) -> Done | Yielded(i32)
   locals:
     %0 self: Repeat(i32) (param self)
-    %1 $field_1#10: i32
-    %2 $k_2#11: i32
-    %3 $lte_3#12: bool
-    %4 $struct_4#13: Done
-    %5 v#14: i32 (local v)
-    %6 $field_7#15: i32
-    %7 $k_8#16: i32
-    %8 $sub_9#17: i32
-    %9 $struct_10#18: Yielded(i32)
+    %1 $field_1: i32
+    %2 $k_2: i32
+    %3 $lte_3: bool
+    %4 $struct_4: Done
+    %5 v: i32 (local v)
+    %6 $field_7: i32
+    %7 $k_8: i32
+    %8 $sub_9: i32
+    %9 $struct_10: Yielded(i32)
   bb0:
     %1 = field_get %0.remaining :i32
     %2 = const int(0) :i32

@@ -4,41 +4,41 @@
 
 fn tests_snippets_std_string_builder__main_vader$main() -> i32
   locals:
-    %0 $call_0#35: StringBuilder
-    %1 sb#36: StringBuilder (local sb)
-    %2 $k_2#37: string
-    %3 $k_3#38: string
-    %4 $k_4#39: string
-    %5 $k_5#40: char
-    %6 $call_6#41: string
-    %7 $call_7#42: StringBuilder
-    %8 sb2#43: StringBuilder (local sb2)
-    %9 $k_9#44: string
-    %10 $k_10#45: string
-    %11 $k_11#46: string
-    %12 $call_12#47: string
-    %13 $call_13#48: StringBuilder
-    %14 sb3#49: StringBuilder (local sb3)
-    %15 $intrinsic_15#50: ?
-    %16 __sb_0#51: ? (synthetic __sb_0)
-    %17 $k_17#52: string
-    %18 $call_18#53: string
-    %19 $k_19#54: string
-    %20 $intrinsic_20#55: string
-    %21 $call_21#56: StringBuilder
-    %22 sb4#57: StringBuilder (local sb4)
-    %23 $k_23#58: char
-    %24 $k_24#59: char
-    %25 $call_25#60: string
-    %26 n#61: i32 (local n)
-    %27 $call_28#62: StringBuilder
-    %28 sb5#63: StringBuilder (local sb5)
-    %29 $k_30#64: string
-    %30 $intrinsic_31#65: ?
-    %31 __sb_1#66: ? (synthetic __sb_1)
-    %32 $intrinsic_33#67: string
-    %33 $call_34#68: string
-    %34 $k_35#69: i32
+    %0 $call_0: StringBuilder
+    %1 sb: StringBuilder (local sb)
+    %2 $k_2: string
+    %3 $k_3: string
+    %4 $k_4: string
+    %5 $k_5: char
+    %6 $call_6: string
+    %7 $call_7: StringBuilder
+    %8 sb2: StringBuilder (local sb2)
+    %9 $k_9: string
+    %10 $k_10: string
+    %11 $k_11: string
+    %12 $call_12: string
+    %13 $call_13: StringBuilder
+    %14 sb3: StringBuilder (local sb3)
+    %15 $intrinsic_15: ?
+    %16 __sb_0: ? (synthetic __sb_0)
+    %17 $k_17: string
+    %18 $call_18: string
+    %19 $k_19: string
+    %20 $intrinsic_20: string
+    %21 $call_21: StringBuilder
+    %22 sb4: StringBuilder (local sb4)
+    %23 $k_23: char
+    %24 $k_24: char
+    %25 $call_25: string
+    %26 n: i32 (local n)
+    %27 $call_28: StringBuilder
+    %28 sb5: StringBuilder (local sb5)
+    %29 $k_30: string
+    %30 $intrinsic_31: ?
+    %31 __sb_1: ? (synthetic __sb_1)
+    %32 $intrinsic_33: string
+    %33 $call_34: string
+    %34 $k_35: i32
   bb0:
     %0 = call new_builder() :StringBuilder
     %1 = move %0

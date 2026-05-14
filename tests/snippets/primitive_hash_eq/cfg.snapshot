@@ -4,33 +4,33 @@
 
 fn tests_snippets_primitive_hash_eq__main_vader$main() -> i32
   locals:
-    %0 a#27: i32 (local a)
-    %1 b#28: i32 (local b)
-    %2 c#29: i32 (local c)
-    %3 $intrinsic_6#30: ?
-    %4 __sb_0#31: ? (synthetic __sb_0)
-    %5 $k_8#32: string
-    %6 $call_9#33: u64
-    %7 $call_10#34: string
-    %8 $intrinsic_11#35: string
-    %9 $intrinsic_12#36: ?
-    %10 __sb_1#37: ? (synthetic __sb_1)
-    %11 $k_14#38: string
-    %12 $call_15#39: bool
-    %13 $intrinsic_16#40: string
-    %14 $intrinsic_17#41: ?
-    %15 __sb_2#42: ? (synthetic __sb_2)
-    %16 $k_19#43: string
-    %17 $call_20#44: bool
-    %18 $intrinsic_21#45: string
-    %19 n#46: usize (local n)
-    %20 $intrinsic_24#47: ?
-    %21 __sb_3#48: ? (synthetic __sb_3)
-    %22 $k_26#49: string
-    %23 $call_27#50: u64
-    %24 $call_28#51: string
-    %25 $intrinsic_29#52: string
-    %26 $k_30#53: i32
+    %0 a: i32 (local a)
+    %1 b: i32 (local b)
+    %2 c: i32 (local c)
+    %3 $intrinsic_6: ?
+    %4 __sb_0: ? (synthetic __sb_0)
+    %5 $k_8: string
+    %6 $call_9: u64
+    %7 $call_10: string
+    %8 $intrinsic_11: string
+    %9 $intrinsic_12: ?
+    %10 __sb_1: ? (synthetic __sb_1)
+    %11 $k_14: string
+    %12 $call_15: bool
+    %13 $intrinsic_16: string
+    %14 $intrinsic_17: ?
+    %15 __sb_2: ? (synthetic __sb_2)
+    %16 $k_19: string
+    %17 $call_20: bool
+    %18 $intrinsic_21: string
+    %19 n: usize (local n)
+    %20 $intrinsic_24: ?
+    %21 __sb_3: ? (synthetic __sb_3)
+    %22 $k_26: string
+    %23 $call_27: u64
+    %24 $call_28: string
+    %25 $intrinsic_29: string
+    %26 $k_30: i32
   bb0:
     %0 = const int(42) :i32
     %1 = const int(42) :i32

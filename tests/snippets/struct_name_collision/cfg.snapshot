@@ -4,21 +4,21 @@
 
 fn tests_snippets_struct_name_collision__main_vader$main() -> i32
   locals:
-    %0 $call_0#15: Box
-    %1 a#16: Box (local a)
-    %2 $call_2#17: Box
-    %3 b#18: Box (local b)
-    %4 $intrinsic_4#19: ?
-    %5 __sb_0#20: ? (synthetic __sb_0)
-    %6 $k_6#21: string
-    %7 $field_7#22: i32
-    %8 $intrinsic_8#23: string
-    %9 $intrinsic_9#24: ?
-    %10 __sb_1#25: ? (synthetic __sb_1)
-    %11 $k_11#26: string
-    %12 $field_12#27: string
-    %13 $intrinsic_13#28: string
-    %14 $k_14#29: i32
+    %0 $call_0: Box
+    %1 a: Box (local a)
+    %2 $call_2: Box
+    %3 b: Box (local b)
+    %4 $intrinsic_4: ?
+    %5 __sb_0: ? (synthetic __sb_0)
+    %6 $k_6: string
+    %7 $field_7: i32
+    %8 $intrinsic_8: string
+    %9 $intrinsic_9: ?
+    %10 __sb_1: ? (synthetic __sb_1)
+    %11 $k_11: string
+    %12 $field_12: string
+    %13 $intrinsic_13: string
+    %14 $k_14: i32
   bb0:
     %0 = call make_a() :Box
     %1 = move %0
@@ -47,8 +47,8 @@ fn tests_snippets_struct_name_collision__main_vader$main() -> i32
 
 fn tests_snippets_struct_name_collision_mod_a$make_a() -> Box
   locals:
-    %0 $k_0#2: i32
-    %1 $struct_1#3: Box
+    %0 $k_0: i32
+    %1 $struct_1: Box
   bb0:
     %0 = const int(42) :i32
     %1 = struct_new Box(%0)
@@ -58,8 +58,8 @@ fn tests_snippets_struct_name_collision_mod_a$make_a() -> Box
 
 fn tests_snippets_struct_name_collision_mod_b$make_b() -> Box
   locals:
-    %0 $k_0#2: string
-    %1 $struct_1#3: Box
+    %0 $k_0: string
+    %1 $struct_1: Box
   bb0:
     %0 = const string(#2) :string
     %1 = struct_new Box(%0)

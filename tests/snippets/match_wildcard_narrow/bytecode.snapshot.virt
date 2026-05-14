@@ -13,65 +13,65 @@ string 6 "Buddy"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_match_wildcard_narrow__main_vader$greet_wildcard (ref) -> string
-  local "__sb_1#15" any
-  local "$field_10#19" string
-  local "if_res#22" string
+  local if_res string
+  local __sb_1 any
+  local $field_10 string
   local.get 0   ; _main.vader:26:18
   type_check 3   ; _main.vader:27:9
   if $L0 void   ; _main.vader:27:9
     string.const 0   ; _main.vader:27:20
-    local.set 3   ; _main.vader:27:20
+    local.set 1   ; _main.vader:27:20
   else   ; _main.vader:27:9
     intrinsic builder.new   ; _main.vader:28:20
-    local.set 1   ; _main.vader:28:20
-    local.get 1   ; _main.vader:28:21
+    local.set 2   ; _main.vader:28:20
+    local.get 2   ; _main.vader:28:21
     string.const 1   ; _main.vader:28:21
     intrinsic builder.append_str   ; _main.vader:28:21
     local.get 0   ; _main.vader:28:29
     struct.get 0 0   ; _main.vader:28:29
-    local.set 2   ; _main.vader:28:29
-    local.get 1   ; _main.vader:28:27
+    local.set 3   ; _main.vader:28:29
     local.get 2   ; _main.vader:28:27
+    local.get 3   ; _main.vader:28:27
     intrinsic builder.append_display   ; _main.vader:28:27
-    local.get 1   ; _main.vader:28:20
+    local.get 2   ; _main.vader:28:20
     intrinsic builder.finish   ; _main.vader:28:20
-    local.set 3   ; _main.vader:28:9
+    local.set 1   ; _main.vader:28:9
   end $L0   ; _main.vader:27:9
-  local.get 3   ; _main.vader:26:5
+  local.get 1   ; _main.vader:26:5
   return   ; _main.vader:26:5
 end
 
 fn 1 tests_snippets_match_wildcard_narrow__main_vader$greet_binding (ref) -> string
-  local "__scrut_0#12" ref
-  local "pet#15" ref
-  local "__sb_1#17" any
-  local "$field_11#21" string
-  local "if_res#24" string
+  local __scrut_0 ref
+  local if_res string
+  local pet ref
+  local __sb_1 any
+  local $field_11 string
   local.get 0   ; _main.vader:40:18
   local.tee 1   ; _main.vader:40:18
   type_check 3   ; _main.vader:41:9
   if $L0 void   ; _main.vader:41:9
     string.const 0   ; _main.vader:41:20
-    local.set 5   ; _main.vader:41:20
+    local.set 2   ; _main.vader:41:20
   else   ; _main.vader:41:9
     local.get 1   ; _main.vader:42:9
-    local.set 2   ; _main.vader:42:9
+    local.set 3   ; _main.vader:42:9
     intrinsic builder.new   ; _main.vader:42:20
-    local.set 3   ; _main.vader:42:20
-    local.get 3   ; _main.vader:42:21
+    local.set 4   ; _main.vader:42:20
+    local.get 4   ; _main.vader:42:21
     string.const 2   ; _main.vader:42:21
     intrinsic builder.append_str   ; _main.vader:42:21
-    local.get 2   ; _main.vader:42:29
+    local.get 3   ; _main.vader:42:29
     struct.get 0 0   ; _main.vader:42:29
-    local.set 4   ; _main.vader:42:29
-    local.get 3   ; _main.vader:42:27
+    local.set 5   ; _main.vader:42:29
     local.get 4   ; _main.vader:42:27
+    local.get 5   ; _main.vader:42:27
     intrinsic builder.append_display   ; _main.vader:42:27
-    local.get 3   ; _main.vader:42:20
+    local.get 4   ; _main.vader:42:20
     intrinsic builder.finish   ; _main.vader:42:20
-    local.set 5   ; _main.vader:42:9
+    local.set 2   ; _main.vader:42:9
   end $L0   ; _main.vader:41:9
-  local.get 5   ; _main.vader:40:5
+  local.get 2   ; _main.vader:40:5
   return   ; _main.vader:40:5
 end
 

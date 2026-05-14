@@ -11,13 +11,13 @@ string 3 "hello"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref) -> string
-  local "__scrut_0#20" ref
-  local "p#24" ref
-  local "__sb_2#26" any
-  local "$field_12#28" i32
-  local "q#32" ref
-  local "__sb_1#34" any
-  local "$field_21#36" string
+  local __scrut_0 ref
+  local p ref
+  local __sb_2 any
+  local $field_12 i32
+  local q ref
+  local __sb_1 any
+  local $field_21 string
   local.get 0   ; _main.vader:12:18
   local.tee 1   ; _main.vader:12:18
   type_check 4   ; _main.vader:13:9

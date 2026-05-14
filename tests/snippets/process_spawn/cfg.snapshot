@@ -4,33 +4,33 @@
 
 fn tests_snippets_process_spawn__main_vader$main() -> i32
   locals:
-    %0 $k_0#27: string
-    %1 $k_1#28: string
-    %2 $arr_2#29: string[]
-    %3 $call_3#30: Error | ProcessResult
-    %4 r#31: Error | ProcessResult (local r)
-    %5 __scrut_0#32: Error | ProcessResult (synthetic __scrut_0)
-    %6 $type_check_6#33: bool
-    %7 $intrinsic_7#34: ?
-    %8 __sb_2#35: ? (synthetic __sb_2)
-    %9 $k_9#36: string
-    %10 $cast_10#37: ProcessResult
-    %11 $field_11#38: i32
-    %12 $intrinsic_12#39: string
-    %13 $intrinsic_13#40: ?
-    %14 __sb_3#41: ? (synthetic __sb_3)
-    %15 $k_15#42: string
-    %16 $cast_16#43: ProcessResult
-    %17 $field_17#44: string
-    %18 $intrinsic_18#45: string
-    %19 $type_check_19#46: bool
-    %20 $intrinsic_20#47: ?
-    %21 __sb_1#48: ? (synthetic __sb_1)
-    %22 $k_22#49: string
-    %23 $cast_23#50: Error
-    %24 $vcall_24#51: string
-    %25 $intrinsic_25#52: string
-    %26 $k_26#53: i32
+    %0 $k_0: string
+    %1 $k_1: string
+    %2 $arr_2: string[]
+    %3 $call_3: Error | ProcessResult
+    %4 r: Error | ProcessResult (local r)
+    %5 __scrut_0: Error | ProcessResult (synthetic __scrut_0)
+    %6 $type_check_6: bool
+    %7 $intrinsic_7: ?
+    %8 __sb_2: ? (synthetic __sb_2)
+    %9 $k_9: string
+    %10 $cast_10: ProcessResult
+    %11 $field_11: i32
+    %12 $intrinsic_12: string
+    %13 $intrinsic_13: ?
+    %14 __sb_3: ? (synthetic __sb_3)
+    %15 $k_15: string
+    %16 $cast_16: ProcessResult
+    %17 $field_17: string
+    %18 $intrinsic_18: string
+    %19 $type_check_19: bool
+    %20 $intrinsic_20: ?
+    %21 __sb_1: ? (synthetic __sb_1)
+    %22 $k_22: string
+    %23 $cast_23: Error
+    %24 $vcall_24: string
+    %25 $intrinsic_25: string
+    %26 $k_26: i32
   bb0:
     %0 = const string(#0) :string
     %1 = const string(#1) :string

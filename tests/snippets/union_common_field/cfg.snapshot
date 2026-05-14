@@ -4,37 +4,37 @@
 
 fn tests_snippets_union_common_field__main_vader$main() -> i32
   locals:
-    %0 $k_0#31: string
-    %1 $k_1#32: i32
-    %2 a#33: Cat | Dog (local a)
-    %3 $intrinsic_4#34: ?
-    %4 __sb_0#35: ? (synthetic __sb_0)
-    %5 $k_6#36: string
-    %6 $cast_7#37: Cat
-    %7 $field_8#38: string
-    %8 $intrinsic_9#39: string
-    %9 $intrinsic_10#40: ?
-    %10 __sb_1#41: ? (synthetic __sb_1)
-    %11 $k_12#42: string
-    %12 $cast_13#43: Cat
-    %13 $field_14#44: i32
-    %14 $intrinsic_15#45: string
-    %15 $k_16#46: string
-    %16 $k_17#47: i32
-    %17 b#48: Cat | Dog (local b)
-    %18 $intrinsic_20#49: ?
-    %19 __sb_2#50: ? (synthetic __sb_2)
-    %20 $k_22#51: string
-    %21 $cast_23#52: Cat
-    %22 $field_24#53: string
-    %23 $intrinsic_25#54: string
-    %24 $intrinsic_26#55: ?
-    %25 __sb_3#56: ? (synthetic __sb_3)
-    %26 $k_28#57: string
-    %27 $cast_29#58: Cat
-    %28 $field_30#59: i32
-    %29 $intrinsic_31#60: string
-    %30 $k_32#61: i32
+    %0 $k_0: string
+    %1 $k_1: i32
+    %2 a: Cat | Dog (local a)
+    %3 $intrinsic_4: ?
+    %4 __sb_0: ? (synthetic __sb_0)
+    %5 $k_6: string
+    %6 $cast_7: Cat
+    %7 $field_8: string
+    %8 $intrinsic_9: string
+    %9 $intrinsic_10: ?
+    %10 __sb_1: ? (synthetic __sb_1)
+    %11 $k_12: string
+    %12 $cast_13: Cat
+    %13 $field_14: i32
+    %14 $intrinsic_15: string
+    %15 $k_16: string
+    %16 $k_17: i32
+    %17 b: Cat | Dog (local b)
+    %18 $intrinsic_20: ?
+    %19 __sb_2: ? (synthetic __sb_2)
+    %20 $k_22: string
+    %21 $cast_23: Cat
+    %22 $field_24: string
+    %23 $intrinsic_25: string
+    %24 $intrinsic_26: ?
+    %25 __sb_3: ? (synthetic __sb_3)
+    %26 $k_28: string
+    %27 $cast_29: Cat
+    %28 $field_30: i32
+    %29 $intrinsic_31: string
+    %30 $k_32: i32
   bb0:
     %0 = const string(#0) :string
     %1 = const int(3) :i32

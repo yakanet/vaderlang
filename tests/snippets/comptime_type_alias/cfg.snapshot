@@ -4,25 +4,25 @@
 
 fn tests_snippets_comptime_type_alias__main_vader$main() -> i32
   locals:
-    %0 $intrinsic_0#19: ?
-    %1 __sb_0#20: ? (synthetic __sb_0)
-    %2 $k_2#21: string
-    %3 $k_3#22: usize
-    %4 $call_4#23: string
-    %5 $intrinsic_5#24: string
-    %6 $intrinsic_6#25: ?
-    %7 __sb_1#26: ? (synthetic __sb_1)
-    %8 $k_8#27: string
-    %9 $k_9#28: usize
-    %10 $call_10#29: string
-    %11 $intrinsic_11#30: string
-    %12 $intrinsic_12#31: ?
-    %13 __sb_2#32: ? (synthetic __sb_2)
-    %14 $k_14#33: string
-    %15 $k_15#34: usize
-    %16 $call_16#35: string
-    %17 $intrinsic_17#36: string
-    %18 $k_18#37: i32
+    %0 $intrinsic_0: ?
+    %1 __sb_0: ? (synthetic __sb_0)
+    %2 $k_2: string
+    %3 $k_3: usize
+    %4 $call_4: string
+    %5 $intrinsic_5: string
+    %6 $intrinsic_6: ?
+    %7 __sb_1: ? (synthetic __sb_1)
+    %8 $k_8: string
+    %9 $k_9: usize
+    %10 $call_10: string
+    %11 $intrinsic_11: string
+    %12 $intrinsic_12: ?
+    %13 __sb_2: ? (synthetic __sb_2)
+    %14 $k_14: string
+    %15 $k_15: usize
+    %16 $call_16: string
+    %17 $intrinsic_17: string
+    %18 $k_18: i32
   bb0:
     %0 = intrinsic builder.new()
     %1 = move %0

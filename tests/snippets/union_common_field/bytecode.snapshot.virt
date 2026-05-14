@@ -10,16 +10,16 @@ string 3 "Rex"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_union_common_field__main_vader$main () -> i32
-  local "a#33" ref
-  local "__sb_0#35" any
-  local "$field_8#38" string
-  local "__sb_1#41" any
-  local "$field_14#44" i32
-  local "b#48" ref
-  local "__sb_2#50" any
-  local "$field_24#53" string
-  local "__sb_3#56" any
-  local "$field_30#59" i32
+  local a ref
+  local __sb_0 any
+  local $field_8 string
+  local __sb_1 any
+  local $field_14 i32
+  local b ref
+  local __sb_2 any
+  local $field_24 string
+  local __sb_3 any
+  local $field_30 i32
   string.const 0   ; _main.vader:14:20
   i32.const 3   ; _main.vader:14:20
   struct.new_stack 0   ; _main.vader:14:20

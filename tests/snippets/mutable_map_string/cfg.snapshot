@@ -4,84 +4,84 @@
 
 fn tests_snippets_mutable_map_string__main_vader$main() -> i32
   locals:
-    %0 $arr_0#78: Entry(string, i32) | null[]
-    %1 $k_1#79: usize
-    %2 m#80: MutableMap(string, i32) (local m)
-    %3 $k_4#81: string
-    %4 $k_5#82: i32
-    %5 $k_6#83: string
-    %6 $k_7#84: i32
-    %7 $k_8#85: string
-    %8 $k_9#86: i32
-    %9 $intrinsic_10#87: ?
-    %10 __sb_0#88: ? (synthetic __sb_0)
-    %11 $k_12#89: string
-    %12 $call_13#90: usize
-    %13 $call_14#91: string
-    %14 $intrinsic_15#92: string
-    %15 $k_16#93: string
-    %16 $call_17#94: i32 | null
-    %17 v1#95: i32 | null (local v1)
-    %18 __scrut_1#96: i32 | null (synthetic __scrut_1)
-    %19 $type_check_20#97: bool
-    %20 $k_21#98: string
-    %21 $type_check_22#99: bool
-    %22 $intrinsic_23#100: ?
-    %23 __sb_2#101: ? (synthetic __sb_2)
-    %24 $k_25#102: string
-    %25 $cast_26#103: i32
-    %26 $intrinsic_27#104: string
-    %27 $k_28#105: string
-    %28 $call_29#106: i32 | null
-    %29 v2#107: i32 | null (local v2)
-    %30 __scrut_3#108: i32 | null (synthetic __scrut_3)
-    %31 $type_check_32#109: bool
-    %32 $k_33#110: string
-    %33 $type_check_34#111: bool
-    %34 $intrinsic_35#112: ?
-    %35 __sb_4#113: ? (synthetic __sb_4)
-    %36 $k_37#114: string
-    %37 $cast_38#115: i32
-    %38 $intrinsic_39#116: string
-    %39 $k_40#117: string
-    %40 $call_41#118: i32 | null
-    %41 v3#119: i32 | null (local v3)
-    %42 __scrut_5#120: i32 | null (synthetic __scrut_5)
-    %43 $type_check_44#121: bool
-    %44 $k_45#122: string
-    %45 $type_check_46#123: bool
-    %46 $intrinsic_47#124: ?
-    %47 __sb_6#125: ? (synthetic __sb_6)
-    %48 $k_49#126: string
-    %49 $cast_50#127: i32
-    %50 $intrinsic_51#128: string
-    %51 $intrinsic_52#129: ?
-    %52 __sb_7#130: ? (synthetic __sb_7)
-    %53 $k_54#131: string
-    %54 $k_55#132: string
-    %55 $call_56#133: bool
-    %56 $intrinsic_57#134: string
-    %57 $intrinsic_58#135: ?
-    %58 __sb_8#136: ? (synthetic __sb_8)
-    %59 $k_60#137: string
-    %60 $k_61#138: string
-    %61 $call_62#139: bool
-    %62 $intrinsic_63#140: string
-    %63 $k_64#141: string
-    %64 $k_65#142: i32
-    %65 $k_66#143: string
-    %66 $call_67#144: i32 | null
-    %67 v1b#145: i32 | null (local v1b)
-    %68 __scrut_9#146: i32 | null (synthetic __scrut_9)
-    %69 $type_check_70#147: bool
-    %70 $k_71#148: string
-    %71 $type_check_72#149: bool
-    %72 $intrinsic_73#150: ?
-    %73 __sb_10#151: ? (synthetic __sb_10)
-    %74 $k_75#152: string
-    %75 $cast_76#153: i32
-    %76 $intrinsic_77#154: string
-    %77 $k_78#155: i32
+    %0 $arr_0: Entry(string, i32) | null[]
+    %1 $k_1: usize
+    %2 m: MutableMap(string, i32) (local m)
+    %3 $k_4: string
+    %4 $k_5: i32
+    %5 $k_6: string
+    %6 $k_7: i32
+    %7 $k_8: string
+    %8 $k_9: i32
+    %9 $intrinsic_10: ?
+    %10 __sb_0: ? (synthetic __sb_0)
+    %11 $k_12: string
+    %12 $call_13: usize
+    %13 $call_14: string
+    %14 $intrinsic_15: string
+    %15 $k_16: string
+    %16 $call_17: i32 | null
+    %17 v1: i32 | null (local v1)
+    %18 __scrut_1: i32 | null (synthetic __scrut_1)
+    %19 $type_check_20: bool
+    %20 $k_21: string
+    %21 $type_check_22: bool
+    %22 $intrinsic_23: ?
+    %23 __sb_2: ? (synthetic __sb_2)
+    %24 $k_25: string
+    %25 $cast_26: i32
+    %26 $intrinsic_27: string
+    %27 $k_28: string
+    %28 $call_29: i32 | null
+    %29 v2: i32 | null (local v2)
+    %30 __scrut_3: i32 | null (synthetic __scrut_3)
+    %31 $type_check_32: bool
+    %32 $k_33: string
+    %33 $type_check_34: bool
+    %34 $intrinsic_35: ?
+    %35 __sb_4: ? (synthetic __sb_4)
+    %36 $k_37: string
+    %37 $cast_38: i32
+    %38 $intrinsic_39: string
+    %39 $k_40: string
+    %40 $call_41: i32 | null
+    %41 v3: i32 | null (local v3)
+    %42 __scrut_5: i32 | null (synthetic __scrut_5)
+    %43 $type_check_44: bool
+    %44 $k_45: string
+    %45 $type_check_46: bool
+    %46 $intrinsic_47: ?
+    %47 __sb_6: ? (synthetic __sb_6)
+    %48 $k_49: string
+    %49 $cast_50: i32
+    %50 $intrinsic_51: string
+    %51 $intrinsic_52: ?
+    %52 __sb_7: ? (synthetic __sb_7)
+    %53 $k_54: string
+    %54 $k_55: string
+    %55 $call_56: bool
+    %56 $intrinsic_57: string
+    %57 $intrinsic_58: ?
+    %58 __sb_8: ? (synthetic __sb_8)
+    %59 $k_60: string
+    %60 $k_61: string
+    %61 $call_62: bool
+    %62 $intrinsic_63: string
+    %63 $k_64: string
+    %64 $k_65: i32
+    %65 $k_66: string
+    %66 $call_67: i32 | null
+    %67 v1b: i32 | null (local v1b)
+    %68 __scrut_9: i32 | null (synthetic __scrut_9)
+    %69 $type_check_70: bool
+    %70 $k_71: string
+    %71 $type_check_72: bool
+    %72 $intrinsic_73: ?
+    %73 __sb_10: ? (synthetic __sb_10)
+    %74 $k_75: string
+    %75 $cast_76: i32
+    %76 $intrinsic_77: string
+    %77 $k_78: i32
   bb0:
     %0 = array_new Entry(string, i32) | null[][0]()
     %1 = const int(0) :usize

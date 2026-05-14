@@ -13,25 +13,25 @@ string 5 ") = "
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_tuple_comptime__main_vader$main () -> i32
-  local "__sb_0#39" any
-  local "$k_3#41" any
-  local "$k_4#42" any
-  local "$field_6#44" i32
-  local "$k_8#46" any
-  local "$k_9#47" any
-  local "$field_11#49" i32
-  local "__sb_1#52" any
-  local "$k_16#54" any
-  local "$k_17#55" any
-  local "$field_20#58" f64
-  local "$k_22#60" any
-  local "$k_23#61" any
-  local "$field_26#64" f64
-  local "$k_28#66" any
-  local "$k_29#67" any
-  local "$field_32#70" string
-  local "$k_34#72" any
-  local "$k_35#73" any
+  local __sb_0 any
+  local $k_3 any
+  local $k_4 any
+  local $field_6 i32
+  local $k_8 any
+  local $k_9 any
+  local $field_11 i32
+  local __sb_1 any
+  local $k_16 any
+  local $k_17 any
+  local $field_20 f64
+  local $k_22 any
+  local $k_23 any
+  local $field_26 f64
+  local $k_28 any
+  local $k_29 any
+  local $field_32 string
+  local $k_34 any
+  local $k_35 any
   intrinsic builder.new   ; _main.vader:17:13
   local.set 0   ; _main.vader:17:13
   local.get 0   ; _main.vader:17:14

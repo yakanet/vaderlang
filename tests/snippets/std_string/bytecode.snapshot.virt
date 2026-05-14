@@ -28,24 +28,24 @@ import 11 to_lower std_string$to_lower (string) -> string
 impl 0 Display
 
 fn 0 tests_snippets_std_string__main_vader$main () -> i32
-  local "s#68" string
-  local "__sb_0#70" any
-  local "$call_5#72" string
-  local "__sb_1#80" any
-  local "$call_16#83" bool
-  local "__sb_2#86" any
-  local "$call_22#89" bool
-  local "__sb_3#92" any
-  local "$call_28#95" bool
-  local "__sb_4#102" any
-  local "$call_38#105" char
-  local "__sb_5#108" any
-  local "$call_44#111" char
-  local "__sb_6#114" any
-  local "$call_50#117" char
-  local "__sb_7#120" any
-  local "$call_56#123" char
-  local "parts#128" ref
+  local s string
+  local __sb_0 any
+  local $call_5 string
+  local __sb_1 any
+  local $call_16 bool
+  local __sb_2 any
+  local $call_22 bool
+  local __sb_3 any
+  local $call_28 bool
+  local __sb_4 any
+  local $call_38 char
+  local __sb_5 any
+  local $call_44 char
+  local __sb_6 any
+  local $call_50 char
+  local __sb_7 any
+  local $call_56 char
+  local parts ref
   string.const 0   ; _main.vader:5:10
   local.set 0   ; _main.vader:5:10
   intrinsic builder.new   ; _main.vader:6:13

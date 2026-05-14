@@ -4,87 +4,87 @@
 
 fn tests_snippets_iter_combinators__main_vader$main() -> i32
   locals:
-    %0 $k_0#81: i32
-    %1 $k_1#82: i32
-    %2 $k_2#83: i32
-    %3 $k_3#84: i32
-    %4 $k_4#85: i32
-    %5 $k_5#86: i32
-    %6 $k_6#87: i32
-    %7 $k_7#88: i32
-    %8 $k_8#89: i32
-    %9 $k_9#90: i32
-    %10 nums#91: i32[] (local nums)
-    %11 $k_12#92: i32
-    %12 $k_13#93: i32
-    %13 $k_14#94: i32
-    %14 $k_15#95: i32
-    %15 $k_16#96: i32
-    %16 $arr_17#97: i32[]
-    %17 $struct_18#98: __lambda_env_2
-    %18 $closure_19#99: fn(i32) -> i32
-    %19 $call_20#100: i32[]
-    %20 squares#101: i32[] (local squares)
-    %21 $call_22#102: i32
-    %22 s1#103: i32 (local s1)
-    %23 $struct_24#104: __lambda_env_5
-    %24 $closure_25#105: fn(i32) -> bool
-    %25 $call_26#106: i32[]
-    %26 evens#107: i32[] (local evens)
-    %27 $call_28#108: i32
-    %28 s2#109: i32 (local s2)
-    %29 $k_30#110: i32
-    %30 $k_31#111: i32
-    %31 $k_32#112: i32
-    %32 $k_33#113: i32
-    %33 $k_34#114: i32
-    %34 $arr_35#115: i32[]
-    %35 $k_36#116: i32
-    %36 $struct_37#117: __lambda_env_8
-    %37 $closure_38#118: fn(i32, i32) -> i32
-    %38 $call_39#119: i32
-    %39 p#120: i32 (local p)
-    %40 $k_41#121: usize
-    %41 $call_42#122: i32[]
-    %42 first#123: i32[] (local first)
-    %43 $call_44#124: i32
-    %44 s3#125: i32 (local s3)
-    %45 $k_46#126: usize
-    %46 $call_47#127: i32[]
-    %47 rest#128: i32[] (local rest)
-    %48 $call_49#129: i32
-    %49 s4#130: i32 (local s4)
-    %50 $intrinsic_51#131: ?
-    %51 __sb_3#132: ? (synthetic __sb_3)
-    %52 $k_53#133: string
-    %53 $k_54#134: usize
-    %54 $k_55#135: usize
-    %55 $call_56#136: i32[]
-    %56 $len_57#137: usize
-    %57 $call_58#138: string
-    %58 $intrinsic_59#139: string
-    %59 $intrinsic_60#140: ?
-    %60 __sb_4#141: ? (synthetic __sb_4)
-    %61 $k_62#142: string
-    %62 $k_63#143: usize
-    %63 $k_64#144: usize
-    %64 $call_65#145: i32[]
-    %65 $len_66#146: usize
-    %66 $call_67#147: string
-    %67 $intrinsic_68#148: string
-    %68 $intrinsic_69#149: ?
-    %69 __sb_5#150: ? (synthetic __sb_5)
-    %70 $k_71#151: string
-    %71 $k_72#152: usize
-    %72 $k_73#153: usize
-    %73 $call_74#154: i32[]
-    %74 $len_75#155: usize
-    %75 $call_76#156: string
-    %76 $intrinsic_77#157: string
-    %77 $add_78#158: i32
-    %78 $add_79#159: i32
-    %79 $add_80#160: i32
-    %80 $add_81#161: i32
+    %0 $k_0: i32
+    %1 $k_1: i32
+    %2 $k_2: i32
+    %3 $k_3: i32
+    %4 $k_4: i32
+    %5 $k_5: i32
+    %6 $k_6: i32
+    %7 $k_7: i32
+    %8 $k_8: i32
+    %9 $k_9: i32
+    %10 nums: i32[] (local nums)
+    %11 $k_12: i32
+    %12 $k_13: i32
+    %13 $k_14: i32
+    %14 $k_15: i32
+    %15 $k_16: i32
+    %16 $arr_17: i32[]
+    %17 $struct_18: __lambda_env_2
+    %18 $closure_19: fn(i32) -> i32
+    %19 $call_20: i32[]
+    %20 squares: i32[] (local squares)
+    %21 $call_22: i32
+    %22 s1: i32 (local s1)
+    %23 $struct_24: __lambda_env_5
+    %24 $closure_25: fn(i32) -> bool
+    %25 $call_26: i32[]
+    %26 evens: i32[] (local evens)
+    %27 $call_28: i32
+    %28 s2: i32 (local s2)
+    %29 $k_30: i32
+    %30 $k_31: i32
+    %31 $k_32: i32
+    %32 $k_33: i32
+    %33 $k_34: i32
+    %34 $arr_35: i32[]
+    %35 $k_36: i32
+    %36 $struct_37: __lambda_env_8
+    %37 $closure_38: fn(i32, i32) -> i32
+    %38 $call_39: i32
+    %39 p: i32 (local p)
+    %40 $k_41: usize
+    %41 $call_42: i32[]
+    %42 first: i32[] (local first)
+    %43 $call_44: i32
+    %44 s3: i32 (local s3)
+    %45 $k_46: usize
+    %46 $call_47: i32[]
+    %47 rest: i32[] (local rest)
+    %48 $call_49: i32
+    %49 s4: i32 (local s4)
+    %50 $intrinsic_51: ?
+    %51 __sb_3: ? (synthetic __sb_3)
+    %52 $k_53: string
+    %53 $k_54: usize
+    %54 $k_55: usize
+    %55 $call_56: i32[]
+    %56 $len_57: usize
+    %57 $call_58: string
+    %58 $intrinsic_59: string
+    %59 $intrinsic_60: ?
+    %60 __sb_4: ? (synthetic __sb_4)
+    %61 $k_62: string
+    %62 $k_63: usize
+    %63 $k_64: usize
+    %64 $call_65: i32[]
+    %65 $len_66: usize
+    %66 $call_67: string
+    %67 $intrinsic_68: string
+    %68 $intrinsic_69: ?
+    %69 __sb_5: ? (synthetic __sb_5)
+    %70 $k_71: string
+    %71 $k_72: usize
+    %72 $k_73: usize
+    %73 $call_74: i32[]
+    %74 $len_75: usize
+    %75 $call_76: string
+    %76 $intrinsic_77: string
+    %77 $add_78: i32
+    %78 $add_79: i32
+    %79 $add_80: i32
+    %80 $add_81: i32
   bb0:
     %0 = const int(1) :i32
     %1 = const int(2) :i32
@@ -182,7 +182,7 @@ fn __lambda_1(%0: __lambda_env_2, %1: i32) -> i32
   locals:
     %0 __env_0: __lambda_env_2 (synthetic __env_0)
     %1 x: i32 (param x)
-    %2 $mul_2#3: i32
+    %2 $mul_2: i32
   bb0:
     %2 = binop mul %1 %1 :i32
     return %2
@@ -191,10 +191,10 @@ fn __lambda_4(%0: __lambda_env_5, %1: i32) -> bool
   locals:
     %0 __env_1: __lambda_env_5 (synthetic __env_1)
     %1 x: i32 (param x)
-    %2 $k_2#6: i32
-    %3 $mod_3#7: i32
-    %4 $k_4#8: i32
-    %5 $eq_5#9: bool
+    %2 $k_2: i32
+    %3 $mod_3: i32
+    %4 $k_4: i32
+    %5 $eq_5: bool
   bb0:
     %2 = const int(2) :i32
     %3 = binop mod %1 %2 :i32
@@ -207,7 +207,7 @@ fn __lambda_7(%0: __lambda_env_8, %1: i32, %2: i32) -> i32
     %0 __env_2: __lambda_env_8 (synthetic __env_2)
     %1 acc: i32 (param acc)
     %2 x: i32 (param x)
-    %3 $mul_3#4: i32
+    %3 $mul_3: i32
   bb0:
     %3 = binop mul %1 %2 :i32
     return %3

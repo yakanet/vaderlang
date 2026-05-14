@@ -5,12 +5,12 @@
 fn tests_snippets_char_range_contains__main_vader$is_digit(%0: char) -> bool
   locals:
     %0 c: char (param c)
-    %1 $k_1#7: char
-    %2 $k_2#8: char
-    %3 $k_3#9: bool
-    %4 $k_4#10: char
-    %5 $struct_5#11: Range(char)
-    %6 $call_6#12: bool
+    %1 $k_1: char
+    %2 $k_2: char
+    %3 $k_3: bool
+    %4 $k_4: char
+    %5 $struct_5: Range(char)
+    %6 $call_6: bool
   bb0:
     %1 = const char(48) :char
     %2 = const char(57) :char
@@ -23,12 +23,12 @@ fn tests_snippets_char_range_contains__main_vader$is_digit(%0: char) -> bool
 fn tests_snippets_char_range_contains__main_vader$is_lower(%0: char) -> bool
   locals:
     %0 c: char (param c)
-    %1 $k_1#7: char
-    %2 $k_2#8: char
-    %3 $k_3#9: bool
-    %4 $k_4#10: char
-    %5 $struct_5#11: Range(char)
-    %6 $call_6#12: bool
+    %1 $k_1: char
+    %2 $k_2: char
+    %3 $k_3: bool
+    %4 $k_4: char
+    %5 $struct_5: Range(char)
+    %6 $call_6: bool
   bb0:
     %1 = const char(97) :char
     %2 = const char(122) :char
@@ -41,19 +41,19 @@ fn tests_snippets_char_range_contains__main_vader$is_lower(%0: char) -> bool
 fn tests_snippets_char_range_contains__main_vader$is_alpha(%0: char) -> bool
   locals:
     %0 c: char (param c)
-    %1 $k_1#14: char
-    %2 $k_2#15: char
-    %3 $k_3#16: bool
-    %4 $k_4#17: char
-    %5 $struct_5#18: Range(char)
-    %6 $call_6#19: bool
-    %7 $k_9#21: char
-    %8 $k_10#22: char
-    %9 $k_11#23: bool
-    %10 $k_12#24: char
-    %11 $struct_13#25: Range(char)
-    %12 $call_14#26: bool
-    %13 or_res#28: bool
+    %1 $k_1: char
+    %2 $k_2: char
+    %3 $k_3: bool
+    %4 $k_4: char
+    %5 $struct_5: Range(char)
+    %6 $call_6: bool
+    %7 or_res: bool
+    %8 $k_9: char
+    %9 $k_10: char
+    %10 $k_11: bool
+    %11 $k_12: char
+    %12 $struct_13: Range(char)
+    %13 $call_14: bool
   bb0:
     %1 = const char(97) :char
     %2 = const char(122) :char
@@ -63,87 +63,85 @@ fn tests_snippets_char_range_contains__main_vader$is_alpha(%0: char) -> bool
     %6 = call contains(%5, %0) :bool
     cond_branch %6 ? bb1 : bb2
   bb1:
-    %13 = const bool(true) :bool
+    %7 = const bool(true) :bool
     branch -> bb3
   bb2:
-    %7 = const char(65) :char
-    %8 = const char(90) :char
-    %9 = const bool(true) :bool
-    %10 = const char(65) :char
-    %11 = struct_new Range(char)(%7, %8, %9, %10)
-    %12 = call contains(%11, %0) :bool
-    %13 = move %12
+    %8 = const char(65) :char
+    %9 = const char(90) :char
+    %10 = const bool(true) :bool
+    %11 = const char(65) :char
+    %12 = struct_new Range(char)(%8, %9, %10, %11)
+    %13 = call contains(%12, %0) :bool
+    %7 = move %13
     branch -> bb3
   bb3:
-    return %13
+    return %7
 
 fn tests_snippets_char_range_contains__main_vader$main() -> i32
   locals:
-    %0 $k_0#63: char
-    %1 $call_1#64: bool
-    %2 $k_2#65: string
-    %3 $k_3#66: char
-    %4 $call_4#67: bool
-    %5 $not_5#68: bool
-    %6 $k_6#69: string
-    %7 $k_7#70: char
-    %8 $call_8#71: bool
-    %9 $k_9#72: string
-    %10 $k_10#73: char
-    %11 $call_11#74: bool
-    %12 $k_12#75: string
-    %13 $k_13#76: char
-    %14 $call_14#77: bool
-    %15 $not_15#78: bool
-    %16 $k_16#79: string
-    %17 $k_17#80: char
-    %18 $call_18#81: bool
-    %19 $k_19#82: string
-    %20 $k_20#83: char
-    %21 $call_21#84: bool
-    %22 $not_22#85: bool
-    %23 $k_23#86: string
-    %24 $k_24#87: char
-    %25 $call_25#88: bool
-    %26 $k_26#89: string
-    %27 $k_27#90: char
-    %28 $call_28#91: bool
-    %29 $k_29#92: string
-    %30 $k_30#93: char
-    %31 $call_31#94: bool
-    %32 $not_32#95: bool
-    %33 $k_33#96: string
-    %34 $k_36#98: char
-    %35 $k_37#99: char
-    %36 $k_38#100: bool
-    %37 $k_39#101: char
-    %38 __iter_0#102: Range(char) (synthetic __iter_0)
-    %39 n#103: i32 (local n)
-    %40 $call_42#104: Done | Yielded(char)
-    %41 __step_1#105: Done | Yielded(char) (synthetic __step_1)
-    %42 $type_check_44#106: bool
-    %43 $intrinsic_50#107: ?
-    %44 __sb_2#108: ? (synthetic __sb_2)
-    %45 $k_52#109: string
-    %46 $intrinsic_53#110: string
-    %47 $k_56#112: char
-    %48 $k_57#113: char
-    %49 $k_58#114: bool
-    %50 $k_59#115: char
-    %51 __iter_3#116: Range(char) (synthetic __iter_3)
-    %52 m#117: i32 (local m)
-    %53 $call_62#118: Done | Yielded(char)
-    %54 __step_4#119: Done | Yielded(char) (synthetic __step_4)
-    %55 $type_check_64#120: bool
-    %56 $intrinsic_70#121: ?
-    %57 __sb_5#122: ? (synthetic __sb_5)
-    %58 $k_72#123: string
-    %59 $intrinsic_73#124: string
-    %60 $k_74#125: i32
-    %61 $k_68#126: i32
-    %62 m#127: i32 (local m)
-    %63 $k_48#128: i32
-    %64 n#129: i32 (local n)
+    %0 $k_0: char
+    %1 $call_1: bool
+    %2 $k_2: string
+    %3 $k_3: char
+    %4 $call_4: bool
+    %5 $not_5: bool
+    %6 $k_6: string
+    %7 $k_7: char
+    %8 $call_8: bool
+    %9 $k_9: string
+    %10 $k_10: char
+    %11 $call_11: bool
+    %12 $k_12: string
+    %13 $k_13: char
+    %14 $call_14: bool
+    %15 $not_15: bool
+    %16 $k_16: string
+    %17 $k_17: char
+    %18 $call_18: bool
+    %19 $k_19: string
+    %20 $k_20: char
+    %21 $call_21: bool
+    %22 $not_22: bool
+    %23 $k_23: string
+    %24 $k_24: char
+    %25 $call_25: bool
+    %26 $k_26: string
+    %27 $k_27: char
+    %28 $call_28: bool
+    %29 $k_29: string
+    %30 $k_30: char
+    %31 $call_31: bool
+    %32 $not_32: bool
+    %33 $k_33: string
+    %34 n: i32 (local n)
+    %35 $k_36: char
+    %36 $k_37: char
+    %37 $k_38: bool
+    %38 $k_39: char
+    %39 __iter_0: Range(char) (synthetic __iter_0)
+    %40 $call_42: Done | Yielded(char)
+    %41 __step_1: Done | Yielded(char) (synthetic __step_1)
+    %42 $type_check_44: bool
+    %43 $k_48: i32
+    %44 $intrinsic_50: ?
+    %45 __sb_2: ? (synthetic __sb_2)
+    %46 $k_52: string
+    %47 $intrinsic_53: string
+    %48 m: i32 (local m)
+    %49 $k_56: char
+    %50 $k_57: char
+    %51 $k_58: bool
+    %52 $k_59: char
+    %53 __iter_3: Range(char) (synthetic __iter_3)
+    %54 $call_62: Done | Yielded(char)
+    %55 __step_4: Done | Yielded(char) (synthetic __step_4)
+    %56 $type_check_64: bool
+    %57 $k_68: i32
+    %58 $intrinsic_70: ?
+    %59 __sb_5: ? (synthetic __sb_5)
+    %60 $k_72: string
+    %61 $intrinsic_73: string
+    %62 $k_74: i32
   bb0:
     %0 = const char(53) :char
     %1 = call is_digit(%0) :bool
@@ -229,67 +227,65 @@ fn tests_snippets_char_range_contains__main_vader$main() -> i32
     call println(%33) :void
     branch -> bb20
   bb20:
-    %39 = const int(0) :i32
-    %34 = const char(97) :char
-    %35 = const char(101) :char
-    %36 = const bool(true) :bool
-    %37 = const char(97) :char
-    %38 = struct_new Range(char)(%34, %35, %36, %37)
+    %34 = const int(0) :i32
+    %35 = const char(97) :char
+    %36 = const char(101) :char
+    %37 = const bool(true) :bool
+    %38 = const char(97) :char
+    %39 = struct_new Range(char)(%35, %36, %37, %38)
     branch -> bb21
   bb21:
     branch -> bb22
   bb22:
-    %40 = call next(%38) :Done | Yielded(char)
+    %40 = call next(%39) :Done | Yielded(char)
     %41 = move %40
     %42 = type_check %41 is Done
     cond_branch %42 ? bb24 : bb25
   bb23:
-    %43 = intrinsic builder.new()
-    %44 = move %43
-    %45 = const string(#10) :string
-    intrinsic builder.append_str(%44, %45)
-    intrinsic builder.append_display(%44, %39)
-    %46 = intrinsic builder.finish(%44)
-    call println(%46) :void
-    %52 = const int(0) :i32
-    %47 = const char(48) :char
-    %48 = const char(53) :char
-    %49 = const bool(false) :bool
-    %50 = const char(48) :char
-    %51 = struct_new Range(char)(%47, %48, %49, %50)
+    %44 = intrinsic builder.new()
+    %45 = move %44
+    %46 = const string(#10) :string
+    intrinsic builder.append_str(%45, %46)
+    intrinsic builder.append_display(%45, %34)
+    %47 = intrinsic builder.finish(%45)
+    call println(%47) :void
+    %48 = const int(0) :i32
+    %49 = const char(48) :char
+    %50 = const char(53) :char
+    %51 = const bool(false) :bool
+    %52 = const char(48) :char
+    %53 = struct_new Range(char)(%49, %50, %51, %52)
     branch -> bb27
   bb24:
     branch -> bb23
   bb25:
-    %63 = const int(1) :i32
-    %64 = binop add %39 %63 :i32
+    %43 = const int(1) :i32
+    %34 = binop add %34 %43 :i32
     branch -> bb26
   bb26:
-    %39 = move %64
     branch -> bb21
   bb27:
     branch -> bb28
   bb28:
-    %53 = call next(%51) :Done | Yielded(char)
-    %54 = move %53
-    %55 = type_check %54 is Done
-    cond_branch %55 ? bb30 : bb31
+    %54 = call next(%53) :Done | Yielded(char)
+    %55 = move %54
+    %56 = type_check %55 is Done
+    cond_branch %56 ? bb30 : bb31
   bb29:
-    %56 = intrinsic builder.new()
-    %57 = move %56
-    %58 = const string(#11) :string
-    intrinsic builder.append_str(%57, %58)
-    intrinsic builder.append_display(%57, %52)
-    %59 = intrinsic builder.finish(%57)
-    call println(%59) :void
-    %60 = const int(0) :i32
-    return %60
+    %58 = intrinsic builder.new()
+    %59 = move %58
+    %60 = const string(#11) :string
+    intrinsic builder.append_str(%59, %60)
+    intrinsic builder.append_display(%59, %48)
+    %61 = intrinsic builder.finish(%59)
+    call println(%61) :void
+    %62 = const int(0) :i32
+    return %62
   bb30:
     branch -> bb29
   bb31:
-    %61 = const int(1) :i32
-    %62 = binop add %52 %61 :i32
+    %57 = const int(1) :i32
+    %48 = binop add %48 %57 :i32
     branch -> bb32
   bb32:
-    %52 = move %62
     branch -> bb27

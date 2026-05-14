@@ -11,8 +11,8 @@ impl 0 Error
 impl 2 Error
 
 fn 0 tests_snippets_trait_virtual_dispatch__main_vader$ParseErr$Error$message (ref) -> string
-  local "__sb_0#7" any
-  local "$field_4#9" string
+  local __sb_0 any
+  local $field_4 string
   intrinsic builder.new   ; _main.vader:11:44
   local.set 1   ; _main.vader:11:44
   local.get 1   ; _main.vader:11:45
@@ -30,8 +30,8 @@ fn 0 tests_snippets_trait_virtual_dispatch__main_vader$ParseErr$Error$message (r
 end
 
 fn 1 tests_snippets_trait_virtual_dispatch__main_vader$NetErr$Error$message (ref) -> string
-  local "__sb_0#7" any
-  local "$field_4#9" string
+  local __sb_0 any
+  local $field_4 string
   intrinsic builder.new   ; _main.vader:14:44
   local.set 1   ; _main.vader:14:44
   local.get 1   ; _main.vader:14:45

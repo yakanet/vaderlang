@@ -5,15 +5,15 @@
 fn tests_snippets_iter_defaults__main_vader$Countdown$Iterator$next(%0: Countdown) -> Done | Yielded(i32)
   locals:
     %0 self: Countdown (param self)
-    %1 $field_1#10: i32
-    %2 $k_2#11: i32
-    %3 $lte_3#12: bool
-    %4 $struct_4#13: Done
-    %5 v#14: i32 (local v)
-    %6 $field_7#15: i32
-    %7 $k_8#16: i32
-    %8 $sub_9#17: i32
-    %9 $struct_10#18: Yielded(i32)
+    %1 $field_1: i32
+    %2 $k_2: i32
+    %3 $lte_3: bool
+    %4 $struct_4: Done
+    %5 v: i32 (local v)
+    %6 $field_7: i32
+    %7 $k_8: i32
+    %8 $sub_9: i32
+    %9 $struct_10: Yielded(i32)
   bb0:
     %1 = field_get %0.remaining :i32
     %2 = const int(0) :i32
@@ -34,17 +34,14 @@ fn tests_snippets_iter_defaults__main_vader$Countdown$Iterator$next(%0: Countdow
 fn tests_snippets_iter_defaults__main_vader$Countdown$Iterator$count(%0: Countdown) -> usize
   locals:
     %0 self: Countdown (param self)
-    %1 total#11: usize (local total)
-    %2 finished#12: bool (local finished)
-    %3 $not_5#13: bool
-    %4 $call_6#14: Done | Yielded(i32)
-    %5 __scrut_0#15: Done | Yielded(i32) (synthetic __scrut_0)
-    %6 $type_check_8#16: bool
-    %7 $type_check_10#18: bool
-    %8 $k_11#19: usize
-    %9 total#20: usize (local total)
-    %10 total#21: usize (local total)
-    %11 finished#22: bool (local finished)
+    %1 total: usize (local total)
+    %2 finished: bool (local finished)
+    %3 $not_5: bool
+    %4 $call_6: Done | Yielded(i32)
+    %5 __scrut_0: Done | Yielded(i32) (synthetic __scrut_0)
+    %6 $type_check_8: bool
+    %7 $type_check_10: bool
+    %8 $k_11: usize
   bb0:
     %1 = const int(0) :usize
     %2 = const bool(false) :bool
@@ -60,67 +57,62 @@ fn tests_snippets_iter_defaults__main_vader$Countdown$Iterator$count(%0: Countdo
   bb3:
     return %1
   bb4:
-    %11 = const bool(true) :bool
-    %10 = move %1
+    %2 = const bool(true) :bool
     branch -> bb6
   bb5:
     %7 = type_check %5 is Yielded(i32)
     cond_branch %7 ? bb7 : bb8
   bb6:
-    %1 = move %10
-    %2 = move %11
     branch -> bb1
   bb7:
     %8 = const int(1) :usize
-    %9 = binop add %1 %8 :usize
+    %1 = binop add %1 %8 :usize
     branch -> bb9
   bb8:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb9:
-    %10 = move %9
-    %11 = move %2
     branch -> bb6
 
 fn tests_snippets_iter_defaults__main_vader$main() -> i32
   locals:
-    %0 $k_0#38: i32
-    %1 $k_1#39: i32
-    %2 $k_2#40: bool
-    %3 $k_3#41: i32
-    %4 $struct_4#42: Range(i32)
-    %5 $call_5#43: usize
-    %6 $call_6#44: string
-    %7 $k_7#45: i32
-    %8 $k_8#46: i32
-    %9 $k_9#47: bool
-    %10 $k_10#48: i32
-    %11 $struct_11#49: Range(i32)
-    %12 $call_12#50: i32 | null
-    %13 __scrut_0#51: i32 | null (synthetic __scrut_0)
-    %14 $type_check_14#52: bool
-    %15 v#53: i32 (binding v)
-    %16 $call_17#54: string
-    %17 $type_check_18#55: bool
-    %18 $k_19#56: string
-    %19 $k_20#57: i32
-    %20 $k_21#58: i32
-    %21 $k_22#59: bool
-    %22 $k_23#60: i32
-    %23 $struct_24#61: Range(i32)
-    %24 $call_25#62: bool
-    %25 $call_26#63: string
-    %26 $k_27#64: i32
-    %27 $k_28#65: i32
-    %28 $k_29#66: bool
-    %29 $k_30#67: i32
-    %30 $struct_31#68: Range(i32)
-    %31 $call_32#69: bool
-    %32 $call_33#70: string
-    %33 $k_34#71: i32
-    %34 $struct_35#72: Countdown
-    %35 $call_36#73: usize
-    %36 $call_37#74: string
-    %37 $k_38#75: i32
+    %0 $k_0: i32
+    %1 $k_1: i32
+    %2 $k_2: bool
+    %3 $k_3: i32
+    %4 $struct_4: Range(i32)
+    %5 $call_5: usize
+    %6 $call_6: string
+    %7 $k_7: i32
+    %8 $k_8: i32
+    %9 $k_9: bool
+    %10 $k_10: i32
+    %11 $struct_11: Range(i32)
+    %12 $call_12: i32 | null
+    %13 __scrut_0: i32 | null (synthetic __scrut_0)
+    %14 $type_check_14: bool
+    %15 v: i32 (binding v)
+    %16 $call_17: string
+    %17 $type_check_18: bool
+    %18 $k_19: string
+    %19 $k_20: i32
+    %20 $k_21: i32
+    %21 $k_22: bool
+    %22 $k_23: i32
+    %23 $struct_24: Range(i32)
+    %24 $call_25: bool
+    %25 $call_26: string
+    %26 $k_27: i32
+    %27 $k_28: i32
+    %28 $k_29: bool
+    %29 $k_30: i32
+    %30 $struct_31: Range(i32)
+    %31 $call_32: bool
+    %32 $call_33: string
+    %33 $k_34: i32
+    %34 $struct_35: Countdown
+    %35 $call_36: usize
+    %36 $call_37: string
+    %37 $k_38: i32
   bb0:
     %0 = const int(0) :i32
     %1 = const int(5) :i32

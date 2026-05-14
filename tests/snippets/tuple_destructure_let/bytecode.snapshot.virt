@@ -15,11 +15,11 @@ fn 0 tests_snippets_tuple_destructure_let__main_vader$make_pair () -> ref
 end
 
 fn 1 tests_snippets_tuple_destructure_let__main_vader$main () -> i32
-  local "__tup_0#14" ref
-  local "n#15" i32
-  local "s#16" string
-  local "__sb_1#18" any
-  local "__sb_2#22" any
+  local __tup_0 ref
+  local n i32
+  local s string
+  local __sb_1 any
+  local __sb_2 any
   call 0   ; _main.vader:8:15
   local.tee 0   ; _main.vader:8:5
   struct.get 0 0   ; _main.vader:8:6

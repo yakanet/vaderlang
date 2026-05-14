@@ -9,12 +9,12 @@ string 2 " y="
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_tuple_struct_field__main_vader$main () -> i32
-  local "$struct_3#20" ref
-  local "e#21" ref
-  local "__sb_0#23" any
-  local "$field_9#25" i32
-  local "$field_12#28" f64
-  local "$field_15#31" f64
+  local $struct_3 ref
+  local e ref
+  local __sb_0 any
+  local $field_9 i32
+  local $field_12 f64
+  local $field_15 f64
   f64.const 3.5   ; _main.vader:12:36
   f64.const 7.25   ; _main.vader:12:36
   struct.new_stack 2   ; _main.vader:12:36

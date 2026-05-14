@@ -4,19 +4,19 @@
 
 fn tests_snippets_multiline_string__main_vader$main() -> i32
   locals:
-    %0 s#13: string (local s)
-    %1 n#14: i32 (local n)
-    %2 $intrinsic_4#15: ?
-    %3 __sb_0#16: ? (synthetic __sb_0)
-    %4 $k_6#17: string
-    %5 $k_7#18: string
-    %6 $intrinsic_8#19: string
-    %7 msg#20: string (local msg)
-    %8 escaped#21: string (local escaped)
-    %9 prefix#22: string (local prefix)
-    %10 $k_14#23: string
-    %11 combined#24: string (local combined)
-    %12 $k_17#25: i32
+    %0 s: string (local s)
+    %1 n: i32 (local n)
+    %2 $intrinsic_4: ?
+    %3 __sb_0: ? (synthetic __sb_0)
+    %4 $k_6: string
+    %5 $k_7: string
+    %6 $intrinsic_8: string
+    %7 msg: string (local msg)
+    %8 escaped: string (local escaped)
+    %9 prefix: string (local prefix)
+    %10 $k_14: string
+    %11 combined: string (local combined)
+    %12 $k_17: i32
   bb0:
     %0 = const string(#0) :string
     call print(%0) :void

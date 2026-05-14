@@ -5,19 +5,19 @@
 fn tests_snippets_if_is_narrow__main_vader$direct(%0: Cat | Dog) -> string
   locals:
     %0 p: Cat | Dog (param p)
-    %1 $type_check_1#14: bool
-    %2 $intrinsic_2#15: ?
-    %3 __sb_0#16: ? (synthetic __sb_0)
-    %4 $k_4#17: string
-    %5 $cast_5#18: Cat
-    %6 $field_6#19: string
-    %7 $intrinsic_7#20: string
-    %8 $intrinsic_8#21: ?
-    %9 __sb_1#22: ? (synthetic __sb_1)
-    %10 $k_10#23: string
-    %11 $cast_11#24: Dog
-    %12 $field_12#25: string
-    %13 $intrinsic_13#26: string
+    %1 $type_check_1: bool
+    %2 $intrinsic_2: ?
+    %3 __sb_0: ? (synthetic __sb_0)
+    %4 $k_4: string
+    %5 $cast_5: Cat
+    %6 $field_6: string
+    %7 $intrinsic_7: string
+    %8 $intrinsic_8: ?
+    %9 __sb_1: ? (synthetic __sb_1)
+    %10 $k_10: string
+    %11 $cast_11: Dog
+    %12 $field_12: string
+    %13 $intrinsic_13: string
   bb0:
     %1 = type_check %0 is Cat
     cond_branch %1 ? bb1 : bb2
@@ -45,20 +45,20 @@ fn tests_snippets_if_is_narrow__main_vader$direct(%0: Cat | Dog) -> string
 fn tests_snippets_if_is_narrow__main_vader$negated(%0: Cat | Dog) -> string
   locals:
     %0 p: Cat | Dog (param p)
-    %1 $type_check_1#15: bool
-    %2 $not_2#16: bool
-    %3 $intrinsic_3#17: ?
-    %4 __sb_0#18: ? (synthetic __sb_0)
-    %5 $k_5#19: string
-    %6 $cast_6#20: Dog
-    %7 $field_7#21: string
-    %8 $intrinsic_8#22: string
-    %9 $intrinsic_9#23: ?
-    %10 __sb_1#24: ? (synthetic __sb_1)
-    %11 $k_11#25: string
-    %12 $cast_12#26: Cat
-    %13 $field_13#27: string
-    %14 $intrinsic_14#28: string
+    %1 $type_check_1: bool
+    %2 $not_2: bool
+    %3 $intrinsic_3: ?
+    %4 __sb_0: ? (synthetic __sb_0)
+    %5 $k_5: string
+    %6 $cast_6: Dog
+    %7 $field_7: string
+    %8 $intrinsic_8: string
+    %9 $intrinsic_9: ?
+    %10 __sb_1: ? (synthetic __sb_1)
+    %11 $k_11: string
+    %12 $cast_12: Cat
+    %13 $field_13: string
+    %14 $intrinsic_14: string
   bb0:
     %1 = type_check %0 is Cat
     %2 = unop not %1 :bool
@@ -87,28 +87,28 @@ fn tests_snippets_if_is_narrow__main_vader$negated(%0: Cat | Dog) -> string
 fn tests_snippets_if_is_narrow__main_vader$cascade(%0: Cat | Dog | Pig) -> string
   locals:
     %0 p: Cat | Dog | Pig (param p)
-    %1 $type_check_1#23: bool
-    %2 $intrinsic_2#24: ?
-    %3 __sb_0#25: ? (synthetic __sb_0)
-    %4 $k_4#26: string
-    %5 $cast_5#27: Cat
-    %6 $field_6#28: string
-    %7 $intrinsic_7#29: string
-    %8 $cast_8#30: Dog | Pig
-    %9 $type_check_9#31: bool
-    %10 $intrinsic_10#32: ?
-    %11 __sb_1#33: ? (synthetic __sb_1)
-    %12 $k_12#34: string
-    %13 $cast_13#35: Dog
-    %14 $field_14#36: string
-    %15 $intrinsic_15#37: string
-    %16 $intrinsic_16#38: ?
-    %17 __sb_2#39: ? (synthetic __sb_2)
-    %18 $k_18#40: string
-    %19 $cast_19#41: Pig
-    %20 $field_20#42: i32
-    %21 $k_21#43: string
-    %22 $intrinsic_22#44: string
+    %1 $type_check_1: bool
+    %2 $intrinsic_2: ?
+    %3 __sb_0: ? (synthetic __sb_0)
+    %4 $k_4: string
+    %5 $cast_5: Cat
+    %6 $field_6: string
+    %7 $intrinsic_7: string
+    %8 $cast_8: Dog | Pig
+    %9 $type_check_9: bool
+    %10 $intrinsic_10: ?
+    %11 __sb_1: ? (synthetic __sb_1)
+    %12 $k_12: string
+    %13 $cast_13: Dog
+    %14 $field_14: string
+    %15 $intrinsic_15: string
+    %16 $intrinsic_16: ?
+    %17 __sb_2: ? (synthetic __sb_2)
+    %18 $k_18: string
+    %19 $cast_19: Pig
+    %20 $field_20: i32
+    %21 $k_21: string
+    %22 $intrinsic_22: string
   bb0:
     %1 = type_check %0 is Cat
     cond_branch %1 ? bb1 : bb2
@@ -152,17 +152,17 @@ fn tests_snippets_if_is_narrow__main_vader$cascade(%0: Cat | Dog | Pig) -> strin
 fn tests_snippets_if_is_narrow__main_vader$primitive_is(%0: i32 | string) -> string
   locals:
     %0 v: i32 | string (param v)
-    %1 $type_check_1#12: bool
-    %2 $intrinsic_2#13: ?
-    %3 __sb_0#14: ? (synthetic __sb_0)
-    %4 $k_4#15: string
-    %5 $cast_5#16: i32
-    %6 $intrinsic_6#17: string
-    %7 $intrinsic_7#18: ?
-    %8 __sb_1#19: ? (synthetic __sb_1)
-    %9 $k_9#20: string
-    %10 $cast_10#21: string
-    %11 $intrinsic_11#22: string
+    %1 $type_check_1: bool
+    %2 $intrinsic_2: ?
+    %3 __sb_0: ? (synthetic __sb_0)
+    %4 $k_4: string
+    %5 $cast_5: i32
+    %6 $intrinsic_6: string
+    %7 $intrinsic_7: ?
+    %8 __sb_1: ? (synthetic __sb_1)
+    %9 $k_9: string
+    %10 $cast_10: string
+    %11 $intrinsic_11: string
   bb0:
     %1 = type_check %0 is i32
     cond_branch %1 ? bb1 : bb2
@@ -187,26 +187,26 @@ fn tests_snippets_if_is_narrow__main_vader$primitive_is(%0: i32 | string) -> str
 
 fn tests_snippets_if_is_narrow__main_vader$main() -> i32
   locals:
-    %0 $k_0#20: string
-    %1 $struct_1#21: Cat
-    %2 $call_2#22: string
-    %3 $k_3#23: string
-    %4 $struct_4#24: Dog
-    %5 $call_5#25: string
-    %6 $k_6#26: string
-    %7 $struct_7#27: Cat
-    %8 $call_8#28: string
-    %9 $k_9#29: string
-    %10 $struct_10#30: Dog
-    %11 $call_11#31: string
-    %12 $k_12#32: i32
-    %13 $struct_13#33: Pig
-    %14 $call_14#34: string
-    %15 $k_15#35: i32 | string
-    %16 $call_16#36: string
-    %17 $k_17#37: string
-    %18 $call_18#38: string
-    %19 $k_19#39: i32
+    %0 $k_0: string
+    %1 $struct_1: Cat
+    %2 $call_2: string
+    %3 $k_3: string
+    %4 $struct_4: Dog
+    %5 $call_5: string
+    %6 $k_6: string
+    %7 $struct_7: Cat
+    %8 $call_8: string
+    %9 $k_9: string
+    %10 $struct_10: Dog
+    %11 $call_11: string
+    %12 $k_12: i32
+    %13 $struct_13: Pig
+    %14 $call_14: string
+    %15 $k_15: i32 | string
+    %16 $call_16: string
+    %17 $k_17: string
+    %18 $call_18: string
+    %19 $k_19: i32
   bb0:
     %0 = const string(#6) :string
     %1 = struct_new Cat(%0)

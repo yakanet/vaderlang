@@ -15,8 +15,8 @@ fn 1 tests_snippets_trait_dispatch_struct__main_vader$main () -> i32
 end
 
 fn 2 tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32 (i32) -> i32
-  local "$call_1#4" i32
-  local "$call_2#5" i32
+  local $call_1 i32
+  local $call_2 i32
   local.get 0   ; _main.vader:13:12
   call 0   ; _main.vader:13:12
   local.set 1   ; _main.vader:13:12

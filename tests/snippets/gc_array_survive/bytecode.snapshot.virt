@@ -10,18 +10,18 @@ import 1 collect std_runtime$collect () -> void
 import 2 collections std_runtime$collections () -> i32
 
 fn 0 tests_snippets_gc_array_survive__main_vader$main () -> i32
-  local "list#40" ref
-  local "i#42" i32
-  local "before#48" i32
-  local "diff#51" i32
-  local "__sb_0#55" any
-  local "sum#61" i32
-  local "j#62" i32
-  local "$idx_27#65" i32
-  local "$mul_33#71" i32
-  local "expected#73" i32
-  local "__sb_1#76" any
-  local "__sb_2#82" any
+  local list ref
+  local i i32
+  local before i32
+  local diff i32
+  local __sb_0 any
+  local sum i32
+  local j i32
+  local $idx_27 i32
+  local $mul_33 i32
+  local expected i32
+  local __sb_1 any
+  local __sb_2 any
   array.new 0 0   ; _main.vader:9:19
   local.set 0   ; _main.vader:9:19
   i32.const 0   ; _main.vader:10:10

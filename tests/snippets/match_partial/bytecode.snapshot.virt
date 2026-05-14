@@ -4,7 +4,7 @@ string 1 "weekday"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_match_partial__main_vader$weekend_only (i32) -> string
-  local "__scrut_0#23" i32
+  local __scrut_0 i32
   local.get 0   ; _main.vader:10:27
   local.set 1   ; _main.vader:10:27
   local.get 1   ; _main.vader:11:9

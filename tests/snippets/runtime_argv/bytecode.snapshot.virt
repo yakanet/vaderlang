@@ -11,15 +11,14 @@ import 1 println std_io$println (string) -> void
 impl 3 Iterator
 
 fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
-  local "__sb_0#20" any
-  local "$len_4#22" usize
-  local "$call_7#25" string
-  local "$len_12#29" usize
-  local "__iter_1#30" ref
-  local "first#31" bool
-  local "__step_2#33" ref
-  local "s#37" string
-  local "first#39" bool
+  local __sb_0 any
+  local $len_4 usize
+  local $call_7 string
+  local first bool
+  local $len_12 usize
+  local __iter_1 ref
+  local __step_2 ref
+  local s string
   intrinsic builder.new   ; _main.vader:7:13
   local.set 1   ; _main.vader:7:13
   local.get 1   ; _main.vader:7:14
@@ -41,19 +40,19 @@ fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
   intrinsic builder.finish   ; _main.vader:7:13
   call.import 1   ; _main.vader:7:5
   bool.const true   ; _main.vader:8:14
-  local.set 6   ; _main.vader:8:14
+  local.set 4   ; _main.vader:8:14
   local.get 0   ; _main.vader:9:5
   array.len   ; _main.vader:9:5
-  local.set 4   ; _main.vader:9:5
+  local.set 5   ; _main.vader:9:5
   local.get 0   ; _main.vader:9:14
   i64.const 0   ; _main.vader:9:14
   i64.to_usize   ; _main.vader:9:14
-  local.get 4   ; _main.vader:9:14
+  local.get 5   ; _main.vader:9:14
   struct.new 3   ; _main.vader:9:14
-  local.set 5   ; _main.vader:9:14
+  local.set 6   ; _main.vader:9:14
   block $L0 void   ; _main.vader:9:5
     loop $L1 void   ; _main.vader:9:5
-      local.get 5   ; _main.vader:9:5
+      local.get 6   ; _main.vader:9:5
       call 1   ; _main.vader:9:5
       local.tee 7   ; _main.vader:9:5
       type_check 0   ; _main.vader:9:5
@@ -62,18 +61,14 @@ fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
         local.get 7   ; _main.vader:9:5
         struct.get 1 0   ; _main.vader:9:5
         local.set 8   ; _main.vader:9:5
-        local.get 6   ; _main.vader:10:9
+        local.get 4   ; _main.vader:10:9
         if $L3 void   ; _main.vader:10:9
           bool.const false   ; _main.vader:11:21
-          local.set 9   ; _main.vader:11:21
+          local.set 4   ; _main.vader:11:21
         else   ; _main.vader:10:9
           local.get 8   ; _main.vader:13:13
           call.import 1   ; _main.vader:13:13
-          local.get 6   ; _main.vader:10:9
-          local.set 9   ; _main.vader:10:9
         end $L3   ; _main.vader:10:9
-        local.get 9   ; _main.vader:9:5
-        local.set 6   ; _main.vader:9:5
         br $L1   ; _main.vader:9:5
       end $L2   ; _main.vader:9:5
     end $L1   ; _main.vader:9:5
@@ -83,13 +78,13 @@ fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
 end
 
 fn 1 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
-  local "$field_1#12" usize
-  local "$field_2#13" usize
-  local "$field_5#16" ref
-  local "$field_6#17" usize
-  local "v#18" string
-  local "$field_9#19" usize
-  local "$add_11#21" usize
+  local $field_1 usize
+  local $field_2 usize
+  local $field_5 ref
+  local $field_6 usize
+  local v string
+  local $field_9 usize
+  local $add_11 usize
   local.get 0   ; core.vader:244:13
   struct.get 3 1   ; core.vader:244:13
   local.set 1   ; core.vader:244:13

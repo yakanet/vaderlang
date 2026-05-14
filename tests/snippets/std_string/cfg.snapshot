@@ -4,74 +4,74 @@
 
 fn tests_snippets_std_string__main_vader$main() -> i32
   locals:
-    %0 s#68: string (local s)
-    %1 $intrinsic_2#69: ?
-    %2 __sb_0#70: ? (synthetic __sb_0)
-    %3 $call_4#71: usize
-    %4 $call_5#72: string
-    %5 $intrinsic_6#73: string
-    %6 $call_7#74: string
-    %7 $k_8#75: string
-    %8 $call_9#76: string
-    %9 $k_10#77: string
-    %10 $call_11#78: string
-    %11 $intrinsic_12#79: ?
-    %12 __sb_1#80: ? (synthetic __sb_1)
-    %13 $k_14#81: string
-    %14 $k_15#82: string
-    %15 $call_16#83: bool
-    %16 $intrinsic_17#84: string
-    %17 $intrinsic_18#85: ?
-    %18 __sb_2#86: ? (synthetic __sb_2)
-    %19 $k_20#87: string
-    %20 $k_21#88: string
-    %21 $call_22#89: bool
-    %22 $intrinsic_23#90: string
-    %23 $intrinsic_24#91: ?
-    %24 __sb_3#92: ? (synthetic __sb_3)
-    %25 $k_26#93: string
-    %26 $k_27#94: string
-    %27 $call_28#95: bool
-    %28 $intrinsic_29#96: string
-    %29 $k_30#97: string
-    %30 $k_31#98: usize
-    %31 $k_32#99: usize
-    %32 $call_33#100: string
-    %33 $intrinsic_34#101: ?
-    %34 __sb_4#102: ? (synthetic __sb_4)
-    %35 $k_36#103: string
-    %36 $k_37#104: i32
-    %37 $call_38#105: char
-    %38 $intrinsic_39#106: string
-    %39 $intrinsic_40#107: ?
-    %40 __sb_5#108: ? (synthetic __sb_5)
-    %41 $k_42#109: string
-    %42 $k_43#110: i32
-    %43 $call_44#111: char
-    %44 $intrinsic_45#112: string
-    %45 $intrinsic_46#113: ?
-    %46 __sb_6#114: ? (synthetic __sb_6)
-    %47 $k_48#115: string
-    %48 $k_49#116: i32
-    %49 $call_50#117: char
-    %50 $intrinsic_51#118: string
-    %51 $intrinsic_52#119: ?
-    %52 __sb_7#120: ? (synthetic __sb_7)
-    %53 $k_54#121: string
-    %54 $k_55#122: i32
-    %55 $call_56#123: char
-    %56 $intrinsic_57#124: string
-    %57 $k_58#125: string
-    %58 $k_59#126: string
-    %59 $call_60#127: string[]
-    %60 parts#128: string[] (local parts)
-    %61 $k_62#129: i32
-    %62 $idx_63#130: string
-    %63 $k_64#131: i32
-    %64 $idx_65#132: string
-    %65 $k_66#133: i32
-    %66 $idx_67#134: string
-    %67 $k_68#135: i32
+    %0 s: string (local s)
+    %1 $intrinsic_2: ?
+    %2 __sb_0: ? (synthetic __sb_0)
+    %3 $call_4: usize
+    %4 $call_5: string
+    %5 $intrinsic_6: string
+    %6 $call_7: string
+    %7 $k_8: string
+    %8 $call_9: string
+    %9 $k_10: string
+    %10 $call_11: string
+    %11 $intrinsic_12: ?
+    %12 __sb_1: ? (synthetic __sb_1)
+    %13 $k_14: string
+    %14 $k_15: string
+    %15 $call_16: bool
+    %16 $intrinsic_17: string
+    %17 $intrinsic_18: ?
+    %18 __sb_2: ? (synthetic __sb_2)
+    %19 $k_20: string
+    %20 $k_21: string
+    %21 $call_22: bool
+    %22 $intrinsic_23: string
+    %23 $intrinsic_24: ?
+    %24 __sb_3: ? (synthetic __sb_3)
+    %25 $k_26: string
+    %26 $k_27: string
+    %27 $call_28: bool
+    %28 $intrinsic_29: string
+    %29 $k_30: string
+    %30 $k_31: usize
+    %31 $k_32: usize
+    %32 $call_33: string
+    %33 $intrinsic_34: ?
+    %34 __sb_4: ? (synthetic __sb_4)
+    %35 $k_36: string
+    %36 $k_37: i32
+    %37 $call_38: char
+    %38 $intrinsic_39: string
+    %39 $intrinsic_40: ?
+    %40 __sb_5: ? (synthetic __sb_5)
+    %41 $k_42: string
+    %42 $k_43: i32
+    %43 $call_44: char
+    %44 $intrinsic_45: string
+    %45 $intrinsic_46: ?
+    %46 __sb_6: ? (synthetic __sb_6)
+    %47 $k_48: string
+    %48 $k_49: i32
+    %49 $call_50: char
+    %50 $intrinsic_51: string
+    %51 $intrinsic_52: ?
+    %52 __sb_7: ? (synthetic __sb_7)
+    %53 $k_54: string
+    %54 $k_55: i32
+    %55 $call_56: char
+    %56 $intrinsic_57: string
+    %57 $k_58: string
+    %58 $k_59: string
+    %59 $call_60: string[]
+    %60 parts: string[] (local parts)
+    %61 $k_62: i32
+    %62 $idx_63: string
+    %63 $k_64: i32
+    %64 $idx_65: string
+    %65 $k_66: i32
+    %66 $idx_67: string
+    %67 $k_68: i32
   bb0:
     %0 = const string(#0) :string
     %1 = intrinsic builder.new()

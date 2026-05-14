@@ -15,8 +15,8 @@ fn 0 tests_snippets_bound_enforced__main_vader$main () -> i32
 end
 
 fn 1 tests_snippets_bound_enforced__main_vader$tests_snippets_bound_enforced__main_vader$needs_hash__string (string) -> bool
-  local "h#7" u64
-  local "$cast_4#9" u64
+  local h u64
+  local $cast_4 u64
   local.get 0   ; _main.vader:7:10
   call.import 0   ; _main.vader:7:10
   local.set 1   ; _main.vader:7:5

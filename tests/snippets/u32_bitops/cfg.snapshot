@@ -6,7 +6,7 @@ fn tests_snippets_u32_bitops__main_vader$check(%0: string, %1: bool) -> void
   locals:
     %0 name: string (param name)
     %1 ok: bool (param ok)
-    %2 $k_2#3: string
+    %2 $k_2: string
   bb0:
     cond_branch %1 ? bb1 : bb2
   bb1:
@@ -21,49 +21,49 @@ fn tests_snippets_u32_bitops__main_vader$check(%0: string, %1: bool) -> void
 
 fn tests_snippets_u32_bitops__main_vader$main() -> i32
   locals:
-    %0 a#43: u32 (local a)
-    %1 b#44: u32 (local b)
-    %2 $k_4#45: string
-    %3 $k_5#46: u32
-    %4 $shr_6#47: u32
-    %5 $k_7#48: u32
-    %6 $eq_8#49: bool
-    %7 $k_9#50: string
-    %8 $k_10#51: u32
-    %9 $shr_11#52: u32
-    %10 $k_12#53: u32
-    %11 $eq_13#54: bool
-    %12 $k_14#55: string
-    %13 $k_15#56: u32
-    %14 $k_16#57: u32
-    %15 $shl_17#58: u32
-    %16 $eq_18#59: bool
-    %17 $k_19#60: string
-    %18 $k_20#61: u32
-    %19 $shl_21#62: u32
-    %20 $k_22#63: u32
-    %21 $eq_23#64: bool
-    %22 $k_24#65: string
-    %23 $bitand_25#66: u32
-    %24 $eq_26#67: bool
-    %25 $k_27#68: string
-    %26 $k_28#69: u32
-    %27 $bitor_29#70: u32
-    %28 $k_30#71: u32
-    %29 $eq_31#72: bool
-    %30 $k_32#73: string
-    %31 $bitxor_33#74: u32
-    %32 $k_34#75: u32
-    %33 $eq_35#76: bool
-    %34 $k_36#77: string
-    %35 $k_37#78: u32
-    %36 $bitnot_38#79: u32
-    %37 $eq_39#80: bool
-    %38 $k_40#81: string
-    %39 $bitnot_41#82: u32
-    %40 $k_42#83: u32
-    %41 $eq_43#84: bool
-    %42 $k_44#85: i32
+    %0 a: u32 (local a)
+    %1 b: u32 (local b)
+    %2 $k_4: string
+    %3 $k_5: u32
+    %4 $shr_6: u32
+    %5 $k_7: u32
+    %6 $eq_8: bool
+    %7 $k_9: string
+    %8 $k_10: u32
+    %9 $shr_11: u32
+    %10 $k_12: u32
+    %11 $eq_13: bool
+    %12 $k_14: string
+    %13 $k_15: u32
+    %14 $k_16: u32
+    %15 $shl_17: u32
+    %16 $eq_18: bool
+    %17 $k_19: string
+    %18 $k_20: u32
+    %19 $shl_21: u32
+    %20 $k_22: u32
+    %21 $eq_23: bool
+    %22 $k_24: string
+    %23 $bitand_25: u32
+    %24 $eq_26: bool
+    %25 $k_27: string
+    %26 $k_28: u32
+    %27 $bitor_29: u32
+    %28 $k_30: u32
+    %29 $eq_31: bool
+    %30 $k_32: string
+    %31 $bitxor_33: u32
+    %32 $k_34: u32
+    %33 $eq_35: bool
+    %34 $k_36: string
+    %35 $k_37: u32
+    %36 $bitnot_38: u32
+    %37 $eq_39: bool
+    %38 $k_40: string
+    %39 $bitnot_41: u32
+    %40 $k_42: u32
+    %41 $eq_43: bool
+    %42 $k_44: i32
   bb0:
     %0 = const int(4294967295) :u32
     %1 = const int(2147483648) :u32

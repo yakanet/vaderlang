@@ -31,9 +31,9 @@ impl 3 Iterator
 impl 6 Display
 
 fn 0 tests_snippets_regex_helpers__main_vader$is_non_id (char) -> bool
-  local "and_res#25" bool
-  local "and_res#32" bool
-  local "and_res#39" bool
+  local and_res bool
+  local and_res bool
+  local and_res bool
   local.get 0   ; _main.vader:7:8
   char.const 48   ; _main.vader:7:8
   char.ge   ; _main.vader:7:8
@@ -101,13 +101,13 @@ fn 0 tests_snippets_regex_helpers__main_vader$is_non_id (char) -> bool
 end
 
 fn 1 tests_snippets_regex_helpers__main_vader$main () -> i32
-  local "$fn_ref_13#45" ref
-  local "$fn_ref_17#49" ref
-  local "parts#51" ref
-  local "__sb_0#53" any
-  local "$call_24#56" string
-  local "n#58" usize
-  local "i#60" usize
+  local $fn_ref_13 ref
+  local $fn_ref_17 ref
+  local parts ref
+  local __sb_0 any
+  local $call_24 string
+  local n usize
+  local i usize
   string.const 0   ; _main.vader:15:13
   string.const 1   ; _main.vader:15:13
   call 5   ; _main.vader:15:13
@@ -183,14 +183,14 @@ fn 1 tests_snippets_regex_helpers__main_vader$main () -> i32
 end
 
 fn 2 std_string$StringChars$Iterator$next (ref) -> ref
-  local "$field_1#13" usize
-  local "$field_2#14" usize
-  local "$field_5#17" string
-  local "$field_6#18" usize
-  local "c#20" char
-  local "$field_9#21" usize
-  local "$call_10#22" usize
-  local "$add_11#23" usize
+  local $field_1 usize
+  local $field_2 usize
+  local $field_5 string
+  local $field_6 usize
+  local c char
+  local $field_9 usize
+  local $call_10 usize
+  local $add_11 usize
   local.get 0   ; string.vader:91:13
   struct.get 3 1   ; string.vader:91:13
   local.set 1   ; string.vader:91:13
@@ -234,8 +234,8 @@ fn 2 std_string$StringChars$Iterator$next (ref) -> ref
 end
 
 fn 3 std_string$chars (string) -> ref
-  local "$cast_2#6" usize
-  local "$call_3#7" usize
+  local $cast_2 usize
+  local $call_3 usize
   i32.const 0   ; string.vader:110:50
   i32.to_usize   ; string.vader:110:44
   local.set 1   ; string.vader:110:44
@@ -250,9 +250,9 @@ fn 3 std_string$chars (string) -> ref
 end
 
 fn 4 std_string$is_white_char (char) -> bool
-  local "or_res#14" bool
-  local "or_res#18" bool
-  local "or_res#22" bool
+  local or_res bool
+  local or_res bool
+  local or_res bool
   local.get 0   ; string.vader:303:39
   char.const 32   ; string.vader:303:39
   char.eq   ; string.vader:303:39
@@ -290,9 +290,9 @@ fn 4 std_string$is_white_char (char) -> bool
 end
 
 fn 5 std_string$trim_suffix (string,string) -> string
-  local "$call_4#10" usize
-  local "$call_5#11" usize
-  local "$sub_6#12" usize
+  local $call_4 usize
+  local $call_5 usize
+  local $sub_6 usize
   local.get 0   ; string.vader:324:8
   local.get 1   ; string.vader:324:8
   call.import 6   ; string.vader:324:8
@@ -320,8 +320,8 @@ fn 5 std_string$trim_suffix (string,string) -> string
 end
 
 fn 6 std_string$trim_prefix (string,string) -> string
-  local "$call_3#7" usize
-  local "$call_4#8" usize
+  local $call_3 usize
+  local $call_4 usize
   local.get 0   ; string.vader:333:8
   local.get 1   ; string.vader:333:8
   call.import 5   ; string.vader:333:8
@@ -344,10 +344,10 @@ fn 6 std_string$trim_prefix (string,string) -> string
 end
 
 fn 7 std_string$replace_chars_where (string,ref,string) -> string
-  local "sb#15" ref
-  local "__iter_0#17" ref
-  local "__step_1#19" ref
-  local "c#23" char
+  local sb ref
+  local __iter_0 ref
+  local __step_1 ref
+  local c char
   call 9   ; string.vader:392:11
   local.set 3   ; string.vader:392:5
   local.get 0   ; string.vader:393:14
@@ -385,30 +385,26 @@ fn 7 std_string$replace_chars_where (string,ref,string) -> string
 end
 
 fn 8 std_string$split_where (string,ref) -> ref
-  local "out#17" ref
-  local "__iter_0#22" ref
-  local "sb#23" ref
-  local "has_pending#24" bool
-  local "__step_1#26" ref
-  local "$call_21#28" string
-  local "c#30" char
-  local "$call_17#32" string
-  local "sb#36" ref
-  local "has_pending#37" bool
-  local "sb#39" ref
-  local "has_pending#40" bool
+  local out ref
+  local sb ref
+  local has_pending bool
+  local __iter_0 ref
+  local __step_1 ref
+  local c char
+  local $call_17 string
+  local $call_21 string
   array.new 7 0   ; string.vader:416:21
   local.set 2   ; string.vader:416:21
   call 9   ; string.vader:417:11
-  local.set 4   ; string.vader:417:5
+  local.set 3   ; string.vader:417:5
   bool.const false   ; string.vader:418:20
-  local.set 5   ; string.vader:418:20
+  local.set 4   ; string.vader:418:20
   local.get 0   ; string.vader:419:14
   call 3   ; string.vader:419:14
-  local.set 3   ; string.vader:419:5
+  local.set 5   ; string.vader:419:5
   block $L0 void   ; string.vader:419:5
     loop $L1 void   ; string.vader:419:5
-      local.get 3   ; string.vader:419:5
+      local.get 5   ; string.vader:419:5
       call 2   ; string.vader:419:5
       local.tee 6   ; string.vader:419:5
       type_check 0   ; string.vader:419:5
@@ -416,56 +412,42 @@ fn 8 std_string$split_where (string,ref) -> ref
       else   ; string.vader:419:5
         local.get 6   ; string.vader:419:5
         struct.get 1 0   ; string.vader:419:5
-        local.tee 8   ; string.vader:419:5
+        local.tee 7   ; string.vader:419:5
         local.get 1   ; string.vader:420:12
         call.indirect 8   ; string.vader:420:12
         if $L3 void   ; string.vader:420:9
           local.get 4   ; string.vader:421:13
-          local.set 10   ; string.vader:421:13
-          local.get 5   ; string.vader:421:13
-          local.set 11   ; string.vader:421:13
-          local.get 5   ; string.vader:421:13
           if $L4 void   ; string.vader:421:13
-            local.get 4   ; string.vader:422:26
+            local.get 3   ; string.vader:422:26
             call.import 7   ; string.vader:422:26
-            local.set 9   ; string.vader:422:26
+            local.set 8   ; string.vader:422:26
             local.get 2   ; string.vader:422:17
-            local.get 9   ; string.vader:422:17
+            local.get 8   ; string.vader:422:17
             array.push 4   ; string.vader:422:17
             call 9   ; string.vader:423:22
-            local.set 10   ; string.vader:423:17
+            local.set 3   ; string.vader:423:17
             bool.const false   ; string.vader:424:31
-            local.set 11   ; string.vader:424:31
+            local.set 4   ; string.vader:424:31
           else   ; string.vader:421:13
           end $L4   ; string.vader:421:13
-          local.get 10   ; string.vader:420:9
-          local.set 12   ; string.vader:420:9
-          local.get 11   ; string.vader:420:9
-          local.set 13   ; string.vader:420:9
         else   ; string.vader:420:9
-          local.get 4   ; string.vader:427:13
-          local.get 8   ; string.vader:427:13
+          local.get 3   ; string.vader:427:13
+          local.get 7   ; string.vader:427:13
           call 11   ; string.vader:427:13
           bool.const true   ; string.vader:428:27
-          local.set 13   ; string.vader:428:27
-          local.get 4   ; string.vader:420:9
-          local.set 12   ; string.vader:420:9
+          local.set 4   ; string.vader:428:27
         end $L3   ; string.vader:420:9
-        local.get 12   ; string.vader:419:5
-        local.set 4   ; string.vader:419:5
-        local.get 13   ; string.vader:419:5
-        local.set 5   ; string.vader:419:5
         br $L1   ; string.vader:419:5
       end $L2   ; string.vader:419:5
     end $L1   ; string.vader:419:5
   end $L0   ; string.vader:419:5
-  local.get 5   ; string.vader:431:5
+  local.get 4   ; string.vader:431:5
   if $L5 void   ; string.vader:431:5
-    local.get 4   ; string.vader:432:18
+    local.get 3   ; string.vader:432:18
     call.import 7   ; string.vader:432:18
-    local.set 7   ; string.vader:432:18
+    local.set 9   ; string.vader:432:18
     local.get 2   ; string.vader:432:9
-    local.get 7   ; string.vader:432:9
+    local.get 9   ; string.vader:432:9
     array.push 4   ; string.vader:432:9
   else   ; string.vader:431:5
   end $L5   ; string.vader:431:5
@@ -488,9 +470,9 @@ fn 10 std_string_builder$append (ref,string) -> void
 end
 
 fn 11 std_string_builder$append_char (ref,char) -> void
-  local "$field_2#6" ref
-  local "__sb_0#8" any
-  local "$intrinsic_5#9" string
+  local $field_2 ref
+  local __sb_0 any
+  local $intrinsic_5 string
   local.get 0   ; string_builder.vader:40:5
   struct.get 6 0   ; string_builder.vader:40:5
   local.set 2   ; string_builder.vader:40:5
@@ -508,10 +490,10 @@ fn 11 std_string_builder$append_char (ref,char) -> void
 end
 
 fn 12 std_utf8$codepoint_byte_len (char) -> usize
-  local "cp#15" u32
-  local "$cast_4#17" u32
-  local "$cast_8#21" u32
-  local "$cast_12#25" u32
+  local cp u32
+  local $cast_4 u32
+  local $cast_8 u32
+  local $cast_12 u32
   local.get 0   ; utf8.vader:24:11
   char.to_u32   ; utf8.vader:24:11
   local.set 1   ; utf8.vader:24:11

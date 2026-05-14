@@ -8,10 +8,10 @@ string 2 " s="
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_tuple_match_pattern__main_vader$main () -> i32
-  local "__scrut_0#13" ref
-  local "n#14" i32
-  local "s#15" string
-  local "__sb_1#17" any
+  local __scrut_0 ref
+  local n i32
+  local s string
+  local __sb_1 any
   i32.const 3   ; _main.vader:4:27
   string.const 0   ; _main.vader:4:27
   struct.new_stack 0   ; _main.vader:4:27

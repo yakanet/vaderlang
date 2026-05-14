@@ -4,31 +4,31 @@
 
 fn tests_snippets_let_type_alias__main_vader$main() -> i32
   locals:
-    %0 $intrinsic_0#25: ?
-    %1 __sb_0#26: ? (synthetic __sb_0)
-    %2 $k_2#27: string
-    %3 $k_3#28: usize
-    %4 $call_4#29: string
-    %5 $intrinsic_5#30: string
-    %6 $intrinsic_6#31: ?
-    %7 __sb_1#32: ? (synthetic __sb_1)
-    %8 $k_8#33: string
-    %9 $k_9#34: usize
-    %10 $call_10#35: string
-    %11 $intrinsic_11#36: string
-    %12 $intrinsic_12#37: ?
-    %13 __sb_2#38: ? (synthetic __sb_2)
-    %14 $k_14#39: string
-    %15 $k_15#40: usize
-    %16 $call_16#41: string
-    %17 $intrinsic_17#42: string
-    %18 $intrinsic_18#43: ?
-    %19 __sb_3#44: ? (synthetic __sb_3)
-    %20 $k_20#45: string
-    %21 $k_21#46: usize
-    %22 $call_22#47: string
-    %23 $intrinsic_23#48: string
-    %24 $k_24#49: i32
+    %0 $intrinsic_0: ?
+    %1 __sb_0: ? (synthetic __sb_0)
+    %2 $k_2: string
+    %3 $k_3: usize
+    %4 $call_4: string
+    %5 $intrinsic_5: string
+    %6 $intrinsic_6: ?
+    %7 __sb_1: ? (synthetic __sb_1)
+    %8 $k_8: string
+    %9 $k_9: usize
+    %10 $call_10: string
+    %11 $intrinsic_11: string
+    %12 $intrinsic_12: ?
+    %13 __sb_2: ? (synthetic __sb_2)
+    %14 $k_14: string
+    %15 $k_15: usize
+    %16 $call_16: string
+    %17 $intrinsic_17: string
+    %18 $intrinsic_18: ?
+    %19 __sb_3: ? (synthetic __sb_3)
+    %20 $k_20: string
+    %21 $k_21: usize
+    %22 $call_22: string
+    %23 $intrinsic_23: string
+    %24 $k_24: i32
   bb0:
     %0 = intrinsic builder.new()
     %1 = move %0

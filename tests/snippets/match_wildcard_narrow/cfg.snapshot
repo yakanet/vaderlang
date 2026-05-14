@@ -5,94 +5,94 @@
 fn tests_snippets_match_wildcard_narrow__main_vader$greet_wildcard(%0: Cat | Dog | null) -> string
   locals:
     %0 p: Cat | Dog | null (param p)
-    %1 __scrut_0#11: Cat | Dog | null (synthetic __scrut_0)
-    %2 $type_check_2#12: bool
-    %3 $intrinsic_5#14: ?
-    %4 __sb_1#15: ? (synthetic __sb_1)
-    %5 $k_7#16: string
-    %6 $cast_8#17: Cat | Dog
-    %7 $cast_9#18: Cat
-    %8 $field_10#19: string
-    %9 $intrinsic_11#20: string
-    %10 if_res#22: string
+    %1 __scrut_0: Cat | Dog | null (synthetic __scrut_0)
+    %2 $type_check_2: bool
+    %3 if_res: string
+    %4 $intrinsic_5: ?
+    %5 __sb_1: ? (synthetic __sb_1)
+    %6 $k_7: string
+    %7 $cast_8: Cat | Dog
+    %8 $cast_9: Cat
+    %9 $field_10: string
+    %10 $intrinsic_11: string
   bb0:
     %1 = move %0
     %2 = type_check %1 is null
     cond_branch %2 ? bb1 : bb2
   bb1:
-    %10 = const string(#0) :string
+    %3 = const string(#0) :string
     branch -> bb3
   bb2:
-    %3 = intrinsic builder.new()
-    %4 = move %3
-    %5 = const string(#1) :string
-    intrinsic builder.append_str(%4, %5)
-    %6 = cast %0 :Cat | Dog
-    %7 = cast %6 :Cat
-    %8 = field_get %7.name :string
-    intrinsic builder.append_display(%4, %8)
-    %9 = intrinsic builder.finish(%4)
-    %10 = move %9
-    branch -> bb3
-  bb3:
-    return %10
-
-fn tests_snippets_match_wildcard_narrow__main_vader$greet_binding(%0: Cat | Dog | null) -> string
-  locals:
-    %0 p: Cat | Dog | null (param p)
-    %1 __scrut_0#12: Cat | Dog | null (synthetic __scrut_0)
-    %2 $type_check_2#13: bool
-    %3 pet#15: Cat | Dog | null (binding pet)
-    %4 $intrinsic_6#16: ?
-    %5 __sb_1#17: ? (synthetic __sb_1)
-    %6 $k_8#18: string
-    %7 $narrow_9#19: Cat | Dog
-    %8 $cast_10#20: Cat
-    %9 $field_11#21: string
-    %10 $intrinsic_12#22: string
-    %11 if_res#24: string
-  bb0:
-    %1 = move %0
-    %2 = type_check %1 is null
-    cond_branch %2 ? bb1 : bb2
-  bb1:
-    %11 = const string(#0) :string
-    branch -> bb3
-  bb2:
-    %3 = move %1
     %4 = intrinsic builder.new()
     %5 = move %4
-    %6 = const string(#2) :string
+    %6 = const string(#1) :string
     intrinsic builder.append_str(%5, %6)
-    %7 = cast %3 :Cat | Dog
+    %7 = cast %0 :Cat | Dog
     %8 = cast %7 :Cat
     %9 = field_get %8.name :string
     intrinsic builder.append_display(%5, %9)
     %10 = intrinsic builder.finish(%5)
-    %11 = move %10
+    %3 = move %10
     branch -> bb3
   bb3:
-    return %11
+    return %3
+
+fn tests_snippets_match_wildcard_narrow__main_vader$greet_binding(%0: Cat | Dog | null) -> string
+  locals:
+    %0 p: Cat | Dog | null (param p)
+    %1 __scrut_0: Cat | Dog | null (synthetic __scrut_0)
+    %2 $type_check_2: bool
+    %3 if_res: string
+    %4 pet: Cat | Dog | null (binding pet)
+    %5 $intrinsic_6: ?
+    %6 __sb_1: ? (synthetic __sb_1)
+    %7 $k_8: string
+    %8 $narrow_9: Cat | Dog
+    %9 $cast_10: Cat
+    %10 $field_11: string
+    %11 $intrinsic_12: string
+  bb0:
+    %1 = move %0
+    %2 = type_check %1 is null
+    cond_branch %2 ? bb1 : bb2
+  bb1:
+    %3 = const string(#0) :string
+    branch -> bb3
+  bb2:
+    %4 = move %1
+    %5 = intrinsic builder.new()
+    %6 = move %5
+    %7 = const string(#2) :string
+    intrinsic builder.append_str(%6, %7)
+    %8 = cast %4 :Cat | Dog
+    %9 = cast %8 :Cat
+    %10 = field_get %9.name :string
+    intrinsic builder.append_display(%6, %10)
+    %11 = intrinsic builder.finish(%6)
+    %3 = move %11
+    branch -> bb3
+  bb3:
+    return %3
 
 fn tests_snippets_match_wildcard_narrow__main_vader$main() -> i32
   locals:
-    %0 $k_0#17: string
-    %1 $struct_1#18: Cat
-    %2 $call_2#19: string
-    %3 $k_3#20: string
-    %4 $struct_4#21: Dog
-    %5 $call_5#22: string
-    %6 $k_6#23: null
-    %7 $call_7#24: string
-    %8 $k_8#25: string
-    %9 $struct_9#26: Cat
-    %10 $call_10#27: string
-    %11 $k_11#28: string
-    %12 $struct_12#29: Dog
-    %13 $call_13#30: string
-    %14 $k_14#31: null
-    %15 $call_15#32: string
-    %16 $k_16#33: i32
+    %0 $k_0: string
+    %1 $struct_1: Cat
+    %2 $call_2: string
+    %3 $k_3: string
+    %4 $struct_4: Dog
+    %5 $call_5: string
+    %6 $k_6: null
+    %7 $call_7: string
+    %8 $k_8: string
+    %9 $struct_9: Cat
+    %10 $call_10: string
+    %11 $k_11: string
+    %12 $struct_12: Dog
+    %13 $call_13: string
+    %14 $k_14: null
+    %15 $call_15: string
+    %16 $k_16: i32
   bb0:
     %0 = const string(#3) :string
     %1 = struct_new Cat(%0)

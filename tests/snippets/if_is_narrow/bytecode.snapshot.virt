@@ -18,10 +18,10 @@ string 10 "hello"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_if_is_narrow__main_vader$direct (ref) -> string
-  local "__sb_0#16" any
-  local "$field_6#19" string
-  local "__sb_1#22" any
-  local "$field_12#25" string
+  local __sb_0 any
+  local $field_6 string
+  local __sb_1 any
+  local $field_12 string
   local.get 0   ; _main.vader:15:8
   type_check 0   ; _main.vader:15:8
   if $L0 void   ; _main.vader:15:5
@@ -58,10 +58,10 @@ fn 0 tests_snippets_if_is_narrow__main_vader$direct (ref) -> string
 end
 
 fn 1 tests_snippets_if_is_narrow__main_vader$negated (ref) -> string
-  local "__sb_0#18" any
-  local "$field_7#21" string
-  local "__sb_1#24" any
-  local "$field_13#27" string
+  local __sb_0 any
+  local $field_7 string
+  local __sb_1 any
+  local $field_13 string
   local.get 0   ; _main.vader:23:10
   type_check 0   ; _main.vader:23:10
   bool.not   ; _main.vader:23:8
@@ -99,12 +99,12 @@ fn 1 tests_snippets_if_is_narrow__main_vader$negated (ref) -> string
 end
 
 fn 2 tests_snippets_if_is_narrow__main_vader$cascade (ref) -> string
-  local "__sb_0#25" any
-  local "$field_6#28" string
-  local "__sb_1#33" any
-  local "$field_14#36" string
-  local "__sb_2#39" any
-  local "$field_20#42" i32
+  local __sb_0 any
+  local $field_6 string
+  local __sb_1 any
+  local $field_14 string
+  local __sb_2 any
+  local $field_20 i32
   local.get 0   ; _main.vader:30:8
   type_check 0   ; _main.vader:30:8
   if $L0 void   ; _main.vader:30:5
@@ -163,10 +163,10 @@ fn 2 tests_snippets_if_is_narrow__main_vader$cascade (ref) -> string
 end
 
 fn 3 tests_snippets_if_is_narrow__main_vader$primitive_is (ref) -> string
-  local "__sb_0#14" any
-  local "$cast_5#16" i32
-  local "__sb_1#19" any
-  local "$cast_10#21" string
+  local __sb_0 any
+  local $cast_5 i32
+  local __sb_1 any
+  local $cast_10 string
   local.get 0   ; _main.vader:37:8
   type_check 4   ; _main.vader:37:8
   if $L0 void   ; _main.vader:37:5

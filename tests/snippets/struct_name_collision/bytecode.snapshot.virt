@@ -9,12 +9,12 @@ string 2 "hello"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_struct_name_collision__main_vader$main () -> i32
-  local "a#16" ref
-  local "b#18" ref
-  local "__sb_0#20" any
-  local "$field_7#22" i32
-  local "__sb_1#25" any
-  local "$field_12#27" string
+  local a ref
+  local b ref
+  local __sb_0 any
+  local $field_7 i32
+  local __sb_1 any
+  local $field_12 string
   call 1   ; _main.vader:15:10
   local.set 0   ; _main.vader:15:5
   call 2   ; _main.vader:16:10

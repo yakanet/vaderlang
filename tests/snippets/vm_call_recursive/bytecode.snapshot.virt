@@ -1,7 +1,7 @@
 module _main
 
 fn 0 tests_snippets_vm_call_recursive__main_vader$factorial (i32) -> i32
-  local "$call_6#13" i32
+  local $call_6 i32
   local.get 0   ; _main.vader:6:8
   i32.const 1   ; _main.vader:6:8
   i32.le   ; _main.vader:6:8

@@ -20,8 +20,8 @@ string 12 "Rex"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_if_null_narrow__main_vader$greet (ref) -> string
-  local "__sb_0#14" any
-  local "$field_8#18" string
+  local __sb_0 any
+  local $field_8 string
   local.get 0   ; _main.vader:19:8
   type_check 4   ; _main.vader:19:8
   bool.not   ; _main.vader:19:8
@@ -47,8 +47,8 @@ fn 0 tests_snippets_if_null_narrow__main_vader$greet (ref) -> string
 end
 
 fn 1 tests_snippets_if_null_narrow__main_vader$greet_v2 (ref) -> string
-  local "__sb_0#13" any
-  local "$field_8#17" string
+  local __sb_0 any
+  local $field_8 string
   local.get 0   ; _main.vader:27:8
   type_check 4   ; _main.vader:27:8
   if $L0 void   ; _main.vader:27:5
@@ -73,8 +73,8 @@ fn 1 tests_snippets_if_null_narrow__main_vader$greet_v2 (ref) -> string
 end
 
 fn 2 tests_snippets_if_null_narrow__main_vader$greet_v3 (ref) -> string
-  local "__sb_0#14" any
-  local "$field_8#18" string
+  local __sb_0 any
+  local $field_8 string
   local.get 0   ; _main.vader:33:8
   type_check 4   ; _main.vader:33:8
   bool.not   ; _main.vader:33:8
@@ -100,8 +100,8 @@ fn 2 tests_snippets_if_null_narrow__main_vader$greet_v3 (ref) -> string
 end
 
 fn 3 tests_snippets_if_null_narrow__main_vader$greet_v4 (ref) -> string
-  local "__sb_0#16" any
-  local "$field_10#20" string
+  local __sb_0 any
+  local $field_10 string
   local.get 0   ; _main.vader:42:8
   type_check 4   ; _main.vader:42:8
   bool.not   ; _main.vader:42:8
@@ -127,9 +127,9 @@ fn 3 tests_snippets_if_null_narrow__main_vader$greet_v4 (ref) -> string
 end
 
 fn 4 tests_snippets_if_null_narrow__main_vader$combine (ref,ref) -> string
-  local "__sb_0#21" any
-  local "$field_10#24" string
-  local "$field_14#28" string
+  local __sb_0 any
+  local $field_10 string
+  local $field_14 string
   local.get 0   ; _main.vader:53:8
   type_check 4   ; _main.vader:53:8
   if $L0 void   ; _main.vader:53:5
@@ -167,9 +167,9 @@ fn 4 tests_snippets_if_null_narrow__main_vader$combine (ref,ref) -> string
 end
 
 fn 5 tests_snippets_if_null_narrow__main_vader$main () -> i32
-  local "cat#21" ref
-  local "dog#24" ref
-  local "nothing#25" ref
+  local cat ref
+  local dog ref
+  local nothing ref
   string.const 11   ; _main.vader:59:26
   i32.const 3   ; _main.vader:59:26
   struct.new 0   ; _main.vader:59:26

@@ -4,9 +4,9 @@ import 0 to_string std_core$u32$Display$to_string (u32) -> string
 import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_enum_to_repr_cast__main_vader$main () -> i32
-  local "c#23" i32
-  local "__sb_0#27" any
-  local "$call_16#29" string
+  local c i32
+  local __sb_0 any
+  local $call_16 string
   i32.const 1   ; _main.vader:23:17
   u8.to_i32   ; _main.vader:23:10
   local.set 0   ; _main.vader:23:10

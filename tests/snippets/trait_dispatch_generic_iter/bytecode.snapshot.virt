@@ -12,12 +12,10 @@ impl 0 Iterator
 impl 2 Iterator
 
 fn 0 tests_snippets_trait_dispatch_generic_iter__main_vader$walk (ref) -> i32
-  local "sum#11" i32
-  local "cont#12" bool
-  local "__scrut_0#14" ref
-  local "$field_12#19" i32
-  local "sum#21" i32
-  local "cont#22" bool
+  local sum i32
+  local cont bool
+  local __scrut_0 ref
+  local $field_12 i32
   i32.const 0   ; _main.vader:43:12
   local.set 1   ; _main.vader:43:12
   bool.const true   ; _main.vader:44:13
@@ -32,12 +30,7 @@ fn 0 tests_snippets_trait_dispatch_generic_iter__main_vader$walk (ref) -> i32
         type_check 4   ; _main.vader:47:13
         if $L3 void   ; _main.vader:47:13
           bool.const false   ; _main.vader:47:33
-          local.set 6   ; _main.vader:47:33
-          local.get 1   ; _main.vader:47:13
-          local.tee 5   ; _main.vader:47:13
-          local.set 1   ; _main.vader:45:5
-          local.get 6   ; _main.vader:45:5
-          local.set 2   ; _main.vader:45:5
+          local.set 2   ; _main.vader:47:33
           br $L1   ; _main.vader:45:5
         else   ; _main.vader:47:13
           local.get 3   ; _main.vader:48:13
@@ -49,13 +42,7 @@ fn 0 tests_snippets_trait_dispatch_generic_iter__main_vader$walk (ref) -> i32
             local.get 1   ; _main.vader:48:45
             local.get 4   ; _main.vader:48:45
             i32.add   ; _main.vader:48:45
-            local.set 5   ; _main.vader:47:13
-            local.get 2   ; _main.vader:47:13
-            local.set 6   ; _main.vader:47:13
-            local.get 5   ; _main.vader:45:5
-            local.set 1   ; _main.vader:45:5
-            local.get 6   ; _main.vader:45:5
-            local.set 2   ; _main.vader:45:5
+            local.set 1   ; _main.vader:48:45
             br $L1   ; _main.vader:45:5
           else   ; _main.vader:48:13
             unreachable   ; _main.vader:46:9
@@ -70,12 +57,12 @@ fn 0 tests_snippets_trait_dispatch_generic_iter__main_vader$walk (ref) -> i32
 end
 
 fn 1 tests_snippets_trait_dispatch_generic_iter__main_vader$main () -> i32
-  local "r#19" ref
-  local "o#22" ref
-  local "__sb_0#24" any
-  local "$call_11#26" i32
-  local "__sb_1#29" any
-  local "$call_16#31" i32
+  local r ref
+  local o ref
+  local __sb_0 any
+  local $call_11 i32
+  local __sb_1 any
+  local $call_16 i32
   i32.const 7   ; _main.vader:55:10
   i32.const 3   ; _main.vader:55:10
   struct.new 0   ; _main.vader:55:10
@@ -117,10 +104,10 @@ fn 1 tests_snippets_trait_dispatch_generic_iter__main_vader$main () -> i32
 end
 
 fn 2 tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$next__i32 (ref) -> ref
-  local "$field_1#10" i32
-  local "v#14" i32
-  local "$field_7#15" i32
-  local "$sub_9#17" i32
+  local $field_1 i32
+  local v i32
+  local $field_7 i32
+  local $sub_9 i32
   local.get 0   ; _main.vader:22:12
   struct.get 0 1   ; _main.vader:22:12
   local.set 1   ; _main.vader:22:12

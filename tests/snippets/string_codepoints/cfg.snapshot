@@ -4,108 +4,108 @@
 
 fn tests_snippets_string_codepoints__main_vader$main() -> i32
   locals:
-    %0 $intrinsic_0#102: ?
-    %1 __sb_0#103: ? (synthetic __sb_0)
-    %2 $k_2#104: string
-    %3 $k_3#105: string
-    %4 $call_4#106: usize
-    %5 $call_5#107: string
-    %6 $k_6#108: string
-    %7 $k_7#109: string
-    %8 $call_8#110: usize
-    %9 $call_9#111: string
-    %10 $intrinsic_10#112: string
-    %11 $intrinsic_11#113: ?
-    %12 __sb_1#114: ? (synthetic __sb_1)
-    %13 $k_13#115: string
-    %14 $k_14#116: string
-    %15 $call_15#117: usize
-    %16 $call_16#118: string
-    %17 $k_17#119: string
-    %18 $k_18#120: string
-    %19 $call_19#121: usize
-    %20 $call_20#122: string
-    %21 $intrinsic_21#123: string
-    %22 $intrinsic_22#124: ?
-    %23 __sb_2#125: ? (synthetic __sb_2)
-    %24 $k_24#126: string
-    %25 $k_25#127: string
-    %26 $call_26#128: usize
-    %27 $call_27#129: string
-    %28 $k_28#130: string
-    %29 $k_29#131: string
-    %30 $call_30#132: usize
-    %31 $call_31#133: string
-    %32 $intrinsic_32#134: string
-    %33 $intrinsic_33#135: ?
-    %34 __sb_3#136: ? (synthetic __sb_3)
-    %35 $k_35#137: string
-    %36 $k_36#138: string
-    %37 $call_37#139: usize
-    %38 $call_38#140: string
-    %39 $k_39#141: string
-    %40 $k_40#142: string
-    %41 $call_41#143: usize
-    %42 $call_42#144: string
-    %43 $intrinsic_43#145: string
-    %44 $intrinsic_44#146: ?
-    %45 __sb_4#147: ? (synthetic __sb_4)
-    %46 $k_46#148: string
-    %47 $k_47#149: string
-    %48 $call_48#150: usize
-    %49 $call_49#151: string
-    %50 $k_50#152: string
-    %51 $k_51#153: string
-    %52 $call_52#154: usize
-    %53 $call_53#155: string
-    %54 $intrinsic_54#156: string
-    %55 s#157: string (local s)
-    %56 $call_57#158: usize
-    %57 n#159: usize (local n)
-    %58 i#161: usize (local i)
-    %59 $lt_61#162: bool
-    %60 $call_62#163: [char, usize]
-    %61 __tup_5#164: [char, usize] (synthetic __tup_5)
-    %62 c#165: char (local c)
-    %63 w#166: usize (local w)
-    %64 $intrinsic_68#167: ?
-    %65 __sb_6#168: ? (synthetic __sb_6)
-    %66 $k_70#169: string
-    %67 $call_71#170: string
-    %68 $k_72#171: string
-    %69 $k_73#172: string
-    %70 $call_74#173: string
-    %71 $k_75#174: string
-    %72 $intrinsic_76#175: string
-    %73 $intrinsic_78#177: ?
-    %74 __sb_7#178: ? (synthetic __sb_7)
-    %75 $k_80#179: string
-    %76 $k_81#180: char
-    %77 $call_82#181: usize
-    %78 $call_83#182: string
-    %79 $intrinsic_84#183: string
-    %80 $intrinsic_85#184: ?
-    %81 __sb_8#185: ? (synthetic __sb_8)
-    %82 $k_87#186: string
-    %83 $k_88#187: char
-    %84 $call_89#188: usize
-    %85 $call_90#189: string
-    %86 $intrinsic_91#190: string
-    %87 $intrinsic_92#191: ?
-    %88 __sb_9#192: ? (synthetic __sb_9)
-    %89 $k_94#193: string
-    %90 $k_95#194: char
-    %91 $call_96#195: usize
-    %92 $call_97#196: string
-    %93 $intrinsic_98#197: string
-    %94 $intrinsic_99#198: ?
-    %95 __sb_10#199: ? (synthetic __sb_10)
-    %96 $k_101#200: string
-    %97 $k_102#201: char
-    %98 $call_103#202: usize
-    %99 $call_104#203: string
-    %100 $intrinsic_105#204: string
-    %101 $k_106#205: i32
+    %0 $intrinsic_0: ?
+    %1 __sb_0: ? (synthetic __sb_0)
+    %2 $k_2: string
+    %3 $k_3: string
+    %4 $call_4: usize
+    %5 $call_5: string
+    %6 $k_6: string
+    %7 $k_7: string
+    %8 $call_8: usize
+    %9 $call_9: string
+    %10 $intrinsic_10: string
+    %11 $intrinsic_11: ?
+    %12 __sb_1: ? (synthetic __sb_1)
+    %13 $k_13: string
+    %14 $k_14: string
+    %15 $call_15: usize
+    %16 $call_16: string
+    %17 $k_17: string
+    %18 $k_18: string
+    %19 $call_19: usize
+    %20 $call_20: string
+    %21 $intrinsic_21: string
+    %22 $intrinsic_22: ?
+    %23 __sb_2: ? (synthetic __sb_2)
+    %24 $k_24: string
+    %25 $k_25: string
+    %26 $call_26: usize
+    %27 $call_27: string
+    %28 $k_28: string
+    %29 $k_29: string
+    %30 $call_30: usize
+    %31 $call_31: string
+    %32 $intrinsic_32: string
+    %33 $intrinsic_33: ?
+    %34 __sb_3: ? (synthetic __sb_3)
+    %35 $k_35: string
+    %36 $k_36: string
+    %37 $call_37: usize
+    %38 $call_38: string
+    %39 $k_39: string
+    %40 $k_40: string
+    %41 $call_41: usize
+    %42 $call_42: string
+    %43 $intrinsic_43: string
+    %44 $intrinsic_44: ?
+    %45 __sb_4: ? (synthetic __sb_4)
+    %46 $k_46: string
+    %47 $k_47: string
+    %48 $call_48: usize
+    %49 $call_49: string
+    %50 $k_50: string
+    %51 $k_51: string
+    %52 $call_52: usize
+    %53 $call_53: string
+    %54 $intrinsic_54: string
+    %55 s: string (local s)
+    %56 $call_57: usize
+    %57 n: usize (local n)
+    %58 i: usize (local i)
+    %59 $lt_61: bool
+    %60 $call_62: [char, usize]
+    %61 __tup_5: [char, usize] (synthetic __tup_5)
+    %62 c: char (local c)
+    %63 w: usize (local w)
+    %64 $intrinsic_68: ?
+    %65 __sb_6: ? (synthetic __sb_6)
+    %66 $k_70: string
+    %67 $call_71: string
+    %68 $k_72: string
+    %69 $k_73: string
+    %70 $call_74: string
+    %71 $k_75: string
+    %72 $intrinsic_76: string
+    %73 $intrinsic_78: ?
+    %74 __sb_7: ? (synthetic __sb_7)
+    %75 $k_80: string
+    %76 $k_81: char
+    %77 $call_82: usize
+    %78 $call_83: string
+    %79 $intrinsic_84: string
+    %80 $intrinsic_85: ?
+    %81 __sb_8: ? (synthetic __sb_8)
+    %82 $k_87: string
+    %83 $k_88: char
+    %84 $call_89: usize
+    %85 $call_90: string
+    %86 $intrinsic_91: string
+    %87 $intrinsic_92: ?
+    %88 __sb_9: ? (synthetic __sb_9)
+    %89 $k_94: string
+    %90 $k_95: char
+    %91 $call_96: usize
+    %92 $call_97: string
+    %93 $intrinsic_98: string
+    %94 $intrinsic_99: ?
+    %95 __sb_10: ? (synthetic __sb_10)
+    %96 $k_101: string
+    %97 $k_102: char
+    %98 $call_103: usize
+    %99 $call_104: string
+    %100 $intrinsic_105: string
+    %101 $k_106: i32
   bb0:
     %0 = intrinsic builder.new()
     %1 = move %0

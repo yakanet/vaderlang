@@ -4,23 +4,23 @@
 
 fn tests_snippets_tuple_match_nested__main_vader$main() -> i32
   locals:
-    %0 $k_0#17: i32
-    %1 $k_1#18: string
-    %2 $struct_2#19: [i32, string]
-    %3 $k_3#20: bool
-    %4 __scrut_0#21: [[i32, string], bool] (synthetic __scrut_0)
-    %5 $field_7#22: [i32, string]
-    %6 id#23: i32 (binding id)
-    %7 $field_10#24: [i32, string]
-    %8 label#25: string (binding label)
-    %9 active#26: bool (binding active)
-    %10 $intrinsic_15#27: ?
-    %11 __sb_1#28: ? (synthetic __sb_1)
-    %12 $k_17#29: string
-    %13 $k_18#30: string
-    %14 $k_19#31: string
-    %15 $intrinsic_20#32: string
-    %16 $k_21#33: i32
+    %0 $k_0: i32
+    %1 $k_1: string
+    %2 $struct_2: [i32, string]
+    %3 $k_3: bool
+    %4 __scrut_0: [[i32, string], bool] (synthetic __scrut_0)
+    %5 $field_7: [i32, string]
+    %6 id: i32 (binding id)
+    %7 $field_10: [i32, string]
+    %8 label: string (binding label)
+    %9 active: bool (binding active)
+    %10 $intrinsic_15: ?
+    %11 __sb_1: ? (synthetic __sb_1)
+    %12 $k_17: string
+    %13 $k_18: string
+    %14 $k_19: string
+    %15 $intrinsic_20: string
+    %16 $k_21: i32
   bb0:
     %0 = const int(42) :i32
     %1 = const string(#0) :string

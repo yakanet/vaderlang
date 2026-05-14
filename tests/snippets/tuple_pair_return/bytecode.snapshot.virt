@@ -15,11 +15,11 @@ fn 0 tests_snippets_tuple_pair_return__main_vader$make_pair () -> ref
 end
 
 fn 1 tests_snippets_tuple_pair_return__main_vader$main () -> i32
-  local "p#14" ref
-  local "__sb_0#16" any
-  local "$field_5#18" i32
-  local "__sb_1#21" any
-  local "$field_10#23" string
+  local p ref
+  local __sb_0 any
+  local $field_5 i32
+  local __sb_1 any
+  local $field_10 string
   call 0   ; _main.vader:9:10
   local.set 0   ; _main.vader:9:5
   intrinsic builder.new   ; _main.vader:10:13

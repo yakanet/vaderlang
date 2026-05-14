@@ -6,12 +6,12 @@ fn tests_snippets_interp_display__main_vader$greet(%0: string, %1: i32) -> strin
   locals:
     %0 name: string (param name)
     %1 age: i32 (param age)
-    %2 $intrinsic_2#8: ?
-    %3 __sb_0#9: ? (synthetic __sb_0)
-    %4 $k_4#10: string
-    %5 $k_5#11: string
-    %6 $k_6#12: string
-    %7 $intrinsic_7#13: string
+    %2 $intrinsic_2: ?
+    %3 __sb_0: ? (synthetic __sb_0)
+    %4 $k_4: string
+    %5 $k_5: string
+    %6 $k_6: string
+    %7 $intrinsic_7: string
   bb0:
     %2 = intrinsic builder.new()
     %3 = move %2

@@ -17,7 +17,7 @@ fn 1 tests_snippets_fn_value_arg__main_vader$inc (i32) -> i32
 end
 
 fn 2 tests_snippets_fn_value_arg__main_vader$main () -> i32
-  local "$fn_ref_0#3" ref
+  local $fn_ref_0 ref
   fn.ref 1 0   ; _main.vader:10:18
   local.set 0   ; _main.vader:10:18
   local.get 0   ; _main.vader:10:12

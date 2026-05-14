@@ -12,23 +12,23 @@ string 6 "pair str   = "
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_generic_type_alias__main_vader$main () -> i32
-  local "x#35" ref
-  local "y#36" ref
-  local "__scrut_0#37" ref
-  local "__sb_1#42" any
-  local "$cast_11#44" i32
-  local "__scrut_2#46" ref
-  local "__sb_3#51" any
-  local "$k_19#52" string
-  local "$cast_20#53" i32
-  local "p#55" ref
-  local "__scrut_4#56" ref
-  local "__sb_6#59" any
-  local "$k_28#60" string
-  local "$cast_29#61" i32
-  local "__sb_5#65" any
-  local "$k_34#66" string
-  local "$cast_35#67" string
+  local x ref
+  local y ref
+  local __scrut_0 ref
+  local __sb_1 any
+  local $cast_11 i32
+  local __scrut_2 ref
+  local __sb_3 any
+  local $k_19 string
+  local $cast_20 i32
+  local p ref
+  local __scrut_4 ref
+  local __sb_6 any
+  local $k_28 string
+  local $cast_29 i32
+  local __sb_5 any
+  local $k_34 string
+  local $cast_35 string
   i32.const 42   ; _main.vader:14:21
   local.set 0   ; _main.vader:14:21
   null.const   ; _main.vader:15:21

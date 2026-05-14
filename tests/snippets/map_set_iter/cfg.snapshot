@@ -4,53 +4,51 @@
 
 fn tests_snippets_map_set_iter__main_vader$main() -> i32
   locals:
-    %0 $arr_0#45: Entry(string, i32) | null[]
-    %1 $k_1#46: usize
-    %2 m#47: MutableMap(string, i32) (local m)
-    %3 $k_4#48: string
-    %4 $k_5#49: i32
-    %5 $k_6#50: string
-    %6 $k_7#51: i32
-    %7 $k_8#52: string
-    %8 $k_9#53: i32
-    %9 $call_12#55: MapIterator(string, i32)
-    %10 __iter_0#56: MapIterator(string, i32) (synthetic __iter_0)
-    %11 total#57: i32 (local total)
-    %12 $call_14#58: Done | Yielded(Entry(string, i32))
-    %13 __step_1#59: Done | Yielded(Entry(string, i32)) (synthetic __step_1)
-    %14 $type_check_16#60: bool
-    %15 $intrinsic_22#61: ?
-    %16 __sb_2#62: ? (synthetic __sb_2)
-    %17 $k_24#63: string
-    %18 $intrinsic_25#64: string
-    %19 $arr_26#65: Entry(i32, bool) | null[]
-    %20 $k_27#66: usize
-    %21 $struct_28#67: MutableMap(i32, bool)
-    %22 s#68: MutableSet(i32) (local s)
-    %23 $k_31#69: i32
-    %24 $call_32#70: bool
-    %25 $k_33#71: i32
-    %26 $call_34#72: bool
-    %27 $k_35#73: i32
-    %28 $call_36#74: bool
-    %29 $call_39#76: SetIterator(i32)
-    %30 __iter_3#77: SetIterator(i32) (synthetic __iter_3)
-    %31 sum#78: i32 (local sum)
-    %32 $call_41#79: Done | Yielded(i32)
-    %33 __step_4#80: Done | Yielded(i32) (synthetic __step_4)
-    %34 $type_check_43#81: bool
-    %35 $intrinsic_48#82: ?
-    %36 __sb_5#83: ? (synthetic __sb_5)
-    %37 $k_50#84: string
-    %38 $intrinsic_51#85: string
-    %39 $k_52#86: i32
-    %40 $cast_44#87: Yielded(i32)
-    %41 v#88: i32 (binding v)
-    %42 sum#89: i32 (local sum)
-    %43 $cast_17#90: Yielded(Entry(string, i32))
-    %44 entry#91: Entry(string, i32) (binding entry)
-    %45 $field_20#92: i32
-    %46 total#93: i32 (local total)
+    %0 $arr_0: Entry(string, i32) | null[]
+    %1 $k_1: usize
+    %2 m: MutableMap(string, i32) (local m)
+    %3 $k_4: string
+    %4 $k_5: i32
+    %5 $k_6: string
+    %6 $k_7: i32
+    %7 $k_8: string
+    %8 $k_9: i32
+    %9 total: i32 (local total)
+    %10 $call_12: MapIterator(string, i32)
+    %11 __iter_0: MapIterator(string, i32) (synthetic __iter_0)
+    %12 $call_14: Done | Yielded(Entry(string, i32))
+    %13 __step_1: Done | Yielded(Entry(string, i32)) (synthetic __step_1)
+    %14 $type_check_16: bool
+    %15 $cast_17: Yielded(Entry(string, i32))
+    %16 entry: Entry(string, i32) (binding entry)
+    %17 $field_20: i32
+    %18 $intrinsic_22: ?
+    %19 __sb_2: ? (synthetic __sb_2)
+    %20 $k_24: string
+    %21 $intrinsic_25: string
+    %22 $arr_26: Entry(i32, bool) | null[]
+    %23 $k_27: usize
+    %24 $struct_28: MutableMap(i32, bool)
+    %25 s: MutableSet(i32) (local s)
+    %26 $k_31: i32
+    %27 $call_32: bool
+    %28 $k_33: i32
+    %29 $call_34: bool
+    %30 $k_35: i32
+    %31 $call_36: bool
+    %32 sum: i32 (local sum)
+    %33 $call_39: SetIterator(i32)
+    %34 __iter_3: SetIterator(i32) (synthetic __iter_3)
+    %35 $call_41: Done | Yielded(i32)
+    %36 __step_4: Done | Yielded(i32) (synthetic __step_4)
+    %37 $type_check_43: bool
+    %38 $cast_44: Yielded(i32)
+    %39 v: i32 (binding v)
+    %40 $intrinsic_48: ?
+    %41 __sb_5: ? (synthetic __sb_5)
+    %42 $k_50: string
+    %43 $intrinsic_51: string
+    %44 $k_52: i32
   bb0:
     %0 = array_new Entry(string, i32) | null[][0]()
     %1 = const int(0) :usize
@@ -64,74 +62,72 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
     %7 = const string(#2) :string
     %8 = const int(3) :i32
     call set_at(%2, %7, %8) :void
-    %11 = const int(0) :i32
-    %9 = call iter(%2) :MapIterator(string, i32)
-    %10 = move %9
+    %9 = const int(0) :i32
+    %10 = call iter(%2) :MapIterator(string, i32)
+    %11 = move %10
     branch -> bb1
   bb1:
     branch -> bb2
   bb2:
-    %12 = call next(%10) :Done | Yielded(Entry(string, i32))
+    %12 = call next(%11) :Done | Yielded(Entry(string, i32))
     %13 = move %12
     %14 = type_check %13 is Done
     cond_branch %14 ? bb4 : bb5
   bb3:
-    %15 = intrinsic builder.new()
-    %16 = move %15
-    %17 = const string(#3) :string
-    intrinsic builder.append_str(%16, %17)
-    intrinsic builder.append_display(%16, %11)
-    %18 = intrinsic builder.finish(%16)
-    call println(%18) :void
-    %19 = array_new Entry(i32, bool) | null[][0]()
-    %20 = const int(0) :usize
-    %21 = struct_new MutableMap(i32, bool)(%19, %20)
-    %22 = struct_new MutableSet(i32)(%21)
-    %23 = const int(10) :i32
-    %24 = call add(%22, %23) :bool
-    %25 = const int(20) :i32
-    %26 = call add(%22, %25) :bool
-    %27 = const int(30) :i32
-    %28 = call add(%22, %27) :bool
-    %31 = const int(0) :i32
-    %29 = call iter(%22) :SetIterator(i32)
-    %30 = move %29
+    %18 = intrinsic builder.new()
+    %19 = move %18
+    %20 = const string(#3) :string
+    intrinsic builder.append_str(%19, %20)
+    intrinsic builder.append_display(%19, %9)
+    %21 = intrinsic builder.finish(%19)
+    call println(%21) :void
+    %22 = array_new Entry(i32, bool) | null[][0]()
+    %23 = const int(0) :usize
+    %24 = struct_new MutableMap(i32, bool)(%22, %23)
+    %25 = struct_new MutableSet(i32)(%24)
+    %26 = const int(10) :i32
+    %27 = call add(%25, %26) :bool
+    %28 = const int(20) :i32
+    %29 = call add(%25, %28) :bool
+    %30 = const int(30) :i32
+    %31 = call add(%25, %30) :bool
+    %32 = const int(0) :i32
+    %33 = call iter(%25) :SetIterator(i32)
+    %34 = move %33
     branch -> bb7
   bb4:
     branch -> bb3
   bb5:
-    %43 = cast %13 :Yielded(Entry(string, i32))
-    %44 = field_get %43.value :Entry(string, i32)
-    %45 = field_get %44.value :i32
-    %46 = binop add %11 %45 :i32
+    %15 = cast %13 :Yielded(Entry(string, i32))
+    %16 = field_get %15.value :Entry(string, i32)
+    %17 = field_get %16.value :i32
+    %9 = binop add %9 %17 :i32
     branch -> bb6
   bb6:
-    %11 = move %46
     branch -> bb1
   bb7:
     branch -> bb8
   bb8:
-    %32 = call next(%30) :Done | Yielded(i32)
-    %33 = move %32
-    %34 = type_check %33 is Done
-    cond_branch %34 ? bb10 : bb11
-  bb9:
-    %35 = intrinsic builder.new()
+    %35 = call next(%34) :Done | Yielded(i32)
     %36 = move %35
-    %37 = const string(#4) :string
-    intrinsic builder.append_str(%36, %37)
-    intrinsic builder.append_display(%36, %31)
-    %38 = intrinsic builder.finish(%36)
-    call println(%38) :void
-    %39 = const int(0) :i32
-    return %39
+    %37 = type_check %36 is Done
+    cond_branch %37 ? bb10 : bb11
+  bb9:
+    %40 = intrinsic builder.new()
+    %41 = move %40
+    %42 = const string(#4) :string
+    intrinsic builder.append_str(%41, %42)
+    intrinsic builder.append_display(%41, %32)
+    %43 = intrinsic builder.finish(%41)
+    call println(%43) :void
+    %44 = const int(0) :i32
+    return %44
   bb10:
     branch -> bb9
   bb11:
-    %40 = cast %33 :Yielded(i32)
-    %41 = field_get %40.value :i32
-    %42 = binop add %31 %41 :i32
+    %38 = cast %36 :Yielded(i32)
+    %39 = field_get %38.value :i32
+    %32 = binop add %32 %39 :i32
     branch -> bb12
   bb12:
-    %31 = move %42
     branch -> bb7

@@ -4,26 +4,26 @@
 
 fn tests_snippets_io_roundtrip__main_vader$main() -> i32
   locals:
-    %0 path#20: string (local path)
-    %1 $k_2#21: string
-    %2 $call_3#22: Error | null
-    %3 $intrinsic_4#23: ?
-    %4 __sb_0#24: ? (synthetic __sb_0)
-    %5 $k_6#25: string
-    %6 $call_7#26: bool
-    %7 $intrinsic_8#27: string
-    %8 $call_9#28: Error | string
-    %9 contents#29: Error | string (local contents)
-    %10 __scrut_1#30: Error | string (synthetic __scrut_1)
-    %11 $type_check_12#31: bool
-    %12 $intrinsic_13#32: ?
-    %13 __sb_2#33: ? (synthetic __sb_2)
-    %14 $k_15#34: string
-    %15 $cast_16#35: string
-    %16 $intrinsic_17#36: string
-    %17 $type_check_18#37: bool
-    %18 $k_19#38: string
-    %19 $k_20#39: i32
+    %0 path: string (local path)
+    %1 $k_2: string
+    %2 $call_3: Error | null
+    %3 $intrinsic_4: ?
+    %4 __sb_0: ? (synthetic __sb_0)
+    %5 $k_6: string
+    %6 $call_7: bool
+    %7 $intrinsic_8: string
+    %8 $call_9: Error | string
+    %9 contents: Error | string (local contents)
+    %10 __scrut_1: Error | string (synthetic __scrut_1)
+    %11 $type_check_12: bool
+    %12 $intrinsic_13: ?
+    %13 __sb_2: ? (synthetic __sb_2)
+    %14 $k_15: string
+    %15 $cast_16: string
+    %16 $intrinsic_17: string
+    %17 $type_check_18: bool
+    %18 $k_19: string
+    %19 $k_20: i32
   bb0:
     %0 = const string(#0) :string
     %1 = const string(#1) :string

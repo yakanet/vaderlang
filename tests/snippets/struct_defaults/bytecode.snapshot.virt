@@ -11,21 +11,21 @@ string 4 " debug="
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_struct_defaults__main_vader$main () -> i32
-  local "s1#40" ref
-  local "s2#44" ref
-  local "s3#48" ref
-  local "__sb_0#50" any
-  local "$field_17#51" string
-  local "$field_19#53" i32
-  local "$field_21#55" bool
-  local "__sb_1#58" any
-  local "$field_25#59" string
-  local "$field_27#61" i32
-  local "$field_29#63" bool
-  local "__sb_2#66" any
-  local "$field_33#67" string
-  local "$field_35#69" i32
-  local "$field_37#71" bool
+  local s1 ref
+  local s2 ref
+  local s3 ref
+  local __sb_0 any
+  local $field_17 string
+  local $field_19 i32
+  local $field_21 bool
+  local __sb_1 any
+  local $field_25 string
+  local $field_27 i32
+  local $field_29 bool
+  local __sb_2 any
+  local $field_33 string
+  local $field_35 i32
+  local $field_37 bool
   string.const 0   ; _main.vader:10:11
   i32.const 30   ; _main.vader:10:11
   bool.const false   ; _main.vader:10:11

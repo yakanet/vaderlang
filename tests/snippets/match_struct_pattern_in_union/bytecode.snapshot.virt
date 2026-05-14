@@ -9,10 +9,10 @@ string 3 ")"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_match_struct_pattern_in_union__main_vader$describe (ref) -> string
-  local "__scrut_0#17" ref
-  local "x#22" i32
-  local "y#24" i32
-  local "__sb_1#26" any
+  local __scrut_0 ref
+  local x i32
+  local y i32
+  local __sb_1 any
   local.get 0   ; _main.vader:12:18
   local.tee 1   ; _main.vader:12:18
   type_check 2   ; _main.vader:13:9

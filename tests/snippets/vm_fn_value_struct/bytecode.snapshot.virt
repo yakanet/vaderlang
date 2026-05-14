@@ -11,7 +11,7 @@ fn 0 tests_snippets_vm_fn_value_struct__main_vader$mul (i32,i32) -> i32
 end
 
 fn 1 tests_snippets_vm_fn_value_struct__main_vader$main () -> i32
-  local "$field_3#8" ref
+  local $field_3 ref
   fn.ref 0 1   ; _main.vader:14:29
   struct.new_stack 0   ; _main.vader:14:10
   struct.get 0 0   ; _main.vader:15:12

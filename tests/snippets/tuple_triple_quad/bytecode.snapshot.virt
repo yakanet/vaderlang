@@ -11,17 +11,17 @@ string 2 "q"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_tuple_triple_quad__main_vader$main () -> i32
-  local "triple#31" ref
-  local "__sb_0#33" any
-  local "$field_7#34" i32
-  local "$field_9#36" string
-  local "$field_11#38" bool
-  local "quad#44" ref
-  local "__sb_1#46" any
-  local "$field_21#47" i32
-  local "$field_23#49" string
-  local "$field_25#51" bool
-  local "$field_27#53" f64
+  local triple ref
+  local __sb_0 any
+  local $field_7 i32
+  local $field_9 string
+  local $field_11 bool
+  local quad ref
+  local __sb_1 any
+  local $field_21 i32
+  local $field_23 string
+  local $field_25 bool
+  local $field_27 f64
   i32.const 1   ; _main.vader:7:35
   string.const 0   ; _main.vader:7:35
   bool.const true   ; _main.vader:7:35

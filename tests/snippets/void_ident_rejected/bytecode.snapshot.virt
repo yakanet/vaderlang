@@ -2,7 +2,7 @@ module _main
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_void_ident_rejected__main_vader$mk () -> void
-  local "__sb_0#6" any
+  local __sb_0 any
   intrinsic builder.new   ; _main.vader:6:13
   local.tee 0   ; _main.vader:6:13
   i32.const 42   ; _main.vader:6:14

@@ -22,28 +22,28 @@ import 2 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> s
 impl 0 Display
 
 fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
-  local "__sb_0#72" any
-  local "$call_6#77" string
-  local "__sb_1#81" any
-  local "$call_15#86" string
-  local "__sb_2#90" any
-  local "$call_24#95" string
-  local "n#98" u64
-  local "__sb_3#100" any
-  local "$call_32#102" string
-  local "__sb_4#105" any
-  local "$call_37#107" string
-  local "__sb_5#110" any
-  local "$call_42#112" string
-  local "$call_45#115" string
-  local "__sb_6#119" any
-  local "$call_52#121" string
-  local "__sb_7#124" any
-  local "$call_58#127" bool
-  local "__sb_8#130" any
-  local "$call_64#133" bool
-  local "__sb_9#136" any
-  local "$call_70#139" bool
+  local __sb_0 any
+  local $call_6 string
+  local __sb_1 any
+  local $call_15 string
+  local __sb_2 any
+  local $call_24 string
+  local n u64
+  local __sb_3 any
+  local $call_32 string
+  local __sb_4 any
+  local $call_37 string
+  local __sb_5 any
+  local $call_42 string
+  local $call_45 string
+  local __sb_6 any
+  local $call_52 string
+  local __sb_7 any
+  local $call_58 bool
+  local __sb_8 any
+  local $call_64 bool
+  local __sb_9 any
+  local $call_70 bool
   intrinsic builder.new   ; _main.vader:6:13
   local.set 0   ; _main.vader:6:13
   local.get 0   ; _main.vader:6:14
@@ -216,9 +216,9 @@ fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
 end
 
 fn 1 std_string$pad_start (string,usize,char) -> string
-  local "n#13" usize
-  local "sb#16" ref
-  local "i#18" usize
+  local n usize
+  local sb ref
+  local i usize
   local.get 0   ; string.vader:270:10
   call.import 1   ; string.vader:270:10
   local.tee 3   ; string.vader:270:5
@@ -261,9 +261,9 @@ fn 1 std_string$pad_start (string,usize,char) -> string
 end
 
 fn 2 std_string$pad_end (string,usize,char) -> string
-  local "n#13" usize
-  local "sb#16" ref
-  local "i#18" usize
+  local n usize
+  local sb ref
+  local i usize
   local.get 0   ; string.vader:287:10
   call.import 1   ; string.vader:287:10
   local.tee 3   ; string.vader:287:5
@@ -305,9 +305,9 @@ fn 2 std_string$pad_end (string,usize,char) -> string
 end
 
 fn 3 std_string$is_white_char (char) -> bool
-  local "or_res#14" bool
-  local "or_res#18" bool
-  local "or_res#22" bool
+  local or_res bool
+  local or_res bool
+  local or_res bool
   local.get 0   ; string.vader:303:39
   char.const 32   ; string.vader:303:39
   char.eq   ; string.vader:303:39
@@ -345,13 +345,13 @@ fn 3 std_string$is_white_char (char) -> bool
 end
 
 fn 4 std_numbers$hex_digit (u64) -> char
-  local "$cast_2#18" u64
-  local "$cast_5#21" u32
-  local "$cast_6#22" u32
-  local "$cast_10#26" u32
-  local "$cast_11#27" u32
-  local "$add_12#28" u32
-  local "$cast_14#30" u32
+  local $cast_2 u64
+  local $cast_5 u32
+  local $cast_6 u32
+  local $cast_10 u32
+  local $cast_11 u32
+  local $add_12 u32
+  local $cast_14 u32
   i32.const 9   ; numbers.vader:92:17
   i32.to_u64   ; numbers.vader:92:13
   local.set 1   ; numbers.vader:92:13
@@ -393,15 +393,15 @@ fn 4 std_numbers$hex_digit (u64) -> char
 end
 
 fn 5 std_numbers$to_hex (u64) -> string
-  local "rev#25" ref
-  local "base#26" u64
-  local "x#28" u64
-  local "$call_12#32" char
-  local "sb#35" ref
-  local "n#36" usize
-  local "k#38" usize
-  local "$sub_23#42" usize
-  local "$idx_24#43" char
+  local rev ref
+  local base u64
+  local x u64
+  local $call_12 char
+  local sb ref
+  local n usize
+  local k usize
+  local $sub_23 usize
+  local $idx_24 char
   local.get 0   ; numbers.vader:106:8
   i64.const 0   ; numbers.vader:106:8
   i64.to_u64   ; numbers.vader:106:8
@@ -485,15 +485,15 @@ fn 5 std_numbers$to_hex (u64) -> string
 end
 
 fn 6 std_numbers$to_bin (u64) -> string
-  local "rev#28" ref
-  local "two#29" u64
-  local "x#31" u64
-  local "$mod_11#34" u64
-  local "sb#41" ref
-  local "n#42" usize
-  local "k#44" usize
-  local "$sub_26#48" usize
-  local "$idx_27#49" char
+  local rev ref
+  local two u64
+  local x u64
+  local $mod_11 u64
+  local sb ref
+  local n usize
+  local k usize
+  local $sub_26 usize
+  local $idx_27 char
   local.get 0   ; numbers.vader:133:8
   i64.const 0   ; numbers.vader:133:8
   i64.to_u64   ; numbers.vader:133:8
@@ -600,9 +600,9 @@ fn 8 std_string_builder$append (ref,string) -> void
 end
 
 fn 9 std_string_builder$append_char (ref,char) -> void
-  local "$field_2#6" ref
-  local "__sb_0#8" any
-  local "$intrinsic_5#9" string
+  local $field_2 ref
+  local __sb_0 any
+  local $intrinsic_5 string
   local.get 0   ; string_builder.vader:40:5
   struct.get 0 0   ; string_builder.vader:40:5
   local.set 2   ; string_builder.vader:40:5

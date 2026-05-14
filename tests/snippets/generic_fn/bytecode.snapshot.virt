@@ -6,11 +6,11 @@ string 1 "v = "
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_generic_fn__main_vader$main () -> i32
-  local "n#21" i32
-  local "__sb_0#23" any
-  local "arr#29" ref
-  local "v#32" i32
-  local "__sb_1#34" any
+  local n i32
+  local __sb_0 any
+  local arr ref
+  local v i32
+  local __sb_1 any
   i32.const 42   ; _main.vader:15:10
   call 1   ; _main.vader:15:10
   local.set 0   ; _main.vader:15:5
@@ -55,7 +55,7 @@ fn 1 tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader
 end
 
 fn 2 tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$first__i32 (ref,i32) -> i32
-  local "$len_2#7" usize
+  local $len_2 usize
   local.get 0   ; _main.vader:8:8
   array.len   ; _main.vader:8:8
   local.set 2   ; _main.vader:8:8
