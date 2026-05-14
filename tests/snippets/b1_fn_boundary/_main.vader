@@ -1,0 +1,44 @@
+// Exercises B1 (nullable-ref inline rep) at the fn-signature boundary.
+// `Node | null` flows through `find` as the param and through `cons` as
+// the return type ; both routes pass through `void*` at the C ABI
+// instead of `vader_box_t`. The roundtrip below also tests that null and
+// non-null variants survive intact across the conversion.
+
+import "std/io" { println }
+
+Node :: struct {
+    value: i32
+    next:  Node | null
+}
+
+cons :: fn(head: i32, tail: Node | null) -> Node | null {
+    return Node { .value = head, .next = tail }
+}
+
+find :: fn(n: Node | null, needle: i32) -> Node | null {
+    match n {
+        is null      -> null
+        is Node as h -> if h.value == needle { h } else { find(h.next, needle) }
+    }
+}
+
+length :: fn(n: Node | null) -> i32 {
+    match n {
+        is null      -> 0
+        is Node as h -> 1 + length(h.next)
+    }
+}
+
+main :: fn() -> i32 {
+    head :: cons(1, cons(2, cons(3, null)))
+    println("length=${length(head)}")
+    match find(head, 2) {
+        is null      -> { println("not found") }
+        is Node as h -> { println("found ${h.value}") }
+    }
+    match find(head, 42) {
+        is null      -> { println("not found") }
+        is Node as h -> { println("found ${h.value}") }
+    }
+    return 0
+}

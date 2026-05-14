@@ -122,6 +122,20 @@ static inline bool vader_box_eq(vader_box_t a, vader_box_t b) {
     return a.tag == b.tag && a.payload.obj == b.payload.obj;
 }
 
+/* B1 (nullable-ref inline rep) helpers — used at fn signature boundaries
+ * when a `T | null` union with T a single heap struct flows through. The
+ * value passes as a raw `void*` (NULL = null variant, non-NULL = ref to
+ * T) instead of a 24-byte `vader_box_t`. The two helpers below shift
+ * between the wire form and the boxed form at the call boundary. */
+static inline vader_box_t vader_b1_to_box(void* p, uint32_t variant_tag) {
+    return p == NULL ? vader_box_null() : vader_box_obj(variant_tag, p);
+}
+static inline void* vader_box_to_b1(vader_box_t b) {
+    /* Null-variant tags (or any non-ref payload) collapse to NULL ;
+     * non-null variants forward their object pointer. */
+    return (b.tag == VADER_BOX_TAG_NULL) ? NULL : b.payload.obj;
+}
+
 /* ----------------------------------------------------------------- struct */
 
 /* Each emitted struct decl produces a C struct with a header and per-field

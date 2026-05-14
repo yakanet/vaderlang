@@ -20,43 +20,63 @@ import { inlineVariantPayload, nullableRefVariant } from "../bytecode/types.ts";
 import type { EmitCtx } from "./emit.ts";
 import { cStringLit, cStringLitFromBytes, escapeC, sanitise } from "./emit.ts";
 import {
-  boxExpr, boxExprUnknown, coerce, coerceExpr, cTypeFor, cTypeForVal,
-  cTypeForValBare, decl, isRefVal, line, nameOf, newTmp, peek, pop,
-  primitiveMatchesType, pushBinop, pushBinopAny, pushFnCall2, pushLit,
-  pushLocalRef, pushUnop, signatureFor, unboxExpr, valTypeOfBcType,
-  valTypeOfField, zeroInit,
+  b1SlotVariant, boxExpr, boxExprUnknown, coerce, coerceExpr, cTypeFor,
+  cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, decl, isRefVal, line,
+  nameOf, newTmp, peek, pop, primitiveMatchesType, pushBinop, pushBinopAny,
+  pushFnCall2, pushLit, pushLocalRef, pushUnop, signatureFor, unboxExpr,
+  valTypeOfBcType, valTypeOfField, zeroInit,
   type FnState,
 } from "./body.ts";
 
 export function emitCall(s: FnState, op: Extract<Op, { kind: "call" }>): void {
   const callee = s.ctx.module.functions[op.fnIndex]!;
-  const args: string[] = [];
-  for (let i = callee.signature.params.length - 1; i >= 0; i--) {
-    const v = pop(s);
-    args.unshift(coerce(s, v.name, v.val, callee.signature.params[i]!));
-  }
-  if (callee.signature.result === "void") {
-    line(s, `${s.ctx.fnNames[op.fnIndex]!}(${args.join(", ")});`);
-  } else {
-    const t = newTmp(s, callee.signature.result);
-    line(s, `${decl(s, callee.signature.result, t)} = ${s.ctx.fnNames[op.fnIndex]!}(${args.join(", ")});`);
-  }
+  emitCallTo(s, s.ctx.fnNames[op.fnIndex]!, callee.signature);
 }
 
 export function emitCallImport(s: FnState, op: Extract<Op, { kind: "call.import" }>): void {
   const imp = s.ctx.module.imports[op.importIndex]!;
+  emitCallTo(s, `vader_import_${op.importIndex}`, imp.signature);
+}
+
+/** Shared C-emit path for direct calls (own fns + imports). Pops args
+ *  off the value stack in reverse, coerces them through B1 boundaries
+ *  if the callee expects a `void*`, and re-boxes a B1 return back into
+ *  a `vader_box_t` tmp so downstream ops continue to see a normal ref
+ *  value on the stack. */
+function emitCallTo(s: FnState, calleeName: string, sig: BcSignature): void {
   const args: string[] = [];
-  for (let i = imp.signature.params.length - 1; i >= 0; i--) {
+  for (let i = sig.params.length - 1; i >= 0; i--) {
     const v = pop(s);
-    args.unshift(coerce(s, v.name, v.val, imp.signature.params[i]!));
+    const boxed = coerce(s, v.name, v.val, sig.params[i]!);
+    args.unshift(coerceForB1Arg(s.ctx, boxed, sig.paramTypes[i]!));
   }
-  const callee = `vader_import_${op.importIndex}`;
-  if (imp.signature.result === "void") {
-    line(s, `${callee}(${args.join(", ")});`);
-  } else {
-    const t = newTmp(s, imp.signature.result);
-    line(s, `${decl(s, imp.signature.result, t)} = ${callee}(${args.join(", ")});`);
+  const callExpr = `${calleeName}(${args.join(", ")})`;
+  emitCallResult(s, callExpr, sig.result, sig.resultType);
+}
+
+/** Lower a (callExpr, expected result valType, result BcType idx)
+ *  triple into a statement that captures the result on the value stack
+ *  — re-boxing void* via `vader_b1_to_box` when the slot is B1. */
+function emitCallResult(s: FnState, callExpr: string, retVal: ValType, retTypeIndex: number): void {
+  if (retVal === "void") {
+    line(s, `${callExpr};`);
+    return;
   }
+  const b1 = b1SlotVariant(s.ctx, retTypeIndex);
+  if (b1 !== null) {
+    const raw = newTmp(s, "ref");
+    line(s, `void* ${raw}_b1 = ${callExpr};`);
+    line(s, `${decl(s, "ref", raw)} = vader_b1_to_box(${raw}_b1, ${b1}u);`);
+    return;
+  }
+  const t = newTmp(s, retVal);
+  line(s, `${decl(s, retVal, t)} = ${callExpr};`);
+}
+
+/** When the callee's slot is B1, downgrade the boxed arg to a raw
+ *  `void*`. Otherwise pass the boxed C expression through unchanged. */
+function coerceForB1Arg(ctx: EmitCtx, boxed: string, slotTypeIndex: number): string {
+  return b1SlotVariant(ctx, slotTypeIndex) !== null ? `vader_box_to_b1(${boxed})` : boxed;
 }
 
 export function emitFnRef(s: FnState, op: Extract<Op, { kind: "fn.ref" }>): void {
@@ -202,19 +222,15 @@ export function emitCallIndirect(s: FnState, op: Extract<Op, { kind: "call.indir
   for (let i = t.params.length - 1; i >= 0; i--) {
     const v = pop(s);
     const expectedVal = valTypeOfBcType(s.ctx.module.types[t.params[i]!]!);
-    args.unshift(coerce(s, v.name, v.val, expectedVal));
+    const boxed = coerce(s, v.name, v.val, expectedVal);
+    args.unshift(coerceForB1Arg(s.ctx, boxed, t.params[i]!));
   }
   const retVal = valTypeOfBcType(s.ctx.module.types[t.returnType]!);
   const fnObj = `fnobj_${s.tmpCounter++}`;
   line(s, `vader_fn_t* ${fnObj} = (vader_fn_t*) ${fnVal.name}.payload.obj;`);
   const callArgs = args.length === 0 ? `${fnObj}->env` : `${fnObj}->env, ${args.join(", ")}`;
-  const call = `((vader_fn_sig_${op.typeIndex}_t) ${fnObj}->code)(${callArgs})`;
-  if (retVal === "void") {
-    line(s, `${call};`);
-  } else {
-    const tmp = newTmp(s, retVal);
-    line(s, `${decl(s, retVal, tmp)} = ${call};`);
-  }
+  const callExpr = `((vader_fn_sig_${op.typeIndex}_t) ${fnObj}->code)(${callArgs})`;
+  emitCallResult(s, callExpr, retVal, t.returnType);
 }
 
 export function emitIntrinsic(s: FnState, op: Extract<Op, { kind: "intrinsic" }>): void {
@@ -366,7 +382,7 @@ export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }
   // back to a `vader_box_t` so downstream ops see a uniform value rep.
   // NULL → null-tagged box ; non-null → ref-tagged box with the variant's
   // type index.
-  const refVariant = nullableRefVariantOfField(s.ctx, f.typeIndex);
+  const refVariant = b1SlotVariant(s.ctx, f.typeIndex);
   if (refVariant !== null) {
     const nullTag = s.ctx.primitiveTagOf.get("null") ?? 0;
     const tmp = newTmp(s, fval);
@@ -407,13 +423,7 @@ export function emitStructSet(
 /** True when the type at index `typeIndex` is a `T | null` union with T a
  *  single heap-type — the c-emit then stores the slot as a raw `void*`. */
 function isNullableRefField(ctx: EmitCtx, typeIndex: number): boolean {
-  return nullableRefVariantOfField(ctx, typeIndex) !== null;
-}
-
-function nullableRefVariantOfField(ctx: EmitCtx, typeIndex: number): number | null {
-  const t = ctx.module.types[typeIndex];
-  if (t === undefined || t.kind !== "union") return null;
-  return nullableRefVariant(t, ctx.module.types);
+  return b1SlotVariant(ctx, typeIndex) !== null;
 }
 
 /** Coerce a stack value holding a heap reference to a `void*`. Boxed values

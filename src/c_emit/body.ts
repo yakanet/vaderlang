@@ -17,6 +17,7 @@ import type { BcFunction, BcImport, BcSignature, BytecodeModule } from "../bytec
 import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
+import { nullableRefVariant } from "../bytecode/types.ts";
 
 import type { EmitCtx } from "./emit.ts";
 import { cStringLit, cStringLitFromBytes, escapeC, floatLit, i32LitC, i64LitC, sanitise } from "./emit.ts";
@@ -64,6 +65,15 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
     for (let i = 0; i < fn.signature.params.length; i++) {
       if (isRefVal(fn.signature.params[i]!)) rootAddrs.push(`&l${i}`);
     }
+  }
+
+  // B1 param prologue : the signature received the param as a `void*`
+  // (`lN_b1`). Re-box it into a `vader_box_t lN` so the body code path
+  // (which uniformly reads `lN` as a boxed value) stays unchanged.
+  for (let i = 0; i < fn.signature.params.length; i++) {
+    const variantTag = b1SlotVariant(ctx, fn.signature.paramTypes[i]!);
+    if (variantTag === null) continue;
+    out.push(`    vader_box_t l${i} = vader_b1_to_box(l${i}_b1, ${variantTag}u);`);
   }
 
   // Declare local slots (params already declared in the signature). `void`
@@ -539,11 +549,16 @@ function emitReturn(s: FnState): void {
   } else {
     const v = pop(s);
     const ret = coerce(s, v.name, v.val, s.fn.signature.result);
+    // B1 return : downgrade the `vader_box_t` back to a raw `void*` at the
+    // wire level. The body produces a fully boxed value (so match/field
+    // accesses work) ; we strip the tag on the way out.
+    const b1 = b1SlotVariant(s.ctx, s.fn.signature.resultType);
+    const wireRet = b1 !== null ? `vader_box_to_b1(${ret})` : ret;
     if (s.noFrame) {
-      line(s, `return ${ret};`);
+      line(s, `return ${wireRet};`);
     } else {
-      const cret = cTypeForVal(s.ctx, s.fn.signature.result);
-      line(s, `{ ${cret} __vret = ${ret}; vader_gc_top = gc_frame.prev; return __vret; }`);
+      const cret = cTypeForSignatureSlot(s.ctx, s.fn.signature.resultType, s.fn.signature.result);
+      line(s, `{ ${cret} __vret = ${wireRet}; vader_gc_top = gc_frame.prev; return __vret; }`);
     }
   }
   markUnreachable(s);
@@ -825,9 +840,36 @@ export function zeroInit(_ctx: EmitCtx, v: ValType): string {
   }
 }
 
+/** B1 (nullable-ref inline rep) classifier for a signature slot. Returns
+ *  the non-null variant's BcType index when the slot is a `T | null`
+ *  union with T a single heap struct ; null otherwise. The slot then
+ *  passes as a raw `void*` at the C-ABI level instead of a 24-byte
+ *  `vader_box_t`, mirroring the field-level B1 already applied in
+ *  `emitStructNew` / `emitStructGet` / `emitStructSet`. */
+export function b1SlotVariant(ctx: EmitCtx, typeIndex: number): number | null {
+  const t = ctx.module.types[typeIndex];
+  if (t === undefined || t.kind !== "union") return null;
+  return nullableRefVariant(t, ctx.module.types);
+}
+
+/** Slot type at the C-ABI boundary. `void*` for B1 slots ; the standard
+ *  `cTypeForValBare` otherwise. */
+export function cTypeForSignatureSlot(ctx: EmitCtx, typeIndex: number, val: ValType): string {
+  return b1SlotVariant(ctx, typeIndex) !== null ? "void*" : cTypeForValBare(val);
+}
+
 export function signatureFor(ctx: EmitCtx, fn: BcFunction): string {
-  const params = fn.signature.params.map((p, i) => `${cTypeForVal(ctx, p)} l${i}`).join(", ");
-  const ret = cTypeForVal(ctx, fn.signature.result);
+  // B1 params are renamed `lN_b1` so the fn body's prologue can re-declare
+  // a `vader_box_t lN` local (the body-side ABI) initialised from the
+  // raw `void*`. Non-B1 params keep their `lN` name directly.
+  const params = fn.signature.params
+    .map((p, i) => {
+      const ti = fn.signature.paramTypes[i]!;
+      const isB1 = b1SlotVariant(ctx, ti) !== null;
+      return `${cTypeForSignatureSlot(ctx, ti, p)} l${i}${isB1 ? "_b1" : ""}`;
+    })
+    .join(", ");
+  const ret = cTypeForSignatureSlot(ctx, fn.signature.resultType, fn.signature.result);
   const cret = ret === "void" ? "void" : ret;
   return `${cret} ${sanitise(fn.name)}(${params || "void"})`;
 }

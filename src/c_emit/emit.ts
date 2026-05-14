@@ -22,8 +22,8 @@ import type { BcType, ValType } from "../bytecode/types.ts";
 import { inlineVariantPayload, nullableRefVariant } from "../bytecode/types.ts";
 
 import {
-  cTypeFor, cTypeForVal, cTypeForValBare, emitFunctions, isRefVal,
-  signatureFor, valTypeOfBcType, zeroInit,
+  cTypeFor, cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, emitFunctions,
+  isRefVal, signatureFor, valTypeOfBcType, zeroInit,
 } from "./body.ts";
 import { emitVtableDispatchers, emitVtableForwardDecls } from "./ops.ts";
 
@@ -254,13 +254,23 @@ function emitFnSigTypedefs(ctx: EmitCtx, out: string[]): void {
   // One typedef per BcFn type. Every callable signature includes a leading
   // `void* env` so closures (Phase 3) can be invoked through the same path.
   // Globals route through a per-fn trampoline that ignores env.
+  //
+  // B1 slots (nullable-ref unions whose non-null variant is a single heap
+  // struct) pass through the ABI as `void*` instead of `vader_box_t` —
+  // `cTypeForSignatureSlot` picks the right C type per slot. The
+  // `vader_fn_t.code` pointer is cast to this typedef in the call.indirect
+  // emitter ; B1 args are pre-stripped to `void*` there, and B1 returns
+  // are re-boxed.
   for (let i = 0; i < ctx.module.types.length; i++) {
     const t = ctx.module.types[i]!;
     if (t.kind !== "fn") continue;
     const paramVals = t.params.map((p) => valTypeOfBcType(ctx.module.types[p]!));
     const retVal = valTypeOfBcType(ctx.module.types[t.returnType]!);
-    const params = paramVals.map((p, j) => `${cTypeForValBare(p)} a${j}`);
-    const cret = retVal === "void" ? "void" : cTypeForValBare(retVal);
+    const params = paramVals.map((p, j) =>
+      `${cTypeForSignatureSlot(ctx, t.params[j]!, p)} a${j}`);
+    const cret = retVal === "void"
+      ? "void"
+      : cTypeForSignatureSlot(ctx, t.returnType, retVal);
     const head = `void* env`;
     out.push(`typedef ${cret} (*vader_fn_sig_${i}_t)(${params.length === 0 ? head : `${head}, ${params.join(", ")}`});`);
   }
