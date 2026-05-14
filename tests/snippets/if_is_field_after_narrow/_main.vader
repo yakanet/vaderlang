@@ -1,0 +1,49 @@
+// `if v is HeapStruct { v.field }` must narrow `v` *and* propagate the
+// narrowed type to subsequent field reads — historically (TODO §1.13e)
+// the typecheck recorded the narrowed type but the lower/c-emit
+// pipeline kept reading `v` through the union box, producing C that
+// trapped on `vader_unreachable` or compared `vader_box_eq(0, n)`
+// instead of doing a typed field load. The workaround was to use
+// `match v { is HeapStruct as s -> s.field == n }` with a fresh binding.
+//
+// Regression : exercise the natural `if`-chain form on a multi-field
+// heap struct (avoids the inline-variant escape hatch where the value
+// fits in `vader_box_t.payload` directly).
+
+import "std/io" { println }
+
+StructVal :: struct {
+    type_id: i32
+    fields:  i32[]
+}
+ArrayVal :: struct {
+    type_id: i32
+    items:   i32[]
+}
+IntVal :: struct { value: i32 }
+Value  :: StructVal | ArrayVal | IntVal
+
+// Multiple early-return `is`-chain — the historical struct_typeid_matches
+// shape from §1.13e.
+type_id_of :: fn(v: Value) -> i32 {
+    if v is StructVal { return v.type_id }
+    if v is ArrayVal  { return v.type_id }
+    return -1
+}
+
+// Reading an array field through narrowing.
+first_item :: fn(v: Value) -> i32 {
+    if v is ArrayVal { return v.items[0] }
+    return -1
+}
+
+main :: fn() -> i32 {
+    s: Value = StructVal { .type_id = 100, .fields = [1, 2] }
+    a: Value = ArrayVal  { .type_id = 200, .items = [42, 43] }
+    i: Value = IntVal    { .value = 7 }
+    println("type_id(s)=${type_id_of(s)}")
+    println("type_id(a)=${type_id_of(a)}")
+    println("type_id(i)=${type_id_of(i)}")
+    println("first(a)=${first_item(a)}")
+    return 0
+}

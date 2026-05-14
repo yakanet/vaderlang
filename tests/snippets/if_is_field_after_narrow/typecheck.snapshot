@@ -1,0 +1,60 @@
+# Typecheck
+
+## tests/snippets/if_is_field_after_narrow/_main.vader
+  StructDecl     ArrayVal             :: ArrayVal
+  FnDecl         first_item           :: fn(ArrayVal | IntVal | StructVal) -> i32
+  StructDecl     IntVal               :: IntVal
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     StructVal            :: StructVal
+  FnDecl         type_id_of           :: fn(ArrayVal | IntVal | StructVal) -> i32
+  ConstDecl      Value                :: type
+  expr 29:13    IdentExpr      :: StructVal
+  expr 29:32    FieldExpr      :: i32
+  expr 29:32    IdentExpr      :: StructVal
+  expr 29:5     IfExpr         :: void
+  expr 29:8     BinaryExpr     :: bool
+  expr 29:8     IdentExpr      :: ArrayVal | IntVal | StructVal
+  expr 30:13    IdentExpr      :: ArrayVal
+  expr 30:32    FieldExpr      :: i32
+  expr 30:32    IdentExpr      :: ArrayVal
+  expr 30:5     IfExpr         :: void
+  expr 30:8     BinaryExpr     :: bool
+  expr 30:8     IdentExpr      :: ArrayVal | IntVal
+  expr 31:12    UnaryExpr      :: i32
+  expr 36:13    IdentExpr      :: ArrayVal
+  expr 36:31    FieldExpr      :: i32[]
+  expr 36:31    IdentExpr      :: ArrayVal
+  expr 36:31    IndexExpr      :: i32
+  expr 36:5     IfExpr         :: void
+  expr 36:8     BinaryExpr     :: bool
+  expr 36:8     IdentExpr      :: ArrayVal | IntVal | StructVal
+  expr 37:12    UnaryExpr      :: i32
+  expr 41:16    StructLitExpr  :: StructVal
+  expr 41:54    SeqLitExpr     :: i32[]
+  expr 42:16    StructLitExpr  :: ArrayVal
+  expr 42:53    SeqLitExpr     :: i32[]
+  expr 43:16    StructLitExpr  :: IntVal
+  expr 44:13    StringLitExpr  :: string
+  expr 44:27    CallExpr       :: i32
+  expr 44:27    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
+  expr 44:38    IdentExpr      :: ArrayVal | IntVal | StructVal
+  expr 44:5     CallExpr       :: void
+  expr 44:5     IdentExpr      :: fn(string) -> void
+  expr 45:13    StringLitExpr  :: string
+  expr 45:27    CallExpr       :: i32
+  expr 45:27    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
+  expr 45:38    IdentExpr      :: ArrayVal | IntVal | StructVal
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(string) -> void
+  expr 46:13    StringLitExpr  :: string
+  expr 46:27    CallExpr       :: i32
+  expr 46:27    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
+  expr 46:38    IdentExpr      :: ArrayVal | IntVal | StructVal
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(string) -> void
+  expr 47:13    StringLitExpr  :: string
+  expr 47:25    CallExpr       :: i32
+  expr 47:25    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
+  expr 47:36    IdentExpr      :: ArrayVal | IntVal | StructVal
+  expr 47:5     CallExpr       :: void
+  expr 47:5     IdentExpr      :: fn(string) -> void

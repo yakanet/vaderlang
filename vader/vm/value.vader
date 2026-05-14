@@ -116,11 +116,9 @@ export read_char :: fn(v: op.Value, at_pc: i32, label: string) -> op.CharVal | T
 /// form (`op.I32Val` — non-zero is true) and modern bool form
 /// (`op.BoolVal`). Other variants Trap.
 export read_truthy :: fn(v: op.Value, at_pc: i32, label: string) -> bool | Trap {
-    return match v {
-        is op.BoolVal as b -> b.value
-        is op.I32Val  as i -> i.value != 0
-        _               -> Trap { .message = "${label} at pc=${at_pc}: expected bool or i32, got ${describe_value_tag(v)}" }
-    }
+    if v is op.BoolVal { return v.value }
+    if v is op.I32Val  { return v.value != 0 }
+    return Trap { .message = "${label} at pc=${at_pc}: expected bool or i32, got ${describe_value_tag(v)}" }
 }
 
 /// Unwrap a `op.FnVal` from a `op.Value`. Used by the `op.CallIndirect` arm

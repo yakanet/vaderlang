@@ -1,0 +1,7 @@
+# stdout
+type_id(s)=100
+type_id(a)=200
+type_id(i)=-1
+first(a)=42
+# exit
+0
