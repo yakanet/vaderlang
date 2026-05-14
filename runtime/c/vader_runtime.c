@@ -100,6 +100,24 @@ vader_gc_frame_t* vader_gc_top = NULL;
  * vader_gc_collect calls it at the end of every cycle. */
 static void vader_string_gc_collect(void);
 
+/* Builder layout + active-list head are declared up here so the string
+ * mark-sweep (which walks `g_builder_head` to keep partial buffers live)
+ * can see the struct's `next` chain. The op implementations themselves
+ * live alongside the rest of the builder helpers further down. */
+struct vader_builder_s {
+    char*  buf;
+    size_t len;
+    size_t cap;
+    /* Active builders chain through `next` so the string mark-sweep can
+     * keep `buf` reachable while a Vader-side allocation (e.g. evaluating
+     * an `${stringify(x)}` interp arg) triggers a collection between two
+     * `append_*` calls. Without this root the builder's growing buffer
+     * gets swept and subsequent appends scribble into freed memory. */
+    struct vader_builder_s* next;
+};
+
+static vader_builder_t* g_builder_head = NULL;
+
 static size_t vader_gc_align(size_t n) {
     return (n + (VADER_GC_ALIGN - 1u)) & ~(size_t)(VADER_GC_ALIGN - 1u);
 }
@@ -757,6 +775,14 @@ static void vader_string_gc_collect(void) {
     vader_string_mark_ptr(g_spawn_stdout_buf);
     vader_string_mark_ptr(g_spawn_stderr_buf);
 
+    /* 2b. Active builders' growing buffers. A Vader-side allocation between
+     * two `vader_builder_append_*` calls (e.g. an interpolation argument
+     * that calls into stringify) can trigger a collection while `b->buf`
+     * is the sole reference to a partial buffer in the arena. */
+    for (vader_builder_t* b = g_builder_head; b != NULL; b = b->next) {
+        vader_string_mark_ptr(b->buf);
+    }
+
     /* 3. Mark via shadow stack — each frame's vader_box_t* roots. */
     for (vader_gc_frame_t* fr = vader_gc_top; fr != NULL; fr = fr->prev) {
         if (fr->ptrs == NULL) continue;
@@ -949,6 +975,10 @@ static vader_array_t* vader_array_resolve(vader_array_t* a) {
 
 void vader_array_push(vader_array_t* a, vader_box_t v) {
     if (a->length >= a->capacity) {
+        /* `v` is a by-value local invisible to Cheney's precise scan ;
+         * root it across the buf alloc so the collection updates its
+         * `payload.obj` instead of leaving a stale pre-collection ref. */
+        VADER_GC_PUSH1(v);
         size_t cap = a->capacity == 0 ? 4 : a->capacity * 2;
         vader_array_buf_t* fresh = vader_array_buf_alloc(cap);  /* may collect */
         a = vader_array_resolve(a);
@@ -964,6 +994,7 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
         a->capacity = cap;
         /* `a` may be old while `fresh` is young — mark the card holding `a`. */
         VADER_WRITE_BARRIER(a);
+        VADER_GC_POP();
     }
     a->buf->slots[a->length] = v;
     a->length += 1;
@@ -1137,12 +1168,6 @@ vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,
 
 /* ----------------------------------------------------------------- builder */
 
-struct vader_builder_s {
-    char*  buf;
-    size_t len;
-    size_t cap;
-};
-
 static void builder_reserve(vader_builder_t* b, size_t extra) {
     if (b->len + extra <= b->cap) return;
     size_t cap = b->cap == 0 ? 64 : b->cap;
@@ -1167,7 +1192,20 @@ vader_builder_t* vader_builder_new(void) {
     vader_builder_t* b = (vader_builder_t*) malloc(sizeof(vader_builder_t));
     if (b == NULL) vader_trap("vader_builder_new: malloc failed");
     b->buf = NULL; b->len = 0; b->cap = 0;
+    b->next = g_builder_head;
+    g_builder_head = b;
     return b;
+}
+
+/* Unlink a builder from the active-list. O(n) walk over currently-active
+ * builders ; that list is short (one entry per nested interpolation in
+ * flight), so a doubly-linked variant would be wasted complexity. Trap
+ * on missing — matches `vader_string_free`'s discipline. */
+static void vader_builder_unlink(vader_builder_t* b) {
+    vader_builder_t** cursor = &g_builder_head;
+    while (*cursor != NULL && *cursor != b) cursor = &(*cursor)->next;
+    if (*cursor == NULL) vader_trap("vader_builder_unlink: builder not in active list");
+    *cursor = b->next;
 }
 
 void vader_builder_append_str(vader_builder_t* b, vader_string_t s) {
@@ -1273,6 +1311,7 @@ vader_string_t vader_builder_finish(vader_builder_t* b) {
      * `vader_string_alloc`'s comment) and free the builder struct itself,
      * which has no other use after finish. */
     vader_string_t out = vader_string_new(b->buf, b->len);
+    vader_builder_unlink(b);
     free(b);
     return out;
 }
