@@ -1,6 +1,7 @@
 // Top-level expression lowerer. Dispatches by AST kind and delegates string
 // interp, match, try, range, and for-in to their dedicated passes.
 
+import type { Span } from "../../diagnostics/diagnostic.ts";
 import type * as A from "../../parser/ast.ts";
 import { staticStringValue, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
@@ -647,7 +648,7 @@ function lowerArraySlice(
 /** Wrap `value` in a `LoweredCast` to `usize` unless it's already typed
  *  `usize`. Used by the array-slice lowering since the runtime array
  *  index is usize, but the user's range bounds may default to i32. */
-function castToUsize(value: LoweredExpr, span: A.Span): LoweredExpr {
+function castToUsize(value: LoweredExpr, span: Span): LoweredExpr {
   if (isPrimitive(value.type, "usize")) return value;
   return { kind: "LoweredCast", span, type: TY.usize, value };
 }

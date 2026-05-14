@@ -689,10 +689,12 @@ export function intersects(a: Type, b: Type, impls?: TraitOracle): boolean {
   if (a.kind === "Unresolved" || b.kind === "Unresolved") return true;
   if (a.kind === "Never" || b.kind === "Never") return false;
   if (a.kind === "TypeParam" || b.kind === "TypeParam") return true;
-  // Free numeric literals are open-ended — any numeric primitive can
-  // satisfy them. Treat as intersecting any numeric type.
+  // Free numeric literals intersect any numeric type, and intersect
+  // another free literal of the same kind (FreeInt ∩ FreeInt, etc.).
+  // Order-sensitive : the `b.kind === a.kind` test on line 1 catches
+  // the equal-kind case before TS narrows `a` away on line 2.
   if (a.kind === "FreeInt" || a.kind === "FreeFloat") return isNumeric(b) || b.kind === a.kind;
-  if (b.kind === "FreeInt" || b.kind === "FreeFloat") return isNumeric(a) || a.kind === b.kind;
+  if (b.kind === "FreeInt" || b.kind === "FreeFloat") return isNumeric(a);
   if (equalsType(a, b)) return true;
   // Union ∩ anything : some variant of the union must intersect.
   if (a.kind === "Union") return a.variants.some((v) => intersects(v, b, impls));
