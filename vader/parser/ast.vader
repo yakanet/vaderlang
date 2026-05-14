@@ -36,7 +36,7 @@ export StringLitPart :: StringLitText | StringLitInterp
 
 export IfElse :: IfElseIf | IfElseBlock
 
-export Pattern :: IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern
+export Pattern :: IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern | LiteralPattern
 
 export LetBinding :: SimpleBinding | TupleBinding | WildcardBinding | RestBinding
 
@@ -673,6 +673,15 @@ export EnumVariantPattern :: struct {
     span:    Span
     id:    usize = UNASSIGNED_NODE_ID
     variant: string
+}
+
+/// Match a literal value : `'a' -> …`, `42 -> …`, `"ok" -> …`, etc.
+/// The inner `value` is the parsed literal as an Expr ; the lowerer
+/// emits `scrutinee == value` as the arm predicate.
+export LiteralPattern :: struct {
+    span:  Span
+    id:    usize = UNASSIGNED_NODE_ID
+    value: Expr
 }
 
 // ============================================================================

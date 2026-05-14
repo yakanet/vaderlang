@@ -1,0 +1,51 @@
+// Flow narrowing through wildcard / binding arms : after one or more
+// `is X` arms have fully matched some variants, a subsequent `_` or
+// `name` arm sees the scrutinee narrowed to "union − matched". The
+// binding's static type picks up the narrowed shape, so reads inside
+// the body see common fields without a wrapping cast.
+
+import "std/io" { println }
+
+Cat :: struct { name: string }
+Dog :: struct { name: string }
+Pet :: Cat | Dog | null
+
+// Wildcard arm picks up the narrowed type.
+//
+// Without the flow-narrowing fix, `is null -> {}` in the prior arm
+// would not remove `null` from the wildcard arm's view of `p` — the
+// common-field access `p.name` would error (T3009 : `name` not on every
+// variant ; missing on null). With the fix, `p` is `Cat | Dog` in the
+// `_` arm body and the common-field path resolves cleanly.
+greet_wildcard :: fn(p: Pet) -> string {
+    return match p {
+        is null -> "no pet"
+        _       -> "hello ${p.name}"
+    }
+}
+
+// Binding-pattern arm also picks up the narrowed type.
+//
+// `pet` is bound here with the narrowed type `Cat | Dog`, not the full
+// scrutinee `Cat | Dog | null`. Calling `.name` reads the common field
+// directly — same narrowing as the `_` arm above, but the binding form
+// is what lets you re-use the scrutinee value when the scrutinee
+// expression isn't a stable identifier (e.g. a field access).
+greet_binding :: fn(p: Pet) -> string {
+    return match p {
+        is null -> "no pet"
+        pet     -> "howdy ${pet.name}"
+    }
+}
+
+main :: fn() -> i32 {
+    println(greet_wildcard(Cat { .name = "Whiskers" }))
+    println(greet_wildcard(Dog { .name = "Rex" }))
+    println(greet_wildcard(null))
+
+    println(greet_binding(Cat { .name = "Mittens" }))
+    println(greet_binding(Dog { .name = "Buddy" }))
+    println(greet_binding(null))
+
+    return 0
+}

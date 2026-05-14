@@ -328,7 +328,7 @@ walk_block :: fn(b: BlockExpr, source: string, entries: DeclEntry[]) -> void {
     }
     match b.trailing {
         is null -> {}
-        _       -> { walk_expr(b.trailing, source, entries) }
+        e       -> { walk_expr(e, source, entries) }
     }
 }
 
@@ -351,7 +351,7 @@ walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[])
         is ReturnStmt as r -> {
             match r.value {
                 is null -> {}
-                _       -> { walk_expr(r.value, source, entries) }
+                e       -> { walk_expr(e, source, entries) }
             }
         }
         is ForStmt as f -> { walk_for(f, source, entries) }
@@ -417,8 +417,8 @@ local_sig :: fn(
 local_type_hint :: fn(l: LetStmt, source: string) -> string {
     match l.ty {
         is null -> {}
-        _       -> {
-            return type_expr_slice(l.ty, source)
+        ty      -> {
+            return type_expr_slice(ty, source)
         }
     }
     return literal_suffix_type(l.value, source)
@@ -519,7 +519,7 @@ walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
             for arm in m.arms {
                 match arm.guard {
                     is null -> {}
-                    _       -> { walk_expr(arm.guard, source, entries) }
+                    g       -> { walk_expr(g, source, entries) }
                 }
                 walk_expr(arm.body, source, entries)
             }

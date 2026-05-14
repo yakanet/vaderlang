@@ -36,7 +36,7 @@ import "vader/parser" {
     FnTypeExpr, ArrayTypeExpr,
     Pattern, IsPattern, StructPattern, StructPatternField, TuplePattern,
     PatternFieldValue, PatternBinding, PatternLiteral,
-    WildcardPattern, BindingPattern, EnumVariantPattern,
+    WildcardPattern, BindingPattern, EnumVariantPattern, LiteralPattern,
 }
 import "vader/fmt/style" { INDENT, MAX_LINE, NL, binary_op_symbol, unary_op_symbol }
 import "vader/fmt/comments" { CommentMap, Comment, CommentKind, has_before, peek_before, take_before, take_trailing, drain_remaining }
@@ -1663,6 +1663,7 @@ emit_pattern :: fn(self: Printer, p: Pattern) -> void {
             self.write(".")
             self.write(x.variant)
         }
+        is LiteralPattern as x -> self.emit_expr(x.value)
     }
 }
 
@@ -1691,6 +1692,10 @@ emit_is_pattern :: fn(self: Printer, x: IsPattern) -> void {
         is EnumVariantPattern as inner -> {
             self.write(" .")
             self.write(inner.variant)
+        }
+        is LiteralPattern as inner -> {
+            self.write(" ")
+            self.emit_expr(inner.value)
         }
     }
     match x.bind_as {

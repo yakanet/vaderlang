@@ -1,0 +1,127 @@
+# Lower
+
+## tests/snippets/match_wildcard_narrow/_main.vader
+  struct tests_snippets_match_wildcard_narrow__main_vader$Cat { name: string }
+  struct tests_snippets_match_wildcard_narrow__main_vader$Dog { name: string }
+  fn tests_snippets_match_wildcard_narrow__main_vader$greet_wildcard(p: Cat | Dog | null) -> string
+    return
+      block :string
+        let __scrut_0: Cat | Dog | null = p :Cat | Dog | null
+        ~>
+          if :string
+            cond:
+              is null :bool
+                __scrut_0 :Cat | Dog | null
+            then:
+              ~>
+                "no pet" :string
+            else:
+              ~>
+                block :string
+                  let __sb_1: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_1 :?
+                    "hello " :string
+                  @builder.append_display <for string> :void
+                    __sb_1 :?
+                    .name :string
+                      cast → Cat
+                        cast → Cat | Dog
+                          p :Cat | Dog | null
+                  ~>
+                    @builder.finish :string
+                      __sb_1 :?
+  fn tests_snippets_match_wildcard_narrow__main_vader$greet_binding(p: Cat | Dog | null) -> string
+    return
+      block :string
+        let __scrut_0: Cat | Dog | null = p :Cat | Dog | null
+        ~>
+          if :string
+            cond:
+              is null :bool
+                __scrut_0 :Cat | Dog | null
+            then:
+              ~>
+                "no pet" :string
+            else:
+              let pet: Cat | Dog | null = __scrut_0 :Cat | Dog | null
+              ~>
+                block :string
+                  let __sb_1: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_1 :?
+                    "howdy " :string
+                  @builder.append_display <for string> :void
+                    __sb_1 :?
+                    .name :string
+                      cast → Cat
+                        pet :Cat | Dog
+                  ~>
+                    @builder.finish :string
+                      __sb_1 :?
+  fn tests_snippets_match_wildcard_narrow__main_vader$main() -> i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            greet_wildcard :fn(Cat | Dog | null) -> string
+          arg0:
+            Cat {
+              name: "Whiskers" :string
+            }
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            greet_wildcard :fn(Cat | Dog | null) -> string
+          arg0:
+            Dog {
+              name: "Rex" :string
+            }
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            greet_wildcard :fn(Cat | Dog | null) -> string
+          arg0:
+            null
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            greet_binding :fn(Cat | Dog | null) -> string
+          arg0:
+            Cat {
+              name: "Mittens" :string
+            }
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            greet_binding :fn(Cat | Dog | null) -> string
+          arg0:
+            Dog {
+              name: "Buddy" :string
+            }
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            greet_binding :fn(Cat | Dog | null) -> string
+          arg0:
+            null
+    return int(0) :i32

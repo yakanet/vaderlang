@@ -48,9 +48,7 @@ is_bf_char :: fn(c: char) -> bool {
 }
 
 // Decode codepoints from `source` and keep the eight BF characters.
-tokenize_bf :: fn(source: string) -> char[] {
-    return source.chars().filter(is_bf_char)
-}
+tokenize_bf :: fn(source: string) = source.chars().filter(is_bf_char)
 
 // ---- bracket matcher -----------------------------------------------------
 

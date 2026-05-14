@@ -1,0 +1,260 @@
+# Lower
+
+## tests/snippets/match_literal_patterns/_main.vader
+  fn tests_snippets_match_literal_patterns__main_vader$describe_char(c: char) -> string
+    return
+      block :string
+        let __scrut_0: char = c :char
+        ~>
+          if :string
+            cond:
+              eq :bool
+                l:
+                  __scrut_0 :char
+                r:
+                  char(0x3e)
+            then:
+              ~>
+                "right" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    eq :bool
+                      l:
+                        __scrut_0 :char
+                      r:
+                        char(0x3c)
+                  then:
+                    ~>
+                      "left" :string
+                  else:
+                    ~>
+                      if :string
+                        cond:
+                          eq :bool
+                            l:
+                              __scrut_0 :char
+                            r:
+                              char(0x2b)
+                        then:
+                          ~>
+                            "plus" :string
+                        else:
+                          ~>
+                            "other" :string
+  fn tests_snippets_match_literal_patterns__main_vader$describe_int(n: i32) -> string
+    return
+      block :string
+        let __scrut_0: i32 = n :i32
+        ~>
+          if :string
+            cond:
+              eq :bool
+                l:
+                  __scrut_0 :i32
+                r:
+                  int(0) :i32
+            then:
+              ~>
+                "zero" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    eq :bool
+                      l:
+                        __scrut_0 :i32
+                      r:
+                        int(1) :i32
+                  then:
+                    ~>
+                      "one" :string
+                  else:
+                    ~>
+                      if :string
+                        cond:
+                          eq :bool
+                            l:
+                              __scrut_0 :i32
+                            r:
+                              int(2) :i32
+                        then:
+                          ~>
+                            "two" :string
+                        else:
+                          ~>
+                            "many" :string
+  fn tests_snippets_match_literal_patterns__main_vader$flag_label(b: bool) -> string
+    return
+      block :string
+        let __scrut_0: bool = b :bool
+        ~>
+          if :string
+            cond:
+              eq :bool
+                l:
+                  __scrut_0 :bool
+                r:
+                  true
+            then:
+              ~>
+                "on" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    eq :bool
+                      l:
+                        __scrut_0 :bool
+                      r:
+                        false
+                  then:
+                    ~>
+                      "off" :string
+                  else:
+                    ~>
+                      "?" :string
+  fn tests_snippets_match_literal_patterns__main_vader$mode_name(s: string) -> string
+    return
+      block :string
+        let __scrut_0: string = s :string
+        ~>
+          if :string
+            cond:
+              eq :bool
+                l:
+                  __scrut_0 :string
+                r:
+                  "r" :string
+            then:
+              ~>
+                "read" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    eq :bool
+                      l:
+                        __scrut_0 :string
+                      r:
+                        "w" :string
+                  then:
+                    ~>
+                      "write" :string
+                  else:
+                    ~>
+                      if :string
+                        cond:
+                          eq :bool
+                            l:
+                              __scrut_0 :string
+                            r:
+                              "rw" :string
+                        then:
+                          ~>
+                            "read-write" :string
+                        else:
+                          ~>
+                            "unknown" :string
+  fn tests_snippets_match_literal_patterns__main_vader$main() -> i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            describe_char :fn(char) -> string
+          arg0:
+            char(0x3e)
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            describe_char :fn(char) -> string
+          arg0:
+            char(0x2b)
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            describe_char :fn(char) -> string
+          arg0:
+            char(0x78)
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            describe_int :fn(i32) -> string
+          arg0:
+            int(0) :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            describe_int :fn(i32) -> string
+          arg0:
+            int(1) :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            describe_int :fn(i32) -> string
+          arg0:
+            int(99) :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            flag_label :fn(bool) -> string
+          arg0:
+            true
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            flag_label :fn(bool) -> string
+          arg0:
+            false
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            mode_name :fn(string) -> string
+          arg0:
+            "r" :string
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            mode_name :fn(string) -> string
+          arg0:
+            "rw" :string
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            mode_name :fn(string) -> string
+          arg0:
+            "nope" :string
+    return int(0) :i32

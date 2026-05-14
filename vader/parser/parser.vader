@@ -2756,6 +2756,18 @@ parse_pattern :: fn(p: Parser) -> Pattern {
     if t.kind == .LBracket {
         return p.parse_tuple_pattern()
     }
+    if is_literal_start(t) {
+        // `'a' -> …` / `42 -> …` / `true -> …` / `null -> …` / `-1 -> …`.
+        // Delegate to the regular expression parser so each literal flavour
+        // (int / float / char / string / bool / null / unary-neg) is recognised
+        // exactly once. `parse_expr` stops at `->` because the arrow isn't an
+        // infix op — the arm's predicate stays the literal alone.
+        value :: p.parse_expr(0)
+        return LiteralPattern {
+            .span  = p.span_of(t, p.peek_at(-1)),
+            .value = value,
+        }
+    }
     p.error(.ExpectedPattern, t.span, "got ${describe_token(t)}")
     p.advance()
     return WildcardPattern { .span = t.span }

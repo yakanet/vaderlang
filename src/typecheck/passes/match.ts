@@ -11,7 +11,7 @@ import { sourceEnumDecl } from "../../resolver/symbol.ts";
 import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { Type } from "../types.ts";
-import { TY, displayType, isAssignable, unionOf } from "../types.ts";
+import { TY, displayType, equalsType, isAssignable, unionOf } from "../types.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { popNarrowing, pushNarrowing } from "./narrow.ts";
@@ -29,8 +29,16 @@ export function inferMatch(
   const armTypes: Type[] = [];
   let hasWildcard = false;
   const coveredVariants = new Set<string>();
+  // Track types fully matched by *prior* `is X` arms (without an inner-
+  // struct refinement, which doesn't fully match X). Used to narrow the
+  // scrutinee in a subsequent wildcard / binding arm — e.g. after
+  // `is null -> {}` the `_ -> body` arm sees the scrutinee minus `null`.
+  const matchedTypes: Type[] = [];
   for (const arm of expr.arms) {
+    // Both `_` and a plain `name` arm match every remaining value, so
+    // either silences the exhaustiveness check.
     if (arm.pattern.kind === "WildcardPattern") hasWildcard = true;
+    if (arm.pattern.kind === "BindingPattern") hasWildcard = true;
     // A TuplePattern whose every leaf is a binding/wildcard is exhaustive over
     // its (statically-typed) tuple scrutinee : the pattern matches all tuples
     // of that arity by construction.
@@ -58,12 +66,23 @@ export function inferMatch(
           `pattern literal of type ${displayType(litTy)} doesn't match scrutinee ${displayType(scrut)}`);
       }
     }
+    // Flow narrowing through wildcard / binding arms : when the scrutinee is
+    // a union and prior `is X` arms have fully matched some variants, the
+    // remaining arms see the scrutinee minus those variants. Lets
+    // `match v { is null -> … ; _ -> use(v) }` see `v` as the non-null
+    // variant in the wildcard body.
+    if (narrowed === null
+        && (arm.pattern.kind === "WildcardPattern" || arm.pattern.kind === "BindingPattern")
+        && matchedTypes.length > 0) {
+      const remainder = subtractMatched(scrut, matchedTypes);
+      if (remainder !== null) narrowed = remainder;
+    }
     const prev: Type | undefined = scrutSym !== null && narrowed !== null
       ? pushNarrowing(t, scrutSym.id, narrowed)
       : undefined;
     // Pattern-binding narrowing: without it, references to `p` in the arm
     // body see `Unresolved` and the lowerer can't resolve fields on it.
-    const binds = bindingNarrowings(t, arm.pattern, scrut, narrowed);
+    const binds = bindingNarrowings(t, arm.pattern, narrowed ?? scrut, narrowed);
     const bindPrev: (Type | undefined)[] = binds.map((b) => pushNarrowing(t, b.sym.id, b.type));
     if (arm.guard !== null) {
       const g = checkExpr(arm.guard, TY.bool, t, impls, diags, fn);
@@ -72,6 +91,16 @@ export function inferMatch(
     armTypes.push(checkExpr(arm.body, expected, t, impls, diags, fn));
     for (let i = 0; i < binds.length; i++) popNarrowing(t, binds[i]!.sym.id, bindPrev[i]);
     if (scrutSym !== null && narrowed !== null) popNarrowing(t, scrutSym.id, prev);
+    // After the arm body is checked, register that this arm fully matches
+    // its variant — feeds the wildcard flow-narrowing of later arms. Only
+    // `is X` without an inner refinement counts ; `is X { field: v }` only
+    // matches a subset of X-instances, so X stays partially live.
+    // Reuse the resolved `variantTy` captured in `narrowed` (set above for
+    // every IsPattern) — a fresh `lowerExprAsType` would re-resolve and
+    // miss the implicit-dot path that `resolveImplicitDotVariant` handles.
+    if (arm.pattern.kind === "IsPattern" && arm.pattern.inner === null && narrowed !== null) {
+      matchedTypes.push(narrowed);
+    }
   }
 
   // `@partial match` opts out of exhaustiveness — the user has explicitly
@@ -128,6 +157,27 @@ function resolveImplicitDotVariant(
   err(diags, "T3027", type.span,
     `\`.${type.name}\` (no variant named \`${type.name}\` on ${displayType(scrut)})`);
   return TY.unresolved;
+}
+
+/** Return `scrut` with every variant covered by a `matched` type removed.
+ *  Returns `null` when nothing was eliminated (caller skips the narrow).
+ *  Operates only on union scrutinees ; non-union scrutinees stay as-is
+ *  since a prior `is X` arm on a non-union type either fully matches (no
+ *  remaining variants) or is a typecheck error elsewhere. */
+function subtractMatched(scrut: Type, matched: readonly Type[]): Type | null {
+  if (scrut.kind !== "Union") return null;
+  const kept: Type[] = [];
+  let dropped = false;
+  for (const variant of scrut.variants) {
+    if (matched.some((m) => equalsType(m, variant))) {
+      dropped = true;
+      continue;
+    }
+    kept.push(variant);
+  }
+  if (!dropped) return null;
+  if (kept.length === 0) return TY.never;
+  return unionOf(kept);
 }
 
 /** A TuplePattern is irrefutable when every element is itself irrefutable

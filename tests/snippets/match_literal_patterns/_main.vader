@@ -1,0 +1,70 @@
+// Literal-value patterns in `match` arms. Each literal flavour parses
+// as a `LiteralPattern` whose inner `Expr` carries the value. The
+// typechecker pins the literal's type against the scrutinee (so free
+// numeric literals get the scrutinee width) ; the lowerer emits a
+// `LoweredBinary { op: "eq" }` predicate per arm — same primitive
+// comparison the user would write by hand with `if c == '>'` etc.
+
+import "std/io" { println }
+
+// Char scrutinee — the BF compiler in `examples/brainfuck.vader` is
+// the first real user of this form.
+describe_char :: fn(c: char) -> string {
+    return match c {
+        '>' -> "right"
+        '<' -> "left"
+        '+' -> "plus"
+        _   -> "other"
+    }
+}
+
+// Int scrutinee — typed locals route the free-int literal to the
+// right width automatically.
+describe_int :: fn(n: i32) -> string {
+    return match n {
+        0 -> "zero"
+        1 -> "one"
+        2 -> "two"
+        _ -> "many"
+    }
+}
+
+// Bool scrutinee — both arms are literals, plus an explicit wildcard
+// since bool isn't yet treated as exhaustive on a literal pair (T3013
+// without the `_`). Or-patterns / range-patterns would close that gap.
+flag_label :: fn(b: bool) -> string {
+    return match b {
+        true  -> "on"
+        false -> "off"
+        _     -> "?"
+    }
+}
+
+// String scrutinee — equality dispatches through the primitive `string.eq`
+// op.
+mode_name :: fn(s: string) -> string {
+    return match s {
+        "r" -> "read"
+        "w" -> "write"
+        "rw" -> "read-write"
+        _ -> "unknown"
+    }
+}
+
+main :: fn() -> i32 {
+    println(describe_char('>'))
+    println(describe_char('+'))
+    println(describe_char('x'))
+
+    println(describe_int(0))
+    println(describe_int(1))
+    println(describe_int(99))
+
+    println(flag_label(true))
+    println(flag_label(false))
+
+    println(mode_name("r"))
+    println(mode_name("rw"))
+    println(mode_name("nope"))
+    return 0
+}
