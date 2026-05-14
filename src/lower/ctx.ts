@@ -25,6 +25,11 @@ export interface LowerProjectCtx {
   /** std/core's symbol table — pre-resolved at construction so trait/struct
    *  lookups don't re-walk the module map per call. */
   readonly coreSymbols: ReadonlyMap<string, Symbol> | null;
+  /** std/iter's symbol table — needed by the for-in chain-fusion fast path
+   *  to recognise `MapIterator` / `FilterIterator` / `TakeIterator` /
+   *  `SkipIterator` struct lits as a fuseable chain. Null when the project
+   *  doesn't import std/iter (in which case fusion never fires). */
+  readonly iterSymbols: ReadonlyMap<string, Symbol> | null;
   /** Free-variable analysis output. Lets the lowerer detect captured locals
    *  and rewrite their declarations / reads / writes through closure cells. */
   readonly closures: ClosureAnalysis;

@@ -75,6 +75,18 @@ export function lowerForIn(
     if (fast !== null) return fast;
   }
 
+  // Fast path : `for x in MapIterator/FilterIterator { source: <chain>, … }`.
+  // Detects a vertical chain of std/iter lazy combinators bottoming out in
+  // a RangeExpr and fuses the entire pipeline into a single counter loop —
+  // no Range / Yielded / Done allocations, no virtual dispatch through
+  // `Iterator.next()`. Falls back to the generic path when the pattern
+  // doesn't match (user-defined iterator types, source via a variable, a
+  // pred/f field that isn't a bare fn-ident reference, …).
+  if (iterExpr.kind === "StructLitExpr") {
+    const fused = tryLowerForInIterChainFusion(ctx, stmt, iterExpr, bindingName, bindingSym);
+    if (fused !== null) return fused;
+  }
+
   let iterLowered = lowerExpr(ctx, iterExpr);
   let iterType = iterLowered.type;
 
@@ -267,6 +279,238 @@ function tryLowerForInIntRange(
   };
 
   return wrapStmts(span, [...hoistStmts, counterInit, loop]);
+}
+
+// =========================================================================
+// Iterator-chain fusion — `for x in MapIterator/FilterIterator { … }` over
+// a literal Range bottom collapses into a single counter loop.
+// =========================================================================
+
+type IterChain =
+  | { kind: "range"; lower: A.Expr; upper: A.Expr; inclusive: boolean; elementType: Type; span: Span }
+  | { kind: "map"; source: IterChain; mapFn: A.Expr; outputType: Type; span: Span }
+  | { kind: "filter"; source: IterChain; predFn: A.Expr; span: Span };
+
+/** Recognise `for x in <chain> { body }` where `<chain>` is one or more
+ *  std/iter lazy combinators (MapIterator / FilterIterator) wrapping a
+ *  literal integer range, and fuse the whole pipeline into a single counter
+ *  loop. Returns null whenever any layer of the pattern doesn't match :
+ *
+ *   - source field accessed via a variable (we only fuse when the source is
+ *     written inline so we know its shape without dataflow),
+ *   - pred / f field that isn't a bare fn reference (a lambda or arbitrary
+ *     expression evaluated per call is correct on the slow path but expands
+ *     to a closure with captures that the simple emission below can't unwrap),
+ *   - bottom that isn't a `RangeExpr` of integer type (the simple range case
+ *     is what Phase A already optimises ; arrays + custom iterators are
+ *     future extensions).
+ *
+ *  Pattern that triggers the win :
+ *      for x in MapIterator(i32, i64) {
+ *          .source = FilterIterator(i32) { .source = 0..<N, .pred = is_even },
+ *          .f      = square_i64,
+ *      } { … }
+ */
+function tryLowerForInIterChainFusion(
+  ctx: FnLowerCtx, stmt: A.ForStmt, iterExpr: A.StructLitExpr,
+  bindingName: string, bindingSym: Symbol | undefined,
+): LoweredStmt | null {
+  if (bindingSym === undefined) return null;
+  const chain = descendChain(ctx, iterExpr);
+  if (chain === null) return null;
+  // Only fire when there's at least one combinator above the range bottom.
+  // A bare `for x in <range>` already hits Phase A ; emitting through the
+  // chain path would just be slower (extra symbol allocations, hoists, …).
+  if (chain.kind === "range") return null;
+
+  const span = stmt.span;
+  const userBody = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ true);
+
+  // The outermost binding receives the final element value (whatever type
+  // came out of the topmost map). We declare it inline within the deepest
+  // body so each fused iter rebinds.
+  const elementType = chainElementType(chain);
+  const makeBody = (valueSym: Symbol, _: Type): readonly LoweredStmt[] => {
+    const bind: LoweredStmt = {
+      kind: "LoweredLet", span, name: bindingName, symbol: bindingSym,
+      type: elementType,
+      value: { kind: "LoweredIdent", span, type: elementType, symbol: valueSym },
+    };
+    return [bind, ...blockStmtsWithTrailing(userBody)];
+  };
+
+  const stmts = emitFusedChain(ctx, chain, stmt.label, span, makeBody);
+  return wrapStmts(span, stmts);
+}
+
+/** Step through the chain AST top-down. Each layer either matches a known
+ *  std/iter combinator (with the source field assigned inline) or bottoms
+ *  out at a Phase-A-eligible RangeExpr ; anything else returns null. */
+function descendChain(ctx: FnLowerCtx, expr: A.Expr): IterChain | null {
+  if (expr.kind === "RangeExpr") {
+    const loType = ctx.typed.exprTypes.get(expr.lower);
+    if (loType === undefined || !isInteger(loType)) return null;
+    return { kind: "range", lower: expr.lower, upper: expr.upper, inclusive: expr.inclusive, elementType: loType, span: expr.span };
+  }
+  if (expr.kind !== "StructLitExpr") return null;
+  const exprType = ctx.typed.exprTypes.get(expr);
+  if (exprType === undefined || exprType.kind !== "Struct") return null;
+  const iterSyms = ctx.project.iterSymbols;
+  if (iterSyms === null) return null;
+
+  const mapSym = iterSyms.get("MapIterator");
+  const filterSym = iterSyms.get("FilterIterator");
+
+  if (mapSym !== undefined && exprType.symbol.id === mapSym.id) {
+    const source = findInlineField(expr, "source");
+    const mapFn = findInlineField(expr, "f");
+    if (source === null || mapFn === null) return null;
+    const inner = descendChain(ctx, source);
+    if (inner === null) return null;
+    // MapIterator(T, U) — the output element type is the second type arg.
+    const outputType = exprType.args[1];
+    if (outputType === undefined) return null;
+    return { kind: "map", source: inner, mapFn, outputType, span: expr.span };
+  }
+  if (filterSym !== undefined && exprType.symbol.id === filterSym.id) {
+    const source = findInlineField(expr, "source");
+    const predFn = findInlineField(expr, "pred");
+    if (source === null || predFn === null) return null;
+    const inner = descendChain(ctx, source);
+    if (inner === null) return null;
+    return { kind: "filter", source: inner, predFn, span: expr.span };
+  }
+  return null;
+}
+
+/** Look up a named field in a struct literal. Returns the field's value
+ *  expression iff the entry is a plain field (no spread) — we don't try to
+ *  reason about spreads here, so any spread aborts fusion. */
+function findInlineField(lit: A.StructLitExpr, name: string): A.Expr | null {
+  for (const item of lit.items) {
+    if (item.kind === "spread") return null;
+    if (item.name === name) return item.value;
+  }
+  return null;
+}
+
+function chainElementType(chain: IterChain): Type {
+  switch (chain.kind) {
+    case "range":  return chain.elementType;
+    case "map":    return chain.outputType;
+    case "filter": return chainElementType(chain.source);
+  }
+}
+
+/** Emit a fused chain by recursively wrapping the body : the deepest source
+ *  (a Range) yields values directly via a counter loop ; each map layer
+ *  binds a `let mapped = f(prev)` ahead of the body it wraps ; each filter
+ *  layer guards the body with `if pred(prev)`. */
+function emitFusedChain(
+  ctx: FnLowerCtx, chain: IterChain, loopLabel: string | null, outerSpan: Span,
+  makeBody: (valueSym: Symbol, valueType: Type) => readonly LoweredStmt[],
+): LoweredStmt[] {
+  switch (chain.kind) {
+    case "range":
+      return emitFusedRange(ctx, chain, loopLabel, outerSpan, makeBody);
+    case "map":
+      return emitFusedChain(ctx, chain.source, loopLabel, outerSpan, (innerSym, innerType) => {
+        const mapFnExpr = lowerExpr(ctx, chain.mapFn);
+        const mappedSym = freshSyntheticSymbol(ctx, "mapped");
+        const mapped: LoweredStmt = {
+          kind: "LoweredLet", span: chain.span, name: mappedSym.name, symbol: mappedSym,
+          type: chain.outputType,
+          value: {
+            kind: "LoweredCall", span: chain.span, type: chain.outputType,
+            callee: mapFnExpr,
+            args: [{ kind: "LoweredIdent", span: chain.span, type: innerType, symbol: innerSym }],
+          },
+        };
+        return [mapped, ...makeBody(mappedSym, chain.outputType)];
+      });
+    case "filter":
+      return emitFusedChain(ctx, chain.source, loopLabel, outerSpan, (innerSym, innerType) => {
+        const predFnExpr = lowerExpr(ctx, chain.predFn);
+        const cond: LoweredExpr = {
+          kind: "LoweredCall", span: chain.span, type: TY.bool,
+          callee: predFnExpr,
+          args: [{ kind: "LoweredIdent", span: chain.span, type: innerType, symbol: innerSym }],
+        };
+        const inner = makeBody(innerSym, innerType);
+        const ifStmt: LoweredStmt = {
+          kind: "LoweredExprStmt", span: chain.span, expr: {
+            kind: "LoweredIf", span: chain.span, type: TY.void, cond,
+            then: { kind: "LoweredBlock", span: chain.span, type: TY.void, stmts: inner, trailing: null },
+            else: null,
+          },
+        };
+        return [ifStmt];
+      });
+  }
+}
+
+function emitFusedRange(
+  ctx: FnLowerCtx, range: Extract<IterChain, { kind: "range" }>,
+  loopLabel: string | null, outerSpan: Span,
+  makeBody: (valueSym: Symbol, valueType: Type) => readonly LoweredStmt[],
+): LoweredStmt[] {
+  const span = range.span;
+  const intType = range.elementType;
+  const lo = lowerExpr(ctx, range.lower);
+  const hi = lowerExpr(ctx, range.upper);
+
+  const hoistStmts: LoweredStmt[] = [];
+  let hiExpr: LoweredExpr = hi;
+  if (!isCheapInvariant(hi)) {
+    const hiSym = freshSyntheticSymbol(ctx, "for_hi");
+    hoistStmts.push({
+      kind: "LoweredLet", span, name: hiSym.name, symbol: hiSym, type: intType, value: hi,
+    });
+    hiExpr = { kind: "LoweredIdent", span, type: intType, symbol: hiSym };
+  }
+
+  const counterSym = freshSyntheticSymbol(ctx, "counter");
+  const counterInit: LoweredStmt = {
+    kind: "LoweredLet", span, name: counterSym.name, symbol: counterSym,
+    type: intType, value: lo,
+  };
+  const counterRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: intType, symbol: counterSym,
+  });
+  const cmpOp: LoweredBinaryOp = range.inclusive ? "lte" : "lt";
+  const cond: LoweredExpr = {
+    kind: "LoweredBinary", span, type: TY.bool, op: cmpOp,
+    left: counterRef(), right: hiExpr,
+  };
+  const incStmt: LoweredStmt = {
+    kind: "LoweredAssign", span,
+    target: counterRef(),
+    value: {
+      kind: "LoweredBinary", span, type: intType, op: "add",
+      left: counterRef(),
+      right: { kind: "LoweredIntLit", span, type: intType, value: 1n },
+    },
+  };
+
+  const innerStmts = makeBody(counterSym, intType);
+  const innerBlock: LoweredBlock = {
+    kind: "LoweredBlock", span, type: TY.void,
+    stmts: [...innerStmts], trailing: null,
+  };
+  // `continue` inside the user body would skip the increment without this
+  // rewrite. The walker descends through the chain's synthetic if / block
+  // wrappers and stops at any nested loop, matching Phase A's semantics.
+  const advancedInner = prependIncBeforeMatchingContinue(innerBlock, incStmt, loopLabel);
+
+  const loopBody: LoweredBlock = {
+    kind: "LoweredBlock", span, type: TY.void,
+    stmts: [...blockStmtsWithTrailing(advancedInner), incStmt], trailing: null,
+  };
+  const loop: LoweredStmt = {
+    kind: "LoweredLoop", span: outerSpan, label: loopLabel, cond, body: loopBody,
+  };
+
+  return [...hoistStmts, counterInit, loop];
 }
 
 /** Reads cheap enough to inline into the loop condition (one read per iter).

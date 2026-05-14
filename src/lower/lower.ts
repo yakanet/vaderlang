@@ -29,6 +29,7 @@ import { lowerExpr } from "./passes/expr.ts";
 import { inlineConsts } from "./passes/inline-consts.ts";
 
 const STD_CORE_PATH = "std/core";
+const STD_ITER_PATH = "std/iter";
 
 export function lowerProject(
   evaluated: EvaluatedProject,
@@ -38,16 +39,17 @@ export function lowerProject(
   const mono = evaluated.mono;
   const impls = buildImplRegistry(evaluated.typed.resolved);
   let coreSymbols: ReadonlyMap<string, Symbol> | null = null;
+  let iterSymbols: ReadonlyMap<string, Symbol> | null = null;
   for (const program of evaluated.typed.modules.values()) {
-    if (program.resolved.module.displayPath === STD_CORE_PATH) {
-      coreSymbols = program.resolved.module.symbols;
-      break;
-    }
+    const path = program.resolved.module.displayPath;
+    if (path === STD_CORE_PATH) coreSymbols = program.resolved.module.symbols;
+    else if (path === STD_ITER_PATH) iterSymbols = program.resolved.module.symbols;
   }
   const ctx: LowerProjectCtx = {
     evaluated, mono, impls,
     coreTraitCache: new Map(),
     coreSymbols,
+    iterSymbols,
     closures: closures ?? analyzeClosures(evaluated.typed),
     synthDecls: [],
     nextSyntheticId: 1,

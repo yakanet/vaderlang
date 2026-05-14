@@ -199,11 +199,11 @@ function newLowerProjectCtx(input: CompileInput): LowerProjectCtx {
   // cache further upstream alongside the impl registry, but the lookup is one
   // pass over ≤ stdlib-module-count and `lowerProject` itself does this too.
   let coreSymbols: ReadonlyMap<string, Symbol> | null = null;
+  let iterSymbols: ReadonlyMap<string, Symbol> | null = null;
   for (const program of input.project.modules.values()) {
-    if (program.resolved.module.displayPath === "std/core") {
-      coreSymbols = program.resolved.module.symbols;
-      break;
-    }
+    const path = program.resolved.module.displayPath;
+    if (path === "std/core") coreSymbols = program.resolved.module.symbols;
+    else if (path === "std/iter") iterSymbols = program.resolved.module.symbols;
   }
   const mono: MonoProject = {
     entries: [], lookupByInstance: new Map(),
@@ -215,6 +215,7 @@ function newLowerProjectCtx(input: CompileInput): LowerProjectCtx {
     impls: input.projectImpls,
     coreTraitCache: new Map(),
     coreSymbols,
+    iterSymbols,
     closures: { capturedSymbols: new Set(), lambdaCaptures: new Map() },
     synthDecls: [],
     nextSyntheticId: 1,
