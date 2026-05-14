@@ -168,6 +168,19 @@ function binaryEquality(
   t: MutableTyped, impls: ImplRegistry, diags: DiagnosticCollector,
 ): Type {
   if (left.kind === "Unresolved" || right.kind === "Unresolved") return TY.bool;
+  // Statically-unreachable comparison : when the operands' types can't
+  // overlap at runtime, the test is always false (or always true for
+  // `!=`). Mirrors the `is T` reachability check in `inferBinary` —
+  // surfaces `n: i32 == null` and similar with a clear T3040 instead of
+  // a misleading "no Eq impl" T3017. Free numeric literals are deferred
+  // since their final type is set by the bidirectional infer.
+  if (left.kind !== "FreeInt" && left.kind !== "FreeFloat"
+      && right.kind !== "FreeInt" && right.kind !== "FreeFloat"
+      && !intersects(left, right, impls)) {
+    err(diags, "T3040", expr.span,
+      `\`${displayType(left)}\` and \`${displayType(right)}\` have no overlapping values`);
+    return TY.bool;
+  }
   // Union ↔ variant: `(T | U) == T` / `(T | null) != null` etc. Accepted as
   // long as one side is a union and the other is structurally one of its
   // variants. Lets flow narrowing on null-checks (and discriminated-union

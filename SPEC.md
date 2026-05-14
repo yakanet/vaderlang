@@ -837,7 +837,7 @@ match value {
 - Guards via `if cond`.
 - Wildcard `_` — same flow-narrowing as binding arms.
 - **Flow narrowing through wildcard / binding arms** : after one or more `is X` arms (without inner struct refinement), the subsequent `_` or `name` arm sees the scrutinee narrowed to `union − matched`. Lets `match p: Pet | null { is null -> "no" ; _ -> p.name }` read the common field without a wrapping cast.
-- **`is T` reachability** (`T3040`) : an `is T` arm whose `T` can never be a value of the scrutinee's static type is rejected at compile time. `match p: Pet { is Bird -> … }` errors when `Bird` is not part of `Pet`'s union ; same rule fires for `if x is T` expressions outside `match`. The check uses the symmetric `intersects(T, scrutinee)` predicate ; unknowns (`Unresolved`, `TypeParam`) suppress cascading.
+- **`is T` reachability** (`T3040`) : an `is T` arm whose `T` can never be a value of the scrutinee's static type is rejected at compile time. `match p: Pet { is Bird -> … }` errors when `Bird` is not part of `Pet`'s union ; same rule fires for `if x is T` expressions outside `match`. The check uses the symmetric `intersects(T, scrutinee)` predicate ; unknowns (`Unresolved`, `TypeParam`) suppress cascading. **`==` / `!=` get the same check** — `if n: i32 == null` triggers T3040 with the same wording, replacing the misleading "no Eq impl" T3017. Use `is null` when you want the flow-narrowing ; both forms work but `is` is the canonical idiom.
 - **Exhaustiveness checked** by the compiler. For union scrutinees, every variant must be covered (or matched by a wildcard `_` / binding arm). For non-union scrutinees a wildcard or binding arm is required, since the compiler cannot enumerate all values of, say, `i32`.
 
 ### Variable bindings

@@ -6,7 +6,7 @@ fn 0 tests_snippets_match_is_unreachable_negative__main_vader$main () -> i32
 end
 
 # Diagnostics
-[19:9] error[T3040] `is T` test cannot match this scrutinee (statically unreachable): `null` is never a value of `Cat | Dog`
-[26:9] error[T3040] `is T` test cannot match this scrutinee (statically unreachable): `Bird` is never a value of `Cat | Dog`
-[33:9] error[T3040] `is T` test cannot match this scrutinee (statically unreachable): `null` is never a value of `i32`
-[39:13] error[T3040] `is T` test cannot match this scrutinee (statically unreachable): `null` is never a value of `Cat | Dog`
+[19:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`
+[26:9] error[T3040] test can never match — operands have no overlapping values: `Bird` is never a value of `Cat | Dog`
+[33:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `i32`
+[39:13] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`
