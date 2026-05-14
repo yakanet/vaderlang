@@ -336,6 +336,52 @@ export trim_prefix :: fn(s: string, prefix: string) -> string {
     return s
 }
 
+/// Decode the common C-style escape sequences in `body` :
+///   `\n` → LF, `\t` → TAB, `\r` → CR, `\"` → `"`, `\\` → `\`, `\0` → NUL.
+/// A backslash at the very end of `body` is preserved verbatim. Strings
+/// that don't contain a backslash skip the per-byte rebuild and return
+/// the original slice unchanged.
+///
+/// @note Lenient. Unknown escapes (e.g. `\q`) drop the leading backslash
+///       and pass the following byte through (`"a\\qb"` → `"aqb"`).
+///       Mirrors the lexer / VM parser's behaviour ; callers that want
+///       strict-mode rejection should validate beforehand.
+///
+/// @param body  the raw source bytes (without surrounding quotes).
+/// @return      the decoded string.
+/// @example
+///   `decode_escapes(r"a\nb\tc")  // "a\nb\tc" (literal LF + TAB)`
+///   `decode_escapes("plain")     // "plain"`
+export decode_escapes :: fn(body: string) -> string {
+    if !body.contains("\\") { return body }
+    out :: new_builder()
+    n :: body.byte_len()
+    i: usize = 0
+    for i < n {
+        b :: body.byte_at(i)
+        if b != u8('\\') {
+            out.append(body.slice(i, i + usize(1)))
+            i += usize(1)
+            continue
+        }
+        if i + usize(1) >= n {
+            out.append(body.slice(i, i + usize(1)))
+            i += usize(1)
+            continue
+        }
+        next :: body.byte_at(i + usize(1))
+        if      next == u8('n')  { out.append("\n") }
+        else if next == u8('t')  { out.append("\t") }
+        else if next == u8('r')  { out.append("\r") }
+        else if next == u8('"')  { out.append("\"") }
+        else if next == u8('\\') { out.append("\\") }
+        else if next == u8('0')  { out.append("\0") }
+        else                     { out.append(body.slice(i + usize(1), i + usize(2))) }
+        i += usize(2)
+    }
+    return out.to_string()
+}
+
 /// Replace every codepoint that satisfies `pred` with `replacement`.
 /// Subsumes the regex pattern `replace(/[<class>]/g, "…")`.
 /// @param s            source string.
@@ -498,4 +544,17 @@ import "std/testing" { assert, assert_eq, assert_close }
 @test test_last_index_of :: fn() -> void {
     assert_eq(last_index_of("a/b/c", '/', isize(-1)), isize(3))
     assert_eq(last_index_of("none", '/', isize(-1)), isize(-1))
+}
+
+@test test_decode_escapes :: fn() -> void {
+    assert_eq(decode_escapes(""),            "")
+    assert_eq(decode_escapes("plain"),       "plain")
+    assert_eq(decode_escapes("a\\nb"),       "a\nb")
+    assert_eq(decode_escapes("a\\tb"),       "a\tb")
+    assert_eq(decode_escapes("a\\rb"),       "a\rb")
+    assert_eq(decode_escapes("a\\0b"),       "a\0b")
+    assert_eq(decode_escapes("a\\\\b"),      "a\\b")
+    assert_eq(decode_escapes("\\\"q\\\""),   "\"q\"")
+    assert_eq(decode_escapes("a\\qb"),       "aqb")            // unknown escape : drop the backslash
+    assert_eq(decode_escapes("trailing\\"),  "trailing\\")     // dangling backslash preserved
 }

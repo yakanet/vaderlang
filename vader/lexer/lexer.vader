@@ -18,7 +18,11 @@ import "std/utf8" { codepoint_byte_len }
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/iter" { slice as slice_array }
-import "std/numbers" { hex_digit_value, is_hex_digit, is_digit_in_base, parse_uint_in_base, is_int_suffix, is_float_suffix }
+import "std/numbers" {
+    hex_digit_value, is_hex_digit, is_digit_in_base,
+    parse_uint_in_base, is_int_suffix, is_float_suffix,
+    strip_numeric_text,
+}
 import "vader/diagnostics/diagnostic" { Diagnostic, error }
 import "vader/diagnostics/codes" { LexerCode }
 // Position/Span are re-imported transparently via token.vader (same module);
@@ -421,62 +425,25 @@ lex_number :: fn(l: Lexer) -> void {
     if has_suffix {
         t.numeric_suffix = suffix
     }
+    // Digit shape was already validated by the scan above, so any parse
+    // failure here is "shouldn't happen" — swallow into 0 / 0.0 so the
+    // Token carries a placeholder value instead of bubbling a Trap up
+    // through every caller that just wants the textual span.
+    digits :: strip_numeric_text(text, base, suffix)
     if is_float {
-        t.value = decode_float_literal(text, suffix)
+        parsed :: digits.parse_float()
+        t.value = match parsed {
+            is f64 -> parsed
+            is Error -> 0.0
+        }
     } else {
-        t.value = decode_int_literal(text, base, suffix)
+        parsed :: parse_uint_in_base(digits, base)
+        t.value = match parsed {
+            is u64 -> parsed
+            is Error -> u64(0)
+        }
     }
     l.emit(t)
-}
-
-// Strip the lexer-specific decoration off a numeric literal's source slice :
-// the optional `0x`/`0b`/`0o` prefix on the left, the suffix (and its
-// optional `_` separator) on the right, then the underscores in between.
-// Returns digits-only text, ready to be fed to `parse_int_in_base` /
-// `parse_float`.
-strip_numeric_text :: fn(text: string, base: i32, suffix: string) -> string {
-    start: usize = if base == 10 { 0 } else { 2 }
-    has_suffix :: !suffix.is_empty()
-    end_no_suffix :: text.byte_len() - suffix.byte_len()
-    end :: if has_suffix && end_no_suffix > start && text[end_no_suffix - 1] == '_' {
-        end_no_suffix - 1
-    } else {
-        end_no_suffix
-    }
-    // Fast path: nothing to strip → return the slice without builder churn.
-    // `text.contains` is byte-search ; cheap relative to a builder + char loop.
-    if start == 0 && end == text.byte_len() && !text.contains("_") {
-        return text
-    }
-    sb := new_builder()
-    for i in start..<end {
-        c :: text[i]
-        if c != '_' { sb.append_char(c) }
-    }
-    return sb.to_string()
-}
-
-// Decode an integer literal's text → `u64`. The unsigned carrier lets
-// literals beyond `i64.MAX` (up to `u64.MAX`) round-trip without losing
-// top bits. Negative literals are wrapped in a `UnaryExpr.neg` over the
-// unsigned magnitude by the parser. Defers digit parsing to
-// `std/numbers.parse_uint_in_base` after stripping prefix/suffix/underscores.
-decode_int_literal :: fn(text: string, base: i32, suffix: string) -> u64 {
-    parsed :: parse_uint_in_base(strip_numeric_text(text, base, suffix), base)
-    return match parsed {
-        is u64 -> parsed
-        is Error -> u64(0)
-    }
-}
-
-// Decode a float literal's text → `f64`. Underscores and suffix are stripped
-// here ; digit parsing defers to `std/string.parse_float`.
-decode_float_literal :: fn(text: string, suffix: string) -> f64 {
-    parsed :: strip_numeric_text(text, 10, suffix).parse_float()
-    return match parsed {
-        is f64 -> parsed
-        is Error -> 0.0
-    }
 }
 
 // ---- escape decoding ------------------------------------------------------

@@ -12,8 +12,7 @@
 // op's target pc is resolved in a single pass via a label-keyed scope
 // stack that resets at each fn boundary.
 
-import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of }
-import "std/string_builder" { StringBuilder, new_builder, append }
+import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of, decode_escapes }
 import "std/numbers" { parse_int_in_base }
 import "vader/vm/op" as op
 
@@ -29,10 +28,6 @@ BYTE_MINUS      :: u8(u32('-'))
 BYTE_PLUS       :: u8(u32('+'))
 BYTE_LOWER_E    :: u8(u32('e'))
 BYTE_UPPER_E    :: u8(u32('E'))
-BYTE_LOWER_N    :: u8(u32('n'))
-BYTE_LOWER_T    :: u8(u32('t'))
-BYTE_LOWER_R    :: u8(u32('r'))
-BYTE_ZERO       :: u8(u32('0'))
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps
@@ -511,48 +506,7 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> void {
     first_quote :: after.index_of('"', 0)
     if first_quote < 0 { return }
     body :: after.slice(usize(first_quote) + 1, after.byte_len() - 1)
-    strings.push(decode_string_escapes(body))
-}
-
-/// Decode the standard backslash escape sequences emitted by the `.virt`
-/// text writer (`\n` / `\t` / `\r` / `\"` / `\\` / `\0`). Unknown escapes
-/// pass through with the backslash dropped — matches the TS side which
-/// uses `JSON.parse` for the same job. Unicode `\uXXXX` is not handled
-/// yet (no snippet currently emits one).
-///
-/// @param body  the raw between-quotes payload.
-/// @return      the decoded string with escape sequences replaced.
-decode_string_escapes :: fn(body: string) -> string {
-    // Fast path : strings without a backslash (the overwhelming majority
-    // of literals) skip the per-byte rebuild and return the original
-    // payload. `contains` is a single O(n) memcmp scan in the runtime.
-    if !body.contains("\\") { return body }
-    out :: new_builder()
-    n :: body.byte_len()
-    i: usize = 0
-    for i < n {
-        b :: body.byte_at(i)
-        if b != BYTE_BACKSLASH {
-            out.append(body.slice(i, i + 1))
-            i += 1
-            continue
-        }
-        if i + 1 >= n {
-            out.append(body.slice(i, i + 1))
-            i += 1
-            continue
-        }
-        next :: body.byte_at(i + 1)
-        if      next == BYTE_LOWER_N  { out.append("\n") }
-        else if next == BYTE_LOWER_T  { out.append("\t") }
-        else if next == BYTE_LOWER_R  { out.append("\r") }
-        else if next == BYTE_DQUOTE   { out.append("\"") }
-        else if next == BYTE_BACKSLASH { out.append("\\") }
-        else if next == BYTE_ZERO     { out.append("\0") }
-        else                          { out.append(body.slice(i + 1, i + 2)) }
-        i += 2
-    }
-    return out.to_string()
+    strings.push(decode_escapes(body))
 }
 
 /// Parse `import N name mangled (params) -> ret`.
