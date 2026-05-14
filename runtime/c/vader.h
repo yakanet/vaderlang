@@ -298,7 +298,8 @@ typedef struct {
     size_t              size;          /* sizeof(object) incl. header; 0 if non-heap */
     const uint16_t*     ptr_offsets;   /* byte offsets of pointer-bearing fields */
     uint16_t            ptr_count;
-    uint16_t            _pad;
+    uint16_t            string_count;  /* byte offsets count of raw vader_string_t fields */
+    const uint16_t*     string_offsets;/* byte offsets of raw vader_string_t fields */
 } vader_type_info_t;
 
 /* Provided by the per-module C emit. The runtime reads it via these externs. */

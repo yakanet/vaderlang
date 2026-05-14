@@ -243,21 +243,37 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
   // Per-type ptr-offset arrays. We collect into a buffer first so the table
   // initialiser can reference each by name. `offsetof` is resolved at C compile
   // time so we don't have to know struct sizes in TypeScript.
+  //
+  // Two parallel arrays per struct:
+  //   - `_ptrs[]`     box-bearing fields (vader_box_t)
+  //   - `_strs[]`     raw vader_string_t fat-ptr fields
+  // The string GC needs the latter because string fields are stored inline
+  // as primitive `vader_string_t`, not as boxes — the box-aliased mark
+  // walk would otherwise miss them.
   for (let i = 0; i < types.length; i++) {
     const t = types[i]!;
     if (t.kind === "struct") {
       const cname = ctx.structNames[i]!;
       const offsets: string[] = [];
+      const stringOffsets: string[] = [];
       for (const field of t.fields) {
         const ftype = types[field.typeIndex]!;
         if (ftype.kind !== "primitive") {
           // Heap-bearing field — its C type is `vader_box_t`. Tracing this
           // slot requires checking the box tag at scan time.
           offsets.push(`offsetof(${cname}, f_${sanitise(field.name)})`);
+        } else if (ftype.val === "string") {
+          // Raw `vader_string_t` field. The Cheney scan ignores it (the
+          // buffer lives in the non-moving string arena), but the string
+          // mark-sweep collector must reach it.
+          stringOffsets.push(`offsetof(${cname}, f_${sanitise(field.name)})`);
         }
       }
       if (offsets.length > 0) {
         out.push(`static const uint16_t vader_type_${i}_ptrs[] = { ${offsets.join(", ")} };`);
+      }
+      if (stringOffsets.length > 0) {
+        out.push(`static const uint16_t vader_type_${i}_strs[] = { ${stringOffsets.join(", ")} };`);
       }
     } else if (t.kind === "fn") {
       // vader_fn_t has `code` (function pointer — NOT a heap ref, must not
@@ -283,11 +299,18 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
       const hasPtrs = t.fields.some((f) => types[f.typeIndex]!.kind !== "primitive");
       const ptrArr = hasPtrs ? `vader_type_${i}_ptrs` : "NULL";
       const ptrCount = hasPtrs ? t.fields.filter((f) => types[f.typeIndex]!.kind !== "primitive").length : 0;
-      out.push(`    [${i}] = { VADER_TYPE_KIND_STRUCT, sizeof(${cname}), ${ptrArr}, ${ptrCount}, 0 },`);
+      const strFields = t.fields.filter((f) => {
+        const ft = types[f.typeIndex]!;
+        return ft.kind === "primitive" && ft.val === "string";
+      });
+      const hasStrs = strFields.length > 0;
+      const strArr = hasStrs ? `vader_type_${i}_strs` : "NULL";
+      const strCount = strFields.length;
+      out.push(`    [${i}] = { VADER_TYPE_KIND_STRUCT, sizeof(${cname}), ${ptrArr}, ${ptrCount}, ${strCount}, ${strArr} },`);
     } else if (t.kind === "fn") {
-      out.push(`    [${i}] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_${i}_ptrs, 1, 0 },`);
+      out.push(`    [${i}] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_${i}_ptrs, 1, 0, NULL },`);
     } else if (t.kind === "array") {
-      out.push(`    [${i}] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_${i}_ptrs, 1, 0 },`);
+      out.push(`    [${i}] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_${i}_ptrs, 1, 0, NULL },`);
     }
     // primitive / union / ref → entry implicitly zero-initialised
     // (VADER_TYPE_KIND_NONE), which the GC interprets as "non-heap, skip".

@@ -681,7 +681,18 @@ static void vader_string_mark_ptr(const void* p) {
 
 /* Conservatively read every 8-byte aligned word in [lo, hi) and mark whatever
  * each word points at. Used for the C-stack scan and the saved-register
- * dump from setjmp. Hi-low inversion safely no-ops. */
+ * dump from setjmp. Hi-low inversion safely no-ops.
+ *
+ * AddressSanitizer poisons redzones between stack locals and reports the
+ * conservative reads here as stack-buffer-underflow. They aren't bugs: the
+ * scan is by design walking memory it doesn't formally own. Suppress the
+ * check on this function so ASan builds stay quiet without losing coverage
+ * on the rest of the runtime. Same rationale for MemorySanitizer — words
+ * read out of uninitialised slots are intentionally interpreted as opaque
+ * bit patterns. */
+#if defined(__clang__) || defined(__GNUC__)
+__attribute__((no_sanitize("address", "memory")))
+#endif
 static void vader_string_scan_words(const void* lo, const void* hi) {
     if (lo == NULL || hi == NULL || lo >= hi) return;
     uintptr_t s = ((uintptr_t) lo + (sizeof(void*) - 1u)) & ~(uintptr_t)(sizeof(void*) - 1u);
@@ -712,12 +723,23 @@ static void vader_string_mark_obj(char* scan, uint32_t type_index) {
         /* FN/ARRAY kinds have raw void* slots, not boxes — they hold no
          * string pointers themselves. The strings live inside the boxes
          * carried by the object they point to, which Cheney will scan in
-         * its own pass through this loop. */
+         * its own pass through this loop. Raw `vader_string_t` struct
+         * fields are listed separately in `string_offsets` (handled below)
+         * — FN/ARRAY have none, so skip. */
         return;
     }
     for (uint16_t i = 0; i < info->ptr_count; i++) {
         vader_box_t* bp = (vader_box_t*) (scan + info->ptr_offsets[i]);
         vader_string_mark_ptr((const void*) bp->payload.s.ptr);
+    }
+    /* Raw `vader_string_t` fields (primitive `string` typed in the source).
+     * These are stored inline as a fat ptr+len rather than a box, so the
+     * box-aliased read above misses them. The emitter materialises a
+     * dedicated `string_offsets[]` array for each struct that has at least
+     * one such field. */
+    for (uint16_t i = 0; i < info->string_count; i++) {
+        vader_string_t* sp = (vader_string_t*) (scan + info->string_offsets[i]);
+        vader_string_mark_ptr((const void*) sp->ptr);
     }
 }
 
@@ -801,10 +823,17 @@ static void vader_string_gc_collect(void) {
 /* ----------------------------------------------------------------- string */
 
 vader_string_t vader_string_concat(vader_string_t a, vader_string_t b) {
-    char* buf = (char*) vader_string_alloc(a.len + b.len);
-    memcpy(buf,         a.ptr, a.len);
-    memcpy(buf + a.len, b.ptr, b.len);
-    return vader_string_new(buf, a.len + b.len);
+    /* Catch `size_t` overflow before it wraps into a tiny allocation followed
+     * by two huge memcpys — user-controllable lengths reaching gigabytes can
+     * realistically hit this on 32-bit and is a hard upper bound on 64-bit. */
+    if (a.len > SIZE_MAX - b.len) vader_trap("vader_string_concat: length overflow");
+    size_t total = a.len + b.len;
+    char* buf = (char*) vader_string_alloc(total);
+    /* `memcpy(_, NULL, 0)` is UB per strict C; zero-init `vader_string_t`
+     * carries `ptr == NULL`. Guard both halves. */
+    if (a.len > 0) memcpy(buf,         a.ptr, a.len);
+    if (b.len > 0) memcpy(buf + a.len, b.ptr, b.len);
+    return vader_string_new(buf, total);
 }
 
 bool vader_string_eq(vader_string_t a, vader_string_t b) {
@@ -885,7 +914,7 @@ static vader_array_t* vader_array_resolve(vader_array_t* a);
 
 vader_box_t vader_array_get(vader_array_t* a, size_t i) {
     a = vader_array_resolve(a);
-    if (a->buf != NULL && a->buf->header.forward != NULL) {
+    while (a->buf != NULL && a->buf->header.forward != NULL) {
         a->buf = (vader_array_buf_t*) a->buf->header.forward;
     }
     if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
@@ -894,7 +923,7 @@ vader_box_t vader_array_get(vader_array_t* a, size_t i) {
 
 void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
     a = vader_array_resolve(a);
-    if (a->buf != NULL && a->buf->header.forward != NULL) {
+    while (a->buf != NULL && a->buf->header.forward != NULL) {
         a->buf = (vader_array_buf_t*) a->buf->header.forward;
     }
     if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
@@ -908,9 +937,13 @@ void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
  * its old header carries a forwarding pointer to the new copy. Caller-side
  * code reloads `a` from a shadow-stack slot, but runtime helpers receive `a`
  * as a raw C pointer — after a GC mid-call the parameter is stale. Resolving
- * the forward keeps the helper sound. */
+ * the forward keeps the helper sound.
+ *
+ * A single `vader_gc_alloc` call may run a minor THEN a major (the major
+ * runs its own internal minor as `MAJOR_DRAIN`), so an object can be
+ * forwarded twice in one allocation site. Loop until the chain terminates. */
 static vader_array_t* vader_array_resolve(vader_array_t* a) {
-    if (a->header.forward != NULL) return (vader_array_t*) a->header.forward;
+    while (a->header.forward != NULL) a = (vader_array_t*) a->header.forward;
     return a;
 }
 
@@ -920,7 +953,7 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
         vader_array_buf_t* fresh = vader_array_buf_alloc(cap);  /* may collect */
         a = vader_array_resolve(a);
         vader_array_buf_t* old = a->buf;
-        if (old != NULL && old->header.forward != NULL) {
+        while (old != NULL && old->header.forward != NULL) {
             old = (vader_array_buf_t*) old->header.forward;
         }
         if (a->length > 0 && old != NULL) {
