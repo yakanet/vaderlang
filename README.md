@@ -258,8 +258,8 @@ Two CPU-bound workloads (`mandelbrot`, `primes`) measured across four implementa
 
 | workload     | vader-vm     | vader-native | bun-ts  | go      |
 |--------------|--------------|--------------|---------|---------|
-| `mandelbrot` | 18 788 ms    | 65.3 ms      | 23.4 ms | 18.1 ms |
-| `primes`     | 29 423 ms    | 41.1 ms      | 41.1 ms | 23.9 ms |
+| `mandelbrot` | 12 781 ms    | 16.2 ms      | 23.0 ms | 17.5 ms |
+| `primes`     | 27 066 ms    | 22.6 ms      | 39.1 ms | 23.3 ms |
 
 `bun run bench` exits non-zero if any measurement regresses by more than 10 % vs the committed baseline, or if any implementation's checksum diverges. See [`bench/README.md`](./bench/README.md) for the workload sources, the comparison methodology, and notes on Go's FMA-driven checksum drift.
 
