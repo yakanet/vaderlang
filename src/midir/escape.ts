@@ -1,4 +1,4 @@
-// Intra-procedural escape analysis on the SSA-form CFG.
+// Intra-procedural escape analysis on the flat (non-SSA) CFG.
 //
 // For each `StructNew` / `ArrayNew` allocation, decide whether the value can
 // escape its function. An escape happens when the value (or anything
@@ -9,7 +9,6 @@
 //   - Stored as a field of another (escaping) value, or pushed into one.
 //   - Wrapped in a CellNew / written into a CellSet (closures capture by
 //     reference, so the cell outlives any local frame).
-//   - Used as the sources of a Phi whose dst escapes (transitive propagation).
 //
 // Pure read-only uses (FieldGet, ArrayGet, ArrayLen, TypeCheck, Cast, Move,
 // CondBranch, ...) keep the value local. Allocations with no escaping
@@ -79,7 +78,7 @@ function annotateFunction(fn: CFGFunction): CFGFunction {
   const { escaping, aliasOf, aliasFrom } = computeEscaping(fn, allocLocals);
   const inLoop = computeBlocksInLoops(fn);
 
-  // Forward-propagate `barrierless` through Move/Phi/Cast. A Phi/Move with
+  // Forward-propagate `barrierless` through Move/Cast. A Move/Cast with
   // any non-stack source stays out — one heap origin requires the barrier.
   const stackOrigin = new Set<LocalId>();
   const worklist: LocalId[] = [];
@@ -147,8 +146,8 @@ function computeBlocksInLoops(fn: CFGFunction): ReadonlySet<BlockId> {
 
 /** Worklist: start with all locals known to escape (returned values, call
  *  args, cell-stored values, struct fields of escaping values, ...) and
- *  propagate backward via Move and Phi sources. Allocs whose dst isn't in
- *  the resulting set are stack-allocatable. Returns both directions of the
+ *  propagate backward via Move sources. Allocs whose dst isn't in the
+ *  resulting set are stack-allocatable. Returns both directions of the
  *  aliasing relation so callers can drive forward or backward worklists
  *  off the same data. */
 function computeEscaping(
@@ -159,7 +158,7 @@ function computeEscaping(
   aliasFrom: Map<LocalId, LocalId[]>;
 } {
   const escaping = new Set<LocalId>();
-  const aliasOf = new Map<LocalId, LocalId[]>();      // dst → producers (Move src or Phi sources)
+  const aliasOf = new Map<LocalId, LocalId[]>();      // dst → producers (Move src)
   const aliasFrom = new Map<LocalId, LocalId[]>();    // src → consumers (reverse of aliasOf)
 
   const see = (l: LocalId): void => { escaping.add(l); };
@@ -169,9 +168,6 @@ function computeEscaping(
       switch (ins.kind) {
         case "Move":
           recordAlias(aliasOf, aliasFrom, ins.dst, ins.src);
-          break;
-        case "Phi":
-          for (const s of ins.sources) recordAlias(aliasOf, aliasFrom, ins.dst, s.value);
           break;
         case "Cast":
           // Type casts don't change identity ; treat the cast result as an
@@ -246,7 +242,7 @@ function computeEscaping(
   }
 
   // Backward propagation : if `dst` escapes and it aliases `src` (Move /
-  // Phi / Cast), then `src` escapes too. Iterate to a fixed point.
+  // Cast), then `src` escapes too. Iterate to a fixed point.
   const work: LocalId[] = [...escaping];
   while (work.length > 0) {
     const cur = work.pop()!;

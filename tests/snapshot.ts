@@ -19,7 +19,6 @@ import { dumpCFGProject } from "../src/midir/dump.ts";
 import { emitBytecodeFromCFG } from "../src/midir/emit.ts";
 import { buildImplRegistry } from "../src/typecheck/impls.ts";
 import { annotateEscape } from "../src/midir/escape.ts";
-import { fromSSA, toSSA } from "../src/midir/ssa.ts";
 import type { Token } from "../src/lexer/token.ts";
 import type { Diagnostic } from "../src/diagnostics/diagnostic.ts";
 
@@ -212,8 +211,7 @@ export function dumpBytecode(_source: string, entryPath: string): string {
   const lowered = lowerProject(evaled, diags);
   const dced = pruneUnreachable(lowered);
   const moduleName = (entryPath.split("/").pop() ?? entryPath).replace(/\.vader$/, "");
-  const ssa = toSSA(eliminateDeadCFG(buildCFGProject(dced)));
-  const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
+  const cfg = annotateEscape(eliminateDeadCFG(buildCFGProject(dced))).project;
   const implRegistry = buildImplRegistry(typed.resolved);
   const bc = emitBytecodeFromCFG(cfg, moduleName, { implRegistry });
 
@@ -231,12 +229,12 @@ export function dumpBytecode(_source: string, entryPath: string): string {
   return portable + roundTripBanner + formatDiagnostics(diags.sorted());
 }
 
-/** Mid-IR CFG dump: post-DCE + SSA round-trip + DCE form, what the
- *  `--midir` codegen path consumes right before the structurer. Stdlib
- *  modules are filtered out (matching `dumpLower`) so the snapshot stays
- *  focused on user code. Strings pool is omitted — it's a project-level
- *  side-table that tracks every interned literal across stdlib + user
- *  code, which makes the snapshot noisy without adding signal. */
+/** Mid-IR CFG dump: post-DCE + escape-annotated form, what the `--midir`
+ *  codegen path consumes right before the structurer. Stdlib modules are
+ *  filtered out (matching `dumpLower`) so the snapshot stays focused on
+ *  user code. Strings pool is omitted — it's a project-level side-table
+ *  that tracks every interned literal across stdlib + user code, which
+ *  makes the snapshot noisy without adding signal. */
 export function dumpCfg(_source: string, entryPath: string): string {
   const diags = new DiagnosticCollector();
   const project = resolveProject({ entryPath, diags });
@@ -244,8 +242,7 @@ export function dumpCfg(_source: string, entryPath: string): string {
   const evaled = evaluateProject(typed, { diags, sandbox: { allowEnv: false, projectRoot: defaultProjectRoot(entryPath) } });
   const lowered = lowerProject(evaled, diags);
   const dced = pruneUnreachable(lowered);
-  const ssa = toSSA(eliminateDeadCFG(buildCFGProject(dced)));
-  const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
+  const cfg = annotateEscape(eliminateDeadCFG(buildCFGProject(dced))).project;
 
   const text = dumpCFGProject(cfg, {
     includeModule: (path) => !isStdlibModule(path),

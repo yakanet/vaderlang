@@ -13,7 +13,6 @@
 // (Cooper, Harvey, Kennedy : "A Simple, Fast Dominance Algorithm").
 
 import type { Span } from "../diagnostics/diagnostic.ts";
-import { CompilerBugError } from "../diagnostics/errors.ts";
 import type * as L from "../lower/lowered-ast.ts";
 import type { Type } from "../typecheck/types.ts";
 import { TY } from "../typecheck/types.ts";
@@ -326,10 +325,6 @@ function emitInstr(ctx: FnEmitCfg, ins: Instruction): void {
     case "CellSet":         return emitCellSet(ctx, ins);
     case "MakeClosure":     return emitMakeClosureInstr(ctx, ins);
     case "Intrinsic":       return emitIntrinsicInstr(ctx, ins);
-    case "Phi":
-      // Phis must be lowered by `fromSSA` before reaching the structurer.
-      // Reaching this branch means a pipeline wiring bug.
-      throw new CompilerBugError(`midir/emit: unexpected Phi at emit time (block ${ins.span.start.line})`);
   }
 }
 

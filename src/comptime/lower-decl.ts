@@ -36,7 +36,6 @@ import type { BytecodeModule } from "../bytecode/module.ts";
 import { emitBytecodeFromCFG } from "../midir/emit.ts";
 import { buildCFGProject } from "../midir/build.ts";
 import { eliminateDeadCFG } from "../midir/dce.ts";
-import { fromSSA, toSSA } from "../midir/ssa.ts";
 import { annotateEscape } from "../midir/escape.ts";
 
 import type { EvaluatedProject } from "./evaluated-ast.ts";
@@ -99,8 +98,7 @@ export function lowerComptimeDecl(input: CompileInput): CompileOutput | null {
   const project = inlineConsts(
     bundleProject(input, callerProgram.resolved.module.id, mainFnDecl, reachable),
   );
-  const ssa = toSSA(eliminateDeadCFG(buildCFGProject(project)));
-  const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
+  const cfg = annotateEscape(eliminateDeadCFG(buildCFGProject(project))).project;
   const bytecodeModule = emitBytecodeFromCFG(cfg, "__comptime__", {
     optimize: true, implRegistry: projectCtx.impls,
   });

@@ -421,8 +421,8 @@ function compactLocals(fn: CFGFunction): CFGFunction {
     name: p.name, symbol: p.symbol, type: p.type, local: remap[p.local]!,
   }));
 
-  // Drop instructions remapped to dst=-1: liveness over-approximates around
-  // back-edges through dead-end blocks; SSA's allocFresh would crash on these.
+  // Drop pure instructions whose dst was renumbered to -1 (unused local).
+  // Side-effecting instructions stay regardless of their dst.
   const newBlocks: BasicBlock[] = fn.blocks.map((b) => {
     const out: Instruction[] = [];
     for (const ins of b.instructions) {
@@ -457,10 +457,6 @@ function remapInstr(ins: Instruction, m: readonly LocalId[]): Instruction {
     case "Move":          return { ...ins, dst: r(m, ins.dst), src: r(m, ins.src) };
     case "BinOp":         return { ...ins, dst: r(m, ins.dst), lhs: r(m, ins.lhs), rhs: r(m, ins.rhs) };
     case "UnOp":          return { ...ins, dst: r(m, ins.dst), operand: r(m, ins.operand) };
-    case "Phi":           return {
-      ...ins, dst: r(m, ins.dst),
-      sources: ins.sources.map((s) => ({ block: s.block, value: r(m, s.value) })),
-    };
     case "Call":          return {
       ...ins, dst: ins.dst === null ? null : r(m, ins.dst), args: ins.args.map((a) => r(m, a)),
     };

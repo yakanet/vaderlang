@@ -77,7 +77,6 @@ function dumpInstr(ins: Instruction): string {
     case "Const":     return `%${ins.dst} = const ${dumpConst(ins.value)} :${displayType(ins.type)}`;
     case "BinOp":     return `%${ins.dst} = binop ${ins.op} %${ins.lhs} %${ins.rhs} :${displayType(ins.type)}`;
     case "UnOp":      return `%${ins.dst} = unop ${ins.op} %${ins.operand} :${displayType(ins.type)}`;
-    case "Phi":       return `%${ins.dst} = phi ${ins.sources.map((s) => `bb${s.block}:%${s.value}`).join(", ")} :${displayType(ins.type)}`;
     case "Call":      return `${dst(ins.dst)}call ${ins.callee.name}(${args(ins.args)}) :${displayType(ins.type)}`;
     case "CallIndirect": return `${dst(ins.dst)}call_indirect %${ins.callee}(${args(ins.args)}) :${displayType(ins.type)}`;
     case "FnRef":     return `%${ins.dst} = fn_ref ${ins.fnSymbol.name} :${displayType(ins.type)}`;

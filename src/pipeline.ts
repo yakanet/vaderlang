@@ -27,7 +27,6 @@ import type { CFGProject } from "./midir/cfg.ts";
 import { eliminateDeadCFG, pruneUnreachable } from "./midir/dce.ts";
 import { emitBytecodeFromCFG } from "./midir/emit.ts";
 import { annotateEscape } from "./midir/escape.ts";
-import { fromSSA, toSSA } from "./midir/ssa.ts";
 
 export type PipelineStage =
   | "ast" | "resolved-ast" | "typed-ast" | "evaluated-ast"
@@ -144,11 +143,9 @@ export async function pipelineCfg(
   file: string, opts?: { allowEnv?: boolean; keepTests?: boolean },
 ): Promise<CfgResult> {
   const r = await pipelineDced(file, opts);
-  // SSA round-trip is behaviour-neutral; escape analysis runs on SSA to
-  // exploit single-def value tracking and annotates StructNew/ArrayNew with
-  // `stack: true` when the value can't be observed past the fn's return.
-  const ssa = toSSA(eliminateDeadCFG(buildCFGProject(r.dced)));
-  const cfg = eliminateDeadCFG(fromSSA(annotateEscape(ssa).project));
+  // Escape analysis annotates StructNew/ArrayNew with `stack: true` when
+  // the value can't be observed past the fn's return.
+  const cfg = annotateEscape(eliminateDeadCFG(buildCFGProject(r.dced))).project;
   return { ...r, cfg };
 }
 

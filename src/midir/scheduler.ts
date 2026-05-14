@@ -89,7 +89,6 @@ function firstStackOperand(ins: Instruction): LocalId | null {
   switch (ins.kind) {
     case "Const":
     case "FnRef":
-    case "Phi":
       return null;
     case "Move":         return ins.src;
     case "BinOp":        return ins.lhs;

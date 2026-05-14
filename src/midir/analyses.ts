@@ -42,15 +42,11 @@ export function instructionHasSideEffect(ins: Instruction): boolean {
   }
 }
 
-/** Apply `visit` to every local read by the instruction (its operands).
- *  Phi sources are NOT visited here — phis read their sources from the
- *  predecessor blocks at runtime, not at the phi's own program point.
- *  Use `forEachPhiSource` separately when phi-aware liveness is needed. */
+/** Apply `visit` to every local read by the instruction (its operands). */
 export function forEachReadLocal(ins: Instruction, visit: (l: LocalId) => void): void {
   switch (ins.kind) {
     case "Const":
     case "FnRef":
-    case "Phi":
       return;
     case "Move":         visit(ins.src); return;
     case "BinOp":        visit(ins.lhs); visit(ins.rhs); return;
@@ -115,10 +111,8 @@ export function naturalLoopBodies(
 }
 
 /** Per-LocalId read count across the whole fn body — every read in an
- *  instruction or terminator counts once. Phi sources are skipped (they read
- *  in the predecessor, not at the phi's program point), matching
- *  `forEachReadLocal`'s semantics. Used by copy folding, the stack scheduler,
- *  and any pass that needs use-counts. */
+ *  instruction or terminator counts once. Used by copy folding, the stack
+ *  scheduler, and any pass that needs use-counts. */
 export function countUses(fn: CFGFunction): ReadonlyMap<LocalId, number> {
   const counts = new Map<LocalId, number>();
   const bump = (l: LocalId): void => { counts.set(l, (counts.get(l) ?? 0) + 1); };
@@ -213,36 +207,8 @@ export function dominates(idom: readonly number[], a: BlockId, b: BlockId): bool
   return false;
 }
 
-/** Dominance frontier per block, computed via the Cytron et al. algorithm :
- *  for each block B with multiple predecessors, walk each predecessor's idom
- *  chain up to (but not including) idom(B), adding B to each visited block's
- *  DF. Used by SSA construction to place phi nodes. */
-export function computeDominanceFrontiers(
-  fn: CFGFunction, preds: readonly (readonly BlockId[])[], idom: readonly number[],
-): readonly (readonly BlockId[])[] {
-  const df: BlockId[][] = fn.blocks.map(() => []);
-  for (const b of fn.blocks) {
-    const ps = preds[b.id]!;
-    if (ps.length < 2) continue;
-    const idomB = idom[b.id]!;
-    for (const p of ps) {
-      let runner = p;
-      while (runner !== -1 && runner !== idomB) {
-        if (!df[runner]!.includes(b.id)) df[runner]!.push(b.id);
-        const next = idom[runner]!;
-        if (next === runner) break;
-        runner = next;
-      }
-    }
-  }
-  return df;
-}
-
 /** Per-block live-in / live-out sets. Standard backward dataflow on the
- *  use/def of each block. Phi sources are NOT counted as reads at the phi
- *  block — they participate via the predecessors' liveness when the phi
- *  becomes a Move at out-of-SSA. Used by both DCE (kill-dead-stores) and
- *  pruned SSA construction (skip phis where the variable isn't live-in). */
+ *  use/def of each block. Used by DCE (kill-dead-stores). */
 export interface Liveness {
   readonly liveIn: readonly ReadonlySet<LocalId>[];
   readonly liveOut: readonly ReadonlySet<LocalId>[];
@@ -300,7 +266,6 @@ export function dstOf(ins: Instruction): LocalId | null {
     case "Move":
     case "BinOp":
     case "UnOp":
-    case "Phi":
     case "FieldGet":
     case "ArrayGet":
     case "ArrayLen":
