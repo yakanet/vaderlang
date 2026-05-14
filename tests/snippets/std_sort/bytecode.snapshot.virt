@@ -4,17 +4,15 @@ type 1 struct std_core$Yielded__i32 { value:2 }
 type 2 primitive i32
 type 3 struct std_core$Yielded__string { value:4 }
 type 4 primitive string
-type 5 struct std_core$Yielded__usize { value:6 }
-type 6 primitive usize
-type 7 struct std_core$Range__usize { start:6,end:6,inclusive:8,cursor:6 }
-type 8 primitive bool
-type 9 struct std_core$ArrayIterator__i32 { arr:10,cursor:6,length:6 }
-type 10 array 2
-type 11 struct std_core$ArrayIterator__string { arr:12,cursor:6,length:6 }
-type 12 array 4
-type 13 struct std_string_builder$StringBuilder { parts:12 }
-type 14 fn (2,2) -> 8
-type 15 fn (4,4) -> 8
+type 5 struct std_core$ArrayIterator__i32 { arr:6,cursor:7,length:7 }
+type 6 array 2
+type 7 primitive usize
+type 8 struct std_core$ArrayIterator__string { arr:9,cursor:7,length:7 }
+type 9 array 4
+type 10 struct std_string_builder$StringBuilder { parts:9 }
+type 11 fn (2,2) -> 12
+type 12 primitive bool
+type 13 fn (4,4) -> 12
 string 0 ""
 string 1 ", "
 string 2 "banana"
@@ -24,11 +22,9 @@ string 5 "date"
 import 0 at std_core$string$Index$at (string,usize) -> char
 import 1 println std_io$println (string) -> void
 import 2 byte_len std_string$byte_len (string) -> usize
-impl 7 Contains
-impl 7 Iterator
-impl 9 Iterator
-impl 11 Iterator
-impl 13 Display
+impl 5 Iterator
+impl 8 Iterator
+impl 10 Display
 
 fn 0 tests_snippets_std_sort__main_vader$i32_lt (i32,i32) -> bool
   local.get 0   ; _main.vader:5:47
@@ -64,12 +60,12 @@ fn 2 tests_snippets_std_sort__main_vader$print_ints (ref) -> void
   i64.const 0   ; _main.vader:11:14
   i64.to_usize   ; _main.vader:11:14
   local.get 3   ; _main.vader:11:14
-  struct.new 9   ; _main.vader:11:14
+  struct.new 5   ; _main.vader:11:14
   local.set 4   ; _main.vader:11:14
   block $L0 void   ; _main.vader:11:5
     loop $L1 void   ; _main.vader:11:5
       local.get 4   ; _main.vader:11:5
-      call 10   ; _main.vader:11:5
+      call 5   ; _main.vader:11:5
       local.tee 5   ; _main.vader:11:5
       type_check 0   ; _main.vader:11:5
       if $L2 void   ; _main.vader:11:5
@@ -136,12 +132,12 @@ fn 3 tests_snippets_std_sort__main_vader$print_strings (ref) -> void
   i64.const 0   ; _main.vader:22:14
   i64.to_usize   ; _main.vader:22:14
   local.get 3   ; _main.vader:22:14
-  struct.new 11   ; _main.vader:22:14
+  struct.new 8   ; _main.vader:22:14
   local.set 4   ; _main.vader:22:14
   block $L0 void   ; _main.vader:22:5
     loop $L1 void   ; _main.vader:22:5
       local.get 4   ; _main.vader:22:5
-      call 11   ; _main.vader:22:5
+      call 6   ; _main.vader:22:5
       local.tee 5   ; _main.vader:22:5
       type_check 0   ; _main.vader:22:5
       if $L2 void   ; _main.vader:22:5
@@ -207,39 +203,39 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   local $fn_ref_94 ref
   local out ref
   i32.const 42   ; _main.vader:32:18
-  array.new 10 1   ; _main.vader:32:17
+  array.new 6 1   ; _main.vader:32:17
   local.set 0   ; _main.vader:32:17
-  fn.ref 0 14   ; _main.vader:32:23
+  fn.ref 0 11   ; _main.vader:32:23
   local.set 1   ; _main.vader:32:23
   local.get 0   ; _main.vader:32:12
   local.get 1   ; _main.vader:32:12
-  call 12   ; _main.vader:32:12
+  call 7   ; _main.vader:32:12
   call 2   ; _main.vader:33:5
   i32.const 1   ; _main.vader:36:17
   i32.const 2   ; _main.vader:36:17
   i32.const 3   ; _main.vader:36:17
   i32.const 4   ; _main.vader:36:17
   i32.const 5   ; _main.vader:36:17
-  array.new 10 5   ; _main.vader:36:17
+  array.new 6 5   ; _main.vader:36:17
   local.set 2   ; _main.vader:36:17
-  fn.ref 0 14   ; _main.vader:36:34
+  fn.ref 0 11   ; _main.vader:36:34
   local.set 3   ; _main.vader:36:34
   local.get 2   ; _main.vader:36:12
   local.get 3   ; _main.vader:36:12
-  call 12   ; _main.vader:36:12
+  call 7   ; _main.vader:36:12
   call 2   ; _main.vader:37:5
   i32.const 5   ; _main.vader:38:18
   i32.const 4   ; _main.vader:38:18
   i32.const 3   ; _main.vader:38:18
   i32.const 2   ; _main.vader:38:18
   i32.const 1   ; _main.vader:38:18
-  array.new 10 5   ; _main.vader:38:18
+  array.new 6 5   ; _main.vader:38:18
   local.set 4   ; _main.vader:38:18
-  fn.ref 0 14   ; _main.vader:38:35
+  fn.ref 0 11   ; _main.vader:38:35
   local.set 5   ; _main.vader:38:35
   local.get 4   ; _main.vader:38:13
   local.get 5   ; _main.vader:38:13
-  call 12   ; _main.vader:38:13
+  call 7   ; _main.vader:38:13
   call 2   ; _main.vader:39:5
   i32.const 3   ; _main.vader:40:18
   i32.const 1   ; _main.vader:40:18
@@ -252,26 +248,26 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   i32.const 5   ; _main.vader:40:18
   i32.const 3   ; _main.vader:40:18
   i32.const 5   ; _main.vader:40:18
-  array.new 10 11   ; _main.vader:40:18
+  array.new 6 11   ; _main.vader:40:18
   local.set 6   ; _main.vader:40:18
-  fn.ref 0 14   ; _main.vader:40:53
+  fn.ref 0 11   ; _main.vader:40:53
   local.set 7   ; _main.vader:40:53
   local.get 6   ; _main.vader:40:13
   local.get 7   ; _main.vader:40:13
-  call 12   ; _main.vader:40:13
+  call 7   ; _main.vader:40:13
   call 2   ; _main.vader:41:5
   i32.const 1   ; _main.vader:44:24
   i32.const 2   ; _main.vader:44:24
   i32.const 3   ; _main.vader:44:24
   i32.const 4   ; _main.vader:44:24
   i32.const 5   ; _main.vader:44:24
-  array.new 10 5   ; _main.vader:44:24
+  array.new 6 5   ; _main.vader:44:24
   local.set 8   ; _main.vader:44:24
-  fn.ref 1 14   ; _main.vader:44:41
+  fn.ref 1 11   ; _main.vader:44:41
   local.set 9   ; _main.vader:44:41
   local.get 8   ; _main.vader:44:19
   local.get 9   ; _main.vader:44:19
-  call 12   ; _main.vader:44:19
+  call 7   ; _main.vader:44:19
   call 2   ; _main.vader:45:5
   i32.const 10   ; _main.vader:49:9
   i32.const 20   ; _main.vader:49:9
@@ -303,36 +299,36 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   i32.const 23   ; _main.vader:49:9
   i32.const 28   ; _main.vader:49:9
   i32.const 29   ; _main.vader:49:9
-  array.new 10 30   ; _main.vader:49:9
+  array.new 6 30   ; _main.vader:49:9
   local.set 10   ; _main.vader:49:9
-  fn.ref 0 14   ; _main.vader:50:9
+  fn.ref 0 11   ; _main.vader:50:9
   local.set 11   ; _main.vader:50:9
   local.get 10   ; _main.vader:48:12
   local.get 11   ; _main.vader:48:12
-  call 12   ; _main.vader:48:12
+  call 7   ; _main.vader:48:12
   call 2   ; _main.vader:52:5
   string.const 2   ; _main.vader:55:18
   string.const 3   ; _main.vader:55:18
   string.const 4   ; _main.vader:55:18
   string.const 5   ; _main.vader:55:18
-  array.new 12 4   ; _main.vader:55:18
+  array.new 9 4   ; _main.vader:55:18
   local.set 12   ; _main.vader:55:18
-  fn.ref 18 15   ; _main.vader:55:57
+  fn.ref 13 13   ; _main.vader:55:57
   local.set 13   ; _main.vader:55:57
   local.get 12   ; _main.vader:55:13
   local.get 13   ; _main.vader:55:13
-  call 13   ; _main.vader:55:13
+  call 8   ; _main.vader:55:13
   call 3   ; _main.vader:56:5
   i32.const 3   ; _main.vader:59:14
   i32.const 1   ; _main.vader:59:14
   i32.const 2   ; _main.vader:59:14
-  array.new 10 3   ; _main.vader:59:14
+  array.new 6 3   ; _main.vader:59:14
   local.set 14   ; _main.vader:59:14
-  fn.ref 0 14   ; _main.vader:60:24
+  fn.ref 0 11   ; _main.vader:60:24
   local.set 15   ; _main.vader:60:24
   local.get 14   ; _main.vader:60:12
   local.get 15   ; _main.vader:60:12
-  call 12   ; _main.vader:60:12
+  call 7   ; _main.vader:60:12
   local.set 16   ; _main.vader:60:5
   local.get 14   ; _main.vader:61:5
   call 2   ; _main.vader:61:5
@@ -342,121 +338,7 @@ fn 4 tests_snippets_std_sort__main_vader$main () -> i32
   return   ; _main.vader:64:5
 end
 
-fn 5 std_core$usize$Comparable$compare (usize,usize) -> i32
-  local if_res i32
-  local if_res i32
-  local.get 0   ; core.vader:354:35
-  local.get 1   ; core.vader:354:35
-  usize.lt   ; core.vader:354:35
-  if $L0 void   ; core.vader:354:32
-    i32.const 1   ; core.vader:354:51
-    i32.neg   ; core.vader:354:50
-    local.set 2   ; core.vader:354:50
-  else   ; core.vader:354:32
-    local.get 0   ; core.vader:354:63
-    local.get 1   ; core.vader:354:63
-    usize.gt   ; core.vader:354:63
-    if $L1 void   ; core.vader:354:60
-      i32.const 1   ; core.vader:354:78
-      local.set 3   ; core.vader:354:78
-    else   ; core.vader:354:60
-      i32.const 0   ; core.vader:354:89
-      local.set 3   ; core.vader:354:89
-    end $L1   ; core.vader:354:60
-    local.get 3   ; core.vader:354:60
-    local.set 2   ; core.vader:354:60
-  end $L0   ; core.vader:354:32
-  local.get 2   ; core.vader:354:29
-  return   ; core.vader:354:29
-end
-
-fn 6 std_core$usize$Comparable$gt (usize,usize) -> bool
-  local $call_2 i32
-  local.get 0   ; core.vader:45:51
-  local.get 1   ; core.vader:45:51
-  call 5   ; core.vader:45:51
-  local.set 2   ; core.vader:45:51
-  local.get 2   ; core.vader:45:51
-  i32.const 0   ; core.vader:45:51
-  i32.gt   ; core.vader:45:51
-  return   ; core.vader:45:44
-end
-
-fn 7 std_core$usize$Comparable$gte (usize,usize) -> bool
-  local $call_2 i32
-  local.get 0   ; core.vader:46:51
-  local.get 1   ; core.vader:46:51
-  call 5   ; core.vader:46:51
-  local.set 2   ; core.vader:46:51
-  local.get 2   ; core.vader:46:51
-  i32.const 0   ; core.vader:46:51
-  i32.ge   ; core.vader:46:51
-  return   ; core.vader:46:44
-end
-
-fn 8 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; core.vader:372:26
-  i64.const 1   ; core.vader:372:26
-  i64.to_usize   ; core.vader:372:26
-  usize.add   ; core.vader:372:26
-  return   ; core.vader:372:23
-end
-
-fn 9 std_core$Range$Iterator$next__usize (ref) -> ref
-  local if_res bool
-  local $field_3 usize
-  local $field_4 usize
-  local $field_6 usize
-  local $field_7 usize
-  local v usize
-  local $call_14 usize
-  local.get 0   ; core.vader:223:21
-  struct.get 7 2   ; core.vader:223:21
-  if $L0 void   ; core.vader:223:17
-    local.get 0   ; core.vader:223:39
-    struct.get 7 3   ; core.vader:223:39
-    local.set 2   ; core.vader:223:39
-    local.get 0   ; core.vader:223:54
-    struct.get 7 1   ; core.vader:223:54
-    local.set 3   ; core.vader:223:54
-    local.get 2   ; core.vader:223:39
-    local.get 3   ; core.vader:223:39
-    call 6   ; core.vader:223:39
-    local.set 1   ; core.vader:223:37
-  else   ; core.vader:223:17
-    local.get 0   ; core.vader:224:40
-    struct.get 7 3   ; core.vader:224:40
-    local.set 4   ; core.vader:224:40
-    local.get 0   ; core.vader:224:56
-    struct.get 7 1   ; core.vader:224:56
-    local.set 5   ; core.vader:224:56
-    local.get 4   ; core.vader:224:40
-    local.get 5   ; core.vader:224:40
-    call 7   ; core.vader:224:40
-    local.set 1   ; core.vader:224:38
-  end $L0   ; core.vader:223:17
-  local.get 1   ; core.vader:223:9
-  if $L1 void   ; core.vader:225:9
-    struct.new 0   ; core.vader:225:28
-    return   ; core.vader:225:21
-  else   ; core.vader:225:9
-    local.get 0   ; core.vader:226:14
-    struct.get 7 3   ; core.vader:226:14
-    local.set 6   ; core.vader:226:14
-    local.get 0   ; core.vader:227:23
-    struct.get 7 3   ; core.vader:227:23
-    call 8   ; core.vader:227:23
-    local.set 7   ; core.vader:227:23
-    local.get 0   ; core.vader:227:9
-    local.get 7   ; core.vader:227:9
-    struct.set 7 3   ; core.vader:227:9
-    local.get 6   ; core.vader:228:16
-    struct.new 5   ; core.vader:228:16
-    return   ; core.vader:228:9
-  end $L1   ; core.vader:225:9
-end
-
-fn 10 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
+fn 5 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -465,10 +347,10 @@ fn 10 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local $field_9 usize
   local $add_11 usize
   local.get 0   ; core.vader:244:13
-  struct.get 9 1   ; core.vader:244:13
+  struct.get 5 1   ; core.vader:244:13
   local.set 1   ; core.vader:244:13
   local.get 0   ; core.vader:244:28
-  struct.get 9 2   ; core.vader:244:28
+  struct.get 5 2   ; core.vader:244:28
   local.set 2   ; core.vader:244:28
   local.get 1   ; core.vader:244:13
   local.get 2   ; core.vader:244:13
@@ -478,18 +360,18 @@ fn 10 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
     return   ; core.vader:244:43
   else   ; core.vader:244:9
     local.get 0   ; core.vader:245:14
-    struct.get 9 0   ; core.vader:245:14
+    struct.get 5 0   ; core.vader:245:14
     local.set 3   ; core.vader:245:14
     local.get 0   ; core.vader:245:23
-    struct.get 9 1   ; core.vader:245:23
+    struct.get 5 1   ; core.vader:245:23
     local.set 4   ; core.vader:245:23
     local.get 3   ; core.vader:245:14
     local.get 4   ; core.vader:245:14
-    array.get 10   ; core.vader:245:14
+    array.get 6   ; core.vader:245:14
     ref.cast 2   ; core.vader:245:14
     local.set 5   ; core.vader:245:14
     local.get 0   ; core.vader:246:23
-    struct.get 9 1   ; core.vader:246:23
+    struct.get 5 1   ; core.vader:246:23
     local.set 6   ; core.vader:246:23
     local.get 6   ; core.vader:246:23
     i64.const 1   ; core.vader:246:23
@@ -498,14 +380,14 @@ fn 10 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
     local.set 7   ; core.vader:246:23
     local.get 0   ; core.vader:246:9
     local.get 7   ; core.vader:246:9
-    struct.set 9 1   ; core.vader:246:9
+    struct.set 5 1   ; core.vader:246:9
     local.get 5   ; core.vader:247:16
     struct.new 1   ; core.vader:247:16
     return   ; core.vader:247:9
   end $L0   ; core.vader:244:9
 end
 
-fn 11 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
+fn 6 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -514,10 +396,10 @@ fn 11 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   local $field_9 usize
   local $add_11 usize
   local.get 0   ; core.vader:244:13
-  struct.get 11 1   ; core.vader:244:13
+  struct.get 8 1   ; core.vader:244:13
   local.set 1   ; core.vader:244:13
   local.get 0   ; core.vader:244:28
-  struct.get 11 2   ; core.vader:244:28
+  struct.get 8 2   ; core.vader:244:28
   local.set 2   ; core.vader:244:28
   local.get 1   ; core.vader:244:13
   local.get 2   ; core.vader:244:13
@@ -527,18 +409,18 @@ fn 11 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
     return   ; core.vader:244:43
   else   ; core.vader:244:9
     local.get 0   ; core.vader:245:14
-    struct.get 11 0   ; core.vader:245:14
+    struct.get 8 0   ; core.vader:245:14
     local.set 3   ; core.vader:245:14
     local.get 0   ; core.vader:245:23
-    struct.get 11 1   ; core.vader:245:23
+    struct.get 8 1   ; core.vader:245:23
     local.set 4   ; core.vader:245:23
     local.get 3   ; core.vader:245:14
     local.get 4   ; core.vader:245:14
-    array.get 12   ; core.vader:245:14
+    array.get 9   ; core.vader:245:14
     ref.cast 4   ; core.vader:245:14
     local.set 5   ; core.vader:245:14
     local.get 0   ; core.vader:246:23
-    struct.get 11 1   ; core.vader:246:23
+    struct.get 8 1   ; core.vader:246:23
     local.set 6   ; core.vader:246:23
     local.get 6   ; core.vader:246:23
     i64.const 1   ; core.vader:246:23
@@ -547,14 +429,14 @@ fn 11 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
     local.set 7   ; core.vader:246:23
     local.get 0   ; core.vader:246:9
     local.get 7   ; core.vader:246:9
-    struct.set 11 1   ; core.vader:246:9
+    struct.set 8 1   ; core.vader:246:9
     local.get 5   ; core.vader:247:16
     struct.new 3   ; core.vader:247:16
     return   ; core.vader:247:9
   end $L0   ; core.vader:244:9
 end
 
-fn 12 std_sort$std_sort$sort__i32 (ref,ref) -> ref
+fn 7 std_sort$std_sort$sort__i32 (ref,ref) -> ref
   local n usize
   local out ref
   local buf ref
@@ -565,7 +447,7 @@ fn 12 std_sort$std_sort$sort__i32 (ref,ref) -> ref
   i64.const 0   ; sort.vader:27:12
   i64.to_usize   ; sort.vader:27:12
   local.get 2   ; sort.vader:27:12
-  call 19   ; sort.vader:27:12
+  call 14   ; sort.vader:27:12
   local.set 3   ; sort.vader:27:5
   local.get 2   ; sort.vader:28:8
   i64.const 2   ; sort.vader:28:8
@@ -579,7 +461,7 @@ fn 12 std_sort$std_sort$sort__i32 (ref,ref) -> ref
     i64.const 0   ; sort.vader:32:12
     i64.to_usize   ; sort.vader:32:12
     local.get 2   ; sort.vader:32:12
-    call 19   ; sort.vader:32:12
+    call 14   ; sort.vader:32:12
     local.set 4   ; sort.vader:32:5
     local.get 3   ; sort.vader:33:5
     local.get 4   ; sort.vader:33:5
@@ -587,13 +469,13 @@ fn 12 std_sort$std_sort$sort__i32 (ref,ref) -> ref
     i64.to_usize   ; sort.vader:33:5
     local.get 2   ; sort.vader:33:5
     local.get 1   ; sort.vader:33:5
-    call 14   ; sort.vader:33:5
+    call 9   ; sort.vader:33:5
     local.get 3   ; sort.vader:34:5
     return   ; sort.vader:34:5
   end $L0   ; sort.vader:28:5
 end
 
-fn 13 std_sort$std_sort$sort__string (ref,ref) -> ref
+fn 8 std_sort$std_sort$sort__string (ref,ref) -> ref
   local n usize
   local out ref
   local buf ref
@@ -604,7 +486,7 @@ fn 13 std_sort$std_sort$sort__string (ref,ref) -> ref
   i64.const 0   ; sort.vader:27:12
   i64.to_usize   ; sort.vader:27:12
   local.get 2   ; sort.vader:27:12
-  call 20   ; sort.vader:27:12
+  call 15   ; sort.vader:27:12
   local.set 3   ; sort.vader:27:5
   local.get 2   ; sort.vader:28:8
   i64.const 2   ; sort.vader:28:8
@@ -618,7 +500,7 @@ fn 13 std_sort$std_sort$sort__string (ref,ref) -> ref
     i64.const 0   ; sort.vader:32:12
     i64.to_usize   ; sort.vader:32:12
     local.get 2   ; sort.vader:32:12
-    call 20   ; sort.vader:32:12
+    call 15   ; sort.vader:32:12
     local.set 4   ; sort.vader:32:5
     local.get 3   ; sort.vader:33:5
     local.get 4   ; sort.vader:33:5
@@ -626,13 +508,13 @@ fn 13 std_sort$std_sort$sort__string (ref,ref) -> ref
     i64.to_usize   ; sort.vader:33:5
     local.get 2   ; sort.vader:33:5
     local.get 1   ; sort.vader:33:5
-    call 15   ; sort.vader:33:5
+    call 10   ; sort.vader:33:5
     local.get 3   ; sort.vader:34:5
     return   ; sort.vader:34:5
   end $L0   ; sort.vader:28:5
 end
 
-fn 14 std_sort$std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
+fn 9 std_sort$std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
   local n usize
   local $cast_10 usize
   local $div_13 usize
@@ -670,7 +552,7 @@ fn 14 std_sort$std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
       local.get 2   ; sort.vader:46:9
       local.get 3   ; sort.vader:46:9
       local.get 4   ; sort.vader:46:9
-      call 16   ; sort.vader:46:9
+      call 11   ; sort.vader:46:9
       return   ; sort.vader:47:9
     else   ; sort.vader:45:5
       local.get 5   ; sort.vader:49:17
@@ -687,13 +569,13 @@ fn 14 std_sort$std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
       local.get 2   ; sort.vader:50:5
       local.get 8   ; sort.vader:50:5
       local.get 4   ; sort.vader:50:5
-      call 14   ; sort.vader:50:5
+      call 9   ; sort.vader:50:5
       local.get 0   ; sort.vader:51:5
       local.get 1   ; sort.vader:51:5
       local.get 8   ; sort.vader:51:5
       local.get 3   ; sort.vader:51:5
       local.get 4   ; sort.vader:51:5
-      call 14   ; sort.vader:51:5
+      call 9   ; sort.vader:51:5
       local.get 2   ; sort.vader:54:5
       local.set 9   ; sort.vader:54:5
       block $L2 void   ; sort.vader:55:5
@@ -704,13 +586,13 @@ fn 14 std_sort$std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
           if $L4 void   ; sort.vader:55:9
             local.get 0   ; sort.vader:56:18
             local.get 9   ; sort.vader:56:18
-            array.get 10   ; sort.vader:56:18
+            array.get 6   ; sort.vader:56:18
             ref.cast 2   ; sort.vader:56:18
             local.set 10   ; sort.vader:56:18
             local.get 1   ; sort.vader:56:9
             local.get 9   ; sort.vader:56:9
             local.get 10   ; sort.vader:56:9
-            array.set 10   ; sort.vader:56:9
+            array.set 6   ; sort.vader:56:9
             local.get 9   ; sort.vader:57:13
             i64.const 1   ; sort.vader:57:13
             i64.to_usize   ; sort.vader:57:13
@@ -739,13 +621,13 @@ fn 14 std_sort$std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
             if $L8 void   ; sort.vader:63:9
               local.get 1   ; sort.vader:64:22
               local.get 12   ; sort.vader:64:22
-              array.get 10   ; sort.vader:64:22
+              array.get 6   ; sort.vader:64:22
               ref.cast 2   ; sort.vader:64:22
               local.set 14   ; sort.vader:64:22
               local.get 0   ; sort.vader:64:13
               local.get 13   ; sort.vader:64:13
               local.get 14   ; sort.vader:64:13
-              array.set 10   ; sort.vader:64:13
+              array.set 6   ; sort.vader:64:13
               local.get 12   ; sort.vader:65:17
               i64.const 1   ; sort.vader:65:17
               i64.to_usize   ; sort.vader:65:17
@@ -758,13 +640,13 @@ fn 14 std_sort$std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
               if $L9 void   ; sort.vader:66:16
                 local.get 1   ; sort.vader:67:22
                 local.get 11   ; sort.vader:67:22
-                array.get 10   ; sort.vader:67:22
+                array.get 6   ; sort.vader:67:22
                 ref.cast 2   ; sort.vader:67:22
                 local.set 15   ; sort.vader:67:22
                 local.get 0   ; sort.vader:67:13
                 local.get 13   ; sort.vader:67:13
                 local.get 15   ; sort.vader:67:13
-                array.set 10   ; sort.vader:67:13
+                array.set 6   ; sort.vader:67:13
                 local.get 11   ; sort.vader:68:17
                 i64.const 1   ; sort.vader:68:17
                 i64.to_usize   ; sort.vader:68:17
@@ -773,28 +655,28 @@ fn 14 std_sort$std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
               else   ; sort.vader:66:16
                 local.get 1   ; sort.vader:69:27
                 local.get 12   ; sort.vader:69:27
-                array.get 10   ; sort.vader:69:27
+                array.get 6   ; sort.vader:69:27
                 ref.cast 2   ; sort.vader:69:27
                 local.set 16   ; sort.vader:69:27
                 local.get 1   ; sort.vader:69:35
                 local.get 11   ; sort.vader:69:35
-                array.get 10   ; sort.vader:69:35
+                array.get 6   ; sort.vader:69:35
                 ref.cast 2   ; sort.vader:69:35
                 local.set 17   ; sort.vader:69:35
                 local.get 16   ; sort.vader:69:19
                 local.get 17   ; sort.vader:69:19
                 local.get 4   ; sort.vader:69:19
-                call.indirect 14   ; sort.vader:69:19
+                call.indirect 11   ; sort.vader:69:19
                 if $L10 void   ; sort.vader:69:16
                   local.get 1   ; sort.vader:73:22
                   local.get 12   ; sort.vader:73:22
-                  array.get 10   ; sort.vader:73:22
+                  array.get 6   ; sort.vader:73:22
                   ref.cast 2   ; sort.vader:73:22
                   local.set 18   ; sort.vader:73:22
                   local.get 0   ; sort.vader:73:13
                   local.get 13   ; sort.vader:73:13
                   local.get 18   ; sort.vader:73:13
-                  array.set 10   ; sort.vader:73:13
+                  array.set 6   ; sort.vader:73:13
                   local.get 12   ; sort.vader:74:17
                   i64.const 1   ; sort.vader:74:17
                   i64.to_usize   ; sort.vader:74:17
@@ -803,13 +685,13 @@ fn 14 std_sort$std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
                 else   ; sort.vader:69:16
                   local.get 1   ; sort.vader:76:22
                   local.get 11   ; sort.vader:76:22
-                  array.get 10   ; sort.vader:76:22
+                  array.get 6   ; sort.vader:76:22
                   ref.cast 2   ; sort.vader:76:22
                   local.set 19   ; sort.vader:76:22
                   local.get 0   ; sort.vader:76:13
                   local.get 13   ; sort.vader:76:13
                   local.get 19   ; sort.vader:76:13
-                  array.set 10   ; sort.vader:76:13
+                  array.set 6   ; sort.vader:76:13
                   local.get 11   ; sort.vader:77:17
                   i64.const 1   ; sort.vader:77:17
                   i64.to_usize   ; sort.vader:77:17
@@ -833,7 +715,7 @@ fn 14 std_sort$std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
   end $L0   ; sort.vader:44:5
 end
 
-fn 15 std_sort$std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> void
+fn 10 std_sort$std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> void
   local n usize
   local $cast_10 usize
   local $div_13 usize
@@ -871,7 +753,7 @@ fn 15 std_sort$std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> vo
       local.get 2   ; sort.vader:46:9
       local.get 3   ; sort.vader:46:9
       local.get 4   ; sort.vader:46:9
-      call 17   ; sort.vader:46:9
+      call 12   ; sort.vader:46:9
       return   ; sort.vader:47:9
     else   ; sort.vader:45:5
       local.get 5   ; sort.vader:49:17
@@ -888,13 +770,13 @@ fn 15 std_sort$std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> vo
       local.get 2   ; sort.vader:50:5
       local.get 8   ; sort.vader:50:5
       local.get 4   ; sort.vader:50:5
-      call 15   ; sort.vader:50:5
+      call 10   ; sort.vader:50:5
       local.get 0   ; sort.vader:51:5
       local.get 1   ; sort.vader:51:5
       local.get 8   ; sort.vader:51:5
       local.get 3   ; sort.vader:51:5
       local.get 4   ; sort.vader:51:5
-      call 15   ; sort.vader:51:5
+      call 10   ; sort.vader:51:5
       local.get 2   ; sort.vader:54:5
       local.set 9   ; sort.vader:54:5
       block $L2 void   ; sort.vader:55:5
@@ -905,13 +787,13 @@ fn 15 std_sort$std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> vo
           if $L4 void   ; sort.vader:55:9
             local.get 0   ; sort.vader:56:18
             local.get 9   ; sort.vader:56:18
-            array.get 12   ; sort.vader:56:18
+            array.get 9   ; sort.vader:56:18
             ref.cast 4   ; sort.vader:56:18
             local.set 10   ; sort.vader:56:18
             local.get 1   ; sort.vader:56:9
             local.get 9   ; sort.vader:56:9
             local.get 10   ; sort.vader:56:9
-            array.set 12   ; sort.vader:56:9
+            array.set 9   ; sort.vader:56:9
             local.get 9   ; sort.vader:57:13
             i64.const 1   ; sort.vader:57:13
             i64.to_usize   ; sort.vader:57:13
@@ -940,13 +822,13 @@ fn 15 std_sort$std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> vo
             if $L8 void   ; sort.vader:63:9
               local.get 1   ; sort.vader:64:22
               local.get 12   ; sort.vader:64:22
-              array.get 12   ; sort.vader:64:22
+              array.get 9   ; sort.vader:64:22
               ref.cast 4   ; sort.vader:64:22
               local.set 14   ; sort.vader:64:22
               local.get 0   ; sort.vader:64:13
               local.get 13   ; sort.vader:64:13
               local.get 14   ; sort.vader:64:13
-              array.set 12   ; sort.vader:64:13
+              array.set 9   ; sort.vader:64:13
               local.get 12   ; sort.vader:65:17
               i64.const 1   ; sort.vader:65:17
               i64.to_usize   ; sort.vader:65:17
@@ -959,13 +841,13 @@ fn 15 std_sort$std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> vo
               if $L9 void   ; sort.vader:66:16
                 local.get 1   ; sort.vader:67:22
                 local.get 11   ; sort.vader:67:22
-                array.get 12   ; sort.vader:67:22
+                array.get 9   ; sort.vader:67:22
                 ref.cast 4   ; sort.vader:67:22
                 local.set 15   ; sort.vader:67:22
                 local.get 0   ; sort.vader:67:13
                 local.get 13   ; sort.vader:67:13
                 local.get 15   ; sort.vader:67:13
-                array.set 12   ; sort.vader:67:13
+                array.set 9   ; sort.vader:67:13
                 local.get 11   ; sort.vader:68:17
                 i64.const 1   ; sort.vader:68:17
                 i64.to_usize   ; sort.vader:68:17
@@ -974,28 +856,28 @@ fn 15 std_sort$std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> vo
               else   ; sort.vader:66:16
                 local.get 1   ; sort.vader:69:27
                 local.get 12   ; sort.vader:69:27
-                array.get 12   ; sort.vader:69:27
+                array.get 9   ; sort.vader:69:27
                 ref.cast 4   ; sort.vader:69:27
                 local.set 16   ; sort.vader:69:27
                 local.get 1   ; sort.vader:69:35
                 local.get 11   ; sort.vader:69:35
-                array.get 12   ; sort.vader:69:35
+                array.get 9   ; sort.vader:69:35
                 ref.cast 4   ; sort.vader:69:35
                 local.set 17   ; sort.vader:69:35
                 local.get 16   ; sort.vader:69:19
                 local.get 17   ; sort.vader:69:19
                 local.get 4   ; sort.vader:69:19
-                call.indirect 15   ; sort.vader:69:19
+                call.indirect 13   ; sort.vader:69:19
                 if $L10 void   ; sort.vader:69:16
                   local.get 1   ; sort.vader:73:22
                   local.get 12   ; sort.vader:73:22
-                  array.get 12   ; sort.vader:73:22
+                  array.get 9   ; sort.vader:73:22
                   ref.cast 4   ; sort.vader:73:22
                   local.set 18   ; sort.vader:73:22
                   local.get 0   ; sort.vader:73:13
                   local.get 13   ; sort.vader:73:13
                   local.get 18   ; sort.vader:73:13
-                  array.set 12   ; sort.vader:73:13
+                  array.set 9   ; sort.vader:73:13
                   local.get 12   ; sort.vader:74:17
                   i64.const 1   ; sort.vader:74:17
                   i64.to_usize   ; sort.vader:74:17
@@ -1004,13 +886,13 @@ fn 15 std_sort$std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> vo
                 else   ; sort.vader:69:16
                   local.get 1   ; sort.vader:76:22
                   local.get 11   ; sort.vader:76:22
-                  array.get 12   ; sort.vader:76:22
+                  array.get 9   ; sort.vader:76:22
                   ref.cast 4   ; sort.vader:76:22
                   local.set 19   ; sort.vader:76:22
                   local.get 0   ; sort.vader:76:13
                   local.get 13   ; sort.vader:76:13
                   local.get 19   ; sort.vader:76:13
-                  array.set 12   ; sort.vader:76:13
+                  array.set 9   ; sort.vader:76:13
                   local.get 11   ; sort.vader:77:17
                   i64.const 1   ; sort.vader:77:17
                   i64.to_usize   ; sort.vader:77:17
@@ -1034,7 +916,7 @@ fn 15 std_sort$std_sort$merge_sort_range__string (ref,ref,usize,usize,ref) -> vo
   end $L0   ; sort.vader:44:5
 end
 
-fn 16 std_sort$std_sort$insertion_sort_range__i32 (ref,usize,usize,ref) -> void
+fn 11 std_sort$std_sort$insertion_sort_range__i32 (ref,usize,usize,ref) -> void
   local i usize
   local x i32
   local j usize
@@ -1056,7 +938,7 @@ fn 16 std_sort$std_sort$insertion_sort_range__i32 (ref,usize,usize,ref) -> void
       if $L2 void   ; sort.vader:85:9
         local.get 0   ; sort.vader:86:14
         local.get 4   ; sort.vader:86:14
-        array.get 10   ; sort.vader:86:14
+        array.get 6   ; sort.vader:86:14
         ref.cast 2   ; sort.vader:86:14
         local.set 5   ; sort.vader:86:14
         local.get 4   ; sort.vader:87:9
@@ -1074,13 +956,13 @@ fn 16 std_sort$std_sort$insertion_sort_range__i32 (ref,usize,usize,ref) -> void
               local.set 8   ; sort.vader:88:38
               local.get 0   ; sort.vader:88:34
               local.get 8   ; sort.vader:88:34
-              array.get 10   ; sort.vader:88:34
+              array.get 6   ; sort.vader:88:34
               ref.cast 2   ; sort.vader:88:34
               local.set 9   ; sort.vader:88:34
               local.get 5   ; sort.vader:88:23
               local.get 9   ; sort.vader:88:23
               local.get 3   ; sort.vader:88:23
-              call.indirect 14   ; sort.vader:88:23
+              call.indirect 11   ; sort.vader:88:23
               local.set 7   ; sort.vader:88:23
             else   ; sort.vader:88:13
               bool.const false   ; sort.vader:88:13
@@ -1095,13 +977,13 @@ fn 16 std_sort$std_sort$insertion_sort_range__i32 (ref,usize,usize,ref) -> void
               local.set 10   ; sort.vader:89:26
               local.get 0   ; sort.vader:89:22
               local.get 10   ; sort.vader:89:22
-              array.get 10   ; sort.vader:89:22
+              array.get 6   ; sort.vader:89:22
               ref.cast 2   ; sort.vader:89:22
               local.set 11   ; sort.vader:89:22
               local.get 0   ; sort.vader:89:13
               local.get 6   ; sort.vader:89:13
               local.get 11   ; sort.vader:89:13
-              array.set 10   ; sort.vader:89:13
+              array.set 6   ; sort.vader:89:13
               local.get 6   ; sort.vader:90:17
               i64.const 1   ; sort.vader:90:17
               i64.to_usize   ; sort.vader:90:17
@@ -1115,7 +997,7 @@ fn 16 std_sort$std_sort$insertion_sort_range__i32 (ref,usize,usize,ref) -> void
         local.get 0   ; sort.vader:92:9
         local.get 6   ; sort.vader:92:9
         local.get 5   ; sort.vader:92:9
-        array.set 10   ; sort.vader:92:9
+        array.set 6   ; sort.vader:92:9
         local.get 4   ; sort.vader:93:13
         i64.const 1   ; sort.vader:93:13
         i64.to_usize   ; sort.vader:93:13
@@ -1129,7 +1011,7 @@ fn 16 std_sort$std_sort$insertion_sort_range__i32 (ref,usize,usize,ref) -> void
   return   ; sort.vader:83:98
 end
 
-fn 17 std_sort$std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> void
+fn 12 std_sort$std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> void
   local i usize
   local x string
   local j usize
@@ -1151,7 +1033,7 @@ fn 17 std_sort$std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> vo
       if $L2 void   ; sort.vader:85:9
         local.get 0   ; sort.vader:86:14
         local.get 4   ; sort.vader:86:14
-        array.get 12   ; sort.vader:86:14
+        array.get 9   ; sort.vader:86:14
         ref.cast 4   ; sort.vader:86:14
         local.set 5   ; sort.vader:86:14
         local.get 4   ; sort.vader:87:9
@@ -1169,13 +1051,13 @@ fn 17 std_sort$std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> vo
               local.set 8   ; sort.vader:88:38
               local.get 0   ; sort.vader:88:34
               local.get 8   ; sort.vader:88:34
-              array.get 12   ; sort.vader:88:34
+              array.get 9   ; sort.vader:88:34
               ref.cast 4   ; sort.vader:88:34
               local.set 9   ; sort.vader:88:34
               local.get 5   ; sort.vader:88:23
               local.get 9   ; sort.vader:88:23
               local.get 3   ; sort.vader:88:23
-              call.indirect 15   ; sort.vader:88:23
+              call.indirect 13   ; sort.vader:88:23
               local.set 7   ; sort.vader:88:23
             else   ; sort.vader:88:13
               bool.const false   ; sort.vader:88:13
@@ -1190,13 +1072,13 @@ fn 17 std_sort$std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> vo
               local.set 10   ; sort.vader:89:26
               local.get 0   ; sort.vader:89:22
               local.get 10   ; sort.vader:89:22
-              array.get 12   ; sort.vader:89:22
+              array.get 9   ; sort.vader:89:22
               ref.cast 4   ; sort.vader:89:22
               local.set 11   ; sort.vader:89:22
               local.get 0   ; sort.vader:89:13
               local.get 6   ; sort.vader:89:13
               local.get 11   ; sort.vader:89:13
-              array.set 12   ; sort.vader:89:13
+              array.set 9   ; sort.vader:89:13
               local.get 6   ; sort.vader:90:17
               i64.const 1   ; sort.vader:90:17
               i64.to_usize   ; sort.vader:90:17
@@ -1210,7 +1092,7 @@ fn 17 std_sort$std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> vo
         local.get 0   ; sort.vader:92:9
         local.get 6   ; sort.vader:92:9
         local.get 5   ; sort.vader:92:9
-        array.set 12   ; sort.vader:92:9
+        array.set 9   ; sort.vader:92:9
         local.get 4   ; sort.vader:93:13
         i64.const 1   ; sort.vader:93:13
         i64.to_usize   ; sort.vader:93:13
@@ -1224,12 +1106,10 @@ fn 17 std_sort$std_sort$insertion_sort_range__string (ref,usize,usize,ref) -> vo
   return   ; sort.vader:83:98
 end
 
-fn 18 std_string$compare_ascending (string,string) -> bool
+fn 13 std_string$compare_ascending (string,string) -> bool
   local la usize
   local lb usize
   local n usize
-  local __iter_0 ref
-  local __step_1 ref
   local i usize
   local ca char
   local cb char
@@ -1241,71 +1121,64 @@ fn 18 std_string$compare_ascending (string,string) -> bool
   local.set 3   ; string.vader:159:5
   local.get 2   ; string.vader:160:10
   local.get 3   ; string.vader:160:10
-  call 21   ; string.vader:160:10
+  call 16   ; string.vader:160:10
   local.set 4   ; string.vader:160:5
   i64.const 0   ; string.vader:161:14
-  i64.to_usize   ; string.vader:161:14
-  local.get 4   ; string.vader:161:14
-  bool.const false   ; string.vader:161:14
-  i64.const 0   ; string.vader:161:14
-  i64.to_usize   ; string.vader:161:14
-  struct.new 7   ; string.vader:161:14
   local.set 5   ; string.vader:161:14
   block $L0 void   ; string.vader:161:5
     loop $L1 void   ; string.vader:161:5
       local.get 5   ; string.vader:161:5
-      call 9   ; string.vader:161:5
-      local.tee 6   ; string.vader:161:5
-      type_check 0   ; string.vader:161:5
+      local.get 4   ; string.vader:161:5
+      usize.lt   ; string.vader:161:5
       if $L2 void   ; string.vader:161:5
-        local.get 2   ; string.vader:167:12
-        local.get 3   ; string.vader:167:12
-        usize.lt   ; string.vader:167:12
-        return   ; string.vader:167:5
-      else   ; string.vader:161:5
-        local.get 6   ; string.vader:161:5
-        struct.get 5 0   ; string.vader:161:5
-        local.set 7   ; string.vader:161:5
         local.get 0   ; string.vader:162:15
-        local.get 7   ; string.vader:162:15
+        local.get 5   ; string.vader:162:15
         call.import 0   ; string.vader:162:15
-        local.set 8   ; string.vader:162:9
+        local.set 6   ; string.vader:162:9
         local.get 1   ; string.vader:163:15
-        local.get 7   ; string.vader:163:15
+        local.get 5   ; string.vader:163:15
         call.import 0   ; string.vader:163:15
-        local.set 9   ; string.vader:163:9
-        local.get 8   ; string.vader:164:12
-        local.get 9   ; string.vader:164:12
+        local.set 7   ; string.vader:163:9
+        local.get 6   ; string.vader:164:12
+        local.get 7   ; string.vader:164:12
         char.lt   ; string.vader:164:12
         if $L3 void   ; string.vader:164:9
           bool.const true   ; string.vader:164:29
           return   ; string.vader:164:22
         else   ; string.vader:164:9
-          local.get 8   ; string.vader:165:12
-          local.get 9   ; string.vader:165:12
+          local.get 6   ; string.vader:165:12
+          local.get 7   ; string.vader:165:12
           char.gt   ; string.vader:165:12
           if $L4 void   ; string.vader:165:9
+            bool.const false   ; string.vader:165:29
+            return   ; string.vader:165:22
           else   ; string.vader:165:9
+            local.get 5   ; string.vader:161:5
+            i64.const 1   ; string.vader:161:5
+            i64.to_usize   ; string.vader:161:5
+            usize.add   ; string.vader:161:5
+            local.set 5   ; string.vader:161:5
             br $L1   ; string.vader:161:5
           end $L4   ; string.vader:165:9
         end $L3   ; string.vader:164:9
+      else   ; string.vader:161:5
       end $L2   ; string.vader:161:5
     end $L1   ; string.vader:161:5
   end $L0   ; string.vader:161:5
-  bool.const false   ; string.vader:165:29
-  return   ; string.vader:165:22
+  local.get 2   ; string.vader:167:12
+  local.get 3   ; string.vader:167:12
+  usize.lt   ; string.vader:167:12
+  return   ; string.vader:167:5
 end
 
-fn 19 std_iter$std_iter$slice__i32 (ref,usize,usize) -> ref
+fn 14 std_iter$std_iter$slice__i32 (ref,usize,usize) -> ref
   local out ref
   local len usize
   local lo usize
   local hi usize
-  local __iter_0 ref
-  local __step_1 ref
   local i usize
-  local $idx_21 i32
-  array.new 10 0   ; iter.vader:161:16
+  local $idx_14 i32
+  array.new 6 0   ; iter.vader:161:16
   local.set 3   ; iter.vader:161:16
   local.get 0   ; iter.vader:162:12
   array.len   ; iter.vader:162:12
@@ -1336,32 +1209,29 @@ fn 19 std_iter$std_iter$slice__i32 (ref,usize,usize) -> ref
     local.set 6   ; iter.vader:167:19
   else   ; iter.vader:167:5
   end $L2   ; iter.vader:167:5
-  local.get 5   ; iter.vader:168:14
-  local.get 6   ; iter.vader:168:14
-  bool.const false   ; iter.vader:168:14
-  local.get 5   ; iter.vader:168:14
-  struct.new 7   ; iter.vader:168:14
-  local.set 7   ; iter.vader:168:14
+  local.get 5   ; iter.vader:168:5
+  local.set 7   ; iter.vader:168:5
   block $L3 void   ; iter.vader:168:5
     loop $L4 void   ; iter.vader:168:5
       local.get 7   ; iter.vader:168:5
-      call 9   ; iter.vader:168:5
-      local.tee 8   ; iter.vader:168:5
-      type_check 0   ; iter.vader:168:5
+      local.get 6   ; iter.vader:168:5
+      usize.lt   ; iter.vader:168:5
       if $L5 void   ; iter.vader:168:5
-      else   ; iter.vader:168:5
-        local.get 8   ; iter.vader:168:5
-        struct.get 5 0   ; iter.vader:168:5
-        local.set 9   ; iter.vader:168:5
         local.get 0   ; iter.vader:169:18
-        local.get 9   ; iter.vader:169:18
-        array.get 10   ; iter.vader:169:18
+        local.get 7   ; iter.vader:169:18
+        array.get 6   ; iter.vader:169:18
         ref.cast 2   ; iter.vader:169:18
-        local.set 10   ; iter.vader:169:18
+        local.set 8   ; iter.vader:169:18
         local.get 3   ; iter.vader:169:9
-        local.get 10   ; iter.vader:169:9
+        local.get 8   ; iter.vader:169:9
         array.push 2   ; iter.vader:169:9
+        local.get 7   ; iter.vader:168:5
+        i64.const 1   ; iter.vader:168:5
+        i64.to_usize   ; iter.vader:168:5
+        usize.add   ; iter.vader:168:5
+        local.set 7   ; iter.vader:168:5
         br $L4   ; iter.vader:168:5
+      else   ; iter.vader:168:5
       end $L5   ; iter.vader:168:5
     end $L4   ; iter.vader:168:5
   end $L3   ; iter.vader:168:5
@@ -1369,16 +1239,14 @@ fn 19 std_iter$std_iter$slice__i32 (ref,usize,usize) -> ref
   return   ; iter.vader:171:5
 end
 
-fn 20 std_iter$std_iter$slice__string (ref,usize,usize) -> ref
+fn 15 std_iter$std_iter$slice__string (ref,usize,usize) -> ref
   local out ref
   local len usize
   local lo usize
   local hi usize
-  local __iter_0 ref
-  local __step_1 ref
   local i usize
-  local $idx_21 string
-  array.new 12 0   ; iter.vader:161:16
+  local $idx_14 string
+  array.new 9 0   ; iter.vader:161:16
   local.set 3   ; iter.vader:161:16
   local.get 0   ; iter.vader:162:12
   array.len   ; iter.vader:162:12
@@ -1409,32 +1277,29 @@ fn 20 std_iter$std_iter$slice__string (ref,usize,usize) -> ref
     local.set 6   ; iter.vader:167:19
   else   ; iter.vader:167:5
   end $L2   ; iter.vader:167:5
-  local.get 5   ; iter.vader:168:14
-  local.get 6   ; iter.vader:168:14
-  bool.const false   ; iter.vader:168:14
-  local.get 5   ; iter.vader:168:14
-  struct.new 7   ; iter.vader:168:14
-  local.set 7   ; iter.vader:168:14
+  local.get 5   ; iter.vader:168:5
+  local.set 7   ; iter.vader:168:5
   block $L3 void   ; iter.vader:168:5
     loop $L4 void   ; iter.vader:168:5
       local.get 7   ; iter.vader:168:5
-      call 9   ; iter.vader:168:5
-      local.tee 8   ; iter.vader:168:5
-      type_check 0   ; iter.vader:168:5
+      local.get 6   ; iter.vader:168:5
+      usize.lt   ; iter.vader:168:5
       if $L5 void   ; iter.vader:168:5
-      else   ; iter.vader:168:5
-        local.get 8   ; iter.vader:168:5
-        struct.get 5 0   ; iter.vader:168:5
-        local.set 9   ; iter.vader:168:5
         local.get 0   ; iter.vader:169:18
-        local.get 9   ; iter.vader:169:18
-        array.get 12   ; iter.vader:169:18
+        local.get 7   ; iter.vader:169:18
+        array.get 9   ; iter.vader:169:18
         ref.cast 4   ; iter.vader:169:18
-        local.set 10   ; iter.vader:169:18
+        local.set 8   ; iter.vader:169:18
         local.get 3   ; iter.vader:169:9
-        local.get 10   ; iter.vader:169:9
+        local.get 8   ; iter.vader:169:9
         array.push 4   ; iter.vader:169:9
+        local.get 7   ; iter.vader:168:5
+        i64.const 1   ; iter.vader:168:5
+        i64.to_usize   ; iter.vader:168:5
+        usize.add   ; iter.vader:168:5
+        local.set 7   ; iter.vader:168:5
         br $L4   ; iter.vader:168:5
+      else   ; iter.vader:168:5
       end $L5   ; iter.vader:168:5
     end $L4   ; iter.vader:168:5
   end $L3   ; iter.vader:168:5
@@ -1442,7 +1307,7 @@ fn 20 std_iter$std_iter$slice__string (ref,usize,usize) -> ref
   return   ; iter.vader:171:5
 end
 
-fn 21 std_math$min_2 (usize,usize) -> usize
+fn 16 std_math$min_2 (usize,usize) -> usize
   local if_res usize
   local.get 0   ; math.vader:51:43
   local.get 1   ; math.vader:51:43

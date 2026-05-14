@@ -5,23 +5,20 @@ type 2 struct std_core$Yielded__i32 { value:3 }
 type 3 primitive i32
 type 4 struct std_core$Yielded__string { value:5 }
 type 5 primitive string
-type 6 struct std_core$Yielded__usize { value:7 }
-type 7 primitive usize
-type 8 struct std_core$Yielded___string__i32_ { value:9 }
-type 9 struct __Tuple_9 { _0:5,_1:3 }
-type 10 struct std_core$Yielded___usize__string_ { value:11 }
-type 11 struct __Tuple_11 { _0:7,_1:5 }
-type 12 struct std_core$Range__usize { start:7,end:7,inclusive:13,cursor:7 }
-type 13 primitive bool
-type 14 struct std_core$ArrayIterator__i32 { arr:15,cursor:7,length:7 }
-type 15 array 3
-type 16 struct std_core$ArrayIterator__string { arr:17,cursor:7,length:7 }
-type 17 array 5
-type 18 struct std_core$ArrayIterator___string__i32_ { arr:19,cursor:7,length:7 }
-type 19 array 9
-type 20 struct std_core$ArrayIterator___usize__string_ { arr:21,cursor:7,length:7 }
-type 21 array 11
-type 22 fn (3) -> 15
+type 6 struct std_core$Yielded___string__i32_ { value:7 }
+type 7 struct __Tuple_7 { _0:5,_1:3 }
+type 8 struct std_core$Yielded___usize__string_ { value:9 }
+type 9 struct __Tuple_9 { _0:10,_1:5 }
+type 10 primitive usize
+type 11 struct std_core$ArrayIterator__i32 { arr:12,cursor:10,length:10 }
+type 12 array 3
+type 13 struct std_core$ArrayIterator__string { arr:14,cursor:10,length:10 }
+type 14 array 5
+type 15 struct std_core$ArrayIterator___string__i32_ { arr:16,cursor:10,length:10 }
+type 16 array 7
+type 17 struct std_core$ArrayIterator___usize__string_ { arr:18,cursor:10,length:10 }
+type 18 array 9
+type 19 fn (3) -> 12
 string 0 "count="
 string 1 "clone[0]="
 string 2 "a"
@@ -37,12 +34,10 @@ string 11 ": "
 string 12 "b="
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 println std_io$println (string) -> void
-impl 12 Contains
-impl 12 Iterator
-impl 14 Iterator
-impl 16 Iterator
-impl 18 Iterator
-impl 20 Iterator
+impl 11 Iterator
+impl 13 Iterator
+impl 15 Iterator
+impl 17 Iterator
 
 fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   local nums ref
@@ -89,7 +84,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   i32.const 10   ; _main.vader:6:13
   i32.const 20   ; _main.vader:6:13
   i32.const 30   ; _main.vader:6:13
-  array.new 15 3   ; _main.vader:6:13
+  array.new 12 3   ; _main.vader:6:13
   local.set 0   ; _main.vader:6:13
   intrinsic builder.new   ; _main.vader:7:13
   local.set 1   ; _main.vader:7:13
@@ -97,7 +92,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   string.const 0   ; _main.vader:7:14
   intrinsic builder.append_str   ; _main.vader:7:14
   local.get 0   ; _main.vader:7:22
-  call 11   ; _main.vader:7:22
+  call 6   ; _main.vader:7:22
   call.import 0   ; _main.vader:7:20
   local.set 2   ; _main.vader:7:20
   local.get 1   ; _main.vader:7:20
@@ -107,7 +102,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:7:13
   call.import 1   ; _main.vader:7:5
   local.get 0   ; _main.vader:8:15
-  call 12   ; _main.vader:8:15
+  call 7   ; _main.vader:8:15
   local.set 3   ; _main.vader:8:5
   intrinsic builder.new   ; _main.vader:9:13
   local.set 4   ; _main.vader:9:13
@@ -116,7 +111,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:9:14
   local.get 3   ; _main.vader:9:25
   i32.const 0   ; _main.vader:9:25
-  array.get 15   ; _main.vader:9:25
+  array.get 12   ; _main.vader:9:25
   ref.cast 3   ; _main.vader:9:25
   local.set 5   ; _main.vader:9:25
   local.get 4   ; _main.vader:9:23
@@ -129,16 +124,16 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   string.const 3   ; _main.vader:12:13
   string.const 4   ; _main.vader:12:13
   string.const 5   ; _main.vader:12:13
-  array.new 17 4   ; _main.vader:12:13
+  array.new 14 4   ; _main.vader:12:13
   local.set 6   ; _main.vader:12:13
   i32.const 1   ; _main.vader:13:13
   i32.const 2   ; _main.vader:13:13
   i32.const 3   ; _main.vader:13:13
-  array.new 15 3   ; _main.vader:13:13
+  array.new 12 3   ; _main.vader:13:13
   local.set 7   ; _main.vader:13:13
   local.get 6   ; _main.vader:14:14
   local.get 7   ; _main.vader:14:14
-  call 13   ; _main.vader:14:14
+  call 8   ; _main.vader:14:14
   local.set 8   ; _main.vader:14:5
   local.get 8   ; _main.vader:15:5
   array.len   ; _main.vader:15:5
@@ -147,23 +142,23 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   i64.const 0   ; _main.vader:15:19
   i64.to_usize   ; _main.vader:15:19
   local.get 9   ; _main.vader:15:19
-  struct.new 18   ; _main.vader:15:19
+  struct.new 15   ; _main.vader:15:19
   local.set 10   ; _main.vader:15:19
   block $L0 void   ; _main.vader:15:5
     loop $L1 void   ; _main.vader:15:5
       local.get 10   ; _main.vader:15:5
-      call 9   ; _main.vader:15:5
+      call 4   ; _main.vader:15:5
       local.tee 11   ; _main.vader:15:5
       type_check 1   ; _main.vader:15:5
       if $L2 void   ; _main.vader:15:5
       else   ; _main.vader:15:5
         local.get 11   ; _main.vader:15:5
-        struct.get 8 0   ; _main.vader:15:5
+        struct.get 6 0   ; _main.vader:15:5
         local.tee 12   ; _main.vader:15:5
-        struct.get 9 0   ; _main.vader:15:10
+        struct.get 7 0   ; _main.vader:15:10
         local.set 13   ; _main.vader:15:10
         local.get 12   ; _main.vader:15:13
-        struct.get 9 1   ; _main.vader:15:13
+        struct.get 7 1   ; _main.vader:15:13
         local.set 14   ; _main.vader:15:13
         intrinsic builder.new   ; _main.vader:16:17
         local.tee 15   ; _main.vader:16:17
@@ -185,15 +180,15 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   i32.const 1   ; _main.vader:20:13
   i32.const 2   ; _main.vader:20:13
   i32.const 3   ; _main.vader:20:13
-  array.new 15 3   ; _main.vader:20:13
+  array.new 12 3   ; _main.vader:20:13
   local.set 16   ; _main.vader:20:13
   i32.const 4   ; _main.vader:21:13
   i32.const 5   ; _main.vader:21:13
-  array.new 15 2   ; _main.vader:21:13
+  array.new 12 2   ; _main.vader:21:13
   local.set 17   ; _main.vader:21:13
   local.get 16   ; _main.vader:22:15
   local.get 17   ; _main.vader:22:15
-  call 14   ; _main.vader:22:15
+  call 9   ; _main.vader:22:15
   local.set 18   ; _main.vader:22:5
   local.get 18   ; _main.vader:23:5
   array.len   ; _main.vader:23:5
@@ -202,12 +197,12 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   i64.const 0   ; _main.vader:23:14
   i64.to_usize   ; _main.vader:23:14
   local.get 19   ; _main.vader:23:14
-  struct.new 14   ; _main.vader:23:14
+  struct.new 11   ; _main.vader:23:14
   local.set 20   ; _main.vader:23:14
   block $L3 void   ; _main.vader:23:5
     loop $L4 void   ; _main.vader:23:5
       local.get 20   ; _main.vader:23:5
-      call 7   ; _main.vader:23:5
+      call 2   ; _main.vader:23:5
       local.tee 21   ; _main.vader:23:5
       type_check 1   ; _main.vader:23:5
       if $L5 void   ; _main.vader:23:5
@@ -233,8 +228,8 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   string.const 8   ; _main.vader:28:15
   string.const 9   ; _main.vader:28:15
   string.const 10   ; _main.vader:28:15
-  array.new 17 3   ; _main.vader:28:15
-  call 15   ; _main.vader:29:19
+  array.new 14 3   ; _main.vader:28:15
+  call 10   ; _main.vader:29:19
   local.set 24   ; _main.vader:29:19
   local.get 24   ; _main.vader:29:5
   array.len   ; _main.vader:29:5
@@ -243,23 +238,23 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   i64.const 0   ; _main.vader:29:19
   i64.to_usize   ; _main.vader:29:19
   local.get 25   ; _main.vader:29:19
-  struct.new 20   ; _main.vader:29:19
+  struct.new 17   ; _main.vader:29:19
   local.set 26   ; _main.vader:29:19
   block $L6 void   ; _main.vader:29:5
     loop $L7 void   ; _main.vader:29:5
       local.get 26   ; _main.vader:29:5
-      call 10   ; _main.vader:29:5
+      call 5   ; _main.vader:29:5
       local.tee 27   ; _main.vader:29:5
       type_check 1   ; _main.vader:29:5
       if $L8 void   ; _main.vader:29:5
       else   ; _main.vader:29:5
         local.get 27   ; _main.vader:29:5
-        struct.get 10 0   ; _main.vader:29:5
+        struct.get 8 0   ; _main.vader:29:5
         local.tee 28   ; _main.vader:29:5
-        struct.get 11 0   ; _main.vader:29:10
+        struct.get 9 0   ; _main.vader:29:10
         local.set 29   ; _main.vader:29:10
         local.get 28   ; _main.vader:29:13
-        struct.get 11 1   ; _main.vader:29:13
+        struct.get 9 1   ; _main.vader:29:13
         local.set 30   ; _main.vader:29:13
         intrinsic builder.new   ; _main.vader:30:17
         local.set 31   ; _main.vader:30:17
@@ -285,14 +280,14 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   i32.const 1   ; _main.vader:34:24
   i32.const 2   ; _main.vader:34:24
   i32.const 3   ; _main.vader:34:24
-  array.new 15 3   ; _main.vader:34:24
+  array.new 12 3   ; _main.vader:34:24
   local.set 33   ; _main.vader:34:24
   struct.new 0   ; _main.vader:34:35
-  make_closure 1 22   ; _main.vader:34:35
+  make_closure 1 19   ; _main.vader:34:35
   local.set 34   ; _main.vader:34:35
   local.get 33   ; _main.vader:34:15
   local.get 34   ; _main.vader:34:15
-  call 16   ; _main.vader:34:15
+  call 11   ; _main.vader:34:15
   local.set 35   ; _main.vader:34:5
   local.get 35   ; _main.vader:35:5
   array.len   ; _main.vader:35:5
@@ -301,12 +296,12 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   i64.const 0   ; _main.vader:35:14
   i64.to_usize   ; _main.vader:35:14
   local.get 36   ; _main.vader:35:14
-  struct.new 14   ; _main.vader:35:14
+  struct.new 11   ; _main.vader:35:14
   local.set 37   ; _main.vader:35:14
   block $L9 void   ; _main.vader:35:5
     loop $L10 void   ; _main.vader:35:5
       local.get 37   ; _main.vader:35:5
-      call 7   ; _main.vader:35:5
+      call 2   ; _main.vader:35:5
       local.tee 38   ; _main.vader:35:5
       type_check 1   ; _main.vader:35:5
       if $L11 void   ; _main.vader:35:5
@@ -341,125 +336,11 @@ fn 1 __lambda_15 (ref,i32) -> ref
   local.set 2   ; _main.vader:34:51
   local.get 1   ; _main.vader:34:47
   local.get 2   ; _main.vader:34:47
-  array.new 15 2   ; _main.vader:34:47
+  array.new 12 2   ; _main.vader:34:47
   return   ; _main.vader:34:47
 end
 
-fn 2 std_core$usize$Comparable$compare (usize,usize) -> i32
-  local if_res i32
-  local if_res i32
-  local.get 0   ; core.vader:354:35
-  local.get 1   ; core.vader:354:35
-  usize.lt   ; core.vader:354:35
-  if $L0 void   ; core.vader:354:32
-    i32.const 1   ; core.vader:354:51
-    i32.neg   ; core.vader:354:50
-    local.set 2   ; core.vader:354:50
-  else   ; core.vader:354:32
-    local.get 0   ; core.vader:354:63
-    local.get 1   ; core.vader:354:63
-    usize.gt   ; core.vader:354:63
-    if $L1 void   ; core.vader:354:60
-      i32.const 1   ; core.vader:354:78
-      local.set 3   ; core.vader:354:78
-    else   ; core.vader:354:60
-      i32.const 0   ; core.vader:354:89
-      local.set 3   ; core.vader:354:89
-    end $L1   ; core.vader:354:60
-    local.get 3   ; core.vader:354:60
-    local.set 2   ; core.vader:354:60
-  end $L0   ; core.vader:354:32
-  local.get 2   ; core.vader:354:29
-  return   ; core.vader:354:29
-end
-
-fn 3 std_core$usize$Comparable$gt (usize,usize) -> bool
-  local $call_2 i32
-  local.get 0   ; core.vader:45:51
-  local.get 1   ; core.vader:45:51
-  call 2   ; core.vader:45:51
-  local.set 2   ; core.vader:45:51
-  local.get 2   ; core.vader:45:51
-  i32.const 0   ; core.vader:45:51
-  i32.gt   ; core.vader:45:51
-  return   ; core.vader:45:44
-end
-
-fn 4 std_core$usize$Comparable$gte (usize,usize) -> bool
-  local $call_2 i32
-  local.get 0   ; core.vader:46:51
-  local.get 1   ; core.vader:46:51
-  call 2   ; core.vader:46:51
-  local.set 2   ; core.vader:46:51
-  local.get 2   ; core.vader:46:51
-  i32.const 0   ; core.vader:46:51
-  i32.ge   ; core.vader:46:51
-  return   ; core.vader:46:44
-end
-
-fn 5 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; core.vader:372:26
-  i64.const 1   ; core.vader:372:26
-  i64.to_usize   ; core.vader:372:26
-  usize.add   ; core.vader:372:26
-  return   ; core.vader:372:23
-end
-
-fn 6 std_core$Range$Iterator$next__usize (ref) -> ref
-  local if_res bool
-  local $field_3 usize
-  local $field_4 usize
-  local $field_6 usize
-  local $field_7 usize
-  local v usize
-  local $call_14 usize
-  local.get 0   ; core.vader:223:21
-  struct.get 12 2   ; core.vader:223:21
-  if $L0 void   ; core.vader:223:17
-    local.get 0   ; core.vader:223:39
-    struct.get 12 3   ; core.vader:223:39
-    local.set 2   ; core.vader:223:39
-    local.get 0   ; core.vader:223:54
-    struct.get 12 1   ; core.vader:223:54
-    local.set 3   ; core.vader:223:54
-    local.get 2   ; core.vader:223:39
-    local.get 3   ; core.vader:223:39
-    call 3   ; core.vader:223:39
-    local.set 1   ; core.vader:223:37
-  else   ; core.vader:223:17
-    local.get 0   ; core.vader:224:40
-    struct.get 12 3   ; core.vader:224:40
-    local.set 4   ; core.vader:224:40
-    local.get 0   ; core.vader:224:56
-    struct.get 12 1   ; core.vader:224:56
-    local.set 5   ; core.vader:224:56
-    local.get 4   ; core.vader:224:40
-    local.get 5   ; core.vader:224:40
-    call 4   ; core.vader:224:40
-    local.set 1   ; core.vader:224:38
-  end $L0   ; core.vader:223:17
-  local.get 1   ; core.vader:223:9
-  if $L1 void   ; core.vader:225:9
-    struct.new 1   ; core.vader:225:28
-    return   ; core.vader:225:21
-  else   ; core.vader:225:9
-    local.get 0   ; core.vader:226:14
-    struct.get 12 3   ; core.vader:226:14
-    local.set 6   ; core.vader:226:14
-    local.get 0   ; core.vader:227:23
-    struct.get 12 3   ; core.vader:227:23
-    call 5   ; core.vader:227:23
-    local.set 7   ; core.vader:227:23
-    local.get 0   ; core.vader:227:9
-    local.get 7   ; core.vader:227:9
-    struct.set 12 3   ; core.vader:227:9
-    local.get 6   ; core.vader:228:16
-    struct.new 6   ; core.vader:228:16
-    return   ; core.vader:228:9
-  end $L1   ; core.vader:225:9
-end
-
-fn 7 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
+fn 2 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -468,10 +349,10 @@ fn 7 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local $field_9 usize
   local $add_11 usize
   local.get 0   ; core.vader:244:13
-  struct.get 14 1   ; core.vader:244:13
+  struct.get 11 1   ; core.vader:244:13
   local.set 1   ; core.vader:244:13
   local.get 0   ; core.vader:244:28
-  struct.get 14 2   ; core.vader:244:28
+  struct.get 11 2   ; core.vader:244:28
   local.set 2   ; core.vader:244:28
   local.get 1   ; core.vader:244:13
   local.get 2   ; core.vader:244:13
@@ -481,18 +362,18 @@ fn 7 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
     return   ; core.vader:244:43
   else   ; core.vader:244:9
     local.get 0   ; core.vader:245:14
-    struct.get 14 0   ; core.vader:245:14
+    struct.get 11 0   ; core.vader:245:14
     local.set 3   ; core.vader:245:14
     local.get 0   ; core.vader:245:23
-    struct.get 14 1   ; core.vader:245:23
+    struct.get 11 1   ; core.vader:245:23
     local.set 4   ; core.vader:245:23
     local.get 3   ; core.vader:245:14
     local.get 4   ; core.vader:245:14
-    array.get 15   ; core.vader:245:14
+    array.get 12   ; core.vader:245:14
     ref.cast 3   ; core.vader:245:14
     local.set 5   ; core.vader:245:14
     local.get 0   ; core.vader:246:23
-    struct.get 14 1   ; core.vader:246:23
+    struct.get 11 1   ; core.vader:246:23
     local.set 6   ; core.vader:246:23
     local.get 6   ; core.vader:246:23
     i64.const 1   ; core.vader:246:23
@@ -501,14 +382,14 @@ fn 7 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
     local.set 7   ; core.vader:246:23
     local.get 0   ; core.vader:246:9
     local.get 7   ; core.vader:246:9
-    struct.set 14 1   ; core.vader:246:9
+    struct.set 11 1   ; core.vader:246:9
     local.get 5   ; core.vader:247:16
     struct.new 2   ; core.vader:247:16
     return   ; core.vader:247:9
   end $L0   ; core.vader:244:9
 end
 
-fn 8 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
+fn 3 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -517,10 +398,10 @@ fn 8 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   local $field_9 usize
   local $add_11 usize
   local.get 0   ; core.vader:244:13
-  struct.get 16 1   ; core.vader:244:13
+  struct.get 13 1   ; core.vader:244:13
   local.set 1   ; core.vader:244:13
   local.get 0   ; core.vader:244:28
-  struct.get 16 2   ; core.vader:244:28
+  struct.get 13 2   ; core.vader:244:28
   local.set 2   ; core.vader:244:28
   local.get 1   ; core.vader:244:13
   local.get 2   ; core.vader:244:13
@@ -530,18 +411,18 @@ fn 8 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
     return   ; core.vader:244:43
   else   ; core.vader:244:9
     local.get 0   ; core.vader:245:14
-    struct.get 16 0   ; core.vader:245:14
+    struct.get 13 0   ; core.vader:245:14
     local.set 3   ; core.vader:245:14
     local.get 0   ; core.vader:245:23
-    struct.get 16 1   ; core.vader:245:23
+    struct.get 13 1   ; core.vader:245:23
     local.set 4   ; core.vader:245:23
     local.get 3   ; core.vader:245:14
     local.get 4   ; core.vader:245:14
-    array.get 17   ; core.vader:245:14
+    array.get 14   ; core.vader:245:14
     ref.cast 5   ; core.vader:245:14
     local.set 5   ; core.vader:245:14
     local.get 0   ; core.vader:246:23
-    struct.get 16 1   ; core.vader:246:23
+    struct.get 13 1   ; core.vader:246:23
     local.set 6   ; core.vader:246:23
     local.get 6   ; core.vader:246:23
     i64.const 1   ; core.vader:246:23
@@ -550,14 +431,14 @@ fn 8 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
     local.set 7   ; core.vader:246:23
     local.get 0   ; core.vader:246:9
     local.get 7   ; core.vader:246:9
-    struct.set 16 1   ; core.vader:246:9
+    struct.set 13 1   ; core.vader:246:9
     local.get 5   ; core.vader:247:16
     struct.new 4   ; core.vader:247:16
     return   ; core.vader:247:9
   end $L0   ; core.vader:244:9
 end
 
-fn 9 std_core$ArrayIterator$Iterator$next___string__i32_ (ref) -> ref
+fn 4 std_core$ArrayIterator$Iterator$next___string__i32_ (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -566,10 +447,10 @@ fn 9 std_core$ArrayIterator$Iterator$next___string__i32_ (ref) -> ref
   local $field_9 usize
   local $add_11 usize
   local.get 0   ; core.vader:244:13
-  struct.get 18 1   ; core.vader:244:13
+  struct.get 15 1   ; core.vader:244:13
   local.set 1   ; core.vader:244:13
   local.get 0   ; core.vader:244:28
-  struct.get 18 2   ; core.vader:244:28
+  struct.get 15 2   ; core.vader:244:28
   local.set 2   ; core.vader:244:28
   local.get 1   ; core.vader:244:13
   local.get 2   ; core.vader:244:13
@@ -579,17 +460,17 @@ fn 9 std_core$ArrayIterator$Iterator$next___string__i32_ (ref) -> ref
     return   ; core.vader:244:43
   else   ; core.vader:244:9
     local.get 0   ; core.vader:245:14
-    struct.get 18 0   ; core.vader:245:14
+    struct.get 15 0   ; core.vader:245:14
     local.set 3   ; core.vader:245:14
     local.get 0   ; core.vader:245:23
-    struct.get 18 1   ; core.vader:245:23
+    struct.get 15 1   ; core.vader:245:23
     local.set 4   ; core.vader:245:23
     local.get 3   ; core.vader:245:14
     local.get 4   ; core.vader:245:14
-    array.get 19   ; core.vader:245:14
+    array.get 16   ; core.vader:245:14
     local.set 5   ; core.vader:245:14
     local.get 0   ; core.vader:246:23
-    struct.get 18 1   ; core.vader:246:23
+    struct.get 15 1   ; core.vader:246:23
     local.set 6   ; core.vader:246:23
     local.get 6   ; core.vader:246:23
     i64.const 1   ; core.vader:246:23
@@ -598,74 +479,74 @@ fn 9 std_core$ArrayIterator$Iterator$next___string__i32_ (ref) -> ref
     local.set 7   ; core.vader:246:23
     local.get 0   ; core.vader:246:9
     local.get 7   ; core.vader:246:9
-    struct.set 18 1   ; core.vader:246:9
+    struct.set 15 1   ; core.vader:246:9
+    local.get 5   ; core.vader:247:16
+    struct.new 6   ; core.vader:247:16
+    return   ; core.vader:247:9
+  end $L0   ; core.vader:244:9
+end
+
+fn 5 std_core$ArrayIterator$Iterator$next___usize__string_ (ref) -> ref
+  local $field_1 usize
+  local $field_2 usize
+  local $field_5 ref
+  local $field_6 usize
+  local v ref
+  local $field_9 usize
+  local $add_11 usize
+  local.get 0   ; core.vader:244:13
+  struct.get 17 1   ; core.vader:244:13
+  local.set 1   ; core.vader:244:13
+  local.get 0   ; core.vader:244:28
+  struct.get 17 2   ; core.vader:244:28
+  local.set 2   ; core.vader:244:28
+  local.get 1   ; core.vader:244:13
+  local.get 2   ; core.vader:244:13
+  usize.ge   ; core.vader:244:13
+  if $L0 void   ; core.vader:244:9
+    struct.new 1   ; core.vader:244:50
+    return   ; core.vader:244:43
+  else   ; core.vader:244:9
+    local.get 0   ; core.vader:245:14
+    struct.get 17 0   ; core.vader:245:14
+    local.set 3   ; core.vader:245:14
+    local.get 0   ; core.vader:245:23
+    struct.get 17 1   ; core.vader:245:23
+    local.set 4   ; core.vader:245:23
+    local.get 3   ; core.vader:245:14
+    local.get 4   ; core.vader:245:14
+    array.get 18   ; core.vader:245:14
+    local.set 5   ; core.vader:245:14
+    local.get 0   ; core.vader:246:23
+    struct.get 17 1   ; core.vader:246:23
+    local.set 6   ; core.vader:246:23
+    local.get 6   ; core.vader:246:23
+    i64.const 1   ; core.vader:246:23
+    i64.to_usize   ; core.vader:246:23
+    usize.add   ; core.vader:246:23
+    local.set 7   ; core.vader:246:23
+    local.get 0   ; core.vader:246:9
+    local.get 7   ; core.vader:246:9
+    struct.set 17 1   ; core.vader:246:9
     local.get 5   ; core.vader:247:16
     struct.new 8   ; core.vader:247:16
     return   ; core.vader:247:9
   end $L0   ; core.vader:244:9
 end
 
-fn 10 std_core$ArrayIterator$Iterator$next___usize__string_ (ref) -> ref
-  local $field_1 usize
-  local $field_2 usize
-  local $field_5 ref
-  local $field_6 usize
-  local v ref
-  local $field_9 usize
-  local $add_11 usize
-  local.get 0   ; core.vader:244:13
-  struct.get 20 1   ; core.vader:244:13
-  local.set 1   ; core.vader:244:13
-  local.get 0   ; core.vader:244:28
-  struct.get 20 2   ; core.vader:244:28
-  local.set 2   ; core.vader:244:28
-  local.get 1   ; core.vader:244:13
-  local.get 2   ; core.vader:244:13
-  usize.ge   ; core.vader:244:13
-  if $L0 void   ; core.vader:244:9
-    struct.new 1   ; core.vader:244:50
-    return   ; core.vader:244:43
-  else   ; core.vader:244:9
-    local.get 0   ; core.vader:245:14
-    struct.get 20 0   ; core.vader:245:14
-    local.set 3   ; core.vader:245:14
-    local.get 0   ; core.vader:245:23
-    struct.get 20 1   ; core.vader:245:23
-    local.set 4   ; core.vader:245:23
-    local.get 3   ; core.vader:245:14
-    local.get 4   ; core.vader:245:14
-    array.get 21   ; core.vader:245:14
-    local.set 5   ; core.vader:245:14
-    local.get 0   ; core.vader:246:23
-    struct.get 20 1   ; core.vader:246:23
-    local.set 6   ; core.vader:246:23
-    local.get 6   ; core.vader:246:23
-    i64.const 1   ; core.vader:246:23
-    i64.to_usize   ; core.vader:246:23
-    usize.add   ; core.vader:246:23
-    local.set 7   ; core.vader:246:23
-    local.get 0   ; core.vader:246:9
-    local.get 7   ; core.vader:246:9
-    struct.set 20 1   ; core.vader:246:9
-    local.get 5   ; core.vader:247:16
-    struct.new 10   ; core.vader:247:16
-    return   ; core.vader:247:9
-  end $L0   ; core.vader:244:9
-end
-
-fn 11 std_iter$std_iter$count__i32 (ref) -> usize
+fn 6 std_iter$std_iter$count__i32 (ref) -> usize
   local.get 0   ; iter.vader:34:12
   array.len   ; iter.vader:34:12
   return   ; iter.vader:34:5
 end
 
-fn 12 std_iter$std_iter$collect__i32 (ref) -> ref
+fn 7 std_iter$std_iter$collect__i32 (ref) -> ref
   local out ref
   local $len_4 usize
   local __iter_0 ref
   local __step_1 ref
   local x i32
-  array.new 15 0   ; iter.vader:43:16
+  array.new 12 0   ; iter.vader:43:16
   local.set 1   ; iter.vader:43:16
   local.get 0   ; iter.vader:44:5
   array.len   ; iter.vader:44:5
@@ -674,12 +555,12 @@ fn 12 std_iter$std_iter$collect__i32 (ref) -> ref
   i64.const 0   ; iter.vader:44:14
   i64.to_usize   ; iter.vader:44:14
   local.get 2   ; iter.vader:44:14
-  struct.new 14   ; iter.vader:44:14
+  struct.new 11   ; iter.vader:44:14
   local.set 3   ; iter.vader:44:14
   block $L0 void   ; iter.vader:44:5
     loop $L1 void   ; iter.vader:44:5
       local.get 3   ; iter.vader:44:5
-      call 7   ; iter.vader:44:5
+      call 2   ; iter.vader:44:5
       local.tee 4   ; iter.vader:44:5
       type_check 1   ; iter.vader:44:5
       if $L2 void   ; iter.vader:44:5
@@ -698,19 +579,17 @@ fn 12 std_iter$std_iter$collect__i32 (ref) -> ref
   return   ; iter.vader:47:5
 end
 
-fn 13 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
+fn 8 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
   local out ref
   local n usize
   local m usize
   local if_res usize
   local k usize
-  local __iter_0 ref
-  local __step_1 ref
   local i usize
-  local $idx_22 string
-  local $idx_23 i32
-  local $struct_24 ref
-  array.new 19 0   ; iter.vader:181:21
+  local $idx_14 string
+  local $idx_15 i32
+  local $struct_16 ref
+  array.new 16 0   ; iter.vader:181:21
   local.set 2   ; iter.vader:181:21
   local.get 0   ; iter.vader:182:10
   array.len   ; iter.vader:182:10
@@ -731,42 +610,37 @@ fn 13 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
   local.get 5   ; iter.vader:184:5
   local.set 6   ; iter.vader:184:5
   i64.const 0   ; iter.vader:185:14
-  i64.to_usize   ; iter.vader:185:14
-  local.get 6   ; iter.vader:185:14
-  bool.const false   ; iter.vader:185:14
-  i64.const 0   ; iter.vader:185:14
-  i64.to_usize   ; iter.vader:185:14
-  struct.new 12   ; iter.vader:185:14
   local.set 7   ; iter.vader:185:14
   block $L1 void   ; iter.vader:185:5
     loop $L2 void   ; iter.vader:185:5
       local.get 7   ; iter.vader:185:5
-      call 6   ; iter.vader:185:5
-      local.tee 8   ; iter.vader:185:5
-      type_check 1   ; iter.vader:185:5
+      local.get 6   ; iter.vader:185:5
+      usize.lt   ; iter.vader:185:5
       if $L3 void   ; iter.vader:185:5
-      else   ; iter.vader:185:5
-        local.get 8   ; iter.vader:185:5
-        struct.get 6 0   ; iter.vader:185:5
-        local.set 9   ; iter.vader:185:5
         local.get 0   ; iter.vader:186:19
-        local.get 9   ; iter.vader:186:19
-        array.get 17   ; iter.vader:186:19
+        local.get 7   ; iter.vader:186:19
+        array.get 14   ; iter.vader:186:19
         ref.cast 5   ; iter.vader:186:19
-        local.set 10   ; iter.vader:186:19
+        local.set 8   ; iter.vader:186:19
         local.get 1   ; iter.vader:186:25
-        local.get 9   ; iter.vader:186:25
-        array.get 15   ; iter.vader:186:25
+        local.get 7   ; iter.vader:186:25
+        array.get 12   ; iter.vader:186:25
         ref.cast 3   ; iter.vader:186:25
-        local.set 11   ; iter.vader:186:25
-        local.get 10   ; iter.vader:186:18
-        local.get 11   ; iter.vader:186:18
-        struct.new 9   ; iter.vader:186:18
-        local.set 12   ; iter.vader:186:18
+        local.set 9   ; iter.vader:186:25
+        local.get 8   ; iter.vader:186:18
+        local.get 9   ; iter.vader:186:18
+        struct.new 7   ; iter.vader:186:18
+        local.set 10   ; iter.vader:186:18
         local.get 2   ; iter.vader:186:9
-        local.get 12   ; iter.vader:186:9
-        array.push 9   ; iter.vader:186:9
+        local.get 10   ; iter.vader:186:9
+        array.push 7   ; iter.vader:186:9
+        local.get 7   ; iter.vader:185:5
+        i64.const 1   ; iter.vader:185:5
+        i64.to_usize   ; iter.vader:185:5
+        usize.add   ; iter.vader:185:5
+        local.set 7   ; iter.vader:185:5
         br $L2   ; iter.vader:185:5
+      else   ; iter.vader:185:5
       end $L3   ; iter.vader:185:5
     end $L2   ; iter.vader:185:5
   end $L1   ; iter.vader:185:5
@@ -774,7 +648,7 @@ fn 13 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
   return   ; iter.vader:188:5
 end
 
-fn 14 std_iter$std_iter$chain__i32 (ref,ref) -> ref
+fn 9 std_iter$std_iter$chain__i32 (ref,ref) -> ref
   local out ref
   local $len_5 usize
   local __iter_0 ref
@@ -784,7 +658,7 @@ fn 14 std_iter$std_iter$chain__i32 (ref,ref) -> ref
   local __iter_2 ref
   local __step_3 ref
   local x i32
-  array.new 15 0   ; iter.vader:197:16
+  array.new 12 0   ; iter.vader:197:16
   local.set 2   ; iter.vader:197:16
   local.get 0   ; iter.vader:198:5
   array.len   ; iter.vader:198:5
@@ -793,12 +667,12 @@ fn 14 std_iter$std_iter$chain__i32 (ref,ref) -> ref
   i64.const 0   ; iter.vader:198:14
   i64.to_usize   ; iter.vader:198:14
   local.get 3   ; iter.vader:198:14
-  struct.new 14   ; iter.vader:198:14
+  struct.new 11   ; iter.vader:198:14
   local.set 4   ; iter.vader:198:14
   block $L0 void   ; iter.vader:198:5
     loop $L1 void   ; iter.vader:198:5
       local.get 4   ; iter.vader:198:5
-      call 7   ; iter.vader:198:5
+      call 2   ; iter.vader:198:5
       local.tee 5   ; iter.vader:198:5
       type_check 1   ; iter.vader:198:5
       if $L2 void   ; iter.vader:198:5
@@ -820,12 +694,12 @@ fn 14 std_iter$std_iter$chain__i32 (ref,ref) -> ref
   i64.const 0   ; iter.vader:199:14
   i64.to_usize   ; iter.vader:199:14
   local.get 7   ; iter.vader:199:14
-  struct.new 14   ; iter.vader:199:14
+  struct.new 11   ; iter.vader:199:14
   local.set 8   ; iter.vader:199:14
   block $L3 void   ; iter.vader:199:5
     loop $L4 void   ; iter.vader:199:5
       local.get 8   ; iter.vader:199:5
-      call 7   ; iter.vader:199:5
+      call 2   ; iter.vader:199:5
       local.tee 9   ; iter.vader:199:5
       type_check 1   ; iter.vader:199:5
       if $L5 void   ; iter.vader:199:5
@@ -844,7 +718,7 @@ fn 14 std_iter$std_iter$chain__i32 (ref,ref) -> ref
   return   ; iter.vader:200:5
 end
 
-fn 15 std_iter$std_iter$enumerate__string (ref) -> ref
+fn 10 std_iter$std_iter$enumerate__string (ref) -> ref
   local out ref
   local i usize
   local $len_6 usize
@@ -852,7 +726,7 @@ fn 15 std_iter$std_iter$enumerate__string (ref) -> ref
   local __step_1 ref
   local x string
   local $struct_15 ref
-  array.new 21 0   ; iter.vader:208:25
+  array.new 18 0   ; iter.vader:208:25
   local.set 1   ; iter.vader:208:25
   i64.const 0   ; iter.vader:209:16
   local.set 2   ; iter.vader:209:16
@@ -863,12 +737,12 @@ fn 15 std_iter$std_iter$enumerate__string (ref) -> ref
   i64.const 0   ; iter.vader:210:14
   i64.to_usize   ; iter.vader:210:14
   local.get 3   ; iter.vader:210:14
-  struct.new 16   ; iter.vader:210:14
+  struct.new 13   ; iter.vader:210:14
   local.set 4   ; iter.vader:210:14
   block $L0 void   ; iter.vader:210:5
     loop $L1 void   ; iter.vader:210:5
       local.get 4   ; iter.vader:210:5
-      call 8   ; iter.vader:210:5
+      call 3   ; iter.vader:210:5
       local.tee 5   ; iter.vader:210:5
       type_check 1   ; iter.vader:210:5
       if $L2 void   ; iter.vader:210:5
@@ -878,11 +752,11 @@ fn 15 std_iter$std_iter$enumerate__string (ref) -> ref
         local.set 6   ; iter.vader:210:5
         local.get 2   ; iter.vader:211:18
         local.get 6   ; iter.vader:211:18
-        struct.new 11   ; iter.vader:211:18
+        struct.new 9   ; iter.vader:211:18
         local.set 7   ; iter.vader:211:18
         local.get 1   ; iter.vader:211:9
         local.get 7   ; iter.vader:211:9
-        array.push 11   ; iter.vader:211:9
+        array.push 9   ; iter.vader:211:9
         local.get 2   ; iter.vader:212:13
         i64.const 1   ; iter.vader:212:13
         i64.to_usize   ; iter.vader:212:13
@@ -896,7 +770,7 @@ fn 15 std_iter$std_iter$enumerate__string (ref) -> ref
   return   ; iter.vader:214:5
 end
 
-fn 16 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
+fn 11 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
   local out ref
   local $len_5 usize
   local __iter_0 ref
@@ -906,7 +780,7 @@ fn 16 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
   local __iter_3 ref
   local __step_4 ref
   local y i32
-  array.new 15 0   ; iter.vader:224:16
+  array.new 12 0   ; iter.vader:224:16
   local.set 2   ; iter.vader:224:16
   local.get 0   ; iter.vader:225:5
   array.len   ; iter.vader:225:5
@@ -915,12 +789,12 @@ fn 16 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
   i64.const 0   ; iter.vader:225:14
   i64.to_usize   ; iter.vader:225:14
   local.get 3   ; iter.vader:225:14
-  struct.new 14   ; iter.vader:225:14
+  struct.new 11   ; iter.vader:225:14
   local.set 4   ; iter.vader:225:14
   block $L0 void   ; iter.vader:225:5
     loop $L1 void   ; iter.vader:225:5
       local.get 4   ; iter.vader:225:5
-      call 7   ; iter.vader:225:5
+      call 2   ; iter.vader:225:5
       local.tee 5   ; iter.vader:225:5
       type_check 1   ; iter.vader:225:5
       if $L2 void   ; iter.vader:225:5
@@ -928,7 +802,7 @@ fn 16 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
         local.get 5   ; iter.vader:225:5
         struct.get 2 0   ; iter.vader:225:5
         local.get 1   ; iter.vader:226:18
-        call.indirect 22   ; iter.vader:226:18
+        call.indirect 19   ; iter.vader:226:18
         local.set 6   ; iter.vader:226:18
         local.get 6   ; iter.vader:226:9
         array.len   ; iter.vader:226:9
@@ -937,12 +811,12 @@ fn 16 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
         i64.const 0   ; iter.vader:226:18
         i64.to_usize   ; iter.vader:226:18
         local.get 7   ; iter.vader:226:18
-        struct.new 14   ; iter.vader:226:18
+        struct.new 11   ; iter.vader:226:18
         local.set 8   ; iter.vader:226:18
         block $L3 void   ; iter.vader:226:9
           loop $L4 void   ; iter.vader:226:9
             local.get 8   ; iter.vader:226:9
-            call 7   ; iter.vader:226:9
+            call 2   ; iter.vader:226:9
             local.tee 9   ; iter.vader:226:9
             type_check 1   ; iter.vader:226:9
             if $L5 void   ; iter.vader:226:9
