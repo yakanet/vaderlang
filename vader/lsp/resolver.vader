@@ -135,7 +135,7 @@ dirname_path :: fn(p: string) -> string {
     n :: p.byte_len()
     if n == 0 { return p }
     i: i32 = i32(n) - 1
-    sep :: u8(u32('/'))
+    sep :: u8('/')
     for i >= 0 {
         if p.byte_at(usize(i)) == sep {
             if i == 0 { return "/" }
@@ -152,7 +152,7 @@ dirname_path :: fn(p: string) -> string {
 path_join :: fn(a: string, b: string) -> string {
     if a.byte_len() == 0 { return b }
     if b.byte_len() == 0 { return a }
-    sep :: u8(u32('/'))
+    sep :: u8('/')
     a_ends_sep :: a.byte_at(a.byte_len() - 1) == sep
     b_starts_sep :: b.byte_at(0) == sep
     if a_ends_sep && b_starts_sep {

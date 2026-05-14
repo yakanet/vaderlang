@@ -16,18 +16,18 @@ import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, sp
 import "std/numbers" { parse_int_in_base, parse_uint_in_base }
 import "vader/vm/op" as op
 
-/// ASCII byte constants — spelled out as `u8(u32('x'))` to keep the source
+/// ASCII byte constants — spelled out as `u8('x')` to keep the source
 /// readable. Match the convention used in `vader/fmt/comments.vader`.
-BYTE_DOLLAR     :: u8(u32('$'))
-BYTE_UNDERSCORE :: u8(u32('_'))
-BYTE_BACKSLASH  :: u8(u32('\\'))
-BYTE_DQUOTE     :: u8(u32('"'))
-BYTE_SEMICOLON  :: u8(u32(';'))
-BYTE_DOT        :: u8(u32('.'))
-BYTE_MINUS      :: u8(u32('-'))
-BYTE_PLUS       :: u8(u32('+'))
-BYTE_LOWER_E    :: u8(u32('e'))
-BYTE_UPPER_E    :: u8(u32('E'))
+BYTE_DOLLAR     :: u8('$')
+BYTE_UNDERSCORE :: u8('_')
+BYTE_BACKSLASH  :: u8('\\')
+BYTE_DQUOTE     :: u8('"')
+BYTE_SEMICOLON  :: u8(';')
+BYTE_DOT        :: u8('.')
+BYTE_MINUS      :: u8('-')
+BYTE_PLUS       :: u8('+')
+BYTE_LOWER_E    :: u8('e')
+BYTE_UPPER_E    :: u8('E')
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps

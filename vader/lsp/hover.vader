@@ -135,8 +135,8 @@ format_vaderdoc :: fn(raw: string) -> string {
 format_param_payload :: fn(payload: string) -> string {
     n :: payload.byte_len()
     if n == 0 { return payload }
-    space :: u8(u32(' '))
-    tab   :: u8(u32('\t'))
+    space :: u8(' ')
+    tab   :: u8('\t')
     i: usize = 0
     for i < n {
         b :: payload.byte_at(i)

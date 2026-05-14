@@ -50,10 +50,10 @@ import "vader/diagnostics/diagnostic" { Span, Position }
 import "vader/fmt/comments" { Comment, CommentKind, CommentMap, scan_comments }
 
 // ASCII byte constants for vaderdoc extraction.
-BYTE_LF      :: u8(u32('\n'))
-BYTE_SPACE   :: u8(u32(' '))
-BYTE_TAB     :: u8(u32('\t'))
-BYTE_CR      :: u8(u32('\r'))
+BYTE_LF      :: u8('\n')
+BYTE_SPACE   :: u8(' ')
+BYTE_TAB     :: u8('\t')
+BYTE_CR      :: u8('\r')
 
 /// What kind of declaration a DeclEntry points at. Drives the hover
 /// signature template + helps clients decide on icon / styling.
@@ -626,8 +626,8 @@ head_signature :: fn(span: Span, source: string) -> string {
     cursor: usize = start
     for cursor < upper {
         b :: source.byte_at(cursor)
-        if b == u8(u32('{')) { break }
-        if b == u8(u32('=')) { break }
+        if b == u8('{') { break }
+        if b == u8('=') { break }
         if b == BYTE_LF { break }
         cursor = cursor + 1
     }

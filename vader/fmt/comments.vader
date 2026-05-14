@@ -21,16 +21,16 @@ export CommentKind :: enum(u8) {
     Block,    // `/* … */` (may contain nested `/* … */`)
 }
 
-// ASCII byte constants. Spelled out as `u8(u32('x'))` so the source
-// reads as a character rather than as a magic decimal — Vader has no
-// `b'x'` byte-literal syntax today.
-BYTE_LF     :: u8(u32('\n'))
-BYTE_SLASH  :: u8(u32('/'))
-BYTE_STAR   :: u8(u32('*'))
-BYTE_DQUOTE :: u8(u32('"'))
-BYTE_SQUOTE :: u8(u32('\''))
-BYTE_BSLASH :: u8(u32('\\'))
-BYTE_R      :: u8(u32('r'))
+// ASCII byte constants. Spelled out as `u8('x')` so the source reads as
+// a character rather than as a magic decimal — Vader has no `b'x'`
+// byte-literal syntax today.
+BYTE_LF     :: u8('\n')
+BYTE_SLASH  :: u8('/')
+BYTE_STAR   :: u8('*')
+BYTE_DQUOTE :: u8('"')
+BYTE_SQUOTE :: u8('\'')
+BYTE_BSLASH :: u8('\\')
+BYTE_R      :: u8('r')
 
 /// One scanned comment, ready for replay by the printer.
 export Comment :: struct {
