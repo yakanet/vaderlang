@@ -1,0 +1,24 @@
+// `Decl` declared in `vader/parser/ast.vader` is reached through two
+// different modules :
+//
+//   - FILE module `vader/parser/ast`   (via `import "vader/parser/ast" { Decl }`)
+//   - FOLDER module `vader/parser`     (via `P :: import "vader/parser"`,
+//                                       which aggregates every `.vader`
+//                                       under the folder)
+//
+// Each module loads `ast.vader` independently via `collectModuleSymbols`,
+// producing fresh `Symbol` ids for the SAME source declaration. Without
+// the `equalsType` fallback this snippet reports T3001 with the union
+// spelled identically on both sides ; with the fallback the call type-
+// checks because both symbols share the same source location.
+
+import "vader/parser/ast" { Decl }
+P :: import "vader/parser"
+
+via_folder :: fn(d: P.Decl) -> i32 {
+    return 0
+}
+
+via_file :: fn(d: Decl) -> i32 {
+    return via_folder(d)
+}

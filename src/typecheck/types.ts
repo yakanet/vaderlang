@@ -542,6 +542,17 @@ function formatNamed(name: string, args: readonly Type[]): string {
 
 // ---------------------------------------------------------------- equality
 
+/** Two declaration symbols denote the same source declaration. Used to
+ *  fall back from `id` equality when a single source file gets loaded
+ *  twice (e.g. once as a standalone file module and once as part of a
+ *  folder module that aggregates the same file). Compares by source
+ *  position rather than `Symbol.id`. */
+function sameSourceDecl(a: Symbol, b: Symbol): boolean {
+  const sa = a.definedAt, sb = b.definedAt;
+  if (sa === null || sb === null) return false;
+  return sa.start.file === sb.start.file && sa.start.offset === sb.start.offset;
+}
+
 export function equalsType(a: Type, b: Type): boolean {
   if (a === b) return true;
   if (a.kind !== b.kind) return false;
@@ -556,12 +567,15 @@ export function equalsType(a: Type, b: Type): boolean {
       return true;
     case "TypeParam":
       return a.symbol.id === (b as TypeParamType).symbol.id;
-    case "Enum":
-      return a.symbol.id === (b as EnumType).symbol.id;
+    case "Enum": {
+      const o = b as EnumType;
+      return a.symbol.id === o.symbol.id || sameSourceDecl(a.symbol, o.symbol);
+    }
     case "Struct":
     case "Trait": {
       const o = b as StructType | TraitType;
-      return a.symbol.id === o.symbol.id && argListEquals(a.args, o.args);
+      const idsMatch = a.symbol.id === o.symbol.id || sameSourceDecl(a.symbol, o.symbol);
+      return idsMatch && argListEquals(a.args, o.args);
     }
     case "Array":
       return equalsType(a.element, (b as ArrayType).element);
