@@ -1,37 +1,37 @@
 {
   "mandelbrot": {
     "vader-vm": {
-      "minMs": 18788.442834,
+      "minMs": 12781.0125,
       "checksum": "mandelbrot 240x180 iter=500 checksum=5705453"
     },
     "vader-native": {
-      "minMs": 65.27937499999825,
+      "minMs": 16.174833000004583,
       "checksum": "mandelbrot 240x180 iter=500 checksum=5705453"
     },
     "bun-ts": {
-      "minMs": 23.377459000010276,
+      "minMs": 23.006500000003143,
       "checksum": "mandelbrot 240x180 iter=500 checksum=5705453"
     },
     "go": {
-      "minMs": 18.127917000005255,
+      "minMs": 17.48537500000384,
       "checksum": "mandelbrot 240x180 iter=500 checksum=5689008"
     }
   },
   "primes": {
     "vader-vm": {
-      "minMs": 29422.99075000001,
+      "minMs": 27065.719375,
       "checksum": "primes N=1000000 count=78498 sum=37550402023"
     },
     "vader-native": {
-      "minMs": 41.11254200001713,
+      "minMs": 22.620625000010477,
       "checksum": "primes N=1000000 count=78498 sum=37550402023"
     },
     "bun-ts": {
-      "minMs": 41.092708000011044,
+      "minMs": 39.14633300001151,
       "checksum": "primes N=1000000 count=78498 sum=37550402023"
     },
     "go": {
-      "minMs": 23.931165999994846,
+      "minMs": 23.28049999999348,
       "checksum": "primes N=1000000 count=78498 sum=37550402023"
     }
   }
