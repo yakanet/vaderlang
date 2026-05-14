@@ -2055,6 +2055,14 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
         t :: p.peek()
         pbp :: postfix_bp(t.kind)
         if pbp >= 0 && pbp >= min_bp {
+            // Block-tail expressions (`if { … }`, `match { … }`, bare
+            // `{ … }`) don't auto-chain index / call postfix : the next
+            // statement could legitimately start with `[` (tuple-let
+            // destructure) or `(`, and the free-form whitespace can't
+            // tell the two cases apart. Force parens for inline
+            // chaining. `.field` postfix stays unambiguous.
+            blocky :: left is IfExpr || left is MatchExpr || left is BlockExpr
+            if blocky && (t.kind == .LBracket || t.kind == .LParen) { break }
             left = p.parse_postfix(left, t)
             last_non_assoc_level = -1
             continue

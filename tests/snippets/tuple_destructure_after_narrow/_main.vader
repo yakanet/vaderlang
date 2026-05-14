@@ -1,0 +1,27 @@
+// `if pair is null { return ... }` must narrow `pair` from
+// `[T, U] | null` to `[T, U]` so the trailing `[a, b] :: pair`
+// tuple destructure compiles. Historically (TODO §1.13e) the narrow
+// flow reached the binding but the destructure-pattern path didn't
+// consult the narrowing map ; vader/vm/parser.vader carried a
+// 3-call-site `IntPair :: struct { first, second }` workaround.
+//
+// Bonus parser fix exercised by this snippet : `if pair is null
+// { return -1 }` followed by `[a, b] :: pair` no longer gets glued
+// together as `(if pair is null { return -1 })[a, b]`. Block-tail
+// expressions (`if`/`match`/`block`) reject postfix `[ … ]` and
+// `( … )` chaining ; parens force the form when really wanted.
+
+import "std/io" { println }
+
+make_pair :: fn(ok: bool) -> [i32, i32] | null {
+    if ok { return [10, 20] }
+    return null
+}
+
+main :: fn() -> i32 {
+    pair :: make_pair(true)
+    if pair is null { return -1 }
+    [a, b] :: pair
+    println("a=${a} b=${b}")
+    return a + b
+}

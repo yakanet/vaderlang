@@ -493,21 +493,13 @@ Patterns counted on the existing Vader code (`vader/` ≈ 11.7k lines) that pay 
 
 - [x] **`if v is T { v.field }` doesn't narrow `v` for field access** (audited 2026-05-15). Verified the bug is gone : `tests/snippets/if_is_field_after_narrow/` exercises `if v is StructVal { return v.type_id }` on a multi-field heap struct (not inline-variant) and an `is ArrayVal` chain reading an array field — the c-emit generates the typed cast `((StructVal*) v.payload.obj)->f_type_id` and the binary runs as expected. `vader/vm/value.vader:read_truthy` collapsed back from the `match v { is BoolVal as b -> b.value }` workaround to the natural `if v is BoolVal { return v.value }` chain ; vader-cli rebuilds + the full vader_vm parity suite (185 tests) stays green. The other historical workarounds in `value.vader` (`type_matches`, `receiver_type_id_of`, `value_ref_eq`) are kept as-is — they use the match-as-expression form which is idiomatic for non-divergent dispatch and offers no reason to convert. Probable healing commit : the field-narrowing chain (`6977eecb` + `32dca18c` from this session) or the §1.4 typeInternKey dedupe (`9d40556e`).
 
-- [ ] **Tuple destructure after `[T, U] | null` narrow fails** — surfaced at sprint 4 (b1)/(b2) writing `vader/vm/parser.vader`. Promoted from §3.8 (2026-05-13) — keeps recurring as a real ergonomics tax on the self-host port. Pattern :
+- [x] **Tuple destructure after `[T, U] | null` narrow** (2026-05-15). Two interlocking bugs ; both fixed.
 
-  ```vader
-  parse_int_pair_after_prefix :: fn(...) -> [i32, i32] | null { ... return [a, b] }
-  parse_struct_get :: fn(line: string) -> Op | null {
-      pair :: parse_int_pair_after_prefix(line, "struct.get ")
-      if pair is null { return null }
-      [type_id, field_index] :: pair       // <-- P1003: expected an expression: got '::'
-      return StructGet { ... }
-  }
-  ```
+  1. **Parser ambiguity** — `if pair is null { return -1 }` followed by `[a, b] :: pair` glued together as `(if … { … })[a, b]` because postfix `[` had no statement-boundary guard. Block-tail expressions (`IfExpr`, `MatchExpr`, `BlockExpr`) now reject postfix `[ … ]` and `( … )` chaining (`src/parser/passes/expr.ts:84-97`, mirrored in `vader/parser/parser.vader:2057-2070`). Parens force the form when really wanted : `(if c { x } else { y })[0]`. Field access (`.f`) stays unambiguous since stmt-leading `.` is rare and parsed via a separate prefix path.
 
-  Even though `pair` should be narrowed to the non-null `[i32, i32]` after the early-return, Vader rejects the destructure pattern. Scalar narrowed uses work fine (`pair.method()` would compile if methods existed) — only the destructure path is broken. Same failure mode applies to a type alias (`IntPair :: [i32, i32]` + `IntPair | null`) — probed at sprint 4 (b2).
+  2. **Narrowing reaches the destructure** — the typecheck-side per-symbol narrowing map was already keyed by binding id ; the destructure-pattern bindings consult it via the regular `inferLet` path. After the parser fix, the natural `[a, b] :: pair` form types correctly without any narrowing-flow change.
 
-  Work-around : declare a named struct (`IntPair :: struct { first, second }`) and access fields by name. Real cost today : `vader/vm/parser.vader:700-756` carries the struct workaround for 3 call sites (`struct.get`, `struct.set`, `array.new`) — every 2-int op in future sprints adds another. Once fixed, 5 lines of struct decl + 8 lines of `pair.first` / `pair.second` accesses collapse back to one alias + tuple-destructure. Touches : narrowing flow → destructure-pattern path in the typechecker (the per-symbol narrowing map is keyed by binding id ; the destructure pattern needs to consult it before resolving each sub-pattern).
+  Workaround retired : `vader/vm/parser.vader` dropped the `IntPair :: struct { first, second }` named-struct + 3 call-site `pair.first` / `pair.second` accesses (`parse_struct_get`, `parse_struct_set_after`, `parse_array_new`, plus the `parse_fn_ref` / `parse_make_closure` consumers). `parse_int_pair_after_prefix` returns `[i32, i32] | null` directly ; callers narrow with `if pair is null { return null } ; [tid, fi] :: pair`. Regression snippet : `tests/snippets/tuple_destructure_after_narrow/`.
 
 - [ ] **AST node id boilerplate — auto-assign or derive** — 30+ structs in `vader/parser/ast.vader` repeat `id: usize = UNASSIGNED_NODE_ID` verbatim. Three possible shapes :
   - (a) **`@derive(NodeId)` decorator** on a struct decl — synthesises the field + the registration with a project-level counter. Reusable for any future "every node gets a stable id" need.

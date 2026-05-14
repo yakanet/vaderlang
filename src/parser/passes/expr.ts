@@ -83,6 +83,18 @@ export function parseExpr(p: Parser, minBP: number): A.Expr {
 
     const postfixBP = POSTFIX_BP.get(t.kind);
     if (postfixBP !== undefined && postfixBP >= minBP) {
+      // Block-tail expressions (`if { … }`, `match { … }`, bare `{ … }`)
+      // don't auto-chain `[ … ]` index or `( … )` call postfix : the
+      // next statement could legitimately start with `[` (tuple-let
+      // destructure) or `(`, and Vader's free-form whitespace can't
+      // tell the two cases apart. Force parens for inline chaining —
+      // `(if c { x } else { y })[0]`. Field access (`.f`) stays
+      // unambiguous since a stmt-leading `.` is rare and parsed via a
+      // separate prefix path.
+      if ((t.kind === "lbracket" || t.kind === "lparen")
+          && (left.kind === "IfExpr" || left.kind === "MatchExpr" || left.kind === "BlockExpr")) {
+        break;
+      }
       left = parsePostfix(p, left, t);
       lastNonAssocLevel = -1;
       continue;

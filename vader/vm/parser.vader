@@ -1244,7 +1244,8 @@ parse_virtual_call :: fn(line: string) -> op.Op | null {
 parse_fn_ref :: fn(line: string) -> op.Op | null {
     pair :: parse_int_pair_after_prefix(line, "fn.ref ")
     if pair is null { return null }
-    return op.FnRef { .function_index = pair.first }
+    [fn_idx, _] :: pair
+    return op.FnRef { .function_index = fn_idx }
 }
 
 /// Parse `make_closure FN_INDEX TYPE_ID` — same shape as `fn.ref`. The
@@ -1255,7 +1256,8 @@ parse_fn_ref :: fn(line: string) -> op.Op | null {
 parse_make_closure :: fn(line: string) -> op.Op | null {
     pair :: parse_int_pair_after_prefix(line, "make_closure ")
     if pair is null { return null }
-    return op.MakeClosure { .function_index = pair.first }
+    [fn_idx, _] :: pair
+    return op.MakeClosure { .function_index = fn_idx }
 }
 
 parse_type_check :: fn(line: string) -> op.Op | null {
@@ -1276,14 +1278,6 @@ parse_struct_new_after :: fn(line: string, prefix: string) -> op.Op | null {
     return op.StructNew { .type_id = parsed }
 }
 
-/// Two i32s parsed from a line — used by ops carrying exactly two
-/// integer operands (`struct.get TID FI`, `struct.set TID FI`,
-/// `array.new TID LEN`, ...). Generic field names since the meaning
-/// depends on the op. A named struct rather than a tuple because
-/// Vader's `[T, U] | null` doesn't destructure after a null-narrow
-/// today (TODO §3.8).
-IntPair :: struct { first: i32, second: i32 }
-
 /// Parse two space-separated base-10 ints after `prefix`. Used by
 /// every op carrying exactly two int operands (struct.get/set's
 /// TID + FIELD_INDEX, array.new's TID + LENGTH, ...).
@@ -1291,7 +1285,7 @@ IntPair :: struct { first: i32, second: i32 }
 /// @param line    the .virt line (comment-stripped).
 /// @param prefix  literal prefix to skip (e.g. `"struct.get "`).
 /// @return        the parsed pair ; `null` on malformed input.
-parse_int_pair_after_prefix :: fn(line: string, prefix: string) -> IntPair | null {
+parse_int_pair_after_prefix :: fn(line: string, prefix: string) -> [i32, i32] | null {
     rest :: line.slice(prefix.byte_len(), line.byte_len()).trim()
     space :: rest.index_of(' ', 0)
     if space < 0 { return null }
@@ -1299,25 +1293,28 @@ parse_int_pair_after_prefix :: fn(line: string, prefix: string) -> IntPair | nul
     if a is Error { return null }
     b :: parse_int_in_base(rest.slice(usize(space) + 1, rest.byte_len()).trim(), 10)
     if b is Error { return null }
-    return IntPair { .first = i32(a), .second = i32(b) }
+    return [i32(a), i32(b)]
 }
 
 parse_struct_get :: fn(line: string) -> op.Op | null {
     pair :: parse_int_pair_after_prefix(line, "struct.get ")
     if pair is null { return null }
-    return op.StructGet { .type_id = pair.first, .field_index = pair.second }
+    [tid, fi] :: pair
+    return op.StructGet { .type_id = tid, .field_index = fi }
 }
 
 parse_struct_set_after :: fn(line: string, prefix: string) -> op.Op | null {
     pair :: parse_int_pair_after_prefix(line, prefix)
     if pair is null { return null }
-    return op.StructSet { .type_id = pair.first, .field_index = pair.second }
+    [tid, fi] :: pair
+    return op.StructSet { .type_id = tid, .field_index = fi }
 }
 
 parse_array_new :: fn(line: string) -> op.Op | null {
     pair :: parse_int_pair_after_prefix(line, "array.new ")
     if pair is null { return null }
-    return op.ArrayNew { .type_id = pair.first, .length = pair.second }
+    [tid, len] :: pair
+    return op.ArrayNew { .type_id = tid, .length = len }
 }
 
 parse_array_push :: fn(line: string) -> op.Op | null {
