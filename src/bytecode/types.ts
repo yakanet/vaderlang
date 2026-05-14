@@ -104,8 +104,45 @@ export function nullableRefVariant(union: BcUnion, types: readonly BcType[]): nu
   const ta = types[a], tb = types[b];
   if (ta === undefined || tb === undefined) return null;
   const isNullPrim = (t: BcType): boolean => t.kind === "primitive" && t.val === "null";
-  const isHeapRef = (t: BcType): boolean => t.kind === "struct" || t.kind === "array";
+  // T must be a heap-allocated struct here. If it's an inline-variant struct
+  // (representable in vader_box_t.payload, see `inlineVariantPayload` below),
+  // skip B1 — the value is already inline so there's no heap pointer to fold
+  // into a raw void* slot.
+  const isHeapRef = (t: BcType): boolean => {
+    if (t.kind === "array") return true;
+    if (t.kind === "struct") return inlineVariantPayload(t, types) === null;
+    return false;
+  };
   if (isNullPrim(ta) && isHeapRef(tb)) return b;
   if (isNullPrim(tb) && isHeapRef(ta)) return a;
   return null;
+}
+
+/** Classify a struct as an "inline-variant" — every instance fits entirely
+ *  in `vader_box_t`'s tag + payload, so the c-emit can encode it as a bare
+ *  `vader_box_t` with no heap allocation. Two shapes match :
+ *
+ *    - empty struct (e.g. `Done {}`) → tag alone identifies the value
+ *    - one-field struct whose field is a primitive (`Yielded { value: i32 }`,
+ *      `Some { value: f64 }`, …) → the field's value rides in `payload.i` /
+ *      `payload.f` / `payload.b` / `payload.s`
+ *
+ *  Multi-field structs and structs holding a heap ref / nested box return
+ *  null — those payloads don't fit in a single `vader_box_t.payload` slot.
+ *
+ *  Returned value :
+ *    - `null` — not inline-variant, heap-allocated as before
+ *    - `"void"` — empty struct ; `vader_box_obj(tag, NULL)` encodes it
+ *    - the field's `ValType` (a primitive name) — the field's value goes
+ *      into the matching payload slot
+ */
+export function inlineVariantPayload(t: BcStruct, types: readonly BcType[]): ValType | "void" | null {
+  if (t.fields.length === 0) return "void";
+  if (t.fields.length > 1) return null;
+  const fieldType = types[t.fields[0]!.typeIndex];
+  if (fieldType === undefined || fieldType.kind !== "primitive") return null;
+  // `void` and `null` aren't legitimate single-field types ; everything else
+  // (ints, floats, bool, char, string) fits in vader_box_t.payload.
+  if (fieldType.val === "void" || fieldType.val === "null") return null;
+  return fieldType.val;
 }

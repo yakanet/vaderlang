@@ -15,7 +15,7 @@ import type { BcSignature } from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
-import { nullableRefVariant } from "../bytecode/types.ts";
+import { inlineVariantPayload, nullableRefVariant } from "../bytecode/types.ts";
 
 import type { EmitCtx } from "./emit.ts";
 import { cStringLit, cStringLitFromBytes, escapeC, sanitise } from "./emit.ts";
@@ -280,6 +280,33 @@ export function emitStructNew(
   // Pop fields right-to-left.
   const fieldVals: { name: string; val: ValType }[] = [];
   for (let i = t.fields.length - 1; i >= 0; i--) fieldVals.unshift(pop(s));
+
+  // Inline-variant fast path : an empty struct or a single-primitive-field
+  // struct can ride entirely inside `vader_box_t.payload`. Skip the GC
+  // allocation, encode the value directly. Saves an alloc + header init +
+  // box wrap per instance. Common on iter combinators (`Done | Yielded(T)`),
+  // Result/Option-style unions, and any user enum-with-payload. Excluded :
+  // structs that any `struct.set` writes to anywhere in the module — the
+  // mutation needs a heap body so every alias observes the new value.
+  const inlinePayload = !s.ctx.mutatedStructs.has(op.typeIndex)
+    ? inlineVariantPayload(t, s.ctx.module.types)
+    : null;
+  if (inlinePayload !== null) {
+    const tmp = newTmp(s, "ref");
+    if (inlinePayload === "void") {
+      // `Done {}`-style — tag identifies, no payload to carry.
+      line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, NULL);`);
+    } else {
+      // Single primitive field — coerce the incoming value into the matching
+      // payload slot, then box with the variant's tag. `boxExpr` knows how
+      // to widen / sign-zero-extend each integer width.
+      const v = fieldVals[0]!;
+      const coerced = coerce(s, v.name, v.val, inlinePayload);
+      line(s, `${decl(s, "ref", tmp)} = ${boxExpr(s.ctx, coerced, inlinePayload, op.typeIndex)};`);
+    }
+    return;
+  }
+
   const tmp = newTmp(s, "ref");
   if (onStack) {
     // Escape analysis proved the value can't outlive the fn — allocate the
@@ -321,6 +348,20 @@ export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }
   const obj = pop(s);
   const f = t.fields[op.fieldIndex]!;
   const fval = valTypeOfField(s.ctx, f.typeIndex);
+
+  // Inline-variant struct : the field's value is encoded directly in the
+  // receiver box's payload. Read it via `unboxExpr` instead of dereferencing
+  // through a heap struct that doesn't exist. Same exclusion as struct.new :
+  // structs the module mutates anywhere keep the heap rep.
+  const inlinePayload = !s.ctx.mutatedStructs.has(op.typeIndex)
+    ? inlineVariantPayload(t, s.ctx.module.types)
+    : null;
+  if (inlinePayload !== null && inlinePayload !== "void") {
+    const tmp = newTmp(s, fval);
+    line(s, `${decl(s, fval, tmp)} = ${coerce(s, unboxExpr(obj.name, inlinePayload), inlinePayload, fval)};`);
+    return;
+  }
+
   // Nullable-ref field stored as `void*` — read the raw pointer and box it
   // back to a `vader_box_t` so downstream ops see a uniform value rep.
   // NULL → null-tagged box ; non-null → ref-tagged box with the variant's

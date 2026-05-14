@@ -19,7 +19,7 @@
 import type {BytecodeModule, BcFunction, BcImport, BcSignature} from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
-import { nullableRefVariant } from "../bytecode/types.ts";
+import { inlineVariantPayload, nullableRefVariant } from "../bytecode/types.ts";
 
 import {
   cTypeFor, cTypeForVal, cTypeForValBare, emitFunctions, isRefVal,
@@ -78,6 +78,13 @@ export interface EmitCtx {
    *  skip the shadow-stack frame entirely — no `vader_gc_frame_t` setup,
    *  no `gc_top` push/pop, no `gc_roots[]` array. */
   readonly mayAlloc: ReadonlySet<number>;
+  /** Struct type indices that appear as a target of `struct.set` somewhere
+   *  in the module. These structs need a heap-allocated body so the mutation
+   *  is observable to every alias of the value ; the inline-variant rep
+   *  (encoded directly in `vader_box_t.payload`) only fits truly immutable
+   *  values. Closure environments, `Counter { value: i32 }`-style mutables,
+   *  and any single-field struct the user writes to fall into this set. */
+  readonly mutatedStructs: ReadonlySet<number>;
 }
 
 function newCtx(m: BytecodeModule): EmitCtx {
@@ -106,7 +113,24 @@ function newCtx(m: BytecodeModule): EmitCtx {
     module: m, stringTagIndex: stringIdx, errorTagIndex: errorIdx,
     fnNames, structNames, primitiveTagOf, structIdxsByTrait,
     mayAlloc: computeMayAlloc(m),
+    mutatedStructs: computeMutatedStructs(m),
   };
+}
+
+/** Walk every fn body once and collect the type indices of every struct
+ *  that's a target of a `struct.set` / `struct.set_stack` op. Used by the
+ *  inline-variant fast path : structs in this set must keep the heap rep
+ *  so mutations are visible to aliases. */
+function computeMutatedStructs(m: BytecodeModule): ReadonlySet<number> {
+  const out = new Set<number>();
+  for (const fn of m.functions) {
+    for (const op of fn.body) {
+      if (op.kind === "struct.set" || op.kind === "struct.set_stack") {
+        out.add(op.typeIndex);
+      }
+    }
+  }
+  return out;
 }
 
 // Bytecode-level callgraph analysis: which fns may trigger a GC allocation
@@ -314,6 +338,13 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
   for (let i = 0; i < types.length; i++) {
     const t = types[i]!;
     if (t.kind === "struct") {
+      // Inline-variant structs (`Done {}`, `Yielded(i32)`, …) are encoded
+      // directly inside `vader_box_t.payload` — they never get a heap
+      // allocation, so the GC scanner must skip them. Leave the entry at
+      // its zero-initialised KIND_NONE so `vader_gc_scan_box` short-circuits
+      // before touching the payload as a heap pointer. Mutated structs are
+      // excluded — they keep the heap rep so `struct.set` is observable.
+      if (!ctx.mutatedStructs.has(i) && inlineVariantPayload(t, types) !== null) continue;
       const cname = ctx.structNames[i]!;
       const boxFields = t.fields.filter((f) => {
         const ft = types[f.typeIndex]!;
