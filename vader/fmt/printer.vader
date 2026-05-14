@@ -480,14 +480,17 @@ emit_fn_params :: fn(self: Printer, params: p.FnParam[]) -> void {
     i: usize = 0
     for i < params.len() {
         if i > 0 { self.write(", ") }
-        p :: params[i]
-        if p.variadic { self.write("...") }
-        self.write(p.name)
-        self.emit_type_expr_with_prefix(": ", p.ty)
-        self.emit_expr_with_prefix(" = ", p.default_value)
+        self.emit_fn_param(params[i])
         i = i + 1
     }
     self.write(")")
+}
+
+emit_fn_param :: fn(self: Printer, fp: p.FnParam) -> void {
+    if fp.variadic { self.write("...") }
+    self.write(fp.name)
+    self.emit_type_expr_with_prefix(": ", fp.ty)
+    self.emit_expr_with_prefix(" = ", fp.default_value)
 }
 
 // ---- Struct ----
@@ -1520,6 +1523,21 @@ flush_leading_comments_inline :: fn(self: Printer, before: usize, node_line: i32
 }
 
 emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
+    // Arrow form (`(p) -> expr` or `x -> expr`) and `fn(p) { expr }`
+    // both parse into a `LambdaExpr` whose body is a `BlockExpr` with
+    // no stmts and a single trailing expression — the AST loses the
+    // surface form. The arrow form only accepts an inferred return
+    // type, so emit it when there's no explicit `return_type` and the
+    // body collapses to one expression. Higher-order callsites
+    // (`filter(xs, (x) -> x > 0)`) thus round-trip cleanly instead of
+    // bloating to a block. Block-bodied lambdas and any lambda with an
+    // explicit return type keep the `fn(p) -> T { ... }` form.
+    if x.return_type is null && x.body.stmts.len() == 0 && !(x.body.trailing is null) {
+        self.emit_fn_params(x.params)
+        self.write(" -> ")
+        self.emit_expr(x.body.trailing)
+        return
+    }
     self.write("fn")
     self.emit_fn_params(x.params)
     self.emit_type_expr_with_prefix(" -> ", x.return_type)
