@@ -88,10 +88,17 @@ async function runBuild(cmd: string, args: readonly string[], label: string): Pr
 }
 
 const IMPLS: readonly Impl[] = [
-  {
-    name: "vader-vm",
-    run: (w) => ({ cmd: "bun", args: ["src/index.ts", "run", `bench/${w}.vader`] }),
-  },
+  // vader-vm is intentionally disabled by default — each invocation pays
+  // 2-30 s for the parse + typecheck + lower + bytecode-emit pipeline
+  // (dwarfing the actual VM loop), which inflates the total bench wall
+  // time to ~5 min without telling us anything that the native column
+  // doesn't. Uncomment to opt back in when a change targets the VM exec
+  // path specifically (e.g. once the bytecode-on-disk cache lands).
+  //
+  // {
+  //   name: "vader-vm",
+  //   run: (w) => ({ cmd: "bun", args: ["src/index.ts", "run", `bench/${w}.vader`] }),
+  // },
   {
     name: "vader-native",
     build: (w) => runBuild("bun", ["src/index.ts", "build", "--target=native", "--release", `bench/${w}.vader`], `vader build for ${w}`),
@@ -108,7 +115,13 @@ const IMPLS: readonly Impl[] = [
   },
   {
     name: "java",
-    run: (w) => ({ cmd: "java", args: [`bench/${w}.java`] }),
+    // `javac --release 25 bench/<w>.java` writes `bench/<w>.class` (and
+    // any nested-class files like `<w>$Node.class` for records) ; the
+    // measured run uses `java -cp bench <w>` so each invocation skips the
+    // single-source-file launcher's in-memory compile + class load step.
+    // JVM startup + cold JIT still apply, just not the source parse.
+    build: (w) => runBuild("javac", ["--release", "25", "-d", "bench", `bench/${w}.java`], `javac for ${w}`),
+    run: (w) => ({ cmd: "java", args: ["-cp", "bench", w] }),
   },
 ];
 

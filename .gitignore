@@ -30,4 +30,5 @@ bench/binary_trees_go
 bench/string_builder
 bench/string_builder.c
 bench/string_builder_go
+bench/*.class
 *.dSYM/

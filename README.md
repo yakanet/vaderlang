@@ -254,15 +254,17 @@ bun run bench -- --update                  # rewrite baseline with current measu
 bun run bench -- --runs=5 --workload=primes  # custom run count, single workload
 ```
 
-Five workloads measured across five implementations of each — the Vader VM (`bun src/index.ts run`), Vader native (`--target=native --release`), the same kernel in Bun-TS, the same in Go, and the same in Java 25 (via the single-source-file launcher, `java bench/<name>.java`). Current baseline on a 2026 Apple Silicon laptop :
+Five workloads measured across four implementations of each — Vader native (`--target=native --release`), the same kernel in Bun-TS, in Go, and in Java 25 (precompiled with `javac --release 25`, run via `java -cp bench <Name>`). Current baseline on a 2026 Apple Silicon laptop, full bench wall-time ~6 s :
 
-| workload         | vader-vm     | vader-native | bun-ts  | go      | java    |
-|------------------|--------------|--------------|---------|---------|---------|
-| `mandelbrot`     | 12 685 ms    | 15.2 ms      | 22.5 ms | 17.5 ms | 241.8 ms |
-| `primes`         | 27 058 ms    | 23.4 ms      | 40.2 ms | 24.0 ms | 246.8 ms |
-| `iter_chain`     |  2 475 ms    | 29.8 ms      | 35.3 ms |  3.7 ms | 235.1 ms |
-| `binary_trees`   |    514 ms    | 21.2 ms      | 11.9 ms |  7.4 ms | 236.0 ms |
-| `string_builder` |     95 ms    |  4.1 ms      |  9.8 ms |  4.9 ms | 226.8 ms |
+| workload         | vader-native | bun-ts  | go      | java    |
+|------------------|--------------|---------|---------|---------|
+| `mandelbrot`     | 19.2 ms      | 25.1 ms | 17.5 ms | 45.6 ms |
+| `primes`         | 22.6 ms      | 38.4 ms | 23.2 ms | 55.1 ms |
+| `iter_chain`     | 27.2 ms      | 34.9 ms |  3.9 ms | 35.5 ms |
+| `binary_trees`   | 20.1 ms      | 11.4 ms |  7.4 ms | 33.1 ms |
+| `string_builder` |  4.2 ms      |  9.4 ms |  4.5 ms | 33.5 ms |
+
+The `vader-vm` column is disabled by default — each invocation pays 2-30 s for the parse + typecheck + lower + bytecode pipeline (dwarfing the actual VM loop), which inflates the total bench wall time to ~5 min without telling us anything `vader-native` doesn't. Uncomment the entry in `bench/run.ts` to opt back in when a change targets the VM exec path specifically.
 
 `bun run bench` exits non-zero if any measurement regresses by more than 15 % vs the committed baseline (10 % was too tight for the < 20 ms native workloads — OS noise alone clears that), or if any implementation's checksum diverges. See [`bench/README.md`](./bench/README.md) for the workload sources, the comparison methodology, and notes on Go's FMA-driven checksum drift on `mandelbrot`.
 
