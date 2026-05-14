@@ -149,8 +149,17 @@ export parse_virt :: fn(source: string) -> op.Module {
         .pending_sp = [0],
     }
 
+    // Indexed walk instead of `for line in lines` — every `for x in arr`
+    // desugars to ArrayIterator.next which allocates a Yielded[T] per
+    // step. On large .virt inputs (e.g. `json_basics`'s 3800+ lines) that
+    // cascading allocation is what surfaces the rooting bug tracked in
+    // TODO §3.5. Indexed reads stay zero-alloc per iteration.
     lines :: source.split("\n")
-    for line in lines {
+    line_count :: lines.len()
+    line_index: usize = 0
+    for line_index < line_count {
+        line :: lines[line_index]
+        line_index += 1
         cleaned :: strip_comment(line)
         if cleaned.byte_len() == 0 { continue }
 
@@ -464,9 +473,12 @@ parse_int_list :: fn(csv: string) -> i32[] {
     ids: i32[] = []
     if csv.byte_len() == 0 { return ids }
     parts :: csv.split(",")
-    for part in parts {
-        parsed :: parse_int_in_base(part.trim(), 10)
+    n :: parts.len()
+    i: usize = 0
+    for i < n {
+        parsed :: parse_int_in_base(parts[i].trim(), 10)
         if !(parsed is Error) { ids.push(i32(parsed)) }
+        i += 1
     }
     return ids
 }
