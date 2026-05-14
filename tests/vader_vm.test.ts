@@ -44,6 +44,8 @@ function newestSourceMtime(): number {
   return max;
 }
 
+// 5-minute timeout to cover cold-CI native builds — see the matching
+// note in `parser_parity.test.ts`.
 beforeAll(async () => {
   const stale = !existsSync(CLI_BIN) || statSync(CLI_BIN).mtimeMs < newestSourceMtime();
   if (!stale) return;
@@ -57,7 +59,7 @@ beforeAll(async () => {
     throw new Error(`vader CLI build failed (exit ${code}):
 ${err}`);
   }
-});
+}, 300_000);
 
 // Snippets that the Vader VM can't yet run end-to-end — typically due to
 // missing op support that lands in Sprint 5+. Each entry stays only as

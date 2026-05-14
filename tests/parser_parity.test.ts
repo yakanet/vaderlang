@@ -37,6 +37,9 @@ function newestSourceMtime(): number {
   return max;
 }
 
+// Building the native CLI on a fresh CI checkout takes ~30s ; Bun's
+// default `beforeAll` timeout of 5s is way too tight. Pass an explicit
+// 5-minute window so the cold-build path passes even on slow runners.
 beforeAll(async () => {
   const stale = !existsSync(CLI_BIN) || statSync(CLI_BIN).mtimeMs < newestSourceMtime();
   if (!stale) return;
@@ -49,7 +52,7 @@ beforeAll(async () => {
     const err = await new Response(proc.stderr).text();
     throw new Error(`vader CLI build failed (exit ${code}):\n${err}`);
   }
-});
+}, 300_000);
 
 // Snippets exempt from parity (e.g. self-host parser traps or known
 // snapshot drift). Tracked in TODO §2.1.

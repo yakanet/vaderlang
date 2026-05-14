@@ -41,6 +41,8 @@ function newestSourceMtime(): number {
   return max;
 }
 
+// 5-minute timeout to cover cold-CI native builds (~30s warm, longer on
+// slow runners) — see the matching note in `parser_parity.test.ts`.
 beforeAll(async () => {
   const stale = !existsSync(CLI_BIN) || statSync(CLI_BIN).mtimeMs < newestSourceMtime();
   if (!stale) return;
@@ -53,7 +55,7 @@ beforeAll(async () => {
     const err = await new Response(proc.stderr).text();
     throw new Error(`vader CLI build failed (exit ${code}):\n${err}`);
   }
-});
+}, 300_000);
 
 // Snippets that previously diverged on multi-byte UTF-8 source content
 // were aligned by counting codepoints on both sides — TS skips low
