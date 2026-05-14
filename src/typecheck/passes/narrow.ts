@@ -43,30 +43,59 @@ export function popNarrowing(t: MutableTyped, symId: number, prev: Type | undefi
   else t.narrowed.set(symId, prev);
 }
 
-export function fieldNarrowKey(symId: number, fieldName: string): string {
-  return `${symId}#${fieldName}`;
+/** Composite key for the per-field narrowing map. `path` is the chain
+ *  of field names from the root ident, ordered outside-in : `a.b.c` →
+ *  `["b", "c"]`. `#` is safe as a joiner — Vader identifiers can't
+ *  contain it, so no synthetic chain encodes as the same string as
+ *  another. */
+export function fieldNarrowKey(symId: number, path: readonly string[]): string {
+  return `${symId}#${path.join("#")}`;
 }
 
 /** Field narrowing mirrors the symbol-id flavour : a push registers a more
- *  specific type for `targetSym.field` reads inside the scope, a pop
+ *  specific type for `targetSym.path` reads inside the scope, a pop
  *  restores the prior entry. Same staleness caveat as `pushNarrowing` —
- *  a mutation of `targetSym.field` inside the scope isn't observed ;
+ *  a mutation of `targetSym.path` inside the scope isn't observed ;
  *  Vader's MVP idiom doesn't reassign fields mid-match. */
 export function pushFieldNarrowing(
-  t: MutableTyped, symId: number, fieldName: string, narrow: Type,
+  t: MutableTyped, symId: number, path: readonly string[], narrow: Type,
 ): Type | undefined {
-  const k = fieldNarrowKey(symId, fieldName);
+  const k = fieldNarrowKey(symId, path);
   const prev = t.narrowedFields.get(k);
   t.narrowedFields.set(k, narrow);
   return prev;
 }
 
 export function popFieldNarrowing(
-  t: MutableTyped, symId: number, fieldName: string, prev: Type | undefined,
+  t: MutableTyped, symId: number, path: readonly string[], prev: Type | undefined,
 ): void {
-  const k = fieldNarrowKey(symId, fieldName);
+  const k = fieldNarrowKey(symId, path);
   if (prev === undefined) t.narrowedFields.delete(k);
   else t.narrowedFields.set(k, prev);
+}
+
+/** Walk a `FieldExpr` chain back to its root ident and return the
+ *  `(rootSymId, fieldPath)` pair the field-narrowing map keys on, or
+ *  null when the chain doesn't bottom out on a narrowable
+ *  local / param / binding. Used by the match scrutinee detector, the
+ *  if-condition narrowing detector, and the `inferField` consumer to
+ *  agree on the same path encoding. */
+export function extractFieldPath(
+  expr: A.FieldExpr, t: MutableTyped,
+): { symId: number; path: string[] } | null {
+  // Walk inner→outer (each step's `target` is the deeper layer) and
+  // reverse once at the end ; `unshift`-per-step would be O(depth²).
+  const parts: string[] = [expr.field];
+  let cur: A.Expr = expr.target;
+  while (cur.kind === "FieldExpr") {
+    parts.push(cur.field);
+    cur = cur.target;
+  }
+  if (cur.kind !== "IdentExpr") return null;
+  const sym = resolveNarrowableIdent(cur, t);
+  if (sym === null) return null;
+  parts.reverse();
+  return { symId: sym.id, path: parts };
 }
 
 /** Subset of `NarrowingSplit` carrying only the scrutinee identity — what
@@ -76,34 +105,35 @@ export function popFieldNarrowing(
  *  `stmt.ts` keeps only one of the two types per branch). */
 export interface NarrowingScope {
   readonly symId: number;
-  readonly fieldName: string | null;
+  readonly path: readonly string[] | null;
 }
 
 /** Push `type` into whichever narrowing slot `split` describes (symbol-id
- *  or `(symId, fieldName)` field). Mirror `popSplit` below. Returns the
+ *  or `(symId, fieldPath)` field). Mirror `popSplit` below. Returns the
  *  prior entry the pop should restore. */
 export function pushSplit(
   t: MutableTyped, split: NarrowingScope, type: Type,
 ): Type | undefined {
-  return split.fieldName === null
+  return split.path === null
     ? pushNarrowing(t, split.symId, type)
-    : pushFieldNarrowing(t, split.symId, split.fieldName, type);
+    : pushFieldNarrowing(t, split.symId, split.path, type);
 }
 
 export function popSplit(
   t: MutableTyped, split: NarrowingScope, prev: Type | undefined,
 ): void {
-  if (split.fieldName === null) popNarrowing(t, split.symId, prev);
-  else popFieldNarrowing(t, split.symId, split.fieldName, prev);
+  if (split.path === null) popNarrowing(t, split.symId, prev);
+  else popFieldNarrowing(t, split.symId, split.path, prev);
 }
 
-/** Result of a flow-narrowing detection. `fieldName === null` means the
+/** Result of a flow-narrowing detection. `path === null` means the
  *  scrutinee was a plain ident — push through `pushNarrowing` on
- *  `symId`. When `fieldName` is set, the scrutinee was `ident.field` —
- *  push through `pushFieldNarrowing` on the `(symId, fieldName)` pair. */
+ *  `symId`. When `path` is non-null, the scrutinee was a `FieldExpr`
+ *  chain rooted at `symId` ; push through `pushFieldNarrowing` with
+ *  the captured path. */
 export interface NarrowingSplit {
   readonly symId: number;
-  readonly fieldName: string | null;
+  readonly path: readonly string[] | null;
   readonly thenType: Type;
   readonly elseType: Type;
 }
@@ -159,24 +189,22 @@ function narrowFromScrutinee(
     if (sym === null) return null;
     return splitUnion(typeOfSymbol(sym, t), checkType, sym.id, null);
   }
-  if (scrut.kind === "FieldExpr" && scrut.target.kind === "IdentExpr") {
-    const sym = resolveNarrowableIdent(scrut.target, t);
-    if (sym === null) return null;
+  if (scrut.kind === "FieldExpr") {
+    const fp = extractFieldPath(scrut, t);
+    if (fp === null) return null;
     // The condition expression has already been type-checked, so the
     // field expression's type sits in `exprTypes`. The `?? TY.unresolved`
     // is defensive — a missing entry means a preceding pass failed to
     // type the cond, in which case `splitUnion` bails on the non-union
     // type below and no narrowing fires.
     const current = t.exprTypes.get(scrut) ?? TY.unresolved;
-    return splitUnion(current, checkType, sym.id, scrut.field);
+    return splitUnion(current, checkType, fp.symId, fp.path);
   }
-  // Nested paths (`a.b.c`) and non-Ident bases are deferred — the
-  // narrowing map keys on a single `(symId, fieldName)` pair.
   return null;
 }
 
 function splitUnion(
-  current: Type, checkType: Type, symId: number, fieldName: string | null,
+  current: Type, checkType: Type, symId: number, path: readonly string[] | null,
 ): NarrowingSplit | null {
   if (current.kind !== "Union") return null;
   const matching: Type[] = [];
@@ -189,7 +217,7 @@ function splitUnion(
   if (remaining.length === 0) return null;    // would collapse to Never
   const thenType = matching.length === 1 ? matching[0]! : unionOf(matching);
   const elseType = unionOf(remaining);
-  return { symId, fieldName, thenType, elseType };
+  return { symId, path, thenType, elseType };
 }
 
 /** True when every control-flow path through this block ends in a
@@ -209,11 +237,12 @@ export function blockDiverges(block: A.BlockExpr): boolean {
  *  the subsequent code is reachable only when the guard was false ; push
  *  the complementary narrowing so subsequent references see the narrowed
  *  type. Returns the narrowing to apply to the *rest* of the enclosing
- *  block, or null when the shape doesn't qualify. `fieldName` mirrors
- *  `NarrowingSplit` — null for symbol scrutinees, set for `ident.field`. */
+ *  block, or null when the shape doesn't qualify. `path` mirrors
+ *  `NarrowingSplit` — null for symbol scrutinees, the field-chain
+ *  encoding (outer→inner) when the scrutinee was a `FieldExpr`. */
 export function postStmtNarrowing(
   stmt: A.Stmt, t: MutableTyped,
-): { symId: number; fieldName: string | null; type: Type } | null {
+): { symId: number; path: readonly string[] | null; type: Type } | null {
   if (stmt.kind !== "ExprStmt" || stmt.expr.kind !== "IfExpr") return null;
   const ifExpr = stmt.expr;
   const split = detectVariantNarrowing(ifExpr.cond, t);
@@ -222,10 +251,10 @@ export function postStmtNarrowing(
   const elseBlock = ifExpr.else;
   const elseDiverges = elseBlock !== null && elseBlock.kind === "BlockExpr" && blockDiverges(elseBlock);
   if (thenDiverges && !elseDiverges) {
-    return { symId: split.symId, fieldName: split.fieldName, type: split.elseType };
+    return { symId: split.symId, path: split.path, type: split.elseType };
   }
   if (elseDiverges && !thenDiverges) {
-    return { symId: split.symId, fieldName: split.fieldName, type: split.thenType };
+    return { symId: split.symId, path: split.path, type: split.thenType };
   }
   return null;
 }

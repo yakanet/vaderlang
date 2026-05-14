@@ -1,0 +1,7 @@
+# stdout
+count(set)=43
+count(unset)=0
+unwrap(set)=42
+unwrap(unset)=-1
+# exit
+0

@@ -80,10 +80,11 @@ export interface MutableTyped {
    *  see `T` instead of the full union. Nested matches stack naturally. */
   readonly narrowed: Map<number, Type>;
   /** Sibling map for field-expression scrutinees : when the scrutinee is
-   *  `target.field` (with `target` a plain ident bound to a local / param /
-   *  binding), references to the SAME field expression inside the arm body
-   *  see the narrowed type. Keyed by `${targetSym.id}#${fieldName}`.
-   *  Read by `inferField` ; managed by `inferMatch` + `narrow.ts`. */
+   *  a `FieldExpr` chain rooted at a narrowable local / param / binding,
+   *  references to the SAME chain inside the arm body see the narrowed
+   *  type. Keyed by `${rootSym.id}#${path.join("#")}` where `path` is the
+   *  outer→inner sequence of field names (`a.b.c` → `["b", "c"]`). Read
+   *  by `inferField` ; managed by `inferMatch` + `narrow.ts`. */
   readonly narrowedFields: Map<string, Type>;
   /** Per-`FieldExpr` resolution — discriminated union over the six mutually-
    *  exclusive cases (UFCS method, trait-method on TypeParam, trait-virtual,

@@ -16,6 +16,7 @@ import { sourceStructDecl } from "../../resolver/symbol.ts";
 import { tryInto } from "./coerce.ts";
 import { looksLikeTypeExpression } from "./decl.ts";
 import { checkExpr, resolveIndexTrait } from "./expr.ts";
+import type { NarrowingScope } from "./narrow.ts";
 import { popSplit, postStmtNarrowing, pushSplit } from "./narrow.ts";
 import { lowerExprAsType } from "./type-expr.ts";
 
@@ -73,15 +74,12 @@ export function checkBlock(
   // after a divergent if-guard (`if x == null { return }` ⇒ subsequent
   // statements see x narrowed). Popped in reverse at block exit so they
   // don't leak into the parent scope.
-  const persistedNarrowings: {
-    split: { symId: number; fieldName: string | null };
-    prev: Type | undefined;
-  }[] = [];
+  const persistedNarrowings: { split: NarrowingScope; prev: Type | undefined }[] = [];
   for (const stmt of block.stmts) {
     checkStmt(stmt, t, impls, diags, fn);
     const post = postStmtNarrowing(stmt, t);
     if (post !== null) {
-      const split = { symId: post.symId, fieldName: post.fieldName };
+      const split: NarrowingScope = { symId: post.symId, path: post.path };
       persistedNarrowings.push({ split, prev: pushSplit(t, split, post.type) });
     }
   }

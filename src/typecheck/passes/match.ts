@@ -15,8 +15,8 @@ import { TY, displayType, equalsType, intersects, isAssignable, unionOf } from "
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import {
-  popFieldNarrowing, popNarrowing, pushFieldNarrowing, pushNarrowing,
-  resolveNarrowableIdent,
+  extractFieldPath, popFieldNarrowing, popNarrowing, pushFieldNarrowing,
+  pushNarrowing, resolveNarrowableIdent,
 } from "./narrow.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { checkExpr } from "./expr.ts";
@@ -29,11 +29,12 @@ export function inferMatch(
 ): Type {
   const scrut = checkExpr(expr.scrutinee, null, t, impls, diags, fn);
   const scrutSym = scrutineeSymbol(expr.scrutinee, t);
-  // `match foo.field { ... }` : when the scrutinee is `IdentExpr.field`
-  // on a narrowable local, push narrowings via a `(symId, fieldName)`
-  // composite key so reads of the same field inside arm bodies see the
-  // narrowed type.
-  const scrutField = scrutSym === null ? scrutineeFieldPath(expr.scrutinee, t) : null;
+  // `match foo.bar.baz { ... }` : when the scrutinee is a `FieldExpr`
+  // chain rooted at a narrowable local, push narrowings via a
+  // `(rootSymId, path)` composite key so reads of the same chain inside
+  // arm bodies see the narrowed type.
+  const scrutField = scrutSym === null && expr.scrutinee.kind === "FieldExpr"
+    ? extractFieldPath(expr.scrutinee, t) : null;
   const armTypes: Type[] = [];
   let hasWildcard = false;
   const coveredVariants = new Set<string>();
@@ -99,7 +100,7 @@ export function inferMatch(
       ? pushNarrowing(t, scrutSym.id, narrowed)
       : undefined;
     const fieldPrev: Type | undefined = scrutField !== null && narrowed !== null
-      ? pushFieldNarrowing(t, scrutField.symId, scrutField.fieldName, narrowed)
+      ? pushFieldNarrowing(t, scrutField.symId, scrutField.path, narrowed)
       : undefined;
     // Pattern-binding narrowing: without it, references to `p` in the arm
     // body see `Unresolved` and the lowerer can't resolve fields on it.
@@ -112,7 +113,7 @@ export function inferMatch(
     armTypes.push(checkExpr(arm.body, expected, t, impls, diags, fn));
     for (let i = 0; i < binds.length; i++) popNarrowing(t, binds[i]!.sym.id, bindPrev[i]);
     if (scrutSym !== null && narrowed !== null) popNarrowing(t, scrutSym.id, prev);
-    if (scrutField !== null && narrowed !== null) popFieldNarrowing(t, scrutField.symId, scrutField.fieldName, fieldPrev);
+    if (scrutField !== null && narrowed !== null) popFieldNarrowing(t, scrutField.symId, scrutField.path, fieldPrev);
     // After the arm body is checked, register that this arm fully matches
     // its variant — feeds the wildcard flow-narrowing of later arms. Only
     // `is X` without an inner refinement counts ; `is X { field: v }` only
@@ -222,20 +223,6 @@ function scrutineeSymbol(scrut: A.Expr, t: MutableTyped): Symbol | null {
   return resolveNarrowableIdent(scrut, t);
 }
 
-/** Resolve a `target.field` scrutinee whose `target` is a plain ident on
- *  a narrowable local / param / binding. Returns the `(targetSym.id,
- *  fieldName)` pair the field-narrowing map uses, or null when the shape
- *  doesn't qualify. Only single-level field access supported ; nested
- *  paths (`a.b.c`) are deferred. */
-function scrutineeFieldPath(
-  scrut: A.Expr, t: MutableTyped,
-): { symId: number; fieldName: string } | null {
-  if (scrut.kind !== "FieldExpr") return null;
-  if (scrut.target.kind !== "IdentExpr") return null;
-  const sym = resolveNarrowableIdent(scrut.target, t);
-  if (sym === null) return null;
-  return { symId: sym.id, fieldName: scrut.field };
-}
 
 
 /** Narrowing targets for an arm's bindings :

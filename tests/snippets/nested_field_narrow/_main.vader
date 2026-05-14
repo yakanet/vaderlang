@@ -1,0 +1,33 @@
+// Multi-level field paths must narrow correctly. The narrow map keys on
+// the chain `${rootSym.id}#${path.join("#")}` so `o.inner.flag` lives at
+// a different slot than `o.inner` or `o.flag` and only the matching
+// chain inside the arm body / then-branch sees the narrowed type.
+
+import "std/io" { println }
+
+Inner :: struct { flag: i32 | null }
+Outer :: struct { inner: Inner }
+
+// `match` on a 2-level path.
+count_match :: fn(o: Outer) -> i32 {
+    match o.inner.flag {
+        is null -> 0
+        _       -> o.inner.flag + 1
+    }
+}
+
+// `if`-divergent-return on a 2-level path.
+unwrap :: fn(o: Outer) -> i32 {
+    if o.inner.flag == null { return -1 }
+    return o.inner.flag
+}
+
+main :: fn() -> i32 {
+    set   :: Outer { .inner = Inner { .flag = 42 } }
+    unset :: Outer { .inner = Inner { .flag = null } }
+    println("count(set)=${count_match(set)}")
+    println("count(unset)=${count_match(unset)}")
+    println("unwrap(set)=${unwrap(set)}")
+    println("unwrap(unset)=${unwrap(unset)}")
+    return 0
+}
