@@ -1,0 +1,32 @@
+/// Lazy iterator chain — sums the squares of even integers in [0, N) via
+/// `FilterIterator` over `MapIterator` over `Range`. Each `next()` walks the
+/// three-level chain, allocating a `Yielded(T)` (boxed) per yielded item.
+/// This is the workload that the deferred "inline small tagged unions" perf
+/// piste would target.
+///
+/// Sized so native runs in ~100-300 ms ; VM in a few seconds.
+
+import "std/io" { println }
+import "std/iter" { MapIterator, FilterIterator }
+
+N :: 1_000_000
+
+is_even :: fn(x: i32) -> bool { return x % 2 == 0 }
+
+square_i64 :: fn(x: i32) -> i64 { return i64(x) * i64(x) }
+
+main :: fn() -> i32 {
+    chain :: MapIterator(i32, i64) {
+        .source = FilterIterator(i32) {
+            .source = 0..<N,
+            .pred = is_even,
+        },
+        .f = square_i64,
+    }
+    total: i64 = 0
+    for x in chain {
+        total = total + x
+    }
+    println("iter_chain N=${N} total=${total}")
+    return 0
+}

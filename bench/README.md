@@ -1,13 +1,16 @@
 # Vader benchmarks
 
-Two CPU-bound workloads measured across four implementations of each:
+Five workloads measured across four implementations of each. The set spans float CPU, integer CPU, iterator chains, GC throughput, and string-runtime throughput so a perf change in any of those subsystems trips a regression.
 
-| workload     | algorithm                                                    | scale                                 |
-|--------------|--------------------------------------------------------------|---------------------------------------|
-| `mandelbrot` | per-pixel iteration of `z := z² + c` until escape or cap     | 240 × 180 grid, max 500 iter per pixel|
-| `primes`     | count primes ≤ N by trial division up to `√n`                | N = 1 000 000                         |
+| workload         | exercises                                       | algorithm                                                       | scale                                  |
+|------------------|-------------------------------------------------|-----------------------------------------------------------------|----------------------------------------|
+| `mandelbrot`     | f64 arithmetic, tight loop                      | per-pixel iteration of `z := z² + c` until escape or cap        | 240 × 180 grid, max 500 iter per pixel |
+| `primes`         | i32 / i64 arithmetic, modulo                    | count primes ≤ N by trial division up to `√n`                   | N = 1 000 000                          |
+| `iter_chain`     | lazy iter dispatch, per-iter union allocation   | Σ x² for even x in [0, N) via `MapIterator` ∘ `FilterIterator` ∘ `Range` | N = 1 000 000                  |
+| `binary_trees`   | recursive allocation + GC throughput            | build a balanced tree, then count its nodes                     | depth = 17 (262 143 nodes)             |
+| `string_builder` | string runtime + GC under in-flight builder     | append a 45-char fragment N times, finalise to a flat string    | N = 50 000                             |
 
-Both programs print a one-line checksum so cross-language equivalence is verifiable. Both are sized so the natively-compiled Vader binary runs in 40-70 ms — long enough for a 10 % regression threshold to clear scheduler / GC noise, short enough that the full bench (4 implementations × 2 workloads × 1 warmup + 3 measured runs) finishes in about three minutes on a 2026 Apple laptop.
+Every program prints a one-line checksum so cross-language equivalence is verifiable.
 
 ## Implementations
 
@@ -29,36 +32,53 @@ bun run bench -- --runs=5        # default is 3 (timed) + 1 warmup
 bun run bench -- --workload=primes  # narrow to a single workload
 ```
 
-Exit status is non-zero if any (workload, implementation) `min(samples)` regresses by more than **10 %** against `bench/baseline.json`, or if any implementation's checksum diverges from its committed baseline. Use that in CI to catch perf changes without false positives from scheduler noise.
+Exit status is non-zero if any (workload, implementation) `min(samples)` regresses by more than **15 %** against `bench/baseline.json`, or if any implementation's checksum diverges from its committed baseline.
 
-We compare on `min(samples)` rather than the median because these workloads finish in tens of milliseconds — JIT warm-up and GC pauses routinely push the median 10 %+ above the steady-state cost, but the best sample stays close to the actual CPU path.
+Regression detection skips samples whose baseline is faster than **5 ms** — OS scheduling noise routinely adds ±1 ms, which exceeds 15 % of a 5 ms sample, so flagging those would just create false positives. Those rows still appear in the output table.
+
+We compare on `min(samples)` rather than the median because these workloads finish in tens of milliseconds — JIT warm-up and GC pauses routinely push the median 15 %+ above the steady-state cost, but the best sample stays close to the actual CPU path.
 
 ## Baseline (committed)
 
-Captured on a 2026 Apple Silicon laptop, `bun bench/run.ts --runs=3 --update`:
+Captured on a 2026 Apple Silicon laptop, `bun bench/run.ts --runs=5 --update`:
 
-| workload     | vader-vm     | vader-native | bun-ts  | go      |
-|--------------|--------------|--------------|---------|---------|
-| `mandelbrot` | 18 788 ms    | 65.3 ms      | 23.4 ms | 18.1 ms |
-| `primes`     | 29 423 ms    | 41.1 ms      | 41.1 ms | 23.9 ms |
+| workload         | vader-vm     | vader-native | bun-ts  | go      |
+|------------------|--------------|--------------|---------|---------|
+| `mandelbrot`     | 12 933 ms    | 15.3 ms      | 22.7 ms | 17.3 ms |
+| `primes`         | 27 497 ms    | 25.0 ms      | 40.5 ms | 24.5 ms |
+| `iter_chain`     |  2 482 ms    | 29.0 ms      | 36.0 ms |  2.8 ms |
+| `binary_trees`   |    517 ms    | 20.7 ms      | 12.4 ms |  8.0 ms |
+| `string_builder` |    101 ms    |  3.9 ms      | 11.9 ms |  4.1 ms |
 
 Reading the table :
 
-- The VM path is 200-400 × slower than native — expected for a stack-machine bytecode interpreter implemented in TypeScript. Most of that wall-clock is the Vader compile pipeline (parse → typecheck → lower → bytecode), not the VM loop itself.
-- Vader native vs Bun-TS : Bun's JIT compiles tight loops to near-native code and wins on `mandelbrot` (2.8 ×), ties on `primes`. The trial-division kernel is mostly integer-modulo, which both backends compile to a `udiv` / `msub` pair ; the float-heavy `mandelbrot` exposes Vader's lack of vectorization and loop-strength reduction.
-- Go vs Vader native : Go wins by 3.6 × on mandelbrot and 1.7 × on primes. Expected — `gc` does FMA fusion, escape analysis with inlining, and arm64-specific codegen tuning, none of which Vader currently does.
+- **VM vs native** — the VM path is 100-1000 × slower than native. Most of that wall-clock is the Vader compile pipeline (parse → typecheck → lower → bytecode), not the VM loop itself. The smaller workloads (`string_builder` 101 ms) make this visible : even with N=50 000 the compile dominates the VM run.
+- **`mandelbrot`** — after the for-over-integer-range counter-loop lowering landed (commit `1e268fd3`), Vader native beats Bun-TS (1.5 ×) and is at parity with Go (within noise). The float kernel reaches a state where clang `-O3` is doing essentially the same work as `gc`.
+- **`primes`** — Vader native ties Go (within noise). Trial division is mostly integer modulo, which both compilers turn into the same `udiv` / `msub` sequence.
+- **`iter_chain`** — Vader native is **10 × slower than Go's direct loop**. Each chain step allocates a `Yielded(T)` union per yielded item — the workload that justifies the deferred "inline small tagged unions" perf piste in `TODO.md §3.5`. Bun-TS's generator chain (35 ms) lands in the same zone as Vader, confirming the cost is the lazy-chain pattern, not Vader specifically.
+- **`binary_trees`** — Vader native is **2 × slower than Go**. The gap is GC overhead : Cheney semi-space copying + write barriers + per-fn `gc_frame` push/pop. Reducing this is the target of any future generational tuning.
+- **`string_builder`** — Vader native (3.9 ms) wins outright. The Vader `StringBuilder` stores fragment refs in a `string[]` and flushes once via the `Display::to_string` intrinsic — no per-iter copy. Go's `strings.Builder` and Bun's `[].join("")` both pay extra copies.
 
 The `mandelbrot` checksum diverges by ~16 k iterations between the Go peer and the C/Vader/TS peers, because Go fuses `a*b + c` into a single FMA instruction with one rounding step on arm64. Both results are mathematically correct ; only the rounding model differs.
+
+## Known runtime limits surfaced by the bench
+
+These aren't bench bugs ; they're real Vader limits that constrain workload sizing.
+
+- **`bool[]` GC trap on the sieve**. The original `primes` design used Sieve of Eratosthenes (matching `examples/primes.vader`). Vader's `bool[]` stores every element as a 16-byte `vader_box_t`, so a 10 M-element sieve allocates 160 MB and exceeds the 4 MB young semi-space. Trial division sidesteps the array entirely. Follow-up : primitive-array storage + `Array.new(size)` constructor in stdlib.
+- **`StringBuilder` `parts` array doubling caps at N ≈ 65 k entries**. Past that the doubling allocates > 4 MB in one shot and trips the young semi-space cap. `string_builder` is sized just under the cap at N = 50 000.
+- **`StringBuilder` drops one fragment at N ≈ 65 536**. Pre-existing bug — reproduces under both the for-in-range counter loop and a hand-written `for i < N` ; output is short by exactly one fragment. Tracked separately ; not phase-A regression. Sized below the trigger for now.
 
 ## Adding a workload
 
 1. Write the kernel in `bench/<name>.vader`. Print a one-line checksum to stdout.
-2. Port it to `bench/<name>.ts` and `bench/<name>.go`. Keep the algorithm bit-identical.
+2. Port it to `bench/<name>.ts` and `bench/<name>.go`. Keep the algorithm bit-identical (the harness verifies checksum equality against the committed baseline).
 3. Add an entry to `WORKLOADS` in `bench/run.ts`.
-4. Run `bun run bench -- --update` to extend the baseline.
+4. Add the artefacts (`bench/<name>`, `bench/<name>.c`, `bench/<name>_go`) to `.gitignore`.
+5. Run `bun run bench -- --update` to extend the baseline.
 
 ## Caveats
 
-- The natively-compiled Vader path uses `--release`, which strips debug info and enables `cc`'s `-O2`. The C compiler doing the heavy lifting here is the system `cc` (clang on macOS, gcc on Linux).
-- Bun's measurement of process wall-clock includes its own startup (~10 ms on macOS). On a workload that takes 25 ms total, that's a third of the run.
-- These workloads are CPU-only, no I/O beyond the final `println` of the checksum. They don't exercise allocation, GC, the string runtime, or `MutableMap`. A bench that does is on the roadmap.
+- The natively-compiled Vader path uses `--release`, which sets `-O3 -DNDEBUG` and post-link `strip`. Compiler is the system `cc` (clang on macOS, gcc on Linux).
+- Bun's measurement of process wall-clock includes its own startup (~10 ms on macOS). On a workload that takes 15 ms total, that's a third of the run.
+- The VM-path numbers measure `bun src/index.ts run …` end-to-end, including TypeScript parse and stdlib re-typecheck. They'll drop substantially once the bytecode-on-disk cache lands (TODO §3.5).

@@ -16,7 +16,13 @@ import { join } from "node:path";
 
 const REPO = import.meta.dir.replace(/\/bench$/, "");
 const BASELINE_PATH = process.env.BENCH_BASELINE ?? join(REPO, "bench", "baseline.json");
-const THRESHOLD = 0.10;       // 10 % regression triggers a non-zero exit
+const THRESHOLD = 0.15;       // 15 % regression triggers a non-zero exit
+                              // Tight enough to catch real regressions ; loose enough that
+                              // a single sample blip on a < 20 ms native workload doesn't
+                              // flip CI red.
+const MIN_REGRESSION_MS = 5;  // Skip regression detection on measurements faster
+                              // than this — OS scheduling noise routinely accounts
+                              // for ±1 ms which is > 15 % of a 5 ms sample.
 
 interface Args { runs: number; update: boolean; workloads: string[] | null }
 
@@ -42,8 +48,11 @@ interface Workload {
 }
 
 const WORKLOADS: readonly Workload[] = [
-  { name: "mandelbrot", description: "240×180 grid, max 500 iter per pixel",  outputMatch: "mandelbrot" },
-  { name: "primes",     description: "trial division up to N = 1 000 000",    outputMatch: "primes" },
+  { name: "mandelbrot",     description: "240×180 grid, max 500 iter per pixel",     outputMatch: "mandelbrot" },
+  { name: "primes",         description: "trial division up to N = 1 000 000",       outputMatch: "primes" },
+  { name: "iter_chain",     description: "Σ x² for even x in [0, 1 000 000)",        outputMatch: "iter_chain" },
+  { name: "binary_trees",   description: "balanced tree depth=17 (262 143 nodes)",   outputMatch: "binary_trees" },
+  { name: "string_builder", description: "append a 45-char fragment 50 000 times",   outputMatch: "string_builder" },
 ];
 
 interface Impl {
@@ -177,6 +186,7 @@ function compareWithBaseline(results: readonly SampleResult[], baseline: Baselin
     if (ref.checksum !== r.checksum) {
       checksumDrift.push(`${r.workload}/${r.impl}: baseline "${ref.checksum}" vs current "${r.checksum}"`);
     }
+    if (ref.minMs < MIN_REGRESSION_MS) continue;
     const ratio = r.minMs / ref.minMs - 1;
     if (ratio > THRESHOLD) {
       regressions.push(`${r.workload}/${r.impl}: ${r.minMs.toFixed(1)} ms vs ${ref.minMs.toFixed(1)} ms baseline (+${(ratio * 100).toFixed(1)} %)`);

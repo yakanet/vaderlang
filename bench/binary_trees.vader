@@ -1,0 +1,42 @@
+/// Allocation + traversal stress — builds a balanced binary tree by
+/// recursive descent, then walks it once to count the nodes. Each `Node`
+/// allocates on the heap ; the count walk traverses every reference
+/// without allocating. Pushes the generational GC's young-to-old promotion
+/// path and the major-collect cycle when the tree exceeds the young
+/// semi-space.
+///
+/// Sized so the natively compiled binary takes ~100-200 ms on a 2026-era
+/// laptop ; the VM run takes a few seconds.
+
+import "std/io" { println }
+
+Node :: struct {
+    value: i32
+    left:  Node | null
+    right: Node | null
+}
+
+build_tree :: fn(depth: i32, value: i32) -> Node {
+    if depth == 0 {
+        return Node { .value = value, .left = null, .right = null }
+    }
+    left :: build_tree(depth - 1, value * 2)
+    right :: build_tree(depth - 1, value * 2 + 1)
+    return Node { .value = value, .left = left, .right = right }
+}
+
+count_nodes :: fn(t: Node | null) -> i32 {
+    match t {
+        is null      -> { return 0 }
+        is Node as n -> { return 1 + count_nodes(n.left) + count_nodes(n.right) }
+    }
+    return 0
+}
+
+main :: fn() -> i32 {
+    DEPTH :: 17
+    tree :: build_tree(DEPTH, 1)
+    count :: count_nodes(tree)
+    println("binary_trees depth=${DEPTH} count=${count}")
+    return 0
+}

@@ -254,14 +254,17 @@ bun run bench -- --update                  # rewrite baseline with current measu
 bun run bench -- --runs=5 --workload=primes  # custom run count, single workload
 ```
 
-Two CPU-bound workloads (`mandelbrot`, `primes`) measured across four implementations of each — the Vader VM (`bun src/index.ts run`), Vader native (`--target=native --release`), the same kernel in Bun-TS, and the same kernel in Go. Current baseline on a 2026 Apple Silicon laptop :
+Five workloads measured across four implementations of each — the Vader VM (`bun src/index.ts run`), Vader native (`--target=native --release`), the same kernel in Bun-TS, and the same kernel in Go. Current baseline on a 2026 Apple Silicon laptop :
 
-| workload     | vader-vm     | vader-native | bun-ts  | go      |
-|--------------|--------------|--------------|---------|---------|
-| `mandelbrot` | 12 781 ms    | 16.2 ms      | 23.0 ms | 17.5 ms |
-| `primes`     | 27 066 ms    | 22.6 ms      | 39.1 ms | 23.3 ms |
+| workload         | vader-vm     | vader-native | bun-ts  | go      |
+|------------------|--------------|--------------|---------|---------|
+| `mandelbrot`     | 12 933 ms    | 15.3 ms      | 22.7 ms | 17.3 ms |
+| `primes`         | 27 497 ms    | 25.0 ms      | 40.5 ms | 24.5 ms |
+| `iter_chain`     |  2 482 ms    | 29.0 ms      | 36.0 ms |  2.8 ms |
+| `binary_trees`   |    517 ms    | 20.7 ms      | 12.4 ms |  8.0 ms |
+| `string_builder` |    101 ms    |  3.9 ms      | 11.9 ms |  4.1 ms |
 
-`bun run bench` exits non-zero if any measurement regresses by more than 10 % vs the committed baseline, or if any implementation's checksum diverges. See [`bench/README.md`](./bench/README.md) for the workload sources, the comparison methodology, and notes on Go's FMA-driven checksum drift.
+`bun run bench` exits non-zero if any measurement regresses by more than 15 % vs the committed baseline (10 % was too tight for the < 20 ms native workloads — OS noise alone clears that), or if any implementation's checksum diverges. See [`bench/README.md`](./bench/README.md) for the workload sources, the comparison methodology, and notes on Go's FMA-driven checksum drift on `mandelbrot`.
 
 ---
 

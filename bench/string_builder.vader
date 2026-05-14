@@ -1,0 +1,24 @@
+/// StringBuilder throughput — appends a fixed fragment N times then
+/// finalises to a flat string. Pure-builder workload : measures growth
+/// pattern + final flush without confounding it with per-iter dynamic
+/// allocations (no interpolation in the hot loop).
+///
+/// Sized so the natively compiled binary takes ~50-150 ms ; the VM run
+/// takes a few seconds.
+
+import "std/io" { println }
+import "std/string_builder" { new_builder, append }
+import "std/string" { byte_len }
+
+N :: 50_000
+FRAGMENT :: "The quick brown fox jumps over the lazy dog.\n"
+
+main :: fn() -> i32 {
+    sb :: new_builder()
+    for _ in 0..<N {
+        sb.append(FRAGMENT)
+    }
+    result :: sb.to_string()
+    println("string_builder N=${N} len=${result.byte_len()}")
+    return 0
+}

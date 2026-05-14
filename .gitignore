@@ -21,4 +21,13 @@ bench/mandelbrot_go
 bench/primes
 bench/primes.c
 bench/primes_go
+bench/iter_chain
+bench/iter_chain.c
+bench/iter_chain_go
+bench/binary_trees
+bench/binary_trees.c
+bench/binary_trees_go
+bench/string_builder
+bench/string_builder.c
+bench/string_builder_go
 *.dSYM/
