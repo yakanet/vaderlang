@@ -19,6 +19,7 @@
 import type {BytecodeModule, BcFunction, BcImport, BcSignature} from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
+import { nullableRefVariant } from "../bytecode/types.ts";
 
 import {
   cTypeFor, cTypeForVal, cTypeForValBare, emitFunctions, isRefVal,
@@ -180,8 +181,17 @@ function emitTypeDecls(ctx: EmitCtx, out: string[]): void {
     out.push(`struct ${cname} {`);
     out.push(`    vader_obj_header_t header;`);
     for (const field of t.fields) {
-      const fty = cTypeFor(ctx, ctx.module.types[field.typeIndex]!);
-      out.push(`    ${fty} f_${sanitise(field.name)};`);
+      const fieldType = ctx.module.types[field.typeIndex]!;
+      // `T | null` where T is a single heap type stores as a raw `void*` (NULL
+      // for the null variant, an obj pointer for T). Saves 16 B vs the full
+      // `vader_box_t` per field. The C emit at FieldGet / FieldSet boxes back
+      // to / unboxes from `vader_box_t` so the rest of the program sees a
+      // uniform value representation.
+      if (fieldType.kind === "union" && nullableRefVariant(fieldType, ctx.module.types) !== null) {
+        out.push(`    void* f_${sanitise(field.name)};`);
+        continue;
+      }
+      out.push(`    ${cTypeFor(ctx, fieldType)} f_${sanitise(field.name)};`);
     }
     out.push(`};`);
   }
@@ -256,9 +266,15 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
       const cname = ctx.structNames[i]!;
       const offsets: string[] = [];
       const stringOffsets: string[] = [];
+      const refOffsets: string[] = [];
       for (const field of t.fields) {
         const ftype = types[field.typeIndex]!;
-        if (ftype.kind !== "primitive") {
+        if (ftype.kind === "union" && nullableRefVariant(ftype, types) !== null) {
+          // `T | null` field — stored as a raw `void*` (NULL = null variant,
+          // non-null = obj pointer). Saves 16 B vs the equivalent box ;
+          // listed separately so the scanner walks it with `scan_raw`.
+          refOffsets.push(`offsetof(${cname}, f_${sanitise(field.name)})`);
+        } else if (ftype.kind !== "primitive") {
           // Heap-bearing field — its C type is `vader_box_t`. Tracing this
           // slot requires checking the box tag at scan time.
           offsets.push(`offsetof(${cname}, f_${sanitise(field.name)})`);
@@ -274,6 +290,9 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
       }
       if (stringOffsets.length > 0) {
         out.push(`static const uint16_t vader_type_${i}_strs[] = { ${stringOffsets.join(", ")} };`);
+      }
+      if (refOffsets.length > 0) {
+        out.push(`static const uint16_t vader_type_${i}_refs[] = { ${refOffsets.join(", ")} };`);
       }
     } else if (t.kind === "fn") {
       // vader_fn_t has `code` (function pointer — NOT a heap ref, must not
@@ -296,21 +315,27 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
     const t = types[i]!;
     if (t.kind === "struct") {
       const cname = ctx.structNames[i]!;
-      const hasPtrs = t.fields.some((f) => types[f.typeIndex]!.kind !== "primitive");
-      const ptrArr = hasPtrs ? `vader_type_${i}_ptrs` : "NULL";
-      const ptrCount = hasPtrs ? t.fields.filter((f) => types[f.typeIndex]!.kind !== "primitive").length : 0;
+      const boxFields = t.fields.filter((f) => {
+        const ft = types[f.typeIndex]!;
+        if (ft.kind === "union" && nullableRefVariant(ft, types) !== null) return false;
+        return ft.kind !== "primitive";
+      });
       const strFields = t.fields.filter((f) => {
         const ft = types[f.typeIndex]!;
         return ft.kind === "primitive" && ft.val === "string";
       });
-      const hasStrs = strFields.length > 0;
-      const strArr = hasStrs ? `vader_type_${i}_strs` : "NULL";
-      const strCount = strFields.length;
-      out.push(`    [${i}] = { VADER_TYPE_KIND_STRUCT, sizeof(${cname}), ${ptrArr}, ${ptrCount}, ${strCount}, ${strArr} },`);
+      const refFields = t.fields.filter((f) => {
+        const ft = types[f.typeIndex]!;
+        return ft.kind === "union" && nullableRefVariant(ft, types) !== null;
+      });
+      const ptrArr = boxFields.length > 0 ? `vader_type_${i}_ptrs` : "NULL";
+      const strArr = strFields.length > 0 ? `vader_type_${i}_strs` : "NULL";
+      const refArr = refFields.length > 0 ? `vader_type_${i}_refs` : "NULL";
+      out.push(`    [${i}] = { VADER_TYPE_KIND_STRUCT, sizeof(${cname}), ${ptrArr}, ${boxFields.length}, ${strFields.length}, ${strArr}, ${refFields.length}, ${refArr} },`);
     } else if (t.kind === "fn") {
-      out.push(`    [${i}] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_${i}_ptrs, 1, 0, NULL },`);
+      out.push(`    [${i}] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_${i}_ptrs, 1, 0, NULL, 0, NULL },`);
     } else if (t.kind === "array") {
-      out.push(`    [${i}] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_${i}_ptrs, 1, 0, NULL },`);
+      out.push(`    [${i}] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_${i}_ptrs, 1, 0, NULL, 0, NULL },`);
     }
     // primitive / union / ref → entry implicitly zero-initialised
     // (VADER_TYPE_KIND_NONE), which the GC interprets as "non-heap, skip".

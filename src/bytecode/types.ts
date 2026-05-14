@@ -92,3 +92,20 @@ export interface BcFn {
   readonly params: readonly number[];
   readonly returnType: number;
 }
+
+/** Recognise the `T | null` pattern where `T` is a single heap-allocated
+ *  type (struct or array). When this fires, the c-emit stores the field as
+ *  a raw `void*` (NULL = the null variant, non-null = the `T` payload) — 8
+ *  bytes vs 24 for a full `vader_box_t`. Returns the type index of the `T`
+ *  variant, or `null` when the union doesn't match. */
+export function nullableRefVariant(union: BcUnion, types: readonly BcType[]): number | null {
+  if (union.variants.length !== 2) return null;
+  const [a, b] = union.variants as readonly [number, number];
+  const ta = types[a], tb = types[b];
+  if (ta === undefined || tb === undefined) return null;
+  const isNullPrim = (t: BcType): boolean => t.kind === "primitive" && t.val === "null";
+  const isHeapRef = (t: BcType): boolean => t.kind === "struct" || t.kind === "array";
+  if (isNullPrim(ta) && isHeapRef(tb)) return b;
+  if (isNullPrim(tb) && isHeapRef(ta)) return a;
+  return null;
+}

@@ -296,10 +296,16 @@ typedef enum {
 typedef struct {
     vader_type_kind_t   kind;
     size_t              size;          /* sizeof(object) incl. header; 0 if non-heap */
-    const uint16_t*     ptr_offsets;   /* byte offsets of pointer-bearing fields */
+    const uint16_t*     ptr_offsets;   /* byte offsets of vader_box_t fields */
     uint16_t            ptr_count;
     uint16_t            string_count;  /* byte offsets count of raw vader_string_t fields */
     const uint16_t*     string_offsets;/* byte offsets of raw vader_string_t fields */
+    /* `T | null` fields stored as a raw `void*` (NULL = null variant, non-null
+     * = pointer to the T variant's vader_obj_header_t). Saves 16 B per field
+     * vs the equivalent vader_box_t slot. The GC scans these via
+     * `vader_gc_scan_raw` ; they may also be NULL, which the helper handles. */
+    uint16_t            ref_count;
+    const uint16_t*     ref_offsets;
 } vader_type_info_t;
 
 /* Provided by the per-module C emit. The runtime reads it via these externs. */

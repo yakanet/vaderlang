@@ -54,19 +54,19 @@ Captured on a 2026 Apple Silicon laptop, `bun bench/run.ts --runs=5 --update`:
 
 | workload         | vader-native | bun-ts  | go      | java    |
 |------------------|--------------|---------|---------|---------|
-| `mandelbrot`     | 19.2 ms      | 25.1 ms | 17.5 ms | 45.6 ms |
-| `primes`         | 22.6 ms      | 38.4 ms | 23.2 ms | 55.1 ms |
-| `iter_chain`     | 27.2 ms      | 34.9 ms |  3.9 ms | 35.5 ms |
-| `binary_trees`   | 20.1 ms      | 11.4 ms |  7.4 ms | 33.1 ms |
-| `string_builder` |  4.2 ms      |  9.4 ms |  4.5 ms | 33.5 ms |
+| `mandelbrot`     | 16.3 ms      | 23.3 ms | 16.8 ms | 45.1 ms |
+| `primes`         | 22.5 ms      | 38.4 ms | 23.1 ms | 56.1 ms |
+| `iter_chain`     | 32.1 ms      | 35.9 ms |  4.6 ms | 36.0 ms |
+| `binary_trees`   | 13.9 ms      | 11.2 ms |  8.5 ms | 31.9 ms |
+| `string_builder` |  3.9 ms      |  9.4 ms |  4.8 ms | 33.3 ms |
 
 Reading the table :
 
-- **`mandelbrot`** — Vader native (19 ms) beats Bun-TS (25 ms) and lands within noise of Go (17 ms). After the for-over-integer-range counter-loop lowering (commit `1e268fd3`), the float kernel hits a state where clang `-O3` is doing essentially the same work as `gc`.
+- **`mandelbrot`** — Vader native (16 ms) ties Go (17 ms) and beats Bun-TS (23 ms). After the for-over-integer-range counter-loop lowering (commit `1e268fd3`), the float kernel hits a state where clang `-O3` is doing essentially the same work as `gc`.
 - **`primes`** — Vader native (23 ms) ties Go (23 ms) and beats Bun (38 ms). Trial division is mostly integer modulo, which both AOT compilers turn into the same `udiv` / `msub` sequence ; Bun's JIT pays an extra dispatch.
-- **`iter_chain`** — Vader native is **7 × slower than Go's direct loop** (27 ms vs 3.9 ms). Each chain step allocates a `Yielded(T)` union per yielded item — the workload that justifies the deferred "inline small tagged unions" perf piste in `TODO.md §3.5`. Bun-TS's generator chain (35 ms) and Java's Stream API (36 ms) both land in the same zone as Vader, confirming the cost is the lazy-chain pattern, not Vader specifically.
-- **`binary_trees`** — Vader native is **3 × slower than Go** (20 ms vs 7.4 ms). The gap is GC overhead : Cheney semi-space copying + write barriers + per-fn `gc_frame` push/pop. Reducing this is the target of any future generational tuning.
-- **`string_builder`** — Vader native (4.2 ms) wins outright. The Vader `StringBuilder` stores fragment refs in a `string[]` and flushes once via the `Display::to_string` intrinsic — no per-iter copy. Go's `strings.Builder` and Bun's `[].join("")` both pay extra copies.
+- **`iter_chain`** — Vader native is **7 × slower than Go's direct loop** (32 ms vs 4.6 ms). Each chain step allocates a `Yielded(T)` union per yielded item — the workload that justifies the deferred "iterator-chain fusion" + "inline small tagged unions" perf pistes in `TODO.md §3.5`. Bun-TS's generator chain (36 ms) and Java's Stream API (36 ms) both land in the same zone as Vader, confirming the cost is the lazy-chain pattern, not Vader specifically.
+- **`binary_trees`** — Vader native (14 ms) beats Bun-TS (11 ms is within noise) and is 1.6 × slower than Go. After the nullable-ref inline representation landed, `Node` dropped from 72 B → 40 B (-44 %) and the GC pressure dropped accordingly. Remaining gap vs Go is in the recursion + match dispatch.
+- **`string_builder`** — Vader native (3.9 ms) wins outright. The Vader `StringBuilder` stores fragment refs in a `string[]` and flushes once via the `Display::to_string` intrinsic — no per-iter copy. Go's `strings.Builder` and Bun's `[].join("")` both pay extra copies.
 - **`java`** — every Java row sits at 33-55 ms regardless of workload. That floor is JVM startup + class loading + cold JIT — measurable but bounded now that we precompile in the build phase (down from ~230 ms when each invocation also parsed the source). For steady-state Java throughput (long-running JVM, warmed JIT, millions of iterations) Java would catch up to Go ; we're benching cold script invocations on purpose because that's what `java <Class>` looks like in practice.
 
 The `mandelbrot` checksum diverges by ~16 k iterations between the Go peer and the C/Vader/TS peers, because Go fuses `a*b + c` into a single FMA instruction with one rounding step on arm64. Both results are mathematically correct ; only the rounding model differs.

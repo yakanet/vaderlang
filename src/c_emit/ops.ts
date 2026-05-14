@@ -14,7 +14,8 @@
 import type { BcSignature } from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
-import type { ValType } from "../bytecode/types.ts";
+import type { BcType, ValType } from "../bytecode/types.ts";
+import { nullableRefVariant } from "../bytecode/types.ts";
 
 import type { EmitCtx } from "./emit.ts";
 import { cStringLit, cStringLitFromBytes, escapeC, sanitise } from "./emit.ts";
@@ -295,8 +296,16 @@ export function emitStructNew(
   line(s, `vader_obj_header_init(${tmp}_obj, ${op.typeIndex}u);`);
   for (let i = 0; i < t.fields.length; i++) {
     const f = t.fields[i]!;
-    const fval = valTypeOfField(s.ctx, f.typeIndex);
     const v = fieldVals[i]!;
+    // Nullable-ref field stored as raw `void*` — extract payload from the
+    // incoming box. `vader_box_t.payload.obj` is NULL for the null variant
+    // and the heap pointer for the ref variant, which is exactly what the
+    // raw slot wants.
+    if (isNullableRefField(s.ctx, f.typeIndex)) {
+      line(s, `${tmp}_obj->f_${sanitise(f.name)} = ${v.name}.payload.obj;`);
+      continue;
+    }
+    const fval = valTypeOfField(s.ctx, f.typeIndex);
     line(s, `${tmp}_obj->f_${sanitise(f.name)} = ${coerce(s, v.name, v.val, fval)};`);
   }
   // Always emit struct values as boxed vader_box_t so they flow uniformly
@@ -312,6 +321,18 @@ export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }
   const obj = pop(s);
   const f = t.fields[op.fieldIndex]!;
   const fval = valTypeOfField(s.ctx, f.typeIndex);
+  // Nullable-ref field stored as `void*` — read the raw pointer and box it
+  // back to a `vader_box_t` so downstream ops see a uniform value rep.
+  // NULL → null-tagged box ; non-null → ref-tagged box with the variant's
+  // type index.
+  const refVariant = nullableRefVariantOfField(s.ctx, f.typeIndex);
+  if (refVariant !== null) {
+    const nullTag = s.ctx.primitiveTagOf.get("null") ?? 0;
+    const tmp = newTmp(s, fval);
+    const raw = `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)}`;
+    line(s, `${decl(s, fval, tmp)} = (${raw} == NULL) ? vader_box_obj(${nullTag}u, NULL) : vader_box_obj(${refVariant}u, ${raw});`);
+    return;
+  }
   const tmp = newTmp(s, fval);
   line(s, `${decl(s, fval, tmp)} = ((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)};`);
 }
@@ -325,14 +346,33 @@ export function emitStructSet(
   const value = pop(s);
   const obj = pop(s);
   const f = t.fields[op.fieldIndex]!;
-  const fval = valTypeOfField(s.ctx, f.typeIndex);
-  line(s, `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)} = ${coerce(s, value.name, value.val, fval)};`);
+  // Nullable-ref field — strip the value to its `.payload.obj` (NULL for the
+  // null variant, the heap pointer for the ref variant) and write into the
+  // raw `void*` slot.
+  if (isNullableRefField(s.ctx, f.typeIndex)) {
+    line(s, `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)} = ${value.name}.payload.obj;`);
+  } else {
+    const fval = valTypeOfField(s.ctx, f.typeIndex);
+    line(s, `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)} = ${coerce(s, value.name, value.val, fval)};`);
+  }
   // `struct.set_stack` opts out — midir's escape analysis proved the
   // target is stack-allocated, so the runtime check inside the macro would
   // be a no-op anyway.
   if (op.kind === "struct.set") {
     line(s, `VADER_WRITE_BARRIER((${cname}*) ${asObjPtr(obj)});`);
   }
+}
+
+/** True when the type at index `typeIndex` is a `T | null` union with T a
+ *  single heap-type — the c-emit then stores the slot as a raw `void*`. */
+function isNullableRefField(ctx: EmitCtx, typeIndex: number): boolean {
+  return nullableRefVariantOfField(ctx, typeIndex) !== null;
+}
+
+function nullableRefVariantOfField(ctx: EmitCtx, typeIndex: number): number | null {
+  const t = ctx.module.types[typeIndex];
+  if (t === undefined || t.kind !== "union") return null;
+  return nullableRefVariant(t, ctx.module.types);
 }
 
 /** Coerce a stack value holding a heap reference to a `void*`. Boxed values

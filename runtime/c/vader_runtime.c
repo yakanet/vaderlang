@@ -404,6 +404,9 @@ static size_t vader_gc_scan_object(char* scan) {
             vader_gc_scan_box((vader_box_t*) field);
         }
     }
+    for (uint16_t i = 0; i < info->ref_count; i++) {
+        vader_gc_scan_raw((void**) (scan + info->ref_offsets[i]));
+    }
     return vader_gc_align(info->size);
 }
 
