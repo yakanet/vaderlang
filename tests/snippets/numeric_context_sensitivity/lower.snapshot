@@ -61,15 +61,23 @@
           @builder.append_str :void
             __sb_0 :?
             " " :string
-          @builder.append_display <for u32> :void
+          @builder.append_str :void
             __sb_0 :?
-            g32 :u32
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                g32 :u32
           @builder.append_str :void
             __sb_0 :?
             " " :string
-          @builder.append_display <for u64> :void
+          @builder.append_str :void
             __sb_0 :?
-            h64 :u64
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                h64 :u64
           @builder.append_str :void
             __sb_0 :?
             " " :string
@@ -79,9 +87,13 @@
           @builder.append_str :void
             __sb_0 :?
             " " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_0 :?
-            usz :usize
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                usz :usize
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -125,9 +137,13 @@
           @builder.append_str :void
             __sb_1 :?
             " " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_1 :?
-            usz2 :usize
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                usz2 :usize
           @builder.append_str :void
             __sb_1 :?
             " " :string
@@ -137,9 +153,13 @@
           @builder.append_str :void
             __sb_1 :?
             " " :string
-          @builder.append_display <for u64> :void
+          @builder.append_str :void
             __sb_1 :?
-            h64_2 :u64
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                h64_2 :u64
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -191,10 +211,14 @@
           @builder.append_str :void
             __sb_3 :?
             "counter: n=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_3 :?
-            .n :usize
-              c :Counter
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                .n :usize
+                  c :Counter
           @builder.append_str :void
             __sb_3 :?
             " delta=" :string
@@ -264,9 +288,13 @@
           @builder.append_str :void
             __sb_4 :?
             "slice_array: " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_4 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_4 :?
@@ -282,11 +310,15 @@
           @builder.append_str :void
             __sb_6 :?
             "returned: " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_6 :?
-            call :usize
+            call :string
               callee:
-                forty_two :fn() -> usize
+                to_string :string
+              arg0:
+                call :usize
+                  callee:
+                    forty_two :fn() -> usize
           ~>
             @builder.finish :string
               __sb_6 :?

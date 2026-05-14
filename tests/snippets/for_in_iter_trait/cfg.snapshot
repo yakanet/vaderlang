@@ -63,36 +63,37 @@ fn tests_snippets_for_in_iter_trait__main_vader$count_ls(%0: string) -> usize
 
 fn tests_snippets_for_in_iter_trait__main_vader$main() -> i32
   locals:
-    %0 $k_0#30: i32
-    %1 $k_1#31: i32
-    %2 $k_2#32: bool
-    %3 $k_3#33: i32
-    %4 $struct_4#34: Range(i32)
-    %5 $call_5#35: i32
-    %6 a#36: i32 (local a)
-    %7 $k_7#37: i32
-    %8 $k_8#38: i32
-    %9 $k_9#39: i32
-    %10 $arr_10#40: i32[]
-    %11 $call_11#41: Iterator(i32)
-    %12 $call_12#42: i32
-    %13 b#43: i32 (local b)
-    %14 $intrinsic_14#44: ?
-    %15 __sb_0#45: ? (synthetic __sb_0)
-    %16 $k_16#46: string
-    %17 $intrinsic_17#47: string
-    %18 $intrinsic_18#48: ?
-    %19 __sb_1#49: ? (synthetic __sb_1)
-    %20 $k_20#50: string
-    %21 $intrinsic_21#51: string
-    %22 $k_22#52: string
-    %23 $call_23#53: usize
-    %24 n#54: usize (local n)
-    %25 $intrinsic_25#55: ?
-    %26 __sb_2#56: ? (synthetic __sb_2)
-    %27 $k_27#57: string
-    %28 $intrinsic_28#58: string
-    %29 $k_29#59: i32
+    %0 $k_0#31: i32
+    %1 $k_1#32: i32
+    %2 $k_2#33: bool
+    %3 $k_3#34: i32
+    %4 $struct_4#35: Range(i32)
+    %5 $call_5#36: i32
+    %6 a#37: i32 (local a)
+    %7 $k_7#38: i32
+    %8 $k_8#39: i32
+    %9 $k_9#40: i32
+    %10 $arr_10#41: i32[]
+    %11 $call_11#42: Iterator(i32)
+    %12 $call_12#43: i32
+    %13 b#44: i32 (local b)
+    %14 $intrinsic_14#45: ?
+    %15 __sb_0#46: ? (synthetic __sb_0)
+    %16 $k_16#47: string
+    %17 $intrinsic_17#48: string
+    %18 $intrinsic_18#49: ?
+    %19 __sb_1#50: ? (synthetic __sb_1)
+    %20 $k_20#51: string
+    %21 $intrinsic_21#52: string
+    %22 $k_22#53: string
+    %23 $call_23#54: usize
+    %24 n#55: usize (local n)
+    %25 $intrinsic_25#56: ?
+    %26 __sb_2#57: ? (synthetic __sb_2)
+    %27 $k_27#58: string
+    %28 $call_28#59: string
+    %29 $intrinsic_29#60: string
+    %30 $k_30#61: i32
   bb0:
     %0 = const int(0) :i32
     %1 = const int(5) :i32
@@ -129,8 +130,9 @@ fn tests_snippets_for_in_iter_trait__main_vader$main() -> i32
     %26 = move %25
     %27 = const string(#3) :string
     intrinsic builder.append_str(%26, %27)
-    intrinsic builder.append_display(%26, %24)
-    %28 = intrinsic builder.finish(%26)
-    call println(%28) :void
-    %29 = const int(0) :i32
-    return %29
+    %28 = call to_string(%24) :string
+    intrinsic builder.append_str(%26, %28)
+    %29 = intrinsic builder.finish(%26)
+    call println(%29) :void
+    %30 = const int(0) :i32
+    return %30

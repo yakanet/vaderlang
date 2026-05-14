@@ -35,7 +35,8 @@ string 9 "banana"
 string 10 "cherry"
 string 11 ": "
 string 12 "b="
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$usize$Display$to_string (usize) -> string
+import 1 println std_io$println (string) -> void
 impl 12 Contains
 impl 12 Iterator
 impl 14 Iterator
@@ -44,46 +45,47 @@ impl 18 Iterator
 impl 20 Iterator
 
 fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
-  local "nums#107" ref
-  local "__sb_0#109" any
-  local "$call_8#111" usize
-  local "cloned#114" ref
-  local "__sb_1#116" any
-  local "$idx_16#119" i32
-  local "keys#125" ref
-  local "vals#129" ref
-  local "pairs#131" ref
-  local "$len_32#133" usize
-  local "__iter_2#134" ref
-  local "__step_3#136" ref
-  local "head#141" ref
-  local "tail#144" ref
-  local "joined#146" ref
-  local "$len_62#148" usize
-  local "__iter_6#149" ref
-  local "__step_7#151" ref
-  local "__arr_9#158" ref
-  local "$len_83#160" usize
-  local "__iter_10#161" ref
-  local "__step_11#163" ref
-  local "$arr_104#168" ref
-  local "$closure_106#170" ref
-  local "bursts#172" ref
-  local "$len_110#174" usize
-  local "__iter_15#175" ref
-  local "__step_16#177" ref
-  local "n#181" i32
-  local "__sb_17#183" any
-  local "__tup_12#187" ref
-  local "i#188" usize
-  local "f#189" string
-  local "__sb_13#191" any
-  local "x#195" i32
-  local "__sb_8#197" any
-  local "__tup_4#201" ref
-  local "k#202" string
-  local "v#203" i32
-  local "__sb_5#205" any
+  local "nums#109" ref
+  local "__sb_0#111" any
+  local "$call_9#114" string
+  local "cloned#117" ref
+  local "__sb_1#119" any
+  local "$idx_17#122" i32
+  local "keys#128" ref
+  local "vals#132" ref
+  local "pairs#134" ref
+  local "$len_33#136" usize
+  local "__iter_2#137" ref
+  local "__step_3#139" ref
+  local "head#144" ref
+  local "tail#147" ref
+  local "joined#149" ref
+  local "$len_63#151" usize
+  local "__iter_6#152" ref
+  local "__step_7#154" ref
+  local "__arr_9#161" ref
+  local "$len_84#163" usize
+  local "__iter_10#164" ref
+  local "__step_11#166" ref
+  local "$arr_106#171" ref
+  local "$closure_108#173" ref
+  local "bursts#175" ref
+  local "$len_112#177" usize
+  local "__iter_15#178" ref
+  local "__step_16#180" ref
+  local "n#184" i32
+  local "__sb_17#186" any
+  local "__tup_12#190" ref
+  local "i#191" usize
+  local "f#192" string
+  local "__sb_13#194" any
+  local "$call_100#195" string
+  local "x#199" i32
+  local "__sb_8#201" any
+  local "__tup_4#205" ref
+  local "k#206" string
+  local "v#207" i32
+  local "__sb_5#209" any
   i32.const 10   ; _main.vader:6:13
   i32.const 20   ; _main.vader:6:13
   i32.const 30   ; _main.vader:6:13
@@ -96,13 +98,14 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:7:14
   local.get 0   ; _main.vader:7:22
   call 11   ; _main.vader:7:22
-  local.set 2   ; _main.vader:7:22
+  call.import 0   ; _main.vader:7:20
+  local.set 2   ; _main.vader:7:20
   local.get 1   ; _main.vader:7:20
   local.get 2   ; _main.vader:7:20
-  intrinsic builder.append_display   ; _main.vader:7:20
+  intrinsic builder.append_str   ; _main.vader:7:20
   local.get 1   ; _main.vader:7:13
   intrinsic builder.finish   ; _main.vader:7:13
-  call.import 0   ; _main.vader:7:5
+  call.import 1   ; _main.vader:7:5
   local.get 0   ; _main.vader:8:15
   call 12   ; _main.vader:8:15
   local.set 3   ; _main.vader:8:5
@@ -121,7 +124,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:9:23
   local.get 4   ; _main.vader:9:13
   intrinsic builder.finish   ; _main.vader:9:13
-  call.import 0   ; _main.vader:9:5
+  call.import 1   ; _main.vader:9:5
   string.const 2   ; _main.vader:12:13
   string.const 3   ; _main.vader:12:13
   string.const 4   ; _main.vader:12:13
@@ -156,25 +159,25 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
       else   ; _main.vader:15:5
         local.get 11   ; _main.vader:15:5
         struct.get 8 0   ; _main.vader:15:5
-        local.tee 36   ; _main.vader:15:5
+        local.tee 37   ; _main.vader:15:5
         struct.get 9 0   ; _main.vader:15:10
-        local.set 37   ; _main.vader:15:10
-        local.get 36   ; _main.vader:15:13
+        local.set 38   ; _main.vader:15:10
+        local.get 37   ; _main.vader:15:13
         struct.get 9 1   ; _main.vader:15:13
-        local.set 38   ; _main.vader:15:13
+        local.set 39   ; _main.vader:15:13
         intrinsic builder.new   ; _main.vader:16:17
-        local.tee 39   ; _main.vader:16:17
-        local.get 37   ; _main.vader:16:18
+        local.tee 40   ; _main.vader:16:17
+        local.get 38   ; _main.vader:16:18
         intrinsic builder.append_display   ; _main.vader:16:18
-        local.get 39   ; _main.vader:16:22
+        local.get 40   ; _main.vader:16:22
         string.const 6   ; _main.vader:16:22
         intrinsic builder.append_str   ; _main.vader:16:22
+        local.get 40   ; _main.vader:16:23
         local.get 39   ; _main.vader:16:23
-        local.get 38   ; _main.vader:16:23
         intrinsic builder.append_display   ; _main.vader:16:23
-        local.get 39   ; _main.vader:16:17
+        local.get 40   ; _main.vader:16:17
         intrinsic builder.finish   ; _main.vader:16:17
-        call.import 0   ; _main.vader:16:9
+        call.import 1   ; _main.vader:16:9
         br $L1   ; _main.vader:15:5
       end $L2   ; _main.vader:15:5
     end $L1   ; _main.vader:15:5
@@ -211,18 +214,18 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
       else   ; _main.vader:23:5
         local.get 17   ; _main.vader:23:5
         struct.get 2 0   ; _main.vader:23:5
-        local.set 34   ; _main.vader:23:5
+        local.set 35   ; _main.vader:23:5
         intrinsic builder.new   ; _main.vader:24:17
-        local.set 35   ; _main.vader:24:17
-        local.get 35   ; _main.vader:24:18
+        local.set 36   ; _main.vader:24:17
+        local.get 36   ; _main.vader:24:18
         string.const 7   ; _main.vader:24:18
         intrinsic builder.append_str   ; _main.vader:24:18
+        local.get 36   ; _main.vader:24:20
         local.get 35   ; _main.vader:24:20
-        local.get 34   ; _main.vader:24:20
         intrinsic builder.append_display   ; _main.vader:24:20
-        local.get 35   ; _main.vader:24:17
+        local.get 36   ; _main.vader:24:17
         intrinsic builder.finish   ; _main.vader:24:17
-        call.import 0   ; _main.vader:24:9
+        call.import 1   ; _main.vader:24:9
         br $L4   ; _main.vader:23:5
       end $L5   ; _main.vader:23:5
     end $L4   ; _main.vader:23:5
@@ -259,9 +262,13 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
         struct.get 11 1   ; _main.vader:29:13
         local.set 32   ; _main.vader:29:13
         intrinsic builder.new   ; _main.vader:30:17
-        local.tee 33   ; _main.vader:30:17
+        local.set 33   ; _main.vader:30:17
         local.get 31   ; _main.vader:30:18
-        intrinsic builder.append_display   ; _main.vader:30:18
+        call.import 0   ; _main.vader:30:18
+        local.set 34   ; _main.vader:30:18
+        local.get 33   ; _main.vader:30:18
+        local.get 34   ; _main.vader:30:18
+        intrinsic builder.append_str   ; _main.vader:30:18
         local.get 33   ; _main.vader:30:22
         string.const 11   ; _main.vader:30:22
         intrinsic builder.append_str   ; _main.vader:30:22
@@ -270,7 +277,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:30:24
         local.get 33   ; _main.vader:30:17
         intrinsic builder.finish   ; _main.vader:30:17
-        call.import 0   ; _main.vader:30:9
+        call.import 1   ; _main.vader:30:9
         br $L7   ; _main.vader:29:5
       end $L8   ; _main.vader:29:5
     end $L7   ; _main.vader:29:5
@@ -317,7 +324,7 @@ fn 0 tests_snippets_iter_zip_chain__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:36:20
         local.get 29   ; _main.vader:36:17
         intrinsic builder.finish   ; _main.vader:36:17
-        call.import 0   ; _main.vader:36:9
+        call.import 1   ; _main.vader:36:9
         br $L10   ; _main.vader:35:5
       end $L11   ; _main.vader:35:5
     end $L10   ; _main.vader:35:5

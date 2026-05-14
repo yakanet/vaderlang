@@ -13,80 +13,81 @@ string 2 "s2.len = "
 string 3 "s3.len = "
 string 4 "s4.len = "
 string 5 "s5.len = "
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$usize$Display$to_string (usize) -> string
+import 1 println std_io$println (string) -> void
 impl 3 Contains
 impl 3 Iterator
 impl 5 Iterator
 
 fn 0 tests_snippets_array_slice__main_vader$main () -> i32
-  local "arr#143" ref
-  local "__slice_src_0#144" ref
-  local "__slice_hi_2#148" usize
-  local "__slice_out_4#150" ref
-  local "__slice_i_5#151" usize
-  local "if_res#154" bool
-  local "$idx_22#155" i32
-  local "s1#158" ref
-  local "__sb_6#160" any
-  local "$len_29#162" usize
-  local "$len_32#165" usize
-  local "__iter_7#166" ref
-  local "__step_8#168" ref
-  local "__slice_src_10#170" ref
-  local "__slice_hi_12#174" usize
-  local "__slice_out_14#176" ref
-  local "__slice_i_15#177" usize
-  local "if_res#180" bool
-  local "$idx_60#181" i32
-  local "s2#184" ref
-  local "__sb_16#186" any
-  local "$len_67#188" usize
-  local "$len_70#191" usize
-  local "__iter_17#192" ref
-  local "__step_18#194" ref
-  local "__slice_r_26#200" ref
-  local "__slice_src_20#201" ref
-  local "__slice_hi_22#205" usize
-  local "__slice_inc_23#206" bool
-  local "__slice_out_24#207" ref
-  local "__slice_i_25#208" usize
-  local "if_res#211" bool
-  local "$idx_105#212" i32
-  local "s3#215" ref
-  local "__sb_27#217" any
-  local "$len_112#219" usize
-  local "$len_115#222" usize
-  local "__iter_28#223" ref
-  local "__step_29#225" ref
-  local "__slice_hi_33#227" usize
-  local "__slice_src_31#228" ref
-  local "__slice_out_35#231" ref
-  local "__slice_i_36#232" usize
-  local "if_res#235" bool
-  local "$idx_142#236" i32
-  local "s4#239" ref
-  local "__sb_37#241" any
-  local "$len_149#243" usize
-  local "$len_152#246" usize
-  local "__iter_38#247" ref
-  local "__step_39#249" ref
-  local "__slice_src_41#251" ref
-  local "__slice_hi_43#255" usize
-  local "__slice_out_45#257" ref
-  local "__slice_i_46#258" usize
-  local "if_res#261" bool
-  local "$idx_180#262" i32
-  local "s5#265" ref
-  local "__sb_47#267" any
-  local "$len_187#269" usize
-  local "v#273" i32
-  local "__sb_40#275" any
-  local "v#279" i32
-  local "__sb_30#281" any
-  local "v#285" i32
-  local "__sb_19#287" any
-  local "v#291" i32
-  local "__sb_9#293" any
+  local "arr#148" ref
+  local "__slice_src_0#149" ref
+  local "__slice_hi_2#153" usize
+  local "__slice_out_4#155" ref
+  local "__slice_i_5#156" usize
+  local "if_res#159" bool
+  local "$idx_22#160" i32
+  local "s1#163" ref
+  local "__sb_6#165" any
+  local "$call_30#168" string
+  local "$len_33#171" usize
+  local "__iter_7#172" ref
+  local "__step_8#174" ref
+  local "__slice_src_10#176" ref
+  local "__slice_hi_12#180" usize
+  local "__slice_out_14#182" ref
+  local "__slice_i_15#183" usize
+  local "if_res#186" bool
+  local "$idx_61#187" i32
+  local "s2#190" ref
+  local "__sb_16#192" any
+  local "$call_69#195" string
+  local "$len_72#198" usize
+  local "__iter_17#199" ref
+  local "__step_18#201" ref
+  local "__slice_r_26#207" ref
+  local "__slice_src_20#208" ref
+  local "__slice_hi_22#212" usize
+  local "__slice_inc_23#213" bool
+  local "__slice_out_24#214" ref
+  local "__slice_i_25#215" usize
+  local "if_res#218" bool
+  local "$idx_107#219" i32
+  local "s3#222" ref
+  local "__sb_27#224" any
+  local "$call_115#227" string
+  local "$len_118#230" usize
+  local "__iter_28#231" ref
+  local "__step_29#233" ref
+  local "__slice_hi_33#235" usize
+  local "__slice_src_31#236" ref
+  local "__slice_out_35#239" ref
+  local "__slice_i_36#240" usize
+  local "if_res#243" bool
+  local "$idx_145#244" i32
+  local "s4#247" ref
+  local "__sb_37#249" any
+  local "$call_153#252" string
+  local "$len_156#255" usize
+  local "__iter_38#256" ref
+  local "__step_39#258" ref
+  local "__slice_src_41#260" ref
+  local "__slice_hi_43#264" usize
+  local "__slice_out_45#266" ref
+  local "__slice_i_46#267" usize
+  local "if_res#270" bool
+  local "$idx_184#271" i32
+  local "s5#274" ref
+  local "__sb_47#276" any
+  local "$call_192#279" string
+  local "v#283" i32
+  local "__sb_40#285" any
+  local "v#289" i32
+  local "__sb_30#291" any
+  local "v#295" i32
+  local "__sb_19#297" any
+  local "v#301" i32
+  local "__sb_9#303" any
   i32.const 10   ; _main.vader:11:18
   i32.const 20   ; _main.vader:11:18
   i32.const 30   ; _main.vader:11:18
@@ -146,13 +147,14 @@ fn 0 tests_snippets_array_slice__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:15:14
   local.get 7   ; _main.vader:15:25
   array.len   ; _main.vader:15:25
-  local.set 9   ; _main.vader:15:25
+  call.import 0   ; _main.vader:15:23
+  local.set 9   ; _main.vader:15:23
   local.get 8   ; _main.vader:15:23
   local.get 9   ; _main.vader:15:23
-  intrinsic builder.append_display   ; _main.vader:15:23
+  intrinsic builder.append_str   ; _main.vader:15:23
   local.get 8   ; _main.vader:15:13
   intrinsic builder.finish   ; _main.vader:15:13
-  call.import 0   ; _main.vader:15:5
+  call.import 1   ; _main.vader:15:5
   local.get 7   ; _main.vader:16:5
   array.len   ; _main.vader:16:5
   local.set 10   ; _main.vader:16:5
@@ -183,7 +185,7 @@ fn 0 tests_snippets_array_slice__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:16:30
         local.get 67   ; _main.vader:16:27
         intrinsic builder.finish   ; _main.vader:16:27
-        call.import 0   ; _main.vader:16:19
+        call.import 1   ; _main.vader:16:19
         br $L5   ; _main.vader:16:5
       end $L6   ; _main.vader:16:5
     end $L5   ; _main.vader:16:5
@@ -241,13 +243,14 @@ fn 0 tests_snippets_array_slice__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:20:14
   local.get 19   ; _main.vader:20:25
   array.len   ; _main.vader:20:25
-  local.set 21   ; _main.vader:20:25
+  call.import 0   ; _main.vader:20:23
+  local.set 21   ; _main.vader:20:23
   local.get 20   ; _main.vader:20:23
   local.get 21   ; _main.vader:20:23
-  intrinsic builder.append_display   ; _main.vader:20:23
+  intrinsic builder.append_str   ; _main.vader:20:23
   local.get 20   ; _main.vader:20:13
   intrinsic builder.finish   ; _main.vader:20:13
-  call.import 0   ; _main.vader:20:5
+  call.import 1   ; _main.vader:20:5
   local.get 19   ; _main.vader:21:5
   array.len   ; _main.vader:21:5
   local.set 22   ; _main.vader:21:5
@@ -278,7 +281,7 @@ fn 0 tests_snippets_array_slice__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:21:30
         local.get 65   ; _main.vader:21:27
         intrinsic builder.finish   ; _main.vader:21:27
-        call.import 0   ; _main.vader:21:19
+        call.import 1   ; _main.vader:21:19
         br $L12   ; _main.vader:21:5
       end $L13   ; _main.vader:21:5
     end $L12   ; _main.vader:21:5
@@ -347,13 +350,14 @@ fn 0 tests_snippets_array_slice__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:26:14
   local.get 33   ; _main.vader:26:25
   array.len   ; _main.vader:26:25
-  local.set 35   ; _main.vader:26:25
+  call.import 0   ; _main.vader:26:23
+  local.set 35   ; _main.vader:26:23
   local.get 34   ; _main.vader:26:23
   local.get 35   ; _main.vader:26:23
-  intrinsic builder.append_display   ; _main.vader:26:23
+  intrinsic builder.append_str   ; _main.vader:26:23
   local.get 34   ; _main.vader:26:13
   intrinsic builder.finish   ; _main.vader:26:13
-  call.import 0   ; _main.vader:26:5
+  call.import 1   ; _main.vader:26:5
   local.get 33   ; _main.vader:27:5
   array.len   ; _main.vader:27:5
   local.set 36   ; _main.vader:27:5
@@ -384,7 +388,7 @@ fn 0 tests_snippets_array_slice__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:27:30
         local.get 63   ; _main.vader:27:27
         intrinsic builder.finish   ; _main.vader:27:27
-        call.import 0   ; _main.vader:27:19
+        call.import 1   ; _main.vader:27:19
         br $L19   ; _main.vader:27:5
       end $L20   ; _main.vader:27:5
     end $L19   ; _main.vader:27:5
@@ -440,13 +444,14 @@ fn 0 tests_snippets_array_slice__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:32:14
   local.get 45   ; _main.vader:32:25
   array.len   ; _main.vader:32:25
-  local.set 47   ; _main.vader:32:25
+  call.import 0   ; _main.vader:32:23
+  local.set 47   ; _main.vader:32:23
   local.get 46   ; _main.vader:32:23
   local.get 47   ; _main.vader:32:23
-  intrinsic builder.append_display   ; _main.vader:32:23
+  intrinsic builder.append_str   ; _main.vader:32:23
   local.get 46   ; _main.vader:32:13
   intrinsic builder.finish   ; _main.vader:32:13
-  call.import 0   ; _main.vader:32:5
+  call.import 1   ; _main.vader:32:5
   local.get 45   ; _main.vader:33:5
   array.len   ; _main.vader:33:5
   local.set 48   ; _main.vader:33:5
@@ -477,7 +482,7 @@ fn 0 tests_snippets_array_slice__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:33:30
         local.get 61   ; _main.vader:33:27
         intrinsic builder.finish   ; _main.vader:33:27
-        call.import 0   ; _main.vader:33:19
+        call.import 1   ; _main.vader:33:19
         br $L26   ; _main.vader:33:5
       end $L27   ; _main.vader:33:5
     end $L26   ; _main.vader:33:5
@@ -535,13 +540,14 @@ fn 0 tests_snippets_array_slice__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:37:14
   local.get 57   ; _main.vader:37:25
   array.len   ; _main.vader:37:25
-  local.set 59   ; _main.vader:37:25
+  call.import 0   ; _main.vader:37:23
+  local.set 59   ; _main.vader:37:23
   local.get 58   ; _main.vader:37:23
   local.get 59   ; _main.vader:37:23
-  intrinsic builder.append_display   ; _main.vader:37:23
+  intrinsic builder.append_str   ; _main.vader:37:23
   local.get 58   ; _main.vader:37:13
   intrinsic builder.finish   ; _main.vader:37:13
-  call.import 0   ; _main.vader:37:5
+  call.import 1   ; _main.vader:37:5
   i32.const 0   ; _main.vader:39:12
   return   ; _main.vader:39:5
 end

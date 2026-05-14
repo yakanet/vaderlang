@@ -28,9 +28,13 @@
           @builder.append_str :void
             __sb_0 :?
             " " :string
-          @builder.append_display <for u32> :void
+          @builder.append_str :void
             __sb_0 :?
-            b :u32
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                b :u32
           @builder.append_str :void
             __sb_0 :?
             " " :string

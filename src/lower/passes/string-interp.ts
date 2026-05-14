@@ -10,7 +10,7 @@
 import type * as A from "../../parser/ast.ts";
 import type { Span } from "../../diagnostics/diagnostic.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { TY } from "../../typecheck/types.ts";
+import { TY, isPrimitive } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
@@ -19,6 +19,16 @@ import { INTRINSICS } from "../lowered-ast.ts";
 import { wrapAsDisplay } from "./display-coerce.ts";
 import { lowerExpr } from "./expr.ts";
 import { freshSyntheticSymbol } from "./helpers.ts";
+
+/** True when `t` is one of the unsigned integer widths whose value range
+ *  exceeds the signed `i64` carrier the Vader VM relies on. Routing these
+ *  through an explicit `Display.to_string` call lets the VM dispatch to
+ *  an unsigned stringifier instead of misreading the bit pattern as
+ *  signed. The narrow `u8` / `u16` widths fit signed `i64` losslessly,
+ *  so they keep the cheaper `builder.append_display` shortcut. */
+function isWideUnsignedPrimitive(t: Type): boolean {
+  return isPrimitive(t, "u32") || isPrimitive(t, "u64") || isPrimitive(t, "usize");
+}
 
 export function lowerStringLit(ctx: FnLowerCtx, expr: A.StringLitExpr): LoweredExpr {
   if (expr.parts.every((p) => p.kind === "text")) {
@@ -57,6 +67,28 @@ export function lowerStringLit(ctx: FnLowerCtx, expr: A.StringLitExpr): LoweredE
       // Primitives (incl. string) keep the per-type fast path. Everything
       // else routes through Display.to_string + builder.append_str so user
       // impls on structs / enums are honoured.
+      //
+      // Exception : unsigned wide widths whose range exceeds i64. The
+      // Vader VM collapses all integer widths onto `I32Val` / `I64Val`,
+      // both signed carriers — a `u64` literal whose bit pattern doesn't
+      // fit signed-i64 (e.g. `18446744073700000000`) would print as a
+      // negative i64. Routing `u64` through the explicit
+      // `<u64>.Display.to_string` call gives the VM a mangled-name hook
+      // (`std_core$u64$Display$to_string`) to choose the unsigned
+      // stringifier ; native C-emit still inlines via the @intrinsic
+      // impl so this is free at the C target.
+      if (innerKind === "Primitive" && isWideUnsignedPrimitive(inner.type)) {
+        const stringValue = wrapAsDisplay(ctx, inner, inner.type, part.span) ?? inner;
+        stmts.push({
+          kind: "LoweredExprStmt", span: part.span,
+          expr: {
+            kind: "LoweredIntrinsicCall", span: part.span, type: TY.void,
+            name: INTRINSICS.builderAppendStr,
+            args: [sbRef(part.span), stringValue],
+          },
+        });
+        continue;
+      }
       if (innerKind === "Primitive" || innerKind === "FreeInt" || innerKind === "FreeFloat") {
         stmts.push({
           kind: "LoweredExprStmt", span: part.span,

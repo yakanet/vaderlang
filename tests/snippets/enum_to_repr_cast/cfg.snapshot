@@ -4,22 +4,23 @@
 
 fn tests_snippets_enum_to_repr_cast__main_vader$main() -> i32
   locals:
-    %0 $k_0#16: u8
-    %1 a#17: u8 (local a)
-    %2 $k_3#18: u32
-    %3 b#19: u32 (local b)
-    %4 $k_6#20: u8
-    %5 $cast_7#21: u8
-    %6 c#22: i32 (local c)
-    %7 $k_10#23: i32
-    %8 d#24: i32 (local d)
-    %9 $intrinsic_13#25: ?
-    %10 __sb_0#26: ? (synthetic __sb_0)
-    %11 $k_15#27: string
-    %12 $k_16#28: string
-    %13 $k_17#29: string
-    %14 $intrinsic_18#30: string
-    %15 $k_19#31: i32
+    %0 $k_0#17: u8
+    %1 a#18: u8 (local a)
+    %2 $k_3#19: u32
+    %3 b#20: u32 (local b)
+    %4 $k_6#21: u8
+    %5 $cast_7#22: u8
+    %6 c#23: i32 (local c)
+    %7 $k_10#24: i32
+    %8 d#25: i32 (local d)
+    %9 $intrinsic_13#26: ?
+    %10 __sb_0#27: ? (synthetic __sb_0)
+    %11 $k_15#28: string
+    %12 $call_16#29: string
+    %13 $k_17#30: string
+    %14 $k_18#31: string
+    %15 $intrinsic_19#32: string
+    %16 $k_20#33: i32
   bb0:
     %0 = const int(2) :u8
     %1 = cast %0 :u8
@@ -35,14 +36,15 @@ fn tests_snippets_enum_to_repr_cast__main_vader$main() -> i32
     intrinsic builder.append_display(%10, %1)
     %11 = const string(#0) :string
     intrinsic builder.append_str(%10, %11)
-    intrinsic builder.append_display(%10, %3)
-    %12 = const string(#0) :string
+    %12 = call to_string(%3) :string
     intrinsic builder.append_str(%10, %12)
-    intrinsic builder.append_display(%10, %6)
     %13 = const string(#0) :string
     intrinsic builder.append_str(%10, %13)
+    intrinsic builder.append_display(%10, %6)
+    %14 = const string(#0) :string
+    intrinsic builder.append_str(%10, %14)
     intrinsic builder.append_display(%10, %8)
-    %14 = intrinsic builder.finish(%10)
-    call println(%14) :void
-    %15 = const int(0) :i32
-    return %15
+    %15 = intrinsic builder.finish(%10)
+    call println(%15) :void
+    %16 = const int(0) :i32
+    return %16

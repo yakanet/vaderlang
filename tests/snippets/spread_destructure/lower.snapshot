@@ -46,9 +46,13 @@
           @builder.append_str :void
             __sb_2 :?
             " rest.len=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_2 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -143,9 +147,13 @@
           @builder.append_str :void
             __sb_8 :?
             " tail.len=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_8 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_8 :?
@@ -174,9 +182,13 @@
           @builder.append_str :void
             __sb_11 :?
             "short.len=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_11 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_11 :?

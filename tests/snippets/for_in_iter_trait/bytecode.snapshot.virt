@@ -32,9 +32,10 @@ string 0 "range sum  = "
 string 1 "array sum  = "
 string 2 "hello, world!"
 string 3 "l count    = "
-import 0 at std_core$string$Index$at (string,usize) -> char
-import 1 println std_io$println (string) -> void
-import 2 byte_len std_string$byte_len (string) -> usize
+import 0 to_string std_core$usize$Display$to_string (usize) -> string
+import 1 at std_core$string$Index$at (string,usize) -> char
+import 2 println std_io$println (string) -> void
+import 3 byte_len std_string$byte_len (string) -> usize
 impl 9 Contains
 impl 9 Iterator
 impl 11 Contains
@@ -103,12 +104,13 @@ fn 2 tests_snippets_for_in_iter_trait__main_vader$count_ls (string) -> usize
 end
 
 fn 3 tests_snippets_for_in_iter_trait__main_vader$main () -> i32
-  local "a#36" i32
-  local "b#43" i32
-  local "__sb_0#45" any
-  local "__sb_1#49" any
-  local "n#54" usize
-  local "__sb_2#56" any
+  local "a#37" i32
+  local "b#44" i32
+  local "__sb_0#46" any
+  local "__sb_1#50" any
+  local "n#55" usize
+  local "__sb_2#57" any
+  local "$call_28#59" string
   i32.const 0   ; _main.vader:37:19
   i32.const 5   ; _main.vader:37:19
   bool.const false   ; _main.vader:37:19
@@ -133,7 +135,7 @@ fn 3 tests_snippets_for_in_iter_trait__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:39:27
   local.get 2   ; _main.vader:39:13
   intrinsic builder.finish   ; _main.vader:39:13
-  call.import 1   ; _main.vader:39:5
+  call.import 2   ; _main.vader:39:5
   intrinsic builder.new   ; _main.vader:40:13
   local.set 3   ; _main.vader:40:13
   local.get 3   ; _main.vader:40:14
@@ -144,7 +146,7 @@ fn 3 tests_snippets_for_in_iter_trait__main_vader$main () -> i32
   intrinsic builder.append_display   ; _main.vader:40:27
   local.get 3   ; _main.vader:40:13
   intrinsic builder.finish   ; _main.vader:40:13
-  call.import 1   ; _main.vader:40:5
+  call.import 2   ; _main.vader:40:5
   string.const 2   ; _main.vader:42:19
   call 2   ; _main.vader:42:10
   local.set 4   ; _main.vader:42:5
@@ -153,12 +155,15 @@ fn 3 tests_snippets_for_in_iter_trait__main_vader$main () -> i32
   local.get 5   ; _main.vader:43:14
   string.const 3   ; _main.vader:43:14
   intrinsic builder.append_str   ; _main.vader:43:14
-  local.get 5   ; _main.vader:43:27
   local.get 4   ; _main.vader:43:27
-  intrinsic builder.append_display   ; _main.vader:43:27
+  call.import 0   ; _main.vader:43:27
+  local.set 6   ; _main.vader:43:27
+  local.get 5   ; _main.vader:43:27
+  local.get 6   ; _main.vader:43:27
+  intrinsic builder.append_str   ; _main.vader:43:27
   local.get 5   ; _main.vader:43:13
   intrinsic builder.finish   ; _main.vader:43:13
-  call.import 1   ; _main.vader:43:5
+  call.import 2   ; _main.vader:43:5
   i32.const 0   ; _main.vader:44:12
   return   ; _main.vader:44:5
 end
@@ -1172,7 +1177,7 @@ fn 33 std_string$StringChars$Iterator$next (ref) -> ref
     local.set 4   ; string.vader:94:21
     local.get 3   ; string.vader:94:14
     local.get 4   ; string.vader:94:14
-    call.import 0   ; string.vader:94:14
+    call.import 1   ; string.vader:94:14
     local.set 5   ; string.vader:94:9
     local.get 0   ; string.vader:95:23
     struct.get 23 1   ; string.vader:95:23
@@ -1200,7 +1205,7 @@ fn 34 std_string$chars (string) -> ref
   i32.to_usize   ; string.vader:110:44
   local.set 1   ; string.vader:110:44
   local.get 0   ; string.vader:110:64
-  call.import 2   ; string.vader:110:64
+  call.import 3   ; string.vader:110:64
   local.set 2   ; string.vader:110:64
   local.get 0   ; string.vader:110:12
   local.get 1   ; string.vader:110:12

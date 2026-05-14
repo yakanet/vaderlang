@@ -55,9 +55,13 @@
           @builder.append_str :void
             __sb_2 :?
             "sum=" :string
-          @builder.append_display <for u32> :void
+          @builder.append_str :void
             __sb_2 :?
-            sum :u32
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                sum :u32
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -235,13 +239,17 @@
           @builder.append_str :void
             __sb_10 :?
             "done bytes=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_10 :?
-            call :usize
+            call :string
               callee:
-                byte_len :fn(string) -> usize
+                to_string :string
               arg0:
-                "" :string
+                call :usize
+                  callee:
+                    byte_len :fn(string) -> usize
+                  arg0:
+                    "" :string
           ~>
             @builder.finish :string
               __sb_10 :?

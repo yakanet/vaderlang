@@ -12,45 +12,46 @@ string 3 "a="
 string 4 " b="
 string 5 " tail.len="
 string 6 "short.len="
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$usize$Display$to_string (usize) -> string
+import 1 println std_io$println (string) -> void
 impl 3 Iterator
 
 fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
-  local "arr#81" ref
-  local "__tup_0#82" ref
-  local "first#84" i32
-  local "rest#85" ref
-  local "__i_1#87" usize
-  local "$len_15#88" usize
-  local "$idx_17#90" i32
-  local "__sb_2#94" any
-  local "$len_24#97" usize
-  local "$len_27#100" usize
-  local "__iter_3#101" ref
-  local "__step_4#103" ref
-  local "__tup_6#105" ref
-  local "a#107" i32
-  local "b#109" i32
-  local "tail#110" ref
-  local "__i_7#112" usize
-  local "$len_51#113" usize
-  local "$idx_53#115" i32
-  local "__sb_8#119" any
-  local "$len_61#123" usize
-  local "__tup_9#125" ref
-  local "short#126" ref
-  local "__i_10#128" usize
-  local "$len_68#129" usize
-  local "$idx_70#131" i32
-  local "__sb_11#135" any
-  local "$len_76#137" usize
-  local "$len_79#140" usize
-  local "__iter_12#141" ref
-  local "__step_13#143" ref
-  local "x#147" i32
-  local "__sb_14#149" any
+  local "arr#84" ref
+  local "__tup_0#85" ref
+  local "first#87" i32
+  local "rest#88" ref
+  local "__i_1#90" usize
+  local "$len_15#91" usize
+  local "$idx_17#93" i32
+  local "__sb_2#97" any
+  local "$call_25#101" string
+  local "$len_28#104" usize
+  local "__iter_3#105" ref
+  local "__step_4#107" ref
+  local "__tup_6#109" ref
+  local "a#111" i32
+  local "b#113" i32
+  local "tail#114" ref
+  local "__i_7#116" usize
+  local "$len_52#117" usize
+  local "$idx_54#119" i32
+  local "__sb_8#123" any
+  local "$call_63#128" string
+  local "__tup_9#130" ref
+  local "short#131" ref
+  local "__i_10#133" usize
+  local "$len_70#134" usize
+  local "$idx_72#136" i32
+  local "__sb_11#140" any
+  local "$call_79#143" string
+  local "$len_82#146" usize
+  local "__iter_12#147" ref
+  local "__step_13#149" ref
   local "x#153" i32
-  local "__sb_5#155" any
+  local "__sb_14#155" any
+  local "x#159" i32
+  local "__sb_5#161" any
   i32.const 10   ; _main.vader:4:12
   i32.const 20   ; _main.vader:4:12
   i32.const 30   ; _main.vader:4:12
@@ -109,13 +110,14 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:7:28
   local.get 3   ; _main.vader:7:40
   array.len   ; _main.vader:7:40
-  local.set 8   ; _main.vader:7:40
+  call.import 0   ; _main.vader:7:38
+  local.set 8   ; _main.vader:7:38
   local.get 7   ; _main.vader:7:38
   local.get 8   ; _main.vader:7:38
-  intrinsic builder.append_display   ; _main.vader:7:38
+  intrinsic builder.append_str   ; _main.vader:7:38
   local.get 7   ; _main.vader:7:13
   intrinsic builder.finish   ; _main.vader:7:13
-  call.import 0   ; _main.vader:7:5
+  call.import 1   ; _main.vader:7:5
   local.get 3   ; _main.vader:8:5
   array.len   ; _main.vader:8:5
   local.set 9   ; _main.vader:8:5
@@ -146,7 +148,7 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:8:32
         local.get 34   ; _main.vader:8:29
         intrinsic builder.finish   ; _main.vader:8:29
-        call.import 0   ; _main.vader:8:21
+        call.import 1   ; _main.vader:8:21
         br $L4   ; _main.vader:8:5
       end $L5   ; _main.vader:8:5
     end $L4   ; _main.vader:8:5
@@ -215,13 +217,14 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:11:27
   local.get 15   ; _main.vader:11:39
   array.len   ; _main.vader:11:39
-  local.set 20   ; _main.vader:11:39
+  call.import 0   ; _main.vader:11:37
+  local.set 20   ; _main.vader:11:37
   local.get 19   ; _main.vader:11:37
   local.get 20   ; _main.vader:11:37
-  intrinsic builder.append_display   ; _main.vader:11:37
+  intrinsic builder.append_str   ; _main.vader:11:37
   local.get 19   ; _main.vader:11:13
   intrinsic builder.finish   ; _main.vader:11:13
-  call.import 0   ; _main.vader:11:5
+  call.import 1   ; _main.vader:11:5
   local.get 0   ; _main.vader:14:5
   local.set 21   ; _main.vader:14:5
   array.new 4 0   ; _main.vader:14:15
@@ -262,13 +265,14 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:15:14
   local.get 22   ; _main.vader:15:26
   array.len   ; _main.vader:15:26
-  local.set 27   ; _main.vader:15:26
+  call.import 0   ; _main.vader:15:24
+  local.set 27   ; _main.vader:15:24
   local.get 26   ; _main.vader:15:24
   local.get 27   ; _main.vader:15:24
-  intrinsic builder.append_display   ; _main.vader:15:24
+  intrinsic builder.append_str   ; _main.vader:15:24
   local.get 26   ; _main.vader:15:13
   intrinsic builder.finish   ; _main.vader:15:13
-  call.import 0   ; _main.vader:15:5
+  call.import 1   ; _main.vader:15:5
   local.get 22   ; _main.vader:16:5
   array.len   ; _main.vader:16:5
   local.set 28   ; _main.vader:16:5
@@ -299,7 +303,7 @@ fn 0 tests_snippets_spread_destructure__main_vader$main () -> i32
         intrinsic builder.append_display   ; _main.vader:16:33
         local.get 32   ; _main.vader:16:30
         intrinsic builder.finish   ; _main.vader:16:30
-        call.import 0   ; _main.vader:16:22
+        call.import 1   ; _main.vader:16:22
         br $L13   ; _main.vader:16:5
       end $L14   ; _main.vader:16:5
     end $L13   ; _main.vader:16:5

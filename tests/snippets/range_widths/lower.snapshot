@@ -49,9 +49,13 @@
           @builder.append_str :void
             __sb_2 :?
             "u64 sum=" :string
-          @builder.append_display <for u64> :void
+          @builder.append_str :void
             __sb_2 :?
-            su :u64
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                su :u64
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -213,9 +217,13 @@
           @builder.append_str :void
             __sb_11 :?
             "u8 sum=" :string
-          @builder.append_display <for u32> :void
+          @builder.append_str :void
             __sb_11 :?
-            sb :u32
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                sb :u32
           ~>
             @builder.finish :string
               __sb_11 :?

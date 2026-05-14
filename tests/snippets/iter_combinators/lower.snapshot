@@ -100,9 +100,13 @@
           @builder.append_str :void
             __sb_3 :?
             "slice mid len=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_3 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -116,9 +120,13 @@
           @builder.append_str :void
             __sb_4 :?
             "slice over len=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_4 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_4 :?
@@ -132,9 +140,13 @@
           @builder.append_str :void
             __sb_5 :?
             "slice tail len=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_5 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_5 :?

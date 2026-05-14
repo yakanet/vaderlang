@@ -12,9 +12,13 @@
           @builder.append_str :void
             __sb_0 :?
             "size i32     = " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_0 :?
-            int(4) :usize
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                int(4) :usize
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -28,9 +32,13 @@
           @builder.append_str :void
             __sb_1 :?
             "size i64     = " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_1 :?
-            int(8) :usize
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                int(8) :usize
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -44,9 +52,13 @@
           @builder.append_str :void
             __sb_2 :?
             "size string  = " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_2 :?
-            int(16) :usize
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                int(16) :usize
           ~>
             @builder.finish :string
               __sb_2 :?

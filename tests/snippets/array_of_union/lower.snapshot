@@ -16,9 +16,13 @@
           @builder.append_str :void
             __sb_0 :?
             "len = " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_0 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_0 :?

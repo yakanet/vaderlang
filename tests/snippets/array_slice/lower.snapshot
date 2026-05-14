@@ -45,9 +45,13 @@
           @builder.append_str :void
             __sb_6 :?
             "s1.len = " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_6 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_6 :?
@@ -129,9 +133,13 @@
           @builder.append_str :void
             __sb_16 :?
             "s2.len = " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_16 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_16 :?
@@ -225,9 +233,13 @@
           @builder.append_str :void
             __sb_27 :?
             "s3.len = " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_27 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_27 :?
@@ -306,9 +318,13 @@
           @builder.append_str :void
             __sb_37 :?
             "s4.len = " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_37 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_37 :?
@@ -390,9 +406,13 @@
           @builder.append_str :void
             __sb_47 :?
             "s5.len = " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_47 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_47 :?

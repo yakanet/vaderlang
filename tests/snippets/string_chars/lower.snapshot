@@ -139,13 +139,17 @@
           @builder.append_str :void
             __sb_8 :?
             " bytes=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_8 :?
-            call :usize
+            call :string
               callee:
-                byte_len :fn(string) -> usize
+                to_string :string
               arg0:
-                "héllo" :string
+                call :usize
+                  callee:
+                    byte_len :fn(string) -> usize
+                  arg0:
+                    "héllo" :string
           ~>
             @builder.finish :string
               __sb_8 :?

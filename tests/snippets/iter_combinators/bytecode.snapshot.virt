@@ -17,29 +17,30 @@ type 14 fn (5,5) -> 5
 string 0 "slice mid len="
 string 1 "slice over len="
 string 2 "slice tail len="
-import 0 println std_io$println (string) -> void
+import 0 to_string std_core$usize$Display$to_string (usize) -> string
+import 1 println std_io$println (string) -> void
 impl 8 Contains
 impl 8 Iterator
 impl 10 Iterator
 
 fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
-  local "nums#88" ref
-  local "$arr_17#94" ref
-  local "$closure_19#96" ref
-  local "s1#100" i32
-  local "$closure_25#102" ref
-  local "s2#106" i32
-  local "$arr_35#112" ref
-  local "$closure_38#115" ref
-  local "p#117" i32
-  local "s3#122" i32
-  local "s4#127" i32
-  local "__sb_3#129" any
-  local "$len_57#134" usize
-  local "__sb_4#137" any
-  local "$len_65#142" usize
-  local "__sb_5#145" any
-  local "$len_73#150" usize
+  local "nums#91" ref
+  local "$arr_17#97" ref
+  local "$closure_19#99" ref
+  local "s1#103" i32
+  local "$closure_25#105" ref
+  local "s2#109" i32
+  local "$arr_35#115" ref
+  local "$closure_38#118" ref
+  local "p#120" i32
+  local "s3#125" i32
+  local "s4#130" i32
+  local "__sb_3#132" any
+  local "$call_58#138" string
+  local "__sb_4#141" any
+  local "$call_67#147" string
+  local "__sb_5#150" any
+  local "$call_76#156" string
   i32.const 1   ; _main.vader:5:13
   i32.const 2   ; _main.vader:5:13
   i32.const 3   ; _main.vader:5:13
@@ -114,13 +115,14 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
   i64.to_usize   ; _main.vader:28:30
   call 16   ; _main.vader:28:30
   array.len   ; _main.vader:28:30
-  local.set 12   ; _main.vader:28:30
+  call.import 0   ; _main.vader:28:28
+  local.set 12   ; _main.vader:28:28
   local.get 11   ; _main.vader:28:28
   local.get 12   ; _main.vader:28:28
-  intrinsic builder.append_display   ; _main.vader:28:28
+  intrinsic builder.append_str   ; _main.vader:28:28
   local.get 11   ; _main.vader:28:13
   intrinsic builder.finish   ; _main.vader:28:13
-  call.import 0   ; _main.vader:28:5
+  call.import 1   ; _main.vader:28:5
   intrinsic builder.new   ; _main.vader:29:13
   local.set 13   ; _main.vader:29:13
   local.get 13   ; _main.vader:29:14
@@ -133,13 +135,14 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
   i64.to_usize   ; _main.vader:29:31
   call 16   ; _main.vader:29:31
   array.len   ; _main.vader:29:31
-  local.set 14   ; _main.vader:29:31
+  call.import 0   ; _main.vader:29:29
+  local.set 14   ; _main.vader:29:29
   local.get 13   ; _main.vader:29:29
   local.get 14   ; _main.vader:29:29
-  intrinsic builder.append_display   ; _main.vader:29:29
+  intrinsic builder.append_str   ; _main.vader:29:29
   local.get 13   ; _main.vader:29:13
   intrinsic builder.finish   ; _main.vader:29:13
-  call.import 0   ; _main.vader:29:5
+  call.import 1   ; _main.vader:29:5
   intrinsic builder.new   ; _main.vader:30:13
   local.set 15   ; _main.vader:30:13
   local.get 15   ; _main.vader:30:14
@@ -152,13 +155,14 @@ fn 0 tests_snippets_iter_combinators__main_vader$main () -> i32
   i64.to_usize   ; _main.vader:30:31
   call 16   ; _main.vader:30:31
   array.len   ; _main.vader:30:31
-  local.set 16   ; _main.vader:30:31
+  call.import 0   ; _main.vader:30:29
+  local.set 16   ; _main.vader:30:29
   local.get 15   ; _main.vader:30:29
   local.get 16   ; _main.vader:30:29
-  intrinsic builder.append_display   ; _main.vader:30:29
+  intrinsic builder.append_str   ; _main.vader:30:29
   local.get 15   ; _main.vader:30:13
   intrinsic builder.finish   ; _main.vader:30:13
-  call.import 0   ; _main.vader:30:5
+  call.import 1   ; _main.vader:30:5
   local.get 3   ; _main.vader:32:12
   local.get 5   ; _main.vader:32:12
   i32.add   ; _main.vader:32:12

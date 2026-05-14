@@ -13,7 +13,7 @@
 // stack that resets at each fn boundary.
 
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of, decode_escapes }
-import "std/numbers" { parse_int_in_base }
+import "std/numbers" { parse_int_in_base, parse_uint_in_base }
 import "vader/vm/op" as op
 
 /// ASCII byte constants — spelled out as `u8(u32('x'))` to keep the source
@@ -1011,12 +1011,19 @@ try_parse_int_const :: fn(cleaned: string) -> op.Op | null {
 /// without wraparound. Downstream `read_i32` truncates the i64 back to
 /// i32 when an i32 consumer wants it.
 parse_int_const_text :: fn(rest: string) -> op.Op | null {
-    parsed :: parse_int_in_base(rest, 10)
+    // The .virt only ever emits non-negative `<width>.const N` (the
+    // bytecode lowers a negative literal as `const |N|` + `<width>.neg`),
+    // so parse as `u64` to catch the full unsigned range — i.e. literals
+    // up to `u64.MAX`. Values that don't fit signed-i64 still round-trip
+    // by reinterpreting the bit pattern when we drop into `I64Const`,
+    // and the host display arms pick the right signedness from the op
+    // sequence that surrounds the const.
+    parsed :: parse_uint_in_base(rest, 10)
     if parsed is Error { return null }
-    if parsed > i64(0x7fffffff) || parsed < i64(-0x80000000) {
-        return op.I64Const { .value = parsed }
+    if parsed <= u64(0x7fffffff) {
+        return op.I32Const { .value = i32(parsed) }
     }
-    return op.I32Const { .value = i32(parsed) }
+    return op.I64Const { .value = i64(parsed) }
 }
 
 /// True iff `width` is one of the 10 integer prefixes the VM recognises

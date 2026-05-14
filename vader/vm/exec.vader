@@ -1951,6 +1951,24 @@ dispatch_import :: fn(info: op.ImportInfo, stack: op.Value[], arg_base: usize, g
     // doesn't matter at runtime (every integer collapses to `op.I32Val`),
     // so a single arm covers all the per-width manglings.
     if info.mangled.contains(r"$Display$to_string") && is_display_to_string_host(info.mangled) {
+        // `u32` / `u64` / `usize` literals exceeding `i64.MAX` ride the
+        // same `I64Val` carrier as signed `i64`. Default `display_value`
+        // renders that bit pattern as signed i64 (e.g. `-9551616` instead
+        // of `18446744073700000000`). The lower pass routes wide
+        // unsigned interpolations through this dispatch — recover the
+        // unsigned form by reinterpreting the bit pattern.
+        if is_unsigned_display_host(info.mangled) {
+            v :: stack[arg_base]
+            return match v {
+                is op.I64Val as i -> HostOk { .value = op.StringVal { .value = u64(i.value).to_string() } }
+                is op.I32Val as i -> HostOk { .value = op.StringVal { .value = u64(u32(i.value)).to_string() } }
+                // Any other Value tag means the lowerer routed a non-
+                // integer through `<u_width>$Display$to_string`. Trap
+                // loudly so the regression surfaces here instead of as a
+                // mysteriously wrong rendering.
+                _ -> Trap { .message = "${info.mangled} at pc=${at_pc}: expected integer Value, got ${describe_value_tag(v)}" }
+            }
+        }
         return HostOk { .value = op.StringVal { .value = op.display_value(stack[arg_base]) } }
     }
     // ---- std/string extras -----------------------------------------------
@@ -2125,6 +2143,16 @@ is_display_to_string_host :: fn(mangled: string) -> bool {
     if mangled == r"std_core$string$Display$to_string" { return true }
     if mangled == r"std_core$f32$Display$to_string"    { return true }
     if mangled == r"std_core$f64$Display$to_string"    { return true }
+    return false
+}
+
+/// Subset of `is_display_to_string_host` covering the unsigned widths
+/// (`u32` / `u64` / `usize`). The narrow `u8` / `u16` widths fit the
+/// signed `i64` carrier losslessly, so they reuse the signed path.
+is_unsigned_display_host :: fn(mangled: string) -> bool {
+    if mangled == r"std_core$u32$Display$to_string"    { return true }
+    if mangled == r"std_core$u64$Display$to_string"    { return true }
+    if mangled == r"std_core$usize$Display$to_string"  { return true }
     return false
 }
 

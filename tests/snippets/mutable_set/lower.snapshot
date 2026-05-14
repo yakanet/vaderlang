@@ -87,13 +87,17 @@
           @builder.append_str :void
             __sb_3 :?
             "len = " :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_3 :?
-            call :usize
+            call :string
               callee:
-                len :usize
+                to_string :string
               arg0:
-                s :MutableSet(i32)
+                call :usize
+                  callee:
+                    len :usize
+                  arg0:
+                    s :MutableSet(i32)
           ~>
             @builder.finish :string
               __sb_3 :?

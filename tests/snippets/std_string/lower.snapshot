@@ -10,13 +10,17 @@
         block :string
           let __sb_0: ? =
             @builder.new :?
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :usize
+            call :string
               callee:
-                byte_len :fn(string) -> usize
+                to_string :string
               arg0:
-                s :string
+                call :usize
+                  callee:
+                    byte_len :fn(string) -> usize
+                  arg0:
+                    s :string
           ~>
             @builder.finish :string
               __sb_0 :?

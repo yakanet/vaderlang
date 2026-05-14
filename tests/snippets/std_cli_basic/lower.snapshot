@@ -35,9 +35,13 @@
           @builder.append_str :void
             __sb_0 :?
             "errors=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_0 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -51,9 +55,13 @@
           @builder.append_str :void
             __sb_1 :?
             "positionals=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_1 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -190,9 +198,13 @@
           @builder.append_str :void
             __sb_7 :?
             "err_count=" :string
-          @builder.append_display <for usize> :void
+          @builder.append_str :void
             __sb_7 :?
-            LoweredArrayLen
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_7 :?

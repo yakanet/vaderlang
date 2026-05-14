@@ -62,13 +62,17 @@
         block :string
           let __sb_0: ? =
             @builder.new :?
-          @builder.append_display <for u64> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :u64
+            call :string
               callee:
-                hash :u64
+                to_string :string
               arg0:
-                x :i32
+                call :u64
+                  callee:
+                    hash :u64
+                  arg0:
+                    x :i32
           ~>
             @builder.finish :string
               __sb_0 :?

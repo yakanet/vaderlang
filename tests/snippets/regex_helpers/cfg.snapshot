@@ -85,37 +85,38 @@ fn tests_snippets_regex_helpers__main_vader$is_non_id(%0: char) -> bool
 
 fn tests_snippets_regex_helpers__main_vader$main() -> i32
   locals:
-    %0 $k_0#31: string
-    %1 $k_1#32: string
-    %2 $call_2#33: string
-    %3 $k_3#34: string
-    %4 $k_4#35: string
-    %5 $call_5#36: string
-    %6 $k_6#37: string
-    %7 $k_7#38: string
-    %8 $call_8#39: string
-    %9 $k_9#40: string
-    %10 $k_10#41: string
-    %11 $call_11#42: string
-    %12 $k_12#43: string
-    %13 $fn_ref_13#44: fn(char) -> bool
-    %14 $k_14#45: string
-    %15 $call_15#46: string
-    %16 $k_16#47: string
-    %17 $fn_ref_17#48: fn(char) -> bool
-    %18 $call_18#49: string[]
-    %19 parts#50: string[] (local parts)
-    %20 $intrinsic_20#51: ?
-    %21 __sb_0#52: ? (synthetic __sb_0)
-    %22 $k_22#53: string
-    %23 $len_23#54: usize
-    %24 $intrinsic_24#55: string
-    %25 n#56: usize (local n)
-    %26 i#58: usize (local i)
-    %27 $lt_29#59: bool
-    %28 $idx_30#60: string
-    %29 $k_31#61: usize
-    %30 $k_33#63: i32
+    %0 $k_0#32: string
+    %1 $k_1#33: string
+    %2 $call_2#34: string
+    %3 $k_3#35: string
+    %4 $k_4#36: string
+    %5 $call_5#37: string
+    %6 $k_6#38: string
+    %7 $k_7#39: string
+    %8 $call_8#40: string
+    %9 $k_9#41: string
+    %10 $k_10#42: string
+    %11 $call_11#43: string
+    %12 $k_12#44: string
+    %13 $fn_ref_13#45: fn(char) -> bool
+    %14 $k_14#46: string
+    %15 $call_15#47: string
+    %16 $k_16#48: string
+    %17 $fn_ref_17#49: fn(char) -> bool
+    %18 $call_18#50: string[]
+    %19 parts#51: string[] (local parts)
+    %20 $intrinsic_20#52: ?
+    %21 __sb_0#53: ? (synthetic __sb_0)
+    %22 $k_22#54: string
+    %23 $len_23#55: usize
+    %24 $call_24#56: string
+    %25 $intrinsic_25#57: string
+    %26 n#58: usize (local n)
+    %27 i#60: usize (local i)
+    %28 $lt_30#61: bool
+    %29 $idx_31#62: string
+    %30 $k_32#63: usize
+    %31 $k_34#65: i32
   bb0:
     %0 = const string(#0) :string
     %1 = const string(#1) :string
@@ -147,21 +148,22 @@ fn tests_snippets_regex_helpers__main_vader$main() -> i32
     %22 = const string(#9) :string
     intrinsic builder.append_str(%21, %22)
     %23 = array_len %19
-    intrinsic builder.append_display(%21, %23)
-    %24 = intrinsic builder.finish(%21)
-    call println(%24) :void
-    %25 = array_len %19
-    %26 = const int(0) :usize
+    %24 = call to_string(%23) :string
+    intrinsic builder.append_str(%21, %24)
+    %25 = intrinsic builder.finish(%21)
+    call println(%25) :void
+    %26 = array_len %19
+    %27 = const int(0) :usize
     branch -> bb1
   bb1:
-    %27 = binop lt %26 %25 :bool
-    cond_branch %27 ? bb2 : bb3
+    %28 = binop lt %27 %26 :bool
+    cond_branch %28 ? bb2 : bb3
   bb2:
-    %28 = array_get %19[%26] :string
-    call println(%28) :void
-    %29 = const int(1) :usize
-    %26 = binop add %26 %29 :usize
+    %29 = array_get %19[%27] :string
+    call println(%29) :void
+    %30 = const int(1) :usize
+    %27 = binop add %27 %30 :usize
     branch -> bb1
   bb3:
-    %30 = const int(0) :i32
-    return %30
+    %31 = const int(0) :i32
+    return %31
