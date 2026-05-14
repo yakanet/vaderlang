@@ -1,17 +1,37 @@
 module _main
-type 0 struct tests_snippets_gc_multi_collect__main_vader$Pair { left:1,right:2 }
+type 0 primitive null
 type 1 primitive i32
-type 2 union 3,0
-type 3 primitive null
+type 2 struct tests_snippets_gc_multi_collect__main_vader$Pair { left:1,right:3 }
+type 3 union 0,2
+type 4 primitive i8
+type 5 primitive string
+type 6 primitive i16
+type 7 primitive i64
+type 8 primitive isize
+type 9 primitive u8
+type 10 primitive u16
+type 11 primitive u32
+type 12 primitive u64
+type 13 primitive usize
+type 14 primitive f32
+type 15 primitive f64
+type 16 primitive bool
+type 17 primitive char
+type 18 primitive void
+type 19 union 20,5
+type 20 ref Error
+type 21 union 20,0
+type 22 union 20,23
+type 23 array 5
 string 0 "expected 3 collections, got "
 string 1 "sum mismatch after 3 collections: "
 string 2 " vs "
 string 3 "ok: 50 nodes survived 3 collections; sum="
-import 0 println std_io$println (string) -> void
-import 1 collect std_runtime$collect () -> void
-import 2 collections std_runtime$collections () -> i32
+import 0 println std_io$println (string:5) -> void:18
+import 1 collect std_runtime$collect () -> void:18
+import 2 collections std_runtime$collections () -> i32:1
 
-fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
+fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32:1
   local head ref
   local i i32
   local c1 i32
@@ -38,7 +58,7 @@ fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
       if $L2 void   ; _main.vader:12:9
         local.get 1   ; _main.vader:13:16
         local.get 0   ; _main.vader:13:16
-        struct.new 0   ; _main.vader:13:16
+        struct.new 2   ; _main.vader:13:16
         local.set 0   ; _main.vader:13:16
         local.get 1   ; _main.vader:14:13
         i32.const 1   ; _main.vader:14:13
@@ -89,24 +109,24 @@ fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
         if $L6 void   ; _main.vader:33:9
           local.get 6   ; _main.vader:34:15
           local.tee 8   ; _main.vader:34:15
-          type_check 3   ; _main.vader:35:13
+          type_check 0   ; _main.vader:35:13
           if $L7 void   ; _main.vader:35:13
             bool.const true   ; _main.vader:35:33
             local.set 7   ; _main.vader:35:33
             br $L5   ; _main.vader:33:5
           else   ; _main.vader:35:13
             local.get 8   ; _main.vader:36:13
-            type_check 0   ; _main.vader:36:13
+            type_check 2   ; _main.vader:36:13
             if $L8 void   ; _main.vader:36:13
               local.get 6   ; _main.vader:37:29
-              struct.get 0 0   ; _main.vader:37:29
+              struct.get 2 0   ; _main.vader:37:29
               local.set 9   ; _main.vader:37:29
               local.get 5   ; _main.vader:37:23
               local.get 9   ; _main.vader:37:23
               i32.add   ; _main.vader:37:23
               local.set 5   ; _main.vader:37:23
               local.get 6   ; _main.vader:38:23
-              struct.get 0 1   ; _main.vader:38:23
+              struct.get 2 1   ; _main.vader:38:23
               local.set 6   ; _main.vader:38:23
               br $L5   ; _main.vader:33:5
             else   ; _main.vader:36:13

@@ -1,9 +1,31 @@
 module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 primitive i8
+type 3 primitive string
+type 4 primitive i16
+type 5 primitive i64
+type 6 primitive isize
+type 7 primitive u8
+type 8 primitive u16
+type 9 primitive u32
+type 10 primitive u64
+type 11 primitive usize
+type 12 primitive f32
+type 13 primitive f64
+type 14 primitive bool
+type 15 primitive char
+type 16 primitive void
+type 17 union 18,3
+type 18 ref Error
+type 19 union 18,0
+type 20 union 18,21
+type 21 array 3
 string 0 " "
-import 0 to_string std_core$u32$Display$to_string (u32) -> string
-import 1 println std_io$println (string) -> void
+import 0 to_string std_core$u32$Display$to_string (u32:9) -> string:3
+import 1 println std_io$println (string:3) -> void:16
 
-fn 0 tests_snippets_enum_to_repr_cast__main_vader$main () -> i32
+fn 0 tests_snippets_enum_to_repr_cast__main_vader$main () -> i32:1
   local c i32
   local __sb_0 any
   local $call_16 string

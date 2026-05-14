@@ -141,8 +141,15 @@ export function newEmitterCtx(optimize: boolean, implRegistry: ImplRegistry | nu
       else traitsBySymbolId.set(entry.forSymbol.id, [entry.traitSymbol.name]);
     }
   }
+  // Reserve idx 0 for the null primitive. The runtime (`vader.h`) relies
+  // on `VADER_BOX_TAG_NULL = 0` so unboxed null values are well-defined
+  // without consulting the type table ; without this reservation, the
+  // first interning request would steal slot 0 and break that invariant.
+  const types: BcType[] = [{ kind: "primitive", val: "null" }];
+  const typeKey = new Map<string, number>();
+  typeKey.set("null", 0);
   return {
-    types: [], typeKey: new Map(),
+    types, typeKey,
     strings: [], stringKey: new Map(),
     functions: [], fnIndexBySymId: new Map(),
     imports: [], importIndexBySymId: new Map(),
@@ -165,7 +172,7 @@ export function reserveCFGStruct(s: CFGStructDecl, ctx: EmitterCtx): void {
  *  flagged `isExtern` (an `@extern`-decorated fn that still has a body),
  *  routes to the import table instead. */
 export function reserveCFGFunction(fn: CFGFunction, ctx: EmitterCtx): void {
-  const sig = paramsToSignature(fn.params, fn.returnType);
+  const sig = paramsToSignature(fn.params, fn.returnType, ctx);
 
   if (fn.isExtern) {
     if (fn.origin.symbol !== null) ctx.importIndexBySymId.set(fn.origin.symbol.id, ctx.imports.length);
@@ -185,7 +192,7 @@ export function reserveCFGFunction(fn: CFGFunction, ctx: EmitterCtx): void {
 
 /** Reserve a bodyless extern fn. Always routes to the import table. */
 export function reserveCFGExtern(ext: CFGExternDecl, ctx: EmitterCtx): void {
-  const sig = paramsToSignature(ext.params, ext.returnType);
+  const sig = paramsToSignature(ext.params, ext.returnType, ctx);
   if (ext.origin.symbol !== null) ctx.importIndexBySymId.set(ext.origin.symbol.id, ctx.imports.length);
   ctx.imports.push({ externName: ext.externName, mangledName: ext.mangled, signature: sig });
   // Extern decls may still be `@export`-decorated (re-exporting an import is
@@ -193,10 +200,14 @@ export function reserveCFGExtern(ext: CFGExternDecl, ctx: EmitterCtx): void {
   // there's no export entry to add.
 }
 
-function paramsToSignature(params: readonly { type: Type }[], returnType: Type): BcSignature {
+function paramsToSignature(
+  params: readonly { type: Type }[], returnType: Type, ctx: EmitterCtx,
+): BcSignature {
   return {
     params: params.map((p) => valTypeOf(p.type)),
     result: valTypeOf(returnType),
+    paramTypes: params.map((p) => internType(ctx, p.type)),
+    resultType: internType(ctx, returnType),
   };
 }
 
@@ -241,7 +252,12 @@ function typeInternKey(t: Type): string {
   switch (t.kind) {
     case "Struct": return `Struct#${t.symbol.id}<${t.args.map(typeInternKey).join("|")}>`;
     case "Trait":  return `Trait#${t.symbol.id}<${t.args.map(typeInternKey).join("|")}>`;
-    case "Enum":   return `Enum#${t.symbol.id}`;
+    // Enums lower to their `repr` primitive at the bcType level, so they
+    // must share a slot with the bare primitive — otherwise
+    // `primitiveTagOf` (which last-wins over every `primitive` entry)
+    // disagrees with the type_check operand on which slot identifies the
+    // shape, and box tags drift from match tags.
+    case "Enum":   return t.repr;
     case "Array":  return `Array<${typeInternKey(t.element)}>`;
     case "Union":  return `Union<${t.variants.map(typeInternKey).join("|")}>`;
     case "Tuple":  return `Tuple<${t.elements.map(typeInternKey).join("|")}>`;
@@ -328,11 +344,19 @@ function internStructDecl(d: CFGStructDecl, ctx: EmitterCtx): number {
   const cached = ctx.typeKey.get(key);
   if (cached !== undefined && ctx.types[cached]?.kind === "struct") return cached;
 
-  const idx = ctx.types.length;
-  ctx.typeKey.set(key, idx);
-  // Reserve before recursing into field types so self-referential structs
-  // (linked-list nodes etc.) terminate.
-  ctx.types.push({ kind: "ref", traitName: d.mangled });
+  // If `internType` already minted a `ref` placeholder under this key
+  // (e.g. a fn signature interned the struct's `Node | null` union
+  // before its decl was reserved), upgrade the placeholder IN PLACE.
+  // Allocating a fresh idx would leave the union's variant pointing
+  // at the orphaned `ref` slot, which would mask `nullableRefVariant`
+  // from recognising B1 unions.
+  const idx = cached !== undefined ? cached : ctx.types.length;
+  if (cached === undefined) {
+    ctx.typeKey.set(key, idx);
+    // Reserve before recursing into field types so self-referential structs
+    // (linked-list nodes etc.) terminate.
+    ctx.types.push({ kind: "ref", traitName: d.mangled });
+  }
 
   const fields = d.fields.map((f) => ({
     name: f.name, typeIndex: internType(ctx, f.type),

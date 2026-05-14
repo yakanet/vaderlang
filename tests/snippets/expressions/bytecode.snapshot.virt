@@ -1,18 +1,32 @@
 module _main
-type 0 struct std_core$Range__i32 { start:1,end:1,inclusive:2,cursor:1 }
+type 0 primitive null
 type 1 primitive i32
-type 2 primitive bool
-impl 0 Contains
-impl 0 Iterator
+type 2 primitive i8
+type 3 primitive string
+type 4 primitive i16
+type 5 primitive i64
+type 6 primitive isize
+type 7 primitive u8
+type 8 primitive u16
+type 9 primitive u32
+type 10 primitive u64
+type 11 primitive usize
+type 12 primitive f32
+type 13 primitive f64
+type 14 primitive bool
+type 15 primitive char
+type 16 struct std_core$Range__i32 { start:1,end:1,inclusive:14,cursor:1 }
+impl 16 Contains
+impl 16 Iterator
 
-fn 0 tests_snippets_expressions__main_vader$add (i32,i32) -> i32
+fn 0 tests_snippets_expressions__main_vader$add (i32:1,i32:1) -> i32:1
   local.get 0   ; _main.vader:2:12
   local.get 1   ; _main.vader:2:12
   i32.add   ; _main.vader:2:12
   return   ; _main.vader:2:5
 end
 
-fn 1 tests_snippets_expressions__main_vader$demo () -> i32
+fn 1 tests_snippets_expressions__main_vader$demo () -> i32:1
   local $mul_3 i32
   local a i32
   local and_res bool

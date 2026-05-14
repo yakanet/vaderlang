@@ -1,15 +1,37 @@
 module _main
-type 0 struct tests_snippets_ufcs_union_receiver__main_vader$Circle { radius:1 }
-type 1 primitive i32
-type 2 struct tests_snippets_ufcs_union_receiver__main_vader$Square { side:1 }
+type 0 primitive null
+type 1 union 2,3
+type 2 struct tests_snippets_ufcs_union_receiver__main_vader$Circle { radius:5 }
+type 3 struct tests_snippets_ufcs_union_receiver__main_vader$Square { side:5 }
+type 4 primitive string
+type 5 primitive i32
+type 6 primitive i8
+type 7 primitive i16
+type 8 primitive i64
+type 9 primitive isize
+type 10 primitive u8
+type 11 primitive u16
+type 12 primitive u32
+type 13 primitive u64
+type 14 primitive usize
+type 15 primitive f32
+type 16 primitive f64
+type 17 primitive bool
+type 18 primitive char
+type 19 primitive void
+type 20 union 21,4
+type 21 ref Error
+type 22 union 21,0
+type 23 union 21,24
+type 24 array 4
 string 0 "circle("
 string 1 ")"
 string 2 "square("
 string 3 "a.area = "
 string 4 "b.area = "
-import 0 println std_io$println (string) -> void
+import 0 println std_io$println (string:4) -> void:19
 
-fn 0 tests_snippets_ufcs_union_receiver__main_vader$describe (ref) -> string
+fn 0 tests_snippets_ufcs_union_receiver__main_vader$describe (ref:1) -> string:4
   local __scrut_0 ref
   local c ref
   local __sb_2 any
@@ -19,7 +41,7 @@ fn 0 tests_snippets_ufcs_union_receiver__main_vader$describe (ref) -> string
   local $field_19 i32
   local.get 0   ; _main.vader:15:18
   local.tee 1   ; _main.vader:15:18
-  type_check 0   ; _main.vader:16:9
+  type_check 2   ; _main.vader:16:9
   if $L0 void   ; _main.vader:16:9
     local.get 1   ; _main.vader:16:9
     local.set 2   ; _main.vader:16:9
@@ -29,7 +51,7 @@ fn 0 tests_snippets_ufcs_union_receiver__main_vader$describe (ref) -> string
     string.const 0   ; _main.vader:16:28
     intrinsic builder.append_str   ; _main.vader:16:28
     local.get 2   ; _main.vader:16:37
-    struct.get 0 0   ; _main.vader:16:37
+    struct.get 2 0   ; _main.vader:16:37
     local.set 4   ; _main.vader:16:37
     local.get 3   ; _main.vader:16:35
     local.get 4   ; _main.vader:16:35
@@ -42,7 +64,7 @@ fn 0 tests_snippets_ufcs_union_receiver__main_vader$describe (ref) -> string
     return   ; _main.vader:15:5
   else   ; _main.vader:16:9
     local.get 1   ; _main.vader:17:9
-    type_check 2   ; _main.vader:17:9
+    type_check 3   ; _main.vader:17:9
     if $L1 void   ; _main.vader:17:9
       local.get 1   ; _main.vader:17:9
       local.set 5   ; _main.vader:17:9
@@ -52,7 +74,7 @@ fn 0 tests_snippets_ufcs_union_receiver__main_vader$describe (ref) -> string
       string.const 2   ; _main.vader:17:29
       intrinsic builder.append_str   ; _main.vader:17:29
       local.get 5   ; _main.vader:17:38
-      struct.get 2 0   ; _main.vader:17:38
+      struct.get 3 0   ; _main.vader:17:38
       local.set 7   ; _main.vader:17:38
       local.get 6   ; _main.vader:17:36
       local.get 7   ; _main.vader:17:36
@@ -69,7 +91,7 @@ fn 0 tests_snippets_ufcs_union_receiver__main_vader$describe (ref) -> string
   end $L0   ; _main.vader:16:9
 end
 
-fn 1 tests_snippets_ufcs_union_receiver__main_vader$area (ref) -> i32
+fn 1 tests_snippets_ufcs_union_receiver__main_vader$area (ref:1) -> i32:5
   local __scrut_0 ref
   local c ref
   local $field_6 i32
@@ -80,14 +102,14 @@ fn 1 tests_snippets_ufcs_union_receiver__main_vader$area (ref) -> i32
   local $field_16 i32
   local.get 0   ; _main.vader:22:18
   local.tee 1   ; _main.vader:22:18
-  type_check 0   ; _main.vader:23:9
+  type_check 2   ; _main.vader:23:9
   if $L0 void   ; _main.vader:23:9
     local.get 1   ; _main.vader:23:9
     local.tee 2   ; _main.vader:23:9
-    struct.get 0 0   ; _main.vader:23:27
+    struct.get 2 0   ; _main.vader:23:27
     local.set 3   ; _main.vader:23:27
     local.get 2   ; _main.vader:23:38
-    struct.get 0 0   ; _main.vader:23:38
+    struct.get 2 0   ; _main.vader:23:38
     local.set 4   ; _main.vader:23:38
     local.get 3   ; _main.vader:23:27
     local.get 4   ; _main.vader:23:27
@@ -99,14 +121,14 @@ fn 1 tests_snippets_ufcs_union_receiver__main_vader$area (ref) -> i32
     return   ; _main.vader:22:5
   else   ; _main.vader:23:9
     local.get 1   ; _main.vader:24:9
-    type_check 2   ; _main.vader:24:9
+    type_check 3   ; _main.vader:24:9
     if $L1 void   ; _main.vader:24:9
       local.get 1   ; _main.vader:24:9
       local.tee 6   ; _main.vader:24:9
-      struct.get 2 0   ; _main.vader:24:28
+      struct.get 3 0   ; _main.vader:24:28
       local.set 7   ; _main.vader:24:28
       local.get 6   ; _main.vader:24:38
-      struct.get 2 0   ; _main.vader:24:38
+      struct.get 3 0   ; _main.vader:24:38
       local.set 8   ; _main.vader:24:38
       local.get 7   ; _main.vader:24:28
       local.get 8   ; _main.vader:24:28
@@ -118,7 +140,7 @@ fn 1 tests_snippets_ufcs_union_receiver__main_vader$area (ref) -> i32
   end $L0   ; _main.vader:23:9
 end
 
-fn 2 tests_snippets_ufcs_union_receiver__main_vader$main () -> i32
+fn 2 tests_snippets_ufcs_union_receiver__main_vader$main () -> i32:5
   local a ref
   local b ref
   local __sb_0 any
@@ -126,10 +148,10 @@ fn 2 tests_snippets_ufcs_union_receiver__main_vader$main () -> i32
   local __sb_1 any
   local $call_16 i32
   i32.const 5   ; _main.vader:29:35
-  struct.new 0   ; _main.vader:29:16
+  struct.new 2   ; _main.vader:29:16
   local.set 0   ; _main.vader:29:16
   i32.const 4   ; _main.vader:30:33
-  struct.new 2   ; _main.vader:30:16
+  struct.new 3   ; _main.vader:30:16
   local.set 1   ; _main.vader:30:16
   local.get 0   ; _main.vader:31:13
   call 0   ; _main.vader:31:13

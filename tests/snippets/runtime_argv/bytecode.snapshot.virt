@@ -1,16 +1,36 @@
 module _main
-type 0 struct std_core$Done {  }
-type 1 struct std_core$Yielded__string { value:2 }
+type 0 primitive null
+type 1 array 2
 type 2 primitive string
-type 3 struct std_core$ArrayIterator__string { arr:4,cursor:5,length:5 }
-type 4 array 2
-type 5 primitive usize
+type 3 primitive i32
+type 4 struct std_core$ArrayIterator__string { arr:1,cursor:16,length:16 }
+type 5 union 6,7
+type 6 struct std_core$Done {  }
+type 7 struct std_core$Yielded__string { value:2 }
+type 8 primitive i8
+type 9 primitive i16
+type 10 primitive i64
+type 11 primitive isize
+type 12 primitive u8
+type 13 primitive u16
+type 14 primitive u32
+type 15 primitive u64
+type 16 primitive usize
+type 17 primitive f32
+type 18 primitive f64
+type 19 primitive bool
+type 20 primitive char
+type 21 primitive void
+type 22 union 23,2
+type 23 ref Error
+type 24 union 23,0
+type 25 union 23,1
 string 0 "argc="
-import 0 to_string std_core$usize$Display$to_string (usize) -> string
-import 1 println std_io$println (string) -> void
-impl 3 Iterator
+import 0 to_string std_core$usize$Display$to_string (usize:16) -> string:2
+import 1 println std_io$println (string:2) -> void:21
+impl 4 Iterator
 
-fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
+fn 0 tests_snippets_runtime_argv__main_vader$main (ref:1) -> i32:3
   local __sb_0 any
   local $len_4 usize
   local $call_7 string
@@ -48,18 +68,18 @@ fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
   i64.const 0   ; _main.vader:9:14
   i64.to_usize   ; _main.vader:9:14
   local.get 5   ; _main.vader:9:14
-  struct.new 3   ; _main.vader:9:14
+  struct.new 4   ; _main.vader:9:14
   local.set 6   ; _main.vader:9:14
   block $L0 void   ; _main.vader:9:5
     loop $L1 void   ; _main.vader:9:5
       local.get 6   ; _main.vader:9:5
       call 1   ; _main.vader:9:5
       local.tee 7   ; _main.vader:9:5
-      type_check 0   ; _main.vader:9:5
+      type_check 6   ; _main.vader:9:5
       if $L2 void   ; _main.vader:9:5
       else   ; _main.vader:9:5
         local.get 7   ; _main.vader:9:5
-        struct.get 1 0   ; _main.vader:9:5
+        struct.get 7 0   ; _main.vader:9:5
         local.set 8   ; _main.vader:9:5
         local.get 4   ; _main.vader:10:9
         if $L3 void   ; _main.vader:10:9
@@ -77,7 +97,7 @@ fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
   return   ; _main.vader:16:5
 end
 
-fn 1 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
+fn 1 std_core$ArrayIterator$Iterator$next__string (ref:4) -> ref:5
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -86,31 +106,31 @@ fn 1 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   local $field_9 usize
   local $add_11 usize
   local.get 0   ; core.vader:244:13
-  struct.get 3 1   ; core.vader:244:13
+  struct.get 4 1   ; core.vader:244:13
   local.set 1   ; core.vader:244:13
   local.get 0   ; core.vader:244:28
-  struct.get 3 2   ; core.vader:244:28
+  struct.get 4 2   ; core.vader:244:28
   local.set 2   ; core.vader:244:28
   local.get 1   ; core.vader:244:13
   local.get 2   ; core.vader:244:13
   usize.ge   ; core.vader:244:13
   if $L0 void   ; core.vader:244:9
-    struct.new 0   ; core.vader:244:50
+    struct.new 6   ; core.vader:244:50
     return   ; core.vader:244:43
   else   ; core.vader:244:9
     local.get 0   ; core.vader:245:14
-    struct.get 3 0   ; core.vader:245:14
+    struct.get 4 0   ; core.vader:245:14
     local.set 3   ; core.vader:245:14
     local.get 0   ; core.vader:245:23
-    struct.get 3 1   ; core.vader:245:23
+    struct.get 4 1   ; core.vader:245:23
     local.set 4   ; core.vader:245:23
     local.get 3   ; core.vader:245:14
     local.get 4   ; core.vader:245:14
-    array.get 4   ; core.vader:245:14
+    array.get 1   ; core.vader:245:14
     ref.cast 2   ; core.vader:245:14
     local.set 5   ; core.vader:245:14
     local.get 0   ; core.vader:246:23
-    struct.get 3 1   ; core.vader:246:23
+    struct.get 4 1   ; core.vader:246:23
     local.set 6   ; core.vader:246:23
     local.get 6   ; core.vader:246:23
     i64.const 1   ; core.vader:246:23
@@ -119,9 +139,9 @@ fn 1 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
     local.set 7   ; core.vader:246:23
     local.get 0   ; core.vader:246:9
     local.get 7   ; core.vader:246:9
-    struct.set 3 1   ; core.vader:246:9
+    struct.set 4 1   ; core.vader:246:9
     local.get 5   ; core.vader:247:16
-    struct.new 1   ; core.vader:247:16
+    struct.new 7   ; core.vader:247:16
     return   ; core.vader:247:9
   end $L0   ; core.vader:244:9
 end

@@ -1,16 +1,36 @@
 module _main
-type 0 struct tests_snippets_match_is_as_binding__main_vader$P { x:1 }
-type 1 primitive i32
-type 2 struct tests_snippets_match_is_as_binding__main_vader$Q { y:3 }
-type 3 primitive string
-type 4 primitive null
+type 0 primitive null
+type 1 union 0,2,3
+type 2 struct tests_snippets_match_is_as_binding__main_vader$P { x:5 }
+type 3 struct tests_snippets_match_is_as_binding__main_vader$Q { y:4 }
+type 4 primitive string
+type 5 primitive i32
+type 6 primitive i8
+type 7 primitive i16
+type 8 primitive i64
+type 9 primitive isize
+type 10 primitive u8
+type 11 primitive u16
+type 12 primitive u32
+type 13 primitive u64
+type 14 primitive usize
+type 15 primitive f32
+type 16 primitive f64
+type 17 primitive bool
+type 18 primitive char
+type 19 primitive void
+type 20 union 21,4
+type 21 ref Error
+type 22 union 21,0
+type 23 union 21,24
+type 24 array 4
 string 0 "null"
 string 1 "P.x = "
 string 2 "Q.y = "
 string 3 "hello"
-import 0 println std_io$println (string) -> void
+import 0 println std_io$println (string:4) -> void:19
 
-fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref) -> string
+fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref:1) -> string:4
   local __scrut_0 ref
   local p ref
   local __sb_2 any
@@ -20,13 +40,13 @@ fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref) -> string
   local $field_21 string
   local.get 0   ; _main.vader:12:18
   local.tee 1   ; _main.vader:12:18
-  type_check 4   ; _main.vader:13:9
+  type_check 0   ; _main.vader:13:9
   if $L0 void   ; _main.vader:13:9
     string.const 0   ; _main.vader:13:20
     return   ; _main.vader:12:5
   else   ; _main.vader:13:9
     local.get 1   ; _main.vader:14:9
-    type_check 0   ; _main.vader:14:9
+    type_check 2   ; _main.vader:14:9
     if $L1 void   ; _main.vader:14:9
       local.get 1   ; _main.vader:14:9
       local.set 2   ; _main.vader:14:9
@@ -36,7 +56,7 @@ fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref) -> string
       string.const 1   ; _main.vader:14:23
       intrinsic builder.append_str   ; _main.vader:14:23
       local.get 2   ; _main.vader:14:31
-      struct.get 0 0   ; _main.vader:14:31
+      struct.get 2 0   ; _main.vader:14:31
       local.set 4   ; _main.vader:14:31
       local.get 3   ; _main.vader:14:29
       local.get 4   ; _main.vader:14:29
@@ -46,7 +66,7 @@ fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref) -> string
       return   ; _main.vader:12:5
     else   ; _main.vader:14:9
       local.get 1   ; _main.vader:15:9
-      type_check 2   ; _main.vader:15:9
+      type_check 3   ; _main.vader:15:9
       if $L2 void   ; _main.vader:15:9
         local.get 1   ; _main.vader:15:9
         local.set 5   ; _main.vader:15:9
@@ -56,7 +76,7 @@ fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref) -> string
         string.const 2   ; _main.vader:15:23
         intrinsic builder.append_str   ; _main.vader:15:23
         local.get 5   ; _main.vader:15:31
-        struct.get 2 0   ; _main.vader:15:31
+        struct.get 3 0   ; _main.vader:15:31
         local.set 7   ; _main.vader:15:31
         local.get 6   ; _main.vader:15:29
         local.get 7   ; _main.vader:15:29
@@ -71,13 +91,13 @@ fn 0 tests_snippets_match_is_as_binding__main_vader$show (ref) -> string
   end $L0   ; _main.vader:13:9
 end
 
-fn 1 tests_snippets_match_is_as_binding__main_vader$main () -> i32
+fn 1 tests_snippets_match_is_as_binding__main_vader$main () -> i32:5
   i32.const 42   ; _main.vader:20:27
-  struct.new 0   ; _main.vader:20:18
+  struct.new 2   ; _main.vader:20:18
   call 0   ; _main.vader:20:13
   call.import 0   ; _main.vader:20:5
   string.const 3   ; _main.vader:21:27
-  struct.new 2   ; _main.vader:21:18
+  struct.new 3   ; _main.vader:21:18
   call 0   ; _main.vader:21:13
   call.import 0   ; _main.vader:21:5
   null.const   ; _main.vader:22:18

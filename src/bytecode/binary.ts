@@ -322,6 +322,8 @@ function writeSignature(w: Writer, s: BcSignature): void {
   w.u32(s.params.length);
   for (const p of s.params) w.u8(valTypeTag(p));
   w.u8(valTypeTag(s.result));
+  for (const ti of s.paramTypes) w.u32(ti);
+  w.u32(s.resultType);
 }
 
 function writeFunctions(
@@ -616,7 +618,10 @@ function readSignature(r: Reader): BcSignature {
   const params: ValType[] = [];
   for (let i = 0; i < pc; i++) params.push(valTypeFromTag(r, r.u8()));
   const result = valTypeFromTag(r, r.u8());
-  return { params, result };
+  const paramTypes: number[] = [];
+  for (let i = 0; i < pc; i++) paramTypes.push(r.u32());
+  const resultType = r.u32();
+  return { params, result, paramTypes, resultType };
 }
 
 function readDebugFiles(r: Reader): string[] {

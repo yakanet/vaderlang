@@ -43,6 +43,14 @@ export interface BcFunction {
 export interface BcSignature {
   readonly params: readonly ValType[];
   readonly result: ValType;            // `void` = leaves nothing on the stack
+  /** Per-param `BcType` indices into `BytecodeModule.types`. Parallel to
+   *  `params` and matches its length. The VM only consults `params` /
+   *  `result` (which carry the stack-erased `ValType`s) ; the C-emit
+   *  reads these indices to apply B1 (nullable-ref inline rep) at the
+   *  call boundary. Computed by `paramsToSignature` in `bytecode/emit.ts`. */
+  readonly paramTypes: readonly number[];
+  /** `BcType` index for the return slot. Same purpose as `paramTypes`. */
+  readonly resultType: number;
 }
 
 export interface BcLocal {
