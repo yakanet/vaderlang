@@ -45,6 +45,24 @@ export ParsedArgs :: struct {
 /// @param specs  the flag set this caller accepts.
 /// @return       a populated `ParsedArgs`.
 export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
+    return parse_inner(args, specs, true)
+}
+
+/// Like `parse`, but unknown flags are routed to `positionals` (verbatim,
+/// keeping the leading `--`) instead of `errors`. Use this when several
+/// parsers share an argv — e.g. a global pass that pulls its 3 flags out
+/// and hands the rest to a sub-command parser.
+/// @param args   tokens to parse.
+/// @param specs  flags this layer consumes ; everything else passes through.
+/// @return       a populated `ParsedArgs` with no "unknown flag" errors.
+export parse_known :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
+    return parse_inner(args, specs, false)
+}
+
+// Bool-value and Str missing-value errors fire in both modes : those signal
+// a malformed *known* flag, which is a caller mistake regardless of how
+// unknown flags are routed.
+parse_inner :: fn(args: string[], specs: FlagSpec[], strict: bool) -> ParsedArgs {
     flags := MutableMap(string, string) { .buckets = [], .size = 0 }
     positionals: string[] = []
     errors: string[] = []
@@ -78,7 +96,11 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
         spec :: find_spec(specs, name)
         match spec {
             is null -> {
-                errors.push("unknown flag --${name}")
+                if strict {
+                    errors.push("unknown flag --${name}")
+                } else {
+                    positionals.push(a)
+                }
             }
             is FlagSpec -> {
                 match spec.kind {
@@ -143,4 +165,102 @@ export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> str
         is string -> { return v }
     }
     return default
+}
+
+// ---------------------------------------------------------------------- tests
+
+import "std/testing" { assert, assert_eq }
+
+@test test_bool_flag_presence :: fn() -> void {
+    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
+    parsed :: parse(["--verbose"], specs)
+    assert_eq(parsed.errors.len(), usize(0))
+    assert(parsed.bool_flag("verbose"), "presence-only --verbose should resolve to true")
+}
+
+@test test_bool_flag_explicit_value :: fn() -> void {
+    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
+    parsed :: parse(["--verbose=false"], specs)
+    assert_eq(parsed.errors.len(), usize(0))
+    assert(!parsed.bool_flag("verbose"), "--verbose=false should resolve to false")
+}
+
+@test test_bool_flag_rejects_garbage_value :: fn() -> void {
+    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
+    parsed :: parse(["--verbose=maybe"], specs)
+    assert_eq(parsed.errors.len(), usize(1))
+}
+
+@test test_bool_flag_missing_is_false :: fn() -> void {
+    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
+    parsed :: parse([], specs)
+    assert(!parsed.bool_flag("verbose"),  "absent bool flag reads as false")
+    assert(!parsed.bool_flag("not-a-spec"), "wholly unknown name reads as false")
+}
+
+@test test_str_flag_value :: fn() -> void {
+    specs: FlagSpec[] = [FlagSpec { .name = "out", .kind = .Str }]
+    parsed :: parse(["--out=/tmp/path"], specs)
+    assert_eq(parsed.errors.len(), usize(0))
+    assert_eq(parsed.string_flag("out", ""), "/tmp/path")
+}
+
+@test test_str_flag_missing_value_errors :: fn() -> void {
+    specs: FlagSpec[] = [FlagSpec { .name = "out", .kind = .Str }]
+    parsed :: parse(["--out"], specs)
+    assert_eq(parsed.errors.len(), usize(1))
+}
+
+@test test_str_flag_default_when_absent :: fn() -> void {
+    specs: FlagSpec[] = [FlagSpec { .name = "out", .kind = .Str }]
+    parsed :: parse([], specs)
+    assert_eq(parsed.string_flag("out", "fallback"), "fallback")
+}
+
+@test test_unknown_flag_strict_errors :: fn() -> void {
+    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
+    parsed :: parse(["--unknown"], specs)
+    assert_eq(parsed.errors.len(), usize(1))
+    assert_eq(parsed.positionals.len(), usize(0))
+}
+
+@test test_positionals_preserve_order :: fn() -> void {
+    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
+    parsed :: parse(["a", "--verbose", "b", "c"], specs)
+    assert_eq(parsed.errors.len(), usize(0))
+    assert_eq(parsed.positionals.len(), usize(3))
+    assert_eq(parsed.positionals[0], "a")
+    assert_eq(parsed.positionals[1], "b")
+    assert_eq(parsed.positionals[2], "c")
+}
+
+@test test_double_dash_stops_flag_parsing :: fn() -> void {
+    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
+    parsed :: parse(["--verbose", "--", "--not-a-flag", "x"], specs)
+    assert_eq(parsed.errors.len(), usize(0))
+    assert(parsed.bool_flag("verbose"), "--verbose seen before `--`")
+    assert_eq(parsed.positionals.len(), usize(2))
+    assert_eq(parsed.positionals[0], "--not-a-flag")
+    assert_eq(parsed.positionals[1], "x")
+}
+
+@test test_parse_known_routes_unknown_to_positionals :: fn() -> void {
+    specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
+    parsed :: parse_known(["--unknown", "--unknown=val", "--verbose", "file"], specs)
+    assert_eq(parsed.errors.len(), usize(0))
+    assert(parsed.bool_flag("verbose"), "known flag still consumed")
+    assert_eq(parsed.positionals.len(), usize(3))
+    // Unknowns pass through verbatim (with their `--` prefix), preserving
+    // argv order against the trailing positional.
+    assert_eq(parsed.positionals[0], "--unknown")
+    assert_eq(parsed.positionals[1], "--unknown=val")
+    assert_eq(parsed.positionals[2], "file")
+}
+
+@test test_parse_known_still_errors_on_malformed_known :: fn() -> void {
+    // Permissive mode forgives *unknown* flags, not malformed known flags ;
+    // `--out` alone is a caller mistake regardless of strictness.
+    specs: FlagSpec[] = [FlagSpec { .name = "out", .kind = .Str }]
+    parsed :: parse_known(["--out"], specs)
+    assert_eq(parsed.errors.len(), usize(1))
 }

@@ -9,8 +9,9 @@
 // "not yet implemented" message.
 
 import "std/io" { println, eprintln, read_file }
-import "std/string" { byte_len, slice, starts_with, ends_with }
+import "std/string" { starts_with, ends_with }
 import "std/iter" { slice as slice_arr }
+import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
 import "vader/parser" { parse_source, dump_program }
@@ -86,42 +87,52 @@ export ParseGlobalsResult :: struct {
     errors: string[]
 }
 
-// One-pass parser : recognises the three TS global flags, accumulates
-// everything else into `rest`. Mirror of `parseGlobalOpts` in
-// `src/cli/options.ts`.
+// Mirror of `parseGlobalOpts` in `src/cli/options.ts`.
 parse_global_opts :: fn(args: string[]) -> ParseGlobalsResult {
-    diagnostics := "text"
-    allow_env := false
-    bytecode_opt := true
-    rest:   string[] = []
-    errors: string[] = []
-    diag_prefix :: "--diagnostics="
+    specs: FlagSpec[] = [
+        FlagSpec { .name = "diagnostics",     .kind = .Str },
+        FlagSpec { .name = "allow-env",       .kind = .Bool },
+        FlagSpec { .name = "no-bytecode-opt", .kind = .Bool },
+    ]
+    parsed :: parse_known(args, specs)
 
-    for a in args {
-        if a.starts_with(diag_prefix) {
-            v :: a.slice(diag_prefix.byte_len(), a.byte_len())
-            if v == "text" || v == "json" {
-                diagnostics = v
-            } else {
-                errors.push("unknown --diagnostics format \"${v}\" (expected: text, json)")
-            }
-            continue
-        }
-        if a == "--allow-env" {
-            allow_env = true
-            continue
-        }
-        if a == "--no-bytecode-opt" {
-            bytecode_opt = false
-            continue
-        }
-        rest.push(a)
+    diagnostics := "text"
+    errors: string[] = []
+
+    diag_raw :: parsed.string_flag("diagnostics", "text")
+    if diag_raw == "text" || diag_raw == "json" {
+        diagnostics = diag_raw
+    } else {
+        errors.push("unknown --diagnostics format \"${diag_raw}\" (expected: text, json)")
     }
+
+    allow_env    :: parsed.bool_flag("allow-env")
+    bytecode_opt :: !parsed.bool_flag("no-bytecode-opt")
+
+    for e in parsed.errors { errors.push(e) }
+
     return ParseGlobalsResult {
-        .opts   = GlobalOpts { .diagnostics = diagnostics, .allow_env = allow_env, .bytecode_opt = bytecode_opt },
-        .rest   = rest,
+        .opts   = GlobalOpts {
+            .diagnostics  = diagnostics,
+            .allow_env    = allow_env,
+            .bytecode_opt = bytecode_opt,
+        },
+        .rest   = parsed.positionals,
         .errors = errors,
     }
+}
+
+// First entry of `positionals` that isn't a passthrough unknown flag.
+// `parse_known` keeps unknown `--…` tokens in `positionals` verbatim so the
+// caller can layer parsers ; this helper recovers "the file argument" for
+// sub-commands that don't care about the leaked flags.
+first_file_arg :: fn(positionals: string[]) -> string {
+    for p in positionals {
+        if !p.starts_with("--") {
+            return p
+        }
+    }
+    return ""
 }
 
 main :: fn(argv: string[]) -> i32 {
@@ -210,32 +221,22 @@ cmd_test :: fn(args: string[]) -> i32 {
 // ----------------------------------------------------------- build
 
 cmd_build :: fn(args: string[]) -> i32 {
-    target := "native"
-    use_manifest := false
-    file := ""
-    has_file := false
-    target_prefix :: "--target="
-    out_prefix    :: "--out="
-
-    for a in args {
-        if a.starts_with(target_prefix) {
-            target = a.slice(target_prefix.byte_len(), a.byte_len())
-            continue
-        }
-        if a == "--manifest" {
-            use_manifest = true
-            continue
-        }
-        if a.starts_with(out_prefix) {
-            // Recognised so it doesn't slip into the positional bucket ;
-            // self-hosted has nothing to write yet.
-            continue
-        }
-        if !a.starts_with("--") && !has_file {
-            file = a
-            has_file = true
-        }
+    // `--out` and `--release` are registered so they don't surface as
+    // positionals — self-hosted build is a stub, so we don't read them yet.
+    specs: FlagSpec[] = [
+        FlagSpec { .name = "target",   .kind = .Str  },
+        FlagSpec { .name = "manifest", .kind = .Bool },
+        FlagSpec { .name = "out",      .kind = .Str  },
+        FlagSpec { .name = "release",  .kind = .Bool },
+    ]
+    parsed :: parse_known(args, specs)
+    if parsed.errors.len() > 0 {
+        for e in parsed.errors { eprintln("vader build: ${e}") }
+        return 1
     }
+
+    target       :: parsed.string_flag("target", "native")
+    use_manifest :: parsed.bool_flag("manifest")
 
     if target != "native" && target != "wasm" && target != "ir" && target != "c" {
         eprintln("vader build: unknown target \"${target}\"")
@@ -243,13 +244,15 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 1
     }
 
-    if !has_file && !use_manifest {
+    file :: first_file_arg(parsed.positionals)
+
+    if file == "" && !use_manifest {
         eprintln("vader build: expected either a file or --manifest (vader.json)")
         return 1
     }
 
     if target == "wasm" {
-        file_repr :: if has_file { file } else { "(manifest)" }
+        file_repr :: if file != "" { file } else { "(manifest)" }
         eprintln("vader build: not yet implemented (target=wasm, file=${file_repr})")
         return 2
     }
@@ -268,25 +271,19 @@ cmd_build :: fn(args: string[]) -> i32 {
 // ----------------------------------------------------------- dump
 
 cmd_dump :: fn(args: string[]) -> i32 {
-    stage_prefix :: "--stage="
-    has_stage := false
-    stage := ""
-    file := ""
-    has_file := false
-
-    for a in args {
-        if a.starts_with(stage_prefix) {
-            stage = a.slice(stage_prefix.byte_len(), a.byte_len())
-            has_stage = true
-            continue
-        }
-        if !a.starts_with("--") && !has_file {
-            file = a
-            has_file = true
-        }
+    specs: FlagSpec[] = [
+        FlagSpec { .name = "stage", .kind = .Str },
+    ]
+    parsed :: parse_known(args, specs)
+    if parsed.errors.len() > 0 {
+        for e in parsed.errors { eprintln("vader dump: ${e}") }
+        return 1
     }
 
-    if !has_stage || !has_file {
+    stage :: parsed.string_flag("stage", "")
+    file  :: first_file_arg(parsed.positionals)
+
+    if stage == "" || file == "" {
         eprintln("vader dump: expected --stage=<stage> <file>")
         eprintln(STAGES_LIST)
         return 1
