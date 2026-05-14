@@ -8,7 +8,7 @@ Five workloads measured across four implementations of each. The set spans float
 | `primes`         | i32 / i64 arithmetic, modulo                    | count primes ≤ N by trial division up to `√n`                   | N = 1 000 000                          |
 | `iter_chain`     | lazy iter dispatch, per-iter union allocation   | Σ x² for even x in [0, N) via `MapIterator` ∘ `FilterIterator` ∘ `Range` | N = 1 000 000                  |
 | `binary_trees`   | recursive allocation + GC throughput            | build a balanced tree, then count its nodes                     | depth = 17 (262 143 nodes)             |
-| `string_builder` | string runtime + GC under in-flight builder     | append a 45-char fragment N times, finalise to a flat string    | N = 50 000                             |
+| `string_builder` | string runtime + GC under in-flight builder     | append a 45-char fragment N times, finalise to a flat string    | N = 80 000                             |
 
 Every program prints a one-line checksum so cross-language equivalence is verifiable.
 
@@ -54,11 +54,11 @@ Captured on a 2026 Apple Silicon laptop, `bun bench/run.ts --runs=5 --update`:
 
 | workload         | vader-native | bun-ts  | go      | java    |
 |------------------|--------------|---------|---------|---------|
-| `mandelbrot`     | 16.4 ms      | 25.4 ms | 18.7 ms | 45.5 ms |
-| `primes`         | 22.5 ms      | 39.1 ms | 23.7 ms | 57.2 ms |
-| `iter_chain`     |  1.9 ms      | 34.8 ms |  4.2 ms | 35.8 ms |
-| `binary_trees`   | 14.9 ms      | 12.6 ms |  7.4 ms | 36.9 ms |
-| `string_builder` |  3.3 ms      | 10.9 ms |  4.9 ms | 37.9 ms |
+| `mandelbrot`     | 15.5 ms      | 22.6 ms | 16.9 ms | 44.4 ms |
+| `primes`         | 22.2 ms      | 37.8 ms | 23.0 ms | 53.9 ms |
+| `iter_chain`     |  2.4 ms      | 34.1 ms |  2.7 ms | 35.4 ms |
+| `binary_trees`   | 13.8 ms      | 11.6 ms |  6.8 ms | 32.3 ms |
+| `string_builder` |  5.3 ms      | 10.9 ms |  6.7 ms | 34.1 ms |
 
 Reading the table :
 
@@ -76,8 +76,8 @@ The `mandelbrot` checksum diverges by ~16 k iterations between the Go peer and t
 These aren't bench bugs ; they're real Vader limits that constrain workload sizing.
 
 - **`bool[]` GC trap on the sieve**. The original `primes` design used Sieve of Eratosthenes (matching `examples/primes.vader`). Vader's `bool[]` stores every element as a 16-byte `vader_box_t`, so a 10 M-element sieve allocates 160 MB and exceeds the 4 MB young semi-space. Trial division sidesteps the array entirely. Follow-up : primitive-array storage + `Array.new(size)` constructor in stdlib.
-- **`StringBuilder` `parts` array doubling caps at N ≈ 65 k entries**. Past that the doubling allocates > 4 MB in one shot and trips the young semi-space cap. `string_builder` is sized just under the cap at N = 50 000.
-- **`StringBuilder` drops one fragment at N ≈ 65 536**. Pre-existing bug — reproduces under both the for-in-range counter loop and a hand-written `for i < N` ; output is short by exactly one fragment. Tracked separately ; not phase-A regression. Sized below the trigger for now.
+- **`StringBuilder` `parts` array doubling caps at N ≈ 131 k entries**. Past that the doubling allocates > 4 MB in one shot and trips the young semi-space cap (the 4 MB single-alloc ceiling). The final `to_string()` is its own 4 MB cap : the joined output must fit in young at once. With a 45-char fragment the bench at N = 80 000 produces a 3.6 MB string — comfortably under both caps.
+- **`vader_array_push` lost one entry at the 65 k → 131 k doubling step** (fixed 2026-05-14, commit `aecb9ce2`). The grow path triggered back-to-back minor + major GC, and after the second swap the original `a` address was recycled by the fresh-buf allocation that immediately followed — `vader_array_resolve` then walked zero steps because the forward pointer was overwritten. Fix : box `a` into a local `vader_box_t` rooted on the shadow stack across `vader_array_buf_alloc` ; the GC's `scan_box` re-updates the box's `payload.obj` through every cycle, no forward-chain walk needed. The bench was capped at N = 50 000 to dodge the bug ; now it runs at N = 80 000.
 
 ## Adding a workload
 

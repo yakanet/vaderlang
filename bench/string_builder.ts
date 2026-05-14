@@ -2,7 +2,7 @@
 // array of fragments + final .join(""), mirroring Vader's StringBuilder
 // which keeps parts in a string[] and flushes once.
 
-const N = 50_000;
+const N = 80_000;
 const FRAGMENT = "The quick brown fox jumps over the lazy dog.\n";
 
 const parts: string[] = [];

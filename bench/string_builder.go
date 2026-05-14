@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-const N = 50_000
+const N = 80_000
 const FRAGMENT = "The quick brown fox jumps over the lazy dog.\n"
 
 func main() {

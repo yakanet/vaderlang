@@ -3,7 +3,7 @@
 // Vader's `StringBuilder`.
 
 public class string_builder {
-    static final int N = 50_000;
+    static final int N = 80_000;
     static final String FRAGMENT = "The quick brown fox jumps over the lazy dog.\n";
 
     public static void main(String[] args) {

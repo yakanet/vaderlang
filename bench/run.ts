@@ -52,7 +52,7 @@ const WORKLOADS: readonly Workload[] = [
   { name: "primes",         description: "trial division up to N = 1 000 000",       outputMatch: "primes" },
   { name: "iter_chain",     description: "Σ x² for even x in [0, 1 000 000)",        outputMatch: "iter_chain" },
   { name: "binary_trees",   description: "balanced tree depth=17 (262 143 nodes)",   outputMatch: "binary_trees" },
-  { name: "string_builder", description: "append a 45-char fragment 50 000 times",   outputMatch: "string_builder" },
+  { name: "string_builder", description: "append a 45-char fragment 80 000 times",   outputMatch: "string_builder" },
 ];
 
 interface Impl {
