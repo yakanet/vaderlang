@@ -62,6 +62,15 @@ static int           g_gc_initialized = 0;
 static size_t        g_total_collections = 0;
 static size_t        g_total_copied = 0;
 
+/* Stress mode — set via `VADER_GC_STRESS=1`. When enabled, every
+ * `vader_gc_alloc` triggers a minor collect (and the string sweep that
+ * runs at minor end). Forces every safepoint to exercise the full
+ * shadow-stack walk + conservative C-stack scan + string mark, which
+ * turns intermittent rooting bugs into deterministic failures. Off by
+ * default: the 100×–10000× slowdown is reserved for debugging sessions.
+ * Captured once on init; the env var has no effect mid-run. */
+static int g_gc_stress = 0;
+
 /* Current cycle. Drives both `vader_gc_forward` (which arena to copy into)
  * and the collection counter (sub-cycles don't bump it independently). */
 typedef enum {
@@ -110,6 +119,9 @@ static int vader_in_old_any(const void* p) {
 
 void vader_gc_init(void) {
     if (g_gc_initialized) return;
+
+    const char* stress_env = getenv("VADER_GC_STRESS");
+    g_gc_stress = (stress_env != NULL && stress_env[0] != '\0' && stress_env[0] != '0');
 
     /* Young: one malloc spanning both semi-spaces. */
     size_t young_bytes = (size_t)VADER_GC_YOUNG_BYTES;
@@ -209,7 +221,7 @@ void* vader_gc_alloc(size_t bytes) {
     }
     int young_full = (g_young.from.cur + aligned > g_young.from.end);
     int strings_hot = (g_string_total_bytes > g_string_gc_threshold);
-    if (VADER_UNLIKELY(young_full || strings_hot)) {
+    if (VADER_UNLIKELY(young_full || strings_hot || g_gc_stress)) {
         vader_minor_collect();
         if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
             /* Minor didn't free enough — young is overcommitted by long-
