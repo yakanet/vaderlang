@@ -97,7 +97,7 @@ export function lowerComptimeDecl(input: CompileInput): CompileOutput | null {
 
   const project = inlineConsts(
     bundleProject(input, callerProgram.resolved.module.id, mainFnDecl, reachable),
-  );
+  ).project;
   const cfg = annotateEscape(eliminateDeadCFG(buildCFGProject(project))).project;
   const bytecodeModule = emitBytecodeFromCFG(cfg, "__comptime__", {
     optimize: true, implRegistry: projectCtx.impls,

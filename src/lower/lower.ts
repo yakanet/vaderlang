@@ -85,7 +85,7 @@ export function lowerProject(
     });
   }
   const project: LoweredProject = { modules, vtableEntries: collectVtableEntries(impls, mono) };
-  return inlineConsts(project);
+  return inlineConsts(project, ctx.nextSyntheticId).project;
 }
 
 /** Flatten the impl registry × mono entries into one entry per

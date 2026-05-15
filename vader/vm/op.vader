@@ -218,13 +218,22 @@ export ArrayLen :: struct {}
 /// (b2) addition (mirrors `src/vm/exec.ts` which also bumps pc).
 export RefCast :: struct {}
 
-/// No-op runtime numeric conversion — the .virt format emits
-/// `<from>.to_<to>` (e.g. `usize.to_i32`, `i32.to_i64`) at every cast
-/// site. Our VM stores every integer as an `I32Val` (no width tags
-/// yet), so the conversion is a no-op ; the bytecode pipeline relies
-/// on it for static type narrowing only. Sprint 4 (b2) addition ;
-/// later sprints may distinguish widths and emit width-specific arms.
-export Convert :: struct {}
+/// Numeric width conversion. The .virt format emits `<from>.to_<to>`
+/// at every cast site ; `target` carries enough info to re-tag the
+/// stack value to the right storage class (I32Val / I64Val / F64Val /
+/// CharVal) so downstream typed ops (`f64.div`, `u32.shl`, …) find a
+/// matching tag.
+export Convert :: struct { target: ConvertTarget }
+
+/// Storage class for a numeric conversion target. Mirrors the VM's
+/// runtime tagging : every 8/16/32-bit integer collapses to `I32Val`,
+/// every 64-bit-wide integer to `I64Val`, every float to `F64Val`.
+export ConvertTarget :: enum(u8) {
+    I32
+    I64
+    F64
+    Char
+}
 
 /// Pop one value and push a `BoolVal` indicating whether its runtime
 /// type matches `module.types[type_id]`. Mirrors `src/vm/exec.ts`'s

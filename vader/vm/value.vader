@@ -53,6 +53,58 @@ export read_f64 :: fn(v: op.Value, at_pc: i32, label: string) -> op.F64Val | Tra
     return Trap { .message = "${label} at pc=${at_pc}: expected f64, got ${describe_value_tag(v)}" }
 }
 
+/// Re-tag `v` to the storage class implied by `target`. Re-tagging a value
+/// already at the target storage is a no-op fast path — avoids the box
+/// reallocation when `mask32(u32 x)` (hot in SHA-256 / MD5) hits an
+/// already-I32Val.
+export convert_value :: fn(v: op.Value, target: op.ConvertTarget, at_pc: i32) -> op.Value | Trap {
+    if target == .I32 {
+        if v is op.I32Val { return v }
+        n :: read_numeric_as_i64(v, at_pc)
+        if n is Trap { return n }
+        return op.I32Val { .value = i32(n) }
+    }
+    if target == .I64 {
+        if v is op.I64Val { return v }
+        n :: read_numeric_as_i64(v, at_pc)
+        if n is Trap { return n }
+        return op.I64Val { .value = n }
+    }
+    if target == .F64 {
+        if v is op.F64Val { return v }
+        n :: read_numeric_as_f64(v, at_pc)
+        if n is Trap { return n }
+        return op.F64Val { .value = n }
+    }
+    if v is op.CharVal { return v }
+    n :: read_numeric_as_i64(v, at_pc)
+    if n is Trap { return n }
+    return op.CharVal { .value = char(u32(n)) }
+}
+
+read_numeric_as_i64 :: fn(v: op.Value, at_pc: i32) -> i64 | Trap {
+    return match v {
+        is op.I64Val  as i -> i.value
+        is op.I32Val  as i -> i64(i.value)
+        is op.F64Val  as f -> i64(f.value)
+        is op.CharVal as c -> i64(u32(c.value))
+        is op.BoolVal as b -> if b.value { i64(1) } else { i64(0) }
+        _ -> Trap { .message = "convert at pc=${at_pc}: cannot read ${describe_value_tag(v)} as numeric" }
+    }
+}
+
+// `I32Val`/`I64Val` ahead of `F64Val` : `int → f64` is the common case
+// (e.g. `unit_f64`'s `f64(next_u64() >> 12)`), already-f64 is rare.
+read_numeric_as_f64 :: fn(v: op.Value, at_pc: i32) -> f64 | Trap {
+    return match v {
+        is op.I32Val  as i -> f64(i.value)
+        is op.I64Val  as i -> f64(i.value)
+        is op.F64Val  as f -> f.value
+        is op.CharVal as c -> f64(u32(c.value))
+        _ -> Trap { .message = "convert at pc=${at_pc}: cannot read ${describe_value_tag(v)} as f64" }
+    }
+}
+
 /// Unwrap an `i32` from a `op.Value`. Accepts `CharVal` (codepoint) and
 /// `I64Val` (truncating to the bottom 32 bits) transparently — both no-op
 /// `op.Convert` carriers and width-narrowing consumers (array.get index,

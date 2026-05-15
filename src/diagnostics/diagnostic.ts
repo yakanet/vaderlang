@@ -18,6 +18,13 @@ export interface Span {
   readonly end: Position;
 }
 
+/** Zero-length span at the start of `file` — placeholder for synthetic
+ *  decls / diagnostics that aren't tied to a source location. */
+export function zeroSpan(file: string): Span {
+  const p: Position = { file, offset: 0, line: 1, column: 1 };
+  return { start: p, end: p };
+}
+
 /** A secondary span attached to a diagnostic, with its own label. */
 export interface LabeledSpan {
   readonly span: Span;

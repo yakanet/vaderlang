@@ -33,7 +33,7 @@ import "vader/vm/value" {
     VmResult, Ok, Trap, zero_value,
     read_i32, read_f64, read_i64, read_struct, read_array,
     read_bool, read_char, read_truthy, read_fn, read_builder, read_string,
-    describe_value_tag, value_ref_eq,
+    describe_value_tag, value_ref_eq, convert_value,
     type_matches, ref_type_matches, trait_implemented_by,
     receiver_type_id_of, primitive_type_id, lookup_vtable,
     primitive_matches, is_integer_alias, union_matches,
@@ -763,6 +763,13 @@ export exec :: fn(module: op.Module) -> VmResult {
                 frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
             }
             is op.Convert -> {
+                if frame.sp == 0 {
+                    return Trap { .message = "convert on empty stack at pc=${frame.pc}" }
+                }
+                v :: frame.stack[frame.sp - 1]
+                converted :: convert_value(v, instr.target, frame.pc)
+                if converted is Trap { return converted }
+                frame.stack[frame.sp - 1] = converted
                 frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
             }
             is op.BuilderNew -> {

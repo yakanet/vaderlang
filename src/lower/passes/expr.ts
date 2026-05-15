@@ -7,7 +7,7 @@ import { staticStringValue, unreachableTypeExprInValuePosition } from "../../par
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, isPrimitive, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
+import { CORE_STRUCTS, CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, isPrimitive, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt, LoweredStructLitField } from "../lowered-ast.ts";
@@ -261,9 +261,13 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       }
       // Slice : `arr[r]` where `r : Range[usize]` (literal `0..<3` or any
       // value of Range type) desugars to a copy loop producing a fresh
-      // `T[]`. The typechecker returns the array type (not the element
-      // type) when the index has Range type — that's how we know to slice.
-      if (exprType.kind === "Array" && ctx.types.exprType(expr.target).kind === "Array") {
+      // `T[]`. Detect by inspecting the index's type, not the result's —
+      // `grid[0]` over `i32[][]` also yields an array but is a plain
+      // element access, not a slice.
+      const indexType = ctx.types.exprType(expr.index);
+      const isRangeIndex = expr.index.kind === "RangeExpr"
+        || (indexType.kind === "Struct" && indexType.symbol.name === CORE_STRUCTS.Range);
+      if (isRangeIndex && exprType.kind === "Array") {
         return lowerArraySlice(ctx, expr, exprType);
       }
       return {

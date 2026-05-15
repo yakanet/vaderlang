@@ -803,7 +803,7 @@ parse_op_line :: fn(cleaned: string) -> op.Op | null {
     if cleaned.starts_with("ref.cast ")         { return op.RefCast {} }
     if cleaned.starts_with("char.to_")          { return op.CharToInt {} }
     if cleaned.ends_with(".to_char")            { return op.IntToChar {} }
-    if is_numeric_convert(cleaned)              { return op.Convert {} }
+    if is_numeric_convert(cleaned)              { return parse_convert(cleaned) }
     if cleaned == "intrinsic builder.new"             { return op.BuilderNew {} }
     if cleaned == "intrinsic builder.append_str"      { return op.BuilderAppendStr {} }
     if cleaned == "intrinsic builder.append_display"  { return op.BuilderAppendDisplay {} }
@@ -1054,9 +1054,24 @@ is_numeric_convert :: fn(cleaned: string) -> bool {
     dot :: cleaned.index_of('.', 0)
     if dot < 0 { return false }
     width :: cleaned.slice(0, usize(dot))
-    if !is_int_width(width) { return false }
+    if !is_int_width(width) && width != "f32" && width != "f64" { return false }
     suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
     return suffix.starts_with("to_")
+}
+
+parse_convert :: fn(cleaned: string) -> op.Op {
+    dot :: cleaned.index_of('.', 0)
+    suffix :: cleaned.slice(usize(dot) + 1 + usize(3), cleaned.byte_len())
+    return op.Convert { .target = convert_target_of(suffix) }
+}
+
+convert_target_of :: fn(width: string) -> op.ConvertTarget {
+    if width == "i64"   { return .I64 }
+    if width == "u64"   { return .I64 }
+    if width == "f32"   { return .F64 }
+    if width == "f64"   { return .F64 }
+    if width == "char"  { return .Char }
+    return .I32
 }
 
 parse_int_arg :: fn(line: string, prefix: string) -> op.Op | null {

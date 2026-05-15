@@ -4,7 +4,7 @@
 import { relative, resolve as resolvePath, sep } from "node:path";
 
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
-import type { Span } from "../diagnostics/diagnostic.ts";
+import { zeroSpan } from "../diagnostics/diagnostic.ts";
 
 import { collectModuleSymbols } from "./collect.ts";
 import { err } from "./diag.ts";
@@ -169,7 +169,3 @@ function detectCycles(modules: ReadonlyMap<ModuleId, Module>, diags: DiagnosticC
   }
 }
 
-function zeroSpan(file: string): Span {
-  const p = { file, offset: 0, line: 1, column: 1 };
-  return { start: p, end: p };
-}
