@@ -1,0 +1,116 @@
+// Verify peephole rules 1–4 (mirror of `src/bytecode/peephole.ts`).
+// Each function below sets up a `BytecodeFunction` exhibiting one
+// pattern, runs `run_peepholes`, and prints `<rule>: <before> -> <after>`.
+// The final exit code is 0 when every rule fired as expected.
+
+import "std/io" { println }
+op :: import "vader/vm/op"
+import "vader/vm/builder" {
+    FunctionBuilder, new_function_builder,
+    bool_const, bool_not, i32_const, i32_eq, i32_lt,
+    local_get, local_set,
+}
+import "vader/bytecode/peephole" { run_peepholes }
+
+/// Bake a finished `FunctionBuilder` into a `BytecodeFunction` so the
+/// peephole helper can rewrite its `ops` in place.
+function_from :: fn(fb: FunctionBuilder) -> op.BytecodeFunction = op.BytecodeFunction {
+    .name = fb.name, .parameter_count = fb.parameter_count,
+    .local_count = fb.local_count, .ops = fb.ops, .jump_table = fb.table,
+}
+
+// Rule 1 : LocalSet N ; LocalGet N → LocalTee N
+test_rule_1 :: fn() -> bool {
+    fb :: new_function_builder("t1", 0, 1)
+    fb.i32_const(42)
+    fb.local_set(0)
+    fb.local_get(0)
+    function :: function_from(fb)
+    before :: function.ops.len()
+    run_peepholes(function, true)
+    after :: function.ops.len()
+    last :: function.ops[function.ops.len() - 1]
+    has_tee :: last is op.LocalTee
+    println("rule 1 : ${before} -> ${after} (LocalTee? ${has_tee})")
+    return after == before - 1 && has_tee
+}
+
+// Rule 2 : <num>.cmp ; BoolNot → <num>.inverse cmp
+test_rule_2 :: fn() -> bool {
+    fb :: new_function_builder("t2", 0, 0)
+    fb.i32_const(1)
+    fb.i32_const(2)
+    fb.i32_lt()
+    fb.bool_not()
+    function :: function_from(fb)
+    before :: function.ops.len()
+    run_peepholes(function, true)
+    after :: function.ops.len()
+    last :: function.ops[function.ops.len() - 1]
+    inverted :: last is op.I32Ge
+    println("rule 2 : ${before} -> ${after} (I32Ge? ${inverted})")
+    return after == before - 1 && inverted
+}
+
+// Rule 3 : BoolConst X ; BoolNot → BoolConst !X
+test_rule_3 :: fn() -> bool {
+    fb :: new_function_builder("t3", 0, 0)
+    fb.bool_const(true)
+    fb.bool_not()
+    function :: function_from(fb)
+    before :: function.ops.len()
+    run_peepholes(function, true)
+    after :: function.ops.len()
+    last :: function.ops[function.ops.len() - 1]
+    flipped: bool = false
+    if last is op.BoolConst as c {
+        flipped = c.value == false
+    }
+    println("rule 3 : ${before} -> ${after} (BoolConst false? ${flipped})")
+    return after == before - 1 && flipped
+}
+
+// Rule 4 : BoolNot ; BoolNot → ε
+test_rule_4 :: fn() -> bool {
+    fb :: new_function_builder("t4", 0, 0)
+    fb.bool_const(true)
+    fb.bool_not()
+    fb.bool_not()
+    function :: function_from(fb)
+    before :: function.ops.len()
+    run_peepholes(function, true)
+    after :: function.ops.len()
+    last :: function.ops[function.ops.len() - 1]
+    bare :: last is op.BoolConst
+    println("rule 4 : ${before} -> ${after} (BoolConst last? ${bare})")
+    return after == before - 2 && bare
+}
+
+// optimize = false bypasses every rule.
+test_no_opt :: fn() -> bool {
+    fb :: new_function_builder("nop", 0, 1)
+    fb.i32_const(7)
+    fb.local_set(0)
+    fb.local_get(0)
+    function :: function_from(fb)
+    before :: function.ops.len()
+    run_peepholes(function, false)
+    after :: function.ops.len()
+    println("no-opt : ${before} -> ${after} (unchanged? ${before == after})")
+    return before == after
+}
+
+main :: fn() -> i32 {
+    ok := true
+    if !test_rule_1() { ok = false }
+    if !test_rule_2() { ok = false }
+    if !test_rule_3() { ok = false }
+    if !test_rule_4() { ok = false }
+    if !test_no_opt() { ok = false }
+    if ok {
+        println("peephole : all rules verified")
+        return 0
+    }
+    println("peephole : FAIL")
+    return 1
+}

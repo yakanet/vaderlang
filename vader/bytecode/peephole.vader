@@ -1,0 +1,172 @@
+// vader/bytecode/peephole — local op-sequence rewrites on a freshly
+// emitted `vmop.BytecodeFunction.ops`. Mirrors a subset of `src/bytecode/
+// peephole.ts`.
+//
+// **Usage contract** : peephole runs on the `ops` array BEFORE the
+// jump table is computed for that function. Every rule below collapses
+// a contiguous 2-op window into 0 or 1 ops ; running them before
+// jump-table resolution means the parser-style `wire_control_flow`
+// walk (see `vader/vm/builder` or the TS `parseVir`) reads the already-
+// optimised stream and produces a consistent jump table directly. The
+// alternative — running peephole on a function whose jump_table is
+// populated — would shift every later branch target and require a
+// remap pass ; that's deferred until a use case surfaces.
+//
+// All transforms preserve the value-stack shape across the rewrite, so
+// the executor's pop/push counts stay balanced. No transform touches
+// Block / Loop / If / Else / End / Branch / BranchIf : the structural
+// scope shape is invariant.
+//
+// Rules implemented (mirror of `src/bytecode/peephole.ts`) :
+//   1. `LocalSet N ; LocalGet N`        → `LocalTee N`
+//   2. `<num>.cmp ; BoolNot`            → `<num>.inverse cmp`
+//   3. `BoolConst X ; BoolNot`          → `BoolConst !X`
+//   4. `BoolNot ; BoolNot`              → ε (both ops dropped)
+//
+// Rules 5–6 from the TS-side peephole (dead-store elimination + const
+// propagation through single-use locals) are deferred — they require
+// each `BytecodeFunction` to track per-local val types so a typed-cmp
+// after the propagated const doesn't lose the implicit coerce. The
+// Vader-side `BytecodeFunction` carries only `local_count: usize`
+// today ; landing those rules is gated on a schema enrichment that
+// records the locals' val types (parsed from the `.virt` `local "name"
+// type` directive — currently dropped).
+//
+// All rules are gated by a single `optimize` flag passed to
+// `run_peepholes` ; pass `false` to disable everything (matches the
+// `--no-bytecode-opt` CLI escape hatch on the TS side).
+
+import "std/iter" { take }
+vmop :: import "vader/vm/op"
+
+/// Apply every peephole rule above to `function`, mutating `ops` in
+/// place ; `jump_table` is NOT touched (the caller computes it after
+/// peephole — see the file header).
+///
+/// @param function  the bytecode function to rewrite.
+/// @param optimize  pass `false` to bail without rewriting (parity with
+///                  the TS CLI's `--no-bytecode-opt` flag).
+export run_peepholes :: fn(function: vmop.BytecodeFunction, optimize: bool) -> void {
+    if !optimize { return }
+    apply_local_rules(function)
+}
+
+// ---------------------------------------------------------------- rule 1-4
+
+/// Single linear scan applying rules 1 / 2 / 3 / 4. Uses a grow-only
+/// `out: Op[]` with an `out_sp` cursor for the logical length, so
+/// "pop" is a cursor decrement and "push at top" is an overwrite —
+/// no per-firing reallocation. Same pattern as `FunctionBuilder.
+/// scope_sp` and `parser.ParserState`.
+apply_local_rules :: fn(self: vmop.BytecodeFunction) -> void {
+    out: vmop.Op[] = []
+    out_sp: usize = 0
+    n :: self.ops.len()
+    i: usize = 0
+    for i < n {
+        current :: self.ops[i]
+
+        // Rules 2 / 3 / 4 fire on `BoolNot` paired with `out`'s tail.
+        if current is vmop.BoolNot {
+            if out_sp > 0 {
+                top_idx :: out_sp - 1
+                previous :: out[top_idx]
+                if previous is vmop.BoolNot {                                  // Rule 4
+                    out_sp -= 1
+                    i += 1
+                    continue
+                }
+                if previous is vmop.BoolConst as b {                           // Rule 3
+                    out[top_idx] = vmop.BoolConst { .value = !b.value }
+                    i += 1
+                    continue
+                }
+                inverted :: invert_cmp(previous)                             // Rule 2
+                if !(inverted is null) {
+                    out[top_idx] = inverted
+                    i += 1
+                    continue
+                }
+            }
+        }
+
+        // Rule 1 — `LocalSet N; LocalGet N` → `LocalTee N`. The compound
+        // condition `next is LocalGet && slot match` can't ride a single
+        // `as` binding (the `as` is captured at the `is` infix and
+        // doesn't survive a surrounding `&&`), so the slot test sits in
+        // a nested if.
+        if current is vmop.LocalSet as s {
+            if i + 1 < n {
+                next :: self.ops[i + 1]
+                if next is vmop.LocalGet as g {
+                    if g.slot == s.slot {
+                        push_op_at(out, out_sp, vmop.LocalTee { .slot = s.slot })
+                        out_sp += 1
+                        i += 2
+                        continue
+                    }
+                }
+            }
+        }
+
+        push_op_at(out, out_sp, current)
+        out_sp += 1
+        i += 1
+    }
+
+    self.ops = take(out, out_sp)
+}
+
+/// Grow-or-overwrite : append if `sp == items.len()`, else overwrite
+/// `items[sp]`. Mirrors `FunctionBuilder.push_scope`'s reuse pattern.
+push_op_at :: fn(items: vmop.Op[], sp: usize, value: vmop.Op) -> void {
+    if sp == items.len() { items.push(value) }
+    else                 { items[sp] = value }
+}
+
+/// If `o` is a typed comparison (`<width>.lt` / `.le` / `.gt` / `.ge`
+/// / `.eq` / `.ne`), return its inverse-op variant ; otherwise `null`.
+/// Mirrors `INVERSE_VERB` in `src/bytecode/peephole.ts`. Hand-rolled
+/// per-variant because Vader doesn't expose op-kind strings at runtime.
+invert_cmp :: fn(o: vmop.Op) -> vmop.Op | null = match o {
+    is vmop.I32Lt   -> vmop.I32Ge {}
+    is vmop.I32Le   -> vmop.I32Gt {}
+    is vmop.I32Gt   -> vmop.I32Le {}
+    is vmop.I32Ge   -> vmop.I32Lt {}
+    is vmop.I32Eq   -> vmop.I32Ne {}
+    is vmop.I32Ne   -> vmop.I32Eq {}
+    is vmop.U32Lt   -> vmop.U32Ge {}
+    is vmop.U32Le   -> vmop.U32Gt {}
+    is vmop.U32Gt   -> vmop.U32Le {}
+    is vmop.U32Ge   -> vmop.U32Lt {}
+    is vmop.I64Lt   -> vmop.I64Ge {}
+    is vmop.I64Le   -> vmop.I64Gt {}
+    is vmop.I64Gt   -> vmop.I64Le {}
+    is vmop.I64Ge   -> vmop.I64Lt {}
+    is vmop.I64Eq   -> vmop.I64Ne {}
+    is vmop.I64Ne   -> vmop.I64Eq {}
+    is vmop.U64Lt   -> vmop.U64Ge {}
+    is vmop.U64Le   -> vmop.U64Gt {}
+    is vmop.U64Gt   -> vmop.U64Le {}
+    is vmop.U64Ge   -> vmop.U64Lt {}
+    is vmop.F64Lt   -> vmop.F64Ge {}
+    is vmop.F64Le   -> vmop.F64Gt {}
+    is vmop.F64Gt   -> vmop.F64Le {}
+    is vmop.F64Ge   -> vmop.F64Lt {}
+    is vmop.F64Eq   -> vmop.F64Ne {}
+    is vmop.F64Ne   -> vmop.F64Eq {}
+    is vmop.BoolEq  -> vmop.BoolNe {}
+    is vmop.BoolNe  -> vmop.BoolEq {}
+    is vmop.CharEq  -> vmop.CharNe {}
+    is vmop.CharNe  -> vmop.CharEq {}
+    is vmop.CharLt  -> vmop.CharGe {}
+    is vmop.CharLe  -> vmop.CharGt {}
+    is vmop.CharGt  -> vmop.CharLe {}
+    is vmop.CharGe  -> vmop.CharLt {}
+    is vmop.StringEq -> vmop.StringNe {}
+    is vmop.StringNe -> vmop.StringEq {}
+    is vmop.RefEq   -> vmop.RefNe {}
+    is vmop.RefNe   -> vmop.RefEq {}
+    _ -> null
+}
+

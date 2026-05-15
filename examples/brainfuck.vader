@@ -20,11 +20,12 @@
 // Usage :
 //   vader run examples/brainfuck.vader              # defaults to examples/hello.bf
 //   vader run examples/brainfuck.vader path/to.bf   # arbitrary BF source
+//   vader build examples/brainfuck.vader --target=native --out=bf
 //
-// **`--target=native` is not supported yet** — the native runtime's GC
-// scans values via a statically-built type-index table, but the modules
-// the builder produces materialise types at runtime, so the GC traps on
-// `unknown type_index`. The interpreted path is the supported runtime today.
+// Runs on both the interpreted path (`vader run`) and the native C
+// emitter (`--target=native`) ; the synthetic types the builder
+// registers at module construction are visible to the C runtime's GC
+// type-index table the same way parser-produced modules are.
 
 import "std/io" { eprintln, read_file }
 import "std/iter" { filter }

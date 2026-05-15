@@ -1,0 +1,9 @@
+# stdout
+rule 1 : 3 -> 2 (LocalTee? true)
+rule 2 : 4 -> 3 (I32Ge? true)
+rule 3 : 2 -> 1 (BoolConst false? true)
+rule 4 : 3 -> 1 (BoolConst last? true)
+no-opt : 3 -> 3 (unchanged? true)
+peephole : all rules verified
+# exit
+0
