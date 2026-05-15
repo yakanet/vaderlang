@@ -406,6 +406,7 @@ function parsePostfix(p: Parser, left: A.Expr, t: Token): A.Expr {
         kind: "ArrayTypeExpr",
         id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: rb.span.end },
         element: left,
+        immutable: false,
       };
     }
     p.advance();

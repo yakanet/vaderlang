@@ -112,6 +112,12 @@ export interface FnType {
 export interface ArrayType {
   readonly kind: "Array";
   readonly element: Type;
+  /** When true, mutation through values of this type is rejected at
+   *  typecheck (`arr[i] = v`, `arr.push(v)` etc.). `T[] <: const T[]`
+   *  by subtyping, never the reverse. Module-level `K :: [...]` array
+   *  literals get inferred as `const T[]` ; locals stay mutable for
+   *  ascending compat. */
+  readonly immutable: boolean;
 }
 
 /** Tuple type — heterogeneous fixed-arity sequence (≥ 2 elements). Lowered
@@ -199,7 +205,7 @@ export function canonicalKey(t: Type): string {
     case "Primitive":  return `p${t.name}`;
     case "Struct":     return `s${t.symbol.id}<${t.args.map(canonicalKey).join(",")}>`;
     case "Trait":      return `t${t.symbol.id}<${t.args.map(canonicalKey).join(",")}>`;
-    case "Array":      return `a(${canonicalKey(t.element)})`;
+    case "Array":      return `a${t.immutable ? "c" : "m"}(${canonicalKey(t.element)})`;
     case "Tuple":      return `T<${t.elements.map(canonicalKey).join(",")}>`;
     case "Fn":         return `F<${t.params.map(canonicalKey).join(",")}>>${canonicalKey(t.returnType)}`;
     case "Union":      return `U<${t.variants.map(canonicalKey).join(",")}>`;
@@ -258,11 +264,16 @@ export function mkTrait(symbol: Symbol, args: readonly Type[]): TraitType {
   return t;
 }
 
-export function mkArray(element: Type): ArrayType {
-  const key = internId(element);
+/** Intern an Array type. Default `immutable = false` — only pass `true`
+ *  for the `const T[]` parse path and the module-level array-literal
+ *  promotion in `checkProgram`. */
+export function mkArray(element: Type, immutable: boolean = false): ArrayType {
+  // Pack (elementId, immutable) into one int so the Map stays
+  // number-keyed — string keys allocate per lookup.
+  const key = (internId(element) << 1) | (immutable ? 1 : 0);
   const cached = arrayCache.get(key);
   if (cached !== undefined) return cached;
-  const t: ArrayType = { kind: "Array", element };
+  const t: ArrayType = { kind: "Array", element, immutable };
   arrayCache.set(key, t);
   internId(t);
   return t;
@@ -525,7 +536,7 @@ export function displayType(t: Type): string {
     case "Never":      return "never";
     case "FreeInt":    return "{integer}";
     case "FreeFloat":  return "{float}";
-    case "Array":      return `${displayType(t.element)}[]`;
+    case "Array":      return t.immutable ? `const ${displayType(t.element)}[]` : `${displayType(t.element)}[]`;
     case "Tuple":      return `[${t.elements.map(displayType).join(", ")}]`;
     case "Fn": {
       const ps = t.params.map(displayType).join(", ");
@@ -577,8 +588,10 @@ export function equalsType(a: Type, b: Type): boolean {
       const idsMatch = a.symbol.id === o.symbol.id || sameSourceDecl(a.symbol, o.symbol);
       return idsMatch && argListEquals(a.args, o.args);
     }
-    case "Array":
-      return equalsType(a.element, (b as ArrayType).element);
+    case "Array": {
+      const o = b as ArrayType;
+      return a.immutable === o.immutable && equalsType(a.element, o.element);
+    }
     case "Tuple": {
       const o = b as TupleType;
       return argListEquals(a.elements, o.elements);
@@ -677,6 +690,14 @@ export function isAssignable(from: Type, to: Type, impls?: TraitOracle): boolean
       if (!isAssignable(from.elements[i]!, to.elements[i]!, impls)) return false;
     }
     return true;
+  }
+
+  // Array → Array : `T[] <: const T[]` (mutable usable wherever const is
+  // expected ; reverse forbidden — a const array can't be passed to a
+  // slot that may mutate it). Elements stay invariant for simplicity.
+  if (from.kind === "Array" && to.kind === "Array") {
+    if (from.immutable && !to.immutable) return false;
+    return equalsType(from.element, to.element);
   }
 
   if (to.kind === "Union") {
@@ -783,7 +804,7 @@ export function substitute(t: Type, subst: Substitution): Type {
       return { ...t, args };
     }
     case "Array":
-      return { kind: "Array", element: substitute(t.element, subst) };
+      return mkArray(substitute(t.element, subst), t.immutable);
     case "Tuple":
       return { kind: "Tuple", elements: t.elements.map((e) => substitute(e, subst)) };
     case "Fn":

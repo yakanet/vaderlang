@@ -1,0 +1,6 @@
+# Comptime
+
+## tests/snippets/const_array_bad/_main.vader
+
+# Diagnostics
+[4:5] error[T3042] cannot mutate an immutable array: cannot mutate `const i32[]` — declared with `const`

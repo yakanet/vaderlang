@@ -1110,14 +1110,28 @@ ident_expr :: fn(span: Span, name: string) -> IdentExpr {
 }
 
 parse_type :: fn(p: Parser) -> TypeExpr {
-    // Precedence : postfix `[]` `!` (tightest), then `&` intersection,
-    // then `|` union (loosest). Mirrors the value-side Pratt table.
+    // Precedence : `const` prefix (qualifies the array type), postfix
+    // `[]` `!` (tightest), then `&` intersection, then `|` union
+    // (loosest). Mirrors the value-side Pratt table.
     // Optional leading `|` lets multi-line unions read cleanly in the
     // Haskell / Rust style. The lexer's `suppresses_newline_before` on
     // `Pipe` drops the newline before each leading `|` so the tokens
     // look identical to `T :: | A | B | C`.
     p.match_kind(.Pipe)
+    const_tok :: p.match_kind(.KwConst)
     head := p.parse_type_intersection()
+    if const_tok != null {
+        if head is ArrayTypeExpr {
+            head_span :: head.span
+            head = ArrayTypeExpr {
+                .span      = Span { .start = const_tok.span.start, .end = head_span.end },
+                .element   = head.element,
+                .immutable = true,
+            }
+        } else {
+            p.error(.InvalidConstQualifierPlacement, const_tok.span, "`const` qualifier only applies to array types (`const T[]`)")
+        }
+    }
     // `T | U | V` — left-associative `bitor` chain.
     if p.check(.Pipe) {
         head_span :: head.span
@@ -1950,6 +1964,7 @@ infix_for :: fn(k: TokenKind) = match k {
     .KwFalse      -> no_infix()
     .KwNull       -> no_infix()
     .KwSelf       -> no_infix()
+    .KwConst      -> no_infix()
 }
 
 // Postfix BP : `?` / `(` / `[` / `.` all bind at 100.
@@ -2033,6 +2048,7 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .KwFalse      -> -1
     .KwNull       -> -1
     .KwSelf       -> -1
+    .KwConst      -> -1
 }
 
 parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {

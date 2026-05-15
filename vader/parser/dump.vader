@@ -965,6 +965,10 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             kind_entry(sb, level + 1, "ArrayTypeExpr")
             entry(sb, false, level + 1, "element")
             write_expr(sb, e.element, level + 1)
+            if e.immutable {
+                entry(sb, false, level + 1, "immutable")
+                sb.append("true")
+            }
             close_obj(sb, level)
         }
     }

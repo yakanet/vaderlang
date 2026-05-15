@@ -1,0 +1,13 @@
+# Typecheck
+
+## tests/snippets/const_array_bad/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         write_first          :: fn(const i32[]) -> void
+  expr 4:5      IdentExpr      :: const i32[]
+  expr 8:12     SeqLitExpr     :: i32[]
+  expr 9:17     IdentExpr      :: i32[]
+  expr 9:5      CallExpr       :: void
+  expr 9:5      IdentExpr      :: fn(const i32[]) -> void
+
+# Diagnostics
+[4:5] error[T3042] cannot mutate an immutable array: cannot mutate `const i32[]` — declared with `const`

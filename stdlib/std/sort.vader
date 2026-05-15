@@ -10,7 +10,7 @@
 // (TODO §1.18b). Once it lands we'll add `sort_by_compare(arr)` that calls
 // `Comparable::compare` internally.
 
-import "std/iter" { slice }
+import "std/iter" { clone }
 
 /// Return a fresh array containing `arr`'s elements in sorted order. The
 /// input is never mutated. Equal elements keep their input order, so the
@@ -24,12 +24,12 @@ import "std/iter" { slice }
 /// @return         a new array with the same elements in sorted order.
 export sort :: fn[T](arr: T[], compare: fn(T, T) -> bool) -> T[] {
     n :: arr.len()
-    out :: slice(arr, 0, n)
+    out :: arr.clone()
     if n < 2 { return out }
     // Scratch buffer pre-sized to n. Every merge overwrites these slots
     // before reading them, so the initial values are placeholders solely to
     // make `buf[i] = …` land in-bounds.
-    buf :: slice(arr, 0, n)
+    buf :: arr.clone()
     merge_sort_range(out, buf, 0, n, compare)
     return out
 }

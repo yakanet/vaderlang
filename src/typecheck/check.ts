@@ -19,7 +19,7 @@ import {err} from "./diag.ts";
 import type {ImplRegistry} from "./impls.ts";
 import type {TypedProgram} from "./typed-ast.ts";
 import type {Type} from "./types.ts";
-import {defaultIfFree, displayType, isAssignable, isPrimitive, TY} from "./types.ts";
+import {defaultIfFree, displayType, isAssignable, isPrimitive, mkArray, TY} from "./types.ts";
 
 import type {Globals, MutableTyped} from "./ctx.ts";
 import {checkExpr} from "./passes/expr.ts";
@@ -145,7 +145,14 @@ export function checkProgram(
         // see a concrete type (e.g. i32 for `BUCKET_COUNT :: 16`) instead of
         // Unresolved — otherwise downstream casts emit ref.cast on numerics.
         if (expected === null) {
-          t.globals.declTypes.set(decl, defaultIfFree(got));
+          // Module-scope array literal → `const T[]` so writes through the
+          // binding fail at typecheck (locals stay `T[]` — same expression
+          // would re-mean if local `::` was deeply const).
+          let pinned = defaultIfFree(got);
+          if (decl.value.kind === "SeqLitExpr" && pinned.kind === "Array" && !pinned.immutable) {
+            pinned = mkArray(pinned.element, true);
+          }
+          t.globals.declTypes.set(decl, pinned);
         }
         break;
       }

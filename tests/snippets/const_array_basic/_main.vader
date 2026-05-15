@@ -1,0 +1,11 @@
+import "std/io" { println }
+
+read_first :: fn(a: const i32[]) -> i32 {
+    return a[0]
+}
+
+main :: fn() -> i32 {
+    arr :: [10, 20, 30]
+    println("first=${read_first(arr)}")
+    return 0
+}

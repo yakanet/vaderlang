@@ -14,7 +14,7 @@ import { err, warn } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { EnumType, Type } from "../types.ts";
 import {
-  ALL_INTS, CORE_STRUCTS, CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, substitute, unionOf,
+  ALL_INTS, CORE_STRUCTS, CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, mkArray, substitute, unionOf,
 } from "../types.ts";
 import { buildStructSubst } from "../ctx.ts";
 import type { ImplEntry } from "../impls.ts";
@@ -513,17 +513,17 @@ function inferSeqLit(
   }
   const elemExpected = expected?.kind === "Array" ? expected.element : null;
   const elemTypes: Type[] = expr.elements.map((e) => checkExpr(e, elemExpected, t, impls, diags, fn));
-  if (elemTypes.length === 0) return { kind: "Array", element: elemExpected ?? TY.unresolved };
+  if (elemTypes.length === 0) return mkArray(elemExpected ?? TY.unresolved, expected?.kind === "Array" ? expected.immutable : false);
   // No explicit annotation : default to array when elements unify ; tuple
   // when they don't. `unionOf` returns a non-Union result iff all variants
   // are equal post-dedup (a single homogeneous type).
   if (expected === null || expected.kind === "Unresolved") {
     const widened = elemTypes.map(defaultIfFree);
     const merged = unionOf(widened);
-    if (merged.kind !== "Union") return { kind: "Array", element: merged };
+    if (merged.kind !== "Union") return mkArray(merged);
     return { kind: "Tuple", elements: widened };
   }
-  return { kind: "Array", element: unionOf(elemTypes.map(defaultIfFree)) };
+  return mkArray(unionOf(elemTypes.map(defaultIfFree)), expected.kind === "Array" ? expected.immutable : false);
 }
 
 function inferRange(

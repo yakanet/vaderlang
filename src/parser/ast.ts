@@ -791,5 +791,7 @@ export interface FnTypeExpr extends AstNode {
 export interface ArrayTypeExpr extends AstNode {
   readonly kind: "ArrayTypeExpr";
   readonly element: TypeExpr;
+  /** `const T[]` parses with `immutable = true` ; bare `T[]` is mutable. */
+  readonly immutable: boolean;
 }
 

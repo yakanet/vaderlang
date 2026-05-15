@@ -15,6 +15,7 @@ import { describeToken } from "../parser.ts";
 
 export function parseType(p: Parser): A.TypeExpr {
   // Precedence ladder for type expressions :
+  //   prefix  `const`      (qualifies an array type as immutable)
   //   postfix `[]` `!`     (tightest — applied to the primary)
   //   infix   `&`          (intersection / trait composition)
   //   infix   `|`          (union — loosest)
@@ -32,7 +33,20 @@ export function parseType(p: Parser): A.TypeExpr {
   if (p.match("pipe") !== null) {
     /* leading pipe consumed — first variant follows */
   }
+  // `const T[]` — prefix modifier on the array type that follows. The
+  // immutable flag is set on the OUTER ArrayTypeExpr ; nested arrays
+  // (`const T[][]` = "const 2D array") keep their inner element type
+  // intact.
+  const constTok = p.match("kw_const");
   let head = parseTypeIntersection(p);
+  if (constTok !== null) {
+    if (head.kind !== "ArrayTypeExpr") {
+      p.error("P1027", { start: constTok.span.start, end: head.span.end },
+        "`const` qualifier only applies to array types (`const T[]`)");
+    } else {
+      head = { ...head, immutable: true, span: { start: constTok.span.start, end: head.span.end } };
+    }
+  }
   // Union: `T | U | V` — built as a left-associative `bitor` chain.
   if (p.check("pipe")) {
     const start = head.span.start;
@@ -87,6 +101,7 @@ function parseTypePostfix(p: Parser): A.TypeExpr {
       kind: "ArrayTypeExpr",
       id: UNASSIGNED_NODE_ID, span: { start: head.span.start, end: rb.span.end },
       element: head,
+      immutable: false,
     };
   }
   // Postfix `!` — error-union shorthand.
@@ -175,6 +190,7 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
         kind: "ArrayTypeExpr",
         id: UNASSIGNED_NODE_ID, span: p.spanOf(start, end),
         element: elements[0]!,
+        immutable: false,
       };
     }
     return {

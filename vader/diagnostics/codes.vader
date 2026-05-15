@@ -51,6 +51,7 @@ export ParserCode :: enum(u8) {
     OneTupleNotAllowed,                     // P1021
     TuplePatternRequiresTwoElements,        // P1022
     LetDestructureRequiresTwoElements,      // P1023
+    InvalidConstQualifierPlacement,         // P1027
 }
 
 // `(id, message)` for a code, in one shot. The wire ID stays aligned with
@@ -100,6 +101,7 @@ export parser_info :: fn(c: ParserCode) = match c {
     .OneTupleNotAllowed                 -> CodeInfo { .id = "P1021", .message = "1-tuple types are not allowed" }
     .TuplePatternRequiresTwoElements    -> CodeInfo { .id = "P1022", .message = "tuple pattern requires at least 2 elements" }
     .LetDestructureRequiresTwoElements  -> CodeInfo { .id = "P1023", .message = "let destructure requires at least 2 elements" }
+    .InvalidConstQualifierPlacement     -> CodeInfo { .id = "P1027", .message = "invalid `const` qualifier placement" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

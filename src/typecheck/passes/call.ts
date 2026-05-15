@@ -19,7 +19,7 @@ import { declOf } from "../../resolver/symbol.ts";
 import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { Substitution, Type } from "../types.ts";
-import { TY, defaultIfFree, displayType, isAssignable, substitute } from "../types.ts";
+import { TY, defaultIfFree, displayType, isAssignable, mkArray, substitute } from "../types.ts";
 
 import { tryInto } from "./coerce.ts";
 import type { FnContext, MutableTyped } from "../ctx.ts";
@@ -140,7 +140,7 @@ function refineArrayLocalFromPush(expr: A.CallExpr, t: MutableTyped): void {
   if (inferred === null) return;
   // Safe to mutate mid-fn-check: every `IdentExpr` typecheck re-reads
   // `localTypes` (no per-fn cache), so later reads see the refined element.
-  t.localTypes.set(binding, { kind: "Array", element: inferred });
+  t.localTypes.set(binding, mkArray(inferred));
 }
 
 /** Best-effort element-type inference for `arr.push(x)` against an `arr` whose

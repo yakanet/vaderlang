@@ -18,7 +18,7 @@ import type { Symbol } from "../../resolver/symbol.ts";
 
 import { err } from "../diag.ts";
 import type { Type } from "../types.ts";
-import { TY, substitute, unionOf } from "../types.ts";
+import { TY, mkArray, substitute, unionOf } from "../types.ts";
 
 import { buildStructSubst, type MutableTyped } from "../ctx.ts";
 
@@ -86,7 +86,7 @@ function lowerExprAsTypeInner(expr: A.Expr, t: MutableTyped, diags: DiagnosticCo
         returnType: expr.returnType === null ? TY.void : lowerExprAsType(expr.returnType, t, diags),
       };
     case "ArrayTypeExpr":
-      return { kind: "Array", element: lowerExprAsType(expr.element, t, diags) };
+      return mkArray(lowerExprAsType(expr.element, t, diags), expr.immutable === true);
     case "NullLitExpr":
       // `null` in type position : the null primitive. Reached when the
       // body of a type-shaped expression was parsed via `parseExpr` (the

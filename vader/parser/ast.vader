@@ -704,9 +704,12 @@ export FnTypeExpr :: struct {
 }
 
 // Postfix array type `T[]` — type-only AST node. The bracketed form
-// `[T1, T2]` parses as `SeqLitExpr` (tuple type) instead.
+// `[T1, T2]` parses as `SeqLitExpr` (tuple type) instead. `const T[]`
+// sets `immutable = true` so downstream phases reject mutation through
+// the type.
 export ArrayTypeExpr :: struct {
-    span:    Span
-    id:    usize = UNASSIGNED_NODE_ID
-    element: TypeExpr
+    span:      Span
+    id:        usize = UNASSIGNED_NODE_ID
+    element:   TypeExpr
+    immutable: bool  = false
 }

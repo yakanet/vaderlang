@@ -51,6 +51,7 @@ export const PARSER = {
   P1021: "1-tuple types are not allowed",
   P1022: "tuple pattern requires at least 2 elements",
   P1023: "let destructure requires at least 2 elements",
+  P1027: "invalid `const` qualifier placement",
 } as const;
 
 export type ParserCode = keyof typeof PARSER;
@@ -121,6 +122,7 @@ export const TYPECHECK = {
   T3039: "`Into(T)` cannot use `T` as its target (identity coercion is forbidden)",
   T3040: "test can never match — operands have no overlapping values",
   T3041: "cannot reassign a constant binding",
+  T3042: "cannot mutate an immutable array",
 } as const;
 
 export type TypecheckCode = keyof typeof TYPECHECK;

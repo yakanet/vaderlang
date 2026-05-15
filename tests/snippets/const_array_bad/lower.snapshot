@@ -1,0 +1,28 @@
+# Lower
+
+## tests/snippets/const_array_bad/_main.vader
+  fn tests_snippets_const_array_bad__main_vader$write_first(a: const i32[]) -> void
+    assign
+      target:
+        index :?
+          on:
+            a :const i32[]
+          ix:
+            int(0) :i32
+      value:
+        int(99) :?
+  fn tests_snippets_const_array_bad__main_vader$main() -> i32
+    let arr: i32[] =
+      array :i32[]
+        int(10) :i32
+        int(20) :i32
+        int(30) :i32
+    call :void
+      callee:
+        write_first :fn(const i32[]) -> void
+      arg0:
+        arr :i32[]
+    return int(0) :i32
+
+# Diagnostics
+[4:5] error[T3042] cannot mutate an immutable array: cannot mutate `const i32[]` — declared with `const`

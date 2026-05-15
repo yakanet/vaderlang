@@ -176,6 +176,14 @@ function checkStmt(
         const indexed = stmt.target;
         const target = checkExpr(indexed.target, null, t, impls, diags, fn);
         const indexTy = checkExpr(indexed.index, null, t, impls, diags, fn);
+        // Reject `arr[i] = v` when arr is statically `const T[]`. The runtime
+        // can't honour the write either (the buf may live in .rodata) ; T3042
+        // surfaces the contract at compile time.
+        if (target.kind === "Array" && target.immutable) {
+          err(diags, "T3042", indexed.target.span,
+            `cannot mutate \`${displayType(target)}\` — declared with \`const\``);
+          return;
+        }
         if (target.kind === "Struct") {
           const result = resolveIndexTrait(
             indexed, target, indexTy, CORE_TRAITS.IndexSet, "set_at", "write", t, impls, diags,

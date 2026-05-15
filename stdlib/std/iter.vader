@@ -150,28 +150,44 @@ export skip :: fn[T](arr: T[], n: usize) -> T[] {
     return out
 }
 
-/// Copy `arr[start..<end]` into a fresh array. Bounds are clamped (start
-/// to `[0, len]`, end to `[start, len]`) so out-of-range indices yield a
-/// shorter result rather than panicking. `start` / `end` are unsigned —
-/// reverse them or use `0` to skip from the front.
+/// `arr[start..<end)` as a zero-copy view — sharing the parent's buf on
+/// native. Bounds clamped (start to `[0, len]`, end to `[start, len]`).
+/// Pushing into the view detaches into a fresh buf, so the parent is
+/// never mutated through the slice.
 ///
-/// For a zero-copy view, use the bracketed syntax `arr[start..<end]`
-/// directly — that lowers to a header-sharing slice ; this fn always
-/// copies, keeping the historic contract that mutating the result does
-/// NOT affect `arr`.
+/// For a fresh mutable copy, use `arr.clone()` ; for a partial copy
+/// chain `arr[lo..<hi].clone()`.
 /// @param arr    source array.
 /// @param start  inclusive lower bound (clamped to `[0, len]`).
 /// @param end    exclusive upper bound (clamped to `[start, len]`).
 export slice :: fn[T](arr: T[], start: usize, end: usize) -> T[] {
+    return arr[start..<end]
+}
+
+/// `const T[]` overload — preserves the const-ness of the input through
+/// the view. The result type is `const T[]` so mutation stays rejected
+/// at typecheck on the slice just as on its parent.
+export slice :: fn[T](arr: const T[], start: usize, end: usize) -> const T[] {
+    return arr[start..<end]
+}
+
+/// Fresh mutable copy of `arr`. Accepts both `T[]` (by subtype) and
+/// `const T[]` (by signature). The returned array is independent —
+/// mutating it does not affect `arr`.
+///
+/// Use this when you need to escape `const T[]`'s immutability locally,
+/// or to break aliasing between a slice view and its parent.
+///
+/// Naming overlaps with the `Clone` trait in `std/core` (currently
+/// without implementors). When `T[] implements Clone` lands, this free
+/// fn becomes the impl — `arr.clone()` resolves identically either way.
+export clone :: fn[T](arr: const T[]) -> T[] {
+    n :: arr.len()
     out: T[] = []
-    len := arr.len()
-    lo := start
-    if lo > len { lo = len }
-    hi := end
-    if hi < lo { hi = lo }
-    if hi > len { hi = len }
-    for i in lo..<hi {
+    i: usize = 0
+    for i < n {
         out.push(arr[i])
+        i = i + usize(1)
     }
     return out
 }

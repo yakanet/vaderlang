@@ -449,9 +449,6 @@ fn 7 std_sort$std_sort$sort__i32 (ref,ref) -> ref
   array.len   ; sort.vader:26:10
   local.set 2   ; sort.vader:26:10
   local.get 0   ; sort.vader:27:12
-  i64.const 0   ; sort.vader:27:12
-  i64.to_usize   ; sort.vader:27:12
-  local.get 2   ; sort.vader:27:12
   call 14   ; sort.vader:27:12
   local.set 3   ; sort.vader:27:5
   local.get 2   ; sort.vader:28:8
@@ -463,9 +460,6 @@ fn 7 std_sort$std_sort$sort__i32 (ref,ref) -> ref
     return   ; sort.vader:28:16
   else   ; sort.vader:28:5
     local.get 0   ; sort.vader:32:12
-    i64.const 0   ; sort.vader:32:12
-    i64.to_usize   ; sort.vader:32:12
-    local.get 2   ; sort.vader:32:12
     call 14   ; sort.vader:32:12
     local.set 4   ; sort.vader:32:5
     local.get 3   ; sort.vader:33:5
@@ -488,9 +482,6 @@ fn 8 std_sort$std_sort$sort__string (ref,ref) -> ref
   array.len   ; sort.vader:26:10
   local.set 2   ; sort.vader:26:10
   local.get 0   ; sort.vader:27:12
-  i64.const 0   ; sort.vader:27:12
-  i64.to_usize   ; sort.vader:27:12
-  local.get 2   ; sort.vader:27:12
   call 15   ; sort.vader:27:12
   local.set 3   ; sort.vader:27:5
   local.get 2   ; sort.vader:28:8
@@ -502,9 +493,6 @@ fn 8 std_sort$std_sort$sort__string (ref,ref) -> ref
     return   ; sort.vader:28:16
   else   ; sort.vader:28:5
     local.get 0   ; sort.vader:32:12
-    i64.const 0   ; sort.vader:32:12
-    i64.to_usize   ; sort.vader:32:12
-    local.get 2   ; sort.vader:32:12
     call 15   ; sort.vader:32:12
     local.set 4   ; sort.vader:32:5
     local.get 3   ; sort.vader:33:5
@@ -1176,140 +1164,90 @@ fn 13 std_string$compare_ascending (string,string) -> bool
   return   ; string.vader:167:5
 end
 
-fn 14 std_iter$std_iter$slice__i32 (ref,usize,usize) -> ref
+fn 14 std_iter$std_iter$clone__i32 (ref) -> ref
+  local n usize
   local out ref
-  local len usize
-  local lo usize
-  local hi usize
   local i usize
-  local $idx_14 i32
-  array.new 3 0   ; iter.vader:166:16
-  local.set 3   ; iter.vader:166:16
-  local.get 0   ; iter.vader:167:12
-  array.len   ; iter.vader:167:12
-  local.set 4   ; iter.vader:167:12
-  local.get 1   ; iter.vader:168:5
-  local.tee 5   ; iter.vader:168:5
-  local.get 4   ; iter.vader:169:8
-  usize.gt   ; iter.vader:169:8
-  if $L0 void   ; iter.vader:169:5
-    local.get 4   ; iter.vader:169:19
-    local.set 5   ; iter.vader:169:19
-  else   ; iter.vader:169:5
-  end $L0   ; iter.vader:169:5
-  local.get 2   ; iter.vader:170:5
-  local.tee 6   ; iter.vader:170:5
-  local.get 5   ; iter.vader:171:8
-  usize.lt   ; iter.vader:171:8
-  if $L1 void   ; iter.vader:171:5
-    local.get 5   ; iter.vader:171:18
-    local.set 6   ; iter.vader:171:18
-  else   ; iter.vader:171:5
-  end $L1   ; iter.vader:171:5
-  local.get 6   ; iter.vader:172:8
-  local.get 4   ; iter.vader:172:8
-  usize.gt   ; iter.vader:172:8
-  if $L2 void   ; iter.vader:172:5
-    local.get 4   ; iter.vader:172:19
-    local.set 6   ; iter.vader:172:19
-  else   ; iter.vader:172:5
-  end $L2   ; iter.vader:172:5
-  local.get 5   ; iter.vader:173:5
-  local.set 7   ; iter.vader:173:5
-  block $L3 void   ; iter.vader:173:5
-    loop $L4 void   ; iter.vader:173:5
-      local.get 7   ; iter.vader:173:5
-      local.get 6   ; iter.vader:173:5
-      usize.lt   ; iter.vader:173:5
-      if $L5 void   ; iter.vader:173:5
-        local.get 0   ; iter.vader:174:18
-        local.get 7   ; iter.vader:174:18
-        array.get 3   ; iter.vader:174:18
-        ref.cast 1   ; iter.vader:174:18
-        local.set 8   ; iter.vader:174:18
-        local.get 3   ; iter.vader:174:9
-        local.get 8   ; iter.vader:174:9
-        array.push 1   ; iter.vader:174:9
-        local.get 7   ; iter.vader:173:5
-        i64.const 1   ; iter.vader:173:5
-        i64.to_usize   ; iter.vader:173:5
-        usize.add   ; iter.vader:173:5
-        local.set 7   ; iter.vader:173:5
-        br $L4   ; iter.vader:173:5
-      else   ; iter.vader:173:5
-      end $L5   ; iter.vader:173:5
-    end $L4   ; iter.vader:173:5
-  end $L3   ; iter.vader:173:5
-  local.get 3   ; iter.vader:176:5
-  return   ; iter.vader:176:5
+  local $idx_8 i32
+  local $cast_10 usize
+  local.get 0   ; iter.vader:185:10
+  array.len   ; iter.vader:185:10
+  local.set 1   ; iter.vader:185:10
+  array.new 3 0   ; iter.vader:186:16
+  local.set 2   ; iter.vader:186:16
+  i64.const 0   ; iter.vader:187:16
+  local.set 3   ; iter.vader:187:16
+  block $L0 void   ; iter.vader:188:5
+    loop $L1 void   ; iter.vader:188:5
+      local.get 3   ; iter.vader:188:9
+      local.get 1   ; iter.vader:188:9
+      usize.lt   ; iter.vader:188:9
+      if $L2 void   ; iter.vader:188:9
+        local.get 0   ; iter.vader:189:18
+        local.get 3   ; iter.vader:189:18
+        array.get 3   ; iter.vader:189:18
+        ref.cast 1   ; iter.vader:189:18
+        local.set 4   ; iter.vader:189:18
+        local.get 2   ; iter.vader:189:9
+        local.get 4   ; iter.vader:189:9
+        array.push 1   ; iter.vader:189:9
+        i32.const 1   ; iter.vader:190:23
+        i32.to_usize   ; iter.vader:190:17
+        local.set 5   ; iter.vader:190:17
+        local.get 3   ; iter.vader:190:13
+        local.get 5   ; iter.vader:190:13
+        usize.add   ; iter.vader:190:13
+        local.set 3   ; iter.vader:190:13
+        br $L1   ; iter.vader:188:5
+      else   ; iter.vader:188:9
+      end $L2   ; iter.vader:188:9
+    end $L1   ; iter.vader:188:5
+  end $L0   ; iter.vader:188:5
+  local.get 2   ; iter.vader:192:5
+  return   ; iter.vader:192:5
 end
 
-fn 15 std_iter$std_iter$slice__string (ref,usize,usize) -> ref
+fn 15 std_iter$std_iter$clone__string (ref) -> ref
+  local n usize
   local out ref
-  local len usize
-  local lo usize
-  local hi usize
   local i usize
-  local $idx_14 string
-  array.new 5 0   ; iter.vader:166:16
-  local.set 3   ; iter.vader:166:16
-  local.get 0   ; iter.vader:167:12
-  array.len   ; iter.vader:167:12
-  local.set 4   ; iter.vader:167:12
-  local.get 1   ; iter.vader:168:5
-  local.tee 5   ; iter.vader:168:5
-  local.get 4   ; iter.vader:169:8
-  usize.gt   ; iter.vader:169:8
-  if $L0 void   ; iter.vader:169:5
-    local.get 4   ; iter.vader:169:19
-    local.set 5   ; iter.vader:169:19
-  else   ; iter.vader:169:5
-  end $L0   ; iter.vader:169:5
-  local.get 2   ; iter.vader:170:5
-  local.tee 6   ; iter.vader:170:5
-  local.get 5   ; iter.vader:171:8
-  usize.lt   ; iter.vader:171:8
-  if $L1 void   ; iter.vader:171:5
-    local.get 5   ; iter.vader:171:18
-    local.set 6   ; iter.vader:171:18
-  else   ; iter.vader:171:5
-  end $L1   ; iter.vader:171:5
-  local.get 6   ; iter.vader:172:8
-  local.get 4   ; iter.vader:172:8
-  usize.gt   ; iter.vader:172:8
-  if $L2 void   ; iter.vader:172:5
-    local.get 4   ; iter.vader:172:19
-    local.set 6   ; iter.vader:172:19
-  else   ; iter.vader:172:5
-  end $L2   ; iter.vader:172:5
-  local.get 5   ; iter.vader:173:5
-  local.set 7   ; iter.vader:173:5
-  block $L3 void   ; iter.vader:173:5
-    loop $L4 void   ; iter.vader:173:5
-      local.get 7   ; iter.vader:173:5
-      local.get 6   ; iter.vader:173:5
-      usize.lt   ; iter.vader:173:5
-      if $L5 void   ; iter.vader:173:5
-        local.get 0   ; iter.vader:174:18
-        local.get 7   ; iter.vader:174:18
-        array.get 5   ; iter.vader:174:18
-        ref.cast 6   ; iter.vader:174:18
-        local.set 8   ; iter.vader:174:18
-        local.get 3   ; iter.vader:174:9
-        local.get 8   ; iter.vader:174:9
-        array.push 6   ; iter.vader:174:9
-        local.get 7   ; iter.vader:173:5
-        i64.const 1   ; iter.vader:173:5
-        i64.to_usize   ; iter.vader:173:5
-        usize.add   ; iter.vader:173:5
-        local.set 7   ; iter.vader:173:5
-        br $L4   ; iter.vader:173:5
-      else   ; iter.vader:173:5
-      end $L5   ; iter.vader:173:5
-    end $L4   ; iter.vader:173:5
-  end $L3   ; iter.vader:173:5
-  local.get 3   ; iter.vader:176:5
-  return   ; iter.vader:176:5
+  local $idx_8 string
+  local $cast_10 usize
+  local.get 0   ; iter.vader:185:10
+  array.len   ; iter.vader:185:10
+  local.set 1   ; iter.vader:185:10
+  array.new 5 0   ; iter.vader:186:16
+  local.set 2   ; iter.vader:186:16
+  i64.const 0   ; iter.vader:187:16
+  local.set 3   ; iter.vader:187:16
+  block $L0 void   ; iter.vader:188:5
+    loop $L1 void   ; iter.vader:188:5
+      local.get 3   ; iter.vader:188:9
+      local.get 1   ; iter.vader:188:9
+      usize.lt   ; iter.vader:188:9
+      if $L2 void   ; iter.vader:188:9
+        local.get 0   ; iter.vader:189:18
+        local.get 3   ; iter.vader:189:18
+        array.get 5   ; iter.vader:189:18
+        ref.cast 6   ; iter.vader:189:18
+        local.set 4   ; iter.vader:189:18
+        local.get 2   ; iter.vader:189:9
+        local.get 4   ; iter.vader:189:9
+        array.push 6   ; iter.vader:189:9
+        i32.const 1   ; iter.vader:190:23
+        i32.to_usize   ; iter.vader:190:17
+        local.set 5   ; iter.vader:190:17
+        local.get 3   ; iter.vader:190:13
+        local.get 5   ; iter.vader:190:13
+        usize.add   ; iter.vader:190:13
+        local.set 3   ; iter.vader:190:13
+        br $L1   ; iter.vader:188:5
+      else   ; iter.vader:188:9
+      end $L2   ; iter.vader:188:9
+    end $L1   ; iter.vader:188:5
+  end $L0   ; iter.vader:188:5
+  local.get 2   ; iter.vader:192:5
+  return   ; iter.vader:192:5
 end
 
 fn 16 std_math$min_2 (usize,usize) -> usize

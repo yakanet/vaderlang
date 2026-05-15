@@ -502,6 +502,7 @@ function formatProgram(program: unknown): string {
   const json = JSON.stringify(program, (key, value) => {
     if (SPAN_KEYS.has(key)) return undefined;
     if (key === "id") return undefined;       // internal node id; hidden from snapshots
+    if (key === "immutable" && value === false) return undefined;  // omit default for parity with self-host dumper
     if (typeof value === "bigint") return `${value.toString()}n`;
     return value;
   }, 2);

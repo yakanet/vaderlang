@@ -196,6 +196,7 @@ import as
 export
 true false null
 self
+const
 @<decorator>
 ```
 
@@ -507,10 +508,42 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 ### Arrays
 
 - `T[]` (postfix) is a dynamic array (runtime length). `int[]`, `string[]`, `Foo[i32][]`, ... `int[][]` is an array of int arrays.
-- **Implicit reference** semantics: `arr2 := arr` copies the reference; use `clone(arr)` (free function) for a real copy.
+- **Implicit reference** semantics: `arr2 := arr` copies the reference; use `arr.clone()` (UFCS from `std/iter`) for a fresh mutable copy.
 - Indexing: `arr[i]`. Bounds-checked in debug (panic), elidable in release.
-- **Slicing**: `arr[r]` where `r : Range[<integer>]` returns a fresh `T[]` over the requested span. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and let-bound range values work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted ; bounds are coerced to `usize` at the use site. The result is a fresh array, not a view : mutations to the slice don't propagate back to the source. Lowering desugars to a copy loop using the existing array primitives ; no dedicated bytecode op.
+- **Slicing**: `arr[r]` where `r : Range[<integer>]` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and let-bound range values work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted ; bounds are coerced to `usize` at the use site. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
 - Postfix `[]` binds tighter than `!` and `|` ; use parens to group : `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U", `int[]!` is `int[] | Error`.
+
+#### `const T[]` — immutable arrays
+
+The `const` prefix qualifies an array type as immutable. Through a value typed `const T[]`, mutation is rejected at typecheck — neither `arr[i] = v` nor `arr.push(v)` compiles.
+
+```vader
+read :: fn(a: const i32[]) -> i32 = a[0]            // OK to read
+write :: fn(a: const i32[]) { a[0] = 99 }           // T3042 at typecheck
+```
+
+**Subtyping** : `T[] <: const T[]`. A mutable array passes anywhere a `const T[]` is expected (covariant), never the reverse. This lets read-only fns accept both kinds without overloads.
+
+```vader
+mut_arr := [1, 2, 3]
+read(mut_arr)             // OK : T[] passes for const T[]
+read([4, 5, 6])           // OK : fresh array passes
+```
+
+**Inference** : a module-level array-literal const-decl is automatically pinned as `const T[]`. Locals stay mutable by default.
+
+```vader
+KEYWORDS :: ["fn", "if", "else"]      // const string[] (module scope)
+
+main :: fn() {
+    local :: [1, 2, 3]                // i32[] (local — mutable)
+    local[0] = 99                     // OK
+}
+```
+
+**Escape hatch** : `arr.clone()` produces a fresh mutable `T[]` from any `T[]` or `const T[]` source. Mutating the copy never affects the original.
+
+**Storage** : `const T[]` is the type-system contract that lets the backend route module-level array literals to a `.rodata`-style data section in a future pass. The contract is enforced today ; the storage optimisation lands when the data-section emitter is wired.
 
 ### Tuples
 

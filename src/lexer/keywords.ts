@@ -25,6 +25,7 @@ export const KEYWORDS: Readonly<Record<string, TokenKind>> = {
   false:      "kw_false",
   null:       "kw_null",
   self:       "kw_self",
+  const:      "kw_const",
 };
 
 export const INT_SUFFIXES = new Set<string>([

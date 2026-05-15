@@ -383,7 +383,7 @@ export function substituteTypeExpr(expr: A.TypeExpr, subst: ReadonlyMap<string, 
         returnType: expr.returnType !== null ? substituteTypeExpr(expr.returnType, subst) : null };
     case "ArrayTypeExpr":
       return { kind: "ArrayTypeExpr", id: UNASSIGNED_NODE_ID, span: expr.span,
-        element: substituteTypeExpr(expr.element, subst) };
+        element: substituteTypeExpr(expr.element, subst), immutable: expr.immutable };
     case "SeqLitExpr":
       // Bracketed type tuple `[T1, T2, ...]` — same shape as the value-level
       // sequence literal since 1.B.3. In type position the elements are
