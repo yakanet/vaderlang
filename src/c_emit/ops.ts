@@ -549,7 +549,13 @@ export function emitConvert(s: FnState, from: ValType, to: ValType): void {
   if (from === to) {
     line(s, `${decl(s, to, tmp)} = ${v.name};`);
   } else {
-    line(s, `${decl(s, to, tmp)} = (${cTypeForVal(s.ctx, to)}) ${v.name};`);
+    // Cast through `from` first so signedness drives any width-change
+    // extension. The stack value's C type can mismatch `from` because
+    // small unsigned constants ride on `i32.const` (the bytecode has no
+    // dedicated `uN.const`), so a literal like `(int32_t)UINT32_C(N)` for
+    // a u32-repr enum would sign-extend on `(uint64_t) v` if we skipped
+    // the inner cast.
+    line(s, `${decl(s, to, tmp)} = (${cTypeForVal(s.ctx, to)}) (${cTypeForVal(s.ctx, from)}) ${v.name};`);
   }
 }
 

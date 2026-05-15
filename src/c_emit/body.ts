@@ -715,7 +715,8 @@ export function coerceExpr(ctx: EmitCtx, name: string, from: ValType, to: ValTyp
   if (from === "ref" || from === "any") {
     return unboxExpr(name, to);
   }
-  return `(${cTypeForVal(ctx, to)}) ${name}`;
+  // Cast through `from` first — see `emitConvert` for the rationale.
+  return `(${cTypeForVal(ctx, to)}) (${cTypeForVal(ctx, from)}) ${name}`;
 }
 
 export function boxExpr(_ctx: EmitCtx, name: string, val: ValType, typeIndex: number): string {

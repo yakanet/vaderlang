@@ -172,25 +172,12 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "CallExpr",
-                    "callee": {
+                    "kind": "FieldExpr",
+                    "target": {
                       "kind": "IdentExpr",
-                      "name": "u8"
+                      "name": "Day"
                     },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "FieldExpr",
-                          "target": {
-                            "kind": "IdentExpr",
-                            "name": "Day"
-                          },
-                          "field": "Mon"
-                        },
-                        "spread": false
-                      }
-                    ]
+                    "field": "Mon"
                   },
                   "spread": false
                 }
@@ -221,6 +208,66 @@
                       "name": "Color"
                     },
                     "field": "Green"
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "e"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "u64"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "Big"
+                    },
+                    "field": "B"
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "f"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "Big"
+                    },
+                    "field": "A"
                   },
                   "spread": false
                 }
@@ -279,6 +326,28 @@
                         "expr": {
                           "kind": "IdentExpr",
                           "name": "d"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "e"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "f"
                         }
                       }
                     ]

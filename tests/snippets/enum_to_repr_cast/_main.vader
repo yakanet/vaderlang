@@ -20,8 +20,10 @@ Color :: enum {
 main :: fn() -> i32 {
     a :: u8(Day.Tue)
     b :: u32(Big.B)
-    c :: i32(u8(Day.Mon))
+    c :: i32(Day.Mon)
     d :: i32(Color.Green)
-    println("${a} ${b} ${c} ${d}")
+    e :: u64(Big.B)
+    f :: i32(Big.A)
+    println("${a} ${b} ${c} ${d} ${e} ${f}")
     return 0
 }

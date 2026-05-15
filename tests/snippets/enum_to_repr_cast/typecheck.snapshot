@@ -15,18 +15,26 @@
   expr 22:14    IdentExpr      :: Big
   expr 23:10    CallExpr       :: i32
   expr 23:10    IdentExpr      :: type
-  expr 23:14    CallExpr       :: u8
-  expr 23:14    IdentExpr      :: type
-  expr 23:17    FieldExpr      :: Day
-  expr 23:17    IdentExpr      :: Day
+  expr 23:14    FieldExpr      :: Day
+  expr 23:14    IdentExpr      :: Day
   expr 24:10    CallExpr       :: i32
   expr 24:10    IdentExpr      :: type
   expr 24:14    FieldExpr      :: Color
   expr 24:14    IdentExpr      :: Color
-  expr 25:13    StringLitExpr  :: string
-  expr 25:16    IdentExpr      :: u8
-  expr 25:21    IdentExpr      :: u32
-  expr 25:26    IdentExpr      :: i32
-  expr 25:31    IdentExpr      :: i32
-  expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 25:10    CallExpr       :: u64
+  expr 25:10    IdentExpr      :: type
+  expr 25:14    FieldExpr      :: Big
+  expr 25:14    IdentExpr      :: Big
+  expr 26:10    CallExpr       :: i32
+  expr 26:10    IdentExpr      :: type
+  expr 26:14    FieldExpr      :: Big
+  expr 26:14    IdentExpr      :: Big
+  expr 27:13    StringLitExpr  :: string
+  expr 27:16    IdentExpr      :: u8
+  expr 27:21    IdentExpr      :: u32
+  expr 27:26    IdentExpr      :: i32
+  expr 27:31    IdentExpr      :: i32
+  expr 27:36    IdentExpr      :: u64
+  expr 27:41    IdentExpr      :: i32
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(string) -> void
