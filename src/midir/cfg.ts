@@ -143,6 +143,7 @@ export type Instruction =
   | InstrArraySet
   | InstrArrayLen
   | InstrArrayPush
+  | InstrArraySlice
   | InstrStructNew
   | InstrArrayNew
   | InstrTypeCheck
@@ -272,6 +273,17 @@ export interface InstrArrayPush extends InstrBase {
   readonly kind: "ArrayPush";
   readonly target: LocalId;
   readonly value: LocalId;
+}
+
+export interface InstrArraySlice extends InstrBase {
+  readonly kind: "ArraySlice";
+  readonly dst: LocalId;
+  /** BcType index of the result — the slice view inherits the parent
+   *  array's element type, mangled the same way. */
+  readonly type: Type;
+  readonly target: LocalId;
+  readonly lo: LocalId;
+  readonly hi: LocalId;
 }
 
 export interface InstrStructNew extends InstrBase {

@@ -467,6 +467,15 @@ export function emitArraySet(s: FnState, op: Extract<Op, { kind: "array.set" }>)
   line(s, `vader_array_set((vader_array_t*) ${asObjPtr(arr)}, (size_t) ${idx.name}, ${boxExpr(s.ctx, value.name, value.val, op.typeIndex)});`);
 }
 
+export function emitArraySlice(s: FnState, op: Extract<Op, { kind: "array.slice" }>): void {
+  const hi = pop(s);
+  const lo = pop(s);
+  const arr = pop(s);
+  const tmp = newTmp(s, "ref");
+  line(s, `vader_array_t* ${tmp}_arr = vader_array_slice((vader_array_t*) ${asObjPtr(arr)}, (size_t) ${lo.name}, (size_t) ${hi.name});`);
+  line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${tmp}_arr);`);
+}
+
 export function emitTypeCheck(s: FnState, op: Extract<Op, { kind: "type_check" }>): void {
   const v = pop(s);
   const tmp = newTmp(s, "bool");

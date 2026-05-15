@@ -149,6 +149,11 @@ function walkExpr(e: LoweredExpr, ctx: WalkCtx): void {
       walkExpr(e.target, ctx);
       walkExpr(e.value, ctx);
       return;
+    case "LoweredArraySlice":
+      walkExpr(e.target, ctx);
+      walkExpr(e.lo, ctx);
+      walkExpr(e.hi, ctx);
+      return;
     case "LoweredCast":
       walkExpr(e.value, ctx);
       return;

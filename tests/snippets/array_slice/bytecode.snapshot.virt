@@ -25,531 +25,349 @@ impl 9 Iterator
 
 fn 0 tests_snippets_array_slice__main_vader$main () -> i32
   local arr ref
-  local __slice_src_0 ref
-  local __slice_hi_2 usize
-  local __slice_out_4 ref
-  local __slice_i_5 usize
-  local if_res bool
-  local $idx_22 i32
+  local $cast_8 usize
+  local $cast_10 usize
   local s1 ref
-  local __sb_6 any
-  local $call_30 string
-  local $len_33 usize
-  local __iter_7 ref
-  local __step_8 ref
+  local __sb_0 any
+  local $call_17 string
+  local $len_20 usize
+  local __iter_1 ref
+  local __step_2 ref
   local v i32
-  local __sb_9 any
-  local __slice_src_10 ref
-  local __slice_hi_12 usize
-  local __slice_out_14 ref
-  local __slice_i_15 usize
-  local if_res bool
-  local $idx_61 i32
+  local __sb_3 any
+  local $cast_34 usize
+  local $cast_36 usize
+  local $add_38 usize
   local s2 ref
-  local __sb_16 any
-  local $call_69 string
-  local $len_72 usize
-  local __iter_17 ref
-  local __step_18 ref
+  local __sb_4 any
+  local $call_45 string
+  local $len_48 usize
+  local __iter_5 ref
+  local __step_6 ref
   local v i32
-  local __sb_19 any
-  local __slice_src_20 ref
-  local __slice_r_26 ref
-  local __slice_hi_22 usize
-  local __slice_inc_23 bool
-  local __slice_out_24 ref
-  local __slice_i_25 usize
-  local if_res bool
-  local $idx_107 i32
+  local __sb_7 any
+  local __slice_r_8 ref
+  local $cast_69 usize
+  local $cast_71 usize
+  local if_res usize
+  local $add_76 usize
   local s3 ref
-  local __sb_27 any
-  local $call_115 string
-  local $len_118 usize
-  local __iter_28 ref
-  local __step_29 ref
+  local __sb_9 any
+  local $call_83 string
+  local $len_86 usize
+  local __iter_10 ref
+  local __step_11 ref
   local v i32
-  local __sb_30 any
-  local __slice_src_31 ref
-  local __slice_hi_33 usize
-  local __slice_out_35 ref
-  local __slice_i_36 usize
-  local if_res bool
-  local $idx_145 i32
+  local __sb_12 any
   local s4 ref
-  local __sb_37 any
-  local $call_153 string
-  local $len_156 usize
-  local __iter_38 ref
-  local __step_39 ref
+  local __sb_13 any
+  local $call_108 string
+  local $len_111 usize
+  local __iter_14 ref
+  local __step_15 ref
   local v i32
-  local __sb_40 any
-  local __slice_src_41 ref
-  local __slice_hi_43 usize
-  local __slice_out_45 ref
-  local __slice_i_46 usize
-  local if_res bool
-  local $idx_184 i32
+  local __sb_16 any
+  local $cast_125 usize
+  local $cast_127 usize
   local s5 ref
-  local __sb_47 any
-  local $call_192 string
+  local __sb_17 any
+  local $call_134 string
   i32.const 10   ; _main.vader:11:18
   i32.const 20   ; _main.vader:11:18
   i32.const 30   ; _main.vader:11:18
   i32.const 40   ; _main.vader:11:18
   i32.const 50   ; _main.vader:11:18
   array.new 10 5   ; _main.vader:11:18
-  local.tee 0   ; _main.vader:11:18
-  local.set 1   ; _main.vader:14:11
+  local.set 0   ; _main.vader:11:18
   i32.const 1   ; _main.vader:14:15
   i32.to_usize   ; _main.vader:14:11
-  local.set 4   ; _main.vader:14:11
+  local.set 1   ; _main.vader:14:11
   i32.const 4   ; _main.vader:14:19
   i32.to_usize   ; _main.vader:14:11
   local.set 2   ; _main.vader:14:11
-  array.new 10 0   ; _main.vader:14:11
+  local.get 0   ; _main.vader:14:11
+  local.get 1   ; _main.vader:14:11
+  local.get 2   ; _main.vader:14:11
+  array.slice 21   ; _main.vader:14:11
   local.set 3   ; _main.vader:14:11
-  block $L0 void   ; _main.vader:14:11
-    loop $L1 void   ; _main.vader:14:11
-      bool.const false   ; _main.vader:14:11
-      if $L2 void   ; _main.vader:14:11
-        local.get 4   ; _main.vader:14:11
-        local.get 2   ; _main.vader:14:11
-        usize.le   ; _main.vader:14:11
-        local.set 5   ; _main.vader:14:11
-      else   ; _main.vader:14:11
-        local.get 4   ; _main.vader:14:11
-        local.get 2   ; _main.vader:14:11
-        usize.lt   ; _main.vader:14:11
-        local.set 5   ; _main.vader:14:11
-      end $L2   ; _main.vader:14:11
-      local.get 5   ; _main.vader:14:11
-      if $L3 void   ; _main.vader:14:11
-        local.get 1   ; _main.vader:14:11
-        local.get 4   ; _main.vader:14:11
-        array.get 10   ; _main.vader:14:11
-        ref.cast 1   ; _main.vader:14:11
-        local.set 6   ; _main.vader:14:11
-        local.get 3   ; _main.vader:14:11
-        local.get 6   ; _main.vader:14:11
-        array.push 1   ; _main.vader:14:11
-        local.get 4   ; _main.vader:14:11
-        i64.const 1   ; _main.vader:14:11
-        i64.to_usize   ; _main.vader:14:11
-        usize.add   ; _main.vader:14:11
-        local.set 4   ; _main.vader:14:11
-        br $L1   ; _main.vader:14:11
-      else   ; _main.vader:14:11
-      end $L3   ; _main.vader:14:11
-    end $L1   ; _main.vader:14:11
-  end $L0   ; _main.vader:14:11
-  local.get 3   ; _main.vader:14:5
-  local.set 7   ; _main.vader:14:5
   intrinsic builder.new   ; _main.vader:15:13
-  local.set 8   ; _main.vader:15:13
-  local.get 8   ; _main.vader:15:14
+  local.set 4   ; _main.vader:15:13
+  local.get 4   ; _main.vader:15:14
   string.const 0   ; _main.vader:15:14
   intrinsic builder.append_str   ; _main.vader:15:14
-  local.get 7   ; _main.vader:15:25
+  local.get 3   ; _main.vader:15:25
   array.len   ; _main.vader:15:25
   call.import 0   ; _main.vader:15:23
-  local.set 9   ; _main.vader:15:23
-  local.get 8   ; _main.vader:15:23
-  local.get 9   ; _main.vader:15:23
+  local.set 5   ; _main.vader:15:23
+  local.get 4   ; _main.vader:15:23
+  local.get 5   ; _main.vader:15:23
   intrinsic builder.append_str   ; _main.vader:15:23
-  local.get 8   ; _main.vader:15:13
+  local.get 4   ; _main.vader:15:13
   intrinsic builder.finish   ; _main.vader:15:13
   call.import 1   ; _main.vader:15:5
-  local.get 7   ; _main.vader:16:5
+  local.get 3   ; _main.vader:16:5
   array.len   ; _main.vader:16:5
-  local.set 10   ; _main.vader:16:5
-  local.get 7   ; _main.vader:16:14
+  local.set 6   ; _main.vader:16:5
+  local.get 3   ; _main.vader:16:14
   i64.const 0   ; _main.vader:16:14
   i64.to_usize   ; _main.vader:16:14
-  local.get 10   ; _main.vader:16:14
+  local.get 6   ; _main.vader:16:14
   struct.new 2   ; _main.vader:16:14
-  local.set 11   ; _main.vader:16:14
-  block $L4 void   ; _main.vader:16:5
-    loop $L5 void   ; _main.vader:16:5
-      local.get 11   ; _main.vader:16:5
+  local.set 7   ; _main.vader:16:14
+  block $L0 void   ; _main.vader:16:5
+    loop $L1 void   ; _main.vader:16:5
+      local.get 7   ; _main.vader:16:5
       call 1   ; _main.vader:16:5
-      local.tee 12   ; _main.vader:16:5
+      local.tee 8   ; _main.vader:16:5
       type_check 4   ; _main.vader:16:5
-      if $L6 void   ; _main.vader:16:5
+      if $L2 void   ; _main.vader:16:5
       else   ; _main.vader:16:5
-        local.get 12   ; _main.vader:16:5
+        local.get 8   ; _main.vader:16:5
         struct.get 5 0   ; _main.vader:16:5
-        local.set 13   ; _main.vader:16:5
+        local.set 9   ; _main.vader:16:5
         intrinsic builder.new   ; _main.vader:16:27
-        local.set 14   ; _main.vader:16:27
-        local.get 14   ; _main.vader:16:28
+        local.set 10   ; _main.vader:16:27
+        local.get 10   ; _main.vader:16:28
         string.const 1   ; _main.vader:16:28
         intrinsic builder.append_str   ; _main.vader:16:28
-        local.get 14   ; _main.vader:16:30
-        local.get 13   ; _main.vader:16:30
+        local.get 10   ; _main.vader:16:30
+        local.get 9   ; _main.vader:16:30
         intrinsic builder.append_display   ; _main.vader:16:30
-        local.get 14   ; _main.vader:16:27
+        local.get 10   ; _main.vader:16:27
         intrinsic builder.finish   ; _main.vader:16:27
         call.import 1   ; _main.vader:16:19
-        br $L5   ; _main.vader:16:5
-      end $L6   ; _main.vader:16:5
-    end $L5   ; _main.vader:16:5
-  end $L4   ; _main.vader:16:5
-  local.get 0   ; _main.vader:19:11
-  local.set 15   ; _main.vader:19:11
+        br $L1   ; _main.vader:16:5
+      end $L2   ; _main.vader:16:5
+    end $L1   ; _main.vader:16:5
+  end $L0   ; _main.vader:16:5
   i32.const 0   ; _main.vader:19:15
   i32.to_usize   ; _main.vader:19:11
-  local.set 18   ; _main.vader:19:11
+  local.set 11   ; _main.vader:19:11
   i32.const 2   ; _main.vader:19:19
   i32.to_usize   ; _main.vader:19:11
-  local.set 16   ; _main.vader:19:11
-  array.new 10 0   ; _main.vader:19:11
-  local.set 17   ; _main.vader:19:11
-  block $L7 void   ; _main.vader:19:11
-    loop $L8 void   ; _main.vader:19:11
-      bool.const true   ; _main.vader:19:11
-      if $L9 void   ; _main.vader:19:11
-        local.get 18   ; _main.vader:19:11
-        local.get 16   ; _main.vader:19:11
-        usize.le   ; _main.vader:19:11
-        local.set 19   ; _main.vader:19:11
-      else   ; _main.vader:19:11
-        local.get 18   ; _main.vader:19:11
-        local.get 16   ; _main.vader:19:11
-        usize.lt   ; _main.vader:19:11
-        local.set 19   ; _main.vader:19:11
-      end $L9   ; _main.vader:19:11
-      local.get 19   ; _main.vader:19:11
-      if $L10 void   ; _main.vader:19:11
-        local.get 15   ; _main.vader:19:11
-        local.get 18   ; _main.vader:19:11
-        array.get 10   ; _main.vader:19:11
-        ref.cast 1   ; _main.vader:19:11
-        local.set 20   ; _main.vader:19:11
-        local.get 17   ; _main.vader:19:11
-        local.get 20   ; _main.vader:19:11
-        array.push 1   ; _main.vader:19:11
-        local.get 18   ; _main.vader:19:11
-        i64.const 1   ; _main.vader:19:11
-        i64.to_usize   ; _main.vader:19:11
-        usize.add   ; _main.vader:19:11
-        local.set 18   ; _main.vader:19:11
-        br $L8   ; _main.vader:19:11
-      else   ; _main.vader:19:11
-      end $L10   ; _main.vader:19:11
-    end $L8   ; _main.vader:19:11
-  end $L7   ; _main.vader:19:11
-  local.get 17   ; _main.vader:19:5
-  local.set 21   ; _main.vader:19:5
+  local.set 12   ; _main.vader:19:11
+  local.get 12   ; _main.vader:19:11
+  i64.const 1   ; _main.vader:19:11
+  i64.to_usize   ; _main.vader:19:11
+  usize.add   ; _main.vader:19:11
+  local.set 13   ; _main.vader:19:11
+  local.get 0   ; _main.vader:19:11
+  local.get 11   ; _main.vader:19:11
+  local.get 13   ; _main.vader:19:11
+  array.slice 21   ; _main.vader:19:11
+  local.set 14   ; _main.vader:19:11
   intrinsic builder.new   ; _main.vader:20:13
-  local.set 22   ; _main.vader:20:13
-  local.get 22   ; _main.vader:20:14
+  local.set 15   ; _main.vader:20:13
+  local.get 15   ; _main.vader:20:14
   string.const 2   ; _main.vader:20:14
   intrinsic builder.append_str   ; _main.vader:20:14
-  local.get 21   ; _main.vader:20:25
+  local.get 14   ; _main.vader:20:25
   array.len   ; _main.vader:20:25
   call.import 0   ; _main.vader:20:23
-  local.set 23   ; _main.vader:20:23
-  local.get 22   ; _main.vader:20:23
-  local.get 23   ; _main.vader:20:23
+  local.set 16   ; _main.vader:20:23
+  local.get 15   ; _main.vader:20:23
+  local.get 16   ; _main.vader:20:23
   intrinsic builder.append_str   ; _main.vader:20:23
-  local.get 22   ; _main.vader:20:13
+  local.get 15   ; _main.vader:20:13
   intrinsic builder.finish   ; _main.vader:20:13
   call.import 1   ; _main.vader:20:5
-  local.get 21   ; _main.vader:21:5
+  local.get 14   ; _main.vader:21:5
   array.len   ; _main.vader:21:5
-  local.set 24   ; _main.vader:21:5
-  local.get 21   ; _main.vader:21:14
+  local.set 17   ; _main.vader:21:5
+  local.get 14   ; _main.vader:21:14
   i64.const 0   ; _main.vader:21:14
   i64.to_usize   ; _main.vader:21:14
-  local.get 24   ; _main.vader:21:14
+  local.get 17   ; _main.vader:21:14
   struct.new 2   ; _main.vader:21:14
-  local.set 25   ; _main.vader:21:14
-  block $L11 void   ; _main.vader:21:5
-    loop $L12 void   ; _main.vader:21:5
-      local.get 25   ; _main.vader:21:5
+  local.set 18   ; _main.vader:21:14
+  block $L3 void   ; _main.vader:21:5
+    loop $L4 void   ; _main.vader:21:5
+      local.get 18   ; _main.vader:21:5
       call 1   ; _main.vader:21:5
-      local.tee 26   ; _main.vader:21:5
+      local.tee 19   ; _main.vader:21:5
       type_check 4   ; _main.vader:21:5
-      if $L13 void   ; _main.vader:21:5
+      if $L5 void   ; _main.vader:21:5
       else   ; _main.vader:21:5
-        local.get 26   ; _main.vader:21:5
+        local.get 19   ; _main.vader:21:5
         struct.get 5 0   ; _main.vader:21:5
-        local.set 27   ; _main.vader:21:5
+        local.set 20   ; _main.vader:21:5
         intrinsic builder.new   ; _main.vader:21:27
-        local.set 28   ; _main.vader:21:27
-        local.get 28   ; _main.vader:21:28
+        local.set 21   ; _main.vader:21:27
+        local.get 21   ; _main.vader:21:28
         string.const 1   ; _main.vader:21:28
         intrinsic builder.append_str   ; _main.vader:21:28
-        local.get 28   ; _main.vader:21:30
-        local.get 27   ; _main.vader:21:30
+        local.get 21   ; _main.vader:21:30
+        local.get 20   ; _main.vader:21:30
         intrinsic builder.append_display   ; _main.vader:21:30
-        local.get 28   ; _main.vader:21:27
+        local.get 21   ; _main.vader:21:27
         intrinsic builder.finish   ; _main.vader:21:27
         call.import 1   ; _main.vader:21:19
-        br $L12   ; _main.vader:21:5
-      end $L13   ; _main.vader:21:5
-    end $L12   ; _main.vader:21:5
-  end $L11   ; _main.vader:21:5
+        br $L4   ; _main.vader:21:5
+      end $L5   ; _main.vader:21:5
+    end $L4   ; _main.vader:21:5
+  end $L3   ; _main.vader:21:5
   i32.const 2   ; _main.vader:24:10
   i32.const 5   ; _main.vader:24:10
   bool.const false   ; _main.vader:24:10
   i32.const 2   ; _main.vader:24:10
   struct.new_stack 9   ; _main.vader:24:10
-  local.set 30   ; _main.vader:24:10
-  local.get 0   ; _main.vader:25:11
-  local.set 29   ; _main.vader:25:11
-  local.get 30   ; _main.vader:25:11
+  local.tee 22   ; _main.vader:24:10
   struct.get 9 0   ; _main.vader:25:11
   i32.to_usize   ; _main.vader:25:11
-  local.set 34   ; _main.vader:25:11
-  local.get 30   ; _main.vader:25:11
+  local.set 23   ; _main.vader:25:11
+  local.get 22   ; _main.vader:25:11
   struct.get 9 1   ; _main.vader:25:11
   i32.to_usize   ; _main.vader:25:11
-  local.set 31   ; _main.vader:25:11
-  local.get 30   ; _main.vader:25:11
+  local.set 24   ; _main.vader:25:11
+  local.get 22   ; _main.vader:25:11
   struct.get 9 2   ; _main.vader:25:11
-  local.set 32   ; _main.vader:25:11
-  array.new 10 0   ; _main.vader:25:11
-  local.set 33   ; _main.vader:25:11
-  block $L14 void   ; _main.vader:25:11
-    loop $L15 void   ; _main.vader:25:11
-      local.get 32   ; _main.vader:25:11
-      if $L16 void   ; _main.vader:25:11
-        local.get 34   ; _main.vader:25:11
-        local.get 31   ; _main.vader:25:11
-        usize.le   ; _main.vader:25:11
-        local.set 35   ; _main.vader:25:11
-      else   ; _main.vader:25:11
-        local.get 34   ; _main.vader:25:11
-        local.get 31   ; _main.vader:25:11
-        usize.lt   ; _main.vader:25:11
-        local.set 35   ; _main.vader:25:11
-      end $L16   ; _main.vader:25:11
-      local.get 35   ; _main.vader:25:11
-      if $L17 void   ; _main.vader:25:11
-        local.get 29   ; _main.vader:25:11
-        local.get 34   ; _main.vader:25:11
-        array.get 10   ; _main.vader:25:11
-        ref.cast 1   ; _main.vader:25:11
-        local.set 36   ; _main.vader:25:11
-        local.get 33   ; _main.vader:25:11
-        local.get 36   ; _main.vader:25:11
-        array.push 1   ; _main.vader:25:11
-        local.get 34   ; _main.vader:25:11
-        i64.const 1   ; _main.vader:25:11
-        i64.to_usize   ; _main.vader:25:11
-        usize.add   ; _main.vader:25:11
-        local.set 34   ; _main.vader:25:11
-        br $L15   ; _main.vader:25:11
-      else   ; _main.vader:25:11
-      end $L17   ; _main.vader:25:11
-    end $L15   ; _main.vader:25:11
-  end $L14   ; _main.vader:25:11
-  local.get 33   ; _main.vader:25:5
-  local.set 37   ; _main.vader:25:5
+  if $L6 void   ; _main.vader:25:11
+    i64.const 1   ; _main.vader:25:11
+    local.set 25   ; _main.vader:25:11
+  else   ; _main.vader:25:11
+    i64.const 0   ; _main.vader:25:11
+    local.set 25   ; _main.vader:25:11
+  end $L6   ; _main.vader:25:11
+  local.get 24   ; _main.vader:25:11
+  local.get 25   ; _main.vader:25:11
+  usize.add   ; _main.vader:25:11
+  local.set 26   ; _main.vader:25:11
+  local.get 0   ; _main.vader:25:11
+  local.get 23   ; _main.vader:25:11
+  local.get 26   ; _main.vader:25:11
+  array.slice 21   ; _main.vader:25:11
+  local.set 27   ; _main.vader:25:11
   intrinsic builder.new   ; _main.vader:26:13
-  local.set 38   ; _main.vader:26:13
-  local.get 38   ; _main.vader:26:14
+  local.set 28   ; _main.vader:26:13
+  local.get 28   ; _main.vader:26:14
   string.const 3   ; _main.vader:26:14
   intrinsic builder.append_str   ; _main.vader:26:14
-  local.get 37   ; _main.vader:26:25
+  local.get 27   ; _main.vader:26:25
   array.len   ; _main.vader:26:25
   call.import 0   ; _main.vader:26:23
-  local.set 39   ; _main.vader:26:23
-  local.get 38   ; _main.vader:26:23
-  local.get 39   ; _main.vader:26:23
+  local.set 29   ; _main.vader:26:23
+  local.get 28   ; _main.vader:26:23
+  local.get 29   ; _main.vader:26:23
   intrinsic builder.append_str   ; _main.vader:26:23
-  local.get 38   ; _main.vader:26:13
+  local.get 28   ; _main.vader:26:13
   intrinsic builder.finish   ; _main.vader:26:13
   call.import 1   ; _main.vader:26:5
-  local.get 37   ; _main.vader:27:5
+  local.get 27   ; _main.vader:27:5
   array.len   ; _main.vader:27:5
-  local.set 40   ; _main.vader:27:5
-  local.get 37   ; _main.vader:27:14
+  local.set 30   ; _main.vader:27:5
+  local.get 27   ; _main.vader:27:14
   i64.const 0   ; _main.vader:27:14
   i64.to_usize   ; _main.vader:27:14
-  local.get 40   ; _main.vader:27:14
+  local.get 30   ; _main.vader:27:14
   struct.new 2   ; _main.vader:27:14
-  local.set 41   ; _main.vader:27:14
-  block $L18 void   ; _main.vader:27:5
-    loop $L19 void   ; _main.vader:27:5
-      local.get 41   ; _main.vader:27:5
+  local.set 31   ; _main.vader:27:14
+  block $L7 void   ; _main.vader:27:5
+    loop $L8 void   ; _main.vader:27:5
+      local.get 31   ; _main.vader:27:5
       call 1   ; _main.vader:27:5
-      local.tee 42   ; _main.vader:27:5
+      local.tee 32   ; _main.vader:27:5
       type_check 4   ; _main.vader:27:5
-      if $L20 void   ; _main.vader:27:5
+      if $L9 void   ; _main.vader:27:5
       else   ; _main.vader:27:5
-        local.get 42   ; _main.vader:27:5
+        local.get 32   ; _main.vader:27:5
         struct.get 5 0   ; _main.vader:27:5
-        local.set 43   ; _main.vader:27:5
+        local.set 33   ; _main.vader:27:5
         intrinsic builder.new   ; _main.vader:27:27
-        local.set 44   ; _main.vader:27:27
-        local.get 44   ; _main.vader:27:28
+        local.set 34   ; _main.vader:27:27
+        local.get 34   ; _main.vader:27:28
         string.const 1   ; _main.vader:27:28
         intrinsic builder.append_str   ; _main.vader:27:28
-        local.get 44   ; _main.vader:27:30
-        local.get 43   ; _main.vader:27:30
+        local.get 34   ; _main.vader:27:30
+        local.get 33   ; _main.vader:27:30
         intrinsic builder.append_display   ; _main.vader:27:30
-        local.get 44   ; _main.vader:27:27
+        local.get 34   ; _main.vader:27:27
         intrinsic builder.finish   ; _main.vader:27:27
         call.import 1   ; _main.vader:27:19
-        br $L19   ; _main.vader:27:5
-      end $L20   ; _main.vader:27:5
-    end $L19   ; _main.vader:27:5
-  end $L18   ; _main.vader:27:5
-  i64.const 3   ; _main.vader:30:16
-  local.set 46   ; _main.vader:30:16
+        br $L8   ; _main.vader:27:5
+      end $L9   ; _main.vader:27:5
+    end $L8   ; _main.vader:27:5
+  end $L7   ; _main.vader:27:5
   local.get 0   ; _main.vader:31:11
-  local.set 45   ; _main.vader:31:11
-  i64.const 0   ; _main.vader:31:15
-  local.set 48   ; _main.vader:31:15
-  array.new 10 0   ; _main.vader:31:11
-  local.set 47   ; _main.vader:31:11
-  block $L21 void   ; _main.vader:31:11
-    loop $L22 void   ; _main.vader:31:11
-      bool.const false   ; _main.vader:31:11
-      if $L23 void   ; _main.vader:31:11
-        local.get 48   ; _main.vader:31:11
-        local.get 46   ; _main.vader:31:11
-        usize.le   ; _main.vader:31:11
-        local.set 49   ; _main.vader:31:11
-      else   ; _main.vader:31:11
-        local.get 48   ; _main.vader:31:11
-        local.get 46   ; _main.vader:31:11
-        usize.lt   ; _main.vader:31:11
-        local.set 49   ; _main.vader:31:11
-      end $L23   ; _main.vader:31:11
-      local.get 49   ; _main.vader:31:11
-      if $L24 void   ; _main.vader:31:11
-        local.get 45   ; _main.vader:31:11
-        local.get 48   ; _main.vader:31:11
-        array.get 10   ; _main.vader:31:11
-        ref.cast 1   ; _main.vader:31:11
-        local.set 50   ; _main.vader:31:11
-        local.get 47   ; _main.vader:31:11
-        local.get 50   ; _main.vader:31:11
-        array.push 1   ; _main.vader:31:11
-        local.get 48   ; _main.vader:31:11
-        i64.const 1   ; _main.vader:31:11
-        i64.to_usize   ; _main.vader:31:11
-        usize.add   ; _main.vader:31:11
-        local.set 48   ; _main.vader:31:11
-        br $L22   ; _main.vader:31:11
-      else   ; _main.vader:31:11
-      end $L24   ; _main.vader:31:11
-    end $L22   ; _main.vader:31:11
-  end $L21   ; _main.vader:31:11
-  local.get 47   ; _main.vader:31:5
-  local.set 51   ; _main.vader:31:5
+  i64.const 0   ; _main.vader:31:11
+  i64.to_usize   ; _main.vader:31:11
+  i64.const 3   ; _main.vader:31:11
+  i64.to_usize   ; _main.vader:31:11
+  array.slice 21   ; _main.vader:31:11
+  local.set 35   ; _main.vader:31:11
   intrinsic builder.new   ; _main.vader:32:13
-  local.set 52   ; _main.vader:32:13
-  local.get 52   ; _main.vader:32:14
+  local.set 36   ; _main.vader:32:13
+  local.get 36   ; _main.vader:32:14
   string.const 4   ; _main.vader:32:14
   intrinsic builder.append_str   ; _main.vader:32:14
-  local.get 51   ; _main.vader:32:25
+  local.get 35   ; _main.vader:32:25
   array.len   ; _main.vader:32:25
   call.import 0   ; _main.vader:32:23
-  local.set 53   ; _main.vader:32:23
-  local.get 52   ; _main.vader:32:23
-  local.get 53   ; _main.vader:32:23
+  local.set 37   ; _main.vader:32:23
+  local.get 36   ; _main.vader:32:23
+  local.get 37   ; _main.vader:32:23
   intrinsic builder.append_str   ; _main.vader:32:23
-  local.get 52   ; _main.vader:32:13
+  local.get 36   ; _main.vader:32:13
   intrinsic builder.finish   ; _main.vader:32:13
   call.import 1   ; _main.vader:32:5
-  local.get 51   ; _main.vader:33:5
+  local.get 35   ; _main.vader:33:5
   array.len   ; _main.vader:33:5
-  local.set 54   ; _main.vader:33:5
-  local.get 51   ; _main.vader:33:14
+  local.set 38   ; _main.vader:33:5
+  local.get 35   ; _main.vader:33:14
   i64.const 0   ; _main.vader:33:14
   i64.to_usize   ; _main.vader:33:14
-  local.get 54   ; _main.vader:33:14
+  local.get 38   ; _main.vader:33:14
   struct.new 2   ; _main.vader:33:14
-  local.set 55   ; _main.vader:33:14
-  block $L25 void   ; _main.vader:33:5
-    loop $L26 void   ; _main.vader:33:5
-      local.get 55   ; _main.vader:33:5
+  local.set 39   ; _main.vader:33:14
+  block $L10 void   ; _main.vader:33:5
+    loop $L11 void   ; _main.vader:33:5
+      local.get 39   ; _main.vader:33:5
       call 1   ; _main.vader:33:5
-      local.tee 56   ; _main.vader:33:5
+      local.tee 40   ; _main.vader:33:5
       type_check 4   ; _main.vader:33:5
-      if $L27 void   ; _main.vader:33:5
+      if $L12 void   ; _main.vader:33:5
       else   ; _main.vader:33:5
-        local.get 56   ; _main.vader:33:5
+        local.get 40   ; _main.vader:33:5
         struct.get 5 0   ; _main.vader:33:5
-        local.set 57   ; _main.vader:33:5
+        local.set 41   ; _main.vader:33:5
         intrinsic builder.new   ; _main.vader:33:27
-        local.set 58   ; _main.vader:33:27
-        local.get 58   ; _main.vader:33:28
+        local.set 42   ; _main.vader:33:27
+        local.get 42   ; _main.vader:33:28
         string.const 1   ; _main.vader:33:28
         intrinsic builder.append_str   ; _main.vader:33:28
-        local.get 58   ; _main.vader:33:30
-        local.get 57   ; _main.vader:33:30
+        local.get 42   ; _main.vader:33:30
+        local.get 41   ; _main.vader:33:30
         intrinsic builder.append_display   ; _main.vader:33:30
-        local.get 58   ; _main.vader:33:27
+        local.get 42   ; _main.vader:33:27
         intrinsic builder.finish   ; _main.vader:33:27
         call.import 1   ; _main.vader:33:19
-        br $L26   ; _main.vader:33:5
-      end $L27   ; _main.vader:33:5
-    end $L26   ; _main.vader:33:5
-  end $L25   ; _main.vader:33:5
-  local.get 0   ; _main.vader:36:11
-  local.set 59   ; _main.vader:36:11
+        br $L11   ; _main.vader:33:5
+      end $L12   ; _main.vader:33:5
+    end $L11   ; _main.vader:33:5
+  end $L10   ; _main.vader:33:5
   i32.const 2   ; _main.vader:36:15
   i32.to_usize   ; _main.vader:36:11
-  local.set 62   ; _main.vader:36:11
+  local.set 43   ; _main.vader:36:11
   i32.const 2   ; _main.vader:36:19
   i32.to_usize   ; _main.vader:36:11
-  local.set 60   ; _main.vader:36:11
-  array.new 10 0   ; _main.vader:36:11
-  local.set 61   ; _main.vader:36:11
-  block $L28 void   ; _main.vader:36:11
-    loop $L29 void   ; _main.vader:36:11
-      bool.const false   ; _main.vader:36:11
-      if $L30 void   ; _main.vader:36:11
-        local.get 62   ; _main.vader:36:11
-        local.get 60   ; _main.vader:36:11
-        usize.le   ; _main.vader:36:11
-        local.set 63   ; _main.vader:36:11
-      else   ; _main.vader:36:11
-        local.get 62   ; _main.vader:36:11
-        local.get 60   ; _main.vader:36:11
-        usize.lt   ; _main.vader:36:11
-        local.set 63   ; _main.vader:36:11
-      end $L30   ; _main.vader:36:11
-      local.get 63   ; _main.vader:36:11
-      if $L31 void   ; _main.vader:36:11
-        local.get 59   ; _main.vader:36:11
-        local.get 62   ; _main.vader:36:11
-        array.get 10   ; _main.vader:36:11
-        ref.cast 1   ; _main.vader:36:11
-        local.set 64   ; _main.vader:36:11
-        local.get 61   ; _main.vader:36:11
-        local.get 64   ; _main.vader:36:11
-        array.push 1   ; _main.vader:36:11
-        local.get 62   ; _main.vader:36:11
-        i64.const 1   ; _main.vader:36:11
-        i64.to_usize   ; _main.vader:36:11
-        usize.add   ; _main.vader:36:11
-        local.set 62   ; _main.vader:36:11
-        br $L29   ; _main.vader:36:11
-      else   ; _main.vader:36:11
-      end $L31   ; _main.vader:36:11
-    end $L29   ; _main.vader:36:11
-  end $L28   ; _main.vader:36:11
-  local.get 61   ; _main.vader:36:5
-  local.set 65   ; _main.vader:36:5
+  local.set 44   ; _main.vader:36:11
+  local.get 0   ; _main.vader:36:11
+  local.get 43   ; _main.vader:36:11
+  local.get 44   ; _main.vader:36:11
+  array.slice 21   ; _main.vader:36:11
+  local.set 45   ; _main.vader:36:11
   intrinsic builder.new   ; _main.vader:37:13
-  local.set 66   ; _main.vader:37:13
-  local.get 66   ; _main.vader:37:14
+  local.set 46   ; _main.vader:37:13
+  local.get 46   ; _main.vader:37:14
   string.const 5   ; _main.vader:37:14
   intrinsic builder.append_str   ; _main.vader:37:14
-  local.get 65   ; _main.vader:37:25
+  local.get 45   ; _main.vader:37:25
   array.len   ; _main.vader:37:25
   call.import 0   ; _main.vader:37:23
-  local.set 67   ; _main.vader:37:23
-  local.get 66   ; _main.vader:37:23
-  local.get 67   ; _main.vader:37:23
+  local.set 47   ; _main.vader:37:23
+  local.get 46   ; _main.vader:37:23
+  local.get 47   ; _main.vader:37:23
   intrinsic builder.append_str   ; _main.vader:37:23
-  local.get 66   ; _main.vader:37:13
+  local.get 46   ; _main.vader:37:13
   intrinsic builder.finish   ; _main.vader:37:13
   call.import 1   ; _main.vader:37:5
   i32.const 0   ; _main.vader:39:12

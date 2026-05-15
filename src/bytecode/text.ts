@@ -150,6 +150,7 @@ function formatOp(op: Op): string {
     case "array.get":    return `array.get ${op.typeIndex}`;
     case "array.set":    return `array.set ${op.typeIndex}`;
     case "array.push":   return `array.push ${op.typeIndex}`;
+    case "array.slice":  return `array.slice ${op.typeIndex}`;
     case "type_check":   return `type_check ${op.typeIndex}`;
     case "ref.cast":     return `ref.cast ${op.typeIndex}`;
     default:
@@ -486,6 +487,7 @@ function parseOp(text: string, scopes: { name: string }[], ctx: ParseCtx): Op {
     case "array.get":    return { kind: "array.get", typeIndex: Number(tail) };
     case "array.set":    return { kind: "array.set", typeIndex: Number(tail) };
     case "array.push":   return { kind: "array.push", typeIndex: Number(tail) };
+    case "array.slice":  return { kind: "array.slice", typeIndex: Number(tail) };
     case "type_check":   return { kind: "type_check", typeIndex: Number(tail) };
     case "ref.cast":     return { kind: "ref.cast", typeIndex: Number(tail) };
     default:

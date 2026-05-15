@@ -221,6 +221,10 @@ typedef struct {
     vader_obj_header_t       header;
     size_t                   length;
     size_t                   capacity;
+    /* First buf slot this array exposes. Zero for fresh arrays ; non-zero
+     * for slice views that share the parent's buf. `offset + length`
+     * never exceeds `buf->length`. */
+    size_t                   offset;
     struct vader_array_buf*  buf;
 } vader_array_t;
 
@@ -251,6 +255,11 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t eleme
 vader_box_t    vader_array_get(vader_array_t* a, size_t i);
 void           vader_array_set(vader_array_t* a, size_t i, vader_box_t v);
 void           vader_array_push(vader_array_t* a, vader_box_t v);
+/* Zero-copy view into `a[lo..hi)`. The returned array shares `a->buf` ;
+ * pushing into the view detaches into a fresh buf so concurrent views
+ * don't see the growth. Bounds are clamped (lo to `[0,len]`, hi to
+ * `[lo,len]`). */
+vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi);
 
 /* `len` is hot enough — and trivial enough — to live in the header so
  * every translation unit can fold the indirection. Callers usually

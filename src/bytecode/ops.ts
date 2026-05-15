@@ -105,6 +105,10 @@ export type Op =
   | { readonly kind: "array.set"; readonly typeIndex: number }
   | { readonly kind: "array.len" }
   | { readonly kind: "array.push"; readonly typeIndex: number }
+  /* Zero-copy slice : pops `arr`, `lo`, `hi` (in that order on the stack);
+   * pushes a fresh array header sharing `arr->buf`. Bounds are clamped at
+   * runtime so out-of-range indices yield a shorter view rather than trap. */
+  | { readonly kind: "array.slice"; readonly typeIndex: number }
 
   // -- String arithmetic (`string.eq`/`string.ne` live in CmpOpKind above) --
   | { readonly kind: "string.concat" }

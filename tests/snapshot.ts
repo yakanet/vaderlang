@@ -430,6 +430,15 @@ function emitExpr(lines: string[], e: LoweredExpr, indent: string): void {
       for (const a of e.args) emitExpr(lines, a, indent + "  ");
       return;
     }
+    case "LoweredArraySlice":
+      lines.push(`${indent}slice :${displayType(e.type)}`);
+      lines.push(`${indent}  on:`);
+      emitExpr(lines, e.target, indent + "    ");
+      lines.push(`${indent}  lo:`);
+      emitExpr(lines, e.lo, indent + "    ");
+      lines.push(`${indent}  hi:`);
+      emitExpr(lines, e.hi, indent + "    ");
+      return;
     default:
       lines.push(`${indent}${e.kind}`);
       return;

@@ -60,6 +60,7 @@ export function forEachReadLocal(ins: Instruction, visit: (l: LocalId) => void):
     case "ArraySet":     visit(ins.target); visit(ins.index); visit(ins.value); return;
     case "ArrayLen":     visit(ins.target); return;
     case "ArrayPush":    visit(ins.target); visit(ins.value); return;
+    case "ArraySlice":   visit(ins.target); visit(ins.lo); visit(ins.hi); return;
     case "StructNew":    for (const f of ins.fields) visit(f); return;
     case "ArrayNew":     for (const e of ins.elements) visit(e); return;
     case "TypeCheck":    visit(ins.value); return;
@@ -269,6 +270,7 @@ export function dstOf(ins: Instruction): LocalId | null {
     case "FieldGet":
     case "ArrayGet":
     case "ArrayLen":
+    case "ArraySlice":
     case "StructNew":
     case "ArrayNew":
     case "TypeCheck":

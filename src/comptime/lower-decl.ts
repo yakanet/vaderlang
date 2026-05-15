@@ -310,6 +310,7 @@ function walkExpr(expr: LoweredExpr, seen: Set<number>, out: Symbol[]): void {
     case "LoweredIntrinsicCall": for (const a of expr.args) walkExpr(a, seen, out); return;
     case "LoweredArrayLen":      walkExpr(expr.target, seen, out); return;
     case "LoweredArrayPush":     walkExpr(expr.target, seen, out); walkExpr(expr.value, seen, out); return;
+    case "LoweredArraySlice":    walkExpr(expr.target, seen, out); walkExpr(expr.lo, seen, out); walkExpr(expr.hi, seen, out); return;
     case "LoweredCellNew":       walkExpr(expr.value, seen, out); return;
     case "LoweredCellGet":       walkExpr(expr.target, seen, out); return;
     case "LoweredMakeClosure":

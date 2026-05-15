@@ -441,6 +441,7 @@ function buildExpr(fn: FnCtx, e: L.LoweredExpr): LocalId | null {
     case "LoweredIntrinsicCall": return buildIntrinsicCall(fn, e);
     case "LoweredArrayLen":      return buildArrayLen(fn, e);
     case "LoweredArrayPush":     return buildArrayPush(fn, e);
+    case "LoweredArraySlice":    return buildArraySlice(fn, e);
     case "LoweredCellNew":       return buildCellNew(fn, e);
     case "LoweredCellGet":       return buildCellGet(fn, e);
     case "LoweredMakeClosure":   return buildMakeClosure(fn, e);
@@ -757,6 +758,16 @@ function buildArrayPush(fn: FnCtx, e: L.LoweredArrayPush): LocalId | null {
   if (target === null || value === null) return null;
   emit(fn, { kind: "ArrayPush", target, value, span: e.span });
   return null;       // push returns void
+}
+
+function buildArraySlice(fn: FnCtx, e: L.LoweredArraySlice): LocalId | null {
+  const target = buildExpr(fn, e.target);
+  const lo = buildExpr(fn, e.lo);
+  const hi = buildExpr(fn, e.hi);
+  if (target === null || lo === null || hi === null) return null;
+  const dst = freshTmp(fn, "slice", e.type);
+  emit(fn, { kind: "ArraySlice", dst, type: e.type, target, lo, hi, span: e.span });
+  return dst;
 }
 
 function buildCellNew(fn: FnCtx, e: L.LoweredCellNew): LocalId | null {

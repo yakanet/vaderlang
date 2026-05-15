@@ -800,6 +800,7 @@ parse_op_line :: fn(cleaned: string) -> op.Op | null {
     if cleaned.starts_with("array.get ")        { return parse_array_get(cleaned) }
     if cleaned.starts_with("array.set ")        { return parse_array_set(cleaned) }
     if cleaned == "array.len"                   { return op.ArrayLen {} }
+    if cleaned.starts_with("array.slice ")      { return parse_array_slice(cleaned) }
     if cleaned.starts_with("ref.cast ")         { return op.RefCast {} }
     if cleaned.starts_with("char.to_")          { return op.CharToInt {} }
     if cleaned.ends_with(".to_char")            { return op.IntToChar {} }
@@ -1348,4 +1349,10 @@ parse_array_set :: fn(line: string) -> op.Op | null {
     parsed :: parse_int_after_prefix(line, "array.set ")
     if parsed is null { return null }
     return op.ArraySet { .type_id = parsed }
+}
+
+parse_array_slice :: fn(line: string) -> op.Op | null {
+    parsed :: parse_int_after_prefix(line, "array.slice ")
+    if parsed is null { return null }
+    return op.ArraySlice { .type_id = parsed }
 }

@@ -10,435 +10,317 @@ fn tests_snippets_array_slice__main_vader$main() -> i32
     %3 $k_3: i32
     %4 $k_4: i32
     %5 arr: i32[] (local arr)
-    %6 __slice_src_0: i32[] (synthetic __slice_src_0)
-    %7 $k_8: i32
-    %8 $k_11: i32
-    %9 __slice_hi_2: usize (synthetic __slice_hi_2)
-    %10 __slice_inc_3: bool (synthetic __slice_inc_3)
-    %11 __slice_out_4: i32[] (synthetic __slice_out_4)
-    %12 __slice_i_5: usize (synthetic __slice_i_5)
-    %13 if_res: bool
-    %14 $idx_22: i32
-    %15 $k_23: usize
-    %16 s1: i32[] (local s1)
-    %17 $intrinsic_26: ?
-    %18 __sb_6: ? (synthetic __sb_6)
-    %19 $k_28: string
-    %20 $len_29: usize
-    %21 $call_30: string
-    %22 $intrinsic_31: string
-    %23 $k_32: usize
-    %24 $len_33: usize
-    %25 __iter_7: ArrayIterator(i32) (synthetic __iter_7)
-    %26 $call_36: Done | Yielded(i32)
-    %27 __step_8: Done | Yielded(i32) (synthetic __step_8)
-    %28 $type_check_38: bool
-    %29 $cast_39: Yielded(i32)
-    %30 v: i32 (binding v)
-    %31 $intrinsic_42: ?
-    %32 __sb_9: ? (synthetic __sb_9)
-    %33 $k_44: string
-    %34 $intrinsic_45: string
-    %35 __slice_src_10: i32[] (synthetic __slice_src_10)
-    %36 $k_47: i32
-    %37 $k_50: i32
-    %38 __slice_hi_12: usize (synthetic __slice_hi_12)
-    %39 __slice_inc_13: bool (synthetic __slice_inc_13)
-    %40 __slice_out_14: i32[] (synthetic __slice_out_14)
-    %41 __slice_i_15: usize (synthetic __slice_i_15)
-    %42 if_res: bool
-    %43 $idx_61: i32
-    %44 $k_62: usize
-    %45 s2: i32[] (local s2)
-    %46 $intrinsic_65: ?
-    %47 __sb_16: ? (synthetic __sb_16)
-    %48 $k_67: string
-    %49 $len_68: usize
-    %50 $call_69: string
-    %51 $intrinsic_70: string
-    %52 $k_71: usize
-    %53 $len_72: usize
-    %54 __iter_17: ArrayIterator(i32) (synthetic __iter_17)
-    %55 $call_75: Done | Yielded(i32)
-    %56 __step_18: Done | Yielded(i32) (synthetic __step_18)
-    %57 $type_check_77: bool
-    %58 $cast_78: Yielded(i32)
-    %59 v: i32 (binding v)
-    %60 $intrinsic_81: ?
-    %61 __sb_19: ? (synthetic __sb_19)
-    %62 $k_83: string
-    %63 $intrinsic_84: string
-    %64 $k_85: i32
-    %65 $k_86: i32
-    %66 $k_87: bool
-    %67 $k_88: i32
-    %68 __slice_src_20: i32[] (synthetic __slice_src_20)
-    %69 __slice_r_26: Range(i32) (synthetic __slice_r_26)
-    %70 $field_93: i32
-    %71 $field_96: i32
-    %72 __slice_hi_22: usize (synthetic __slice_hi_22)
-    %73 __slice_inc_23: bool (synthetic __slice_inc_23)
-    %74 __slice_out_24: i32[] (synthetic __slice_out_24)
-    %75 __slice_i_25: usize (synthetic __slice_i_25)
-    %76 if_res: bool
-    %77 $idx_107: i32
-    %78 $k_108: usize
-    %79 s3: i32[] (local s3)
-    %80 $intrinsic_111: ?
-    %81 __sb_27: ? (synthetic __sb_27)
-    %82 $k_113: string
-    %83 $len_114: usize
-    %84 $call_115: string
-    %85 $intrinsic_116: string
-    %86 $k_117: usize
-    %87 $len_118: usize
-    %88 __iter_28: ArrayIterator(i32) (synthetic __iter_28)
-    %89 $call_121: Done | Yielded(i32)
-    %90 __step_29: Done | Yielded(i32) (synthetic __step_29)
-    %91 $type_check_123: bool
-    %92 $cast_124: Yielded(i32)
-    %93 v: i32 (binding v)
-    %94 $intrinsic_127: ?
-    %95 __sb_30: ? (synthetic __sb_30)
-    %96 $k_129: string
-    %97 $intrinsic_130: string
-    %98 __slice_src_31: i32[] (synthetic __slice_src_31)
-    %99 __slice_hi_33: usize (synthetic __slice_hi_33)
-    %100 __slice_inc_34: bool (synthetic __slice_inc_34)
-    %101 __slice_out_35: i32[] (synthetic __slice_out_35)
-    %102 __slice_i_36: usize (synthetic __slice_i_36)
-    %103 if_res: bool
-    %104 $idx_145: i32
-    %105 $k_146: usize
-    %106 s4: i32[] (local s4)
-    %107 $intrinsic_149: ?
-    %108 __sb_37: ? (synthetic __sb_37)
-    %109 $k_151: string
-    %110 $len_152: usize
-    %111 $call_153: string
-    %112 $intrinsic_154: string
-    %113 $k_155: usize
-    %114 $len_156: usize
-    %115 __iter_38: ArrayIterator(i32) (synthetic __iter_38)
-    %116 $call_159: Done | Yielded(i32)
-    %117 __step_39: Done | Yielded(i32) (synthetic __step_39)
-    %118 $type_check_161: bool
-    %119 $cast_162: Yielded(i32)
-    %120 v: i32 (binding v)
-    %121 $intrinsic_165: ?
-    %122 __sb_40: ? (synthetic __sb_40)
-    %123 $k_167: string
-    %124 $intrinsic_168: string
-    %125 __slice_src_41: i32[] (synthetic __slice_src_41)
-    %126 $k_170: i32
-    %127 $k_173: i32
-    %128 __slice_hi_43: usize (synthetic __slice_hi_43)
-    %129 __slice_inc_44: bool (synthetic __slice_inc_44)
-    %130 __slice_out_45: i32[] (synthetic __slice_out_45)
-    %131 __slice_i_46: usize (synthetic __slice_i_46)
-    %132 if_res: bool
-    %133 $idx_184: i32
-    %134 $k_185: usize
-    %135 s5: i32[] (local s5)
-    %136 $intrinsic_188: ?
-    %137 __sb_47: ? (synthetic __sb_47)
-    %138 $k_190: string
-    %139 $len_191: usize
-    %140 $call_192: string
-    %141 $intrinsic_193: string
-    %142 $k_194: i32
+    %6 $k_7: i32
+    %7 $cast_8: usize
+    %8 $k_9: i32
+    %9 $cast_10: usize
+    %10 s1: i32[] (local s1)
+    %11 $intrinsic_13: ?
+    %12 __sb_0: ? (synthetic __sb_0)
+    %13 $k_15: string
+    %14 $len_16: usize
+    %15 $call_17: string
+    %16 $intrinsic_18: string
+    %17 $k_19: usize
+    %18 $len_20: usize
+    %19 __iter_1: ArrayIterator(i32) (synthetic __iter_1)
+    %20 $call_23: Done | Yielded(i32)
+    %21 __step_2: Done | Yielded(i32) (synthetic __step_2)
+    %22 $type_check_25: bool
+    %23 $cast_26: Yielded(i32)
+    %24 v: i32 (binding v)
+    %25 $intrinsic_29: ?
+    %26 __sb_3: ? (synthetic __sb_3)
+    %27 $k_31: string
+    %28 $intrinsic_32: string
+    %29 $k_33: i32
+    %30 $cast_34: usize
+    %31 $k_35: i32
+    %32 $cast_36: usize
+    %33 $k_37: usize
+    %34 $add_38: usize
+    %35 s2: i32[] (local s2)
+    %36 $intrinsic_41: ?
+    %37 __sb_4: ? (synthetic __sb_4)
+    %38 $k_43: string
+    %39 $len_44: usize
+    %40 $call_45: string
+    %41 $intrinsic_46: string
+    %42 $k_47: usize
+    %43 $len_48: usize
+    %44 __iter_5: ArrayIterator(i32) (synthetic __iter_5)
+    %45 $call_51: Done | Yielded(i32)
+    %46 __step_6: Done | Yielded(i32) (synthetic __step_6)
+    %47 $type_check_53: bool
+    %48 $cast_54: Yielded(i32)
+    %49 v: i32 (binding v)
+    %50 $intrinsic_57: ?
+    %51 __sb_7: ? (synthetic __sb_7)
+    %52 $k_59: string
+    %53 $intrinsic_60: string
+    %54 $k_61: i32
+    %55 $k_62: i32
+    %56 $k_63: bool
+    %57 $k_64: i32
+    %58 __slice_r_8: Range(i32) (synthetic __slice_r_8)
+    %59 $field_68: i32
+    %60 $cast_69: usize
+    %61 $field_70: i32
+    %62 $cast_71: usize
+    %63 $field_72: bool
+    %64 if_res: usize
+    %65 $add_76: usize
+    %66 s3: i32[] (local s3)
+    %67 $intrinsic_79: ?
+    %68 __sb_9: ? (synthetic __sb_9)
+    %69 $k_81: string
+    %70 $len_82: usize
+    %71 $call_83: string
+    %72 $intrinsic_84: string
+    %73 $k_85: usize
+    %74 $len_86: usize
+    %75 __iter_10: ArrayIterator(i32) (synthetic __iter_10)
+    %76 $call_89: Done | Yielded(i32)
+    %77 __step_11: Done | Yielded(i32) (synthetic __step_11)
+    %78 $type_check_91: bool
+    %79 $cast_92: Yielded(i32)
+    %80 v: i32 (binding v)
+    %81 $intrinsic_95: ?
+    %82 __sb_12: ? (synthetic __sb_12)
+    %83 $k_97: string
+    %84 $intrinsic_98: string
+    %85 n: usize (local n)
+    %86 $k_101: usize
+    %87 s4: i32[] (local s4)
+    %88 $intrinsic_104: ?
+    %89 __sb_13: ? (synthetic __sb_13)
+    %90 $k_106: string
+    %91 $len_107: usize
+    %92 $call_108: string
+    %93 $intrinsic_109: string
+    %94 $k_110: usize
+    %95 $len_111: usize
+    %96 __iter_14: ArrayIterator(i32) (synthetic __iter_14)
+    %97 $call_114: Done | Yielded(i32)
+    %98 __step_15: Done | Yielded(i32) (synthetic __step_15)
+    %99 $type_check_116: bool
+    %100 $cast_117: Yielded(i32)
+    %101 v: i32 (binding v)
+    %102 $intrinsic_120: ?
+    %103 __sb_16: ? (synthetic __sb_16)
+    %104 $k_122: string
+    %105 $intrinsic_123: string
+    %106 $k_124: i32
+    %107 $cast_125: usize
+    %108 $k_126: i32
+    %109 $cast_127: usize
+    %110 s5: i32[] (local s5)
+    %111 $intrinsic_130: ?
+    %112 __sb_17: ? (synthetic __sb_17)
+    %113 $k_132: string
+    %114 $len_133: usize
+    %115 $call_134: string
+    %116 $intrinsic_135: string
+    %117 $k_136: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const int(20) :i32
     %2 = const int(30) :i32
     %3 = const int(40) :i32
     %4 = const int(50) :i32
-    %5 = array_new[stack] i32[][5](%0, %1, %2, %3, %4)
-    %6 = move %5
-    %7 = const int(1) :i32
-    %12 = cast %7 :usize
+    %5 = array_new i32[][5](%0, %1, %2, %3, %4)
+    %6 = const int(1) :i32
+    %7 = cast %6 :usize
     %8 = const int(4) :i32
     %9 = cast %8 :usize
-    %10 = const bool(false) :bool
-    %11 = array_new i32[][0]()
+    %10 = array_slice %5[%7..%9] :i32[]
+    %11 = intrinsic builder.new()
+    %12 = move %11
+    %13 = const string(#0) :string
+    intrinsic builder.append_str(%12, %13)
+    %14 = array_len %10
+    %15 = call to_string(%14) :string
+    intrinsic builder.append_str(%12, %15)
+    %16 = intrinsic builder.finish(%12)
+    call println(%16) :void
+    %17 = const int(0) :usize
+    %18 = array_len %10
+    %19 = struct_new ArrayIterator(i32)(%10, %17, %18)
     branch -> bb1
   bb1:
-    cond_branch %10 ? bb4 : bb5
+    branch -> bb2
   bb2:
-    %14 = array_get %6[%12] :i32
-    array_push %11, %14
-    %15 = const int(1) :usize
-    %12 = binop add %12 %15 :usize
-    branch -> bb1
+    %20 = call next(%19) :Done | Yielded(i32)
+    %21 = move %20
+    %22 = type_check %21 is Done
+    cond_branch %22 ? bb4 : bb5
   bb3:
-    %16 = move %11
-    %17 = intrinsic builder.new()
-    %18 = move %17
-    %19 = const string(#0) :string
-    intrinsic builder.append_str(%18, %19)
-    %20 = array_len %16
-    %21 = call to_string(%20) :string
-    intrinsic builder.append_str(%18, %21)
-    %22 = intrinsic builder.finish(%18)
-    call println(%22) :void
-    %23 = const int(0) :usize
-    %24 = array_len %16
-    %25 = struct_new ArrayIterator(i32)(%16, %23, %24)
+    %29 = const int(0) :i32
+    %30 = cast %29 :usize
+    %31 = const int(2) :i32
+    %32 = cast %31 :usize
+    %33 = const int(1) :usize
+    %34 = binop add %32 %33 :usize
+    %35 = array_slice %5[%30..%34] :i32[]
+    %36 = intrinsic builder.new()
+    %37 = move %36
+    %38 = const string(#2) :string
+    intrinsic builder.append_str(%37, %38)
+    %39 = array_len %35
+    %40 = call to_string(%39) :string
+    intrinsic builder.append_str(%37, %40)
+    %41 = intrinsic builder.finish(%37)
+    call println(%41) :void
+    %42 = const int(0) :usize
+    %43 = array_len %35
+    %44 = struct_new ArrayIterator(i32)(%35, %42, %43)
     branch -> bb7
   bb4:
-    %13 = binop lte %12 %9 :bool
-    branch -> bb6
+    branch -> bb3
   bb5:
-    %13 = binop lt %12 %9 :bool
+    %23 = cast %21 :Yielded(i32)
+    %24 = field_get %23.value :i32
+    %25 = intrinsic builder.new()
+    %26 = move %25
+    %27 = const string(#1) :string
+    intrinsic builder.append_str(%26, %27)
+    intrinsic builder.append_display(%26, %24)
+    %28 = intrinsic builder.finish(%26)
+    call println(%28) :void
     branch -> bb6
   bb6:
-    cond_branch %13 ? bb2 : bb3
+    branch -> bb1
   bb7:
     branch -> bb8
   bb8:
-    %26 = call next(%25) :Done | Yielded(i32)
-    %27 = move %26
-    %28 = type_check %27 is Done
-    cond_branch %28 ? bb10 : bb11
+    %45 = call next(%44) :Done | Yielded(i32)
+    %46 = move %45
+    %47 = type_check %46 is Done
+    cond_branch %47 ? bb10 : bb11
   bb9:
-    %35 = move %5
-    %36 = const int(0) :i32
-    %41 = cast %36 :usize
-    %37 = const int(2) :i32
-    %38 = cast %37 :usize
-    %39 = const bool(true) :bool
-    %40 = array_new i32[][0]()
-    branch -> bb13
+    %54 = const int(2) :i32
+    %55 = const int(5) :i32
+    %56 = const bool(false) :bool
+    %57 = const int(2) :i32
+    %58 = struct_new[stack] Range(i32)(%54, %55, %56, %57)
+    %59 = field_get %58.start :i32
+    %60 = cast %59 :usize
+    %61 = field_get %58.end :i32
+    %62 = cast %61 :usize
+    %63 = field_get %58.inclusive :bool
+    cond_branch %63 ? bb13 : bb14
   bb10:
     branch -> bb9
   bb11:
-    %29 = cast %27 :Yielded(i32)
-    %30 = field_get %29.value :i32
-    %31 = intrinsic builder.new()
-    %32 = move %31
-    %33 = const string(#1) :string
-    intrinsic builder.append_str(%32, %33)
-    intrinsic builder.append_display(%32, %30)
-    %34 = intrinsic builder.finish(%32)
-    call println(%34) :void
+    %48 = cast %46 :Yielded(i32)
+    %49 = field_get %48.value :i32
+    %50 = intrinsic builder.new()
+    %51 = move %50
+    %52 = const string(#1) :string
+    intrinsic builder.append_str(%51, %52)
+    intrinsic builder.append_display(%51, %49)
+    %53 = intrinsic builder.finish(%51)
+    call println(%53) :void
     branch -> bb12
   bb12:
     branch -> bb7
   bb13:
-    cond_branch %39 ? bb16 : bb17
+    %64 = const int(1) :usize
+    branch -> bb15
   bb14:
-    %43 = array_get %35[%41] :i32
-    array_push %40, %43
-    %44 = const int(1) :usize
-    %41 = binop add %41 %44 :usize
-    branch -> bb13
+    %64 = const int(0) :usize
+    branch -> bb15
   bb15:
-    %45 = move %40
-    %46 = intrinsic builder.new()
-    %47 = move %46
-    %48 = const string(#2) :string
-    intrinsic builder.append_str(%47, %48)
-    %49 = array_len %45
-    %50 = call to_string(%49) :string
-    intrinsic builder.append_str(%47, %50)
-    %51 = intrinsic builder.finish(%47)
-    call println(%51) :void
-    %52 = const int(0) :usize
-    %53 = array_len %45
-    %54 = struct_new ArrayIterator(i32)(%45, %52, %53)
-    branch -> bb19
+    %65 = binop add %62 %64 :usize
+    %66 = array_slice %5[%60..%65] :i32[]
+    %67 = intrinsic builder.new()
+    %68 = move %67
+    %69 = const string(#3) :string
+    intrinsic builder.append_str(%68, %69)
+    %70 = array_len %66
+    %71 = call to_string(%70) :string
+    intrinsic builder.append_str(%68, %71)
+    %72 = intrinsic builder.finish(%68)
+    call println(%72) :void
+    %73 = const int(0) :usize
+    %74 = array_len %66
+    %75 = struct_new ArrayIterator(i32)(%66, %73, %74)
+    branch -> bb16
   bb16:
-    %42 = binop lte %41 %38 :bool
-    branch -> bb18
+    branch -> bb17
   bb17:
-    %42 = binop lt %41 %38 :bool
-    branch -> bb18
+    %76 = call next(%75) :Done | Yielded(i32)
+    %77 = move %76
+    %78 = type_check %77 is Done
+    cond_branch %78 ? bb19 : bb20
   bb18:
-    cond_branch %42 ? bb14 : bb15
-  bb19:
-    branch -> bb20
-  bb20:
-    %55 = call next(%54) :Done | Yielded(i32)
-    %56 = move %55
-    %57 = type_check %56 is Done
-    cond_branch %57 ? bb22 : bb23
-  bb21:
-    %64 = const int(2) :i32
-    %65 = const int(5) :i32
-    %66 = const bool(false) :bool
-    %67 = const int(2) :i32
-    %69 = struct_new[stack] Range(i32)(%64, %65, %66, %67)
-    %68 = move %5
-    %70 = field_get %69.start :i32
-    %75 = cast %70 :usize
-    %71 = field_get %69.end :i32
-    %72 = cast %71 :usize
-    %73 = field_get %69.inclusive :bool
-    %74 = array_new i32[][0]()
-    branch -> bb25
-  bb22:
-    branch -> bb21
-  bb23:
-    %58 = cast %56 :Yielded(i32)
-    %59 = field_get %58.value :i32
-    %60 = intrinsic builder.new()
-    %61 = move %60
-    %62 = const string(#1) :string
-    intrinsic builder.append_str(%61, %62)
-    intrinsic builder.append_display(%61, %59)
-    %63 = intrinsic builder.finish(%61)
-    call println(%63) :void
-    branch -> bb24
-  bb24:
-    branch -> bb19
-  bb25:
-    cond_branch %73 ? bb28 : bb29
-  bb26:
-    %77 = array_get %68[%75] :i32
-    array_push %74, %77
-    %78 = const int(1) :usize
-    %75 = binop add %75 %78 :usize
-    branch -> bb25
-  bb27:
-    %79 = move %74
-    %80 = intrinsic builder.new()
-    %81 = move %80
-    %82 = const string(#3) :string
-    intrinsic builder.append_str(%81, %82)
-    %83 = array_len %79
-    %84 = call to_string(%83) :string
-    intrinsic builder.append_str(%81, %84)
-    %85 = intrinsic builder.finish(%81)
-    call println(%85) :void
+    %85 = const int(3) :usize
     %86 = const int(0) :usize
-    %87 = array_len %79
-    %88 = struct_new ArrayIterator(i32)(%79, %86, %87)
-    branch -> bb31
-  bb28:
-    %76 = binop lte %75 %72 :bool
-    branch -> bb30
-  bb29:
-    %76 = binop lt %75 %72 :bool
-    branch -> bb30
-  bb30:
-    cond_branch %76 ? bb26 : bb27
-  bb31:
-    branch -> bb32
-  bb32:
-    %89 = call next(%88) :Done | Yielded(i32)
-    %90 = move %89
-    %91 = type_check %90 is Done
-    cond_branch %91 ? bb34 : bb35
-  bb33:
-    %99 = const int(3) :usize
-    %98 = move %5
-    %102 = const int(0) :usize
-    %100 = const bool(false) :bool
-    %101 = array_new i32[][0]()
-    branch -> bb37
-  bb34:
-    branch -> bb33
-  bb35:
-    %92 = cast %90 :Yielded(i32)
-    %93 = field_get %92.value :i32
-    %94 = intrinsic builder.new()
-    %95 = move %94
-    %96 = const string(#1) :string
-    intrinsic builder.append_str(%95, %96)
-    intrinsic builder.append_display(%95, %93)
-    %97 = intrinsic builder.finish(%95)
-    call println(%97) :void
-    branch -> bb36
-  bb36:
-    branch -> bb31
-  bb37:
-    cond_branch %100 ? bb40 : bb41
-  bb38:
-    %104 = array_get %98[%102] :i32
-    array_push %101, %104
-    %105 = const int(1) :usize
-    %102 = binop add %102 %105 :usize
-    branch -> bb37
-  bb39:
-    %106 = move %101
-    %107 = intrinsic builder.new()
-    %108 = move %107
-    %109 = const string(#4) :string
-    intrinsic builder.append_str(%108, %109)
-    %110 = array_len %106
-    %111 = call to_string(%110) :string
-    intrinsic builder.append_str(%108, %111)
-    %112 = intrinsic builder.finish(%108)
-    call println(%112) :void
-    %113 = const int(0) :usize
-    %114 = array_len %106
-    %115 = struct_new ArrayIterator(i32)(%106, %113, %114)
-    branch -> bb43
-  bb40:
-    %103 = binop lte %102 %99 :bool
-    branch -> bb42
-  bb41:
-    %103 = binop lt %102 %99 :bool
-    branch -> bb42
-  bb42:
-    cond_branch %103 ? bb38 : bb39
-  bb43:
-    branch -> bb44
-  bb44:
-    %116 = call next(%115) :Done | Yielded(i32)
-    %117 = move %116
-    %118 = type_check %117 is Done
-    cond_branch %118 ? bb46 : bb47
-  bb45:
-    %125 = move %5
-    %126 = const int(2) :i32
-    %131 = cast %126 :usize
-    %127 = const int(2) :i32
-    %128 = cast %127 :usize
-    %129 = const bool(false) :bool
-    %130 = array_new i32[][0]()
-    branch -> bb49
-  bb46:
-    branch -> bb45
-  bb47:
-    %119 = cast %117 :Yielded(i32)
-    %120 = field_get %119.value :i32
-    %121 = intrinsic builder.new()
-    %122 = move %121
-    %123 = const string(#1) :string
-    intrinsic builder.append_str(%122, %123)
-    intrinsic builder.append_display(%122, %120)
-    %124 = intrinsic builder.finish(%122)
-    call println(%124) :void
-    branch -> bb48
-  bb48:
-    branch -> bb43
-  bb49:
-    cond_branch %129 ? bb52 : bb53
-  bb50:
-    %133 = array_get %125[%131] :i32
-    array_push %130, %133
-    %134 = const int(1) :usize
-    %131 = binop add %131 %134 :usize
-    branch -> bb49
-  bb51:
-    %135 = move %130
-    %136 = intrinsic builder.new()
-    %137 = move %136
-    %138 = const string(#5) :string
-    intrinsic builder.append_str(%137, %138)
-    %139 = array_len %135
-    %140 = call to_string(%139) :string
-    intrinsic builder.append_str(%137, %140)
-    %141 = intrinsic builder.finish(%137)
-    call println(%141) :void
-    %142 = const int(0) :i32
-    return %142
-  bb52:
-    %132 = binop lte %131 %128 :bool
-    branch -> bb54
-  bb53:
-    %132 = binop lt %131 %128 :bool
-    branch -> bb54
-  bb54:
-    cond_branch %132 ? bb50 : bb51
+    %87 = array_slice %5[%86..%85] :i32[]
+    %88 = intrinsic builder.new()
+    %89 = move %88
+    %90 = const string(#4) :string
+    intrinsic builder.append_str(%89, %90)
+    %91 = array_len %87
+    %92 = call to_string(%91) :string
+    intrinsic builder.append_str(%89, %92)
+    %93 = intrinsic builder.finish(%89)
+    call println(%93) :void
+    %94 = const int(0) :usize
+    %95 = array_len %87
+    %96 = struct_new ArrayIterator(i32)(%87, %94, %95)
+    branch -> bb22
+  bb19:
+    branch -> bb18
+  bb20:
+    %79 = cast %77 :Yielded(i32)
+    %80 = field_get %79.value :i32
+    %81 = intrinsic builder.new()
+    %82 = move %81
+    %83 = const string(#1) :string
+    intrinsic builder.append_str(%82, %83)
+    intrinsic builder.append_display(%82, %80)
+    %84 = intrinsic builder.finish(%82)
+    call println(%84) :void
+    branch -> bb21
+  bb21:
+    branch -> bb16
+  bb22:
+    branch -> bb23
+  bb23:
+    %97 = call next(%96) :Done | Yielded(i32)
+    %98 = move %97
+    %99 = type_check %98 is Done
+    cond_branch %99 ? bb25 : bb26
+  bb24:
+    %106 = const int(2) :i32
+    %107 = cast %106 :usize
+    %108 = const int(2) :i32
+    %109 = cast %108 :usize
+    %110 = array_slice %5[%107..%109] :i32[]
+    %111 = intrinsic builder.new()
+    %112 = move %111
+    %113 = const string(#5) :string
+    intrinsic builder.append_str(%112, %113)
+    %114 = array_len %110
+    %115 = call to_string(%114) :string
+    intrinsic builder.append_str(%112, %115)
+    %116 = intrinsic builder.finish(%112)
+    call println(%116) :void
+    %117 = const int(0) :i32
+    return %117
+  bb25:
+    branch -> bb24
+  bb26:
+    %100 = cast %98 :Yielded(i32)
+    %101 = field_get %100.value :i32
+    %102 = intrinsic builder.new()
+    %103 = move %102
+    %104 = const string(#1) :string
+    intrinsic builder.append_str(%103, %104)
+    intrinsic builder.append_display(%103, %101)
+    %105 = intrinsic builder.finish(%103)
+    call println(%105) :void
+    branch -> bb27
+  bb27:
+    branch -> bb22

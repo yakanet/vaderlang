@@ -229,6 +229,14 @@ function computeEscaping(
           see(ins.value);
           see(ins.target);
           break;
+        case "ArraySlice":
+          // Slice view shares the parent's buf — the parent and the bounds
+          // both contribute. The resulting view itself is heap-allocated
+          // and tracked via its `dst` if it later flows into a Call/Return.
+          see(ins.target);
+          see(ins.lo);
+          see(ins.hi);
+          break;
         case "CellNew":
           see(ins.value);
           break;

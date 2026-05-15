@@ -937,6 +937,7 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t eleme
     vader_obj_header_init(a, type_index);
     a->length   = length;
     a->capacity = cap;
+    a->offset   = 0;
     a->buf      = buf;
 
     vader_obj_header_init(buf, VADER_TYPE_INDEX_ARRAY_BUF);
@@ -1000,7 +1001,7 @@ vader_box_t vader_array_get(vader_array_t* a, size_t i) {
         a->buf = (vader_array_buf_t*) a->buf->header.forward;
     }
     if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
-    return vader_array_load_slot(a->buf, i);
+    return vader_array_load_slot(a->buf, a->offset + i);
 }
 
 void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
@@ -1009,12 +1010,40 @@ void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
         a->buf = (vader_array_buf_t*) a->buf->header.forward;
     }
     if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
-    vader_array_store_slot(a->buf, i, v);
+    vader_array_store_slot(a->buf, a->offset + i, v);
     /* Mark the card holding `a->buf` if it lives in old: subsequent minors
      * must treat that card as a root since the new slot may point at young. */
     if (a->buf->element_kind == VADER_ARRAY_KIND_BOXED) {
         VADER_WRITE_BARRIER(a->buf);
     }
+}
+
+vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi) {
+    a = vader_array_resolve(a);
+    while (a->buf != NULL && a->buf->header.forward != NULL) {
+        a->buf = (vader_array_buf_t*) a->buf->header.forward;
+    }
+    if (lo > a->length) lo = a->length;
+    if (hi < lo)        hi = lo;
+    if (hi > a->length) hi = a->length;
+    size_t len = hi - lo;
+    /* Root the parent array across the alloc — a collection inside
+     * `vader_gc_alloc` would forward it otherwise. */
+    uint32_t tag = a->header.type_index;
+    vader_box_t a_box; a_box.tag = tag; a_box._pad = 0; a_box.payload.obj = a;
+    vader_box_t* roots[1] = { &a_box };
+    vader_gc_frame_t frame = { vader_gc_top, 1u, 0u, roots };
+    vader_gc_top = &frame;
+    vader_array_t* view = (vader_array_t*) vader_gc_alloc(vader_gc_align(sizeof(vader_array_t)));
+    vader_gc_top = frame.prev;
+    a = (vader_array_t*) a_box.payload.obj;
+    vader_obj_header_init(view, tag);
+    view->length   = len;
+    /* Views aren't growable in-place — push detaches into a fresh buf. */
+    view->capacity = len;
+    view->offset   = a->offset + lo;
+    view->buf      = a->buf;
+    return view;
 }
 
 /* If `a` was relocated by a collection that fired during a recent allocation,
@@ -1032,7 +1061,12 @@ static vader_array_t* vader_array_resolve(vader_array_t* a) {
 }
 
 void vader_array_push(vader_array_t* a, vader_box_t v) {
-    if (a->length >= a->capacity) {
+    /* Three reasons to detach into a fresh buf : (a) cap reached, (b) view
+     * with non-zero offset, (c) view whose tail doesn't extend to the buf
+     * end (another view aliases the tail slots — growing in place would
+     * overwrite them). The owning array meets none of these. */
+    bool is_view = a->offset != 0 || a->offset + a->length < a->buf->length;
+    if (a->length >= a->capacity || is_view) {
         /* The grow path may run TWO GC cycles inside `vader_array_buf_alloc`
          * (minor → major when the minor doesn't free enough). Each cycle
          * forwards `a` and swaps young from/to halves ; by the second swap
@@ -1041,19 +1075,17 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
          * can't walk the chain anymore. Box `a` here and root the box so
          * the GC's scan_box re-updates `a_box.payload.obj` through every
          * cycle, then reload `a` from the box afterwards. Same trick for
-         * `v` whose payload may also need forwarding.
-         *
-         * `tag` is the array's BcType index — read off its header before
-         * the alloc, because by the time we'd query it post-alloc the
-         * original header memory may already be repurposed.
-         */
-        uint32_t tag  = a->header.type_index;
-        uint8_t  kind = a->buf->element_kind;
+         * `v` whose payload may also need forwarding. */
+        uint32_t tag       = a->header.type_index;
+        uint8_t  kind      = a->buf->element_kind;
+        size_t   elem_size = vader_array_element_size(kind);
+        size_t   src_off   = a->offset;
         vader_box_t a_box; a_box.tag = tag; a_box._pad = 0; a_box.payload.obj = a;
         vader_box_t* roots[2] = { &a_box, &v };
         vader_gc_frame_t frame = { vader_gc_top, 2u, 0u, roots };
         vader_gc_top = &frame;
         size_t cap = a->capacity == 0 ? 4 : a->capacity * 2;
+        if (cap <= a->length) cap = a->length + 1;
         vader_array_buf_t* fresh = vader_array_buf_alloc(cap, kind);
         a = (vader_array_t*) a_box.payload.obj;
         vader_array_buf_t* old = a->buf;
@@ -1061,18 +1093,21 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
             old = (vader_array_buf_t*) old->header.forward;
         }
         if (a->length > 0 && old != NULL) {
-            memcpy(fresh->slots, old->slots, a->length * vader_array_element_size(kind));
+            memcpy(fresh->slots, old->slots + src_off * elem_size, a->length * elem_size);
         }
         fresh->length = a->length;
-        a->buf = fresh;
+        a->buf      = fresh;
         a->capacity = cap;
+        a->offset   = 0;
         /* `a` may be old while `fresh` is young — mark the card holding `a`. */
         VADER_WRITE_BARRIER(a);
         vader_gc_top = frame.prev;
     }
-    vader_array_store_slot(a->buf, a->length, v);
+    vader_array_store_slot(a->buf, a->offset + a->length, v);
     a->length += 1;
-    a->buf->length = a->length;
+    if (a->offset + a->length > a->buf->length) {
+        a->buf->length = a->offset + a->length;
+    }
     VADER_WRITE_BARRIER(a->buf);
 }
 
@@ -1396,7 +1431,7 @@ vader_string_t vader_string_concat_all(vader_array_t* parts) {
     if (parts->length == 0) {
         return vader_string_new("", 0);
     }
-    vader_box_t* slots = vader_array_box_slots(parts->buf);
+    vader_box_t* slots = vader_array_box_slots(parts->buf) + parts->offset;
     size_t total = 0;
     for (size_t i = 0; i < parts->length; i++) {
         total += slots[i].payload.s.len;

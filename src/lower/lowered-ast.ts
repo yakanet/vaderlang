@@ -171,6 +171,7 @@ export type LoweredExpr =
   | LoweredIntrinsicCall
   | LoweredArrayLen
   | LoweredArrayPush
+  | LoweredArraySlice
   | LoweredCellNew
   | LoweredCellGet
   | LoweredMakeClosure;
@@ -336,6 +337,18 @@ export interface LoweredArrayPush {
   readonly type: Type;
   readonly target: LoweredExpr;
   readonly value: LoweredExpr;
+}
+
+/** Zero-copy `target[lo..hi)` view. The result is a fresh array header
+ *  sharing the parent's buf ; pushing into it detaches at runtime. The
+ *  lowerer emits this for `arr[r]` so slicing doesn't copy. */
+export interface LoweredArraySlice {
+  readonly kind: "LoweredArraySlice";
+  readonly span: Span;
+  readonly type: Type;
+  readonly target: LoweredExpr;
+  readonly lo: LoweredExpr;
+  readonly hi: LoweredExpr;
 }
 
 export interface LoweredCast {

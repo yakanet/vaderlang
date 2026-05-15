@@ -22,7 +22,7 @@ import { nullableRefVariant } from "../bytecode/types.ts";
 import type { EmitCtx } from "./emit.ts";
 import { cStringLit, cStringLitFromBytes, escapeC, floatLit, i32LitC, i64LitC, sanitise } from "./emit.ts";
 import {
-  asObjPtr, emitArrayGet, emitArrayNew, emitArraySet, emitCall, emitCallImport,
+  asObjPtr, emitArrayGet, emitArrayNew, emitArraySet, emitArraySlice, emitCall, emitCallImport,
   emitCallIndirect, emitConvert, emitFnRef, emitIntrinsic, emitMakeClosure,
   emitNumericOp, emitRefCast, emitStructGet, emitStructNew, emitStructSet,
   emitTypeCheck, emitTypedBinop, emitVirtualCall,
@@ -432,6 +432,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
       line(s, `vader_array_push((vader_array_t*) ${asObjPtr(arr)}, ${boxExpr(s.ctx, value.name, value.val, op.typeIndex)});`);
       return;
     }
+    case "array.slice":  return emitArraySlice(s, op);
 
     case "type_check":   return emitTypeCheck(s, op);
     case "ref.cast":     return emitRefCast(s, op);

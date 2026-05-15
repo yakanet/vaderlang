@@ -277,6 +277,13 @@ function rewriteExpr(e: LoweredExpr, ctx: RewriteCtx): LoweredExpr {
         target: rewriteExpr(e.target, ctx),
         value: rewriteExpr(e.value, ctx),
       };
+    case "LoweredArraySlice":
+      return {
+        ...e,
+        target: rewriteExpr(e.target, ctx),
+        lo: rewriteExpr(e.lo, ctx),
+        hi: rewriteExpr(e.hi, ctx),
+      };
     case "LoweredCast":
       return { ...e, value: rewriteExpr(e.value, ctx) };
     case "LoweredTypeCheck":

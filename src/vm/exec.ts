@@ -388,6 +388,22 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       v.elements.push(value);
       f.ip++; return;
     }
+    case "array.slice": {
+      // The VM stores elements as a plain `Value[]` ; `slice` copies the
+      // requested range. Shared-buf semantics matter only for the native
+      // target's GC heap ; the VM observes the same outward behaviour
+      // since arrays are mutated through `array.set` only, not via
+      // alias-write-through.
+      const hi = asIndex(f.stack.pop()!);
+      const lo = asIndex(f.stack.pop()!);
+      const v = asArray(f.stack.pop()!);
+      let lo2 = lo, hi2 = hi;
+      if (lo2 > v.elements.length) lo2 = v.elements.length;
+      if (hi2 < lo2)                hi2 = lo2;
+      if (hi2 > v.elements.length) hi2 = v.elements.length;
+      f.stack.push({ tag: "array", typeIndex: op.typeIndex, elements: v.elements.slice(lo2, hi2) });
+      f.ip++; return;
+    }
 
     case "type_check": {
       const v = f.stack.pop()!;

@@ -321,6 +321,7 @@ function emitInstr(ctx: FnEmitCfg, ins: Instruction): void {
     case "ArraySet":        return emitArraySet(ctx, ins);
     case "ArrayLen":        return emitArrayLen(ctx, ins);
     case "ArrayPush":       return emitArrayPush(ctx, ins);
+    case "ArraySlice":      return emitArraySlice(ctx, ins);
     case "StructNew":       return emitStructNew(ctx, ins);
     case "ArrayNew":        return emitArrayNew(ctx, ins);
     case "TypeCheck":       return emitTypeCheck(ctx, ins);
@@ -527,6 +528,15 @@ function emitArrayPush(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "ArrayP
   emitFirstOperand(ctx, ins, ins.target, ins.span);
   emitGet(ctx, ins.value, ins.span);
   pushOp(ctx.emit, { kind: "array.push", typeIndex: internType(ctx.project, valueType) }, ins.span);
+}
+
+function emitArraySlice(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "ArraySlice" }>): void {
+  const typeIndex = internType(ctx.project, ins.type);
+  emitFirstOperand(ctx, ins, ins.target, ins.span);
+  emitGet(ctx, ins.lo, ins.span);
+  emitGet(ctx, ins.hi, ins.span);
+  pushOp(ctx.emit, { kind: "array.slice", typeIndex }, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
 function emitStructNew(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "StructNew" }>): void {

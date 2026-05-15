@@ -97,7 +97,7 @@ function buildOpKinds(): readonly string[] {
   out.push("call", "call.import", "call.indirect", "fn.ref", "make_closure",
            "intrinsic", "virtual.call");
   out.push("struct.new", "struct.new_stack", "struct.get", "struct.set", "struct.set_stack");
-  out.push("array.new", "array.get", "array.set", "array.len", "array.push");
+  out.push("array.new", "array.get", "array.set", "array.len", "array.push", "array.slice");
   out.push("string.concat");
   out.push("type_check");
   return out;
@@ -403,7 +403,7 @@ function writeOp(w: Writer, op: Op): void {
       w.u32(op.typeIndex); w.u32(op.fieldIndex); return;
     case "array.new":
       w.u32(op.typeIndex); w.u32(op.length); return;
-    case "array.get": case "array.set": case "array.push":
+    case "array.get": case "array.set": case "array.push": case "array.slice":
       w.u32(op.typeIndex); return;
     case "ref.cast": case "type_check":
       w.u32(op.typeIndex); return;
@@ -719,7 +719,7 @@ function readOp(r: Reader): Op {
       return { kind, typeIndex: r.u32(), fieldIndex: r.u32() } as Op;
     case "array.new":
       return { kind: "array.new", typeIndex: r.u32(), length: r.u32() };
-    case "array.get": case "array.set": case "array.push":
+    case "array.get": case "array.set": case "array.push": case "array.slice":
       return { kind, typeIndex: r.u32() } as Op;
     case "ref.cast":
       return { kind: "ref.cast", typeIndex: r.u32() };

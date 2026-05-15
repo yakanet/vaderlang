@@ -36,6 +36,7 @@ export Op :: I32Const
     | ArrayGet
     | ArraySet
     | ArrayLen
+    | ArraySlice
     | RefCast
     | Convert
     | TypeCheck
@@ -209,6 +210,12 @@ export ArraySet :: struct { type_id: i32 }
 /// the TS VM pushes a usize but our `Value` doesn't carry width tags).
 /// Sprint 4 (b2) addition.
 export ArrayLen :: struct {}
+
+/// Zero-copy slice : pops `arr` / `lo` / `hi` from the stack ; pushes a
+/// fresh array header that shares `arr.elements` semantically. On the
+/// self-host VM the underlying storage is `Value[]` so the slice copies
+/// (no shared mutability) ; the C runtime version views.
+export ArraySlice :: struct { type_id: i32 }
 
 /// No-op runtime cast — the .virt format emits `ref.cast TID` after
 /// every `array.get` / `struct.get` to narrow the static type from

@@ -154,6 +154,11 @@ export skip :: fn[T](arr: T[], n: usize) -> T[] {
 /// to `[0, len]`, end to `[start, len]`) so out-of-range indices yield a
 /// shorter result rather than panicking. `start` / `end` are unsigned —
 /// reverse them or use `0` to skip from the front.
+///
+/// For a zero-copy view, use the bracketed syntax `arr[start..<end]`
+/// directly — that lowers to a header-sharing slice ; this fn always
+/// copies, keeping the historic contract that mutating the result does
+/// NOT affect `arr`.
 /// @param arr    source array.
 /// @param start  inclusive lower bound (clamped to `[0, len]`).
 /// @param end    exclusive upper bound (clamped to `[start, len]`).
