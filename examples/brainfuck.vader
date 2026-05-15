@@ -29,6 +29,7 @@
 import "std/io" { eprintln, read_file }
 import "std/iter" { filter }
 import "std/string" { chars }
+import "std/testing" { assert }
 op :: import "vader/vm/op"
 import "vader/vm/builder" {
     ModuleBuilder, FunctionBuilder,
@@ -106,19 +107,19 @@ match_brackets :: fn(tokens: char[]) -> i32[] {
 
 emit_bf_char :: fn(fb: FunctionBuilder, c: char, idx: usize, partner: i32[], cells_type_id: i32, print_byte_index: i32) -> void {
     match c {
-        '>' -> {
+        '>' -> { // move the data pointer one cell to the right.
             fb.local_get(1)
             fb.i32_const(1)
             fb.i32_add()
             fb.local_set(1)
         }
-        '<' -> {
+        '<' -> { // move the data pointer one cell to the left.
             fb.local_get(1)
             fb.i32_const(1)
             fb.i32_sub()
             fb.local_set(1)
         }
-        '+' -> {
+        '+' -> { // increment the cell under the pointer.
             fb.local_get(0)
             fb.local_get(1)
             fb.local_get(0)
@@ -128,7 +129,7 @@ emit_bf_char :: fn(fb: FunctionBuilder, c: char, idx: usize, partner: i32[], cel
             fb.i32_add()
             fb.array_set(cells_type_id)
         }
-        '-' -> {
+        '-' -> { // decrement the cell under the pointer.
             fb.local_get(0)
             fb.local_get(1)
             fb.local_get(0)
@@ -138,21 +139,19 @@ emit_bf_char :: fn(fb: FunctionBuilder, c: char, idx: usize, partner: i32[], cel
             fb.i32_sub()
             fb.array_set(cells_type_id)
         }
-        '.' -> {
+        '.' -> { // print the cell under the pointer as a byte.
             fb.local_get(0)
             fb.local_get(1)
             fb.array_get(cells_type_id)
             fb.call(print_byte_index)
         }
-        // Input not wired ; deliver 0 so naive programs reading EOF still
-        // see a sentinel rather than uninitialised state.
-        ',' -> {
+        ',' -> { // read a byte into the current cell.
             fb.local_get(0)
             fb.local_get(1)
             fb.i32_const(0)
             fb.array_set(cells_type_id)
         }
-        '[' -> {
+        '[' -> { // open a loop
             block_label :: "bf_block_${idx}"
             loop_label  :: "bf_loop_${idx}"
             fb.block(block_label)
@@ -164,14 +163,16 @@ emit_bf_char :: fn(fb: FunctionBuilder, c: char, idx: usize, partner: i32[], cel
             fb.i32_eq()
             fb.br_if(block_label)
         }
-        ']' -> {
+        ']' -> { // jump back to the matching `[`
             open_idx   :: usize(partner[idx])
             loop_label :: "bf_loop_${open_idx}"
             fb.br(loop_label)
             fb.end()  // close loop
             fb.end()  // close block
         }
-        _ -> {}
+        // Any other char : not a BF instruction (tokenize_bf already filters
+        // these out, so reaching this arm signals a contract violation).
+        _ -> assert(false, "char '${c}' not handled by emit_bf_char")
     }
 }
 
