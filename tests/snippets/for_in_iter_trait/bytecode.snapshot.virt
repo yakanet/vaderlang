@@ -1211,17 +1211,17 @@ end
 fn 34 std_string$chars (string) -> ref
   local $cast_2 usize
   local $call_3 usize
-  i32.const 0   ; string.vader:110:50
-  i32.to_usize   ; string.vader:110:44
-  local.set 1   ; string.vader:110:44
-  local.get 0   ; string.vader:110:64
-  call.import 3   ; string.vader:110:64
-  local.set 2   ; string.vader:110:64
-  local.get 0   ; string.vader:110:12
-  local.get 1   ; string.vader:110:12
-  local.get 2   ; string.vader:110:12
-  struct.new 37   ; string.vader:110:12
-  return   ; string.vader:110:5
+  i32.const 0   ; string.vader:112:50
+  i32.to_usize   ; string.vader:112:44
+  local.set 1   ; string.vader:112:44
+  local.get 0   ; string.vader:112:64
+  call.import 3   ; string.vader:112:64
+  local.set 2   ; string.vader:112:64
+  local.get 0   ; string.vader:112:12
+  local.get 1   ; string.vader:112:12
+  local.get 2   ; string.vader:112:12
+  struct.new 37   ; string.vader:112:12
+  return   ; string.vader:112:5
 end
 
 fn 35 std_utf8$codepoint_byte_len (char) -> usize

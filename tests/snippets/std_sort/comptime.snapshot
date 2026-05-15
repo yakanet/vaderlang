@@ -23,6 +23,7 @@
   assert_eq(isize)
   assert_eq(string)
   assert_eq(usize)
+  Iterator(char)
   Iterator(i32)
   Yielded(char)
   Yielded(i32)

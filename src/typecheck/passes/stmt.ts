@@ -13,7 +13,7 @@ import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, mkTuple, sub
 
 import { buildStructSubst, tryStructSubst, type FnContext, type MutableTyped } from "../ctx.ts";
 import { sourceStructDecl } from "../../resolver/symbol.ts";
-import { tryInto } from "./coerce.ts";
+import { findIteratorIntoTarget, recordIntoCoercion, tryInto } from "./coerce.ts";
 import { looksLikeTypeExpression } from "./decl.ts";
 import { checkExpr, resolveIndexTrait } from "./expr.ts";
 import type { NarrowingScope } from "./narrow.ts";
@@ -256,13 +256,18 @@ function checkForStmt(
       break;
     }
     case "in": {
-      checkExpr(stmt.form.iter, null, t, impls, diags, fn);
-      // MVP: only `RangeExpr` iters are supported (1.5b-A1). Full Iterator
-      // dispatch is deferred — the lowerer emits B5001 if it sees anything
-      // else, so the typecheck just narrows the binding when we recognise
-      // the range form.
+      const iterType = checkExpr(stmt.form.iter, null, t, impls, diags, fn);
       const bindingSym = t.resolved.forIns.get(stmt);
-      const elementTy = forInElementType(stmt.form.iter, t, impls);
+      let elementTy = forInElementType(stmt.form.iter, t, impls);
+      // Fallback: target reaches `Iterator(T)` via `Into`. Mirrors the
+      // array auto-wrap path, routed through the general Into machinery.
+      if (elementTy === null) {
+        const match = findIteratorIntoTarget(iterType, t, impls);
+        if (match !== null) {
+          recordIntoCoercion(stmt.form.iter, iterType, match.entry, match.implSubst, t);
+          elementTy = match.elementType;
+        }
+      }
       if (bindingSym !== undefined && elementTy !== null) {
         t.narrowed.set(bindingSym.id, elementTy);
       }

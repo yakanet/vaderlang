@@ -97,17 +97,27 @@ StringChars implements Iterator(char) {
     }
 }
 
-/// Iterate `s` codepoint-by-codepoint. Pair with `for c in s.chars()` to
-/// get a true Unicode loop ; using `s[i]` in a byte-indexed loop returns
-/// U+FFFD on continuation bytes for non-ASCII content.
+/// Iterate `s` codepoint-by-codepoint. `for c in s` desugars to this via
+/// the `Into(Iterator(char))` impl below — call `s.chars()` explicitly
+/// only when you need the iterator as a value. Byte-indexed `s[i]` loops
+/// return U+FFFD on continuation bytes for non-ASCII content ; prefer
+/// `for c in s` for Unicode-correct iteration.
 ///
 /// Example :
-///   `for c in "héllo".chars() { println("${c}") }`
+///   `for c in "héllo" { println("${c}") }`
 ///
 /// @param s  source string.
 /// @return   a `StringChars` iterator over its codepoints.
 export chars :: fn(s: string) -> StringChars {
     return StringChars { .s = s, .cursor = usize(0), .length = s.byte_len() }
+}
+
+// `for c in s` desugars to `for c in s.into()` via this impl — codepoints
+// are the default unit. Byte iteration stays opt-in via `s.bytes()`.
+string implements Into(Iterator(char)) {
+    into :: fn(self) -> Iterator(char) {
+        return StringChars { .s = self, .cursor = usize(0), .length = self.byte_len() }
+    }
 }
 
 /// Decode the UTF-8 sequence at byte offset `i` into a codepoint and its

@@ -2597,45 +2597,45 @@ fn 18 std_string$pad_start (string,usize,char) -> string
   local n usize
   local sb ref
   local i usize
-  local.get 0   ; string.vader:270:10
-  call.import 2   ; string.vader:270:10
-  local.tee 3   ; string.vader:270:5
-  local.get 1   ; string.vader:271:8
-  usize.ge   ; string.vader:271:8
-  if $L0 void   ; string.vader:271:5
-    local.get 0   ; string.vader:272:9
-    return   ; string.vader:272:9
-  else   ; string.vader:271:5
-    call 20   ; string.vader:274:11
-    local.set 4   ; string.vader:274:5
-    local.get 3   ; string.vader:275:5
-    local.set 5   ; string.vader:275:5
-    block $L1 void   ; string.vader:276:5
-      loop $L2 void   ; string.vader:276:5
-        local.get 5   ; string.vader:276:9
-        local.get 1   ; string.vader:276:9
-        usize.lt   ; string.vader:276:9
-        if $L3 void   ; string.vader:276:9
-          local.get 4   ; string.vader:277:9
-          local.get 2   ; string.vader:277:9
-          call 22   ; string.vader:277:9
-          local.get 5   ; string.vader:278:13
-          i64.const 1   ; string.vader:278:13
-          i64.to_usize   ; string.vader:278:13
-          usize.add   ; string.vader:278:13
-          local.set 5   ; string.vader:278:13
-          br $L2   ; string.vader:276:5
-        else   ; string.vader:276:9
-        end $L3   ; string.vader:276:9
-      end $L2   ; string.vader:276:5
-    end $L1   ; string.vader:276:5
-    local.get 4   ; string.vader:280:5
-    local.get 0   ; string.vader:280:5
-    call 21   ; string.vader:280:5
-    local.get 4   ; string.vader:281:12
-    call.import 4   ; string.vader:281:12
-    return   ; string.vader:281:5
-  end $L0   ; string.vader:271:5
+  local.get 0   ; string.vader:280:10
+  call.import 2   ; string.vader:280:10
+  local.tee 3   ; string.vader:280:5
+  local.get 1   ; string.vader:281:8
+  usize.ge   ; string.vader:281:8
+  if $L0 void   ; string.vader:281:5
+    local.get 0   ; string.vader:282:9
+    return   ; string.vader:282:9
+  else   ; string.vader:281:5
+    call 20   ; string.vader:284:11
+    local.set 4   ; string.vader:284:5
+    local.get 3   ; string.vader:285:5
+    local.set 5   ; string.vader:285:5
+    block $L1 void   ; string.vader:286:5
+      loop $L2 void   ; string.vader:286:5
+        local.get 5   ; string.vader:286:9
+        local.get 1   ; string.vader:286:9
+        usize.lt   ; string.vader:286:9
+        if $L3 void   ; string.vader:286:9
+          local.get 4   ; string.vader:287:9
+          local.get 2   ; string.vader:287:9
+          call 22   ; string.vader:287:9
+          local.get 5   ; string.vader:288:13
+          i64.const 1   ; string.vader:288:13
+          i64.to_usize   ; string.vader:288:13
+          usize.add   ; string.vader:288:13
+          local.set 5   ; string.vader:288:13
+          br $L2   ; string.vader:286:5
+        else   ; string.vader:286:9
+        end $L3   ; string.vader:286:9
+      end $L2   ; string.vader:286:5
+    end $L1   ; string.vader:286:5
+    local.get 4   ; string.vader:290:5
+    local.get 0   ; string.vader:290:5
+    call 21   ; string.vader:290:5
+    local.get 4   ; string.vader:291:12
+    call.import 4   ; string.vader:291:12
+    return   ; string.vader:291:5
+  end $L0   ; string.vader:281:5
 end
 
 fn 19 std_math$abs_2 (i64) -> i64

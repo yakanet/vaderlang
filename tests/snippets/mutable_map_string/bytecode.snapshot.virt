@@ -31,6 +31,7 @@ import 2 println std_io$println (string) -> void
 impl 7 Index
 impl 7 IndexSet
 impl 7 Contains
+impl 7 Into
 
 fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
   local $arr_0 ref

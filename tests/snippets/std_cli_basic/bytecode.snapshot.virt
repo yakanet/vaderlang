@@ -65,6 +65,7 @@ impl 6 Iterator
 impl 19 Index
 impl 19 IndexSet
 impl 19 Contains
+impl 19 Into
 impl 24 Display
 
 fn 0 tests_snippets_std_cli_basic__main_vader$main () -> i32

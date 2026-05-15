@@ -39,6 +39,15 @@
       "decorators": []
     },
     {
+      "kind": "ImportDecl",
+      "path": "std/string",
+      "binding": {
+        "kind": "destructure",
+        "names": []
+      },
+      "decorators": []
+    },
+    {
       "kind": "FnDecl",
       "name": "main",
       "visibility": "private",
@@ -51,6 +60,123 @@
       "body": {
         "kind": "BlockExpr",
         "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "arr"
+            },
+            "type": null,
+            "value": {
+              "kind": "SeqLitExpr",
+              "elements": [
+                {
+                  "kind": "IntLitExpr",
+                  "value": "10n",
+                  "suffix": null
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "20n",
+                  "suffix": null
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "30n",
+                  "suffix": null
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "40n",
+                  "suffix": null
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "arr_total"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          },
+          {
+            "kind": "ForStmt",
+            "label": null,
+            "form": {
+              "kind": "in",
+              "binding": "x",
+              "iter": {
+                "kind": "IdentExpr",
+                "name": "arr"
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [
+                {
+                  "kind": "AssignStmt",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "arr_total"
+                  },
+                  "value": {
+                    "kind": "BinaryExpr",
+                    "op": "add",
+                    "left": {
+                      "kind": "IdentExpr",
+                      "name": "arr_total"
+                    },
+                    "right": {
+                      "kind": "IdentExpr",
+                      "name": "x"
+                    }
+                  }
+                }
+              ],
+              "trailing": null
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "arr="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "arr_total"
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
           {
             "kind": "LetStmt",
             "mutable": true,
@@ -148,35 +274,11 @@
             }
           },
           {
-            "kind": "AssignStmt",
-            "target": {
-              "kind": "IndexExpr",
-              "target": {
-                "kind": "IdentExpr",
-                "name": "m"
-              },
-              "index": {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "c"
-                  }
-                ]
-              }
-            },
-            "value": {
-              "kind": "IntLitExpr",
-              "value": "3n",
-              "suffix": null
-            }
-          },
-          {
             "kind": "LetStmt",
             "mutable": true,
             "binding": {
               "kind": "SimpleBinding",
-              "name": "total"
+              "name": "map_total"
             },
             "type": null,
             "value": {
@@ -203,14 +305,14 @@
                   "kind": "AssignStmt",
                   "target": {
                     "kind": "IdentExpr",
-                    "name": "total"
+                    "name": "map_total"
                   },
                   "value": {
                     "kind": "BinaryExpr",
                     "op": "add",
                     "left": {
                       "kind": "IdentExpr",
-                      "name": "total"
+                      "name": "map_total"
                     },
                     "right": {
                       "kind": "FieldExpr",
@@ -242,13 +344,13 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "map_sum="
+                        "value": "map="
                       },
                       {
                         "kind": "interp",
                         "expr": {
                           "kind": "IdentExpr",
-                          "name": "total"
+                          "name": "map_total"
                         }
                       }
                     ]
@@ -345,7 +447,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "10n",
+                    "value": "7n",
                     "suffix": null
                   },
                   "spread": false
@@ -370,32 +472,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "20n",
-                    "suffix": null
-                  },
-                  "spread": false
-                }
-              ]
-            }
-          },
-          {
-            "kind": "ExprStmt",
-            "expr": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "FieldExpr",
-                "target": {
-                  "kind": "IdentExpr",
-                  "name": "s"
-                },
-                "field": "add"
-              },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IntLitExpr",
-                    "value": "30n",
+                    "value": "11n",
                     "suffix": null
                   },
                   "spread": false
@@ -408,7 +485,7 @@
             "mutable": true,
             "binding": {
               "kind": "SimpleBinding",
-              "name": "sum"
+              "name": "set_total"
             },
             "type": null,
             "value": {
@@ -435,14 +512,14 @@
                   "kind": "AssignStmt",
                   "target": {
                     "kind": "IdentExpr",
-                    "name": "sum"
+                    "name": "set_total"
                   },
                   "value": {
                     "kind": "BinaryExpr",
                     "op": "add",
                     "left": {
                       "kind": "IdentExpr",
-                      "name": "sum"
+                      "name": "set_total"
                     },
                     "right": {
                       "kind": "IdentExpr",
@@ -470,13 +547,102 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "set_sum="
+                        "value": "set="
                       },
                       {
                         "kind": "interp",
                         "expr": {
                           "kind": "IdentExpr",
-                          "name": "sum"
+                          "name": "set_total"
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "chars"
+            },
+            "type": null,
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          },
+          {
+            "kind": "ForStmt",
+            "label": null,
+            "form": {
+              "kind": "in",
+              "binding": "_c",
+              "iter": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "héllo 世界"
+                  }
+                ]
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [
+                {
+                  "kind": "AssignStmt",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "chars"
+                  },
+                  "value": {
+                    "kind": "BinaryExpr",
+                    "op": "add",
+                    "left": {
+                      "kind": "IdentExpr",
+                      "name": "chars"
+                    },
+                    "right": {
+                      "kind": "IntLitExpr",
+                      "value": "1n",
+                      "suffix": null
+                    }
+                  }
+                }
+              ],
+              "trailing": null
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "chars="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "chars"
                         }
                       }
                     ]

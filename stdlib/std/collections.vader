@@ -246,12 +246,13 @@ export MapIterator :: struct[K: Hash & Equals, V] {
     chain_cursor:  Entry(K, V) | null
 }
 
-/// Build a `MapIterator(K, V)` over `self`'s entries. Use as
-/// `for entry in m.iter() { ... }`.
-/// @param self  the map receiver.
-/// @return      a fresh iterator positioned before the first entry.
-export iter :: fn[K, V](self: MutableMap(K, V)) -> MapIterator(K, V) {
-    return MapIterator(K, V) { .map = self, .bucket_cursor = 0, .chain_cursor = null }
+// `for entry in m` works directly thanks to the `Into(Iterator(...))`
+// impl below — no explicit `.iter()` call needed.
+
+MutableMap[K, V] implements[K, V] Into(Iterator(Entry(K, V))) {
+    into :: fn(self) -> Iterator(Entry(K, V)) {
+        return MapIterator(K, V) { .map = self, .bucket_cursor = 0, .chain_cursor = null }
+    }
 }
 
 MapIterator[K, V] implements Iterator[Entry(K, V)] {
@@ -336,12 +337,13 @@ export SetIterator :: struct[T: Hash & Equals] {
     chain_cursor:  Entry(T, bool) | null
 }
 
-/// Build a `SetIterator(T)` over `self`'s members. Use as
-/// `for v in s.iter() { ... }`.
-/// @param self  the set receiver.
-/// @return      a fresh iterator positioned before the first member.
-export iter :: fn[T](self: MutableSet(T)) -> SetIterator(T) {
-    return SetIterator(T) { .set = self, .bucket_cursor = 0, .chain_cursor = null }
+// `for v in s` works directly via the `Into(Iterator(...))` impl below —
+// same pattern as `MutableMap`.
+
+MutableSet[T] implements[T] Into(Iterator(T)) {
+    into :: fn(self) -> Iterator(T) {
+        return SetIterator(T) { .set = self, .bucket_cursor = 0, .chain_cursor = null }
+    }
 }
 
 SetIterator[T] implements Iterator[T] {

@@ -1,16 +1,26 @@
 # Comptime
 
-## tests/snippets/mutable_map_string/_main.vader
+## tests/snippets/for_in_into_iter/_main.vader
 
 ## generic instances
+  assert_eq(i32)
+  assert_eq(isize)
+  assert_eq(string)
+  assert_eq(usize)
+  Iterator(char)
   Iterator(i32)
   Iterator(Entry(i32, bool))
   Iterator(Entry(string, i32))
+  Yielded(char)
   Yielded(i32)
+  Yielded(u8)
   Yielded(usize)
   Yielded(Entry(i32, bool))
   Yielded(Entry(string, i32))
+  Range(char)
+  Range(i32)
   Range(usize)
+  ArrayIterator(i32)
   ArrayIterator(Entry($K, $V) | null)
   ArrayIterator(Entry($K, $V) | null)
   Entry(i32, bool)
@@ -33,5 +43,3 @@
   add(i32)
   len(i32)
   SetIterator(i32)
-  assert_eq(i32)
-  assert_eq(usize)

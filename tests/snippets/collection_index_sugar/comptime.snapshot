@@ -3,7 +3,13 @@
 ## tests/snippets/collection_index_sugar/_main.vader
 
 ## generic instances
+  Iterator(i32)
+  Iterator(Entry(i32, bool))
+  Iterator(Entry(string, i32))
+  Yielded(i32)
   Yielded(usize)
+  Yielded(Entry(i32, bool))
+  Yielded(Entry(string, i32))
   Range(usize)
   ArrayIterator(Entry($K, $V) | null)
   ArrayIterator(Entry($K, $V) | null)
@@ -21,8 +27,11 @@
   contains_key(string, i32)
   len(string, i32)
   is_empty(string, i32)
+  MapIterator(i32, bool)
+  MapIterator(string, i32)
   MutableSet(i32)
   add(i32)
   len(i32)
+  SetIterator(i32)
   assert_eq(i32)
   assert_eq(usize)

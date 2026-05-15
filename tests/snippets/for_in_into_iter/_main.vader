@@ -1,0 +1,52 @@
+// `for x in target` desugars via `Into(Iterator(T))`. Four shapes
+// covered : array (existing fast path, no Into coerce needed), map and
+// set (impls in std/collections), string (impl in std/string —
+// codepoint default, so UTF-8 multi-byte sequences count as one).
+
+import "std/io" { println }
+import "std/collections" { MutableMap, MutableSet, add }
+// `std/string` imported for its blanket `string implements Into(Iterator(char))`
+// impl. The chars / bytes helpers aren't referenced directly — the Into
+// coercion routes through them at lowering.
+import "std/string" {}
+
+main :: fn() -> i32 {
+    // Array — direct lowerer wrap, no Into coerce. Sum every element.
+    arr :: [10, 20, 30, 40]
+    arr_total := 0
+    for x in arr {
+        arr_total = arr_total + x
+    }
+    println("arr=${arr_total}")
+
+    // MutableMap — entries iter in hash order.
+    m := MutableMap(string, i32) { .buckets = [], .size = 0 }
+    m["a"] = 1
+    m["b"] = 2
+    map_total := 0
+    for entry in m {
+        map_total = map_total + entry.value
+    }
+    println("map=${map_total}")
+
+    // MutableSet — member iter.
+    s := MutableSet(i32) { .inner = MutableMap(i32, bool) { .buckets = [], .size = 0 } }
+    s.add(7)
+    s.add(11)
+    set_total := 0
+    for v in s {
+        set_total = set_total + v
+    }
+    println("set=${set_total}")
+
+    // string — codepoint iter via the default Into(Iterator(char)) impl.
+    // "héllo 世界" is 8 codepoints across 13 UTF-8 bytes (`é` is 2 bytes,
+    // each CJK glyph is 3). chars=8 proves codepoint-level iteration ;
+    // byte-level would print 13.
+    chars := 0
+    for _c in "héllo 世界" {
+        chars = chars + 1
+    }
+    println("chars=${chars}")
+    return 0
+}

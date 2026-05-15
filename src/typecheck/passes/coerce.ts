@@ -163,10 +163,49 @@ export function tryInto(
 ): boolean {
   const found = findIntoImpl(source, target, t, impls);
   if (found === null) return false;
-  t.intoCoercions.set(expr, {
-    entry: found.entry,
-    sourceType: source,
-    implSubst: found.implSubst,
-  });
+  recordIntoCoercion(expr, source, found.entry, found.implSubst, t);
   return true;
+}
+
+/** Record an already-resolved `Into` match into `t.intoCoercions`. Lets
+ *  callers that found the impl through a non-`tryInto` path (e.g.
+ *  `findIteratorIntoTarget` discovering `Into(Iterator(T))` by trait-arg
+ *  shape) avoid walking the impl table twice. */
+export function recordIntoCoercion(
+  expr: A.Expr, source: Type, entry: ImplEntry, implSubst: Substitution,
+  t: MutableTyped,
+): void {
+  t.intoCoercions.set(expr, { entry, sourceType: source, implSubst });
+}
+
+export interface IteratorIntoMatch {
+  readonly entry: ImplEntry;
+  readonly implSubst: Substitution;
+  readonly elementType: Type;
+}
+
+/** Find an `Into(Iterator(T))` impl on `source`, returning the matched
+ *  entry, its substitution, and the resolved element `T`. Used by
+ *  `for x in target` to discover the iteration element type when
+ *  `target` isn't itself `Iterator`/`Array`/`Range` ; pair with
+ *  `recordIntoCoercion` to register the coerce site. */
+export function findIteratorIntoTarget(
+  source: Type, t: MutableTyped, impls: ImplRegistry,
+): IteratorIntoMatch | null {
+  const intoSym = impls.coreTrait(CORE_TRAITS.Into);
+  if (intoSym === null) return null;
+  const iteratorSym = t.globals.coreSymbols?.get(CORE_TRAITS.Iterator);
+  if (iteratorSym === undefined) return null;
+  const candidates = impls.forTrait(intoSym);
+  for (const entry of candidates) {
+    if (entry.decl.traitArgs.length !== 1) continue;
+    const traitArgRaw = t.globals.typeExprTypes.get(entry.decl.traitArgs[0]!);
+    if (traitArgRaw === undefined) continue;
+    if (traitArgRaw.kind !== "Trait" || traitArgRaw.symbol.id !== iteratorSym.id) continue;
+    if (traitArgRaw.args.length !== 1) continue;
+    const implSubst = matchSourceAgainstImpl(entry, source, t, impls);
+    if (implSubst === null) continue;
+    return { entry, implSubst, elementType: substitute(traitArgRaw.args[0]!, implSubst) };
+  }
+  return null;
 }

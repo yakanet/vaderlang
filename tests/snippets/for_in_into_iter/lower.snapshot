@@ -1,0 +1,258 @@
+# Lower
+
+## tests/snippets/for_in_into_iter/_main.vader
+  fn tests_snippets_for_in_into_iter__main_vader$main() -> i32
+    let arr: i32[] =
+      array :i32[]
+        int(10) :i32
+        int(20) :i32
+        int(30) :i32
+        int(40) :i32
+    let arr_total: i32 = int(0) :i32
+    block :void
+      let __iter_0: ArrayIterator(i32) =
+        ArrayIterator(i32) {
+          arr: arr :i32[]
+          cursor: int(0) :usize
+          length:
+            LoweredArrayLen
+        }
+      loop
+        let __step_1: Done | Yielded(i32) =
+          call :Done | Yielded(i32)
+            callee:
+              next :?
+            arg0:
+              __iter_0 :ArrayIterator(i32)
+        if :void
+          cond:
+            is Done :bool
+              __step_1 :Done | Yielded(i32)
+          then:
+            break
+          else:
+            let x: i32 =
+              .value :i32
+                cast → Yielded(i32)
+                  __step_1 :Done | Yielded(i32)
+            assign
+              target:
+                arr_total :i32
+              value:
+                add :i32
+                  l:
+                    arr_total :i32
+                  r:
+                    x :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "arr=" :string
+          @builder.append_display <for i32> :void
+            __sb_2 :?
+            arr_total :i32
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    let m: MutableMap(string, i32) =
+      MutableMap(string, i32) {
+        buckets:
+          array :Entry(string, i32) | null[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        set_at :void
+      arg0:
+        m :MutableMap(string, i32)
+      arg1:
+        "a" :string
+      arg2:
+        int(1) :i32
+    call :void
+      callee:
+        set_at :void
+      arg0:
+        m :MutableMap(string, i32)
+      arg1:
+        "b" :string
+      arg2:
+        int(2) :i32
+    let map_total: i32 = int(0) :i32
+    block :void
+      let __iter_3: Iterator(Entry(string, i32)) =
+        call :Iterator(Entry(string, i32))
+          callee:
+            into :Iterator(Entry(string, i32))
+          arg0:
+            m :MutableMap(string, i32)
+      loop
+        let __step_4: Done | Yielded(Entry(string, i32)) =
+          vcall Iterator.next :Done | Yielded(Entry(string, i32))
+            recv:
+              __iter_3 :Iterator(Entry(string, i32))
+        if :void
+          cond:
+            is Done :bool
+              __step_4 :Done | Yielded(Entry(string, i32))
+          then:
+            break
+          else:
+            let entry: Entry(string, i32) =
+              .value :Entry(string, i32)
+                cast → Yielded(Entry(string, i32))
+                  __step_4 :Done | Yielded(Entry(string, i32))
+            assign
+              target:
+                map_total :i32
+              value:
+                add :i32
+                  l:
+                    map_total :i32
+                  r:
+                    .value :i32
+                      entry :Entry(string, i32)
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_5: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_5 :?
+            "map=" :string
+          @builder.append_display <for i32> :void
+            __sb_5 :?
+            map_total :i32
+          ~>
+            @builder.finish :string
+              __sb_5 :?
+    let s: MutableSet(i32) =
+      MutableSet(i32) {
+        inner:
+          MutableMap(i32, bool) {
+            buckets:
+              array :Entry(i32, bool) | null[]
+            size: int(0) :usize
+          }
+      }
+    call :bool
+      callee:
+        add :bool
+      arg0:
+        s :MutableSet(i32)
+      arg1:
+        int(7) :i32
+    call :bool
+      callee:
+        add :bool
+      arg0:
+        s :MutableSet(i32)
+      arg1:
+        int(11) :i32
+    let set_total: i32 = int(0) :i32
+    block :void
+      let __iter_6: Iterator(i32) =
+        call :Iterator(i32)
+          callee:
+            into :Iterator(i32)
+          arg0:
+            s :MutableSet(i32)
+      loop
+        let __step_7: Done | Yielded(i32) =
+          vcall Iterator.next :Done | Yielded(i32)
+            recv:
+              __iter_6 :Iterator(i32)
+        if :void
+          cond:
+            is Done :bool
+              __step_7 :Done | Yielded(i32)
+          then:
+            break
+          else:
+            let v: i32 =
+              .value :i32
+                cast → Yielded(i32)
+                  __step_7 :Done | Yielded(i32)
+            assign
+              target:
+                set_total :i32
+              value:
+                add :i32
+                  l:
+                    set_total :i32
+                  r:
+                    v :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_8: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_8 :?
+            "set=" :string
+          @builder.append_display <for i32> :void
+            __sb_8 :?
+            set_total :i32
+          ~>
+            @builder.finish :string
+              __sb_8 :?
+    let chars: i32 = int(0) :i32
+    block :void
+      let __iter_9: Iterator(char) =
+        call :Iterator(char)
+          callee:
+            into :Iterator(char)
+          arg0:
+            "héllo 世界" :string
+      loop
+        let __step_10: Done | Yielded(char) =
+          vcall Iterator.next :Done | Yielded(char)
+            recv:
+              __iter_9 :Iterator(char)
+        if :void
+          cond:
+            is Done :bool
+              __step_10 :Done | Yielded(char)
+          then:
+            break
+          else:
+            let _c: char =
+              .value :char
+                cast → Yielded(char)
+                  __step_10 :Done | Yielded(char)
+            assign
+              target:
+                chars :i32
+              value:
+                add :i32
+                  l:
+                    chars :i32
+                  r:
+                    int(1) :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_11: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_11 :?
+            "chars=" :string
+          @builder.append_display <for i32> :void
+            __sb_11 :?
+            chars :i32
+          ~>
+            @builder.finish :string
+              __sb_11 :?
+    return int(0) :i32

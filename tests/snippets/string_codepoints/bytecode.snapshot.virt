@@ -420,39 +420,39 @@ end
 fn 3 std_string$chars (string) -> ref
   local $cast_2 usize
   local $call_3 usize
-  i32.const 0   ; string.vader:110:50
-  i32.to_usize   ; string.vader:110:44
-  local.set 1   ; string.vader:110:44
-  local.get 0   ; string.vader:110:64
-  call.import 3   ; string.vader:110:64
-  local.set 2   ; string.vader:110:64
-  local.get 0   ; string.vader:110:12
-  local.get 1   ; string.vader:110:12
-  local.get 2   ; string.vader:110:12
-  struct.new 9   ; string.vader:110:12
-  return   ; string.vader:110:5
+  i32.const 0   ; string.vader:112:50
+  i32.to_usize   ; string.vader:112:44
+  local.set 1   ; string.vader:112:44
+  local.get 0   ; string.vader:112:64
+  call.import 3   ; string.vader:112:64
+  local.set 2   ; string.vader:112:64
+  local.get 0   ; string.vader:112:12
+  local.get 1   ; string.vader:112:12
+  local.get 2   ; string.vader:112:12
+  struct.new 9   ; string.vader:112:12
+  return   ; string.vader:112:5
 end
 
 fn 4 std_string$decode_codepoint (string,usize) -> ref
   local c char
   local $call_4 usize
-  local.get 0   ; string.vader:132:10
-  local.get 1   ; string.vader:132:10
-  call.import 1   ; string.vader:132:10
-  local.tee 2   ; string.vader:132:5
-  call 6   ; string.vader:133:16
-  local.set 3   ; string.vader:133:16
-  local.get 2   ; string.vader:133:12
-  local.get 3   ; string.vader:133:12
-  struct.new 11   ; string.vader:133:12
-  return   ; string.vader:133:5
+  local.get 0   ; string.vader:142:10
+  local.get 1   ; string.vader:142:10
+  call.import 1   ; string.vader:142:10
+  local.tee 2   ; string.vader:142:5
+  call 6   ; string.vader:143:16
+  local.set 3   ; string.vader:143:16
+  local.get 2   ; string.vader:143:12
+  local.get 3   ; string.vader:143:12
+  struct.new 11   ; string.vader:143:12
+  return   ; string.vader:143:5
 end
 
 fn 5 std_string$count_chars (string) -> usize
-  local.get 0   ; string.vader:148:39
-  call 3   ; string.vader:148:39
-  call 2   ; string.vader:148:39
-  return   ; string.vader:148:39
+  local.get 0   ; string.vader:158:39
+  call 3   ; string.vader:158:39
+  call 2   ; string.vader:158:39
+  return   ; string.vader:158:39
 end
 
 fn 6 std_utf8$codepoint_byte_len (char) -> usize

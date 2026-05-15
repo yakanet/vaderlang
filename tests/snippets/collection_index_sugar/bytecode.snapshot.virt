@@ -33,10 +33,13 @@ import 1 println std_io$println (string) -> void
 impl 7 Index
 impl 7 IndexSet
 impl 7 Contains
+impl 7 Into
 impl 8 Index
 impl 8 IndexSet
 impl 8 Contains
+impl 8 Into
 impl 10 Contains
+impl 10 Into
 
 fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
   local $arr_0 ref
@@ -463,11 +466,11 @@ fn 7 std_collections$MutableMap$Contains$contains__string__i32 (ref,string) -> b
 end
 
 fn 8 std_collections$MutableSet$Contains$contains__i32 (ref,i32) -> bool
-  local.get 0   ; collections.vader:324:62
-  struct.get 10 0   ; collections.vader:324:62
-  local.get 1   ; collections.vader:324:53
-  call 4   ; collections.vader:324:53
-  return   ; collections.vader:324:46
+  local.get 0   ; collections.vader:325:62
+  struct.get 10 0   ; collections.vader:325:62
+  local.get 1   ; collections.vader:325:53
+  call 4   ; collections.vader:325:53
+  return   ; collections.vader:325:46
 end
 
 fn 9 std_collections$std_collections$ensure_buckets__i32__bool (ref) -> void
@@ -1001,22 +1004,22 @@ end
 
 fn 16 std_collections$std_collections$add__i32 (ref,i32) -> bool
   local $field_5 ref
-  local.get 0   ; collections.vader:303:17
-  struct.get 10 0   ; collections.vader:303:17
-  local.get 1   ; collections.vader:303:8
-  call 4   ; collections.vader:303:8
-  if $L0 void   ; collections.vader:303:5
-    bool.const false   ; collections.vader:303:37
-    return   ; collections.vader:303:30
-  else   ; collections.vader:303:5
-    local.get 0   ; collections.vader:304:5
-    struct.get 10 0   ; collections.vader:304:5
-    local.set 2   ; collections.vader:304:5
-    local.get 2   ; collections.vader:304:5
-    local.get 1   ; collections.vader:304:5
-    bool.const true   ; collections.vader:304:5
-    call 3   ; collections.vader:304:5
-    bool.const true   ; collections.vader:305:12
-    return   ; collections.vader:305:5
-  end $L0   ; collections.vader:303:5
+  local.get 0   ; collections.vader:304:17
+  struct.get 10 0   ; collections.vader:304:17
+  local.get 1   ; collections.vader:304:8
+  call 4   ; collections.vader:304:8
+  if $L0 void   ; collections.vader:304:5
+    bool.const false   ; collections.vader:304:37
+    return   ; collections.vader:304:30
+  else   ; collections.vader:304:5
+    local.get 0   ; collections.vader:305:5
+    struct.get 10 0   ; collections.vader:305:5
+    local.set 2   ; collections.vader:305:5
+    local.get 2   ; collections.vader:305:5
+    local.get 1   ; collections.vader:305:5
+    bool.const true   ; collections.vader:305:5
+    call 3   ; collections.vader:305:5
+    bool.const true   ; collections.vader:306:12
+    return   ; collections.vader:306:5
+  end $L0   ; collections.vader:304:5
 end
