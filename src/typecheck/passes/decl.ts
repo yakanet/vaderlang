@@ -10,7 +10,7 @@ import { isTypeReferenceSymbol } from "../../resolver/symbol.ts";
 
 import { err } from "../diag.ts";
 import type { PrimitiveName, Type } from "../types.ts";
-import { ALL_INTS, CORE_TRAITS, TY, displayType, equalsType, substitute } from "../types.ts";
+import { ALL_INTS, CORE_TRAITS, TY, displayType, equalsType, mkEnum, mkFn, mkStruct, mkTrait, mkTypeParam, substitute } from "../types.ts";
 
 import type { MutableTyped } from "../ctx.ts";
 import { buildStructSubst } from "../ctx.ts";
@@ -116,7 +116,7 @@ function declareFn(decl: A.FnDecl, t: MutableTyped, diags: DiagnosticCollector):
     : decl.isExpressionBodied
       ? TY.unresolved
       : TY.void;
-  t.globals.declTypes.set(decl, { kind: "Fn", params, returnType });
+  t.globals.declTypes.set(decl, mkFn(params, returnType));
 }
 
 function declareEnum(decl: A.EnumDecl, t: MutableTyped, diags: DiagnosticCollector): void {
@@ -124,7 +124,7 @@ function declareEnum(decl: A.EnumDecl, t: MutableTyped, diags: DiagnosticCollect
   if (sym === undefined) return;
   const repr = resolveEnumRepr(decl, t, diags);
   const indices = resolveEnumIndices(decl, repr, diags);
-  t.globals.declTypes.set(decl, { kind: "Enum", symbol: sym, repr, indices });
+  t.globals.declTypes.set(decl, mkEnum(sym, repr, indices));
 }
 
 function resolveEnumRepr(decl: A.EnumDecl, t: MutableTyped, diags: DiagnosticCollector): PrimitiveName {
@@ -182,7 +182,7 @@ function declareStruct(decl: A.StructDecl, t: MutableTyped, diags: DiagnosticCol
   const sym = symbolFor(decl, t);
   if (sym === null) return;
   const args = decl.typeParams.map((tp) => typeParamRef(tp, t));
-  t.globals.declTypes.set(decl, { kind: "Struct", symbol: sym, args });
+  t.globals.declTypes.set(decl, mkStruct(sym, args));
   for (const f of decl.fields) lowerExprAsType(f.type, t, diags);
 }
 
@@ -190,7 +190,7 @@ function declareTrait(decl: A.TraitDecl, t: MutableTyped, diags: DiagnosticColle
   const sym = symbolFor(decl, t);
   if (sym === null) return;
   const args = decl.typeParams.map((tp) => typeParamRef(tp, t));
-  t.globals.declTypes.set(decl, { kind: "Trait", symbol: sym, args });
+  t.globals.declTypes.set(decl, mkTrait(sym, args));
   for (const member of decl.members) declareFn(member, t, diags);
 }
 
@@ -254,8 +254,7 @@ function declareImpl(decl: A.ImplDecl, t: MutableTyped, diags: DiagnosticCollect
     const implFnType = t.globals.declTypes.get(member);
     if (implFnType === undefined || implFnType.kind !== "Fn") continue;
     if (implFnType.returnType.kind !== "Unresolved") continue;
-    t.globals.declTypes.set(member,
-      { kind: "Fn", params: implFnType.params, returnType: inherited });
+    t.globals.declTypes.set(member, mkFn(implFnType.params, inherited));
   }
 }
 
@@ -275,7 +274,7 @@ function symbolFor(decl: A.StructDecl | A.TraitDecl, t: MutableTyped): Symbol | 
 
 function typeParamRef(tp: A.TypeParam, t: MutableTyped): Type {
   const sym = t.resolved.typeParams.get(tp);
-  if (sym !== undefined) return { kind: "TypeParam", symbol: sym };
+  if (sym !== undefined) return mkTypeParam(sym);
   // Resolver didn't record this typeParam — leave it Unresolved rather than
   // synthesising a fake Symbol that would alias every other unrecorded one.
   return TY.unresolved;

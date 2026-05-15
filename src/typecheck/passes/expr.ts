@@ -14,7 +14,7 @@ import { err, warn } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { EnumType, Type } from "../types.ts";
 import {
-  ALL_INTS, CORE_STRUCTS, CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, mkArray, substitute, unionOf,
+  ALL_INTS, CORE_STRUCTS, CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, isFloat, isInteger, isNumeric, isPrimitive, mkArray, mkFn, mkStruct, mkTuple, mkTypeParam, substitute, unionOf,
 } from "../types.ts";
 import { buildStructSubst } from "../ctx.ts";
 import type { ImplEntry } from "../impls.ts";
@@ -263,7 +263,7 @@ export function typeOfSymbol(sym: Symbol, t: MutableTyped): Type {
         ? t.localTypes.get(sym.source.binding) ?? TY.unresolved
         : TY.unresolved;
     case "type-param":
-      return { kind: "TypeParam", symbol: sym };
+      return mkTypeParam(sym);
     case "builtin-type":
       // Layer 4-sugar : a *bare* type-name reference in value position is a
       // value of static type `type` (the metatype). The actual primitive
@@ -485,7 +485,7 @@ function inferLambda(
     : expectedFn?.returnType ?? null;
   const innerFn: FnContext = { returnType: expectedRet ?? TY.unresolved, selfType: fn?.selfType ?? null, loopDepth: 0 };
   const bodyType = checkBlock(expr.body, expectedRet, t, impls, diags, innerFn);
-  return { kind: "Fn", params: paramTypes, returnType: expectedRet ?? bodyType };
+  return mkFn(paramTypes, expectedRet ?? bodyType);
 }
 
 function inferSeqLit(
@@ -524,11 +524,11 @@ function inferSeqLit(
       for (let i = n; i < expr.elements.length; i++) {
         elemTypes.push(checkExpr(expr.elements[i]!, null, t, impls, diags, fn));
       }
-      return { kind: "Tuple", elements: elemTypes.map(defaultIfFree) };
+      return mkTuple(elemTypes.map(defaultIfFree));
     }
     const elemTypes = expr.elements.map((e, i) =>
       checkExpr(e, expected.elements[i]!, t, impls, diags, fn));
-    return { kind: "Tuple", elements: elemTypes };
+    return mkTuple(elemTypes);
   }
   const elemExpected = expected?.kind === "Array" ? expected.element : null;
   const elemTypes: Type[] = expr.elements.map((e) => checkExpr(e, elemExpected, t, impls, diags, fn));
@@ -540,7 +540,7 @@ function inferSeqLit(
     const widened = elemTypes.map(defaultIfFree);
     const merged = unionOf(widened);
     if (merged.kind !== "Union") return mkArray(merged);
-    return { kind: "Tuple", elements: widened };
+    return mkTuple(widened);
   }
   return mkArray(unionOf(elemTypes.map(defaultIfFree)), expected.kind === "Array" ? expected.immutable : false);
 }
@@ -579,7 +579,7 @@ function inferRange(
   }
   const rangeSym = t.globals.coreSymbols?.get(CORE_STRUCTS.Range);
   if (rangeSym === undefined || rangeSym.kind !== "struct") return TY.unresolved;
-  return { kind: "Struct", symbol: rangeSym, args: [elementType] };
+  return mkStruct(rangeSym, [elementType]);
 }
 
 function pickRangeBound(t: Type): Type | null {

@@ -9,7 +9,7 @@ import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { Type, TupleType } from "../types.ts";
-import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute } from "../types.ts";
+import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, mkTuple, substitute } from "../types.ts";
 
 import { buildStructSubst, tryStructSubst, type FnContext, type MutableTyped } from "../ctx.ts";
 import { sourceStructDecl } from "../../resolver/symbol.ts";
@@ -349,7 +349,7 @@ function expectedFromBinding(b: A.LetBinding): TupleType | null {
     if (e.kind === "TupleBinding") return expectedFromBinding(e) ?? TY.unresolved;
     return TY.unresolved;
   });
-  return { kind: "Tuple", elements };
+  return mkTuple(elements);
 }
 
 /** After inferring the value's type, walk the let-binding tree and record a

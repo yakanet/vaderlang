@@ -16,7 +16,7 @@ import type { Symbol } from "../../resolver/symbol.ts";
 import type { Capture } from "./closures.ts";
 import type { FnLowerCtx } from "../ctx.ts";
 import type { Substitution, Type } from "../../typecheck/types.ts";
-import { TY } from "../../typecheck/types.ts";
+import { TY, mkStruct } from "../../typecheck/types.ts";
 import { freshSyntheticSymbol } from "./helpers.ts";
 import { lowerBlock } from "./block.ts";
 import type {
@@ -37,7 +37,7 @@ export function lowerLambda(ctx: FnLowerCtx, lambda: A.LambdaExpr): LoweredExpr 
   // Env type — a pseudo Struct type pointing at the synthesised symbol. The
   // bytecode emit will intern a BcStruct entry for this via `internStructDecl`
   // when it processes the synthesised LoweredStructDecl.
-  const envType: Type = { kind: "Struct", symbol: envStructSymbol, args: [] };
+  const envType: Type = mkStruct(envStructSymbol, []);
 
   // Capture field names — kept stable so the env's struct lit matches the
   // struct's field declaration order.

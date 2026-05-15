@@ -17,6 +17,7 @@
 import { zeroSpan } from "../../diagnostics/diagnostic.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
+import { mkFn } from "../../typecheck/types.ts";
 import type { ArrayKind, BcDataEntry } from "../../bytecode/types.ts";
 import type {
   LoweredBlock, LoweredConstDecl, LoweredDecl, LoweredExpr, LoweredFnDecl,
@@ -316,7 +317,7 @@ function rewriteExpr(e: LoweredExpr, ctx: RewriteCtx): LoweredExpr {
       if (wrap !== undefined) {
         const calleeIdent: LoweredExpr = {
           kind: "LoweredIdent", span: e.span,
-          type: { kind: "Fn", params: [], returnType: wrap.callType },
+          type: mkFn([], wrap.callType),
           symbol: wrap.fnSymbol,
         };
         return {

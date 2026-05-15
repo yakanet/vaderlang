@@ -18,7 +18,7 @@ import type { Symbol } from "../../resolver/symbol.ts";
 
 import { err } from "../diag.ts";
 import type { Type } from "../types.ts";
-import { TY, mkArray, substitute, unionOf } from "../types.ts";
+import { TY, mkArray, mkEnum, mkFn, mkStruct, mkTrait, mkTuple, mkTypeParam, substitute, unionOf } from "../types.ts";
 
 import { buildStructSubst, type MutableTyped } from "../ctx.ts";
 
@@ -41,7 +41,7 @@ function lowerExprAsTypeInner(expr: A.Expr, t: MutableTyped, diags: DiagnosticCo
       // where `i32` lives in an Expr slot), the symbol lands in `idents`
       // instead — try it last so type-position references still work.
       const tpSym = t.resolved.typeParamTypes.get(expr);
-      if (tpSym !== undefined) return { kind: "TypeParam", symbol: tpSym };
+      if (tpSym !== undefined) return mkTypeParam(tpSym);
       const sym = t.resolved.types.get(expr) ?? t.resolved.idents.get(expr);
       if (sym === undefined) return TY.unresolved;     // resolver already reported R2007
       return typeFromSymbol(sym, [], expr, t, diags);
@@ -80,11 +80,10 @@ function lowerExprAsTypeInner(expr: A.Expr, t: MutableTyped, diags: DiagnosticCo
       return unionOf(variants.map((v) => lowerExprAsType(v as A.TypeExpr, t, diags)));
     }
     case "FnTypeExpr":
-      return {
-        kind: "Fn",
-        params: expr.params.map((p) => lowerExprAsType(p, t, diags)),
-        returnType: expr.returnType === null ? TY.void : lowerExprAsType(expr.returnType, t, diags),
-      };
+      return mkFn(
+        expr.params.map((p) => lowerExprAsType(p, t, diags)),
+        expr.returnType === null ? TY.void : lowerExprAsType(expr.returnType, t, diags),
+      );
     case "ArrayTypeExpr":
       return mkArray(lowerExprAsType(expr.element, t, diags), expr.immutable === true);
     case "NullLitExpr":
@@ -98,7 +97,7 @@ function lowerExprAsTypeInner(expr: A.Expr, t: MutableTyped, diags: DiagnosticCo
     case "SeqLitExpr":
       // Bracketed `[T1, T2, ...]` in type position lowers to a tuple type.
       // Element nodes are guaranteed type-shaped here ; the cast is safe.
-      return { kind: "Tuple", elements: expr.elements.map((e) => lowerExprAsType(e as A.TypeExpr, t, diags)) };
+      return mkTuple(expr.elements.map((e) => lowerExprAsType(e as A.TypeExpr, t, diags)));
     default:
       // Layer 1.D — the function accepts any `Expr`, but only the cases above
       // have a current type interpretation. Reaching here means the parser
@@ -119,15 +118,15 @@ export function typeFromSymbol(
 ): Type {
   switch (sym.kind) {
     case "builtin-type":  return primitiveFromName(sym.name) ?? TY.unresolved;
-    case "struct":        return { kind: "Struct", symbol: sym, args };
+    case "struct":        return mkStruct(sym, args);
     case "enum": {
       const decl = sym.source.kind === "enum" ? sym.source.decl : null;
       const declared = decl !== null ? t.globals.declTypes.get(decl) : undefined;
       if (declared !== undefined && declared.kind === "Enum") return declared;
-      return { kind: "Enum", symbol: sym, repr: "i32", indices: new Map() };
+      return mkEnum(sym, "i32", new Map());
     }
-    case "trait":         return { kind: "Trait",  symbol: sym, args };
-    case "type-param":    return { kind: "TypeParam", symbol: sym };
+    case "trait":         return mkTrait(sym, args);
+    case "type-param":    return mkTypeParam(sym);
     case "type-alias": {
       if (sym.source.kind !== "type-alias") return TY.unresolved;
       const base = t.globals.declTypes.get(sym.source.decl);

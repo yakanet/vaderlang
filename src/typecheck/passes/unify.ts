@@ -6,7 +6,7 @@
 import type { ImplRegistry } from "../impls.ts";
 import type { MutableTyped } from "../ctx.ts";
 import type { Substitution, Type } from "../types.ts";
-import { CORE_TRAITS, TY, substitute } from "../types.ts";
+import { CORE_TRAITS, TY, equalsType, substitute } from "../types.ts";
 
 /** Merge two substitutions ; right wins on `self` if both supply one. */
 export function mergeSubst(a: Substitution | null, b: Substitution | null): Substitution | null {
@@ -72,6 +72,24 @@ export function unifyTypeParam(
       unifyTypeParam(paramType.params[i]!, argType.params[i]!, out, impls, t);
     }
     unifyTypeParam(paramType.returnType, argType.returnType, out, impls, t);
+    return;
+  }
+  // Union vs Union : pair off concrete variants first (e.g. `null`), then
+  // unify the leftovers position-by-position. Handles the common
+  // `T | null` ↔ `concrete | null` shape : `null` pairs off, `T` binds to
+  // `concrete`. The "concrete first" pass matters — without it `T | null`
+  // could spuriously bind `T = null` when `null` is itself a variant.
+  if (paramType.kind === "Union" && argType.kind === "Union") {
+    const remainingArg: Type[] = [...argType.variants];
+    const remainingParam: Type[] = [];
+    for (const pv of paramType.variants) {
+      const idx = remainingArg.findIndex((av) => equalsType(av, pv));
+      if (idx >= 0) remainingArg.splice(idx, 1);
+      else remainingParam.push(pv);
+    }
+    for (let i = 0; i < remainingParam.length && i < remainingArg.length; i++) {
+      unifyTypeParam(remainingParam[i]!, remainingArg[i]!, out, impls, t);
+    }
     return;
   }
   // Trait param vs concrete arg : look up the impl to extract the trait's

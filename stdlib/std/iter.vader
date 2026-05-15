@@ -251,6 +251,68 @@ export flat_map :: fn[T, U](arr: T[], f: fn(T) -> U[]) -> U[] {
     return out
 }
 
+// ---------------------------------------------------------------- short-circuit
+//
+// Each combinator takes an `Iterator(T)`. Raw arrays are accepted at the
+// call site via the blanket `T[] implements[T] Into(Iterator(T))` impl in
+// `std/core` — both direct (`any(arr, p)`) and UFCS (`arr.any(p)`) forms
+// auto-coerce.
+
+/// `true` as soon as any element satisfies `pred` ; `false` if none do.
+/// Short-circuits — `pred` is not invoked past the first match.
+/// @param it    source array or iterator.
+/// @param pred  predicate invoked on each element until one returns `true`.
+export any :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> bool {
+    for x in it {
+        if pred(x) {
+            return true
+        }
+    }
+    return false
+}
+
+/// `true` only when every element satisfies `pred`. Short-circuits on the
+/// first `false`. Returns `true` on an empty source (vacuous truth).
+/// @param it    source array or iterator.
+/// @param pred  predicate invoked on each element until one returns `false`.
+export all :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> bool {
+    for x in it {
+        if !pred(x) {
+            return false
+        }
+    }
+    return true
+}
+
+/// First element matching `pred`, or `null` if none does. Short-circuits.
+/// Consumers narrow naturally : `match arr.find(p) { is T as hit -> … }`.
+/// @param it    source array or iterator.
+/// @param pred  predicate invoked on each element until one returns `true`.
+export find :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> T | null {
+    for x in it {
+        if pred(x) {
+            return x
+        }
+    }
+    return null
+}
+
+/// Apply `f` to each element ; return the first non-null result. Combines
+/// the transform and the search in one pass — useful for parsing chains
+/// where the mapper itself decides whether an element qualifies.
+/// @param it  source array or iterator.
+/// @param f   mapper that returns `null` to skip the element or a value
+///            to short-circuit on.
+export find_map :: fn[T, U](it: Iterator(T), f: fn(T) -> U | null) -> U | null {
+    for x in it {
+        v :: f(x)
+        if v != null {
+            return v
+        }
+    }
+    return null
+}
+
 // ============================================================================
 // Lazy iterator chains
 // ============================================================================
@@ -362,7 +424,7 @@ SkipIterator[T] implements Iterator[T] {
 
 // ---------------------------------------------------------------------- tests
 
-import "std/testing" { assert, assert_eq }
+import "std/testing" { assert, assert_eq, fail }
 
 @test test_count :: fn() -> void {
     assert_eq([1, 2, 3].count(), usize(3))
@@ -435,4 +497,44 @@ import "std/testing" { assert, assert_eq }
     [i2, s2] :: pairs[usize(2)]
     assert_eq(i2, usize(2))
     assert_eq(s2, "c")
+}
+
+@test test_any :: fn() -> void {
+    assert([1, 2, 3].any((x: i32) -> x == 2), "should find 2")
+    assert(![1, 2, 3].any((x: i32) -> x == 9), "should not find 9")
+    empty: i32[] = []
+    assert(!empty.any((x: i32) -> true), "empty array is never any")
+}
+
+@test test_all :: fn() -> void {
+    assert([2, 4, 6].all((x: i32) -> x % 2 == 0), "all even")
+    assert(![2, 3, 6].all((x: i32) -> x % 2 == 0), "3 is odd")
+    empty: i32[] = []
+    assert(empty.all((x: i32) -> false), "empty array satisfies all (vacuous)")
+}
+
+@test test_find :: fn() -> void {
+    match [1, 2, 3, 4].find((x: i32) -> x > 2) {
+        is i32 as hit -> assert_eq(hit, 3)
+        is null       -> fail("expected to find 3")
+    }
+    match [1, 2, 3].find((x: i32) -> x > 99) {
+        is i32 -> fail("should not find anything")
+        is null -> {}
+    }
+}
+
+@test test_find_map :: fn() -> void {
+    parse_positive :: fn(x: i32) -> i32 | null {
+        if x > 0 { return x * 10 }
+        return null
+    }
+    match [-1, -2, 3, 4].find_map(parse_positive) {
+        is i32 as hit -> assert_eq(hit, 30)
+        is null       -> fail("expected first positive")
+    }
+    match [-1, -2, -3].find_map(parse_positive) {
+        is i32 -> fail("should not find anything")
+        is null -> {}
+    }
 }

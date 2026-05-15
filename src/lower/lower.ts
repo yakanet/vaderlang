@@ -13,7 +13,7 @@ import type { ClosureAnalysis } from "./passes/closures.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import {buildImplRegistry, ImplRegistry} from "../typecheck/impls.ts";
 import type { Type } from "../typecheck/types.ts";
-import { TY, defaultIfFree } from "../typecheck/types.ts";
+import { TY, defaultIfFree, mkStruct } from "../typecheck/types.ts";
 import { primitiveFromName } from "../typecheck/passes/type-expr.ts";
 
 import type {MonoEntry, MonoProject} from "../comptime/specialize.ts";
@@ -114,7 +114,7 @@ function collectVtableEntries(
           traitName: impl.traitSymbol.name,
           methodName: member.name,
           structType: impl.forSymbol !== null
-            ? { kind: "Struct", symbol: impl.forSymbol, args: entry.typeArgs }
+            ? mkStruct(impl.forSymbol, entry.typeArgs)
             : recvType,
           fnSymbol: entry.symbol,
         });
@@ -132,7 +132,7 @@ function collectVtableEntries(
 function vtableReceiverType(impl: { forSymbol: Symbol | null; decl: A.ImplDecl }): Type | null {
   if (impl.forSymbol !== null) {
     if (impl.forSymbol.source.kind !== "struct") return null;
-    return { kind: "Struct", symbol: impl.forSymbol, args: [] };
+    return mkStruct(impl.forSymbol, []);
   }
   if (impl.decl.forType.kind !== "IdentExpr") return null;
   const prim = primitiveFromName(impl.decl.forType.name);

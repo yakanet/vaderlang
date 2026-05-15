@@ -19,7 +19,7 @@ import {err} from "./diag.ts";
 import type {ImplRegistry} from "./impls.ts";
 import type {TypedProgram} from "./typed-ast.ts";
 import type {Type} from "./types.ts";
-import {defaultIfFree, displayType, isAssignable, isPrimitive, mkArray, TY} from "./types.ts";
+import {defaultIfFree, displayType, isAssignable, isPrimitive, mkArray, mkFn, TY} from "./types.ts";
 
 import type {Globals, MutableTyped} from "./ctx.ts";
 import {checkExpr} from "./passes/expr.ts";
@@ -252,9 +252,7 @@ export function inferExprBodiedReturns(
       }
       const current = globals.declTypes.get(item.decl);
       if (current !== undefined && current.kind === "Fn") {
-        globals.declTypes.set(item.decl, {
-          kind: "Fn", params: current.params, returnType: defaultIfFree(inferred),
-        });
+        globals.declTypes.set(item.decl, mkFn(current.params, defaultIfFree(inferred)));
       }
     }
     if (next.length === stuck.length) {

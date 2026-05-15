@@ -40,3 +40,7 @@
   slice(i32)
   chain(i32)
   enumerate(string)
+  any(i32)
+  all(i32)
+  find(i32)
+  find_map(i32, i32)

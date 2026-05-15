@@ -233,33 +233,52 @@ const primitive = (name: PrimitiveName): PrimitiveType => {
   return t;
 };
 
-const structCache = new Map<string, StructType>();
-const traitCache  = new Map<string, TraitType>();
+// Symbol-anchored caches use WeakMap so the cache entry dies with its
+// symbol. Resolver instances mint fresh Symbol objects with ids that
+// restart at 1 per instance — a plain `Map<id, ...>` would alias the
+// same id across two unrelated tests and serve a stale entry built
+// against the previous resolver's symbol. Structural caches that
+// depend only on interned children (`arrayCache`, `tupleCache`, …)
+// remain plain Maps : their keys are derived from `internId`s, which
+// are anchored on JS references and so are unique across resolvers
+// even when symbol ids collide.
+const structCache = new WeakMap<Symbol, Map<string, StructType>>();
+const traitCache  = new WeakMap<Symbol, Map<string, TraitType>>();
 const arrayCache  = new Map<number, ArrayType>();
 const tupleCache  = new Map<string, TupleType>();
 const fnCache     = new Map<string, FnType>();
 const unionCache  = new Map<string, UnionType>();
-const typeParamCache = new Map<number, TypeParamType>();
-const enumCache   = new Map<number, EnumType>();
+const typeParamCache = new WeakMap<Symbol, TypeParamType>();
+const enumCache   = new WeakMap<Symbol, EnumType>();
 
 /** Hash-cons a Struct type. Args must themselves be interned (or
  *  singletons from `TY`) so their `internId`s are stable. */
 export function mkStruct(symbol: Symbol, args: readonly Type[]): StructType {
-  const key = `${symbol.id}:${args.map(internId).join(",")}`;
-  const cached = structCache.get(key);
+  let bySymbol = structCache.get(symbol);
+  if (bySymbol === undefined) {
+    bySymbol = new Map();
+    structCache.set(symbol, bySymbol);
+  }
+  const key = args.map(internId).join(",");
+  const cached = bySymbol.get(key);
   if (cached !== undefined) return cached;
   const t: StructType = { kind: "Struct", symbol, args };
-  structCache.set(key, t);
+  bySymbol.set(key, t);
   internId(t);
   return t;
 }
 
 export function mkTrait(symbol: Symbol, args: readonly Type[]): TraitType {
-  const key = `${symbol.id}:${args.map(internId).join(",")}`;
-  const cached = traitCache.get(key);
+  let bySymbol = traitCache.get(symbol);
+  if (bySymbol === undefined) {
+    bySymbol = new Map();
+    traitCache.set(symbol, bySymbol);
+  }
+  const key = args.map(internId).join(",");
+  const cached = bySymbol.get(key);
   if (cached !== undefined) return cached;
   const t: TraitType = { kind: "Trait", symbol, args };
-  traitCache.set(key, t);
+  bySymbol.set(key, t);
   internId(t);
   return t;
 }
@@ -312,10 +331,10 @@ export function mkUnion(variants: readonly Type[]): UnionType {
 }
 
 export function mkTypeParam(symbol: Symbol): TypeParamType {
-  const cached = typeParamCache.get(symbol.id);
+  const cached = typeParamCache.get(symbol);
   if (cached !== undefined) return cached;
   const t: TypeParamType = { kind: "TypeParam", symbol };
-  typeParamCache.set(symbol.id, t);
+  typeParamCache.set(symbol, t);
   internId(t);
   return t;
 }
@@ -324,10 +343,10 @@ export function mkEnum(symbol: Symbol, repr: PrimitiveName, indices: ReadonlyMap
   // Enum identity is by symbol — `repr`/`indices` are properties of the
   // decl, not part of the cache key. Re-declaring an enum is a resolver
   // error elsewhere, so a single cache entry per symbol is safe.
-  const cached = enumCache.get(symbol.id);
+  const cached = enumCache.get(symbol);
   if (cached !== undefined) return cached;
   const t: EnumType = { kind: "Enum", symbol, repr, indices };
-  enumCache.set(symbol.id, t);
+  enumCache.set(symbol, t);
   internId(t);
   return t;
 }

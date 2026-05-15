@@ -3,6 +3,7 @@
 
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
+import { mkStruct, mkUnion } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx, LowerProjectCtx } from "../ctx.ts";
 
@@ -16,7 +17,7 @@ export function findCoreType(ctx: FnLowerCtx, name: string, args: readonly Type[
   const sym = lookupCoreSymbol(ctx, name);
   if (sym === null) return null;
   if (sym.kind !== "struct") return null;
-  return { kind: "Struct", symbol: sym, args };
+  return mkStruct(sym, args);
 }
 
 export function findCoreTrait(ctx: LowerProjectCtx, name: string): Symbol | null {
@@ -29,5 +30,5 @@ export function findCoreTrait(ctx: LowerProjectCtx, name: string): Symbol | null
 }
 
 export function unionOfDoneYielded(done: Type, yielded: Type): Type {
-  return { kind: "Union", variants: [done, yielded] };
+  return mkUnion([done, yielded]);
 }

@@ -18,7 +18,7 @@ import { err } from "../diag.ts";
 import type { ImplEntry, ImplRegistry } from "../impls.ts";
 import type { MethodResolution, TraitMethodResolution } from "../typed-ast.ts";
 import type { Substitution, Type } from "../types.ts";
-import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, substitute, unionOf } from "../types.ts";
+import { CORE_TRAITS, TY, defaultIfFree, displayType, isAssignable, mkFn, substitute, unionOf } from "../types.ts";
 
 import { buildStructSubst, tryStructSubst } from "../ctx.ts";
 import { findIntoImpl, tryInto } from "./coerce.ts";
@@ -51,11 +51,11 @@ export function inferField(
   if (targetType.kind === "Array") {
     if (expr.field === "len") {
       t.fieldResolutions.set(expr, { kind: "array-op", op: "len" });
-      return { kind: "Fn", params: [], returnType: TY.usize };
+      return mkFn([], TY.usize);
     }
     if (expr.field === "push") {
       t.fieldResolutions.set(expr, { kind: "array-op", op: "push" });
-      return { kind: "Fn", params: [targetType.element], returnType: TY.void };
+      return mkFn([targetType.element], TY.void);
     }
   }
   if (targetType.kind === "Tuple") {
@@ -168,11 +168,10 @@ export function inferField(
             traitDecl.typeParams, targetType.args, t.globals.typeParamSymbols,
           );
           const subst: Substitution = { self: targetType, typeParams: traitSubst.typeParams };
-          return {
-            kind: "Fn",
-            params: fnType.params.slice(1).map((p) => substitute(p, subst)),
-            returnType: substitute(fnType.returnType, subst),
-          };
+          return mkFn(
+            fnType.params.slice(1).map((p) => substitute(p, subst)),
+            substitute(fnType.returnType, subst),
+          );
         }
       }
     }
@@ -265,11 +264,10 @@ function traitMethodBoundFnType(
   if (fnType === undefined || fnType.kind !== "Fn") return TY.unresolved;
   const subst: Substitution = { typeParams: new Map(), self: receiverParam };
   const boundParams = fnType.params.length > 0 ? fnType.params.slice(1) : fnType.params;
-  return {
-    kind: "Fn",
-    params: boundParams.map((p) => substitute(p, subst)),
-    returnType: substitute(fnType.returnType, subst),
-  };
+  return mkFn(
+    boundParams.map((p) => substitute(p, subst)),
+    substitute(fnType.returnType, subst),
+  );
 }
 
 /** Rank fn overloads by their first parameter's compatibility with `recvType`,
@@ -355,7 +353,7 @@ function inferUfcsFreeBound(
   const fnType = decl !== null ? t.globals.declTypes.get(decl) : undefined;
   if (fnType === undefined || fnType.kind !== "Fn") return null;
   t.fieldResolutions.set(expr, { kind: "ufcs-free", symbol: chosen });
-  return { kind: "Fn", params: fnType.params.slice(1), returnType: fnType.returnType };
+  return mkFn(fnType.params.slice(1), fnType.returnType);
 }
 
 /** True when both the candidate's first param and the receiver are generic
@@ -426,6 +424,17 @@ export function inferGenericUfcsCall(
     unifyTypeParam(fullFnType.params[i + 1]!, defaultIfFree(explicitArgTypes[i]!), bindings, impls, t);
   }
   const subst: Substitution = { typeParams: bindings };
+
+  // Receiver coerce — when the first param is a trait/struct that the
+  // receiver doesn't directly assign to, but reaches via `Into`, the
+  // lowerer needs the coerce site recorded so it wraps the receiver
+  // expression on the way into the call. Without this `arr.fn()` against
+  // `fn(it: Iterator(T))` would type-check via the trait-widening rank
+  // but emit a raw-array vtable call at runtime.
+  const expectedFirst = substitute(fullFnType.params[0]!, subst);
+  if (!typeContainsTypeParam(expectedFirst) && !isAssignable(receiverType, expectedFirst, impls)) {
+    tryInto(receiverType, expectedFirst, callee.target, t, impls);
+  }
 
   for (let i = 0; i < expr.args.length; i++) {
     const paramIdx = i + 1;
@@ -595,13 +604,12 @@ function methodBoundFnType(method: MethodResolution, t: MutableTyped): Type {
     }
     const subst = mergeSubst(structSubst, implSubst);
     if (subst !== null) {
-      return {
-        kind: "Fn",
-        params: params.map((p) => substitute(p, subst)),
-        returnType: substitute(fnType.returnType, subst),
-      };
+      return mkFn(
+        params.map((p) => substitute(p, subst)),
+        substitute(fnType.returnType, subst),
+      );
     }
   }
 
-  return { kind: "Fn", params, returnType: fnType.returnType };
+  return mkFn(params, fnType.returnType);
 }

@@ -3,6 +3,7 @@
 ## tests/snippets/iter_combinators/_main.vader
 
 ## generic instances
+  Iterator(i32)
   Yielded(i32)
   Yielded(string)
   Yielded(usize)
@@ -29,6 +30,10 @@
   slice(i32)
   chain(i32)
   enumerate(string)
+  any(i32)
+  all(i32)
+  find(i32)
+  find_map(i32, i32)
   assert_eq(i32)
   assert_eq(string)
   assert_eq(usize)

@@ -6,7 +6,7 @@ import type { Span } from "../diagnostics/diagnostic.ts";
 import type * as L from "../lower/lowered-ast.ts";
 import type { CFGExternDecl, CFGFunction, CFGStructDecl } from "../midir/cfg.ts";
 import type { PrimitiveName, Type } from "../typecheck/types.ts";
-import { displayType } from "../typecheck/types.ts";
+import { displayType, mkStruct } from "../typecheck/types.ts";
 import type { ImplRegistry } from "../typecheck/impls.ts";
 
 import {
@@ -339,7 +339,7 @@ function internStructDecl(d: CFGStructDecl, ctx: EmitterCtx): number {
   // `List(i32)` doesn't collide with `List(i64)` AND two same-named
   // structs in different modules get distinct slots.
   if (d.origin.symbol === null) return -1;
-  const structType: Type = { kind: "Struct", symbol: d.origin.symbol, args: d.origin.typeArgs };
+  const structType: Type = mkStruct(d.origin.symbol, d.origin.typeArgs);
   const key = typeInternKey(structType);
   const cached = ctx.typeKey.get(key);
   if (cached !== undefined && ctx.types[cached]?.kind === "struct") return cached;

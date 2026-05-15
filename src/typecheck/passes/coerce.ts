@@ -38,7 +38,7 @@
 import type * as A from "../../parser/ast.ts";
 import type { ImplEntry, ImplRegistry } from "../impls.ts";
 import type { Substitution } from "../types.ts";
-import { CORE_TRAITS, TY, equalsType, isAssignable, substitute, type Type } from "../types.ts";
+import { CORE_TRAITS, TY, equalsType, isAssignable, mkTrait, substitute, type Type } from "../types.ts";
 import type { MutableTyped } from "../ctx.ts";
 import { unifyTypeParam } from "./unify.ts";
 
@@ -93,7 +93,7 @@ function checkImplTypeParamBounds(
     for (const traitSym of traitSyms) {
       // Reuse `isAssignable(source, Trait, impls)` — same machinery used
       // for `fn[T: Trait]` bound enforcement at call sites.
-      const traitType: Type = { kind: "Trait", symbol: traitSym, args: [] };
+      const traitType: Type = mkTrait(traitSym, []);
       if (!isAssignable(bound, traitType, impls)) return false;
     }
   }
