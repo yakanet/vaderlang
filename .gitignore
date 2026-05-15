@@ -32,5 +32,6 @@ bench/string_builder.c
 bench/string_builder_go
 bench/map_iter
 bench/map_iter.c
+bench/map_iter_go
 bench/*.class
 *.dSYM/

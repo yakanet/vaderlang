@@ -6,9 +6,10 @@ Five workloads measured across four implementations of each. The set spans float
 |------------------|-------------------------------------------------|-----------------------------------------------------------------|----------------------------------------|
 | `mandelbrot`     | f64 arithmetic, tight loop                      | per-pixel iteration of `z := z² + c` until escape or cap        | 240 × 180 grid, max 500 iter per pixel |
 | `primes`         | i32 / i64 arithmetic, modulo                    | count primes ≤ N by trial division up to `√n`                   | N = 1 000 000                          |
-| `iter_chain`     | lazy iter dispatch, per-iter union allocation   | Σ x² for even x in [0, N) via `MapIterator` ∘ `FilterIterator` ∘ `Range` | N = 1 000 000                  |
+| `iter_chain`     | lazy iter dispatch, per-iter union allocation   | Σ x² for even x in [0, N) via `Range.filter(p).map(f)` chain    | N = 1 000 000                          |
 | `binary_trees`   | recursive allocation + GC throughput            | build a balanced tree, then count its nodes                     | depth = 17 (262 143 nodes)             |
 | `string_builder` | string runtime + GC under in-flight builder     | append a 45-char fragment N times, finalise to a flat string    | N = 80 000                             |
+| `map_iter`       | hash-map entry iteration, per-visit alloc       | 1 000 outer × 1 000 inner `for entry in m` over a 1 000-entry map | 1 M map visits total                 |
 
 Every program prints a one-line checksum so cross-language equivalence is verifiable.
 
@@ -54,19 +55,21 @@ Captured on a 2026 Apple Silicon laptop, `bun bench/run.ts --runs=5 --update`:
 
 | workload         | vader-native | bun-ts  | go      | java    |
 |------------------|--------------|---------|---------|---------|
-| `mandelbrot`     | 15.5 ms      | 22.6 ms | 16.9 ms | 44.4 ms |
-| `primes`         | 22.2 ms      | 37.8 ms | 23.0 ms | 53.9 ms |
-| `iter_chain`     |  2.4 ms      | 34.1 ms |  2.7 ms | 35.4 ms |
-| `binary_trees`   | 13.8 ms      | 11.6 ms |  6.8 ms | 32.3 ms |
-| `string_builder` |  5.3 ms      | 10.9 ms |  6.7 ms | 34.1 ms |
+| `mandelbrot`     | 15.0 ms      | 22.1 ms | 17.5 ms | 44.5 ms |
+| `primes`         | 23.0 ms      | 37.6 ms | 22.9 ms | 53.9 ms |
+| `iter_chain`     |  1.8 ms      | 33.6 ms |  2.7 ms | 35.1 ms |
+| `binary_trees`   | 13.6 ms      | 11.3 ms |  7.1 ms | 31.6 ms |
+| `string_builder` |  3.4 ms      |  8.6 ms |  5.1 ms | 33.6 ms |
+| `map_iter`       | 29.1 ms      | 30.6 ms |  7.9 ms | 39.8 ms |
 
 Reading the table :
 
-- **`mandelbrot`** — Vader native (16 ms) beats Go (19 ms) and Bun-TS (25 ms). After the for-over-integer-range counter-loop lowering (commit `1e268fd3`), the float kernel hits a state where clang `-O3` is doing essentially the same work as `gc`, with a marginal lead from FMA-free arithmetic on this specific kernel.
-- **`primes`** — Vader native (23 ms) ties Go (24 ms) and beats Bun (39 ms). Trial division is mostly integer modulo, which both AOT compilers turn into the same `udiv` / `msub` sequence ; Bun's JIT pays an extra dispatch.
-- **`iter_chain`** — Vader native is **2 × faster than Go's direct loop** (1.9 ms vs 4.2 ms) after the iterator-chain fusion landed. The lowerer detects `for x in (MapIterator { source: FilterIterator { source: <RangeExpr>, … }, … }) { … }` and collapses the three-level lazy chain into a single counter loop with inlined `pred` and `f` calls — same pattern Rust's iter combinators rely on. Without that, the chain is 7-8 × slower (one `Yielded(T)` heap box + one vtable dispatch per layer per iteration). Bun-TS's generator chain (35 ms) and Java's Stream API (36 ms) sit on the unfused side, showing what we save.
-- **`binary_trees`** — Vader native (15 ms) lands within noise of Bun-TS (13 ms) and 2 × Go (7.4 ms). After the nullable-ref inline representation landed, `Node` dropped from 72 B → 40 B (-44 %) and the GC pressure dropped accordingly. Remaining gap vs Go is in the recursion + match dispatch.
+- **`mandelbrot`** — Vader native (15 ms) beats Go (17 ms) and Bun-TS (23 ms). After the for-over-integer-range counter-loop lowering (commit `1e268fd3`), the float kernel hits a state where clang `-O3` is doing essentially the same work as `gc`, with a marginal lead from FMA-free arithmetic on this specific kernel.
+- **`primes`** — Vader native (23 ms) ties Go (23 ms) and beats Bun (38 ms). Trial division is mostly integer modulo, which both AOT compilers turn into the same `udiv` / `msub` sequence ; Bun's JIT pays an extra dispatch.
+- **`iter_chain`** — Vader native is ~1.6 × faster than Go's direct loop (1.8 ms vs 2.9 ms) after the iterator-chain fusion landed. The lowerer detects `for x in (0..<N).filter(is_even).map(square_i64) { … }` — fluent UFCS chain or struct-lit chain, both bottom out at a `RangeExpr` — and collapses the three-level lazy chain into a single counter loop with inlined `pred` and `f` calls. Same pattern Rust's iter combinators rely on. Without that, the chain is 7-8 × slower (one `Yielded(T)` heap box + one vtable dispatch per layer per iteration). Bun-TS's generator chain (34 ms) and Java's Stream API (35 ms) sit on the unfused side, showing what we save.
+- **`binary_trees`** — Vader native (14 ms) lands within noise of Bun-TS (11 ms) and ~1.7 × Go (8 ms). After the nullable-ref inline representation landed, `Node` dropped from 72 B → 40 B (-44 %) and the GC pressure dropped accordingly. Remaining gap vs Go is in the recursion + match dispatch.
 - **`string_builder`** — Vader native (3.3 ms) wins outright. The Vader `StringBuilder` stores fragment refs in a `string[]` and flushes once via the `Display::to_string` intrinsic — no per-iter copy. Go's `strings.Builder` and Bun's `[].join("")` both pay extra copies.
+- **`map_iter`** — Vader native (29 ms) lags Go (8 ms) by ~3.7 × on this workload, ties Bun-TS (31 ms), beats Java (40 ms). Go's `for k, v := range m` allocates nothing per visit ; Vader's `for entry in m` desugars via `Into(Iterator(Entry(K, V)))` (cf. `std/collections.vader`), so every visit heap-allocates a `Yielded(Entry(K, V))` and a fresh `Entry` payload — 1 M boxed allocs through the Cheney semi-space dominates the runtime. Bun's `Map[Symbol.iterator]` allocates the same shape ; Java's `entrySet()` boxes `Integer` keys/values on top of materialising `Map.Entry`. Lifting Vader to Go-class on this path needs either (a) iterator-driven enum-tag dispatch that the C emit recognises as a stack-allocated tag (no heap), or (b) a `MapIterator.next()` inliner that fuses the `Yielded` construction with the consumer's `is Yielded as y -> { … }` arm. Both deferred ; see TODO §3 GC perf.
 - **`java`** — every Java row sits at 35-57 ms regardless of workload. That floor is JVM startup + class loading + cold JIT — measurable but bounded now that we precompile in the build phase (down from ~230 ms when each invocation also parsed the source). For steady-state Java throughput (long-running JVM, warmed JIT, millions of iterations) Java would catch up to Go ; we're benching cold script invocations on purpose because that's what `java <Class>` looks like in practice.
 
 The `mandelbrot` checksum diverges by ~16 k iterations between the Go peer and the C/Vader/TS peers, because Go fuses `a*b + c` into a single FMA instruction with one rounding step on arm64. Both results are mathematically correct ; only the rounding model differs.

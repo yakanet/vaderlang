@@ -53,6 +53,7 @@ const WORKLOADS: readonly Workload[] = [
   { name: "iter_chain",     description: "Σ x² for even x in [0, 1 000 000)",        outputMatch: "iter_chain" },
   { name: "binary_trees",   description: "balanced tree depth=17 (262 143 nodes)",   outputMatch: "binary_trees" },
   { name: "string_builder", description: "append a 45-char fragment 80 000 times",   outputMatch: "string_builder" },
+  { name: "map_iter",       description: "1 000 outer × 1 000 inner map iter (1 M visits)", outputMatch: "map_iter" },
 ];
 
 interface Impl {
