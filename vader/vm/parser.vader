@@ -656,7 +656,7 @@ hex_to_bytes :: fn(s: string) -> u8[] {
 /// @param offset  byte offset of the LSB.
 /// @return        the decoded 16-bit value as a u32 (zero-extended).
 read_u16_le :: fn(bytes: u8[], offset: usize) -> u32 {
-    return u32(bytes[offset]) | (u32(bytes[offset + 1]) << 8)
+    return u32(bytes[offset]) | (u32(bytes[offset + 1]) << 0o10)
 }
 
 /// Read a little-endian u32 from `bytes` at `offset`.
@@ -666,9 +666,9 @@ read_u16_le :: fn(bytes: u8[], offset: usize) -> u32 {
 /// @return        the decoded 32-bit value.
 read_u32_le :: fn(bytes: u8[], offset: usize) -> u32 {
     return u32(bytes[offset])
-        | (u32(bytes[offset + 1]) << 8)
-        | (u32(bytes[offset + 2]) << 16)
-        | (u32(bytes[offset + 3]) << 24)
+        | (u32(bytes[offset + 1]) << 0o10)
+        | (u32(bytes[offset + 2]) << 0o20)
+        | (u32(bytes[offset + 3]) << 0o30)
 }
 
 /// Read a little-endian u64 from `bytes` at `offset`.
@@ -678,13 +678,13 @@ read_u32_le :: fn(bytes: u8[], offset: usize) -> u32 {
 /// @return        the decoded 64-bit value.
 read_u64_le :: fn(bytes: u8[], offset: usize) -> u64 {
     return u64(bytes[offset])
-        | (u64(bytes[offset + 1]) << 8)
-        | (u64(bytes[offset + 2]) << 16)
-        | (u64(bytes[offset + 3]) << 24)
-        | (u64(bytes[offset + 4]) << 32)
-        | (u64(bytes[offset + 5]) << 40)
-        | (u64(bytes[offset + 6]) << 48)
-        | (u64(bytes[offset + 7]) << 56)
+        | (u64(bytes[offset + 1]) << 0o10)
+        | (u64(bytes[offset + 2]) << 0o20)
+        | (u64(bytes[offset + 3]) << 0o30)
+        | (u64(bytes[offset + 4]) << 0o40)
+        | (u64(bytes[offset + 5]) << 0o50)
+        | (u64(bytes[offset + 6]) << 0o60)
+        | (u64(bytes[offset + 7]) << 0o70)
 }
 
 /// Parse `import N name mangled (params) -> ret`.
