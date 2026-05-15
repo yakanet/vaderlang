@@ -1,0 +1,360 @@
+# Lower
+
+## tests/snippets/std_base64/_main.vader
+  fn tests_snippets_std_base64__main_vader$show_decode(label: string, input: string) -> void
+    let out: Error | string =
+      call :Error | string
+        callee:
+          decode :fn(string) -> Error | string
+        arg0:
+          input :string
+    ~>
+      block :void
+        let __scrut_0: Error | string = out :Error | string
+        ~>
+          if :void
+            cond:
+              is string :bool
+                __scrut_0 :Error | string
+            then:
+              ~>
+                call :void
+                  callee:
+                    println :fn(string) -> void
+                  arg0:
+                    block :string
+                      let __sb_2: ? =
+                        @builder.new :?
+                      @builder.append_display <for string> :void
+                        __sb_2 :?
+                        label :string
+                      @builder.append_str :void
+                        __sb_2 :?
+                        "=" :string
+                      @builder.append_display <for string> :void
+                        __sb_2 :?
+                        cast → string
+                          out :Error | string
+                      ~>
+                        @builder.finish :string
+                          __sb_2 :?
+            else:
+              ~>
+                if :void
+                  cond:
+                    is Error :bool
+                      __scrut_0 :Error | string
+                  then:
+                    ~>
+                      call :void
+                        callee:
+                          println :fn(string) -> void
+                        arg0:
+                          block :string
+                            let __sb_1: ? =
+                              @builder.new :?
+                            @builder.append_display <for string> :void
+                              __sb_1 :?
+                              label :string
+                            @builder.append_str :void
+                              __sb_1 :?
+                              "=ERR:" :string
+                            @builder.append_display <for string> :void
+                              __sb_1 :?
+                              vcall Error.message :string
+                                recv:
+                                  cast → Error
+                                    out :Error | string
+                            ~>
+                              @builder.finish :string
+                                __sb_1 :?
+                  else:
+                    ~>
+                      unreachable("non-exhaustive match (T3013 should have caught this)") :void
+  fn tests_snippets_std_base64__main_vader$main() -> i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "enc-f=" :string
+          @builder.append_display <for string> :void
+            __sb_0 :?
+            call :string
+              callee:
+                encode :fn(string) -> string
+              arg0:
+                "f" :string
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "enc-fo=" :string
+          @builder.append_display <for string> :void
+            __sb_1 :?
+            call :string
+              callee:
+                encode :fn(string) -> string
+              arg0:
+                "fo" :string
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "enc-foo=" :string
+          @builder.append_display <for string> :void
+            __sb_2 :?
+            call :string
+              callee:
+                encode :fn(string) -> string
+              arg0:
+                "foo" :string
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "enc-foob=" :string
+          @builder.append_display <for string> :void
+            __sb_3 :?
+            call :string
+              callee:
+                encode :fn(string) -> string
+              arg0:
+                "foob" :string
+          ~>
+            @builder.finish :string
+              __sb_3 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_4: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_4 :?
+            "enc-fooba=" :string
+          @builder.append_display <for string> :void
+            __sb_4 :?
+            call :string
+              callee:
+                encode :fn(string) -> string
+              arg0:
+                "fooba" :string
+          ~>
+            @builder.finish :string
+              __sb_4 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_5: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_5 :?
+            "enc-foobar=" :string
+          @builder.append_display <for string> :void
+            __sb_5 :?
+            call :string
+              callee:
+                encode :fn(string) -> string
+              arg0:
+                "foobar" :string
+          ~>
+            @builder.finish :string
+              __sb_5 :?
+    call :void
+      callee:
+        show_decode :fn(string, string) -> void
+      arg0:
+        "dec-f" :string
+      arg1:
+        "Zg==" :string
+    call :void
+      callee:
+        show_decode :fn(string, string) -> void
+      arg0:
+        "dec-fo" :string
+      arg1:
+        "Zm8=" :string
+    call :void
+      callee:
+        show_decode :fn(string, string) -> void
+      arg0:
+        "dec-foo" :string
+      arg1:
+        "Zm9v" :string
+    call :void
+      callee:
+        show_decode :fn(string, string) -> void
+      arg0:
+        "dec-foob" :string
+      arg1:
+        "Zm9vYg==" :string
+    call :void
+      callee:
+        show_decode :fn(string, string) -> void
+      arg0:
+        "dec-fooba" :string
+      arg1:
+        "Zm9vYmE=" :string
+    call :void
+      callee:
+        show_decode :fn(string, string) -> void
+      arg0:
+        "dec-foobar" :string
+      arg1:
+        "Zm9vYmFy" :string
+    let inputs: string[] =
+      array :string[]
+        "hello world" :string
+        "" :string
+        "a" :string
+        "ab" :string
+        "The quick brown fox" :string
+    block :void
+      let __iter_6: ArrayIterator(string) =
+        ArrayIterator(string) {
+          arr: inputs :string[]
+          cursor: int(0) :usize
+          length:
+            LoweredArrayLen
+        }
+      loop
+        let __step_7: Done | Yielded(string) =
+          call :Done | Yielded(string)
+            callee:
+              next :?
+            arg0:
+              __iter_6 :ArrayIterator(string)
+        if :void
+          cond:
+            is Done :bool
+              __step_7 :Done | Yielded(string)
+          then:
+            break
+          else:
+            let s: string =
+              .value :string
+                cast → Yielded(string)
+                  __step_7 :Done | Yielded(string)
+            let decoded: Error | string =
+              call :Error | string
+                callee:
+                  decode :fn(string) -> Error | string
+                arg0:
+                  call :string
+                    callee:
+                      encode :fn(string) -> string
+                    arg0:
+                      s :string
+            block :void
+              let __scrut_8: Error | string = decoded :Error | string
+              ~>
+                if :void
+                  cond:
+                    is string :bool
+                      __scrut_8 :Error | string
+                  then:
+                    ~>
+                      call :void
+                        callee:
+                          println :fn(string) -> void
+                        arg0:
+                          block :string
+                            let __sb_10: ? =
+                              @builder.new :?
+                            @builder.append_str :void
+                              __sb_10 :?
+                              "roundtrip-" :string
+                            @builder.append_display <for string> :void
+                              __sb_10 :?
+                              s :string
+                            @builder.append_str :void
+                              __sb_10 :?
+                              "=" :string
+                            @builder.append_display <for bool> :void
+                              __sb_10 :?
+                              eq :bool
+                                l:
+                                  cast → string
+                                    decoded :Error | string
+                                r:
+                                  s :string
+                            ~>
+                              @builder.finish :string
+                                __sb_10 :?
+                  else:
+                    ~>
+                      if :void
+                        cond:
+                          is Error :bool
+                            __scrut_8 :Error | string
+                        then:
+                          ~>
+                            call :void
+                              callee:
+                                println :fn(string) -> void
+                              arg0:
+                                block :string
+                                  let __sb_9: ? =
+                                    @builder.new :?
+                                  @builder.append_str :void
+                                    __sb_9 :?
+                                    "roundtrip-" :string
+                                  @builder.append_display <for string> :void
+                                    __sb_9 :?
+                                    s :string
+                                  @builder.append_str :void
+                                    __sb_9 :?
+                                    "=ERR" :string
+                                  ~>
+                                    @builder.finish :string
+                                      __sb_9 :?
+                        else:
+                          ~>
+                            unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    call :void
+      callee:
+        show_decode :fn(string, string) -> void
+      arg0:
+        "bad-length" :string
+      arg1:
+        "abc" :string
+    call :void
+      callee:
+        show_decode :fn(string, string) -> void
+      arg0:
+        "bad-char" :string
+      arg1:
+        "ab!d" :string
+    return int(0) :i32

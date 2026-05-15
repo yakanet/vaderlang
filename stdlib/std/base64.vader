@@ -1,0 +1,205 @@
+// std/base64 — RFC 4648 base64 encode + decode.
+//
+// MVP scope : standard alphabet only (`A-Z a-z 0-9 + /`), strict
+// padding with `=`. URL-safe variant (`- _`, optional padding) is a
+// follow-up — call site is small (alphabet + sentinel for the missing
+// pad).
+//
+// Pure Vader, zero host imports — WASM-ready as-is.
+
+import "std/string" { byte_len, byte_at }
+import "std/string_builder" { StringBuilder, new_builder, append_char }
+
+ALPHABET :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+/// Encode `input` as a base64 string. The input is treated as a
+/// sequence of UTF-8 bytes (or raw bytes — base64 is content-agnostic).
+/// Output length is `4 * ceil(input_bytes / 3)`.
+export encode :: fn(input: string) -> string {
+    n :: input.byte_len()
+    sb := new_builder()
+    i: usize = 0
+    for i + usize(3) <= n {
+        b0 :: u32(input.byte_at(i))
+        b1 :: u32(input.byte_at(i + usize(1)))
+        b2 :: u32(input.byte_at(i + usize(2)))
+        triple :: (b0 << u32(16)) | (b1 << u32(8)) | b2
+        sb.append_char(ALPHABET[usize((triple >> u32(18)) & u32(0x3F))])
+        sb.append_char(ALPHABET[usize((triple >> u32(12)) & u32(0x3F))])
+        sb.append_char(ALPHABET[usize((triple >> u32(6))  & u32(0x3F))])
+        sb.append_char(ALPHABET[usize(triple & u32(0x3F))])
+        i = i + usize(3)
+    }
+    // Tail : 1 or 2 leftover bytes need padding.
+    remainder :: n - i
+    if remainder == usize(1) {
+        b0 :: u32(input.byte_at(i))
+        triple :: b0 << u32(16)
+        sb.append_char(ALPHABET[usize((triple >> u32(18)) & u32(0x3F))])
+        sb.append_char(ALPHABET[usize((triple >> u32(12)) & u32(0x3F))])
+        sb.append_char('=')
+        sb.append_char('=')
+    } else if remainder == usize(2) {
+        b0 :: u32(input.byte_at(i))
+        b1 :: u32(input.byte_at(i + usize(1)))
+        triple :: (b0 << u32(16)) | (b1 << u32(8))
+        sb.append_char(ALPHABET[usize((triple >> u32(18)) & u32(0x3F))])
+        sb.append_char(ALPHABET[usize((triple >> u32(12)) & u32(0x3F))])
+        sb.append_char(ALPHABET[usize((triple >> u32(6))  & u32(0x3F))])
+        sb.append_char('=')
+    }
+    return sb.to_string()
+}
+
+/// Error returned by `decode` when the input violates RFC 4648.
+export Base64Error :: struct {
+    msg: string
+}
+
+Base64Error implements Error {
+    message :: fn(self) -> string { return self.msg }
+}
+
+// Decode one base64 character to its 6-bit value, or i32(-1) for any
+// non-alphabet byte. Sentinel out-of-band avoids the cost of building
+// a 256-entry lookup table on every call (the bytecode emitter would
+// rebuild the array per access — same gotcha as std/crypto's K tables).
+decode_byte :: fn(b: u8) -> i32 {
+    if b >= b'A' && b <= b'Z' { return i32(b - b'A') }
+    if b >= b'a' && b <= b'z' { return i32(b - b'a') + i32(26) }
+    if b >= b'0' && b <= b'9' { return i32(b - b'0') + i32(52) }
+    if b == b'+' { return i32(62) }
+    if b == b'/' { return i32(63) }
+    return i32(-1)
+}
+
+/// Decode a base64 string back to raw bytes (returned as a string —
+/// Vader's `string` is byte-indexed under the hood). Strict : input
+/// length MUST be a multiple of 4 and padding MUST be canonical
+/// (one or two trailing `=`, nothing else). Whitespace and newlines
+/// are NOT allowed — strip them upstream if your transport adds them.
+export decode :: fn(input: string) -> string! {
+    n :: input.byte_len()
+    if n == usize(0) { return "" }
+    if n % usize(4) != usize(0) {
+        return Base64Error { .msg = "base64: input length must be a multiple of 4" }
+    }
+
+    pad_count: usize = 0
+    if input.byte_at(n - usize(1)) == b'=' { pad_count = usize(1) }
+    if input.byte_at(n - usize(2)) == b'=' { pad_count = usize(2) }
+
+    sb := new_builder()
+    i: usize = 0
+    full_quads :: n - usize(4)
+    for i < full_quads {
+        v0 :: decode_byte(input.byte_at(i))
+        v1 :: decode_byte(input.byte_at(i + usize(1)))
+        v2 :: decode_byte(input.byte_at(i + usize(2)))
+        v3 :: decode_byte(input.byte_at(i + usize(3)))
+        if v0 < 0 || v1 < 0 || v2 < 0 || v3 < 0 {
+            return Base64Error { .msg = "base64: invalid character at offset ${i}" }
+        }
+        triple :: (u32(v0) << u32(18)) | (u32(v1) << u32(12)) | (u32(v2) << u32(6)) | u32(v3)
+        sb.append_char(char((triple >> u32(16)) & u32(0xFF)))
+        sb.append_char(char((triple >> u32(8))  & u32(0xFF)))
+        sb.append_char(char(triple & u32(0xFF)))
+        i = i + usize(4)
+    }
+
+    // Final quad with possible padding.
+    v0 :: decode_byte(input.byte_at(i))
+    v1 :: decode_byte(input.byte_at(i + usize(1)))
+    if v0 < 0 || v1 < 0 {
+        return Base64Error { .msg = "base64: invalid character in final quad" }
+    }
+    triple_lead :: (u32(v0) << u32(18)) | (u32(v1) << u32(12))
+    sb.append_char(char((triple_lead >> u32(16)) & u32(0xFF)))
+    if pad_count == usize(0) {
+        v2 :: decode_byte(input.byte_at(i + usize(2)))
+        v3 :: decode_byte(input.byte_at(i + usize(3)))
+        if v2 < 0 || v3 < 0 {
+            return Base64Error { .msg = "base64: invalid character in final quad" }
+        }
+        triple :: triple_lead | (u32(v2) << u32(6)) | u32(v3)
+        sb.append_char(char((triple >> u32(8)) & u32(0xFF)))
+        sb.append_char(char(triple & u32(0xFF)))
+    } else if pad_count == usize(1) {
+        v2 :: decode_byte(input.byte_at(i + usize(2)))
+        if v2 < 0 {
+            return Base64Error { .msg = "base64: invalid character before padding" }
+        }
+        triple :: triple_lead | (u32(v2) << u32(6))
+        sb.append_char(char((triple >> u32(8)) & u32(0xFF)))
+    }
+    return sb.to_string()
+}
+
+// ---------------------------------------------------------------------- tests
+
+import "std/testing" { assert_eq, assert }
+
+@test test_encode_empty :: fn() -> void {
+    assert_eq(encode(""), "")
+}
+
+@test test_encode_no_padding :: fn() -> void {
+    assert_eq(encode("abc"),    "YWJj")
+    assert_eq(encode("Cat!"),   "Q2F0IQ==")
+}
+
+@test test_encode_rfc4648_vectors :: fn() -> void {
+    // From RFC 4648 §10.
+    assert_eq(encode("f"),      "Zg==")
+    assert_eq(encode("fo"),     "Zm8=")
+    assert_eq(encode("foo"),    "Zm9v")
+    assert_eq(encode("foob"),   "Zm9vYg==")
+    assert_eq(encode("fooba"),  "Zm9vYmE=")
+    assert_eq(encode("foobar"), "Zm9vYmFy")
+}
+
+@test test_decode_rfc4648_vectors :: fn() -> void {
+    expect_decode("",          "")
+    expect_decode("Zg==",      "f")
+    expect_decode("Zm8=",      "fo")
+    expect_decode("Zm9v",      "foo")
+    expect_decode("Zm9vYg==",  "foob")
+    expect_decode("Zm9vYmE=",  "fooba")
+    expect_decode("Zm9vYmFy",  "foobar")
+}
+
+expect_decode :: fn(encoded: string, expected: string) -> void {
+    out :: decode(encoded)
+    match out {
+        is string -> assert_eq(out, expected)
+        is Error  -> assert(false, "decode failed for ${encoded}")
+    }
+}
+
+@test test_decode_rejects_bad_length :: fn() -> void {
+    bad :: decode("abc")
+    match bad {
+        is Error  -> assert(true, "length error caught")
+        is string -> assert(false, "should have rejected length 3")
+    }
+}
+
+@test test_decode_rejects_invalid_char :: fn() -> void {
+    bad :: decode("ab!d")
+    match bad {
+        is Error  -> assert(true, "invalid char caught")
+        is string -> assert(false, "should have rejected `!`")
+    }
+}
+
+@test test_roundtrip :: fn() -> void {
+    inputs :: ["hello world", "", "a", "ab", "abc", "abcd", "The quick brown fox jumps over the lazy dog"]
+    for s in inputs {
+        encoded :: encode(s)
+        decoded :: decode(encoded)
+        match decoded {
+            is string -> assert_eq(decoded, s)
+            is Error  -> assert(false, "roundtrip decode failed for ${s}")
+        }
+    }
+}

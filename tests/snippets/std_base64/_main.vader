@@ -1,0 +1,46 @@
+// std/base64 — RFC 4648 vectors, padding shapes, roundtrip, and the
+// two error paths (bad length, bad character).
+
+import "std/io" { println }
+import "std/base64" { encode, decode, Base64Error }
+
+show_decode :: fn(label: string, input: string) -> void {
+    out :: decode(input)
+    match out {
+        is string -> println("${label}=${out}")
+        is Error  -> println("${label}=ERR:${out.message()}")
+    }
+}
+
+main :: fn() -> i32 {
+    // RFC 4648 §10 vectors
+    println("enc-f=${encode("f")}")
+    println("enc-fo=${encode("fo")}")
+    println("enc-foo=${encode("foo")}")
+    println("enc-foob=${encode("foob")}")
+    println("enc-fooba=${encode("fooba")}")
+    println("enc-foobar=${encode("foobar")}")
+
+    show_decode("dec-f",      "Zg==")
+    show_decode("dec-fo",     "Zm8=")
+    show_decode("dec-foo",    "Zm9v")
+    show_decode("dec-foob",   "Zm9vYg==")
+    show_decode("dec-fooba",  "Zm9vYmE=")
+    show_decode("dec-foobar", "Zm9vYmFy")
+
+    // Roundtrip
+    inputs :: ["hello world", "", "a", "ab", "The quick brown fox"]
+    for s in inputs {
+        decoded :: decode(encode(s))
+        match decoded {
+            is string -> println("roundtrip-${s}=${decoded == s}")
+            is Error  -> println("roundtrip-${s}=ERR")
+        }
+    }
+
+    // Error paths
+    show_decode("bad-length",  "abc")
+    show_decode("bad-char",    "ab!d")
+
+    return 0
+}
