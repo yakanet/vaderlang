@@ -64,6 +64,12 @@ export Op :: I32Const
     | I32Shl
     | I32Shr
     | I32ShrU
+    | U32Div
+    | U32Mod
+    | U32Lt
+    | U32Le
+    | U32Gt
+    | U32Ge
     | I64Add
     | I64Sub
     | I64Mul
@@ -76,6 +82,19 @@ export Op :: I32Const
     | I64Le
     | I64Gt
     | I64Ge
+    | U64Div
+    | U64Mod
+    | U64Lt
+    | U64Le
+    | U64Gt
+    | U64Ge
+    | I64Shl
+    | I64Shr
+    | I64ShrU
+    | I64BitAnd
+    | I64BitOr
+    | I64BitXor
+    | I64BitNot
     | F64Add
     | F64Sub
     | F64Mul
@@ -312,6 +331,42 @@ export I64Lt :: struct {}
 export I64Le :: struct {}
 export I64Gt :: struct {}
 export I64Ge :: struct {}
+/// Unsigned 64-bit divide. Pops two i64-tagged values carrying a u64 bit
+/// pattern, divides as u64, pushes the i64-tagged quotient.
+export U64Div :: struct {}
+/// Unsigned 64-bit modulo. Mirrors `U64Div`.
+export U64Mod :: struct {}
+/// Unsigned 64-bit less-than. Pops two i64-tagged values carrying a u64
+/// bit pattern, pushes a `BoolVal` of the unsigned compare. The VM
+/// aliases u64 onto `I64Val` ; signed I64Lt would read e.g. SHA-256
+/// round constants (high bit set) as negative and miscompare.
+export U64Lt  :: struct {}
+/// Unsigned 64-bit ≤. See `U64Lt`.
+export U64Le  :: struct {}
+/// Unsigned 64-bit >. See `U64Lt`.
+export U64Gt  :: struct {}
+/// Unsigned 64-bit ≥. See `U64Lt`.
+export U64Ge  :: struct {}
+/// 64-bit shift-left. Distinct from `I32Shl` so wide-width operands
+/// don't silently truncate to the low 32 bits via the I32 path's
+/// i32-typed apply closure (`u64.shl 32` on a 32-bit register is
+/// shift-by-≥-width and wraps).
+export I64Shl    :: struct {}
+/// 64-bit arithmetic shift-right (sign-extending). Pairs with `I64Shl`.
+export I64Shr    :: struct {}
+/// 64-bit logical shift-right (zero-filling). Used by unsigned-width
+/// source ops (`u64.shr`, `usize.shr`).
+export I64ShrU   :: struct {}
+/// 64-bit bitwise AND. Distinct from `I32BitAnd` so wide-width masks
+/// keep their high bits (e.g. `bit_len & 0xFFFF_FFFF_FFFF_FFFF_u64`).
+export I64BitAnd :: struct {}
+/// 64-bit bitwise OR.
+export I64BitOr  :: struct {}
+/// 64-bit bitwise XOR.
+export I64BitXor :: struct {}
+/// 64-bit bitwise NOT. Same shape as `I32BitNot` but on i64-tagged
+/// operands.
+export I64BitNot :: struct {}
 /// Pop two f64 (left, right) ; push `left + right` as F64Val.
 export F64Add :: struct {}
 /// Pop two f64 (left, right) ; push `left - right` as F64Val.
@@ -362,6 +417,24 @@ export I32Shr :: struct {}
 /// signed `I32Val`, so we distinguish the two shifts at the op level
 /// rather than at the value tag.
 export I32ShrU :: struct {}
+/// Unsigned 32-bit divide. Pops two i32-tagged values carrying a u32
+/// bit pattern, divides as u32, pushes the i32-tagged quotient. The
+/// VM aliases every integer width ≤ 32 bits onto `I32Val` ; signed
+/// I32Div would treat e.g. SHA-256 round constants (high bit set) as
+/// negative and divide wrong. Mirrors the `I32Shr` / `I32ShrU` split
+/// above.
+export U32Div :: struct {}
+/// Unsigned 32-bit modulo. Mirrors `U32Div`.
+export U32Mod :: struct {}
+/// Unsigned 32-bit less-than. Pops two i32-tagged values carrying a u32
+/// bit pattern, pushes a `BoolVal` of the unsigned compare.
+export U32Lt  :: struct {}
+/// Unsigned 32-bit ≤. See `U32Lt`.
+export U32Le  :: struct {}
+/// Unsigned 32-bit >. See `U32Lt`.
+export U32Gt  :: struct {}
+/// Unsigned 32-bit ≥. See `U32Lt`.
+export U32Ge  :: struct {}
 /// Pop two bools ; push `BoolVal` (equal). Sprint 5a addition.
 export BoolEq :: struct {}
 /// Pop two bools ; push `BoolVal` (not equal). Sprint 5a addition.

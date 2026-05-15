@@ -1079,42 +1079,72 @@ parse_op_line :: fn(cleaned: string, head: string) -> op.Op | null {
 /// @return        the matching op, or `null` for an unrecognised suffix.
 int_op_for :: fn(width: string, suffix: string) -> op.Op | null {
     is_wide :: width == "i64" || width == "u64"
+    // Unsigned widths route compare / div / rem to dedicated U32*/U64*
+    // ops so values with the high bit set don't read as negative. add /
+    // sub / mul / eq / ne / bitwise are signedness-agnostic on two's
+    // complement and stay on the signed family.
+    is_unsigned :: is_unsigned_width(width)
     if is_wide {
         if suffix == "add" { return op.I64Add {} }
         if suffix == "sub" { return op.I64Sub {} }
         if suffix == "mul" { return op.I64Mul {} }
-        if suffix == "div" { return op.I64Div {} }
-        if suffix == "rem" { return op.I64Mod {} }
         if suffix == "eq"  { return op.I64Eq {} }
         if suffix == "ne"  { return op.I64Ne {} }
+        if suffix == "neg" { return op.I64Neg {} }
+        if is_unsigned {
+            if suffix == "div" { return op.U64Div {} }
+            if suffix == "rem" { return op.U64Mod {} }
+            if suffix == "lt"  { return op.U64Lt {} }
+            if suffix == "le"  { return op.U64Le {} }
+            if suffix == "gt"  { return op.U64Gt {} }
+            if suffix == "ge"  { return op.U64Ge {} }
+        }
+        if suffix == "div" { return op.I64Div {} }
+        if suffix == "rem" { return op.I64Mod {} }
         if suffix == "lt"  { return op.I64Lt {} }
         if suffix == "le"  { return op.I64Le {} }
         if suffix == "gt"  { return op.I64Gt {} }
         if suffix == "ge"  { return op.I64Ge {} }
-        if suffix == "neg" { return op.I64Neg {} }
-        // Bitwise / shift falls through to I32* (same width collapse).
+        // 64-bit bitwise / shift stay in the I64 family so wide-width
+        // operands don't truncate via the I32 path's i32 apply closure.
+        if suffix == "bitand" { return op.I64BitAnd {} }
+        if suffix == "bitor"  { return op.I64BitOr {} }
+        if suffix == "bitxor" { return op.I64BitXor {} }
+        if suffix == "bitnot" { return op.I64BitNot {} }
+        if suffix == "shl"    { return op.I64Shl {} }
+        if suffix == "shr" {
+            if is_unsigned { return op.I64ShrU {} }
+            return op.I64Shr {}
+        }
     }
     if suffix == "add"    { return op.I32Add {} }
     if suffix == "sub"    { return op.I32Sub {} }
     if suffix == "mul"    { return op.I32Mul {} }
-    if suffix == "div"    { return op.I32Div {} }
-    if suffix == "rem"    { return op.I32Mod {} }
     if suffix == "eq"     { return op.I32Eq {} }
     if suffix == "ne"     { return op.I32Ne {} }
+    if suffix == "neg"    { return op.I32Neg {} }
+    if is_unsigned {
+        if suffix == "div" { return op.U32Div {} }
+        if suffix == "rem" { return op.U32Mod {} }
+        if suffix == "lt"  { return op.U32Lt {} }
+        if suffix == "le"  { return op.U32Le {} }
+        if suffix == "gt"  { return op.U32Gt {} }
+        if suffix == "ge"  { return op.U32Ge {} }
+    }
+    if suffix == "div"    { return op.I32Div {} }
+    if suffix == "rem"    { return op.I32Mod {} }
     if suffix == "lt"     { return op.I32Lt {} }
     if suffix == "le"     { return op.I32Le {} }
     if suffix == "gt"     { return op.I32Gt {} }
     if suffix == "ge"     { return op.I32Ge {} }
-    if suffix == "neg"    { return op.I32Neg {} }
     if suffix == "bitnot" { return op.I32BitNot {} }
     if suffix == "bitand" { return op.I32BitAnd {} }
     if suffix == "bitor"  { return op.I32BitOr {} }
     if suffix == "bitxor" { return op.I32BitXor {} }
     if suffix == "shl"    { return op.I32Shl {} }
     if suffix == "shr" {
-        is_signed :: width == "i8" || width == "i16" || width == "i32" || width == "i64" || width == "isize"
-        if is_signed { return op.I32Shr {} }
-        return op.I32ShrU {}
+        if is_unsigned { return op.I32ShrU {} }
+        return op.I32Shr {}
     }
     return null
 }
@@ -1153,6 +1183,16 @@ is_int_width :: fn(width: string) -> bool {
     if width == "i16"   { return true }
     if width == "i64"   { return true }
     if width == "isize" { return true }
+    return is_unsigned_width(width)
+}
+
+/// True iff `width` is one of the 5 unsigned integer prefixes. Used by
+/// `int_op_for` to route cmp / div / rem / shr to the U* family so the
+/// signedness is respected.
+///
+/// @param width  the prefix candidate.
+/// @return       `true` for `u8` / `u16` / `u32` / `u64` / `usize`.
+is_unsigned_width :: fn(width: string) -> bool {
     if width == "u8"    { return true }
     if width == "u16"   { return true }
     if width == "u32"   { return true }

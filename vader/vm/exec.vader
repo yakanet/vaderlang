@@ -369,6 +369,24 @@ apply_arith_unop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: stri
     return null
 }
 
+/// 64-bit counterpart to `apply_arith_unop`. Used by `I64Neg` and
+/// `I64BitNot`.
+///
+/// @param frame      current top frame.
+/// @param top        index of `frame` within `frames`.
+/// @param frames     the frame stack (mutated via `frames[top] = ...`).
+/// @param op_label   short label used in the Trap message on type mismatch.
+/// @param apply      the i64 unary op to apply.
+/// @return           `null` on success, or a `Trap` on operand type mismatch.
+/// @error            the operand isn't an i64-shaped value.
+apply_i64_unop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, apply: fn(i64) -> i64) -> Trap | null {
+    operand :: read_i64(frame.stack[frame.sp - 1], frame.pc, op_label)
+    if operand is Trap { return operand }
+    frame.stack[frame.sp - 1] = op.I64Val { .value = apply(operand.value) }
+    frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+    return null
+}
+
 /// Variant of `apply_arith_binop` that traps when the right operand
 /// is zero — used by `i32.div` and `i32.mod` so division-by-zero
 /// surfaces a labelled Trap rather than a host-level abort.
@@ -926,6 +944,34 @@ export exec :: fn(module: op.Module) -> VmResult {
                 outcome :: apply_arith_binop(frame, top, frames, "u32.shr", (a, b) -> i32(u32(a) >> u32(b)))
                 if outcome is Trap { return outcome }
             }
+            // Unsigned 32-bit divide / modulo / compare. The i32-tagged
+            // operands carry a u32 bit pattern ; reinterpret via `u32(...)`
+            // so the result respects unsigned semantics (zero-fill, no
+            // sign-extension) before re-tagging back to i32.
+            is op.U32Div -> {
+                outcome :: apply_div_mod_binop(frame, top, frames, "u32.div", (a, b) -> i32(u32(a) / u32(b)))
+                if outcome is Trap { return outcome }
+            }
+            is op.U32Mod -> {
+                outcome :: apply_div_mod_binop(frame, top, frames, "u32.rem", (a, b) -> i32(u32(a) % u32(b)))
+                if outcome is Trap { return outcome }
+            }
+            is op.U32Lt -> {
+                outcome :: apply_cmp_binop(frame, top, frames, "u32.lt", (a, b) -> u32(a) < u32(b))
+                if outcome is Trap { return outcome }
+            }
+            is op.U32Le -> {
+                outcome :: apply_cmp_binop(frame, top, frames, "u32.le", (a, b) -> u32(a) <= u32(b))
+                if outcome is Trap { return outcome }
+            }
+            is op.U32Gt -> {
+                outcome :: apply_cmp_binop(frame, top, frames, "u32.gt", (a, b) -> u32(a) > u32(b))
+                if outcome is Trap { return outcome }
+            }
+            is op.U32Ge -> {
+                outcome :: apply_cmp_binop(frame, top, frames, "u32.ge", (a, b) -> u32(a) >= u32(b))
+                if outcome is Trap { return outcome }
+            }
             is op.F64Const -> {
                 push_value(frame.stack, frame.sp, op.F64Val { .value = instr.value })
                 frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
@@ -955,10 +1001,8 @@ export exec :: fn(module: op.Module) -> VmResult {
                 if outcome is Trap { return outcome }
             }
             is op.I64Neg -> {
-                operand :: read_i64(frame.stack[frame.sp - 1], frame.pc, "i64.neg")
-                if operand is Trap { return operand }
-                frame.stack[frame.sp - 1] = op.I64Val { .value = -operand.value }
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                outcome :: apply_i64_unop(frame, top, frames, "i64.neg", (a) -> -a)
+                if outcome is Trap { return outcome }
             }
             is op.I64Eq -> {
                 outcome :: apply_i64_cmp(frame, top, frames, "i64.eq", (a, b) -> a == b)
@@ -982,6 +1026,63 @@ export exec :: fn(module: op.Module) -> VmResult {
             }
             is op.I64Ge -> {
                 outcome :: apply_i64_cmp(frame, top, frames, "i64.ge", (a, b) -> a >= b)
+                if outcome is Trap { return outcome }
+            }
+            // Unsigned 64-bit divide / modulo / compare. Same pattern as
+            // the U32* family but for `I64Val`-tagged operands carrying
+            // a u64 bit pattern.
+            is op.U64Div -> {
+                outcome :: apply_i64_div_mod(frame, top, frames, "u64.div", (a, b) -> i64(u64(a) / u64(b)))
+                if outcome is Trap { return outcome }
+            }
+            is op.U64Mod -> {
+                outcome :: apply_i64_div_mod(frame, top, frames, "u64.rem", (a, b) -> i64(u64(a) % u64(b)))
+                if outcome is Trap { return outcome }
+            }
+            is op.U64Lt -> {
+                outcome :: apply_i64_cmp(frame, top, frames, "u64.lt", (a, b) -> u64(a) < u64(b))
+                if outcome is Trap { return outcome }
+            }
+            is op.U64Le -> {
+                outcome :: apply_i64_cmp(frame, top, frames, "u64.le", (a, b) -> u64(a) <= u64(b))
+                if outcome is Trap { return outcome }
+            }
+            is op.U64Gt -> {
+                outcome :: apply_i64_cmp(frame, top, frames, "u64.gt", (a, b) -> u64(a) > u64(b))
+                if outcome is Trap { return outcome }
+            }
+            is op.U64Ge -> {
+                outcome :: apply_i64_cmp(frame, top, frames, "u64.ge", (a, b) -> u64(a) >= u64(b))
+                if outcome is Trap { return outcome }
+            }
+            // 64-bit bitwise / shift. The apply closure stays i64-typed so
+            // wide operands keep their high bits.
+            is op.I64BitAnd -> {
+                outcome :: apply_i64_binop(frame, top, frames, "i64.bitand", (a, b) -> a & b)
+                if outcome is Trap { return outcome }
+            }
+            is op.I64BitOr -> {
+                outcome :: apply_i64_binop(frame, top, frames, "i64.bitor", (a, b) -> a | b)
+                if outcome is Trap { return outcome }
+            }
+            is op.I64BitXor -> {
+                outcome :: apply_i64_binop(frame, top, frames, "i64.bitxor", (a, b) -> a ^ b)
+                if outcome is Trap { return outcome }
+            }
+            is op.I64BitNot -> {
+                outcome :: apply_i64_unop(frame, top, frames, "i64.bitnot", (a) -> ~a)
+                if outcome is Trap { return outcome }
+            }
+            is op.I64Shl -> {
+                outcome :: apply_i64_binop(frame, top, frames, "i64.shl", (a, b) -> a << b)
+                if outcome is Trap { return outcome }
+            }
+            is op.I64Shr -> {
+                outcome :: apply_i64_binop(frame, top, frames, "i64.shr", (a, b) -> a >> b)
+                if outcome is Trap { return outcome }
+            }
+            is op.I64ShrU -> {
+                outcome :: apply_i64_binop(frame, top, frames, "u64.shr", (a, b) -> i64(u64(a) >> u64(b)))
                 if outcome is Trap { return outcome }
             }
             is op.F64Add -> {
