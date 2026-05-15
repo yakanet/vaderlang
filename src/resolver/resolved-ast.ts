@@ -46,6 +46,11 @@ export interface ResolvedProgram {
    *  would be unreachable from the body. */
   readonly patternBindings: ReadonlyMap<A.IsPattern | A.BindingPattern | A.StructPatternField, Symbol>;
 
+  /** Symbols introduced by `if x is T as <name>` — keyed by the `is`
+   *  BinaryExpr that carried the `as`. The binding is in scope only
+   *  inside the surrounding IfExpr's then-block. */
+  readonly ifIsBindings: ReadonlyMap<A.BinaryExpr, Symbol>;
+
   /** Symbols introduced by `$T` heads on struct/trait declarations. */
   readonly typeParams: ReadonlyMap<A.TypeParam, Symbol>;
 

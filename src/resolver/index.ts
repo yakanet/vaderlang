@@ -146,6 +146,7 @@ function mergeFilePrograms(programs: readonly ResolvedProgram[]): ResolvedProgra
     typeParamTypes: merge(programs.map((p) => p.typeParamTypes)),
     fieldRefs: merge(programs.map((p) => p.fieldRefs)),
     patternBindings: merge(programs.map((p) => p.patternBindings)),
+    ifIsBindings: merge(programs.map((p) => p.ifIsBindings)),
   };
 }
 

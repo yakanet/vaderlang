@@ -27,7 +27,8 @@ export type BindingOrigin =
   | { readonly kind: "for-in"; readonly stmt: A.ForStmt }
   | { readonly kind: "is-pattern"; readonly pattern: A.IsPattern }
   | { readonly kind: "struct-pattern"; readonly field: A.StructPatternField }
-  | { readonly kind: "binding-pattern"; readonly pattern: A.BindingPattern };
+  | { readonly kind: "binding-pattern"; readonly pattern: A.BindingPattern }
+  | { readonly kind: "if-is-bind"; readonly cond: A.BinaryExpr };
 
 export type SymbolId = number;
 

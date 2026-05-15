@@ -2124,11 +2124,23 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
                     .upper     = right,
                 }
             } else {
+                // `is T as <ident>` — binds the narrowed RHS in the
+                // enclosing if's then-branch. Mirrors `parse_pattern`'s
+                // `IsPattern.bind_as` for match arms.
+                bind_as := ""
+                end_pos := right.span.end
+                if infix.op == .Is && p.peek().kind == .KwAs {
+                    p.advance()
+                    name_tok :: p.expect(.Ident, "binding name after `as`")
+                    bind_as = name_tok.text
+                    end_pos = name_tok.span.end
+                }
                 left = BinaryExpr {
-                    .span  = Span { .start = left.span.start, .end = right.span.end },
-                    .op    = infix.op,
-                    .left  = left,
-                    .right = right,
+                    .span    = Span { .start = left.span.start, .end = end_pos },
+                    .op      = infix.op,
+                    .left    = left,
+                    .right   = right,
+                    .bind_as = bind_as,
                 }
             }
             last_non_assoc_level = if infix.non_assoc { infix.left_bp } else { -1 }

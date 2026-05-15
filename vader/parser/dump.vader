@@ -839,6 +839,12 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             write_expr(sb, e.left, level + 1)
             entry(sb, false, level + 1, "right")
             write_expr(sb, e.right, level + 1)
+            // `bindAs` only emitted when non-empty — matches the TS
+            // dump where the field is optional on BinaryExpr.
+            if e.bind_as != "" {
+                entry(sb, false, level + 1, "bindAs")
+                write_string(sb, e.bind_as)
+            }
             close_obj(sb, level)
         }
         is IfExpr -> {

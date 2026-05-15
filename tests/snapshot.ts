@@ -107,6 +107,7 @@ export const LEXER_PARSER_CORPUS: ReadonlySet<string> = new Set([
   "generic_fn",
   "generic_struct",
   "if_branches",
+  "if_is_as_bind",
   "interpolation",
   "lambda_no_fn",
   "match_struct_pattern_binding",

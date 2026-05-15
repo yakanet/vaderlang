@@ -532,6 +532,20 @@ export interface BinaryExpr extends AstNode {
   readonly op: BinaryOp;
   readonly left: Expr;
   readonly right: Expr;
+  /** When `op === "is"`, an optional binding name parsed from
+   *  `… is T as <ident>`. The binding is materialised in the then-branch
+   *  of the enclosing `if` (mirroring match-arm semantics).
+   *  Always absent when `op !== "is"`. */
+  readonly bindAs?: string;
+}
+
+/** Type guard for `if x is T as <name>` conditions. Used by the resolver,
+ *  typechecker, and lowerer to dispatch on the binding-carrying shape with
+ *  a single point of truth — `bindAs` is only ever set when `op === "is"`. */
+export function isIfIsBinding(
+  cond: Expr,
+): cond is BinaryExpr & { bindAs: string } {
+  return cond.kind === "BinaryExpr" && cond.op === "is" && cond.bindAs !== undefined;
 }
 
 export interface IfExpr extends AstNode {

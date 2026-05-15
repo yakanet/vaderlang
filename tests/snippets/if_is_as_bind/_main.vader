@@ -1,0 +1,35 @@
+// `if x is T as <ident> { … }` — the if-condition mirror of match-arm
+// `is T as a -> …`. The binding lives only in the then-block ; the
+// surrounding scope (else, post-if) does not see it. Combined with the
+// pre-existing flow-narrowing, the divergent-guard pattern
+// `if x is T as a { return f(a) }` continues to work : the then-block
+// has both `x` narrowed to `T` and a fresh `a: T` ; subsequent code has
+// `x` narrowed to the complement.
+
+import "std/io" { println }
+
+V01 :: struct { f: i32 }
+V02 :: struct { f: i32 }
+U :: V01 | V02
+
+// Bound name usable in the then-block.
+direct :: fn(x: U) -> i32 {
+    if x is V01 as a { return a.f + 1 }
+    if x is V02 as b { return b.f + 100 }
+    return -1
+}
+
+// Divergent guard : after the divergent if, `x` is narrowed to the
+// complement variant. The binding `a` is out of scope here.
+post_narrow :: fn(x: U) -> i32 {
+    if x is V01 as a { return a.f + 7 }
+    return x.f                  // x narrowed to V02
+}
+
+main :: fn() -> i32 {
+    println("direct V01      : ${direct(V01 { .f = 10 })}")
+    println("direct V02      : ${direct(V02 { .f = 20 })}")
+    println("post_narrow V01 : ${post_narrow(V01 { .f = 30 })}")
+    println("post_narrow V02 : ${post_narrow(V02 { .f = 40 })}")
+    return 0
+}

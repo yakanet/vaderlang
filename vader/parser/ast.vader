@@ -496,6 +496,11 @@ export BinaryExpr :: struct {
     op:    BinaryOp
     left:  Expr
     right: Expr
+    /// When `op == BinaryOp.Is`, an optional binding name parsed from
+    /// `… is T as <ident>`. The binding lives in the enclosing `if`'s
+    /// then-branch (mirrors match-arm semantics). Empty string when
+    /// absent — `op != Is` always carries `""`.
+    bind_as: string = ""
 }
 
 // ---- control-flow expressions --------------------------------------------

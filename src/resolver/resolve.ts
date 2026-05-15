@@ -5,7 +5,7 @@
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type * as A from "../parser/ast.ts";
-import { unreachableTypeExprInValuePosition, UNASSIGNED_NODE_ID } from "../parser/ast.ts";
+import { isIfIsBinding, unreachableTypeExprInValuePosition, UNASSIGNED_NODE_ID } from "../parser/ast.ts";
 import {
   materializeDefaultMembers, materializeIntrinsicMembers, materializeSamMembers,
   substituteTypeExpr,
@@ -62,6 +62,10 @@ interface MutableProgram {
   typeParamTypes: Map<A.IdentExpr, Symbol>;
   fieldRefs: Map<A.FieldExpr, FieldRef>;
   patternBindings: Map<A.IsPattern | A.BindingPattern | A.StructPatternField, Symbol>;
+  /** Binding introduced by `if x is T as <name>` — keyed by the `is`
+   *  BinaryExpr that carried the `as`. The symbol is only in scope
+   *  inside the matching IfExpr's then-block. */
+  ifIsBindings: Map<A.BinaryExpr, Symbol>;
 }
 
 interface Scope {
@@ -107,6 +111,7 @@ export function resolveModule(input: ResolveModuleInput): ResolvedProgram[] {
       typeParamTypes: new Map(),
       fieldRefs: new Map(),
       patternBindings: new Map(),
+      ifIsBindings: new Map(),
     };
     for (const decl of file.program.decls) {
       resolveDecl(decl, root, program, input);
@@ -615,14 +620,28 @@ function resolveExpr(expr: A.Expr, scope: Scope, p: MutableProgram, input: Resol
       resolveExpr(expr.left, scope, p, input);
       resolveExpr(expr.right, scope, p, input);
       return;
-    case "IfExpr":
+    case "IfExpr": {
       resolveExpr(expr.cond, scope, p, input);
-      resolveBlock(expr.then, scope, p, input);
+      // `if x is T as a { ... }` — bind `a` only inside the then-block.
+      // The else / else-if chain doesn't see the binding (mirrors
+      // match-arm scoping).
+      let thenScope = scope;
+      if (isIfIsBinding(expr.cond)) {
+        thenScope = newScope(scope);
+        const sym = bindBinding(
+          expr.cond.bindAs, expr.cond.span,
+          { kind: "if-is-bind", cond: expr.cond },
+          thenScope, input,
+        );
+        p.ifIsBindings.set(expr.cond, sym);
+      }
+      resolveBlock(expr.then, thenScope, p, input);
       if (expr.else !== null) {
         if (expr.else.kind === "IfExpr") resolveExpr(expr.else, scope, p, input);
         else resolveBlock(expr.else, scope, p, input);
       }
       return;
+    }
     case "MatchExpr":
       resolveMatchExpr(expr, scope, p, input);
       return;

@@ -1,0 +1,150 @@
+# Lower
+
+## tests/snippets/if_is_as_bind/_main.vader
+  struct tests_snippets_if_is_as_bind__main_vader$V01 { f: i32 }
+  struct tests_snippets_if_is_as_bind__main_vader$V02 { f: i32 }
+  fn tests_snippets_if_is_as_bind__main_vader$direct(x: V01 | V02) -> i32
+    if :void
+      cond:
+        is V01 :bool
+          x :V01 | V02
+      then:
+        let a: V01 =
+          cast → V01
+            x :V01 | V02
+        return
+          add :i32
+            l:
+              .f :i32
+                a :V01
+            r:
+              int(1) :i32
+    if :void
+      cond:
+        is V02 :bool
+          cast → V02
+            x :V01 | V02
+      then:
+        let b: V02 =
+          cast → V02
+            x :V01 | V02
+        return
+          add :i32
+            l:
+              .f :i32
+                b :V02
+            r:
+              int(100) :i32
+    return
+      neg :i32
+        int(1) :i32
+  fn tests_snippets_if_is_as_bind__main_vader$post_narrow(x: V01 | V02) -> i32
+    if :void
+      cond:
+        is V01 :bool
+          x :V01 | V02
+      then:
+        let a: V01 =
+          cast → V01
+            x :V01 | V02
+        return
+          add :i32
+            l:
+              .f :i32
+                a :V01
+            r:
+              int(7) :i32
+    return
+      .f :i32
+        cast → V02
+          x :V01 | V02
+  fn tests_snippets_if_is_as_bind__main_vader$main() -> i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "direct V01      : " :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            call :i32
+              callee:
+                direct :fn(V01 | V02) -> i32
+              arg0:
+                V01 {
+                  f: int(10) :i32
+                }
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "direct V02      : " :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            call :i32
+              callee:
+                direct :fn(V01 | V02) -> i32
+              arg0:
+                V02 {
+                  f: int(20) :i32
+                }
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "post_narrow V01 : " :string
+          @builder.append_display <for i32> :void
+            __sb_2 :?
+            call :i32
+              callee:
+                post_narrow :fn(V01 | V02) -> i32
+              arg0:
+                V01 {
+                  f: int(30) :i32
+                }
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "post_narrow V02 : " :string
+          @builder.append_display <for i32> :void
+            __sb_3 :?
+            call :i32
+              callee:
+                post_narrow :fn(V01 | V02) -> i32
+              arg0:
+                V02 {
+                  f: int(40) :i32
+                }
+          ~>
+            @builder.finish :string
+              __sb_3 :?
+    return int(0) :i32

@@ -6,7 +6,7 @@
 
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
-import { staticStringValue, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
+import { isIfIsBinding, staticStringValue, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf } from "../../resolver/symbol.ts";
 
@@ -24,7 +24,7 @@ import { inferBinary } from "./binary.ts";
 import { inferCall, inferField } from "./call.ts";
 import { checkEnumVariant } from "./enum.ts";
 import { inferMatch } from "./match.ts";
-import { detectVariantNarrowing, popSplit, pushSplit } from "./narrow.ts";
+import { detectVariantNarrowing, popNarrowing, popSplit, pushNarrowing, pushSplit } from "./narrow.ts";
 import { checkBlock } from "./stmt.ts";
 import { inferStructLit } from "./struct-lit.ts";
 import { inferTry } from "./try.ts";
@@ -410,10 +410,29 @@ function inferIf(
 
   const split = detectVariantNarrowing(expr.cond, t);
 
+  // `if x is T as a { … }` — narrow the freshly-introduced binding to
+  // the RHS check type. Reads from `binaryIsCheckTypes` directly rather
+  // than `split.thenType` because the latter is null when the scrutinee
+  // isn't a narrowable ident/field, but the binding's type still needs
+  // to be T (the explicit RHS). `inferBinary` populates the map for
+  // every `is` BinaryExpr, so the only way to reach `TY.unresolved` is
+  // an upstream typecheck failure on the cond.
+  let bindSym: Symbol | null = null;
+  let prevBind: Type | undefined;
+  if (isIfIsBinding(expr.cond)) {
+    const sym = t.resolved.ifIsBindings.get(expr.cond);
+    if (sym !== undefined) {
+      bindSym = sym;
+      const narrowedType = t.binaryIsCheckTypes.get(expr.cond) ?? TY.unresolved;
+      prevBind = pushNarrowing(t, sym.id, narrowedType);
+    }
+  }
+
   let prevThen: Type | undefined;
   if (split !== null) prevThen = pushSplit(t, split, split.thenType);
   const thenT = checkBlock(expr.then, expected, t, impls, diags, fn);
   if (split !== null) popSplit(t, split, prevThen);
+  if (bindSym !== null) popNarrowing(t, bindSym.id, prevBind);
 
   if (expr.else === null) return thenT.kind === "Never" ? TY.void : unionOf([thenT, TY.void]);
 

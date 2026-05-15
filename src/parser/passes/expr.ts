@@ -165,14 +165,23 @@ export function parseExpr(p: Parser, minBP: number): A.Expr {
           upper: right,
         };
       } else {
+        // `is T as <ident>` — binds the narrowed RHS in the enclosing
+        // if's then-branch (mirrors match-arm `is T as x ->` semantics).
+        // Only meaningful for `is` ; other ops carry no `bindAs`.
+        let bindAs: string | undefined;
+        if (infix.op === "is" && p.peek().kind === "kw_as") {
+          p.advance();
+          bindAs = p.expect("ident", "binding name after `as`").text;
+        }
         left = {
           kind: "BinaryExpr",
-          id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: right.span.end },
+          id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: p.peek(-1).span.end },
           // `infix.op` is defined for every non-range InfixOp (range tokens
           // are handled in the branch above) — assert and use.
           op: infix.op!,
           left,
           right,
+          ...(bindAs !== undefined ? { bindAs } : {}),
         };
       }
       lastNonAssocLevel = infix.nonAssoc === true ? infix.leftBP : -1;

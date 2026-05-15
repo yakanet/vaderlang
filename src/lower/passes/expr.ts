@@ -3,7 +3,7 @@
 
 import type { Span } from "../../diagnostics/diagnostic.ts";
 import type * as A from "../../parser/ast.ts";
-import { staticStringValue, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
+import { isIfIsBinding, staticStringValue, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
@@ -17,7 +17,7 @@ import { lowerBlock } from "./block.ts";
 import { findCoreTrait } from "./core.ts";
 import { wrapAsInto } from "./display-coerce.ts";
 import { lookupImplEntry, lookupImplFor, lowerRangeExpr } from "./for-in.ts";
-import { blockStmtsWithTrailing, freshSyntheticSymbol, loweredEnumVariant, wrapAsBlock } from "./helpers.ts";
+import { blockStmtsWithTrailing, freshSyntheticSymbol, loweredEnumVariant, lowerCellInit, wrapAsBlock } from "./helpers.ts";
 import { lowerLambda } from "./lambda.ts";
 import { lowerMatch } from "./match.ts";
 import { lowerStringLit } from "./string-interp.ts";
@@ -753,7 +753,7 @@ function lowerVirtualDispatch(
 
 export function lowerIf(ctx: FnLowerCtx, expr: A.IfExpr, exprType: Type): LoweredIf {
   const cond = lowerExpr(ctx, expr.cond);
-  const then = lowerBlock(ctx, expr.then, false, false);
+  const then = lowerThenWithBinding(ctx, expr);
   let elseBlock: LoweredBlock | null = null;
   if (expr.else !== null) {
     elseBlock = expr.else.kind === "BlockExpr"
@@ -772,6 +772,38 @@ export function lowerIf(ctx: FnLowerCtx, expr: A.IfExpr, exprType: Type): Lowere
     return { kind: "LoweredIf", span: expr.span, type: TY.void, cond, then: thenVoid, else: null };
   }
   return { kind: "LoweredIf", span: expr.span, type: exprType, cond, then, else: elseBlock };
+}
+
+/** Lower the then-block of an `if`, prepending a `let <bindAs> = (T) <scrut>`
+ *  when the cond carries an `is T as <bindAs>` binding. The binding is
+ *  resolver-introduced and lives in the then-block's scope, so this is the
+ *  only site that materialises its slot. Without the cast, downstream
+ *  reads through `<bindAs>` would land on the union slot instead of the
+ *  variant layout — same trick `walkPatternBindings` plays for match arms. */
+function lowerThenWithBinding(ctx: FnLowerCtx, expr: A.IfExpr): LoweredBlock {
+  const block = lowerBlock(ctx, expr.then, false, false);
+  if (!isIfIsBinding(expr.cond)) return block;
+  const sym = ctx.typed.resolved.ifIsBindings.get(expr.cond);
+  if (sym === undefined) return block;
+  // The scrutinee is lowered a second time here (the `is`-binary's
+  // `LoweredTypeCheck` already lowered it as part of `cond`). Safe for
+  // ident / field-chain scrutinees ; for an arbitrary side-effecting
+  // scrutinee the expression would evaluate twice. Acceptable for the
+  // MVP since the dominant idiom is `if x is T as a { … }` over a
+  // narrowable local ; revisit with a synthetic-temp hoist when the
+  // first impure-scrutinee use case lands.
+  const innerType = ctx.types.typeExprType(expr.cond.right);
+  const scrutType = ctx.types.exprType(expr.cond.left);
+  const scrutValue = lowerExpr(ctx, expr.cond.left);
+  const castValue: LoweredExpr = scrutType.kind === "Union"
+    ? { kind: "LoweredCast", span: expr.cond.span, type: innerType, value: scrutValue }
+    : scrutValue;
+  const init = lowerCellInit(ctx, sym, castValue, innerType, expr.cond.span);
+  const letStmt: LoweredStmt = {
+    kind: "LoweredLet", span: expr.cond.span, name: expr.cond.bindAs, symbol: sym,
+    type: init.slotType, value: init.value,
+  };
+  return { ...block, stmts: [letStmt, ...block.stmts] };
 }
 
 /** Lower `e.f` when `e` is a discriminated union and every variant carries

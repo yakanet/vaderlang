@@ -1308,6 +1308,13 @@ emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {
     self.write(binary_op_symbol(x.op))
     self.write(" ")
     self.emit_binary_operand(x.right, x.op, false)
+    // `is T as <ident>` — only meaningful for `op == .Is` ; reproduce
+    // the optional binding when present so the formatter is round-trip
+    // stable.
+    if x.op == .Is && x.bind_as != "" {
+        self.write(" as ")
+        self.write(x.bind_as)
+    }
 }
 
 // Emit an operand wrapped in parentheses iff the child is a `BinaryExpr`
