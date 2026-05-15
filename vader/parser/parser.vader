@@ -95,6 +95,16 @@ match_kind :: fn(p: Parser, kind: TokenKind) -> Token | null {
     return null
 }
 
+/// Consume the next token if it matches `kind`, else return the current
+/// token without advancing. Used by callers that need a span / position
+/// fallback for a missing-but-tolerated terminator (e.g. an unterminated
+/// string's `StringEnd`) without bothering with explicit null narrowing.
+match_or_peek :: fn(p: Parser, kind: TokenKind) -> Token {
+    matched :: p.match_kind(kind)
+    if matched != null { return matched }
+    return p.peek()
+}
+
 // `expect` emits a diagnostic on mismatch but does NOT advance ; mirrors TS.
 expect :: fn(p: Parser, kind: TokenKind, what: string) -> Token {
     if p.check(kind) { return p.advance() }
@@ -402,8 +412,7 @@ expect_string_literal :: fn(p: Parser, what: string) -> StringLitInfo {
             for !p.check(.InterpClose) && !p.check(.Eof) { p.advance() }
         }
     }
-    end_match :: p.match_kind(.StringEnd)
-    end_tok :: if end_match != null { end_match } else { p.peek() }
+    end_tok :: p.match_or_peek(.StringEnd)
     return StringLitInfo { .text = sb.to_string(), .span = p.span_of(begin, end_tok) }
 }
 
@@ -2054,8 +2063,10 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             // destructure) or `(`, and the free-form whitespace can't
             // tell the two cases apart. Force parens for inline
             // chaining. `.field` postfix stays unambiguous.
-            blocky :: left is IfExpr || left is MatchExpr || left is BlockExpr
-            if blocky && (t.kind == .LBracket || t.kind == .LParen) { break }
+            // Test `t.kind` first so non-bracket postfix tokens (the
+            // common case : `.field`, `?`, ...) skip the union check.
+            bracketish :: t.kind == .LBracket || t.kind == .LParen
+            if bracketish && (left is IfExpr || left is MatchExpr || left is BlockExpr) { break }
             left = p.parse_postfix(left, t)
             last_non_assoc_level = -1
             continue
@@ -2632,8 +2643,7 @@ parse_string_lit :: fn(p: Parser) -> StringLitExpr {
         p.error(.UnexpectedToken, t.span, "inside string literal")
         p.advance()
     }
-    end_match :: p.match_kind(.StringEnd)
-    end_tok :: if end_match != null { end_match } else { p.peek() }
+    end_tok :: p.match_or_peek(.StringEnd)
     return StringLitExpr {
         .span  = p.span_of(begin, end_tok),
         .parts = parts,
