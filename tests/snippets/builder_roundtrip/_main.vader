@@ -1,0 +1,115 @@
+// Round-trip integration check for the vader/vm/builder + vader/bytecode/text
+// + vader/vm/parser triplet.
+//
+// Builds a small module programmatically via the builder API, runs it
+// through `exec` to capture an Ok value, serialises it to `.virt` text
+// via `write_virt`, parses the text back via `parse_virt`, then runs
+// the parsed module and compares the two exit values.
+//
+// Exits 0 when both paths agree (the same value bubbles up from `main`),
+// non-zero otherwise. Use as a smoke test :
+//
+//   vader run examples/builder_roundtrip.vader
+//
+// What the synthesised module does : a `compute(a, b)` function returns
+// `(a + b) * 2` ; `main` calls it with `(40, 1)` and prints the result
+// through a `std_io$println` host import — exercising int const / arith
+// ops, locals, direct calls between functions, string-builder + display
+// intrinsics for the printed integer, and an import dispatch.
+
+import "std/io" { println }
+op :: import "vader/vm/op"
+import "vader/vm/builder" {
+    ModuleBuilder, FunctionBuilder,
+    new_module_builder, new_function_builder,
+    add_type, add_import, add_function, set_main, finish,
+    i32_const, i32_add, i32_mul, local_get, local_set,
+    call, call_import, return_op,
+    builder_new, builder_append_display, builder_finish,
+    int_to_char,
+}
+import "vader/vm/exec" { exec }
+import "vader/vm/value" { VmResult, Ok, Trap }
+import "vader/vm/parser" { parse_virt }
+import "vader/bytecode/text" { write_virt }
+
+build_test_module :: fn() -> op.Module {
+    module_builder :: new_module_builder()
+    module_builder.add_type(op.PrimitiveType { .kind = "i32" })
+    println_import :: module_builder.add_import("println", r"std_io$println", 1, false)
+
+    // compute(a, b) -> i32 = (a + b) * 2
+    compute :: new_function_builder("compute", 2, 0)
+    compute.local_get(0)
+    compute.local_get(1)
+    compute.i32_add()
+    compute.i32_const(2)
+    compute.i32_mul()
+    compute.return_op()
+    compute_index :: module_builder.add_function(compute)
+
+    // main() -> i32 :
+    //   result := compute(40, 1)             // → 82
+    //   builder := new ; append_display result ; finish
+    //   println(builder_string)
+    //   return result
+    main_fn :: new_function_builder("main", 0, 2)
+    // slot 0 = result (i32)
+    // slot 1 = builder reference
+    main_fn.i32_const(40)
+    main_fn.i32_const(1)
+    main_fn.call(compute_index)
+    main_fn.local_set(0)
+
+    main_fn.builder_new()
+    main_fn.local_set(1)
+    main_fn.local_get(1)
+    main_fn.local_get(0)
+    main_fn.builder_append_display()
+    main_fn.local_get(1)
+    main_fn.builder_finish()
+    main_fn.call_import(println_import)
+
+    main_fn.local_get(0)
+    main_fn.return_op()
+    main_index :: module_builder.add_function(main_fn)
+    module_builder.set_main(main_index)
+
+    return module_builder.finish()
+}
+
+run_and_report :: fn(label: string, result: VmResult) -> i32 {
+    return match result {
+        is Ok   as ok -> {
+            println("${label}: ok=${ok.value}")
+            ok.value
+        }
+        is Trap as trap -> {
+            println("${label}: trap=${trap.message}")
+            -1
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    println("=== first exec : freshly built module ===")
+    module_a :: build_test_module()
+    result_a :: exec(module_a)
+    value_a :: run_and_report("first  exec", result_a)
+
+    println("=== serialise → parse_virt → second exec ===")
+    serialised :: write_virt(module_a)
+    module_b :: parse_virt(serialised)
+    result_b :: exec(module_b)
+    value_b :: run_and_report("second exec", result_b)
+
+    if value_a == value_b && value_a == 82 {
+        println("round-trip ok (${value_a})")
+        return 0
+    }
+
+    println("round-trip MISMATCH : first=${value_a} second=${value_b}")
+    println("--- serialised .virt ---")
+    println(serialised)
+    return 1
+}

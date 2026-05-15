@@ -1,0 +1,576 @@
+// vader/vm/builder — programmatic construction of an `op.Module` without
+// going through the `.virt` text intermediate.
+//
+// The parser in `vader/vm/parser.vader` consumes a `.virt` text dump and
+// produces an `op.Module` (string pool, type table, function bodies +
+// pre-computed jump tables, vtables, data pool). This file exposes the
+// same shape via a builder API so consumers can assemble a Module by
+// emitting `op.Op` values directly :
+//
+//   builder :: new_module_builder()
+//   string_pool_index :: builder.intern_string("hello")
+//   type_id_i32 :: builder.add_type(op.PrimitiveType { .kind = "i32" })
+//
+//   function :: new_function_builder("main", 0, 0)
+//   function.i32_const(42)
+//   function.return_op()
+//   main_index :: builder.add_function(function)
+//   builder.set_main(main_index)
+//
+//   module :: builder.finish()
+//   result :: exec(module)
+//
+// Use cases : Brainfuck and other source-language → bytecode compilers
+// written in Vader (see `examples/brainfuck.vader`), and any consumer
+// that wants compile-time type-safety on op construction rather than
+// hand-formatted `.virt` strings.
+//
+// Control-flow ops (`block` / `loop` / `if` / `else` / `end` / `br` /
+// `br_if`) are pushed via labelled methods on `FunctionBuilder` ; the
+// builder maintains an internal scope stack and resolves each branch's
+// target pc into the jump table as ops are appended, mirroring the
+// online resolution that `parser.vader::wire_control_flow` performs at
+// parse time.
+
+import "std/collections" { MutableMap }
+op :: import "vader/vm/op"
+import "vader/vm/parser" { build_vtables, find_main_by_suffix }
+
+// ----------------------------------------------------------------- module
+
+/// In-progress `op.Module`. Pools (strings, types, imports, functions,
+/// data) grow as the caller registers entries ; `finish()` snapshots
+/// them into the final `op.Module` and synthesises the per-(trait,
+/// method) vtables via `parser.build_vtables`.
+///
+/// Field-mutability note : every pool here is a heap-grown `Vec[]`-like
+/// array so member methods can `self.strings.push(...)` without taking
+/// `self` by reference (Vader arrays are heap-allocated references).
+export ModuleBuilder :: struct {
+    strings: string[]
+    /// Intern map for `strings` — keyed by the source string, valued
+    /// with the pool index. Avoids O(n) lookups when interning the
+    /// same string twice from caller code.
+    string_index: MutableMap(string, i32)
+    types: op.TypeDecl[]
+    imports: op.ImportInfo[]
+    functions: op.BytecodeFunction[]
+    impls: op.Impl[]
+    data_pool: op.ArrayVal[]
+    main_index: i32[]
+}
+
+/// Fresh, empty builder. `main_index` is held in a 1-element `i32[]` so
+/// `set_main` can mutate it from a member fn that takes `self` by value
+/// (Vader arrays are heap-allocated and shared by reference).
+export new_module_builder :: fn() -> ModuleBuilder {
+    return ModuleBuilder {
+        .strings      = [],
+        .string_index = MutableMap(string, i32) { .buckets = [], .size = 0 },
+        .types        = [],
+        .imports      = [],
+        .functions    = [],
+        .impls        = [],
+        .data_pool    = [],
+        .main_index   = [-1],
+    }
+}
+
+/// Append `value` to the string pool unless it's already present, and
+/// return its pool index. Strings hash and compare by value, so the
+/// dedup is cheap.
+///
+/// @param self   the builder.
+/// @param value  the string to intern.
+/// @return       the index into `self.strings` where `value` lives.
+export intern_string :: fn(self: ModuleBuilder, value: string) -> i32 {
+    cached :: self.string_index[value]
+    if !(cached is null) { return cached }
+    index :: i32(self.strings.len())
+    self.strings.push(value)
+    self.string_index[value] = index
+    return index
+}
+
+/// Append a type declaration to the module's type table and return its
+/// ordinal. The caller is responsible for ensuring nested type ids (e.g.
+/// `ArrayType.element_type_id`) refer to types already added — there's
+/// no forward-declaration scheme.
+///
+/// @param self  the builder.
+/// @param type_decl  the type declaration to append.
+/// @return      the index into `self.types` where the entry lives.
+export add_type :: fn(self: ModuleBuilder, type_decl: op.TypeDecl) -> i32 {
+    index :: i32(self.types.len())
+    self.types.push(type_decl)
+    return index
+}
+
+/// Register a host-import descriptor and return its `call.import` key.
+/// `mangled` is the dispatcher key (e.g. `std_io$print`) ; `parameter_count`
+/// is the number of values the executor pops from the caller stack ;
+/// `has_return` is `true` when the import pushes one value back.
+///
+/// @param self            the builder.
+/// @param name            the short import name (descriptive).
+/// @param mangled         the dispatcher's lookup key.
+/// @param parameter_count number of args popped from the caller stack.
+/// @param has_return      `true` if the import pushes one value back.
+/// @return                the index into `self.imports`.
+export add_import :: fn(self: ModuleBuilder, name: string, mangled: string, parameter_count: usize, has_return: bool) -> i32 {
+    index :: i32(self.imports.len())
+    self.imports.push(op.ImportInfo {
+        .name            = name,
+        .mangled         = mangled,
+        .parameter_count = parameter_count,
+        .has_return      = has_return,
+    })
+    return index
+}
+
+/// Append a pre-materialised constant array to the module's data pool
+/// and return its index. Used by `data.const` ops to push routed
+/// `const T[]` literals onto the stack at runtime.
+///
+/// @param self        the builder.
+/// @param entry       the pre-built `op.ArrayVal` (elements + type_id).
+/// @return            the index into `self.data_pool`.
+export add_data_entry :: fn(self: ModuleBuilder, entry: op.ArrayVal) -> i32 {
+    index :: i32(self.data_pool.len())
+    self.data_pool.push(entry)
+    return index
+}
+
+/// Record a `(type_id, trait_name)` pair so the executor's `is Trait`
+/// matching can resolve the impl without needing the trait method to
+/// survive DCE. Mirrors the `.virt` `impl` directive.
+///
+/// @param self        the builder.
+/// @param type_id     the receiver type's index in `self.types`.
+/// @param trait_name  the trait identifier.
+export add_impl :: fn(self: ModuleBuilder, type_id: i32, trait_name: string) -> void {
+    self.impls.push(op.Impl { .type_id = type_id, .trait_name = trait_name })
+}
+
+/// Bake a `FunctionBuilder` into the module : reads the accumulated
+/// ops, jump table, name, and frame sizes and appends a fresh
+/// `BytecodeFunction`. Returns the function's index, which can be
+/// referenced by `Call` ops and `set_main`.
+///
+/// @param self      the builder.
+/// @param function  the in-progress function builder, already populated
+///                  with all its ops via the `op_*` / `block` / `loop`
+///                  / `if_` / `else_` / `end` / `br` / `br_if` methods.
+/// @return          the index into `self.functions`.
+export add_function :: fn(self: ModuleBuilder, function: FunctionBuilder) -> i32 {
+    index :: i32(self.functions.len())
+    self.functions.push(op.BytecodeFunction {
+        .name            = function.name,
+        .parameter_count = function.parameter_count,
+        .local_count     = function.local_count,
+        .ops             = function.ops,
+        .jump_table      = function.table,
+    })
+    return index
+}
+
+/// Mark `function_index` as the module's entry point. The executor
+/// reads `module.main_index` when called via `exec(module)` ; without
+/// this call the builder leaves it at `-1`, in which case `finish()`
+/// falls back to the same `$main`-suffix heuristic that `parse_virt`
+/// uses for raw `.virt` inputs.
+export set_main :: fn(self: ModuleBuilder, function_index: i32) -> void {
+    self.main_index[0] = function_index
+}
+
+/// Snapshot the builder's pools into a fresh `op.Module`. Computes the
+/// per-(trait, method) vtable table from the mangled function names via
+/// `parser.build_vtables` (same path the live parser takes). The builder
+/// itself is not consumed — callers may continue adding entries and
+/// call `finish()` again, but mutating the builder after `finish()` does
+/// NOT propagate to the previously-snapshotted module (the underlying
+/// arrays are shared by reference, so be careful — calling `finish()`
+/// then continuing to mutate is supported only for ergonomics).
+///
+/// @param self  the builder.
+/// @return      a ready-for-`exec` module.
+export finish :: fn(self: ModuleBuilder) -> op.Module {
+    main_index: i32 = self.main_index[0]
+    if main_index < 0 {
+        main_index = find_main_by_suffix(self.functions)
+    }
+    return op.Module {
+        .strings    = self.strings,
+        .imports    = self.imports,
+        .types      = self.types,
+        .functions  = self.functions,
+        .vtables    = build_vtables(self.functions, self.types),
+        .impls      = self.impls,
+        .data_pool  = self.data_pool,
+        .main_index = main_index,
+    }
+}
+
+// --------------------------------------------------------------- function
+
+/// One scope opened by `block` / `loop` / `if` / `else`. `label` is the
+/// caller-supplied tag used to match `br <label>` against the scope ;
+/// `is_loop` distinguishes back-edges (loop) from forward-edges (block /
+/// if / else) ; `opener_pc` is the pc of the op that opened the scope.
+ScopeEntry :: struct {
+    label:     string
+    is_loop:   bool
+    opener_pc: i32
+}
+
+/// One `br` / `br_if` whose target scope hasn't closed yet. Drained on
+/// the matching `end()` call.
+PendingBranch :: struct {
+    branch_pc:    i32
+    target_label: string
+}
+
+/// In-progress function body. Carries the running op list, the jump
+/// table being filled out as control-flow ops are wired, and the scope
+/// / pending-branch state needed to resolve labels.
+///
+/// `parameter_count` and `local_count` are set at construction ; the
+/// op sequence and table grow as the caller pushes ops. The 1-element
+/// `scope_sp` / `pending_sp` arrays are the "boxed scalar" pattern used
+/// to keep cursors mutable across method calls.
+export FunctionBuilder :: struct {
+    name: string
+    parameter_count: usize
+    local_count: usize
+    ops: op.Op[]
+    table: i32[]
+    scopes: ScopeEntry[]
+    scope_sp: usize[]
+    pending: PendingBranch[]
+    pending_sp: usize[]
+}
+
+/// Fresh function builder with `parameter_count` argument slots followed
+/// by `local_count` additional local slots — total frame size is
+/// `parameter_count + local_count`, with parameters at slots `0..parameter_count`.
+///
+/// @param name             the mangled function name (used for the
+///                         `$main` fallback in `finish()` and for trait-
+///                         method vtable synthesis).
+/// @param parameter_count  number of slots the caller pushes per call.
+/// @param local_count      number of additional locals declared in the body.
+/// @return                 a FunctionBuilder ready to receive ops.
+export new_function_builder :: fn(name: string, parameter_count: usize, local_count: usize) -> FunctionBuilder {
+    return FunctionBuilder {
+        .name            = name,
+        .parameter_count = parameter_count,
+        .local_count     = local_count,
+        .ops             = [],
+        .table           = [],
+        .scopes          = [],
+        .scope_sp        = [0],
+        .pending         = [],
+        .pending_sp      = [0],
+    }
+}
+
+/// Append a non-control-flow op : push onto `ops`, push a `-1` jump-
+/// table sentinel. Used by every wrapper method below.
+push_op :: fn(self: FunctionBuilder, op_value: op.Op) -> void {
+    self.ops.push(op_value)
+    self.table.push(-1)
+}
+
+// ---- control-flow ops with online scope wiring ---------------------------
+//
+// Mirrors the logic in `parser.vader::wire_control_flow` /
+// `defer_or_resolve_branch` / `drain_pending`. The shapes are duplicated
+// (rather than shared via a common helper) because the parser drives
+// from text lines while the builder takes the label as a direct argument
+// — sharing would require either a string-parsing detour or an awkward
+// "wire kind" enum that obscures both call sites.
+
+/// Open a forward-jumping scope. The matching `end` will set
+/// `table[opener_pc]` to the pc just past the `end`.
+export block :: fn(self: FunctionBuilder, label: string) -> void {
+    pc :: i32(self.ops.len())
+    self.ops.push(op.Block {})
+    self.table.push(-1)
+    push_scope(self, ScopeEntry { .label = label, .is_loop = false, .opener_pc = pc })
+}
+
+/// Open a backward-jumping scope. `table[opener_pc]` points at the
+/// body start (opener_pc + 1) — known immediately and filled now.
+export loop_ :: fn(self: FunctionBuilder, label: string) -> void {
+    pc :: i32(self.ops.len())
+    self.ops.push(op.Loop {})
+    self.table.push(-1)
+    push_scope(self, ScopeEntry { .label = label, .is_loop = true, .opener_pc = pc })
+    self.table[usize(pc)] = pc + 1
+}
+
+/// Open a conditional scope. The matching `end` will set
+/// `table[opener_pc]` to pc just past the end, or to the `else` op if
+/// one is present.
+export if_ :: fn(self: FunctionBuilder, label: string) -> void {
+    pc :: i32(self.ops.len())
+    self.ops.push(op.If {})
+    self.table.push(-1)
+    push_scope(self, ScopeEntry { .label = label, .is_loop = false, .opener_pc = pc })
+}
+
+/// Close the `then` arm and open the `else` arm of the surrounding
+/// `if`. Repurposes the top scope to point at the `else`'s pc so the
+/// matching `end` pairs the else with the past-end pc.
+export else_ :: fn(self: FunctionBuilder) -> void {
+    pc :: i32(self.ops.len())
+    self.ops.push(op.Else {})
+    self.table.push(-1)
+    sp :: self.scope_sp[0]
+    if sp == 0 { return }
+    top :: self.scopes[sp - 1]
+    self.table[usize(top.opener_pc)] = pc + 1
+    self.scopes[sp - 1] = ScopeEntry { .label = top.label, .is_loop = false, .opener_pc = pc }
+}
+
+/// Close the innermost scope. Resolves the opener's jump-table entry
+/// (for block / if / else — loops already filled in `loop_`) and drains
+/// any pending branches that named this scope's label.
+export end :: fn(self: FunctionBuilder) -> void {
+    pc :: i32(self.ops.len())
+    self.ops.push(op.End {})
+    self.table.push(-1)
+    sp :: self.scope_sp[0]
+    if sp == 0 { return }
+    top :: self.scopes[sp - 1]
+    self.scope_sp[0] -= 1
+    if !top.is_loop && self.table[usize(top.opener_pc)] < 0 {
+        self.table[usize(top.opener_pc)] = pc + 1
+    }
+    drain_pending(self, top.label, top.is_loop, top.opener_pc, pc)
+}
+
+/// Unconditional branch to the named scope. Loop targets resolve
+/// immediately ; block / if / else targets are deferred to the
+/// matching `end()`.
+export br :: fn(self: FunctionBuilder, target_label: string) -> void {
+    pc :: i32(self.ops.len())
+    self.ops.push(op.Branch {})
+    self.table.push(-1)
+    defer_or_resolve_branch(self, target_label, pc)
+}
+
+/// Conditional branch — same target-resolution rules as `br`.
+export br_if :: fn(self: FunctionBuilder, target_label: string) -> void {
+    pc :: i32(self.ops.len())
+    self.ops.push(op.BranchIf {})
+    self.table.push(-1)
+    defer_or_resolve_branch(self, target_label, pc)
+}
+
+push_scope :: fn(self: FunctionBuilder, entry: ScopeEntry) -> void {
+    sp :: self.scope_sp[0]
+    if sp == self.scopes.len() { self.scopes.push(entry) }
+    else                       { self.scopes[sp] = entry }
+    self.scope_sp[0] += 1
+}
+
+defer_or_resolve_branch :: fn(self: FunctionBuilder, target_label: string, pc: i32) -> void {
+    sp :: self.scope_sp[0]
+    // Find the matching scope from the top of the stack.
+    i := i32(sp) - 1
+    found_idx := -1
+    for i >= 0 {
+        if self.scopes[usize(i)].label == target_label {
+            found_idx = i
+            i = -1
+        } else {
+            i -= 1
+        }
+    }
+    if found_idx < 0 { return }
+    target :: self.scopes[usize(found_idx)]
+    if target.is_loop {
+        self.table[usize(pc)] = target.opener_pc + 1
+    } else {
+        psp :: self.pending_sp[0]
+        entry :: PendingBranch { .branch_pc = pc, .target_label = target_label }
+        if psp == self.pending.len() { self.pending.push(entry) }
+        else                         { self.pending[psp] = entry }
+        self.pending_sp[0] += 1
+    }
+}
+
+drain_pending :: fn(self: FunctionBuilder, label: string, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
+    psp :: self.pending_sp[0]
+    new_sp: usize = 0
+    i: usize = 0
+    for i < psp {
+        entry :: self.pending[i]
+        if entry.target_label == label {
+            if is_loop {
+                self.table[usize(entry.branch_pc)] = opener_pc + 1
+            } else {
+                self.table[usize(entry.branch_pc)] = end_pc + 1
+            }
+        } else {
+            self.pending[new_sp] = entry
+            new_sp += 1
+        }
+        i += 1
+    }
+    self.pending_sp[0] = new_sp
+}
+
+// ---- constants -----------------------------------------------------------
+
+export i32_const :: fn(self: FunctionBuilder, value: i32) -> void = push_op(self, op.I32Const { .value = value })
+export i64_const :: fn(self: FunctionBuilder, value: i64) -> void = push_op(self, op.I64Const { .value = value })
+export f64_const :: fn(self: FunctionBuilder, value: f64) -> void = push_op(self, op.F64Const { .value = value })
+export bool_const :: fn(self: FunctionBuilder, value: bool) -> void = push_op(self, op.BoolConst { .value = value })
+export char_const :: fn(self: FunctionBuilder, value: char) -> void = push_op(self, op.CharConst { .value = value })
+export string_const :: fn(self: FunctionBuilder, index: i32) -> void = push_op(self, op.StringConst { .index = index })
+export null_const :: fn(self: FunctionBuilder) -> void = push_op(self, op.NullConst {})
+
+// ---- locals --------------------------------------------------------------
+
+export local_get :: fn(self: FunctionBuilder, slot: i32) -> void = push_op(self, op.LocalGet { .slot = slot })
+export local_set :: fn(self: FunctionBuilder, slot: i32) -> void = push_op(self, op.LocalSet { .slot = slot })
+export local_tee :: fn(self: FunctionBuilder, slot: i32) -> void = push_op(self, op.LocalTee { .slot = slot })
+
+// ---- calls / fn refs -----------------------------------------------------
+
+export call :: fn(self: FunctionBuilder, function_index: i32) -> void = push_op(self, op.Call { .function_index = function_index })
+export call_import :: fn(self: FunctionBuilder, index: i32) -> void = push_op(self, op.CallImport { .index = index })
+export call_indirect :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, op.CallIndirect { .type_id = type_id })
+export virtual_call :: fn(self: FunctionBuilder, parameter_count: i32, vtable_key: string) -> void = push_op(self, op.VirtualCall { .parameter_count = parameter_count, .vtable_key = vtable_key })
+export fn_ref :: fn(self: FunctionBuilder, function_index: i32) -> void = push_op(self, op.FnRef { .function_index = function_index })
+export make_closure :: fn(self: FunctionBuilder, function_index: i32) -> void = push_op(self, op.MakeClosure { .function_index = function_index })
+
+// ---- struct / array / data ----------------------------------------------
+
+export struct_new :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, op.StructNew { .type_id = type_id })
+export struct_get :: fn(self: FunctionBuilder, type_id: i32, field_index: i32) -> void = push_op(self, op.StructGet { .type_id = type_id, .field_index = field_index })
+export struct_set :: fn(self: FunctionBuilder, type_id: i32, field_index: i32) -> void = push_op(self, op.StructSet { .type_id = type_id, .field_index = field_index })
+export array_new :: fn(self: FunctionBuilder, type_id: i32, length: i32) -> void = push_op(self, op.ArrayNew { .type_id = type_id, .length = length })
+export array_push :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, op.ArrayPush { .type_id = type_id })
+export array_get :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, op.ArrayGet { .type_id = type_id })
+export array_set :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, op.ArraySet { .type_id = type_id })
+export array_len :: fn(self: FunctionBuilder) -> void = push_op(self, op.ArrayLen {})
+export array_slice :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, op.ArraySlice { .type_id = type_id })
+export data_const :: fn(self: FunctionBuilder, pool_index: i32, type_id: i32) -> void = push_op(self, op.DataConst { .pool_index = pool_index, .type_id = type_id })
+
+// ---- conversions / type checks / casts ----------------------------------
+
+export ref_cast :: fn(self: FunctionBuilder) -> void = push_op(self, op.RefCast {})
+export type_check :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, op.TypeCheck { .type_id = type_id })
+export convert :: fn(self: FunctionBuilder, target: op.ConvertTarget) -> void = push_op(self, op.Convert { .target = target })
+export int_to_char :: fn(self: FunctionBuilder) -> void = push_op(self, op.IntToChar {})
+export char_to_int :: fn(self: FunctionBuilder) -> void = push_op(self, op.CharToInt {})
+
+// ---- string-builder intrinsics ------------------------------------------
+
+export builder_new :: fn(self: FunctionBuilder) -> void = push_op(self, op.BuilderNew {})
+export builder_append_str :: fn(self: FunctionBuilder) -> void = push_op(self, op.BuilderAppendStr {})
+export builder_append_display :: fn(self: FunctionBuilder) -> void = push_op(self, op.BuilderAppendDisplay {})
+export builder_finish :: fn(self: FunctionBuilder) -> void = push_op(self, op.BuilderFinish {})
+
+// ---- i32 arith / compare / bitwise --------------------------------------
+
+export i32_add :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Add {})
+export i32_sub :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Sub {})
+export i32_mul :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Mul {})
+export i32_div :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Div {})
+export i32_mod :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Mod {})
+export i32_neg :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Neg {})
+export i32_eq :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Eq {})
+export i32_ne :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Ne {})
+export i32_lt :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Lt {})
+export i32_le :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Le {})
+export i32_gt :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Gt {})
+export i32_ge :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Ge {})
+export i32_bitnot :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32BitNot {})
+export i32_bitand :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32BitAnd {})
+export i32_bitor :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32BitOr {})
+export i32_bitxor :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32BitXor {})
+export i32_shl :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Shl {})
+export i32_shr :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32Shr {})
+export i32_shr_u :: fn(self: FunctionBuilder) -> void = push_op(self, op.I32ShrU {})
+
+// ---- u32 ----------------------------------------------------------------
+
+export u32_div :: fn(self: FunctionBuilder) -> void = push_op(self, op.U32Div {})
+export u32_mod :: fn(self: FunctionBuilder) -> void = push_op(self, op.U32Mod {})
+export u32_lt :: fn(self: FunctionBuilder) -> void = push_op(self, op.U32Lt {})
+export u32_le :: fn(self: FunctionBuilder) -> void = push_op(self, op.U32Le {})
+export u32_gt :: fn(self: FunctionBuilder) -> void = push_op(self, op.U32Gt {})
+export u32_ge :: fn(self: FunctionBuilder) -> void = push_op(self, op.U32Ge {})
+
+// ---- i64 ----------------------------------------------------------------
+
+export i64_add :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Add {})
+export i64_sub :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Sub {})
+export i64_mul :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Mul {})
+export i64_div :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Div {})
+export i64_mod :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Mod {})
+export i64_neg :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Neg {})
+export i64_eq :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Eq {})
+export i64_ne :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Ne {})
+export i64_lt :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Lt {})
+export i64_le :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Le {})
+export i64_gt :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Gt {})
+export i64_ge :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Ge {})
+export i64_shl :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Shl {})
+export i64_shr :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64Shr {})
+export i64_shr_u :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64ShrU {})
+export i64_bitand :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64BitAnd {})
+export i64_bitor :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64BitOr {})
+export i64_bitxor :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64BitXor {})
+export i64_bitnot :: fn(self: FunctionBuilder) -> void = push_op(self, op.I64BitNot {})
+
+// ---- u64 ----------------------------------------------------------------
+
+export u64_div :: fn(self: FunctionBuilder) -> void = push_op(self, op.U64Div {})
+export u64_mod :: fn(self: FunctionBuilder) -> void = push_op(self, op.U64Mod {})
+export u64_lt :: fn(self: FunctionBuilder) -> void = push_op(self, op.U64Lt {})
+export u64_le :: fn(self: FunctionBuilder) -> void = push_op(self, op.U64Le {})
+export u64_gt :: fn(self: FunctionBuilder) -> void = push_op(self, op.U64Gt {})
+export u64_ge :: fn(self: FunctionBuilder) -> void = push_op(self, op.U64Ge {})
+
+// ---- f64 ----------------------------------------------------------------
+
+export f64_add :: fn(self: FunctionBuilder) -> void = push_op(self, op.F64Add {})
+export f64_sub :: fn(self: FunctionBuilder) -> void = push_op(self, op.F64Sub {})
+export f64_mul :: fn(self: FunctionBuilder) -> void = push_op(self, op.F64Mul {})
+export f64_div :: fn(self: FunctionBuilder) -> void = push_op(self, op.F64Div {})
+export f64_neg :: fn(self: FunctionBuilder) -> void = push_op(self, op.F64Neg {})
+export f64_eq :: fn(self: FunctionBuilder) -> void = push_op(self, op.F64Eq {})
+export f64_ne :: fn(self: FunctionBuilder) -> void = push_op(self, op.F64Ne {})
+export f64_lt :: fn(self: FunctionBuilder) -> void = push_op(self, op.F64Lt {})
+export f64_le :: fn(self: FunctionBuilder) -> void = push_op(self, op.F64Le {})
+export f64_gt :: fn(self: FunctionBuilder) -> void = push_op(self, op.F64Gt {})
+export f64_ge :: fn(self: FunctionBuilder) -> void = push_op(self, op.F64Ge {})
+
+// ---- bool / char / string / ref ----------------------------------------
+
+export bool_eq :: fn(self: FunctionBuilder) -> void = push_op(self, op.BoolEq {})
+export bool_ne :: fn(self: FunctionBuilder) -> void = push_op(self, op.BoolNe {})
+export bool_and :: fn(self: FunctionBuilder) -> void = push_op(self, op.BoolAnd {})
+export bool_or :: fn(self: FunctionBuilder) -> void = push_op(self, op.BoolOr {})
+export bool_not :: fn(self: FunctionBuilder) -> void = push_op(self, op.BoolNot {})
+export char_eq :: fn(self: FunctionBuilder) -> void = push_op(self, op.CharEq {})
+export char_ne :: fn(self: FunctionBuilder) -> void = push_op(self, op.CharNe {})
+export char_lt :: fn(self: FunctionBuilder) -> void = push_op(self, op.CharLt {})
+export char_le :: fn(self: FunctionBuilder) -> void = push_op(self, op.CharLe {})
+export char_gt :: fn(self: FunctionBuilder) -> void = push_op(self, op.CharGt {})
+export char_ge :: fn(self: FunctionBuilder) -> void = push_op(self, op.CharGe {})
+export string_eq :: fn(self: FunctionBuilder) -> void = push_op(self, op.StringEq {})
+export string_ne :: fn(self: FunctionBuilder) -> void = push_op(self, op.StringNe {})
+export string_concat :: fn(self: FunctionBuilder) -> void = push_op(self, op.StringConcat {})
+export ref_eq :: fn(self: FunctionBuilder) -> void = push_op(self, op.RefEq {})
+export ref_ne :: fn(self: FunctionBuilder) -> void = push_op(self, op.RefNe {})
+
+// ---- misc ---------------------------------------------------------------
+
+export drop :: fn(self: FunctionBuilder) -> void = push_op(self, op.Drop {})
+export return_op :: fn(self: FunctionBuilder) -> void = push_op(self, op.Return {})

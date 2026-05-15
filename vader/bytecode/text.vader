@@ -1,0 +1,622 @@
+// vader/bytecode/text — `.virt` text writer, the inverse of
+// `vader/vm/parser.parse_virt`.
+//
+// First piece of the self-host bytecode emitter port (TODO §2.3 — the
+// rest of `src/bytecode/` will land here over time). Mirrors the
+// reference writer in `src/bytecode/text.ts:writeVir`.
+//
+// Output goal : `parse_virt(write_virt(m)) ≈ m` for any module produced
+// by `vader/vm/builder` or `parse_virt` itself. Cross-VM exchange with
+// the TypeScript pipeline is **not** a guarantee — the Vader-side
+// `op.Module` doesn't track ValType info on import signatures, fn
+// signatures, or data-pool element kinds, so the placeholders we emit
+// for those slots only need to satisfy `parse_virt`'s much looser
+// requirements (it counts commas in `(...)` and treats trailing `void`
+// as the `has_return = false` signal).
+//
+// What's emitted, in order :
+//
+//   module NAME
+//   type N <kind> …
+//   string N "..."
+//   data N <kind> hex"..."
+//   import N name mangled (params) -> ret
+//   impl TID TRAIT
+//   export main N
+//
+//   fn N name (params) -> ret
+//     local "_" i32
+//     <op>
+//     …
+//   end
+//
+// What's NOT emitted :
+//   - vtable directives : reconstructed by `parser.build_vtables` from
+//     mangled fn names, never written.
+//   - per-op debug annotations (`; file:line:col`) : the Vader VM
+//     doesn't track source spans on ops yet.
+
+import "std/string" { byte_len, byte_at, slice }
+import "std/string_builder" { StringBuilder, new_builder, append }
+op :: import "vader/vm/op"
+
+/// Render an `op.Module` as a `.virt` text dump. The result is a single
+/// trailing-newline-terminated string ; the format matches what
+/// `parse_virt` consumes.
+///
+/// @param module  the source module.
+/// @return        the textual dump.
+export write_virt :: fn(module: op.Module) -> string {
+    out :: new_builder()
+    out.append("module main\n")
+
+    write_types(out, module.types)
+    write_strings(out, module.strings)
+    write_data_pool(out, module.data_pool)
+    write_imports(out, module.imports)
+    write_impls(out, module.impls)
+    out.append("export main ${module.main_index}\n")
+
+    fn_index: usize = 0
+    for fn_index < module.functions.len() {
+        out.append("\n")
+        write_function(out, module.functions[fn_index], i32(fn_index))
+        fn_index += 1
+    }
+
+    return "${out}"
+}
+
+// ---------------------------------------------------------------- headers
+
+write_types :: fn(out: StringBuilder, types: op.TypeDecl[]) -> void {
+    i: usize = 0
+    for i < types.len() {
+        out.append("type ${i} ${format_type(types[i])}\n")
+        i += 1
+    }
+}
+
+format_type :: fn(t: op.TypeDecl) -> string = match t {
+    is op.PrimitiveType as p -> "primitive ${p.kind}"
+    is op.StructType    as s -> "struct ${s.name} { ${repeat_with_commas("_:0", s.field_count)} }"
+    is op.ArrayType     as a -> "array ${a.element_type_id}"
+    is op.UnionType     as u -> "union ${comma_join_i32(u.variant_type_ids)}"
+    is op.RefType       as r -> if r.trait_name == "" { "ref _" } else { "ref ${r.trait_name}" }
+    is op.FnType        as f -> "fn (${comma_join_i32(f.parameter_type_ids)}) -> ${f.return_type_id}"
+}
+
+/// Comma-separate `count` repetitions of `token`. Empty when `count == 0`.
+repeat_with_commas :: fn(token: string, count: usize) -> string {
+    if count == 0 { return "" }
+    out :: new_builder()
+    i: usize = 0
+    for i < count {
+        if i > 0 { out.append(",") }
+        out.append(token)
+        i += 1
+    }
+    return "${out}"
+}
+
+comma_join_i32 :: fn(items: i32[]) -> string {
+    out :: new_builder()
+    i: usize = 0
+    for i < items.len() {
+        if i > 0 { out.append(",") }
+        out.append("${items[i]}")
+        i += 1
+    }
+    return "${out}"
+}
+
+write_strings :: fn(out: StringBuilder, strings: string[]) -> void {
+    i: usize = 0
+    for i < strings.len() {
+        out.append("string ${i} ${quote_string(strings[i])}\n")
+        i += 1
+    }
+}
+
+/// JSON-style quoting — wraps in `"..."` with `\\`, `\"`, `\n`, `\r`,
+/// `\t` escaped. Mirrors the encoding `parser.parse_string_decl` reads
+/// (via `decode_escapes`).
+quote_string :: fn(value: string) -> string {
+    out :: new_builder()
+    out.append("\"")
+    n :: value.byte_len()
+    i: usize = 0
+    for i < n {
+        b :: value.byte_at(i)
+        if      b == b'\\' { out.append("\\\\") }
+        else if b == b'"'  { out.append("\\\"") }
+        else if b == b'\n' { out.append("\\n") }
+        else if b == b'\r' { out.append("\\r") }
+        else if b == b'\t' { out.append("\\t") }
+        else {
+            // Append the raw byte. `string_builder.append` takes a string,
+            // so we go through a single-byte string built from the
+            // codepoint. ASCII-only is the common case ; multi-byte UTF-8
+            // bytes are appended one-by-one so the resulting JSON-style
+            // escape sequence is still valid (the bytes recombine on
+            // parse since `decode_escapes` is byte-transparent).
+            out.append("${char(u32(b))}")
+        }
+        i += 1
+    }
+    out.append("\"")
+    return "${out}"
+}
+
+write_data_pool :: fn(out: StringBuilder, data_pool: op.ArrayVal[]) -> void {
+    i: usize = 0
+    for i < data_pool.len() {
+        kind :: data_entry_kind(data_pool[i])
+        bytes :: data_entry_bytes(kind, data_pool[i].elements)
+        out.append("data ${i} ${kind} hex\"${bytes_to_hex(bytes)}\"\n")
+        i += 1
+    }
+}
+
+/// Infer the array-kind tag of a data-pool entry from its first
+/// element's runtime tag. Empty entries default to `i32`. Lossy for
+/// integer widths < 32 bits since the parser collapses them to `I32Val` —
+/// the round-trip preserves bytes but may pick a wider kind than the
+/// original. Brainfuck and other current users don't exercise the data
+/// pool, so this is acceptable until a typed-data-pool need surfaces.
+data_entry_kind :: fn(entry: op.ArrayVal) -> string {
+    if entry.elements.len() == 0 { return "i32" }
+    return match entry.elements[0] {
+        is op.I32Val    -> "i32"
+        is op.I64Val    -> "i64"
+        is op.F64Val    -> "f64"
+        is op.CharVal   -> "char"
+        is op.BoolVal   -> "bool"
+        is op.StringVal -> "i32"
+        is op.StructVal -> "i32"
+        is op.ArrayVal  -> "i32"
+        is op.BuilderVal -> "i32"
+        is op.FnVal      -> "i32"
+        is op.NullVal    -> "i32"
+        is op.ErrorVal   -> "i32"
+    }
+}
+
+data_entry_bytes :: fn(kind: string, elements: op.Value[]) -> u8[] {
+    out: u8[] = []
+    i: usize = 0
+    for i < elements.len() {
+        write_element_bytes(out, kind, elements[i])
+        i += 1
+    }
+    return out
+}
+
+write_element_bytes :: fn(out: u8[], kind: string, value: op.Value) -> void {
+    if kind == "i32"  { write_u32_le(out, u32(read_i32_from(value))) return }
+    if kind == "i64"  { write_u64_le(out, u64(read_i64_from(value))) return }
+    if kind == "char" { write_u32_le(out, u32(read_char_from(value))) return }
+    if kind == "bool" { out.push(if read_bool_from(value) { u8(1) } else { u8(0) }) return }
+    if kind == "f64"  { /* float bit-cast helper not yet available, emit zero */ write_u64_le(out, u64(0)) return }
+}
+
+read_i32_from :: fn(v: op.Value) -> i32 = match v {
+    is op.I32Val as i -> i.value
+    is op.I64Val as i -> i32(i.value)
+    is op.BoolVal as b -> if b.value { 1 } else { 0 }
+    is op.CharVal as c -> i32(u32(c.value))
+    _                 -> 0
+}
+
+read_i64_from :: fn(v: op.Value) -> i64 = match v {
+    is op.I64Val as i -> i.value
+    is op.I32Val as i -> i64(i.value)
+    _                 -> 0
+}
+
+read_char_from :: fn(v: op.Value) -> char = match v {
+    is op.CharVal as c -> c.value
+    is op.I32Val  as i -> char(u32(i.value))
+    _                  -> char(u32(0))
+}
+
+read_bool_from :: fn(v: op.Value) -> bool = match v {
+    is op.BoolVal as b -> b.value
+    _                  -> false
+}
+
+write_u32_le :: fn(out: u8[], value: u32) -> void {
+    out.push(u8(value         & u32(0xff)))
+    out.push(u8((value >> 0o10) & u32(0xff)))
+    out.push(u8((value >> 0o20) & u32(0xff)))
+    out.push(u8((value >> 0o30) & u32(0xff)))
+}
+
+write_u64_le :: fn(out: u8[], value: u64) -> void {
+    out.push(u8(value         & u64(0xff)))
+    out.push(u8((value >> 0o10) & u64(0xff)))
+    out.push(u8((value >> 0o20) & u64(0xff)))
+    out.push(u8((value >> 0o30) & u64(0xff)))
+    out.push(u8((value >> 0o40) & u64(0xff)))
+    out.push(u8((value >> 0o50) & u64(0xff)))
+    out.push(u8((value >> 0o60) & u64(0xff)))
+    out.push(u8((value >> 0o70) & u64(0xff)))
+}
+
+HEX_DIGITS :: "0123456789abcdef"
+
+bytes_to_hex :: fn(bytes: u8[]) -> string {
+    if bytes.len() == 0 { return "" }
+    out :: new_builder()
+    i: usize = 0
+    for i < bytes.len() {
+        b :: bytes[i]
+        out.append(HEX_DIGITS.slice(usize(u32(b) >> 0o04), usize(u32(b) >> 0o04) + 1))
+        out.append(HEX_DIGITS.slice(usize(u32(b) & u32(0o17)), usize(u32(b) & u32(0o17)) + 1))
+        i += 1
+    }
+    return "${out}"
+}
+
+write_imports :: fn(out: StringBuilder, imports: op.ImportInfo[]) -> void {
+    i: usize = 0
+    for i < imports.len() {
+        info :: imports[i]
+        param_block :: repeat_with_commas("i32", info.parameter_count)
+        ret_text: string = if info.has_return { "i32" } else { "void" }
+        out.append("import ${i} ${info.name} ${info.mangled} (${param_block}) -> ${ret_text}\n")
+        i += 1
+    }
+}
+
+write_impls :: fn(out: StringBuilder, impls: op.Impl[]) -> void {
+    i: usize = 0
+    for i < impls.len() {
+        e :: impls[i]
+        out.append("impl ${e.type_id} ${e.trait_name}\n")
+        i += 1
+    }
+}
+
+// --------------------------------------------------------------- functions
+
+/// Emit one function body — header, locals, ops, terminating `end`.
+/// Resolves control-flow labels by walking ops once to assign per-pc
+/// scope labels (`$L0`, `$L1`, …), then a second pass emits each line
+/// with the resolved labels.
+write_function :: fn(out: StringBuilder, function: op.BytecodeFunction, fn_index: i32) -> void {
+    param_block :: repeat_with_commas("i32", function.parameter_count)
+    out.append("fn ${fn_index} ${function.name} (${param_block}) -> i32\n")
+
+    local_index: usize = 0
+    for local_index < function.local_count {
+        out.append("  local \"_\" i32\n")
+        local_index += 1
+    }
+
+    labels :: assign_scope_labels(function.ops, function.jump_table)
+    pc: usize = 0
+    for pc < function.ops.len() {
+        out.append("  ")
+        write_op_line(out, function.ops[pc], function.jump_table, labels, pc)
+        out.append("\n")
+        pc += 1
+    }
+    out.append("end\n")
+}
+
+/// Per-pc scope-label info computed in a single walk over `ops`. For
+/// every control-flow op at pc :
+///   - `open_label[pc]`  : the label assigned when this op opens a scope
+///                          (block / loop / if / else) ; `""` otherwise.
+///   - `close_label[pc]` : the label of the scope this op closes
+///                          (end) ; `""` otherwise.
+///   - `branch_label[pc]`: the label `br` / `br_if` targets ; `""`
+///                          otherwise.
+ScopeLabels :: struct {
+    open_label:   string[]
+    close_label:  string[]
+    branch_label: string[]
+}
+
+/// Walk `ops` once, tracking a scope stack, and produce a `ScopeLabels`
+/// indexed by pc. The branch-target labels are resolved by looking at
+/// each `Branch` / `BranchIf`'s `jump_table[pc]` and matching it to a
+/// loop's body-start pc or to the end-pc of a block/if/else scope (the
+/// latter known once that scope is closed).
+assign_scope_labels :: fn(ops: op.Op[], jump_table: i32[]) -> ScopeLabels {
+    n :: ops.len()
+    open_label: string[]   = []
+    close_label: string[]  = []
+    branch_label: string[] = []
+    i: usize = 0
+    for i < n {
+        open_label.push("")
+        close_label.push("")
+        branch_label.push("")
+        i += 1
+    }
+
+    // Active scope stack — labels and metadata for currently-open scopes.
+    // Grow-only arrays + a `sp` cursor for the logical top : avoids the
+    // O(depth²) allocation cost of array-rebuild on every End. Same
+    // pattern as `FunctionBuilder.scope_sp` and `parser.ParserState`.
+    stack_labels: string[] = []
+    stack_opener_pc: i32[] = []
+    stack_is_loop: bool[] = []
+    sp: usize = 0
+    label_counter: i32 = 0
+
+    // Deferred branches whose target scope hasn't closed yet. Drained
+    // (in-place compacted) when the matching End is seen.
+    pending_branch_pc: i32[] = []
+    pending_target_label: string[] = []
+    pending_sp: usize = 0
+
+    pc: usize = 0
+    for pc < n {
+        v :: ops[pc]
+        if v is op.Block {
+            label :: "\$L${label_counter}"
+            label_counter += 1
+            open_label[pc] = label
+            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), false)
+            sp += 1
+        } else if v is op.Loop {
+            label :: "\$L${label_counter}"
+            label_counter += 1
+            open_label[pc] = label
+            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), true)
+            sp += 1
+        } else if v is op.If {
+            label :: "\$L${label_counter}"
+            label_counter += 1
+            open_label[pc] = label
+            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), false)
+            sp += 1
+        } else if v is op.Else {
+            // Reuse the surrounding if's label ; advance the opener_pc
+            // to the else's pc so the closing End matches against it.
+            open_label[pc] = stack_labels[sp - 1]
+            stack_opener_pc[sp - 1] = i32(pc)
+        } else if v is op.End {
+            label :: stack_labels[sp - 1]
+            close_label[pc] = label
+            // Resolve any pending branches that named this label —
+            // in-place compaction with a write cursor.
+            new_psp: usize = 0
+            j: usize = 0
+            for j < pending_sp {
+                if pending_target_label[j] == label {
+                    branch_label[usize(pending_branch_pc[j])] = label
+                } else {
+                    pending_branch_pc[new_psp] = pending_branch_pc[j]
+                    pending_target_label[new_psp] = pending_target_label[j]
+                    new_psp += 1
+                }
+                j += 1
+            }
+            pending_sp = new_psp
+            sp -= 1
+        } else if v is op.Branch || v is op.BranchIf {
+            target_pc :: jump_table[pc]
+            // Loop-target : `target_pc == opener_pc + 1` of some loop on the stack.
+            target_label :: find_loop_label(stack_labels, stack_opener_pc, stack_is_loop, sp, target_pc)
+            if target_label == "" {
+                // Block/if/else — record as pending ; the matching End
+                // will fill `branch_label[pc]` then. To know which scope
+                // owns this target, we use a heuristic : the *innermost*
+                // non-loop scope on the stack. Same heuristic as the
+                // parser uses when reading text (the bytecode emitter
+                // never produces ambiguous targets).
+                fallback :: top_non_loop_label(stack_labels, stack_is_loop, sp)
+                if fallback != "" {
+                    if pending_sp == pending_branch_pc.len() {
+                        pending_branch_pc.push(i32(pc))
+                        pending_target_label.push(fallback)
+                    } else {
+                        pending_branch_pc[pending_sp] = i32(pc)
+                        pending_target_label[pending_sp] = fallback
+                    }
+                    pending_sp += 1
+                }
+            } else {
+                branch_label[pc] = target_label
+            }
+        }
+        pc += 1
+    }
+
+    return ScopeLabels {
+        .open_label   = open_label,
+        .close_label  = close_label,
+        .branch_label = branch_label,
+    }
+}
+
+push_scope_entry :: fn(stack_labels: string[], stack_opener_pc: i32[], stack_is_loop: bool[], sp: usize, label: string, opener_pc: i32, is_loop: bool) -> void {
+    if sp == stack_labels.len() {
+        stack_labels.push(label)
+        stack_opener_pc.push(opener_pc)
+        stack_is_loop.push(is_loop)
+    } else {
+        stack_labels[sp] = label
+        stack_opener_pc[sp] = opener_pc
+        stack_is_loop[sp] = is_loop
+    }
+}
+
+find_loop_label :: fn(labels: string[], opener_pc: i32[], is_loop: bool[], sp: usize, target_pc: i32) -> string {
+    i: i32 = i32(sp) - 1
+    for i >= 0 {
+        if is_loop[usize(i)] && opener_pc[usize(i)] + 1 == target_pc {
+            return labels[usize(i)]
+        }
+        i -= 1
+    }
+    return ""
+}
+
+top_non_loop_label :: fn(labels: string[], is_loop: bool[], sp: usize) -> string {
+    i: i32 = i32(sp) - 1
+    for i >= 0 {
+        if !is_loop[usize(i)] { return labels[usize(i)] }
+        i -= 1
+    }
+    return ""
+}
+
+write_op_line :: fn(out: StringBuilder, v: op.Op, jump_table: i32[], labels: ScopeLabels, pc: usize) -> void {
+    // Long `if v is X { return }` chains exhaust the typechecker's
+    // variant narrowing — past ~80 hits the residual type collapses to
+    // a single variant and the next `is` check is flagged "can never
+    // match". A single `match` over the union avoids the chain and is
+    // exhaustiveness-checked.
+    match v {
+        is op.Block         -> out.append("block ${labels.open_label[pc]} void")
+        is op.Loop          -> out.append("loop ${labels.open_label[pc]} void")
+        is op.If            -> out.append("if ${labels.open_label[pc]} void")
+        is op.Else          -> out.append("else")
+        is op.End           -> out.append("end ${labels.close_label[pc]}")
+        is op.Branch        -> out.append("br ${labels.branch_label[pc]}")
+        is op.BranchIf      -> out.append("br_if ${labels.branch_label[pc]}")
+        is op.Return        -> out.append("return")
+
+        is op.I32Const as c    -> out.append("i32.const ${c.value}")
+        is op.I64Const as c    -> out.append("i64.const ${c.value}")
+        is op.F64Const as c    -> out.append("f64.const ${c.value}")
+        is op.BoolConst as c   -> out.append("bool.const ${c.value}")
+        is op.CharConst as c   -> out.append("char.const ${u32(c.value)}")
+        is op.StringConst as c -> out.append("string.const ${c.index}")
+        is op.NullConst        -> out.append("null.const")
+
+        is op.LocalGet as c -> out.append("local.get ${c.slot}")
+        is op.LocalSet as c -> out.append("local.set ${c.slot}")
+        is op.LocalTee as c -> out.append("local.tee ${c.slot}")
+
+        is op.Call         as c -> out.append("call ${c.function_index}")
+        is op.CallImport   as c -> out.append("call.import ${c.index}")
+        is op.CallIndirect as c -> out.append("call.indirect ${c.type_id}")
+        is op.VirtualCall  as c -> out.append("virtual.call ${c.parameter_count} ${c.vtable_key}")
+        is op.FnRef        as c -> out.append("fn.ref ${c.function_index} 0")
+        is op.MakeClosure  as c -> out.append("make_closure ${c.function_index} 0")
+
+        is op.StructNew as c -> out.append("struct.new ${c.type_id}")
+        is op.StructGet as c -> out.append("struct.get ${c.type_id} ${c.field_index}")
+        is op.StructSet as c -> out.append("struct.set ${c.type_id} ${c.field_index}")
+
+        is op.ArrayNew   as c -> out.append("array.new ${c.type_id} ${c.length}")
+        is op.ArrayPush  as c -> out.append("array.push ${c.type_id}")
+        is op.ArrayGet   as c -> out.append("array.get ${c.type_id}")
+        is op.ArraySet   as c -> out.append("array.set ${c.type_id}")
+        is op.ArrayLen        -> out.append("array.len")
+        is op.ArraySlice as c -> out.append("array.slice ${c.type_id}")
+        is op.DataConst  as c -> out.append("data.const ${c.pool_index} ${c.type_id}")
+
+        is op.RefCast         -> out.append("ref.cast 0")
+        is op.TypeCheck  as c -> out.append("type_check ${c.type_id}")
+        is op.Convert    as c -> out.append(convert_text(c))
+        is op.IntToChar       -> out.append("i32.to_char")
+        is op.CharToInt       -> out.append("char.to_i32")
+
+        is op.BuilderNew            -> out.append("intrinsic builder.new")
+        is op.BuilderAppendStr      -> out.append("intrinsic builder.append_str")
+        is op.BuilderAppendDisplay  -> out.append("intrinsic builder.append_display")
+        is op.BuilderFinish         -> out.append("intrinsic builder.finish")
+
+        is op.Drop -> out.append("drop")
+
+        is op.I32Add    -> out.append("i32.add")
+        is op.I32Sub    -> out.append("i32.sub")
+        is op.I32Mul    -> out.append("i32.mul")
+        is op.I32Div    -> out.append("i32.div")
+        is op.I32Mod    -> out.append("i32.rem")
+        is op.I32Neg    -> out.append("i32.neg")
+        is op.I32Eq     -> out.append("i32.eq")
+        is op.I32Ne     -> out.append("i32.ne")
+        is op.I32Lt     -> out.append("i32.lt")
+        is op.I32Le     -> out.append("i32.le")
+        is op.I32Gt     -> out.append("i32.gt")
+        is op.I32Ge     -> out.append("i32.ge")
+        is op.I32BitNot -> out.append("i32.bitnot")
+        is op.I32BitAnd -> out.append("i32.bitand")
+        is op.I32BitOr  -> out.append("i32.bitor")
+        is op.I32BitXor -> out.append("i32.bitxor")
+        is op.I32Shl    -> out.append("i32.shl")
+        is op.I32Shr    -> out.append("i32.shr")
+        is op.I32ShrU   -> out.append("u32.shr")
+
+        is op.U32Div -> out.append("u32.div")
+        is op.U32Mod -> out.append("u32.rem")
+        is op.U32Lt  -> out.append("u32.lt")
+        is op.U32Le  -> out.append("u32.le")
+        is op.U32Gt  -> out.append("u32.gt")
+        is op.U32Ge  -> out.append("u32.ge")
+
+        is op.I64Add    -> out.append("i64.add")
+        is op.I64Sub    -> out.append("i64.sub")
+        is op.I64Mul    -> out.append("i64.mul")
+        is op.I64Div    -> out.append("i64.div")
+        is op.I64Mod    -> out.append("i64.rem")
+        is op.I64Neg    -> out.append("i64.neg")
+        is op.I64Eq     -> out.append("i64.eq")
+        is op.I64Ne     -> out.append("i64.ne")
+        is op.I64Lt     -> out.append("i64.lt")
+        is op.I64Le     -> out.append("i64.le")
+        is op.I64Gt     -> out.append("i64.gt")
+        is op.I64Ge     -> out.append("i64.ge")
+        is op.I64Shl    -> out.append("i64.shl")
+        is op.I64Shr    -> out.append("i64.shr")
+        is op.I64ShrU   -> out.append("u64.shr")
+        is op.I64BitAnd -> out.append("i64.bitand")
+        is op.I64BitOr  -> out.append("i64.bitor")
+        is op.I64BitXor -> out.append("i64.bitxor")
+        is op.I64BitNot -> out.append("i64.bitnot")
+
+        is op.U64Div -> out.append("u64.div")
+        is op.U64Mod -> out.append("u64.rem")
+        is op.U64Lt  -> out.append("u64.lt")
+        is op.U64Le  -> out.append("u64.le")
+        is op.U64Gt  -> out.append("u64.gt")
+        is op.U64Ge  -> out.append("u64.ge")
+
+        is op.F64Add -> out.append("f64.add")
+        is op.F64Sub -> out.append("f64.sub")
+        is op.F64Mul -> out.append("f64.mul")
+        is op.F64Div -> out.append("f64.div")
+        is op.F64Neg -> out.append("f64.neg")
+        is op.F64Eq  -> out.append("f64.eq")
+        is op.F64Ne  -> out.append("f64.ne")
+        is op.F64Lt  -> out.append("f64.lt")
+        is op.F64Le  -> out.append("f64.le")
+        is op.F64Gt  -> out.append("f64.gt")
+        is op.F64Ge  -> out.append("f64.ge")
+
+        is op.BoolEq  -> out.append("bool.eq")
+        is op.BoolNe  -> out.append("bool.ne")
+        is op.BoolAnd -> out.append("bool.and")
+        is op.BoolOr  -> out.append("bool.or")
+        is op.BoolNot -> out.append("bool.not")
+
+        is op.CharEq -> out.append("char.eq")
+        is op.CharNe -> out.append("char.ne")
+        is op.CharLt -> out.append("char.lt")
+        is op.CharLe -> out.append("char.le")
+        is op.CharGt -> out.append("char.gt")
+        is op.CharGe -> out.append("char.ge")
+
+        is op.StringEq     -> out.append("string.eq")
+        is op.StringNe     -> out.append("string.ne")
+        is op.StringConcat -> out.append("string.concat")
+
+        is op.RefEq -> out.append("ref.eq")
+        is op.RefNe -> out.append("ref.ne")
+    }
+}
+
+convert_text :: fn(c: op.Convert) -> string = match c.target {
+    .I32  -> "i64.to_i32"
+    .I64  -> "i32.to_i64"
+    .F64  -> "i32.to_f64"
+    .Char -> "i32.to_char"
+}

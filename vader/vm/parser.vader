@@ -251,7 +251,7 @@ export parse_virt :: fn(source: string) -> op.Module {
 /// @return           a list of `op.Vtable { key = "<TraitName>.<MethodName>",
 ///                   entries = [(type_id, function_index), …] }`. Empty
 ///                   when no function's name matches the trait-impl shape.
-build_vtables :: fn(functions: op.BytecodeFunction[], types: op.TypeDecl[]) -> op.Vtable[] {
+export build_vtables :: fn(functions: op.BytecodeFunction[], types: op.TypeDecl[]) -> op.Vtable[] {
     vtables: op.Vtable[] = []
     function_index: usize = 0
     for function_index < functions.len() {
@@ -755,7 +755,7 @@ parse_export_main_index :: fn(cleaned: string) -> i32 {
 /// @return           the matching index, or `0` if no match (the entry
 ///                   then defaults to the first function and a downstream
 ///                   Trap will surface if it's wrong).
-find_main_by_suffix :: fn(functions: op.BytecodeFunction[]) -> i32 {
+export find_main_by_suffix :: fn(functions: op.BytecodeFunction[]) -> i32 {
     i: usize = 0
     for i < functions.len() {
         if functions[i].name.ends_with(r"$main") { return i32(i) }
