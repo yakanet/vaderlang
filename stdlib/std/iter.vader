@@ -341,7 +341,7 @@ export map :: fn[T, U](self: Iterator(T), f: fn(T) -> U) -> MapIterator(T, U) {
     return MapIterator(T, U) { .source = self, .f = f }
 }
 
-/// Fluent lazy `take`. Yields the first `n` items from `self`, then `Done`.
+/// Fluent lazy `take`. Yields the first `n` items from `self`, then ends.
 export take :: fn[T](self: Iterator(T), n: usize) -> TakeIterator(T) {
     return TakeIterator(T) { .source = self, .remaining = n }
 }
@@ -361,12 +361,12 @@ export MapIterator :: struct[T, U] {
 }
 
 MapIterator[T, U] implements Iterator[U] {
-    next :: fn(self) -> Done | Yielded(U) {
+    next :: fn(self) -> Yield(U) | null {
         match self.source.next() {
-            is Done            -> { return Done {} }
-            is Yielded(T) as y -> { return Yielded(U) { .value = self.f(y.value) } }
+            is null         -> { return null }
+            is Yield(T) as y -> { return Yield(U) { .value = self.f(y.value) } }
         }
-        return Done {}
+        return null
     }
 }
 
@@ -379,25 +379,25 @@ export FilterIterator :: struct[T] {
 }
 
 FilterIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Done | Yielded(T) {
+    next :: fn(self) -> Yield(T) | null {
         finished := false
         for !finished {
             match self.source.next() {
-                is Done            -> { finished = true }
-                is Yielded(T) as y -> {
+                is null          -> { finished = true }
+                is Yield(T) as y -> {
                     if self.pred(y.value) {
-                        return Yielded(T) { .value = y.value }
+                        return Yield(T) { .value = y.value }
                     }
                 }
             }
         }
-        return Done {}
+        return null
     }
 }
 
 /// Lazy take. Yields the first `remaining` items from `source` and then
 /// stops. `remaining` counts down across calls — once it hits zero the
-/// iterator returns `Done` even if `source` still has items.
+/// iterator returns `null` even if `source` still has items.
 /// Construct as `TakeIterator(T) { .source = it, .remaining = n }`.
 export TakeIterator :: struct[T] {
     source:    Iterator(T)
@@ -405,16 +405,16 @@ export TakeIterator :: struct[T] {
 }
 
 TakeIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Done | Yielded(T) {
-        if self.remaining == 0 { return Done {} }
+    next :: fn(self) -> Yield(T) | null {
+        if self.remaining == 0 { return null }
         match self.source.next() {
-            is Done            -> { return Done {} }
-            is Yielded(T) as y -> {
+            is null          -> { return null }
+            is Yield(T) as y -> {
                 self.remaining = self.remaining - 1
-                return Yielded(T) { .value = y.value }
+                return Yield(T) { .value = y.value }
             }
         }
-        return Done {}
+        return null
     }
 }
 
@@ -428,23 +428,23 @@ export SkipIterator :: struct[T] {
 }
 
 SkipIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Done | Yielded(T) {
+    next :: fn(self) -> Yield(T) | null {
         for self.remaining > 0 {
             match self.source.next() {
-                is Done       -> {
+                is null    -> {
                     self.remaining = 0
-                    return Done {}
+                    return null
                 }
-                is Yielded(T) -> {
+                is Yield(T) -> {
                     self.remaining = self.remaining - 1
                 }
             }
         }
         match self.source.next() {
-            is Done            -> { return Done {} }
-            is Yielded(T) as y -> { return Yielded(T) { .value = y.value } }
+            is null          -> { return null }
+            is Yield(T) as y -> { return Yield(T) { .value = y.value } }
         }
-        return Done {}
+        return null
     }
 }
 

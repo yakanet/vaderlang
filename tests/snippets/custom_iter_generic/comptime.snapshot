@@ -4,4 +4,4 @@
 
 ## generic instances
   Repeat(i32)
-  Yielded(i32)
+  Yield(i32)

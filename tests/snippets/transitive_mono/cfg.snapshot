@@ -56,8 +56,8 @@ fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__ma
     %2 $k_3: usize
     %3 $len_4: usize
     %4 __iter_0: ArrayIterator(i32) (synthetic __iter_0)
-    %5 $call_7: Done | Yielded(i32)
-    %6 __step_1: Done | Yielded(i32) (synthetic __step_1)
+    %5 $call_7: Yield(i32) | null
+    %6 __step_1: Yield(i32) | null (synthetic __step_1)
     %7 $type_check_9: bool
     %8 $k_13: i32
   bb0:
@@ -69,9 +69,9 @@ fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__ma
   bb1:
     branch -> bb2
   bb2:
-    %5 = call next(%4) :Done | Yielded(i32)
+    %5 = call next(%4) :Yield(i32) | null
     %6 = move %5
-    %7 = type_check %6 is Done
+    %7 = type_check %6 is null
     cond_branch %7 ? bb4 : bb5
   bb3:
     return %1
@@ -91,8 +91,8 @@ fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__ma
     %2 $k_3: usize
     %3 $len_4: usize
     %4 __iter_0: ArrayIterator(string) (synthetic __iter_0)
-    %5 $call_7: Done | Yielded(string)
-    %6 __step_1: Done | Yielded(string) (synthetic __step_1)
+    %5 $call_7: Yield(string) | null
+    %6 __step_1: Yield(string) | null (synthetic __step_1)
     %7 $type_check_9: bool
     %8 $k_13: i32
   bb0:
@@ -104,9 +104,9 @@ fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__ma
   bb1:
     branch -> bb2
   bb2:
-    %5 = call next(%4) :Done | Yielded(string)
+    %5 = call next(%4) :Yield(string) | null
     %6 = move %5
-    %7 = type_check %6 is Done
+    %7 = type_check %6 is null
     cond_branch %7 ? bb4 : bb5
   bb3:
     return %1

@@ -3,5 +3,5 @@
 ## tests/snippets/tuple_for_destructure/_main.vader
 
 ## generic instances
-  Yielded([string, i32])
+  Yield([string, i32])
   ArrayIterator([string, i32])

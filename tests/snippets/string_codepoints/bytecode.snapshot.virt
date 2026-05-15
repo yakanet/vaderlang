@@ -4,14 +4,13 @@ type 1 primitive i32
 type 2 primitive string
 type 3 primitive usize
 type 4 primitive char
-type 5 struct std_core$Done {  }
-type 6 struct std_core$Yielded__char { value:4 }
-type 7 primitive void
-type 8 array 2
-type 9 struct std_string$StringChars { s:2,cursor:3,length:3 }
-type 10 union 5,6
-type 11 struct __Tuple_26 { _0:4,_1:3 }
-type 12 struct std_string_builder$StringBuilder { parts:8 }
+type 5 struct std_core$Yield__char { value:4 }
+type 6 primitive void
+type 7 array 2
+type 8 struct std_string$StringChars { s:2,cursor:3,length:3 }
+type 9 union 0,5
+type 10 struct __Tuple_25 { _0:4,_1:3 }
+type 11 struct std_string_builder$StringBuilder { parts:7 }
 string 0 "ascii  cp="
 string 1 "vader"
 string 2 " bytes="
@@ -36,8 +35,8 @@ import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 at std_core$string$Index$at (string,usize) -> char
 import 2 println std_io$println (string) -> void
 import 3 byte_len std_string$byte_len (string) -> usize
-impl 9 Iterator
-impl 12 Display
+impl 8 Iterator
+impl 11 Display
 
 fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
   local __sb_0 any
@@ -213,10 +212,10 @@ fn 0 tests_snippets_string_codepoints__main_vader$main () -> i32
         local.get 17   ; _main.vader:19:19
         call 4   ; _main.vader:19:19
         local.tee 18   ; _main.vader:19:9
-        struct.get 11 0   ; _main.vader:19:10
+        struct.get 10 0   ; _main.vader:19:10
         local.set 19   ; _main.vader:19:10
         local.get 18   ; _main.vader:19:13
-        struct.get 11 1   ; _main.vader:19:13
+        struct.get 10 1   ; _main.vader:19:13
         local.set 20   ; _main.vader:19:13
         intrinsic builder.new   ; _main.vader:20:17
         local.set 21   ; _main.vader:20:17
@@ -333,30 +332,30 @@ fn 1 std_string$StringChars$Iterator$next (ref) -> ref
   local $call_10 usize
   local $add_11 usize
   local.get 0   ; string.vader:91:13
-  struct.get 9 1   ; string.vader:91:13
+  struct.get 8 1   ; string.vader:91:13
   local.set 1   ; string.vader:91:13
   local.get 0   ; string.vader:91:28
-  struct.get 9 2   ; string.vader:91:28
+  struct.get 8 2   ; string.vader:91:28
   local.set 2   ; string.vader:91:28
   local.get 1   ; string.vader:91:13
   local.get 2   ; string.vader:91:13
   usize.ge   ; string.vader:91:13
   if $L0 void   ; string.vader:91:9
-    struct.new 5   ; string.vader:92:20
+    null.const   ; string.vader:92:20
     return   ; string.vader:92:13
   else   ; string.vader:91:9
     local.get 0   ; string.vader:94:14
-    struct.get 9 0   ; string.vader:94:14
+    struct.get 8 0   ; string.vader:94:14
     local.set 3   ; string.vader:94:14
     local.get 0   ; string.vader:94:21
-    struct.get 9 1   ; string.vader:94:21
+    struct.get 8 1   ; string.vader:94:21
     local.set 4   ; string.vader:94:21
     local.get 3   ; string.vader:94:14
     local.get 4   ; string.vader:94:14
     call.import 1   ; string.vader:94:14
     local.set 5   ; string.vader:94:9
     local.get 0   ; string.vader:95:23
-    struct.get 9 1   ; string.vader:95:23
+    struct.get 8 1   ; string.vader:95:23
     local.set 6   ; string.vader:95:23
     local.get 5   ; string.vader:95:37
     call 6   ; string.vader:95:37
@@ -367,9 +366,9 @@ fn 1 std_string$StringChars$Iterator$next (ref) -> ref
     local.set 8   ; string.vader:95:23
     local.get 0   ; string.vader:95:9
     local.get 8   ; string.vader:95:9
-    struct.set 9 1   ; string.vader:95:9
+    struct.set 8 1   ; string.vader:95:9
     local.get 5   ; string.vader:96:16
-    struct.new 6   ; string.vader:96:16
+    struct.new 5   ; string.vader:96:16
     return   ; string.vader:96:9
   end $L0   ; string.vader:91:9
 end
@@ -378,43 +377,43 @@ fn 2 std_string$StringChars$Iterator$count (ref) -> usize
   local total usize
   local finished bool
   local __scrut_0 ref
-  i64.const 0   ; core.vader:143:24
-  local.set 1   ; core.vader:143:24
-  bool.const false   ; core.vader:144:21
-  local.set 2   ; core.vader:144:21
-  block $L0 void   ; core.vader:145:9
-    loop $L1 void   ; core.vader:145:9
-      local.get 2   ; core.vader:145:13
-      bool.not   ; core.vader:145:13
-      if $L2 void   ; core.vader:145:13
-        local.get 0   ; core.vader:146:19
-        call 1   ; core.vader:146:19
-        local.tee 3   ; core.vader:146:19
-        type_check 5   ; undefined:undefined:undefined
-        if $L3 void   ; core.vader:147:17
-          bool.const true   ; core.vader:147:47
-          local.set 2   ; core.vader:147:47
-          br $L1   ; core.vader:145:9
-        else   ; core.vader:147:17
+  i64.const 0   ; core.vader:146:24
+  local.set 1   ; core.vader:146:24
+  bool.const false   ; core.vader:147:21
+  local.set 2   ; core.vader:147:21
+  block $L0 void   ; core.vader:148:9
+    loop $L1 void   ; core.vader:148:9
+      local.get 2   ; core.vader:148:13
+      bool.not   ; core.vader:148:13
+      if $L2 void   ; core.vader:148:13
+        local.get 0   ; core.vader:149:19
+        call 1   ; core.vader:149:19
+        local.tee 3   ; core.vader:149:19
+        type_check 0   ; undefined:undefined:undefined
+        if $L3 void   ; core.vader:150:17
+          bool.const true   ; core.vader:150:45
+          local.set 2   ; core.vader:150:45
+          br $L1   ; core.vader:148:9
+        else   ; core.vader:150:17
           local.get 3   ; undefined:undefined:undefined
-          type_check 6   ; undefined:undefined:undefined
-          if $L4 void   ; core.vader:148:17
-            local.get 1   ; core.vader:148:44
-            i64.const 1   ; core.vader:148:44
-            i64.to_usize   ; core.vader:148:44
-            usize.add   ; core.vader:148:44
-            local.set 1   ; core.vader:148:44
-            br $L1   ; core.vader:145:9
-          else   ; core.vader:148:17
-            unreachable   ; core.vader:146:13
-          end $L4   ; core.vader:148:17
-        end $L3   ; core.vader:147:17
-      else   ; core.vader:145:13
-      end $L2   ; core.vader:145:13
-    end $L1   ; core.vader:145:9
-  end $L0   ; core.vader:145:9
-  local.get 1   ; core.vader:151:9
-  return   ; core.vader:151:9
+          type_check 5   ; undefined:undefined:undefined
+          if $L4 void   ; core.vader:151:17
+            local.get 1   ; core.vader:151:42
+            i64.const 1   ; core.vader:151:42
+            i64.to_usize   ; core.vader:151:42
+            usize.add   ; core.vader:151:42
+            local.set 1   ; core.vader:151:42
+            br $L1   ; core.vader:148:9
+          else   ; core.vader:151:17
+            unreachable   ; core.vader:149:13
+          end $L4   ; core.vader:151:17
+        end $L3   ; core.vader:150:17
+      else   ; core.vader:148:13
+      end $L2   ; core.vader:148:13
+    end $L1   ; core.vader:148:9
+  end $L0   ; core.vader:148:9
+  local.get 1   ; core.vader:154:9
+  return   ; core.vader:154:9
 end
 
 fn 3 std_string$chars (string) -> ref
@@ -429,7 +428,7 @@ fn 3 std_string$chars (string) -> ref
   local.get 0   ; string.vader:112:12
   local.get 1   ; string.vader:112:12
   local.get 2   ; string.vader:112:12
-  struct.new 9   ; string.vader:112:12
+  struct.new 8   ; string.vader:112:12
   return   ; string.vader:112:5
 end
 
@@ -444,7 +443,7 @@ fn 4 std_string$decode_codepoint (string,usize) -> ref
   local.set 3   ; string.vader:143:16
   local.get 2   ; string.vader:143:12
   local.get 3   ; string.vader:143:12
-  struct.new 11   ; string.vader:143:12
+  struct.new 10   ; string.vader:143:12
   return   ; string.vader:143:5
 end
 

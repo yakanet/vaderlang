@@ -256,7 +256,7 @@ MutableMap[K, V] implements[K, V] Into(Iterator(Entry(K, V))) {
 }
 
 MapIterator[K, V] implements Iterator[Entry(K, V)] {
-    next :: fn(self) -> Done | Yielded(Entry(K, V)) {
+    next :: fn(self) -> Yield(Entry(K, V)) | null {
         finished := false
         for !finished {
             // Bind the chain cursor to a local so match narrowing applies —
@@ -266,7 +266,7 @@ MapIterator[K, V] implements Iterator[Entry(K, V)] {
             match cur {
                 is Entry(K, V) -> {
                     self.chain_cursor = cur.next
-                    return Yielded(Entry(K, V)) { .value = cur }
+                    return Yield(Entry(K, V)) { .value = cur }
                 }
                 is null -> {
                     if self.bucket_cursor >= self.map.buckets.len() {
@@ -278,7 +278,7 @@ MapIterator[K, V] implements Iterator[Entry(K, V)] {
                 }
             }
         }
-        return Done {}
+        return null
     }
 }
 
@@ -328,7 +328,7 @@ MutableSet[T] implements Contains[T] {
 /// Lazy iterator over a `MutableSet`'s members. Walks the backing
 /// `MutableMap(T, bool)` directly bucket-by-bucket then chain-by-chain — a
 /// `MapIterator` wrapper would force the runtime to pattern-match a generic
-/// `Yielded(Entry(T, bool))` payload, which the VM's variant tag check
+/// `Yield(Entry(T, bool))` payload, which the VM's variant tag check
 /// doesn't drill into yet. Same undefined-behaviour caveat as `MapIterator` on
 /// concurrent mutation.
 export SetIterator :: struct[T: Hash & Equals] {
@@ -347,7 +347,7 @@ MutableSet[T] implements[T] Into(Iterator(T)) {
 }
 
 SetIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Done | Yielded(T) {
+    next :: fn(self) -> Yield(T) | null {
         finished := false
         for !finished {
             // Mirror MapIterator's narrowing dance — match needs a local binding,
@@ -356,7 +356,7 @@ SetIterator[T] implements Iterator[T] {
             match cur {
                 is Entry(T, bool) -> {
                     self.chain_cursor = cur.next
-                    return Yielded(T) { .value = cur.key }
+                    return Yield(T) { .value = cur.key }
                 }
                 is null -> {
                     if self.bucket_cursor >= self.set.inner.buckets.len() {
@@ -368,7 +368,7 @@ SetIterator[T] implements Iterator[T] {
                 }
             }
         }
-        return Done {}
+        return null
     }
 }
 

@@ -44,23 +44,23 @@
           arg0:
             m :MutableMap(string, i32)
       loop
-        let __step_1: Done | Yielded(Entry(string, i32)) =
-          call :Done | Yielded(Entry(string, i32))
+        let __step_1: Yield(Entry(string, i32)) | null =
+          call :Yield(Entry(string, i32)) | null
             callee:
               next :?
             arg0:
               __iter_0 :MapIterator(string, i32)
         if :void
           cond:
-            is Done :bool
-              __step_1 :Done | Yielded(Entry(string, i32))
+            is null :bool
+              __step_1 :Yield(Entry(string, i32)) | null
           then:
             break
           else:
             let entry: Entry(string, i32) =
               .value :Entry(string, i32)
-                cast → Yielded(Entry(string, i32))
-                  __step_1 :Done | Yielded(Entry(string, i32))
+                cast → Yield(Entry(string, i32))
+                  __step_1 :Yield(Entry(string, i32)) | null
             assign
               target:
                 total :i32
@@ -126,23 +126,23 @@
           arg0:
             s :MutableSet(i32)
       loop
-        let __step_4: Done | Yielded(i32) =
-          call :Done | Yielded(i32)
+        let __step_4: Yield(i32) | null =
+          call :Yield(i32) | null
             callee:
               next :?
             arg0:
               __iter_3 :SetIterator(i32)
         if :void
           cond:
-            is Done :bool
-              __step_4 :Done | Yielded(i32)
+            is null :bool
+              __step_4 :Yield(i32) | null
           then:
             break
           else:
             let v: i32 =
               .value :i32
-                cast → Yielded(i32)
-                  __step_4 :Done | Yielded(i32)
+                cast → Yield(i32)
+                  __step_4 :Yield(i32) | null
             assign
               target:
                 sum :i32

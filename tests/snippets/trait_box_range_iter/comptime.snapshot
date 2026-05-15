@@ -6,7 +6,7 @@
   count(i32)
   Greeter(i32)
   Iterator(i32)
-  Yielded(i32)
+  Yield(i32)
   Range(i32)
   ArrayIterator(i32)
   Doubler(i32)

@@ -7,8 +7,8 @@
 // Without the generic-struct branch in `lowerVirtualDispatch` the call hits
 // `unreachable` at runtime ; without the trait-arg substitution in the
 // typechecker (`Substitution { typeParams }` for the trait's own params) the
-// match would reject `is Yielded(i32)` arms because `step` would be typed as
-// returning `Done | Yielded($T)`.
+// match would reject `is Yield(i32)` arms because `step` would be typed as
+// returning `Yield($T) | null`.
 
 import "std/io" { println }
 
@@ -18,11 +18,11 @@ export Repeat :: struct[T] {
 }
 
 Repeat[T] implements Iterator[T] {
-    next :: fn(self) -> Done | Yielded(T) {
-        if self.remaining <= 0 { return Done {} }
+    next :: fn(self) -> Yield(T) | null {
+        if self.remaining <= 0 { return null }
         v :: self.value
         self.remaining = self.remaining - 1
-        return Yielded(T) { .value = v }
+        return Yield(T) { .value = v }
     }
 }
 
@@ -32,10 +32,10 @@ export Once :: struct[T] {
 }
 
 Once[T] implements Iterator[T] {
-    next :: fn(self) -> Done | Yielded(T) {
-        if self.yielded { return Done {} }
+    next :: fn(self) -> Yield(T) | null {
+        if self.yielded { return null }
         self.yielded = true
-        return Yielded(T) { .value = self.value }
+        return Yield(T) { .value = self.value }
     }
 }
 
@@ -44,8 +44,8 @@ walk :: fn(it: Iterator(i32)) -> i32 {
     cont := true
     for cont {
         match it.next() {
-            is Done -> { cont = false }
-            is Yielded(i32) as y -> { sum = sum + y.value }
+            is null -> { cont = false }
+            is Yield(i32) as y -> { sum = sum + y.value }
         }
     }
     return sum

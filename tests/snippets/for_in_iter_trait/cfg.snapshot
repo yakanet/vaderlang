@@ -7,10 +7,10 @@ fn tests_snippets_for_in_iter_trait__main_vader$sum_iter(%0: Iterator(i32)) -> i
     %0 it: Iterator(i32) (param it)
     %1 total: i32 (local total)
     %2 __iter_0: Iterator(i32) (synthetic __iter_0)
-    %3 $vcall_4: Done | Yielded(i32)
-    %4 __step_1: Done | Yielded(i32) (synthetic __step_1)
+    %3 $vcall_4: Yield(i32) | null
+    %4 __step_1: Yield(i32) | null (synthetic __step_1)
     %5 $type_check_6: bool
-    %6 $cast_7: Yielded(i32)
+    %6 $cast_7: Yield(i32)
     %7 x: i32 (binding x)
   bb0:
     %1 = const int(0) :i32
@@ -19,16 +19,16 @@ fn tests_snippets_for_in_iter_trait__main_vader$sum_iter(%0: Iterator(i32)) -> i
   bb1:
     branch -> bb2
   bb2:
-    %3 = vcall Iterator.next(recv=%2) :Done | Yielded(i32)
+    %3 = vcall Iterator.next(recv=%2) :Yield(i32) | null
     %4 = move %3
-    %5 = type_check %4 is Done
+    %5 = type_check %4 is null
     cond_branch %5 ? bb4 : bb5
   bb3:
     return %1
   bb4:
     branch -> bb3
   bb5:
-    %6 = cast %4 :Yielded(i32)
+    %6 = cast %4 :Yield(i32)
     %7 = field_get %6.value :i32
     %1 = binop add %1 %7 :?
     branch -> bb6

@@ -88,23 +88,23 @@
             LoweredArrayLen
         }
       loop
-        let __step_1: Done | Yielded(Cat | Dog) =
-          call :Done | Yielded(Cat | Dog)
+        let __step_1: Yield(Cat | Dog) | null =
+          call :Yield(Cat | Dog) | null
             callee:
               next :?
             arg0:
               __iter_0 :ArrayIterator(Cat | Dog)
         if :void
           cond:
-            is Done :bool
-              __step_1 :Done | Yielded(Cat | Dog)
+            is null :bool
+              __step_1 :Yield(Cat | Dog) | null
           then:
             break
           else:
             let p: Cat | Dog =
               .value :Cat | Dog
-                cast → Yielded(Cat | Dog)
-                  __step_1 :Done | Yielded(Cat | Dog)
+                cast → Yield(Cat | Dog)
+                  __step_1 :Yield(Cat | Dog) | null
             call :void
               callee:
                 println :fn(string) -> void

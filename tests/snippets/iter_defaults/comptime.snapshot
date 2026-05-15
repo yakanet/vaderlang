@@ -3,5 +3,5 @@
 ## tests/snippets/iter_defaults/_main.vader
 
 ## generic instances
-  Yielded(i32)
+  Yield(i32)
   Range(i32)

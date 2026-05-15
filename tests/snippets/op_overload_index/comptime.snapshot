@@ -3,5 +3,5 @@
 ## tests/snippets/op_overload_index/_main.vader
 
 ## generic instances
-  Yielded(string)
+  Yield(string)
   ArrayIterator(string)

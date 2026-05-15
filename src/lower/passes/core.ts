@@ -1,9 +1,9 @@
-// Looks up `std/core` symbols (Iterator, Done, Yielded, Error, …) via the
+// Looks up `std/core` symbols (Iterator, Yield, Error, …) via the
 // pre-resolved `ctx.coreSymbols` cache. Used by for-in and try.
 
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { mkStruct, mkUnion } from "../../typecheck/types.ts";
+import { TY, mkStruct, mkUnion } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx, LowerProjectCtx } from "../ctx.ts";
 
@@ -12,7 +12,7 @@ export function lookupCoreSymbol(ctx: FnLowerCtx, name: string): Symbol | null {
 }
 
 /** Find a struct type from std/core by name, optionally with type arguments
- *  for generic structs (e.g. `Yielded(i32)`). */
+ *  for generic structs (e.g. `Yield(i32)`). */
 export function findCoreType(ctx: FnLowerCtx, name: string, args: readonly Type[]): Type | null {
   const sym = lookupCoreSymbol(ctx, name);
   if (sym === null) return null;
@@ -29,6 +29,6 @@ export function findCoreTrait(ctx: LowerProjectCtx, name: string): Symbol | null
   return found;
 }
 
-export function unionOfDoneYielded(done: Type, yielded: Type): Type {
-  return mkUnion([done, yielded]);
+export function unionOfYieldNull(yielded: Type): Type {
+  return mkUnion([yielded, TY.null]);
 }

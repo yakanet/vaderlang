@@ -29,10 +29,10 @@ fn tests_snippets_spread_destructure__main_vader$main() -> i32
     %22 $k_27: usize
     %23 $len_28: usize
     %24 __iter_3: ArrayIterator(i32) (synthetic __iter_3)
-    %25 $call_31: Done | Yielded(i32)
-    %26 __step_4: Done | Yielded(i32) (synthetic __step_4)
+    %25 $call_31: Yield(i32) | null
+    %26 __step_4: Yield(i32) | null (synthetic __step_4)
     %27 $type_check_33: bool
-    %28 $cast_34: Yielded(i32)
+    %28 $cast_34: Yield(i32)
     %29 x: i32 (binding x)
     %30 $intrinsic_37: ?
     %31 __sb_5: ? (synthetic __sb_5)
@@ -73,10 +73,10 @@ fn tests_snippets_spread_destructure__main_vader$main() -> i32
     %66 $k_81: usize
     %67 $len_82: usize
     %68 __iter_12: ArrayIterator(i32) (synthetic __iter_12)
-    %69 $call_85: Done | Yielded(i32)
-    %70 __step_13: Done | Yielded(i32) (synthetic __step_13)
+    %69 $call_85: Yield(i32) | null
+    %70 __step_13: Yield(i32) | null (synthetic __step_13)
     %71 $type_check_87: bool
-    %72 $cast_88: Yielded(i32)
+    %72 $cast_88: Yield(i32)
     %73 x: i32 (binding x)
     %74 $intrinsic_91: ?
     %75 __sb_14: ? (synthetic __sb_14)
@@ -126,9 +126,9 @@ fn tests_snippets_spread_destructure__main_vader$main() -> i32
   bb4:
     branch -> bb5
   bb5:
-    %25 = call next(%24) :Done | Yielded(i32)
+    %25 = call next(%24) :Yield(i32) | null
     %26 = move %25
-    %27 = type_check %26 is Done
+    %27 = type_check %26 is null
     cond_branch %27 ? bb7 : bb8
   bb6:
     %34 = move %5
@@ -142,7 +142,7 @@ fn tests_snippets_spread_destructure__main_vader$main() -> i32
   bb7:
     branch -> bb6
   bb8:
-    %28 = cast %26 :Yielded(i32)
+    %28 = cast %26 :Yield(i32)
     %29 = field_get %28.value :i32
     %30 = intrinsic builder.new()
     %31 = move %30
@@ -211,9 +211,9 @@ fn tests_snippets_spread_destructure__main_vader$main() -> i32
   bb16:
     branch -> bb17
   bb17:
-    %69 = call next(%68) :Done | Yielded(i32)
+    %69 = call next(%68) :Yield(i32) | null
     %70 = move %69
-    %71 = type_check %70 is Done
+    %71 = type_check %70 is null
     cond_branch %71 ? bb19 : bb20
   bb18:
     %78 = const int(0) :i32
@@ -221,7 +221,7 @@ fn tests_snippets_spread_destructure__main_vader$main() -> i32
   bb19:
     branch -> bb18
   bb20:
-    %72 = cast %70 :Yielded(i32)
+    %72 = cast %70 :Yield(i32)
     %73 = field_get %72.value :i32
     %74 = intrinsic builder.new()
     %75 = move %74

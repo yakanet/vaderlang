@@ -7,15 +7,15 @@
     loop while (cont :bool)
       ~>
         block :void
-          let __scrut_0: Done | Yielded(i32) =
-            vcall Iterator.next :Done | Yielded(i32)
+          let __scrut_0: null | Yield(i32) =
+            vcall Iterator.next :null | Yield(i32)
               recv:
                 it :Iterator(i32)
           ~>
             if :void
               cond:
-                is Done :bool
-                  __scrut_0 :Done | Yielded(i32)
+                is null :bool
+                  __scrut_0 :null | Yield(i32)
               then:
                 ~>
                   block :void
@@ -28,12 +28,12 @@
                 ~>
                   if :void
                     cond:
-                      is Yielded(i32) :bool
-                        __scrut_0 :Done | Yielded(i32)
+                      is Yield(i32) :bool
+                        __scrut_0 :null | Yield(i32)
                     then:
-                      let y: Yielded(i32) =
-                        cast → Yielded(i32)
-                          __scrut_0 :Done | Yielded(i32)
+                      let y: Yield(i32) =
+                        cast → Yield(i32)
+                          __scrut_0 :null | Yield(i32)
                       ~>
                         block :void
                           assign
@@ -45,7 +45,7 @@
                                   sum :i32
                                 r:
                                   .value :i32
-                                    y :Yielded(i32)
+                                    y :Yield(i32)
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void

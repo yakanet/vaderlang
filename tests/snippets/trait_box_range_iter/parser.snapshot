@@ -100,7 +100,7 @@
                       "kind": "IsPattern",
                       "type": {
                         "kind": "IdentExpr",
-                        "name": "Done"
+                        "name": "null"
                       },
                       "inner": null,
                       "bindAs": null
@@ -131,7 +131,7 @@
                         "kind": "GenericInstExpr",
                         "callee": {
                           "kind": "IdentExpr",
-                          "name": "Yielded"
+                          "name": "Yield"
                         },
                         "typeArgs": [
                           {

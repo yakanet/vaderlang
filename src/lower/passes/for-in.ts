@@ -16,7 +16,7 @@ import { err } from "../diag.ts";
 import type { LoweredBinaryOp, LoweredBlock, LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
 
 import { lowerBlock } from "./block.ts";
-import { findCoreTrait, findCoreType, unionOfDoneYielded } from "./core.ts";
+import { findCoreTrait, findCoreType, unionOfYieldNull } from "./core.ts";
 import { lowerExpr } from "./expr.ts";
 import { blockStmtsWithTrailing, freshSyntheticSymbol, wrapStmts } from "./helpers.ts";
 
@@ -127,10 +127,9 @@ export function lowerForIn(
   }
   const elementType = traitTypedElement ?? stepInfo!.elementType;
 
-  const doneType = findCoreType(ctx, CORE_STRUCTS.Done, []);
-  const yieldedType = findCoreType(ctx, CORE_STRUCTS.Yielded, [elementType]);
-  if (doneType === null || yieldedType === null) {
-    err(ctx.project.diags, "B5001", span, "Done / Yielded missing from std/core");
+  const yieldType = findCoreType(ctx, CORE_STRUCTS.Yield, [elementType]);
+  if (yieldType === null) {
+    err(ctx.project.diags, "B5001", span, "Yield missing from std/core");
     return { kind: "LoweredExprStmt", span, expr: {
       kind: "LoweredUnreachable", span, type: TY.void, reason: "stdlib types missing",
     } };
@@ -145,7 +144,7 @@ export function lowerForIn(
 
   const iterSym = freshSyntheticSymbol(ctx, "iter");
   const stepSym = freshSyntheticSymbol(ctx, "step");
-  const stepUnion = unionOfDoneYielded(doneType, yieldedType);
+  const stepUnion = unionOfYieldNull(yieldType);
 
   const setupStmts: LoweredStmt[] = [
     { kind: "LoweredLet", span, name: iterSym.name, symbol: iterSym, type: iterType, value: iterLowered },
@@ -165,21 +164,21 @@ export function lowerForIn(
         args: [iterRef],
       };
 
-  // if (step is Done) { break } else { x = step.value; <body> }
+  // if (step is null) { break } else { x = step.value; <body> }
   const stepRef = (): LoweredExpr => ({
     kind: "LoweredIdent", span, type: stepUnion, symbol: stepSym,
   });
   const isDone: LoweredExpr = {
-    kind: "LoweredTypeCheck", span, type: TY.bool, value: stepRef(), checkType: doneType,
+    kind: "LoweredTypeCheck", span, type: TY.bool, value: stepRef(), checkType: TY.null,
   };
   const breakStmt: LoweredStmt = { kind: "LoweredBreak", span, label: null };
 
-  // Body branch: bind x = ((Yielded*) __step).value, then run user body.
-  const yieldedCast: LoweredExpr = {
-    kind: "LoweredCast", span, type: yieldedType, value: stepRef(),
+  // Body branch: bind x = ((Yield*) __step).value, then run user body.
+  const yieldCast: LoweredExpr = {
+    kind: "LoweredCast", span, type: yieldType, value: stepRef(),
   };
   const valueAccess: LoweredExpr = {
-    kind: "LoweredFieldAccess", span, type: elementType, target: yieldedCast, field: "value",
+    kind: "LoweredFieldAccess", span, type: elementType, target: yieldCast, field: "value",
   };
   const bindLet: LoweredStmt = {
     kind: "LoweredLet", span, name: bindingName, symbol: bindingSym,

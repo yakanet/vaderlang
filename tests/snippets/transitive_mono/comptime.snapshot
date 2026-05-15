@@ -5,8 +5,8 @@
 ## generic instances
   inner_count(i32)
   inner_count(string)
-  Yielded(i32)
-  Yielded(string)
+  Yield(i32)
+  Yield(string)
   ArrayIterator($T)
   ArrayIterator(i32)
   ArrayIterator(string)

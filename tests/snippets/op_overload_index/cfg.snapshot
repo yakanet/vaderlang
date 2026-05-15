@@ -12,10 +12,10 @@ fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(%0: Cell, %1: stri
     %5 $field_6: string[]
     %6 $len_7: usize
     %7 __iter_0: ArrayIterator(string) (synthetic __iter_0)
-    %8 $call_10: Done | Yielded(string)
-    %9 __step_1: Done | Yielded(string) (synthetic __step_1)
+    %8 $call_10: Yield(string) | null
+    %9 __step_1: Yield(string) | null (synthetic __step_1)
     %10 $type_check_12: bool
-    %11 $cast_13: Yielded(string)
+    %11 $cast_13: Yield(string)
     %12 k: string (binding k)
     %13 $eq_16: bool
     %14 $field_17: i32[]
@@ -33,9 +33,9 @@ fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(%0: Cell, %1: stri
   bb1:
     branch -> bb2
   bb2:
-    %8 = call next(%7) :Done | Yielded(string)
+    %8 = call next(%7) :Yield(string) | null
     %9 = move %8
-    %10 = type_check %9 is Done
+    %10 = type_check %9 is null
     cond_branch %10 ? bb4 : bb5
   bb3:
     %17 = const int(0) :i32
@@ -43,7 +43,7 @@ fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(%0: Cell, %1: stri
   bb4:
     branch -> bb3
   bb5:
-    %11 = cast %9 :Yielded(string)
+    %11 = cast %9 :Yield(string)
     %12 = field_get %11.value :string
     %13 = binop eq %12 %1 :bool
     cond_branch %13 ? bb7 : bb8
@@ -69,10 +69,10 @@ fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(%0: Cell, %
     %6 $field_7: string[]
     %7 $len_8: usize
     %8 __iter_0: ArrayIterator(string) (synthetic __iter_0)
-    %9 $call_11: Done | Yielded(string)
-    %10 __step_1: Done | Yielded(string) (synthetic __step_1)
+    %9 $call_11: Yield(string) | null
+    %10 __step_1: Yield(string) | null (synthetic __step_1)
     %11 $type_check_13: bool
-    %12 $cast_14: Yielded(string)
+    %12 $cast_14: Yield(string)
     %13 k: string (binding k)
     %14 $eq_17: bool
     %15 $field_18: i32[]
@@ -90,9 +90,9 @@ fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(%0: Cell, %
   bb1:
     branch -> bb2
   bb2:
-    %9 = call next(%8) :Done | Yielded(string)
+    %9 = call next(%8) :Yield(string) | null
     %10 = move %9
-    %11 = type_check %10 is Done
+    %11 = type_check %10 is null
     cond_branch %11 ? bb4 : bb5
   bb3:
     %17 = field_get %0.keys :string[]
@@ -103,7 +103,7 @@ fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(%0: Cell, %
   bb4:
     branch -> bb3
   bb5:
-    %12 = cast %10 :Yielded(string)
+    %12 = cast %10 :Yield(string)
     %13 = field_get %12.value :string
     %14 = binop eq %13 %1 :bool
     cond_branch %14 ? bb7 : bb8

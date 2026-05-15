@@ -4,9 +4,9 @@
 
 ## generic instances
   Iterator(i32)
-  Yielded(i32)
-  Yielded(string)
-  Yielded(usize)
+  Yield(i32)
+  Yield(string)
+  Yield(usize)
   Range(i32)
   Range(usize)
   ArrayIterator($T)

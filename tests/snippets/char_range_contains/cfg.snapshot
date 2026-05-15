@@ -119,8 +119,8 @@ fn tests_snippets_char_range_contains__main_vader$main() -> i32
     %37 $k_38: bool
     %38 $k_39: char
     %39 __iter_0: Range(char) (synthetic __iter_0)
-    %40 $call_42: Done | Yielded(char)
-    %41 __step_1: Done | Yielded(char) (synthetic __step_1)
+    %40 $call_42: Yield(char) | null
+    %41 __step_1: Yield(char) | null (synthetic __step_1)
     %42 $type_check_44: bool
     %43 $k_48: i32
     %44 $intrinsic_50: ?
@@ -133,8 +133,8 @@ fn tests_snippets_char_range_contains__main_vader$main() -> i32
     %51 $k_58: bool
     %52 $k_59: char
     %53 __iter_3: Range(char) (synthetic __iter_3)
-    %54 $call_62: Done | Yielded(char)
-    %55 __step_4: Done | Yielded(char) (synthetic __step_4)
+    %54 $call_62: Yield(char) | null
+    %55 __step_4: Yield(char) | null (synthetic __step_4)
     %56 $type_check_64: bool
     %57 $k_68: i32
     %58 $intrinsic_70: ?
@@ -237,9 +237,9 @@ fn tests_snippets_char_range_contains__main_vader$main() -> i32
   bb21:
     branch -> bb22
   bb22:
-    %40 = call next(%39) :Done | Yielded(char)
+    %40 = call next(%39) :Yield(char) | null
     %41 = move %40
-    %42 = type_check %41 is Done
+    %42 = type_check %41 is null
     cond_branch %42 ? bb24 : bb25
   bb23:
     %44 = intrinsic builder.new()
@@ -267,9 +267,9 @@ fn tests_snippets_char_range_contains__main_vader$main() -> i32
   bb27:
     branch -> bb28
   bb28:
-    %54 = call next(%53) :Done | Yielded(char)
+    %54 = call next(%53) :Yield(char) | null
     %55 = move %54
-    %56 = type_check %55 is Done
+    %56 = type_check %55 is null
     cond_branch %56 ? bb30 : bb31
   bb29:
     %58 = intrinsic builder.new()

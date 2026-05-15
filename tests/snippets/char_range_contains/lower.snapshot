@@ -203,23 +203,23 @@
           cursor: char(0x61)
         }
       loop
-        let __step_1: Done | Yielded(char) =
-          call :Done | Yielded(char)
+        let __step_1: Yield(char) | null =
+          call :Yield(char) | null
             callee:
               next :?
             arg0:
               __iter_0 :Range(char)
         if :void
           cond:
-            is Done :bool
-              __step_1 :Done | Yielded(char)
+            is null :bool
+              __step_1 :Yield(char) | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yielded(char)
-                  __step_1 :Done | Yielded(char)
+                cast → Yield(char)
+                  __step_1 :Yield(char) | null
             assign
               target:
                 n :i32
@@ -255,23 +255,23 @@
           cursor: char(0x30)
         }
       loop
-        let __step_4: Done | Yielded(char) =
-          call :Done | Yielded(char)
+        let __step_4: Yield(char) | null =
+          call :Yield(char) | null
             callee:
               next :?
             arg0:
               __iter_3 :Range(char)
         if :void
           cond:
-            is Done :bool
-              __step_4 :Done | Yielded(char)
+            is null :bool
+              __step_4 :Yield(char) | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yielded(char)
-                  __step_4 :Done | Yielded(char)
+                cast → Yield(char)
+                  __step_4 :Yield(char) | null
             assign
               target:
                 m :i32

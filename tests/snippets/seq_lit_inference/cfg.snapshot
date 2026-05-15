@@ -11,10 +11,10 @@ fn tests_snippets_seq_lit_inference__main_vader$main() -> i32
     %4 $k_5: usize
     %5 $len_6: usize
     %6 __iter_0: ArrayIterator(i32) (synthetic __iter_0)
-    %7 $call_9: Done | Yielded(i32)
-    %8 __step_1: Done | Yielded(i32) (synthetic __step_1)
+    %7 $call_9: Yield(i32) | null
+    %8 __step_1: Yield(i32) | null (synthetic __step_1)
     %9 $type_check_11: bool
-    %10 $cast_12: Yielded(i32)
+    %10 $cast_12: Yield(i32)
     %11 s: i32 (binding s)
     %12 $intrinsic_15: ?
     %13 __sb_2: ? (synthetic __sb_2)
@@ -46,9 +46,9 @@ fn tests_snippets_seq_lit_inference__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %7 = call next(%6) :Done | Yielded(i32)
+    %7 = call next(%6) :Yield(i32) | null
     %8 = move %7
-    %9 = type_check %8 is Done
+    %9 = type_check %8 is null
     cond_branch %9 ? bb4 : bb5
   bb3:
     %16 = const int(42) :i32
@@ -75,7 +75,7 @@ fn tests_snippets_seq_lit_inference__main_vader$main() -> i32
   bb4:
     branch -> bb3
   bb5:
-    %10 = cast %8 :Yielded(i32)
+    %10 = cast %8 :Yield(i32)
     %11 = field_get %10.value :i32
     %12 = intrinsic builder.new()
     %13 = move %12

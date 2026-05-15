@@ -648,29 +648,29 @@ end
 fn 3 std_core$char$Comparable$compare (char,char) -> i32
   local if_res i32
   local if_res i32
-  local.get 0   ; core.vader:355:35
-  local.get 1   ; core.vader:355:35
-  char.lt   ; core.vader:355:35
-  if $L0 void   ; core.vader:355:32
-    i32.const 1   ; core.vader:355:51
-    i32.neg   ; core.vader:355:50
-    local.set 2   ; core.vader:355:50
-  else   ; core.vader:355:32
-    local.get 0   ; core.vader:355:63
-    local.get 1   ; core.vader:355:63
-    char.gt   ; core.vader:355:63
-    if $L1 void   ; core.vader:355:60
-      i32.const 1   ; core.vader:355:78
-      local.set 3   ; core.vader:355:78
-    else   ; core.vader:355:60
-      i32.const 0   ; core.vader:355:89
-      local.set 3   ; core.vader:355:89
-    end $L1   ; core.vader:355:60
-    local.get 3   ; core.vader:355:60
-    local.set 2   ; core.vader:355:60
-  end $L0   ; core.vader:355:32
-  local.get 2   ; core.vader:355:29
-  return   ; core.vader:355:29
+  local.get 0   ; core.vader:359:35
+  local.get 1   ; core.vader:359:35
+  char.lt   ; core.vader:359:35
+  if $L0 void   ; core.vader:359:32
+    i32.const 1   ; core.vader:359:51
+    i32.neg   ; core.vader:359:50
+    local.set 2   ; core.vader:359:50
+  else   ; core.vader:359:32
+    local.get 0   ; core.vader:359:63
+    local.get 1   ; core.vader:359:63
+    char.gt   ; core.vader:359:63
+    if $L1 void   ; core.vader:359:60
+      i32.const 1   ; core.vader:359:78
+      local.set 3   ; core.vader:359:78
+    else   ; core.vader:359:60
+      i32.const 0   ; core.vader:359:89
+      local.set 3   ; core.vader:359:89
+    end $L1   ; core.vader:359:60
+    local.get 3   ; core.vader:359:60
+    local.set 2   ; core.vader:359:60
+  end $L0   ; core.vader:359:32
+  local.get 2   ; core.vader:359:29
+  return   ; core.vader:359:29
 end
 
 fn 4 std_core$char$Comparable$lt (char,char) -> bool
@@ -701,36 +701,36 @@ fn 6 std_core$Range$Contains$contains__char (ref,char) -> bool
   local $field_2 char
   local $field_6 char
   local $field_8 char
-  local.get 0   ; core.vader:215:21
-  struct.get 7 0   ; core.vader:215:21
-  local.set 2   ; core.vader:215:21
-  local.get 1   ; core.vader:215:12
-  local.get 2   ; core.vader:215:12
-  call 4   ; core.vader:215:12
-  if $L0 void   ; core.vader:215:9
-    bool.const false   ; core.vader:215:42
-    return   ; core.vader:215:35
-  else   ; core.vader:215:9
-    local.get 0   ; core.vader:216:12
-    struct.get 7 2   ; core.vader:216:12
-    if $L1 void   ; core.vader:216:9
-      local.get 0   ; core.vader:216:52
-      struct.get 7 1   ; core.vader:216:52
-      local.set 3   ; core.vader:216:52
-      local.get 1   ; core.vader:216:42
-      local.get 3   ; core.vader:216:42
-      call 5   ; core.vader:216:42
-      return   ; core.vader:216:35
-    else   ; core.vader:216:9
-      local.get 0   ; core.vader:217:25
-      struct.get 7 1   ; core.vader:217:25
-      local.set 4   ; core.vader:217:25
-      local.get 1   ; core.vader:217:16
-      local.get 4   ; core.vader:217:16
-      call 4   ; core.vader:217:16
-      return   ; core.vader:217:9
-    end $L1   ; core.vader:216:9
-  end $L0   ; core.vader:215:9
+  local.get 0   ; core.vader:219:21
+  struct.get 7 0   ; core.vader:219:21
+  local.set 2   ; core.vader:219:21
+  local.get 1   ; core.vader:219:12
+  local.get 2   ; core.vader:219:12
+  call 4   ; core.vader:219:12
+  if $L0 void   ; core.vader:219:9
+    bool.const false   ; core.vader:219:42
+    return   ; core.vader:219:35
+  else   ; core.vader:219:9
+    local.get 0   ; core.vader:220:12
+    struct.get 7 2   ; core.vader:220:12
+    if $L1 void   ; core.vader:220:9
+      local.get 0   ; core.vader:220:52
+      struct.get 7 1   ; core.vader:220:52
+      local.set 3   ; core.vader:220:52
+      local.get 1   ; core.vader:220:42
+      local.get 3   ; core.vader:220:42
+      call 5   ; core.vader:220:42
+      return   ; core.vader:220:35
+    else   ; core.vader:220:9
+      local.get 0   ; core.vader:221:25
+      struct.get 7 1   ; core.vader:221:25
+      local.set 4   ; core.vader:221:25
+      local.get 1   ; core.vader:221:16
+      local.get 4   ; core.vader:221:16
+      call 4   ; core.vader:221:16
+      return   ; core.vader:221:9
+    end $L1   ; core.vader:220:9
+  end $L0   ; core.vader:219:9
 end
 
 fn 7 std_regex$compile (string) -> ref

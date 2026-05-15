@@ -36,10 +36,10 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %29 $k_32: usize
     %30 $len_33: usize
     %31 __iter_2: ArrayIterator([string, i32]) (synthetic __iter_2)
-    %32 $call_36: Done | Yielded([string, i32])
-    %33 __step_3: Done | Yielded([string, i32]) (synthetic __step_3)
+    %32 $call_36: Yield([string, i32]) | null
+    %33 __step_3: Yield([string, i32]) | null (synthetic __step_3)
     %34 $type_check_38: bool
-    %35 $cast_39: Yielded([string, i32])
+    %35 $cast_39: Yield([string, i32])
     %36 __tup_4: [string, i32] (synthetic __tup_4)
     %37 k: string (local k)
     %38 v: i32 (local v)
@@ -59,10 +59,10 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %52 $k_62: usize
     %53 $len_63: usize
     %54 __iter_6: ArrayIterator(i32) (synthetic __iter_6)
-    %55 $call_66: Done | Yielded(i32)
-    %56 __step_7: Done | Yielded(i32) (synthetic __step_7)
+    %55 $call_66: Yield(i32) | null
+    %56 __step_7: Yield(i32) | null (synthetic __step_7)
     %57 $type_check_68: bool
-    %58 $cast_69: Yielded(i32)
+    %58 $cast_69: Yield(i32)
     %59 x: i32 (binding x)
     %60 $intrinsic_72: ?
     %61 __sb_8: ? (synthetic __sb_8)
@@ -77,10 +77,10 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %70 $k_83: usize
     %71 $len_84: usize
     %72 __iter_10: ArrayIterator([usize, string]) (synthetic __iter_10)
-    %73 $call_87: Done | Yielded([usize, string])
-    %74 __step_11: Done | Yielded([usize, string]) (synthetic __step_11)
+    %73 $call_87: Yield([usize, string]) | null
+    %74 __step_11: Yield([usize, string]) | null (synthetic __step_11)
     %75 $type_check_89: bool
-    %76 $cast_90: Yielded([usize, string])
+    %76 $cast_90: Yield([usize, string])
     %77 __tup_12: [usize, string] (synthetic __tup_12)
     %78 i: usize (local i)
     %79 f: string (local f)
@@ -100,10 +100,10 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
     %93 $k_111: usize
     %94 $len_112: usize
     %95 __iter_15: ArrayIterator(i32) (synthetic __iter_15)
-    %96 $call_115: Done | Yielded(i32)
-    %97 __step_16: Done | Yielded(i32) (synthetic __step_16)
+    %96 $call_115: Yield(i32) | null
+    %97 __step_16: Yield(i32) | null (synthetic __step_16)
     %98 $type_check_117: bool
-    %99 $cast_118: Yielded(i32)
+    %99 $cast_118: Yield(i32)
     %100 n: i32 (binding n)
     %101 $intrinsic_121: ?
     %102 __sb_17: ? (synthetic __sb_17)
@@ -153,9 +153,9 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %32 = call next(%31) :Done | Yielded([string, i32])
+    %32 = call next(%31) :Yield([string, i32]) | null
     %33 = move %32
-    %34 = type_check %33 is Done
+    %34 = type_check %33 is null
     cond_branch %34 ? bb4 : bb5
   bb3:
     %43 = const int(1) :i32
@@ -174,7 +174,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb4:
     branch -> bb3
   bb5:
-    %35 = cast %33 :Yielded([string, i32])
+    %35 = cast %33 :Yield([string, i32])
     %36 = field_get %35.value :[string, i32]
     %37 = field_get %36._0 :string
     %38 = field_get %36._1 :i32
@@ -192,9 +192,9 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb7:
     branch -> bb8
   bb8:
-    %55 = call next(%54) :Done | Yielded(i32)
+    %55 = call next(%54) :Yield(i32) | null
     %56 = move %55
-    %57 = type_check %56 is Done
+    %57 = type_check %56 is null
     cond_branch %57 ? bb10 : bb11
   bb9:
     %64 = const string(#8) :string
@@ -210,7 +210,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb10:
     branch -> bb9
   bb11:
-    %58 = cast %56 :Yielded(i32)
+    %58 = cast %56 :Yield(i32)
     %59 = field_get %58.value :i32
     %60 = intrinsic builder.new()
     %61 = move %60
@@ -225,9 +225,9 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb13:
     branch -> bb14
   bb14:
-    %73 = call next(%72) :Done | Yielded([usize, string])
+    %73 = call next(%72) :Yield([usize, string]) | null
     %74 = move %73
-    %75 = type_check %74 is Done
+    %75 = type_check %74 is null
     cond_branch %75 ? bb16 : bb17
   bb15:
     %85 = const int(1) :i32
@@ -245,7 +245,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb16:
     branch -> bb15
   bb17:
-    %76 = cast %74 :Yielded([usize, string])
+    %76 = cast %74 :Yield([usize, string])
     %77 = field_get %76.value :[usize, string]
     %78 = field_get %77._0 :usize
     %79 = field_get %77._1 :string
@@ -264,9 +264,9 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb19:
     branch -> bb20
   bb20:
-    %96 = call next(%95) :Done | Yielded(i32)
+    %96 = call next(%95) :Yield(i32) | null
     %97 = move %96
-    %98 = type_check %97 is Done
+    %98 = type_check %97 is null
     cond_branch %98 ? bb22 : bb23
   bb21:
     %105 = const int(0) :i32
@@ -274,7 +274,7 @@ fn tests_snippets_iter_zip_chain__main_vader$main() -> i32
   bb22:
     branch -> bb21
   bb23:
-    %99 = cast %97 :Yielded(i32)
+    %99 = cast %97 :Yield(i32)
     %100 = field_get %99.value :i32
     %101 = intrinsic builder.new()
     %102 = move %101

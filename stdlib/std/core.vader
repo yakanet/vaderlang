@@ -3,7 +3,7 @@
 // Layout :
 //   1. Trait declarations (Display, Equals, Comparable, Hash, Clone,
 //      arithmetic, indexing, containment, iteration, error)
-//   2. Core struct definitions and their impls (Done, Yielded, Range,
+//   2. Core struct definitions and their impls (Yield, Range,
 //      ArrayIterator)
 //   3. Primitive type impls (Equals, Hash, numeric arithmetic, string)
 //
@@ -122,19 +122,22 @@ export Contains :: trait[T] {
 /// `is_empty` are default methods derived from `next` (Layer 8d) ; every
 /// `Iterator` impl picks them up without re-implementing.
 ///
-/// `next()` returns `Done` when the iteration is exhausted, or
-/// `Yielded(T)` carrying the next value.
+/// `next()` returns `null` when the iteration is exhausted, or `Yield(T)`
+/// carrying the next value. Mirrors Rust's `Option<T>::Some` shape — the
+/// `Yield` wrapper distinguishes "an iterator yielded a value" from "this
+/// type is a nullable T at the type level" (relevant when T itself can be
+/// `null`).
 export Iterator :: trait[T] {
-    next :: fn(self) -> Done | Yielded(T)
+    next :: fn(self) -> Yield(T) | null
 
-    // True iff the next `next()` call returns `Done`. Drains exactly one
+    // True iff the next `next()` call returns `null`. Drains exactly one
     // step ; a `false` result has *consumed* the first yielded item already
     // (the iterator is one step ahead from the caller's perspective).
     // Reflects the pull-based shape — there's no peek without an internal
     // buffer.
     is_empty :: fn(self) -> bool = match self.next() {
-        is Done       -> true
-        is Yielded(T) -> false
+        is null     -> true
+        is Yield(T) -> false
     }
 
     // Drain the iterator, returning the count of yielded items. Consumes
@@ -144,8 +147,8 @@ export Iterator :: trait[T] {
         finished := false
         for !finished {
             match self.next() {
-                is Done       -> { finished = true }
-                is Yielded(T) -> { total = total + 1 }
+                is null     -> { finished = true }
+                is Yield(T) -> { total = total + 1 }
             }
         }
         return total
@@ -158,8 +161,8 @@ export Iterator :: trait[T] {
         finished := false
         for !finished {
             match self.next() {
-                is Done            -> { finished = true }
-                is Yielded(T) as y -> { result = y.value }
+                is null          -> { finished = true }
+                is Yield(T) as y -> { result = y.value }
             }
         }
         return result
@@ -180,15 +183,16 @@ export Error :: trait {
 // 2. Core struct definitions
 // ============================================================================
 
-/// `Iterator.step` end-of-iteration marker. No payload — just signals
-/// "no more values".
-export Done :: struct {}
-
-/// `Iterator.step` continuation marker, carrying the next value.
-/// Discriminating against `Done` avoids the sentinel collision that
-/// `T | null` would have for lists whose element type itself includes
-/// `null`.
-export Yielded :: struct[T] { value: T }
+/// `Iterator.next` continuation marker, carrying the next value.
+/// The wrapper distinguishes "iterator yielded a value" from "T |  null"
+/// at the source level, so a `T | null` element type doesn't collide
+/// with the end-of-iteration sentinel.
+///
+/// At the runtime level the wrapper is transparent : for T = ref,
+/// `Yield(T) | null` lowers to a single `void*` slot (T's obj_ptr or
+/// NULL) ; for T = primitive, the value rides in `vader_box_t.payload`
+/// with no wrapper allocation.
+export Yield :: struct[T] { value: T }
 
 /// Range produced by `0..<n` / `0..=n` and `'a'..='z'`. Generic over the
 /// bound type so integer ranges (every signed / unsigned width plus
@@ -219,13 +223,13 @@ Range[T] implements[T: Comparable & Step] Contains[T] {
 }
 
 Range[T] implements[T: Comparable & Step] Iterator[T] {
-    next :: fn(self) -> Done | Yielded(T) {
+    next :: fn(self) -> Yield(T) | null {
         done :: if (self.inclusive) { self.cursor.gt(self.end) }
                 else                 { self.cursor.gte(self.end) }
-        if (done) { return Done {} }
+        if (done) { return null }
         v :: self.cursor
         self.cursor = self.cursor.step()
-        return Yielded(T) { .value = v }
+        return Yield(T) { .value = v }
     }
 }
 
@@ -240,11 +244,11 @@ export ArrayIterator :: struct[T] {
 }
 
 ArrayIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Done | Yielded(T) {
-        if (self.cursor >= self.length) { return Done {} }
+    next :: fn(self) -> Yield(T) | null {
+        if (self.cursor >= self.length) { return null }
         v :: self.arr[self.cursor]
         self.cursor = self.cursor + 1
-        return Yielded(T) { .value = v }
+        return Yield(T) { .value = v }
     }
 }
 

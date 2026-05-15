@@ -7,11 +7,11 @@ import "std/io" { println }
 Countdown :: struct { remaining: i32 }
 
 Countdown implements Iterator(i32) {
-    next :: fn(self) -> Done | Yielded(i32) {
-        if self.remaining <= 0 { return Done {} }
+    next :: fn(self) -> Yield(i32) | null {
+        if self.remaining <= 0 { return null }
         v :: self.remaining
         self.remaining = self.remaining - 1
-        return Yielded(i32) { .value = v }
+        return Yield(i32) { .value = v }
     }
 }
 
@@ -25,7 +25,7 @@ main :: fn() -> i32 {
         is null     -> println("none")
     }
 
-    // is_empty — the empty range Done's immediately.
+    // is_empty — the empty range ends immediately.
     println((0..<0).is_empty())
     println((0..<5).is_empty())
 

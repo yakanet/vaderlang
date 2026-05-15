@@ -3,5 +3,5 @@
 ## tests/snippets/char_range_contains/_main.vader
 
 ## generic instances
-  Yielded(char)
+  Yield(char)
   Range(char)

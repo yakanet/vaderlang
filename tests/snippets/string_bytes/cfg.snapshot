@@ -10,10 +10,10 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
     %3 $k_4: string
     %4 $call_5: StringBytes
     %5 __iter_0: StringBytes (synthetic __iter_0)
-    %6 $call_7: Done | Yielded(u8)
-    %7 __step_1: Done | Yielded(u8) (synthetic __step_1)
+    %6 $call_7: Yield(u8) | null
+    %7 __step_1: Yield(u8) | null (synthetic __step_1)
     %8 $type_check_9: bool
-    %9 $cast_10: Yielded(u8)
+    %9 $cast_10: Yield(u8)
     %10 b: u8 (binding b)
     %11 $cast_13: u32
     %12 $intrinsic_15: ?
@@ -25,10 +25,10 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
     %18 $k_21: string
     %19 $call_22: StringBytes
     %20 __iter_3: StringBytes (synthetic __iter_3)
-    %21 $call_24: Done | Yielded(u8)
-    %22 __step_4: Done | Yielded(u8) (synthetic __step_4)
+    %21 $call_24: Yield(u8) | null
+    %22 __step_4: Yield(u8) | null (synthetic __step_4)
     %23 $type_check_26: bool
-    %24 $cast_27: Yielded(u8)
+    %24 $cast_27: Yield(u8)
     %25 b: u8 (binding b)
     %26 $intrinsic_30: ?
     %27 __sb_5: ? (synthetic __sb_5)
@@ -61,8 +61,8 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
     %54 $k_59: string
     %55 $call_60: StringBytes
     %56 __iter_8: StringBytes (synthetic __iter_8)
-    %57 $call_62: Done | Yielded(u8)
-    %58 __step_9: Done | Yielded(u8) (synthetic __step_9)
+    %57 $call_62: Yield(u8) | null
+    %58 __step_9: Yield(u8) | null (synthetic __step_9)
     %59 $type_check_64: bool
     %60 $k_68: string
     %61 $intrinsic_69: ?
@@ -85,9 +85,9 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %6 = call next(%5) :Done | Yielded(u8)
+    %6 = call next(%5) :Yield(u8) | null
     %7 = move %6
-    %8 = type_check %7 is Done
+    %8 = type_check %7 is null
     cond_branch %8 ? bb4 : bb5
   bb3:
     %12 = intrinsic builder.new()
@@ -107,7 +107,7 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
   bb4:
     branch -> bb3
   bb5:
-    %9 = cast %7 :Yielded(u8)
+    %9 = cast %7 :Yield(u8)
     %10 = field_get %9.value :u8
     %11 = cast %10 :u32
     %2 = binop add %2 %11 :u32
@@ -117,9 +117,9 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
   bb7:
     branch -> bb8
   bb8:
-    %21 = call next(%20) :Done | Yielded(u8)
+    %21 = call next(%20) :Yield(u8) | null
     %22 = move %21
-    %23 = type_check %22 is Done
+    %23 = type_check %22 is null
     cond_branch %23 ? bb10 : bb11
   bb9:
     %29 = const string(#5) :string
@@ -168,7 +168,7 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
   bb10:
     branch -> bb9
   bb11:
-    %24 = cast %22 :Yielded(u8)
+    %24 = cast %22 :Yield(u8)
     %25 = field_get %24.value :u8
     %26 = intrinsic builder.new()
     %27 = move %26
@@ -181,9 +181,9 @@ fn tests_snippets_string_bytes__main_vader$main() -> i32
   bb13:
     branch -> bb14
   bb14:
-    %57 = call next(%56) :Done | Yielded(u8)
+    %57 = call next(%56) :Yield(u8) | null
     %58 = move %57
-    %59 = type_check %58 is Done
+    %59 = type_check %58 is null
     cond_branch %59 ? bb16 : bb17
   bb15:
     %61 = intrinsic builder.new()

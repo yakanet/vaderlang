@@ -85,23 +85,23 @@
             LoweredArrayLen
         }
       loop
-        let __step_3: Done | Yielded([string, i32]) =
-          call :Done | Yielded([string, i32])
+        let __step_3: Yield([string, i32]) | null =
+          call :Yield([string, i32]) | null
             callee:
               next :?
             arg0:
               __iter_2 :ArrayIterator([string, i32])
         if :void
           cond:
-            is Done :bool
-              __step_3 :Done | Yielded([string, i32])
+            is null :bool
+              __step_3 :Yield([string, i32]) | null
           then:
             break
           else:
             let __for_15_5: [string, i32] =
               .value :[string, i32]
-                cast → Yielded([string, i32])
-                  __step_3 :Done | Yielded([string, i32])
+                cast → Yield([string, i32])
+                  __step_3 :Yield([string, i32]) | null
             let __tup_4: [string, i32] = __for_15_5 :[string, i32]
             let k: string =
               ._0 :string
@@ -154,23 +154,23 @@
             LoweredArrayLen
         }
       loop
-        let __step_7: Done | Yielded(i32) =
-          call :Done | Yielded(i32)
+        let __step_7: Yield(i32) | null =
+          call :Yield(i32) | null
             callee:
               next :?
             arg0:
               __iter_6 :ArrayIterator(i32)
         if :void
           cond:
-            is Done :bool
-              __step_7 :Done | Yielded(i32)
+            is null :bool
+              __step_7 :Yield(i32) | null
           then:
             break
           else:
             let x: i32 =
               .value :i32
-                cast → Yielded(i32)
-                  __step_7 :Done | Yielded(i32)
+                cast → Yield(i32)
+                  __step_7 :Yield(i32) | null
             call :void
               callee:
                 println :fn(string) -> void
@@ -209,23 +209,23 @@
                 LoweredArrayLen
             }
       loop
-        let __step_11: Done | Yielded([usize, string]) =
-          call :Done | Yielded([usize, string])
+        let __step_11: Yield([usize, string]) | null =
+          call :Yield([usize, string]) | null
             callee:
               next :?
             arg0:
               __iter_10 :ArrayIterator([usize, string])
         if :void
           cond:
-            is Done :bool
-              __step_11 :Done | Yielded([usize, string])
+            is null :bool
+              __step_11 :Yield([usize, string]) | null
           then:
             break
           else:
             let __for_29_5: [usize, string] =
               .value :[usize, string]
-                cast → Yielded([usize, string])
-                  __step_11 :Done | Yielded([usize, string])
+                cast → Yield([usize, string])
+                  __step_11 :Yield([usize, string]) | null
             let __tup_12: [usize, string] = __for_29_5 :[usize, string]
             let i: usize =
               ._0 :usize
@@ -276,23 +276,23 @@
             LoweredArrayLen
         }
       loop
-        let __step_16: Done | Yielded(i32) =
-          call :Done | Yielded(i32)
+        let __step_16: Yield(i32) | null =
+          call :Yield(i32) | null
             callee:
               next :?
             arg0:
               __iter_15 :ArrayIterator(i32)
         if :void
           cond:
-            is Done :bool
-              __step_16 :Done | Yielded(i32)
+            is null :bool
+              __step_16 :Yield(i32) | null
           then:
             break
           else:
             let n: i32 =
               .value :i32
-                cast → Yielded(i32)
-                  __step_16 :Done | Yielded(i32)
+                cast → Yield(i32)
+                  __step_16 :Yield(i32) | null
             call :void
               callee:
                 println :fn(string) -> void

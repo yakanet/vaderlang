@@ -53,13 +53,13 @@ export StringBytes :: struct {
 }
 
 StringBytes implements Iterator(u8) {
-    next :: fn(self) -> Done | Yielded(u8) {
+    next :: fn(self) -> Yield(u8) | null {
         if (self.cursor >= self.length) {
-            return Done {}
+            return null
         }
         b :: self.s.byte_at(self.cursor)
         self.cursor = self.cursor + 1
-        return Yielded(u8) { .value = b }
+        return Yield(u8) { .value = b }
     }
 }
 
@@ -87,13 +87,13 @@ export StringChars :: struct {
 }
 
 StringChars implements Iterator(char) {
-    next :: fn(self) -> Done | Yielded(char) {
+    next :: fn(self) -> Yield(char) | null {
         if (self.cursor >= self.length) {
-            return Done {}
+            return null
         }
         c :: self.s[self.cursor]
         self.cursor = self.cursor + codepoint_byte_len(c)
-        return Yielded(char) { .value = c }
+        return Yield(char) { .value = c }
     }
 }
 
@@ -146,7 +146,7 @@ export decode_codepoint :: fn(s: string, i: usize) -> [char, usize] {
 /// Count the Unicode codepoints in `s` — what `byte_len()` would return
 /// in a codepoint-indexed language. Walks the UTF-8 byte sequence
 /// directly via leading-byte widths ; cheaper than `s.chars().count()`
-/// because it avoids the per-step `Yielded(char)` heap allocation.
+/// because it avoids the per-step `Yield(char)` allocation.
 ///
 /// Example :
 ///   `count_chars("héllo")    // 5  (byte_len() would return 6)`

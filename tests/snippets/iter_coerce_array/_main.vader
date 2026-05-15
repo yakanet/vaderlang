@@ -14,8 +14,8 @@ walk :: fn(it: Iterator(i32)) -> i32 {
     cont := true
     for cont {
         match it.next() {
-            is Done -> { cont = false }
-            is Yielded(i32) as y -> { sum = sum + y.value }
+            is null -> { cont = false }
+            is Yield(i32) as y -> { sum = sum + y.value }
         }
     }
     return sum

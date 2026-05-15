@@ -13,8 +13,8 @@ count :: fn[T](it: Iterator(T)) -> i32 {
     cont := true
     for cont {
         match it.next() {
-            is Done -> { cont = false }
-            is Yielded(T) -> { n = n + 1 }
+            is null -> { cont = false }
+            is Yield(T) -> { n = n + 1 }
         }
     }
     return n

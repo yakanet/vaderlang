@@ -16,10 +16,10 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
     %9 total: i32 (local total)
     %10 $call_12: MapIterator(string, i32)
     %11 __iter_0: MapIterator(string, i32) (synthetic __iter_0)
-    %12 $call_14: Done | Yielded(Entry(string, i32))
-    %13 __step_1: Done | Yielded(Entry(string, i32)) (synthetic __step_1)
+    %12 $call_14: Yield(Entry(string, i32)) | null
+    %13 __step_1: Yield(Entry(string, i32)) | null (synthetic __step_1)
     %14 $type_check_16: bool
-    %15 $cast_17: Yielded(Entry(string, i32))
+    %15 $cast_17: Yield(Entry(string, i32))
     %16 entry: Entry(string, i32) (binding entry)
     %17 $field_20: i32
     %18 $intrinsic_22: ?
@@ -39,10 +39,10 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
     %32 sum: i32 (local sum)
     %33 $call_39: SetIterator(i32)
     %34 __iter_3: SetIterator(i32) (synthetic __iter_3)
-    %35 $call_41: Done | Yielded(i32)
-    %36 __step_4: Done | Yielded(i32) (synthetic __step_4)
+    %35 $call_41: Yield(i32) | null
+    %36 __step_4: Yield(i32) | null (synthetic __step_4)
     %37 $type_check_43: bool
-    %38 $cast_44: Yielded(i32)
+    %38 $cast_44: Yield(i32)
     %39 v: i32 (binding v)
     %40 $intrinsic_48: ?
     %41 __sb_5: ? (synthetic __sb_5)
@@ -69,9 +69,9 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %12 = call next(%11) :Done | Yielded(Entry(string, i32))
+    %12 = call next(%11) :Yield(Entry(string, i32)) | null
     %13 = move %12
-    %14 = type_check %13 is Done
+    %14 = type_check %13 is null
     cond_branch %14 ? bb4 : bb5
   bb3:
     %18 = intrinsic builder.new()
@@ -98,7 +98,7 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
   bb4:
     branch -> bb3
   bb5:
-    %15 = cast %13 :Yielded(Entry(string, i32))
+    %15 = cast %13 :Yield(Entry(string, i32))
     %16 = field_get %15.value :Entry(string, i32)
     %17 = field_get %16.value :i32
     %9 = binop add %9 %17 :i32
@@ -108,9 +108,9 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
   bb7:
     branch -> bb8
   bb8:
-    %35 = call next(%34) :Done | Yielded(i32)
+    %35 = call next(%34) :Yield(i32) | null
     %36 = move %35
-    %37 = type_check %36 is Done
+    %37 = type_check %36 is null
     cond_branch %37 ? bb10 : bb11
   bb9:
     %40 = intrinsic builder.new()
@@ -125,7 +125,7 @@ fn tests_snippets_map_set_iter__main_vader$main() -> i32
   bb10:
     branch -> bb9
   bb11:
-    %38 = cast %36 :Yielded(i32)
+    %38 = cast %36 :Yield(i32)
     %39 = field_get %38.value :i32
     %32 = binop add %32 %39 :i32
     branch -> bb12

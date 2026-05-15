@@ -5,16 +5,16 @@
   FnDecl         make_iter            :: fn() -> Iterator(i32)
   FnDecl         walk                 :: fn(Iterator(i32)) -> i32
   expr 15:9     IdentExpr      :: bool
-  expr 16:15    CallExpr       :: Done | Yielded(i32)
-  expr 16:15    FieldExpr      :: fn() -> Done | Yielded(i32)
+  expr 16:15    CallExpr       :: null | Yield(i32)
+  expr 16:15    FieldExpr      :: fn() -> null | Yield(i32)
   expr 16:15    IdentExpr      :: Iterator(i32)
   expr 16:9     MatchExpr      :: void
   expr 17:26    IdentExpr      :: bool
-  expr 18:39    IdentExpr      :: i32
-  expr 18:45    BinaryExpr     :: i32
-  expr 18:45    IdentExpr      :: i32
-  expr 18:51    FieldExpr      :: i32
-  expr 18:51    IdentExpr      :: Yielded(i32)
+  expr 18:37    IdentExpr      :: i32
+  expr 18:43    BinaryExpr     :: i32
+  expr 18:43    IdentExpr      :: i32
+  expr 18:49    FieldExpr      :: i32
+  expr 18:49    IdentExpr      :: Yield(i32)
   expr 21:12    IdentExpr      :: i32
   expr 25:12    SeqLitExpr     :: i32[]
   expr 26:12    IdentExpr      :: i32[]

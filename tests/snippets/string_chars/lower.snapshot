@@ -15,23 +15,23 @@
           arg0:
             "vader" :string
       loop
-        let __step_1: Done | Yielded(char) =
-          call :Done | Yielded(char)
+        let __step_1: Yield(char) | null =
+          call :Yield(char) | null
             callee:
               next :?
             arg0:
               __iter_0 :StringChars
         if :void
           cond:
-            is Done :bool
-              __step_1 :Done | Yielded(char)
+            is null :bool
+              __step_1 :Yield(char) | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yielded(char)
-                  __step_1 :Done | Yielded(char)
+                cast → Yield(char)
+                  __step_1 :Yield(char) | null
             call :void
               callee:
                 println :fn(string) -> void
@@ -58,23 +58,23 @@
           arg0:
             "你好嗎？" :string
       loop
-        let __step_4: Done | Yielded(char) =
-          call :Done | Yielded(char)
+        let __step_4: Yield(char) | null =
+          call :Yield(char) | null
             callee:
               next :?
             arg0:
               __iter_3 :StringChars
         if :void
           cond:
-            is Done :bool
-              __step_4 :Done | Yielded(char)
+            is null :bool
+              __step_4 :Yield(char) | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yielded(char)
-                  __step_4 :Done | Yielded(char)
+                cast → Yield(char)
+                  __step_4 :Yield(char) | null
             call :void
               callee:
                 println :fn(string) -> void
@@ -97,23 +97,23 @@
           arg0:
             "héllo" :string
       loop
-        let __step_7: Done | Yielded(char) =
-          call :Done | Yielded(char)
+        let __step_7: Yield(char) | null =
+          call :Yield(char) | null
             callee:
               next :?
             arg0:
               __iter_6 :StringChars
         if :void
           cond:
-            is Done :bool
-              __step_7 :Done | Yielded(char)
+            is null :bool
+              __step_7 :Yield(char) | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yielded(char)
-                  __step_7 :Done | Yielded(char)
+                cast → Yield(char)
+                  __step_7 :Yield(char) | null
             assign
               target:
                 n :i32
@@ -166,23 +166,23 @@
           arg0:
             "" :string
       loop
-        let __step_10: Done | Yielded(char) =
-          call :Done | Yielded(char)
+        let __step_10: Yield(char) | null =
+          call :Yield(char) | null
             callee:
               next :?
             arg0:
               __iter_9 :StringChars
         if :void
           cond:
-            is Done :bool
-              __step_10 :Done | Yielded(char)
+            is null :bool
+              __step_10 :Yield(char) | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yielded(char)
-                  __step_10 :Done | Yielded(char)
+                cast → Yield(char)
+                  __step_10 :Yield(char) | null
             call :void
               callee:
                 println :fn(string) -> void

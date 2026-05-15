@@ -17,10 +17,10 @@ fn tests_snippets_runtime_argv__main_vader$main(%0: string[]) -> i32
     %10 $k_11: usize
     %11 $len_12: usize
     %12 __iter_1: ArrayIterator(string) (synthetic __iter_1)
-    %13 $call_15: Done | Yielded(string)
-    %14 __step_2: Done | Yielded(string) (synthetic __step_2)
+    %13 $call_15: Yield(string) | null
+    %14 __step_2: Yield(string) | null (synthetic __step_2)
     %15 $type_check_17: bool
-    %16 $cast_18: Yielded(string)
+    %16 $cast_18: Yield(string)
     %17 s: string (binding s)
     %18 $k_22: i32
   bb0:
@@ -43,9 +43,9 @@ fn tests_snippets_runtime_argv__main_vader$main(%0: string[]) -> i32
   bb1:
     branch -> bb2
   bb2:
-    %13 = call next(%12) :Done | Yielded(string)
+    %13 = call next(%12) :Yield(string) | null
     %14 = move %13
-    %15 = type_check %14 is Done
+    %15 = type_check %14 is null
     cond_branch %15 ? bb4 : bb5
   bb3:
     %18 = const int(0) :i32
@@ -53,7 +53,7 @@ fn tests_snippets_runtime_argv__main_vader$main(%0: string[]) -> i32
   bb4:
     branch -> bb3
   bb5:
-    %16 = cast %14 :Yielded(string)
+    %16 = cast %14 :Yield(string)
     %17 = field_get %16.value :string
     cond_branch %9 ? bb7 : bb8
   bb6:

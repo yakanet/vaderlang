@@ -7,11 +7,11 @@ fn tests_snippets_iter_coerce_array__main_vader$walk(%0: Iterator(i32)) -> i32
     %0 it: Iterator(i32) (param it)
     %1 sum: i32 (local sum)
     %2 cont: bool (local cont)
-    %3 $vcall_5: Done | Yielded(i32)
-    %4 __scrut_0: Done | Yielded(i32) (synthetic __scrut_0)
+    %3 $vcall_5: null | Yield(i32)
+    %4 __scrut_0: null | Yield(i32) (synthetic __scrut_0)
     %5 $type_check_7: bool
     %6 $type_check_9: bool
-    %7 y: Yielded(i32) (binding y)
+    %7 y: Yield(i32) (binding y)
     %8 $field_12: i32
   bb0:
     %1 = const int(0) :i32
@@ -20,9 +20,9 @@ fn tests_snippets_iter_coerce_array__main_vader$walk(%0: Iterator(i32)) -> i32
   bb1:
     cond_branch %2 ? bb2 : bb3
   bb2:
-    %3 = vcall Iterator.next(recv=%0) :Done | Yielded(i32)
+    %3 = vcall Iterator.next(recv=%0) :null | Yield(i32)
     %4 = move %3
-    %5 = type_check %4 is Done
+    %5 = type_check %4 is null
     cond_branch %5 ? bb4 : bb5
   bb3:
     return %1
@@ -30,12 +30,12 @@ fn tests_snippets_iter_coerce_array__main_vader$walk(%0: Iterator(i32)) -> i32
     %2 = const bool(false) :bool
     branch -> bb6
   bb5:
-    %6 = type_check %4 is Yielded(i32)
+    %6 = type_check %4 is Yield(i32)
     cond_branch %6 ? bb7 : bb8
   bb6:
     branch -> bb1
   bb7:
-    %7 = cast %4 :Yielded(i32)
+    %7 = cast %4 :Yield(i32)
     %8 = field_get %7.value :i32
     %1 = binop add %1 %8 :i32
     branch -> bb9

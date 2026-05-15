@@ -69,23 +69,23 @@
             LoweredArrayLen
         }
       loop
-        let __step_1: Done | Yielded(Day) =
-          call :Done | Yielded(Day)
+        let __step_1: Yield(Day) | null =
+          call :Yield(Day) | null
             callee:
               next :?
             arg0:
               __iter_0 :ArrayIterator(Day)
         if :void
           cond:
-            is Done :bool
-              __step_1 :Done | Yielded(Day)
+            is null :bool
+              __step_1 :Yield(Day) | null
           then:
             break
           else:
             let d: Day =
               .value :Day
-                cast → Yielded(Day)
-                  __step_1 :Done | Yielded(Day)
+                cast → Yield(Day)
+                  __step_1 :Yield(Day) | null
             call :void
               callee:
                 println :fn(string) -> void

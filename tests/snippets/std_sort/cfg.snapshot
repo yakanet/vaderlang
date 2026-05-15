@@ -28,10 +28,10 @@ fn tests_snippets_std_sort__main_vader$print_ints(%0: i32[]) -> void
     %3 $k_5: usize
     %4 $len_6: usize
     %5 __iter_0: ArrayIterator(i32) (synthetic __iter_0)
-    %6 $call_9: Done | Yielded(i32)
-    %7 __step_1: Done | Yielded(i32) (synthetic __step_1)
+    %6 $call_9: Yield(i32) | null
+    %7 __step_1: Yield(i32) | null (synthetic __step_1)
     %8 $type_check_11: bool
-    %9 $cast_12: Yielded(i32)
+    %9 $cast_12: Yield(i32)
     %10 x: i32 (binding x)
     %11 $k_15: i32
     %12 $gt_16: bool
@@ -53,9 +53,9 @@ fn tests_snippets_std_sort__main_vader$print_ints(%0: i32[]) -> void
   bb1:
     branch -> bb2
   bb2:
-    %6 = call next(%5) :Done | Yielded(i32)
+    %6 = call next(%5) :Yield(i32) | null
     %7 = move %6
-    %8 = type_check %7 is Done
+    %8 = type_check %7 is null
     cond_branch %8 ? bb4 : bb5
   bb3:
     call println(%1) :void
@@ -63,7 +63,7 @@ fn tests_snippets_std_sort__main_vader$print_ints(%0: i32[]) -> void
   bb4:
     branch -> bb3
   bb5:
-    %9 = cast %7 :Yielded(i32)
+    %9 = cast %7 :Yield(i32)
     %10 = field_get %9.value :i32
     %11 = const int(0) :i32
     %12 = binop gt %2 %11 :bool
@@ -98,10 +98,10 @@ fn tests_snippets_std_sort__main_vader$print_strings(%0: string[]) -> void
     %3 $k_5: usize
     %4 $len_6: usize
     %5 __iter_0: ArrayIterator(string) (synthetic __iter_0)
-    %6 $call_9: Done | Yielded(string)
-    %7 __step_1: Done | Yielded(string) (synthetic __step_1)
+    %6 $call_9: Yield(string) | null
+    %7 __step_1: Yield(string) | null (synthetic __step_1)
     %8 $type_check_11: bool
-    %9 $cast_12: Yielded(string)
+    %9 $cast_12: Yield(string)
     %10 s: string (binding s)
     %11 $k_15: i32
     %12 $gt_16: bool
@@ -123,9 +123,9 @@ fn tests_snippets_std_sort__main_vader$print_strings(%0: string[]) -> void
   bb1:
     branch -> bb2
   bb2:
-    %6 = call next(%5) :Done | Yielded(string)
+    %6 = call next(%5) :Yield(string) | null
     %7 = move %6
-    %8 = type_check %7 is Done
+    %8 = type_check %7 is null
     cond_branch %8 ? bb4 : bb5
   bb3:
     call println(%1) :void
@@ -133,7 +133,7 @@ fn tests_snippets_std_sort__main_vader$print_strings(%0: string[]) -> void
   bb4:
     branch -> bb3
   bb5:
-    %9 = cast %7 :Yielded(string)
+    %9 = cast %7 :Yield(string)
     %10 = field_get %9.value :string
     %11 = const int(0) :i32
     %12 = binop gt %2 %11 :bool

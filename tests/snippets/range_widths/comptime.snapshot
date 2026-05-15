@@ -3,11 +3,11 @@
 ## tests/snippets/range_widths/_main.vader
 
 ## generic instances
-  Yielded(i16)
-  Yielded(i64)
-  Yielded(isize)
-  Yielded(u64)
-  Yielded(u8)
+  Yield(i16)
+  Yield(i64)
+  Yield(isize)
+  Yield(u64)
+  Yield(u8)
   Range(i16)
   Range(i64)
   Range(isize)

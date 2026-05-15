@@ -5,5 +5,5 @@
 ## tests/snippets/alias_union_in_array/types
 
 ## generic instances
-  Yielded(Cat | Dog)
+  Yield(Cat | Dog)
   ArrayIterator(Cat | Dog)

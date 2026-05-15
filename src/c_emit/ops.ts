@@ -148,7 +148,12 @@ export function emitVtableForwardDecls(ctx: EmitCtx, out: string[]): void {
     const tailCount = sig.params.length - 1;
     const tailParamDecls = Array.from({ length: tailCount }, (_, i) => `vader_box_t a${i}`).join(", ");
     const formal = tailCount > 0 ? `vader_box_t recv, ${tailParamDecls}` : `vader_box_t recv`;
-    out.push(`static ${cTypeForVal(ctx, sig.result)} ${vtableHelperName(key)}(${formal});`);
+    // Vtable adapter uses the non-B1 ABI (vader_box_t) uniformly — each
+    // impl arm may have its own B1 status (T-ref → void* ; T-primitive →
+    // vader_box_t), and the adapter can't pick a single ABI to forward.
+    // Per-arm `return` coerces the impl's result back to vader_box_t below.
+    const cret = cTypeForVal(ctx, sig.result);
+    out.push(`static ${cret} ${vtableHelperName(key)}(${formal});`);
   }
 }
 
@@ -182,7 +187,16 @@ export function emitVtableDispatchers(ctx: EmitCtx, out: string[]): void {
       if (sig.result === "void") {
         out.push(`        case ${tag}u: ${calleeName}(${allArgs}); return;`);
       } else {
-        out.push(`        case ${tag}u: return ${calleeName}(${allArgs});`);
+        // Each impl may emit its result through B1 (raw void*) when its
+        // resultType folds to nullable-ref. Rebox via `vader_b1_to_box`
+        // into the adapter's uniform `vader_box_t` ABI ; for non-B1
+        // impls the call expression already has the right type.
+        const b1Variant = b1SlotVariant(ctx, calleeSig.resultType);
+        const callExpr = `${calleeName}(${allArgs})`;
+        const wrapped = b1Variant !== null
+          ? `vader_b1_to_box(${callExpr}, ${b1Variant}u)`
+          : callExpr;
+        out.push(`        case ${tag}u: return ${wrapped};`);
       }
     }
     out.push(`        default: vader_unreachable("vtable miss in ${escapeC(key)}");`);

@@ -90,14 +90,10 @@
             "kind": "BinaryExpr",
             "op": "bitor",
             "left": {
-              "kind": "IdentExpr",
-              "name": "Done"
-            },
-            "right": {
               "kind": "GenericInstExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "Yielded"
+                "name": "Yield"
               },
               "typeArgs": [
                 {
@@ -105,6 +101,10 @@
                   "name": "T"
                 }
               ]
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "null"
             }
           },
           "body": {
@@ -137,12 +137,7 @@
                       {
                         "kind": "ReturnStmt",
                         "value": {
-                          "kind": "StructLitExpr",
-                          "typeName": {
-                            "kind": "IdentExpr",
-                            "name": "Done"
-                          },
-                          "items": []
+                          "kind": "NullLitExpr"
                         }
                       }
                     ],
@@ -204,7 +199,7 @@
                     "kind": "GenericInstExpr",
                     "callee": {
                       "kind": "IdentExpr",
-                      "name": "Yielded"
+                      "name": "Yield"
                     },
                     "typeArgs": [
                       {
@@ -307,14 +302,10 @@
             "kind": "BinaryExpr",
             "op": "bitor",
             "left": {
-              "kind": "IdentExpr",
-              "name": "Done"
-            },
-            "right": {
               "kind": "GenericInstExpr",
               "callee": {
                 "kind": "IdentExpr",
-                "name": "Yielded"
+                "name": "Yield"
               },
               "typeArgs": [
                 {
@@ -322,6 +313,10 @@
                   "name": "T"
                 }
               ]
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "null"
             }
           },
           "body": {
@@ -345,12 +340,7 @@
                       {
                         "kind": "ReturnStmt",
                         "value": {
-                          "kind": "StructLitExpr",
-                          "typeName": {
-                            "kind": "IdentExpr",
-                            "name": "Done"
-                          },
-                          "items": []
+                          "kind": "NullLitExpr"
                         }
                       }
                     ],
@@ -382,7 +372,7 @@
                     "kind": "GenericInstExpr",
                     "callee": {
                       "kind": "IdentExpr",
-                      "name": "Yielded"
+                      "name": "Yield"
                     },
                     "typeArgs": [
                       {
@@ -507,7 +497,7 @@
                       "kind": "IsPattern",
                       "type": {
                         "kind": "IdentExpr",
-                        "name": "Done"
+                        "name": "null"
                       },
                       "inner": null,
                       "bindAs": null
@@ -538,7 +528,7 @@
                         "kind": "GenericInstExpr",
                         "callee": {
                           "kind": "IdentExpr",
-                          "name": "Yielded"
+                          "name": "Yield"
                         },
                         "typeArgs": [
                           {

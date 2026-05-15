@@ -4,5 +4,5 @@
 
 ## generic instances
   Iterator(i32)
-  Yielded(i32)
+  Yield(i32)
   ArrayIterator(i32)

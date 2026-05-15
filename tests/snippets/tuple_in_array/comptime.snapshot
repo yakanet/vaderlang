@@ -3,5 +3,5 @@
 ## tests/snippets/tuple_in_array/_main.vader
 
 ## generic instances
-  Yielded([i32, string])
+  Yield([i32, string])
   ArrayIterator([i32, string])

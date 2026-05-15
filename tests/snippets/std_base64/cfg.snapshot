@@ -120,10 +120,10 @@ fn tests_snippets_std_base64__main_vader$main() -> i32
     %54 $k_55: usize
     %55 $len_56: usize
     %56 __iter_6: ArrayIterator(string) (synthetic __iter_6)
-    %57 $call_59: Done | Yielded(string)
-    %58 __step_7: Done | Yielded(string) (synthetic __step_7)
+    %57 $call_59: Yield(string) | null
+    %58 __step_7: Yield(string) | null (synthetic __step_7)
     %59 $type_check_61: bool
-    %60 $cast_62: Yielded(string)
+    %60 $cast_62: Yield(string)
     %61 s: string (binding s)
     %62 $call_65: string
     %63 $call_66: Error | string
@@ -234,9 +234,9 @@ fn tests_snippets_std_base64__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %57 = call next(%56) :Done | Yielded(string)
+    %57 = call next(%56) :Yield(string) | null
     %58 = move %57
-    %59 = type_check %58 is Done
+    %59 = type_check %58 is null
     cond_branch %59 ? bb4 : bb5
   bb3:
     %80 = const string(#33) :string
@@ -250,7 +250,7 @@ fn tests_snippets_std_base64__main_vader$main() -> i32
   bb4:
     branch -> bb3
   bb5:
-    %60 = cast %58 :Yielded(string)
+    %60 = cast %58 :Yield(string)
     %61 = field_get %60.value :string
     %62 = call encode(%61) :string
     %63 = call decode(%62) :Error | string

@@ -5,5 +5,5 @@
 ## generic instances
   Repeat(i32)
   Iterator(i32)
-  Yielded(i32)
+  Yield(i32)
   Once(i32)

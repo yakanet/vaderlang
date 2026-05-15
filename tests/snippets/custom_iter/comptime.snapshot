@@ -3,4 +3,4 @@
 ## tests/snippets/custom_iter/_main.vader
 
 ## generic instances
-  Yielded(i32)
+  Yield(i32)

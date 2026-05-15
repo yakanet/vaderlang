@@ -67,10 +67,10 @@ fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispat
     %3 $k_4: usize
     %4 $len_5: usize
     %5 __iter_0: ArrayIterator(i32) (synthetic __iter_0)
-    %6 $call_8: Done | Yielded(i32)
-    %7 __step_1: Done | Yielded(i32) (synthetic __step_1)
+    %6 $call_8: Yield(i32) | null
+    %7 __step_1: Yield(i32) | null (synthetic __step_1)
     %8 $type_check_10: bool
-    %9 $cast_11: Yielded(i32)
+    %9 $cast_11: Yield(i32)
     %10 x: i32 (binding x)
     %11 $call_14: u64
     %12 $call_15: u64
@@ -87,16 +87,16 @@ fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispat
   bb1:
     branch -> bb2
   bb2:
-    %6 = call next(%5) :Done | Yielded(i32)
+    %6 = call next(%5) :Yield(i32) | null
     %7 = move %6
-    %8 = type_check %7 is Done
+    %8 = type_check %7 is null
     cond_branch %8 ? bb4 : bb5
   bb3:
     return %2
   bb4:
     branch -> bb3
   bb5:
-    %9 = cast %7 :Yielded(i32)
+    %9 = cast %7 :Yield(i32)
     %10 = field_get %9.value :i32
     %11 = call hash(%10) :u64
     %12 = call hash(%1) :u64
@@ -128,10 +128,10 @@ fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispat
     %3 $k_4: usize
     %4 $len_5: usize
     %5 __iter_0: ArrayIterator(string) (synthetic __iter_0)
-    %6 $call_8: Done | Yielded(string)
-    %7 __step_1: Done | Yielded(string) (synthetic __step_1)
+    %6 $call_8: Yield(string) | null
+    %7 __step_1: Yield(string) | null (synthetic __step_1)
     %8 $type_check_10: bool
-    %9 $cast_11: Yielded(string)
+    %9 $cast_11: Yield(string)
     %10 x: string (binding x)
     %11 $call_14: u64
     %12 $call_15: u64
@@ -148,16 +148,16 @@ fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispat
   bb1:
     branch -> bb2
   bb2:
-    %6 = call next(%5) :Done | Yielded(string)
+    %6 = call next(%5) :Yield(string) | null
     %7 = move %6
-    %8 = type_check %7 is Done
+    %8 = type_check %7 is null
     cond_branch %8 ? bb4 : bb5
   bb3:
     return %2
   bb4:
     branch -> bb3
   bb5:
-    %9 = cast %7 :Yielded(string)
+    %9 = cast %7 :Yield(string)
     %10 = field_get %9.value :string
     %11 = call hash(%10) :u64
     %12 = call hash(%1) :u64

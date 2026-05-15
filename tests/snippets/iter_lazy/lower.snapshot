@@ -19,23 +19,23 @@
     block :void
       let __iter_1: MapIterator(i32, i32) = mi :MapIterator(i32, i32)
       loop
-        let __step_2: Done | Yielded(i32) =
-          call :Done | Yielded(i32)
+        let __step_2: Yield(i32) | null =
+          call :Yield(i32) | null
             callee:
               next :?
             arg0:
               __iter_1 :MapIterator(i32, i32)
         if :void
           cond:
-            is Done :bool
-              __step_2 :Done | Yielded(i32)
+            is null :bool
+              __step_2 :Yield(i32) | null
           then:
             break
           else:
             let v: i32 =
               .value :i32
-                cast → Yielded(i32)
-                  __step_2 :Done | Yielded(i32)
+                cast → Yield(i32)
+                  __step_2 :Yield(i32) | null
             assign
               target:
                 total :i32
@@ -79,23 +79,23 @@
     block :void
       let __iter_5: FilterIterator(i32) = fi :FilterIterator(i32)
       loop
-        let __step_6: Done | Yielded(i32) =
-          call :Done | Yielded(i32)
+        let __step_6: Yield(i32) | null =
+          call :Yield(i32) | null
             callee:
               next :?
             arg0:
               __iter_5 :FilterIterator(i32)
         if :void
           cond:
-            is Done :bool
-              __step_6 :Done | Yielded(i32)
+            is null :bool
+              __step_6 :Yield(i32) | null
           then:
             break
           else:
             let v: i32 =
               .value :i32
-                cast → Yielded(i32)
-                  __step_6 :Done | Yielded(i32)
+                cast → Yield(i32)
+                  __step_6 :Yield(i32) | null
             assign
               target:
                 even_count :i32
@@ -153,23 +153,23 @@
     block :void
       let __iter_8: TakeIterator(i32) = ti :TakeIterator(i32)
       loop
-        let __step_9: Done | Yielded(i32) =
-          call :Done | Yielded(i32)
+        let __step_9: Yield(i32) | null =
+          call :Yield(i32) | null
             callee:
               next :?
             arg0:
               __iter_8 :TakeIterator(i32)
         if :void
           cond:
-            is Done :bool
-              __step_9 :Done | Yielded(i32)
+            is null :bool
+              __step_9 :Yield(i32) | null
           then:
             break
           else:
             let v: i32 =
               .value :i32
-                cast → Yielded(i32)
-                  __step_9 :Done | Yielded(i32)
+                cast → Yield(i32)
+                  __step_9 :Yield(i32) | null
             assign
               target:
                 take_sum :i32
@@ -215,23 +215,23 @@
     block :void
       let __iter_11: SkipIterator(i32) = si :SkipIterator(i32)
       loop
-        let __step_12: Done | Yielded(i32) =
-          call :Done | Yielded(i32)
+        let __step_12: Yield(i32) | null =
+          call :Yield(i32) | null
             callee:
               next :?
             arg0:
               __iter_11 :SkipIterator(i32)
         if :void
           cond:
-            is Done :bool
-              __step_12 :Done | Yielded(i32)
+            is null :bool
+              __step_12 :Yield(i32) | null
           then:
             break
           else:
             let v: i32 =
               .value :i32
-                cast → Yielded(i32)
-                  __step_12 :Done | Yielded(i32)
+                cast → Yield(i32)
+                  __step_12 :Yield(i32) | null
             if :void
               cond:
                 lt :bool

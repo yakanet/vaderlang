@@ -18,23 +18,23 @@
           arg0:
             "vader" :string
       loop
-        let __step_1: Done | Yielded(u8) =
-          call :Done | Yielded(u8)
+        let __step_1: Yield(u8) | null =
+          call :Yield(u8) | null
             callee:
               next :?
             arg0:
               __iter_0 :StringBytes
         if :void
           cond:
-            is Done :bool
-              __step_1 :Done | Yielded(u8)
+            is null :bool
+              __step_1 :Yield(u8) | null
           then:
             break
           else:
             let b: u8 =
               .value :u8
-                cast → Yielded(u8)
-                  __step_1 :Done | Yielded(u8)
+                cast → Yield(u8)
+                  __step_1 :Yield(u8) | null
             assign
               target:
                 sum :u32
@@ -78,23 +78,23 @@
           arg0:
             "你" :string
       loop
-        let __step_4: Done | Yielded(u8) =
-          call :Done | Yielded(u8)
+        let __step_4: Yield(u8) | null =
+          call :Yield(u8) | null
             callee:
               next :?
             arg0:
               __iter_3 :StringBytes
         if :void
           cond:
-            is Done :bool
-              __step_4 :Done | Yielded(u8)
+            is null :bool
+              __step_4 :Yield(u8) | null
           then:
             break
           else:
             let b: u8 =
               .value :u8
-                cast → Yielded(u8)
-                  __step_4 :Done | Yielded(u8)
+                cast → Yield(u8)
+                  __step_4 :Yield(u8) | null
             call :void
               callee:
                 println :fn(string) -> void
@@ -207,23 +207,23 @@
           arg0:
             "" :string
       loop
-        let __step_9: Done | Yielded(u8) =
-          call :Done | Yielded(u8)
+        let __step_9: Yield(u8) | null =
+          call :Yield(u8) | null
             callee:
               next :?
             arg0:
               __iter_8 :StringBytes
         if :void
           cond:
-            is Done :bool
-              __step_9 :Done | Yielded(u8)
+            is null :bool
+              __step_9 :Yield(u8) | null
           then:
             break
           else:
             let b: u8 =
               .value :u8
-                cast → Yielded(u8)
-                  __step_9 :Done | Yielded(u8)
+                cast → Yield(u8)
+                  __step_9 :Yield(u8) | null
             call :void
               callee:
                 println :fn(string) -> void

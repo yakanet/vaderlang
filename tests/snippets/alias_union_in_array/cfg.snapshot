@@ -77,10 +77,10 @@ fn tests_snippets_alias_union_in_array__main_vader$main() -> i32
     %5 $k_6: usize
     %6 $len_7: usize
     %7 __iter_0: ArrayIterator(Cat | Dog) (synthetic __iter_0)
-    %8 $call_10: Done | Yielded(Cat | Dog)
-    %9 __step_1: Done | Yielded(Cat | Dog) (synthetic __step_1)
+    %8 $call_10: Yield(Cat | Dog) | null
+    %9 __step_1: Yield(Cat | Dog) | null (synthetic __step_1)
     %10 $type_check_12: bool
-    %11 $cast_13: Yielded(Cat | Dog)
+    %11 $cast_13: Yield(Cat | Dog)
     %12 p: Cat | Dog (binding p)
     %13 $call_16: string
     %14 $k_17: i32
@@ -99,9 +99,9 @@ fn tests_snippets_alias_union_in_array__main_vader$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %8 = call next(%7) :Done | Yielded(Cat | Dog)
+    %8 = call next(%7) :Yield(Cat | Dog) | null
     %9 = move %8
-    %10 = type_check %9 is Done
+    %10 = type_check %9 is null
     cond_branch %10 ? bb4 : bb5
   bb3:
     %14 = const int(0) :i32
@@ -109,7 +109,7 @@ fn tests_snippets_alias_union_in_array__main_vader$main() -> i32
   bb4:
     branch -> bb3
   bb5:
-    %11 = cast %9 :Yielded(Cat | Dog)
+    %11 = cast %9 :Yield(Cat | Dog)
     %12 = field_get %11.value :Cat | Dog
     %13 = call describe(%12) :string
     call println(%13) :void

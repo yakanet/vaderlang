@@ -5,14 +5,13 @@ type 2 primitive bool
 type 3 primitive i32
 type 4 primitive string
 type 5 primitive usize
-type 6 struct std_core$Done {  }
-type 7 struct std_core$Yielded__char { value:1 }
-type 8 primitive void
-type 9 array 4
-type 10 struct std_string$StringChars { s:4,cursor:5,length:5 }
-type 11 union 6,7
-type 12 fn (1) -> 2
-type 13 struct std_string_builder$StringBuilder { parts:9 }
+type 6 struct std_core$Yield__char { value:1 }
+type 7 primitive void
+type 8 array 4
+type 9 struct std_string$StringChars { s:4,cursor:5,length:5 }
+type 10 union 0,6
+type 11 fn (1) -> 2
+type 12 struct std_string_builder$StringBuilder { parts:8 }
 string 0 "foo.vader"
 string 1 ".vader"
 string 2 "foo.bar"
@@ -31,8 +30,8 @@ import 4 slice std_string$slice (string,usize,usize) -> string
 import 5 starts_with std_string$starts_with (string,string) -> bool
 import 6 ends_with std_string$ends_with (string,string) -> bool
 import 7 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
-impl 10 Iterator
-impl 13 Display
+impl 9 Iterator
+impl 12 Display
 
 fn 0 tests_snippets_regex_helpers__main_vader$is_non_id (char) -> bool
   local and_res bool
@@ -128,14 +127,14 @@ fn 1 tests_snippets_regex_helpers__main_vader$main () -> i32
   string.const 4   ; _main.vader:18:13
   call 6   ; _main.vader:18:13
   call.import 2   ; _main.vader:18:5
-  fn.ref 0 12   ; _main.vader:20:51
+  fn.ref 0 11   ; _main.vader:20:51
   local.set 0   ; _main.vader:20:51
   string.const 6   ; _main.vader:20:13
   local.get 0   ; _main.vader:20:13
   string.const 7   ; _main.vader:20:13
   call 7   ; _main.vader:20:13
   call.import 2   ; _main.vader:20:5
-  fn.ref 4 12   ; _main.vader:22:57
+  fn.ref 4 11   ; _main.vader:22:57
   local.set 1   ; _main.vader:22:57
   string.const 8   ; _main.vader:22:14
   local.get 1   ; _main.vader:22:14
@@ -169,7 +168,7 @@ fn 1 tests_snippets_regex_helpers__main_vader$main () -> i32
       if $L2 void   ; _main.vader:26:9
         local.get 2   ; _main.vader:27:17
         local.get 6   ; _main.vader:27:17
-        array.get 9   ; _main.vader:27:17
+        array.get 8   ; _main.vader:27:17
         ref.cast 4   ; _main.vader:27:17
         call.import 2   ; _main.vader:27:9
         local.get 6   ; _main.vader:28:13
@@ -196,30 +195,30 @@ fn 2 std_string$StringChars$Iterator$next (ref) -> ref
   local $call_10 usize
   local $add_11 usize
   local.get 0   ; string.vader:91:13
-  struct.get 10 1   ; string.vader:91:13
+  struct.get 9 1   ; string.vader:91:13
   local.set 1   ; string.vader:91:13
   local.get 0   ; string.vader:91:28
-  struct.get 10 2   ; string.vader:91:28
+  struct.get 9 2   ; string.vader:91:28
   local.set 2   ; string.vader:91:28
   local.get 1   ; string.vader:91:13
   local.get 2   ; string.vader:91:13
   usize.ge   ; string.vader:91:13
   if $L0 void   ; string.vader:91:9
-    struct.new 6   ; string.vader:92:20
+    null.const   ; string.vader:92:20
     return   ; string.vader:92:13
   else   ; string.vader:91:9
     local.get 0   ; string.vader:94:14
-    struct.get 10 0   ; string.vader:94:14
+    struct.get 9 0   ; string.vader:94:14
     local.set 3   ; string.vader:94:14
     local.get 0   ; string.vader:94:21
-    struct.get 10 1   ; string.vader:94:21
+    struct.get 9 1   ; string.vader:94:21
     local.set 4   ; string.vader:94:21
     local.get 3   ; string.vader:94:14
     local.get 4   ; string.vader:94:14
     call.import 1   ; string.vader:94:14
     local.set 5   ; string.vader:94:9
     local.get 0   ; string.vader:95:23
-    struct.get 10 1   ; string.vader:95:23
+    struct.get 9 1   ; string.vader:95:23
     local.set 6   ; string.vader:95:23
     local.get 5   ; string.vader:95:37
     call 12   ; string.vader:95:37
@@ -230,9 +229,9 @@ fn 2 std_string$StringChars$Iterator$next (ref) -> ref
     local.set 8   ; string.vader:95:23
     local.get 0   ; string.vader:95:9
     local.get 8   ; string.vader:95:9
-    struct.set 10 1   ; string.vader:95:9
+    struct.set 9 1   ; string.vader:95:9
     local.get 5   ; string.vader:96:16
-    struct.new 7   ; string.vader:96:16
+    struct.new 6   ; string.vader:96:16
     return   ; string.vader:96:9
   end $L0   ; string.vader:91:9
 end
@@ -249,7 +248,7 @@ fn 3 std_string$chars (string) -> ref
   local.get 0   ; string.vader:112:12
   local.get 1   ; string.vader:112:12
   local.get 2   ; string.vader:112:12
-  struct.new 10   ; string.vader:112:12
+  struct.new 9   ; string.vader:112:12
   return   ; string.vader:112:5
 end
 
@@ -362,14 +361,14 @@ fn 7 std_string$replace_chars_where (string,ref,string) -> string
       local.get 4   ; string.vader:403:5
       call 2   ; string.vader:403:5
       local.tee 5   ; string.vader:403:5
-      type_check 6   ; string.vader:403:5
+      type_check 0   ; string.vader:403:5
       if $L2 void   ; string.vader:403:5
       else   ; string.vader:403:5
         local.get 5   ; string.vader:403:5
-        struct.get 7 0   ; string.vader:403:5
+        struct.get 6 0   ; string.vader:403:5
         local.tee 6   ; string.vader:403:5
         local.get 1   ; string.vader:404:12
-        call.indirect 12   ; string.vader:404:12
+        call.indirect 11   ; string.vader:404:12
         if $L3 void   ; string.vader:404:9
           local.get 3   ; string.vader:405:13
           local.get 2   ; string.vader:405:13
@@ -397,7 +396,7 @@ fn 8 std_string$split_where (string,ref) -> ref
   local c char
   local $call_17 string
   local $call_21 string
-  array.new 9 0   ; string.vader:426:21
+  array.new 8 0   ; string.vader:426:21
   local.set 2   ; string.vader:426:21
   call 9   ; string.vader:427:11
   local.set 3   ; string.vader:427:5
@@ -411,14 +410,14 @@ fn 8 std_string$split_where (string,ref) -> ref
       local.get 5   ; string.vader:429:5
       call 2   ; string.vader:429:5
       local.tee 6   ; string.vader:429:5
-      type_check 6   ; string.vader:429:5
+      type_check 0   ; string.vader:429:5
       if $L2 void   ; string.vader:429:5
       else   ; string.vader:429:5
         local.get 6   ; string.vader:429:5
-        struct.get 7 0   ; string.vader:429:5
+        struct.get 6 0   ; string.vader:429:5
         local.tee 7   ; string.vader:429:5
         local.get 1   ; string.vader:430:12
-        call.indirect 12   ; string.vader:430:12
+        call.indirect 11   ; string.vader:430:12
         if $L3 void   ; string.vader:430:9
           local.get 4   ; string.vader:431:13
           if $L4 void   ; string.vader:431:13
@@ -460,14 +459,14 @@ fn 8 std_string$split_where (string,ref) -> ref
 end
 
 fn 9 std_string_builder$new_builder () -> ref
-  array.new 9 0   ; string_builder.vader:25:37
-  struct.new 13   ; string_builder.vader:25:12
+  array.new 8 0   ; string_builder.vader:25:37
+  struct.new 12   ; string_builder.vader:25:12
   return   ; string_builder.vader:25:5
 end
 
 fn 10 std_string_builder$append (ref,string) -> void
   local.get 0   ; string_builder.vader:33:5
-  struct.get 13 0   ; string_builder.vader:33:5
+  struct.get 12 0   ; string_builder.vader:33:5
   local.get 1   ; string_builder.vader:33:5
   array.push 4   ; string_builder.vader:33:5
   return   ; string_builder.vader:32:61
@@ -478,7 +477,7 @@ fn 11 std_string_builder$append_char (ref,char) -> void
   local __sb_0 any
   local $intrinsic_5 string
   local.get 0   ; string_builder.vader:40:5
-  struct.get 13 0   ; string_builder.vader:40:5
+  struct.get 12 0   ; string_builder.vader:40:5
   local.set 2   ; string_builder.vader:40:5
   intrinsic builder.new   ; string_builder.vader:40:21
   local.tee 3   ; string_builder.vader:40:21

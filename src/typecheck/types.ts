@@ -64,8 +64,7 @@ export const CORE_TRAITS = {
 export const CORE_STRUCTS = {
   Range:          "Range",
   ArrayIterator:  "ArrayIterator",
-  Done:           "Done",
-  Yielded:        "Yielded",
+  Yield:          "Yield",
 } as const;
 
 export interface PrimitiveType {

@@ -25,23 +25,23 @@
             LoweredArrayLen
         }
       loop
-        let __step_1: Done | Yielded([string, i32]) =
-          call :Done | Yielded([string, i32])
+        let __step_1: Yield([string, i32]) | null =
+          call :Yield([string, i32]) | null
             callee:
               next :?
             arg0:
               __iter_0 :ArrayIterator([string, i32])
         if :void
           cond:
-            is Done :bool
-              __step_1 :Done | Yielded([string, i32])
+            is null :bool
+              __step_1 :Yield([string, i32]) | null
           then:
             break
           else:
             let __for_9_5: [string, i32] =
               .value :[string, i32]
-                cast → Yielded([string, i32])
-                  __step_1 :Done | Yielded([string, i32])
+                cast → Yield([string, i32])
+                  __step_1 :Yield([string, i32]) | null
             let __tup_2: [string, i32] = __for_9_5 :[string, i32]
             let k: string =
               ._0 :string
