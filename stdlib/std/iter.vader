@@ -47,6 +47,17 @@ export collect :: fn[T](arr: T[]) -> T[] {
     return out
 }
 
+/// Drain `it` into a fresh array. Pair with the lazy combinators
+/// (`it.filter(p).map(f).collect()`) when a snapshot is required ;
+/// `for x in it` consumes directly without the intermediate array.
+export collect :: fn[T](it: Iterator(T)) -> T[] {
+    out: T[] = []
+    for x in it {
+        out.push(x)
+    }
+    return out
+}
+
 /// Apply `f` to every element, returning a fresh array of the results.
 /// Stable (preserves input order).
 /// @param arr  source array.
@@ -74,22 +85,9 @@ export filter :: fn[T](arr: T[], pred: fn(T) -> bool) -> T[] {
     return out
 }
 
-/// Drain `it`, keeping only items for which `pred` returns `true`. Lets
-/// `s.chars().filter(...)` and similar iterator chains dispatch to this
-/// overload instead of forcing a `.collect()` round-trip. Eager — for a
-/// lazy form, construct `FilterIterator(T)` directly.
-/// @param it    source iterator (anything implementing `Iterator(T)`).
-/// @param pred  predicate invoked on each element ; truthy → kept.
-/// @return      a fresh array of the kept elements.
-export filter :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> T[] {
-    out: T[] = []
-    for x in it {
-        if pred(x) {
-            out.push(x)
-        }
-    }
-    return out
-}
+// Eager iterator `filter` removed — the lazy fluent overload below
+// (`filter :: fn[T](self: Iterator(T), ...) -> FilterIterator(T)`)
+// is the new default. Drain to an array with `.collect()` when needed.
 
 /// Left-fold the array with seed `init`. `f(acc, x)` is called for every
 /// element in order ; the final accumulator is returned.
@@ -322,9 +320,37 @@ export find_map :: fn[T, U](it: Iterator(T), f: fn(T) -> U | null) -> U | null {
 // element only flows through the chain when the downstream consumer calls
 // `next()` (or `for x in chain {…}` does).
 //
-// Construction goes through the struct literal — see the module header for
-// the rationale (no fn helper because of a generic-inference limitation on
-// trait-typed parameters).
+// Two construction shapes : the struct literal (`MapIterator(T, U) { … }`)
+// and the fluent free fns below. The fluent shape (`it.map(f).filter(p)`)
+// reads like an Iterator pipeline and dispatches via UFCS through the
+// first param's type — overload-resolved against the eager `T[]`-first-
+// param siblings declared above. The lowerer's iter-chain fusion path
+// recognises both shapes and folds them into a single counter loop when
+// the chain bottoms at an inline range.
+
+/// Fluent lazy `filter`. Distinct from the eager `T[]`-overload above —
+/// the resolver picks this one when the receiver implements `Iterator(T)`
+/// (Range, ArrayIterator, MutableMap, …).
+export filter :: fn[T](self: Iterator(T), pred: fn(T) -> bool) -> FilterIterator(T) {
+    return FilterIterator(T) { .source = self, .pred = pred }
+}
+
+/// Fluent lazy `map`. Mirror of `filter` for transforms ; element type
+/// can change (`T` → `U`).
+export map :: fn[T, U](self: Iterator(T), f: fn(T) -> U) -> MapIterator(T, U) {
+    return MapIterator(T, U) { .source = self, .f = f }
+}
+
+/// Fluent lazy `take`. Yields the first `n` items from `self`, then `Done`.
+export take :: fn[T](self: Iterator(T), n: usize) -> TakeIterator(T) {
+    return TakeIterator(T) { .source = self, .remaining = n }
+}
+
+/// Fluent lazy `skip`. Drops the first `n` items from `self`, then forwards
+/// every subsequent item.
+export skip :: fn[T](self: Iterator(T), n: usize) -> SkipIterator(T) {
+    return SkipIterator(T) { .source = self, .remaining = n }
+}
 
 /// Lazy map. `next()` pulls one item from `source`, transforms it via `f`,
 /// and yields it. Stops when the source is exhausted.

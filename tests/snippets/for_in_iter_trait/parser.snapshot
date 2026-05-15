@@ -240,7 +240,7 @@
                     }
                   ]
                 },
-                "field": "len"
+                "field": "count"
               },
               "args": []
             }

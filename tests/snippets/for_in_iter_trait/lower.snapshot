@@ -40,7 +40,21 @@
           char(0x6c)
   fn tests_snippets_for_in_iter_trait__main_vader$count_ls(s: string) -> usize
     return
-      LoweredArrayLen
+      call :usize
+        callee:
+          count :usize
+        arg0:
+          call :FilterIterator(char)
+            callee:
+              filter :FilterIterator(char)
+            arg0:
+              call :StringChars
+                callee:
+                  chars :StringChars
+                arg0:
+                  s :string
+            arg1:
+              is_l :fn(char) -> bool
   fn tests_snippets_for_in_iter_trait__main_vader$main() -> i32
     let a: i32 =
       call :i32

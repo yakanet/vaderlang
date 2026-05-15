@@ -50,13 +50,13 @@ fn tests_snippets_for_in_iter_trait__main_vader$count_ls(%0: string) -> usize
     %0 s: string (param s)
     %1 $call_1: StringChars
     %2 $fn_ref_2: fn(char) -> bool
-    %3 $call_3: char[]
-    %4 $len_4: usize
+    %3 $call_3: FilterIterator(char)
+    %4 $call_4: usize
   bb0:
     %1 = call chars(%0) :StringChars
     %2 = fn_ref is_l :fn(char) -> bool
-    %3 = call filter(%1, %2) :char[]
-    %4 = array_len %3
+    %3 = call filter(%1, %2) :FilterIterator(char)
+    %4 = call count(%3) :usize
     return %4
 
 fn tests_snippets_for_in_iter_trait__main_vader$main() -> i32

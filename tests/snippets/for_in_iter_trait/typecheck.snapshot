@@ -13,12 +13,12 @@
   expr 24:12    IdentExpr      :: i32
   expr 31:38    BinaryExpr     :: bool
   expr 31:38    IdentExpr      :: char
+  expr 33:12    CallExpr       :: FilterIterator(char)
   expr 33:12    CallExpr       :: StringChars
-  expr 33:12    CallExpr       :: char[]
   expr 33:12    CallExpr       :: usize
   expr 33:12    FieldExpr      :: fn() -> StringChars
   expr 33:12    FieldExpr      :: fn() -> usize
-  expr 33:12    FieldExpr      :: fn(fn($T) -> bool) -> $T[]
+  expr 33:12    FieldExpr      :: fn(fn($T) -> bool) -> FilterIterator($T)
   expr 33:12    IdentExpr      :: string
   expr 33:29    IdentExpr      :: fn(char) -> bool
   expr 37:10    CallExpr       :: i32

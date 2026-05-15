@@ -33,7 +33,6 @@
   count([usize, string])
   map(i32, i32)
   filter(i32)
-  filter(char)
   fold(i32, i32)
   take(i32)
   skip(i32)
@@ -44,3 +43,5 @@
   all(i32)
   find(i32)
   find_map(i32, i32)
+  filter(char)
+  FilterIterator(char)

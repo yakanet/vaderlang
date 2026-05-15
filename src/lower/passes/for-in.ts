@@ -75,14 +75,14 @@ export function lowerForIn(
     if (fast !== null) return fast;
   }
 
-  // Fast path : `for x in MapIterator/FilterIterator { source: <chain>, … }`.
-  // Detects a vertical chain of std/iter lazy combinators bottoming out in
-  // a RangeExpr and fuses the entire pipeline into a single counter loop —
-  // no Range / Yielded / Done allocations, no virtual dispatch through
-  // `Iterator.next()`. Falls back to the generic path when the pattern
-  // doesn't match (user-defined iterator types, source via a variable, a
-  // pred/f field that isn't a bare fn-ident reference, …).
-  if (iterExpr.kind === "StructLitExpr") {
+  // Fast path : `for x in <chain>` where `<chain>` is a vertical chain of
+  // `std/iter` lazy combinators (struct literals or fluent
+  // `it.map(f).filter(p)` calls) bottoming out in a `RangeExpr`. Fuses
+  // the entire pipeline into a single counter loop — no Range / Yielded
+  // / Done allocations, no virtual dispatch through `Iterator.next()`.
+  // Falls back to the generic path when the pattern doesn't match
+  // (chain source via a variable, pred/f that isn't a bare fn ref, …).
+  if (iterExpr.kind === "StructLitExpr" || iterExpr.kind === "CallExpr") {
     const fused = tryLowerForInIterChainFusion(ctx, stmt, iterExpr, bindingName, bindingSym);
     if (fused !== null) return fused;
   }
@@ -312,7 +312,7 @@ type IterChain =
  *      } { … }
  */
 function tryLowerForInIterChainFusion(
-  ctx: FnLowerCtx, stmt: A.ForStmt, iterExpr: A.StructLitExpr,
+  ctx: FnLowerCtx, stmt: A.ForStmt, iterExpr: A.Expr,
   bindingName: string, bindingSym: Symbol | undefined,
 ): LoweredStmt | null {
   if (bindingSym === undefined) return null;
@@ -344,41 +344,82 @@ function tryLowerForInIterChainFusion(
 }
 
 /** Step through the chain AST top-down. Each layer either matches a known
- *  std/iter combinator (with the source field assigned inline) or bottoms
- *  out at a Phase-A-eligible RangeExpr ; anything else returns null. */
+ *  std/iter combinator (struct lit with the source field inline OR a
+ *  fluent `it.map(f)` / `it.filter(p)` call) or bottoms out at a Phase-A-
+ *  eligible RangeExpr ; anything else returns null. */
 function descendChain(ctx: FnLowerCtx, expr: A.Expr): IterChain | null {
   if (expr.kind === "RangeExpr") {
     const loType = ctx.typed.exprTypes.get(expr.lower);
     if (loType === undefined || !isInteger(loType)) return null;
     return { kind: "range", lower: expr.lower, upper: expr.upper, inclusive: expr.inclusive, elementType: loType, span: expr.span };
   }
-  if (expr.kind !== "StructLitExpr") return null;
-  const exprType = ctx.typed.exprTypes.get(expr);
-  if (exprType === undefined || exprType.kind !== "Struct") return null;
   const iterSyms = ctx.project.iterSymbols;
   if (iterSyms === null) return null;
-
   const mapSym = iterSyms.get("MapIterator");
   const filterSym = iterSyms.get("FilterIterator");
+  const exprType = ctx.typed.exprTypes.get(expr);
+  if (exprType === undefined || exprType.kind !== "Struct") return null;
 
-  if (mapSym !== undefined && exprType.symbol.id === mapSym.id) {
-    const source = findInlineField(expr, "source");
-    const mapFn = findInlineField(expr, "f");
-    if (source === null || mapFn === null) return null;
-    const inner = descendChain(ctx, source);
-    if (inner === null) return null;
-    // MapIterator(T, U) — the output element type is the second type arg.
-    const outputType = exprType.args[1];
-    if (outputType === undefined) return null;
-    return { kind: "map", source: inner, mapFn, outputType, span: expr.span };
+  if (expr.kind === "StructLitExpr") {
+    if (mapSym !== undefined && exprType.symbol.id === mapSym.id) {
+      const source = findInlineField(expr, "source");
+      const mapFn = findInlineField(expr, "f");
+      if (source === null || mapFn === null) return null;
+      const inner = descendChain(ctx, source);
+      if (inner === null) return null;
+      const outputType = exprType.args[1];
+      if (outputType === undefined) return null;
+      return { kind: "map", source: inner, mapFn, outputType, span: expr.span };
+    }
+    if (filterSym !== undefined && exprType.symbol.id === filterSym.id) {
+      const source = findInlineField(expr, "source");
+      const predFn = findInlineField(expr, "pred");
+      if (source === null || predFn === null) return null;
+      const inner = descendChain(ctx, source);
+      if (inner === null) return null;
+      return { kind: "filter", source: inner, predFn, span: expr.span };
+    }
+    return null;
   }
-  if (filterSym !== undefined && exprType.symbol.id === filterSym.id) {
-    const source = findInlineField(expr, "source");
-    const predFn = findInlineField(expr, "pred");
-    if (source === null || predFn === null) return null;
-    const inner = descendChain(ctx, source);
+
+  if (expr.kind === "CallExpr") {
+    const fluent = unpackFluentCombinator(ctx, expr);
+    if (fluent === null) return null;
+    const inner = descendChain(ctx, fluent.receiver);
     if (inner === null) return null;
-    return { kind: "filter", source: inner, predFn, span: expr.span };
+    if (mapSym !== undefined && exprType.symbol.id === mapSym.id) {
+      const outputType = exprType.args[1];
+      if (outputType === undefined) return null;
+      return { kind: "map", source: inner, mapFn: fluent.fnArg, outputType, span: expr.span };
+    }
+    if (filterSym !== undefined && exprType.symbol.id === filterSym.id) {
+      return { kind: "filter", source: inner, predFn: fluent.fnArg, span: expr.span };
+    }
+  }
+  return null;
+}
+
+/** Recognise the fluent `it.map(f)` / `map(it, f)` / `it.filter(p)` /
+ *  `filter(it, p)` shapes. Returns the receiver expr (the chain source)
+ *  and the transform / predicate arg, or null when the call isn't one
+ *  of the two fluent combinators we can fuse. The caller checks the
+ *  call's return type to pick which combinator it is. */
+function unpackFluentCombinator(
+  ctx: FnLowerCtx, expr: A.CallExpr,
+): { receiver: A.Expr; fnArg: A.Expr } | null {
+  // UFCS form : `it.map(f)`. The callee is a FieldExpr whose target is
+  // the receiver ; remaining args carry the transform / predicate.
+  if (expr.callee.kind === "FieldExpr") {
+    const fr = ctx.typed.fieldResolutions.get(expr.callee);
+    if (fr?.kind !== "ufcs-free") return null;
+    if (expr.args.length < 1) return null;
+    return { receiver: expr.callee.target, fnArg: expr.args[0]!.value };
+  }
+  // Direct-call form : `map(it, f)`. The first arg is the receiver,
+  // the second is the transform / predicate.
+  if (expr.callee.kind === "IdentExpr") {
+    if (expr.args.length < 2) return null;
+    return { receiver: expr.args[0]!.value, fnArg: expr.args[1]!.value };
   }
   return null;
 }

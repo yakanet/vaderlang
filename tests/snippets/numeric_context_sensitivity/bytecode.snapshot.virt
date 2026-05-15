@@ -339,9 +339,9 @@ fn 1 __lambda_6 (ref) -> usize
 end
 
 fn 2 std_iter$std_iter$slice__i32 (ref,usize,usize) -> ref
-  local.get 0   ; iter.vader:164:12
-  local.get 1   ; iter.vader:164:12
-  local.get 2   ; iter.vader:164:12
-  array.slice 24   ; iter.vader:164:12
-  return   ; iter.vader:164:5
+  local.get 0   ; iter.vader:162:12
+  local.get 1   ; iter.vader:162:12
+  local.get 2   ; iter.vader:162:12
+  array.slice 24   ; iter.vader:162:12
+  return   ; iter.vader:162:5
 end

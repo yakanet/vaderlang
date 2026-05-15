@@ -33,9 +33,9 @@ type 30 array 31
 type 31 ref _
 type 32 array 5
 type 33 primitive void
-type 34 ref Iterator
-type 35 fn (3) -> 4
-type 36 array 3
+type 34 struct std_iter$FilterIterator__char { source:35,pred:36 }
+type 35 ref Iterator
+type 36 fn (3) -> 4
 type 37 struct std_string$StringChars { s:5,cursor:6,length:6 }
 type 38 struct std_string_builder$StringBuilder { parts:32 }
 string 0 "range sum  = "
@@ -56,6 +56,7 @@ impl 17 Iterator
 impl 20 Iterator
 impl 23 Iterator
 impl 24 Iterator
+impl 34 Iterator
 impl 37 Iterator
 impl 38 Display
 
@@ -102,14 +103,14 @@ fn 2 tests_snippets_for_in_iter_trait__main_vader$count_ls (string) -> usize
   local $call_1 ref
   local $fn_ref_2 ref
   local.get 0   ; _main.vader:33:12
-  call 34   ; _main.vader:33:12
+  call 36   ; _main.vader:33:12
   local.set 1   ; _main.vader:33:12
-  fn.ref 1 35   ; _main.vader:33:29
+  fn.ref 1 36   ; _main.vader:33:29
   local.set 2   ; _main.vader:33:29
   local.get 1   ; _main.vader:33:12
   local.get 2   ; _main.vader:33:12
-  call 32   ; _main.vader:33:12
-  array.len   ; _main.vader:33:12
+  call 34   ; _main.vader:33:12
+  call 33   ; _main.vader:33:12
   return   ; _main.vader:33:5
 end
 
@@ -1121,43 +1122,111 @@ fn 31 "std_core$?$Into$into__i32" (ref) -> ref
   return   ; core.vader:256:9
 end
 
-fn 32 std_iter$std_iter$filter__char (ref,ref) -> ref
-  local out ref
-  local __iter_0 ref
-  local __step_1 ref
-  local x char
-  array.new 36 0   ; iter.vader:85:16
-  local.set 2   ; iter.vader:85:16
-  local.get 0   ; iter.vader:86:5
-  local.set 3   ; iter.vader:86:5
-  block $L0 void   ; iter.vader:86:5
-    loop $L1 void   ; iter.vader:86:5
-      local.get 3   ; iter.vader:86:5
-      virtual.call 1 Iterator.next   ; iter.vader:86:5
-      local.tee 4   ; iter.vader:86:5
-      type_check 9   ; iter.vader:86:5
-      if $L2 void   ; iter.vader:86:5
-      else   ; iter.vader:86:5
-        local.get 4   ; iter.vader:86:5
-        struct.get 10 0   ; iter.vader:86:5
-        local.tee 5   ; iter.vader:86:5
-        local.get 1   ; iter.vader:87:12
-        call.indirect 35   ; iter.vader:87:12
-        if $L3 void   ; iter.vader:87:9
-          local.get 2   ; iter.vader:88:13
-          local.get 5   ; iter.vader:88:13
-          array.push 3   ; iter.vader:88:13
-        else   ; iter.vader:87:9
-        end $L3   ; iter.vader:87:9
-        br $L1   ; iter.vader:86:5
-      end $L2   ; iter.vader:86:5
-    end $L1   ; iter.vader:86:5
-  end $L0   ; iter.vader:86:5
-  local.get 2   ; iter.vader:91:5
-  return   ; iter.vader:91:5
+fn 32 std_iter$FilterIterator$Iterator$next__char (ref) -> ref
+  local finished bool
+  local __scrut_0 ref
+  local y ref
+  local $field_12 ref
+  bool.const false   ; iter.vader:383:21
+  local.set 1   ; iter.vader:383:21
+  block $L0 void   ; iter.vader:384:9
+    loop $L1 void   ; iter.vader:384:9
+      local.get 1   ; iter.vader:384:13
+      bool.not   ; iter.vader:384:13
+      if $L2 void   ; iter.vader:384:13
+        local.get 0   ; iter.vader:385:19
+        struct.get 34 0   ; iter.vader:385:19
+        virtual.call 1 Iterator.next   ; iter.vader:385:19
+        local.tee 2   ; iter.vader:385:19
+        type_check 9   ; iter.vader:386:17
+        if $L3 void   ; iter.vader:386:17
+          bool.const true   ; iter.vader:386:52
+          local.set 1   ; iter.vader:386:52
+          br $L1   ; iter.vader:384:9
+        else   ; iter.vader:386:17
+          local.get 2   ; iter.vader:387:17
+          type_check 10   ; iter.vader:387:17
+          if $L4 void   ; iter.vader:387:17
+            local.get 2   ; iter.vader:387:17
+            local.set 3   ; iter.vader:387:17
+            local.get 0   ; iter.vader:388:24
+            struct.get 34 1   ; iter.vader:388:24
+            local.set 4   ; iter.vader:388:24
+            local.get 3   ; iter.vader:388:34
+            struct.get 10 0   ; iter.vader:388:34
+            local.get 4   ; iter.vader:388:24
+            call.indirect 36   ; iter.vader:388:24
+            if $L5 void   ; iter.vader:388:21
+              local.get 3   ; iter.vader:389:54
+              struct.get 10 0   ; iter.vader:389:54
+              struct.new 10   ; iter.vader:389:32
+              return   ; iter.vader:389:25
+            else   ; iter.vader:388:21
+              br $L1   ; iter.vader:384:9
+            end $L5   ; iter.vader:388:21
+          else   ; iter.vader:387:17
+            unreachable   ; iter.vader:385:13
+          end $L4   ; iter.vader:387:17
+        end $L3   ; iter.vader:386:17
+      else   ; iter.vader:384:13
+      end $L2   ; iter.vader:384:13
+    end $L1   ; iter.vader:384:9
+  end $L0   ; iter.vader:384:9
+  struct.new 9   ; iter.vader:394:16
+  return   ; iter.vader:394:9
 end
 
-fn 33 std_string$StringChars$Iterator$next (ref) -> ref
+fn 33 std_iter$FilterIterator$Iterator$count__char (ref) -> usize
+  local total usize
+  local finished bool
+  local __scrut_0 ref
+  i64.const 0   ; core.vader:143:24
+  local.set 1   ; core.vader:143:24
+  bool.const false   ; core.vader:144:21
+  local.set 2   ; core.vader:144:21
+  block $L0 void   ; core.vader:145:9
+    loop $L1 void   ; core.vader:145:9
+      local.get 2   ; core.vader:145:13
+      bool.not   ; core.vader:145:13
+      if $L2 void   ; core.vader:145:13
+        local.get 0   ; core.vader:146:19
+        call 32   ; core.vader:146:19
+        local.tee 3   ; core.vader:146:19
+        type_check 9   ; undefined:undefined:undefined
+        if $L3 void   ; core.vader:147:17
+          bool.const true   ; core.vader:147:47
+          local.set 2   ; core.vader:147:47
+          br $L1   ; core.vader:145:9
+        else   ; core.vader:147:17
+          local.get 3   ; undefined:undefined:undefined
+          type_check 10   ; undefined:undefined:undefined
+          if $L4 void   ; core.vader:148:17
+            local.get 1   ; core.vader:148:44
+            i64.const 1   ; core.vader:148:44
+            i64.to_usize   ; core.vader:148:44
+            usize.add   ; core.vader:148:44
+            local.set 1   ; core.vader:148:44
+            br $L1   ; core.vader:145:9
+          else   ; core.vader:148:17
+            unreachable   ; core.vader:146:13
+          end $L4   ; core.vader:148:17
+        end $L3   ; core.vader:147:17
+      else   ; core.vader:145:13
+      end $L2   ; core.vader:145:13
+    end $L1   ; core.vader:145:9
+  end $L0   ; core.vader:145:9
+  local.get 1   ; core.vader:151:9
+  return   ; core.vader:151:9
+end
+
+fn 34 std_iter$std_iter$filter__char (ref,ref) -> ref
+  local.get 0   ; iter.vader:335:12
+  local.get 1   ; iter.vader:335:12
+  struct.new 34   ; iter.vader:335:12
+  return   ; iter.vader:335:5
+end
+
+fn 35 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 string
@@ -1193,7 +1262,7 @@ fn 33 std_string$StringChars$Iterator$next (ref) -> ref
     struct.get 37 1   ; string.vader:95:23
     local.set 6   ; string.vader:95:23
     local.get 5   ; string.vader:95:37
-    call 35   ; string.vader:95:37
+    call 37   ; string.vader:95:37
     local.set 7   ; string.vader:95:37
     local.get 6   ; string.vader:95:23
     local.get 7   ; string.vader:95:23
@@ -1208,7 +1277,7 @@ fn 33 std_string$StringChars$Iterator$next (ref) -> ref
   end $L0   ; string.vader:91:9
 end
 
-fn 34 std_string$chars (string) -> ref
+fn 36 std_string$chars (string) -> ref
   local $cast_2 usize
   local $call_3 usize
   i32.const 0   ; string.vader:112:50
@@ -1224,7 +1293,7 @@ fn 34 std_string$chars (string) -> ref
   return   ; string.vader:112:5
 end
 
-fn 35 std_utf8$codepoint_byte_len (char) -> usize
+fn 37 std_utf8$codepoint_byte_len (char) -> usize
   local cp u32
   local $cast_4 u32
   local $cast_8 u32
@@ -1268,3 +1337,5 @@ fn 35 std_utf8$codepoint_byte_len (char) -> usize
     end $L1   ; utf8.vader:26:5
   end $L0   ; utf8.vader:25:5
 end
+
+; round-trip MISMATCH

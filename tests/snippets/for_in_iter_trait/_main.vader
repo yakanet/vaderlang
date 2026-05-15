@@ -25,12 +25,12 @@ sum_iter :: fn(it: Iterator(i32)) -> i32 {
 }
 
 // Count items via a chained `Iterator(T)`-receiver call. UFCS picks the
-// new `filter :: fn[T](it: Iterator(T), …) -> T[]` overload, so the
-// `StringChars` receiver flows straight into the trait-typed first
-// param without an intermediate `.collect()`.
+// lazy `filter :: fn[T](self: Iterator(T), …) -> FilterIterator(T)`
+// overload, then `.count()` (default method on the `Iterator` trait)
+// consumes the chain without allocating an intermediate array.
 is_l :: fn(c: char) -> bool { return c == 'l' }
 count_ls :: fn(s: string) -> usize {
-    return s.chars().filter(is_l).len()
+    return s.chars().filter(is_l).count()
 }
 
 main :: fn() -> i32 {

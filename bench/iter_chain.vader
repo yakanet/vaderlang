@@ -1,21 +1,17 @@
-/// Lazy iterator chain — sums the squares of even integers in [0, N) via a
-/// `MapIterator(i32, i64)` ∘ `FilterIterator(i32)` ∘ `Range[i32]` pipeline,
-/// inlined at the `for-in` call site so the lowerer can fuse the three
-/// layers into a single counter loop (per the iterator-chain fusion fast
-/// path in `src/lower/passes/for-in.ts`).
+/// Lazy iterator chain — sums the squares of even integers in [0, N) via
+/// `Range.filter(is_even).map(square_i64)`. The fluent form dispatches
+/// through `std/iter`'s `filter` / `map` free fns (lazy, first-param
+/// `Iterator(T)`) ; UFCS picks them because `Range` implements
+/// `Iterator(i32)`.
 ///
-/// The parentheses around the iter expression are required — Vader bans
-/// struct literals in the top-level position of `for` / `if` / `while` /
-/// `match` conditions to keep the `for x in <expr> { … }` parse
-/// unambiguous (Rust-style restriction).
-///
-/// Without the inline form (chain bound to a variable), the slow path
-/// allocates a Yielded(T) box per yielded item and dispatches three vtable
-/// `next()` calls per iteration — see TODO §3.5 for the deferred pistes
-/// that would close that gap.
+/// The lowerer's iter-chain fusion path recognises the chain and folds
+/// the three layers into a single counter loop — no `Yielded(T)` heap
+/// allocs, no `Iterator.next()` vtable hops. Same end result as the
+/// struct-lit-direct form (`MapIterator { source = FilterIterator { … } }`)
+/// but reads as an iterator pipeline.
 
 import "std/io" { println }
-import "std/iter" { MapIterator, FilterIterator }
+import "std/iter" { filter, map }
 
 N :: 1_000_000
 
@@ -25,13 +21,7 @@ square_i64 :: fn(x: i32) -> i64 { return i64(x) * i64(x) }
 
 main :: fn() -> i32 {
     total: i64 = 0
-    for x in (MapIterator(i32, i64) {
-        .source = FilterIterator(i32) {
-            .source = 0..<N,
-            .pred = is_even,
-        },
-        .f = square_i64,
-    }) {
+    for x in (0..<N).filter(is_even).map(square_i64) {
         total = total + x
     }
     println("iter_chain N=${N} total=${total}")
