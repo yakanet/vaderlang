@@ -188,6 +188,9 @@ function walkExpr(e: LoweredExpr, ctx: WalkCtx): void {
       ctx.visit(e.fnSymbol.id);
       walkExpr(e.env, ctx);
       return;
+    case "LoweredDataConst":
+      walkType(e.type, ctx);
+      return;
     default: {
       const _exhaustive: never = e;
       void _exhaustive;

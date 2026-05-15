@@ -3,17 +3,21 @@
 // other consts ; resolved via a topological fixpoint. Cycles are caught at
 // eval time, so this pass assumes the graph is acyclic.
 //
-// Array-literal consts above `FN_WRAP_MIN_ELEMENTS` get **fn-wrapped**
-// instead of inlined : a 64-element `K :: [...]` table inlined at every
-// `K[t]` access re-emits 128+ ops + a fresh `array.new` per reference
-// (SHA-256, MD5, keyword tables). Wrapping in a synthetic 0-arg fn keeps
-// the literal in one place ; each reference becomes a single `call N`.
-// Module-global sharing (1 alloc per process) needs new bytecode ops and
-// is deferred.
+// Routing per const decl, checked in order :
+//   - data-pool : `const T[]` with primitive element + all-literal payload
+//     lands in `LoweredProject.dataPool` ; reads emit `data.const`. One
+//     allocation per process (`.rodata` on native, pre-materialised on
+//     the VM).
+//   - fn-wrap   : array literals above `FN_WRAP_MIN_ELEMENTS` that didn't
+//     qualify for the pool (e.g. struct elements) get a synthetic 0-arg
+//     fn so each reference becomes one `call N` instead of re-emitting
+//     the full literal.
+//   - inline    : everything else (small literal lists, scalars, ...).
 
 import { zeroSpan } from "../../diagnostics/diagnostic.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
+import type { ArrayKind, BcDataEntry } from "../../bytecode/types.ts";
 import type {
   LoweredBlock, LoweredConstDecl, LoweredDecl, LoweredExpr, LoweredFnDecl,
   LoweredModule, LoweredProject, LoweredStmt, LoweredStructLitField,
@@ -27,11 +31,17 @@ const FN_WRAP_MIN_ELEMENTS = 4;
 interface ConstRewrite {
   readonly inlineMap: ReadonlyMap<number, LoweredExpr>;
   readonly fnWrapMap: ReadonlyMap<number, FnWrapEntry>;
+  readonly dataPoolMap: ReadonlyMap<number, DataPoolEntry>;
 }
 
 interface FnWrapEntry {
   readonly fnSymbol: Symbol;
   readonly callType: Type;
+}
+
+interface DataPoolEntry {
+  readonly poolIndex: number;
+  readonly type: Type;
 }
 
 export interface InlineConstsResult {
@@ -42,8 +52,8 @@ export interface InlineConstsResult {
 export function inlineConsts(p: LoweredProject, nextSyntheticId: number = 1_000_000): InlineConstsResult {
   const collected = collectInlinedConsts(p, nextSyntheticId);
   const rewrite = collected.rewrite;
-  if (rewrite.inlineMap.size === 0 && rewrite.fnWrapMap.size === 0) {
-    return { project: p, nextSyntheticId };
+  if (rewrite.inlineMap.size === 0 && rewrite.fnWrapMap.size === 0 && rewrite.dataPoolMap.size === 0) {
+    return { project: { ...p, dataPool: [] }, nextSyntheticId };
   }
 
   const modules = new Map<string, LoweredModule>();
@@ -56,6 +66,9 @@ export function inlineConsts(p: LoweredProject, nextSyntheticId: number = 1_000_
           break;
         case "LoweredConstDecl": {
           const symId = d.origin.symbol?.id;
+          // Data-pool decls live in the project pool ; references were
+          // rewritten to `LoweredDataConst` so the decl itself is dead.
+          if (symId !== undefined && rewrite.dataPoolMap.has(symId)) break;
           if (symId !== undefined && rewrite.fnWrapMap.has(symId)) {
             decls.push(synthesizeFnFromConst(d, rewrite));
           } else {
@@ -71,7 +84,7 @@ export function inlineConsts(p: LoweredProject, nextSyntheticId: number = 1_000_
     modules.set(id, { moduleId: m.moduleId, displayPath: m.displayPath, decls });
   }
   return {
-    project: { modules, vtableEntries: p.vtableEntries },
+    project: { modules, vtableEntries: p.vtableEntries, dataPool: collected.dataPool },
     nextSyntheticId: collected.nextSyntheticId,
   };
 }
@@ -79,6 +92,7 @@ export function inlineConsts(p: LoweredProject, nextSyntheticId: number = 1_000_
 interface CollectedConsts {
   readonly rewrite: ConstRewrite;
   readonly nextSyntheticId: number;
+  readonly dataPool: BcDataEntry[];
 }
 
 function collectInlinedConsts(p: LoweredProject, startId: number): CollectedConsts {
@@ -93,14 +107,26 @@ function collectInlinedConsts(p: LoweredProject, startId: number): CollectedCons
     }
   }
 
-  // Classify which consts get fn-wrapped vs inlined. Decision is on the
-  // RAW value shape so nested const refs that resolve to small values
-  // stay inlinable.
+  // Classification — three buckets, checked in priority order :
+  //   data-pool : const T[] with primitive element + all-literal payload
+  //   fn-wrap   : value too bulky to inline at every read site
+  //   inline    : everything else (small literal lists, scalars, ...)
+  // The pool decision must run BEFORE fn-wrap so SHA256_K-style tables
+  // route to `.rodata` instead of a synth fn.
   const fnWrap = new Map<number, FnWrapEntry>();
+  const dataPoolMap = new Map<number, DataPoolEntry>();
+  const dataPool: BcDataEntry[] = [];
   let nextSyntheticId = startId;
   for (const [symId, raw0] of raw) {
-    if (!shouldFnWrap(raw0)) continue;
     const origDecl = constDeclBySymId.get(symId)!;
+    const poolEntry = materialiseToPool(raw0, origDecl.type);
+    if (poolEntry !== null) {
+      const poolIndex = dataPool.length;
+      dataPool.push(poolEntry);
+      dataPoolMap.set(symId, { poolIndex, type: origDecl.type });
+      continue;
+    }
+    if (!shouldFnWrap(raw0)) continue;
     const origSym = origDecl.origin.symbol!;
     const fnSym: Symbol = {
       id: -nextSyntheticId++,
@@ -121,6 +147,7 @@ function collectInlinedConsts(p: LoweredProject, startId: number): CollectedCons
   // rewrite time.
   const lookup = (symId: number): LoweredExpr | null => {
     if (fnWrap.has(symId)) return null;
+    if (dataPoolMap.has(symId)) return null;
     if (!raw.has(symId)) return null;
     return resolveOne(symId);
   };
@@ -130,19 +157,88 @@ function collectInlinedConsts(p: LoweredProject, startId: number): CollectedCons
     const raw0 = raw.get(symId)!;
     if (inFlight.has(symId)) return raw0;     // cycle (caught at eval time)
     inFlight.add(symId);
-    const inlined = rewriteExpr(raw0, { inlineLookup: lookup, fnWrap });
+    const inlined = rewriteExpr(raw0, { inlineLookup: lookup, fnWrap, dataPool: dataPoolMap });
     inFlight.delete(symId);
     resolved.set(symId, inlined);
     return inlined;
   }
   for (const symId of raw.keys()) {
     if (fnWrap.has(symId)) continue;
+    if (dataPoolMap.has(symId)) continue;
     resolveOne(symId);
   }
   return {
-    rewrite: { inlineMap: resolved, fnWrapMap: fnWrap },
+    rewrite: { inlineMap: resolved, fnWrapMap: fnWrap, dataPoolMap },
     nextSyntheticId,
+    dataPool,
   };
+}
+
+/** Eligibility + materialisation for the data pool. Returns the entry to
+ *  push when the const decl qualifies, or `null` to fall back to inline /
+ *  fn-wrap. Eligible : the decl's type is `const T[]` where T is a fixed-
+ *  width primitive AND every element of the literal is itself a literal
+ *  (so the pool entry's payload is a pure byte sequence). */
+function materialiseToPool(value: LoweredExpr, declType: Type): BcDataEntry | null {
+  if (declType.kind !== "Array" || !declType.immutable) return null;
+  if (value.kind !== "LoweredArrayLit") return null;
+  const kind = primitiveArrayKindOf(declType.element);
+  if (kind === null) return null;
+  const items: bigint[] = new Array(value.elements.length);
+  for (let i = 0; i < value.elements.length; i++) {
+    const lit = literalToBigInt(value.elements[i]!, kind);
+    if (lit === null) return null;
+    items[i] = lit;
+  }
+  return { kind, items };
+}
+
+function primitiveArrayKindOf(t: Type): ArrayKind | null {
+  if (t.kind !== "Primitive") return null;
+  switch (t.name) {
+    case "u8":   return "u8";
+    case "u16":  return "u16";
+    case "u32":  return "u32";
+    case "u64":  case "usize":  return "u64";
+    case "i8":   return "i8";
+    case "i16":  return "i16";
+    case "i32":  return "i32";
+    case "i64":  case "isize":  return "i64";
+    case "f32":  return "f32";
+    case "f64":  return "f64";
+    case "char": return "char";
+    case "bool": return "bool";
+    default:     return null;
+  }
+}
+
+/** Convert a literal LoweredExpr into the pool's bigint payload (IEEE 754
+ *  bit pattern for floats). Constant casts unwrap to their inner literal.
+ *  Returns null for anything that isn't a pure literal. */
+function literalToBigInt(e: LoweredExpr, kind: ArrayKind): bigint | null {
+  switch (e.kind) {
+    case "LoweredIntLit":   return e.value;
+    case "LoweredBoolLit":  return e.value ? 1n : 0n;
+    case "LoweredCharLit":  return BigInt(e.value);
+    case "LoweredFloatLit": return floatBitsToBigInt(e.value, kind);
+    case "LoweredCast":     return literalToBigInt(e.value, kind);
+    default:                return null;
+  }
+}
+
+const FLOAT_BUF = new ArrayBuffer(8);
+const FLOAT_DV = new DataView(FLOAT_BUF);
+
+function floatBitsToBigInt(v: number, kind: ArrayKind): bigint | null {
+  if (kind === "f32") {
+    FLOAT_DV.setFloat32(0, v, true);
+    return BigInt(FLOAT_DV.getUint32(0, true));
+  }
+  if (kind === "f64") {
+    FLOAT_DV.setFloat64(0, v, true);
+    return FLOAT_DV.getBigUint64(0, true);
+  }
+  return null;
 }
 
 function shouldFnWrap(value: LoweredExpr): boolean {
@@ -176,12 +272,14 @@ function synthesizeFnFromConst(
 interface RewriteCtx {
   readonly inlineLookup: (symId: number) => LoweredExpr | null;
   readonly fnWrap: ReadonlyMap<number, FnWrapEntry>;
+  readonly dataPool: ReadonlyMap<number, DataPoolEntry>;
 }
 
 function mkRewriteCtx(rewrite: ConstRewrite): RewriteCtx {
   return {
     inlineLookup: (id) => rewrite.inlineMap.get(id) ?? null,
     fnWrap: rewrite.fnWrapMap,
+    dataPool: rewrite.dataPoolMap,
   };
 }
 
@@ -207,6 +305,13 @@ function rewriteConst(d: LoweredConstDecl, rewrite: ConstRewrite): LoweredConstD
 function rewriteExpr(e: LoweredExpr, ctx: RewriteCtx): LoweredExpr {
   switch (e.kind) {
     case "LoweredIdent": {
+      const pooled = ctx.dataPool.get(e.symbol.id);
+      if (pooled !== undefined) {
+        return {
+          kind: "LoweredDataConst", span: e.span,
+          type: pooled.type, poolIndex: pooled.poolIndex,
+        };
+      }
       const wrap = ctx.fnWrap.get(e.symbol.id);
       if (wrap !== undefined) {
         const calleeIdent: LoweredExpr = {
@@ -303,6 +408,7 @@ function rewriteExpr(e: LoweredExpr, ctx: RewriteCtx): LoweredExpr {
     case "LoweredCharLit":
     case "LoweredStringLit":
     case "LoweredUnreachable":
+    case "LoweredDataConst":
       return e;
     default: {
       const _exhaustive: never = e;

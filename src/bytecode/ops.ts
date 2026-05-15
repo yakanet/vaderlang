@@ -110,6 +110,13 @@ export type Op =
    * runtime so out-of-range indices yield a shorter view rather than trap. */
   | { readonly kind: "array.slice"; readonly typeIndex: number }
 
+  // -- Data pool (module-level static array) -----------------------------
+  /** Push a ref to the module's `dataPool[poolIndex]` entry. `typeIndex` is
+   *  the BcType index of the `const T[]` so the resulting box carries the
+   *  right tag. The runtime points at static `.rodata` storage ; the GC
+   *  scanner's arena bound checks leave it untouched. */
+  | { readonly kind: "data.const"; readonly poolIndex: number; readonly typeIndex: number }
+
   // -- String arithmetic (`string.eq`/`string.ne` live in CmpOpKind above) --
   | { readonly kind: "string.concat" }
 

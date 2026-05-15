@@ -38,6 +38,7 @@ import type * as L from "../lower/lowered-ast.ts";
 import type { MonoEntry } from "../comptime/specialize.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { Type } from "../typecheck/types.ts";
+import type { BcDataEntry } from "../bytecode/types.ts";
 
 /** Index of a basic block within a function's `blocks` table. The entry
  *  block is always at index 0 by convention. */
@@ -146,6 +147,7 @@ export type Instruction =
   | InstrArraySlice
   | InstrStructNew
   | InstrArrayNew
+  | InstrDataConst
   | InstrTypeCheck
   | InstrCast
   | InstrCellNew
@@ -310,6 +312,16 @@ export interface InstrArrayNew extends InstrBase {
   readonly stack: boolean;
 }
 
+/** Pre-materialised module-level `const T[]` literal. The pool entry is built
+ *  by the `inline-consts` pass ; emit lowers this to the bytecode `data.const`
+ *  op. No operands — the value is the static pool entry's runtime ref. */
+export interface InstrDataConst extends InstrBase {
+  readonly kind: "DataConst";
+  readonly dst: LocalId;
+  readonly type: Type;             // `const T[]` array type
+  readonly poolIndex: number;
+}
+
 /** Runtime tag check — `is X`. */
 export interface InstrTypeCheck extends InstrBase {
   readonly kind: "TypeCheck";
@@ -442,6 +454,9 @@ export interface CFGProject {
    *  here ; `InstrConst` of kind "string" stores the index. The emitter
    *  reuses this pool verbatim as `BcModule.strings`. */
   readonly strings: readonly string[];
+  /** Mirrors `LoweredProject.dataPool` — carried verbatim into
+   *  `BytecodeModule.dataPool`. `InstrDataConst` references entries by index. */
+  readonly dataPool: readonly BcDataEntry[];
 }
 
 export interface CFGModule {

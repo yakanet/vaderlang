@@ -12,7 +12,8 @@ import type {
   BcExport, BcFunction, BcImport, BcLocal, BcSignature, BytecodeModule, DebugPos,
 } from "./module.ts";
 import type { Op } from "./ops.ts";
-import type { BcType, ValType } from "./types.ts";
+import type { BcDataEntry, BcType, ValType } from "./types.ts";
+import { arrayKindElementSize, arrayKindFromIndex, arrayKindIndex, readArrayKindLE, writeArrayKindLE } from "./types.ts";
 import { BYTECODE_VERSION, formatBytecodeVersion } from "../version.ts";
 import { bytecodeFail, CompilerBugError } from "../diagnostics/errors.ts";
 
@@ -98,6 +99,7 @@ function buildOpKinds(): readonly string[] {
            "intrinsic", "virtual.call");
   out.push("struct.new", "struct.new_stack", "struct.get", "struct.set", "struct.set_stack");
   out.push("array.new", "array.get", "array.set", "array.len", "array.push", "array.slice");
+  out.push("data.const");
   out.push("string.concat");
   out.push("type_check");
   return out;
@@ -198,6 +200,7 @@ export function writeBinary(m: BytecodeModule): Uint8Array {
   w.string(m.name);
   writeTypes(w, m.types);
   writeStrings(w, m.strings);
+  writeDataPool(w, m.dataPool);
   writeImports(w, m.imports);
   writeExports(w, m.exports);
   writeVtables(w, m.vtables);
@@ -278,6 +281,22 @@ function writeTypes(w: Writer, types: readonly BcType[]): void {
 function writeStrings(w: Writer, strings: readonly string[]): void {
   w.u32(strings.length);
   for (const s of strings) w.string(s);
+}
+
+function writeDataPool(w: Writer, pool: readonly BcDataEntry[]): void {
+  w.u32(pool.length);
+  for (const e of pool) {
+    const elemSize = arrayKindElementSize(e.kind);
+    if (elemSize === 0) {
+      throw new CompilerBugError(`binary: data pool entry kind "${e.kind}" not allowed`);
+    }
+    w.u8(arrayKindIndex(e.kind));
+    w.u32(e.items.length);
+    const bytes = new Uint8Array(elemSize * e.items.length);
+    const dv = new DataView(bytes.buffer);
+    for (let i = 0; i < e.items.length; i++) writeArrayKindLE(dv, i * elemSize, e.kind, e.items[i]!);
+    w.raw(bytes);
+  }
 }
 
 function writeImports(w: Writer, imports: readonly BcImport[]): void {
@@ -405,6 +424,8 @@ function writeOp(w: Writer, op: Op): void {
       w.u32(op.typeIndex); w.u32(op.length); return;
     case "array.get": case "array.set": case "array.push": case "array.slice":
       w.u32(op.typeIndex); return;
+    case "data.const":
+      w.u32(op.poolIndex); w.u32(op.typeIndex); return;
     case "ref.cast": case "type_check":
       w.u32(op.typeIndex); return;
     default:
@@ -502,6 +523,7 @@ export function parseBinary(bytes: Uint8Array, path: string | null = null): Byte
 
   const types = readTypes(r);
   const strings = readStrings(r);
+  const dataPool = readDataPool(r);
   const imports = readImports(r);
   const exports = readExports(r);
   const vtables = readVtables(r);
@@ -509,7 +531,26 @@ export function parseBinary(bytes: Uint8Array, path: string | null = null): Byte
   const debugFiles = readDebugFiles(r);
   const functions = readFunctions(r, debugFiles);
 
-  return { name, types, strings, functions, imports, exports, implTable, vtables };
+  return { name, types, strings, dataPool, functions, imports, exports, implTable, vtables };
+}
+
+function readDataPool(r: Reader): BcDataEntry[] {
+  const n = r.u32();
+  const out: BcDataEntry[] = [];
+  for (let i = 0; i < n; i++) {
+    const kindIdx = r.u8();
+    const kind = arrayKindFromIndex(kindIdx);
+    if (kind === null) r.fail(`unknown data pool kind index ${kindIdx}`);
+    const elemSize = arrayKindElementSize(kind);
+    if (elemSize === 0) r.fail(`data pool kind "${kind}" not allowed (must be primitive)`);
+    const length = r.u32();
+    const bytes = r.raw(length * elemSize);
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const items: bigint[] = new Array(length);
+    for (let j = 0; j < length; j++) items[j] = readArrayKindLE(dv, j * elemSize, kind);
+    out.push({ kind, items });
+  }
+  return out;
 }
 
 function readTypes(r: Reader): BcType[] {
@@ -721,6 +762,8 @@ function readOp(r: Reader): Op {
       return { kind: "array.new", typeIndex: r.u32(), length: r.u32() };
     case "array.get": case "array.set": case "array.push": case "array.slice":
       return { kind, typeIndex: r.u32() } as Op;
+    case "data.const":
+      return { kind: "data.const", poolIndex: r.u32(), typeIndex: r.u32() };
     case "ref.cast":
       return { kind: "ref.cast", typeIndex: r.u32() };
     case "type_check":

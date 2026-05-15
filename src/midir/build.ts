@@ -86,6 +86,7 @@ export function buildCFGProject(lp: L.LoweredProject): CFGProject {
     modules,
     vtableEntries: lp.vtableEntries,
     strings: ctx.strings,
+    dataPool: lp.dataPool,
   };
 }
 
@@ -445,6 +446,7 @@ function buildExpr(fn: FnCtx, e: L.LoweredExpr): LocalId | null {
     case "LoweredCellNew":       return buildCellNew(fn, e);
     case "LoweredCellGet":       return buildCellGet(fn, e);
     case "LoweredMakeClosure":   return buildMakeClosure(fn, e);
+    case "LoweredDataConst":     return buildDataConst(fn, e);
   }
 }
 
@@ -767,6 +769,12 @@ function buildArraySlice(fn: FnCtx, e: L.LoweredArraySlice): LocalId | null {
   if (target === null || lo === null || hi === null) return null;
   const dst = freshTmp(fn, "slice", e.type);
   emit(fn, { kind: "ArraySlice", dst, type: e.type, target, lo, hi, span: e.span });
+  return dst;
+}
+
+function buildDataConst(fn: FnCtx, e: L.LoweredDataConst): LocalId | null {
+  const dst = freshTmp(fn, "data_const", e.type);
+  emit(fn, { kind: "DataConst", dst, type: e.type, poolIndex: e.poolIndex, span: e.span });
   return dst;
 }
 

@@ -102,6 +102,7 @@ export function emitBytecodeFromCFG(
     name,
     types:     ctx.types,
     strings:   ctx.strings,
+    dataPool:  cfg.dataPool,
     functions: ctx.functions,
     imports:   ctx.imports,
     exports:   ctx.exports,
@@ -324,6 +325,7 @@ function emitInstr(ctx: FnEmitCfg, ins: Instruction): void {
     case "ArraySlice":      return emitArraySlice(ctx, ins);
     case "StructNew":       return emitStructNew(ctx, ins);
     case "ArrayNew":        return emitArrayNew(ctx, ins);
+    case "DataConst":       return emitDataConst(ctx, ins);
     case "TypeCheck":       return emitTypeCheck(ctx, ins);
     case "Cast":            return emitCast(ctx, ins);
     case "CellNew":         return emitCellNew(ctx, ins);
@@ -552,6 +554,12 @@ function emitArrayNew(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "ArrayNe
   const typeIndex = internType(ctx.project, ins.type);
   emitArgs(ctx, ins, ins.elements);
   pushOp(ctx.emit, { kind: "array.new", typeIndex, length: ins.length }, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
+}
+
+function emitDataConst(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "DataConst" }>): void {
+  const typeIndex = internType(ctx.project, ins.type);
+  pushOp(ctx.emit, { kind: "data.const", poolIndex: ins.poolIndex, typeIndex }, ins.span);
   emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 

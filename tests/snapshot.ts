@@ -416,6 +416,9 @@ function emitExpr(lines: string[], e: LoweredExpr, indent: string): void {
       lines.push(`${indent}array :${displayType(e.type)}`);
       for (const elt of e.elements) emitExpr(lines, elt, indent + "  ");
       return;
+    case "LoweredDataConst":
+      lines.push(`${indent}data_const #${e.poolIndex} :${displayType(e.type)}`);
+      return;
     case "LoweredCast":
       lines.push(`${indent}cast → ${displayType(e.type)}`);
       emitExpr(lines, e.value, indent + "  ");

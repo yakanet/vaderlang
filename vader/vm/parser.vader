@@ -13,7 +13,7 @@
 // stack that resets at each fn boundary.
 
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of, decode_escapes }
-import "std/numbers" { parse_int_in_base, parse_uint_in_base }
+import "std/numbers" { hex_digit_value, parse_int_in_base, parse_uint_in_base }
 op :: import "vader/vm/op"
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
@@ -118,6 +118,7 @@ export parse_virt :: fn(source: string) -> op.Module {
     types: op.TypeDecl[] = []
     functions: op.BytecodeFunction[] = []
     impls: op.Impl[] = []
+    data_pool: op.ArrayVal[] = []
     main_index := -1
 
     // Per-function metadata held outside the state bundle since they're
@@ -156,6 +157,7 @@ export parse_virt :: fn(source: string) -> op.Module {
             // sprint 5+ may surface diagnostics here.
             if cleaned.starts_with("type ")   { parse_type_decl(cleaned, types) continue }
             if cleaned.starts_with("string ") { parse_string_decl(cleaned, strings) continue }
+            if cleaned.starts_with("data ")   { parse_data_decl(cleaned, data_pool) continue }
             if cleaned.starts_with("import ") { parse_import_decl(cleaned, imports) continue }
             if cleaned.starts_with("impl ")   { parse_impl_decl(cleaned, impls) continue }
             if cleaned.starts_with("export ") {
@@ -217,6 +219,7 @@ export parse_virt :: fn(source: string) -> op.Module {
         .functions  = functions,
         .vtables    = build_vtables(functions, types),
         .impls      = impls,
+        .data_pool  = data_pool,
         .main_index = main_index,
     }
 }
@@ -506,6 +509,138 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> void {
     if first_quote < 0 { return }
     body :: after.slice(usize(first_quote) + 1, after.byte_len() - 1)
     strings.push(decode_escapes(body))
+}
+
+/// Parse `data N <kind> hex"<bytes>"`. Each entry materialises into an
+/// `ArrayVal` at parse time so the executor's `DataConst` arm becomes a
+/// pure index lookup. The hex blob is the raw little-endian byte image
+/// of the array's payload ; the element kind drives reinterpretation.
+///
+/// @param cleaned    the .virt line, already comment-stripped.
+/// @param data_pool  the module-wide data pool, appended to in place.
+parse_data_decl :: fn(cleaned: string, data_pool: op.ArrayVal[]) -> void {
+    after :: cleaned.slice("data ".byte_len(), cleaned.byte_len())
+    sp1 :: after.index_of(' ', 0)
+    if sp1 < 0 { return }
+    sp2 :: after.index_of(' ', usize(sp1) + 1)
+    if sp2 < 0 { return }
+    kind :: after.slice(usize(sp1) + 1, usize(sp2))
+    rest :: after.slice(usize(sp2) + 1, after.byte_len())
+    // Match `hex"..."` via byte-compare — the closing `"` would need an
+    // awkward escape in a Vader string literal otherwise.
+    if rest.byte_len() < 5 { return }
+    if rest.byte_at(0) != u8(b'h') { return }
+    if rest.byte_at(1) != u8(b'e') { return }
+    if rest.byte_at(2) != u8(b'x') { return }
+    if rest.byte_at(3) != u8(b'"') { return }
+    if rest.byte_at(rest.byte_len() - 1) != u8(b'"') { return }
+    hex_body :: rest.slice(4, rest.byte_len() - 1)
+    elements :: data_entry_elements(kind, hex_body)
+    data_pool.push(op.ArrayVal { .type_id = 0, .elements = elements })
+}
+
+/// Decode `<kind> hex"…"` payload into a `Value[]`. Each element is
+/// little-endian for the kind's byte width.
+data_entry_elements :: fn(kind: string, hex_body: string) -> op.Value[] {
+    elem_size :: data_entry_element_size(kind)
+    if elem_size == 0 { return [] }
+    bytes :: hex_to_bytes(hex_body)
+    count :: bytes.len() / elem_size
+    out: op.Value[] = []
+    i: usize = 0
+    for i < count {
+        out.push(read_data_item(kind, bytes, i * elem_size))
+        i += 1
+    }
+    return out
+}
+
+/// Byte width of a primitive array-kind. Mirrors `arrayKindElementSize`
+/// in `src/bytecode/types.ts`. 0 = unknown / unsupported.
+data_entry_element_size :: fn(kind: string) -> usize {
+    if kind == "u8"   { return 1 }
+    if kind == "i8"   { return 1 }
+    if kind == "bool" { return 1 }
+    if kind == "u16"  { return 2 }
+    if kind == "i16"  { return 2 }
+    if kind == "u32"  { return 4 }
+    if kind == "i32"  { return 4 }
+    if kind == "f32"  { return 4 }
+    if kind == "char" { return 4 }
+    if kind == "u64"  { return 8 }
+    if kind == "i64"  { return 8 }
+    if kind == "f64"  { return 8 }
+    return 0
+}
+
+/// Read one element from `bytes` at `offset`, interpreting the bytes
+/// per `kind`. Multi-byte values are little-endian.
+read_data_item :: fn(kind: string, bytes: u8[], offset: usize) -> op.Value {
+    if kind == "u8"   { return op.I32Val { .value = i32(u32(bytes[offset])) } }
+    if kind == "i8"   {
+        b :: bytes[offset]
+        return op.I32Val { .value = if b >= u8(0x80) { i32(b) - 256 } else { i32(b) } }
+    }
+    if kind == "bool" { return op.BoolVal { .value = bytes[offset] != u8(0) } }
+    if kind == "u16"  { return op.I32Val { .value = i32(read_u16_le(bytes, offset)) } }
+    if kind == "i16"  {
+        v :: read_u16_le(bytes, offset)
+        return op.I32Val { .value = if v >= u32(0x8000) { i32(v) - 65536 } else { i32(v) } }
+    }
+    if kind == "u32"  { return op.I32Val { .value = i32(read_u32_le(bytes, offset)) } }
+    if kind == "i32"  { return op.I32Val { .value = i32(read_u32_le(bytes, offset)) } }
+    if kind == "char" { return op.CharVal { .value = char(read_u32_le(bytes, offset)) } }
+    if kind == "u64"  { return op.I64Val { .value = i64(read_u64_le(bytes, offset)) } }
+    if kind == "i64"  { return op.I64Val { .value = i64(read_u64_le(bytes, offset)) } }
+    // f32 / f64 require bit-cast helpers (`@extern` from a free fn) — not
+    // exercised by the current crypto tables which are all u32. When a
+    // float pool entry first appears, wire in the bit-cast helpers and
+    // expand this dispatch.
+    if kind == "f32" || kind == "f64" {
+        return op.F64Val { .value = 0.0 }
+    }
+    return op.I32Val { .value = 0 }
+}
+
+/// Decode a hex string (lowercase or uppercase digits) into a byte array.
+/// Odd-length input is rounded down (the bytecode writer always emits
+/// even-length blobs, so this only fires on malformed input). Digit
+/// decoding delegates to `std/numbers::hex_digit_value` ; an invalid
+/// digit (-1 return) leaks through as a high-bit junk byte, which the
+/// caller treats as out-of-range data and surfaces as a value mismatch.
+hex_to_bytes :: fn(s: string) -> u8[] {
+    out: u8[] = []
+    i: usize = 0
+    len :: s.byte_len()
+    for i + 1 < len {
+        hi :: u32(hex_digit_value(char(u32(s.byte_at(i)))))
+        lo :: u32(hex_digit_value(char(u32(s.byte_at(i + 1)))))
+        out.push(u8((hi << 4) | lo))
+        i += 2
+    }
+    return out
+}
+
+read_u16_le :: fn(bytes: u8[], offset: usize) -> u32 {
+    return u32(bytes[offset]) | (u32(bytes[offset + 1]) << 8)
+}
+
+read_u32_le :: fn(bytes: u8[], offset: usize) -> u32 {
+    return u32(bytes[offset])
+        | (u32(bytes[offset + 1]) << 8)
+        | (u32(bytes[offset + 2]) << 16)
+        | (u32(bytes[offset + 3]) << 24)
+}
+
+read_u64_le :: fn(bytes: u8[], offset: usize) -> u64 {
+    return u64(bytes[offset])
+        | (u64(bytes[offset + 1]) << 8)
+        | (u64(bytes[offset + 2]) << 16)
+        | (u64(bytes[offset + 3]) << 24)
+        | (u64(bytes[offset + 4]) << 32)
+        | (u64(bytes[offset + 5]) << 40)
+        | (u64(bytes[offset + 6]) << 48)
+        | (u64(bytes[offset + 7]) << 56)
 }
 
 /// Parse `import N name mangled (params) -> ret`.
@@ -801,6 +936,7 @@ parse_op_line :: fn(cleaned: string) -> op.Op | null {
     if cleaned.starts_with("array.set ")        { return parse_array_set(cleaned) }
     if cleaned == "array.len"                   { return op.ArrayLen {} }
     if cleaned.starts_with("array.slice ")      { return parse_array_slice(cleaned) }
+    if cleaned.starts_with("data.const ")       { return parse_data_const(cleaned) }
     if cleaned.starts_with("ref.cast ")         { return op.RefCast {} }
     if cleaned.starts_with("char.to_")          { return op.CharToInt {} }
     if cleaned.ends_with(".to_char")            { return op.IntToChar {} }
@@ -1355,4 +1491,17 @@ parse_array_slice :: fn(line: string) -> op.Op | null {
     parsed :: parse_int_after_prefix(line, "array.slice ")
     if parsed is null { return null }
     return op.ArraySlice { .type_id = parsed }
+}
+
+parse_data_const :: fn(line: string) -> op.Op | null {
+    after :: line.slice("data.const ".byte_len(), line.byte_len())
+    sp :: after.index_of(' ', 0)
+    if sp < 0 { return null }
+    pool_text :: after.slice(0, usize(sp))
+    type_text :: after.slice(usize(sp) + 1, after.byte_len()).trim()
+    pool_parsed :: parse_int_in_base(pool_text, 10)
+    if pool_parsed is Error { return null }
+    type_parsed :: parse_int_in_base(type_text, 10)
+    if type_parsed is Error { return null }
+    return op.DataConst { .pool_index = i32(pool_parsed), .type_id = i32(type_parsed) }
 }

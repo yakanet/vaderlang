@@ -154,9 +154,10 @@ export sha256 :: fn(input: string) -> string {
 }
 
 // SHA-256 round constants — first 32 bits of the fractional parts of
-// the cube roots of the first 64 primes. The bytecode emitter currently
-// re-inlines + re-allocates the full literal at every access site (no
-// data-section sharing yet) — the perf cost is borne until that lands.
+// the cube roots of the first 64 primes. The bytecode emitter routes
+// this `const u32[]` literal to the module's data pool (.rodata on
+// native, pre-materialised ArrayVal in the VM) so the table is built
+// once per process.
 SHA256_K :: [
     0x428a2f98_u32, 0x71374491_u32, 0xb5c0fbcf_u32, 0xe9b5dba5_u32,
     0x3956c25b_u32, 0x59f111f1_u32, 0x923f82a4_u32, 0xab1c5ed5_u32,
@@ -292,7 +293,7 @@ append_hex_u32_le :: fn(sb: StringBuilder, x: u32) -> void {
     }
 }
 
-// MD5 per-round shift amounts. Same data-section caveat as `SHA256_K`.
+// MD5 per-round shift amounts. Same data-pool routing as `SHA256_K`.
 MD5_S :: [
     u32(7), u32(12), u32(17), u32(22), u32(7), u32(12), u32(17), u32(22),
     u32(7), u32(12), u32(17), u32(22), u32(7), u32(12), u32(17), u32(22),

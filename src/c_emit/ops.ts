@@ -476,6 +476,15 @@ export function emitArraySlice(s: FnState, op: Extract<Op, { kind: "array.slice"
   line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${tmp}_arr);`);
 }
 
+export function emitDataConst(s: FnState, op: Extract<Op, { kind: "data.const" }>): void {
+  // Cast-away-const : the array header in `.rodata` is logically immutable,
+  // but the runtime's array.get / array.slice helpers take a non-const
+  // pointer. Writers would trip `array.set` which the typechecker has
+  // already forbidden (T3042) ; the cast is sound at this point.
+  const tmp = newTmp(s, "ref");
+  line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, (void*) &__vader_data_${op.poolIndex});`);
+}
+
 export function emitTypeCheck(s: FnState, op: Extract<Op, { kind: "type_check" }>): void {
   const v = pop(s);
   const tmp = newTmp(s, "bool");

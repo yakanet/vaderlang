@@ -4,6 +4,7 @@ import type { Symbol } from "../resolver/symbol.ts";
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type { Type } from "../typecheck/types.ts";
 import type { MonoEntry } from "../comptime/specialize.ts";
+import type { BcDataEntry } from "../bytecode/types.ts";
 
 export interface LoweredProject {
   readonly modules: ReadonlyMap<string, LoweredModule>;
@@ -12,6 +13,11 @@ export interface LoweredProject {
    *  these to populate `BytecodeModule.vtables`, translating `structType` to
    *  its type-table index and `fnSymbol` to its fn-table index. */
   readonly vtableEntries: readonly VtableEntry[];
+  /** Module-level `const T[]` literals routed to the data pool (`.rodata` on
+   *  native, pre-materialised `ArrayVal` in the VM). The `inline-consts` pass
+   *  populates this for eligible primitive-element const arrays ; references
+   *  become `LoweredDataConst` nodes carrying the pool index. */
+  readonly dataPool: readonly BcDataEntry[];
 }
 
 export interface VtableEntry {
@@ -165,6 +171,7 @@ export type LoweredExpr =
   | LoweredBlock
   | LoweredStructLit
   | LoweredArrayLit
+  | LoweredDataConst
   | LoweredCast
   | LoweredTypeCheck
   | LoweredUnreachable
@@ -317,6 +324,16 @@ export interface LoweredArrayLit {
   readonly span: Span;
   readonly type: Type;
   readonly elements: readonly LoweredExpr[];
+}
+
+/** A `const T[]` module-level literal that lives in the project's data pool.
+ *  The `inline-consts` pass replaces idents that referred to a pool-eligible
+ *  const decl with this node ; the bytecode emit lowers it to `data.const`. */
+export interface LoweredDataConst {
+  readonly kind: "LoweredDataConst";
+  readonly span: Span;
+  readonly type: Type;             // the `const T[]` array type
+  readonly poolIndex: number;      // index into LoweredProject.dataPool
 }
 
 /** Length of an array, exposed by the bytecode op `array.len`. The lowerer

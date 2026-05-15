@@ -2,7 +2,7 @@
 // C emitter (§1.9), the WASM emitter (§1.10), and the .vir text format (§1.7b).
 
 import type { Op } from "./ops.ts";
-import type { BcType, ValType } from "./types.ts";
+import type { BcDataEntry, BcType, ValType } from "./types.ts";
 
 export interface BytecodeModule {
   readonly name: string;
@@ -10,6 +10,9 @@ export interface BytecodeModule {
    *  `ref.cast`, and function signatures. */
   readonly types: readonly BcType[];
   readonly strings: readonly string[];
+  /** Pre-materialised primitive arrays — see `BcDataEntry`. Index space is
+   *  module-local ; the `data.const N` op references entries here. */
+  readonly dataPool: readonly BcDataEntry[];
   readonly functions: readonly BcFunction[];
   /** External symbols expected from the host (`@extern` decls + signature-only fns). */
   readonly imports: readonly BcImport[];

@@ -543,7 +543,7 @@ main :: fn() {
 
 **Escape hatch** : `arr.clone()` produces a fresh mutable `T[]` from any `T[]` or `const T[]` source. Mutating the copy never affects the original.
 
-**Storage** : `const T[]` is the type-system contract that lets the backend route module-level array literals to a `.rodata`-style data section in a future pass. The contract is enforced today ; the storage optimisation lands when the data-section emitter is wired.
+**Storage** : module-level `const T[]` literals whose elements are all primitive (fixed-width integers, floats, char, bool) and all literal-valued land in the bytecode module's data pool — the C backend emits them as `static const` `.rodata` arrays, the VM materialises them once at module load, and `data.const` op-codes resolve to those pre-built values. References share one allocation across the whole process. Non-primitive elements (struct, string) continue to fn-wrap until the pool gains the matching representation.
 
 ### Tuples
 

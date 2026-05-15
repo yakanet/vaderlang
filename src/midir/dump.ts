@@ -90,6 +90,7 @@ function dumpInstr(ins: Instruction): string {
     case "ArraySlice": return `%${ins.dst} = array_slice %${ins.target}[%${ins.lo}..%${ins.hi}] :${displayType(ins.type)}`;
     case "StructNew": return `%${ins.dst} = struct_new${ins.stack ? "[stack]" : ""} ${displayType(ins.type)}(${args(ins.fields)})`;
     case "ArrayNew":  return `%${ins.dst} = array_new${ins.stack ? "[stack]" : ""} ${displayType(ins.type)}[${ins.length}](${args(ins.elements)})`;
+    case "DataConst": return `%${ins.dst} = data_const ${ins.poolIndex} :${displayType(ins.type)}`;
     case "TypeCheck": return `%${ins.dst} = type_check %${ins.value} is ${displayType(ins.checkType)}`;
     case "Cast":      return `%${ins.dst} = cast %${ins.value} :${displayType(ins.type)}`;
     case "CellNew":   return `%${ins.dst} = cell_new %${ins.value} :${displayType(ins.valueType)}`;

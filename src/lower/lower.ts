@@ -84,7 +84,11 @@ export function lowerProject(
       decls,
     });
   }
-  const project: LoweredProject = { modules, vtableEntries: collectVtableEntries(impls, mono) };
+  const project: LoweredProject = {
+    modules,
+    vtableEntries: collectVtableEntries(impls, mono),
+    dataPool: [],
+  };
   return inlineConsts(project, ctx.nextSyntheticId).project;
 }
 
@@ -202,7 +206,11 @@ export function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerP
   // via the `constTypeAliases` table.
   if (typed.constTypeAliases.has(decl)) return null;
   const types = makeEntryTypes(typed, entry.subst);
-  const type = types.exprType(decl.value);
+  // Prefer the inferred decl type (`const T[]` for module-scope array
+  // literals, see check.ts) over the bare expression type — without this
+  // the immutability annotation drops here and downstream passes can't
+  // route to the data pool.
+  const type = typed.declTypes.get(decl) ?? types.exprType(decl.value);
 
   // @comptime values were already baked — emit the literal directly so
   // downstream phases see the materialised constant rather than re-running

@@ -18,8 +18,8 @@
 
 import type {BytecodeModule, BcFunction, BcImport, BcSignature} from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
-import type { BcType, ValType } from "../bytecode/types.ts";
-import { inlineVariantPayload, nullableRefVariant } from "../bytecode/types.ts";
+import type { ArrayKind, BcDataEntry, BcType, ValType } from "../bytecode/types.ts";
+import { arrayKindIndex, arrayKindOf, inlineVariantPayload, nullableRefVariant } from "../bytecode/types.ts";
 
 import {
   cTypeFor, cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, emitFunctions,
@@ -232,6 +232,103 @@ function emitTypeDecls(ctx: EmitCtx, out: string[]): void {
     out.push(`static const vader_string_t vader_str_${i} = { ${cStringLitFromBytes(bytes)}, ${bytes.length} };`);
   }
   out.push(``);
+
+  emitDataPool(ctx, out);
+}
+
+// =========================================================================
+// Data pool — module-level `const T[]` literals emitted as `.rodata` statics.
+// Each pool entry produces :
+//   - a packed wrapper struct `__vader_data_<i>_t` holding the buf + slots
+//   - a static const vader_array_t header pointing into the wrapper
+// `data.const <i>` op resolves to `vader_box_obj(<type>, &__vader_data_<i>)`.
+// The GC scanner skips static pointers via its arena bound checks.
+// =========================================================================
+
+function emitDataPool(ctx: EmitCtx, out: string[]): void {
+  if (ctx.module.dataPool.length === 0) return;
+  for (let i = 0; i < ctx.module.dataPool.length; i++) {
+    emitDataEntry(i, ctx.module.dataPool[i]!, out);
+  }
+  out.push(``);
+}
+
+function emitDataEntry(idx: number, entry: BcDataEntry, out: string[]): void {
+  const cType = cTypeForArrayKind(entry.kind);
+  const kindIdx = arrayKindIndex(entry.kind);
+  const length = entry.items.length;
+  // Wrapper packs the buf header + a fixed-size slot array. The buf's
+  // `slots` flex-array would otherwise prevent static initialisation ;
+  // the wrapper sidesteps that by giving the slots their own storage.
+  // First member is `vader_array_buf_t` so `(vader_array_buf_t*) &w.buf`
+  // is a legal cast.
+  out.push(`static const struct {`);
+  out.push(`    vader_array_buf_t buf;`);
+  out.push(`    ${cType} slots[${length}];`);
+  out.push(`} __vader_data_buf_${idx} = {`);
+  out.push(`    .buf = {`);
+  out.push(`        .header = { VADER_TYPE_INDEX_ARRAY_BUF, 0, 0, 0, NULL },`);
+  out.push(`        .capacity = ${length}u, .length = ${length}u,`);
+  out.push(`        .element_kind = ${kindIdx}u, ._pad = {0,0,0,0,0,0,0}`);
+  out.push(`    },`);
+  out.push(`    .slots = { ${entry.items.map((v) => formatDataItem(entry.kind, v)).join(", ")} }`);
+  out.push(`};`);
+  out.push(`static const vader_array_t __vader_data_${idx} = {`);
+  out.push(`    .header = { 0, 0, 0, 0, NULL },`);
+  out.push(`    .length = ${length}u, .capacity = ${length}u, .offset = 0u,`);
+  out.push(`    .buf = (vader_array_buf_t*) &__vader_data_buf_${idx}.buf,`);
+  out.push(`};`);
+}
+
+function cTypeForArrayKind(k: ArrayKind): string {
+  switch (k) {
+    case "u8":   return "uint8_t";
+    case "u16":  return "uint16_t";
+    case "u32":  return "uint32_t";
+    case "u64":  return "uint64_t";
+    case "i8":   return "int8_t";
+    case "i16":  return "int16_t";
+    case "i32":  return "int32_t";
+    case "i64":  return "int64_t";
+    case "f32":  return "float";
+    case "f64":  return "double";
+    case "char": return "uint32_t";
+    case "bool": return "uint8_t";
+    case "boxed":
+      throw new Error("c-emit: data pool kind 'boxed' not allowed");
+  }
+}
+
+function formatDataItem(kind: ArrayKind, v: bigint): string {
+  switch (kind) {
+    case "u8":   return `${BigInt.asUintN(8, v).toString()}u`;
+    case "u16":  return `${BigInt.asUintN(16, v).toString()}u`;
+    case "u32":  return `${BigInt.asUintN(32, v).toString()}u`;
+    case "u64":  return `UINT64_C(${BigInt.asUintN(64, v).toString()})`;
+    case "i8":   return `${BigInt.asIntN(8, v).toString()}`;
+    case "i16":  return `${BigInt.asIntN(16, v).toString()}`;
+    case "i32":  return i32LitC(Number(BigInt.asIntN(32, v)));
+    case "i64":  return i64LitC(BigInt.asIntN(64, v));
+    case "char": return `${BigInt.asUintN(32, v).toString()}u`;
+    case "bool": return v === 0n ? "0u" : "1u";
+    case "f32":  return floatLit(f32FromBits(Number(BigInt.asUintN(32, v))), "f");
+    case "f64":  return floatLit(f64FromBits(BigInt.asUintN(64, v)), "");
+    case "boxed":
+      throw new Error("c-emit: data pool kind 'boxed' not allowed");
+  }
+}
+
+const FLOAT_BUF = new ArrayBuffer(8);
+const FLOAT_DV = new DataView(FLOAT_BUF);
+
+function f32FromBits(bits: number): number {
+  FLOAT_DV.setUint32(0, bits, true);
+  return FLOAT_DV.getFloat32(0, true);
+}
+
+function f64FromBits(bits: bigint): number {
+  FLOAT_DV.setBigUint64(0, bits, true);
+  return FLOAT_DV.getFloat64(0, true);
 }
 
 // =========================================================================

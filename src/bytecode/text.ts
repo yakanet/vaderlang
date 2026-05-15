@@ -10,8 +10,8 @@
 import type { BcExport, BcFunction, BcImport, BcLocal, BcSignature, BytecodeModule, DebugPos } from "./module.ts";
 import type { Op } from "./ops.ts";
 import { intrinsicIdByName, intrinsicNameById } from "./ops.ts";
-import type { BcType, ValType } from "./types.ts";
-import { isValType } from "./types.ts";
+import type { ArrayKind, BcDataEntry, BcType, ValType } from "./types.ts";
+import { arrayKindElementSize, isValType, readArrayKindLE, writeArrayKindLE } from "./types.ts";
 import { bytecodeFail } from "../diagnostics/errors.ts";
 
 // ---------------------------------------------------------------- writer
@@ -22,6 +22,7 @@ export function writeVir(m: BytecodeModule): string {
 
   for (let i = 0; i < m.types.length; i++) out.push(`type ${i} ${formatType(m.types[i]!)}`);
   for (let i = 0; i < m.strings.length; i++) out.push(`string ${i} ${formatString(m.strings[i]!)}`);
+  for (let i = 0; i < m.dataPool.length; i++) out.push(`data ${i} ${formatDataEntry(m.dataPool[i]!)}`);
   for (let i = 0; i < m.imports.length; i++) out.push(`import ${i} ${formatImport(m.imports[i]!)}`);
   // Trait-impl directives — one `impl TYPE_ID TRAIT_NAME` line per (type, trait)
   // pair that the typechecker registered, so consumers (Vader-VM, C-emit
@@ -58,6 +59,46 @@ function formatType(t: BcType): string {
 }
 
 function formatString(s: string): string { return JSON.stringify(s); }
+
+function formatDataEntry(e: BcDataEntry): string {
+  const elemSize = arrayKindElementSize(e.kind);
+  if (elemSize === 0) {
+    throw new Error(`bytecode text: data entry kind "${e.kind}" not allowed (must be primitive)`);
+  }
+  const bytes = new Uint8Array(elemSize * e.items.length);
+  const dv = new DataView(bytes.buffer);
+  for (let i = 0; i < e.items.length; i++) writeArrayKindLE(dv, i * elemSize, e.kind, e.items[i]!);
+  return `${e.kind} hex"${bytesToHex(bytes)}"`;
+}
+
+const HEX_DIGITS = "0123456789abcdef";
+
+function bytesToHex(b: Uint8Array): string {
+  let s = "";
+  for (let i = 0; i < b.length; i++) {
+    const v = b[i]!;
+    s += HEX_DIGITS[v >>> 4]! + HEX_DIGITS[v & 0xF]!;
+  }
+  return s;
+}
+
+function hexToBytes(s: string): Uint8Array {
+  if (s.length % 2 !== 0) throw new Error("bytecode text: data hex blob has odd length");
+  const out = new Uint8Array(s.length >>> 1);
+  for (let i = 0; i < out.length; i++) {
+    const hi = s.charCodeAt(i * 2);
+    const lo = s.charCodeAt(i * 2 + 1);
+    out[i] = (hexDigit(hi) << 4) | hexDigit(lo);
+  }
+  return out;
+}
+
+function hexDigit(c: number): number {
+  if (c >= 48 && c <= 57)  return c - 48;
+  if (c >= 97 && c <= 102) return c - 87;
+  if (c >= 65 && c <= 70)  return c - 55;
+  throw new Error(`bytecode text: invalid hex digit ${String.fromCharCode(c)}`);
+}
 
 function formatImport(i: BcImport): string {
   return `${quoteIdent(i.externName)} ${quoteIdent(i.mangledName)} ${formatSignature(i.signature)}`;
@@ -151,6 +192,7 @@ function formatOp(op: Op): string {
     case "array.set":    return `array.set ${op.typeIndex}`;
     case "array.push":   return `array.push ${op.typeIndex}`;
     case "array.slice":  return `array.slice ${op.typeIndex}`;
+    case "data.const":   return `data.const ${op.poolIndex} ${op.typeIndex}`;
     case "type_check":   return `type_check ${op.typeIndex}`;
     case "ref.cast":     return `ref.cast ${op.typeIndex}`;
     default:
@@ -205,6 +247,7 @@ interface MutableModule {
   name: string;
   types: BcType[];
   strings: string[];
+  dataPool: BcDataEntry[];
   functions: BcFunction[];
   imports: BcImport[];
   exports: BcExport[];
@@ -212,12 +255,12 @@ interface MutableModule {
 }
 
 function newMutableModule(): MutableModule {
-  return { name: "", types: [], strings: [], functions: [], imports: [], exports: [], implTable: new Map() };
+  return { name: "", types: [], strings: [], dataPool: [], functions: [], imports: [], exports: [], implTable: new Map() };
 }
 
 function finalizeModule(m: MutableModule): BytecodeModule {
   return {
-    name: m.name, types: m.types, strings: m.strings,
+    name: m.name, types: m.types, strings: m.strings, dataPool: m.dataPool,
     functions: m.functions, imports: m.imports, exports: m.exports,
     implTable: m.implTable,
     vtables: new Map(),
@@ -249,6 +292,13 @@ function parseHeaderLine(line: string, m: MutableModule, ctx: ParseCtx): void {
       const sp = rest.indexOf(" ");
       const idx = Number(rest.slice(0, sp));
       m.strings[idx] = JSON.parse(rest.slice(sp + 1)) as string;
+      return;
+    }
+    case "data": {
+      // "data <idx> <kind> hex\"<bytes>\""
+      const sp = rest.indexOf(" ");
+      const idx = Number(rest.slice(0, sp));
+      m.dataPool[idx] = parseDataEntry(rest.slice(sp + 1).trim(), ctx);
       return;
     }
     case "import": {
@@ -310,6 +360,26 @@ function parseType(spec: string, ctx: ParseCtx): BcType {
     }
     default: fail(ctx, `unknown type kind "${head}"`);
   }
+}
+
+function parseDataEntry(spec: string, ctx: ParseCtx): BcDataEntry {
+  // "<kind> hex\"<bytes>\""
+  const sp = spec.indexOf(" ");
+  if (sp < 0) fail(ctx, `malformed data entry "${spec}"`);
+  const kindStr = spec.slice(0, sp);
+  const kind = (kindStr as ArrayKind);
+  const elemSize = arrayKindElementSize(kind);
+  if (elemSize === 0) fail(ctx, `data entry kind "${kindStr}" not allowed (must be primitive)`);
+  const tail = spec.slice(sp + 1).trim();
+  const m = /^hex"([0-9a-fA-F]*)"$/.exec(tail);
+  if (m === null) fail(ctx, `data entry expects hex"<bytes>"`);
+  const bytes = hexToBytes(m[1]!);
+  if (bytes.length % elemSize !== 0) fail(ctx, `data entry byte length ${bytes.length} not a multiple of element size ${elemSize}`);
+  const count = bytes.length / elemSize;
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const items: bigint[] = new Array(count);
+  for (let i = 0; i < count; i++) items[i] = readArrayKindLE(dv, i * elemSize, kind);
+  return { kind, items };
 }
 
 function parseImport(spec: string, ctx: ParseCtx): BcImport {
@@ -488,6 +558,10 @@ function parseOp(text: string, scopes: { name: string }[], ctx: ParseCtx): Op {
     case "array.set":    return { kind: "array.set", typeIndex: Number(tail) };
     case "array.push":   return { kind: "array.push", typeIndex: Number(tail) };
     case "array.slice":  return { kind: "array.slice", typeIndex: Number(tail) };
+    case "data.const": {
+      const [p, t] = tail.split(/\s+/);
+      return { kind: "data.const", poolIndex: Number(p), typeIndex: Number(t) };
+    }
     case "type_check":   return { kind: "type_check", typeIndex: Number(tail) };
     case "ref.cast":     return { kind: "ref.cast", typeIndex: Number(tail) };
     default:

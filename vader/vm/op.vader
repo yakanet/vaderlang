@@ -37,6 +37,7 @@ export Op :: I32Const
     | ArraySet
     | ArrayLen
     | ArraySlice
+    | DataConst
     | RefCast
     | Convert
     | TypeCheck
@@ -216,6 +217,14 @@ export ArrayLen :: struct {}
 /// self-host VM the underlying storage is `Value[]` so the slice copies
 /// (no shared mutability) ; the C runtime version views.
 export ArraySlice :: struct { type_id: i32 }
+
+/// Push the pre-materialised array at `module.data_pool[pool_index]`.
+/// `type_id` is the BcType index of the resulting `const T[]` array.
+/// The pool is built once at module-load time (parser materialises
+/// each `data N <kind> hex"..."` directive into an `ArrayVal`) ; this
+/// op is the runtime read for `const T[]` literals routed to .rodata
+/// by the bytecode emitter.
+export DataConst :: struct { pool_index: i32, type_id: i32 }
 
 /// No-op runtime cast — the .virt format emits `ref.cast TID` after
 /// every `array.get` / `struct.get` to narrow the static type from
@@ -538,6 +547,10 @@ export Module :: struct {
     functions: BytecodeFunction[]
     vtables: Vtable[]
     impls: Impl[]
+    /// Pre-materialised `const T[]` literals. `DataConst` ops index this
+    /// array directly. Built by the parser from the `data N <kind> hex"..."`
+    /// directives ; mirrors `BytecodeModule.dataPool` on the TS side.
+    data_pool: ArrayVal[]
     main_index: i32
 }
 

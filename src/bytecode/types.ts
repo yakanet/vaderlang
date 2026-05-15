@@ -53,8 +53,72 @@ const ARRAY_KIND_INDEX: Record<ArrayKind, number> = {
   char: 11, bool: 12,
 };
 
+const ARRAY_KIND_BY_INDEX: ArrayKind[] = (() => {
+  const out: ArrayKind[] = new Array(13);
+  for (const [name, idx] of Object.entries(ARRAY_KIND_INDEX)) out[idx] = name as ArrayKind;
+  return out;
+})();
+
 export function arrayKindIndex(k: ArrayKind): number {
   return ARRAY_KIND_INDEX[k];
+}
+
+export function arrayKindFromIndex(idx: number): ArrayKind | null {
+  return ARRAY_KIND_BY_INDEX[idx] ?? null;
+}
+
+/** Byte width per slot of a primitive array kind. `boxed` is the size of
+ *  `vader_box_t` (24 B) on native but pool entries never use it — primitive
+ *  arrays only. Returns 0 for unrecognised kinds so callers can guard. */
+export function arrayKindElementSize(k: ArrayKind): number {
+  switch (k) {
+    case "u8":   case "i8":   case "bool": return 1;
+    case "u16":  case "i16":               return 2;
+    case "u32":  case "i32":  case "f32":  case "char": return 4;
+    case "u64":  case "i64":  case "f64":  return 8;
+    case "boxed":                          return 0;
+  }
+}
+
+/** Pack a bigint payload into `dv` at `offset` using the LE byte image for
+ *  `kind`. Shared between `bytecode/text.ts` and `bytecode/binary.ts` ;
+ *  `data N <kind> hex"..."` text + binary section encode the same bytes. */
+export function writeArrayKindLE(dv: DataView, offset: number, kind: ArrayKind, v: bigint): void {
+  switch (kind) {
+    case "u8":   dv.setUint8(offset, Number(BigInt.asUintN(8, v))); return;
+    case "i8":   dv.setInt8(offset, Number(BigInt.asIntN(8, v))); return;
+    case "bool": dv.setUint8(offset, v === 0n ? 0 : 1); return;
+    case "u16":  dv.setUint16(offset, Number(BigInt.asUintN(16, v)), true); return;
+    case "i16":  dv.setInt16(offset, Number(BigInt.asIntN(16, v)), true); return;
+    case "u32":  dv.setUint32(offset, Number(BigInt.asUintN(32, v)), true); return;
+    case "i32":  dv.setInt32(offset, Number(BigInt.asIntN(32, v)), true); return;
+    case "char": dv.setUint32(offset, Number(BigInt.asUintN(32, v)), true); return;
+    case "f32":  dv.setUint32(offset, Number(BigInt.asUintN(32, v)), true); return;
+    case "u64":  dv.setBigUint64(offset, BigInt.asUintN(64, v), true); return;
+    case "i64":  dv.setBigInt64(offset, BigInt.asIntN(64, v), true); return;
+    case "f64":  dv.setBigUint64(offset, BigInt.asUintN(64, v), true); return;
+    case "boxed": throw new Error("bytecode: data pool kind 'boxed' not allowed");
+  }
+}
+
+/** Inverse of `writeArrayKindLE`. Returns the element as a bigint payload
+ *  (IEEE 754 bit pattern for floats). */
+export function readArrayKindLE(dv: DataView, offset: number, kind: ArrayKind): bigint {
+  switch (kind) {
+    case "u8":   return BigInt(dv.getUint8(offset));
+    case "i8":   return BigInt(dv.getInt8(offset));
+    case "bool": return BigInt(dv.getUint8(offset) !== 0 ? 1 : 0);
+    case "u16":  return BigInt(dv.getUint16(offset, true));
+    case "i16":  return BigInt(dv.getInt16(offset, true));
+    case "u32":  return BigInt(dv.getUint32(offset, true));
+    case "i32":  return BigInt(dv.getInt32(offset, true));
+    case "char": return BigInt(dv.getUint32(offset, true));
+    case "f32":  return BigInt(dv.getUint32(offset, true));
+    case "u64":  return dv.getBigUint64(offset, true);
+    case "i64":  return dv.getBigInt64(offset, true);
+    case "f64":  return dv.getBigUint64(offset, true);
+    case "boxed": throw new Error("bytecode: data pool kind 'boxed' not allowed");
+  }
 }
 
 /** Map a BcType (the element of an array) to its native storage class.
@@ -77,6 +141,20 @@ export function arrayKindOf(element: BcType): ArrayKind {
     case "bool":  return "bool";
     default:      return "boxed";  // string, null, void, ref, any
   }
+}
+
+// =========================================================================
+// Data pool — module-level static arrays of primitive elements that the
+// runtime materialises once (`.rodata` on native, pre-built `ArrayVal` in
+// the VM). Lowered AST routes eligible `const T[]` decls here ; references
+// resolve via the `data.const` op.
+// =========================================================================
+
+export interface BcDataEntry {
+  readonly kind: ArrayKind;          // never "boxed" — primitive arrays only
+  /** One entry per array element. bigint covers every integer width without
+   *  precision loss ; for f32/f64 entries it carries the IEEE 754 bit pattern. */
+  readonly items: readonly bigint[];
 }
 
 // =========================================================================

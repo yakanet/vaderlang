@@ -784,6 +784,17 @@ export exec :: fn(module: op.Module) -> VmResult {
                 frame.stack[frame.sp - 3] = op.ArrayVal { .type_id = instr.type_id, .elements = copied }
                 frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
             }
+            is op.DataConst -> {
+                if instr.pool_index < 0 || usize(instr.pool_index) >= module.data_pool.len() {
+                    return Trap { .message = "data.const pool_index ${instr.pool_index} out of range at pc=${frame.pc}" }
+                }
+                entry :: module.data_pool[usize(instr.pool_index)]
+                // Re-stamp the call-site's type_id onto a fresh header sharing
+                // the pool entry's `elements` ; mirrors `.rodata` sharing in
+                // the native runtime.
+                push_value(frame.stack, frame.sp, op.ArrayVal { .type_id = instr.type_id, .elements = entry.elements })
+                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+            }
             is op.RefCast -> {
                 frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
             }

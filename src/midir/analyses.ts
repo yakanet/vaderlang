@@ -279,6 +279,7 @@ export function dstOf(ins: Instruction): LocalId | null {
     case "CellGet":
     case "MakeClosure":
     case "FnRef":
+    case "DataConst":
       return ins.dst;
     case "Call":
     case "CallIndirect":

@@ -191,7 +191,7 @@ function bundleProject(
     });
   }
   // Comptime virtual dispatch isn't yet supported — emit an empty vtable list.
-  return { modules, vtableEntries: [] };
+  return { modules, vtableEntries: [], dataPool: [] };
 }
 
 function newLowerProjectCtx(input: CompileInput): LowerProjectCtx {
@@ -303,6 +303,7 @@ function walkExpr(expr: LoweredExpr, seen: Set<number>, out: Symbol[]): void {
     case "LoweredBlock":      collectRefs(expr, seen, out); return;
     case "LoweredStructLit":  for (const f of expr.fields) walkExpr(f.value, seen, out); return;
     case "LoweredArrayLit":   for (const e of expr.elements) walkExpr(e, seen, out); return;
+    case "LoweredDataConst":  return;
     case "LoweredCast":       walkExpr(expr.value, seen, out); return;
     case "LoweredTypeCheck":  walkExpr(expr.value, seen, out); return;
     case "LoweredUnreachable":

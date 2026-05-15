@@ -7,14 +7,14 @@ import type { BytecodeModule, BcFunction } from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
 import { isFloatVal } from "../bytecode/types.ts";
-import type { BcType, ValType } from "../bytecode/types.ts";
+import type { BcDataEntry, BcType, ValType } from "../bytecode/types.ts";
 
 import type { HostBindings } from "./host.ts";
 import {
   bool, builder, ch, FALSE, fnRef, i64, NULL, num, str as makeStr, VOID,
   asArray, asBig, asBool, asBuilder, asChar, asFn, asIndex, asNum, asString, asStruct, displayValue,
 } from "./value.ts";
-import type { NumTag, StringValue, Value } from "./value.ts";
+import type { ArrayValue, NumTag, StringValue, Value } from "./value.ts";
 
 export interface RunOptions {
   readonly host: HostBindings;
@@ -81,6 +81,13 @@ interface RunCtx {
    *  `string.const` and gives repeated literals a shared identity that makes
    *  `string.eq` short-circuit on `===`. */
   readonly stringPool: readonly StringValue[];
+  /** Pre-materialised elements per `dataPool` entry — one shared `Value[]`
+   *  per pool index. The `ArrayValue` wrapper itself is cached lazily
+   *  on first `data.const` so the call-site `typeIndex` lands on a single
+   *  long-lived header (the lowerer pins one type per pool entry, so the
+   *  first hit's typeIndex is the only one we'll see). */
+  readonly dataPoolElements: readonly Value[][];
+  readonly dataPool: ArrayValue[];
 }
 
 const JUMP_CACHE = new WeakMap<BcFunction, JumpInfo>();
@@ -89,8 +96,46 @@ function newRunCtx(m: BytecodeModule): RunCtx {
   return {
     module: m,
     stringPool: m.strings.map((s) => ({ tag: "string", n: s })),
+    dataPoolElements: m.dataPool.map((entry) => materialiseDataEntryElements(entry)),
+    dataPool: new Array(m.dataPool.length),
   };
 }
+
+function materialiseDataEntryElements(entry: BcDataEntry): Value[] {
+  const elements: Value[] = new Array(entry.items.length);
+  for (let i = 0; i < entry.items.length; i++) {
+    elements[i] = dataItemToValue(entry.kind, entry.items[i]!);
+  }
+  return elements;
+}
+
+function dataItemToValue(kind: BcDataEntry["kind"], v: bigint): Value {
+  switch (kind) {
+    case "u8":   return num("u8",  Number(BigInt.asUintN(8, v)));
+    case "i8":   return num("i8",  Number(BigInt.asIntN(8, v)));
+    case "u16":  return num("u16", Number(BigInt.asUintN(16, v)));
+    case "i16":  return num("i16", Number(BigInt.asIntN(16, v)));
+    case "u32":  return num("u32", Number(BigInt.asUintN(32, v)));
+    case "i32":  return num("i32", Number(BigInt.asIntN(32, v)));
+    case "u64":  return i64("u64", BigInt.asUintN(64, v));
+    case "i64":  return i64("i64", BigInt.asIntN(64, v));
+    case "f32": {
+      FLOAT_DV.setUint32(0, Number(BigInt.asUintN(32, v)), true);
+      return num("f32", FLOAT_DV.getFloat32(0, true));
+    }
+    case "f64": {
+      FLOAT_DV.setBigUint64(0, BigInt.asUintN(64, v), true);
+      return num("f64", FLOAT_DV.getFloat64(0, true));
+    }
+    case "char": return ch(Number(BigInt.asUintN(32, v)));
+    case "bool": return bool(v !== 0n);
+    case "boxed":
+      throw new Error("vm: data pool kind 'boxed' not allowed");
+  }
+}
+
+const FLOAT_BUF = new ArrayBuffer(8);
+const FLOAT_DV = new DataView(FLOAT_BUF);
 
 // ----------------------------------------------------------- frame model
 
@@ -179,6 +224,17 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       const s = ctx.stringPool[op.index];
       if (s === undefined) throw new VmError(`vm: bad string index ${op.index}`, debugOf(f.fn, f.ip));
       f.stack.push(s);
+      f.ip++; return;
+    }
+    case "data.const": {
+      let arr = ctx.dataPool[op.poolIndex];
+      if (arr === undefined) {
+        const elements = ctx.dataPoolElements[op.poolIndex];
+        if (elements === undefined) throw new VmError(`vm: bad data pool index ${op.poolIndex}`, debugOf(f.fn, f.ip));
+        arr = { tag: "array", typeIndex: op.typeIndex, elements };
+        ctx.dataPool[op.poolIndex] = arr;
+      }
+      f.stack.push(arr);
       f.ip++; return;
     }
 

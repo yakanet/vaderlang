@@ -178,8 +178,10 @@ export function pruneUnreachable(lp: LoweredProject, opts: PruneOpts = {}): Lowe
     });
   }
   // vtableEntries are filtered transitively by the emit's lookup of fn symbol
-  // ids — no need to mirror the filter here.
-  return { modules, vtableEntries: lp.vtableEntries };
+  // ids — no need to mirror the filter here. dataPool entries are addressed by
+  // index from surviving `LoweredDataConst` nodes ; their indices must stay
+  // stable across this pass, so carry the pool verbatim.
+  return { modules, vtableEntries: lp.vtableEntries, dataPool: lp.dataPool };
 }
 
 function declSurvives(
@@ -237,7 +239,7 @@ export function eliminateDeadCFG(p: CFGProject): CFGProject {
       structDecls: m.structDecls,
     });
   }
-  return { modules, vtableEntries: p.vtableEntries, strings: p.strings };
+  return { modules, vtableEntries: p.vtableEntries, strings: p.strings, dataPool: p.dataPool };
 }
 
 function optimiseFunction(fn: CFGFunction): CFGFunction {
@@ -482,6 +484,7 @@ function remapInstr(ins: Instruction, m: readonly LocalId[]): Instruction {
     case "ArraySlice":    return { ...ins, dst: r(m, ins.dst), target: r(m, ins.target), lo: r(m, ins.lo), hi: r(m, ins.hi) };
     case "StructNew":     return { ...ins, dst: r(m, ins.dst), fields: ins.fields.map((f) => r(m, f)) };
     case "ArrayNew":      return { ...ins, dst: r(m, ins.dst), elements: ins.elements.map((e) => r(m, e)) };
+    case "DataConst":     return { ...ins, dst: r(m, ins.dst) };
     case "TypeCheck":     return { ...ins, dst: r(m, ins.dst), value: r(m, ins.value) };
     case "Cast":          return { ...ins, dst: r(m, ins.dst), value: r(m, ins.value) };
     case "CellNew":       return { ...ins, dst: r(m, ins.dst), value: r(m, ins.value) };
