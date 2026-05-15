@@ -311,21 +311,29 @@ export function emitStructNew(
   const fieldVals: { name: string; val: ValType }[] = [];
   for (let i = t.fields.length - 1; i >= 0; i--) fieldVals.unshift(pop(s));
 
-  // Inline-variant fast path : an empty struct or a single-primitive-field
-  // struct can ride entirely inside `vader_box_t.payload`. Skip the GC
-  // allocation, encode the value directly. Saves an alloc + header init +
-  // box wrap per instance. Common on iter combinators (`Done | Yielded(T)`),
-  // Result/Option-style unions, and any user enum-with-payload. Excluded :
-  // structs that any `struct.set` writes to anywhere in the module — the
-  // mutation needs a heap body so every alias observes the new value.
+  // Inline-variant fast path : an empty struct, a single-primitive-field
+  // struct, or a single-ref-field struct can ride entirely inside
+  // `vader_box_t.payload`. Skip the GC allocation, encode the value
+  // directly. Saves an alloc + header init + box wrap per instance.
+  // Common on iter combinators (`Yield(T) | null`), Result/Option-style
+  // unions, any user enum-with-payload. Excluded : structs that any
+  // `struct.set` writes to anywhere in the module — the mutation needs
+  // a heap body so every alias observes the new value.
   const inlinePayload = !s.ctx.mutatedStructs.has(op.typeIndex)
     ? inlineVariantPayload(t, s.ctx.module.types)
     : null;
   if (inlinePayload !== null) {
     const tmp = newTmp(s, "ref");
     if (inlinePayload === "void") {
-      // `Done {}`-style — tag identifies, no payload to carry.
+      // Empty-body — tag identifies, no payload to carry.
       line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, NULL);`);
+    } else if (inlinePayload === "ref") {
+      // Single-ref-field — the wrapper itself never allocates ; we just
+      // re-tag the field's heap pointer with our struct's tag. The GC
+      // scans via `VADER_TYPE_KIND_INLINE_REF`'s scan_raw path, which
+      // reads the referent's own header tag rather than ours.
+      const v = fieldVals[0]!;
+      line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${v.name}.payload.obj);`);
     } else {
       // Single primitive field — coerce the incoming value into the matching
       // payload slot, then box with the variant's tag. `boxExpr` knows how
@@ -386,6 +394,15 @@ export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }
   const inlinePayload = !s.ctx.mutatedStructs.has(op.typeIndex)
     ? inlineVariantPayload(t, s.ctx.module.types)
     : null;
+  if (inlinePayload === "ref") {
+    // Single-ref-field : the wrapper's `payload.obj` IS the referent's
+    // heap pointer. Rebox with the field's own type tag so consumers see
+    // the referent (not the wrapper). `f.typeIndex` already names the
+    // concrete referent struct (Entry, MapIterator, …).
+    const tmp = newTmp(s, fval);
+    line(s, `${decl(s, fval, tmp)} = vader_box_obj(${f.typeIndex}u, ${obj.name}.payload.obj);`);
+    return;
+  }
   if (inlinePayload !== null && inlinePayload !== "void") {
     const tmp = newTmp(s, fval);
     line(s, `${decl(s, fval, tmp)} = ${coerce(s, unboxExpr(obj.name, inlinePayload), inlinePayload, fval)};`);

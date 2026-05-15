@@ -18,7 +18,7 @@
 
 import type {BytecodeModule, BcFunction, BcImport, BcSignature} from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
-import type { ArrayKind, BcDataEntry, BcType, ValType } from "../bytecode/types.ts";
+import type { ArrayKind, BcDataEntry, BcStruct, BcType, ValType } from "../bytecode/types.ts";
 import { arrayKindIndex, arrayKindOf, inlineVariantPayload, nullableRefVariant } from "../bytecode/types.ts";
 
 import {
@@ -445,13 +445,27 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
   for (let i = 0; i < types.length; i++) {
     const t = types[i]!;
     if (t.kind === "struct") {
-      // Inline-variant structs (`Done {}`, `Yielded(i32)`, …) are encoded
-      // directly inside `vader_box_t.payload` — they never get a heap
-      // allocation, so the GC scanner must skip them. Leave the entry at
-      // its zero-initialised KIND_NONE so `vader_gc_scan_box` short-circuits
-      // before touching the payload as a heap pointer. Mutated structs are
-      // excluded — they keep the heap rep so `struct.set` is observable.
-      if (!ctx.mutatedStructs.has(i) && inlineVariantPayload(t, types) !== null) continue;
+      // Inline-variant structs (empty-body / single-primitive-field /
+      // single-ref-field) are encoded directly inside `vader_box_t.payload`
+      // — they never get a heap allocation. Mutated structs are excluded :
+      // they keep the heap rep so `struct.set` is observable across aliases.
+      const inlinePayload = !ctx.mutatedStructs.has(i)
+        ? inlineVariantPayload(t, types)
+        : null;
+      if (inlinePayload === "void" || (inlinePayload !== null && inlinePayload !== "ref")) {
+        // Empty + primitive inline : `payload` is non-pointer data, GC skips
+        // the slot. Leave the entry at its zero-init KIND_NONE so
+        // `vader_gc_scan_box` short-circuits before touching the payload.
+        continue;
+      }
+      if (inlinePayload === "ref") {
+        // Single-ref-field inline : `payload.obj` IS the referent's heap
+        // pointer (the wrapper struct itself never allocates). GC reaches
+        // through via `scan_raw`, reading the referent's own type tag from
+        // its header — no per-tag scan info needed here.
+        out.push(`    [${i}] = { VADER_TYPE_KIND_INLINE_REF, 0, NULL, 0, 0, NULL, 0, NULL },`);
+        continue;
+      }
       const cname = ctx.structNames[i]!;
       const boxFields = t.fields.filter((f) => {
         const ft = types[f.typeIndex]!;
@@ -674,6 +688,14 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
             && (t.name === "StringBuilder" || t.name.endsWith("$StringBuilder")),
       );
       if (sbIdx < 0) return `${head} { vader_trap("StringBuilder type not found"); }`;
+      const sbType = ctx.module.types[sbIdx] as BcStruct;
+      // Inline-ref rep : StringBuilder's `parts` field IS the box payload,
+      // there's no separate heap struct to deref. `a0.payload.obj` is the
+      // string[] array obj pointer directly.
+      const sbInline = !ctx.mutatedStructs.has(sbIdx) && inlineVariantPayload(sbType, ctx.module.types) === "ref";
+      if (sbInline) {
+        return `${head} { return vader_string_concat_all((vader_array_t*) a0.payload.obj); }`;
+      }
       const sbCName = ctx.structNames[sbIdx]!;
       return `${head} { vader_box_t parts = ((${sbCName}*) a0.payload.obj)->f_parts; return vader_string_concat_all((vader_array_t*) parts.payload.obj); }`;
     }

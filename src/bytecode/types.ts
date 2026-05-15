@@ -243,29 +243,60 @@ export function nullableRefVariant(union: BcUnion, types: readonly BcType[]): nu
 
 /** Classify a struct as an "inline-variant" — every instance fits entirely
  *  in `vader_box_t`'s tag + payload, so the c-emit can encode it as a bare
- *  `vader_box_t` with no heap allocation. Two shapes match :
+ *  `vader_box_t` with no heap allocation. Three shapes match :
  *
- *    - empty struct (e.g. `Done {}`) → tag alone identifies the value
- *    - one-field struct whose field is a primitive (`Yielded { value: i32 }`,
+ *    - empty struct (e.g. `null { … }` style) → tag alone identifies the value
+ *    - one-field struct whose field is a primitive (`Yield { value: i32 }`,
  *      `Some { value: f64 }`, …) → the field's value rides in `payload.i` /
  *      `payload.f` / `payload.b` / `payload.s`
+ *    - one-field struct whose field is a heap ref (`Yield { value: Entry }`,
+ *      `Some { value: SomeStruct }`, …) → the field's obj pointer rides in
+ *      `payload.obj` directly. The wrapper disappears at runtime ; the GC
+ *      must recognise this tag and trace `payload.obj` as a ref to a
+ *      different-tagged object (see `VADER_TYPE_KIND_INLINE_REF`).
  *
- *  Multi-field structs and structs holding a heap ref / nested box return
- *  null — those payloads don't fit in a single `vader_box_t.payload` slot.
+ *  Multi-field structs and structs holding a union / fn / Yield-of-Yield
+ *  return null — those payloads don't fit a single `vader_box_t.payload`.
  *
  *  Returned value :
  *    - `null` — not inline-variant, heap-allocated as before
  *    - `"void"` — empty struct ; `vader_box_obj(tag, NULL)` encodes it
  *    - the field's `ValType` (a primitive name) — the field's value goes
  *      into the matching payload slot
+ *    - `"ref"` — single-ref-field shape ; `payload.obj` is the field's
+ *      obj pointer, the wrapper struct is never allocated
  */
-export function inlineVariantPayload(t: BcStruct, types: readonly BcType[]): ValType | "void" | null {
+export function inlineVariantPayload(t: BcStruct, types: readonly BcType[]): ValType | "void" | "ref" | null {
   if (t.fields.length === 0) return "void";
   if (t.fields.length > 1) return null;
+  // Closure-cell wrapper structs (`$Cell_N`) are designed for cross-closure
+  // sharing : a captured local is held in the cell and every closure
+  // referencing it reads/writes through the *same* cell. Inlining would
+  // break that aliasing — two cell values with the same primitive payload
+  // would be observationally equal, but each closure expects an
+  // independent cell to write into. The `struct.set` detection in
+  // `computeMutatedStructs` catches cells that are actually mutated in
+  // the current module, but a cell that's only `CellNew + CellGet` in
+  // this module would slip through ; closures still treat it as a mutable
+  // box. Cheaper to exclude every Cell type up-front than to detect
+  // late-bound writes.
+  if (t.name.startsWith("$Cell_")) return null;
   const fieldType = types[t.fields[0]!.typeIndex];
-  if (fieldType === undefined || fieldType.kind !== "primitive") return null;
-  // `void` and `null` aren't legitimate single-field types ; everything else
-  // (ints, floats, bool, char, string) fits in vader_box_t.payload.
-  if (fieldType.val === "void" || fieldType.val === "null") return null;
-  return fieldType.val;
+  if (fieldType === undefined) return null;
+  if (fieldType.kind === "primitive") {
+    // `void` and `null` aren't legitimate single-field types ; everything else
+    // (ints, floats, bool, char, string) fits in vader_box_t.payload.
+    if (fieldType.val === "void" || fieldType.val === "null") return null;
+    return fieldType.val;
+  }
+  // Heap-ref single field — struct or array. The wrapper struct itself
+  // never allocates ; the field's obj pointer IS the inline-variant's
+  // payload. Skip when the field's own type is *also* inline-variant
+  // (e.g. `Box(Box(i32))`) — the inner box doesn't carry a heap pointer
+  // we could borrow, just a primitive payload overlapping the `obj` slot
+  // of the union. Arrays are always heap-backed by their `vader_array_t`,
+  // so the `payload.obj` slot is always a real pointer.
+  if (fieldType.kind === "array") return "ref";
+  if (fieldType.kind === "struct" && inlineVariantPayload(fieldType, types) === null) return "ref";
+  return null;
 }

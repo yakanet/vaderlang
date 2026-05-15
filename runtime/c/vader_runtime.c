@@ -342,6 +342,10 @@ static void* vader_gc_forward(void* obj, uint32_t type_index) {
     return dst;
 }
 
+/* Forward decl — `scan_box` reaches into `scan_raw` for the inline-ref
+ * wrapper case (payload.obj is the referent, not a wrapper-typed pointer). */
+static void vader_gc_scan_raw(void** slot);
+
 /* Scan a `vader_box_t` slot — if the tag identifies a heap-allocated kind and
  * the payload holds a pointer, forward it and update the slot in place.
  *
@@ -354,6 +358,20 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
     if (boxp->tag >= vader_type_info_count) return;
     const vader_type_info_t* info = &vader_type_info_table[boxp->tag];
     if (info->kind == VADER_TYPE_KIND_NONE) return;
+    /* Inline-ref wrapper : `payload.obj` is the referent itself (not a
+     * pointer to a wrapper struct allocated under `boxp->tag`). Trace it
+     * by reading the obj's own type tag from its header — scan_raw does
+     * exactly that. The outer tag stays unchanged (`boxp->tag` is still
+     * the wrapper's logical type, e.g. `Yield(Entry)`). */
+    if (info->kind == VADER_TYPE_KIND_INLINE_REF) {
+        vader_gc_scan_raw(&boxp->payload.obj);
+        if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
+            && boxp->payload.obj != NULL
+            && !vader_in_old_any(boxp->payload.obj)) {
+            VADER_WRITE_BARRIER(boxp);
+        }
+        return;
+    }
     boxp->payload.obj = vader_gc_forward(boxp->payload.obj, boxp->tag);
     if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
         && boxp->payload.obj != NULL

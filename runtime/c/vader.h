@@ -368,10 +368,17 @@ vader_gc_stats_t vader_gc_get_stats(void);
  * heap kinds), and the byte offsets of `vader_box_t` (or other reference)
  * fields inside the object that the GC must scan and possibly forward. */
 typedef enum {
-    VADER_TYPE_KIND_NONE      = 0,   /* primitive / non-heap */
-    VADER_TYPE_KIND_STRUCT    = 1,
-    VADER_TYPE_KIND_ARRAY     = 2,   /* vader_array_t — single ref to its buf */
-    VADER_TYPE_KIND_FN        = 3,
+    VADER_TYPE_KIND_NONE        = 0,   /* primitive / non-heap, or inline-variant struct
+                                          with empty / primitive payload (lives entirely
+                                          inside vader_box_t — the GC skips the slot). */
+    VADER_TYPE_KIND_STRUCT      = 1,
+    VADER_TYPE_KIND_ARRAY       = 2,   /* vader_array_t — single ref to its buf */
+    VADER_TYPE_KIND_FN          = 3,
+    VADER_TYPE_KIND_INLINE_REF  = 4,   /* inline-variant wrapper struct with one ref
+                                          field. `vader_box_t.payload.obj` IS the
+                                          referent (not a pointer to a wrapper); the
+                                          GC traces it via `scan_raw` using the
+                                          referent's own type tag from its header. */
 } vader_type_kind_t;
 
 typedef struct {
