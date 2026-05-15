@@ -1,100 +1,64 @@
-// Lexer-dump parity — Vader CLI vs the TS-generated `lexer.snapshot`.
+// CLI parity — Vader CLI dumps vs TS-generated snapshots.
 //
-// Each snippet under `tests/snippets/` ships a `lexer.snapshot` produced by
-// the in-process TS lexer (`tests/snapshot.ts:formatTokens`). This test
-// spawns the Vader CLI (`vader/cli/main.vader`) on the same `_main.vader`
-// and asserts the stdout matches the snapshot byte-for-byte. The snapshot
-// format was simplified so the Vader CLI emits its natural output without
-// JS-mimicry — see `vader/cli/main.vader` for the producer side.
+// For each snippet under `tests/snippets/`, spawns the Vader CLI in lexer
+// and parser modes and asserts the stdout matches the corresponding
+// snapshot byte-for-byte. Snapshots are produced by the in-process TS
+// pipeline (`tests/snapshot.ts`).
 //
-// Eventually (post-bootstrap) the snapshot producer flips to the Vader CLI
+// Eventually (post-bootstrap) the snapshot producers flip to the Vader CLI
 // and this test collapses into `tests/snapshot.test.ts`.
 
-import { test, expect, beforeAll } from "bun:test";
-import { existsSync, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { test, expect } from "bun:test";
 
-import { LEXER_PARSER_CORPUS, listSnippets } from "./snapshot.ts";
+import { listSnippets } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
+import { ensureCliBuilt, runCli } from "./cli-bin.ts";
 
-const CLI_BIN = `build/vader${process.platform === "win32" ? ".exe" : ""}`;
+ensureCliBuilt();
 
-// Walk every Vader source the CLI links against and every TS file driving the
-// compiler, returning the newest mtime. If the binary's mtime is older the
-// `beforeAll` rebuilds it. Cheap enough to run unconditionally.
-function newestSourceMtime(): number {
-  let max = 0;
-  const exts = [".vader", ".ts"];
-  const walk = (dir: string): void => {
-    for (const ent of readdirSync(dir, { withFileTypes: true })) {
-      const p = join(dir, ent.name);
-      if (ent.isDirectory()) walk(p);
-      else if (exts.some((e) => ent.name.endsWith(e))) {
-        const m = statSync(p).mtimeMs;
-        if (m > max) max = m;
-      }
-    }
-  };
-  walk("vader");
-  walk("stdlib");
-  walk("src");
-  return max;
+interface Stage {
+  label: string;
+  dumpStage: string;
+  snapshotFile: string;
+  // Snippet names exempt from parity. Reintroduce an entry here when a
+  // regression surfaces ; both sets are intentionally empty today.
+  skip: Set<string>;
 }
 
-// 5-minute timeout to cover cold-CI native builds (~30s warm, longer on
-// slow runners) — see the matching note in `parser_parity.test.ts`.
-beforeAll(async () => {
-  const stale = !existsSync(CLI_BIN) || statSync(CLI_BIN).mtimeMs < newestSourceMtime();
-  if (!stale) return;
-  const proc = Bun.spawn(
-    ["bun", "src/index.ts", "build", "vader/cli/main.vader", "--target=native", `--out=${CLI_BIN}`],
-    { stdout: "pipe", stderr: "pipe" },
-  );
-  const code = await proc.exited;
-  if (code !== 0) {
-    const err = await new Response(proc.stderr).text();
-    throw new Error(`vader CLI build failed (exit ${code}):\n${err}`);
-  }
-}, 300_000);
+// `dumpStage` is the CLI flag value ; `label` is what appears in test
+// names. Both stages map 1:1 onto a snapshot file produced by `tests/
+// snapshot.ts`. The label / dumpStage divergence (`parser` vs `ast`)
+// preserves the historical snapshot filename.
+const STAGES: Stage[] = [
+  { label: "lexer", dumpStage: "lexer", snapshotFile: "lexer.snapshot", skip: new Set() },
+  { label: "parser", dumpStage: "ast", snapshotFile: "parser.snapshot", skip: new Set() },
+];
 
-// Snippets that previously diverged on multi-byte UTF-8 source content
-// were aligned by counting codepoints on both sides — TS skips low
-// surrogates in `advance()`, Vader's lexer skips UTF-8 continuation bytes.
-// Re-add an entry here only if a fixture re-introduces a non-codepoint
-// counting divergence.
-const UTF8_KNOWN_DIVERGENT = new Set<string>([]);
-
-// All snippets that have a `lexer.snapshot` (now produced for every snippet
-// since the corpus filter was removed). The `try { Bun.file(snapPath).text() }`
-// in the test body silently skips when the snapshot doesn't exist.
 const scenarios = listSnippets("tests/snippets");
 
 test("parity: at least one snippet", () => {
   expect(scenarios.length).toBeGreaterThan(0);
 });
 
-for (const s of scenarios) {
-  if (UTF8_KNOWN_DIVERGENT.has(s.name)) {
-    test.skip(`parity: ${s.name}`, () => {});
-    continue;
-  }
-  test.concurrent(`parity: ${s.name}`, async () => {
-    const snapPath = `${s.dir}/lexer.snapshot`;
-    let expected: string;
-    try { expected = await Bun.file(snapPath).text(); } catch { return; }
-
-    const proc = Bun.spawn(
-      [CLI_BIN, "dump", "--stage=lexer", s.mainPath],
-      { stdout: "pipe", stderr: "pipe" },
-    );
-    const stdout = await new Response(proc.stdout).text();
-    await proc.exited;
-
-    if (stdout !== expected) {
-      throw new Error(
-        `lexer-dump parity mismatch: ${s.name}\n\n` +
-        snapshotDiff(snapPath, expected, stdout),
-      );
+for (const stage of STAGES) {
+  for (const s of scenarios) {
+    if (stage.skip.has(s.name)) {
+      test.skip(`${stage.label}: ${s.name}`, () => {});
+      continue;
     }
-  }, { timeout: 30_000 });
+    test.concurrent(`${stage.label}: ${s.name}`, async () => {
+      const snapPath = `${s.dir}/${stage.snapshotFile}`;
+      let expected: string;
+      try { expected = await Bun.file(snapPath).text(); } catch { return; }
+
+      const { stdout } = await runCli(["dump", `--stage=${stage.dumpStage}`, s.mainPath]);
+
+      if (stdout !== expected) {
+        throw new Error(
+          `${stage.label}-dump parity mismatch: ${s.name}\n\n` +
+          snapshotDiff(snapPath, expected, stdout),
+        );
+      }
+    }, { timeout: 30_000 });
+  }
 }

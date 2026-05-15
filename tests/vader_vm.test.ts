@@ -13,53 +13,14 @@
 // are listed in `KNOWN_DIVERGENT` and skipped — entries should be
 // removed as Sprint 5+ lands.
 
-import { test, beforeAll } from "bun:test";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { test } from "bun:test";
+import { existsSync, readFileSync } from "node:fs";
 
 import { formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
+import { ensureCliBuilt, runCli } from "./cli-bin.ts";
 
-const CLI_BIN = `build/vader${process.platform === "win32" ? ".exe" : ""}`;
-
-// Rebuild the Vader CLI if any tracked source is newer than the binary.
-// Same trigger as `tests/parity.test.ts` so the two parity tests share
-// one rebuild path.
-function newestSourceMtime(): number {
-  let max = 0;
-  const exts = [".vader", ".ts"];
-  const walk = (dir: string): void => {
-    for (const ent of readdirSync(dir, { withFileTypes: true })) {
-      const p = join(dir, ent.name);
-      if (ent.isDirectory()) walk(p);
-      else if (exts.some((e) => ent.name.endsWith(e))) {
-        const m = statSync(p).mtimeMs;
-        if (m > max) max = m;
-      }
-    }
-  };
-  walk("vader");
-  walk("stdlib");
-  walk("src");
-  return max;
-}
-
-// 5-minute timeout to cover cold-CI native builds — see the matching
-// note in `parser_parity.test.ts`.
-beforeAll(async () => {
-  const stale = !existsSync(CLI_BIN) || statSync(CLI_BIN).mtimeMs < newestSourceMtime();
-  if (!stale) return;
-  const proc = Bun.spawn(
-    ["bun", "src/index.ts", "build", "vader/cli/main.vader", "--target=native", `--out=${CLI_BIN}`],
-    { stdout: "pipe", stderr: "pipe" },
-  );
-  const code = await proc.exited;
-  if (code !== 0) {
-    const err = await new Response(proc.stderr).text();
-    throw new Error(`vader CLI build failed (exit ${code}):
-${err}`);
-  }
-}, 300_000);
+ensureCliBuilt();
 
 // Snippets that the self-host VM can't yet run end-to-end. Empty at
 // HEAD : the U32* / U64* op families closed the last two known
@@ -97,24 +58,13 @@ for (const s of scenarios) {
     }
   }
   test.concurrent(`vader-vm: ${s.name}`, async () => {
-    const proc = Bun.spawn(
-      [CLI_BIN, "run", virtPath],
-      { stdout: "pipe", stderr: "pipe" },
-    );
-    const [stdout, stderr] = await Promise.all([
-      new Response(proc.stdout).text(),
-      new Response(proc.stderr).text(),
-    ]);
-    const exit = await proc.exited;
+    const { stdout, stderr, exit } = await runCli(["run", virtPath]);
     const actual = formatRun(stdout, stderr, exit);
     const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
     if (!cmp.ok) {
       throw new Error(
-        `vader-vm parity mismatch: ${s.name}
-` +
-        `  snap: ${cmp.snapPath}
-
-` +
+        `vader-vm parity mismatch: ${s.name}\n` +
+        `  snap: ${cmp.snapPath}\n\n` +
         snapshotDiff(cmp.snapPath, cmp.expected, actual),
       );
     }
