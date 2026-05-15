@@ -96,9 +96,21 @@ strip_comment :: fn(line: string) -> string {
 ///                 the line if there is no further space.
 first_token_after :: fn(cleaned: string, prefix: string) -> string {
     rest :: cleaned.slice(prefix.byte_len(), cleaned.byte_len()).trim()
-    space :: rest.index_of(' ', 0)
-    if space < 0 { return rest }
-    return rest.slice(0, usize(space))
+    return head_of(rest)
+}
+
+/// First whitespace-delimited token of `s`. Returns the full string when
+/// no whitespace is present (bare ops like `drop`, `return`, or any
+/// dotted op-name like `i32.add` / `array.len`). One allocation per call —
+/// callers share via `head :: head_of(cleaned)` once per line instead of
+/// chaining `starts_with` byte-walks per dispatch arm.
+///
+/// @param s  source string.
+/// @return   the head token, or the full string when there's no space.
+head_of :: fn(s: string) -> string {
+    space :: s.index_of(' ', 0)
+    if space < 0 { return s }
+    return s.slice(0, usize(space))
 }
 
 /// Walk every line of the .virt source. Module-level directives
@@ -151,21 +163,23 @@ export parse_virt :: fn(source: string) -> op.Module {
         cleaned :: strip_comment(line)
         if cleaned.byte_len() == 0 { continue }
 
+        head :: head_of(cleaned)
+
         if !in_function {
             // Module-level directives. The set is closed for now ;
             // unknown header lines (`module NAME`, ...) are ignored ;
             // sprint 5+ may surface diagnostics here.
-            if cleaned.starts_with("type ")   { parse_type_decl(cleaned, types) continue }
-            if cleaned.starts_with("string ") { parse_string_decl(cleaned, strings) continue }
-            if cleaned.starts_with("data ")   { parse_data_decl(cleaned, data_pool) continue }
-            if cleaned.starts_with("import ") { parse_import_decl(cleaned, imports) continue }
-            if cleaned.starts_with("impl ")   { parse_impl_decl(cleaned, impls) continue }
-            if cleaned.starts_with("export ") {
+            if head == "type"   { parse_type_decl(cleaned, types) continue }
+            if head == "string" { parse_string_decl(cleaned, strings) continue }
+            if head == "data"   { parse_data_decl(cleaned, data_pool) continue }
+            if head == "import" { parse_import_decl(cleaned, imports) continue }
+            if head == "impl"   { parse_impl_decl(cleaned, impls) continue }
+            if head == "export" {
                 found :: parse_export_main_index(cleaned)
                 if found >= 0 { main_index = found }
                 continue
             }
-            if cleaned.starts_with("fn ") {
+            if head == "fn" {
                 current_name = read_fn_mangled_name(cleaned)
                 current_parameter_count = count_delimited_items(cleaned, '(', ')')
                 current_local_count = 0
@@ -180,7 +194,7 @@ export parse_virt :: fn(source: string) -> op.Module {
         }
 
         // Inside a function body now.
-        if cleaned.starts_with("local ") {
+        if head == "local" {
             current_local_count += 1
             continue
         }
@@ -200,10 +214,10 @@ export parse_virt :: fn(source: string) -> op.Module {
         }
 
         pc :: i32(state.ops.len())
-        appended :: try_push_op(cleaned, state.ops)
+        appended :: try_push_op(cleaned, head, state.ops)
         if !appended { continue }
         state.table.push(-1)
-        wire_control_flow(state, cleaned, pc)
+        wire_control_flow(state, cleaned, head, pc)
     }
 
     // Fallback : if the .virt didn't carry an `export main N` directive,
@@ -539,8 +553,12 @@ parse_data_decl :: fn(cleaned: string, data_pool: op.ArrayVal[]) -> void {
     data_pool.push(op.ArrayVal { .type_id = 0, .elements = elements })
 }
 
-/// Decode `<kind> hex"…"` payload into a `Value[]`. Each element is
-/// little-endian for the kind's byte width.
+/// Decode the `<kind> hex"…"` payload into a `Value[]`. Each element
+/// reads `element_size(kind)` little-endian bytes from the hex blob.
+///
+/// @param kind      the primitive array-kind tag (`u32`, `i64`, ...).
+/// @param hex_body  raw hex digits (no enclosing quotes).
+/// @return          one `Value` per element, in pool order.
 data_entry_elements :: fn(kind: string, hex_body: string) -> op.Value[] {
     elem_size :: data_entry_element_size(kind)
     if elem_size == 0 { return [] }
@@ -556,7 +574,10 @@ data_entry_elements :: fn(kind: string, hex_body: string) -> op.Value[] {
 }
 
 /// Byte width of a primitive array-kind. Mirrors `arrayKindElementSize`
-/// in `src/bytecode/types.ts`. 0 = unknown / unsupported.
+/// in `src/bytecode/types.ts`.
+///
+/// @param kind  the primitive array-kind tag.
+/// @return      element size in bytes ; `0` for an unknown / unsupported kind.
 data_entry_element_size :: fn(kind: string) -> usize {
     if kind == "u8"   { return 1 }
     if kind == "i8"   { return 1 }
@@ -575,6 +596,11 @@ data_entry_element_size :: fn(kind: string) -> usize {
 
 /// Read one element from `bytes` at `offset`, interpreting the bytes
 /// per `kind`. Multi-byte values are little-endian.
+///
+/// @param kind    the primitive array-kind tag driving reinterpretation.
+/// @param bytes   the decoded hex blob.
+/// @param offset  byte offset of the first element byte.
+/// @return        a `Value` carrying the decoded payload.
 read_data_item :: fn(kind: string, bytes: u8[], offset: usize) -> op.Value {
     if kind == "u8"   { return op.I32Val { .value = i32(u32(bytes[offset])) } }
     if kind == "i8"   {
@@ -608,6 +634,9 @@ read_data_item :: fn(kind: string, bytes: u8[], offset: usize) -> op.Value {
 /// decoding delegates to `std/numbers::hex_digit_value` ; an invalid
 /// digit (-1 return) leaks through as a high-bit junk byte, which the
 /// caller treats as out-of-range data and surfaces as a value mismatch.
+///
+/// @param s  hex digits (no `0x` prefix, no separators).
+/// @return   one byte per pair of hex digits, in input order.
 hex_to_bytes :: fn(s: string) -> u8[] {
     out: u8[] = []
     i: usize = 0
@@ -621,10 +650,20 @@ hex_to_bytes :: fn(s: string) -> u8[] {
     return out
 }
 
+/// Read a little-endian u16 from `bytes` at `offset`.
+///
+/// @param bytes   the source byte array.
+/// @param offset  byte offset of the LSB.
+/// @return        the decoded 16-bit value as a u32 (zero-extended).
 read_u16_le :: fn(bytes: u8[], offset: usize) -> u32 {
     return u32(bytes[offset]) | (u32(bytes[offset + 1]) << 8)
 }
 
+/// Read a little-endian u32 from `bytes` at `offset`.
+///
+/// @param bytes   the source byte array.
+/// @param offset  byte offset of the LSB.
+/// @return        the decoded 32-bit value.
 read_u32_le :: fn(bytes: u8[], offset: usize) -> u32 {
     return u32(bytes[offset])
         | (u32(bytes[offset + 1]) << 8)
@@ -632,6 +671,11 @@ read_u32_le :: fn(bytes: u8[], offset: usize) -> u32 {
         | (u32(bytes[offset + 3]) << 24)
 }
 
+/// Read a little-endian u64 from `bytes` at `offset`.
+///
+/// @param bytes   the source byte array.
+/// @param offset  byte offset of the LSB.
+/// @return        the decoded 64-bit value.
 read_u64_le :: fn(bytes: u8[], offset: usize) -> u64 {
     return u64(bytes[offset])
         | (u64(bytes[offset + 1]) << 8)
@@ -762,12 +806,13 @@ count_delimited_items :: fn(line: string, open_char: char, close_char: char) -> 
 /// variant before pushing.
 ///
 /// @param cleaned  the .virt line (comment-stripped).
+/// @param head     the line's pre-computed head token (see `head_of`).
 /// @param ops      the current function's op list, appended to in place.
 /// @return         `true` if a known op was recognised and pushed ;
 ///                 `false` for unknown lines (silently dropped so they
 ///                 don't shift pc indices).
-try_push_op :: fn(cleaned: string, ops: op.Op[]) -> bool {
-    parsed :: parse_op_line(cleaned)
+try_push_op :: fn(cleaned: string, head: string, ops: op.Op[]) -> bool {
+    parsed :: parse_op_line(cleaned, head)
     if parsed is null { return false }
     ops.push(parsed)
     return true
@@ -777,19 +822,21 @@ try_push_op :: fn(cleaned: string, ops: op.Op[]) -> bool {
 /// Called after `try_push_op` so the op is already appended.
 ///
 /// @param state    per-function parser scratch state (mutated in place).
-/// @param cleaned  the .virt line (comment-stripped), used for prefix match.
+/// @param cleaned  the .virt line (comment-stripped) — still needed by
+///                 helpers that re-parse args like the branch label.
+/// @param head     the line's pre-computed head token (see `head_of`).
 /// @param pc       the pc that was just emitted (= `state.ops.len() - 1`).
-wire_control_flow :: fn(state: ParserState, cleaned: string, pc: i32) -> void {
-    if cleaned.starts_with("block ") {
+wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i32) -> void {
+    if head == "block" {
         push_scope(state.scopes, state.scope_sp, ScopeEntry { .label = first_token_after(cleaned, "block "), .is_loop = false, .opener_pc = pc })
-    } else if cleaned.starts_with("loop ") {
+    } else if head == "loop" {
         // Loop target is the start of its body (opener_pc + 1) — known
         // immediately, so we fill `table[pc]` up front.
         push_scope(state.scopes, state.scope_sp, ScopeEntry { .label = first_token_after(cleaned, "loop "), .is_loop = true, .opener_pc = pc })
         state.table[pc] = pc + 1
-    } else if cleaned.starts_with("if ") {
+    } else if head == "if" {
         push_scope(state.scopes, state.scope_sp, ScopeEntry { .label = first_token_after(cleaned, "if "), .is_loop = false, .opener_pc = pc })
-    } else if cleaned == "else" {
+    } else if head == "else" {
         sp :: state.scope_sp[0]
         if sp > 0 {
             top :: state.scopes[sp - 1]
@@ -798,7 +845,7 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, pc: i32) -> void {
             // matching `end` pairs the else with the past-end pc.
             state.scopes[sp - 1] = ScopeEntry { .label = top.label, .is_loop = false, .opener_pc = pc }
         }
-    } else if cleaned.starts_with("end") {
+    } else if head == "end" {
         sp :: state.scope_sp[0]
         if sp > 0 {
             top :: state.scopes[sp - 1]
@@ -811,9 +858,9 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, pc: i32) -> void {
             }
             drain_pending(state, top.label, top.is_loop, top.opener_pc, pc)
         }
-    } else if cleaned.starts_with("br ") {
+    } else if head == "br" {
         defer_or_resolve_branch(state, cleaned, "br ", pc)
-    } else if cleaned.starts_with("br_if ") {
+    } else if head == "br_if" {
         defer_or_resolve_branch(state, cleaned, "br_if ", pc)
     }
 }
@@ -898,148 +945,178 @@ drain_pending :: fn(state: ParserState, label: string, is_loop: bool, opener_pc:
     state.pending_sp[0] = new_sp
 }
 
-/// Dispatch on the line's prefix to construct the matching `op.Op` variant.
+/// Dispatch on the line's head token to construct the matching `op.Op`
+/// variant. Unknown ops return `null` ; the parser keeps going past
+/// directives a sprint doesn't yet handle (no pc shift, no diagnostic).
 ///
 /// @param cleaned  the .virt line (comment-stripped).
-/// @return         the parsed op, or `null` for unrecognised lines —
-///                 the parser keeps going past directives a sprint
-///                 doesn't yet handle (no pc shift, no diagnostic).
-parse_op_line :: fn(cleaned: string) -> op.Op | null {
-    // Width-suffixed integer constants — every `<width>.const N` collapses
-    // to `op.I32Const` (the VM aliases all integer widths to `I32Val`). See
-    // `primitive_matches` in `vader/vm/exec.vader` for the latent width-
-    // collapse miscompile risk.
-    int_const :: try_parse_int_const(cleaned)
-    if !(int_const is null) { return int_const }
-    if cleaned.starts_with("local.get ")        { return parse_slot_arg(cleaned, "local.get ", true) }
-    if cleaned.starts_with("local.set ")        { return parse_slot_arg(cleaned, "local.set ", false) }
-    if cleaned.starts_with("local.tee ")        { return parse_local_tee(cleaned) }
-    if cleaned.starts_with("string.const ")     { return parse_string_const(cleaned) }
-    if cleaned.starts_with("call.import ")      { return parse_call_import(cleaned) }
-    if cleaned.starts_with("call.indirect ")    { return parse_call_indirect(cleaned) }
-    if cleaned.starts_with("virtual.call ")     { return parse_virtual_call(cleaned) }
-    if cleaned.starts_with("call ")             { return parse_call(cleaned) }
-    if cleaned.starts_with("fn.ref ")           { return parse_fn_ref(cleaned) }
-    if cleaned.starts_with("make_closure ")     { return parse_make_closure(cleaned) }
-    // `struct.new` / `struct.new_stack` and `struct.set` / `struct.set_stack`
-    // collapse into one VM op each — the heap/stack split is a codegen
-    // concern. `_stack` prefixes are checked first since they share the
-    // base prefix.
-    if cleaned.starts_with("struct.new_stack ") { return parse_struct_new_after(cleaned, "struct.new_stack ") }
-    if cleaned.starts_with("struct.new ")       { return parse_struct_new_after(cleaned, "struct.new ") }
-    if cleaned.starts_with("struct.get ")       { return parse_struct_get(cleaned) }
-    if cleaned.starts_with("struct.set_stack ") { return parse_struct_set_after(cleaned, "struct.set_stack ") }
-    if cleaned.starts_with("struct.set ")       { return parse_struct_set_after(cleaned, "struct.set ") }
-    if cleaned.starts_with("array.new ")        { return parse_array_new(cleaned) }
-    if cleaned.starts_with("array.push ")       { return parse_array_push(cleaned) }
-    if cleaned.starts_with("array.get ")        { return parse_array_get(cleaned) }
-    if cleaned.starts_with("array.set ")        { return parse_array_set(cleaned) }
-    if cleaned == "array.len"                   { return op.ArrayLen {} }
-    if cleaned.starts_with("array.slice ")      { return parse_array_slice(cleaned) }
-    if cleaned.starts_with("data.const ")       { return parse_data_const(cleaned) }
-    if cleaned.starts_with("ref.cast ")         { return op.RefCast {} }
-    if cleaned.starts_with("char.to_")          { return op.CharToInt {} }
-    if cleaned.ends_with(".to_char")            { return op.IntToChar {} }
-    if is_numeric_convert(cleaned)              { return parse_convert(cleaned) }
-    if cleaned == "intrinsic builder.new"             { return op.BuilderNew {} }
-    if cleaned == "intrinsic builder.append_str"      { return op.BuilderAppendStr {} }
-    if cleaned == "intrinsic builder.append_display"  { return op.BuilderAppendDisplay {} }
-    if cleaned == "intrinsic builder.finish"          { return op.BuilderFinish {} }
-    if cleaned == "null.const"  { return op.NullConst {} }
-    if cleaned.starts_with("bool.const ")             { return parse_bool_const(cleaned) }
-    if cleaned == "bool.eq"     { return op.BoolEq {} }
-    if cleaned == "bool.ne"     { return op.BoolNe {} }
-    if cleaned == "bool.and"    { return op.BoolAnd {} }
-    if cleaned == "bool.or"     { return op.BoolOr {} }
-    if cleaned == "bool.not"    { return op.BoolNot {} }
-    if cleaned.starts_with("char.const ")             { return parse_char_const(cleaned) }
-    if cleaned == "char.eq"     { return op.CharEq {} }
-    if cleaned == "char.ne"     { return op.CharNe {} }
-    if cleaned == "char.lt"     { return op.CharLt {} }
-    if cleaned == "char.le"     { return op.CharLe {} }
-    if cleaned == "char.gt"     { return op.CharGt {} }
-    if cleaned == "char.ge"     { return op.CharGe {} }
-    if cleaned == "string.eq"     { return op.StringEq {} }
-    if cleaned == "string.ne"     { return op.StringNe {} }
-    if cleaned == "string.concat" { return op.StringConcat {} }
-    if cleaned == "ref.eq"      { return op.RefEq {} }
-    if cleaned == "ref.ne"      { return op.RefNe {} }
-    if cleaned == "drop"        { return op.Drop {} }
-    if cleaned.starts_with("type_check ")   { return parse_type_check(cleaned) }
-    // Integer arithmetic / comparison / unary / bitwise ops. The Vader
-    // VM aliases every integer width to `I32Val`, so each verb collapses
-    // onto a single `I32X` op : `<width>.<verb>` for any of the 10
-    // supported widths (i8 / i16 / i32 / i64 / isize / u8 / u16 / u32 /
-    // u64 / usize) routes to the same arm. `is_int_op` enumerates the
-    // width prefixes ; mirrors the width-collapse already done for
-    // `<width>.const` (Sprint 5c).
-    // Wide widths (i64 / u64 / usize / isize) route to the `I64*` op
-    // family — values above 2^31 don't fit in `I32Val`. Narrow widths
-    // (i8 / i16 / i32 / u8 / u16 / u32) fall through to the `I32*`
-    // family. Single split keeps the slice cost to one extraction.
-    wide_op :: parse_wide_int_op(cleaned)
-    if !(wide_op is null) { return wide_op }
-    if is_int_op(cleaned, "add")    { return op.I32Add {} }
-    if is_int_op(cleaned, "sub")    { return op.I32Sub {} }
-    if is_int_op(cleaned, "mul")    { return op.I32Mul {} }
-    if is_int_op(cleaned, "div")    { return op.I32Div {} }
-    if is_int_op(cleaned, "rem")    { return op.I32Mod {} }
-    if is_int_op(cleaned, "eq")     { return op.I32Eq {} }
-    if is_int_op(cleaned, "ne")     { return op.I32Ne {} }
-    if is_int_op(cleaned, "lt")     { return op.I32Lt {} }
-    if is_int_op(cleaned, "le")     { return op.I32Le {} }
-    if is_int_op(cleaned, "gt")     { return op.I32Gt {} }
-    if is_int_op(cleaned, "ge")     { return op.I32Ge {} }
-    if is_int_op(cleaned, "neg")    { return op.I32Neg {} }
-    if is_int_op(cleaned, "bitnot") { return op.I32BitNot {} }
-    if is_int_op(cleaned, "bitand") { return op.I32BitAnd {} }
-    if is_int_op(cleaned, "bitor")  { return op.I32BitOr {} }
-    if is_int_op(cleaned, "bitxor") { return op.I32BitXor {} }
-    if is_int_op(cleaned, "shl")    { return op.I32Shl {} }
-    // `shr` splits by signedness : signed widths keep the arithmetic
-    // shift (`op.I32Shr`), unsigned widths route to the logical-shift
-    // variant (`op.I32ShrU`). The two diverge only when the source operand
-    // has its high bit set ; lower bits behave identically.
-    if is_signed_int_op(cleaned, "shr")   { return op.I32Shr {} }
-    if is_unsigned_int_op(cleaned, "shr") { return op.I32ShrU {} }
-    if cleaned.starts_with("f64.const ") { return parse_f64_const(cleaned) }
-    if cleaned == "f64.add"     { return op.F64Add {} }
-    if cleaned == "f64.sub"     { return op.F64Sub {} }
-    if cleaned == "f64.mul"     { return op.F64Mul {} }
-    if cleaned == "f64.div"     { return op.F64Div {} }
-    if cleaned == "f64.neg"     { return op.F64Neg {} }
-    if cleaned == "f64.eq"      { return op.F64Eq {} }
-    if cleaned == "f64.ne"      { return op.F64Ne {} }
-    if cleaned == "f64.lt"      { return op.F64Lt {} }
-    if cleaned == "f64.le"      { return op.F64Le {} }
-    if cleaned == "f64.gt"      { return op.F64Gt {} }
-    if cleaned == "f64.ge"      { return op.F64Ge {} }
-    if cleaned.starts_with("block ")            { return op.Block {} }
-    if cleaned.starts_with("loop ")             { return op.Loop {} }
-    if cleaned.starts_with("if ")               { return op.If {} }
-    if cleaned == "else"                        { return op.Else {} }
-    if cleaned.starts_with("end")               { return op.End {} }
-    if cleaned.starts_with("br_if ")            { return op.BranchIf {} }
-    if cleaned.starts_with("br ")               { return op.Branch {} }
-    if cleaned == "return"                      { return op.Return {} }
+/// @param head     the line's pre-computed head token (see `head_of`).
+/// @return         the parsed op, or `null` for unrecognised lines.
+parse_op_line :: fn(cleaned: string, head: string) -> op.Op | null {
+    dot :: head.index_of('.', 0)
+    if dot >= 0 {
+        width :: head.slice(0, usize(dot))
+
+        // Width gates : we only slice the suffix for the int / f64 width
+        // families. `array.X`, `bool.X`, `char.X`, `string.X`, `ref.X`,
+        // `local.X`, `struct.X`, `data.X`, `fn.X`, `call.X`, `make_closure`
+        // skip past the dotted block entirely — saving one slice on every
+        // such line (the dominant share of `json_basics.virt`).
+        is_int :: is_int_width(width)
+        is_f64 :: width == "f64"
+        is_char_or_f32 :: width == "char" || width == "f32"
+        if is_int || is_f64 || is_char_or_f32 {
+            suffix :: head.slice(usize(dot) + 1, head.byte_len())
+
+            if suffix == "const" && is_int {
+                value_off :: head.byte_len() + usize(1)
+                if value_off >= cleaned.byte_len() { return null }
+                return parse_int_const_text(cleaned.slice(value_off, cleaned.byte_len()).trim())
+            }
+            if suffix == "const" && is_f64 { return parse_f64_const(cleaned) }
+
+            // <from>.to_<to>. `char.to_<int>` and `<int>.to_char` get
+            // dedicated ops ; everything else routes through `parse_convert`.
+            // `f32` stays a valid from-type for forward compatibility even
+            // though the bytecode emit doesn't currently produce it.
+            if width == "char" && suffix.starts_with("to_") { return op.CharToInt {} }
+            if suffix == "to_char" { return op.IntToChar {} }
+            if suffix.starts_with("to_") {
+                target :: suffix.slice("to_".byte_len(), suffix.byte_len())
+                if is_int_width(target) || target == "f32" || target == "f64" { return parse_convert(cleaned) }
+            }
+
+            if is_int {
+                int_op :: int_op_for(width, suffix)
+                if !(int_op is null) { return int_op }
+            }
+            if is_f64 {
+                if suffix == "add" { return op.F64Add {} }
+                if suffix == "sub" { return op.F64Sub {} }
+                if suffix == "mul" { return op.F64Mul {} }
+                if suffix == "div" { return op.F64Div {} }
+                if suffix == "neg" { return op.F64Neg {} }
+                if suffix == "eq"  { return op.F64Eq {} }
+                if suffix == "ne"  { return op.F64Ne {} }
+                if suffix == "lt"  { return op.F64Lt {} }
+                if suffix == "le"  { return op.F64Le {} }
+                if suffix == "gt"  { return op.F64Gt {} }
+                if suffix == "ge"  { return op.F64Ge {} }
+            }
+        }
+    }
+
+    if head == "local.get"        { return parse_slot_arg(cleaned, "local.get ", true) }
+    if head == "local.set"        { return parse_slot_arg(cleaned, "local.set ", false) }
+    if head == "local.tee"        { return parse_local_tee(cleaned) }
+    if head == "string.const"     { return parse_string_const(cleaned) }
+    if head == "call.import"      { return parse_call_import(cleaned) }
+    if head == "call.indirect"    { return parse_call_indirect(cleaned) }
+    if head == "virtual.call"     { return parse_virtual_call(cleaned) }
+    if head == "call"             { return parse_call(cleaned) }
+    if head == "fn.ref"           { return parse_fn_ref(cleaned) }
+    if head == "make_closure"     { return parse_make_closure(cleaned) }
+    if head == "struct.new_stack" { return parse_struct_new_after(cleaned, "struct.new_stack ") }
+    if head == "struct.new"       { return parse_struct_new_after(cleaned, "struct.new ") }
+    if head == "struct.get"       { return parse_struct_get(cleaned) }
+    if head == "struct.set_stack" { return parse_struct_set_after(cleaned, "struct.set_stack ") }
+    if head == "struct.set"       { return parse_struct_set_after(cleaned, "struct.set ") }
+    if head == "array.new"        { return parse_array_new(cleaned) }
+    if head == "array.push"       { return parse_array_push(cleaned) }
+    if head == "array.get"        { return parse_array_get(cleaned) }
+    if head == "array.set"        { return parse_array_set(cleaned) }
+    if head == "array.len"        { return op.ArrayLen {} }
+    if head == "array.slice"      { return parse_array_slice(cleaned) }
+    if head == "data.const"       { return parse_data_const(cleaned) }
+    if head == "ref.cast"         { return op.RefCast {} }
+    if head == "intrinsic" {
+        if cleaned == "intrinsic builder.new"             { return op.BuilderNew {} }
+        if cleaned == "intrinsic builder.append_str"      { return op.BuilderAppendStr {} }
+        if cleaned == "intrinsic builder.append_display"  { return op.BuilderAppendDisplay {} }
+        if cleaned == "intrinsic builder.finish"          { return op.BuilderFinish {} }
+        return null
+    }
+    if head == "null.const"     { return op.NullConst {} }
+    if head == "bool.const"     { return parse_bool_const(cleaned) }
+    if head == "bool.eq"        { return op.BoolEq {} }
+    if head == "bool.ne"        { return op.BoolNe {} }
+    if head == "bool.and"       { return op.BoolAnd {} }
+    if head == "bool.or"        { return op.BoolOr {} }
+    if head == "bool.not"       { return op.BoolNot {} }
+    if head == "char.const"     { return parse_char_const(cleaned) }
+    if head == "char.eq"        { return op.CharEq {} }
+    if head == "char.ne"        { return op.CharNe {} }
+    if head == "char.lt"        { return op.CharLt {} }
+    if head == "char.le"        { return op.CharLe {} }
+    if head == "char.gt"        { return op.CharGt {} }
+    if head == "char.ge"        { return op.CharGe {} }
+    if head == "string.eq"      { return op.StringEq {} }
+    if head == "string.ne"      { return op.StringNe {} }
+    if head == "string.concat"  { return op.StringConcat {} }
+    if head == "ref.eq"         { return op.RefEq {} }
+    if head == "ref.ne"         { return op.RefNe {} }
+    if head == "drop"           { return op.Drop {} }
+    if head == "type_check"     { return parse_type_check(cleaned) }
+    if head == "block"          { return op.Block {} }
+    if head == "loop"           { return op.Loop {} }
+    if head == "if"             { return op.If {} }
+    if head == "else"           { return op.Else {} }
+    if head == "end"            { return op.End {} }
+    if head == "br_if"          { return op.BranchIf {} }
+    if head == "br"             { return op.Branch {} }
+    if head == "return"         { return op.Return {} }
     return null
 }
 
-/// Recognise `<width>.const N` for any integer width and return the
-/// resulting `op.I32Const` (the VM aliases every integer width to `I32Val`).
-/// Returns `null` when `cleaned` isn't a width-suffixed integer constant.
+/// Decode `<width>.<suffix>` into the matching integer op. `width` is
+/// already known to satisfy `is_int_width`. Wide widths (i64/u64) route
+/// to I64*; everything else collapses to I32* (the VM aliases narrow
+/// integer storage classes). `shr` splits on signedness — signed widths
+/// keep arithmetic shift, unsigned widths get the logical variant.
 ///
-/// @param cleaned  the comment-stripped op line.
-/// @return         an `op.I32Const` op on success, `null` otherwise.
-try_parse_int_const :: fn(cleaned: string) -> op.Op | null {
-    dot :: cleaned.index_of('.', 0)
-    if dot < 0 { return null }
-    width :: cleaned.slice(0, usize(dot))
-    if !is_int_width(width) { return null }
-    suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
-    if !suffix.starts_with("const ") { return null }
-    rest :: suffix.slice("const ".byte_len(), suffix.byte_len()).trim()
-    return parse_int_const_text(rest)
+/// @param width   the integer width prefix (`i32`, `u8`, ..., `usize`).
+/// @param suffix  the verb tail (`add`, `shl`, `neg`, ...).
+/// @return        the matching op, or `null` for an unrecognised suffix.
+int_op_for :: fn(width: string, suffix: string) -> op.Op | null {
+    is_wide :: width == "i64" || width == "u64"
+    if is_wide {
+        if suffix == "add" { return op.I64Add {} }
+        if suffix == "sub" { return op.I64Sub {} }
+        if suffix == "mul" { return op.I64Mul {} }
+        if suffix == "div" { return op.I64Div {} }
+        if suffix == "rem" { return op.I64Mod {} }
+        if suffix == "eq"  { return op.I64Eq {} }
+        if suffix == "ne"  { return op.I64Ne {} }
+        if suffix == "lt"  { return op.I64Lt {} }
+        if suffix == "le"  { return op.I64Le {} }
+        if suffix == "gt"  { return op.I64Gt {} }
+        if suffix == "ge"  { return op.I64Ge {} }
+        if suffix == "neg" { return op.I64Neg {} }
+        // Bitwise / shift falls through to I32* (same width collapse).
+    }
+    if suffix == "add"    { return op.I32Add {} }
+    if suffix == "sub"    { return op.I32Sub {} }
+    if suffix == "mul"    { return op.I32Mul {} }
+    if suffix == "div"    { return op.I32Div {} }
+    if suffix == "rem"    { return op.I32Mod {} }
+    if suffix == "eq"     { return op.I32Eq {} }
+    if suffix == "ne"     { return op.I32Ne {} }
+    if suffix == "lt"     { return op.I32Lt {} }
+    if suffix == "le"     { return op.I32Le {} }
+    if suffix == "gt"     { return op.I32Gt {} }
+    if suffix == "ge"     { return op.I32Ge {} }
+    if suffix == "neg"    { return op.I32Neg {} }
+    if suffix == "bitnot" { return op.I32BitNot {} }
+    if suffix == "bitand" { return op.I32BitAnd {} }
+    if suffix == "bitor"  { return op.I32BitOr {} }
+    if suffix == "bitxor" { return op.I32BitXor {} }
+    if suffix == "shl"    { return op.I32Shl {} }
+    if suffix == "shr" {
+        is_signed :: width == "i8" || width == "i16" || width == "i32" || width == "i64" || width == "isize"
+        if is_signed { return op.I32Shr {} }
+        return op.I32ShrU {}
+    }
+    return null
 }
 
 /// Parse the operand of `<width>.const N`. Values that fit signed-i32
@@ -1065,11 +1142,11 @@ parse_int_const_text :: fn(rest: string) -> op.Op | null {
 
 /// True iff `width` is one of the 10 integer prefixes the VM recognises
 /// (`i8` / `i16` / `i32` / `i64` / `isize` / `u8` / `u16` / `u32` / `u64`
-/// / `usize`). Shared by `is_int_op` and `is_numeric_convert` so the
-/// width set lives in one place — adding a new width is one edit.
+/// / `usize`). `parse_op_line` and `int_op_for` read this to gate the
+/// `<width>.<verb>` dispatch.
 ///
-/// @param width  the prefix to test.
-/// @return       `true` if `width` is a recognised integer width.
+/// @param width  the prefix candidate.
+/// @return       `true` for any of the 10 supported integer widths.
 is_int_width :: fn(width: string) -> bool {
     if width == "i32"   { return true }
     if width == "i8"    { return true }
@@ -1082,82 +1159,6 @@ is_int_width :: fn(width: string) -> bool {
     if width == "u64"   { return true }
     if width == "usize" { return true }
     return false
-}
-
-/// True iff `cleaned` is `<width>.<verb>` for any of the 10 integer
-/// widths. Used by `parse_op_line` to collapse every integer-width-
-/// suffixed arithmetic / unary / bitwise op onto its `I32X` equivalent
-/// (the VM aliases all integer widths to `I32Val`).
-///
-/// @param cleaned  the comment-stripped op line.
-/// @param verb     the verb suffix (e.g. `"add"`, `"neg"`, `"bitand"`).
-/// @return         `true` when `cleaned` matches `<width>.<verb>` for
-///                 any recognised integer width ; `false` otherwise.
-is_int_op :: fn(cleaned: string, verb: string) -> bool {
-    dot :: cleaned.index_of('.', 0)
-    if dot < 0 { return false }
-    width :: cleaned.slice(0, usize(dot))
-    suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
-    return is_int_width(width) && suffix == verb
-}
-
-/// Recognise `<wide-int>.<verb>` and return the matching `I64*` op.
-/// Only `i64` / `u64` currently route to the I64 family ; `usize` /
-/// `isize` stay on the I32 path until the GC handles the extra boxing
-/// pressure (see `TODO.md` self-host VM section).
-///
-/// Splitting the dispatch into one helper keeps `parse_op_line` cheap :
-/// the width / suffix slices happen once per line, not 12×.
-parse_wide_int_op :: fn(cleaned: string) -> op.Op | null {
-    dot :: cleaned.index_of('.', 0)
-    if dot < 0 { return null }
-    width_len :: usize(dot)
-    width :: cleaned.slice(0, width_len)
-    if width != "i64" && width != "u64" { return null }
-    suffix :: cleaned.slice(width_len + usize(1), cleaned.byte_len())
-    if suffix == "add" { return op.I64Add {} }
-    if suffix == "sub" { return op.I64Sub {} }
-    if suffix == "mul" { return op.I64Mul {} }
-    if suffix == "div" { return op.I64Div {} }
-    if suffix == "rem" { return op.I64Mod {} }
-    if suffix == "eq"  { return op.I64Eq {} }
-    if suffix == "ne"  { return op.I64Ne {} }
-    if suffix == "lt"  { return op.I64Lt {} }
-    if suffix == "le"  { return op.I64Le {} }
-    if suffix == "gt"  { return op.I64Gt {} }
-    if suffix == "ge"  { return op.I64Ge {} }
-    if suffix == "neg" { return op.I64Neg {} }
-    return null
-}
-
-/// True iff `cleaned` is `<signed-width>.<verb>` (i8 / i16 / i32 / i64
-/// / isize). Used to split `shr` into arithmetic / logical variants.
-///
-/// @param cleaned  the comment-stripped op line.
-/// @param verb     the verb suffix.
-/// @return         `true` when the prefix is a signed integer width.
-is_signed_int_op :: fn(cleaned: string, verb: string) -> bool {
-    dot :: cleaned.index_of('.', 0)
-    if dot < 0 { return false }
-    width :: cleaned.slice(0, usize(dot))
-    if width != "i8" && width != "i16" && width != "i32" && width != "i64" && width != "isize" { return false }
-    suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
-    return suffix == verb
-}
-
-/// True iff `cleaned` is `<unsigned-width>.<verb>` (u8 / u16 / u32 / u64
-/// / usize).
-///
-/// @param cleaned  the comment-stripped op line.
-/// @param verb     the verb suffix.
-/// @return         `true` when the prefix is an unsigned integer width.
-is_unsigned_int_op :: fn(cleaned: string, verb: string) -> bool {
-    dot :: cleaned.index_of('.', 0)
-    if dot < 0 { return false }
-    width :: cleaned.slice(0, usize(dot))
-    if width != "u8" && width != "u16" && width != "u32" && width != "u64" && width != "usize" { return false }
-    suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
-    return suffix == verb
 }
 
 /// Strip `prefix` from `line`, trim, and parse the rest as a base-10
@@ -1176,32 +1177,24 @@ parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
     return i32(parsed)
 }
 
-/// True iff `cleaned` is a numeric width-to-width conversion op
-/// (`i32.to_usize`, `usize.to_i32`, `i64.to_i32`, ...). The shape is
-/// `<numeric-prefix>.to_<...>`. Restricting to a known set of numeric
-/// from-types (vs the broader `.contains(".to_")`) avoids future
-/// collisions with non-numeric `.to_*` mnemonics like
-/// `string.to_bytes` or hypothetical `i32.to_f32` (which would need
-/// an actual conversion, not a no-op).
+/// Parse a `<from>.to_<to>` line into the matching `op.Convert`. Only
+/// the target width affects runtime semantics — the executor re-tags
+/// the top of the stack to the target's storage class.
 ///
 /// @param cleaned  the .virt line, already comment-stripped.
-/// @return         `true` if the op is a no-op-runtime numeric cast,
-///                 `false` otherwise.
-is_numeric_convert :: fn(cleaned: string) -> bool {
-    dot :: cleaned.index_of('.', 0)
-    if dot < 0 { return false }
-    width :: cleaned.slice(0, usize(dot))
-    if !is_int_width(width) && width != "f32" && width != "f64" { return false }
-    suffix :: cleaned.slice(usize(dot) + 1, cleaned.byte_len())
-    return suffix.starts_with("to_")
-}
-
+/// @return         the `op.Convert` op carrying the target tag.
 parse_convert :: fn(cleaned: string) -> op.Op {
     dot :: cleaned.index_of('.', 0)
     suffix :: cleaned.slice(usize(dot) + 1 + usize(3), cleaned.byte_len())
     return op.Convert { .target = convert_target_of(suffix) }
 }
 
+/// Collapse a target width to its `ConvertTarget` storage class. Every
+/// integer width below 64 bits collapses to `I32` ; `i64` / `u64` map
+/// to `I64` ; floats to `F64` ; `char` to `Char`.
+///
+/// @param width  the target width literal (`i32`, `f64`, `char`, ...).
+/// @return       the matching `ConvertTarget`.
 convert_target_of :: fn(width: string) -> op.ConvertTarget {
     if width == "i64"   { return .I64 }
     if width == "u64"   { return .I64 }
@@ -1209,12 +1202,6 @@ convert_target_of :: fn(width: string) -> op.ConvertTarget {
     if width == "f64"   { return .F64 }
     if width == "char"  { return .Char }
     return .I32
-}
-
-parse_int_arg :: fn(line: string, prefix: string) -> op.Op | null {
-    parsed :: parse_int_after_prefix(line, prefix)
-    if parsed is null { return null }
-    return op.I32Const { .value = parsed }
 }
 
 parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> op.Op | null {
