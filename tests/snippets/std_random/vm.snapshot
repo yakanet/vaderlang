@@ -1,0 +1,10 @@
+# stdout
+deterministic=true
+zero_seed_nonzero=true
+range_i32_in_bounds=true
+unit_f64_in_bounds=true
+shuffled_len=8
+shuffled_sum=36
+bool_both_seen=true
+# exit
+0

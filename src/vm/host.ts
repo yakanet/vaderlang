@@ -275,6 +275,13 @@ export function stdStringBindings(): Record<string, HostFn> {
   };
 }
 
+export function stdTimeBindings(): Record<string, HostFn> {
+  return {
+    std_time$now_unix_ms:  () => i64("i64", BigInt(Date.now())),
+    std_time$monotonic_ns: () => i64("i64", BigInt(Math.trunc(performance.now() * 1e6))),
+  };
+}
+
 export function stdMathBindings(): Record<string, HostFn> {
   return {
     std_math$sqrt:  (args) => num("f64", Math.sqrt(numArg(args, 0))),
@@ -340,7 +347,7 @@ export function stdTestingBindings(): Record<string, HostFn> {
 }
 
 export function makeBindings(io: HostIO): HostBindings {
-  const all = { ...stdIoBindings(io), ...stdStringBindings(), ...stdMathBindings(), ...stdRuntimeBindings(), ...stdProcessBindings(), ...stdTestingBindings() };
+  const all = { ...stdIoBindings(io), ...stdStringBindings(), ...stdTimeBindings(), ...stdMathBindings(), ...stdRuntimeBindings(), ...stdProcessBindings(), ...stdTestingBindings() };
   return {
     get(mangledName, externName) {
       return all[mangledName] ?? all[externName] ?? null;

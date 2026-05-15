@@ -165,6 +165,15 @@ const KNOWN_DIVERGENT = new Set<string>([
   //   - Width truncation (u32 wrap missing) — numeric_context_sensitivity,
   //     enum_to_repr_cast, type_aliases.
   //   - Misc : process_spawn (spawn_run host).
+  //
+  // The self-host VM treats `Convert` as a no-op, so any cast between
+  // numeric widths leaves the source tag attached. The next op then
+  // traps on the wrong tag (e.g. `f64.div` "expected f64, got i32"
+  // after `f64(u64)`). Native + TS VM both convert correctly.
+  "std_random",
+  // Same `Convert` no-op issue — `std/crypto`'s SHA-256 / MD5 block
+  // load (`u32(msg[offset])`) keeps the u8 tag.
+  "std_crypto",
 ]);
 
 const scenarios = listSnippets("tests/snippets");

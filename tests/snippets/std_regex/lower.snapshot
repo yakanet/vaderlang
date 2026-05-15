@@ -1,0 +1,629 @@
+# Lower
+
+## tests/snippets/std_regex/_main.vader
+  fn tests_snippets_std_regex__main_vader$run_match(label: string, p: Pattern, input: string) -> void
+    ~>
+      call :void
+        callee:
+          println :fn(string) -> void
+        arg0:
+          block :string
+            let __sb_0: ? =
+              @builder.new :?
+            @builder.append_display <for string> :void
+              __sb_0 :?
+              label :string
+            @builder.append_str :void
+              __sb_0 :?
+              "=" :string
+            @builder.append_display <for bool> :void
+              __sb_0 :?
+              call :bool
+                callee:
+                  matches :bool
+                arg0:
+                  p :Pattern
+                arg1:
+                  input :string
+            ~>
+              @builder.finish :string
+                __sb_0 :?
+  fn tests_snippets_std_regex__main_vader$run_find(label: string, p: Pattern, input: string) -> void
+    let r: Match | null =
+      call :Match | null
+        callee:
+          find :Match | null
+        arg0:
+          p :Pattern
+        arg1:
+          input :string
+    ~>
+      if :void
+        cond:
+          is Match :bool
+            r :Match | null
+        then:
+          ~>
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_0: ? =
+                    @builder.new :?
+                  @builder.append_display <for string> :void
+                    __sb_0 :?
+                    label :string
+                  @builder.append_str :void
+                    __sb_0 :?
+                    "=" :string
+                  @builder.append_str :void
+                    __sb_0 :?
+                    call :string
+                      callee:
+                        to_string :string
+                      arg0:
+                        .start :usize
+                          cast → Match
+                            r :Match | null
+                  @builder.append_str :void
+                    __sb_0 :?
+                    ".." :string
+                  @builder.append_str :void
+                    __sb_0 :?
+                    call :string
+                      callee:
+                        to_string :string
+                      arg0:
+                        .end :usize
+                          cast → Match
+                            r :Match | null
+                  @builder.append_str :void
+                    __sb_0 :?
+                    ":" :string
+                  @builder.append_display <for string> :void
+                    __sb_0 :?
+                    index :string
+                      on:
+                        .groups :string[]
+                          cast → Match
+                            r :Match | null
+                      ix:
+                        int(0) :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_0 :?
+        else:
+          ~>
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_1: ? =
+                    @builder.new :?
+                  @builder.append_display <for string> :void
+                    __sb_1 :?
+                    label :string
+                  @builder.append_str :void
+                    __sb_1 :?
+                    "=null" :string
+                  ~>
+                    @builder.finish :string
+                      __sb_1 :?
+  fn tests_snippets_std_regex__main_vader$main() -> i32
+    let p_lit: Error | Pattern =
+      call :Error | Pattern
+        callee:
+          compile :fn(string) -> Error | Pattern
+        arg0:
+          "hello" :string
+    if :void
+      cond:
+        is Pattern :bool
+          p_lit :Error | Pattern
+      then:
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "lit-exact" :string
+          arg1:
+            cast → Pattern
+              p_lit :Error | Pattern
+          arg2:
+            "hello" :string
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "lit-partial" :string
+          arg1:
+            cast → Pattern
+              p_lit :Error | Pattern
+          arg2:
+            "hellox" :string
+    let p_digits: Error | Pattern =
+      call :Error | Pattern
+        callee:
+          compile :fn(string) -> Error | Pattern
+        arg0:
+          "\\d{3}-\\d{4}" :string
+    if :void
+      cond:
+        is Pattern :bool
+          p_digits :Error | Pattern
+      then:
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "phone-good" :string
+          arg1:
+            cast → Pattern
+              p_digits :Error | Pattern
+          arg2:
+            "555-1234" :string
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "phone-bad" :string
+          arg1:
+            cast → Pattern
+              p_digits :Error | Pattern
+          arg2:
+            "55-1234" :string
+    let p_word: Error | Pattern =
+      call :Error | Pattern
+        callee:
+          compile :fn(string) -> Error | Pattern
+        arg0:
+          "[a-z]+" :string
+    if :void
+      cond:
+        is Pattern :bool
+          p_word :Error | Pattern
+      then:
+        call :void
+          callee:
+            run_find :fn(string, Pattern, string) -> void
+          arg0:
+            "first-word" :string
+          arg1:
+            cast → Pattern
+              p_word :Error | Pattern
+          arg2:
+            "abc def ghi" :string
+        let all: Match[] =
+          call :Match[]
+            callee:
+              find_all :Match[]
+            arg0:
+              cast → Pattern
+                p_word :Error | Pattern
+            arg1:
+              "abc def ghi" :string
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            block :string
+              let __sb_0: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_0 :?
+                "word-count=" :string
+              @builder.append_str :void
+                __sb_0 :?
+                call :string
+                  callee:
+                    to_string :string
+                  arg0:
+                    LoweredArrayLen
+              ~>
+                @builder.finish :string
+                  __sb_0 :?
+        let i: usize = int(0) :usize
+        loop while (<…>)
+          call :void
+            callee:
+              println :fn(string) -> void
+            arg0:
+              block :string
+                let __sb_1: ? =
+                  @builder.new :?
+                @builder.append_str :void
+                  __sb_1 :?
+                  "word[" :string
+                @builder.append_str :void
+                  __sb_1 :?
+                  call :string
+                    callee:
+                      to_string :string
+                    arg0:
+                      i :usize
+                @builder.append_str :void
+                  __sb_1 :?
+                  "]=" :string
+                @builder.append_display <for string> :void
+                  __sb_1 :?
+                  index :string
+                    on:
+                      .groups :string[]
+                        index :Match
+                          on:
+                            all :Match[]
+                          ix:
+                            i :usize
+                    ix:
+                      int(0) :i32
+                ~>
+                  @builder.finish :string
+                    __sb_1 :?
+          assign
+            target:
+              i :usize
+            value:
+              add :usize
+                l:
+                  i :usize
+                r:
+                  cast → usize
+                    int(1) :i32
+    let p_anchor: Error | Pattern =
+      call :Error | Pattern
+        callee:
+          compile :fn(string) -> Error | Pattern
+        arg0:
+          "^foo" :string
+    if :void
+      cond:
+        is Pattern :bool
+          p_anchor :Error | Pattern
+      then:
+        call :void
+          callee:
+            run_find :fn(string, Pattern, string) -> void
+          arg0:
+            "anchor-hit" :string
+          arg1:
+            cast → Pattern
+              p_anchor :Error | Pattern
+          arg2:
+            "foo bar" :string
+        call :void
+          callee:
+            run_find :fn(string, Pattern, string) -> void
+          arg0:
+            "anchor-miss" :string
+          arg1:
+            cast → Pattern
+              p_anchor :Error | Pattern
+          arg2:
+            "bar foo" :string
+    let p_email: Error | Pattern =
+      call :Error | Pattern
+        callee:
+          compile :fn(string) -> Error | Pattern
+        arg0:
+          "(\\w+)@(\\w+)\\.(\\w+)" :string
+    if :void
+      cond:
+        is Pattern :bool
+          p_email :Error | Pattern
+      then:
+        let r: Match | null =
+          call :Match | null
+            callee:
+              find :Match | null
+            arg0:
+              cast → Pattern
+                p_email :Error | Pattern
+            arg1:
+              "contact user@domain.com please" :string
+        if :void
+          cond:
+            is Match :bool
+              r :Match | null
+          then:
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_2: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_2 :?
+                    "email-match=" :string
+                  @builder.append_display <for string> :void
+                    __sb_2 :?
+                    index :string
+                      on:
+                        .groups :string[]
+                          cast → Match
+                            r :Match | null
+                      ix:
+                        int(0) :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_2 :?
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_3: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_3 :?
+                    "email-user=" :string
+                  @builder.append_display <for string> :void
+                    __sb_3 :?
+                    index :string
+                      on:
+                        .groups :string[]
+                          cast → Match
+                            r :Match | null
+                      ix:
+                        int(1) :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_3 :?
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_4: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_4 :?
+                    "email-host=" :string
+                  @builder.append_display <for string> :void
+                    __sb_4 :?
+                    index :string
+                      on:
+                        .groups :string[]
+                          cast → Match
+                            r :Match | null
+                      ix:
+                        int(2) :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_4 :?
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_5: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_5 :?
+                    "email-tld=" :string
+                  @builder.append_display <for string> :void
+                    __sb_5 :?
+                    index :string
+                      on:
+                        .groups :string[]
+                          cast → Match
+                            r :Match | null
+                      ix:
+                        int(3) :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_5 :?
+    let p_alt: Error | Pattern =
+      call :Error | Pattern
+        callee:
+          compile :fn(string) -> Error | Pattern
+        arg0:
+          "cat|dog|bird" :string
+    if :void
+      cond:
+        is Pattern :bool
+          p_alt :Error | Pattern
+      then:
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "alt-cat" :string
+          arg1:
+            cast → Pattern
+              p_alt :Error | Pattern
+          arg2:
+            "cat" :string
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "alt-dog" :string
+          arg1:
+            cast → Pattern
+              p_alt :Error | Pattern
+          arg2:
+            "dog" :string
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "alt-bird" :string
+          arg1:
+            cast → Pattern
+              p_alt :Error | Pattern
+          arg2:
+            "bird" :string
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "alt-fish" :string
+          arg1:
+            cast → Pattern
+              p_alt :Error | Pattern
+          arg2:
+            "fish" :string
+    let p_3a: Error | Pattern =
+      call :Error | Pattern
+        callee:
+          compile :fn(string) -> Error | Pattern
+        arg0:
+          "a{3}" :string
+    if :void
+      cond:
+        is Pattern :bool
+          p_3a :Error | Pattern
+      then:
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "3a-yes" :string
+          arg1:
+            cast → Pattern
+              p_3a :Error | Pattern
+          arg2:
+            "aaa" :string
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "3a-no" :string
+          arg1:
+            cast → Pattern
+              p_3a :Error | Pattern
+          arg2:
+            "aa" :string
+    let p_2to4: Error | Pattern =
+      call :Error | Pattern
+        callee:
+          compile :fn(string) -> Error | Pattern
+        arg0:
+          "a{2,4}" :string
+    if :void
+      cond:
+        is Pattern :bool
+          p_2to4 :Error | Pattern
+      then:
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "2to4-1" :string
+          arg1:
+            cast → Pattern
+              p_2to4 :Error | Pattern
+          arg2:
+            "a" :string
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "2to4-3" :string
+          arg1:
+            cast → Pattern
+              p_2to4 :Error | Pattern
+          arg2:
+            "aaa" :string
+        call :void
+          callee:
+            run_match :fn(string, Pattern, string) -> void
+          arg0:
+            "2to4-5" :string
+          arg1:
+            cast → Pattern
+              p_2to4 :Error | Pattern
+          arg2:
+            "aaaaa" :string
+    let p_swap: Error | Pattern =
+      call :Error | Pattern
+        callee:
+          compile :fn(string) -> Error | Pattern
+        arg0:
+          "(\\w+) (\\w+)" :string
+    if :void
+      cond:
+        is Pattern :bool
+          p_swap :Error | Pattern
+      then:
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            block :string
+              let __sb_6: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_6 :?
+                "swap=" :string
+              @builder.append_display <for string> :void
+                __sb_6 :?
+                call :string
+                  callee:
+                    replace_all :string
+                  arg0:
+                    cast → Pattern
+                      p_swap :Error | Pattern
+                  arg1:
+                    "Mathieu Broutin" :string
+                  arg2:
+                    "$2 $1" :string
+              ~>
+                @builder.finish :string
+                  __sb_6 :?
+    let p_redact: Error | Pattern =
+      call :Error | Pattern
+        callee:
+          compile :fn(string) -> Error | Pattern
+        arg0:
+          "\\d+" :string
+    if :void
+      cond:
+        is Pattern :bool
+          p_redact :Error | Pattern
+      then:
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            block :string
+              let __sb_7: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_7 :?
+                "redact=" :string
+              @builder.append_display <for string> :void
+                __sb_7 :?
+                call :string
+                  callee:
+                    replace_all :string
+                  arg0:
+                    cast → Pattern
+                      p_redact :Error | Pattern
+                  arg1:
+                    "a1b22c333" :string
+                  arg2:
+                    "X" :string
+              ~>
+                @builder.finish :string
+                  __sb_7 :?
+    let bad: Error | Pattern =
+      call :Error | Pattern
+        callee:
+          compile :fn(string) -> Error | Pattern
+        arg0:
+          "[abc" :string
+    if :void
+      cond:
+        is Error :bool
+          bad :Error | Pattern
+      then:
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            "bad-compile=caught" :string
+    return int(0) :i32

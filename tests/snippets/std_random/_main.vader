@@ -1,0 +1,86 @@
+// std/random — exercise xoroshiro128++ determinism, bounded ranges,
+// shuffle, and unit f64. Every assertion compares against either a
+// fixed expected literal (deterministic seed) or a "true"/"false"
+// shape so the snapshot stays stable.
+
+import "std/io" { println }
+import "std/random" {
+    Rng, new_seeded,
+    next_u64, next_u32, next_bool,
+    range_i32, range_u32, unit_f64,
+    shuffle
+}
+
+main :: fn() -> i32 {
+    // Determinism : two RNGs with the same seed produce the same first
+    // few draws.
+    a := new_seeded(u64(42))
+    b := new_seeded(u64(42))
+    same: bool = true
+    k: i32 = 0
+    for k < 8 {
+        if a.next_u64() != b.next_u64() { same = false }
+        k = k + 1
+    }
+    println("deterministic=${same}")
+
+    // seed=0 must still produce a non-zero stream — splitmix64 fans out.
+    z := new_seeded(u64(0))
+    nonzero: bool = false
+    j: i32 = 0
+    for j < 4 {
+        if z.next_u64() != u64(0) { nonzero = true }
+        j = j + 1
+    }
+    println("zero_seed_nonzero=${nonzero}")
+
+    // Bounded ranges
+    r := new_seeded(u64(7))
+    in_range: bool = true
+    m: i32 = 0
+    for m < 100 {
+        v :: r.range_i32(10, 20)
+        if v < 10 { in_range = false }
+        if v >= 20 { in_range = false }
+        m = m + 1
+    }
+    println("range_i32_in_bounds=${in_range}")
+
+    // unit_f64 in [0, 1)
+    u := new_seeded(u64(123))
+    f_in_range: bool = true
+    n: i32 = 0
+    for n < 100 {
+        v :: u.unit_f64()
+        if v < 0.0 { f_in_range = false }
+        if v >= 1.0 { f_in_range = false }
+        n = n + 1
+    }
+    println("unit_f64_in_bounds=${f_in_range}")
+
+    // shuffle preserves multiset
+    s := new_seeded(u64(99))
+    arr: i32[] = [1, 2, 3, 4, 5, 6, 7, 8]
+    s.shuffle(arr)
+    println("shuffled_len=${arr.len()}")
+    sum: i32 = 0
+    for x in arr {
+        sum = sum + x
+    }
+    println("shuffled_sum=${sum}")
+
+    // next_bool sees both polarities within 64 draws
+    bs := new_seeded(u64(2026))
+    seen_t: bool = false
+    seen_f: bool = false
+    p: i32 = 0
+    for p < 64 {
+        bx :: bs.next_bool()
+        if bx { seen_t = true }
+        if !bx { seen_f = true }
+        p = p + 1
+    }
+    println("bool_both_seen=${seen_t && seen_f}")
+
+    return 0
+}

@@ -1,0 +1,1061 @@
+// std/regex — Thompson NFA regex engine.
+//
+// MVP scope :
+//   * Literal bytes, `.`, escapes (`\n` / `\t` / `\r` / `\\` / `\.` …).
+//   * Char classes : `[abc]`, `[^abc]`, `[a-z]` plus the `\d` / `\D` /
+//     `\w` / `\W` / `\s` / `\S` shorthands (ASCII-only).
+//   * Quantifiers : `*`, `+`, `?`, `{n}`, `{n,}`, `{n,m}` — all greedy.
+//   * Alternation `a|b`.
+//   * Groups `(…)` — every group captures, addressable by index 1..N.
+//   * Anchors `^`, `$` (whole-input, not multiline).
+//
+// Hors-scope (post-MVP) : non-greedy `*?`, named groups `(?<x>…)`,
+// backrefs `\1`, lookaround `(?=…)` / `(?!…)`, Unicode properties.
+//
+// Algorithm : Thompson VM (Cox, "Regular Expression Matching: the
+// Virtual Machine Approach"). Each compiled `Pattern` is an array of
+// `Inst` ops ; matching runs a BFS over a `Thread` set so the worst
+// case is O(n × m) (input length × program length), no catastrophic
+// backtracking. Captures use the `Save N` op writing the current input
+// offset into the thread's `groups` array.
+//
+// Pure Vader, zero host imports — WASM-ready as-is.
+
+import "std/string" { byte_len, byte_at, slice, is_empty }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+
+// =========================================================================
+// Public surface
+// =========================================================================
+
+/// Compiled regex. Treat as opaque — the field layout may change.
+export Pattern :: struct {
+    insts:       Inst[]
+    group_count: usize
+}
+
+/// A successful match. `start` and `end` are byte offsets into the
+/// input string (`end` exclusive). `groups[0]` is always the whole
+/// match ; `groups[i]` (1 ≤ i ≤ group_count) is the i-th capture, or
+/// empty if the group never matched.
+export Match :: struct {
+    start:  usize
+    end:    usize
+    groups: string[]
+}
+
+/// Error returned by `compile` when the pattern doesn't parse.
+export RegexError :: struct {
+    msg:      string
+    position: usize
+}
+
+RegexError implements Error {
+    message :: fn(self) -> string { return "${self.msg} (at position ${self.position})" }
+}
+
+// =========================================================================
+// Instruction set (Cox VM)
+// =========================================================================
+
+export Inst :: InstChar | InstAny | InstClass | InstMatch | InstJump | InstSplit | InstSave | InstAnchorStart | InstAnchorEnd
+
+/// Match a single literal codepoint `c`. Advances input by one char.
+export InstChar :: struct {
+    c: char
+}
+
+/// Match any codepoint except `\n`.
+export InstAny :: struct {}
+
+/// Match any codepoint in `ranges`. Each `[lo, hi]` is inclusive ;
+/// `negated == true` flips the membership test.
+export InstClass :: struct {
+    ranges:  CharRange[]
+    negated: bool
+}
+
+CharRange :: struct {
+    lo: char
+    hi: char
+}
+
+/// Accept state.
+export InstMatch :: struct {}
+
+/// Unconditional jump to `target`.
+export InstJump :: struct {
+    target: usize
+}
+
+/// Non-deterministic split — spawn one thread at `a`, another at `b`.
+export InstSplit :: struct {
+    a: usize
+    b: usize
+}
+
+/// Record the current input offset into `groups[slot]` (and advance pc).
+/// Slot `0` / `1` = group 0 start/end (whole match) ;
+/// `2 * i` / `2 * i + 1` = group `i` start/end.
+export InstSave :: struct {
+    slot: usize
+}
+
+/// `^` — match only at input position 0.
+export InstAnchorStart :: struct {}
+/// `$` — match only at input length.
+export InstAnchorEnd :: struct {}
+
+// =========================================================================
+// Compile (parse + emit)
+// =========================================================================
+
+Parser :: struct {
+    pattern:        string
+    cursor:         usize
+    insts:          Inst[]
+    next_group_id:  usize
+}
+
+/// Compile a regex source string into a `Pattern`. Anchors `^`/`$`
+/// inside the pattern bind to the input boundaries. The pattern is
+/// implicitly anchored at the start during `matches` (whole input)
+/// and unanchored during `find` / `find_all` / `replace_all`.
+export compile :: fn(pattern: string) -> Pattern! {
+    p := Parser {
+        .pattern = pattern,
+        .cursor = usize(0),
+        .insts = [],
+        .next_group_id = usize(1),
+    }
+
+    // Wrap the entire pattern in implicit group 0 so `groups[0]` is
+    // the whole match.
+    p.insts.push(InstSave { .slot = usize(0) })
+    parse_outcome :: parse_alternation(p)
+    if parse_outcome is RegexError { return parse_outcome }
+    if p.cursor < p.pattern.byte_len() {
+        return RegexError { .msg = "unexpected character '${p.pattern[p.cursor]}'", .position = p.cursor }
+    }
+    p.insts.push(InstSave { .slot = usize(1) })
+    p.insts.push(InstMatch {})
+
+    return Pattern { .insts = p.insts, .group_count = p.next_group_id - usize(1) }
+}
+
+parse_alternation :: fn(p: Parser) -> RegexError | null {
+    branch_start :: p.insts.len()
+    err1 :: parse_concat(p)
+    if err1 is RegexError { return err1 }
+    if p.cursor >= p.pattern.byte_len() || p.pattern.byte_at(p.cursor) != b'|' {
+        return null
+    }
+
+    // Flat `branches_buf` + `branch_offsets[i..i+1]` slice. A nested
+    // `Inst[][]` would be more direct but the current code generator
+    // doesn't handle indexing into one.
+    branches_buf: Inst[] = []
+    branch_offsets: usize[] = [usize(0)]
+    push_all(branches_buf, extract_range(p.insts, branch_start, p.insts.len()))
+    branch_offsets.push(branches_buf.len())
+    p.insts = truncate_to(p.insts, branch_start)
+
+    for p.cursor < p.pattern.byte_len() && p.pattern.byte_at(p.cursor) == b'|' {
+        p.cursor = p.cursor + usize(1)
+        next_start :: p.insts.len()
+        err :: parse_concat(p)
+        if err is RegexError { return err }
+        push_all(branches_buf, extract_range(p.insts, next_start, p.insts.len()))
+        branch_offsets.push(branches_buf.len())
+        p.insts = truncate_to(p.insts, next_start)
+    }
+
+    // For N branches, emit a chain :
+    //   Split L_0_body, S_1
+    //   <b_0> ; Jump end
+    //   S_1: Split L_1_body, S_2
+    //   <b_1> ; Jump end
+    //   ...
+    //   S_{N-1}: <b_{N-1}>
+    //   end:
+    n :: branch_offsets.len() - usize(1)
+    end_jumps: usize[] = []
+    i: usize = 0
+    for i < n - usize(1) {
+        split_pos :: p.insts.len()
+        p.insts.push(InstSplit { .a = usize(0), .b = usize(0) })
+        body_pos :: p.insts.len()
+        copy_slice(p.insts, branches_buf, branch_offsets[i], branch_offsets[i + usize(1)])
+        jump_pos :: p.insts.len()
+        p.insts.push(InstJump { .target = usize(0) })
+        end_jumps.push(jump_pos)
+        next_split_pos :: p.insts.len()
+        p.insts[split_pos] = InstSplit { .a = body_pos, .b = next_split_pos }
+        i = i + usize(1)
+    }
+    last :: n - usize(1)
+    copy_slice(p.insts, branches_buf, branch_offsets[last], branch_offsets[last + usize(1)])
+    end_pos :: p.insts.len()
+    k: usize = 0
+    for k < end_jumps.len() {
+        p.insts[end_jumps[k]] = InstJump { .target = end_pos }
+        k = k + usize(1)
+    }
+    return null
+}
+
+copy_slice :: fn(dst: Inst[], src: Inst[], lo: usize, hi: usize) -> void {
+    i: usize = lo
+    for i < hi {
+        dst.push(src[i])
+        i = i + usize(1)
+    }
+}
+
+parse_concat :: fn(p: Parser) -> RegexError | null {
+    for p.cursor < p.pattern.byte_len() {
+        b :: p.pattern.byte_at(p.cursor)
+        if b == b')' || b == b'|' { break }
+        err :: parse_atom_with_quantifier(p)
+        if err is RegexError { return err }
+    }
+    return null
+}
+
+parse_atom_with_quantifier :: fn(p: Parser) -> RegexError | null {
+    atom_start :: p.insts.len()
+    err :: parse_atom(p)
+    if err is RegexError { return err }
+    if p.cursor >= p.pattern.byte_len() { return null }
+    q :: p.pattern.byte_at(p.cursor)
+    if q == b'*' {
+        p.cursor = p.cursor + usize(1)
+        apply_star(p, atom_start)
+        return null
+    }
+    if q == b'+' {
+        p.cursor = p.cursor + usize(1)
+        apply_plus(p, atom_start)
+        return null
+    }
+    if q == b'?' {
+        p.cursor = p.cursor + usize(1)
+        apply_optional(p, atom_start)
+        return null
+    }
+    if q == b'{' { return apply_counted(p, atom_start) }
+    return null
+}
+
+// Star (greedy) — wrap the atom in :
+//   L1: Split L2, L3
+//   L2: <atom>
+//       Jump L1
+//   L3:
+apply_star :: fn(p: Parser, atom_start: usize) -> void {
+    atom :: extract_range(p.insts, atom_start, p.insts.len())
+    p.insts = truncate_to(p.insts, atom_start)
+    split_pos :: p.insts.len()
+    p.insts.push(InstSplit { .a = usize(0), .b = usize(0) })
+    body_start :: p.insts.len()
+    push_all(p.insts, atom)
+    p.insts.push(InstJump { .target = split_pos })
+    after :: p.insts.len()
+    p.insts[split_pos] = InstSplit { .a = body_start, .b = after }
+}
+
+// Plus (greedy) — execute the atom once, then star-loop :
+//   L1: <atom>
+//       Split L1, L2
+//   L2:
+apply_plus :: fn(p: Parser, atom_start: usize) -> void {
+    split_pos :: p.insts.len()
+    p.insts.push(InstSplit { .a = usize(0), .b = usize(0) })
+    after :: p.insts.len()
+    p.insts[split_pos] = InstSplit { .a = atom_start, .b = after }
+}
+
+// Optional (greedy) :
+//   Split L_atom, L_after
+//   L_atom: <atom>
+//   L_after:
+apply_optional :: fn(p: Parser, atom_start: usize) -> void {
+    atom :: extract_range(p.insts, atom_start, p.insts.len())
+    p.insts = truncate_to(p.insts, atom_start)
+    p.insts.push(InstSplit { .a = atom_start + usize(1), .b = usize(0) })
+    push_all(p.insts, atom)
+    after :: p.insts.len()
+    // Patch the split's second target now that we know `after`.
+    sp :: atom_start
+    p.insts[sp] = InstSplit { .a = atom_start + usize(1), .b = after }
+}
+
+apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
+    if p.pattern.byte_at(p.cursor) != b'{' { return null }
+    save_cursor :: p.cursor
+    p.cursor = p.cursor + usize(1)
+    n_outcome :: parse_decimal_usize(p)
+    if n_outcome is RegexError { return n_outcome }
+    n :: n_outcome
+    m: usize = n
+    has_comma: bool = false
+    has_upper: bool = false
+    if p.cursor < p.pattern.byte_len() && p.pattern.byte_at(p.cursor) == b',' {
+        p.cursor = p.cursor + usize(1)
+        has_comma = true
+        if p.cursor < p.pattern.byte_len() && p.pattern.byte_at(p.cursor) != b'}' {
+            m_outcome :: parse_decimal_usize(p)
+            if m_outcome is RegexError { return m_outcome }
+            m = m_outcome
+            has_upper = true
+        }
+    }
+    if p.cursor >= p.pattern.byte_len() || p.pattern.byte_at(p.cursor) != b'}' {
+        return RegexError { .msg = "unterminated {n,m}", .position = save_cursor }
+    }
+    p.cursor = p.cursor + usize(1)
+
+    // Snapshot the atom we just emitted.
+    atom :: extract_range(p.insts, atom_start, p.insts.len())
+    p.insts = truncate_to(p.insts, atom_start)
+
+    // Mandatory N copies.
+    i: usize = 0
+    for i < n {
+        push_all(p.insts, atom)
+        i = i + usize(1)
+    }
+
+    if has_upper {
+        // {n,m} : up to (m - n) optional copies. Each one : Split atom, after.
+        diff :: m - n
+        splits: usize[] = []
+        j: usize = 0
+        for j < diff {
+            split_pos :: p.insts.len()
+            splits.push(split_pos)
+            p.insts.push(InstSplit { .a = usize(0), .b = usize(0) })
+            push_all(p.insts, atom)
+            j = j + usize(1)
+        }
+        after :: p.insts.len()
+        k: usize = 0
+        for k < splits.len() {
+            sp :: splits[k]
+            p.insts[sp] = InstSplit { .a = sp + usize(1), .b = after }
+            k = k + usize(1)
+        }
+    } else {
+        if has_comma {
+            // {n,} : star-style unbounded tail after the mandatory N.
+            sp :: p.insts.len()
+            p.insts.push(InstSplit { .a = usize(0), .b = usize(0) })
+            body_start :: p.insts.len()
+            push_all(p.insts, atom)
+            p.insts.push(InstJump { .target = sp })
+            after :: p.insts.len()
+            p.insts[sp] = InstSplit { .a = body_start, .b = after }
+        }
+        // {n} : exactly n — nothing more to emit.
+    }
+    return null
+}
+
+parse_atom :: fn(p: Parser) -> RegexError | null {
+    if p.cursor >= p.pattern.byte_len() {
+        return RegexError { .msg = "unexpected end of pattern", .position = p.cursor }
+    }
+    b :: p.pattern.byte_at(p.cursor)
+    if b == b'(' {
+        p.cursor = p.cursor + usize(1)
+        group_id :: p.next_group_id
+        p.next_group_id = p.next_group_id + usize(1)
+        p.insts.push(InstSave { .slot = usize(2) * group_id })
+        err :: parse_alternation(p)
+        if err is RegexError { return err }
+        if p.cursor >= p.pattern.byte_len() || p.pattern.byte_at(p.cursor) != b')' {
+            return RegexError { .msg = "unterminated group", .position = p.cursor }
+        }
+        p.cursor = p.cursor + usize(1)
+        p.insts.push(InstSave { .slot = usize(2) * group_id + usize(1) })
+        return null
+    }
+    if b == b'.' {
+        p.cursor = p.cursor + usize(1)
+        p.insts.push(InstAny {})
+        return null
+    }
+    if b == b'^' {
+        p.cursor = p.cursor + usize(1)
+        p.insts.push(InstAnchorStart {})
+        return null
+    }
+    if b == b'$' {
+        p.cursor = p.cursor + usize(1)
+        p.insts.push(InstAnchorEnd {})
+        return null
+    }
+    if b == b'[' {
+        return parse_char_class(p)
+    }
+    if b == b'\\' {
+        return parse_escape(p)
+    }
+    // Otherwise : a literal byte. Decode the codepoint at this offset to
+    // emit `InstChar` so the matcher and the pattern stay codepoint-aligned.
+    c :: p.pattern[p.cursor]
+    advance :: codepoint_byte_advance(p.pattern, p.cursor)
+    p.cursor = p.cursor + advance
+    p.insts.push(InstChar { .c = c })
+    return null
+}
+
+parse_escape :: fn(p: Parser) -> RegexError | null {
+    p.cursor = p.cursor + usize(1)
+    if p.cursor >= p.pattern.byte_len() {
+        return RegexError { .msg = "trailing backslash", .position = p.cursor }
+    }
+    e :: p.pattern.byte_at(p.cursor)
+    p.cursor = p.cursor + usize(1)
+    if e == b'n' {
+        p.insts.push(InstChar { .c = '\n' })
+        return null
+    }
+    if e == b't' {
+        p.insts.push(InstChar { .c = '\t' })
+        return null
+    }
+    if e == b'r' {
+        p.insts.push(InstChar { .c = '\r' })
+        return null
+    }
+    if e == b'd' {
+        p.insts.push(InstClass { .ranges = [CharRange { .lo = '0', .hi = '9' }], .negated = false })
+        return null
+    }
+    if e == b'D' {
+        p.insts.push(InstClass { .ranges = [CharRange { .lo = '0', .hi = '9' }], .negated = true })
+        return null
+    }
+    if e == b'w' {
+        p.insts.push(InstClass { .ranges = word_class_ranges(), .negated = false })
+        return null
+    }
+    if e == b'W' {
+        p.insts.push(InstClass { .ranges = word_class_ranges(), .negated = true })
+        return null
+    }
+    if e == b's' {
+        p.insts.push(InstClass { .ranges = space_class_ranges(), .negated = false })
+        return null
+    }
+    if e == b'S' {
+        p.insts.push(InstClass { .ranges = space_class_ranges(), .negated = true })
+        return null
+    }
+    // Literal escape : the byte itself becomes the char.
+    p.insts.push(InstChar { .c = char(u32(e)) })
+    return null
+}
+
+parse_char_class :: fn(p: Parser) -> RegexError | null {
+    start_pos :: p.cursor
+    p.cursor = p.cursor + usize(1)
+    negated: bool = false
+    if p.cursor < p.pattern.byte_len() && p.pattern.byte_at(p.cursor) == b'^' {
+        negated = true
+        p.cursor = p.cursor + usize(1)
+    }
+    ranges: CharRange[] = []
+    for p.cursor < p.pattern.byte_len() && p.pattern.byte_at(p.cursor) != b']' {
+        lo_c :: read_class_char(p)
+        if lo_c is RegexError { return lo_c }
+        is_range :: p.cursor < p.pattern.byte_len() && p.pattern.byte_at(p.cursor) == b'-' && p.cursor + usize(1) < p.pattern.byte_len() && p.pattern.byte_at(p.cursor + usize(1)) != b']'
+        if is_range {
+            p.cursor = p.cursor + usize(1)
+            hi_c :: read_class_char(p)
+            if hi_c is RegexError { return hi_c }
+            ranges.push(CharRange { .lo = lo_c, .hi = hi_c })
+        } else {
+            ranges.push(CharRange { .lo = lo_c, .hi = lo_c })
+        }
+    }
+    if p.cursor >= p.pattern.byte_len() {
+        return RegexError { .msg = "unterminated character class", .position = start_pos }
+    }
+    p.cursor = p.cursor + usize(1)
+    p.insts.push(InstClass { .ranges = ranges, .negated = negated })
+    return null
+}
+
+read_class_char :: fn(p: Parser) -> char | RegexError {
+    if p.cursor >= p.pattern.byte_len() {
+        return RegexError { .msg = "unexpected end inside character class", .position = p.cursor }
+    }
+    b :: p.pattern.byte_at(p.cursor)
+    if b == b'\\' {
+        p.cursor = p.cursor + usize(1)
+        if p.cursor >= p.pattern.byte_len() {
+            return RegexError { .msg = "trailing backslash inside class", .position = p.cursor }
+        }
+        e :: p.pattern.byte_at(p.cursor)
+        p.cursor = p.cursor + usize(1)
+        if e == b'n' { return '\n' }
+        if e == b't' { return '\t' }
+        if e == b'r' { return '\r' }
+        return char(u32(e))
+    }
+    c :: p.pattern[p.cursor]
+    advance :: codepoint_byte_advance(p.pattern, p.cursor)
+    p.cursor = p.cursor + advance
+    return c
+}
+
+parse_decimal_usize :: fn(p: Parser) -> usize | RegexError {
+    if p.cursor >= p.pattern.byte_len() || p.pattern.byte_at(p.cursor) < b'0' || p.pattern.byte_at(p.cursor) > b'9' {
+        return RegexError { .msg = "expected digit", .position = p.cursor }
+    }
+    acc: usize = 0
+    for p.cursor < p.pattern.byte_len() && p.pattern.byte_at(p.cursor) >= b'0' && p.pattern.byte_at(p.cursor) <= b'9' {
+        acc = acc * usize(10) + usize(p.pattern.byte_at(p.cursor) - b'0')
+        p.cursor = p.cursor + usize(1)
+    }
+    return acc
+}
+
+word_class_ranges :: fn() -> CharRange[] {
+    return [
+        CharRange { .lo = '0', .hi = '9' },
+        CharRange { .lo = 'A', .hi = 'Z' },
+        CharRange { .lo = 'a', .hi = 'z' },
+        CharRange { .lo = '_', .hi = '_' },
+    ]
+}
+
+space_class_ranges :: fn() -> CharRange[] {
+    return [
+        CharRange { .lo = ' ',  .hi = ' '  },
+        CharRange { .lo = '\t', .hi = '\t' },
+        CharRange { .lo = '\n', .hi = '\n' },
+        CharRange { .lo = '\r', .hi = '\r' },
+    ]
+}
+
+// Number of UTF-8 bytes occupied by the codepoint starting at `offset`.
+codepoint_byte_advance :: fn(s: string, offset: usize) -> usize {
+    b :: s.byte_at(offset)
+    if b < u8(0x80) { return usize(1) }
+    if b < u8(0xC0) { return usize(1) }   // continuation byte (shouldn't start here)
+    if b < u8(0xE0) { return usize(2) }
+    if b < u8(0xF0) { return usize(3) }
+    return usize(4)
+}
+
+// `std/iter.slice` / `iter.take` would cover these in principle, but
+// the generic versions trap under monomorphization for `Inst[]` /
+// `Thread[]` in the current compiler. Keep these locally typed.
+extract_range :: fn(arr: Inst[], start: usize, end: usize) -> Inst[] {
+    out: Inst[] = []
+    i: usize = start
+    for i < end {
+        out.push(arr[i])
+        i = i + usize(1)
+    }
+    return out
+}
+
+truncate_to :: fn(arr: Inst[], n: usize) -> Inst[] {
+    out: Inst[] = []
+    i: usize = 0
+    for i < n {
+        out.push(arr[i])
+        i = i + usize(1)
+    }
+    return out
+}
+
+push_all :: fn(target: Inst[], src: Inst[]) -> void {
+    i: usize = 0
+    for i < src.len() {
+        target.push(src[i])
+        i = i + usize(1)
+    }
+}
+
+// =========================================================================
+// Match / Search
+// =========================================================================
+
+/// True iff `input` is matched by `pattern` from offset 0 to its end
+/// (anchored on both sides).
+export matches :: fn(self: Pattern, input: string) -> bool {
+    out :: run_at(self, input, usize(0))
+    if out is Match {
+        return out.end == input.byte_len()
+    }
+    return false
+}
+
+/// Find the first match anywhere in `input` (leftmost). Returns `null`
+/// when there's no match.
+export find :: fn(self: Pattern, input: string) -> Match | null {
+    start: usize = 0
+    for start <= input.byte_len() {
+        m :: run_at(self, input, start)
+        if m is Match { return m }
+        if start == input.byte_len() { return null }
+        start = start + codepoint_byte_advance(input, start)
+    }
+    return null
+}
+
+/// All non-overlapping matches in `input`, left-to-right. Empty matches
+/// advance by one codepoint to avoid an infinite loop.
+export find_all :: fn(self: Pattern, input: string) -> Match[] {
+    out: Match[] = []
+    start: usize = 0
+    for start <= input.byte_len() {
+        m :: run_at(self, input, start)
+        if m is Match {
+            out.push(m)
+            if m.end == start {
+                if start >= input.byte_len() { return out }
+                start = start + codepoint_byte_advance(input, start)
+            } else {
+                start = m.end
+            }
+        } else {
+            if start >= input.byte_len() { return out }
+            start = start + codepoint_byte_advance(input, start)
+        }
+    }
+    return out
+}
+
+/// Replace every non-overlapping match with `repl`. Supports `$0..$9`
+/// backrefs inside `repl`.
+export replace_all :: fn(self: Pattern, input: string, repl: string) -> string {
+    sb := new_builder()
+    cursor: usize = 0
+    matches_found :: self.find_all(input)
+    i: usize = 0
+    for i < matches_found.len() {
+        m :: matches_found[i]
+        // Append the gap before this match.
+        gap :: input.slice(cursor, m.start)
+        sb.append(gap)
+        // Expand backrefs in the replacement.
+        expand_replacement(sb, repl, m)
+        cursor = m.end
+        i = i + usize(1)
+    }
+    if cursor < input.byte_len() {
+        sb.append(input.slice(cursor, input.byte_len()))
+    }
+    return sb.to_string()
+}
+
+expand_replacement :: fn(sb: StringBuilder, repl: string, m: Match) -> void {
+    n :: repl.byte_len()
+    i: usize = 0
+    for i < n {
+        b :: repl.byte_at(i)
+        if b == b'$' && i + usize(1) < n {
+            d :: repl.byte_at(i + usize(1))
+            if d >= b'0' && d <= b'9' {
+                gi :: usize(d - b'0')
+                if gi < m.groups.len() {
+                    sb.append(m.groups[gi])
+                }
+                i = i + usize(2)
+                continue
+            }
+        }
+        sb.append_char(repl[i])
+        i = i + codepoint_byte_advance(repl, i)
+    }
+}
+
+// =========================================================================
+// Thompson VM execution
+// =========================================================================
+
+Thread :: struct {
+    pc:     usize
+    groups: usize[]
+}
+
+new_thread :: fn(pc: usize, slots: usize) -> Thread {
+    g: usize[] = []
+    i: usize = 0
+    for i < slots {
+        g.push(SLOT_UNSET)
+        i = i + usize(1)
+    }
+    return Thread { .pc = pc, .groups = g }
+}
+
+clone_thread :: fn(t: Thread) -> Thread {
+    g: usize[] = []
+    i: usize = 0
+    for i < t.groups.len() {
+        g.push(t.groups[i])
+        i = i + usize(1)
+    }
+    return Thread { .pc = t.pc, .groups = g }
+}
+
+// Sentinel for "this slot was never written". `_u64` is mandatory :
+// without it the literal defaults to a signed type and rounds through
+// f64, so the sentinel collides with valid offsets on native.
+SLOT_UNSET :: usize(0xFFFF_FFFF_FFFF_FFFF_u64)
+
+run_at :: fn(p: Pattern, input: string, start: usize) -> Match | null {
+    slots :: usize(2) * (p.group_count + usize(1))
+    current: Thread[] = []
+    next: Thread[] = []
+
+    seed :: new_thread(usize(0), slots)
+    add_thread(current, seed, p, input, start)
+
+    matched: Match | null = null
+    pos := start
+    for pos <= input.byte_len() {
+        c_at_pos: char = ' '
+        bytes_consumed: usize = 0
+        if pos < input.byte_len() {
+            c_at_pos = input[pos]
+            bytes_consumed = codepoint_byte_advance(input, pos)
+        }
+        t_idx: usize = 0
+        for t_idx < current.len() {
+            t :: current[t_idx]
+            inst :: p.insts[t.pc]
+            match inst {
+                is InstChar -> {
+                    if pos < input.byte_len() && c_at_pos == inst.c {
+                        nt :: clone_thread(t)
+                        nt.pc = t.pc + usize(1)
+                        add_thread(next, nt, p, input, pos + bytes_consumed)
+                    }
+                }
+                is InstAny -> {
+                    if pos < input.byte_len() && c_at_pos != '\n' {
+                        nt :: clone_thread(t)
+                        nt.pc = t.pc + usize(1)
+                        add_thread(next, nt, p, input, pos + bytes_consumed)
+                    }
+                }
+                is InstClass -> {
+                    if pos < input.byte_len() && class_matches(inst, c_at_pos) {
+                        nt :: clone_thread(t)
+                        nt.pc = t.pc + usize(1)
+                        add_thread(next, nt, p, input, pos + bytes_consumed)
+                    }
+                }
+                is InstMatch -> {
+                    matched = Match {
+                        .start  = if t.groups.len() > 0 { resolve_slot(t.groups[0], start) } else { start },
+                        .end    = if t.groups.len() > 1 { resolve_slot(t.groups[1], pos) } else { pos },
+                        .groups = captured_groups(t, input),
+                    }
+                    // Higher-priority threads run first ; once one matches
+                    // we discard lower-priority threads to mirror leftmost-
+                    // first semantics.
+                    current = truncate_threads(current, t_idx)
+                    t_idx = current.len()
+                    continue
+                }
+                is InstJump   -> {}    // Handled by add_thread's epsilon closure.
+                is InstSplit  -> {}
+                is InstSave   -> {}
+                is InstAnchorStart -> {}
+                is InstAnchorEnd   -> {}
+            }
+            t_idx = t_idx + usize(1)
+        }
+        if pos == input.byte_len() { break }
+        current = next
+        next = []
+        pos = pos + bytes_consumed
+    }
+    return matched
+}
+
+class_matches :: fn(inst: InstClass, c: char) -> bool {
+    n :: inst.ranges.len()
+    i: usize = 0
+    for i < n {
+        r :: inst.ranges[i]
+        if c in r.lo..=r.hi {
+            if inst.negated { return false }
+            return true
+        }
+        i = i + usize(1)
+    }
+    return inst.negated
+}
+
+// Compute epsilon-closure starting at `t`, appending all reachable
+// non-epsilon states into `out`.
+add_thread :: fn(out: Thread[], t: Thread, p: Pattern, input: string, pos: usize) -> void {
+    inst :: p.insts[t.pc]
+    match inst {
+        is InstJump -> {
+            nt :: clone_thread(t)
+            nt.pc = inst.target
+            add_thread(out, nt, p, input, pos)
+        }
+        is InstSplit -> {
+            ta :: clone_thread(t)
+            ta.pc = inst.a
+            add_thread(out, ta, p, input, pos)
+            tb :: clone_thread(t)
+            tb.pc = inst.b
+            add_thread(out, tb, p, input, pos)
+        }
+        is InstSave -> {
+            nt :: clone_thread(t)
+            nt.groups[inst.slot] = pos
+            nt.pc = t.pc + usize(1)
+            add_thread(out, nt, p, input, pos)
+        }
+        is InstAnchorStart -> {
+            if pos == usize(0) {
+                nt :: clone_thread(t)
+                nt.pc = t.pc + usize(1)
+                add_thread(out, nt, p, input, pos)
+            }
+        }
+        is InstAnchorEnd -> {
+            if pos == input.byte_len() {
+                nt :: clone_thread(t)
+                nt.pc = t.pc + usize(1)
+                add_thread(out, nt, p, input, pos)
+            }
+        }
+        is InstChar   -> { out.push(t) }
+        is InstAny    -> { out.push(t) }
+        is InstClass  -> { out.push(t) }
+        is InstMatch  -> { out.push(t) }
+    }
+}
+
+resolve_slot :: fn(slot_value: usize, fallback: usize) -> usize {
+    if slot_value == SLOT_UNSET { return fallback }
+    return slot_value
+}
+
+captured_groups :: fn(t: Thread, input: string) -> string[] {
+    n_groups :: t.groups.len() / usize(2)
+    out: string[] = []
+    i: usize = 0
+    for i < n_groups {
+        lo_slot :: t.groups[usize(2) * i]
+        hi_slot :: t.groups[usize(2) * i + usize(1)]
+        if lo_slot == SLOT_UNSET || hi_slot == SLOT_UNSET {
+            out.push("")
+        } else {
+            out.push(input.slice(lo_slot, hi_slot))
+        }
+        i = i + usize(1)
+    }
+    return out
+}
+
+truncate_threads :: fn(threads: Thread[], cutoff: usize) -> Thread[] {
+    out: Thread[] = []
+    i: usize = 0
+    for i < cutoff {
+        out.push(threads[i])
+        i = i + usize(1)
+    }
+    return out
+}
+
+// ---------------------------------------------------------------------- tests
+
+import "std/testing" { assert_eq, assert }
+
+@test test_compile_simple :: fn() -> void {
+    p :: compile("abc")
+    match p {
+        is Pattern -> assert(p.matches("abc"), "abc should match abc")
+        is Error   -> assert(false, "compile abc failed")
+    }
+}
+
+@test test_matches_literal :: fn() -> void {
+    p :: compile("hello")
+    match p {
+        is Pattern -> {
+            assert(p.matches("hello"), "hello matches hello")
+            assert(!p.matches("hell"),  "hello does not match hell")
+            assert(!p.matches("hellox"), "hello matches whole input, not prefix")
+        }
+        is Error -> assert(false, "compile hello failed")
+    }
+}
+
+@test test_dot :: fn() -> void {
+    p :: compile("a.c")
+    match p {
+        is Pattern -> {
+            assert(p.matches("abc"), "a.c matches abc")
+            assert(p.matches("a c"), "a.c matches a c")
+            assert(!p.matches("ac"),  "a.c needs three chars")
+        }
+        is Error -> assert(false, "compile a.c failed")
+    }
+}
+
+@test test_quantifiers :: fn() -> void {
+    star :: compile("ab*c")
+    match star {
+        is Pattern -> {
+            assert(star.matches("ac"),    "ab*c matches ac")
+            assert(star.matches("abc"),   "ab*c matches abc")
+            assert(star.matches("abbbc"), "ab*c matches abbbc")
+        }
+        is Error -> assert(false, "compile ab*c failed")
+    }
+    plus :: compile("ab+c")
+    match plus {
+        is Pattern -> {
+            assert(!plus.matches("ac"),    "ab+c rejects ac")
+            assert(plus.matches("abc"),    "ab+c matches abc")
+            assert(plus.matches("abbbc"),  "ab+c matches abbbc")
+        }
+        is Error -> assert(false, "compile ab+c failed")
+    }
+    opt :: compile("ab?c")
+    match opt {
+        is Pattern -> {
+            assert(opt.matches("ac"),  "ab?c matches ac")
+            assert(opt.matches("abc"), "ab?c matches abc")
+            assert(!opt.matches("abbc"), "ab?c rejects abbc")
+        }
+        is Error -> assert(false, "compile ab?c failed")
+    }
+}
+
+@test test_char_class :: fn() -> void {
+    p :: compile("[abc]+")
+    match p {
+        is Pattern -> {
+            assert(p.matches("abccab"), "[abc]+ matches abccab")
+            assert(!p.matches("abd"),   "[abc]+ rejects abd")
+        }
+        is Error -> assert(false, "compile [abc]+ failed")
+    }
+    neg :: compile("[^abc]+")
+    match neg {
+        is Pattern -> {
+            assert(neg.matches("xyz"),  "[^abc]+ matches xyz")
+            assert(!neg.matches("a"),   "[^abc]+ rejects a")
+        }
+        is Error -> assert(false, "compile [^abc]+ failed")
+    }
+    range :: compile("[a-z]+")
+    match range {
+        is Pattern -> {
+            assert(range.matches("hello"), "[a-z]+ matches hello")
+            assert(!range.matches("Hello"), "[a-z]+ rejects Hello (upper)")
+        }
+        is Error -> assert(false, "compile [a-z]+ failed")
+    }
+}
+
+@test test_shorthand_classes :: fn() -> void {
+    p :: compile("\\d+")
+    match p {
+        is Pattern -> {
+            assert(p.matches("12345"), "\\d+ matches 12345")
+            assert(!p.matches("12a"),  "\\d+ rejects 12a (whole)")
+        }
+        is Error -> assert(false, "compile \\d+ failed")
+    }
+}
+
+@test test_find :: fn() -> void {
+    p :: compile("\\d+")
+    match p {
+        is Pattern -> {
+            r :: p.find("price: 42 USD")
+            match r {
+                is Match -> {
+                    assert_eq(r.start, usize(7))
+                    assert_eq(r.end,   usize(9))
+                    assert_eq(r.groups[0], "42")
+                }
+                is null -> assert(false, "\\d+ should find 42")
+            }
+        }
+        is Error -> assert(false, "compile \\d+ failed")
+    }
+}
+
+@test test_find_all :: fn() -> void {
+    p :: compile("[a-z]+")
+    match p {
+        is Pattern -> {
+            matches_found :: p.find_all("abc def ghi")
+            assert_eq(matches_found.len(), usize(3))
+            assert_eq(matches_found[0].groups[0], "abc")
+            assert_eq(matches_found[1].groups[0], "def")
+            assert_eq(matches_found[2].groups[0], "ghi")
+        }
+        is Error -> assert(false, "compile [a-z]+ failed")
+    }
+}
+
+@test test_anchors :: fn() -> void {
+    p :: compile("^foo")
+    match p {
+        is Pattern -> {
+            assert(p.find("foo bar") is Match,  "^foo finds prefix")
+            assert(p.find("bar foo") is null,   "^foo rejects suffix")
+        }
+        is Error -> assert(false, "compile ^foo failed")
+    }
+}
+
+@test test_compile_error :: fn() -> void {
+    bad :: compile("[abc")
+    match bad {
+        is Pattern -> assert(false, "[abc should not compile")
+        is Error   -> assert(true,  "got error as expected")
+    }
+}
+
+@test test_counted :: fn() -> void {
+    p :: compile("a{3}")
+    match p {
+        is Pattern -> {
+            assert(p.matches("aaa"),  "a{3} matches aaa")
+            assert(!p.matches("aa"),  "a{3} rejects aa")
+            assert(!p.matches("aaaa"), "a{3} anchored — rejects aaaa")
+        }
+        is Error -> assert(false, "compile a{3} failed")
+    }
+    rng :: compile("a{2,4}")
+    match rng {
+        is Pattern -> {
+            assert(!rng.matches("a"),    "a{2,4} rejects a")
+            assert(rng.matches("aa"),    "a{2,4} matches aa")
+            assert(rng.matches("aaaa"),  "a{2,4} matches aaaa")
+            assert(!rng.matches("aaaaa"), "a{2,4} rejects aaaaa")
+        }
+        is Error -> assert(false, "compile a{2,4} failed")
+    }
+}
+
+@test test_replace_all :: fn() -> void {
+    p :: compile("\\d+")
+    match p {
+        is Pattern -> {
+            assert_eq(p.replace_all("a1b22c333", "X"), "aXbXcX")
+        }
+        is Error -> assert(false, "compile \\d+ failed")
+    }
+}

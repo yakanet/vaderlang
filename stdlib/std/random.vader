@@ -1,0 +1,222 @@
+// std/random — pseudo-random number generator.
+//
+// Algorithm : xoroshiro128++ (Blackman & Vigna, 2021). u64 output, 2^128
+// period, passes the BigCrush statistical battery. Fast on every modern
+// CPU and trivially portable to WASM (no SIMD intrinsics, no platform
+// primitives). Pure Vader — no host imports unless `new_from_clock` is
+// used, in which case the seed comes from `std/time.monotonic_ns`.
+//
+// NOT suitable for cryptography — the output is reversible from any
+// 256 consecutive u64s. For a cryptographic PRNG plug `std/crypto`
+// (post-MVP).
+
+import "std/time" { monotonic_ns }
+
+/// Mutable RNG state. Two 64-bit words ; the seeder guarantees at least
+/// one of them is non-zero (a fully-zero state would lock xoroshiro to
+/// emitting zeros forever).
+export Rng :: struct {
+    s0: u64
+    s1: u64
+}
+
+// u64 ops explicitly mask to 64 bits — the TS VM stores u64 as BigInt
+// and won't wrap on overflow.
+MASK_U64 :: 0xFFFF_FFFF_FFFF_FFFF_u64
+
+mask64 :: fn(x: u64) -> u64 {
+    return x & MASK_U64
+}
+
+// splitmix64 — used to expand a 64-bit seed into the 128-bit state.
+// Constants from the original SplitMix64 paper. Each call advances
+// the input by GOLDEN_GAMMA and applies an avalanche mix.
+splitmix64 :: fn(seed: u64) -> u64 {
+    z := mask64(seed + 0x9E3779B97F4A7C15_u64)
+    z = mask64((z ^ (z >> u64(30))) * 0xBF58476D1CE4E5B9_u64)
+    z = mask64((z ^ (z >> u64(27))) * 0x94D049BB133111EB_u64)
+    return z ^ (z >> u64(31))
+}
+
+rotl :: fn(x: u64, k: u64) -> u64 {
+    return mask64(x << k) | (x >> (u64(64) - k))
+}
+
+/// Build an Rng seeded from a single 64-bit value. The seed is fanned
+/// out via splitmix64 to populate both state words ; a `seed == 0`
+/// input therefore still produces a usable non-zero state.
+/// @param seed  any 64-bit value, including 0.
+/// @return      a fresh, deterministic RNG.
+export new_seeded :: fn(seed: u64) -> Rng {
+    a :: splitmix64(seed)
+    b :: splitmix64(a)
+    return Rng { .s0 = a, .s1 = b }
+}
+
+/// Seed from `std/time.monotonic_ns` — useful for tests that don't
+/// need determinism but want a different stream each process. Within
+/// a single process two close-together calls may produce overlapping
+/// streams (monotonic resolution is bounded) ; mix in a counter at
+/// the call site if you need stronger separation.
+export new_from_clock :: fn() -> Rng {
+    return new_seeded(u64(monotonic_ns()))
+}
+
+/// Draw the next u64. The full 64 bits are uniformly distributed.
+/// Advances the RNG state.
+export next_u64 :: fn(self: Rng) -> u64 {
+    sum    :: mask64(self.s0 + self.s1)
+    result :: mask64(rotl(sum, u64(17)) + self.s0)
+    t      :: self.s1 ^ self.s0
+    self.s0 = rotl(self.s0, u64(49)) ^ t ^ mask64(t << u64(21))
+    self.s1 = rotl(t, u64(28))
+    return result
+}
+
+/// Draw the next u32 by taking the upper 32 bits of `next_u64` — the
+/// upper bits of xoroshiro128++ pass BigCrush, the lower bits are
+/// slightly weaker on certain tests.
+export next_u32 :: fn(self: Rng) -> u32 {
+    return u32(self.next_u64() >> u64(32))
+}
+
+/// Uniform random boolean (50/50). Advances the RNG state.
+export next_bool :: fn(self: Rng) -> bool {
+    return (self.next_u64() >> u64(63)) == u64(1)
+}
+
+/// Uniform i32 in the half-open range `[lo, hi)`. Caller must pass
+/// `lo < hi` — equal bounds panic (division by zero in the modulus).
+///
+/// Implementation uses rejection sampling on the top 32 bits to avoid
+/// modulo bias when `(hi - lo)` doesn't divide `2^32`.
+export range_i32 :: fn(self: Rng, lo: i32, hi: i32) -> i32 {
+    span :: u32(hi - lo)
+    limit :: u32(0xFFFFFFFF) - (u32(0xFFFFFFFF) % span)
+    x: u32 = self.next_u32()
+    for x > limit {
+        x = self.next_u32()
+    }
+    return lo + i32(x % span)
+}
+
+/// Uniform u32 in the half-open range `[lo, hi)`. Caller must pass
+/// `lo < hi`.
+export range_u32 :: fn(self: Rng, lo: u32, hi: u32) -> u32 {
+    span :: hi - lo
+    limit :: u32(0xFFFFFFFF) - (u32(0xFFFFFFFF) % span)
+    x: u32 = self.next_u32()
+    for x > limit {
+        x = self.next_u32()
+    }
+    return lo + (x % span)
+}
+
+/// Uniform f64 in `[0.0, 1.0)`. Uses 52 bits of mantissa — one bit less
+/// than the f64 maximum so the largest possible numerator (`2^52 - 1`)
+/// divided by `2^52` is the immediate predecessor of `1.0` rather than
+/// rounding up to exactly `1.0` (which `(2^53 - 1) / 2^53` does on
+/// IEEE 754 round-to-nearest).
+export unit_f64 :: fn(self: Rng) -> f64 {
+    return f64(self.next_u64() >> u64(12)) / f64(0x10_0000_0000_0000_u64)
+}
+
+/// In-place Fisher-Yates shuffle. Visits each element once in O(n) ;
+/// O(1) extra memory (one i32 swap helper). Returns nothing — the
+/// input array is permuted directly.
+export shuffle :: fn[T](self: Rng, arr: T[]) -> void {
+    n :: arr.len()
+    if n <= usize(1) { return }
+    i: usize = n - 1
+    for i > usize(0) {
+        // Uniform [0, i].
+        j_u32 :: self.range_u32(u32(0), u32(i + 1))
+        j :: usize(j_u32)
+        tmp :: arr[i]
+        arr[i] = arr[j]
+        arr[j] = tmp
+        i = i - 1
+    }
+}
+
+// ---------------------------------------------------------------------- tests
+
+import "std/testing" { assert_eq, assert }
+
+@test test_new_seeded_deterministic :: fn() -> void {
+    a := new_seeded(u64(42))
+    b := new_seeded(u64(42))
+    k: i32 = 0
+    for k < 16 {
+        assert_eq(a.next_u64(), b.next_u64())
+        k = k + 1
+    }
+}
+
+@test test_new_seeded_zero_produces_nonzero :: fn() -> void {
+    r := new_seeded(u64(0))
+    // Sum a small batch — must not be all zeros (would mean a degenerate state).
+    acc: u64 = u64(0)
+    k: i32 = 0
+    for k < 8 {
+        acc = acc | r.next_u64()
+        k = k + 1
+    }
+    assert(acc != u64(0), "seed=0 produced all zeros")
+}
+
+@test test_different_seeds_produce_different_streams :: fn() -> void {
+    a := new_seeded(u64(1))
+    b := new_seeded(u64(2))
+    assert(a.next_u64() != b.next_u64(), "different seeds collided on first draw")
+}
+
+@test test_range_i32_within_bounds :: fn() -> void {
+    r := new_seeded(u64(7))
+    k: i32 = 0
+    for k < 200 {
+        v :: r.range_i32(10, 20)
+        assert(v >= 10, "range_i32 below lo")
+        assert(v < 20, "range_i32 at or above hi")
+        k = k + 1
+    }
+}
+
+@test test_unit_f64_within_bounds :: fn() -> void {
+    r := new_seeded(u64(123))
+    k: i32 = 0
+    for k < 200 {
+        v :: r.unit_f64()
+        assert(v >= 0.0, "unit_f64 below 0")
+        assert(v < 1.0, "unit_f64 at or above 1")
+        k = k + 1
+    }
+}
+
+@test test_shuffle_preserves_length :: fn() -> void {
+    r := new_seeded(u64(99))
+    arr: i32[] = [1, 2, 3, 4, 5, 6, 7, 8]
+    r.shuffle(arr)
+    assert_eq(arr.len(), usize(8))
+    // Sum is preserved (multiset preservation, weak check).
+    s: i32 = 0
+    for x in arr {
+        s = s + x
+    }
+    assert_eq(s, 36)
+}
+
+@test test_next_bool_both_observed :: fn() -> void {
+    r := new_seeded(u64(2026))
+    seen_true: bool = false
+    seen_false: bool = false
+    k: i32 = 0
+    for k < 64 {
+        b :: r.next_bool()
+        if b { seen_true = true }
+        if !b { seen_false = true }
+        k = k + 1
+    }
+    assert(seen_true, "next_bool never returned true")
+    assert(seen_false, "next_bool never returned false")
+}

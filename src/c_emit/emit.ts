@@ -586,6 +586,9 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_runtime$bytes_used":   return `${head} { return (int32_t) vader_gc_get_stats().bytes_used; }`;
     case "std_runtime$bytes_copied": return `${head} { return (int32_t) vader_gc_get_stats().total_copied; }`;
 
+    case "std_time$now_unix_ms": return `${head} { return vader_clock_realtime_ms(); }`;
+    case "std_time$monotonic_ns": return `${head} { return vader_clock_monotonic_ns(); }`;
+
     case "std_math$sqrt":  return `${head} { return vader_math_sqrt(a0); }`;
     case "std_math$pow":   return `${head} { return vader_math_pow(a0, a1); }`;
     case "std_math$floor": return `${head} { return vader_math_floor(a0); }`;

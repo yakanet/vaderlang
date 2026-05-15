@@ -1,0 +1,413 @@
+// std/time — wall-clock and monotonic time, plus arithmetic and ISO 8601.
+//
+// The two clocks use distinct types so a wall-clock value can never
+// be silently mixed with a monotonic one (their epochs are unrelated).
+// For benchmarking use `Monotonic` ; for display / persistence use
+// `Instant`.
+
+import "std/string" { byte_len, byte_at, pad_start }
+import "std/math" { abs }
+
+/// Wall-clock instant — nanoseconds since the Unix epoch (1970-01-01 UTC).
+/// Suitable for formatting, persistence, and absolute-time comparisons.
+/// NOT suitable for measuring elapsed time : the wall clock can jump
+/// forwards or backwards (NTP corrections, manual clock adjustments,
+/// daylight-saving when the OS exposes local time). Use `Monotonic` for
+/// elapsed measurements.
+export Instant :: struct {
+    ns_since_epoch: i64
+}
+
+/// Monotonic instant — nanoseconds since an opaque, process-stable epoch.
+/// Guaranteed never to decrease across observations within a single
+/// process. Use for micro-benchmarks, timeouts, deadlines, and any
+/// elapsed-time measurement. NOT comparable across processes ; NOT
+/// convertible to wall-clock time.
+export Monotonic :: struct {
+    ns: i64
+}
+
+/// Signed time interval with nanosecond precision. May be negative
+/// (e.g. `b.sub(a)` when `b < a`). Range : ±~292 years (i64 ns).
+export Duration :: struct {
+    ns: i64
+}
+
+// ---- intrinsics ----------------------------------------------------------
+
+/// Wall-clock milliseconds since the Unix epoch (1970-01-01 UTC).
+/// Millisecond resolution everywhere — the wall clock is intentionally
+/// coarser than `monotonic_ns` so different host backends agree.
+@intrinsic
+export now_unix_ms :: fn() -> i64
+
+/// Monotonic nanoseconds since an arbitrary, process-stable epoch.
+/// Resolution on the TS VM is ~5 µs (`performance.now()` is browser-
+/// throttled when run outside Bun/Node) ; ~10 ns on native.
+@intrinsic
+export monotonic_ns :: fn() -> i64
+
+// ---- Duration constructors -----------------------------------------------
+
+/// Construct a Duration from a count of nanoseconds.
+export nanos :: fn(n: i64) -> Duration {
+    return Duration { .ns = n }
+}
+
+/// Construct a Duration from a count of microseconds.
+export micros :: fn(n: i64) -> Duration {
+    return Duration { .ns = n * i64(1000) }
+}
+
+/// Construct a Duration from a count of milliseconds.
+export millis :: fn(n: i64) -> Duration {
+    return Duration { .ns = n * i64(1_000_000) }
+}
+
+/// Construct a Duration from a count of seconds.
+export seconds :: fn(n: i64) -> Duration {
+    return Duration { .ns = n * i64(1_000_000_000) }
+}
+
+// ---- clocks --------------------------------------------------------------
+
+/// Current wall-clock time. Reads the host clock — successive calls may
+/// observe non-monotonic jumps (NTP, manual adjustments).
+export now :: fn() -> Instant {
+    return Instant { .ns_since_epoch = now_unix_ms() * i64(1_000_000) }
+}
+
+/// Current monotonic instant. Never decreases across calls within a
+/// single process.
+export monotonic :: fn() -> Monotonic {
+    return Monotonic { .ns = monotonic_ns() }
+}
+
+// ---- arithmetic ----------------------------------------------------------
+
+/// Elapsed time since `self`, measured against the current monotonic
+/// clock. The contract is one-directional : `self` must come from
+/// `monotonic()`. Returns a non-negative Duration in normal operation.
+///
+/// UFCS-callable as `start.since()`.
+export since :: fn(self: Monotonic) -> Duration {
+    return Duration { .ns = monotonic_ns() - self.ns }
+}
+
+/// Add a Duration to an Instant. `Duration` may be negative to subtract.
+export add :: fn(self: Instant, d: Duration) -> Instant {
+    return Instant { .ns_since_epoch = self.ns_since_epoch + d.ns }
+}
+
+/// Difference between two instants — `self - other`, signed.
+export sub :: fn(self: Instant, other: Instant) -> Duration {
+    return Duration { .ns = self.ns_since_epoch - other.ns_since_epoch }
+}
+
+/// Add a Duration to a Monotonic instant.
+export add_monotonic :: fn(self: Monotonic, d: Duration) -> Monotonic {
+    return Monotonic { .ns = self.ns + d.ns }
+}
+
+/// Add two durations. Negative arguments subtract.
+export plus :: fn(self: Duration, other: Duration) -> Duration {
+    return Duration { .ns = self.ns + other.ns }
+}
+
+/// Subtract `other` from `self`.
+export minus :: fn(self: Duration, other: Duration) -> Duration {
+    return Duration { .ns = self.ns - other.ns }
+}
+
+// ---- Duration accessors --------------------------------------------------
+
+/// Whole nanoseconds.
+export to_nanos :: fn(self: Duration) -> i64 { return self.ns }
+
+/// Whole microseconds (truncated towards zero).
+export to_micros :: fn(self: Duration) -> i64 { return self.ns / i64(1000) }
+
+/// Whole milliseconds (truncated towards zero).
+export to_millis :: fn(self: Duration) -> i64 { return self.ns / i64(1_000_000) }
+
+/// Whole seconds (truncated towards zero).
+export to_seconds :: fn(self: Duration) -> i64 { return self.ns / i64(1_000_000_000) }
+
+// ---- Duration formatting -------------------------------------------------
+
+/// Format a Duration in the most readable unit (`ns`, `µs`, `ms`, or `s`)
+/// such that the integer part is non-empty and < 1000. Picks the largest
+/// unit that fits. Negative durations are formatted with a leading `-`.
+///
+/// Examples :
+///   `nanos(500).format()`     // "500 ns"
+///   `nanos(1500).format()`    // "1 µs"             (truncated)
+///   `millis(42).format()`     // "42 ms"
+///   `seconds(-3).format()`    // "-3 s"
+export format :: fn(self: Duration) -> string {
+    n :: self.ns
+    a :: abs(n)
+    sign :: if n < i64(0) { "-" } else { "" }
+    if a < i64(1000)              { return "${sign}${a} ns" }
+    if a < i64(1_000_000)         { return "${sign}${a / i64(1000)} µs" }
+    if a < i64(1_000_000_000)     { return "${sign}${a / i64(1_000_000)} ms" }
+    return "${sign}${a / i64(1_000_000_000)} s"
+}
+
+// ---- ISO 8601 (Gregorian civil calendar) ---------------------------------
+//
+// Algorithm : Howard Hinnant's days_from_civil / civil_from_days.
+//   - days_from_civil  : (y, m, d) -> serial day number (epoch 1970-01-01)
+//   - civil_from_days  : serial day number -> (y, m, d)
+//   Handles the full proleptic Gregorian range without lookup tables.
+
+days_from_civil :: fn(y: i64, m: i64, d: i64) -> i64 {
+    yy :: if m <= i64(2) { y - i64(1) } else { y }
+    era :: if yy >= i64(0) { yy / i64(400) } else { (yy - i64(399)) / i64(400) }
+    yoe :: yy - era * i64(400)
+    moe :: if m > i64(2) { m - i64(3) } else { m + i64(9) }
+    doy :: (i64(153) * moe + i64(2)) / i64(5) + d - i64(1)
+    doe :: yoe * i64(365) + yoe / i64(4) - yoe / i64(100) + doy
+    return era * i64(146097) + doe - i64(719468)
+}
+
+civil_from_days :: fn(z: i64) -> [i64, i64, i64] {
+    zz :: z + i64(719468)
+    era :: if zz >= i64(0) { zz / i64(146097) } else { (zz - i64(146096)) / i64(146097) }
+    doe :: zz - era * i64(146097)
+    yoe :: (doe - doe / i64(1460) + doe / i64(36524) - doe / i64(146096)) / i64(365)
+    yy  :: yoe + era * i64(400)
+    doy :: doe - (i64(365) * yoe + yoe / i64(4) - yoe / i64(100))
+    mp  :: (i64(5) * doy + i64(2)) / i64(153)
+    d   :: doy - (i64(153) * mp + i64(2)) / i64(5) + i64(1)
+    m   :: if mp < i64(10) { mp + i64(3) } else { mp - i64(9) }
+    y   :: if m <= i64(2) { yy + i64(1) } else { yy }
+    return [y, m, d]
+}
+
+/// Format an `Instant` as an ISO 8601 timestamp in UTC with millisecond
+/// precision, e.g. `"2026-05-15T12:34:56.789Z"`. Years before 0001 or
+/// after 9999 are still formatted but the year field widens beyond four
+/// digits (no truncation).
+///
+/// Sub-millisecond nanosecond detail is intentionally dropped — the
+/// MVP host clock only provides millisecond resolution for the wall
+/// clock, and emitting trailing zero-noise would mislead the reader.
+export format_iso8601 :: fn(self: Instant) -> string {
+    total_ms :: self.ns_since_epoch / i64(1_000_000)
+    ms_per_day :: i64(86_400_000)
+
+    // Floor-divide towards negative infinity so pre-epoch instants land
+    // on the correct civil day.
+    days :: if total_ms >= i64(0) {
+        total_ms / ms_per_day
+    } else {
+        (total_ms - ms_per_day + i64(1)) / ms_per_day
+    }
+    time_ms_unsigned :: total_ms - days * ms_per_day
+
+    [year, month, day] :: civil_from_days(days)
+
+    hours :: time_ms_unsigned / i64(3_600_000)
+    remaining_after_hours :: time_ms_unsigned - hours * i64(3_600_000)
+    minutes :: remaining_after_hours / i64(60_000)
+    remaining_after_minutes :: remaining_after_hours - minutes * i64(60_000)
+    seconds_part :: remaining_after_minutes / i64(1000)
+    ms_part :: remaining_after_minutes - seconds_part * i64(1000)
+
+    return "${pad_start("${year}", usize(4), '0')}-${pad_start("${month}", usize(2), '0')}-${pad_start("${day}", usize(2), '0')}T${pad_start("${hours}", usize(2), '0')}:${pad_start("${minutes}", usize(2), '0')}:${pad_start("${seconds_part}", usize(2), '0')}.${pad_start("${ms_part}", usize(3), '0')}Z"
+}
+
+/// Error returned by `parse_iso8601` when the input doesn't conform to
+/// the supported subset of ISO 8601.
+export TimeError :: struct {
+    msg: string
+}
+
+TimeError implements Error {
+    message :: fn(self) -> string { return self.msg }
+}
+
+parse_digits :: fn(s: string, start: usize, count: usize) -> i64! {
+    if start + count > s.byte_len() {
+        return TimeError { .msg = "unexpected end of input" }
+    }
+    acc: i64 = i64(0)
+    i: usize = 0
+    for i < count {
+        b :: s.byte_at(start + i)
+        if b < b'0' || b > b'9' {
+            return TimeError { .msg = "expected digit" }
+        }
+        acc = acc * i64(10) + i64(b - b'0')
+        i = i + 1
+    }
+    return acc
+}
+
+expect_byte :: fn(s: string, offset: usize, expected: u8) -> void! {
+    if offset >= s.byte_len() {
+        return TimeError { .msg = "unexpected end of input" }
+    }
+    if s.byte_at(offset) != expected {
+        return TimeError { .msg = "unexpected byte" }
+    }
+    return null
+}
+
+/// Parse an ISO 8601 wall-clock timestamp into an `Instant`. The
+/// accepted shape is `YYYY-MM-DDTHH:MM:SS[.fff]Z` (UTC only ; the
+/// trailing `Z` is required, fractional seconds are optional and
+/// truncated to milliseconds when present). The mirror of
+/// `format_iso8601`.
+///
+/// @param s  the timestamp to parse.
+/// @return   the parsed `Instant`.
+/// @error    `TimeError` when `s` doesn't fit the accepted shape.
+export parse_iso8601 :: fn(s: string) -> Instant! {
+    // Minimum is `1970-01-01T00:00:00Z` — 20 bytes.
+    if s.byte_len() < usize(20) {
+        return TimeError { .msg = "iso8601: too short" }
+    }
+    year   :: parse_digits(s, usize(0),  usize(4))?
+    expect_byte(s, usize(4),  b'-')?
+    month  :: parse_digits(s, usize(5),  usize(2))?
+    expect_byte(s, usize(7),  b'-')?
+    day    :: parse_digits(s, usize(8),  usize(2))?
+    expect_byte(s, usize(10), b'T')?
+    hours  :: parse_digits(s, usize(11), usize(2))?
+    expect_byte(s, usize(13), b':')?
+    minutes :: parse_digits(s, usize(14), usize(2))?
+    expect_byte(s, usize(16), b':')?
+    seconds_part :: parse_digits(s, usize(17), usize(2))?
+
+    // Fractional seconds : optional `.fff` block, then required `Z`.
+    cursor: usize = 19
+    ms_part: i64 = 0
+    if cursor < s.byte_len() && s.byte_at(cursor) == b'.' {
+        cursor = cursor + 1
+        // Consume up to 3 digits — truncate further fractional detail.
+        consumed: usize = 0
+        for consumed < usize(3) && cursor < s.byte_len() && s.byte_at(cursor) >= b'0' && s.byte_at(cursor) <= b'9' {
+            ms_part = ms_part * i64(10) + i64(s.byte_at(cursor) - b'0')
+            cursor = cursor + 1
+            consumed = consumed + 1
+        }
+        scale_loop :: usize(3) - consumed
+        scale: i64 = 1
+        k: usize = 0
+        for k < scale_loop {
+            scale = scale * i64(10)
+            k = k + 1
+        }
+        ms_part = ms_part * scale
+        // Drop any additional fractional digits the caller supplied.
+        for cursor < s.byte_len() && s.byte_at(cursor) >= b'0' && s.byte_at(cursor) <= b'9' {
+            cursor = cursor + 1
+        }
+    }
+    expect_byte(s, cursor, b'Z')?
+
+    if month < i64(1) || month > i64(12) {
+        return TimeError { .msg = "iso8601: month out of range" }
+    }
+    if day < i64(1) || day > i64(31) {
+        return TimeError { .msg = "iso8601: day out of range" }
+    }
+    if hours > i64(23) || minutes > i64(59) || seconds_part > i64(60) {
+        return TimeError { .msg = "iso8601: time field out of range" }
+    }
+
+    days :: days_from_civil(year, month, day)
+    total_ms :: days * i64(86_400_000) +
+                hours * i64(3_600_000) +
+                minutes * i64(60_000) +
+                seconds_part * i64(1000) +
+                ms_part
+    return Instant { .ns_since_epoch = total_ms * i64(1_000_000) }
+}
+
+// ---------------------------------------------------------------------- tests
+
+import "std/testing" { assert_eq, assert }
+
+@test test_duration_constructors :: fn() -> void {
+    assert_eq(nanos(i64(500)).ns, i64(500))
+    assert_eq(micros(i64(2)).ns, i64(2000))
+    assert_eq(millis(i64(3)).ns, i64(3_000_000))
+    assert_eq(seconds(i64(4)).ns, i64(4_000_000_000))
+}
+
+@test test_duration_arithmetic :: fn() -> void {
+    a :: millis(i64(100))
+    b :: millis(i64(50))
+    assert_eq(a.plus(b).ns, i64(150_000_000))
+    assert_eq(a.minus(b).ns, i64(50_000_000))
+}
+
+@test test_duration_format :: fn() -> void {
+    assert_eq(nanos(i64(500)).format(),     "500 ns")
+    assert_eq(nanos(i64(1500)).format(),    "1 µs")
+    assert_eq(micros(i64(42)).format(),     "42 µs")
+    assert_eq(millis(i64(7)).format(),      "7 ms")
+    assert_eq(seconds(i64(3)).format(),     "3 s")
+    assert_eq(nanos(i64(-250)).format(),    "-250 ns")
+}
+
+@test test_duration_accessors :: fn() -> void {
+    d :: millis(i64(1500))
+    assert_eq(d.to_micros(), i64(1_500_000))
+    assert_eq(d.to_millis(), i64(1500))
+    assert_eq(d.to_seconds(), i64(1))
+}
+
+@test test_iso8601_epoch :: fn() -> void {
+    s :: format_iso8601(Instant { .ns_since_epoch = i64(0) })
+    assert_eq(s, "1970-01-01T00:00:00.000Z")
+}
+
+@test test_iso8601_known_timestamp :: fn() -> void {
+    // 2026-05-15T12:34:56.789Z -> a specific number of ms.
+    days :: days_from_civil(i64(2026), i64(5), i64(15))
+    total_ms :: days * i64(86_400_000) +
+                i64(12) * i64(3_600_000) +
+                i64(34) * i64(60_000) +
+                i64(56) * i64(1000) +
+                i64(789)
+    inst :: Instant { .ns_since_epoch = total_ms * i64(1_000_000) }
+    assert_eq(format_iso8601(inst), "2026-05-15T12:34:56.789Z")
+}
+
+@test test_iso8601_roundtrip :: fn() -> void {
+    inputs :: ["1970-01-01T00:00:00.000Z",
+               "2000-02-29T12:00:00.000Z",
+               "2026-05-15T12:34:56.789Z",
+               "1999-12-31T23:59:59.999Z"]
+    for s in inputs {
+        parsed :: parse_iso8601(s)
+        match parsed {
+            is Instant -> assert_eq(format_iso8601(parsed), s)
+            is Error -> assert(false, "unreachable")
+        }
+    }
+}
+
+@test test_iso8601_parse_rejects_bad_input :: fn() -> void {
+    bad :: parse_iso8601("not a timestamp")
+    match bad {
+        is Error -> assert(true, "expected error")
+        is Instant -> assert(false, "unreachable")
+    }
+}
+
+@test test_monotonic_non_negative_elapsed :: fn() -> void {
+    start :: monotonic()
+    // Tiny busy-loop : we don't want to depend on the actual timing,
+    // just that `since` returns a non-negative duration.
+    spin: i32 = 0
+    for spin < 1000 {
+        spin = spin + 1
+    }
+    elapsed_dur :: start.since()
+    assert(elapsed_dur.ns >= i64(0), "monotonic clock ran backwards")
+}

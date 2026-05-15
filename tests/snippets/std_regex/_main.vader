@@ -1,0 +1,110 @@
+// std/regex — Thompson NFA engine exercise. Covers literals, char
+// classes, shorthand classes, quantifiers (`*` / `+` / `?` / `{n}` /
+// `{n,m}`), anchors, capture groups, alternation, find / find_all,
+// replace_all with `$N` backrefs, and the compile-error path.
+
+import "std/io" { println }
+import "std/regex" {
+    Pattern, Match, RegexError,
+    compile, matches, find, find_all, replace_all,
+}
+
+run_match :: fn(label: string, p: Pattern, input: string) -> void {
+    println("${label}=${p.matches(input)}")
+}
+
+run_find :: fn(label: string, p: Pattern, input: string) -> void {
+    r :: p.find(input)
+    if r is Match {
+        println("${label}=${r.start}..${r.end}:${r.groups[0]}")
+    } else {
+        println("${label}=null")
+    }
+}
+
+main :: fn() -> i32 {
+    // Literal + anchored
+    p_lit :: compile("hello")
+    if p_lit is Pattern {
+        run_match("lit-exact",   p_lit, "hello")
+        run_match("lit-partial", p_lit, "hellox")
+    }
+
+    // Char classes + shorthand
+    p_digits :: compile("\\d{3}-\\d{4}")
+    if p_digits is Pattern {
+        run_match("phone-good", p_digits, "555-1234")
+        run_match("phone-bad",  p_digits, "55-1234")
+    }
+
+    // Quantifiers
+    p_word :: compile("[a-z]+")
+    if p_word is Pattern {
+        run_find("first-word", p_word, "abc def ghi")
+        all :: p_word.find_all("abc def ghi")
+        println("word-count=${all.len()}")
+        i: usize = 0
+        for i < all.len() {
+            println("word[${i}]=${all[i].groups[0]}")
+            i = i + usize(1)
+        }
+    }
+
+    // Anchors
+    p_anchor :: compile("^foo")
+    if p_anchor is Pattern {
+        run_find("anchor-hit",  p_anchor, "foo bar")
+        run_find("anchor-miss", p_anchor, "bar foo")
+    }
+
+    // Groups + alternation
+    p_email :: compile("(\\w+)@(\\w+)\\.(\\w+)")
+    if p_email is Pattern {
+        r :: p_email.find("contact user@domain.com please")
+        if r is Match {
+            println("email-match=${r.groups[0]}")
+            println("email-user=${r.groups[1]}")
+            println("email-host=${r.groups[2]}")
+            println("email-tld=${r.groups[3]}")
+        }
+    }
+
+    p_alt :: compile("cat|dog|bird")
+    if p_alt is Pattern {
+        run_match("alt-cat",  p_alt, "cat")
+        run_match("alt-dog",  p_alt, "dog")
+        run_match("alt-bird", p_alt, "bird")
+        run_match("alt-fish", p_alt, "fish")
+    }
+
+    // Counted
+    p_3a :: compile("a{3}")
+    if p_3a is Pattern {
+        run_match("3a-yes", p_3a, "aaa")
+        run_match("3a-no",  p_3a, "aa")
+    }
+    p_2to4 :: compile("a{2,4}")
+    if p_2to4 is Pattern {
+        run_match("2to4-1", p_2to4, "a")
+        run_match("2to4-3", p_2to4, "aaa")
+        run_match("2to4-5", p_2to4, "aaaaa")
+    }
+
+    // replace_all with $N backref
+    p_swap :: compile("(\\w+) (\\w+)")
+    if p_swap is Pattern {
+        println("swap=${p_swap.replace_all("Mathieu Broutin", "$2 $1")}")
+    }
+    p_redact :: compile("\\d+")
+    if p_redact is Pattern {
+        println("redact=${p_redact.replace_all("a1b22c333", "X")}")
+    }
+
+    // Compile error path
+    bad :: compile("[abc")
+    if bad is Error {
+        println("bad-compile=caught")
+    }
+
+    return 0
+}

@@ -1,0 +1,145 @@
+# Lower
+
+## tests/snippets/std_crypto/_main.vader
+  fn tests_snippets_std_crypto__main_vader$main() -> i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "sha256-empty=" :string
+          @builder.append_display <for string> :void
+            __sb_0 :?
+            call :string
+              callee:
+                sha256 :fn(string) -> string
+              arg0:
+                "" :string
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "sha256-abc=" :string
+          @builder.append_display <for string> :void
+            __sb_1 :?
+            call :string
+              callee:
+                sha256 :fn(string) -> string
+              arg0:
+                "abc" :string
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "sha256-quick=" :string
+          @builder.append_display <for string> :void
+            __sb_2 :?
+            call :string
+              callee:
+                sha256 :fn(string) -> string
+              arg0:
+                "The quick brown fox jumps over the lazy dog" :string
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "sha256-long=" :string
+          @builder.append_display <for string> :void
+            __sb_3 :?
+            call :string
+              callee:
+                sha256 :fn(string) -> string
+              arg0:
+                "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" :string
+          ~>
+            @builder.finish :string
+              __sb_3 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_4: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_4 :?
+            "md5-empty=" :string
+          @builder.append_display <for string> :void
+            __sb_4 :?
+            call :string
+              callee:
+                md5 :fn(string) -> string
+              arg0:
+                "" :string
+          ~>
+            @builder.finish :string
+              __sb_4 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_5: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_5 :?
+            "md5-abc=" :string
+          @builder.append_display <for string> :void
+            __sb_5 :?
+            call :string
+              callee:
+                md5 :fn(string) -> string
+              arg0:
+                "abc" :string
+          ~>
+            @builder.finish :string
+              __sb_5 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_6: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_6 :?
+            "md5-quick=" :string
+          @builder.append_display <for string> :void
+            __sb_6 :?
+            call :string
+              callee:
+                md5 :fn(string) -> string
+              arg0:
+                "The quick brown fox jumps over the lazy dog" :string
+          ~>
+            @builder.finish :string
+              __sb_6 :?
+    return int(0) :i32

@@ -63,6 +63,8 @@ export abs :: fn(x: f64) = if x < 0.0 { -x } else { x }
 /// Absolute value of an `i32`. `abs(i32::MIN)` overflows (panics in debug,
 /// wraps in release).
 export abs :: fn(x: i32) = if x < 0 { -x } else { x }
+/// Absolute value of an `i64`. Same overflow caveat at `i64::MIN`.
+export abs :: fn(x: i64) = if x < i64(0) { -x } else { x }
 
 /// Clamp `x` to `[lo, hi]`. Equivalent to `min(max(x, lo), hi)`. Behaviour
 /// when `lo > hi` matches the underlying calls — `lo` wins.

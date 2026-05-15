@@ -1,0 +1,19 @@
+// std/crypto — SHA-256 + MD5 vectors against the well-known
+// reference digests from RFC 6234 (SHA-256) and RFC 1321 (MD5).
+
+import "std/io" { println }
+import "std/crypto" { sha256, md5 }
+
+main :: fn() -> i32 {
+    println("sha256-empty=${sha256("")}")
+    println("sha256-abc=${sha256("abc")}")
+    println("sha256-quick=${sha256("The quick brown fox jumps over the lazy dog")}")
+
+    // Over a 64-byte block boundary.
+    println("sha256-long=${sha256("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")}")
+
+    println("md5-empty=${md5("")}")
+    println("md5-abc=${md5("abc")}")
+    println("md5-quick=${md5("The quick brown fox jumps over the lazy dog")}")
+    return 0
+}

@@ -12,6 +12,7 @@ import "std/io" { read_file, write_file, exists, eprintln, println, print }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/numbers" { parse_int_in_base }
 import "std/math" { sqrt, pow, floor, ceil, round }
+import "std/time" { monotonic_ns, now_unix_ms }
 import "std/string_builder" { new_builder, append }
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, contains, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
 op :: import "vader/vm/op"
@@ -273,6 +274,9 @@ export dispatch_import :: fn(info: op.ImportInfo, stack: op.Value[], arg_base: u
     if info.mangled == r"std_runtime$collections"  { return HostOk { .value = op.I32Val { .value = i32(gc_state[0]) } } }
     if info.mangled == r"std_runtime$bytes_used"   { return HostOk { .value = op.I32Val { .value = 0 } } }
     if info.mangled == r"std_runtime$bytes_copied" { return HostOk { .value = op.I32Val { .value = 0 } } }
+    // ---- std/time --------------------------------------------------------
+    if info.mangled == r"std_time$now_unix_ms"  { return HostOk { .value = op.I64Val { .value = now_unix_ms()  } } }
+    if info.mangled == r"std_time$monotonic_ns" { return HostOk { .value = op.I64Val { .value = monotonic_ns() } } }
     // ---- std/math --------------------------------------------------------
     if info.mangled == r"std_math$sqrt"  { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
     if info.mangled == r"std_math$floor" { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }

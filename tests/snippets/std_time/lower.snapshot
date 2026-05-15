@@ -1,0 +1,374 @@
+# Lower
+
+## tests/snippets/std_time/_main.vader
+  fn tests_snippets_std_time__main_vader$main() -> i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            format :string
+          arg0:
+            call :Duration
+              callee:
+                nanos :fn(i64) -> Duration
+              arg0:
+                cast → i64
+                  int(500) :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            format :string
+          arg0:
+            call :Duration
+              callee:
+                nanos :fn(i64) -> Duration
+              arg0:
+                cast → i64
+                  int(1500) :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            format :string
+          arg0:
+            call :Duration
+              callee:
+                micros :fn(i64) -> Duration
+              arg0:
+                cast → i64
+                  int(42) :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            format :string
+          arg0:
+            call :Duration
+              callee:
+                millis :fn(i64) -> Duration
+              arg0:
+                cast → i64
+                  int(7) :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            format :string
+          arg0:
+            call :Duration
+              callee:
+                seconds :fn(i64) -> Duration
+              arg0:
+                cast → i64
+                  int(3) :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            format :string
+          arg0:
+            call :Duration
+              callee:
+                nanos :fn(i64) -> Duration
+              arg0:
+                cast → i64
+                  neg :{integer}
+                    int(250) :i32
+    let a: Duration =
+      call :Duration
+        callee:
+          millis :fn(i64) -> Duration
+        arg0:
+          cast → i64
+            int(100) :i32
+    let b: Duration =
+      call :Duration
+        callee:
+          millis :fn(i64) -> Duration
+        arg0:
+          cast → i64
+            int(50) :i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "plus=" :string
+          @builder.append_display <for string> :void
+            __sb_0 :?
+            call :string
+              callee:
+                format :string
+              arg0:
+                call :Duration
+                  callee:
+                    plus :Duration
+                  arg0:
+                    a :Duration
+                  arg1:
+                    b :Duration
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "minus=" :string
+          @builder.append_display <for string> :void
+            __sb_1 :?
+            call :string
+              callee:
+                format :string
+              arg0:
+                call :Duration
+                  callee:
+                    minus :Duration
+                  arg0:
+                    a :Duration
+                  arg1:
+                    b :Duration
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    let epoch: Instant =
+      Instant {
+        ns_since_epoch:
+          cast → i64
+            int(0) :i32
+      }
+    let later: Instant =
+      call :Instant
+        callee:
+          add :Instant
+        arg0:
+          epoch :Instant
+        arg1:
+          call :Duration
+            callee:
+              seconds :fn(i64) -> Duration
+            arg0:
+              cast → i64
+                int(60) :i32
+    let delta: Duration =
+      call :Duration
+        callee:
+          sub :Duration
+        arg0:
+          later :Instant
+        arg1:
+          epoch :Instant
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "delta=" :string
+          @builder.append_display <for string> :void
+            __sb_2 :?
+            call :string
+              callee:
+                format :string
+              arg0:
+                delta :Duration
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            format_iso8601 :fn(Instant) -> string
+          arg0:
+            epoch :Instant
+    let iso: string = "2026-05-15T12:34:56.789Z" :string
+    let parsed: Error | Instant =
+      call :Error | Instant
+        callee:
+          parse_iso8601 :fn(string) -> Error | Instant
+        arg0:
+          iso :string
+    block :void
+      let __scrut_3: Error | Instant = parsed :Error | Instant
+      ~>
+        if :void
+          cond:
+            is Instant :bool
+              __scrut_3 :Error | Instant
+          then:
+            ~>
+              call :void
+                callee:
+                  println :fn(string) -> void
+                arg0:
+                  call :string
+                    callee:
+                      format_iso8601 :fn(Instant) -> string
+                    arg0:
+                      cast → Instant
+                        parsed :Error | Instant
+          else:
+            ~>
+              if :void
+                cond:
+                  is Error :bool
+                    __scrut_3 :Error | Instant
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println :fn(string) -> void
+                      arg0:
+                        "parse failed" :string
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    let pre: Error | Instant =
+      call :Error | Instant
+        callee:
+          parse_iso8601 :fn(string) -> Error | Instant
+        arg0:
+          "1900-01-01T00:00:00.000Z" :string
+    block :void
+      let __scrut_4: Error | Instant = pre :Error | Instant
+      ~>
+        if :void
+          cond:
+            is Instant :bool
+              __scrut_4 :Error | Instant
+          then:
+            ~>
+              call :void
+                callee:
+                  println :fn(string) -> void
+                arg0:
+                  call :string
+                    callee:
+                      format_iso8601 :fn(Instant) -> string
+                    arg0:
+                      cast → Instant
+                        pre :Error | Instant
+          else:
+            ~>
+              if :void
+                cond:
+                  is Error :bool
+                    __scrut_4 :Error | Instant
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println :fn(string) -> void
+                      arg0:
+                        "pre failed" :string
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    let bad: Error | Instant =
+      call :Error | Instant
+        callee:
+          parse_iso8601 :fn(string) -> Error | Instant
+        arg0:
+          "not a timestamp" :string
+    block :void
+      let __scrut_5: Error | Instant = bad :Error | Instant
+      ~>
+        if :void
+          cond:
+            is Error :bool
+              __scrut_5 :Error | Instant
+          then:
+            ~>
+              call :void
+                callee:
+                  println :fn(string) -> void
+                arg0:
+                  "bad ok" :string
+          else:
+            ~>
+              if :void
+                cond:
+                  is Instant :bool
+                    __scrut_5 :Error | Instant
+                then:
+                  ~>
+                    call :void
+                      callee:
+                        println :fn(string) -> void
+                      arg0:
+                        "bad nope" :string
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    let start: Monotonic =
+      call :Monotonic
+        callee:
+          monotonic :fn() -> Monotonic
+    let spin: i32 = int(0) :i32
+    loop while (<…>)
+      assign
+        target:
+          spin :i32
+        value:
+          add :i32
+            l:
+              spin :i32
+            r:
+              int(1) :i32
+    let e: Duration =
+      call :Duration
+        callee:
+          since :Duration
+        arg0:
+          start :Monotonic
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_6: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_6 :?
+            "monotonic>=0=" :string
+          @builder.append_display <for bool> :void
+            __sb_6 :?
+            gte :bool
+              l:
+                .ns :i64
+                  e :Duration
+              r:
+                cast → i64
+                  int(0) :i32
+          ~>
+            @builder.finish :string
+              __sb_6 :?
+    return int(0) :i32

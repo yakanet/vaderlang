@@ -1,0 +1,19 @@
+# Comptime
+
+## tests/snippets/std_time/_main.vader
+
+## generic instances
+  assert_eq(i32)
+  assert_eq(i64)
+  assert_eq(isize)
+  assert_eq(string)
+  assert_eq(usize)
+  Yielded(char)
+  Yielded(i32)
+  Yielded(string)
+  Yielded(u8)
+  Yielded(usize)
+  Range(char)
+  Range(i32)
+  Range(usize)
+  ArrayIterator(string)

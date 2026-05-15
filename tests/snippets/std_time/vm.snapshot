@@ -1,0 +1,17 @@
+# stdout
+500 ns
+1 µs
+42 µs
+7 ms
+3 s
+-250 ns
+plus=150 ms
+minus=50 ms
+delta=60 s
+1970-01-01T00:00:00.000Z
+2026-05-15T12:34:56.789Z
+1900-01-01T00:00:00.000Z
+bad ok
+monotonic>=0=true
+# exit
+0
