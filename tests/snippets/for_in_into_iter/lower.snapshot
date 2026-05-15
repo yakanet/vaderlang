@@ -86,17 +86,19 @@
         int(2) :i32
     let map_total: i32 = int(0) :i32
     block :void
-      let __iter_3: Iterator(Entry(string, i32)) =
-        call :Iterator(Entry(string, i32))
+      let __iter_3: MapIterator(string, i32) =
+        call :MapIterator(string, i32)
           callee:
-            into :Iterator(Entry(string, i32))
+            into :MapIterator(string, i32)
           arg0:
             m :MutableMap(string, i32)
       loop
         let __step_4: Done | Yielded(Entry(string, i32)) =
-          vcall Iterator.next :Done | Yielded(Entry(string, i32))
-            recv:
-              __iter_3 :Iterator(Entry(string, i32))
+          call :Done | Yielded(Entry(string, i32))
+            callee:
+              next :?
+            arg0:
+              __iter_3 :MapIterator(string, i32)
         if :void
           cond:
             is Done :bool
@@ -159,17 +161,19 @@
         int(11) :i32
     let set_total: i32 = int(0) :i32
     block :void
-      let __iter_6: Iterator(i32) =
-        call :Iterator(i32)
+      let __iter_6: SetIterator(i32) =
+        call :SetIterator(i32)
           callee:
-            into :Iterator(i32)
+            into :SetIterator(i32)
           arg0:
             s :MutableSet(i32)
       loop
         let __step_7: Done | Yielded(i32) =
-          vcall Iterator.next :Done | Yielded(i32)
-            recv:
-              __iter_6 :Iterator(i32)
+          call :Done | Yielded(i32)
+            callee:
+              next :?
+            arg0:
+              __iter_6 :SetIterator(i32)
         if :void
           cond:
             is Done :bool
@@ -208,17 +212,19 @@
               __sb_8 :?
     let chars: i32 = int(0) :i32
     block :void
-      let __iter_9: Iterator(char) =
-        call :Iterator(char)
+      let __iter_9: StringChars =
+        call :StringChars
           callee:
-            into :Iterator(char)
+            into :StringChars
           arg0:
             "héllo 世界" :string
       loop
         let __step_10: Done | Yielded(char) =
-          vcall Iterator.next :Done | Yielded(char)
-            recv:
-              __iter_9 :Iterator(char)
+          call :Done | Yielded(char)
+            callee:
+              next :?
+            arg0:
+              __iter_9 :StringChars
         if :void
           cond:
             is Done :bool

@@ -1,0 +1,29 @@
+/// Micro-bench for `for entry in m` over `MutableMap` — exercises the new
+/// `Into(Iterator(Entry(K,V)))` desugar path. Reused to gauge whether
+/// devirtualization of the resulting trait-typed iter is worth doing.
+
+import "std/io" { println }
+import "std/collections" { MutableMap }
+import "std/time" { monotonic_ns }
+
+INNER_KEYS :: 1_000
+OUTER_LOOPS :: 1_000
+
+main :: fn() -> i32 {
+    m := MutableMap(i32, i32) { .buckets = [], .size = 0 }
+    for i in 0..<INNER_KEYS {
+        m[i] = i
+    }
+
+    start :: monotonic_ns()
+    total: i64 = 0
+    for _ in 0..<OUTER_LOOPS {
+        for entry in m {
+            total = total + i64(entry.value)
+        }
+    }
+    elapsed :: monotonic_ns() - start
+
+    println("map_iter inner=${INNER_KEYS} outer=${OUTER_LOOPS} total=${total} elapsed_ns=${elapsed}")
+    return 0
+}

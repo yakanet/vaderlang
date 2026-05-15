@@ -37,17 +37,19 @@
         int(3) :i32
     let total: i32 = int(0) :i32
     block :void
-      let __iter_0: Iterator(Entry(string, i32)) =
-        call :Iterator(Entry(string, i32))
+      let __iter_0: MapIterator(string, i32) =
+        call :MapIterator(string, i32)
           callee:
-            into :Iterator(Entry(string, i32))
+            into :MapIterator(string, i32)
           arg0:
             m :MutableMap(string, i32)
       loop
         let __step_1: Done | Yielded(Entry(string, i32)) =
-          vcall Iterator.next :Done | Yielded(Entry(string, i32))
-            recv:
-              __iter_0 :Iterator(Entry(string, i32))
+          call :Done | Yielded(Entry(string, i32))
+            callee:
+              next :?
+            arg0:
+              __iter_0 :MapIterator(string, i32)
         if :void
           cond:
             is Done :bool
@@ -117,17 +119,19 @@
         int(30) :i32
     let sum: i32 = int(0) :i32
     block :void
-      let __iter_3: Iterator(i32) =
-        call :Iterator(i32)
+      let __iter_3: SetIterator(i32) =
+        call :SetIterator(i32)
           callee:
-            into :Iterator(i32)
+            into :SetIterator(i32)
           arg0:
             s :MutableSet(i32)
       loop
         let __step_4: Done | Yielded(i32) =
-          vcall Iterator.next :Done | Yielded(i32)
-            recv:
-              __iter_3 :Iterator(i32)
+          call :Done | Yielded(i32)
+            callee:
+              next :?
+            arg0:
+              __iter_3 :SetIterator(i32)
         if :void
           cond:
             is Done :bool

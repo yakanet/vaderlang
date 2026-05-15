@@ -58,9 +58,9 @@
         callee:
           sum_iter :fn(Iterator(i32)) -> i32
         arg0:
-          call :Iterator(i32)
+          call :ArrayIterator(i32)
             callee:
-              into :Iterator(i32)
+              into :ArrayIterator(i32)
             arg0:
               array :i32[]
                 int(10) :i32

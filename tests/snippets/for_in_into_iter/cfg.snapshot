@@ -30,9 +30,9 @@ fn tests_snippets_for_in_into_iter__main_vader$main() -> i32
     %23 $k_29: string
     %24 $k_30: i32
     %25 map_total: i32 (local map_total)
-    %26 $call_33: Iterator(Entry(string, i32))
-    %27 __iter_3: Iterator(Entry(string, i32)) (synthetic __iter_3)
-    %28 $vcall_35: Done | Yielded(Entry(string, i32))
+    %26 $call_33: MapIterator(string, i32)
+    %27 __iter_3: MapIterator(string, i32) (synthetic __iter_3)
+    %28 $call_35: Done | Yielded(Entry(string, i32))
     %29 __step_4: Done | Yielded(Entry(string, i32)) (synthetic __step_4)
     %30 $type_check_37: bool
     %31 $cast_38: Yielded(Entry(string, i32))
@@ -51,9 +51,9 @@ fn tests_snippets_for_in_into_iter__main_vader$main() -> i32
     %44 $k_54: i32
     %45 $call_55: bool
     %46 set_total: i32 (local set_total)
-    %47 $call_58: Iterator(i32)
-    %48 __iter_6: Iterator(i32) (synthetic __iter_6)
-    %49 $vcall_60: Done | Yielded(i32)
+    %47 $call_58: SetIterator(i32)
+    %48 __iter_6: SetIterator(i32) (synthetic __iter_6)
+    %49 $call_60: Done | Yielded(i32)
     %50 __step_7: Done | Yielded(i32) (synthetic __step_7)
     %51 $type_check_62: bool
     %52 $cast_63: Yielded(i32)
@@ -64,9 +64,9 @@ fn tests_snippets_for_in_into_iter__main_vader$main() -> i32
     %57 $intrinsic_70: string
     %58 chars: i32 (local chars)
     %59 $k_73: string
-    %60 $call_74: Iterator(char)
-    %61 __iter_9: Iterator(char) (synthetic __iter_9)
-    %62 $vcall_76: Done | Yielded(char)
+    %60 $call_74: StringChars
+    %61 __iter_9: StringChars (synthetic __iter_9)
+    %62 $call_76: Done | Yielded(char)
     %63 __step_10: Done | Yielded(char) (synthetic __step_10)
     %64 $type_check_78: bool
     %65 $k_82: i32
@@ -111,7 +111,7 @@ fn tests_snippets_for_in_into_iter__main_vader$main() -> i32
     %24 = const int(2) :i32
     call set_at(%20, %23, %24) :void
     %25 = const int(0) :i32
-    %26 = call into(%20) :Iterator(Entry(string, i32))
+    %26 = call into(%20) :MapIterator(string, i32)
     %27 = move %26
     branch -> bb7
   bb4:
@@ -126,7 +126,7 @@ fn tests_snippets_for_in_into_iter__main_vader$main() -> i32
   bb7:
     branch -> bb8
   bb8:
-    %28 = vcall Iterator.next(recv=%27) :Done | Yielded(Entry(string, i32))
+    %28 = call next(%27) :Done | Yielded(Entry(string, i32))
     %29 = move %28
     %30 = type_check %29 is Done
     cond_branch %30 ? bb10 : bb11
@@ -147,7 +147,7 @@ fn tests_snippets_for_in_into_iter__main_vader$main() -> i32
     %44 = const int(11) :i32
     %45 = call add(%41, %44) :bool
     %46 = const int(0) :i32
-    %47 = call into(%41) :Iterator(i32)
+    %47 = call into(%41) :SetIterator(i32)
     %48 = move %47
     branch -> bb13
   bb10:
@@ -163,7 +163,7 @@ fn tests_snippets_for_in_into_iter__main_vader$main() -> i32
   bb13:
     branch -> bb14
   bb14:
-    %49 = vcall Iterator.next(recv=%48) :Done | Yielded(i32)
+    %49 = call next(%48) :Done | Yielded(i32)
     %50 = move %49
     %51 = type_check %50 is Done
     cond_branch %51 ? bb16 : bb17
@@ -177,7 +177,7 @@ fn tests_snippets_for_in_into_iter__main_vader$main() -> i32
     call println(%57) :void
     %58 = const int(0) :i32
     %59 = const string(#5) :string
-    %60 = call into(%59) :Iterator(char)
+    %60 = call into(%59) :StringChars
     %61 = move %60
     branch -> bb19
   bb16:
@@ -192,7 +192,7 @@ fn tests_snippets_for_in_into_iter__main_vader$main() -> i32
   bb19:
     branch -> bb20
   bb20:
-    %62 = vcall Iterator.next(recv=%61) :Done | Yielded(char)
+    %62 = call next(%61) :Done | Yielded(char)
     %63 = move %62
     %64 = type_check %63 is Done
     cond_branch %64 ? bb22 : bb23

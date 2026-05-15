@@ -31,7 +31,7 @@ fn tests_snippets_trait_box_range_iter__main_vader$main() -> i32
     %8 $k_8: i32
     %9 $k_9: i32
     %10 $arr_10: i32[]
-    %11 $call_11: Iterator(i32)
+    %11 $call_11: ArrayIterator(i32)
     %12 $call_12: i32
     %13 b: i32 (local b)
     %14 $struct_14: Hello
@@ -55,7 +55,7 @@ fn tests_snippets_trait_box_range_iter__main_vader$main() -> i32
     %8 = const int(20) :i32
     %9 = const int(30) :i32
     %10 = array_new i32[][3](%7, %8, %9)
-    %11 = call into(%10) :Iterator(i32)
+    %11 = call into(%10) :ArrayIterator(i32)
     %12 = call count(%11) :i32
     %13 = move %12
     %14 = struct_new Hello()

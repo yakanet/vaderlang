@@ -14,6 +14,7 @@
 // the string-interp use site remains here.
 
 import type { Span } from "../../diagnostics/diagnostic.ts";
+import type * as A from "../../parser/ast.ts";
 import type { Type } from "../../typecheck/types.ts";
 import { CORE_TRAITS, TY, substitute } from "../../typecheck/types.ts";
 import type { IntoCoercion } from "../../typecheck/typed-ast.ts";
@@ -102,9 +103,39 @@ export function wrapAsInto(
     ? substitute(targetRaw, coercion.implSubst)
     : targetRaw;
   const targetType = ctx.types.apply(targetSubstituted);
+  // Devirtualize : when the impl's `into` body is a single
+  // `return StructLit { … }` of a known concrete type, narrow the call's
+  // return type from the trait-bound type to the concrete struct. The
+  // call itself still happens at runtime — the win is downstream :
+  // `lowerForIn` sees the concrete struct and dispatches `next()` via a
+  // direct `LoweredCall` instead of `LoweredVirtualCall` (1M direct
+  // calls > 1M vtable lookups on a hot map/set iter loop).
+  const narrowed = trivialIntoReturnType(coercion, member, ctx) ?? targetType;
   return {
-    kind: "LoweredCall", span, type: targetType,
-    callee: { kind: "LoweredIdent", span, type: targetType, symbol: entry.symbol },
+    kind: "LoweredCall", span, type: narrowed,
+    callee: { kind: "LoweredIdent", span, type: narrowed, symbol: entry.symbol },
     args: [value],
   };
+}
+
+/** When the `into` member body is `{ return StructLit { … } }`, return
+ *  that StructLit's substituted type so the wrapped call's static type
+ *  becomes the concrete iterator struct (enabling direct `next()`
+ *  dispatch in `lowerForIn`). Returns null for any other body shape. */
+function trivialIntoReturnType(
+  coercion: IntoCoercion, member: A.FnDecl, ctx: FnLowerCtx,
+): Type | null {
+  const body = member.body;
+  if (body === null || body.stmts.length !== 1 || body.trailing !== null) return null;
+  const stmt = body.stmts[0]!;
+  if (stmt.kind !== "ReturnStmt" || stmt.value === null) return null;
+  if (stmt.value.kind !== "StructLitExpr") return null;
+  const implModuleId = coercion.entry.module.id;
+  const implTyped = ctx.project.evaluated.typed.modules.get(implModuleId);
+  const rawType = implTyped?.exprTypes.get(stmt.value);
+  if (rawType === undefined) return null;
+  const substituted = coercion.entry.decl.typeParams.length > 0
+    ? substitute(rawType, coercion.implSubst)
+    : rawType;
+  return ctx.types.apply(substituted);
 }
