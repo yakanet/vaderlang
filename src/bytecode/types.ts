@@ -34,6 +34,51 @@ export function isNumericVal(t: ValType): boolean {
   return (NUMERICS as readonly string[]).includes(t);
 }
 
+/** Native-runtime element-storage discriminator. Mirrors the
+ *  `vader_array_kind_t` enum in `runtime/c/vader.h` ; the bytecode emitter
+ *  + VMs compute this once per array type and pass it to the runtime so
+ *  primitive arrays store raw values instead of boxed slots. */
+export type ArrayKind =
+  | "boxed"
+  | "u8" | "u16" | "u32" | "u64"
+  | "i8" | "i16" | "i32" | "i64"
+  | "f32" | "f64"
+  | "char" | "bool";
+
+const ARRAY_KIND_INDEX: Record<ArrayKind, number> = {
+  boxed: 0,
+  u8: 1, u16: 2, u32: 3, u64: 4,
+  i8: 5, i16: 6, i32: 7, i64: 8,
+  f32: 9, f64: 10,
+  char: 11, bool: 12,
+};
+
+export function arrayKindIndex(k: ArrayKind): number {
+  return ARRAY_KIND_INDEX[k];
+}
+
+/** Map a BcType (the element of an array) to its native storage class.
+ *  Anything that's not a small fixed-width primitive collapses to `boxed`
+ *  — strings, structs, unions, refs, fns all live in a `vader_box_t` slot. */
+export function arrayKindOf(element: BcType): ArrayKind {
+  if (element.kind !== "primitive") return "boxed";
+  switch (element.val) {
+    case "u8":    return "u8";
+    case "u16":   return "u16";
+    case "u32":   return "u32";
+    case "u64":   case "usize":  return "u64";
+    case "i8":    return "i8";
+    case "i16":   return "i16";
+    case "i32":   return "i32";
+    case "i64":   case "isize":  return "i64";
+    case "f32":   return "f32";
+    case "f64":   return "f64";
+    case "char":  return "char";
+    case "bool":  return "bool";
+    default:      return "boxed";  // string, null, void, ref, any
+  }
+}
+
 // =========================================================================
 // Type-table entries
 // =========================================================================

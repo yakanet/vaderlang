@@ -263,7 +263,7 @@ void* vader_gc_alloc(size_t bytes) {
 static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
     if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
         vader_array_buf_t* buf = (vader_array_buf_t*) obj;
-        return sizeof(vader_array_buf_t) + buf->capacity * sizeof(vader_box_t);
+        return sizeof(vader_array_buf_t) + buf->capacity * vader_array_element_size(buf->element_kind);
     }
     if (type_index >= vader_type_info_count) return 0;
     const vader_type_info_t* info = &vader_type_info_table[type_index];
@@ -385,11 +385,14 @@ static size_t vader_gc_scan_object(char* scan) {
     uint32_t type_index = hdr->type_index;
     if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
         vader_array_buf_t* buf = (vader_array_buf_t*) scan;
-        for (size_t i = 0; i < buf->length; i++) {
-            vader_gc_scan_box(&buf->slots[i]);
+        size_t elem_size = vader_array_element_size(buf->element_kind);
+        if (buf->element_kind == VADER_ARRAY_KIND_BOXED) {
+            vader_box_t* slots = vader_array_box_slots(buf);
+            for (size_t i = 0; i < buf->length; i++) {
+                vader_gc_scan_box(&slots[i]);
+            }
         }
-        return vader_gc_align(sizeof(vader_array_buf_t)
-                              + buf->capacity * sizeof(vader_box_t));
+        return vader_gc_align(sizeof(vader_array_buf_t) + buf->capacity * elem_size);
     }
     if (type_index >= vader_type_info_count) {
         vader_trap("vader_gc: scanned object with unknown type_index");
@@ -731,10 +734,12 @@ static void vader_string_scan_words(const void* lo, const void* hi) {
 static void vader_string_mark_obj(char* scan, uint32_t type_index) {
     if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
         vader_array_buf_t* buf = (vader_array_buf_t*) scan;
+        if (buf->element_kind != VADER_ARRAY_KIND_BOXED) return;
+        vader_box_t* slots = vader_array_box_slots(buf);
         for (size_t i = 0; i < buf->length; i++) {
             /* payload.s.ptr aliases payload.obj / payload.i — same 8 bytes.
              * Reading it conservatively works for every tag. */
-            vader_string_mark_ptr((const void*) buf->slots[i].payload.s.ptr);
+            vader_string_mark_ptr((const void*) slots[i].payload.s.ptr);
         }
         return;
     }
@@ -882,14 +887,14 @@ vader_u64_t vader_string_hash(vader_string_t s) {
 
 /* ----------------------------------------------------------------- array */
 
-/* `sizeof(vader_array_buf_t) + capacity * sizeof(vader_box_t)` without
- * silent integer overflow. With user-controllable `capacity` (e.g. via
+/* `sizeof(vader_array_buf_t) + capacity * element_size(kind)` without silent
+ * integer overflow. With user-controllable `capacity` (e.g. via
  * `array.push` reaching into the gigabytes), the multiplication can wrap
  * `size_t` and produce an under-allocation followed by an OOB write. Trap
  * before the alloc with a clear message instead. */
-static size_t vader_array_buf_bytes(size_t capacity) {
-    const size_t per_slot = sizeof(vader_box_t);
-    if (capacity > (SIZE_MAX - sizeof(vader_array_buf_t)) / per_slot) {
+static size_t vader_array_buf_bytes(size_t capacity, uint8_t element_kind) {
+    size_t per_slot = vader_array_element_size(element_kind);
+    if (per_slot > 0 && capacity > (SIZE_MAX - sizeof(vader_array_buf_t)) / per_slot) {
         vader_trap("vader_array: capacity overflows size_t");
     }
     return sizeof(vader_array_buf_t) + capacity * per_slot;
@@ -899,16 +904,17 @@ static size_t vader_array_buf_bytes(size_t capacity) {
  * sentinel as its type tag — the GC scan loop dispatches on that to walk
  * `length` slots dynamically. The struct itself plus its trailing slot
  * area land in a single GC arena allocation. */
-static vader_array_buf_t* vader_array_buf_alloc(size_t capacity) {
-    size_t bytes = vader_array_buf_bytes(capacity);
+static vader_array_buf_t* vader_array_buf_alloc(size_t capacity, uint8_t element_kind) {
+    size_t bytes = vader_array_buf_bytes(capacity, element_kind);
     vader_array_buf_t* buf = (vader_array_buf_t*) vader_gc_alloc(bytes);
     vader_obj_header_init(buf, VADER_TYPE_INDEX_ARRAY_BUF);
-    buf->capacity = capacity;
-    buf->length   = 0;
+    buf->capacity     = capacity;
+    buf->length       = 0;
+    buf->element_kind = element_kind;
     return buf;
 }
 
-vader_array_t* vader_array_new(uint32_t type_index, size_t length) {
+vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind) {
     /* Single-block initial allocation: struct followed by an inline buf in
      * the same GC alloc. Two-step allocation has a window where one half is
      * unreachable from the shadow stack — a collection mid-construction
@@ -920,7 +926,7 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length) {
      * cycles relocate them separately without surprise. */
     size_t cap = length > 0 ? length : 4;
     size_t struct_bytes = vader_gc_align(sizeof(vader_array_t));
-    size_t buf_bytes    = vader_array_buf_bytes(cap);
+    size_t buf_bytes    = vader_array_buf_bytes(cap, element_kind);
     if (struct_bytes > SIZE_MAX - buf_bytes) {
         vader_trap("vader_array: total alloc size overflows size_t");
     }
@@ -934,12 +940,59 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length) {
     a->buf      = buf;
 
     vader_obj_header_init(buf, VADER_TYPE_INDEX_ARRAY_BUF);
-    buf->capacity = cap;
-    buf->length   = length;
+    buf->capacity     = cap;
+    buf->length       = length;
+    buf->element_kind = element_kind;
     return a;
 }
 
 static vader_array_t* vader_array_resolve(vader_array_t* a);
+
+/* Box / unbox helpers for primitive-kind slots. Each kind reads or writes
+ * the matching primitive width directly from `buf->slots` ; the boxed kind
+ * routes through `vader_array_box_slots`. */
+static vader_box_t vader_array_load_slot(vader_array_buf_t* buf, size_t i) {
+    uint8_t* base = buf->slots;
+    vader_box_t out;
+    out.tag = 0; out._pad = 0; out.payload.i = 0;
+    switch (buf->element_kind) {
+        case VADER_ARRAY_KIND_BOXED:
+            return vader_array_box_slots(buf)[i];
+        case VADER_ARRAY_KIND_U8:   out.payload.i = ((uint8_t*)  base)[i]; return out;
+        case VADER_ARRAY_KIND_U16:  out.payload.i = ((uint16_t*) base)[i]; return out;
+        case VADER_ARRAY_KIND_U32:  out.payload.i = ((uint32_t*) base)[i]; return out;
+        case VADER_ARRAY_KIND_U64:  out.payload.i = (vader_i64_t)((uint64_t*)base)[i]; return out;
+        case VADER_ARRAY_KIND_I8:   out.payload.i = ((int8_t*)   base)[i]; return out;
+        case VADER_ARRAY_KIND_I16:  out.payload.i = ((int16_t*)  base)[i]; return out;
+        case VADER_ARRAY_KIND_I32:  out.payload.i = ((int32_t*)  base)[i]; return out;
+        case VADER_ARRAY_KIND_I64:  out.payload.i = ((int64_t*)  base)[i]; return out;
+        case VADER_ARRAY_KIND_F32:  out.payload.f = ((float*)    base)[i]; return out;
+        case VADER_ARRAY_KIND_F64:  out.payload.f = ((double*)   base)[i]; return out;
+        case VADER_ARRAY_KIND_CHAR: out.payload.i = ((uint32_t*) base)[i]; return out;
+        case VADER_ARRAY_KIND_BOOL: out.payload.b = ((uint8_t*)  base)[i] != 0; return out;
+        default: vader_trap("vader_array_get: unknown element kind");
+    }
+}
+
+static void vader_array_store_slot(vader_array_buf_t* buf, size_t i, vader_box_t v) {
+    uint8_t* base = buf->slots;
+    switch (buf->element_kind) {
+        case VADER_ARRAY_KIND_BOXED: vader_array_box_slots(buf)[i] = v; return;
+        case VADER_ARRAY_KIND_U8:   ((uint8_t*)  base)[i] = (uint8_t)  v.payload.i; return;
+        case VADER_ARRAY_KIND_U16:  ((uint16_t*) base)[i] = (uint16_t) v.payload.i; return;
+        case VADER_ARRAY_KIND_U32:  ((uint32_t*) base)[i] = (uint32_t) v.payload.i; return;
+        case VADER_ARRAY_KIND_U64:  ((uint64_t*) base)[i] = (uint64_t) v.payload.i; return;
+        case VADER_ARRAY_KIND_I8:   ((int8_t*)   base)[i] = (int8_t)   v.payload.i; return;
+        case VADER_ARRAY_KIND_I16:  ((int16_t*)  base)[i] = (int16_t)  v.payload.i; return;
+        case VADER_ARRAY_KIND_I32:  ((int32_t*)  base)[i] = (int32_t)  v.payload.i; return;
+        case VADER_ARRAY_KIND_I64:  ((int64_t*)  base)[i] = (int64_t)  v.payload.i; return;
+        case VADER_ARRAY_KIND_F32:  ((float*)    base)[i] = (float)    v.payload.f; return;
+        case VADER_ARRAY_KIND_F64:  ((double*)   base)[i] = (double)   v.payload.f; return;
+        case VADER_ARRAY_KIND_CHAR: ((uint32_t*) base)[i] = (uint32_t) v.payload.i; return;
+        case VADER_ARRAY_KIND_BOOL: ((uint8_t*)  base)[i] = v.payload.b ? 1 : 0; return;
+        default: vader_trap("vader_array_set: unknown element kind");
+    }
+}
 
 vader_box_t vader_array_get(vader_array_t* a, size_t i) {
     a = vader_array_resolve(a);
@@ -947,7 +1000,7 @@ vader_box_t vader_array_get(vader_array_t* a, size_t i) {
         a->buf = (vader_array_buf_t*) a->buf->header.forward;
     }
     if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
-    return a->buf->slots[i];
+    return vader_array_load_slot(a->buf, i);
 }
 
 void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
@@ -956,10 +1009,12 @@ void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
         a->buf = (vader_array_buf_t*) a->buf->header.forward;
     }
     if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
-    a->buf->slots[i] = v;
+    vader_array_store_slot(a->buf, i, v);
     /* Mark the card holding `a->buf` if it lives in old: subsequent minors
      * must treat that card as a root since the new slot may point at young. */
-    VADER_WRITE_BARRIER(a->buf);
+    if (a->buf->element_kind == VADER_ARRAY_KIND_BOXED) {
+        VADER_WRITE_BARRIER(a->buf);
+    }
 }
 
 /* If `a` was relocated by a collection that fired during a recent allocation,
@@ -992,20 +1047,21 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
          * the alloc, because by the time we'd query it post-alloc the
          * original header memory may already be repurposed.
          */
-        uint32_t tag = a->header.type_index;
+        uint32_t tag  = a->header.type_index;
+        uint8_t  kind = a->buf->element_kind;
         vader_box_t a_box; a_box.tag = tag; a_box._pad = 0; a_box.payload.obj = a;
         vader_box_t* roots[2] = { &a_box, &v };
         vader_gc_frame_t frame = { vader_gc_top, 2u, 0u, roots };
         vader_gc_top = &frame;
         size_t cap = a->capacity == 0 ? 4 : a->capacity * 2;
-        vader_array_buf_t* fresh = vader_array_buf_alloc(cap);
+        vader_array_buf_t* fresh = vader_array_buf_alloc(cap, kind);
         a = (vader_array_t*) a_box.payload.obj;
         vader_array_buf_t* old = a->buf;
         while (old != NULL && old->header.forward != NULL) {
             old = (vader_array_buf_t*) old->header.forward;
         }
         if (a->length > 0 && old != NULL) {
-            memcpy(fresh->slots, old->slots, a->length * sizeof(vader_box_t));
+            memcpy(fresh->slots, old->slots, a->length * vader_array_element_size(kind));
         }
         fresh->length = a->length;
         a->buf = fresh;
@@ -1014,7 +1070,7 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
         VADER_WRITE_BARRIER(a);
         vader_gc_top = frame.prev;
     }
-    a->buf->slots[a->length] = v;
+    vader_array_store_slot(a->buf, a->length, v);
     a->length += 1;
     a->buf->length = a->length;
     VADER_WRITE_BARRIER(a->buf);
@@ -1138,7 +1194,7 @@ vader_u8_t vader_string_byte_at(vader_string_t s, size_t i) {
  * Each `vader_array_push` may collect; the shadow-stack frame keeps `arr_box`
  * reachable so its `payload.obj` tracks the array across moves. */
 vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint32_t str_type) {
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0));
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED));
     VADER_GC_PUSH1(arr_box);
     for (int i = 0; i < argc; i++) {
         const char* a = argv[i];
@@ -1153,7 +1209,7 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
 
 vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,
                                   uint32_t arr_type, uint32_t str_type) {
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0));
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED));
     VADER_GC_PUSH1(arr_box);
     if (sep.len == 0) {
         for (size_t i = 0; i < s.len; i++) {
@@ -1340,14 +1396,15 @@ vader_string_t vader_string_concat_all(vader_array_t* parts) {
     if (parts->length == 0) {
         return vader_string_new("", 0);
     }
+    vader_box_t* slots = vader_array_box_slots(parts->buf);
     size_t total = 0;
     for (size_t i = 0; i < parts->length; i++) {
-        total += parts->buf->slots[i].payload.s.len;
+        total += slots[i].payload.s.len;
     }
     char* buf = (char*) vader_string_alloc(total);
     size_t pos = 0;
     for (size_t i = 0; i < parts->length; i++) {
-        vader_string_t s = parts->buf->slots[i].payload.s;
+        vader_string_t s = slots[i].payload.s;
         memcpy(buf + pos, s.ptr, s.len);
         pos += s.len;
     }
@@ -1519,7 +1576,7 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
         return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
     }
 
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0));
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED));
     VADER_GC_PUSH1(arr_box);
     do {
         const char* name = fd.cFileName;
@@ -1560,7 +1617,7 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
         return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
     }
 
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0));
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED));
     VADER_GC_PUSH1(arr_box);
     struct dirent* ent;
     while ((ent = readdir(d)) != NULL) {

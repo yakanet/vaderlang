@@ -15,7 +15,7 @@ import type { BcSignature } from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
-import { inlineVariantPayload, nullableRefVariant } from "../bytecode/types.ts";
+import { arrayKindIndex, arrayKindOf, inlineVariantPayload, nullableRefVariant } from "../bytecode/types.ts";
 
 import type { EmitCtx } from "./emit.ts";
 import { cStringLit, cStringLitFromBytes, escapeC, sanitise } from "./emit.ts";
@@ -438,10 +438,17 @@ export function emitArrayNew(s: FnState, op: Extract<Op, { kind: "array.new" }>)
   const elements: { name: string; val: ValType }[] = [];
   for (let i = op.length - 1; i >= 0; i--) elements.unshift(pop(s));
   const tmp = newTmp(s, "ref");
-  line(s, `vader_array_t* ${tmp}_arr = vader_array_new(${op.typeIndex}u, ${op.length}u);`);
-  for (let i = 0; i < op.length; i++) {
-    const v = elements[i]!;
-    line(s, `${tmp}_arr->buf->slots[${i}] = ${boxExpr(s.ctx, v.name, v.val, op.typeIndex)};`);
+  const arrType = s.ctx.module.types[op.typeIndex];
+  const elemKind = arrType !== undefined && arrType.kind === "array"
+    ? arrayKindOf(s.ctx.module.types[arrType.element]!)
+    : "boxed";
+  const kindIdx = arrayKindIndex(elemKind);
+  line(s, `vader_array_t* ${tmp}_arr = vader_array_new(${op.typeIndex}u, ${op.length}u, ${kindIdx}u);`);
+  if (op.length > 0) {
+    for (let i = 0; i < op.length; i++) {
+      const v = elements[i]!;
+      line(s, `vader_array_set(${tmp}_arr, ${i}u, ${boxExpr(s.ctx, v.name, v.val, op.typeIndex)});`);
+    }
   }
   line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${tmp}_arr);`);
 }

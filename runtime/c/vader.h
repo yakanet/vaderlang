@@ -172,10 +172,49 @@ static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
 
 /* ----------------------------------------------------------------- array */
 
+/* Element-storage discriminator. Primitive arrays store raw values (1-8 byte
+ * slots) so a `u32[64]` lookup table fits in 4 cache lines instead of 16
+ * once unboxed. `BOXED` arrays keep one `vader_box_t` per slot for refs /
+ * unions / structs. */
+typedef enum {
+    VADER_ARRAY_KIND_BOXED = 0,
+    VADER_ARRAY_KIND_U8    = 1,
+    VADER_ARRAY_KIND_U16   = 2,
+    VADER_ARRAY_KIND_U32   = 3,
+    VADER_ARRAY_KIND_U64   = 4,
+    VADER_ARRAY_KIND_I8    = 5,
+    VADER_ARRAY_KIND_I16   = 6,
+    VADER_ARRAY_KIND_I32   = 7,
+    VADER_ARRAY_KIND_I64   = 8,
+    VADER_ARRAY_KIND_F32   = 9,
+    VADER_ARRAY_KIND_F64   = 10,
+    VADER_ARRAY_KIND_CHAR  = 11,
+    VADER_ARRAY_KIND_BOOL  = 12,
+} vader_array_kind_t;
+
+static inline size_t vader_array_element_size(uint8_t kind) {
+    switch (kind) {
+        case VADER_ARRAY_KIND_BOXED: return sizeof(vader_box_t);
+        case VADER_ARRAY_KIND_U8:    /* fallthrough */
+        case VADER_ARRAY_KIND_I8:    /* fallthrough */
+        case VADER_ARRAY_KIND_BOOL:  return 1;
+        case VADER_ARRAY_KIND_U16:   /* fallthrough */
+        case VADER_ARRAY_KIND_I16:   return 2;
+        case VADER_ARRAY_KIND_U32:   /* fallthrough */
+        case VADER_ARRAY_KIND_I32:   /* fallthrough */
+        case VADER_ARRAY_KIND_F32:   /* fallthrough */
+        case VADER_ARRAY_KIND_CHAR:  return 4;
+        case VADER_ARRAY_KIND_U64:   /* fallthrough */
+        case VADER_ARRAY_KIND_I64:   /* fallthrough */
+        case VADER_ARRAY_KIND_F64:   return 8;
+        default: return sizeof(vader_box_t);   /* unreachable, defensive */
+    }
+}
+
 /* Array data buffer — a separate GC object so `push` can reallocate without
- * breaking aliases to the array header. The runtime tags it with the
- * `VADER_TYPE_INDEX_ARRAY_BUF` sentinel rather than a per-element type, so a
- * single GC scan path handles arrays of every element type. */
+ * breaking aliases to the array header. The buf carries its own
+ * `element_kind` so the GC scanner can decide whether to walk slots for refs
+ * (BOXED) or skip them entirely (primitive). */
 struct vader_array_buf;
 
 typedef struct {
@@ -185,21 +224,30 @@ typedef struct {
     struct vader_array_buf*  buf;
 } vader_array_t;
 
-/* `capacity` and `length` are mirrored from the parent vader_array_t — the
- * GC needs them at scan time and there's no back-pointer to the array. */
+/* `capacity` / `length` are mirrored from the parent vader_array_t — the
+ * GC needs them at scan time and there's no back-pointer to the array.
+ * `slots` is byte-typed ; the actual width is `element_size(element_kind)`. */
 typedef struct vader_array_buf {
     vader_obj_header_t       header;
     size_t                   capacity;
     size_t                   length;
-    vader_box_t              slots[];
+    uint8_t                  element_kind;
+    uint8_t                  _pad[7];
+    uint8_t                  slots[];
 } vader_array_buf_t;
+
+/* Typed slot access for the BOXED case. Primitive arrays use direct casts
+ * `((uint32_t*)buf->slots)[i]` etc. at the access site. */
+static inline vader_box_t* vader_array_box_slots(vader_array_buf_t* buf) {
+    return (vader_box_t*) (void*) buf->slots;
+}
 
 /* Sentinel index for buffers — distinct from any user BcType. The scan loop
  * dispatches on it because the type info table doesn't carry a static layout
  * for variable-length objects. */
 #define VADER_TYPE_INDEX_ARRAY_BUF UINT32_C(0xFFFFFFFE)
 
-vader_array_t* vader_array_new(uint32_t type_index, size_t length);
+vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind);
 vader_box_t    vader_array_get(vader_array_t* a, size_t i);
 void           vader_array_set(vader_array_t* a, size_t i, vader_box_t v);
 void           vader_array_push(vader_array_t* a, vader_box_t v);
