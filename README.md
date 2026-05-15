@@ -258,12 +258,12 @@ Five workloads measured across four implementations of each — Vader native (`-
 
 | workload         | vader-native | bun-ts  | go      | java    |
 |------------------|--------------|---------|---------|---------|
-| `mandelbrot`     | 15.0 ms      | 22.1 ms | 17.5 ms | 44.5 ms |
-| `primes`         | 23.0 ms      | 37.6 ms | 22.9 ms | 53.9 ms |
-| `iter_chain`     |  1.8 ms      | 33.6 ms |  2.7 ms | 35.1 ms |
-| `binary_trees`   | 13.6 ms      | 11.3 ms |  7.1 ms | 31.6 ms |
-| `string_builder` |  3.4 ms      |  8.6 ms |  5.1 ms | 33.6 ms |
-| `map_iter`       | 29.1 ms      | 30.6 ms |  7.9 ms | 39.8 ms |
+| `mandelbrot`     | 15.2 ms      | 22.3 ms | 16.8 ms | 44.0 ms |
+| `primes`         | 22.2 ms      | 38.3 ms | 23.7 ms | 55.8 ms |
+| `iter_chain`     |  2.1 ms      | 34.3 ms |  2.4 ms | 35.1 ms |
+| `binary_trees`   | 14.3 ms      | 11.7 ms |  7.3 ms | 34.1 ms |
+| `string_builder` |  3.6 ms      |  8.8 ms |  5.4 ms | 34.0 ms |
+| `map_iter`       | 22.6 ms      | 31.3 ms |  8.2 ms | 40.1 ms |
 
 The `vader-vm` column is disabled by default — each invocation pays 2-30 s for the parse + typecheck + lower + bytecode pipeline (dwarfing the actual VM loop), which inflates the total bench wall time to ~5 min without telling us anything `vader-native` doesn't. Uncomment the entry in `bench/run.ts` to opt back in when a change targets the VM exec path specifically.
 

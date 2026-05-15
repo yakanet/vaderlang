@@ -227,13 +227,24 @@ export function nullableRefVariant(union: BcUnion, types: readonly BcType[]): nu
   const ta = types[a], tb = types[b];
   if (ta === undefined || tb === undefined) return null;
   const isNullPrim = (t: BcType): boolean => t.kind === "primitive" && t.val === "null";
-  // T must be a heap-allocated struct here. If it's an inline-variant struct
-  // (representable in vader_box_t.payload, see `inlineVariantPayload` below),
-  // skip B1 — the value is already inline so there's no heap pointer to fold
-  // into a raw void* slot.
+  // T must be representable as a single heap pointer. Three cases qualify :
+  //   - array : always heap-backed by its `vader_array_t` body.
+  //   - heap struct : full allocation, the pointer is the obj header.
+  //   - inline-ref struct (`Yield(Entry)` shape) : the wrapper has zero
+  //     storage of its own ; its `payload.obj` is the referent's pointer.
+  //     Folding this slot to `void*` works because the consumer rewraps the
+  //     pointer with the wrapper's type tag, and `struct.get` on the
+  //     wrapper's single field reads `payload.obj` and re-tags with the
+  //     field type (cf. `emitStructGet` inline-ref branch).
+  //
+  // The primitive-payload inline-variant (`Yielded(i32)` shape) is excluded :
+  // the value lives in `payload.i` / `payload.f`, not in a pointer slot.
   const isHeapRef = (t: BcType): boolean => {
     if (t.kind === "array") return true;
-    if (t.kind === "struct") return inlineVariantPayload(t, types) === null;
+    if (t.kind === "struct") {
+      const inline = inlineVariantPayload(t, types);
+      return inline === null || inline === "ref";
+    }
     return false;
   };
   if (isNullPrim(ta) && isHeapRef(tb)) return b;
