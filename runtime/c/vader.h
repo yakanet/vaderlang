@@ -24,6 +24,16 @@
 #ifndef VADER_H
 #define VADER_H
 
+/* glibc gates POSIX clocks (`CLOCK_REALTIME`, `CLOCK_MONOTONIC`) and GNU
+ * pthread extensions (`pthread_getattr_np`) behind feature-test macros.
+ * Under `-std=c11` ISO mode neither is exposed by default. Define
+ * `_GNU_SOURCE` before any system include so the runtime compiles cleanly
+ * on Linux ; Darwin / BSD expose these APIs unconditionally so the macro
+ * is a no-op there. */
+#if defined(__linux__) && !defined(_GNU_SOURCE)
+#  define _GNU_SOURCE
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
