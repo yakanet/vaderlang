@@ -1813,7 +1813,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | Decorator | Target | Purpose |
 |-----------|--------|---------|
 | `@comptime` | fn / value | Forces compile-time evaluation |
-| `@extern("module", "name")` | fn (no body) | Declares an import (WASM) or external symbol (C) — user-controlled FFI |
+| `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
 | `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided ; the runtime (VM / C / WASM) wires each method by mangled name |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
 | `@test` | fn | Marks as a test, executed by `vader test` |
@@ -1848,36 +1848,82 @@ The v1 `@load` is **replaced by `import`**.
 ### `@extern` — declaring imports
 
 ```vader
-@extern("env", "console_log")
-console_log :: fn(ptr: i32, len: i32)
+@extern add_i32 :: fn(a: i32, b: i32) -> i32                    // C symbol: add_i32
+@extern("strlen") c_strlen :: fn(s: string) -> usize            // C symbol: strlen
+@extern("env", "console_log") log :: fn(p: i32, n: i32) -> void // C symbol: console_log
 ```
 
-On the **WASM** target, the compiler generates:
-```wat
-(import "env" "console_log" (func (param i32 i32)))
+The decorator accepts **0, 1, or 2 string arguments**. The **last** string is the foreign symbol name (the C linker symbol on the native target ; the WASM `field` on a future WASM target). The **first** of two arguments is the WASM module hint (`"env"` by convention) — ignored by the C-emit, consumed by future WASM-emit. Omitting all arguments reuses the Vader-side fn name as the C symbol. 3+ arguments or any non-string-literal argument is `T3050`.
+
+`@extern`-decorated fns **must be bodyless** — declaring a body alongside `@extern` is `T3051`.
+
+### Allowed signature types
+
+The MVP C ABI marshals **primitives + `string` only** :
+
+```
+i8 i16 i32 i64    u8 u16 u32 u64    isize usize
+f32 f64    bool   char    void    string
 ```
 
-On the **native (C)** target, the compiler generates:
+Anything else (struct / array / union / fn-typed param / trait / type-param) is `T3050`. Future iterations may add :
+- opaque pointer types alongside §3.6 unsafe blocks
+- struct passing for `@repr(C)` Vader structs
+- callbacks (C → Vader function pointers)
+
+### Native target — code generation
+
+For each user `@extern` the compiler emits one forward declaration at the top of the generated `.c`, then a per-call shim that the bytecode's `call.import` jumps to :
+
 ```c
-extern void console_log(int32_t, int32_t);
-```
-and passes `-lenv` (or equivalent) to `cc`.
+// Forward declaration — resolved by the linker.
+extern int32_t add_i32(int32_t, int32_t);
+extern size_t strlen(const char*);
 
-### String marshalling — no magic in MVP
-
-A Vader string is laid out at runtime as a fat value `(ptr, len)`. Crossing the FFI boundary requires the user to surface that pair explicitly — today the surface for projecting a string into its `(ptr, len)` halves is **not yet designed** (no `.ptr` / `.len` accessor on `string`). When it lands the call site will look like :
-
-```vader
-@extern("env", "console_log")
-console_log :: fn(ptr: i32, len: i32)
-
-print_message :: fn(msg: string) {
-    // Placeholder — exact accessor TBD (Issue: §13 string→FFI lowering).
-    console_log(/* msg.ptr */, /* msg.len */)
+// Shim — bridges the Vader-side ABI to the foreign signature.
+static int32_t vader_import_0(int32_t a0, int32_t a1) {
+    return add_i32(a0, a1);
+}
+static size_t vader_import_1(vader_string_t a0) {
+    // Stack-allocated NUL copy for strings < 4 KiB ; heap fallback above.
+    char _b0[a0.len < 4096 ? a0.len + 1 : 1];
+    const char* c0;
+    if (a0.len < 4096) {
+        if (a0.len > 0) memcpy(_b0, a0.ptr, a0.len);
+        _b0[a0.len] = 0;
+        c0 = _b0;
+    } else {
+        c0 = vader_string_to_cstr(a0);  // malloc'd
+    }
+    size_t r = strlen(c0);
+    if (a0.len >= 4096) vader_cstr_free(c0);
+    return r;
 }
 ```
 
-The user writes the host-side glue (JS, C) themselves. The Vader JS stdlib will provide helpers `vader_string_decode(memory, ptr, len)`.
+The shim is **emitted by the compiler** — the user never writes the `vader_string_t` ↔ `const char*` glue manually. `string` parameters are marshalled to NUL-terminated UTF-8 `const char*` with a frame-lifetime guarantee : the buffer is valid only during the call and freed (or discarded with the stack frame) on return.
+
+Two distinct `@extern` decls sharing the same C symbol (`@extern("strlen") a` + `@extern("strlen") b`) are `T3050` — the linker would resolve both calls to the same prototype, masking ABI mismatches.
+
+### Linking
+
+```bash
+vader build prog.vader --target=native --ldflags="helper.o -lcrypto -L/usr/local/lib"
+```
+
+`--ldflags="<raw flags>"` passes a whitespace-split string of linker flags directly to `cc` — append `.o` files, `-l<lib>` libs, `-L<dir>` paths, frameworks, etc. The MVP doesn't ship a manifest format ; everything goes through `--ldflags`.
+
+### VM behaviour
+
+The VM has no host-fn registry for user `@extern` symbols — `call.import` on an unrecognised symbol throws `vm: unbound host import …`. `@extern` is therefore **native-only** in the MVP. Use the Vader test runner's `@test` decorator with native pipelines (`vader build` then run the binary) to exercise FFI paths.
+
+### Future WASM target
+
+When the WASM emitter lands (§3.10), `@extern` will additionally support the WASM `(module, field)` shape :
+- 2-arg form `@extern("env", "console_log") log` → `(import "env" "console_log" (func …))`
+- 1-arg / 0-arg form defaults the module to `"env"`.
+
+The C-emit will continue to ignore the module hint. The same `@extern` decl compiles for both targets.
 
 ### `@export` — exposing a function
 
@@ -2646,15 +2692,15 @@ main :: fn() -> i32 {
 
 ### `@extern` — calling JS from WASM
 
+Same shape as the C path (§13) — the 2-arg form gives the WASM `(module, field)` pair. The compiler will materialise `(import "env" "alert" (func …))` in the module's import section. String parameters are still allowed and marshalled into a `(ptr: i32, len: i32)` pair pushed onto the WASM stack ; the user-side glue (JS) reads the linear memory accordingly.
+
 ```vader
 @extern("env", "alert")
-js_alert :: fn(ptr: i32, len: i32)
+js_alert :: fn(msg: string) -> void
 
 @export("greet")
 greet :: fn() -> void {
-    msg :: "Hello from Vader!"
-    // Placeholder — exact `string` → `(ptr, len)` accessor TBD.
-    js_alert(/* msg.ptr */, /* msg.len */)
+    js_alert("Hello from Vader!")
 }
 
 main :: fn() -> i32 {

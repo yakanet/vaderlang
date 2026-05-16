@@ -33,3 +33,13 @@ export function hasDecorator(decs: ReadonlyArray<{ name: string }>, name: string
   for (const d of decs) if (d.name === name) return true;
   return false;
 }
+
+/** Find the first decorator named `name` and return its `args` array, or
+ *  null when absent. Tiny lookup helper used by `@extern` symbol-name
+ *  extraction (and future `@deprecated("reason")` / similar). */
+export function findDecoratorArgs<D extends { name: string; args: readonly unknown[] }>(
+  decs: ReadonlyArray<D>, name: string,
+): D["args"] | null {
+  for (const d of decs) if (d.name === name) return d.args;
+  return null;
+}

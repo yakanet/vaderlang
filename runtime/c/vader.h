@@ -79,6 +79,13 @@ static inline vader_string_t vader_string_new(const char* p, size_t n) {
 vader_string_t vader_string_concat(vader_string_t a, vader_string_t b);
 bool           vader_string_eq(vader_string_t a, vader_string_t b);
 
+/* `@extern` ABI helpers — allocate a NUL-terminated copy of `s` (heap)
+ * so a user foreign C symbol can consume it as `const char*`. The
+ * caller pairs every `_to_cstr` with a `_cstr_free` after the call. The
+ * Vader-side `vader_string_t` is NOT NUL-terminated by construction. */
+const char*    vader_string_to_cstr(vader_string_t s);
+void           vader_cstr_free(const char* p);
+
 /* ----------------------------------------------------------------- box */
 
 /* Tag values shared with `BcType` indices from the bytecode module. The C

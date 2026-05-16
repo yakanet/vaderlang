@@ -50,6 +50,7 @@ export function declareModule(
     binaryIsCheckTypes: new Map(),
     indexResolutions: new Map(),
     whileAsForIn: new Map(),
+    externSymbols: new Map(),
   };
   for (const decl of program.source.decls) {
     if (phase === "enums" && decl.kind !== "EnumDecl") continue;
@@ -89,6 +90,7 @@ export function checkProgram(
     binaryIsCheckTypes: new Map(),
     indexResolutions: new Map(),
     whileAsForIn: new Map(),
+    externSymbols: new Map(),
   };
 
   for (const decl of program.source.decls) {
@@ -243,6 +245,7 @@ export function inferExprBodiedReturns(
         binaryIsCheckTypes: new Map(),
         indexResolutions: new Map(),
         whileAsForIn: new Map(),
+    externSymbols: new Map(),
       };
       const inferred = checkBlock(item.decl.body!, null, t, impls, scratch,
         { returnType: TY.unresolved, selfType: null, loopDepth: 0 });

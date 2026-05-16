@@ -118,6 +118,10 @@ export interface MutableTyped {
    *  iterable. The synthesised symbol stands in for the discarded binding
    *  the lowerer would otherwise read from `resolved.forIns`. */
   readonly whileAsForIn: Map<A.ForStmt, Symbol>;
+  /** C symbol name → first `@extern` FnDecl that claimed it. Used to
+   *  reject two different externs colliding on the same linker symbol —
+   *  the second one would mismatch ABIs at the call site otherwise. */
+  readonly externSymbols: Map<string, A.FnDecl>;
 }
 
 /** Find the std/core module's exported symbol map. Used by the impl registry

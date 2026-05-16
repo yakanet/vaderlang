@@ -71,6 +71,11 @@ export interface BcImport {
   readonly externName: string;         // user-facing name in source
   readonly mangledName: string;
   readonly signature: BcSignature;
+  /** True when the source decl was `@extern` (user-supplied foreign
+   *  symbol resolved by the host linker). False for the stdlib
+   *  `@intrinsic` family that c-emit's shim switch routes to runtime
+   *  helpers. */
+  readonly isExtern: boolean;
 }
 
 export interface BcExport {

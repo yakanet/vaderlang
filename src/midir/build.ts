@@ -20,6 +20,7 @@ import type { Span } from "../diagnostics/diagnostic.ts";
 import type * as L from "../lower/lowered-ast.ts";
 import type { MonoEntry } from "../comptime/specialize.ts";
 import { DEC, hasDecorator } from "../parser/decorators.ts";
+import { externSymbolName } from "../typecheck/passes/decl.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { Type } from "../typecheck/types.ts";
 import { equalsType, isPrimitive } from "../typecheck/types.ts";
@@ -147,9 +148,13 @@ function fnMetadata(d: L.LoweredFnDecl): {
   isExtern: boolean;
   isExported: boolean;
 } {
-  const decoratorList = d.origin.decl.kind === "FnDecl" ? d.origin.decl.decorators : [];
+  const fnDecl = d.origin.decl.kind === "FnDecl" ? d.origin.decl : null;
+  const decoratorList = fnDecl?.decorators ?? [];
   return {
-    externName: d.origin.decl.kind === "FnDecl" ? d.origin.decl.name : d.mangled,
+    // `externSymbolName` reads the `@extern("c_name")` override when present,
+    // falls back to the source fn name otherwise. Non-FnDecl origins land on
+    // the mangled name (covers synthetic / impl-member shapes).
+    externName: fnDecl !== null ? externSymbolName(fnDecl) : d.mangled,
     isExtern: hasDecorator(decoratorList, DEC.extern),
     isExported: hasDecorator(decoratorList, DEC.export),
   };
@@ -175,6 +180,7 @@ function makeExternDecl(d: L.LoweredFnDecl): CFGExternDecl {
     origin: d.origin,
     externName: meta.externName,
     isExported: meta.isExported,
+    isExtern: meta.isExtern,
   };
 }
 

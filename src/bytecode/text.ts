@@ -101,7 +101,8 @@ function hexDigit(c: number): number {
 }
 
 function formatImport(i: BcImport): string {
-  return `${quoteIdent(i.externName)} ${quoteIdent(i.mangledName)} ${formatSignature(i.signature)}`;
+  const externMarker = i.isExtern ? "extern " : "";
+  return `${externMarker}${quoteIdent(i.externName)} ${quoteIdent(i.mangledName)} ${formatSignature(i.signature)}`;
 }
 
 function formatSignature(s: BcSignature): string {
@@ -384,13 +385,16 @@ function parseDataEntry(spec: string, ctx: ParseCtx): BcDataEntry {
 }
 
 function parseImport(spec: string, ctx: ParseCtx): BcImport {
-  // "<extern> <mangled> (T,T,...) -> R"
-  const m = /^(\S+)\s+(\S+)\s+\((.*?)\)\s*->\s*(\S+)$/.exec(spec);
+  // "[extern ]<extern> <mangled> (T,T,...) -> R" — the optional `extern`
+  // marker flags user-supplied foreign symbols (c-emit emits a real
+  // `extern …(…)` declaration) vs. stdlib `@intrinsic` host fns.
+  const m = /^(extern\s+)?(\S+)\s+(\S+)\s+\((.*?)\)\s*->\s*(\S+)$/.exec(spec);
   if (m === null) fail(ctx, `malformed import "${spec}"`);
   return {
-    externName: unquoteIdent(m[1]!),
-    mangledName: unquoteIdent(m[2]!),
-    signature: parseSignatureBody(m[3]!, m[4]!, ctx),
+    externName: unquoteIdent(m[2]!),
+    mangledName: unquoteIdent(m[3]!),
+    signature: parseSignatureBody(m[4]!, m[5]!, ctx),
+    isExtern: m[1] !== undefined,
   };
 }
 

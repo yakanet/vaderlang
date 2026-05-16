@@ -600,11 +600,26 @@ function emitImportShims(ctx: EmitCtx, out: string[]): void {
   // imports actually referenced by `call.import` ops. Every backend (VM,
   // C-emit, future WASM) and every serialiser (`.vir` text/binary) gets
   // the compact table for free.
+  const shims: string[] = [];
+  const externDecls: string[] = [];
+  const seenExtern = new Set<string>();
   for (let i = 0; i < ctx.module.imports.length; i++) {
     const imp = ctx.module.imports[i]!;
+    if (imp.isExtern && !seenExtern.has(imp.externName)) {
+      seenExtern.add(imp.externName);
+      const params = imp.signature.params.map(externCType).join(", ");
+      const ret = externCType(imp.signature.result);
+      externDecls.push(`extern ${ret} ${imp.externName}(${params || "void"});`);
+    }
     const shim = importShim(ctx, imp, i);
-    if (shim !== null) out.push(shim);
+    if (shim !== null) shims.push(shim);
   }
+  if (externDecls.length > 0) {
+    out.push(`// User @extern foreign symbols — resolved by the linker.`);
+    for (const d of externDecls) out.push(d);
+    out.push(``);
+  }
+  for (const s of shims) out.push(s);
   out.push(``);
 }
 
@@ -750,10 +765,76 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { return vader_spawn_last_stderr(); }`;
 
     default:
-      // Foreign imports — emit a stub that traps, the user supplies linkage
-      // via `cc <user>.o` post-MVP.
+      // User `@extern` — emit a forwarding shim that calls the real C
+      // symbol (caller links via `--ldflags`). The forward `extern` decl
+      // is emitted once per module by `userExternDeclarations()` above.
+      if (imp.isExtern) return userExternShim(ctx, imp, head, ret);
+      // Anything else hitting the default arm is a bytecode that requested
+      // a host-fn the c-emit doesn't recognise — likely a compiler-runtime
+      // version skew. Stay loud at runtime.
       return `${head} { vader_trap("unbound import: ${imp.mangledName}"); }`;
   }
+}
+
+/** Threshold below which a `string` extern arg is marshalled on the
+ *  caller frame's stack instead of going through `malloc` /
+ *  `vader_string_to_cstr`. 4 KiB stays well under any reasonable
+ *  `ulimit -s` and covers the overwhelmingly common case (paths,
+ *  identifiers, log lines). Larger strings fall back to the heap path. */
+const VADER_EXTERN_STACK_CSTR_THRESHOLD = 4096;
+
+function userExternShim(ctx: EmitCtx, imp: BcImport, head: string, ret: string): string {
+  const stringIndices: number[] = [];
+  const callArgs: string[] = [];
+  for (let j = 0; j < imp.signature.params.length; j++) {
+    if (imp.signature.params[j] === "string") {
+      stringIndices.push(j);
+      callArgs.push(`c${j}`);
+    } else {
+      callArgs.push(`a${j}`);
+    }
+  }
+  // Hybrid string marshalling — stack-allocated NUL copy via a VLA for
+  // small strings (no malloc/free in the steady state), heap fallback
+  // through the runtime helper for anything past the threshold. Without
+  // the stack path, a `c_strlen("hello")` paid malloc+free per call.
+  const T = VADER_EXTERN_STACK_CSTR_THRESHOLD;
+  const lines: string[] = [];
+  for (const j of stringIndices) {
+    lines.push(`char _b${j}[a${j}.len < ${T} ? a${j}.len + 1 : 1];`);
+    lines.push(`const char* c${j};`);
+    lines.push(`if (a${j}.len < ${T}) { if (a${j}.len > 0) memcpy(_b${j}, a${j}.ptr, a${j}.len); _b${j}[a${j}.len] = 0; c${j} = _b${j}; } else { c${j} = vader_string_to_cstr(a${j}); }`);
+  }
+  const isVoid = imp.signature.result === "void";
+  const callExpr = `${imp.externName}(${callArgs.join(", ")})`;
+  // Only heap-allocated copies need freeing — the VLA path lives on the
+  // shim's stack frame and is reclaimed on return.
+  const freeLines: string[] = [];
+  for (let i = stringIndices.length - 1; i >= 0; i--) {
+    const j = stringIndices[i]!;
+    freeLines.push(`if (a${j}.len >= ${T}) vader_cstr_free(c${j});`);
+  }
+  if (isVoid) {
+    lines.push(`${callExpr};`);
+    lines.push(...freeLines);
+    lines.push(`return;`);
+  } else if (stringIndices.length === 0) {
+    lines.push(`return ${callExpr};`);
+  } else {
+    lines.push(`${ret} r = ${callExpr};`);
+    lines.push(...freeLines);
+    lines.push(`return r;`);
+  }
+  return `${head} { ${lines.join(" ")} }`;
+}
+
+/** Map a `ValType` to its FOREIGN C-ABI type for `@extern` declarations
+ *  — differs from `cTypeForVal` only on `string`, which the foreign side
+ *  consumes as `const char*` (the shim marshals between `vader_string_t`
+ *  and that). */
+function externCType(v: ValType): string {
+  if (v === "string") return "const char*";
+  return cTypeForValBare(v);
 }
 
 function tagOrTrap(ctx: EmitCtx, kind: "string" | "error"): string {

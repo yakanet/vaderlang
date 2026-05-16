@@ -48,6 +48,11 @@ export interface Scenario {
   readonly dir: string;
   readonly mainPath: string;
   readonly source: string;
+  /** Adjacent `*.c` files (excluding the auto-generated `native.c`) that
+   *  the native runner pre-compiles to `.o` and passes through to the
+   *  cc invocation via `--ldflags`. Used by `@extern` end-to-end
+   *  snippets that wire a Vader signature to a foreign symbol. */
+  readonly helperCFiles: readonly string[];
 }
 
 const UPDATE = process.env["UPDATE_SNAPSHOTS"] === "1";
@@ -74,7 +79,13 @@ export function listSnippets(snippetsDir: string): Scenario[] {
     const mainPath = join(dir, MAIN_FILE);
     let source: string;
     try { source = readFileSync(mainPath, "utf8"); } catch { continue; }
-    out.push({ name, dir, mainPath, source });
+    // `native.c` is the c-emit output ; everything else `.c` in the
+    // snippet directory is a user helper that defines `@extern` symbols.
+    const helperCFiles = readdirSync(dir)
+      .filter((f) => f.endsWith(".c") && f !== "native.c")
+      .map((f) => join(dir, f))
+      .sort();
+    out.push({ name, dir, mainPath, source, helperCFiles });
   }
   out.sort((a, b) => (a.name < b.name ? -1 : 1));
   return out;

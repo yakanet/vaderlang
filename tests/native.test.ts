@@ -47,9 +47,26 @@ for (const s of scenarios) {
     const binFile = join(s.dir, `native${EXE_EXT}`);
     await Bun.write(cFile, emitC(r.bytecode));
 
+    // Pre-compile any adjacent helper.c files to `.o` so user `@extern`
+    // symbols resolve at link time. Pattern : `tests/snippets/<name>/
+    // helper.c` → `helper.o` next to it ; appended to the cc argv right
+    // before `-o`.
+    const helperObjs: string[] = [];
+    for (const cSource of s.helperCFiles) {
+      const oFile = cSource.replace(/\.c$/, ".o");
+      const cc = Bun.spawn([
+        "cc", "-std=c11", "-O0", "-c", "-I", RUNTIME_ROOT,
+        cSource, "-o", oFile,
+      ], { stderr: "pipe", stdout: "ignore" });
+      if ((await cc.exited) !== 0) return;
+      helperObjs.push(oFile);
+    }
+
     const buildProc = Bun.spawn([
       "cc", "-std=c11", "-O0", "-I", RUNTIME_ROOT,
-      cFile, join(RUNTIME_ROOT, "vader_runtime.c"), "-o", binFile, "-lm",
+      cFile, join(RUNTIME_ROOT, "vader_runtime.c"),
+      ...helperObjs,
+      "-o", binFile, "-lm",
     ], { stderr: "pipe", stdout: "pipe" });
     if ((await buildProc.exited) !== 0) return;
 

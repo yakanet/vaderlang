@@ -123,6 +123,8 @@ export const TYPECHECK = {
   T3040: "test can never match — operands have no overlapping values",
   T3041: "cannot reassign a constant binding",
   T3042: "cannot mutate an immutable array",
+  T3050: "invalid `@extern` declaration",
+  T3051: "`@extern` declaration must not have a body",
 } as const;
 
 export type TypecheckCode = keyof typeof TYPECHECK;

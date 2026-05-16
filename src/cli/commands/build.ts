@@ -34,6 +34,11 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
     flags.find((f) => f.startsWith("--cc="))?.slice("--cc=".length) ??
     process.env.CC ??
     "cc";
+  // `--ldflags="..."` — raw passthrough to the linker (the cc invocation
+  // appends every token before `-o`). Used for `@extern` user imports to
+  // pull in helper `.o` files or system libs (`-lcrypto`, `-L/path`, …).
+  const ldflagsFlag =
+    flags.find((f) => f.startsWith("--ldflags="))?.slice("--ldflags=".length) ?? "";
 
   if (!isTarget(targetRaw)) {
     console.error(`vader build: unknown target "${targetRaw}"`);
@@ -60,7 +65,7 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
       console.error("vader build --target=native: --manifest mode not yet implemented");
       return 2;
     }
-    return await buildNative(opts, file, outFlag, release, ccFlag);
+    return await buildNative(opts, file, outFlag, release, ccFlag, ldflagsFlag);
   }
 
   if (target === "c") {
@@ -77,6 +82,7 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
 
 async function buildNative(
   opts: GlobalOpts, file: string, outPath: string | undefined, release: boolean, cc: string,
+  ldflags: string,
 ): Promise<number> {
   const r = await pipelineBytecode(file, { allowEnv: opts.allowEnv, bytecodeOpt: opts.bytecodeOpt });
   if (!flushDiagnostics(r, opts, file)) return 1;
@@ -100,9 +106,16 @@ async function buildNative(
   // `-lm` is needed on Linux/glibc to satisfy the `floor` / `fmod` references
   // in the runtime's float-formatting helpers ; macOS clang and Windows
   // MinGW fold libm into libc so the flag is a no-op there.
+  // Whitespace-split user --ldflags into argv tokens. Keep it boring : no
+  // shell quoting / escaping — if a path contains spaces, the user files
+  // a bug. Tokens are appended before `-o` so they can refer to the .c
+  // unit (e.g. unresolved-symbol references back to `vader_…` helpers).
+  const userLdflags = ldflags.trim().length > 0 ? ldflags.trim().split(/\s+/) : [];
   const proc = Bun.spawn([
     cc, "-std=c11", ...optFlags, "-I", runtimeRoot,
-    cFile, join(runtimeRoot, "vader_runtime.c"), "-o", out, "-lm",
+    cFile, join(runtimeRoot, "vader_runtime.c"),
+    ...userLdflags,
+    "-o", out, "-lm",
   ], { stderr: "pipe", stdout: "ignore" });
   const code = await proc.exited;
   if (code !== 0) {

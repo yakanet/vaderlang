@@ -82,6 +82,11 @@ export interface CFGExternDecl {
   readonly origin: MonoEntry;
   readonly externName: string;
   readonly isExported: boolean;
+  /** True when the originating decl carried `@extern` (user-supplied
+   *  foreign symbol — c-emit emits a real `extern …(…)` declaration that
+   *  the linker resolves). False for `@intrinsic`-style bodyless fns
+   *  (stdlib host bindings handled by the c-emit shim switch). */
+  readonly isExtern: boolean;
 }
 
 /** A struct declaration carrying only what the bytecode emitter needs to

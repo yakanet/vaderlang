@@ -25,6 +25,8 @@ COMMANDS:
                                      --release          Optimise ; default builds carry debug info
                                      --manifest         Read vader.json instead of a single file
                                      --out=<path>       Override the default output path
+                                     --ldflags="..."    Native only: raw linker flags appended to the cc invocation
+                                                        (e.g. helper.o, -lcrypto, -L/usr/local/lib). Resolves user @extern symbols.
   fmt [path] [options]             Format Vader sources (single file or recursive directory walk)
                                      --check          Read-only ; exit 1 if any file would change
                                      --stdout         Write formatted output to stdout (single file)

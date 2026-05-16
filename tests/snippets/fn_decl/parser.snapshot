@@ -108,58 +108,32 @@
     },
     {
       "kind": "FnDecl",
-      "name": "map",
+      "name": "host_log",
       "visibility": "public",
-      "typeParams": [
-        {
-          "name": "T",
-          "bound": null,
-          "isComptimeValue": false
-        },
-        {
-          "name": "U",
-          "bound": null,
-          "isComptimeValue": false
-        }
-      ],
+      "typeParams": [],
       "params": [
         {
-          "name": "items",
+          "name": "level",
           "type": {
-            "kind": "ArrayTypeExpr",
-            "element": {
-              "kind": "IdentExpr",
-              "name": "T"
-            }
+            "kind": "IdentExpr",
+            "name": "i32"
           },
           "defaultValue": null,
           "variadic": false
         },
         {
-          "name": "f",
+          "name": "msg",
           "type": {
-            "kind": "FnTypeExpr",
-            "params": [
-              {
-                "kind": "IdentExpr",
-                "name": "T"
-              }
-            ],
-            "returnType": {
-              "kind": "IdentExpr",
-              "name": "U"
-            }
+            "kind": "IdentExpr",
+            "name": "string"
           },
           "defaultValue": null,
           "variadic": false
         }
       ],
       "returnType": {
-        "kind": "ArrayTypeExpr",
-        "element": {
-          "kind": "IdentExpr",
-          "name": "U"
-        }
+        "kind": "IdentExpr",
+        "name": "void"
       },
       "body": null,
       "decorators": [

@@ -70,7 +70,13 @@ async function dumpVm(mainPath: string): Promise<string> {
 const scenarios = listSnippets("tests/snippets");
 
 for (const s of scenarios) {
-  test(`vm: ${s.name}`, async () => {
+  // Snippets with adjacent helper.c files are native-only — the VM has
+  // no host-fn registry for user `@extern` symbols, so call.import
+  // traps. The native runner is the source of truth ; skip VM here
+  // rather than encoding a "VM-traps, native-works" divergence into
+  // vm.snapshot.
+  const fn = s.helperCFiles.length > 0 ? test.skip : test;
+  fn(`vm: ${s.name}`, async () => {
     const actual = await dumpVm(s.mainPath);
     const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
     if (!cmp.ok) {

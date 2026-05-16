@@ -37,6 +37,12 @@ for (const s of scenarios) {
     test.skip(`vader-vm: ${s.name}`, () => {});
     continue;
   }
+  // Native-only snippets — `@extern` user imports trap in the Vader VM
+  // for the same reason they trap in the TS VM (no host-fn registry).
+  if (s.helperCFiles.length > 0) {
+    test.skip(`vader-vm: ${s.name}`, () => {});
+    continue;
+  }
   const virtPath = `${s.dir}/bytecode.snapshot.virt`;
   if (!existsSync(virtPath)) {
     // No bytecode emitted — typically compile-error tests. Skip.

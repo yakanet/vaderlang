@@ -176,7 +176,7 @@ export function reserveCFGFunction(fn: CFGFunction, ctx: EmitterCtx): void {
 
   if (fn.isExtern) {
     if (fn.origin.symbol !== null) ctx.importIndexBySymId.set(fn.origin.symbol.id, ctx.imports.length);
-    ctx.imports.push({ externName: fn.externName, mangledName: fn.mangled, signature: sig });
+    ctx.imports.push({ externName: fn.externName, mangledName: fn.mangled, signature: sig, isExtern: true });
     return;
   }
 
@@ -194,7 +194,7 @@ export function reserveCFGFunction(fn: CFGFunction, ctx: EmitterCtx): void {
 export function reserveCFGExtern(ext: CFGExternDecl, ctx: EmitterCtx): void {
   const sig = paramsToSignature(ext.params, ext.returnType, ctx);
   if (ext.origin.symbol !== null) ctx.importIndexBySymId.set(ext.origin.symbol.id, ctx.imports.length);
-  ctx.imports.push({ externName: ext.externName, mangledName: ext.mangled, signature: sig });
+  ctx.imports.push({ externName: ext.externName, mangledName: ext.mangled, signature: sig, isExtern: ext.isExtern });
   // Extern decls may still be `@export`-decorated (re-exporting an import is
   // unusual but legal); but since we never have a fn-table slot for them,
   // there's no export entry to add.

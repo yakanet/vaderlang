@@ -1,0 +1,17 @@
+/// `@extern` ABI smoke test — wires Vader signatures to real C symbols.
+/// Two foreign symbols : `add_i32` from the adjacent `helper.c` and
+/// `strlen` from libc (overridden via the decorator string arg). The
+/// native test runner pre-compiles `helper.c` → `helper.o` and links
+/// it into the binary ; the VM target is skipped (user externs have
+/// no VM host-fn registry).
+import "std/io" { println }
+
+@extern add_i32 :: fn(a: i32, b: i32) -> i32
+@extern("strlen") c_strlen :: fn(s: string) -> usize
+
+main :: fn() -> i32 {
+    sum :: add_i32(40, 2)
+    n :: c_strlen("hello, world")
+    println("add=${sum} strlen=${n}")
+    return 0
+}

@@ -892,6 +892,25 @@ bool vader_string_eq(vader_string_t a, vader_string_t b) {
     return a.len == b.len && memcmp(a.ptr, b.ptr, a.len) == 0;
 }
 
+/* `@extern` ABI bridge : the Vader-side `vader_string_t` is a raw
+ * pointer + length, NOT NUL-terminated. User foreign symbols expecting
+ * `const char*` need a NUL-terminated copy ; the shim that c-emit
+ * generates pairs every call with a matching `vader_cstr_free` so the
+ * lifetime is exactly one extern call. malloc/free is fine here — the
+ * extern path is not the hot path, and the per-call overhead is the
+ * cost of the foreign boundary. */
+const char* vader_string_to_cstr(vader_string_t s) {
+    char* buf = (char*) malloc(s.len + 1);
+    if (buf == NULL) vader_trap("vader_string_to_cstr: malloc failed");
+    if (s.len > 0) memcpy(buf, s.ptr, s.len);
+    buf[s.len] = '\0';
+    return buf;
+}
+
+void vader_cstr_free(const char* p) {
+    free((void*) p);
+}
+
 /* FNV-1a 64-bit hash over the raw UTF-8 bytes of the string. */
 vader_u64_t vader_string_hash(vader_string_t s) {
     uint64_t h = UINT64_C(14695981039346656037);

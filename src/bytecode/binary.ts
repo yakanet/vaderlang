@@ -305,6 +305,7 @@ function writeImports(w: Writer, imports: readonly BcImport[]): void {
   for (const i of imports) {
     w.string(i.externName);
     w.string(i.mangledName);
+    w.u8(i.isExtern ? 1 : 0);
     writeSignature(w, i.signature);
   }
 }
@@ -614,8 +615,9 @@ function readImports(r: Reader): BcImport[] {
   for (let i = 0; i < n; i++) {
     const externName = r.string();
     const mangledName = r.string();
+    const isExtern = r.u8() !== 0;
     const signature = readSignature(r);
-    out.push({ externName, mangledName, signature });
+    out.push({ externName, mangledName, signature, isExtern });
   }
   return out;
 }

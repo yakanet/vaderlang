@@ -5,6 +5,8 @@
 
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
+import { staticStringValue } from "../../parser/ast.ts";
+import { DEC, findDecoratorArgs, hasDecorator } from "../../parser/decorators.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { isTypeReferenceSymbol } from "../../resolver/symbol.ts";
 
@@ -117,6 +119,87 @@ function declareFn(decl: A.FnDecl, t: MutableTyped, diags: DiagnosticCollector):
       ? TY.unresolved
       : TY.void;
   t.globals.declTypes.set(decl, mkFn(params, returnType));
+  if (hasDecorator(decl.decorators, DEC.extern)) {
+    validateExtern(decl, params, returnType, t, diags);
+  }
+}
+
+/** Type-position whitelist for `@extern` signatures — the C ABI only
+ *  marshals primitives + `string` cleanly. Anything else (struct, array,
+ *  union, fn-typed param, …) requires more elaborate marshalling than
+ *  the MVP shim supports. */
+function isExternAbiType(t: Type, allowVoid: boolean): boolean {
+  if (t.kind === "Unresolved") return true;            // upstream error, don't pile on
+  if (t.kind === "Primitive") {
+    if (t.name === "void") return allowVoid;
+    if (t.name === "null") return false;
+    return true;
+  }
+  return false;
+}
+
+function validateExtern(
+  decl: A.FnDecl, params: readonly Type[], returnType: Type,
+  t: MutableTyped, diags: DiagnosticCollector,
+): void {
+  if (decl.body !== null) {
+    err(diags, "T3051", decl.body.span,
+      `\`@extern\` fn \`${decl.name}\` cannot have a body — drop the \`= ...\` / \`{ ... }\``);
+  }
+  const args = findDecoratorArgs(decl.decorators, DEC.extern) ?? [];
+  if (args.length > 2) {
+    err(diags, "T3050", decl.span,
+      `\`@extern\` accepts 0, 1, or 2 string arguments — got ${args.length}`);
+    return;       // arg-shape errors gate further per-arg checks
+  }
+  for (const a of args) {
+    if (a.kind !== "StringLitExpr" || staticStringValue(a) === null) {
+      err(diags, "T3050", a.span,
+        `\`@extern\` arguments must be plain string literals (no interpolation)`);
+    }
+  }
+  for (let i = 0; i < decl.params.length; i++) {
+    const pt = params[i]!;
+    if (!isExternAbiType(pt, /*allowVoid*/ false)) {
+      err(diags, "T3050", decl.params[i]!.span,
+        `\`@extern\` parameter type must be a primitive or \`string\`, got \`${displayType(pt)}\``);
+    }
+  }
+  if (!isExternAbiType(returnType, /*allowVoid*/ true)) {
+    err(diags, "T3050", decl.returnType?.span ?? decl.span,
+      `\`@extern\` return type must be a primitive, \`string\`, or \`void\`, got \`${displayType(returnType)}\``);
+  }
+  // Same C symbol name produced by two distinct `@extern` decls — the
+  // linker would resolve both call sites to the same prototype, which
+  // either silently works (matching signatures, intent unclear) or links
+  // mismatched ABIs and produces UB at the call site. Stay loud here.
+  const symName = externSymbolName(decl);
+  const prior = t.externSymbols.get(symName);
+  if (prior !== undefined && prior !== decl) {
+    err(diags, "T3050", decl.span,
+      `duplicate \`@extern\` C symbol \`${symName}\` — already declared on \`${prior.name}\``);
+  } else {
+    t.externSymbols.set(symName, decl);
+  }
+}
+
+/** Resolve the C-side symbol name for an `@extern` fn. The decorator
+ *  accepts 0, 1, or 2 string arguments ; the **last** string is the
+ *  symbol name. With 2 args the 1st is a WASM-module hint (`@extern
+ *  ("env", "console_log")` — C-emit ignores the module, WASM-emit will
+ *  later consume it). Missing decorator or empty args fall back to the
+ *  source fn name — keeps zero-friction the common case where the
+ *  Vader-side name already matches the C symbol. */
+export function externSymbolName(decl: A.FnDecl): string {
+  const args = findDecoratorArgs(decl.decorators, DEC.extern);
+  if (args !== null && args.length > 0) {
+    const last = args[args.length - 1]!;
+    if (last.kind === "StringLitExpr") {
+      const s = staticStringValue(last);
+      if (s !== null) return s;
+    }
+  }
+  return decl.name;
 }
 
 function declareEnum(decl: A.EnumDecl, t: MutableTyped, diags: DiagnosticCollector): void {

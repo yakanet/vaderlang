@@ -7,6 +7,7 @@
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
 import { isIfIsBinding, staticStringValue, unreachableTypeExprInValuePosition } from "../../parser/ast.ts";
+import { findDecoratorArgs } from "../../parser/decorators.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf } from "../../resolver/symbol.ts";
 
@@ -245,10 +246,10 @@ function validateFieldIndex(
 function checkDeprecated(expr: A.IdentExpr, sym: Symbol, diags: DiagnosticCollector): void {
   const decl = declOf(sym);
   if (decl === null) return;
-  const dec = decl.decorators.find((d) => d.name === "deprecated");
-  if (dec === undefined) return;
+  const args = findDecoratorArgs(decl.decorators, "deprecated");
+  if (args === null) return;
   let reason = "";
-  const first = dec.args[0];
+  const first = args[0];
   if (first !== undefined && first.kind === "StringLitExpr") {
     reason = staticStringValue(first) ?? "";
   }
