@@ -20,6 +20,7 @@
 //     `wire.vader` ; the others land with their producing pass.
 
 import "vader/resolver/scope" { span_key }
+import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 AST :: import "vader/parser/ast"
 import "vader/typecheck/types" {
@@ -41,42 +42,30 @@ export infer_ident :: fn(e: AST.IdentExpr, typed: TypedProgram) -> Type {
 /// side-tables. Public so other passes (call, field, …) can reach
 /// it without re-routing through `infer_ident`.
 export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sym.kind {
-    .Fn        -> lookup_decl_type(sym, typed)
-    .Struct    -> lookup_decl_type(sym, typed)
-    .Enum      -> lookup_decl_type(sym, typed)
-    .Trait     -> lookup_decl_type(sym, typed)
-    .TypeAlias -> lookup_decl_type(sym, typed)
-    .Const     -> lookup_decl_type(sym, typed)
-    .Param     -> lookup_param_type(sym, typed)
-    .Local     -> lookup_local_type(sym, typed)
+    .Fn        -> lookup_in(sym, typed.decl_types)
+    .Struct    -> lookup_in(sym, typed.decl_types)
+    .Enum      -> lookup_in(sym, typed.decl_types)
+    .Trait     -> lookup_in(sym, typed.decl_types)
+    .TypeAlias -> lookup_in(sym, typed.decl_types)
+    .Const     -> lookup_in(sym, typed.decl_types)
+    .Param     -> lookup_in(sym, typed.param_types)
+    .Local     -> lookup_in(sym, typed.local_types)
     .TypeParam -> mk_type_param(sym)
     // Bare type-name in value position is the metatype — the actual
     // primitive shape comes back via `type_from_expr` in type-demanding
     // slots. Lets `Foo :: i32 | u32` parse cleanly.
     .BuiltinType -> TY_TYPE
+    // ImportBinding / BuiltinFn / Binding / Synthetic — see header.
     _          -> TY_UNRESOLVED
 }
 
-lookup_decl_type :: fn(sym: Symbol, typed: TypedProgram) -> Type {
+/// Look `sym`'s span up in `table`. Returns `TY_UNRESOLVED` for builtin
+/// symbols (no source span) and for misses — both already errored
+/// upstream or sit in another side-table.
+lookup_in :: fn(sym: Symbol, table: MutableMap(string, Type)) -> Type {
     sp :: sym.defined_at
     if sp is null { return TY_UNRESOLVED }
-    ty :: typed.decl_types[span_key(sp)]
-    if ty is null { return TY_UNRESOLVED }
-    return ty
-}
-
-lookup_param_type :: fn(sym: Symbol, typed: TypedProgram) -> Type {
-    sp :: sym.defined_at
-    if sp is null { return TY_UNRESOLVED }
-    ty :: typed.param_types[span_key(sp)]
-    if ty is null { return TY_UNRESOLVED }
-    return ty
-}
-
-lookup_local_type :: fn(sym: Symbol, typed: TypedProgram) -> Type {
-    sp :: sym.defined_at
-    if sp is null { return TY_UNRESOLVED }
-    ty :: typed.local_types[span_key(sp)]
+    ty :: table[span_key(sp)]
     if ty is null { return TY_UNRESOLVED }
     return ty
 }
@@ -91,24 +80,35 @@ import "vader/resolver/symbol" { new_factory }
 import "vader/typecheck/check" { check_module }
 import "vader/typecheck/types" { display_type }
 
-// Resolve, check, then look up the type of the first IdentExpr whose
-// name matches `target`. Walks the AST one decl level deep — enough
-// for the test fixtures here.
-infer_ident_in_first_fn :: fn(src: string, target: string) -> string {
+// Test harness — bundles parse + resolve + check. Returns the parsed
+// program and the populated typed program ; tests reach into both.
+CheckedSrc :: struct {
+    program: AST.Program
+    typed:   TypedProgram
+}
+
+check_test_module :: fn(src: string) -> CheckedSrc {
     parsed :: parse_source(src, "t.vader")
     factory :: new_factory()
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[] = []
     result :: check_module(parsed.program, rm, factory, diags)
-    fn_decl :: parsed.program.decls[0]
-    match fn_decl {
+    return CheckedSrc { .program = parsed.program, .typed = result.typed }
+}
+
+// Look up the type of the first IdentExpr whose name matches `target`
+// inside the first decl's body. Walks one decl level deep — enough
+// for the test fixtures here.
+infer_ident_in_first_fn :: fn(src: string, target: string) -> string {
+    checked :: check_test_module(src)
+    match checked.program.decls[0] {
         is AST.FnDecl as f -> {
             match f.body {
                 is null -> { return "<no body>" }
                 is AST.BlockExpr as b -> {
                     found :: scan_block_for_ident(b, target)
                     if found is null { return "<not found>" }
-                    return display_type(infer_ident(found, result.typed))
+                    return display_type(infer_ident(found, checked.typed))
                 }
             }
         }
@@ -176,14 +176,9 @@ test_ident_resolves_to_fn_type :: fn() -> void {
 add :: fn(a: i32, b: i32) -> i32 { return a + b }
 main :: fn() -> i32 { return add(1, 2) }
 """
-    parsed :: parse_source(src, "t.vader")
-    factory :: new_factory()
-    rm :: resolve_module(parsed.program, "t", factory)
-    diags: Diagnostic[] = []
-    result :: check_module(parsed.program, rm, factory, diags)
+    checked :: check_test_module(src)
     // Pick the `add` ident inside `main`'s call expression.
-    main_decl :: parsed.program.decls[1]
-    match main_decl {
+    match checked.program.decls[1] {
         is AST.FnDecl as f -> {
             match f.body {
                 is null -> { assert(false, "main has no body") }
@@ -191,7 +186,7 @@ main :: fn() -> i32 { return add(1, 2) }
                     match scan_block_for_ident(b, "add") {
                         is null -> { assert(false, "add ident not found") }
                         is AST.IdentExpr as found -> {
-                            assert_eq(display_type(infer_ident(found, result.typed)), "fn(i32, i32) -> i32")
+                            assert_eq(display_type(infer_ident(found, checked.typed)), "fn(i32, i32) -> i32")
                         }
                     }
                 }
