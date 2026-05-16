@@ -7,6 +7,6 @@
   count_matching(string)
   Yield(i32)
   Yield(string)
-  ArrayIterator($T)
+  ArrayIterator(T)
   ArrayIterator(i32)
   ArrayIterator(string)

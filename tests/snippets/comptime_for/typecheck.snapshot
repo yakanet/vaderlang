@@ -2,7 +2,7 @@
 
 ## tests/snippets/comptime_for/_main.vader
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Pair                 :: Pair($K, $V)
+  StructDecl     Pair                 :: Pair(K, V)
   expr 14:24    IntrinsicCallExpr :: type[]
   expr 15:17    StringLitExpr  :: string
   expr 15:34    IntrinsicCallExpr :: usize

@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/trait_composition/_main.vader
-  TraitDecl      Aliased              :: Aliased($T)
-  TraitDecl      Hashable             :: Hashable($T)
+  TraitDecl      Aliased              :: Aliased(T)
+  TraitDecl      Hashable             :: Hashable(T)
   FnDecl         main                 :: fn() -> i32
-  TraitDecl      Numeric              :: Numeric($T)
+  TraitDecl      Numeric              :: Numeric(T)

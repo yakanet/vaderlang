@@ -2,8 +2,8 @@
 
 ## tests/snippets/generic_type_alias/_main.vader
   FnDecl         main                 :: fn() -> i32
-  TypeAliasDecl  Maybe                :: $T | null
-  TypeAliasDecl  Pair                 :: $A | $B
+  TypeAliasDecl  Maybe                :: null | T
+  TypeAliasDecl  Pair                 :: A | B
   expr 17:11    IdentExpr      :: i32 | null
   expr 17:5     MatchExpr      :: void
   expr 18:20    CallExpr       :: void

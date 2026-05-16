@@ -1,28 +1,28 @@
 # Typecheck
 
 ## tests/snippets/numeric_add_trait/_main.vader
-  FnDecl         double               :: fn($T) -> $T
+  FnDecl         double               :: fn(T) -> T
   FnDecl         main                 :: fn() -> i32
-  FnDecl         triple               :: fn($T) -> $T
-  expr 10:35    CallExpr       :: $T
-  expr 10:35    CallExpr       :: $T
-  expr 10:35    FieldExpr      :: fn($T) -> $T
-  expr 10:35    FieldExpr      :: fn($T) -> $T
-  expr 10:35    IdentExpr      :: $T
-  expr 10:41    IdentExpr      :: $T
-  expr 10:48    IdentExpr      :: $T
+  FnDecl         triple               :: fn(T) -> T
+  expr 10:35    CallExpr       :: T
+  expr 10:35    CallExpr       :: T
+  expr 10:35    FieldExpr      :: fn(T) -> T
+  expr 10:35    FieldExpr      :: fn(T) -> T
+  expr 10:35    IdentExpr      :: T
+  expr 10:41    IdentExpr      :: T
+  expr 10:48    IdentExpr      :: T
   expr 13:10    CallExpr       :: i32
-  expr 13:10    IdentExpr      :: fn($T) -> $T
+  expr 13:10    IdentExpr      :: fn(T) -> T
   expr 14:10    CallExpr       :: i32
-  expr 14:10    IdentExpr      :: fn($T) -> $T
+  expr 14:10    IdentExpr      :: fn(T) -> T
   expr 15:10    CallExpr       :: i32
-  expr 15:10    IdentExpr      :: fn($T) -> $T
+  expr 15:10    IdentExpr      :: fn(T) -> T
   expr 16:12    BinaryExpr     :: i32
   expr 16:12    BinaryExpr     :: i32
   expr 16:12    IdentExpr      :: i32
   expr 16:16    IdentExpr      :: i32
   expr 16:20    IdentExpr      :: i32
-  expr 8:35     CallExpr       :: $T
-  expr 8:35     FieldExpr      :: fn($T) -> $T
-  expr 8:35     IdentExpr      :: $T
-  expr 8:41     IdentExpr      :: $T
+  expr 8:35     CallExpr       :: T
+  expr 8:35     FieldExpr      :: fn(T) -> T
+  expr 8:35     IdentExpr      :: T
+  expr 8:41     IdentExpr      :: T

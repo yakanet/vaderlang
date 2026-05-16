@@ -7,7 +7,7 @@
   StructDecl     Dog                  :: Dog
   FnDecl         main                 :: fn() -> i32
   TraitDecl      Printable            :: Printable
-  StructDecl     Wrapper              :: Wrapper($T)
+  StructDecl     Wrapper              :: Wrapper(T)
   expr 19:42    FieldExpr      :: string
   expr 19:42    IdentExpr      :: Dog
   expr 28:42    StringLitExpr  :: string

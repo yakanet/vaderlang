@@ -2,7 +2,7 @@
 
 ## tests/snippets/array_of_union/_main.vader
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Node                 :: Node($T)
+  StructDecl     Node                 :: Node(T)
   expr 10:5     CallExpr       :: void
   expr 10:5     FieldExpr      :: fn(Node(i32) | null) -> void
   expr 10:5     IdentExpr      :: Node(i32) | null[]

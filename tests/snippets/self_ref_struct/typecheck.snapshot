@@ -2,7 +2,7 @@
 
 ## tests/snippets/self_ref_struct/_main.vader
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Node                 :: Node($T)
+  StructDecl     Node                 :: Node(T)
   expr 10:13    StructLitExpr  :: Node(i32)
   expr 10:46    IdentExpr      :: Node(i32)
   expr 11:13    StructLitExpr  :: Node(i32)

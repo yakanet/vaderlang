@@ -47,10 +47,10 @@
   expr 29:37    StructLitExpr  :: MutableMap(i32, bool)
   expr 29:72    SeqLitExpr     :: Entry(i32, bool) | null[]
   expr 30:5     CallExpr       :: bool
-  expr 30:5     FieldExpr      :: fn($T) -> bool
+  expr 30:5     FieldExpr      :: fn(T) -> bool
   expr 30:5     IdentExpr      :: MutableSet(i32)
   expr 31:5     CallExpr       :: bool
-  expr 31:5     FieldExpr      :: fn($T) -> bool
+  expr 31:5     FieldExpr      :: fn(T) -> bool
   expr 31:5     IdentExpr      :: MutableSet(i32)
   expr 32:13    IdentExpr      :: MutableSet(i32)
   expr 32:18    CallExpr       :: void

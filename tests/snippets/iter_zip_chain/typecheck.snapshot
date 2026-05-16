@@ -9,7 +9,7 @@
   expr 12:29    StringLitExpr  :: string
   expr 13:13    SeqLitExpr     :: i32[]
   expr 14:14    CallExpr       :: [string, i32][]
-  expr 14:14    IdentExpr      :: fn($T[], $U[]) -> [$T, $U][]
+  expr 14:14    IdentExpr      :: fn(T[], U[]) -> [T, U][]
   expr 14:18    IdentExpr      :: string[]
   expr 14:24    IdentExpr      :: i32[]
   expr 15:19    IdentExpr      :: [string, i32][]
@@ -22,7 +22,7 @@
   expr 20:13    SeqLitExpr     :: i32[]
   expr 21:13    SeqLitExpr     :: i32[]
   expr 22:15    CallExpr       :: i32[]
-  expr 22:15    IdentExpr      :: fn($T[], $T[]) -> $T[]
+  expr 22:15    IdentExpr      :: fn(T[], T[]) -> T[]
   expr 22:21    IdentExpr      :: i32[]
   expr 22:27    IdentExpr      :: i32[]
   expr 23:14    IdentExpr      :: i32[]
@@ -35,7 +35,7 @@
   expr 28:25    StringLitExpr  :: string
   expr 28:35    StringLitExpr  :: string
   expr 29:19    CallExpr       :: [usize, string][]
-  expr 29:19    FieldExpr      :: fn() -> [usize, $T][]
+  expr 29:19    FieldExpr      :: fn() -> [usize, T][]
   expr 29:19    IdentExpr      :: string[]
   expr 29:9     IdentExpr      :: [usize, string]
   expr 30:17    StringLitExpr  :: string
@@ -44,7 +44,7 @@
   expr 30:9     CallExpr       :: void
   expr 30:9     IdentExpr      :: fn(string) -> void
   expr 34:15    CallExpr       :: i32[]
-  expr 34:15    IdentExpr      :: fn($T[], fn($T) -> $U[]) -> $U[]
+  expr 34:15    IdentExpr      :: fn(T[], fn(T) -> U[]) -> U[]
   expr 34:24    SeqLitExpr     :: i32[]
   expr 34:35    LambdaExpr     :: fn(i32) -> i32[]
   expr 34:47    SeqLitExpr     :: i32[]
@@ -59,12 +59,12 @@
   expr 6:13     SeqLitExpr     :: i32[]
   expr 7:13     StringLitExpr  :: string
   expr 7:22     CallExpr       :: usize
-  expr 7:22     IdentExpr      :: fn($T[]) -> usize
+  expr 7:22     IdentExpr      :: fn(T[]) -> usize
   expr 7:28     IdentExpr      :: i32[]
   expr 7:5      CallExpr       :: void
   expr 7:5      IdentExpr      :: fn(string) -> void
   expr 8:15     CallExpr       :: i32[]
-  expr 8:15     IdentExpr      :: fn($T[]) -> $T[]
+  expr 8:15     IdentExpr      :: fn(T[]) -> T[]
   expr 8:23     IdentExpr      :: i32[]
   expr 9:13     StringLitExpr  :: string
   expr 9:25     IdentExpr      :: i32[]

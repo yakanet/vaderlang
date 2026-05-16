@@ -1,17 +1,17 @@
 # Typecheck
 
 ## tests/snippets/trait_box_range_iter/_main.vader
-  FnDecl         count                :: fn(Iterator($T)) -> i32
-  TraitDecl      Doubler              :: Doubler($T)
-  TraitDecl      Greeter              :: Greeter($T)
+  FnDecl         count                :: fn(Iterator(T)) -> i32
+  TraitDecl      Doubler              :: Doubler(T)
+  TraitDecl      Greeter              :: Greeter(T)
   StructDecl     Hello                :: Hello
-  FnDecl         invoke               :: fn(Greeter($T)) -> $T
+  FnDecl         invoke               :: fn(Greeter(T)) -> T
   FnDecl         main                 :: fn() -> i32
-  FnDecl         twice                :: fn(Doubler($T)) -> $T
+  FnDecl         twice                :: fn(Doubler(T)) -> T
   expr 14:9     IdentExpr      :: bool
-  expr 15:15    CallExpr       :: null | Yield($T)
-  expr 15:15    FieldExpr      :: fn() -> null | Yield($T)
-  expr 15:15    IdentExpr      :: Iterator($T)
+  expr 15:15    CallExpr       :: null | Yield(T)
+  expr 15:15    FieldExpr      :: fn() -> null | Yield(T)
+  expr 15:15    IdentExpr      :: Iterator(T)
   expr 15:9     MatchExpr      :: void
   expr 16:26    IdentExpr      :: bool
   expr 17:30    IdentExpr      :: i32
@@ -21,23 +21,23 @@
   expr 35:41    BinaryExpr     :: i32
   expr 35:41    IdentExpr      :: i32
   expr 35:48    IdentExpr      :: i32
-  expr 39:12    CallExpr       :: $T
-  expr 39:12    FieldExpr      :: fn() -> $T
-  expr 39:12    IdentExpr      :: Greeter($T)
-  expr 43:12    CallExpr       :: $T
-  expr 43:12    FieldExpr      :: fn() -> $T
-  expr 43:12    IdentExpr      :: Doubler($T)
+  expr 39:12    CallExpr       :: T
+  expr 39:12    FieldExpr      :: fn() -> T
+  expr 39:12    IdentExpr      :: Greeter(T)
+  expr 43:12    CallExpr       :: T
+  expr 43:12    FieldExpr      :: fn() -> T
+  expr 43:12    IdentExpr      :: Doubler(T)
   expr 47:10    CallExpr       :: i32
-  expr 47:10    IdentExpr      :: fn(Iterator($T)) -> i32
+  expr 47:10    IdentExpr      :: fn(Iterator(T)) -> i32
   expr 47:16    RangeExpr      :: Range(i32)
   expr 48:10    CallExpr       :: i32
-  expr 48:10    IdentExpr      :: fn(Iterator($T)) -> i32
+  expr 48:10    IdentExpr      :: fn(Iterator(T)) -> i32
   expr 48:16    SeqLitExpr     :: i32[]
   expr 49:10    CallExpr       :: i32
-  expr 49:10    IdentExpr      :: fn(Greeter($T)) -> $T
+  expr 49:10    IdentExpr      :: fn(Greeter(T)) -> T
   expr 49:17    StructLitExpr  :: Hello
   expr 50:10    CallExpr       :: i32
-  expr 50:10    IdentExpr      :: fn(Doubler($T)) -> $T
+  expr 50:10    IdentExpr      :: fn(Doubler(T)) -> T
   expr 51:12    BinaryExpr     :: i32
   expr 51:12    BinaryExpr     :: i32
   expr 51:12    BinaryExpr     :: i32

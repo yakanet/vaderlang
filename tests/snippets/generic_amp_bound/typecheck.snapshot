@@ -1,14 +1,14 @@
 # Typecheck
 
 ## tests/snippets/generic_amp_bound/_main.vader
-  FnDecl         bar                  :: fn($K, $V) -> $V
+  FnDecl         bar                  :: fn(K, V) -> V
   FnDecl         main                 :: fn() -> i32
-  FnDecl         needs_add            :: fn($T) -> $T
-  expr 13:38    IdentExpr      :: $T
-  expr 15:57    IdentExpr      :: $V
+  FnDecl         needs_add            :: fn(T) -> T
+  expr 13:38    IdentExpr      :: T
+  expr 15:57    IdentExpr      :: V
   expr 18:10    CallExpr       :: string
-  expr 18:10    IdentExpr      :: fn($T) -> $T
+  expr 18:10    IdentExpr      :: fn(T) -> T
   expr 18:20    StringLitExpr  :: string
   expr 19:10    CallExpr       :: i32
-  expr 19:10    IdentExpr      :: fn($K, $V) -> $V
+  expr 19:10    IdentExpr      :: fn(K, V) -> V
   expr 20:12    IdentExpr      :: i32

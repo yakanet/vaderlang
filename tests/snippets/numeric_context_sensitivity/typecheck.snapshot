@@ -66,7 +66,7 @@
   expr 59:16    FieldExpr      :: fn() -> usize
   expr 59:16    IdentExpr      :: i32[]
   expr 60:12    CallExpr       :: i32[]
-  expr 60:12    FieldExpr      :: fn(usize, usize) -> $T[]
+  expr 60:12    FieldExpr      :: fn(usize, usize) -> T[]
   expr 60:12    IdentExpr      :: i32[]
   expr 60:31    BinaryExpr     :: usize
   expr 60:31    IdentExpr      :: usize

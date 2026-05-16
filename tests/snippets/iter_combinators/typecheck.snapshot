@@ -3,7 +3,7 @@
 ## tests/snippets/iter_combinators/_main.vader
   FnDecl         main                 :: fn() -> i32
   expr 12:14    CallExpr       :: i32[]
-  expr 12:14    IdentExpr      :: fn($T[], fn($T) -> bool) -> $T[]
+  expr 12:14    IdentExpr      :: fn(T[], fn(T) -> bool) -> T[]
   expr 12:21    IdentExpr      :: i32[]
   expr 12:27    LambdaExpr     :: fn(i32) -> bool
   expr 12:39    BinaryExpr     :: bool
@@ -13,20 +13,20 @@
   expr 13:11    IdentExpr      :: fn(i32[]) -> i32
   expr 13:15    IdentExpr      :: i32[]
   expr 16:10    CallExpr       :: i32
-  expr 16:10    IdentExpr      :: fn($T[], $U, fn($U, $T) -> $U) -> $U
+  expr 16:10    IdentExpr      :: fn(T[], U, fn(U, T) -> U) -> U
   expr 16:15    SeqLitExpr     :: i32[]
   expr 16:35    LambdaExpr     :: fn(i32, i32) -> i32
   expr 16:57    BinaryExpr     :: i32
   expr 16:57    IdentExpr      :: i32
   expr 16:63    IdentExpr      :: i32
   expr 19:14    CallExpr       :: i32[]
-  expr 19:14    IdentExpr      :: fn($T[], usize) -> $T[]
+  expr 19:14    IdentExpr      :: fn(T[], usize) -> T[]
   expr 19:19    IdentExpr      :: i32[]
   expr 20:11    CallExpr       :: i32
   expr 20:11    IdentExpr      :: fn(i32[]) -> i32
   expr 20:15    IdentExpr      :: i32[]
   expr 23:13    CallExpr       :: i32[]
-  expr 23:13    IdentExpr      :: fn($T[], usize) -> $T[]
+  expr 23:13    IdentExpr      :: fn(T[], usize) -> T[]
   expr 23:18    IdentExpr      :: i32[]
   expr 24:11    CallExpr       :: i32
   expr 24:11    IdentExpr      :: fn(i32[]) -> i32
@@ -35,7 +35,7 @@
   expr 28:30    CallExpr       :: i32[]
   expr 28:30    CallExpr       :: usize
   expr 28:30    FieldExpr      :: fn() -> usize
-  expr 28:30    IdentExpr      :: fn($T[], usize, usize) -> $T[]
+  expr 28:30    IdentExpr      :: fn(T[], usize, usize) -> T[]
   expr 28:36    IdentExpr      :: i32[]
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(string) -> void
@@ -43,7 +43,7 @@
   expr 29:31    CallExpr       :: i32[]
   expr 29:31    CallExpr       :: usize
   expr 29:31    FieldExpr      :: fn() -> usize
-  expr 29:31    IdentExpr      :: fn($T[], usize, usize) -> $T[]
+  expr 29:31    IdentExpr      :: fn(T[], usize, usize) -> T[]
   expr 29:37    IdentExpr      :: i32[]
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(string) -> void
@@ -51,7 +51,7 @@
   expr 30:31    CallExpr       :: i32[]
   expr 30:31    CallExpr       :: usize
   expr 30:31    FieldExpr      :: fn() -> usize
-  expr 30:31    IdentExpr      :: fn($T[], usize, usize) -> $T[]
+  expr 30:31    IdentExpr      :: fn(T[], usize, usize) -> T[]
   expr 30:37    IdentExpr      :: i32[]
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(string) -> void
@@ -66,7 +66,7 @@
   expr 32:31    IdentExpr      :: i32
   expr 5:13     SeqLitExpr     :: i32[]
   expr 8:16     CallExpr       :: i32[]
-  expr 8:16     IdentExpr      :: fn($T[], fn($T) -> $U) -> $U[]
+  expr 8:16     IdentExpr      :: fn(T[], fn(T) -> U) -> U[]
   expr 8:20     SeqLitExpr     :: i32[]
   expr 8:37     LambdaExpr     :: fn(i32) -> i32
   expr 8:49     BinaryExpr     :: i32

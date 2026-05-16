@@ -7,7 +7,7 @@
   inner_count(string)
   Yield(i32)
   Yield(string)
-  ArrayIterator($T)
+  ArrayIterator(T)
   ArrayIterator(i32)
   ArrayIterator(string)
   outer(i32)

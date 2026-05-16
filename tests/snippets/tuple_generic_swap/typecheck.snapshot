@@ -2,9 +2,9 @@
 
 ## tests/snippets/tuple_generic_swap/_main.vader
   FnDecl         main                 :: fn() -> i32
-  FnDecl         swap                 :: fn([$T, $U]) -> [$U, $T]
+  FnDecl         swap                 :: fn([T, U]) -> [U, T]
   expr 11:10    CallExpr       :: [string, i32]
-  expr 11:10    IdentExpr      :: fn([$T, $U]) -> [$U, $T]
+  expr 11:10    IdentExpr      :: fn([T, U]) -> [U, T]
   expr 11:15    SeqLitExpr     :: [i32, string]
   expr 11:19    StringLitExpr  :: string
   expr 12:13    StringLitExpr  :: string
@@ -14,8 +14,8 @@
   expr 12:36    IdentExpr      :: [string, i32]
   expr 12:5     CallExpr       :: void
   expr 12:5     IdentExpr      :: fn(string) -> void
-  expr 7:12     SeqLitExpr     :: [$U, $T]
-  expr 7:13     FieldExpr      :: $U
-  expr 7:13     IdentExpr      :: [$T, $U]
-  expr 7:18     FieldExpr      :: $T
-  expr 7:18     IdentExpr      :: [$T, $U]
+  expr 7:12     SeqLitExpr     :: [U, T]
+  expr 7:13     FieldExpr      :: U
+  expr 7:13     IdentExpr      :: [T, U]
+  expr 7:18     FieldExpr      :: T
+  expr 7:18     IdentExpr      :: [T, U]

@@ -548,7 +548,7 @@ export function displayType(t: Type): string {
     case "Struct":     return formatNamed(t.symbol.name, t.args);
     case "Enum":       return t.symbol.name;
     case "Trait":      return formatNamed(t.symbol.name, t.args);
-    case "TypeParam":  return `$${t.symbol.name}`;
+    case "TypeParam":  return t.symbol.name;
     case "TypeMeta":   return "type";
     case "Self":       return "Self";
     case "Unresolved": return "?";

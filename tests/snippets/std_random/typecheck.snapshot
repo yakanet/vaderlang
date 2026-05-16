@@ -104,7 +104,7 @@
   expr 63:18    SeqLitExpr     :: i32[]
   expr 64:15    IdentExpr      :: i32[]
   expr 64:5     CallExpr       :: void
-  expr 64:5     FieldExpr      :: fn($T[]) -> void
+  expr 64:5     FieldExpr      :: fn(T[]) -> void
   expr 64:5     IdentExpr      :: Rng
   expr 65:13    StringLitExpr  :: string
   expr 65:29    CallExpr       :: usize

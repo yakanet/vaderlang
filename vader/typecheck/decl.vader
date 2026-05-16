@@ -1,0 +1,305 @@
+// vader/typecheck/decl — top-level type collection.
+//
+// Mirror of `src/typecheck/passes/decl.ts::declareType`. Walks every
+// top-level decl in source order, mints its declared `Type`, and stores
+// the result in `typed.decl_types` keyed by the decl's `name_span`.
+// Later passes (body checking, ImplRegistry building) read this side
+// table without re-walking the AST.
+//
+// MVP-trimmed against the TS reference :
+//   - No `@extern` ABI validation (T3050/T3051) — lands when call.vader
+//     wires up extern decoration handling.
+//   - No Layer 4-sugar const-as-type-alias detection. Plain ConstDecls
+//     get their annotated type ; un-annotated ones stay un-typed at
+//     decl level (their literal type lands in `expr_types` at body time).
+//   - ImplDecls contribute to `ImplRegistry` (Phase 2.4), not here.
+//   - AssertDecl is a no-op (handled by comptime).
+
+import "std/collections" { MutableMap }
+import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/resolver/resolve" { ResolvedModule }
+import "vader/resolver/symbol" { Symbol }
+import "vader/resolver/scope" { span_key }
+AST :: import "vader/parser/ast"
+import "vader/typecheck/types" {
+    Type, PrimitiveType, mk_primitive, mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
+    TY_UNRESOLVED, TY_TYPE,
+}
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/typecheck/enum_pass" { resolve_enum_indices }
+
+/// Walk every top-level decl in `resolved.module` (resolved.source.decls
+/// in the original TS) and mint its `Type` into `typed.decl_types`. The
+/// pass is single-shot — re-running it is idempotent if `decl_types` is
+/// cleared first.
+export declare_module :: fn(
+    resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+    program_decls: AST.Decl[],
+) -> void {
+    for decl in program_decls {
+        declare_decl(decl, resolved, typed, diags)
+    }
+}
+
+declare_decl :: fn(
+    decl: AST.Decl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    match decl {
+        is AST.FnDecl as fn_decl -> { declare_fn(fn_decl, resolved, typed, diags) }
+        is AST.StructDecl as sd  -> { declare_struct(sd, resolved, typed) }
+        is AST.EnumDecl as ed    -> { declare_enum(ed, resolved, typed, diags) }
+        is AST.TraitDecl as td   -> { declare_trait(td, resolved, typed) }
+        is AST.TypeAliasDecl as ta -> { declare_type_alias(ta, resolved, typed, diags) }
+        is AST.ConstDecl as cd   -> { declare_const(cd, resolved, typed, diags) }
+        // ImplDecl → ImplRegistry (Phase 2.4). AssertDecl → comptime only.
+        // ImportDecl was wired by the resolver. No-op here for all three.
+        is AST.ImplDecl   -> {}
+        is AST.AssertDecl -> {}
+        is AST.ImportDecl -> {}
+    }
+}
+
+// ---- per-decl declarers ---------------------------------------------------
+
+declare_fn :: fn(
+    decl: AST.FnDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    params: Type[] = []
+    for p in decl.params {
+        params.push(declare_fn_param(p, resolved, typed, diags))
+    }
+    return_type :: declare_fn_return(decl, resolved, diags)
+    typed.decl_types[span_key(decl.name_span)] = mk_fn(params, return_type)
+}
+
+declare_fn_param :: fn(
+    p: AST.FnParam, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    ty :: p.ty
+    match ty {
+        is null -> {
+            // SPEC §4 : top-level fn signatures must be fully annotated, except
+            // `self` which carries the implicit `Self` type, bound at body time.
+            if p.name == "self" { return TY_UNRESOLVED }
+            diags.push(typecheck_error(.FnSignatureMustBeAnnotated, p.span,
+                "parameter ${p.name} lacks a type"))
+            return TY_UNRESOLVED
+        }
+        _ -> {
+            resolved_ty :: type_from_expr(ty, resolved, diags)
+            typed.param_types[span_key(p.span)] = resolved_ty
+            return resolved_ty
+        }
+    }
+}
+
+declare_fn_return :: fn(
+    decl: AST.FnDecl, resolved: ResolvedModule, diags: Diagnostic[],
+) -> Type {
+    rt :: decl.return_type
+    match rt {
+        is null -> {
+            // Expression-bodied without annotation : inference defers to body
+            // checking. Block-bodied without annotation : default to void.
+            if decl.is_expression_bodied { return TY_UNRESOLVED }
+            return mk_primitive("void")
+        }
+        _ -> { return type_from_expr(rt, resolved, diags) }
+    }
+}
+
+declare_struct :: fn(
+    decl: AST.StructDecl, resolved: ResolvedModule, typed: TypedProgram,
+) -> void {
+    sym :: lookup_symbol(resolved, decl.name)
+    args: Type[] = []
+    for tp in decl.type_params {
+        tp_sym :: lookup_symbol(resolved, tp.name)
+        match tp_sym {
+            is null -> { args.push(TY_UNRESOLVED) }
+            is Symbol as s -> { args.push(mk_type_param(s)) }
+        }
+    }
+    match sym {
+        is null -> {}
+        is Symbol as s -> { typed.decl_types[span_key(decl.name_span)] = mk_struct(s, args) }
+    }
+}
+
+declare_trait :: fn(
+    decl: AST.TraitDecl, resolved: ResolvedModule, typed: TypedProgram,
+) -> void {
+    sym :: lookup_symbol(resolved, decl.name)
+    args: Type[] = []
+    for tp in decl.type_params {
+        tp_sym :: lookup_symbol(resolved, tp.name)
+        match tp_sym {
+            is null -> { args.push(TY_UNRESOLVED) }
+            is Symbol as s -> { args.push(mk_type_param(s)) }
+        }
+    }
+    match sym {
+        is null -> {}
+        is Symbol as s -> { typed.decl_types[span_key(decl.name_span)] = mk_trait(s, args) }
+    }
+}
+
+declare_enum :: fn(
+    decl: AST.EnumDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    sym :: lookup_symbol(resolved, decl.name)
+    repr :: resolve_repr(decl.repr, resolved, diags)
+    indices :: resolve_enum_indices(decl, repr, diags)
+    match sym {
+        is null -> {}
+        is Symbol as s -> { typed.decl_types[span_key(decl.name_span)] = mk_enum(s, repr, indices) }
+    }
+}
+
+declare_type_alias :: fn(
+    decl: AST.TypeAliasDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    typed.decl_types[span_key(decl.name_span)] = type_from_expr(decl.aliased, resolved, diags)
+}
+
+declare_const :: fn(
+    decl: AST.ConstDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    annotation :: decl.ty
+    match annotation {
+        is null -> {}     // un-annotated : type lands in expr_types at body time
+        _ -> { typed.decl_types[span_key(decl.name_span)] = type_from_expr(annotation, resolved, diags) }
+    }
+}
+
+// ---- helpers --------------------------------------------------------------
+
+lookup_symbol :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
+    for s in resolved.symbols {
+        if s.name == name { return s }
+    }
+    return null
+}
+
+resolve_repr :: fn(
+    repr: AST.TypeExpr | null, resolved: ResolvedModule, diags: Diagnostic[],
+) -> string {
+    match repr {
+        is null -> { return "i32" }
+        _ -> {
+            ty :: type_from_expr(repr, resolved, diags)
+            match ty {
+                is PrimitiveType as p -> { return p.name }
+                _ -> {
+                    diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
+                        "enum repr must be a primitive integer"))
+                    return "i32"
+                }
+            }
+        }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver/symbol" { new_factory }
+import "vader/typecheck/types" { display_type, FnType, StructType, EnumType }
+import "vader/typecheck/typed_ast" { new_typed_program }
+
+declare_test_program :: fn(src: string) -> TypedProgram {
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    typed :: new_typed_program(rm)
+    diags: Diagnostic[] = []
+    declare_module(rm, typed, diags, parsed.program.decls)
+    return typed
+}
+
+// Look up the declared type of the top-level fn / struct named `name`
+// and return its rendered string. Returns `<missing>` if unresolved.
+declared_type :: fn(src: string, name_span_line: i32, name_span_col: i32) -> string {
+    typed :: declare_test_program(src)
+    key :: "${name_span_line}:${name_span_col}"
+    ty :: typed.decl_types[key]
+    match ty {
+        is null -> { return "<missing>" }
+        _ -> { return display_type(ty) }
+    }
+}
+
+@test
+test_declare_fn_records_signature :: fn() -> void {
+    src :: """
+add :: fn(a: i32, b: i32) -> i32 { return a + b }
+"""
+    // name_span of `add` starts at column 1 on line 1.
+    assert_eq(declared_type(src, 1, 1), "fn(i32, i32) -> i32")
+}
+
+@test
+test_declare_fn_void_return_when_no_annotation :: fn() -> void {
+    src :: """
+greet :: fn(name: string) { }
+"""
+    assert_eq(declared_type(src, 1, 1), "fn(string) -> void")
+}
+
+@test
+test_declare_struct_records_struct_type :: fn() -> void {
+    src :: """
+Point :: struct {
+    x: i32
+    y: i32
+}
+"""
+    assert_eq(declared_type(src, 1, 1), "Point")
+}
+
+@test
+test_declare_generic_struct_records_args :: fn() -> void {
+    // Type-params resolve to `?` for now : the resolver lacks a
+    // cross-module typeParamSymbols table, so `lookup_symbol` can't find
+    // `T` at the top level. Lands when wire.vader plumbs typeParams.
+    // Once that's wired the expected becomes `Wrap(T)`.
+    src :: """
+Wrap :: struct[T] {
+    value: T
+}
+"""
+    assert_eq(declared_type(src, 1, 1), "Wrap(?)")
+}
+
+@test
+test_declare_enum_records_enum_type :: fn() -> void {
+    src :: """
+Color :: enum {
+    Red
+    Green
+    Blue
+}
+"""
+    assert_eq(declared_type(src, 1, 1), "Color")
+}
+
+@test
+test_declare_type_alias_records_aliased :: fn() -> void {
+    // Generic-alias form `Name[T] :: <body>` triggers TypeAliasDecl parse.
+    // `T` resolves to `?` for the same reason as the generic struct test.
+    src :: """
+Maybe[T] :: T | null
+"""
+    assert_eq(declared_type(src, 1, 1), "? | null")
+}
+
+@test
+test_declare_const_with_annotation_records_type :: fn() -> void {
+    src :: """
+PI: f64 :: 3.14
+"""
+    assert_eq(declared_type(src, 1, 1), "f64")
+}

@@ -2,7 +2,7 @@
 
 ## tests/snippets/conformance_explicit/_main.vader
   FnDecl         add                  :: fn(Vec3, Vec3) -> Vec3
-  FnDecl         double               :: fn($T) -> $T
+  FnDecl         double               :: fn(T) -> T
   FnDecl         main                 :: fn() -> i32
   StructDecl     Vec3                 :: Vec3
   expr 11:12    StructLitExpr  :: Vec3
@@ -21,13 +21,13 @@
   expr 11:70    IdentExpr      :: Vec3
   expr 11:79    FieldExpr      :: i32
   expr 11:79    IdentExpr      :: Vec3
-  expr 15:12    CallExpr       :: $T
-  expr 15:12    FieldExpr      :: fn($T) -> $T
-  expr 15:12    IdentExpr      :: $T
-  expr 15:18    IdentExpr      :: $T
+  expr 15:12    CallExpr       :: T
+  expr 15:12    FieldExpr      :: fn(T) -> T
+  expr 15:12    IdentExpr      :: T
+  expr 15:18    IdentExpr      :: T
   expr 19:10    StructLitExpr  :: Vec3
   expr 20:10    CallExpr       :: Vec3
-  expr 20:10    IdentExpr      :: fn($T) -> $T
+  expr 20:10    IdentExpr      :: fn(T) -> T
   expr 20:17    IdentExpr      :: Vec3
 
 # Diagnostics

@@ -19,19 +19,19 @@
   expr 5:72     SeqLitExpr     :: Entry(i32, bool) | null[]
   expr 6:13     StringLitExpr  :: string
   expr 6:21     CallExpr       :: bool
-  expr 6:21     FieldExpr      :: fn($T) -> bool
+  expr 6:21     FieldExpr      :: fn(T) -> bool
   expr 6:21     IdentExpr      :: MutableSet(i32)
   expr 6:5      CallExpr       :: void
   expr 6:5      IdentExpr      :: fn(string) -> void
   expr 7:13     StringLitExpr  :: string
   expr 7:21     CallExpr       :: bool
-  expr 7:21     FieldExpr      :: fn($T) -> bool
+  expr 7:21     FieldExpr      :: fn(T) -> bool
   expr 7:21     IdentExpr      :: MutableSet(i32)
   expr 7:5      CallExpr       :: void
   expr 7:5      IdentExpr      :: fn(string) -> void
   expr 8:13     StringLitExpr  :: string
   expr 8:21     CallExpr       :: bool
-  expr 8:21     FieldExpr      :: fn($T) -> bool
+  expr 8:21     FieldExpr      :: fn(T) -> bool
   expr 8:21     IdentExpr      :: MutableSet(i32)
   expr 8:5      CallExpr       :: void
   expr 8:5      IdentExpr      :: fn(string) -> void

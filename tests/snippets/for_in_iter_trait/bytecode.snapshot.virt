@@ -15,10 +15,10 @@ type 12 struct std_core$Yield__i32 { value:2 }
 type 13 struct std_core$Range__usize { start:6,end:6,inclusive:4,cursor:6 }
 type 14 union 0,15
 type 15 struct std_core$Yield__usize { value:6 }
-type 16 struct std_core$ArrayIterator___T { arr:27,cursor:6 }
+type 16 struct std_core$ArrayIterator__T { arr:27,cursor:6 }
 type 17 union 0,18
 type 18 ref Yield
-type 19 struct std_core$ArrayIterator___U { arr:29,cursor:6 }
+type 19 struct std_core$ArrayIterator__U { arr:29,cursor:6 }
 type 20 union 0,21
 type 21 ref Yield
 type 22 struct std_core$ArrayIterator__i32 { arr:26,cursor:6 }
@@ -510,7 +510,7 @@ fn 18 std_core$Range$Iterator$next__usize (ref) -> ref
   end $L1   ; core.vader:237:9
 end
 
-fn 19 std_core$ArrayIterator$Iterator$next___T (ref) -> ref
+fn 19 std_core$ArrayIterator$Iterator$next__T (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
@@ -555,7 +555,7 @@ fn 19 std_core$ArrayIterator$Iterator$next___T (ref) -> ref
   end $L0   ; core.vader:253:9
 end
 
-fn 20 std_core$ArrayIterator$Iterator$next___T_1 (ref) -> ref
+fn 20 std_core$ArrayIterator$Iterator$next__T_1 (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
@@ -600,7 +600,7 @@ fn 20 std_core$ArrayIterator$Iterator$next___T_1 (ref) -> ref
   end $L0   ; core.vader:253:9
 end
 
-fn 21 std_core$ArrayIterator$Iterator$next___T_2 (ref) -> ref
+fn 21 std_core$ArrayIterator$Iterator$next__T_2 (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
@@ -645,7 +645,7 @@ fn 21 std_core$ArrayIterator$Iterator$next___T_2 (ref) -> ref
   end $L0   ; core.vader:253:9
 end
 
-fn 22 std_core$ArrayIterator$Iterator$next___T_3 (ref) -> ref
+fn 22 std_core$ArrayIterator$Iterator$next__T_3 (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
@@ -690,7 +690,7 @@ fn 22 std_core$ArrayIterator$Iterator$next___T_3 (ref) -> ref
   end $L0   ; core.vader:253:9
 end
 
-fn 23 std_core$ArrayIterator$Iterator$next___T_4 (ref) -> ref
+fn 23 std_core$ArrayIterator$Iterator$next__T_4 (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
@@ -735,7 +735,7 @@ fn 23 std_core$ArrayIterator$Iterator$next___T_4 (ref) -> ref
   end $L0   ; core.vader:253:9
 end
 
-fn 24 std_core$ArrayIterator$Iterator$next___T_5 (ref) -> ref
+fn 24 std_core$ArrayIterator$Iterator$next__T_5 (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
@@ -780,7 +780,7 @@ fn 24 std_core$ArrayIterator$Iterator$next___T_5 (ref) -> ref
   end $L0   ; core.vader:253:9
 end
 
-fn 25 std_core$ArrayIterator$Iterator$next___T_6 (ref) -> ref
+fn 25 std_core$ArrayIterator$Iterator$next__T_6 (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
@@ -825,7 +825,7 @@ fn 25 std_core$ArrayIterator$Iterator$next___T_6 (ref) -> ref
   end $L0   ; core.vader:253:9
 end
 
-fn 26 std_core$ArrayIterator$Iterator$next___T_7 (ref) -> ref
+fn 26 std_core$ArrayIterator$Iterator$next__T_7 (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
@@ -870,7 +870,7 @@ fn 26 std_core$ArrayIterator$Iterator$next___T_7 (ref) -> ref
   end $L0   ; core.vader:253:9
 end
 
-fn 27 std_core$ArrayIterator$Iterator$next___T_8 (ref) -> ref
+fn 27 std_core$ArrayIterator$Iterator$next__T_8 (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
@@ -915,7 +915,7 @@ fn 27 std_core$ArrayIterator$Iterator$next___T_8 (ref) -> ref
   end $L0   ; core.vader:253:9
 end
 
-fn 28 std_core$ArrayIterator$Iterator$next___U (ref) -> ref
+fn 28 std_core$ArrayIterator$Iterator$next__U (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref

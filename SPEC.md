@@ -947,7 +947,7 @@ n: i32 | Error = parse_int("42")
 
 ### Generics
 
-Type parameters are introduced with the bracketed `[T]` form at the declaration site. The legacy inline `$T` introduction syntax (Odin-style — type-param declared at first use in a signature) remains parser-accepted for now but is **deprecated** ; new code should use `[T]` exclusively. Both forms compile to the same `TypeParam[]` shape on the underlying `FnDecl` / `StructDecl`.
+Type parameters are introduced with the bracketed `[T]` form at the declaration site. They compile to a `TypeParam[]` slot on the underlying `FnDecl` / `StructDecl` ; later references in the same scope are plain `IdentExpr` nodes that the resolver rebinds to the type-param symbol.
 
 **Generic functions**:
 

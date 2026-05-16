@@ -417,7 +417,7 @@
   expr 1012:31  CallExpr       :: usize
   expr 1012:31  IdentExpr      :: type
   expr 1012:5   CallExpr       :: void
-  expr 1012:5   IdentExpr      :: fn($T, $T) -> void
+  expr 1012:5   IdentExpr      :: fn(T, T) -> void
   expr 1013:15  FieldExpr      :: Token[]
   expr 1013:15  FieldExpr      :: string
   expr 1013:15  IdentExpr      :: Lexer
@@ -426,7 +426,7 @@
   expr 1013:24  IdentExpr      :: type
   expr 1013:40  StringLitExpr  :: string
   expr 1013:5   CallExpr       :: void
-  expr 1013:5   IdentExpr      :: fn($T, $T) -> void
+  expr 1013:5   IdentExpr      :: fn(T, T) -> void
   expr 1017:10  CallExpr       :: Lexer
   expr 1017:10  IdentExpr      :: fn(string, string) -> Lexer
   expr 1017:19  StringLitExpr  :: string
@@ -438,7 +438,7 @@
   expr 1018:31  CallExpr       :: usize
   expr 1018:31  IdentExpr      :: type
   expr 1018:5   CallExpr       :: void
-  expr 1018:5   IdentExpr      :: fn($T, $T) -> void
+  expr 1018:5   IdentExpr      :: fn(T, T) -> void
   expr 1019:15  FieldExpr      :: Token[]
   expr 1019:15  FieldExpr      :: string
   expr 1019:15  IdentExpr      :: Lexer
@@ -447,7 +447,7 @@
   expr 1019:24  IdentExpr      :: type
   expr 1019:40  StringLitExpr  :: string
   expr 1019:5   CallExpr       :: void
-  expr 1019:5   IdentExpr      :: fn($T, $T) -> void
+  expr 1019:5   IdentExpr      :: fn(T, T) -> void
   expr 101:29   CallExpr       :: void
   expr 101:29   FieldExpr      :: fn(string) -> void
   expr 101:29   IdentExpr      :: StringBuilder
@@ -463,7 +463,7 @@
   expr 1024:31  CallExpr       :: usize
   expr 1024:31  IdentExpr      :: type
   expr 1024:5   CallExpr       :: void
-  expr 1024:5   IdentExpr      :: fn($T, $T) -> void
+  expr 1024:5   IdentExpr      :: fn(T, T) -> void
   expr 1025:15  FieldExpr      :: Token[]
   expr 1025:15  FieldExpr      :: string
   expr 1025:15  IdentExpr      :: Lexer
@@ -472,7 +472,7 @@
   expr 1025:24  IdentExpr      :: type
   expr 1025:40  StringLitExpr  :: string
   expr 1025:5   CallExpr       :: void
-  expr 1025:5   IdentExpr      :: fn($T, $T) -> void
+  expr 1025:5   IdentExpr      :: fn(T, T) -> void
   expr 1029:10  CallExpr       :: Lexer
   expr 1029:10  IdentExpr      :: fn(string, string) -> Lexer
   expr 1029:19  StringLitExpr  :: string
@@ -498,7 +498,7 @@
   expr 1036:31  CallExpr       :: usize
   expr 1036:31  IdentExpr      :: type
   expr 1036:5   CallExpr       :: void
-  expr 1036:5   IdentExpr      :: fn($T, $T) -> void
+  expr 1036:5   IdentExpr      :: fn(T, T) -> void
   expr 1040:10  CallExpr       :: Lexer
   expr 1040:10  IdentExpr      :: fn(string, string) -> Lexer
   expr 1040:19  StringLitExpr  :: string
@@ -525,7 +525,7 @@
   expr 1047:24  IdentExpr      :: type
   expr 1047:40  StringLitExpr  :: string
   expr 1047:5   CallExpr       :: void
-  expr 1047:5   IdentExpr      :: fn($T, $T) -> void
+  expr 1047:5   IdentExpr      :: fn(T, T) -> void
   expr 1051:10  CallExpr       :: Lexer
   expr 1051:10  IdentExpr      :: fn(string, string) -> Lexer
   expr 1051:19  StringLitExpr  :: string
@@ -537,7 +537,7 @@
   expr 1052:31  CallExpr       :: usize
   expr 1052:31  IdentExpr      :: type
   expr 1052:5   CallExpr       :: void
-  expr 1052:5   IdentExpr      :: fn($T, $T) -> void
+  expr 1052:5   IdentExpr      :: fn(T, T) -> void
   expr 105:18   FieldExpr      :: f64 | i64 | null | string | u32 | u64
   expr 105:18   IdentExpr      :: Token
   expr 106:13   MatchExpr      :: void
@@ -1284,7 +1284,7 @@
   expr 338:74   IdentExpr      :: char
   expr 338:80   IdentExpr      :: i32
   expr 33:15    CallExpr       :: Diagnostic[]
-  expr 33:15    IdentExpr      :: fn($T[], fn($T, $T) -> bool) -> $T[]
+  expr 33:15    IdentExpr      :: fn(T[], fn(T, T) -> bool) -> T[]
   expr 33:16    StringLitExpr  :: string
   expr 33:20    IdentExpr      :: Diagnostic[]
   expr 33:27    IdentExpr      :: fn(Diagnostic, Diagnostic) -> bool
@@ -2242,7 +2242,7 @@
   expr 633:8    IdentExpr      :: usize
   expr 637:22   CallExpr       :: InterpFrame[]
   expr 637:22   FieldExpr      :: InterpFrame[]
-  expr 637:22   FieldExpr      :: fn(usize, usize) -> $T[]
+  expr 637:22   FieldExpr      :: fn(usize, usize) -> T[]
   expr 637:22   IdentExpr      :: Lexer
   expr 637:5    FieldExpr      :: InterpFrame[]
   expr 637:5    IdentExpr      :: Lexer

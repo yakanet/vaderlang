@@ -1,20 +1,20 @@
 # Typecheck
 
 ## tests/snippets/trait_dispatch_bounded/_main.vader
-  FnDecl         count_matching       :: fn($T[], $T) -> i32
+  FnDecl         count_matching       :: fn(T[], T) -> i32
   FnDecl         main                 :: fn() -> i32
   expr 10:12    BinaryExpr     :: bool
   expr 10:12    BinaryExpr     :: bool
   expr 10:12    CallExpr       :: u64
   expr 10:12    FieldExpr      :: fn() -> u64
-  expr 10:12    IdentExpr      :: $T
+  expr 10:12    IdentExpr      :: T
   expr 10:24    CallExpr       :: u64
   expr 10:24    FieldExpr      :: fn() -> u64
-  expr 10:24    IdentExpr      :: $T
+  expr 10:24    IdentExpr      :: T
   expr 10:41    CallExpr       :: bool
-  expr 10:41    FieldExpr      :: fn($T) -> bool
-  expr 10:41    IdentExpr      :: $T
-  expr 10:50    IdentExpr      :: $T
+  expr 10:41    FieldExpr      :: fn(T) -> bool
+  expr 10:41    IdentExpr      :: T
+  expr 10:50    IdentExpr      :: T
   expr 10:9     IfExpr         :: void
   expr 11:13    IdentExpr      :: i32
   expr 11:17    BinaryExpr     :: i32
@@ -23,7 +23,7 @@
   expr 18:13    SeqLitExpr     :: i32[]
   expr 19:13    StringLitExpr  :: string
   expr 19:16    CallExpr       :: i32
-  expr 19:16    IdentExpr      :: fn($T[], $T) -> i32
+  expr 19:16    IdentExpr      :: fn(T[], T) -> i32
   expr 19:31    IdentExpr      :: i32[]
   expr 19:5     CallExpr       :: void
   expr 19:5     IdentExpr      :: fn(string) -> void
@@ -35,9 +35,9 @@
   expr 21:43    StringLitExpr  :: string
   expr 22:13    StringLitExpr  :: string
   expr 22:16    CallExpr       :: i32
-  expr 22:16    IdentExpr      :: fn($T[], $T) -> i32
+  expr 22:16    IdentExpr      :: fn(T[], T) -> i32
   expr 22:31    IdentExpr      :: string[]
   expr 22:38    StringLitExpr  :: string
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(string) -> void
-  expr 9:14     IdentExpr      :: $T[]
+  expr 9:14     IdentExpr      :: T[]

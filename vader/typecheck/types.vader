@@ -197,10 +197,7 @@ write_type :: fn(sb: StringBuilder, t: Type) -> void {
         is StructType    as x -> { sb.write_named(x.symbol.name, x.args) }
         is EnumType      as x -> { sb.append(x.symbol.name) }
         is TraitType     as x -> { sb.write_named(x.symbol.name, x.args) }
-        is TypeParamType as x -> {
-            sb.append_char('$')
-            sb.append(x.symbol.name)
-        }
+        is TypeParamType as x -> { sb.append(x.symbol.name) }
         is TypeMetaType       -> { sb.append("type") }
         is SelfType           -> { sb.append("Self") }
         is UnresolvedType     -> { sb.append("?") }
@@ -321,7 +318,7 @@ test_display_type_param :: fn() -> void {
     factory :: new_factory()
     sym :: factory.make(.TypeParam, "T", "test", .Private, null)
     tp :: mk_type_param(sym)
-    assert_eq(display_type(tp), "\$T")
+    assert_eq(display_type(tp), "T")
 }
 
 @test
