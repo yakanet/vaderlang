@@ -16,6 +16,7 @@
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
+import "vader/resolver/resolve" { ResolvedModule }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/types" {
     Type, StructType, UnresolvedType, display_type, TY_UNRESOLVED,
@@ -41,14 +42,29 @@ export infer_field :: fn(
         // (e.g. cross-module reference before wire.vader lands).
         return TY_UNRESOLVED
     }
-    for field in decl.fields {
-        if field.name == e.field {
-            return type_from_expr(field.ty, typed.resolved, diags)
+    found :: find_struct_field_type(decl, e.field, typed.resolved, diags)
+    match found {
+        is null -> {
+            diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
+                "field `${e.field}` not found on struct ${display_type(target_ty)}"))
+            return TY_UNRESOLVED
         }
+        _ -> { return found }
     }
-    diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
-        "field `${e.field}` not found on struct ${display_type(target_ty)}"))
-    return TY_UNRESOLVED
+}
+
+/// Walk a struct's fields for `name` and return the resolved field type,
+/// or `null` if the field doesn't exist. Shared with `struct_lit.vader`
+/// so the lookup convention stays in one place — generic substitution,
+/// when it lands, plugs in here.
+export find_struct_field_type :: fn(
+    decl: AST.StructDecl, name: string,
+    resolved: ResolvedModule, diags: Diagnostic[],
+) -> Type | null {
+    for field in decl.fields {
+        if field.name == name { return type_from_expr(field.ty, resolved, diags) }
+    }
+    return null
 }
 
 // ---- tests ----------------------------------------------------------------

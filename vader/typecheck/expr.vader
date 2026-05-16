@@ -33,6 +33,7 @@ import "vader/typecheck/stmt" { check_block }
 import "vader/typecheck/call" { infer_call }
 import "vader/typecheck/binary" { infer_binary }
 import "vader/typecheck/field" { infer_field }
+import "vader/typecheck/struct_lit" { infer_struct_lit }
 
 /// Type-check `expr`. `expected` provides bidirectional context — pass
 /// `null` for fresh-position uses. The returned `Type` is the post-
@@ -64,6 +65,7 @@ infer_expr :: fn(
         is AST.CallExpr      as e -> { return infer_call(e, typed, diags, check_expr) }
         is AST.BinaryExpr    as e -> { return infer_binary(e, typed, diags, check_expr) }
         is AST.FieldExpr     as e -> { return infer_field(e, typed, diags, check_expr) }
+        is AST.StructLitExpr as e -> { return infer_struct_lit(e, typed, diags, check_expr) }
         // Every other variant : Phase 3.2+ work. Returning Unresolved
         // keeps downstream passes happy (TY_UNRESOLVED is assignable to
         // anything ; `is_assignable` short-circuits on it).
