@@ -16,6 +16,32 @@ AST :: import "vader/parser/ast"
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/lsp/tokens" { RawToken, TokenType }
 
+/// Primitive type names recognised by the lexer / typechecker but not as
+/// individual keywords. When an `IdentExpr` carries one of these names in
+/// expression position (`i32(x)` cast, `i32.MAX` field access, …) we
+/// paint it `Type` instead of the positional `Variable` default. Order
+/// doesn't matter — keep alphabetised for human scanning.
+is_primitive_type_name :: fn(name: string) -> bool {
+    if name == "i8"    { return true }
+    if name == "i16"   { return true }
+    if name == "i32"   { return true }
+    if name == "i64"   { return true }
+    if name == "isize" { return true }
+    if name == "u8"    { return true }
+    if name == "u16"   { return true }
+    if name == "u32"   { return true }
+    if name == "u64"   { return true }
+    if name == "usize" { return true }
+    if name == "f32"   { return true }
+    if name == "f64"   { return true }
+    if name == "bool"  { return true }
+    if name == "char"  { return true }
+    if name == "string"{ return true }
+    if name == "void"  { return true }
+    if name == "type"  { return true }
+    return false
+}
+
 /// Parse `source` and walk every AST node, pushing a `RawToken` for each
 /// identifier whose role we can determine by position alone.
 export collect_ast_idents :: fn(source: string, uri: string, out: RawToken[]) -> void {
@@ -252,7 +278,16 @@ walk_block :: fn(b: AST.BlockExpr, out: RawToken[]) -> void {
 // the `CallExpr` walker upgrades its callee ident to Function.
 walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
     match e {
-        is AST.IdentExpr        as x -> { push_span(out, x.span, .Variable) }
+        is AST.IdentExpr        as x -> {
+            // Primitives in value position (the receiver of a TypeMeta
+            // method call, e.g. `i32.MAX`) paint as Type instead of the
+            // catch-all Variable.
+            if x.name.is_primitive_type_name() {
+                push_span(out, x.span, .Type)
+            } else {
+                push_span(out, x.span, .Variable)
+            }
+        }
         is AST.CallExpr         as x -> { walk_call(x, out) }
         is AST.FieldExpr        as x -> {
             walk_expr(x.target, out)
@@ -304,11 +339,17 @@ walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
 }
 
 walk_call :: fn(c: AST.CallExpr, out: RawToken[]) -> void {
-    // Upgrade the callee's bare-ident position to Function. Anything more
-    // complex (a field access producing a fn ref, a generic instantiation,
-    // a parenthesised expr …) recurses through walk_expr untouched.
+    // Upgrade the callee's bare-ident position to Function — unless the
+    // ident names a primitive type, in which case the call is a cast
+    // (`i32(x)`, `usize(n)`) and the callee is a type.
     match c.callee {
-        is AST.IdentExpr as i -> { push_span(out, i.span, .Function) }
+        is AST.IdentExpr as i -> {
+            if i.name.is_primitive_type_name() {
+                push_span(out, i.span, .Type)
+            } else {
+                push_span(out, i.span, .Function)
+            }
+        }
         is AST.FieldExpr as f -> {
             walk_expr(f.target, out)
             push_span(out, f.field_span, .Function)
