@@ -1,20 +1,26 @@
 // vader/lsp/ast_tokens — semantic-token classification driven by the parsed
-// AST. Lexer-based classification in `semantic_tokens.vader` covers
-// keywords, literals, comments, and operators ; this module fills in the
-// last gap — identifiers — by parsing the source and walking each AST node
-// to attribute a role (Function declaration vs Type vs Parameter vs …).
+// AST + the body-walking resolver.
 //
-// We don't run the resolver — without it, an `IdentExpr` in a body could be
-// a local, a parameter, an imported fn, or a global. We classify by AST
-// *position* alone : the callee of a `CallExpr` is `Function`, anything in
-// a TypeExpr slot is `Type`, anything else defaults to `Variable`. That's
-// enough to give the editor a more useful color than "everything is a
-// variable" while keeping the implementation tractable.
+// Lexer-based classification in `semantic_tokens.vader` covers keywords,
+// literals, comments, and operators ; this module fills in the last gap
+// — identifiers. Two phases :
+//
+//   1. Positional walk : attribute a role by AST position (callee of
+//      CallExpr → Function, TypeExpr slot → Type, decl name → matching
+//      kind, …). Catches declaration sites + structural roles.
+//   2. Resolver refinement : run `vader/resolver/body` to map every
+//      IdentExpr to its bound Symbol, then override Phase-1 tokens
+//      whose span matches a resolved ident with the symbol's actual
+//      kind. This is what distinguishes a parameter use site from a
+//      local use site — Phase 1 can't tell them apart.
 
+import "std/collections" { MutableMap }
 import "vader/parser" { parse_source }
 AST :: import "vader/parser/ast"
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/lsp/tokens" { RawToken, TokenType }
+import "vader/resolver/body" { resolve_program, ResolvedFile }
+import "vader/resolver/symbol" { Symbol, SymbolKind, new_factory }
 
 /// Primitive type names recognised by the lexer / typechecker but not as
 /// individual keywords. When an `IdentExpr` carries one of these names in
@@ -43,13 +49,59 @@ is_primitive_type_name :: fn(name: string) -> bool {
 }
 
 /// Parse `source` and walk every AST node, pushing a `RawToken` for each
-/// identifier whose role we can determine by position alone.
+/// identifier. The walk runs in two phases — the AST walker tags every
+/// ident by position, then the resolver-refinement pass overrides
+/// tokens whose ident resolves to a Symbol with a kind that Phase 1
+/// couldn't infer (most notably Param vs Local).
 export collect_ast_idents :: fn(source: string, uri: string, out: RawToken[]) -> void {
     parsed :: parse_source(source, uri)
     program :: parsed.program
     for d in program.decls {
         walk_decl(d, out)
     }
+    refine_via_resolver(program, uri, out)
+}
+
+/// Walk every ident through the body-resolver and override matching
+/// Phase-1 tokens with the symbol-kind-derived TokenType.
+refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken[]) -> void {
+    factory :: new_factory()
+    seed :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    resolved :: resolve_program(program, seed, uri, factory)
+    for i in 0..<out.len() {
+        rt :: out[i]
+        key :: "${rt.line + 1}:${rt.col + 1}"
+        hit :: resolved.idents[key]
+        match hit {
+            is Symbol as s -> {
+                kind :: token_type_of_symbol(s.kind)
+                out[i] = RawToken {
+                    .line = rt.line, .col = rt.col, .length = rt.length,
+                    .tok_type = i32(kind), .modifiers = rt.modifiers,
+                }
+            }
+            is null -> {}
+        }
+    }
+}
+
+/// Map a `SymbolKind` to the LSP token type the wire format expects.
+/// Falls back to `Variable` for kinds without a meaningful LSP analogue.
+token_type_of_symbol :: fn(k: SymbolKind) -> TokenType {
+    if i32(k) == i32(SymbolKind.Fn)            { return .Function }
+    if i32(k) == i32(SymbolKind.Struct)        { return .Type }
+    if i32(k) == i32(SymbolKind.Enum)          { return .Type }
+    if i32(k) == i32(SymbolKind.Trait)         { return .Type }
+    if i32(k) == i32(SymbolKind.TypeAlias)     { return .Type }
+    if i32(k) == i32(SymbolKind.BuiltinType)   { return .Type }
+    if i32(k) == i32(SymbolKind.TypeParam)     { return .Type }
+    if i32(k) == i32(SymbolKind.BuiltinFn)     { return .Function }
+    if i32(k) == i32(SymbolKind.Param)         { return .Parameter }
+    if i32(k) == i32(SymbolKind.Local)         { return .Variable }
+    if i32(k) == i32(SymbolKind.Binding)       { return .Variable }
+    if i32(k) == i32(SymbolKind.Const)         { return .Variable }
+    if i32(k) == i32(SymbolKind.ImportBinding) { return .Variable }
+    return .Variable
 }
 
 // ---- raw-token helpers ----------------------------------------------------

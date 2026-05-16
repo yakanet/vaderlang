@@ -1,0 +1,488 @@
+// vader/resolver/body — body-walking resolution.
+//
+// Extends the top-level decl walker in `resolve.vader` with a full
+// scope-tracking walk over fn bodies, blocks, lambdas, for-loops,
+// if-is-as bindings, and match patterns. Produces a span-keyed
+// `IdentExpr → Symbol` map that downstream consumers (the LSP today,
+// the self-host typechecker tomorrow) read instead of re-walking the
+// AST themselves.
+//
+// Scope: only what the LSP semantic-tokens classifier needs. Type
+// resolution, generic substitution, impl-block dispatch, and
+// decorator validation all live on the TS side until §2.6 (self-host
+// typechecker) lands. The output here is intentionally a flat
+// IdentExpr → Symbol map ; richer per-expr metadata stays in the
+// compiler-grade resolver when that's ported.
+
+import "std/collections" { MutableMap }
+import "std/string" { byte_len }
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/parser/ast" {
+    Program, Decl, Stmt, Expr, Pattern, LetBinding, FnDecl, StructDecl,
+    EnumDecl, TraitDecl, ImplDecl, TypeAliasDecl, ConstDecl, AssertDecl,
+    ImportDecl, FnParam, StructField, TypeParam, BlockExpr, LetStmt,
+    AssignStmt, ExprStmt, ReturnStmt, ForStmt, DeferStmt, BreakStmt,
+    ContinueStmt, DeferStmtBody, DeferBlockBody,
+    InfiniteFor, WhileFor, InFor, IdentExpr, CallExpr,
+    FieldExpr, IndexExpr, UnaryExpr, BinaryExpr, IfExpr, IfElseIf,
+    IfElseBlock, MatchExpr, LambdaExpr, StructLitExpr, StructLitField,
+    StructLitSpread, SeqLitExpr, RangeExpr, TryExpr, CastExpr,
+    GenericInstExpr, IntrinsicCallExpr, DotVariantExpr, FnTypeExpr,
+    ArrayTypeExpr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr,
+    CharLitExpr, StringLitExpr, IsPattern, StructPattern, TuplePattern,
+    WildcardPattern, BindingPattern, EnumVariantPattern, LiteralPattern,
+    PatternBinding, PatternLiteral, SimpleBinding, TupleBinding,
+    WildcardBinding, RestBinding, Decorator
+}
+import "vader/parser" { parse_source }
+import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory, make }
+
+/// Per-file resolution output. `idents` keys every resolved `IdentExpr`
+/// by its span (`line:column` works because spans are file-local and
+/// unique per node). Consumers look up a span to get the bound symbol's
+/// kind ; `Variable` is the fallback for un-resolvable idents (the
+/// resolver is intentionally lenient — diagnostics are the TS-side
+/// resolver's job).
+export ResolvedFile :: struct {
+    /// Top-level declarations of this file, indexed for downstream use.
+    top_level: MutableMap(string, Symbol)
+    /// Every `IdentExpr` reached during the body walk, span-keyed.
+    idents:    MutableMap(string, Symbol)
+}
+
+/// Build a `ResolvedFile` for `program`. `top_level_seed` provides
+/// names that should resolve in the root scope — typically the
+/// module's own top-level symbols + any auto-imported std/core names.
+/// Caller-owned so multi-module projects can extend the root scope
+/// before walking.
+export resolve_program :: fn(
+    program: Program, top_level_seed: MutableMap(string, Symbol),
+    module_path: string, factory: SymbolFactory,
+) -> ResolvedFile {
+    state :: ResolveState {
+        .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .scopes = [top_level_seed],
+        .module_path = module_path,
+        .factory = factory,
+    }
+    for d in program.decls {
+        state.walk_decl(d)
+    }
+    return ResolvedFile { .top_level = top_level_seed, .idents = state.idents }
+}
+
+// ---- internal state -------------------------------------------------------
+
+ResolveState :: struct {
+    idents:      MutableMap(string, Symbol)
+    /// Scope stack — innermost at the end, outermost (root) at index 0.
+    scopes:      MutableMap(string, Symbol)[]
+    module_path: string
+    factory:     SymbolFactory
+}
+
+push_scope :: fn(self: ResolveState) -> void {
+    self.scopes.push(MutableMap(string, Symbol) { .buckets = [], .size = 0 })
+}
+
+pop_scope :: fn(self: ResolveState) -> void {
+    if self.scopes.len() > 0 {
+        // No `pop` on raw arrays — slice everything except the last entry.
+        n :: self.scopes.len()
+        new_scopes: MutableMap(string, Symbol)[] = []
+        for i in 0..<usize(n - 1) {
+            new_scopes.push(self.scopes[i])
+        }
+        self.scopes = new_scopes
+    }
+}
+
+bind :: fn(self: ResolveState, name: string, sym: Symbol) -> void {
+    n :: self.scopes.len()
+    if n == 0 { return }
+    top :: self.scopes[n - 1]
+    top[name] = sym
+}
+
+lookup :: fn(self: ResolveState, name: string) -> Symbol | null {
+    n :: self.scopes.len()
+    i := usize(n)
+    for i > 0 {
+        i = i - 1
+        scope :: self.scopes[i]
+        v :: scope[name]
+        match v {
+            is Symbol -> { return v }
+            is null   -> {}
+        }
+    }
+    return null
+}
+
+span_key :: fn(s: Span) -> string {
+    return "${s.start.line}:${s.start.column}"
+}
+
+mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
+    return self.factory.make(kind, name, self.module_path, .Private, span)
+}
+
+// ---- decl walkers ---------------------------------------------------------
+
+walk_decl :: fn(self: ResolveState, d: Decl) -> void {
+    match d {
+        is ImportDecl    -> {}
+        is FnDecl as x   -> { self.walk_fn_decl(x) }
+        is StructDecl as x -> { self.walk_struct_decl(x) }
+        is EnumDecl    -> {}
+        is TraitDecl as x -> { self.walk_trait_decl(x) }
+        is ImplDecl as x -> { self.walk_impl_decl(x) }
+        is TypeAliasDecl as x -> { self.walk_opt_expr(x.aliased) }
+        is ConstDecl as x -> {
+            self.walk_opt_expr(x.ty)
+            self.walk_expr(x.value)
+        }
+        is AssertDecl as x -> { self.walk_expr(x.condition) }
+    }
+}
+
+walk_fn_decl :: fn(self: ResolveState, d: FnDecl) -> void {
+    self.walk_decorators(d.decorators)
+    self.push_scope()
+    // Type-params first so the rest of the signature + body sees them.
+    for tp in d.type_params {
+        sym :: self.mint_local(.TypeParam, tp.name, tp.span)
+        self.bind(tp.name, sym)
+        self.walk_opt_expr(tp.bound)
+    }
+    for p in d.params {
+        self.walk_opt_expr(p.ty)
+        self.walk_opt_expr(p.default_value)
+        sym :: self.mint_local(.Param, p.name, p.span)
+        self.bind(p.name, sym)
+    }
+    self.walk_opt_expr(d.return_type)
+    match d.body {
+        is null -> {}
+        is BlockExpr as b -> { self.walk_block(b) }
+    }
+    self.pop_scope()
+}
+
+walk_struct_decl :: fn(self: ResolveState, d: StructDecl) -> void {
+    self.walk_decorators(d.decorators)
+    self.push_scope()
+    for tp in d.type_params {
+        sym :: self.mint_local(.TypeParam, tp.name, tp.span)
+        self.bind(tp.name, sym)
+        self.walk_opt_expr(tp.bound)
+    }
+    for f in d.fields {
+        self.walk_expr(f.ty)
+        self.walk_opt_expr(f.default)
+    }
+    self.pop_scope()
+}
+
+walk_trait_decl :: fn(self: ResolveState, d: TraitDecl) -> void {
+    self.walk_decorators(d.decorators)
+    self.push_scope()
+    for tp in d.type_params {
+        sym :: self.mint_local(.TypeParam, tp.name, tp.span)
+        self.bind(tp.name, sym)
+        self.walk_opt_expr(tp.bound)
+    }
+    self.walk_opt_expr(d.requires)
+    for m in d.members { self.walk_fn_decl(m) }
+    self.pop_scope()
+}
+
+walk_impl_decl :: fn(self: ResolveState, d: ImplDecl) -> void {
+    self.walk_decorators(d.decorators)
+    self.push_scope()
+    for tp in d.type_params {
+        sym :: self.mint_local(.TypeParam, tp.name, tp.span)
+        self.bind(tp.name, sym)
+        self.walk_opt_expr(tp.bound)
+    }
+    self.walk_expr(d.for_type)
+    for ta in d.trait_args { self.walk_expr(ta) }
+    for m in d.members { self.walk_fn_decl(m) }
+    self.pop_scope()
+}
+
+walk_decorators :: fn(self: ResolveState, decs: Decorator[]) -> void {
+    for d in decs {
+        for a in d.args { self.walk_expr(a) }
+    }
+}
+
+walk_opt_expr :: fn(self: ResolveState, e: Expr | null) -> void {
+    match e {
+        is null -> {}
+        _       -> { self.walk_expr(e) }
+    }
+}
+
+// ---- stmt + block walkers -------------------------------------------------
+
+walk_block :: fn(self: ResolveState, b: BlockExpr) -> void {
+    self.push_scope()
+    for s in b.stmts { self.walk_stmt(s) }
+    self.walk_opt_expr(b.trailing)
+    self.pop_scope()
+}
+
+walk_stmt :: fn(self: ResolveState, s: Stmt) -> void {
+    match s {
+        is LetStmt as x -> {
+            self.walk_opt_expr(x.ty)
+            self.walk_expr(x.value)
+            self.bind_let_binding(x.binding)
+        }
+        is AssignStmt as x -> {
+            self.walk_expr(x.target)
+            self.walk_expr(x.value)
+        }
+        is ExprStmt as x -> { self.walk_expr(x.expr) }
+        is ReturnStmt as x -> { self.walk_opt_expr(x.value) }
+        is ForStmt as x -> { self.walk_for(x) }
+        is BreakStmt -> {}
+        is ContinueStmt -> {}
+        is DeferStmt as x -> { self.walk_defer(x) }
+    }
+}
+
+walk_defer :: fn(self: ResolveState, d: DeferStmt) -> void {
+    match d.body {
+        is DeferStmtBody  as x -> { self.walk_stmt(x.stmt) }
+        is DeferBlockBody as x -> { self.walk_block(x.block) }
+    }
+}
+
+bind_let_binding :: fn(self: ResolveState, b: LetBinding) -> void {
+    match b {
+        is SimpleBinding as x -> {
+            sym :: self.mint_local(.Local, x.name, x.name_span)
+            self.bind(x.name, sym)
+        }
+        is TupleBinding as x -> {
+            for e in x.elements { self.bind_let_binding(e) }
+        }
+        is WildcardBinding -> {}
+        is RestBinding as x -> {
+            sym :: self.mint_local(.Local, x.name, x.span)
+            self.bind(x.name, sym)
+        }
+    }
+}
+
+walk_for :: fn(self: ResolveState, s: ForStmt) -> void {
+    match s.form {
+        is InfiniteFor -> {}
+        is WhileFor as w -> { self.walk_expr(w.cond) }
+        is InFor as f -> { self.walk_expr(f.iter) }
+    }
+    self.push_scope()
+    match s.form {
+        is InFor as f -> {
+            sym :: self.mint_local(.Local, f.binding, f.binding_span)
+            self.bind(f.binding, sym)
+        }
+        _ -> {}
+    }
+    self.walk_block(s.body)
+    self.pop_scope()
+}
+
+// ---- expr walkers ---------------------------------------------------------
+
+walk_expr :: fn(self: ResolveState, e: Expr) -> void {
+    match e {
+        is IdentExpr as x -> {
+            v :: self.lookup(x.name)
+            match v {
+                is Symbol -> { self.idents[span_key(x.span)] = v }
+                is null   -> {}
+            }
+        }
+        is CallExpr as x -> {
+            self.walk_expr(x.callee)
+            for a in x.args { self.walk_expr(a.value) }
+        }
+        is FieldExpr as x -> { self.walk_expr(x.target) }
+        is IndexExpr as x -> {
+            self.walk_expr(x.target)
+            self.walk_expr(x.index)
+        }
+        is UnaryExpr as x -> { self.walk_expr(x.operand) }
+        is BinaryExpr as x -> {
+            self.walk_expr(x.left)
+            self.walk_expr(x.right)
+        }
+        is IfExpr as x -> { self.walk_if(x) }
+        is MatchExpr as x -> { self.walk_match(x) }
+        is BlockExpr as x -> { self.walk_block(x) }
+        is LambdaExpr as x -> { self.walk_lambda(x) }
+        is StructLitExpr as x -> { self.walk_struct_lit(x) }
+        is SeqLitExpr as x -> { for it in x.elements { self.walk_expr(it) } }
+        is RangeExpr as x -> {
+            self.walk_expr(x.lower)
+            self.walk_expr(x.upper)
+        }
+        is TryExpr as x -> { self.walk_expr(x.inner) }
+        is CastExpr as x -> {
+            self.walk_expr(x.value)
+            self.walk_expr(x.target)
+        }
+        is GenericInstExpr as x -> {
+            self.walk_expr(x.callee)
+            for a in x.type_args { self.walk_expr(a) }
+        }
+        is IntrinsicCallExpr as x -> { for a in x.args { self.walk_expr(a) } }
+        is DotVariantExpr -> {}
+        is FnTypeExpr as x -> {
+            for p in x.params { self.walk_expr(p) }
+            self.walk_opt_expr(x.return_type)
+        }
+        is ArrayTypeExpr as x -> { self.walk_expr(x.element) }
+        is IntLitExpr -> {}
+        is FloatLitExpr -> {}
+        is BoolLitExpr -> {}
+        is NullLitExpr -> {}
+        is CharLitExpr -> {}
+        is StringLitExpr -> {}
+    }
+}
+
+walk_if :: fn(self: ResolveState, e: IfExpr) -> void {
+    self.walk_expr(e.cond)
+    self.walk_block(e.then_block)
+    match e.else_branch {
+        is null -> {}
+        is IfElseIf as x -> { self.walk_if(x.branch) }
+        is IfElseBlock as x -> { self.walk_block(x.block) }
+    }
+}
+
+walk_match :: fn(self: ResolveState, e: MatchExpr) -> void {
+    self.walk_expr(e.scrutinee)
+    for arm in e.arms {
+        self.push_scope()
+        self.bind_pattern(arm.pattern)
+        self.walk_opt_expr(arm.guard)
+        self.walk_expr(arm.body)
+        self.pop_scope()
+    }
+}
+
+bind_pattern :: fn(self: ResolveState, p: Pattern) -> void {
+    match p {
+        is IsPattern as x -> {
+            self.walk_expr(x.ty)
+            match x.bind_as {
+                is null -> {}
+                is string as name -> {
+                    sym :: self.mint_local(.Binding, name, x.span)
+                    self.bind(name, sym)
+                }
+            }
+            match x.inner {
+                is null -> {}
+                _       -> { self.bind_pattern(x.inner) }
+            }
+        }
+        is StructPattern as x -> {
+            for f in x.fields {
+                match f.value {
+                    is PatternBinding -> {
+                        sym :: self.mint_local(.Binding, f.name, f.name_span)
+                        self.bind(f.name, sym)
+                    }
+                    is PatternLiteral as lit -> { self.walk_expr(lit.value) }
+                }
+            }
+        }
+        is TuplePattern as x -> { for el in x.elements { self.bind_pattern(el) } }
+        is WildcardPattern -> {}
+        is BindingPattern as x -> {
+            sym :: self.mint_local(.Binding, x.name, x.span)
+            self.bind(x.name, sym)
+        }
+        is EnumVariantPattern -> {}
+        is LiteralPattern as x -> { self.walk_expr(x.value) }
+    }
+}
+
+walk_lambda :: fn(self: ResolveState, l: LambdaExpr) -> void {
+    self.push_scope()
+    for p in l.params {
+        self.walk_opt_expr(p.ty)
+        sym :: self.mint_local(.Param, p.name, p.span)
+        self.bind(p.name, sym)
+    }
+    self.walk_opt_expr(l.return_type)
+    self.walk_block(l.body)
+    self.pop_scope()
+}
+
+walk_struct_lit :: fn(self: ResolveState, s: StructLitExpr) -> void {
+    self.walk_expr(s.type_name)
+    for it in s.items {
+        match it {
+            is StructLitField as f -> { self.walk_expr(f.value) }
+            is StructLitSpread as sp -> { self.walk_expr(sp.expr) }
+        }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+@test
+test_resolver_resolves_local :: fn() -> void {
+    src :: """
+main :: fn() -> i32 {
+    x :: 42
+    return x
+}
+"""
+    parsed :: parse_source(src, "test.vader")
+    factory :: new_factory()
+    seed :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    resolved :: resolve_program(parsed.program, seed, "test", factory)
+    hit :: resolved.idents["3:12"]
+    match hit {
+        is Symbol as s -> {
+            assert_eq(s.name, "x")
+            assert(i32(s.kind) == i32(SymbolKind.Local), "should resolve to a Local")
+        }
+        is null -> {
+            assert(false, "expected to find resolution for x at 3:12")
+        }
+    }
+}
+
+@test
+test_resolver_resolves_param :: fn() -> void {
+    //language=vader
+    src :: """
+f :: fn(x: i32) -> i32 {
+    return x
+}
+"""
+    parsed :: parse_source(src, "test.vader")
+    factory :: new_factory()
+    seed :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    resolved :: resolve_program(parsed.program, seed, "test", factory)
+    hit :: resolved.idents["2:12"]
+    match hit {
+        is Symbol as s -> {
+            assert(i32(s.kind) == i32(SymbolKind.Param), "should resolve to a Param")
+        }
+        is null -> {
+            assert(false, "expected to find resolution for x at 2:12")
+        }
+    }
+}
