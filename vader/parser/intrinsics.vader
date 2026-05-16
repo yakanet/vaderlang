@@ -44,6 +44,9 @@ INTRINSICS :: [
     // `@fields(T)` — struct's fields as a `Field[]` literal materialised
     // at lower time. T must be a static struct-typed expression.
     IntrinsicSpec { .name = "fields",        .args = [.Type],          .result = "field_array" },
+    // `@type_args(T)` — generic type-args of a struct / trait instance
+    // as a `type[]`. Non-generic types yield `[]`.
+    IntrinsicSpec { .name = "type_args",     .args = [.Type],          .result = "type_array"  },
 ]
 
 // Returns the spec for `name`, or `null` if `@name(...)` is not a

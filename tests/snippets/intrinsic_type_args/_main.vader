@@ -1,0 +1,21 @@
+/// `@type_args(T)` exposes a generic instance's type-args as a `type[]`
+/// literal. Sibling of `@fields(T)` ; non-generic types yield `[]`.
+import "std/io" { println }
+
+Pair :: struct[K, V] {
+    key:   K
+    value: V
+}
+
+Wrapper :: struct {
+    inner: i32
+}
+
+main :: fn() -> i32 {
+    for t in @type_args(Pair(string, i64)) {
+        println("pair-arg size=${@size_of(t)}")
+    }
+    args :: @type_args(Wrapper)
+    println("wrapper-arg count=${args.len()}")
+    return 0
+}

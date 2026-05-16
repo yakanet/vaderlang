@@ -1,0 +1,19 @@
+# Typecheck
+
+## tests/snippets/intrinsic_type_args/_main.vader
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Pair                 :: Pair($K, $V)
+  StructDecl     Wrapper              :: Wrapper
+  expr 15:14    IntrinsicCallExpr :: type[]
+  expr 16:17    StringLitExpr  :: string
+  expr 16:34    IntrinsicCallExpr :: usize
+  expr 16:43    IdentExpr      :: type
+  expr 16:9     CallExpr       :: void
+  expr 16:9     IdentExpr      :: fn(string) -> void
+  expr 18:13    IntrinsicCallExpr :: type[]
+  expr 19:13    StringLitExpr  :: string
+  expr 19:34    CallExpr       :: usize
+  expr 19:34    FieldExpr      :: fn() -> usize
+  expr 19:34    IdentExpr      :: type[]
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(string) -> void

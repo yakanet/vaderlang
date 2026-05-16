@@ -421,6 +421,15 @@ function lowerIntrinsic(
       const argType = ctx.typed.exprTypes.get(expr.args[0]!) ?? TY.unresolved;
       return { kind: "LoweredTypeConst", span: expr.span, type, value: argType };
     }
+    case "type_args": {
+      // Generic args of a struct/trait instance ; everything else yields [].
+      const args = targetTy !== undefined && (targetTy.kind === "Struct" || targetTy.kind === "Trait")
+        ? targetTy.args : [];
+      const elements: LoweredExpr[] = args.map((a) => ({
+        kind: "LoweredTypeConst", span: expr.span, type: TY.type, value: a,
+      }));
+      return { kind: "LoweredArrayLit", span: expr.span, type, elements };
+    }
     case "fields": {
       const span = expr.span;
       const decl = targetTy?.kind === "Struct" ? sourceStructDecl(targetTy.symbol) : null;

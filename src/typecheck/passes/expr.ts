@@ -205,6 +205,7 @@ function intrinsicResultType(result: IntrinsicResultKind, t: MutableTyped): Type
       if (fieldSym === undefined) return TY.unresolved;
       return mkArray(mkStruct(fieldSym, []));
     }
+    case "type_array": return mkArray(TY.type);
   }
 }
 

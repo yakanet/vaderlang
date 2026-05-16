@@ -17,8 +17,8 @@ export type IntrinsicArgKind = "type" | "value";
  *  a small enum so the registry stays the single source of truth for every
  *  intrinsic's signature ; downstream passes look it up rather than mirror
  *  a per-name switch. `field_array` resolves to `Field[]` via std/core's
- *  `Field` symbol — the only non-primitive result kind so far. */
-export type IntrinsicResultKind = "usize" | "string" | "bool" | "type" | "field_array";
+ *  `Field` symbol ; `type_array` resolves to `type[]`. */
+export type IntrinsicResultKind = "usize" | "string" | "bool" | "type" | "field_array" | "type_array";
 
 export interface IntrinsicSpec {
   readonly name: string;
@@ -51,6 +51,10 @@ export const INTRINSICS: readonly IntrinsicSpec[] = [
   // expression ; non-struct or runtime `type` values surface T3010.
   // Layer 6 reflection.
   { name: "fields",        args: ["type"],          result: "field_array" },
+  // `@type_args(T)` — returns the generic type-args of a struct / trait
+  // instance as a `type[]`. Non-generic types yield an empty array.
+  // Static `T` only. Layer 6 reflection.
+  { name: "type_args",     args: ["type"],          result: "type_array"  },
   // `@file("path")` reads the file at compile time and bakes its UTF-8
   // contents as a string literal. The sandbox confines the path to the
   // project root (same rule as the legacy `@file` decorator).
