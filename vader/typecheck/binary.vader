@@ -1,0 +1,351 @@
+// vader/typecheck/binary — BinaryExpr inference.
+//
+// Mirror of `src/typecheck/passes/binary.ts::inferBinary`. Walks both
+// operands then dispatches on `op` :
+//
+//   - arith (Add/Sub/Mul/Div/Mod) on numeric primitives → wider operand
+//   - `string + string` → string  (dedicated concat op)
+//   - comparison (Lt/Lte/Gt/Gte) → bool, requires numeric operands
+//   - equality (Eq/Neq) → bool, requires intersecting types
+//   - logical (And/Or) → bool, requires bool operands
+//   - bitwise (BitAnd/BitOr/BitXor/Shl/Shr) → integer operand type
+//   - `is` → bool (RHS lowered as type)
+//   - `in`/`NotIn` → bool (Contains trait dispatch deferred)
+//
+// MVP-trimmed against the TS reference :
+//   - No trait dispatch for user types (no `Numeric` / `Equals` /
+//     `Comparable` impl lookup). Operations on non-primitive operands
+//     surface T3017 ("operator not defined for these operand types").
+//   - No T3040 ("test never matches") soundness check on `is`.
+//   - No Layer 4-sugar `T | U` type-meta union construction.
+//   - Numeric width-promotion : we accept any combination of Free*
+//     and same-name primitive ; mixed widths (`i32 + i64`) surface
+//     T3017 instead of widening.
+
+import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+AST :: import "vader/parser/ast"
+import "vader/typecheck/type_ops" { is_numeric_name, is_int_name }
+import "vader/typecheck/types" {
+    Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
+    display_type, mk_primitive, TY_UNRESOLVED,
+}
+import "vader/typecheck/typed_ast" { TypedProgram }
+
+/// Type-check a `BinaryExpr`. `check_expr_fn` is threaded to break the
+/// cyclic import with `expr.vader::check_expr`.
+export infer_binary :: fn(
+    e: AST.BinaryExpr, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    left :: check_expr_fn(e.left, null, typed, diags)
+    // Right-side bidirectional context : when left is a concrete numeric,
+    // narrow free numeric literals on the right (`size + 1` → `1: usize`).
+    right_ctx :: numeric_propagation(e.op, left)
+    right :: check_expr_fn(e.right, right_ctx, typed, diags)
+
+    match classify(e.op) {
+        .Arith    -> { return check_arith(e, left, right, diags) }
+        .Compare  -> { return check_compare(e, left, right, diags) }
+        .Equality -> { return check_equality(e, left, right, diags) }
+        .Logical  -> { return check_logical(e, left, right, diags) }
+        .Bitwise  -> { return check_bitwise(e, left, right, diags) }
+        .Is       -> { return mk_primitive("bool") }
+        .In       -> { return mk_primitive("bool") }
+    }
+}
+
+// ---- per-op-class checkers ------------------------------------------------
+
+check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
+    if e.op == .Add && is_string(left) && is_string(right) { return mk_primitive("string") }
+    return numeric_result(e, left, right, diags)
+}
+
+check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
+    if !is_numeric(left) || !is_numeric(right) {
+        push_op_undefined(e, left, right, diags)
+    }
+    return mk_primitive("bool")
+}
+
+check_equality :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
+    // MVP : any-vs-any returns bool, no intersection enforcement.
+    // T3040 "test never matches" lands with the `intersects` machinery.
+    return mk_primitive("bool")
+}
+
+check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
+    if !is_bool(left)  && !(left  is UnresolvedType) {
+        diags.push(typecheck_error(.OperatorNotDefined, e.left.span,
+            "`&&` / `||` require `bool` operands, got ${display_type(left)}"))
+    }
+    if !is_bool(right) && !(right is UnresolvedType) {
+        diags.push(typecheck_error(.OperatorNotDefined, e.right.span,
+            "`&&` / `||` require `bool` operands, got ${display_type(right)}"))
+    }
+    return mk_primitive("bool")
+}
+
+check_bitwise :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
+    if !is_integer(left) || !is_integer(right) {
+        push_op_undefined(e, left, right, diags)
+        return TY_UNRESOLVED
+    }
+    return numeric_result(e, left, right, diags)
+}
+
+// ---- helpers --------------------------------------------------------------
+
+OpKind :: enum(u8) { Arith, Compare, Equality, Logical, Bitwise, Is, In }
+
+classify :: fn(op: AST.BinaryOp) -> OpKind = match op {
+    .Add    -> .Arith
+    .Sub    -> .Arith
+    .Mul    -> .Arith
+    .Div    -> .Arith
+    .Mod    -> .Arith
+    .Lt     -> .Compare
+    .Lte    -> .Compare
+    .Gt     -> .Compare
+    .Gte    -> .Compare
+    .Eq     -> .Equality
+    .Neq    -> .Equality
+    .And    -> .Logical
+    .Or     -> .Logical
+    .BitAnd -> .Bitwise
+    .BitOr  -> .Bitwise
+    .BitXor -> .Bitwise
+    .Shl    -> .Bitwise
+    .Shr    -> .Bitwise
+    .Is     -> .Is
+    .In     -> .In
+    .NotIn  -> .In
+}
+
+// When left is a concrete numeric and the op propagates context, return
+// `left` so free literals on the right adopt the same primitive type.
+// Otherwise null — caller infers right fresh.
+numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
+    propagates :: match classify(op) {
+        .Arith    -> true
+        .Compare  -> true
+        .Equality -> true
+        _         -> false
+    }
+    if !propagates { return null }
+    if !is_numeric(left) { return null }
+    return left
+}
+
+// Compute the result type of a numeric binary op. Both operands must
+// be numeric ; one may be a Free*. Result is the concrete operand's
+// type, or Free* when both are free.
+numeric_result :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
+    if !is_numeric(left) || !is_numeric(right) {
+        push_op_undefined(e, left, right, diags)
+        return TY_UNRESOLVED
+    }
+    // Free + Free → keep the free kind ; Free + concrete → concrete.
+    if left is FreeIntType   && right is FreeIntType   { return left }
+    if left is FreeFloatType && right is FreeFloatType { return left }
+    if left is FreeIntType || left is FreeFloatType   { return right }
+    if right is FreeIntType || right is FreeFloatType { return left }
+    // Both concrete : must match by name (no implicit widening).
+    if left is PrimitiveType {
+        if right is PrimitiveType {
+            if left.name != right.name {
+                push_op_undefined(e, left, right, diags)
+                return TY_UNRESOLVED
+            }
+            return left
+        }
+    }
+    return TY_UNRESOLVED
+}
+
+is_numeric :: fn(t: Type) -> bool {
+    if t is UnresolvedType { return true }       // suppress cascade
+    if t is FreeIntType || t is FreeFloatType { return true }
+    if t is PrimitiveType { return is_numeric_name(t.name) }
+    return false
+}
+
+is_integer :: fn(t: Type) -> bool {
+    if t is UnresolvedType { return true }
+    if t is FreeIntType { return true }
+    if t is PrimitiveType { return is_int_name(t.name) }
+    return false
+}
+
+is_string :: fn(t: Type) -> bool {
+    if t is PrimitiveType { return t.name == "string" }
+    return false
+}
+
+is_bool :: fn(t: Type) -> bool {
+    if t is PrimitiveType { return t.name == "bool" }
+    return false
+}
+
+push_op_undefined :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> void {
+    // Don't pile on if either side already errored.
+    if left is UnresolvedType || right is UnresolvedType { return }
+    diags.push(typecheck_error(.OperatorNotDefined, e.span,
+        "operator not defined for ${display_type(left)} and ${display_type(right)}"))
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/resolve" { resolve_module, ResolvedModule }
+import "vader/resolver/symbol" { new_factory }
+import "vader/typecheck/check" { check_module }
+import "vader/typecheck/expr_ident" { infer_ident }
+import "vader/typecheck/expr_literals" {
+    infer_int_lit, infer_float_lit, infer_bool_lit, infer_string_lit,
+}
+
+stub_check_expr :: fn(
+    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    match e {
+        is AST.IntLitExpr    as x -> { return narrow(infer_int_lit(x), expected) }
+        is AST.FloatLitExpr  as x -> { return narrow(infer_float_lit(x), expected) }
+        is AST.BoolLitExpr   as x -> { return infer_bool_lit(x) }
+        is AST.StringLitExpr as x -> { return infer_string_lit(x) }
+        is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
+        is AST.BinaryExpr    as x -> { return infer_binary(x, typed, diags, stub_check_expr) }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+narrow :: fn(got: Type, expected: Type | null) -> Type {
+    if expected is null { return got }
+    if !(expected is PrimitiveType) { return got }
+    if got is FreeIntType   && is_int_name(expected.name)            { return expected }
+    if got is FreeFloatType && expected.name == "f32" || expected.name == "f64" { return expected }
+    return got
+}
+
+// Parse + resolve + check, then find first BinaryExpr in last fn body.
+first_binary_in_last_fn :: fn(src: string) -> BinaryFixture {
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    diags: Diagnostic[] = []
+    result :: check_module(parsed.program, rm, factory, diags)
+    last :: parsed.program.decls[parsed.program.decls.len() - 1]
+    match last {
+        is AST.FnDecl as f -> {
+            match f.body {
+                is null -> { return BinaryFixture { .typed = result.typed, .bin = null } }
+                is AST.BlockExpr as b -> {
+                    return BinaryFixture { .typed = result.typed, .bin = first_binary_in_block(b) }
+                }
+            }
+        }
+        _ -> { return BinaryFixture { .typed = result.typed, .bin = null } }
+    }
+}
+
+BinaryFixture :: struct {
+    typed: TypedProgram
+    bin:   AST.BinaryExpr | null
+}
+
+first_binary_in_block :: fn(b: AST.BlockExpr) -> AST.BinaryExpr | null {
+    for stmt in b.stmts {
+        bx :: first_binary_in_stmt(stmt)
+        if bx is AST.BinaryExpr { return bx }
+    }
+    t :: b.trailing
+    if t is null { return null }
+    return first_binary_in_expr(t)
+}
+
+first_binary_in_stmt :: fn(s: AST.Stmt) -> AST.BinaryExpr | null {
+    match s {
+        is AST.ReturnStmt as r -> {
+            v :: r.value
+            if v is null { return null }
+            return first_binary_in_expr(v)
+        }
+        is AST.ExprStmt as es -> { return first_binary_in_expr(es.expr) }
+        _ -> { return null }
+    }
+}
+
+first_binary_in_expr :: fn(e: AST.Expr) -> AST.BinaryExpr | null {
+    match e {
+        is AST.BinaryExpr as b -> { return b }
+        _ -> { return null }
+    }
+}
+
+@test
+test_arith_int_returns_concrete :: fn() -> void {
+    fx :: first_binary_in_last_fn("f :: fn(a: i32, b: i32) -> i32 { return a + b }")
+    match fx.bin {
+        is null -> { assert(false, "no binary found") }
+        is AST.BinaryExpr as bin -> {
+            diags: Diagnostic[] = []
+            assert_eq(display_type(infer_binary(bin, fx.typed, diags, stub_check_expr)), "i32")
+            assert_eq(diags.len(), usize(0))
+        }
+    }
+}
+
+@test
+test_arith_string_concat :: fn() -> void {
+    fx :: first_binary_in_last_fn("""f :: fn(a: string, b: string) -> string { return a + b }""")
+    match fx.bin {
+        is null -> { assert(false, "no binary found") }
+        is AST.BinaryExpr as bin -> {
+            diags: Diagnostic[] = []
+            assert_eq(display_type(infer_binary(bin, fx.typed, diags, stub_check_expr)), "string")
+        }
+    }
+}
+
+@test
+test_compare_returns_bool :: fn() -> void {
+    fx :: first_binary_in_last_fn("f :: fn(a: i32, b: i32) -> bool { return a < b }")
+    match fx.bin {
+        is null -> { assert(false, "no binary found") }
+        is AST.BinaryExpr as bin -> {
+            diags: Diagnostic[] = []
+            assert_eq(display_type(infer_binary(bin, fx.typed, diags, stub_check_expr)), "bool")
+        }
+    }
+}
+
+@test
+test_logical_requires_bool :: fn() -> void {
+    fx :: first_binary_in_last_fn("f :: fn(a: i32, b: bool) -> bool { return a && b }")
+    match fx.bin {
+        is null -> { assert(false, "no binary found") }
+        is AST.BinaryExpr as bin -> {
+            diags: Diagnostic[] = []
+            infer_binary(bin, fx.typed, diags, stub_check_expr)
+            found_op_err := false
+            for d in diags { if d.code.id == "T3017" { found_op_err = true } }
+            assert(found_op_err, "expected T3017 for `i32 && bool`")
+        }
+    }
+}
+
+@test
+test_arith_width_mismatch_emits_T3017 :: fn() -> void {
+    fx :: first_binary_in_last_fn("f :: fn(a: i32, b: i64) -> i64 { return a + b }")
+    match fx.bin {
+        is null -> { assert(false, "no binary found") }
+        is AST.BinaryExpr as bin -> {
+            diags: Diagnostic[] = []
+            infer_binary(bin, fx.typed, diags, stub_check_expr)
+            found := false
+            for d in diags { if d.code.id == "T3017" { found = true } }
+            assert(found, "expected T3017 for `i32 + i64` (no implicit widening)")
+        }
+    }
+}
