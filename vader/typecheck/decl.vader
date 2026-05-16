@@ -179,11 +179,12 @@ resolve_repr :: fn(
     repr: AST.TypeExpr | null, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> string {
     if repr is null { return "i32" }
-    match type_from_expr(repr, resolved, diags) {
+    repr_ty :: type_from_expr(repr, resolved, diags)
+    match repr_ty {
         is PrimitiveType as p -> { return p.name }
         _ -> {
             diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
-                "enum repr must be a primitive integer"))
+                "got ${display_type(repr_ty)}"))
             return "i32"
         }
     }

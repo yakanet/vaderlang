@@ -40,14 +40,15 @@ export resolve_enum_indices :: fn(
             span :: span_of_value(variant)
             diags.push(typecheck_error(
                 .EnumVariantValueOutOfRange, span,
-                "value out of range for ${repr}",
+                "${v} not in [${range.min}, ${range.max}] for `${repr}`",
             ))
         }
         if !seen_values.add(v) {
             span :: span_of_value(variant)
+            owner :: find_owner(out, v)
             diags.push(typecheck_error(
                 .DuplicateEnumVariantValue, span,
-                "value already used by an earlier variant",
+                "value ${v} already used by `${owner}`",
             ))
         }
         out[variant.name] = v
@@ -55,6 +56,16 @@ export resolve_enum_indices :: fn(
     }
     return out
 }
+
+find_owner :: fn(out: MutableMap(string, i64), target: i64) -> string {
+    for k in out.keys() {
+        v :: out[k]
+        if v is i64 { if v == target { return k } }
+    }
+    return "?"
+}
+
+import "std/collections" { keys }
 
 // ---- repr ranges ----------------------------------------------------------
 
