@@ -23,7 +23,7 @@ AST :: import "vader/parser/ast"
 import "vader/typecheck/types" {
     Type, PrimitiveType, FreeIntType, FreeFloatType, TY_UNRESOLVED,
 }
-import "vader/typecheck/type_ops" { is_int_name, is_float_name, is_assignable }
+import "vader/typecheck/type_ops" { is_int_name, is_float_name }
 import "vader/typecheck/typed_ast" { TypedProgram }
 import "vader/typecheck/expr_literals" {
     infer_int_lit, infer_float_lit, infer_bool_lit, infer_null_lit,
@@ -47,22 +47,9 @@ export check_expr :: fn(
 // of the matching family, fold to the concrete primitive.
 narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
     if expected is null { return got }
-    if got is FreeIntType {
-        match expected {
-            is PrimitiveType as p -> {
-                if is_int_name(p.name) { return expected }
-            }
-            _ -> {}
-        }
-    }
-    if got is FreeFloatType {
-        match expected {
-            is PrimitiveType as p -> {
-                if is_float_name(p.name) { return expected }
-            }
-            _ -> {}
-        }
-    }
+    if !(expected is PrimitiveType) { return got }
+    if got is FreeIntType   && is_int_name(expected.name)   { return expected }
+    if got is FreeFloatType && is_float_name(expected.name) { return expected }
     return got
 }
 
@@ -87,24 +74,15 @@ infer_expr :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
-import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
-import "vader/resolver/symbol" { new_factory }
+import "vader/diagnostics/diagnostic" { empty_span }
 import "vader/typecheck/types" { mk_primitive, display_type }
-import "vader/typecheck/typed_ast" { new_typed_program }
-
-mk_typed :: fn() -> TypedProgram {
-    parsed :: parse_source("", "t.vader")
-    factory :: new_factory()
-    rm :: resolve_module(parsed.program, "t", factory)
-    return new_typed_program(rm)
-}
+import "vader/typecheck/typed_ast" { empty_typed_program }
 
 @test
 test_check_expr_writes_into_expr_types :: fn() -> void {
-    typed :: mk_typed()
+    typed :: empty_typed_program()
     e :: AST.IntLitExpr {
-        .span = dummy_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
         .value = 42, .suffix = null,
     }
     diags: Diagnostic[] = []
@@ -119,9 +97,9 @@ test_check_expr_writes_into_expr_types :: fn() -> void {
 
 @test
 test_check_expr_narrows_free_int_to_expected_primitive :: fn() -> void {
-    typed :: mk_typed()
+    typed :: empty_typed_program()
     e :: AST.IntLitExpr {
-        .span = dummy_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
         .value = 42, .suffix = null,
     }
     diags: Diagnostic[] = []
@@ -132,21 +110,12 @@ test_check_expr_narrows_free_int_to_expected_primitive :: fn() -> void {
 
 @test
 test_check_expr_keeps_free_float_when_no_expected :: fn() -> void {
-    typed :: mk_typed()
+    typed :: empty_typed_program()
     e :: AST.FloatLitExpr {
-        .span = dummy_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
         .value = 1.5, .suffix = null,
     }
     diags: Diagnostic[] = []
     result :: check_expr(e, null, typed, diags)
     assert(result is FreeFloatType, "unconstrained float stays FreeFloat")
-}
-
-import "vader/diagnostics/diagnostic" { Span, Position }
-
-dummy_span :: fn() -> Span {
-    return Span {
-        .start = Position { .file = "t", .offset = 0, .line = 1, .column = 1 },
-        .end   = Position { .file = "t", .offset = 1, .line = 1, .column = 2 },
-    }
 }

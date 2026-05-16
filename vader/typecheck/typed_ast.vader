@@ -66,6 +66,18 @@ export new_typed_project :: fn() -> TypedProject {
     }
 }
 
+/// Test helper — empty TypedProgram bound to a synthetic resolved module.
+/// Avoids re-running the parser+resolver pipeline for tests that only
+/// need to exercise the side-table writes.
+export empty_typed_program :: fn() -> TypedProgram {
+    rm :: ResolvedModule {
+        .path = "test",
+        .symbols = [],
+        .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+    }
+    return new_typed_program(rm)
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }

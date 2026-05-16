@@ -31,6 +31,16 @@ export Span :: struct {
     end: Position
 }
 
+/// Synthetic `Span` for AST nodes minted by the compiler (test fixtures,
+/// materialised trait methods, intrinsic stubs). Points to a dummy 1:1
+/// position so renderers and span-keyed side-tables stay happy.
+export empty_span :: fn() -> Span {
+    return Span {
+        .start = Position { .file = "<synthetic>", .offset = 0, .line = 1, .column = 1 },
+        .end   = Position { .file = "<synthetic>", .offset = 1, .line = 1, .column = 2 },
+    }
+}
+
 export Diagnostic :: struct {
     severity: Severity
     // Resolved at construction time so the renderer doesn't need to dispatch

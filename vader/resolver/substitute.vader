@@ -16,7 +16,7 @@
 // typechecker still runs on the TS side, which has its own materialize.
 
 import "std/collections" { MutableMap }
-import "vader/diagnostics/diagnostic" { Span, Position }
+import "vader/diagnostics/diagnostic" { Span, empty_span }
 AST :: import "vader/parser/ast"
 
 /// Name → replacement TypeExpr. Built by callers (materialize entry
@@ -167,7 +167,7 @@ test_substitute_recurses_into_fn_type :: fn() -> void {
     t: AST.TypeExpr = make_ident("T")
     params: AST.TypeExpr[] = [t]
     src :: AST.FnTypeExpr {
-        .span = dummy_span(),
+        .span = empty_span(),
         .id = AST.UNASSIGNED_NODE_ID,
         .params = params,
         .return_type = make_ident("T"),
@@ -203,7 +203,7 @@ test_substitute_recurses_into_generic_inst :: fn() -> void {
     t: AST.TypeExpr = make_ident("T")
     type_args: AST.TypeExpr[] = [t]
     src :: AST.GenericInstExpr {
-        .span = dummy_span(),
+        .span = empty_span(),
         .id = AST.UNASSIGNED_NODE_ID,
         .callee = make_ident("Foo"),
         .type_args = type_args,
@@ -226,7 +226,7 @@ test_substitute_recurses_into_generic_inst :: fn() -> void {
 
 make_ident :: fn(name: string) -> AST.IdentExpr {
     return AST.IdentExpr {
-        .span = dummy_span(),
+        .span = empty_span(),
         .id = AST.UNASSIGNED_NODE_ID,
         .name = name,
         .implicit_dot = false,
@@ -234,9 +234,3 @@ make_ident :: fn(name: string) -> AST.IdentExpr {
     }
 }
 
-dummy_span :: fn() -> Span {
-    return Span {
-        .start = Position { .file = "t", .offset = 0, .line = 1, .column = 1 },
-        .end   = Position { .file = "t", .offset = 1, .line = 1, .column = 2 },
-    }
-}

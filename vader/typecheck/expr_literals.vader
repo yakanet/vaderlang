@@ -40,20 +40,13 @@ export infer_string_lit :: fn(_: AST.StringLitExpr) -> Type { return mk_primitiv
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
+import "vader/diagnostics/diagnostic" { empty_span }
 import "vader/typecheck/types" { display_type, FreeIntType, FreeFloatType }
-import "vader/diagnostics/diagnostic" { Span, Position }
-
-dummy_span :: fn() -> Span {
-    return Span {
-        .start = Position { .file = "t", .offset = 0, .line = 1, .column = 1 },
-        .end   = Position { .file = "t", .offset = 1, .line = 1, .column = 2 },
-    }
-}
 
 @test
 test_int_lit_without_suffix_is_free :: fn() -> void {
     e :: AST.IntLitExpr {
-        .span = dummy_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
         .value = 42, .suffix = null,
     }
     assert(infer_int_lit(e) is FreeIntType, "bare int literal must be FreeInt")
@@ -62,7 +55,7 @@ test_int_lit_without_suffix_is_free :: fn() -> void {
 @test
 test_int_lit_with_suffix_folds_to_primitive :: fn() -> void {
     e :: AST.IntLitExpr {
-        .span = dummy_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
         .value = 42, .suffix = "i64",
     }
     assert_eq(display_type(infer_int_lit(e)), "i64")
@@ -71,7 +64,7 @@ test_int_lit_with_suffix_folds_to_primitive :: fn() -> void {
 @test
 test_float_lit_without_suffix_is_free :: fn() -> void {
     e :: AST.FloatLitExpr {
-        .span = dummy_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
         .value = 3.14, .suffix = null,
     }
     assert(infer_float_lit(e) is FreeFloatType, "bare float literal must be FreeFloat")
@@ -79,12 +72,12 @@ test_float_lit_without_suffix_is_free :: fn() -> void {
 
 @test
 test_bool_lit_is_bool :: fn() -> void {
-    e :: AST.BoolLitExpr { .span = dummy_span(), .id = AST.UNASSIGNED_NODE_ID, .value = true }
+    e :: AST.BoolLitExpr { .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID, .value = true }
     assert_eq(display_type(infer_bool_lit(e)), "bool")
 }
 
 @test
 test_string_lit_is_string :: fn() -> void {
-    e :: AST.StringLitExpr { .span = dummy_span(), .id = AST.UNASSIGNED_NODE_ID, .parts = [] }
+    e :: AST.StringLitExpr { .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID, .parts = [] }
     assert_eq(display_type(infer_string_lit(e)), "string")
 }

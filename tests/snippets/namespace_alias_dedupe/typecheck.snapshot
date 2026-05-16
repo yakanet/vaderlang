@@ -258,6 +258,7 @@
 
 ## vader/diagnostics/diagnostic.vader
   StructDecl     Diagnostic           :: Diagnostic
+  FnDecl         empty_span           :: fn() -> Span
   FnDecl         lexer_error          :: fn(LexerCode, Span, string) -> Diagnostic
   FnDecl         new_diagnostic       :: fn(Severity, CodeInfo, Span, string) -> Diagnostic
   FnDecl         parser_error         :: fn(ParserCode, Span, string) -> Diagnostic
@@ -266,71 +267,76 @@
   EnumDecl       Severity             :: Severity
   StructDecl     Span                 :: Span
   FnDecl         typecheck_error      :: fn(TypecheckCode, Span, string) -> Diagnostic
-  expr 49:30    IdentExpr      :: Severity
-  expr 49:48    IdentExpr      :: CodeInfo
-  expr 49:5     StructLitExpr  :: Diagnostic
-  expr 49:64    IdentExpr      :: string
-  expr 49:83    IdentExpr      :: Span
-  expr 57:20    DotVariantExpr :: Severity
-  expr 57:28    CallExpr       :: CodeInfo
-  expr 57:28    IdentExpr      :: fn(LexerCode) -> CodeInfo
-  expr 57:39    IdentExpr      :: LexerCode
-  expr 57:46    IdentExpr      :: Span
-  expr 57:5     CallExpr       :: Diagnostic
-  expr 57:5     IdentExpr      :: fn(Severity, CodeInfo, Span, string) -> Diagnostic
-  expr 57:55    IdentExpr      :: string
-  expr 60:20    DotVariantExpr :: Severity
-  expr 60:28    CallExpr       :: CodeInfo
-  expr 60:28    IdentExpr      :: fn(ParserCode) -> CodeInfo
-  expr 60:40    IdentExpr      :: ParserCode
-  expr 60:47    IdentExpr      :: Span
-  expr 60:5     CallExpr       :: Diagnostic
-  expr 60:5     IdentExpr      :: fn(Severity, CodeInfo, Span, string) -> Diagnostic
-  expr 60:56    IdentExpr      :: string
-  expr 63:20    DotVariantExpr :: Severity
-  expr 63:28    CallExpr       :: CodeInfo
-  expr 63:28    IdentExpr      :: fn(TypecheckCode) -> CodeInfo
-  expr 63:43    IdentExpr      :: TypecheckCode
-  expr 63:5     CallExpr       :: Diagnostic
-  expr 63:5     IdentExpr      :: fn(Severity, CodeInfo, Span, string) -> Diagnostic
-  expr 63:50    IdentExpr      :: Span
-  expr 63:59    IdentExpr      :: string
-  expr 69:17    MatchExpr      :: string
-  expr 69:23    FieldExpr      :: Severity
-  expr 69:23    IdentExpr      :: Diagnostic
-  expr 70:21    StringLitExpr  :: string
-  expr 71:21    StringLitExpr  :: string
-  expr 72:21    StringLitExpr  :: string
-  expr 73:21    StringLitExpr  :: string
-  expr 75:10    FieldExpr      :: Position
-  expr 75:10    FieldExpr      :: Span
-  expr 75:10    IdentExpr      :: Diagnostic
-  expr 76:22    StringLitExpr  :: string
-  expr 77:5     IfExpr         :: void
-  expr 77:8     UnaryExpr      :: bool
-  expr 77:9     CallExpr       :: bool
-  expr 77:9     FieldExpr      :: fn() -> bool
-  expr 77:9     FieldExpr      :: string
-  expr 77:9     IdentExpr      :: Diagnostic
-  expr 78:18    StringLitExpr  :: string
-  expr 78:23    FieldExpr      :: string
-  expr 78:23    IdentExpr      :: Diagnostic
-  expr 78:9     IdentExpr      :: string
-  expr 80:12    StringLitExpr  :: string
-  expr 80:15    IdentExpr      :: string
-  expr 80:27    FieldExpr      :: CodeInfo
-  expr 80:27    FieldExpr      :: string
-  expr 80:27    IdentExpr      :: Diagnostic
-  expr 80:42    FieldExpr      :: CodeInfo
-  expr 80:42    FieldExpr      :: string
-  expr 80:42    IdentExpr      :: Diagnostic
-  expr 80:59    IdentExpr      :: string
-  expr 80:72    FieldExpr      :: string
-  expr 80:72    IdentExpr      :: Position
-  expr 80:82    FieldExpr      :: i32
-  expr 80:82    IdentExpr      :: Position
-  expr 80:92    FieldExpr      :: i32
-  expr 80:92    IdentExpr      :: Position
+  expr 38:12    StructLitExpr  :: Span
+  expr 39:18    StructLitExpr  :: Position
+  expr 39:37    StringLitExpr  :: string
+  expr 40:18    StructLitExpr  :: Position
+  expr 40:37    StringLitExpr  :: string
+  expr 59:30    IdentExpr      :: Severity
+  expr 59:48    IdentExpr      :: CodeInfo
+  expr 59:5     StructLitExpr  :: Diagnostic
+  expr 59:64    IdentExpr      :: string
+  expr 59:83    IdentExpr      :: Span
+  expr 67:20    DotVariantExpr :: Severity
+  expr 67:28    CallExpr       :: CodeInfo
+  expr 67:28    IdentExpr      :: fn(LexerCode) -> CodeInfo
+  expr 67:39    IdentExpr      :: LexerCode
+  expr 67:46    IdentExpr      :: Span
+  expr 67:5     CallExpr       :: Diagnostic
+  expr 67:5     IdentExpr      :: fn(Severity, CodeInfo, Span, string) -> Diagnostic
+  expr 67:55    IdentExpr      :: string
+  expr 70:20    DotVariantExpr :: Severity
+  expr 70:28    CallExpr       :: CodeInfo
+  expr 70:28    IdentExpr      :: fn(ParserCode) -> CodeInfo
+  expr 70:40    IdentExpr      :: ParserCode
+  expr 70:47    IdentExpr      :: Span
+  expr 70:5     CallExpr       :: Diagnostic
+  expr 70:5     IdentExpr      :: fn(Severity, CodeInfo, Span, string) -> Diagnostic
+  expr 70:56    IdentExpr      :: string
+  expr 73:20    DotVariantExpr :: Severity
+  expr 73:28    CallExpr       :: CodeInfo
+  expr 73:28    IdentExpr      :: fn(TypecheckCode) -> CodeInfo
+  expr 73:43    IdentExpr      :: TypecheckCode
+  expr 73:5     CallExpr       :: Diagnostic
+  expr 73:5     IdentExpr      :: fn(Severity, CodeInfo, Span, string) -> Diagnostic
+  expr 73:50    IdentExpr      :: Span
+  expr 73:59    IdentExpr      :: string
+  expr 79:17    MatchExpr      :: string
+  expr 79:23    FieldExpr      :: Severity
+  expr 79:23    IdentExpr      :: Diagnostic
+  expr 80:21    StringLitExpr  :: string
+  expr 81:21    StringLitExpr  :: string
+  expr 82:21    StringLitExpr  :: string
+  expr 83:21    StringLitExpr  :: string
+  expr 85:10    FieldExpr      :: Position
+  expr 85:10    FieldExpr      :: Span
+  expr 85:10    IdentExpr      :: Diagnostic
+  expr 86:22    StringLitExpr  :: string
+  expr 87:5     IfExpr         :: void
+  expr 87:8     UnaryExpr      :: bool
+  expr 87:9     CallExpr       :: bool
+  expr 87:9     FieldExpr      :: fn() -> bool
+  expr 87:9     FieldExpr      :: string
+  expr 87:9     IdentExpr      :: Diagnostic
+  expr 88:18    StringLitExpr  :: string
+  expr 88:23    FieldExpr      :: string
+  expr 88:23    IdentExpr      :: Diagnostic
+  expr 88:9     IdentExpr      :: string
+  expr 90:12    StringLitExpr  :: string
+  expr 90:15    IdentExpr      :: string
+  expr 90:27    FieldExpr      :: CodeInfo
+  expr 90:27    FieldExpr      :: string
+  expr 90:27    IdentExpr      :: Diagnostic
+  expr 90:42    FieldExpr      :: CodeInfo
+  expr 90:42    FieldExpr      :: string
+  expr 90:42    IdentExpr      :: Diagnostic
+  expr 90:59    IdentExpr      :: string
+  expr 90:72    FieldExpr      :: string
+  expr 90:72    IdentExpr      :: Position
+  expr 90:82    FieldExpr      :: i32
+  expr 90:82    IdentExpr      :: Position
+  expr 90:92    FieldExpr      :: i32
+  expr 90:92    IdentExpr      :: Position
 
 ## vader/lexer
   FnDecl         advance              :: fn(Lexer, usize) -> void
