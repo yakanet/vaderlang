@@ -59,6 +59,56 @@ BodyReturnIncompatible · T3024 FnSignatureMustBeAnnotated · T3027
 UnknownEnumVariant · T3028 CannotInferEnumType · T3037
 MissingRequiredFieldInStructLit · T3038 FieldAlreadyProvided
 
+## Parity status against TS reference
+
+The `tests/parity.test.ts::typecheck` stage diffs the Vader CLI's
+`dump --stage=typed-ast` byte-for-byte against the TS-generated
+`typecheck.snapshot` for every snippet under `tests/snippets/`.
+Current scoring : **53/251 (~21%) pass**. The remaining 198 fall
+into four buckets, ordered by impact :
+
+### Bucket A — Cross-module imports (~154/198 fails)
+
+64% of the failing snippets touch `import "std/…"` or local
+modules. With no `wire.vader` ported, every `ImportBinding` ident
+returns `TY_UNRESOLVED`, so `fs.println(...)` shows up as `?` and
+`fn(string) -> void` in the TS output. **Unlocking this bucket
+requires** the multi-module loader (`src/resolver/loader.ts` ~170
+LoC TS) + module graph (`src/resolver/module.ts` ~190 LoC TS) +
+import-redirect plumbing in `vader/resolver/resolve.vader`. A real
+day of work ; intentionally kept out of the typecheck-port
+sessions so each commit stays reviewable.
+
+### Bucket B — Flow-sensitive narrowing (~25 fails)
+
+`if x is T as a { use(a) }` and per-arm `match` narrowing both rely
+on the resolver minting a `Binding` Symbol for the `bind_as` ident.
+The mint exists for `IsPattern` (match arms) but not for the
+`BinaryExpr.Is.bind_as` in `if` conds. The narrow.vader API is
+ready ; producers in `expr_if.vader` / `match_expr.vader` plug in
+after the resolver lands the binding.
+
+### Bucket C — Mutation rejection diagnostics (~10 fails)
+
+T3041 ("cannot reassign `::` binding") and T3042 ("cannot mutate
+immutable array") both need the resolver to back-reference the
+`LetStmt.mutable` flag / `ArrayType.immutable` from the
+`Local`/`Param` Symbol. Resolver work, then a one-line check in
+`stmt.vader::check_assign`.
+
+### Bucket D — Iterator-trait dispatch (~5 fails)
+
+`for x in custom_iter()` where the iter type implements
+`Iterator(T)` should bind `x: T`. Vader's `check_for` only handles
+`T[]` natively today ; the `Iterator` trait lookup lands with
+`coerce.vader` once `ImplRegistry.find_for(ty, trait_sym)` exists.
+
+### Bucket E — Remaining (~4 fails)
+
+Self-referential struct fields (`Node.next: Node | null`),
+decorator-body expressions (`@assert(cond)`), lambda-body
+expressions not landing in `expr_types`. Each a small fix.
+
 ## Still deferred (next sessions)
 
 The MVP modules above expose APIs but their producers / consumers
