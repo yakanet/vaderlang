@@ -75,6 +75,15 @@ export span_key :: fn(s: Span) -> string {
     return "${s.start.line}:${s.start.column}"
 }
 
+/// Stringify a span's start AND end as `lineS:colS-lineE:colE`. Used
+/// by the typed-ast side-tables that index expressions — `a + b`
+/// where both the BinaryExpr (envelope) and its left-IdentExpr `a`
+/// start at the same `line:column` need disjoint keys for
+/// `expr_types` lookup.
+export span_full_key :: fn(s: Span) -> string {
+    return "${s.start.line}:${s.start.column}-${s.end.line}:${s.end.column}"
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }

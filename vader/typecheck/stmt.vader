@@ -8,7 +8,7 @@
 // substitution — those land with later phases.
 
 import "vader/diagnostics/diagnostic" { Diagnostic, Span, typecheck_error }
-import "vader/resolver/scope" { span_key }
+import "vader/resolver/scope" { span_full_key, span_key }
 AST :: import "vader/parser/ast"
 import "vader/typecheck/context" { FnContext, new_fn_context }
 import "vader/typecheck/type_expr" { type_from_expr }
@@ -37,7 +37,9 @@ export check_block :: fn(
         is null -> {}
         _ -> { result = check_expr_fn(block.trailing, expected, typed, diags) }
     }
-    typed.expr_types[span_key(block.span)] = result
+    full_key :: span_full_key(block.span)
+    typed.expr_types[full_key] = result
+    typed.expr_kinds[full_key] = "BlockExpr"
     return result
 }
 

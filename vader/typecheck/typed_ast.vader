@@ -56,6 +56,12 @@ export TypedProgram :: struct {
     /// (resolver doesn't thread `bind_as` symbols for `is T as a`
     /// inside if-exprs).
     narrowed_bindings: MutableMap(i32, Type)
+
+    /// AST kind label for each entry in `expr_types`, keyed by the
+    /// same span string. Populated alongside `expr_types` from
+    /// `check_expr` ; consumed by `dump.vader` so the typed-ast dump
+    /// can label each expression line without re-walking the AST.
+    expr_kinds: MutableMap(string, string)
 }
 
 /// Across the whole project — multi-module aggregation. Populated by
@@ -76,6 +82,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .type_expr_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .struct_decls    = MutableMap(i32, StructDecl) { .buckets = [], .size = 0 },
         .narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 },
+        .expr_kinds      = MutableMap(string, string) { .buckets = [], .size = 0 },
     }
 }
 

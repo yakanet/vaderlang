@@ -18,7 +18,7 @@
 //     variant so future passes plug in cleanly.
 
 import "vader/diagnostics/diagnostic" { Diagnostic }
-import "vader/resolver/scope" { span_key }
+import "vader/resolver/scope" { span_full_key, span_key }
 AST :: import "vader/parser/ast"
 import "vader/typecheck/types" { Type, FreeIntType, FreeFloatType, TY_UNRESOLVED }
 import "vader/typecheck/type_ops" { narrow_for_expected }
@@ -56,8 +56,41 @@ export check_expr :: fn(
 ) -> Type {
     got :: infer_expr(expr, expected, typed, diags)
     final :: narrow_for_expected(got, expected)
-    typed.expr_types[span_key(expr.span)] = final
+    key :: span_full_key(expr.span)
+    typed.expr_types[key] = final
+    typed.expr_kinds[key] = expr_kind_name(expr)
     return final
+}
+
+/// Map an `AST.Expr` to its variant name as a string (matches the TS
+/// `expr.kind` field). Used by the typed-ast dump.
+export expr_kind_name :: fn(e: AST.Expr) -> string = match e {
+    is AST.IntLitExpr        -> "IntLitExpr"
+    is AST.FloatLitExpr      -> "FloatLitExpr"
+    is AST.BoolLitExpr       -> "BoolLitExpr"
+    is AST.NullLitExpr       -> "NullLitExpr"
+    is AST.CharLitExpr       -> "CharLitExpr"
+    is AST.StringLitExpr     -> "StringLitExpr"
+    is AST.IdentExpr         -> "IdentExpr"
+    is AST.BlockExpr         -> "BlockExpr"
+    is AST.IfExpr            -> "IfExpr"
+    is AST.MatchExpr         -> "MatchExpr"
+    is AST.CallExpr          -> "CallExpr"
+    is AST.BinaryExpr        -> "BinaryExpr"
+    is AST.UnaryExpr         -> "UnaryExpr"
+    is AST.FieldExpr         -> "FieldExpr"
+    is AST.IndexExpr         -> "IndexExpr"
+    is AST.StructLitExpr     -> "StructLitExpr"
+    is AST.SeqLitExpr        -> "SeqLitExpr"
+    is AST.RangeExpr         -> "RangeExpr"
+    is AST.DotVariantExpr    -> "DotVariantExpr"
+    is AST.LambdaExpr        -> "LambdaExpr"
+    is AST.TryExpr           -> "TryExpr"
+    is AST.CastExpr          -> "CastExpr"
+    is AST.GenericInstExpr   -> "GenericInstExpr"
+    is AST.IntrinsicCallExpr -> "IntrinsicCallExpr"
+    is AST.ArrayTypeExpr     -> "ArrayTypeExpr"
+    is AST.FnTypeExpr        -> "FnTypeExpr"
 }
 
 infer_expr :: fn(
@@ -113,7 +146,7 @@ test_check_expr_writes_into_expr_types :: fn() -> void {
     }
     diags: Diagnostic[] = []
     check_expr(e, null, typed, diags)
-    hit :: typed.expr_types[span_key(e.span)]
+    hit :: typed.expr_types[span_full_key(e.span)]
     match hit {
         is null -> { assert(false, "expr_types should have an entry") }
         is FreeIntType -> {}

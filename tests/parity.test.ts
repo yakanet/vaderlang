@@ -33,8 +33,7 @@ const STAGES: Stage[] = [
   { label: "lexer", dumpStage: "lexer", snapshotFile: "lexer.snapshot", skip: new Set() },
   { label: "parser", dumpStage: "ast", snapshotFile: "parser.snapshot", skip: new Set() },
   { label: "resolver", dumpStage: "resolved-ast", snapshotFile: "resolver.snapshot", skip: new Set() },
-  // `typecheck` stage is activated when the Vader-side typechecker
-  // produces a typed-ast dump (Phase 1 of the typecheck port).
+  { label: "typecheck", dumpStage: "typed-ast", snapshotFile: "typecheck.snapshot", skip: new Set() },
 ];
 
 const scenarios = listSnippets("tests/snippets");
