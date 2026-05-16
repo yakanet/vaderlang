@@ -91,7 +91,7 @@
   },
   "map_iter": {
     "vader-native": {
-      "minMs": 22.63312500000029,
+      "minMs": 9.7,
       "checksum": "map_iter inner=1000 outer=1000 total=499500000"
     },
     "bun-ts": {

@@ -200,10 +200,12 @@ function newLowerProjectCtx(input: CompileInput): LowerProjectCtx {
   // pass over ≤ stdlib-module-count and `lowerProject` itself does this too.
   let coreSymbols: ReadonlyMap<string, Symbol> | null = null;
   let iterSymbols: ReadonlyMap<string, Symbol> | null = null;
+  let collectionsSymbols: ReadonlyMap<string, Symbol> | null = null;
   for (const program of input.project.modules.values()) {
     const path = program.resolved.module.displayPath;
     if (path === "std/core") coreSymbols = program.resolved.module.symbols;
     else if (path === "std/iter") iterSymbols = program.resolved.module.symbols;
+    else if (path === "std/collections") collectionsSymbols = program.resolved.module.symbols;
   }
   const mono: MonoProject = {
     entries: [], lookupByInstance: new Map(),
@@ -216,6 +218,7 @@ function newLowerProjectCtx(input: CompileInput): LowerProjectCtx {
     coreTraitCache: new Map(),
     coreSymbols,
     iterSymbols,
+    collectionsSymbols,
     closures: { capturedSymbols: new Set(), lambdaCaptures: new Map() },
     synthDecls: [],
     nextSyntheticId: 1,

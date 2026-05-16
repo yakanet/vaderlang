@@ -30,6 +30,11 @@ export interface LowerProjectCtx {
    *  `SkipIterator` struct lits as a fuseable chain. Null when the project
    *  doesn't import std/iter (in which case fusion never fires). */
   readonly iterSymbols: ReadonlyMap<string, Symbol> | null;
+  /** std/collections's symbol table — needed by the for-in `MutableMap` /
+   *  `MutableSet` inline path to look up `Entry` (for cast + field access)
+   *  and confirm the source struct name. Null when the project doesn't
+   *  import std/collections (inlining never fires in that case). */
+  readonly collectionsSymbols: ReadonlyMap<string, Symbol> | null;
   /** Free-variable analysis output. Lets the lowerer detect captured locals
    *  and rewrite their declarations / reads / writes through closure cells. */
   readonly closures: ClosureAnalysis;

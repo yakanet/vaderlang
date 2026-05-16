@@ -8,7 +8,7 @@ import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { ImplEntry } from "../../typecheck/impls.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_STRUCTS, CORE_TRAITS, TY, canonicalArgsKey, displayType, isInteger, substitute } from "../../typecheck/types.ts";
+import { CORE_STRUCTS, CORE_TRAITS, TY, canonicalArgsKey, displayType, isInteger, mkArray, mkStruct, mkUnion, substitute } from "../../typecheck/types.ts";
 import type { MonoEntry } from "../../comptime/specialize.ts";
 
 import type { FnLowerCtx, LowerProjectCtx } from "../ctx.ts";
@@ -79,6 +79,15 @@ export function lowerForIn(
     const fused = tryLowerForInIterChainFusion(ctx, stmt, iterExpr, bindingName, bindingSym);
     if (fused !== null) return fused;
   }
+
+  // Fast path : `for entry in m` over `MutableMap(K, V)` (or `for v in s`
+  // over `MutableSet(T)`). Inlines the bucket-walk + chain-traversal that
+  // `MapIterator.next()` / `SetIterator.next()` would do per call, so the
+  // loop body sees the entry directly — no per-iter `Yield(...)` alloc, no
+  // direct call, no MapIterator struct alloc. Mirrors the `Range` fast path's
+  // role in avoiding the generic Iterator dispatch for a well-known shape.
+  const mapSetInline = tryLowerForInMapSetIterInline(ctx, stmt, iterExpr, bindingName, bindingSym);
+  if (mapSetInline !== null) return mapSetInline;
 
   let iterLowered = lowerExpr(ctx, iterExpr);
   let iterType = iterLowered.type;
@@ -628,6 +637,229 @@ function prependIncBeforeMatchingContinue(
   }
 
   return rewriteBlock(block, false);
+}
+
+// =========================================================================
+// MutableMap / MutableSet iter inline — `for entry in m` / `for v in s` over
+// a known map/set type emits a flat bucket-walk + chain-traversal loop
+// instead of going through the generic `Iterator(...).next()` path.
+// =========================================================================
+
+/** Recognise `for entry in m { body }` where `m`'s static type is
+ *  `MutableMap(K, V)` (or `MutableSet(T)` for the symmetric case) and
+ *  emit the bucket / chain walk inline. Skips :
+ *   - the `MapIterator(K, V)` struct allocation,
+ *   - the per-iter `MapIterator.next()` call,
+ *   - the per-iter `Yield(Entry(K, V))` allocation,
+ *  collapsing the whole loop body into a single hot path.
+ *
+ *  Returns null when the source isn't a recognised map/set, or when
+ *  std/collections / `Entry` aren't reachable in the project. */
+function tryLowerForInMapSetIterInline(
+  ctx: FnLowerCtx, stmt: A.ForStmt, iterExpr: A.Expr,
+  bindingName: string, bindingSym: Symbol | undefined,
+): LoweredStmt | null {
+  if (bindingSym === undefined) return null;
+  const collSyms = ctx.project.collectionsSymbols;
+  if (collSyms === null) return null;
+
+  // The into-coercion records both the source type (the user's map/set) and
+  // the target trait — its presence tells us we're at a for-in site that
+  // would otherwise route through the auto-wrap into-iterator path.
+  const coercion = ctx.typed.intoCoercions.get(iterExpr);
+  if (coercion === undefined) return null;
+  const sourceType = ctx.types.apply(coercion.sourceType);
+  if (sourceType.kind !== "Struct") return null;
+
+  const mapStructSym = collSyms.get("MutableMap");
+  const setStructSym = collSyms.get("MutableSet");
+  const entrySym = collSyms.get("Entry");
+  if (entrySym === undefined) return null;
+  const isMap = mapStructSym !== undefined && sourceType.symbol.id === mapStructSym.id;
+  const isSet = setStructSym !== undefined && sourceType.symbol.id === setStructSym.id;
+  if (!isMap && !isSet) return null;
+
+  // Resolve the type-param fillings for the Entry instantiation :
+  //   - Map(K, V)  → Entry(K, V)  ; user binding ← entry
+  //   - Set(T)     → Entry(T, bool); user binding ← entry.key
+  const entryArgs: readonly Type[] = isMap
+    ? sourceType.args
+    : [sourceType.args[0]!, TY.bool];
+  if (entryArgs.length !== 2) return null;
+  const entryType = mkStruct(entrySym, entryArgs);
+  const entryOrNull = mkUnion([entryType, TY.null]);
+  const bucketsArrayType = mkArray(entryOrNull);
+  const bindingValueType: Type = isMap ? entryType : sourceType.args[0]!;
+
+  const span = stmt.span;
+
+  // All bailout conditions cleared above — commit to the inline. The iter
+  // expr is lowered exactly once here (would be re-lowered by the standard
+  // path if we returned null after this point, doubling capture-analysis
+  // side effects). The `intoCoercion` we verified means `wrapAsInto` will
+  // produce `LoweredCall { callee, args: [src] }` — peel `args[0]` to get
+  // the bare `MutableMap` / `MutableSet` value.
+  const wrappedIter = lowerExpr(ctx, iterExpr);
+  const srcLowered: LoweredExpr =
+    wrappedIter.kind === "LoweredCall" && wrappedIter.args.length === 1
+      ? wrappedIter.args[0]!
+      : wrappedIter;
+
+  // Hoist the source value once. Avoids re-evaluating `iterExpr` (which
+  // could be a call) every time we read .buckets / .inner.buckets below,
+  // and gives the bucket array its own slot for fast indexing.
+  const srcSym = freshSyntheticSymbol(ctx, "iter_src");
+  const srcRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: sourceType, symbol: srcSym,
+  });
+  const srcLet: LoweredStmt = {
+    kind: "LoweredLet", span, name: srcSym.name, symbol: srcSym,
+    type: sourceType, value: srcLowered,
+  };
+
+  let bucketsExpr: LoweredExpr;
+  if (isMap) {
+    bucketsExpr = {
+      kind: "LoweredFieldAccess", span, type: bucketsArrayType,
+      target: srcRef(), field: "buckets",
+    };
+  } else {
+    const innerMapType = mapStructSym !== undefined
+      ? mkStruct(mapStructSym, entryArgs)
+      : TY.unresolved;
+    const innerAccess: LoweredExpr = {
+      kind: "LoweredFieldAccess", span, type: innerMapType,
+      target: srcRef(), field: "inner",
+    };
+    bucketsExpr = {
+      kind: "LoweredFieldAccess", span, type: bucketsArrayType,
+      target: innerAccess, field: "buckets",
+    };
+  }
+  const bucketsSym = freshSyntheticSymbol(ctx, "iter_buckets");
+  const bucketsRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: bucketsArrayType, symbol: bucketsSym,
+  });
+  const bucketsLet: LoweredStmt = {
+    kind: "LoweredLet", span, name: bucketsSym.name, symbol: bucketsSym,
+    type: bucketsArrayType, value: bucketsExpr,
+  };
+
+  const bucketsLenSym = freshSyntheticSymbol(ctx, "iter_buckets_len");
+  const bucketsLenRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: TY.usize, symbol: bucketsLenSym,
+  });
+  const bucketsLenLet: LoweredStmt = {
+    kind: "LoweredLet", span, name: bucketsLenSym.name, symbol: bucketsLenSym,
+    type: TY.usize,
+    value: { kind: "LoweredArrayLen", span, type: TY.usize, target: bucketsRef() },
+  };
+
+  const bucketCursorSym = freshSyntheticSymbol(ctx, "iter_bucket");
+  const bucketCursorRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: TY.usize, symbol: bucketCursorSym,
+  });
+  const bucketCursorLet: LoweredStmt = {
+    kind: "LoweredLet", span, name: bucketCursorSym.name, symbol: bucketCursorSym,
+    type: TY.usize,
+    value: { kind: "LoweredIntLit", span, type: TY.usize, value: 0n },
+  };
+
+  const chainCursorSym = freshSyntheticSymbol(ctx, "iter_chain");
+  const chainCursorRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: entryOrNull, symbol: chainCursorSym,
+  });
+  const chainCursorLet: LoweredStmt = {
+    kind: "LoweredLet", span, name: chainCursorSym.name, symbol: chainCursorSym,
+    type: entryOrNull,
+    value: { kind: "LoweredNullLit", span, type: TY.null },
+  };
+
+  const chainIsNull: LoweredExpr = {
+    kind: "LoweredTypeCheck", span, type: TY.bool, value: chainCursorRef(), checkType: TY.null,
+  };
+
+  const bucketOob: LoweredExpr = {
+    kind: "LoweredBinary", span, type: TY.bool, op: "gte",
+    left: bucketCursorRef(), right: bucketsLenRef(),
+  };
+  const breakStmt: LoweredStmt = { kind: "LoweredBreak", span, label: null };
+  const oobIf: LoweredStmt = {
+    kind: "LoweredExprStmt", span, expr: {
+      kind: "LoweredIf", span, type: TY.void, cond: bucketOob,
+      then: { kind: "LoweredBlock", span, type: TY.void, stmts: [breakStmt], trailing: null },
+      else: null,
+    },
+  };
+  const chainAdvance: LoweredStmt = {
+    kind: "LoweredAssign", span, target: chainCursorRef(),
+    value: {
+      kind: "LoweredIndex", span, type: entryOrNull,
+      target: bucketsRef(), index: bucketCursorRef(),
+    },
+  };
+  const bucketInc: LoweredStmt = {
+    kind: "LoweredAssign", span, target: bucketCursorRef(),
+    value: {
+      kind: "LoweredBinary", span, type: TY.usize, op: "add",
+      left: bucketCursorRef(),
+      right: { kind: "LoweredIntLit", span, type: TY.usize, value: 1n },
+    },
+  };
+  const advanceBranch: LoweredBlock = {
+    kind: "LoweredBlock", span, type: TY.void,
+    stmts: [oobIf, chainAdvance, bucketInc], trailing: null,
+  };
+
+  // Step the chain cursor BEFORE running the user body so a `continue`
+  // inside the body doesn't strand us re-reading the same node forever.
+  const entryTmpSym = freshSyntheticSymbol(ctx, "iter_entry");
+  const entryTmpRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: entryType, symbol: entryTmpSym,
+  });
+  const entryCast: LoweredExpr = {
+    kind: "LoweredCast", span, type: entryType, value: chainCursorRef(),
+  };
+  const entryTmpLet: LoweredStmt = {
+    kind: "LoweredLet", span, name: entryTmpSym.name, symbol: entryTmpSym,
+    type: entryType, value: entryCast,
+  };
+  const chainStep: LoweredStmt = {
+    kind: "LoweredAssign", span, target: chainCursorRef(),
+    value: {
+      kind: "LoweredFieldAccess", span, type: entryOrNull,
+      target: entryTmpRef(), field: "next",
+    },
+  };
+  const bindValue: LoweredExpr = isMap
+    ? entryTmpRef()
+    : { kind: "LoweredFieldAccess", span, type: bindingValueType, target: entryTmpRef(), field: "key" };
+  const bindingLet: LoweredStmt = {
+    kind: "LoweredLet", span, name: bindingName, symbol: bindingSym,
+    type: bindingValueType, value: bindValue,
+  };
+  const userBody = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ true);
+  const bodyBranch: LoweredBlock = {
+    kind: "LoweredBlock", span, type: TY.void,
+    stmts: [entryTmpLet, chainStep, bindingLet, ...blockStmtsWithTrailing(userBody)],
+    trailing: null,
+  };
+
+  const stepIf: LoweredStmt = {
+    kind: "LoweredExprStmt", span, expr: {
+      kind: "LoweredIf", span, type: TY.void, cond: chainIsNull,
+      then: advanceBranch, else: bodyBranch,
+    },
+  };
+
+  const loop: LoweredStmt = {
+    kind: "LoweredLoop", span, label: stmt.label, cond: null,
+    body: { kind: "LoweredBlock", span, type: TY.void, stmts: [stepIf], trailing: null },
+  };
+
+  return wrapStmts(span, [
+    srcLet, bucketsLet, bucketsLenLet, bucketCursorLet, chainCursorLet, loop,
+  ]);
 }
 
 interface StepImpl {
