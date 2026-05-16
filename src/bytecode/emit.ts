@@ -248,10 +248,21 @@ export function declareLocal(fn: FnEmitCtx, name: string, val: ValType): number 
 // Generic instances key on `(symbol.id, args…)` so `List(i32)` and
 // `List(i64)` keep distinct slots ; recursive args reuse this helper so
 // nested same-name structs still disambiguate.
+function symbolKey(sym: { id: number; definedAt: Span | null }): string {
+  const at = sym.definedAt;
+  if (at === null) return `id${sym.id}`;
+  return `${at.start.file}:${at.start.offset}`;
+}
+
 function typeInternKey(t: Type): string {
   switch (t.kind) {
-    case "Struct": return `Struct#${t.symbol.id}<${t.args.map(typeInternKey).join("|")}>`;
-    case "Trait":  return `Trait#${t.symbol.id}<${t.args.map(typeInternKey).join("|")}>`;
+    // Key structs / traits by source position when available so a namespace-
+    // imported `AST.ConstDecl` and a direct-imported `ConstDecl` collapse
+    // into one slot. `Symbol.id` would mint two distinct slots (the resolver
+    // produces a fresh symbol per import shape) ; the `equalsType` fallback
+    // already trusts source position, the bytecode emit needs the same path.
+    case "Struct": return `Struct#${symbolKey(t.symbol)}<${t.args.map(typeInternKey).join("|")}>`;
+    case "Trait":  return `Trait#${symbolKey(t.symbol)}<${t.args.map(typeInternKey).join("|")}>`;
     // Enums lower to their `repr` primitive at the bcType level, so they
     // must share a slot with the bare primitive — otherwise
     // `primitiveTagOf` (which last-wins over every `primitive` entry)
