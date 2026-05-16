@@ -11,8 +11,6 @@
             .keys :string[]
               self :Cell
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_1: Yield(string) | null =
@@ -66,8 +64,6 @@
             .keys :string[]
               self :Cell
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_1: Yield(string) | null =

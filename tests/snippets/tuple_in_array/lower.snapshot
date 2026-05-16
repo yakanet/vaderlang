@@ -21,8 +21,6 @@
         ArrayIterator([i32, string]) {
           arr: rows :[i32, string][]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_1: Yield([i32, string]) | null =

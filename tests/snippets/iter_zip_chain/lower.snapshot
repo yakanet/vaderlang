@@ -81,8 +81,6 @@
         ArrayIterator([string, i32]) {
           arr: pairs :[string, i32][]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_3: Yield([string, i32]) | null =
@@ -150,8 +148,6 @@
         ArrayIterator(i32) {
           arr: joined :i32[]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_7: Yield(i32) | null =
@@ -193,69 +189,64 @@
         "banana" :string
         "cherry" :string
     block :void
-      let __iter_10: ArrayIterator([usize, string]) =
-        block :ArrayIterator([usize, string])
-          let __arr_9: [usize, string][] =
+      let __iter_9: ArrayIterator([usize, string]) =
+        ArrayIterator([usize, string]) {
+          arr:
             call :[usize, string][]
               callee:
                 enumerate :[usize, string][]
               arg0:
                 fruits :string[]
-          ~>
-            ArrayIterator([usize, string]) {
-              arr: __arr_9 :[usize, string][]
-              cursor: int(0) :usize
-              length:
-                LoweredArrayLen
-            }
+          cursor: int(0) :usize
+        }
       loop
-        let __step_11: Yield([usize, string]) | null =
+        let __step_10: Yield([usize, string]) | null =
           call :Yield([usize, string]) | null
             callee:
               next :?
             arg0:
-              __iter_10 :ArrayIterator([usize, string])
+              __iter_9 :ArrayIterator([usize, string])
         if :void
           cond:
             is null :bool
-              __step_11 :Yield([usize, string]) | null
+              __step_10 :Yield([usize, string]) | null
           then:
             break
           else:
             let __for_29_5: [usize, string] =
               .value :[usize, string]
                 cast → Yield([usize, string])
-                  __step_11 :Yield([usize, string]) | null
-            let __tup_12: [usize, string] = __for_29_5 :[usize, string]
+                  __step_10 :Yield([usize, string]) | null
+            let __tup_11: [usize, string] = __for_29_5 :[usize, string]
             let i: usize =
               ._0 :usize
-                __tup_12 :[usize, string]
+                __tup_11 :[usize, string]
             let f: string =
               ._1 :string
-                __tup_12 :[usize, string]
+                __tup_11 :[usize, string]
             call :void
               callee:
                 println :fn(string) -> void
               arg0:
                 block :string
-                  let __sb_13: ? =
+                  let __sb_12: ? =
                     @builder.new :?
                   @builder.append_str :void
-                    __sb_13 :?
+                    __sb_12 :?
                     call :string
                       callee:
                         to_string :string
                       arg0:
                         i :usize
                   @builder.append_str :void
-                    __sb_13 :?
+                    __sb_12 :?
                     ": " :string
                   @builder.append_display <for string> :void
-                    __sb_13 :?
+                    __sb_12 :?
                     f :string
                   ~>
                     @builder.finish :string
-                      __sb_13 :?
+                      __sb_12 :?
     let bursts: i32[] =
       call :i32[]
         callee:
@@ -268,50 +259,48 @@
         arg1:
           LoweredMakeClosure
     block :void
-      let __iter_15: ArrayIterator(i32) =
+      let __iter_14: ArrayIterator(i32) =
         ArrayIterator(i32) {
           arr: bursts :i32[]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
-        let __step_16: Yield(i32) | null =
+        let __step_15: Yield(i32) | null =
           call :Yield(i32) | null
             callee:
               next :?
             arg0:
-              __iter_15 :ArrayIterator(i32)
+              __iter_14 :ArrayIterator(i32)
         if :void
           cond:
             is null :bool
-              __step_16 :Yield(i32) | null
+              __step_15 :Yield(i32) | null
           then:
             break
           else:
             let n: i32 =
               .value :i32
                 cast → Yield(i32)
-                  __step_16 :Yield(i32) | null
+                  __step_15 :Yield(i32) | null
             call :void
               callee:
                 println :fn(string) -> void
               arg0:
                 block :string
-                  let __sb_17: ? =
+                  let __sb_16: ? =
                     @builder.new :?
                   @builder.append_str :void
-                    __sb_17 :?
+                    __sb_16 :?
                     "b=" :string
                   @builder.append_display <for i32> :void
-                    __sb_17 :?
+                    __sb_16 :?
                     n :i32
                   ~>
                     @builder.finish :string
-                      __sb_17 :?
+                      __sb_16 :?
     return int(0) :i32
-  struct __lambda_env_16 {  }
-  fn __lambda_15(__env_14: __lambda_env_16, x: i32) -> i32[]
+  struct __lambda_env_15 {  }
+  fn __lambda_14(__env_13: __lambda_env_15, x: i32) -> i32[]
     ~>
       array :i32[]
         x :i32

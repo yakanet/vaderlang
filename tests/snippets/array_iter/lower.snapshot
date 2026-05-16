@@ -14,8 +14,6 @@
         ArrayIterator(i32) {
           arr: arr :i32[]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_1: Yield(i32) | null =
@@ -71,8 +69,6 @@
         ArrayIterator(i32) {
           arr: empty :i32[]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_4: Yield(i32) | null =

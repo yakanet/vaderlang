@@ -21,8 +21,6 @@
         ArrayIterator([string, i32]) {
           arr: pairs :[string, i32][]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_1: Yield([string, i32]) | null =

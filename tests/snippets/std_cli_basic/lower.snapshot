@@ -215,8 +215,6 @@
             .errors :string[]
               bad :ParsedArgs
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_9: Yield(string) | null =

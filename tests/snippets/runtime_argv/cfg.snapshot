@@ -15,14 +15,13 @@ fn tests_snippets_runtime_argv__main_vader$main(%0: string[]) -> i32
     %8 $intrinsic_8: string
     %9 first: bool (local first)
     %10 $k_11: usize
-    %11 $len_12: usize
-    %12 __iter_1: ArrayIterator(string) (synthetic __iter_1)
-    %13 $call_15: Yield(string) | null
-    %14 __step_2: Yield(string) | null (synthetic __step_2)
-    %15 $type_check_17: bool
-    %16 $cast_18: Yield(string)
-    %17 s: string (binding s)
-    %18 $k_22: i32
+    %11 __iter_1: ArrayIterator(string) (synthetic __iter_1)
+    %12 $call_14: Yield(string) | null
+    %13 __step_2: Yield(string) | null (synthetic __step_2)
+    %14 $type_check_16: bool
+    %15 $cast_17: Yield(string)
+    %16 s: string (binding s)
+    %17 $k_21: i32
   bb0:
     %1 = intrinsic builder.new()
     %2 = move %1
@@ -37,24 +36,23 @@ fn tests_snippets_runtime_argv__main_vader$main(%0: string[]) -> i32
     call println(%8) :void
     %9 = const bool(true) :bool
     %10 = const int(0) :usize
-    %11 = array_len %0
-    %12 = struct_new ArrayIterator(string)(%0, %10, %11)
+    %11 = struct_new ArrayIterator(string)(%0, %10)
     branch -> bb1
   bb1:
     branch -> bb2
   bb2:
-    %13 = call next(%12) :Yield(string) | null
-    %14 = move %13
-    %15 = type_check %14 is null
-    cond_branch %15 ? bb4 : bb5
+    %12 = call next(%11) :Yield(string) | null
+    %13 = move %12
+    %14 = type_check %13 is null
+    cond_branch %14 ? bb4 : bb5
   bb3:
-    %18 = const int(0) :i32
-    return %18
+    %17 = const int(0) :i32
+    return %17
   bb4:
     branch -> bb3
   bb5:
-    %16 = cast %14 :Yield(string)
-    %17 = field_get %16.value :string
+    %15 = cast %13 :Yield(string)
+    %16 = field_get %15.value :string
     cond_branch %9 ? bb7 : bb8
   bb6:
     branch -> bb1
@@ -62,7 +60,7 @@ fn tests_snippets_runtime_argv__main_vader$main(%0: string[]) -> i32
     %9 = const bool(false) :bool
     branch -> bb9
   bb8:
-    call println(%17) :void
+    call println(%16) :void
     branch -> bb9
   bb9:
     branch -> bb6

@@ -234,18 +234,15 @@ Range[T] implements[T: Comparable & Step] Iterator[T] {
 }
 
 /// Iterator over a `T[]`. The lowerer auto-wraps array exprs flowing into
-/// `for x in arr`, so direct construction is rarely needed. `length` is
-/// pre-computed at construction time so `step` avoids re-querying
-/// `arr.len()` per iteration.
+/// `for x in arr`, so direct construction is rarely needed.
 export ArrayIterator :: struct[T] {
     arr:    T[]
     cursor: usize
-    length: usize
 }
 
 ArrayIterator[T] implements Iterator[T] {
     next :: fn(self) -> Yield(T) | null {
-        if (self.cursor >= self.length) { return null }
+        if (self.cursor >= self.arr.len()) { return null }
         v :: self.arr[self.cursor]
         self.cursor = self.cursor + 1
         return Yield(T) { .value = v }
@@ -257,7 +254,7 @@ ArrayIterator[T] implements Iterator[T] {
 
 T[] implements[T] Into(Iterator(T)) {
     into :: fn(self) -> Iterator(T) {
-        return ArrayIterator(T) { .arr = self, .cursor = usize(0), .length = self.len() }
+        return ArrayIterator(T) { .arr = self, .cursor = usize(0) }
     }
 }
 

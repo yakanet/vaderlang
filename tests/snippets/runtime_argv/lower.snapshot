@@ -32,8 +32,6 @@
         ArrayIterator(string) {
           arr: argv :string[]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_2: Yield(string) | null =

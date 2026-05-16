@@ -44,8 +44,6 @@
         ArrayIterator(i32) {
           arr: s1 :i32[]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_2: Yield(i32) | null =
@@ -120,8 +118,6 @@
         ArrayIterator(i32) {
           arr: s2 :i32[]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_6: Yield(i32) | null =
@@ -217,8 +213,6 @@
         ArrayIterator(i32) {
           arr: s3 :i32[]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_11: Yield(i32) | null =
@@ -288,8 +282,6 @@
         ArrayIterator(i32) {
           arr: s4 :i32[]
           cursor: int(0) :usize
-          length:
-            LoweredArrayLen
         }
       loop
         let __step_15: Yield(i32) | null =

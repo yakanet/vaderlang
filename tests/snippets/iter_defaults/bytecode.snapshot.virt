@@ -220,29 +220,29 @@ end
 fn 3 std_core$i32$Comparable$compare (i32,i32) -> i32
   local if_res i32
   local if_res i32
-  local.get 0   ; core.vader:351:35
-  local.get 1   ; core.vader:351:35
-  i32.lt   ; core.vader:351:35
-  if $L0 void   ; core.vader:351:32
-    i32.const 1   ; core.vader:351:51
-    i32.neg   ; core.vader:351:50
-    local.set 2   ; core.vader:351:50
-  else   ; core.vader:351:32
-    local.get 0   ; core.vader:351:63
-    local.get 1   ; core.vader:351:63
-    i32.gt   ; core.vader:351:63
-    if $L1 void   ; core.vader:351:60
-      i32.const 1   ; core.vader:351:78
-      local.set 3   ; core.vader:351:78
-    else   ; core.vader:351:60
-      i32.const 0   ; core.vader:351:89
-      local.set 3   ; core.vader:351:89
-    end $L1   ; core.vader:351:60
-    local.get 3   ; core.vader:351:60
-    local.set 2   ; core.vader:351:60
-  end $L0   ; core.vader:351:32
-  local.get 2   ; core.vader:351:29
-  return   ; core.vader:351:29
+  local.get 0   ; core.vader:348:35
+  local.get 1   ; core.vader:348:35
+  i32.lt   ; core.vader:348:35
+  if $L0 void   ; core.vader:348:32
+    i32.const 1   ; core.vader:348:51
+    i32.neg   ; core.vader:348:50
+    local.set 2   ; core.vader:348:50
+  else   ; core.vader:348:32
+    local.get 0   ; core.vader:348:63
+    local.get 1   ; core.vader:348:63
+    i32.gt   ; core.vader:348:63
+    if $L1 void   ; core.vader:348:60
+      i32.const 1   ; core.vader:348:78
+      local.set 3   ; core.vader:348:78
+    else   ; core.vader:348:60
+      i32.const 0   ; core.vader:348:89
+      local.set 3   ; core.vader:348:89
+    end $L1   ; core.vader:348:60
+    local.get 3   ; core.vader:348:60
+    local.set 2   ; core.vader:348:60
+  end $L0   ; core.vader:348:32
+  local.get 2   ; core.vader:348:29
+  return   ; core.vader:348:29
 end
 
 fn 4 std_core$i32$Comparable$gt (i32,i32) -> bool
@@ -270,10 +270,10 @@ fn 5 std_core$i32$Comparable$gte (i32,i32) -> bool
 end
 
 fn 6 std_core$i32$Step$step (i32) -> i32
-  local.get 0   ; core.vader:369:26
-  i32.const 1   ; core.vader:369:26
-  i32.add   ; core.vader:369:26
-  return   ; core.vader:369:23
+  local.get 0   ; core.vader:366:26
+  i32.const 1   ; core.vader:366:26
+  i32.add   ; core.vader:366:26
+  return   ; core.vader:366:23
 end
 
 fn 7 std_core$Range$Iterator$next__i32 (ref) -> ref
@@ -436,21 +436,21 @@ fn 10 std_core$Range$Iterator$last__i32 (ref) -> ref
 end
 
 fn 11 std_core$T$Into$into__usize (usize) -> string
-  local.get 0   ; core.vader:266:16
-  call.import 1   ; core.vader:266:16
-  return   ; core.vader:266:9
+  local.get 0   ; core.vader:263:16
+  call.import 1   ; core.vader:263:16
+  return   ; core.vader:263:9
 end
 
 fn 12 std_core$T$Into$into__i32 (i32) -> string
-  local.get 0   ; core.vader:266:16
-  call.import 0   ; core.vader:266:16
-  return   ; core.vader:266:9
+  local.get 0   ; core.vader:263:16
+  call.import 0   ; core.vader:263:16
+  return   ; core.vader:263:9
 end
 
 fn 13 std_core$T$Into$into__bool (bool) -> string
-  local.get 0   ; core.vader:266:16
-  call.import 2   ; core.vader:266:16
-  return   ; core.vader:266:9
+  local.get 0   ; core.vader:263:16
+  call.import 2   ; core.vader:263:16
+  return   ; core.vader:263:9
 end
 
 ; round-trip MISMATCH
