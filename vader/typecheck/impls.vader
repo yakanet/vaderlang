@@ -1,0 +1,202 @@
+// vader/typecheck/impls — registry of `T implements Trait { ... }` blocks.
+//
+// Mirror of `src/typecheck/impls.ts`. The type-checker queries this when
+// validating `where T: Trait` bounds, trait dispatch (operator resolution,
+// UFCS method dispatch on trait-typed receivers), and `Into`-coercion.
+//
+// MVP-trimmed against the TS reference :
+//   - No primitive-target impl lookup (`forPrimitive`) — primitive impls
+//     don't exist in test fixtures the Vader typechecker exercises yet ;
+//     adds when `i32 implements Display` cases land.
+//   - No core-trait-by-name resolution (`coreTrait`) — needed by trait
+//     widening over `std/core` references ; lands with wire.vader.
+//   - No `forArgsKey` discrimination on generic targets : every impl
+//     for `Foo` matches every concrete `Foo(args)`. Adds when the test
+//     corpus surfaces a generic conflict.
+
+import "std/collections" { MutableMap }
+import "vader/parser/ast" { ImplDecl, Decl, IdentExpr, GenericInstExpr, TypeExpr }
+import "vader/resolver/resolve" { ResolvedModule }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck/types" { Type, StructType, EnumType, TraitType }
+
+/// One `T implements Trait { ... }` block, indexed by the registry.
+export ImplEntry :: struct {
+    decl:         ImplDecl
+    trait_symbol: Symbol         // SymbolKind.Trait
+    for_symbol:   Symbol | null  // null when the target is a primitive
+}
+
+/// Project-wide registry. Built once by `build_impl_registry` ; queried
+/// by the typechecker and (later) the lowerer.
+export ImplRegistry :: struct {
+    /// Key : `"${for_symbol.id}::${trait_symbol.id}"`. Concrete-target
+    /// entries land here ; primitive-target lookup deferred (see file
+    /// header).
+    user_index: MutableMap(string, ImplEntry)
+    /// Every entry the registry has seen — used by the lowerer to drive
+    /// virtual dispatch over trait-typed receivers.
+    all:        ImplEntry[]
+}
+
+export new_registry :: fn() -> ImplRegistry {
+    return ImplRegistry {
+        .user_index = MutableMap(string, ImplEntry) { .buckets = [], .size = 0 },
+        .all        = [],
+    }
+}
+
+/// Walk every decl in `program_decls`, harvest `ImplDecl`s, resolve their
+/// trait + for-type symbols via `resolved`, and register one entry per
+/// impl. Idempotent if the same `decls` array is passed twice.
+export build_impl_registry :: fn(
+    program_decls: Decl[], resolved: ResolvedModule,
+) -> ImplRegistry {
+    reg :: new_registry()
+    by_name :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    for s in resolved.symbols { by_name[s.name] = s }
+    for d in program_decls {
+        match d {
+            is ImplDecl as impl_ -> { reg.collect_impl(impl_, by_name) }
+            _ -> {}
+        }
+    }
+    return reg
+}
+
+collect_impl :: fn(
+    self: ImplRegistry, impl_: ImplDecl, by_name: MutableMap(string, Symbol),
+) -> void {
+    trait_sym :: by_name[impl_.trait_name]
+    if trait_sym is null { return }
+    if i32(trait_sym.kind) != i32(SymbolKind.Trait) { return }
+    for_sym :: for_type_symbol(impl_.for_type, by_name)
+    entry :: ImplEntry {
+        .decl = impl_,
+        .trait_symbol = trait_sym,
+        .for_symbol = for_sym,
+    }
+    if for_sym is Symbol {
+        self.user_index["${for_sym.id}::${trait_sym.id}"] = entry
+    }
+    self.all.push(entry)
+}
+
+/// Resolve the target type's nominal symbol — null when the target is a
+/// primitive, an unresolved name, or a shape we don't accept (Array, Fn,
+/// TypeParam, etc.).
+for_type_symbol :: fn(
+    for_type: TypeExpr, by_name: MutableMap(string, Symbol),
+) -> Symbol | null {
+    match for_type {
+        is IdentExpr as id -> { return resolve_target(id.name, by_name) }
+        is GenericInstExpr as gi -> {
+            match gi.callee {
+                is IdentExpr as id -> { return resolve_target(id.name, by_name) }
+                _ -> { return null }
+            }
+        }
+        _ -> { return null }
+    }
+}
+
+resolve_target :: fn(name: string, by_name: MutableMap(string, Symbol)) -> Symbol | null {
+    sym :: by_name[name]
+    if sym is null { return null }
+    k :: i32(sym.kind)
+    if k == i32(SymbolKind.Struct) { return sym }
+    if k == i32(SymbolKind.Enum) { return sym }
+    if k == i32(SymbolKind.TypeAlias) { return sym }
+    return null
+}
+
+// ---- query API ------------------------------------------------------------
+
+/// True iff a user impl `for_sym implements trait_sym` exists.
+export has_user :: fn(self: ImplRegistry, for_sym: Symbol, trait_sym: Symbol) -> bool {
+    return self.find_user(for_sym, trait_sym) is ImplEntry
+}
+
+/// The single registered entry for `(for_sym, trait_sym)`, or null.
+export find_user :: fn(self: ImplRegistry, for_sym: Symbol, trait_sym: Symbol) -> ImplEntry | null {
+    return self.user_index["${for_sym.id}::${trait_sym.id}"]
+}
+
+/// Resolve the for-type's nominal symbol from a typecheck `Type` ; null
+/// for shapes that can't carry an impl (Primitive, Array, Fn, TypeParam,
+/// Union, …). Used by `is_assignable`'s trait-widening branch.
+export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
+    match t {
+        is StructType as st -> { return st.symbol }
+        is EnumType   as et -> { return et.symbol }
+        _ -> { return null }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver/symbol" { new_factory }
+
+build_test_registry :: fn(src: string) -> ImplRegistry {
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    return build_impl_registry(parsed.program.decls, rm)
+}
+
+@test
+test_registry_collects_one_impl :: fn() -> void {
+    src :: """
+Display :: trait { to_string :: fn(self) -> string }
+Point   :: struct { x: i32 }
+Point implements Display -> "point"
+"""
+    reg :: build_test_registry(src)
+    assert_eq(reg.all.len(), usize(1))
+}
+
+@test
+test_has_user_recognises_registered_impl :: fn() -> void {
+    src :: """
+Display :: trait { to_string :: fn(self) -> string }
+Point   :: struct { x: i32 }
+Point implements Display -> "point"
+"""
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    reg :: build_impl_registry(parsed.program.decls, rm)
+    // Pull the two symbols by name to query the registry.
+    point :: lookup_named(rm, "Point")
+    disp  :: lookup_named(rm, "Display")
+    match point {
+        is null -> { assert(false, "Point symbol should be resolved") }
+        is Symbol as ps -> {
+            match disp {
+                is null -> { assert(false, "Display symbol should be resolved") }
+                is Symbol as ds -> {
+                    assert(reg.has_user(ps, ds), "Point implements Display should be registered")
+                }
+            }
+        }
+    }
+}
+
+@test
+test_registry_empty_when_no_impls :: fn() -> void {
+    src :: """
+add :: fn(a: i32, b: i32) -> i32 { return a + b }
+"""
+    reg :: build_test_registry(src)
+    assert_eq(reg.all.len(), usize(0))
+}
+
+lookup_named :: fn(rm: ResolvedModule, name: string) -> Symbol | null {
+    for s in rm.symbols {
+        if s.name == name { return s }
+    }
+    return null
+}
