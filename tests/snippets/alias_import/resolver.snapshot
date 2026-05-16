@@ -1,0 +1,5 @@
+# Modules
+
+## tests/snippets/alias_import/_main.vader
+  import-binding   private  fs
+  fn               public   main

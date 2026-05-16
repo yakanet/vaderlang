@@ -1,0 +1,6 @@
+# Modules
+
+## tests/snippets/struct_decl/_main.vader
+  struct           public   Buffer
+  struct           public   List
+  struct           public   Point

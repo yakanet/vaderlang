@@ -32,6 +32,7 @@ interface Stage {
 const STAGES: Stage[] = [
   { label: "lexer", dumpStage: "lexer", snapshotFile: "lexer.snapshot", skip: new Set() },
   { label: "parser", dumpStage: "ast", snapshotFile: "parser.snapshot", skip: new Set() },
+  { label: "resolver", dumpStage: "resolved-ast", snapshotFile: "resolver.snapshot", skip: new Set() },
 ];
 
 const scenarios = listSnippets("tests/snippets");

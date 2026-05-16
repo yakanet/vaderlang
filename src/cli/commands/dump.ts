@@ -7,6 +7,7 @@ import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type { LoweredDecl, LoweredProject } from "../../lower/index.ts";
 import { writeVir } from "../../bytecode/text.ts";
 import { dumpCFGProject } from "../../midir/dump.ts";
+import { formatResolverDump } from "../../resolver/dump-text.ts";
 
 /** Stages the frontend pipeline can produce today. Mirrors `PipelineStage`. */
 const IMPLEMENTED_STAGES = ["ast", "resolved-ast", "typed-ast", "evaluated-ast", "lowered-ast", "dced-ast", "cfg", "bytecode"] as const;
@@ -39,7 +40,7 @@ export async function cmdDump(opts: GlobalOpts, args: string[]): Promise<number>
 
   switch (stage) {
     case "ast":           return runStage(opts, file, runAst);
-    case "resolved-ast":  return runStage(opts, file, runResolvedAst);
+    case "resolved-ast":  return runResolvedAstStage(opts, file);
     case "typed-ast":     return runStage(opts, file, runTypedAst);
     case "evaluated-ast": return runStage(opts, file, (f) => runEvaluatedAst(f, opts));
     case "lowered-ast":   return runStage(opts, file, (f) => runLoweredAst(f, opts));
@@ -79,22 +80,19 @@ async function runAst(file: string) {
   return { output: r.program, diagnostics: r.diagnostics, source: r.source };
 }
 
-async function runResolvedAst(file: string) {
+/** Text dump matching `vader/resolver/dump.vader` byte-for-byte so
+ *  `tests/parity.test.ts` can compare stdout against the snapshot
+ *  produced by `dumpResolver` in `tests/snapshot.ts`. */
+async function runResolvedAstStage(opts: GlobalOpts, file: string): Promise<number> {
   const r = await pipelineResolved(file);
-  const output = {
-    modules: [...r.project.modules.values()].map((p) => ({
-      module: p.module.displayPath,
-      symbols: [...p.module.symbols.values()].map((s) => ({
-        name: s.name, kind: s.kind, visibility: s.visibility,
-      })),
-      imports: p.module.imports.map((i) => ({ path: i.path, resolved: i.resolvedTo !== null })),
-      counts: {
-        idents: p.idents.size, types: p.types.size, params: p.params.size,
-        locals: p.locals.size, typeParams: p.typeParams.size, fieldRefs: p.fieldRefs.size,
-      },
-    })),
-  };
-  return { output, diagnostics: r.diagnostics, source: r.source };
+  const sorted = r.diagnostics.sorted();
+  if (sorted.length > 0) {
+    console.error(opts.diagnostics === "json"
+      ? renderAllJson(sorted)
+      : renderAllTextSingle(sorted, file, r.source));
+  }
+  process.stdout.write(formatResolverDump(r.project));
+  return sorted.some((d) => d.severity === "error") ? 1 : 0;
 }
 
 async function runEvaluatedAst(file: string, opts: GlobalOpts) {

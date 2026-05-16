@@ -1,0 +1,242 @@
+// vader/resolver/substitute — type-level substitution walker.
+//
+// Mirror of `substituteTypeExpr` in `src/resolver/materialize.ts`.
+// Walks a TypeExpr (== Expr — since Vader doesn't separate type-level
+// from value-level expression syntax) and replaces every `IdentExpr`
+// whose `name` is a key in the `Subst` map with a fresh clone of the
+// corresponding replacement.
+//
+// Used by `materialize.vader` to rewrite trait method signatures :
+//   - `Self` → impl's `for_type`
+//   - trait type-param names → impl's `trait_args[i]`
+//
+// Returns fresh nodes — the input TypeExpr is untouched. The body
+// walker (`substituteIdentsInBlock` in TS) is not ported yet because
+// no current consumer needs default-method body cloning : the Vader
+// typechecker still runs on the TS side, which has its own materialize.
+
+import "std/collections" { MutableMap }
+import "vader/diagnostics/diagnostic" { Span, Position }
+AST :: import "vader/parser/ast"
+
+/// Name → replacement TypeExpr. Built by callers (materialize entry
+/// points) and passed once through the substitution walker.
+export Subst :: struct {
+    entries: MutableMap(string, AST.TypeExpr)
+}
+
+export new_subst :: fn() -> Subst {
+    return Subst { .entries = MutableMap(string, AST.TypeExpr) { .buckets = [], .size = 0 } }
+}
+
+/// Bind `name` → `replacement`. `replacement` is treated as the
+/// "original" tree ; substitution clones it on every lookup so a single
+/// subst entry can be reused across multiple call sites without
+/// AST-node aliasing.
+export bind :: fn(self: Subst, name: string, replacement: AST.TypeExpr) -> void {
+    self.entries[name] = replacement
+}
+
+lookup_subst :: fn(self: Subst, name: string) -> AST.TypeExpr | null {
+    return self.entries[name]
+}
+
+/// Walk `expr` and return a fresh TypeExpr tree with substitutions
+/// applied. The input is untouched ; every visited node is reconstructed
+/// (allocation cost is the trade-off for not having structuredClone or
+/// in-place mutation).
+export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeExpr {
+    match expr {
+        is AST.IdentExpr as e -> {
+            replacement :: lookup_subst(subst, e.name)
+            match replacement {
+                is null  -> { return clone_ident(e) }
+                _        -> { return substitute_type_expr(replacement, new_subst()) }
+            }
+        }
+        is AST.BinaryExpr as e -> {
+            // Type-position `bitor` chain (`A | B`). Substitute both sides ;
+            // preserve operator + span.
+            return AST.BinaryExpr {
+                .span = e.span,
+                .id = AST.UNASSIGNED_NODE_ID,
+                .op = e.op,
+                .left = substitute_type_expr(e.left, subst),
+                .right = substitute_type_expr(e.right, subst),
+                .bind_as = e.bind_as,
+            }
+        }
+        is AST.FnTypeExpr as e -> {
+            new_params: AST.TypeExpr[] = []
+            for p in e.params { new_params.push(substitute_type_expr(p, subst)) }
+            rt :: e.return_type
+            new_rt: AST.TypeExpr | null = null
+            match rt {
+                is null -> {}
+                _       -> { new_rt = substitute_type_expr(rt, subst) }
+            }
+            return AST.FnTypeExpr {
+                .span = e.span,
+                .id = AST.UNASSIGNED_NODE_ID,
+                .params = new_params,
+                .return_type = new_rt,
+            }
+        }
+        is AST.ArrayTypeExpr as e -> {
+            return AST.ArrayTypeExpr {
+                .span = e.span,
+                .id = AST.UNASSIGNED_NODE_ID,
+                .element = substitute_type_expr(e.element, subst),
+                .immutable = e.immutable,
+            }
+        }
+        is AST.SeqLitExpr as e -> {
+            // Bracketed type tuple `[T1, T2, ...]` ; elements are all TypeExprs
+            // in this position.
+            new_elements: AST.Expr[] = []
+            for el in e.elements { new_elements.push(substitute_type_expr(el, subst)) }
+            return AST.SeqLitExpr {
+                .span = e.span,
+                .id = AST.UNASSIGNED_NODE_ID,
+                .elements = new_elements,
+            }
+        }
+        is AST.GenericInstExpr as e -> {
+            // In type position, callee is always an IdentExpr (parser invariant).
+            // Substitute type-args ; preserve callee as-is.
+            new_args: AST.TypeExpr[] = []
+            for a in e.type_args { new_args.push(substitute_type_expr(a, subst)) }
+            return AST.GenericInstExpr {
+                .span = e.span,
+                .id = AST.UNASSIGNED_NODE_ID,
+                .callee = e.callee,
+                .type_args = new_args,
+            }
+        }
+        // Leaves and non-type variants pass through unchanged. In type
+        // position the parser only produces the variants above ; reaching
+        // a different variant means the caller passed a value-level expr
+        // by mistake. Returning unchanged keeps the walker total without a
+        // hard crash.
+        _ -> { return expr }
+    }
+}
+
+clone_ident :: fn(e: AST.IdentExpr) -> AST.IdentExpr {
+    return AST.IdentExpr {
+        .span = e.span,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .name = e.name,
+        .implicit_dot = e.implicit_dot,
+        .is_type_param_intro = e.is_type_param_intro,
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+@test
+test_substitute_replaces_ident_when_bound :: fn() -> void {
+    src :: make_ident("T")
+    target :: make_ident("i32")
+    subst :: new_subst()
+    bind(subst, "T", target)
+    result :: substitute_type_expr(src, subst)
+    match result {
+        is AST.IdentExpr as r -> { assert_eq(r.name, "i32") }
+        _ -> { assert(false, "expected an IdentExpr after substitution") }
+    }
+}
+
+@test
+test_substitute_passes_through_when_unbound :: fn() -> void {
+    src :: make_ident("U")
+    subst :: new_subst()
+    bind(subst, "T", make_ident("i32"))
+    result :: substitute_type_expr(src, subst)
+    match result {
+        is AST.IdentExpr as r -> { assert_eq(r.name, "U") }
+        _ -> { assert(false, "unbound name should pass through as IdentExpr") }
+    }
+}
+
+@test
+test_substitute_recurses_into_fn_type :: fn() -> void {
+    // `fn(T) -> T` with T → i32 should yield `fn(i32) -> i32`.
+    t: AST.TypeExpr = make_ident("T")
+    params: AST.TypeExpr[] = [t]
+    src :: AST.FnTypeExpr {
+        .span = dummy_span(),
+        .id = AST.UNASSIGNED_NODE_ID,
+        .params = params,
+        .return_type = make_ident("T"),
+    }
+    subst :: new_subst()
+    bind(subst, "T", make_ident("i32"))
+    result :: substitute_type_expr(src, subst)
+    match result {
+        is AST.FnTypeExpr as r -> {
+            assert_eq(r.params.len(), usize(1))
+            first :: r.params[0]
+            match first {
+                is AST.IdentExpr as id -> { assert_eq(id.name, "i32") }
+                _ -> { assert(false, "first param should be i32 ident") }
+            }
+            rt :: r.return_type
+            match rt {
+                is null -> { assert(false, "expected non-null return type") }
+                is AST.IdentExpr as rid -> { assert_eq(rid.name, "i32") }
+                _ -> { assert(false, "return type should be i32 ident") }
+            }
+        }
+        _ -> { assert(false, "expected FnTypeExpr after substitution") }
+    }
+}
+
+@test
+test_substitute_recurses_into_generic_inst :: fn() -> void {
+    // `Foo(T)` with T → i32 should yield `Foo(i32)`.
+    // Two-step typing: Vader's typechecker infers `[make_ident("T")]` as
+    // `IdentExpr[]` and refuses to widen to `TypeExpr[]` — annotating
+    // the element first ropes it into the wider type.
+    t: AST.TypeExpr = make_ident("T")
+    type_args: AST.TypeExpr[] = [t]
+    src :: AST.GenericInstExpr {
+        .span = dummy_span(),
+        .id = AST.UNASSIGNED_NODE_ID,
+        .callee = make_ident("Foo"),
+        .type_args = type_args,
+    }
+    subst :: new_subst()
+    bind(subst, "T", make_ident("i32"))
+    result :: substitute_type_expr(src, subst)
+    match result {
+        is AST.GenericInstExpr as r -> {
+            assert_eq(r.type_args.len(), usize(1))
+            arg0 :: r.type_args[0]
+            match arg0 {
+                is AST.IdentExpr as id -> { assert_eq(id.name, "i32") }
+                _ -> { assert(false, "arg should be i32 ident") }
+            }
+        }
+        _ -> { assert(false, "expected GenericInstExpr after substitution") }
+    }
+}
+
+make_ident :: fn(name: string) -> AST.IdentExpr {
+    return AST.IdentExpr {
+        .span = dummy_span(),
+        .id = AST.UNASSIGNED_NODE_ID,
+        .name = name,
+        .implicit_dot = false,
+        .is_type_param_intro = false,
+    }
+}
+
+dummy_span :: fn() -> Span {
+    return Span {
+        .start = Position { .file = "t", .offset = 0, .line = 1, .column = 1 },
+        .end   = Position { .file = "t", .offset = 1, .line = 1, .column = 2 },
+    }
+}

@@ -15,7 +15,6 @@
 // compiler-grade resolver when that's ported.
 
 import "std/collections" { MutableMap }
-import "std/string" { byte_len }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/parser/ast" {
     Program, Decl, Stmt, Expr, Pattern, LetBinding, FnDecl, StructDecl,
@@ -36,6 +35,7 @@ import "vader/parser/ast" {
 }
 import "vader/parser" { parse_source }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory, make }
+import "vader/resolver/scope" { Scope, new_scope, push, pop, bind, lookup, span_key }
 
 /// Per-file resolution output. `idents` keys every resolved `IdentExpr`
 /// by its span (`line:column` works because spans are file-local and
@@ -61,7 +61,7 @@ export resolve_program :: fn(
 ) -> ResolvedFile {
     state :: ResolveState {
         .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
-        .scopes = [top_level_seed],
+        .scope = new_scope(top_level_seed),
         .module_path = module_path,
         .factory = factory,
     }
@@ -75,52 +75,9 @@ export resolve_program :: fn(
 
 ResolveState :: struct {
     idents:      MutableMap(string, Symbol)
-    /// Scope stack — innermost at the end, outermost (root) at index 0.
-    scopes:      MutableMap(string, Symbol)[]
+    scope:       Scope
     module_path: string
     factory:     SymbolFactory
-}
-
-push_scope :: fn(self: ResolveState) -> void {
-    self.scopes.push(MutableMap(string, Symbol) { .buckets = [], .size = 0 })
-}
-
-pop_scope :: fn(self: ResolveState) -> void {
-    if self.scopes.len() > 0 {
-        // No `pop` on raw arrays — slice everything except the last entry.
-        n :: self.scopes.len()
-        new_scopes: MutableMap(string, Symbol)[] = []
-        for i in 0..<usize(n - 1) {
-            new_scopes.push(self.scopes[i])
-        }
-        self.scopes = new_scopes
-    }
-}
-
-bind :: fn(self: ResolveState, name: string, sym: Symbol) -> void {
-    n :: self.scopes.len()
-    if n == 0 { return }
-    top :: self.scopes[n - 1]
-    top[name] = sym
-}
-
-lookup :: fn(self: ResolveState, name: string) -> Symbol | null {
-    n :: self.scopes.len()
-    i := usize(n)
-    for i > 0 {
-        i = i - 1
-        scope :: self.scopes[i]
-        v :: scope[name]
-        match v {
-            is Symbol -> { return v }
-            is null   -> {}
-        }
-    }
-    return null
-}
-
-span_key :: fn(s: Span) -> string {
-    return "${s.start.line}:${s.start.column}"
 }
 
 mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
@@ -148,67 +105,67 @@ walk_decl :: fn(self: ResolveState, d: Decl) -> void {
 
 walk_fn_decl :: fn(self: ResolveState, d: FnDecl) -> void {
     self.walk_decorators(d.decorators)
-    self.push_scope()
+    self.scope.push()
     // Type-params first so the rest of the signature + body sees them.
     for tp in d.type_params {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
-        self.bind(tp.name, sym)
+        self.scope.bind(tp.name, sym)
         self.walk_opt_expr(tp.bound)
     }
     for p in d.params {
         self.walk_opt_expr(p.ty)
         self.walk_opt_expr(p.default_value)
         sym :: self.mint_local(.Param, p.name, p.span)
-        self.bind(p.name, sym)
+        self.scope.bind(p.name, sym)
     }
     self.walk_opt_expr(d.return_type)
     match d.body {
         is null -> {}
         is BlockExpr as b -> { self.walk_block(b) }
     }
-    self.pop_scope()
+    self.scope.pop()
 }
 
 walk_struct_decl :: fn(self: ResolveState, d: StructDecl) -> void {
     self.walk_decorators(d.decorators)
-    self.push_scope()
+    self.scope.push()
     for tp in d.type_params {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
-        self.bind(tp.name, sym)
+        self.scope.bind(tp.name, sym)
         self.walk_opt_expr(tp.bound)
     }
     for f in d.fields {
         self.walk_expr(f.ty)
         self.walk_opt_expr(f.default)
     }
-    self.pop_scope()
+    self.scope.pop()
 }
 
 walk_trait_decl :: fn(self: ResolveState, d: TraitDecl) -> void {
     self.walk_decorators(d.decorators)
-    self.push_scope()
+    self.scope.push()
     for tp in d.type_params {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
-        self.bind(tp.name, sym)
+        self.scope.bind(tp.name, sym)
         self.walk_opt_expr(tp.bound)
     }
     self.walk_opt_expr(d.requires)
     for m in d.members { self.walk_fn_decl(m) }
-    self.pop_scope()
+    self.scope.pop()
 }
 
 walk_impl_decl :: fn(self: ResolveState, d: ImplDecl) -> void {
     self.walk_decorators(d.decorators)
-    self.push_scope()
+    self.scope.push()
     for tp in d.type_params {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
-        self.bind(tp.name, sym)
+        self.scope.bind(tp.name, sym)
         self.walk_opt_expr(tp.bound)
     }
     self.walk_expr(d.for_type)
     for ta in d.trait_args { self.walk_expr(ta) }
     for m in d.members { self.walk_fn_decl(m) }
-    self.pop_scope()
+    self.scope.pop()
 }
 
 walk_decorators :: fn(self: ResolveState, decs: Decorator[]) -> void {
@@ -227,10 +184,10 @@ walk_opt_expr :: fn(self: ResolveState, e: Expr | null) -> void {
 // ---- stmt + block walkers -------------------------------------------------
 
 walk_block :: fn(self: ResolveState, b: BlockExpr) -> void {
-    self.push_scope()
+    self.scope.push()
     for s in b.stmts { self.walk_stmt(s) }
     self.walk_opt_expr(b.trailing)
-    self.pop_scope()
+    self.scope.pop()
 }
 
 walk_stmt :: fn(self: ResolveState, s: Stmt) -> void {
@@ -264,7 +221,7 @@ bind_let_binding :: fn(self: ResolveState, b: LetBinding) -> void {
     match b {
         is SimpleBinding as x -> {
             sym :: self.mint_local(.Local, x.name, x.name_span)
-            self.bind(x.name, sym)
+            self.scope.bind(x.name, sym)
         }
         is TupleBinding as x -> {
             for e in x.elements { self.bind_let_binding(e) }
@@ -272,7 +229,7 @@ bind_let_binding :: fn(self: ResolveState, b: LetBinding) -> void {
         is WildcardBinding -> {}
         is RestBinding as x -> {
             sym :: self.mint_local(.Local, x.name, x.span)
-            self.bind(x.name, sym)
+            self.scope.bind(x.name, sym)
         }
     }
 }
@@ -283,16 +240,16 @@ walk_for :: fn(self: ResolveState, s: ForStmt) -> void {
         is WhileFor as w -> { self.walk_expr(w.cond) }
         is InFor as f -> { self.walk_expr(f.iter) }
     }
-    self.push_scope()
+    self.scope.push()
     match s.form {
         is InFor as f -> {
             sym :: self.mint_local(.Local, f.binding, f.binding_span)
-            self.bind(f.binding, sym)
+            self.scope.bind(f.binding, sym)
         }
         _ -> {}
     }
     self.walk_block(s.body)
-    self.pop_scope()
+    self.scope.pop()
 }
 
 // ---- expr walkers ---------------------------------------------------------
@@ -300,7 +257,7 @@ walk_for :: fn(self: ResolveState, s: ForStmt) -> void {
 walk_expr :: fn(self: ResolveState, e: Expr) -> void {
     match e {
         is IdentExpr as x -> {
-            v :: self.lookup(x.name)
+            v :: self.scope.lookup(x.name)
             match v {
                 is Symbol -> { self.idents[span_key(x.span)] = v }
                 is null   -> {}
@@ -368,11 +325,11 @@ walk_if :: fn(self: ResolveState, e: IfExpr) -> void {
 walk_match :: fn(self: ResolveState, e: MatchExpr) -> void {
     self.walk_expr(e.scrutinee)
     for arm in e.arms {
-        self.push_scope()
+        self.scope.push()
         self.bind_pattern(arm.pattern)
         self.walk_opt_expr(arm.guard)
         self.walk_expr(arm.body)
-        self.pop_scope()
+        self.scope.pop()
     }
 }
 
@@ -384,7 +341,7 @@ bind_pattern :: fn(self: ResolveState, p: Pattern) -> void {
                 is null -> {}
                 is string as name -> {
                     sym :: self.mint_local(.Binding, name, x.span)
-                    self.bind(name, sym)
+                    self.scope.bind(name, sym)
                 }
             }
             match x.inner {
@@ -397,7 +354,7 @@ bind_pattern :: fn(self: ResolveState, p: Pattern) -> void {
                 match f.value {
                     is PatternBinding -> {
                         sym :: self.mint_local(.Binding, f.name, f.name_span)
-                        self.bind(f.name, sym)
+                        self.scope.bind(f.name, sym)
                     }
                     is PatternLiteral as lit -> { self.walk_expr(lit.value) }
                 }
@@ -407,7 +364,7 @@ bind_pattern :: fn(self: ResolveState, p: Pattern) -> void {
         is WildcardPattern -> {}
         is BindingPattern as x -> {
             sym :: self.mint_local(.Binding, x.name, x.span)
-            self.bind(x.name, sym)
+            self.scope.bind(x.name, sym)
         }
         is EnumVariantPattern -> {}
         is LiteralPattern as x -> { self.walk_expr(x.value) }
@@ -415,15 +372,15 @@ bind_pattern :: fn(self: ResolveState, p: Pattern) -> void {
 }
 
 walk_lambda :: fn(self: ResolveState, l: LambdaExpr) -> void {
-    self.push_scope()
+    self.scope.push()
     for p in l.params {
         self.walk_opt_expr(p.ty)
         sym :: self.mint_local(.Param, p.name, p.span)
-        self.bind(p.name, sym)
+        self.scope.bind(p.name, sym)
     }
     self.walk_opt_expr(l.return_type)
     self.walk_block(l.body)
-    self.pop_scope()
+    self.scope.pop()
 }
 
 walk_struct_lit :: fn(self: ResolveState, s: StructLitExpr) -> void {

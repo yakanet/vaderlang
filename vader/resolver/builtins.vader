@@ -1,0 +1,99 @@
+// vader/resolver/builtins — primitive type symbols + builtin module id.
+//
+// Mirror of `src/resolver/builtins.ts`. Primitive type names are minted
+// as `.BuiltinType` symbols in a synthetic `<builtin>` module so the
+// resolver can place them at the root of every per-file scope without
+// special-casing a "if name is a primitive" branch through the walker.
+//
+// Order is load-bearing : downstream snapshots embed symbol IDs, and IDs
+// are assigned by the factory's `next` counter in the order seen here.
+// New primitives append at the end.
+
+import "std/collections" { MutableMap }
+import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
+
+/// Synthetic module id every builtin symbol carries in its `.module` field.
+export BUILTIN_MODULE_ID :: "<builtin>"
+
+/// Canonical primitive type names. Same set as
+/// `src/typecheck/types.ts:PRIMITIVE_NAMES`.
+export PRIMITIVE_NAMES :: [
+    "i8", "i16", "i32", "i64", "isize",
+    "u8", "u16", "u32", "u64", "usize",
+    "f32", "f64",
+    "bool", "char", "string", "void", "null",
+]
+
+/// Friendly aliases that map transparently to canonical primitive names.
+export BUILTIN_TYPE_ALIASES :: ["int", "long", "float", "double", "byte"]
+
+/// Names visible at every scope's root, in the order they are minted.
+/// Primitives + aliases + `Self` + `type`. `type` is the metatype.
+export BUILTIN_TYPE_NAMES :: [
+    "i8", "i16", "i32", "i64", "isize",
+    "u8", "u16", "u32", "u64", "usize",
+    "f32", "f64",
+    "bool", "char", "string", "void", "null",
+    "int", "long", "float", "double", "byte",
+    "Self",
+    "type",
+]
+
+/// True iff `name` is one of the builtin type names.
+export is_builtin_type_name :: fn(name: string) -> bool {
+    for n in BUILTIN_TYPE_NAMES {
+        if n == name { return true }
+    }
+    return false
+}
+
+/// Build the root scope seed every per-file resolution starts from.
+/// Mints one `.BuiltinType` symbol per name, in declaration order so
+/// the resulting IDs are stable across implementations.
+export make_builtin_scope :: fn(factory: SymbolFactory) -> MutableMap(string, Symbol) {
+    out :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    for name in BUILTIN_TYPE_NAMES {
+        sym :: factory.make(.BuiltinType, name, BUILTIN_MODULE_ID, .Public, null)
+        out[name] = sym
+    }
+    return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/resolver/symbol" { new_factory }
+
+@test
+test_builtin_scope_includes_i32 :: fn() -> void {
+    factory :: new_factory()
+    scope :: make_builtin_scope(factory)
+    sym :: scope["i32"]
+    match sym {
+        is Symbol as s -> {
+            assert_eq(s.name, "i32")
+            assert(i32(s.kind) == i32(SymbolKind.BuiltinType), "i32 must be BuiltinType")
+            assert_eq(s.module, BUILTIN_MODULE_ID)
+        }
+        is null -> { assert(false, "i32 should be in builtin scope") }
+    }
+}
+
+@test
+test_builtin_scope_first_id_is_one :: fn() -> void {
+    factory :: new_factory()
+    scope :: make_builtin_scope(factory)
+    first :: scope["i8"]
+    match first {
+        is Symbol as s -> { assert_eq(s.id, 1) }
+        is null        -> { assert(false, "i8 should be the first builtin minted") }
+    }
+}
+
+@test
+test_is_builtin_type_name_recognises_primitives :: fn() -> void {
+    assert(is_builtin_type_name("i32"), "i32 is a primitive")
+    assert(is_builtin_type_name("string"), "string is a primitive")
+    assert(is_builtin_type_name("Self"), "Self is a builtin")
+    assert(!is_builtin_type_name("MyStruct"), "user types are not builtins")
+}

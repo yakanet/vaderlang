@@ -1,0 +1,7 @@
+# Modules
+
+## tests/snippets/generic_fn/_main.vader
+  fn               public   first
+  fn               public   identity
+  fn               public   main
+  import-binding   private  println

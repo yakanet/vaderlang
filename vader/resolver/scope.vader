@@ -1,0 +1,142 @@
+// vader/resolver/scope — lexical scope stack + span keying.
+//
+// Extracted from `body.vader` so the body walker, future typechecker,
+// and any other pass that needs ident → symbol lookup share one
+// implementation. The stack is a LIFO of `MutableMap(string, Symbol)`
+// frames ; `bind` writes to the innermost frame, `lookup` walks
+// outward until it finds a hit or returns null.
+//
+// `span_key` lives here too because every consumer of `Scope` also
+// stamps `IdentExpr → Symbol` entries keyed by the ident's span.
+
+import "std/collections" { MutableMap }
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/resolver/symbol" { Symbol }
+
+/// LIFO stack of binding frames — innermost at the end, root at index 0.
+export Scope :: struct {
+    frames: MutableMap(string, Symbol)[]
+}
+
+/// Build a scope whose root frame is `root`. The caller keeps ownership ;
+/// downstream `bind` calls write to push-introduced frames, not the seed.
+export new_scope :: fn(root: MutableMap(string, Symbol)) -> Scope {
+    return Scope { .frames = [root] }
+}
+
+/// Open a fresh inner scope. Subsequent `bind` calls land here until the
+/// matching `pop`.
+export push :: fn(self: Scope) -> void {
+    self.frames.push(MutableMap(string, Symbol) { .buckets = [], .size = 0 })
+}
+
+/// Drop the innermost scope. No-op on an empty stack — the body walker
+/// over-pops on malformed AST rather than crashing.
+export pop :: fn(self: Scope) -> void {
+    n :: self.frames.len()
+    if n == 0 { return }
+    // Arrays don't have `pop` yet, so slice everything but the last entry.
+    new_frames: MutableMap(string, Symbol)[] = []
+    for i in 0..<usize(n - 1) {
+        new_frames.push(self.frames[i])
+    }
+    self.frames = new_frames
+}
+
+/// Bind `name` in the innermost frame. Silently shadows any outer
+/// binding of the same name ; lookup picks the innermost match.
+export bind :: fn(self: Scope, name: string, sym: Symbol) -> void {
+    n :: self.frames.len()
+    if n == 0 { return }
+    top :: self.frames[n - 1]
+    top[name] = sym
+}
+
+/// Walk frames innermost-out and return the first match, or null.
+export lookup :: fn(self: Scope, name: string) -> Symbol | null {
+    n :: self.frames.len()
+    i := usize(n)
+    for i > 0 {
+        i = i - 1
+        frame :: self.frames[i]
+        v :: frame[name]
+        match v {
+            is Symbol -> { return v }
+            is null   -> {}
+        }
+    }
+    return null
+}
+
+/// Stringify a span's start point as `line:column`. Used as the key for
+/// per-`IdentExpr` side-tables — spans are file-local and unique per
+/// node, so this is collision-free within one resolved file.
+export span_key :: fn(s: Span) -> string {
+    return "${s.start.line}:${s.start.column}"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/resolver/symbol" { SymbolFactory, SymbolKind, new_factory, make }
+import "vader/parser" { Visibility }
+import "vader/diagnostics/diagnostic" { Position }
+
+@test
+test_scope_lookup_finds_root_binding :: fn() -> void {
+    factory :: new_factory()
+    sym :: factory.make(.Local, "x", "test", .Private, null)
+    root :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    root["x"] = sym
+    scope :: new_scope(root)
+    hit :: scope.lookup("x")
+    match hit {
+        is Symbol as s -> { assert_eq(s.name, "x") }
+        is null        -> { assert(false, "x should resolve in root scope") }
+    }
+}
+
+@test
+test_scope_push_pop_restores_outer :: fn() -> void {
+    factory :: new_factory()
+    outer :: factory.make(.Local, "x", "test", .Private, null)
+    inner :: factory.make(.Local, "x", "test", .Private, null)
+    root :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    root["x"] = outer
+    scope :: new_scope(root)
+    scope.push()
+    scope.bind("x", inner)
+    // Inside the inner scope, shadowing wins.
+    inner_hit :: scope.lookup("x")
+    match inner_hit {
+        is Symbol as s -> { assert_eq(s.id, inner.id) }
+        is null        -> { assert(false, "inner shadow should be visible") }
+    }
+    scope.pop()
+    // After pop, the outer binding is back.
+    outer_hit :: scope.lookup("x")
+    match outer_hit {
+        is Symbol as s -> { assert_eq(s.id, outer.id) }
+        is null        -> { assert(false, "outer binding should resurface after pop") }
+    }
+}
+
+@test
+test_scope_lookup_misses_return_null :: fn() -> void {
+    root :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    scope :: new_scope(root)
+    miss :: scope.lookup("nope")
+    match miss {
+        is Symbol -> { assert(false, "lookup of unbound name should be null") }
+        is null   -> {}
+    }
+}
+
+@test
+test_span_key_formats_line_column :: fn() -> void {
+    s :: Span {
+        .start = Position { .file = "t", .offset = 0, .line = 3, .column = 12 },
+        .end   = Position { .file = "t", .offset = 1, .line = 3, .column = 13 },
+    }
+    assert_eq(span_key(s), "3:12")
+}

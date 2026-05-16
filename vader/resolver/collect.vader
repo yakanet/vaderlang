@@ -1,0 +1,209 @@
+// vader/resolver/collect — top-level symbol minting pass.
+//
+// Mirror of `src/resolver/collect.ts`. Walks a Program's top-level decls
+// once and mints one Symbol per name into a `MutableMap`. The same pass
+// emits multi-name destructure imports (`import "m" { a, b, c }` → 3
+// `import-binding` symbols) and groups fn overloads.
+//
+// Diagnostics (R2004 duplicate, R2011 import shadow, R2019 reserved name)
+// are TODO — the `ResolverCode` enum doesn't exist yet ; this pass
+// silently first-wins on duplicates today and re-uses parity gating to
+// keep it honest until the diag codes land.
+
+import "std/collections" { MutableMap }
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/parser" {
+    Program, Decl, ImportDecl, FnDecl, StructDecl, EnumDecl, TraitDecl,
+    ImplDecl, TypeAliasDecl, ConstDecl, AssertDecl, Visibility,
+    ImportBinding, NamedNamespaceImport, DestructureImport,
+}
+import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
+
+/// Output of one module's collect pass.
+/// `symbols` is keyed by local name ; `fn_overloads` carries every fn
+/// declaration grouped by name (length > 1 only for actual overloads).
+export CollectedModule :: struct {
+    symbols:      MutableMap(string, Symbol)
+    fn_overloads: MutableMap(string, Symbol[])
+}
+
+/// Mint top-level symbols for `program`. Order of insertion mirrors source
+/// order so downstream consumers (the body walker, the dump) see a stable
+/// layout independent of MutableMap bucket hashing.
+export collect_module :: fn(
+    program: Program, module_path: string, factory: SymbolFactory,
+) -> CollectedModule {
+    out :: CollectedModule {
+        .symbols      = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .fn_overloads = MutableMap(string, Symbol[]) { .buckets = [], .size = 0 },
+    }
+    for d in program.decls {
+        out.collect_decl(d, module_path, factory)
+    }
+    return out
+}
+
+collect_decl :: fn(self: CollectedModule, d: Decl, module_path: string, factory: SymbolFactory) -> void {
+    match d {
+        is ImportDecl    as x -> { self.collect_import(x, module_path, factory) }
+        is FnDecl        as x -> { self.add_fn(x, module_path, factory) }
+        is StructDecl    as x -> { self.add_named(.Struct,    x.name, x.name_span, x.visibility, module_path, factory) }
+        is EnumDecl      as x -> { self.add_named(.Enum,      x.name, x.name_span, x.visibility, module_path, factory) }
+        is TraitDecl     as x -> { self.add_named(.Trait,     x.name, x.name_span, x.visibility, module_path, factory) }
+        is TypeAliasDecl as x -> { self.add_named(.TypeAlias, x.name, x.name_span, x.visibility, module_path, factory) }
+        is ConstDecl     as x -> { self.add_named(.Const,     x.name, x.name_span, x.visibility, module_path, factory) }
+        is ImplDecl  -> {}   // contributes methods to a type, not new top-level names
+        is AssertDecl -> {}  // @assert doesn't introduce a name
+    }
+}
+
+/// Allow multiple `fn` decls under the same module name (overloading).
+/// The first declaration wins as the primary entry in `symbols` ; later
+/// ones append to the `fn_overloads` bucket. Truly-conflicting overloads
+/// (same first-param type) are caught at typecheck time.
+add_fn :: fn(self: CollectedModule, d: FnDecl, module_path: string, factory: SymbolFactory) -> void {
+    // `main` is the program entry point and is always public — mirrors
+    // `src/resolver/collect.ts:88`. Letting it default to private locks
+    // the entry-point fn behind module visibility.
+    visibility := d.visibility
+    if d.name == "main" { visibility = .Public }
+    sym :: factory.make(.Fn, d.name, module_path, visibility, d.name_span)
+
+    bucket :: self.fn_overloads[d.name]
+    match bucket {
+        is null -> { self.fn_overloads[d.name] = [sym] }
+        _ -> {
+            bucket.push(sym)
+            self.fn_overloads[d.name] = bucket
+        }
+    }
+
+    existing :: self.symbols[d.name]
+    match existing {
+        is null -> { self.symbols[d.name] = sym }
+        is Symbol as e -> {
+            // Local fn coexisting with a same-named import : local takes
+            // the primary slot so unqualified refs resolve to it.
+            if i32(e.kind) == i32(SymbolKind.ImportBinding) {
+                self.symbols[d.name] = sym
+            }
+            // For two fn decls with the same name, the FIRST wins as primary —
+            // mirror of TS collect.ts:102. The overload set already saw both.
+        }
+    }
+}
+
+add_named :: fn(
+    self: CollectedModule, kind: SymbolKind, name: string, name_span: Span,
+    visibility: Visibility, module_path: string, factory: SymbolFactory,
+) -> void {
+    // First-wins on duplicates ; diagnostic emission is TODO (see file header).
+    existing :: self.symbols[name]
+    match existing {
+        is Symbol -> {}
+        is null   -> {
+            sym :: factory.make(kind, name, module_path, visibility, name_span)
+            self.symbols[name] = sym
+        }
+    }
+}
+
+/// Imports introduce one local-name binding each. Named-namespace imports
+/// yield one (the namespace name) ; destructure imports yield one per
+/// binding (matches TS one-symbol-per-name behaviour).
+collect_import :: fn(self: CollectedModule, d: ImportDecl, module_path: string, factory: SymbolFactory) -> void {
+    b :: d.binding
+    match b {
+        is NamedNamespaceImport as ns -> {
+            self.bind_import(ns.name, d.span, module_path, factory)
+        }
+        is DestructureImport as de -> {
+            for n in de.names {
+                a :: n.alias
+                local := match a {
+                    is string -> a
+                    is null   -> n.name
+                }
+                self.bind_import(local, n.span, module_path, factory)
+            }
+        }
+    }
+}
+
+bind_import :: fn(
+    self: CollectedModule, local: string, span: Span,
+    module_path: string, factory: SymbolFactory,
+) -> void {
+    // First-wins ; R2011 (import shadow) is TODO.
+    existing :: self.symbols[local]
+    match existing {
+        is Symbol -> {}
+        is null   -> {
+            sym :: factory.make(.ImportBinding, local, module_path, .Private, span)
+            self.symbols[local] = sym
+        }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/symbol" { new_factory }
+
+@test
+test_collect_mints_one_symbol_per_top_level_decl :: fn() -> void {
+    src :: """
+export greet :: fn() -> i32 { return 0 }
+main :: fn() -> i32 { return 0 }
+"""
+    parsed :: parse_source(src, "test.vader")
+    factory :: new_factory()
+    collected :: collect_module(parsed.program, "test", factory)
+    greet :: collected.symbols["greet"]
+    match greet {
+        is Symbol as s -> {
+            assert_eq(s.name, "greet")
+            assert(i32(s.visibility) == i32(Visibility.Public), "exported fn should be public")
+        }
+        is null -> { assert(false, "greet should be collected") }
+    }
+    main_sym :: collected.symbols["main"]
+    match main_sym {
+        is Symbol as s -> { assert(i32(s.visibility) == i32(Visibility.Public), "main is implicitly public") }
+        is null        -> { assert(false, "main should be collected") }
+    }
+}
+
+@test
+test_collect_destructure_emits_all_names :: fn() -> void {
+    src :: """
+import "x" { a, b, c }
+"""
+    parsed :: parse_source(src, "test.vader")
+    factory :: new_factory()
+    collected :: collect_module(parsed.program, "test", factory)
+    for name in ["a", "b", "c"] {
+        hit :: collected.symbols[name]
+        match hit {
+            is Symbol as s -> { assert(i32(s.kind) == i32(SymbolKind.ImportBinding), "should be import-binding") }
+            is null        -> { assert(false, "${name} should be a destructured import binding") }
+        }
+    }
+}
+
+@test
+test_collect_fn_overload_bucketing :: fn() -> void {
+    src :: """
+foo :: fn(x: i32) -> i32 { return x }
+foo :: fn(x: string) -> string { return x }
+"""
+    parsed :: parse_source(src, "test.vader")
+    factory :: new_factory()
+    collected :: collect_module(parsed.program, "test", factory)
+    bucket :: collected.fn_overloads["foo"]
+    match bucket {
+        is null -> { assert(false, "foo should be in overload bucket") }
+        _       -> { assert_eq(bucket.len(), usize(2)) }
+    }
+}

@@ -1,0 +1,7 @@
+# Modules
+
+## tests/snippets/generic_struct/_main.vader
+  struct           public   Stack
+  trait            public   Stackable
+  fn               public   main
+  import-binding   private  println

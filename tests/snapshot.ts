@@ -6,6 +6,7 @@ import { parseSource } from "../src/parser/pipeline.ts";
 import { DiagnosticCollector } from "../src/diagnostics/collector.ts";
 import { resolveProject } from "../src/resolver/index.ts";
 import { defaultProjectRoot, isStdlibModule } from "../src/resolver/module.ts";
+import { formatResolverDump } from "../src/resolver/dump-text.ts";
 import { checkProject, displayType } from "../src/typecheck/index.ts";
 import { evaluateProject, displayValue } from "../src/comptime/index.ts";
 import { lowerProject } from "../src/lower/index.ts";
@@ -181,6 +182,15 @@ export function dumpLexer(source: string, file: string): string {
 export function dumpParser(source: string, file: string): string {
   const { program, diagnostics } = parseSource(source, file);
   return formatProgram(program) + formatDiagnostics(diagnostics.sorted());
+}
+
+/** Resolver dump: per non-stdlib module a sorted symbol listing, plus a
+ *  diagnostics section if any. Shares `formatResolverDump` with the CLI
+ *  stage so a format change updates one place. */
+export function dumpResolver(_source: string, entryPath: string): string {
+  const diags = new DiagnosticCollector();
+  const project = resolveProject({ entryPath, diags });
+  return formatResolverDump(project) + formatDiagnostics(diags.sorted());
 }
 
 /** Comptime dump: @comptime / @file values + generic instances + diagnostics. */

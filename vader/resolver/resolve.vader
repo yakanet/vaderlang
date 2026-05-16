@@ -1,81 +1,60 @@
-// vader/resolver/resolve — top-level decl walk.
+// vader/resolver/resolve — orchestrator of the resolver passes.
 //
-// MVP : visit the top-level decls of a Program and mint a Symbol for each.
-// Imports, nested scopes (fn bodies, match arms, ...), type resolution and
-// generic-param tracking are deferred to follow-ups. The output is enough
-// to drive `dump --stage=resolved-ast` with a per-module symbol summary
-// matching the TS resolver dump's first half.
+// Two passes compose into one `ResolvedModule` :
+//   1. Top-level minting (`vader/resolver/collect.vader`) — one Symbol
+//      per top-level decl, indexed by name in a `MutableMap` so the body
+//      walker can use it as the root scope seed.
+//   2. Body walking (`vader/resolver/body.vader`) — descends every fn
+//      body, lambda, match arm and pattern, stamping a span-keyed
+//      `IdentExpr → Symbol` map.
+//
+// CLI consumers (`dump --stage=resolved-ast`) read `.symbols` ; LSP
+// consumers read `.idents`. Both views come out of one call.
 
+import "std/collections" { MutableMap, values }
 import "std/string" { compare_ascending }
 import "std/sort" { sort }
-import "vader/parser" { Program, Decl, ImportDecl, FnDecl, StructDecl, EnumDecl, TraitDecl, ImplDecl, TypeAliasDecl, ConstDecl, AssertDecl, Visibility, ImportBinding, NamedNamespaceImport, DestructureImport }
-import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory, make }
+import "vader/parser" { Program }
+import "vader/resolver/symbol" { Symbol, SymbolFactory }
+import "vader/resolver/body" { resolve_program }
+import "vader/resolver/builtins" { make_builtin_scope }
+import "vader/resolver/collect" { collect_module, CollectedModule }
 
-// One resolver output entry per source module. `path` mirrors the TS
-// `displayPath` ; `symbols` is sorted by name so the dump is stable
-// regardless of decl order.
+/// One resolver output entry per source module.
+///
+/// `symbols` is sorted by name so the dump is stable regardless of decl
+/// order. `idents` is span-keyed (`line:column`) so body-walk consumers
+/// can index per-`IdentExpr` lookups without re-walking the AST.
 export ResolvedModule :: struct {
     path:    string
     symbols: Symbol[]
+    idents:  MutableMap(string, Symbol)
 }
 
 export ResolvedProject :: struct {
     modules: ResolvedModule[]
 }
 
-// Single-module entry point. The parser produces one Program per file ; the
-// CLI passes its display path so symbol records carry it. Multi-file
-// modules are merged at the layout level (not yet — TODO when we wire
-// the loader).
+/// Single-module entry point. The parser produces one Program per file ;
+/// the CLI passes its display path so symbol records carry it. Multi-file
+/// modules merge at the layout level (not yet — TODO when the loader lands).
+///
+/// The root scope seeds builtins (i32/string/Self/…) merged with the user
+/// module's top-level decls — user names shadow builtins via insertion order.
+/// `symbols` excludes builtins so the resolved-ast dump stays focused on
+/// user code ; `idents` includes them because the body walker resolves
+/// every IdentExpr against the full root scope.
 export resolve_module :: fn(program: Program, module_path: string, factory: SymbolFactory) -> ResolvedModule {
-    syms: Symbol[] = []
-    for d in program.decls {
-        s :: collect_decl(d, module_path, factory)
-        match s {
-            is Symbol -> { syms.push(s) }
-            is null   -> {}     // assert / impl decls don't introduce a name
-        }
+    root :: make_builtin_scope(factory)
+    collected :: collect_module(program, module_path, factory)
+    user_syms :: collected.symbols.values()
+    for sym in user_syms { root[sym.name] = sym }
+    file :: resolve_program(program, root, module_path, factory)
+    return ResolvedModule {
+        .path    = module_path,
+        .symbols = sort_by_name(user_syms),
+        .idents  = file.idents,
     }
-    return ResolvedModule { .path = module_path, .symbols = sort_by_name(syms) }
-}
-
-// Returns a Symbol when the decl introduces a name at the module's top
-// level, null otherwise. ImplDecl is intentionally handled as null — its
-// methods become per-impl entries the typechecker walks separately.
-collect_decl :: fn(d: Decl, module_path: string, factory: SymbolFactory) -> Symbol | null = match d {
-    is ImportDecl    -> collect_import(d, module_path, factory)
-    is FnDecl        -> factory.make(.Fn,        d.name, module_path, d.visibility, d.name_span)
-    is StructDecl    -> factory.make(.Struct,    d.name, module_path, d.visibility, d.name_span)
-    is EnumDecl      -> factory.make(.Enum,      d.name, module_path, d.visibility, d.name_span)
-    is TraitDecl     -> factory.make(.Trait,     d.name, module_path, d.visibility, d.name_span)
-    is ImplDecl      -> null
-    is TypeAliasDecl -> factory.make(.TypeAlias, d.name, module_path, d.visibility, d.name_span)
-    is ConstDecl     -> factory.make(.Const,     d.name, module_path, d.visibility, d.name_span)
-    is AssertDecl    -> null
-}
-
-// Imports introduce one local-name binding each. Named-namespace
-// imports yield one (the namespace name) ; destructure imports yield
-// one per `name`. MVP : only the *first* binding of a destructure is
-// returned to keep the signature simple. Full coverage lands when the
-// loader wires real multi-name handling.
-collect_import :: fn(d: ImportDecl, module_path: string, factory: SymbolFactory) -> Symbol | null {
-    b :: d.binding
-    return match b {
-        is NamedNamespaceImport -> factory.make(.ImportBinding, b.name, module_path, .Private, d.span)
-        is DestructureImport    -> destructure_first(b, module_path, factory)
-    }
-}
-
-destructure_first :: fn(b: DestructureImport, module_path: string, factory: SymbolFactory) -> Symbol | null {
-    if b.names.len() == 0 { return null }
-    n0 :: b.names[0]
-    a :: n0.alias
-    local_name := match a {
-        is string -> a
-        is null   -> n0.name
-    }
-    return factory.make(.ImportBinding, local_name, module_path, .Private, n0.span)
 }
 
 sort_by_name :: fn(syms: Symbol[]) -> Symbol[] {
