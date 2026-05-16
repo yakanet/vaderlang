@@ -1,0 +1,243 @@
+// vader/typecheck/seq_lit — SeqLitExpr inference (`[e1, e2, …]`).
+//
+// The parser doesn't commit to "array" or "tuple" ; the typechecker
+// decides via contextual disambiguation against `expected` :
+//
+//   - Tuple(T0..Tn-1)  → tuple, element-wise (arity must match)
+//   - Array(T)         → array, every element checked against T
+//   - Union(...)       → pick a Tuple variant whose arity matches,
+//                        otherwise the first Array variant ; recurse
+//   - no expected      → default-if-free each element, then array
+//                        when they unify (single post-dedup type),
+//                        tuple otherwise.
+
+import "std/math" { min }
+import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/typecheck/type_ops" { default_if_free, union_of }
+import "vader/typecheck/types" {
+    Type, ArrayType, TupleType, UnionType, UnresolvedType,
+    display_type, mk_array, mk_tuple, TY_UNRESOLVED,
+}
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Type a bracketed literal contextually : returns `Tuple(...)` when
+/// `expected` is a tuple-shaped slot, `Array(...)` otherwise.
+export infer_seq_lit :: fn(
+    e: AST.SeqLitExpr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    // Union → pick the most appropriate variant, then recurse.
+    match expected {
+        is UnionType as u -> {
+            picked :: pick_seq_variant(u, e.elements.len())
+            if picked is Type { return infer_seq_lit(e, picked, typed, diags, check_expr_fn) }
+        }
+        _ -> {}
+    }
+    match expected {
+        is TupleType as tup -> { return infer_against_tuple(e, tup, typed, diags, check_expr_fn) }
+        is ArrayType as arr -> { return infer_against_array(e, arr, typed, diags, check_expr_fn) }
+        _ -> { return infer_no_expected(e, typed, diags, check_expr_fn) }
+    }
+}
+
+// ---- per-shape -----------------------------------------------------------
+
+infer_against_tuple :: fn(
+    e: AST.SeqLitExpr, tup: TupleType,
+    typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    if tup.elements.len() != e.elements.len() {
+        diags.push(typecheck_error(.TypeMismatch, e.span,
+            "expected ${display_type(tup)} (${tup.elements.len()} element(s)), got ${e.elements.len()}"))
+        // Best-effort : check overlapping slots against their per-slot
+        // expected types so cascading errors stay minimal.
+        n :: min(tup.elements.len(), e.elements.len())
+        elem_types: Type[] = []
+        for i in 0..<n {
+            elem_types.push(check_expr_fn(e.elements[i], tup.elements[i], typed, diags))
+        }
+        for i in n..<e.elements.len() {
+            elem_types.push(check_expr_fn(e.elements[i], null, typed, diags))
+        }
+        return mk_tuple(default_each(elem_types))
+    }
+    elem_types: Type[] = []
+    for i in 0..<e.elements.len() {
+        elem_types.push(check_expr_fn(e.elements[i], tup.elements[i], typed, diags))
+    }
+    return mk_tuple(elem_types)
+}
+
+infer_against_array :: fn(
+    e: AST.SeqLitExpr, arr: ArrayType,
+    typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    elem_types :: walk_elements(e, arr.element, typed, diags, check_expr_fn)
+    if elem_types.len() == 0 { return arr }
+    return mk_array(union_of(default_each(elem_types)), arr.immutable)
+}
+
+infer_no_expected :: fn(
+    e: AST.SeqLitExpr,
+    typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    elem_types :: walk_elements(e, null, typed, diags, check_expr_fn)
+    if elem_types.len() == 0 { return mk_array(TY_UNRESOLVED, false) }
+    widened :: default_each(elem_types)
+    merged :: union_of(widened)
+    match merged {
+        // Heterogeneous elements stay UnionType → treat as a tuple.
+        is UnionType -> { return mk_tuple(widened) }
+        _ -> { return mk_array(merged, false) }
+    }
+}
+
+// ---- helpers -------------------------------------------------------------
+
+walk_elements :: fn(
+    e: AST.SeqLitExpr, hint: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type[] {
+    out: Type[] = []
+    for el in e.elements { out.push(check_expr_fn(el, hint, typed, diags)) }
+    return out
+}
+
+default_each :: fn(types: Type[]) -> Type[] {
+    out: Type[] = []
+    for t in types { out.push(default_if_free(t)) }
+    return out
+}
+
+pick_seq_variant :: fn(u: UnionType, arity: usize) -> Type | null {
+    for v in u.variants {
+        if v is TupleType { if v.elements.len() == arity { return v } }
+    }
+    for v in u.variants {
+        if v is ArrayType { return v }
+    }
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver/symbol" { new_factory }
+import "vader/typecheck/check" { check_module }
+import "vader/typecheck/expr_ident" { infer_ident }
+import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }
+import "vader/typecheck/test_helpers" { find_first_in_block }
+import "vader/typecheck/type_ops" { narrow_for_expected }
+import "vader/typecheck/types" { mk_primitive }
+import "vader/diagnostics/diagnostic" { empty_span }
+
+stub_check_expr :: fn(
+    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    match e {
+        is AST.IntLitExpr    as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
+        is AST.StringLitExpr as x -> { return infer_string_lit(x) }
+        is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
+        is AST.SeqLitExpr    as x -> { return infer_seq_lit(x, expected, typed, diags, stub_check_expr) }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+accept_seq :: fn(e: AST.Expr) -> AST.Expr | null {
+    if e is AST.SeqLitExpr { return e }
+    return null
+}
+
+ExpectedSeq :: struct {
+    typed: TypedProgram
+    sl:    AST.SeqLitExpr
+}
+
+expect_seq :: fn(src: string) -> ExpectedSeq {
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    diags: Diagnostic[] = []
+    result :: check_module(parsed.program, rm, factory, diags)
+    last :: parsed.program.decls[parsed.program.decls.len() - 1]
+    match last {
+        is AST.FnDecl as f -> {
+            match f.body {
+                is null -> {}
+                is AST.BlockExpr as b -> {
+                    hit :: find_first_in_block(b, accept_seq)
+                    if hit is AST.SeqLitExpr { return ExpectedSeq { .typed = result.typed, .sl = hit } }
+                }
+            }
+        }
+        _ -> {}
+    }
+    assert(false, "expected a SeqLitExpr in: ${src}")
+    return ExpectedSeq { .typed = result.typed, .sl = synthetic_seq() }
+}
+
+synthetic_seq :: fn() -> AST.SeqLitExpr {
+    sp :: empty_span()
+    return AST.SeqLitExpr {
+        .span = sp, .id = AST.UNASSIGNED_NODE_ID, .elements = [],
+    }
+}
+
+@test
+test_seq_homogeneous_int_returns_array :: fn() -> void {
+    src :: "f :: fn() -> i32[] { return [1, 2, 3] }"
+    es :: expect_seq(src)
+    diags: Diagnostic[] = []
+    ty :: infer_seq_lit(es.sl, null, es.typed, diags, stub_check_expr)
+    assert_eq(display_type(ty), "i32[]")
+}
+
+@test
+test_seq_heterogeneous_returns_tuple :: fn() -> void {
+    src :: "f :: fn() -> [i32, string] { return [1, \"two\"] }"
+    es :: expect_seq(src)
+    diags: Diagnostic[] = []
+    ty :: infer_seq_lit(es.sl, null, es.typed, diags, stub_check_expr)
+    assert_eq(display_type(ty), "[i32, string]")
+}
+
+@test
+test_seq_with_expected_array_narrows :: fn() -> void {
+    src :: "f :: fn() -> i64[] { return [1, 2, 3] }"
+    es :: expect_seq(src)
+    diags: Diagnostic[] = []
+    expected: Type = mk_array(mk_primitive("i64"), false)
+    ty :: infer_seq_lit(es.sl, expected, es.typed, diags, stub_check_expr)
+    assert_eq(display_type(ty), "i64[]")
+}
+
+@test
+test_seq_empty_with_array_expected :: fn() -> void {
+    src :: "f :: fn() -> i32[] { return [] }"
+    es :: expect_seq(src)
+    diags: Diagnostic[] = []
+    expected: Type = mk_array(mk_primitive("i32"), false)
+    ty :: infer_seq_lit(es.sl, expected, es.typed, diags, stub_check_expr)
+    assert_eq(display_type(ty), "i32[]")
+}
+
+@test
+test_seq_tuple_arity_mismatch_emits_T3001 :: fn() -> void {
+    src :: "f :: fn() -> [i32, i32] { return [1, 2, 3] }"
+    es :: expect_seq(src)
+    diags: Diagnostic[] = []
+    expected: Type = mk_tuple([mk_primitive("i32"), mk_primitive("i32")])
+    infer_seq_lit(es.sl, expected, es.typed, diags, stub_check_expr)
+    found := false
+    for d in diags { if d.code.id == "T3001" { found = true } }
+    assert(found, "expected T3001 on tuple arity mismatch")
+}
