@@ -82,7 +82,7 @@ write_bool :: fn(sb: StringBuilder, v: bool) -> void {
 open_obj :: fn(sb: StringBuilder) -> void { sb.append_char('{') }
 close_obj :: fn(sb: StringBuilder, level: i32) -> void {
     sb.append_char('\n')
-    indent(sb, level)
+    sb.indent(level)
     sb.append_char('}')
 }
 
@@ -90,7 +90,7 @@ open_arr :: fn(sb: StringBuilder) -> void { sb.append_char('[') }
 close_arr_empty :: fn(sb: StringBuilder) -> void { sb.append("[]") }
 close_arr :: fn(sb: StringBuilder, level: i32) -> void {
     sb.append_char('\n')
-    indent(sb, level)
+    sb.indent(level)
     sb.append_char(']')
 }
 
@@ -99,15 +99,15 @@ close_arr :: fn(sb: StringBuilder, level: i32) -> void {
 entry :: fn(sb: StringBuilder, first: bool, level: i32, key: string) -> void {
     if !first { sb.append_char(',') }
     sb.append_char('\n')
-    indent(sb, level)
+    sb.indent(level)
     sb.append_char('"')
     sb.append(key)
     sb.append("\": ")
 }
 
 kind_entry :: fn(sb: StringBuilder, level: i32, kind: string) -> void {
-    entry(sb, true, level, "kind")
-    write_string(sb, kind)
+    sb.entry(true, level, "kind")
+    sb.write_string(kind)
 }
 
 // ============================================================================
@@ -115,41 +115,41 @@ kind_entry :: fn(sb: StringBuilder, level: i32, kind: string) -> void {
 // ============================================================================
 
 write_program :: fn(sb: StringBuilder, prog: Program, level: i32) -> void {
-    open_obj(sb)
-    kind_entry(sb, level + 1, "Program")
-    entry(sb, false, level + 1, "decls")
-    write_decls(sb, prog.decls, level + 1)
-    close_obj(sb, level)
+    sb.open_obj()
+    sb.kind_entry(level + 1, "Program")
+    sb.entry(false, level + 1, "decls")
+    sb.write_decls(prog.decls, level + 1)
+    sb.close_obj(level)
 }
 
 write_decls :: fn(sb: StringBuilder, decls: Decl[], level: i32) -> void {
     if decls.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for d in decls {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        write_decl(sb, d, level + 1)
+        sb.indent(level + 1)
+        sb.write_decl(d, level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 write_decl :: fn(sb: StringBuilder, d: Decl, level: i32) -> void {
     match d {
-        is ImportDecl    -> { write_import_decl(sb, d, level) }
-        is FnDecl        -> { write_fn_decl(sb, d, level) }
-        is StructDecl    -> { write_struct_decl(sb, d, level) }
-        is EnumDecl      -> { write_enum_decl(sb, d, level) }
-        is TraitDecl     -> { write_trait_decl(sb, d, level) }
-        is ImplDecl      -> { write_impl_decl(sb, d, level) }
-        is TypeAliasDecl -> { write_type_alias_decl(sb, d, level) }
-        is ConstDecl     -> { write_const_decl(sb, d, level) }
-        is AssertDecl    -> { write_assert_decl(sb, d, level) }
+        is ImportDecl    -> { sb.write_import_decl(d, level) }
+        is FnDecl        -> { sb.write_fn_decl(d, level) }
+        is StructDecl    -> { sb.write_struct_decl(d, level) }
+        is EnumDecl      -> { sb.write_enum_decl(d, level) }
+        is TraitDecl     -> { sb.write_trait_decl(d, level) }
+        is ImplDecl      -> { sb.write_impl_decl(d, level) }
+        is TypeAliasDecl -> { sb.write_type_alias_decl(d, level) }
+        is ConstDecl     -> { sb.write_const_decl(d, level) }
+        is AssertDecl    -> { sb.write_assert_decl(d, level) }
     }
 }
 
@@ -168,7 +168,7 @@ write_import_decl :: fn(sb: StringBuilder, d: ImportDecl, level: i32) -> void {
 }
 
 write_import_binding :: fn(sb: StringBuilder, b: ImportBinding, level: i32) -> void {
-    open_obj(sb)
+    sb.open_obj()
     match b {
         is NamedNamespaceImport -> {
             sb.kind_entry(level + 1, "named-namespace")
@@ -191,336 +191,335 @@ write_import_binding :: fn(sb: StringBuilder, b: ImportBinding, level: i32) -> v
 
 write_import_names :: fn(sb: StringBuilder, names: ImportName[], level: i32) -> void {
     if names.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for n in names {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        open_obj(sb)
-        entry(sb, true, level + 2, "name")
-        write_string(sb, n.name)
-        entry(sb, false, level + 2, "alias")
+        sb.indent(level + 1)
+        sb.open_obj()
+        sb.entry(true, level + 2, "name")
+        sb.write_string(n.name)
+        sb.entry(false, level + 2, "alias")
         alias :: n.alias
 
         match alias {
-            is null      -> { write_null(sb) }
-            is string -> { write_string(sb, alias) }
+            is null      -> { sb.write_null() }
+            is string    -> { sb.write_string(alias) }
         }
-        close_obj(sb, level + 1)
+        sb.close_obj(level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 // ---- FnDecl ---------------------------------------------------------------
 
 write_fn_decl :: fn(sb: StringBuilder, d: FnDecl, level: i32) -> void {
-    open_obj(sb)
-    kind_entry(sb, level + 1, "FnDecl")
-    entry(sb, false, level + 1, "name")
-    write_string(sb, d.name)
-    entry(sb, false, level + 1, "visibility")
-    write_visibility(sb, d.visibility)
-    entry(sb, false, level + 1, "typeParams")
-    write_type_params(sb, d.type_params, level + 1)
-    entry(sb, false, level + 1, "params")
-    write_fn_params(sb, d.params, level + 1)
-    entry(sb, false, level + 1, "returnType")
-    write_optional_type(sb, d.return_type, level + 1)
-    entry(sb, false, level + 1, "body")
+    sb.open_obj()
+    sb.kind_entry(level + 1, "FnDecl")
+    sb.entry(false, level + 1, "name")
+    sb.write_string(d.name)
+    sb.entry(false, level + 1, "visibility")
+    sb.write_visibility(d.visibility)
+    sb.entry(false, level + 1, "typeParams")
+    sb.write_type_params(d.type_params, level + 1)
+    sb.entry(false, level + 1, "params")
+    sb.write_fn_params(d.params, level + 1)
+    sb.entry(false, level + 1, "returnType")
+    sb.write_optional_type(d.return_type, level + 1)
+    sb.entry(false, level + 1, "body")
     body :: d.body
-
     match body {
-        is null              -> { write_null(sb) }
-        is BlockExpr -> { write_block_expr(sb, body, level + 1) }
+        is null      -> { sb.write_null() }
+        is BlockExpr -> { sb.write_block_expr(body, level + 1) }
     }
-    entry(sb, false, level + 1, "decorators")
-    write_decorators(sb, d.decorators, level + 1)
+    sb.entry(false, level + 1, "decorators")
+    sb.write_decorators(d.decorators, level + 1)
     if d.sam_synthetic {
-        entry(sb, false, level + 1, "samSynthetic")
-        write_bool(sb, true)
+        sb.entry(false, level + 1, "samSynthetic")
+        sb.write_bool(true)
     }
     if d.is_expression_bodied {
-        entry(sb, false, level + 1, "isExpressionBodied")
-        write_bool(sb, true)
+        sb.entry(false, level + 1, "isExpressionBodied")
+        sb.write_bool(true)
     }
-    close_obj(sb, level)
+    sb.close_obj(level)
 }
 
 write_fn_params :: fn(sb: StringBuilder, params: FnParam[], level: i32) -> void {
     if params.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for pp in params {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        write_fn_param(sb, pp, level + 1)
+        sb.indent(level + 1)
+        sb.write_fn_param(pp, level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 write_fn_param :: fn(sb: StringBuilder, p: FnParam, level: i32) -> void {
-    open_obj(sb)
-    entry(sb, true, level + 1, "name")
-    write_string(sb, p.name)
-    entry(sb, false, level + 1, "type")
-    write_optional_type(sb, p.ty, level + 1)
-    entry(sb, false, level + 1, "defaultValue")
-    write_optional_expr(sb, p.default_value, level + 1)
-    entry(sb, false, level + 1, "variadic")
-    write_bool(sb, p.variadic)
-    close_obj(sb, level)
+    sb.open_obj()
+    sb.entry(true, level + 1, "name")
+    sb.write_string(p.name)
+    sb.entry(false, level + 1, "type")
+    sb.write_optional_type(p.ty, level + 1)
+    sb.entry(false, level + 1, "defaultValue")
+    sb.write_optional_expr(p.default_value, level + 1)
+    sb.entry(false, level + 1, "variadic")
+    sb.write_bool(p.variadic)
+    sb.close_obj(level)
 }
 
 // ---- StructDecl -----------------------------------------------------------
 
 write_struct_decl :: fn(sb: StringBuilder, d: StructDecl, level: i32) -> void {
-    open_obj(sb)
-    kind_entry(sb, level + 1, "StructDecl")
-    entry(sb, false, level + 1, "name")
-    write_string(sb, d.name)
-    entry(sb, false, level + 1, "visibility")
-    write_visibility(sb, d.visibility)
-    entry(sb, false, level + 1, "typeParams")
-    write_type_params(sb, d.type_params, level + 1)
-    entry(sb, false, level + 1, "fields")
-    write_struct_fields(sb, d.fields, level + 1)
-    entry(sb, false, level + 1, "decorators")
-    write_decorators(sb, d.decorators, level + 1)
-    close_obj(sb, level)
+    sb.open_obj()
+    sb.kind_entry(level + 1, "StructDecl")
+    sb.entry(false, level + 1, "name")
+    sb.write_string(d.name)
+    sb.entry(false, level + 1, "visibility")
+    sb.write_visibility(d.visibility)
+    sb.entry(false, level + 1, "typeParams")
+    sb.write_type_params(d.type_params, level + 1)
+    sb.entry(false, level + 1, "fields")
+    sb.write_struct_fields(d.fields, level + 1)
+    sb.entry(false, level + 1, "decorators")
+    sb.write_decorators(d.decorators, level + 1)
+    sb.close_obj(level)
 }
 
 write_struct_fields :: fn(sb: StringBuilder, fields: StructField[], level: i32) -> void {
     if fields.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for f in fields {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        open_obj(sb)
-        entry(sb, true, level + 2, "name")
-        write_string(sb, f.name)
-        entry(sb, false, level + 2, "type")
-        write_type(sb, f.ty, level + 2)
-        entry(sb, false, level + 2, "visibility")
-        write_visibility(sb, f.visibility)
-        entry(sb, false, level + 2, "default")
-        write_optional_expr(sb, f.default, level + 2)
-        close_obj(sb, level + 1)
+        sb.indent(level + 1)
+        sb.open_obj()
+        sb.entry(true, level + 2, "name")
+        sb.write_string(f.name)
+        sb.entry(false, level + 2, "type")
+        sb.write_type(f.ty, level + 2)
+        sb.entry(false, level + 2, "visibility")
+        sb.write_visibility(f.visibility)
+        sb.entry(false, level + 2, "default")
+        sb.write_optional_expr(f.default, level + 2)
+        sb.close_obj(level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 // ---- EnumDecl -------------------------------------------------------------
 
 write_enum_decl :: fn(sb: StringBuilder, d: EnumDecl, level: i32) -> void {
-    open_obj(sb)
-    kind_entry(sb, level + 1, "EnumDecl")
-    entry(sb, false, level + 1, "name")
-    write_string(sb, d.name)
-    entry(sb, false, level + 1, "visibility")
-    write_visibility(sb, d.visibility)
-    entry(sb, false, level + 1, "repr")
-    write_optional_type(sb, d.repr, level + 1)
-    entry(sb, false, level + 1, "variants")
-    if d.variants.len() == 0 { close_arr_empty(sb) }
+    sb.open_obj()
+    sb.kind_entry(level + 1, "EnumDecl")
+    sb.entry(false, level + 1, "name")
+    sb.write_string(d.name)
+    sb.entry(false, level + 1, "visibility")
+    sb.write_visibility(d.visibility)
+    sb.entry(false, level + 1, "repr")
+    sb.write_optional_type(d.repr, level + 1)
+    sb.entry(false, level + 1, "variants")
+    if d.variants.len() == 0 { sb.close_arr_empty() }
     else {
-        open_arr(sb)
+        sb.open_arr()
         first := true
         for v in d.variants {
             if !first { sb.append_char(',') }
             first = false
             sb.append_char('\n')
-            indent(sb, level + 2)
-            open_obj(sb)
-            entry(sb, true, level + 3, "name")
-            write_string(sb, v.name)
-            entry(sb, false, level + 3, "value")
+            sb.indent(level + 2)
+            sb.open_obj()
+            sb.entry(true, level + 3, "name")
+            sb.write_string(v.name)
+            sb.entry(false, level + 3, "value")
             mv :: v.value
 
             match mv {
-                is null    -> { write_null(sb) }
-                is i64 -> { write_signed_bigint(sb, mv) }
+                is null    -> { sb.write_null() }
+                is i64 -> { sb.write_signed_bigint(mv) }
             }
-            close_obj(sb, level + 2)
+            sb.close_obj(level + 2)
         }
-        close_arr(sb, level + 1)
+        sb.close_arr(level + 1)
     }
-    entry(sb, false, level + 1, "decorators")
-    write_decorators(sb, d.decorators, level + 1)
-    close_obj(sb, level)
+    sb.entry(false, level + 1, "decorators")
+    sb.write_decorators(d.decorators, level + 1)
+    sb.close_obj(level)
 }
 
 // ---- TraitDecl / ImplDecl / TypeAliasDecl / ConstDecl --------------------
 
 write_trait_decl :: fn(sb: StringBuilder, d: TraitDecl, level: i32) -> void {
-    open_obj(sb)
-    kind_entry(sb, level + 1, "TraitDecl")
-    entry(sb, false, level + 1, "name")
-    write_string(sb, d.name)
-    entry(sb, false, level + 1, "visibility")
-    write_visibility(sb, d.visibility)
-    entry(sb, false, level + 1, "typeParams")
-    write_type_params(sb, d.type_params, level + 1)
-    entry(sb, false, level + 1, "requires")
-    write_optional_type(sb, d.requires, level + 1)
-    entry(sb, false, level + 1, "members")
-    write_fn_decls(sb, d.members, level + 1)
-    entry(sb, false, level + 1, "decorators")
-    write_decorators(sb, d.decorators, level + 1)
-    close_obj(sb, level)
+    sb.open_obj()
+    sb.kind_entry(level + 1, "TraitDecl")
+    sb.entry(false, level + 1, "name")
+    sb.write_string(d.name)
+    sb.entry(false, level + 1, "visibility")
+    sb.write_visibility(d.visibility)
+    sb.entry(false, level + 1, "typeParams")
+    sb.write_type_params(d.type_params, level + 1)
+    sb.entry(false, level + 1, "requires")
+    sb.write_optional_type(d.requires, level + 1)
+    sb.entry(false, level + 1, "members")
+    sb.write_fn_decls(d.members, level + 1)
+    sb.entry(false, level + 1, "decorators")
+    sb.write_decorators(d.decorators, level + 1)
+    sb.close_obj(level)
 }
 
 write_impl_decl :: fn(sb: StringBuilder, d: ImplDecl, level: i32) -> void {
-    open_obj(sb)
-    kind_entry(sb, level + 1, "ImplDecl")
-    entry(sb, false, level + 1, "typeParams")
-    write_type_params(sb, d.type_params, level + 1)
-    entry(sb, false, level + 1, "forType")
-    write_type(sb, d.for_type, level + 1)
-    entry(sb, false, level + 1, "traitName")
-    write_string(sb, d.trait_name)
-    entry(sb, false, level + 1, "traitArgs")
-    write_types(sb, d.trait_args, level + 1)
-    entry(sb, false, level + 1, "members")
-    write_fn_decls(sb, d.members, level + 1)
-    entry(sb, false, level + 1, "decorators")
-    write_decorators(sb, d.decorators, level + 1)
-    close_obj(sb, level)
+    sb.open_obj()
+    sb.kind_entry(level + 1, "ImplDecl")
+    sb.entry(false, level + 1, "typeParams")
+    sb.write_type_params(d.type_params, level + 1)
+    sb.entry(false, level + 1, "forType")
+    sb.write_type(d.for_type, level + 1)
+    sb.entry(false, level + 1, "traitName")
+    sb.write_string(d.trait_name)
+    sb.entry(false, level + 1, "traitArgs")
+    sb.write_types(d.trait_args, level + 1)
+    sb.entry(false, level + 1, "members")
+    sb.write_fn_decls(d.members, level + 1)
+    sb.entry(false, level + 1, "decorators")
+    sb.write_decorators(d.decorators, level + 1)
+    sb.close_obj(level)
 }
 
 write_type_alias_decl :: fn(sb: StringBuilder, d: TypeAliasDecl, level: i32) -> void {
-    open_obj(sb)
-    kind_entry(sb, level + 1, "TypeAliasDecl")
-    entry(sb, false, level + 1, "name")
-    write_string(sb, d.name)
-    entry(sb, false, level + 1, "visibility")
-    write_visibility(sb, d.visibility)
-    entry(sb, false, level + 1, "typeParams")
-    write_type_params(sb, d.type_params, level + 1)
-    entry(sb, false, level + 1, "aliased")
-    write_type(sb, d.aliased, level + 1)
-    entry(sb, false, level + 1, "decorators")
-    write_decorators(sb, d.decorators, level + 1)
-    close_obj(sb, level)
+    sb.open_obj()
+    sb.kind_entry(level + 1, "TypeAliasDecl")
+    sb.entry(false, level + 1, "name")
+    sb.write_string(d.name)
+    sb.entry(false, level + 1, "visibility")
+    sb.write_visibility(d.visibility)
+    sb.entry(false, level + 1, "typeParams")
+    sb.write_type_params(d.type_params, level + 1)
+    sb.entry(false, level + 1, "aliased")
+    sb.write_type(d.aliased, level + 1)
+    sb.entry(false, level + 1, "decorators")
+    sb.write_decorators(d.decorators, level + 1)
+    sb.close_obj(level)
 }
 
 write_const_decl :: fn(sb: StringBuilder, d: ConstDecl, level: i32) -> void {
-    open_obj(sb)
-    kind_entry(sb, level + 1, "ConstDecl")
-    entry(sb, false, level + 1, "name")
-    write_string(sb, d.name)
-    entry(sb, false, level + 1, "visibility")
-    write_visibility(sb, d.visibility)
-    entry(sb, false, level + 1, "type")
-    write_optional_type(sb, d.ty, level + 1)
-    entry(sb, false, level + 1, "value")
-    write_expr(sb, d.value, level + 1)
-    entry(sb, false, level + 1, "decorators")
-    write_decorators(sb, d.decorators, level + 1)
-    close_obj(sb, level)
+    sb.open_obj()
+    sb.kind_entry(level + 1, "ConstDecl")
+    sb.entry(false, level + 1, "name")
+    sb.write_string(d.name)
+    sb.entry(false, level + 1, "visibility")
+    sb.write_visibility(d.visibility)
+    sb.entry(false, level + 1, "type")
+    sb.write_optional_type(d.ty, level + 1)
+    sb.entry(false, level + 1, "value")
+    sb.write_expr(d.value, level + 1)
+    sb.entry(false, level + 1, "decorators")
+    sb.write_decorators(d.decorators, level + 1)
+    sb.close_obj(level)
 }
 
 write_assert_decl :: fn(sb: StringBuilder, d: AssertDecl, level: i32) -> void {
-    open_obj(sb)
-    kind_entry(sb, level + 1, "AssertDecl")
-    entry(sb, false, level + 1, "condition")
-    write_expr(sb, d.condition, level + 1)
-    entry(sb, false, level + 1, "message")
+    sb.open_obj()
+    sb.kind_entry(level + 1, "AssertDecl")
+    sb.entry(false, level + 1, "condition")
+    sb.write_expr(d.condition, level + 1)
+    sb.entry(false, level + 1, "message")
     msg :: d.message
     match msg {
-        is null   -> { write_null(sb) }
-        is string -> { write_string(sb, msg) }
+        is null   -> { sb.write_null() }
+        is string -> { sb.write_string(msg) }
     }
-    entry(sb, false, level + 1, "decorators")
-    write_decorators(sb, d.decorators, level + 1)
-    close_obj(sb, level)
+    sb.entry(false, level + 1, "decorators")
+    sb.write_decorators(d.decorators, level + 1)
+    sb.close_obj(level)
 }
 
 write_fn_decls :: fn(sb: StringBuilder, ds: FnDecl[], level: i32) -> void {
     if ds.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for d in ds {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        write_fn_decl(sb, d, level + 1)
+        sb.indent(level + 1)
+        sb.write_fn_decl(d, level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 // ---- Visibility / decorators / type-params -------------------------------
 
 write_visibility :: fn(sb: StringBuilder, v: Visibility) -> void {
     match v {
-        .Public  -> { write_string(sb, "public")  }
-        .Private -> { write_string(sb, "private") }
+        .Public  -> { sb.write_string("public")  }
+        .Private -> { sb.write_string("private") }
     }
 }
 
 write_decorators :: fn(sb: StringBuilder, ds: Decorator[], level: i32) -> void {
     if ds.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for d in ds {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        open_obj(sb)
-        entry(sb, true, level + 2, "name")
-        write_string(sb, d.name)
-        entry(sb, false, level + 2, "args")
-        write_exprs(sb, d.args, level + 2)
-        close_obj(sb, level + 1)
+        sb.indent(level + 1)
+        sb.open_obj()
+        sb.entry(true, level + 2, "name")
+        sb.write_string(d.name)
+        sb.entry(false, level + 2, "args")
+        sb.write_exprs(d.args, level + 2)
+        sb.close_obj(level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 write_type_params :: fn(sb: StringBuilder, tps: TypeParam[], level: i32) -> void {
     if tps.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for tp in tps {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        open_obj(sb)
-        entry(sb, true, level + 2, "name")
-        write_string(sb, tp.name)
-        entry(sb, false, level + 2, "bound")
-        write_optional_type(sb, tp.bound, level + 2)
-        entry(sb, false, level + 2, "isComptimeValue")
-        write_bool(sb, tp.is_comptime_value)
-        close_obj(sb, level + 1)
+        sb.indent(level + 1)
+        sb.open_obj()
+        sb.entry(true, level + 2, "name")
+        sb.write_string(tp.name)
+        sb.entry(false, level + 2, "bound")
+        sb.write_optional_type(tp.bound, level + 2)
+        sb.entry(false, level + 2, "isComptimeValue")
+        sb.write_bool(tp.is_comptime_value)
+        sb.close_obj(level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 // ============================================================================
@@ -529,29 +528,29 @@ write_type_params :: fn(sb: StringBuilder, tps: TypeParam[], level: i32) -> void
 
 write_types :: fn(sb: StringBuilder, ts: TypeExpr[], level: i32) -> void {
     if ts.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for t in ts {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        write_type(sb, t, level + 1)
+        sb.indent(level + 1)
+        sb.write_type(t, level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 // `TypeExpr` is an alias for `Expr` ; type-position dumps forward to
 // `write_expr` directly.
 write_optional_type :: fn(sb: StringBuilder, t: TypeExpr | null, level: i32) -> void {
-    write_expr(sb, t, level)
+    sb.write_expr(t, level)
 }
 
 write_type :: fn(sb: StringBuilder, t: TypeExpr, level: i32) -> void {
-    write_expr(sb, t, level)
+    sb.write_expr(t, level)
 }
 
 // ============================================================================
@@ -560,134 +559,134 @@ write_type :: fn(sb: StringBuilder, t: TypeExpr, level: i32) -> void {
 
 write_stmts :: fn(sb: StringBuilder, ss: Stmt[], level: i32) -> void {
     if ss.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for s in ss {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        write_stmt(sb, s, level + 1)
+        sb.indent(level + 1)
+        sb.write_stmt(s, level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 write_stmt :: fn(sb: StringBuilder, s: Stmt, level: i32) -> void {
     match s {
         is LetStmt -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "LetStmt")
-            entry(sb, false, level + 1, "mutable")
-            write_bool(sb, s.mutable)
-            entry(sb, false, level + 1, "binding")
-            write_let_binding(sb, s.binding, level + 1)
-            entry(sb, false, level + 1, "type")
-            write_optional_type(sb, s.ty, level + 1)
-            entry(sb, false, level + 1, "value")
-            write_expr(sb, s.value, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "LetStmt")
+            sb.entry(false, level + 1, "mutable")
+            sb.write_bool(s.mutable)
+            sb.entry(false, level + 1, "binding")
+            sb.write_let_binding(s.binding, level + 1)
+            sb.entry(false, level + 1, "type")
+            sb.write_optional_type(s.ty, level + 1)
+            sb.entry(false, level + 1, "value")
+            sb.write_expr(s.value, level + 1)
+            sb.close_obj(level)
         }
         is AssignStmt -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "AssignStmt")
-            entry(sb, false, level + 1, "target")
-            write_expr(sb, s.target, level + 1)
-            entry(sb, false, level + 1, "value")
-            write_expr(sb, s.value, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "AssignStmt")
+            sb.entry(false, level + 1, "target")
+            sb.write_expr(s.target, level + 1)
+            sb.entry(false, level + 1, "value")
+            sb.write_expr(s.value, level + 1)
+            sb.close_obj(level)
         }
         is ExprStmt -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "ExprStmt")
-            entry(sb, false, level + 1, "expr")
-            write_expr(sb, s.expr, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "ExprStmt")
+            sb.entry(false, level + 1, "expr")
+            sb.write_expr(s.expr, level + 1)
+            sb.close_obj(level)
         }
         is ReturnStmt -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "ReturnStmt")
-            entry(sb, false, level + 1, "value")
-            write_optional_expr(sb, s.value, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "ReturnStmt")
+            sb.entry(false, level + 1, "value")
+            sb.write_optional_expr(s.value, level + 1)
+            sb.close_obj(level)
         }
         is ForStmt -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "ForStmt")
-            entry(sb, false, level + 1, "label")
+            sb.open_obj()
+            sb.kind_entry(level + 1, "ForStmt")
+            sb.entry(false, level + 1, "label")
             label :: s.label
 
             match label {
-                is null        -> { write_null(sb) }
-                is string -> { write_string(sb, label) }
+                is null        -> { sb.write_null() }
+                is string -> { sb.write_string(label) }
             }
-            entry(sb, false, level + 1, "form")
-            write_for_form(sb, s.form, level + 1)
-            entry(sb, false, level + 1, "body")
-            write_block_expr(sb, s.body, level + 1)
-            entry(sb, false, level + 1, "isComptime")
-            write_bool(sb, s.is_comptime)
-            close_obj(sb, level)
+            sb.entry(false, level + 1, "form")
+            sb.write_for_form(s.form, level + 1)
+            sb.entry(false, level + 1, "body")
+            sb.write_block_expr(s.body, level + 1)
+            sb.entry(false, level + 1, "isComptime")
+            sb.write_bool(s.is_comptime)
+            sb.close_obj(level)
         }
         is BreakStmt -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "BreakStmt")
-            entry(sb, false, level + 1, "label")
+            sb.open_obj()
+            sb.kind_entry(level + 1, "BreakStmt")
+            sb.entry(false, level + 1, "label")
             label :: s.label
 
             match label {
-                is null        -> { write_null(sb) }
-                is string -> { write_string(sb, label) }
+                is null        -> { sb.write_null() }
+                is string -> { sb.write_string(label) }
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
         is ContinueStmt -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "ContinueStmt")
-            entry(sb, false, level + 1, "label")
+            sb.open_obj()
+            sb.kind_entry(level + 1, "ContinueStmt")
+            sb.entry(false, level + 1, "label")
             label :: s.label
 
             match label {
-                is null        -> { write_null(sb) }
-                is string -> { write_string(sb, label) }
+                is null        -> { sb.write_null() }
+                is string -> { sb.write_string(label) }
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
         is DeferStmt -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "DeferStmt")
-            entry(sb, false, level + 1, "body")
+            sb.open_obj()
+            sb.kind_entry(level + 1, "DeferStmt")
+            sb.entry(false, level + 1, "body")
             body :: s.body
 
             match body {
-                is DeferStmtBody -> { write_stmt(sb, body.stmt, level + 1) }
-                is DeferBlockBody -> { write_block_expr(sb, body.block, level + 1) }
+                is DeferStmtBody -> { sb.write_stmt(body.stmt, level + 1) }
+                is DeferBlockBody -> { sb.write_block_expr(body.block, level + 1) }
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
     }
 }
 
 write_for_form :: fn(sb: StringBuilder, f: ForForm, level: i32) -> void {
-    open_obj(sb)
+    sb.open_obj()
     match f {
-        is InfiniteFor -> { kind_entry(sb, level + 1, "infinite") }
+        is InfiniteFor -> { sb.kind_entry(level + 1, "infinite") }
         is WhileFor -> {
-            kind_entry(sb, level + 1, "while")
-            entry(sb, false, level + 1, "cond")
-            write_expr(sb, f.cond, level + 1)
+            sb.kind_entry(level + 1, "while")
+            sb.entry(false, level + 1, "cond")
+            sb.write_expr(f.cond, level + 1)
         }
         is InFor -> {
-            kind_entry(sb, level + 1, "in")
-            entry(sb, false, level + 1, "binding")
-            write_string(sb, f.binding)
-            entry(sb, false, level + 1, "iter")
-            write_expr(sb, f.iter, level + 1)
+            sb.kind_entry(level + 1, "in")
+            sb.entry(false, level + 1, "binding")
+            sb.write_string(f.binding)
+            sb.entry(false, level + 1, "iter")
+            sb.write_expr(f.iter, level + 1)
         }
     }
-    close_obj(sb, level)
+    sb.close_obj(level)
 }
 
 // ============================================================================
@@ -695,592 +694,592 @@ write_for_form :: fn(sb: StringBuilder, f: ForForm, level: i32) -> void {
 // ============================================================================
 
 write_optional_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
-    write_expr(sb, e, level)
+    sb.write_expr(e, level)
 }
 
 write_exprs :: fn(sb: StringBuilder, es: Expr[], level: i32) -> void {
     if es.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for e in es {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        write_expr(sb, e, level + 1)
+        sb.indent(level + 1)
+        sb.write_expr(e, level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
     match e {
-        is null -> { write_null(sb) }
+        is null -> { sb.write_null() }
         is IntLitExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "IntLitExpr")
-            entry(sb, false, level + 1, "value")
-            write_bigint(sb, e.value)
-            entry(sb, false, level + 1, "suffix")
+            sb.open_obj()
+            sb.kind_entry(level + 1, "IntLitExpr")
+            sb.entry(false, level + 1, "value")
+            sb.write_bigint(e.value)
+            sb.entry(false, level + 1, "suffix")
             suffix :: e.suffix
 
             match suffix {
-                is null        -> { write_null(sb) }
-                is string -> { write_string(sb, suffix) }
+                is null        -> { sb.write_null() }
+                is string -> { sb.write_string(suffix) }
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
         is FloatLitExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "FloatLitExpr")
-            entry(sb, false, level + 1, "value")
-            write_f64(sb, e.value)
-            entry(sb, false, level + 1, "suffix")
+            sb.open_obj()
+            sb.kind_entry(level + 1, "FloatLitExpr")
+            sb.entry(false, level + 1, "value")
+            sb.write_f64(e.value)
+            sb.entry(false, level + 1, "suffix")
             suffix :: e.suffix
 
             match suffix {
-                is null        -> { write_null(sb) }
-                is string -> { write_string(sb, suffix) }
+                is null        -> { sb.write_null() }
+                is string -> { sb.write_string(suffix) }
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
         is BoolLitExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "BoolLitExpr")
-            entry(sb, false, level + 1, "value")
-            write_bool(sb, e.value)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "BoolLitExpr")
+            sb.entry(false, level + 1, "value")
+            sb.write_bool(e.value)
+            sb.close_obj(level)
         }
         is NullLitExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "NullLitExpr")
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "NullLitExpr")
+            sb.close_obj(level)
         }
         is CharLitExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "CharLitExpr")
-            entry(sb, false, level + 1, "value")
+            sb.open_obj()
+            sb.kind_entry(level + 1, "CharLitExpr")
+            sb.entry(false, level + 1, "value")
             sb.append("${e.value}")
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
         is StringLitExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "StringLitExpr")
-            entry(sb, false, level + 1, "parts")
-            write_string_parts(sb, e.parts, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "StringLitExpr")
+            sb.entry(false, level + 1, "parts")
+            sb.write_string_parts(e.parts, level + 1)
+            sb.close_obj(level)
         }
         is IdentExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "IdentExpr")
-            entry(sb, false, level + 1, "name")
-            write_string(sb, e.name)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "IdentExpr")
+            sb.entry(false, level + 1, "name")
+            sb.write_string(e.name)
             // Mirror TS : both flags are emitted only when set, since the
             // TS dumper drops `undefined`-valued optional fields via
             // `JSON.stringify`.
             if e.implicit_dot {
-                entry(sb, false, level + 1, "implicitDot")
+                sb.entry(false, level + 1, "implicitDot")
                 sb.append("true")
             }
             if e.is_type_param_intro {
-                entry(sb, false, level + 1, "isTypeParamIntro")
+                sb.entry(false, level + 1, "isTypeParamIntro")
                 sb.append("true")
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
         is CallExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "CallExpr")
-            entry(sb, false, level + 1, "callee")
-            write_expr(sb, e.callee, level + 1)
-            entry(sb, false, level + 1, "args")
-            write_call_args(sb, e.args, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "CallExpr")
+            sb.entry(false, level + 1, "callee")
+            sb.write_expr(e.callee, level + 1)
+            sb.entry(false, level + 1, "args")
+            sb.write_call_args(e.args, level + 1)
+            sb.close_obj(level)
         }
         is FieldExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "FieldExpr")
-            entry(sb, false, level + 1, "target")
-            write_expr(sb, e.target, level + 1)
-            entry(sb, false, level + 1, "field")
-            write_string(sb, e.field)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "FieldExpr")
+            sb.entry(false, level + 1, "target")
+            sb.write_expr(e.target, level + 1)
+            sb.entry(false, level + 1, "field")
+            sb.write_string(e.field)
             // Mirror TS : `isNumeric` is emitted only when true (TS treats it
             // as an optional that's undefined-by-default).
             if e.is_numeric {
-                entry(sb, false, level + 1, "isNumeric")
-                write_bool(sb, true)
+                sb.entry(false, level + 1, "isNumeric")
+                sb.write_bool(true)
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
         is IndexExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "IndexExpr")
-            entry(sb, false, level + 1, "target")
-            write_expr(sb, e.target, level + 1)
-            entry(sb, false, level + 1, "index")
-            write_expr(sb, e.index, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "IndexExpr")
+            sb.entry(false, level + 1, "target")
+            sb.write_expr(e.target, level + 1)
+            sb.entry(false, level + 1, "index")
+            sb.write_expr(e.index, level + 1)
+            sb.close_obj(level)
         }
         is UnaryExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "UnaryExpr")
-            entry(sb, false, level + 1, "op")
-            write_string(sb, unary_op_name(e.op))
-            entry(sb, false, level + 1, "operand")
-            write_expr(sb, e.operand, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "UnaryExpr")
+            sb.entry(false, level + 1, "op")
+            sb.write_string(unary_op_name(e.op))
+            sb.entry(false, level + 1, "operand")
+            sb.write_expr(e.operand, level + 1)
+            sb.close_obj(level)
         }
         is BinaryExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "BinaryExpr")
-            entry(sb, false, level + 1, "op")
-            write_string(sb, binary_op_name(e.op))
-            entry(sb, false, level + 1, "left")
-            write_expr(sb, e.left, level + 1)
-            entry(sb, false, level + 1, "right")
-            write_expr(sb, e.right, level + 1)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "BinaryExpr")
+            sb.entry(false, level + 1, "op")
+            sb.write_string(binary_op_name(e.op))
+            sb.entry(false, level + 1, "left")
+            sb.write_expr(e.left, level + 1)
+            sb.entry(false, level + 1, "right")
+            sb.write_expr(e.right, level + 1)
             // `bindAs` only emitted when non-empty — matches the TS
             // dump where the field is optional on BinaryExpr.
             if e.bind_as != "" {
-                entry(sb, false, level + 1, "bindAs")
-                write_string(sb, e.bind_as)
+                sb.entry(false, level + 1, "bindAs")
+                sb.write_string(e.bind_as)
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
         is IfExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "IfExpr")
-            entry(sb, false, level + 1, "cond")
-            write_expr(sb, e.cond, level + 1)
-            entry(sb, false, level + 1, "then")
-            write_block_expr(sb, e.then_block, level + 1)
-            entry(sb, false, level + 1, "else")
+            sb.open_obj()
+            sb.kind_entry(level + 1, "IfExpr")
+            sb.entry(false, level + 1, "cond")
+            sb.write_expr(e.cond, level + 1)
+            sb.entry(false, level + 1, "then")
+            sb.write_block_expr(e.then_block, level + 1)
+            sb.entry(false, level + 1, "else")
             else_branch :: e.else_branch
 
             match else_branch {
-                is null         -> { write_null(sb) }
-                is IfElseIf -> { write_expr(sb, else_branch.branch, level + 1) }
-                is IfElseBlock -> { write_block_expr(sb, else_branch.block, level + 1) }
+                is null         -> { sb.write_null() }
+                is IfElseIf -> { sb.write_expr(else_branch.branch, level + 1) }
+                is IfElseBlock -> { sb.write_block_expr(else_branch.block, level + 1) }
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
         is MatchExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "MatchExpr")
-            entry(sb, false, level + 1, "scrutinee")
-            write_expr(sb, e.scrutinee, level + 1)
-            entry(sb, false, level + 1, "arms")
-            write_match_arms(sb, e.arms, level + 1)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "MatchExpr")
+            sb.entry(false, level + 1, "scrutinee")
+            sb.write_expr(e.scrutinee, level + 1)
+            sb.entry(false, level + 1, "arms")
+            sb.write_match_arms(e.arms, level + 1)
             if e.partial {
-                entry(sb, false, level + 1, "partial")
+                sb.entry(false, level + 1, "partial")
                 sb.append("true")
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
-        is BlockExpr -> { write_block_expr(sb, e, level) }
+        is BlockExpr -> { sb.write_block_expr(e, level) }
         is LambdaExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "LambdaExpr")
-            entry(sb, false, level + 1, "params")
-            write_fn_params(sb, e.params, level + 1)
-            entry(sb, false, level + 1, "returnType")
-            write_optional_type(sb, e.return_type, level + 1)
-            entry(sb, false, level + 1, "body")
-            write_block_expr(sb, e.body, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "LambdaExpr")
+            sb.entry(false, level + 1, "params")
+            sb.write_fn_params(e.params, level + 1)
+            sb.entry(false, level + 1, "returnType")
+            sb.write_optional_type(e.return_type, level + 1)
+            sb.entry(false, level + 1, "body")
+            sb.write_block_expr(e.body, level + 1)
+            sb.close_obj(level)
         }
         is StructLitExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "StructLitExpr")
-            entry(sb, false, level + 1, "typeName")
-            write_type(sb, e.type_name, level + 1)
-            entry(sb, false, level + 1, "items")
-            write_struct_lit_items(sb, e.items, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "StructLitExpr")
+            sb.entry(false, level + 1, "typeName")
+            sb.write_type(e.type_name, level + 1)
+            sb.entry(false, level + 1, "items")
+            sb.write_struct_lit_items(e.items, level + 1)
+            sb.close_obj(level)
         }
         is SeqLitExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "SeqLitExpr")
-            entry(sb, false, level + 1, "elements")
-            write_exprs(sb, e.elements, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "SeqLitExpr")
+            sb.entry(false, level + 1, "elements")
+            sb.write_exprs(e.elements, level + 1)
+            sb.close_obj(level)
         }
         is RangeExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "RangeExpr")
-            entry(sb, false, level + 1, "inclusive")
-            write_bool(sb, e.inclusive)
-            entry(sb, false, level + 1, "lower")
-            write_expr(sb, e.lower, level + 1)
-            entry(sb, false, level + 1, "upper")
-            write_expr(sb, e.upper, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "RangeExpr")
+            sb.entry(false, level + 1, "inclusive")
+            sb.write_bool(e.inclusive)
+            sb.entry(false, level + 1, "lower")
+            sb.write_expr(e.lower, level + 1)
+            sb.entry(false, level + 1, "upper")
+            sb.write_expr(e.upper, level + 1)
+            sb.close_obj(level)
         }
         is TryExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "TryExpr")
-            entry(sb, false, level + 1, "inner")
-            write_expr(sb, e.inner, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "TryExpr")
+            sb.entry(false, level + 1, "inner")
+            sb.write_expr(e.inner, level + 1)
+            sb.close_obj(level)
         }
         is CastExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "CastExpr")
-            entry(sb, false, level + 1, "target")
-            write_type(sb, e.target, level + 1)
-            entry(sb, false, level + 1, "value")
-            write_expr(sb, e.value, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "CastExpr")
+            sb.entry(false, level + 1, "target")
+            sb.write_type(e.target, level + 1)
+            sb.entry(false, level + 1, "value")
+            sb.write_expr(e.value, level + 1)
+            sb.close_obj(level)
         }
         is GenericInstExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "GenericInstExpr")
-            entry(sb, false, level + 1, "callee")
-            write_expr(sb, e.callee, level + 1)
-            entry(sb, false, level + 1, "typeArgs")
-            write_types(sb, e.type_args, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "GenericInstExpr")
+            sb.entry(false, level + 1, "callee")
+            sb.write_expr(e.callee, level + 1)
+            sb.entry(false, level + 1, "typeArgs")
+            sb.write_types(e.type_args, level + 1)
+            sb.close_obj(level)
         }
         is IntrinsicCallExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "IntrinsicCallExpr")
-            entry(sb, false, level + 1, "name")
-            write_string(sb, e.name)
-            entry(sb, false, level + 1, "args")
-            write_exprs(sb, e.args, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "IntrinsicCallExpr")
+            sb.entry(false, level + 1, "name")
+            sb.write_string(e.name)
+            sb.entry(false, level + 1, "args")
+            sb.write_exprs(e.args, level + 1)
+            sb.close_obj(level)
         }
         is DotVariantExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "DotVariantExpr")
-            entry(sb, false, level + 1, "variant")
-            write_string(sb, e.variant)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "DotVariantExpr")
+            sb.entry(false, level + 1, "variant")
+            sb.write_string(e.variant)
+            sb.close_obj(level)
         }
         is FnTypeExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "FnTypeExpr")
-            entry(sb, false, level + 1, "params")
-            write_types(sb, e.params, level + 1)
-            entry(sb, false, level + 1, "returnType")
-            write_optional_type(sb, e.return_type, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "FnTypeExpr")
+            sb.entry(false, level + 1, "params")
+            sb.write_types(e.params, level + 1)
+            sb.entry(false, level + 1, "returnType")
+            sb.write_optional_type(e.return_type, level + 1)
+            sb.close_obj(level)
         }
         is ArrayTypeExpr -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "ArrayTypeExpr")
-            entry(sb, false, level + 1, "element")
-            write_expr(sb, e.element, level + 1)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "ArrayTypeExpr")
+            sb.entry(false, level + 1, "element")
+            sb.write_expr(e.element, level + 1)
             if e.immutable {
-                entry(sb, false, level + 1, "immutable")
+                sb.entry(false, level + 1, "immutable")
                 sb.append("true")
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
     }
 }
 
 write_block_expr :: fn(sb: StringBuilder, b: BlockExpr, level: i32) -> void {
-    open_obj(sb)
-    kind_entry(sb, level + 1, "BlockExpr")
-    entry(sb, false, level + 1, "stmts")
-    write_stmts(sb, b.stmts, level + 1)
-    entry(sb, false, level + 1, "trailing")
-    write_optional_expr(sb, b.trailing, level + 1)
-    close_obj(sb, level)
+    sb.open_obj()
+    sb.kind_entry(level + 1, "BlockExpr")
+    sb.entry(false, level + 1, "stmts")
+    sb.write_stmts(b.stmts, level + 1)
+    sb.entry(false, level + 1, "trailing")
+    sb.write_optional_expr(b.trailing, level + 1)
+    sb.close_obj(level)
 }
 
 write_string_parts :: fn(sb: StringBuilder, parts: StringLitPart[], level: i32) -> void {
     if parts.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for pp in parts {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        open_obj(sb)
+        sb.indent(level + 1)
+        sb.open_obj()
         match pp {
             is StringLitText -> {
-                kind_entry(sb, level + 2, "text")
-                entry(sb, false, level + 2, "value")
-                write_string(sb, pp.value)
+                sb.kind_entry(level + 2, "text")
+                sb.entry(false, level + 2, "value")
+                sb.write_string(pp.value)
             }
             is StringLitInterp -> {
-                kind_entry(sb, level + 2, "interp")
-                entry(sb, false, level + 2, "expr")
-                write_expr(sb, pp.expr, level + 2)
+                sb.kind_entry(level + 2, "interp")
+                sb.entry(false, level + 2, "expr")
+                sb.write_expr(pp.expr, level + 2)
             }
         }
-        close_obj(sb, level + 1)
+        sb.close_obj(level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 write_call_args :: fn(sb: StringBuilder, args: CallArg[], level: i32) -> void {
     if args.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for a in args {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        open_obj(sb)
-        entry(sb, true, level + 2, "name")
+        sb.indent(level + 1)
+        sb.open_obj()
+        sb.entry(true, level + 2, "name")
         mv :: a.name
 
         match mv {
-            is null        -> { write_null(sb) }
-            is string -> { write_string(sb, mv) }
+            is null        -> { sb.write_null() }
+            is string -> { sb.write_string(mv) }
         }
-        entry(sb, false, level + 2, "value")
-        write_expr(sb, a.value, level + 2)
-        entry(sb, false, level + 2, "spread")
-        write_bool(sb, a.spread)
-        close_obj(sb, level + 1)
+        sb.entry(false, level + 2, "value")
+        sb.write_expr(a.value, level + 2)
+        sb.entry(false, level + 2, "spread")
+        sb.write_bool(a.spread)
+        sb.close_obj(level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 write_struct_lit_items :: fn(sb: StringBuilder, items: (StructLitField | StructLitSpread)[], level: i32) -> void {
     if items.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for it in items {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        open_obj(sb)
+        sb.indent(level + 1)
+        sb.open_obj()
         match it {
             is StructLitField -> {
-                kind_entry(sb, level + 2, "field")
-                entry(sb, false, level + 2, "name")
-                write_string(sb, it.name)
-                entry(sb, false, level + 2, "value")
-                write_expr(sb, it.value, level + 2)
+                sb.kind_entry(level + 2, "field")
+                sb.entry(false, level + 2, "name")
+                sb.write_string(it.name)
+                sb.entry(false, level + 2, "value")
+                sb.write_expr(it.value, level + 2)
             }
             is StructLitSpread -> {
-                kind_entry(sb, level + 2, "spread")
-                entry(sb, false, level + 2, "expr")
-                write_expr(sb, it.expr, level + 2)
+                sb.kind_entry(level + 2, "spread")
+                sb.entry(false, level + 2, "expr")
+                sb.write_expr(it.expr, level + 2)
             }
         }
-        close_obj(sb, level + 1)
+        sb.close_obj(level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 write_match_arms :: fn(sb: StringBuilder, arms: MatchArm[], level: i32) -> void {
     if arms.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for a in arms {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        open_obj(sb)
-        entry(sb, true, level + 2, "pattern")
-        write_pattern(sb, a.pattern, level + 2)
-        entry(sb, false, level + 2, "guard")
-        write_optional_expr(sb, a.guard, level + 2)
-        entry(sb, false, level + 2, "body")
-        write_expr(sb, a.body, level + 2)
-        close_obj(sb, level + 1)
+        sb.indent(level + 1)
+        sb.open_obj()
+        sb.entry(true, level + 2, "pattern")
+        sb.write_pattern(a.pattern, level + 2)
+        sb.entry(false, level + 2, "guard")
+        sb.write_optional_expr(a.guard, level + 2)
+        sb.entry(false, level + 2, "body")
+        sb.write_expr(a.body, level + 2)
+        sb.close_obj(level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 write_let_binding :: fn(sb: StringBuilder, b: LetBinding, level: i32) -> void {
     match b {
         is SimpleBinding -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "SimpleBinding")
-            entry(sb, false, level + 1, "name")
-            write_string(sb, b.name)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "SimpleBinding")
+            sb.entry(false, level + 1, "name")
+            sb.write_string(b.name)
+            sb.close_obj(level)
         }
         is TupleBinding -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "TupleBinding")
-            entry(sb, false, level + 1, "elements")
-            write_let_bindings(sb, b.elements, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "TupleBinding")
+            sb.entry(false, level + 1, "elements")
+            sb.write_let_bindings(b.elements, level + 1)
+            sb.close_obj(level)
         }
         is WildcardBinding -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "WildcardBinding")
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "WildcardBinding")
+            sb.close_obj(level)
         }
         is RestBinding -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "RestBinding")
-            entry(sb, false, level + 1, "name")
-            write_string(sb, b.name)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "RestBinding")
+            sb.entry(false, level + 1, "name")
+            sb.write_string(b.name)
+            sb.close_obj(level)
         }
     }
 }
 
 write_let_bindings :: fn(sb: StringBuilder, bs: LetBinding[], level: i32) -> void {
     if bs.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for b in bs {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        write_let_binding(sb, b, level + 1)
+        sb.indent(level + 1)
+        sb.write_let_binding(b, level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 write_patterns :: fn(sb: StringBuilder, ps: Pattern[], level: i32) -> void {
     if ps.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for p in ps {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        write_pattern(sb, p, level + 1)
+        sb.indent(level + 1)
+        sb.write_pattern(p, level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 write_pattern :: fn(sb: StringBuilder, p: Pattern, level: i32) -> void {
     match p {
         is IsPattern -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "IsPattern")
-            entry(sb, false, level + 1, "type")
-            write_type(sb, p.ty, level + 1)
-            entry(sb, false, level + 1, "inner")
+            sb.open_obj()
+            sb.kind_entry(level + 1, "IsPattern")
+            sb.entry(false, level + 1, "type")
+            sb.write_type(p.ty, level + 1)
+            sb.entry(false, level + 1, "inner")
             inner :: p.inner
 
             match inner {
-                is null                  -> { write_null(sb) }
-                is IsPattern -> { write_pattern(sb, inner, level + 1) }
-                is StructPattern -> { write_pattern(sb, inner, level + 1) }
-                is TuplePattern -> { write_pattern(sb, inner, level + 1) }
-                is WildcardPattern -> { write_pattern(sb, inner, level + 1) }
-                is BindingPattern -> { write_pattern(sb, inner, level + 1) }
-                is EnumVariantPattern -> { write_pattern(sb, inner, level + 1) }
-                is LiteralPattern -> { write_pattern(sb, inner, level + 1) }
+                is null                  -> { sb.write_null() }
+                is IsPattern -> { sb.write_pattern(inner, level + 1) }
+                is StructPattern -> { sb.write_pattern(inner, level + 1) }
+                is TuplePattern -> { sb.write_pattern(inner, level + 1) }
+                is WildcardPattern -> { sb.write_pattern(inner, level + 1) }
+                is BindingPattern -> { sb.write_pattern(inner, level + 1) }
+                is EnumVariantPattern -> { sb.write_pattern(inner, level + 1) }
+                is LiteralPattern -> { sb.write_pattern(inner, level + 1) }
             }
-            entry(sb, false, level + 1, "bindAs")
+            sb.entry(false, level + 1, "bindAs")
             bind_as :: p.bind_as
 
             match bind_as {
-                is null        -> { write_null(sb) }
-                is string -> { write_string(sb, bind_as) }
+                is null        -> { sb.write_null() }
+                is string -> { sb.write_string(bind_as) }
             }
-            close_obj(sb, level)
+            sb.close_obj(level)
         }
         is StructPattern -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "StructPattern")
-            entry(sb, false, level + 1, "fields")
-            write_struct_pattern_fields(sb, p.fields, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "StructPattern")
+            sb.entry(false, level + 1, "fields")
+            sb.write_struct_pattern_fields(p.fields, level + 1)
+            sb.close_obj(level)
         }
         is TuplePattern -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "TuplePattern")
-            entry(sb, false, level + 1, "elements")
-            write_patterns(sb, p.elements, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "TuplePattern")
+            sb.entry(false, level + 1, "elements")
+            sb.write_patterns(p.elements, level + 1)
+            sb.close_obj(level)
         }
         is WildcardPattern -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "WildcardPattern")
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "WildcardPattern")
+            sb.close_obj(level)
         }
         is BindingPattern -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "BindingPattern")
-            entry(sb, false, level + 1, "name")
-            write_string(sb, p.name)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "BindingPattern")
+            sb.entry(false, level + 1, "name")
+            sb.write_string(p.name)
+            sb.close_obj(level)
         }
         is EnumVariantPattern -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "EnumVariantPattern")
-            entry(sb, false, level + 1, "variant")
-            write_string(sb, p.variant)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "EnumVariantPattern")
+            sb.entry(false, level + 1, "variant")
+            sb.write_string(p.variant)
+            sb.close_obj(level)
         }
         is LiteralPattern -> {
-            open_obj(sb)
-            kind_entry(sb, level + 1, "LiteralPattern")
-            entry(sb, false, level + 1, "value")
-            write_expr(sb, p.value, level + 1)
-            close_obj(sb, level)
+            sb.open_obj()
+            sb.kind_entry(level + 1, "LiteralPattern")
+            sb.entry(false, level + 1, "value")
+            sb.write_expr(p.value, level + 1)
+            sb.close_obj(level)
         }
     }
 }
 
 write_struct_pattern_fields :: fn(sb: StringBuilder, fields: StructPatternField[], level: i32) -> void {
     if fields.len() == 0 {
-        close_arr_empty(sb)
+        sb.close_arr_empty()
         return
     }
-    open_arr(sb)
+    sb.open_arr()
     first := true
     for f in fields {
         if !first { sb.append_char(',') }
         first = false
         sb.append_char('\n')
-        indent(sb, level + 1)
-        open_obj(sb)
-        entry(sb, true, level + 2, "name")
-        write_string(sb, f.name)
-        entry(sb, false, level + 2, "value")
+        sb.indent(level + 1)
+        sb.open_obj()
+        sb.entry(true, level + 2, "name")
+        sb.write_string(f.name)
+        sb.entry(false, level + 2, "value")
         mv :: f.value
 
         match mv {
             is PatternBinding -> {
-                open_obj(sb)
-                kind_entry(sb, level + 3, "binding")
-                entry(sb, false, level + 3, "name")
-                write_string(sb, mv.name)
-                close_obj(sb, level + 2)
+                sb.open_obj()
+                sb.kind_entry(level + 3, "binding")
+                sb.entry(false, level + 3, "name")
+                sb.write_string(mv.name)
+                sb.close_obj(level + 2)
             }
             is PatternLiteral -> {
-                open_obj(sb)
-                kind_entry(sb, level + 3, "literal")
-                entry(sb, false, level + 3, "value")
-                write_expr(sb, mv.value, level + 3)
-                close_obj(sb, level + 2)
+                sb.open_obj()
+                sb.kind_entry(level + 3, "literal")
+                sb.entry(false, level + 3, "value")
+                sb.write_expr(mv.value, level + 3)
+                sb.close_obj(level + 2)
             }
         }
-        close_obj(sb, level + 1)
+        sb.close_obj(level + 1)
     }
-    close_arr(sb, level)
+    sb.close_arr(level)
 }
 
 unary_op_name :: fn(op: UnaryOp) = match op {

@@ -1847,16 +1847,8 @@ parse_defer :: fn(p: Parser) -> DeferStmt {
         body = DeferBlockBody { .block = p.parse_block() }
     } else {
         inner :: p.parse_stmt()
-        match inner {
-            is null         -> {}
-            is LetStmt      -> { body = DeferStmtBody { .stmt = inner } }
-            is AssignStmt   -> { body = DeferStmtBody { .stmt = inner } }
-            is ExprStmt     -> { body = DeferStmtBody { .stmt = inner } }
-            is ReturnStmt   -> { body = DeferStmtBody { .stmt = inner } }
-            is ForStmt      -> { body = DeferStmtBody { .stmt = inner } }
-            is BreakStmt    -> { body = DeferStmtBody { .stmt = inner } }
-            is ContinueStmt -> { body = DeferStmtBody { .stmt = inner } }
-            is DeferStmt    -> { body = DeferStmtBody { .stmt = inner } }
+        if inner != null {
+            body = DeferStmtBody { .stmt = inner }
         }
     }
     body_span :: match body {
@@ -2170,10 +2162,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
         p.advance()
         v: u64 = u64(0)
         val :: t.value
-        match val {
-            is u64 -> { v = val }
-            _      -> {}
-        }
+        if val is u64 { v = val }
         suffix: string | null = if !t.numeric_suffix.is_empty() { t.numeric_suffix } else { null }
         return IntLitExpr { .span = t.span, .value = v, .suffix = suffix }
     }
@@ -2181,10 +2170,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
         p.advance()
         v: f64 = 0.0
         val :: t.value
-        match val {
-            is f64 -> { v = val }
-            _      -> {}
-        }
+        if val is f64 { v = val }
         suffix: string | null = if !t.numeric_suffix.is_empty() { t.numeric_suffix } else { null }
         return FloatLitExpr { .span = t.span, .value = v, .suffix = suffix }
     }
@@ -2192,10 +2178,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
         p.advance()
         v: u32 = 0u32
         val :: t.value
-        match val {
-            is u32 -> { v = val }
-            _      -> {}
-        }
+        if val is u32 { v = val }
         return CharLitExpr { .span = t.span, .value = v }
     }
     if t.kind == .KwTrue {
@@ -2274,7 +2257,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
                 args: Expr[] = []
                 p.skip_newlines()
                 if !p.check(.RParen) {
-                    for true {
+                    for {
                         p.skip_newlines()
                         if p.check(.RParen) { break }
                         idx :: args.len()
