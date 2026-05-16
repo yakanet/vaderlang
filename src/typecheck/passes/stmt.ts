@@ -142,7 +142,68 @@ export function divergesStmt(stmt: A.Stmt): boolean {
     case "BreakStmt":
     case "ContinueStmt": return true;
     case "ExprStmt":     return divergesExpr(stmt.expr);
+    case "ForStmt":      return divergesForStmt(stmt);
     default:             return false;
+  }
+}
+
+/** An infinite / `for true` loop diverges when no `break` inside the body
+ *  targets it. Labeled breaks targeting this exact label do exit ;
+ *  unlabeled breaks bind to the nearest enclosing loop, so they only
+ *  count when not shadowed by a nested loop. `return` doesn't disqualify
+ *  divergence — it exits the enclosing fn, not the loop's surrounding
+ *  block. */
+function divergesForStmt(stmt: A.ForStmt): boolean {
+  const isInfinite = stmt.form.kind === "infinite"
+    || (stmt.form.kind === "while" && stmt.form.cond.kind === "BoolLitExpr" && stmt.form.cond.value);
+  if (!isInfinite) return false;
+  return !hasBreakTargeting(stmt.body, stmt.label);
+}
+
+/** True iff some `break` inside `block` exits the loop labeled `target`
+ *  (or the nearest unlabeled enclosing loop when `target === null`).
+ *  Skips into nested loops only for labeled targets ; unlabeled breaks
+ *  inside a nested loop bind to that nested loop, not the outer one. */
+function hasBreakTargeting(block: A.BlockExpr, target: string | null): boolean {
+  for (const s of block.stmts) {
+    if (stmtHasBreakTargeting(s, target)) return true;
+  }
+  if (block.trailing !== null) {
+    return exprHasBreakTargeting(block.trailing, target);
+  }
+  return false;
+}
+
+function stmtHasBreakTargeting(stmt: A.Stmt, target: string | null): boolean {
+  switch (stmt.kind) {
+    case "BreakStmt": {
+      if (target === null) return stmt.label === null;
+      return stmt.label === target;
+    }
+    case "ForStmt": {
+      // Unlabeled break inside a nested loop binds to that nested loop.
+      if (target === null) return false;
+      return hasBreakTargeting(stmt.body, target);
+    }
+    case "ExprStmt":  return exprHasBreakTargeting(stmt.expr, target);
+    case "LetStmt":   return exprHasBreakTargeting(stmt.value, target);
+    case "AssignStmt":return exprHasBreakTargeting(stmt.target, target)
+                           || exprHasBreakTargeting(stmt.value, target);
+    case "ReturnStmt":return stmt.value !== null && exprHasBreakTargeting(stmt.value, target);
+    case "DeferStmt": return stmt.body.kind === "BlockExpr"
+                         ? hasBreakTargeting(stmt.body, target)
+                         : stmtHasBreakTargeting(stmt.body, target);
+    default:          return false;
+  }
+}
+
+function exprHasBreakTargeting(expr: A.Expr, target: string | null): boolean {
+  switch (expr.kind) {
+    case "BlockExpr": return hasBreakTargeting(expr, target);
+    case "IfExpr":    return hasBreakTargeting(expr.then, target)
+                          || (expr.else !== null && exprHasBreakTargeting(expr.else, target));
+    case "MatchExpr": return expr.arms.some((a) => exprHasBreakTargeting(a.body, target));
+    default:          return false;
   }
 }
 

@@ -49,7 +49,7 @@ export run_server :: fn(args: string[]) -> i32 {
     }
     state :: new_state(stdlib_root, vader_root)
     shutdown_received := false
-    for true {
+    for {
         frame :: read_frame()
         match frame {
             is Error -> {
@@ -79,7 +79,6 @@ export run_server :: fn(args: string[]) -> i32 {
             }
         }
     }
-    return 0   // unreachable, see fmt.vader pattern
 }
 
 DispatchResult :: enum(u8) {

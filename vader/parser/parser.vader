@@ -1814,7 +1814,6 @@ looks_like_for_destructure :: fn(p: Parser) -> bool {
         }
         i = i + 1
     }
-    return false
 }
 
 parse_break :: fn(p: Parser) -> BreakStmt {
