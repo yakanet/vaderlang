@@ -116,6 +116,10 @@ infer_ident_in_first_fn :: fn(src: string, target: string) -> string {
     }
 }
 
+// Name-keyed walker — kept local because `find_first_in_block`'s
+// predicate signature `fn(Expr) -> Expr | null` doesn't carry the
+// captured target name. Vader's VM trips on closures capturing
+// string params today ; revisit after that's fixed.
 scan_block_for_ident :: fn(b: AST.BlockExpr, target: string) -> AST.IdentExpr | null {
     for stmt in b.stmts {
         found :: scan_stmt_for_ident(stmt, target)

@@ -98,9 +98,11 @@ stub_check_expr :: fn(
     }
 }
 
+import "vader/typecheck/test_helpers" { find_first_in_block }
+
 // Parse + resolve + check `src`, then find the first `CallExpr` reached
-// by a depth-first walk of the last decl's body. Tests call this to get
-// a CallExpr they can infer-type against.
+// by a depth-first walk of the last decl's body via the shared
+// `find_first_in_block` walker.
 first_call_in_last_fn :: fn(src: string) -> CallFixture {
     parsed :: parse_source(src, "t.vader")
     factory :: new_factory()
@@ -113,7 +115,10 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
             match f.body {
                 is null -> { return CallFixture { .typed = result.typed, .call = null } }
                 is AST.BlockExpr as b -> {
-                    return CallFixture { .typed = result.typed, .call = first_call_in_block(b) }
+                    hit :: find_first_in_block(b, accept_call)
+                    call: AST.CallExpr | null = null
+                    if hit is AST.CallExpr { call = hit }
+                    return CallFixture { .typed = result.typed, .call = call }
                 }
             }
         }
@@ -121,43 +126,14 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
     }
 }
 
+accept_call :: fn(e: AST.Expr) -> AST.Expr | null {
+    if e is AST.CallExpr { return e }
+    return null
+}
+
 CallFixture :: struct {
     typed: TypedProgram
     call:  AST.CallExpr | null
-}
-
-first_call_in_block :: fn(b: AST.BlockExpr) -> AST.CallExpr | null {
-    for stmt in b.stmts {
-        c :: first_call_in_stmt(stmt)
-        if c is AST.CallExpr { return c }
-    }
-    t :: b.trailing
-    if t is null { return null }
-    return first_call_in_expr(t)
-}
-
-first_call_in_stmt :: fn(s: AST.Stmt) -> AST.CallExpr | null {
-    match s {
-        is AST.ReturnStmt as r -> {
-            v :: r.value
-            if v is null { return null }
-            return first_call_in_expr(v)
-        }
-        is AST.ExprStmt as es -> { return first_call_in_expr(es.expr) }
-        _ -> { return null }
-    }
-}
-
-first_call_in_expr :: fn(e: AST.Expr) -> AST.CallExpr | null {
-    match e {
-        is AST.CallExpr as c -> { return c }
-        is AST.BinaryExpr as b -> {
-            l :: first_call_in_expr(b.left)
-            if l is AST.CallExpr { return l }
-            return first_call_in_expr(b.right)
-        }
-        _ -> { return null }
-    }
 }
 
 @test

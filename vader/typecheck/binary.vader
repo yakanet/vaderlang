@@ -1,16 +1,8 @@
 // vader/typecheck/binary — BinaryExpr inference.
 //
-// Mirror of `src/typecheck/passes/binary.ts::inferBinary`. Walks both
-// operands then dispatches on `op` :
-//
-//   - arith (Add/Sub/Mul/Div/Mod) on numeric primitives → wider operand
-//   - `string + string` → string  (dedicated concat op)
-//   - comparison (Lt/Lte/Gt/Gte) → bool, requires numeric operands
-//   - equality (Eq/Neq) → bool, requires intersecting types
-//   - logical (And/Or) → bool, requires bool operands
-//   - bitwise (BitAnd/BitOr/BitXor/Shl/Shr) → integer operand type
-//   - `is` → bool (RHS lowered as type)
-//   - `in`/`NotIn` → bool (Contains trait dispatch deferred)
+// Mirror of `src/typecheck/passes/binary.ts::inferBinary`. Each operand
+// is recursively checked ; the result type is derived per `OpKind`
+// classification (see `classify` below for the op → kind mapping).
 //
 // MVP-trimmed against the TS reference :
 //   - No trait dispatch for user types (no `Numeric` / `Equals` /
@@ -24,7 +16,7 @@
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
-import "vader/typecheck/type_ops" { is_numeric_name, is_int_name }
+import "vader/typecheck/type_ops" { is_numeric_name, is_int_name, is_float_name }
 import "vader/typecheck/types" {
     Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
     display_type, mk_primitive, TY_UNRESOLVED,
@@ -46,9 +38,12 @@ export infer_binary :: fn(
     match classify(e.op) {
         .Arith    -> { return check_arith(e, left, right, diags) }
         .Compare  -> { return check_compare(e, left, right, diags) }
-        .Equality -> { return check_equality(e, left, right, diags) }
         .Logical  -> { return check_logical(e, left, right, diags) }
         .Bitwise  -> { return check_bitwise(e, left, right, diags) }
+        // Equality / Is / In : MVP returns `bool` unconditionally.
+        // Intersection enforcement (T3040) + Contains trait dispatch
+        // arrive with `narrow.vader` and the impl-driven passes.
+        .Equality -> { return mk_primitive("bool") }
         .Is       -> { return mk_primitive("bool") }
         .In       -> { return mk_primitive("bool") }
     }
@@ -65,12 +60,6 @@ check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnosti
     if !is_numeric(left) || !is_numeric(right) {
         push_op_undefined(e, left, right, diags)
     }
-    return mk_primitive("bool")
-}
-
-check_equality :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
-    // MVP : any-vs-any returns bool, no intersection enforcement.
-    // T3040 "test never matches" lands with the `intersects` machinery.
     return mk_primitive("bool")
 }
 
@@ -138,18 +127,38 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
 }
 
 // Compute the result type of a numeric binary op. Both operands must
-// be numeric ; one may be a Free*. Result is the concrete operand's
-// type, or Free* when both are free.
+// be numeric AND in the same family (int / float) — Free* folds to a
+// concrete operand of its own family only. No implicit widening.
 numeric_result :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
     if !is_numeric(left) || !is_numeric(right) {
         push_op_undefined(e, left, right, diags)
         return TY_UNRESOLVED
     }
-    // Free + Free → keep the free kind ; Free + concrete → concrete.
+    // Same Free kind on both sides : keep the free kind.
     if left is FreeIntType   && right is FreeIntType   { return left }
     if left is FreeFloatType && right is FreeFloatType { return left }
-    if left is FreeIntType || left is FreeFloatType   { return right }
-    if right is FreeIntType || right is FreeFloatType { return left }
+    // FreeInt + concrete int → concrete. FreeInt + float (free or concrete)
+    // is an error : free numeric only folds to a primitive of its own family.
+    if left is FreeIntType {
+        if is_integer(right) { return right }
+        push_op_undefined(e, left, right, diags)
+        return TY_UNRESOLVED
+    }
+    if left is FreeFloatType {
+        if is_float(right) { return right }
+        push_op_undefined(e, left, right, diags)
+        return TY_UNRESOLVED
+    }
+    if right is FreeIntType {
+        if is_integer(left) { return left }
+        push_op_undefined(e, left, right, diags)
+        return TY_UNRESOLVED
+    }
+    if right is FreeFloatType {
+        if is_float(left) { return left }
+        push_op_undefined(e, left, right, diags)
+        return TY_UNRESOLVED
+    }
     // Both concrete : must match by name (no implicit widening).
     if left is PrimitiveType {
         if right is PrimitiveType {
@@ -161,6 +170,13 @@ numeric_result :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnost
         }
     }
     return TY_UNRESOLVED
+}
+
+is_float :: fn(t: Type) -> bool {
+    if t is UnresolvedType { return true }
+    if t is FreeFloatType { return true }
+    if t is PrimitiveType { return is_float_name(t.name) }
+    return false
 }
 
 is_numeric :: fn(t: Type) -> bool {
@@ -223,12 +239,15 @@ stub_check_expr :: fn(
 narrow :: fn(got: Type, expected: Type | null) -> Type {
     if expected is null { return got }
     if !(expected is PrimitiveType) { return got }
-    if got is FreeIntType   && is_int_name(expected.name)            { return expected }
-    if got is FreeFloatType && expected.name == "f32" || expected.name == "f64" { return expected }
+    if got is FreeIntType   && is_int_name(expected.name)   { return expected }
+    if got is FreeFloatType && is_float_name(expected.name) { return expected }
     return got
 }
 
-// Parse + resolve + check, then find first BinaryExpr in last fn body.
+import "vader/typecheck/test_helpers" { find_first_in_block }
+
+// Parse + resolve + check, then find first BinaryExpr in last fn body
+// via the shared `find_first_in_block` walker.
 first_binary_in_last_fn :: fn(src: string) -> BinaryFixture {
     parsed :: parse_source(src, "t.vader")
     factory :: new_factory()
@@ -241,7 +260,10 @@ first_binary_in_last_fn :: fn(src: string) -> BinaryFixture {
             match f.body {
                 is null -> { return BinaryFixture { .typed = result.typed, .bin = null } }
                 is AST.BlockExpr as b -> {
-                    return BinaryFixture { .typed = result.typed, .bin = first_binary_in_block(b) }
+                    hit :: find_first_in_block(b, accept_binary)
+                    bin: AST.BinaryExpr | null = null
+                    if hit is AST.BinaryExpr { bin = hit }
+                    return BinaryFixture { .typed = result.typed, .bin = bin }
                 }
             }
         }
@@ -249,38 +271,14 @@ first_binary_in_last_fn :: fn(src: string) -> BinaryFixture {
     }
 }
 
+accept_binary :: fn(e: AST.Expr) -> AST.Expr | null {
+    if e is AST.BinaryExpr { return e }
+    return null
+}
+
 BinaryFixture :: struct {
     typed: TypedProgram
     bin:   AST.BinaryExpr | null
-}
-
-first_binary_in_block :: fn(b: AST.BlockExpr) -> AST.BinaryExpr | null {
-    for stmt in b.stmts {
-        bx :: first_binary_in_stmt(stmt)
-        if bx is AST.BinaryExpr { return bx }
-    }
-    t :: b.trailing
-    if t is null { return null }
-    return first_binary_in_expr(t)
-}
-
-first_binary_in_stmt :: fn(s: AST.Stmt) -> AST.BinaryExpr | null {
-    match s {
-        is AST.ReturnStmt as r -> {
-            v :: r.value
-            if v is null { return null }
-            return first_binary_in_expr(v)
-        }
-        is AST.ExprStmt as es -> { return first_binary_in_expr(es.expr) }
-        _ -> { return null }
-    }
-}
-
-first_binary_in_expr :: fn(e: AST.Expr) -> AST.BinaryExpr | null {
-    match e {
-        is AST.BinaryExpr as b -> { return b }
-        _ -> { return null }
-    }
 }
 
 @test
