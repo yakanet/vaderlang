@@ -22,7 +22,7 @@ import "std/collections" { MutableMap }
 import "vader/lexer" { tokenize, Token, TokenKind }
 import "vader/fmt/comments" { scan_comments, Comment, CommentKind }
 import "vader/lsp/state" { ServerState, source_for }
-import "vader/lsp/tokens" { RawToken, TokenType, token_type_int }
+import "vader/lsp/tokens" { RawToken, TokenType }
 import "vader/lsp/ast_tokens" { collect_ast_idents }
 
 // ---- legend ---------------------------------------------------------------
@@ -167,38 +167,38 @@ classify_token :: fn(t: Token) -> i32 {
     k :: t.kind
     // Keywords — every `Kw*` enum variant. Vader doesn't have or-patterns
     // so the listing is explicit.
-    if k == .KwFn         { return token_type_int(.Keyword) }
-    if k == .KwStruct     { return token_type_int(.Keyword) }
-    if k == .KwTrait      { return token_type_int(.Keyword) }
-    if k == .KwImplements { return token_type_int(.Keyword) }
-    if k == .KwImpl       { return token_type_int(.Keyword) }
-    if k == .KwEnum       { return token_type_int(.Keyword) }
-    if k == .KwIf         { return token_type_int(.Keyword) }
-    if k == .KwElse       { return token_type_int(.Keyword) }
-    if k == .KwMatch      { return token_type_int(.Keyword) }
-    if k == .KwIs         { return token_type_int(.Keyword) }
-    if k == .KwFor        { return token_type_int(.Keyword) }
-    if k == .KwIn         { return token_type_int(.Keyword) }
-    if k == .KwReturn     { return token_type_int(.Keyword) }
-    if k == .KwDefer      { return token_type_int(.Keyword) }
-    if k == .KwBreak      { return token_type_int(.Keyword) }
-    if k == .KwContinue   { return token_type_int(.Keyword) }
-    if k == .KwImport     { return token_type_int(.Keyword) }
-    if k == .KwAs         { return token_type_int(.Keyword) }
-    if k == .KwExport     { return token_type_int(.Keyword) }
-    if k == .KwTrue       { return token_type_int(.Keyword) }
-    if k == .KwFalse      { return token_type_int(.Keyword) }
-    if k == .KwNull       { return token_type_int(.Keyword) }
-    if k == .KwSelf       { return token_type_int(.Keyword) }
+    if k == .KwFn         { return i32(TokenType.Keyword) }
+    if k == .KwStruct     { return i32(TokenType.Keyword) }
+    if k == .KwTrait      { return i32(TokenType.Keyword) }
+    if k == .KwImplements { return i32(TokenType.Keyword) }
+    if k == .KwImpl       { return i32(TokenType.Keyword) }
+    if k == .KwEnum       { return i32(TokenType.Keyword) }
+    if k == .KwIf         { return i32(TokenType.Keyword) }
+    if k == .KwElse       { return i32(TokenType.Keyword) }
+    if k == .KwMatch      { return i32(TokenType.Keyword) }
+    if k == .KwIs         { return i32(TokenType.Keyword) }
+    if k == .KwFor        { return i32(TokenType.Keyword) }
+    if k == .KwIn         { return i32(TokenType.Keyword) }
+    if k == .KwReturn     { return i32(TokenType.Keyword) }
+    if k == .KwDefer      { return i32(TokenType.Keyword) }
+    if k == .KwBreak      { return i32(TokenType.Keyword) }
+    if k == .KwContinue   { return i32(TokenType.Keyword) }
+    if k == .KwImport     { return i32(TokenType.Keyword) }
+    if k == .KwAs         { return i32(TokenType.Keyword) }
+    if k == .KwExport     { return i32(TokenType.Keyword) }
+    if k == .KwTrue       { return i32(TokenType.Keyword) }
+    if k == .KwFalse      { return i32(TokenType.Keyword) }
+    if k == .KwNull       { return i32(TokenType.Keyword) }
+    if k == .KwSelf       { return i32(TokenType.Keyword) }
 
-    if k == .IntLit       { return token_type_int(.Number) }
-    if k == .FloatLit     { return token_type_int(.Number) }
-    if k == .CharLit      { return token_type_int(.String) }
-    if k == .StringBegin  { return token_type_int(.String) }
-    if k == .StringPart   { return token_type_int(.String) }
-    if k == .StringEnd    { return token_type_int(.String) }
-    if k == .InterpOpen   { return token_type_int(.Operator) }
-    if k == .InterpClose  { return token_type_int(.Operator) }
+    if k == .IntLit       { return i32(TokenType.Number) }
+    if k == .FloatLit     { return i32(TokenType.Number) }
+    if k == .CharLit      { return i32(TokenType.String) }
+    if k == .StringBegin  { return i32(TokenType.String) }
+    if k == .StringPart   { return i32(TokenType.String) }
+    if k == .StringEnd    { return i32(TokenType.String) }
+    if k == .InterpOpen   { return i32(TokenType.Operator) }
+    if k == .InterpClose  { return i32(TokenType.Operator) }
 
     // Identifiers — skip. With only the lexer to work from we can't
     // tell `function` from `parameter` from `variable` reliably, and
@@ -212,15 +212,15 @@ classify_token :: fn(t: Token) -> i32 {
     if k == .Ident { return -1 }
 
     // Operators.
-    if k == .Plus || k == .Minus || k == .Star || k == .Slash || k == .Percent { return token_type_int(.Operator) }
-    if k == .Amp || k == .Pipe || k == .Caret || k == .Tilde || k == .Shl || k == .Shr { return token_type_int(.Operator) }
-    if k == .Eq || k == .Neq || k == .Lt || k == .Lte || k == .Gt || k == .Gte { return token_type_int(.Operator) }
-    if k == .AndAnd || k == .OrOr || k == .Bang { return token_type_int(.Operator) }
-    if k == .Assign || k == .PlusAssign || k == .MinusAssign || k == .StarAssign || k == .SlashAssign || k == .PercentAssign { return token_type_int(.Operator) }
-    if k == .DeclConst || k == .DeclVar { return token_type_int(.Operator) }
-    if k == .RangeExcl || k == .RangeIncl { return token_type_int(.Operator) }
-    if k == .Arrow || k == .FatArrow { return token_type_int(.Operator) }
-    if k == .Question { return token_type_int(.Operator) }
+    if k == .Plus || k == .Minus || k == .Star || k == .Slash || k == .Percent { return i32(TokenType.Operator) }
+    if k == .Amp || k == .Pipe || k == .Caret || k == .Tilde || k == .Shl || k == .Shr { return i32(TokenType.Operator) }
+    if k == .Eq || k == .Neq || k == .Lt || k == .Lte || k == .Gt || k == .Gte { return i32(TokenType.Operator) }
+    if k == .AndAnd || k == .OrOr || k == .Bang { return i32(TokenType.Operator) }
+    if k == .Assign || k == .PlusAssign || k == .MinusAssign || k == .StarAssign || k == .SlashAssign || k == .PercentAssign { return i32(TokenType.Operator) }
+    if k == .DeclConst || k == .DeclVar { return i32(TokenType.Operator) }
+    if k == .RangeExcl || k == .RangeIncl { return i32(TokenType.Operator) }
+    if k == .Arrow || k == .FatArrow { return i32(TokenType.Operator) }
+    if k == .Question { return i32(TokenType.Operator) }
 
     // Punctuation, brackets, newline, EOF, etc. — no semantic token.
     return -1
@@ -237,7 +237,7 @@ collect_comment_kinds :: fn(source: string, out: RawToken[]) -> void {
 }
 
 // Returns one or more RawTokens for a comment :
-//   - regular `Line` / `Block` : one token_type_int(.Comment) covering the full span.
+//   - regular `Line` / `Block` : one Comment-typed token covering the full span.
 //   - `DocLine` (`///`) : multiple tokens — the leading `///` + body as
 //     comment (documentation modifier), `@param`/`@return`/etc. as
 //     decorator (documentation modifier), `@param`'s name as parameter
@@ -270,7 +270,7 @@ make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
         .line      = c.line - 1,
         .col       = i32(0),     // approximation : doc comments span whole lines
         .length    = i32(c.end_offset - c.offset),
-        .tok_type  = token_type_int(.Comment),
+        .tok_type  = i32(TokenType.Comment),
         .modifiers = modifiers,
     }
 }
@@ -316,7 +316,7 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
             .line      = line,
             .col       = i32(i),
             .length    = i32(tag_end - i),
-            .tok_type  = token_type_int(.Decorator),
+            .tok_type  = i32(TokenType.Decorator),
             .modifiers = modifier_bit(.Documentation),
         })
         i = tag_end
@@ -333,7 +333,7 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
                     .line      = line,
                     .col       = i32(j),
                     .length    = i32(name_end - j),
-                    .tok_type  = token_type_int(.Parameter),
+                    .tok_type  = i32(TokenType.Parameter),
                     .modifiers = modifier_bit(.Documentation),
                 })
                 i = name_end

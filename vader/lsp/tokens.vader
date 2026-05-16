@@ -22,27 +22,6 @@ export TokenType :: enum(u8) {
     EnumMember,   // `.Variant` dot-shorthand
 }
 
-// Indices into the on-the-wire token-type array. Vader's `enum(u8)`
-// values match their declaration position 0..N, so the integer view of
-// each variant is exactly the legend index.
-export token_type_int :: fn(t: TokenType) -> i32 {
-    match t {
-        .Namespace  -> { return i32(0) }
-        .Type       -> { return i32(1) }
-        .Function   -> { return i32(2) }
-        .Parameter  -> { return i32(3) }
-        .Variable   -> { return i32(4) }
-        .Keyword    -> { return i32(5) }
-        .String     -> { return i32(6) }
-        .Number     -> { return i32(7) }
-        .Comment    -> { return i32(8) }
-        .Operator   -> { return i32(9) }
-        .Decorator  -> { return i32(10) }
-        .EnumMember -> { return i32(11) }
-    }
-    return i32(-1)   // unreachable
-}
-
 /// One raw token before delta-encoding. Lines + columns are 0-based.
 export RawToken :: struct {
     line:      i32

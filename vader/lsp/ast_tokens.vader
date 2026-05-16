@@ -14,7 +14,7 @@
 import "vader/parser" { parse_source }
 AST :: import "vader/parser/ast"
 import "vader/diagnostics/diagnostic" { Span }
-import "vader/lsp/tokens" { RawToken, TokenType, token_type_int }
+import "vader/lsp/tokens" { RawToken, TokenType }
 
 /// Parse `source` and walk every AST node, pushing a `RawToken` for each
 /// identifier whose role we can determine by position alone.
@@ -34,7 +34,7 @@ push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
         .line      = sp.start.line - 1,
         .col       = sp.start.column - 1,
         .length    = i32(sp.end.offset - sp.start.offset),
-        .tok_type  = token_type_int(kind),
+        .tok_type  = i32(kind),
         .modifiers = i32(0),
     })
 }
