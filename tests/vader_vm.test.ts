@@ -28,12 +28,7 @@ ensureCliBuilt();
 //
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
-const KNOWN_DIVERGENT = new Set<string>([
-  // Layer 4 §1.19 B.1 — `type.const` op is wired in the TS VM but not yet
-  // in `vader/vm/exec.vader`. Unblocks once the Vader VM port adds the
-  // matching op handler + `Value.type` variant.
-  "comptime_type_value",
-]);
+const KNOWN_DIVERGENT = new Set<string>([]);
 
 const scenarios = listSnippets("tests/snippets");
 

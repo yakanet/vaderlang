@@ -41,10 +41,12 @@ export Op :: I32Const
     | RefCast
     | Convert
     | TypeCheck
+    | TypeConst
     | BuilderNew
     | BuilderAppendStr
     | BuilderAppendDisplay
     | BuilderFinish
+    | SizeOfType
     | I32Add
     | I32Sub
     | I32Mul
@@ -276,6 +278,11 @@ export ConvertTarget :: enum(u8) {
 /// `match` arm dispatch and `if x is T` narrowing. Sprint 5b addition.
 export TypeCheck :: struct { type_id: i32 }
 
+/// Push a `TypeVal { type_id }` — the runtime reification of a `type`
+/// value. Emitted when a `TypeMeta`-typed ident reaches value position
+/// (`@type_of(x)`, `let m : type = i32`, etc.). Layer 4 §1.19 B.1.
+export TypeConst :: struct { type_id: i32 }
+
 /// Allocate a fresh empty `BuilderVal` and push it onto the value stack.
 /// Sprint 4 (b3) addition — backs Vader's `"${...}"` string interpolation
 /// (the lowerer emits builder.new → append_str / append_display ... →
@@ -291,6 +298,10 @@ export BuilderAppendDisplay :: struct {}
 /// Pop a builder ; concatenate `builder.parts` into a single `string`
 /// and push it. Sprint 4 (b3) addition.
 export BuilderFinish :: struct {}
+/// Pop a `TypeVal` ; push a `usize` carrying the byte size of the type
+/// at `module.types[type_id]`. Backs the runtime path of `@size_of(t)`.
+/// Layer 4 §1.19 B.2.
+export SizeOfType :: struct {}
 /// Pop two i32 (left, right) ; push left + right.
 export I32Add :: struct {}
 /// Pop two i32 (left, right) ; push left - right.
@@ -648,6 +659,7 @@ export Value :: I32Val
        | BoolVal
        | CharVal
        | ErrorVal
+       | TypeVal
 
 /// 32-bit integer payload.
 export I32Val :: struct { value: i32 }
@@ -730,6 +742,10 @@ export CharVal :: struct { value: char }
 /// or `?` propagation pick it up.
 export ErrorVal :: struct { message: string }
 
+/// Runtime reification of a `type` value — pushed by `type.const N`,
+/// `type_id` keys `Module.types`. Layer 4 §1.19 B.1.
+export TypeVal :: struct { type_id: i32 }
+
 // ---- Display impls on each `Value` variant --------------------------------
 //
 // Every variant carries its own `Display` impl so the dispatcher below
@@ -782,6 +798,10 @@ CharVal implements Display {
 
 ErrorVal implements Display {
     to_string :: fn(self) -> string = "<error: ${self.message}>"
+}
+
+TypeVal implements Display {
+    to_string :: fn(self) -> string = "<type ${self.type_id}>"
 }
 
 /// Renders as `<type_id>{ field0, field1, … }` — type_id is the ordinal
@@ -841,4 +861,5 @@ export display_value :: fn(v: Value) -> string = match v {
     is BoolVal as b -> b.to_string()
     is CharVal as c -> c.to_string()
     is ErrorVal as e -> e.to_string()
+    is TypeVal as t -> t.to_string()
 }

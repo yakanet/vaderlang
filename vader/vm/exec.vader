@@ -37,6 +37,7 @@ import "vader/vm/value" {
     type_matches, ref_type_matches, trait_implemented_by,
     receiver_type_id_of, primitive_type_id, lookup_vtable,
     primitive_matches, is_integer_alias, union_matches,
+    size_of_bc_type,
 }
 import "vader/vm/host" { dispatch_import }
 
@@ -864,6 +865,22 @@ export exec :: fn(module: op.Module) -> VmResult {
                 frame.stack[frame.sp - 1] = op.StringVal { .value = "${flushing}" }
                 frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
             }
+            is op.SizeOfType -> {
+                if frame.sp == 0 {
+                    return Trap { .message = "intrinsic size_of.type on empty stack at pc=${frame.pc}" }
+                }
+                top_val :: frame.stack[frame.sp - 1]
+                if !(top_val is op.TypeVal) {
+                    return Trap { .message = "intrinsic size_of.type: expected type value, got ${describe_value_tag(top_val)} at pc=${frame.pc}" }
+                }
+                type_id :: top_val.type_id
+                if type_id < 0 || usize(type_id) >= module.types.len() {
+                    return Trap { .message = "intrinsic size_of.type: type ${type_id} out of range at pc=${frame.pc}" }
+                }
+                size :: size_of_bc_type(module.types[usize(type_id)])
+                frame.stack[frame.sp - 1] = op.I64Val { .value = i64(size) }
+                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+            }
             is op.I32Add -> {
                 outcome :: apply_arith_binop(frame, top, frames, "i32.add", (a, b) -> a + b)
                 if outcome is Trap { return outcome }
@@ -1245,6 +1262,13 @@ export exec :: fn(module: op.Module) -> VmResult {
                 matched :: type_matches(module, frame.stack[frame.sp - 1], instr.type_id)
                 frame.stack[frame.sp - 1] = op.BoolVal { .value = matched }
                 frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+            }
+            is op.TypeConst -> {
+                if instr.type_id < 0 || usize(instr.type_id) >= module.types.len() {
+                    return Trap { .message = "type.const type ${instr.type_id} out of range at pc=${frame.pc}" }
+                }
+                push_value(frame.stack, frame.sp, op.TypeVal { .type_id = instr.type_id })
+                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
             }
             is op.Block -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
             is op.Loop  -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }

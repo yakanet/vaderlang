@@ -1034,6 +1034,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> op.Op | null {
         if cleaned == "intrinsic builder.append_str"      { return op.BuilderAppendStr {} }
         if cleaned == "intrinsic builder.append_display"  { return op.BuilderAppendDisplay {} }
         if cleaned == "intrinsic builder.finish"          { return op.BuilderFinish {} }
+        if cleaned == "intrinsic size_of.type"            { return op.SizeOfType {} }
         return null
     }
     if head == "null.const"     { return op.NullConst {} }
@@ -1057,6 +1058,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> op.Op | null {
     if head == "ref.ne"         { return op.RefNe {} }
     if head == "drop"           { return op.Drop {} }
     if head == "type_check"     { return parse_type_check(cleaned) }
+    if head == "type.const"     { return parse_type_const(cleaned) }
     if head == "block"          { return op.Block {} }
     if head == "loop"           { return op.Loop {} }
     if head == "if"             { return op.If {} }
@@ -1443,6 +1445,12 @@ parse_type_check :: fn(line: string) -> op.Op | null {
     parsed :: parse_int_after_prefix(line, "type_check ")
     if parsed is null { return null }
     return op.TypeCheck { .type_id = parsed }
+}
+
+parse_type_const :: fn(line: string) -> op.Op | null {
+    parsed :: parse_int_after_prefix(line, "type.const ")
+    if parsed is null { return null }
+    return op.TypeConst { .type_id = parsed }
 }
 
 parse_local_tee :: fn(line: string) -> op.Op | null {

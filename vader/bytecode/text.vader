@@ -179,6 +179,7 @@ data_entry_kind :: fn(entry: op.ArrayVal) -> string {
         is op.FnVal      -> "i32"
         is op.NullVal    -> "i32"
         is op.ErrorVal   -> "i32"
+        is op.TypeVal    -> "i32"
     }
 }
 
@@ -515,6 +516,7 @@ write_op_line :: fn(out: StringBuilder, v: op.Op, jump_table: i32[], labels: Sco
 
         is op.RefCast         -> out.append("ref.cast 0")
         is op.TypeCheck  as c -> out.append("type_check ${c.type_id}")
+        is op.TypeConst  as c -> out.append("type.const ${c.type_id}")
         is op.Convert    as c -> out.append(convert_text(c))
         is op.IntToChar       -> out.append("i32.to_char")
         is op.CharToInt       -> out.append("char.to_i32")
@@ -523,6 +525,7 @@ write_op_line :: fn(out: StringBuilder, v: op.Op, jump_table: i32[], labels: Sco
         is op.BuilderAppendStr      -> out.append("intrinsic builder.append_str")
         is op.BuilderAppendDisplay  -> out.append("intrinsic builder.append_display")
         is op.BuilderFinish         -> out.append("intrinsic builder.finish")
+        is op.SizeOfType            -> out.append("intrinsic size_of.type")
 
         is op.Drop -> out.append("drop")
 

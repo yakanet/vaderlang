@@ -23,6 +23,37 @@ export Trap :: struct { message: string }
 /// Default-zero `op.Value`, used to size each frame's locals at fn entry.
 export zero_value :: fn() -> op.Value { return op.I32Val { .value = 0 } }
 
+/// Size in bytes of an `op.TypeDecl` — backs `@size_of(t)` runtime path.
+/// Primitives use their native widths ; everything else fits in a 16-byte
+/// box at the typed boundary (struct/array/fn refs, unions, opaque refs).
+export size_of_bc_type :: fn(t: op.TypeDecl) -> usize = match t {
+    is op.PrimitiveType as p -> size_of_primitive(p.kind)
+    is op.StructType         -> usize(16)
+    is op.ArrayType          -> usize(16)
+    is op.RefType            -> usize(16)
+    is op.FnType             -> usize(16)
+    is op.UnionType          -> usize(16)
+}
+
+size_of_primitive :: fn(kind: string) -> usize {
+    if kind == "i8"     { return usize(1) }
+    if kind == "u8"     { return usize(1) }
+    if kind == "bool"   { return usize(1) }
+    if kind == "i16"    { return usize(2) }
+    if kind == "u16"    { return usize(2) }
+    if kind == "i32"    { return usize(4) }
+    if kind == "u32"    { return usize(4) }
+    if kind == "f32"    { return usize(4) }
+    if kind == "char"   { return usize(4) }
+    if kind == "i64"    { return usize(8) }
+    if kind == "u64"    { return usize(8) }
+    if kind == "f64"    { return usize(8) }
+    if kind == "isize"  { return usize(8) }
+    if kind == "usize"  { return usize(8) }
+    if kind == "string" { return usize(16) }
+    return usize(0)
+}
+
 /// Short human-readable name of the value's variant — used by every
 /// `read_*` helper's mismatch Trap so messages don't fan out per pair
 /// of expected/actual tags. Exhaustive `match` so the compiler catches
@@ -30,7 +61,8 @@ export zero_value :: fn() -> op.Value { return op.I32Val { .value = 0 } }
 ///
 /// @param v  the tagged value.
 /// @return   `"i32"` / `"i64"` / `"f64"` / `"string"` / `"struct"` / `"array"`
-///           / `"builder"` / `"fn"` / `"null"` / `"bool"` / `"char"` / `"error"`.
+///           / `"builder"` / `"fn"` / `"null"` / `"bool"` / `"char"` / `"error"`
+///           / `"type"`.
 export describe_value_tag :: fn(v: op.Value) = match v {
     is op.I32Val     -> "i32"
     is op.I64Val     -> "i64"
@@ -44,6 +76,7 @@ export describe_value_tag :: fn(v: op.Value) = match v {
     is op.BoolVal    -> "bool"
     is op.CharVal    -> "char"
     is op.ErrorVal   -> "error"
+    is op.TypeVal    -> "type"
 }
 
 /// Unwrap an `op.F64Val` from a `op.Value`. Integer values are NOT auto-
