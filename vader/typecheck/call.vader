@@ -39,13 +39,13 @@ export infer_call :: fn(
     // Unresolved callee : upstream error already reported, fall through
     // to keep checking args (drives narrowing in their inner literals).
     if callee_ty is UnresolvedType {
-        for a in c.args { check_expr_fn(a.value, null, typed, diags) }
+        check_args_no_expected(c, typed, diags, check_expr_fn)
         return TY_UNRESOLVED
     }
     if !(callee_ty is FnType) {
         diags.push(typecheck_error(.NotCallable, c.span,
             "callee has type ${display_type(callee_ty)}, not a function"))
-        for a in c.args { check_expr_fn(a.value, null, typed, diags) }
+        check_args_no_expected(c, typed, diags, check_expr_fn)
         return TY_UNRESOLVED
     }
     if c.args.len() != callee_ty.params.len() {
@@ -62,6 +62,16 @@ export infer_call :: fn(
         }
     }
     return callee_ty.return_type
+}
+
+// Walk the args once for their side-effects only — type them in a
+// fresh-position context so inner literals get a sensible type even
+// when the callee itself didn't resolve to a Fn (already errored).
+check_args_no_expected :: fn(
+    c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> void {
+    for a in c.args { check_expr_fn(a.value, null, typed, diags) }
 }
 
 // ---- tests ----------------------------------------------------------------
