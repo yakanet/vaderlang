@@ -43,7 +43,6 @@ modifier_bit :: fn(m: TokenModifier) -> i32 {
     match m {
         .Documentation -> { return i32(1) }
     }
-    return i32(0)   // unreachable
 }
 
 export TOKEN_TYPES :: [
@@ -103,7 +102,6 @@ export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) 
             return JsonObject { .entries = result }
         }
     }
-    return JsonNull {}   // unreachable
 }
 
 extract_uri :: fn(params: JsonValue) -> string {
@@ -123,7 +121,6 @@ extract_uri :: fn(params: JsonValue) -> string {
         }
         _ -> { return "" }
     }
-    return ""   // unreachable
 }
 
 // ---- producer -------------------------------------------------------------

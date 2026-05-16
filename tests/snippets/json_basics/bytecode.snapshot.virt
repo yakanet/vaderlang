@@ -993,7 +993,7 @@ fn 20 std_json$parse_number (ref) -> ref
   local $field_80 usize
   local parsed ref
   local __scrut_0 ref
-  local $k_91 string
+  local $k_93 string
   local.get 0   ; json.vader:176:14
   struct.get 36 1   ; json.vader:176:14
   local.set 1   ; json.vader:176:14

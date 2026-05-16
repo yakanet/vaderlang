@@ -76,7 +76,7 @@
     return "nada" :string
   fn tests_snippets_if_null_narrow__main_vader$greet_v4(a: Cat | Dog | null) -> string
     let out: string = "" :string
-    if :void
+    if :never
       cond:
         not :bool
           is null :bool

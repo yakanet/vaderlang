@@ -32,7 +32,7 @@
   expr 34:22    IdentExpr      :: Cat | Dog
   expr 36:12    StringLitExpr  :: string
   expr 41:12    StringLitExpr  :: string
-  expr 42:5     IfExpr         :: void
+  expr 42:5     IfExpr         :: never
   expr 42:8     BinaryExpr     :: bool
   expr 42:8     IdentExpr      :: Cat | Dog | null
   expr 43:17    StringLitExpr  :: string

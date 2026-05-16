@@ -488,7 +488,7 @@ end
 
 fn 13 std_iter$MapIterator$Iterator$next__i32__i32 (ref) -> ref
   local __scrut_0 ref
-  local $field_9 ref
+  local $field_11 ref
   local.get 0   ; iter.vader:365:15
   struct.get 14 0   ; iter.vader:365:15
   virtual.call 1 Iterator.next   ; iter.vader:365:15

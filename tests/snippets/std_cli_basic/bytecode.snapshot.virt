@@ -673,7 +673,7 @@ end
 fn 6 std_cli$bool_flag (ref,string) -> bool
   local v ref
   local __scrut_0 ref
-  local $cast_9 string
+  local $cast_11 string
   local.get 0   ; cli.vader:149:10
   struct.get 16 0   ; cli.vader:149:10
   local.get 1   ; cli.vader:149:10

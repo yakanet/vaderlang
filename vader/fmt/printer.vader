@@ -209,7 +209,6 @@ decl_is_alignable :: fn(d: p.Decl) -> bool {
         is p.ConstDecl -> { return true }
         _            -> { return false }
     }
-    return false   // unreachable, see note in cli.vader
 }
 
 decl_alignable_name :: fn(d: p.Decl) -> string {
@@ -218,7 +217,6 @@ decl_alignable_name :: fn(d: p.Decl) -> string {
         is p.ConstDecl  as x -> { return x.name }
         _                  -> { return "" }
     }
-    return ""   // unreachable
 }
 
 // True iff `a` and `b` carry the same ordered list of decorator names.
@@ -262,7 +260,6 @@ decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
         }
         _ -> { return false }
     }
-    return false   // unreachable
 }
 
 // Pre-pass over the project's decls : for each decl, return the

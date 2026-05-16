@@ -7655,7 +7655,7 @@
   expr 2258:32  FieldExpr      :: string
   expr 2258:32  IdentExpr      :: Token
   expr 2259:15  IdentExpr      :: IntrinsicSpec | null
-  expr 2259:9   MatchExpr      :: void
+  expr 2259:9   MatchExpr      :: never
   expr 225:18   IdentExpr      :: StringBuilder
   expr 225:22   FieldExpr      :: string
   expr 225:22   IdentExpr      :: FnDecl

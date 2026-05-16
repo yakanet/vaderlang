@@ -124,7 +124,6 @@ get_field :: fn(v: JsonValue, key: string) -> JsonValue {
         }
         _ -> { return JsonNull {} }
     }
-    return JsonNull {}   // unreachable
 }
 
 get_string :: fn(v: JsonValue, key: string) -> string {
@@ -133,5 +132,4 @@ get_string :: fn(v: JsonValue, key: string) -> string {
         is JsonString as s -> { return s.value }
         _ -> { return "" }
     }
-    return ""   // unreachable
 }

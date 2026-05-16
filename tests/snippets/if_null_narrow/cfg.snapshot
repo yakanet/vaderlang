@@ -102,15 +102,15 @@ fn tests_snippets_if_null_narrow__main_vader$greet_v4(%0: Cat | Dog | null) -> s
     %1 out: string (local out)
     %2 $type_check_3: bool
     %3 $not_4: bool
-    %4 $intrinsic_5: ?
+    %4 $intrinsic_6: ?
     %5 __sb_0: ? (synthetic __sb_0)
-    %6 $k_7: string
-    %7 $cast_8: Cat | Dog
-    %8 $cast_9: Cat
-    %9 $field_10: string
-    %10 $intrinsic_11: string
+    %6 $k_8: string
+    %7 $cast_9: Cat | Dog
+    %8 $cast_10: Cat
+    %9 $field_11: string
+    %10 $intrinsic_12: string
     %11 out2: string (local out2)
-    %12 $k_13: string
+    %12 $k_14: string
   bb0:
     %2 = type_check %0 is null
     %3 = unop not %2 :bool

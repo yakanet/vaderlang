@@ -86,6 +86,13 @@ export function checkBlock(
   let result: Type = TY.void;
   if (block.trailing !== null) {
     result = checkExpr(block.trailing, expected, t, impls, diags, fn);
+  } else if (block.stmts.some(divergesStmt)) {
+    // No trailing AND some statement diverges (return / break / continue
+    // on every path, or a divergent nested match / if). The block never
+    // produces a value — its type is `never`, which is assignable to any
+    // return-position annotation. Lets `fn() -> T { match v { … is X →
+    // return … } }` type-check without a dead `return …` after the match.
+    result = TY.never;
   }
   for (let i = persistedNarrowings.length - 1; i >= 0; i--) {
     const p = persistedNarrowings[i]!;
@@ -93,6 +100,36 @@ export function checkBlock(
   }
   t.exprTypes.set(block, result);
   return result;
+}
+
+/** True iff the expression always diverges — every control-flow path
+ *  through it terminates via `return` / `break` / `continue` instead of
+ *  yielding a value. Used by `checkBlock` to type a trailing-less block
+ *  as `never` when its last statements never fall through. */
+export function divergesExpr(expr: A.Expr): boolean {
+  switch (expr.kind) {
+    case "BlockExpr":  return divergesBlock(expr);
+    case "IfExpr":     return expr.else !== null
+      && divergesBlock(expr.then) && divergesExpr(expr.else);
+    case "MatchExpr":  return expr.arms.length > 0
+      && expr.arms.every((a) => divergesExpr(a.body));
+    default:           return false;
+  }
+}
+
+export function divergesBlock(block: A.BlockExpr): boolean {
+  if (block.trailing !== null) return divergesExpr(block.trailing);
+  return block.stmts.some(divergesStmt);
+}
+
+export function divergesStmt(stmt: A.Stmt): boolean {
+  switch (stmt.kind) {
+    case "ReturnStmt":
+    case "BreakStmt":
+    case "ContinueStmt": return true;
+    case "ExprStmt":     return divergesExpr(stmt.expr);
+    default:             return false;
+  }
 }
 
 function checkStmt(

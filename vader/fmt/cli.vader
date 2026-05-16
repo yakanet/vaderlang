@@ -214,5 +214,4 @@ run_one_stdout :: fn(path: string) -> FileResult {
             return FileResult.Ok
         }
     }
-    return FileResult.IoError   // unreachable, see note above
 }

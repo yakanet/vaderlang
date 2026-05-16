@@ -640,18 +640,23 @@ function argListEquals(a: readonly Type[], b: readonly Type[]): boolean {
 
 /** Build a union from variants — flattens nested unions, dedupes, sorts by display. */
 export function unionOf(variants: readonly Type[]): Type {
-  const flat: Type[] = [];
-  for (const v of variants) {
-    if (v.kind === "Union") flat.push(...v.variants);
-    else flat.push(v);
-  }
+  // `Never` is absorbed : a value of that type doesn't exist, so a union
+  // containing it is exactly the union of its other variants. Lets
+  // `if c { x } else { return }` widen to the type of `x` instead of
+  // `x | never`. Empty / all-Never input collapses to `Never` below.
   const dedup: Type[] = [];
-  for (const t of flat) {
-    if (!dedup.some((u) => equalsType(u, t))) dedup.push(t);
+  for (const v of variants) {
+    if (v.kind === "Union") {
+      for (const inner of v.variants) {
+        if (inner.kind !== "Never" && !dedup.some((u) => equalsType(u, inner))) dedup.push(inner);
+      }
+    } else if (v.kind !== "Never" && !dedup.some((u) => equalsType(u, v))) {
+      dedup.push(v);
+    }
   }
   dedup.sort((x, y) => displayType(x).localeCompare(displayType(y)));
-  if (dedup.length === 1) return dedup[0]!;
   if (dedup.length === 0) return TY.never;
+  if (dedup.length === 1) return dedup[0]!;
   return { kind: "Union", variants: dedup };
 }
 

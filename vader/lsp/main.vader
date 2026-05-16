@@ -180,5 +180,4 @@ doc_uri :: fn(params: JsonValue) -> string {
         }
         _ -> { return "" }
     }
-    return ""   // unreachable
 }

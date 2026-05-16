@@ -103,7 +103,7 @@ end
 
 fn 3 tests_snippets_if_null_narrow__main_vader$greet_v4 (ref) -> string
   local __sb_0 any
-  local $field_10 string
+  local $field_11 string
   local.get 0   ; _main.vader:42:8
   type_check 0   ; _main.vader:42:8
   bool.not   ; _main.vader:42:8

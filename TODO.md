@@ -187,6 +187,7 @@ Patterns counted on the existing Vader code that paid an outsized boilerplate co
 
 - [x] Numeric literal context-sensitivity for `usize` (and other primitives) — repins `FreeInt` arg literals in generic UFCS calls + flows expected type into unary `neg`/`bitnot`.
 - [x] Flow-narrowing on `T | null` inside `if x != null { ... }` — pushes complementary narrowing past divergent then-branches.
+- [x] Block / match / if diverges → type `never` (landed 2026-05-16). A trailing-less block whose statements all diverge (`return` / `break` / `continue`, or a nested exhaustive match / both-branch if) types as `never` instead of `void`. Lets `fn(v: A | B) -> T { match v { is A → return … is B → return … } }` type-check without the dead-code `return …` after the match. `unionOf` absorbs `Never` so `if c { x } else { return }` widens to the type of `x`. New `divergesExpr` / `divergesBlock` / `divergesStmt` helpers in `src/typecheck/passes/stmt.ts`. Doesn't yet recognise infinite `for {}` loops as divergent — that needs reachability analysis on `break`.
 - [x] Common-field access on `:: type` union aliases — already worked ; false alarm.
 - [x] Enum-to-repr direct cast (`Repr(EnumValue)`) — one-step rule, no implicit widening.
 - [x] Reject mutation of constant binding `x ::` (T3041 at assignment site, primary span on `x = ...`, secondary "declared here").
