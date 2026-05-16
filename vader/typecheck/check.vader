@@ -1,16 +1,10 @@
-// vader/typecheck/check — orchestrator for the typecheck phase.
+// vader/typecheck/check — declaration-time orchestrator.
 //
-// Composes the per-module passes into a single entry point :
-//
-//   1. Build the project-wide `ImplRegistry` from every `ImplDecl`
-//      (`impls.vader::build_impl_registry`).
-//   2. Mint per-decl types into `decl_types` via `decl.vader::declare_module`.
-//   3. (Phase 3+) walk fn bodies via `expr.vader` / `stmt.vader` to
-//      populate `expr_types` / `local_types` — not implemented yet.
-//
-// Single-shot per module. Multi-module orchestration (the full
-// `TypedProject`) lands once `wire.vader` plumbs cross-module imports —
-// today the resolver only carries one `ResolvedModule` at a time.
+// Builds the `ImplRegistry` and mints per-decl types. Body walking
+// lives in `orchestrate.vader` so this file stays free of `expr` /
+// `stmt` imports — `binary.vader` / `call.vader` / … pull `check_module`
+// from their test blocks and would form `binary → check → expr →
+// binary` cycles otherwise.
 
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/parser/ast" { Program }

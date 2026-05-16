@@ -223,6 +223,17 @@ export default_if_free :: fn(t: Type) -> Type {
     }
 }
 
+/// Bidirectional narrowing : when a Free* literal flows into a slot that
+/// wants a concrete numeric of the matching family, fold the literal to
+/// the concrete primitive. Used by every check_expr-style call site.
+export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
+    if expected is null { return got }
+    if !(expected is PrimitiveType) { return got }
+    if got is FreeIntType   && is_int_name(expected.name)   { return expected }
+    if got is FreeFloatType && is_float_name(expected.name) { return expected }
+    return got
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }

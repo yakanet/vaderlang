@@ -1,0 +1,44 @@
+// vader/typecheck/orchestrate — full-pipeline typecheck.
+//
+// Adds body-walking on top of `check.vader::check_module` so CLI / dump
+// callers get a fully-typed program in one call. Kept separate so
+// `check.vader` stays free of `expr` / `stmt` imports (see header
+// of `check.vader` for the cycle rationale).
+
+import "vader/diagnostics/diagnostic" { Diagnostic }
+AST :: import "vader/parser/ast"
+import "vader/parser/ast" { Program }
+import "vader/resolver/resolve" { ResolvedModule }
+import "vader/resolver/symbol" { SymbolFactory }
+import "vader/typecheck/check" { check_module, CheckResult }
+import "vader/typecheck/expr" { check_expr }
+import "vader/typecheck/stmt" { check_fn_body }
+import "vader/typecheck/typed_ast" { TypedProgram }
+
+/// Run the full typecheck pipeline : decl-level + body-walking. The
+/// result carries the same `TypedProgram` + `ImplRegistry` as
+/// `check_module`, just with `expr_types` / `local_types` populated.
+export check_module_with_bodies :: fn(
+    program: Program, resolved: ResolvedModule,
+    factory: SymbolFactory, diags: Diagnostic[],
+) -> CheckResult {
+    result :: check_module(program, resolved, factory, diags)
+    walk_bodies(program.decls, result.typed, diags)
+    return result
+}
+
+/// Walk every `FnDecl` body in `decls` and type-check it. Skips
+/// extern / abstract decls (no body). Exposed so tests can compose
+/// without re-doing the decl pass.
+export walk_bodies :: fn(
+    decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    for decl in decls {
+        if decl is AST.FnDecl {
+            match decl.body {
+                is null -> {}
+                is AST.BlockExpr as body -> { check_fn_body(decl, body, typed, diags, check_expr) }
+            }
+        }
+    }
+}

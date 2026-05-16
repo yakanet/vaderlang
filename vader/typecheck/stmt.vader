@@ -1,0 +1,411 @@
+// vader/typecheck/stmt — statement + block + fn-body checking.
+//
+// Walks every statement of a fn body, types each one, tracks loop
+// depth + return type via `FnContext`, and writes results into
+// `local_types` / `expr_types`. Stops short of W0002 dead-code
+// detection, T3041 mutate-`::`-local, IndexSet dispatch, custom
+// Iterator trait lookup, `comptime for` unrolling, and `Self`
+// substitution — those land with later phases.
+
+import "vader/diagnostics/diagnostic" { Diagnostic, Span, typecheck_error }
+import "vader/resolver/scope" { span_key }
+AST :: import "vader/parser/ast"
+import "vader/typecheck/context" { FnContext, new_fn_context }
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/type_ops" { is_assignable, default_if_free, narrow_for_expected }
+import "vader/typecheck/types" {
+    Type, ArrayType, FnType, TupleType, UnresolvedType, display_type,
+    mk_primitive, TY_VOID, TY_UNRESOLVED,
+}
+import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
+
+/// Check every statement in `block`, then type the trailing expression
+/// (or `void` when none). Writes the block's type into `expr_types`.
+/// `ctx` carries the surrounding fn's return type + loop depth ;
+/// pass `null` for stand-alone block exprs.
+export check_block :: fn(
+    block: AST.BlockExpr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    for stmt in block.stmts {
+        check_stmt(stmt, typed, diags, ctx, check_expr_fn)
+    }
+    result: Type = TY_VOID
+    match block.trailing {
+        is null -> {}
+        _ -> { result = check_expr_fn(block.trailing, expected, typed, diags) }
+    }
+    typed.expr_types[span_key(block.span)] = result
+    return result
+}
+
+/// Type-check a single statement. Reads `ctx` for `return` / `break` /
+/// `continue` validation ; writes `local_types` for let-bindings.
+export check_stmt :: fn(
+    stmt: AST.Stmt, typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> void {
+    match stmt {
+        is AST.LetStmt      as s -> { check_let(s, typed, diags, check_expr_fn) }
+        is AST.AssignStmt   as s -> { check_assign(s, typed, diags, check_expr_fn) }
+        is AST.ExprStmt     as s -> { check_expr_fn(s.expr, null, typed, diags) }
+        is AST.ReturnStmt   as s -> { check_return(s, typed, diags, ctx, check_expr_fn) }
+        is AST.ForStmt      as s -> { check_for(s, typed, diags, ctx, check_expr_fn) }
+        is AST.BreakStmt    as s -> { check_loop_jump(s.span, ctx, diags) }
+        is AST.ContinueStmt as s -> { check_loop_jump(s.span, ctx, diags) }
+        is AST.DeferStmt    as s -> { check_defer(s, typed, diags, ctx, check_expr_fn) }
+    }
+    return
+}
+
+/// Type-check a fn body. Reads the fn's declared return type from
+/// `decl_types`, builds an initial `FnContext`, then walks the body.
+/// Final-expression / implicit-return type-checking happens through
+/// the trailing-expr arm of `check_block`.
+export check_fn_body :: fn(
+    fn_decl: AST.FnDecl, body: AST.BlockExpr,
+    typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> void {
+    return_type :: lookup_return_type(fn_decl, typed)
+    ctx :: new_fn_context(return_type, null)
+    got :: check_block(body, return_type, typed, diags, ctx, check_expr_fn)
+    // Implicit-return : a trailing expression substitutes for an
+    // explicit `return`. Surface T3020 against the trailing's span.
+    match body.trailing {
+        is null -> {}
+        _ -> { emit_return_mismatch_if(got, return_type, body.trailing.span, diags) }
+    }
+}
+
+// Push T3020 when `got` doesn't flow into `expected`. Shared between
+// `check_return` and the implicit-return check in `check_fn_body` so
+// wording / arity stay in sync.
+emit_return_mismatch_if :: fn(
+    got: Type, expected: Type, span: Span, diags: Diagnostic[],
+) -> void {
+    if !is_assignable(got, expected, null) {
+        diags.push(typecheck_error(.BodyReturnIncompatible, span,
+            "expected ${display_type(expected)}, got ${display_type(got)}"))
+    }
+}
+
+// ---- per-stmt helpers -----------------------------------------------------
+
+check_let :: fn(
+    s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> void {
+    ann: Type | null = null
+    match s.ty {
+        is null -> {}
+        _ -> { ann = type_from_expr(s.ty, typed.resolved, diags) }
+    }
+    got :: check_expr_fn(s.value, ann, typed, diags)
+    declared: Type = TY_UNRESOLVED
+    match ann {
+        is null -> { declared = default_if_free(got) }
+        _ -> {
+            declared = ann
+            if !is_assignable(got, ann, null) {
+                diags.push(typecheck_error(.TypeMismatch, s.span,
+                    "expected ${display_type(ann)}, got ${display_type(got)}"))
+            }
+        }
+    }
+    assign_binding_types(s.binding, declared, typed, diags)
+}
+
+check_assign :: fn(
+    s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> void {
+    target_ty :: check_expr_fn(s.target, null, typed, diags)
+    value_hint: Type | null = null
+    if !(target_ty is UnresolvedType) { value_hint = target_ty }
+    check_expr_fn(s.value, value_hint, typed, diags)
+    return
+}
+
+check_return :: fn(
+    s: AST.ReturnStmt, typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> void {
+    if ctx is null { return }
+    v :: s.value
+    if v is null {
+        emit_return_mismatch_if(TY_VOID, ctx.return_type, s.span, diags)
+        return
+    }
+    got :: check_expr_fn(v, ctx.return_type, typed, diags)
+    emit_return_mismatch_if(got, ctx.return_type, s.span, diags)
+}
+
+check_for :: fn(
+    s: AST.ForStmt, typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> void {
+    match s.form {
+        is AST.InfiniteFor -> {}
+        is AST.WhileFor as w -> {
+            got :: check_expr_fn(w.cond, null, typed, diags)
+            if !is_assignable(got, mk_primitive("bool"), null) {
+                diags.push(typecheck_error(.ConditionMustBeBool, w.cond.span,
+                    "while condition must be `bool`, got ${display_type(got)}"))
+            }
+        }
+        is AST.InFor as f -> {
+            iter_ty :: check_expr_fn(f.iter, null, typed, diags)
+            elem :: for_in_element(iter_ty)
+            typed.local_types[span_key(f.binding_span)] = elem
+        }
+    }
+    inner_ctx :: bump_loop_depth(ctx)
+    check_block(s.body, null, typed, diags, inner_ctx, check_expr_fn)
+    return
+}
+
+check_loop_jump :: fn(span: Span, ctx: FnContext | null, diags: Diagnostic[]) -> void {
+    if ctx is null { return }
+    if ctx.loop_depth == 0 {
+        diags.push(typecheck_error(.BreakContinueOutsideLoop, span,
+            "`break` / `continue` only allowed inside a loop"))
+    }
+}
+
+check_defer :: fn(
+    s: AST.DeferStmt, typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> void {
+    match s.body {
+        is AST.DeferStmtBody  as b -> { check_stmt(b.stmt, typed, diags, ctx, check_expr_fn) }
+        is AST.DeferBlockBody as b -> { check_block(b.block, null, typed, diags, ctx, check_expr_fn) }
+    }
+    return
+}
+
+// ---- support --------------------------------------------------------------
+
+bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
+    if ctx is null { return null }
+    return FnContext {
+        .return_type = ctx.return_type,
+        .self_type   = ctx.self_type,
+        .loop_depth  = ctx.loop_depth + 1,
+    }
+}
+
+// Pull the iterator's element type. Only `T[]` narrows for now ;
+// custom `Iterator(T)` impls go through `coerce.vader` once that lands.
+for_in_element :: fn(iter_ty: Type) -> Type {
+    match iter_ty {
+        is ArrayType as a -> { return a.element }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
+    decl_ty :: typed.decl_types[span_key(fn_decl.name_span)]
+    if decl_ty is null { return TY_UNRESOLVED }
+    match decl_ty {
+        is FnType as f -> { return f.return_type }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+/// Walk a let-binding tree and write the inferred / declared type into
+/// `typed.local_types` keyed by the binding span (the same span the
+/// resolver passed to `mint_local`). Wildcards are skipped — they
+/// don't introduce a Symbol.
+export assign_binding_types :: fn(
+    b: AST.LetBinding, declared: Type, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    match b {
+        is AST.SimpleBinding   as sb -> { typed.local_types[span_key(sb.name_span)] = declared }
+        is AST.RestBinding     as rb -> { typed.local_types[span_key(rb.span)] = declared }
+        is AST.WildcardBinding       -> {}
+        is AST.TupleBinding    as tb -> { assign_tuple(tb, declared, typed, diags) }
+    }
+}
+
+assign_tuple :: fn(
+    tb: AST.TupleBinding, declared: Type, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    match declared {
+        is TupleType as tup -> {
+            if tup.elements.len() != tb.elements.len() {
+                // Best-effort : Unresolved on each leaf, the resolver-
+                // emitted shape error already surfaces upstream.
+                for leaf in tb.elements { assign_binding_types(leaf, TY_UNRESOLVED, typed, diags) }
+                return
+            }
+            for i in 0..<tb.elements.len() {
+                assign_binding_types(tb.elements[i], tup.elements[i], typed, diags)
+            }
+        }
+        _ -> {
+            for leaf in tb.elements { assign_binding_types(leaf, TY_UNRESOLVED, typed, diags) }
+        }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+//
+// Local `stub_check_expr` avoids importing `expr.vader` (would create a
+// load-time cycle through `expr → stmt`). Full end-to-end coverage runs
+// via `check_module_with_bodies` in `orchestrate.vader`.
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver/symbol" { new_factory }
+import "vader/typecheck/decl" { declare_module }
+import "vader/typecheck/expr_ident" { infer_ident }
+import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }
+// Bundles parse + resolve + declare + walks fn bodies with the stub.
+// Returns both `typed` and `diags` so test sites can assert on either.
+StubResult :: struct {
+    typed: TypedProgram
+    diags: Diagnostic[]
+}
+
+stub_check_module :: fn(src: string) -> StubResult {
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    typed :: new_typed_program(rm)
+    diags: Diagnostic[] = []
+    declare_module(parsed.program.decls, rm, typed, factory, diags)
+    for decl in parsed.program.decls {
+        if decl is AST.FnDecl {
+            match decl.body {
+                is AST.BlockExpr as body -> { check_fn_body(decl, body, typed, diags, stub_check_expr) }
+                is null -> {}
+            }
+        }
+    }
+    return StubResult { .typed = typed, .diags = diags }
+}
+
+// Tiny check_expr replacement — only the variants the inline tests
+// exercise (int / string literals + idents). FreeInt narrowing reuses
+// the shared `narrow_for_expected` so the stub matches the real
+// orchestrator's behavior.
+stub_check_expr :: fn(
+    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    match e {
+        is AST.IntLitExpr    as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
+        is AST.StringLitExpr as x -> { return infer_string_lit(x) }
+        is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+has_code :: fn(diags: Diagnostic[], code: string) -> bool {
+    for d in diags { if d.code.id == code { return true } }
+    return false
+}
+
+@test
+test_let_simple_binding_records_local_type :: fn() -> void {
+    src :: "f :: fn() -> i32 { x :: 42 }"
+    out :: stub_check_module(src)
+    sb :: first_simple_binding(src)
+    if sb is null { assert(false, "expected SimpleBinding") return }
+    ty :: out.typed.local_types[span_key(sb.name_span)]
+    if ty is null { assert(false, "binding should have a type") return }
+    // Bare `42` defaults to i32 via `default_if_free`.
+    assert_eq(display_type(ty), "i32")
+}
+
+@test
+test_let_with_annotation_narrows_free_int :: fn() -> void {
+    src :: "f :: fn() -> i64 { x: i64 = 5 }"
+    out :: stub_check_module(src)
+    sb :: first_simple_binding(src)
+    if sb is null { assert(false, "expected SimpleBinding") return }
+    ty :: out.typed.local_types[span_key(sb.name_span)]
+    if ty is null { assert(false, "binding should have a type") return }
+    assert_eq(display_type(ty), "i64")
+}
+
+@test
+test_let_annotation_mismatch_emits_T3001 :: fn() -> void {
+    out :: stub_check_module("f :: fn() -> void { x: i32 = \"hello\" }")
+    assert(has_code(out.diags, "T3001"), "expected T3001 on annotation mismatch")
+}
+
+@test
+test_return_value_mismatch_emits_T3020 :: fn() -> void {
+    out :: stub_check_module("f :: fn() -> i32 { return \"hello\" }")
+    assert(has_code(out.diags, "T3020"), "expected T3020 on return-type mismatch")
+}
+
+@test
+test_return_bare_in_non_void_emits_T3020 :: fn() -> void {
+    out :: stub_check_module("f :: fn() -> i32 { return }")
+    assert(has_code(out.diags, "T3020"), "expected T3020 on bare return in non-void fn")
+}
+
+@test
+test_for_in_array_narrows_binding :: fn() -> void {
+    src :: "f :: fn(xs: i32[]) -> void { for x in xs { } }"
+    out :: stub_check_module(src)
+    sp :: first_for_in_binding_span(src)
+    if sp is null { assert(false, "expected a for-in") return }
+    ty :: out.typed.local_types[span_key(sp)]
+    if ty is null { assert(false, "for-in binding should have a type") return }
+    assert_eq(display_type(ty), "i32")
+}
+
+// ---- test walkers ---------------------------------------------------------
+
+first_simple_binding :: fn(src: string) -> AST.SimpleBinding | null {
+    parsed :: parse_source(src, "t.vader")
+    match parsed.program.decls[0] {
+        is AST.FnDecl as f -> {
+            match f.body {
+                is AST.BlockExpr as b -> {
+                    for s in b.stmts {
+                        if s is AST.LetStmt {
+                            if s.binding is AST.SimpleBinding { return s.binding }
+                        }
+                    }
+                }
+                is null -> {}
+            }
+        }
+        _ -> {}
+    }
+    return null
+}
+
+first_for_in_binding_span :: fn(src: string) -> Span | null {
+    parsed :: parse_source(src, "t.vader")
+    match parsed.program.decls[0] {
+        is AST.FnDecl as f -> {
+            match f.body {
+                is AST.BlockExpr as b -> {
+                    for s in b.stmts {
+                        if s is AST.ForStmt {
+                            match s.form {
+                                is AST.InFor as inf -> { return inf.binding_span }
+                                _ -> {}
+                            }
+                        }
+                    }
+                }
+                is null -> {}
+            }
+        }
+        _ -> {}
+    }
+    return null
+}

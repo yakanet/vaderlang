@@ -18,7 +18,7 @@ import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
 import "vader/resolver/resolve" { ResolvedProject, ResolvedModule, resolve_module }
 import "vader/resolver/dump" { dump_project }
-import "vader/typecheck/check" { check_module }
+import "vader/typecheck/orchestrate" { check_module_with_bodies }
 import "vader/typecheck/dump" { dump_program as dump_typed }
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/fmt/cli" { run_fmt }
@@ -386,7 +386,7 @@ run_typecheck_stage :: fn(file: string) -> i32 {
     factory :: new_factory()
     rm :: resolve_module(parsed.program, file, factory)
     diags: Diagnostic[] = []
-    result :: check_module(parsed.program, rm, factory, diags)
+    result :: check_module_with_bodies(parsed.program, rm, factory, diags)
     println(dump_typed(result.typed, true))
     if parsed.errors.len() > 0 {
         println(parsed.errors.dump_diagnostics())
