@@ -179,6 +179,7 @@ export TY_UNRESOLVED :: UnresolvedType {}
 export TY_FREE_INT   :: FreeIntType {}
 export TY_FREE_FLOAT :: FreeFloatType {}
 export TY_NEVER      :: NeverType {}
+export TY_VOID       :: PrimitiveType { .name = "void" }
 
 // ---- display --------------------------------------------------------------
 

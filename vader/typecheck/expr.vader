@@ -123,3 +123,24 @@ test_check_expr_keeps_free_float_when_no_expected :: fn() -> void {
     result :: check_expr(e, null, typed, diags)
     assert(result is FreeFloatType, "unconstrained float stays FreeFloat")
 }
+
+@test
+test_check_expr_narrows_through_block :: fn() -> void {
+    // `{ 42 }` with expected = i64 narrows the inner literal end-to-end :
+    // outer `check_expr` calls `infer_block`, `infer_block` recurses via
+    // `check_expr` on the trailing, the recursive call narrows FreeInt to
+    // i64. The outer wrapper writes the final i64 into expr_types for
+    // the block too.
+    typed :: empty_typed_program()
+    inner :: AST.IntLitExpr {
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .value = 42, .suffix = null,
+    }
+    block :: AST.BlockExpr {
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .stmts = [], .trailing = inner,
+    }
+    diags: Diagnostic[] = []
+    expected: Type = mk_primitive("i64")
+    assert_eq(display_type(check_expr(block, expected, typed, diags)), "i64")
+}

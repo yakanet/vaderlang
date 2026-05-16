@@ -18,7 +18,7 @@
 
 import "vader/diagnostics/diagnostic" { Diagnostic }
 AST :: import "vader/parser/ast"
-import "vader/typecheck/types" { Type, mk_primitive }
+import "vader/typecheck/types" { Type, TY_VOID }
 import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Type of a `BlockExpr`. `expected` flows into the trailing expr so
@@ -33,7 +33,7 @@ export infer_block :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     trailing :: b.trailing
-    if trailing is null { return mk_primitive("void") }
+    if trailing is null { return TY_VOID }
     return check_expr_fn(trailing, expected, typed, diags)
 }
 
@@ -57,17 +57,18 @@ first_block :: fn(src: string) -> AST.BlockExpr | null {
     }
 }
 
-// Tiny stub for the `check_expr_fn` arg — covers the literal cases this
-// file's tests exercise. Real call sites pass `expr.vader::check_expr`.
-import "vader/typecheck/expr_literals" { infer_int_lit, infer_bool_lit }
+// Tiny stub for the `check_expr_fn` arg — covers only what the tests
+// below exercise (IntLit + nested Block). Real call sites pass
+// `expr.vader::check_expr` ; the integration test that walks the real
+// orchestrator lives in `expr.vader`.
+import "vader/typecheck/expr_literals" { infer_int_lit }
 stub_check_expr :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     match e {
         is AST.IntLitExpr as x -> { return infer_int_lit(x) }
-        is AST.BoolLitExpr as x -> { return infer_bool_lit(x) }
         is AST.BlockExpr as x -> { return infer_block(x, expected, typed, diags, stub_check_expr) }
-        _ -> { return mk_primitive("void") }
+        _ -> { return TY_VOID }
     }
 }
 
@@ -102,20 +103,7 @@ test_block_with_trailing_int_is_free_int :: fn() -> void {
     }
 }
 
-@test
-test_block_narrows_trailing_via_expected :: fn() -> void {
-    b :: first_block("f :: fn() -> i64 { 42 }")
-    match b {
-        is null -> { assert(false, "expected a body block") }
-        is AST.BlockExpr as block -> {
-            typed :: empty_typed_program()
-            diags: Diagnostic[] = []
-            expected: Type = mk_primitive("i64")
-            ty :: infer_block(block, expected, typed, diags, stub_check_expr)
-            // stub_check_expr returns FreeInt — block does NOT narrow ;
-            // narrowing happens in `check_expr`'s wrapper, not `infer_block`.
-            // The expected only flows when the orchestrator drives.
-            assert_eq(display_type(ty), "{integer}")
-        }
-    }
-}
+// Block + `expected` narrowing : tested in `expr.vader` where the real
+// `check_expr` orchestrator is in scope. `infer_block` itself just
+// forwards `expected` into `check_expr_fn` — the narrowing happens
+// in the recursive call and in the outer wrapper.

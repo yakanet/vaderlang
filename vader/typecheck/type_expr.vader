@@ -23,7 +23,7 @@ import "vader/resolver/symbol" { Symbol, SymbolKind }
 AST :: import "vader/parser/ast"
 import "vader/typecheck/types" {
     Type, mk_primitive, mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
-    mk_type_param, is_primitive_name, TY_TYPE, TY_SELF, TY_UNRESOLVED,
+    mk_type_param, is_primitive_name, TY_TYPE, TY_SELF, TY_UNRESOLVED, TY_VOID,
 }
 import "vader/typecheck/type_ops" { union_of }
 
@@ -108,7 +108,7 @@ opt_or_void :: fn(
     ret: AST.TypeExpr | null, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
     match ret {
-        is null -> { return mk_primitive("void") }
+        is null -> { return TY_VOID }
         _ -> { return type_from_expr(ret, resolved, diags) }
     }
 }

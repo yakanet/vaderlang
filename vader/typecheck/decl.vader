@@ -23,8 +23,8 @@ import "vader/resolver/scope" { span_key }
 AST :: import "vader/parser/ast"
 import "vader/parser" { Visibility }
 import "vader/typecheck/types" {
-    Type, PrimitiveType, mk_primitive, mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
-    TY_UNRESOLVED,
+    Type, PrimitiveType, mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
+    TY_UNRESOLVED, TY_VOID,
 }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/typed_ast" { TypedProgram }
@@ -132,7 +132,7 @@ declare_fn_return :: fn(
             // Expression-bodied without annotation : inference defers to body
             // checking. Block-bodied without annotation : default to void.
             if decl.is_expression_bodied { return TY_UNRESOLVED }
-            return mk_primitive("void")
+            return TY_VOID
         }
         _ -> { return type_from_expr(rt, resolved, diags) }
     }
