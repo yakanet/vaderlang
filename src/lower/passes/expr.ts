@@ -11,9 +11,12 @@ import { CORE_STRUCTS, CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIf
 import { primitiveFromName } from "../../typecheck/passes/type-expr.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
+import { makeEntryTypes } from "../entry-types.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt, LoweredStructLitField } from "../lowered-ast.ts";
 import { INTRINSICS } from "../lowered-ast.ts";
 import { err } from "../diag.ts";
+import type { Substitution } from "../../typecheck/types.ts";
+import type { TypedProgram } from "../../typecheck/typed-ast.ts";
 
 import { lowerBlock } from "./block.ts";
 import { findCoreTrait } from "./core.ts";
@@ -490,14 +493,40 @@ function lowerIdent(ctx: FnLowerCtx, expr: A.IdentExpr, type: Type): LoweredExpr
  *  because the user's `resolved.idents` only carries entries for nodes the
  *  user-module's parser produced. */
 function findForeignIdentSym(ctx: FnLowerCtx, expr: A.IdentExpr): Symbol | undefined {
-  const file = expr.span.start.file;
+  const foreign = findForeignTyped(ctx, expr.span.start.file);
+  return foreign?.resolved.idents.get(expr);
+}
+
+/** Look up the TypedProgram that owns `file`. Returns null when the file
+ *  isn't part of any module the project knows about. */
+function findForeignTyped(ctx: FnLowerCtx, file: string): TypedProgram | null {
+  if (ctx.typed.resolved.module.files.some((src) => src.path === file)) return null;
   for (const program of ctx.project.evaluated.typed.modules.values()) {
     for (const src of program.resolved.module.files) {
-      if (src.path === file) return program.resolved.idents.get(expr);
+      if (src.path === file) return program;
     }
   }
-  return undefined;
+  return null;
 }
+
+/** Lower an expression that MAY come from a different module than the
+ *  current `ctx`. Detects foreign sub-trees by file mismatch and swaps
+ *  `typed` / `types` to the defining module's view so `exprType` /
+ *  `resolved.idents` lookups don't fall through to `LoweredUnreachable`.
+ *  Used by struct-literal field defaults (the canonical cross-module
+ *  injection point). */
+function lowerExprMaybeForeign(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
+  const foreign = findForeignTyped(ctx, expr.span.start.file);
+  if (foreign === null) return lowerExpr(ctx, expr);
+  const swappedCtx: FnLowerCtx = {
+    ...ctx,
+    typed: foreign,
+    types: makeEntryTypes(foreign, EMPTY_SUBST),
+  };
+  return lowerExpr(swappedCtx, expr);
+}
+
+const EMPTY_SUBST: Substitution = { typeParams: new Map() };
 
 function resolveTypeMetaSymbol(ctx: FnLowerCtx, sym: Symbol): Type | null {
   if (sym.kind === "const" && sym.source.kind === "const") {
@@ -1024,7 +1053,7 @@ function lowerStructLit(ctx: FnLowerCtx, expr: A.StructLitExpr, exprType: Type):
         },
       };
     }
-    if (sf.default !== null) return { name: sf.name, value: lowerExpr(ctx, sf.default) };
+    if (sf.default !== null) return { name: sf.name, value: lowerExprMaybeForeign(ctx, sf.default) };
     return {
       name: sf.name,
       value: {
