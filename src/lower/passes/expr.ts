@@ -435,6 +435,42 @@ function lowerIntrinsic(
       const argType = ctx.typed.exprTypes.get(expr.args[0]!) ?? TY.unresolved;
       return { kind: "LoweredTypeConst", span: expr.span, type, value: argType };
     }
+    case "field": {
+      // Lower the name arg first — it might be a bare `StringLitExpr` or
+      // a `FieldExpr` like `f.name` inside `@comptime for f in
+      // @fields(T)` that folds to a `LoweredStringLit` post-substitution.
+      // Anything else means the name didn't resolve statically.
+      const loweredName = lowerExpr(ctx, expr.args[1]!);
+      if (loweredName.kind !== "LoweredStringLit") {
+        return { kind: "LoweredUnreachable", span: expr.span, type,
+          reason: "@field name argument must fold to a static string literal" };
+      }
+      const target = lowerExpr(ctx, expr.args[0]!);
+      // Refine the result type from the receiver's struct decl + field
+      // name pair when typecheck deferred the resolution (returned
+      // Unresolved). For literal-arg call sites the typecheck already
+      // produced the right `type`.
+      let fieldType: Type = type;
+      if (fieldType.kind === "Unresolved") {
+        const recvTy = ctx.typed.exprTypes.get(expr.args[0]!);
+        if (recvTy?.kind === "Struct" && recvTy.symbol.source.kind === "struct") {
+          const decl = recvTy.symbol.source.decl;
+          const field = decl.fields.find((f) => f.name === loweredName.value);
+          if (field !== undefined) {
+            const raw = ctx.typed.typeExprTypes.get(field.type) ?? TY.unresolved;
+            const subst = buildStructSubst(
+              decl.typeParams, recvTy.args,
+              ctx.project.evaluated.typed.resolved.typeParamSymbols,
+            );
+            fieldType = substitute(raw, subst);
+          }
+        }
+      }
+      return {
+        kind: "LoweredFieldAccess", span: expr.span, type: fieldType,
+        target, field: loweredName.value,
+      };
+    }
     case "type_args": {
       // Generic args of a struct/trait instance ; everything else yields [].
       const args = targetTy !== undefined && (targetTy.kind === "Struct" || targetTy.kind === "Trait")

@@ -167,6 +167,12 @@ function inferIntrinsic(
   if (spec.name === "field_index") {
     validateFieldIndex(expr, t, diags);
   }
+  // `@field(x, "name")` — dynamic-by-string field access. Result type
+  // depends on x's static type + the field name ; computed here rather
+  // than via the generic `intrinsicResultType` mapping.
+  if (spec.name === "field") {
+    return inferFieldIntrinsic(expr, t, diags);
+  }
   // `@fields(T)` requires `T` to be a struct ; non-struct types have no
   // fields to enumerate and the lowerer can't produce the `Field[]`
   // literal without one. Mirrors `@field_index`'s struct guard.
@@ -208,6 +214,49 @@ function intrinsicResultType(result: IntrinsicResultKind, t: MutableTyped): Type
     }
     case "type_array": return mkArray(TY.type);
   }
+}
+
+/** `@field(x, "name")` — args[0] is a struct-typed value, args[1] is a
+ *  `string` expression that resolves to a static literal **at lower
+ *  time** (typically a `Field.name` access inside `@comptime for f in
+ *  @fields(T)`, but bare string literals also work). The receiver must
+ *  be a struct ; the result type is the field's declared type for
+ *  literal-arg call sites, falling back to `Unresolved` when the name
+ *  isn't statically resolvable yet — the lower pass surfaces the
+ *  matching diagnostic if substitution doesn't deliver a literal. */
+function inferFieldIntrinsic(
+  expr: A.IntrinsicCallExpr, t: MutableTyped, diags: DiagnosticCollector,
+): Type {
+  const recvTy = t.exprTypes.get(expr.args[0]!);
+  if (recvTy === undefined || recvTy.kind === "Unresolved") return TY.unresolved;
+  if (recvTy.kind !== "Struct") {
+    err(diags, "T3010", expr.args[0]!.span,
+      `\`@field\` first argument must be a struct value, got ${displayType(recvTy)}`);
+    return TY.unresolved;
+  }
+  const nameArg = expr.args[1];
+  // Static path : the second arg is a bare string literal. We can resolve
+  // the field type immediately + reject unknown names with T3009.
+  if (nameArg !== undefined && nameArg.kind === "StringLitExpr") {
+    const fieldName = staticStringValue(nameArg);
+    if (fieldName === null) return TY.unresolved;  // interpolation — typecheck flagged elsewhere
+    const decl = recvTy.symbol.source.kind === "struct" ? recvTy.symbol.source.decl : null;
+    if (decl === null) return TY.unresolved;
+    const field = decl.fields.find((f) => f.name === fieldName);
+    if (field === undefined) {
+      err(diags, "T3009", nameArg.span,
+        `field \`${fieldName}\` does not exist on ${displayType(recvTy)}`);
+      return TY.unresolved;
+    }
+    const fieldTypeRaw = t.globals.typeExprTypes.get(field.type) ?? TY.unresolved;
+    const subst = buildStructSubst(decl.typeParams, recvTy.args, t.globals.typeParamSymbols);
+    return substitute(fieldTypeRaw, subst);
+  }
+  // Deferred path : the second arg is a `string`-typed expression that
+  // we expect to fold to a literal at lower time (typically `f.name`
+  // inside a `@comptime for` body). Return Unresolved ; the lower pass
+  // re-validates after comptime substitution.
+  return TY.unresolved;
 }
 
 function validateFieldIndex(

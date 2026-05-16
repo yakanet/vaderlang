@@ -47,6 +47,11 @@ INTRINSICS :: [
     // `@type_args(T)` — generic type-args of a struct / trait instance
     // as a `type[]`. Non-generic types yield `[]`.
     IntrinsicSpec { .name = "type_args",     .args = [.Type],          .result = "type_array"  },
+    // `@field(x, "name")` — dynamic-by-string field access. The second
+    // arg is a static string literal (or a `f.name` access that folds to
+    // one inside `@comptime for f in @fields(T)`). The result type is
+    // the field's declared type, resolved per-call.
+    IntrinsicSpec { .name = "field",         .args = [.Value, .Value], .result = "usize"       },
 ]
 
 // Returns the spec for `name`, or `null` if `@name(...)` is not a

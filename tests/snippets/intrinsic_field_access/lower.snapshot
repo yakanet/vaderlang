@@ -1,0 +1,85 @@
+# Lower
+
+## tests/snippets/intrinsic_field_access/_main.vader
+  struct tests_snippets_intrinsic_field_access__main_vader$User { name: string, age: i32 }
+  fn tests_snippets_intrinsic_field_access__main_vader$derive_print(self: User) -> void
+    block :void
+      call :void
+        callee:
+          println :fn(string) -> void
+        arg0:
+          block :string
+            let __sb_0: ? =
+              @builder.new :?
+            @builder.append_display <for string> :void
+              __sb_0 :?
+              "name" :string
+            @builder.append_str :void
+              __sb_0 :?
+              ": " :string
+            @builder.append_display <for string> :void
+              __sb_0 :?
+              .name :string
+                self :User
+            ~>
+              @builder.finish :string
+                __sb_0 :?
+      call :void
+        callee:
+          println :fn(string) -> void
+        arg0:
+          block :string
+            let __sb_1: ? =
+              @builder.new :?
+            @builder.append_display <for string> :void
+              __sb_1 :?
+              "age" :string
+            @builder.append_str :void
+              __sb_1 :?
+              ": " :string
+            @builder.append_display <for i32> :void
+              __sb_1 :?
+              .age :i32
+                self :User
+            ~>
+              @builder.finish :string
+                __sb_1 :?
+  fn tests_snippets_intrinsic_field_access__main_vader$main() -> i32
+    let u: User =
+      User {
+        name: "alice" :string
+        age: int(30) :i32
+      }
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "static: " :string
+          @builder.append_display <for string> :void
+            __sb_0 :?
+            .name :string
+              u :User
+          @builder.append_str :void
+            __sb_0 :?
+            " (" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            .age :i32
+              u :User
+          @builder.append_str :void
+            __sb_0 :?
+            ")" :string
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        derive_print :fn(User) -> void
+      arg0:
+        u :User
+    return int(0) :i32

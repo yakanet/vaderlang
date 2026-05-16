@@ -11466,6 +11466,12 @@
   expr 549:5    CallExpr       :: void
   expr 549:5    FieldExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, i32) -> void
   expr 549:5    IdentExpr      :: StringBuilder
+  expr 54:29    StringLitExpr  :: string
+  expr 54:5     StructLitExpr  :: IntrinsicSpec
+  expr 54:54    SeqLitExpr     :: IntrinsicArgKind[]
+  expr 54:55    DotVariantExpr :: IntrinsicArgKind
+  expr 54:63    DotVariantExpr :: IntrinsicArgKind
+  expr 54:82    StringLitExpr  :: string
   expr 553:19   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 553:22   IdentExpr      :: i32
   expr 553:24   IdentExpr      :: usize
@@ -11483,7 +11489,6 @@
   expr 557:9    FieldExpr      :: fn(i32) -> Token
   expr 557:9    IdentExpr      :: Parser
   expr 559:9    IdentExpr      :: bool
-  expr 55:14    IdentExpr      :: const IntrinsicSpec[]
   expr 55:5     CallExpr       :: void
   expr 55:5     FieldExpr      :: fn(char) -> void
   expr 55:5     IdentExpr      :: StringBuilder
@@ -11563,12 +11568,6 @@
   expr 569:47   BinaryExpr     :: i32
   expr 569:47   IdentExpr      :: i32
   expr 569:9    IdentExpr      :: bool
-  expr 56:12    BinaryExpr     :: bool
-  expr 56:12    FieldExpr      :: string
-  expr 56:12    IdentExpr      :: IntrinsicSpec
-  expr 56:22    IdentExpr      :: string
-  expr 56:36    IdentExpr      :: IntrinsicSpec
-  expr 56:9     IfExpr         :: void
   expr 570:21   IfExpr         :: void
   expr 570:22   IdentExpr      :: usize
   expr 570:24   BinaryExpr     :: bool
@@ -11825,6 +11824,7 @@
   expr 60:14    FieldExpr      :: Token[]
   expr 60:14    FieldExpr      :: fn() -> usize
   expr 60:14    IdentExpr      :: Parser
+  expr 60:14    IdentExpr      :: const IntrinsicSpec[]
   expr 610:13   CallExpr       :: void
   expr 610:13   FieldExpr      :: fn(i32, string) -> void
   expr 610:13   IdentExpr      :: StringBuilder
@@ -11878,11 +11878,16 @@
   expr 619:22   FieldExpr      :: null | string
   expr 619:22   IdentExpr      :: ForStmt
   expr 619:33   SeqLitExpr     :: FnParam[]
+  expr 61:12    BinaryExpr     :: bool
+  expr 61:12    FieldExpr      :: string
+  expr 61:12    IdentExpr      :: IntrinsicSpec
   expr 61:16    IdentExpr      :: i32
+  expr 61:22    IdentExpr      :: string
   expr 61:27    FieldExpr      :: Token[]
   expr 61:27    IdentExpr      :: Parser
   expr 61:27    IndexExpr      :: Token
   expr 61:36    CallExpr       :: usize
+  expr 61:36    IdentExpr      :: IntrinsicSpec
   expr 61:36    IdentExpr      :: type
   expr 61:42    FieldExpr      :: i32
   expr 61:42    IdentExpr      :: Parser
@@ -11890,6 +11895,7 @@
   expr 61:8     BinaryExpr     :: bool
   expr 61:8     FieldExpr      :: i32
   expr 61:8     IdentExpr      :: Parser
+  expr 61:9     IfExpr         :: void
   expr 621:13   MatchExpr      :: void
   expr 621:19   IdentExpr      :: null | string
   expr 621:33   IdentExpr      :: BlockExpr

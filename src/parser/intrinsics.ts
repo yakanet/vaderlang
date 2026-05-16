@@ -55,6 +55,13 @@ export const INTRINSICS: readonly IntrinsicSpec[] = [
   // instance as a `type[]`. Non-generic types yield an empty array.
   // Static `T` only. Layer 6 reflection.
   { name: "type_args",     args: ["type"],          result: "type_array"  },
+  // `@field(x, "name")` — dynamic-by-string field access. `x` is a
+  // struct-typed value, `"name"` a static string literal naming a field.
+  // Lowers to a regular `LoweredFieldAccess` ; the result type IS the
+  // field's declared type, resolved per-call by `inferIntrinsic`. Used
+  // together with `@comptime for f in @fields(T)` for derive-style
+  // codegen (to_string, json_encode, eq …).
+  { name: "field",         args: ["value", "value"], result: "usize" /* unused — resolved per-call */ },
   // `@file("path")` reads the file at compile time and bakes its UTF-8
   // contents as a string literal. The sandbox confines the path to the
   // project root (same rule as the legacy `@file` decorator).
