@@ -1,0 +1,99 @@
+// vader/typecheck/expr_lambda — LambdaExpr inference (`(x) -> x + 1`).
+//
+// Params take their annotated type ; if unannotated, the bidirectional
+// `expected` fn-type provides the slot type. The body is checked
+// against the annotated / inferred return type. Returns `mk_fn(params,
+// body)`.
+//
+// MVP : no Self threading from outer fn ; no implicit closure-capture
+// type inference beyond what each ident resolves to. T3024 when a
+// param can't be inferred.
+
+import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/resolver/scope" { span_key }
+import "vader/typecheck/context" { FnContext, new_fn_context }
+import "vader/typecheck/stmt" { check_block }
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/types" { Type, FnType, mk_fn, TY_UNRESOLVED }
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Type-check a `LambdaExpr`. Returns `fn(params...) -> body`.
+export infer_lambda :: fn(
+    e: AST.LambdaExpr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    expected_fn: FnType | null = null
+    match expected {
+        is FnType as f -> { expected_fn = f }
+        _ -> {}
+    }
+    param_types: Type[] = []
+    for i in 0..<e.params.len() {
+        param_types.push(infer_param(e.params[i], i, expected_fn, typed, diags))
+    }
+    expected_ret :: pick_return(e.return_type, expected_fn, typed.resolved, diags)
+    ctx_return :: pick_ctx_return(expected_ret)
+    ctx :: new_fn_context(ctx_return, null)
+    body :: check_block(e.body, expected_ret, typed, diags, ctx, check_expr_fn)
+    ret :: pick_final_return(expected_ret, body)
+    return mk_fn(param_types, ret)
+}
+
+infer_param :: fn(
+    p: AST.FnParam, idx: usize, expected_fn: FnType | null,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    match p.ty {
+        is null -> {}
+        _ -> {
+            t :: type_from_expr(p.ty, typed.resolved, diags)
+            typed.param_types[span_key(p.span)] = t
+            return t
+        }
+    }
+    match expected_fn {
+        is FnType as f -> {
+            if idx < f.params.len() {
+                typed.param_types[span_key(p.span)] = f.params[idx]
+                return f.params[idx]
+            }
+        }
+        _ -> {}
+    }
+    diags.push(typecheck_error(.FnSignatureMustBeAnnotated, p.span,
+        "lambda parameter `${p.name}` cannot be inferred"))
+    typed.param_types[span_key(p.span)] = TY_UNRESOLVED
+    return TY_UNRESOLVED
+}
+
+import "vader/resolver/resolve" { ResolvedModule }
+
+pick_return :: fn(
+    annot: AST.TypeExpr | null, expected_fn: FnType | null,
+    resolved: ResolvedModule, diags: Diagnostic[],
+) -> Type | null {
+    match annot {
+        is null -> {}
+        _ -> { return type_from_expr(annot, resolved, diags) }
+    }
+    match expected_fn {
+        is FnType as f -> { return f.return_type }
+        _ -> { return null }
+    }
+}
+
+pick_ctx_return :: fn(expected: Type | null) -> Type {
+    match expected {
+        is null -> { return TY_UNRESOLVED }
+        _ -> { return expected }
+    }
+}
+
+pick_final_return :: fn(expected: Type | null, body: Type) -> Type {
+    match expected {
+        is null -> { return body }
+        _ -> { return expected }
+    }
+}

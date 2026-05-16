@@ -34,6 +34,16 @@ import "vader/typecheck/stmt" { check_block }
 import "vader/typecheck/call" { infer_call }
 import "vader/typecheck/binary" { infer_binary }
 import "vader/typecheck/field" { infer_field }
+import "vader/typecheck/expr_cast" { infer_cast }
+import "vader/typecheck/expr_dot_variant" { infer_dot_variant }
+import "vader/typecheck/expr_generic_inst" { infer_generic_inst }
+import "vader/typecheck/expr_index" { infer_index }
+import "vader/typecheck/expr_intrinsic" { infer_intrinsic }
+import "vader/typecheck/expr_lambda" { infer_lambda }
+import "vader/typecheck/expr_range" { infer_range }
+import "vader/typecheck/expr_try" { infer_try }
+import "vader/typecheck/expr_type_value" { infer_array_type_value, infer_fn_type_value }
+import "vader/typecheck/expr_unary" { infer_unary }
 import "vader/typecheck/seq_lit" { infer_seq_lit }
 import "vader/typecheck/struct_lit" { infer_struct_lit }
 
@@ -70,9 +80,19 @@ infer_expr :: fn(
         is AST.FieldExpr     as e -> { return infer_field(e, typed, diags, check_expr) }
         is AST.StructLitExpr as e -> { return infer_struct_lit(e, typed, diags, check_expr) }
         is AST.SeqLitExpr    as e -> { return infer_seq_lit(e, expected, typed, diags, check_expr) }
-        // Every other variant : Phase 3.2+ work. Returning Unresolved
-        // keeps downstream passes happy (TY_UNRESOLVED is assignable to
-        // anything ; `is_assignable` short-circuits on it).
+        is AST.UnaryExpr     as e -> { return infer_unary(e, typed, diags, check_expr) }
+        is AST.IndexExpr     as e -> { return infer_index(e, typed, diags, check_expr) }
+        is AST.CastExpr      as e -> { return infer_cast(e, typed, diags, check_expr) }
+        is AST.RangeExpr     as e -> { return infer_range(e, typed, diags, check_expr) }
+        is AST.DotVariantExpr as e -> { return infer_dot_variant(e, expected, typed, diags) }
+        is AST.LambdaExpr    as e -> { return infer_lambda(e, expected, typed, diags, check_expr) }
+        is AST.TryExpr       as e -> { return infer_try(e, typed, diags, check_expr) }
+        is AST.IntrinsicCallExpr as e -> { return infer_intrinsic(e, typed, diags, check_expr) }
+        is AST.GenericInstExpr as e -> { return infer_generic_inst(e, typed, diags, check_expr) }
+        is AST.ArrayTypeExpr as e -> { return infer_array_type_value(e, typed, diags) }
+        is AST.FnTypeExpr    as e -> { return infer_fn_type_value(e, typed, diags) }
+        // All expression variants are now typed. The catch-all here is
+        // defensive — Vader's `Expr` union enumeration is closed.
         _ -> { return TY_UNRESOLVED }
     }
 }

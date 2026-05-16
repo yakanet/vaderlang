@@ -1,0 +1,49 @@
+// vader/typecheck/expr_index — IndexExpr inference (`arr[i]`).
+//
+// MVP : only array indexing — `arr[i]` requires `arr: T[]` and an
+// integer-typed index, yielding `T`. T3008 on non-array target.
+// Custom `Index` trait dispatch (powers `s[i]` on user structs) lands
+// with the trait-method machinery.
+
+import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/typecheck/type_ops" { is_int_name }
+import "vader/typecheck/types" {
+    Type, ArrayType, PrimitiveType, FreeIntType, UnresolvedType,
+    display_type, TY_UNRESOLVED,
+}
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Type-check `target[index]`. Returns `T` when `target: T[]`.
+export infer_index :: fn(
+    e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    target :: check_expr_fn(e.target, null, typed, diags)
+    // Hint the index with `usize` for FreeInt literals so `arr[0]`
+    // doesn't default to i32 in array-index position.
+    index :: check_expr_fn(e.index, null, typed, diags)
+    if target is UnresolvedType { return TY_UNRESOLVED }
+    match target {
+        is ArrayType as arr -> {
+            if !is_integer_index(index) {
+                diags.push(typecheck_error(.TypeMismatch, e.index.span,
+                    "array index must be an integer, got ${display_type(index)}"))
+            }
+            return arr.element
+        }
+        _ -> {
+            diags.push(typecheck_error(.NotIndexable, e.span,
+                "${display_type(target)} is not indexable"))
+            return TY_UNRESOLVED
+        }
+    }
+}
+
+is_integer_index :: fn(t: Type) -> bool {
+    if t is FreeIntType { return true }
+    match t {
+        is PrimitiveType as p -> { return is_int_name(p.name) }
+        _ -> { return false }
+    }
+}

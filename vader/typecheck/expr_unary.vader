@@ -1,0 +1,76 @@
+// vader/typecheck/expr_unary — UnaryExpr inference (`-x`, `!x`, `~x`).
+//
+// `-x` requires a numeric operand and returns the same primitive shape.
+// `!x` requires bool and returns bool. `~x` requires an integer and
+// returns the same integer shape.
+
+import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/typecheck/type_ops" { is_int_name, is_numeric_name }
+import "vader/typecheck/types" {
+    Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
+    display_type, TY_BOOL, TY_UNRESOLVED,
+}
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Type-check a `UnaryExpr`. T3017 when the op doesn't admit the
+/// operand's family.
+export infer_unary :: fn(
+    e: AST.UnaryExpr, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    operand :: check_expr_fn(e.operand, null, typed, diags)
+    if operand is UnresolvedType { return TY_UNRESOLVED }
+    match e.op {
+        .Neg -> {
+            if !is_numeric(operand) {
+                push_op_undefined(e, operand, "-", diags)
+                return TY_UNRESOLVED
+            }
+            return operand
+        }
+        .Not -> {
+            if !is_bool(operand) {
+                push_op_undefined(e, operand, "!", diags)
+                return TY_UNRESOLVED
+            }
+            return TY_BOOL
+        }
+        .BitNot -> {
+            if !is_integer(operand) {
+                push_op_undefined(e, operand, "~", diags)
+                return TY_UNRESOLVED
+            }
+            return operand
+        }
+    }
+}
+
+is_numeric :: fn(t: Type) -> bool {
+    if t is FreeIntType   { return true }
+    if t is FreeFloatType { return true }
+    match t {
+        is PrimitiveType as p -> { return is_numeric_name(p.name) }
+        _ -> { return false }
+    }
+}
+
+is_integer :: fn(t: Type) -> bool {
+    if t is FreeIntType { return true }
+    match t {
+        is PrimitiveType as p -> { return is_int_name(p.name) }
+        _ -> { return false }
+    }
+}
+
+is_bool :: fn(t: Type) -> bool {
+    match t {
+        is PrimitiveType as p -> { return p.name == "bool" }
+        _ -> { return false }
+    }
+}
+
+push_op_undefined :: fn(e: AST.UnaryExpr, operand: Type, sym: string, diags: Diagnostic[]) -> void {
+    diags.push(typecheck_error(.OperatorNotDefined, e.span,
+        "unary `${sym}` not defined for ${display_type(operand)}"))
+}

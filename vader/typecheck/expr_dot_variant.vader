@@ -1,0 +1,42 @@
+// vader/typecheck/expr_dot_variant — `.Red` enum-variant shorthand.
+//
+// `.Variant` is contextual : the enum is inferred from `expected`. We
+// look up the variant in `EnumType.indices` and return the enum type.
+// T3027 when the variant doesn't exist on the expected enum, T3028
+// when `expected` isn't an enum-typed slot.
+
+import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/typecheck/types" {
+    Type, EnumType, display_type, TY_UNRESOLVED,
+}
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Resolve a `.Variant` against the expected enum slot.
+export infer_dot_variant :: fn(
+    e: AST.DotVariantExpr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    if expected is null {
+        diags.push(typecheck_error(.CannotInferEnumType, e.span,
+            "cannot infer enum type for `.${e.variant}` without context"))
+        return TY_UNRESOLVED
+    }
+    match expected {
+        is EnumType as en -> {
+            // MutableMap lookup returns i64 | null ; null = unknown variant.
+            idx :: en.indices[e.variant]
+            if idx is null {
+                diags.push(typecheck_error(.UnknownEnumVariant, e.variant_span,
+                    "`${e.variant}` is not a variant of ${display_type(en)}"))
+                return TY_UNRESOLVED
+            }
+            return en
+        }
+        _ -> {
+            diags.push(typecheck_error(.CannotInferEnumType, e.span,
+                "`.${e.variant}` expects an enum-typed slot, got ${display_type(expected)}"))
+            return TY_UNRESOLVED
+        }
+    }
+}

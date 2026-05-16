@@ -1,0 +1,22 @@
+// vader/typecheck/expr_cast — CastExpr inference (`T(x)`).
+//
+// MVP : the target type is whatever `type_from_expr(target, …)` produces.
+// We always return it ; the cast's value side is type-checked for
+// side-effects but no compatibility validation runs (Phase 5.6 is
+// where T3010 / numeric-narrowing rules land).
+
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/types" { Type }
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Type-check a `CastExpr`. Returns the cast's target type.
+export infer_cast :: fn(
+    e: AST.CastExpr, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    target :: type_from_expr(e.target, typed.resolved, diags)
+    check_expr_fn(e.value, null, typed, diags)
+    return target
+}

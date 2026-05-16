@@ -1,0 +1,22 @@
+// vader/typecheck/expr_try — TryExpr inference (`expr?`).
+//
+// MVP : type the inner expression and return its non-error variant.
+// `e? : T | E` strips the `E` half by intersecting with the enclosing
+// fn's return-type's non-error half. Without the impl-driven Error
+// trait machinery we can't enforce the propagation contract — that
+// lands with `coerce.vader`. Today the result is the same as the
+// inner type (downstream still gets a useful Type).
+
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/typecheck/types" { Type }
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Type-check `inner?`. Returns the inner type for now (no
+/// Error-trait stripping yet).
+export infer_try :: fn(
+    e: AST.TryExpr, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    return check_expr_fn(e.inner, null, typed, diags)
+}

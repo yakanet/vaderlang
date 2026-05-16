@@ -1,0 +1,35 @@
+// vader/typecheck/expr_type_value — `T[]` / `fn(T) -> R` in value
+// position.
+//
+// `T[]` and `fn(T) -> R` are type-only syntactic nodes, but they may
+// appear in value position when used in expressions like
+// `Foo :: i32[]` (Layer 5b type alias). The static type of the
+// expression is `type` (the metatype) ; downstream callers that need
+// the underlying shape go through `type_from_expr`.
+
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/types" { Type, TY_TYPE }
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// `T[]` in value position : lower the element for side-effects,
+/// return the metatype value.
+export infer_array_type_value :: fn(
+    e: AST.ArrayTypeExpr, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    type_from_expr(e.element, typed.resolved, diags)
+    return TY_TYPE
+}
+
+/// `fn(T) -> R` in value position.
+export infer_fn_type_value :: fn(
+    e: AST.FnTypeExpr, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    for p in e.params { type_from_expr(p, typed.resolved, diags) }
+    match e.return_type {
+        is null -> {}
+        _ -> { type_from_expr(e.return_type, typed.resolved, diags) }
+    }
+    return TY_TYPE
+}

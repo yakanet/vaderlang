@@ -1,0 +1,40 @@
+// vader/typecheck/expr_range — RangeExpr inference (`a..b`, `a..<b`).
+//
+// MVP: type the bounds, then return `Range(T)` where T is the lower
+// bound's concrete primitive (i32 if both bounds are FreeInt). The
+// full Range struct from `std/core` requires resolver-side core
+// lookup ; until that ships here we return `Range` as an
+// `UnresolvedType` — downstream still iterates correctly because
+// `for x in 0..10` doesn't consult expr_types for the range itself.
+
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/typecheck/type_ops" { default_if_free, is_int_name }
+import "vader/typecheck/types" {
+    Type, PrimitiveType, FreeIntType, TY_UNRESOLVED,
+}
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Type-check a range. The bound type is the concretised lower or
+/// upper bound ; we return Unresolved (no Range core type lookup yet)
+/// but still type both sides for nested diagnostics.
+export infer_range :: fn(
+    e: AST.RangeExpr, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    lower :: check_expr_fn(e.lower, null, typed, diags)
+    bound :: pick_bound(lower)
+    check_expr_fn(e.upper, bound, typed, diags)
+    return TY_UNRESOLVED
+}
+
+pick_bound :: fn(t: Type) -> Type | null {
+    match t {
+        is FreeIntType   -> { return null }
+        is PrimitiveType as p -> {
+            if is_int_name(p.name) { return p }
+            return null
+        }
+        _ -> { return null }
+    }
+}

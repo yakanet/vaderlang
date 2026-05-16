@@ -1,0 +1,24 @@
+// vader/typecheck/expr_generic_inst — `fn[T]()` explicit generic
+// instantiation in value position.
+//
+// MVP : type the callee, lower each type-arg for side-effects, return
+// the callee's type. Per-argument typeParam substitution lands with
+// `unify.vader` (Phase 5.2) — until then the callee's raw FnType is
+// returned as-is and `call.vader` uses the concrete arg types it
+// derives from positional args.
+
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/types" { Type }
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Type-check `callee[T1, T2, …]`. Returns the callee's type for now.
+export infer_generic_inst :: fn(
+    e: AST.GenericInstExpr, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    callee :: check_expr_fn(e.callee, null, typed, diags)
+    for arg in e.type_args { type_from_expr(arg, typed.resolved, diags) }
+    return callee
+}
