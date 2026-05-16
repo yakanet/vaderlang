@@ -317,19 +317,26 @@ cmd_dump :: fn(args: string[]) -> i32 {
     return 1
 }
 
+// Read `file` for a dump stage. Returns the contents on success or
+// null after writing the canonical "vader: cannot read …" line to
+// stderr — every stage that consumes a source file shares this path.
+read_source :: fn(file: string) -> string | null {
+    src_or_err :: file.read_file()
+    match src_or_err {
+        is string -> { return src_or_err }
+        is Error  -> {
+            eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
+            return null
+        }
+    }
+}
+
 // Token + diagnostic dump go to stdout — the parity test
 // (`tests/parity.test.ts`) snapshots stdout only, so this stays unchanged.
 // Only the file-read failure path moves to stderr, matching TS.
 run_lexer_stage :: fn(file: string) -> i32 {
-    src_or_err :: file.read_file()
-    src: string = ""
-    match src_or_err {
-        is string -> { src = src_or_err }
-        is Error  -> {
-            eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
-            return 1
-        }
-    }
+    src :: read_source(file)
+    if src is null { return 1 }
     l :: tokenize(src, file)
     println(l.dump_tokens())
     if l.errors.len() > 0 {
@@ -341,15 +348,8 @@ run_lexer_stage :: fn(file: string) -> i32 {
 // Parser dump : `# AST\n` + 2-space-indented JSON to stdout, plus the same
 // `# Diagnostics` block on stdout for parity with TS `formatProgram`.
 run_parser_stage :: fn(file: string) -> i32 {
-    src_or_err :: file.read_file()
-    src: string = ""
-    match src_or_err {
-        is string -> { src = src_or_err }
-        is Error  -> {
-            eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
-            return 1
-        }
-    }
+    src :: read_source(file)
+    if src is null { return 1 }
     parsed :: parse_source(src, file)
     println(dump_program(parsed.program))
     if parsed.errors.len() > 0 {
@@ -362,15 +362,8 @@ run_parser_stage :: fn(file: string) -> i32 {
 // decls only — fn bodies, imports cross-module wiring and ref counts are
 // added once the resolver walks them.
 run_resolver_stage :: fn(file: string) -> i32 {
-    src_or_err :: file.read_file()
-    src: string = ""
-    match src_or_err {
-        is string -> { src = src_or_err }
-        is Error  -> {
-            eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
-            return 1
-        }
-    }
+    src :: read_source(file)
+    if src is null { return 1 }
     parsed :: parse_source(src, file)
     factory :: new_factory()
     rm :: resolve_module(parsed.program, file, factory)
@@ -387,15 +380,8 @@ run_resolver_stage :: fn(file: string) -> i32 {
 // (body checking). Format matches `src/typecheck/dump-text.ts` so the
 // future parity stage can byte-diff stdout.
 run_typecheck_stage :: fn(file: string) -> i32 {
-    src_or_err :: file.read_file()
-    src: string = ""
-    match src_or_err {
-        is string -> { src = src_or_err }
-        is Error  -> {
-            eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
-            return 1
-        }
-    }
+    src :: read_source(file)
+    if src is null { return 1 }
     parsed :: parse_source(src, file)
     factory :: new_factory()
     rm :: resolve_module(parsed.program, file, factory)

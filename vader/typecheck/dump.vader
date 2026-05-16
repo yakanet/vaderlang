@@ -25,13 +25,11 @@
 //     so the expression-line section stays empty for now. Format matches
 //     so the section just appears empty until exprs land.
 
-import "std/sort" { sort }
-import "std/string" { compare_ascending, pad_end }
+import "std/string" { pad_end }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
-import "vader/resolver/resolve" { ResolvedModule }
 import "vader/resolver/scope" { span_key }
-import "vader/resolver/symbol" { Symbol, SymbolKind, kind_name }
-import "vader/typecheck/types" { Type, display_type }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck/types" { display_type }
 import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Render a single typed module. The header omits the `# Typecheck` banner
@@ -63,15 +61,14 @@ export dump_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
 /// Map a `SymbolKind` to the matching AST `*Decl` kind name used by the
 /// TS dump (`FnDecl`, `StructDecl`, `EnumDecl`, …). Returns `""` for
 /// kinds the dump skips (import bindings, locals, params, …).
-ast_decl_kind :: fn(s: Symbol) -> string {
-    k :: i32(s.kind)
-    if k == i32(SymbolKind.Fn)        { return "FnDecl" }
-    if k == i32(SymbolKind.Struct)    { return "StructDecl" }
-    if k == i32(SymbolKind.Enum)      { return "EnumDecl" }
-    if k == i32(SymbolKind.Trait)     { return "TraitDecl" }
-    if k == i32(SymbolKind.TypeAlias) { return "TypeAliasDecl" }
-    if k == i32(SymbolKind.Const)     { return "ConstDecl" }
-    return ""
+ast_decl_kind :: fn(s: Symbol) -> string = match s.kind {
+    .Fn        -> "FnDecl"
+    .Struct    -> "StructDecl"
+    .Enum      -> "EnumDecl"
+    .Trait     -> "TraitDecl"
+    .TypeAlias -> "TypeAliasDecl"
+    .Const     -> "ConstDecl"
+    _          -> ""
 }
 
 lookup_decl_type :: fn(typed: TypedProgram, s: Symbol) -> string {
