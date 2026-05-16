@@ -9,13 +9,14 @@ import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
 import { CORE_STRUCTS, CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, isPrimitive, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
 import { primitiveFromName } from "../../typecheck/passes/type-expr.ts";
+import { buildStructSubst } from "../../typecheck/ctx.ts";
+import type { Substitution } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import { makeEntryTypes } from "../entry-types.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt, LoweredStructLitField } from "../lowered-ast.ts";
 import { INTRINSICS } from "../lowered-ast.ts";
 import { err } from "../diag.ts";
-import type { Substitution } from "../../typecheck/types.ts";
 import type { TypedProgram } from "../../typecheck/typed-ast.ts";
 
 import { lowerBlock } from "./block.ts";
@@ -515,18 +516,41 @@ function findForeignTyped(ctx: FnLowerCtx, file: string): TypedProgram | null {
  *  `resolved.idents` lookups don't fall through to `LoweredUnreachable`.
  *  Used by struct-literal field defaults (the canonical cross-module
  *  injection point). */
-function lowerExprMaybeForeign(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
+function lowerExprMaybeForeign(
+  ctx: FnLowerCtx, expr: A.Expr, extraSubst?: Substitution,
+): LoweredExpr {
   const foreign = findForeignTyped(ctx, expr.span.start.file);
-  if (foreign === null) return lowerExpr(ctx, expr);
+  if (foreign === null) {
+    // Non-foreign expr — still apply `extraSubst` (struct-instance bindings)
+    // on top of the caller's subst so generic struct lits in the user's own
+    // module substitute correctly too.
+    if (extraSubst === undefined) return lowerExpr(ctx, expr);
+    const merged = mergeSubst(ctx.subst, extraSubst);
+    return lowerExpr({ ...ctx, subst: merged, types: makeEntryTypes(ctx.typed, merged) }, expr);
+  }
+  // Foreign expr — swap to the defining module's typed view AND merge in
+  // the struct-instance bindings so a generic default like `inner:
+  // MutableMap(T, bool) = MutableMap(T, bool) {}` sees `T → i32` from
+  // the outer struct's instantiation, not the caller's empty subst.
+  const merged = extraSubst === undefined ? ctx.subst : mergeSubst(ctx.subst, extraSubst);
   const swappedCtx: FnLowerCtx = {
     ...ctx,
     typed: foreign,
-    types: makeEntryTypes(foreign, EMPTY_SUBST),
+    subst: merged,
+    types: makeEntryTypes(foreign, merged),
   };
   return lowerExpr(swappedCtx, expr);
 }
 
-const EMPTY_SUBST: Substitution = { typeParams: new Map() };
+function mergeSubst(a: Substitution, b: Substitution): Substitution {
+  const ap = a.typeParams;
+  const bp = b.typeParams;
+  if (ap === undefined || ap.size === 0) return b;
+  if (bp === undefined || bp.size === 0) return a;
+  const merged = new Map(ap);
+  for (const [k, v] of bp) merged.set(k, v);
+  return { typeParams: merged };
+}
 
 function resolveTypeMetaSymbol(ctx: FnLowerCtx, sym: Symbol): Type | null {
   if (sym.kind === "const" && sym.source.kind === "const") {
@@ -1053,7 +1077,18 @@ function lowerStructLit(ctx: FnLowerCtx, expr: A.StructLitExpr, exprType: Type):
         },
       };
     }
-    if (sf.default !== null) return { name: sf.name, value: lowerExprMaybeForeign(ctx, sf.default) };
+    if (sf.default !== null) {
+      // For a generic outer struct `Outer(T) { inner = … }`, the default
+      // expression sees `T` as a TypeParam declared on the outer struct.
+      // Bind `T → exprType.args[i]` so foreign / nested defaults monomorphise
+      // correctly. `buildStructSubst` returns `{}` for non-generic outers.
+      const structSubst = exprType.kind === "Struct"
+        ? buildStructSubst(
+            decl.typeParams, exprType.args,
+            ctx.project.evaluated.typed.resolved.typeParamSymbols)
+        : undefined;
+      return { name: sf.name, value: lowerExprMaybeForeign(ctx, sf.default, structSubst) };
+    }
     return {
       name: sf.name,
       value: {
