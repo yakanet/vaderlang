@@ -73,7 +73,7 @@ infer_expr :: fn(
         is AST.BlockExpr     as e -> { return infer_block(e, expected, typed, diags, check_expr) }
         is AST.CallExpr      as e -> { return infer_call(e, typed, diags, check_expr) }
         is AST.BinaryExpr    as e -> { return infer_binary(e, typed, diags, check_expr) }
-        is AST.FieldExpr     as e -> { return infer_field(e, typed.resolved, typed, diags, check_expr) }
+        is AST.FieldExpr     as e -> { return infer_field(e, typed, diags, check_expr) }
         // Every other variant : Phase 3.2+ work. Returning Unresolved
         // keeps downstream passes happy (TY_UNRESOLVED is assignable to
         // anything ; `is_assignable` short-circuits on it).

@@ -213,22 +213,19 @@ push_op_undefined :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagn
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
+import "vader/diagnostics/diagnostic" { empty_span }
 import "vader/parser" { parse_source }
 import "vader/resolver/resolve" { resolve_module, ResolvedModule }
 import "vader/resolver/symbol" { new_factory }
 import "vader/typecheck/check" { check_module }
 import "vader/typecheck/expr_ident" { infer_ident }
-import "vader/typecheck/expr_literals" {
-    infer_int_lit, infer_float_lit, infer_bool_lit, infer_string_lit,
-}
+import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }
 
 stub_check_expr :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     match e {
         is AST.IntLitExpr    as x -> { return narrow(infer_int_lit(x), expected) }
-        is AST.FloatLitExpr  as x -> { return narrow(infer_float_lit(x), expected) }
-        is AST.BoolLitExpr   as x -> { return infer_bool_lit(x) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
         is AST.BinaryExpr    as x -> { return infer_binary(x, typed, diags, stub_check_expr) }
@@ -246,9 +243,15 @@ narrow :: fn(got: Type, expected: Type | null) -> Type {
 
 import "vader/typecheck/test_helpers" { find_first_in_block }
 
-// Parse + resolve + check, then find first BinaryExpr in last fn body
-// via the shared `find_first_in_block` walker.
-first_binary_in_last_fn :: fn(src: string) -> BinaryFixture {
+accept_binary :: fn(e: AST.Expr) -> AST.Expr | null {
+    if e is AST.BinaryExpr { return e }
+    return null
+}
+
+// Locate the BinaryExpr the test cares about. Wraps the shared block
+// walker + parse+resolve+check pipeline. Panics with a clear message
+// if the source doesn't yield a binary expression.
+expect_binary :: fn(src: string) -> ExpectedBinary {
     parsed :: parse_source(src, "t.vader")
     factory :: new_factory()
     rm :: resolve_module(parsed.program, "t", factory)
@@ -258,92 +261,75 @@ first_binary_in_last_fn :: fn(src: string) -> BinaryFixture {
     match last {
         is AST.FnDecl as f -> {
             match f.body {
-                is null -> { return BinaryFixture { .typed = result.typed, .bin = null } }
+                is null -> {}
                 is AST.BlockExpr as b -> {
                     hit :: find_first_in_block(b, accept_binary)
-                    bin: AST.BinaryExpr | null = null
-                    if hit is AST.BinaryExpr { bin = hit }
-                    return BinaryFixture { .typed = result.typed, .bin = bin }
+                    if hit is AST.BinaryExpr {
+                        return ExpectedBinary { .typed = result.typed, .bin = hit }
+                    }
                 }
             }
         }
-        _ -> { return BinaryFixture { .typed = result.typed, .bin = null } }
+        _ -> {}
     }
+    assert(false, "expected a BinaryExpr in: ${src}")
+    return ExpectedBinary { .typed = result.typed, .bin = synthetic_binary() }
 }
 
-accept_binary :: fn(e: AST.Expr) -> AST.Expr | null {
-    if e is AST.BinaryExpr { return e }
-    return null
-}
-
-BinaryFixture :: struct {
+ExpectedBinary :: struct {
     typed: TypedProgram
-    bin:   AST.BinaryExpr | null
+    bin:   AST.BinaryExpr
+}
+
+synthetic_binary :: fn() -> AST.BinaryExpr {
+    sp :: empty_span()
+    int_lit: AST.Expr = AST.IntLitExpr {
+        .span = sp, .id = AST.UNASSIGNED_NODE_ID, .value = 0, .suffix = null,
+    }
+    return AST.BinaryExpr {
+        .span = sp, .id = AST.UNASSIGNED_NODE_ID,
+        .op = .Add, .left = int_lit, .right = int_lit, .bind_as = "",
+    }
 }
 
 @test
 test_arith_int_returns_concrete :: fn() -> void {
-    fx :: first_binary_in_last_fn("f :: fn(a: i32, b: i32) -> i32 { return a + b }")
-    match fx.bin {
-        is null -> { assert(false, "no binary found") }
-        is AST.BinaryExpr as bin -> {
-            diags: Diagnostic[] = []
-            assert_eq(display_type(infer_binary(bin, fx.typed, diags, stub_check_expr)), "i32")
-            assert_eq(diags.len(), usize(0))
-        }
-    }
+    eb :: expect_binary("f :: fn(a: i32, b: i32) -> i32 { return a + b }")
+    diags: Diagnostic[] = []
+    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, stub_check_expr)), "i32")
+    assert_eq(diags.len(), usize(0))
 }
 
 @test
 test_arith_string_concat :: fn() -> void {
-    fx :: first_binary_in_last_fn("""f :: fn(a: string, b: string) -> string { return a + b }""")
-    match fx.bin {
-        is null -> { assert(false, "no binary found") }
-        is AST.BinaryExpr as bin -> {
-            diags: Diagnostic[] = []
-            assert_eq(display_type(infer_binary(bin, fx.typed, diags, stub_check_expr)), "string")
-        }
-    }
+    eb :: expect_binary("""f :: fn(a: string, b: string) -> string { return a + b }""")
+    diags: Diagnostic[] = []
+    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, stub_check_expr)), "string")
 }
 
 @test
 test_compare_returns_bool :: fn() -> void {
-    fx :: first_binary_in_last_fn("f :: fn(a: i32, b: i32) -> bool { return a < b }")
-    match fx.bin {
-        is null -> { assert(false, "no binary found") }
-        is AST.BinaryExpr as bin -> {
-            diags: Diagnostic[] = []
-            assert_eq(display_type(infer_binary(bin, fx.typed, diags, stub_check_expr)), "bool")
-        }
-    }
+    eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a < b }")
+    diags: Diagnostic[] = []
+    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, stub_check_expr)), "bool")
 }
 
 @test
 test_logical_requires_bool :: fn() -> void {
-    fx :: first_binary_in_last_fn("f :: fn(a: i32, b: bool) -> bool { return a && b }")
-    match fx.bin {
-        is null -> { assert(false, "no binary found") }
-        is AST.BinaryExpr as bin -> {
-            diags: Diagnostic[] = []
-            infer_binary(bin, fx.typed, diags, stub_check_expr)
-            found_op_err := false
-            for d in diags { if d.code.id == "T3017" { found_op_err = true } }
-            assert(found_op_err, "expected T3017 for `i32 && bool`")
-        }
-    }
+    eb :: expect_binary("f :: fn(a: i32, b: bool) -> bool { return a && b }")
+    diags: Diagnostic[] = []
+    infer_binary(eb.bin, eb.typed, diags, stub_check_expr)
+    found := false
+    for d in diags { if d.code.id == "T3017" { found = true } }
+    assert(found, "expected T3017 for `i32 && bool`")
 }
 
 @test
 test_arith_width_mismatch_emits_T3017 :: fn() -> void {
-    fx :: first_binary_in_last_fn("f :: fn(a: i32, b: i64) -> i64 { return a + b }")
-    match fx.bin {
-        is null -> { assert(false, "no binary found") }
-        is AST.BinaryExpr as bin -> {
-            diags: Diagnostic[] = []
-            infer_binary(bin, fx.typed, diags, stub_check_expr)
-            found := false
-            for d in diags { if d.code.id == "T3017" { found = true } }
-            assert(found, "expected T3017 for `i32 + i64` (no implicit widening)")
-        }
-    }
+    eb :: expect_binary("f :: fn(a: i32, b: i64) -> i64 { return a + b }")
+    diags: Diagnostic[] = []
+    infer_binary(eb.bin, eb.typed, diags, stub_check_expr)
+    found := false
+    for d in diags { if d.code.id == "T3017" { found = true } }
+    assert(found, "expected T3017 for `i32 + i64` (no implicit widening)")
 }

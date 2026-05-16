@@ -1,18 +1,15 @@
-// vader/typecheck/test_helpers — shared scaffolding for inline @tests.
+// vader/typecheck/test_helpers — shared AST walker for inline @tests.
 //
-// Three things are duplicated across `expr_ident.vader`, `call.vader`,
-// `binary.vader` (and growing) :
-//   - tiny AST walkers that find the first expression matching a
-//     predicate in a fn body
-//   - the parse + resolve + check_module pipeline that prepares a
-//     `TypedProgram` for a source snippet
-//   - the `stub_check_expr` callback the per-variant inference fns
-//     take as a cycle-break for `check_expr`
+// `find_first_in_block` factors out the recursive descent every
+// `infer_*` test block needs to locate the first expression a
+// predicate accepts. Callers wrap with a tiny `accept_X` predicate
+// and narrow the returned `AST.Expr | null` via `match … is AST.XExpr`.
 //
-// The walker is generalised here ; `stub_check_expr` and the
-// orchestrator helper still live per-file because they each pull in a
-// different subset of `infer_*` fns (importing them all here would drag
-// the dependency cone into every file that imports test_helpers).
+// `stub_check_expr` and the parse + resolve + check pipeline stay
+// per-file : moving them here would either create a file-level cycle
+// (test_helpers would import every `infer_*`, but those files import
+// test_helpers from their test block) or force every caller to absorb
+// the exhaustive-match boilerplate for `AST.Expr | null`.
 
 AST :: import "vader/parser/ast"
 
@@ -71,7 +68,9 @@ find_first_in_expr :: fn(
             }
             return null
         }
+        is AST.FieldExpr as f -> { return find_first_in_expr(f.target, pred) }
         is AST.BlockExpr as bx -> { return find_first_in_block(bx, pred) }
         _ -> { return null }
     }
 }
+
