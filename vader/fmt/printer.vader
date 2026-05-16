@@ -864,29 +864,8 @@ is_bitor_chain :: fn(e: p.Expr) -> bool {
     }
 }
 
-// Flatten a left-associative `BitOr` chain into its leaf variants :
-// `((A | B) | C) | D` → `[A, B, C, D]`. Right-leaning bits (rare — the
-// parser builds left-associative chains) get collected too via the
-// recursive walk.
-collect_bitor_variants :: fn(e: p.Expr) -> p.Expr[] {
-    out: p.Expr[] = []
-    append_bitor_variants(e, out)
-    return out
-}
-
-append_bitor_variants :: fn(e: p.Expr, out: p.Expr[]) -> void {
-    match e {
-        is p.BinaryExpr as b -> {
-            if b.op == .BitOr {
-                append_bitor_variants(b.left, out)
-                append_bitor_variants(b.right, out)
-                return
-            }
-            out.push(e)
-        }
-        _ -> out.push(e)
-    }
-}
+// `collect_bitor_variants` now lives in `vader/parser/ast` so both the
+// formatter and the typechecker share one implementation.
 
 // Render `e` into a fresh standalone string. Used only for measuring
 // the would-be single-line width of a union RHS so `emit_const_decl`
@@ -899,7 +878,7 @@ render_expr_for_measure :: fn(source: string, e: p.Expr) -> string {
 }
 
 emit_union_multiline :: fn(self: Printer, value: p.Expr, name_width: usize) -> void {
-    variants :: collect_bitor_variants(value)
+    variants :: p.collect_bitor_variants(value)
     if variants.len() < usize(2) {
         // Defensive fallback : a degenerate chain (or a single-variant
         // `BitOr` that shouldn't exist) renders inline.

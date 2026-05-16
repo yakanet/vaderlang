@@ -1,0 +1,258 @@
+// vader/typecheck/type_expr — lower a TypeExpr (AST.Expr in type position)
+// to a `Type`.
+//
+// Mirror of `src/typecheck/passes/type-expr.ts`. Since `TypeExpr` aliases
+// `Expr` after Layer 1.D, the parser produces both type-shaped and value-
+// shaped nodes from the same grammar — dispatch happens on `expr.kind`.
+// Resolves named types via the resolver's idents map, builds Primitive /
+// Struct / Trait / TypeParam / Union / Fn / Array / Tuple. Unresolvable
+// shapes surface T3002 ("expected an expression of a known type").
+//
+// MVP-trimmed against the TS reference :
+//   - No const-alias / let-alias resolution (Layer 4-sugar).
+//   - No qualified-name resolution (`namespace.Type` via FieldExpr).
+//     Lands when `wire.vader` populates cross-module symbol refs.
+//   - Struct / Trait / Enum return fresh constructor calls — `decl.vader`
+//     (Phase 2.3) will look them up in `decl_types` for the canonical
+//     instance once it's wired.
+
+import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/resolver/resolve" { ResolvedModule }
+import "vader/resolver/scope" { span_key }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+AST :: import "vader/parser/ast"
+import "vader/typecheck/types" {
+    Type, mk_primitive, mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
+    mk_type_param, is_primitive_name, TY_TYPE, TY_SELF, TY_UNRESOLVED,
+}
+import "vader/typecheck/type_ops" { union_of }
+
+/// Lower `expr` from type position to a `Type`. Unresolvable shapes
+/// surface T3002 and return `TY_UNRESOLVED` ; downstream passes treat
+/// unresolved as compatible with anything to dodge cascading errors.
+export type_from_expr :: fn(
+    expr: AST.Expr, resolved: ResolvedModule, diags: Diagnostic[],
+) -> Type {
+    match expr {
+        is AST.IdentExpr as e -> { return lower_ident(e, resolved) }
+        is AST.GenericInstExpr as e -> { return lower_generic_inst(e, resolved, diags) }
+        is AST.BinaryExpr as e -> { return lower_binary(e, resolved, diags) }
+        is AST.FnTypeExpr as e -> {
+            params: Type[] = []
+            for p in e.params { params.push(type_from_expr(p, resolved, diags)) }
+            return mk_fn(params, opt_or_void(e.return_type, resolved, diags))
+        }
+        is AST.ArrayTypeExpr as e -> {
+            return mk_array(type_from_expr(e.element, resolved, diags), e.immutable)
+        }
+        is AST.NullLitExpr -> { return mk_primitive("null") }
+        is AST.SeqLitExpr as e -> {
+            elements: Type[] = []
+            for el in e.elements { elements.push(type_from_expr(el, resolved, diags)) }
+            return mk_tuple(elements)
+        }
+        _ -> {
+            diags.push(typecheck_error(.ExpectedKnownType, expr.span,
+                "value-position expression not allowed in a type slot"))
+            return TY_UNRESOLVED
+        }
+    }
+}
+
+lower_ident :: fn(e: AST.IdentExpr, resolved: ResolvedModule) -> Type {
+    // Builtin name takes precedence — even when the resolver also bound the
+    // ident (e.g. user-shadowed `i32` would still resolve to the primitive).
+    builtin :: primitive_from_name(e.name)
+    match builtin {
+        is null -> {}
+        _ -> { return builtin }
+    }
+    match resolved.idents[span_key(e.span)] {
+        is null -> { return TY_UNRESOLVED }
+        is Symbol as s -> { return type_from_symbol(s, []) }
+    }
+}
+
+lower_generic_inst :: fn(
+    e: AST.GenericInstExpr, resolved: ResolvedModule, diags: Diagnostic[],
+) -> Type {
+    args: Type[] = []
+    for a in e.type_args { args.push(type_from_expr(a, resolved, diags)) }
+    match e.callee {
+        is AST.IdentExpr as id -> {
+            match resolved.idents[span_key(id.span)] {
+                is null -> { return TY_UNRESOLVED }
+                is Symbol as s -> { return type_from_symbol(s, args) }
+            }
+        }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+lower_binary :: fn(
+    e: AST.BinaryExpr, resolved: ResolvedModule, diags: Diagnostic[],
+) -> Type {
+    if u8(e.op) != u8(AST.BinaryOp.BitOr) {
+        diags.push(typecheck_error(.ExpectedKnownType, e.span,
+            "binary op not allowed in type position"))
+        return TY_UNRESOLVED
+    }
+    variants: Type[] = []
+    for v in AST.collect_bitor_variants(e) {
+        variants.push(type_from_expr(v, resolved, diags))
+    }
+    return union_of(variants)
+}
+
+opt_or_void :: fn(
+    ret: AST.TypeExpr | null, resolved: ResolvedModule, diags: Diagnostic[],
+) -> Type {
+    match ret {
+        is null -> { return mk_primitive("void") }
+        _ -> { return type_from_expr(ret, resolved, diags) }
+    }
+}
+
+/// Map a resolved symbol to its Type. MVP : builds a fresh constructor
+/// each call — `decl.vader` (Phase 2.3) will route through `decl_types`
+/// for the canonical instance.
+export type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
+    match sym.kind {
+        .BuiltinType -> {
+            builtin :: primitive_from_name(sym.name)
+            match builtin {
+                is null -> { return TY_UNRESOLVED }
+                _ -> { return builtin }
+            }
+        }
+        .Struct    -> { return mk_struct(sym, args) }
+        .Trait     -> { return mk_trait(sym, args) }
+        .TypeParam -> { return mk_type_param(sym) }
+        .Enum      -> { return mk_struct(sym, args) }   // placeholder until enum_pass plumbs declTypes
+        _          -> { return TY_UNRESOLVED }
+    }
+}
+
+/// Map a builtin type name to a Type, or null when the name isn't a
+/// primitive (caller falls back to symbol-driven resolution). Covers :
+///   - canonical primitives — every entry of `PRIMITIVE_NAMES`
+///   - `type` / `Self` — dedicated singletons (not Primitive)
+///   - friendly aliases — `int` / `long` / `float` / `double` / `byte`
+export primitive_from_name :: fn(name: string) -> Type | null {
+    if is_primitive_name(name) { return mk_primitive(name) }
+    if name == "type" { return TY_TYPE }
+    if name == "Self" { return TY_SELF }
+    if name == "int"    { return mk_primitive("i32") }
+    if name == "long"   { return mk_primitive("i64") }
+    if name == "float"  { return mk_primitive("f32") }
+    if name == "double" { return mk_primitive("f64") }
+    if name == "byte"   { return mk_primitive("u8") }
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver/symbol" { new_factory }
+import "vader/typecheck/types" { PrimitiveType, ArrayType, FnType, UnionType, display_type }
+
+resolve_test_module :: fn(src: string) -> ResolvedModule {
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    return resolve_module(parsed.program, "t", factory)
+}
+
+// Test helper : parse `src`, resolve, then lower the first parameter's
+// type annotation. The 3 ArrayType / Union / FnType tests share the same
+// scaffolding ; this collapses each to a single `assert_eq` call.
+lower_first_param_type :: fn(src: string) -> string {
+    rm :: resolve_test_module(src)
+    parsed :: parse_source(src, "t.vader")
+    fn_decl :: parsed.program.decls[0]
+    match fn_decl {
+        is AST.FnDecl as f -> {
+            ty :: f.params[0].ty
+            match ty {
+                is null -> { return "<no annotation>" }
+                _ -> {
+                    diags: Diagnostic[] = []
+                    return display_type(type_from_expr(ty, rm, diags))
+                }
+            }
+        }
+        _ -> { return "<not a FnDecl>" }
+    }
+}
+
+@test
+test_primitive_from_name_recognises_canonical :: fn() -> void {
+    match primitive_from_name("i32") {
+        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
+        _ -> { assert(false, "i32 should be primitive") }
+    }
+    match primitive_from_name("string") {
+        is PrimitiveType as p -> { assert_eq(p.name, "string") }
+        _ -> { assert(false, "string should be primitive") }
+    }
+}
+
+@test
+test_primitive_from_name_recognises_aliases :: fn() -> void {
+    match primitive_from_name("int") {
+        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
+        _ -> { assert(false, "int aliases i32") }
+    }
+    match primitive_from_name("byte") {
+        is PrimitiveType as p -> { assert_eq(p.name, "u8") }
+        _ -> { assert(false, "byte aliases u8") }
+    }
+}
+
+@test
+test_primitive_from_name_returns_null_for_user_types :: fn() -> void {
+    match primitive_from_name("MyStruct") {
+        is null -> {}
+        _ -> { assert(false, "user types should not be primitives") }
+    }
+}
+
+@test
+test_array_type_expr_lowers_to_array :: fn() -> void {
+    assert_eq(lower_first_param_type("f :: fn(x: i32[]) -> void {}"), "i32[]")
+}
+
+@test
+test_union_lowers_to_union_type :: fn() -> void {
+    // union_of sorts by display ; i32 < string lex.
+    assert_eq(lower_first_param_type("f :: fn(x: i32 | string) -> void {}"), "i32 | string")
+}
+
+@test
+test_fn_type_expr_lowers_to_fn :: fn() -> void {
+    assert_eq(lower_first_param_type("f :: fn(cb: fn(i32) -> bool) -> void {}"), "fn(i32) -> bool")
+}
+
+import "vader/diagnostics/diagnostic" { Span, Position }
+
+@test
+test_value_position_expr_emits_T3002 :: fn() -> void {
+    // Synthesise a literal in a type slot via the AST — there's no parser
+    // path that puts an IntLitExpr in a type position, so build one by hand.
+    span :: Span {
+        .start = Position { .file = "t", .offset = 0, .line = 1, .column = 1 },
+        .end   = Position { .file = "t", .offset = 1, .line = 1, .column = 2 },
+    }
+    int_lit :: AST.IntLitExpr {
+        .span = span,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .value = 42,
+        .suffix = "",
+    }
+    rm :: resolve_test_module("")
+    diags: Diagnostic[] = []
+    type_from_expr(int_lit, rm, diags)
+    assert_eq(diags.len(), usize(1))
+    assert_eq(diags[0].code.id, "T3002")
+}
