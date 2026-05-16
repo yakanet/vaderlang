@@ -29,6 +29,7 @@ import "vader/typecheck/expr_literals" {
     infer_int_lit, infer_float_lit, infer_bool_lit, infer_null_lit,
     infer_char_lit, infer_string_lit,
 }
+import "vader/typecheck/expr_ident" { infer_ident }
 
 /// Type-check `expr`. `expected` provides bidirectional context — pass
 /// `null` for fresh-position uses. The returned `Type` is the post-
@@ -64,6 +65,7 @@ infer_expr :: fn(
         is AST.NullLitExpr   as e -> { return infer_null_lit(e) }
         is AST.CharLitExpr   as e -> { return infer_char_lit(e) }
         is AST.StringLitExpr as e -> { return infer_string_lit(e) }
+        is AST.IdentExpr     as e -> { return infer_ident(e, typed) }
         // Every other variant : Phase 3.2+ work. Returning Unresolved
         // keeps downstream passes happy (TY_UNRESOLVED is assignable to
         // anything ; `is_assignable` short-circuits on it).

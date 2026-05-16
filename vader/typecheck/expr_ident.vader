@@ -1,0 +1,209 @@
+// vader/typecheck/expr_ident — type for an IdentExpr in value position.
+//
+// Mirror of `src/typecheck/passes/expr.ts::inferIdent` + `typeOfSymbol`.
+// Resolves the ident via the resolver's `idents` map and routes per
+// SymbolKind :
+//   - Fn / Struct / Enum / Trait / TypeAlias / Const → look up the
+//     decl's declared type in `typed.decl_types` keyed by `name_span`.
+//   - Param → look up `typed.param_types` keyed by the parameter's
+//     own span (populated by `declare_fn` in Phase 2.3).
+//   - TypeParam → mk_type_param(sym) — type-param refs in value
+//     position are usable as the metatype value of that param.
+//   - BuiltinType → `type` (the metatype). A bare reference to a
+//     primitive name in expression context is a type-valued expr ;
+//     `type_expr.vader` handles type-position refs separately.
+//   - Local → `typed.local_types` keyed by the binding's span.
+//     Locals don't land in `local_types` until Phase 4 (stmt) ; until
+//     then this branch returns Unresolved.
+//   - Everything else (ImportBinding, BuiltinFn, Binding, Synthetic) →
+//     Unresolved for MVP. ImportBindings resolve cross-module via
+//     `wire.vader` ; the others land with their producing pass.
+
+import "vader/resolver/scope" { span_key }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+AST :: import "vader/parser/ast"
+import "vader/typecheck/types" {
+    Type, mk_type_param, TY_TYPE, TY_UNRESOLVED,
+}
+import "vader/typecheck/typed_ast" { TypedProgram }
+
+/// Return the Type of an `IdentExpr` in value position. Returns
+/// `TY_UNRESOLVED` when the resolver couldn't bind the ident (the
+/// resolver already emitted R2006) or when the symbol's kind doesn't
+/// carry a typecheck-time type yet.
+export infer_ident :: fn(e: AST.IdentExpr, typed: TypedProgram) -> Type {
+    sym :: typed.resolved.idents[span_key(e.span)]
+    if sym is null { return TY_UNRESOLVED }
+    return type_of_symbol(sym, typed)
+}
+
+/// Look up the value-position type of a resolved symbol via `typed`'s
+/// side-tables. Public so other passes (call, field, …) can reach
+/// it without re-routing through `infer_ident`.
+export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sym.kind {
+    .Fn        -> lookup_decl_type(sym, typed)
+    .Struct    -> lookup_decl_type(sym, typed)
+    .Enum      -> lookup_decl_type(sym, typed)
+    .Trait     -> lookup_decl_type(sym, typed)
+    .TypeAlias -> lookup_decl_type(sym, typed)
+    .Const     -> lookup_decl_type(sym, typed)
+    .Param     -> lookup_param_type(sym, typed)
+    .Local     -> lookup_local_type(sym, typed)
+    .TypeParam -> mk_type_param(sym)
+    // Bare type-name in value position is the metatype — the actual
+    // primitive shape comes back via `type_from_expr` in type-demanding
+    // slots. Lets `Foo :: i32 | u32` parse cleanly.
+    .BuiltinType -> TY_TYPE
+    _          -> TY_UNRESOLVED
+}
+
+lookup_decl_type :: fn(sym: Symbol, typed: TypedProgram) -> Type {
+    sp :: sym.defined_at
+    if sp is null { return TY_UNRESOLVED }
+    ty :: typed.decl_types[span_key(sp)]
+    if ty is null { return TY_UNRESOLVED }
+    return ty
+}
+
+lookup_param_type :: fn(sym: Symbol, typed: TypedProgram) -> Type {
+    sp :: sym.defined_at
+    if sp is null { return TY_UNRESOLVED }
+    ty :: typed.param_types[span_key(sp)]
+    if ty is null { return TY_UNRESOLVED }
+    return ty
+}
+
+lookup_local_type :: fn(sym: Symbol, typed: TypedProgram) -> Type {
+    sp :: sym.defined_at
+    if sp is null { return TY_UNRESOLVED }
+    ty :: typed.local_types[span_key(sp)]
+    if ty is null { return TY_UNRESOLVED }
+    return ty
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/parser" { parse_source }
+import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver/symbol" { new_factory }
+import "vader/typecheck/check" { check_module }
+import "vader/typecheck/types" { display_type }
+
+// Resolve, check, then look up the type of the first IdentExpr whose
+// name matches `target`. Walks the AST one decl level deep — enough
+// for the test fixtures here.
+infer_ident_in_first_fn :: fn(src: string, target: string) -> string {
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    diags: Diagnostic[] = []
+    result :: check_module(parsed.program, rm, factory, diags)
+    fn_decl :: parsed.program.decls[0]
+    match fn_decl {
+        is AST.FnDecl as f -> {
+            match f.body {
+                is null -> { return "<no body>" }
+                is AST.BlockExpr as b -> {
+                    found :: scan_block_for_ident(b, target)
+                    if found is null { return "<not found>" }
+                    return display_type(infer_ident(found, result.typed))
+                }
+            }
+        }
+        _ -> { return "<not a FnDecl>" }
+    }
+}
+
+scan_block_for_ident :: fn(b: AST.BlockExpr, target: string) -> AST.IdentExpr | null {
+    for stmt in b.stmts {
+        found :: scan_stmt_for_ident(stmt, target)
+        if found is AST.IdentExpr { return found }
+    }
+    match b.trailing {
+        is null -> {}
+        _ -> {
+            found :: scan_expr_for_ident(b.trailing, target)
+            if found is AST.IdentExpr { return found }
+        }
+    }
+    return null
+}
+
+scan_stmt_for_ident :: fn(s: AST.Stmt, target: string) -> AST.IdentExpr | null {
+    match s {
+        is AST.ReturnStmt as r -> {
+            match r.value {
+                is null -> { return null }
+                _ -> { return scan_expr_for_ident(r.value, target) }
+            }
+        }
+        is AST.ExprStmt as es -> { return scan_expr_for_ident(es.expr, target) }
+        _ -> { return null }
+    }
+}
+
+scan_expr_for_ident :: fn(e: AST.Expr, target: string) -> AST.IdentExpr | null {
+    match e {
+        is AST.IdentExpr as id -> { if id.name == target { return id } }
+        is AST.BinaryExpr as b -> {
+            l :: scan_expr_for_ident(b.left, target)
+            if l is AST.IdentExpr { return l }
+            return scan_expr_for_ident(b.right, target)
+        }
+        is AST.CallExpr as c -> {
+            callee :: scan_expr_for_ident(c.callee, target)
+            if callee is AST.IdentExpr { return callee }
+            for a in c.args {
+                hit :: scan_expr_for_ident(a.value, target)
+                if hit is AST.IdentExpr { return hit }
+            }
+        }
+        _ -> {}
+    }
+    return null
+}
+
+@test
+test_ident_resolves_to_param_type :: fn() -> void {
+    assert_eq(infer_ident_in_first_fn("f :: fn(x: i32) -> i32 { return x }", "x"), "i32")
+}
+
+@test
+test_ident_resolves_to_fn_type :: fn() -> void {
+    src :: """
+add :: fn(a: i32, b: i32) -> i32 { return a + b }
+main :: fn() -> i32 { return add(1, 2) }
+"""
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    diags: Diagnostic[] = []
+    result :: check_module(parsed.program, rm, factory, diags)
+    // Pick the `add` ident inside `main`'s call expression.
+    main_decl :: parsed.program.decls[1]
+    match main_decl {
+        is AST.FnDecl as f -> {
+            match f.body {
+                is null -> { assert(false, "main has no body") }
+                is AST.BlockExpr as b -> {
+                    match scan_block_for_ident(b, "add") {
+                        is null -> { assert(false, "add ident not found") }
+                        is AST.IdentExpr as found -> {
+                            assert_eq(display_type(infer_ident(found, result.typed)), "fn(i32, i32) -> i32")
+                        }
+                    }
+                }
+            }
+        }
+        _ -> { assert(false, "main should be a FnDecl") }
+    }
+}
+
+@test
+test_ident_unresolved_when_resolver_failed :: fn() -> void {
+    // `unknown` is not bound — resolver emits R2006, infer_ident sees
+    // no entry in `resolved.idents` and returns Unresolved.
+    assert_eq(infer_ident_in_first_fn("f :: fn() -> i32 { return unknown }", "unknown"), "?")
+}
