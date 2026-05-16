@@ -35,8 +35,14 @@ import "vader/typecheck/typed_ast" { TypedProgram }
 export infer_ident :: fn(e: AST.IdentExpr, typed: TypedProgram) -> Type {
     sym :: typed.resolved.idents[span_key(e.span)]
     if sym is null { return TY_UNRESOLVED }
-    return type_of_symbol(sym, typed)
+    static_ty :: type_of_symbol(sym, typed)
+    // Consult `narrow.vader` : if a flow-sensitive narrowing is active
+    // for this symbol (e.g. inside the then-branch of `if x is T as a`),
+    // return the narrowed type instead of the binding's static type.
+    return narrow_for_binding(typed, sym.id, static_ty)
 }
+
+import "vader/typecheck/narrow" { narrow_for_binding }
 
 /// Look up the value-position type of a resolved symbol via `typed`'s
 /// side-tables. Public so other passes (call, field, …) can reach
