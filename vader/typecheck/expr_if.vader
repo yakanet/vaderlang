@@ -1,0 +1,135 @@
+// vader/typecheck/expr_if — IfExpr inference.
+//
+// Type of `if cond { then } else { else }` is the union of branch
+// types. Surface T3019 when the condition isn't `bool`-assignable.
+//
+// Out-of-scope for MVP : `if x is T as a { … }` binding narrowing,
+// numeric-trailing repinning, divergence-aware `Never` folding.
+// Those land with `narrow.vader`.
+
+import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/typecheck/context" { FnContext }
+import "vader/typecheck/stmt" { check_block }
+import "vader/typecheck/type_ops" { is_assignable, union_of }
+import "vader/typecheck/types" { Type, display_type, mk_primitive, TY_BOOL, TY_VOID }
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Type-check an `IfExpr`. `expected` flows into both branches so
+/// `let x: i64 = if c { 1 } else { 2 }` narrows each literal to i64.
+export infer_if :: fn(
+    e: AST.IfExpr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    cond_ty :: check_expr_fn(e.cond, TY_BOOL, typed, diags)
+    if !is_assignable(cond_ty, TY_BOOL, null) {
+        diags.push(typecheck_error(.ConditionMustBeBool, e.cond.span,
+            "if condition must be `bool`, got ${display_type(cond_ty)}"))
+    }
+    then_ty :: check_block(e.then_block, expected, typed, diags, ctx, check_expr_fn)
+    match e.else_branch {
+        is null -> { return union_of([then_ty, TY_VOID]) }
+        is AST.IfElseBlock as eb -> {
+            else_ty :: check_block(eb.block, expected, typed, diags, ctx, check_expr_fn)
+            return union_of([then_ty, else_ty])
+        }
+        is AST.IfElseIf as ei -> {
+            else_ty :: infer_if(ei.branch, expected, typed, diags, ctx, check_expr_fn)
+            return union_of([then_ty, else_ty])
+        }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver/symbol" { new_factory }
+import "vader/typecheck/check" { check_module }
+import "vader/typecheck/expr_ident" { infer_ident }
+import "vader/typecheck/expr_literals" { infer_int_lit, infer_bool_lit }
+import "vader/typecheck/test_helpers" { find_first_in_block }
+import "vader/typecheck/type_ops" { narrow_for_expected }
+import "vader/typecheck/types" { TY_UNRESOLVED }
+
+stub_check_expr :: fn(
+    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    match e {
+        is AST.IntLitExpr  as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
+        is AST.BoolLitExpr as x -> { return infer_bool_lit(x) }
+        is AST.IdentExpr   as x -> { return infer_ident(x, typed) }
+        is AST.IfExpr      as x -> { return infer_if(x, expected, typed, diags, null, stub_check_expr) }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+accept_if :: fn(e: AST.Expr) -> AST.Expr | null {
+    if e is AST.IfExpr { return e }
+    return null
+}
+
+first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
+    parsed :: parse_source(src, "t.vader")
+    last :: parsed.program.decls[parsed.program.decls.len() - 1]
+    match last {
+        is AST.FnDecl as f -> {
+            match f.body {
+                is null -> {}
+                is AST.BlockExpr as b -> {
+                    hit :: find_first_in_block(b, accept_if)
+                    if hit is AST.IfExpr { return hit }
+                }
+            }
+        }
+        _ -> {}
+    }
+    return null
+}
+
+checked :: fn(src: string) -> TypedProgram {
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    diags: Diagnostic[] = []
+    result :: check_module(parsed.program, rm, factory, diags)
+    return result.typed
+}
+
+@test
+test_if_both_branches_int_returns_int :: fn() -> void {
+    src :: "f :: fn(c: bool) -> i32 { return if c { 1 } else { 2 } }"
+    typed :: checked(src)
+    ifx :: first_if_in_last_fn(src)
+    if ifx is null { assert(false, "expected an if expr") return }
+    diags: Diagnostic[] = []
+    ty :: infer_if(ifx, mk_primitive("i32"), typed, diags, null, stub_check_expr)
+    assert_eq(display_type(ty), "i32")
+}
+
+@test
+test_if_without_else_yields_union_with_void :: fn() -> void {
+    src :: "f :: fn(c: bool) -> void { if c { 1 } }"
+    typed :: checked(src)
+    ifx :: first_if_in_last_fn(src)
+    if ifx is null { assert(false, "expected an if expr") return }
+    diags: Diagnostic[] = []
+    ty :: infer_if(ifx, null, typed, diags, null, stub_check_expr)
+    assert_eq(display_type(ty), "void | {integer}")
+}
+
+@test
+test_if_cond_not_bool_emits_T3019 :: fn() -> void {
+    src :: "f :: fn() -> i32 { return if 1 { 1 } else { 2 } }"
+    typed :: checked(src)
+    ifx :: first_if_in_last_fn(src)
+    if ifx is null { assert(false, "expected an if expr") return }
+    diags: Diagnostic[] = []
+    infer_if(ifx, null, typed, diags, null, stub_check_expr)
+    found := false
+    for d in diags { if d.code.id == "T3019" { found = true } }
+    assert(found, "expected T3019 on non-bool cond")
+}

@@ -70,6 +70,20 @@ find_first_in_expr :: fn(
         }
         is AST.FieldExpr as f -> { return find_first_in_expr(f.target, pred) }
         is AST.BlockExpr as bx -> { return find_first_in_block(bx, pred) }
+        is AST.IfExpr as ifx -> {
+            cond :: find_first_in_expr(ifx.cond, pred)
+            if cond is AST.Expr { return cond }
+            then :: find_first_in_block(ifx.then_block, pred)
+            if then is AST.Expr { return then }
+            match ifx.else_branch {
+                is null -> { return null }
+                is AST.IfElseBlock as eb -> { return find_first_in_block(eb.block, pred) }
+                is AST.IfElseIf    as ei -> {
+                    inner: AST.Expr = ei.branch
+                    return find_first_in_expr(inner, pred)
+                }
+            }
+        }
         _ -> { return null }
     }
 }

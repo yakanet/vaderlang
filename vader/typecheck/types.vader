@@ -180,6 +180,7 @@ export TY_FREE_INT   :: FreeIntType {}
 export TY_FREE_FLOAT :: FreeFloatType {}
 export TY_NEVER      :: NeverType {}
 export TY_VOID       :: PrimitiveType { .name = "void" }
+export TY_BOOL       :: PrimitiveType { .name = "bool" }
 
 // ---- display --------------------------------------------------------------
 

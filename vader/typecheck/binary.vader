@@ -19,7 +19,7 @@ AST :: import "vader/parser/ast"
 import "vader/typecheck/type_ops" { is_numeric_name, is_int_name, is_float_name }
 import "vader/typecheck/types" {
     Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
-    display_type, mk_primitive, TY_UNRESOLVED,
+    display_type, mk_primitive, TY_BOOL, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
 
@@ -43,9 +43,9 @@ export infer_binary :: fn(
         // Equality / Is / In : MVP returns `bool` unconditionally.
         // Intersection enforcement (T3040) + Contains trait dispatch
         // arrive with `narrow.vader` and the impl-driven passes.
-        .Equality -> { return mk_primitive("bool") }
-        .Is       -> { return mk_primitive("bool") }
-        .In       -> { return mk_primitive("bool") }
+        .Equality -> { return TY_BOOL }
+        .Is       -> { return TY_BOOL }
+        .In       -> { return TY_BOOL }
     }
 }
 
@@ -60,7 +60,7 @@ check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnosti
     if !is_numeric(left) || !is_numeric(right) {
         push_op_undefined(e, left, right, diags)
     }
-    return mk_primitive("bool")
+    return TY_BOOL
 }
 
 check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
@@ -72,7 +72,7 @@ check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnosti
         diags.push(typecheck_error(.OperatorNotDefined, e.right.span,
             "`&&` / `||` require `bool` operands, got ${display_type(right)}"))
     }
-    return mk_primitive("bool")
+    return TY_BOOL
 }
 
 check_bitwise :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {

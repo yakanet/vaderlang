@@ -15,7 +15,7 @@ import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/type_ops" { is_assignable, default_if_free, narrow_for_expected }
 import "vader/typecheck/types" {
     Type, ArrayType, FnType, TupleType, UnresolvedType, display_type,
-    mk_primitive, TY_VOID, TY_UNRESOLVED,
+    TY_BOOL, TY_VOID, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
 
@@ -154,7 +154,7 @@ check_for :: fn(
         is AST.InfiniteFor -> {}
         is AST.WhileFor as w -> {
             got :: check_expr_fn(w.cond, null, typed, diags)
-            if !is_assignable(got, mk_primitive("bool"), null) {
+            if !is_assignable(got, TY_BOOL, null) {
                 diags.push(typecheck_error(.ConditionMustBeBool, w.cond.span,
                     "while condition must be `bool`, got ${display_type(got)}"))
             }

@@ -6,7 +6,7 @@
 // Free numeric until the bidirectional pass narrows it.
 
 AST :: import "vader/parser/ast"
-import "vader/typecheck/types" { Type, mk_primitive, TY_FREE_INT, TY_FREE_FLOAT, TY_UNRESOLVED }
+import "vader/typecheck/types" { Type, mk_primitive, TY_BOOL, TY_FREE_INT, TY_FREE_FLOAT, TY_UNRESOLVED }
 import "vader/typecheck/type_expr" { primitive_from_name }
 
 /// `42` → FreeInt ; `42i64` → i64. Unknown suffix → Unresolved (the
@@ -28,7 +28,7 @@ export infer_float_lit :: fn(e: AST.FloatLitExpr) -> Type {
     return ty
 }
 
-export infer_bool_lit :: fn(_: AST.BoolLitExpr) -> Type { return mk_primitive("bool") }
+export infer_bool_lit :: fn(_: AST.BoolLitExpr) -> Type { return TY_BOOL }
 export infer_null_lit :: fn(_: AST.NullLitExpr) -> Type { return mk_primitive("null") }
 export infer_char_lit :: fn(_: AST.CharLitExpr) -> Type { return mk_primitive("char") }
 
