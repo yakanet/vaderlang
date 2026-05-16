@@ -31,6 +31,7 @@ import "vader/typecheck/expr_literals" {
 }
 import "vader/typecheck/expr_ident" { infer_ident }
 import "vader/typecheck/expr_block" { infer_block }
+import "vader/typecheck/call" { infer_call }
 
 /// Type-check `expr`. `expected` provides bidirectional context — pass
 /// `null` for fresh-position uses. The returned `Type` is the post-
@@ -68,6 +69,7 @@ infer_expr :: fn(
         is AST.StringLitExpr as e -> { return infer_string_lit(e) }
         is AST.IdentExpr     as e -> { return infer_ident(e, typed) }
         is AST.BlockExpr     as e -> { return infer_block(e, expected, typed, diags, check_expr) }
+        is AST.CallExpr      as e -> { return infer_call(e, typed, diags, check_expr) }
         // Every other variant : Phase 3.2+ work. Returning Unresolved
         // keeps downstream passes happy (TY_UNRESOLVED is assignable to
         // anything ; `is_assignable` short-circuits on it).
