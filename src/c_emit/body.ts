@@ -120,9 +120,30 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
   // `tmpCounter` are final).
   const preludePos = out.length;
 
-  for (let ip = 0; ip < fn.body.length; ip++) {
-    const op = fn.body[ip]!;
-    emitOp(state, ip, op);
+  // `#line` threading. Debug builds emit one `#line N "file"` per op whose
+  // `DebugPos` differs from the previous one, so `gdb`/`lldb` step through
+  // Vader source instead of the generated C. Release skips it entirely so
+  // the release branch stays a tight per-op loop. The escaped file string is
+  // cached across ops to avoid re-running `cStringLit` per emit — within a
+  // fn the `dbg.file` set is small (source + one or two stdlib paths).
+  if (ctx.release) {
+    for (let ip = 0; ip < fn.body.length; ip++) emitOp(state, ip, fn.body[ip]!);
+  } else {
+    let lastLine = -1;
+    let lastFile = "";
+    let lastFileLit = "";
+    for (let ip = 0; ip < fn.body.length; ip++) {
+      const dbg = fn.debug[ip];
+      // `dbg.file` can be `undefined` on synthetic spans (see span.start
+      // shape in `bytecode/emit.ts:pushOp`) ; guard the .length access.
+      const file = dbg?.file;
+      if (file && (dbg!.line !== lastLine || file !== lastFile)) {
+        if (file !== lastFile) { lastFile = file; lastFileLit = cStringLit(file); }
+        out.push(`#line ${dbg!.line} ${lastFileLit}`);
+        lastLine = dbg!.line;
+      }
+      emitOp(state, ip, fn.body[ip]!);
+    }
   }
 
   // Build prelude: ref-tmp declarations + gc_roots + frame push. No-alloc
@@ -436,6 +457,15 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "data.const":   return emitDataConst(s, op);
 
     case "type_check":   return emitTypeCheck(s, op);
+    case "type.const": {
+      // Placeholder until `@type_of` / `@size_of` land : no native consumer
+      // reads type values today, but pushing something keeps callers that
+      // shuttle the value through fn params from underflowing the stack.
+      // The payload carries `typeIndex` cast through `uintptr_t` so a
+      // future reader can recover the BcType slot without rewiring callers.
+      const tag = s.ctx.primitiveTagOf.get("null") ?? 0;
+      return pushLit(s, "any", `vader_box_obj(${tag}u, (void*)(uintptr_t)${op.typeIndex}u)`);
+    }
     case "ref.cast":     return emitRefCast(s, op);
   }
 

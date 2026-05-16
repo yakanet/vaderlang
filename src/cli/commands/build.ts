@@ -90,7 +90,7 @@ async function buildNative(
   const isWindowsOut = process.platform === "win32" || /mingw32-(gcc|cc|g\+\+)?$/.test(cc);
   if (isWindowsOut && !/\.[A-Za-z0-9]+$/.test(out)) out += ".exe";
   const cFile = `${out}.c`;
-  await Bun.write(cFile, emitC(r.bytecode));
+  await Bun.write(cFile, emitC(r.bytecode, { release }));
 
   // Default (debug) builds : `-O0 -ggdb` — cc stays fast, lldb/gdb get full
   // line tables and locals. `--release` flips to `-O3 -DNDEBUG` (no debug
