@@ -5,7 +5,7 @@
 import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
 
-import { err } from "../diag.ts";
+import { err, warn } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import type { Type, TupleType } from "../types.ts";
@@ -75,13 +75,27 @@ export function checkBlock(
   // statements see x narrowed). Popped in reverse at block exit so they
   // don't leak into the parent scope.
   const persistedNarrowings: { split: NarrowingScope; prev: Type | undefined }[] = [];
+  // Track the first divergent statement encountered so subsequent stmts
+  // (and any trailing expr) can be flagged W0002 "unreachable code". We
+  // emit the warning at most ONCE per block, on the first dead stmt,
+  // mirroring the conventional rustc / tsc surface.
+  let firstUnreachable: A.Stmt | A.Expr | null = null;
+  let diverged = false;
   for (const stmt of block.stmts) {
+    if (diverged && firstUnreachable === null) firstUnreachable = stmt;
     checkStmt(stmt, t, impls, diags, fn);
+    if (!diverged && divergesStmt(stmt)) diverged = true;
     const post = postStmtNarrowing(stmt, t);
     if (post !== null) {
       const split: NarrowingScope = { symId: post.symId, path: post.path };
       persistedNarrowings.push({ split, prev: pushSplit(t, split, post.type) });
     }
+  }
+  if (diverged && firstUnreachable === null && block.trailing !== null) {
+    firstUnreachable = block.trailing;
+  }
+  if (firstUnreachable !== null) {
+    warn(diags, "W0002", firstUnreachable.span, "code after a divergent statement");
   }
   let result: Type = TY.void;
   if (block.trailing !== null) {

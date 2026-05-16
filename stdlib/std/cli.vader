@@ -151,7 +151,6 @@ export bool_flag :: fn(self: ParsedArgs, name: string) -> bool {
         is null   -> { return false }
         is string -> { return v == "true" }
     }
-    return false
 }
 
 /// Read a string flag, falling back to `default` when absent.
@@ -164,7 +163,6 @@ export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> str
         is null   -> { return default }
         is string -> { return v }
     }
-    return default
 }
 
 // ---------------------------------------------------------------------- tests

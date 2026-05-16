@@ -76,32 +76,32 @@
     return "nada" :string
   fn tests_snippets_if_null_narrow__main_vader$greet_v4(a: Cat | Dog | null) -> string
     let out: string = "" :string
-    if :never
-      cond:
-        not :bool
-          is null :bool
-            a :Cat | Dog | null
-      then:
-        let out2: string =
-          block :string
-            let __sb_0: ? =
-              @builder.new :?
-            @builder.append_str :void
-              __sb_0 :?
-              "ok " :string
-            @builder.append_display <for string> :void
-              __sb_0 :?
-              .name :string
-                cast → Cat
-                  cast → Cat | Dog
-                    a :Cat | Dog | null
-            ~>
-              @builder.finish :string
+    ~>
+      if :never
+        cond:
+          not :bool
+            is null :bool
+              a :Cat | Dog | null
+        then:
+          let out2: string =
+            block :string
+              let __sb_0: ? =
+                @builder.new :?
+              @builder.append_str :void
                 __sb_0 :?
-        return out2 :string
-      else:
-        return "missing" :string
-    return out :string
+                "ok " :string
+              @builder.append_display <for string> :void
+                __sb_0 :?
+                .name :string
+                  cast → Cat
+                    cast → Cat | Dog
+                      a :Cat | Dog | null
+              ~>
+                @builder.finish :string
+                  __sb_0 :?
+          return out2 :string
+        else:
+          return "missing" :string
   fn tests_snippets_if_null_narrow__main_vader$combine(a: Cat | Dog | null, b: Cat | Dog | null) -> string
     if :void
       cond:

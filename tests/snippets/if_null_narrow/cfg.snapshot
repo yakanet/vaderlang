@@ -99,9 +99,9 @@ fn tests_snippets_if_null_narrow__main_vader$greet_v3(%0: Cat | Dog | null) -> s
 fn tests_snippets_if_null_narrow__main_vader$greet_v4(%0: Cat | Dog | null) -> string
   locals:
     %0 a: Cat | Dog | null (param a)
-    %1 out: string (local out)
-    %2 $type_check_3: bool
-    %3 $not_4: bool
+    %1 $type_check_3: bool
+    %2 $not_4: bool
+    %3 if_res: never
     %4 $intrinsic_6: ?
     %5 __sb_0: ? (synthetic __sb_0)
     %6 $k_8: string
@@ -112,9 +112,9 @@ fn tests_snippets_if_null_narrow__main_vader$greet_v4(%0: Cat | Dog | null) -> s
     %11 out2: string (local out2)
     %12 $k_14: string
   bb0:
-    %2 = type_check %0 is null
-    %3 = unop not %2 :bool
-    cond_branch %3 ? bb1 : bb2
+    %1 = type_check %0 is null
+    %2 = unop not %1 :bool
+    cond_branch %2 ? bb1 : bb2
   bb1:
     %4 = intrinsic builder.new()
     %5 = move %4
@@ -131,7 +131,7 @@ fn tests_snippets_if_null_narrow__main_vader$greet_v4(%0: Cat | Dog | null) -> s
     %12 = const string(#7) :string
     return %12
   bb3:
-    return %1
+    return %3
 
 fn tests_snippets_if_null_narrow__main_vader$combine(%0: Cat | Dog | null, %1: Cat | Dog | null) -> string
   locals:

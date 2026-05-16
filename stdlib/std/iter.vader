@@ -366,7 +366,6 @@ MapIterator[T, U] implements Iterator[U] {
             is null         -> { return null }
             is Yield(T) as y -> { return Yield(U) { .value = self.f(y.value) } }
         }
-        return null
     }
 }
 
@@ -414,7 +413,6 @@ TakeIterator[T] implements Iterator[T] {
                 return Yield(T) { .value = y.value }
             }
         }
-        return null
     }
 }
 
@@ -444,7 +442,6 @@ SkipIterator[T] implements Iterator[T] {
             is null          -> { return null }
             is Yield(T) as y -> { return Yield(T) { .value = y.value } }
         }
-        return null
     }
 }
 

@@ -162,6 +162,7 @@ export type BackendCode = keyof typeof BACKEND;
  */
 export const WARNING = {
   W0001: "use of deprecated declaration",
+  W0002: "unreachable code",
 } as const;
 
 export type WarningCode = keyof typeof WARNING;

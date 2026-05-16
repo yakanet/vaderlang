@@ -417,93 +417,82 @@
               "kind": "StringLitExpr",
               "parts": []
             }
-          },
-          {
-            "kind": "ExprStmt",
-            "expr": {
-              "kind": "IfExpr",
-              "cond": {
-                "kind": "BinaryExpr",
-                "op": "neq",
-                "left": {
-                  "kind": "IdentExpr",
-                  "name": "a"
-                },
-                "right": {
-                  "kind": "NullLitExpr"
-                }
-              },
-              "then": {
-                "kind": "BlockExpr",
-                "stmts": [
-                  {
-                    "kind": "LetStmt",
-                    "mutable": false,
-                    "binding": {
-                      "kind": "SimpleBinding",
-                      "name": "out2"
-                    },
-                    "type": null,
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "ok "
-                        },
-                        {
-                          "kind": "interp",
-                          "expr": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "IdentExpr",
-                              "name": "a"
-                            },
-                            "field": "name"
-                          }
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "kind": "ReturnStmt",
-                    "value": {
-                      "kind": "IdentExpr",
-                      "name": "out2"
-                    }
-                  }
-                ],
-                "trailing": null
-              },
-              "else": {
-                "kind": "BlockExpr",
-                "stmts": [
-                  {
-                    "kind": "ReturnStmt",
-                    "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "missing"
-                        }
-                      ]
-                    }
-                  }
-                ],
-                "trailing": null
-              }
-            }
-          },
-          {
-            "kind": "ReturnStmt",
-            "value": {
-              "kind": "IdentExpr",
-              "name": "out"
-            }
           }
         ],
-        "trailing": null
+        "trailing": {
+          "kind": "IfExpr",
+          "cond": {
+            "kind": "BinaryExpr",
+            "op": "neq",
+            "left": {
+              "kind": "IdentExpr",
+              "name": "a"
+            },
+            "right": {
+              "kind": "NullLitExpr"
+            }
+          },
+          "then": {
+            "kind": "BlockExpr",
+            "stmts": [
+              {
+                "kind": "LetStmt",
+                "mutable": false,
+                "binding": {
+                  "kind": "SimpleBinding",
+                  "name": "out2"
+                },
+                "type": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "ok "
+                    },
+                    {
+                      "kind": "interp",
+                      "expr": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "a"
+                        },
+                        "field": "name"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "ReturnStmt",
+                "value": {
+                  "kind": "IdentExpr",
+                  "name": "out2"
+                }
+              }
+            ],
+            "trailing": null
+          },
+          "else": {
+            "kind": "BlockExpr",
+            "stmts": [
+              {
+                "kind": "ReturnStmt",
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "missing"
+                    }
+                  ]
+                }
+              }
+            ],
+            "trailing": null
+          }
+        }
       },
       "decorators": []
     },

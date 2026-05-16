@@ -45,7 +45,6 @@ greet_v4 :: fn(a: Animal | null) -> string {
     } else {
         return "missing"
     }
-    return out
 }
 
 // Case E: multi-step — chain of guards.

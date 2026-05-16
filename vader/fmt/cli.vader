@@ -182,9 +182,6 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
             }
         }
     }
-    // Unreachable — every arm above returns. The outer `match` is a void
-    // expression so the fn would otherwise be inferred to return void.
-    return FileResult.IoError
 }
 
 run_one_stdout :: fn(path: string) -> FileResult {

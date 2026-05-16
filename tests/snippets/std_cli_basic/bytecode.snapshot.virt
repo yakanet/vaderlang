@@ -704,27 +704,27 @@ end
 fn 7 std_cli$string_flag (ref,string,string) -> string
   local v ref
   local __scrut_0 ref
-  local.get 0   ; cli.vader:162:10
-  struct.get 16 0   ; cli.vader:162:10
-  local.get 1   ; cli.vader:162:10
-  call 9   ; cli.vader:162:10
-  local.tee 3   ; cli.vader:162:5
-  local.tee 4   ; cli.vader:163:11
-  type_check 0   ; cli.vader:164:9
-  if $L0 void   ; cli.vader:164:9
-    local.get 2   ; cli.vader:164:24
-    return   ; cli.vader:164:24
-  else   ; cli.vader:164:9
-    local.get 4   ; cli.vader:165:9
-    type_check 8   ; cli.vader:165:9
-    if $L1 void   ; cli.vader:165:9
-      local.get 3   ; cli.vader:165:31
-      ref.cast 8   ; cli.vader:165:31
-      return   ; cli.vader:165:24
-    else   ; cli.vader:165:9
-      unreachable   ; cli.vader:163:5
-    end $L1   ; cli.vader:165:9
-  end $L0   ; cli.vader:164:9
+  local.get 0   ; cli.vader:161:10
+  struct.get 16 0   ; cli.vader:161:10
+  local.get 1   ; cli.vader:161:10
+  call 9   ; cli.vader:161:10
+  local.tee 3   ; cli.vader:161:5
+  local.tee 4   ; cli.vader:162:11
+  type_check 0   ; cli.vader:163:9
+  if $L0 void   ; cli.vader:163:9
+    local.get 2   ; cli.vader:163:24
+    return   ; cli.vader:163:24
+  else   ; cli.vader:163:9
+    local.get 4   ; cli.vader:164:9
+    type_check 8   ; cli.vader:164:9
+    if $L1 void   ; cli.vader:164:9
+      local.get 3   ; cli.vader:164:31
+      ref.cast 8   ; cli.vader:164:31
+      return   ; cli.vader:164:24
+    else   ; cli.vader:164:9
+      unreachable   ; cli.vader:162:5
+    end $L1   ; cli.vader:164:9
+  end $L0   ; cli.vader:163:9
 end
 
 fn 8 std_collections$bucket_index (u64) -> i32
