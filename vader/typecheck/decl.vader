@@ -18,9 +18,10 @@
 import "std/collections" { MutableMap }
 import "vader/diagnostics/diagnostic" { Diagnostic, Span, typecheck_error }
 import "vader/resolver/resolve" { ResolvedModule }
-import "vader/resolver/symbol" { Symbol }
+import "vader/resolver/symbol" { Symbol, SymbolFactory, make }
 import "vader/resolver/scope" { span_key }
 AST :: import "vader/parser/ast"
+import "vader/parser" { Visibility }
 import "vader/typecheck/types" {
     Type, PrimitiveType, mk_primitive, mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
     TY_UNRESOLVED,
@@ -37,24 +38,25 @@ import "vader/typecheck/enum_pass" { resolve_enum_indices }
 /// the sorted `resolved.symbols` array N times.
 export declare_module :: fn(
     program_decls: AST.Decl[], resolved: ResolvedModule,
-    typed: TypedProgram, diags: Diagnostic[],
+    typed: TypedProgram, factory: SymbolFactory, diags: Diagnostic[],
 ) -> void {
     by_name :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
     for s in resolved.symbols { by_name[s.name] = s }
     for decl in program_decls {
-        declare_decl(decl, by_name, resolved, typed, diags)
+        declare_decl(decl, by_name, resolved, typed, factory, diags)
     }
 }
 
 declare_decl :: fn(
     decl: AST.Decl, by_name: MutableMap(string, Symbol),
-    resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+    resolved: ResolvedModule, typed: TypedProgram,
+    factory: SymbolFactory, diags: Diagnostic[],
 ) -> void {
     match decl {
         is AST.FnDecl as fn_decl -> { declare_fn(fn_decl, resolved, typed, diags) }
-        is AST.StructDecl as sd  -> { declare_named_with_args(sd.name, sd.name_span, sd.type_params, by_name, typed, mk_struct) }
+        is AST.StructDecl as sd  -> { declare_named_with_args(sd.name, sd.name_span, sd.type_params, by_name, typed, resolved.path, factory, mk_struct) }
         is AST.EnumDecl as ed    -> { declare_enum(ed, by_name, resolved, typed, diags) }
-        is AST.TraitDecl as td   -> { declare_named_with_args(td.name, td.name_span, td.type_params, by_name, typed, mk_trait) }
+        is AST.TraitDecl as td   -> { declare_named_with_args(td.name, td.name_span, td.type_params, by_name, typed, resolved.path, factory, mk_trait) }
         is AST.TypeAliasDecl as ta -> { declare_type_alias(ta, resolved, typed, diags) }
         is AST.ConstDecl as cd   -> { declare_const(cd, resolved, typed, diags) }
         // ImplDecl → ImplRegistry (Phase 2.4). AssertDecl → comptime only.
@@ -66,27 +68,25 @@ declare_decl :: fn(
 }
 
 /// Shared minter for Struct / Trait decls — they only differ in the
-/// `Type` constructor (`mk_struct` vs `mk_trait`). Resolves the symbol
-/// + builds the typeParam args via `by_name`, then calls `mk`.
+/// `Type` constructor (`mk_struct` vs `mk_trait`). Mints one fresh
+/// TypeParam Symbol per declared `[T]` so the resulting Type renders
+/// as `Foo(T)` rather than `Foo(?)`. The resolver mints type-params in
+/// the body-walker scope ; we re-mint here because they're not exposed
+/// at the top-level symbol table.
 declare_named_with_args :: fn(
     name: string, name_span: Span, type_params: AST.TypeParam[],
     by_name: MutableMap(string, Symbol), typed: TypedProgram,
+    module_path: string, factory: SymbolFactory,
     mk: fn(Symbol, Type[]) -> Type,
 ) -> void {
     sym :: by_name[name]
-    match sym {
-        is null -> {}
-        is Symbol as s -> {
-            args: Type[] = []
-            for tp in type_params {
-                match by_name[tp.name] {
-                    is null -> { args.push(TY_UNRESOLVED) }
-                    is Symbol as tp_s -> { args.push(mk_type_param(tp_s)) }
-                }
-            }
-            typed.decl_types[span_key(name_span)] = mk(s, args)
-        }
+    if sym is null { return }
+    args: Type[] = []
+    for tp in type_params {
+        tp_sym :: factory.make(.TypeParam, tp.name, module_path, .Private, tp.span)
+        args.push(mk_type_param(tp_sym))
     }
+    typed.decl_types[span_key(name_span)] = mk(sym, args)
 }
 
 // ---- per-decl declarers ---------------------------------------------------
@@ -201,7 +201,7 @@ declared_type :: fn(src: string, name: string) -> string {
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
     diags: Diagnostic[] = []
-    declare_module(parsed.program.decls, rm, typed, diags)
+    declare_module(parsed.program.decls, rm, typed, factory, diags)
     for s in rm.symbols {
         if s.name != name { continue }
         sp :: s.defined_at
@@ -239,16 +239,12 @@ Point :: struct {
 
 @test
 test_declare_generic_struct_records_args :: fn() -> void {
-    // Type-params resolve to `?` for now : the resolver lacks a
-    // cross-module typeParamSymbols table, so the name-keyed lookup
-    // can't find `T` at the top level. Once wire.vader plumbs that
-    // table the expected becomes `Wrap(T)`.
     src :: """
 Wrap :: struct[T] {
     value: T
 }
 """
-    assert_eq(declared_type(src, "Wrap"), "Wrap(?)")
+    assert_eq(declared_type(src, "Wrap"), "Wrap(T)")
 }
 
 @test
@@ -265,6 +261,11 @@ Color :: enum {
 
 @test
 test_declare_type_alias_records_aliased :: fn() -> void {
+    // TypeAliasDecl aliased body is lowered via type_from_expr which
+    // depends on resolver.idents — the resolver doesn't bind the `T`
+    // ident in the aliased body to the alias's own type-param yet, so
+    // it falls back to TY_UNRESOLVED. Lands when wire.vader threads
+    // the typeParam scope into the type-expr lowering.
     assert_eq(declared_type("Maybe[T] :: T | null", "Maybe"), "? | null")
 }
 

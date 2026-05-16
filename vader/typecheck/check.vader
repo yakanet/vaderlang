@@ -1,0 +1,86 @@
+// vader/typecheck/check — orchestrator for the typecheck phase.
+//
+// Composes the per-module passes into a single entry point :
+//
+//   1. Build the project-wide `ImplRegistry` from every `ImplDecl`
+//      (`impls.vader::build_impl_registry`).
+//   2. Mint per-decl types into `decl_types` via `decl.vader::declare_module`.
+//   3. (Phase 3+) walk fn bodies via `expr.vader` / `stmt.vader` to
+//      populate `expr_types` / `local_types` — not implemented yet.
+//
+// Single-shot per module. Multi-module orchestration (the full
+// `TypedProject`) lands once `wire.vader` plumbs cross-module imports —
+// today the resolver only carries one `ResolvedModule` at a time.
+
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/parser/ast" { Program }
+import "vader/resolver/resolve" { ResolvedModule }
+import "vader/resolver/symbol" { SymbolFactory }
+import "vader/typecheck/decl" { declare_module }
+import "vader/typecheck/impls" { ImplRegistry, build_impl_registry }
+import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
+
+/// Output of `check_module` — the typed program plus the impl registry
+/// it built. Callers that want both can grab them from one place.
+export CheckResult :: struct {
+    typed: TypedProgram
+    impls: ImplRegistry
+}
+
+/// Type-check `program` (parsed + resolved against `resolved`). Returns
+/// the populated `TypedProgram` + the project's `ImplRegistry`.
+/// Diagnostics flow into `diags`. `factory` is shared with the resolver
+/// so locally-minted `TypeParam` Symbols stay globally unique.
+export check_module :: fn(
+    program: Program, resolved: ResolvedModule,
+    factory: SymbolFactory, diags: Diagnostic[],
+) -> CheckResult {
+    impls :: build_impl_registry(program.decls, resolved)
+    typed :: new_typed_program(resolved)
+    declare_module(program.decls, resolved, typed, factory, diags)
+    return CheckResult { .typed = typed, .impls = impls }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver/symbol" { new_factory }
+import "vader/typecheck/types" { display_type }
+
+run_check :: fn(src: string) -> CheckResult {
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    diags: Diagnostic[] = []
+    return check_module(parsed.program, rm, factory, diags)
+}
+
+@test
+test_check_module_populates_decl_types :: fn() -> void {
+    src :: """
+add :: fn(a: i32, b: i32) -> i32 { return a + b }
+Point :: struct { x: i32 }
+"""
+    result :: run_check(src)
+    assert_eq(result.typed.decl_types.size, usize(2))
+}
+
+@test
+test_check_module_builds_impl_registry :: fn() -> void {
+    src :: """
+Display :: trait { to_string :: fn(self) -> string }
+Point   :: struct { x: i32 }
+Point implements Display -> "point"
+"""
+    result :: run_check(src)
+    assert_eq(result.impls.all.len(), usize(1))
+}
+
+@test
+test_check_module_handles_empty_program :: fn() -> void {
+    result :: run_check("")
+    assert_eq(result.typed.decl_types.size, usize(0))
+    assert_eq(result.impls.all.len(), usize(0))
+}

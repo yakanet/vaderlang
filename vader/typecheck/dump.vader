@@ -1,0 +1,141 @@
+// vader/typecheck/dump — text formatter for the typecheck stage.
+//
+// Mirror of `src/typecheck/dump-text.ts::formatTypedDump`. Output must
+// stay byte-for-byte aligned with the TS reference so `tests/parity.test.ts`
+// can diff stdout across both compilers.
+//
+// Format :
+//
+//     # Typecheck
+//
+//     ## <displayPath>
+//       <DeclKind:pad14> <name:pad20> :: <type>
+//       ...
+//       expr <loc:pad8>  <ExprKind:pad14> :: <type>
+//       ...
+//
+// The `expr` lines are sorted lexicographically after formatting so the
+// dump is stable regardless of the underlying side-table iteration order.
+//
+// MVP-trimmed against the TS reference :
+//   - Single-module only — multi-module orchestration waits for
+//     `wire.vader`. The TS pass iterates `typed.modules` ; here we render
+//     a single `TypedProgram`.
+//   - `expr_types` is not yet populated by the typechecker (Phase 3 work)
+//     so the expression-line section stays empty for now. Format matches
+//     so the section just appears empty until exprs land.
+
+import "std/sort" { sort }
+import "std/string" { compare_ascending, pad_end }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "vader/resolver/resolve" { ResolvedModule }
+import "vader/resolver/scope" { span_key }
+import "vader/resolver/symbol" { Symbol, SymbolKind, kind_name }
+import "vader/typecheck/types" { Type, display_type }
+import "vader/typecheck/typed_ast" { TypedProgram }
+
+/// Render a single typed module. The header omits the `# Typecheck` banner
+/// when `with_banner = false` so multi-module callers can compose without
+/// re-emitting it ; in single-module pipelines pass `true`.
+export dump_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
+    sb :: new_builder()
+    if with_banner { sb.append("# Typecheck") }
+    sb.append("\n\n## ")
+    sb.append(typed.resolved.path)
+    // Decls : alphabetically by name. `resolved.symbols` is already
+    // sorted by `resolve_module`, so we walk it in order.
+    for s in typed.resolved.symbols {
+        kind_str :: ast_decl_kind(s)
+        if kind_str == "" { continue }   // import-bindings don't render here
+        type_str :: lookup_decl_type(typed, s)
+        sb.append("\n  ")
+        sb.append(kind_str.pad_end(14, ' '))
+        sb.append_char(' ')
+        sb.append(s.name.pad_end(20, ' '))
+        sb.append(" :: ")
+        sb.append(type_str)
+    }
+    // CLI wrappers add the trailing newline via `println` (matches TS) ;
+    // don't append it here.
+    return sb.to_string()
+}
+
+/// Map a `SymbolKind` to the matching AST `*Decl` kind name used by the
+/// TS dump (`FnDecl`, `StructDecl`, `EnumDecl`, …). Returns `""` for
+/// kinds the dump skips (import bindings, locals, params, …).
+ast_decl_kind :: fn(s: Symbol) -> string {
+    k :: i32(s.kind)
+    if k == i32(SymbolKind.Fn)        { return "FnDecl" }
+    if k == i32(SymbolKind.Struct)    { return "StructDecl" }
+    if k == i32(SymbolKind.Enum)      { return "EnumDecl" }
+    if k == i32(SymbolKind.Trait)     { return "TraitDecl" }
+    if k == i32(SymbolKind.TypeAlias) { return "TypeAliasDecl" }
+    if k == i32(SymbolKind.Const)     { return "ConstDecl" }
+    return ""
+}
+
+lookup_decl_type :: fn(typed: TypedProgram, s: Symbol) -> string {
+    sp :: s.defined_at
+    if sp is null { return "?" }
+    ty :: typed.decl_types[span_key(sp)]
+    if ty is null { return "?" }
+    return display_type(ty)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/symbol" { new_factory }
+import "vader/resolver/resolve" { resolve_module }
+import "vader/typecheck/check" { check_module }
+import "vader/diagnostics/diagnostic" { Diagnostic }
+
+dump_test :: fn(src: string) -> string {
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    diags: Diagnostic[] = []
+    result :: check_module(parsed.program, rm, factory, diags)
+    return dump_program(result.typed, true)
+}
+
+@test
+test_dump_renders_fn_decl :: fn() -> void {
+    // Expected string excludes the trailing newline — `println` adds it
+    // at the CLI boundary, matching the TS reference.
+    expected :: "# Typecheck\n\n## t\n  FnDecl         add                  :: fn(i32, i32) -> i32"
+    assert_eq(dump_test("add :: fn(a: i32, b: i32) -> i32 { return a + b }"), expected)
+}
+
+@test
+test_dump_sorts_decls_alphabetically :: fn() -> void {
+    src :: """
+zebra :: fn() -> i32 { return 0 }
+apple :: fn() -> i32 { return 0 }
+"""
+    expected :: "# Typecheck\n\n## t\n  FnDecl         apple                :: fn() -> i32\n  FnDecl         zebra                :: fn() -> i32"
+    assert_eq(dump_test(src), expected)
+}
+
+@test
+test_dump_renders_struct_decl :: fn() -> void {
+    src :: """
+Point :: struct {
+    x: i32
+}
+"""
+    expected :: "# Typecheck\n\n## t\n  StructDecl     Point                :: Point"
+    assert_eq(dump_test(src), expected)
+}
+
+@test
+test_dump_renders_generic_struct :: fn() -> void {
+    src :: """
+Wrap :: struct[T] {
+    value: T
+}
+"""
+    expected :: "# Typecheck\n\n## t\n  StructDecl     Wrap                 :: Wrap(T)"
+    assert_eq(dump_test(src), expected)
+}

@@ -18,6 +18,9 @@ import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
 import "vader/resolver/resolve" { ResolvedProject, ResolvedModule, resolve_module }
 import "vader/resolver/dump" { dump_project }
+import "vader/typecheck/check" { check_module }
+import "vader/typecheck/dump" { dump_program as dump_typed }
+import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/fmt/cli" { run_fmt }
 import "vader/vm/exec" { run_virt }
 
@@ -298,10 +301,12 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if stage == "resolved-ast" {
         return file.run_resolver_stage()
     }
+    if stage == "typed-ast" {
+        return file.run_typecheck_stage()
+    }
 
     // Recognised TS stages — we know about them but can't run them yet.
-    if stage == "typed-ast" ||
-       stage == "evaluated-ast" || stage == "lowered-ast" || stage == "dced-ast" ||
+    if stage == "evaluated-ast" || stage == "lowered-ast" || stage == "dced-ast" ||
        stage == "bytecode" || stage == "c" || stage == "wasm" {
         eprintln("vader dump: stage \"${stage}\" not yet implemented")
         return 2
@@ -373,6 +378,35 @@ run_resolver_stage :: fn(file: string) -> i32 {
     println(dump_project(project))
     if parsed.errors.len() > 0 {
         println(parsed.errors.dump_diagnostics())
+    }
+    return 0
+}
+
+// Typecheck dump : per-module decl + expression types. MVP output covers
+// top-level decl types only — expression / local types arrive with Phase 3
+// (body checking). Format matches `src/typecheck/dump-text.ts` so the
+// future parity stage can byte-diff stdout.
+run_typecheck_stage :: fn(file: string) -> i32 {
+    src_or_err :: file.read_file()
+    src: string = ""
+    match src_or_err {
+        is string -> { src = src_or_err }
+        is Error  -> {
+            eprintln("vader: cannot read `${file}`: ${src_or_err.message()}")
+            return 1
+        }
+    }
+    parsed :: parse_source(src, file)
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, file, factory)
+    diags: Diagnostic[] = []
+    result :: check_module(parsed.program, rm, factory, diags)
+    println(dump_typed(result.typed, true))
+    if parsed.errors.len() > 0 {
+        println(parsed.errors.dump_diagnostics())
+    }
+    if diags.len() > 0 {
+        println(diags.dump_diagnostics())
     }
     return 0
 }
