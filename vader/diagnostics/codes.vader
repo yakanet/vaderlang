@@ -115,7 +115,7 @@ export CodeInfo :: struct {
     message: string
 }
 
-export info :: fn(c: LexerCode) = match c {
+export lexer_info :: fn(c: LexerCode) = match c {
     .UnexpectedCharacter             -> CodeInfo { .id = "L0001", .message = "unexpected character" }
     .UnterminatedStringLiteral       -> CodeInfo { .id = "L0002", .message = "unterminated string literal" }
     .UnterminatedBlockComment        -> CodeInfo { .id = "L0003", .message = "unterminated block comment" }

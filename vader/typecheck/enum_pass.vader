@@ -1,0 +1,216 @@
+// vader/typecheck/enum_pass — variant index resolution for enum decls.
+//
+// Mirror of `resolveEnumIndices` in `src/typecheck/passes/decl.ts`. Walks
+// `EnumDecl.variants` and produces the canonical `name → value` map :
+// explicit `= N` values land verbatim ; bare variants take `previous + 1`
+// (starting at 0). Range checking against the repr's `[min, max]` bounds
+// and duplicate-value detection emit T3030 / T3031.
+//
+// Repr resolution (`null` → `i32`, or evaluating an explicit TypeExpr)
+// belongs to `type_expr.vader` (Phase 2.2). This file handles only what
+// needs no type-expression machinery — repr is passed in as a string.
+
+import "std/collections" { MutableMap, MutableSet, add, contains }
+import "vader/diagnostics/diagnostic" { Diagnostic, Span, typecheck_error }
+import "vader/parser/ast" { EnumDecl, EnumVariant }
+
+/// Compute the canonical `name → value` map for `decl`. `repr` is the
+/// already-resolved backing type name (e.g. `"i32"`, `"u8"`) ; pass
+/// `"i32"` when the source omitted an explicit repr.
+///
+/// Side effects : pushes T3030 (out-of-range) and T3031 (duplicate value)
+/// onto `diags`. The map still includes every variant even on error so
+/// downstream phases don't cascade with "unknown variant" noise.
+export resolve_enum_indices :: fn(
+    decl: EnumDecl, repr: string, diags: Diagnostic[],
+) -> MutableMap(string, i64) {
+    out :: MutableMap(string, i64) { .buckets = [], .size = 0 }
+    seen_values :: MutableSet(i64) {
+        .inner = MutableMap(i64, bool) { .buckets = [], .size = 0 },
+    }
+    range :: repr_range(repr)
+    cursor: i64 = 0
+    for variant in decl.variants {
+        value :: variant.value
+        v: i64 = match value {
+            is i64 -> value
+            is null -> cursor
+        }
+        if !range.contains(v) {
+            span :: span_of_value(variant)
+            diags.push(typecheck_error(
+                .EnumVariantValueOutOfRange, span,
+                "value out of range for ${repr}",
+            ))
+        }
+        if !seen_values.add(v) {
+            span :: span_of_value(variant)
+            diags.push(typecheck_error(
+                .DuplicateEnumVariantValue, span,
+                "value already used by an earlier variant",
+            ))
+        }
+        out[variant.name] = v
+        cursor = v + 1
+    }
+    return out
+}
+
+// ---- repr ranges ----------------------------------------------------------
+
+/// Inclusive `[min, max]` integer range for a backing primitive.
+/// `contains(v)` returns true when v lands in the range (or always-true
+/// when the repr isn't an integer — defensive fallback).
+export ReprRange :: struct {
+    min: i64
+    max: i64
+    /// True when the range is meaningful. False for non-integer reprs
+    /// (which shouldn't reach this pass — repr validation already
+    /// rejects them via T3029).
+    has_bounds: bool
+}
+
+contains :: fn(self: ReprRange, v: i64) -> bool {
+    if !self.has_bounds { return true }
+    return self.min <= v && v <= self.max
+}
+
+repr_range :: fn(repr: string) -> ReprRange {
+    // Signed integers : standard 2-complement ranges. i64 / isize hit
+    // the i64 max — we accept them at face value.
+    if repr == "i8"    { return ReprRange { .min = -128,                       .max = 127,                       .has_bounds = true } }
+    if repr == "i16"   { return ReprRange { .min = -32_768,                    .max = 32_767,                    .has_bounds = true } }
+    if repr == "i32"   { return ReprRange { .min = -2_147_483_648,             .max = 2_147_483_647,             .has_bounds = true } }
+    if repr == "i64"   { return ReprRange { .min = -9_223_372_036_854_775_808, .max = 9_223_372_036_854_775_807, .has_bounds = true } }
+    if repr == "isize" { return ReprRange { .min = -9_223_372_036_854_775_808, .max = 9_223_372_036_854_775_807, .has_bounds = true } }
+    if repr == "u8"    { return ReprRange { .min = 0,                          .max = 255,                       .has_bounds = true } }
+    if repr == "u16"   { return ReprRange { .min = 0,                          .max = 65_535,                    .has_bounds = true } }
+    if repr == "u32"   { return ReprRange { .min = 0,                          .max = 4_294_967_295,             .has_bounds = true } }
+    // u64 / usize : their range exceeds i64.max. We accept any non-negative
+    // i64 (cursor never wraps below 0 from a valid sequence). Variants
+    // with values > i64.max can't be carried in the AST today anyway.
+    if repr == "u64"   { return ReprRange { .min = 0, .max = 9_223_372_036_854_775_807, .has_bounds = true } }
+    if repr == "usize" { return ReprRange { .min = 0, .max = 9_223_372_036_854_775_807, .has_bounds = true } }
+    return ReprRange { .min = 0, .max = 0, .has_bounds = false }
+}
+
+span_of_value :: fn(v: EnumVariant) -> Span {
+    match v.value_span {
+        is null -> { return v.span }
+        is Span as s -> { return s }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/parser/ast" { Decl }
+
+expect_index :: fn(indices: MutableMap(string, i64), name: string, want: i64) -> void {
+    hit :: indices[name]
+    match hit {
+        is null -> { assert(false, "missing index for ${name}") }
+        is i64 as v -> { assert_eq(v, want) }
+    }
+}
+
+@test
+test_implicit_indices_count_from_zero :: fn() -> void {
+    src :: """
+Color :: enum {
+    Red
+    Green
+    Blue
+}
+"""
+    parsed :: parse_source(src, "t.vader")
+    enum_decl :: find_enum(parsed.program.decls, "Color")
+    match enum_decl {
+        is null -> { assert(false, "Color enum should parse") }
+        is EnumDecl as e -> {
+            diags: Diagnostic[] = []
+            indices :: resolve_enum_indices(e, "i32", diags)
+            expect_index(indices, "Red",   0)
+            expect_index(indices, "Green", 1)
+            expect_index(indices, "Blue",  2)
+            assert_eq(diags.len(), usize(0))
+        }
+    }
+}
+
+@test
+test_explicit_value_resets_cursor :: fn() -> void {
+    src :: """
+Flag :: enum {
+    A = 5
+    B
+    C = 100
+    D
+}
+"""
+    parsed :: parse_source(src, "t.vader")
+    enum_decl :: find_enum(parsed.program.decls, "Flag")
+    match enum_decl {
+        is null -> { assert(false, "Flag enum should parse") }
+        is EnumDecl as e -> {
+            diags: Diagnostic[] = []
+            indices :: resolve_enum_indices(e, "i32", diags)
+            expect_index(indices, "A",   5)
+            expect_index(indices, "B",   6)
+            expect_index(indices, "C", 100)
+            expect_index(indices, "D", 101)
+        }
+    }
+}
+
+@test
+test_duplicate_value_emits_T3031 :: fn() -> void {
+    src :: """
+Bad :: enum {
+    A = 1
+    B = 1
+}
+"""
+    parsed :: parse_source(src, "t.vader")
+    enum_decl :: find_enum(parsed.program.decls, "Bad")
+    match enum_decl {
+        is null -> { assert(false, "Bad enum should parse") }
+        is EnumDecl as e -> {
+            diags: Diagnostic[] = []
+            resolve_enum_indices(e, "i32", diags)
+            assert_eq(diags.len(), usize(1))
+            assert_eq(diags[0].code.id, "T3031")
+        }
+    }
+}
+
+@test
+test_out_of_range_emits_T3030 :: fn() -> void {
+    src :: """
+Overflow :: enum {
+    A = 999
+}
+"""
+    parsed :: parse_source(src, "t.vader")
+    enum_decl :: find_enum(parsed.program.decls, "Overflow")
+    match enum_decl {
+        is null -> { assert(false, "Overflow enum should parse") }
+        is EnumDecl as e -> {
+            diags: Diagnostic[] = []
+            resolve_enum_indices(e, "u8", diags)
+            assert_eq(diags.len(), usize(1))
+            assert_eq(diags[0].code.id, "T3030")
+        }
+    }
+}
+
+find_enum :: fn(decls: Decl[], name: string) -> EnumDecl | null {
+    for d in decls {
+        match d {
+            is EnumDecl as e -> { if e.name == name { return e } }
+            _ -> {}
+        }
+    }
+    return null
+}

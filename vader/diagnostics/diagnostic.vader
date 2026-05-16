@@ -4,7 +4,7 @@
 // emits the same JSON schema as the TS compiler.
 
 import "std/string" { is_empty }
-import "vader/diagnostics/codes" { LexerCode, ParserCode, TypecheckCode, info, parser_info, typecheck_info, CodeInfo }
+import "vader/diagnostics/codes" { LexerCode, ParserCode, TypecheckCode, lexer_info, parser_info, typecheck_info, CodeInfo }
 
 export Severity :: enum {
     Error,
@@ -41,22 +41,26 @@ export Diagnostic :: struct {
     primary:  Span
 }
 
-// Generic constructor — most callers will use the typed `error` /
-// `parser_error` shortcuts below.
-export make :: fn(severity: Severity, code: CodeInfo, primary: Span, detail: string) =
+/// Generic constructor for a fully-resolved `Diagnostic` record. Callers
+/// normally reach for one of the typed `*_error` / `*_warning` shortcuts
+/// below ; `new_diagnostic` is exposed for the rare emitter that knows
+/// its `CodeInfo` ahead of time (snapshot loaders, JSON re-import).
+export new_diagnostic :: fn(severity: Severity, code: CodeInfo, primary: Span, detail: string) =
     Diagnostic { .severity = severity, .code = code, .detail = detail, .primary = primary }
 
-// Lexer-side shortcut : `error(.UnexpectedCharacter, span, "x")`.
-export error :: fn(code: LexerCode, primary: Span, detail: string) =
-    make(.Error, info(code), primary, detail)
+// One typed shortcut per phase — `<phase>_<severity>(.VariantName, span, detail)`.
+// Phases : `lexer_*`, `parser_*`, `typecheck_*`. Severities are added on demand
+// (callers exist today only for `error` ; `warning` / `info` / `hint` join
+// when the first call site needs them — no point shipping dead helpers).
 
-// Parser-side shortcut : `parser_error(.ExpectedToken, span, "...")`.
+export lexer_error :: fn(code: LexerCode, primary: Span, detail: string) =
+    new_diagnostic(.Error, lexer_info(code), primary, detail)
+
 export parser_error :: fn(code: ParserCode, primary: Span, detail: string) =
-    make(.Error, parser_info(code), primary, detail)
+    new_diagnostic(.Error, parser_info(code), primary, detail)
 
-// Typecheck-side shortcut : `typecheck_error(.TypeMismatch, span, "expected i32")`.
 export typecheck_error :: fn(code: TypecheckCode, primary: Span, detail: string) =
-    make(.Error, typecheck_info(code), primary, detail)
+    new_diagnostic(.Error, typecheck_info(code), primary, detail)
 
 // Render a diagnostic as a single-line `error[CODE]: message at file:line:col`.
 // Used for terminal output today; the LSP will go via the JSON shape directly

@@ -1,4 +1,4 @@
-// vader/typecheck/ctx — shared context threaded through every typecheck pass.
+// vader/typecheck/context — shared context threaded through every typecheck pass.
 //
 // Mirror of `src/typecheck/ctx.ts` but MVP-trimmed. Two layers :
 //

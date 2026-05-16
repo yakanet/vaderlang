@@ -17,25 +17,24 @@ import "vader/typecheck/types" {
 }
 
 // ---- numeric registries (used by Free* defaulting + assignable) -----------
+//
+// Vader has no array-spread `[...A, ...B]` yet, so `ALL_INTS` / `NUMERIC`
+// would force duplicating every entry. We instead compose the predicates :
+// `is_int_name = is_signed_int_name || is_unsigned_int_name`, which keeps
+// each list as the single source of truth.
 
 export SIGNED_INTS   :: ["i8", "i16", "i32", "i64", "isize"]
 export UNSIGNED_INTS :: ["u8", "u16", "u32", "u64", "usize"]
-export ALL_INTS      :: ["i8", "i16", "i32", "i64", "isize", "u8", "u16", "u32", "u64", "usize"]
 export FLOATS        :: ["f32", "f64"]
-export NUMERIC       :: ["i8", "i16", "i32", "i64", "isize", "u8", "u16", "u32", "u64", "usize", "f32", "f64"]
 
-export is_int_name :: fn(name: string) -> bool {
-    for n in ALL_INTS { if n == name { return true } }
-    return false
-}
+export is_signed_int_name   :: fn(name: string) -> bool { return contains_name(SIGNED_INTS, name) }
+export is_unsigned_int_name :: fn(name: string) -> bool { return contains_name(UNSIGNED_INTS, name) }
+export is_float_name        :: fn(name: string) -> bool { return contains_name(FLOATS, name) }
+export is_int_name          :: fn(name: string) -> bool { return is_signed_int_name(name) || is_unsigned_int_name(name) }
+export is_numeric_name      :: fn(name: string) -> bool { return is_int_name(name) || is_float_name(name) }
 
-export is_float_name :: fn(name: string) -> bool {
-    for n in FLOATS { if n == name { return true } }
-    return false
-}
-
-export is_numeric_name :: fn(name: string) -> bool {
-    for n in NUMERIC { if n == name { return true } }
+contains_name :: fn(names: const string[], target: string) -> bool {
+    for n in names { if n == target { return true } }
     return false
 }
 
@@ -43,81 +42,27 @@ export is_numeric_name :: fn(name: string) -> bool {
 
 /// Structural equality. Recursive on unions / fns / arrays / tuples ; for
 /// nominal types (Struct / Trait / Enum / TypeParam) we compare symbol ids.
-export equals_type :: fn(a: Type, b: Type) -> bool {
-    match a {
-        is TypeMetaType   -> { return b is TypeMetaType }
-        is SelfType       -> { return b is SelfType }
-        is UnresolvedType -> { return b is UnresolvedType }
-        is NeverType      -> { return b is NeverType }
-        is FreeIntType    -> { return b is FreeIntType }
-        is FreeFloatType  -> { return b is FreeFloatType }
-        is PrimitiveType as ax -> {
-            match b {
-                is PrimitiveType as bx -> { return ax.name == bx.name }
-                _ -> { return false }
-            }
-        }
-        is TypeParamType as ax -> {
-            match b {
-                is TypeParamType as bx -> { return ax.symbol.id == bx.symbol.id }
-                _ -> { return false }
-            }
-        }
-        is EnumType as ax -> {
-            match b {
-                is EnumType as bx -> { return ax.symbol.id == bx.symbol.id }
-                _ -> { return false }
-            }
-        }
-        is StructType as ax -> {
-            match b {
-                is StructType as bx -> {
-                    if ax.symbol.id != bx.symbol.id { return false }
-                    return type_list_equals(ax.args, bx.args)
-                }
-                _ -> { return false }
-            }
-        }
-        is TraitType as ax -> {
-            match b {
-                is TraitType as bx -> {
-                    if ax.symbol.id != bx.symbol.id { return false }
-                    return type_list_equals(ax.args, bx.args)
-                }
-                _ -> { return false }
-            }
-        }
-        is ArrayType as ax -> {
-            match b {
-                is ArrayType as bx -> {
-                    if ax.immutable != bx.immutable { return false }
-                    return equals_type(ax.element, bx.element)
-                }
-                _ -> { return false }
-            }
-        }
-        is TupleType as ax -> {
-            match b {
-                is TupleType as bx -> { return type_list_equals(ax.elements, bx.elements) }
-                _ -> { return false }
-            }
-        }
-        is FnType as ax -> {
-            match b {
-                is FnType as bx -> {
-                    if !type_list_equals(ax.params, bx.params) { return false }
-                    return equals_type(ax.return_type, bx.return_type)
-                }
-                _ -> { return false }
-            }
-        }
-        is UnionType as ax -> {
-            match b {
-                is UnionType as bx -> { return type_list_equals(ax.variants, bx.variants) }
-                _ -> { return false }
-            }
-        }
-    }
+export equals_type :: fn(a: Type, b: Type) -> bool = match a {
+    is TypeMetaType   -> b is TypeMetaType
+    is SelfType       -> b is SelfType
+    is UnresolvedType -> b is UnresolvedType
+    is NeverType      -> b is NeverType
+    is FreeIntType    -> b is FreeIntType
+    is FreeFloatType  -> b is FreeFloatType
+    is PrimitiveType as ax  -> match b { is PrimitiveType  as bx -> ax.name == bx.name              _ -> false }
+    is TypeParamType as ax  -> match b { is TypeParamType  as bx -> ax.symbol.id == bx.symbol.id     _ -> false }
+    is EnumType      as ax  -> match b { is EnumType       as bx -> ax.symbol.id == bx.symbol.id     _ -> false }
+    is StructType    as ax  -> match b { is StructType     as bx -> nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args) _ -> false }
+    is TraitType     as ax  -> match b { is TraitType      as bx -> nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args) _ -> false }
+    is ArrayType     as ax  -> match b { is ArrayType      as bx -> ax.immutable == bx.immutable && equals_type(ax.element, bx.element) _ -> false }
+    is TupleType     as ax  -> match b { is TupleType      as bx -> type_list_equals(ax.elements, bx.elements) _ -> false }
+    is FnType        as ax  -> match b { is FnType         as bx -> type_list_equals(ax.params, bx.params) && equals_type(ax.return_type, bx.return_type) _ -> false }
+    is UnionType     as ax  -> match b { is UnionType      as bx -> type_list_equals(ax.variants, bx.variants) _ -> false }
+}
+
+nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {
+    if a_id != b_id { return false }
+    return type_list_equals(a_args, b_args)
 }
 
 type_list_equals :: fn(a: Type[], b: Type[]) -> bool {

@@ -23,7 +23,7 @@ import "std/numbers" {
     parse_uint_in_base, is_int_suffix, is_float_suffix,
     strip_numeric_text,
 }
-import "vader/diagnostics/diagnostic" { Diagnostic, error }
+import "vader/diagnostics/diagnostic" { Diagnostic, lexer_error }
 import "vader/diagnostics/codes" { LexerCode }
 // Position/Span are re-imported transparently via token.vader (same module);
 // no need to import them again here — that would trigger R2011.
@@ -188,7 +188,7 @@ push_simple :: fn(l: Lexer, kind: TokenKind, text: string, start: Position) -> v
 }
 
 push_error :: fn(l: Lexer, code: LexerCode, span: Span, detail: string) -> void {
-    l.errors.push(error(code, span, detail))
+    l.errors.push(lexer_error(code, span, detail))
 }
 
 // Convenience: most lexer errors take a single-token span anchored at `start`
