@@ -54,7 +54,8 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       return lowerIdent(ctx, expr, exprType);
     case "CallExpr": {
       if (expr.callee.kind === "IdentExpr") {
-        const resolverSym = ctx.typed.resolved.idents.get(expr.callee);
+        const resolverSym = ctx.typed.resolved.idents.get(expr.callee)
+          ?? findForeignIdentSym(ctx, expr.callee);
         // Direct-call overload override: typecheck recorded a non-primary
         // sibling overload as the matched candidate. Use that symbol for the
         // rest of the lowering (generic instance lookup + plain call emit).
@@ -102,7 +103,8 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       }
       // GenericInstExpr callee (explicit `foo(T)(args)` form, if the parser ever produces it).
       if (expr.callee.kind === "GenericInstExpr" && expr.callee.callee.kind === "IdentExpr") {
-        const innerSym = ctx.typed.resolved.idents.get(expr.callee.callee);
+        const innerSym = ctx.typed.resolved.idents.get(expr.callee.callee)
+          ?? findForeignIdentSym(ctx, expr.callee.callee);
         if (innerSym !== undefined) {
           const fnDecl = declOf(innerSym);
           if (fnDecl !== null && fnDecl.kind === "FnDecl" && fnDecl.typeParams.length > 0) {
@@ -419,7 +421,13 @@ function lowerIntrinsic(
 }
 
 function lowerIdent(ctx: FnLowerCtx, expr: A.IdentExpr, type: Type): LoweredExpr {
-  const sym = ctx.typed.resolved.idents.get(expr);
+  // Cross-module fallback : `resolved.idents` is keyed by the user-module's
+  // parsed AST nodes. When lowering a foreign sub-tree (typically a struct
+  // field default whose AST lives in the defining module), the user's map
+  // doesn't have the entry — look it up in the project's module that owns
+  // `expr.span.start.file` and use ITS resolved symbol.
+  const sym = ctx.typed.resolved.idents.get(expr)
+    ?? findForeignIdentSym(ctx, expr);
   if (sym === undefined) {
     return { kind: "LoweredUnreachable", span: expr.span, type, reason: `unresolved ident ${expr.name}` };
   }
@@ -476,6 +484,21 @@ function lowerIdent(ctx: FnLowerCtx, expr: A.IdentExpr, type: Type): LoweredExpr
  *  position : builtin primitives, top-level type-alias consts, in-fn `let`
  *  type aliases. Returns null for shapes Layer 5 hasn't folded in yet
  *  (type-params, traits, generic structs lacking a `declTypes` entry). */
+/** Resolve an IdentExpr to its symbol via the typed program of whichever
+ *  module's file contains the expr. Backs the cross-module fallback in
+ *  `lowerIdent` — struct field defaults from foreign modules land here
+ *  because the user's `resolved.idents` only carries entries for nodes the
+ *  user-module's parser produced. */
+function findForeignIdentSym(ctx: FnLowerCtx, expr: A.IdentExpr): Symbol | undefined {
+  const file = expr.span.start.file;
+  for (const program of ctx.project.evaluated.typed.modules.values()) {
+    for (const src of program.resolved.module.files) {
+      if (src.path === file) return program.resolved.idents.get(expr);
+    }
+  }
+  return undefined;
+}
+
 function resolveTypeMetaSymbol(ctx: FnLowerCtx, sym: Symbol): Type | null {
   if (sym.kind === "const" && sym.source.kind === "const") {
     return ctx.typed.constTypeAliases.get(sym.source.decl) ?? null;
