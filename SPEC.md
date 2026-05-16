@@ -48,8 +48,9 @@ Source (.vader)
   ↓ Type-checker     → Typed AST (with narrowing, traits, bidirectional inference)
   ↓ Comptime engine  → Typed AST (@comptime values evaluated; engine also drives monomorphization)
   ↓ Monomorphizer    → AST with no abstract generics
-  ↓ Lowerer          → Desugaring (pattern match → jumps, traits → vtables/inline, try → match)
+  ↓ Lowerer          → Desugaring (pattern match → if/else chains, traits → static dispatch, try → match)
   ↓ DCE              → Lowered AST with stdlib decls unreachable from user code pruned
+  ↓ Mid-IR (CFG)     → Reducible CFG with basic blocks + terminators ; substrate for escape / liveness analyses
   ↓ Bytecode emitter → Bytecode IR (stack-based)
   │
   ├──→ Stack-based VM   → vader run / @comptime
@@ -57,6 +58,8 @@ Source (.vader)
   ├──→ C emitter        → cc → native binary (Linux/macOS/Windows)
   └──→ WASM emitter     → .wasm (~1:1 mapping with bytecode, since WASM is also stack-based)
 ```
+
+Self-host status (Vader-side under `vader/`) : Lexer ✅, Parser ✅, Resolver ✅ (8 modules under `vader/resolver/`, body-walking + top-level minting + builtins + import collection + materialize + substitute), Formatter ✅ (partial — see §18), LSP ✅, VM ⏳ (subset), Type-checker / Lower / Mid-IR / Bytecode emitter / C emitter not yet ported. The TS-side under `src/` remains the reference. Parity is enforced per-stage by `tests/parity.test.ts` (CLI byte-for-byte stdout diff) — currently covers `lexer`, `parser`, `resolved-ast`.
 
 ### Canonical IR
 
@@ -76,7 +79,7 @@ The pipeline is therefore **incremental**: to evaluate a `@comptime`, its depend
 
 Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `List[i32]`, `Map[string, User]`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct[args]` reference points to a freshly-emitted concrete decl, and every generic-fn call is rewritten to call its specialised instance.
 
-Registry collection is **transitive**: when `outer[i32]` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn[i32]`), every `for x in arr` over `T[]` (registers `ArrayIterator[i32]`), and every substituted struct/trait reference inside the body (so e.g. `Yielded[string]` materialises when `next` is monomorphised over a `string[]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
+Registry collection is **transitive**: when `outer[i32]` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn[i32]`), every `for x in arr` over `T[]` (registers `ArrayIterator(i32)`), and every substituted struct/trait reference inside the body (so e.g. `Yield(string)` materialises when `next` is monomorphised over a `string[]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
 
 Lowering and every downstream phase therefore see only concrete types — they never have to invent dispatch logic for an unbound type parameter.
 
@@ -93,9 +96,21 @@ The lowerer consumes the monomorphised typed AST and produces a **separate, smal
 
 The Lowered AST is the input to the dead-code elimination pass. It is dumpable as JSON via `vader dump --stage=lowered-ast` for debugging and snapshot tests.
 
+### Mid-IR (CFG)
+
+Between the (DCE'd) Lowered AST and the bytecode emitter, a dedicated Mid-IR layer converts every `LoweredFnDecl` to a **reducible control-flow graph** of basic blocks with explicit terminators (`branch`, `cond_branch`, `return`, `unreachable`). Expressions become three-address `Instruction` sequences over named local slots ; control flow (`LoweredIf`, `LoweredLoop`, `break`, `continue`, `return`) becomes block terminators. Strings get interned into a project-level pool reused verbatim by the emitter.
+
+The CFG is the substrate for analyses that need def-use chains rather than tree walks :
+
+- **Escape analysis** — stack-allocates structs whose lifetime stays within the function. Reverse postorder traversal over the flat CFG (no SSA — the SSA round-trip was measured against flat-CFG escape analysis in 2026-05-14 and showed zero precision gain, so the SSA + dominance-frontier infrastructure was deleted).
+- **Loop-carried-dependency check** — replaces the over-conservative "in loop ⇒ escapes" filter ; +95 stack-promotions on the self-host.
+- **Dead-store elimination** — finer-grained than the AST-level DCE pass, prunes individual writes whose result is never read.
+
+The bytecode emitter consumes the CFG (not the Lowered AST), recovers WASM-style structured nesting via a structurer pass that uses immediate dominators + post-dominators (not full SSA), and emits the linear stack ops. The full design is in `docs/MID_IR_DESIGN.md` ; the implementation lives under `src/midir/`. CFG dumps are exposed via `vader dump --stage=cfg`.
+
 ### Dead-code elimination
 
-Between the lowerer and the bytecode emitter, a DCE pass prunes lowered declarations that are not transitively reachable from a small set of roots. This keeps unused stdlib machinery out of the final artifact: `std/core` is auto-imported in every program, but a `hello world` doesn't need `Range`, `ArrayIterator`, `Done`, `Yielded`, `IOError`, or their impls — DCE drops them before emission.
+Between the lowerer and the bytecode emitter, a DCE pass prunes lowered declarations that are not transitively reachable from a small set of roots. This keeps unused stdlib machinery out of the final artifact: `std/core` is auto-imported in every program, but a `hello world` doesn't need `Range`, `ArrayIterator`, `Yield`, `IOError`, or their impls — DCE drops them before emission.
 
 Roots — preserved unconditionally:
 
@@ -1021,13 +1036,13 @@ When the impl introduces its own type parameters (with optional bounds), the `[T
 ```vader
 // Borrowing T from the struct head — no impl-level typeParams.
 ArrayIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Done | Yielded[T] { /* … */ }
+    next :: fn(self) -> Yield(T) | null { /* … */ }
 }
 
 // Bounded blanket impl — Range[T] coerces into an Iterator when T
 // satisfies both Comparable and Step.
 Range[T] implements[T: Comparable & Step] Iterator[T] {
-    next :: fn(self) -> Done | Yielded[T] { /* … */ }
+    next :: fn(self) -> Yield(T) | null { /* … */ }
 }
 
 // Blanket on a structural source (any array, any Display-bound type).
@@ -1065,7 +1080,7 @@ report :: fn(e: Error) -> string {
 }
 ```
 
-The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that monomorphization has materialised. Non-generic impls contribute one arm each ; generic impls (`Foo[T] implements Trait { ... }`) contribute one arm per observed concrete `(struct, args)` pair, since each instance has a distinct runtime tag (`is Foo[i32]`, `is Foo[string]`, …). Trait args on the receiver itself are substituted into the method's signature, so e.g. `it: Iterator[i32]; it.next()` returns `Done | Yielded[i32]` — not the unsubstituted `Done | Yielded[T]`. Primitive impls remain skipped (the dispatch chain assumes struct-tagged boxes).
+The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that monomorphization has materialised. Non-generic impls contribute one arm each ; generic impls (`Foo[T] implements Trait { ... }`) contribute one arm per observed concrete `(struct, args)` pair, since each instance has a distinct runtime tag (`is Foo[i32]`, `is Foo[string]`, …). Trait args on the receiver itself are substituted into the method's signature, so e.g. `it: Iterator(i32); it.next()` returns `Yield(i32) | null` — not the unsubstituted `Yield(T) | null`. Primitive impls remain skipped (the dispatch chain assumes struct-tagged boxes).
 
 Inside a generic body, `key.method()` where `key: T` and `T: Trait` resolves at typecheck and is monomorphised statically — each call site gets a direct call to the concrete impl member after substitution. No runtime dispatch.
 
@@ -1095,7 +1110,7 @@ string implements Hash {
 
 // Classic form — required for traits with two or more methods.
 ArrayIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Done | Yielded[T] { ... }
+    next :: fn(self) -> Yield(T) | null { ... }
 }
 ```
 
@@ -1400,7 +1415,7 @@ Rules :
 
 - **Private by default** (TypeScript-style). Top-level decls are visible only inside their **module** (= folder) unless explicitly exported.
 - **`export`** prefix to make a symbol visible across module boundaries.
-- The top-level `main` function is exported implicitly — the runtime resolves it as the program entrypoint regardless of the `export` keyword.
+- The top-level `main` function is **always public** — the resolver actively promotes its visibility to `public` regardless of whether the source carries the `export` keyword. Mirrors both implementations (`src/resolver/collect.ts` and `vader/resolver/collect.vader`).
 
 ```vader
 helper :: fn(x: i32) -> i32 {
@@ -1492,7 +1507,7 @@ The iteration form `for x in expr` accepts three shapes for `expr`:
 1. A built-in array `T[]` — auto-wrapped in `ArrayIterator[T]`.
 2. A value of type `Iterator[T]` — used directly. Two dispatch flavours :
    - **Concrete iter** (`Range[T]`, `ArrayIterator[T]`, a user struct implementing `Iterator[T]`) — the `next()` call resolves statically against the impl-method.
-   - **Trait-typed iter** (`Iterator[T]` itself, e.g. a fn param `fn count[T](it: Iterator[T])`) — the `next()` call dispatches dynamically through the per-(trait, method) vtable. Lets generic fns drive `for x in it { … }` against any concrete iterator the caller supplies.
+   - **Trait-typed iter** (`Iterator[T]` itself, e.g. a fn param `fn count[T](it: Iterator[T])`) — the `next()` call dispatches through the lowerer-synthesised `is StructA -> StructA_next(...)` chain over every materialised impl (see *Method dispatch on trait values* in §4). Lets generic fns drive `for x in it { … }` against any concrete iterator the caller supplies.
 3. A value implementing `Iterable[T]` — `expr.iter()` is auto-called and the result drives the loop.
 
 Raw `T[]` arrays are auto-wrapped in `ArrayIterator[T]`, and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Iterable[T]` so `for x in coll { ... }` works without an explicit `coll.iter()`.
@@ -1765,7 +1780,7 @@ Manifest is **optional** — `vader build single_file.vader` also works as long 
 
 - **Default (no keyword)**: visible only **within the module** (other files in the same folder OK), invisible outside.
 - **`export`**: visible everywhere a consumer imports this module.
-- The `main` function is implicitly visible to the runtime, no `export` required.
+- The `main` function is **always public** — the resolver promotes its visibility regardless of an explicit `export` keyword (which is then redundant). See §6.
 
 ### Forbidden import cycles
 
@@ -1915,7 +1930,9 @@ vader build prog.vader --target=native --ldflags="helper.o -lcrypto -L/usr/local
 
 ### VM behaviour
 
-The VM has no host-fn registry for user `@extern` symbols — `call.import` on an unrecognised symbol throws `vm: unbound host import …`. `@extern` is therefore **native-only** in the MVP. Use the Vader test runner's `@test` decorator with native pipelines (`vader build` then run the binary) to exercise FFI paths.
+The VM resolves `@extern` user imports against a **host registry** (`src/vm/host.ts`) keyed by `(mangledName, externName)`. Each `call.import` consults the registry and dispatches to the registered JS handler ; unbound imports throw `vm: unbound host import …`. The registry is populated by callers of `vader run` (the test runner, the comptime engine, embedders) — there is no auto-discovery. This is the stable ABI for user-supplied `@extern` symbols introduced in commit `bd6d4012`.
+
+C-emit and WASM continue to resolve `@extern` against the system linker / module import table respectively ; the same `@extern` decl compiles for all three backends, only the binding mechanism differs.
 
 ### Future WASM target
 
@@ -1972,9 +1989,9 @@ A call `List[i32]` is a `@comptime` expression (the engine resolves the type, in
 
 See section 2 (Compilation Model).
 
-### Implementation note (TypeScript bootstrap)
+### Implementation note (comptime engine)
 
-The bootstrap compiler runs an **AST-walking interpreter** for `@comptime`, not the bytecode VM described in §2. The op table and stack machine are built later in the bytecode-emitter phase, where they'll be shared by both the comptime engine and the C/WASM emitters. The semantics described above hold either way — the choice is purely an engineering one to avoid designing the op set twice. Self-hosted Vader switches to the bytecode VM uniformly.
+The comptime engine is the **bytecode VM** (`src/comptime/run.ts`). The original AST-walking interpreter shipped with the MVP and was deleted once typed-AST → bytecode lowering covered the comptime-eligible subset (Sprint 1.5b). The same VM serves `vader run` for executing source files and `@comptime` for compile-time evaluation — one op set, one interpreter, no duplication. Generic instances are observed during comptime evaluation and fed back into the monomorphizer.
 
 ### Reflection / comptime intrinsics
 
@@ -1992,6 +2009,10 @@ Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct f
 | `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope. | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core`, so e.g. `@satisfies(i32, Add)` is `true`. The same impls underpin the Layer 7e automatic enforcement of `[T: Trait]` bounds. |
 | `@file(path)` | `(path: string) -> string` | UTF-8 contents of the file at `path`, baked at compile time. | The path is resolved relative to the source file containing the call. `path` must be comptime-evaluable — a string literal, an ident pointing at a string-typed const, or any expression whose result the comptime VM can reduce to a string (e.g. `FILENAME + ".txt"`). The sandbox confines the resolved path to the project root ; escapes raise `C4011`. Missing file raises `C4006`. |
 | `@env(name)` | `(name: string) -> string` | Value of the named env var, baked at compile time. | Empty string if unset. Gated by `--allow-env` (otherwise `C4008`). Same comptime-evaluable rule as `@file` for `name`. |
+| `@type_of(x)` | `(x: value) -> type` | Static type of `x` as a `type` runtime value. | Argument is **not evaluated** (Zig-style). The result is whatever the typechecker assigns to `x` at the call site — useful as input to other reflection intrinsics (`@fields(@type_of(point))`). |
+| `@fields(T)` | `(T: type) -> Field[]` | Field introspection for a struct. | `Field` carries `name: string`, `offset: usize`, `ty: type`. Materialised at lower time as a `Field[]` literal in the const pool. T3002 if `T` isn't a struct. |
+| `@type_args(T)` | `(T: type) -> type[]` | Generic-argument list of a struct or trait instance. | Returns `[]` for non-generic types. |
+| `@field(x, "name")` | `(x: value, name: value) -> <field type>` | Dynamic field access by static-string-literal name. | `name` must be a static string literal (or a `f.name` access that folds to one inside `@comptime for f in @fields(T)`). Result type is the field's declared type, resolved per-call. |
 
 Composition example — comptime layout assertions :
 
@@ -2004,12 +2025,9 @@ Composition example — comptime layout assertions :
 
 The condition expression is evaluated by the comptime VM ; each intrinsic appears as a literal in the bytecode (folded at lower time), so the assertion compiles to a single comparison on constants.
 
-Future intrinsics planned for Layer 6 of the type-first design (`docs/DESIGN_TYPE_FIRST.md` §12) but not yet implemented :
+### `@comptime for` over reflected fields
 
-- `@type_of(x)` — static type of an expression (returns `type`).
-- `@fields(T) -> Field[]` — full field introspection.
-- `@field(x, name)` — dynamic field access by computed name.
-- `@type_args(T) -> type[]` — generic-argument list.
+`@comptime for f in @fields(T) { … }` is **loop unrolling** at compile time — the lowerer unrolls one body copy per field and substitutes `f` (and any `f.name` / `f.ty` access) with the concrete field's metadata in each copy. Inside an unrolled body, `@field(x, f.name)` folds to a direct field access on `x` (no string-keyed lookup at runtime). The result is generic introspection code (e.g. a `to_string` derived from a struct's fields, a JSON serialiser, a hash impl) that compiles down to per-field straight-line code with zero reflection overhead at runtime.
 
 ---
 
@@ -2019,7 +2037,7 @@ Future intrinsics planned for Layer 6 of the type-first design (`docs/DESIGN_TYP
 
 Traits : `Display`, `Equals`, `Comparable`, `Step`, `Into[Target]`, `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Hash`, `Clone`, `Iterator[T]`, `Iterable[T]`, `Contains[T]`, `Index[I, T]`, `IndexSet[I, T]`, `Error`.
 
-Types : `Done`, `Yielded[T]`, `Range`, `ArrayIterator[T]`.
+Types : `Yield[T]`, `Range`, `ArrayIterator[T]`, `Field` (reflection — see §14).
 
 Primitive trait impls : `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index[usize, char]` (powers `s[i]`), and `Equals`/`Hash`/`Comparable`/`Step` on the integer primitives + `char`. `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. `Comparable` and `Step` impls are written in Vader (arrow form) ; the rest are `@intrinsic` and bodies are host-provided.
 
@@ -2241,42 +2259,45 @@ e  :: 2.718281828459045
 
 ### `std/iter`
 
-The iterator trait lives in `std/core` (auto-imported), using a `Done | Yielded[T]` `next()` result rather than `T | null` so iterators over nullable element types stay unambiguous:
+The iterator trait lives in `std/core` (auto-imported). `next()` returns `Yield(T) | null` — `null` is the canonical "exhausted" signal ; the `Yield(T)` wrapper lets iterators over nullable element types (e.g. `Iterator(string | null)`) stay unambiguous since a yielded `null` is distinct from end-of-stream :
 
 ```vader
-Done    :: struct {}
-Yielded :: struct[T] { value: T }
+Yield :: struct[T] { value: T }
 
 Iterator :: trait[T] {
-    next     :: fn(self) -> Done | Yielded[T]
+    next     :: fn(self) -> Yield(T) | null
     is_empty :: fn(self) -> bool                  // default — derives from next
     count    :: fn(self) -> usize                 // default — drains, returns total
     last     :: fn(self) -> T | null              // default — drains, last yielded
 }
 ```
 
-`is_empty` / `count` / `last` are default methods (Layer 8d) — every
-Iterator impl inherits the bodies derived from `next`, the user only has
-to provide `next`.
+`is_empty` / `count` / `last` are default methods (Layer 8d) — every Iterator impl inherits the bodies derived from `next`, the user only has to provide `next`.
 
-`std/iter` provides combinators on top of it. Two flavours coexist :
+`std/iter` provides combinators on top of `Iterator(T)`. Two flavours coexist :
 
-```vader
-// Iterator-driven, concrete trait instance — `it.next()` dispatches via the
-// virtual chain over each materialised impl :
-walk :: fn(it: Iterator[i32]) -> i32
+- **Eager combinators** — consume an `Iterator(T)` (or any `T[]` via auto-coerce), allocate a fresh `T[]` for the result, return it. Suitable for the common case of "I want a `T[]` out of this pipeline".
 
-// Array-driven (closure-friendly; eager — return `T[]` or a single value):
-map    :: fn[T, U](arr: T[], f: fn(T) -> U)        -> U[]
-filter :: fn[T](arr: T[], pred: fn(T) -> bool)     -> T[]
-fold   :: fn[T, U](arr: T[], init: U, f: fn(U, T) -> U) -> U
-sum    :: fn(arr: i32[]) -> i32
-take   :: fn[T](arr: T[], n: usize) -> T[]
-skip   :: fn[T](arr: T[], n: usize) -> T[]
-slice  :: fn[T](arr: T[], start: usize, end: usize) -> T[]    // bounds clamped, end exclusive
-```
+  ```vader
+  map    :: fn[T, U](it: Iterator(T), f: fn(T) -> U) -> U[]
+  filter :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> T[]
+  fold   :: fn[T, U](it: Iterator(T), init: U, f: fn(U, T) -> U) -> U
+  collect:: fn[T](it: Iterator(T)) -> T[]
+  take   :: fn[T](it: Iterator(T), n: usize) -> T[]
+  skip   :: fn[T](it: Iterator(T), n: usize) -> T[]
+  zip    :: fn[T, U](a: Iterator(T), b: Iterator(U)) -> [T, U][]
+  chain  :: fn[T](a: Iterator(T), b: Iterator(T)) -> T[]
+  ```
 
-Stdlib combinators today take a concrete `T[]` rather than `Iterator[T]` because the inference engine can't bind a free type-param across the `T[]` → `Iterator[T]` widening : `count_it(arr)` would need to unify `i32[]` against `Iterator[T]` to set `T = i32`, and that path isn't wired. Combinators specialised for a concrete element type (`fn walk(it: Iterator[i32])`) work end-to-end ; bridging from an iterator to the array-driven family goes through `collect(it)`. Lifting the inference gap is tracked separately and would let the two flavours converge.
+- **Lazy combinators** — return a struct (`MapIterator(T, U)`, `FilterIterator(T)`, `TakeIterator(T)`, `SkipIterator(T)`) that itself implements `Iterator(T)`. Chains fuse through `Iterator(T)` slots without allocating intermediate arrays. UFCS lets calls chain fluently :
+
+  ```vader
+  arr.into_iter().filter(p).map(f).take(10).collect()
+  ```
+
+  The auto-coerce `T[] implements[T] Into(Iterator(T))` makes raw arrays drop into any `Iterator(T)` slot, so `arr.filter(p)` is equivalent to `arr.into_iter().filter(p)`. Short-circuiting combinators (`any`, `all`, `find`, `find_map`) live in this family too — they take a single `Iterator(T)` (raw arrays auto-coerce) and stop on the first match.
+
+The eager and lazy families converge on the same `Iterator(T)` trait : an eager `collect(it)` materialises whatever the lazy chain produces ; a lazy chain accepts a raw `T[]` via the same `Into(Iterator(T))` coercion.
 
 ### `std/runtime`
 
@@ -2360,14 +2381,28 @@ The trait-widening limitation (struct implementing `Error` → `Error`) prevents
 
 ### Out of MVP
 
-- networking
-- real regex engine (ad-hoc helpers ship in `std/string` ; full NFA/DFA post-MVP)
+- networking (no HTTP / sockets in stdlib)
 - compile-time-generated JSON parsers (kotlinx-serialization style ; runtime parser ships today via `std/json`)
-- time / date
-- random
 - threads / async
-- crypto
 - compression
+
+### Landed in stdlib (beyond the core MVP set)
+
+The following modules ship in `stdlib/std/` today, alongside the core MVP set documented above :
+
+- `std/base64` — encode / decode.
+- `std/cli` — declarative flag parsing (`FlagSpec`, `parse_known`).
+- `std/crypto` — basic hashing primitives.
+- `std/json` — runtime parser + emitter.
+- `std/path` — POSIX path manipulation (`Path.join`, `Path.parent`, `Path.normalize`).
+- `std/process` — process spawning / argv.
+- `std/random` — PRNG.
+- `std/regex` — minimal regex engine.
+- `std/sort` — stable mergesort.
+- `std/testing` — `assert` / `assert_eq` consumed by `@test` functions.
+- `std/time` — clock / formatting.
+
+These move down the maturity ladder over time ; they're listed here because they're in-tree but their API is not part of the frozen v1.0 surface in §15.
 
 ---
 
@@ -2436,12 +2471,31 @@ A single C native backend + a single WASM backend + IR text emission = **three o
 |---------|-------------|
 | `vader run [file]` | Interpret via VM. No arg → REPL |
 | `vader build [file\|--manifest]` | Compile to binary (default target = native) |
-| `vader build --target=wasm` | Targets WebAssembly |
-| `vader build --target=ir` | Emits a textual `.vir` IR file (debug / replay) |
-| `vader fmt [path]` | Single opinionated formatter, **no config** |
+| `vader build --target=native` | C-emit → `cc` → native binary (default) |
+| `vader build --target=wasm` | Targets WebAssembly *(not yet implemented)* |
+| `vader build --target=ir` | Emits a binary `.vir` bytecode module |
+| `vader build --target=ir-text` | Emits a textual `.virt` IR dump (debug / replay) |
+| `vader build --target=c` | Emits the generated C source only |
+| `vader fmt [path]` | Single opinionated formatter, **no config** ; defaults to recursive walk under `.` |
 | `vader test [path]` | Runs all functions marked `@test` |
-| `vader dump --stage=<stage> file.vader` | Dumps JSON/text of a stage (`ast`, `typed-ast`, `bytecode`, `c`, `wasm`) |
-| `vader init [name]` *(post-MVP)* | Scaffolds a new Vader project: creates the directory, an `examples/hello.vader`, and a default `vader.json` manifest |
+| `vader lsp` | Runs the Language Server (JSON-RPC over stdin/stdout). Spawned by VS Code / IntelliJ |
+| `vader dump --stage=<stage> file.vader` | Dumps an IR stage (text or JSON depending on stage) |
+| `vader init [name]` *(post-MVP)* | Scaffolds a new Vader project: directory, `examples/hello.vader`, default `vader.json` |
+
+`vader dump` stages, in pipeline order (`ast`, `resolved-ast`, `cfg`, `c`/`wasm` produce text ; the rest produce JSON) :
+
+| Stage | Output |
+|-------|--------|
+| `ast` | Parser AST, spans elided |
+| `resolved-ast` | Per-module symbol table + import wiring (text — byte-aligned with `vader/resolver/dump.vader`) |
+| `typed-ast` | Per-decl + per-expression types |
+| `evaluated-ast` | `@comptime` / `@file` values + generic instances |
+| `lowered-ast` | Desugared tree (match / `?` / interp / defer expanded) |
+| `dced-ast` | Lowered tree post-stdlib reachability prune |
+| `cfg` | Mid-IR CFG (post-DCE + escape-annotated) |
+| `bytecode` | Stack-machine ops + type/string/import tables |
+| `c` *(planned)* | Generated C source |
+| `wasm` *(planned)* | WebAssembly module |
 
 ### REPL
 
@@ -2502,9 +2556,20 @@ This approach gives source-level debugging entirely in Vader terms (original var
 
 DWARF emission, debuggable in Chrome DevTools / wasmtime. The VM DAP server (medium-term) is the preferred path for WASM debugging once available.
 
+### LSP
+
+The Language Server lives in Vader under `vader/lsp/`. It's spawned by editors via `vader lsp`, speaks JSON-RPC over stdin/stdout, and exposes :
+
+- **Hover** — type / signature for the symbol under the cursor.
+- **Go-to-definition** — resolved via the Vader resolver's span-keyed `IdentExpr → Symbol` map (`vader/resolver/body.vader::ResolvedFile.idents`).
+- **Completion** — symbol-table lookups + scope-aware filtering.
+- **Semantic tokens** — two-phase classifier (`vader/lsp/ast_tokens.vader`). Phase 1 is a positional walker that paints every ident from its AST position (decl name, type position, value position). Phase 2 (`refine_via_resolver`) reads the resolved-ident map and overrides Phase 1 tokens whose ident resolves to a Symbol with a more specific kind — `Param` paints `Parameter`, `Local` paints `Variable`, primitive type names (`i32`, `string`, …) paint `Type`. The same resolver is reused by the compiler.
+
+VS Code and IntelliJ extensions live under `editors/vscode/` and `editors/intellij/` and ship the `vader lsp` binary as their language server.
+
 ### Diagnostics
 
-Diagnostic plumbing is **MVP-mandatory** even though the LSP itself is post-self-host. The intent: when we eventually write the LSP in Vader, the entire compiler is already capable of producing the structured diagnostics the LSP needs.
+Diagnostic plumbing is **MVP-mandatory** and consumed by both the CLI rendering (text + JSON) and the LSP boundary. The intent : a single structured shape feeds every consumer ; no phase produces strings that only one consumer knows how to parse.
 
 **Design principles**:
 
@@ -2525,10 +2590,6 @@ Diagnostic plumbing is **MVP-mandatory** even though the LSP itself is post-self
 
 A registry of codes lives in `src/diagnostics/codes.ts` (TypeScript) / `compiler/diagnostics/codes.vader` (after self-host) — every code is documented with a short description and an example.
 
-### LSP
-
-**Deferred to post-self-host.** Ideally written in Vader. The compiler is built so that the LSP, when implemented, only needs to consume the existing JSON diagnostic stream and add navigation features (hover, go-to-definition, completion).
-
 ---
 
 ## 19. Self-hosting Strategy
@@ -2547,18 +2608,26 @@ As soon as the TS compiler can compile simple functions (a syntactic subset: fns
 
 ### Porting order
 
-1. **Parser** (the simplest, mostly pattern matching on tokens)
-2. **C-emit** (text emission, mechanical)
-3. **Bytecode-emit** (mechanical)
-4. **VM** (simple algorithms, dispatch table)
-5. **WASM-emit** (slightly more complex due to binary encoding)
-6. **Type-checker** (the most complex, last — Vader must be mature enough to self-represent)
+1. **Lexer** ✅ (`vader/lexer/`) — straightforward, table-driven.
+2. **Parser** ✅ (`vader/parser/`) — recursive-descent + Pratt expressions, 2.9k LoC.
+3. **Resolver** ✅ (`vader/resolver/`) — 8 modules (`scope`, `builtins`, `collect`, `substitute`, `materialize`, `body`, `dump`, `resolve` + `symbol`). Body-walking + top-level minting + import collection + trait method synthesis (intrinsic / default / SAM). Shared by the LSP and the future self-host typechecker.
+4. **Formatter** 🟡 (`vader/fmt/`) — first pass landed ; idempotency green on stdlib, byte-for-byte parity pending stylistic gaps (column alignment, blank-line caps).
+5. **LSP** ✅ (`vader/lsp/`) — hover, definition, completion, semantic tokens (consumes the resolver).
+6. **VM** 🟡 (`vader/vm/`) — `.virt` text bytecode subset runs in Vader ; full op coverage WIP.
+7. **C-emit** ⏳ (text emission, mechanical).
+8. **Bytecode-emit** ⏳ (mechanical).
+9. **WASM-emit** ⏳ (slightly more complex due to binary encoding).
+10. **Type-checker** ⏳ (the most complex, last — Vader must be mature enough to self-represent).
+11. **Lower / Mid-IR / DCE** ⏳ (touches every pass downstream of typecheck).
+
+Legend : ✅ ported, 🟡 in progress, ⏳ TS-only.
 
 ### Double-maintenance period
 
 During the transition:
 
 - **Snapshot tests**: for each sample in the test suite, the **TS** compiler's output is snapshotted as the reference. The **Vader-in-Vader** compiler must produce the same output. Guarantees consistency step by step.
+- **Parity tests** (`tests/parity.test.ts`) gate the Vader CLI byte-for-byte against the TS-generated snapshots for every ported stage (currently `lexer`, `parser`, `resolved-ast`). New stages land alongside their parity coverage. The harness has already caught real divergences (e.g. `main` visibility, destructure-import expansion).
 - **After successful bootstrap**: the TS compiler is set to read-only. No more bug-fixes nor features added in TS, except emergencies. All evolution happens in Vader.
 
 ### Bootstrap success criterion
@@ -2738,17 +2807,18 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 3. **Resolver**: modules, imports, scoping
 4. **Type-checker**: bidirectional inference, narrowing, traits, match exhaustiveness
 5. **Comptime engine + monomorphizer**: bytecode VM, `@comptime` execution, generic instantiation
-6. **Lowerer**: pattern match → jumps, traits → vtables/inline, `?` → match
-7. **Bytecode emitter**: from lowered AST
-8. **VM**: bytecode interpretation (mode `vader run` + comptime)
-9. **IR text emitter**: serialize the bytecode into a human-readable `.vir` file with source-position annotations
-10. **IR text reader**: parse `.vir` back into in-memory bytecode for `vader run program.vir`
-11. **C emitter**: from bytecode
-12. **WASM emitter**: from bytecode
-13. **Stdlib in Vader**: core, io, string, collections, math, builder, iter
-14. **C runtime**: Cheney semi-space copying GC (stop-the-world, shadow-stack roots), string helpers, basic syscalls
-15. **CLI**: `run`, `build` (with `--target=ir|native|wasm`), `fmt`, `test`, `dump`, REPL
-16. **Snapshot tests**: for each sample, snapshot the output of every stage
+6. **Lowerer**: pattern match → if/else chains, traits → static dispatch chain (`is StructA -> StructA_method(...)`), `?` → match
+7. **Mid-IR (CFG)**: LoweredAST → CFG converter ; substrate for escape analysis, loop-carried-dependency check, dead-store elimination
+8. **Bytecode emitter**: from CFG (not directly from lowered AST)
+9. **VM**: bytecode interpretation (mode `vader run` + comptime)
+10. **IR text emitter**: serialize the bytecode into a human-readable `.vir` file with source-position annotations
+11. **IR text reader**: parse `.vir` back into in-memory bytecode for `vader run program.vir`
+12. **C emitter**: from bytecode
+13. **WASM emitter**: from bytecode
+14. **Stdlib in Vader**: core, io, string, collections, math, builder, iter
+15. **C runtime**: Cheney semi-space copying GC (stop-the-world, shadow-stack roots), string helpers, basic syscalls
+16. **CLI**: `run`, `build` (with `--target=ir|native|wasm`), `fmt`, `test`, `dump`, REPL
+17. **Snapshot tests**: for each sample, snapshot the output of every stage
 
 ### B. Deferred decisions / topics to revisit
 
@@ -2768,12 +2838,22 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 Already landed (cross-reference for B's reader) :
 - `std/json` (in MVP — §15 `std/json`)
 - LSP (`vader/lsp/`, partial — server + completion / hover / definition / semantic tokens)
+- Resolver self-host (`vader/resolver/` — 8 modules)
+- Reflection intrinsics `@type_of`, `@fields`, `@type_args`, `@field`, `@comptime for` loop unrolling
+- FFI VM host registry (`@extern` user imports now run on the VM via `src/vm/host.ts`)
+- Lazy iterator combinators (`MapIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator` in `std/iter`)
+- Mid-IR CFG layer (`src/midir/`) + escape analysis + loop-carried-dependency check
+- Single-binary distribution (`bun build --compile` + per-OS tarballs)
+- Reference benchmark suite (`bench/`)
+- Self-host VM (`vader/vm/`, partial — runs `.virt` text bytecode subset)
 
 ### C. Glossary
 
 - **UFCS**: Uniform Function Call Syntax. `a.f(b)` ≡ `f(a, b)`.
 - **Comptime**: Compile-Time Execution. Vader code executed during compilation.
 - **Monomorphization**: generation of specialized versions of a generic function/struct for each concrete combination of type parameters.
-- **HIR / MIR / LIR**: High/Mid/Low Intermediate Representation. Vader v1.0 has a single IR (the bytecode); later levels possible.
+- **CFG**: Control Flow Graph. Nodes are basic blocks (linear instruction sequences) ; edges are control transitions (conditional / unconditional branches). Vader's Mid-IR materialises a CFG between the Lowered AST and the bytecode emitter so analyses (escape, liveness) can use def-use chains.
+- **HIR / MIR / LIR**: High/Mid/Low Intermediate Representation. Vader v1.0 has two IRs (the Lowered AST + the Mid-IR CFG) feeding the bytecode emitter.
+- **SAM**: Single Abstract Method. A trait with exactly one required method ; impls may use a short body-only form (`Foo implements Trait -> expr`) instead of the full `name :: fn(...) { ... }` decl.
 - **VM**: the stack-based virtual machine that executes bytecode (interp + comptime modes).
 - **Bootstrap**: compilation of the Vader compiler with itself.
