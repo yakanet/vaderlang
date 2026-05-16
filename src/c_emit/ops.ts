@@ -274,6 +274,15 @@ export function emitIntrinsic(s: FnState, op: Extract<Op, { kind: "intrinsic" }>
       line(s, `vader_string_t ${t} = vader_builder_finish((vader_builder_t*) ${sb.name}.payload.obj);`);
       return;
     }
+    case INTRINSIC_TABLE.sizeOfType.id: {
+      // Decoder for the `type.const` boxing (see `c_emit/body.ts`) : the
+      // payload pointer carries `typeIndex` cast through `uintptr_t`.
+      // `vader_type_size[]` is emitted in `c_emit/emit.ts`.
+      const tv = pop(s);
+      const out = newTmp(s, "usize");
+      line(s, `size_t ${out} = vader_type_size[(int32_t)(uintptr_t)${tv.name}.payload.obj];`);
+      return;
+    }
   }
 }
 

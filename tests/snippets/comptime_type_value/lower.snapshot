@@ -14,6 +14,16 @@
         LoweredTypeConst
     call :void
       callee:
+        accept_type :fn(type) -> void
+      arg0:
+        LoweredTypeConst
+    call :void
+      callee:
+        accept_type :fn(type) -> void
+      arg0:
+        LoweredTypeConst
+    call :void
+      callee:
         println :fn(string) -> void
       arg0:
         "ok" :string

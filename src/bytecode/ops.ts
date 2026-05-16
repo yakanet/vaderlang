@@ -184,6 +184,11 @@ export const INTRINSIC_TABLE = {
   builderAppendStr:     { id: 1, name: INTRINSICS.builderAppendStr,     inArity: 2, hasResult: false },
   builderAppendDisplay: { id: 2, name: INTRINSICS.builderAppendDisplay, inArity: 2, hasResult: false },
   builderFinish:        { id: 3, name: INTRINSICS.builderFinish,        inArity: 1, hasResult: true  },
+  // Layer 4 §1.19 B.2 — pop a TypeValue, look up `module.types[typeIndex]`,
+  // push usize size. The static-type path of `@size_of(T)` stays an inline
+  // IntLit ; this intrinsic only fires when the arg is a runtime-resolved
+  // `type` value (e.g. an `t: type` fn param).
+  sizeOfType:           { id: 4, name: INTRINSICS.sizeOfType,           inArity: 1, hasResult: true  },
 } as const;
 
 export type IntrinsicId = typeof INTRINSIC_TABLE[keyof typeof INTRINSIC_TABLE]["id"];

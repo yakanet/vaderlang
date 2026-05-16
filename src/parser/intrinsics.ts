@@ -17,7 +17,7 @@ export type IntrinsicArgKind = "type" | "value";
  *  a small enum so the registry stays the single source of truth for every
  *  intrinsic's signature ; downstream passes look it up rather than mirror
  *  a per-name switch. */
-export type IntrinsicResultKind = "usize" | "string" | "bool";
+export type IntrinsicResultKind = "usize" | "string" | "bool" | "type";
 
 export interface IntrinsicSpec {
   readonly name: string;
@@ -28,7 +28,12 @@ export interface IntrinsicSpec {
 /** Full set of recognised intrinsics. New entries land here ; the typechecker
  *  and lower passes implement the per-name semantics. */
 export const INTRINSICS: readonly IntrinsicSpec[] = [
-  { name: "size_of",       args: ["type"],          result: "usize"  },
+  // `@size_of(t)` — arg is a `TypeMeta`-typed *value* (a bare type name
+  // like `i32` is a `TypeMeta` value in value position, by Layer 4
+  // design). The lowerer folds the static case to a literal and routes
+  // the runtime case (e.g. `fn(t: type)` param) through the
+  // `size_of.type` intrinsic.
+  { name: "size_of",       args: ["value"],         result: "usize"  },
   { name: "align_of",      args: ["type"],          result: "usize"  },
   { name: "type_name",     args: ["type"],          result: "string" },
   { name: "type_kind",     args: ["type"],          result: "string" },
@@ -36,6 +41,10 @@ export const INTRINSICS: readonly IntrinsicSpec[] = [
   { name: "variant_count", args: ["type"],          result: "usize"  },
   { name: "field_index",   args: ["type", "value"], result: "usize"  },
   { name: "satisfies",     args: ["type", "type"],  result: "bool"   },
+  // Reifies the static type of a value as a `type` runtime value. The
+  // argument is NOT evaluated (Zig-style) — only its static type is
+  // read. Layer 4 §1.19 B.2.
+  { name: "type_of",       args: ["value"],         result: "type"   },
   // `@file("path")` reads the file at compile time and bakes its UTF-8
   // contents as a string literal. The sandbox confines the path to the
   // project root (same rule as the legacy `@file` decorator).

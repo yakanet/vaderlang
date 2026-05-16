@@ -458,11 +458,10 @@ function emitOp(s: FnState, ip: number, op: Op): void {
 
     case "type_check":   return emitTypeCheck(s, op);
     case "type.const": {
-      // Placeholder until `@type_of` / `@size_of` land : no native consumer
-      // reads type values today, but pushing something keeps callers that
-      // shuttle the value through fn params from underflowing the stack.
-      // The payload carries `typeIndex` cast through `uintptr_t` so a
-      // future reader can recover the BcType slot without rewiring callers.
+      // Box `typeIndex` via `(uintptr_t)` into the payload pointer slot so
+      // `@size_of(t)` can recover the BcType slot at runtime (decoded in
+      // `c_emit/ops.ts` `emitIntrinsic` case `sizeOfType.id`). Tagged null
+      // keeps GC + display paths from chasing the synthetic pointer.
       const tag = s.ctx.primitiveTagOf.get("null") ?? 0;
       return pushLit(s, "any", `vader_box_obj(${tag}u, (void*)(uintptr_t)${op.typeIndex}u)`);
     }

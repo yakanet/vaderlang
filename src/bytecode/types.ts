@@ -80,6 +80,26 @@ export function arrayKindElementSize(k: ArrayKind): number {
   }
 }
 
+/** Size in bytes of a `BcType` — primitives use their native widths, every
+ *  reference shape (struct, array, union, ref, fn) fits in `vader_box_t`
+ *  (16 bytes) at the boxed boundary. Backs the `@size_of(t)` runtime path
+ *  (TS VM `runIntrinsic`, c-emit `vader_type_size[]` table) ; the Vader VM
+ *  carries a parallel `size_of_bc_type` in `vader/vm/value.vader`. */
+export function sizeOfBcType(t: BcType): number {
+  if (t.kind !== "primitive") return 16;
+  switch (t.val) {
+    case "i8": case "u8": case "bool":  return 1;
+    case "i16": case "u16":              return 2;
+    case "i32": case "u32": case "f32":
+    case "char":                          return 4;
+    case "i64": case "u64": case "f64":
+    case "isize": case "usize":           return 8;
+    case "string":                        return 16;
+    case "void": case "null":             return 0;
+    default:                              return 0;
+  }
+}
+
 /** Pack a bigint payload into `dv` at `offset` using the LE byte image for
  *  `kind`. Shared between `bytecode/text.ts` and `bytecode/binary.ts` ;
  *  `data N <kind> hex"..."` text + binary section encode the same bytes. */

@@ -22,7 +22,11 @@ export IntrinsicSpec :: struct {
 // Full set of recognised intrinsics. Add new entries here in lock-step
 // with `src/parser/intrinsics.ts:INTRINSICS`.
 INTRINSICS :: [
-    IntrinsicSpec { .name = "size_of",       .args = [.Type],          .result = "usize"  },
+    // `@size_of(t)` — arg is a `TypeMeta`-typed *value* (a bare type name
+    // is a `TypeMeta` value in value position). The lowerer folds the
+    // static case to a literal and routes the runtime case through the
+    // `size_of.type` intrinsic.
+    IntrinsicSpec { .name = "size_of",       .args = [.Value],         .result = "usize"  },
     IntrinsicSpec { .name = "align_of",      .args = [.Type],          .result = "usize"  },
     IntrinsicSpec { .name = "type_name",     .args = [.Type],          .result = "string" },
     IntrinsicSpec { .name = "type_kind",     .args = [.Type],          .result = "string" },
@@ -34,6 +38,9 @@ INTRINSICS :: [
     // contents as a string literal. The sandbox confines the path to the
     // project root.
     IntrinsicSpec { .name = "file",          .args = [.Value],         .result = "string" },
+    // Reifies the static type of a value as a `type` runtime value.
+    // The argument is NOT evaluated (Zig-style). Layer 4 §1.19 B.2.
+    IntrinsicSpec { .name = "type_of",       .args = [.Value],         .result = "type"   },
 ]
 
 // Returns the spec for `name`, or `null` if `@name(...)` is not a

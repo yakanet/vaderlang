@@ -6,13 +6,13 @@
 import type { BytecodeModule, BcFunction } from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
-import { isFloatVal } from "../bytecode/types.ts";
+import { isFloatVal, sizeOfBcType } from "../bytecode/types.ts";
 import type { BcDataEntry, BcType, ValType } from "../bytecode/types.ts";
 
 import type { HostBindings } from "./host.ts";
 import {
   bool, builder, ch, FALSE, fnRef, i64, NULL, num, str as makeStr, VOID,
-  asArray, asBig, asBool, asBuilder, asChar, asFn, asIndex, asNum, asString, asStruct, displayValue,
+  asArray, asBig, asBool, asBuilder, asChar, asFn, asIndex, asNum, asString, asStruct, asType, displayValue,
 } from "./value.ts";
 import type { ArrayValue, NumTag, StringValue, Value } from "./value.ts";
 
@@ -386,7 +386,7 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       f.ip++; return;
     }
     case "intrinsic":
-      runIntrinsic(f, op.id);
+      runIntrinsic(f, op.id, ctx.module);
       f.ip++; return;
 
     case "struct.new":
@@ -800,7 +800,7 @@ function precomputeJumps(fn: BcFunction): JumpInfo {
 
 // ----------------------------------------------------------- intrinsics
 
-function runIntrinsic(f: Frame, id: number): void {
+function runIntrinsic(f: Frame, id: number, module: BytecodeModule): void {
   switch (id) {
     case INTRINSIC_TABLE.builderNew.id:
       f.stack.push(builder());
@@ -817,6 +817,13 @@ function runIntrinsic(f: Frame, id: number): void {
     }
     case INTRINSIC_TABLE.builderFinish.id: {
       f.stack.push(makeStr(asBuilder(f.stack.pop()!).parts.join("")));
+      return;
+    }
+    case INTRINSIC_TABLE.sizeOfType.id: {
+      const tv = asType(f.stack.pop()!);
+      const bt = module.types[tv.typeIndex];
+      const size = bt !== undefined ? sizeOfBcType(bt) : 0;
+      f.stack.push({ tag: "usize", n: BigInt(size) });
       return;
     }
     default:

@@ -142,6 +142,11 @@ export function asFn(v: Value): FnValue {
   throw new Error(`vm: expected fn, got ${v.tag}`);
 }
 
+export function asType(v: Value): TypeValue {
+  if (v.tag === "type") return v;
+  throw new Error(`vm: expected type, got ${v.tag}`);
+}
+
 /** Implements the `Display` trait per SPEC §9: integers/floats print decimal
  *  (floats get a trailing `.0` when integral, à la Go `%v`), booleans
  *  `true`/`false`, chars print the codepoint as a string, null is `null`,

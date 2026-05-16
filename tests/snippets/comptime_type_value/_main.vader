@@ -1,6 +1,7 @@
 // A TypeMeta-typed ident in value position emits a `type.const N` op ;
-// the VM carries the result as a TypeValue. No native reader exists yet
-// — the snapshot golden validates the bytecode shape.
+// the VM carries the result as a TypeValue. `@type_of(x)` reifies the
+// static type of `x` without evaluating it. The snapshot golden
+// validates the bytecode shape.
 
 import "std/io" { println }
 
@@ -9,6 +10,8 @@ import "std/io" { println }
 main :: fn() -> i32 {
     accept_type(alias_int)
     accept_type(i64)
+    accept_type(@type_of(42_i32))
+    accept_type(@type_of("hello"))
     println("ok")
     return 0
 }

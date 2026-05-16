@@ -473,6 +473,7 @@ export const INTRINSICS = {
   builderAppendStr:      "builder.append_str",
   builderAppendDisplay:  "builder.append_display",
   builderFinish:         "builder.finish",
+  sizeOfType:            "size_of.type",
 } as const;
 
 export type IntrinsicName = typeof INTRINSICS[keyof typeof INTRINSICS];

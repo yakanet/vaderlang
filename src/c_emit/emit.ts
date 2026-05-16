@@ -19,7 +19,7 @@
 import type {BytecodeModule, BcFunction, BcImport, BcSignature} from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import type { ArrayKind, BcDataEntry, BcStruct, BcType, ValType } from "../bytecode/types.ts";
-import { arrayKindIndex, arrayKindOf, inlineVariantPayload, nullableRefVariant } from "../bytecode/types.ts";
+import { arrayKindIndex, arrayKindOf, inlineVariantPayload, nullableRefVariant, sizeOfBcType } from "../bytecode/types.ts";
 
 import {
   cTypeFor, cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, emitFunctions,
@@ -507,6 +507,18 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
   }
   out.push(`};`);
   out.push(`const size_t vader_type_info_count = ${types.length};`);
+  out.push(``);
+
+  // Per-type size table — backs the runtime path of `@size_of(t)`. Indexed
+  // by typeIndex (the same slot `type.const N` encodes) ; the table is
+  // emitted unconditionally so the placeholder `type.const` box payload
+  // round-trip stays valid regardless of whether the user code actually
+  // reads it. Sizes computed by the shared `sizeOfBcType` helper.
+  out.push(`const size_t vader_type_size[${types.length}] = {`);
+  for (let i = 0; i < types.length; i++) {
+    out.push(`    [${i}] = ${sizeOfBcType(types[i]!)}u,`);
+  }
+  out.push(`};`);
   out.push(``);
 }
 

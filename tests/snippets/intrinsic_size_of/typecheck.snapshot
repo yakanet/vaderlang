@@ -19,6 +19,10 @@
   expr 16:40    IdentExpr      :: usize
   expr 16:46    IdentExpr      :: usize
   expr 6:13     IntrinsicCallExpr :: usize
+  expr 6:22     IdentExpr      :: type
   expr 7:13     IntrinsicCallExpr :: usize
+  expr 7:22     IdentExpr      :: type
   expr 8:13     IntrinsicCallExpr :: usize
+  expr 8:22     IdentExpr      :: type
   expr 9:13     IntrinsicCallExpr :: usize
+  expr 9:22     IdentExpr      :: type

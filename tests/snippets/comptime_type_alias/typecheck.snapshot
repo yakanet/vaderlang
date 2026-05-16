@@ -7,13 +7,16 @@
   FnDecl         main                 :: fn() -> i32
   expr 13:13    StringLitExpr  :: string
   expr 13:31    IntrinsicCallExpr :: usize
+  expr 13:40    IdentExpr      :: type
   expr 13:5     CallExpr       :: void
   expr 13:5     IdentExpr      :: fn(string) -> void
   expr 14:13    StringLitExpr  :: string
   expr 14:31    IntrinsicCallExpr :: usize
+  expr 14:40    IdentExpr      :: type
   expr 14:5     CallExpr       :: void
   expr 14:5     IdentExpr      :: fn(string) -> void
   expr 15:13    StringLitExpr  :: string
   expr 15:31    IntrinsicCallExpr :: usize
+  expr 15:40    IdentExpr      :: type
   expr 15:5     CallExpr       :: void
   expr 15:5     IdentExpr      :: fn(string) -> void

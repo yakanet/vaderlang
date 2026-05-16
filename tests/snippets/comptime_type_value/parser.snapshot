@@ -91,6 +91,64 @@
               "kind": "CallExpr",
               "callee": {
                 "kind": "IdentExpr",
+                "name": "accept_type"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IntrinsicCallExpr",
+                    "name": "type_of",
+                    "args": [
+                      {
+                        "kind": "IntLitExpr",
+                        "value": "42n",
+                        "suffix": "i32"
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "accept_type"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IntrinsicCallExpr",
+                    "name": "type_of",
+                    "args": [
+                      {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "hello"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
                 "name": "println"
               },
               "args": [

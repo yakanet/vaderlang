@@ -186,6 +186,7 @@ function intrinsicResultType(result: IntrinsicResultKind): Type {
     case "usize":  return { kind: "Primitive", name: "usize" };
     case "string": return TY.string;
     case "bool":   return TY.bool;
+    case "type":   return TY.type;
   }
 }
 

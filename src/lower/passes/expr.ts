@@ -12,6 +12,7 @@ import { primitiveFromName } from "../../typecheck/passes/type-expr.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt, LoweredStructLitField } from "../lowered-ast.ts";
+import { INTRINSICS } from "../lowered-ast.ts";
 import { err } from "../diag.ts";
 
 import { lowerBlock } from "./block.ts";
@@ -358,7 +359,21 @@ function lowerIntrinsic(
   const targetTy = ctx.typed.typeExprTypes.get(expr.args[0]!);
 
   switch (expr.name) {
-    case "size_of":       return intLit(targetTy !== undefined ? sizeOfType(targetTy) : 0);
+    case "size_of": {
+      // Static case (`@size_of(i32)` or any type-shape expr) — the typechecker
+      // populated `targetTy`, fold to an `IntLit` without lowering the arg.
+      // Runtime case (a `type`-valued binding from a fn param, `@type_of(x)`,
+      // etc.) — lower the arg and route through the `size_of.type` intrinsic.
+      if (targetTy !== undefined) return intLit(sizeOfType(targetTy));
+      const argLowered = lowerExpr(ctx, expr.args[0]!);
+      if (argLowered.kind === "LoweredTypeConst") {
+        return intLit(sizeOfType(argLowered.value));
+      }
+      return {
+        kind: "LoweredIntrinsicCall", span: expr.span, type,
+        name: INTRINSICS.sizeOfType, args: [argLowered],
+      };
+    }
     case "align_of":      return intLit(targetTy !== undefined ? alignOfType(targetTy) : 0);
     case "field_count":   return intLit(targetTy !== undefined ? fieldCountOfType(targetTy) : 0);
     case "variant_count": return intLit(targetTy !== undefined ? variantCountOfType(targetTy) : 0);
@@ -391,6 +406,13 @@ function lowerIntrinsic(
       return baked !== undefined
         ? strLit(baked)
         : { kind: "LoweredUnreachable", span: expr.span, type, reason: "@file failed to bake" };
+    }
+    case "type_of": {
+      // The arg is NOT evaluated (Zig-style `@TypeOf`) — only its static
+      // type is read. Lowers to a `LoweredTypeConst` carrying that type ;
+      // the bytecode emit interns + emits `type.const N`.
+      const argType = ctx.typed.exprTypes.get(expr.args[0]!) ?? TY.unresolved;
+      return { kind: "LoweredTypeConst", span: expr.span, type, value: argType };
     }
   }
   return { kind: "LoweredUnreachable", span: expr.span, type, reason: `unhandled intrinsic @${expr.name}` };
