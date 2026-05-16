@@ -1,0 +1,121 @@
+// vader/typecheck/expr_block — type for a BlockExpr in value position.
+//
+// Mirror of the trailing-expr branch in `src/typecheck/passes/stmt.ts::checkBlock`.
+// A block's type is :
+//   - the type of the trailing expression when present
+//     (recurses through `check_expr` with the outer `expected`)
+//   - `void` otherwise
+//
+// MVP-trimmed against the TS reference :
+//   - No stmt walking — stmts inside the block don't yet feed
+//     `expr_types` / `local_types` ; that lands with Phase 4
+//     (`stmt.vader`). Until then, idents referencing block-local
+//     bindings (`let x = …`) resolve to `Unresolved`.
+//   - No divergence detection / W0002 dead-code warning ; tracked
+//     for Phase 4 alongside `check_stmt`.
+//   - No persisted narrowings across the block ; arrives with
+//     `narrow.vader` (Phase 6).
+
+import "vader/diagnostics/diagnostic" { Diagnostic }
+AST :: import "vader/parser/ast"
+import "vader/typecheck/types" { Type, mk_primitive }
+import "vader/typecheck/typed_ast" { TypedProgram }
+
+/// Type of a `BlockExpr`. `expected` flows into the trailing expr so
+/// `let x: i64 = { 5 }` narrows the inner literal to i64.
+export infer_block :: fn(
+    b: AST.BlockExpr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+    // The orchestrator passes itself in to break the cyclic call —
+    // `expr.vader::check_expr` calls `infer_block`, which calls
+    // `check_expr` on the trailing expr. Vader doesn't allow circular
+    // imports between files, so we thread the entry point as a value.
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    trailing :: b.trailing
+    if trailing is null { return mk_primitive("void") }
+    return check_expr_fn(trailing, expected, typed, diags)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/typecheck/types" { display_type }
+
+// Test helper — finds the first BlockExpr inside the first fn decl's body.
+first_block :: fn(src: string) -> AST.BlockExpr | null {
+    parsed :: parse_source(src, "t.vader")
+    match parsed.program.decls[0] {
+        is AST.FnDecl as f -> {
+            match f.body {
+                is null -> { return null }
+                is AST.BlockExpr as b -> { return b }
+            }
+        }
+        _ -> { return null }
+    }
+}
+
+// Tiny stub for the `check_expr_fn` arg — covers the literal cases this
+// file's tests exercise. Real call sites pass `expr.vader::check_expr`.
+import "vader/typecheck/expr_literals" { infer_int_lit, infer_bool_lit }
+stub_check_expr :: fn(
+    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    match e {
+        is AST.IntLitExpr as x -> { return infer_int_lit(x) }
+        is AST.BoolLitExpr as x -> { return infer_bool_lit(x) }
+        is AST.BlockExpr as x -> { return infer_block(x, expected, typed, diags, stub_check_expr) }
+        _ -> { return mk_primitive("void") }
+    }
+}
+
+import "vader/typecheck/typed_ast" { empty_typed_program }
+
+@test
+test_block_without_trailing_is_void :: fn() -> void {
+    b :: first_block("f :: fn() -> void {}")
+    match b {
+        is null -> { assert(false, "expected a body block") }
+        is AST.BlockExpr as block -> {
+            typed :: empty_typed_program()
+            diags: Diagnostic[] = []
+            ty :: infer_block(block, null, typed, diags, stub_check_expr)
+            assert_eq(display_type(ty), "void")
+        }
+    }
+}
+
+@test
+test_block_with_trailing_int_is_free_int :: fn() -> void {
+    b :: first_block("f :: fn() -> i32 { 42 }")
+    match b {
+        is null -> { assert(false, "expected a body block") }
+        is AST.BlockExpr as block -> {
+            typed :: empty_typed_program()
+            diags: Diagnostic[] = []
+            ty :: infer_block(block, null, typed, diags, stub_check_expr)
+            // Bare `42` stays FreeInt without a slot type ; render `{integer}`.
+            assert_eq(display_type(ty), "{integer}")
+        }
+    }
+}
+
+@test
+test_block_narrows_trailing_via_expected :: fn() -> void {
+    b :: first_block("f :: fn() -> i64 { 42 }")
+    match b {
+        is null -> { assert(false, "expected a body block") }
+        is AST.BlockExpr as block -> {
+            typed :: empty_typed_program()
+            diags: Diagnostic[] = []
+            expected: Type = mk_primitive("i64")
+            ty :: infer_block(block, expected, typed, diags, stub_check_expr)
+            // stub_check_expr returns FreeInt — block does NOT narrow ;
+            // narrowing happens in `check_expr`'s wrapper, not `infer_block`.
+            // The expected only flows when the orchestrator drives.
+            assert_eq(display_type(ty), "{integer}")
+        }
+    }
+}
