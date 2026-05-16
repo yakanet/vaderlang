@@ -142,7 +142,6 @@ fn 3 tests_snippets_match_literal_patterns__main_vader$mode_name (string) -> str
   local __scrut_0 string
   local if_res string
   local if_res string
-  local if_res string
   local.get 0   ; _main.vader:46:18
   local.set 1   ; _main.vader:46:18
   local.get 1   ; _main.vader:47:9
@@ -164,12 +163,12 @@ fn 3 tests_snippets_match_literal_patterns__main_vader$mode_name (string) -> str
       string.eq   ; _main.vader:49:9
       if $L2 void   ; _main.vader:49:9
         string.const 16   ; _main.vader:49:17
-        local.set 4   ; _main.vader:49:17
+        local.set 1   ; _main.vader:49:17
       else   ; _main.vader:49:9
         string.const 17   ; _main.vader:50:14
-        local.set 4   ; _main.vader:50:14
+        local.set 1   ; _main.vader:50:14
       end $L2   ; _main.vader:49:9
-      local.get 4   ; _main.vader:49:9
+      local.get 1   ; _main.vader:49:9
       local.set 3   ; _main.vader:49:9
     end $L1   ; _main.vader:48:9
     local.get 3   ; _main.vader:48:9

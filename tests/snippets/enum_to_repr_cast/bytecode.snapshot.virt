@@ -16,7 +16,6 @@ fn 0 tests_snippets_enum_to_repr_cast__main_vader$main () -> i32
   local f i32
   local __sb_0 any
   local $call_21 string
-  local $call_25 string
   i32.const 1   ; _main.vader:23:14
   u8.to_i32   ; _main.vader:23:10
   local.set 0   ; _main.vader:23:10
@@ -58,9 +57,9 @@ fn 0 tests_snippets_enum_to_repr_cast__main_vader$main () -> i32
   intrinsic builder.append_str   ; _main.vader:27:33
   local.get 1   ; _main.vader:27:34
   call.import 1   ; _main.vader:27:34
-  local.set 5   ; _main.vader:27:34
+  local.set 4   ; _main.vader:27:34
   local.get 3   ; _main.vader:27:34
-  local.get 5   ; _main.vader:27:34
+  local.get 4   ; _main.vader:27:34
   intrinsic builder.append_str   ; _main.vader:27:34
   local.get 3   ; _main.vader:27:38
   string.const 0   ; _main.vader:27:38

@@ -16,18 +16,10 @@ import 2 collections std_runtime$collections () -> i32
 fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
   local head ref
   local i i32
-  local c1 i32
-  local diff i32
   local __sb_0 any
-  local sum i32
-  local cur ref
   local done bool
   local __scrut_1 ref
   local $field_33 i32
-  local $mul_39 i32
-  local expected i32
-  local __sb_2 any
-  local __sb_3 any
   null.const   ; _main.vader:10:25
   local.set 0   ; _main.vader:10:25
   i32.const 0   ; _main.vader:11:10
@@ -52,64 +44,64 @@ fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
     end $L1   ; _main.vader:12:5
   end $L0   ; _main.vader:12:5
   call.import 2   ; _main.vader:18:11
-  local.set 2   ; _main.vader:18:5
+  local.set 1   ; _main.vader:18:5
   call.import 1   ; _main.vader:19:5
   call.import 1   ; _main.vader:20:5
   call.import 1   ; _main.vader:21:5
   call.import 2   ; _main.vader:22:11
-  local.get 2   ; _main.vader:24:13
+  local.get 1   ; _main.vader:24:13
   i32.sub   ; _main.vader:24:13
-  local.set 3   ; _main.vader:24:13
-  local.get 3   ; _main.vader:25:8
+  local.set 1   ; _main.vader:24:13
+  local.get 1   ; _main.vader:25:8
   i32.const 3   ; _main.vader:25:8
   i32.ne   ; _main.vader:25:8
   if $L3 void   ; _main.vader:25:5
     intrinsic builder.new   ; _main.vader:26:17
-    local.set 4   ; _main.vader:26:17
-    local.get 4   ; _main.vader:26:18
+    local.set 2   ; _main.vader:26:17
+    local.get 2   ; _main.vader:26:18
     string.const 0   ; _main.vader:26:18
     intrinsic builder.append_str   ; _main.vader:26:18
-    local.get 4   ; _main.vader:26:46
-    local.get 3   ; _main.vader:26:46
+    local.get 2   ; _main.vader:26:46
+    local.get 1   ; _main.vader:26:46
     intrinsic builder.append_display   ; _main.vader:26:46
-    local.get 4   ; _main.vader:26:17
+    local.get 2   ; _main.vader:26:17
     intrinsic builder.finish   ; _main.vader:26:17
     call.import 0   ; _main.vader:26:9
     i32.const 1   ; _main.vader:27:16
     return   ; _main.vader:27:9
   else   ; _main.vader:25:5
     i32.const 0   ; _main.vader:30:12
-    local.set 5   ; _main.vader:30:12
+    local.set 1   ; _main.vader:30:12
     local.get 0   ; _main.vader:31:5
-    local.set 6   ; _main.vader:31:5
+    local.set 0   ; _main.vader:31:5
     bool.const false   ; _main.vader:32:13
-    local.set 7   ; _main.vader:32:13
+    local.set 3   ; _main.vader:32:13
     block $L4 void   ; _main.vader:33:5
       loop $L5 void   ; _main.vader:33:5
-        local.get 7   ; _main.vader:33:9
+        local.get 3   ; _main.vader:33:9
         bool.not   ; _main.vader:33:9
         if $L6 void   ; _main.vader:33:9
-          local.get 6   ; _main.vader:34:15
-          local.tee 8   ; _main.vader:34:15
+          local.get 0   ; _main.vader:34:15
+          local.tee 4   ; _main.vader:34:15
           type_check 0   ; _main.vader:35:13
           if $L7 void   ; _main.vader:35:13
             bool.const true   ; _main.vader:35:33
-            local.set 7   ; _main.vader:35:33
+            local.set 3   ; _main.vader:35:33
             br $L5   ; _main.vader:33:5
           else   ; _main.vader:35:13
-            local.get 8   ; _main.vader:36:13
+            local.get 4   ; _main.vader:36:13
             type_check 2   ; _main.vader:36:13
             if $L8 void   ; _main.vader:36:13
-              local.get 6   ; _main.vader:37:29
+              local.get 0   ; _main.vader:37:29
               struct.get 2 0   ; _main.vader:37:29
-              local.set 9   ; _main.vader:37:29
+              local.set 5   ; _main.vader:37:29
+              local.get 1   ; _main.vader:37:23
               local.get 5   ; _main.vader:37:23
-              local.get 9   ; _main.vader:37:23
               i32.add   ; _main.vader:37:23
-              local.set 5   ; _main.vader:37:23
-              local.get 6   ; _main.vader:38:23
+              local.set 1   ; _main.vader:37:23
+              local.get 0   ; _main.vader:38:23
               struct.get 2 1   ; _main.vader:38:23
-              local.set 6   ; _main.vader:38:23
+              local.set 0   ; _main.vader:38:23
               br $L5   ; _main.vader:33:5
             else   ; _main.vader:36:13
               unreachable   ; _main.vader:34:9
@@ -122,44 +114,44 @@ fn 0 tests_snippets_gc_multi_collect__main_vader$main () -> i32
     i32.const 50   ; _main.vader:43:17
     i32.const 49   ; _main.vader:43:17
     i32.mul   ; _main.vader:43:17
-    local.set 10   ; _main.vader:43:17
-    local.get 10   ; _main.vader:43:17
+    local.set 5   ; _main.vader:43:17
+    local.get 5   ; _main.vader:43:17
     i32.const 2   ; _main.vader:43:17
     i32.div   ; _main.vader:43:17
-    local.set 11   ; _main.vader:43:17
+    local.set 5   ; _main.vader:43:17
+    local.get 1   ; _main.vader:44:8
     local.get 5   ; _main.vader:44:8
-    local.get 11   ; _main.vader:44:8
     i32.ne   ; _main.vader:44:8
     if $L9 void   ; _main.vader:44:5
       intrinsic builder.new   ; _main.vader:45:17
-      local.set 12   ; _main.vader:45:17
-      local.get 12   ; _main.vader:45:18
+      local.set 2   ; _main.vader:45:17
+      local.get 2   ; _main.vader:45:18
       string.const 1   ; _main.vader:45:18
       intrinsic builder.append_str   ; _main.vader:45:18
-      local.get 12   ; _main.vader:45:52
-      local.get 5   ; _main.vader:45:52
+      local.get 2   ; _main.vader:45:52
+      local.get 1   ; _main.vader:45:52
       intrinsic builder.append_display   ; _main.vader:45:52
-      local.get 12   ; _main.vader:45:58
+      local.get 2   ; _main.vader:45:58
       string.const 2   ; _main.vader:45:58
       intrinsic builder.append_str   ; _main.vader:45:58
-      local.get 12   ; _main.vader:45:62
-      local.get 11   ; _main.vader:45:62
+      local.get 2   ; _main.vader:45:62
+      local.get 5   ; _main.vader:45:62
       intrinsic builder.append_display   ; _main.vader:45:62
-      local.get 12   ; _main.vader:45:17
+      local.get 2   ; _main.vader:45:17
       intrinsic builder.finish   ; _main.vader:45:17
       call.import 0   ; _main.vader:45:9
       i32.const 2   ; _main.vader:46:16
       return   ; _main.vader:46:9
     else   ; _main.vader:44:5
       intrinsic builder.new   ; _main.vader:49:13
-      local.set 13   ; _main.vader:49:13
-      local.get 13   ; _main.vader:49:14
+      local.set 2   ; _main.vader:49:13
+      local.get 2   ; _main.vader:49:14
       string.const 3   ; _main.vader:49:14
       intrinsic builder.append_str   ; _main.vader:49:14
-      local.get 13   ; _main.vader:49:55
-      local.get 5   ; _main.vader:49:55
+      local.get 2   ; _main.vader:49:55
+      local.get 1   ; _main.vader:49:55
       intrinsic builder.append_display   ; _main.vader:49:55
-      local.get 13   ; _main.vader:49:13
+      local.get 2   ; _main.vader:49:13
       intrinsic builder.finish   ; _main.vader:49:13
       call.import 0   ; _main.vader:49:5
       i32.const 0   ; _main.vader:50:12

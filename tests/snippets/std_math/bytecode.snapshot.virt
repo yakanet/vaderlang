@@ -14,14 +14,6 @@ import 5 round std_math$round (f64) -> f64
 fn 0 tests_snippets_std_math__main_vader$main () -> i32
   local __sb_0 any
   local $call_3 f64
-  local __sb_1 any
-  local $call_9 f64
-  local __sb_2 any
-  local $call_14 f64
-  local __sb_3 any
-  local $call_19 f64
-  local __sb_4 any
-  local $call_24 f64
   intrinsic builder.new   ; _main.vader:5:13
   local.set 0   ; _main.vader:5:13
   f64.const 4.0   ; _main.vader:5:21
@@ -34,48 +26,48 @@ fn 0 tests_snippets_std_math__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:5:13
   call.import 0   ; _main.vader:5:5
   intrinsic builder.new   ; _main.vader:6:13
-  local.set 2   ; _main.vader:6:13
+  local.set 0   ; _main.vader:6:13
   f64.const 2.0   ; _main.vader:6:16
   f64.const 10.0   ; _main.vader:6:16
   call.import 2   ; _main.vader:6:16
-  local.set 3   ; _main.vader:6:16
-  local.get 2   ; _main.vader:6:14
-  local.get 3   ; _main.vader:6:14
+  local.set 1   ; _main.vader:6:16
+  local.get 0   ; _main.vader:6:14
+  local.get 1   ; _main.vader:6:14
   intrinsic builder.append_display   ; _main.vader:6:14
-  local.get 2   ; _main.vader:6:13
+  local.get 0   ; _main.vader:6:13
   intrinsic builder.finish   ; _main.vader:6:13
   call.import 0   ; _main.vader:6:5
   intrinsic builder.new   ; _main.vader:7:13
-  local.set 4   ; _main.vader:7:13
+  local.set 0   ; _main.vader:7:13
   f64.const 3.7   ; _main.vader:7:22
   call.import 3   ; _main.vader:7:16
-  local.set 5   ; _main.vader:7:16
-  local.get 4   ; _main.vader:7:14
-  local.get 5   ; _main.vader:7:14
+  local.set 1   ; _main.vader:7:16
+  local.get 0   ; _main.vader:7:14
+  local.get 1   ; _main.vader:7:14
   intrinsic builder.append_display   ; _main.vader:7:14
-  local.get 4   ; _main.vader:7:13
+  local.get 0   ; _main.vader:7:13
   intrinsic builder.finish   ; _main.vader:7:13
   call.import 0   ; _main.vader:7:5
   intrinsic builder.new   ; _main.vader:8:13
-  local.set 6   ; _main.vader:8:13
+  local.set 0   ; _main.vader:8:13
   f64.const 3.2   ; _main.vader:8:21
   call.import 4   ; _main.vader:8:16
-  local.set 7   ; _main.vader:8:16
-  local.get 6   ; _main.vader:8:14
-  local.get 7   ; _main.vader:8:14
+  local.set 1   ; _main.vader:8:16
+  local.get 0   ; _main.vader:8:14
+  local.get 1   ; _main.vader:8:14
   intrinsic builder.append_display   ; _main.vader:8:14
-  local.get 6   ; _main.vader:8:13
+  local.get 0   ; _main.vader:8:13
   intrinsic builder.finish   ; _main.vader:8:13
   call.import 0   ; _main.vader:8:5
   intrinsic builder.new   ; _main.vader:9:13
-  local.set 8   ; _main.vader:9:13
+  local.set 0   ; _main.vader:9:13
   f64.const 2.5   ; _main.vader:9:22
   call.import 5   ; _main.vader:9:16
-  local.set 9   ; _main.vader:9:16
-  local.get 8   ; _main.vader:9:14
-  local.get 9   ; _main.vader:9:14
+  local.set 1   ; _main.vader:9:16
+  local.get 0   ; _main.vader:9:14
+  local.get 1   ; _main.vader:9:14
   intrinsic builder.append_display   ; _main.vader:9:14
-  local.get 8   ; _main.vader:9:13
+  local.get 0   ; _main.vader:9:13
   intrinsic builder.finish   ; _main.vader:9:13
   call.import 0   ; _main.vader:9:5
   i32.const 0   ; _main.vader:10:12

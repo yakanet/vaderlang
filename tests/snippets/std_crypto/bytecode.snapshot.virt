@@ -34,18 +34,6 @@ impl 9 Display
 fn 0 tests_snippets_std_crypto__main_vader$main () -> i32
   local __sb_0 any
   local $call_4 string
-  local __sb_1 any
-  local $call_10 string
-  local __sb_2 any
-  local $call_16 string
-  local __sb_3 any
-  local $call_22 string
-  local __sb_4 any
-  local $call_28 string
-  local __sb_5 any
-  local $call_34 string
-  local __sb_6 any
-  local $call_40 string
   intrinsic builder.new   ; _main.vader:8:13
   local.set 0   ; _main.vader:8:13
   local.get 0   ; _main.vader:8:14
@@ -61,87 +49,87 @@ fn 0 tests_snippets_std_crypto__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:8:13
   call.import 0   ; _main.vader:8:5
   intrinsic builder.new   ; _main.vader:9:13
-  local.set 2   ; _main.vader:9:13
-  local.get 2   ; _main.vader:9:14
+  local.set 0   ; _main.vader:9:13
+  local.get 0   ; _main.vader:9:14
   string.const 2   ; _main.vader:9:14
   intrinsic builder.append_str   ; _main.vader:9:14
   string.const 3   ; _main.vader:9:34
   call 6   ; _main.vader:9:27
-  local.set 3   ; _main.vader:9:27
-  local.get 2   ; _main.vader:9:25
-  local.get 3   ; _main.vader:9:25
+  local.set 1   ; _main.vader:9:27
+  local.get 0   ; _main.vader:9:25
+  local.get 1   ; _main.vader:9:25
   intrinsic builder.append_display   ; _main.vader:9:25
-  local.get 2   ; _main.vader:9:13
+  local.get 0   ; _main.vader:9:13
   intrinsic builder.finish   ; _main.vader:9:13
   call.import 0   ; _main.vader:9:5
   intrinsic builder.new   ; _main.vader:10:13
-  local.set 4   ; _main.vader:10:13
-  local.get 4   ; _main.vader:10:14
+  local.set 0   ; _main.vader:10:13
+  local.get 0   ; _main.vader:10:14
   string.const 4   ; _main.vader:10:14
   intrinsic builder.append_str   ; _main.vader:10:14
   string.const 5   ; _main.vader:10:36
   call 6   ; _main.vader:10:29
-  local.set 5   ; _main.vader:10:29
-  local.get 4   ; _main.vader:10:27
-  local.get 5   ; _main.vader:10:27
+  local.set 1   ; _main.vader:10:29
+  local.get 0   ; _main.vader:10:27
+  local.get 1   ; _main.vader:10:27
   intrinsic builder.append_display   ; _main.vader:10:27
-  local.get 4   ; _main.vader:10:13
+  local.get 0   ; _main.vader:10:13
   intrinsic builder.finish   ; _main.vader:10:13
   call.import 0   ; _main.vader:10:5
   intrinsic builder.new   ; _main.vader:13:13
-  local.set 6   ; _main.vader:13:13
-  local.get 6   ; _main.vader:13:14
+  local.set 0   ; _main.vader:13:13
+  local.get 0   ; _main.vader:13:14
   string.const 6   ; _main.vader:13:14
   intrinsic builder.append_str   ; _main.vader:13:14
   string.const 7   ; _main.vader:13:35
   call 6   ; _main.vader:13:28
-  local.set 7   ; _main.vader:13:28
-  local.get 6   ; _main.vader:13:26
-  local.get 7   ; _main.vader:13:26
+  local.set 1   ; _main.vader:13:28
+  local.get 0   ; _main.vader:13:26
+  local.get 1   ; _main.vader:13:26
   intrinsic builder.append_display   ; _main.vader:13:26
-  local.get 6   ; _main.vader:13:13
+  local.get 0   ; _main.vader:13:13
   intrinsic builder.finish   ; _main.vader:13:13
   call.import 0   ; _main.vader:13:5
   intrinsic builder.new   ; _main.vader:15:13
-  local.set 8   ; _main.vader:15:13
-  local.get 8   ; _main.vader:15:14
+  local.set 0   ; _main.vader:15:13
+  local.get 0   ; _main.vader:15:14
   string.const 8   ; _main.vader:15:14
   intrinsic builder.append_str   ; _main.vader:15:14
   string.const 1   ; _main.vader:15:30
   call 8   ; _main.vader:15:26
-  local.set 9   ; _main.vader:15:26
-  local.get 8   ; _main.vader:15:24
-  local.get 9   ; _main.vader:15:24
+  local.set 1   ; _main.vader:15:26
+  local.get 0   ; _main.vader:15:24
+  local.get 1   ; _main.vader:15:24
   intrinsic builder.append_display   ; _main.vader:15:24
-  local.get 8   ; _main.vader:15:13
+  local.get 0   ; _main.vader:15:13
   intrinsic builder.finish   ; _main.vader:15:13
   call.import 0   ; _main.vader:15:5
   intrinsic builder.new   ; _main.vader:16:13
-  local.set 10   ; _main.vader:16:13
-  local.get 10   ; _main.vader:16:14
+  local.set 0   ; _main.vader:16:13
+  local.get 0   ; _main.vader:16:14
   string.const 9   ; _main.vader:16:14
   intrinsic builder.append_str   ; _main.vader:16:14
   string.const 3   ; _main.vader:16:28
   call 8   ; _main.vader:16:24
-  local.set 11   ; _main.vader:16:24
-  local.get 10   ; _main.vader:16:22
-  local.get 11   ; _main.vader:16:22
+  local.set 1   ; _main.vader:16:24
+  local.get 0   ; _main.vader:16:22
+  local.get 1   ; _main.vader:16:22
   intrinsic builder.append_display   ; _main.vader:16:22
-  local.get 10   ; _main.vader:16:13
+  local.get 0   ; _main.vader:16:13
   intrinsic builder.finish   ; _main.vader:16:13
   call.import 0   ; _main.vader:16:5
   intrinsic builder.new   ; _main.vader:17:13
-  local.set 12   ; _main.vader:17:13
-  local.get 12   ; _main.vader:17:14
+  local.set 0   ; _main.vader:17:13
+  local.get 0   ; _main.vader:17:14
   string.const 10   ; _main.vader:17:14
   intrinsic builder.append_str   ; _main.vader:17:14
   string.const 5   ; _main.vader:17:30
   call 8   ; _main.vader:17:26
-  local.set 13   ; _main.vader:17:26
-  local.get 12   ; _main.vader:17:24
-  local.get 13   ; _main.vader:17:24
+  local.set 1   ; _main.vader:17:26
+  local.get 0   ; _main.vader:17:24
+  local.get 1   ; _main.vader:17:24
   intrinsic builder.append_display   ; _main.vader:17:24
-  local.get 12   ; _main.vader:17:13
+  local.get 0   ; _main.vader:17:13
   intrinsic builder.finish   ; _main.vader:17:13
   call.import 0   ; _main.vader:17:5
   i32.const 0   ; _main.vader:18:12
@@ -159,7 +147,6 @@ end
 fn 2 std_crypto$rotr32 (u32,u32) -> u32
   local $shr_2 u32
   local $sub_5 u32
-  local $call_7 u32
   local.get 0   ; crypto.vader:34:13
   local.get 1   ; crypto.vader:34:13
   u32.shr   ; crypto.vader:34:13
@@ -172,9 +159,9 @@ fn 2 std_crypto$rotr32 (u32,u32) -> u32
   local.get 3   ; crypto.vader:34:30
   u32.shl   ; crypto.vader:34:30
   call 1   ; crypto.vader:34:23
-  local.set 4   ; crypto.vader:34:23
+  local.set 3   ; crypto.vader:34:23
   local.get 2   ; crypto.vader:34:13
-  local.get 4   ; crypto.vader:34:13
+  local.get 3   ; crypto.vader:34:13
   u32.bitor   ; crypto.vader:34:13
   return   ; crypto.vader:34:5
 end
@@ -252,11 +239,8 @@ end
 
 fn 5 std_crypto$append_hex_u8 (ref,u8) -> void
   local $cast_2 u32
-  local hi u32
   local $cast_7 u32
-  local lo u32
   local $call_12 char
-  local $call_13 char
   local.get 1   ; crypto.vader:52:11
   u8.to_u32   ; crypto.vader:52:11
   local.set 2   ; crypto.vader:52:11
@@ -264,26 +248,26 @@ fn 5 std_crypto$append_hex_u8 (ref,u8) -> void
   i32.const 4   ; crypto.vader:52:11
   i32.to_u32   ; crypto.vader:52:11
   u32.shr   ; crypto.vader:52:11
-  local.set 3   ; crypto.vader:52:11
+  local.set 2   ; crypto.vader:52:11
   local.get 1   ; crypto.vader:53:11
   u8.to_u32   ; crypto.vader:53:11
-  local.set 4   ; crypto.vader:53:11
-  local.get 4   ; crypto.vader:53:11
+  local.set 3   ; crypto.vader:53:11
+  local.get 3   ; crypto.vader:53:11
   i32.const 15   ; crypto.vader:53:11
   i32.to_u32   ; crypto.vader:53:11
   u32.bitand   ; crypto.vader:53:11
-  local.set 5   ; crypto.vader:53:11
-  local.get 3   ; crypto.vader:54:20
+  local.set 3   ; crypto.vader:53:11
+  local.get 2   ; crypto.vader:54:20
   call 3   ; crypto.vader:54:20
-  local.set 6   ; crypto.vader:54:20
+  local.set 4   ; crypto.vader:54:20
   local.get 0   ; crypto.vader:54:5
-  local.get 6   ; crypto.vader:54:5
+  local.get 4   ; crypto.vader:54:5
   call 13   ; crypto.vader:54:5
-  local.get 5   ; crypto.vader:55:20
+  local.get 3   ; crypto.vader:55:20
   call 3   ; crypto.vader:55:20
-  local.set 7   ; crypto.vader:55:20
+  local.set 4   ; crypto.vader:55:20
   local.get 0   ; crypto.vader:55:5
-  local.get 7   ; crypto.vader:55:5
+  local.get 4   ; crypto.vader:55:5
   call 13   ; crypto.vader:55:5
   return   ; crypto.vader:51:55
 end
@@ -299,7 +283,6 @@ fn 6 std_crypto$sha256 (string) -> string
   local h7 u32
   local msg ref
   local $len_19 usize
-  local blocks usize
   local block_idx usize
   local block_offset usize
   local w ref
@@ -378,7 +361,6 @@ fn 6 std_crypto$sha256 (string) -> string
   local $bitand_203 u32
   local maj_abc u32
   local t2 u32
-  local sb ref
   i32.const 1779033703   ; crypto.vader:67:15
   local.set 1   ; crypto.vader:67:15
   i32.const 3144134277   ; crypto.vader:68:15
@@ -404,509 +386,509 @@ fn 6 std_crypto$sha256 (string) -> string
   i64.const 64   ; crypto.vader:78:15
   i64.to_usize   ; crypto.vader:78:15
   usize.div   ; crypto.vader:78:15
-  local.set 11   ; crypto.vader:78:15
+  local.set 10   ; crypto.vader:78:15
   i64.const 0   ; crypto.vader:79:24
-  local.set 12   ; crypto.vader:79:24
+  local.set 11   ; crypto.vader:79:24
   block $L0 void   ; crypto.vader:80:5
     loop $L1 void   ; crypto.vader:80:5
-      local.get 12   ; crypto.vader:80:9
       local.get 11   ; crypto.vader:80:9
+      local.get 10   ; crypto.vader:80:9
       usize.lt   ; crypto.vader:80:9
       if $L2 void   ; crypto.vader:80:9
-        local.get 12   ; crypto.vader:81:25
+        local.get 11   ; crypto.vader:81:25
         i64.const 64   ; crypto.vader:81:25
         i64.to_usize   ; crypto.vader:81:25
         usize.mul   ; crypto.vader:81:25
-        local.set 13   ; crypto.vader:81:25
+        local.set 12   ; crypto.vader:81:25
         array.new 11 0   ; crypto.vader:82:20
-        local.set 14   ; crypto.vader:82:20
+        local.set 13   ; crypto.vader:82:20
         i64.const 0   ; crypto.vader:83:20
-        local.set 15   ; crypto.vader:83:20
+        local.set 14   ; crypto.vader:83:20
         block $L3 void   ; crypto.vader:84:9
           loop $L4 void   ; crypto.vader:84:9
-            local.get 15   ; crypto.vader:84:13
+            local.get 14   ; crypto.vader:84:13
             i64.const 16   ; crypto.vader:84:13
             i64.to_usize   ; crypto.vader:84:13
             usize.lt   ; crypto.vader:84:13
             if $L5 void   ; crypto.vader:84:13
-              local.get 15   ; crypto.vader:85:42
+              local.get 14   ; crypto.vader:85:42
               i64.const 4   ; crypto.vader:85:42
               i64.to_usize   ; crypto.vader:85:42
               usize.mul   ; crypto.vader:85:42
-              local.set 16   ; crypto.vader:85:42
-              local.get 13   ; crypto.vader:85:27
-              local.get 16   ; crypto.vader:85:27
+              local.set 15   ; crypto.vader:85:42
+              local.get 12   ; crypto.vader:85:27
+              local.get 15   ; crypto.vader:85:27
               usize.add   ; crypto.vader:85:27
-              local.set 17   ; crypto.vader:85:27
-              local.get 17   ; crypto.vader:85:27
+              local.set 16   ; crypto.vader:85:27
+              local.get 16   ; crypto.vader:85:27
               i64.const 0   ; crypto.vader:85:27
               i64.to_usize   ; crypto.vader:85:27
               usize.add   ; crypto.vader:85:27
-              local.set 18   ; crypto.vader:85:27
+              local.set 17   ; crypto.vader:85:27
               local.get 9   ; crypto.vader:85:23
-              local.get 18   ; crypto.vader:85:23
+              local.get 17   ; crypto.vader:85:23
               array.get 10   ; crypto.vader:85:23
               ref.cast 3   ; crypto.vader:85:23
               u8.to_u32   ; crypto.vader:85:19
-              local.set 19   ; crypto.vader:85:19
-              local.get 15   ; crypto.vader:86:42
+              local.set 18   ; crypto.vader:85:19
+              local.get 14   ; crypto.vader:86:42
               i64.const 4   ; crypto.vader:86:42
               i64.to_usize   ; crypto.vader:86:42
               usize.mul   ; crypto.vader:86:42
-              local.set 20   ; crypto.vader:86:42
-              local.get 13   ; crypto.vader:86:27
-              local.get 20   ; crypto.vader:86:27
+              local.set 19   ; crypto.vader:86:42
+              local.get 12   ; crypto.vader:86:27
+              local.get 19   ; crypto.vader:86:27
               usize.add   ; crypto.vader:86:27
-              local.set 21   ; crypto.vader:86:27
-              local.get 21   ; crypto.vader:86:27
+              local.set 20   ; crypto.vader:86:27
+              local.get 20   ; crypto.vader:86:27
               i64.const 1   ; crypto.vader:86:27
               i64.to_usize   ; crypto.vader:86:27
               usize.add   ; crypto.vader:86:27
-              local.set 22   ; crypto.vader:86:27
+              local.set 21   ; crypto.vader:86:27
               local.get 9   ; crypto.vader:86:23
-              local.get 22   ; crypto.vader:86:23
+              local.get 21   ; crypto.vader:86:23
               array.get 10   ; crypto.vader:86:23
               ref.cast 3   ; crypto.vader:86:23
               u8.to_u32   ; crypto.vader:86:19
-              local.set 23   ; crypto.vader:86:19
-              local.get 15   ; crypto.vader:87:42
+              local.set 22   ; crypto.vader:86:19
+              local.get 14   ; crypto.vader:87:42
               i64.const 4   ; crypto.vader:87:42
               i64.to_usize   ; crypto.vader:87:42
               usize.mul   ; crypto.vader:87:42
-              local.set 24   ; crypto.vader:87:42
-              local.get 13   ; crypto.vader:87:27
-              local.get 24   ; crypto.vader:87:27
+              local.set 23   ; crypto.vader:87:42
+              local.get 12   ; crypto.vader:87:27
+              local.get 23   ; crypto.vader:87:27
               usize.add   ; crypto.vader:87:27
-              local.set 25   ; crypto.vader:87:27
-              local.get 25   ; crypto.vader:87:27
+              local.set 24   ; crypto.vader:87:27
+              local.get 24   ; crypto.vader:87:27
               i64.const 2   ; crypto.vader:87:27
               i64.to_usize   ; crypto.vader:87:27
               usize.add   ; crypto.vader:87:27
-              local.set 26   ; crypto.vader:87:27
+              local.set 25   ; crypto.vader:87:27
               local.get 9   ; crypto.vader:87:23
-              local.get 26   ; crypto.vader:87:23
+              local.get 25   ; crypto.vader:87:23
               array.get 10   ; crypto.vader:87:23
               ref.cast 3   ; crypto.vader:87:23
               u8.to_u32   ; crypto.vader:87:19
-              local.set 27   ; crypto.vader:87:19
-              local.get 15   ; crypto.vader:88:42
+              local.set 26   ; crypto.vader:87:19
+              local.get 14   ; crypto.vader:88:42
               i64.const 4   ; crypto.vader:88:42
               i64.to_usize   ; crypto.vader:88:42
               usize.mul   ; crypto.vader:88:42
-              local.set 28   ; crypto.vader:88:42
-              local.get 13   ; crypto.vader:88:27
-              local.get 28   ; crypto.vader:88:27
+              local.set 27   ; crypto.vader:88:42
+              local.get 12   ; crypto.vader:88:27
+              local.get 27   ; crypto.vader:88:27
               usize.add   ; crypto.vader:88:27
-              local.set 29   ; crypto.vader:88:27
-              local.get 29   ; crypto.vader:88:27
+              local.set 28   ; crypto.vader:88:27
+              local.get 28   ; crypto.vader:88:27
               i64.const 3   ; crypto.vader:88:27
               i64.to_usize   ; crypto.vader:88:27
               usize.add   ; crypto.vader:88:27
-              local.set 30   ; crypto.vader:88:27
+              local.set 29   ; crypto.vader:88:27
               local.get 9   ; crypto.vader:88:23
-              local.get 30   ; crypto.vader:88:23
+              local.get 29   ; crypto.vader:88:23
               array.get 10   ; crypto.vader:88:23
               ref.cast 3   ; crypto.vader:88:23
               u8.to_u32   ; crypto.vader:88:19
-              local.set 31   ; crypto.vader:88:19
-              local.get 19   ; crypto.vader:89:28
+              local.set 30   ; crypto.vader:88:19
+              local.get 18   ; crypto.vader:89:28
               i32.const 24   ; crypto.vader:89:28
               i32.to_u32   ; crypto.vader:89:28
               u32.shl   ; crypto.vader:89:28
-              local.set 32   ; crypto.vader:89:28
-              local.get 23   ; crypto.vader:89:46
+              local.set 31   ; crypto.vader:89:28
+              local.get 22   ; crypto.vader:89:46
               i32.const 16   ; crypto.vader:89:46
               i32.to_u32   ; crypto.vader:89:46
               u32.shl   ; crypto.vader:89:46
-              local.set 33   ; crypto.vader:89:46
+              local.set 32   ; crypto.vader:89:46
+              local.get 31   ; crypto.vader:89:28
               local.get 32   ; crypto.vader:89:28
-              local.get 33   ; crypto.vader:89:28
               u32.bitor   ; crypto.vader:89:28
-              local.set 34   ; crypto.vader:89:28
-              local.get 27   ; crypto.vader:89:64
+              local.set 33   ; crypto.vader:89:28
+              local.get 26   ; crypto.vader:89:64
               i32.const 8   ; crypto.vader:89:64
               i32.to_u32   ; crypto.vader:89:64
               u32.shl   ; crypto.vader:89:64
-              local.set 35   ; crypto.vader:89:64
+              local.set 34   ; crypto.vader:89:64
+              local.get 33   ; crypto.vader:89:28
               local.get 34   ; crypto.vader:89:28
-              local.get 35   ; crypto.vader:89:28
               u32.bitor   ; crypto.vader:89:28
-              local.get 31   ; crypto.vader:89:28
+              local.get 30   ; crypto.vader:89:28
               u32.bitor   ; crypto.vader:89:28
               call 1   ; crypto.vader:89:20
-              local.set 36   ; crypto.vader:89:20
-              local.get 14   ; crypto.vader:89:13
-              local.get 36   ; crypto.vader:89:13
+              local.set 35   ; crypto.vader:89:20
+              local.get 13   ; crypto.vader:89:13
+              local.get 35   ; crypto.vader:89:13
               array.push 4   ; crypto.vader:89:13
-              local.get 15   ; crypto.vader:90:17
+              local.get 14   ; crypto.vader:90:17
               i64.const 1   ; crypto.vader:90:17
               i64.to_usize   ; crypto.vader:90:17
               usize.add   ; crypto.vader:90:17
-              local.set 15   ; crypto.vader:90:17
+              local.set 14   ; crypto.vader:90:17
               br $L4   ; crypto.vader:84:9
             else   ; crypto.vader:84:13
             end $L5   ; crypto.vader:84:13
           end $L4   ; crypto.vader:84:9
         end $L3   ; crypto.vader:84:9
         i64.const 16   ; crypto.vader:93:20
-        local.set 37   ; crypto.vader:93:20
+        local.set 36   ; crypto.vader:93:20
         block $L6 void   ; crypto.vader:94:9
           loop $L7 void   ; crypto.vader:94:9
-            local.get 37   ; crypto.vader:94:13
+            local.get 36   ; crypto.vader:94:13
             i64.const 64   ; crypto.vader:94:13
             i64.to_usize   ; crypto.vader:94:13
             usize.lt   ; crypto.vader:94:13
             if $L8 void   ; crypto.vader:94:13
-              local.get 37   ; crypto.vader:95:25
+              local.get 36   ; crypto.vader:95:25
               i64.const 15   ; crypto.vader:95:25
               i64.to_usize   ; crypto.vader:95:25
               usize.sub   ; crypto.vader:95:25
-              local.set 38   ; crypto.vader:95:25
-              local.get 14   ; crypto.vader:95:23
-              local.get 38   ; crypto.vader:95:23
+              local.set 37   ; crypto.vader:95:25
+              local.get 13   ; crypto.vader:95:23
+              local.get 37   ; crypto.vader:95:23
               array.get 11   ; crypto.vader:95:23
               ref.cast 4   ; crypto.vader:95:23
-              local.set 39   ; crypto.vader:95:23
-              local.get 37   ; crypto.vader:96:25
+              local.set 38   ; crypto.vader:95:23
+              local.get 36   ; crypto.vader:96:25
               i64.const 2   ; crypto.vader:96:25
               i64.to_usize   ; crypto.vader:96:25
               usize.sub   ; crypto.vader:96:25
-              local.set 40   ; crypto.vader:96:25
-              local.get 14   ; crypto.vader:96:23
-              local.get 40   ; crypto.vader:96:23
+              local.set 39   ; crypto.vader:96:25
+              local.get 13   ; crypto.vader:96:23
+              local.get 39   ; crypto.vader:96:23
               array.get 11   ; crypto.vader:96:23
               ref.cast 4   ; crypto.vader:96:23
-              local.set 41   ; crypto.vader:96:23
-              local.get 39   ; crypto.vader:97:19
+              local.set 40   ; crypto.vader:96:23
+              local.get 38   ; crypto.vader:97:19
               i32.const 7   ; crypto.vader:97:19
               i32.to_u32   ; crypto.vader:97:19
               call 2   ; crypto.vader:97:19
-              local.set 42   ; crypto.vader:97:19
-              local.get 39   ; crypto.vader:97:44
+              local.set 41   ; crypto.vader:97:19
+              local.get 38   ; crypto.vader:97:44
               i32.const 18   ; crypto.vader:97:44
               i32.to_u32   ; crypto.vader:97:44
               call 2   ; crypto.vader:97:44
-              local.set 43   ; crypto.vader:97:44
+              local.set 42   ; crypto.vader:97:44
+              local.get 41   ; crypto.vader:97:19
               local.get 42   ; crypto.vader:97:19
-              local.get 43   ; crypto.vader:97:19
               u32.bitxor   ; crypto.vader:97:19
-              local.set 44   ; crypto.vader:97:19
-              local.get 39   ; crypto.vader:97:71
+              local.set 43   ; crypto.vader:97:19
+              local.get 38   ; crypto.vader:97:71
               i32.const 3   ; crypto.vader:97:71
               i32.to_u32   ; crypto.vader:97:71
               u32.shr   ; crypto.vader:97:71
-              local.set 45   ; crypto.vader:97:71
+              local.set 44   ; crypto.vader:97:71
+              local.get 43   ; crypto.vader:97:19
               local.get 44   ; crypto.vader:97:19
-              local.get 45   ; crypto.vader:97:19
               u32.bitxor   ; crypto.vader:97:19
-              local.set 46   ; crypto.vader:97:19
-              local.get 41   ; crypto.vader:98:19
+              local.set 45   ; crypto.vader:97:19
+              local.get 40   ; crypto.vader:98:19
               i32.const 17   ; crypto.vader:98:19
               i32.to_u32   ; crypto.vader:98:19
               call 2   ; crypto.vader:98:19
-              local.set 47   ; crypto.vader:98:19
-              local.get 41   ; crypto.vader:98:45
+              local.set 46   ; crypto.vader:98:19
+              local.get 40   ; crypto.vader:98:45
               i32.const 19   ; crypto.vader:98:45
               i32.to_u32   ; crypto.vader:98:45
               call 2   ; crypto.vader:98:45
-              local.set 48   ; crypto.vader:98:45
+              local.set 47   ; crypto.vader:98:45
+              local.get 46   ; crypto.vader:98:19
               local.get 47   ; crypto.vader:98:19
-              local.get 48   ; crypto.vader:98:19
               u32.bitxor   ; crypto.vader:98:19
-              local.set 49   ; crypto.vader:98:19
-              local.get 41   ; crypto.vader:98:72
+              local.set 48   ; crypto.vader:98:19
+              local.get 40   ; crypto.vader:98:72
               i32.const 10   ; crypto.vader:98:72
               i32.to_u32   ; crypto.vader:98:72
               u32.shr   ; crypto.vader:98:72
-              local.set 50   ; crypto.vader:98:72
+              local.set 49   ; crypto.vader:98:72
+              local.get 48   ; crypto.vader:98:19
               local.get 49   ; crypto.vader:98:19
-              local.get 50   ; crypto.vader:98:19
               u32.bitxor   ; crypto.vader:98:19
-              local.set 51   ; crypto.vader:98:19
-              local.get 37   ; crypto.vader:99:29
+              local.set 50   ; crypto.vader:98:19
+              local.get 36   ; crypto.vader:99:29
               i64.const 16   ; crypto.vader:99:29
               i64.to_usize   ; crypto.vader:99:29
               usize.sub   ; crypto.vader:99:29
-              local.set 52   ; crypto.vader:99:29
-              local.get 14   ; crypto.vader:99:27
-              local.get 52   ; crypto.vader:99:27
+              local.set 51   ; crypto.vader:99:29
+              local.get 13   ; crypto.vader:99:27
+              local.get 51   ; crypto.vader:99:27
               array.get 11   ; crypto.vader:99:27
               ref.cast 4   ; crypto.vader:99:27
-              local.get 46   ; crypto.vader:99:27
+              local.get 45   ; crypto.vader:99:27
               u32.add   ; crypto.vader:99:27
-              local.set 53   ; crypto.vader:99:27
-              local.get 37   ; crypto.vader:99:53
+              local.set 52   ; crypto.vader:99:27
+              local.get 36   ; crypto.vader:99:53
               i64.const 7   ; crypto.vader:99:53
               i64.to_usize   ; crypto.vader:99:53
               usize.sub   ; crypto.vader:99:53
-              local.set 54   ; crypto.vader:99:53
-              local.get 14   ; crypto.vader:99:51
-              local.get 54   ; crypto.vader:99:51
+              local.set 53   ; crypto.vader:99:53
+              local.get 13   ; crypto.vader:99:51
+              local.get 53   ; crypto.vader:99:51
               array.get 11   ; crypto.vader:99:51
               ref.cast 4   ; crypto.vader:99:51
-              local.set 55   ; crypto.vader:99:51
-              local.get 53   ; crypto.vader:99:27
-              local.get 55   ; crypto.vader:99:27
+              local.set 54   ; crypto.vader:99:51
+              local.get 52   ; crypto.vader:99:27
+              local.get 54   ; crypto.vader:99:27
               u32.add   ; crypto.vader:99:27
-              local.get 51   ; crypto.vader:99:27
+              local.get 50   ; crypto.vader:99:27
               u32.add   ; crypto.vader:99:27
               call 1   ; crypto.vader:99:20
-              local.set 56   ; crypto.vader:99:20
-              local.get 14   ; crypto.vader:99:13
-              local.get 56   ; crypto.vader:99:13
+              local.set 55   ; crypto.vader:99:20
+              local.get 13   ; crypto.vader:99:13
+              local.get 55   ; crypto.vader:99:13
               array.push 4   ; crypto.vader:99:13
-              local.get 37   ; crypto.vader:100:17
+              local.get 36   ; crypto.vader:100:17
               i64.const 1   ; crypto.vader:100:17
               i64.to_usize   ; crypto.vader:100:17
               usize.add   ; crypto.vader:100:17
-              local.set 37   ; crypto.vader:100:17
+              local.set 36   ; crypto.vader:100:17
               br $L7   ; crypto.vader:94:9
             else   ; crypto.vader:94:13
             end $L8   ; crypto.vader:94:13
           end $L7   ; crypto.vader:94:9
         end $L6   ; crypto.vader:94:9
         local.get 1   ; crypto.vader:103:9
-        local.set 57   ; crypto.vader:103:9
+        local.set 56   ; crypto.vader:103:9
         local.get 2   ; crypto.vader:104:9
-        local.set 58   ; crypto.vader:104:9
+        local.set 57   ; crypto.vader:104:9
         local.get 3   ; crypto.vader:105:9
-        local.set 59   ; crypto.vader:105:9
+        local.set 58   ; crypto.vader:105:9
         local.get 4   ; crypto.vader:106:9
-        local.set 60   ; crypto.vader:106:9
+        local.set 59   ; crypto.vader:106:9
         local.get 5   ; crypto.vader:107:9
-        local.set 61   ; crypto.vader:107:9
+        local.set 60   ; crypto.vader:107:9
         local.get 6   ; crypto.vader:108:9
-        local.set 62   ; crypto.vader:108:9
+        local.set 61   ; crypto.vader:108:9
         local.get 7   ; crypto.vader:109:9
-        local.set 63   ; crypto.vader:109:9
+        local.set 62   ; crypto.vader:109:9
         local.get 8   ; crypto.vader:110:9
-        local.set 64   ; crypto.vader:110:9
+        local.set 63   ; crypto.vader:110:9
         i64.const 0   ; crypto.vader:112:20
-        local.set 65   ; crypto.vader:112:20
+        local.set 64   ; crypto.vader:112:20
         block $L9 void   ; crypto.vader:113:9
           loop $L10 void   ; crypto.vader:113:9
-            local.get 65   ; crypto.vader:113:13
+            local.get 64   ; crypto.vader:113:13
             i64.const 64   ; crypto.vader:113:13
             i64.to_usize   ; crypto.vader:113:13
             usize.lt   ; crypto.vader:113:13
             if $L11 void   ; crypto.vader:113:13
-              local.get 61   ; crypto.vader:114:21
+              local.get 60   ; crypto.vader:114:21
               i32.const 6   ; crypto.vader:114:21
               i32.to_u32   ; crypto.vader:114:21
               call 2   ; crypto.vader:114:21
-              local.set 66   ; crypto.vader:114:21
-              local.get 61   ; crypto.vader:114:41
+              local.set 65   ; crypto.vader:114:21
+              local.get 60   ; crypto.vader:114:41
               i32.const 11   ; crypto.vader:114:41
               i32.to_u32   ; crypto.vader:114:41
               call 2   ; crypto.vader:114:41
-              local.set 67   ; crypto.vader:114:41
+              local.set 66   ; crypto.vader:114:41
+              local.get 65   ; crypto.vader:114:21
               local.get 66   ; crypto.vader:114:21
-              local.get 67   ; crypto.vader:114:21
               u32.bitxor   ; crypto.vader:114:21
-              local.set 68   ; crypto.vader:114:21
-              local.get 61   ; crypto.vader:114:62
+              local.set 67   ; crypto.vader:114:21
+              local.get 60   ; crypto.vader:114:62
               i32.const 25   ; crypto.vader:114:62
               i32.to_u32   ; crypto.vader:114:62
               call 2   ; crypto.vader:114:62
-              local.set 69   ; crypto.vader:114:62
+              local.set 68   ; crypto.vader:114:62
+              local.get 67   ; crypto.vader:114:21
               local.get 68   ; crypto.vader:114:21
-              local.get 69   ; crypto.vader:114:21
               u32.bitxor   ; crypto.vader:114:21
-              local.set 70   ; crypto.vader:114:21
+              local.set 69   ; crypto.vader:114:21
+              local.get 60   ; crypto.vader:115:24
               local.get 61   ; crypto.vader:115:24
-              local.get 62   ; crypto.vader:115:24
               u32.bitand   ; crypto.vader:115:24
-              local.set 71   ; crypto.vader:115:24
-              local.get 61   ; crypto.vader:115:41
+              local.set 70   ; crypto.vader:115:24
+              local.get 60   ; crypto.vader:115:41
               u32.bitnot   ; crypto.vader:115:41
               call 1   ; crypto.vader:115:34
-              local.get 63   ; crypto.vader:115:34
+              local.get 62   ; crypto.vader:115:34
               u32.bitand   ; crypto.vader:115:34
-              local.set 72   ; crypto.vader:115:34
+              local.set 71   ; crypto.vader:115:34
+              local.get 70   ; crypto.vader:115:24
               local.get 71   ; crypto.vader:115:24
-              local.get 72   ; crypto.vader:115:24
               u32.bitxor   ; crypto.vader:115:24
-              local.set 73   ; crypto.vader:115:24
-              local.get 64   ; crypto.vader:116:26
-              local.get 70   ; crypto.vader:116:26
+              local.set 72   ; crypto.vader:115:24
+              local.get 63   ; crypto.vader:116:26
+              local.get 69   ; crypto.vader:116:26
               u32.add   ; crypto.vader:116:26
-              local.get 73   ; crypto.vader:116:26
+              local.get 72   ; crypto.vader:116:26
               u32.add   ; crypto.vader:116:26
-              local.set 74   ; crypto.vader:116:26
+              local.set 73   ; crypto.vader:116:26
               data.const 0 26   ; crypto.vader:116:46
-              local.get 65   ; crypto.vader:116:46
+              local.get 64   ; crypto.vader:116:46
               array.get 11   ; crypto.vader:116:46
-              local.set 75   ; crypto.vader:116:46
+              local.set 74   ; crypto.vader:116:46
+              local.get 73   ; crypto.vader:116:26
               local.get 74   ; crypto.vader:116:26
-              local.get 75   ; crypto.vader:116:26
               u32.add   ; crypto.vader:116:26
-              local.set 76   ; crypto.vader:116:26
-              local.get 14   ; crypto.vader:116:60
-              local.get 65   ; crypto.vader:116:60
+              local.set 75   ; crypto.vader:116:26
+              local.get 13   ; crypto.vader:116:60
+              local.get 64   ; crypto.vader:116:60
               array.get 11   ; crypto.vader:116:60
               ref.cast 4   ; crypto.vader:116:60
-              local.set 77   ; crypto.vader:116:60
+              local.set 76   ; crypto.vader:116:60
+              local.get 75   ; crypto.vader:116:26
               local.get 76   ; crypto.vader:116:26
-              local.get 77   ; crypto.vader:116:26
               i32.add   ; crypto.vader:116:26
               call 1   ; crypto.vader:116:19
-              local.set 78   ; crypto.vader:116:13
-              local.get 57   ; crypto.vader:117:21
+              local.set 77   ; crypto.vader:116:13
+              local.get 56   ; crypto.vader:117:21
               i32.const 2   ; crypto.vader:117:21
               i32.to_u32   ; crypto.vader:117:21
               call 2   ; crypto.vader:117:21
-              local.set 79   ; crypto.vader:117:21
-              local.get 57   ; crypto.vader:117:41
+              local.set 78   ; crypto.vader:117:21
+              local.get 56   ; crypto.vader:117:41
               i32.const 13   ; crypto.vader:117:41
               i32.to_u32   ; crypto.vader:117:41
               call 2   ; crypto.vader:117:41
-              local.set 80   ; crypto.vader:117:41
+              local.set 79   ; crypto.vader:117:41
+              local.get 78   ; crypto.vader:117:21
               local.get 79   ; crypto.vader:117:21
-              local.get 80   ; crypto.vader:117:21
               u32.bitxor   ; crypto.vader:117:21
-              local.set 81   ; crypto.vader:117:21
-              local.get 57   ; crypto.vader:117:62
+              local.set 80   ; crypto.vader:117:21
+              local.get 56   ; crypto.vader:117:62
               i32.const 22   ; crypto.vader:117:62
               i32.to_u32   ; crypto.vader:117:62
               call 2   ; crypto.vader:117:62
-              local.set 82   ; crypto.vader:117:62
+              local.set 81   ; crypto.vader:117:62
+              local.get 80   ; crypto.vader:117:21
               local.get 81   ; crypto.vader:117:21
-              local.get 82   ; crypto.vader:117:21
               u32.bitxor   ; crypto.vader:117:21
-              local.set 83   ; crypto.vader:117:21
+              local.set 82   ; crypto.vader:117:21
+              local.get 56   ; crypto.vader:118:25
               local.get 57   ; crypto.vader:118:25
-              local.get 58   ; crypto.vader:118:25
               u32.bitand   ; crypto.vader:118:25
-              local.set 84   ; crypto.vader:118:25
-              local.get 57   ; crypto.vader:118:35
-              local.get 59   ; crypto.vader:118:35
+              local.set 83   ; crypto.vader:118:25
+              local.get 56   ; crypto.vader:118:35
+              local.get 58   ; crypto.vader:118:35
               u32.bitand   ; crypto.vader:118:35
-              local.set 85   ; crypto.vader:118:35
+              local.set 84   ; crypto.vader:118:35
+              local.get 83   ; crypto.vader:118:25
               local.get 84   ; crypto.vader:118:25
-              local.get 85   ; crypto.vader:118:25
               u32.bitxor   ; crypto.vader:118:25
-              local.set 86   ; crypto.vader:118:25
+              local.set 85   ; crypto.vader:118:25
+              local.get 57   ; crypto.vader:118:45
               local.get 58   ; crypto.vader:118:45
-              local.get 59   ; crypto.vader:118:45
               u32.bitand   ; crypto.vader:118:45
-              local.set 87   ; crypto.vader:118:45
+              local.set 86   ; crypto.vader:118:45
+              local.get 85   ; crypto.vader:118:25
               local.get 86   ; crypto.vader:118:25
-              local.get 87   ; crypto.vader:118:25
               u32.bitxor   ; crypto.vader:118:25
-              local.set 88   ; crypto.vader:118:25
-              local.get 83   ; crypto.vader:119:26
-              local.get 88   ; crypto.vader:119:26
+              local.set 87   ; crypto.vader:118:25
+              local.get 82   ; crypto.vader:119:26
+              local.get 87   ; crypto.vader:119:26
               u32.add   ; crypto.vader:119:26
               call 1   ; crypto.vader:119:19
-              local.set 89   ; crypto.vader:119:13
-              local.get 63   ; crypto.vader:121:13
-              local.set 64   ; crypto.vader:121:13
-              local.get 62   ; crypto.vader:122:13
-              local.set 63   ; crypto.vader:122:13
-              local.get 61   ; crypto.vader:123:13
-              local.set 62   ; crypto.vader:123:13
-              local.get 60   ; crypto.vader:124:24
-              local.get 78   ; crypto.vader:124:24
+              local.set 88   ; crypto.vader:119:13
+              local.get 62   ; crypto.vader:121:13
+              local.set 63   ; crypto.vader:121:13
+              local.get 61   ; crypto.vader:122:13
+              local.set 62   ; crypto.vader:122:13
+              local.get 60   ; crypto.vader:123:13
+              local.set 61   ; crypto.vader:123:13
+              local.get 59   ; crypto.vader:124:24
+              local.get 77   ; crypto.vader:124:24
               u32.add   ; crypto.vader:124:24
               call 1   ; crypto.vader:124:17
-              local.set 61   ; crypto.vader:124:13
-              local.get 59   ; crypto.vader:125:13
-              local.set 60   ; crypto.vader:125:13
-              local.get 58   ; crypto.vader:126:13
-              local.set 59   ; crypto.vader:126:13
-              local.get 57   ; crypto.vader:127:13
-              local.set 58   ; crypto.vader:127:13
-              local.get 78   ; crypto.vader:128:24
-              local.get 89   ; crypto.vader:128:24
+              local.set 60   ; crypto.vader:124:13
+              local.get 58   ; crypto.vader:125:13
+              local.set 59   ; crypto.vader:125:13
+              local.get 57   ; crypto.vader:126:13
+              local.set 58   ; crypto.vader:126:13
+              local.get 56   ; crypto.vader:127:13
+              local.set 57   ; crypto.vader:127:13
+              local.get 77   ; crypto.vader:128:24
+              local.get 88   ; crypto.vader:128:24
               u32.add   ; crypto.vader:128:24
               call 1   ; crypto.vader:128:17
-              local.set 57   ; crypto.vader:128:13
-              local.get 65   ; crypto.vader:130:17
+              local.set 56   ; crypto.vader:128:13
+              local.get 64   ; crypto.vader:130:17
               i64.const 1   ; crypto.vader:130:17
               i64.to_usize   ; crypto.vader:130:17
               usize.add   ; crypto.vader:130:17
-              local.set 65   ; crypto.vader:130:17
+              local.set 64   ; crypto.vader:130:17
               br $L10   ; crypto.vader:113:9
             else   ; crypto.vader:113:13
             end $L11   ; crypto.vader:113:13
           end $L10   ; crypto.vader:113:9
         end $L9   ; crypto.vader:113:9
         local.get 1   ; crypto.vader:133:21
-        local.get 57   ; crypto.vader:133:21
+        local.get 56   ; crypto.vader:133:21
         u32.add   ; crypto.vader:133:21
         call 1   ; crypto.vader:133:14
         local.set 1   ; crypto.vader:133:9
         local.get 2   ; crypto.vader:134:21
-        local.get 58   ; crypto.vader:134:21
+        local.get 57   ; crypto.vader:134:21
         u32.add   ; crypto.vader:134:21
         call 1   ; crypto.vader:134:14
         local.set 2   ; crypto.vader:134:9
         local.get 3   ; crypto.vader:135:21
-        local.get 59   ; crypto.vader:135:21
+        local.get 58   ; crypto.vader:135:21
         u32.add   ; crypto.vader:135:21
         call 1   ; crypto.vader:135:14
         local.set 3   ; crypto.vader:135:9
         local.get 4   ; crypto.vader:136:21
-        local.get 60   ; crypto.vader:136:21
+        local.get 59   ; crypto.vader:136:21
         u32.add   ; crypto.vader:136:21
         call 1   ; crypto.vader:136:14
         local.set 4   ; crypto.vader:136:9
         local.get 5   ; crypto.vader:137:21
-        local.get 61   ; crypto.vader:137:21
+        local.get 60   ; crypto.vader:137:21
         u32.add   ; crypto.vader:137:21
         call 1   ; crypto.vader:137:14
         local.set 5   ; crypto.vader:137:9
         local.get 6   ; crypto.vader:138:21
-        local.get 62   ; crypto.vader:138:21
+        local.get 61   ; crypto.vader:138:21
         u32.add   ; crypto.vader:138:21
         call 1   ; crypto.vader:138:14
         local.set 6   ; crypto.vader:138:9
         local.get 7   ; crypto.vader:139:21
-        local.get 63   ; crypto.vader:139:21
+        local.get 62   ; crypto.vader:139:21
         u32.add   ; crypto.vader:139:21
         call 1   ; crypto.vader:139:14
         local.set 7   ; crypto.vader:139:9
         local.get 8   ; crypto.vader:140:21
-        local.get 64   ; crypto.vader:140:21
+        local.get 63   ; crypto.vader:140:21
         u32.add   ; crypto.vader:140:21
         call 1   ; crypto.vader:140:14
         local.set 8   ; crypto.vader:140:9
-        local.get 12   ; crypto.vader:141:21
+        local.get 11   ; crypto.vader:141:21
         i64.const 1   ; crypto.vader:141:21
         i64.to_usize   ; crypto.vader:141:21
         usize.add   ; crypto.vader:141:21
-        local.set 12   ; crypto.vader:141:21
+        local.set 11   ; crypto.vader:141:21
         br $L1   ; crypto.vader:80:5
       else   ; crypto.vader:80:9
       end $L2   ; crypto.vader:80:9
     end $L1   ; crypto.vader:80:5
   end $L0   ; crypto.vader:80:5
   call 12   ; crypto.vader:144:11
-  local.tee 90   ; crypto.vader:144:5
+  local.tee 9   ; crypto.vader:144:5
   local.get 1   ; crypto.vader:145:5
   call 4   ; crypto.vader:145:5
-  local.get 90   ; crypto.vader:146:5
+  local.get 9   ; crypto.vader:146:5
   local.get 2   ; crypto.vader:146:5
   call 4   ; crypto.vader:146:5
-  local.get 90   ; crypto.vader:147:5
+  local.get 9   ; crypto.vader:147:5
   local.get 3   ; crypto.vader:147:5
   call 4   ; crypto.vader:147:5
-  local.get 90   ; crypto.vader:148:5
+  local.get 9   ; crypto.vader:148:5
   local.get 4   ; crypto.vader:148:5
   call 4   ; crypto.vader:148:5
-  local.get 90   ; crypto.vader:149:5
+  local.get 9   ; crypto.vader:149:5
   local.get 5   ; crypto.vader:149:5
   call 4   ; crypto.vader:149:5
-  local.get 90   ; crypto.vader:150:5
+  local.get 9   ; crypto.vader:150:5
   local.get 6   ; crypto.vader:150:5
   call 4   ; crypto.vader:150:5
-  local.get 90   ; crypto.vader:151:5
+  local.get 9   ; crypto.vader:151:5
   local.get 7   ; crypto.vader:151:5
   call 4   ; crypto.vader:151:5
-  local.get 90   ; crypto.vader:152:5
+  local.get 9   ; crypto.vader:152:5
   local.get 8   ; crypto.vader:152:5
   call 4   ; crypto.vader:152:5
-  local.get 90   ; crypto.vader:153:12
+  local.get 9   ; crypto.vader:153:12
   call.import 3   ; crypto.vader:153:12
   return   ; crypto.vader:153:5
 end
@@ -914,16 +896,12 @@ end
 fn 7 std_crypto$pad_sha256 (string) -> ref
   local n usize
   local $cast_3 u64
-  local bit_len u64
   local out ref
   local i usize
   local $call_13 u8
-  local $len_19 usize
-  local $mod_22 usize
   local k i32
   local $cast_34 u64
   local $shr_35 u64
-  local b u8
   local.get 0   ; crypto.vader:183:10
   call.import 1   ; crypto.vader:183:10
   local.tee 1   ; crypto.vader:183:5
@@ -933,54 +911,54 @@ fn 7 std_crypto$pad_sha256 (string) -> ref
   i64.const 8   ; crypto.vader:184:16
   i64.to_u64   ; crypto.vader:184:16
   u64.mul   ; crypto.vader:184:16
-  local.set 3   ; crypto.vader:184:16
+  local.set 2   ; crypto.vader:184:16
   array.new 10 0   ; crypto.vader:185:17
-  local.set 4   ; crypto.vader:185:17
+  local.set 3   ; crypto.vader:185:17
   i64.const 0   ; crypto.vader:186:16
-  local.set 5   ; crypto.vader:186:16
+  local.set 4   ; crypto.vader:186:16
   block $L0 void   ; crypto.vader:187:5
     loop $L1 void   ; crypto.vader:187:5
-      local.get 5   ; crypto.vader:187:9
+      local.get 4   ; crypto.vader:187:9
       local.get 1   ; crypto.vader:187:9
       usize.lt   ; crypto.vader:187:9
       if $L2 void   ; crypto.vader:187:9
         local.get 0   ; crypto.vader:188:18
-        local.get 5   ; crypto.vader:188:18
+        local.get 4   ; crypto.vader:188:18
         call.import 2   ; crypto.vader:188:18
-        local.set 6   ; crypto.vader:188:18
-        local.get 4   ; crypto.vader:188:9
-        local.get 6   ; crypto.vader:188:9
+        local.set 5   ; crypto.vader:188:18
+        local.get 3   ; crypto.vader:188:9
+        local.get 5   ; crypto.vader:188:9
         array.push 3   ; crypto.vader:188:9
-        local.get 5   ; crypto.vader:189:13
+        local.get 4   ; crypto.vader:189:13
         i64.const 1   ; crypto.vader:189:13
         i64.to_usize   ; crypto.vader:189:13
         usize.add   ; crypto.vader:189:13
-        local.set 5   ; crypto.vader:189:13
+        local.set 4   ; crypto.vader:189:13
         br $L1   ; crypto.vader:187:5
       else   ; crypto.vader:187:9
       end $L2   ; crypto.vader:187:9
     end $L1   ; crypto.vader:187:5
   end $L0   ; crypto.vader:187:5
-  local.get 4   ; crypto.vader:191:5
+  local.get 3   ; crypto.vader:191:5
   i32.const 128   ; crypto.vader:191:5
   i32.to_u8   ; crypto.vader:191:5
   array.push 3   ; crypto.vader:191:5
   block $L3 void   ; crypto.vader:192:5
     loop $L4 void   ; crypto.vader:192:5
-      local.get 4   ; crypto.vader:192:9
+      local.get 3   ; crypto.vader:192:9
       array.len   ; crypto.vader:192:9
-      local.set 7   ; crypto.vader:192:9
-      local.get 7   ; crypto.vader:192:9
+      local.set 1   ; crypto.vader:192:9
+      local.get 1   ; crypto.vader:192:9
       i64.const 64   ; crypto.vader:192:9
       i64.to_usize   ; crypto.vader:192:9
       usize.rem   ; crypto.vader:192:9
-      local.set 8   ; crypto.vader:192:9
-      local.get 8   ; crypto.vader:192:9
+      local.set 4   ; crypto.vader:192:9
+      local.get 4   ; crypto.vader:192:9
       i64.const 56   ; crypto.vader:192:9
       i64.to_usize   ; crypto.vader:192:9
       usize.ne   ; crypto.vader:192:9
       if $L5 void   ; crypto.vader:192:9
-        local.get 4   ; crypto.vader:193:9
+        local.get 3   ; crypto.vader:193:9
         i32.const 0   ; crypto.vader:193:9
         i32.to_u8   ; crypto.vader:193:9
         array.push 3   ; crypto.vader:193:9
@@ -990,41 +968,41 @@ fn 7 std_crypto$pad_sha256 (string) -> ref
     end $L4   ; crypto.vader:192:5
   end $L3   ; crypto.vader:192:5
   i32.const 7   ; crypto.vader:196:14
-  local.set 9   ; crypto.vader:196:14
+  local.set 6   ; crypto.vader:196:14
   block $L6 void   ; crypto.vader:197:5
     loop $L7 void   ; crypto.vader:197:5
-      local.get 9   ; crypto.vader:197:9
+      local.get 6   ; crypto.vader:197:9
       i32.const 0   ; crypto.vader:197:9
       i32.ge   ; crypto.vader:197:9
       if $L8 void   ; crypto.vader:197:9
         i32.const 8   ; crypto.vader:198:33
-        local.get 9   ; crypto.vader:198:33
+        local.get 6   ; crypto.vader:198:33
         i32.mul   ; crypto.vader:198:33
         i32.to_u64   ; crypto.vader:198:29
-        local.set 10   ; crypto.vader:198:29
-        local.get 3   ; crypto.vader:198:18
-        local.get 10   ; crypto.vader:198:18
+        local.set 7   ; crypto.vader:198:29
+        local.get 2   ; crypto.vader:198:18
+        local.get 7   ; crypto.vader:198:18
         u64.shr   ; crypto.vader:198:18
-        local.set 11   ; crypto.vader:198:18
-        local.get 11   ; crypto.vader:198:18
+        local.set 8   ; crypto.vader:198:18
+        local.get 8   ; crypto.vader:198:18
         i64.const 255   ; crypto.vader:198:18
         i64.to_u64   ; crypto.vader:198:18
         u64.bitand   ; crypto.vader:198:18
         u64.to_u8   ; crypto.vader:198:14
-        local.set 12   ; crypto.vader:198:14
-        local.get 4   ; crypto.vader:199:9
-        local.get 12   ; crypto.vader:199:9
+        local.set 5   ; crypto.vader:198:14
+        local.get 3   ; crypto.vader:199:9
+        local.get 5   ; crypto.vader:199:9
         array.push 3   ; crypto.vader:199:9
-        local.get 9   ; crypto.vader:200:13
+        local.get 6   ; crypto.vader:200:13
         i32.const 1   ; crypto.vader:200:13
         i32.sub   ; crypto.vader:200:13
-        local.set 9   ; crypto.vader:200:13
+        local.set 6   ; crypto.vader:200:13
         br $L7   ; crypto.vader:197:5
       else   ; crypto.vader:197:9
       end $L8   ; crypto.vader:197:9
     end $L7   ; crypto.vader:197:5
   end $L6   ; crypto.vader:197:5
-  local.get 4   ; crypto.vader:202:5
+  local.get 3   ; crypto.vader:202:5
   return   ; crypto.vader:202:5
 end
 
@@ -1035,7 +1013,6 @@ fn 8 std_crypto$md5 (string) -> string
   local d0 u32
   local msg ref
   local $len_11 usize
-  local blocks usize
   local block_idx usize
   local block_offset usize
   local m ref
@@ -1087,7 +1064,6 @@ fn 8 std_crypto$md5 (string) -> string
   local tmp u32
   local $idx_157 any
   local $call_158 u32
-  local sb ref
   i32.const 1732584193   ; crypto.vader:215:15
   local.set 1   ; crypto.vader:215:15
   i32.const 4023233417   ; crypto.vader:216:15
@@ -1105,370 +1081,370 @@ fn 8 std_crypto$md5 (string) -> string
   i64.const 64   ; crypto.vader:222:15
   i64.to_usize   ; crypto.vader:222:15
   usize.div   ; crypto.vader:222:15
-  local.set 7   ; crypto.vader:222:15
+  local.set 6   ; crypto.vader:222:15
   i64.const 0   ; crypto.vader:223:24
-  local.set 8   ; crypto.vader:223:24
+  local.set 7   ; crypto.vader:223:24
   block $L0 void   ; crypto.vader:224:5
     loop $L1 void   ; crypto.vader:224:5
-      local.get 8   ; crypto.vader:224:9
       local.get 7   ; crypto.vader:224:9
+      local.get 6   ; crypto.vader:224:9
       usize.lt   ; crypto.vader:224:9
       if $L2 void   ; crypto.vader:224:9
-        local.get 8   ; crypto.vader:225:25
+        local.get 7   ; crypto.vader:225:25
         i64.const 64   ; crypto.vader:225:25
         i64.to_usize   ; crypto.vader:225:25
         usize.mul   ; crypto.vader:225:25
-        local.set 9   ; crypto.vader:225:25
+        local.set 8   ; crypto.vader:225:25
         array.new 11 0   ; crypto.vader:226:20
-        local.set 10   ; crypto.vader:226:20
+        local.set 9   ; crypto.vader:226:20
         i64.const 0   ; crypto.vader:227:20
-        local.set 11   ; crypto.vader:227:20
+        local.set 10   ; crypto.vader:227:20
         block $L3 void   ; crypto.vader:228:9
           loop $L4 void   ; crypto.vader:228:9
-            local.get 11   ; crypto.vader:228:13
+            local.get 10   ; crypto.vader:228:13
             i64.const 16   ; crypto.vader:228:13
             i64.to_usize   ; crypto.vader:228:13
             usize.lt   ; crypto.vader:228:13
             if $L5 void   ; crypto.vader:228:13
-              local.get 11   ; crypto.vader:229:42
+              local.get 10   ; crypto.vader:229:42
               i64.const 4   ; crypto.vader:229:42
               i64.to_usize   ; crypto.vader:229:42
               usize.mul   ; crypto.vader:229:42
-              local.set 12   ; crypto.vader:229:42
-              local.get 9   ; crypto.vader:229:27
-              local.get 12   ; crypto.vader:229:27
+              local.set 11   ; crypto.vader:229:42
+              local.get 8   ; crypto.vader:229:27
+              local.get 11   ; crypto.vader:229:27
               usize.add   ; crypto.vader:229:27
-              local.set 13   ; crypto.vader:229:27
-              local.get 13   ; crypto.vader:229:27
+              local.set 12   ; crypto.vader:229:27
+              local.get 12   ; crypto.vader:229:27
               i64.const 0   ; crypto.vader:229:27
               i64.to_usize   ; crypto.vader:229:27
               usize.add   ; crypto.vader:229:27
-              local.set 14   ; crypto.vader:229:27
+              local.set 13   ; crypto.vader:229:27
               local.get 5   ; crypto.vader:229:23
-              local.get 14   ; crypto.vader:229:23
+              local.get 13   ; crypto.vader:229:23
               array.get 10   ; crypto.vader:229:23
               ref.cast 3   ; crypto.vader:229:23
               u8.to_u32   ; crypto.vader:229:19
-              local.set 15   ; crypto.vader:229:19
-              local.get 11   ; crypto.vader:230:42
+              local.set 14   ; crypto.vader:229:19
+              local.get 10   ; crypto.vader:230:42
               i64.const 4   ; crypto.vader:230:42
               i64.to_usize   ; crypto.vader:230:42
               usize.mul   ; crypto.vader:230:42
-              local.set 16   ; crypto.vader:230:42
-              local.get 9   ; crypto.vader:230:27
-              local.get 16   ; crypto.vader:230:27
+              local.set 15   ; crypto.vader:230:42
+              local.get 8   ; crypto.vader:230:27
+              local.get 15   ; crypto.vader:230:27
               usize.add   ; crypto.vader:230:27
-              local.set 17   ; crypto.vader:230:27
-              local.get 17   ; crypto.vader:230:27
+              local.set 16   ; crypto.vader:230:27
+              local.get 16   ; crypto.vader:230:27
               i64.const 1   ; crypto.vader:230:27
               i64.to_usize   ; crypto.vader:230:27
               usize.add   ; crypto.vader:230:27
-              local.set 18   ; crypto.vader:230:27
+              local.set 17   ; crypto.vader:230:27
               local.get 5   ; crypto.vader:230:23
-              local.get 18   ; crypto.vader:230:23
+              local.get 17   ; crypto.vader:230:23
               array.get 10   ; crypto.vader:230:23
               ref.cast 3   ; crypto.vader:230:23
               u8.to_u32   ; crypto.vader:230:19
-              local.set 19   ; crypto.vader:230:19
-              local.get 11   ; crypto.vader:231:42
+              local.set 18   ; crypto.vader:230:19
+              local.get 10   ; crypto.vader:231:42
               i64.const 4   ; crypto.vader:231:42
               i64.to_usize   ; crypto.vader:231:42
               usize.mul   ; crypto.vader:231:42
-              local.set 20   ; crypto.vader:231:42
-              local.get 9   ; crypto.vader:231:27
-              local.get 20   ; crypto.vader:231:27
+              local.set 19   ; crypto.vader:231:42
+              local.get 8   ; crypto.vader:231:27
+              local.get 19   ; crypto.vader:231:27
               usize.add   ; crypto.vader:231:27
-              local.set 21   ; crypto.vader:231:27
-              local.get 21   ; crypto.vader:231:27
+              local.set 20   ; crypto.vader:231:27
+              local.get 20   ; crypto.vader:231:27
               i64.const 2   ; crypto.vader:231:27
               i64.to_usize   ; crypto.vader:231:27
               usize.add   ; crypto.vader:231:27
-              local.set 22   ; crypto.vader:231:27
+              local.set 21   ; crypto.vader:231:27
               local.get 5   ; crypto.vader:231:23
-              local.get 22   ; crypto.vader:231:23
+              local.get 21   ; crypto.vader:231:23
               array.get 10   ; crypto.vader:231:23
               ref.cast 3   ; crypto.vader:231:23
               u8.to_u32   ; crypto.vader:231:19
-              local.set 23   ; crypto.vader:231:19
-              local.get 11   ; crypto.vader:232:42
+              local.set 22   ; crypto.vader:231:19
+              local.get 10   ; crypto.vader:232:42
               i64.const 4   ; crypto.vader:232:42
               i64.to_usize   ; crypto.vader:232:42
               usize.mul   ; crypto.vader:232:42
-              local.set 24   ; crypto.vader:232:42
-              local.get 9   ; crypto.vader:232:27
-              local.get 24   ; crypto.vader:232:27
+              local.set 23   ; crypto.vader:232:42
+              local.get 8   ; crypto.vader:232:27
+              local.get 23   ; crypto.vader:232:27
               usize.add   ; crypto.vader:232:27
-              local.set 25   ; crypto.vader:232:27
-              local.get 25   ; crypto.vader:232:27
+              local.set 24   ; crypto.vader:232:27
+              local.get 24   ; crypto.vader:232:27
               i64.const 3   ; crypto.vader:232:27
               i64.to_usize   ; crypto.vader:232:27
               usize.add   ; crypto.vader:232:27
-              local.set 26   ; crypto.vader:232:27
+              local.set 25   ; crypto.vader:232:27
               local.get 5   ; crypto.vader:232:23
-              local.get 26   ; crypto.vader:232:23
+              local.get 25   ; crypto.vader:232:23
               array.get 10   ; crypto.vader:232:23
               ref.cast 3   ; crypto.vader:232:23
               u8.to_u32   ; crypto.vader:232:19
-              local.set 27   ; crypto.vader:232:19
-              local.get 19   ; crypto.vader:233:33
+              local.set 26   ; crypto.vader:232:19
+              local.get 18   ; crypto.vader:233:33
               i32.const 8   ; crypto.vader:233:33
               i32.to_u32   ; crypto.vader:233:33
               u32.shl   ; crypto.vader:233:33
-              local.set 28   ; crypto.vader:233:33
-              local.get 15   ; crypto.vader:233:27
-              local.get 28   ; crypto.vader:233:27
+              local.set 27   ; crypto.vader:233:33
+              local.get 14   ; crypto.vader:233:27
+              local.get 27   ; crypto.vader:233:27
               u32.bitor   ; crypto.vader:233:27
-              local.set 29   ; crypto.vader:233:27
-              local.get 23   ; crypto.vader:233:50
+              local.set 28   ; crypto.vader:233:27
+              local.get 22   ; crypto.vader:233:50
               i32.const 16   ; crypto.vader:233:50
               i32.to_u32   ; crypto.vader:233:50
               u32.shl   ; crypto.vader:233:50
-              local.set 30   ; crypto.vader:233:50
+              local.set 29   ; crypto.vader:233:50
+              local.get 28   ; crypto.vader:233:27
               local.get 29   ; crypto.vader:233:27
-              local.get 30   ; crypto.vader:233:27
               u32.bitor   ; crypto.vader:233:27
-              local.set 31   ; crypto.vader:233:27
-              local.get 27   ; crypto.vader:233:68
+              local.set 30   ; crypto.vader:233:27
+              local.get 26   ; crypto.vader:233:68
               i32.const 24   ; crypto.vader:233:68
               i32.to_u32   ; crypto.vader:233:68
               u32.shl   ; crypto.vader:233:68
-              local.set 32   ; crypto.vader:233:68
+              local.set 31   ; crypto.vader:233:68
+              local.get 30   ; crypto.vader:233:27
               local.get 31   ; crypto.vader:233:27
-              local.get 32   ; crypto.vader:233:27
               u32.bitor   ; crypto.vader:233:27
               call 1   ; crypto.vader:233:20
-              local.set 33   ; crypto.vader:233:20
-              local.get 10   ; crypto.vader:233:13
-              local.get 33   ; crypto.vader:233:13
+              local.set 32   ; crypto.vader:233:20
+              local.get 9   ; crypto.vader:233:13
+              local.get 32   ; crypto.vader:233:13
               array.push 4   ; crypto.vader:233:13
-              local.get 11   ; crypto.vader:234:17
+              local.get 10   ; crypto.vader:234:17
               i64.const 1   ; crypto.vader:234:17
               i64.to_usize   ; crypto.vader:234:17
               usize.add   ; crypto.vader:234:17
-              local.set 11   ; crypto.vader:234:17
+              local.set 10   ; crypto.vader:234:17
               br $L4   ; crypto.vader:228:9
             else   ; crypto.vader:228:13
             end $L5   ; crypto.vader:228:13
           end $L4   ; crypto.vader:228:9
         end $L3   ; crypto.vader:228:9
         local.get 1   ; crypto.vader:237:9
-        local.set 34   ; crypto.vader:237:9
+        local.set 33   ; crypto.vader:237:9
         local.get 2   ; crypto.vader:238:9
-        local.set 35   ; crypto.vader:238:9
+        local.set 34   ; crypto.vader:238:9
         local.get 3   ; crypto.vader:239:9
-        local.set 36   ; crypto.vader:239:9
+        local.set 35   ; crypto.vader:239:9
         local.get 4   ; crypto.vader:240:9
-        local.set 37   ; crypto.vader:240:9
+        local.set 36   ; crypto.vader:240:9
         i64.const 0   ; crypto.vader:242:20
-        local.set 38   ; crypto.vader:242:20
+        local.set 37   ; crypto.vader:242:20
         block $L6 void   ; crypto.vader:243:9
           loop $L7 void   ; crypto.vader:243:9
-            local.get 38   ; crypto.vader:243:13
+            local.get 37   ; crypto.vader:243:13
             i64.const 64   ; crypto.vader:243:13
             i64.to_usize   ; crypto.vader:243:13
             usize.lt   ; crypto.vader:243:13
             if $L8 void   ; crypto.vader:243:13
-              local.get 38   ; crypto.vader:246:16
+              local.get 37   ; crypto.vader:246:16
               i64.const 16   ; crypto.vader:246:16
               i64.to_usize   ; crypto.vader:246:16
               usize.lt   ; crypto.vader:246:16
               if $L9 void   ; crypto.vader:246:13
+                local.get 34   ; crypto.vader:247:22
                 local.get 35   ; crypto.vader:247:22
-                local.get 36   ; crypto.vader:247:22
                 u32.bitand   ; crypto.vader:247:22
-                local.set 41   ; crypto.vader:247:22
-                local.get 35   ; crypto.vader:247:39
+                local.set 40   ; crypto.vader:247:22
+                local.get 34   ; crypto.vader:247:39
                 u32.bitnot   ; crypto.vader:247:39
                 call 1   ; crypto.vader:247:32
-                local.get 37   ; crypto.vader:247:32
+                local.get 36   ; crypto.vader:247:32
                 u32.bitand   ; crypto.vader:247:32
-                local.set 42   ; crypto.vader:247:32
+                local.set 41   ; crypto.vader:247:32
+                local.get 40   ; crypto.vader:247:22
                 local.get 41   ; crypto.vader:247:22
-                local.get 42   ; crypto.vader:247:22
                 u32.bitor   ; crypto.vader:247:22
-                local.set 39   ; crypto.vader:247:22
-                local.get 38   ; crypto.vader:248:17
-                local.set 40   ; crypto.vader:248:17
+                local.set 38   ; crypto.vader:247:22
+                local.get 37   ; crypto.vader:248:17
+                local.set 39   ; crypto.vader:248:17
               else   ; crypto.vader:246:13
-                local.get 38   ; crypto.vader:249:23
+                local.get 37   ; crypto.vader:249:23
                 i64.const 32   ; crypto.vader:249:23
                 i64.to_usize   ; crypto.vader:249:23
                 usize.lt   ; crypto.vader:249:23
                 if $L10 void   ; crypto.vader:249:20
-                  local.get 37   ; crypto.vader:250:22
-                  local.get 35   ; crypto.vader:250:22
+                  local.get 36   ; crypto.vader:250:22
+                  local.get 34   ; crypto.vader:250:22
                   u32.bitand   ; crypto.vader:250:22
-                  local.set 43   ; crypto.vader:250:22
-                  local.get 37   ; crypto.vader:250:39
+                  local.set 42   ; crypto.vader:250:22
+                  local.get 36   ; crypto.vader:250:39
                   u32.bitnot   ; crypto.vader:250:39
                   call 1   ; crypto.vader:250:32
-                  local.get 36   ; crypto.vader:250:32
+                  local.get 35   ; crypto.vader:250:32
                   u32.bitand   ; crypto.vader:250:32
-                  local.set 44   ; crypto.vader:250:32
+                  local.set 43   ; crypto.vader:250:32
+                  local.get 42   ; crypto.vader:250:22
                   local.get 43   ; crypto.vader:250:22
-                  local.get 44   ; crypto.vader:250:22
                   u32.bitor   ; crypto.vader:250:22
-                  local.set 39   ; crypto.vader:250:22
+                  local.set 38   ; crypto.vader:250:22
                   i64.const 5   ; crypto.vader:251:28
-                  local.get 38   ; crypto.vader:251:22
+                  local.get 37   ; crypto.vader:251:22
                   usize.mul   ; crypto.vader:251:22
-                  local.set 45   ; crypto.vader:251:22
-                  local.get 45   ; crypto.vader:251:22
+                  local.set 44   ; crypto.vader:251:22
+                  local.get 44   ; crypto.vader:251:22
                   i64.const 1   ; crypto.vader:251:22
                   i64.to_usize   ; crypto.vader:251:22
                   usize.add   ; crypto.vader:251:22
-                  local.set 46   ; crypto.vader:251:22
-                  local.get 46   ; crypto.vader:251:22
+                  local.set 45   ; crypto.vader:251:22
+                  local.get 45   ; crypto.vader:251:22
                   i64.const 16   ; crypto.vader:251:22
                   i64.to_usize   ; crypto.vader:251:22
                   usize.rem   ; crypto.vader:251:22
-                  local.set 40   ; crypto.vader:251:22
+                  local.set 39   ; crypto.vader:251:22
                 else   ; crypto.vader:249:20
-                  local.get 38   ; crypto.vader:252:23
+                  local.get 37   ; crypto.vader:252:23
                   i64.const 48   ; crypto.vader:252:23
                   i64.to_usize   ; crypto.vader:252:23
                   usize.lt   ; crypto.vader:252:23
                   if $L11 void   ; crypto.vader:252:20
+                    local.get 34   ; crypto.vader:253:21
                     local.get 35   ; crypto.vader:253:21
+                    u32.bitxor   ; crypto.vader:253:21
                     local.get 36   ; crypto.vader:253:21
                     u32.bitxor   ; crypto.vader:253:21
-                    local.get 37   ; crypto.vader:253:21
-                    u32.bitxor   ; crypto.vader:253:21
-                    local.set 39   ; crypto.vader:253:21
+                    local.set 38   ; crypto.vader:253:21
                     i64.const 3   ; crypto.vader:254:28
-                    local.get 38   ; crypto.vader:254:22
+                    local.get 37   ; crypto.vader:254:22
                     usize.mul   ; crypto.vader:254:22
-                    local.set 47   ; crypto.vader:254:22
-                    local.get 47   ; crypto.vader:254:22
+                    local.set 46   ; crypto.vader:254:22
+                    local.get 46   ; crypto.vader:254:22
                     i64.const 5   ; crypto.vader:254:22
                     i64.to_usize   ; crypto.vader:254:22
                     usize.add   ; crypto.vader:254:22
-                    local.set 48   ; crypto.vader:254:22
-                    local.get 48   ; crypto.vader:254:22
+                    local.set 47   ; crypto.vader:254:22
+                    local.get 47   ; crypto.vader:254:22
                     i64.const 16   ; crypto.vader:254:22
                     i64.to_usize   ; crypto.vader:254:22
                     usize.rem   ; crypto.vader:254:22
-                    local.set 40   ; crypto.vader:254:22
+                    local.set 39   ; crypto.vader:254:22
                   else   ; crypto.vader:252:20
-                    local.get 37   ; crypto.vader:256:37
+                    local.get 36   ; crypto.vader:256:37
                     u32.bitnot   ; crypto.vader:256:37
                     call 1   ; crypto.vader:256:30
-                    local.set 49   ; crypto.vader:256:30
-                    local.get 35   ; crypto.vader:256:26
-                    local.get 49   ; crypto.vader:256:26
+                    local.set 48   ; crypto.vader:256:30
+                    local.get 34   ; crypto.vader:256:26
+                    local.get 48   ; crypto.vader:256:26
                     u32.bitor   ; crypto.vader:256:26
-                    local.set 50   ; crypto.vader:256:26
-                    local.get 36   ; crypto.vader:256:21
-                    local.get 50   ; crypto.vader:256:21
+                    local.set 49   ; crypto.vader:256:26
+                    local.get 35   ; crypto.vader:256:21
+                    local.get 49   ; crypto.vader:256:21
                     u32.bitxor   ; crypto.vader:256:21
-                    local.set 39   ; crypto.vader:256:21
+                    local.set 38   ; crypto.vader:256:21
                     i64.const 7   ; crypto.vader:257:28
-                    local.get 38   ; crypto.vader:257:22
+                    local.get 37   ; crypto.vader:257:22
                     usize.mul   ; crypto.vader:257:22
-                    local.set 51   ; crypto.vader:257:22
-                    local.get 51   ; crypto.vader:257:22
+                    local.set 50   ; crypto.vader:257:22
+                    local.get 50   ; crypto.vader:257:22
                     i64.const 16   ; crypto.vader:257:22
                     i64.to_usize   ; crypto.vader:257:22
                     usize.rem   ; crypto.vader:257:22
-                    local.set 40   ; crypto.vader:257:22
+                    local.set 39   ; crypto.vader:257:22
                   end $L11   ; crypto.vader:252:20
                 end $L10   ; crypto.vader:249:20
               end $L9   ; crypto.vader:246:13
-              local.get 34   ; crypto.vader:259:27
-              local.get 39   ; crypto.vader:259:27
+              local.get 33   ; crypto.vader:259:27
+              local.get 38   ; crypto.vader:259:27
               u32.add   ; crypto.vader:259:27
-              local.set 52   ; crypto.vader:259:27
+              local.set 51   ; crypto.vader:259:27
               data.const 2 26   ; crypto.vader:259:35
-              local.get 38   ; crypto.vader:259:35
+              local.get 37   ; crypto.vader:259:35
               array.get 11   ; crypto.vader:259:35
-              local.set 53   ; crypto.vader:259:35
+              local.set 52   ; crypto.vader:259:35
+              local.get 51   ; crypto.vader:259:27
               local.get 52   ; crypto.vader:259:27
-              local.get 53   ; crypto.vader:259:27
               u32.add   ; crypto.vader:259:27
-              local.set 54   ; crypto.vader:259:27
-              local.get 10   ; crypto.vader:259:46
-              local.get 40   ; crypto.vader:259:46
+              local.set 53   ; crypto.vader:259:27
+              local.get 9   ; crypto.vader:259:46
+              local.get 39   ; crypto.vader:259:46
               array.get 11   ; crypto.vader:259:46
               ref.cast 4   ; crypto.vader:259:46
-              local.set 55   ; crypto.vader:259:46
+              local.set 54   ; crypto.vader:259:46
+              local.get 53   ; crypto.vader:259:27
               local.get 54   ; crypto.vader:259:27
-              local.get 55   ; crypto.vader:259:27
               i32.add   ; crypto.vader:259:27
               call 1   ; crypto.vader:259:20
-              local.set 56   ; crypto.vader:259:13
-              local.get 37   ; crypto.vader:260:13
-              local.set 34   ; crypto.vader:260:13
-              local.get 36   ; crypto.vader:261:13
-              local.set 37   ; crypto.vader:261:13
-              local.get 35   ; crypto.vader:262:13
-              local.set 36   ; crypto.vader:262:13
+              local.set 55   ; crypto.vader:259:13
+              local.get 36   ; crypto.vader:260:13
+              local.set 33   ; crypto.vader:260:13
+              local.get 35   ; crypto.vader:261:13
+              local.set 36   ; crypto.vader:261:13
+              local.get 34   ; crypto.vader:262:13
+              local.set 35   ; crypto.vader:262:13
               data.const 1 26   ; crypto.vader:263:40
-              local.get 38   ; crypto.vader:263:40
+              local.get 37   ; crypto.vader:263:40
               array.get 11   ; crypto.vader:263:40
-              local.set 57   ; crypto.vader:263:40
+              local.set 56   ; crypto.vader:263:40
+              local.get 55   ; crypto.vader:263:28
               local.get 56   ; crypto.vader:263:28
-              local.get 57   ; crypto.vader:263:28
               call 9   ; crypto.vader:263:28
-              local.set 58   ; crypto.vader:263:28
-              local.get 35   ; crypto.vader:263:24
-              local.get 58   ; crypto.vader:263:24
+              local.set 57   ; crypto.vader:263:28
+              local.get 34   ; crypto.vader:263:24
+              local.get 57   ; crypto.vader:263:24
               u32.add   ; crypto.vader:263:24
               call 1   ; crypto.vader:263:17
-              local.set 35   ; crypto.vader:263:13
-              local.get 38   ; crypto.vader:264:17
+              local.set 34   ; crypto.vader:263:13
+              local.get 37   ; crypto.vader:264:17
               i64.const 1   ; crypto.vader:264:17
               i64.to_usize   ; crypto.vader:264:17
               usize.add   ; crypto.vader:264:17
-              local.set 38   ; crypto.vader:264:17
+              local.set 37   ; crypto.vader:264:17
               br $L7   ; crypto.vader:243:9
             else   ; crypto.vader:243:13
             end $L8   ; crypto.vader:243:13
           end $L7   ; crypto.vader:243:9
         end $L6   ; crypto.vader:243:9
         local.get 1   ; crypto.vader:267:21
-        local.get 34   ; crypto.vader:267:21
+        local.get 33   ; crypto.vader:267:21
         u32.add   ; crypto.vader:267:21
         call 1   ; crypto.vader:267:14
         local.set 1   ; crypto.vader:267:9
         local.get 2   ; crypto.vader:268:21
-        local.get 35   ; crypto.vader:268:21
+        local.get 34   ; crypto.vader:268:21
         u32.add   ; crypto.vader:268:21
         call 1   ; crypto.vader:268:14
         local.set 2   ; crypto.vader:268:9
         local.get 3   ; crypto.vader:269:21
-        local.get 36   ; crypto.vader:269:21
+        local.get 35   ; crypto.vader:269:21
         u32.add   ; crypto.vader:269:21
         call 1   ; crypto.vader:269:14
         local.set 3   ; crypto.vader:269:9
         local.get 4   ; crypto.vader:270:21
-        local.get 37   ; crypto.vader:270:21
+        local.get 36   ; crypto.vader:270:21
         u32.add   ; crypto.vader:270:21
         call 1   ; crypto.vader:270:14
         local.set 4   ; crypto.vader:270:9
-        local.get 8   ; crypto.vader:271:21
+        local.get 7   ; crypto.vader:271:21
         i64.const 1   ; crypto.vader:271:21
         i64.to_usize   ; crypto.vader:271:21
         usize.add   ; crypto.vader:271:21
-        local.set 8   ; crypto.vader:271:21
+        local.set 7   ; crypto.vader:271:21
         br $L1   ; crypto.vader:224:5
       else   ; crypto.vader:224:9
       end $L2   ; crypto.vader:224:9
     end $L1   ; crypto.vader:224:5
   end $L0   ; crypto.vader:224:5
   call 12   ; crypto.vader:275:11
-  local.tee 59   ; crypto.vader:275:5
+  local.tee 5   ; crypto.vader:275:5
   local.get 1   ; crypto.vader:276:5
   call 10   ; crypto.vader:276:5
-  local.get 59   ; crypto.vader:277:5
+  local.get 5   ; crypto.vader:277:5
   local.get 2   ; crypto.vader:277:5
   call 10   ; crypto.vader:277:5
-  local.get 59   ; crypto.vader:278:5
+  local.get 5   ; crypto.vader:278:5
   local.get 3   ; crypto.vader:278:5
   call 10   ; crypto.vader:278:5
-  local.get 59   ; crypto.vader:279:5
+  local.get 5   ; crypto.vader:279:5
   local.get 4   ; crypto.vader:279:5
   call 10   ; crypto.vader:279:5
-  local.get 59   ; crypto.vader:280:12
+  local.get 5   ; crypto.vader:280:12
   call.import 3   ; crypto.vader:280:12
   return   ; crypto.vader:280:5
 end
@@ -1476,7 +1452,6 @@ end
 fn 9 std_crypto$rotl32 (u32,u32) -> u32
   local $call_3 u32
   local $sub_6 u32
-  local $shr_7 u32
   local.get 0   ; crypto.vader:284:19
   local.get 1   ; crypto.vader:284:19
   u32.shl   ; crypto.vader:284:19
@@ -1489,9 +1464,9 @@ fn 9 std_crypto$rotl32 (u32,u32) -> u32
   local.get 0   ; crypto.vader:284:30
   local.get 3   ; crypto.vader:284:30
   u32.shr   ; crypto.vader:284:30
-  local.set 4   ; crypto.vader:284:30
+  local.set 3   ; crypto.vader:284:30
   local.get 2   ; crypto.vader:284:12
-  local.get 4   ; crypto.vader:284:12
+  local.get 3   ; crypto.vader:284:12
   u32.bitor   ; crypto.vader:284:12
   return   ; crypto.vader:284:5
 end
@@ -1542,16 +1517,12 @@ end
 fn 11 std_crypto$pad_md5 (string) -> ref
   local n usize
   local $cast_3 u64
-  local bit_len u64
   local out ref
   local i usize
   local $call_13 u8
-  local $len_19 usize
-  local $mod_22 usize
   local k i32
   local $cast_34 u64
   local $shr_35 u64
-  local b u8
   local.get 0   ; crypto.vader:331:10
   call.import 1   ; crypto.vader:331:10
   local.tee 1   ; crypto.vader:331:5
@@ -1561,54 +1532,54 @@ fn 11 std_crypto$pad_md5 (string) -> ref
   i64.const 8   ; crypto.vader:332:16
   i64.to_u64   ; crypto.vader:332:16
   u64.mul   ; crypto.vader:332:16
-  local.set 3   ; crypto.vader:332:16
+  local.set 2   ; crypto.vader:332:16
   array.new 10 0   ; crypto.vader:333:17
-  local.set 4   ; crypto.vader:333:17
+  local.set 3   ; crypto.vader:333:17
   i64.const 0   ; crypto.vader:334:16
-  local.set 5   ; crypto.vader:334:16
+  local.set 4   ; crypto.vader:334:16
   block $L0 void   ; crypto.vader:335:5
     loop $L1 void   ; crypto.vader:335:5
-      local.get 5   ; crypto.vader:335:9
+      local.get 4   ; crypto.vader:335:9
       local.get 1   ; crypto.vader:335:9
       usize.lt   ; crypto.vader:335:9
       if $L2 void   ; crypto.vader:335:9
         local.get 0   ; crypto.vader:336:18
-        local.get 5   ; crypto.vader:336:18
+        local.get 4   ; crypto.vader:336:18
         call.import 2   ; crypto.vader:336:18
-        local.set 6   ; crypto.vader:336:18
-        local.get 4   ; crypto.vader:336:9
-        local.get 6   ; crypto.vader:336:9
+        local.set 5   ; crypto.vader:336:18
+        local.get 3   ; crypto.vader:336:9
+        local.get 5   ; crypto.vader:336:9
         array.push 3   ; crypto.vader:336:9
-        local.get 5   ; crypto.vader:337:13
+        local.get 4   ; crypto.vader:337:13
         i64.const 1   ; crypto.vader:337:13
         i64.to_usize   ; crypto.vader:337:13
         usize.add   ; crypto.vader:337:13
-        local.set 5   ; crypto.vader:337:13
+        local.set 4   ; crypto.vader:337:13
         br $L1   ; crypto.vader:335:5
       else   ; crypto.vader:335:9
       end $L2   ; crypto.vader:335:9
     end $L1   ; crypto.vader:335:5
   end $L0   ; crypto.vader:335:5
-  local.get 4   ; crypto.vader:339:5
+  local.get 3   ; crypto.vader:339:5
   i32.const 128   ; crypto.vader:339:5
   i32.to_u8   ; crypto.vader:339:5
   array.push 3   ; crypto.vader:339:5
   block $L3 void   ; crypto.vader:340:5
     loop $L4 void   ; crypto.vader:340:5
-      local.get 4   ; crypto.vader:340:9
+      local.get 3   ; crypto.vader:340:9
       array.len   ; crypto.vader:340:9
-      local.set 7   ; crypto.vader:340:9
-      local.get 7   ; crypto.vader:340:9
+      local.set 1   ; crypto.vader:340:9
+      local.get 1   ; crypto.vader:340:9
       i64.const 64   ; crypto.vader:340:9
       i64.to_usize   ; crypto.vader:340:9
       usize.rem   ; crypto.vader:340:9
-      local.set 8   ; crypto.vader:340:9
-      local.get 8   ; crypto.vader:340:9
+      local.set 4   ; crypto.vader:340:9
+      local.get 4   ; crypto.vader:340:9
       i64.const 56   ; crypto.vader:340:9
       i64.to_usize   ; crypto.vader:340:9
       usize.ne   ; crypto.vader:340:9
       if $L5 void   ; crypto.vader:340:9
-        local.get 4   ; crypto.vader:341:9
+        local.get 3   ; crypto.vader:341:9
         i32.const 0   ; crypto.vader:341:9
         i32.to_u8   ; crypto.vader:341:9
         array.push 3   ; crypto.vader:341:9
@@ -1618,41 +1589,41 @@ fn 11 std_crypto$pad_md5 (string) -> ref
     end $L4   ; crypto.vader:340:5
   end $L3   ; crypto.vader:340:5
   i32.const 0   ; crypto.vader:344:14
-  local.set 9   ; crypto.vader:344:14
+  local.set 6   ; crypto.vader:344:14
   block $L6 void   ; crypto.vader:345:5
     loop $L7 void   ; crypto.vader:345:5
-      local.get 9   ; crypto.vader:345:9
+      local.get 6   ; crypto.vader:345:9
       i32.const 8   ; crypto.vader:345:9
       i32.lt   ; crypto.vader:345:9
       if $L8 void   ; crypto.vader:345:9
         i32.const 8   ; crypto.vader:346:33
-        local.get 9   ; crypto.vader:346:33
+        local.get 6   ; crypto.vader:346:33
         i32.mul   ; crypto.vader:346:33
         i32.to_u64   ; crypto.vader:346:29
-        local.set 10   ; crypto.vader:346:29
-        local.get 3   ; crypto.vader:346:18
-        local.get 10   ; crypto.vader:346:18
+        local.set 7   ; crypto.vader:346:29
+        local.get 2   ; crypto.vader:346:18
+        local.get 7   ; crypto.vader:346:18
         u64.shr   ; crypto.vader:346:18
-        local.set 11   ; crypto.vader:346:18
-        local.get 11   ; crypto.vader:346:18
+        local.set 8   ; crypto.vader:346:18
+        local.get 8   ; crypto.vader:346:18
         i64.const 255   ; crypto.vader:346:18
         i64.to_u64   ; crypto.vader:346:18
         u64.bitand   ; crypto.vader:346:18
         u64.to_u8   ; crypto.vader:346:14
-        local.set 12   ; crypto.vader:346:14
-        local.get 4   ; crypto.vader:347:9
-        local.get 12   ; crypto.vader:347:9
+        local.set 5   ; crypto.vader:346:14
+        local.get 3   ; crypto.vader:347:9
+        local.get 5   ; crypto.vader:347:9
         array.push 3   ; crypto.vader:347:9
-        local.get 9   ; crypto.vader:348:13
+        local.get 6   ; crypto.vader:348:13
         i32.const 1   ; crypto.vader:348:13
         i32.add   ; crypto.vader:348:13
-        local.set 9   ; crypto.vader:348:13
+        local.set 6   ; crypto.vader:348:13
         br $L7   ; crypto.vader:345:5
       else   ; crypto.vader:345:9
       end $L8   ; crypto.vader:345:9
     end $L7   ; crypto.vader:345:5
   end $L6   ; crypto.vader:345:5
-  local.get 4   ; crypto.vader:350:5
+  local.get 3   ; crypto.vader:350:5
   return   ; crypto.vader:350:5
 end
 

@@ -21,7 +21,6 @@ fn 1 tests_snippets_tuple_destructure_let__main_vader$main () -> i32
   local n i32
   local s string
   local __sb_1 any
-  local __sb_2 any
   call 0   ; _main.vader:8:15
   local.tee 0   ; _main.vader:8:5
   struct.get 1 0   ; _main.vader:8:6
@@ -41,14 +40,14 @@ fn 1 tests_snippets_tuple_destructure_let__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:9:13
   call.import 0   ; _main.vader:9:5
   intrinsic builder.new   ; _main.vader:10:13
-  local.set 4   ; _main.vader:10:13
-  local.get 4   ; _main.vader:10:14
+  local.set 3   ; _main.vader:10:13
+  local.get 3   ; _main.vader:10:14
   string.const 2   ; _main.vader:10:14
   intrinsic builder.append_str   ; _main.vader:10:14
-  local.get 4   ; _main.vader:10:18
+  local.get 3   ; _main.vader:10:18
   local.get 2   ; _main.vader:10:18
   intrinsic builder.append_display   ; _main.vader:10:18
-  local.get 4   ; _main.vader:10:13
+  local.get 3   ; _main.vader:10:13
   intrinsic builder.finish   ; _main.vader:10:13
   call.import 0   ; _main.vader:10:5
   i32.const 0   ; _main.vader:11:12

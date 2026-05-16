@@ -22,8 +22,6 @@ impl 8 Iterator
 fn 0 tests_snippets_transitive_mono__main_vader$main () -> i32
   local __sb_0 any
   local $call_8 i32
-  local __sb_1 any
-  local $call_16 i32
   intrinsic builder.new   ; _main.vader:21:13
   local.set 0   ; _main.vader:21:13
   i32.const 1   ; _main.vader:21:22
@@ -41,17 +39,17 @@ fn 0 tests_snippets_transitive_mono__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:21:13
   call.import 0   ; _main.vader:21:5
   intrinsic builder.new   ; _main.vader:22:13
-  local.set 2   ; _main.vader:22:13
+  local.set 0   ; _main.vader:22:13
   string.const 0   ; _main.vader:22:22
   string.const 1   ; _main.vader:22:22
   string.const 2   ; _main.vader:22:22
   array.new 3 3   ; _main.vader:22:22
   call 4   ; _main.vader:22:16
-  local.set 3   ; _main.vader:22:16
-  local.get 2   ; _main.vader:22:14
-  local.get 3   ; _main.vader:22:14
+  local.set 1   ; _main.vader:22:16
+  local.get 0   ; _main.vader:22:14
+  local.get 1   ; _main.vader:22:14
   intrinsic builder.append_display   ; _main.vader:22:14
-  local.get 2   ; _main.vader:22:13
+  local.get 0   ; _main.vader:22:13
   intrinsic builder.finish   ; _main.vader:22:13
   call.import 0   ; _main.vader:22:5
   i32.const 0   ; _main.vader:23:12
@@ -132,10 +130,7 @@ fn 5 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
-  local $field_7 usize
   local v i32
-  local $field_10 usize
-  local $add_12 usize
   local.get 0   ; core.vader:245:13
   struct.get 5 1   ; core.vader:245:13
   local.set 1   ; core.vader:245:13
@@ -155,24 +150,24 @@ fn 5 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
     local.set 3   ; core.vader:246:14
     local.get 0   ; core.vader:246:23
     struct.get 5 1   ; core.vader:246:23
-    local.set 4   ; core.vader:246:23
+    local.set 1   ; core.vader:246:23
     local.get 3   ; core.vader:246:14
-    local.get 4   ; core.vader:246:14
+    local.get 1   ; core.vader:246:14
     array.get 2   ; core.vader:246:14
     ref.cast 1   ; core.vader:246:14
-    local.set 5   ; core.vader:246:14
+    local.set 4   ; core.vader:246:14
     local.get 0   ; core.vader:247:23
     struct.get 5 1   ; core.vader:247:23
-    local.set 6   ; core.vader:247:23
-    local.get 6   ; core.vader:247:23
+    local.set 1   ; core.vader:247:23
+    local.get 1   ; core.vader:247:23
     i64.const 1   ; core.vader:247:23
     i64.to_usize   ; core.vader:247:23
     usize.add   ; core.vader:247:23
-    local.set 7   ; core.vader:247:23
+    local.set 1   ; core.vader:247:23
     local.get 0   ; core.vader:247:9
-    local.get 7   ; core.vader:247:9
+    local.get 1   ; core.vader:247:9
     struct.set 5 1   ; core.vader:247:9
-    local.get 5   ; core.vader:248:16
+    local.get 4   ; core.vader:248:16
     struct.new 7   ; core.vader:248:16
     return   ; core.vader:248:9
   end $L0   ; core.vader:245:9
@@ -182,10 +177,7 @@ fn 6 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
-  local $field_7 usize
   local v string
-  local $field_10 usize
-  local $add_12 usize
   local.get 0   ; core.vader:245:13
   struct.get 8 1   ; core.vader:245:13
   local.set 1   ; core.vader:245:13
@@ -205,24 +197,24 @@ fn 6 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
     local.set 3   ; core.vader:246:14
     local.get 0   ; core.vader:246:23
     struct.get 8 1   ; core.vader:246:23
-    local.set 4   ; core.vader:246:23
+    local.set 1   ; core.vader:246:23
     local.get 3   ; core.vader:246:14
-    local.get 4   ; core.vader:246:14
+    local.get 1   ; core.vader:246:14
     array.get 3   ; core.vader:246:14
     ref.cast 4   ; core.vader:246:14
-    local.set 5   ; core.vader:246:14
+    local.set 4   ; core.vader:246:14
     local.get 0   ; core.vader:247:23
     struct.get 8 1   ; core.vader:247:23
-    local.set 6   ; core.vader:247:23
-    local.get 6   ; core.vader:247:23
+    local.set 1   ; core.vader:247:23
+    local.get 1   ; core.vader:247:23
     i64.const 1   ; core.vader:247:23
     i64.to_usize   ; core.vader:247:23
     usize.add   ; core.vader:247:23
-    local.set 7   ; core.vader:247:23
+    local.set 1   ; core.vader:247:23
     local.get 0   ; core.vader:247:9
-    local.get 7   ; core.vader:247:9
+    local.get 1   ; core.vader:247:9
     struct.set 8 1   ; core.vader:247:9
-    local.get 5   ; core.vader:248:16
+    local.get 4   ; core.vader:248:16
     struct.new 10   ; core.vader:248:16
     return   ; core.vader:248:9
   end $L0   ; core.vader:245:9

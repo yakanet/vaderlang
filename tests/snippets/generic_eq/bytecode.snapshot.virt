@@ -9,8 +9,6 @@ import 0 println std_io$println (string) -> void
 fn 0 tests_snippets_generic_eq__main_vader$main () -> i32
   local __sb_0 any
   local $call_4 bool
-  local __sb_1 any
-  local $call_10 bool
   intrinsic builder.new   ; _main.vader:8:13
   local.set 0   ; _main.vader:8:13
   i32.const 1   ; _main.vader:8:16
@@ -24,15 +22,15 @@ fn 0 tests_snippets_generic_eq__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:8:13
   call.import 0   ; _main.vader:8:5
   intrinsic builder.new   ; _main.vader:9:13
-  local.set 2   ; _main.vader:9:13
+  local.set 0   ; _main.vader:9:13
   i32.const 1   ; _main.vader:9:16
   i32.const 2   ; _main.vader:9:16
   call 1   ; _main.vader:9:16
-  local.set 3   ; _main.vader:9:16
-  local.get 2   ; _main.vader:9:14
-  local.get 3   ; _main.vader:9:14
+  local.set 1   ; _main.vader:9:16
+  local.get 0   ; _main.vader:9:14
+  local.get 1   ; _main.vader:9:14
   intrinsic builder.append_display   ; _main.vader:9:14
-  local.get 2   ; _main.vader:9:13
+  local.get 0   ; _main.vader:9:13
   intrinsic builder.finish   ; _main.vader:9:13
   call.import 0   ; _main.vader:9:5
   i32.const 0   ; _main.vader:10:12

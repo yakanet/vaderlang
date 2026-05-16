@@ -30,6 +30,7 @@ import type {
 import { intrinsicIdByName } from "../bytecode/ops.ts";
 import type { BytecodeModule, BcLocal, DebugPos } from "../bytecode/module.ts";
 import { runPeepholes } from "../bytecode/peephole.ts";
+import { coalesceSlots } from "../bytecode/slot-coalesce.ts";
 import { isIntegerVal, isNumericVal, type ValType } from "../bytecode/types.ts";
 
 import type {
@@ -83,7 +84,10 @@ export function emitBytecodeFromCFG(
       };
 
       emitCFGFunctionBody(cfgFn, fn, ctx, stringIndexMap);
-      if (ctx.optimize) runPeepholes(fn);
+      if (ctx.optimize) {
+        runPeepholes(fn);
+        coalesceSlots(fn);
+      }
       // Mutate slot via the shared mutable shape the legacy emit also uses.
       (slot as { locals: BcLocal[] }).locals = fn.locals;
       (slot as { body: Op[] }).body = fn.body;
@@ -124,7 +128,7 @@ interface FnEmitCfg {
   readonly stringIndexMap: readonly number[];
   /** CFG locals → bytecode slot indices (params live at 0..N-1, additional
    *  locals are appended via declareLocal). */
-  readonly localToSlot: number[];
+  readonly localToSlot: readonly number[];
   /** Per-block predecessor lists (precomputed once). */
   readonly preds: readonly (readonly BlockId[])[];
   /** idom[b] = immediate dominator of `b` (b for the entry). */
@@ -161,12 +165,12 @@ function emitCFGFunctionBody(
   cfgFn: CFGFunction, fn: FnEmitCtx, project: EmitterCtx, stringIndexMap: readonly number[],
 ): void {
   // Map CFG locals to bytecode slots. Params reuse slots 0..N-1 (same shape
-  // as the legacy emitter). Additional locals get fresh bytecode slots.
+  // as the legacy emitter). Additional locals get fresh bytecode slots ;
+  // slot coalescing runs later as a bytecode-level pass so it can fold the
+  // peephole's output too.
   const localToSlot: number[] = new Array(cfgFn.locals.length);
   for (let i = 0; i < cfgFn.params.length; i++) {
     localToSlot[i] = i;
-    // Register the param's user symbol so identifiers resolve through the
-    // legacy emit helpers if we ever fall back through them.
     fn.slotBySymbolId.set(cfgFn.params[i]!.symbol.id, i);
   }
   for (let i = cfgFn.params.length; i < cfgFn.locals.length; i++) {

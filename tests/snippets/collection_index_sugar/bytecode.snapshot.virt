@@ -43,7 +43,6 @@ impl 10 Into
 
 fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
   local $arr_0 ref
-  local m ref
   local __scrut_0 ref
   local v i32
   local __sb_1 any
@@ -54,7 +53,6 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
   local $arr_36 ref
   local $k_37 usize
   local s ref
-  local $k_41 i32
   local $k_43 i32
   local $k_45 i32
   local $k_48 i32
@@ -64,53 +62,53 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
   i64.const 0   ; _main.vader:9:10
   i64.to_usize   ; _main.vader:9:10
   struct.new 8   ; _main.vader:9:10
-  local.set 1   ; _main.vader:9:10
-  local.get 1   ; _main.vader:10:5
+  local.set 0   ; _main.vader:9:10
+  local.get 0   ; _main.vader:10:5
   string.const 0   ; _main.vader:10:5
   i32.const 10   ; _main.vader:10:5
   call 6   ; _main.vader:10:5
-  local.get 1   ; _main.vader:11:5
+  local.get 0   ; _main.vader:11:5
   string.const 1   ; _main.vader:11:5
   i32.const 20   ; _main.vader:11:5
   call 6   ; _main.vader:11:5
-  local.get 1   ; _main.vader:12:5
+  local.get 0   ; _main.vader:12:5
   string.const 0   ; _main.vader:12:5
   i32.const 99   ; _main.vader:12:5
   call 6   ; _main.vader:12:5
-  local.get 1   ; _main.vader:15:11
+  local.get 0   ; _main.vader:15:11
   string.const 0   ; _main.vader:15:11
   call 5   ; _main.vader:15:11
-  local.tee 2   ; _main.vader:15:11
+  local.tee 1   ; _main.vader:15:11
   type_check 1   ; _main.vader:16:9
   if $L0 void   ; _main.vader:16:9
-    local.get 2   ; _main.vader:16:9
+    local.get 1   ; _main.vader:16:9
     ref.cast 1   ; _main.vader:16:9
-    local.set 3   ; _main.vader:16:9
+    local.set 2   ; _main.vader:16:9
     intrinsic builder.new   ; _main.vader:16:32
-    local.set 4   ; _main.vader:16:32
-    local.get 4   ; _main.vader:16:33
+    local.set 3   ; _main.vader:16:32
+    local.get 3   ; _main.vader:16:33
     string.const 2   ; _main.vader:16:33
     intrinsic builder.append_str   ; _main.vader:16:33
-    local.get 4   ; _main.vader:16:35
     local.get 3   ; _main.vader:16:35
+    local.get 2   ; _main.vader:16:35
     intrinsic builder.append_display   ; _main.vader:16:35
-    local.get 4   ; _main.vader:16:32
+    local.get 3   ; _main.vader:16:32
     intrinsic builder.finish   ; _main.vader:16:32
     call.import 1   ; _main.vader:16:24
     string.const 4   ; _main.vader:19:13
-    local.set 5   ; _main.vader:19:13
-    local.get 1   ; _main.vader:19:11
-    local.get 5   ; _main.vader:19:11
+    local.set 4   ; _main.vader:19:13
+    local.get 0   ; _main.vader:19:11
+    local.get 4   ; _main.vader:19:11
     call 5   ; _main.vader:19:11
-    local.tee 6   ; _main.vader:19:11
+    local.tee 5   ; _main.vader:19:11
     type_check 1   ; _main.vader:20:9
     if $L1 void   ; _main.vader:20:9
       string.const 5   ; _main.vader:20:28
       call.import 1   ; _main.vader:20:20
       string.const 0   ; _main.vader:25:8
-      local.set 7   ; _main.vader:25:8
-      local.get 1   ; _main.vader:25:8
-      local.get 7   ; _main.vader:25:8
+      local.set 6   ; _main.vader:25:8
+      local.get 0   ; _main.vader:25:8
+      local.get 6   ; _main.vader:25:8
       call 7   ; _main.vader:25:8
       if $L2 void   ; _main.vader:25:5
         string.const 7   ; _main.vader:25:28
@@ -118,9 +116,9 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
       else   ; _main.vader:25:5
       end $L2   ; _main.vader:25:5
       string.const 8   ; _main.vader:26:8
-      local.set 8   ; _main.vader:26:8
-      local.get 1   ; _main.vader:26:8
-      local.get 8   ; _main.vader:26:8
+      local.set 7   ; _main.vader:26:8
+      local.get 0   ; _main.vader:26:8
+      local.get 7   ; _main.vader:26:8
       call 7   ; _main.vader:26:8
       bool.not   ; _main.vader:26:8
       if $L3 void   ; _main.vader:26:5
@@ -129,30 +127,30 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
       else   ; _main.vader:26:5
       end $L3   ; _main.vader:26:5
       array.new 15 0   ; _main.vader:29:72
-      local.set 9   ; _main.vader:29:72
+      local.set 8   ; _main.vader:29:72
       i64.const 0   ; _main.vader:29:84
-      local.set 10   ; _main.vader:29:84
+      local.set 9   ; _main.vader:29:84
+      local.get 8   ; _main.vader:29:37
       local.get 9   ; _main.vader:29:37
-      local.get 10   ; _main.vader:29:37
       struct.new 7   ; _main.vader:29:37
       struct.new 10   ; _main.vader:29:10
-      local.set 11   ; _main.vader:29:10
+      local.set 10   ; _main.vader:29:10
       i32.const 1   ; _main.vader:30:11
-      local.set 12   ; _main.vader:30:11
-      local.get 11   ; _main.vader:30:5
-      local.get 12   ; _main.vader:30:5
+      local.set 2   ; _main.vader:30:11
+      local.get 10   ; _main.vader:30:5
+      local.get 2   ; _main.vader:30:5
       call 16   ; _main.vader:30:5
       drop   ; _main.vader:30:5
       i32.const 2   ; _main.vader:31:11
-      local.set 13   ; _main.vader:31:11
+      local.set 11   ; _main.vader:31:11
+      local.get 10   ; _main.vader:31:5
       local.get 11   ; _main.vader:31:5
-      local.get 13   ; _main.vader:31:5
       call 16   ; _main.vader:31:5
       drop   ; _main.vader:31:5
       i32.const 1   ; _main.vader:32:8
-      local.set 14   ; _main.vader:32:8
-      local.get 11   ; _main.vader:32:8
-      local.get 14   ; _main.vader:32:8
+      local.set 12   ; _main.vader:32:8
+      local.get 10   ; _main.vader:32:8
+      local.get 12   ; _main.vader:32:8
       call 8   ; _main.vader:32:8
       if $L4 void   ; _main.vader:32:5
         string.const 10   ; _main.vader:32:26
@@ -160,9 +158,9 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
       else   ; _main.vader:32:5
       end $L4   ; _main.vader:32:5
       i32.const 3   ; _main.vader:33:8
-      local.set 15   ; _main.vader:33:8
-      local.get 11   ; _main.vader:33:8
-      local.get 15   ; _main.vader:33:8
+      local.set 13   ; _main.vader:33:8
+      local.get 10   ; _main.vader:33:8
+      local.get 13   ; _main.vader:33:8
       call 8   ; _main.vader:33:8
       bool.not   ; _main.vader:33:8
       if $L5 void   ; _main.vader:33:5
@@ -173,15 +171,15 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
       i32.const 0   ; _main.vader:35:12
       return   ; _main.vader:35:5
     else   ; _main.vader:20:9
-      local.get 6   ; _main.vader:21:9
+      local.get 5   ; _main.vader:21:9
       type_check 0   ; _main.vader:21:9
       if $L6 void   ; _main.vader:21:9
         string.const 6   ; _main.vader:21:28
         call.import 1   ; _main.vader:21:20
         string.const 0   ; _main.vader:25:8
-        local.set 7   ; _main.vader:25:8
-        local.get 1   ; _main.vader:25:8
-        local.get 7   ; _main.vader:25:8
+        local.set 6   ; _main.vader:25:8
+        local.get 0   ; _main.vader:25:8
+        local.get 6   ; _main.vader:25:8
         call 7   ; _main.vader:25:8
         if $L7 void   ; _main.vader:25:5
           string.const 7   ; _main.vader:25:28
@@ -189,9 +187,9 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         else   ; _main.vader:25:5
         end $L7   ; _main.vader:25:5
         string.const 8   ; _main.vader:26:8
-        local.set 8   ; _main.vader:26:8
-        local.get 1   ; _main.vader:26:8
-        local.get 8   ; _main.vader:26:8
+        local.set 7   ; _main.vader:26:8
+        local.get 0   ; _main.vader:26:8
+        local.get 7   ; _main.vader:26:8
         call 7   ; _main.vader:26:8
         bool.not   ; _main.vader:26:8
         if $L8 void   ; _main.vader:26:5
@@ -200,30 +198,30 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         else   ; _main.vader:26:5
         end $L8   ; _main.vader:26:5
         array.new 15 0   ; _main.vader:29:72
-        local.set 9   ; _main.vader:29:72
+        local.set 8   ; _main.vader:29:72
         i64.const 0   ; _main.vader:29:84
-        local.set 10   ; _main.vader:29:84
+        local.set 9   ; _main.vader:29:84
+        local.get 8   ; _main.vader:29:37
         local.get 9   ; _main.vader:29:37
-        local.get 10   ; _main.vader:29:37
         struct.new 7   ; _main.vader:29:37
         struct.new 10   ; _main.vader:29:10
-        local.set 11   ; _main.vader:29:10
+        local.set 10   ; _main.vader:29:10
         i32.const 1   ; _main.vader:30:11
-        local.set 12   ; _main.vader:30:11
-        local.get 11   ; _main.vader:30:5
-        local.get 12   ; _main.vader:30:5
+        local.set 2   ; _main.vader:30:11
+        local.get 10   ; _main.vader:30:5
+        local.get 2   ; _main.vader:30:5
         call 16   ; _main.vader:30:5
         drop   ; _main.vader:30:5
         i32.const 2   ; _main.vader:31:11
-        local.set 13   ; _main.vader:31:11
+        local.set 11   ; _main.vader:31:11
+        local.get 10   ; _main.vader:31:5
         local.get 11   ; _main.vader:31:5
-        local.get 13   ; _main.vader:31:5
         call 16   ; _main.vader:31:5
         drop   ; _main.vader:31:5
         i32.const 1   ; _main.vader:32:8
-        local.set 14   ; _main.vader:32:8
-        local.get 11   ; _main.vader:32:8
-        local.get 14   ; _main.vader:32:8
+        local.set 12   ; _main.vader:32:8
+        local.get 10   ; _main.vader:32:8
+        local.get 12   ; _main.vader:32:8
         call 8   ; _main.vader:32:8
         if $L9 void   ; _main.vader:32:5
           string.const 10   ; _main.vader:32:26
@@ -231,9 +229,9 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         else   ; _main.vader:32:5
         end $L9   ; _main.vader:32:5
         i32.const 3   ; _main.vader:33:8
-        local.set 15   ; _main.vader:33:8
-        local.get 11   ; _main.vader:33:8
-        local.get 15   ; _main.vader:33:8
+        local.set 13   ; _main.vader:33:8
+        local.get 10   ; _main.vader:33:8
+        local.get 13   ; _main.vader:33:8
         call 8   ; _main.vader:33:8
         bool.not   ; _main.vader:33:8
         if $L10 void   ; _main.vader:33:5
@@ -248,25 +246,25 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
       end $L6   ; _main.vader:21:9
     end $L1   ; _main.vader:20:9
   else   ; _main.vader:16:9
-    local.get 2   ; _main.vader:17:9
+    local.get 1   ; _main.vader:17:9
     type_check 0   ; _main.vader:17:9
     if $L11 void   ; _main.vader:17:9
       string.const 3   ; _main.vader:17:32
       call.import 1   ; _main.vader:17:24
       string.const 4   ; _main.vader:19:13
-      local.set 5   ; _main.vader:19:13
-      local.get 1   ; _main.vader:19:11
-      local.get 5   ; _main.vader:19:11
+      local.set 4   ; _main.vader:19:13
+      local.get 0   ; _main.vader:19:11
+      local.get 4   ; _main.vader:19:11
       call 5   ; _main.vader:19:11
-      local.tee 6   ; _main.vader:19:11
+      local.tee 5   ; _main.vader:19:11
       type_check 1   ; _main.vader:20:9
       if $L12 void   ; _main.vader:20:9
         string.const 5   ; _main.vader:20:28
         call.import 1   ; _main.vader:20:20
         string.const 0   ; _main.vader:25:8
-        local.set 7   ; _main.vader:25:8
-        local.get 1   ; _main.vader:25:8
-        local.get 7   ; _main.vader:25:8
+        local.set 6   ; _main.vader:25:8
+        local.get 0   ; _main.vader:25:8
+        local.get 6   ; _main.vader:25:8
         call 7   ; _main.vader:25:8
         if $L13 void   ; _main.vader:25:5
           string.const 7   ; _main.vader:25:28
@@ -274,9 +272,9 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         else   ; _main.vader:25:5
         end $L13   ; _main.vader:25:5
         string.const 8   ; _main.vader:26:8
-        local.set 8   ; _main.vader:26:8
-        local.get 1   ; _main.vader:26:8
-        local.get 8   ; _main.vader:26:8
+        local.set 7   ; _main.vader:26:8
+        local.get 0   ; _main.vader:26:8
+        local.get 7   ; _main.vader:26:8
         call 7   ; _main.vader:26:8
         bool.not   ; _main.vader:26:8
         if $L14 void   ; _main.vader:26:5
@@ -285,30 +283,30 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         else   ; _main.vader:26:5
         end $L14   ; _main.vader:26:5
         array.new 15 0   ; _main.vader:29:72
-        local.set 9   ; _main.vader:29:72
+        local.set 8   ; _main.vader:29:72
         i64.const 0   ; _main.vader:29:84
-        local.set 10   ; _main.vader:29:84
+        local.set 9   ; _main.vader:29:84
+        local.get 8   ; _main.vader:29:37
         local.get 9   ; _main.vader:29:37
-        local.get 10   ; _main.vader:29:37
         struct.new 7   ; _main.vader:29:37
         struct.new 10   ; _main.vader:29:10
-        local.set 11   ; _main.vader:29:10
+        local.set 10   ; _main.vader:29:10
         i32.const 1   ; _main.vader:30:11
-        local.set 12   ; _main.vader:30:11
-        local.get 11   ; _main.vader:30:5
-        local.get 12   ; _main.vader:30:5
+        local.set 2   ; _main.vader:30:11
+        local.get 10   ; _main.vader:30:5
+        local.get 2   ; _main.vader:30:5
         call 16   ; _main.vader:30:5
         drop   ; _main.vader:30:5
         i32.const 2   ; _main.vader:31:11
-        local.set 13   ; _main.vader:31:11
+        local.set 11   ; _main.vader:31:11
+        local.get 10   ; _main.vader:31:5
         local.get 11   ; _main.vader:31:5
-        local.get 13   ; _main.vader:31:5
         call 16   ; _main.vader:31:5
         drop   ; _main.vader:31:5
         i32.const 1   ; _main.vader:32:8
-        local.set 14   ; _main.vader:32:8
-        local.get 11   ; _main.vader:32:8
-        local.get 14   ; _main.vader:32:8
+        local.set 12   ; _main.vader:32:8
+        local.get 10   ; _main.vader:32:8
+        local.get 12   ; _main.vader:32:8
         call 8   ; _main.vader:32:8
         if $L15 void   ; _main.vader:32:5
           string.const 10   ; _main.vader:32:26
@@ -316,9 +314,9 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         else   ; _main.vader:32:5
         end $L15   ; _main.vader:32:5
         i32.const 3   ; _main.vader:33:8
-        local.set 15   ; _main.vader:33:8
-        local.get 11   ; _main.vader:33:8
-        local.get 15   ; _main.vader:33:8
+        local.set 13   ; _main.vader:33:8
+        local.get 10   ; _main.vader:33:8
+        local.get 13   ; _main.vader:33:8
         call 8   ; _main.vader:33:8
         bool.not   ; _main.vader:33:8
         if $L16 void   ; _main.vader:33:5
@@ -329,15 +327,15 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
         i32.const 0   ; _main.vader:35:12
         return   ; _main.vader:35:5
       else   ; _main.vader:20:9
-        local.get 6   ; _main.vader:21:9
+        local.get 5   ; _main.vader:21:9
         type_check 0   ; _main.vader:21:9
         if $L17 void   ; _main.vader:21:9
           string.const 6   ; _main.vader:21:28
           call.import 1   ; _main.vader:21:20
           string.const 0   ; _main.vader:25:8
-          local.set 7   ; _main.vader:25:8
-          local.get 1   ; _main.vader:25:8
-          local.get 7   ; _main.vader:25:8
+          local.set 6   ; _main.vader:25:8
+          local.get 0   ; _main.vader:25:8
+          local.get 6   ; _main.vader:25:8
           call 7   ; _main.vader:25:8
           if $L18 void   ; _main.vader:25:5
             string.const 7   ; _main.vader:25:28
@@ -345,9 +343,9 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
           else   ; _main.vader:25:5
           end $L18   ; _main.vader:25:5
           string.const 8   ; _main.vader:26:8
-          local.set 8   ; _main.vader:26:8
-          local.get 1   ; _main.vader:26:8
-          local.get 8   ; _main.vader:26:8
+          local.set 7   ; _main.vader:26:8
+          local.get 0   ; _main.vader:26:8
+          local.get 7   ; _main.vader:26:8
           call 7   ; _main.vader:26:8
           bool.not   ; _main.vader:26:8
           if $L19 void   ; _main.vader:26:5
@@ -356,30 +354,30 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
           else   ; _main.vader:26:5
           end $L19   ; _main.vader:26:5
           array.new 15 0   ; _main.vader:29:72
-          local.set 9   ; _main.vader:29:72
+          local.set 8   ; _main.vader:29:72
           i64.const 0   ; _main.vader:29:84
-          local.set 10   ; _main.vader:29:84
+          local.set 9   ; _main.vader:29:84
+          local.get 8   ; _main.vader:29:37
           local.get 9   ; _main.vader:29:37
-          local.get 10   ; _main.vader:29:37
           struct.new 7   ; _main.vader:29:37
           struct.new 10   ; _main.vader:29:10
-          local.set 11   ; _main.vader:29:10
+          local.set 10   ; _main.vader:29:10
           i32.const 1   ; _main.vader:30:11
-          local.set 12   ; _main.vader:30:11
-          local.get 11   ; _main.vader:30:5
-          local.get 12   ; _main.vader:30:5
+          local.set 2   ; _main.vader:30:11
+          local.get 10   ; _main.vader:30:5
+          local.get 2   ; _main.vader:30:5
           call 16   ; _main.vader:30:5
           drop   ; _main.vader:30:5
           i32.const 2   ; _main.vader:31:11
-          local.set 13   ; _main.vader:31:11
+          local.set 11   ; _main.vader:31:11
+          local.get 10   ; _main.vader:31:5
           local.get 11   ; _main.vader:31:5
-          local.get 13   ; _main.vader:31:5
           call 16   ; _main.vader:31:5
           drop   ; _main.vader:31:5
           i32.const 1   ; _main.vader:32:8
-          local.set 14   ; _main.vader:32:8
-          local.get 11   ; _main.vader:32:8
-          local.get 14   ; _main.vader:32:8
+          local.set 12   ; _main.vader:32:8
+          local.get 10   ; _main.vader:32:8
+          local.get 12   ; _main.vader:32:8
           call 8   ; _main.vader:32:8
           if $L20 void   ; _main.vader:32:5
             string.const 10   ; _main.vader:32:26
@@ -387,9 +385,9 @@ fn 0 tests_snippets_collection_index_sugar__main_vader$main () -> i32
           else   ; _main.vader:32:5
           end $L20   ; _main.vader:32:5
           i32.const 3   ; _main.vader:33:8
-          local.set 15   ; _main.vader:33:8
-          local.get 11   ; _main.vader:33:8
-          local.get 15   ; _main.vader:33:8
+          local.set 13   ; _main.vader:33:8
+          local.get 10   ; _main.vader:33:8
+          local.get 13   ; _main.vader:33:8
           call 8   ; _main.vader:33:8
           bool.not   ; _main.vader:33:8
           if $L21 void   ; _main.vader:33:5
@@ -474,7 +472,6 @@ end
 
 fn 9 std_collections$std_collections$ensure_buckets__i32__bool (ref) -> void
   local $len_2 usize
-  local _ usize
   local $field_10 ref
   local $k_11 null
   local.get 0   ; collections.vader:68:8
@@ -487,27 +484,27 @@ fn 9 std_collections$std_collections$ensure_buckets__i32__bool (ref) -> void
   usize.eq   ; collections.vader:68:8
   if $L0 void   ; collections.vader:68:5
     i64.const 0   ; collections.vader:69:13
-    local.set 2   ; collections.vader:69:13
+    local.set 1   ; collections.vader:69:13
     block $L1 void   ; collections.vader:69:9
       loop $L2 void   ; collections.vader:69:9
-        local.get 2   ; collections.vader:69:9
+        local.get 1   ; collections.vader:69:9
         i64.const 16   ; collections.vader:69:9
         i64.to_usize   ; collections.vader:69:9
         usize.lt   ; collections.vader:69:9
         if $L3 void   ; collections.vader:69:9
           local.get 0   ; collections.vader:70:13
           struct.get 7 0   ; collections.vader:70:13
-          local.set 3   ; collections.vader:70:13
+          local.set 2   ; collections.vader:70:13
           null.const   ; collections.vader:70:31
-          local.set 4   ; collections.vader:70:31
+          local.set 3   ; collections.vader:70:31
+          local.get 2   ; collections.vader:70:13
           local.get 3   ; collections.vader:70:13
-          local.get 4   ; collections.vader:70:13
           array.push 0   ; collections.vader:70:13
-          local.get 2   ; collections.vader:69:9
+          local.get 1   ; collections.vader:69:9
           i64.const 1   ; collections.vader:69:9
           i64.to_usize   ; collections.vader:69:9
           usize.add   ; collections.vader:69:9
-          local.set 2   ; collections.vader:69:9
+          local.set 1   ; collections.vader:69:9
           br $L2   ; collections.vader:69:9
         else   ; collections.vader:69:9
         end $L3   ; collections.vader:69:9
@@ -520,7 +517,6 @@ end
 
 fn 10 std_collections$std_collections$ensure_buckets__string__i32 (ref) -> void
   local $len_2 usize
-  local _ usize
   local $field_10 ref
   local $k_11 null
   local.get 0   ; collections.vader:68:8
@@ -533,27 +529,27 @@ fn 10 std_collections$std_collections$ensure_buckets__string__i32 (ref) -> void
   usize.eq   ; collections.vader:68:8
   if $L0 void   ; collections.vader:68:5
     i64.const 0   ; collections.vader:69:13
-    local.set 2   ; collections.vader:69:13
+    local.set 1   ; collections.vader:69:13
     block $L1 void   ; collections.vader:69:9
       loop $L2 void   ; collections.vader:69:9
-        local.get 2   ; collections.vader:69:9
+        local.get 1   ; collections.vader:69:9
         i64.const 16   ; collections.vader:69:9
         i64.to_usize   ; collections.vader:69:9
         usize.lt   ; collections.vader:69:9
         if $L3 void   ; collections.vader:69:9
           local.get 0   ; collections.vader:70:13
           struct.get 8 0   ; collections.vader:70:13
-          local.set 3   ; collections.vader:70:13
+          local.set 2   ; collections.vader:70:13
           null.const   ; collections.vader:70:31
-          local.set 4   ; collections.vader:70:31
+          local.set 3   ; collections.vader:70:31
+          local.get 2   ; collections.vader:70:13
           local.get 3   ; collections.vader:70:13
-          local.get 4   ; collections.vader:70:13
           array.push 0   ; collections.vader:70:13
-          local.get 2   ; collections.vader:69:9
+          local.get 1   ; collections.vader:69:9
           i64.const 1   ; collections.vader:69:9
           i64.to_usize   ; collections.vader:69:9
           usize.add   ; collections.vader:69:9
-          local.set 2   ; collections.vader:69:9
+          local.set 1   ; collections.vader:69:9
           br $L2   ; collections.vader:69:9
         else   ; collections.vader:69:9
         end $L3   ; collections.vader:69:9
@@ -570,10 +566,7 @@ fn 11 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
   local done bool
   local found bool
   local __scrut_0 ref
-  local $idx_28 ref
-  local new_entry ref
   local $field_32 usize
-  local $add_34 usize
   local.get 0   ; collections.vader:82:5
   call 9   ; collections.vader:82:5
   local.get 1   ; collections.vader:83:10
@@ -639,27 +632,27 @@ fn 11 std_collections$std_collections$put__i32__bool (ref,i32,bool) -> void
     struct.get 7 0   ; collections.vader:109:68
     local.get 3   ; collections.vader:109:68
     array.get 15   ; collections.vader:109:68
-    local.set 8   ; collections.vader:109:68
+    local.set 4   ; collections.vader:109:68
     local.get 1   ; collections.vader:109:18
     local.get 2   ; collections.vader:109:18
-    local.get 8   ; collections.vader:109:18
+    local.get 4   ; collections.vader:109:18
     struct.new 11   ; collections.vader:109:18
-    local.set 9   ; collections.vader:109:18
+    local.set 4   ; collections.vader:109:18
     local.get 0   ; collections.vader:110:5
     struct.get 7 0   ; collections.vader:110:5
     local.get 3   ; collections.vader:110:5
-    local.get 9   ; collections.vader:110:5
+    local.get 4   ; collections.vader:110:5
     array.set 15   ; collections.vader:110:5
     local.get 0   ; collections.vader:111:17
     struct.get 7 1   ; collections.vader:111:17
-    local.set 10   ; collections.vader:111:17
-    local.get 10   ; collections.vader:111:17
+    local.set 8   ; collections.vader:111:17
+    local.get 8   ; collections.vader:111:17
     i64.const 1   ; collections.vader:111:17
     i64.to_usize   ; collections.vader:111:17
     usize.add   ; collections.vader:111:17
-    local.set 11   ; collections.vader:111:17
+    local.set 8   ; collections.vader:111:17
     local.get 0   ; collections.vader:111:5
-    local.get 11   ; collections.vader:111:5
+    local.get 8   ; collections.vader:111:5
     struct.set 7 1   ; collections.vader:111:5
     return   ; collections.vader:81:67
   end $L6   ; collections.vader:104:5
@@ -671,10 +664,7 @@ fn 12 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local done bool
   local found bool
   local __scrut_0 ref
-  local $idx_28 ref
-  local new_entry ref
   local $field_32 usize
-  local $add_34 usize
   local.get 0   ; collections.vader:82:5
   call 10   ; collections.vader:82:5
   local.get 1   ; collections.vader:83:10
@@ -740,27 +730,27 @@ fn 12 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
     struct.get 8 0   ; collections.vader:109:68
     local.get 3   ; collections.vader:109:68
     array.get 16   ; collections.vader:109:68
-    local.set 8   ; collections.vader:109:68
+    local.set 4   ; collections.vader:109:68
     local.get 1   ; collections.vader:109:18
     local.get 2   ; collections.vader:109:18
-    local.get 8   ; collections.vader:109:18
+    local.get 4   ; collections.vader:109:18
     struct.new 13   ; collections.vader:109:18
-    local.set 9   ; collections.vader:109:18
+    local.set 4   ; collections.vader:109:18
     local.get 0   ; collections.vader:110:5
     struct.get 8 0   ; collections.vader:110:5
     local.get 3   ; collections.vader:110:5
-    local.get 9   ; collections.vader:110:5
+    local.get 4   ; collections.vader:110:5
     array.set 16   ; collections.vader:110:5
     local.get 0   ; collections.vader:111:17
     struct.get 8 1   ; collections.vader:111:17
-    local.set 10   ; collections.vader:111:17
-    local.get 10   ; collections.vader:111:17
+    local.set 8   ; collections.vader:111:17
+    local.get 8   ; collections.vader:111:17
     i64.const 1   ; collections.vader:111:17
     i64.to_usize   ; collections.vader:111:17
     usize.add   ; collections.vader:111:17
-    local.set 11   ; collections.vader:111:17
+    local.set 8   ; collections.vader:111:17
     local.get 0   ; collections.vader:111:5
-    local.get 11   ; collections.vader:111:5
+    local.get 8   ; collections.vader:111:5
     struct.set 8 1   ; collections.vader:111:5
     return   ; collections.vader:81:67
   end $L6   ; collections.vader:104:5

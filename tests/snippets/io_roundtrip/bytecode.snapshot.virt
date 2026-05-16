@@ -23,8 +23,6 @@ fn 0 tests_snippets_io_roundtrip__main_vader$main () -> i32
   local $call_7 bool
   local contents ref
   local __scrut_1 ref
-  local __sb_2 any
-  local $cast_16 string
   string.const 0   ; _main.vader:4:13
   local.set 0   ; _main.vader:4:13
   local.get 0   ; _main.vader:7:5
@@ -52,17 +50,17 @@ fn 0 tests_snippets_io_roundtrip__main_vader$main () -> i32
   type_check 2   ; _main.vader:13:9
   if $L0 void   ; _main.vader:13:9
     intrinsic builder.new   ; _main.vader:13:30
-    local.set 5   ; _main.vader:13:30
-    local.get 5   ; _main.vader:13:31
+    local.set 1   ; _main.vader:13:30
+    local.get 1   ; _main.vader:13:31
     string.const 3   ; _main.vader:13:31
     intrinsic builder.append_str   ; _main.vader:13:31
     local.get 3   ; _main.vader:13:39
     ref.cast 2   ; _main.vader:13:39
-    local.set 6   ; _main.vader:13:39
-    local.get 5   ; _main.vader:13:37
-    local.get 6   ; _main.vader:13:37
+    local.set 0   ; _main.vader:13:39
+    local.get 1   ; _main.vader:13:37
+    local.get 0   ; _main.vader:13:37
     intrinsic builder.append_display   ; _main.vader:13:37
-    local.get 5   ; _main.vader:13:30
+    local.get 1   ; _main.vader:13:30
     intrinsic builder.finish   ; _main.vader:13:30
     call.import 0   ; _main.vader:13:22
     i32.const 0   ; _main.vader:17:12

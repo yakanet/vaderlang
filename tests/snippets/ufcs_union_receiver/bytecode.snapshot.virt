@@ -18,9 +18,6 @@ fn 0 tests_snippets_ufcs_union_receiver__main_vader$describe (ref) -> string
   local c ref
   local __sb_2 any
   local $field_9 i32
-  local sq ref
-  local __sb_1 any
-  local $field_19 i32
   local.get 0   ; _main.vader:15:18
   local.tee 1   ; _main.vader:15:18
   type_check 2   ; _main.vader:16:9
@@ -49,22 +46,22 @@ fn 0 tests_snippets_ufcs_union_receiver__main_vader$describe (ref) -> string
     type_check 3   ; _main.vader:17:9
     if $L1 void   ; _main.vader:17:9
       local.get 1   ; _main.vader:17:9
-      local.set 5   ; _main.vader:17:9
+      local.set 1   ; _main.vader:17:9
       intrinsic builder.new   ; _main.vader:17:28
-      local.set 6   ; _main.vader:17:28
-      local.get 6   ; _main.vader:17:29
+      local.set 3   ; _main.vader:17:28
+      local.get 3   ; _main.vader:17:29
       string.const 2   ; _main.vader:17:29
       intrinsic builder.append_str   ; _main.vader:17:29
-      local.get 5   ; _main.vader:17:38
+      local.get 1   ; _main.vader:17:38
       struct.get 3 0   ; _main.vader:17:38
-      local.set 7   ; _main.vader:17:38
-      local.get 6   ; _main.vader:17:36
-      local.get 7   ; _main.vader:17:36
+      local.set 4   ; _main.vader:17:38
+      local.get 3   ; _main.vader:17:36
+      local.get 4   ; _main.vader:17:36
       intrinsic builder.append_display   ; _main.vader:17:36
-      local.get 6   ; _main.vader:17:46
+      local.get 3   ; _main.vader:17:46
       string.const 1   ; _main.vader:17:46
       intrinsic builder.append_str   ; _main.vader:17:46
-      local.get 6   ; _main.vader:17:28
+      local.get 3   ; _main.vader:17:28
       intrinsic builder.finish   ; _main.vader:17:28
       return   ; _main.vader:15:5
     else   ; _main.vader:17:9
@@ -78,10 +75,6 @@ fn 1 tests_snippets_ufcs_union_receiver__main_vader$area (ref) -> i32
   local c ref
   local $field_6 i32
   local $field_7 i32
-  local $mul_8 i32
-  local sq ref
-  local $field_15 i32
-  local $field_16 i32
   local.get 0   ; _main.vader:22:18
   local.tee 1   ; _main.vader:22:18
   type_check 2   ; _main.vader:23:9
@@ -96,8 +89,8 @@ fn 1 tests_snippets_ufcs_union_receiver__main_vader$area (ref) -> i32
     local.get 3   ; _main.vader:23:27
     local.get 4   ; _main.vader:23:27
     i32.mul   ; _main.vader:23:27
-    local.set 5   ; _main.vader:23:27
-    local.get 5   ; _main.vader:23:27
+    local.set 3   ; _main.vader:23:27
+    local.get 3   ; _main.vader:23:27
     i32.const 3   ; _main.vader:23:27
     i32.mul   ; _main.vader:23:27
     return   ; _main.vader:22:5
@@ -106,14 +99,14 @@ fn 1 tests_snippets_ufcs_union_receiver__main_vader$area (ref) -> i32
     type_check 3   ; _main.vader:24:9
     if $L1 void   ; _main.vader:24:9
       local.get 1   ; _main.vader:24:9
-      local.tee 6   ; _main.vader:24:9
+      local.tee 1   ; _main.vader:24:9
       struct.get 3 0   ; _main.vader:24:28
-      local.set 7   ; _main.vader:24:28
-      local.get 6   ; _main.vader:24:38
+      local.set 3   ; _main.vader:24:28
+      local.get 1   ; _main.vader:24:38
       struct.get 3 0   ; _main.vader:24:38
-      local.set 8   ; _main.vader:24:38
-      local.get 7   ; _main.vader:24:28
-      local.get 8   ; _main.vader:24:28
+      local.set 4   ; _main.vader:24:38
+      local.get 3   ; _main.vader:24:28
+      local.get 4   ; _main.vader:24:28
       i32.mul   ; _main.vader:24:28
       return   ; _main.vader:22:5
     else   ; _main.vader:24:9
@@ -127,8 +120,6 @@ fn 2 tests_snippets_ufcs_union_receiver__main_vader$main () -> i32
   local b ref
   local __sb_0 any
   local $call_11 i32
-  local __sb_1 any
-  local $call_16 i32
   i32.const 5   ; _main.vader:29:35
   struct.new 2   ; _main.vader:29:16
   local.set 0   ; _main.vader:29:16
@@ -156,17 +147,17 @@ fn 2 tests_snippets_ufcs_union_receiver__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:33:13
   call.import 0   ; _main.vader:33:5
   intrinsic builder.new   ; _main.vader:34:13
-  local.set 4   ; _main.vader:34:13
-  local.get 4   ; _main.vader:34:14
+  local.set 2   ; _main.vader:34:13
+  local.get 2   ; _main.vader:34:14
   string.const 4   ; _main.vader:34:14
   intrinsic builder.append_str   ; _main.vader:34:14
   local.get 1   ; _main.vader:34:25
   call 1   ; _main.vader:34:25
-  local.set 5   ; _main.vader:34:25
-  local.get 4   ; _main.vader:34:23
-  local.get 5   ; _main.vader:34:23
+  local.set 3   ; _main.vader:34:25
+  local.get 2   ; _main.vader:34:23
+  local.get 3   ; _main.vader:34:23
   intrinsic builder.append_display   ; _main.vader:34:23
-  local.get 4   ; _main.vader:34:13
+  local.get 2   ; _main.vader:34:13
   intrinsic builder.finish   ; _main.vader:34:13
   call.import 0   ; _main.vader:34:5
   i32.const 0   ; _main.vader:35:12

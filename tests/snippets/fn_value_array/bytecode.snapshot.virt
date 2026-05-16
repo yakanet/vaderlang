@@ -21,10 +21,7 @@ end
 fn 2 tests_snippets_fn_value_array__main_vader$main () -> i32
   local $fn_ref_0 ref
   local $fn_ref_1 ref
-  local fs ref
-  local $idx_5 ref
   local $call_ind_7 i32
-  local $idx_9 ref
   local $call_ind_11 i32
   fn.ref 0 2   ; _main.vader:10:12
   local.set 0   ; _main.vader:10:12
@@ -33,25 +30,25 @@ fn 2 tests_snippets_fn_value_array__main_vader$main () -> i32
   local.get 0   ; _main.vader:10:11
   local.get 1   ; _main.vader:10:11
   array.new 3 2   ; _main.vader:10:11
-  local.set 2   ; _main.vader:10:11
-  local.get 2   ; _main.vader:11:12
+  local.set 0   ; _main.vader:10:11
+  local.get 0   ; _main.vader:11:12
   i32.const 0   ; _main.vader:11:12
   array.get 3   ; _main.vader:11:12
-  local.set 3   ; _main.vader:11:12
+  local.set 1   ; _main.vader:11:12
   i32.const 7   ; _main.vader:11:18
-  local.get 3   ; _main.vader:11:12
+  local.get 1   ; _main.vader:11:12
   call.indirect 2   ; _main.vader:11:12
-  local.set 4   ; _main.vader:11:12
-  local.get 2   ; _main.vader:11:23
+  local.set 2   ; _main.vader:11:12
+  local.get 0   ; _main.vader:11:23
   i32.const 1   ; _main.vader:11:23
   array.get 3   ; _main.vader:11:23
-  local.set 5   ; _main.vader:11:23
+  local.set 0   ; _main.vader:11:23
   i32.const 3   ; _main.vader:11:29
-  local.get 5   ; _main.vader:11:23
+  local.get 0   ; _main.vader:11:23
   call.indirect 2   ; _main.vader:11:23
-  local.set 6   ; _main.vader:11:23
-  local.get 4   ; _main.vader:11:12
-  local.get 6   ; _main.vader:11:12
+  local.set 3   ; _main.vader:11:23
+  local.get 2   ; _main.vader:11:12
+  local.get 3   ; _main.vader:11:12
   i32.add   ; _main.vader:11:12
   return   ; _main.vader:11:5
 end

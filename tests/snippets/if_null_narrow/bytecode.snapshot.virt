@@ -131,7 +131,6 @@ end
 fn 4 tests_snippets_if_null_narrow__main_vader$combine (ref,ref) -> string
   local __sb_0 any
   local $field_10 string
-  local $field_14 string
   local.get 0   ; _main.vader:53:8
   type_check 0   ; _main.vader:53:8
   if $L0 void   ; _main.vader:53:5
@@ -157,9 +156,9 @@ fn 4 tests_snippets_if_null_narrow__main_vader$combine (ref,ref) -> string
       intrinsic builder.append_str   ; _main.vader:55:22
       local.get 1   ; _main.vader:55:27
       struct.get 2 0   ; _main.vader:55:27
-      local.set 4   ; _main.vader:55:27
+      local.set 3   ; _main.vader:55:27
       local.get 2   ; _main.vader:55:25
-      local.get 4   ; _main.vader:55:25
+      local.get 3   ; _main.vader:55:25
       intrinsic builder.append_display   ; _main.vader:55:25
       local.get 2   ; _main.vader:55:12
       intrinsic builder.finish   ; _main.vader:55:12

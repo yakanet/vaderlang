@@ -20,7 +20,6 @@ impl 4 Iterator
 fn 0 tests_snippets_contains_op__main_vader$DigitSet$Contains$contains (ref,i32) -> bool
   local or_res bool
   local mask i32
-  local $bitand_13 i32
   local.get 1   ; _main.vader:10:12
   i32.const 0   ; _main.vader:10:12
   i32.lt   ; _main.vader:10:12
@@ -46,8 +45,8 @@ fn 0 tests_snippets_contains_op__main_vader$DigitSet$Contains$contains (ref,i32)
     struct.get 1 0   ; _main.vader:14:17
     local.get 3   ; _main.vader:14:17
     i32.bitand   ; _main.vader:14:17
-    local.set 4   ; _main.vader:14:17
-    local.get 4   ; _main.vader:14:17
+    local.set 3   ; _main.vader:14:17
+    local.get 3   ; _main.vader:14:17
     i32.const 0   ; _main.vader:14:17
     i32.ne   ; _main.vader:14:17
     return   ; _main.vader:14:9
@@ -56,13 +55,8 @@ end
 
 fn 1 tests_snippets_contains_op__main_vader$main () -> i32
   local $struct_4 ref
-  local $struct_12 ref
-  local $struct_21 ref
   local $shl_27 i32
   local $shl_30 i32
-  local $bitor_31 i32
-  local $shl_34 i32
-  local s ref
   i32.const 0   ; _main.vader:19:13
   i32.const 10   ; _main.vader:19:13
   bool.const false   ; _main.vader:19:13
@@ -82,8 +76,8 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
   bool.const false   ; _main.vader:20:15
   i32.const 0   ; _main.vader:20:15
   struct.new 4   ; _main.vader:20:15
-  local.set 1   ; _main.vader:20:15
-  local.get 1   ; _main.vader:20:8
+  local.set 0   ; _main.vader:20:15
+  local.get 0   ; _main.vader:20:8
   i32.const 10   ; _main.vader:20:8
   call 5   ; _main.vader:20:8
   bool.not   ; _main.vader:20:8
@@ -97,8 +91,8 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
   bool.const true   ; _main.vader:21:14
   i32.const 0   ; _main.vader:21:14
   struct.new 4   ; _main.vader:21:14
-  local.set 2   ; _main.vader:21:14
-  local.get 2   ; _main.vader:21:8
+  local.set 0   ; _main.vader:21:14
+  local.get 0   ; _main.vader:21:8
   i32.const 10   ; _main.vader:21:8
   call 5   ; _main.vader:21:8
   if $L2 void   ; _main.vader:21:5
@@ -109,25 +103,25 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
   i32.const 1   ; _main.vader:23:30
   i32.const 1   ; _main.vader:23:30
   i32.shl   ; _main.vader:23:30
-  local.set 3   ; _main.vader:23:30
+  local.set 1   ; _main.vader:23:30
   i32.const 1   ; _main.vader:23:41
   i32.const 4   ; _main.vader:23:41
   i32.shl   ; _main.vader:23:41
-  local.set 4   ; _main.vader:23:41
-  local.get 3   ; _main.vader:23:30
-  local.get 4   ; _main.vader:23:30
+  local.set 2   ; _main.vader:23:41
+  local.get 1   ; _main.vader:23:30
+  local.get 2   ; _main.vader:23:30
   i32.bitor   ; _main.vader:23:30
-  local.set 5   ; _main.vader:23:30
+  local.set 1   ; _main.vader:23:30
   i32.const 1   ; _main.vader:23:52
   i32.const 7   ; _main.vader:23:52
   i32.shl   ; _main.vader:23:52
-  local.set 6   ; _main.vader:23:52
-  local.get 5   ; _main.vader:23:30
-  local.get 6   ; _main.vader:23:30
+  local.set 2   ; _main.vader:23:52
+  local.get 1   ; _main.vader:23:30
+  local.get 2   ; _main.vader:23:30
   i32.bitor   ; _main.vader:23:30
   struct.new 1   ; _main.vader:23:10
-  local.set 7   ; _main.vader:23:10
-  local.get 7   ; _main.vader:24:8
+  local.set 0   ; _main.vader:23:10
+  local.get 0   ; _main.vader:24:8
   i32.const 4   ; _main.vader:24:8
   call 0   ; _main.vader:24:8
   if $L3 void   ; _main.vader:24:5
@@ -135,7 +129,7 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
     call.import 0   ; _main.vader:24:17
   else   ; _main.vader:24:5
   end $L3   ; _main.vader:24:5
-  local.get 7   ; _main.vader:25:8
+  local.get 0   ; _main.vader:25:8
   i32.const 5   ; _main.vader:25:8
   call 0   ; _main.vader:25:8
   bool.not   ; _main.vader:25:8
@@ -144,7 +138,7 @@ fn 1 tests_snippets_contains_op__main_vader$main () -> i32
     call.import 0   ; _main.vader:25:18
   else   ; _main.vader:25:5
   end $L4   ; _main.vader:25:5
-  local.get 7   ; _main.vader:26:8
+  local.get 0   ; _main.vader:26:8
   i32.const 7   ; _main.vader:26:8
   call 0   ; _main.vader:26:8
   if $L5 void   ; _main.vader:26:5
@@ -210,8 +204,6 @@ end
 
 fn 5 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local $field_2 i32
-  local $field_6 i32
-  local $field_8 i32
   local.get 0   ; core.vader:219:21
   struct.get 4 0   ; core.vader:219:21
   local.set 2   ; core.vader:219:21
@@ -227,17 +219,17 @@ fn 5 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
     if $L1 void   ; core.vader:220:9
       local.get 0   ; core.vader:220:52
       struct.get 4 1   ; core.vader:220:52
-      local.set 3   ; core.vader:220:52
+      local.set 2   ; core.vader:220:52
       local.get 1   ; core.vader:220:42
-      local.get 3   ; core.vader:220:42
+      local.get 2   ; core.vader:220:42
       call 4   ; core.vader:220:42
       return   ; core.vader:220:35
     else   ; core.vader:220:9
       local.get 0   ; core.vader:221:25
       struct.get 4 1   ; core.vader:221:25
-      local.set 4   ; core.vader:221:25
+      local.set 2   ; core.vader:221:25
       local.get 1   ; core.vader:221:16
-      local.get 4   ; core.vader:221:16
+      local.get 2   ; core.vader:221:16
       call 3   ; core.vader:221:16
       return   ; core.vader:221:9
     end $L1   ; core.vader:220:9

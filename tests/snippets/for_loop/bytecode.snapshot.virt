@@ -6,7 +6,6 @@ fn 0 tests_snippets_for_loop__main_vader$mixed_loops (i32) -> i32
   local n i32
   local i i32
   local $mod_9 i32
-  local j i32
   i32.const 0   ; _main.vader:2:10
   local.set 1   ; _main.vader:2:10
   local.get 0   ; _main.vader:5:5
@@ -42,18 +41,18 @@ fn 0 tests_snippets_for_loop__main_vader$mixed_loops (i32) -> i32
     end $L1   ; _main.vader:6:5
   end $L0   ; _main.vader:6:5
   i32.const 0   ; _main.vader:15:10
-  local.set 4   ; _main.vader:15:10
+  local.set 2   ; _main.vader:15:10
   block $L4 void   ; _main.vader:16:5
     loop $L5 void   ; _main.vader:16:5
-      local.get 4   ; _main.vader:17:13
+      local.get 2   ; _main.vader:17:13
       i32.const 5   ; _main.vader:17:13
       i32.ge   ; _main.vader:17:13
       if $L6 void   ; _main.vader:17:9
       else   ; _main.vader:17:9
-        local.get 4   ; _main.vader:20:13
+        local.get 2   ; _main.vader:20:13
         i32.const 1   ; _main.vader:20:13
         i32.add   ; _main.vader:20:13
-        local.set 4   ; _main.vader:20:13
+        local.set 2   ; _main.vader:20:13
         local.get 1   ; _main.vader:21:13
         i32.const 1   ; _main.vader:21:13
         i32.add   ; _main.vader:21:13

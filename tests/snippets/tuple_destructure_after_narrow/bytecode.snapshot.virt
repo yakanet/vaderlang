@@ -25,7 +25,6 @@ end
 
 fn 1 tests_snippets_tuple_destructure_after_narrow__main_vader$main () -> i32
   local pair ref
-  local __tup_0 ref
   local a i32
   local b i32
   local __sb_1 any
@@ -39,31 +38,31 @@ fn 1 tests_snippets_tuple_destructure_after_narrow__main_vader$main () -> i32
     return   ; _main.vader:23:23
   else   ; _main.vader:23:5
     local.get 0   ; _main.vader:24:15
-    local.tee 1   ; _main.vader:24:15
+    local.tee 0   ; _main.vader:24:15
     struct.get 3 0   ; _main.vader:24:6
-    local.set 2   ; _main.vader:24:6
-    local.get 1   ; _main.vader:24:9
+    local.set 1   ; _main.vader:24:6
+    local.get 0   ; _main.vader:24:9
     struct.get 3 1   ; _main.vader:24:9
-    local.set 3   ; _main.vader:24:9
+    local.set 2   ; _main.vader:24:9
     intrinsic builder.new   ; _main.vader:25:13
-    local.set 4   ; _main.vader:25:13
-    local.get 4   ; _main.vader:25:14
+    local.set 3   ; _main.vader:25:13
+    local.get 3   ; _main.vader:25:14
     string.const 0   ; _main.vader:25:14
     intrinsic builder.append_str   ; _main.vader:25:14
-    local.get 4   ; _main.vader:25:16
-    local.get 2   ; _main.vader:25:16
+    local.get 3   ; _main.vader:25:16
+    local.get 1   ; _main.vader:25:16
     intrinsic builder.append_display   ; _main.vader:25:16
-    local.get 4   ; _main.vader:25:20
+    local.get 3   ; _main.vader:25:20
     string.const 1   ; _main.vader:25:20
     intrinsic builder.append_str   ; _main.vader:25:20
-    local.get 4   ; _main.vader:25:23
     local.get 3   ; _main.vader:25:23
+    local.get 2   ; _main.vader:25:23
     intrinsic builder.append_display   ; _main.vader:25:23
-    local.get 4   ; _main.vader:25:13
+    local.get 3   ; _main.vader:25:13
     intrinsic builder.finish   ; _main.vader:25:13
     call.import 0   ; _main.vader:25:5
+    local.get 1   ; _main.vader:26:12
     local.get 2   ; _main.vader:26:12
-    local.get 3   ; _main.vader:26:12
     i32.add   ; _main.vader:26:12
     return   ; _main.vader:26:5
   end $L0   ; _main.vader:23:5

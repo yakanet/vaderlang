@@ -53,9 +53,7 @@ end
 
 fn 1 tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$next__i32 (ref) -> ref
   local $field_1 i32
-  local v i32
   local $field_7 i32
-  local $sub_9 i32
   local.get 0   ; _main.vader:11:13
   struct.get 2 1   ; _main.vader:11:13
   local.set 1   ; _main.vader:11:13
@@ -68,18 +66,18 @@ fn 1 tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$next__i32 (r
   else   ; _main.vader:11:9
     local.get 0   ; _main.vader:14:14
     struct.get 2 0   ; _main.vader:14:14
-    local.set 2   ; _main.vader:14:14
+    local.set 1   ; _main.vader:14:14
     local.get 0   ; _main.vader:15:26
     struct.get 2 1   ; _main.vader:15:26
-    local.set 3   ; _main.vader:15:26
-    local.get 3   ; _main.vader:15:26
+    local.set 2   ; _main.vader:15:26
+    local.get 2   ; _main.vader:15:26
     i32.const 1   ; _main.vader:15:26
     i32.sub   ; _main.vader:15:26
-    local.set 4   ; _main.vader:15:26
+    local.set 2   ; _main.vader:15:26
     local.get 0   ; _main.vader:15:9
-    local.get 4   ; _main.vader:15:9
+    local.get 2   ; _main.vader:15:9
     struct.set 2 1   ; _main.vader:15:9
-    local.get 2   ; _main.vader:16:16
+    local.get 1   ; _main.vader:16:16
     struct.new 4   ; _main.vader:16:16
     return   ; _main.vader:16:9
   end $L0   ; _main.vader:11:9

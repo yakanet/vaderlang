@@ -30,8 +30,6 @@ fn 1 tests_snippets_tuple_destructure_nested__main_vader$main () -> i32
   local label string
   local active bool
   local __sb_1 any
-  local __sb_2 any
-  local __sb_3 any
   call 0   ; _main.vader:10:30
   local.tee 0   ; _main.vader:10:5
   struct.get 1 0   ; _main.vader:10:6
@@ -56,25 +54,25 @@ fn 1 tests_snippets_tuple_destructure_nested__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:11:13
   call.import 0   ; _main.vader:11:5
   intrinsic builder.new   ; _main.vader:12:13
-  local.set 5   ; _main.vader:12:13
-  local.get 5   ; _main.vader:12:14
+  local.set 4   ; _main.vader:12:13
+  local.get 4   ; _main.vader:12:14
   string.const 2   ; _main.vader:12:14
   intrinsic builder.append_str   ; _main.vader:12:14
-  local.get 5   ; _main.vader:12:20
+  local.get 4   ; _main.vader:12:20
   local.get 2   ; _main.vader:12:20
   intrinsic builder.append_display   ; _main.vader:12:20
-  local.get 5   ; _main.vader:12:13
+  local.get 4   ; _main.vader:12:13
   intrinsic builder.finish   ; _main.vader:12:13
   call.import 0   ; _main.vader:12:5
   intrinsic builder.new   ; _main.vader:13:13
-  local.set 6   ; _main.vader:13:13
-  local.get 6   ; _main.vader:13:14
+  local.set 4   ; _main.vader:13:13
+  local.get 4   ; _main.vader:13:14
   string.const 3   ; _main.vader:13:14
   intrinsic builder.append_str   ; _main.vader:13:14
-  local.get 6   ; _main.vader:13:21
+  local.get 4   ; _main.vader:13:21
   local.get 3   ; _main.vader:13:21
   intrinsic builder.append_display   ; _main.vader:13:21
-  local.get 6   ; _main.vader:13:13
+  local.get 4   ; _main.vader:13:13
   intrinsic builder.finish   ; _main.vader:13:13
   call.import 0   ; _main.vader:13:5
   i32.const 0   ; _main.vader:14:12

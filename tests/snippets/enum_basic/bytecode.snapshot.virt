@@ -56,8 +56,6 @@ fn 1 tests_snippets_enum_basic__main_vader$main () -> void
   local d i32
   local __sb_0 any
   local $eq_15 bool
-  local __sb_1 any
-  local $eq_21 bool
   i32.const 2   ; _main.vader:20:20
   local.tee 0   ; _main.vader:20:20
   call 0   ; _main.vader:21:13
@@ -97,18 +95,18 @@ fn 1 tests_snippets_enum_basic__main_vader$main () -> void
   intrinsic builder.finish   ; _main.vader:25:13
   call.import 0   ; _main.vader:25:5
   intrinsic builder.new   ; _main.vader:26:13
-  local.set 3   ; _main.vader:26:13
-  local.get 3   ; _main.vader:26:14
+  local.set 1   ; _main.vader:26:13
+  local.get 1   ; _main.vader:26:14
   string.const 7   ; _main.vader:26:14
   intrinsic builder.append_str   ; _main.vader:26:14
   local.get 0   ; _main.vader:26:25
   i32.const 3   ; _main.vader:26:25
   i32.eq   ; _main.vader:26:25
-  local.set 4   ; _main.vader:26:25
-  local.get 3   ; _main.vader:26:23
-  local.get 4   ; _main.vader:26:23
+  local.set 2   ; _main.vader:26:25
+  local.get 1   ; _main.vader:26:23
+  local.get 2   ; _main.vader:26:23
   intrinsic builder.append_display   ; _main.vader:26:23
-  local.get 3   ; _main.vader:26:13
+  local.get 1   ; _main.vader:26:13
   intrinsic builder.finish   ; _main.vader:26:13
   call.import 0   ; _main.vader:26:5
   return   ; _main.vader:19:14

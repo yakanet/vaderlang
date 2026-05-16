@@ -12,7 +12,6 @@ import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_null_blockres__main_vader$pick (bool) -> ref
   local if_res null
-  local x null
   local $k_5 null
   local.get 0   ; _main.vader:7:10
   if $L0 void   ; _main.vader:7:10
@@ -23,11 +22,11 @@ fn 0 tests_snippets_null_blockres__main_vader$pick (bool) -> ref
     local.set 1   ; _main.vader:7:31
   end $L0   ; _main.vader:7:10
   local.get 1   ; _main.vader:7:5
-  local.set 2   ; _main.vader:7:5
+  local.set 1   ; _main.vader:7:5
   null.const   ; _main.vader:8:13
-  local.set 3   ; _main.vader:8:13
+  local.set 2   ; _main.vader:8:13
+  local.get 1   ; _main.vader:8:8
   local.get 2   ; _main.vader:8:8
-  local.get 3   ; _main.vader:8:8
   ref.eq   ; _main.vader:8:8
   if $L1 void   ; _main.vader:8:5
     string.const 0   ; _main.vader:9:16

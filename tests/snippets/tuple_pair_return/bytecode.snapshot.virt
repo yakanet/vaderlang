@@ -20,7 +20,6 @@ fn 1 tests_snippets_tuple_pair_return__main_vader$main () -> i32
   local p ref
   local __sb_0 any
   local $field_5 i32
-  local __sb_1 any
   local $field_10 string
   call 0   ; _main.vader:9:10
   local.set 0   ; _main.vader:9:5
@@ -39,17 +38,17 @@ fn 1 tests_snippets_tuple_pair_return__main_vader$main () -> i32
   intrinsic builder.finish   ; _main.vader:10:13
   call.import 0   ; _main.vader:10:5
   intrinsic builder.new   ; _main.vader:11:13
-  local.set 3   ; _main.vader:11:13
-  local.get 3   ; _main.vader:11:14
+  local.set 1   ; _main.vader:11:13
+  local.get 1   ; _main.vader:11:14
   string.const 2   ; _main.vader:11:14
   intrinsic builder.append_str   ; _main.vader:11:14
   local.get 0   ; _main.vader:11:25
   struct.get 1 1   ; _main.vader:11:25
-  local.set 4   ; _main.vader:11:25
+  local.set 3   ; _main.vader:11:25
+  local.get 1   ; _main.vader:11:23
   local.get 3   ; _main.vader:11:23
-  local.get 4   ; _main.vader:11:23
   intrinsic builder.append_display   ; _main.vader:11:23
-  local.get 3   ; _main.vader:11:13
+  local.get 1   ; _main.vader:11:13
   intrinsic builder.finish   ; _main.vader:11:13
   call.import 0   ; _main.vader:11:5
   i32.const 0   ; _main.vader:12:12
