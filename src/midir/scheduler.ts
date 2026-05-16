@@ -90,6 +90,7 @@ function firstStackOperand(ins: Instruction): LocalId | null {
     case "Const":
     case "FnRef":
     case "DataConst":
+    case "TypeConst":
       return null;
     case "Move":         return ins.src;
     case "BinOp":        return ins.lhs;

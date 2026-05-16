@@ -304,6 +304,7 @@ function walkExpr(expr: LoweredExpr, seen: Set<number>, out: Symbol[]): void {
     case "LoweredStructLit":  for (const f of expr.fields) walkExpr(f.value, seen, out); return;
     case "LoweredArrayLit":   for (const e of expr.elements) walkExpr(e, seen, out); return;
     case "LoweredDataConst":  return;
+    case "LoweredTypeConst":  return;
     case "LoweredCast":       walkExpr(expr.value, seen, out); return;
     case "LoweredTypeCheck":  walkExpr(expr.value, seen, out); return;
     case "LoweredUnreachable":

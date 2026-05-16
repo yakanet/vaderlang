@@ -138,6 +138,14 @@ function valueToComptime(v: Value, expected: Type, input: RunComptimeInput): Com
       return null;
     case "struct":  return structValueToComptime(v, expected, input);
     case "array":   return arrayValueToComptime(v, expected, input);
+    case "type":
+      // VM → comptime needs the underlying `Type`, but `TypeValue` only
+      // carries a `BcType` index — no back-pointer to the static `Type`.
+      // Reopen once `@type_of` lands (it produces the type-value with a
+      // static reference already in hand).
+      err(input.diags, "C4011", input.decl.value.span,
+        `comptime type value not yet convertible`);
+      return null;
     case "builder":
     case "fn":
       err(input.diags, "C4011", input.decl.value.span,
@@ -222,11 +230,11 @@ function comptimeToValue(v: ComptimeValue): Value {
     case "array":  return { tag: "array", typeIndex: -1, elements: v.elements.map(comptimeToValue) };
     case "struct": return { tag: "struct", typeIndex: -1, fields: [...v.fields.values()].map(comptimeToValue) };
     case "type":
-      // Type values aren't representable in the bytecode VM yet (B.1
-      // pending). They reach this conversion only via comptime-to-comptime
-      // dependency wiring, where the consumer reads the ComptimeValue
-      // directly and never goes through a VM Value round-trip. Trap to
-      // make the unreachable path explicit.
-      throw new Error("comptime type values cannot flow through the VM yet (Layer 4 milestone B.1)");
+      // The comptime carrier holds the static `Type` directly, not a
+      // bytecode-table index ; the lowerer interns the type and stamps the
+      // real index when it emits `type.const`. This direction is only used
+      // by the internal dependency wiring, so the `-1` placeholder never
+      // reaches user code.
+      return { tag: "type", typeIndex: -1 };
   }
 }

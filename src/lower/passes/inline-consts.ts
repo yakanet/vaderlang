@@ -410,6 +410,7 @@ function rewriteExpr(e: LoweredExpr, ctx: RewriteCtx): LoweredExpr {
     case "LoweredStringLit":
     case "LoweredUnreachable":
     case "LoweredDataConst":
+    case "LoweredTypeConst":
       return e;
     default: {
       const _exhaustive: never = e;

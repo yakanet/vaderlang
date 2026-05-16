@@ -22,14 +22,18 @@ import { ensureCliBuilt, runCli } from "./cli-bin.ts";
 
 ensureCliBuilt();
 
-// Snippets that the self-host VM can't yet run end-to-end. Empty at
-// HEAD : the U32* / U64* op families closed the last two known
-// divergences (`std_random`, `std_crypto`). New entries should carry a
-// one-line explanation + a link to the issue / commit blocking them.
+// Snippets that the self-host VM can't yet run end-to-end. New entries
+// should carry a one-line explanation + a link to the issue / commit
+// blocking them.
 //
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
-const KNOWN_DIVERGENT = new Set<string>([]);
+const KNOWN_DIVERGENT = new Set<string>([
+  // Layer 4 §1.19 B.1 — `type.const` op is wired in the TS VM but not yet
+  // in `vader/vm/exec.vader`. Unblocks once the Vader VM port adds the
+  // matching op handler + `Value.type` variant.
+  "comptime_type_value",
+]);
 
 const scenarios = listSnippets("tests/snippets");
 

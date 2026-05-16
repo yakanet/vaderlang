@@ -181,7 +181,8 @@ export type LoweredExpr =
   | LoweredArraySlice
   | LoweredCellNew
   | LoweredCellGet
-  | LoweredMakeClosure;
+  | LoweredMakeClosure
+  | LoweredTypeConst;
 
 export interface LoweredIntLit {
   readonly kind: "LoweredIntLit";
@@ -225,6 +226,18 @@ export interface LoweredIdent {
   readonly span: Span;
   readonly type: Type;
   readonly symbol: Symbol;
+}
+
+/** A `type` reified as a value — emitted when a `TypeMeta`-typed ident
+ *  flows into a value position. `type` carries the surrounding expression's
+ *  static type (always `TypeMeta`) ; `value` carries the concrete `Type`
+ *  the alias resolves to. The bytecode emitter interns `value` into the
+ *  module's type table and emits a `type.const N` op. */
+export interface LoweredTypeConst {
+  readonly kind: "LoweredTypeConst";
+  readonly span: Span;
+  readonly type: Type;
+  readonly value: Type;
 }
 
 export interface LoweredCall {

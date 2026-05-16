@@ -274,6 +274,7 @@ export function dstOf(ins: Instruction): LocalId | null {
     case "StructNew":
     case "ArrayNew":
     case "TypeCheck":
+    case "TypeConst":
     case "Cast":
     case "CellNew":
     case "CellGet":

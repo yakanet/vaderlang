@@ -486,6 +486,7 @@ function remapInstr(ins: Instruction, m: readonly LocalId[]): Instruction {
     case "ArrayNew":      return { ...ins, dst: r(m, ins.dst), elements: ins.elements.map((e) => r(m, e)) };
     case "DataConst":     return { ...ins, dst: r(m, ins.dst) };
     case "TypeCheck":     return { ...ins, dst: r(m, ins.dst), value: r(m, ins.value) };
+    case "TypeConst":     return { ...ins, dst: r(m, ins.dst) };
     case "Cast":          return { ...ins, dst: r(m, ins.dst), value: r(m, ins.value) };
     case "CellNew":       return { ...ins, dst: r(m, ins.dst), value: r(m, ins.value) };
     case "CellGet":       return { ...ins, dst: r(m, ins.dst), cell: r(m, ins.cell) };
@@ -591,6 +592,7 @@ export function pruneUnusedTypes(
         case "array.set":
         case "array.push":
         case "type_check":
+        case "type.const":
         case "ref.cast":
         case "call.indirect":
         case "fn.ref":
@@ -667,6 +669,7 @@ export function pruneUnusedTypes(
         case "array.set":
         case "array.push":
         case "type_check":
+        case "type.const":
         case "ref.cast":
         case "call.indirect":
           fn.body[i] = { ...op, typeIndex: re(op.typeIndex) } as typeof op;

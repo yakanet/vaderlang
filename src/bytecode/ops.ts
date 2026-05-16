@@ -121,7 +121,13 @@ export type Op =
   | { readonly kind: "string.concat" }
 
   // -- Type tag check (returns bool; for `is T` patterns) ----------------
-  | { readonly kind: "type_check"; readonly typeIndex: number };
+  | { readonly kind: "type_check"; readonly typeIndex: number }
+
+  // -- Type as a first-class value ---------------------------------------
+  // Pushes a `TypeValue` carrying `typeIndex` so a `t :: TypeMeta` alias
+  // used in value position flows through the VM. Round-trips with
+  // `ComptimeValue.type`.
+  | { readonly kind: "type.const"; readonly typeIndex: number };
 
 // =========================================================================
 // Per-type op-kind families (kept as string unions so we don't repeat

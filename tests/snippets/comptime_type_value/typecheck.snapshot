@@ -1,0 +1,15 @@
+# Typecheck
+
+## tests/snippets/comptime_type_value/_main.vader
+  FnDecl         accept_type          :: fn(type) -> void
+  ConstDecl      alias_int            :: type
+  FnDecl         main                 :: fn() -> i32
+  expr 10:17    IdentExpr      :: type
+  expr 10:5     CallExpr       :: void
+  expr 10:5     IdentExpr      :: fn(type) -> void
+  expr 11:17    IdentExpr      :: type
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(type) -> void
+  expr 12:13    StringLitExpr  :: string
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(string) -> void

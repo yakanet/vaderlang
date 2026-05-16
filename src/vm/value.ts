@@ -14,6 +14,7 @@ export type Value =
   | ErrorValue
   | BuilderValue
   | FnValue
+  | TypeValue
   | VoidValue;
 
 export type ValueTag = Value["tag"];
@@ -38,6 +39,14 @@ export interface ArrayValue {
   readonly tag: "array";
   readonly typeIndex: number;
   readonly elements: Value[];
+}
+
+/** A `type` reified as a runtime value. Pushed by the `type.const N` op ;
+ *  `typeIndex` keys `BytecodeModule.types`. Round-trips with the comptime
+ *  `ComptimeValue.type` carrier via `src/comptime/run.ts`. */
+export interface TypeValue {
+  readonly tag: "type";
+  readonly typeIndex: number;
 }
 
 /** Host-produced error sentinel — passes `type_check` against any `ref Error`
@@ -161,5 +170,7 @@ export function displayValue(v: Value): string {
       return `<builder len=${v.parts.length}>`;
     case "fn":
       return `<fn ${v.fnIndex}${v.env === null ? "" : "+env"}>`;
+    case "type":
+      return `<type ${v.typeIndex}>`;
   }
 }

@@ -191,6 +191,13 @@ function walkExpr(e: LoweredExpr, ctx: WalkCtx): void {
     case "LoweredDataConst":
       walkType(e.type, ctx);
       return;
+    case "LoweredTypeConst":
+      // Both `type` (the metatype) and `value` (the concrete type the alias
+      // points at) must keep their referenced struct/enum/etc. symbols alive,
+      // so DCE doesn't prune away types reachable only through `type.const`.
+      walkType(e.type, ctx);
+      walkType(e.value, ctx);
+      return;
     default: {
       const _exhaustive: never = e;
       void _exhaustive;

@@ -447,7 +447,14 @@ function buildExpr(fn: FnCtx, e: L.LoweredExpr): LocalId | null {
     case "LoweredCellGet":       return buildCellGet(fn, e);
     case "LoweredMakeClosure":   return buildMakeClosure(fn, e);
     case "LoweredDataConst":     return buildDataConst(fn, e);
+    case "LoweredTypeConst":     return buildTypeConst(fn, e);
   }
+}
+
+function buildTypeConst(fn: FnCtx, e: L.LoweredTypeConst): LocalId | null {
+  const dst = freshTmp(fn, "type_const", e.type);
+  emit(fn, { kind: "TypeConst", dst, type: e.type, valueType: e.value, span: e.span });
+  return dst;
 }
 
 function buildIdent(fn: FnCtx, e: L.LoweredIdent): LocalId | null {

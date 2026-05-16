@@ -8,6 +8,7 @@ import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
 import { CORE_STRUCTS, CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, isPrimitive, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
+import { primitiveFromName } from "../../typecheck/passes/type-expr.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt, LoweredStructLitField } from "../lowered-ast.ts";
@@ -400,6 +401,16 @@ function lowerIdent(ctx: FnLowerCtx, expr: A.IdentExpr, type: Type): LoweredExpr
   if (sym === undefined) {
     return { kind: "LoweredUnreachable", span: expr.span, type, reason: `unresolved ident ${expr.name}` };
   }
+  // TypeMeta-typed ident in value position → reify the underlying Type so
+  // the bytecode emitter can lower it to `type.const N`. Falls through when
+  // the symbol shape isn't materialisable yet (e.g. type-params) — T3035
+  // catches invalid usages upstream.
+  if (type.kind === "TypeMeta") {
+    const resolved = resolveTypeMetaSymbol(ctx, sym);
+    if (resolved !== null) {
+      return { kind: "LoweredTypeConst", span: expr.span, type, value: resolved };
+    }
+  }
   // Lifted-fn context: an outer-captured symbol referenced inside the body
   // is reached through `env.cap_X` (yielding the cell), then CellGet for the
   // value. We never resolve to the bare outer symbol here — the lifted fn
@@ -436,6 +447,24 @@ function lowerIdent(ctx: FnLowerCtx, expr: A.IdentExpr, type: Type): LoweredExpr
     };
   }
   return { kind: "LoweredIdent", span: expr.span, type, symbol: sym };
+}
+
+/** Resolve a `TypeMeta`-typed symbol to the underlying `Type`. Covers the
+ *  three symbol shapes that produce a runtime-materialisable type at value
+ *  position : builtin primitives, top-level type-alias consts, in-fn `let`
+ *  type aliases. Returns null for shapes Layer 5 hasn't folded in yet
+ *  (type-params, traits, generic structs lacking a `declTypes` entry). */
+function resolveTypeMetaSymbol(ctx: FnLowerCtx, sym: Symbol): Type | null {
+  if (sym.kind === "const" && sym.source.kind === "const") {
+    return ctx.typed.constTypeAliases.get(sym.source.decl) ?? null;
+  }
+  if (sym.kind === "local" && sym.source.kind === "local") {
+    return ctx.typed.letTypeAliases.get(sym) ?? null;
+  }
+  if (sym.kind === "builtin-type" && sym.source.kind === "builtin-type") {
+    return primitiveFromName(sym.source.typeName);
+  }
+  return null;
 }
 
 function declaredTypeOfSymbol(ctx: FnLowerCtx, sym: Symbol): Type | null {

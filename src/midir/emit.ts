@@ -327,6 +327,7 @@ function emitInstr(ctx: FnEmitCfg, ins: Instruction): void {
     case "ArrayNew":        return emitArrayNew(ctx, ins);
     case "DataConst":       return emitDataConst(ctx, ins);
     case "TypeCheck":       return emitTypeCheck(ctx, ins);
+    case "TypeConst":       return emitTypeConst(ctx, ins);
     case "Cast":            return emitCast(ctx, ins);
     case "CellNew":         return emitCellNew(ctx, ins);
     case "CellGet":         return emitCellGet(ctx, ins);
@@ -567,6 +568,12 @@ function emitTypeCheck(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "TypeCh
   emitFirstOperand(ctx, ins, ins.value, ins.span);
   const typeIndex = internType(ctx.project, ins.checkType);
   pushOp(ctx.emit, { kind: "type_check", typeIndex }, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
+}
+
+function emitTypeConst(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "TypeConst" }>): void {
+  const typeIndex = internType(ctx.project, ins.valueType);
+  pushOp(ctx.emit, { kind: "type.const", typeIndex }, ins.span);
   emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 

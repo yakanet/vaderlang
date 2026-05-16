@@ -194,6 +194,7 @@ function formatOp(op: Op): string {
     case "array.slice":  return `array.slice ${op.typeIndex}`;
     case "data.const":   return `data.const ${op.poolIndex} ${op.typeIndex}`;
     case "type_check":   return `type_check ${op.typeIndex}`;
+    case "type.const":   return `type.const ${op.typeIndex}`;
     case "ref.cast":     return `ref.cast ${op.typeIndex}`;
     default:
       // Operand-less ops: their kind string is the whole encoding.
@@ -563,6 +564,7 @@ function parseOp(text: string, scopes: { name: string }[], ctx: ParseCtx): Op {
       return { kind: "data.const", poolIndex: Number(p), typeIndex: Number(t) };
     }
     case "type_check":   return { kind: "type_check", typeIndex: Number(tail) };
+    case "type.const":   return { kind: "type.const", typeIndex: Number(tail) };
     case "ref.cast":     return { kind: "ref.cast", typeIndex: Number(tail) };
     default:
       // Operand-less / typed-arith ops keep their kind verbatim.

@@ -466,6 +466,10 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       f.stack.push(bool(typeMatches(ctx.module, v, op.typeIndex)));
       f.ip++; return;
     }
+    case "type.const": {
+      f.stack.push({ tag: "type", typeIndex: op.typeIndex });
+      f.ip++; return;
+    }
     case "ref.cast":
       // No-op at runtime; the value's tag already carries the type.
       f.ip++; return;
@@ -653,6 +657,7 @@ function refEq(a: Value, b: Value): boolean {
   if (a.tag === "null" || a.tag === "void") return true;
   if (a.tag === "i64" || a.tag === "u64") return a.n === (b as { n: bigint }).n;
   if (a.tag === "error") return a.message === (b as { message: string }).message;
+  if (a.tag === "type") return a.typeIndex === (b as { typeIndex: number }).typeIndex;
   return a.n === (b as { n: typeof a.n }).n;
 }
 

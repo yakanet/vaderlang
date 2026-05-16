@@ -102,6 +102,7 @@ function buildOpKinds(): readonly string[] {
   out.push("data.const");
   out.push("string.concat");
   out.push("type_check");
+  out.push("type.const");
   return out;
 }
 
@@ -426,7 +427,7 @@ function writeOp(w: Writer, op: Op): void {
       w.u32(op.typeIndex); return;
     case "data.const":
       w.u32(op.poolIndex); w.u32(op.typeIndex); return;
-    case "ref.cast": case "type_check":
+    case "ref.cast": case "type_check": case "type.const":
       w.u32(op.typeIndex); return;
     default:
       // Pure-kind ops (drop, dup, return, end, ..., all arithmetic / cmp /
@@ -768,6 +769,8 @@ function readOp(r: Reader): Op {
       return { kind: "ref.cast", typeIndex: r.u32() };
     case "type_check":
       return { kind: "type_check", typeIndex: r.u32() };
+    case "type.const":
+      return { kind: "type.const", typeIndex: r.u32() };
     default:
       // Pure-kind op (no operands beyond the tag).
       return { kind } as Op;

@@ -1,0 +1,4 @@
+# Comptime
+
+## tests/snippets/comptime_type_value/_main.vader
+  @comptime  alias_int            = i32

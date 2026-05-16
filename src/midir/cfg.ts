@@ -149,6 +149,7 @@ export type Instruction =
   | InstrArrayNew
   | InstrDataConst
   | InstrTypeCheck
+  | InstrTypeConst
   | InstrCast
   | InstrCellNew
   | InstrCellGet
@@ -328,6 +329,16 @@ export interface InstrTypeCheck extends InstrBase {
   readonly dst: LocalId;
   readonly value: LocalId;
   readonly checkType: Type;
+}
+
+/** Reify a type as a runtime value. `valueType` is the concrete `Type` the
+ *  alias resolves to ; the bytecode emit interns it via the module's type
+ *  table and emits `type.const N`. `type` is `TypeMeta`. */
+export interface InstrTypeConst extends InstrBase {
+  readonly kind: "TypeConst";
+  readonly dst: LocalId;
+  readonly type: Type;
+  readonly valueType: Type;
 }
 
 /** Static type cast — same as today's `LoweredCast`; emits a tag re-stamp
