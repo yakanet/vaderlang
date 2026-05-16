@@ -76,7 +76,7 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 - [x] Transitive monomorphization via fixed-point `closeOverGenericImpls`.
 - [x] First-class trait-method dispatch — bounded typeParam, non-generic trait receiver, generic trait receiver.
 - [ ] **Default-init for generic typeParam** — `acc: T = T()` style, needed by `sum(it)` over an iterator. Either a `Default` trait + auto-impl on numerics, or a `zero<T>()` intrinsic. Currently blocks iterator-driven `sum`, `min`, `max`. Requires either (a) explicit type-args at call sites (`default[T]()`) or (b) `T()` constructor syntax for type-params. Recommendation : start with (a). `Default` trait can wait until a dispatch path exists.
-- [ ] **Generic `len(arr)`** — `ArrayIterator.length` field could be dropped in favour of `len(self.arr)` now that generic-fn dispatch exists. Pure cleanup, low priority.
+- [x] **Generic `len(arr)`** (2026-05-16) — `ArrayIterator(T).length` field dropped ; `next()` reads `self.arr.len()` via UFCS. `wrapArrayAsIter` simplified : the `length` slot was the only reason to dedupe the array expression, so the synthetic tmp + hoist are gone too.
 - [x] Auto-coerce `T[]` → `Iterator(T)` via blanket `T[] implements[T] Into(Iterator(T))` in `std/core`.
 - [ ] `for x in iter` / `MutableList(u32){}.add(...)` inside `@comptime` — needs arena allocation for transient collections.
 
@@ -89,7 +89,7 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 ### 1.7 Bytecode emitter — done
 - [x] Op table (WASM-aligned typed primitives, constants, locals, structured control, calls, GC ops, `type_check`, `ref.cast`), type table (deduped), string pool, function + import + export tables, intrinsic table (stable IDs, append-only), per-op debug info, two-pass emission, short-circuit `and`/`or` lowering, `vader dump --stage=bytecode`, 7 snapshot scenarios.
 - [x] Bytecode peephole pass — `local.set N; local.get N → local.tee N`, cmp+not fusion, double-not elimination. Gated `EmitOptions.optimize` (CLI `--no-bytecode-opt`).
-- [ ] Slot reuse (live-range analysis) — every let gets a fresh slot today. Acceptable until perf signal says otherwise.
+- [ ] Slot reuse (live-range analysis) — every let gets a fresh slot today. Acceptable until perf signal says otherwise. **Attempt 2026-05-16** : TS impl with back-edge extension for `loop` worked on the TS VM (`tests/vm.test.ts` green, ~17 % snapshot bytecode shrink) but broke the self-host Vader VM (`tests/vader_vm.test.ts` infinite loop on `custom_iter`, `std_regex`). Root cause not yet identified — likely a slot-reuse assumption baked into `vader/vm/exec.vader` that's not visible from the bytecode contract. Re-attempt requires first making the Vader VM tolerate dense slot tables (or auditing `vader/vm/exec.vader` for any per-slot caching that survives loop back-edges). Sketch lives in commit history (search for `bytecode/liveness.ts`).
 - [x] First-class function values — `fn.ref`, `call.indirect`, `make_closure` ops + `vader_fn_t` fat pointer runtime.
 
 ### 1.7b IR text emitter / reader (`--target=ir-text` → `.virt`) — done
@@ -128,7 +128,7 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 - [x] Unbox struct field read after `is StructTy` match.
 - [x] `--cc=<path>` flag + `CC` env var ; auto-`.exe` on mingw32 triples.
 - [x] Windows cross-compile via mingw-w64 + Wine (POSIX spawn bracketed by `#ifdef _WIN32` ; Windows branch uses `CreateProcess` + pipes). Still deferred : `tests/native.test.ts` `WINE=1` mode, Unicode (`CreateProcessW`), clang/cl autodetection.
-- [ ] `#line` directives for gdb/lldb.
+- [x] `#line` directives for gdb/lldb (2026-05-16) — debug builds thread `#line N "<file>"` before each op whose `DebugPos` shifts ; `--release` skips them. `cStringLit` handles path escaping ; the per-fn file string is cached across ops.
 - [ ] Manifest mode (`vader build --target=native --manifest`).
 - [ ] Stable ABI for `@extern` user imports (today : stubs trap).
 - [ ] i32/i64 overflow handling per SPEC §4 (panic in debug). Wraps silently today.
@@ -278,15 +278,15 @@ Architectural prerequisite for full mono → comptime migration. Built bottom-up
 ##### B.0 — `@comptime` type-alias decls (DONE)
 - [x] Short-circuit `@comptime t :: i32` via `constTypeAliases` lookup ; synthesises a `ComptimeValue.type` directly. `comptimeToValue` traps for now.
 
-##### B.1 — Type as a VM Value
-- [ ] VM `TypeValue { tag: "type", typeIndex: i32 }` keyed into a project-wide type table.
-- [ ] Bytecode op `type.const` — `src/bytecode/ops.ts` + `.virt` round-trip + `.vir` binary round-trip.
-- [ ] Type table on `BytecodeModule` — emit canonical interning of any type referenced by `type.const`.
-- [ ] Lower `IdentExpr` of type `TypeMeta` → `LoweredTypeConst`.
-- [ ] Bytecode emit `LoweredTypeConst` → `type.const`.
-- [ ] VM op handler.
-- [ ] ComptimeValue gains a `type` case ; `valueToComptime` / `comptimeToValue` round-trip.
-- [ ] Test snippet `tests/snippets/comptime_type_value/`.
+##### B.1 — Type as a VM Value (DONE 2026-05-16)
+- [x] VM `TypeValue { tag: "type", typeIndex: i32 }` (`src/vm/value.ts`) keyed into the module type table.
+- [x] Bytecode op `type.const` — `src/bytecode/ops.ts` + `.virt` round-trip (`src/bytecode/text.ts`) + `.vir` binary round-trip (`src/bytecode/binary.ts`).
+- [x] Reuses existing `BytecodeModule.types` interning via `internType` — no new table.
+- [x] `LoweredTypeConst` in `src/lower/lowered-ast.ts` + lowered by `lowerIdent` when an ident's type is `TypeMeta` (`src/lower/passes/expr.ts`).
+- [x] CFG `InstrTypeConst` + bytecode emit (`src/midir/{cfg,build,emit}.ts`).
+- [x] VM op handler (`src/vm/exec.ts`).
+- [x] `ComptimeValue.type` ↔ VM `TypeValue` round-trip (`src/comptime/run.ts`) — comptime→VM uses `-1` placeholder since the comptime carrier already holds the static `Type` ; VM→comptime errors with C4011 until B.2 brings a static-`Type` source through `@type_of`.
+- [x] Test snippet `tests/snippets/comptime_type_value/` — exercises a TypeMeta ident in an arg of `fn accept_type(t: type)`. The c-emit emits a tagged-null placeholder + a `uintptr_t`-encoded `typeIndex` to keep the C stack consistent ; the Vader VM lacks the op and is in `KNOWN_DIVERGENT` until `vader/vm/exec.vader` ports it.
 
 ##### B.2 — Type values flow through intrinsics
 - [ ] `@type_of(x)` new intrinsic.
@@ -354,9 +354,9 @@ Architectural prerequisite for full mono → comptime migration. Built bottom-up
 Begins as soon as the TS compiler can compile a non-trivial subset. Goal : validate the design as we go.
 
 ### 2.0 Vader CLI minimal — partial
-- [x] `vader/cli/main.vader` argv parsing + stage dispatch ; `vader dump --stage=lexer` parity at 102/104 (two UTF-8 multi-byte outliers, byte-indexed `char_at` limitation).
-- [ ] **Snapshot parity rig under `tests/parity/`** — script that runs both `vader/cli/main.vader` and `bun src/index.ts` over every snippet and diffs ; today it's an inline shell loop, promote to a real test once the CLI is native.
-- [ ] **Build the CLI native** so the parity rig doesn't pay the bun-startup cost.
+- [x] `vader/cli/main.vader` argv parsing + stage dispatch — `lexer` / `ast` / `resolved-ast` wired ; further stages return "not yet implemented".
+- [x] **Snapshot parity rig under `tests/parity/`** (2026-05-16) — `tests/parity.test.ts` + `tests/cli-bin.ts` compile the Vader CLI to `build/vader` and diff `lexer` + `ast` stages against the TS-generated snapshots for every snippet that ships one (~240/245). Skip set empty ; previous CJK outliers (`for_in_into_iter`, `string_bytes`) now pass byte-for-byte.
+- [x] **Build the CLI native** (2026-05-16) — `tests/cli-bin.ts:ensureCliBuilt()` invokes `bun src/index.ts build vader/cli/main.vader --target=native --release` once per session and caches `build/vader`.
 - [ ] Future stages plug in as parser / typechecker / lowerer get ported.
 
 ### 2.1 Port the parser to Vader
@@ -369,7 +369,7 @@ Begins as soon as the TS compiler can compile a non-trivial subset. Goal : valid
 - [ ] **Folder-module migration** — today `vader/diagnostics/{codes,diagnostic}.vader` resolve as separate single-file modules, so `private` doesn't survive cross-file. Migrate to folder-module to hide internals.
 
 #### Lexer parity validation
-- [ ] **Snapshot parity with the TS lexer** — once the Vader CLI lands native (§2.0), run both lexers over `tests/snippets/*` and diff.
+- [x] **Snapshot parity with the TS lexer** (2026-05-16) — covered by the parity rig (§2.0). Native CLI built once via `tests/cli-bin.ts`, then `tests/parity.test.ts` diffs `--stage=lexer` against `lexer.snapshot` for every snippet.
 
 #### Parser (`vader/parser/`) — done
 - [x] AST representation (every node ported ; `type` keyword conflict → field renamed `ty`, dumper still emits `"type"` JSON key for parity).
@@ -377,7 +377,7 @@ Begins as soon as the TS compiler can compile a non-trivial subset. Goal : valid
 - [x] Parser body (~2200 lines) — recursive-descent + Pratt.
 - [x] AST → JSON dumper — byte-for-byte parity with `tests/snapshot.ts:formatProgram`.
 - [x] CLI integration — `vader dump --stage=ast`.
-- [x] **Parity** : 128 / 130 snippets byte-for-byte (two CJK/multi-byte outliers from §1.13 `char_at` limitation).
+- [x] **Parity** : byte-for-byte over every snippet that ships a `parser.snapshot` (~240/245). Validated by `tests/parity.test.ts` — see §2.0.
 
 #### Bugs uncovered while porting — all closed
 - [x] `as <name>` match-arm binding, primitive-only union dispatch, union-of-enums match, `match X.field { is Y as t -> ... }`, `if !bool_var`, enum_basic family, trait/impl-heavy snippets, dump diff cleanups.
