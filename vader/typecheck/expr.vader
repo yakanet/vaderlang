@@ -1,0 +1,152 @@
+// vader/typecheck/expr — bidirectional expression inference orchestrator.
+//
+// Mirror of `src/typecheck/passes/expr.ts::checkExpr`. The entry point
+// is `check_expr(expr, expected, t, diags) -> Type` :
+//   - bottom-up : compute the natural type of `expr` via per-variant
+//     handlers in `expr_literals.vader` (and later expr_ident /
+//     expr_block / call / field / …).
+//   - top-down : when `expected` is non-null, narrow FreeInt/FreeFloat
+//     to the concrete primitive so `let x: i64 = 5` works without an
+//     explicit cast.
+//   - records the final type into `typed.expr_types` keyed by the
+//     expression's span.
+//
+// MVP-trimmed against the TS reference :
+//   - Only literals are inferred today. Ident/Call/Field/Binary/…
+//     return TY_UNRESOLVED until their per-variant pass lands
+//     (Phase 3.2+). The orchestrator's match still dispatches on every
+//     variant so future passes plug in cleanly.
+
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/resolver/scope" { span_key }
+AST :: import "vader/parser/ast"
+import "vader/typecheck/types" {
+    Type, PrimitiveType, FreeIntType, FreeFloatType, TY_UNRESOLVED,
+}
+import "vader/typecheck/type_ops" { is_int_name, is_float_name, is_assignable }
+import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/typecheck/expr_literals" {
+    infer_int_lit, infer_float_lit, infer_bool_lit, infer_null_lit,
+    infer_char_lit, infer_string_lit,
+}
+
+/// Type-check `expr`. `expected` provides bidirectional context — pass
+/// `null` for fresh-position uses. The returned `Type` is the post-
+/// narrowing type ; it's also written into `typed.expr_types`.
+export check_expr :: fn(
+    expr: AST.Expr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    got :: infer_expr(expr, expected, typed, diags)
+    final :: narrow_for_expected(got, expected)
+    typed.expr_types[span_key(expr.span)] = final
+    return final
+}
+
+// If the inferred type is `Free*` and the slot wants a concrete numeric
+// of the matching family, fold to the concrete primitive.
+narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
+    if expected is null { return got }
+    if got is FreeIntType {
+        match expected {
+            is PrimitiveType as p -> {
+                if is_int_name(p.name) { return expected }
+            }
+            _ -> {}
+        }
+    }
+    if got is FreeFloatType {
+        match expected {
+            is PrimitiveType as p -> {
+                if is_float_name(p.name) { return expected }
+            }
+            _ -> {}
+        }
+    }
+    return got
+}
+
+infer_expr :: fn(
+    expr: AST.Expr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    match expr {
+        is AST.IntLitExpr    as e -> { return infer_int_lit(e) }
+        is AST.FloatLitExpr  as e -> { return infer_float_lit(e) }
+        is AST.BoolLitExpr   as e -> { return infer_bool_lit(e) }
+        is AST.NullLitExpr   as e -> { return infer_null_lit(e) }
+        is AST.CharLitExpr   as e -> { return infer_char_lit(e) }
+        is AST.StringLitExpr as e -> { return infer_string_lit(e) }
+        // Every other variant : Phase 3.2+ work. Returning Unresolved
+        // keeps downstream passes happy (TY_UNRESOLVED is assignable to
+        // anything ; `is_assignable` short-circuits on it).
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver/symbol" { new_factory }
+import "vader/typecheck/types" { mk_primitive, display_type }
+import "vader/typecheck/typed_ast" { new_typed_program }
+
+mk_typed :: fn() -> TypedProgram {
+    parsed :: parse_source("", "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    return new_typed_program(rm)
+}
+
+@test
+test_check_expr_writes_into_expr_types :: fn() -> void {
+    typed :: mk_typed()
+    e :: AST.IntLitExpr {
+        .span = dummy_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .value = 42, .suffix = null,
+    }
+    diags: Diagnostic[] = []
+    check_expr(e, null, typed, diags)
+    hit :: typed.expr_types[span_key(e.span)]
+    match hit {
+        is null -> { assert(false, "expr_types should have an entry") }
+        is FreeIntType -> {}
+        _ -> { assert(false, "expected FreeInt") }
+    }
+}
+
+@test
+test_check_expr_narrows_free_int_to_expected_primitive :: fn() -> void {
+    typed :: mk_typed()
+    e :: AST.IntLitExpr {
+        .span = dummy_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .value = 42, .suffix = null,
+    }
+    diags: Diagnostic[] = []
+    expected: Type = mk_primitive("i64")
+    result :: check_expr(e, expected, typed, diags)
+    assert_eq(display_type(result), "i64")
+}
+
+@test
+test_check_expr_keeps_free_float_when_no_expected :: fn() -> void {
+    typed :: mk_typed()
+    e :: AST.FloatLitExpr {
+        .span = dummy_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .value = 1.5, .suffix = null,
+    }
+    diags: Diagnostic[] = []
+    result :: check_expr(e, null, typed, diags)
+    assert(result is FreeFloatType, "unconstrained float stays FreeFloat")
+}
+
+import "vader/diagnostics/diagnostic" { Span, Position }
+
+dummy_span :: fn() -> Span {
+    return Span {
+        .start = Position { .file = "t", .offset = 0, .line = 1, .column = 1 },
+        .end   = Position { .file = "t", .offset = 1, .line = 1, .column = 2 },
+    }
+}
