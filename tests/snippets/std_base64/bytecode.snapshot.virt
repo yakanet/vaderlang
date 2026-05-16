@@ -389,76 +389,47 @@ fn 3 std_base64$encode (string) -> string
   local n usize
   local sb ref
   local i usize
-  local $cast_8 usize
   local b0 u32
-  local $cast_15 usize
   local $add_16 usize
   local b1 u32
-  local $cast_21 usize
   local $add_22 usize
   local b2 u32
-  local $cast_27 u32
   local $shl_28 u32
-  local $cast_30 u32
   local $shl_31 u32
   local triple u32
-  local $cast_37 u32
   local $shr_38 u32
-  local $cast_40 u32
   local $cast_42 usize
   local $call_43 char
-  local $cast_46 u32
   local $shr_47 u32
-  local $cast_49 u32
   local $cast_51 usize
   local $call_52 char
-  local $cast_55 u32
   local $shr_56 u32
-  local $cast_58 u32
   local $cast_60 usize
   local $call_61 char
-  local $cast_64 u32
   local $cast_66 usize
   local $call_67 char
-  local $cast_69 usize
   local remainder usize
-  local $cast_74 usize
   local b0 u32
-  local $cast_80 u32
   local triple u32
-  local $cast_85 u32
   local $shr_86 u32
-  local $cast_88 u32
   local $cast_90 usize
   local $call_91 char
-  local $cast_94 u32
   local $shr_95 u32
-  local $cast_97 u32
   local $cast_99 usize
   local $call_100 char
-  local $cast_104 usize
   local b0 u32
-  local $cast_110 usize
   local $add_111 usize
   local b1 u32
-  local $cast_116 u32
   local $shl_117 u32
-  local $cast_119 u32
   local $shl_120 u32
   local triple u32
-  local $cast_125 u32
   local $shr_126 u32
-  local $cast_128 u32
   local $cast_130 usize
   local $call_131 char
-  local $cast_134 u32
   local $shr_135 u32
-  local $cast_137 u32
   local $cast_139 usize
   local $call_140 char
-  local $cast_143 u32
   local $shr_144 u32
-  local $cast_146 u32
   local $cast_148 usize
   local $call_149 char
   local.get 0   ; base64.vader:19:10
@@ -470,11 +441,9 @@ fn 3 std_base64$encode (string) -> string
   local.set 3   ; base64.vader:21:16
   block $L0 void   ; base64.vader:22:5
     loop $L1 void   ; base64.vader:22:5
-      i32.const 3   ; base64.vader:22:19
-      i32.to_usize   ; base64.vader:22:13
-      local.set 4   ; base64.vader:22:13
       local.get 3   ; base64.vader:22:9
-      local.get 4   ; base64.vader:22:9
+      i64.const 3   ; base64.vader:22:9
+      i64.to_usize   ; base64.vader:22:9
       usize.add   ; base64.vader:22:9
       local.get 1   ; base64.vader:22:9
       usize.le   ; base64.vader:22:9
@@ -483,137 +452,113 @@ fn 3 std_base64$encode (string) -> string
         local.get 3   ; base64.vader:23:19
         call.import 4   ; base64.vader:23:19
         u8.to_u32   ; base64.vader:23:15
-        local.set 5   ; base64.vader:23:15
-        i32.const 1   ; base64.vader:24:43
-        i32.to_usize   ; base64.vader:24:37
-        local.set 6   ; base64.vader:24:37
+        local.set 4   ; base64.vader:23:15
         local.get 3   ; base64.vader:24:33
-        local.get 6   ; base64.vader:24:33
+        i64.const 1   ; base64.vader:24:33
+        i64.to_usize   ; base64.vader:24:33
         usize.add   ; base64.vader:24:33
-        local.set 7   ; base64.vader:24:33
+        local.set 5   ; base64.vader:24:33
         local.get 0   ; base64.vader:24:19
-        local.get 7   ; base64.vader:24:19
+        local.get 5   ; base64.vader:24:19
         call.import 4   ; base64.vader:24:19
         u8.to_u32   ; base64.vader:24:15
-        local.set 8   ; base64.vader:24:15
-        i32.const 2   ; base64.vader:25:43
-        i32.to_usize   ; base64.vader:25:37
-        local.set 9   ; base64.vader:25:37
+        local.set 6   ; base64.vader:24:15
         local.get 3   ; base64.vader:25:33
-        local.get 9   ; base64.vader:25:33
+        i64.const 2   ; base64.vader:25:33
+        i64.to_usize   ; base64.vader:25:33
         usize.add   ; base64.vader:25:33
-        local.set 10   ; base64.vader:25:33
+        local.set 7   ; base64.vader:25:33
         local.get 0   ; base64.vader:25:19
-        local.get 10   ; base64.vader:25:19
+        local.get 7   ; base64.vader:25:19
         call.import 4   ; base64.vader:25:19
         u8.to_u32   ; base64.vader:25:15
-        local.set 11   ; base64.vader:25:15
-        i32.const 16   ; base64.vader:26:30
-        i32.to_u32   ; base64.vader:26:26
-        local.set 12   ; base64.vader:26:26
-        local.get 5   ; base64.vader:26:20
-        local.get 12   ; base64.vader:26:20
+        local.set 8   ; base64.vader:25:15
+        local.get 4   ; base64.vader:26:20
+        i32.const 16   ; base64.vader:26:20
+        i32.to_u32   ; base64.vader:26:20
         u32.shl   ; base64.vader:26:20
-        local.set 13   ; base64.vader:26:20
-        i32.const 8   ; base64.vader:26:48
-        i32.to_u32   ; base64.vader:26:44
-        local.set 14   ; base64.vader:26:44
-        local.get 8   ; base64.vader:26:38
-        local.get 14   ; base64.vader:26:38
+        local.set 9   ; base64.vader:26:20
+        local.get 6   ; base64.vader:26:38
+        i32.const 8   ; base64.vader:26:38
+        i32.to_u32   ; base64.vader:26:38
         u32.shl   ; base64.vader:26:38
-        local.set 15   ; base64.vader:26:38
-        local.get 13   ; base64.vader:26:20
-        local.get 15   ; base64.vader:26:20
+        local.set 10   ; base64.vader:26:38
+        local.get 9   ; base64.vader:26:20
+        local.get 10   ; base64.vader:26:20
         u32.bitor   ; base64.vader:26:20
-        local.get 11   ; base64.vader:26:20
+        local.get 8   ; base64.vader:26:20
         u32.bitor   ; base64.vader:26:20
-        local.set 16   ; base64.vader:26:20
-        i32.const 18   ; base64.vader:27:54
-        i32.to_u32   ; base64.vader:27:50
-        local.set 17   ; base64.vader:27:50
-        local.get 16   ; base64.vader:27:40
-        local.get 17   ; base64.vader:27:40
+        local.set 11   ; base64.vader:26:20
+        local.get 11   ; base64.vader:27:40
+        i32.const 18   ; base64.vader:27:40
+        i32.to_u32   ; base64.vader:27:40
         u32.shr   ; base64.vader:27:40
-        local.set 18   ; base64.vader:27:40
-        i32.const 63   ; base64.vader:27:65
-        i32.to_u32   ; base64.vader:27:61
-        local.set 19   ; base64.vader:27:61
-        local.get 18   ; base64.vader:27:40
-        local.get 19   ; base64.vader:27:40
+        local.set 12   ; base64.vader:27:40
+        local.get 12   ; base64.vader:27:40
+        i32.const 63   ; base64.vader:27:40
+        i32.to_u32   ; base64.vader:27:40
         u32.bitand   ; base64.vader:27:40
         u32.to_usize   ; base64.vader:27:33
-        local.set 20   ; base64.vader:27:33
+        local.set 13   ; base64.vader:27:33
         string.const 37   ; base64.vader:27:24
-        local.get 20   ; base64.vader:27:24
+        local.get 13   ; base64.vader:27:24
         call.import 1   ; base64.vader:27:24
-        local.set 21   ; base64.vader:27:24
+        local.set 14   ; base64.vader:27:24
         local.get 2   ; base64.vader:27:9
-        local.get 21   ; base64.vader:27:9
+        local.get 14   ; base64.vader:27:9
         call 8   ; base64.vader:27:9
-        i32.const 12   ; base64.vader:28:54
-        i32.to_u32   ; base64.vader:28:50
-        local.set 22   ; base64.vader:28:50
-        local.get 16   ; base64.vader:28:40
-        local.get 22   ; base64.vader:28:40
+        local.get 11   ; base64.vader:28:40
+        i32.const 12   ; base64.vader:28:40
+        i32.to_u32   ; base64.vader:28:40
         u32.shr   ; base64.vader:28:40
-        local.set 23   ; base64.vader:28:40
-        i32.const 63   ; base64.vader:28:65
-        i32.to_u32   ; base64.vader:28:61
-        local.set 24   ; base64.vader:28:61
-        local.get 23   ; base64.vader:28:40
-        local.get 24   ; base64.vader:28:40
+        local.set 15   ; base64.vader:28:40
+        local.get 15   ; base64.vader:28:40
+        i32.const 63   ; base64.vader:28:40
+        i32.to_u32   ; base64.vader:28:40
         u32.bitand   ; base64.vader:28:40
         u32.to_usize   ; base64.vader:28:33
-        local.set 25   ; base64.vader:28:33
+        local.set 16   ; base64.vader:28:33
         string.const 37   ; base64.vader:28:24
-        local.get 25   ; base64.vader:28:24
+        local.get 16   ; base64.vader:28:24
         call.import 1   ; base64.vader:28:24
-        local.set 26   ; base64.vader:28:24
+        local.set 17   ; base64.vader:28:24
         local.get 2   ; base64.vader:28:9
-        local.get 26   ; base64.vader:28:9
+        local.get 17   ; base64.vader:28:9
         call 8   ; base64.vader:28:9
-        i32.const 6   ; base64.vader:29:54
-        i32.to_u32   ; base64.vader:29:50
-        local.set 27   ; base64.vader:29:50
-        local.get 16   ; base64.vader:29:40
-        local.get 27   ; base64.vader:29:40
+        local.get 11   ; base64.vader:29:40
+        i32.const 6   ; base64.vader:29:40
+        i32.to_u32   ; base64.vader:29:40
         u32.shr   ; base64.vader:29:40
-        local.set 28   ; base64.vader:29:40
-        i32.const 63   ; base64.vader:29:65
-        i32.to_u32   ; base64.vader:29:61
-        local.set 29   ; base64.vader:29:61
-        local.get 28   ; base64.vader:29:40
-        local.get 29   ; base64.vader:29:40
+        local.set 18   ; base64.vader:29:40
+        local.get 18   ; base64.vader:29:40
+        i32.const 63   ; base64.vader:29:40
+        i32.to_u32   ; base64.vader:29:40
         u32.bitand   ; base64.vader:29:40
         u32.to_usize   ; base64.vader:29:33
-        local.set 30   ; base64.vader:29:33
+        local.set 19   ; base64.vader:29:33
         string.const 37   ; base64.vader:29:24
-        local.get 30   ; base64.vader:29:24
+        local.get 19   ; base64.vader:29:24
         call.import 1   ; base64.vader:29:24
-        local.set 31   ; base64.vader:29:24
+        local.set 20   ; base64.vader:29:24
         local.get 2   ; base64.vader:29:9
-        local.get 31   ; base64.vader:29:9
+        local.get 20   ; base64.vader:29:9
         call 8   ; base64.vader:29:9
-        i32.const 63   ; base64.vader:30:52
-        i32.to_u32   ; base64.vader:30:48
-        local.set 32   ; base64.vader:30:48
-        local.get 16   ; base64.vader:30:39
-        local.get 32   ; base64.vader:30:39
+        local.get 11   ; base64.vader:30:39
+        i32.const 63   ; base64.vader:30:39
+        i32.to_u32   ; base64.vader:30:39
         u32.bitand   ; base64.vader:30:39
         u32.to_usize   ; base64.vader:30:33
-        local.set 33   ; base64.vader:30:33
+        local.set 21   ; base64.vader:30:33
         string.const 37   ; base64.vader:30:24
-        local.get 33   ; base64.vader:30:24
+        local.get 21   ; base64.vader:30:24
         call.import 1   ; base64.vader:30:24
-        local.set 34   ; base64.vader:30:24
+        local.set 22   ; base64.vader:30:24
         local.get 2   ; base64.vader:30:9
-        local.get 34   ; base64.vader:30:9
+        local.get 22   ; base64.vader:30:9
         call 8   ; base64.vader:30:9
-        i32.const 3   ; base64.vader:31:23
-        i32.to_usize   ; base64.vader:31:17
-        local.set 35   ; base64.vader:31:17
         local.get 3   ; base64.vader:31:13
-        local.get 35   ; base64.vader:31:13
+        i64.const 3   ; base64.vader:31:13
+        i64.to_usize   ; base64.vader:31:13
         usize.add   ; base64.vader:31:13
         local.set 3   ; base64.vader:31:13
         br $L1   ; base64.vader:22:5
@@ -624,69 +569,57 @@ fn 3 std_base64$encode (string) -> string
   local.get 1   ; base64.vader:34:18
   local.get 3   ; base64.vader:34:18
   usize.sub   ; base64.vader:34:18
-  local.set 36   ; base64.vader:34:18
-  i32.const 1   ; base64.vader:35:27
-  i32.to_usize   ; base64.vader:35:21
-  local.set 37   ; base64.vader:35:21
-  local.get 36   ; base64.vader:35:8
-  local.get 37   ; base64.vader:35:8
+  local.set 23   ; base64.vader:34:18
+  local.get 23   ; base64.vader:35:8
+  i64.const 1   ; base64.vader:35:8
+  i64.to_usize   ; base64.vader:35:8
   usize.eq   ; base64.vader:35:8
   if $L3 void   ; base64.vader:35:5
     local.get 0   ; base64.vader:36:19
     local.get 3   ; base64.vader:36:19
     call.import 4   ; base64.vader:36:19
     u8.to_u32   ; base64.vader:36:15
-    local.set 38   ; base64.vader:36:15
-    i32.const 16   ; base64.vader:37:29
-    i32.to_u32   ; base64.vader:37:25
-    local.set 39   ; base64.vader:37:25
-    local.get 38   ; base64.vader:37:19
-    local.get 39   ; base64.vader:37:19
+    local.set 24   ; base64.vader:36:15
+    local.get 24   ; base64.vader:37:19
+    i32.const 16   ; base64.vader:37:19
+    i32.to_u32   ; base64.vader:37:19
     u32.shl   ; base64.vader:37:19
-    local.set 40   ; base64.vader:37:19
-    i32.const 18   ; base64.vader:38:54
-    i32.to_u32   ; base64.vader:38:50
-    local.set 41   ; base64.vader:38:50
-    local.get 40   ; base64.vader:38:40
-    local.get 41   ; base64.vader:38:40
+    local.set 25   ; base64.vader:37:19
+    local.get 25   ; base64.vader:38:40
+    i32.const 18   ; base64.vader:38:40
+    i32.to_u32   ; base64.vader:38:40
     u32.shr   ; base64.vader:38:40
-    local.set 42   ; base64.vader:38:40
-    i32.const 63   ; base64.vader:38:65
-    i32.to_u32   ; base64.vader:38:61
-    local.set 43   ; base64.vader:38:61
-    local.get 42   ; base64.vader:38:40
-    local.get 43   ; base64.vader:38:40
+    local.set 26   ; base64.vader:38:40
+    local.get 26   ; base64.vader:38:40
+    i32.const 63   ; base64.vader:38:40
+    i32.to_u32   ; base64.vader:38:40
     u32.bitand   ; base64.vader:38:40
     u32.to_usize   ; base64.vader:38:33
-    local.set 44   ; base64.vader:38:33
+    local.set 27   ; base64.vader:38:33
     string.const 37   ; base64.vader:38:24
-    local.get 44   ; base64.vader:38:24
+    local.get 27   ; base64.vader:38:24
     call.import 1   ; base64.vader:38:24
-    local.set 45   ; base64.vader:38:24
+    local.set 28   ; base64.vader:38:24
     local.get 2   ; base64.vader:38:9
-    local.get 45   ; base64.vader:38:9
+    local.get 28   ; base64.vader:38:9
     call 8   ; base64.vader:38:9
-    i32.const 12   ; base64.vader:39:54
-    i32.to_u32   ; base64.vader:39:50
-    local.set 46   ; base64.vader:39:50
-    local.get 40   ; base64.vader:39:40
-    local.get 46   ; base64.vader:39:40
+    local.get 25   ; base64.vader:39:40
+    i32.const 12   ; base64.vader:39:40
+    i32.to_u32   ; base64.vader:39:40
     u32.shr   ; base64.vader:39:40
-    local.set 47   ; base64.vader:39:40
-    i32.const 63   ; base64.vader:39:65
-    i32.to_u32   ; base64.vader:39:61
-    local.set 48   ; base64.vader:39:61
-    local.get 47   ; base64.vader:39:40
-    local.get 48   ; base64.vader:39:40
+    local.set 29   ; base64.vader:39:40
+    local.get 29   ; base64.vader:39:40
+    i32.const 63   ; base64.vader:39:40
+    i32.to_u32   ; base64.vader:39:40
     u32.bitand   ; base64.vader:39:40
     u32.to_usize   ; base64.vader:39:33
-    local.set 49   ; base64.vader:39:33
+    local.set 30   ; base64.vader:39:33
     string.const 37   ; base64.vader:39:24
-    local.get 49   ; base64.vader:39:24
+    local.get 30   ; base64.vader:39:24
     call.import 1   ; base64.vader:39:24
-    local.set 50   ; base64.vader:39:24
+    local.set 31   ; base64.vader:39:24
     local.get 2   ; base64.vader:39:9
-    local.get 50   ; base64.vader:39:9
+    local.get 31   ; base64.vader:39:9
     call 8   ; base64.vader:39:9
     local.get 2   ; base64.vader:40:9
     char.const 61   ; base64.vader:40:9
@@ -695,113 +628,93 @@ fn 3 std_base64$encode (string) -> string
     char.const 61   ; base64.vader:41:9
     call 8   ; base64.vader:41:9
   else   ; base64.vader:35:5
-    i32.const 2   ; base64.vader:42:34
-    i32.to_usize   ; base64.vader:42:28
-    local.set 51   ; base64.vader:42:28
-    local.get 36   ; base64.vader:42:15
-    local.get 51   ; base64.vader:42:15
+    local.get 23   ; base64.vader:42:15
+    i64.const 2   ; base64.vader:42:15
+    i64.to_usize   ; base64.vader:42:15
     usize.eq   ; base64.vader:42:15
     if $L4 void   ; base64.vader:42:12
       local.get 0   ; base64.vader:43:19
       local.get 3   ; base64.vader:43:19
       call.import 4   ; base64.vader:43:19
       u8.to_u32   ; base64.vader:43:15
-      local.set 52   ; base64.vader:43:15
-      i32.const 1   ; base64.vader:44:43
-      i32.to_usize   ; base64.vader:44:37
-      local.set 53   ; base64.vader:44:37
+      local.set 32   ; base64.vader:43:15
       local.get 3   ; base64.vader:44:33
-      local.get 53   ; base64.vader:44:33
+      i64.const 1   ; base64.vader:44:33
+      i64.to_usize   ; base64.vader:44:33
       usize.add   ; base64.vader:44:33
-      local.set 54   ; base64.vader:44:33
+      local.set 33   ; base64.vader:44:33
       local.get 0   ; base64.vader:44:19
-      local.get 54   ; base64.vader:44:19
+      local.get 33   ; base64.vader:44:19
       call.import 4   ; base64.vader:44:19
       u8.to_u32   ; base64.vader:44:15
-      local.set 55   ; base64.vader:44:15
-      i32.const 16   ; base64.vader:45:30
-      i32.to_u32   ; base64.vader:45:26
-      local.set 56   ; base64.vader:45:26
-      local.get 52   ; base64.vader:45:20
-      local.get 56   ; base64.vader:45:20
+      local.set 34   ; base64.vader:44:15
+      local.get 32   ; base64.vader:45:20
+      i32.const 16   ; base64.vader:45:20
+      i32.to_u32   ; base64.vader:45:20
       u32.shl   ; base64.vader:45:20
-      local.set 57   ; base64.vader:45:20
-      i32.const 8   ; base64.vader:45:48
-      i32.to_u32   ; base64.vader:45:44
-      local.set 58   ; base64.vader:45:44
-      local.get 55   ; base64.vader:45:38
-      local.get 58   ; base64.vader:45:38
+      local.set 35   ; base64.vader:45:20
+      local.get 34   ; base64.vader:45:38
+      i32.const 8   ; base64.vader:45:38
+      i32.to_u32   ; base64.vader:45:38
       u32.shl   ; base64.vader:45:38
-      local.set 59   ; base64.vader:45:38
-      local.get 57   ; base64.vader:45:20
-      local.get 59   ; base64.vader:45:20
+      local.set 36   ; base64.vader:45:38
+      local.get 35   ; base64.vader:45:20
+      local.get 36   ; base64.vader:45:20
       u32.bitor   ; base64.vader:45:20
-      local.set 60   ; base64.vader:45:20
-      i32.const 18   ; base64.vader:46:54
-      i32.to_u32   ; base64.vader:46:50
-      local.set 61   ; base64.vader:46:50
-      local.get 60   ; base64.vader:46:40
-      local.get 61   ; base64.vader:46:40
+      local.set 37   ; base64.vader:45:20
+      local.get 37   ; base64.vader:46:40
+      i32.const 18   ; base64.vader:46:40
+      i32.to_u32   ; base64.vader:46:40
       u32.shr   ; base64.vader:46:40
-      local.set 62   ; base64.vader:46:40
-      i32.const 63   ; base64.vader:46:65
-      i32.to_u32   ; base64.vader:46:61
-      local.set 63   ; base64.vader:46:61
-      local.get 62   ; base64.vader:46:40
-      local.get 63   ; base64.vader:46:40
+      local.set 38   ; base64.vader:46:40
+      local.get 38   ; base64.vader:46:40
+      i32.const 63   ; base64.vader:46:40
+      i32.to_u32   ; base64.vader:46:40
       u32.bitand   ; base64.vader:46:40
       u32.to_usize   ; base64.vader:46:33
-      local.set 64   ; base64.vader:46:33
+      local.set 39   ; base64.vader:46:33
       string.const 37   ; base64.vader:46:24
-      local.get 64   ; base64.vader:46:24
+      local.get 39   ; base64.vader:46:24
       call.import 1   ; base64.vader:46:24
-      local.set 65   ; base64.vader:46:24
+      local.set 40   ; base64.vader:46:24
       local.get 2   ; base64.vader:46:9
-      local.get 65   ; base64.vader:46:9
+      local.get 40   ; base64.vader:46:9
       call 8   ; base64.vader:46:9
-      i32.const 12   ; base64.vader:47:54
-      i32.to_u32   ; base64.vader:47:50
-      local.set 66   ; base64.vader:47:50
-      local.get 60   ; base64.vader:47:40
-      local.get 66   ; base64.vader:47:40
+      local.get 37   ; base64.vader:47:40
+      i32.const 12   ; base64.vader:47:40
+      i32.to_u32   ; base64.vader:47:40
       u32.shr   ; base64.vader:47:40
-      local.set 67   ; base64.vader:47:40
-      i32.const 63   ; base64.vader:47:65
-      i32.to_u32   ; base64.vader:47:61
-      local.set 68   ; base64.vader:47:61
-      local.get 67   ; base64.vader:47:40
-      local.get 68   ; base64.vader:47:40
+      local.set 41   ; base64.vader:47:40
+      local.get 41   ; base64.vader:47:40
+      i32.const 63   ; base64.vader:47:40
+      i32.to_u32   ; base64.vader:47:40
       u32.bitand   ; base64.vader:47:40
       u32.to_usize   ; base64.vader:47:33
-      local.set 69   ; base64.vader:47:33
+      local.set 42   ; base64.vader:47:33
       string.const 37   ; base64.vader:47:24
-      local.get 69   ; base64.vader:47:24
+      local.get 42   ; base64.vader:47:24
       call.import 1   ; base64.vader:47:24
-      local.set 70   ; base64.vader:47:24
+      local.set 43   ; base64.vader:47:24
       local.get 2   ; base64.vader:47:9
-      local.get 70   ; base64.vader:47:9
+      local.get 43   ; base64.vader:47:9
       call 8   ; base64.vader:47:9
-      i32.const 6   ; base64.vader:48:54
-      i32.to_u32   ; base64.vader:48:50
-      local.set 71   ; base64.vader:48:50
-      local.get 60   ; base64.vader:48:40
-      local.get 71   ; base64.vader:48:40
+      local.get 37   ; base64.vader:48:40
+      i32.const 6   ; base64.vader:48:40
+      i32.to_u32   ; base64.vader:48:40
       u32.shr   ; base64.vader:48:40
-      local.set 72   ; base64.vader:48:40
-      i32.const 63   ; base64.vader:48:65
-      i32.to_u32   ; base64.vader:48:61
-      local.set 73   ; base64.vader:48:61
-      local.get 72   ; base64.vader:48:40
-      local.get 73   ; base64.vader:48:40
+      local.set 44   ; base64.vader:48:40
+      local.get 44   ; base64.vader:48:40
+      i32.const 63   ; base64.vader:48:40
+      i32.to_u32   ; base64.vader:48:40
       u32.bitand   ; base64.vader:48:40
       u32.to_usize   ; base64.vader:48:33
-      local.set 74   ; base64.vader:48:33
+      local.set 45   ; base64.vader:48:33
       string.const 37   ; base64.vader:48:24
-      local.get 74   ; base64.vader:48:24
+      local.get 45   ; base64.vader:48:24
       call.import 1   ; base64.vader:48:24
-      local.set 75   ; base64.vader:48:24
+      local.set 46   ; base64.vader:48:24
       local.get 2   ; base64.vader:48:9
-      local.get 75   ; base64.vader:48:9
+      local.get 46   ; base64.vader:48:9
       call 8   ; base64.vader:48:9
       local.get 2   ; base64.vader:49:9
       char.const 61   ; base64.vader:49:9
@@ -931,29 +844,20 @@ end
 
 fn 6 std_base64$decode (string) -> ref
   local n usize
-  local $cast_4 usize
-  local $cast_8 usize
   local $mod_9 usize
-  local $cast_11 usize
   local pad_count usize
-  local $cast_18 usize
   local $sub_19 usize
   local $call_20 u8
-  local $cast_26 usize
   local $sub_27 usize
   local $call_28 u8
   local sb ref
   local i usize
-  local $cast_38 usize
   local full_quads usize
   local v0 i32
-  local $cast_46 usize
   local $add_47 usize
   local v1 i32
-  local $cast_52 usize
   local $add_53 usize
   local v2 i32
-  local $cast_58 usize
   local $add_59 usize
   local v3 i32
   local or_res bool
@@ -962,102 +866,70 @@ fn 6 std_base64$decode (string) -> ref
   local __sb_0 any
   local $call_80 string
   local $cast_83 u32
-  local $cast_85 u32
   local $shl_86 u32
   local $cast_87 u32
-  local $cast_89 u32
   local $shl_90 u32
   local $bitor_91 u32
   local $cast_92 u32
-  local $cast_94 u32
   local $shl_95 u32
   local $bitor_96 u32
   local $cast_97 u32
   local triple u32
-  local $cast_101 u32
   local $shr_102 u32
-  local $cast_104 u32
   local $cast_106 char
-  local $cast_108 u32
   local $shr_109 u32
-  local $cast_111 u32
   local $cast_113 char
-  local $cast_115 u32
   local $cast_117 char
-  local $cast_119 usize
   local v0 i32
-  local $cast_125 usize
   local $add_126 usize
   local v1 i32
   local or_res bool
   local $cast_138 u32
-  local $cast_140 u32
   local $shl_141 u32
   local $cast_142 u32
-  local $cast_144 u32
   local $shl_145 u32
   local triple_lead u32
-  local $cast_149 u32
   local $shr_150 u32
-  local $cast_152 u32
   local $cast_154 char
-  local $cast_156 usize
-  local $cast_159 usize
   local $add_160 usize
   local v2 i32
-  local $cast_165 usize
   local $add_166 usize
   local v3 i32
   local or_res bool
   local $cast_178 u32
-  local $cast_180 u32
   local $shl_181 u32
   local $bitor_182 u32
   local $cast_183 u32
   local triple u32
-  local $cast_187 u32
   local $shr_188 u32
-  local $cast_190 u32
   local $cast_192 char
-  local $cast_194 u32
   local $cast_196 char
-  local $cast_198 usize
-  local $cast_201 usize
   local $add_202 usize
   local v2 i32
   local $cast_210 u32
-  local $cast_212 u32
   local $shl_213 u32
   local triple u32
-  local $cast_217 u32
   local $shr_218 u32
-  local $cast_220 u32
   local $cast_222 char
   local.get 0   ; base64.vader:82:10
   call.import 3   ; base64.vader:82:10
   local.set 1   ; base64.vader:82:5
-  i32.const 0   ; base64.vader:83:19
-  i32.to_usize   ; base64.vader:83:13
-  local.set 2   ; base64.vader:83:13
   local.get 1   ; base64.vader:83:8
-  local.get 2   ; base64.vader:83:8
+  i64.const 0   ; base64.vader:83:8
+  i64.to_usize   ; base64.vader:83:8
   usize.eq   ; base64.vader:83:8
   if $L0 void   ; base64.vader:83:5
     string.const 27   ; base64.vader:83:31
     return   ; base64.vader:83:24
   else   ; base64.vader:83:5
-    i32.const 4   ; base64.vader:84:18
-    i32.to_usize   ; base64.vader:84:12
-    local.set 3   ; base64.vader:84:12
     local.get 1   ; base64.vader:84:8
-    local.get 3   ; base64.vader:84:8
+    i64.const 4   ; base64.vader:84:8
+    i64.to_usize   ; base64.vader:84:8
     usize.rem   ; base64.vader:84:8
-    local.set 4   ; base64.vader:84:8
-    i32.const 0   ; base64.vader:84:30
-    i32.to_usize   ; base64.vader:84:24
-    local.set 5   ; base64.vader:84:24
-    local.get 4   ; base64.vader:84:8
-    local.get 5   ; base64.vader:84:8
+    local.set 2   ; base64.vader:84:8
+    local.get 2   ; base64.vader:84:8
+    i64.const 0   ; base64.vader:84:8
+    i64.to_usize   ; base64.vader:84:8
     usize.ne   ; base64.vader:84:8
     if $L1 void   ; base64.vader:84:5
       string.const 38   ; base64.vader:85:37
@@ -1065,256 +937,224 @@ fn 6 std_base64$decode (string) -> ref
       return   ; base64.vader:85:9
     else   ; base64.vader:84:5
       i64.const 0   ; base64.vader:88:24
-      local.set 6   ; base64.vader:88:24
-      i32.const 1   ; base64.vader:89:32
-      i32.to_usize   ; base64.vader:89:26
-      local.set 7   ; base64.vader:89:26
+      local.set 3   ; base64.vader:88:24
       local.get 1   ; base64.vader:89:22
-      local.get 7   ; base64.vader:89:22
+      i64.const 1   ; base64.vader:89:22
+      i64.to_usize   ; base64.vader:89:22
       usize.sub   ; base64.vader:89:22
-      local.set 8   ; base64.vader:89:22
+      local.set 4   ; base64.vader:89:22
       local.get 0   ; base64.vader:89:8
-      local.get 8   ; base64.vader:89:8
+      local.get 4   ; base64.vader:89:8
       call.import 4   ; base64.vader:89:8
-      local.set 9   ; base64.vader:89:8
-      local.get 9   ; base64.vader:89:8
+      local.set 5   ; base64.vader:89:8
+      local.get 5   ; base64.vader:89:8
       i32.const 61   ; base64.vader:89:8
       i32.to_u8   ; base64.vader:89:8
       u8.eq   ; base64.vader:89:8
       if $L2 void   ; base64.vader:89:5
-        i32.const 1   ; base64.vader:89:64
-        i32.to_usize   ; base64.vader:89:58
-        local.set 6   ; base64.vader:89:58
+        i64.const 1   ; base64.vader:89:64
+        local.set 3   ; base64.vader:89:58
       else   ; base64.vader:89:5
       end $L2   ; base64.vader:89:5
-      i32.const 2   ; base64.vader:90:32
-      i32.to_usize   ; base64.vader:90:26
-      local.set 10   ; base64.vader:90:26
       local.get 1   ; base64.vader:90:22
-      local.get 10   ; base64.vader:90:22
+      i64.const 2   ; base64.vader:90:22
+      i64.to_usize   ; base64.vader:90:22
       usize.sub   ; base64.vader:90:22
-      local.set 11   ; base64.vader:90:22
+      local.set 6   ; base64.vader:90:22
       local.get 0   ; base64.vader:90:8
-      local.get 11   ; base64.vader:90:8
+      local.get 6   ; base64.vader:90:8
       call.import 4   ; base64.vader:90:8
-      local.set 12   ; base64.vader:90:8
-      local.get 12   ; base64.vader:90:8
+      local.set 7   ; base64.vader:90:8
+      local.get 7   ; base64.vader:90:8
       i32.const 61   ; base64.vader:90:8
       i32.to_u8   ; base64.vader:90:8
       u8.eq   ; base64.vader:90:8
       if $L3 void   ; base64.vader:90:5
-        i32.const 2   ; base64.vader:90:64
-        i32.to_usize   ; base64.vader:90:58
-        local.set 6   ; base64.vader:90:58
+        i64.const 2   ; base64.vader:90:64
+        local.set 3   ; base64.vader:90:58
       else   ; base64.vader:90:5
       end $L3   ; base64.vader:90:5
       call 7   ; base64.vader:92:11
-      local.set 13   ; base64.vader:92:5
+      local.set 8   ; base64.vader:92:5
       i64.const 0   ; base64.vader:93:16
-      local.set 14   ; base64.vader:93:16
-      i32.const 4   ; base64.vader:94:29
-      i32.to_usize   ; base64.vader:94:23
-      local.set 15   ; base64.vader:94:23
+      local.set 9   ; base64.vader:93:16
       local.get 1   ; base64.vader:94:19
-      local.get 15   ; base64.vader:94:19
+      i64.const 4   ; base64.vader:94:19
+      i64.to_usize   ; base64.vader:94:19
       usize.sub   ; base64.vader:94:19
-      local.set 16   ; base64.vader:94:19
+      local.set 10   ; base64.vader:94:19
       block $L4 void   ; base64.vader:95:5
         loop $L5 void   ; base64.vader:95:5
-          local.get 14   ; base64.vader:95:9
-          local.get 16   ; base64.vader:95:9
+          local.get 9   ; base64.vader:95:9
+          local.get 10   ; base64.vader:95:9
           usize.lt   ; base64.vader:95:9
           if $L6 void   ; base64.vader:95:9
             local.get 0   ; base64.vader:96:27
-            local.get 14   ; base64.vader:96:27
+            local.get 9   ; base64.vader:96:27
             call.import 4   ; base64.vader:96:27
             call 5   ; base64.vader:96:15
-            local.set 17   ; base64.vader:96:9
-            i32.const 1   ; base64.vader:97:51
-            i32.to_usize   ; base64.vader:97:45
-            local.set 18   ; base64.vader:97:45
-            local.get 14   ; base64.vader:97:41
-            local.get 18   ; base64.vader:97:41
+            local.set 11   ; base64.vader:96:9
+            local.get 9   ; base64.vader:97:41
+            i64.const 1   ; base64.vader:97:41
+            i64.to_usize   ; base64.vader:97:41
             usize.add   ; base64.vader:97:41
-            local.set 19   ; base64.vader:97:41
+            local.set 12   ; base64.vader:97:41
             local.get 0   ; base64.vader:97:27
-            local.get 19   ; base64.vader:97:27
+            local.get 12   ; base64.vader:97:27
             call.import 4   ; base64.vader:97:27
             call 5   ; base64.vader:97:15
-            local.set 20   ; base64.vader:97:9
-            i32.const 2   ; base64.vader:98:51
-            i32.to_usize   ; base64.vader:98:45
-            local.set 21   ; base64.vader:98:45
-            local.get 14   ; base64.vader:98:41
-            local.get 21   ; base64.vader:98:41
+            local.set 13   ; base64.vader:97:9
+            local.get 9   ; base64.vader:98:41
+            i64.const 2   ; base64.vader:98:41
+            i64.to_usize   ; base64.vader:98:41
             usize.add   ; base64.vader:98:41
-            local.set 22   ; base64.vader:98:41
+            local.set 14   ; base64.vader:98:41
             local.get 0   ; base64.vader:98:27
-            local.get 22   ; base64.vader:98:27
+            local.get 14   ; base64.vader:98:27
             call.import 4   ; base64.vader:98:27
             call 5   ; base64.vader:98:15
-            local.set 23   ; base64.vader:98:9
-            i32.const 3   ; base64.vader:99:51
-            i32.to_usize   ; base64.vader:99:45
-            local.set 24   ; base64.vader:99:45
-            local.get 14   ; base64.vader:99:41
-            local.get 24   ; base64.vader:99:41
+            local.set 15   ; base64.vader:98:9
+            local.get 9   ; base64.vader:99:41
+            i64.const 3   ; base64.vader:99:41
+            i64.to_usize   ; base64.vader:99:41
             usize.add   ; base64.vader:99:41
-            local.set 25   ; base64.vader:99:41
+            local.set 16   ; base64.vader:99:41
             local.get 0   ; base64.vader:99:27
-            local.get 25   ; base64.vader:99:27
+            local.get 16   ; base64.vader:99:27
             call.import 4   ; base64.vader:99:27
             call 5   ; base64.vader:99:15
-            local.set 26   ; base64.vader:99:9
-            local.get 17   ; base64.vader:100:12
+            local.set 17   ; base64.vader:99:9
+            local.get 11   ; base64.vader:100:12
             i32.const 0   ; base64.vader:100:12
             i32.lt   ; base64.vader:100:12
             if $L7 void   ; base64.vader:100:12
               bool.const true   ; base64.vader:100:12
-              local.set 27   ; base64.vader:100:12
+              local.set 18   ; base64.vader:100:12
             else   ; base64.vader:100:12
-              local.get 20   ; base64.vader:100:22
+              local.get 13   ; base64.vader:100:22
               i32.const 0   ; base64.vader:100:22
               i32.lt   ; base64.vader:100:22
-              local.set 27   ; base64.vader:100:22
+              local.set 18   ; base64.vader:100:22
             end $L7   ; base64.vader:100:12
-            local.get 27   ; base64.vader:100:12
+            local.get 18   ; base64.vader:100:12
             if $L8 void   ; base64.vader:100:12
               bool.const true   ; base64.vader:100:12
-              local.set 28   ; base64.vader:100:12
+              local.set 19   ; base64.vader:100:12
             else   ; base64.vader:100:12
-              local.get 23   ; base64.vader:100:32
+              local.get 15   ; base64.vader:100:32
               i32.const 0   ; base64.vader:100:32
               i32.lt   ; base64.vader:100:32
-              local.set 28   ; base64.vader:100:32
+              local.set 19   ; base64.vader:100:32
             end $L8   ; base64.vader:100:12
-            local.get 28   ; base64.vader:100:12
+            local.get 19   ; base64.vader:100:12
             if $L9 void   ; base64.vader:100:12
               bool.const true   ; base64.vader:100:12
-              local.set 29   ; base64.vader:100:12
+              local.set 20   ; base64.vader:100:12
             else   ; base64.vader:100:12
-              local.get 26   ; base64.vader:100:42
+              local.get 17   ; base64.vader:100:42
               i32.const 0   ; base64.vader:100:42
               i32.lt   ; base64.vader:100:42
-              local.set 29   ; base64.vader:100:42
+              local.set 20   ; base64.vader:100:42
             end $L9   ; base64.vader:100:12
-            local.get 29   ; base64.vader:100:9
+            local.get 20   ; base64.vader:100:9
             if $L10 void   ; base64.vader:100:9
               intrinsic builder.new   ; base64.vader:101:41
-              local.set 30   ; base64.vader:101:41
-              local.get 30   ; base64.vader:101:42
+              local.set 21   ; base64.vader:101:41
+              local.get 21   ; base64.vader:101:42
               string.const 39   ; base64.vader:101:42
               intrinsic builder.append_str   ; base64.vader:101:42
-              local.get 14   ; base64.vader:101:78
+              local.get 9   ; base64.vader:101:78
               call.import 0   ; base64.vader:101:78
-              local.set 31   ; base64.vader:101:78
-              local.get 30   ; base64.vader:101:78
-              local.get 31   ; base64.vader:101:78
+              local.set 22   ; base64.vader:101:78
+              local.get 21   ; base64.vader:101:78
+              local.get 22   ; base64.vader:101:78
               intrinsic builder.append_str   ; base64.vader:101:78
-              local.get 30   ; base64.vader:101:41
+              local.get 21   ; base64.vader:101:41
               intrinsic builder.finish   ; base64.vader:101:41
               struct.new 13   ; base64.vader:101:20
               return   ; base64.vader:101:13
             else   ; base64.vader:100:9
-              local.get 17   ; base64.vader:103:20
+              local.get 11   ; base64.vader:103:20
               i32.to_u32   ; base64.vader:103:20
-              local.set 32   ; base64.vader:103:20
-              i32.const 18   ; base64.vader:103:35
-              i32.to_u32   ; base64.vader:103:31
-              local.set 33   ; base64.vader:103:31
-              local.get 32   ; base64.vader:103:20
-              local.get 33   ; base64.vader:103:20
+              local.set 23   ; base64.vader:103:20
+              local.get 23   ; base64.vader:103:20
+              i32.const 18   ; base64.vader:103:20
+              i32.to_u32   ; base64.vader:103:20
               u32.shl   ; base64.vader:103:20
-              local.set 34   ; base64.vader:103:20
-              local.get 20   ; base64.vader:103:43
+              local.set 24   ; base64.vader:103:20
+              local.get 13   ; base64.vader:103:43
               i32.to_u32   ; base64.vader:103:43
-              local.set 35   ; base64.vader:103:43
-              i32.const 12   ; base64.vader:103:58
-              i32.to_u32   ; base64.vader:103:54
-              local.set 36   ; base64.vader:103:54
-              local.get 35   ; base64.vader:103:43
-              local.get 36   ; base64.vader:103:43
+              local.set 25   ; base64.vader:103:43
+              local.get 25   ; base64.vader:103:43
+              i32.const 12   ; base64.vader:103:43
+              i32.to_u32   ; base64.vader:103:43
               u32.shl   ; base64.vader:103:43
-              local.set 37   ; base64.vader:103:43
-              local.get 34   ; base64.vader:103:20
-              local.get 37   ; base64.vader:103:20
+              local.set 26   ; base64.vader:103:43
+              local.get 24   ; base64.vader:103:20
+              local.get 26   ; base64.vader:103:20
               u32.bitor   ; base64.vader:103:20
-              local.set 38   ; base64.vader:103:20
-              local.get 23   ; base64.vader:103:66
+              local.set 27   ; base64.vader:103:20
+              local.get 15   ; base64.vader:103:66
               i32.to_u32   ; base64.vader:103:66
-              local.set 39   ; base64.vader:103:66
-              i32.const 6   ; base64.vader:103:81
-              i32.to_u32   ; base64.vader:103:77
-              local.set 40   ; base64.vader:103:77
-              local.get 39   ; base64.vader:103:66
-              local.get 40   ; base64.vader:103:66
+              local.set 28   ; base64.vader:103:66
+              local.get 28   ; base64.vader:103:66
+              i32.const 6   ; base64.vader:103:66
+              i32.to_u32   ; base64.vader:103:66
               u32.shl   ; base64.vader:103:66
-              local.set 41   ; base64.vader:103:66
-              local.get 38   ; base64.vader:103:20
-              local.get 41   ; base64.vader:103:20
+              local.set 29   ; base64.vader:103:66
+              local.get 27   ; base64.vader:103:20
+              local.get 29   ; base64.vader:103:20
               u32.bitor   ; base64.vader:103:20
-              local.set 42   ; base64.vader:103:20
-              local.get 26   ; base64.vader:103:87
+              local.set 30   ; base64.vader:103:20
+              local.get 17   ; base64.vader:103:87
               i32.to_u32   ; base64.vader:103:87
-              local.set 43   ; base64.vader:103:87
-              local.get 42   ; base64.vader:103:20
-              local.get 43   ; base64.vader:103:20
+              local.set 31   ; base64.vader:103:87
+              local.get 30   ; base64.vader:103:20
+              local.get 31   ; base64.vader:103:20
               u32.bitor   ; base64.vader:103:20
-              local.set 44   ; base64.vader:103:20
-              i32.const 16   ; base64.vader:104:44
-              i32.to_u32   ; base64.vader:104:40
-              local.set 45   ; base64.vader:104:40
-              local.get 44   ; base64.vader:104:30
-              local.get 45   ; base64.vader:104:30
+              local.set 32   ; base64.vader:103:20
+              local.get 32   ; base64.vader:104:30
+              i32.const 16   ; base64.vader:104:30
+              i32.to_u32   ; base64.vader:104:30
               u32.shr   ; base64.vader:104:30
-              local.set 46   ; base64.vader:104:30
-              i32.const 255   ; base64.vader:104:55
-              i32.to_u32   ; base64.vader:104:51
-              local.set 47   ; base64.vader:104:51
-              local.get 46   ; base64.vader:104:30
-              local.get 47   ; base64.vader:104:30
+              local.set 33   ; base64.vader:104:30
+              local.get 33   ; base64.vader:104:30
+              i32.const 255   ; base64.vader:104:30
+              i32.to_u32   ; base64.vader:104:30
               u32.bitand   ; base64.vader:104:30
               u32.to_char   ; base64.vader:104:24
-              local.set 48   ; base64.vader:104:24
-              local.get 13   ; base64.vader:104:9
-              local.get 48   ; base64.vader:104:9
+              local.set 34   ; base64.vader:104:24
+              local.get 8   ; base64.vader:104:9
+              local.get 34   ; base64.vader:104:9
               call 8   ; base64.vader:104:9
-              i32.const 8   ; base64.vader:105:44
-              i32.to_u32   ; base64.vader:105:40
-              local.set 49   ; base64.vader:105:40
-              local.get 44   ; base64.vader:105:30
-              local.get 49   ; base64.vader:105:30
+              local.get 32   ; base64.vader:105:30
+              i32.const 8   ; base64.vader:105:30
+              i32.to_u32   ; base64.vader:105:30
               u32.shr   ; base64.vader:105:30
-              local.set 50   ; base64.vader:105:30
-              i32.const 255   ; base64.vader:105:55
-              i32.to_u32   ; base64.vader:105:51
-              local.set 51   ; base64.vader:105:51
-              local.get 50   ; base64.vader:105:30
-              local.get 51   ; base64.vader:105:30
+              local.set 35   ; base64.vader:105:30
+              local.get 35   ; base64.vader:105:30
+              i32.const 255   ; base64.vader:105:30
+              i32.to_u32   ; base64.vader:105:30
               u32.bitand   ; base64.vader:105:30
               u32.to_char   ; base64.vader:105:24
-              local.set 52   ; base64.vader:105:24
-              local.get 13   ; base64.vader:105:9
-              local.get 52   ; base64.vader:105:9
+              local.set 36   ; base64.vader:105:24
+              local.get 8   ; base64.vader:105:9
+              local.get 36   ; base64.vader:105:9
               call 8   ; base64.vader:105:9
-              i32.const 255   ; base64.vader:106:42
-              i32.to_u32   ; base64.vader:106:38
-              local.set 53   ; base64.vader:106:38
-              local.get 44   ; base64.vader:106:29
-              local.get 53   ; base64.vader:106:29
+              local.get 32   ; base64.vader:106:29
+              i32.const 255   ; base64.vader:106:29
+              i32.to_u32   ; base64.vader:106:29
               u32.bitand   ; base64.vader:106:29
               u32.to_char   ; base64.vader:106:24
-              local.set 54   ; base64.vader:106:24
-              local.get 13   ; base64.vader:106:9
-              local.get 54   ; base64.vader:106:9
+              local.set 37   ; base64.vader:106:24
+              local.get 8   ; base64.vader:106:9
+              local.get 37   ; base64.vader:106:9
               call 8   ; base64.vader:106:9
-              i32.const 4   ; base64.vader:107:23
-              i32.to_usize   ; base64.vader:107:17
-              local.set 55   ; base64.vader:107:17
-              local.get 14   ; base64.vader:107:13
-              local.get 55   ; base64.vader:107:13
+              local.get 9   ; base64.vader:107:13
+              i64.const 4   ; base64.vader:107:13
+              i64.to_usize   ; base64.vader:107:13
               usize.add   ; base64.vader:107:13
-              local.set 14   ; base64.vader:107:13
+              local.set 9   ; base64.vader:107:13
               br $L5   ; base64.vader:95:5
             end $L10   ; base64.vader:100:9
           else   ; base64.vader:95:9
@@ -1322,206 +1162,178 @@ fn 6 std_base64$decode (string) -> ref
         end $L5   ; base64.vader:95:5
       end $L4   ; base64.vader:95:5
       local.get 0   ; base64.vader:111:23
-      local.get 14   ; base64.vader:111:23
+      local.get 9   ; base64.vader:111:23
       call.import 4   ; base64.vader:111:23
       call 5   ; base64.vader:111:11
-      local.set 56   ; base64.vader:111:5
-      i32.const 1   ; base64.vader:112:47
-      i32.to_usize   ; base64.vader:112:41
-      local.set 57   ; base64.vader:112:41
-      local.get 14   ; base64.vader:112:37
-      local.get 57   ; base64.vader:112:37
+      local.set 38   ; base64.vader:111:5
+      local.get 9   ; base64.vader:112:37
+      i64.const 1   ; base64.vader:112:37
+      i64.to_usize   ; base64.vader:112:37
       usize.add   ; base64.vader:112:37
-      local.set 58   ; base64.vader:112:37
+      local.set 39   ; base64.vader:112:37
       local.get 0   ; base64.vader:112:23
-      local.get 58   ; base64.vader:112:23
+      local.get 39   ; base64.vader:112:23
       call.import 4   ; base64.vader:112:23
       call 5   ; base64.vader:112:11
-      local.set 59   ; base64.vader:112:5
-      local.get 56   ; base64.vader:113:8
+      local.set 40   ; base64.vader:112:5
+      local.get 38   ; base64.vader:113:8
       i32.const 0   ; base64.vader:113:8
       i32.lt   ; base64.vader:113:8
       if $L11 void   ; base64.vader:113:8
         bool.const true   ; base64.vader:113:8
-        local.set 60   ; base64.vader:113:8
+        local.set 41   ; base64.vader:113:8
       else   ; base64.vader:113:8
-        local.get 59   ; base64.vader:113:18
+        local.get 40   ; base64.vader:113:18
         i32.const 0   ; base64.vader:113:18
         i32.lt   ; base64.vader:113:18
-        local.set 60   ; base64.vader:113:18
+        local.set 41   ; base64.vader:113:18
       end $L11   ; base64.vader:113:8
-      local.get 60   ; base64.vader:113:5
+      local.get 41   ; base64.vader:113:5
       if $L12 void   ; base64.vader:113:5
         string.const 40   ; base64.vader:114:37
         struct.new 13   ; base64.vader:114:16
         return   ; base64.vader:114:9
       else   ; base64.vader:113:5
-        local.get 56   ; base64.vader:116:21
+        local.get 38   ; base64.vader:116:21
         i32.to_u32   ; base64.vader:116:21
-        local.set 61   ; base64.vader:116:21
-        i32.const 18   ; base64.vader:116:36
-        i32.to_u32   ; base64.vader:116:32
-        local.set 62   ; base64.vader:116:32
-        local.get 61   ; base64.vader:116:21
-        local.get 62   ; base64.vader:116:21
+        local.set 42   ; base64.vader:116:21
+        local.get 42   ; base64.vader:116:21
+        i32.const 18   ; base64.vader:116:21
+        i32.to_u32   ; base64.vader:116:21
         u32.shl   ; base64.vader:116:21
-        local.set 63   ; base64.vader:116:21
-        local.get 59   ; base64.vader:116:44
+        local.set 43   ; base64.vader:116:21
+        local.get 40   ; base64.vader:116:44
         i32.to_u32   ; base64.vader:116:44
-        local.set 64   ; base64.vader:116:44
-        i32.const 12   ; base64.vader:116:59
-        i32.to_u32   ; base64.vader:116:55
-        local.set 65   ; base64.vader:116:55
-        local.get 64   ; base64.vader:116:44
-        local.get 65   ; base64.vader:116:44
+        local.set 44   ; base64.vader:116:44
+        local.get 44   ; base64.vader:116:44
+        i32.const 12   ; base64.vader:116:44
+        i32.to_u32   ; base64.vader:116:44
         u32.shl   ; base64.vader:116:44
-        local.set 66   ; base64.vader:116:44
-        local.get 63   ; base64.vader:116:21
-        local.get 66   ; base64.vader:116:21
+        local.set 45   ; base64.vader:116:44
+        local.get 43   ; base64.vader:116:21
+        local.get 45   ; base64.vader:116:21
         u32.bitor   ; base64.vader:116:21
-        local.set 67   ; base64.vader:116:21
-        i32.const 16   ; base64.vader:117:45
-        i32.to_u32   ; base64.vader:117:41
-        local.set 68   ; base64.vader:117:41
-        local.get 67   ; base64.vader:117:26
-        local.get 68   ; base64.vader:117:26
+        local.set 46   ; base64.vader:116:21
+        local.get 46   ; base64.vader:117:26
+        i32.const 16   ; base64.vader:117:26
+        i32.to_u32   ; base64.vader:117:26
         u32.shr   ; base64.vader:117:26
-        local.set 69   ; base64.vader:117:26
-        i32.const 255   ; base64.vader:117:56
-        i32.to_u32   ; base64.vader:117:52
-        local.set 70   ; base64.vader:117:52
-        local.get 69   ; base64.vader:117:26
-        local.get 70   ; base64.vader:117:26
+        local.set 47   ; base64.vader:117:26
+        local.get 47   ; base64.vader:117:26
+        i32.const 255   ; base64.vader:117:26
+        i32.to_u32   ; base64.vader:117:26
         u32.bitand   ; base64.vader:117:26
         u32.to_char   ; base64.vader:117:20
-        local.set 71   ; base64.vader:117:20
-        local.get 13   ; base64.vader:117:5
-        local.get 71   ; base64.vader:117:5
+        local.set 48   ; base64.vader:117:20
+        local.get 8   ; base64.vader:117:5
+        local.get 48   ; base64.vader:117:5
         call 8   ; base64.vader:117:5
-        i32.const 0   ; base64.vader:118:27
-        i32.to_usize   ; base64.vader:118:21
-        local.set 72   ; base64.vader:118:21
-        local.get 6   ; base64.vader:118:8
-        local.get 72   ; base64.vader:118:8
+        local.get 3   ; base64.vader:118:8
+        i64.const 0   ; base64.vader:118:8
+        i64.to_usize   ; base64.vader:118:8
         usize.eq   ; base64.vader:118:8
         if $L13 void   ; base64.vader:118:5
-          i32.const 2   ; base64.vader:119:51
-          i32.to_usize   ; base64.vader:119:45
-          local.set 73   ; base64.vader:119:45
-          local.get 14   ; base64.vader:119:41
-          local.get 73   ; base64.vader:119:41
+          local.get 9   ; base64.vader:119:41
+          i64.const 2   ; base64.vader:119:41
+          i64.to_usize   ; base64.vader:119:41
           usize.add   ; base64.vader:119:41
-          local.set 74   ; base64.vader:119:41
+          local.set 49   ; base64.vader:119:41
           local.get 0   ; base64.vader:119:27
-          local.get 74   ; base64.vader:119:27
+          local.get 49   ; base64.vader:119:27
           call.import 4   ; base64.vader:119:27
           call 5   ; base64.vader:119:15
-          local.set 75   ; base64.vader:119:9
-          i32.const 3   ; base64.vader:120:51
-          i32.to_usize   ; base64.vader:120:45
-          local.set 76   ; base64.vader:120:45
-          local.get 14   ; base64.vader:120:41
-          local.get 76   ; base64.vader:120:41
+          local.set 50   ; base64.vader:119:9
+          local.get 9   ; base64.vader:120:41
+          i64.const 3   ; base64.vader:120:41
+          i64.to_usize   ; base64.vader:120:41
           usize.add   ; base64.vader:120:41
-          local.set 77   ; base64.vader:120:41
+          local.set 51   ; base64.vader:120:41
           local.get 0   ; base64.vader:120:27
-          local.get 77   ; base64.vader:120:27
+          local.get 51   ; base64.vader:120:27
           call.import 4   ; base64.vader:120:27
           call 5   ; base64.vader:120:15
-          local.set 78   ; base64.vader:120:9
-          local.get 75   ; base64.vader:121:12
+          local.set 52   ; base64.vader:120:9
+          local.get 50   ; base64.vader:121:12
           i32.const 0   ; base64.vader:121:12
           i32.lt   ; base64.vader:121:12
           if $L14 void   ; base64.vader:121:12
             bool.const true   ; base64.vader:121:12
-            local.set 79   ; base64.vader:121:12
+            local.set 53   ; base64.vader:121:12
           else   ; base64.vader:121:12
-            local.get 78   ; base64.vader:121:22
+            local.get 52   ; base64.vader:121:22
             i32.const 0   ; base64.vader:121:22
             i32.lt   ; base64.vader:121:22
-            local.set 79   ; base64.vader:121:22
+            local.set 53   ; base64.vader:121:22
           end $L14   ; base64.vader:121:12
-          local.get 79   ; base64.vader:121:9
+          local.get 53   ; base64.vader:121:9
           if $L15 void   ; base64.vader:121:9
             string.const 40   ; base64.vader:122:41
             struct.new 13   ; base64.vader:122:20
             return   ; base64.vader:122:13
           else   ; base64.vader:121:9
-            local.get 75   ; base64.vader:124:34
+            local.get 50   ; base64.vader:124:34
             i32.to_u32   ; base64.vader:124:34
-            local.set 80   ; base64.vader:124:34
-            i32.const 6   ; base64.vader:124:49
-            i32.to_u32   ; base64.vader:124:45
-            local.set 81   ; base64.vader:124:45
-            local.get 80   ; base64.vader:124:34
-            local.get 81   ; base64.vader:124:34
+            local.set 54   ; base64.vader:124:34
+            local.get 54   ; base64.vader:124:34
+            i32.const 6   ; base64.vader:124:34
+            i32.to_u32   ; base64.vader:124:34
             u32.shl   ; base64.vader:124:34
-            local.set 82   ; base64.vader:124:34
-            local.get 67   ; base64.vader:124:19
-            local.get 82   ; base64.vader:124:19
+            local.set 55   ; base64.vader:124:34
+            local.get 46   ; base64.vader:124:19
+            local.get 55   ; base64.vader:124:19
             u32.bitor   ; base64.vader:124:19
-            local.set 83   ; base64.vader:124:19
-            local.get 78   ; base64.vader:124:55
+            local.set 56   ; base64.vader:124:19
+            local.get 52   ; base64.vader:124:55
             i32.to_u32   ; base64.vader:124:55
-            local.set 84   ; base64.vader:124:55
-            local.get 83   ; base64.vader:124:19
-            local.get 84   ; base64.vader:124:19
+            local.set 57   ; base64.vader:124:55
+            local.get 56   ; base64.vader:124:19
+            local.get 57   ; base64.vader:124:19
             u32.bitor   ; base64.vader:124:19
-            local.set 85   ; base64.vader:124:19
-            i32.const 8   ; base64.vader:125:44
-            i32.to_u32   ; base64.vader:125:40
-            local.set 86   ; base64.vader:125:40
-            local.get 85   ; base64.vader:125:30
-            local.get 86   ; base64.vader:125:30
+            local.set 58   ; base64.vader:124:19
+            local.get 58   ; base64.vader:125:30
+            i32.const 8   ; base64.vader:125:30
+            i32.to_u32   ; base64.vader:125:30
             u32.shr   ; base64.vader:125:30
-            local.set 87   ; base64.vader:125:30
-            i32.const 255   ; base64.vader:125:54
-            i32.to_u32   ; base64.vader:125:50
-            local.set 88   ; base64.vader:125:50
-            local.get 87   ; base64.vader:125:30
-            local.get 88   ; base64.vader:125:30
+            local.set 59   ; base64.vader:125:30
+            local.get 59   ; base64.vader:125:30
+            i32.const 255   ; base64.vader:125:30
+            i32.to_u32   ; base64.vader:125:30
             u32.bitand   ; base64.vader:125:30
             u32.to_char   ; base64.vader:125:24
-            local.set 89   ; base64.vader:125:24
-            local.get 13   ; base64.vader:125:9
-            local.get 89   ; base64.vader:125:9
+            local.set 60   ; base64.vader:125:24
+            local.get 8   ; base64.vader:125:9
+            local.get 60   ; base64.vader:125:9
             call 8   ; base64.vader:125:9
-            i32.const 255   ; base64.vader:126:42
-            i32.to_u32   ; base64.vader:126:38
-            local.set 90   ; base64.vader:126:38
-            local.get 85   ; base64.vader:126:29
-            local.get 90   ; base64.vader:126:29
+            local.get 58   ; base64.vader:126:29
+            i32.const 255   ; base64.vader:126:29
+            i32.to_u32   ; base64.vader:126:29
             u32.bitand   ; base64.vader:126:29
             u32.to_char   ; base64.vader:126:24
-            local.set 91   ; base64.vader:126:24
-            local.get 13   ; base64.vader:126:9
-            local.get 91   ; base64.vader:126:9
+            local.set 61   ; base64.vader:126:24
+            local.get 8   ; base64.vader:126:9
+            local.get 61   ; base64.vader:126:9
             call 8   ; base64.vader:126:9
-            local.get 13   ; base64.vader:135:12
+            local.get 8   ; base64.vader:135:12
             call.import 5   ; base64.vader:135:12
             return   ; base64.vader:135:5
           end $L15   ; base64.vader:121:9
         else   ; base64.vader:118:5
-          i32.const 1   ; base64.vader:127:34
-          i32.to_usize   ; base64.vader:127:28
-          local.set 92   ; base64.vader:127:28
-          local.get 6   ; base64.vader:127:15
-          local.get 92   ; base64.vader:127:15
+          local.get 3   ; base64.vader:127:15
+          i64.const 1   ; base64.vader:127:15
+          i64.to_usize   ; base64.vader:127:15
           usize.eq   ; base64.vader:127:15
           if $L16 void   ; base64.vader:127:12
-            i32.const 2   ; base64.vader:128:51
-            i32.to_usize   ; base64.vader:128:45
-            local.set 93   ; base64.vader:128:45
-            local.get 14   ; base64.vader:128:41
-            local.get 93   ; base64.vader:128:41
+            local.get 9   ; base64.vader:128:41
+            i64.const 2   ; base64.vader:128:41
+            i64.to_usize   ; base64.vader:128:41
             usize.add   ; base64.vader:128:41
-            local.set 94   ; base64.vader:128:41
+            local.set 62   ; base64.vader:128:41
             local.get 0   ; base64.vader:128:27
-            local.get 94   ; base64.vader:128:27
+            local.get 62   ; base64.vader:128:27
             call.import 4   ; base64.vader:128:27
             call 5   ; base64.vader:128:15
-            local.set 95   ; base64.vader:128:9
-            local.get 95   ; base64.vader:129:12
+            local.set 63   ; base64.vader:128:9
+            local.get 63   ; base64.vader:129:12
             i32.const 0   ; base64.vader:129:12
             i32.lt   ; base64.vader:129:12
             if $L17 void   ; base64.vader:129:9
@@ -1529,44 +1341,38 @@ fn 6 std_base64$decode (string) -> ref
               struct.new 13   ; base64.vader:130:20
               return   ; base64.vader:130:13
             else   ; base64.vader:129:9
-              local.get 95   ; base64.vader:132:34
+              local.get 63   ; base64.vader:132:34
               i32.to_u32   ; base64.vader:132:34
-              local.set 96   ; base64.vader:132:34
-              i32.const 6   ; base64.vader:132:49
-              i32.to_u32   ; base64.vader:132:45
-              local.set 97   ; base64.vader:132:45
-              local.get 96   ; base64.vader:132:34
-              local.get 97   ; base64.vader:132:34
+              local.set 64   ; base64.vader:132:34
+              local.get 64   ; base64.vader:132:34
+              i32.const 6   ; base64.vader:132:34
+              i32.to_u32   ; base64.vader:132:34
               u32.shl   ; base64.vader:132:34
-              local.set 98   ; base64.vader:132:34
-              local.get 67   ; base64.vader:132:19
-              local.get 98   ; base64.vader:132:19
+              local.set 65   ; base64.vader:132:34
+              local.get 46   ; base64.vader:132:19
+              local.get 65   ; base64.vader:132:19
               u32.bitor   ; base64.vader:132:19
-              local.set 99   ; base64.vader:132:19
-              i32.const 8   ; base64.vader:133:44
-              i32.to_u32   ; base64.vader:133:40
-              local.set 100   ; base64.vader:133:40
-              local.get 99   ; base64.vader:133:30
-              local.get 100   ; base64.vader:133:30
+              local.set 66   ; base64.vader:132:19
+              local.get 66   ; base64.vader:133:30
+              i32.const 8   ; base64.vader:133:30
+              i32.to_u32   ; base64.vader:133:30
               u32.shr   ; base64.vader:133:30
-              local.set 101   ; base64.vader:133:30
-              i32.const 255   ; base64.vader:133:54
-              i32.to_u32   ; base64.vader:133:50
-              local.set 102   ; base64.vader:133:50
-              local.get 101   ; base64.vader:133:30
-              local.get 102   ; base64.vader:133:30
+              local.set 67   ; base64.vader:133:30
+              local.get 67   ; base64.vader:133:30
+              i32.const 255   ; base64.vader:133:30
+              i32.to_u32   ; base64.vader:133:30
               u32.bitand   ; base64.vader:133:30
               u32.to_char   ; base64.vader:133:24
-              local.set 103   ; base64.vader:133:24
-              local.get 13   ; base64.vader:133:9
-              local.get 103   ; base64.vader:133:9
+              local.set 68   ; base64.vader:133:24
+              local.get 8   ; base64.vader:133:9
+              local.get 68   ; base64.vader:133:9
               call 8   ; base64.vader:133:9
-              local.get 13   ; base64.vader:135:12
+              local.get 8   ; base64.vader:135:12
               call.import 5   ; base64.vader:135:12
               return   ; base64.vader:135:5
             end $L17   ; base64.vader:129:9
           else   ; base64.vader:127:12
-            local.get 13   ; base64.vader:135:12
+            local.get 8   ; base64.vader:135:12
             call.import 5   ; base64.vader:135:12
             return   ; base64.vader:135:5
           end $L16   ; base64.vader:127:12

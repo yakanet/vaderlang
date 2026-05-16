@@ -147,7 +147,7 @@ fn tests_snippets_std_regex__main_vader$main() -> i32
     %47 $k_48: i32
     %48 $idx_49: string
     %49 $intrinsic_50: string
-    %50 $k_51: i32
+    %50 $k_51: usize
     %51 $cast_52: usize
     %52 $k_54: string
     %53 $call_55: Error | Pattern
@@ -353,7 +353,7 @@ fn tests_snippets_std_regex__main_vader$main() -> i32
     intrinsic builder.append_display(%41, %48)
     %49 = intrinsic builder.finish(%41)
     call println(%49) :void
-    %50 = const int(1) :i32
+    %50 = const int(1) :usize
     %51 = cast %50 :usize
     %37 = binop add %37 %51 :usize
     branch -> bb7

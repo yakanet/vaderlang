@@ -21,15 +21,12 @@ end
 
 fn 1 tests_snippets_bound_enforced__main_vader$tests_snippets_bound_enforced__main_vader$needs_hash__string (string) -> bool
   local h u64
-  local $cast_4 u64
   local.get 0   ; _main.vader:7:10
   call.import 0   ; _main.vader:7:10
   local.set 1   ; _main.vader:7:5
-  i32.const 0   ; _main.vader:8:20
-  i32.to_u64   ; _main.vader:8:16
-  local.set 2   ; _main.vader:8:16
   local.get 1   ; _main.vader:8:12
-  local.get 2   ; _main.vader:8:12
+  i64.const 0   ; _main.vader:8:12
+  i64.to_u64   ; _main.vader:8:12
   u64.gt   ; _main.vader:8:12
   return   ; _main.vader:8:5
 end

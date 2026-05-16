@@ -15,7 +15,7 @@
                 nanos :fn(i64) -> Duration
               arg0:
                 cast → i64
-                  int(500) :i32
+                  int(500) :i64
     call :void
       callee:
         println :fn(string) -> void
@@ -29,7 +29,7 @@
                 nanos :fn(i64) -> Duration
               arg0:
                 cast → i64
-                  int(1500) :i32
+                  int(1500) :i64
     call :void
       callee:
         println :fn(string) -> void
@@ -43,7 +43,7 @@
                 micros :fn(i64) -> Duration
               arg0:
                 cast → i64
-                  int(42) :i32
+                  int(42) :i64
     call :void
       callee:
         println :fn(string) -> void
@@ -57,7 +57,7 @@
                 millis :fn(i64) -> Duration
               arg0:
                 cast → i64
-                  int(7) :i32
+                  int(7) :i64
     call :void
       callee:
         println :fn(string) -> void
@@ -71,7 +71,7 @@
                 seconds :fn(i64) -> Duration
               arg0:
                 cast → i64
-                  int(3) :i32
+                  int(3) :i64
     call :void
       callee:
         println :fn(string) -> void
@@ -85,22 +85,22 @@
                 nanos :fn(i64) -> Duration
               arg0:
                 cast → i64
-                  neg :{integer}
-                    int(250) :i32
+                  neg :i64
+                    int(250) :i64
     let a: Duration =
       call :Duration
         callee:
           millis :fn(i64) -> Duration
         arg0:
           cast → i64
-            int(100) :i32
+            int(100) :i64
     let b: Duration =
       call :Duration
         callee:
           millis :fn(i64) -> Duration
         arg0:
           cast → i64
-            int(50) :i32
+            int(50) :i64
     call :void
       callee:
         println :fn(string) -> void
@@ -157,7 +157,7 @@
       Instant {
         ns_since_epoch:
           cast → i64
-            int(0) :i32
+            int(0) :i64
       }
     let later: Instant =
       call :Instant
@@ -171,7 +171,7 @@
               seconds :fn(i64) -> Duration
             arg0:
               cast → i64
-                int(60) :i32
+                int(60) :i64
     let delta: Duration =
       call :Duration
         callee:
@@ -367,7 +367,7 @@
                   e :Duration
               r:
                 cast → i64
-                  int(0) :i32
+                  int(0) :i64
           ~>
             @builder.finish :string
               __sb_6 :?

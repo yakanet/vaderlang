@@ -9,7 +9,7 @@
         "-- ascii --" :string
     let sum: u32 =
       cast → u32
-        int(0) :i32
+        int(0) :u32
     block :void
       let __iter_0: StringBytes =
         call :StringBytes

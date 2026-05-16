@@ -48,7 +48,7 @@ fn tests_snippets_iter_lazy__main_vader$main() -> i32
     %41 $k_55: bool
     %42 $k_56: i32
     %43 $struct_57: Range(i32)
-    %44 $k_58: i32
+    %44 $k_58: usize
     %45 $cast_59: usize
     %46 take_sum: i32 (local take_sum)
     %47 __iter_8: TakeIterator(i32) (synthetic __iter_8)
@@ -66,7 +66,7 @@ fn tests_snippets_iter_lazy__main_vader$main() -> i32
     %59 $k_78: bool
     %60 $k_79: i32
     %61 $struct_80: Range(i32)
-    %62 $k_81: i32
+    %62 $k_81: usize
     %63 $cast_82: usize
     %64 skip_count: i32 (local skip_count)
     %65 $k_87: i32
@@ -155,7 +155,7 @@ fn tests_snippets_iter_lazy__main_vader$main() -> i32
     %41 = const bool(false) :bool
     %42 = const int(0) :i32
     %43 = struct_new Range(i32)(%39, %40, %41, %42)
-    %44 = const int(3) :i32
+    %44 = const int(3) :usize
     %45 = cast %44 :usize
     %47 = struct_new TakeIterator(i32)(%43, %45)
     %46 = const int(0) :i32
@@ -191,7 +191,7 @@ fn tests_snippets_iter_lazy__main_vader$main() -> i32
     %59 = const bool(false) :bool
     %60 = const int(0) :i32
     %61 = struct_new Range(i32)(%57, %58, %59, %60)
-    %62 = const int(7) :i32
+    %62 = const int(7) :usize
     %63 = cast %62 :usize
     %67 = struct_new SkipIterator(i32)(%61, %63)
     %64 = const int(0) :i32

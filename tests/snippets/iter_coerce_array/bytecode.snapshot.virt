@@ -189,12 +189,9 @@ fn 3 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
 end
 
 fn 4 "std_core$?$Into$into__i32" (ref) -> ref
-  local $cast_2 usize
-  i32.const 0   ; core.vader:257:64
-  i32.to_usize   ; core.vader:257:58
-  local.set 1   ; core.vader:257:58
   local.get 0   ; core.vader:257:16
-  local.get 1   ; core.vader:257:16
+  i64.const 0   ; core.vader:257:16
+  i64.to_usize   ; core.vader:257:16
   struct.new 3   ; core.vader:257:16
   return   ; core.vader:257:9
 end

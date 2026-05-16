@@ -303,15 +303,12 @@ end
 
 fn 9 std_core$char$Step$step (char) -> char
   local $cast_1 u32
-  local $cast_3 u32
   local.get 0   ; core.vader:374:31
   char.to_u32   ; core.vader:374:31
   local.set 1   ; core.vader:374:31
-  i32.const 1   ; core.vader:374:47
-  i32.to_u32   ; core.vader:374:43
-  local.set 2   ; core.vader:374:43
   local.get 1   ; core.vader:374:31
-  local.get 2   ; core.vader:374:31
+  i32.const 1   ; core.vader:374:31
+  i32.to_u32   ; core.vader:374:31
   u32.add   ; core.vader:374:31
   u32.to_char   ; core.vader:374:26
   return   ; core.vader:374:23

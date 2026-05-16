@@ -1541,11 +1541,9 @@ fn 21 std_json$parse_string (ref) -> ref
   local scan usize
   local $field_11 usize
   local b u8
-  local $cast_19 usize
   local $add_20 usize
   local sb ref
   local $call_28 string
-  local $cast_31 usize
   local.get 0   ; json.vader:232:5
   char.const 34   ; json.vader:232:5
   call 15   ; json.vader:232:5
@@ -1580,15 +1578,13 @@ fn 21 std_json$parse_string (ref) -> ref
           i32.to_u8   ; json.vader:237:12
           u8.eq   ; json.vader:237:12
           if $L4 void   ; json.vader:237:9
-            i32.const 1   ; json.vader:238:34
-            i32.to_usize   ; json.vader:238:28
-            local.set 6   ; json.vader:238:28
             local.get 3   ; json.vader:238:21
-            local.get 6   ; json.vader:238:21
+            i64.const 1   ; json.vader:238:21
+            i64.to_usize   ; json.vader:238:21
             usize.add   ; json.vader:238:21
-            local.set 7   ; json.vader:238:21
+            local.set 6   ; json.vader:238:21
             local.get 0   ; json.vader:238:13
-            local.get 7   ; json.vader:238:13
+            local.get 6   ; json.vader:238:13
             struct.set 36 1   ; json.vader:238:13
             local.get 0   ; json.vader:239:20
             struct.get 36 0   ; json.vader:239:20
@@ -1603,29 +1599,27 @@ fn 21 std_json$parse_string (ref) -> ref
             u8.eq   ; json.vader:241:12
             if $L5 void   ; json.vader:241:9
               call 39   ; json.vader:242:19
-              local.set 8   ; json.vader:242:13
+              local.set 7   ; json.vader:242:13
               local.get 0   ; json.vader:243:23
               struct.get 36 0   ; json.vader:243:23
               local.get 2   ; json.vader:243:23
               local.get 3   ; json.vader:243:23
               call.import 4   ; json.vader:243:23
-              local.set 9   ; json.vader:243:23
+              local.set 8   ; json.vader:243:23
+              local.get 7   ; json.vader:243:13
               local.get 8   ; json.vader:243:13
-              local.get 9   ; json.vader:243:13
               call 40   ; json.vader:243:13
               local.get 0   ; json.vader:244:13
               local.get 3   ; json.vader:244:13
               struct.set 36 1   ; json.vader:244:13
               local.get 0   ; json.vader:245:20
-              local.get 8   ; json.vader:245:20
+              local.get 7   ; json.vader:245:20
               call 22   ; json.vader:245:20
               return   ; json.vader:245:13
             else   ; json.vader:241:9
-              i32.const 1   ; json.vader:247:23
-              i32.to_usize   ; json.vader:247:17
-              local.set 10   ; json.vader:247:17
               local.get 3   ; json.vader:247:9
-              local.get 10   ; json.vader:247:9
+              i64.const 1   ; json.vader:247:9
+              i64.to_usize   ; json.vader:247:9
               usize.add   ; json.vader:247:9
               local.set 3   ; json.vader:247:9
               br $L2   ; json.vader:235:5
@@ -1755,7 +1749,6 @@ fn 22 std_json$parse_string_with_escapes (ref,ref) -> ref
                           char.eq   ; json.vader:290:23
                           if $L12 void   ; json.vader:290:20
                             i32.const 8   ; json.vader:291:41
-                            i32.to_u32   ; json.vader:291:37
                             u32.to_char   ; json.vader:291:32
                             local.set 4   ; json.vader:291:32
                             local.get 1   ; json.vader:291:17
@@ -1768,7 +1761,6 @@ fn 22 std_json$parse_string_with_escapes (ref,ref) -> ref
                             char.eq   ; json.vader:292:23
                             if $L13 void   ; json.vader:292:20
                               i32.const 12   ; json.vader:293:41
-                              i32.to_u32   ; json.vader:293:37
                               u32.to_char   ; json.vader:293:32
                               local.set 5   ; json.vader:293:32
                               local.get 1   ; json.vader:293:17
@@ -2706,17 +2698,14 @@ fn 33 std_string$StringChars$Iterator$next (ref) -> ref
 end
 
 fn 34 std_string$chars (string) -> ref
-  local $cast_2 usize
   local $call_3 usize
-  i32.const 0   ; string.vader:112:50
-  i32.to_usize   ; string.vader:112:44
-  local.set 1   ; string.vader:112:44
   local.get 0   ; string.vader:112:64
   call.import 3   ; string.vader:112:64
-  local.set 2   ; string.vader:112:64
+  local.set 1   ; string.vader:112:64
   local.get 0   ; string.vader:112:12
+  i64.const 0   ; string.vader:112:12
+  i64.to_usize   ; string.vader:112:12
   local.get 1   ; string.vader:112:12
-  local.get 2   ; string.vader:112:12
   struct.new 48   ; string.vader:112:12
   return   ; string.vader:112:5
 end
@@ -2946,8 +2935,7 @@ end
 
 fn 43 std_collections$bucket_index (u64) -> i32
   local $cast_3 u64
-  i32.const 16   ; collections.vader:35:23
-  i32.to_usize   ; collections.vader:35:17
+  i64.const 16   ; collections.vader:35:23
   usize.to_u64   ; collections.vader:58:20
   local.set 1   ; collections.vader:58:20
   local.get 0   ; collections.vader:58:16
@@ -2968,7 +2956,6 @@ end
 fn 45 std_collections$std_collections$ensure_buckets__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString (ref) -> void
   local $len_2 usize
   local _ usize
-  local $cast_8 usize
   local $field_10 ref
   local $k_11 null
   local.get 0   ; collections.vader:68:8
@@ -2984,20 +2971,18 @@ fn 45 std_collections$std_collections$ensure_buckets__string__JsonArray___JsonBo
     local.set 2   ; collections.vader:69:13
     block $L1 void   ; collections.vader:69:9
       loop $L2 void   ; collections.vader:69:9
-        i32.const 16   ; collections.vader:35:23
-        i32.to_usize   ; collections.vader:35:17
-        local.set 3   ; collections.vader:35:17
         local.get 2   ; collections.vader:69:9
-        local.get 3   ; collections.vader:69:9
+        i64.const 16   ; collections.vader:69:9
+        i64.to_usize   ; collections.vader:69:9
         usize.lt   ; collections.vader:69:9
         if $L3 void   ; collections.vader:69:9
           local.get 0   ; collections.vader:70:13
           struct.get 47 0   ; collections.vader:70:13
-          local.set 4   ; collections.vader:70:13
+          local.set 3   ; collections.vader:70:13
           null.const   ; collections.vader:70:31
-          local.set 5   ; collections.vader:70:31
+          local.set 4   ; collections.vader:70:31
+          local.get 3   ; collections.vader:70:13
           local.get 4   ; collections.vader:70:13
-          local.get 5   ; collections.vader:70:13
           array.push 0   ; collections.vader:70:13
           local.get 2   ; collections.vader:69:9
           i64.const 1   ; collections.vader:69:9
@@ -3277,11 +3262,9 @@ fn 50 std_numbers$hex_digit_value (char) -> i32
   local $cast_18 u32
   local $cast_20 u32
   local $sub_21 u32
-  local $cast_23 u32
   local $cast_32 u32
   local $cast_34 u32
   local $sub_35 u32
-  local $cast_37 u32
   char.const 48   ; numbers.vader:37:13
   char.const 57   ; numbers.vader:37:13
   bool.const true   ; numbers.vader:37:13
@@ -3320,11 +3303,9 @@ fn 50 std_numbers$hex_digit_value (char) -> i32
       local.get 4   ; numbers.vader:38:36
       u32.sub   ; numbers.vader:38:36
       local.set 5   ; numbers.vader:38:36
-      i32.const 10   ; numbers.vader:38:60
-      i32.to_u32   ; numbers.vader:38:56
-      local.set 6   ; numbers.vader:38:56
       local.get 5   ; numbers.vader:38:36
-      local.get 6   ; numbers.vader:38:36
+      i32.const 10   ; numbers.vader:38:36
+      i32.to_u32   ; numbers.vader:38:36
       u32.add   ; numbers.vader:38:36
       u32.to_i32   ; numbers.vader:38:32
       return   ; numbers.vader:38:25
@@ -3339,19 +3320,17 @@ fn 50 std_numbers$hex_digit_value (char) -> i32
       if $L2 void   ; numbers.vader:39:5
         local.get 0   ; numbers.vader:39:36
         char.to_u32   ; numbers.vader:39:36
-        local.set 7   ; numbers.vader:39:36
+        local.set 6   ; numbers.vader:39:36
         char.const 65   ; numbers.vader:39:49
         char.to_u32   ; numbers.vader:39:45
-        local.set 8   ; numbers.vader:39:45
+        local.set 7   ; numbers.vader:39:45
+        local.get 6   ; numbers.vader:39:36
         local.get 7   ; numbers.vader:39:36
-        local.get 8   ; numbers.vader:39:36
         u32.sub   ; numbers.vader:39:36
-        local.set 9   ; numbers.vader:39:36
-        i32.const 10   ; numbers.vader:39:60
-        i32.to_u32   ; numbers.vader:39:56
-        local.set 10   ; numbers.vader:39:56
-        local.get 9   ; numbers.vader:39:36
-        local.get 10   ; numbers.vader:39:36
+        local.set 8   ; numbers.vader:39:36
+        local.get 8   ; numbers.vader:39:36
+        i32.const 10   ; numbers.vader:39:36
+        i32.to_u32   ; numbers.vader:39:36
         u32.add   ; numbers.vader:39:36
         u32.to_i32   ; numbers.vader:39:32
         return   ; numbers.vader:39:25
@@ -3365,47 +3344,41 @@ fn 50 std_numbers$hex_digit_value (char) -> i32
 end
 
 fn 51 std_numbers$hex_digit (u64) -> char
-  local $cast_2 u64
   local $cast_5 u32
   local $cast_6 u32
   local $cast_10 u32
   local $cast_11 u32
   local $add_12 u32
-  local $cast_14 u32
-  i32.const 9   ; numbers.vader:92:17
-  i32.to_u64   ; numbers.vader:92:13
-  local.set 1   ; numbers.vader:92:13
   local.get 0   ; numbers.vader:92:8
-  local.get 1   ; numbers.vader:92:8
+  i64.const 9   ; numbers.vader:92:8
+  i64.to_u64   ; numbers.vader:92:8
   u64.le   ; numbers.vader:92:8
   if $L0 void   ; numbers.vader:92:5
     char.const 48   ; numbers.vader:93:25
     char.to_u32   ; numbers.vader:93:21
-    local.set 2   ; numbers.vader:93:21
+    local.set 1   ; numbers.vader:93:21
     local.get 0   ; numbers.vader:93:32
     u64.to_u32   ; numbers.vader:93:32
-    local.set 3   ; numbers.vader:93:32
+    local.set 2   ; numbers.vader:93:32
+    local.get 1   ; numbers.vader:93:21
     local.get 2   ; numbers.vader:93:21
-    local.get 3   ; numbers.vader:93:21
     u32.add   ; numbers.vader:93:21
     u32.to_char   ; numbers.vader:93:16
     return   ; numbers.vader:93:9
   else   ; numbers.vader:92:5
     char.const 65   ; numbers.vader:95:21
     char.to_u32   ; numbers.vader:95:17
-    local.set 4   ; numbers.vader:95:17
+    local.set 3   ; numbers.vader:95:17
     local.get 0   ; numbers.vader:95:28
     u64.to_u32   ; numbers.vader:95:28
-    local.set 5   ; numbers.vader:95:28
+    local.set 4   ; numbers.vader:95:28
+    local.get 3   ; numbers.vader:95:17
     local.get 4   ; numbers.vader:95:17
-    local.get 5   ; numbers.vader:95:17
     u32.add   ; numbers.vader:95:17
-    local.set 6   ; numbers.vader:95:17
-    i32.const 10   ; numbers.vader:95:41
-    i32.to_u32   ; numbers.vader:95:37
-    local.set 7   ; numbers.vader:95:37
-    local.get 6   ; numbers.vader:95:17
-    local.get 7   ; numbers.vader:95:17
+    local.set 5   ; numbers.vader:95:17
+    local.get 5   ; numbers.vader:95:17
+    i32.const 10   ; numbers.vader:95:17
+    i32.to_u32   ; numbers.vader:95:17
     u32.sub   ; numbers.vader:95:17
     u32.to_char   ; numbers.vader:95:12
     return   ; numbers.vader:95:5
@@ -3542,37 +3515,28 @@ end
 
 fn 54 std_utf8$codepoint_byte_len (char) -> usize
   local cp u32
-  local $cast_4 u32
-  local $cast_8 u32
-  local $cast_12 u32
   local.get 0   ; utf8.vader:24:11
   char.to_u32   ; utf8.vader:24:11
   local.set 1   ; utf8.vader:24:11
-  i32.const 128   ; utf8.vader:25:17
-  i32.to_u32   ; utf8.vader:25:13
-  local.set 2   ; utf8.vader:25:13
   local.get 1   ; utf8.vader:25:8
-  local.get 2   ; utf8.vader:25:8
+  i32.const 128   ; utf8.vader:25:8
+  i32.to_u32   ; utf8.vader:25:8
   u32.lt   ; utf8.vader:25:8
   if $L0 void   ; utf8.vader:25:5
     i64.const 1   ; utf8.vader:25:35
     return   ; utf8.vader:25:28
   else   ; utf8.vader:25:5
-    i32.const 2048   ; utf8.vader:26:17
-    i32.to_u32   ; utf8.vader:26:13
-    local.set 3   ; utf8.vader:26:13
     local.get 1   ; utf8.vader:26:8
-    local.get 3   ; utf8.vader:26:8
+    i32.const 2048   ; utf8.vader:26:8
+    i32.to_u32   ; utf8.vader:26:8
     u32.lt   ; utf8.vader:26:8
     if $L1 void   ; utf8.vader:26:5
       i64.const 2   ; utf8.vader:26:35
       return   ; utf8.vader:26:28
     else   ; utf8.vader:26:5
-      i32.const 65536   ; utf8.vader:27:17
-      i32.to_u32   ; utf8.vader:27:13
-      local.set 4   ; utf8.vader:27:13
       local.get 1   ; utf8.vader:27:8
-      local.get 4   ; utf8.vader:27:8
+      i32.const 65536   ; utf8.vader:27:8
+      i32.to_u32   ; utf8.vader:27:8
       u32.lt   ; utf8.vader:27:8
       if $L2 void   ; utf8.vader:27:5
         i64.const 3   ; utf8.vader:27:35

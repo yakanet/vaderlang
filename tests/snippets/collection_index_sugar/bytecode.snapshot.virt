@@ -417,8 +417,7 @@ end
 
 fn 2 std_collections$bucket_index (u64) -> i32
   local $cast_3 u64
-  i32.const 16   ; collections.vader:35:23
-  i32.to_usize   ; collections.vader:35:17
+  i64.const 16   ; collections.vader:35:23
   usize.to_u64   ; collections.vader:58:20
   local.set 1   ; collections.vader:58:20
   local.get 0   ; collections.vader:58:16
@@ -476,7 +475,6 @@ end
 fn 9 std_collections$std_collections$ensure_buckets__i32__bool (ref) -> void
   local $len_2 usize
   local _ usize
-  local $cast_8 usize
   local $field_10 ref
   local $k_11 null
   local.get 0   ; collections.vader:68:8
@@ -492,20 +490,18 @@ fn 9 std_collections$std_collections$ensure_buckets__i32__bool (ref) -> void
     local.set 2   ; collections.vader:69:13
     block $L1 void   ; collections.vader:69:9
       loop $L2 void   ; collections.vader:69:9
-        i32.const 16   ; collections.vader:35:23
-        i32.to_usize   ; collections.vader:35:17
-        local.set 3   ; collections.vader:35:17
         local.get 2   ; collections.vader:69:9
-        local.get 3   ; collections.vader:69:9
+        i64.const 16   ; collections.vader:69:9
+        i64.to_usize   ; collections.vader:69:9
         usize.lt   ; collections.vader:69:9
         if $L3 void   ; collections.vader:69:9
           local.get 0   ; collections.vader:70:13
           struct.get 7 0   ; collections.vader:70:13
-          local.set 4   ; collections.vader:70:13
+          local.set 3   ; collections.vader:70:13
           null.const   ; collections.vader:70:31
-          local.set 5   ; collections.vader:70:31
+          local.set 4   ; collections.vader:70:31
+          local.get 3   ; collections.vader:70:13
           local.get 4   ; collections.vader:70:13
-          local.get 5   ; collections.vader:70:13
           array.push 0   ; collections.vader:70:13
           local.get 2   ; collections.vader:69:9
           i64.const 1   ; collections.vader:69:9
@@ -525,7 +521,6 @@ end
 fn 10 std_collections$std_collections$ensure_buckets__string__i32 (ref) -> void
   local $len_2 usize
   local _ usize
-  local $cast_8 usize
   local $field_10 ref
   local $k_11 null
   local.get 0   ; collections.vader:68:8
@@ -541,20 +536,18 @@ fn 10 std_collections$std_collections$ensure_buckets__string__i32 (ref) -> void
     local.set 2   ; collections.vader:69:13
     block $L1 void   ; collections.vader:69:9
       loop $L2 void   ; collections.vader:69:9
-        i32.const 16   ; collections.vader:35:23
-        i32.to_usize   ; collections.vader:35:17
-        local.set 3   ; collections.vader:35:17
         local.get 2   ; collections.vader:69:9
-        local.get 3   ; collections.vader:69:9
+        i64.const 16   ; collections.vader:69:9
+        i64.to_usize   ; collections.vader:69:9
         usize.lt   ; collections.vader:69:9
         if $L3 void   ; collections.vader:69:9
           local.get 0   ; collections.vader:70:13
           struct.get 8 0   ; collections.vader:70:13
-          local.set 4   ; collections.vader:70:13
+          local.set 3   ; collections.vader:70:13
           null.const   ; collections.vader:70:31
-          local.set 5   ; collections.vader:70:31
+          local.set 4   ; collections.vader:70:31
+          local.get 3   ; collections.vader:70:13
           local.get 4   ; collections.vader:70:13
-          local.get 5   ; collections.vader:70:13
           array.push 0   ; collections.vader:70:13
           local.get 2   ; collections.vader:69:9
           i64.const 1   ; collections.vader:69:9

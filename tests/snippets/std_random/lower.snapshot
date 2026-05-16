@@ -8,14 +8,14 @@
           new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
-            int(42) :i32
+            int(42) :u64
     let b: Rng =
       call :Rng
         callee:
           new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
-            int(42) :i32
+            int(42) :u64
     let same: bool = true
     let k: i32 = int(0) :i32
     loop while (<…>)
@@ -71,7 +71,7 @@
           new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
-            int(0) :i32
+            int(0) :u64
     let nonzero: bool = false
     let j: i32 = int(0) :i32
     loop while (<…>)
@@ -86,7 +86,7 @@
                   z :Rng
             r:
               cast → u64
-                int(0) :i32
+                int(0) :u64
         then:
           assign
             target:
@@ -124,7 +124,7 @@
           new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
-            int(7) :i32
+            int(7) :u64
     let in_range: bool = true
     let m: i32 = int(0) :i32
     loop while (<…>)
@@ -195,7 +195,7 @@
           new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
-            int(123) :i32
+            int(123) :u64
     let f_in_range: bool = true
     let n: i32 = int(0) :i32
     loop while (<…>)
@@ -262,7 +262,7 @@
           new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
-            int(99) :i32
+            int(99) :u64
     let arr: i32[] =
       array :i32[]
         int(1) :i32
@@ -356,7 +356,7 @@
           new_seeded :fn(u64) -> Rng
         arg0:
           cast → u64
-            int(2026) :i32
+            int(2026) :u64
     let seen_t: bool = false
     let seen_f: bool = false
     let p: i32 = int(0) :i32

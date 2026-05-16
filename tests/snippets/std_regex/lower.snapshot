@@ -270,7 +270,7 @@
                   i :usize
                 r:
                   cast → usize
-                    int(1) :i32
+                    int(1) :usize
     let p_anchor: Error | Pattern =
       call :Error | Pattern
         callee:

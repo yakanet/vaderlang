@@ -237,17 +237,14 @@ fn 2 std_string$StringChars$Iterator$next (ref) -> ref
 end
 
 fn 3 std_string$chars (string) -> ref
-  local $cast_2 usize
   local $call_3 usize
-  i32.const 0   ; string.vader:112:50
-  i32.to_usize   ; string.vader:112:44
-  local.set 1   ; string.vader:112:44
   local.get 0   ; string.vader:112:64
   call.import 3   ; string.vader:112:64
-  local.set 2   ; string.vader:112:64
+  local.set 1   ; string.vader:112:64
   local.get 0   ; string.vader:112:12
+  i64.const 0   ; string.vader:112:12
+  i64.to_usize   ; string.vader:112:12
   local.get 1   ; string.vader:112:12
-  local.get 2   ; string.vader:112:12
   struct.new 9   ; string.vader:112:12
   return   ; string.vader:112:5
 end
@@ -494,37 +491,28 @@ end
 
 fn 12 std_utf8$codepoint_byte_len (char) -> usize
   local cp u32
-  local $cast_4 u32
-  local $cast_8 u32
-  local $cast_12 u32
   local.get 0   ; utf8.vader:24:11
   char.to_u32   ; utf8.vader:24:11
   local.set 1   ; utf8.vader:24:11
-  i32.const 128   ; utf8.vader:25:17
-  i32.to_u32   ; utf8.vader:25:13
-  local.set 2   ; utf8.vader:25:13
   local.get 1   ; utf8.vader:25:8
-  local.get 2   ; utf8.vader:25:8
+  i32.const 128   ; utf8.vader:25:8
+  i32.to_u32   ; utf8.vader:25:8
   u32.lt   ; utf8.vader:25:8
   if $L0 void   ; utf8.vader:25:5
     i64.const 1   ; utf8.vader:25:35
     return   ; utf8.vader:25:28
   else   ; utf8.vader:25:5
-    i32.const 2048   ; utf8.vader:26:17
-    i32.to_u32   ; utf8.vader:26:13
-    local.set 3   ; utf8.vader:26:13
     local.get 1   ; utf8.vader:26:8
-    local.get 3   ; utf8.vader:26:8
+    i32.const 2048   ; utf8.vader:26:8
+    i32.to_u32   ; utf8.vader:26:8
     u32.lt   ; utf8.vader:26:8
     if $L1 void   ; utf8.vader:26:5
       i64.const 2   ; utf8.vader:26:35
       return   ; utf8.vader:26:28
     else   ; utf8.vader:26:5
-      i32.const 65536   ; utf8.vader:27:17
-      i32.to_u32   ; utf8.vader:27:13
-      local.set 4   ; utf8.vader:27:13
       local.get 1   ; utf8.vader:27:8
-      local.get 4   ; utf8.vader:27:8
+      i32.const 65536   ; utf8.vader:27:8
+      i32.to_u32   ; utf8.vader:27:8
       u32.lt   ; utf8.vader:27:8
       if $L2 void   ; utf8.vader:27:5
         i64.const 3   ; utf8.vader:27:35

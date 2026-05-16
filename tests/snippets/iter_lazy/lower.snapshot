@@ -147,7 +147,7 @@
           }
         remaining:
           cast → usize
-            int(3) :i32
+            int(3) :usize
       }
     let take_sum: i32 = int(0) :i32
     block :void
@@ -206,7 +206,7 @@
           }
         remaining:
           cast → usize
-            int(7) :i32
+            int(7) :usize
       }
     let skip_count: i32 = int(0) :i32
     let skip_first: i32 =

@@ -25,4 +25,4 @@
           h :u64
         r:
           cast → u64
-            int(0) :i32
+            int(0) :u64

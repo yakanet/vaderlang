@@ -48,7 +48,7 @@
   expr 24:13    IdentExpr      :: fn(i64) -> Duration
   expr 24:19    CallExpr       :: i64
   expr 24:19    IdentExpr      :: type
-  expr 24:23    UnaryExpr      :: {integer}
+  expr 24:23    UnaryExpr      :: i64
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(string) -> void
   expr 27:10    CallExpr       :: Duration

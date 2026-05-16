@@ -17,7 +17,7 @@ import { declOf } from "../../resolver/symbol.ts";
 import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { Type } from "../types.ts";
-import { TY, displayType, isNumeric, isPrimitive } from "../types.ts";
+import { TY, displayType, isInteger, isNumeric, isPrimitive } from "../types.ts";
 
 import type { FnContext, MutableTyped } from "../ctx.ts";
 import { tryInto } from "./coerce.ts";
@@ -52,7 +52,16 @@ export function inferTypeConstructorCall(
     return TY.unresolved;
   }
   const arg = expr.args[0]!.value;
-  const argType = checkExpr(arg, null, t, impls, diags, fn);
+  // Pin a FreeInt / FreeFloat source to the target's width when the target
+  // is an integer / char (FreeInt → no precision loss vs the i32 default)
+  // or a float (FreeFloat → ditto vs f64 default). Otherwise the literal
+  // would default to its base width before the cast op picked it up, and
+  // hex literals past INT32_MAX (e.g. `usize(0xFFFFFFFFFFFFFFFF)`) lost
+  // their high bits at the `i32.const` step.
+  const hint = (isInteger(target) || isPrimitive(target, "char")
+                || isPrimitive(target, "f32") || isPrimitive(target, "f64"))
+    ? target : null;
+  const argType = checkExpr(arg, hint, t, impls, diags, fn);
   const targetOk = isNumeric(target) || isPrimitive(target, "char");
   if (!targetOk) {
     // Non-numeric target : route through `Into(target)`. `Target(value)`
