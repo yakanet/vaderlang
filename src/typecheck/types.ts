@@ -65,6 +65,7 @@ export const CORE_STRUCTS = {
   Range:          "Range",
   ArrayIterator:  "ArrayIterator",
   Yield:          "Yield",
+  Field:          "Field",
 } as const;
 
 export interface PrimitiveType {

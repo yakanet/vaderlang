@@ -1,0 +1,137 @@
+# Lower
+
+## tests/snippets/intrinsic_fields/_main.vader
+  struct tests_snippets_intrinsic_fields__main_vader$Point { x: i32, y: i32, label: string }
+  fn tests_snippets_intrinsic_fields__main_vader$main() -> i32
+    block :void
+      let __iter_0: ArrayIterator(Field) =
+        ArrayIterator(Field) {
+          arr:
+            array :Field[]
+              Field {
+                name: "x" :string
+                type:
+                  LoweredTypeConst
+              }
+              Field {
+                name: "y" :string
+                type:
+                  LoweredTypeConst
+              }
+              Field {
+                name: "label" :string
+                type:
+                  LoweredTypeConst
+              }
+          cursor: int(0) :usize
+        }
+      loop
+        let __step_1: Yield(Field) | null =
+          call :Yield(Field) | null
+            callee:
+              next :?
+            arg0:
+              __iter_0 :ArrayIterator(Field)
+        if :void
+          cond:
+            is null :bool
+              __step_1 :Yield(Field) | null
+          then:
+            break
+          else:
+            let f: Field =
+              .value :Field
+                cast → Yield(Field)
+                  __step_1 :Yield(Field) | null
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_2: ? =
+                    @builder.new :?
+                  @builder.append_display <for string> :void
+                    __sb_2 :?
+                    .name :string
+                      f :Field
+                  @builder.append_str :void
+                    __sb_2 :?
+                    " size=" :string
+                  @builder.append_str :void
+                    __sb_2 :?
+                    call :string
+                      callee:
+                        to_string :string
+                      arg0:
+                        @size_of.type :usize
+                          .type :type
+                            f :Field
+                  ~>
+                    @builder.finish :string
+                      __sb_2 :?
+    block :void
+      let __iter_3: ArrayIterator(Field) =
+        ArrayIterator(Field) {
+          arr:
+            array :Field[]
+              Field {
+                name: "key" :string
+                type:
+                  LoweredTypeConst
+              }
+              Field {
+                name: "value" :string
+                type:
+                  LoweredTypeConst
+              }
+          cursor: int(0) :usize
+        }
+      loop
+        let __step_4: Yield(Field) | null =
+          call :Yield(Field) | null
+            callee:
+              next :?
+            arg0:
+              __iter_3 :ArrayIterator(Field)
+        if :void
+          cond:
+            is null :bool
+              __step_4 :Yield(Field) | null
+          then:
+            break
+          else:
+            let f: Field =
+              .value :Field
+                cast → Yield(Field)
+                  __step_4 :Yield(Field) | null
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_5: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_5 :?
+                    "pair." :string
+                  @builder.append_display <for string> :void
+                    __sb_5 :?
+                    .name :string
+                      f :Field
+                  @builder.append_str :void
+                    __sb_5 :?
+                    " size=" :string
+                  @builder.append_str :void
+                    __sb_5 :?
+                    call :string
+                      callee:
+                        to_string :string
+                      arg0:
+                        @size_of.type :usize
+                          .type :type
+                            f :Field
+                  ~>
+                    @builder.finish :string
+                      __sb_5 :?
+    return int(0) :i32
+  struct tests_snippets_intrinsic_fields__main_vader$Pair__string__i64 { key: string, value: i64 }

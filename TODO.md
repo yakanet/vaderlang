@@ -327,8 +327,8 @@ Architectural prerequisite for full mono → comptime migration. Built bottom-up
 - [x] `i32[]` in let-stmt value position. Caveat : `fn(i32) -> i32` in value position still fails (parser's `parseFnSignatureParams` expects `name: type`). Tracked separately.
 
 #### Layer 6 — reflection iteration
-- [ ] `@type_of(x)` — value's static type as `type`.
-- [ ] `@fields(T) -> Field[]` — `std/reflect`-defined `Field` struct.
+- [x] `@type_of(x)` — value's static type as `type` (shipped with Layer 4 B.2).
+- [x] `@fields(T) -> Field[]` (landed 2026-05-16). `Field` lives in `std/core` (auto-imported), exposes `name: string` and `type: type`. Static `T` only — lowers to a `LoweredArrayLit` of `Field { .name = …, .type = … }` literals at lower time ; field types flow through the call-site's substitution so `@fields(Pair(string, i64))` reports `value` as `i64`. Snippet `intrinsic_fields` covers Map(K, V)-style generic and non-generic structs across VM / native / Vader VM. Runtime `T` (when `t: type` is a fn param) deferred — needs a runtime struct-field table.
 - [ ] `@type_args(T)` — generic args of a generic instance.
 - [ ] `@field(x, name) -> ?` — dynamic field access by comptime string.
 - [ ] `@comptime for f in @fields(T) { ... }` — iteration syntax. Parser change + lowerer unroll.

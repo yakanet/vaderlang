@@ -150,7 +150,7 @@ function inferIntrinsic(
   if (expr.args.length !== spec.args.length) {
     err(diags, "T3003", expr.span,
       `\`@${expr.name}\` expects ${spec.args.length} arg(s), got ${expr.args.length}`);
-    return intrinsicResultType(spec.result);
+    return intrinsicResultType(spec.result, t);
   }
   for (let i = 0; i < expr.args.length; i++) {
     const arg = expr.args[i]!;
@@ -166,6 +166,16 @@ function inferIntrinsic(
   if (spec.name === "field_index") {
     validateFieldIndex(expr, t, diags);
   }
+  // `@fields(T)` requires `T` to be a struct ; non-struct types have no
+  // fields to enumerate and the lowerer can't produce the `Field[]`
+  // literal without one. Mirrors `@field_index`'s struct guard.
+  if (spec.name === "fields") {
+    const ty = t.globals.typeExprTypes.get(expr.args[0]!);
+    if (ty !== undefined && ty.kind !== "Struct" && ty.kind !== "Unresolved") {
+      err(diags, "T3010", expr.args[0]!.span,
+        `\`@fields(T)\` expects a struct type, got ${displayType(ty)}`);
+    }
+  }
   // `@file("path")` requires the arg to be a string at typecheck — the
   // comptime stage decides whether it's actually comptime-evaluable
   // (literal, const ident, concat of either, …). Anything dynamic
@@ -178,15 +188,23 @@ function inferIntrinsic(
         `\`@file(...)\` expects \`string\`, got ${displayType(argTy)}`);
     }
   }
-  return intrinsicResultType(spec.result);
+  return intrinsicResultType(spec.result, t);
 }
 
-function intrinsicResultType(result: IntrinsicResultKind): Type {
+function intrinsicResultType(result: IntrinsicResultKind, t: MutableTyped): Type {
   switch (result) {
     case "usize":  return { kind: "Primitive", name: "usize" };
     case "string": return TY.string;
     case "bool":   return TY.bool;
     case "type":   return TY.type;
+    case "field_array": {
+      // `@fields(T) -> Field[]` — Field lives in std/core (auto-imported).
+      // Fall back to Unresolved when std/core hasn't been resolved yet
+      // (compiling std/core itself before Field is parsed).
+      const fieldSym = t.globals.coreSymbols?.get(CORE_STRUCTS.Field);
+      if (fieldSym === undefined) return TY.unresolved;
+      return mkArray(mkStruct(fieldSym, []));
+    }
   }
 }
 

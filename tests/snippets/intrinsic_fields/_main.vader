@@ -1,0 +1,27 @@
+/// `@fields(T)` exposes a struct's fields as a `Field[]` literal at lower
+/// time. Each entry carries the field name (string) and its declared type
+/// reified as a `type` runtime value, which feeds back through `@size_of`.
+/// Covered shapes : (1) non-generic struct, (2) generic instance — the
+/// substitution flows so `Pair(string, i64)` reports `value` as 8 bytes.
+import "std/io" { println }
+
+Point :: struct {
+    x:     i32
+    y:     i32
+    label: string
+}
+
+Pair :: struct[K, V] {
+    key:   K
+    value: V
+}
+
+main :: fn() -> i32 {
+    for f in @fields(Point) {
+        println("${f.name} size=${@size_of(f.type)}")
+    }
+    for f in @fields(Pair(string, i64)) {
+        println("pair.${f.name} size=${@size_of(f.type)}")
+    }
+    return 0
+}

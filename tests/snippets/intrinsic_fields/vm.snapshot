@@ -1,0 +1,8 @@
+# stdout
+x size=4
+y size=4
+label size=16
+pair.key size=16
+pair.value size=8
+# exit
+0

@@ -194,6 +194,14 @@ export Error :: trait {
 /// with no wrapper allocation.
 export Yield :: struct[T] { value: T }
 
+/// One field of a struct type as exposed by the `@fields(T)` reflection
+/// intrinsic. `name` is the source-level identifier ; `type` carries the
+/// field's declared type as a runtime `type` value (Layer 4).
+export Field :: struct {
+    name: string
+    type: type
+}
+
 /// Range produced by `0..<n` / `0..=n` and `'a'..='z'`. Generic over the
 /// bound type so integer ranges (every signed / unsigned width plus
 /// `usize` / `isize`) and char ranges share a single struct. The `cursor`

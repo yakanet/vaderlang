@@ -1,0 +1,139 @@
+# CFG
+
+## tests/snippets/intrinsic_fields/_main.vader
+
+fn tests_snippets_intrinsic_fields__main_vader$main() -> i32
+  locals:
+    %0 $k_0: string
+    %1 $type_const_1: type
+    %2 $struct_2: Field
+    %3 $k_3: string
+    %4 $type_const_4: type
+    %5 $struct_5: Field
+    %6 $k_6: string
+    %7 $type_const_7: type
+    %8 $struct_8: Field
+    %9 $arr_9: Field[]
+    %10 $k_10: usize
+    %11 __iter_0: ArrayIterator(Field) (synthetic __iter_0)
+    %12 $call_13: Yield(Field) | null
+    %13 __step_1: Yield(Field) | null (synthetic __step_1)
+    %14 $type_check_15: bool
+    %15 $cast_16: Yield(Field)
+    %16 f: Field (binding f)
+    %17 $intrinsic_19: ?
+    %18 __sb_2: ? (synthetic __sb_2)
+    %19 $field_21: string
+    %20 $k_22: string
+    %21 $field_23: type
+    %22 $intrinsic_24: usize
+    %23 $call_25: string
+    %24 $intrinsic_26: string
+    %25 $k_27: string
+    %26 $type_const_28: type
+    %27 $struct_29: Field
+    %28 $k_30: string
+    %29 $type_const_31: type
+    %30 $struct_32: Field
+    %31 $arr_33: Field[]
+    %32 $k_34: usize
+    %33 __iter_3: ArrayIterator(Field) (synthetic __iter_3)
+    %34 $call_37: Yield(Field) | null
+    %35 __step_4: Yield(Field) | null (synthetic __step_4)
+    %36 $type_check_39: bool
+    %37 $cast_40: Yield(Field)
+    %38 f: Field (binding f)
+    %39 $intrinsic_43: ?
+    %40 __sb_5: ? (synthetic __sb_5)
+    %41 $k_45: string
+    %42 $field_46: string
+    %43 $k_47: string
+    %44 $field_48: type
+    %45 $intrinsic_49: usize
+    %46 $call_50: string
+    %47 $intrinsic_51: string
+    %48 $k_52: i32
+  bb0:
+    %0 = const string(#0) :string
+    %1 = type_const i32
+    %2 = struct_new Field(%0, %1)
+    %3 = const string(#1) :string
+    %4 = type_const i32
+    %5 = struct_new Field(%3, %4)
+    %6 = const string(#2) :string
+    %7 = type_const string
+    %8 = struct_new Field(%6, %7)
+    %9 = array_new Field[][3](%2, %5, %8)
+    %10 = const int(0) :usize
+    %11 = struct_new ArrayIterator(Field)(%9, %10)
+    branch -> bb1
+  bb1:
+    branch -> bb2
+  bb2:
+    %12 = call next(%11) :Yield(Field) | null
+    %13 = move %12
+    %14 = type_check %13 is null
+    cond_branch %14 ? bb4 : bb5
+  bb3:
+    %25 = const string(#4) :string
+    %26 = type_const string
+    %27 = struct_new Field(%25, %26)
+    %28 = const string(#5) :string
+    %29 = type_const i64
+    %30 = struct_new Field(%28, %29)
+    %31 = array_new Field[][2](%27, %30)
+    %32 = const int(0) :usize
+    %33 = struct_new ArrayIterator(Field)(%31, %32)
+    branch -> bb7
+  bb4:
+    branch -> bb3
+  bb5:
+    %15 = cast %13 :Yield(Field)
+    %16 = field_get %15.value :Field
+    %17 = intrinsic builder.new()
+    %18 = move %17
+    %19 = field_get %16.name :string
+    intrinsic builder.append_display(%18, %19)
+    %20 = const string(#3) :string
+    intrinsic builder.append_str(%18, %20)
+    %21 = field_get %16.type :type
+    %22 = intrinsic size_of.type(%21)
+    %23 = call to_string(%22) :string
+    intrinsic builder.append_str(%18, %23)
+    %24 = intrinsic builder.finish(%18)
+    call println(%24) :void
+    branch -> bb6
+  bb6:
+    branch -> bb1
+  bb7:
+    branch -> bb8
+  bb8:
+    %34 = call next(%33) :Yield(Field) | null
+    %35 = move %34
+    %36 = type_check %35 is null
+    cond_branch %36 ? bb10 : bb11
+  bb9:
+    %48 = const int(0) :i32
+    return %48
+  bb10:
+    branch -> bb9
+  bb11:
+    %37 = cast %35 :Yield(Field)
+    %38 = field_get %37.value :Field
+    %39 = intrinsic builder.new()
+    %40 = move %39
+    %41 = const string(#6) :string
+    intrinsic builder.append_str(%40, %41)
+    %42 = field_get %38.name :string
+    intrinsic builder.append_display(%40, %42)
+    %43 = const string(#3) :string
+    intrinsic builder.append_str(%40, %43)
+    %44 = field_get %38.type :type
+    %45 = intrinsic size_of.type(%44)
+    %46 = call to_string(%45) :string
+    intrinsic builder.append_str(%40, %46)
+    %47 = intrinsic builder.finish(%40)
+    call println(%47) :void
+    branch -> bb12
+  bb12:
+    branch -> bb7

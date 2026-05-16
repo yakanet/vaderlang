@@ -41,6 +41,9 @@ INTRINSICS :: [
     // Reifies the static type of a value as a `type` runtime value.
     // The argument is NOT evaluated (Zig-style). Layer 4 §1.19 B.2.
     IntrinsicSpec { .name = "type_of",       .args = [.Value],         .result = "type"   },
+    // `@fields(T)` — struct's fields as a `Field[]` literal materialised
+    // at lower time. T must be a static struct-typed expression.
+    IntrinsicSpec { .name = "fields",        .args = [.Type],          .result = "field_array" },
 ]
 
 // Returns the spec for `name`, or `null` if `@name(...)` is not a

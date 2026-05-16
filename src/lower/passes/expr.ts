@@ -7,12 +7,13 @@ import { isIfIsBinding, staticStringValue, unreachableTypeExprInValuePosition } 
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_STRUCTS, CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, isPrimitive, kindStringOfType, sizeOfType, variantCountOfType } from "../../typecheck/types.ts";
+import { CORE_STRUCTS, CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, isPrimitive, kindStringOfType, sizeOfType, substitute, variantCountOfType } from "../../typecheck/types.ts";
 import { primitiveFromName } from "../../typecheck/passes/type-expr.ts";
 import { buildStructSubst } from "../../typecheck/ctx.ts";
 import type { Substitution } from "../../typecheck/types.ts";
 
 import type { FnLowerCtx } from "../ctx.ts";
+import { findCoreType } from "./core.ts";
 import { makeEntryTypes } from "../entry-types.ts";
 import type { LoweredBlock, LoweredExpr, LoweredIf, LoweredStmt, LoweredStructLitField } from "../lowered-ast.ts";
 import { INTRINSICS } from "../lowered-ast.ts";
@@ -419,6 +420,31 @@ function lowerIntrinsic(
       // the bytecode emit interns + emits `type.const N`.
       const argType = ctx.typed.exprTypes.get(expr.args[0]!) ?? TY.unresolved;
       return { kind: "LoweredTypeConst", span: expr.span, type, value: argType };
+    }
+    case "fields": {
+      const span = expr.span;
+      const decl = targetTy?.kind === "Struct" ? sourceStructDecl(targetTy.symbol) : null;
+      const fieldType = findCoreType(ctx, CORE_STRUCTS.Field, []);
+      if (decl === null || fieldType === null || targetTy?.kind !== "Struct") {
+        return { kind: "LoweredUnreachable", span, type, reason: "@fields target is not a struct" };
+      }
+      // Generic struct instantiation : flow the call-site's concrete args
+      // into the field types so `@fields(Pair(string, i64))` reports
+      // `value` as `i64`, not the unsubstituted TypeParam.
+      const subst = buildStructSubst(
+        decl.typeParams, targetTy.args, ctx.project.evaluated.typed.resolved.typeParamSymbols,
+      );
+      const elements: LoweredExpr[] = decl.fields.map((f) => {
+        const declaredType = ctx.typed.typeExprTypes.get(f.type) ?? TY.unresolved;
+        return {
+          kind: "LoweredStructLit", span, type: fieldType,
+          fields: [
+            { name: "name", value: { kind: "LoweredStringLit", span, type: TY.string, value: f.name } },
+            { name: "type", value: { kind: "LoweredTypeConst", span, type: TY.type, value: substitute(declaredType, subst) } },
+          ],
+        };
+      });
+      return { kind: "LoweredArrayLit", span, type, elements };
     }
   }
   return { kind: "LoweredUnreachable", span: expr.span, type, reason: `unhandled intrinsic @${expr.name}` };
