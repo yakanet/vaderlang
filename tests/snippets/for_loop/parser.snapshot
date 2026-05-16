@@ -155,7 +155,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "LetStmt",
@@ -252,7 +253,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ReturnStmt",

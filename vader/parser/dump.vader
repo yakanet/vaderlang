@@ -627,6 +627,8 @@ write_stmt :: fn(sb: StringBuilder, s: Stmt, level: i32) -> void {
             write_for_form(sb, s.form, level + 1)
             entry(sb, false, level + 1, "body")
             write_block_expr(sb, s.body, level + 1)
+            entry(sb, false, level + 1, "isComptime")
+            write_bool(sb, s.is_comptime)
             close_obj(sb, level)
         }
         is BreakStmt -> {

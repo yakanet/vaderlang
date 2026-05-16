@@ -106,7 +106,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ReturnStmt",

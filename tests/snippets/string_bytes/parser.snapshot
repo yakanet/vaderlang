@@ -167,7 +167,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ExprStmt",
@@ -278,7 +279,8 @@
                   }
                 ]
               }
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "LetStmt",
@@ -584,7 +586,8 @@
                   }
                 ]
               }
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ExprStmt",

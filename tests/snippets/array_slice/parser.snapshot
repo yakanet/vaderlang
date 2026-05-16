@@ -187,7 +187,8 @@
                   }
                 ]
               }
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "LetStmt",
@@ -302,7 +303,8 @@
                   }
                 ]
               }
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "LetStmt",
@@ -430,7 +432,8 @@
                   }
                 ]
               }
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "LetStmt",
@@ -561,7 +564,8 @@
                   }
                 ]
               }
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "LetStmt",

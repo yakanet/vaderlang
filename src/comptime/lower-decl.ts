@@ -82,6 +82,7 @@ export function lowerComptimeDecl(input: CompileInput): CompileOutput | null {
     types: makeEntryTypes(callerProgram, EMPTY_SUBST),
     returnType: defaultIfFree(resultType), selfType: null,
     blocks: [], uniq: 0, liftedContext: null,
+    comptimeBindings: new Map(),
   };
 
   const value = lowerExpr(fnCtx, decl.value);

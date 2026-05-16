@@ -369,7 +369,8 @@
                   }
                 ]
               }
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ReturnStmt",

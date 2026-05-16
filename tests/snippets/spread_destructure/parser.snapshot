@@ -184,7 +184,8 @@
                   }
                 ]
               }
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "LetStmt",
@@ -384,7 +385,8 @@
                   }
                 ]
               }
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ReturnStmt",

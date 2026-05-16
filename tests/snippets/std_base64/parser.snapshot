@@ -976,7 +976,8 @@
                   }
                 ]
               }
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ExprStmt",

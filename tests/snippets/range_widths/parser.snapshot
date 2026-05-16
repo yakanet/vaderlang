@@ -107,7 +107,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ExprStmt",
@@ -219,7 +220,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ExprStmt",
@@ -331,7 +333,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ExprStmt",
@@ -469,7 +472,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ExprStmt",
@@ -604,7 +608,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "ExprStmt",

@@ -330,6 +330,9 @@ export ForStmt :: struct {
     label: string | null
     form:  ForForm
     body:  BlockExpr
+    /// `@comptime for x in <arr> { … }` — unroll at lower time. False for
+    /// every other form.
+    is_comptime: bool = false
 }
 
 export InfiniteFor :: struct {}

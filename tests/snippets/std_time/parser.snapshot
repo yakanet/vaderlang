@@ -1279,7 +1279,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           },
           {
             "kind": "LetStmt",

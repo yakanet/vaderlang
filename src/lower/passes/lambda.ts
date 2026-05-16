@@ -97,6 +97,7 @@ export function lowerLambda(ctx: FnLowerCtx, lambda: A.LambdaExpr): LoweredExpr 
       envType,
       captureFields,
     },
+    comptimeBindings: new Map(),
   };
   const liftedBody = lowerBlock(liftedFnCtx, lambda.body, /*isFnRoot*/ true, /*isLoopBody*/ false);
 

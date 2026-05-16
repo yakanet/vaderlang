@@ -340,6 +340,11 @@ export interface ForStmt extends AstNode {
   readonly label: string | null;
   readonly form: ForForm;
   readonly body: BlockExpr;
+  /** `@comptime for x in <arr> { … }` — the lowerer evaluates `<arr>` at
+   *  lower time, requires it to be a compile-time array, then emits one
+   *  copy of `body` per element with `x` substituted by the element's
+   *  literal. Forbidden on `while` / infinite forms. */
+  readonly isComptime: boolean;
 }
 
 export type ForForm =

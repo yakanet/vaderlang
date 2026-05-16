@@ -174,6 +174,7 @@ export function lowerFnEntry(
     project: ctx, entry, typed, subst, types,
     returnType, selfType, blocks: [], uniq: 0,
     liftedContext: null,
+    comptimeBindings: new Map(),
   }, fn.body, /*isFnRoot*/ true, /*isLoopBody*/ false);
 
   return {
@@ -227,6 +228,7 @@ export function lowerConstEntry(entry: MonoEntry, decl: A.ConstDecl, ctx: LowerP
         project: ctx, entry, typed, subst: entry.subst, types,
         returnType: type, selfType: null, blocks: [], uniq: 0,
         liftedContext: null,
+        comptimeBindings: new Map(),
       }, decl.value);
 
   return {

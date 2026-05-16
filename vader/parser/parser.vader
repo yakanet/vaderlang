@@ -1473,7 +1473,15 @@ parse_block :: fn(p: Parser) -> BlockExpr {
 
 parse_stmt :: fn(p: Parser) -> Stmt | null {
     if p.check(.KwReturn)   { return p.parse_return() }
-    if p.check(.KwFor)      { return p.parse_for(null) }
+    if p.check(.KwFor)      { return p.parse_for(null, false) }
+    // `@comptime for x in <arr> { body }` — Layer 6 unroll. The TS parser
+    // accepts the same form ; only `@comptime` on `for` is recognised as
+    // a decorator-on-stmt here.
+    if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" && p.check_at(.KwFor, 2) {
+        p.advance()  // @
+        p.advance()  // comptime
+        return p.parse_for(null, true)
+    }
     if p.check(.KwBreak)    { return p.parse_break() }
     if p.check(.KwContinue) { return p.parse_continue() }
     if p.check(.KwDefer)    { return p.parse_defer() }
@@ -1481,7 +1489,7 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
     if p.check(.Ident) && p.check_at(.Colon, 1) && p.check_at(.KwFor, 2) {
         label_tok :: p.advance()
         p.advance()  // `:`
-        return p.parse_for(label_tok.text)
+        return p.parse_for(label_tok.text, false)
     }
     // Tuple-destructure let : `[a, b] := expr`, `[a, b] :: expr`, or
     // `[a, b]: [int, string] = expr`. Detected by the `[` whose matching `]`
@@ -1701,7 +1709,7 @@ parse_return :: fn(p: Parser) -> ReturnStmt {
     }
 }
 
-parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
+parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
     start :: p.advance()  // `for`
 
     if p.check(.LBrace) {
@@ -1711,6 +1719,7 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
             .label = label,
             .form  = InfiniteFor {},
             .body  = body,
+            .is_comptime = is_comptime,
         }
     }
 
@@ -1728,6 +1737,7 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
             .label = label,
             .form  = InFor { .binding = bind_tok.text, .binding_span = bind_tok.span, .iter = iter },
             .body  = body,
+            .is_comptime = is_comptime,
         }
     }
 
@@ -1768,6 +1778,7 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
             .label = label,
             .form  = InFor { .binding = synth, .binding_span = binding_span, .iter = iter },
             .body  = wrapped_body,
+            .is_comptime = is_comptime,
         }
     }
 
@@ -1779,6 +1790,7 @@ parse_for :: fn(p: Parser, label: string | null) -> ForStmt {
         .label = label,
         .form  = WhileFor { .cond = cond },
         .body  = body,
+        .is_comptime = is_comptime,
     }
 }
 

@@ -975,7 +975,8 @@
                         }
                       ],
                       "trailing": null
-                    }
+                    },
+                    "isComptime": false
                   }
                 ],
                 "trailing": null

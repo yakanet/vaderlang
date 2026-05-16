@@ -1,0 +1,21 @@
+/// `@comptime for x in <arr> { … }` evaluates the iter array at lower
+/// time, requires a compile-time array literal, and emits one copy of the
+/// body per element with `x` substituted by each element's literal.
+/// Folds `@size_of(t)` to a constant and `f.name` / `f.type` to literals,
+/// so the unrolled body is straight-line constant-laden code.
+import "std/io" { println }
+
+Pair :: struct[K, V] {
+    key:   K
+    value: V
+}
+
+main :: fn() -> i32 {
+    @comptime for t in @type_args(Pair(i32, string)) {
+        println("type-arg size=${@size_of(t)}")
+    }
+    @comptime for f in @fields(Pair(i32, string)) {
+        println("${f.name} size=${@size_of(f.type)}")
+    }
+    return 0
+}

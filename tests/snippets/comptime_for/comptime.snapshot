@@ -1,0 +1,10 @@
+# Comptime
+
+## tests/snippets/comptime_for/_main.vader
+
+## generic instances
+  Pair(i32, string)
+  Yield(type)
+  Yield(Field)
+  ArrayIterator(type)
+  ArrayIterator(Field)

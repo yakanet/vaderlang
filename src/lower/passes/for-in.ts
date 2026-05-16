@@ -52,6 +52,58 @@ export function lowerRangeExpr(ctx: FnLowerCtx, expr: A.RangeExpr, exprType: Typ
  *  this path; the caller-side iter is lowered first so `RangeExpr` becomes a
  *  `Range` struct literal before we look up its Iterator impl.
  */
+const COMPTIME_FOR_MAX_ITERS = 256;
+
+/** `@comptime for` unroll. Threads the per-iter substitution through
+ *  `ctx.comptimeBindings` so `lowerIdent` folds loop-var reads to their
+ *  literal even inside lambdas / nested blocks the body re-enters. */
+
+export function lowerComptimeForIn(
+  ctx: FnLowerCtx, stmt: A.ForStmt,
+  iterExpr: A.Expr, _bindingName: string, bindingSym: Symbol | undefined,
+): LoweredStmt {
+  const span = stmt.span;
+  if (bindingSym === undefined) {
+    err(ctx.project.diags, "B5001", span, "@comptime for binding not resolved");
+    return { kind: "LoweredExprStmt", span, expr: {
+      kind: "LoweredUnreachable", span, type: TY.void, reason: "missing comptime-for binding",
+    } };
+  }
+  const iterLowered = lowerExpr(ctx, iterExpr);
+  if (iterLowered.kind !== "LoweredArrayLit") {
+    err(ctx.project.diags, "B5001", iterExpr.span,
+      `@comptime for requires a compile-time-known array literal ; got ${iterLowered.kind}`);
+    return { kind: "LoweredExprStmt", span, expr: {
+      kind: "LoweredUnreachable", span, type: TY.void, reason: "non-literal @comptime iter",
+    } };
+  }
+  // Soft cap : the intended use is `@fields(T)` / `@type_args(T)` over
+  // small struct signatures (N <= ~16). A literal `[0..1000]` would
+  // silently emit 1000× the body — surface a diagnostic instead so the
+  // footgun is loud.
+  if (iterLowered.elements.length > COMPTIME_FOR_MAX_ITERS) {
+    err(ctx.project.diags, "B5001", iterExpr.span,
+      `@comptime for over ${iterLowered.elements.length} elements exceeds the unroll cap (${COMPTIME_FOR_MAX_ITERS})`);
+    return { kind: "LoweredExprStmt", span, expr: {
+      kind: "LoweredUnreachable", span, type: TY.void, reason: "@comptime iter too large",
+    } };
+  }
+
+  const unrolled: LoweredStmt[] = [];
+  // Save/restore the prior binding for this symbol id so nested
+  // `@comptime for` over the same name (or any other reentrancy) doesn't
+  // silently clobber an outer scope's substitution.
+  const prior = ctx.comptimeBindings.get(bindingSym.id);
+  for (const elt of iterLowered.elements) {
+    ctx.comptimeBindings.set(bindingSym.id, elt);
+    const body = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ false);
+    unrolled.push(...blockStmtsWithTrailing(body));
+  }
+  if (prior === undefined) ctx.comptimeBindings.delete(bindingSym.id);
+  else ctx.comptimeBindings.set(bindingSym.id, prior);
+  return wrapStmts(span, unrolled);
+}
+
 export function lowerForIn(
   ctx: FnLowerCtx, stmt: A.ForStmt,
   iterExpr: A.Expr, bindingName: string, bindingSym: Symbol | undefined,

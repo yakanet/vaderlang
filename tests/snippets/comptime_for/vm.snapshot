@@ -1,0 +1,7 @@
+# stdout
+type-arg size=4
+type-arg size=16
+key size=4
+value size=16
+# exit
+0

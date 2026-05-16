@@ -312,7 +312,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           }
         ],
         "trailing": {
@@ -499,7 +500,8 @@
                 }
               ],
               "trailing": null
-            }
+            },
+            "isComptime": false
           }
         ],
         "trailing": {

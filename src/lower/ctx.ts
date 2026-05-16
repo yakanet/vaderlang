@@ -71,6 +71,11 @@ export interface FnLowerCtx {
    *  rather than as direct locals. The map is keyed by the captured outer
    *  symbol's id and yields the env field name. */
   readonly liftedContext: LiftedFnContext | null;
+  /** `@comptime for x in arr { … }` substitutions — keyed by the loop-var
+   *  symbol's id, the value is the per-iter literal that replaces every
+   *  reference to `x` in the body. Push at unroll entry, pop at exit ;
+   *  shape mirrors `narrowed` in the typecheck. */
+  readonly comptimeBindings: Map<number, import("./lowered-ast.ts").LoweredExpr>;
 }
 
 export interface LiftedFnContext {

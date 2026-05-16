@@ -55,24 +55,6 @@
       "decorators": []
     },
     {
-      "kind": "StructDecl",
-      "name": "Wrapper",
-      "visibility": "private",
-      "typeParams": [],
-      "fields": [
-        {
-          "name": "inner",
-          "type": {
-            "kind": "IdentExpr",
-            "name": "i32"
-          },
-          "visibility": "private",
-          "default": null
-        }
-      ],
-      "decorators": []
-    },
-    {
       "kind": "FnDecl",
       "name": "main",
       "visibility": "private",
@@ -104,11 +86,11 @@
                     "typeArgs": [
                       {
                         "kind": "IdentExpr",
-                        "name": "string"
+                        "name": "i32"
                       },
                       {
                         "kind": "IdentExpr",
-                        "name": "i64"
+                        "name": "string"
                       }
                     ]
                   }
@@ -132,7 +114,7 @@
                       "parts": [
                         {
                           "kind": "text",
-                          "value": "pair-arg size="
+                          "value": "type-arg size="
                         },
                         {
                           "kind": "interp",
@@ -154,66 +136,93 @@
                 ]
               }
             },
-            "isComptime": false
+            "isComptime": true
           },
           {
-            "kind": "LetStmt",
-            "mutable": false,
-            "binding": {
-              "kind": "SimpleBinding",
-              "name": "args"
-            },
-            "type": null,
-            "value": {
-              "kind": "IntrinsicCallExpr",
-              "name": "type_args",
-              "args": [
-                {
-                  "kind": "IdentExpr",
-                  "name": "Wrapper"
-                }
-              ]
-            }
-          },
-          {
-            "kind": "ExprStmt",
-            "expr": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "IdentExpr",
-                "name": "println"
-              },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "StringLitExpr",
-                    "parts": [
+            "kind": "ForStmt",
+            "label": null,
+            "form": {
+              "kind": "in",
+              "binding": "f",
+              "iter": {
+                "kind": "IntrinsicCallExpr",
+                "name": "fields",
+                "args": [
+                  {
+                    "kind": "GenericInstExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "Pair"
+                    },
+                    "typeArgs": [
                       {
-                        "kind": "text",
-                        "value": "wrapper-arg count="
+                        "kind": "IdentExpr",
+                        "name": "i32"
                       },
                       {
-                        "kind": "interp",
-                        "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
+                        "kind": "IdentExpr",
+                        "name": "string"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
                             "kind": "FieldExpr",
                             "target": {
                               "kind": "IdentExpr",
-                              "name": "args"
+                              "name": "f"
                             },
-                            "field": "len"
-                          },
-                          "args": []
+                            "field": "name"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " size="
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IntrinsicCallExpr",
+                            "name": "size_of",
+                            "args": [
+                              {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "IdentExpr",
+                                  "name": "f"
+                                },
+                                "field": "type"
+                              }
+                            ]
+                          }
                         }
-                      }
-                    ]
-                  },
-                  "spread": false
-                }
-              ]
-            }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "isComptime": true
           },
           {
             "kind": "ReturnStmt",

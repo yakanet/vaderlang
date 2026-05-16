@@ -258,9 +258,23 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       // Numeric tuple field access `t.0` → `_0` synthetic field on the
       // anonymous struct that backs the tuple type.
       const fieldName = expr.isNumeric === true ? `_${expr.field}` : expr.field;
+      const target = lowerExpr(ctx, expr.target);
+      // Fold `<StructLit>.fieldName` to the corresponding field's value
+      // — but ONLY when every other field is a pure literal. The fold
+      // drops the other fields' values entirely, so a struct lit like
+      // `Pair { .x = side_effect(), .y = 1 }.y` must NOT collapse to `1`
+      // (it would skip `side_effect()`). The constrained version covers
+      // the `@fields(T)` / `@type_args(T)` substitution case (every field
+      // is a string / type / scalar literal) without risking a miscompile
+      // on user-written struct lits.
+      if (target.kind === "LoweredStructLit" && target.fields.every((f) => isPureLiteral(f.value))) {
+        for (const fld of target.fields) {
+          if (fld.name === fieldName) return fld.value;
+        }
+      }
       return {
         kind: "LoweredFieldAccess", span: expr.span, type: exprType,
-        target: lowerExpr(ctx, expr.target), field: fieldName,
+        target, field: fieldName,
       };
     }
     case "IndexExpr": {
@@ -470,6 +484,12 @@ function lowerIdent(ctx: FnLowerCtx, expr: A.IdentExpr, type: Type): LoweredExpr
   if (sym === undefined) {
     return { kind: "LoweredUnreachable", span: expr.span, type, reason: `unresolved ident ${expr.name}` };
   }
+  // `@comptime for x in arr { … }` substitution : every reference to the
+  // loop var inside the unrolled body resolves to the per-iter literal.
+  // Checked before the regular paths so the binding "wins" over any
+  // captured-cell / lifted-env handling for the same symbol.
+  const comptimeVal = ctx.comptimeBindings.get(sym.id);
+  if (comptimeVal !== undefined) return comptimeVal;
   // TypeMeta-typed ident in value position → reify the underlying Type so
   // the bytecode emitter can lower it to `type.const N`. Falls through when
   // the symbol shape isn't materialisable yet (e.g. type-params) — T3035
@@ -822,6 +842,25 @@ function lowerOverloadedBinary(
 /** Desugar `x in coll` to `coll.contains(x)`, or `x !in coll` to `!coll.contains(x)`.
  *  Resolves the `Contains($T)::contains` impl on `coll`'s static type and emits a
  *  direct call to the monomorphised symbol. */
+/** Side-effect-free literal value — safe to fold or duplicate without
+ *  changing observable behaviour. The set covers every leaf node that
+ *  `@fields(T)` / `@type_args(T)` ever produce as struct-lit field
+ *  values, plus the obvious scalar literals. */
+function isPureLiteral(e: LoweredExpr): boolean {
+  switch (e.kind) {
+    case "LoweredIntLit":
+    case "LoweredFloatLit":
+    case "LoweredStringLit":
+    case "LoweredBoolLit":
+    case "LoweredCharLit":
+    case "LoweredNullLit":
+    case "LoweredTypeConst":
+      return true;
+    default:
+      return false;
+  }
+}
+
 function lowerInOp(ctx: FnLowerCtx, expr: A.BinaryExpr): LoweredExpr {
   const collType = ctx.types.exprType(expr.right);
   const fail = (msg: string): LoweredExpr => {

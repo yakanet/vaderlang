@@ -7,10 +7,11 @@ import { UNASSIGNED_NODE_ID } from "../../parser/ast.ts";
 import {TY, defaultIfFree, type Type} from "../../typecheck/types.ts";
 
 import type { BlockCtx, FnLowerCtx } from "../ctx.ts";
+import { err } from "../diag.ts";
 import type { LoweredBlock, LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
 
 import { lowerExpr, lowerIndexTraitCall } from "./expr.ts";
-import { lowerForIn } from "./for-in.ts";
+import { lowerComptimeForIn, lowerForIn } from "./for-in.ts";
 import { freshSyntheticSymbol, lowerCellInit, wrapStmts } from "./helpers.ts";
 import type {Span} from "../../diagnostics/diagnostic.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
@@ -200,7 +201,21 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | LoweredS
         { kind: "LoweredContinue", span: stmt.span, label: stmt.label }]);
     }
     case "ForStmt": {
+      if (stmt.isComptime && stmt.form.kind !== "in") {
+        err(ctx.project.diags, "B5001", stmt.span,
+          "@comptime for requires the `for x in <arr>` form");
+        return { kind: "LoweredExprStmt", span: stmt.span, expr: {
+          kind: "LoweredUnreachable", span: stmt.span, type: TY.void,
+          reason: "@comptime on non-`in` for",
+        } };
+      }
       if (stmt.form.kind === "in") {
+        if (stmt.isComptime) {
+          return lowerComptimeForIn(
+            ctx, stmt, stmt.form.iter, stmt.form.binding,
+            ctx.typed.resolved.forIns.get(stmt),
+          );
+        }
         return lowerForIn(
           ctx, stmt, stmt.form.iter, stmt.form.binding,
           ctx.typed.resolved.forIns.get(stmt),

@@ -16,6 +16,14 @@ import { parseType } from "./type.ts";
 export function parseStmt(p: Parser): A.Stmt | null {
   if (p.check("kw_return")) return parseReturn(p);
   if (p.check("kw_for")) return parseFor(p, null);
+  // `@comptime for ...` is the only decorator-on-statement the parser
+  // recognises ; everywhere else `@name` is a top-level decorator. The
+  // lower pass owns the unrolling semantics.
+  if (p.check("at") && p.peek(1).kind === "ident" && p.peek(1).text === "comptime" && p.check("kw_for", 2)) {
+    p.advance(); // @
+    p.advance(); // comptime
+    return parseFor(p, null, /*isComptime*/ true);
+  }
   if (p.check("kw_break")) return parseBreakContinue(p, "break") as A.BreakStmt;
   if (p.check("kw_continue")) return parseBreakContinue(p, "continue") as A.ContinueStmt;
   if (p.check("kw_defer")) return parseDefer(p);
@@ -266,7 +274,7 @@ function parseReturn(p: Parser): A.ReturnStmt {
   };
 }
 
-function parseFor(p: Parser, label: string | null): A.ForStmt {
+function parseFor(p: Parser, label: string | null, isComptime: boolean = false): A.ForStmt {
   const start = p.advance(); // for
 
   // Forms:
@@ -282,6 +290,7 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
       label,
       form: { kind: "infinite" },
       body,
+      isComptime,
     };
   }
 
@@ -301,6 +310,7 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
       label,
       form: { kind: "in", binding: bindTok.text, bindingSpan: bindTok.span, iter },
       body,
+      isComptime,
     };
   }
 
@@ -338,6 +348,7 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
       label,
       form: { kind: "in", binding: synth, bindingSpan: synthSpan, iter },
       body: wrappedBody,
+      isComptime,
     };
   }
 
@@ -350,6 +361,7 @@ function parseFor(p: Parser, label: string | null): A.ForStmt {
     label,
     form: { kind: "while", cond },
     body,
+    isComptime,
   };
 }
 
