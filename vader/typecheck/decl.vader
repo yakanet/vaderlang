@@ -16,40 +16,45 @@
 //   - AssertDecl is a no-op (handled by comptime).
 
 import "std/collections" { MutableMap }
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/diagnostics/diagnostic" { Diagnostic, Span, typecheck_error }
 import "vader/resolver/resolve" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol }
 import "vader/resolver/scope" { span_key }
 AST :: import "vader/parser/ast"
 import "vader/typecheck/types" {
     Type, PrimitiveType, mk_primitive, mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
-    TY_UNRESOLVED, TY_TYPE,
+    TY_UNRESOLVED,
 }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/typed_ast" { TypedProgram }
 import "vader/typecheck/enum_pass" { resolve_enum_indices }
 
-/// Walk every top-level decl in `resolved.module` (resolved.source.decls
-/// in the original TS) and mint its `Type` into `typed.decl_types`. The
-/// pass is single-shot — re-running it is idempotent if `decl_types` is
-/// cleared first.
+/// Walk every top-level decl in `program.decls` and mint its `Type` into
+/// `typed.decl_types`. The pass is single-shot — re-running it is
+/// idempotent if `decl_types` is cleared first.
+///
+/// Builds a `name → Symbol` map up front so per-decl lookups don't scan
+/// the sorted `resolved.symbols` array N times.
 export declare_module :: fn(
-    resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
-    program_decls: AST.Decl[],
+    program_decls: AST.Decl[], resolved: ResolvedModule,
+    typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
+    by_name :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    for s in resolved.symbols { by_name[s.name] = s }
     for decl in program_decls {
-        declare_decl(decl, resolved, typed, diags)
+        declare_decl(decl, by_name, resolved, typed, diags)
     }
 }
 
 declare_decl :: fn(
-    decl: AST.Decl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+    decl: AST.Decl, by_name: MutableMap(string, Symbol),
+    resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     match decl {
         is AST.FnDecl as fn_decl -> { declare_fn(fn_decl, resolved, typed, diags) }
-        is AST.StructDecl as sd  -> { declare_struct(sd, resolved, typed) }
-        is AST.EnumDecl as ed    -> { declare_enum(ed, resolved, typed, diags) }
-        is AST.TraitDecl as td   -> { declare_trait(td, resolved, typed) }
+        is AST.StructDecl as sd  -> { declare_named_with_args(sd.name, sd.name_span, sd.type_params, by_name, typed, mk_struct) }
+        is AST.EnumDecl as ed    -> { declare_enum(ed, by_name, resolved, typed, diags) }
+        is AST.TraitDecl as td   -> { declare_named_with_args(td.name, td.name_span, td.type_params, by_name, typed, mk_trait) }
         is AST.TypeAliasDecl as ta -> { declare_type_alias(ta, resolved, typed, diags) }
         is AST.ConstDecl as cd   -> { declare_const(cd, resolved, typed, diags) }
         // ImplDecl → ImplRegistry (Phase 2.4). AssertDecl → comptime only.
@@ -57,6 +62,30 @@ declare_decl :: fn(
         is AST.ImplDecl   -> {}
         is AST.AssertDecl -> {}
         is AST.ImportDecl -> {}
+    }
+}
+
+/// Shared minter for Struct / Trait decls — they only differ in the
+/// `Type` constructor (`mk_struct` vs `mk_trait`). Resolves the symbol
+/// + builds the typeParam args via `by_name`, then calls `mk`.
+declare_named_with_args :: fn(
+    name: string, name_span: Span, type_params: AST.TypeParam[],
+    by_name: MutableMap(string, Symbol), typed: TypedProgram,
+    mk: fn(Symbol, Type[]) -> Type,
+) -> void {
+    sym :: by_name[name]
+    match sym {
+        is null -> {}
+        is Symbol as s -> {
+            args: Type[] = []
+            for tp in type_params {
+                match by_name[tp.name] {
+                    is null -> { args.push(TY_UNRESOLVED) }
+                    is Symbol as tp_s -> { args.push(mk_type_param(tp_s)) }
+                }
+            }
+            typed.decl_types[span_key(name_span)] = mk(s, args)
+        }
     }
 }
 
@@ -109,46 +138,11 @@ declare_fn_return :: fn(
     }
 }
 
-declare_struct :: fn(
-    decl: AST.StructDecl, resolved: ResolvedModule, typed: TypedProgram,
-) -> void {
-    sym :: lookup_symbol(resolved, decl.name)
-    args: Type[] = []
-    for tp in decl.type_params {
-        tp_sym :: lookup_symbol(resolved, tp.name)
-        match tp_sym {
-            is null -> { args.push(TY_UNRESOLVED) }
-            is Symbol as s -> { args.push(mk_type_param(s)) }
-        }
-    }
-    match sym {
-        is null -> {}
-        is Symbol as s -> { typed.decl_types[span_key(decl.name_span)] = mk_struct(s, args) }
-    }
-}
-
-declare_trait :: fn(
-    decl: AST.TraitDecl, resolved: ResolvedModule, typed: TypedProgram,
-) -> void {
-    sym :: lookup_symbol(resolved, decl.name)
-    args: Type[] = []
-    for tp in decl.type_params {
-        tp_sym :: lookup_symbol(resolved, tp.name)
-        match tp_sym {
-            is null -> { args.push(TY_UNRESOLVED) }
-            is Symbol as s -> { args.push(mk_type_param(s)) }
-        }
-    }
-    match sym {
-        is null -> {}
-        is Symbol as s -> { typed.decl_types[span_key(decl.name_span)] = mk_trait(s, args) }
-    }
-}
-
 declare_enum :: fn(
-    decl: AST.EnumDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+    decl: AST.EnumDecl, by_name: MutableMap(string, Symbol),
+    resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    sym :: lookup_symbol(resolved, decl.name)
+    sym :: by_name[decl.name]
     repr :: resolve_repr(decl.repr, resolved, diags)
     indices :: resolve_enum_indices(decl, repr, diags)
     match sym {
@@ -175,28 +169,16 @@ declare_const :: fn(
 
 // ---- helpers --------------------------------------------------------------
 
-lookup_symbol :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
-    for s in resolved.symbols {
-        if s.name == name { return s }
-    }
-    return null
-}
-
 resolve_repr :: fn(
     repr: AST.TypeExpr | null, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> string {
-    match repr {
-        is null -> { return "i32" }
+    if repr is null { return "i32" }
+    match type_from_expr(repr, resolved, diags) {
+        is PrimitiveType as p -> { return p.name }
         _ -> {
-            ty :: type_from_expr(repr, resolved, diags)
-            match ty {
-                is PrimitiveType as p -> { return p.name }
-                _ -> {
-                    diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
-                        "enum repr must be a primitive integer"))
-                    return "i32"
-                }
-            }
+            diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
+                "enum repr must be a primitive integer"))
+            return "i32"
         }
     }
 }
@@ -207,46 +189,41 @@ import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
 import "vader/resolver/resolve" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/types" { display_type, FnType, StructType, EnumType }
+import "vader/typecheck/types" { display_type }
 import "vader/typecheck/typed_ast" { new_typed_program }
 
-declare_test_program :: fn(src: string) -> TypedProgram {
+// Resolve `src`, declare-types, then look up the type of the decl
+// named `name` by rendering its `display_type`. Returns `<missing>` if
+// the decl never landed in `decl_types`.
+declared_type :: fn(src: string, name: string) -> string {
     parsed :: parse_source(src, "t.vader")
     factory :: new_factory()
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)
     diags: Diagnostic[] = []
-    declare_module(rm, typed, diags, parsed.program.decls)
-    return typed
-}
-
-// Look up the declared type of the top-level fn / struct named `name`
-// and return its rendered string. Returns `<missing>` if unresolved.
-declared_type :: fn(src: string, name_span_line: i32, name_span_col: i32) -> string {
-    typed :: declare_test_program(src)
-    key :: "${name_span_line}:${name_span_col}"
-    ty :: typed.decl_types[key]
-    match ty {
-        is null -> { return "<missing>" }
-        _ -> { return display_type(ty) }
+    declare_module(parsed.program.decls, rm, typed, diags)
+    for s in rm.symbols {
+        if s.name != name { continue }
+        sp :: s.defined_at
+        if sp is null { return "<no span>" }
+        ty :: typed.decl_types[span_key(sp)]
+        if ty is null { return "<missing>" }
+        return display_type(ty)
     }
+    return "<unknown name>"
 }
 
 @test
 test_declare_fn_records_signature :: fn() -> void {
-    src :: """
-add :: fn(a: i32, b: i32) -> i32 { return a + b }
-"""
-    // name_span of `add` starts at column 1 on line 1.
-    assert_eq(declared_type(src, 1, 1), "fn(i32, i32) -> i32")
+    assert_eq(
+        declared_type("add :: fn(a: i32, b: i32) -> i32 { return a + b }", "add"),
+        "fn(i32, i32) -> i32",
+    )
 }
 
 @test
 test_declare_fn_void_return_when_no_annotation :: fn() -> void {
-    src :: """
-greet :: fn(name: string) { }
-"""
-    assert_eq(declared_type(src, 1, 1), "fn(string) -> void")
+    assert_eq(declared_type("greet :: fn(name: string) { }", "greet"), "fn(string) -> void")
 }
 
 @test
@@ -257,21 +234,21 @@ Point :: struct {
     y: i32
 }
 """
-    assert_eq(declared_type(src, 1, 1), "Point")
+    assert_eq(declared_type(src, "Point"), "Point")
 }
 
 @test
 test_declare_generic_struct_records_args :: fn() -> void {
     // Type-params resolve to `?` for now : the resolver lacks a
-    // cross-module typeParamSymbols table, so `lookup_symbol` can't find
-    // `T` at the top level. Lands when wire.vader plumbs typeParams.
-    // Once that's wired the expected becomes `Wrap(T)`.
+    // cross-module typeParamSymbols table, so the name-keyed lookup
+    // can't find `T` at the top level. Once wire.vader plumbs that
+    // table the expected becomes `Wrap(T)`.
     src :: """
 Wrap :: struct[T] {
     value: T
 }
 """
-    assert_eq(declared_type(src, 1, 1), "Wrap(?)")
+    assert_eq(declared_type(src, "Wrap"), "Wrap(?)")
 }
 
 @test
@@ -283,23 +260,15 @@ Color :: enum {
     Blue
 }
 """
-    assert_eq(declared_type(src, 1, 1), "Color")
+    assert_eq(declared_type(src, "Color"), "Color")
 }
 
 @test
 test_declare_type_alias_records_aliased :: fn() -> void {
-    // Generic-alias form `Name[T] :: <body>` triggers TypeAliasDecl parse.
-    // `T` resolves to `?` for the same reason as the generic struct test.
-    src :: """
-Maybe[T] :: T | null
-"""
-    assert_eq(declared_type(src, 1, 1), "? | null")
+    assert_eq(declared_type("Maybe[T] :: T | null", "Maybe"), "? | null")
 }
 
 @test
 test_declare_const_with_annotation_records_type :: fn() -> void {
-    src :: """
-PI: f64 :: 3.14
-"""
-    assert_eq(declared_type(src, 1, 1), "f64")
+    assert_eq(declared_type("PI: f64 :: 3.14", "PI"), "f64")
 }
