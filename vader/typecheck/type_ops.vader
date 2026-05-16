@@ -7,7 +7,7 @@
 // MVP version takes a `TraitOracle` interface so callers can stub the
 // trait check (returns false → no widening).
 
-import "std/string" { compare_ascending }
+import "std/string" { compare_ascending_ci }
 import "std/sort" { sort }
 import "vader/typecheck/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
@@ -191,7 +191,7 @@ export union_of :: fn(variants: Type[]) -> Type {
     }
     if dedup.len() == 0 { return TY_NEVER }
     if dedup.len() == 1 { return dedup[0] }
-    sorted :: sort(dedup, (a: Type, b: Type) -> compare_ascending(display_type(a), display_type(b)))
+    sorted :: sort(dedup, (a: Type, b: Type) -> compare_ascending_ci(display_type(a), display_type(b)))
     return mk_union(sorted)
 }
 

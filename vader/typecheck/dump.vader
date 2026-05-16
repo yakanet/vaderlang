@@ -25,7 +25,7 @@
 
 import "std/collections" { keys }
 import "std/sort" { sort }
-import "std/string" { compare_ascending, pad_end, split }
+import "std/string" { compare_ascending_ci, pad_end, split }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/resolver/scope" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -40,18 +40,13 @@ export dump_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
     if with_banner { sb.append("# Typecheck") }
     sb.append("\n\n## ")
     sb.append(typed.resolved.path)
-    // Decls : alphabetically by name. `resolved.symbols` is already
-    // sorted by `resolve_module`, so we walk it in order.
-    for s in typed.resolved.symbols {
-        kind_str :: ast_decl_kind(s)
-        if kind_str == "" { continue }   // import-bindings don't render here
-        type_str :: lookup_decl_type(typed, s)
-        sb.append("\n  ")
-        sb.append(kind_str.pad_end(14, ' '))
-        sb.append_char(' ')
-        sb.append(s.name.pad_end(20, ' '))
-        sb.append(" :: ")
-        sb.append(type_str)
+    // Decls : sorted case-insensitively by name (matches TS
+    // `name.localeCompare(other)` ordering). `resolved.symbols` is
+    // pre-sorted byte-wise so we re-sort here for the dump only.
+    decl_lines :: build_decl_lines(typed)
+    for line in decl_lines {
+        sb.append("\n")
+        sb.append(line)
     }
     // Expression lines : sorted lexicographically across the whole
     // module so the dump is stable regardless of HashMap iteration.
@@ -65,6 +60,17 @@ export dump_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
     return sb.to_string()
 }
 
+build_decl_lines :: fn(typed: TypedProgram) -> string[] {
+    out: string[] = []
+    for s in typed.resolved.symbols {
+        kind_str :: ast_decl_kind(s)
+        if kind_str == "" { continue }
+        type_str :: lookup_decl_type(typed, s)
+        out.push("  ${kind_str.pad_end(14, ' ')} ${s.name.pad_end(20, ' ')} :: ${type_str}")
+    }
+    return sort(out, (a: string, b: string) -> compare_ascending_ci(a, b))
+}
+
 build_expr_lines :: fn(typed: TypedProgram) -> string[] {
     out: string[] = []
     for k in typed.expr_kinds.keys() {
@@ -75,7 +81,7 @@ build_expr_lines :: fn(typed: TypedProgram) -> string[] {
         loc :: start_loc(k)
         out.push("  expr ${loc.pad_end(8, ' ')} ${kind.pad_end(14, ' ')} :: ${ty_str}")
     }
-    return sort(out, (a: string, b: string) -> compare_ascending(a, b))
+    return sort(out, (a: string, b: string) -> compare_ascending_ci(a, b))
 }
 
 // Full key is "lineS:colS-lineE:colE" ; the dump label uses just the

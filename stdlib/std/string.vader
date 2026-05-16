@@ -177,6 +177,35 @@ export compare_ascending :: fn(a: string, b: string) -> bool {
     return la < lb
 }
 
+/// Case-insensitive ASCII variant of `compare_ascending`. Matches
+/// JavaScript's default `String.localeCompare()` ordering for the
+/// ASCII subset (case-folded comparison ; ties broken by code point).
+export compare_ascending_ci :: fn(a: string, b: string) -> bool {
+    la :: a.byte_len()
+    lb :: b.byte_len()
+    n :: min(la, lb)
+    for i in 0..<n {
+        ca :: to_lower_byte(a.byte_at(i))
+        cb :: to_lower_byte(b.byte_at(i))
+        if ca < cb { return true }
+        if ca > cb { return false }
+    }
+    if la != lb { return la < lb }
+    // Equal folded — break ties by raw bytes so the order stays total.
+    for i in 0..<n {
+        ra :: a.byte_at(i)
+        rb :: b.byte_at(i)
+        if ra < rb { return true }
+        if ra > rb { return false }
+    }
+    return false
+}
+
+to_lower_byte :: fn(c: u8) -> u8 {
+    if c >= u8(0x41) && c <= u8(0x5A) { return c + u8(0x20) }
+    return c
+}
+
 /// Byte-index of the LAST occurrence of `c` at or after `min_index`,
 /// scanning from the right. Returns `-1` when not found. The signed
 /// `isize` return type lets callers branch on `result < 0` ; `usize` would

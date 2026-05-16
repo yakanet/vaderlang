@@ -20,6 +20,7 @@
 //   - No named-arg matching ; positional only.
 //   - No spread-arg handling.
 
+import "std/collections" { MutableMap }
 import "std/math" { min }
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
@@ -28,6 +29,7 @@ import "vader/typecheck/types" {
     Type, FnType, UnresolvedType, display_type, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/typecheck/unify" { substitute, type_contains_type_param, unify_type_param }
 
 /// Type-check a `CallExpr`. `check_expr_fn` is threaded the same way as
 /// in `expr_block.vader` to dodge the cyclic import.
@@ -50,18 +52,48 @@ export infer_call :: fn(
     }
     if c.args.len() != callee_ty.params.len() {
         diags.push(typecheck_error(.WrongArgCount, c.span,
-            "expected ${callee_ty.params.len()} arg(s), got ${c.args.len()}"))
+            "expected ${callee_ty.params.len()}, got ${c.args.len()}"))
     }
+    is_generic :: fn_has_type_params(callee_ty)
     n :: min(c.args.len(), callee_ty.params.len())
+    if is_generic {
+        // Two-phase pass for generic fns : (1) walk every arg with
+        // the param type as hint and collect TypeParam bindings via
+        // unification ; (2) substitute the bindings into each param
+        // type and re-check assignability so concrete arg types get
+        // validated against the concretised slot. Return type is
+        // substituted before returning.
+        bindings :: MutableMap(i32, Type) { .buckets = [], .size = 0 }
+        arg_types: Type[] = []
+        for i in 0..<n {
+            param_ty :: callee_ty.params[i]
+            arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
+            unify_type_param(param_ty, arg_ty, bindings)
+            arg_types.push(arg_ty)
+        }
+        for i in 0..<n {
+            expected :: substitute(callee_ty.params[i], bindings)
+            if !type_contains_type_param(expected) && !is_assignable(arg_types[i], expected, null) {
+                diags.push(typecheck_error(.TypeMismatch, c.args[i].span,
+                    "expected ${display_type(expected)}, got ${display_type(arg_types[i])}"))
+            }
+        }
+        return substitute(callee_ty.return_type, bindings)
+    }
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
         if !is_assignable(arg_ty, param_ty, null) {
             diags.push(typecheck_error(.TypeMismatch, c.args[i].span,
-                "arg ${i}: expected ${display_type(param_ty)}, got ${display_type(arg_ty)}"))
+                "expected ${display_type(param_ty)}, got ${display_type(arg_ty)}"))
         }
     }
     return callee_ty.return_type
+}
+
+fn_has_type_params :: fn(f: FnType) -> bool {
+    for p in f.params { if type_contains_type_param(p) { return true } }
+    return type_contains_type_param(f.return_type)
 }
 
 // Walk the args once for their side-effects only — type them in a
