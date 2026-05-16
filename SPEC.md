@@ -59,7 +59,7 @@ Source (.vader)
   └──→ WASM emitter     → .wasm (~1:1 mapping with bytecode, since WASM is also stack-based)
 ```
 
-Self-host status (Vader-side under `vader/`) : Lexer ✅, Parser ✅, Resolver ✅ (8 modules under `vader/resolver/`, body-walking + top-level minting + builtins + import collection + materialize + substitute), Formatter ✅ (partial — see §18), LSP ✅, VM ⏳ (subset), Type-checker / Lower / Mid-IR / Bytecode emitter / C emitter not yet ported. The TS-side under `src/` remains the reference. Parity is enforced per-stage by `tests/parity.test.ts` (CLI byte-for-byte stdout diff) — currently covers `lexer`, `parser`, `resolved-ast`.
+Self-host status (Vader-side under `vader/`) : Lexer ✅, Parser ✅, Resolver ✅ (9 modules under `vader/resolver/`), Formatter 🟡 (partial — see §18), LSP ✅, VM 🟡 (`.virt` subset), Type-checker / Lower / Mid-IR / Bytecode emitter / C emitter not yet ported. The TS-side under `src/` remains the reference. Parity is enforced per-stage by `tests/parity.test.ts` (CLI byte-for-byte stdout diff) — currently covers `lexer`, `parser`, `resolved-ast`.
 
 ### Canonical IR
 
@@ -98,15 +98,15 @@ The Lowered AST is the input to the dead-code elimination pass. It is dumpable a
 
 ### Mid-IR (CFG)
 
-Between the (DCE'd) Lowered AST and the bytecode emitter, a dedicated Mid-IR layer converts every `LoweredFnDecl` to a **reducible control-flow graph** of basic blocks with explicit terminators (`branch`, `cond_branch`, `return`, `unreachable`). Expressions become three-address `Instruction` sequences over named local slots ; control flow (`LoweredIf`, `LoweredLoop`, `break`, `continue`, `return`) becomes block terminators. Strings get interned into a project-level pool reused verbatim by the emitter.
+Between the (DCE'd) Lowered AST and the bytecode emitter, a Mid-IR layer lowers every `LoweredFnDecl` to a **reducible CFG** of basic blocks with explicit terminators (`branch`, `cond_branch`, `return`, `unreachable`). Expressions become three-address `Instruction` sequences over named local slots ; control flow (`LoweredIf`, `LoweredLoop`, `break`, `continue`, `return`) becomes block terminators. Strings are interned into a project-level pool reused verbatim by the emitter.
 
 The CFG is the substrate for analyses that need def-use chains rather than tree walks :
 
-- **Escape analysis** — stack-allocates structs whose lifetime stays within the function. Reverse postorder traversal over the flat CFG (no SSA — the SSA round-trip was measured against flat-CFG escape analysis in 2026-05-14 and showed zero precision gain, so the SSA + dominance-frontier infrastructure was deleted).
+- **Escape analysis** — stack-allocates structs whose lifetime stays within the function (no SSA).
 - **Loop-carried-dependency check** — replaces the over-conservative "in loop ⇒ escapes" filter ; +95 stack-promotions on the self-host.
 - **Dead-store elimination** — finer-grained than the AST-level DCE pass, prunes individual writes whose result is never read.
 
-The bytecode emitter consumes the CFG (not the Lowered AST), recovers WASM-style structured nesting via a structurer pass that uses immediate dominators + post-dominators (not full SSA), and emits the linear stack ops. The full design is in `docs/MID_IR_DESIGN.md` ; the implementation lives under `src/midir/`. CFG dumps are exposed via `vader dump --stage=cfg`.
+The bytecode emitter consumes the CFG (not the Lowered AST), recovers WASM-style structured nesting via a structurer pass that uses immediate dominators + post-dominators, and emits the linear stack ops. CFG dumps are exposed via `vader dump --stage=cfg`. Design : `docs/MID_IR_DESIGN.md`.
 
 ### Dead-code elimination
 
@@ -1415,7 +1415,7 @@ Rules :
 
 - **Private by default** (TypeScript-style). Top-level decls are visible only inside their **module** (= folder) unless explicitly exported.
 - **`export`** prefix to make a symbol visible across module boundaries.
-- The top-level `main` function is **always public** — the resolver actively promotes its visibility to `public` regardless of whether the source carries the `export` keyword. Mirrors both implementations (`src/resolver/collect.ts` and `vader/resolver/collect.vader`).
+- The top-level `main` function is **always public** — the resolver promotes its visibility to `public` regardless of whether the source carries the `export` keyword.
 
 ```vader
 helper :: fn(x: i32) -> i32 {
@@ -1788,7 +1788,7 @@ A → B → A is a compile-time error.
 
 ### Entry point
 
-Always a `main` function. No overloaded conventions. Implicitly exposed to the runtime — write it without the `export` keyword.
+Always a `main` function. No overloaded conventions. Write it without the `export` keyword — the resolver promotes it to public (see §6).
 
 ```vader
 main :: fn() -> i32 {
@@ -1930,7 +1930,7 @@ vader build prog.vader --target=native --ldflags="helper.o -lcrypto -L/usr/local
 
 ### VM behaviour
 
-The VM resolves `@extern` user imports against a **host registry** (`src/vm/host.ts`) keyed by `(mangledName, externName)`. Each `call.import` consults the registry and dispatches to the registered JS handler ; unbound imports throw `vm: unbound host import …`. The registry is populated by callers of `vader run` (the test runner, the comptime engine, embedders) — there is no auto-discovery. This is the stable ABI for user-supplied `@extern` symbols introduced in commit `bd6d4012`.
+The VM resolves `@extern` user imports against a **host registry** (`src/vm/host.ts`) keyed by `(mangledName, externName)`. Each `call.import` consults the registry and dispatches to the registered JS handler ; unbound imports throw `vm: unbound host import …`. The registry is populated by callers of `vader run` (the test runner, the comptime engine, embedders) — there is no auto-discovery.
 
 C-emit and WASM continue to resolve `@extern` against the system linker / module import table respectively ; the same `@extern` decl compiles for all three backends, only the binding mechanism differs.
 
@@ -1991,7 +1991,7 @@ See section 2 (Compilation Model).
 
 ### Implementation note (comptime engine)
 
-The comptime engine is the **bytecode VM** (`src/comptime/run.ts`). The original AST-walking interpreter shipped with the MVP and was deleted once typed-AST → bytecode lowering covered the comptime-eligible subset (Sprint 1.5b). The same VM serves `vader run` for executing source files and `@comptime` for compile-time evaluation — one op set, one interpreter, no duplication. Generic instances are observed during comptime evaluation and fed back into the monomorphizer.
+The comptime engine is the **bytecode VM** (`src/comptime/run.ts`). The original AST-walking interpreter shipped with the MVP and was deleted once typed-AST → bytecode lowering covered the comptime-eligible subset (Sprint 1.5b). The same VM serves `vader run` for executing source files and `@comptime` for compile-time evaluation. Generic instances are observed during comptime evaluation and fed back into the monomorphizer.
 
 ### Reflection / comptime intrinsics
 
@@ -2027,7 +2027,7 @@ The condition expression is evaluated by the comptime VM ; each intrinsic appear
 
 ### `@comptime for` over reflected fields
 
-`@comptime for f in @fields(T) { … }` is **loop unrolling** at compile time — the lowerer unrolls one body copy per field and substitutes `f` (and any `f.name` / `f.ty` access) with the concrete field's metadata in each copy. Inside an unrolled body, `@field(x, f.name)` folds to a direct field access on `x` (no string-keyed lookup at runtime). The result is generic introspection code (e.g. a `to_string` derived from a struct's fields, a JSON serialiser, a hash impl) that compiles down to per-field straight-line code with zero reflection overhead at runtime.
+`@comptime for f in @fields(T) { … }` is **loop unrolling** at compile time — the lowerer unrolls one body copy per field and substitutes `f` (and any `f.name` / `f.ty` access) with the concrete field's metadata in each copy. Inside an unrolled body, `@field(x, f.name)` folds to a direct field access on `x` (no string-keyed lookup at runtime). The result is generic introspection code (e.g. a `to_string` derived from a struct's fields, a JSON serialiser, a hash impl) that compiles to per-field straight-line code with no runtime reflection.
 
 ---
 
@@ -2259,7 +2259,7 @@ e  :: 2.718281828459045
 
 ### `std/iter`
 
-The iterator trait lives in `std/core` (auto-imported). `next()` returns `Yield(T) | null` — `null` is the canonical "exhausted" signal ; the `Yield(T)` wrapper lets iterators over nullable element types (e.g. `Iterator(string | null)`) stay unambiguous since a yielded `null` is distinct from end-of-stream :
+The iterator trait lives in `std/core` (auto-imported). `next()` returns `Yield(T) | null` (`null` = exhausted). The `Yield` wrapper keeps iterators over nullable elements unambiguous — a yielded `null` is distinct from end-of-stream :
 
 ```vader
 Yield :: struct[T] { value: T }
@@ -2402,7 +2402,7 @@ The following modules ship in `stdlib/std/` today, alongside the core MVP set do
 - `std/testing` — `assert` / `assert_eq` consumed by `@test` functions.
 - `std/time` — clock / formatting.
 
-These move down the maturity ladder over time ; they're listed here because they're in-tree but their API is not part of the frozen v1.0 surface in §15.
+Listed here because they're in-tree but not part of the frozen v1.0 surface in §15.
 
 ---
 
@@ -2610,7 +2610,7 @@ As soon as the TS compiler can compile simple functions (a syntactic subset: fns
 
 1. **Lexer** ✅ (`vader/lexer/`) — straightforward, table-driven.
 2. **Parser** ✅ (`vader/parser/`) — recursive-descent + Pratt expressions, 2.9k LoC.
-3. **Resolver** ✅ (`vader/resolver/`) — 8 modules (`scope`, `builtins`, `collect`, `substitute`, `materialize`, `body`, `dump`, `resolve` + `symbol`). Body-walking + top-level minting + import collection + trait method synthesis (intrinsic / default / SAM). Shared by the LSP and the future self-host typechecker.
+3. **Resolver** ✅ (`vader/resolver/`) — 9 modules (`symbol`, `scope`, `builtins`, `collect`, `substitute`, `materialize`, `body`, `dump`, `resolve`). Body-walking + top-level minting + import collection + trait method synthesis (intrinsic / default / SAM). Shared by the LSP and the future self-host typechecker.
 4. **Formatter** 🟡 (`vader/fmt/`) — first pass landed ; idempotency green on stdlib, byte-for-byte parity pending stylistic gaps (column alignment, blank-line caps).
 5. **LSP** ✅ (`vader/lsp/`) — hover, definition, completion, semantic tokens (consumes the resolver).
 6. **VM** 🟡 (`vader/vm/`) — `.virt` text bytecode subset runs in Vader ; full op coverage WIP.
@@ -2838,7 +2838,7 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 Already landed (cross-reference for B's reader) :
 - `std/json` (in MVP — §15 `std/json`)
 - LSP (`vader/lsp/`, partial — server + completion / hover / definition / semantic tokens)
-- Resolver self-host (`vader/resolver/` — 8 modules)
+- Resolver self-host (`vader/resolver/` — 9 modules)
 - Reflection intrinsics `@type_of`, `@fields`, `@type_args`, `@field`, `@comptime for` loop unrolling
 - FFI VM host registry (`@extern` user imports now run on the VM via `src/vm/host.ts`)
 - Lazy iterator combinators (`MapIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator` in `std/iter`)
