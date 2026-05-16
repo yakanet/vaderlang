@@ -1,0 +1,30 @@
+// vader/typecheck/traits — trait composition + bound enforcement
+// (`Foo :: trait = A & B`).
+//
+// MVP : collect the composed trait list from a TraitDecl when the
+// decl uses the `= A & B` sugar. Returns the variant list as Symbol
+// references for downstream callers (impl-resolution would consult
+// this to widen a single-trait impl into satisfying a composed one).
+//
+// The bound-enforcement side (`Foo[T: Display]` rejecting `Foo[i32]`
+// when `i32` doesn't impl Display) lands once the impl registry
+// exposes `find_for(type, trait_sym) -> bool`. Today this file just
+// owns the composition-reading half so future work has one place to
+// plug it.
+
+import "vader/resolver/symbol" { Symbol }
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Walk a `TraitDecl`'s `bases` list (when it uses `= A & B` sugar)
+/// and resolve each ident to its Symbol via the resolver's idents map.
+/// Returns the symbol list ; unresolved entries are dropped silently
+/// (resolver already emitted R2006 for unknown idents).
+///
+/// MVP : the current Vader parser doesn't yet expose a `bases` field
+/// on `TraitDecl` (composition syntax not parsed). When it lands, the
+/// body of this fn switches to walking `decl.bases`. For now we
+/// return an empty list so callers get a stable shape.
+export trait_bases :: fn(_: AST.TraitDecl, _: TypedProgram) -> Symbol[] {
+    return []
+}

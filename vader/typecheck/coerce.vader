@@ -1,0 +1,21 @@
+// vader/typecheck/coerce — `Into` trait dispatch + `T[] → Iterator(T)`
+// auto-coercion.
+//
+// MVP : `try_into(got, expected, …)` returns false unconditionally —
+// no implicit coercion is performed by the typechecker. Callers
+// (`infer_call`'s arg checking, `check_let`'s annotation check, the
+// implicit-return path in `check_fn_body`) already handle the false
+// case by surfacing T3001 / T3020. Once impl-driven `Into` lookup +
+// auto-array-to-Iterator coercion land, this fn returns true when a
+// valid coercion exists (and records it into a side-table so the
+// lowerer emits the conversion).
+
+import "vader/typecheck/types" { Type }
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Attempt to coerce `got → expected` via an `Into` impl. MVP : always
+/// returns false ; the type mismatch falls through to T3001/T3020.
+export try_into :: fn(_: Type, _: Type, _: AST.Expr, _: TypedProgram) -> bool {
+    return false
+}

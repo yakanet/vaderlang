@@ -1,0 +1,156 @@
+// vader/typecheck/unify — structural unification of `TypeParam` binders.
+//
+// Walks the shape of a parameter type against a concrete argument type
+// and extracts the `TypeParam.symbol.id → concrete Type` bindings that
+// make the param match. Used by generic fn dispatch (`infer_call` will
+// consume this once Vader's resolver populates `typeParamSymbols` from
+// FnDecl decls — see PORTING_STATUS.md for the wiring step).
+//
+// MVP-trimmed: no trait-impl branch (the `paramType is TraitType +
+// concrete arg → look up impl + bind trait args` arm in TS). That
+// path needs `ImplRegistry.find_for(...)` plus impl-typeParam
+// inversion which lands once `coerce.vader` materialises.
+
+import "std/collections" { MutableMap }
+import "vader/typecheck/type_ops" { equals_type }
+import "vader/typecheck/types" {
+    Type, ArrayType, TupleType, StructType, TraitType, FnType, UnionType,
+    TypeParamType,
+}
+
+/// Walk `param_type` against `arg_type` and record any TypeParam
+/// binding into `out`. First binding wins (matches TS semantics).
+export unify_type_param :: fn(
+    param_type: Type, arg_type: Type, out: MutableMap(i32, Type),
+) -> void {
+    match param_type {
+        is TypeParamType as tp -> {
+            existing :: out[tp.symbol.id]
+            if existing is null { out[tp.symbol.id] = arg_type }
+            return
+        }
+        is ArrayType as pa -> {
+            match arg_type {
+                is ArrayType as aa -> { unify_type_param(pa.element, aa.element, out) }
+                _ -> {}
+            }
+            return
+        }
+        is TupleType as pt -> {
+            match arg_type {
+                is TupleType as at -> {
+                    if pt.elements.len() == at.elements.len() {
+                        for i in 0..<pt.elements.len() {
+                            unify_type_param(pt.elements[i], at.elements[i], out)
+                        }
+                    }
+                }
+                _ -> {}
+            }
+            return
+        }
+        is StructType as ps -> {
+            match arg_type {
+                is StructType as as_ -> {
+                    if ps.symbol.id == as_.symbol.id { unify_args(ps.args, as_.args, out) }
+                }
+                _ -> {}
+            }
+            return
+        }
+        is TraitType as pt -> {
+            match arg_type {
+                is TraitType as at -> {
+                    if pt.symbol.id == at.symbol.id { unify_args(pt.args, at.args, out) }
+                }
+                _ -> {}
+            }
+            return
+        }
+        is FnType as pf -> {
+            match arg_type {
+                is FnType as af -> {
+                    n :: min(pf.params.len(), af.params.len())
+                    for i in 0..<n { unify_type_param(pf.params[i], af.params[i], out) }
+                    unify_type_param(pf.return_type, af.return_type, out)
+                }
+                _ -> {}
+            }
+            return
+        }
+        is UnionType as pu -> {
+            match arg_type {
+                is UnionType as au -> { unify_unions(pu, au, out) }
+                _ -> {}
+            }
+            return
+        }
+        _ -> {}
+    }
+}
+
+/// True if `t` contains at least one `TypeParam` anywhere in its
+/// shape. Generic-fn dispatch uses this to decide whether the
+/// argument types must drive substitution.
+export type_contains_type_param :: fn(t: Type) -> bool {
+    match t {
+        is TypeParamType -> { return true }
+        is ArrayType as a -> { return type_contains_type_param(a.element) }
+        is TupleType as tu -> {
+            for el in tu.elements { if type_contains_type_param(el) { return true } }
+            return false
+        }
+        is StructType as s -> { return any_contains(s.args) }
+        is TraitType as tr -> { return any_contains(tr.args) }
+        is FnType as f -> {
+            for p in f.params { if type_contains_type_param(p) { return true } }
+            return type_contains_type_param(f.return_type)
+        }
+        is UnionType as u -> {
+            for v in u.variants { if type_contains_type_param(v) { return true } }
+            return false
+        }
+        _ -> { return false }
+    }
+}
+
+// ---- helpers --------------------------------------------------------------
+
+any_contains :: fn(ts: Type[]) -> bool {
+    for t in ts { if type_contains_type_param(t) { return true } }
+    return false
+}
+
+unify_args :: fn(p_args: Type[], a_args: Type[], out: MutableMap(i32, Type)) -> void {
+    n :: min(p_args.len(), a_args.len())
+    for i in 0..<n { unify_type_param(p_args[i], a_args[i], out) }
+}
+
+unify_unions :: fn(pu: UnionType, au: UnionType, out: MutableMap(i32, Type)) -> void {
+    // Pair off exact-equal variants first (`null`, concrete primitives),
+    // then position-match the leftovers. The "concrete first" pass
+    // prevents `T | null` from spuriously binding `T = null`.
+    arg_used: bool[] = []
+    for _ in au.variants { arg_used.push(false) }
+    remaining_param: Type[] = []
+    for pv in pu.variants {
+        idx :: find_unused_equal(au.variants, arg_used, pv)
+        if idx >= 0 { arg_used[usize(idx)] = true }
+        else { remaining_param.push(pv) }
+    }
+    remaining_arg: Type[] = []
+    for i in 0..<au.variants.len() {
+        if !arg_used[i] { remaining_arg.push(au.variants[i]) }
+    }
+    m :: min(remaining_param.len(), remaining_arg.len())
+    for i in 0..<m { unify_type_param(remaining_param[i], remaining_arg[i], out) }
+}
+
+find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
+    for i in 0..<types.len() {
+        if !used[i] && equals_type(types[i], target) { return i32(i) }
+    }
+    return i32(-1)
+}
+
+import "std/math" { min }

@@ -47,6 +47,15 @@ export TypedProgram :: struct {
     /// can walk a struct's field list to type `obj.f` accesses without
     /// re-walking the program AST.
     struct_decls: MutableMap(i32, StructDecl)
+
+    /// Per-binding narrowed type stack (`Symbol.id → narrowed Type`).
+    /// `narrow.vader` writes when a flow-sensitive narrowing is active
+    /// (e.g. inside the then-branch of `if x is T as a`) ; readers go
+    /// through `narrow_for_binding` so they fall back to the static
+    /// type when no narrowing is in effect. MVP : not populated yet
+    /// (resolver doesn't thread `bind_as` symbols for `is T as a`
+    /// inside if-exprs).
+    narrowed_bindings: MutableMap(i32, Type)
 }
 
 /// Across the whole project — multi-module aggregation. Populated by
@@ -66,6 +75,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .param_types     = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .type_expr_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .struct_decls    = MutableMap(i32, StructDecl) { .buckets = [], .size = 0 },
+        .narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 },
     }
 }
 

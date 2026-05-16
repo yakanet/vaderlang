@@ -1,0 +1,46 @@
+// vader/typecheck/narrow — flow-sensitive type narrowing.
+//
+// API for pushing / popping narrowed types into a per-binding stack.
+// Consumers (`infer_ident`, future `is T as a` handling in
+// `expr_if.vader` / `match_expr.vader`) call `narrow_for_binding` to
+// read the current narrowed type, falling back to the binding's
+// static type when no narrowing is in effect.
+//
+// MVP : the API is in place but no producer is wired yet. The
+// resolver's body walker doesn't mint a `Binding` Symbol for the
+// `bind_as` ident of a `BinaryExpr.Is` (it only handles `IsPattern`
+// in match arms today) ; once that lands, `expr_if.vader::infer_if`
+// will call `push_narrow` before the then-branch.
+
+import "vader/typecheck/types" { Type }
+import "vader/typecheck/typed_ast" { TypedProgram }
+
+/// Push a narrowed type for `sym_id` ; returns the prior narrowing
+/// (or null) so the caller can restore it on scope exit.
+export push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> Type | null {
+    prev :: typed.narrowed_bindings[sym_id]
+    typed.narrowed_bindings[sym_id] = narrowed
+    return prev
+}
+
+/// Restore the prior narrowing for `sym_id`. Pair with `push_narrow`.
+/// When `prev` is null the slot is overwritten with the binding's
+/// static type ; downstream `narrow_for_binding` then falls back to
+/// the static type. (MutableMap has no remove() ; we treat the
+/// "absent" state as "matches static" by convention.)
+export pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: Type | null, static_ty: Type) -> void {
+    match prev {
+        is null -> { typed.narrowed_bindings[sym_id] = static_ty }
+        _ -> { typed.narrowed_bindings[sym_id] = prev }
+    }
+}
+
+/// Look up the current narrowed type for `sym_id`, falling back to
+/// `static_ty` when no narrowing is active for that binding.
+export narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Type) -> Type {
+    cur :: typed.narrowed_bindings[sym_id]
+    match cur {
+        is null -> { return static_ty }
+        _ -> { return cur }
+    }
+}

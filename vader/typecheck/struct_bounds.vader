@@ -1,0 +1,24 @@
+// vader/typecheck/struct_bounds — struct-level bound enforcement at
+// instantiation sites.
+//
+// When the user writes `Foo[Bar]`, the typechecker must verify that
+// `Bar` satisfies every bound on `Foo`'s typeParams (e.g.
+// `Foo[T: Display]` rejects `Foo[i32]` if `i32` doesn't impl
+// `Display`). The TS side checks at struct-instantiation time inside
+// `lower_expr_as_type` / `infer_struct_lit`.
+//
+// MVP : no-op. Bounds aren't surfaced on `TypeParam` AST nodes today,
+// so there's nothing to enforce. API lives here so future work plugs
+// in without changing every call site.
+
+import "vader/diagnostics/diagnostic" { Diagnostic, Span }
+import "vader/typecheck/types" { Type }
+import "vader/typecheck/typed_ast" { TypedProgram }
+
+/// Verify that `args` satisfy the bounds attached to `type_param_syms`.
+/// MVP : no-op (no bound storage yet).
+export check_struct_bounds :: fn(
+    _: Type[], _: Span, _: TypedProgram, _: Diagnostic[],
+) -> void {
+    return
+}
