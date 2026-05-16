@@ -1,0 +1,118 @@
+// vader/resolver/wire — resolve each ImportBinding symbol to its
+// concrete export target across the module graph.
+//
+// Mirror of `src/resolver/wire.ts::wireImports`. Produces a
+// side-table keyed by Symbol.id so the symbol graph stays
+// immutable.
+
+import "std/collections" { MutableMap }
+import "vader/resolver/imports" { ImportInfo }
+import "vader/resolver/loader" { LoadedProject, LoadedModule }
+import "vader/resolver/module" { Module }
+import "vader/resolver/symbol" { Symbol }
+
+/// What an ImportBinding resolves to. `Module` form is the
+/// `name :: import "p"` namespace ; `SymbolTarget` is a destructured
+/// name (`{ foo }`) wired to its export in the source module ;
+/// `Missing` covers unresolved imports / unknown names / private
+/// exports — typecheck consumers fall back to Unresolved.
+export ImportTarget :: ModuleTarget | SymbolTarget | MissingTarget
+
+export ModuleTarget  :: struct { module: Module }
+export SymbolTarget  :: struct { symbol: Symbol, module: Module }
+export MissingTarget :: struct {}
+
+/// `Symbol.id → ImportTarget`. Built once from a `LoadedProject` ;
+/// every typecheck pass reads it via `resolve_import_redirect`.
+export ImportTargetTable :: MutableMap(i32, ImportTarget)
+
+/// Wire every ImportBinding across every loaded module. Each
+/// binding looks up its declared module via the project's
+/// path-to-module index, then resolves either to the module itself
+/// (namespace form) or to a named export.
+export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
+    out :: MutableMap(i32, ImportTarget) { .buckets = [], .size = 0 }
+    for module_id in project.modules.keys() {
+        loaded :: project.modules[module_id]
+        if loaded is null { continue }
+        path_index :: build_path_index(loaded, project)
+        wire_module(loaded, path_index, project, out)
+    }
+    return out
+}
+
+import "std/collections" { keys }
+
+wire_module :: fn(
+    loaded: LoadedModule, path_index: MutableMap(string, string),
+    project: LoadedProject, out: ImportTargetTable,
+) -> void {
+    for sym_id in loaded.collected.imports.keys() {
+        info :: loaded.collected.imports[sym_id]
+        if info is null { continue }
+        target_id :: path_index[info.path]
+        if target_id is null {
+            out[sym_id] = MissingTarget {}
+            continue
+        }
+        target_loaded :: project.modules[target_id]
+        if target_loaded is null {
+            out[sym_id] = MissingTarget {}
+            continue
+        }
+        match info.imported_name {
+            is null -> { out[sym_id] = ModuleTarget { .module = target_loaded.module } }
+            _ -> {
+                exported :: target_loaded.collected.symbols[info.imported_name]
+                if exported is null { out[sym_id] = MissingTarget {} }
+                else { out[sym_id] = SymbolTarget { .symbol = exported, .module = target_loaded.module } }
+            }
+        }
+    }
+}
+
+/// Build a path→module-id index for one module's imports. The
+/// resulting map sends each raw `import "path"` text to the
+/// canonical id of its resolved target module.
+build_path_index :: fn(
+    loaded: LoadedModule, project: LoadedProject,
+) -> MutableMap(string, string) {
+    index :: MutableMap(string, string) { .buckets = [], .size = 0 }
+    stdlib_root :: stdlib_root_from(project)
+    from_file :: loaded.module.files[0].path
+    for raw in loaded.collected.import_paths {
+        resolved :: try_resolve(raw, from_file, stdlib_root)
+        if resolved is null { continue }
+        if project.modules[resolved] is null { continue }
+        index[raw] = resolved
+    }
+    return index
+}
+
+import "vader/resolver/module" { default_stdlib_root, module_id_from_root, resolve_import_path }
+
+try_resolve :: fn(raw: string, from_file: string, stdlib_root: string) -> string | null {
+    target :: resolve_import_path(raw, from_file, stdlib_root)
+    if target is null { return null }
+    return module_id_from_root(target)
+}
+
+stdlib_root_from :: fn(_: LoadedProject) -> string { return default_stdlib_root() }
+
+/// Follow an ImportBinding `sym` to its concrete export target,
+/// when known. For non-import symbols (or for module-namespace
+/// bindings / missing targets) returns `sym` unchanged — callers
+/// can detect the "still an import-binding" case via `sym.kind`.
+export resolve_import_redirect :: fn(sym: Symbol, table: ImportTargetTable) -> Symbol {
+    if i32(sym.kind) != i32(import_binding_kind()) { return sym }
+    target :: table[sym.id]
+    if target is null { return sym }
+    match target {
+        is SymbolTarget as st -> { return st.symbol }
+        _ -> { return sym }
+    }
+}
+
+import "vader/resolver/symbol" { SymbolKind }
+
+import_binding_kind :: fn() -> SymbolKind { return .ImportBinding }

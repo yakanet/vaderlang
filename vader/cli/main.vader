@@ -18,7 +18,8 @@ import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
 import "vader/resolver/resolve" { ResolvedProject, ResolvedModule, resolve_module }
 import "vader/resolver/dump" { dump_project }
-import "vader/typecheck/orchestrate" { check_module_with_bodies }
+import "vader/typecheck/orchestrate" { check_module_with_bodies, check_project_with_bodies }
+import "vader/resolver/loader" { load_project }
 import "vader/typecheck/dump" { dump_program as dump_typed }
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/fmt/cli" { run_fmt }
@@ -380,6 +381,11 @@ run_resolver_stage :: fn(file: string) -> i32 {
 // (body checking). Format matches `src/typecheck/dump-text.ts` so the
 // future parity stage can byte-diff stdout.
 run_typecheck_stage :: fn(file: string) -> i32 {
+    // Single-module pipeline. The multi-module variant
+    // `check_project_with_bodies` exists in `orchestrate.vader` but
+    // hits a native-runtime regression on stdlib loading ; the TS
+    // interpreter executes it correctly, so all unit tests pass.
+    // Wiring it back in once the runtime bug is fixed is one line.
     src :: read_source(file)
     if src is null { return 1 }
     parsed :: parse_source(src, file)

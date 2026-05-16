@@ -18,13 +18,21 @@ import "vader/parser" {
     ImportBinding, NamedNamespaceImport, DestructureImport,
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
+import "vader/resolver/imports" { ImportInfo, new_import_table }
 
 /// Output of one module's collect pass.
 /// `symbols` is keyed by local name ; `fn_overloads` carries every fn
 /// declaration grouped by name (length > 1 only for actual overloads).
+/// `imports` records each ImportBinding's source `(path, imported_name)`
+/// keyed by Symbol.id — consumed by the wire pass to resolve each
+/// binding to its concrete target.
 export CollectedModule :: struct {
     symbols:      MutableMap(string, Symbol)
     fn_overloads: MutableMap(string, Symbol[])
+    imports:      MutableMap(i32, ImportInfo)
+    /// Raw `import "path"` entries in source order — the loader uses
+    /// these to walk the module graph transitively.
+    import_paths: string[]
 }
 
 /// Mint top-level symbols for `program`. Order of insertion mirrors source
@@ -36,6 +44,8 @@ export collect_module :: fn(
     out :: CollectedModule {
         .symbols      = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
         .fn_overloads = MutableMap(string, Symbol[]) { .buckets = [], .size = 0 },
+        .imports      = new_import_table(),
+        .import_paths = [],
     }
     for d in program.decls {
         out.collect_decl(d, module_path, factory)
@@ -112,19 +122,22 @@ add_named :: fn(
 /// yield one (the namespace name) ; destructure imports yield one per
 /// binding (matches TS one-symbol-per-name behaviour).
 collect_import :: fn(self: CollectedModule, d: ImportDecl, module_path: string, factory: SymbolFactory) -> void {
+    self.import_paths.push(d.path)
     b :: d.binding
     match b {
         is NamedNamespaceImport as ns -> {
-            self.bind_import(ns.name, d.span, module_path, factory)
+            // `name :: import "p"` — namespace binding ; imported_name = null.
+            self.bind_import(ns.name, d.span, d.path, null, module_path, factory)
         }
         is DestructureImport as de -> {
             for n in de.names {
-                a :: n.alias
-                local := match a {
-                    is string -> a
-                    is null   -> n.name
+                local := match n.alias {
+                    is string as alias -> alias
+                    is null            -> n.name
                 }
-                self.bind_import(local, n.span, module_path, factory)
+                // `import "p" { foo as bar }` — imported_name is `foo`,
+                // local binding is `bar` (or `foo` if no alias).
+                self.bind_import(local, n.span, d.path, n.name, module_path, factory)
             }
         }
     }
@@ -132,6 +145,7 @@ collect_import :: fn(self: CollectedModule, d: ImportDecl, module_path: string, 
 
 bind_import :: fn(
     self: CollectedModule, local: string, span: Span,
+    import_path: string, imported_name: string | null,
     module_path: string, factory: SymbolFactory,
 ) -> void {
     // First-wins ; R2011 (import shadow) is TODO.
@@ -141,6 +155,10 @@ bind_import :: fn(
         is null   -> {
             sym :: factory.make(.ImportBinding, local, module_path, .Private, span)
             self.symbols[local] = sym
+            self.imports[sym.id] = ImportInfo {
+                .path = import_path,
+                .imported_name = imported_name,
+            }
         }
     }
 }

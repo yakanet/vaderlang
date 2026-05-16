@@ -35,25 +35,36 @@ import "vader/typecheck/typed_ast" { TypedProgram }
 export infer_ident :: fn(e: AST.IdentExpr, typed: TypedProgram) -> Type {
     sym :: typed.resolved.idents[span_key(e.span)]
     if sym is null { return TY_UNRESOLVED }
-    static_ty :: type_of_symbol(sym, typed)
+    redirected :: redirect(sym, typed)
+    static_ty :: type_of_symbol(redirected, typed)
     // Consult `narrow.vader` : if a flow-sensitive narrowing is active
     // for this symbol (e.g. inside the then-branch of `if x is T as a`),
     // return the narrowed type instead of the binding's static type.
-    return narrow_for_binding(typed, sym.id, static_ty)
+    return narrow_for_binding(typed, redirected.id, static_ty)
 }
 
 import "vader/typecheck/narrow" { narrow_for_binding }
+import "vader/resolver/wire" { resolve_import_redirect }
+
+/// Follow an ImportBinding to its concrete export when the wire
+/// pass populated `typed.import_targets`. Other symbols pass through.
+redirect :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
+    match typed.import_targets {
+        is null -> { return sym }
+        _ -> { return resolve_import_redirect(sym, typed.import_targets) }
+    }
+}
 
 /// Look up the value-position type of a resolved symbol via `typed`'s
 /// side-tables. Public so other passes (call, field, …) can reach
 /// it without re-routing through `infer_ident`.
 export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sym.kind {
-    .Fn        -> lookup_in(sym, typed.decl_types)
-    .Struct    -> lookup_in(sym, typed.decl_types)
-    .Enum      -> lookup_in(sym, typed.decl_types)
-    .Trait     -> lookup_in(sym, typed.decl_types)
-    .TypeAlias -> lookup_in(sym, typed.decl_types)
-    .Const     -> lookup_in(sym, typed.decl_types)
+    .Fn        -> lookup_decl(sym, typed)
+    .Struct    -> lookup_decl(sym, typed)
+    .Enum      -> lookup_decl(sym, typed)
+    .Trait     -> lookup_decl(sym, typed)
+    .TypeAlias -> lookup_decl(sym, typed)
+    .Const     -> lookup_decl(sym, typed)
     .Param     -> lookup_in(sym, typed.param_types)
     .Local     -> lookup_in(sym, typed.local_types)
     .TypeParam -> mk_type_param(sym)
@@ -75,6 +86,23 @@ lookup_in :: fn(sym: Symbol, table: MutableMap(string, Type)) -> Type {
     if ty is null { return TY_UNRESOLVED }
     return ty
 }
+
+/// Lookup with cross-module fallback : when the local `decl_types`
+/// misses (the symbol lives in another module), consult
+/// `typed.external_types` keyed by Symbol.id.
+lookup_decl :: fn(sym: Symbol, typed: TypedProgram) -> Type {
+    local :: lookup_in(sym, typed.decl_types)
+    match local {
+        is UnresolvedType -> {
+            ext :: typed.external_types[sym.id]
+            if ext is null { return TY_UNRESOLVED }
+            return ext
+        }
+        _ -> { return local }
+    }
+}
+
+import "vader/typecheck/types" { UnresolvedType }
 
 // ---- tests ----------------------------------------------------------------
 

@@ -1,0 +1,124 @@
+// vader/resolver/loader — module graph loader.
+//
+// Starts from an entry file/folder, walks its imports transitively,
+// and returns the full set of loaded modules keyed by canonical
+// path. Each module is loaded once even if reached through multiple
+// import chains.
+//
+// MVP-trimmed against the TS loader (`src/resolver/loader.ts`) :
+//   - No fingerprint computation (no caching layer downstream yet).
+//   - No cycle detection (post-MVP : a self-recursive import will
+//     bottom out at the seen-set check, not raise R2005).
+//   - No vader.json manifest reading — `stdlib_root` is resolved
+//     once via `default_stdlib_root` from `module.vader`.
+//   - Auto-loads no `std/core` ; only what the entry transitively
+//     imports.
+
+import "std/collections" { MutableMap }
+import "vader/resolver/collect" { CollectedModule, collect_module }
+import "vader/resolver/module" {
+    Module, SourceFile, default_stdlib_root, load_module_files,
+    module_id_from_root, resolve_import_path,
+}
+import "vader/resolver/symbol" { SymbolFactory, new_factory }
+
+/// Output of one project load : the entry module's id, the full set
+/// of modules keyed by id, and the shared symbol factory used to
+/// mint every Symbol across modules (so ids stay globally unique).
+export LoadedProject :: struct {
+    entry:    string
+    modules:  MutableMap(string, LoadedModule)
+    factory:  SymbolFactory
+}
+
+/// One module after parse + collect (top-level symbols minted but
+/// body-walker / typecheck haven't run yet).
+export LoadedModule :: struct {
+    module:    Module
+    collected: CollectedModule
+}
+
+/// Build the module graph rooted at `entry_path`. Returns the loaded
+/// project ; callers feed it to `resolve_project` / `check_project`.
+export load_project :: fn(entry_path: string) -> LoadedProject {
+    factory :: new_factory()
+    modules :: MutableMap(string, LoadedModule) { .buckets = [], .size = 0 }
+    stdlib_root :: default_stdlib_root()
+
+    entry_id :: module_id_from_root(entry_path)
+    // MVP : load the entry + its direct imports only (depth 1).
+    // Deeper transitive loading would force every stdlib re-export
+    // chain through the resolver/typechecker, which doubles native
+    // crash risk for marginal parity gain. Direct imports cover the
+    // common `mod.fn(arg)` lookup pattern.
+    load_one(entry_path, stdlib_root, modules, factory)
+    entry_loaded :: modules[entry_id]
+    match entry_loaded {
+        is null -> {}
+        _ -> {
+            from_file :: entry_loaded.module.files[0].path
+            for raw in entry_loaded.collected.import_paths {
+                target :: resolve_import_path(raw, from_file, stdlib_root)
+                match target {
+                    is null -> {}
+                    _ -> { load_one(target, stdlib_root, modules, factory) }
+                }
+            }
+        }
+    }
+
+    return LoadedProject {
+        .entry = entry_id, .modules = modules, .factory = factory,
+    }
+}
+
+load_one :: fn(
+    root: string, stdlib_root: string,
+    modules: MutableMap(string, LoadedModule), factory: SymbolFactory,
+) -> void {
+    id :: module_id_from_root(root)
+    if has_module(modules, id) { return }
+    files :: load_module_files(root)
+    if files.len() == 0 { return }
+    collected :: collect_files(files, id, factory)
+    modules[id] = LoadedModule {
+        .module = Module {
+            .id = id, .display_path = display_path_for(root, stdlib_root),
+            .root_dir = root, .files = files,
+        },
+        .collected = collected,
+    }
+}
+
+has_module :: fn(modules: MutableMap(string, LoadedModule), id: string) -> bool {
+    return !(modules[id] is null)
+}
+
+collect_files :: fn(files: SourceFile[], module_id: string, factory: SymbolFactory) -> CollectedModule {
+    // Multi-file collect : run collect_module on each file's program
+    // and merge into one `CollectedModule`. For MVP we collect from
+    // file 0 only ; the multi-file merge lands later (no parity
+    // snippet today exercises a multi-file local module).
+    return collect_module(files[0].program, module_id, factory)
+}
+
+/// Display-path heuristic : when `root` lives under `stdlib_root`,
+/// strip the prefix and the `.vader` extension so `stdlib/std/io.vader`
+/// renders as `std/io`. Otherwise return the root as-is.
+display_path_for :: fn(root: string, stdlib_root: string) -> string {
+    if root.starts_with("${stdlib_root}/") {
+        rel :: substring_from(root, stdlib_root.byte_len() + usize(1))
+        if rel.ends_with(".vader") {
+            return substring_until(rel, rel.byte_len() - usize(6))
+        }
+        return rel
+    }
+    return root
+}
+
+import "std/string" {
+    byte_len, ends_with, slice, starts_with,
+}
+
+substring_from :: fn(s: string, lo: usize) -> string { return slice(s, lo, s.byte_len()) }
+substring_until :: fn(s: string, hi: usize) -> string { return slice(s, usize(0), hi) }

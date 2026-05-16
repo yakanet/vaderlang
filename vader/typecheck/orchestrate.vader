@@ -4,18 +4,27 @@
 // callers get a fully-typed program in one call. Kept separate so
 // `check.vader` stays free of `expr` / `stmt` imports (see header
 // of `check.vader` for the cycle rationale).
+//
+// Also exposes `check_project_with_bodies` which takes a
+// `LoadedProject` (multi-module) and propagates wire + cross-module
+// type info into the entry module's `TypedProgram`.
 
+import "std/collections" { MutableMap, keys }
 import "vader/diagnostics/diagnostic" { Diagnostic }
 AST :: import "vader/parser/ast"
 import "vader/parser/ast" { Program }
-import "vader/resolver/resolve" { ResolvedModule }
+import "vader/resolver/loader" { LoadedProject, LoadedModule }
+import "vader/resolver/resolve" { ResolvedModule, resolve_module }
 import "vader/resolver/scope" { span_key }
-import "vader/resolver/symbol" { SymbolFactory }
+import "vader/resolver/symbol" { Symbol, SymbolFactory }
+import "vader/resolver/wire" { wire_imports, ImportTargetTable }
 import "vader/typecheck/check" { check_module, CheckResult }
+import "vader/typecheck/decl" { declare_module }
 import "vader/typecheck/expr" { check_expr }
 import "vader/typecheck/stmt" { check_fn_body }
 import "vader/typecheck/type_ops" { default_if_free }
-import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
+import "vader/typecheck/types" { Type }
 
 /// Run the full typecheck pipeline : decl-level + body-walking. The
 /// result carries the same `TypedProgram` + `ImplRegistry` as
@@ -27,6 +36,124 @@ export check_module_with_bodies :: fn(
     result :: check_module(program, resolved, factory, diags)
     walk_bodies(program.decls, result.typed, diags)
     return result
+}
+
+/// Multi-module typecheck. Resolves + typechecks every loaded
+/// module, wires imports, and returns the entry module's
+/// `CheckResult` with `import_targets` + `external_types` populated
+/// so cross-module ident lookups resolve to concrete types.
+export check_project_with_bodies :: fn(
+    project: LoadedProject, diags: Diagnostic[],
+) -> CheckResult {
+    // Per-module typecheck pass.
+    per_module :: MutableMap(string, TypedProgram) { .buckets = [], .size = 0 }
+    for id in project.modules.keys() {
+        loaded :: project.modules[id]
+        if loaded is null { continue }
+        rm :: resolve_module(loaded.module.files[0].program, id, project.factory)
+        typed :: new_typed_program(rm)
+        declare_module(loaded.module.files[0].program.decls, rm, typed, project.factory, diags)
+        walk_bodies(loaded.module.files[0].program.decls, typed, diags)
+        per_module[id] = typed
+    }
+
+    // Wire imports across the project.
+    import_targets :: wire_imports(project)
+
+    // Re-load the entry module's TypedProgram and patch in the
+    // wire table + cross-module external types harvested from
+    // every other module's decl_types.
+    entry_typed :: per_module[project.entry]
+    if entry_typed is null {
+        // Shouldn't happen — load_project guarantees the entry is loaded.
+        return CheckResult { .typed = empty_fallback(project), .impls = empty_impls() }
+    }
+    entry_typed.import_targets = import_targets
+    populate_external_types(entry_typed, project, per_module)
+
+    entry_loaded :: project.modules[project.entry]
+    impls: ImplRegistry = empty_impls()
+    match entry_loaded {
+        is null -> {}
+        _ -> { impls = build_impl_registry(entry_loaded.module.files[0].program.decls, entry_typed.resolved) }
+    }
+    return CheckResult { .typed = entry_typed, .impls = impls }
+}
+
+import "vader/typecheck/impls" { ImplRegistry, build_impl_registry, new_registry }
+
+empty_impls :: fn() -> ImplRegistry { return new_registry() }
+
+empty_fallback :: fn(project: LoadedProject) -> TypedProgram {
+    loaded :: project.modules[project.entry]
+    match loaded {
+        is null -> {
+            // Defensive — load_project guarantees entry is loaded.
+            return new_typed_program(synth_resolved())
+        }
+        _ -> {
+            rm :: resolve_module(loaded.module.files[0].program, project.entry, project.factory)
+            return new_typed_program(rm)
+        }
+    }
+}
+
+synth_resolved :: fn() -> ResolvedModule {
+    return ResolvedModule {
+        .path = "",
+        .symbols = [],
+        .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+    }
+}
+
+/// For every Symbol id appearing in `import_targets` as a
+/// `SymbolTarget`, copy its declared type from the target module's
+/// `decl_types` into `entry_typed.external_types`. Lets
+/// `infer_ident` resolve a cross-module name to its full type
+/// without re-walking the project at lookup time.
+populate_external_types :: fn(
+    entry_typed: TypedProgram, project: LoadedProject,
+    per_module: MutableMap(string, TypedProgram),
+) -> void {
+    match entry_typed.import_targets {
+        is null -> {}
+        _ -> { populate_from(entry_typed.import_targets, entry_typed, per_module) }
+    }
+}
+
+populate_from :: fn(
+    targets: MutableMap(i32, ImportTarget), entry_typed: TypedProgram,
+    per_module: MutableMap(string, TypedProgram),
+) -> void {
+    ids :: targets.keys()
+    for sym_id in ids {
+        t :: targets[sym_id]
+        match t {
+            is SymbolTarget as st -> {
+                external :: lookup_external_type(st, per_module)
+                match external {
+                    is null -> {}
+                    _ -> { entry_typed.external_types[st.symbol.id] = external }
+                }
+            }
+            _ -> {}
+        }
+    }
+}
+
+import "vader/resolver/wire" { ImportTarget }
+
+import "vader/resolver/wire" { SymbolTarget }
+
+lookup_external_type :: fn(
+    st: SymbolTarget, per_module: MutableMap(string, TypedProgram),
+) -> Type | null {
+    target_id :: st.module.id
+    typed :: per_module[target_id]
+    if typed is null { return null }
+    sp :: st.symbol.defined_at
+    if sp is null { return null }
+    return typed.decl_types[span_key(sp)]
 }
 
 /// Walk every fn / const body in `decls` and type-check it. Skips
@@ -66,5 +193,3 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
         typed.decl_types[span_key(cd.name_span)] = default_if_free(got)
     }
 }
-
-import "vader/typecheck/types" { Type }

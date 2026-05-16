@@ -1,0 +1,155 @@
+// vader/resolver/module — module discovery + path resolution.
+//
+// A `Module` represents one resolved-on-disk unit. The MVP loader
+// supports two import forms :
+//
+//   - `import "std/foo"`  — resolves against the stdlib root (search
+//     order : `<cwd>/stdlib`, then via `$VADER_STDLIB` env when set).
+//   - `import "./foo"` or `import "../foo"` — resolves relative to
+//     the importing file's directory.
+//
+// Each candidate path is probed first as a directory (multi-file
+// module : every `*.vader` inside contributes), then as a single
+// `*.vader` file. The `displayPath` is what shows up in diagnostics
+// and dumps — for stdlib this is the raw `std/...` text ; for local
+// imports it's the path relative to the project / entry root.
+
+import "std/io" { exists, is_dir, read_dir, read_file }
+import "std/path" { Path, to_path, as_string, parent }
+import "std/sort" { sort }
+import "std/string" { byte_at, byte_len, compare_ascending, ends_with, slice, starts_with }
+import "vader/parser" { Program, parse_source }
+
+/// `import "std/..."` and stdlib display paths share this prefix.
+export STDLIB_PREFIX :: "std/"
+
+/// True when a display path identifies a stdlib module.
+export is_stdlib_module :: fn(display_path: string) -> bool {
+    return display_path.starts_with(STDLIB_PREFIX)
+}
+
+/// A loaded source file in a module — raw text plus its parsed AST.
+export SourceFile :: struct {
+    path:    string
+    content: string
+    program: Program
+}
+
+/// A resolved module : `id` is its canonical absolute root path,
+/// `display_path` is what users see, `files` is every file
+/// participating in the module (one for single-file, N for folders).
+export Module :: struct {
+    id:           string
+    display_path: string
+    root_dir:     string
+    files:        SourceFile[]
+}
+
+// ---------------------------------------------------------------- discovery
+
+/// Resolve a raw `import "<path>"` string to an on-disk location,
+/// or null. `from_file` is the absolute path of the file containing
+/// the import ; `stdlib_root` is where `std/...` lives.
+export resolve_import_path :: fn(
+    raw_path: string, from_file: string, stdlib_root: string,
+) -> string | null {
+    if raw_path.starts_with(STDLIB_PREFIX) {
+        return resolve_on_disk(join_path(stdlib_root, raw_path))
+    }
+    from_dir :: dir_of(from_file)
+    return resolve_on_disk(join_path(from_dir, raw_path))
+}
+
+/// Returns the absolute path when `path` exists as a directory or
+/// when `path` (or `path + ".vader"`) exists as a file. Null
+/// otherwise.
+export resolve_on_disk :: fn(path: string) -> string | null {
+    if exists(path) {
+        if is_dir(path) { return path }
+        if ends_with(path, ".vader") { return path }
+    }
+    with_ext :: "${path}.vader"
+    if exists(with_ext) { return with_ext }
+    return null
+}
+
+/// Canonical module id : just the resolved root path. Same physical
+/// location always maps to the same id.
+export module_id_from_root :: fn(root: string) -> string { return root }
+
+// ----------------------------------------------------- source-file loading
+
+/// Read every `.vader` file under `root_path` (sorted by filename),
+/// parse each, and return the resulting `SourceFile` list.
+export load_module_files :: fn(root_path: string) -> SourceFile[] {
+    out: SourceFile[] = []
+    files :: list_vader_files(root_path)
+    for f in files {
+        content :: try_read(f)
+        if content is null { continue }
+        parsed :: parse_source(content, f)
+        out.push(SourceFile {
+            .path = f,
+            .content = content,
+            .program = parsed.program,
+        })
+    }
+    return out
+}
+
+list_vader_files :: fn(root_path: string) -> string[] {
+    if !exists(root_path) { return [] }
+    if !is_dir(root_path) {
+        if ends_with(root_path, ".vader") { return [root_path] }
+        return []
+    }
+    raw :: try_read_dir(root_path)
+    if raw is null { return [] }
+    files: string[] = []
+    for name in raw {
+        if !ends_with(name, ".vader") { continue }
+        files.push(join_path(root_path, name))
+    }
+    return sort(files, (a: string, b: string) -> compare_ascending(a, b))
+}
+
+try_read :: fn(path: string) -> string | null {
+    result :: read_file(path)
+    match result {
+        is string as s -> { return s }
+        _ -> { return null }
+    }
+}
+
+try_read_dir :: fn(path: string) -> string[] | null {
+    result :: read_dir(path)
+    match result {
+        is string[] as ss -> { return ss }
+        _ -> { return null }
+    }
+}
+
+// ---------------------------------------------------------------- path utils
+
+/// Join two path segments with a `/` separator (no normalization).
+/// `base` "" yields `seg` unchanged. Doesn't strip trailing `/` from
+/// `base` ; callers are expected to pass clean inputs.
+export join_path :: fn(base: string, seg: string) -> string {
+    if base == "" { return seg }
+    if base.byte_at(base.byte_len() - usize(1)) == u8(0x2F) {
+        return "${base}${seg}"
+    }
+    return "${base}/${seg}"
+}
+
+/// Directory portion of `path` (everything before the last `/`).
+/// Returns "" when no separator is present. Uses `std/path::parent`.
+export dir_of :: fn(path: string) -> string { return path.to_path().parent().as_string() }
+
+/// Stdlib root discovery : default to `./stdlib` relative to cwd.
+/// Future work : probe sidecar layout next to the binary, read
+/// `$VADER_STDLIB` env, etc.
+export default_stdlib_root :: fn() -> string {
+    if exists("stdlib") && is_dir("stdlib") { return "stdlib" }
+    return "stdlib"
+}

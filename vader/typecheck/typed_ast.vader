@@ -62,7 +62,24 @@ export TypedProgram :: struct {
     /// `check_expr` ; consumed by `dump.vader` so the typed-ast dump
     /// can label each expression line without re-walking the AST.
     expr_kinds: MutableMap(string, string)
+
+    /// Per-ImportBinding redirect table : `Symbol.id → ImportTarget`.
+    /// Populated by `vader/resolver/wire.vader::wire_imports` ; null
+    /// for single-module pipelines where no wire pass ran. When set,
+    /// `infer_ident` / `infer_field` consult it to follow named
+    /// imports to their concrete export symbol's type.
+    import_targets: ImportTargetTable | null
+
+    /// Cross-module type cache : `Symbol.id → declared Type` for
+    /// every external symbol reachable via `import_targets`.
+    /// Populated by the multi-module orchestrator after typing each
+    /// module's decls. `type_of_symbol` falls back to this when the
+    /// per-module `decl_types[span_key(sym.defined_at)]` misses (the
+    /// symbol's `defined_at` is in another module).
+    external_types: MutableMap(i32, Type)
 }
+
+import "vader/resolver/wire" { ImportTargetTable }
 
 /// Across the whole project — multi-module aggregation. Populated by
 /// the orchestrator (`check.vader`).
@@ -83,6 +100,8 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .struct_decls    = MutableMap(i32, StructDecl) { .buckets = [], .size = 0 },
         .narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 },
         .expr_kinds      = MutableMap(string, string) { .buckets = [], .size = 0 },
+        .import_targets  = null,
+        .external_types  = MutableMap(i32, Type) { .buckets = [], .size = 0 },
     }
 }
 

@@ -1,0 +1,19 @@
+// vader/resolver/imports — per-ImportBinding side-table.
+//
+// Captures `(path, imported_name)` for each ImportBinding symbol so
+// the wire pass can resolve each binding to its concrete target in
+// the referenced module. `imported_name = null` means the binding
+// names the module itself (the `name :: import "p"` namespace form) ;
+// non-null means a destructured name (`import "p" { foo }` or
+// `{ foo as bar }` — `imported_name` is always the *exported* name).
+
+import "std/collections" { MutableMap }
+
+export ImportInfo :: struct {
+    path:          string
+    imported_name: string | null
+}
+
+export new_import_table :: fn() -> MutableMap(i32, ImportInfo) {
+    return MutableMap(i32, ImportInfo) { .buckets = [], .size = 0 }
+}
