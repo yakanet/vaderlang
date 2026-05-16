@@ -11,18 +11,12 @@
 
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
+// `PRIMITIVE_NAMES` is the source of truth in `vader/typecheck/types.vader`.
+// Consumers needing the list import it directly from there.
+import "vader/typecheck/types" { PRIMITIVE_NAMES }
 
 /// Synthetic module id every builtin symbol carries in its `.module` field.
 export BUILTIN_MODULE_ID :: "<builtin>"
-
-/// Canonical primitive type names. Same set as
-/// `src/typecheck/types.ts:PRIMITIVE_NAMES`.
-export PRIMITIVE_NAMES :: [
-    "i8", "i16", "i32", "i64", "isize",
-    "u8", "u16", "u32", "u64", "usize",
-    "f32", "f64",
-    "bool", "char", "string", "void", "null",
-]
 
 /// Friendly aliases that map transparently to canonical primitive names.
 export BUILTIN_TYPE_ALIASES :: ["int", "long", "float", "double", "byte"]

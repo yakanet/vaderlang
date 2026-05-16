@@ -8,6 +8,7 @@ import type { LoweredDecl, LoweredProject } from "../../lower/index.ts";
 import { writeVir } from "../../bytecode/text.ts";
 import { dumpCFGProject } from "../../midir/dump.ts";
 import { formatResolverDump } from "../../resolver/dump-text.ts";
+import { formatTypedDump } from "../../typecheck/dump-text.ts";
 
 /** Stages the frontend pipeline can produce today. Mirrors `PipelineStage`. */
 const IMPLEMENTED_STAGES = ["ast", "resolved-ast", "typed-ast", "evaluated-ast", "lowered-ast", "dced-ast", "cfg", "bytecode"] as const;
@@ -41,7 +42,7 @@ export async function cmdDump(opts: GlobalOpts, args: string[]): Promise<number>
   switch (stage) {
     case "ast":           return runStage(opts, file, runAst);
     case "resolved-ast":  return runResolvedAstStage(opts, file);
-    case "typed-ast":     return runStage(opts, file, runTypedAst);
+    case "typed-ast":     return runTypedAstStage(opts, file);
     case "evaluated-ast": return runStage(opts, file, (f) => runEvaluatedAst(f, opts));
     case "lowered-ast":   return runStage(opts, file, (f) => runLoweredAst(f, opts));
     case "dced-ast":      return runStage(opts, file, (f) => runDcedAst(f, opts));
@@ -176,23 +177,17 @@ function declName(d: LoweredDecl["origin"]["decl"]): string {
   return d.kind === "ImplDecl" ? `<${d.traitName} for ?>` : d.name;
 }
 
-async function runTypedAst(file: string) {
+/** Text dump matching `tests/snapshot.ts::dumpTypecheck` byte-for-byte so
+ *  `tests/parity.test.ts` can compare stdout against the snapshot.
+ *  Shares `formatTypedDump` with the snapshot generator. */
+async function runTypedAstStage(opts: GlobalOpts, file: string): Promise<number> {
   const r = await pipelineTyped(file);
-  const output = {
-    modules: [...r.typed.modules.values()].map((p) => ({
-      module: p.resolved.module.displayPath,
-      decls: p.resolved.source.decls
-        .filter((d) => "name" in d)
-        .map((d) => {
-          const ty = p.declTypes.get(d);
-          return {
-            kind: d.kind,
-            name: "name" in d ? d.name : null,
-            type: ty !== undefined ? displayType(ty) : null,
-          };
-        }),
-      counts: { exprs: p.exprTypes.size, locals: p.localTypes.size },
-    })),
-  };
-  return { output, diagnostics: r.diagnostics, source: r.source };
+  const sorted = r.diagnostics.sorted();
+  if (sorted.length > 0) {
+    console.error(opts.diagnostics === "json"
+      ? renderAllJson(sorted)
+      : renderAllTextSingle(sorted, file, r.source));
+  }
+  process.stdout.write(formatTypedDump(r.typed));
+  return sorted.some((d) => d.severity === "error") ? 1 : 0;
 }

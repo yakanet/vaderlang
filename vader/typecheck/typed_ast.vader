@@ -1,0 +1,109 @@
+// vader/typecheck/typed_ast — output shape of the typechecker.
+//
+// Mirror of `src/typecheck/typed-ast.ts`'s `TypedProgram` interface, but
+// MVP-trimmed : side-tables that depend on passes not yet ported
+// (FieldResolution / BinaryOpResolution / IntoCoercion / …) are added
+// alongside their producing pass. Side-tables are span-keyed (line:col)
+// — same convention as `vader/resolver/body.vader::ResolvedFile.idents`,
+// since Vader AST nodes lack stable ids for WeakMap-style indexing.
+
+import "std/collections" { MutableMap }
+import "vader/resolver/resolve" { ResolvedModule }
+import "vader/typecheck/types" { Type }
+
+/// Per-module typechecker output. Every side-table is keyed by a span
+/// string ("line:column") obtained from `scope.span_key(node.span)`.
+/// Consumers walk the resolved AST and look up types by span.
+export TypedProgram :: struct {
+    /// The upstream resolver's output for this module.
+    resolved: ResolvedModule
+
+    /// Type of every value-position expression. Includes literals,
+    /// idents, blocks, calls — see `expr.vader` for the dispatcher.
+    expr_types: MutableMap(string, Type)
+
+    /// Type of every `:=` / `::` local binding, keyed by binding span
+    /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt).
+    local_types: MutableMap(string, Type)
+
+    /// Type of every top-level decl (FnDecl, StructDecl, ConstDecl…).
+    /// Keyed by the decl's `name_span`. `ImplDecl` and `AssertDecl`
+    /// don't introduce a name and are absent here.
+    decl_types: MutableMap(string, Type)
+
+    /// Type of every fn / lambda parameter, keyed by `FnParam.span`.
+    param_types: MutableMap(string, Type)
+
+    /// Type of every type-position expression — `let x: T = …` annotations,
+    /// fn signatures, struct field types, etc. Keyed by the expression's
+    /// own span so downstream passes can reuse what `type_from_expr`
+    /// already computed.
+    type_expr_types: MutableMap(string, Type)
+}
+
+/// Across the whole project — multi-module aggregation. Populated by
+/// the orchestrator (`check.vader`).
+export TypedProject :: struct {
+    modules: MutableMap(string, TypedProgram)
+}
+
+/// Create an empty `TypedProgram` bound to `resolved`. All side-tables
+/// start empty ; the passes fill them in as they walk.
+export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
+    return TypedProgram {
+        .resolved        = resolved,
+        .expr_types      = MutableMap(string, Type) { .buckets = [], .size = 0 },
+        .local_types     = MutableMap(string, Type) { .buckets = [], .size = 0 },
+        .decl_types      = MutableMap(string, Type) { .buckets = [], .size = 0 },
+        .param_types     = MutableMap(string, Type) { .buckets = [], .size = 0 },
+        .type_expr_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
+    }
+}
+
+export new_typed_project :: fn() -> TypedProject {
+    return TypedProject {
+        .modules = MutableMap(string, TypedProgram) { .buckets = [], .size = 0 },
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/typecheck/types" { mk_primitive, PrimitiveType }
+import "vader/resolver/symbol" { Symbol }
+
+fresh_module :: fn() -> ResolvedModule {
+    return ResolvedModule {
+        .path = "test",
+        .symbols = [],
+        .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+    }
+}
+
+@test
+test_new_typed_program_has_empty_tables :: fn() -> void {
+    tp :: new_typed_program(fresh_module())
+    assert_eq(tp.expr_types.size, usize(0))
+    assert_eq(tp.local_types.size, usize(0))
+    assert_eq(tp.decl_types.size, usize(0))
+    assert_eq(tp.param_types.size, usize(0))
+    assert_eq(tp.type_expr_types.size, usize(0))
+}
+
+@test
+test_typed_program_stores_and_recovers_type :: fn() -> void {
+    tp :: new_typed_program(fresh_module())
+    tp.expr_types["3:5"] = mk_primitive("i32")
+    hit :: tp.expr_types["3:5"]
+    match hit {
+        is null -> { assert(false, "expected to recover the stored type") }
+        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
+        _ -> { assert(false, "expected a PrimitiveType") }
+    }
+}
+
+@test
+test_typed_project_initially_empty :: fn() -> void {
+    proj :: new_typed_project()
+    assert_eq(proj.modules.size, usize(0))
+}

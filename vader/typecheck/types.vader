@@ -1,0 +1,344 @@
+// vader/typecheck/types — the Type IR.
+//
+// Mirror of `src/typecheck/types.ts`. Every Vader value gets exactly one
+// Type. The discriminated union has 15 variants ; constructors are
+// plain factories (no hash-consing for MVP — `equals_type` in
+// `type_ops.vader` walks structurally instead of relying on reference
+// identity). Interning lands when a downstream hot path needs it.
+
+import "std/collections" { MutableMap }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "vader/resolver/symbol" { Symbol }
+
+// ---- variants -------------------------------------------------------------
+
+export PrimitiveType :: struct {
+    name: string
+}
+
+export StructType :: struct {
+    symbol: Symbol
+    args:   Type[]
+}
+
+export EnumType :: struct {
+    symbol:  Symbol
+    /// Backing integer type. Default `"i32"` ; set from `EnumDecl.repr`.
+    repr:    string
+    /// Variant indices keyed by name. Resolved by `declare_enum`.
+    indices: MutableMap(string, i64)
+}
+
+export TraitType :: struct {
+    symbol: Symbol
+    args:   Type[]
+}
+
+export UnionType :: struct {
+    /// Canonical : sorted by `display_type` output, deduped.
+    variants: Type[]
+}
+
+export FnType :: struct {
+    params:      Type[]
+    return_type: Type
+}
+
+export ArrayType :: struct {
+    element:   Type
+    /// When true, mutation through this slot is rejected at typecheck.
+    immutable: bool
+}
+
+export TupleType :: struct {
+    /// Heterogeneous fixed-arity sequence (≥ 2 elements).
+    elements: Type[]
+}
+
+export TypeParamType :: struct {
+    symbol: Symbol
+}
+
+export TypeMetaType :: struct {}
+export SelfType :: struct {}
+export UnresolvedType :: struct {}
+/// Untyped int literal — flexible until placed in a typed context.
+export FreeIntType :: struct {}
+/// Untyped float literal — flexible until placed in a typed context.
+export FreeFloatType :: struct {}
+/// Bottom type for `return` / `panic` etc. — assignable to anything.
+export NeverType :: struct {}
+
+/// The Type IR — discriminated union over every kind of Vader value.
+export Type ::
+    | PrimitiveType
+    | StructType
+    | EnumType
+    | TraitType
+    | UnionType
+    | FnType
+    | ArrayType
+    | TupleType
+    | TypeParamType
+    | TypeMetaType
+    | SelfType
+    | UnresolvedType
+    | FreeIntType
+    | FreeFloatType
+    | NeverType
+
+// ---- name registries ------------------------------------------------------
+
+/// Canonical primitive type names. Same set as
+/// `src/typecheck/types.ts::PRIMITIVE_NAMES`.
+export PRIMITIVE_NAMES :: [
+    "i8", "i16", "i32", "i64", "isize",
+    "u8", "u16", "u32", "u64", "usize",
+    "f32", "f64",
+    "bool", "char", "string", "void", "null",
+]
+
+export is_primitive_name :: fn(name: string) -> bool {
+    for n in PRIMITIVE_NAMES {
+        if n == name { return true }
+    }
+    return false
+}
+
+/// Names of stdlib core traits used for compiler-driven dispatch. Kept as
+/// plain string constants so cross-module symbol lookup goes through
+/// resolved imports rather than a privileged registry.
+export TRAIT_DISPLAY    :: "Display"
+export TRAIT_ERROR      :: "Error"
+export TRAIT_EQUALS     :: "Equals"
+export TRAIT_COMPARABLE :: "Comparable"
+export TRAIT_ADD        :: "Add"
+export TRAIT_SUB        :: "Sub"
+export TRAIT_MUL        :: "Mul"
+export TRAIT_DIV        :: "Div"
+export TRAIT_REM        :: "Rem"
+export TRAIT_HASH       :: "Hash"
+export TRAIT_CLONE      :: "Clone"
+export TRAIT_STEP       :: "Step"
+export TRAIT_INTO       :: "Into"
+export TRAIT_ITERATOR   :: "Iterator"
+export TRAIT_ITERABLE   :: "Iterable"
+export TRAIT_CONTAINS   :: "Contains"
+export TRAIT_INDEX      :: "Index"
+export TRAIT_INDEX_SET  :: "IndexSet"
+
+/// Names of stdlib core structs the compiler refers to by symbol.
+export STRUCT_RANGE          :: "Range"
+export STRUCT_ARRAY_ITERATOR :: "ArrayIterator"
+export STRUCT_YIELD          :: "Yield"
+export STRUCT_FIELD          :: "Field"
+
+// ---- constructors ---------------------------------------------------------
+
+export mk_primitive :: fn(name: string) -> Type {
+    return PrimitiveType { .name = name }
+}
+
+export mk_struct :: fn(symbol: Symbol, args: Type[]) -> Type {
+    return StructType { .symbol = symbol, .args = args }
+}
+
+export mk_trait :: fn(symbol: Symbol, args: Type[]) -> Type {
+    return TraitType { .symbol = symbol, .args = args }
+}
+
+export mk_enum :: fn(symbol: Symbol, repr: string, indices: MutableMap(string, i64)) -> Type {
+    return EnumType { .symbol = symbol, .repr = repr, .indices = indices }
+}
+
+export mk_array :: fn(element: Type, immutable: bool) -> Type {
+    return ArrayType { .element = element, .immutable = immutable }
+}
+
+export mk_tuple :: fn(elements: Type[]) -> Type {
+    return TupleType { .elements = elements }
+}
+
+export mk_fn :: fn(params: Type[], return_type: Type) -> Type {
+    return FnType { .params = params, .return_type = return_type }
+}
+
+/// Raw union constructor. Callers that need flattening + dedup must go
+/// through `union_of` in `type_ops.vader`.
+export mk_union :: fn(variants: Type[]) -> Type {
+    return UnionType { .variants = variants }
+}
+
+export mk_type_param :: fn(symbol: Symbol) -> Type {
+    return TypeParamType { .symbol = symbol }
+}
+
+export TY_TYPE       :: TypeMetaType {}
+export TY_SELF       :: SelfType {}
+export TY_UNRESOLVED :: UnresolvedType {}
+export TY_FREE_INT   :: FreeIntType {}
+export TY_FREE_FLOAT :: FreeFloatType {}
+export TY_NEVER      :: NeverType {}
+
+// ---- display --------------------------------------------------------------
+
+/// Render `t` as a human-readable string. Format mirrors
+/// `src/typecheck/types.ts::displayType` byte-for-byte so dumps stay
+/// stable across the TS↔Vader parity harness.
+export display_type :: fn(t: Type) -> string {
+    sb :: new_builder()
+    sb.write_type(t)
+    return sb.to_string()
+}
+
+write_type :: fn(sb: StringBuilder, t: Type) -> void {
+    match t {
+        is PrimitiveType as x -> { sb.append(x.name) }
+        is StructType    as x -> { sb.write_named(x.symbol.name, x.args) }
+        is EnumType      as x -> { sb.append(x.symbol.name) }
+        is TraitType     as x -> { sb.write_named(x.symbol.name, x.args) }
+        is TypeParamType as x -> {
+            sb.append_char('$')
+            sb.append(x.symbol.name)
+        }
+        is TypeMetaType       -> { sb.append("type") }
+        is SelfType           -> { sb.append("Self") }
+        is UnresolvedType     -> { sb.append("?") }
+        is NeverType          -> { sb.append("never") }
+        is FreeIntType        -> { sb.append("{integer}") }
+        is FreeFloatType      -> { sb.append("{float}") }
+        is ArrayType as x -> {
+            if x.immutable { sb.append("const ") }
+            sb.write_type(x.element)
+            sb.append("[]")
+        }
+        is TupleType as x -> {
+            sb.append_char('[')
+            sb.write_type_list(x.elements, ", ")
+            sb.append_char(']')
+        }
+        is FnType as x -> {
+            sb.append("fn(")
+            sb.write_type_list(x.params, ", ")
+            sb.append(") -> ")
+            sb.write_type(x.return_type)
+        }
+        is UnionType as x -> { sb.write_type_list(x.variants, " | ") }
+    }
+}
+
+write_named :: fn(sb: StringBuilder, name: string, args: Type[]) -> void {
+    sb.append(name)
+    if args.len() == 0 { return }
+    sb.append_char('(')
+    sb.write_type_list(args, ", ")
+    sb.append_char(')')
+}
+
+write_type_list :: fn(sb: StringBuilder, items: Type[], sep: string) -> void {
+    first := true
+    for it in items {
+        if !first { sb.append(sep) }
+        first = false
+        sb.write_type(it)
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/resolver/symbol" { SymbolKind, new_factory, make }
+import "vader/parser" { Visibility }
+
+@test
+test_display_primitive :: fn() -> void {
+    assert_eq(display_type(mk_primitive("i32")), "i32")
+    assert_eq(display_type(mk_primitive("string")), "string")
+}
+
+@test
+test_display_array :: fn() -> void {
+    arr :: mk_array(mk_primitive("i32"), false)
+    assert_eq(display_type(arr), "i32[]")
+    imm :: mk_array(mk_primitive("i32"), true)
+    assert_eq(display_type(imm), "const i32[]")
+}
+
+@test
+test_display_tuple :: fn() -> void {
+    el0: Type = mk_primitive("i32")
+    el1: Type = mk_primitive("string")
+    t :: mk_tuple([el0, el1])
+    assert_eq(display_type(t), "[i32, string]")
+}
+
+@test
+test_display_fn :: fn() -> void {
+    p0: Type = mk_primitive("i32")
+    p1: Type = mk_primitive("string")
+    f :: mk_fn([p0, p1], mk_primitive("bool"))
+    assert_eq(display_type(f), "fn(i32, string) -> bool")
+}
+
+@test
+test_display_union :: fn() -> void {
+    v0: Type = mk_primitive("i32")
+    v1: Type = mk_primitive("string")
+    u :: mk_union([v0, v1])
+    assert_eq(display_type(u), "i32 | string")
+}
+
+@test
+test_display_struct_with_args :: fn() -> void {
+    factory :: new_factory()
+    sym :: factory.make(.Struct, "MutableMap", "test", .Public, null)
+    a0: Type = mk_primitive("string")
+    a1: Type = mk_primitive("i32")
+    s :: mk_struct(sym, [a0, a1])
+    assert_eq(display_type(s), "MutableMap(string, i32)")
+}
+
+@test
+test_display_struct_without_args :: fn() -> void {
+    factory :: new_factory()
+    sym :: factory.make(.Struct, "Point", "test", .Public, null)
+    s :: mk_struct(sym, [])
+    assert_eq(display_type(s), "Point")
+}
+
+@test
+test_display_singletons :: fn() -> void {
+    assert_eq(display_type(TY_TYPE), "type")
+    assert_eq(display_type(TY_SELF), "Self")
+    assert_eq(display_type(TY_UNRESOLVED), "?")
+    assert_eq(display_type(TY_NEVER), "never")
+    assert_eq(display_type(TY_FREE_INT), "{integer}")
+    assert_eq(display_type(TY_FREE_FLOAT), "{float}")
+}
+
+@test
+test_display_type_param :: fn() -> void {
+    factory :: new_factory()
+    sym :: factory.make(.TypeParam, "T", "test", .Private, null)
+    tp :: mk_type_param(sym)
+    assert_eq(display_type(tp), "\$T")
+}
+
+@test
+test_is_primitive_name :: fn() -> void {
+    assert(is_primitive_name("i32"), "i32 is primitive")
+    assert(is_primitive_name("string"), "string is primitive")
+    assert(!is_primitive_name("MyStruct"), "user types are not primitive")
+}
+
+@test
+test_display_nested :: fn() -> void {
+    // fn(i32[], string) -> i32 | null
+    arr: Type = mk_array(mk_primitive("i32"), false)
+    str: Type = mk_primitive("string")
+    i32_t: Type = mk_primitive("i32")
+    null_t: Type = mk_primitive("null")
+    ret :: mk_union([i32_t, null_t])
+    f :: mk_fn([arr, str], ret)
+    assert_eq(display_type(f), "fn(i32[], string) -> i32 | null")
+}

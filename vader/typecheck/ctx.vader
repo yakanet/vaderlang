@@ -1,0 +1,102 @@
+// vader/typecheck/ctx — shared context threaded through every typecheck pass.
+//
+// Mirror of `src/typecheck/ctx.ts` but MVP-trimmed. Two layers :
+//
+//   - `Globals`    — built once per project. Carries cross-module shared
+//                    state (the symbol factory, the impl registry once
+//                    `impls.vader` lands).
+//   - `FnContext`  — pushed by `check_fn_body`, drives `return` checking
+//                    and `Self` substitution inside method bodies.
+//
+// Per-module side-tables live on `TypedProgram` directly (see
+// `typed_ast.vader`) rather than being duplicated here — that avoids
+// the TS-side split between `MutableTyped.exprTypes` (during) and
+// `TypedProgram.exprTypes` (after).
+
+import "std/collections" { MutableMap }
+import "vader/resolver/symbol" { Symbol, SymbolFactory }
+import "vader/typecheck/types" { Type }
+
+/// Project-level shared state. Built once at the start of `check_project`
+/// and threaded through every pass.
+export Globals :: struct {
+    /// Shared symbol id allocator. Typecheck mints synthetic locals
+    /// (`for <iter>` discard, narrowing temporaries) through this so ids
+    /// stay globally unique across phases.
+    factory: SymbolFactory
+
+    /// Auto-imported `std/core` symbols, looked up for `Display` /
+    /// `Error` / `Iterator` etc. when a trait reference dodges the
+    /// module's local imports. Populated by `check_project` once the
+    /// core module is resolved ; null pre-MVP / dump-only pipelines.
+    core_symbols: MutableMap(string, Symbol) | null
+}
+
+export new_globals :: fn(factory: SymbolFactory) -> Globals {
+    return Globals {
+        .factory      = factory,
+        .core_symbols = null,
+    }
+}
+
+/// Per-fn-body state — pushed by `check_fn_body`, consumed by `ReturnStmt`
+/// checking and `Self` substitution inside method bodies.
+export FnContext :: struct {
+    /// Type the body must return. `void` for fns without a `-> T` clause.
+    return_type: Type
+    /// `Self` substitution when type-checking a method inside an impl
+    /// block. `null` outside trait/impl context.
+    self_type:  Type | null
+    /// Loop depth — `break` / `continue` legal only when > 0.
+    loop_depth: i32
+}
+
+export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext {
+    return FnContext {
+        .return_type = return_type,
+        .self_type   = self_type,
+        .loop_depth  = 0,
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/resolver/symbol" { new_factory }
+import "vader/typecheck/types" { mk_primitive, PrimitiveType, TY_NEVER }
+
+@test
+test_new_globals_factory_starts_at_one :: fn() -> void {
+    factory :: new_factory()
+    g :: new_globals(factory)
+    assert_eq(g.factory.next, 1)
+    match g.core_symbols {
+        is null -> {}
+        _ -> { assert(false, "core_symbols should start null") }
+    }
+}
+
+@test
+test_new_fn_context_holds_return_type :: fn() -> void {
+    ctx :: new_fn_context(mk_primitive("i32"), null)
+    match ctx.return_type {
+        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
+        _ -> { assert(false, "expected i32 return type") }
+    }
+    assert_eq(ctx.loop_depth, 0)
+    match ctx.self_type {
+        is null -> {}
+        _ -> { assert(false, "self_type should start null") }
+    }
+}
+
+@test
+test_new_fn_context_records_self :: fn() -> void {
+    self_t: Type = mk_primitive("string")
+    ctx :: new_fn_context(TY_NEVER, self_t)
+    match ctx.self_type {
+        is null -> { assert(false, "self_type should be set") }
+        is .PrimitiveType as p -> { assert_eq(p.name, "string") }
+        _ -> { assert(false, "expected string self_type") }
+    }
+}

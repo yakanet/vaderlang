@@ -4,7 +4,7 @@
 // emits the same JSON schema as the TS compiler.
 
 import "std/string" { is_empty }
-import "vader/diagnostics/codes" { LexerCode, ParserCode, info, parser_info, CodeInfo }
+import "vader/diagnostics/codes" { LexerCode, ParserCode, TypecheckCode, info, parser_info, typecheck_info, CodeInfo }
 
 export Severity :: enum {
     Error,
@@ -53,6 +53,10 @@ export error :: fn(code: LexerCode, primary: Span, detail: string) =
 // Parser-side shortcut : `parser_error(.ExpectedToken, span, "...")`.
 export parser_error :: fn(code: ParserCode, primary: Span, detail: string) =
     make(.Error, parser_info(code), primary, detail)
+
+// Typecheck-side shortcut : `typecheck_error(.TypeMismatch, span, "expected i32")`.
+export typecheck_error :: fn(code: TypecheckCode, primary: Span, detail: string) =
+    make(.Error, typecheck_info(code), primary, detail)
 
 // Render a diagnostic as a single-line `error[CODE]: message at file:line:col`.
 // Used for terminal output today; the LSP will go via the JSON shape directly

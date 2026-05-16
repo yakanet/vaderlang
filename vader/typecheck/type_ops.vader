@@ -1,0 +1,388 @@
+// vader/typecheck/type_ops — equality, assignability, union canonicalisation.
+//
+// Mirror of the operations on Type defined in `src/typecheck/types.ts`. The
+// **trait-widening** branch of `is_assignable` and the `intersects` helper
+// both need an `ImplRegistry` to query "does T implement Trait?" — that
+// dependency lives in `impls.vader` (Phase 2.4). Until that lands, the
+// MVP version takes a `TraitOracle` interface so callers can stub the
+// trait check (returns false → no widening).
+
+import "std/string" { compare_ascending }
+import "std/sort" { sort }
+import "vader/typecheck/types" {
+    Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
+    FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
+    UnresolvedType, FreeIntType, FreeFloatType, NeverType,
+    TY_NEVER, display_type, mk_primitive, mk_union,
+}
+
+// ---- numeric registries (used by Free* defaulting + assignable) -----------
+
+export SIGNED_INTS   :: ["i8", "i16", "i32", "i64", "isize"]
+export UNSIGNED_INTS :: ["u8", "u16", "u32", "u64", "usize"]
+export ALL_INTS      :: ["i8", "i16", "i32", "i64", "isize", "u8", "u16", "u32", "u64", "usize"]
+export FLOATS        :: ["f32", "f64"]
+export NUMERIC       :: ["i8", "i16", "i32", "i64", "isize", "u8", "u16", "u32", "u64", "usize", "f32", "f64"]
+
+export is_int_name :: fn(name: string) -> bool {
+    for n in ALL_INTS { if n == name { return true } }
+    return false
+}
+
+export is_float_name :: fn(name: string) -> bool {
+    for n in FLOATS { if n == name { return true } }
+    return false
+}
+
+export is_numeric_name :: fn(name: string) -> bool {
+    for n in NUMERIC { if n == name { return true } }
+    return false
+}
+
+// ---- equality -------------------------------------------------------------
+
+/// Structural equality. Recursive on unions / fns / arrays / tuples ; for
+/// nominal types (Struct / Trait / Enum / TypeParam) we compare symbol ids.
+export equals_type :: fn(a: Type, b: Type) -> bool {
+    match a {
+        is TypeMetaType   -> { return b is TypeMetaType }
+        is SelfType       -> { return b is SelfType }
+        is UnresolvedType -> { return b is UnresolvedType }
+        is NeverType      -> { return b is NeverType }
+        is FreeIntType    -> { return b is FreeIntType }
+        is FreeFloatType  -> { return b is FreeFloatType }
+        is PrimitiveType as ax -> {
+            match b {
+                is PrimitiveType as bx -> { return ax.name == bx.name }
+                _ -> { return false }
+            }
+        }
+        is TypeParamType as ax -> {
+            match b {
+                is TypeParamType as bx -> { return ax.symbol.id == bx.symbol.id }
+                _ -> { return false }
+            }
+        }
+        is EnumType as ax -> {
+            match b {
+                is EnumType as bx -> { return ax.symbol.id == bx.symbol.id }
+                _ -> { return false }
+            }
+        }
+        is StructType as ax -> {
+            match b {
+                is StructType as bx -> {
+                    if ax.symbol.id != bx.symbol.id { return false }
+                    return type_list_equals(ax.args, bx.args)
+                }
+                _ -> { return false }
+            }
+        }
+        is TraitType as ax -> {
+            match b {
+                is TraitType as bx -> {
+                    if ax.symbol.id != bx.symbol.id { return false }
+                    return type_list_equals(ax.args, bx.args)
+                }
+                _ -> { return false }
+            }
+        }
+        is ArrayType as ax -> {
+            match b {
+                is ArrayType as bx -> {
+                    if ax.immutable != bx.immutable { return false }
+                    return equals_type(ax.element, bx.element)
+                }
+                _ -> { return false }
+            }
+        }
+        is TupleType as ax -> {
+            match b {
+                is TupleType as bx -> { return type_list_equals(ax.elements, bx.elements) }
+                _ -> { return false }
+            }
+        }
+        is FnType as ax -> {
+            match b {
+                is FnType as bx -> {
+                    if !type_list_equals(ax.params, bx.params) { return false }
+                    return equals_type(ax.return_type, bx.return_type)
+                }
+                _ -> { return false }
+            }
+        }
+        is UnionType as ax -> {
+            match b {
+                is UnionType as bx -> { return type_list_equals(ax.variants, bx.variants) }
+                _ -> { return false }
+            }
+        }
+    }
+}
+
+type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
+    if a.len() != b.len() { return false }
+    for i in 0..<a.len() {
+        if !equals_type(a[i], b[i]) { return false }
+    }
+    return true
+}
+
+// ---- assignability --------------------------------------------------------
+
+/// Whether `from` can flow into a slot expecting `to` without explicit
+/// coercion. No implicit numeric widening — explicit cast required.
+/// Trait-widening is gated by `oracle` ; pass `null` if the registry
+/// isn't built yet (Phase 1) — widening then falls back to false.
+export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
+    if from is UnresolvedType { return true }
+    if to   is UnresolvedType { return true }
+    if from is NeverType      { return true }
+    if equals_type(from, to) { return true }
+
+    match from {
+        is FreeIntType -> {
+            match to {
+                is PrimitiveType as tp -> { if is_int_name(tp.name) { return true } }
+                _ -> {}
+            }
+        }
+        is FreeFloatType -> {
+            match to {
+                is PrimitiveType as tp -> { if is_float_name(tp.name) { return true } }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
+
+    // Trait widening — only when an oracle is supplied.
+    match oracle {
+        is null -> {}
+        _ -> {
+            match to {
+                is TraitType as tt -> {
+                    if oracle.has_impl(from, tt) { return true }
+                }
+                _ -> {}
+            }
+        }
+    }
+
+    // Tuple → Tuple element-wise (no Array ↔ Tuple by design).
+    match from {
+        is TupleType as ft -> {
+            match to {
+                is TupleType as tt -> {
+                    if ft.elements.len() != tt.elements.len() { return false }
+                    for i in 0..<ft.elements.len() {
+                        if !is_assignable(ft.elements[i], tt.elements[i], oracle) {
+                            return false
+                        }
+                    }
+                    return true
+                }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
+
+    // Array → Array : `T[] <: const T[]` (mutable into const ; reverse forbidden).
+    match from {
+        is ArrayType as fa -> {
+            match to {
+                is ArrayType as ta -> {
+                    if fa.immutable && !ta.immutable { return false }
+                    return equals_type(fa.element, ta.element)
+                }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
+
+    match to {
+        is UnionType as tu -> {
+            match from {
+                is UnionType as fu -> {
+                    for v in fu.variants {
+                        if !is_assignable(v, to, oracle) { return false }
+                    }
+                    return true
+                }
+                _ -> {
+                    for v in tu.variants {
+                        if is_assignable(from, v, oracle) { return true }
+                    }
+                    return false
+                }
+            }
+        }
+        _ -> {}
+    }
+
+    return false
+}
+
+/// Minimal duck-typed view of the impl registry consumed by trait widening.
+/// Real registry lives in `impls.vader` (Phase 2.4) — this surface lets
+/// `is_assignable` ship before that's built.
+export TraitOracle :: struct {
+    /// Returns true when `from`'s nominal type implements the trait `to`.
+    has_impl: fn(Type, TraitType) -> bool
+}
+
+// ---- canonical union ------------------------------------------------------
+
+/// Build a union from `variants`. Flattens nested unions, drops `Never`
+/// (absorbed — a value of that type doesn't exist), dedups, sorts by
+/// `display_type` output for stability. Empty / all-Never input
+/// collapses to `Never`.
+export union_of :: fn(variants: Type[]) -> Type {
+    dedup: Type[] = []
+    for v in variants {
+        v.collect_variant(dedup)
+    }
+    if dedup.len() == 0 { return TY_NEVER }
+    if dedup.len() == 1 { return dedup[0] }
+    sorted :: sort(dedup, (a: Type, b: Type) -> compare_ascending(display_type(a), display_type(b)))
+    return mk_union(sorted)
+}
+
+collect_variant :: fn(v: Type, into: Type[]) -> void {
+    if v is NeverType { return }
+    match v {
+        is UnionType as u -> {
+            for inner in u.variants { inner.collect_variant(into) }
+        }
+        _ -> {
+            for existing in into {
+                if equals_type(existing, v) { return }
+            }
+            into.push(v)
+        }
+    }
+}
+
+// ---- free-type defaulting -------------------------------------------------
+
+/// Replace FreeInt with `i32` and FreeFloat with `f64`. Used when a free
+/// numeric literal escapes its bidirectional context and needs a
+/// concrete type to flow into downstream phases.
+export default_if_free :: fn(t: Type) -> Type {
+    match t {
+        is FreeIntType   -> { return mk_primitive("i32") }
+        is FreeFloatType -> { return mk_primitive("f64") }
+        _ -> { return t }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/typecheck/types" { mk_array, mk_fn, mk_tuple, TY_FREE_INT, TY_FREE_FLOAT }
+
+@test
+test_equals_primitive :: fn() -> void {
+    assert(equals_type(mk_primitive("i32"), mk_primitive("i32")), "i32 == i32")
+    assert(!equals_type(mk_primitive("i32"), mk_primitive("i64")), "i32 != i64")
+}
+
+@test
+test_equals_array :: fn() -> void {
+    a1: Type = mk_array(mk_primitive("i32"), false)
+    a2: Type = mk_array(mk_primitive("i32"), false)
+    a3: Type = mk_array(mk_primitive("i32"), true)
+    assert(equals_type(a1, a2), "i32[] == i32[]")
+    assert(!equals_type(a1, a3), "i32[] != const i32[]")
+}
+
+@test
+test_assignable_identity :: fn() -> void {
+    assert(is_assignable(mk_primitive("i32"), mk_primitive("i32"), null), "i32 → i32")
+}
+
+@test
+test_assignable_free_int_to_primitive :: fn() -> void {
+    assert(is_assignable(TY_FREE_INT, mk_primitive("i64"), null), "FreeInt → i64")
+    assert(!is_assignable(TY_FREE_INT, mk_primitive("string"), null), "FreeInt → string forbidden")
+}
+
+@test
+test_assignable_never_to_anything :: fn() -> void {
+    assert(is_assignable(TY_NEVER, mk_primitive("i32"), null), "Never → i32")
+    assert(is_assignable(TY_NEVER, mk_primitive("string"), null), "Never → string")
+}
+
+@test
+test_assignable_into_union :: fn() -> void {
+    i32_t: Type = mk_primitive("i32")
+    str_t: Type = mk_primitive("string")
+    u :: mk_union([i32_t, str_t])
+    assert(is_assignable(mk_primitive("i32"), u, null), "i32 → i32 | string")
+    assert(!is_assignable(mk_primitive("bool"), u, null), "bool → i32 | string forbidden")
+}
+
+@test
+test_assignable_array_mut_into_const :: fn() -> void {
+    mut_arr: Type = mk_array(mk_primitive("i32"), false)
+    const_arr: Type = mk_array(mk_primitive("i32"), true)
+    assert(is_assignable(mut_arr, const_arr, null), "T[] → const T[]")
+    assert(!is_assignable(const_arr, mut_arr, null), "const T[] ↛ T[]")
+}
+
+@test
+test_union_of_dedup :: fn() -> void {
+    i32_t: Type = mk_primitive("i32")
+    str_t: Type = mk_primitive("string")
+    // A | B | A should collapse to A | B
+    u :: union_of([i32_t, str_t, i32_t])
+    match u {
+        is UnionType as un -> { assert_eq(un.variants.len(), usize(2)) }
+        _ -> { assert(false, "expected a Union after dedup") }
+    }
+}
+
+@test
+test_union_of_drops_never :: fn() -> void {
+    i32_t: Type = mk_primitive("i32")
+    never_t: Type = TY_NEVER
+    // i32 | Never should collapse to i32
+    u :: union_of([i32_t, never_t])
+    match u {
+        is PrimitiveType as pt -> { assert_eq(pt.name, "i32") }
+        _ -> { assert(false, "Never should be absorbed") }
+    }
+}
+
+@test
+test_union_of_flattens :: fn() -> void {
+    i32_t: Type = mk_primitive("i32")
+    str_t: Type = mk_primitive("string")
+    bool_t: Type = mk_primitive("bool")
+    inner :: mk_union([i32_t, str_t])
+    u :: union_of([inner, bool_t])
+    match u {
+        is UnionType as un -> { assert_eq(un.variants.len(), usize(3)) }
+        _ -> { assert(false, "flattened union should have 3 variants") }
+    }
+}
+
+@test
+test_default_if_free :: fn() -> void {
+    match default_if_free(TY_FREE_INT) {
+        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
+        _ -> { assert(false, "FreeInt defaults to i32") }
+    }
+    match default_if_free(TY_FREE_FLOAT) {
+        is PrimitiveType as p -> { assert_eq(p.name, "f64") }
+        _ -> { assert(false, "FreeFloat defaults to f64") }
+    }
+    // Non-free types pass through.
+    i32_t :: mk_primitive("i32")
+    match default_if_free(i32_t) {
+        is PrimitiveType as p -> { assert_eq(p.name, "i32") }
+        _ -> { assert(false, "i32 should pass through") }
+    }
+}

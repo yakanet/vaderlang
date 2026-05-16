@@ -25,6 +25,57 @@ export LexerCode :: enum(u8) {
     InterpolationExpressionExpected,        // L0010
 }
 
+// Mirror of `TYPECHECK` in `src/diagnostics/codes.ts`. New codes are
+// appended ; once shipped, a code never changes meaning. The variant
+// ordering here matches the TS table top-down so reading both files
+// side-by-side stays trivial.
+export TypecheckCode :: enum(u8) {
+    TypeMismatch,                       // T3001
+    ExpectedKnownType,                  // T3002
+    WrongArgCount,                      // T3003
+    UnknownNamedArg,                    // T3004
+    MissingRequiredArg,                 // T3005
+    TraitNotSatisfied,                  // T3006
+    NotCallable,                        // T3007
+    NotIndexable,                       // T3008
+    FieldDoesNotExist,                  // T3009
+    InvalidCast,                        // T3010
+    TryRequiresErrorUnion,              // T3011
+    TryCannotPropagate,                 // T3012
+    NonExhaustiveMatch,                 // T3013
+    UnreachableMatchArm,                // T3014
+    BreakContinueOutsideLoop,           // T3015
+    SelfOutsideMethod,                  // T3016
+    OperatorNotDefined,                 // T3017
+    InterpolationRequiresDisplay,       // T3018
+    ConditionMustBeBool,                // T3019
+    BodyReturnIncompatible,             // T3020
+    GenericArgCountMismatch,            // T3021
+    CyclicTypeAlias,                    // T3022
+    SelfOutsideTraitOrImpl,             // T3023
+    FnSignatureMustBeAnnotated,         // T3024
+    NamedArgDuplicatesPositional,       // T3025
+    TypeHasNoGenericParams,             // T3026
+    UnknownEnumVariant,                 // T3027
+    CannotInferEnumType,                // T3028
+    EnumReprMustBePrimitiveInt,         // T3029
+    EnumVariantValueOutOfRange,         // T3030
+    DuplicateEnumVariantValue,          // T3031
+    AmbiguousOverload,                  // T3032
+    InvalidMainSignature,               // T3033
+    RecursiveExprBodiedFn,              // T3034
+    TypeValuedSlotNotYetSupported,      // T3035
+    ImplMissingRequiredMethod,          // T3036
+    MissingRequiredFieldInStructLit,    // T3037
+    FieldAlreadyProvided,               // T3038
+    IntoIdentityForbidden,              // T3039
+    UnreachableIsTest,                  // T3040
+    CannotReassignConst,                // T3041
+    CannotMutateImmutableArray,         // T3042
+    InvalidExternDecl,                  // T3050
+    ExternMustNotHaveBody,              // T3051
+}
+
 // Mirror of `PARSER` in `src/diagnostics/codes.ts`. New codes are appended ;
 // once shipped, a code never changes meaning.
 export ParserCode :: enum(u8) {
@@ -102,6 +153,53 @@ export parser_info :: fn(c: ParserCode) = match c {
     .TuplePatternRequiresTwoElements    -> CodeInfo { .id = "P1022", .message = "tuple pattern requires at least 2 elements" }
     .LetDestructureRequiresTwoElements  -> CodeInfo { .id = "P1023", .message = "let destructure requires at least 2 elements" }
     .InvalidConstQualifierPlacement     -> CodeInfo { .id = "P1027", .message = "invalid `const` qualifier placement" }
+}
+
+export typecheck_info :: fn(c: TypecheckCode) = match c {
+    .TypeMismatch                       -> CodeInfo { .id = "T3001", .message = "type mismatch" }
+    .ExpectedKnownType                  -> CodeInfo { .id = "T3002", .message = "expected an expression of a known type" }
+    .WrongArgCount                      -> CodeInfo { .id = "T3003", .message = "wrong number of arguments" }
+    .UnknownNamedArg                    -> CodeInfo { .id = "T3004", .message = "unknown named argument" }
+    .MissingRequiredArg                 -> CodeInfo { .id = "T3005", .message = "missing required argument" }
+    .TraitNotSatisfied                  -> CodeInfo { .id = "T3006", .message = "trait not satisfied" }
+    .NotCallable                        -> CodeInfo { .id = "T3007", .message = "expression is not callable" }
+    .NotIndexable                       -> CodeInfo { .id = "T3008", .message = "expression is not indexable" }
+    .FieldDoesNotExist                  -> CodeInfo { .id = "T3009", .message = "field does not exist on this type" }
+    .InvalidCast                        -> CodeInfo { .id = "T3010", .message = "invalid cast" }
+    .TryRequiresErrorUnion              -> CodeInfo { .id = "T3011", .message = "`?` requires a union with an `Error` variant" }
+    .TryCannotPropagate                 -> CodeInfo { .id = "T3012", .message = "`?` cannot propagate this error from the enclosing function" }
+    .NonExhaustiveMatch                 -> CodeInfo { .id = "T3013", .message = "non-exhaustive match" }
+    .UnreachableMatchArm                -> CodeInfo { .id = "T3014", .message = "unreachable match arm" }
+    .BreakContinueOutsideLoop           -> CodeInfo { .id = "T3015", .message = "`break` / `continue` only allowed inside a loop" }
+    .SelfOutsideMethod                  -> CodeInfo { .id = "T3016", .message = "`self` only valid inside a method body" }
+    .OperatorNotDefined                 -> CodeInfo { .id = "T3017", .message = "operator not defined for these operand types" }
+    .InterpolationRequiresDisplay       -> CodeInfo { .id = "T3018", .message = "string interpolation expression must implement `Display`" }
+    .ConditionMustBeBool                -> CodeInfo { .id = "T3019", .message = "condition must be `bool`" }
+    .BodyReturnIncompatible             -> CodeInfo { .id = "T3020", .message = "function body returns a value incompatible with its declared return type" }
+    .GenericArgCountMismatch            -> CodeInfo { .id = "T3021", .message = "generic argument count mismatch" }
+    .CyclicTypeAlias                    -> CodeInfo { .id = "T3022", .message = "cyclic type alias" }
+    .SelfOutsideTraitOrImpl             -> CodeInfo { .id = "T3023", .message = "use of `Self` outside a trait or impl context" }
+    .FnSignatureMustBeAnnotated         -> CodeInfo { .id = "T3024", .message = "function signature must be fully annotated" }
+    .NamedArgDuplicatesPositional       -> CodeInfo { .id = "T3025", .message = "named argument duplicates a positional one" }
+    .TypeHasNoGenericParams             -> CodeInfo { .id = "T3026", .message = "type does not have generic parameters" }
+    .UnknownEnumVariant                 -> CodeInfo { .id = "T3027", .message = "unknown enum variant" }
+    .CannotInferEnumType                -> CodeInfo { .id = "T3028", .message = "cannot infer enum type from context" }
+    .EnumReprMustBePrimitiveInt         -> CodeInfo { .id = "T3029", .message = "enum backing type must be a primitive integer" }
+    .EnumVariantValueOutOfRange         -> CodeInfo { .id = "T3030", .message = "enum variant value out of range for backing type" }
+    .DuplicateEnumVariantValue          -> CodeInfo { .id = "T3031", .message = "duplicate enum variant value" }
+    .AmbiguousOverload                  -> CodeInfo { .id = "T3032", .message = "ambiguous overload resolution" }
+    .InvalidMainSignature               -> CodeInfo { .id = "T3033", .message = "invalid `main` signature" }
+    .RecursiveExprBodiedFn              -> CodeInfo { .id = "T3034", .message = "recursive expression-bodied function requires an explicit `-> Type` annotation" }
+    .TypeValuedSlotNotYetSupported      -> CodeInfo { .id = "T3035", .message = "type-valued slot is not yet supported in this position" }
+    .ImplMissingRequiredMethod          -> CodeInfo { .id = "T3036", .message = "impl block missing required trait method" }
+    .MissingRequiredFieldInStructLit    -> CodeInfo { .id = "T3037", .message = "missing required field in struct literal" }
+    .FieldAlreadyProvided               -> CodeInfo { .id = "T3038", .message = "field already provided in struct literal" }
+    .IntoIdentityForbidden              -> CodeInfo { .id = "T3039", .message = "`Into(T)` cannot use `T` as its target (identity coercion is forbidden)" }
+    .UnreachableIsTest                  -> CodeInfo { .id = "T3040", .message = "test can never match — operands have no overlapping values" }
+    .CannotReassignConst                -> CodeInfo { .id = "T3041", .message = "cannot reassign a constant binding" }
+    .CannotMutateImmutableArray         -> CodeInfo { .id = "T3042", .message = "cannot mutate an immutable array" }
+    .InvalidExternDecl                  -> CodeInfo { .id = "T3050", .message = "invalid `@extern` declaration" }
+    .ExternMustNotHaveBody              -> CodeInfo { .id = "T3051", .message = "`@extern` declaration must not have a body" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but
