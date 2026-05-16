@@ -29,6 +29,7 @@ import "vader/typecheck/expr_literals" {
 }
 import "vader/typecheck/expr_ident" { infer_ident }
 import "vader/typecheck/expr_if" { infer_if }
+import "vader/typecheck/match_expr" { infer_match }
 import "vader/typecheck/stmt" { check_block }
 import "vader/typecheck/call" { infer_call }
 import "vader/typecheck/binary" { infer_binary }
@@ -62,6 +63,7 @@ infer_expr :: fn(
         is AST.IdentExpr     as e -> { return infer_ident(e, typed) }
         is AST.BlockExpr     as e -> { return check_block(e, expected, typed, diags, null, check_expr) }
         is AST.IfExpr        as e -> { return infer_if(e, expected, typed, diags, null, check_expr) }
+        is AST.MatchExpr     as e -> { return infer_match(e, expected, typed, diags, null, check_expr) }
         is AST.CallExpr      as e -> { return infer_call(e, typed, diags, check_expr) }
         is AST.BinaryExpr    as e -> { return infer_binary(e, typed, diags, check_expr) }
         is AST.FieldExpr     as e -> { return infer_field(e, typed, diags, check_expr) }
