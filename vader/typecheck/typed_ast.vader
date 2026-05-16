@@ -8,7 +8,9 @@
 // since Vader AST nodes lack stable ids for WeakMap-style indexing.
 
 import "std/collections" { MutableMap }
+import "vader/parser/ast" { StructDecl }
 import "vader/resolver/resolve" { ResolvedModule }
+import "vader/resolver/symbol" { Symbol }
 import "vader/typecheck/types" { Type }
 
 /// Per-module typechecker output. Every side-table is keyed by a span
@@ -39,6 +41,12 @@ export TypedProgram :: struct {
     /// own span so downstream passes can reuse what `type_from_expr`
     /// already computed.
     type_expr_types: MutableMap(string, Type)
+
+    /// `StructDecl` keyed by the symbol's id. Populated by `decl.vader`
+    /// while it mints struct types ; consumed by `field.vader` so it
+    /// can walk a struct's field list to type `obj.f` accesses without
+    /// re-walking the program AST.
+    struct_decls: MutableMap(i32, StructDecl)
 }
 
 /// Across the whole project — multi-module aggregation. Populated by
@@ -57,6 +65,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .decl_types      = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .param_types     = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .type_expr_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
+        .struct_decls    = MutableMap(i32, StructDecl) { .buckets = [], .size = 0 },
     }
 }
 
@@ -82,7 +91,6 @@ export empty_typed_program :: fn() -> TypedProgram {
 
 import "std/testing" { assert, assert_eq }
 import "vader/typecheck/types" { mk_primitive, PrimitiveType }
-import "vader/resolver/symbol" { Symbol }
 
 fresh_module :: fn() -> ResolvedModule {
     return ResolvedModule {

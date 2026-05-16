@@ -1,0 +1,169 @@
+// vader/typecheck/field — FieldExpr inference (`obj.f`).
+//
+// Mirror of the StructType arm in `src/typecheck/passes/field.ts::inferField`.
+// MVP behavior :
+//   1. Recursively check the target — must resolve to a `StructType`.
+//   2. Look up the named field via `typed.struct_decls[symbol.id]`.
+//   3. Return the field's declared type (via `type_from_expr` on
+//      `field.ty`). T3009 on missing field, T3008 on non-struct target.
+//
+// MVP-trimmed against the TS reference :
+//   - No enum-variant dot access (`Color.Red`).
+//   - No discriminated-union common-field access.
+//   - No UFCS method dispatch / trait-method resolution / Index trait.
+//   - No generic-arg substitution on field types — fields with
+//     type-params resolve to their unsubstituted shape.
+
+import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+AST :: import "vader/parser/ast"
+import "vader/resolver/resolve" { ResolvedModule }
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/types" {
+    Type, StructType, UnresolvedType, display_type, TY_UNRESOLVED,
+}
+import "vader/typecheck/typed_ast" { TypedProgram }
+
+/// Type-check a `FieldExpr`. `check_expr_fn` is threaded for the
+/// recursive target check (cycle break, same as call.vader).
+export infer_field :: fn(
+    e: AST.FieldExpr, resolved: ResolvedModule, typed: TypedProgram,
+    diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    target_ty :: check_expr_fn(e.target, null, typed, diags)
+    if target_ty is UnresolvedType { return TY_UNRESOLVED }
+    if !(target_ty is StructType) {
+        diags.push(typecheck_error(.NotIndexable, e.span,
+            "`.${e.field}` on non-struct type ${display_type(target_ty)}"))
+        return TY_UNRESOLVED
+    }
+    decl :: typed.struct_decls[target_ty.symbol.id]
+    if decl is null {
+        // The struct decl isn't indexed — declare_module didn't see it
+        // (e.g. cross-module reference before wire.vader lands).
+        return TY_UNRESOLVED
+    }
+    for field in decl.fields {
+        if field.name == e.field {
+            return type_from_expr(field.ty, resolved, diags)
+        }
+    }
+    diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
+        "field `${e.field}` not found on struct ${display_type(target_ty)}"))
+    return TY_UNRESOLVED
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/parser" { parse_source }
+import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver/symbol" { new_factory }
+import "vader/typecheck/check" { check_module }
+import "vader/typecheck/expr_ident" { infer_ident }
+import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }
+import "vader/typecheck/test_helpers" { find_first_in_block }
+
+// Stub that handles only the variants the field tests touch — Ident
+// (for `p` in `p.x`), Field (for nested `obj.a.b`), and Int literals.
+stub_check_expr :: fn(
+    e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    match e {
+        is AST.IntLitExpr    as x -> { return infer_int_lit(x) }
+        is AST.StringLitExpr as x -> { return infer_string_lit(x) }
+        is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
+        is AST.FieldExpr     as x -> { return infer_field(x, typed.resolved, typed, diags, stub_check_expr) }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+accept_field :: fn(e: AST.Expr) -> AST.Expr | null {
+    if e is AST.FieldExpr { return e }
+    return null
+}
+
+FieldFixture :: struct {
+    typed: TypedProgram
+    field: AST.FieldExpr | null
+}
+
+first_field_in_last_fn :: fn(src: string) -> FieldFixture {
+    parsed :: parse_source(src, "t.vader")
+    factory :: new_factory()
+    rm :: resolve_module(parsed.program, "t", factory)
+    diags: Diagnostic[] = []
+    result :: check_module(parsed.program, rm, factory, diags)
+    last :: parsed.program.decls[parsed.program.decls.len() - 1]
+    match last {
+        is AST.FnDecl as f -> {
+            match f.body {
+                is null -> { return FieldFixture { .typed = result.typed, .field = null } }
+                is AST.BlockExpr as b -> {
+                    hit :: find_first_in_block(b, accept_field)
+                    field: AST.FieldExpr | null = null
+                    if hit is AST.FieldExpr { field = hit }
+                    return FieldFixture { .typed = result.typed, .field = field }
+                }
+            }
+        }
+        _ -> { return FieldFixture { .typed = result.typed, .field = null } }
+    }
+}
+
+@test
+test_field_on_struct_returns_field_type :: fn() -> void {
+    src :: """
+Point :: struct {
+    x: i32
+    y: i32
+}
+get_x :: fn(p: Point) -> i32 { return p.x }
+"""
+    fx :: first_field_in_last_fn(src)
+    match fx.field {
+        is null -> { assert(false, "expected a field expr") }
+        is AST.FieldExpr as f -> {
+            diags: Diagnostic[] = []
+            assert_eq(display_type(infer_field(f, fx.typed.resolved, fx.typed, diags, stub_check_expr)), "i32")
+            assert_eq(diags.len(), usize(0))
+        }
+    }
+}
+
+@test
+test_field_missing_emits_T3009 :: fn() -> void {
+    src :: """
+Point :: struct {
+    x: i32
+}
+get_z :: fn(p: Point) -> i32 { return p.z }
+"""
+    fx :: first_field_in_last_fn(src)
+    match fx.field {
+        is null -> { assert(false, "expected a field expr") }
+        is AST.FieldExpr as f -> {
+            diags: Diagnostic[] = []
+            infer_field(f, fx.typed.resolved, fx.typed, diags, stub_check_expr)
+            assert(diags.len() >= usize(1), "expected a diagnostic")
+            assert_eq(diags[0].code.id, "T3009")
+        }
+    }
+}
+
+@test
+test_field_on_non_struct_emits_T3008 :: fn() -> void {
+    src :: """
+f :: fn(n: i32) -> i32 { return n.x }
+"""
+    fx :: first_field_in_last_fn(src)
+    match fx.field {
+        is null -> { assert(false, "expected a field expr") }
+        is AST.FieldExpr as f -> {
+            diags: Diagnostic[] = []
+            infer_field(f, fx.typed.resolved, fx.typed, diags, stub_check_expr)
+            assert(diags.len() >= usize(1), "expected a diagnostic")
+            assert_eq(diags[0].code.id, "T3008")
+        }
+    }
+}

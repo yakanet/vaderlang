@@ -54,7 +54,13 @@ declare_decl :: fn(
 ) -> void {
     match decl {
         is AST.FnDecl as fn_decl -> { declare_fn(fn_decl, resolved, typed, diags) }
-        is AST.StructDecl as sd  -> { declare_named_with_args(sd.name, sd.name_span, sd.type_params, by_name, typed, resolved.path, factory, mk_struct) }
+        is AST.StructDecl as sd  -> {
+            declare_named_with_args(sd.name, sd.name_span, sd.type_params, by_name, typed, resolved.path, factory, mk_struct)
+            // Index the struct decl by symbol id so `field.vader` can
+            // walk fields without re-traversing the program AST.
+            sym :: by_name[sd.name]
+            if sym is Symbol { typed.struct_decls[sym.id] = sd }
+        }
         is AST.EnumDecl as ed    -> { declare_enum(ed, by_name, resolved, typed, diags) }
         is AST.TraitDecl as td   -> { declare_named_with_args(td.name, td.name_span, td.type_params, by_name, typed, resolved.path, factory, mk_trait) }
         is AST.TypeAliasDecl as ta -> { declare_type_alias(ta, resolved, typed, diags) }
