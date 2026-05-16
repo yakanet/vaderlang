@@ -193,9 +193,8 @@
             "kind": "ForStmt",
             "label": null,
             "form": {
-              "kind": "in",
-              "binding": "_y",
-              "iter": {
+              "kind": "while",
+              "cond": {
                 "kind": "IdentExpr",
                 "name": "empty"
               }

@@ -11,8 +11,8 @@ main :: fn() -> i32 {
     // empty array iterates 0 times
     empty :: [0, 0, 0]      // can't write `[]` without type annotation yet
     n := 0
-    for _y in empty {
-        n = n + 1
+    for empty {
+        n += 1
     }
     println("count = ${n}")
     return 0

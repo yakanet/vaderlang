@@ -74,11 +74,11 @@ fn 0 tests_snippets_array_iter__main_vader$main () -> i32
   local.set 6   ; _main.vader:12:14
   i32.const 0   ; _main.vader:13:10
   local.set 7   ; _main.vader:13:10
-  local.get 6   ; _main.vader:14:15
-  i64.const 0   ; _main.vader:14:15
-  i64.to_usize   ; _main.vader:14:15
-  struct.new 2   ; _main.vader:14:15
-  local.set 8   ; _main.vader:14:15
+  local.get 6   ; _main.vader:14:9
+  i64.const 0   ; _main.vader:14:9
+  i64.to_usize   ; _main.vader:14:9
+  struct.new 2   ; _main.vader:14:9
+  local.set 8   ; _main.vader:14:9
   block $L3 void   ; _main.vader:14:5
     loop $L4 void   ; _main.vader:14:5
       local.get 8   ; _main.vader:14:5
@@ -86,10 +86,10 @@ fn 0 tests_snippets_array_iter__main_vader$main () -> i32
       type_check 0   ; _main.vader:14:5
       if $L5 void   ; _main.vader:14:5
       else   ; _main.vader:14:5
-        local.get 7   ; _main.vader:15:13
-        i32.const 1   ; _main.vader:15:13
-        i32.add   ; _main.vader:15:13
-        local.set 7   ; _main.vader:15:13
+        local.get 7   ; _main.vader:15:9
+        i32.const 1   ; _main.vader:15:9
+        i32.add   ; _main.vader:15:9
+        local.set 7   ; _main.vader:15:9
         br $L4   ; _main.vader:14:5
       end $L5   ; _main.vader:14:5
     end $L4   ; _main.vader:14:5

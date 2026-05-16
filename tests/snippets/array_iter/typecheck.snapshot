@@ -3,9 +3,8 @@
 ## tests/snippets/array_iter/_main.vader
   FnDecl         main                 :: fn() -> i32
   expr 12:14    SeqLitExpr     :: i32[]
-  expr 14:15    IdentExpr      :: i32[]
-  expr 15:13    BinaryExpr     :: i32
-  expr 15:13    IdentExpr      :: i32
+  expr 14:9     IdentExpr      :: i32[]
+  expr 15:9     BinaryExpr     :: i32
   expr 15:9     IdentExpr      :: i32
   expr 17:13    StringLitExpr  :: string
   expr 17:24    IdentExpr      :: i32

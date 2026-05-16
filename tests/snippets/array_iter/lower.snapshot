@@ -84,7 +84,7 @@
           then:
             break
           else:
-            let _y: i32 =
+            let _: i32 =
               .value :i32
                 cast → Yield(i32)
                   __step_4 :Yield(i32) | null
