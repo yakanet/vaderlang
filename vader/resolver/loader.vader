@@ -62,11 +62,16 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
         is null -> {}
         _ -> { load_one(core_target, stdlib_root, modules, factory) }
     }
-    // MVP : load the entry + its direct imports only (depth 1).
-    // Deeper transitive loading would force every stdlib re-export
-    // chain through the resolver/typechecker, which doubles native
-    // crash risk for marginal parity gain. Direct imports cover the
-    // common `mod.fn(arg)` lookup pattern.
+    // MVP : entry + direct imports only (depth-1). Mid-graph
+    // modules (a project module imported by the entry that itself
+    // imports a third project module) fail to resolve their imports
+    // during wire — every cross-module type reference in those mid-
+    // graph modules collapses to `?`. Cascade filter in
+    // `vader/lsp/diagnostics.vader` hides the noise but doesn't fix
+    // the underlying type info loss. Proper fix needs either a
+    // smaller-memory transitive load (Vader self-host OOMs on the
+    // ~150-module vader/* tree today) or on-demand load triggered
+    // from the wire pass.
     load_one(entry_path, stdlib_root, modules, factory)
     entry_loaded :: modules[entry_id]
     match entry_loaded {

@@ -107,6 +107,7 @@ export check_project_with_bodies :: fn(
     // the real symbol during fn-signature lowering below.
     entry_typed.import_targets = wire_imports(project)
     populate_resolver_imports(entry_typed)
+    populate_resolver_imports_for_others(entry_typed, project, per_module)
     // Pre-populate `namespace_member_types` from each target module's
     // exported types so `type_from_expr`'s FieldExpr arm can resolve
     // `P.Decl` in fn-signature type positions (which run during
@@ -783,6 +784,35 @@ populate_resolver_imports :: fn(entry_typed: TypedProgram) -> void {
                 if st is null { continue }
                 entry_typed.resolved.imports_to[sym_id] = st.symbol
             }
+        }
+    }
+}
+
+/// Mirror `entry_typed.import_targets` onto every non-entry module's
+/// `resolved.imports_to`. Without this, the non-entry typecheck pass
+/// can't follow its own ImportBinding symbols to the real exports —
+/// every cross-module type reference (e.g. `LexerCode` in
+/// `diagnostic.vader` when the entry isn't `diagnostic.vader` itself)
+/// collapses to `?` (Unresolved) and cascades through every
+/// downstream `match` / `is` check. Each non-entry module owns its
+/// own subset of sym.ids ; we walk per-module collected.imports to
+/// route each id back to its owning module's `imports_to`.
+populate_resolver_imports_for_others :: fn(
+    entry_typed: TypedProgram, project: LoadedProject,
+    per_module: MutableMap(string, TypedProgram),
+) -> void {
+    targets :: entry_typed.import_targets
+    if targets is null { return }
+    for id in project.modules.keys() {
+        if id == project.entry { continue }
+        loaded :: project.modules[id]
+        if loaded is null { continue }
+        other_typed :: per_module[id]
+        if other_typed is null { continue }
+        for sym_id in loaded.collected.imports.keys() {
+            st :: targets.symbol_targets[sym_id]
+            if st is null { continue }
+            other_typed.resolved.imports_to[sym_id] = st.symbol
         }
     }
 }
