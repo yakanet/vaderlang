@@ -61,14 +61,23 @@ export dump_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
 }
 
 build_decl_lines :: fn(typed: TypedProgram) -> string[] {
+    // Sort by symbol name (case-insensitive, matches TS
+    // `name.localeCompare`) rather than by the formatted line —
+    // otherwise `S`tructDecl always wins over `T`raitDecl regardless
+    // of the actual name ordering.
+    syms :: sort_syms_by_name(typed.resolved.symbols)
     out: string[] = []
-    for s in typed.resolved.symbols {
+    for s in syms {
         kind_str :: ast_decl_kind(s)
         if kind_str == "" { continue }
         type_str :: lookup_decl_type(typed, s)
         out.push("  ${kind_str.pad_end(14, ' ')} ${s.name.pad_end(20, ' ')} :: ${type_str}")
     }
-    return sort(out, (a: string, b: string) -> compare_ascending_ci(a, b))
+    return out
+}
+
+sort_syms_by_name :: fn(syms: Symbol[]) -> Symbol[] {
+    return sort(syms, (a: Symbol, b: Symbol) -> compare_ascending_ci(a.name, b.name))
 }
 
 build_expr_lines :: fn(typed: TypedProgram) -> string[] {

@@ -197,15 +197,24 @@ export walk_bodies :: fn(
 ) -> void {
     for decl in decls {
         match decl {
-            is AST.FnDecl as fd -> {
-                match fd.body {
-                    is null -> {}
-                    is AST.BlockExpr as body -> { check_fn_body(fd, body, typed, diags, check_expr) }
-                }
-            }
+            is AST.FnDecl as fd -> { walk_fn_body(fd, typed, diags) }
             is AST.ConstDecl as cd -> { check_const_value(cd, typed, diags) }
+            is AST.AssertDecl as ad -> { check_expr(ad.condition, null, typed, diags) }
+            is AST.ImplDecl as id -> {
+                // Type each method declared inside `<T> implements
+                // <Trait> { … }` ; method bodies use the same fn-body
+                // walker so `return` / loop ctx / local types flow.
+                for m in id.members { walk_fn_body(m, typed, diags) }
+            }
             _ -> {}
         }
+    }
+}
+
+walk_fn_body :: fn(fd: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    match fd.body {
+        is null -> {}
+        is AST.BlockExpr as body -> { check_fn_body(fd, body, typed, diags, check_expr) }
     }
 }
 
