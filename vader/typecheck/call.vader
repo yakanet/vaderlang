@@ -32,7 +32,58 @@ import "vader/typecheck/types" {
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/typed_ast" { TypedProgram }
 import "vader/typecheck/unify" { substitute, type_contains_type_param, unify_type_param }
-import "vader/resolver/scope" { span_full_key }
+import "vader/resolver/scope" { span_full_key, span_key }
+
+// Inspect the callee : when it's a bare ident whose `fn_overloads`
+// bucket has 2+ entries, pre-walk arg[0] and pick the overload whose
+// first param accepts it. Falls back to the initial type when no
+// overload bucket exists or none match.
+pick_overload :: fn(
+    c: AST.CallExpr, initial: Type, typed: TypedProgram,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    if !(c.callee is AST.IdentExpr) { return initial }
+    name :: c.callee.name
+    candidates :: collect_overload_candidates(name, typed)
+    if candidates.len() < 2 { return initial }
+    if c.args.len() == 0 { return initial }
+    arg0_ty :: check_expr_fn(c.args[0].value, null, typed, no_diags())
+    for ft in candidates {
+        if ft.params.len() == 0 { continue }
+        if is_assignable(arg0_ty, ft.params[0], null) {
+            // Patch the callee's IdentExpr type so the dump shows
+            // the picked overload's signature instead of the primary.
+            typed.expr_types[span_full_key(c.callee.span)] = ft
+            return ft
+        }
+    }
+    return initial
+}
+
+collect_overload_candidates :: fn(name: string, typed: TypedProgram) -> FnType[] {
+    out: FnType[] = []
+    bucket :: typed.resolved.fn_overloads[name]
+    match bucket {
+        is null -> {}
+        _ -> {
+            for sym in bucket {
+                sp :: sym.defined_at
+                if sp is null { continue }
+                ft :: typed.decl_types[span_key(sp)]
+                if ft is null { continue }
+                match ft { is FnType as f -> { out.push(f) } _ -> {} }
+            }
+        }
+    }
+    imported :: typed.imported_fn_overloads[name]
+    match imported {
+        is null -> {}
+        _ -> { for ft in imported { out.push(ft) } }
+    }
+    return out
+}
+
+no_diags :: fn() -> Diagnostic[] { return [] }
 
 // Re-unify a UFCS-curried fn's original first param (the receiver
 // type, stashed in `ufcs_receiver_types` at FieldExpr time) against
@@ -56,7 +107,12 @@ export infer_call :: fn(
     c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    callee_ty :: check_expr_fn(c.callee, null, typed, diags)
+    initial_callee_ty :: check_expr_fn(c.callee, null, typed, diags)
+    // Overload dispatch : when the callee is a bare ident whose name
+    // has multiple fn overloads (`describe :: fn(Box) -> ... ;
+    // describe :: fn(Bag) -> ...`), pre-walk the args and pick the
+    // overload whose first param accepts the first arg.
+    callee_ty :: pick_overload(c, initial_callee_ty, typed, check_expr_fn)
     // `T(x)` cast-style call : when the callee resolves to the
     // metatype (a bare type name in value position), treat the
     // call as a conversion and return the target type. Matches TS
