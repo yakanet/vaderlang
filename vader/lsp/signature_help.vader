@@ -1,0 +1,403 @@
+// vader/lsp/signature_help — `textDocument/signatureHelp` handler.
+//
+// When the cursor sits inside a `CallExpr`'s argument list, look up
+// the callee's `FnDecl` and render its signature with the active
+// parameter highlighted. Returns `null` for any other cursor
+// context (literals, decls, comments, etc.).
+//
+// LSP §3.17.16 SignatureHelp shape :
+//   { signatures: SignatureInformation[],
+//     activeSignature?: number, activeParameter?: number }
+// SignatureInformation :
+//   { label, documentation?, parameters?: [{ label, documentation? }] }
+
+import "std/collections" { MutableMap }
+import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool }
+import "std/string" { byte_len, slice, starts_with }
+import "vader/diagnostics/diagnostic" { Diagnostic, Span }
+import "vader/lsp/state" { ServerState }
+import "vader/resolver/loader" { load_project }
+import "vader/resolver/scope" { span_key }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck/orchestrate" { check_project_with_bodies }
+import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/typecheck/types" { Type, FnType, display_type }
+AST :: import "vader/parser/ast"
+
+/// Build the signature-help payload for the cursor in `params`. Returns
+/// `JsonNull` when the cursor isn't inside a `CallExpr`'s arg list.
+export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri  :: get_uri(params)
+    line :: get_pos_field(params, "line")
+    char :: get_pos_field(params, "character")
+    if uri == "" { return JsonNull {} }
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return JsonNull {} }
+
+    project :: load_project(file_path)
+    diags: Diagnostic[] = []
+    result :: check_project_with_bodies(project, diags)
+    entry :: project.modules[project.entry]
+    if entry is null { return JsonNull {} }
+
+    // LSP positions are 0-based ; AST spans are 1-based.
+    target_line :: line + i32(1)
+    target_col  :: char + i32(1)
+    call :: find_enclosing_call(entry.module.files[0].program.decls, target_line, target_col)
+    if call is null { return JsonNull {} }
+
+    sig :: build_signature(call, result.typed)
+    if sig is null { return JsonNull {} }
+    active :: active_param_index(call, target_line, target_col)
+
+    sigs: JsonValue[] = [sig]
+    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    obj["signatures"]      = JsonArray { .items = sigs }
+    obj["activeSignature"] = JsonNumber { .value = f64(0) }
+    obj["activeParameter"] = JsonNumber { .value = f64(active) }
+    return JsonObject { .entries = obj }
+}
+
+// ---- AST walkers ---------------------------------------------------------
+
+/// Walk every fn / impl body and return the innermost `CallExpr`
+/// whose `(arg, arg, ...)` parenthesised region contains `(line,col)`.
+/// "Innermost" matters for nested calls like `f(g(|))` — we want `g`
+/// when the cursor is between its parens, not the outer `f`.
+find_enclosing_call :: fn(
+    decls: AST.Decl[], line: i32, col: i32,
+) -> AST.CallExpr | null {
+    state :: FindCallState { .line = line, .col = col, .best = null, .best_size = u64(0) }
+    for d in decls { walk_decl(d, state) }
+    return state.best
+}
+
+FindCallState :: struct {
+    line:      i32
+    col:       i32
+    best:      AST.CallExpr | null
+    best_size: u64
+}
+
+walk_decl :: fn(d: AST.Decl, st: FindCallState) -> void {
+    match d {
+        is AST.FnDecl as fd -> {
+            match fd.body {
+                is null -> {}
+                is AST.BlockExpr as b -> { walk_block(b, st) }
+            }
+        }
+        is AST.ImplDecl as id -> {
+            for m in id.members {
+                match m.body {
+                    is null -> {}
+                    is AST.BlockExpr as b -> { walk_block(b, st) }
+                }
+            }
+        }
+        _ -> {}
+    }
+}
+
+walk_block :: fn(b: AST.BlockExpr, st: FindCallState) -> void {
+    for s in b.stmts { walk_stmt(s, st) }
+    match b.trailing {
+        is null -> {}
+        _ -> { walk_expr(b.trailing, st) }
+    }
+}
+
+walk_stmt :: fn(s: AST.Stmt, st: FindCallState) -> void {
+    match s {
+        is AST.LetStmt as ls -> { walk_expr(ls.value, st) }
+        is AST.ExprStmt as es -> { walk_expr(es.expr, st) }
+        is AST.ReturnStmt as rs -> {
+            match rs.value {
+                is null -> {}
+                _ -> { walk_expr(rs.value, st) }
+            }
+        }
+        is AST.AssignStmt as as_ -> {
+            walk_expr(as_.target, st)
+            walk_expr(as_.value, st)
+        }
+        is AST.ForStmt as fs -> {
+            match fs.form {
+                is AST.WhileFor as w -> { walk_expr(w.cond, st) }
+                is AST.InFor as i -> { walk_expr(i.iter, st) }
+                is AST.InfiniteFor -> {}
+            }
+            walk_block(fs.body, st)
+        }
+        is AST.BreakStmt -> {}
+        is AST.ContinueStmt -> {}
+        is AST.DeferStmt as ds -> {
+            match ds.body {
+                is AST.DeferStmtBody  as dsb -> { walk_stmt(dsb.stmt, st) }
+                is AST.DeferBlockBody as dbb -> { walk_block(dbb.block, st) }
+            }
+        }
+    }
+}
+
+walk_expr :: fn(e: AST.Expr, st: FindCallState) -> void {
+    consider(e, st)
+    match e {
+        is AST.CallExpr as c -> {
+            walk_expr(c.callee, st)
+            for a in c.args { walk_expr(a.value, st) }
+        }
+        is AST.FieldExpr as f -> { walk_expr(f.target, st) }
+        is AST.IndexExpr as ix -> {
+            walk_expr(ix.target, st)
+            walk_expr(ix.index, st)
+        }
+        is AST.UnaryExpr as u -> { walk_expr(u.operand, st) }
+        is AST.BinaryExpr as bn -> {
+            walk_expr(bn.left, st)
+            walk_expr(bn.right, st)
+        }
+        is AST.IfExpr as ifx -> {
+            walk_expr(ifx.cond, st)
+            walk_block(ifx.then_block, st)
+            match ifx.else_branch {
+                is null -> {}
+                is AST.IfElseIf    as ei -> { walk_expr(ei.branch, st) }
+                is AST.IfElseBlock as eb -> { walk_block(eb.block, st) }
+            }
+        }
+        is AST.MatchExpr as m -> {
+            walk_expr(m.scrutinee, st)
+            for arm in m.arms { walk_expr(arm.body, st) }
+        }
+        is AST.BlockExpr as b -> { walk_block(b, st) }
+        is AST.LambdaExpr as l -> { walk_block(l.body, st) }
+        is AST.StructLitExpr as sl -> {
+            for item in sl.items {
+                match item {
+                    is AST.StructLitField  as fld -> { walk_expr(fld.value, st) }
+                    is AST.StructLitSpread as sp  -> { walk_expr(sp.expr, st) }
+                }
+            }
+        }
+        is AST.SeqLitExpr as sq -> {
+            for el in sq.elements { walk_expr(el, st) }
+        }
+        is AST.CastExpr as cx -> { walk_expr(cx.value, st) }
+        is AST.TryExpr as tx -> { walk_expr(tx.inner, st) }
+        is AST.IntrinsicCallExpr as ic -> {
+            for a in ic.args { walk_expr(a, st) }
+        }
+        _ -> {}
+    }
+}
+
+consider :: fn(e: AST.Expr, st: FindCallState) -> void {
+    match e {
+        is AST.CallExpr as c -> {
+            if !span_contains(c.span, st.line, st.col) { return }
+            size :: span_size(c.span)
+            if st.best is null || size < st.best_size {
+                st.best      = c
+                st.best_size = size
+            }
+        }
+        _ -> {}
+    }
+}
+
+span_contains :: fn(s: Span, line: i32, col: i32) -> bool {
+    if line < s.start.line { return false }
+    if line > s.end.line   { return false }
+    if line == s.start.line && col < s.start.column { return false }
+    if line == s.end.line   && col > s.end.column   { return false }
+    return true
+}
+
+span_size :: fn(s: Span) -> u64 {
+    line_extent :: u64(s.end.line - s.start.line)
+    col_extent  :: u64(s.end.column - s.start.column)
+    return (line_extent << usize(16)) + col_extent
+}
+
+// ---- signature lookup ----------------------------------------------------
+
+/// Resolve `call.callee` to a `FnDecl` via `typed.fn_decls` and render
+/// it as a SignatureInformation. Returns `null` on miss (callee not an
+/// ident, ident not bound to a Symbol, Symbol not a Fn).
+build_signature :: fn(call: AST.CallExpr, typed: TypedProgram) -> JsonValue | null {
+    fn_decl :: lookup_fn_decl(call.callee, typed)
+    if fn_decl is null { return null }
+    label :: render_signature_label(fn_decl)
+    params: JsonValue[] = []
+    for p in fn_decl.params {
+        p_label :: render_param_label(p)
+        p_obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+        p_obj["label"] = JsonString { .value = p_label }
+        params.push(JsonObject { .entries = p_obj })
+    }
+    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    obj["label"]      = JsonString { .value = label }
+    obj["parameters"] = JsonArray { .items = params }
+    return JsonObject { .entries = obj }
+}
+
+lookup_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
+    match callee {
+        is AST.IdentExpr as id -> {
+            sym :: typed.resolved.idents[span_key(id.span)]
+            if sym is null { return null }
+            return typed.fn_decls[sym.id]
+        }
+        // FieldExpr (UFCS-style `x.f()`) and other shapes : the
+        // resolver currently doesn't bind the FieldExpr's span, so
+        // fn-decl recovery would need a second-pass field-resolution
+        // table. Out of scope for this MVP.
+        _ -> { return null }
+    }
+}
+
+render_signature_label :: fn(fd: AST.FnDecl) -> string {
+    out := "${fd.name}("
+    first := true
+    for p in fd.params {
+        if !first { out = out + ", " }
+        first = false
+        out = out + render_param_label(p)
+    }
+    out = out + ")"
+    match fd.return_type {
+        is null -> {}
+        _ -> { out = out + " -> " + render_type_expr(fd.return_type) }
+    }
+    return out
+}
+
+render_param_label :: fn(p: AST.FnParam) -> string {
+    match p.ty {
+        is null -> { return p.name }
+        _ -> { return "${p.name}: ${render_type_expr(p.ty)}" }
+    }
+}
+
+render_type_expr :: fn(e: AST.TypeExpr) -> string {
+    match e {
+        is AST.IdentExpr as id -> { return id.name }
+        is AST.GenericInstExpr as g -> {
+            base :: render_type_expr(g.callee)
+            args := ""
+            first := true
+            for a in g.type_args {
+                if !first { args = args + ", " }
+                first = false
+                args = args + render_type_expr(a)
+            }
+            return "${base}(${args})"
+        }
+        is AST.ArrayTypeExpr as a -> { return "${render_type_expr(a.element)}[]" }
+        is AST.FnTypeExpr as f -> {
+            ps := ""
+            first := true
+            for p in f.params {
+                if !first { ps = ps + ", " }
+                first = false
+                ps = ps + render_type_expr(p)
+            }
+            ret := ""
+            match f.return_type {
+                is null -> {}
+                _ -> { ret = " -> " + render_type_expr(f.return_type) }
+            }
+            return "fn(${ps})${ret}"
+        }
+        is AST.BinaryExpr as b -> {
+            return "${render_type_expr(b.left)} | ${render_type_expr(b.right)}"
+        }
+        is AST.NullLitExpr -> { return "null" }
+        // Fallback for unsupported shapes — caller sees the label,
+        // doesn't fail.
+        _ -> { return "?" }
+    }
+}
+
+// ---- active-parameter computation ----------------------------------------
+
+/// Count commas before `(line, col)` inside `call.args` to compute the
+/// active parameter index. Cursor before the first arg → 0 ; cursor
+/// after the second comma → 2 ; etc. Clamps to `params.len() - 1` so
+/// trailing-comma / over-flowing cursors don't render off the end.
+active_param_index :: fn(call: AST.CallExpr, line: i32, col: i32) -> i32 {
+    active: i32 = 0
+    i: i32 = 0
+    for a in call.args {
+        // Cursor strictly before this arg's start ? Active is the
+        // previous index (we counted enough commas to reach here).
+        if before(line, col, a.span.start.line, a.span.start.column) { break }
+        active = i
+        if before_or_at(line, col, a.span.end.line, a.span.end.column) { return active }
+        i = i + i32(1)
+    }
+    // Cursor past all args (typed args + a trailing comma waiting for
+    // the next one) — bump to the next slot.
+    return active + i32(1)
+}
+
+before :: fn(line_a: i32, col_a: i32, line_b: i32, col_b: i32) -> bool {
+    if line_a < line_b { return true }
+    if line_a > line_b { return false }
+    return col_a < col_b
+}
+
+before_or_at :: fn(line_a: i32, col_a: i32, line_b: i32, col_b: i32) -> bool {
+    if line_a < line_b { return true }
+    if line_a > line_b { return false }
+    return col_a <= col_b
+}
+
+// ---- params extraction ---------------------------------------------------
+
+get_uri :: fn(params: JsonValue) -> string {
+    match params {
+        is JsonObject as o -> {
+            td :: o.entries["textDocument"]
+            match td {
+                is JsonObject as tdo -> {
+                    uri :: tdo.entries["uri"]
+                    match uri {
+                        is JsonString as s -> { return s.value }
+                        _ -> { return "" }
+                    }
+                }
+                _ -> { return "" }
+            }
+        }
+        _ -> { return "" }
+    }
+}
+
+get_pos_field :: fn(params: JsonValue, key: string) -> i32 {
+    match params {
+        is JsonObject as o -> {
+            pos :: o.entries["position"]
+            match pos {
+                is JsonObject as po -> {
+                    v :: po.entries[key]
+                    match v {
+                        is JsonNumber as n -> { return i32(n.value) }
+                        _ -> { return 0 }
+                    }
+                }
+                _ -> { return 0 }
+            }
+        }
+        _ -> { return 0 }
+    }
+}
+
+uri_to_path :: fn(uri: string) -> string {
+    prefix :: "file://"
+    if uri.starts_with(prefix) {
+        return uri.slice(prefix.byte_len(), uri.byte_len())
+    }
+    return ""
+}

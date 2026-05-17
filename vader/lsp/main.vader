@@ -26,6 +26,7 @@ import "vader/lsp/semantic_tokens" { handle_semantic_tokens_full }
 import "vader/lsp/definition" { handle_definition }
 import "vader/lsp/hover" { handle_hover }
 import "vader/lsp/inlay_hint" { handle_inlay_hint }
+import "vader/lsp/signature_help" { handle_signature_help }
 import "vader/lsp/rpc" { request_id, method_name, params_value, encode_response, encode_method_not_found, encode_error, is_json_null }
 import "vader/lsp/log" { log_info, log_warn }
 
@@ -153,6 +154,12 @@ dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> D
         result :: handle_inlay_hint(state, params)
         write_frame(encode_response(id, result))
         log_info("inlayHint ${doc_uri(params)}")
+        return DispatchResult.Continue
+    }
+    if method == "textDocument/signatureHelp" {
+        result :: handle_signature_help(state, params)
+        write_frame(encode_response(id, result))
+        log_info("signatureHelp ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     // Unknown method. Respond with MethodNotFound for requests (have an

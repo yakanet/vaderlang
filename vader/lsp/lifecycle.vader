@@ -102,6 +102,16 @@ export server_capabilities :: fn() -> JsonValue {
     caps["definitionProvider"]      = JsonBool { .value = true }
     caps["hoverProvider"]           = JsonBool { .value = true }
     caps["inlayHintProvider"]       = JsonBool { .value = true }
+
+    // signatureHelpProvider : trigger on `(` and re-trigger on `,` so
+    // VSCode pops the popup as the user opens a call and slides
+    // between args.
+    tp: JsonValue = JsonString { .value = "(" }
+    tc: JsonValue = JsonString { .value = "," }
+    triggers: JsonValue[] = [tp, tc]
+    sig_help :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    sig_help["triggerCharacters"]   = JsonArray { .items = triggers }
+    caps["signatureHelpProvider"]   = JsonObject { .entries = sig_help }
     return JsonObject { .entries = caps }
 }
 
