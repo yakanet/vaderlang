@@ -881,7 +881,13 @@ lookup_external_type :: fn(
     if typed is null { return null }
     sp :: st.symbol.defined_at
     if sp is null { return null }
-    return typed.decl_types[span_key(sp)]
+    declared :: typed.decl_types[span_key(sp)]
+    if !(declared is null) { return declared }
+    // Type-aliases live in the owner's `alias_types` (id-keyed), not
+    // `decl_types` (span-keyed). Cross-module `import { Decl }` from
+    // `parser/ast` must surface the union behind the alias so the entry's
+    // `IdentExpr` lookup returns the expanded type, not `?`.
+    return typed.resolved.alias_types[st.symbol.id]
 }
 
 /// Walk every fn / const body in `decls` and type-check it. Skips
