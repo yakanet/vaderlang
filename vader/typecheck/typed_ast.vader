@@ -159,6 +159,13 @@ export TypedProgram :: struct {
     /// trait-widening (`Cat → Animal` when `Cat implements Animal`).
     struct_implemented_traits: MutableMap(string, string[])
 
+    /// Per-impl trait args, keyed by `${struct_name}` then `${trait_name}`.
+    /// `Hello implements Greeter(i32)` records
+    /// `struct_trait_args["Hello"]["Greeter"] = [i32]`. Consumed by
+    /// `unify.vader::unify_type_param` so a generic fn parametrised by
+    /// `fn[T](g: Greeter(T))` called as `f(Hello {})` can bind T → i32.
+    struct_trait_args: MutableMap(string, MutableMap(string, Type[]))
+
     /// Enclosing fn-body context, pushed by `check_fn_body` and
     /// popped when it returns. Lets `check_return` (called via the
     /// recursive expression path where the ctx arg is `null`) still
@@ -204,6 +211,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .impl_method_traits = MutableMap(string, string[]) { .buckets = [], .size = 0 },
         .struct_field_types = MutableMap(i32, MutableMap(string, Type)) { .buckets = [], .size = 0 },
         .struct_implemented_traits = MutableMap(string, string[]) { .buckets = [], .size = 0 },
+        .struct_trait_args = MutableMap(string, MutableMap(string, Type[])) { .buckets = [], .size = 0 },
         .current_fn_ctx  = null,
     }
 }

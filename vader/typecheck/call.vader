@@ -27,7 +27,8 @@ AST :: import "vader/parser/ast"
 import "vader/typecheck/coerce" { try_into }
 import "vader/typecheck/type_ops" { default_if_free, is_assignable }
 import "vader/typecheck/types" {
-    Type, FnType, TypeMetaType, UnresolvedType, display_type, TY_UNRESOLVED,
+    Type, FnType, StructType, TraitType, TypeMetaType, UnresolvedType,
+    display_type, TY_UNRESOLVED,
 }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/typed_ast" { TypedProgram }
@@ -145,14 +146,14 @@ export infer_call :: fn(
         seed_ufcs_bindings(c.callee, typed, bindings)
         arg_types: Type[] = []
         for i in 0..<n {
-            // Substitute the param type with bindings learned from
-            // previous args BEFORE typing this one — lets the lambda
-            // in `nums.reduce(0, (a, b) -> a + b)` see
-            // `fn(i32, i32) -> i32` as its `expected`, not the
-            // unsubstituted `fn(T, U) -> U`.
             param_ty :: substitute(callee_ty.params[i], bindings)
             arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
             unify_type_param(callee_ty.params[i], arg_ty, bindings)
+            // `fn[T](g: Greeter(T))` called with `Hello{}` (where
+            // `Hello implements Greeter(i32)`) : unify can't recover T
+            // from a struct→trait dispatch — read it from the
+            // recorded impl args.
+            unify_struct_to_trait_args(callee_ty.params[i], arg_ty, typed, bindings)
             arg_types.push(arg_ty)
         }
         for i in 0..<n {
@@ -199,6 +200,28 @@ cast_call_target :: fn(
     for arg in c.args { check_expr_fn(arg.value, target, typed, diags) }
     return target
 }
+
+/// When `param` is `Trait(T, U, …)` and `arg` is a struct (or
+/// primitive — e.g. `i32 implements Doubler(i32)`) that implements
+/// that trait, bind `T`, `U`, … from `struct_trait_args`.
+unify_struct_to_trait_args :: fn(
+    param: Type, arg: Type, typed: TypedProgram, out: MutableMap(i32, Type),
+) -> void {
+    if !(param is TraitType) { return }
+    arg_name :: type_base_name(default_if_free(arg))
+    if arg_name == "" { return }
+    per_struct :: typed.struct_trait_args[arg_name]
+    if per_struct is null { return }
+    impl_args :: per_struct[param.symbol.name]
+    if impl_args is null { return }
+    n :: min(param.args.len(), impl_args.len())
+    for i in 0..<n {
+        unify_type_param(param.args[i], impl_args[i], out)
+    }
+}
+
+import "vader/typecheck/types" { type_base_name }
+
 
 fn_has_type_params :: fn(f: FnType) -> bool {
     for p in f.params { if type_contains_type_param(p) { return true } }

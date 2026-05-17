@@ -47,7 +47,9 @@ import "vader/typecheck/types" { ArrayType, TypeParamType }
 import "vader/typecheck/type_ops" { equals_type }
 
 /// True when `got` implements the trait `expected` (or a variant of
-/// `expected` if it's a union).
+/// `expected` if it's a union). Handles struct receivers AND primitives
+/// — `i32 implements Doubler(i32)` is a valid impl whose receiver name
+/// is "i32" in `struct_implemented_traits`. Free* gets defaulted first.
 export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
     if expected is UnionType {
         for v in expected.variants {
@@ -56,12 +58,16 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
         return false
     }
     if !(expected is TraitType) { return false }
-    if !(got is StructType) { return false }
     trait_name :: expected.symbol.name
-    bucket :: typed.struct_implemented_traits[got.symbol.name]
+    got_name :: type_base_name(default_if_free(got))
+    if got_name == "" { return false }
+    bucket :: typed.struct_implemented_traits[got_name]
     if bucket is null { return false }
     for name in bucket { if name == trait_name { return true } }
     return false
 }
+
+import "vader/typecheck/types" { type_base_name }
+import "vader/typecheck/type_ops" { default_if_free }
 
 import "vader/typecheck/types" { StructType, TraitType, UnionType }

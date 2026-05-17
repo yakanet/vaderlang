@@ -288,6 +288,14 @@ merge_external_impl_methods :: fn(
                 is AST.ImplDecl as id_decl -> {
                     for_ty :: type_from_expr(id_decl.for_type, other.resolved, diag_sink())
                     record_struct_trait(entry_typed, for_ty, id_decl.trait_name)
+                    // Resolve trait args in the OWNER module's scope
+                    // so `Hello implements Greeter(i32)` records [i32]
+                    // even when Greeter is cross-module.
+                    impl_trait_args: Type[] = []
+                    for ta in id_decl.trait_args {
+                        impl_trait_args.push(type_from_expr(ta, other.resolved, diag_sink()))
+                    }
+                    record_struct_trait_args(entry_typed, for_ty, id_decl.trait_name, impl_trait_args)
                     trait_decl_ext :: lookup_trait_decl(id_decl.trait_name, entry_typed)
                     for m in id_decl.members {
                         key :: "${display_type(for_ty)}::${m.name}"
@@ -365,8 +373,8 @@ record_impl_trait :: fn(typed: TypedProgram, base_key: string, trait_name: strin
 }
 
 record_struct_trait :: fn(typed: TypedProgram, for_ty: Type, trait_name: string) -> void {
-    if !(for_ty is StructType) { return }
-    name :: for_ty.symbol.name
+    name :: type_base_name(for_ty)
+    if name == "" { return }
     bucket :: typed.struct_implemented_traits[name]
     match bucket {
         is null -> { typed.struct_implemented_traits[name] = [trait_name] }
@@ -375,6 +383,22 @@ record_struct_trait :: fn(typed: TypedProgram, for_ty: Type, trait_name: string)
             bucket.push(trait_name)
             typed.struct_implemented_traits[name] = bucket
         }
+    }
+}
+
+record_struct_trait_args :: fn(
+    typed: TypedProgram, for_ty: Type, trait_name: string, args: Type[],
+) -> void {
+    name :: type_base_name(for_ty)
+    if name == "" { return }
+    per_struct :: typed.struct_trait_args[name]
+    match per_struct {
+        is null -> {
+            fresh :: MutableMap(string, Type[]) { .buckets = [], .size = 0 }
+            fresh[trait_name] = args
+            typed.struct_trait_args[name] = fresh
+        }
+        _ -> { per_struct[trait_name] = args }
     }
 }
 
@@ -875,6 +899,11 @@ export walk_bodies :: fn(
                 }
                 check_impl_missing_methods(id, typed, diags)
                 record_struct_trait(typed, for_ty, id.trait_name)
+                local_impl_trait_args: Type[] = []
+                for ta in id.trait_args {
+                    local_impl_trait_args.push(type_from_expr(ta, typed.resolved, diags))
+                }
+                record_struct_trait_args(typed, for_ty, id.trait_name, local_impl_trait_args)
                 trait_decl :: lookup_trait_decl(id.trait_name, typed)
                 for m in id.members {
                     trait_method :: lookup_trait_method(trait_decl, m.name)
