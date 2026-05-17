@@ -187,10 +187,23 @@ try_typed_hover :: fn(uri: string, line: i32, character: i32) -> JsonValue | nul
     // LSP positions are 0-based ; the Vader AST is 1-based.
     target_line :: line + i32(1)
     target_col  :: character + i32(1)
+    // Binding-name hover first : when the cursor sits on a `let` /
+    // `::` binding name, show the RHS's inferred type instead of the
+    // (often `?` placeholder) declared type. Useful when the user
+    // wrote `origin: ? | null :: index.span_at(...)` and wants the
+    // LSP to surface what the typechecker resolved to.
+    binding_ty :: find_binding_rhs_type_at(entry.module.files[0].program.decls, target_line, target_col, result.typed)
+    if !(binding_ty is null) { return type_hover(binding_ty) }
+
     found :: find_expr_at(entry.module.files[0].program.decls, target_line, target_col, result.typed)
     if found is null { return null }
     ty :: result.typed.expr_types[found.id]
     if ty is null { return null }
+    return type_hover(ty)
+}
+
+/// Wrap a `Type` in a markdown Hover payload : ```vader\n<type>\n```.
+type_hover :: fn(ty: Type) -> JsonValue {
     body :: "```vader\n" + display_type(ty) + "\n```"
     contents :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
     contents["kind"]  = JsonString { .value = "markdown" }
@@ -198,6 +211,103 @@ try_typed_hover :: fn(uri: string, line: i32, character: i32) -> JsonValue | nul
     obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
     obj["contents"] = JsonObject { .entries = contents }
     return JsonObject { .entries = obj }
+}
+
+/// When `(line, col)` falls inside a `let` / `::` binding name, return
+/// the RHS expression's inferred type. Returns `null` for any other
+/// cursor context.
+find_binding_rhs_type_at :: fn(
+    decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram,
+) -> Type | null {
+    state :: FindBindingState { .line = line, .col = col, .ty = null }
+    for d in decls { binding_walk_decl(d, typed, state) }
+    return state.ty
+}
+
+FindBindingState :: struct {
+    line: i32
+    col:  i32
+    ty:   Type | null
+}
+
+binding_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingState) -> void {
+    match d {
+        is AST.FnDecl as fd -> {
+            match fd.body {
+                is null -> {}
+                is AST.BlockExpr as b -> { binding_walk_block(b, typed, st) }
+            }
+        }
+        is AST.ImplDecl as id -> {
+            for m in id.members {
+                match m.body {
+                    is null -> {}
+                    is AST.BlockExpr as b -> { binding_walk_block(b, typed, st) }
+                }
+            }
+        }
+        _ -> {}
+    }
+}
+
+binding_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindBindingState) -> void {
+    for s in b.stmts { binding_walk_stmt(s, typed, st) }
+    match b.trailing {
+        is null -> {}
+        _ -> { binding_walk_expr(b.trailing, typed, st) }
+    }
+}
+
+binding_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingState) -> void {
+    match s {
+        is AST.LetStmt as ls -> {
+            match ls.binding {
+                is AST.SimpleBinding as sb -> {
+                    if span_contains(sb.name_span, st.line, st.col) {
+                        ty :: typed.expr_types[ls.value.id]
+                        if !(ty is null) { st.ty = ty }
+                        return
+                    }
+                }
+                _ -> {}
+            }
+            binding_walk_expr(ls.value, typed, st)
+        }
+        is AST.ExprStmt as es -> { binding_walk_expr(es.expr, typed, st) }
+        is AST.ReturnStmt as rs -> {
+            match rs.value {
+                is null -> {}
+                _ -> { binding_walk_expr(rs.value, typed, st) }
+            }
+        }
+        is AST.ForStmt as fs -> { binding_walk_block(fs.body, typed, st) }
+        is AST.DeferStmt as ds -> {
+            match ds.body {
+                is AST.DeferStmtBody  as dsb -> { binding_walk_stmt(dsb.stmt, typed, st) }
+                is AST.DeferBlockBody as dbb -> { binding_walk_block(dbb.block, typed, st) }
+            }
+        }
+        _ -> {}
+    }
+}
+
+binding_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingState) -> void {
+    match e {
+        is AST.BlockExpr as b -> { binding_walk_block(b, typed, st) }
+        is AST.IfExpr as ifx -> {
+            binding_walk_block(ifx.then_block, typed, st)
+            match ifx.else_branch {
+                is null -> {}
+                is AST.IfElseIf    as ei -> { binding_walk_expr(ei.branch, typed, st) }
+                is AST.IfElseBlock as eb -> { binding_walk_block(eb.block, typed, st) }
+            }
+        }
+        is AST.MatchExpr as m -> {
+            for arm in m.arms { binding_walk_expr(arm.body, typed, st) }
+        }
+        is AST.LambdaExpr as l -> { binding_walk_block(l.body, typed, st) }
+        _ -> {}
+    }
 }
 
 uri_to_path :: fn(uri: string) -> string {
@@ -384,7 +494,7 @@ import "vader/diagnostics/diagnostic" { Diagnostic, Span }
 import "vader/resolver/loader" { load_project }
 import "vader/typecheck/orchestrate" { check_project_with_bodies }
 import "vader/typecheck/typed_ast" { TypedProgram }
-import "vader/typecheck/types" { display_type }
+import "vader/typecheck/types" { Type, display_type }
 AST :: import "vader/parser/ast"
 
 // ---- params extraction (mirrors definition.vader) ------------------------
