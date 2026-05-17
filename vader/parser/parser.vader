@@ -15,9 +15,13 @@ import "vader/diagnostics/codes" { ParserCode }
 // ============================================================================
 
 export ParsedSource :: struct {
-    program: Program
-    tokens:  Token[]
-    errors:  Diagnostic[]
+    program:    Program
+    tokens:     Token[]
+    errors:     Diagnostic[]
+    /// Carries the factory state after the post-parse ID walk so
+    /// downstream cloners (e.g. `materialize.vader`) can mint
+    /// non-colliding IDs in the same namespace.
+    id_factory: NodeIdFactory
 }
 
 export parse_source :: fn(source: string, file: string) -> ParsedSource {
@@ -32,9 +36,10 @@ export parse_source :: fn(source: string, file: string) -> ParsedSource {
     id_factory :: new_node_id_factory()
     assign_program_ids(program, id_factory)
     return ParsedSource {
-        .program = program,
-        .tokens  = l.tokens,
-        .errors  = p.errors,
+        .program    = program,
+        .tokens     = l.tokens,
+        .errors     = p.errors,
+        .id_factory = id_factory,
     }
 }
 

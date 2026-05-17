@@ -259,3 +259,248 @@ export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
         _ -> { return p }
     }
 }
+
+// ---- materialised-span wrapper -------------------------------------------
+
+import "vader/diagnostics/diagnostic" { materialized_span }
+
+/// Clone `b` via `substitute_block`, then overwrite every cloned node's
+/// `.span` with the materialised marker. Consumed by
+/// `materialize_default_members` so the typecheck dump can render these
+/// nodes at `undefined:undefined` — matches TS's accidental shape for
+/// substituted leaves (`src/resolver/materialize.ts:367-372`).
+///
+/// IDs stay `UNASSIGNED_NODE_ID` here ; the caller re-walks the result
+/// with `assign_block_ids(cloned, host_factory)` so every cloned node
+/// gets a unique id in the host module's namespace.
+export substitute_block_materialized :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
+    cloned :: substitute_block(b, subst)
+    stamp_block(cloned)
+    return cloned
+}
+
+stamp_block :: fn(b: AST.BlockExpr) -> void {
+    b.span = materialized_span()
+    for s in b.stmts { stamp_stmt(s) }
+    match b.trailing {
+        is null -> {}
+        _ -> { stamp_expr(b.trailing) }
+    }
+}
+
+stamp_stmt :: fn(s: AST.Stmt) -> void {
+    match s {
+        is AST.LetStmt as ls -> {
+            ls.span = materialized_span()
+            match ls.ty {
+                is null -> {}
+                _ -> { stamp_expr(ls.ty) }
+            }
+            stamp_expr(ls.value)
+        }
+        is AST.ExprStmt as es -> {
+            es.span = materialized_span()
+            stamp_expr(es.expr)
+        }
+        is AST.ReturnStmt as rs -> {
+            rs.span = materialized_span()
+            match rs.value {
+                is null -> {}
+                _ -> { stamp_expr(rs.value) }
+            }
+        }
+        is AST.AssignStmt as as_ -> {
+            as_.span = materialized_span()
+            stamp_expr(as_.target)
+            stamp_expr(as_.value)
+        }
+        is AST.ForStmt as fs -> {
+            fs.span = materialized_span()
+            match fs.form {
+                is AST.WhileFor as w -> { stamp_expr(w.cond) }
+                is AST.InFor as inf -> { stamp_expr(inf.iter) }
+                is AST.InfiniteFor -> {}
+            }
+            stamp_block(fs.body)
+        }
+        is AST.BreakStmt as bs -> { bs.span = materialized_span() }
+        is AST.ContinueStmt as cs -> { cs.span = materialized_span() }
+        is AST.DeferStmt as ds -> {
+            ds.span = materialized_span()
+            match ds.body {
+                is AST.DeferStmtBody  as dsb -> { stamp_stmt(dsb.stmt) }
+                is AST.DeferBlockBody as dbb -> { stamp_block(dbb.block) }
+            }
+        }
+    }
+}
+
+stamp_expr :: fn(e: AST.Expr) -> void {
+    match e {
+        is AST.IntLitExpr    as x -> { x.span = materialized_span() }
+        is AST.FloatLitExpr  as x -> { x.span = materialized_span() }
+        is AST.BoolLitExpr   as x -> { x.span = materialized_span() }
+        is AST.NullLitExpr   as x -> { x.span = materialized_span() }
+        is AST.CharLitExpr   as x -> { x.span = materialized_span() }
+        is AST.StringLitExpr as x -> {
+            x.span = materialized_span()
+            for p in x.parts {
+                match p {
+                    is AST.StringLitText   as t -> { t.span = materialized_span() }
+                    is AST.StringLitInterp as i -> {
+                        i.span = materialized_span()
+                        stamp_expr(i.expr)
+                    }
+                }
+            }
+        }
+        is AST.IdentExpr as x -> { x.span = materialized_span() }
+        is AST.CallExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.callee)
+            for a in x.args {
+                a.span = materialized_span()
+                stamp_expr(a.value)
+            }
+        }
+        is AST.FieldExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.target)
+        }
+        is AST.IndexExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.target)
+            stamp_expr(x.index)
+        }
+        is AST.UnaryExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.operand)
+        }
+        is AST.BinaryExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.left)
+            stamp_expr(x.right)
+        }
+        is AST.IfExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.cond)
+            stamp_block(x.then_block)
+            match x.else_branch {
+                is null -> {}
+                is AST.IfElseIf    as ei -> { stamp_expr(ei.branch) }
+                is AST.IfElseBlock as eb -> { stamp_block(eb.block) }
+            }
+        }
+        is AST.MatchExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.scrutinee)
+            for a in x.arms {
+                a.span = materialized_span()
+                stamp_pattern(a.pattern)
+                match a.guard {
+                    is null -> {}
+                    _ -> { stamp_expr(a.guard) }
+                }
+                stamp_expr(a.body)
+            }
+        }
+        is AST.BlockExpr as x -> { stamp_block(x) }
+        is AST.LambdaExpr as x -> {
+            x.span = materialized_span()
+            // Params + return type left at trait spans — substitute_body
+            // doesn't recurse into LambdaExpr today (see TODO at line 162).
+            // When that gap closes, mirror the recursion here.
+            stamp_block(x.body)
+        }
+        is AST.StructLitExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.type_name)
+            for item in x.items {
+                match item {
+                    is AST.StructLitField  as fld -> {
+                        fld.span = materialized_span()
+                        stamp_expr(fld.value)
+                    }
+                    is AST.StructLitSpread as sp  -> {
+                        sp.span = materialized_span()
+                        stamp_expr(sp.expr)
+                    }
+                }
+            }
+        }
+        is AST.SeqLitExpr as x -> {
+            x.span = materialized_span()
+            for el in x.elements { stamp_expr(el) }
+        }
+        is AST.RangeExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.lower)
+            stamp_expr(x.upper)
+        }
+        is AST.TryExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.inner)
+        }
+        is AST.CastExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.target)
+            stamp_expr(x.value)
+        }
+        is AST.GenericInstExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.callee)
+            for ta in x.type_args { stamp_expr(ta) }
+        }
+        is AST.IntrinsicCallExpr as x -> {
+            x.span = materialized_span()
+            for a in x.args { stamp_expr(a) }
+        }
+        is AST.DotVariantExpr as x -> { x.span = materialized_span() }
+        is AST.FnTypeExpr as x -> {
+            x.span = materialized_span()
+            for p in x.params { stamp_expr(p) }
+            match x.return_type {
+                is null -> {}
+                _ -> { stamp_expr(x.return_type) }
+            }
+        }
+        is AST.ArrayTypeExpr as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.element)
+        }
+    }
+}
+
+stamp_pattern :: fn(p: AST.Pattern) -> void {
+    match p {
+        is AST.IsPattern as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.ty)
+            match x.inner {
+                is null -> {}
+                _ -> { stamp_pattern(x.inner) }
+            }
+        }
+        is AST.StructPattern as x -> {
+            x.span = materialized_span()
+            for fld in x.fields {
+                fld.span = materialized_span()
+                match fld.value {
+                    is AST.PatternBinding as pb -> { pb.span = materialized_span() }
+                    is AST.PatternLiteral as pl -> { stamp_expr(pl.value) }
+                }
+            }
+        }
+        is AST.TuplePattern as x -> {
+            x.span = materialized_span()
+            for el in x.elements { stamp_pattern(el) }
+        }
+        is AST.WildcardPattern    as x -> { x.span = materialized_span() }
+        is AST.BindingPattern     as x -> { x.span = materialized_span() }
+        is AST.EnumVariantPattern as x -> { x.span = materialized_span() }
+        is AST.LiteralPattern     as x -> {
+            x.span = materialized_span()
+            stamp_expr(x.value)
+        }
+    }
+}

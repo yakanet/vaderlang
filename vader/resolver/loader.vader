@@ -15,6 +15,7 @@
 //     imports.
 
 import "std/collections" { MutableMap }
+import "vader/parser" { NodeIdFactory, new_node_id_factory }
 import "vader/resolver/collect" { CollectedModule, collect_module }
 import "vader/resolver/module" {
     Module, SourceFile, default_stdlib_root, load_module_files,
@@ -33,10 +34,14 @@ export LoadedProject :: struct {
 }
 
 /// One module after parse + collect (top-level symbols minted but
-/// body-walker / typecheck haven't run yet).
+/// body-walker / typecheck haven't run yet). `node_id_factory` is
+/// shared with `materialize.vader` so cloned default-method bodies
+/// inserted into this module's impls get IDs that don't collide
+/// with the IDs minted at parse time.
 export LoadedModule :: struct {
-    module:    Module
-    collected: CollectedModule
+    module:          Module
+    collected:       CollectedModule
+    node_id_factory: NodeIdFactory
 }
 
 /// Build the module graph rooted at `entry_path`. Returns the loaded
@@ -93,12 +98,16 @@ load_one :: fn(
     files :: load_module_files(root)
     if files.len() == 0 { return }
     collected :: collect_files(files, id, factory)
+    // Hand `materialize.vader` the same factory that parse used for
+    // files[0] (the file whose decls feed collect + downstream phases)
+    // so cloned default-method bodies mint IDs in the same namespace.
     modules[id] = LoadedModule {
         .module = Module {
             .id = id, .display_path = display_path_for(root, stdlib_root),
             .root_dir = root, .files = files,
         },
-        .collected = collected,
+        .collected       = collected,
+        .node_id_factory = files[0].id_factory,
     }
 }
 

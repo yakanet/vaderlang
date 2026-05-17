@@ -176,8 +176,15 @@ export TypedProgram :: struct {
     /// recursive expression path where the ctx arg is `null`) still
     /// validate against the fn's declared return type. Mutable.
     current_fn_ctx: FnContext | null
+
+    /// `AST.id → Span` reverse lookup populated alongside every write
+    /// to `expr_types` / `expr_kinds`. Lets the dump still render
+    /// `line:col` (or `undefined:undefined` for materialised spans)
+    /// once expression side-tables flip from span-keyed to id-keyed.
+    node_spans: MutableMap(usize, Span)
 }
 
+import "vader/diagnostics/diagnostic" { Span }
 import "vader/typecheck/context" { FnContext }
 
 import "vader/resolver/wire" { ImportTargetTable }
@@ -219,6 +226,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .struct_implemented_traits = MutableMap(string, string[]) { .buckets = [], .size = 0 },
         .struct_trait_args = MutableMap(string, MutableMap(string, Type[])) { .buckets = [], .size = 0 },
         .current_fn_ctx  = null,
+        .node_spans      = MutableMap(usize, Span) { .buckets = [], .size = 0 },
     }
 }
 

@@ -18,7 +18,7 @@ import "std/io" { exists, is_dir, read_dir, read_file }
 import "std/path" { Path, to_path, as_string, parent }
 import "std/sort" { sort }
 import "std/string" { byte_at, byte_len, compare_ascending, ends_with, slice, starts_with }
-import "vader/parser" { Program, parse_source }
+import "vader/parser" { NodeIdFactory, Program, parse_source }
 
 /// `import "std/..."` and stdlib display paths share this prefix.
 export STDLIB_PREFIX :: "std/"
@@ -33,10 +33,14 @@ export is_stdlib_module :: fn(display_path: string) -> bool {
 }
 
 /// A loaded source file in a module — raw text plus its parsed AST.
+/// `id_factory` is the post-parse factory state for this file, threaded
+/// to `LoadedModule` so cloned default-method bodies inserted by
+/// `materialize.vader` mint IDs in the same namespace as parse-time IDs.
 export SourceFile :: struct {
-    path:    string
-    content: string
-    program: Program
+    path:       string
+    content:    string
+    program:    Program
+    id_factory: NodeIdFactory
 }
 
 /// A resolved module : `id` is its canonical absolute root path,
@@ -129,9 +133,10 @@ export load_module_files :: fn(root_path: string) -> SourceFile[] {
         if content is null { continue }
         parsed :: parse_source(content, f)
         out.push(SourceFile {
-            .path = f,
-            .content = content,
-            .program = parsed.program,
+            .path       = f,
+            .content    = content,
+            .program    = parsed.program,
+            .id_factory = parsed.id_factory,
         })
     }
     return out

@@ -41,6 +41,29 @@ export empty_span :: fn() -> Span {
     }
 }
 
+/// Sentinel file name on spans that belong to AST nodes cloned from a
+/// trait's default-method body into an implementing struct's impl.
+/// The typecheck dump renders these spans as `undefined:undefined`
+/// (mirrors TS's accidental render of nodes whose `span.start.line/column`
+/// are JS `undefined`).
+export MATERIALIZED_FILE :: "<materialized>"
+
+/// Span marker for substituted leaves in materialised bodies. Line/column
+/// are 0 (not a valid source position) so a stale reader can't confuse
+/// it with a real location.
+export materialized_span :: fn() -> Span {
+    return Span {
+        .start = Position { .file = MATERIALIZED_FILE, .offset = 0, .line = 0, .column = 0 },
+        .end   = Position { .file = MATERIALIZED_FILE, .offset = 0, .line = 0, .column = 0 },
+    }
+}
+
+/// Detect the materialised marker. Used by the typecheck dump to swap
+/// the loc column for `undefined:undefined` on materialised nodes.
+export is_materialized_span :: fn(s: Span) -> bool {
+    return s.start.file == MATERIALIZED_FILE
+}
+
 export Diagnostic :: struct {
     severity: Severity
     // Resolved at construction time so the renderer doesn't need to dispatch
