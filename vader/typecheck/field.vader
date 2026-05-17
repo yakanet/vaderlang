@@ -19,7 +19,8 @@ AST :: import "vader/parser/ast"
 import "vader/resolver/resolve" { ResolvedModule }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/types" {
-    Type, StructType, UnresolvedType, display_type, TY_UNRESOLVED,
+    Type, ArrayType, PrimitiveType, StructType, UnresolvedType,
+    display_type, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
 
@@ -48,6 +49,13 @@ export infer_field :: fn(
         match array_ufcs {
             is null -> {}
             _ -> { return array_ufcs }
+        }
+    }
+    if target_ty is PrimitiveType {
+        prim_ufcs :: primitive_method_type(target_ty.name, e.field)
+        match prim_ufcs {
+            is null -> {}
+            _ -> { return prim_ufcs }
         }
     }
     if !(target_ty is StructType) {
@@ -142,7 +150,7 @@ substitute_by_name :: fn(
 import "std/collections" { MutableMap }
 import "std/math" { min }
 import "vader/typecheck/types" {
-    ArrayType, FnType, TupleType, TypeParamType, UnionType,
+    FnType, TupleType, TypeParamType, UnionType,
     mk_array, mk_fn, mk_struct, mk_tuple,
 }
 import "vader/typecheck/type_ops" { union_of }
@@ -161,6 +169,24 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
     if name == "is_empty" { return mk_fn([], mk_primitive("bool")) }
     if name == "push"     { return mk_fn([arr.element], TY_VOID) }
     if name == "pop"      { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
+    return null
+}
+
+/// MVP UFCS for the canonical primitive (string / char) methods.
+/// Mirrors the stdlib `T` free fns the lowerer wires in.
+primitive_method_type :: fn(prim: string, name: string) -> Type | null {
+    if prim == "string" {
+        if name == "len"        { return mk_fn([], mk_primitive("usize")) }
+        if name == "byte_len"   { return mk_fn([], mk_primitive("usize")) }
+        if name == "is_empty"   { return mk_fn([], mk_primitive("bool")) }
+        if name == "starts_with"{ return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
+        if name == "ends_with"  { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
+        if name == "contains"   { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
+        if name == "to_lower"   { return mk_fn([], mk_primitive("string")) }
+        if name == "to_upper"   { return mk_fn([], mk_primitive("string")) }
+        if name == "trim"       { return mk_fn([], mk_primitive("string")) }
+        if name == "byte_at"    { return mk_fn([mk_primitive("usize")], mk_primitive("u8")) }
+    }
     return null
 }
 
