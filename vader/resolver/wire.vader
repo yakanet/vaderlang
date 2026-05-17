@@ -93,7 +93,7 @@ build_path_index :: fn(
     stdlib_root :: stdlib_root_from(project)
     from_file :: loaded.module.files[0].path
     for raw in loaded.collected.import_paths {
-        resolved :: try_resolve(raw, from_file, stdlib_root)
+        resolved :: try_resolve(raw, from_file, stdlib_root, project.project_root)
         if resolved is null { continue }
         if project.modules[resolved] is null { continue }
         index[raw] = resolved
@@ -103,8 +103,10 @@ build_path_index :: fn(
 
 import "vader/resolver/module" { default_stdlib_root, module_id_from_root, resolve_import_path }
 
-try_resolve :: fn(raw: string, from_file: string, stdlib_root: string) -> string | null {
-    target :: resolve_import_path(raw, from_file, stdlib_root)
+try_resolve :: fn(
+    raw: string, from_file: string, stdlib_root: string, project_root: string | null,
+) -> string | null {
+    target :: resolve_import_path(raw, from_file, stdlib_root, project_root)
     if target is null { return null }
     return module_id_from_root(target)
 }

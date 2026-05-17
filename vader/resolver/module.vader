@@ -23,6 +23,10 @@ import "vader/parser" { Program, parse_source }
 /// `import "std/..."` and stdlib display paths share this prefix.
 export STDLIB_PREFIX :: "std/"
 
+/// Project-root marker file. `find_manifest_root` walks up looking
+/// for this name to anchor bare-name imports.
+export MANIFEST_FILENAME :: "vader.json"
+
 /// True when a display path identifies a stdlib module.
 export is_stdlib_module :: fn(display_path: string) -> bool {
     return display_path.starts_with(STDLIB_PREFIX)
@@ -49,15 +53,51 @@ export Module :: struct {
 
 /// Resolve a raw `import "<path>"` string to an on-disk location,
 /// or null. `from_file` is the absolute path of the file containing
-/// the import ; `stdlib_root` is where `std/...` lives.
+/// the import ; `stdlib_root` is where `std/...` lives ; `project_root`
+/// (when non-null) is the directory of the nearest `vader.json` and
+/// anchors bare-name imports like `import "vader/parser/ast"`.
 export resolve_import_path :: fn(
     raw_path: string, from_file: string, stdlib_root: string,
+    project_root: string | null,
 ) -> string | null {
     if raw_path.starts_with(STDLIB_PREFIX) {
         return resolve_on_disk(join_path(stdlib_root, raw_path))
     }
-    from_dir :: dir_of(from_file)
-    return resolve_on_disk(join_path(from_dir, raw_path))
+    if raw_path.starts_with("./") || raw_path.starts_with("../") {
+        return resolve_on_disk(join_path(dir_of(from_file), raw_path))
+    }
+    // Project-rooted mode wins when a manifest was found ; matches
+    // TS `src/resolver/module.ts::resolveImportPath`. A miss here
+    // returns null rather than falling through to a relative probe —
+    // bare-name imports should never accidentally hit a sibling file.
+    if !(project_root is null) {
+        return resolve_on_disk(join_path(project_root, raw_path))
+    }
+    // Single-file mode fallback : no manifest, try the importing
+    // file's dir as a courtesy.
+    return resolve_on_disk(join_path(dir_of(from_file), raw_path))
+}
+
+/// Walk up from `start` looking for `MANIFEST_FILENAME`. Returns
+/// the containing directory, or null if no manifest is found up to
+/// the filesystem root. Used to anchor `import "vader/parser/ast"`
+/// style bare-name imports.
+export find_manifest_root :: fn(start: string) -> string | null {
+    // Accept either a file or a directory as the start point ; for
+    // a file, walk-up begins at its parent.
+    dir := start
+    if exists(dir) {
+        if !is_dir(dir) { dir = dir_of(dir) }
+    } else {
+        dir = dir_of(dir)
+    }
+    for {
+        candidate :: join_path(dir, MANIFEST_FILENAME)
+        if exists(candidate) { return dir }
+        parent_dir :: dir_of(dir)
+        if parent_dir == dir { return null }
+        dir = parent_dir
+    }
 }
 
 /// Returns the absolute path when `path` exists as a directory or

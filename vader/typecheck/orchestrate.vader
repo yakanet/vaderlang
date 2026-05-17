@@ -171,7 +171,7 @@ collect_direct_imports :: fn(
     seen :: MutableMap(string, bool) { .buckets = [], .size = 0 }
     for raw in entry_loaded.collected.import_paths {
         if starts_with(raw, "std/") { continue }
-        target :: resolve_import_path(raw, from_file, stdlib_root)
+        target :: resolve_import_path(raw, from_file, stdlib_root, project.project_root)
         if target is null { continue }
         target_id :: module_id_from_root(target)
         if target_id == project.entry { continue }

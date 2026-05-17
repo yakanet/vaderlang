@@ -3,6 +3,11 @@ dist/
 build/
 *.wasm
 *.tsbuildinfo
+
+# Self-host CLI build artefacts (binary + generated C from `vader build vader/cli/main.vader`)
+vader/cli/main
+vader/cli/main.c
+vader/cli/main.dSYM/
 .DS_Store
 .env
 .env.*

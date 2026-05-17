@@ -18,7 +18,7 @@ import "std/collections" { MutableMap }
 import "vader/resolver/collect" { CollectedModule, collect_module }
 import "vader/resolver/module" {
     Module, SourceFile, default_stdlib_root, load_module_files,
-    module_id_from_root, resolve_import_path,
+    find_manifest_root, module_id_from_root, resolve_import_path,
 }
 import "vader/resolver/symbol" { SymbolFactory, new_factory }
 
@@ -26,9 +26,10 @@ import "vader/resolver/symbol" { SymbolFactory, new_factory }
 /// of modules keyed by id, and the shared symbol factory used to
 /// mint every Symbol across modules (so ids stay globally unique).
 export LoadedProject :: struct {
-    entry:    string
-    modules:  MutableMap(string, LoadedModule)
-    factory:  SymbolFactory
+    entry:        string
+    modules:      MutableMap(string, LoadedModule)
+    factory:      SymbolFactory
+    project_root: string | null
 }
 
 /// One module after parse + collect (top-level symbols minted but
@@ -44,13 +45,14 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
     factory :: new_factory()
     modules :: MutableMap(string, LoadedModule) { .buckets = [], .size = 0 }
     stdlib_root :: default_stdlib_root()
+    project_root :: find_manifest_root(entry_path)
 
     entry_id :: module_id_from_root(entry_path)
     // Auto-load `std/core` (mirrors TS `loadProject`'s autoloadCore
     // behavior). Lets `Range`, `Field`, `Display` and other core
     // structs/traits resolve cross-module even when the entry
     // doesn't explicitly import them.
-    core_target :: resolve_import_path("std/core", entry_path, stdlib_root)
+    core_target :: resolve_import_path("std/core", entry_path, stdlib_root, project_root)
     match core_target {
         is null -> {}
         _ -> { load_one(core_target, stdlib_root, modules, factory) }
@@ -67,7 +69,7 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
         _ -> {
             from_file :: entry_loaded.module.files[0].path
             for raw in entry_loaded.collected.import_paths {
-                target :: resolve_import_path(raw, from_file, stdlib_root)
+                target :: resolve_import_path(raw, from_file, stdlib_root, project_root)
                 match target {
                     is null -> {}
                     _ -> { load_one(target, stdlib_root, modules, factory) }
@@ -78,6 +80,7 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
 
     return LoadedProject {
         .entry = entry_id, .modules = modules, .factory = factory,
+        .project_root = project_root,
     }
 }
 
