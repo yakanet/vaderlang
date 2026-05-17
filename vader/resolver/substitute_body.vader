@@ -208,8 +208,32 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
                 .value = substitute_expr_full(as_.value, subst),
             }
         }
-        // TODO : ForStmt, BreakStmt, ContinueStmt, DeferStmt. Fall
-        // through unchanged for the sketch.
+        is AST.ForStmt as fs -> {
+            new_form: AST.ForForm = fs.form
+            match fs.form {
+                is AST.WhileFor as w -> {
+                    new_form = AST.WhileFor { .cond = substitute_expr_full(w.cond, subst) }
+                }
+                is AST.InFor as inf -> {
+                    new_form = AST.InFor {
+                        .binding = inf.binding,
+                        .binding_span = inf.binding_span,
+                        .iter = substitute_expr_full(inf.iter, subst),
+                    }
+                }
+                is AST.InfiniteFor -> {}    // no children
+            }
+            return AST.ForStmt {
+                .span = fs.span, .id = AST.UNASSIGNED_NODE_ID,
+                .label = fs.label,
+                .form = new_form,
+                .body = substitute_block(fs.body, subst),
+                .is_comptime = fs.is_comptime,
+            }
+        }
+        is AST.BreakStmt -> { return s }       // no children
+        is AST.ContinueStmt -> { return s }
+        // TODO : DeferStmt. Falls through unchanged for the sketch.
         _ -> { return s }
     }
 }
