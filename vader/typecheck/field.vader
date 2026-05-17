@@ -39,6 +39,17 @@ export infer_field :: fn(
     }
     target_ty :: check_expr_fn(e.target, null, typed, diags)
     if target_ty is UnresolvedType { return TY_UNRESOLVED }
+    // Array UFCS : `arr.len()` / `arr.push(x)` / `arr.pop()` dispatch
+    // through stdlib free fns. MVP returns a synthesised FnType
+    // matching each method's signature ; impl-driven UFCS lookup
+    // arrives with `coerce.vader`.
+    if target_ty is ArrayType {
+        array_ufcs :: array_method_type(e.field, target_ty)
+        match array_ufcs {
+            is null -> {}
+            _ -> { return array_ufcs }
+        }
+    }
     if !(target_ty is StructType) {
         diags.push(typecheck_error(.NotIndexable, e.span,
             "`.${e.field}` on non-struct type ${display_type(target_ty)}"))
@@ -135,6 +146,23 @@ import "vader/typecheck/types" {
     mk_array, mk_fn, mk_struct, mk_tuple,
 }
 import "vader/typecheck/type_ops" { union_of }
+import "vader/typecheck/types" { mk_primitive, mk_union, TY_VOID }
+
+/// MVP UFCS dispatch for the canonical array methods. Returns the
+/// per-method `FnType` synthesised from the element type, or `null`
+/// when the method isn't a known array method. Mirrors the stdlib
+/// `T[]` free fns the lowerer wires in :
+///   - `len()`       → `usize`
+///   - `push(T)`     → `void`
+///   - `pop()`       → `T | null`
+///   - `is_empty()`  → `bool`
+array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
+    if name == "len"      { return mk_fn([], mk_primitive("usize")) }
+    if name == "is_empty" { return mk_fn([], mk_primitive("bool")) }
+    if name == "push"     { return mk_fn([arr.element], TY_VOID) }
+    if name == "pop"      { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
+    return null
+}
 
 import "vader/resolver/scope" { span_key }
 import "vader/resolver/symbol" { Symbol }
