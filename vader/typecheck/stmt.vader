@@ -147,8 +147,9 @@ check_assign :: fn(
         }
     }
     // T3042 : `arr[i] = v` when arr's static type is `const T[]`.
-    // Type the target so the inner index lands in expr_types, then
-    // inspect its target's type for the immutable flag.
+    // We pre-inspect the inner array target for the immutable flag,
+    // then defer to the regular path so the IndexExpr lands in
+    // expr_types like any other RHS.
     if s.target is AST.IndexExpr {
         ix :: s.target
         target_arr_ty :: check_expr_fn(ix.target, null, typed, diags)
@@ -160,8 +161,6 @@ check_assign :: fn(
                 return
             }
         }
-        check_expr_fn(s.value, null, typed, diags)
-        return
     }
     target_ty :: check_expr_fn(s.target, null, typed, diags)
     value_hint: Type | null = null
