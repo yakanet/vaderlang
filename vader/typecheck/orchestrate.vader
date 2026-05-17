@@ -300,21 +300,29 @@ walk_fn_body :: fn(fd: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[]) -> 
 check_impl_missing_methods :: fn(
     id: AST.ImplDecl, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    trait_sym :: typed.resolved.idents[span_key(id.trait_name_span)]
-    if trait_sym is null { return }
-    trait_decl :: typed.trait_decls[trait_sym.id]
+    trait_decl :: lookup_trait_decl(id.trait_name, typed)
     if trait_decl is null { return }
     for required in trait_decl.members {
-        // Required = method with no body (abstract) ; default-method
-        // impls are also "required" only when the impl doesn't
-        // override them. MVP : flag anything not present by name.
         if required.body is null {
             if !impl_has_method(id, required.name) {
-                diags.push(typecheck_error(.ImplMissingRequiredMethod, id.span,
+                diags.push(typecheck_error(.ImplMissingRequiredMethod, id.trait_name_span,
                     "`${id.trait_name}` requires method `${required.name}` — not provided in this impl block"))
             }
         }
     }
+}
+
+lookup_trait_decl :: fn(name: string, typed: TypedProgram) -> AST.TraitDecl | null {
+    for sym in typed.resolved.symbols {
+        if sym.name == name {
+            td :: typed.trait_decls[sym.id]
+            match td {
+                is null -> {}
+                _ -> { return td }
+            }
+        }
+    }
+    return null
 }
 
 impl_has_method :: fn(id: AST.ImplDecl, name: string) -> bool {
