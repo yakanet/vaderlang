@@ -67,21 +67,30 @@ export infer_field :: fn(
     impl_ufcs :: typed.impl_methods["${display_type(target_ty)}::${e.field}"]
     match impl_ufcs {
         is null -> {}
-        _ -> { return impl_ufcs }
+        _ -> {
+            check_trait_ambiguity(e, target_ty, typed, diags)
+            return impl_ufcs
+        }
     }
     base_impl :: typed.impl_methods["${type_base_name(target_ty)}::${e.field}"]
     match base_impl {
         is null -> {}
-        _ -> { return substitute_impl_method(base_impl, target_ty, typed) }
+        _ -> {
+            check_trait_ambiguity(e, target_ty, typed, diags)
+            return substitute_impl_method(base_impl, target_ty, typed)
+        }
     }
     // Free-fn UFCS : `x.foo()` dispatches to a free fn `foo` whose
     // first param accepts `target_ty`. Walks the local module's
     // `fn_overloads` bucket and returns the curried fn type (sans the
     // receiver param). Skips when no bucket matches the field name.
-    free_ufcs :: try_free_fn_ufcs(e.field, target_ty, typed)
+    free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, typed)
     match free_ufcs {
         is null -> {}
-        _ -> { return free_ufcs }
+        _ -> {
+            typed.ufcs_receiver_types[span_full_key(e.span)] = free_ufcs.first_param
+            return free_ufcs.curried
+        }
     }
     // Trait method dispatch : `t.method()` where `t: <SomeTrait>`
     // returns the trait's declared method signature with `Self`
@@ -250,9 +259,9 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
     if name == "clear"        { return mk_fn([], TY_VOID) }
     if name == "slice_array"  { return mk_fn([mk_primitive("usize"), mk_primitive("usize")], mk_array(arr.element, false)) }
     if name == "reverse"      { return mk_fn([], mk_array(arr.element, false)) }
-    if name == "first"        { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
-    if name == "last"         { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
-    if name == "contains"     { return mk_fn([arr.element], mk_primitive("bool")) }
+    // `first` / `last` / `contains` stay user-shadowable — they're
+    // commonly redefined by user code with extra args (e.g. `first(arr,
+    // fallback)`), so we fall through to free-fn UFCS dispatch.
     return null
 }
 
@@ -304,7 +313,7 @@ primitive_method_type :: fn(prim: string, name: string) -> Type | null {
     return null
 }
 
-import "vader/resolver/scope" { span_key }
+import "vader/resolver/scope" { span_full_key, span_key }
 import "vader/resolver/symbol" { Symbol }
 import "vader/typecheck/expr_ident" { type_of_symbol }
 
@@ -317,6 +326,29 @@ import "vader/typecheck/expr_ident" { type_of_symbol }
 // type. Walks `resolved.fn_overloads[foo]` and returns the curried
 // `FnType` (receiver stripped) of the first overload whose first
 // param accepts `s`. Null when no overload matches.
+// Emit T3032 when two distinct traits both provide `e.field` on
+// `target_ty`. The impl_method dispatch picks one silently ; this
+// hook surfaces the ambiguity instead of letting it bite later.
+check_trait_ambiguity :: fn(
+    e: AST.FieldExpr, target_ty: Type, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    base_key :: "${type_base_name(target_ty)}::${e.field}"
+    traits :: typed.impl_method_traits[base_key]
+    if traits is null { return }
+    if traits.len() < 2 { return }
+    diags.push(typecheck_error(.AmbiguousOverload, e.field_span,
+        "`${e.field}` on ${display_type(target_ty)} is ambiguous between traits: ${join_commas(traits)}"))
+}
+
+join_commas :: fn(names: string[]) -> string {
+    out := ""
+    for i in 0..<names.len() {
+        if i > usize(0) { out = "${out}, " }
+        out = "${out}${names[i]}"
+    }
+    return out
+}
+
 // Substitute the impl method's TypeParams against the receiver's
 // concrete type args. Lets `MutableSet[T] implements ... { contains
 // :: fn(self, value: T) -> bool }` produce `fn(i32) -> bool` when
@@ -426,6 +458,19 @@ type_from_expr_opt :: fn(e: AST.TypeExpr | null, typed: TypedProgram) -> Type {
 }
 
 try_free_fn_ufcs :: fn(name: string, target_ty: Type, typed: TypedProgram) -> Type | null {
+    result :: try_free_fn_ufcs_with_first(name, target_ty, typed)
+    if result is null { return null }
+    return result.curried
+}
+
+UfcsResult :: struct {
+    curried:     Type
+    first_param: Type
+}
+
+try_free_fn_ufcs_with_first :: fn(
+    name: string, target_ty: Type, typed: TypedProgram,
+) -> UfcsResult | null {
     bucket :: typed.resolved.fn_overloads[name]
     match bucket {
         is null -> {}
@@ -437,19 +482,21 @@ try_free_fn_ufcs :: fn(name: string, target_ty: Type, typed: TypedProgram) -> Ty
                 if ft is null { continue }
                 if !(ft is FnType) { continue }
                 curried :: try_curry_receiver(ft, target_ty)
-                if !(curried is null) { return curried }
+                if !(curried is null) {
+                    return UfcsResult { .curried = curried, .first_param = ft.params[0] }
+                }
             }
         }
     }
-    // Imported free fns — `import "mod" { foo }` puts `foo` into
-    // `imported_fn_overloads` (populated by the orchestrator).
     imported :: typed.imported_fn_overloads[name]
     match imported {
         is null -> {}
         _ -> {
             for ft in imported {
                 curried :: try_curry_receiver(ft, target_ty)
-                if !(curried is null) { return curried }
+                if !(curried is null) {
+                    return UfcsResult { .curried = curried, .first_param = ft.params[0] }
+                }
             }
         }
     }
@@ -459,11 +506,13 @@ try_free_fn_ufcs :: fn(name: string, target_ty: Type, typed: TypedProgram) -> Ty
 try_curry_receiver :: fn(ft: FnType, target_ty: Type) -> Type | null {
     if ft.params.len() == 0 { return null }
     if !is_assignable(target_ty, ft.params[0], null) { return null }
-    bindings :: MutableMap(i32, Type) { .buckets = [], .size = 0 }
-    unify_typeparam(ft.params[0], target_ty, bindings)
+    // Keep the generic signature un-substituted (matches TS — the
+    // FieldExpr dump stays `fn(T) -> T`). CallExpr typing re-runs
+    // unification via `infer_call`, which produces the substituted
+    // + Free*-defaulted return type at the call site.
     rest: Type[] = []
-    for i in 1..<ft.params.len() { rest.push(substitute_by_id(ft.params[i], bindings)) }
-    return mk_fn(rest, substitute_by_id(ft.return_type, bindings))
+    for i in 1..<ft.params.len() { rest.push(ft.params[i]) }
+    return mk_fn(rest, ft.return_type)
 }
 
 // Walk `param` against `actual` and record `TypeParam.symbol.id →

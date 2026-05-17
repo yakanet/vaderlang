@@ -17,7 +17,8 @@
 //     (Phase 3.2+). The orchestrator's match still dispatches on every
 //     variant so future passes plug in cleanly.
 
-import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/diagnostics/diagnostic" { Diagnostic, resolver_error, warning }
+import "vader/typecheck/type_expr" { primitive_from_name }
 import "vader/resolver/scope" { span_full_key, span_key }
 AST :: import "vader/parser/ast"
 import "vader/typecheck/types" { Type, FreeIntType, FreeFloatType, TY_UNRESOLVED }
@@ -115,7 +116,25 @@ infer_expr :: fn(
             }
             return infer_string_lit(e)
         }
-        is AST.IdentExpr     as e -> { return infer_ident(e, typed) }
+        is AST.IdentExpr     as e -> {
+            sym :: typed.resolved.idents[span_key(e.span)]
+            if sym is null {
+                if primitive_from_name(e.name) is null {
+                    if typed.resolved.core_symbols[e.name] is null {
+                        diags.push(resolver_error(.UnresolvedIdent, e.span, "`${e.name}`"))
+                    }
+                }
+            } else {
+                // W0001 : reference to a `@deprecated` decl.
+                msg :: typed.resolved.deprecated_messages[sym.id]
+                if !(msg is null) {
+                    detail: string = "`${e.name}`"
+                    if msg != "" { detail = "`${e.name}`: ${msg}" }
+                    diags.push(warning(.UseOfDeprecated, e.span, detail))
+                }
+            }
+            return infer_ident(e, typed)
+        }
         is AST.BlockExpr     as e -> { return check_block(e, expected, typed, diags, null, check_expr) }
         is AST.IfExpr        as e -> { return infer_if(e, expected, typed, diags, null, check_expr) }
         is AST.MatchExpr     as e -> { return infer_match(e, expected, typed, diags, null, check_expr) }

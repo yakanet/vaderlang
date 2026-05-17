@@ -32,6 +32,23 @@ import "vader/typecheck/types" {
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/typed_ast" { TypedProgram }
 import "vader/typecheck/unify" { substitute, type_contains_type_param, unify_type_param }
+import "vader/resolver/scope" { span_full_key }
+
+// Re-unify a UFCS-curried fn's original first param (the receiver
+// type, stashed in `ufcs_receiver_types` at FieldExpr time) against
+// the receiver itself so type-params from the dispatched fn (e.g.
+// `fn[T](x: T) -> T` called as `42.identity()`) get their bindings
+// before arg unification.
+seed_ufcs_bindings :: fn(
+    callee: AST.Expr, typed: TypedProgram, bindings: MutableMap(i32, Type),
+) -> void {
+    if !(callee is AST.FieldExpr) { return }
+    receiver_ty :: typed.ufcs_receiver_types[span_full_key(callee.span)]
+    if receiver_ty is null { return }
+    target_ty :: typed.expr_types[span_full_key(callee.target.span)]
+    if target_ty is null { return }
+    unify_type_param(receiver_ty, target_ty, bindings)
+}
 
 /// Type-check a `CallExpr`. `check_expr_fn` is threaded the same way as
 /// in `expr_block.vader` to dodge the cyclic import.
@@ -64,13 +81,12 @@ export infer_call :: fn(
     is_generic :: fn_has_type_params(callee_ty)
     n :: min(c.args.len(), callee_ty.params.len())
     if is_generic {
-        // Two-phase pass for generic fns : (1) walk every arg with
-        // the param type as hint and collect TypeParam bindings via
-        // unification ; (2) substitute the bindings into each param
-        // type and re-check assignability so concrete arg types get
-        // validated against the concretised slot. Return type is
-        // substituted before returning.
         bindings :: MutableMap(i32, Type) { .buckets = [], .size = 0 }
+        // UFCS dispatch : seed bindings from the receiver's type so
+        // type-params bound by the (curried-away) first param
+        // (`fn[T](x: T) -> T` called as `42.identity()`) still
+        // substitute through the return type.
+        seed_ufcs_bindings(c.callee, typed, bindings)
         arg_types: Type[] = []
         for i in 0..<n {
             param_ty :: callee_ty.params[i]

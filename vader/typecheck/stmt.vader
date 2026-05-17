@@ -93,18 +93,74 @@ export check_fn_body :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
+    // Expression-bodied without explicit return type : infer from
+    // the trailing expression. `declare_fn_return` leaves this as
+    // TY_UNRESOLVED ; we resolve it here and patch `decl_types` so
+    // call sites see the inferred type.
+    inferred_return :: fn_decl.is_expression_bodied && (return_type is UnresolvedType)
+    expected: Type | null = return_type
+    if inferred_return { expected = null }
     ctx :: new_fn_context(return_type, null)
     prev :: typed.current_fn_ctx
     typed.current_fn_ctx = ctx
-    got :: check_block(body, return_type, typed, diags, ctx, check_expr_fn)
-    // Implicit-return : a trailing expression substitutes for an
-    // explicit `return`. Surface T3020 against the trailing's span.
-    match body.trailing {
-        is null -> {}
-        _ -> { emit_return_mismatch_if(got, return_type, body.trailing.span, typed, diags) }
+    got :: check_block(body, expected, typed, diags, ctx, check_expr_fn)
+    if inferred_return {
+        // Recursive fns leave their return as `?` — the body's
+        // inferred type contains an Unresolved leaf (the recursive
+        // call) so substituting would just amplify the unresolved-
+        // ness. Surface T3034 instead.
+        if contains_unresolved(got) {
+            diags.push(typecheck_error(.RecursiveExprBodiedFn, fn_decl.name_span,
+                "`${fn_decl.name}`"))
+        } else {
+            defaulted :: default_if_free(got)
+            patch_fn_return_type(fn_decl, defaulted, typed)
+        }
+    } else {
+        // Implicit-return : a trailing expression substitutes for an
+        // explicit `return`. Surface T3020 against the trailing's span.
+        match body.trailing {
+            is null -> {}
+            _ -> { emit_return_mismatch_if(got, return_type, body.trailing.span, typed, diags) }
+        }
     }
     typed.current_fn_ctx = prev
 }
+
+patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) -> void {
+    sp :: fn_decl.name_span
+    cur :: typed.decl_types[span_key(sp)]
+    match cur {
+        is FnType as ft -> { typed.decl_types[span_key(sp)] = mk_fn(ft.params, ret) }
+        _ -> {}
+    }
+}
+
+contains_unresolved :: fn(t: Type) -> bool {
+    match t {
+        is UnresolvedType -> { return true }
+        is UnionType as u -> {
+            for v in u.variants { if contains_unresolved(v) { return true } }
+            return false
+        }
+        is ArrayType as a -> { return contains_unresolved(a.element) }
+        is FnType as f -> {
+            for p in f.params { if contains_unresolved(p) { return true } }
+            return contains_unresolved(f.return_type)
+        }
+        is TupleType as p -> {
+            for el in p.elements { if contains_unresolved(el) { return true } }
+            return false
+        }
+        is StructType as s -> {
+            for a in s.args { if contains_unresolved(a) { return true } }
+            return false
+        }
+        _ -> { return false }
+    }
+}
+
+import "vader/typecheck/types" { mk_fn, UnionType }
 
 // Push T3020 when `got` doesn't flow into `expected`. Shared between
 // `check_return` and the implicit-return check in `check_fn_body` so

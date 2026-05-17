@@ -105,6 +105,18 @@ export ParserCode :: enum(u8) {
     InvalidConstQualifierPlacement,         // P1027
 }
 
+// Mirror of `RESOLVER` in `src/diagnostics/codes.ts`. R-codes belong
+// to the resolver pass (name-binding) ; once shipped, never re-used.
+export ResolverCode :: enum(u8) {
+    UnresolvedIdent,                        // R2006
+    ReservedName,                           // R2019
+}
+
+// `WARNING` — non-fatal diagnostics. New entries appended ; never reused.
+export WarningCode :: enum(u8) {
+    UseOfDeprecated,                        // W0001
+}
+
 // `(id, message)` for a code, in one shot. The wire ID stays aligned with
 // `src/diagnostics/codes.ts`; the message is the canonical human wording.
 // (`private` would be ideal here, but Vader's "module = single file"
@@ -153,6 +165,15 @@ export parser_info :: fn(c: ParserCode) = match c {
     .TuplePatternRequiresTwoElements    -> CodeInfo { .id = "P1022", .message = "tuple pattern requires at least 2 elements" }
     .LetDestructureRequiresTwoElements  -> CodeInfo { .id = "P1023", .message = "let destructure requires at least 2 elements" }
     .InvalidConstQualifierPlacement     -> CodeInfo { .id = "P1027", .message = "invalid `const` qualifier placement" }
+}
+
+export resolver_info :: fn(c: ResolverCode) = match c {
+    .UnresolvedIdent                    -> CodeInfo { .id = "R2006", .message = "unresolved identifier" }
+    .ReservedName                       -> CodeInfo { .id = "R2019", .message = "`void` is reserved and cannot be used as an identifier" }
+}
+
+export warning_info :: fn(c: WarningCode) = match c {
+    .UseOfDeprecated                    -> CodeInfo { .id = "W0001", .message = "use of deprecated declaration" }
 }
 
 export typecheck_info :: fn(c: TypecheckCode) = match c {

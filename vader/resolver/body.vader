@@ -15,7 +15,7 @@
 // compiler-grade resolver when that's ported.
 
 import "std/collections" { MutableMap }
-import "vader/diagnostics/diagnostic" { Span }
+import "vader/diagnostics/diagnostic" { Diagnostic, Span, resolver_error }
 AST :: import "vader/parser/ast"
 import "vader/parser" { parse_source }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory, make }
@@ -40,6 +40,9 @@ export ResolvedFile :: struct {
     /// an explicit `T: Trait` clause. Lets downstream consumers
     /// dispatch trait methods on bounded type parameters.
     type_param_bounds: MutableMap(i32, AST.Expr)
+    /// R-code diagnostics emitted during body resolution
+    /// (unresolved ident, reserved name, …).
+    diags: Diagnostic[]
 }
 
 /// Build a `ResolvedFile` for `program`. `top_level_seed` provides
@@ -55,6 +58,7 @@ export resolve_program :: fn(
         .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
         .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
+        .diags = [],
         .scope = new_scope(top_level_seed),
         .module_path = module_path,
         .factory = factory,
@@ -67,6 +71,7 @@ export resolve_program :: fn(
         .idents = state.idents,
         .immutable_locals = state.immutable_locals,
         .type_param_bounds = state.type_param_bounds,
+        .diags = state.diags,
     }
 }
 
@@ -76,12 +81,16 @@ ResolveState :: struct {
     idents:           MutableMap(string, Symbol)
     immutable_locals: MutableMap(i32, bool)
     type_param_bounds: MutableMap(i32, AST.Expr)
+    diags:            Diagnostic[]
     scope:            Scope
     module_path:      string
     factory:          SymbolFactory
 }
 
 mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
+    if name == "void" {
+        self.diags.push(resolver_error(.ReservedName, span, "`${name}`"))
+    }
     return self.factory.make(kind, name, self.module_path, .Private, span)
 }
 
@@ -188,10 +197,27 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
             _ -> { self.type_param_bounds[sym.id] = tp.bound }
         }
     }
+    // Auto-bind type params from `for_type` when the impl head
+    // omits the explicit `[T]` block (e.g. `Stack[T] implements
+    // Trait[T]` without `implements[T] Trait[T]`). The args of a
+    // generic for_type that look like fresh idents become TypeParams.
+    self.auto_bind_for_type_params(d.for_type)
     self.walk_expr(d.for_type)
     for ta in d.trait_args { self.walk_expr(ta) }
     for m in d.members { self.walk_fn_decl(m) }
     self.scope.pop()
+}
+
+auto_bind_for_type_params :: fn(self: ResolveState, t: AST.TypeExpr) -> void {
+    if !(t is AST.GenericInstExpr) { return }
+    for arg in t.type_args {
+        if arg is AST.IdentExpr {
+            if self.scope.lookup(arg.name) is null {
+                sym :: self.mint_local(.TypeParam, arg.name, arg.span)
+                self.scope.bind(arg.name, sym)
+            }
+        }
+    }
 }
 
 walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
@@ -310,6 +336,10 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
             v :: self.scope.lookup(x.name)
             match v {
                 is Symbol -> { self.idents[span_key(x.span)] = v }
+                // R2006 fires at typecheck time, after `core_symbols`
+                // and `imports_to` are populated — the resolver
+                // doesn't have the project view to know if a missing
+                // ident really is unresolved or just deferred.
                 is null   -> {}
             }
         }

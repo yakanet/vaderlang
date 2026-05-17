@@ -120,6 +120,20 @@ export TypedProgram :: struct {
     /// `m` is a user struct with an Index impl.
     index_target_types: MutableMap(string, Type)
 
+    /// `FieldExpr.span → original first-param type` for every
+    /// UFCS-dispatched field access (i.e. the param that got
+    /// curried away). `infer_call` unifies it against the receiver's
+    /// type to harvest type-param bindings before substituting the
+    /// return type — the curried fn keeps the un-substituted
+    /// signature for display.
+    ufcs_receiver_types: MutableMap(string, Type)
+
+    /// `"${TypeBaseName}::${methodName}" → trait names that all
+    /// provide the same method on the same receiver. When the list
+    /// has 2+ entries, an unqualified `x.method()` is ambiguous —
+    /// `field.vader` emits T3032.
+    impl_method_traits: MutableMap(string, string[])
+
     /// Enclosing fn-body context, pushed by `check_fn_body` and
     /// popped when it returns. Lets `check_return` (called via the
     /// recursive expression path where the ctx arg is `null`) still
@@ -159,6 +173,8 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .imported_fn_overloads = MutableMap(string, FnType[]) { .buckets = [], .size = 0 },
         .iter_element_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .index_target_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
+        .ufcs_receiver_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
+        .impl_method_traits = MutableMap(string, string[]) { .buckets = [], .size = 0 },
         .current_fn_ctx  = null,
     }
 }
@@ -186,6 +202,8 @@ export empty_typed_program :: fn() -> TypedProgram {
         .alias_types = MutableMap(i32, Type) { .buckets = [], .size = 0 },
         .alias_decls = MutableMap(i32, TypeAliasDecl) { .buckets = [], .size = 0 },
         .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
+        .diags = [],
+        .deprecated_messages = MutableMap(i32, string) { .buckets = [], .size = 0 },
     }
     return new_typed_program(rm)
 }
@@ -207,6 +225,8 @@ fresh_module :: fn() -> ResolvedModule {
         .alias_types = MutableMap(i32, Type) { .buckets = [], .size = 0 },
         .alias_decls = MutableMap(i32, TypeAliasDecl) { .buckets = [], .size = 0 },
         .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
+        .diags = [],
+        .deprecated_messages = MutableMap(i32, string) { .buckets = [], .size = 0 },
     }
 }
 

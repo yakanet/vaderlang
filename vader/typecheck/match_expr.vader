@@ -10,7 +10,7 @@ import "vader/resolver/scope" { span_key }
 import "vader/typecheck/context" { FnContext }
 import "vader/typecheck/narrow" { pop_narrow, push_narrow }
 import "vader/typecheck/type_ops" { is_assignable, union_of }
-import "vader/typecheck/types" { Type, display_type, TY_BOOL }
+import "vader/typecheck/types" { Type, UnionType, display_type, TY_BOOL }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 
@@ -65,18 +65,33 @@ export infer_match :: fn(
             }
         }
         // Subtract the matched type from `remaining` for subsequent
-        // arms — only `is T` and `LiteralPattern` (for enum variants)
-        // narrow the remaining shape.
+        // arms — `is T` and wildcard/binding fully consume.
         match arm.pattern {
             is AST.IsPattern as ip -> {
                 matched :: type_from_expr(ip.ty, typed.resolved, scratch_diags())
                 remaining = subtract_type(remaining, matched)
             }
+            is AST.WildcardPattern -> { remaining = TY_NEVER }
+            is AST.BindingPattern  -> { remaining = TY_NEVER }
             _ -> {}
         }
     }
+    // T3013 : non-exhaustive match on a Union scrutinee. Only Union
+    // scrutinees get the check here — enum-variant exhaustiveness
+    // needs a richer tracker (matched dot-variant set) than the
+    // type-subtraction we maintain for unions.
+    if scrut_ty is UnionType && !is_never(remaining) && e.arms.len() > 0 {
+        diags.push(typecheck_error(.NonExhaustiveMatch, e.span,
+            "variant ${display_type(remaining)} of ${display_type(scrut_ty)} is not covered"))
+    }
     return union_of(arm_types)
 }
+
+is_never :: fn(t: Type) -> bool {
+    match t { is NeverType -> { return true } _ -> { return false } }
+}
+
+import "vader/typecheck/types" { NeverType, TY_NEVER }
 
 arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Type | null {
     match p {
@@ -190,7 +205,7 @@ pick_tuple_variant :: fn(t: Type, arity: usize) -> TupleType | null {
     }
 }
 
-import "vader/typecheck/types" { StructType, TupleType, UnionType }
+import "vader/typecheck/types" { StructType, TupleType }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/field" { find_struct_field_type }
 

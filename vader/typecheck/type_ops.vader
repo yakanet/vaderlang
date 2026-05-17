@@ -178,12 +178,14 @@ export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> 
     }
 
     // Array → Array : `T[] <: const T[]` (mutable into const ; reverse forbidden).
+    // Element compatibility uses `fn_param_compatible` so TypeParam
+    // elements act as wildcards (generic `T[]` accepts `i32[]`).
     match from {
         is ArrayType as fa -> {
             match to {
                 is ArrayType as ta -> {
                     if fa.immutable && !ta.immutable { return false }
-                    return equals_type(fa.element, ta.element)
+                    return fn_param_compatible(fa.element, ta.element, oracle)
                 }
                 _ -> {}
             }

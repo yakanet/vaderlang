@@ -76,6 +76,11 @@ export check_project_with_bodies :: fn(
         typed :: new_typed_program(rm)
         per_module[id] = typed
     }
+    // Phase A0 : materialise single-abstract-method sugar
+    // (`Type implements Trait -> expr`) project-wide so SAM impl
+    // members get their name + signature from the trait method
+    // before any declare-pass touches them.
+    materialize_all_sams(project, per_module)
     // Phase A : register every type alias project-wide. Cross-
     // module aliases (`Pet` imported from `./types`) need to land
     // before any fn signature consults them.
@@ -118,7 +123,19 @@ export check_project_with_bodies :: fn(
     merge_struct_decls(entry_typed, per_module)
     merge_external_impl_methods(entry_typed, project, per_module)
 
+    // Two-pass body walk : first pass infers expression-bodied fn
+    // return types (forward-reference safe) ; second pass re-types
+    // bodies with all returns settled. Diags are captured only on
+    // the second pass — the first one is a throwaway sink.
+    if has_expr_bodied_fn(entry_loaded.module.files[0].program.decls) {
+        walk_bodies(entry_loaded.module.files[0].program.decls, entry_typed, diag_sink())
+        reset_expr_tables(entry_typed)
+    }
     walk_bodies(entry_loaded.module.files[0].program.decls, entry_typed, diags)
+
+    // Forward resolver-side R-codes (unresolved-ident, reserved-name, …)
+    // so the CLI's `# Diagnostics` block surfaces them next to T-codes.
+    for d in entry_typed.resolved.diags { diags.push(d) }
 
     impls :: build_impl_registry(entry_loaded.module.files[0].program.decls, entry_typed.resolved)
     return CheckResult { .typed = entry_typed, .impls = impls }
@@ -154,6 +171,8 @@ synth_resolved :: fn() -> ResolvedModule {
         .alias_types = MutableMap(i32, Type) { .buckets = [], .size = 0 },
         .alias_decls = MutableMap(i32, AST.TypeAliasDecl) { .buckets = [], .size = 0 },
         .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
+        .diags = [],
+        .deprecated_messages = MutableMap(i32, string) { .buckets = [], .size = 0 },
     }
 }
 
@@ -229,6 +248,7 @@ merge_external_impl_methods :: fn(
                             _ -> {
                                 entry_typed.impl_methods[key] = ufcs_ty
                                 entry_typed.impl_methods[base_key] = ufcs_ty
+                                record_impl_trait(entry_typed, base_key, id_decl.trait_name)
                             }
                         }
                     }
@@ -238,6 +258,16 @@ merge_external_impl_methods :: fn(
                     if id_decl.trait_name == "Iterator" && id_decl.trait_args.len() == 1 {
                         elem :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
                         entry_typed.iter_element_types[base_key] = elem
+                    }
+                    // `X implements Into(Iterator(T))` — for-in
+                    // coercion : `for x in X` desugars to `Into(Iterator(T))::into()`
+                    // then iterates the result, yielding T.
+                    if id_decl.trait_name == "Into" && id_decl.trait_args.len() == 1 {
+                        elem :: into_iterator_element(id_decl.trait_args[0], other.resolved)
+                        match elem {
+                            is null -> {}
+                            _ -> { entry_typed.iter_element_types[base_key] = elem }
+                        }
                     }
                     // `X implements Index[I, T]` — index the result
                     // type so `m[k]` returns T.
@@ -253,6 +283,100 @@ merge_external_impl_methods :: fn(
 }
 
 diag_sink :: fn() -> Diagnostic[] { return [] }
+
+// `Into(Iterator(T))` is the for-in coercion entry point — pull T
+// out of the `Iterator(T)` arg so `for x in X` binds x to T.
+// Returns null when the arg isn't shaped like `Iterator(T)`.
+into_iterator_element :: fn(
+    arg: AST.TypeExpr, resolved: ResolvedModule,
+) -> Type | null {
+    if !(arg is AST.GenericInstExpr) { return null }
+    if !(arg.callee is AST.IdentExpr) { return null }
+    if arg.callee.name != "Iterator" { return null }
+    if arg.type_args.len() != 1 { return null }
+    return type_from_expr(arg.type_args[0], resolved, diag_sink())
+}
+
+// Append `trait_name` to the impl-method-trait bucket for `base_key`.
+// Two distinct traits providing the same method on the same receiver
+// make `x.method()` ambiguous (T3032).
+record_impl_trait :: fn(typed: TypedProgram, base_key: string, trait_name: string) -> void {
+    bucket :: typed.impl_method_traits[base_key]
+    match bucket {
+        is null -> { typed.impl_method_traits[base_key] = [trait_name] }
+        _ -> {
+            for n in bucket { if n == trait_name { return } }
+            bucket.push(trait_name)
+            typed.impl_method_traits[base_key] = bucket
+        }
+    }
+}
+
+// Walk every loaded module's `ImplDecl`s and call
+// `materialize_sam_members` against the matching trait — works
+// cross-module so `Foo implements Display -> "..."` picks up
+// Display from `std/core`.
+materialize_all_sams :: fn(
+    project: LoadedProject,
+    per_module: MutableMap(string, TypedProgram),
+) -> void {
+    for id in project.modules.keys() {
+        loaded :: project.modules[id]
+        if loaded is null { continue }
+        for decl in loaded.module.files[0].program.decls {
+            if !(decl is AST.ImplDecl) { continue }
+            trait_decl :: find_trait_decl_in_project(decl.trait_name, project)
+            if trait_decl is null { continue }
+            materialize_sam_members(decl, trait_decl)
+        }
+    }
+}
+
+find_trait_decl_in_project :: fn(
+    name: string, project: LoadedProject,
+) -> AST.TraitDecl | null {
+    for id in project.modules.keys() {
+        loaded :: project.modules[id]
+        if loaded is null { continue }
+        for decl in loaded.module.files[0].program.decls {
+            if decl is AST.TraitDecl {
+                if decl.name == name { return decl }
+            }
+        }
+    }
+    return null
+}
+
+import "vader/resolver/materialize" { materialize_sam_members }
+
+has_expr_bodied_fn :: fn(decls: AST.Decl[]) -> bool {
+    for d in decls {
+        if d is AST.FnDecl {
+            if d.is_expression_bodied {
+                if d.return_type is null { return true }
+            }
+        }
+        if d is AST.ImplDecl {
+            for m in d.members {
+                if m.is_expression_bodied {
+                    if m.return_type is null { return true }
+                }
+            }
+        }
+    }
+    return false
+}
+
+// Clear per-expression tables so the second pass can re-populate
+// them with the now-settled fn return types. Decl-level tables
+// (`decl_types`, struct/trait decls, impl_methods, …) stay intact —
+// only side-tables filled from inside fn bodies need a refresh.
+reset_expr_tables :: fn(typed: TypedProgram) -> void {
+    typed.expr_types = MutableMap(string, Type) { .buckets = [], .size = 0 }
+    typed.expr_kinds = MutableMap(string, string) { .buckets = [], .size = 0 }
+    typed.local_types = MutableMap(string, Type) { .buckets = [], .size = 0 }
+    typed.narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 }
+}
 
 // Walk a module's top-level decls and register every type alias
 // (explicit `T :: type ...` or implicit `T :: <type-expr>`) into
@@ -580,6 +704,13 @@ export walk_bodies :: fn(
                     elem :: type_from_expr(id.trait_args[0], typed.resolved, diags)
                     typed.iter_element_types[local_base_key] = elem
                 }
+                if id.trait_name == "Into" && id.trait_args.len() == 1 {
+                    elem :: into_iterator_element(id.trait_args[0], typed.resolved)
+                    match elem {
+                        is null -> {}
+                        _ -> { typed.iter_element_types[local_base_key] = elem }
+                    }
+                }
                 if id.trait_name == "Index" && id.trait_args.len() == 2 {
                     result_ty :: type_from_expr(id.trait_args[1], typed.resolved, diags)
                     typed.index_target_types[local_base_key] = result_ty
@@ -595,6 +726,7 @@ export walk_bodies :: fn(
                         _ -> {
                             typed.impl_methods[key] = ufcs_ty
                             typed.impl_methods[base_key] = ufcs_ty
+                            record_impl_trait(typed, base_key, id.trait_name)
                         }
                     }
                     // `Into(T)` impls are indexed under a target-
