@@ -76,6 +76,12 @@ check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnosti
 }
 
 check_bitwise :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
+    // `T | U` (`|`) on two metatype values is the Layer 5b implicit
+    // union — return the metatype so callers can lift the binary
+    // expr into an in-place type alias.
+    if e.op == .BitOr && is_metatype(left) && is_metatype(right) {
+        return left
+    }
     if !is_integer(left) || !is_integer(right) {
         push_op_undefined(e, left, right, diags)
         return TY_UNRESOLVED
@@ -185,6 +191,15 @@ is_numeric :: fn(t: Type) -> bool {
     if t is PrimitiveType { return is_numeric_name(t.name) }
     return false
 }
+
+is_metatype :: fn(t: Type) -> bool {
+    match t {
+        is TypeMetaType -> { return true }
+        _ -> { return false }
+    }
+}
+
+import "vader/typecheck/types" { TypeMetaType }
 
 is_integer :: fn(t: Type) -> bool {
     if t is UnresolvedType { return true }
