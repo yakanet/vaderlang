@@ -135,11 +135,18 @@ try_read_dir :: fn(path: string) -> string[] | null {
 /// `base` "" yields `seg` unchanged. Doesn't strip trailing `/` from
 /// `base` ; callers are expected to pass clean inputs.
 export join_path :: fn(base: string, seg: string) -> string {
-    if base == "" { return seg }
-    if base.byte_at(base.byte_len() - usize(1)) == u8(0x2F) {
-        return "${base}${seg}"
+    // Strip a leading `./` from the relative segment so module ids
+    // stay normalised — `from/./mod_a` would render as `## from/./mod_a`
+    // in the typecheck dump and mismatch parity with the TS reference.
+    s := seg
+    if s.byte_len() >= usize(2) && s.byte_at(0) == u8(0x2E) && s.byte_at(1) == u8(0x2F) {
+        s = s.slice(usize(2), s.byte_len())
     }
-    return "${base}/${seg}"
+    if base == "" { return s }
+    if base.byte_at(base.byte_len() - usize(1)) == u8(0x2F) {
+        return "${base}${s}"
+    }
+    return "${base}/${s}"
 }
 
 /// Directory portion of `path` (everything before the last `/`).

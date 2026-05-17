@@ -1654,8 +1654,13 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
         const char* name = fd.cFileName;
         if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) continue;
         size_t n = strlen(name);
+        /* `fd.cFileName` lives on the stack and is overwritten by the
+         * next FindNextFileA — copy into a GC-tracked allocation so
+         * the resulting string survives. */
+        char* copy = (char*) vader_string_alloc(n);
+        if (n > 0) memcpy(copy, name, n);
         vader_array_push((vader_array_t*) arr_box.payload.obj,
-                         vader_box_string(str_type, vader_string_new(name, n)));
+                         vader_box_string(str_type, vader_string_new(copy, n)));
     } while (FindNextFileA(h, &fd));
     FindClose(h);
     vader_box_t result = arr_box;
@@ -1696,8 +1701,13 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
         const char* name = ent->d_name;
         if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) continue;
         size_t n = strlen(name);
+        /* `ent->d_name` lives in the DIR* buffer and is reused on the
+         * next readdir / freed by closedir — copy into a GC-tracked
+         * allocation so the resulting string survives. */
+        char* copy = (char*) vader_string_alloc(n);
+        if (n > 0) memcpy(copy, name, n);
         vader_array_push((vader_array_t*) arr_box.payload.obj,
-                         vader_box_string(str_type, vader_string_new(name, n)));
+                         vader_box_string(str_type, vader_string_new(copy, n)));
     }
     closedir(d);
     vader_box_t result = arr_box;

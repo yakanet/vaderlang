@@ -149,8 +149,47 @@ export check_project_with_bodies :: fn(
     for d in entry_typed.resolved.diags { diags.push(d) }
 
     impls :: build_impl_registry(entry_loaded.module.files[0].program.decls, entry_typed.resolved)
-    return CheckResult { .typed = entry_typed, .impls = impls, .others = [] }
+    // Surface every non-entry module that's a direct import dependency
+    // so the dump can render `## <path>` sections with their decl
+    // listings. Matches TS — `dumpTypecheck` lists every loaded module.
+    others: TypedProgram[] = collect_direct_imports(entry_loaded, project, per_module)
+    return CheckResult { .typed = entry_typed, .impls = impls, .others = others }
 }
+
+collect_direct_imports :: fn(
+    entry_loaded: LoadedModule, project: LoadedProject,
+    per_module: MutableMap(string, TypedProgram),
+) -> TypedProgram[] {
+    out: TypedProgram[] = []
+    eprintln_o("DEBUG per_module keys:")
+    for k in per_module.keys() { eprintln_o("  ${k}") }
+    eprintln_o("DEBUG project.modules keys:")
+    for k in project.modules.keys() { eprintln_o("  ${k}") }
+    from_file :: entry_loaded.module.files[0].path
+    stdlib_root :: default_stdlib_root()
+    seen :: MutableMap(string, bool) { .buckets = [], .size = 0 }
+    for raw in entry_loaded.collected.import_paths {
+        if starts_with(raw, "std/") { continue }
+        target :: resolve_import_path(raw, from_file, stdlib_root)
+        if target is null { continue }
+        target_id :: module_id_from_root(target)
+        eprintln_o("DEBUG collect raw=${raw} target_id=${target_id}")
+        if target_id == project.entry { continue }
+        if !(seen[target_id] is null) { continue }
+        seen[target_id] = true
+        tp :: per_module[target_id]
+        match tp {
+            is null -> { eprintln_o("DEBUG per_module miss: ${target_id}") }
+            _ -> { out.push(tp) }
+        }
+    }
+    return out
+}
+
+import "std/io" { eprintln as eprintln_o }
+
+import "std/string" { starts_with }
+import "vader/resolver/module" { default_stdlib_root, module_id_from_root, resolve_import_path }
 
 import "vader/typecheck/impls" { ImplRegistry, build_impl_registry, new_registry }
 
@@ -529,6 +568,12 @@ merge_struct_decls :: fn(
 // stdlib helper without requiring the user to re-implement it
 // locally. Walks `external_types` (already populated with the
 // imported name's resolved Type) and buckets by symbol name.
+/// Pre-walk every non-entry, non-stdlib module's bodies so that
+/// expression-bodied fns get their return-type patched into the
+/// owning module's decl_types (used by `populate_imported_fn_overloads`)
+/// AND so the per-module `expr_types` / `expr_kinds` populate for
+/// the typecheck dump — every loaded user module gets its own
+/// `## <path>` section with its body's expr lines.
 settle_external_expr_bodied_returns :: fn(
     project: LoadedProject, per_module: MutableMap(string, TypedProgram),
 ) -> void {
@@ -539,9 +584,7 @@ settle_external_expr_bodied_returns :: fn(
         if loaded is null { continue }
         other_typed :: per_module[id]
         if other_typed is null { continue }
-        if has_expr_bodied_fn(loaded.module.files[0].program.decls) {
-            walk_bodies(loaded.module.files[0].program.decls, other_typed, diag_sink())
-        }
+        walk_bodies(loaded.module.files[0].program.decls, other_typed, diag_sink())
     }
 }
 
@@ -675,7 +718,6 @@ populate_core_symbols :: fn(
     }
 }
 
-import "vader/resolver/module" { resolve_import_path }
 
 stdlib_core_id :: fn(project: LoadedProject) -> string | null {
     for id in project.modules.keys() {

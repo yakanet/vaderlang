@@ -40,34 +40,24 @@ export dump_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
 }
 
 /// Same as `dump_program` but accepts a list of non-entry typed
-/// modules whose `expr_types` / `expr_kinds` get merged into the
-/// entry's section. Matches TS — `dumpTypecheck` collapses all
-/// loaded modules under a single header.
+/// modules. Each module renders its own `## <path>` section with
+/// its own decls + exprs, sorted by module path so the entry doesn't
+/// always come first — matches TS `dumpTypecheck`.
 export dump_program_with_others :: fn(
     typed: TypedProgram, with_banner: bool, others: TypedProgram[],
 ) -> string {
     sb :: new_builder()
     if with_banner { sb.append("# Typecheck") }
-    sb.append("\n\n## ")
-    sb.append(typed.resolved.path)
-    decl_lines :: build_decl_lines(typed)
-    for line in decl_lines {
-        sb.append("\n")
-        sb.append(line)
-    }
-    expr_lines :: build_expr_lines_combined(typed, others)
-    for line in expr_lines {
-        sb.append("\n")
-        sb.append(line)
+    sections: TypedProgram[] = [typed]
+    for o in others { sections.push(o) }
+    sorted :: sort(sections, (a: TypedProgram, b: TypedProgram) -> compare_ascending(a.resolved.path, b.resolved.path))
+    for mod in sorted {
+        sb.append("\n\n## ")
+        sb.append(mod.resolved.path)
+        for line in build_decl_lines(mod) { sb.append("\n") sb.append(line) }
+        for line in build_expr_lines(mod) { sb.append("\n") sb.append(line) }
     }
     return sb.to_string()
-}
-
-build_expr_lines_combined :: fn(typed: TypedProgram, others: TypedProgram[]) -> string[] {
-    out: string[] = []
-    append_expr_lines(typed, out)
-    for o in others { append_expr_lines(o, out) }
-    return sort(out, (a: string, b: string) -> compare_ascending(a, b))
 }
 
 append_expr_lines :: fn(typed: TypedProgram, out: string[]) -> void {
