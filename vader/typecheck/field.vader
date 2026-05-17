@@ -58,6 +58,14 @@ export infer_field :: fn(
             _ -> { return prim_ufcs }
         }
     }
+    // Impl-method UFCS dispatch : `x.method()` where there's an
+    // `<x-type> implements <Trait> { method :: ... }`. Indexed by
+    // orchestrate.vader at impl-load time.
+    impl_ufcs :: typed.impl_methods["${display_type(target_ty)}::${e.field}"]
+    match impl_ufcs {
+        is null -> {}
+        _ -> { return impl_ufcs }
+    }
     if !(target_ty is StructType) {
         diags.push(typecheck_error(.NotIndexable, e.span,
             "`.${e.field}` on non-struct type ${display_type(target_ty)}"))

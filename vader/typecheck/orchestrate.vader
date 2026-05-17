@@ -278,6 +278,15 @@ export walk_bodies :: fn(
                 check_impl_missing_methods(id, typed, diags)
                 for m in id.members {
                     declare_impl_method(m, for_ty, typed, diags)
+                    // Index this method for UFCS dispatch :
+                    // `x.method()` where x is `for_ty` looks up
+                    // `${display_type(for_ty)}::method`.
+                    key :: "${display_type(for_ty)}::${m.name}"
+                    ufcs_ty :: ufcs_method_type(m, for_ty, typed, diags)
+                    match ufcs_ty {
+                        is null -> {}
+                        _ -> { typed.impl_methods[key] = ufcs_ty }
+                    }
                     walk_fn_body(m, typed, diags)
                 }
             }
@@ -328,6 +337,22 @@ lookup_trait_decl :: fn(name: string, typed: TypedProgram) -> AST.TraitDecl | nu
 impl_has_method :: fn(id: AST.ImplDecl, name: string) -> bool {
     for m in id.members { if m.name == name { return true } }
     return false
+}
+
+/// UFCS-bound method type : `fn(self, ...rest) -> R` lowers to
+/// `fn(...rest) -> R` since the self is bound from the receiver.
+/// Returns null when the signature is malformed.
+ufcs_method_type :: fn(
+    fd: AST.FnDecl, for_ty: Type, typed: TypedProgram, diags: Diagnostic[],
+) -> Type | null {
+    rest: Type[] = []
+    for i in 0..<fd.params.len() {
+        p :: fd.params[i]
+        if i == 0 && p.name == "self" { continue }
+        rest.push(param_type(p, for_ty, typed, diags))
+    }
+    ret :: declare_return(fd, typed, diags)
+    return mk_fn(rest, ret)
 }
 
 declare_impl_method :: fn(
