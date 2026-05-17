@@ -128,6 +128,11 @@ export check_project_with_bodies :: fn(
     // imported_fn_overloads — otherwise a `fn(a, b) = if … { a } …`
     // export lands as `fn(_, _) -> ?` in the bucket.
     populate_core_symbols(entry_typed, project, per_module)
+    // Cross-publish trait_decls (Iterator, Display, …) to every
+    // per_module typed program BEFORE settle walks their bodies — so
+    // `s.chars().count()` inside std/string's `count_chars` can find
+    // Iterator's default `count` method via `try_default_trait_method`.
+    cross_publish_trait_decls(per_module)
     settle_external_expr_bodied_returns(project, per_module)
     populate_external_types(entry_typed, project, per_module)
     populate_imported_fn_overloads(entry_typed, per_module)
@@ -161,10 +166,6 @@ collect_direct_imports :: fn(
     per_module: MutableMap(string, TypedProgram),
 ) -> TypedProgram[] {
     out: TypedProgram[] = []
-    eprintln_o("DEBUG per_module keys:")
-    for k in per_module.keys() { eprintln_o("  ${k}") }
-    eprintln_o("DEBUG project.modules keys:")
-    for k in project.modules.keys() { eprintln_o("  ${k}") }
     from_file :: entry_loaded.module.files[0].path
     stdlib_root :: default_stdlib_root()
     seen :: MutableMap(string, bool) { .buckets = [], .size = 0 }
@@ -173,20 +174,17 @@ collect_direct_imports :: fn(
         target :: resolve_import_path(raw, from_file, stdlib_root)
         if target is null { continue }
         target_id :: module_id_from_root(target)
-        eprintln_o("DEBUG collect raw=${raw} target_id=${target_id}")
         if target_id == project.entry { continue }
         if !(seen[target_id] is null) { continue }
         seen[target_id] = true
         tp :: per_module[target_id]
         match tp {
-            is null -> { eprintln_o("DEBUG per_module miss: ${target_id}") }
+            is null -> {}
             _ -> { out.push(tp) }
         }
     }
     return out
 }
-
-import "std/io" { eprintln as eprintln_o }
 
 import "std/string" { starts_with }
 import "vader/resolver/module" { default_stdlib_root, module_id_from_root, resolve_import_path }
@@ -533,6 +531,45 @@ merge_external_alias_types :: fn(
             decl :: other.resolved.alias_decls[sym_id]
             if decl is null { continue }
             entry_typed.resolved.alias_decls[sym_id] = decl
+        }
+    }
+}
+
+/// Copy every typed program's `trait_decls` (+ owner) into every
+/// other typed program's tables. After this each per_module knows
+/// about every project-wide trait, so default-method dispatch from
+/// any body can find the trait declaration regardless of which
+/// module the trait lives in.
+cross_publish_trait_decls :: fn(per_module: MutableMap(string, TypedProgram)) -> void {
+    // Pass 1 : collect every (trait_sym_id, decl, owner) tuple.
+    ids: i32[] = []
+    decls: AST.TraitDecl[] = []
+    owners: ResolvedModule[] = []
+    for id in per_module.keys() {
+        tp :: per_module[id]
+        if tp is null { continue }
+        for sym_id in tp.trait_decls.keys() {
+            d :: tp.trait_decls[sym_id]
+            if d is null { continue }
+            o :: tp.trait_decl_owners[sym_id]
+            owner_resolved: ResolvedModule = tp.resolved
+            match o {
+                is null -> {}
+                _ -> { owner_resolved = o }
+            }
+            ids.push(sym_id)
+            decls.push(d)
+            owners.push(owner_resolved)
+        }
+    }
+    // Pass 2 : write back into every typed program.
+    for id in per_module.keys() {
+        tp :: per_module[id]
+        if tp is null { continue }
+        for i in 0..<ids.len() {
+            sid :: ids[i]
+            tp.trait_decls[sid] = decls[i]
+            tp.trait_decl_owners[sid] = owners[i]
         }
     }
 }

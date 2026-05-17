@@ -495,30 +495,44 @@ try_default_trait_method :: fn(
     trait_names :: typed.struct_implemented_traits[target_ty.symbol.name]
     if trait_names is null { return null }
     for trait_name in trait_names {
-        for sym in typed.resolved.symbols {
-            if sym.name != trait_name { continue }
-            decl :: typed.trait_decls[sym.id]
-            if decl is null { continue }
-            owner :: typed.trait_decl_owners[sym.id]
-            owner_resolved: ResolvedModule = typed.resolved
-            match owner {
-                is null -> {}
-                _ -> { owner_resolved = owner }
+        // Resolve the trait's Symbol — try local first, then
+        // core_symbols (Iterator / Display / Equals / Comparable live
+        // in std/core), then fall back to scanning every trait_decl
+        // for a matching name (catches cross-non-core modules).
+        trait_sym :: lookup_trait_symbol(trait_name, typed)
+        if trait_sym is null { continue }
+        decl :: typed.trait_decls[trait_sym.id]
+        if decl is null { continue }
+        owner :: typed.trait_decl_owners[trait_sym.id]
+        owner_resolved: ResolvedModule = typed.resolved
+        match owner {
+            is null -> {}
+            _ -> { owner_resolved = owner }
+        }
+        for m in decl.members {
+            if m.name != name { continue }
+            if m.body is null { continue }     // require default body
+            params: Type[] = []
+            for i in 1..<m.params.len() {
+                p :: m.params[i]
+                params.push(type_from_expr_opt_in(p.ty, owner_resolved))
             }
-            for m in decl.members {
-                if m.name != name { continue }
-                if m.body is null { continue }     // require default body
-                params: Type[] = []
-                for i in 1..<m.params.len() {
-                    p :: m.params[i]
-                    params.push(type_from_expr_opt_in(p.ty, owner_resolved))
-                }
-                ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
-                return substitute_self(mk_fn(params, ret), target_ty)
-            }
+            ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
+            return substitute_self(mk_fn(params, ret), target_ty)
         }
     }
     return null
+}
+
+lookup_trait_symbol :: fn(name: string, typed: TypedProgram) -> Symbol | null {
+    for sym in typed.resolved.symbols {
+        if sym.name == name { return sym }
+    }
+    core :: typed.resolved.core_symbols[name]
+    match core {
+        is null -> { return null }
+        is Symbol as s -> { return s }
+    }
 }
 
 try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type | null {
