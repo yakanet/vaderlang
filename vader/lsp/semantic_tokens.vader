@@ -259,7 +259,6 @@ comment_to_raw :: fn(c: Comment, source: string) -> RawToken[] {
             return out
         }
     }
-    return out
 }
 
 make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {

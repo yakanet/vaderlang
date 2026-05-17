@@ -87,7 +87,6 @@ export read_frame :: fn() -> string! {
         is Error -> { return TransportError { .msg = "EOF in body" } }
         is string as s -> { return s }
     }
-    return TransportError { .msg = "unreachable" }
 }
 
 /// Trim leading + trailing ASCII whitespace (space, tab). Inlined here

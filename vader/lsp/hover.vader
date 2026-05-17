@@ -52,7 +52,6 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
             }
         }
     }
-    return JsonNull {}
 }
 
 // ---- payload encoding ----------------------------------------------------
@@ -530,7 +529,6 @@ get_field :: fn(v: JsonValue, key: string) -> JsonValue {
         }
         _ -> { return JsonNull {} }
     }
-    return JsonNull {}
 }
 
 get_string :: fn(v: JsonValue, key: string) -> string {
@@ -539,7 +537,6 @@ get_string :: fn(v: JsonValue, key: string) -> string {
         is JsonString as s -> { return s.value }
         _ -> { return "" }
     }
-    return ""
 }
 
 get_number :: fn(v: JsonValue, key: string) -> i32 {
@@ -548,5 +545,4 @@ get_number :: fn(v: JsonValue, key: string) -> i32 {
         is JsonNumber as n -> { return i32(n.value) }
         _ -> { return 0 }
     }
-    return 0
 }

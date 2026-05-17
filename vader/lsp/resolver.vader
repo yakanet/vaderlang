@@ -87,7 +87,6 @@ lookup_in_file :: fn(path: string, name: string) -> ExternalHit | null {
             return ExternalHit { .uri = uri, .target = d }
         }
     }
-    return null
 }
 
 // ---- path resolution -----------------------------------------------------

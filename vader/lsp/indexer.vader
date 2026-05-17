@@ -476,7 +476,6 @@ literal_suffix_type :: fn(e: Expr, _source: string) -> string {
         }
         _ -> { return "" }
     }
-    return ""
 }
 
 walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
