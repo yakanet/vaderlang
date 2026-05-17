@@ -1,0 +1,459 @@
+// vader/parser/assign_ids — post-parse walker assigning unique IDs.
+//
+// Every AST node declares `id: usize = UNASSIGNED_NODE_ID` so downstream
+// passes can key side-tables (`expr_types`, `expr_kinds`, …) on a stable
+// integer rather than on stringified spans (which collide when materialise
+// clones default-method bodies into impl members).
+//
+// Mirrors `src/parser/assign-ids.ts`. TS uses structural detection (any
+// object with `kind` + `span`) ; Vader has no reflection so this walker
+// enumerates every variant of `Decl`, `Expr`, `Stmt`, `Pattern`,
+// `LetBinding`, `ImportBinding`, `StringLitPart`, etc. explicitly.
+
+/// Mints a unique `usize` id per call. One factory per parsed file is the
+/// expected ownership shape ; cloned bodies in `materialize.vader` re-use
+/// the host module's factory so cloned-node IDs stay disjoint from
+/// pre-existing IDs in that module.
+export NodeIdFactory :: struct { next: usize }
+
+/// Build a fresh factory. IDs start at 1 — `0` is reserved for
+/// `UNASSIGNED_NODE_ID` so `node.id == 0` reliably detects un-walked nodes.
+export new_node_id_factory :: fn() -> NodeIdFactory {
+    return NodeIdFactory { .next = usize(1) }
+}
+
+/// Mint the next ID and advance the counter. Pure side-effect on `self`.
+export mint :: fn(self: NodeIdFactory) -> usize {
+    id :: self.next
+    self.next = id + usize(1)
+    return id
+}
+
+/// Walk a freshly-parsed `Program`, minting an ID on every reachable
+/// AST node. Idempotent only if called once per program — re-running
+/// would re-stamp IDs and break any side-table built against the prior
+/// IDs.
+export assign_program_ids :: fn(p: Program, f: NodeIdFactory) -> void {
+    p.id = f.mint()
+    for d in p.decls { walk_decl(d, f) }
+}
+
+/// Re-entrant entry for cloned blocks (used by
+/// `vader/resolver/materialize.vader` after substituting default-method
+/// bodies into an impl). Same factory the host module's parse used so
+/// cloned IDs don't collide with pre-existing ones.
+export assign_block_ids :: fn(b: BlockExpr, f: NodeIdFactory) -> void {
+    walk_block(b, f)
+}
+
+// ---- declaration walkers --------------------------------------------------
+
+walk_decl :: fn(d: Decl, f: NodeIdFactory) -> void {
+    match d {
+        is ImportDecl as x -> {
+            x.id = f.mint()
+            walk_import_binding(x.binding, f)
+            for dec in x.decorators { walk_decorator(dec, f) }
+        }
+        is FnDecl as x -> { walk_fn_decl(x, f) }
+        is StructDecl as x -> {
+            x.id = f.mint()
+            for tp in x.type_params { walk_type_param(tp, f) }
+            for fld in x.fields {
+                fld.id = f.mint()
+                walk_expr(fld.ty, f)
+                match fld.default {
+                    is null -> {}
+                    _ -> { walk_expr(fld.default, f) }
+                }
+            }
+            for dec in x.decorators { walk_decorator(dec, f) }
+        }
+        is EnumDecl as x -> {
+            x.id = f.mint()
+            match x.repr {
+                is null -> {}
+                _ -> { walk_expr(x.repr, f) }
+            }
+            for v in x.variants { v.id = f.mint() }
+            for dec in x.decorators { walk_decorator(dec, f) }
+        }
+        is TraitDecl as x -> {
+            x.id = f.mint()
+            for tp in x.type_params { walk_type_param(tp, f) }
+            match x.requires {
+                is null -> {}
+                _ -> { walk_expr(x.requires, f) }
+            }
+            for m in x.members { walk_fn_decl(m, f) }
+            for dec in x.decorators { walk_decorator(dec, f) }
+        }
+        is ImplDecl as x -> {
+            x.id = f.mint()
+            for tp in x.type_params { walk_type_param(tp, f) }
+            walk_expr(x.for_type, f)
+            for ta in x.trait_args { walk_expr(ta, f) }
+            for m in x.members { walk_fn_decl(m, f) }
+            for dec in x.decorators { walk_decorator(dec, f) }
+        }
+        is TypeAliasDecl as x -> {
+            x.id = f.mint()
+            for tp in x.type_params { walk_type_param(tp, f) }
+            walk_expr(x.aliased, f)
+            for dec in x.decorators { walk_decorator(dec, f) }
+        }
+        is ConstDecl as x -> {
+            x.id = f.mint()
+            match x.ty {
+                is null -> {}
+                _ -> { walk_expr(x.ty, f) }
+            }
+            walk_expr(x.value, f)
+            for dec in x.decorators { walk_decorator(dec, f) }
+        }
+        is AssertDecl as x -> {
+            x.id = f.mint()
+            walk_expr(x.condition, f)
+            for dec in x.decorators { walk_decorator(dec, f) }
+        }
+    }
+}
+
+walk_fn_decl :: fn(d: FnDecl, f: NodeIdFactory) -> void {
+    d.id = f.mint()
+    for dec in d.decorators { walk_decorator(dec, f) }
+    for tp in d.type_params { walk_type_param(tp, f) }
+    for p in d.params { walk_fn_param(p, f) }
+    match d.return_type {
+        is null -> {}
+        _ -> { walk_expr(d.return_type, f) }
+    }
+    match d.body {
+        is null -> {}
+        _ -> { walk_block(d.body, f) }
+    }
+}
+
+walk_fn_param :: fn(p: FnParam, f: NodeIdFactory) -> void {
+    p.id = f.mint()
+    match p.ty {
+        is null -> {}
+        _ -> { walk_expr(p.ty, f) }
+    }
+    match p.default_value {
+        is null -> {}
+        _ -> { walk_expr(p.default_value, f) }
+    }
+}
+
+walk_type_param :: fn(tp: TypeParam, f: NodeIdFactory) -> void {
+    tp.id = f.mint()
+    match tp.bound {
+        is null -> {}
+        _ -> { walk_expr(tp.bound, f) }
+    }
+}
+
+walk_decorator :: fn(d: Decorator, f: NodeIdFactory) -> void {
+    d.id = f.mint()
+    for a in d.args { walk_expr(a, f) }
+}
+
+walk_import_binding :: fn(b: ImportBinding, f: NodeIdFactory) -> void {
+    match b {
+        is NamedNamespaceImport as ns -> {
+            match ns.restricted {
+                is null -> {}
+                _ -> { for n in ns.restricted { n.id = f.mint() } }
+            }
+        }
+        is DestructureImport as d -> {
+            for n in d.names { n.id = f.mint() }
+        }
+    }
+}
+
+// ---- expression walker ---------------------------------------------------
+
+walk_expr :: fn(e: Expr, f: NodeIdFactory) -> void {
+    match e {
+        is IntLitExpr    as x -> { x.id = f.mint() }
+        is FloatLitExpr  as x -> { x.id = f.mint() }
+        is BoolLitExpr   as x -> { x.id = f.mint() }
+        is NullLitExpr   as x -> { x.id = f.mint() }
+        is CharLitExpr   as x -> { x.id = f.mint() }
+        is StringLitExpr as x -> {
+            x.id = f.mint()
+            for p in x.parts {
+                match p {
+                    is StringLitText   as t -> { t.id = f.mint() }
+                    is StringLitInterp as i -> {
+                        i.id = f.mint()
+                        walk_expr(i.expr, f)
+                    }
+                }
+            }
+        }
+        is IdentExpr as x -> { x.id = f.mint() }
+        is CallExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.callee, f)
+            for a in x.args {
+                a.id = f.mint()
+                walk_expr(a.value, f)
+            }
+        }
+        is FieldExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.target, f)
+        }
+        is IndexExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.target, f)
+            walk_expr(x.index, f)
+        }
+        is UnaryExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.operand, f)
+        }
+        is BinaryExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.left, f)
+            walk_expr(x.right, f)
+        }
+        is IfExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.cond, f)
+            walk_block(x.then_block, f)
+            match x.else_branch {
+                is null -> {}
+                is IfElseIf    as ei -> { walk_expr(ei.branch, f) }
+                is IfElseBlock as eb -> { walk_block(eb.block, f) }
+            }
+        }
+        is MatchExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.scrutinee, f)
+            for a in x.arms {
+                a.id = f.mint()
+                walk_pattern(a.pattern, f)
+                match a.guard {
+                    is null -> {}
+                    _ -> { walk_expr(a.guard, f) }
+                }
+                walk_expr(a.body, f)
+            }
+        }
+        is BlockExpr as x -> { walk_block(x, f) }
+        is LambdaExpr as x -> {
+            x.id = f.mint()
+            for p in x.params { walk_fn_param(p, f) }
+            match x.return_type {
+                is null -> {}
+                _ -> { walk_expr(x.return_type, f) }
+            }
+            walk_block(x.body, f)
+        }
+        is StructLitExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.type_name, f)
+            for item in x.items {
+                match item {
+                    is StructLitField  as fld -> {
+                        fld.id = f.mint()
+                        walk_expr(fld.value, f)
+                    }
+                    is StructLitSpread as sp  -> {
+                        sp.id = f.mint()
+                        walk_expr(sp.expr, f)
+                    }
+                }
+            }
+        }
+        is SeqLitExpr as x -> {
+            x.id = f.mint()
+            for el in x.elements { walk_expr(el, f) }
+        }
+        is RangeExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.lower, f)
+            walk_expr(x.upper, f)
+        }
+        is TryExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.inner, f)
+        }
+        is CastExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.target, f)
+            walk_expr(x.value, f)
+        }
+        is GenericInstExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.callee, f)
+            for ta in x.type_args { walk_expr(ta, f) }
+        }
+        is IntrinsicCallExpr as x -> {
+            x.id = f.mint()
+            for a in x.args { walk_expr(a, f) }
+        }
+        is DotVariantExpr as x -> { x.id = f.mint() }
+        is FnTypeExpr as x -> {
+            x.id = f.mint()
+            for p in x.params { walk_expr(p, f) }
+            match x.return_type {
+                is null -> {}
+                _ -> { walk_expr(x.return_type, f) }
+            }
+        }
+        is ArrayTypeExpr as x -> {
+            x.id = f.mint()
+            walk_expr(x.element, f)
+        }
+    }
+}
+
+// ---- block / stmt / pattern walkers ---------------------------------------
+
+walk_block :: fn(b: BlockExpr, f: NodeIdFactory) -> void {
+    b.id = f.mint()
+    for s in b.stmts { walk_stmt(s, f) }
+    match b.trailing {
+        is null -> {}
+        _ -> { walk_expr(b.trailing, f) }
+    }
+}
+
+walk_stmt :: fn(s: Stmt, f: NodeIdFactory) -> void {
+    match s {
+        is LetStmt as x -> {
+            x.id = f.mint()
+            walk_let_binding(x.binding, f)
+            match x.ty {
+                is null -> {}
+                _ -> { walk_expr(x.ty, f) }
+            }
+            walk_expr(x.value, f)
+        }
+        is AssignStmt as x -> {
+            x.id = f.mint()
+            walk_expr(x.target, f)
+            walk_expr(x.value, f)
+        }
+        is ExprStmt as x -> {
+            x.id = f.mint()
+            walk_expr(x.expr, f)
+        }
+        is ReturnStmt as x -> {
+            x.id = f.mint()
+            match x.value {
+                is null -> {}
+                _ -> { walk_expr(x.value, f) }
+            }
+        }
+        is ForStmt as x -> {
+            x.id = f.mint()
+            walk_for_form(x.form, f)
+            walk_block(x.body, f)
+        }
+        is BreakStmt as x -> { x.id = f.mint() }
+        is ContinueStmt as x -> { x.id = f.mint() }
+        is DeferStmt as x -> {
+            x.id = f.mint()
+            match x.body {
+                is DeferStmtBody  as ds -> { walk_stmt(ds.stmt, f) }
+                is DeferBlockBody as db -> { walk_block(db.block, f) }
+            }
+        }
+    }
+}
+
+walk_for_form :: fn(form: ForForm, f: NodeIdFactory) -> void {
+    match form {
+        is InfiniteFor -> {}
+        is WhileFor as w -> { walk_expr(w.cond, f) }
+        is InFor as i -> { walk_expr(i.iter, f) }
+    }
+}
+
+walk_let_binding :: fn(b: LetBinding, f: NodeIdFactory) -> void {
+    match b {
+        is SimpleBinding   as x -> { x.id = f.mint() }
+        is WildcardBinding as x -> { x.id = f.mint() }
+        is RestBinding     as x -> { x.id = f.mint() }
+        is TupleBinding    as x -> {
+            x.id = f.mint()
+            for el in x.elements { walk_let_binding(el, f) }
+        }
+    }
+}
+
+walk_pattern :: fn(p: Pattern, f: NodeIdFactory) -> void {
+    match p {
+        is IsPattern as x -> {
+            x.id = f.mint()
+            walk_expr(x.ty, f)
+            match x.inner {
+                is null -> {}
+                _ -> { walk_pattern(x.inner, f) }
+            }
+        }
+        is StructPattern as x -> {
+            x.id = f.mint()
+            for fld in x.fields {
+                fld.id = f.mint()
+                match fld.value {
+                    is PatternBinding as pb -> { pb.id = f.mint() }
+                    is PatternLiteral as pl -> { walk_expr(pl.value, f) }
+                }
+            }
+        }
+        is TuplePattern as x -> {
+            x.id = f.mint()
+            for el in x.elements { walk_pattern(el, f) }
+        }
+        is WildcardPattern    as x -> { x.id = f.mint() }
+        is BindingPattern     as x -> { x.id = f.mint() }
+        is EnumVariantPattern as x -> { x.id = f.mint() }
+        is LiteralPattern     as x -> {
+            x.id = f.mint()
+            walk_expr(x.value, f)
+        }
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+@test
+test_mint_starts_at_one_and_increments :: fn() -> void {
+    f :: new_node_id_factory()
+    assert_eq(f.mint(), usize(1))
+    assert_eq(f.mint(), usize(2))
+    assert_eq(f.mint(), usize(3))
+}
+
+@test
+test_assign_program_ids_stamps_decls_and_exprs :: fn() -> void {
+    parsed :: parse_source("""
+fact :: fn(n: i32) -> i32 {
+    if n <= 1 { return 1 }
+    return n * fact(n - 1)
+}
+""", "t.vader")
+    // parser.vader already calls assign_program_ids ; verify by sampling
+    // the program + its first decl (FnDecl).
+    assert(parsed.program.id != UNASSIGNED_NODE_ID, "program.id minted")
+    for d in parsed.program.decls {
+        match d {
+            is FnDecl as fd -> {
+                assert(fd.id != UNASSIGNED_NODE_ID, "fn id minted")
+                for p in fd.params {
+                    assert(p.id != UNASSIGNED_NODE_ID, "param id minted")
+                }
+            }
+            _ -> {}
+        }
+    }
+}

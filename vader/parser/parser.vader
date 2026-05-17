@@ -26,6 +26,11 @@ export parse_source :: fn(source: string, file: string) -> ParsedSource {
     // Carry lexer diagnostics through so the snapshot shows both phases.
     for e in l.errors { p.errors.push(e) }
     program :: parse_program(p)
+    // Mint stable IDs for every node — downstream side-tables key on
+    // `node.id` rather than on stringified spans (which collide when
+    // materialise clones default-method bodies). See `assign_ids.vader`.
+    id_factory :: new_node_id_factory()
+    assign_program_ids(program, id_factory)
     return ParsedSource {
         .program = program,
         .tokens  = l.tokens,
