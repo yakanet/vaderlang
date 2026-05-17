@@ -83,6 +83,12 @@ export TypedProgram :: struct {
     /// `name :: import "p"` binding. Consumed by `field.vader` so
     /// `mod.foo` accesses can resolve to the export's concrete type.
     namespace_exports: MutableMap(string, MutableMap(string, Type))
+
+    /// `std/core` exported symbols indexed by name. Populated by
+    /// the orchestrator after loading core, consumed by passes that
+    /// need to refer to core types (Range, Field, Display, Error,
+    /// Iterator, …) without going through a user-side import.
+    core_symbols: MutableMap(string, Symbol)
 }
 
 import "vader/resolver/wire" { ImportTargetTable }
@@ -109,6 +115,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .import_targets  = null,
         .external_types  = MutableMap(i32, Type) { .buckets = [], .size = 0 },
         .namespace_exports = MutableMap(string, MutableMap(string, Type)) { .buckets = [], .size = 0 },
+        .core_symbols    = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
     }
 }
 

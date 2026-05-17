@@ -15,18 +15,43 @@ import "vader/typecheck/types" {
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 
-/// Type-check a range. The bound type is the concretised lower or
-/// upper bound ; we return Unresolved (no Range core type lookup yet)
-/// but still type both sides for nested diagnostics.
+/// Type-check a range. Resolves to `Range(T)` when `std/core::Range`
+/// is loaded (auto-loaded by `loader.vader`), otherwise Unresolved.
+/// `T` is picked from the lower bound's concrete type ; when both
+/// bounds are FreeInt the upper bound is probed.
 export infer_range :: fn(
     e: AST.RangeExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     lower :: check_expr_fn(e.lower, null, typed, diags)
-    bound :: pick_bound(lower)
-    check_expr_fn(e.upper, bound, typed, diags)
-    return TY_UNRESOLVED
+    element: Type = pick_bound_or_default(lower)
+    if lower is FreeIntType {
+        upper :: check_expr_fn(e.upper, null, typed, diags)
+        probed :: pick_bound_or_default(upper)
+        element = probed
+    } else {
+        check_expr_fn(e.upper, element, typed, diags)
+    }
+    range_sym :: typed.core_symbols["Range"]
+    match range_sym {
+        is null -> { return TY_UNRESOLVED }
+        is Symbol as rs -> { return mk_struct(rs, [element]) }
+    }
 }
+
+pick_bound_or_default :: fn(t: Type) -> Type {
+    match t {
+        is FreeIntType -> { return mk_primitive("i32") }
+        is PrimitiveType as p -> {
+            if is_int_name(p.name) { return p }
+            return mk_primitive("i32")
+        }
+        _ -> { return mk_primitive("i32") }
+    }
+}
+
+import "vader/resolver/symbol" { Symbol }
+import "vader/typecheck/types" { mk_struct, mk_primitive }
 
 pick_bound :: fn(t: Type) -> Type | null {
     match t {

@@ -46,6 +46,15 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
     stdlib_root :: default_stdlib_root()
 
     entry_id :: module_id_from_root(entry_path)
+    // Auto-load `std/core` (mirrors TS `loadProject`'s autoloadCore
+    // behavior). Lets `Range`, `Field`, `Display` and other core
+    // structs/traits resolve cross-module even when the entry
+    // doesn't explicitly import them.
+    core_target :: resolve_import_path("std/core", entry_path, stdlib_root)
+    match core_target {
+        is null -> {}
+        _ -> { load_one(core_target, stdlib_root, modules, factory) }
+    }
     // MVP : load the entry + its direct imports only (depth 1).
     // Deeper transitive loading would force every stdlib re-export
     // chain through the resolver/typechecker, which doubles native

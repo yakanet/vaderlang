@@ -11,7 +11,7 @@
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/parser/intrinsics" { intrinsic_spec }
 import "vader/typecheck/types" {
-    Type, mk_primitive, TY_BOOL, TY_TYPE, TY_UNRESOLVED,
+    Type, mk_array, mk_primitive, TY_BOOL, TY_TYPE, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
@@ -32,11 +32,12 @@ export infer_intrinsic :: fn(
 }
 
 type_for_result :: fn(name: string) -> Type {
-    if name == "usize"  { return mk_primitive("usize") }
-    if name == "bool"   { return TY_BOOL }
-    if name == "string" { return mk_primitive("string") }
-    if name == "type"   { return TY_TYPE }
-    // `field_array` / `type_array` materialise at lower-time ; until a
-    // proper Field / Type runtime struct type is plumbed, stay Unresolved.
+    if name == "usize"      { return mk_primitive("usize") }
+    if name == "bool"       { return TY_BOOL }
+    if name == "string"     { return mk_primitive("string") }
+    if name == "type"       { return TY_TYPE }
+    if name == "type_array" { return mk_array(TY_TYPE, false) }
+    // `field_array` materialises at lower-time as a `Field[]` from
+    // std/core ; stay Unresolved until the Field struct is plumbed.
     return TY_UNRESOLVED
 }

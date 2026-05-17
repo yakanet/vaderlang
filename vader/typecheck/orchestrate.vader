@@ -80,6 +80,7 @@ export check_project_with_bodies :: fn(
     // types during expression checking.
     entry_typed.import_targets = wire_imports(project)
     populate_external_types(entry_typed, project, per_module)
+    populate_core_symbols(entry_typed, project, per_module)
 
     walk_bodies(entry_loaded.module.files[0].program.decls, entry_typed, diags)
 
@@ -152,6 +153,66 @@ populate_from :: fn(
             entry_typed.namespace_exports[mod_id] = build_namespace_exports(mod_id, project, per_module)
         }
     }
+}
+
+populate_core_symbols :: fn(
+    entry_typed: TypedProgram, project: LoadedProject,
+    per_module: MutableMap(string, TypedProgram),
+) -> void {
+    core_id :: stdlib_core_id(project)
+    if core_id is null { return }
+    core_loaded :: project.modules[core_id]
+    if core_loaded is null { return }
+    core_typed :: per_module[core_id]
+    for name in core_loaded.collected.symbols.keys() {
+        sym :: core_loaded.collected.symbols[name]
+        if sym is null { continue }
+        entry_typed.core_symbols[name] = sym
+        // Also surface the type into `external_types` so a future
+        // reference to a core symbol (e.g. via `mk_struct(Range, ...)`)
+        // returns the concrete declared type.
+        match core_typed {
+            is null -> {}
+            _ -> {
+                sp :: sym.defined_at
+                match sp {
+                    is null -> {}
+                    _ -> {
+                        t :: core_typed.decl_types[span_key(sp)]
+                        match t {
+                            is null -> {}
+                            _ -> { entry_typed.external_types[sym.id] = t }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+import "vader/resolver/module" { resolve_import_path }
+
+stdlib_core_id :: fn(project: LoadedProject) -> string | null {
+    for id in project.modules.keys() {
+        // Conservative match : any module whose path ends with
+        // `std/core.vader` or `std/core` is core.
+        if ends_with_str(id, "std/core.vader") || ends_with_str(id, "std/core") {
+            return id
+        }
+    }
+    return null
+}
+
+import "std/string" { byte_at, byte_len }
+
+ends_with_str :: fn(s: string, suffix: string) -> bool {
+    sl :: s.byte_len()
+    pl :: suffix.byte_len()
+    if sl < pl { return false }
+    for i in 0..<pl {
+        if s.byte_at(sl - pl + i) != suffix.byte_at(i) { return false }
+    }
+    return true
 }
 
 build_namespace_exports :: fn(
