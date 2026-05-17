@@ -14,7 +14,7 @@ import "vader/diagnostics/diagnostic" { Diagnostic }
 AST :: import "vader/parser/ast"
 import "vader/parser/ast" { Program }
 import "vader/resolver/loader" { LoadedProject, LoadedModule }
-import "vader/resolver/resolve" { ResolvedModule, resolve_module }
+import "vader/resolver/resolve" { ResolvedModule, resolve_module, resolve_module_with_collected }
 import "vader/resolver/scope" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
 import "vader/resolver/wire" { wire_imports, ImportTargetTable }
@@ -51,25 +51,37 @@ export check_project_with_bodies :: fn(
         return CheckResult { .typed = empty_fallback(project), .impls = empty_impls() }
     }
 
-    entry_rm :: resolve_module(entry_loaded.module.files[0].program, project.entry, project.factory)
+    entry_rm :: resolve_module_with_collected(
+        entry_loaded.module.files[0].program, project.entry,
+        project.factory, entry_loaded.collected,
+    )
     entry_typed :: new_typed_program(entry_rm)
     declare_module(entry_loaded.module.files[0].program.decls, entry_rm, entry_typed, project.factory, diags)
-    walk_bodies(entry_loaded.module.files[0].program.decls, entry_typed, diags)
 
+    // Type every other loaded module at decl-level *before* walking
+    // the entry's bodies, so external types are visible when bodies
+    // reference cross-module symbols.
     per_module :: MutableMap(string, TypedProgram) { .buckets = [], .size = 0 }
     per_module[project.entry] = entry_typed
     for id in project.modules.keys() {
         if id == project.entry { continue }
         other :: project.modules[id]
         if other is null { continue }
-        rm :: resolve_module(other.module.files[0].program, id, project.factory)
+        rm :: resolve_module_with_collected(
+            other.module.files[0].program, id, project.factory, other.collected,
+        )
         typed :: new_typed_program(rm)
         declare_module(other.module.files[0].program.decls, rm, typed, project.factory, diags)
         per_module[id] = typed
     }
 
+    // Wire + propagate external types BEFORE walking entry bodies
+    // so `infer_ident` / `infer_field` see concrete cross-module
+    // types during expression checking.
     entry_typed.import_targets = wire_imports(project)
     populate_external_types(entry_typed, project, per_module)
+
+    walk_bodies(entry_loaded.module.files[0].program.decls, entry_typed, diags)
 
     impls :: build_impl_registry(entry_loaded.module.files[0].program.decls, entry_typed.resolved)
     return CheckResult { .typed = entry_typed, .impls = impls }
@@ -112,31 +124,55 @@ populate_external_types :: fn(
 ) -> void {
     match entry_typed.import_targets {
         is null -> {}
-        _ -> { populate_from(entry_typed.import_targets, entry_typed, per_module) }
+        _ -> { populate_from(entry_typed.import_targets, entry_typed, project, per_module) }
     }
 }
 
 populate_from :: fn(
-    targets: MutableMap(i32, ImportTarget), entry_typed: TypedProgram,
-    per_module: MutableMap(string, TypedProgram),
+    targets: ImportTargetTable, entry_typed: TypedProgram,
+    project: LoadedProject, per_module: MutableMap(string, TypedProgram),
 ) -> void {
-    ids :: targets.keys()
-    for sym_id in ids {
-        t :: targets[sym_id]
-        match t {
-            is SymbolTarget as st -> {
-                external :: lookup_external_type(st, per_module)
-                match external {
-                    is null -> {}
-                    _ -> { entry_typed.external_types[st.symbol.id] = external }
-                }
-            }
-            _ -> {}
+    for sym_id in targets.symbol_targets.keys() {
+        st :: targets.symbol_targets[sym_id]
+        if st is null { continue }
+        external :: lookup_external_type(st, per_module)
+        match external {
+            is null -> {}
+            _ -> { entry_typed.external_types[st.symbol.id] = external }
+        }
+    }
+    // Namespace targets : for `name :: import "p"`, materialise an
+    // `(field_name → Type)` table from `p`'s public exports so
+    // `field.vader` can resolve `name.foo` accesses.
+    for sym_id in targets.namespace_targets.keys() {
+        mod_id :: targets.namespace_targets[sym_id]
+        if mod_id is null { continue }
+        if entry_typed.namespace_exports[mod_id] is null {
+            entry_typed.namespace_exports[mod_id] = build_namespace_exports(mod_id, project, per_module)
         }
     }
 }
 
-import "vader/resolver/wire" { ImportTarget }
+build_namespace_exports :: fn(
+    mod_id: string, project: LoadedProject,
+    per_module: MutableMap(string, TypedProgram),
+) -> MutableMap(string, Type) {
+    out :: MutableMap(string, Type) { .buckets = [], .size = 0 }
+    loaded :: project.modules[mod_id]
+    if loaded is null { return out }
+    typed :: per_module[mod_id]
+    if typed is null { return out }
+    for name in loaded.collected.symbols.keys() {
+        sym :: loaded.collected.symbols[name]
+        if sym is null { continue }
+        sp :: sym.defined_at
+        if sp is null { continue }
+        t :: typed.decl_types[span_key(sp)]
+        if t is null { continue }
+        out[name] = t
+    }
+    return out
+}
 
 import "vader/resolver/wire" { SymbolTarget }
 

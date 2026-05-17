@@ -45,8 +45,18 @@ export ResolvedProject :: struct {
 /// user code ; `idents` includes them because the body walker resolves
 /// every IdentExpr against the full root scope.
 export resolve_module :: fn(program: Program, module_path: string, factory: SymbolFactory) -> ResolvedModule {
-    root :: make_builtin_scope(factory)
     collected :: collect_module(program, module_path, factory)
+    return resolve_module_with_collected(program, module_path, factory, collected)
+}
+
+/// Variant that reuses a pre-built `CollectedModule` so a caller
+/// that already collected (e.g. the multi-module orchestrator) can
+/// skip the duplicate work and keep Symbol ids stable across passes.
+export resolve_module_with_collected :: fn(
+    program: Program, module_path: string, factory: SymbolFactory,
+    collected: CollectedModule,
+) -> ResolvedModule {
+    root :: make_builtin_scope(factory)
     user_syms :: collected.symbols.values()
     for sym in user_syms { root[sym.name] = sym }
     file :: resolve_program(program, root, module_path, factory)

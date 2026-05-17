@@ -29,6 +29,14 @@ export infer_field :: fn(
     e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
+    // Namespace-import field access : `mod.foo` where `mod` resolves
+    // to an `ImportBinding` namespace target. Lookup `foo` directly
+    // in the target module's collected symbols + its decl_types.
+    ns_lookup :: try_namespace_field(e, typed)
+    match ns_lookup {
+        is null -> {}
+        _ -> { return ns_lookup }
+    }
     target_ty :: check_expr_fn(e.target, null, typed, diags)
     if target_ty is UnresolvedType { return TY_UNRESOLVED }
     if !(target_ty is StructType) {
@@ -52,6 +60,34 @@ export infer_field :: fn(
         _ -> { return found }
     }
 }
+
+import "vader/resolver/scope" { span_key }
+import "vader/resolver/symbol" { Symbol }
+import "vader/typecheck/expr_ident" { type_of_symbol }
+
+/// When `e.target` is an `IdentExpr` resolving to a namespace
+/// `ImportBinding`, look up `e.field` in the target module's
+/// exports and return its declared type. Returns null when the
+/// pattern doesn't match (caller falls through to the struct-field
+/// path).
+try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram) -> Type | null {
+    target :: e.target
+    if !(target is AST.IdentExpr) { return null }
+    sym :: typed.resolved.idents[span_key(target.span)]
+    if sym is null { return null }
+    if i32(sym.kind) != i32(import_binding_kind()) { return null }
+    targets :: typed.import_targets
+    if targets is null { return null }
+    mod_id :: targets.namespace_targets[sym.id]
+    if mod_id is null { return null }
+    exports :: typed.namespace_exports[mod_id]
+    if exports is null { return null }
+    return exports[e.field]
+}
+
+import "vader/resolver/symbol" { SymbolKind }
+
+import_binding_kind :: fn() -> SymbolKind { return .ImportBinding }
 
 /// Walk a struct's fields for `name` and return the resolved field type,
 /// or `null` if the field doesn't exist. Shared with `struct_lit.vader`

@@ -11,27 +11,39 @@ import "vader/resolver/loader" { LoadedProject, LoadedModule }
 import "vader/resolver/module" { Module }
 import "vader/resolver/symbol" { Symbol }
 
-/// What an ImportBinding resolves to. `Module` form is the
-/// `name :: import "p"` namespace ; `SymbolTarget` is a destructured
-/// name (`{ foo }`) wired to its export in the source module ;
-/// `Missing` covers unresolved imports / unknown names / private
-/// exports — typecheck consumers fall back to Unresolved.
-export ImportTarget :: ModuleTarget | SymbolTarget | MissingTarget
+/// What an ImportBinding resolves to. Three flat side-tables keyed
+/// by Symbol.id : `symbol_targets` for destructured-named imports,
+/// `namespace_targets` for `name :: import "p"` namespace bindings
+/// (value = module_id string), and `missing` for unresolved /
+/// private / unknown-name imports. Split into three maps rather
+/// than a `MutableMap(i32, Union)` because the native runtime hits
+/// a SIGSEGV on `map[k] = UnionValue` writes (union-tag bookkeeping
+/// inside the bucket allocator).
+export ImportTargetTable :: struct {
+    symbol_targets:    MutableMap(i32, SymbolTarget)
+    namespace_targets: MutableMap(i32, string)
+    missing:           MutableMap(i32, bool)
+}
 
-export ModuleTarget  :: struct { module_id: string }
-export SymbolTarget  :: struct { symbol: Symbol, module_id: string }
-export MissingTarget :: struct {}
+export SymbolTarget :: struct {
+    symbol:    Symbol
+    module_id: string
+}
 
-/// `Symbol.id → ImportTarget`. Built once from a `LoadedProject` ;
-/// every typecheck pass reads it via `resolve_import_redirect`.
-export ImportTargetTable :: MutableMap(i32, ImportTarget)
+export new_import_target_table :: fn() -> ImportTargetTable {
+    return ImportTargetTable {
+        .symbol_targets    = MutableMap(i32, SymbolTarget) { .buckets = [], .size = 0 },
+        .namespace_targets = MutableMap(i32, string) { .buckets = [], .size = 0 },
+        .missing           = MutableMap(i32, bool) { .buckets = [], .size = 0 },
+    }
+}
 
 /// Wire every ImportBinding across every loaded module. Each
 /// binding looks up its declared module via the project's
 /// path-to-module index, then resolves either to the module itself
 /// (namespace form) or to a named export.
 export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
-    out :: MutableMap(i32, ImportTarget) { .buckets = [], .size = 0 }
+    out :: new_import_target_table()
     for module_id in project.modules.keys() {
         loaded :: project.modules[module_id]
         if loaded is null { continue }
@@ -52,20 +64,20 @@ wire_module :: fn(
         if info is null { continue }
         target_id :: path_index[info.path]
         if target_id is null {
-            out[sym_id] = MissingTarget {}
+            out.missing[sym_id] = true
             continue
         }
         target_loaded :: project.modules[target_id]
         if target_loaded is null {
-            out[sym_id] = MissingTarget {}
+            out.missing[sym_id] = true
             continue
         }
         match info.imported_name {
-            is null -> { out[sym_id] = ModuleTarget { .module_id = target_id } }
+            is null -> { out.namespace_targets[sym_id] = target_id }
             _ -> {
                 exported :: target_loaded.collected.symbols[info.imported_name]
-                if exported is null { out[sym_id] = MissingTarget {} }
-                else { out[sym_id] = SymbolTarget { .symbol = exported, .module_id = target_id } }
+                if exported is null { out.missing[sym_id] = true }
+                else { out.symbol_targets[sym_id] = SymbolTarget { .symbol = exported, .module_id = target_id } }
             }
         }
     }
@@ -105,11 +117,10 @@ stdlib_root_from :: fn(_: LoadedProject) -> string { return default_stdlib_root(
 /// can detect the "still an import-binding" case via `sym.kind`.
 export resolve_import_redirect :: fn(sym: Symbol, table: ImportTargetTable) -> Symbol {
     if i32(sym.kind) != i32(import_binding_kind()) { return sym }
-    target :: table[sym.id]
-    if target is null { return sym }
-    match target {
-        is SymbolTarget as st -> { return st.symbol }
-        _ -> { return sym }
+    st :: table.symbol_targets[sym.id]
+    match st {
+        is null -> { return sym }
+        _ -> { return st.symbol }
     }
 }
 

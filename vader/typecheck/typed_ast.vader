@@ -77,6 +77,12 @@ export TypedProgram :: struct {
     /// per-module `decl_types[span_key(sym.defined_at)]` misses (the
     /// symbol's `defined_at` is in another module).
     external_types: MutableMap(i32, Type)
+
+    /// Per-namespace export tables : `module_id → field_name → Type`.
+    /// Populated alongside `external_types` for every namespace
+    /// `name :: import "p"` binding. Consumed by `field.vader` so
+    /// `mod.foo` accesses can resolve to the export's concrete type.
+    namespace_exports: MutableMap(string, MutableMap(string, Type))
 }
 
 import "vader/resolver/wire" { ImportTargetTable }
@@ -102,6 +108,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .expr_kinds      = MutableMap(string, string) { .buckets = [], .size = 0 },
         .import_targets  = null,
         .external_types  = MutableMap(i32, Type) { .buckets = [], .size = 0 },
+        .namespace_exports = MutableMap(string, MutableMap(string, Type)) { .buckets = [], .size = 0 },
     }
 }
 
