@@ -27,13 +27,14 @@ AST :: import "vader/parser/ast"
 import "vader/typecheck/coerce" { try_into }
 import "vader/typecheck/type_ops" { default_if_free, dispatch_key, is_assignable }
 import "vader/typecheck/types" {
-    Type, FnType, StructType, TraitType, TypeMetaType, UnresolvedType,
-    display_type, TY_UNRESOLVED,
+    ArrayType, Type, FnType, StructType, TraitType, TypeMetaType, UnresolvedType,
+    display_type, mk_array, TY_UNRESOLVED,
 }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/typed_ast" { TypedProgram }
 import "vader/typecheck/unify" { substitute, type_contains_type_param, unify_type_param }
 import "vader/resolver/scope" { span_full_key, span_key }
+import "vader/resolver/symbol" { SymbolKind }
 
 // Inspect the callee : when it's a bare ident whose `fn_overloads`
 // bucket has 2+ entries, pre-walk arg[0] and pick the overload whose
@@ -186,7 +187,36 @@ export infer_call :: fn(
         diags.push(typecheck_error(.TypeMismatch, c.args[i].span,
             "expected ${display_type(param_ty)}, got ${display_type(arg_ty)}"))
     }
+    widen_empty_array_on_push(c, typed)
     return callee_ty.return_type
+}
+
+/// Empty-array back-widening : on `arr.push(elem)` where `arr` is a
+/// Local with `?[]` and `elem` has a concrete type, retroactively
+/// widens the Local's `local_types` to `elem_type[]`. The current
+/// call's `arr` IdentExpr stays at `?[]` in `expr_types` (typed
+/// before this fires) — subsequent reads of `arr` see the widened
+/// type. Mirrors TS's incremental in-place widening.
+widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
+    if !(c.callee is AST.FieldExpr) { return }
+    field_callee :: c.callee
+    if field_callee.field != "push" { return }
+    if c.args.len() == 0 { return }
+    if !(field_callee.target is AST.IdentExpr) { return }
+    target_ident :: field_callee.target
+    symbol :: typed.resolved.idents[span_key(target_ident.span)]
+    if symbol is null { return }
+    if i32(symbol.kind) != i32(SymbolKind.Local) { return }
+    binding_span :: symbol.defined_at
+    if binding_span is null { return }
+    binding_key :: span_key(binding_span)
+    current :: typed.local_types[binding_key]
+    if !(current is ArrayType) { return }
+    if !(current.element is UnresolvedType) { return }
+    arg_type :: typed.expr_types[span_full_key(c.args[0].value.span)]
+    if arg_type is null { return }
+    if arg_type is UnresolvedType { return }
+    typed.local_types[binding_key] = mk_array(default_if_free(arg_type), false)
 }
 
 /// `T(x)` where `T` is a type-name. Type-checks the value, returns
