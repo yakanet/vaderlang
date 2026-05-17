@@ -129,6 +129,9 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
     for tp in d.type_params {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
         self.scope.bind(tp.name, sym)
+        // Record the decl site → Symbol in idents so call.vader can
+        // recover this type-param's Symbol id when enforcing T3006.
+        self.idents[span_key(tp.span)] = sym
         self.walk_opt_expr(tp.bound)
         match tp.bound {
             is null -> {}

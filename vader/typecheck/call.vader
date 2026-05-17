@@ -173,6 +173,9 @@ export infer_call :: fn(
             if v is null { continue }
             bindings[k] = default_if_free(v)
         }
+        // T3006 : enforce `T: Trait` bounds on the callee's fn-decl
+        // type-params against the bindings we ended up with.
+        check_typeparam_bounds(c, bindings, typed, diags)
         return substitute(callee_ty.return_type, bindings)
     }
     for i in 0..<n {
@@ -199,6 +202,71 @@ cast_call_target :: fn(
     // `i64(-250)` types the `-250` as `i64`, not `{integer}`.
     for arg in c.args { check_expr_fn(arg.value, target, typed, diags) }
     return target
+}
+
+/// T3006 enforcement : for every `T: Trait` bound on the callee's
+/// fn-decl type-params, check that the bound concrete type implements
+/// the trait. Skips bounds whose typeParam stays unbound after unify
+/// (no arg pinned it — caller already gets a T3001 in that path).
+check_typeparam_bounds :: fn(
+    c: AST.CallExpr, bindings: MutableMap(i32, Type),
+    typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    fn_decl :: lookup_callee_fn_decl(c.callee, typed)
+    if fn_decl is null { return }
+    for tp in fn_decl.type_params {
+        if tp.bound is null { continue }
+        sym :: typed.resolved.idents[span_key(tp.span)]
+        if sym is null { continue }
+        bound_ty :: bindings[sym.id]
+        if bound_ty is null { continue }
+        bound_trait :: type_from_expr(tp.bound, typed.resolved, [])
+        match bound_trait {
+            is TraitType as bt -> {
+                if !satisfies_trait(bound_ty, bt, typed) {
+                    diags.push(typecheck_error(.TraitNotSatisfied, c.span,
+                        "`${display_type(bound_ty)}` does not implement `${bt.symbol.name}` (required by type parameter `${tp.name}` of `${callee_name(c.callee)}`)"))
+                }
+            }
+            _ -> {}
+        }
+    }
+}
+
+satisfies_trait :: fn(t: Type, trait_ty: TraitType, typed: TypedProgram) -> bool {
+    name :: type_base_name(default_if_free(t))
+    if name == "" { return false }
+    bucket :: typed.struct_implemented_traits[name]
+    if bucket is null { return false }
+    for n in bucket { if n == trait_ty.symbol.name { return true } }
+    return false
+}
+
+lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
+    if !(callee is AST.IdentExpr) { return null }
+    sym :: typed.resolved.idents[span_key(callee.span)]
+    if sym is null { return null }
+    redirected :: redirect_import(sym, typed)
+    decl :: typed.fn_decls[redirected.id]
+    if decl is null { return null }
+    return decl
+}
+
+callee_name :: fn(callee: AST.Expr) -> string {
+    match callee {
+        is AST.IdentExpr as e -> { return e.name }
+        is AST.FieldExpr as e -> { return e.field }
+        _ -> { return "<callee>" }
+    }
+}
+
+import "vader/resolver/wire" { resolve_import_redirect }
+
+redirect_import :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
+    match typed.import_targets {
+        is null -> { return sym }
+        _ -> { return resolve_import_redirect(sym, typed.import_targets) }
+    }
 }
 
 /// When `param` is `Trait(T, U, …)` and `arg` is a struct (or
@@ -251,7 +319,7 @@ check_args_no_expected :: fn(
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
 import "vader/resolver/resolve" { resolve_module, ResolvedModule }
-import "vader/resolver/symbol" { new_factory }
+import "vader/resolver/symbol" { Symbol, new_factory }
 import "vader/typecheck/check" { check_module }
 import "vader/typecheck/expr_ident" { infer_ident }
 import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }

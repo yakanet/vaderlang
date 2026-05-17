@@ -8,7 +8,7 @@
 // since Vader AST nodes lack stable ids for WeakMap-style indexing.
 
 import "std/collections" { MutableMap }
-import "vader/parser/ast" { StructDecl, TraitDecl, TypeAliasDecl }
+import "vader/parser/ast" { FnDecl, StructDecl, TraitDecl, TypeAliasDecl }
 AST :: import "vader/parser/ast"
 import "vader/resolver/resolve" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol }
@@ -52,6 +52,11 @@ export TypedProgram :: struct {
     /// `TraitDecl` keyed by the symbol's id. Same shape as
     /// `struct_decls` ; consumed by orchestrate's T3036 check.
     trait_decls: MutableMap(i32, TraitDecl)
+
+    /// `Symbol.id → FnDecl` for every top-level fn (and impl method).
+    /// Lets call-site code reach the fn's `type_params` (with bounds)
+    /// without re-walking the AST. Populated at `declare_module` time.
+    fn_decls: MutableMap(i32, FnDecl)
 
     /// Owner module of each trait — used when resolving trait method
     /// signatures so cross-module `Iterator(T).next` types `T` against
@@ -195,6 +200,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .type_expr_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .struct_decls    = MutableMap(i32, StructDecl) { .buckets = [], .size = 0 },
         .trait_decls     = MutableMap(i32, TraitDecl) { .buckets = [], .size = 0 },
+        .fn_decls        = MutableMap(i32, FnDecl) { .buckets = [], .size = 0 },
         .trait_decl_owners = MutableMap(i32, ResolvedModule) { .buckets = [], .size = 0 },
         .impl_methods    = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 },

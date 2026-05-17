@@ -106,7 +106,7 @@ declare_decl :: fn(
     factory: SymbolFactory, diags: Diagnostic[],
 ) -> void {
     match decl {
-        is AST.FnDecl as fn_decl -> { declare_fn(fn_decl, resolved, typed, diags) }
+        is AST.FnDecl as fn_decl -> { declare_fn(fn_decl, by_name, resolved, typed, diags) }
         is AST.StructDecl as sd  -> {
             declare_named_with_args(sd.name, sd.name_span, sd.type_params, by_name, typed, resolved.path, factory, mk_struct)
             // Index the struct decl by symbol id so `field.vader` can
@@ -170,7 +170,8 @@ declare_named_with_args :: fn(
 // ---- per-decl declarers ---------------------------------------------------
 
 declare_fn :: fn(
-    decl: AST.FnDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
+    decl: AST.FnDecl, by_name: MutableMap(string, Symbol),
+    resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     params: Type[] = []
     for p in decl.params {
@@ -178,6 +179,15 @@ declare_fn :: fn(
     }
     return_type :: declare_fn_return(decl, resolved, diags)
     typed.decl_types[span_key(decl.name_span)] = mk_fn(params, return_type)
+    // Index the FnDecl by its Symbol id so call sites can recover the
+    // declared `type_params` (with bounds) for T3006 enforcement.
+    // Resolved.idents only carries usage-site bindings ; the fn-decl's
+    // own Symbol lives in `by_name` (built from `resolved.symbols`).
+    sym :: by_name[decl.name]
+    match sym {
+        is null -> {}
+        is Symbol as s -> { typed.fn_decls[s.id] = decl }
+    }
     if decl.name == "main" { check_main_signature(decl, params, return_type, diags) }
 }
 
