@@ -474,19 +474,33 @@ dispatch_bounded_method :: fn(
 try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type | null {
     decl :: typed.trait_decls[t.symbol.id]
     if decl is null { return null }
+    // Resolve the trait method's param + return types against the
+    // OWNER module's resolved.idents — std/core's `Iterator(T).next`
+    // signature references `T` (a Symbol minted during std/core's
+    // resolve pass), so typing it against the entry's idents would
+    // hand back Unresolved.
+    owner :: typed.trait_decl_owners[t.symbol.id]
+    owner_resolved: ResolvedModule = typed.resolved
+    match owner {
+        is null -> {}
+        _ -> { owner_resolved = owner }
+    }
     for m in decl.members {
         if m.name != name { continue }
         params: Type[] = []
-        // Skip `self` — `m.params[0]` is `self` for any trait
-        // method (per the parser).
         for i in 1..<m.params.len() {
             p :: m.params[i]
-            params.push(type_from_expr_opt(p.ty, typed))
+            params.push(type_from_expr_opt_in(p.ty, owner_resolved))
         }
-        ret :: type_from_expr_opt(m.return_type, typed)
-        return mk_fn(params, ret)
+        ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
+        return substitute_by_name(mk_fn(params, ret), decl.type_params, t.args)
     }
     return null
+}
+
+type_from_expr_opt_in :: fn(e: AST.TypeExpr | null, resolved: ResolvedModule) -> Type {
+    if e is null { return TY_VOID }
+    return type_from_expr(e, resolved, [])
 }
 
 type_from_expr_opt :: fn(e: AST.TypeExpr | null, typed: TypedProgram) -> Type {

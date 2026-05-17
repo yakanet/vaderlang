@@ -130,7 +130,10 @@ declare_decl :: fn(
         is AST.TraitDecl as td   -> {
             declare_named_with_args(td.name, td.name_span, td.type_params, by_name, typed, resolved.path, factory, mk_trait)
             sym :: by_name[td.name]
-            if sym is Symbol { typed.trait_decls[sym.id] = td }
+            if sym is Symbol {
+                typed.trait_decls[sym.id] = td
+                typed.trait_decl_owners[sym.id] = resolved
+            }
         }
         is AST.TypeAliasDecl as ta -> { declare_type_alias(ta, resolved, typed, diags) }
         is AST.ConstDecl as cd   -> { declare_const(cd, resolved, typed, diags) }

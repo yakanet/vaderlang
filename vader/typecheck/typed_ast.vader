@@ -53,6 +53,12 @@ export TypedProgram :: struct {
     /// `struct_decls` ; consumed by orchestrate's T3036 check.
     trait_decls: MutableMap(i32, TraitDecl)
 
+    /// Owner module of each trait — used when resolving trait method
+    /// signatures so cross-module `Iterator(T).next` types `T` against
+    /// std/core's resolved.idents, not the entry's. Keyed by the
+    /// trait's Symbol id, populated alongside `trait_decls`.
+    trait_decl_owners: MutableMap(i32, ResolvedModule)
+
     /// `for_type_display::method_name → FnType` (UFCS-bound, without
     /// the `self` param). Populated by `walk_bodies` as it visits
     /// each `ImplDecl` ; consumed by `field.vader::infer_field` for
@@ -182,6 +188,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .type_expr_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .struct_decls    = MutableMap(i32, StructDecl) { .buckets = [], .size = 0 },
         .trait_decls     = MutableMap(i32, TraitDecl) { .buckets = [], .size = 0 },
+        .trait_decl_owners = MutableMap(i32, ResolvedModule) { .buckets = [], .size = 0 },
         .impl_methods    = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 },
         .narrowed_fields = MutableMap(string, Type) { .buckets = [], .size = 0 },

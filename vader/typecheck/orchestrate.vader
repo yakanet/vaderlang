@@ -554,6 +554,11 @@ merge_struct_decls :: fn(
             decl :: other.trait_decls[sym_id]
             if decl is null { continue }
             entry_typed.trait_decls[sym_id] = decl
+            owner :: other.trait_decl_owners[sym_id]
+            match owner {
+                is null -> { entry_typed.trait_decl_owners[sym_id] = other.resolved }
+                _ -> { entry_typed.trait_decl_owners[sym_id] = owner }
+            }
         }
         for sym_id in other.struct_field_types.keys() {
             fmap :: other.struct_field_types[sym_id]
