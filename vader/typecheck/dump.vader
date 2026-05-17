@@ -25,7 +25,7 @@
 
 import "std/collections" { keys }
 import "std/sort" { sort }
-import "std/string" { compare_ascending_ci, pad_end, split }
+import "std/string" { compare_ascending, compare_ascending_ci, pad_end, split }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/resolver/scope" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -90,7 +90,10 @@ build_expr_lines :: fn(typed: TypedProgram) -> string[] {
         loc :: start_loc(k)
         out.push("  expr ${loc.pad_end(8, ' ')} ${kind.pad_end(14, ' ')} :: ${ty_str}")
     }
-    return sort(out, (a: string, b: string) -> compare_ascending_ci(a, b))
+    // Byte-wise sort (matches TS `Array.prototype.sort` default) :
+    // case-insensitive would put `i32` before `Inner` ; TS keeps
+    // `Inner` first because `I` (0x49) < `i` (0x69).
+    return sort(out, (a: string, b: string) -> compare_ascending(a, b))
 }
 
 // Full key is "lineS:colS-lineE:colE" ; the dump label uses just the
