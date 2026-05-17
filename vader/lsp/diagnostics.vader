@@ -44,18 +44,43 @@ export clear_diagnostics_for_uri :: fn(uri: string) -> void {
 
 /// Push a `publishDiagnostics` notification carrying `diags` filtered
 /// to those whose primary span belongs to `uri` (we don't want to
-/// flag std/core's errors on the user's snippet).
+/// flag std/core's errors on the user's snippet) AND whose message
+/// doesn't reference `?` (the Unresolved-type placeholder). The
+/// latter filter drops cascade noise — when an upstream UFCS lookup
+/// or generic-fn inference misses, the typechecker propagates `?`
+/// through every downstream lookup, then complains about every
+/// `match` / `is` check with "variant ? of ? | null is not covered"
+/// style messages. These cascade errors are noise on top of the
+/// single real error somewhere up the chain.
 publish :: fn(uri: string, diags: Diagnostic[]) -> void {
     file_path :: uri_to_path(uri)
     items: JsonValue[] = []
     for d in diags {
         if file_path != "" && d.primary.start.file != file_path { continue }
+        if is_unresolved_cascade(d) { continue }
         items.push(encode_diagnostic(d))
     }
     params :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
     params["uri"]         = JsonString { .value = uri }
     params["diagnostics"] = JsonArray { .items = items }
     write_frame(encode_notification("textDocument/publishDiagnostics", JsonObject { .entries = params }))
+}
+
+is_unresolved_cascade :: fn(d: Diagnostic) -> bool {
+    return contains(d.detail, "?")
+}
+
+contains :: fn(s: string, needle: string) -> bool {
+    n :: s.byte_len()
+    m :: needle.byte_len()
+    if m == 0 { return true }
+    if m > n  { return false }
+    i: usize = 0
+    for i + m <= n {
+        if s.slice(i, i + m) == needle { return true }
+        i = i + usize(1)
+    }
+    return false
 }
 
 // ---- encoding ------------------------------------------------------------
