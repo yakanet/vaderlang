@@ -8,7 +8,7 @@
 // since Vader AST nodes lack stable ids for WeakMap-style indexing.
 
 import "std/collections" { MutableMap }
-import "vader/parser/ast" { StructDecl }
+import "vader/parser/ast" { StructDecl, TraitDecl }
 import "vader/resolver/resolve" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol }
 import "vader/typecheck/types" { Type }
@@ -47,6 +47,10 @@ export TypedProgram :: struct {
     /// can walk a struct's field list to type `obj.f` accesses without
     /// re-walking the program AST.
     struct_decls: MutableMap(i32, StructDecl)
+
+    /// `TraitDecl` keyed by the symbol's id. Same shape as
+    /// `struct_decls` ; consumed by orchestrate's T3036 check.
+    trait_decls: MutableMap(i32, TraitDecl)
 
     /// Per-binding narrowed type stack (`Symbol.id → narrowed Type`).
     /// `narrow.vader` writes when a flow-sensitive narrowing is active
@@ -118,6 +122,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .param_types     = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .type_expr_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .struct_decls    = MutableMap(i32, StructDecl) { .buckets = [], .size = 0 },
+        .trait_decls     = MutableMap(i32, TraitDecl) { .buckets = [], .size = 0 },
         .narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 },
         .expr_kinds      = MutableMap(string, string) { .buckets = [], .size = 0 },
         .import_targets  = null,

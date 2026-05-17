@@ -266,9 +266,6 @@ export walk_bodies :: fn(
             is AST.AssertDecl as ad -> { check_expr(ad.condition, null, typed, diags) }
             is AST.ImplDecl as id -> {
                 for_ty :: type_from_expr(id.for_type, typed.resolved, diags)
-                // T3039 : `T implements Into(T)` — identity coercion
-                // forbidden. Fires before walking members so the
-                // diag lands at the impl head, matching TS.
                 if id.trait_name == "Into" {
                     if id.trait_args.len() == 1 {
                         target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
@@ -278,6 +275,7 @@ export walk_bodies :: fn(
                         }
                     }
                 }
+                check_impl_missing_methods(id, typed, diags)
                 for m in id.members {
                     declare_impl_method(m, for_ty, typed, diags)
                     walk_fn_body(m, typed, diags)
@@ -299,6 +297,31 @@ walk_fn_body :: fn(fd: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[]) -> 
 /// impl block's for-type and the rest of the params take their
 /// annotated types. Result lands in `param_types` + `decl_types`
 /// so `infer_ident` / `check_fn_body` see concrete types.
+check_impl_missing_methods :: fn(
+    id: AST.ImplDecl, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    trait_sym :: typed.resolved.idents[span_key(id.trait_name_span)]
+    if trait_sym is null { return }
+    trait_decl :: typed.trait_decls[trait_sym.id]
+    if trait_decl is null { return }
+    for required in trait_decl.members {
+        // Required = method with no body (abstract) ; default-method
+        // impls are also "required" only when the impl doesn't
+        // override them. MVP : flag anything not present by name.
+        if required.body is null {
+            if !impl_has_method(id, required.name) {
+                diags.push(typecheck_error(.ImplMissingRequiredMethod, id.span,
+                    "`${id.trait_name}` requires method `${required.name}` — not provided in this impl block"))
+            }
+        }
+    }
+}
+
+impl_has_method :: fn(id: AST.ImplDecl, name: string) -> bool {
+    for m in id.members { if m.name == name { return true } }
+    return false
+}
+
 declare_impl_method :: fn(
     fd: AST.FnDecl, for_ty: Type, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {

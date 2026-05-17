@@ -62,7 +62,11 @@ declare_decl :: fn(
             if sym is Symbol { typed.struct_decls[sym.id] = sd }
         }
         is AST.EnumDecl as ed    -> { declare_enum(ed, by_name, resolved, typed, diags) }
-        is AST.TraitDecl as td   -> { declare_named_with_args(td.name, td.name_span, td.type_params, by_name, typed, resolved.path, factory, mk_trait) }
+        is AST.TraitDecl as td   -> {
+            declare_named_with_args(td.name, td.name_span, td.type_params, by_name, typed, resolved.path, factory, mk_trait)
+            sym :: by_name[td.name]
+            if sym is Symbol { typed.trait_decls[sym.id] = td }
+        }
         is AST.TypeAliasDecl as ta -> { declare_type_alias(ta, resolved, typed, diags) }
         is AST.ConstDecl as cd   -> { declare_const(cd, resolved, typed, diags) }
         // ImplDecl → ImplRegistry (Phase 2.4). AssertDecl → comptime only.
