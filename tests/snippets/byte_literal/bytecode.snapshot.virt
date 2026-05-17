@@ -14,83 +14,83 @@ fn 0 tests_snippets_byte_literal__main_vader$main () -> i32
   local __sb_0 any
   local $cast_11 i32
   local $eq_34 bool
-  intrinsic builder.new   ; _main.vader:13:13
-  local.set 0   ; _main.vader:13:13
-  local.get 0   ; _main.vader:13:14
-  string.const 0   ; _main.vader:13:14
-  intrinsic builder.append_str   ; _main.vader:13:14
-  i32.const 123   ; _main.vader:13:18
-  i32.to_u8   ; _main.vader:13:18
-  u8.to_i32   ; _main.vader:13:18
-  local.set 1   ; _main.vader:13:18
-  local.get 0   ; _main.vader:13:16
-  local.get 1   ; _main.vader:13:16
-  intrinsic builder.append_display   ; _main.vader:13:16
-  local.get 0   ; _main.vader:13:13
-  intrinsic builder.finish   ; _main.vader:13:13
-  call.import 0   ; _main.vader:13:5
-  intrinsic builder.new   ; _main.vader:14:13
-  local.set 0   ; _main.vader:14:13
-  local.get 0   ; _main.vader:14:14
-  string.const 1   ; _main.vader:14:14
-  intrinsic builder.append_str   ; _main.vader:14:14
-  i32.const 10   ; _main.vader:14:19
-  i32.to_u8   ; _main.vader:14:19
-  u8.to_i32   ; _main.vader:14:19
-  local.set 1   ; _main.vader:14:19
-  local.get 0   ; _main.vader:14:17
-  local.get 1   ; _main.vader:14:17
-  intrinsic builder.append_display   ; _main.vader:14:17
-  local.get 0   ; _main.vader:14:13
-  intrinsic builder.finish   ; _main.vader:14:13
-  call.import 0   ; _main.vader:14:5
-  intrinsic builder.new   ; _main.vader:15:13
-  local.set 0   ; _main.vader:15:13
-  local.get 0   ; _main.vader:15:14
-  string.const 2   ; _main.vader:15:14
-  intrinsic builder.append_str   ; _main.vader:15:14
-  i32.const 92   ; _main.vader:15:19
-  i32.to_u8   ; _main.vader:15:19
-  u8.to_i32   ; _main.vader:15:19
-  local.set 1   ; _main.vader:15:19
-  local.get 0   ; _main.vader:15:17
-  local.get 1   ; _main.vader:15:17
-  intrinsic builder.append_display   ; _main.vader:15:17
-  local.get 0   ; _main.vader:15:13
-  intrinsic builder.finish   ; _main.vader:15:13
-  call.import 0   ; _main.vader:15:5
-  intrinsic builder.new   ; _main.vader:16:13
-  local.set 0   ; _main.vader:16:13
-  local.get 0   ; _main.vader:16:14
-  string.const 3   ; _main.vader:16:14
-  intrinsic builder.append_str   ; _main.vader:16:14
-  i32.const 39   ; _main.vader:16:19
-  i32.to_u8   ; _main.vader:16:19
-  u8.to_i32   ; _main.vader:16:19
-  local.set 1   ; _main.vader:16:19
-  local.get 0   ; _main.vader:16:17
-  local.get 1   ; _main.vader:16:17
-  intrinsic builder.append_display   ; _main.vader:16:17
-  local.get 0   ; _main.vader:16:13
-  intrinsic builder.finish   ; _main.vader:16:13
-  call.import 0   ; _main.vader:16:5
-  intrinsic builder.new   ; _main.vader:18:13
-  local.set 0   ; _main.vader:18:13
-  local.get 0   ; _main.vader:18:14
-  string.const 4   ; _main.vader:18:14
-  intrinsic builder.append_str   ; _main.vader:18:14
-  i32.const 61   ; _main.vader:18:19
-  i32.to_u8   ; _main.vader:18:19
-  i32.const 61   ; _main.vader:18:19
-  i32.to_u8   ; _main.vader:18:19
-  u8.eq   ; _main.vader:18:19
-  local.set 2   ; _main.vader:18:19
-  local.get 0   ; _main.vader:18:17
-  local.get 2   ; _main.vader:18:17
-  intrinsic builder.append_display   ; _main.vader:18:17
-  local.get 0   ; _main.vader:18:13
-  intrinsic builder.finish   ; _main.vader:18:13
-  call.import 0   ; _main.vader:18:5
-  i32.const 0   ; _main.vader:19:12
-  return   ; _main.vader:19:5
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 0
+  intrinsic builder.append_str
+  i32.const 123
+  i32.to_u8
+  u8.to_i32
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call.import 0
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 1
+  intrinsic builder.append_str
+  i32.const 10
+  i32.to_u8
+  u8.to_i32
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call.import 0
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 2
+  intrinsic builder.append_str
+  i32.const 92
+  i32.to_u8
+  u8.to_i32
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call.import 0
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 3
+  intrinsic builder.append_str
+  i32.const 39
+  i32.to_u8
+  u8.to_i32
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call.import 0
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 4
+  intrinsic builder.append_str
+  i32.const 61
+  i32.to_u8
+  i32.const 61
+  i32.to_u8
+  u8.eq
+  local.set 2
+  local.get 0
+  local.get 2
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call.import 0
+  i32.const 0
+  return
 end

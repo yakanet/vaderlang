@@ -5,17 +5,17 @@ type 2 fn (1) -> 1
 type 3 array 2
 
 fn 0 tests_snippets_fn_value_array__main_vader$inc (i32) -> i32
-  local.get 0   ; _main.vader:2:12
-  i32.const 1   ; _main.vader:2:12
-  i32.add   ; _main.vader:2:12
-  return   ; _main.vader:2:5
+  local.get 0
+  i32.const 1
+  i32.add
+  return
 end
 
 fn 1 tests_snippets_fn_value_array__main_vader$double (i32) -> i32
-  local.get 0   ; _main.vader:6:12
-  i32.const 2   ; _main.vader:6:12
-  i32.mul   ; _main.vader:6:12
-  return   ; _main.vader:6:5
+  local.get 0
+  i32.const 2
+  i32.mul
+  return
 end
 
 fn 2 tests_snippets_fn_value_array__main_vader$main () -> i32
@@ -23,32 +23,32 @@ fn 2 tests_snippets_fn_value_array__main_vader$main () -> i32
   local $fn_ref_1 ref
   local $call_ind_7 i32
   local $call_ind_11 i32
-  fn.ref 0 2   ; _main.vader:10:12
-  local.set 0   ; _main.vader:10:12
-  fn.ref 1 2   ; _main.vader:10:17
-  local.set 1   ; _main.vader:10:17
-  local.get 0   ; _main.vader:10:11
-  local.get 1   ; _main.vader:10:11
-  array.new 3 2   ; _main.vader:10:11
-  local.set 0   ; _main.vader:10:11
-  local.get 0   ; _main.vader:11:12
-  i32.const 0   ; _main.vader:11:12
-  array.get 3   ; _main.vader:11:12
-  local.set 1   ; _main.vader:11:12
-  i32.const 7   ; _main.vader:11:18
-  local.get 1   ; _main.vader:11:12
-  call.indirect 2   ; _main.vader:11:12
-  local.set 2   ; _main.vader:11:12
-  local.get 0   ; _main.vader:11:23
-  i32.const 1   ; _main.vader:11:23
-  array.get 3   ; _main.vader:11:23
-  local.set 0   ; _main.vader:11:23
-  i32.const 3   ; _main.vader:11:29
-  local.get 0   ; _main.vader:11:23
-  call.indirect 2   ; _main.vader:11:23
-  local.set 3   ; _main.vader:11:23
-  local.get 2   ; _main.vader:11:12
-  local.get 3   ; _main.vader:11:12
-  i32.add   ; _main.vader:11:12
-  return   ; _main.vader:11:5
+  fn.ref 0 2
+  local.set 0
+  fn.ref 1 2
+  local.set 1
+  local.get 0
+  local.get 1
+  array.new 3 2
+  local.set 0
+  local.get 0
+  i32.const 0
+  array.get 3
+  local.set 1
+  i32.const 7
+  local.get 1
+  call.indirect 2
+  local.set 2
+  local.get 0
+  i32.const 1
+  array.get 3
+  local.set 0
+  i32.const 3
+  local.get 0
+  call.indirect 2
+  local.set 3
+  local.get 2
+  local.get 3
+  i32.add
+  return
 end

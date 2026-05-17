@@ -16,57 +16,57 @@ fn 0 tests_snippets_match_expr__main_vader$classify (ref) -> string
   local if_res string
   local if_res string
   local if_res string
-  local.get 0   ; _main.vader:2:18
-  local.tee 1   ; _main.vader:2:18
-  type_check 2   ; _main.vader:3:9
-  if $L0 void   ; _main.vader:3:9
-    local.get 0   ; _main.vader:3:19
-    ref.cast 2   ; _main.vader:3:19
-    local.set 3   ; _main.vader:3:19
-    local.get 3   ; _main.vader:3:19
-    i32.const 0   ; _main.vader:3:19
-    i32.gt   ; _main.vader:3:19
-    local.set 2   ; _main.vader:3:19
-  else   ; _main.vader:3:9
-    bool.const false   ; _main.vader:3:9
-    local.set 2   ; _main.vader:3:9
-  end $L0   ; _main.vader:3:9
-  local.get 2   ; _main.vader:3:9
-  if $L1 void   ; _main.vader:3:9
-    string.const 0   ; _main.vader:3:28
-    local.set 4   ; _main.vader:3:28
-  else   ; _main.vader:3:9
-    local.get 1   ; _main.vader:4:9
-    type_check 2   ; _main.vader:4:9
-    if $L2 void   ; _main.vader:4:9
-      string.const 1   ; _main.vader:4:19
-      local.set 5   ; _main.vader:4:19
-    else   ; _main.vader:4:9
-      local.get 1   ; _main.vader:5:9
-      type_check 3   ; _main.vader:5:9
-      if $L3 void   ; _main.vader:5:9
-        local.get 0   ; _main.vader:5:22
-        ref.cast 3   ; _main.vader:5:22
-        local.set 6   ; _main.vader:5:22
-      else   ; _main.vader:5:9
-        local.get 1   ; _main.vader:6:9
-        type_check 0   ; _main.vader:6:9
-        if $L4 void   ; _main.vader:6:9
-          string.const 2   ; _main.vader:6:20
-          local.set 7   ; _main.vader:6:20
-        else   ; _main.vader:6:9
-          string.const 3   ; _main.vader:7:14
-          local.set 7   ; _main.vader:7:14
-        end $L4   ; _main.vader:6:9
-        local.get 7   ; _main.vader:6:9
-        local.set 6   ; _main.vader:6:9
-      end $L3   ; _main.vader:5:9
-      local.get 6   ; _main.vader:5:9
-      local.set 5   ; _main.vader:5:9
-    end $L2   ; _main.vader:4:9
-    local.get 5   ; _main.vader:4:9
-    local.set 4   ; _main.vader:4:9
-  end $L1   ; _main.vader:3:9
-  local.get 4   ; _main.vader:2:5
-  return   ; _main.vader:2:5
+  local.get 0
+  local.tee 1
+  type_check 2
+  if $L0 void
+    local.get 0
+    ref.cast 2
+    local.set 3
+    local.get 3
+    i32.const 0
+    i32.gt
+    local.set 2
+  else
+    bool.const false
+    local.set 2
+  end $L0
+  local.get 2
+  if $L1 void
+    string.const 0
+    local.set 4
+  else
+    local.get 1
+    type_check 2
+    if $L2 void
+      string.const 1
+      local.set 5
+    else
+      local.get 1
+      type_check 3
+      if $L3 void
+        local.get 0
+        ref.cast 3
+        local.set 6
+      else
+        local.get 1
+        type_check 0
+        if $L4 void
+          string.const 2
+          local.set 7
+        else
+          string.const 3
+          local.set 7
+        end $L4
+        local.get 7
+        local.set 6
+      end $L3
+      local.get 6
+      local.set 5
+    end $L2
+    local.get 5
+    local.set 4
+  end $L1
+  local.get 4
+  return
 end

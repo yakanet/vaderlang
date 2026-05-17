@@ -11,26 +11,26 @@ import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_interpolation__main_vader$main () -> i32
   local __sb_0 any
-  intrinsic builder.new   ; _main.vader:6:13
-  local.set 0   ; _main.vader:6:13
-  local.get 0   ; _main.vader:6:14
-  string.const 1   ; _main.vader:6:14
-  intrinsic builder.append_str   ; _main.vader:6:14
-  local.get 0   ; _main.vader:6:21
-  string.const 0   ; _main.vader:6:21
-  intrinsic builder.append_display   ; _main.vader:6:21
-  local.get 0   ; _main.vader:6:28
-  string.const 2   ; _main.vader:6:28
-  intrinsic builder.append_str   ; _main.vader:6:28
-  local.get 0   ; _main.vader:6:38
-  i32.const 1   ; _main.vader:6:38
-  intrinsic builder.append_display   ; _main.vader:6:38
-  local.get 0   ; _main.vader:6:44
-  string.const 3   ; _main.vader:6:44
-  intrinsic builder.append_str   ; _main.vader:6:44
-  local.get 0   ; _main.vader:6:13
-  intrinsic builder.finish   ; _main.vader:6:13
-  call.import 0   ; _main.vader:6:5
-  i32.const 0   ; _main.vader:7:12
-  return   ; _main.vader:7:5
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 1
+  intrinsic builder.append_str
+  local.get 0
+  string.const 0
+  intrinsic builder.append_display
+  local.get 0
+  string.const 2
+  intrinsic builder.append_str
+  local.get 0
+  i32.const 1
+  intrinsic builder.append_display
+  local.get 0
+  string.const 3
+  intrinsic builder.append_str
+  local.get 0
+  intrinsic builder.finish
+  call.import 0
+  i32.const 0
+  return
 end

@@ -7,47 +7,47 @@ impl 3 Contains
 impl 3 Iterator
 
 fn 0 tests_snippets_expressions__main_vader$add (i32,i32) -> i32
-  local.get 0   ; _main.vader:2:12
-  local.get 1   ; _main.vader:2:12
-  i32.add   ; _main.vader:2:12
-  return   ; _main.vader:2:5
+  local.get 0
+  local.get 1
+  i32.add
+  return
 end
 
 fn 1 tests_snippets_expressions__main_vader$demo () -> i32
   local $mul_3 i32
   local and_res bool
-  i32.const 2   ; _main.vader:6:14
-  i32.const 3   ; _main.vader:6:14
-  i32.mul   ; _main.vader:6:14
-  local.set 0   ; _main.vader:6:14
-  i32.const 1   ; _main.vader:6:10
-  local.get 0   ; _main.vader:6:10
-  i32.add   ; _main.vader:6:10
-  local.set 0   ; _main.vader:6:10
-  bool.const false   ; _main.vader:9:11
-  if $L0 void   ; _main.vader:9:10
-    bool.const false   ; _main.vader:9:19
-    local.set 1   ; _main.vader:9:19
-  else   ; _main.vader:9:10
-    bool.const false   ; _main.vader:9:10
-    local.set 1   ; _main.vader:9:10
-  end $L0   ; _main.vader:9:10
-  local.get 1   ; _main.vader:9:10
-  if $L1 void   ; _main.vader:9:10
-  else   ; _main.vader:9:10
-  end $L1   ; _main.vader:9:10
-  i32.const 1   ; _main.vader:13:10
-  i32.const 2   ; _main.vader:13:10
-  call 0   ; _main.vader:13:10
-  drop   ; _main.vader:13:10
-  i32.const 10   ; _main.vader:14:10
-  i32.const 20   ; _main.vader:14:10
-  call 0   ; _main.vader:14:10
-  drop   ; _main.vader:14:10
-  bool.const true   ; _main.vader:15:13
-  if $L2 void   ; _main.vader:16:10
-  else   ; _main.vader:16:10
-  end $L2   ; _main.vader:16:10
-  local.get 0   ; _main.vader:17:5
-  return   ; _main.vader:17:5
+  i32.const 2
+  i32.const 3
+  i32.mul
+  local.set 0
+  i32.const 1
+  local.get 0
+  i32.add
+  local.set 0
+  bool.const false
+  if $L0 void
+    bool.const false
+    local.set 1
+  else
+    bool.const false
+    local.set 1
+  end $L0
+  local.get 1
+  if $L1 void
+  else
+  end $L1
+  i32.const 1
+  i32.const 2
+  call 0
+  drop
+  i32.const 10
+  i32.const 20
+  call 0
+  drop
+  bool.const true
+  if $L2 void
+  else
+  end $L2
+  local.get 0
+  return
 end

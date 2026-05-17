@@ -19,29 +19,29 @@ fn 0 tests_snippets_match_wildcard_narrow__main_vader$greet_wildcard (ref) -> st
   local if_res string
   local __sb_1 any
   local $field_10 string
-  local.get 0   ; _main.vader:26:18
-  type_check 0   ; _main.vader:27:9
-  if $L0 void   ; _main.vader:27:9
-    string.const 0   ; _main.vader:27:20
-    local.set 1   ; _main.vader:27:20
-  else   ; _main.vader:27:9
-    intrinsic builder.new   ; _main.vader:28:20
-    local.set 2   ; _main.vader:28:20
-    local.get 2   ; _main.vader:28:21
-    string.const 1   ; _main.vader:28:21
-    intrinsic builder.append_str   ; _main.vader:28:21
-    local.get 0   ; _main.vader:28:29
-    struct.get 2 0   ; _main.vader:28:29
-    local.set 3   ; _main.vader:28:29
-    local.get 2   ; _main.vader:28:27
-    local.get 3   ; _main.vader:28:27
-    intrinsic builder.append_display   ; _main.vader:28:27
-    local.get 2   ; _main.vader:28:20
-    intrinsic builder.finish   ; _main.vader:28:20
-    local.set 1   ; _main.vader:28:9
-  end $L0   ; _main.vader:27:9
-  local.get 1   ; _main.vader:26:5
-  return   ; _main.vader:26:5
+  local.get 0
+  type_check 0
+  if $L0 void
+    string.const 0
+    local.set 1
+  else
+    intrinsic builder.new
+    local.set 2
+    local.get 2
+    string.const 1
+    intrinsic builder.append_str
+    local.get 0
+    struct.get 2 0
+    local.set 3
+    local.get 2
+    local.get 3
+    intrinsic builder.append_display
+    local.get 2
+    intrinsic builder.finish
+    local.set 1
+  end $L0
+  local.get 1
+  return
 end
 
 fn 1 tests_snippets_match_wildcard_narrow__main_vader$greet_binding (ref) -> string
@@ -49,57 +49,57 @@ fn 1 tests_snippets_match_wildcard_narrow__main_vader$greet_binding (ref) -> str
   local if_res string
   local __sb_1 any
   local $field_11 string
-  local.get 0   ; _main.vader:40:18
-  local.tee 1   ; _main.vader:40:18
-  type_check 0   ; _main.vader:41:9
-  if $L0 void   ; _main.vader:41:9
-    string.const 0   ; _main.vader:41:20
-    local.set 2   ; _main.vader:41:20
-  else   ; _main.vader:41:9
-    local.get 1   ; _main.vader:42:9
-    local.set 1   ; _main.vader:42:9
-    intrinsic builder.new   ; _main.vader:42:20
-    local.set 3   ; _main.vader:42:20
-    local.get 3   ; _main.vader:42:21
-    string.const 2   ; _main.vader:42:21
-    intrinsic builder.append_str   ; _main.vader:42:21
-    local.get 1   ; _main.vader:42:29
-    struct.get 2 0   ; _main.vader:42:29
-    local.set 4   ; _main.vader:42:29
-    local.get 3   ; _main.vader:42:27
-    local.get 4   ; _main.vader:42:27
-    intrinsic builder.append_display   ; _main.vader:42:27
-    local.get 3   ; _main.vader:42:20
-    intrinsic builder.finish   ; _main.vader:42:20
-    local.set 2   ; _main.vader:42:9
-  end $L0   ; _main.vader:41:9
-  local.get 2   ; _main.vader:40:5
-  return   ; _main.vader:40:5
+  local.get 0
+  local.tee 1
+  type_check 0
+  if $L0 void
+    string.const 0
+    local.set 2
+  else
+    local.get 1
+    local.set 1
+    intrinsic builder.new
+    local.set 3
+    local.get 3
+    string.const 2
+    intrinsic builder.append_str
+    local.get 1
+    struct.get 2 0
+    local.set 4
+    local.get 3
+    local.get 4
+    intrinsic builder.append_display
+    local.get 3
+    intrinsic builder.finish
+    local.set 2
+  end $L0
+  local.get 2
+  return
 end
 
 fn 2 tests_snippets_match_wildcard_narrow__main_vader$main () -> i32
-  string.const 3   ; _main.vader:47:42
-  struct.new 2   ; _main.vader:47:28
-  call 0   ; _main.vader:47:13
-  call.import 0   ; _main.vader:47:5
-  string.const 4   ; _main.vader:48:42
-  struct.new 3   ; _main.vader:48:28
-  call 0   ; _main.vader:48:13
-  call.import 0   ; _main.vader:48:5
-  null.const   ; _main.vader:49:28
-  call 0   ; _main.vader:49:13
-  call.import 0   ; _main.vader:49:5
-  string.const 5   ; _main.vader:51:41
-  struct.new 2   ; _main.vader:51:27
-  call 1   ; _main.vader:51:13
-  call.import 0   ; _main.vader:51:5
-  string.const 6   ; _main.vader:52:41
-  struct.new 3   ; _main.vader:52:27
-  call 1   ; _main.vader:52:13
-  call.import 0   ; _main.vader:52:5
-  null.const   ; _main.vader:53:27
-  call 1   ; _main.vader:53:13
-  call.import 0   ; _main.vader:53:5
-  i32.const 0   ; _main.vader:55:12
-  return   ; _main.vader:55:5
+  string.const 3
+  struct.new 2
+  call 0
+  call.import 0
+  string.const 4
+  struct.new 3
+  call 0
+  call.import 0
+  null.const
+  call 0
+  call.import 0
+  string.const 5
+  struct.new 2
+  call 1
+  call.import 0
+  string.const 6
+  struct.new 3
+  call 1
+  call.import 0
+  null.const
+  call 1
+  call.import 0
+  i32.const 0
+  return
 end

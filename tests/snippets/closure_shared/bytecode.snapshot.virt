@@ -13,52 +13,52 @@ fn 0 tests_snippets_closure_shared__main_vader$main () -> i32
   local n any
   local inc ref
   local get ref
-  i32.const 0   ; _main.vader:2:10
-  struct.new 6   ; _main.vader:2:5
-  local.tee 0   ; _main.vader:2:5
-  struct.new 2   ; _main.vader:3:12
-  make_closure 1 7   ; _main.vader:3:12
-  local.set 1   ; _main.vader:3:12
-  local.get 0   ; _main.vader:6:12
-  struct.new 4   ; _main.vader:6:12
-  make_closure 2 8   ; _main.vader:6:12
-  local.set 2   ; _main.vader:6:12
-  local.get 1   ; _main.vader:9:5
-  call.indirect 7   ; _main.vader:9:5
-  local.get 1   ; _main.vader:10:5
-  call.indirect 7   ; _main.vader:10:5
-  local.get 1   ; _main.vader:11:5
-  call.indirect 7   ; _main.vader:11:5
-  local.get 1   ; _main.vader:12:5
-  call.indirect 7   ; _main.vader:12:5
-  local.get 2   ; _main.vader:13:12
-  call.indirect 8   ; _main.vader:13:12
-  return   ; _main.vader:13:5
+  i32.const 0
+  struct.new 6
+  local.tee 0
+  struct.new 2
+  make_closure 1 7
+  local.set 1
+  local.get 0
+  struct.new 4
+  make_closure 2 8
+  local.set 2
+  local.get 1
+  call.indirect 7
+  local.get 1
+  call.indirect 7
+  local.get 1
+  call.indirect 7
+  local.get 1
+  call.indirect 7
+  local.get 2
+  call.indirect 8
+  return
 end
 
 fn 1 __lambda_1 (ref) -> void
   local $field_1 any
   local $cell_get_3 i32
-  local.get 0   ; _main.vader:4:9
-  struct.get 2 0   ; _main.vader:4:9
-  local.set 1   ; _main.vader:4:9
-  local.get 0   ; _main.vader:4:13
-  struct.get 2 0   ; _main.vader:4:13
-  struct.get 6 0   ; _main.vader:4:13
-  local.set 2   ; _main.vader:4:13
-  local.get 2   ; _main.vader:4:13
-  i32.const 1   ; _main.vader:4:13
-  i32.add   ; _main.vader:4:13
-  local.set 2   ; _main.vader:4:13
-  local.get 1   ; _main.vader:4:9
-  local.get 2   ; _main.vader:4:9
-  struct.set 6 0   ; _main.vader:4:9
-  return   ; _main.vader:3:17
+  local.get 0
+  struct.get 2 0
+  local.set 1
+  local.get 0
+  struct.get 2 0
+  struct.get 6 0
+  local.set 2
+  local.get 2
+  i32.const 1
+  i32.add
+  local.set 2
+  local.get 1
+  local.get 2
+  struct.set 6 0
+  return
 end
 
 fn 2 __lambda_4 (ref) -> i32
-  local.get 0   ; _main.vader:7:16
-  struct.get 4 0   ; _main.vader:7:16
-  struct.get 6 0   ; _main.vader:7:16
-  return   ; _main.vader:7:9
+  local.get 0
+  struct.get 4 0
+  struct.get 6 0
+  return
 end

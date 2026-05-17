@@ -7,6 +7,6 @@ string 0 "point"
 impl 1 Display
 
 fn 0 tests_snippets_trait_impl__main_vader$Point$Display$to_string (ref) -> string
-  string.const 0   ; _main.vader:12:16
-  return   ; _main.vader:12:9
+  string.const 0
+  return
 end

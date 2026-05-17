@@ -4,25 +4,25 @@ type 1 fn (2) -> 2
 type 2 primitive i32
 
 fn 0 tests_snippets_fn_value_arg__main_vader$apply (ref,i32) -> i32
-  local.get 1   ; _main.vader:2:12
-  local.get 0   ; _main.vader:2:12
-  call.indirect 1   ; _main.vader:2:12
-  return   ; _main.vader:2:5
+  local.get 1
+  local.get 0
+  call.indirect 1
+  return
 end
 
 fn 1 tests_snippets_fn_value_arg__main_vader$inc (i32) -> i32
-  local.get 0   ; _main.vader:6:12
-  i32.const 1   ; _main.vader:6:12
-  i32.add   ; _main.vader:6:12
-  return   ; _main.vader:6:5
+  local.get 0
+  i32.const 1
+  i32.add
+  return
 end
 
 fn 2 tests_snippets_fn_value_arg__main_vader$main () -> i32
   local $fn_ref_0 ref
-  fn.ref 1 1   ; _main.vader:10:18
-  local.set 0   ; _main.vader:10:18
-  local.get 0   ; _main.vader:10:12
-  i32.const 41   ; _main.vader:10:12
-  call 0   ; _main.vader:10:12
-  return   ; _main.vader:10:5
+  fn.ref 1 1
+  local.set 0
+  local.get 0
+  i32.const 41
+  call 0
+  return
 end

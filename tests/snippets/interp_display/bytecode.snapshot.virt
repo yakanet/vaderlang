@@ -8,24 +8,24 @@ string 2 " years old."
 
 fn 0 tests_snippets_interp_display__main_vader$greet (string,i32) -> string
   local __sb_0 any
-  intrinsic builder.new   ; _main.vader:2:12
-  local.set 2   ; _main.vader:2:12
-  local.get 2   ; _main.vader:2:13
-  string.const 0   ; _main.vader:2:13
-  intrinsic builder.append_str   ; _main.vader:2:13
-  local.get 2   ; _main.vader:2:20
-  local.get 0   ; _main.vader:2:20
-  intrinsic builder.append_display   ; _main.vader:2:20
-  local.get 2   ; _main.vader:2:27
-  string.const 1   ; _main.vader:2:27
-  intrinsic builder.append_str   ; _main.vader:2:27
-  local.get 2   ; _main.vader:2:37
-  local.get 1   ; _main.vader:2:37
-  intrinsic builder.append_display   ; _main.vader:2:37
-  local.get 2   ; _main.vader:2:43
-  string.const 2   ; _main.vader:2:43
-  intrinsic builder.append_str   ; _main.vader:2:43
-  local.get 2   ; _main.vader:2:12
-  intrinsic builder.finish   ; _main.vader:2:12
-  return   ; _main.vader:2:5
+  intrinsic builder.new
+  local.set 2
+  local.get 2
+  string.const 0
+  intrinsic builder.append_str
+  local.get 2
+  local.get 0
+  intrinsic builder.append_display
+  local.get 2
+  string.const 1
+  intrinsic builder.append_str
+  local.get 2
+  local.get 1
+  intrinsic builder.append_display
+  local.get 2
+  string.const 2
+  intrinsic builder.append_str
+  local.get 2
+  intrinsic builder.finish
+  return
 end

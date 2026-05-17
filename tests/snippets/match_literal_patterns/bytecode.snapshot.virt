@@ -31,40 +31,40 @@ fn 0 tests_snippets_match_literal_patterns__main_vader$describe_char (char) -> s
   local if_res string
   local if_res string
   local if_res string
-  local.get 0   ; _main.vader:13:18
-  local.set 1   ; _main.vader:13:18
-  local.get 1   ; _main.vader:14:9
-  char.const 62   ; _main.vader:14:9
-  char.eq   ; _main.vader:14:9
-  if $L0 void   ; _main.vader:14:9
-    string.const 0   ; _main.vader:14:16
-    local.set 2   ; _main.vader:14:16
-  else   ; _main.vader:14:9
-    local.get 1   ; _main.vader:15:9
-    char.const 60   ; _main.vader:15:9
-    char.eq   ; _main.vader:15:9
-    if $L1 void   ; _main.vader:15:9
-      string.const 1   ; _main.vader:15:16
-      local.set 3   ; _main.vader:15:16
-    else   ; _main.vader:15:9
-      local.get 1   ; _main.vader:16:9
-      char.const 43   ; _main.vader:16:9
-      char.eq   ; _main.vader:16:9
-      if $L2 void   ; _main.vader:16:9
-        string.const 2   ; _main.vader:16:16
-        local.set 4   ; _main.vader:16:16
-      else   ; _main.vader:16:9
-        string.const 3   ; _main.vader:17:16
-        local.set 4   ; _main.vader:17:16
-      end $L2   ; _main.vader:16:9
-      local.get 4   ; _main.vader:16:9
-      local.set 3   ; _main.vader:16:9
-    end $L1   ; _main.vader:15:9
-    local.get 3   ; _main.vader:15:9
-    local.set 2   ; _main.vader:15:9
-  end $L0   ; _main.vader:14:9
-  local.get 2   ; _main.vader:13:5
-  return   ; _main.vader:13:5
+  local.get 0
+  local.set 1
+  local.get 1
+  char.const 62
+  char.eq
+  if $L0 void
+    string.const 0
+    local.set 2
+  else
+    local.get 1
+    char.const 60
+    char.eq
+    if $L1 void
+      string.const 1
+      local.set 3
+    else
+      local.get 1
+      char.const 43
+      char.eq
+      if $L2 void
+        string.const 2
+        local.set 4
+      else
+        string.const 3
+        local.set 4
+      end $L2
+      local.get 4
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
+  local.get 2
+  return
 end
 
 fn 1 tests_snippets_match_literal_patterns__main_vader$describe_int (i32) -> string
@@ -72,146 +72,146 @@ fn 1 tests_snippets_match_literal_patterns__main_vader$describe_int (i32) -> str
   local if_res string
   local if_res string
   local if_res string
-  local.get 0   ; _main.vader:24:18
-  local.set 1   ; _main.vader:24:18
-  local.get 1   ; _main.vader:25:9
-  i32.const 0   ; _main.vader:25:9
-  i32.eq   ; _main.vader:25:9
-  if $L0 void   ; _main.vader:25:9
-    string.const 4   ; _main.vader:25:14
-    local.set 2   ; _main.vader:25:14
-  else   ; _main.vader:25:9
-    local.get 1   ; _main.vader:26:9
-    i32.const 1   ; _main.vader:26:9
-    i32.eq   ; _main.vader:26:9
-    if $L1 void   ; _main.vader:26:9
-      string.const 5   ; _main.vader:26:14
-      local.set 3   ; _main.vader:26:14
-    else   ; _main.vader:26:9
-      local.get 1   ; _main.vader:27:9
-      i32.const 2   ; _main.vader:27:9
-      i32.eq   ; _main.vader:27:9
-      if $L2 void   ; _main.vader:27:9
-        string.const 6   ; _main.vader:27:14
-        local.set 4   ; _main.vader:27:14
-      else   ; _main.vader:27:9
-        string.const 7   ; _main.vader:28:14
-        local.set 4   ; _main.vader:28:14
-      end $L2   ; _main.vader:27:9
-      local.get 4   ; _main.vader:27:9
-      local.set 3   ; _main.vader:27:9
-    end $L1   ; _main.vader:26:9
-    local.get 3   ; _main.vader:26:9
-    local.set 2   ; _main.vader:26:9
-  end $L0   ; _main.vader:25:9
-  local.get 2   ; _main.vader:24:5
-  return   ; _main.vader:24:5
+  local.get 0
+  local.set 1
+  local.get 1
+  i32.const 0
+  i32.eq
+  if $L0 void
+    string.const 4
+    local.set 2
+  else
+    local.get 1
+    i32.const 1
+    i32.eq
+    if $L1 void
+      string.const 5
+      local.set 3
+    else
+      local.get 1
+      i32.const 2
+      i32.eq
+      if $L2 void
+        string.const 6
+        local.set 4
+      else
+        string.const 7
+        local.set 4
+      end $L2
+      local.get 4
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
+  local.get 2
+  return
 end
 
 fn 2 tests_snippets_match_literal_patterns__main_vader$flag_label (bool) -> string
   local __scrut_0 bool
   local if_res string
   local if_res string
-  local.get 0   ; _main.vader:36:18
-  local.set 1   ; _main.vader:36:18
-  local.get 1   ; _main.vader:37:9
-  bool.const true   ; _main.vader:37:9
-  bool.eq   ; _main.vader:37:9
-  if $L0 void   ; _main.vader:37:9
-    string.const 8   ; _main.vader:37:18
-    local.set 2   ; _main.vader:37:18
-  else   ; _main.vader:37:9
-    local.get 1   ; _main.vader:38:9
-    bool.const false   ; _main.vader:38:9
-    bool.eq   ; _main.vader:38:9
-    if $L1 void   ; _main.vader:38:9
-      string.const 9   ; _main.vader:38:18
-      local.set 3   ; _main.vader:38:18
-    else   ; _main.vader:38:9
-      string.const 10   ; _main.vader:39:18
-      local.set 3   ; _main.vader:39:18
-    end $L1   ; _main.vader:38:9
-    local.get 3   ; _main.vader:38:9
-    local.set 2   ; _main.vader:38:9
-  end $L0   ; _main.vader:37:9
-  local.get 2   ; _main.vader:36:5
-  return   ; _main.vader:36:5
+  local.get 0
+  local.set 1
+  local.get 1
+  bool.const true
+  bool.eq
+  if $L0 void
+    string.const 8
+    local.set 2
+  else
+    local.get 1
+    bool.const false
+    bool.eq
+    if $L1 void
+      string.const 9
+      local.set 3
+    else
+      string.const 10
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
+  local.get 2
+  return
 end
 
 fn 3 tests_snippets_match_literal_patterns__main_vader$mode_name (string) -> string
   local __scrut_0 string
   local if_res string
   local if_res string
-  local.get 0   ; _main.vader:46:18
-  local.set 1   ; _main.vader:46:18
-  local.get 1   ; _main.vader:47:9
-  string.const 11   ; _main.vader:47:9
-  string.eq   ; _main.vader:47:9
-  if $L0 void   ; _main.vader:47:9
-    string.const 12   ; _main.vader:47:16
-    local.set 2   ; _main.vader:47:16
-  else   ; _main.vader:47:9
-    local.get 1   ; _main.vader:48:9
-    string.const 13   ; _main.vader:48:9
-    string.eq   ; _main.vader:48:9
-    if $L1 void   ; _main.vader:48:9
-      string.const 14   ; _main.vader:48:16
-      local.set 3   ; _main.vader:48:16
-    else   ; _main.vader:48:9
-      local.get 1   ; _main.vader:49:9
-      string.const 15   ; _main.vader:49:9
-      string.eq   ; _main.vader:49:9
-      if $L2 void   ; _main.vader:49:9
-        string.const 16   ; _main.vader:49:17
-        local.set 1   ; _main.vader:49:17
-      else   ; _main.vader:49:9
-        string.const 17   ; _main.vader:50:14
-        local.set 1   ; _main.vader:50:14
-      end $L2   ; _main.vader:49:9
-      local.get 1   ; _main.vader:49:9
-      local.set 3   ; _main.vader:49:9
-    end $L1   ; _main.vader:48:9
-    local.get 3   ; _main.vader:48:9
-    local.set 2   ; _main.vader:48:9
-  end $L0   ; _main.vader:47:9
-  local.get 2   ; _main.vader:46:5
-  return   ; _main.vader:46:5
+  local.get 0
+  local.set 1
+  local.get 1
+  string.const 11
+  string.eq
+  if $L0 void
+    string.const 12
+    local.set 2
+  else
+    local.get 1
+    string.const 13
+    string.eq
+    if $L1 void
+      string.const 14
+      local.set 3
+    else
+      local.get 1
+      string.const 15
+      string.eq
+      if $L2 void
+        string.const 16
+        local.set 1
+      else
+        string.const 17
+        local.set 1
+      end $L2
+      local.get 1
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
+  local.get 2
+  return
 end
 
 fn 4 tests_snippets_match_literal_patterns__main_vader$main () -> i32
-  char.const 62   ; _main.vader:55:27
-  call 0   ; _main.vader:55:13
-  call.import 0   ; _main.vader:55:5
-  char.const 43   ; _main.vader:56:27
-  call 0   ; _main.vader:56:13
-  call.import 0   ; _main.vader:56:5
-  char.const 120   ; _main.vader:57:27
-  call 0   ; _main.vader:57:13
-  call.import 0   ; _main.vader:57:5
-  i32.const 0   ; _main.vader:59:26
-  call 1   ; _main.vader:59:13
-  call.import 0   ; _main.vader:59:5
-  i32.const 1   ; _main.vader:60:26
-  call 1   ; _main.vader:60:13
-  call.import 0   ; _main.vader:60:5
-  i32.const 99   ; _main.vader:61:26
-  call 1   ; _main.vader:61:13
-  call.import 0   ; _main.vader:61:5
-  bool.const true   ; _main.vader:63:24
-  call 2   ; _main.vader:63:13
-  call.import 0   ; _main.vader:63:5
-  bool.const false   ; _main.vader:64:24
-  call 2   ; _main.vader:64:13
-  call.import 0   ; _main.vader:64:5
-  string.const 11   ; _main.vader:66:23
-  call 3   ; _main.vader:66:13
-  call.import 0   ; _main.vader:66:5
-  string.const 15   ; _main.vader:67:23
-  call 3   ; _main.vader:67:13
-  call.import 0   ; _main.vader:67:5
-  string.const 18   ; _main.vader:68:23
-  call 3   ; _main.vader:68:13
-  call.import 0   ; _main.vader:68:5
-  i32.const 0   ; _main.vader:69:12
-  return   ; _main.vader:69:5
+  char.const 62
+  call 0
+  call.import 0
+  char.const 43
+  call 0
+  call.import 0
+  char.const 120
+  call 0
+  call.import 0
+  i32.const 0
+  call 1
+  call.import 0
+  i32.const 1
+  call 1
+  call.import 0
+  i32.const 99
+  call 1
+  call.import 0
+  bool.const true
+  call 2
+  call.import 0
+  bool.const false
+  call 2
+  call.import 0
+  string.const 11
+  call 3
+  call.import 0
+  string.const 15
+  call 3
+  call.import 0
+  string.const 18
+  call 3
+  call.import 0
+  i32.const 0
+  return
 end

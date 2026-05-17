@@ -239,18 +239,20 @@ export function dumpBytecode(_source: string, entryPath: string): string {
   const implRegistry = buildImplRegistry(typed.resolved);
   const bc = emitBytecodeFromCFG(cfg, moduleName, { implRegistry });
 
-  const text1 = writeVir(bc);
+  // Snapshots omit `; file:line:col` debug annotations to keep diffs
+  // focused on real bytecode changes rather than line-number churn.
+  // The Vader CLI re-emits debug info when building from source ; the
+  // VM doesn't need it to run a `.virt`.
+  const text1 = writeVir(bc, { debug: false });
   let roundTripBanner = "";
   try {
-    const text2 = writeVir(parseVir(text1));
+    const text2 = writeVir(parseVir(text1), { debug: false });
     if (text2 !== text1) roundTripBanner = "\n; round-trip MISMATCH\n";
   } catch (e) {
     roundTripBanner = `\n; round-trip FAILED: ${(e as Error).message}\n`;
   }
 
-  // Strip absolute paths from debug annotations so snapshots are portable.
-  const portable = text1.replace(/; [^:\n]*\/(?=[^/]+\.vader:)/g, "; ");
-  return portable + roundTripBanner + formatDiagnostics(diags.sorted());
+  return text1 + roundTripBanner + formatDiagnostics(diags.sorted());
 }
 
 /** Mid-IR CFG dump: post-DCE + escape-annotated form, what the `--midir`

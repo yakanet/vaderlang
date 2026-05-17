@@ -16,7 +16,15 @@ import { bytecodeFail } from "../diagnostics/errors.ts";
 
 // ---------------------------------------------------------------- writer
 
-export function writeVir(m: BytecodeModule): string {
+export interface WriteVirOptions {
+  /** Emit `; file:line:col` debug annotations on every op. Defaults to
+   *  `true` so build artefacts keep their debug info ; flip to `false`
+   *  for test snapshots so line-number churn doesn't dominate diffs. */
+  debug?: boolean;
+}
+
+export function writeVir(m: BytecodeModule, opts: WriteVirOptions = {}): string {
+  const debug = opts.debug ?? true;
   const out: string[] = [];
   out.push(`module ${m.name}`);
 
@@ -38,7 +46,7 @@ export function writeVir(m: BytecodeModule): string {
 
   for (let i = 0; i < m.functions.length; i++) {
     out.push("");
-    formatFunction(m.functions[i]!, i, out);
+    formatFunction(m.functions[i]!, i, out, debug);
   }
 
   return out.join("\n") + "\n";
@@ -113,7 +121,7 @@ function formatSignature(s: BcSignature): string {
   return `(${s.params.join(",")}) -> ${s.result}`;
 }
 
-function formatFunction(fn: BcFunction, idx: number, out: string[]): void {
+function formatFunction(fn: BcFunction, idx: number, out: string[], debug: boolean): void {
   out.push(`fn ${idx} ${quoteIdent(fn.name)} ${formatSignature(fn.signature)}`);
   for (const local of fn.locals) out.push(`  local ${quoteIdent(local.name)} ${local.val}`);
 
@@ -150,7 +158,7 @@ function formatFunction(fn: BcFunction, idx: number, out: string[]): void {
       line = formatOp(op);
     }
 
-    out.push(`${indent}${line}${formatDebug(dbg ?? null)}`);
+    out.push(`${indent}${line}${debug ? formatDebug(dbg ?? null) : ""}`);
   }
   out.push(`end`);
 }

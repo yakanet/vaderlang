@@ -6,61 +6,61 @@ fn 0 tests_snippets_for_loop__main_vader$mixed_loops (i32) -> i32
   local n i32
   local i i32
   local $mod_9 i32
-  i32.const 0   ; _main.vader:2:10
-  local.set 1   ; _main.vader:2:10
-  local.get 0   ; _main.vader:5:5
-  local.set 2   ; _main.vader:5:5
-  block $L0 void   ; _main.vader:6:5
-    loop $L1 void   ; _main.vader:6:5
-      local.get 2   ; _main.vader:6:9
-      i32.const 10   ; _main.vader:6:9
-      i32.lt   ; _main.vader:6:9
-      if $L2 void   ; _main.vader:6:9
-        local.get 2   ; _main.vader:7:13
-        i32.const 1   ; _main.vader:7:13
-        i32.add   ; _main.vader:7:13
-        local.set 2   ; _main.vader:7:13
-        local.get 2   ; _main.vader:8:13
-        i32.const 2   ; _main.vader:8:13
-        i32.rem   ; _main.vader:8:13
-        local.set 3   ; _main.vader:8:13
-        local.get 3   ; _main.vader:8:13
-        i32.const 0   ; _main.vader:8:13
-        i32.ne   ; _main.vader:8:13
-        if $L3 void   ; _main.vader:8:9
-          br $L1   ; _main.vader:9:13
-        else   ; _main.vader:8:9
-          local.get 1   ; _main.vader:11:13
-          i32.const 1   ; _main.vader:11:13
-          i32.add   ; _main.vader:11:13
-          local.set 1   ; _main.vader:11:13
-          br $L1   ; _main.vader:6:5
-        end $L3   ; _main.vader:8:9
-      else   ; _main.vader:6:9
-      end $L2   ; _main.vader:6:9
-    end $L1   ; _main.vader:6:5
-  end $L0   ; _main.vader:6:5
-  i32.const 0   ; _main.vader:15:10
-  local.set 2   ; _main.vader:15:10
-  block $L4 void   ; _main.vader:16:5
-    loop $L5 void   ; _main.vader:16:5
-      local.get 2   ; _main.vader:17:13
-      i32.const 5   ; _main.vader:17:13
-      i32.ge   ; _main.vader:17:13
-      if $L6 void   ; _main.vader:17:9
-      else   ; _main.vader:17:9
-        local.get 2   ; _main.vader:20:13
-        i32.const 1   ; _main.vader:20:13
-        i32.add   ; _main.vader:20:13
-        local.set 2   ; _main.vader:20:13
-        local.get 1   ; _main.vader:21:13
-        i32.const 1   ; _main.vader:21:13
-        i32.add   ; _main.vader:21:13
-        local.set 1   ; _main.vader:21:13
-        br $L5   ; _main.vader:16:5
-      end $L6   ; _main.vader:17:9
-    end $L5   ; _main.vader:16:5
-  end $L4   ; _main.vader:16:5
-  local.get 1   ; _main.vader:24:5
-  return   ; _main.vader:24:5
+  i32.const 0
+  local.set 1
+  local.get 0
+  local.set 2
+  block $L0 void
+    loop $L1 void
+      local.get 2
+      i32.const 10
+      i32.lt
+      if $L2 void
+        local.get 2
+        i32.const 1
+        i32.add
+        local.set 2
+        local.get 2
+        i32.const 2
+        i32.rem
+        local.set 3
+        local.get 3
+        i32.const 0
+        i32.ne
+        if $L3 void
+          br $L1
+        else
+          local.get 1
+          i32.const 1
+          i32.add
+          local.set 1
+          br $L1
+        end $L3
+      else
+      end $L2
+    end $L1
+  end $L0
+  i32.const 0
+  local.set 2
+  block $L4 void
+    loop $L5 void
+      local.get 2
+      i32.const 5
+      i32.ge
+      if $L6 void
+      else
+        local.get 2
+        i32.const 1
+        i32.add
+        local.set 2
+        local.get 1
+        i32.const 1
+        i32.add
+        local.set 1
+        br $L5
+      end $L6
+    end $L5
+  end $L4
+  local.get 1
+  return
 end

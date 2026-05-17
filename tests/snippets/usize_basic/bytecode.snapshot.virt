@@ -8,33 +8,33 @@ import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 println std_io$println (string) -> void
 
 fn 0 tests_snippets_usize_basic__main_vader$add (usize,usize) -> usize
-  local.get 0   ; _main.vader:4:12
-  local.get 1   ; _main.vader:4:12
-  usize.add   ; _main.vader:4:12
-  return   ; _main.vader:4:5
+  local.get 0
+  local.get 1
+  usize.add
+  return
 end
 
 fn 1 tests_snippets_usize_basic__main_vader$main () -> i32
   local m usize
   local __sb_0 any
   local $call_7 string
-  i64.const 10   ; _main.vader:9:16
-  i64.to_usize   ; _main.vader:9:16
-  i64.const 32   ; _main.vader:9:16
-  i64.to_usize   ; _main.vader:9:16
-  call 0   ; _main.vader:9:16
-  local.set 0   ; _main.vader:9:5
-  intrinsic builder.new   ; _main.vader:10:13
-  local.set 1   ; _main.vader:10:13
-  local.get 0   ; _main.vader:10:14
-  call.import 0   ; _main.vader:10:14
-  local.set 2   ; _main.vader:10:14
-  local.get 1   ; _main.vader:10:14
-  local.get 2   ; _main.vader:10:14
-  intrinsic builder.append_str   ; _main.vader:10:14
-  local.get 1   ; _main.vader:10:13
-  intrinsic builder.finish   ; _main.vader:10:13
-  call.import 1   ; _main.vader:10:5
-  i32.const 0   ; _main.vader:11:12
-  return   ; _main.vader:11:5
+  i64.const 10
+  i64.to_usize
+  i64.const 32
+  i64.to_usize
+  call 0
+  local.set 0
+  intrinsic builder.new
+  local.set 1
+  local.get 0
+  call.import 0
+  local.set 2
+  local.get 1
+  local.get 2
+  intrinsic builder.append_str
+  local.get 1
+  intrinsic builder.finish
+  call.import 1
+  i32.const 0
+  return
 end

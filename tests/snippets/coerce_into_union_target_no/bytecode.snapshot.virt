@@ -5,8 +5,8 @@ type 2 struct tests_snippets_coerce_into_union_target_no__main_vader$Foo { value
 impl 2 Into
 
 fn 0 tests_snippets_coerce_into_union_target_no__main_vader$main () -> i32
-  i32.const 0   ; _main.vader:15:12
-  return   ; _main.vader:15:5
+  i32.const 0
+  return
 end
 
 # Diagnostics

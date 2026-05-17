@@ -14,68 +14,68 @@ import 1 println std_io$println (string) -> void
 fn 0 tests_snippets_comptime_for__main_vader$main () -> i32
   local __sb_0 any
   local $call_4 string
-  intrinsic builder.new   ; _main.vader:15:17
-  local.set 0   ; _main.vader:15:17
-  local.get 0   ; _main.vader:15:18
-  string.const 0   ; _main.vader:15:18
-  intrinsic builder.append_str   ; _main.vader:15:18
-  i64.const 4   ; _main.vader:15:34
-  call.import 0   ; _main.vader:15:32
-  local.set 1   ; _main.vader:15:32
-  local.get 0   ; _main.vader:15:32
-  local.get 1   ; _main.vader:15:32
-  intrinsic builder.append_str   ; _main.vader:15:32
-  local.get 0   ; _main.vader:15:17
-  intrinsic builder.finish   ; _main.vader:15:17
-  call.import 1   ; _main.vader:15:9
-  intrinsic builder.new   ; _main.vader:15:17
-  local.set 0   ; _main.vader:15:17
-  local.get 0   ; _main.vader:15:18
-  string.const 0   ; _main.vader:15:18
-  intrinsic builder.append_str   ; _main.vader:15:18
-  i64.const 16   ; _main.vader:15:34
-  call.import 0   ; _main.vader:15:32
-  local.set 1   ; _main.vader:15:32
-  local.get 0   ; _main.vader:15:32
-  local.get 1   ; _main.vader:15:32
-  intrinsic builder.append_str   ; _main.vader:15:32
-  local.get 0   ; _main.vader:15:17
-  intrinsic builder.finish   ; _main.vader:15:17
-  call.import 1   ; _main.vader:15:9
-  intrinsic builder.new   ; _main.vader:18:17
-  local.set 0   ; _main.vader:18:17
-  local.get 0   ; _main.vader:18:18
-  string.const 1   ; _main.vader:18:18
-  intrinsic builder.append_display   ; _main.vader:18:18
-  local.get 0   ; _main.vader:18:27
-  string.const 2   ; _main.vader:18:27
-  intrinsic builder.append_str   ; _main.vader:18:27
-  i64.const 4   ; _main.vader:18:35
-  call.import 0   ; _main.vader:18:33
-  local.set 1   ; _main.vader:18:33
-  local.get 0   ; _main.vader:18:33
-  local.get 1   ; _main.vader:18:33
-  intrinsic builder.append_str   ; _main.vader:18:33
-  local.get 0   ; _main.vader:18:17
-  intrinsic builder.finish   ; _main.vader:18:17
-  call.import 1   ; _main.vader:18:9
-  intrinsic builder.new   ; _main.vader:18:17
-  local.set 0   ; _main.vader:18:17
-  local.get 0   ; _main.vader:18:18
-  string.const 3   ; _main.vader:18:18
-  intrinsic builder.append_display   ; _main.vader:18:18
-  local.get 0   ; _main.vader:18:27
-  string.const 2   ; _main.vader:18:27
-  intrinsic builder.append_str   ; _main.vader:18:27
-  i64.const 16   ; _main.vader:18:35
-  call.import 0   ; _main.vader:18:33
-  local.set 1   ; _main.vader:18:33
-  local.get 0   ; _main.vader:18:33
-  local.get 1   ; _main.vader:18:33
-  intrinsic builder.append_str   ; _main.vader:18:33
-  local.get 0   ; _main.vader:18:17
-  intrinsic builder.finish   ; _main.vader:18:17
-  call.import 1   ; _main.vader:18:9
-  i32.const 0   ; _main.vader:20:12
-  return   ; _main.vader:20:5
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 0
+  intrinsic builder.append_str
+  i64.const 4
+  call.import 0
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_str
+  local.get 0
+  intrinsic builder.finish
+  call.import 1
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 0
+  intrinsic builder.append_str
+  i64.const 16
+  call.import 0
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_str
+  local.get 0
+  intrinsic builder.finish
+  call.import 1
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 1
+  intrinsic builder.append_display
+  local.get 0
+  string.const 2
+  intrinsic builder.append_str
+  i64.const 4
+  call.import 0
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_str
+  local.get 0
+  intrinsic builder.finish
+  call.import 1
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 3
+  intrinsic builder.append_display
+  local.get 0
+  string.const 2
+  intrinsic builder.append_str
+  i64.const 16
+  call.import 0
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_str
+  local.get 0
+  intrinsic builder.finish
+  call.import 1
+  i32.const 0
+  return
 end

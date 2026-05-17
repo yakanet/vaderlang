@@ -8,25 +8,25 @@ string 0 "foo"
 import 0 hash std_core$string$Hash$hash (string) -> u64
 
 fn 0 tests_snippets_bound_enforced__main_vader$main () -> i32
-  string.const 0   ; _main.vader:12:19
-  call 1   ; _main.vader:12:8
-  if $L0 void   ; _main.vader:12:5
-    i32.const 0   ; _main.vader:13:16
-    return   ; _main.vader:13:9
-  else   ; _main.vader:12:5
-    i32.const 1   ; _main.vader:15:12
-    return   ; _main.vader:15:5
-  end $L0   ; _main.vader:12:5
+  string.const 0
+  call 1
+  if $L0 void
+    i32.const 0
+    return
+  else
+    i32.const 1
+    return
+  end $L0
 end
 
 fn 1 tests_snippets_bound_enforced__main_vader$tests_snippets_bound_enforced__main_vader$needs_hash__string (string) -> bool
   local h u64
-  local.get 0   ; _main.vader:7:10
-  call.import 0   ; _main.vader:7:10
-  local.set 1   ; _main.vader:7:5
-  local.get 1   ; _main.vader:8:12
-  i64.const 0   ; _main.vader:8:12
-  i64.to_u64   ; _main.vader:8:12
-  u64.gt   ; _main.vader:8:12
-  return   ; _main.vader:8:5
+  local.get 0
+  call.import 0
+  local.set 1
+  local.get 1
+  i64.const 0
+  i64.to_u64
+  u64.gt
+  return
 end

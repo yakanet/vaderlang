@@ -10,36 +10,36 @@ import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_if_without_else_stmt__main_vader$expect_lparen (string) -> string
   local __sb_0 any
-  intrinsic builder.new   ; _main.vader:10:12
-  local.set 1   ; _main.vader:10:12
-  local.get 1   ; _main.vader:10:13
-  string.const 0   ; _main.vader:10:13
-  intrinsic builder.append_str   ; _main.vader:10:13
-  local.get 1   ; _main.vader:10:17
-  local.get 0   ; _main.vader:10:17
-  intrinsic builder.append_display   ; _main.vader:10:17
-  local.get 1   ; _main.vader:10:12
-  intrinsic builder.finish   ; _main.vader:10:12
-  return   ; _main.vader:10:5
+  intrinsic builder.new
+  local.set 1
+  local.get 1
+  string.const 0
+  intrinsic builder.append_str
+  local.get 1
+  local.get 0
+  intrinsic builder.append_display
+  local.get 1
+  intrinsic builder.finish
+  return
 end
 
 fn 1 tests_snippets_if_without_else_stmt__main_vader$main () -> i32
   local matched bool
-  bool.const false   ; _main.vader:14:16
-  local.tee 0   ; _main.vader:14:16
-  if $L0 void   ; _main.vader:15:5
-    string.const 1   ; _main.vader:18:23
-    call 0   ; _main.vader:18:9
-    drop   ; _main.vader:18:9
-  else   ; _main.vader:15:5
-  end $L0   ; _main.vader:15:5
-  local.get 0   ; _main.vader:20:8
-  bool.not   ; _main.vader:20:8
-  if $L1 void   ; _main.vader:20:5
-    string.const 2   ; _main.vader:21:17
-    call.import 0   ; _main.vader:21:9
-  else   ; _main.vader:20:5
-  end $L1   ; _main.vader:20:5
-  i32.const 0   ; _main.vader:23:12
-  return   ; _main.vader:23:5
+  bool.const false
+  local.tee 0
+  if $L0 void
+    string.const 1
+    call 0
+    drop
+  else
+  end $L0
+  local.get 0
+  bool.not
+  if $L1 void
+    string.const 2
+    call.import 0
+  else
+  end $L1
+  i32.const 0
+  return
 end
