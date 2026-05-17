@@ -8,9 +8,11 @@
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/typecheck/type_ops" { is_int_name }
 import "vader/typecheck/types" {
-    Type, ArrayType, PrimitiveType, FreeIntType, UnresolvedType,
-    display_type, TY_UNRESOLVED,
+    Type, ArrayType, PrimitiveType, FreeIntType, StructType, UnresolvedType,
+    display_type, mk_array, mk_primitive, TY_UNRESOLVED,
 }
+import "vader/typecheck/type_ops" { subtract_type }
+import "vader/typecheck/field" { substitute_by_name }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 
@@ -24,13 +26,39 @@ export infer_index :: fn(
     // doesn't default to i32 in array-index position.
     index :: check_expr_fn(e.index, null, typed, diags)
     if target is UnresolvedType { return TY_UNRESOLVED }
+    // `"hello"[1]` — codepoint indexing on string returns char.
+    if target is PrimitiveType {
+        if target.name == "string" {
+            if !is_integer_index(index) {
+                diags.push(typecheck_error(.TypeMismatch, e.index.span,
+                    "string index must be an integer, got ${display_type(index)}"))
+            }
+            return mk_primitive("char")
+        }
+    }
     match target {
         is ArrayType as arr -> {
+            // `arr[r]` where `r: Range(T)` slices and returns `T[]`.
+            if is_range_type(index) { return mk_array(arr.element, false) }
             if !is_integer_index(index) {
                 diags.push(typecheck_error(.TypeMismatch, e.index.span,
                     "array index must be an integer, got ${display_type(index)}"))
             }
             return arr.element
+        }
+        is StructType as st -> {
+            indexed :: typed.index_target_types[st.symbol.name]
+            match indexed {
+                is null -> {}
+                _ -> {
+                    decl :: typed.struct_decls[st.symbol.id]
+                    if decl is null { return indexed }
+                    return substitute_by_name(indexed, decl.type_params, st.args)
+                }
+            }
+            diags.push(typecheck_error(.NotIndexable, e.span,
+                "${display_type(target)} is not indexable"))
+            return TY_UNRESOLVED
         }
         _ -> {
             diags.push(typecheck_error(.NotIndexable, e.span,
@@ -44,6 +72,13 @@ is_integer_index :: fn(t: Type) -> bool {
     if t is FreeIntType { return true }
     match t {
         is PrimitiveType as p -> { return is_int_name(p.name) }
+        _ -> { return false }
+    }
+}
+
+is_range_type :: fn(t: Type) -> bool {
+    match t {
+        is StructType as st -> { return st.symbol.name == "Range" }
         _ -> { return false }
     }
 }

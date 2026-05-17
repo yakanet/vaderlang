@@ -6,7 +6,9 @@
 // land with `narrow.vader`. Guards must be `bool` (T3019).
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/resolver/scope" { span_key }
 import "vader/typecheck/context" { FnContext }
+import "vader/typecheck/narrow" { pop_narrow, push_narrow }
 import "vader/typecheck/type_ops" { is_assignable, union_of }
 import "vader/typecheck/types" { Type, display_type, TY_BOOL }
 import "vader/typecheck/typed_ast" { TypedProgram }
@@ -22,15 +24,29 @@ export infer_match :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     scrut_ty :: check_expr_fn(e.scrutinee, null, typed, diags)
+    scrut_sym_id :: scrutinee_sym_id(e.scrutinee, typed)
     arm_types: Type[] = []
+    remaining := scrut_ty
     for arm in e.arms {
-        // Walk literal patterns so the literal's expr_types entry
-        // lands in the dump (matches TS).
         match arm.pattern {
             is AST.LiteralPattern as lp -> { check_expr_fn(lp.value, null, typed, diags) }
             _ -> {}
         }
-        bind_pattern_types(arm.pattern, scrut_ty, typed)
+        // Re-bind the pattern types against the narrowed `remaining`
+        // so wildcard/binding arms see only the still-possible
+        // variants ("union − matched").
+        bind_pattern_types(arm.pattern, remaining, typed)
+        // Per-arm narrowing — `is T` arms see just T, wildcard /
+        // binding arms see `remaining` (subset of `scrut_ty` after
+        // earlier arms removed their matched variants).
+        arm_narrow :: arm_narrow_for(arm.pattern, remaining, typed)
+        prev_arm: Type | null = null
+        if scrut_sym_id != -1 {
+            match arm_narrow {
+                is null -> {}
+                _ -> { prev_arm = push_narrow(typed, scrut_sym_id, arm_narrow) }
+            }
+        }
         match arm.guard {
             is null -> {}
             _ -> {
@@ -42,8 +58,42 @@ export infer_match :: fn(
             }
         }
         arm_types.push(check_expr_fn(arm.body, expected, typed, diags))
+        if scrut_sym_id != -1 {
+            match arm_narrow {
+                is null -> {}
+                _ -> { pop_narrow(typed, scrut_sym_id, prev_arm, scrut_ty) }
+            }
+        }
+        // Subtract the matched type from `remaining` for subsequent
+        // arms — only `is T` and `LiteralPattern` (for enum variants)
+        // narrow the remaining shape.
+        match arm.pattern {
+            is AST.IsPattern as ip -> {
+                matched :: type_from_expr(ip.ty, typed.resolved, scratch_diags())
+                remaining = subtract_type(remaining, matched)
+            }
+            _ -> {}
+        }
     }
     return union_of(arm_types)
+}
+
+arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Type | null {
+    match p {
+        is AST.IsPattern as ip -> { return type_from_expr(ip.ty, typed.resolved, scratch_diags()) }
+        is AST.WildcardPattern -> { return remaining }
+        is AST.BindingPattern  -> { return remaining }
+        _ -> { return null }
+    }
+}
+
+import "vader/typecheck/type_ops" { subtract_type }
+
+scrutinee_sym_id :: fn(scrut: AST.Expr, typed: TypedProgram) -> i32 {
+    if !(scrut is AST.IdentExpr) { return -1 }
+    sym :: typed.resolved.idents[span_key(scrut.span)]
+    if sym is null { return -1 }
+    return sym.id
 }
 
 /// Walk a match-arm pattern and record each binding's type in
@@ -143,7 +193,6 @@ pick_tuple_variant :: fn(t: Type, arity: usize) -> TupleType | null {
 import "vader/typecheck/types" { StructType, TupleType, UnionType }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/field" { find_struct_field_type }
-import "vader/resolver/scope" { span_key }
 
 // ---- tests ----------------------------------------------------------------
 

@@ -24,6 +24,7 @@ import "std/collections" { MutableMap, keys }
 import "std/math" { min }
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
+import "vader/typecheck/coerce" { try_into }
 import "vader/typecheck/type_ops" { default_if_free, is_assignable }
 import "vader/typecheck/types" {
     Type, FnType, TypeMetaType, UnresolvedType, display_type, TY_UNRESOLVED,
@@ -79,10 +80,11 @@ export infer_call :: fn(
         }
         for i in 0..<n {
             expected :: substitute(callee_ty.params[i], bindings)
-            if !type_contains_type_param(expected) && !is_assignable(arg_types[i], expected, null) {
-                diags.push(typecheck_error(.TypeMismatch, c.args[i].span,
-                    "expected ${display_type(expected)}, got ${display_type(arg_types[i])}"))
-            }
+            if type_contains_type_param(expected) { continue }
+            if is_assignable(arg_types[i], expected, null) { continue }
+            if try_into(arg_types[i], expected, typed) { continue }
+            diags.push(typecheck_error(.TypeMismatch, c.args[i].span,
+                "expected ${display_type(expected)}, got ${display_type(arg_types[i])}"))
         }
         // Default any FreeInt/FreeFloat bound to a typeParam before
         // substituting — matches TS `pinFreeNumericArg` so the
@@ -98,10 +100,10 @@ export infer_call :: fn(
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
         arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-        if !is_assignable(arg_ty, param_ty, null) {
-            diags.push(typecheck_error(.TypeMismatch, c.args[i].span,
-                "expected ${display_type(param_ty)}, got ${display_type(arg_ty)}"))
-        }
+        if is_assignable(arg_ty, param_ty, null) { continue }
+        if try_into(arg_ty, param_ty, typed) { continue }
+        diags.push(typecheck_error(.TypeMismatch, c.args[i].span,
+            "expected ${display_type(param_ty)}, got ${display_type(arg_ty)}"))
     }
     return callee_ty.return_type
 }

@@ -1,21 +1,24 @@
-// vader/typecheck/coerce — `Into` trait dispatch + `T[] → Iterator(T)`
-// auto-coercion.
+// vader/typecheck/coerce — `Into` trait dispatch.
 //
-// MVP : `try_into(got, expected, …)` returns false unconditionally —
-// no implicit coercion is performed by the typechecker. Callers
-// (`infer_call`'s arg checking, `check_let`'s annotation check, the
-// implicit-return path in `check_fn_body`) already handle the false
-// case by surfacing T3001 / T3020. Once impl-driven `Into` lookup +
-// auto-array-to-Iterator coercion land, this fn returns true when a
-// valid coercion exists (and records it into a side-table so the
-// lowerer emits the conversion).
+// Consults `typed.impl_methods` (populated by `orchestrate.vader`
+// per-impl) for an `into` method registered on `got` whose return
+// type unifies with `expected`. Lets the typechecker suppress
+// T3001/T3020 when a valid coercion exists. Auto-array-to-Iterator
+// coercion lands once the resolver indexes core's Iterator trait.
 
-import "vader/typecheck/types" { Type }
+import "vader/typecheck/types" { Type, FnType, display_type }
+import "vader/typecheck/type_ops" { is_assignable }
 import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
 
-/// Attempt to coerce `got → expected` via an `Into` impl. MVP : always
-/// returns false ; the type mismatch falls through to T3001/T3020.
-export try_into :: fn(_: Type, _: Type, _: AST.Expr, _: TypedProgram) -> bool {
-    return false
+/// Look up `${got}::into::${expected}` in the impl-method index. The
+/// per-target keying lets a source type carry multiple `Into(T)`
+/// impls (e.g. `Into(i32)` AND `Into(string)`) without collision.
+/// Union targets never coerce — the typer can't pick a variant —
+/// so they fall through to the standard T3001 mismatch.
+export try_into :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
+    targeted :: typed.impl_methods["${display_type(got)}::into::${display_type(expected)}"]
+    match targeted {
+        is FnType as f -> { return is_assignable(f.return_type, expected, null) }
+        _ -> { return false }
+    }
 }

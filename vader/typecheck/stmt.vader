@@ -11,10 +11,11 @@ import "vader/diagnostics/diagnostic" { Diagnostic, Span, typecheck_error }
 import "vader/resolver/scope" { span_full_key, span_key }
 AST :: import "vader/parser/ast"
 import "vader/typecheck/context" { FnContext, new_fn_context }
+import "vader/typecheck/coerce" { try_into }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/type_ops" { is_assignable, default_if_free, narrow_for_expected }
 import "vader/typecheck/types" {
-    Type, ArrayType, FnType, TupleType, UnresolvedType, display_type,
+    Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
     TY_BOOL, TY_VOID, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
@@ -29,13 +30,24 @@ export check_block :: fn(
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
+    // Track flow-narrowing pushed by divergent guards (`if x is T
+    // { return … }`) so subsequent stmts see the complement type.
+    // Each entry holds the binding's sym_id + the static type to
+    // restore on block exit (mirrors `pop_narrow` semantics).
+    divergent_narrows: DivergentNarrow[] = []
     for stmt in block.stmts {
         check_stmt(stmt, typed, diags, ctx, check_expr_fn)
+        push_divergent_narrow_if(stmt, typed, divergent_narrows)
     }
     result: Type = TY_VOID
     match block.trailing {
         is null -> {}
         _ -> { result = check_expr_fn(block.trailing, expected, typed, diags) }
+    }
+    // Restore the binding's static type on block exit so outer
+    // scopes don't see the narrowed shape.
+    for dn in divergent_narrows {
+        pop_narrow(typed, dn.sym_id, dn.prev, dn.static_ty)
     }
     full_key :: span_full_key(block.span)
     // Don't clobber the trailing expression's `expr_kinds` entry —
@@ -89,7 +101,7 @@ export check_fn_body :: fn(
     // explicit `return`. Surface T3020 against the trailing's span.
     match body.trailing {
         is null -> {}
-        _ -> { emit_return_mismatch_if(got, return_type, body.trailing.span, diags) }
+        _ -> { emit_return_mismatch_if(got, return_type, body.trailing.span, typed, diags) }
     }
     typed.current_fn_ctx = prev
 }
@@ -98,12 +110,12 @@ export check_fn_body :: fn(
 // `check_return` and the implicit-return check in `check_fn_body` so
 // wording / arity stay in sync.
 emit_return_mismatch_if :: fn(
-    got: Type, expected: Type, span: Span, diags: Diagnostic[],
+    got: Type, expected: Type, span: Span, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    if !is_assignable(got, expected, null) {
-        diags.push(typecheck_error(.BodyReturnIncompatible, span,
-            "expected ${display_type(expected)}, got ${display_type(got)}"))
-    }
+    if is_assignable(got, expected, null) { return }
+    if try_into(got, expected, typed) { return }
+    diags.push(typecheck_error(.BodyReturnIncompatible, span,
+        "expected ${display_type(expected)}, got ${display_type(got)}"))
 }
 
 // ---- per-stmt helpers -----------------------------------------------------
@@ -123,7 +135,7 @@ check_let :: fn(
         is null -> { declared = default_if_free(got) }
         _ -> {
             declared = ann
-            if !is_assignable(got, ann, null) {
+            if !is_assignable(got, ann, null) && !try_into(got, ann, typed) {
                 diags.push(typecheck_error(.TypeMismatch, s.span,
                     "expected ${display_type(ann)}, got ${display_type(got)}"))
             }
@@ -157,9 +169,10 @@ check_assign :: fn(
         }
     }
     // T3042 : `arr[i] = v` when arr's static type is `const T[]`.
-    // We pre-inspect the inner array target for the immutable flag,
-    // then defer to the regular path so the IndexExpr lands in
-    // expr_types like any other RHS.
+    // For Array-typed receivers we still write the full IndexExpr
+    // into `expr_types` (matches TS). For non-Array receivers the
+    // assignment LHS doesn't land in `expr_types` — only its sub-
+    // parts do, since the IndexSet trait dispatch is the read site.
     if s.target is AST.IndexExpr {
         ix :: s.target
         target_arr_ty :: check_expr_fn(ix.target, null, typed, diags)
@@ -170,7 +183,12 @@ check_assign :: fn(
                     "cannot mutate `${display_type(target_arr_ty)}` — declared with `const`"))
                 return
             }
+            full_target_ty :: check_expr_fn(s.target, null, typed, diags)
+            check_expr_fn(s.value, full_target_ty, typed, diags)
+            return
         }
+        check_expr_fn(s.value, null, typed, diags)
+        return
     }
     target_ty :: check_expr_fn(s.target, null, typed, diags)
     value_hint: Type | null = null
@@ -203,7 +221,7 @@ check_return :: fn(
     if v is null {
         match effective {
             is null -> {}
-            _ -> { emit_return_mismatch_if(TY_VOID, effective.return_type, s.span, diags) }
+            _ -> { emit_return_mismatch_if(TY_VOID, effective.return_type, s.span, typed, diags) }
         }
         return
     }
@@ -215,7 +233,7 @@ check_return :: fn(
     got :: check_expr_fn(v, expected, typed, diags)
     match effective {
         is null -> {}
-        _ -> { emit_return_mismatch_if(got, effective.return_type, s.span, diags) }
+        _ -> { emit_return_mismatch_if(got, effective.return_type, s.span, typed, diags) }
     }
 }
 
@@ -239,7 +257,7 @@ check_for :: fn(
         }
         is AST.InFor as f -> {
             iter_ty :: check_expr_fn(f.iter, null, typed, diags)
-            elem :: for_in_element(iter_ty)
+            elem :: for_in_element(iter_ty, typed)
             typed.local_types[span_key(f.binding_span)] = elem
         }
     }
@@ -279,14 +297,118 @@ bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
     }
 }
 
-// Pull the iterator's element type. Only `T[]` narrows for now ;
-// custom `Iterator(T)` impls go through `coerce.vader` once that lands.
-for_in_element :: fn(iter_ty: Type) -> Type {
+// Restore-stack entry for a divergent-guard narrowing pushed onto
+// a `check_block` scope. Held in a per-block array so the original
+// static types are restored when the block exits.
+DivergentNarrow :: struct {
+    sym_id:    i32
+    prev:      Type | null
+    static_ty: Type
+}
+
+// Detect `if x is T { return ... }` pattern and push the complement
+// narrowing for the rest of the block. The then-branch must end in a
+// divergent statement (return / break / continue) — we approximate
+// this by requiring the then-block's last stmt to be a `ReturnStmt`.
+push_divergent_narrow_if :: fn(
+    stmt: AST.Stmt, typed: TypedProgram, stack: DivergentNarrow[],
+) -> void {
+    if !(stmt is AST.ExprStmt) { return }
+    if !(stmt.expr is AST.IfExpr) { return }
+    if_expr :: stmt.expr
+    if !(if_expr.else_branch is null) { return }
+    if !then_is_divergent(if_expr.then_block) { return }
+    narrowing :: detect_is_narrow_for_block(if_expr.cond, typed)
+    if narrowing is null { return }
+    prev :: push_narrow(typed, narrowing.sym_id, narrowing.else_ty)
+    stack.push(DivergentNarrow {
+        .sym_id    = narrowing.sym_id,
+        .prev      = prev,
+        .static_ty = narrowing.static_ty,
+    })
+}
+
+then_is_divergent :: fn(b: AST.BlockExpr) -> bool {
+    if b.stmts.len() == 0 { return false }
+    last :: b.stmts[b.stmts.len() - 1]
+    if last is AST.ReturnStmt { return true }
+    if last is AST.BreakStmt { return true }
+    if last is AST.ContinueStmt { return true }
+    return false
+}
+
+BlockNarrow :: struct {
+    sym_id:    i32
+    static_ty: Type
+    else_ty:   Type
+}
+
+detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNarrow | null {
+    // Mirrors `expr_if.vader::detect_is_narrow` but kept local to
+    // avoid the cross-import — we only need the else-type for the
+    // divergent-guard case.
+    if cond is AST.UnaryExpr {
+        if i32(cond.op) == i32(AST.UnaryOp.Not) {
+            inner :: detect_is_narrow_for_block(cond.operand, typed)
+            if inner is null { return null }
+            return BlockNarrow {
+                .sym_id    = inner.sym_id,
+                .static_ty = inner.static_ty,
+                .else_ty   = subtract_type(inner.static_ty, inner.else_ty),
+            }
+        }
+    }
+    if !(cond is AST.BinaryExpr) { return null }
+    if i32(cond.op) != i32(AST.BinaryOp.Is) { return null }
+    if !(cond.left is AST.IdentExpr) { return null }
+    sym :: typed.resolved.idents[span_key(cond.left.span)]
+    if sym is null { return null }
+    base :: type_of_symbol(sym, typed)
+    narrowed :: type_from_expr(cond.right, typed.resolved, diag_sink_stmt())
+    return BlockNarrow {
+        .sym_id    = sym.id,
+        .static_ty = base,
+        .else_ty   = subtract_type(base, narrowed),
+    }
+}
+
+diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
+
+import "vader/typecheck/narrow" { pop_narrow, push_narrow }
+import "vader/typecheck/expr_ident" { type_of_symbol }
+import "vader/typecheck/type_ops" { subtract_type }
+
+// Pull the iterator's element type. `T[]` yields `T` directly ;
+// generic `StructType` falls back to first type arg (covers Range and
+// Iterator(T) wrappers). Otherwise probes `typed.iter_element_types`
+// for the indexed `X implements Iterator(T)` impl.
+for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
     match iter_ty {
         is ArrayType as a -> { return a.element }
+        is StructType as st -> {
+            elem :: typed.iter_element_types[st.symbol.name]
+            match elem {
+                is null -> {
+                    if st.args.len() >= 1 { return st.args[0] }
+                    return TY_UNRESOLVED
+                }
+                _ -> {
+                    // Substitute the impl's TypeParam against the
+                    // struct's declared type_params + concrete args
+                    // (`Range[T] implements Iterator[T]` records the
+                    // impl-side `T` — substitute_by_name swaps it
+                    // for the call-site's concrete arg by name).
+                    decl :: typed.struct_decls[st.symbol.id]
+                    if decl is null { return elem }
+                    return substitute_by_name(elem, decl.type_params, st.args)
+                }
+            }
+        }
         _ -> { return TY_UNRESOLVED }
     }
 }
+
+import "vader/typecheck/field" { substitute_by_name }
 
 lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
     decl_ty :: typed.decl_types[span_key(fn_decl.name_span)]
@@ -325,6 +447,17 @@ assign_tuple :: fn(
             }
             for i in 0..<tb.elements.len() {
                 assign_binding_types(tb.elements[i], tup.elements[i], typed, diags)
+            }
+        }
+        // Array destructuring : `[first, …rest] := arr` binds every
+        // simple/wildcard slot to the element type and the
+        // `RestBinding` to the array as a whole.
+        is ArrayType as arr -> {
+            for leaf in tb.elements {
+                match leaf {
+                    is AST.RestBinding -> { assign_binding_types(leaf, declared, typed, diags) }
+                    _ -> { assign_binding_types(leaf, arr.element, typed, diags) }
+                }
             }
         }
         _ -> {

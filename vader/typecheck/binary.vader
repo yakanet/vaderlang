@@ -16,10 +16,12 @@
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
+import "vader/resolver/symbol" { SymbolKind }
 import "vader/typecheck/type_ops" { is_numeric_name, is_int_name, is_float_name }
 import "vader/typecheck/types" {
     Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
-    display_type, mk_primitive, TY_BOOL, TY_UNRESOLVED,
+    EnumType, FnType, StructType,
+    display_type, type_base_name, mk_primitive, TY_BOOL, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
 
@@ -36,7 +38,7 @@ export infer_binary :: fn(
     right :: check_expr_fn(e.right, right_ctx, typed, diags)
 
     match classify(e.op) {
-        .Arith    -> { return check_arith(e, left, right, diags) }
+        .Arith    -> { return check_arith(e, left, right, typed, diags) }
         .Compare  -> { return check_compare(e, left, right, diags) }
         .Logical  -> { return check_logical(e, left, right, diags) }
         .Bitwise  -> { return check_bitwise(e, left, right, diags) }
@@ -51,10 +53,42 @@ export infer_binary :: fn(
 
 // ---- per-op-class checkers ------------------------------------------------
 
-check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
+check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     if e.op == .Add && is_string(left) && is_string(right) { return mk_primitive("string") }
-    return numeric_result(e, left, right, diags)
+    if is_numeric(left) || is_numeric(right) {
+        return numeric_result(e, left, right, diags)
+    }
+    // Operator overloading via traits — `a + b` on user structs
+    // dispatches through the matching Add/Sub/Mul/Div/Rem impl. We
+    // look up the impl method on the left operand's type and return
+    // its result type (Self → left).
+    method_name :: arith_trait_method(e.op)
+    if method_name == "" { return numeric_result(e, left, right, diags) }
+    base :: type_base_name(left)
+    method :: typed.impl_methods["${base}::${method_name}"]
+    match method {
+        is FnType as ft -> { return substitute_self_in(ft.return_type, left) }
+        _ -> { return numeric_result(e, left, right, diags) }
+    }
 }
+
+arith_trait_method :: fn(op: AST.BinaryOp) -> string {
+    if i32(op) == i32(AST.BinaryOp.Add) { return "add" }
+    if i32(op) == i32(AST.BinaryOp.Sub) { return "sub" }
+    if i32(op) == i32(AST.BinaryOp.Mul) { return "mul" }
+    if i32(op) == i32(AST.BinaryOp.Div) { return "div" }
+    if i32(op) == i32(AST.BinaryOp.Mod) { return "rem" }
+    return ""
+}
+
+substitute_self_in :: fn(t: Type, self_ty: Type) -> Type {
+    match t {
+        is SelfType -> { return self_ty }
+        _ -> { return t }
+    }
+}
+
+import "vader/typecheck/types" { SelfType }
 
 check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
     if !is_numeric(left) || !is_numeric(right) {
@@ -128,8 +162,19 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
         _         -> false
     }
     if !propagates { return null }
-    if !is_numeric(left) { return null }
-    return left
+    if is_numeric(left) { return left }
+    // Equality propagates enum types too so `.Variant` on the RHS can
+    // infer its enum from the LHS (e.g. `d == .East`).
+    if i32(classify(op)) == i32(OpKind.Equality) && is_enum_like(left) { return left }
+    return null
+}
+
+is_enum_like :: fn(t: Type) -> bool {
+    match t {
+        is EnumType -> { return true }
+        is StructType as st -> { return i32(st.symbol.kind) == i32(SymbolKind.Enum) }
+        _ -> { return false }
+    }
 }
 
 // Compute the result type of a numeric binary op. Both operands must

@@ -193,6 +193,19 @@ export display_type :: fn(t: Type) -> string {
     return sb.to_string()
 }
 
+/// Base name of a nominal type — strips type-args. Used as the lookup
+/// key for impl-side tables (`impl_methods`, `iter_element_types`,
+/// `index_target_types`) so generic instantiations dispatch through
+/// the same entry as the underlying impl.
+export type_base_name :: fn(t: Type) -> string {
+    match t {
+        is StructType as st -> { return st.symbol.name }
+        is TraitType  as tr -> { return tr.symbol.name }
+        is EnumType   as en -> { return en.symbol.name }
+        _ -> { return display_type(t) }
+    }
+}
+
 write_type :: fn(sb: StringBuilder, t: Type) -> void {
     match t {
         is PrimitiveType as x -> { sb.append(x.name) }

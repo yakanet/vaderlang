@@ -23,7 +23,7 @@ import "vader/resolver/scope" { span_key }
 AST :: import "vader/parser/ast"
 import "vader/parser" { Visibility }
 import "vader/typecheck/types" {
-    Type, PrimitiveType, mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
+    Type, ArrayType, PrimitiveType, mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
     TY_UNRESOLVED, TY_VOID,
 }
 import "vader/typecheck/type_expr" { type_from_expr }
@@ -110,6 +110,37 @@ declare_fn :: fn(
     }
     return_type :: declare_fn_return(decl, resolved, diags)
     typed.decl_types[span_key(decl.name_span)] = mk_fn(params, return_type)
+    if decl.name == "main" { check_main_signature(decl, params, return_type, diags) }
+}
+
+// `main` must return i32 and either take no params or a single
+// `[string]` arg — emitters wire the entry point assuming both.
+check_main_signature :: fn(
+    decl: AST.FnDecl, params: Type[], return_type: Type, diags: Diagnostic[],
+) -> void {
+    if !is_primitive_named(return_type, "i32") {
+        diags.push(typecheck_error(.InvalidMainSignature, decl.span,
+            "main must return i32"))
+        return
+    }
+    if params.len() == 0 { return }
+    if params.len() == 1 {
+        match params[0] {
+            is ArrayType as a -> {
+                if is_primitive_named(a.element, "string") { return }
+            }
+            _ -> {}
+        }
+    }
+    diags.push(typecheck_error(.InvalidMainSignature, decl.span,
+        "main takes either no parameters or a single `[string]` argument"))
+}
+
+is_primitive_named :: fn(t: Type, name: string) -> bool {
+    match t {
+        is PrimitiveType as p -> { return p.name == name }
+        _ -> { return false }
+    }
 }
 
 declare_fn_param :: fn(
@@ -164,18 +195,71 @@ declare_enum :: fn(
 declare_type_alias :: fn(
     decl: AST.TypeAliasDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    typed.decl_types[span_key(decl.name_span)] = type_from_expr(decl.aliased, resolved, diags)
+    aliased :: type_from_expr(decl.aliased, resolved, diags)
+    typed.decl_types[span_key(decl.name_span)] = aliased
+    // Index by alias symbol id so `type_from_expr` can expand
+    // `Maybe(i32)` to `i32 | null` at use sites.
+    for s in resolved.symbols {
+        if s.name == decl.name {
+            resolved.alias_types[s.id] = aliased
+            resolved.alias_decls[s.id] = decl
+        }
+    }
 }
+
+import "vader/parser/ast" { TypeAliasDecl }
 
 declare_const :: fn(
     decl: AST.ConstDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     annotation :: decl.ty
     match annotation {
-        is null -> {}     // un-annotated : type lands in expr_types at body time
+        is null -> {
+            // Un-annotated const : may be an implicit type-alias
+            // (`Foo :: i32 | u32`). Detect now so use sites in fn
+            // signatures resolve before bodies run.
+            if is_type_position_value(decl.value, resolved) {
+                alias_ty :: type_from_expr(decl.value, resolved, diags)
+                for s in resolved.symbols {
+                    if s.name == decl.name {
+                        resolved.alias_types[s.id] = alias_ty
+                    }
+                }
+                typed.decl_types[span_key(decl.name_span)] = TY_TYPE
+            }
+        }
         _ -> { typed.decl_types[span_key(decl.name_span)] = type_from_expr(annotation, resolved, diags) }
     }
 }
+
+is_type_position_value :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
+    if e is AST.IdentExpr {
+        if !(primitive_from_name(e.name) is null) { return true }
+        sym :: resolved.idents[span_key(e.span)]
+        if sym is null { return false }
+        match sym.kind {
+            .Struct -> { return true }
+            .Trait  -> { return true }
+            .Enum   -> { return true }
+            .TypeAlias   -> { return true }
+            .TypeParam   -> { return true }
+            .BuiltinType -> { return true }
+            _ -> { return false }
+        }
+    }
+    if e is AST.BinaryExpr {
+        if i32(e.op) == i32(AST.BinaryOp.BitOr) {
+            return is_type_position_value(e.left, resolved) && is_type_position_value(e.right, resolved)
+        }
+    }
+    if e is AST.GenericInstExpr { return true }
+    if e is AST.FnTypeExpr { return true }
+    if e is AST.ArrayTypeExpr { return true }
+    return false
+}
+
+import "vader/typecheck/type_expr" { primitive_from_name }
+import "vader/typecheck/types" { TY_TYPE }
 
 // ---- helpers --------------------------------------------------------------
 
@@ -279,12 +363,10 @@ Color :: enum {
 
 @test
 test_declare_type_alias_records_aliased :: fn() -> void {
-    // TypeAliasDecl aliased body is lowered via type_from_expr which
-    // depends on resolver.idents — the resolver doesn't bind the `T`
-    // ident in the aliased body to the alias's own type-param yet, so
-    // it falls back to TY_UNRESOLVED. Lands when wire.vader threads
-    // the typeParam scope into the type-expr lowering.
-    assert_eq(declared_type("Maybe[T] :: T | null", "Maybe"), "? | null")
+    // Resolver now binds the alias's `[T]` type-params before walking
+    // the body, so `T` resolves to its TypeParam symbol. The
+    // canonical-union sort puts `null` before `T` alphabetically.
+    assert_eq(declared_type("Maybe[T] :: T | null", "Maybe"), "null | T")
 }
 
 @test

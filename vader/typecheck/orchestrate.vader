@@ -23,10 +23,10 @@ import "vader/typecheck/decl" { declare_module }
 import "vader/typecheck/expr" { check_expr }
 import "vader/typecheck/stmt" { check_fn_body }
 import "vader/typecheck/type_ops" { default_if_free, equals_type }
-import "vader/typecheck/types" { display_type }
+import "vader/typecheck/types" { display_type, type_base_name }
 import "vader/diagnostics/diagnostic" { typecheck_error }
 import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
-import "vader/typecheck/types" { Type, mk_fn, TY_UNRESOLVED, TY_VOID }
+import "vader/typecheck/types" { Type, FnType, mk_fn, TY_UNRESOLVED, TY_TYPE, TY_VOID }
 import "vader/typecheck/type_expr" { type_from_expr }
 
 /// Run the full typecheck pipeline : decl-level + body-walking. The
@@ -59,11 +59,10 @@ export check_project_with_bodies :: fn(
         project.factory, entry_loaded.collected,
     )
     entry_typed :: new_typed_program(entry_rm)
-    declare_module(entry_loaded.module.files[0].program.decls, entry_rm, entry_typed, project.factory, diags)
+    preload_core_symbols(entry_rm, project)
 
-    // Type every other loaded module at decl-level *before* walking
-    // the entry's bodies, so external types are visible when bodies
-    // reference cross-module symbols.
+    // Pre-resolve every module first so we can register all type
+    // aliases project-wide before any fn signature is lowered.
     per_module :: MutableMap(string, TypedProgram) { .buckets = [], .size = 0 }
     per_module[project.entry] = entry_typed
     for id in project.modules.keys() {
@@ -73,17 +72,51 @@ export check_project_with_bodies :: fn(
         rm :: resolve_module_with_collected(
             other.module.files[0].program, id, project.factory, other.collected,
         )
+        preload_core_symbols(rm, project)
         typed :: new_typed_program(rm)
-        declare_module(other.module.files[0].program.decls, rm, typed, project.factory, diags)
         per_module[id] = typed
     }
-
-    // Wire + propagate external types BEFORE walking entry bodies
-    // so `infer_ident` / `infer_field` see concrete cross-module
-    // types during expression checking.
+    // Phase A : register every type alias project-wide. Cross-
+    // module aliases (`Pet` imported from `./types`) need to land
+    // before any fn signature consults them.
+    register_aliases(entry_typed, entry_loaded.module.files[0].program.decls)
+    for id in project.modules.keys() {
+        if id == project.entry { continue }
+        other :: project.modules[id]
+        if other is null { continue }
+        other_typed :: per_module[id]
+        match other_typed {
+            is null -> {}
+            _ -> { register_aliases(other_typed, other.module.files[0].program.decls) }
+        }
+    }
+    merge_external_alias_types(entry_typed, per_module)
+    // Wire imports + resolver-side imports_to early so cross-module
+    // alias lookups (`Pet` from `./types`) follow ImportBinding to
+    // the real symbol during fn-signature lowering below.
     entry_typed.import_targets = wire_imports(project)
+    populate_resolver_imports(entry_typed)
+
+    // Phase B : declare every decl (fn signatures, struct types, etc.).
+    declare_module(entry_loaded.module.files[0].program.decls, entry_rm, entry_typed, project.factory, diags)
+    for id in project.modules.keys() {
+        if id == project.entry { continue }
+        other :: project.modules[id]
+        if other is null { continue }
+        other_typed :: per_module[id]
+        match other_typed {
+            is null -> {}
+            _ -> { declare_module(other.module.files[0].program.decls, other_typed.resolved, other_typed, project.factory, diags) }
+        }
+    }
+
+    // Wire was done before declare ; now populate the remaining
+    // typecheck-side tables that depend on per-module decl types.
     populate_external_types(entry_typed, project, per_module)
     populate_core_symbols(entry_typed, project, per_module)
+    populate_imported_fn_overloads(entry_typed, per_module)
+    merge_struct_decls(entry_typed, per_module)
+    merge_external_impl_methods(entry_typed, project, per_module)
 
     walk_bodies(entry_loaded.module.files[0].program.decls, entry_typed, diags)
 
@@ -115,6 +148,12 @@ synth_resolved :: fn() -> ResolvedModule {
         .symbols = [],
         .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
+        .fn_overloads = MutableMap(string, Symbol[]) { .buckets = [], .size = 0 },
+        .core_symbols = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .imports_to = MutableMap(i32, Symbol) { .buckets = [], .size = 0 },
+        .alias_types = MutableMap(i32, Type) { .buckets = [], .size = 0 },
+        .alias_decls = MutableMap(i32, AST.TypeAliasDecl) { .buckets = [], .size = 0 },
+        .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
     }
 }
 
@@ -158,6 +197,261 @@ populate_from :: fn(
     }
 }
 
+// Merge every other module's `struct_decls` and `trait_decls` into
+// the entry's tables so `field.vader` can look up cross-module
+// struct field definitions when resolving `external_pt.field`.
+// Each module mints its own Symbol ids ; the entries don't collide.
+// Walk every non-entry module's `ImplDecl`s and register their UFCS
+// method signatures in the entry's `impl_methods` table. Lets
+// `sb.to_string()` (where the impl lives in `std/string_builder`)
+// dispatch through the same path as local impls.
+merge_external_impl_methods :: fn(
+    entry_typed: TypedProgram, project: LoadedProject,
+    per_module: MutableMap(string, TypedProgram),
+) -> void {
+    entry_path :: entry_typed.resolved.path
+    for id in per_module.keys() {
+        other :: per_module[id]
+        if other is null { continue }
+        if other.resolved.path == entry_path { continue }
+        loaded :: project.modules[id]
+        if loaded is null { continue }
+        for decl in loaded.module.files[0].program.decls {
+            match decl {
+                is AST.ImplDecl as id_decl -> {
+                    for_ty :: type_from_expr(id_decl.for_type, other.resolved, diag_sink())
+                    for m in id_decl.members {
+                        key :: "${display_type(for_ty)}::${m.name}"
+                        base_key :: "${type_base_name(for_ty)}::${m.name}"
+                        ufcs_ty :: ufcs_method_type(m, for_ty, other, diag_sink())
+                        match ufcs_ty {
+                            is null -> {}
+                            _ -> {
+                                entry_typed.impl_methods[key] = ufcs_ty
+                                entry_typed.impl_methods[base_key] = ufcs_ty
+                            }
+                        }
+                    }
+                    base_key :: type_base_name(for_ty)
+                    // `X implements Iterator(T)` — index the element
+                    // type so `for x in X { … }` binds `x` to T.
+                    if id_decl.trait_name == "Iterator" && id_decl.trait_args.len() == 1 {
+                        elem :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
+                        entry_typed.iter_element_types[base_key] = elem
+                    }
+                    // `X implements Index[I, T]` — index the result
+                    // type so `m[k]` returns T.
+                    if id_decl.trait_name == "Index" && id_decl.trait_args.len() == 2 {
+                        result_ty :: type_from_expr(id_decl.trait_args[1], other.resolved, diag_sink())
+                        entry_typed.index_target_types[base_key] = result_ty
+                    }
+                }
+                _ -> {}
+            }
+        }
+    }
+}
+
+diag_sink :: fn() -> Diagnostic[] { return [] }
+
+// Walk a module's top-level decls and register every type alias
+// (explicit `T :: type ...` or implicit `T :: <type-expr>`) into
+// `resolved.alias_types`. Runs across the project BEFORE
+// `declare_module` so cross-module aliases resolve at fn-signature
+// lowering time.
+register_aliases :: fn(typed: TypedProgram, decls: AST.Decl[]) -> void {
+    for decl in decls {
+        match decl {
+            is AST.TypeAliasDecl as ta -> {
+                aliased :: type_from_expr(ta.aliased, typed.resolved, diag_sink())
+                for s in typed.resolved.symbols {
+                    if s.name == ta.name {
+                        typed.resolved.alias_types[s.id] = aliased
+                        typed.resolved.alias_decls[s.id] = ta
+                    }
+                }
+            }
+            is AST.ConstDecl as cd -> {
+                if cd.ty is null && register_alias_const(cd, typed) {}
+            }
+            _ -> {}
+        }
+    }
+}
+
+register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
+    if !is_alias_value_expr(cd.value, typed.resolved) { return false }
+    aliased :: type_from_expr(cd.value, typed.resolved, diag_sink())
+    for s in typed.resolved.symbols {
+        if s.name == cd.name {
+            typed.resolved.alias_types[s.id] = aliased
+        }
+    }
+    return true
+}
+
+is_alias_value_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
+    if e is AST.IdentExpr {
+        if is_primitive_name(e.name) { return true }
+        sym :: resolved.idents[span_key(e.span)]
+        if sym is null { return false }
+        match sym.kind {
+            .Struct -> { return true }
+            .Trait  -> { return true }
+            .Enum   -> { return true }
+            .TypeAlias -> { return true }
+            .TypeParam -> { return true }
+            .BuiltinType -> { return true }
+            _ -> { return false }
+        }
+    }
+    if e is AST.BinaryExpr {
+        if i32(e.op) == i32(AST.BinaryOp.BitOr) {
+            return is_alias_value_expr(e.left, resolved) && is_alias_value_expr(e.right, resolved)
+        }
+    }
+    if e is AST.GenericInstExpr { return true }
+    if e is AST.FnTypeExpr { return true }
+    if e is AST.ArrayTypeExpr { return true }
+    return false
+}
+
+import "vader/typecheck/types" { is_primitive_name }
+
+// Mirror every non-entry module's `alias_types` / `alias_decls` into
+// the entry's resolver tables so cross-module aliases (e.g. `Pet`
+// imported from `./types`) expand at use sites.
+merge_external_alias_types :: fn(
+    entry_typed: TypedProgram, per_module: MutableMap(string, TypedProgram),
+) -> void {
+    entry_path :: entry_typed.resolved.path
+    for id in per_module.keys() {
+        other :: per_module[id]
+        if other is null { continue }
+        if other.resolved.path == entry_path { continue }
+        for sym_id in other.resolved.alias_types.keys() {
+            ty :: other.resolved.alias_types[sym_id]
+            if ty is null { continue }
+            entry_typed.resolved.alias_types[sym_id] = ty
+        }
+        for sym_id in other.resolved.alias_decls.keys() {
+            decl :: other.resolved.alias_decls[sym_id]
+            if decl is null { continue }
+            entry_typed.resolved.alias_decls[sym_id] = decl
+        }
+    }
+}
+
+merge_struct_decls :: fn(
+    entry_typed: TypedProgram, per_module: MutableMap(string, TypedProgram),
+) -> void {
+    entry_path :: entry_typed.resolved.path
+    for id in per_module.keys() {
+        other :: per_module[id]
+        if other is null { continue }
+        if other.resolved.path == entry_path { continue }
+        for sym_id in other.struct_decls.keys() {
+            decl :: other.struct_decls[sym_id]
+            if decl is null { continue }
+            entry_typed.struct_decls[sym_id] = decl
+        }
+        for sym_id in other.trait_decls.keys() {
+            decl :: other.trait_decls[sym_id]
+            if decl is null { continue }
+            entry_typed.trait_decls[sym_id] = decl
+        }
+    }
+}
+
+// Build a name → FnType[] index of every imported free fn so
+// `field.vader::try_free_fn_ufcs` can dispatch `x.method()` to a
+// stdlib helper without requiring the user to re-implement it
+// locally. Walks `external_types` (already populated with the
+// imported name's resolved Type) and buckets by symbol name.
+populate_imported_fn_overloads :: fn(
+    entry_typed: TypedProgram, per_module: MutableMap(string, TypedProgram),
+) -> void {
+    // First : every named import lands in `imported_fn_overloads`
+    // so explicitly-imported helpers (e.g. `import "p" { foo }`)
+    // dispatch via UFCS on their declared first param.
+    targets :: entry_typed.import_targets
+    match targets {
+        is null -> {}
+        _ -> {
+            for sym_id in targets.symbol_targets.keys() {
+                st :: targets.symbol_targets[sym_id]
+                if st is null { continue }
+                ty :: entry_typed.external_types[st.symbol.id]
+                if ty is null { continue }
+                match ty {
+                    is FnType as ft -> { push_overload(entry_typed, st.symbol.name, ft) }
+                    _ -> {}
+                }
+            }
+        }
+    }
+    // Then : every loaded module's `decl_types` contributes its
+    // exported fns so unqualified UFCS dispatch (e.g. `sb.to_string()`
+    // where `to_string` wasn't explicitly imported) still finds the
+    // matching free fn from `std/string_builder`.
+    entry_path :: entry_typed.resolved.path
+    for id in per_module.keys() {
+        other :: per_module[id]
+        if other is null { continue }
+        if other.resolved.path == entry_path { continue }
+        for sym in other.resolved.symbols {
+            sp :: sym.defined_at
+            if sp is null { continue }
+            ty :: other.decl_types[span_key(sp)]
+            if ty is null { continue }
+            match ty {
+                is FnType as ft -> { push_overload(entry_typed, sym.name, ft) }
+                _ -> {}
+            }
+        }
+    }
+}
+
+push_overload :: fn(typed: TypedProgram, name: string, ft: FnType) -> void {
+    bucket :: typed.imported_fn_overloads[name]
+    match bucket {
+        is null -> { typed.imported_fn_overloads[name] = [ft] }
+        _       -> {
+            bucket.push(ft)
+            typed.imported_fn_overloads[name] = bucket
+        }
+    }
+}
+
+// Mirror `import_targets.symbol_targets` into the resolver's
+// `imports_to` table so `type_from_expr` can dereference ImportBinding
+// symbols (e.g. `ParseError` from `std/string`) to their real exported
+// counterpart without needing the full `TypedProgram`.
+populate_resolver_imports :: fn(entry_typed: TypedProgram) -> void {
+    match entry_typed.import_targets {
+        is null -> {}
+        _ -> {
+            for sym_id in entry_typed.import_targets.symbol_targets.keys() {
+                st :: entry_typed.import_targets.symbol_targets[sym_id]
+                if st is null { continue }
+                entry_typed.resolved.imports_to[sym_id] = st.symbol
+            }
+        }
+    }
+}
+
+preload_core_symbols :: fn(rm: ResolvedModule, project: LoadedProject) -> void {
+    core_id :: stdlib_core_id(project)
+    if core_id is null { return }
+    core_loaded :: project.modules[core_id]
+    if core_loaded is null { return }
+    for name in core_loaded.collected.symbols.keys() {
+        sym :: core_loaded.collected.symbols[name]
+        if sym is null { continue }
+        rm.core_symbols[name] = sym
+    }
+}
+
 populate_core_symbols :: fn(
     entry_typed: TypedProgram, project: LoadedProject,
     per_module: MutableMap(string, TypedProgram),
@@ -171,6 +465,10 @@ populate_core_symbols :: fn(
         sym :: core_loaded.collected.symbols[name]
         if sym is null { continue }
         entry_typed.core_symbols[name] = sym
+        // Mirror into the resolver's `core_symbols` table so
+        // `type_from_expr` can fall back to it for bare names
+        // referencing core types (Error, Range, …).
+        entry_typed.resolved.core_symbols[name] = sym
         // Also surface the type into `external_types` so a future
         // reference to a core symbol (e.g. via `mk_struct(Range, ...)`)
         // returns the concrete declared type.
@@ -275,17 +573,41 @@ export walk_bodies :: fn(
                         }
                     }
                 }
+                // Index `X implements Iterator(T)` so `for x in X` binds
+                // `x` to T (matches the external-impl path).
+                local_base_key :: type_base_name(for_ty)
+                if id.trait_name == "Iterator" && id.trait_args.len() == 1 {
+                    elem :: type_from_expr(id.trait_args[0], typed.resolved, diags)
+                    typed.iter_element_types[local_base_key] = elem
+                }
+                if id.trait_name == "Index" && id.trait_args.len() == 2 {
+                    result_ty :: type_from_expr(id.trait_args[1], typed.resolved, diags)
+                    typed.index_target_types[local_base_key] = result_ty
+                }
                 check_impl_missing_methods(id, typed, diags)
                 for m in id.members {
                     declare_impl_method(m, for_ty, typed, diags)
-                    // Index this method for UFCS dispatch :
-                    // `x.method()` where x is `for_ty` looks up
-                    // `${display_type(for_ty)}::method`.
                     key :: "${display_type(for_ty)}::${m.name}"
+                    base_key :: "${type_base_name(for_ty)}::${m.name}"
                     ufcs_ty :: ufcs_method_type(m, for_ty, typed, diags)
                     match ufcs_ty {
                         is null -> {}
-                        _ -> { typed.impl_methods[key] = ufcs_ty }
+                        _ -> {
+                            typed.impl_methods[key] = ufcs_ty
+                            typed.impl_methods[base_key] = ufcs_ty
+                        }
+                    }
+                    // `Into(T)` impls are indexed under a target-
+                    // qualified key so multiple `Into` impls for the
+                    // same source (e.g. `Into(i32)` + `Into(string)`)
+                    // don't collide.
+                    if id.trait_name == "Into" && id.trait_args.len() == 1 && m.name == "into" {
+                        target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
+                        into_key :: "${display_type(for_ty)}::into::${display_type(target_ty)}"
+                        match ufcs_ty {
+                            is null -> {}
+                            _ -> { typed.impl_methods[into_key] = ufcs_ty }
+                        }
                     }
                     walk_fn_body(m, typed, diags)
                 }
@@ -397,9 +719,60 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
         is null -> {}
         _ -> { expected = annot }
     }
+    // Const-as-type-alias : `Foo :: i32 | u32` — the const's value
+    // is a type-position expression. Record the type as `type` (the
+    // TypeMeta marker), matches TS. Also populate `alias_types` so
+    // use sites expand to the alias body.
+    if is_type_value_expr(cd.value, typed) {
+        if annot is null {
+            typed.decl_types[span_key(cd.name_span)] = TY_TYPE
+        }
+        alias_ty :: type_from_expr(cd.value, typed.resolved, diags)
+        for s in typed.resolved.symbols {
+            if s.name == cd.name {
+                typed.resolved.alias_types[s.id] = alias_ty
+            }
+        }
+        return
+    }
     got :: check_expr(cd.value, expected, typed, diags)
     if annot is null {
         typed.decl_types[span_key(cd.name_span)] = default_if_free(got)
     }
 }
+
+// True when `e` is an expression that names a type (builtin, struct,
+// trait, type alias, …). These get folded by `type_from_expr` rather
+// than walked as value-position expressions.
+is_type_value_expr :: fn(e: AST.Expr, typed: TypedProgram) -> bool {
+    if e is AST.IdentExpr {
+        if !(primitive_from_name(e.name) is null) { return true }
+        sym :: typed.resolved.idents[span_key(e.span)]
+        if sym is null { return false }
+        return is_type_kind(sym.kind)
+    }
+    if e is AST.BinaryExpr {
+        // Treat `T | U` chains as types.
+        if i32(e.op) == i32(AST.BinaryOp.BitOr) {
+            return is_type_value_expr(e.left, typed) && is_type_value_expr(e.right, typed)
+        }
+    }
+    if e is AST.GenericInstExpr { return true }
+    if e is AST.FnTypeExpr { return true }
+    if e is AST.ArrayTypeExpr { return true }
+    return false
+}
+
+is_type_kind :: fn(k: SymbolKind) -> bool = match k {
+    .Struct    -> true
+    .Trait     -> true
+    .Enum      -> true
+    .TypeAlias -> true
+    .TypeParam -> true
+    .BuiltinType -> true
+    _ -> false
+}
+
+import "vader/typecheck/type_expr" { primitive_from_name }
+import "vader/resolver/symbol" { SymbolKind }
 

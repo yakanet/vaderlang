@@ -8,7 +8,8 @@
 // since Vader AST nodes lack stable ids for WeakMap-style indexing.
 
 import "std/collections" { MutableMap }
-import "vader/parser/ast" { StructDecl, TraitDecl }
+import "vader/parser/ast" { StructDecl, TraitDecl, TypeAliasDecl }
+AST :: import "vader/parser/ast"
 import "vader/resolver/resolve" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol }
 import "vader/typecheck/types" { Type }
@@ -101,6 +102,24 @@ export TypedProgram :: struct {
     /// Iterator, …) without going through a user-side import.
     core_symbols: MutableMap(string, Symbol)
 
+    /// Imported fn overloads indexed by simple name. Populated by
+    /// the orchestrator after wiring imports. Consumed by
+    /// `field.vader::try_free_fn_ufcs` so `x.method()` can dispatch
+    /// to a fn imported from another module without requiring the
+    /// method body to live in the entry module.
+    imported_fn_overloads: MutableMap(string, FnType[])
+
+    /// `display_type(for_ty) → element` for every `X implements
+    /// Iterator(T)` impl reached during type-checking. Consumed by
+    /// `stmt.vader::for_in_element` so `for c in some_iter` binds
+    /// `c` to T.
+    iter_element_types: MutableMap(string, Type)
+
+    /// `display_type(for_ty) → T` for every `X implements Index[I, T]`
+    /// impl. Consumed by `expr_index.vader` so `m[k]` returns T when
+    /// `m` is a user struct with an Index impl.
+    index_target_types: MutableMap(string, Type)
+
     /// Enclosing fn-body context, pushed by `check_fn_body` and
     /// popped when it returns. Lets `check_return` (called via the
     /// recursive expression path where the ctx arg is `null`) still
@@ -137,9 +156,14 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .external_types  = MutableMap(i32, Type) { .buckets = [], .size = 0 },
         .namespace_exports = MutableMap(string, MutableMap(string, Type)) { .buckets = [], .size = 0 },
         .core_symbols    = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .imported_fn_overloads = MutableMap(string, FnType[]) { .buckets = [], .size = 0 },
+        .iter_element_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
+        .index_target_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .current_fn_ctx  = null,
     }
 }
+
+import "vader/typecheck/types" { FnType }
 
 export new_typed_project :: fn() -> TypedProject {
     return TypedProject {
@@ -156,6 +180,12 @@ export empty_typed_program :: fn() -> TypedProgram {
         .symbols = [],
         .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
+        .fn_overloads = MutableMap(string, Symbol[]) { .buckets = [], .size = 0 },
+        .core_symbols = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .imports_to = MutableMap(i32, Symbol) { .buckets = [], .size = 0 },
+        .alias_types = MutableMap(i32, Type) { .buckets = [], .size = 0 },
+        .alias_decls = MutableMap(i32, TypeAliasDecl) { .buckets = [], .size = 0 },
+        .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
     }
     return new_typed_program(rm)
 }
@@ -171,6 +201,12 @@ fresh_module :: fn() -> ResolvedModule {
         .symbols = [],
         .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
+        .fn_overloads = MutableMap(string, Symbol[]) { .buckets = [], .size = 0 },
+        .core_symbols = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .imports_to = MutableMap(i32, Symbol) { .buckets = [], .size = 0 },
+        .alias_types = MutableMap(i32, Type) { .buckets = [], .size = 0 },
+        .alias_decls = MutableMap(i32, TypeAliasDecl) { .buckets = [], .size = 0 },
+        .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
     }
 }
 

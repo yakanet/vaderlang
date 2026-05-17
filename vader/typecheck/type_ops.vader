@@ -51,8 +51,20 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is FreeFloatType  -> b is FreeFloatType
     is PrimitiveType as ax  -> match b { is PrimitiveType  as bx -> ax.name == bx.name              _ -> false }
     is TypeParamType as ax  -> match b { is TypeParamType  as bx -> ax.symbol.id == bx.symbol.id     _ -> false }
-    is EnumType      as ax  -> match b { is EnumType       as bx -> ax.symbol.id == bx.symbol.id     _ -> false }
-    is StructType    as ax  -> match b { is StructType     as bx -> nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args) _ -> false }
+    // `StructType(EnumSym)` is the placeholder `type_from_expr` returns
+    // for enum names ; treat it as equivalent to the real `EnumType` so
+    // body-time assignability (annotation vs inferred) doesn't fight the
+    // placeholder/proper distinction.
+    is EnumType      as ax  -> match b {
+        is EnumType   as bx -> ax.symbol.id == bx.symbol.id
+        is StructType as bx -> bx.symbol.id == ax.symbol.id
+        _ -> false
+    }
+    is StructType    as ax  -> match b {
+        is StructType as bx -> nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args)
+        is EnumType   as bx -> ax.symbol.id == bx.symbol.id
+        _ -> false
+    }
     is TraitType     as ax  -> match b { is TraitType      as bx -> nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args) _ -> false }
     is ArrayType     as ax  -> match b { is ArrayType      as bx -> ax.immutable == bx.immutable && equals_type(ax.element, bx.element) _ -> false }
     is TupleType     as ax  -> match b { is TupleType      as bx -> type_list_equals(ax.elements, bx.elements) _ -> false }
@@ -84,6 +96,38 @@ export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> 
     if to   is UnresolvedType { return true }
     if from is NeverType      { return true }
     if equals_type(from, to) { return true }
+
+    // TypeParam wildcard — accepts any concrete type. Lets a generic
+    // `fn[K, V](self: MutableMap(K, V))` fn accept a concrete
+    // `MutableMap(string, i32)` receiver via UFCS dispatch.
+    if from is TypeParamType { return true }
+    if to is TypeParamType { return true }
+
+    // Nominal types with TypeParam-bearing args : compare symbol ids
+    // only, treating TypeParam args as wildcards.
+    match from {
+        is StructType as fs -> {
+            match to {
+                is StructType as ts -> {
+                    if fs.symbol.id == ts.symbol.id {
+                        if struct_args_compatible(fs.args, ts.args, oracle) { return true }
+                    }
+                }
+                _ -> {}
+            }
+        }
+        is TraitType as ft -> {
+            match to {
+                is TraitType as tt -> {
+                    if ft.symbol.id == tt.symbol.id {
+                        if struct_args_compatible(ft.args, tt.args, oracle) { return true }
+                    }
+                }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
 
     match from {
         is FreeIntType -> {
@@ -167,7 +211,43 @@ export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> 
         _ -> {}
     }
 
+    // Fn → Fn : params contravariant, return covariant. A `TypeParam`
+    // on either side accepts anything (treated as a wildcard MVP —
+    // proper bound enforcement lands with the unify pass).
+    match from {
+        is FnType as ff -> {
+            match to {
+                is FnType as ft -> {
+                    if ff.params.len() != ft.params.len() { return false }
+                    for i in 0..<ff.params.len() {
+                        if !fn_param_compatible(ft.params[i], ff.params[i], oracle) { return false }
+                    }
+                    return fn_param_compatible(ff.return_type, ft.return_type, oracle)
+                }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
+
     return false
+}
+
+// Single-arg compatibility used by Fn → Fn assignability. Treats
+// TypeParam as a wildcard so generic fn signatures match concrete
+// instantiations (MVP — bound-aware unification lives in `unify`).
+fn_param_compatible :: fn(a: Type, b: Type, oracle: TraitOracle | null) -> bool {
+    if a is TypeParamType { return true }
+    if b is TypeParamType { return true }
+    return is_assignable(a, b, oracle)
+}
+
+struct_args_compatible :: fn(a: Type[], b: Type[], oracle: TraitOracle | null) -> bool {
+    if a.len() != b.len() { return false }
+    for i in 0..<a.len() {
+        if !fn_param_compatible(a[i], b[i], oracle) { return false }
+    }
+    return true
 }
 
 /// Minimal duck-typed view of the impl registry consumed by trait widening.
@@ -232,6 +312,25 @@ export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
     if got is FreeIntType   && is_int_name(expected.name)   { return expected }
     if got is FreeFloatType && is_float_name(expected.name) { return expected }
     return got
+}
+
+/// Subtract a single variant from a type. Returns the remaining type
+/// (or `Never` if nothing remains). For non-union sources subtracting
+/// the same shape yields `Never` ; subtracting a different shape is a
+/// no-op. Used by flow narrowing — `if x is T` widens to "not T" on
+/// the false side / in code after a divergent guard.
+export subtract_type :: fn(from: Type, removed: Type) -> Type {
+    if from is UnionType {
+        kept: Type[] = []
+        for v in from.variants {
+            if !equals_type(v, removed) { kept.push(v) }
+        }
+        if kept.len() == 0 { return TY_NEVER }
+        if kept.len() == 1 { return kept[0] }
+        return mk_union(kept)
+    }
+    if equals_type(from, removed) { return TY_NEVER }
+    return from
 }
 
 // ---- tests ----------------------------------------------------------------

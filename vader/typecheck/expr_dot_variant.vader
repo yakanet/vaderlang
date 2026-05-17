@@ -6,8 +6,10 @@
 // when `expected` isn't an enum-typed slot.
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/resolver/scope" { span_key }
+import "vader/resolver/symbol" { SymbolKind }
 import "vader/typecheck/types" {
-    Type, EnumType, display_type, TY_UNRESOLVED,
+    Type, EnumType, StructType, UnionType, display_type, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
@@ -22,7 +24,20 @@ export infer_dot_variant :: fn(
             "cannot infer enum type for `.${e.variant}` without context"))
         return TY_UNRESOLVED
     }
-    match expected {
+    lifted :: lift_enum_placeholder(expected, typed)
+    // Union expected — descend into variants and pick the first enum
+    // that carries `.variant`. Lets `fn() -> Direction | Error { return .North }`
+    // resolve `.North` to Direction.
+    if lifted is UnionType {
+        for v in lifted.variants {
+            cand :: lift_enum_placeholder(v, typed)
+            if cand is EnumType {
+                idx :: cand.indices[e.variant]
+                if !(idx is null) { return cand }
+            }
+        }
+    }
+    match lifted {
         is EnumType as en -> {
             // MutableMap lookup returns i64 | null ; null = unknown variant.
             idx :: en.indices[e.variant]
@@ -38,5 +53,25 @@ export infer_dot_variant :: fn(
                 "`.${e.variant}` expects an enum-typed slot, got ${display_type(expected)}"))
             return TY_UNRESOLVED
         }
+    }
+}
+
+// `type_from_expr` returns a `StructType(EnumSym)` placeholder for enum
+// names — the proper `EnumType` (with `indices`) only lands in
+// `decl_types[name_span]` via `declare_enum`. This helper swaps the
+// placeholder back to the real EnumType when one is available.
+lift_enum_placeholder :: fn(t: Type, typed: TypedProgram) -> Type {
+    match t {
+        is StructType as st -> {
+            if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return t }
+            sp :: st.symbol.defined_at
+            if sp is null { return t }
+            real :: typed.decl_types[span_key(sp)]
+            match real {
+                is EnumType -> { return real }
+                _ -> { return t }
+            }
+        }
+        _ -> { return t }
     }
 }

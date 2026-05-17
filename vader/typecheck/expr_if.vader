@@ -8,10 +8,14 @@
 // Those land with `narrow.vader`.
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/resolver/scope" { span_key }
 import "vader/typecheck/context" { FnContext }
+import "vader/typecheck/expr_ident" { type_of_symbol }
+import "vader/typecheck/narrow" { pop_narrow, push_narrow }
 import "vader/typecheck/stmt" { check_block }
-import "vader/typecheck/type_ops" { is_assignable, union_of }
-import "vader/typecheck/types" { Type, display_type, mk_primitive, TY_BOOL, TY_VOID }
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/type_ops" { is_assignable, subtract_type, union_of }
+import "vader/typecheck/types" { Type, display_type, mk_primitive, TY_BOOL, TY_VOID, TY_UNRESOLVED }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 
@@ -28,21 +32,107 @@ export infer_if :: fn(
         diags.push(typecheck_error(.ConditionMustBeBool, e.cond.span,
             "if condition must be `bool`, got ${display_type(cond_ty)}"))
     }
+    narrowing :: detect_is_narrow(e.cond, typed, diags)
+    prev_then: Type | null = null
+    static_then: Type = TY_UNRESOLVED
+    match narrowing {
+        is null -> {}
+        is IsNarrow as n -> {
+            static_then = n.static_ty
+            prev_then = push_narrow(typed, n.sym_id, n.then_ty)
+        }
+    }
     then_ty :: check_block(e.then_block, expected, typed, diags, ctx, check_expr_fn)
+    match narrowing {
+        is null -> {}
+        is IsNarrow as n -> { pop_narrow(typed, n.sym_id, prev_then, static_then) }
+    }
     match e.else_branch {
         is null -> { return union_of([then_ty, TY_VOID]) }
         is AST.IfElseBlock as eb -> {
-            else_ty :: check_block(eb.block, expected, typed, diags, ctx, check_expr_fn)
+            else_ty :: check_else_with_narrow(eb.block, narrowing, expected, typed, diags, ctx, check_expr_fn)
             return union_of([then_ty, else_ty])
         }
         is AST.IfElseIf as ei -> {
-            // Route through `check_expr_fn` so the nested IfExpr
-            // lands in `typed.expr_types` / `expr_kinds` like any
-            // other expression (matches TS).
             inner: AST.Expr = ei.branch
-            else_ty :: check_expr_fn(inner, expected, typed, diags)
+            else_ty :: check_else_branch_expr(inner, narrowing, expected, typed, diags, check_expr_fn)
             return union_of([then_ty, else_ty])
         }
+    }
+}
+
+check_else_with_narrow :: fn(
+    block: AST.BlockExpr, narrowing: IsNarrow | null,
+    expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    prev: Type | null = null
+    static_ty: Type = TY_UNRESOLVED
+    if narrowing is IsNarrow as n {
+        static_ty = n.static_ty
+        prev = push_narrow(typed, n.sym_id, n.else_ty)
+    }
+    result :: check_block(block, expected, typed, diags, ctx, check_expr_fn)
+    if narrowing is IsNarrow as n { pop_narrow(typed, n.sym_id, prev, static_ty) }
+    return result
+}
+
+check_else_branch_expr :: fn(
+    inner: AST.Expr, narrowing: IsNarrow | null,
+    expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    prev: Type | null = null
+    static_ty: Type = TY_UNRESOLVED
+    if narrowing is IsNarrow as n {
+        static_ty = n.static_ty
+        prev = push_narrow(typed, n.sym_id, n.else_ty)
+    }
+    result :: check_expr_fn(inner, expected, typed, diags)
+    if narrowing is IsNarrow as n { pop_narrow(typed, n.sym_id, prev, static_ty) }
+    return result
+}
+
+// Minimal `if x is T { … }` narrowing : when the cond is a binary `is`
+// op whose LHS is an `IdentExpr` resolving to a local Symbol, narrow
+// that binding to `T` inside the then-branch. Doesn't yet cover
+// negation, field narrowing, divergent guards, or `is null`.
+IsNarrow :: struct {
+    sym_id:    i32
+    static_ty: Type
+    then_ty:   Type
+    else_ty:   Type
+}
+
+detect_is_narrow :: fn(
+    cond: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
+) -> IsNarrow | null {
+    // `!(x is T)` flips the two arms — peel the Not, then swap.
+    if cond is AST.UnaryExpr {
+        if i32(cond.op) == i32(AST.UnaryOp.Not) {
+            inner :: detect_is_narrow(cond.operand, typed, diags)
+            if inner is null { return null }
+            return IsNarrow {
+                .sym_id    = inner.sym_id,
+                .static_ty = inner.static_ty,
+                .then_ty   = inner.else_ty,
+                .else_ty   = inner.then_ty,
+            }
+        }
+    }
+    if !(cond is AST.BinaryExpr) { return null }
+    if i32(cond.op) != i32(AST.BinaryOp.Is) { return null }
+    if !(cond.left is AST.IdentExpr) { return null }
+    sym :: typed.resolved.idents[span_key(cond.left.span)]
+    if sym is null { return null }
+    base :: type_of_symbol(sym, typed)
+    narrowed :: type_from_expr(cond.right, typed.resolved, diags)
+    return IsNarrow {
+        .sym_id    = sym.id,
+        .static_ty = base,
+        .then_ty   = narrowed,
+        .else_ty   = subtract_type(base, narrowed),
     }
 }
 
@@ -57,7 +147,6 @@ import "vader/typecheck/expr_ident" { infer_ident }
 import "vader/typecheck/expr_literals" { infer_int_lit, infer_bool_lit }
 import "vader/typecheck/test_helpers" { find_first_in_block }
 import "vader/typecheck/type_ops" { narrow_for_expected }
-import "vader/typecheck/types" { TY_UNRESOLVED }
 
 stub_check_expr :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],

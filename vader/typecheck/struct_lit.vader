@@ -5,6 +5,7 @@
 // Returns the struct type.
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
+import "vader/typecheck/coerce" { try_into }
 import "vader/typecheck/field" { find_struct_field_type, substitute_by_name }
 import "vader/typecheck/type_ops" { is_assignable }
 import "vader/typecheck/types" { Type, StructType, display_type, TY_UNRESOLVED }
@@ -88,10 +89,10 @@ check_field :: fn(
             "field `${f.name}` already provided in this struct literal"))
     }
     provided.push(f.name)
-    if !is_assignable(got, expected, null) {
-        diags.push(typecheck_error(.TypeMismatch, f.span,
-            "expected ${display_type(expected)}, got ${display_type(got)}"))
-    }
+    if is_assignable(got, expected, null) { return }
+    if try_into(got, expected, typed) { return }
+    diags.push(typecheck_error(.TypeMismatch, f.span,
+        "expected ${display_type(expected)}, got ${display_type(got)}"))
 }
 
 contains_name :: fn(names: string[], target: string) -> bool {

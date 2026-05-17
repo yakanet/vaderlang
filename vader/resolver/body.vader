@@ -36,6 +36,10 @@ export ResolvedFile :: struct {
     /// binding (`mutable = false`). `name :=` ones don't appear here.
     /// Read by typecheck's check_assign for T3041.
     immutable_locals: MutableMap(i32, bool)
+    /// `Symbol.id → bound TypeExpr` for every TypeParam minted with
+    /// an explicit `T: Trait` clause. Lets downstream consumers
+    /// dispatch trait methods on bounded type parameters.
+    type_param_bounds: MutableMap(i32, AST.Expr)
 }
 
 /// Build a `ResolvedFile` for `program`. `top_level_seed` provides
@@ -50,6 +54,7 @@ export resolve_program :: fn(
     state :: ResolveState {
         .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
+        .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
         .scope = new_scope(top_level_seed),
         .module_path = module_path,
         .factory = factory,
@@ -61,6 +66,7 @@ export resolve_program :: fn(
         .top_level = top_level_seed,
         .idents = state.idents,
         .immutable_locals = state.immutable_locals,
+        .type_param_bounds = state.type_param_bounds,
     }
 }
 
@@ -69,6 +75,7 @@ export resolve_program :: fn(
 ResolveState :: struct {
     idents:           MutableMap(string, Symbol)
     immutable_locals: MutableMap(i32, bool)
+    type_param_bounds: MutableMap(i32, AST.Expr)
     scope:            Scope
     module_path:      string
     factory:          SymbolFactory
@@ -88,7 +95,16 @@ walk_decl :: fn(self: ResolveState, d: AST.Decl) -> void {
         is AST.EnumDecl    -> {}
         is AST.TraitDecl as x -> { self.walk_trait_decl(x) }
         is AST.ImplDecl as x -> { self.walk_impl_decl(x) }
-        is AST.TypeAliasDecl as x -> { self.walk_opt_expr(x.aliased) }
+        is AST.TypeAliasDecl as x -> {
+            self.scope.push()
+            for tp in x.type_params {
+                sym :: self.mint_local(.TypeParam, tp.name, tp.span)
+                self.scope.bind(tp.name, sym)
+                self.walk_opt_expr(tp.bound)
+            }
+            self.walk_opt_expr(x.aliased)
+            self.scope.pop()
+        }
         is AST.ConstDecl as x -> {
             self.walk_opt_expr(x.ty)
             self.walk_expr(x.value)
@@ -105,6 +121,10 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
         self.scope.bind(tp.name, sym)
         self.walk_opt_expr(tp.bound)
+        match tp.bound {
+            is null -> {}
+            _ -> { self.type_param_bounds[sym.id] = tp.bound }
+        }
     }
     for p in d.params {
         self.walk_opt_expr(p.ty)
@@ -127,6 +147,10 @@ walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
         self.scope.bind(tp.name, sym)
         self.walk_opt_expr(tp.bound)
+        match tp.bound {
+            is null -> {}
+            _ -> { self.type_param_bounds[sym.id] = tp.bound }
+        }
     }
     for f in d.fields {
         self.walk_expr(f.ty)
@@ -142,6 +166,10 @@ walk_trait_decl :: fn(self: ResolveState, d: AST.TraitDecl) -> void {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
         self.scope.bind(tp.name, sym)
         self.walk_opt_expr(tp.bound)
+        match tp.bound {
+            is null -> {}
+            _ -> { self.type_param_bounds[sym.id] = tp.bound }
+        }
     }
     self.walk_opt_expr(d.requires)
     for m in d.members { self.walk_fn_decl(m) }
@@ -155,6 +183,10 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
         sym :: self.mint_local(.TypeParam, tp.name, tp.span)
         self.scope.bind(tp.name, sym)
         self.walk_opt_expr(tp.bound)
+        match tp.bound {
+            is null -> {}
+            _ -> { self.type_param_bounds[sym.id] = tp.bound }
+        }
     }
     self.walk_expr(d.for_type)
     for ta in d.trait_args { self.walk_expr(ta) }

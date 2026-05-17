@@ -15,10 +15,12 @@ import "std/collections" { MutableMap, values }
 import "std/string" { compare_ascending }
 import "std/sort" { sort }
 import "vader/parser" { Program }
+import "vader/parser/ast" { Expr, TypeAliasDecl }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
 import "vader/resolver/body" { resolve_program }
 import "vader/resolver/builtins" { make_builtin_scope }
 import "vader/resolver/collect" { collect_module, CollectedModule }
+import "vader/typecheck/types" { Type }
 
 /// One resolver output entry per source module.
 ///
@@ -32,6 +34,35 @@ export ResolvedModule :: struct {
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
     /// Consumed by stmt.vader::check_assign to surface T3041.
     immutable_locals: MutableMap(i32, bool)
+    /// `fn_overloads[name]` carries every Symbol minted for a given
+    /// fn name — only one of which lands in `symbols`. The typecheck
+    /// dump iterates this to surface every overload.
+    fn_overloads: MutableMap(string, Symbol[])
+    /// Auto-loaded `std/core` symbols (Error, Range, Field, …). Used
+    /// as fallback for `type_from_expr` when the local resolver scope
+    /// didn't bind the ident (since the resolver doesn't know about
+    /// `std/core`'s auto-load). Populated by the typecheck orchestrator.
+    core_symbols: MutableMap(string, Symbol)
+    /// `imports_to[sym.id]` follows an ImportBinding symbol to its
+    /// concrete exported counterpart. Lets `type_from_expr` resolve
+    /// `ParseError` to the real struct symbol on the std/string side
+    /// instead of the local import binding. Populated by the
+    /// typecheck orchestrator after `wire_imports`.
+    imports_to: MutableMap(i32, Symbol)
+    /// `alias_types[sym.id]` carries the resolved Type for any
+    /// `TypeAlias` symbol (local or imported). Lets `type_from_expr`
+    /// expand `Maybe(T)` to `T | null` instead of leaving it as a
+    /// placeholder StructType. Populated by the typecheck orchestrator.
+    alias_types: MutableMap(i32, Type)
+    /// `alias_decls[sym.id]` carries the `TypeAliasDecl` AST node so
+    /// `type_from_expr` can substitute the alias's type-params when
+    /// instantiated (e.g. `Maybe(i32)` → `i32 | null`).
+    alias_decls: MutableMap(i32, TypeAliasDecl)
+    /// `type_param_bounds[type_param_sym.id]` → bound TypeExpr (e.g.
+    /// `fn[T: Add]` records the `Add` ident here). Consumed by
+    /// `field.vader` so `x.method()` on a bounded TypeParam can
+    /// dispatch to the trait's declared method.
+    type_param_bounds: MutableMap(i32, Expr)
 }
 
 export ResolvedProject :: struct {
@@ -68,6 +99,12 @@ export resolve_module_with_collected :: fn(
         .symbols          = sort_by_name(user_syms),
         .idents           = file.idents,
         .immutable_locals = file.immutable_locals,
+        .fn_overloads     = collected.fn_overloads,
+        .core_symbols     = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .imports_to       = MutableMap(i32, Symbol) { .buckets = [], .size = 0 },
+        .alias_types      = MutableMap(i32, Type) { .buckets = [], .size = 0 },
+        .alias_decls      = MutableMap(i32, TypeAliasDecl) { .buckets = [], .size = 0 },
+        .type_param_bounds = file.type_param_bounds,
     }
 }
 

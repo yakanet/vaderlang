@@ -64,12 +64,29 @@ build_decl_lines :: fn(typed: TypedProgram) -> string[] {
     // Sort by symbol name (case-insensitive, matches TS
     // `name.localeCompare`) rather than by the formatted line —
     // otherwise `S`tructDecl always wins over `T`raitDecl regardless
-    // of the actual name ordering.
+    // of the actual name ordering. Fn symbols expand into every
+    // overload Symbol from `fn_overloads` so the dump lists each
+    // overload separately ; for non-fn kinds the primary entry is
+    // emitted directly.
     syms :: sort_syms_by_name(typed.resolved.symbols)
     out: string[] = []
     for s in syms {
         kind_str :: ast_decl_kind(s)
         if kind_str == "" { continue }
+        if kind_str == "FnDecl" {
+            bucket :: typed.resolved.fn_overloads[s.name]
+            match bucket {
+                is null -> {
+                    out.push("  ${kind_str.pad_end(14, ' ')} ${s.name.pad_end(20, ' ')} :: ${lookup_decl_type(typed, s)}")
+                }
+                _ -> {
+                    for ov in bucket {
+                        out.push("  ${kind_str.pad_end(14, ' ')} ${ov.name.pad_end(20, ' ')} :: ${lookup_decl_type(typed, ov)}")
+                    }
+                }
+            }
+            continue
+        }
         type_str :: lookup_decl_type(typed, s)
         out.push("  ${kind_str.pad_end(14, ' ')} ${s.name.pad_end(20, ' ')} :: ${type_str}")
     }

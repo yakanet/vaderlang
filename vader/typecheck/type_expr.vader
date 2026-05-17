@@ -51,6 +51,16 @@ export type_from_expr :: fn(
             for el in e.elements { elements.push(type_from_expr(el, resolved, diags)) }
             return mk_tuple(elements)
         }
+        // `P.Decl` — namespace field access in type position. Look
+        // up the field via the resolver's idents map (the body walker
+        // binds it during the walk).
+        is AST.FieldExpr as e -> {
+            sym :: resolved.idents[span_key(e.span)]
+            match sym {
+                is null -> { return TY_UNRESOLVED }
+                is Symbol as s -> { return type_from_symbol(redirect_import(s, resolved), []) }
+            }
+        }
         _ -> {
             diags.push(typecheck_error(.ExpectedKnownType, expr.span,
                 "value-position expression not allowed in a type slot"))
@@ -67,11 +77,90 @@ lower_ident :: fn(e: AST.IdentExpr, resolved: ResolvedModule) -> Type {
         is null -> {}
         _ -> { return builtin }
     }
-    match resolved.idents[span_key(e.span)] {
+    bound :: resolved.idents[span_key(e.span)]
+    if !(bound is null) {
+        sym :: redirect_import(bound, resolved)
+        // TypeAlias expansion : `Maybe :: T | null` should render
+        // as `T | null` at use sites instead of as a placeholder.
+        aliased :: resolved.alias_types[sym.id]
+        if !(aliased is null) { return aliased }
+        return type_from_symbol(sym, [])
+    }
+    // Fallback : auto-loaded core types (Error, Range, …) the
+    // resolver doesn't bind in `idents`. Populated by the typecheck
+    // orchestrator after `wire_imports`.
+    core :: resolved.core_symbols[e.name]
+    match core {
         is null -> { return TY_UNRESOLVED }
         is Symbol as s -> { return type_from_symbol(s, []) }
     }
 }
+
+// Substitute an alias's type-params with the call-site's args.
+// `Maybe[T] :: T | null` instantiated as `Maybe(i32)` walks the
+// alias body and replaces every `TypeParam(T)` with `i32`.
+substitute_alias_args :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
+    if params.len() == 0 || args.len() == 0 { return t }
+    return walk_substitute(t, params, args)
+}
+
+walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
+    match t {
+        is TypeParamType as tp -> {
+            n :: min(params.len(), args.len())
+            for i in 0..<n {
+                if params[i].name == tp.symbol.name { return args[i] }
+            }
+            return t
+        }
+        is ArrayType as a -> { return mk_array(walk_substitute(a.element, params, args), a.immutable) }
+        is StructType as s -> {
+            sargs: Type[] = []
+            for a in s.args { sargs.push(walk_substitute(a, params, args)) }
+            return mk_struct(s.symbol, sargs)
+        }
+        is TraitType as tr -> {
+            sargs: Type[] = []
+            for a in tr.args { sargs.push(walk_substitute(a, params, args)) }
+            return mk_trait(tr.symbol, sargs)
+        }
+        is UnionType as u -> {
+            vs: Type[] = []
+            for v in u.variants { vs.push(walk_substitute(v, params, args)) }
+            return union_of(vs)
+        }
+        is TupleType as t2 -> {
+            els: Type[] = []
+            for el in t2.elements { els.push(walk_substitute(el, params, args)) }
+            return mk_tuple(els)
+        }
+        is FnType as f -> {
+            ps: Type[] = []
+            for p in f.params { ps.push(walk_substitute(p, params, args)) }
+            return mk_fn(ps, walk_substitute(f.return_type, params, args))
+        }
+        _ -> { return t }
+    }
+}
+
+import "std/math" { min }
+import "vader/typecheck/types" {
+    ArrayType, FnType, StructType, TraitType, TupleType, TypeParamType, UnionType,
+    mk_union,
+}
+
+// Follow an `ImportBinding` symbol to its concrete exported
+// counterpart via `resolved.imports_to`. Other symbol kinds pass
+// through unchanged.
+redirect_import :: fn(sym: Symbol, resolved: ResolvedModule) -> Symbol {
+    if i32(sym.kind) != i32(SymbolKind.ImportBinding) { return sym }
+    target :: resolved.imports_to[sym.id]
+    match target {
+        is null -> { return sym }
+        is Symbol as s -> { return s }
+    }
+}
+
 
 lower_generic_inst :: fn(
     e: AST.GenericInstExpr, resolved: ResolvedModule, diags: Diagnostic[],
@@ -82,7 +171,24 @@ lower_generic_inst :: fn(
         is AST.IdentExpr as id -> {
             match resolved.idents[span_key(id.span)] {
                 is null -> { return TY_UNRESOLVED }
-                is Symbol as s -> { return type_from_symbol(s, args) }
+                is Symbol as s -> {
+                    redirected :: redirect_import(s, resolved)
+                    aliased :: resolved.alias_types[redirected.id]
+                    if !(aliased is null) {
+                        // Parameterised aliases : `Maybe(T)` →
+                        // substitute T with the call-site args. The
+                        // alias's TypeParam names come from the alias
+                        // body's free TypeParams (we don't have the
+                        // decl AST here — but TypeAliasDecl.type_params
+                        // is stored on the decl).
+                        alias_decl :: resolved.alias_decls[redirected.id]
+                        if !(alias_decl is null) {
+                            return substitute_alias_args(aliased, alias_decl.type_params, args)
+                        }
+                        return aliased
+                    }
+                    return type_from_symbol(redirected, args)
+                }
             }
         }
         _ -> { return TY_UNRESOLVED }
@@ -129,6 +235,10 @@ export type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
         .Trait     -> { return mk_trait(sym, args) }
         .TypeParam -> { return mk_type_param(sym) }
         .Enum      -> { return mk_struct(sym, args) }   // placeholder until enum_pass plumbs declTypes
+        // TypeAlias / Const-as-type-alias fall through to a marker
+        // StructType so display_type renders the alias name. Proper
+        // expansion needs decl_types (threaded via the typechecker).
+        .TypeAlias -> { return mk_struct(sym, args) }
         _          -> { return TY_UNRESOLVED }
     }
 }
@@ -157,7 +267,7 @@ import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
 import "vader/resolver/resolve" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/types" { PrimitiveType, ArrayType, FnType, UnionType, display_type }
+import "vader/typecheck/types" { PrimitiveType, display_type }
 
 resolve_test_module :: fn(src: string) -> ResolvedModule {
     parsed :: parse_source(src, "t.vader")

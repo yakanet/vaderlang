@@ -14,13 +14,14 @@
 //   - No generic-arg substitution on field types — fields with
 //     type-params resolve to their unsubstituted shape.
 
+import "std/string" { byte_at, byte_len }
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
 import "vader/resolver/resolve" { ResolvedModule }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/types" {
-    Type, ArrayType, PrimitiveType, StructType, UnresolvedType,
-    display_type, TY_UNRESOLVED,
+    Type, ArrayType, EnumType, PrimitiveType, StructType, TraitType, TupleType, UnionType, UnresolvedType,
+    display_type, type_base_name, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
 
@@ -60,11 +61,80 @@ export infer_field :: fn(
     }
     // Impl-method UFCS dispatch : `x.method()` where there's an
     // `<x-type> implements <Trait> { method :: ... }`. Indexed by
-    // orchestrate.vader at impl-load time.
+    // orchestrate.vader at impl-load time. Try exact display first,
+    // then fall back to the base-name key + substitute the impl's
+    // type-params against the receiver's concrete args.
     impl_ufcs :: typed.impl_methods["${display_type(target_ty)}::${e.field}"]
     match impl_ufcs {
         is null -> {}
         _ -> { return impl_ufcs }
+    }
+    base_impl :: typed.impl_methods["${type_base_name(target_ty)}::${e.field}"]
+    match base_impl {
+        is null -> {}
+        _ -> { return substitute_impl_method(base_impl, target_ty, typed) }
+    }
+    // Free-fn UFCS : `x.foo()` dispatches to a free fn `foo` whose
+    // first param accepts `target_ty`. Walks the local module's
+    // `fn_overloads` bucket and returns the curried fn type (sans the
+    // receiver param). Skips when no bucket matches the field name.
+    free_ufcs :: try_free_fn_ufcs(e.field, target_ty, typed)
+    match free_ufcs {
+        is null -> {}
+        _ -> { return free_ufcs }
+    }
+    // Trait method dispatch : `t.method()` where `t: <SomeTrait>`
+    // returns the trait's declared method signature with `Self`
+    // substituted for the receiver's type.
+    if target_ty is TraitType {
+        trait_method :: try_trait_method(target_ty, e.field, typed)
+        match trait_method {
+            is null -> {}
+            _ -> { return substitute_self(trait_method, target_ty) }
+        }
+    }
+    // Bounded TypeParam : `x.method()` where `x: T` with `T: Trait`
+    // (or `T: Trait1 & Trait2`) dispatches to whichever bound trait
+    // exposes the named method ; `Self` substitutes to `T`.
+    if target_ty is TypeParamType {
+        bound :: typed.resolved.type_param_bounds[target_ty.symbol.id]
+        if !(bound is null) {
+            tm :: dispatch_bounded_method(bound, e.field, typed)
+            match tm {
+                is null -> {}
+                _ -> { return substitute_self(tm, target_ty) }
+            }
+        }
+    }
+    // `tup.0` — positional access on tuples.
+    if target_ty is TupleType {
+        idx :: parse_tuple_index(e.field)
+        if idx < 0 || idx >= target_ty.elements.len() {
+            diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
+                "`${e.field}` on ${display_type(target_ty)}"))
+            return TY_UNRESOLVED
+        }
+        return target_ty.elements[idx]
+    }
+    // Union common-field access — every variant must be a struct
+    // carrying a field of the same name. Returns the union of each
+    // variant's field type (collapsed if all equal).
+    if target_ty is UnionType {
+        union_field :: union_common_field(target_ty, e.field, typed, diags)
+        match union_field {
+            is null -> {}
+            _ -> { return union_field }
+        }
+    }
+    // `Direction.North` — variant access on the enum type itself.
+    if target_ty is EnumType {
+        idx :: target_ty.indices[e.field]
+        if idx is null {
+            diags.push(typecheck_error(.UnknownEnumVariant, e.field_span,
+                "`${e.field}` is not a variant of ${display_type(target_ty)}"))
+            return TY_UNRESOLVED
+        }
+        return target_ty
     }
     if !(target_ty is StructType) {
         diags.push(typecheck_error(.NotIndexable, e.span,
@@ -158,7 +228,7 @@ export substitute_by_name :: fn(
 import "std/collections" { MutableMap }
 import "std/math" { min }
 import "vader/typecheck/types" {
-    FnType, TupleType, TypeParamType, UnionType,
+    FnType, TypeParamType,
     mk_array, mk_fn, mk_struct, mk_tuple,
 }
 import "vader/typecheck/type_ops" { union_of }
@@ -173,10 +243,16 @@ import "vader/typecheck/types" { mk_primitive, mk_union, TY_VOID }
 ///   - `pop()`       → `T | null`
 ///   - `is_empty()`  → `bool`
 array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
-    if name == "len"      { return mk_fn([], mk_primitive("usize")) }
-    if name == "is_empty" { return mk_fn([], mk_primitive("bool")) }
-    if name == "push"     { return mk_fn([arr.element], TY_VOID) }
-    if name == "pop"      { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
+    if name == "len"          { return mk_fn([], mk_primitive("usize")) }
+    if name == "is_empty"     { return mk_fn([], mk_primitive("bool")) }
+    if name == "push"         { return mk_fn([arr.element], TY_VOID) }
+    if name == "pop"          { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
+    if name == "clear"        { return mk_fn([], TY_VOID) }
+    if name == "slice_array"  { return mk_fn([mk_primitive("usize"), mk_primitive("usize")], mk_array(arr.element, false)) }
+    if name == "reverse"      { return mk_fn([], mk_array(arr.element, false)) }
+    if name == "first"        { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
+    if name == "last"         { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
+    if name == "contains"     { return mk_fn([arr.element], mk_primitive("bool")) }
     return null
 }
 
@@ -184,17 +260,47 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
 /// Mirrors the stdlib `T` free fns the lowerer wires in.
 primitive_method_type :: fn(prim: string, name: string) -> Type | null {
     if prim == "string" {
-        if name == "len"        { return mk_fn([], mk_primitive("usize")) }
-        if name == "byte_len"   { return mk_fn([], mk_primitive("usize")) }
-        if name == "is_empty"   { return mk_fn([], mk_primitive("bool")) }
-        if name == "starts_with"{ return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
-        if name == "ends_with"  { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
-        if name == "contains"   { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
-        if name == "to_lower"   { return mk_fn([], mk_primitive("string")) }
-        if name == "to_upper"   { return mk_fn([], mk_primitive("string")) }
-        if name == "trim"       { return mk_fn([], mk_primitive("string")) }
-        if name == "byte_at"    { return mk_fn([mk_primitive("usize")], mk_primitive("u8")) }
+        if name == "len"         { return mk_fn([], mk_primitive("usize")) }
+        if name == "byte_len"    { return mk_fn([], mk_primitive("usize")) }
+        if name == "is_empty"    { return mk_fn([], mk_primitive("bool")) }
+        if name == "starts_with" { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
+        if name == "ends_with"   { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
+        if name == "contains"    { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
+        if name == "to_lower"    { return mk_fn([], mk_primitive("string")) }
+        if name == "to_upper"    { return mk_fn([], mk_primitive("string")) }
+        if name == "trim"        { return mk_fn([], mk_primitive("string")) }
+        if name == "trim_start"  { return mk_fn([], mk_primitive("string")) }
+        if name == "trim_end"    { return mk_fn([], mk_primitive("string")) }
+        if name == "byte_at"     { return mk_fn([mk_primitive("usize")], mk_primitive("u8")) }
+        if name == "slice"       { return mk_fn([mk_primitive("usize"), mk_primitive("usize")], mk_primitive("string")) }
+        if name == "split"       { return mk_fn([mk_primitive("string")], mk_array(mk_primitive("string"), false)) }
+        if name == "replace"     { return mk_fn([mk_primitive("string"), mk_primitive("string")], mk_primitive("string")) }
+        if name == "replace_all" { return mk_fn([mk_primitive("string"), mk_primitive("string")], mk_primitive("string")) }
+        if name == "find"        { return mk_fn([mk_primitive("string")], mk_union([mk_primitive("usize"), mk_primitive("null")])) }
+        if name == "find_all"    { return mk_fn([mk_primitive("string")], mk_array(mk_primitive("usize"), false)) }
+        if name == "pad_start"   { return mk_fn([mk_primitive("usize"), mk_primitive("char")], mk_primitive("string")) }
+        if name == "pad_end"     { return mk_fn([mk_primitive("usize"), mk_primitive("char")], mk_primitive("string")) }
+        if name == "repeat"      { return mk_fn([mk_primitive("usize")], mk_primitive("string")) }
+        if name == "concat"      { return mk_fn([mk_primitive("string")], mk_primitive("string")) }
     }
+    if prim == "char" {
+        if name == "is_white_char" { return mk_fn([], mk_primitive("bool")) }
+        if name == "is_digit"      { return mk_fn([], mk_primitive("bool")) }
+        if name == "is_alpha"      { return mk_fn([], mk_primitive("bool")) }
+        if name == "is_alnum"      { return mk_fn([], mk_primitive("bool")) }
+        if name == "is_lower"      { return mk_fn([], mk_primitive("bool")) }
+        if name == "is_upper"      { return mk_fn([], mk_primitive("bool")) }
+        if name == "to_lower"      { return mk_fn([], mk_primitive("char")) }
+        if name == "to_upper"      { return mk_fn([], mk_primitive("char")) }
+    }
+    // Numeric formatters live on the integer / float primitives.
+    if name == "to_hex" || name == "to_bin" || name == "to_oct" {
+        return mk_fn([], mk_primitive("string"))
+    }
+    // Hash / Equals are implemented for every primitive type — wired
+    // by the runtime, not by an explicit `implements` block.
+    if name == "hash"   { return mk_fn([], mk_primitive("u64")) }
+    if name == "equals" { return mk_fn([mk_primitive(prim)], mk_primitive("bool")) }
     return null
 }
 
@@ -207,6 +313,231 @@ import "vader/typecheck/expr_ident" { type_of_symbol }
 /// exports and return its declared type. Returns null when the
 /// pattern doesn't match (caller falls through to the struct-field
 /// path).
+// `s.foo()` where `foo` is a free fn whose first param accepts `s`'s
+// type. Walks `resolved.fn_overloads[foo]` and returns the curried
+// `FnType` (receiver stripped) of the first overload whose first
+// param accepts `s`. Null when no overload matches.
+// Substitute the impl method's TypeParams against the receiver's
+// concrete type args. Lets `MutableSet[T] implements ... { contains
+// :: fn(self, value: T) -> bool }` produce `fn(i32) -> bool` when
+// called on `MutableSet(i32)`.
+substitute_impl_method :: fn(impl_ty: Type, target_ty: Type, typed: TypedProgram) -> Type {
+    if !(target_ty is StructType) { return impl_ty }
+    decl :: typed.struct_decls[target_ty.symbol.id]
+    if decl is null { return impl_ty }
+    return substitute_by_name(impl_ty, decl.type_params, target_ty.args)
+}
+
+// `u.field` where `u: V1 | V2 | …`. Returns the union of each
+// variant's `.field` type when every variant carries it ; null when
+// any variant lacks the field (caller falls through to T3009).
+union_common_field :: fn(
+    u: UnionType, name: string, typed: TypedProgram, diags: Diagnostic[],
+) -> Type | null {
+    types: Type[] = []
+    for v in u.variants {
+        if !(v is StructType) { return null }
+        decl :: typed.struct_decls[v.symbol.id]
+        if decl is null { return null }
+        ty :: find_struct_field_type(decl, name, typed.resolved, diags)
+        if ty is null { return null }
+        types.push(substitute_struct_field(ty, decl, v))
+    }
+    return union_of(types)
+}
+
+// Replace every `SelfType` in `t` with `self_ty`. Used to specialise
+// trait-method signatures at the receiver's type (`fn(Self) -> Self`
+// → `fn(T) -> T` when called on a `T`).
+substitute_self :: fn(t: Type, self_ty: Type) -> Type {
+    match t {
+        is SelfType -> { return self_ty }
+        is ArrayType as a -> { return mk_array(substitute_self(a.element, self_ty), a.immutable) }
+        is StructType as s -> {
+            args: Type[] = []
+            for a in s.args { args.push(substitute_self(a, self_ty)) }
+            return mk_struct(s.symbol, args)
+        }
+        is FnType as f -> {
+            ps: Type[] = []
+            for p in f.params { ps.push(substitute_self(p, self_ty)) }
+            return mk_fn(ps, substitute_self(f.return_type, self_ty))
+        }
+        is UnionType as u -> {
+            vs: Type[] = []
+            for v in u.variants { vs.push(substitute_self(v, self_ty)) }
+            return union_of(vs)
+        }
+        is TupleType as t2 -> {
+            els: Type[] = []
+            for el in t2.elements { els.push(substitute_self(el, self_ty)) }
+            return mk_tuple(els)
+        }
+        _ -> { return t }
+    }
+}
+
+import "vader/typecheck/types" { SelfType }
+
+// Walk a TypeParam bound expression (single trait or `A & B` chain)
+// and return the first trait whose declared methods include `name`.
+dispatch_bounded_method :: fn(
+    bound: AST.Expr, name: string, typed: TypedProgram,
+) -> Type | null {
+    // Intersection : `A & B` — recurse on each side.
+    if bound is AST.BinaryExpr {
+        if i32(bound.op) == i32(AST.BinaryOp.BitAnd) {
+            l :: dispatch_bounded_method(bound.left, name, typed)
+            if !(l is null) { return l }
+            return dispatch_bounded_method(bound.right, name, typed)
+        }
+    }
+    bound_ty :: type_from_expr(bound, typed.resolved, [])
+    if bound_ty is TraitType {
+        return try_trait_method(bound_ty, name, typed)
+    }
+    return null
+}
+
+// `t.method()` where `t: <SomeTrait>`. Looks up the method on the
+// trait decl, drops the `self` param, and returns the curried fn
+// type. Null when the trait isn't indexed or the method is missing.
+try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type | null {
+    decl :: typed.trait_decls[t.symbol.id]
+    if decl is null { return null }
+    for m in decl.members {
+        if m.name != name { continue }
+        params: Type[] = []
+        // Skip `self` — `m.params[0]` is `self` for any trait
+        // method (per the parser).
+        for i in 1..<m.params.len() {
+            p :: m.params[i]
+            params.push(type_from_expr_opt(p.ty, typed))
+        }
+        ret :: type_from_expr_opt(m.return_type, typed)
+        return mk_fn(params, ret)
+    }
+    return null
+}
+
+type_from_expr_opt :: fn(e: AST.TypeExpr | null, typed: TypedProgram) -> Type {
+    if e is null { return TY_VOID }
+    return type_from_expr(e, typed.resolved, [])
+}
+
+try_free_fn_ufcs :: fn(name: string, target_ty: Type, typed: TypedProgram) -> Type | null {
+    bucket :: typed.resolved.fn_overloads[name]
+    match bucket {
+        is null -> {}
+        _ -> {
+            for sym in bucket {
+                sp :: sym.defined_at
+                if sp is null { continue }
+                ft :: typed.decl_types[span_key(sp)]
+                if ft is null { continue }
+                if !(ft is FnType) { continue }
+                curried :: try_curry_receiver(ft, target_ty)
+                if !(curried is null) { return curried }
+            }
+        }
+    }
+    // Imported free fns — `import "mod" { foo }` puts `foo` into
+    // `imported_fn_overloads` (populated by the orchestrator).
+    imported :: typed.imported_fn_overloads[name]
+    match imported {
+        is null -> {}
+        _ -> {
+            for ft in imported {
+                curried :: try_curry_receiver(ft, target_ty)
+                if !(curried is null) { return curried }
+            }
+        }
+    }
+    return null
+}
+
+try_curry_receiver :: fn(ft: FnType, target_ty: Type) -> Type | null {
+    if ft.params.len() == 0 { return null }
+    if !is_assignable(target_ty, ft.params[0], null) { return null }
+    bindings :: MutableMap(i32, Type) { .buckets = [], .size = 0 }
+    unify_typeparam(ft.params[0], target_ty, bindings)
+    rest: Type[] = []
+    for i in 1..<ft.params.len() { rest.push(substitute_by_id(ft.params[i], bindings)) }
+    return mk_fn(rest, substitute_by_id(ft.return_type, bindings))
+}
+
+// Walk `param` against `actual` and record `TypeParam.symbol.id →
+// concrete Type` bindings. Used to specialise UFCS-curried fn types
+// at the receiver type's instantiation.
+unify_typeparam :: fn(param: Type, actual: Type, bindings: MutableMap(i32, Type)) -> void {
+    match param {
+        is TypeParamType as tp -> { bindings[tp.symbol.id] = actual }
+        is StructType as sp -> {
+            if !(actual is StructType) { return }
+            asp :: actual
+            if sp.symbol.id != asp.symbol.id { return }
+            n :: min(sp.args.len(), asp.args.len())
+            for i in 0..<n { unify_typeparam(sp.args[i], asp.args[i], bindings) }
+        }
+        is ArrayType as ap -> {
+            if !(actual is ArrayType) { return }
+            unify_typeparam(ap.element, actual.element, bindings)
+        }
+        _ -> {}
+    }
+}
+
+substitute_by_id :: fn(t: Type, bindings: MutableMap(i32, Type)) -> Type {
+    match t {
+        is TypeParamType as tp -> {
+            replacement :: bindings[tp.symbol.id]
+            match replacement {
+                is null -> { return t }
+                _ -> { return replacement }
+            }
+        }
+        is ArrayType as a -> { return mk_array(substitute_by_id(a.element, bindings), a.immutable) }
+        is StructType as s -> {
+            args: Type[] = []
+            for a in s.args { args.push(substitute_by_id(a, bindings)) }
+            return mk_struct(s.symbol, args)
+        }
+        is FnType as f -> {
+            ps: Type[] = []
+            for p in f.params { ps.push(substitute_by_id(p, bindings)) }
+            return mk_fn(ps, substitute_by_id(f.return_type, bindings))
+        }
+        is UnionType as u -> {
+            vs: Type[] = []
+            for v in u.variants { vs.push(substitute_by_id(v, bindings)) }
+            return union_of(vs)
+        }
+        is TupleType as t2 -> {
+            els: Type[] = []
+            for el in t2.elements { els.push(substitute_by_id(el, bindings)) }
+            return mk_tuple(els)
+        }
+        _ -> { return t }
+    }
+}
+
+import "vader/typecheck/type_ops" { is_assignable }
+
+// Parse `0`, `1`, … from a tuple `.N` field name. Returns -1 when
+// the name isn't a non-negative integer literal — `.foo` on a tuple
+// then falls through to T3009 via the bounds check.
+parse_tuple_index :: fn(s: string) -> i32 {
+    len :: s.byte_len()
+    if len == usize(0) { return -1 }
+    n: i32 = 0
+    for i in usize(0)..<len {
+        c :: s.byte_at(i)
+        if c < u8('0') || c > u8('9') { return -1 }
+        n = n * 10 + i32(c - u8('0'))
+    }
+    return n
+}
+
 try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram) -> Type | null {
     target :: e.target
     if !(target is AST.IdentExpr) { return null }
