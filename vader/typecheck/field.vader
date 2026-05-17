@@ -104,6 +104,17 @@ export infer_field :: fn(
             _ -> { return substitute_self(trait_method, target_ty) }
         }
     }
+    // Default-bodied trait method inheritance : when target is a
+    // struct that implements a trait carrying a same-named method
+    // WITH a default body (`Iterator.count` / `Iterator.is_empty`),
+    // synthesise the dispatch from the trait method's signature.
+    if target_ty is StructType {
+        inherited :: try_default_trait_method(target_ty, e.field, typed)
+        match inherited {
+            is null -> {}
+            _ -> { return inherited }
+        }
+    }
     // Bounded TypeParam : `x.method()` where `x: T` with `T: Trait`
     // (or `T: Trait1 & Trait2`) dispatches to whichever bound trait
     // exposes the named method ; `Self` substitutes to `T`.
@@ -471,6 +482,45 @@ dispatch_bounded_method :: fn(
 // `t.method()` where `t: <SomeTrait>`. Looks up the method on the
 // trait decl, drops the `self` param, and returns the curried fn
 // type. Null when the trait isn't indexed or the method is missing.
+/// For a struct receiver, find a trait it implements whose method by
+/// the given name has a default (non-empty) body, and return the
+/// curried signature with `Self → struct_ty`. Trait type-args aren't
+/// recovered (`struct_implemented_traits` only stores trait names),
+/// so methods that reference the trait's `T` come back unsubstituted —
+/// good enough for std/string's `count_chars = s.chars().count()`
+/// where `count :: fn(self) -> usize` doesn't mention `T`.
+try_default_trait_method :: fn(
+    target_ty: StructType, name: string, typed: TypedProgram,
+) -> Type | null {
+    trait_names :: typed.struct_implemented_traits[target_ty.symbol.name]
+    if trait_names is null { return null }
+    for trait_name in trait_names {
+        for sym in typed.resolved.symbols {
+            if sym.name != trait_name { continue }
+            decl :: typed.trait_decls[sym.id]
+            if decl is null { continue }
+            owner :: typed.trait_decl_owners[sym.id]
+            owner_resolved: ResolvedModule = typed.resolved
+            match owner {
+                is null -> {}
+                _ -> { owner_resolved = owner }
+            }
+            for m in decl.members {
+                if m.name != name { continue }
+                if m.body is null { continue }     // require default body
+                params: Type[] = []
+                for i in 1..<m.params.len() {
+                    p :: m.params[i]
+                    params.push(type_from_expr_opt_in(p.ty, owner_resolved))
+                }
+                ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
+                return substitute_self(mk_fn(params, ret), target_ty)
+            }
+        }
+    }
+    return null
+}
+
 try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type | null {
     decl :: typed.trait_decls[t.symbol.id]
     if decl is null { return null }
