@@ -129,8 +129,18 @@ check_let :: fn(
             }
         }
     }
+    // T3035 : `name := <type-expr>` (mutable) where the inferred
+    // type is `type` is rejected — Layer 4 milestone B.1 doesn't
+    // ship a runtime Type value. The immutable form (`name :: ...`)
+    // is fine since it lowers as a const-as-type-alias.
+    if s.mutable && declared is TypeMetaType {
+        diags.push(typecheck_error(.TypeValuedSlotNotYetSupported, s.span,
+            "`type`-valued locals are not yet supported (Layer 4 milestone B.1) ; use the immutable form `name :: <type-expr>` for an in-fn type alias, or a top-level alias `Name :: type[T] ...`"))
+    }
     assign_binding_types(s.binding, declared, typed, diags)
 }
+
+import "vader/typecheck/types" { TypeMetaType }
 
 check_assign :: fn(
     s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[],
