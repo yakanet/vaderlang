@@ -27,6 +27,13 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     line :: position_line(params)
     character :: position_character(params)
 
+    // First try to surface the inferred type at the cursor — value-position
+    // hovers (a local, an argument, an intermediate sub-expression) all
+    // surface here. Falls through to the scope-based decl lookup when
+    // there's no expression at the cursor or no type was inferred.
+    typed_payload :: try_typed_hover(uri, line, character)
+    if !(typed_payload is null) { return typed_payload }
+
     idx :: state.index_for(uri)
     match idx {
         is null              -> { return JsonNull {} }
@@ -163,6 +170,222 @@ join_lines :: fn(lines: string[]) -> string {
     }
     return out
 }
+
+// ---- typed-hover lookup --------------------------------------------------
+
+/// Run the typechecker for `uri` and return a Hover payload with the
+/// inferred type at (line, character). Returns `null` on miss so the
+/// caller can fall through to the scope-based decl lookup.
+try_typed_hover :: fn(uri: string, line: i32, character: i32) -> JsonValue | null {
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return null }
+    project :: load_project(file_path)
+    diags: Diagnostic[] = []
+    result :: check_project_with_bodies(project, diags)
+    entry :: project.modules[project.entry]
+    if entry is null { return null }
+    // LSP positions are 0-based ; the Vader AST is 1-based.
+    target_line :: line + i32(1)
+    target_col  :: character + i32(1)
+    found :: find_expr_at(entry.module.files[0].program.decls, target_line, target_col, result.typed)
+    if found is null { return null }
+    ty :: result.typed.expr_types[found.id]
+    if ty is null { return null }
+    body :: "```vader\n" + display_type(ty) + "\n```"
+    contents :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    contents["kind"]  = JsonString { .value = "markdown" }
+    contents["value"] = JsonString { .value = body }
+    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    obj["contents"] = JsonObject { .entries = contents }
+    return JsonObject { .entries = obj }
+}
+
+uri_to_path :: fn(uri: string) -> string {
+    prefix :: "file://"
+    if uri.starts_with(prefix) {
+        return uri.slice(prefix.byte_len(), uri.byte_len())
+    }
+    return ""
+}
+
+/// Walk every fn body in `decls` looking for the smallest expression
+/// whose span contains `(line, col)` AND has a `typed.expr_types`
+/// entry. Returns the matching AST.Expr, or `null` on miss. Smallest
+/// match wins so `f(x + y)` hover on `x` returns `x` not the whole
+/// `f(...)` call.
+find_expr_at :: fn(
+    decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram,
+) -> AST.Expr | null {
+    state :: FindState { .line = line, .col = col, .best = null, .best_size = u64(0) }
+    for d in decls { walk_decl(d, typed, state) }
+    return state.best
+}
+
+FindState :: struct {
+    line:      i32
+    col:       i32
+    best:      AST.Expr | null
+    best_size: u64
+}
+
+walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState) -> void {
+    match d {
+        is AST.FnDecl as fd -> {
+            match fd.body {
+                is null -> {}
+                is AST.BlockExpr as b -> { walk_block(b, typed, st) }
+            }
+        }
+        is AST.ImplDecl as id -> {
+            for m in id.members {
+                match m.body {
+                    is null -> {}
+                    is AST.BlockExpr as b -> { walk_block(b, typed, st) }
+                }
+            }
+        }
+        is AST.ConstDecl as cd -> { walk_expr(cd.value, typed, st) }
+        _ -> {}
+    }
+}
+
+walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindState) -> void {
+    for s in b.stmts { walk_stmt(s, typed, st) }
+    match b.trailing {
+        is null -> {}
+        _ -> { walk_expr(b.trailing, typed, st) }
+    }
+}
+
+walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState) -> void {
+    match s {
+        is AST.LetStmt as ls -> { walk_expr(ls.value, typed, st) }
+        is AST.ExprStmt as es -> { walk_expr(es.expr, typed, st) }
+        is AST.ReturnStmt as rs -> {
+            match rs.value {
+                is null -> {}
+                _ -> { walk_expr(rs.value, typed, st) }
+            }
+        }
+        is AST.AssignStmt as as_ -> {
+            walk_expr(as_.target, typed, st)
+            walk_expr(as_.value, typed, st)
+        }
+        is AST.ForStmt as fs -> {
+            match fs.form {
+                is AST.WhileFor as w -> { walk_expr(w.cond, typed, st) }
+                is AST.InFor    as i -> { walk_expr(i.iter, typed, st) }
+                is AST.InfiniteFor -> {}
+            }
+            walk_block(fs.body, typed, st)
+        }
+        is AST.BreakStmt -> {}
+        is AST.ContinueStmt -> {}
+        is AST.DeferStmt as ds -> {
+            match ds.body {
+                is AST.DeferStmtBody  as dsb -> { walk_stmt(dsb.stmt, typed, st) }
+                is AST.DeferBlockBody as dbb -> { walk_block(dbb.block, typed, st) }
+            }
+        }
+    }
+}
+
+walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
+    consider(e, typed, st)
+    match e {
+        is AST.CallExpr as c -> {
+            walk_expr(c.callee, typed, st)
+            for a in c.args { walk_expr(a.value, typed, st) }
+        }
+        is AST.FieldExpr as f -> { walk_expr(f.target, typed, st) }
+        is AST.IndexExpr as ix -> {
+            walk_expr(ix.target, typed, st)
+            walk_expr(ix.index, typed, st)
+        }
+        is AST.UnaryExpr as u -> { walk_expr(u.operand, typed, st) }
+        is AST.BinaryExpr as bn -> {
+            walk_expr(bn.left, typed, st)
+            walk_expr(bn.right, typed, st)
+        }
+        is AST.IfExpr as ifx -> {
+            walk_expr(ifx.cond, typed, st)
+            walk_block(ifx.then_block, typed, st)
+            match ifx.else_branch {
+                is null -> {}
+                is AST.IfElseIf    as ei -> { walk_expr(ei.branch, typed, st) }
+                is AST.IfElseBlock as eb -> { walk_block(eb.block, typed, st) }
+            }
+        }
+        is AST.MatchExpr as m -> {
+            walk_expr(m.scrutinee, typed, st)
+            for arm in m.arms { walk_expr(arm.body, typed, st) }
+        }
+        is AST.BlockExpr as b -> { walk_block(b, typed, st) }
+        is AST.LambdaExpr as l -> { walk_block(l.body, typed, st) }
+        is AST.StructLitExpr as sl -> {
+            walk_expr(sl.type_name, typed, st)
+            for item in sl.items {
+                match item {
+                    is AST.StructLitField  as fld -> { walk_expr(fld.value, typed, st) }
+                    is AST.StructLitSpread as sp  -> { walk_expr(sp.expr, typed, st) }
+                }
+            }
+        }
+        is AST.SeqLitExpr as sq -> {
+            for el in sq.elements { walk_expr(el, typed, st) }
+        }
+        is AST.CastExpr as cx -> { walk_expr(cx.value, typed, st) }
+        is AST.TryExpr as tx -> { walk_expr(tx.inner, typed, st) }
+        is AST.GenericInstExpr as gi -> {
+            walk_expr(gi.callee, typed, st)
+            for ta in gi.type_args { walk_expr(ta, typed, st) }
+        }
+        is AST.IntrinsicCallExpr as ic -> {
+            for a in ic.args { walk_expr(a, typed, st) }
+        }
+        // Leaves : IntLit, FloatLit, BoolLit, NullLit, CharLit,
+        // StringLit, IdentExpr, RangeExpr, DotVariantExpr, FnTypeExpr,
+        // ArrayTypeExpr — already considered above ; no children with
+        // independent expression spans worth recursing into for hover.
+        _ -> {}
+    }
+}
+
+consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
+    sp :: e.span
+    if !span_contains(sp, st.line, st.col) { return }
+    // Skip until we have a type entry — no point reporting a node
+    // whose hover would show `?`.
+    if typed.expr_types[e.id] is null { return }
+    size :: span_size(sp)
+    if st.best is null || size < st.best_size {
+        st.best = e
+        st.best_size = size
+    }
+}
+
+span_contains :: fn(s: Span, line: i32, col: i32) -> bool {
+    if line < s.start.line { return false }
+    if line > s.end.line   { return false }
+    if line == s.start.line && col < s.start.column { return false }
+    if line == s.end.line   && col > s.end.column   { return false }
+    return true
+}
+
+// `(end.line - start.line) << 16 | (end.col - start.col)` — coarse
+// proxy for character extent ; smaller wins in `consider`.
+span_size :: fn(s: Span) -> u64 {
+    line_extent :: u64(s.end.line - s.start.line)
+    col_extent  :: u64(s.end.column - s.start.column)
+    return (line_extent << usize(16)) + col_extent
+}
+
+import "vader/diagnostics/diagnostic" { Diagnostic, Span }
+import "vader/resolver/loader" { load_project }
+import "vader/typecheck/orchestrate" { check_project_with_bodies }
+import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/typecheck/types" { display_type }
+AST :: import "vader/parser/ast"
 
 // ---- params extraction (mirrors definition.vader) ------------------------
 
