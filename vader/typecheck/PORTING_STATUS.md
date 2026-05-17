@@ -64,7 +64,7 @@ MissingRequiredFieldInStructLit · T3038 FieldAlreadyProvided
 The `tests/parity.test.ts::typecheck` stage diffs the Vader CLI's
 `dump --stage=typed-ast` byte-for-byte against the TS-generated
 `typecheck.snapshot` for every snippet under `tests/snippets/`.
-Current scoring : **121/251 (~48%) pass**. The remaining 130 fall
+Current scoring : **128/251 (~51%) pass**. The remaining 124 fall
 into the buckets below, ordered by impact :
 
 ### Bucket A — Cross-module imports — **DONE**
