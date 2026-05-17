@@ -15,7 +15,15 @@ import "std/collections" { MutableMap }
 import "vader/typecheck/type_ops" { equals_type }
 import "vader/typecheck/types" {
     Type, ArrayType, TupleType, StructType, TraitType, FnType, UnionType,
-    TypeParamType,
+    TypeParamType, FreeIntType, FreeFloatType,
+}
+
+is_free_numeric :: fn(t: Type) -> bool {
+    match t {
+        is FreeIntType -> { return true }
+        is FreeFloatType -> { return true }
+        _ -> { return false }
+    }
 }
 
 /// Walk `param_type` against `arg_type` and record any TypeParam
@@ -26,7 +34,15 @@ export unify_type_param :: fn(
     match param_type {
         is TypeParamType as tp -> {
             existing :: out[tp.symbol.id]
-            if existing is null { out[tp.symbol.id] = arg_type }
+            if existing is null { out[tp.symbol.id] = arg_type  return }
+            // Tighten Free* bindings when a later arg pins the same
+            // type-param to a concrete numeric. Lets
+            // `fold([1,2,3], 1, (a, b) -> a + b)` re-bind U from
+            // FreeInt (init=1) to i32 (the lambda body returns i32)
+            // so the post-loop assignability check accepts the lambda.
+            if is_free_numeric(existing) && !is_free_numeric(arg_type) {
+                out[tp.symbol.id] = arg_type
+            }
             return
         }
         is ArrayType as pa -> {

@@ -145,9 +145,14 @@ export infer_call :: fn(
         seed_ufcs_bindings(c.callee, typed, bindings)
         arg_types: Type[] = []
         for i in 0..<n {
-            param_ty :: callee_ty.params[i]
+            // Substitute the param type with bindings learned from
+            // previous args BEFORE typing this one — lets the lambda
+            // in `nums.reduce(0, (a, b) -> a + b)` see
+            // `fn(i32, i32) -> i32` as its `expected`, not the
+            // unsubstituted `fn(T, U) -> U`.
+            param_ty :: substitute(callee_ty.params[i], bindings)
             arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
-            unify_type_param(param_ty, arg_ty, bindings)
+            unify_type_param(callee_ty.params[i], arg_ty, bindings)
             arg_types.push(arg_ty)
         }
         for i in 0..<n {

@@ -93,7 +93,23 @@ pick_ctx_return :: fn(expected: Type | null) -> Type {
 
 pick_final_return :: fn(expected: Type | null, body: Type) -> Type {
     match expected {
-        is null -> { return body }
-        _ -> { return expected }
+        is null -> { return default_if_free(body) }
+        _ -> {
+            // Inferred-from-call-site slots that aren't yet concrete
+            // (unbound TypeParam, or a FreeInt/FreeFloat carried over
+            // from an earlier arg's pre-default unify) fall back to
+            // the body's defaulted type. Otherwise the lambda would
+            // report `fn(...) -> U` / `fn(...) -> {integer}` instead of
+            // the concrete primitive its body actually produces.
+            match expected {
+                is TypeParamType -> { return default_if_free(body) }
+                is FreeIntType   -> { return default_if_free(body) }
+                is FreeFloatType -> { return default_if_free(body) }
+                _ -> { return expected }
+            }
+        }
     }
 }
+
+import "vader/typecheck/type_ops" { default_if_free }
+import "vader/typecheck/types" { FreeIntType, FreeFloatType, TypeParamType }
