@@ -158,6 +158,13 @@ export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> 
         }
     }
 
+    // Trait widening (oracle-free path) : the side-table check.
+    // `struct_implemented_traits` is populated at impl-walk time so
+    // `Cat → Animal` works when `Cat implements Animal` exists.
+    // Lookup falls back to the global registry passed via the
+    // trait oracle when supplied.
+    // (handled by callers via TraitOracle when available)
+
     // Tuple → Tuple element-wise (no Array ↔ Tuple by design).
     match from {
         is TupleType as ft -> {

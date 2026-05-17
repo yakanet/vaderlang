@@ -156,7 +156,15 @@ export infer_field :: fn(
         // (e.g. cross-module reference before wire.vader lands).
         return TY_UNRESOLVED
     }
-    found :: find_struct_field_type(decl, e.field, typed.resolved, diags)
+    // Cross-module path : `struct_field_types` carries the
+    // already-resolved field types using the OWNING module's
+    // resolved.idents. Falls back to walking the AST locally when
+    // the entry hasn't seen this struct.
+    pre_resolved :: lookup_pre_resolved_field(target_ty.symbol.id, e.field, typed)
+    found: Type | null = pre_resolved
+    if found is null {
+        found = find_struct_field_type(decl, e.field, typed.resolved, diags)
+    }
     match found {
         is null -> {
             diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
@@ -165,6 +173,12 @@ export infer_field :: fn(
         }
         _ -> { return substitute_struct_field(found, decl, target_ty) }
     }
+}
+
+lookup_pre_resolved_field :: fn(struct_id: i32, name: string, typed: TypedProgram) -> Type | null {
+    fmap :: typed.struct_field_types[struct_id]
+    if fmap is null { return null }
+    return fmap[name]
 }
 
 /// Substitute typeParam bindings from `decl.type_params` against

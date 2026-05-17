@@ -112,7 +112,19 @@ declare_decl :: fn(
             // Index the struct decl by symbol id so `field.vader` can
             // walk fields without re-traversing the program AST.
             sym :: by_name[sd.name]
-            if sym is Symbol { typed.struct_decls[sym.id] = sd }
+            if sym is Symbol {
+                typed.struct_decls[sym.id] = sd
+                // Pre-resolve every field's type using THIS module's
+                // resolved.idents. Cross-module field lookups (entry
+                // struct lives in `std/collections` but `entry.value`
+                // is read from main) consult these directly via the
+                // owner module's bindings.
+                fields_map :: MutableMap(string, Type) { .buckets = [], .size = 0 }
+                for f in sd.fields {
+                    fields_map[f.name] = type_from_expr(f.ty, resolved, diags)
+                }
+                typed.struct_field_types[sym.id] = fields_map
+            }
         }
         is AST.EnumDecl as ed    -> { declare_enum(ed, by_name, resolved, typed, diags) }
         is AST.TraitDecl as td   -> {

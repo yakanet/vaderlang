@@ -239,6 +239,7 @@ merge_external_impl_methods :: fn(
             match decl {
                 is AST.ImplDecl as id_decl -> {
                     for_ty :: type_from_expr(id_decl.for_type, other.resolved, diag_sink())
+                    record_struct_trait(entry_typed, for_ty, id_decl.trait_name)
                     for m in id_decl.members {
                         key :: "${display_type(for_ty)}::${m.name}"
                         base_key :: "${type_base_name(for_ty)}::${m.name}"
@@ -284,6 +285,7 @@ merge_external_impl_methods :: fn(
 
 diag_sink :: fn() -> Diagnostic[] { return [] }
 
+
 // `Into(Iterator(T))` is the for-in coercion entry point — pull T
 // out of the `Iterator(T)` arg so `for x in X` binds x to T.
 // Returns null when the arg isn't shaped like `Iterator(T)`.
@@ -311,6 +313,22 @@ record_impl_trait :: fn(typed: TypedProgram, base_key: string, trait_name: strin
         }
     }
 }
+
+record_struct_trait :: fn(typed: TypedProgram, for_ty: Type, trait_name: string) -> void {
+    if !(for_ty is StructType) { return }
+    name :: for_ty.symbol.name
+    bucket :: typed.struct_implemented_traits[name]
+    match bucket {
+        is null -> { typed.struct_implemented_traits[name] = [trait_name] }
+        _ -> {
+            for n in bucket { if n == trait_name { return } }
+            bucket.push(trait_name)
+            typed.struct_implemented_traits[name] = bucket
+        }
+    }
+}
+
+import "vader/typecheck/types" { StructType }
 
 // Walk every loaded module's `ImplDecl`s and call
 // `materialize_sam_members` against the matching trait — works
@@ -484,6 +502,11 @@ merge_struct_decls :: fn(
             if decl is null { continue }
             entry_typed.trait_decls[sym_id] = decl
         }
+        for sym_id in other.struct_field_types.keys() {
+            fmap :: other.struct_field_types[sym_id]
+            if fmap is null { continue }
+            entry_typed.struct_field_types[sym_id] = fmap
+        }
     }
 }
 
@@ -517,20 +540,27 @@ populate_imported_fn_overloads :: fn(
     // Then : every loaded module's `decl_types` contributes its
     // exported fns so unqualified UFCS dispatch (e.g. `sb.to_string()`
     // where `to_string` wasn't explicitly imported) still finds the
-    // matching free fn from `std/string_builder`.
+    // matching free fn from `std/string_builder`. We iterate
+    // `fn_overloads` (not `symbols`) so every overload of the same
+    // name (`len :: fn[T](self: MutableSet(T))` AND `len :: fn[K, V]
+    // (self: MutableMap(K, V))`) lands in the bucket.
     entry_path :: entry_typed.resolved.path
     for id in per_module.keys() {
         other :: per_module[id]
         if other is null { continue }
         if other.resolved.path == entry_path { continue }
-        for sym in other.resolved.symbols {
-            sp :: sym.defined_at
-            if sp is null { continue }
-            ty :: other.decl_types[span_key(sp)]
-            if ty is null { continue }
-            match ty {
-                is FnType as ft -> { push_overload(entry_typed, sym.name, ft) }
-                _ -> {}
+        for name in other.resolved.fn_overloads.keys() {
+            bucket :: other.resolved.fn_overloads[name]
+            if bucket is null { continue }
+            for sym in bucket {
+                sp :: sym.defined_at
+                if sp is null { continue }
+                ty :: other.decl_types[span_key(sp)]
+                if ty is null { continue }
+                match ty {
+                    is FnType as ft -> { push_overload(entry_typed, name, ft) }
+                    _ -> {}
+                }
             }
         }
     }
@@ -716,6 +746,7 @@ export walk_bodies :: fn(
                     typed.index_target_types[local_base_key] = result_ty
                 }
                 check_impl_missing_methods(id, typed, diags)
+                record_struct_trait(typed, for_ty, id.trait_name)
                 for m in id.members {
                     declare_impl_method(m, for_ty, typed, diags)
                     key :: "${display_type(for_ty)}::${m.name}"

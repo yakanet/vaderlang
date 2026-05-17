@@ -7,6 +7,12 @@
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/typecheck/coerce" { try_into }
 import "vader/typecheck/field" { find_struct_field_type, substitute_by_name }
+
+lookup_pre_resolved_field_for_lit :: fn(struct_id: i32, name: string, typed: TypedProgram) -> Type | null {
+    fmap :: typed.struct_field_types[struct_id]
+    if fmap is null { return null }
+    return fmap[name]
+}
 import "vader/typecheck/type_ops" { is_assignable }
 import "vader/typecheck/types" { Type, StructType, display_type, TY_UNRESOLVED }
 import "vader/typecheck/type_expr" { type_from_expr }
@@ -69,7 +75,13 @@ check_field :: fn(
 ) -> void {
     expected: Type | null = null
     if decl is AST.StructDecl {
-        raw :: find_struct_field_type(decl, f.name, typed.resolved, diags)
+        // Prefer the pre-resolved field type (handles cross-module
+        // structs where the field type references another module's
+        // type-params). Fall back to walking the AST locally.
+        raw: Type | null = lookup_pre_resolved_field_for_lit(st.symbol.id, f.name, typed)
+        if raw is null {
+            raw = find_struct_field_type(decl, f.name, typed.resolved, diags)
+        }
         match raw {
             is null -> {}
             _ -> { expected = substitute_by_name(raw, decl.type_params, st.args) }

@@ -19,6 +19,29 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
     targeted :: typed.impl_methods["${display_type(got)}::into::${display_type(expected)}"]
     match targeted {
         is FnType as f -> { return is_assignable(f.return_type, expected, null) }
-        _ -> { return false }
+        _ -> {}
     }
+    // Trait widening : `Cat → Animal` when `Cat implements Animal`.
+    if try_trait_widen(got, expected, typed) { return true }
+    return false
 }
+
+/// True when `got` implements the trait `expected` (or a variant of
+/// `expected` if it's a union).
+export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
+    if expected is UnionType {
+        for v in expected.variants {
+            if try_trait_widen(got, v, typed) { return true }
+        }
+        return false
+    }
+    if !(expected is TraitType) { return false }
+    if !(got is StructType) { return false }
+    trait_name :: expected.symbol.name
+    bucket :: typed.struct_implemented_traits[got.symbol.name]
+    if bucket is null { return false }
+    for name in bucket { if name == trait_name { return true } }
+    return false
+}
+
+import "vader/typecheck/types" { StructType, TraitType, UnionType }
