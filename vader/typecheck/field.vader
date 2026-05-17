@@ -510,10 +510,6 @@ try_default_trait_method :: fn(
     trait_names :: typed.struct_implemented_traits[target_ty.symbol.name]
     if trait_names is null { return null }
     for trait_name in trait_names {
-        // Resolve the trait's Symbol — try local first, then
-        // core_symbols (Iterator / Display / Equals / Comparable live
-        // in std/core), then fall back to scanning every trait_decl
-        // for a matching name (catches cross-non-core modules).
         trait_sym :: lookup_trait_symbol(trait_name, typed)
         if trait_sym is null { continue }
         decl :: typed.trait_decls[trait_sym.id]
@@ -533,10 +529,36 @@ try_default_trait_method :: fn(
                 params.push(type_from_expr_opt_in(p.ty, owner_resolved))
             }
             ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
-            return substitute_self(mk_fn(params, ret), target_ty)
+            // Substitute Self → struct, then trait type-params →
+            // recorded impl args. Lets `(0..<5).last()` report
+            // `i32 | null` instead of `T | null`.
+            sub_self :: substitute_self(mk_fn(params, ret), target_ty)
+            return substitute_trait_typeparams(sub_self, decl, trait_name, target_ty, typed)
         }
     }
     return null
+}
+
+substitute_trait_typeparams :: fn(
+    t: Type, trait_decl: AST.TraitDecl, trait_name: string,
+    target_ty: StructType, typed: TypedProgram,
+) -> Type {
+    if trait_decl.type_params.len() == 0 { return t }
+    per_struct :: typed.struct_trait_args[target_ty.symbol.name]
+    if per_struct is null { return t }
+    impl_args :: per_struct[trait_name]
+    if impl_args is null { return t }
+    // The impl args might themselves reference TypeParams from the
+    // implementing struct (`Range[T] implements Iterator[T]` records
+    // `[T]` where T is Range's). Resolve those against the receiver's
+    // concrete args first so `(10..=15).last()` ends up `i32 | null`.
+    resolved_args: Type[] = []
+    struct_decl :: typed.struct_decls[target_ty.symbol.id]
+    for a in impl_args {
+        if struct_decl is null { resolved_args.push(a) }
+        else { resolved_args.push(substitute_by_name(a, struct_decl.type_params, target_ty.args)) }
+    }
+    return substitute_by_name(t, trait_decl.type_params, resolved_args)
 }
 
 lookup_trait_symbol :: fn(name: string, typed: TypedProgram) -> Symbol | null {
