@@ -122,6 +122,21 @@ detect_is_narrow :: fn(
         }
     }
     if !(cond is AST.BinaryExpr) { return null }
+    // `x == null` / `x != null` / `null == x` / `null != x` — both
+    // orderings flip the same way.
+    if i32(cond.op) == i32(AST.BinaryOp.Eq) || i32(cond.op) == i32(AST.BinaryOp.Neq) {
+        ident_side :: pick_ident_vs_null(cond.left, cond.right)
+        if ident_side is null { return null }
+        sym :: typed.resolved.idents[span_key(ident_side.span)]
+        if sym is null { return null }
+        base :: type_of_symbol(sym, typed)
+        null_ty :: mk_primitive("null")
+        non_null :: subtract_type(base, null_ty)
+        if i32(cond.op) == i32(AST.BinaryOp.Eq) {
+            return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = null_ty, .else_ty = non_null }
+        }
+        return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = non_null, .else_ty = null_ty }
+    }
     if i32(cond.op) != i32(AST.BinaryOp.Is) { return null }
     if !(cond.left is AST.IdentExpr) { return null }
     sym :: typed.resolved.idents[span_key(cond.left.span)]
@@ -134,6 +149,16 @@ detect_is_narrow :: fn(
         .then_ty   = narrowed,
         .else_ty   = subtract_type(base, narrowed),
     }
+}
+
+pick_ident_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.IdentExpr | null {
+    if a is AST.IdentExpr {
+        if b is AST.NullLitExpr { return a }
+    }
+    if b is AST.IdentExpr {
+        if a is AST.NullLitExpr { return b }
+    }
+    return null
 }
 
 // ---- tests ----------------------------------------------------------------

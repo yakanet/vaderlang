@@ -16,7 +16,7 @@ import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/type_ops" { is_assignable, default_if_free, narrow_for_expected }
 import "vader/typecheck/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
-    TY_BOOL, TY_VOID, TY_UNRESOLVED,
+    TY_BOOL, TY_NEVER, TY_VOID, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
 
@@ -41,7 +41,15 @@ export check_block :: fn(
     }
     result: Type = TY_VOID
     match block.trailing {
-        is null -> {}
+        is null -> {
+            // Diverged block (last stmt is `return` / `break` /
+            // `continue`) carries `Never` so callers (`infer_if`,
+            // `infer_match`) collapse the union arm cleanly.
+            if block.stmts.len() > 0 {
+                last :: block.stmts[block.stmts.len() - 1]
+                if is_divergent_stmt(last) { result = TY_NEVER }
+            }
+        }
         _ -> { result = check_expr_fn(block.trailing, expected, typed, diags) }
     }
     // Restore the binding's static type on block exit so outer
@@ -386,10 +394,13 @@ push_divergent_narrow_if :: fn(
 
 then_is_divergent :: fn(b: AST.BlockExpr) -> bool {
     if b.stmts.len() == 0 { return false }
-    last :: b.stmts[b.stmts.len() - 1]
-    if last is AST.ReturnStmt { return true }
-    if last is AST.BreakStmt { return true }
-    if last is AST.ContinueStmt { return true }
+    return is_divergent_stmt(b.stmts[b.stmts.len() - 1])
+}
+
+is_divergent_stmt :: fn(s: AST.Stmt) -> bool {
+    if s is AST.ReturnStmt { return true }
+    if s is AST.BreakStmt { return true }
+    if s is AST.ContinueStmt { return true }
     return false
 }
 
@@ -415,22 +426,56 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         }
     }
     if !(cond is AST.BinaryExpr) { return null }
+    // `x == null` / `x != null` / `null == x` / `null != x` — both
+    // orderings flip the same way ; divergent guard pushes the
+    // complement narrowing for the rest of the block.
+    if i32(cond.op) == i32(AST.BinaryOp.Eq) || i32(cond.op) == i32(AST.BinaryOp.Neq) {
+        ident_side :: pick_ident_vs_null(cond.left, cond.right)
+        if ident_side is null { return null }
+        sym :: typed.resolved.idents[span_key(ident_side.span)]
+        if sym is null { return null }
+        base :: type_of_symbol(sym, typed)
+        current :: narrow_for_binding(typed, sym.id, base)
+        null_ty :: mk_primitive("null")
+        if i32(cond.op) == i32(AST.BinaryOp.Eq) {
+            return BlockNarrow {
+                .sym_id    = sym.id,
+                .static_ty = base,
+                .else_ty   = subtract_type(current, null_ty),
+            }
+        }
+        return BlockNarrow { .sym_id = sym.id, .static_ty = base, .else_ty = null_ty }
+    }
     if i32(cond.op) != i32(AST.BinaryOp.Is) { return null }
     if !(cond.left is AST.IdentExpr) { return null }
     sym :: typed.resolved.idents[span_key(cond.left.span)]
     if sym is null { return null }
     base :: type_of_symbol(sym, typed)
+    current :: narrow_for_binding(typed, sym.id, base)
     narrowed :: type_from_expr(cond.right, typed.resolved, diag_sink_stmt())
     return BlockNarrow {
         .sym_id    = sym.id,
         .static_ty = base,
-        .else_ty   = subtract_type(base, narrowed),
+        .else_ty   = subtract_type(current, narrowed),
     }
 }
 
+pick_ident_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.IdentExpr | null {
+    if a is AST.IdentExpr {
+        if b is AST.NullLitExpr { return a }
+    }
+    if b is AST.IdentExpr {
+        if a is AST.NullLitExpr { return b }
+    }
+    return null
+}
+
+import "vader/typecheck/types" { mk_primitive }
+
+
 diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
 
-import "vader/typecheck/narrow" { pop_narrow, push_narrow }
+import "vader/typecheck/narrow" { narrow_for_binding, pop_narrow, push_narrow }
 import "vader/typecheck/expr_ident" { type_of_symbol }
 import "vader/typecheck/type_ops" { subtract_type }
 

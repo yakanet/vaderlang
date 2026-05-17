@@ -16,7 +16,9 @@
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
+import "vader/resolver/scope" { span_full_key }
 import "vader/resolver/symbol" { SymbolKind }
+import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/type_ops" { is_numeric_name, is_int_name, is_float_name }
 import "vader/typecheck/types" {
     Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
@@ -32,6 +34,19 @@ export infer_binary :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     left :: check_expr_fn(e.left, null, typed, diags)
+    // `x is T` — right side is a type expression. Record its
+    // resolved type directly so dump entries match TS (e.g. `i32`
+    // instead of the `type` metatype).
+    if i32(e.op) == i32(AST.BinaryOp.Is) {
+        rhs_ty :: type_from_expr(e.right, typed.resolved, diags)
+        key :: span_full_key(e.right.span)
+        typed.expr_types[key] = rhs_ty
+        // Only IdentExpr's kind label is interesting at the dump
+        // level — the right side of `is` is almost always a type
+        // ident (`is i32`, `is Cat`).
+        if e.right is AST.IdentExpr { typed.expr_kinds[key] = "IdentExpr" }
+        return TY_BOOL
+    }
     // Right-side bidirectional context : when left is a concrete numeric,
     // narrow free numeric literals on the right (`size + 1` → `1: usize`).
     right_ctx :: numeric_propagation(e.op, left)
