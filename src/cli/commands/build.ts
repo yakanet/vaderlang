@@ -17,15 +17,29 @@ function isTarget(s: string): s is Target {
 }
 
 export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number> {
-  const positional = args.filter((a) => !a.startsWith("--"));
-  const flags = args.filter((a) => a.startsWith("--"));
+  // Pre-strip `-o <path>` (POSIX style) so it joins `--out=<path>` semantics.
+  // Without this the parser would treat `-o` and its value as positionals
+  // and silently drop the override — the binary still lands at the default
+  // path while the user thinks they redirected it.
+  const stripped: string[] = [];
+  let shortOut: string | undefined;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "-o" && i + 1 < args.length) {
+      shortOut = args[i + 1];
+      i++;
+      continue;
+    }
+    stripped.push(args[i]);
+  }
+  const positional = stripped.filter((a) => !a.startsWith("--"));
+  const flags = stripped.filter((a) => a.startsWith("--"));
 
   const file = positional[0];
   const targetRaw =
     flags.find((f) => f.startsWith("--target="))?.slice("--target=".length) ??
     "native";
   const useManifest = flags.includes("--manifest");
-  const outFlag = flags.find((f) => f.startsWith("--out="))?.slice("--out=".length);
+  const outFlag = flags.find((f) => f.startsWith("--out="))?.slice("--out=".length) ?? shortOut;
   const release = flags.includes("--release");
   // C compiler selection : --cc=<path> wins over the CC env var, both fall back
   // to "cc" (POSIX default). The chosen compiler is used as-is — pass a
