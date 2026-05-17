@@ -36,28 +36,49 @@ import "vader/typecheck/typed_ast" { TypedProgram }
 /// when `with_banner = false` so multi-module callers can compose without
 /// re-emitting it ; in single-module pipelines pass `true`.
 export dump_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
+    return dump_program_with_others(typed, with_banner, [])
+}
+
+/// Same as `dump_program` but accepts a list of non-entry typed
+/// modules whose `expr_types` / `expr_kinds` get merged into the
+/// entry's section. Matches TS — `dumpTypecheck` collapses all
+/// loaded modules under a single header.
+export dump_program_with_others :: fn(
+    typed: TypedProgram, with_banner: bool, others: TypedProgram[],
+) -> string {
     sb :: new_builder()
     if with_banner { sb.append("# Typecheck") }
     sb.append("\n\n## ")
     sb.append(typed.resolved.path)
-    // Decls : sorted case-insensitively by name (matches TS
-    // `name.localeCompare(other)` ordering). `resolved.symbols` is
-    // pre-sorted byte-wise so we re-sort here for the dump only.
     decl_lines :: build_decl_lines(typed)
     for line in decl_lines {
         sb.append("\n")
         sb.append(line)
     }
-    // Expression lines : sorted lexicographically across the whole
-    // module so the dump is stable regardless of HashMap iteration.
-    expr_lines :: build_expr_lines(typed)
+    expr_lines :: build_expr_lines_combined(typed, others)
     for line in expr_lines {
         sb.append("\n")
         sb.append(line)
     }
-    // CLI wrappers add the trailing newline via `println` (matches TS) ;
-    // don't append it here.
     return sb.to_string()
+}
+
+build_expr_lines_combined :: fn(typed: TypedProgram, others: TypedProgram[]) -> string[] {
+    out: string[] = []
+    append_expr_lines(typed, out)
+    for o in others { append_expr_lines(o, out) }
+    return sort(out, (a: string, b: string) -> compare_ascending(a, b))
+}
+
+append_expr_lines :: fn(typed: TypedProgram, out: string[]) -> void {
+    for k in typed.expr_kinds.keys() {
+        kind :: typed.expr_kinds[k]
+        if kind is null { continue }
+        if is_skipped_kind(kind) { continue }
+        ty_str :: lookup_expr_type_str(typed, k)
+        loc :: start_loc(k)
+        out.push("  expr ${loc.pad_end(8, ' ')} ${kind.pad_end(14, ' ')} :: ${ty_str}")
+    }
 }
 
 build_decl_lines :: fn(typed: TypedProgram) -> string[] {

@@ -38,7 +38,7 @@ export check_module_with_bodies :: fn(
 ) -> CheckResult {
     result :: check_module(program, resolved, factory, diags)
     walk_bodies(program.decls, result.typed, diags)
-    return result
+    return CheckResult { .typed = result.typed, .impls = result.impls, .others = [] }
 }
 
 /// Multi-module typecheck. Types the entry module fully, then
@@ -51,7 +51,7 @@ export check_project_with_bodies :: fn(
 ) -> CheckResult {
     entry_loaded :: project.modules[project.entry]
     if entry_loaded is null {
-        return CheckResult { .typed = empty_fallback(project), .impls = empty_impls() }
+        return CheckResult { .typed = empty_fallback(project), .impls = empty_impls(), .others = [] }
     }
 
     entry_rm :: resolve_module_with_collected(
@@ -138,7 +138,7 @@ export check_project_with_bodies :: fn(
     for d in entry_typed.resolved.diags { diags.push(d) }
 
     impls :: build_impl_registry(entry_loaded.module.files[0].program.decls, entry_typed.resolved)
-    return CheckResult { .typed = entry_typed, .impls = impls }
+    return CheckResult { .typed = entry_typed, .impls = impls, .others = [] }
 }
 
 import "vader/typecheck/impls" { ImplRegistry, build_impl_registry, new_registry }

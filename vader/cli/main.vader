@@ -20,7 +20,7 @@ import "vader/resolver/resolve" { ResolvedProject, ResolvedModule, resolve_modul
 import "vader/resolver/dump" { dump_project }
 import "vader/typecheck/orchestrate" { check_module_with_bodies, check_project_with_bodies }
 import "vader/resolver/loader" { load_project }
-import "vader/typecheck/dump" { dump_program as dump_typed }
+import "vader/typecheck/dump" { dump_program as dump_typed, dump_program_with_others }
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/fmt/cli" { run_fmt }
 import "vader/vm/exec" { run_virt }
@@ -384,7 +384,7 @@ run_typecheck_stage :: fn(file: string) -> i32 {
     project :: load_project(file)
     diags: Diagnostic[] = []
     result :: check_project_with_bodies(project, diags)
-    println(dump_typed(result.typed, true))
+    println(dump_program_with_others(result.typed, true, result.others))
     if diags.len() > 0 {
         println(diags.dump_diagnostics())
     }

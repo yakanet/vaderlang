@@ -19,6 +19,11 @@ import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
 export CheckResult :: struct {
     typed: TypedProgram
     impls: ImplRegistry
+    /// Per-module typed programs for the multi-module pipeline.
+    /// Empty for the single-module shortcut. The CLI dump uses it
+    /// to render `expr` lines from `std/iter` etc under the entry's
+    /// header (matches TS).
+    others: TypedProgram[]
 }
 
 /// Type-check `program` (parsed + resolved against `resolved`). Returns
@@ -32,7 +37,7 @@ export check_module :: fn(
     impls :: build_impl_registry(program.decls, resolved)
     typed :: new_typed_program(resolved)
     declare_module(program.decls, resolved, typed, factory, diags)
-    return CheckResult { .typed = typed, .impls = impls }
+    return CheckResult { .typed = typed, .impls = impls, .others = [] }
 }
 
 // ---- tests ----------------------------------------------------------------
