@@ -181,7 +181,12 @@ resolve_repr :: fn(
     if repr is null { return "i32" }
     repr_ty :: type_from_expr(repr, resolved, diags)
     match repr_ty {
-        is PrimitiveType as p -> { return p.name }
+        is PrimitiveType as p -> {
+            if is_int_name(p.name) { return p.name }
+            diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
+                "got ${p.name}"))
+            return "i32"
+        }
         _ -> {
             diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
                 "got ${display_type(repr_ty)}"))
@@ -189,6 +194,8 @@ resolve_repr :: fn(
         }
     }
 }
+
+import "vader/typecheck/type_ops" { is_int_name }
 
 // ---- tests ----------------------------------------------------------------
 
