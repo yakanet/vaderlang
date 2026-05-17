@@ -55,15 +55,14 @@ export infer_match :: fn(
 bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram) -> void {
     match p {
         is AST.TuplePattern as tp -> {
-            match scrut {
-                is TupleType as tu -> {
-                    if tu.elements.len() == tp.elements.len() {
-                        for i in 0..<tp.elements.len() {
-                            bind_pattern_types(tp.elements[i], tu.elements[i], typed)
-                        }
+            tu :: pick_tuple_variant(scrut, tp.elements.len())
+            match tu {
+                is null -> {}
+                _ -> {
+                    for i in 0..<tp.elements.len() {
+                        bind_pattern_types(tp.elements[i], tu.elements[i], typed)
                     }
                 }
-                _ -> {}
             }
         }
         is AST.BindingPattern as bp -> {
@@ -117,7 +116,31 @@ bind_struct_pattern :: fn(
 
 scratch_diags :: fn() -> Diagnostic[] { return [] }
 
-import "vader/typecheck/types" { StructType, TupleType }
+/// Find a matching `TupleType` variant inside `t` for a pattern of
+/// `arity` elements. Falls back to the bare `TupleType` when `t` is
+/// one ; returns null when neither path matches.
+pick_tuple_variant :: fn(t: Type, arity: usize) -> TupleType | null {
+    match t {
+        is TupleType as tu -> {
+            if tu.elements.len() == arity { return tu }
+            return null
+        }
+        is UnionType as u -> {
+            for v in u.variants {
+                match v {
+                    is TupleType as tu -> {
+                        if tu.elements.len() == arity { return tu }
+                    }
+                    _ -> {}
+                }
+            }
+            return null
+        }
+        _ -> { return null }
+    }
+}
+
+import "vader/typecheck/types" { StructType, TupleType, UnionType }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/field" { find_struct_field_type }
 import "vader/resolver/scope" { span_key }
