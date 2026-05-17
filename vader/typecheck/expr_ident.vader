@@ -67,6 +67,7 @@ export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sy
     .Const     -> lookup_decl(sym, typed)
     .Param     -> lookup_in(sym, typed.param_types)
     .Local     -> lookup_in(sym, typed.local_types)
+    .Binding   -> lookup_in(sym, typed.local_types)
     .TypeParam -> mk_type_param(sym)
     // Bare type-name in value position is the metatype — the actual
     // primitive shape comes back via `type_from_expr` in type-demanding

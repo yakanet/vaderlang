@@ -21,7 +21,7 @@ export infer_match :: fn(
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    check_expr_fn(e.scrutinee, null, typed, diags)
+    scrut_ty :: check_expr_fn(e.scrutinee, null, typed, diags)
     arm_types: Type[] = []
     for arm in e.arms {
         // Walk literal patterns so the literal's expr_types entry
@@ -30,6 +30,7 @@ export infer_match :: fn(
             is AST.LiteralPattern as lp -> { check_expr_fn(lp.value, null, typed, diags) }
             _ -> {}
         }
+        bind_pattern_types(arm.pattern, scrut_ty, typed)
         match arm.guard {
             is null -> {}
             _ -> {
@@ -44,6 +45,40 @@ export infer_match :: fn(
     }
     return union_of(arm_types)
 }
+
+/// Walk a match-arm pattern and record each binding's type in
+/// `typed.local_types`. Tuple patterns destructure element-wise
+/// against the scrutinee's `TupleType`. Other pattern shapes are
+/// no-ops at MVP — adding StructPattern field binding support
+/// requires the resolver to expose field-name → Symbol mappings,
+/// which lands with the deeper narrowing work.
+bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram) -> void {
+    match p {
+        is AST.TuplePattern as tp -> {
+            match scrut {
+                is TupleType as tu -> {
+                    if tu.elements.len() == tp.elements.len() {
+                        for i in 0..<tp.elements.len() {
+                            bind_pattern_types(tp.elements[i], tu.elements[i], typed)
+                        }
+                    }
+                }
+                _ -> {}
+            }
+        }
+        is AST.BindingPattern as bp -> {
+            // Resolver mints a `.Binding` Symbol at `bp.span` and
+            // attaches it to the scope (not to `idents`). Writing
+            // local_types by span aligns with `lookup_in`'s
+            // sym.defined_at-based lookup so body idents see the type.
+            typed.local_types[span_key(bp.span)] = scrut
+        }
+        _ -> {}
+    }
+}
+
+import "vader/typecheck/types" { TupleType }
+import "vader/resolver/scope" { span_key }
 
 // ---- tests ----------------------------------------------------------------
 
