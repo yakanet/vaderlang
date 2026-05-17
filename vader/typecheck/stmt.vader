@@ -125,11 +125,27 @@ check_assign :: fn(
     s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
+    // T3041 : bare-ident assignment to a `::`-bound local. Mirrors
+    // TS — surface the diag and skip the value-side typing so the
+    // dump doesn't carry extra expr_types for a rejected write.
+    if s.target is AST.IdentExpr {
+        if is_const_reassign(s.target, typed) {
+            diags.push(typecheck_error(.CannotReassignConst, s.target.span,
+                "`${s.target.name}` is declared with `::` — use `:=` to allow mutation"))
+            return
+        }
+    }
     target_ty :: check_expr_fn(s.target, null, typed, diags)
     value_hint: Type | null = null
     if !(target_ty is UnresolvedType) { value_hint = target_ty }
     check_expr_fn(s.value, value_hint, typed, diags)
     return
+}
+
+is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
+    sym :: typed.resolved.idents[span_key(ident.span)]
+    if sym is null { return false }
+    return !(typed.resolved.immutable_locals[sym.id] is null)
 }
 
 check_return :: fn(

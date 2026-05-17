@@ -32,6 +32,10 @@ export ResolvedFile :: struct {
     top_level: MutableMap(string, Symbol)
     /// Every `AST.IdentExpr` reached during the body walk, span-keyed.
     idents:    MutableMap(string, Symbol)
+    /// `Symbol.id` set for every Local minted from a `name :: ...`
+    /// binding (`mutable = false`). `name :=` ones don't appear here.
+    /// Read by typecheck's check_assign for T3041.
+    immutable_locals: MutableMap(i32, bool)
 }
 
 /// Build a `ResolvedFile` for `program`. `top_level_seed` provides
@@ -45,6 +49,7 @@ export resolve_program :: fn(
 ) -> ResolvedFile {
     state :: ResolveState {
         .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
         .scope = new_scope(top_level_seed),
         .module_path = module_path,
         .factory = factory,
@@ -52,16 +57,21 @@ export resolve_program :: fn(
     for d in program.decls {
         state.walk_decl(d)
     }
-    return ResolvedFile { .top_level = top_level_seed, .idents = state.idents }
+    return ResolvedFile {
+        .top_level = top_level_seed,
+        .idents = state.idents,
+        .immutable_locals = state.immutable_locals,
+    }
 }
 
 // ---- internal state -------------------------------------------------------
 
 ResolveState :: struct {
-    idents:      MutableMap(string, Symbol)
-    scope:       Scope
-    module_path: string
-    factory:     SymbolFactory
+    idents:           MutableMap(string, Symbol)
+    immutable_locals: MutableMap(i32, bool)
+    scope:            Scope
+    module_path:      string
+    factory:          SymbolFactory
 }
 
 mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
@@ -180,6 +190,7 @@ walk_stmt :: fn(self: ResolveState, s: AST.Stmt) -> void {
             self.walk_opt_expr(x.ty)
             self.walk_expr(x.value)
             self.bind_let_binding(x.binding)
+            if !x.mutable { self.mark_binding_immutable(x.binding) }
         }
         is AST.AssignStmt as x -> {
             self.walk_expr(x.target)
@@ -198,6 +209,29 @@ walk_defer :: fn(self: ResolveState, d: AST.DeferStmt) -> void {
     match d.body {
         is AST.DeferStmtBody  as x -> { self.walk_stmt(x.stmt) }
         is AST.DeferBlockBody as x -> { self.walk_block(x.block) }
+    }
+}
+
+mark_binding_immutable :: fn(self: ResolveState, b: AST.LetBinding) -> void {
+    match b {
+        is AST.SimpleBinding as sb -> {
+            sym :: self.scope.lookup(sb.name)
+            match sym {
+                is Symbol as s -> { self.immutable_locals[s.id] = true }
+                is null -> {}
+            }
+        }
+        is AST.TupleBinding as tb -> {
+            for inner in tb.elements { self.mark_binding_immutable(inner) }
+        }
+        is AST.RestBinding as rb -> {
+            sym :: self.scope.lookup(rb.name)
+            match sym {
+                is Symbol as s -> { self.immutable_locals[s.id] = true }
+                is null -> {}
+            }
+        }
+        _ -> {}
     }
 }
 

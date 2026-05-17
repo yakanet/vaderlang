@@ -26,8 +26,9 @@ import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
 import "vader/typecheck/type_ops" { is_assignable }
 import "vader/typecheck/types" {
-    Type, FnType, UnresolvedType, display_type, TY_UNRESOLVED,
+    Type, FnType, TypeMetaType, UnresolvedType, display_type, TY_UNRESOLVED,
 }
+import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/typed_ast" { TypedProgram }
 import "vader/typecheck/unify" { substitute, type_contains_type_param, unify_type_param }
 
@@ -38,6 +39,11 @@ export infer_call :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     callee_ty :: check_expr_fn(c.callee, null, typed, diags)
+    // `T(x)` cast-style call : when the callee resolves to the
+    // metatype (a bare type name in value position), treat the
+    // call as a conversion and return the target type. Matches TS
+    // which folds this case before reaching the not-callable arm.
+    if callee_ty is TypeMetaType { return cast_call_target(c, typed, diags, check_expr_fn) }
     // Unresolved callee : upstream error already reported, fall through
     // to keep checking args (drives narrowing in their inner literals).
     if callee_ty is UnresolvedType {
@@ -89,6 +95,17 @@ export infer_call :: fn(
         }
     }
     return callee_ty.return_type
+}
+
+/// `T(x)` where `T` is a type-name. Type-checks the value, returns
+/// the lowered target type. Compatibility / numeric narrowing
+/// validation is deferred (matches `expr_cast.vader`).
+cast_call_target :: fn(
+    c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    check_args_no_expected(c, typed, diags, check_expr_fn)
+    return type_from_expr(c.callee, typed.resolved, diags)
 }
 
 fn_has_type_params :: fn(f: FnType) -> bool {

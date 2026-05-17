@@ -110,6 +110,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .path = "",
         .symbols = [],
         .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
     }
 }
 

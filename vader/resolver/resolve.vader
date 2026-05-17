@@ -29,6 +29,9 @@ export ResolvedModule :: struct {
     path:    string
     symbols: Symbol[]
     idents:  MutableMap(string, Symbol)
+    /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
+    /// Consumed by stmt.vader::check_assign to surface T3041.
+    immutable_locals: MutableMap(i32, bool)
 }
 
 export ResolvedProject :: struct {
@@ -61,9 +64,10 @@ export resolve_module_with_collected :: fn(
     for sym in user_syms { root[sym.name] = sym }
     file :: resolve_program(program, root, module_path, factory)
     return ResolvedModule {
-        .path    = module_path,
-        .symbols = sort_by_name(user_syms),
-        .idents  = file.idents,
+        .path             = module_path,
+        .symbols          = sort_by_name(user_syms),
+        .idents           = file.idents,
+        .immutable_locals = file.immutable_locals,
     }
 }
 
