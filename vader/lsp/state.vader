@@ -10,6 +10,7 @@ import "std/json" {
 }
 import "std/collections" { MutableMap }
 import "vader/lsp/indexer" { DocIndex, build_index }
+import "vader/lsp/diagnostics" { publish_diagnostics_for_uri, clear_diagnostics_for_uri }
 
 /// One LSP server instance's document table. The single shared state is
 /// passed to every handler ; no globals.
@@ -68,6 +69,7 @@ export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
     text :: get_string(td, "text")
     self.docs[uri] = text
     self.indices[uri] = build_index(uri, text)
+    publish_diagnostics_for_uri(uri)
 }
 
 /// `textDocument/didChange` handler. With full-document sync the params
@@ -86,6 +88,7 @@ export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
                 text :: get_string(first, "text")
                 self.docs[uri] = text
                 self.indices[uri] = build_index(uri, text)
+                publish_diagnostics_for_uri(uri)
             }
         }
         _ -> {}
@@ -93,7 +96,8 @@ export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
 }
 
 /// `textDocument/didClose` handler. MutableMap has no remove ; overwrite
-/// with empty and treat empty as "closed" downstream.
+/// with empty and treat empty as "closed" downstream. Push an empty
+/// diagnostics array so the client clears any squiggles.
 export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     td :: get_field(params, "textDocument")
     uri :: get_string(td, "uri")
@@ -104,6 +108,7 @@ export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     // no remove ; rebuilding an empty index would still pin memory, so
     // we substitute a tiny placeholder built from "".
     self.indices[uri] = build_index(uri, "")
+    clear_diagnostics_for_uri(uri)
 }
 
 // ---- internal helpers (returning JsonNull{} for absent fields) ------------
