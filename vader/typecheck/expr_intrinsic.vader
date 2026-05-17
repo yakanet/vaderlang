@@ -9,27 +9,41 @@
 // materialisation which lives in lower, not typecheck).
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-import "vader/parser/intrinsics" { intrinsic_spec }
+import "vader/parser/intrinsics" { intrinsic_spec, IntrinsicArgKind }
 import "vader/typecheck/types" {
     Type, mk_array, mk_primitive, TY_BOOL, TY_TYPE, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 
-/// Type-check an `@name(...)` call. Walks every arg for side-effects,
-/// then returns the static result type encoded in the intrinsic spec.
+/// Type-check an `@name(...)` call. Each arg is dispatched per the
+/// intrinsic's `args` spec : `.Value` args go through `check_expr_fn`
+/// (and land in `expr_types`), `.Type` args bypass it (matches TS
+/// `lowerExprAsType` — no expr_types entry for the inner ident).
 export infer_intrinsic :: fn(
     e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    for a in e.args { check_expr_fn(a, null, typed, diags) }
     spec :: intrinsic_spec(e.name)
     if spec is null {
         // Parser already rejects unknown @name ; defensive only.
+        for a in e.args { check_expr_fn(a, null, typed, diags) }
         return TY_UNRESOLVED
+    }
+    for i in 0..<e.args.len() {
+        if i < spec.args.len() {
+            match spec.args[i] {
+                .Value -> { check_expr_fn(e.args[i], null, typed, diags) }
+                .Type -> { type_from_expr(e.args[i], typed.resolved, diags) }
+            }
+        } else {
+            check_expr_fn(e.args[i], null, typed, diags)
+        }
     }
     return type_for_result(spec.result)
 }
+
+import "vader/typecheck/type_expr" { type_from_expr }
 
 type_for_result :: fn(name: string) -> Type {
     if name == "usize"      { return mk_primitive("usize") }
