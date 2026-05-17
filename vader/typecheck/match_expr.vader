@@ -24,6 +24,12 @@ export infer_match :: fn(
     check_expr_fn(e.scrutinee, null, typed, diags)
     arm_types: Type[] = []
     for arm in e.arms {
+        // Walk literal patterns so the literal's expr_types entry
+        // lands in the dump (matches TS).
+        match arm.pattern {
+            is AST.LiteralPattern as lp -> { check_expr_fn(lp.value, null, typed, diags) }
+            _ -> {}
+        }
         match arm.guard {
             is null -> {}
             _ -> {

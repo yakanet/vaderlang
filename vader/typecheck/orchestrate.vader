@@ -280,7 +280,6 @@ walk_fn_body :: fn(fd: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[]) -> 
 }
 
 check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
-    // Get any annotation-derived type already stored by decl.vader.
     annot :: typed.decl_types[span_key(cd.name_span)]
     expected: Type | null = null
     match annot {
@@ -289,8 +288,7 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
     }
     got :: check_expr(cd.value, expected, typed, diags)
     if annot is null {
-        // No annotation : default Free* literal types so the dump
-        // shows a concrete primitive instead of `{integer}` / `{float}`.
         typed.decl_types[span_key(cd.name_span)] = default_if_free(got)
     }
 }
+
