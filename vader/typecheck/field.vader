@@ -18,6 +18,8 @@ import "std/string" { byte_at, byte_len }
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
 import "vader/resolver/resolve" { ResolvedModule }
+import "vader/resolver/scope" { span_key }
+import "vader/typecheck/narrow" { field_chain_key, narrow_for_field }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/types" {
     Type, ArrayType, EnumType, PrimitiveType, StructType, TraitType, TupleType, UnionType, UnresolvedType,
@@ -171,8 +173,29 @@ export infer_field :: fn(
                 "`${e.field}` on ${display_type(target_ty)}"))
             return TY_UNRESOLVED
         }
-        _ -> { return substitute_struct_field(found, decl, target_ty) }
+        _ -> {
+            substituted :: substitute_struct_field(found, decl, target_ty)
+            // Field flow narrowing : if the receiver is an `IdentExpr`
+            // resolving to a local Symbol and a `${sym_id}.${field}`
+            // slot was pushed by a divergent / branch-scoped guard,
+            // return the narrowed type instead of the declared one.
+            return narrow_field_if_active(e, substituted, typed)
+        }
     }
+}
+
+/// Look up `${root_sym.id}#path` for this FieldExpr's chain in
+/// `narrowed_fields` and return that type ; falls through to `declared`
+/// when no chain narrowing is active.
+narrow_field_if_active :: fn(
+    e: AST.FieldExpr, declared: Type, typed: TypedProgram,
+) -> Type {
+    // Fast path : the common case is no live field narrowings at all,
+    // so dodge the chain walk + key build entirely.
+    if typed.narrowed_fields.size == usize(0) { return declared }
+    key :: field_chain_key(e, typed)
+    if key == "" { return declared }
+    return narrow_for_field(typed, key, declared)
 }
 
 lookup_pre_resolved_field :: fn(struct_id: i32, name: string, typed: TypedProgram) -> Type | null {
@@ -327,7 +350,7 @@ primitive_method_type :: fn(prim: string, name: string) -> Type | null {
     return null
 }
 
-import "vader/resolver/scope" { span_full_key, span_key }
+import "vader/resolver/scope" { span_full_key }
 import "vader/resolver/symbol" { Symbol }
 import "vader/typecheck/expr_ident" { type_of_symbol }
 

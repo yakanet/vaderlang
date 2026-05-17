@@ -15,7 +15,7 @@ import "std/math" { min }
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/typecheck/type_ops" { default_if_free, union_of }
 import "vader/typecheck/types" {
-    Type, ArrayType, TupleType, UnionType, UnresolvedType,
+    Type, ArrayType, TupleType, TypeParamType, UnionType, UnresolvedType,
     display_type, mk_array, mk_tuple, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
@@ -32,7 +32,10 @@ export infer_seq_lit :: fn(
     match expected {
         is UnionType as u -> {
             picked :: pick_seq_variant(u, e.elements.len())
-            if picked is Type { return infer_seq_lit(e, picked, typed, diags, check_expr_fn) }
+            match picked {
+                is null -> {}
+                _ -> { return infer_seq_lit(e, picked, typed, diags, check_expr_fn) }
+            }
         }
         _ -> {}
     }
@@ -67,7 +70,13 @@ infer_against_tuple :: fn(
     }
     elem_types: Type[] = []
     for i in 0..<e.elements.len() {
-        elem_types.push(check_expr_fn(e.elements[i], tup.elements[i], typed, diags))
+        slot :: tup.elements[i]
+        got :: check_expr_fn(e.elements[i], slot, typed, diags)
+        // When the expected slot is a generic type-param the element
+        // can't narrow against it ; default Free* so the unifier binds
+        // a concrete type instead of `{integer}` / `{float}`.
+        if slot is TypeParamType { elem_types.push(default_if_free(got)) }
+        else { elem_types.push(got) }
     }
     return mk_tuple(elem_types)
 }

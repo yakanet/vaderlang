@@ -414,6 +414,14 @@ Sprint plan : [`docs/SELFHOST_VM.md`](./docs/SELFHOST_VM.md). The Vader VM reads
 - [ ] Port to Vader.
 - [ ] Snapshot-test parity on every sample.
 
+#### Bugs surfaced while porting the typechecker — open
+- [ ] **`is Type` antipattern in union-typed values** — `match expected { is Type | null }` etc. `expected is Type` against the closed `Type` union always returns false (the runtime tag is the variant tag, not the union tag). Bit me twice : `seq_lit.vader::infer_seq_lit` ignored every union-shaped expected slot ; `infer_seq_lit`'s "`picked is Type`" branch never fired. Fix is `match { is null -> {} _ -> ... }`. Search the codebase for other `is <UnionAlias>` checks (none found via grep on the typecheck dir, but worth a pass over `vader/resolver/` and `vader/lower/`). Either lint this at the compiler level or rename the patterns to avoid the trap.
+- [ ] **`vader build -o <path>` is silently ignored** — `bun src/index.ts build vader/cli/main.vader -o build/vader` writes the exe to `vader/cli/main`, not `build/vader`. Wastes a lot of debug time when iterating on the self-host compiler (I was running an out-of-date `build/vader` for 30+ min). Either honor `-o` or fail loudly when it's passed.
+- [ ] **`settle_external_expr_bodied_returns` walks every non-entry module's body** (added 2026-05-17, `vader/typecheck/orchestrate.vader`). Runs the full `walk_bodies` pass (FnDecl + ImplDecl + ConstDecl + AssertDecl) instead of just the expression-bodied fns whose returns need patching. Triggers on any module that has *one* expr-bodied fn ; for std/iter etc this can multiply typecheck time. Scope it down to expr-bodied FnDecls + impl methods only.
+
+#### Language ergonomics surfaced while porting the typechecker — open
+- [ ] **`!is` (negated type-test) operator** — `if !(sp is null) { … }` reads worse than `if sp !is null { … }`. The self-host typecheck port writes `!(x is Y)` a lot in narrowing / dispatch helpers (`expr_if.vader`, `stmt.vader`, `narrow.vader`). Adding `!is` as a parser sugar that lowers to `Not(BinaryOp.Is(...))` would clean those sites up — same surface as Swift's `!is`. No type-system change required, just lexer + parser + formatter.
+
 ### 2.7 Bootstrap success check
 - [ ] Compile Vader compiler with TS compiler → `compiler_v1`.
 - [ ] Compile Vader compiler with `compiler_v1` → `compiler_v2`.

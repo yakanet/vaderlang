@@ -10,8 +10,9 @@
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/parser/intrinsics" { intrinsic_spec, IntrinsicArgKind }
+import "vader/resolver/symbol" { Symbol }
 import "vader/typecheck/types" {
-    Type, mk_array, mk_primitive, TY_BOOL, TY_TYPE, TY_UNRESOLVED,
+    Type, mk_array, mk_primitive, mk_struct, TY_BOOL, TY_TYPE, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
@@ -40,18 +41,71 @@ export infer_intrinsic :: fn(
             check_expr_fn(e.args[i], null, typed, diags)
         }
     }
-    return type_for_result(spec.result)
+    // `@field(x, "name")` returns the named field's declared type when
+    // the name is a literal string ; otherwise it stays Unresolved (the
+    // lower pass re-validates once `@comptime for` substitutes the name).
+    if e.name == "field" { return infer_field_intrinsic(e, typed, diags) }
+    return type_for_result(spec.result, typed)
 }
+
+infer_field_intrinsic :: fn(
+    e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    if e.args.len() < 2 { return TY_UNRESOLVED }
+    recv_ty :: typed.expr_types[span_full_key(e.args[0].span)]
+    if recv_ty is null { return TY_UNRESOLVED }
+    if recv_ty is UnresolvedType { return TY_UNRESOLVED }
+    if !(recv_ty is StructType) { return TY_UNRESOLVED }
+    name_arg :: e.args[1]
+    if !(name_arg is AST.StringLitExpr) { return TY_UNRESOLVED }
+    field_name :: static_string_value(name_arg)
+    if field_name == "" { return TY_UNRESOLVED }
+    decl :: typed.struct_decls[recv_ty.symbol.id]
+    if decl is null { return TY_UNRESOLVED }
+    fmap :: typed.struct_field_types[recv_ty.symbol.id]
+    if !(fmap is null) {
+        cached :: fmap[field_name]
+        if !(cached is null) { return cached }
+    }
+    for f in decl.fields {
+        if f.name == field_name {
+            return type_from_expr(f.ty, typed.resolved, diags)
+        }
+    }
+    return TY_UNRESOLVED
+}
+
+static_string_value :: fn(e: AST.StringLitExpr) -> string {
+    out := ""
+    for p in e.parts {
+        match p {
+            is AST.StringLitText as c -> { out = "${out}${c.value}" }
+            _ -> { return "" }
+        }
+    }
+    return out
+}
+
+import "vader/resolver/scope" { span_full_key }
+import "vader/typecheck/types" { StructType, UnresolvedType }
 
 import "vader/typecheck/type_expr" { type_from_expr }
 
-type_for_result :: fn(name: string) -> Type {
+type_for_result :: fn(name: string, typed: TypedProgram) -> Type {
     if name == "usize"      { return mk_primitive("usize") }
     if name == "bool"       { return TY_BOOL }
     if name == "string"     { return mk_primitive("string") }
     if name == "type"       { return TY_TYPE }
     if name == "type_array" { return mk_array(TY_TYPE, false) }
-    // `field_array` materialises at lower-time as a `Field[]` from
-    // std/core ; stay Unresolved until the Field struct is plumbed.
+    if name == "field_array" {
+        // `@fields(T) -> Field[]` — `Field` lives in std/core
+        // (auto-imported). Fall back to Unresolved when std/core
+        // hasn't been registered yet (compiling std/core itself).
+        field_sym :: typed.core_symbols["Field"]
+        match field_sym {
+            is null -> { return TY_UNRESOLVED }
+            is Symbol as fs -> { return mk_array(mk_struct(fs, []), false) }
+        }
+    }
     return TY_UNRESOLVED
 }

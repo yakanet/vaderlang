@@ -26,7 +26,11 @@ import "vader/typecheck/type_ops" { default_if_free, equals_type }
 import "vader/typecheck/types" { display_type, type_base_name }
 import "vader/diagnostics/diagnostic" { typecheck_error }
 import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
-import "vader/typecheck/types" { Type, FnType, mk_fn, TY_UNRESOLVED, TY_TYPE, TY_VOID }
+import "vader/typecheck/types" {
+    Type, ArrayType, FnType, SelfType, StructType, TupleType, UnionType,
+    mk_array, mk_fn, mk_struct, mk_tuple, mk_union,
+    TY_UNRESOLVED, TY_TYPE, TY_VOID,
+}
 import "vader/typecheck/type_expr" { type_from_expr }
 
 /// Run the full typecheck pipeline : decl-level + body-walking. The
@@ -54,6 +58,13 @@ export check_project_with_bodies :: fn(
         return CheckResult { .typed = empty_fallback(project), .impls = empty_impls(), .others = [] }
     }
 
+    // Phase A0 : materialise single-abstract-method sugar
+    // (`Type implements Trait -> expr`) project-wide so the resolver
+    // (run next) walks bodies with `self` / `other` / … properly
+    // bound — synthesising trait-method params on the SAM members
+    // happens here, not after resolve.
+    materialize_all_sams_pre_resolve(project)
+
     entry_rm :: resolve_module_with_collected(
         entry_loaded.module.files[0].program, project.entry,
         project.factory, entry_loaded.collected,
@@ -76,11 +87,6 @@ export check_project_with_bodies :: fn(
         typed :: new_typed_program(rm)
         per_module[id] = typed
     }
-    // Phase A0 : materialise single-abstract-method sugar
-    // (`Type implements Trait -> expr`) project-wide so SAM impl
-    // members get their name + signature from the trait method
-    // before any declare-pass touches them.
-    materialize_all_sams(project, per_module)
     // Phase A : register every type alias project-wide. Cross-
     // module aliases (`Pet` imported from `./types`) need to land
     // before any fn signature consults them.
@@ -117,8 +123,13 @@ export check_project_with_bodies :: fn(
 
     // Wire was done before declare ; now populate the remaining
     // typecheck-side tables that depend on per-module decl types.
-    populate_external_types(entry_typed, project, per_module)
+    // Settle expression-bodied fn returns in every non-entry module
+    // BEFORE copying their FnTypes into the entry's external_types /
+    // imported_fn_overloads — otherwise a `fn(a, b) = if … { a } …`
+    // export lands as `fn(_, _) -> ?` in the bucket.
     populate_core_symbols(entry_typed, project, per_module)
+    settle_external_expr_bodied_returns(project, per_module)
+    populate_external_types(entry_typed, project, per_module)
     populate_imported_fn_overloads(entry_typed, per_module)
     merge_struct_decls(entry_typed, per_module)
     merge_external_impl_methods(entry_typed, project, per_module)
@@ -240,10 +251,12 @@ merge_external_impl_methods :: fn(
                 is AST.ImplDecl as id_decl -> {
                     for_ty :: type_from_expr(id_decl.for_type, other.resolved, diag_sink())
                     record_struct_trait(entry_typed, for_ty, id_decl.trait_name)
+                    trait_decl_ext :: lookup_trait_decl(id_decl.trait_name, entry_typed)
                     for m in id_decl.members {
                         key :: "${display_type(for_ty)}::${m.name}"
                         base_key :: "${type_base_name(for_ty)}::${m.name}"
-                        ufcs_ty :: ufcs_method_type(m, for_ty, other, diag_sink())
+                        trait_method_ext :: lookup_trait_method(trait_decl_ext, m.name)
+                        ufcs_ty :: ufcs_method_type(m, for_ty, trait_method_ext, other, diag_sink())
                         match ufcs_ty {
                             is null -> {}
                             _ -> {
@@ -328,16 +341,12 @@ record_struct_trait :: fn(typed: TypedProgram, for_ty: Type, trait_name: string)
     }
 }
 
-import "vader/typecheck/types" { StructType }
 
 // Walk every loaded module's `ImplDecl`s and call
 // `materialize_sam_members` against the matching trait — works
 // cross-module so `Foo implements Display -> "..."` picks up
 // Display from `std/core`.
-materialize_all_sams :: fn(
-    project: LoadedProject,
-    per_module: MutableMap(string, TypedProgram),
-) -> void {
+materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
     for id in project.modules.keys() {
         loaded :: project.modules[id]
         if loaded is null { continue }
@@ -515,6 +524,22 @@ merge_struct_decls :: fn(
 // stdlib helper without requiring the user to re-implement it
 // locally. Walks `external_types` (already populated with the
 // imported name's resolved Type) and buckets by symbol name.
+settle_external_expr_bodied_returns :: fn(
+    project: LoadedProject, per_module: MutableMap(string, TypedProgram),
+) -> void {
+    entry_path :: project.entry
+    for id in project.modules.keys() {
+        if id == entry_path { continue }
+        loaded :: project.modules[id]
+        if loaded is null { continue }
+        other_typed :: per_module[id]
+        if other_typed is null { continue }
+        if has_expr_bodied_fn(loaded.module.files[0].program.decls) {
+            walk_bodies(loaded.module.files[0].program.decls, other_typed, diag_sink())
+        }
+    }
+}
+
 populate_imported_fn_overloads :: fn(
     entry_typed: TypedProgram, per_module: MutableMap(string, TypedProgram),
 ) -> void {
@@ -747,11 +772,13 @@ export walk_bodies :: fn(
                 }
                 check_impl_missing_methods(id, typed, diags)
                 record_struct_trait(typed, for_ty, id.trait_name)
+                trait_decl :: lookup_trait_decl(id.trait_name, typed)
                 for m in id.members {
-                    declare_impl_method(m, for_ty, typed, diags)
+                    trait_method :: lookup_trait_method(trait_decl, m.name)
+                    declare_impl_method_for_trait(m, for_ty, trait_method, typed, diags)
                     key :: "${display_type(for_ty)}::${m.name}"
                     base_key :: "${type_base_name(for_ty)}::${m.name}"
-                    ufcs_ty :: ufcs_method_type(m, for_ty, typed, diags)
+                    ufcs_ty :: ufcs_method_type(m, for_ty, trait_method, typed, diags)
                     match ufcs_ty {
                         is null -> {}
                         _ -> {
@@ -806,6 +833,12 @@ check_impl_missing_methods :: fn(
     }
 }
 
+lookup_trait_method :: fn(td: AST.TraitDecl | null, name: string) -> AST.FnDecl | null {
+    if td is null { return null }
+    for m in td.members { if m.name == name { return m } }
+    return null
+}
+
 lookup_trait_decl :: fn(name: string, typed: TypedProgram) -> AST.TraitDecl | null {
     for sym in typed.resolved.symbols {
         if sym.name == name {
@@ -828,7 +861,8 @@ impl_has_method :: fn(id: AST.ImplDecl, name: string) -> bool {
 /// `fn(...rest) -> R` since the self is bound from the receiver.
 /// Returns null when the signature is malformed.
 ufcs_method_type :: fn(
-    fd: AST.FnDecl, for_ty: Type, typed: TypedProgram, diags: Diagnostic[],
+    fd: AST.FnDecl, for_ty: Type, trait_method: AST.FnDecl | null,
+    typed: TypedProgram, diags: Diagnostic[],
 ) -> Type | null {
     rest: Type[] = []
     for i in 0..<fd.params.len() {
@@ -836,12 +870,19 @@ ufcs_method_type :: fn(
         if i == 0 && p.name == "self" { continue }
         rest.push(param_type(p, for_ty, typed, diags))
     }
-    ret :: declare_return(fd, typed, diags)
+    ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
     return mk_fn(rest, ret)
 }
 
 declare_impl_method :: fn(
     fd: AST.FnDecl, for_ty: Type, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    declare_impl_method_for_trait(fd, for_ty, null, typed, diags)
+}
+
+declare_impl_method_for_trait :: fn(
+    fd: AST.FnDecl, for_ty: Type, trait_method: AST.FnDecl | null,
+    typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     params: Type[] = []
     for p in fd.params {
@@ -849,9 +890,66 @@ declare_impl_method :: fn(
         typed.param_types[span_key(p.span)] = pt
         params.push(pt)
     }
-    ret :: declare_return(fd, typed, diags)
+    ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
     typed.decl_types[span_key(fd.name_span)] = mk_fn(params, ret)
 }
+
+declare_impl_return :: fn(
+    fd: AST.FnDecl, for_ty: Type, trait_method: AST.FnDecl | null,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    // Explicit annotation wins.
+    match fd.return_type {
+        is null -> {}
+        _ -> { return type_from_expr(fd.return_type, typed.resolved, diags) }
+    }
+    // Trait method's return type, with `Self` substituted to `for_ty`,
+    // when the impl's matching method has no annotation. Lets
+    // `Direction implements Turnable { turn_left :: fn(self) = … }`
+    // pick up `-> Self` from `Turnable.turn_left`.
+    if !(trait_method is null) {
+        match trait_method.return_type {
+            is null -> {}
+            _ -> {
+                trait_ret :: type_from_expr(trait_method.return_type, typed.resolved, diags)
+                return substitute_self(trait_ret, for_ty)
+            }
+        }
+    }
+    // Expression-bodied fns without an annotation defer to body
+    // inference ; `check_fn_body` flips `inferred_return` on Unresolved.
+    if fd.is_expression_bodied { return TY_UNRESOLVED }
+    return TY_VOID
+}
+
+substitute_self :: fn(t: Type, for_ty: Type) -> Type {
+    match t {
+        is SelfType -> { return for_ty }
+        is ArrayType as a -> { return mk_array(substitute_self(a.element, for_ty), a.immutable) }
+        is FnType as f -> {
+            params: Type[] = []
+            for p in f.params { params.push(substitute_self(p, for_ty)) }
+            return mk_fn(params, substitute_self(f.return_type, for_ty))
+        }
+        is UnionType as u -> {
+            vs: Type[] = []
+            for v in u.variants { vs.push(substitute_self(v, for_ty)) }
+            return mk_union(vs)
+        }
+        is TupleType as p -> {
+            es: Type[] = []
+            for e in p.elements { es.push(substitute_self(e, for_ty)) }
+            return mk_tuple(es)
+        }
+        is StructType as s -> {
+            args: Type[] = []
+            for a in s.args { args.push(substitute_self(a, for_ty)) }
+            return mk_struct(s.symbol, args)
+        }
+        _ -> { return t }
+    }
+}
+
 
 param_type :: fn(
     p: AST.FnParam, for_ty: Type, typed: TypedProgram, diags: Diagnostic[],
@@ -869,7 +967,13 @@ declare_return :: fn(
     fd: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     match fd.return_type {
-        is null -> { return TY_VOID }
+        is null -> {
+            // Expression-bodied fns without an annotation defer their
+            // return type to body inference (`check_fn_body` flips on
+            // `inferred_return` when this comes back as Unresolved).
+            if fd.is_expression_bodied { return TY_UNRESOLVED }
+            return TY_VOID
+        }
         _ -> { return type_from_expr(fd.return_type, typed.resolved, diags) }
     }
 }

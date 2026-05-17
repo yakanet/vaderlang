@@ -69,6 +69,13 @@ export TypedProgram :: struct {
     /// inside if-exprs).
     narrowed_bindings: MutableMap(i32, Type)
 
+    /// Per-field narrowed type stack, keyed by `"${receiver_sym_id}.${field_name}"`.
+    /// Mirrors `narrowed_bindings` but for `expr.field` chains : when
+    /// `if b.items != null { ... }` activates a flow narrowing in the
+    /// then-branch, `field.vader::infer_field` reads this side-table
+    /// to return `i32[]` instead of `i32[] | null`.
+    narrowed_fields: MutableMap(string, Type)
+
     /// AST kind label for each entry in `expr_types`, keyed by the
     /// same span string. Populated alongside `expr_types` from
     /// `check_expr` ; consumed by `dump.vader` so the typed-ast dump
@@ -177,6 +184,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .trait_decls     = MutableMap(i32, TraitDecl) { .buckets = [], .size = 0 },
         .impl_methods    = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 },
+        .narrowed_fields = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .expr_kinds      = MutableMap(string, string) { .buckets = [], .size = 0 },
         .import_targets  = null,
         .external_types  = MutableMap(i32, Type) { .buckets = [], .size = 0 },

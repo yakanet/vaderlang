@@ -55,7 +55,8 @@ export check_block :: fn(
     // Restore the binding's static type on block exit so outer
     // scopes don't see the narrowed shape.
     for dn in divergent_narrows {
-        pop_narrow(typed, dn.sym_id, dn.prev, dn.static_ty)
+        if dn.field_key == "" { pop_narrow(typed, dn.sym_id, dn.prev, dn.static_ty) }
+        else { pop_field_narrow(typed, dn.field_key, dn.prev, dn.static_ty) }
     }
     full_key :: span_full_key(block.span)
     // Don't clobber the trailing expression's `expr_kinds` entry —
@@ -364,10 +365,15 @@ bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
 // Restore-stack entry for a divergent-guard narrowing pushed onto
 // a `check_block` scope. Held in a per-block array so the original
 // static types are restored when the block exits.
+//
+// `field_key` is `""` for ident narrowings ; otherwise it carries the
+// `${sym_id}.${field}` slot used by `narrowed_fields` so divergent
+// guards on `b.items` restore the right side-table on scope exit.
 DivergentNarrow :: struct {
     sym_id:    i32
     prev:      Type | null
     static_ty: Type
+    field_key: string = ""
 }
 
 // Detect `if x is T { return ... }` pattern and push the complement
@@ -384,12 +390,22 @@ push_divergent_narrow_if :: fn(
     if !then_is_divergent(if_expr.then_block) { return }
     narrowing :: detect_is_narrow_for_block(if_expr.cond, typed)
     if narrowing is null { return }
-    prev :: push_narrow(typed, narrowing.sym_id, narrowing.else_ty)
-    stack.push(DivergentNarrow {
-        .sym_id    = narrowing.sym_id,
-        .prev      = prev,
-        .static_ty = narrowing.static_ty,
-    })
+    if narrowing.field_key == "" {
+        prev :: push_narrow(typed, narrowing.sym_id, narrowing.else_ty)
+        stack.push(DivergentNarrow {
+            .sym_id    = narrowing.sym_id,
+            .prev      = prev,
+            .static_ty = narrowing.static_ty,
+        })
+    } else {
+        prev :: push_field_narrow(typed, narrowing.field_key, narrowing.else_ty)
+        stack.push(DivergentNarrow {
+            .sym_id    = narrowing.sym_id,
+            .prev      = prev,
+            .static_ty = narrowing.static_ty,
+            .field_key = narrowing.field_key,
+        })
+    }
 }
 
 then_is_divergent :: fn(b: AST.BlockExpr) -> bool {
@@ -408,6 +424,7 @@ BlockNarrow :: struct {
     sym_id:    i32
     static_ty: Type
     else_ty:   Type
+    field_key: string = ""
 }
 
 detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNarrow | null {
@@ -431,20 +448,44 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     // complement narrowing for the rest of the block.
     if i32(cond.op) == i32(AST.BinaryOp.Eq) || i32(cond.op) == i32(AST.BinaryOp.Neq) {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
-        if ident_side is null { return null }
-        sym :: typed.resolved.idents[span_key(ident_side.span)]
-        if sym is null { return null }
-        base :: type_of_symbol(sym, typed)
-        current :: narrow_for_binding(typed, sym.id, base)
-        null_ty :: mk_primitive("null")
-        if i32(cond.op) == i32(AST.BinaryOp.Eq) {
-            return BlockNarrow {
-                .sym_id    = sym.id,
-                .static_ty = base,
-                .else_ty   = subtract_type(current, null_ty),
+        if !(ident_side is null) {
+            sym :: typed.resolved.idents[span_key(ident_side.span)]
+            if sym is null { return null }
+            base :: type_of_symbol(sym, typed)
+            current :: narrow_for_binding(typed, sym.id, base)
+            null_ty :: mk_primitive("null")
+            if i32(cond.op) == i32(AST.BinaryOp.Eq) {
+                return BlockNarrow {
+                    .sym_id    = sym.id,
+                    .static_ty = base,
+                    .else_ty   = subtract_type(current, null_ty),
+                }
+            }
+            return BlockNarrow { .sym_id = sym.id, .static_ty = base, .else_ty = null_ty }
+        }
+        field_side :: pick_field_vs_null(cond.left, cond.right)
+        if !(field_side is null) {
+            target :: resolve_field_chain_static(field_side, typed)
+            if !(target is null) {
+                null_ty :: mk_primitive("null")
+                current :: narrow_for_field(typed, target.field_key, target.static_ty)
+                if i32(cond.op) == i32(AST.BinaryOp.Eq) {
+                    return BlockNarrow {
+                        .sym_id    = 0,
+                        .static_ty = target.static_ty,
+                        .else_ty   = subtract_type(current, null_ty),
+                        .field_key = target.field_key,
+                    }
+                }
+                return BlockNarrow {
+                    .sym_id    = 0,
+                    .static_ty = target.static_ty,
+                    .else_ty   = null_ty,
+                    .field_key = target.field_key,
+                }
             }
         }
-        return BlockNarrow { .sym_id = sym.id, .static_ty = base, .else_ty = null_ty }
+        return null
     }
     if i32(cond.op) != i32(AST.BinaryOp.Is) { return null }
     if !(cond.left is AST.IdentExpr) { return null }
@@ -460,22 +501,17 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     }
 }
 
-pick_ident_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.IdentExpr | null {
-    if a is AST.IdentExpr {
-        if b is AST.NullLitExpr { return a }
-    }
-    if b is AST.IdentExpr {
-        if a is AST.NullLitExpr { return b }
-    }
-    return null
-}
-
 import "vader/typecheck/types" { mk_primitive }
 
 
 diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
 
-import "vader/typecheck/narrow" { narrow_for_binding, pop_narrow, push_narrow }
+import "vader/typecheck/narrow" {
+    narrow_for_binding, narrow_for_field,
+    pick_field_vs_null, pick_ident_vs_null,
+    pop_field_narrow, pop_narrow, push_field_narrow, push_narrow,
+    resolve_field_chain_static,
+}
 import "vader/typecheck/expr_ident" { type_of_symbol }
 import "vader/typecheck/type_ops" { subtract_type }
 

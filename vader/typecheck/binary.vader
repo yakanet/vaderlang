@@ -54,7 +54,7 @@ export infer_binary :: fn(
 
     match classify(e.op) {
         .Arith    -> { return check_arith(e, left, right, typed, diags) }
-        .Compare  -> { return check_compare(e, left, right, diags) }
+        .Compare  -> { return check_compare(e, left, right, typed, diags) }
         .Logical  -> { return check_logical(e, left, right, diags) }
         .Bitwise  -> { return check_bitwise(e, left, right, diags) }
         // Equality / Is / In : MVP returns `bool` unconditionally.
@@ -105,11 +105,21 @@ substitute_self_in :: fn(t: Type, self_ty: Type) -> Type {
 
 import "vader/typecheck/types" { SelfType }
 
-check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
-    if !is_numeric(left) || !is_numeric(right) {
-        push_op_undefined(e, left, right, diags)
-    }
+check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    if is_numeric(left) && is_numeric(right) { return TY_BOOL }
+    if is_string(left) && is_string(right) { return TY_BOOL }
+    // User-struct overload via `Comparable::compare` — the lowerer
+    // rewrites `a < b` into `a.compare(b) < 0` ; we only need to
+    // confirm the impl exists here.
+    if has_impl_method(left, "compare", typed) { return TY_BOOL }
+    push_op_undefined(e, left, right, diags)
     return TY_BOOL
+}
+
+has_impl_method :: fn(t: Type, name: string, typed: TypedProgram) -> bool {
+    base :: type_base_name(t)
+    if base == "" { return false }
+    return !(typed.impl_methods["${base}::${name}"] is null)
 }
 
 check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {

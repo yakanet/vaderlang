@@ -12,8 +12,10 @@
 // in match arms today) ; once that lands, `expr_if.vader::infer_if`
 // will call `push_narrow` before the then-branch.
 
+import "vader/resolver/scope" { span_key }
 import "vader/typecheck/types" { Type }
 import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
 
 /// Push a narrowed type for `sym_id` ; returns the prior narrowing
 /// (or null) so the caller can restore it on scope exit.
@@ -39,6 +41,135 @@ export pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: Type | null, sta
 /// `static_ty` when no narrowing is active for that binding.
 export narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Type) -> Type {
     cur :: typed.narrowed_bindings[sym_id]
+    match cur {
+        is null -> { return static_ty }
+        _ -> { return cur }
+    }
+}
+
+/// Build the side-table key for a single-level field narrowing slot.
+/// Kept as a thin wrapper around `chain_key` for the common one-step
+/// case ; multi-level paths (`o.inner.flag`) should call `chain_key`
+/// directly.
+export field_narrow_key :: fn(receiver_sym_id: i32, field_name: string) -> string {
+    return chain_key(receiver_sym_id, [field_name])
+}
+
+/// Build the slot key for a `root.f1.f2.…` chain : `${root_sym.id}#f1#f2…`.
+/// `fields` must be ordered root-to-leaf. The `#` separator avoids
+/// collisions with `.`-prefixed identifiers and field names like `0`
+/// (tuple positional access).
+export chain_key :: fn(root_sym_id: i32, fields: string[]) -> string {
+    key := "${root_sym_id}"
+    for f in fields { key = "${key}#${f}" }
+    return key
+}
+
+/// Static type of a resolved field chain : the chain's narrow-table
+/// key + the type recorded by `check_expr` on its outermost FieldExpr.
+/// Shared by `expr_if.vader` / `stmt.vader` / `match_expr.vader` so
+/// they don't each re-derive the chain's declared type from scratch.
+export FieldChainStatic :: struct {
+    field_key: string
+    static_ty: Type
+}
+
+/// Pick the FieldExpr operand of a `field == null` / `null != field`
+/// comparison. Returns null when neither side is a FieldExpr-vs-null
+/// pair.
+export pick_field_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.FieldExpr | null {
+    if a is AST.FieldExpr {
+        if b is AST.NullLitExpr { return a }
+    }
+    if b is AST.FieldExpr {
+        if a is AST.NullLitExpr { return b }
+    }
+    return null
+}
+
+/// Pick the IdentExpr operand of an `ident == null` / `null != ident`
+/// comparison. Mirrors `pick_field_vs_null` for plain bindings.
+export pick_ident_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.IdentExpr | null {
+    if a is AST.IdentExpr {
+        if b is AST.NullLitExpr { return a }
+    }
+    if b is AST.IdentExpr {
+        if a is AST.NullLitExpr { return b }
+    }
+    return null
+}
+
+/// Resolve a FieldExpr chain to its narrow-table key + the static
+/// type recorded by `check_expr`. Returns null when the chain root
+/// isn't a plain ident-bound Symbol or the chain's type wasn't
+/// resolved (no point in narrowing an Unresolved slot).
+export resolve_field_chain_static :: fn(
+    e: AST.FieldExpr, typed: TypedProgram,
+) -> FieldChainStatic | null {
+    key :: field_chain_key(e, typed)
+    if key == "" { return null }
+    static_ty :: typed.expr_types[span_full_key(e.span)]
+    if static_ty is null { return null }
+    if static_ty is UnresolvedType { return null }
+    return FieldChainStatic { .field_key = key, .static_ty = static_ty }
+}
+
+import "vader/resolver/scope" { span_full_key }
+import "vader/typecheck/types" { UnresolvedType }
+
+/// Walk a FieldExpr down to its root `IdentExpr` and return the
+/// matching `chain_key`. Returns `""` when the root isn't a plain ident
+/// or it doesn't resolve to a Symbol — callers gate narrowing on the
+/// empty string sentinel.
+export field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
+    // Collect fields leaf-to-root, then reverse for chain_key.
+    parts_leaf_first: string[] = []
+    cur: AST.Expr = e
+    for true {
+        match cur {
+            is AST.FieldExpr as fe -> {
+                parts_leaf_first.push(fe.field)
+                cur = fe.target
+            }
+            _ -> { break }
+        }
+    }
+    if !(cur is AST.IdentExpr) { return "" }
+    sym :: typed.resolved.idents[span_key(cur.span)]
+    if sym is null { return "" }
+    fields: string[] = []
+    i := i32(parts_leaf_first.len()) - 1
+    for i >= 0 {
+        fields.push(parts_leaf_first[usize(i)])
+        i = i - 1
+    }
+    return chain_key(sym.id, fields)
+}
+
+/// Push a narrowed type for a `${receiver_sym_id}.${field_name}` slot ;
+/// returns the prior narrowing (or null) so the caller can restore it
+/// on scope exit. Mirrors `push_narrow` for ident bindings.
+export push_field_narrow :: fn(typed: TypedProgram, key: string, narrowed: Type) -> Type | null {
+    prev :: typed.narrowed_fields[key]
+    typed.narrowed_fields[key] = narrowed
+    return prev
+}
+
+/// Restore the prior narrowing for `key`. Pair with `push_field_narrow`.
+/// When `prev` is null the slot is overwritten with the field's static
+/// type so subsequent `narrow_for_field` lookups fall through to the
+/// declared field type. (`MutableMap` has no remove().)
+export pop_field_narrow :: fn(typed: TypedProgram, key: string, prev: Type | null, static_ty: Type) -> void {
+    match prev {
+        is null -> { typed.narrowed_fields[key] = static_ty }
+        _ -> { typed.narrowed_fields[key] = prev }
+    }
+}
+
+/// Look up the current narrowed type for `key`, falling back to
+/// `static_ty` when no narrowing is active for that field slot.
+export narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type) -> Type {
+    cur :: typed.narrowed_fields[key]
     match cur {
         is null -> { return static_ty }
         _ -> { return cur }

@@ -8,7 +8,10 @@
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/resolver/scope" { span_key }
 import "vader/typecheck/context" { FnContext }
-import "vader/typecheck/narrow" { pop_narrow, push_narrow }
+import "vader/typecheck/narrow" {
+    field_chain_key, pop_field_narrow, pop_narrow,
+    push_field_narrow, push_narrow,
+}
 import "vader/typecheck/type_ops" { is_assignable, union_of }
 import "vader/typecheck/types" { Type, UnionType, display_type, TY_BOOL }
 import "vader/typecheck/typed_ast" { TypedProgram }
@@ -25,6 +28,7 @@ export infer_match :: fn(
 ) -> Type {
     scrut_ty :: check_expr_fn(e.scrutinee, null, typed, diags)
     scrut_sym_id :: scrutinee_sym_id(e.scrutinee, typed)
+    scrut_field_key :: scrutinee_field_key(e.scrutinee, typed)
     arm_types: Type[] = []
     remaining := scrut_ty
     for arm in e.arms {
@@ -47,6 +51,13 @@ export infer_match :: fn(
                 _ -> { prev_arm = push_narrow(typed, scrut_sym_id, arm_narrow) }
             }
         }
+        prev_field: Type | null = null
+        if scrut_field_key != "" {
+            match arm_narrow {
+                is null -> {}
+                _ -> { prev_field = push_field_narrow(typed, scrut_field_key, arm_narrow) }
+            }
+        }
         match arm.guard {
             is null -> {}
             _ -> {
@@ -64,12 +75,24 @@ export infer_match :: fn(
                 _ -> { pop_narrow(typed, scrut_sym_id, prev_arm, scrut_ty) }
             }
         }
+        if scrut_field_key != "" {
+            match arm_narrow {
+                is null -> {}
+                _ -> { pop_field_narrow(typed, scrut_field_key, prev_field, scrut_ty) }
+            }
+        }
         // Subtract the matched type from `remaining` for subsequent
-        // arms — `is T` and wildcard/binding fully consume.
+        // arms — `is T`, wildcard/binding, and tuple shapes consume
+        // their corresponding union variants.
         match arm.pattern {
             is AST.IsPattern as ip -> {
                 matched :: type_from_expr(ip.ty, typed.resolved, scratch_diags())
                 remaining = subtract_type(remaining, matched)
+            }
+            is AST.TuplePattern as tp -> {
+                // Subtract any TupleType variant whose arity matches.
+                tup_ty :: pick_tuple_variant(remaining, tp.elements.len())
+                if !(tup_ty is null) { remaining = subtract_type(remaining, tup_ty) }
             }
             is AST.WildcardPattern -> { remaining = TY_NEVER }
             is AST.BindingPattern  -> { remaining = TY_NEVER }
@@ -109,6 +132,14 @@ scrutinee_sym_id :: fn(scrut: AST.Expr, typed: TypedProgram) -> i32 {
     sym :: typed.resolved.idents[span_key(scrut.span)]
     if sym is null { return -1 }
     return sym.id
+}
+
+/// Build the `${root_sym.id}#path` field-narrow key when the
+/// scrutinee is a `recv.f1.f2.…` chain rooted at an `IdentExpr`.
+/// Returns `""` (no narrowing slot) for other scrutinee shapes.
+scrutinee_field_key :: fn(scrut: AST.Expr, typed: TypedProgram) -> string {
+    if !(scrut is AST.FieldExpr) { return "" }
+    return field_chain_key(scrut, typed)
 }
 
 /// Walk a match-arm pattern and record each binding's type in

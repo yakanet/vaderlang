@@ -11,11 +11,15 @@ import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/resolver/scope" { span_key }
 import "vader/typecheck/context" { FnContext }
 import "vader/typecheck/expr_ident" { type_of_symbol }
-import "vader/typecheck/narrow" { pop_narrow, push_narrow }
+import "vader/typecheck/narrow" {
+    narrow_for_field, pick_field_vs_null, pick_ident_vs_null,
+    pop_field_narrow, pop_narrow, push_field_narrow, push_narrow,
+    resolve_field_chain_static,
+}
 import "vader/typecheck/stmt" { check_block }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/type_ops" { is_assignable, subtract_type, union_of }
-import "vader/typecheck/types" { Type, display_type, mk_primitive, TY_BOOL, TY_VOID, TY_UNRESOLVED }
+import "vader/typecheck/types" { Type, UnresolvedType, display_type, mk_primitive, TY_BOOL, TY_VOID, TY_UNRESOLVED }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 
@@ -39,26 +43,45 @@ export infer_if :: fn(
         is null -> {}
         is IsNarrow as n -> {
             static_then = n.static_ty
-            prev_then = push_narrow(typed, n.sym_id, n.then_ty)
+            if n.field_key == "" {
+                prev_then = push_narrow(typed, n.sym_id, n.then_ty)
+            } else {
+                prev_then = push_field_narrow(typed, n.field_key, n.then_ty)
+            }
         }
     }
     then_ty :: check_block(e.then_block, expected, typed, diags, ctx, check_expr_fn)
     match narrowing {
         is null -> {}
-        is IsNarrow as n -> { pop_narrow(typed, n.sym_id, prev_then, static_then) }
+        is IsNarrow as n -> {
+            if n.field_key == "" { pop_narrow(typed, n.sym_id, prev_then, static_then) }
+            else { pop_field_narrow(typed, n.field_key, prev_then, static_then) }
+        }
     }
     match e.else_branch {
-        is null -> { return union_of([then_ty, TY_VOID]) }
+        is null -> {
+            return collapse_if_unresolved(union_of([then_ty, TY_VOID]), then_ty, TY_VOID)
+        }
         is AST.IfElseBlock as eb -> {
             else_ty :: check_else_with_narrow(eb.block, narrowing, expected, typed, diags, ctx, check_expr_fn)
-            return union_of([then_ty, else_ty])
+            return collapse_if_unresolved(union_of([then_ty, else_ty]), then_ty, else_ty)
         }
         is AST.IfElseIf as ei -> {
             inner: AST.Expr = ei.branch
             else_ty :: check_else_branch_expr(inner, narrowing, expected, typed, diags, check_expr_fn)
-            return union_of([then_ty, else_ty])
+            return collapse_if_unresolved(union_of([then_ty, else_ty]), then_ty, else_ty)
         }
     }
+}
+
+// `if` whose then or else branch is `?` collapses the whole expression
+// to `?` — folding the Unresolved into a union (`? | i32`) would let
+// downstream `default_if_free` paper over a missing type instead of
+// surfacing T3034 (recursive expression-bodied fn).
+collapse_if_unresolved :: fn(joined: Type, a: Type, b: Type) -> Type {
+    if a is UnresolvedType { return TY_UNRESOLVED }
+    if b is UnresolvedType { return TY_UNRESOLVED }
+    return joined
 }
 
 check_else_with_narrow :: fn(
@@ -71,10 +94,14 @@ check_else_with_narrow :: fn(
     static_ty: Type = TY_UNRESOLVED
     if narrowing is IsNarrow as n {
         static_ty = n.static_ty
-        prev = push_narrow(typed, n.sym_id, n.else_ty)
+        if n.field_key == "" { prev = push_narrow(typed, n.sym_id, n.else_ty) }
+        else { prev = push_field_narrow(typed, n.field_key, n.else_ty) }
     }
     result :: check_block(block, expected, typed, diags, ctx, check_expr_fn)
-    if narrowing is IsNarrow as n { pop_narrow(typed, n.sym_id, prev, static_ty) }
+    if narrowing is IsNarrow as n {
+        if n.field_key == "" { pop_narrow(typed, n.sym_id, prev, static_ty) }
+        else { pop_field_narrow(typed, n.field_key, prev, static_ty) }
+    }
     return result
 }
 
@@ -87,22 +114,30 @@ check_else_branch_expr :: fn(
     static_ty: Type = TY_UNRESOLVED
     if narrowing is IsNarrow as n {
         static_ty = n.static_ty
-        prev = push_narrow(typed, n.sym_id, n.else_ty)
+        if n.field_key == "" { prev = push_narrow(typed, n.sym_id, n.else_ty) }
+        else { prev = push_field_narrow(typed, n.field_key, n.else_ty) }
     }
     result :: check_expr_fn(inner, expected, typed, diags)
-    if narrowing is IsNarrow as n { pop_narrow(typed, n.sym_id, prev, static_ty) }
+    if narrowing is IsNarrow as n {
+        if n.field_key == "" { pop_narrow(typed, n.sym_id, prev, static_ty) }
+        else { pop_field_narrow(typed, n.field_key, prev, static_ty) }
+    }
     return result
 }
 
 // Minimal `if x is T { … }` narrowing : when the cond is a binary `is`
 // op whose LHS is an `IdentExpr` resolving to a local Symbol, narrow
-// that binding to `T` inside the then-branch. Doesn't yet cover
-// negation, field narrowing, divergent guards, or `is null`.
+// that binding to `T` inside the then-branch.
+//
+// `field_key` is `""` for ident narrowings ; otherwise it carries the
+// `${sym_id}.${field}` slot used by `narrowed_fields` so chains like
+// `b.items != null` narrow `b.items` inside the matching branch.
 IsNarrow :: struct {
     sym_id:    i32
     static_ty: Type
     then_ty:   Type
     else_ty:   Type
+    field_key: string = ""
 }
 
 detect_is_narrow :: fn(
@@ -126,16 +161,39 @@ detect_is_narrow :: fn(
     // orderings flip the same way.
     if i32(cond.op) == i32(AST.BinaryOp.Eq) || i32(cond.op) == i32(AST.BinaryOp.Neq) {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
-        if ident_side is null { return null }
-        sym :: typed.resolved.idents[span_key(ident_side.span)]
-        if sym is null { return null }
-        base :: type_of_symbol(sym, typed)
-        null_ty :: mk_primitive("null")
-        non_null :: subtract_type(base, null_ty)
-        if i32(cond.op) == i32(AST.BinaryOp.Eq) {
-            return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = null_ty, .else_ty = non_null }
+        if !(ident_side is null) {
+            sym :: typed.resolved.idents[span_key(ident_side.span)]
+            if sym is null { return null }
+            base :: type_of_symbol(sym, typed)
+            null_ty :: mk_primitive("null")
+            non_null :: subtract_type(base, null_ty)
+            if i32(cond.op) == i32(AST.BinaryOp.Eq) {
+                return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = null_ty, .else_ty = non_null }
+            }
+            return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = non_null, .else_ty = null_ty }
         }
-        return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = non_null, .else_ty = null_ty }
+        // `b.field == null` / `b.field != null` — field-level narrowing.
+        field_side :: pick_field_vs_null(cond.left, cond.right)
+        if !(field_side is null) {
+            field_info :: resolve_field_chain_static(field_side, typed)
+            if !(field_info is null) {
+                null_ty :: mk_primitive("null")
+                non_null :: subtract_type(field_info.static_ty, null_ty)
+                if i32(cond.op) == i32(AST.BinaryOp.Eq) {
+                    return IsNarrow {
+                        .sym_id = 0, .static_ty = field_info.static_ty,
+                        .then_ty = null_ty, .else_ty = non_null,
+                        .field_key = field_info.field_key,
+                    }
+                }
+                return IsNarrow {
+                    .sym_id = 0, .static_ty = field_info.static_ty,
+                    .then_ty = non_null, .else_ty = null_ty,
+                    .field_key = field_info.field_key,
+                }
+            }
+        }
+        return null
     }
     if i32(cond.op) != i32(AST.BinaryOp.Is) { return null }
     if !(cond.left is AST.IdentExpr) { return null }
@@ -143,6 +201,11 @@ detect_is_narrow :: fn(
     if sym is null { return null }
     base :: type_of_symbol(sym, typed)
     narrowed :: type_from_expr(cond.right, typed.resolved, diags)
+    // `if x is T as a { … }` — write the bind's type into `local_types`
+    // so `IdentExpr` lookups inside the then-block resolve `a` to T.
+    if cond.bind_as != "" {
+        typed.local_types[span_key(cond.right.span)] = narrowed
+    }
     return IsNarrow {
         .sym_id    = sym.id,
         .static_ty = base,
@@ -151,15 +214,6 @@ detect_is_narrow :: fn(
     }
 }
 
-pick_ident_vs_null :: fn(a: AST.Expr, b: AST.Expr) -> AST.IdentExpr | null {
-    if a is AST.IdentExpr {
-        if b is AST.NullLitExpr { return a }
-    }
-    if b is AST.IdentExpr {
-        if a is AST.NullLitExpr { return b }
-    }
-    return null
-}
 
 // ---- tests ----------------------------------------------------------------
 

@@ -79,7 +79,12 @@ export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl)
         m :: impl_.members[i]
         if !m.sam_synthetic { continue }
         m.name = method.name
-        m.params = substitute_params(method.params, subst)
+        // Re-key each synthesised param onto the impl's own span so
+        // multiple impls sharing the same trait method don't all mint
+        // their `self` Symbol at the trait's param span — that would
+        // collide in the resolver's ident map and clobber typing of
+        // every `self` usage but one.
+        m.params = substitute_params_with_span(method.params, subst, m.name_span)
         m.return_type = substitute_opt_type(method.return_type, subst)
     }
 }
@@ -164,6 +169,26 @@ substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[] {
     for p in params {
         out.push(AST.FnParam {
             .span = p.span,
+            .id = AST.UNASSIGNED_NODE_ID,
+            .name = p.name,
+            .ty = substitute_opt_type(p.ty, subst),
+            .default_value = p.default_value,
+            .variadic = p.variadic,
+        })
+    }
+    return out
+}
+
+/// `substitute_params` but every output param re-anchors at `host_span`,
+/// so SAM impls sharing the same trait method don't collide in the
+/// resolver's span-keyed ident map.
+substitute_params_with_span :: fn(
+    params: AST.FnParam[], subst: Subst, host_span: Span,
+) -> AST.FnParam[] {
+    out: AST.FnParam[] = []
+    for p in params {
+        out.push(AST.FnParam {
+            .span = host_span,
             .id = AST.UNASSIGNED_NODE_ID,
             .name = p.name,
             .ty = substitute_opt_type(p.ty, subst),

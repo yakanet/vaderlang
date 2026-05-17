@@ -401,12 +401,37 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
 
 walk_if :: fn(self: ResolveState, e: AST.IfExpr) -> void {
     self.walk_expr(e.cond)
-    self.walk_block(e.then_block)
+    // `if x is T as a { … }` — push a binding for `a` into the then
+    // block's scope so `a.field` resolves. Mirrors `bind_pattern`'s
+    // IsPattern path. The bind lives only for the then-block ; the
+    // else / post-if scopes don't see it.
+    bind_name :: if_bind_as_name(e.cond)
+    bind_span :: if_bind_as_span(e.cond)
+    if bind_name != "" {
+        self.scope.push()
+        sym :: self.mint_local(.Binding, bind_name, bind_span)
+        self.scope.bind(bind_name, sym)
+        self.walk_block(e.then_block)
+        self.scope.pop()
+    } else {
+        self.walk_block(e.then_block)
+    }
     match e.else_branch {
         is null -> {}
         is AST.IfElseIf as x -> { self.walk_if(x.branch) }
         is AST.IfElseBlock as x -> { self.walk_block(x.block) }
     }
+}
+
+if_bind_as_name :: fn(cond: AST.Expr) -> string {
+    if !(cond is AST.BinaryExpr) { return "" }
+    if i32(cond.op) != i32(AST.BinaryOp.Is) { return "" }
+    return cond.bind_as
+}
+
+if_bind_as_span :: fn(cond: AST.Expr) -> Span {
+    if !(cond is AST.BinaryExpr) { return cond.span }
+    return cond.right.span
 }
 
 walk_match :: fn(self: ResolveState, e: AST.MatchExpr) -> void {
