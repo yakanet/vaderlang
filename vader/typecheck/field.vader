@@ -82,6 +82,21 @@ export infer_field :: fn(
             return substitute_impl_method(base_impl, target_ty, typed)
         }
     }
+    // Bounded TypeParam dispatch runs BEFORE free-fn UFCS : `x.method()`
+    // with `x: T` where `T: SomeTrait` must dispatch via the trait,
+    // not via some same-named free fn whose first param happens to
+    // accept the TypeParam wildcard. Free fns with `Vec3` receivers
+    // would otherwise hijack `x.add(x)` inside `fn[T: Add](x: T)`.
+    if target_ty is TypeParamType {
+        bound :: typed.resolved.type_param_bounds[target_ty.symbol.id]
+        if !(bound is null) {
+            tm :: dispatch_bounded_method(bound, e.field, typed)
+            match tm {
+                is null -> {}
+                _ -> { return substitute_self(tm, target_ty) }
+            }
+        }
+    }
     // Free-fn UFCS : `x.foo()` dispatches to a free fn `foo` whose
     // first param accepts `target_ty`. Walks the local module's
     // `fn_overloads` bucket and returns the curried fn type (sans the
