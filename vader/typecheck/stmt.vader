@@ -146,6 +146,23 @@ check_assign :: fn(
             return
         }
     }
+    // T3042 : `arr[i] = v` when arr's static type is `const T[]`.
+    // Type the target so the inner index lands in expr_types, then
+    // inspect its target's type for the immutable flag.
+    if s.target is AST.IndexExpr {
+        ix :: s.target
+        target_arr_ty :: check_expr_fn(ix.target, null, typed, diags)
+        check_expr_fn(ix.index, null, typed, diags)
+        if target_arr_ty is ArrayType {
+            if target_arr_ty.immutable {
+                diags.push(typecheck_error(.CannotMutateImmutableArray, ix.target.span,
+                    "cannot mutate `${display_type(target_arr_ty)}` — declared with `const`"))
+                return
+            }
+        }
+        check_expr_fn(s.value, null, typed, diags)
+        return
+    }
     target_ty :: check_expr_fn(s.target, null, typed, diags)
     value_hint: Type | null = null
     if !(target_ty is UnresolvedType) { value_hint = target_ty }
