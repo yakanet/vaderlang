@@ -89,7 +89,15 @@ export TypedProgram :: struct {
     /// need to refer to core types (Range, Field, Display, Error,
     /// Iterator, …) without going through a user-side import.
     core_symbols: MutableMap(string, Symbol)
+
+    /// Enclosing fn-body context, pushed by `check_fn_body` and
+    /// popped when it returns. Lets `check_return` (called via the
+    /// recursive expression path where the ctx arg is `null`) still
+    /// validate against the fn's declared return type. Mutable.
+    current_fn_ctx: FnContext | null
 }
+
+import "vader/typecheck/context" { FnContext }
 
 import "vader/resolver/wire" { ImportTargetTable }
 
@@ -116,6 +124,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .external_types  = MutableMap(i32, Type) { .buckets = [], .size = 0 },
         .namespace_exports = MutableMap(string, MutableMap(string, Type)) { .buckets = [], .size = 0 },
         .core_symbols    = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .current_fn_ctx  = null,
     }
 }
 

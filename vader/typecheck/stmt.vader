@@ -82,6 +82,8 @@ export check_fn_body :: fn(
 ) -> void {
     return_type :: lookup_return_type(fn_decl, typed)
     ctx :: new_fn_context(return_type, null)
+    prev :: typed.current_fn_ctx
+    typed.current_fn_ctx = ctx
     got :: check_block(body, return_type, typed, diags, ctx, check_expr_fn)
     // Implicit-return : a trailing expression substitutes for an
     // explicit `return`. Surface T3020 against the trailing's span.
@@ -89,6 +91,7 @@ export check_fn_body :: fn(
         is null -> {}
         _ -> { emit_return_mismatch_if(got, return_type, body.trailing.span, diags) }
     }
+    typed.current_fn_ctx = prev
 }
 
 // Push T3020 when `got` doesn't flow into `expected`. Shared between
@@ -161,28 +164,32 @@ check_return :: fn(
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
-    // Always walk the value (even without ctx) so its expr_types
-    // get populated. Return-type mismatch only fires when ctx is in
-    // scope — early-returning would have dropped the value's
-    // expr_types/expr_kinds entries which downstream consumers
-    // (dump, lowerer) depend on.
+    // Fall back to the typed-program-wide ctx when the arg-side ctx
+    // is null — the dispatcher's recursive paths (`infer_if`,
+    // `infer_match`) pass `null` so the body's return targets aren't
+    // visible without this fallback.
+    effective: FnContext | null = ctx
+    match ctx {
+        is null -> { effective = typed.current_fn_ctx }
+        _ -> {}
+    }
     v :: s.value
     if v is null {
-        match ctx {
+        match effective {
             is null -> {}
-            _ -> { emit_return_mismatch_if(TY_VOID, ctx.return_type, s.span, diags) }
+            _ -> { emit_return_mismatch_if(TY_VOID, effective.return_type, s.span, diags) }
         }
         return
     }
     expected: Type | null = null
-    match ctx {
+    match effective {
         is null -> {}
-        _ -> { expected = ctx.return_type }
+        _ -> { expected = effective.return_type }
     }
     got :: check_expr_fn(v, expected, typed, diags)
-    match ctx {
+    match effective {
         is null -> {}
-        _ -> { emit_return_mismatch_if(got, ctx.return_type, s.span, diags) }
+        _ -> { emit_return_mismatch_if(got, effective.return_type, s.span, diags) }
     }
 }
 
