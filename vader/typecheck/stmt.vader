@@ -161,14 +161,29 @@ check_return :: fn(
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
-    if ctx is null { return }
+    // Always walk the value (even without ctx) so its expr_types
+    // get populated. Return-type mismatch only fires when ctx is in
+    // scope — early-returning would have dropped the value's
+    // expr_types/expr_kinds entries which downstream consumers
+    // (dump, lowerer) depend on.
     v :: s.value
     if v is null {
-        emit_return_mismatch_if(TY_VOID, ctx.return_type, s.span, diags)
+        match ctx {
+            is null -> {}
+            _ -> { emit_return_mismatch_if(TY_VOID, ctx.return_type, s.span, diags) }
+        }
         return
     }
-    got :: check_expr_fn(v, ctx.return_type, typed, diags)
-    emit_return_mismatch_if(got, ctx.return_type, s.span, diags)
+    expected: Type | null = null
+    match ctx {
+        is null -> {}
+        _ -> { expected = ctx.return_type }
+    }
+    got :: check_expr_fn(v, expected, typed, diags)
+    match ctx {
+        is null -> {}
+        _ -> { emit_return_mismatch_if(got, ctx.return_type, s.span, diags) }
+    }
 }
 
 check_for :: fn(
