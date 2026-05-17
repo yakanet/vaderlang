@@ -24,7 +24,8 @@ import "vader/typecheck/expr" { check_expr }
 import "vader/typecheck/stmt" { check_fn_body }
 import "vader/typecheck/type_ops" { default_if_free }
 import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
-import "vader/typecheck/types" { Type }
+import "vader/typecheck/types" { Type, mk_fn, TY_UNRESOLVED, TY_VOID }
+import "vader/typecheck/type_expr" { type_from_expr }
 
 /// Run the full typecheck pipeline : decl-level + body-walking. The
 /// result carries the same `TypedProgram` + `ImplRegistry` as
@@ -262,10 +263,14 @@ export walk_bodies :: fn(
             is AST.ConstDecl as cd -> { check_const_value(cd, typed, diags) }
             is AST.AssertDecl as ad -> { check_expr(ad.condition, null, typed, diags) }
             is AST.ImplDecl as id -> {
-                // Type each method declared inside `<T> implements
-                // <Trait> { … }` ; method bodies use the same fn-body
-                // walker so `return` / loop ctx / local types flow.
-                for m in id.members { walk_fn_body(m, typed, diags) }
+                // Each impl method needs decl-level setup before its
+                // body is walked : `self` resolves to the impl's
+                // for-type, other params take their annotations.
+                for_ty :: type_from_expr(id.for_type, typed.resolved, diags)
+                for m in id.members {
+                    declare_impl_method(m, for_ty, typed, diags)
+                    walk_fn_body(m, typed, diags)
+                }
             }
             _ -> {}
         }
@@ -278,6 +283,45 @@ walk_fn_body :: fn(fd: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[]) -> 
         is AST.BlockExpr as body -> { check_fn_body(fd, body, typed, diags, check_expr) }
     }
 }
+
+/// Pre-walk an impl method's signature so `self` resolves to the
+/// impl block's for-type and the rest of the params take their
+/// annotated types. Result lands in `param_types` + `decl_types`
+/// so `infer_ident` / `check_fn_body` see concrete types.
+declare_impl_method :: fn(
+    fd: AST.FnDecl, for_ty: Type, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    params: Type[] = []
+    for p in fd.params {
+        pt :: param_type(p, for_ty, typed, diags)
+        typed.param_types[span_key(p.span)] = pt
+        params.push(pt)
+    }
+    ret :: declare_return(fd, typed, diags)
+    typed.decl_types[span_key(fd.name_span)] = mk_fn(params, ret)
+}
+
+param_type :: fn(
+    p: AST.FnParam, for_ty: Type, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    match p.ty {
+        is null -> {
+            if p.name == "self" { return for_ty }
+            return TY_UNRESOLVED
+        }
+        _ -> { return type_from_expr(p.ty, typed.resolved, diags) }
+    }
+}
+
+declare_return :: fn(
+    fd: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    match fd.return_type {
+        is null -> { return TY_VOID }
+        _ -> { return type_from_expr(fd.return_type, typed.resolved, diags) }
+    }
+}
+
 
 check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
     annot :: typed.decl_types[span_key(cd.name_span)]
