@@ -5,7 +5,7 @@
 // Returns the struct type.
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-import "vader/typecheck/field" { find_struct_field_type }
+import "vader/typecheck/field" { find_struct_field_type, substitute_by_name }
 import "vader/typecheck/type_ops" { is_assignable }
 import "vader/typecheck/types" { Type, StructType, display_type, TY_UNRESOLVED }
 import "vader/typecheck/type_expr" { type_from_expr }
@@ -68,7 +68,11 @@ check_field :: fn(
 ) -> void {
     expected: Type | null = null
     if decl is AST.StructDecl {
-        expected = find_struct_field_type(decl, f.name, typed.resolved, diags)
+        raw :: find_struct_field_type(decl, f.name, typed.resolved, diags)
+        match raw {
+            is null -> {}
+            _ -> { expected = substitute_by_name(raw, decl.type_params, st.args) }
+        }
     }
     got :: check_expr_fn(f.value, expected, typed, diags)
     if expected is null {

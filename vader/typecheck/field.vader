@@ -110,7 +110,7 @@ substitute_struct_field :: fn(
     return substitute_by_name(field_ty, decl.type_params, target.args)
 }
 
-substitute_by_name :: fn(
+export substitute_by_name :: fn(
     t: Type, tps: AST.TypeParam[], args: Type[],
 ) -> Type {
     match t {
