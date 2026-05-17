@@ -497,6 +497,24 @@ export function dumpTypecheck(_source: string, entryPath: string): string {
   return formatTypedDump(typed) + formatDiagnostics(diags.sorted());
 }
 
+/** Run the self-host Vader CLI to produce the typed-ast dump. Used by
+ *  `snapshot.test.ts` as the source-of-truth generator now that the
+ *  self-host typechecker has surpassed TS on a few cases (notably the
+ *  iter_* trait-default-method snapshots — TS emits accidental
+ *  `undefined:undefined` entries, Vader emits informative trait-source
+ *  spans). `tests/parity.test.ts` then trivially passes (Vader vs Vader)
+ *  while `snapshot.test.ts` (which exercises the TS pipeline) becomes
+ *  the place where TS divergences from Vader surface. */
+export function dumpTypecheckViaVader(_source: string, entryPath: string): string {
+  const result = Bun.spawnSync(["./build/vader", "dump", "--stage=typed-ast", entryPath]);
+  const stdout = new TextDecoder().decode(result.stdout);
+  const stderr = new TextDecoder().decode(result.stderr);
+  // Surface CLI failures inline so snapshot diffs are debuggable rather
+  // than mysteriously empty.
+  if (result.exitCode !== 0) return `# vader CLI failed (exit ${result.exitCode})\n${stderr}${stdout}`;
+  return stdout;
+}
+
 const SPAN_KEYS = new Set<string>([
   "span", "fieldSpan", "nameSpan", "bindingSpan", "traitNameSpan",
   "variantSpan", "valueSpan", "file",

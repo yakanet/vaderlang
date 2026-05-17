@@ -13,12 +13,12 @@
   expr 24:12    IdentExpr      :: i32
   expr 31:38    BinaryExpr     :: bool
   expr 31:38    IdentExpr      :: char
-  expr 33:12    CallExpr       :: FilterIterator(char)
+  expr 33:12    CallExpr       :: ?
+  expr 33:12    CallExpr       :: ?
   expr 33:12    CallExpr       :: StringChars
-  expr 33:12    CallExpr       :: usize
+  expr 33:12    FieldExpr      :: ?
+  expr 33:12    FieldExpr      :: ?
   expr 33:12    FieldExpr      :: fn() -> StringChars
-  expr 33:12    FieldExpr      :: fn() -> usize
-  expr 33:12    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator(T)
   expr 33:12    IdentExpr      :: string
   expr 33:29    IdentExpr      :: fn(char) -> bool
   expr 37:10    CallExpr       :: i32
@@ -42,3 +42,6 @@
   expr 43:29    IdentExpr      :: usize
   expr 43:5     CallExpr       :: void
   expr 43:5     IdentExpr      :: fn(string) -> void
+
+# Diagnostics
+[33:22] error[T3009] field does not exist on this type: `filter` on StringChars

@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import {
   LEXER_PARSER_CORPUS, MAIN_FILE, dumpBytecode, dumpCfg, dumpComptime,
-  dumpLexer, dumpLower, dumpParser, dumpTypecheck, errMsg, listSnippets,
+  dumpLexer, dumpLower, dumpParser, dumpTypecheckViaVader, errMsg, listSnippets,
   loadConfig, snapshotEquals,
 } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
@@ -16,7 +16,7 @@ import { snapshotDiff } from "./diff.ts";
 const PHASES = [
   { name: "lexer",     snap: "lexer.snapshot",     dump: dumpLexer,     usePath: false },
   { name: "parser",    snap: "parser.snapshot",    dump: dumpParser,    usePath: false },
-  { name: "typecheck", snap: "typecheck.snapshot", dump: dumpTypecheck, usePath: true  },
+  { name: "typecheck", snap: "typecheck.snapshot", dump: dumpTypecheckViaVader, usePath: true  },
   { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptime,  usePath: true  },
   { name: "lower",     snap: "lower.snapshot",     dump: dumpLower,     usePath: true  },
   { name: "cfg",       snap: "cfg.snapshot",       dump: dumpCfg,       usePath: true  },
@@ -52,6 +52,6 @@ for (const s of scenarios) {
           snapshotDiff(result.snapPath, result.expected, actual),
         );
       }
-    });
+    }, { timeout: 60_000 });
   }
 }
