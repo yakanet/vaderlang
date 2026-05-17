@@ -12,7 +12,7 @@ import "vader/typecheck/narrow" {
     field_chain_key, pop_field_narrow, pop_narrow,
     push_field_narrow, push_narrow,
 }
-import "vader/typecheck/type_ops" { is_assignable, union_of }
+import "vader/typecheck/type_ops" { is_assignable, types_overlap, union_of }
 import "vader/typecheck/types" { Type, UnionType, display_type, TY_BOOL }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
@@ -87,6 +87,12 @@ export infer_match :: fn(
         match arm.pattern {
             is AST.IsPattern as ip -> {
                 matched :: type_from_expr(ip.ty, typed.resolved, scratch_diags())
+                if is_overlap_checkable(scrut_ty) && is_overlap_checkable(matched) {
+                    if !types_overlap(scrut_ty, matched) {
+                        diags.push(typecheck_error(.UnreachableIsTest, ip.span,
+                            "`${display_type(matched)}` is never a value of `${display_type(scrut_ty)}`"))
+                    }
+                }
                 remaining = subtract_type(remaining, matched)
             }
             is AST.TuplePattern as tp -> {
@@ -126,6 +132,18 @@ arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Ty
 }
 
 import "vader/typecheck/type_ops" { subtract_type }
+
+is_overlap_checkable :: fn(t: Type) -> bool {
+    match t {
+        is UnresolvedType -> { return false }
+        is TypeParamType -> { return false }
+        is TypeMetaType -> { return false }
+        is TraitType -> { return false }
+        _ -> { return true }
+    }
+}
+
+import "vader/typecheck/types" { TraitType, TypeMetaType, TypeParamType, UnresolvedType }
 
 scrutinee_sym_id :: fn(scrut: AST.Expr, typed: TypedProgram) -> i32 {
     if !(scrut is AST.IdentExpr) { return -1 }

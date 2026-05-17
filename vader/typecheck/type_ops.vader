@@ -323,6 +323,31 @@ export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
     return got
 }
 
+/// Do `a` and `b` share any concrete runtime value ? Powers T3040
+/// ("test can never match") and the match-arm overlap check.
+/// UnionType on either side recurses into its variants. Otherwise
+/// falls back to `equals_type`.
+export types_overlap :: fn(a: Type, b: Type) -> bool {
+    av :: union_variants(a)
+    if !(av is null) {
+        for v in av { if types_overlap(v, b) { return true } }
+        return false
+    }
+    bv :: union_variants(b)
+    if !(bv is null) {
+        for v in bv { if types_overlap(a, v) { return true } }
+        return false
+    }
+    return equals_type(a, b)
+}
+
+union_variants :: fn(t: Type) -> Type[] | null {
+    match t {
+        is UnionType as u -> { return u.variants }
+        _ -> { return null }
+    }
+}
+
 /// Subtract a single variant from a type. Returns the remaining type
 /// (or `Never` if nothing remains). For non-union sources subtracting
 /// the same shape yields `Never` ; subtracting a different shape is a

@@ -22,7 +22,7 @@ import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/type_ops" { is_numeric_name, is_int_name, is_float_name }
 import "vader/typecheck/types" {
     Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
-    EnumType, FnType, StructType,
+    EnumType, FnType, StructType, TraitType, UnionType,
     display_type, type_base_name, mk_primitive, TY_BOOL, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
@@ -45,6 +45,7 @@ export infer_binary :: fn(
         // level — the right side of `is` is almost always a type
         // ident (`is i32`, `is Cat`).
         if e.right is AST.IdentExpr { typed.expr_kinds[key] = "IdentExpr" }
+        check_is_overlap(e, left, rhs_ty, diags)
         return TY_BOOL
     }
     // Right-side bidirectional context : when left is a concrete numeric,
@@ -121,6 +122,37 @@ has_impl_method :: fn(t: Type, name: string, typed: TypedProgram) -> bool {
     if base == "" { return false }
     return !(typed.impl_methods["${base}::${name}"] is null)
 }
+
+/// T3040 : `x is T` test where `T` can never be a runtime value of
+/// `x`'s static type. We surface the error for tests against `null`
+/// on non-nullable scrutinees and against variants not present in a
+/// union scrutinee. UnresolvedType / TypeParam / TypeMeta etc. opt out
+/// (we can't soundly know without more info).
+check_is_overlap :: fn(
+    e: AST.BinaryExpr, scrut: Type, tested: Type, diags: Diagnostic[],
+) -> void {
+    if !is_resolved_enough(scrut) { return }
+    if !is_resolved_enough(tested) { return }
+    if types_overlap(scrut, tested) { return }
+    diags.push(typecheck_error(.UnreachableIsTest, e.right.span,
+        "`${display_type(tested)}` is never a value of `${display_type(scrut)}`"))
+}
+
+is_resolved_enough :: fn(t: Type) -> bool {
+    match t {
+        is UnresolvedType -> { return false }
+        is TypeParamType -> { return false }
+        is TypeMetaType  -> { return false }
+        // Traits can be satisfied by any struct with a matching impl,
+        // so structural overlap isn't enough to call the test
+        // unreachable — defer that to the impl-driven dispatch.
+        is TraitType -> { return false }
+        _ -> { return true }
+    }
+}
+
+import "vader/typecheck/types" { TypeParamType }
+import "vader/typecheck/type_ops" { equals_type, types_overlap }
 
 check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
     if !is_bool(left)  && !(left  is UnresolvedType) {

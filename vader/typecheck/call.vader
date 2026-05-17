@@ -187,8 +187,12 @@ cast_call_target :: fn(
     c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    check_args_no_expected(c, typed, diags, check_expr_fn)
-    return type_from_expr(c.callee, typed.resolved, diags)
+    target :: type_from_expr(c.callee, typed.resolved, diags)
+    // Pass the cast target as expected for each arg so a Free* literal
+    // (or `-Free*` unary) narrows into the target's primitive shape —
+    // `i64(-250)` types the `-250` as `i64`, not `{integer}`.
+    for arg in c.args { check_expr_fn(arg.value, target, typed, diags) }
+    return target
 }
 
 fn_has_type_params :: fn(f: FnType) -> bool {

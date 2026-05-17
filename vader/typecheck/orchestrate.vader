@@ -354,6 +354,11 @@ materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
             if !(decl is AST.ImplDecl) { continue }
             trait_decl :: find_trait_decl_in_project(decl.trait_name, project)
             if trait_decl is null { continue }
+            // `@intrinsic <T> implements <Trait>` arrives with an empty
+            // `members` list — synthesise body-less FnDecls from the
+            // trait's methods so the rest of the pipeline (declare /
+            // ufcs / walk_fn_body) sees them.
+            materialize_intrinsic_members(decl, trait_decl)
             materialize_sam_members(decl, trait_decl)
         }
     }
@@ -374,7 +379,7 @@ find_trait_decl_in_project :: fn(
     return null
 }
 
-import "vader/resolver/materialize" { materialize_sam_members }
+import "vader/resolver/materialize" { materialize_intrinsic_members, materialize_sam_members }
 
 has_expr_bodied_fn :: fn(decls: AST.Decl[]) -> bool {
     for d in decls {

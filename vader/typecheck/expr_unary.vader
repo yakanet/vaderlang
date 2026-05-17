@@ -16,10 +16,16 @@ AST :: import "vader/parser/ast"
 /// Type-check a `UnaryExpr`. T3017 when the op doesn't admit the
 /// operand's family.
 export infer_unary :: fn(
-    e: AST.UnaryExpr, typed: TypedProgram, diags: Diagnostic[],
+    e: AST.UnaryExpr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    operand :: check_expr_fn(e.operand, null, typed, diags)
+    // `-x` / `~x` over a Free* literal propagate the enclosing `expected`
+    // through so `i64(-250)` types the `-` as i64. `!x` stays bool, no
+    // narrowing helpful.
+    operand_hint: Type | null = null
+    if i32(e.op) != i32(AST.UnaryOp.Not) { operand_hint = expected }
+    operand :: check_expr_fn(e.operand, operand_hint, typed, diags)
     if operand is UnresolvedType { return TY_UNRESOLVED }
     match e.op {
         .Neg -> {
