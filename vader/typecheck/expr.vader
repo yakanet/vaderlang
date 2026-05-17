@@ -103,7 +103,18 @@ infer_expr :: fn(
         is AST.BoolLitExpr   as e -> { return infer_bool_lit(e) }
         is AST.NullLitExpr   as e -> { return infer_null_lit(e) }
         is AST.CharLitExpr   as e -> { return infer_char_lit(e) }
-        is AST.StringLitExpr as e -> { return infer_string_lit(e) }
+        is AST.StringLitExpr as e -> {
+            // Walk interpolation parts so `"${x}"`'s `x` lands in
+            // `expr_types` (matches the TS reference). T3018 Display
+            // check is deferred — currently we just type the inner.
+            for part in e.parts {
+                match part {
+                    is AST.StringLitInterp as p -> { check_expr(p.expr, null, typed, diags) }
+                    _ -> {}
+                }
+            }
+            return infer_string_lit(e)
+        }
         is AST.IdentExpr     as e -> { return infer_ident(e, typed) }
         is AST.BlockExpr     as e -> { return check_block(e, expected, typed, diags, null, check_expr) }
         is AST.IfExpr        as e -> { return infer_if(e, expected, typed, diags, null, check_expr) }

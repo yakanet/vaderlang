@@ -28,7 +28,7 @@ import "vader/parser/ast" {
     StructLitSpread, SeqLitExpr, RangeExpr, TryExpr, CastExpr,
     GenericInstExpr, IntrinsicCallExpr, DotVariantExpr, FnTypeExpr,
     ArrayTypeExpr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr,
-    CharLitExpr, StringLitExpr, IsPattern, StructPattern, TuplePattern,
+    CharLitExpr, StringLitExpr, StringLitInterp, IsPattern, StructPattern, TuplePattern,
     WildcardPattern, BindingPattern, EnumVariantPattern, LiteralPattern,
     PatternBinding, PatternLiteral, SimpleBinding, TupleBinding,
     WildcardBinding, RestBinding, Decorator
@@ -308,7 +308,14 @@ walk_expr :: fn(self: ResolveState, e: Expr) -> void {
         is BoolLitExpr -> {}
         is NullLitExpr -> {}
         is CharLitExpr -> {}
-        is StringLitExpr -> {}
+        is StringLitExpr as s -> {
+            for part in s.parts {
+                match part {
+                    is StringLitInterp as p -> { self.walk_expr(p.expr) }
+                    _ -> {}
+                }
+            }
+        }
     }
 }
 
