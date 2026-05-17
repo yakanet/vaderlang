@@ -1,0 +1,208 @@
+// vader/lsp/inlay_hint — `textDocument/inlayHint` handler.
+//
+// For each `let x := expr` (or `name :: expr`) without an explicit type
+// annotation, emit a hint `: <inferred-type>` rendered inline after the
+// binding name. Mirrors the Rust-analyzer / TS-server UX so the editor
+// shows what the inference resolved to without forcing the user to
+// hand-annotate.
+//
+// LSP §3.17 InlayHint shape :
+//   { position: { line, character }, label: ":i32", kind: 1 /* Type */,
+//     paddingLeft: false, paddingRight: false }
+//
+// Positions are 0-based ; the Vader `Span` is 1-based, so every
+// emitted coordinate gets `-1` for translation.
+
+import "std/collections" { MutableMap }
+import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool }
+import "std/string" { byte_len, slice, starts_with }
+import "vader/diagnostics/diagnostic" { Diagnostic, Span }
+import "vader/lsp/state" { ServerState }
+import "vader/resolver/loader" { load_project }
+import "vader/resolver/scope" { span_key }
+import "vader/typecheck/orchestrate" { check_project_with_bodies }
+import "vader/typecheck/check" { CheckResult }
+import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/typecheck/types" { Type, UnresolvedType, FreeIntType, FreeFloatType, display_type }
+AST :: import "vader/parser/ast"
+
+/// Build the inlay-hint array for the document carried in `params`.
+/// Returns a `JsonArray` (possibly empty) — the LSP spec mandates an
+/// array response, never a null.
+export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: get_uri(params)
+    if uri == "" { return JsonArray { .items = [] } }
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return JsonArray { .items = [] } }
+
+    project :: load_project(file_path)
+    diags: Diagnostic[] = []
+    result :: check_project_with_bodies(project, diags)
+    entry_loaded :: project.modules[project.entry]
+    if entry_loaded is null { return JsonArray { .items = [] } }
+
+    hints: JsonValue[] = []
+    for decl in entry_loaded.module.files[0].program.decls {
+        collect_from_decl(decl, result.typed, hints)
+    }
+    return JsonArray { .items = hints }
+}
+
+// ---- AST walkers ---------------------------------------------------------
+
+collect_from_decl :: fn(d: AST.Decl, typed: TypedProgram, out: JsonValue[]) -> void {
+    match d {
+        is AST.FnDecl as fd -> {
+            match fd.body {
+                is null -> {}
+                is AST.BlockExpr as b -> { collect_from_block(b, typed, out) }
+            }
+        }
+        is AST.ImplDecl as id -> {
+            for m in id.members {
+                match m.body {
+                    is null -> {}
+                    is AST.BlockExpr as b -> { collect_from_block(b, typed, out) }
+                }
+            }
+        }
+        _ -> {}
+    }
+}
+
+collect_from_block :: fn(b: AST.BlockExpr, typed: TypedProgram, out: JsonValue[]) -> void {
+    for s in b.stmts { collect_from_stmt(s, typed, out) }
+    match b.trailing {
+        is null -> {}
+        _ -> { collect_from_expr(b.trailing, typed, out) }
+    }
+}
+
+collect_from_stmt :: fn(s: AST.Stmt, typed: TypedProgram, out: JsonValue[]) -> void {
+    match s {
+        is AST.LetStmt as ls -> {
+            // Skip when the user already annotated the binding type.
+            match ls.ty {
+                is null -> { emit_let_hint(ls, typed, out) }
+                _       -> {}
+            }
+            collect_from_expr(ls.value, typed, out)
+        }
+        is AST.ExprStmt as es -> { collect_from_expr(es.expr, typed, out) }
+        is AST.ReturnStmt as rs -> {
+            match rs.value {
+                is null -> {}
+                _ -> { collect_from_expr(rs.value, typed, out) }
+            }
+        }
+        is AST.AssignStmt as as_ -> {
+            collect_from_expr(as_.target, typed, out)
+            collect_from_expr(as_.value, typed, out)
+        }
+        is AST.ForStmt as fs -> {
+            match fs.form {
+                is AST.WhileFor as w -> { collect_from_expr(w.cond, typed, out) }
+                is AST.InFor    as i -> { collect_from_expr(i.iter, typed, out) }
+                is AST.InfiniteFor -> {}
+            }
+            collect_from_block(fs.body, typed, out)
+        }
+        is AST.BreakStmt -> {}
+        is AST.ContinueStmt -> {}
+        is AST.DeferStmt as ds -> {
+            match ds.body {
+                is AST.DeferStmtBody  as dsb -> { collect_from_stmt(dsb.stmt, typed, out) }
+                is AST.DeferBlockBody as dbb -> { collect_from_block(dbb.block, typed, out) }
+            }
+        }
+    }
+}
+
+collect_from_expr :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]) -> void {
+    match e {
+        is AST.BlockExpr as b -> { collect_from_block(b, typed, out) }
+        is AST.IfExpr as ifx -> {
+            collect_from_block(ifx.then_block, typed, out)
+            match ifx.else_branch {
+                is null -> {}
+                is AST.IfElseIf    as ei -> { collect_from_expr(ei.branch, typed, out) }
+                is AST.IfElseBlock as eb -> { collect_from_block(eb.block, typed, out) }
+            }
+        }
+        is AST.MatchExpr as m -> {
+            for arm in m.arms { collect_from_expr(arm.body, typed, out) }
+        }
+        is AST.LambdaExpr as l -> { collect_from_block(l.body, typed, out) }
+        // Other expr variants don't introduce bindings — nothing to hint.
+        _ -> {}
+    }
+}
+
+// ---- hint emission -------------------------------------------------------
+
+/// Emit a `: <type>` hint after the binding name. Currently handles the
+/// `SimpleBinding` case ; tuple-destructuring bindings are skipped
+/// (each leaf would need its own hint, and the static type isn't always
+/// useful on the destructure itself).
+emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out: JsonValue[]) -> void {
+    match ls.binding {
+        is AST.SimpleBinding as sb -> {
+            ty :: typed.local_types[span_key(sb.name_span)]
+            if ty is null { return }
+            if ty is UnresolvedType { return }
+            if ty is FreeIntType { return }
+            if ty is FreeFloatType { return }
+            label :: ": ${display_type(ty)}"
+            // LSP positions are 0-based ; place the hint immediately
+            // after the binding name (end column - 1).
+            line :: sb.name_span.end.line - i32(1)
+            col  :: sb.name_span.end.column - i32(1)
+            out.push(build_hint(line, col, label))
+        }
+        _ -> {}
+    }
+}
+
+build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
+    position :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    position["line"]      = JsonNumber { .value = f64(line) }
+    position["character"] = JsonNumber { .value = f64(character) }
+
+    hint :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    hint["position"]     = JsonObject { .entries = position }
+    hint["label"]        = JsonString { .value = label }
+    // InlayHintKind.Type = 1 (LSP §3.17.21).
+    hint["kind"]         = JsonNumber { .value = f64(1) }
+    hint["paddingLeft"]  = JsonBool { .value = false }
+    hint["paddingRight"] = JsonBool { .value = false }
+    return JsonObject { .entries = hint }
+}
+
+// ---- params helpers ------------------------------------------------------
+
+get_uri :: fn(params: JsonValue) -> string {
+    match params {
+        is JsonObject as o -> {
+            td :: o.entries["textDocument"]
+            match td {
+                is JsonObject as tdo -> {
+                    uri :: tdo.entries["uri"]
+                    match uri {
+                        is JsonString as s -> { return s.value }
+                        _ -> { return "" }
+                    }
+                }
+                _ -> { return "" }
+            }
+        }
+        _ -> { return "" }
+    }
+}
+
+uri_to_path :: fn(uri: string) -> string {
+    prefix :: "file://"
+    if uri.starts_with(prefix) {
+        return uri.slice(prefix.byte_len(), uri.byte_len())
+    }
+    return ""
+}

@@ -6,56 +6,30 @@
   StructDecl     Repeat               :: Repeat(T)
   FnDecl         walk                 :: fn(Iterator(i32)) -> i32
   expr 138:36   MatchExpr      :: bool
-  expr 138:36   MatchExpr      :: bool
   expr 138:42   CallExpr       :: null | Yield(T)
-  expr 138:42   CallExpr       :: null | Yield(T)
-  expr 138:42   FieldExpr      :: fn() -> null | Yield(T)
   expr 138:42   FieldExpr      :: fn() -> null | Yield(T)
   expr 138:42   IdentExpr      :: Once(T)
-  expr 138:42   IdentExpr      :: Repeat(T)
-  expr 148:13   UnaryExpr      :: bool
   expr 148:13   UnaryExpr      :: bool
   expr 148:14   IdentExpr      :: bool
-  expr 148:14   IdentExpr      :: bool
-  expr 149:13   MatchExpr      :: void
   expr 149:13   MatchExpr      :: void
   expr 149:19   CallExpr       :: null | Yield(T)
-  expr 149:19   CallExpr       :: null | Yield(T)
-  expr 149:19   FieldExpr      :: fn() -> null | Yield(T)
   expr 149:19   FieldExpr      :: fn() -> null | Yield(T)
   expr 149:19   IdentExpr      :: Once(T)
-  expr 149:19   IdentExpr      :: Repeat(T)
-  expr 150:34   IdentExpr      :: bool
   expr 150:34   IdentExpr      :: bool
   expr 151:34   IdentExpr      :: usize
-  expr 151:34   IdentExpr      :: usize
-  expr 151:42   BinaryExpr     :: usize
   expr 151:42   BinaryExpr     :: usize
   expr 151:42   IdentExpr      :: usize
-  expr 151:42   IdentExpr      :: usize
-  expr 154:16   IdentExpr      :: usize
   expr 154:16   IdentExpr      :: usize
   expr 162:13   UnaryExpr      :: bool
-  expr 162:13   UnaryExpr      :: bool
-  expr 162:14   IdentExpr      :: bool
   expr 162:14   IdentExpr      :: bool
   expr 163:13   MatchExpr      :: void
-  expr 163:13   MatchExpr      :: void
   expr 163:19   CallExpr       :: null | Yield(T)
-  expr 163:19   CallExpr       :: null | Yield(T)
-  expr 163:19   FieldExpr      :: fn() -> null | Yield(T)
   expr 163:19   FieldExpr      :: fn() -> null | Yield(T)
   expr 163:19   IdentExpr      :: Once(T)
-  expr 163:19   IdentExpr      :: Repeat(T)
-  expr 164:39   IdentExpr      :: bool
   expr 164:39   IdentExpr      :: bool
   expr 165:39   IdentExpr      :: null | T
-  expr 165:39   IdentExpr      :: null | T
-  expr 165:48   FieldExpr      :: T
   expr 165:48   FieldExpr      :: T
   expr 165:48   IdentExpr      :: Yield(T)
-  expr 165:48   IdentExpr      :: Yield(T)
-  expr 168:16   IdentExpr      :: null | T
   expr 168:16   IdentExpr      :: null | T
   expr 22:12    BinaryExpr     :: bool
   expr 22:12    FieldExpr      :: i32

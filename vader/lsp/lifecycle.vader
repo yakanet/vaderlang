@@ -101,6 +101,7 @@ export server_capabilities :: fn() -> JsonValue {
     caps["semanticTokensProvider"]  = JsonObject { .entries = semantic_provider }
     caps["definitionProvider"]      = JsonBool { .value = true }
     caps["hoverProvider"]           = JsonBool { .value = true }
+    caps["inlayHintProvider"]       = JsonBool { .value = true }
     return JsonObject { .entries = caps }
 }
 
