@@ -228,7 +228,11 @@ check_for :: fn(
         is AST.InfiniteFor -> {}
         is AST.WhileFor as w -> {
             got :: check_expr_fn(w.cond, null, typed, diags)
-            if !is_assignable(got, TY_BOOL, null) {
+            // `for X { ... }` desugars to `for _ in X { ... }` when X
+            // is iterable (array today ; custom Iterator impls land
+            // with coerce.vader). Skip T3019 in that case to match TS.
+            if got is ArrayType { /* iterable — no diag */ }
+            else if !is_assignable(got, TY_BOOL, null) {
                 diags.push(typecheck_error(.ConditionMustBeBool, w.cond.span,
                     "while condition must be `bool`, got ${display_type(got)}"))
             }
