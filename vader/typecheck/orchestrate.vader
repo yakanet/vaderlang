@@ -10,7 +10,7 @@
 // type info into the entry module's `TypedProgram`.
 
 import "std/collections" { MutableMap, keys }
-import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/diagnostics/diagnostic" { Diagnostic, Span }
 AST :: import "vader/parser/ast"
 import "vader/parser/ast" { Program }
 import "vader/resolver/loader" { LoadedProject, LoadedModule }
@@ -428,10 +428,12 @@ materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
             materialize_intrinsic_members(decl, trait_decl)
             materialize_sam_members(decl, trait_decl)
             // Default-bodied trait methods get cloned into the impl
-            // (body + signature substituted). The cloned bodies keep
-            // the trait method's source spans so walk_bodies emits
-            // expr_types at the trait method's original line:col.
-            materialize_default_members(decl, trait_decl)
+            // (body + signature substituted). Bodies carry the
+            // materialised-span marker + IDs minted from the host
+            // module's factory so cloned nodes contribute distinct
+            // expr_types entries in the typecheck dump (rendered as
+            // `undefined:undefined` — matches TS).
+            materialize_default_members(decl, trait_decl, loaded.node_id_factory)
         }
     }
 }
@@ -478,8 +480,10 @@ has_expr_bodied_fn :: fn(decls: AST.Decl[]) -> bool {
 // (`decl_types`, struct/trait decls, impl_methods, …) stay intact —
 // only side-tables filled from inside fn bodies need a refresh.
 reset_expr_tables :: fn(typed: TypedProgram) -> void {
-    typed.expr_types = MutableMap(string, Type) { .buckets = [], .size = 0 }
-    typed.expr_kinds = MutableMap(string, string) { .buckets = [], .size = 0 }
+    typed.expr_types = MutableMap(usize, Type) { .buckets = [], .size = 0 }
+    typed.expr_kinds = MutableMap(usize, string) { .buckets = [], .size = 0 }
+    typed.node_spans = MutableMap(usize, Span) { .buckets = [], .size = 0 }
+    typed.ufcs_receiver_types = MutableMap(usize, Type) { .buckets = [], .size = 0 }
     typed.local_types = MutableMap(string, Type) { .buckets = [], .size = 0 }
     typed.narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 }
 }

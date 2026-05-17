@@ -100,7 +100,7 @@ export resolve_field_chain_static :: fn(
 ) -> FieldChainStatic | null {
     key :: field_chain_key(e, typed)
     if key == "" { return null }
-    static_ty :: typed.expr_types[span_full_key(e.span)]
+    static_ty :: typed.expr_types[e.id]
     if static_ty is null { return null }
     if static_ty is UnresolvedType { return null }
     return FieldChainStatic { .field_key = key, .static_ty = static_ty }

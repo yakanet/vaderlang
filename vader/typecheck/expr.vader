@@ -57,10 +57,17 @@ export check_expr :: fn(
 ) -> Type {
     got :: infer_expr(expr, expected, typed, diags)
     final :: narrow_for_expected(got, expected)
-    key :: span_full_key(expr.span)
-    typed.expr_types[key] = final
-    typed.expr_kinds[key] = expr_kind_name(expr)
+    record_expr(typed, expr, final)
     return final
+}
+
+/// Write the final type + kind + span of `expr` into the typecheck
+/// side-tables. Centralised so every writer keeps `expr_types`,
+/// `expr_kinds`, and the `node_spans` reverse-lookup in lockstep.
+export record_expr :: fn(typed: TypedProgram, expr: AST.Expr, ty: Type) -> void {
+    typed.expr_types[expr.id] = ty
+    typed.expr_kinds[expr.id] = expr_kind_name(expr)
+    typed.node_spans[expr.id] = expr.span
 }
 
 /// Map an `AST.Expr` to its variant name as a string (matches the TS
@@ -176,7 +183,7 @@ test_check_expr_writes_into_expr_types :: fn() -> void {
     }
     diags: Diagnostic[] = []
     check_expr(e, null, typed, diags)
-    hit :: typed.expr_types[span_full_key(e.span)]
+    hit :: typed.expr_types[e.id]
     match hit {
         is null -> { assert(false, "expr_types should have an entry") }
         is FreeIntType -> {}

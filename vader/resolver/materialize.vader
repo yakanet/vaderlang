@@ -40,12 +40,16 @@ export materialize_intrinsic_members :: fn(impl_: AST.ImplDecl, trait_: AST.Trai
 }
 
 /// Trait default methods → inject deep-cloned copies into impls that
-/// didn't override the method. Now clones the body too via
-/// `substitute_body`, so the self-host typechecker can walk the
-/// cloned tree under the impl's substitution. The cloned nodes keep
-/// the trait method's ORIGINAL spans — the typecheck dump renders
-/// them at std/core line:col with Self/T already substituted.
-export materialize_default_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> void {
+/// didn't override the method. Clones bodies via
+/// `substitute_block_materialized` so cloned nodes carry the
+/// materialised-span marker (rendered as `undefined:undefined` in the
+/// typecheck dump — matches TS's accidental shape for substituted
+/// leaves). Then `assign_block_ids` mints fresh IDs in the host
+/// module's namespace so id-keyed `expr_types` / `expr_kinds` slots
+/// don't collide with the impl module's pre-existing nodes.
+export materialize_default_members :: fn(
+    impl_: AST.ImplDecl, trait_: AST.TraitDecl, host_factory: NodeIdFactory,
+) -> void {
     if !any_has_body(trait_.members) { return }
     provided :: provided_names(impl_.members)
     subst :: build_subst(impl_, trait_)
@@ -56,7 +60,7 @@ export materialize_default_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitD
             is AST.BlockExpr as b -> {
                 if provided.contains(method.name) { continue }
                 no_decorators: AST.Decorator[] = []
-                cloned :: substitute_block(b, subst)
+                cloned :: substitute_block_materialized(b, subst, host_factory)
                 impl_.members.push(synth_with_body(method, impl_.trait_name_span, subst, no_decorators, cloned))
             }
         }
@@ -83,7 +87,8 @@ synth_with_body :: fn(
     }
 }
 
-import "vader/resolver/substitute_body" { substitute_block }
+import "vader/parser" { NodeIdFactory }
+import "vader/resolver/substitute_body" { substitute_block_materialized }
 
 /// SAM-synthetic members come out of the parser with a placeholder
 /// name and an empty param list ; the trait's lone required method

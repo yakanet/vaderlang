@@ -61,12 +61,12 @@ export dump_program_with_others :: fn(
 }
 
 append_expr_lines :: fn(typed: TypedProgram, out: string[]) -> void {
-    for k in typed.expr_kinds.keys() {
-        kind :: typed.expr_kinds[k]
+    for id in typed.expr_kinds.keys() {
+        kind :: typed.expr_kinds[id]
         if kind is null { continue }
         if is_skipped_kind(kind) { continue }
-        ty_str :: lookup_expr_type_str(typed, k)
-        loc :: start_loc(k)
+        ty_str :: lookup_expr_type_str(typed, id)
+        loc :: start_loc_for_id(typed, id)
         out.push("  expr ${loc.pad_end(8, ' ')} ${kind.pad_end(14, ' ')} :: ${ty_str}")
     }
 }
@@ -110,12 +110,12 @@ sort_syms_by_name :: fn(syms: Symbol[]) -> Symbol[] {
 
 build_expr_lines :: fn(typed: TypedProgram) -> string[] {
     out: string[] = []
-    for k in typed.expr_kinds.keys() {
-        kind :: typed.expr_kinds[k]
+    for id in typed.expr_kinds.keys() {
+        kind :: typed.expr_kinds[id]
         if kind is null { continue }
         if is_skipped_kind(kind) { continue }
-        ty_str :: lookup_expr_type_str(typed, k)
-        loc :: start_loc(k)
+        ty_str :: lookup_expr_type_str(typed, id)
+        loc :: start_loc_for_id(typed, id)
         out.push("  expr ${loc.pad_end(8, ' ')} ${kind.pad_end(14, ' ')} :: ${ty_str}")
     }
     // Byte-wise sort (matches TS `Array.prototype.sort` default) :
@@ -124,16 +124,17 @@ build_expr_lines :: fn(typed: TypedProgram) -> string[] {
     return sort(out, (a: string, b: string) -> compare_ascending(a, b))
 }
 
-// Full key is "lineS:colS-lineE:colE" ; the dump label uses just the
-// start half so output matches the TS formatter byte-for-byte.
-start_loc :: fn(full_key: string) -> string {
-    parts :: full_key.split("-")
-    if parts.len() == 0 { return full_key }
-    return parts[0]
+// Look up the node's span via `node_spans` and render its start as
+// `line:col`. Materialised cloned bodies have trait-source spans —
+// the dump renders them at the trait method's source position.
+start_loc_for_id :: fn(typed: TypedProgram, id: usize) -> string {
+    s :: typed.node_spans[id]
+    if s is null { return "undefined:undefined" }
+    return "${s.start.line}:${s.start.column}"
 }
 
-lookup_expr_type_str :: fn(typed: TypedProgram, key: string) -> string {
-    ty :: typed.expr_types[key]
+lookup_expr_type_str :: fn(typed: TypedProgram, id: usize) -> string {
+    ty :: typed.expr_types[id]
     if ty is null { return "?" }
     return display_type(ty)
 }

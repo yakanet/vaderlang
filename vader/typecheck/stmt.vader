@@ -58,16 +58,18 @@ export check_block :: fn(
         if dn.field_key == "" { pop_narrow(typed, dn.sym_id, dn.prev, dn.static_ty) }
         else { pop_field_narrow(typed, dn.field_key, dn.prev, dn.static_ty) }
     }
-    full_key :: span_full_key(block.span)
     // Don't clobber the trailing expression's `expr_kinds` entry —
     // expression-bodied fns synthesise a BlockExpr around the trailing
     // with overlapping spans, and the trailing's true kind (BinaryExpr
     // / CallExpr / …) is what callers want to see in the dump.
-    if typed.expr_kinds[full_key] is null {
-        typed.expr_kinds[full_key] = "BlockExpr"
+    // Now keyed by AST id, so the block's id and the trailing expr's
+    // id are distinct ; the null-guard remains a defence in depth.
+    if typed.expr_kinds[block.id] is null {
+        typed.expr_kinds[block.id] = "BlockExpr"
     }
-    if typed.expr_types[full_key] is null {
-        typed.expr_types[full_key] = result
+    if typed.expr_types[block.id] is null {
+        typed.expr_types[block.id] = result
+        typed.node_spans[block.id] = block.span
     }
     return result
 }

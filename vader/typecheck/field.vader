@@ -104,7 +104,7 @@ export infer_field :: fn(
     match free_ufcs {
         is null -> {}
         _ -> {
-            typed.ufcs_receiver_types[span_full_key(e.span)] = free_ufcs.first_param
+            typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
             return free_ufcs.curried
         }
     }

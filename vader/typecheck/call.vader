@@ -55,7 +55,7 @@ pick_overload :: fn(
         if is_assignable(arg0_ty, ft.params[0], null) {
             // Patch the callee's IdentExpr type so the dump shows
             // the picked overload's signature instead of the primary.
-            typed.expr_types[span_full_key(c.callee.span)] = ft
+            typed.expr_types[c.callee.id] = ft
             return ft
         }
     }
@@ -96,9 +96,9 @@ seed_ufcs_bindings :: fn(
     callee: AST.Expr, typed: TypedProgram, bindings: MutableMap(i32, Type),
 ) -> void {
     if !(callee is AST.FieldExpr) { return }
-    receiver_ty :: typed.ufcs_receiver_types[span_full_key(callee.span)]
+    receiver_ty :: typed.ufcs_receiver_types[callee.id]
     if receiver_ty is null { return }
-    target_ty :: typed.expr_types[span_full_key(callee.target.span)]
+    target_ty :: typed.expr_types[callee.target.id]
     if target_ty is null { return }
     unify_type_param(receiver_ty, target_ty, bindings)
 }
@@ -213,7 +213,7 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     current :: typed.local_types[binding_key]
     if !(current is ArrayType) { return }
     if !(current.element is UnresolvedType) { return }
-    arg_type :: typed.expr_types[span_full_key(c.args[0].value.span)]
+    arg_type :: typed.expr_types[c.args[0].value.id]
     if arg_type is null { return }
     if arg_type is UnresolvedType { return }
     typed.local_types[binding_key] = mk_array(default_if_free(arg_type), false)

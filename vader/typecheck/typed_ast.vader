@@ -21,9 +21,13 @@ export TypedProgram :: struct {
     /// The upstream resolver's output for this module.
     resolved: ResolvedModule
 
-    /// Type of every value-position expression. Includes literals,
-    /// idents, blocks, calls — see `expr.vader` for the dispatcher.
-    expr_types: MutableMap(string, Type)
+    /// Type of every value-position expression. Keyed by `Expr.id`
+    /// (minted by `assign_node_ids` at parse time, re-minted on cloned
+    /// nodes inside materialised trait default-method bodies). Lets the
+    /// dump emit multiple entries for cloned nodes that share the same
+    /// source span — needed for byte-for-byte parity with TS, whose
+    /// `exprTypes: WeakMap<Expr, Type>` keys on JS object identity.
+    expr_types: MutableMap(usize, Type)
 
     /// Type of every `:=` / `::` local binding, keyed by binding span
     /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt).
@@ -88,10 +92,10 @@ export TypedProgram :: struct {
     narrowed_fields: MutableMap(string, Type)
 
     /// AST kind label for each entry in `expr_types`, keyed by the
-    /// same span string. Populated alongside `expr_types` from
+    /// same `Expr.id`. Populated alongside `expr_types` from
     /// `check_expr` ; consumed by `dump.vader` so the typed-ast dump
     /// can label each expression line without re-walking the AST.
-    expr_kinds: MutableMap(string, string)
+    expr_kinds: MutableMap(usize, string)
 
     /// Per-ImportBinding redirect table : `Symbol.id → ImportTarget`.
     /// Populated by `vader/resolver/wire.vader::wire_imports` ; null
@@ -138,13 +142,13 @@ export TypedProgram :: struct {
     /// `m` is a user struct with an Index impl.
     index_target_types: MutableMap(string, Type)
 
-    /// `FieldExpr.span → original first-param type` for every
+    /// `FieldExpr.id → original first-param type` for every
     /// UFCS-dispatched field access (i.e. the param that got
     /// curried away). `infer_call` unifies it against the receiver's
     /// type to harvest type-param bindings before substituting the
     /// return type — the curried fn keeps the un-substituted
     /// signature for display.
-    ufcs_receiver_types: MutableMap(string, Type)
+    ufcs_receiver_types: MutableMap(usize, Type)
 
     /// `"${TypeBaseName}::${methodName}" → trait names that all
     /// provide the same method on the same receiver. When the list
@@ -200,7 +204,7 @@ export TypedProject :: struct {
 export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
     return TypedProgram {
         .resolved        = resolved,
-        .expr_types      = MutableMap(string, Type) { .buckets = [], .size = 0 },
+        .expr_types      = MutableMap(usize, Type) { .buckets = [], .size = 0 },
         .local_types     = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .decl_types      = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .param_types     = MutableMap(string, Type) { .buckets = [], .size = 0 },
@@ -212,7 +216,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .impl_methods    = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 },
         .narrowed_fields = MutableMap(string, Type) { .buckets = [], .size = 0 },
-        .expr_kinds      = MutableMap(string, string) { .buckets = [], .size = 0 },
+        .expr_kinds      = MutableMap(usize, string) { .buckets = [], .size = 0 },
         .import_targets  = null,
         .external_types  = MutableMap(i32, Type) { .buckets = [], .size = 0 },
         .namespace_exports = MutableMap(string, MutableMap(string, Type)) { .buckets = [], .size = 0 },
@@ -220,7 +224,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .imported_fn_overloads = MutableMap(string, FnType[]) { .buckets = [], .size = 0 },
         .iter_element_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
         .index_target_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
-        .ufcs_receiver_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
+        .ufcs_receiver_types = MutableMap(usize, Type) { .buckets = [], .size = 0 },
         .impl_method_traits = MutableMap(string, string[]) { .buckets = [], .size = 0 },
         .struct_field_types = MutableMap(i32, MutableMap(string, Type)) { .buckets = [], .size = 0 },
         .struct_implemented_traits = MutableMap(string, string[]) { .buckets = [], .size = 0 },
@@ -296,8 +300,8 @@ test_new_typed_program_has_empty_tables :: fn() -> void {
 @test
 test_typed_program_stores_and_recovers_type :: fn() -> void {
     tp :: new_typed_program(fresh_module())
-    tp.expr_types["3:5"] = mk_primitive("i32")
-    hit :: tp.expr_types["3:5"]
+    tp.expr_types[usize(42)] = mk_primitive("i32")
+    hit :: tp.expr_types[usize(42)]
     match hit {
         is null -> { assert(false, "expected to recover the stored type") }
         is PrimitiveType as p -> { assert_eq(p.name, "i32") }
