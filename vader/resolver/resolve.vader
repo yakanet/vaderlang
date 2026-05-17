@@ -72,6 +72,12 @@ export ResolvedModule :: struct {
     /// `@deprecated("...")`. `expr.vader` reads this when an
     /// IdentExpr references a deprecated decl and emits W0001.
     deprecated_messages: MutableMap(i32, string)
+    /// `namespace_sym.id → field_name → Type` for every `P :: import
+    /// "..."` namespace binding. Lets `type_from_expr`'s FieldExpr
+    /// arm resolve `P.Decl` in type position without needing
+    /// TypedProgram. Populated by the typecheck orchestrator after
+    /// `namespace_exports` builds.
+    namespace_member_types: MutableMap(i32, MutableMap(string, Type))
 }
 
 export ResolvedProject :: struct {
@@ -116,6 +122,7 @@ export resolve_module_with_collected :: fn(
         .type_param_bounds = file.type_param_bounds,
         .diags            = file.diags,
         .deprecated_messages = MutableMap(i32, string) { .buckets = [], .size = 0 },
+        .namespace_member_types = MutableMap(i32, MutableMap(string, Type)) { .buckets = [], .size = 0 },
     }
 }
 

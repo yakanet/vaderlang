@@ -247,6 +247,7 @@ export empty_typed_program :: fn() -> TypedProgram {
         .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
         .diags = [],
         .deprecated_messages = MutableMap(i32, string) { .buckets = [], .size = 0 },
+        .namespace_member_types = MutableMap(i32, MutableMap(string, Type)) { .buckets = [], .size = 0 },
     }
     return new_typed_program(rm)
 }
@@ -270,6 +271,7 @@ fresh_module :: fn() -> ResolvedModule {
         .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
         .diags = [],
         .deprecated_messages = MutableMap(i32, string) { .buckets = [], .size = 0 },
+        .namespace_member_types = MutableMap(i32, MutableMap(string, Type)) { .buckets = [], .size = 0 },
     }
 }
 

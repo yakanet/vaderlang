@@ -107,6 +107,12 @@ export check_project_with_bodies :: fn(
     // the real symbol during fn-signature lowering below.
     entry_typed.import_targets = wire_imports(project)
     populate_resolver_imports(entry_typed)
+    // Pre-populate `namespace_member_types` from each target module's
+    // exported types so `type_from_expr`'s FieldExpr arm can resolve
+    // `P.Decl` in fn-signature type positions (which run during
+    // `declare_module` below — before `populate_external_types`
+    // builds `namespace_exports`).
+    prepopulate_namespace_member_types(entry_typed, project, per_module)
 
     // Phase B : declare every decl (fn signatures, struct types, etc.).
     declare_module(entry_loaded.module.files[0].program.decls, entry_rm, entry_typed, project.factory, diags)
@@ -221,6 +227,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
         .diags = [],
         .deprecated_messages = MutableMap(i32, string) { .buckets = [], .size = 0 },
+        .namespace_member_types = MutableMap(i32, MutableMap(string, Type)) { .buckets = [], .size = 0 },
     }
 }
 
@@ -866,11 +873,72 @@ build_namespace_exports :: fn(
         sp :: sym.defined_at
         if sp is null { continue }
         t :: typed.decl_types[span_key(sp)]
-        if t is null { continue }
-        out[name] = t
+        if !(t is null) {
+            out[name] = t
+            continue
+        }
+        // Type-aliases live in `alias_types` (id-keyed), not
+        // `decl_types`. Surface them so `P.Decl` namespace accesses
+        // can resolve the alias's expanded union.
+        aliased :: typed.resolved.alias_types[sym.id]
+        if !(aliased is null) { out[name] = aliased }
     }
     return out
 }
+
+/// Pre-populate `entry_typed.resolved.namespace_member_types` from
+/// each target module's `collected.symbols` + `alias_types`. Runs
+/// BEFORE `declare_module` so fn signatures referencing `P.Decl` in
+/// type position resolve correctly. The full `namespace_exports`
+/// table (built later from `decl_types`) is only used for
+/// value-position field access via `field.vader::try_namespace_field`.
+/// Scope : only the entry module's namespace imports are populated.
+/// Non-entry modules don't currently need cross-module namespace
+/// resolution in type position — they reach trait/struct symbols via
+/// their own `imports_to` + `alias_types` for direct (non-namespace)
+/// imports.
+prepopulate_namespace_member_types :: fn(
+    entry_typed: TypedProgram, project: LoadedProject,
+    per_module: MutableMap(string, TypedProgram),
+) -> void {
+    targets :: entry_typed.import_targets
+    if targets is null { return }
+    for sym_id in targets.namespace_targets.keys() {
+        mod_id :: targets.namespace_targets[sym_id]
+        if mod_id is null { continue }
+        members :: build_namespace_type_members(mod_id, project, per_module)
+        entry_typed.resolved.namespace_member_types[sym_id] = members
+    }
+}
+
+build_namespace_type_members :: fn(
+    mod_id: string, project: LoadedProject,
+    per_module: MutableMap(string, TypedProgram),
+) -> MutableMap(string, Type) {
+    out :: MutableMap(string, Type) { .buckets = [], .size = 0 }
+    loaded :: project.modules[mod_id]
+    if loaded is null { return out }
+    target_typed :: per_module[mod_id]
+    for name in loaded.collected.symbols.keys() {
+        sym :: loaded.collected.symbols[name]
+        if sym is null { continue }
+        // TypeAlias resolves to the alias's expanded union (already
+        // registered on the owning module's `resolved.alias_types`
+        // by `register_aliases`). Other type-kind symbols resolve via
+        // `type_from_symbol`, which dispatches on `sym.kind`.
+        if !(target_typed is null) {
+            aliased :: target_typed.resolved.alias_types[sym.id]
+            if !(aliased is null) {
+                out[name] = aliased
+                continue
+            }
+        }
+        if is_type_kind(sym.kind) { out[name] = type_from_symbol(sym, []) }
+    }
+    return out
+}
+
+import "vader/typecheck/type_expr" { type_from_symbol }
 
 import "vader/resolver/wire" { SymbolTarget }
 
