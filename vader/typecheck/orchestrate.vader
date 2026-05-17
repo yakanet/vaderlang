@@ -420,6 +420,11 @@ materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
             // ufcs / walk_fn_body) sees them.
             materialize_intrinsic_members(decl, trait_decl)
             materialize_sam_members(decl, trait_decl)
+            // Default-bodied trait methods get cloned into the impl
+            // (body + signature substituted). The cloned bodies keep
+            // the trait method's source spans so walk_bodies emits
+            // expr_types at the trait method's original line:col.
+            materialize_default_members(decl, trait_decl)
         }
     }
 }
@@ -439,7 +444,9 @@ find_trait_decl_in_project :: fn(
     return null
 }
 
-import "vader/resolver/materialize" { materialize_intrinsic_members, materialize_sam_members }
+import "vader/resolver/materialize" {
+    materialize_default_members, materialize_intrinsic_members, materialize_sam_members,
+}
 
 has_expr_bodied_fn :: fn(decls: AST.Decl[]) -> bool {
     for d in decls {

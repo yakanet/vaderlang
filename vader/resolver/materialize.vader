@@ -40,11 +40,11 @@ export materialize_intrinsic_members :: fn(impl_: AST.ImplDecl, trait_: AST.Trai
 }
 
 /// Trait default methods → inject deep-cloned copies into impls that
-/// didn't override the method. **Body cloning is TODO** — the
-/// signature is fully substituted, the body is left as `null` until a
-/// self-host typechecker needs the cloned tree (TS materialize still
-/// supplies bodies for `pipelineTyped`). No-op when the trait has no
-/// default-bodied methods.
+/// didn't override the method. Now clones the body too via
+/// `substitute_body`, so the self-host typechecker can walk the
+/// cloned tree under the impl's substitution. The cloned nodes keep
+/// the trait method's ORIGINAL spans — the typecheck dump renders
+/// them at std/core line:col with Self/T already substituted.
 export materialize_default_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> void {
     if !any_has_body(trait_.members) { return }
     provided :: provided_names(impl_.members)
@@ -53,14 +53,37 @@ export materialize_default_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitD
         body :: method.body
         match body {
             is null         -> {}     // not a default method
-            is AST.BlockExpr -> {
+            is AST.BlockExpr as b -> {
                 if provided.contains(method.name) { continue }
                 no_decorators: AST.Decorator[] = []
-                impl_.members.push(synth_signature(method, impl_.trait_name_span, subst, no_decorators))
+                cloned :: substitute_block(b, subst)
+                impl_.members.push(synth_with_body(method, impl_.trait_name_span, subst, no_decorators, cloned))
             }
         }
     }
 }
+
+synth_with_body :: fn(
+    method: AST.FnDecl, name_span: Span, subst: Subst,
+    decorators: AST.Decorator[], body: AST.BlockExpr,
+) -> AST.FnDecl {
+    return AST.FnDecl {
+        .span = method.span,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .name = method.name,
+        .name_span = name_span,
+        .visibility = .Public,
+        .type_params = [],
+        .params = substitute_params(method.params, subst),
+        .return_type = substitute_opt_type(method.return_type, subst),
+        .body = body,
+        .decorators = decorators,
+        .sam_synthetic = false,
+        .is_expression_bodied = method.is_expression_bodied,
+    }
+}
+
+import "vader/resolver/substitute_body" { substitute_block }
 
 /// SAM-synthetic members come out of the parser with a placeholder
 /// name and an empty param list ; the trait's lone required method

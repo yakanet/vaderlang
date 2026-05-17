@@ -1,0 +1,237 @@
+// vader/resolver/substitute_body — full AST clone-with-substitution
+// walker for default-method body materialization.
+//
+// `substitute_type_expr` (substitute.vader) only walks type-position
+// variants. Body materialization needs full Expr/Stmt/Pattern coverage :
+// when an impl inherits `is_empty :: fn(self) -> bool = match self.next()
+// { is null -> true ; is Yield(T) -> false }` from `Iterator`, the
+// trait method's body must be cloned and the `T` references rewritten
+// to the impl's trait arg (e.g. `Yield(i32)` for Countdown).
+//
+// SCOPE : sketch. Not all variants are handled — TODOs mark the gaps.
+// Calling `substitute_block` on a body that uses an unsupported variant
+// returns the original sub-tree unchanged (the walker is total but not
+// total-cloning, so partial coverage doesn't trap).
+//
+// NOT YET WIRED : `vader/typecheck/orchestrate.vader` should call this
+// once per impl × default-bodied trait method, then walk the cloned
+// body via `check_block` in entry's typed_program.
+
+import "std/collections" { MutableMap }
+import "vader/resolver/substitute" { Subst, substitute_type_expr }
+AST :: import "vader/parser/ast"
+
+/// Clone a BlockExpr, recursively substituting TypeParam idents.
+export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
+    new_stmts: AST.Stmt[] = []
+    for s in b.stmts { new_stmts.push(substitute_stmt(s, subst)) }
+    new_trailing: AST.Expr | null = null
+    match b.trailing {
+        is null -> {}
+        _ -> { new_trailing = substitute_expr_full(b.trailing, subst) }
+    }
+    return AST.BlockExpr {
+        .span = b.span,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .stmts = new_stmts,
+        .trailing = new_trailing,
+    }
+}
+
+/// Clone an Expr, dispatching to `substitute_type_expr` for variants
+/// already handled there (type-position shapes), recursing into
+/// value-position children for the rest.
+export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
+    match e {
+        // Leaves : reuse the original. No TypeParam refs possible.
+        is AST.IntLitExpr -> { return e }
+        is AST.FloatLitExpr -> { return e }
+        is AST.BoolLitExpr -> { return e }
+        is AST.NullLitExpr -> { return e }
+        is AST.CharLitExpr -> { return e }
+
+        // IdentExpr : the heart of TypeParam substitution. Delegated to
+        // substitute_type_expr which already handles the rebind.
+        is AST.IdentExpr -> { return substitute_type_expr(e, subst) }
+
+        // Type-position shapes already covered.
+        is AST.GenericInstExpr -> { return substitute_type_expr(e, subst) }
+        is AST.FnTypeExpr -> { return substitute_type_expr(e, subst) }
+        is AST.ArrayTypeExpr -> { return substitute_type_expr(e, subst) }
+
+        // Value-position composites : recurse children.
+        is AST.CallExpr as c -> {
+            new_args: AST.CallArg[] = []
+            for a in c.args {
+                new_args.push(AST.CallArg {
+                    .span = a.span, .id = AST.UNASSIGNED_NODE_ID,
+                    .name = a.name, .value = substitute_expr_full(a.value, subst),
+                    .spread = a.spread,
+                })
+            }
+            return AST.CallExpr {
+                .span = c.span, .id = AST.UNASSIGNED_NODE_ID,
+                .callee = substitute_expr_full(c.callee, subst),
+                .args = new_args,
+            }
+        }
+        is AST.FieldExpr as f -> {
+            return AST.FieldExpr {
+                .span = f.span, .id = AST.UNASSIGNED_NODE_ID,
+                .target = substitute_expr_full(f.target, subst),
+                .field = f.field, .field_span = f.field_span,
+                .is_numeric = f.is_numeric,
+            }
+        }
+        is AST.IndexExpr as ix -> {
+            return AST.IndexExpr {
+                .span = ix.span, .id = AST.UNASSIGNED_NODE_ID,
+                .target = substitute_expr_full(ix.target, subst),
+                .index = substitute_expr_full(ix.index, subst),
+            }
+        }
+        is AST.UnaryExpr as u -> {
+            return AST.UnaryExpr {
+                .span = u.span, .id = AST.UNASSIGNED_NODE_ID,
+                .op = u.op, .operand = substitute_expr_full(u.operand, subst),
+            }
+        }
+        is AST.BinaryExpr as bn -> {
+            // Includes `is` op : RHS is type position — substitute_type_expr
+            // would catch the leaf, but here we keep the BinaryExpr shape
+            // since the value-position walker also needs to handle LHS.
+            return AST.BinaryExpr {
+                .span = bn.span, .id = AST.UNASSIGNED_NODE_ID,
+                .op = bn.op,
+                .left = substitute_expr_full(bn.left, subst),
+                .right = substitute_expr_full(bn.right, subst),
+                .bind_as = bn.bind_as,
+            }
+        }
+        is AST.IfExpr as ifx -> {
+            new_else: AST.IfElse | null = null
+            match ifx.else_branch {
+                is null -> {}
+                is AST.IfElseBlock as eb -> {
+                    new_else = AST.IfElseBlock { .block = substitute_block(eb.block, subst) }
+                }
+                is AST.IfElseIf as ei -> {
+                    // IfElseIf.branch is specifically AST.IfExpr — extract
+                    // via a narrow match since substitute_expr_full returns
+                    // the wider Expr union.
+                    sub :: substitute_expr_full(ei.branch, subst)
+                    match sub {
+                        is AST.IfExpr as nb -> {
+                            new_else = AST.IfElseIf { .branch = nb }
+                        }
+                        _ -> {}     // shouldn't happen — IfExpr is closed
+                    }
+                }
+            }
+            return AST.IfExpr {
+                .span = ifx.span, .id = AST.UNASSIGNED_NODE_ID,
+                .cond = substitute_expr_full(ifx.cond, subst),
+                .then_block = substitute_block(ifx.then_block, subst),
+                .else_branch = new_else,
+            }
+        }
+        is AST.MatchExpr as m -> {
+            new_arms: AST.MatchArm[] = []
+            for a in m.arms {
+                new_guard: AST.Expr | null = null
+                match a.guard {
+                    is null -> {}
+                    _ -> { new_guard = substitute_expr_full(a.guard, subst) }
+                }
+                new_arms.push(AST.MatchArm {
+                    .span = a.span, .id = AST.UNASSIGNED_NODE_ID,
+                    .pattern = substitute_pattern(a.pattern, subst),
+                    .guard = new_guard,
+                    .body = substitute_expr_full(a.body, subst),
+                })
+            }
+            return AST.MatchExpr {
+                .span = m.span, .id = AST.UNASSIGNED_NODE_ID,
+                .scrutinee = substitute_expr_full(m.scrutinee, subst),
+                .arms = new_arms,
+                .partial = m.partial,
+            }
+        }
+        is AST.BlockExpr as b -> { return substitute_block(b, subst) }
+
+        // TODO : LambdaExpr, StructLitExpr, SeqLitExpr, RangeExpr,
+        // TryExpr, CastExpr, IntrinsicCallExpr, DotVariantExpr,
+        // StringLitExpr (with interp). Falling through unchanged for
+        // the sketch.
+        _ -> { return e }
+    }
+}
+
+/// Clone a Stmt, recursing into child Exprs.
+export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
+    match s {
+        is AST.LetStmt as ls -> {
+            new_ty: AST.TypeExpr | null = null
+            match ls.ty {
+                is null -> {}
+                _ -> { new_ty = substitute_type_expr(ls.ty, subst) }
+            }
+            return AST.LetStmt {
+                .span = ls.span, .id = AST.UNASSIGNED_NODE_ID,
+                .mutable = ls.mutable,
+                .binding = ls.binding,
+                .ty = new_ty,
+                .value = substitute_expr_full(ls.value, subst),
+            }
+        }
+        is AST.ExprStmt as es -> {
+            return AST.ExprStmt {
+                .span = es.span, .id = AST.UNASSIGNED_NODE_ID,
+                .expr = substitute_expr_full(es.expr, subst),
+            }
+        }
+        is AST.ReturnStmt as rs -> {
+            new_value: AST.Expr | null = null
+            match rs.value {
+                is null -> {}
+                _ -> { new_value = substitute_expr_full(rs.value, subst) }
+            }
+            return AST.ReturnStmt {
+                .span = rs.span, .id = AST.UNASSIGNED_NODE_ID,
+                .value = new_value,
+            }
+        }
+        is AST.AssignStmt as as_ -> {
+            return AST.AssignStmt {
+                .span = as_.span, .id = AST.UNASSIGNED_NODE_ID,
+                .target = substitute_expr_full(as_.target, subst),
+                .value = substitute_expr_full(as_.value, subst),
+            }
+        }
+        // TODO : ForStmt, BreakStmt, ContinueStmt, DeferStmt. Fall
+        // through unchanged for the sketch.
+        _ -> { return s }
+    }
+}
+
+/// Clone a Pattern, substituting TypeExprs inside `is T` patterns.
+export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
+    match p {
+        is AST.IsPattern as ip -> {
+            new_inner: AST.Pattern | null = null
+            match ip.inner {
+                is null -> {}
+                _ -> { new_inner = substitute_pattern(ip.inner, subst) }
+            }
+            return AST.IsPattern {
+                .span = ip.span, .id = AST.UNASSIGNED_NODE_ID,
+                .ty = substitute_type_expr(ip.ty, subst),
+                .bind_as = ip.bind_as,
+                .inner = new_inner,
+            }
+        }
+        // TODO : StructPattern, TuplePattern, LiteralPattern, EnumVariantPattern.
+        // WildcardPattern + BindingPattern have no children — pass through.
+        _ -> { return p }
+    }
+}
