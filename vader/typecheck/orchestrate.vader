@@ -22,7 +22,9 @@ import "vader/typecheck/check" { check_module, CheckResult }
 import "vader/typecheck/decl" { declare_module }
 import "vader/typecheck/expr" { check_expr }
 import "vader/typecheck/stmt" { check_fn_body }
-import "vader/typecheck/type_ops" { default_if_free }
+import "vader/typecheck/type_ops" { default_if_free, equals_type }
+import "vader/typecheck/types" { display_type }
+import "vader/diagnostics/diagnostic" { typecheck_error }
 import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
 import "vader/typecheck/types" { Type, mk_fn, TY_UNRESOLVED, TY_VOID }
 import "vader/typecheck/type_expr" { type_from_expr }
@@ -263,10 +265,19 @@ export walk_bodies :: fn(
             is AST.ConstDecl as cd -> { check_const_value(cd, typed, diags) }
             is AST.AssertDecl as ad -> { check_expr(ad.condition, null, typed, diags) }
             is AST.ImplDecl as id -> {
-                // Each impl method needs decl-level setup before its
-                // body is walked : `self` resolves to the impl's
-                // for-type, other params take their annotations.
                 for_ty :: type_from_expr(id.for_type, typed.resolved, diags)
+                // T3039 : `T implements Into(T)` — identity coercion
+                // forbidden. Fires before walking members so the
+                // diag lands at the impl head, matching TS.
+                if id.trait_name == "Into" {
+                    if id.trait_args.len() == 1 {
+                        target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
+                        if equals_type(for_ty, target_ty) {
+                            diags.push(typecheck_error(.IntoIdentityForbidden, id.span,
+                                "`${display_type(for_ty)} implements Into(${display_type(target_ty)})` — source and target must differ"))
+                        }
+                    }
+                }
                 for m in id.members {
                     declare_impl_method(m, for_ty, typed, diags)
                     walk_fn_body(m, typed, diags)
