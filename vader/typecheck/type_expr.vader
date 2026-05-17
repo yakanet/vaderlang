@@ -36,6 +36,9 @@ export type_from_expr :: fn(
     match expr {
         is AST.IdentExpr as e -> { return lower_ident(e, resolved) }
         is AST.GenericInstExpr as e -> { return lower_generic_inst(e, resolved, diags) }
+        // `Iterator(i32)` / `Pair(K, V)` parsed as CallExpr in type
+        // position : lower the callee to a Type and apply its args.
+        is AST.CallExpr as e -> { return lower_call_in_type_position(e, resolved, diags) }
         is AST.BinaryExpr as e -> { return lower_binary(e, resolved, diags) }
         is AST.FnTypeExpr as e -> {
             params: Type[] = []
@@ -162,6 +165,33 @@ redirect_import :: fn(sym: Symbol, resolved: ResolvedModule) -> Symbol {
 }
 
 
+lower_call_in_type_position :: fn(
+    e: AST.CallExpr, resolved: ResolvedModule, diags: Diagnostic[],
+) -> Type {
+    args: Type[] = []
+    for a in e.args { args.push(type_from_expr(a.value, resolved, diags)) }
+    match e.callee {
+        is AST.IdentExpr as id -> {
+            target :: lookup_type_name(id, resolved)
+            match target {
+                is null -> { return TY_UNRESOLVED }
+                is Symbol as s -> {
+                    aliased :: resolved.alias_types[s.id]
+                    if !(aliased is null) {
+                        alias_decl :: resolved.alias_decls[s.id]
+                        if !(alias_decl is null) {
+                            return substitute_alias_args(aliased, alias_decl.type_params, args)
+                        }
+                        return aliased
+                    }
+                    return type_from_symbol(s, args)
+                }
+            }
+        }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
 lower_generic_inst :: fn(
     e: AST.GenericInstExpr, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
@@ -169,29 +199,37 @@ lower_generic_inst :: fn(
     for a in e.type_args { args.push(type_from_expr(a, resolved, diags)) }
     match e.callee {
         is AST.IdentExpr as id -> {
-            match resolved.idents[span_key(id.span)] {
+            target :: lookup_type_name(id, resolved)
+            match target {
                 is null -> { return TY_UNRESOLVED }
                 is Symbol as s -> {
-                    redirected :: redirect_import(s, resolved)
-                    aliased :: resolved.alias_types[redirected.id]
+                    aliased :: resolved.alias_types[s.id]
                     if !(aliased is null) {
-                        // Parameterised aliases : `Maybe(T)` →
-                        // substitute T with the call-site args. The
-                        // alias's TypeParam names come from the alias
-                        // body's free TypeParams (we don't have the
-                        // decl AST here — but TypeAliasDecl.type_params
-                        // is stored on the decl).
-                        alias_decl :: resolved.alias_decls[redirected.id]
+                        alias_decl :: resolved.alias_decls[s.id]
                         if !(alias_decl is null) {
                             return substitute_alias_args(aliased, alias_decl.type_params, args)
                         }
                         return aliased
                     }
-                    return type_from_symbol(redirected, args)
+                    return type_from_symbol(s, args)
                 }
             }
         }
         _ -> { return TY_UNRESOLVED }
+    }
+}
+
+/// Resolve a type-position ident to its Symbol : prefer the
+/// scope-bound binding from `resolved.idents`, fall back to
+/// `resolved.core_symbols` for auto-imported core types (`Iterator`,
+/// `Range`, `Error`, …). Mirrors the fallback in `lower_ident`.
+lookup_type_name :: fn(id: AST.IdentExpr, resolved: ResolvedModule) -> Symbol | null {
+    bound :: resolved.idents[span_key(id.span)]
+    if !(bound is null) { return redirect_import(bound, resolved) }
+    core :: resolved.core_symbols[id.name]
+    match core {
+        is null -> { return null }
+        is Symbol as s -> { return s }
     }
 }
 

@@ -746,6 +746,20 @@ export walk_bodies :: fn(
             is AST.FnDecl as fd -> { walk_fn_body(fd, typed, diags) }
             is AST.ConstDecl as cd -> { check_const_value(cd, typed, diags) }
             is AST.AssertDecl as ad -> { check_expr(ad.condition, null, typed, diags) }
+            is AST.StructDecl as sd -> {
+                // Type each field's default value against the field's
+                // declared type so `delta: isize = -1` types the `-1`
+                // UnaryExpr as `isize`, not the default `{integer}`.
+                for f in sd.fields {
+                    match f.default {
+                        is null -> {}
+                        _ -> {
+                            field_ty :: type_from_expr(f.ty, typed.resolved, diags)
+                            check_expr(f.default, field_ty, typed, diags)
+                        }
+                    }
+                }
+            }
             is AST.ImplDecl as id -> {
                 for_ty :: type_from_expr(id.for_type, typed.resolved, diags)
                 if id.trait_name == "Into" {
