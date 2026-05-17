@@ -155,9 +155,8 @@ export check_project_with_bodies :: fn(
     for d in entry_typed.resolved.diags { diags.push(d) }
 
     impls :: build_impl_registry(entry_loaded.module.files[0].program.decls, entry_typed.resolved)
-    // Surface every non-entry module that's a direct import dependency
-    // so the dump can render `## <path>` sections with their decl
-    // listings. Matches TS — `dumpTypecheck` lists every loaded module.
+    // Every directly-imported non-stdlib module gets its own `## <path>`
+    // section in the dump.
     others: TypedProgram[] = collect_direct_imports(entry_loaded, project, per_module)
     return CheckResult { .typed = entry_typed, .impls = impls, .others = others }
 }
@@ -289,9 +288,8 @@ merge_external_impl_methods :: fn(
                 is AST.ImplDecl as id_decl -> {
                     for_ty :: type_from_expr(id_decl.for_type, other.resolved, diag_sink())
                     record_struct_trait(entry_typed, for_ty, id_decl.trait_name)
-                    // Resolve trait args in the OWNER module's scope
-                    // so `Hello implements Greeter(i32)` records [i32]
-                    // even when Greeter is cross-module.
+                    // Trait args resolve in the impl owner's scope so
+                    // cross-module impls record concrete types.
                     impl_trait_args: Type[] = []
                     for ta in id_decl.trait_args {
                         impl_trait_args.push(type_from_expr(ta, other.resolved, diag_sink()))
@@ -1042,12 +1040,6 @@ ufcs_method_type :: fn(
     }
     ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
     return mk_fn(rest, ret)
-}
-
-declare_impl_method :: fn(
-    fd: AST.FnDecl, for_ty: Type, typed: TypedProgram, diags: Diagnostic[],
-) -> void {
-    declare_impl_method_for_trait(fd, for_ty, null, typed, diags)
 }
 
 declare_impl_method_for_trait :: fn(

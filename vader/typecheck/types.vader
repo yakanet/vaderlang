@@ -206,6 +206,7 @@ export type_base_name :: fn(t: Type) -> string {
     }
 }
 
+
 write_type :: fn(sb: StringBuilder, t: Type) -> void {
     match t {
         is PrimitiveType as x -> { sb.append(x.name) }

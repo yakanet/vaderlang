@@ -82,11 +82,10 @@ export infer_field :: fn(
             return substitute_impl_method(base_impl, target_ty, typed)
         }
     }
-    // Bounded TypeParam dispatch runs BEFORE free-fn UFCS : `x.method()`
-    // with `x: T` where `T: SomeTrait` must dispatch via the trait,
-    // not via some same-named free fn whose first param happens to
-    // accept the TypeParam wildcard. Free fns with `Vec3` receivers
-    // would otherwise hijack `x.add(x)` inside `fn[T: Add](x: T)`.
+    // Bounded TypeParam dispatch runs BEFORE free-fn UFCS : a free
+    // fn whose first param accepts the TypeParam wildcard would
+    // otherwise hijack the dispatch instead of routing through the
+    // type-param's trait bound.
     if target_ty is TypeParamType {
         bound :: typed.resolved.type_param_bounds[target_ty.symbol.id]
         if !(bound is null) {
@@ -320,9 +319,9 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
     if name == "push"         { return mk_fn([arr.element], TY_VOID) }
     if name == "pop"          { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
     if name == "clear"        { return mk_fn([], TY_VOID) }
-    // `slice_array` falls through to free-fn UFCS / import-binding
-    // dispatch so the dump matches TS — the unsubstituted `fn(usize,
-    // usize) -> T[]` signature is what TS shows for `arr.slice_array`.
+    // `slice_array` falls through to free-fn UFCS — hardcoding here
+    // would substitute T → arr.element eagerly, masking the generic
+    // signature that `infer_call` substitutes properly downstream.
     if name == "reverse"      { return mk_fn([], mk_array(arr.element, false)) }
     // `first` / `last` / `contains` stay user-shadowable — they're
     // commonly redefined by user code with extra args (e.g. `first(arr,

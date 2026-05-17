@@ -47,14 +47,6 @@ export narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Typ
     }
 }
 
-/// Build the side-table key for a single-level field narrowing slot.
-/// Kept as a thin wrapper around `chain_key` for the common one-step
-/// case ; multi-level paths (`o.inner.flag`) should call `chain_key`
-/// directly.
-export field_narrow_key :: fn(receiver_sym_id: i32, field_name: string) -> string {
-    return chain_key(receiver_sym_id, [field_name])
-}
-
 /// Build the slot key for a `root.f1.f2.…` chain : `${root_sym.id}#f1#f2…`.
 /// `fields` must be ordered root-to-leaf. The `#` separator avoids
 /// collisions with `.`-prefixed identifiers and field names like `0`

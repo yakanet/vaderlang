@@ -25,7 +25,7 @@ import "std/math" { min }
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
 import "vader/typecheck/coerce" { try_into }
-import "vader/typecheck/type_ops" { default_if_free, is_assignable }
+import "vader/typecheck/type_ops" { default_if_free, dispatch_key, is_assignable }
 import "vader/typecheck/types" {
     Type, FnType, StructType, TraitType, TypeMetaType, UnresolvedType,
     display_type, TY_UNRESOLVED,
@@ -234,7 +234,7 @@ check_typeparam_bounds :: fn(
 }
 
 satisfies_trait :: fn(t: Type, trait_ty: TraitType, typed: TypedProgram) -> bool {
-    name :: type_base_name(default_if_free(t))
+    name :: dispatch_key(t)
     if name == "" { return false }
     bucket :: typed.struct_implemented_traits[name]
     if bucket is null { return false }
@@ -276,7 +276,7 @@ unify_struct_to_trait_args :: fn(
     param: Type, arg: Type, typed: TypedProgram, out: MutableMap(i32, Type),
 ) -> void {
     if !(param is TraitType) { return }
-    arg_name :: type_base_name(default_if_free(arg))
+    arg_name :: dispatch_key(arg)
     if arg_name == "" { return }
     per_struct :: typed.struct_trait_args[arg_name]
     if per_struct is null { return }
@@ -288,7 +288,6 @@ unify_struct_to_trait_args :: fn(
     }
 }
 
-import "vader/typecheck/types" { type_base_name }
 
 
 fn_has_type_params :: fn(f: FnType) -> bool {

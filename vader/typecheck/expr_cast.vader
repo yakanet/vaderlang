@@ -17,10 +17,8 @@ export infer_cast :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     target :: type_from_expr(e.target, typed.resolved, diags)
-    // Pass the cast's target as the value's expected type so Free*
-    // literals (and `-Free*` unaries) narrow into the target's
-    // primitive shape : `i64(-250)` → operand types as `i64`, not
-    // `{integer}` then promoted at lower.
+    // Cast target flows as expected to the value so `i64(-250)`'s
+    // operand narrows to i64 instead of staying FreeInt.
     check_expr_fn(e.value, target, typed, diags)
     return target
 }

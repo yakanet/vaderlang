@@ -13,7 +13,7 @@ import "vader/typecheck/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
     FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
     UnresolvedType, FreeIntType, FreeFloatType, NeverType,
-    TY_NEVER, display_type, mk_primitive, mk_union,
+    TY_NEVER, display_type, mk_primitive, mk_union, type_base_name,
 }
 
 // ---- numeric registries (used by Free* defaulting + assignable) -----------
@@ -310,6 +310,14 @@ export default_if_free :: fn(t: Type) -> Type {
         is FreeFloatType -> { return mk_primitive("f64") }
         _ -> { return t }
     }
+}
+
+/// Dispatch key for trait-impl side-tables (`struct_implemented_traits`,
+/// `struct_trait_args`). Defaults Free* first so a `7` literal keys the
+/// same as `i32` for impls like `i32 implements Doubler`. Returns `""`
+/// for types with no nominal name — callers gate on the empty sentinel.
+export dispatch_key :: fn(t: Type) -> string {
+    return type_base_name(default_if_free(t))
 }
 
 /// Bidirectional narrowing : when a Free* literal flows into a slot that

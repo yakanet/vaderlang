@@ -7,7 +7,7 @@
 // coercion lands once the resolver indexes core's Iterator trait.
 
 import "vader/typecheck/types" { Type, FnType, display_type }
-import "vader/typecheck/type_ops" { is_assignable }
+import "vader/typecheck/type_ops" { dispatch_key, is_assignable }
 import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Look up `${got}::into::${expected}` in the impl-method index. The
@@ -23,11 +23,10 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
     }
     // Trait widening : `Cat → Animal` when `Cat implements Animal`.
     if try_trait_widen(got, expected, typed) { return true }
-    // Implicit `T[] → Iterator(T)` coercion : the lowerer materialises
-    // an `ArrayIterator(T)` wrap at call sites so a function expecting
-    // `Iterator(i32)` can be called with `i32[]`. Kept out of the
-    // recursive `is_assignable` to dodge the codegen explosion noted
-    // in TODO §2.6.
+    // `T[] → Iterator(T)` : lowerer materialises `ArrayIterator(T)`
+    // at the call site. Lives in `try_into` (not `is_assignable`) to
+    // keep the recursive assignability check small enough that
+    // c-emit doesn't monomorphise a 3× larger main.c.
     if try_array_to_iter(got, expected) { return true }
     return false
 }
@@ -59,7 +58,7 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
     }
     if !(expected is TraitType) { return false }
     trait_name :: expected.symbol.name
-    got_name :: type_base_name(default_if_free(got))
+    got_name :: dispatch_key(got)
     if got_name == "" { return false }
     bucket :: typed.struct_implemented_traits[got_name]
     if bucket is null { return false }
@@ -67,7 +66,5 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
     return false
 }
 
-import "vader/typecheck/types" { type_base_name }
-import "vader/typecheck/type_ops" { default_if_free }
 
 import "vader/typecheck/types" { StructType, TraitType, UnionType }
