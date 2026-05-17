@@ -54,7 +54,7 @@ export infer_field :: fn(
     match found {
         is null -> {
             diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
-                "field `${e.field}` not found on struct ${display_type(target_ty)}"))
+                "`${e.field}` on ${display_type(target_ty)}"))
             return TY_UNRESOLVED
         }
         _ -> { return found }

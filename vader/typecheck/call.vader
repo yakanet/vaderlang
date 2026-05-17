@@ -20,11 +20,11 @@
 //   - No named-arg matching ; positional only.
 //   - No spread-arg handling.
 
-import "std/collections" { MutableMap }
+import "std/collections" { MutableMap, keys }
 import "std/math" { min }
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
-import "vader/typecheck/type_ops" { is_assignable }
+import "vader/typecheck/type_ops" { default_if_free, is_assignable }
 import "vader/typecheck/types" {
     Type, FnType, TypeMetaType, UnresolvedType, display_type, TY_UNRESOLVED,
 }
@@ -84,6 +84,15 @@ export infer_call :: fn(
                     "expected ${display_type(expected)}, got ${display_type(arg_types[i])}"))
             }
         }
+        // Default any FreeInt/FreeFloat bound to a typeParam before
+        // substituting — matches TS `pinFreeNumericArg` so the
+        // return type comes back concrete (`i32` / `f64`) instead
+        // of `{integer}` / `{float}`.
+        for k in bindings.keys() {
+            v :: bindings[k]
+            if v is null { continue }
+            bindings[k] = default_if_free(v)
+        }
         return substitute(callee_ty.return_type, bindings)
     }
     for i in 0..<n {
@@ -111,6 +120,14 @@ cast_call_target :: fn(
 fn_has_type_params :: fn(f: FnType) -> bool {
     for p in f.params { if type_contains_type_param(p) { return true } }
     return type_contains_type_param(f.return_type)
+}
+
+/// Apply `default_if_free` recursively to the top-level Type after
+/// substitution. For a simple return like `T` bound to FreeInt this
+/// turns the substituted result into `i32`. Compound shapes (Array,
+/// Tuple, Fn, Struct, Trait, Union) are walked element-wise.
+default_each_typeparam :: fn(t: Type) -> Type {
+    return default_if_free(t)
 }
 
 // Walk the args once for their side-effects only — type them in a
