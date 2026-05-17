@@ -320,7 +320,9 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
     if name == "push"         { return mk_fn([arr.element], TY_VOID) }
     if name == "pop"          { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
     if name == "clear"        { return mk_fn([], TY_VOID) }
-    if name == "slice_array"  { return mk_fn([mk_primitive("usize"), mk_primitive("usize")], mk_array(arr.element, false)) }
+    // `slice_array` falls through to free-fn UFCS / import-binding
+    // dispatch so the dump matches TS — the unsubstituted `fn(usize,
+    // usize) -> T[]` signature is what TS shows for `arr.slice_array`.
     if name == "reverse"      { return mk_fn([], mk_array(arr.element, false)) }
     // `first` / `last` / `contains` stay user-shadowable — they're
     // commonly redefined by user code with extra args (e.g. `first(arr,
@@ -658,10 +660,6 @@ try_free_fn_ufcs_with_first :: fn(
 try_curry_receiver :: fn(ft: FnType, target_ty: Type) -> Type | null {
     if ft.params.len() == 0 { return null }
     if !is_assignable(target_ty, ft.params[0], null) { return null }
-    // Keep the generic signature un-substituted (matches TS — the
-    // FieldExpr dump stays `fn(T) -> T`). CallExpr typing re-runs
-    // unification via `infer_call`, which produces the substituted
-    // + Free*-defaulted return type at the call site.
     rest: Type[] = []
     for i in 1..<ft.params.len() { rest.push(ft.params[i]) }
     return mk_fn(rest, ft.return_type)
