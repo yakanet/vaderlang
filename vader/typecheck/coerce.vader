@@ -23,8 +23,28 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
     }
     // Trait widening : `Cat → Animal` when `Cat implements Animal`.
     if try_trait_widen(got, expected, typed) { return true }
+    // Implicit `T[] → Iterator(T)` coercion : the lowerer materialises
+    // an `ArrayIterator(T)` wrap at call sites so a function expecting
+    // `Iterator(i32)` can be called with `i32[]`. Kept out of the
+    // recursive `is_assignable` to dodge the codegen explosion noted
+    // in TODO §2.6.
+    if try_array_to_iter(got, expected) { return true }
     return false
 }
+
+try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
+    if !(got is ArrayType) { return false }
+    if !(expected is TraitType) { return false }
+    if expected.symbol.name != "Iterator" { return false }
+    if expected.args.len() != 1 { return false }
+    // Element compatibility : TypeParam slot accepts anything ;
+    // primitive/struct/etc. must equal.
+    if expected.args[0] is TypeParamType { return true }
+    return equals_type(got.element, expected.args[0])
+}
+
+import "vader/typecheck/types" { ArrayType, TypeParamType }
+import "vader/typecheck/type_ops" { equals_type }
 
 /// True when `got` implements the trait `expected` (or a variant of
 /// `expected` if it's a union).
