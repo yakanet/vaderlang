@@ -64,20 +64,19 @@ MissingRequiredFieldInStructLit · T3038 FieldAlreadyProvided
 The `tests/parity.test.ts::typecheck` stage diffs the Vader CLI's
 `dump --stage=typed-ast` byte-for-byte against the TS-generated
 `typecheck.snapshot` for every snippet under `tests/snippets/`.
-Current scoring : **53/251 (~21%) pass**. The remaining 198 fall
-into four buckets, ordered by impact :
+Current scoring : **121/251 (~48%) pass**. The remaining 130 fall
+into the buckets below, ordered by impact :
 
-### Bucket A — Cross-module imports (~154/198 fails)
+### Bucket A — Cross-module imports — **DONE**
 
-64% of the failing snippets touch `import "std/…"` or local
-modules. With no `wire.vader` ported, every `ImportBinding` ident
-returns `TY_UNRESOLVED`, so `fs.println(...)` shows up as `?` and
-`fn(string) -> void` in the TS output. **Unlocking this bucket
-requires** the multi-module loader (`src/resolver/loader.ts` ~170
-LoC TS) + module graph (`src/resolver/module.ts` ~190 LoC TS) +
-import-redirect plumbing in `vader/resolver/resolve.vader`. A real
-day of work ; intentionally kept out of the typecheck-port
-sessions so each commit stays reviewable.
+The full multi-module wire pipeline (`vader/resolver/{loader,
+module, wire}.vader` + `imports.vader` + `orchestrate.vader::
+check_project_with_bodies` + `expr_ident.vader::redirect` +
+`field.vader::try_namespace_field`) ships in the binary and types
+both namespace (`fs :: import "std/io"` → `fs.println`) and
+destructured (`{ println }`) forms against the loaded module's
+exports. `std/core` auto-loads so `Range(T)`, `Display`, etc.
+resolve concretely.
 
 ### Bucket B — Flow-sensitive narrowing (~25 fails)
 
