@@ -57,9 +57,84 @@ export infer_field :: fn(
                 "`${e.field}` on ${display_type(target_ty)}"))
             return TY_UNRESOLVED
         }
-        _ -> { return found }
+        _ -> { return substitute_struct_field(found, decl, target_ty) }
     }
 }
+
+/// Substitute typeParam bindings from `decl.type_params` against
+/// `target.args` into `field_ty`. Lets `Node(i32) { value: T }` →
+/// `value: i32` instead of leaving `T` raw.
+substitute_struct_field :: fn(
+    field_ty: Type, decl: AST.StructDecl, target: StructType,
+) -> Type {
+    if decl.type_params.len() == 0 { return field_ty }
+    bindings :: MutableMap(i32, Type) { .buckets = [], .size = 0 }
+    n :: min(decl.type_params.len(), target.args.len())
+    for i in 0..<n {
+        tp :: decl.type_params[i]
+        // The struct's TypeParam Symbol id was minted in decl.vader
+        // when the StructType was built. We can't recover it from
+        // the AST alone, so we match on name : decl.vader's
+        // declare_named_with_args mints a fresh TypeParam Symbol per
+        // `tp.name` and stamps it into `target.args[i]` via
+        // `mk_type_param`. The Sym id we want lives in target.args[i].
+        match target.args[i] {
+            is TypeParamType as tpt -> { bindings[tpt.symbol.id] = target.args[i] }
+            _ -> {}
+        }
+        // Build a name→type bindings map so unify_by_name can match
+        // the field's raw `T` reference (TypeParam from decl.vader's
+        // mint) against `target.args[i]`.
+    }
+    // Walk the field type and rewrite any TypeParam whose name
+    // matches one of the struct's typeParams.
+    return substitute_by_name(field_ty, decl.type_params, target.args)
+}
+
+substitute_by_name :: fn(
+    t: Type, tps: AST.TypeParam[], args: Type[],
+) -> Type {
+    match t {
+        is TypeParamType as tp -> {
+            for i in 0..<min(tps.len(), args.len()) {
+                if tps[i].name == tp.symbol.name { return args[i] }
+            }
+            return t
+        }
+        is ArrayType as a -> {
+            return mk_array(substitute_by_name(a.element, tps, args), a.immutable)
+        }
+        is TupleType as tu -> {
+            els: Type[] = []
+            for el in tu.elements { els.push(substitute_by_name(el, tps, args)) }
+            return mk_tuple(els)
+        }
+        is StructType as s -> {
+            sargs: Type[] = []
+            for a in s.args { sargs.push(substitute_by_name(a, tps, args)) }
+            return mk_struct(s.symbol, sargs)
+        }
+        is UnionType as u -> {
+            vs: Type[] = []
+            for v in u.variants { vs.push(substitute_by_name(v, tps, args)) }
+            return union_of(vs)
+        }
+        is FnType as f -> {
+            ps: Type[] = []
+            for p in f.params { ps.push(substitute_by_name(p, tps, args)) }
+            return mk_fn(ps, substitute_by_name(f.return_type, tps, args))
+        }
+        _ -> { return t }
+    }
+}
+
+import "std/collections" { MutableMap }
+import "std/math" { min }
+import "vader/typecheck/types" {
+    ArrayType, FnType, TupleType, TypeParamType, UnionType,
+    mk_array, mk_fn, mk_struct, mk_tuple,
+}
+import "vader/typecheck/type_ops" { union_of }
 
 import "vader/resolver/scope" { span_key }
 import "vader/resolver/symbol" { Symbol }

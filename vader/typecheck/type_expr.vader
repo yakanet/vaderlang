@@ -133,6 +133,7 @@ export type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
     }
 }
 
+
 /// Map a builtin type name to a Type, or null when the name isn't a
 /// primitive (caller falls back to symbol-driven resolution). Covers :
 ///   - canonical primitives — every entry of `PRIMITIVE_NAMES`
