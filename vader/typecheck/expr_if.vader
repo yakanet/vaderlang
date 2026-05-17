@@ -36,7 +36,11 @@ export infer_if :: fn(
             return union_of([then_ty, else_ty])
         }
         is AST.IfElseIf as ei -> {
-            else_ty :: infer_if(ei.branch, expected, typed, diags, ctx, check_expr_fn)
+            // Route through `check_expr_fn` so the nested IfExpr
+            // lands in `typed.expr_types` / `expr_kinds` like any
+            // other expression (matches TS).
+            inner: AST.Expr = ei.branch
+            else_ty :: check_expr_fn(inner, expected, typed, diags)
             return union_of([then_ty, else_ty])
         }
     }
