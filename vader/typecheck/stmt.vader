@@ -38,8 +38,16 @@ export check_block :: fn(
         _ -> { result = check_expr_fn(block.trailing, expected, typed, diags) }
     }
     full_key :: span_full_key(block.span)
-    typed.expr_types[full_key] = result
-    typed.expr_kinds[full_key] = "BlockExpr"
+    // Don't clobber the trailing expression's `expr_kinds` entry —
+    // expression-bodied fns synthesise a BlockExpr around the trailing
+    // with overlapping spans, and the trailing's true kind (BinaryExpr
+    // / CallExpr / …) is what callers want to see in the dump.
+    if typed.expr_kinds[full_key] is null {
+        typed.expr_kinds[full_key] = "BlockExpr"
+    }
+    if typed.expr_types[full_key] is null {
+        typed.expr_types[full_key] = result
+    }
     return result
 }
 
