@@ -133,6 +133,7 @@ export check_project_with_bodies :: fn(
     // `s.chars().count()` inside std/string's `count_chars` can find
     // Iterator's default `count` method via `try_default_trait_method`.
     cross_publish_trait_decls(per_module)
+    cross_publish_fn_decls(per_module)
     settle_external_expr_bodied_returns(project, per_module)
     populate_external_types(entry_typed, project, per_module)
     populate_imported_fn_overloads(entry_typed, per_module)
@@ -594,6 +595,31 @@ cross_publish_trait_decls :: fn(per_module: MutableMap(string, TypedProgram)) ->
             sid :: ids[i]
             tp.trait_decls[sid] = decls[i]
             tp.trait_decl_owners[sid] = owners[i]
+        }
+    }
+}
+
+/// Same idea as `cross_publish_trait_decls` but for `fn_decls`.
+/// Lets T3006 enforcement reach cross-module callees (e.g. checking
+/// bounds on `std/math.min`'s type-params from an entry call site).
+cross_publish_fn_decls :: fn(per_module: MutableMap(string, TypedProgram)) -> void {
+    ids: i32[] = []
+    fdecls: AST.FnDecl[] = []
+    for id in per_module.keys() {
+        tp :: per_module[id]
+        if tp is null { continue }
+        for sym_id in tp.fn_decls.keys() {
+            d :: tp.fn_decls[sym_id]
+            if d is null { continue }
+            ids.push(sym_id)
+            fdecls.push(d)
+        }
+    }
+    for id in per_module.keys() {
+        tp :: per_module[id]
+        if tp is null { continue }
+        for i in 0..<ids.len() {
+            tp.fn_decls[ids[i]] = fdecls[i]
         }
     }
 }
