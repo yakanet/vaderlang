@@ -18,8 +18,8 @@ import "vader/resolver/symbol" { Symbol }
 /// exports — typecheck consumers fall back to Unresolved.
 export ImportTarget :: ModuleTarget | SymbolTarget | MissingTarget
 
-export ModuleTarget  :: struct { module: Module }
-export SymbolTarget  :: struct { symbol: Symbol, module: Module }
+export ModuleTarget  :: struct { module_id: string }
+export SymbolTarget  :: struct { symbol: Symbol, module_id: string }
 export MissingTarget :: struct {}
 
 /// `Symbol.id → ImportTarget`. Built once from a `LoadedProject` ;
@@ -61,11 +61,11 @@ wire_module :: fn(
             continue
         }
         match info.imported_name {
-            is null -> { out[sym_id] = ModuleTarget { .module = target_loaded.module } }
+            is null -> { out[sym_id] = ModuleTarget { .module_id = target_id } }
             _ -> {
                 exported :: target_loaded.collected.symbols[info.imported_name]
                 if exported is null { out[sym_id] = MissingTarget {} }
-                else { out[sym_id] = SymbolTarget { .symbol = exported, .module = target_loaded.module } }
+                else { out[sym_id] = SymbolTarget { .symbol = exported, .module_id = target_id } }
             }
         }
     }

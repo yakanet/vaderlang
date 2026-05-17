@@ -38,45 +38,40 @@ export check_module_with_bodies :: fn(
     return result
 }
 
-/// Multi-module typecheck. Resolves + typechecks every loaded
-/// module, wires imports, and returns the entry module's
-/// `CheckResult` with `import_targets` + `external_types` populated
-/// so cross-module ident lookups resolve to concrete types.
+/// Multi-module typecheck. Types the entry module fully, then
+/// types each directly-imported module *just enough* to harvest
+/// its top-level decl types (for cross-module ident lookup). Wires
+/// imports across the project and patches the entry's
+/// `import_targets` + `external_types`.
 export check_project_with_bodies :: fn(
     project: LoadedProject, diags: Diagnostic[],
 ) -> CheckResult {
-    // Per-module typecheck pass.
+    entry_loaded :: project.modules[project.entry]
+    if entry_loaded is null {
+        return CheckResult { .typed = empty_fallback(project), .impls = empty_impls() }
+    }
+
+    entry_rm :: resolve_module(entry_loaded.module.files[0].program, project.entry, project.factory)
+    entry_typed :: new_typed_program(entry_rm)
+    declare_module(entry_loaded.module.files[0].program.decls, entry_rm, entry_typed, project.factory, diags)
+    walk_bodies(entry_loaded.module.files[0].program.decls, entry_typed, diags)
+
     per_module :: MutableMap(string, TypedProgram) { .buckets = [], .size = 0 }
+    per_module[project.entry] = entry_typed
     for id in project.modules.keys() {
-        loaded :: project.modules[id]
-        if loaded is null { continue }
-        rm :: resolve_module(loaded.module.files[0].program, id, project.factory)
+        if id == project.entry { continue }
+        other :: project.modules[id]
+        if other is null { continue }
+        rm :: resolve_module(other.module.files[0].program, id, project.factory)
         typed :: new_typed_program(rm)
-        declare_module(loaded.module.files[0].program.decls, rm, typed, project.factory, diags)
-        walk_bodies(loaded.module.files[0].program.decls, typed, diags)
+        declare_module(other.module.files[0].program.decls, rm, typed, project.factory, diags)
         per_module[id] = typed
     }
 
-    // Wire imports across the project.
-    import_targets :: wire_imports(project)
-
-    // Re-load the entry module's TypedProgram and patch in the
-    // wire table + cross-module external types harvested from
-    // every other module's decl_types.
-    entry_typed :: per_module[project.entry]
-    if entry_typed is null {
-        // Shouldn't happen — load_project guarantees the entry is loaded.
-        return CheckResult { .typed = empty_fallback(project), .impls = empty_impls() }
-    }
-    entry_typed.import_targets = import_targets
+    entry_typed.import_targets = wire_imports(project)
     populate_external_types(entry_typed, project, per_module)
 
-    entry_loaded :: project.modules[project.entry]
-    impls: ImplRegistry = empty_impls()
-    match entry_loaded {
-        is null -> {}
-        _ -> { impls = build_impl_registry(entry_loaded.module.files[0].program.decls, entry_typed.resolved) }
-    }
+    impls :: build_impl_registry(entry_loaded.module.files[0].program.decls, entry_typed.resolved)
     return CheckResult { .typed = entry_typed, .impls = impls }
 }
 
@@ -148,8 +143,7 @@ import "vader/resolver/wire" { SymbolTarget }
 lookup_external_type :: fn(
     st: SymbolTarget, per_module: MutableMap(string, TypedProgram),
 ) -> Type | null {
-    target_id :: st.module.id
-    typed :: per_module[target_id]
+    typed :: per_module[st.module_id]
     if typed is null { return null }
     sp :: st.symbol.defined_at
     if sp is null { return null }
