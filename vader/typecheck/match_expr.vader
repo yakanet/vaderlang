@@ -67,17 +67,59 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram) -> vo
             }
         }
         is AST.BindingPattern as bp -> {
-            // Resolver mints a `.Binding` Symbol at `bp.span` and
-            // attaches it to the scope (not to `idents`). Writing
-            // local_types by span aligns with `lookup_in`'s
-            // sym.defined_at-based lookup so body idents see the type.
             typed.local_types[span_key(bp.span)] = scrut
+        }
+        is AST.IsPattern as ip -> {
+            // `is T as a` binds `a` to T (the narrowed type). The
+            // resolver mints the binding at `ip.span` when bind_as
+            // is non-null ; write the lowered T as its type.
+            narrowed :: type_from_expr(ip.ty, typed.resolved, scratch_diags())
+            match ip.bind_as {
+                is null -> {}
+                _ -> { typed.local_types[span_key(ip.span)] = narrowed }
+            }
+            // Nested pattern (e.g. `is T as a { x, y }`) — recurse
+            // with the narrowed type so inner StructPattern bindings
+            // pick up T's field types.
+            match ip.inner {
+                is null -> {}
+                _ -> { bind_pattern_types(ip.inner, narrowed, typed) }
+            }
+        }
+        is AST.StructPattern as sp -> { bind_struct_pattern(sp, scrut, typed) }
+        _ -> {}
+    }
+}
+
+bind_struct_pattern :: fn(
+    sp: AST.StructPattern, scrut: Type, typed: TypedProgram,
+) -> void {
+    match scrut {
+        is StructType as st -> {
+            decl :: typed.struct_decls[st.symbol.id]
+            if decl is null { return }
+            for field in sp.fields {
+                match field.value {
+                    is AST.PatternBinding as pb -> {
+                        ft :: find_struct_field_type(decl, field.name, typed.resolved, scratch_diags())
+                        match ft {
+                            is null -> {}
+                            _ -> { typed.local_types[span_key(pb.span)] = ft }
+                        }
+                    }
+                    _ -> {}
+                }
+            }
         }
         _ -> {}
     }
 }
 
-import "vader/typecheck/types" { TupleType }
+scratch_diags :: fn() -> Diagnostic[] { return [] }
+
+import "vader/typecheck/types" { StructType, TupleType }
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/field" { find_struct_field_type }
 import "vader/resolver/scope" { span_key }
 
 // ---- tests ----------------------------------------------------------------
