@@ -411,8 +411,70 @@ Sprint plan : [`docs/SELFHOST_VM.md`](./docs/SELFHOST_VM.md). The Vader VM reads
 ### 2.5 Port the WASM emitter — gated on §3.10
 (Empty until the TS WASM emitter lands.)
 
+### 2.5b Port the comptime engine — partial (tree-walk MVP, 2026-05-18)
+
+Tree-walk evaluator covering the subset of comptime expressions the
+lowerer + bytecode emitter port haven't unlocked yet. General
+Turing-complete `@comptime fn` bodies (loops, function calls) defer
+until the full VM-round-trip path is online.
+
+- [x] **Phase 1** — `ComptimeValue` IR + `EvaluatedProject` shapes +
+      C4xxx codes (`vader/comptime/value.vader`,
+      `vader/comptime/evaluated_ast.vader`, `vader/comptime/mono_ast.vader`,
+      `vader/diagnostics/codes.vader`).
+- [x] **Phase 2** — Dependency graph + topological sort + cycle
+      detection (`vader/comptime/deps.vader`).
+- [x] **Phase 3** — `# Comptime` dump + CLI `--stage=evaluated-ast`
+      handler + orchestrator skeleton (`vader/comptime/dump.vader`,
+      `vader/comptime/check.vader`).
+- [x] **Phase 4** — Tree-walk evaluator covering literals, binary +
+      unary ops, ident lookup, nominal type values
+      (`vader/comptime/eval*.vader`).
+- [x] **Phase 5** — Minimal `@intrinsic` evaluator
+      (`@size_of` / `@align_of` / `@type_name` / `@type_kind`) in
+      `vader/comptime/intrinsic.vader`.
+- [x] **Phase 6** — Instance registry + `## generic instances`
+      dump section (`vader/comptime/instances.vader`).
+- [x] **Phase 7** — `@assert` walker + cleanup
+      (`vader/comptime/assert.vader`).
+
+#### Deferred until lowerer + bytecode emit port
+
+- [ ] **Generic fn-instance harvest** — TS uses
+      `typed.genericFnCalls` to detect every `identity(i32)` /
+      `map(i32, i32)` call site at comptime. Vader's typechecker
+      doesn't maintain this side-table yet ; without it the
+      `## generic instances` section omits fn instances. Closing the
+      gap requires adding `generic_fn_calls: MutableMap(usize,
+      Type[])` to `TypedProgram` and populating it at every
+      generic-fn call resolution in `call.vader`.
+- [ ] **for-in ArrayIterator detection** — `for x in arr` auto-wraps
+      into `ArrayIterator(T)`. TS scans every fn / impl body for `for
+      x in <Array>` and registers the wrap. Mirrors TODO above ; same
+      walker shape applies.
+- [ ] **Into-coercion materialisation** — blanket `T[] implements[T]
+      Into(Iterator(T))` impls contribute their member specialisations
+      to the registry. TS's `walkImplBodyForCalls` drives this.
+- [ ] **Transitive closure** — `closeOverGenericImpls` worklist that
+      re-observes the substituted return types of every newly-added
+      impl member instance.
+- [ ] **Bytecode-driven comptime evaluation** — `@comptime fn` bodies
+      with loops, function calls, mutation. TS routes through
+      `lower-decl.ts` → `bytecode/emit/` → `vm/exec.ts`. Vader has
+      the VM (`vader/vm/`) but not the lowerer or the bytecode emitter
+      yet — `vader run main.vader` still reports "not yet implemented
+      (only .virt for now)".
+- [ ] **`@field` / `@fields` / `@file` / `@env` intrinsics** — Phase
+      5 ships only the four type-reflection intrinsics. The richer
+      coverage lands when downstream consumers (lower-time field
+      access, `@file` content baking) need them.
+
+#### TS divergences (Vader is correct)
+
+(none recorded yet)
+
 ### 2.6 Port the type-checker (last)
-- [ ] Port to Vader.
+- [x] Port to Vader.
 - [ ] Snapshot-test parity on every sample.
 
 #### Bugs surfaced while porting the typechecker — open

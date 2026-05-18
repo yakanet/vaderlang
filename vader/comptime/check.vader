@@ -21,6 +21,7 @@ import "vader/comptime/eval" { evaluate_expr }
 import "vader/comptime/instances" {
     InstanceRegistry, new_registry, observe, sorted_instances, GenericInstance,
 }
+import "vader/comptime/assert" { evaluate_assert_decls }
 AST :: import "vader/parser/ast"
 
 /// Evaluate every `@comptime` decl across the project's typed view,
@@ -45,7 +46,10 @@ export evaluate_project :: fn(
         decls :: lookup_module_decls(loaded, module_id)
         match decls {
             is null -> {}
-            _       -> { evaluate_module_decls(decls, module_typed, program, diags) }
+            _       -> {
+                evaluate_module_decls(decls, module_typed, program, diags)
+                evaluate_assert_decls(decls, module_typed, diags)
+            }
         }
         project.modules[module_id] = program
     }
