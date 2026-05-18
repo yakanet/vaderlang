@@ -1,0 +1,78 @@
+// vader/comptime/eval_lit — literal-expression evaluators.
+//
+// Per-variant `evaluate_<kind>_lit` for every AST literal expression.
+// Each returns an `EvalResult` carrying the canonicalised
+// `ComptimeValue` ; type-name suffixes round-trip through the value
+// (`42_i64` keeps its `i64` tag).
+
+import "vader/comptime/eval_types" { EvalResult, ComptimeContext, ok, fail }
+import "vader/comptime/value" {
+    ComptimeValue, CharValue,
+    int_val, int_val_typed, float_val, float_val_typed, string_val,
+    VAL_NULL, VAL_TRUE, VAL_FALSE,
+}
+import "std/string_builder" { new_builder, append, append_char }
+import "vader/diagnostics/diagnostic" { comptime_error }
+import "vader/diagnostics/codes" { ComptimeCode }
+AST :: import "vader/parser/ast"
+
+/// Evaluate an `IntLitExpr`. The parser stores the unsigned magnitude
+/// (negatives wrap a `UnaryExpr.Neg` around a positive lit), and the
+/// suffix (`i32`, `usize`, …) drives the value's `type_name`. Default
+/// is `i32` to match the typechecker's free-int defaulting.
+/// @param literal  the literal node.
+/// @return         the wrapped int value.
+export evaluate_int_lit :: fn(literal: AST.IntLitExpr) -> EvalResult {
+    match literal.suffix {
+        is null    -> { return ok(int_val(i64(literal.value))) }
+        is string  -> { return ok(int_val_typed(i64(literal.value), literal.suffix)) }
+    }
+}
+
+/// Evaluate a `FloatLitExpr`. Suffix-aware ; default `f64`.
+/// @param literal  the literal node.
+/// @return         the wrapped float value.
+export evaluate_float_lit :: fn(literal: AST.FloatLitExpr) -> EvalResult {
+    match literal.suffix {
+        is null   -> { return ok(float_val(literal.value)) }
+        is string -> { return ok(float_val_typed(literal.value, literal.suffix)) }
+    }
+}
+
+/// Evaluate a `BoolLitExpr` (`true` / `false`).
+export evaluate_bool_lit :: fn(literal: AST.BoolLitExpr) -> EvalResult {
+    if literal.value { return ok(VAL_TRUE) }
+    return ok(VAL_FALSE)
+}
+
+/// Evaluate a `NullLitExpr` (`null` literal).
+export evaluate_null_lit :: fn(_: AST.NullLitExpr) -> EvalResult {
+    return ok(VAL_NULL)
+}
+
+/// Evaluate a `CharLitExpr` ; carries the codepoint as `u32`.
+export evaluate_char_lit :: fn(literal: AST.CharLitExpr) -> EvalResult {
+    return ok(CharValue { .value = literal.value })
+}
+
+/// Evaluate a `StringLitExpr`. Plain text segments concat directly ;
+/// any interpolation segment falls back to `C4002` (the evaluator
+/// can't recursively walk through string parts without a circular
+/// import on the dispatcher — interpolations land alongside
+/// `CallExpr` support in a future phase).
+/// @param literal  the literal node.
+/// @param context  the evaluator context — unused at this MVP.
+/// @return         the concatenated string value, or C4002 if any
+///                 segment is an interpolation.
+export evaluate_string_lit :: fn(literal: AST.StringLitExpr, _: ComptimeContext) -> EvalResult {
+    sb := new_builder()
+    for part in literal.parts {
+        match part {
+            is AST.StringLitText as text -> { sb.append(text.value) }
+            is AST.StringLitInterp -> {
+                return fail(comptime_error(.VmRequired, literal.span, "StringInterp"))
+            }
+        }
+    }
+    return ok(string_val(sb.to_string()))
+}

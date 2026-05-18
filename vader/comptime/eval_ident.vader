@@ -1,0 +1,77 @@
+// vader/comptime/eval_ident — IdentExpr lookup + type-value short-circuit.
+//
+// An `IdentExpr` at comptime resolves through three paths :
+//   1. The typed program's resolved-symbol table — if the symbol is a
+//      previously-evaluated `@comptime const`, return its bound value.
+//   2. A nominal type (`i32` / `string` / a user struct / enum / trait
+//      name) — evaluate to `ComptimeValue.TypeVal(type)`. Lifts
+//      `comptime_type_alias` + `comptime_type_value` without the VM.
+//   3. Anything else (Param / Local / Fn / ImportBinding / …) →
+//      `C4002` ; needs VM execution.
+
+import "vader/comptime/eval_types" { EvalResult, ComptimeContext, ok, fail, vm_required }
+import "vader/comptime/value" { ComptimeValue, type_val }
+import "vader/resolver/scope" { span_key }
+import "vader/resolver/symbol" { Symbol, SymbolKind, kind_name }
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/types" { Type, UnresolvedType }
+import "vader/diagnostics/diagnostic" { Diagnostic, comptime_error }
+import "vader/diagnostics/codes" { ComptimeCode }
+AST :: import "vader/parser/ast"
+
+/// Evaluate an `IdentExpr`. Path 1 (bound const) wins ; path 2 (type
+/// reference) covers nominal types ; everything else falls back to C4002.
+/// @param expr     the identifier expression.
+/// @param context  the evaluator context.
+/// @return         the bound value / type value / C4002 diagnostic.
+export evaluate_ident :: fn(expr: AST.IdentExpr, context: ComptimeContext) -> EvalResult {
+    symbol :: context.typed.resolved.idents[span_key(expr.span)]
+    if symbol is null {
+        return vm_required(expr.span, "IdentExpr (unresolved)")
+    }
+    // Path 1 : already-evaluated `@comptime const`.
+    bound :: context.bindings[symbol.id]
+    if !(bound is null) { return ok(bound) }
+    // Path 2 : type-reference identifier. Resolve to a `Type` via
+    // `type_from_expr` and wrap. Filter by SymbolKind so non-type
+    // references (Fn / Param / Const without binding / …) don't
+    // accidentally surface as `TypeVal(?)`.
+    if is_type_symbol_kind(symbol.kind) {
+        type_value :: type_from_expr_safe(expr, context)
+        match type_value {
+            is null -> {}
+            _       -> { return ok(type_val(type_value)) }
+        }
+    }
+    return vm_required(expr.span, "IdentExpr (${kind_name(symbol.kind)})")
+}
+
+is_type_symbol_kind :: fn(kind: SymbolKind) -> bool {
+    k :: i32(kind)
+    if k == i32(SymbolKind.Struct)      { return true }
+    if k == i32(SymbolKind.Enum)        { return true }
+    if k == i32(SymbolKind.Trait)       { return true }
+    if k == i32(SymbolKind.TypeAlias)   { return true }
+    if k == i32(SymbolKind.BuiltinType) { return true }
+    if k == i32(SymbolKind.TypeParam)   { return true }
+    return false
+}
+
+// `type_from_expr` writes diagnostics if the resolution fails ; we
+// swallow them here because the comptime evaluator's caller already
+// surfaced any real errors during typecheck. A `null` return signals
+// "not a recoverable type".
+type_from_expr_safe :: fn(expr: AST.IdentExpr, context: ComptimeContext) -> Type | null {
+    raw :: type_from_expr(expr, context.typed.resolved, diag_sink())
+    if !is_resolved(raw) { return null }
+    return raw
+}
+
+diag_sink :: fn() -> Diagnostic[] { return [] }
+
+is_resolved :: fn(t: Type) -> bool {
+    match t {
+        is UnresolvedType -> { return false }
+        _                 -> { return true }
+    }
+}

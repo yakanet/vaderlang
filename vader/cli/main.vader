@@ -404,7 +404,7 @@ run_comptime_stage :: fn(file: string) -> i32 {
     result :: check_project_with_bodies(project, typecheck_diags)
     typed_project :: assemble_typed_project(result)
     comptime_diags: Diagnostic[] = []
-    evaluated :: evaluate_project(typed_project, comptime_diags)
+    evaluated :: evaluate_project(project, typed_project, comptime_diags)
     println(dump_evaluated(evaluated))
     // Comptime-stage diagnostics surface separately ; typecheck diagnostics
     // already shipped via the typed-ast stage and aren't replayed here.

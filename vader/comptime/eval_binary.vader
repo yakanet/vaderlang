@@ -1,0 +1,294 @@
+// vader/comptime/eval_binary — binary + unary operator evaluation.
+//
+// Per-operator dispatch over `BinaryOp` / `UnaryOp` for the operand
+// shapes the tree-walk MVP supports (Int, Float, Bool, String for `+`
+// concat). Type mismatches surface as `C4006` ; the operators the VM
+// would otherwise handle (`Is`, `In`, `NotIn`) fall back to `C4002`.
+
+import "vader/comptime/eval_types" {
+    EvalResult, ComptimeContext, ok, fail, vm_required,
+}
+import "vader/comptime/value" {
+    ComptimeValue, IntValue, FloatValue, BoolValue, StringValue,
+    int_val_typed, float_val_typed, string_val, VAL_TRUE, VAL_FALSE,
+}
+import "vader/diagnostics/diagnostic" { Diagnostic, comptime_error }
+import "vader/diagnostics/codes" { ComptimeCode }
+AST :: import "vader/parser/ast"
+
+/// Evaluate a `BinaryExpr`. Recurses into both operands ; combines
+/// per `op`. Short-circuits on operand failure (the operand's error
+/// propagates up). `Is` / `In` / `NotIn` need the typechecker's
+/// narrowing tables — fall back to C4002.
+/// @param expr        the binary expression node.
+/// @param context     the evaluator context.
+/// @param recurse     dispatcher callback (`eval.evaluate_expr`) ;
+///                    passed in to avoid the eval ↔ eval_binary import
+///                    cycle.
+/// @return            the combined value or a diagnostic.
+export evaluate_binary_expr :: fn(
+    expr: AST.BinaryExpr, context: ComptimeContext,
+    recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
+) -> EvalResult {
+    left_result :: recurse(expr.left, context)
+    if left_result.value is null { return left_result }
+    right_result :: recurse(expr.right, context)
+    if right_result.value is null { return right_result }
+    return combine_binary(expr, left_result.value, right_result.value)
+}
+
+combine_binary :: fn(expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue) -> EvalResult = match expr.op {
+    .Add    -> arithmetic_or_concat(expr, left, right, op_add)
+    .Sub    -> arithmetic(expr, left, right, op_sub)
+    .Mul    -> arithmetic(expr, left, right, op_mul)
+    .Div    -> arithmetic(expr, left, right, op_div)
+    .Mod    -> arithmetic_int(expr, left, right, op_mod)
+    .Shl    -> arithmetic_int(expr, left, right, op_shl)
+    .Shr    -> arithmetic_int(expr, left, right, op_shr)
+    .BitAnd -> arithmetic_int(expr, left, right, op_bit_and)
+    .BitOr  -> arithmetic_int(expr, left, right, op_bit_or)
+    .BitXor -> arithmetic_int(expr, left, right, op_bit_xor)
+    .And    -> bool_op(expr, left, right, op_and)
+    .Or     -> bool_op(expr, left, right, op_or)
+    .Eq     -> compare(expr, left, right, .Eq)
+    .Neq    -> compare(expr, left, right, .Neq)
+    .Lt     -> compare(expr, left, right, .Lt)
+    .Lte    -> compare(expr, left, right, .Lte)
+    .Gt     -> compare(expr, left, right, .Gt)
+    .Gte    -> compare(expr, left, right, .Gte)
+    .Is     -> vm_required(expr.span, "BinaryOp.Is")
+    .In     -> vm_required(expr.span, "BinaryOp.In")
+    .NotIn  -> vm_required(expr.span, "BinaryOp.NotIn")
+}
+
+/// Evaluate a `UnaryExpr` (`-x`, `!x`, `~x`).
+/// @param expr     the unary expression node.
+/// @param context  the evaluator context.
+/// @param recurse  dispatcher callback ; see `evaluate_binary_expr`.
+/// @return         the result value or a diagnostic.
+export evaluate_unary_expr :: fn(
+    expr: AST.UnaryExpr, context: ComptimeContext,
+    recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
+) -> EvalResult {
+    inner :: recurse(expr.operand, context)
+    if inner.value is null { return inner }
+    return match expr.op {
+        .Neg    -> unary_neg(expr, inner.value)
+        .Not    -> unary_not(expr, inner.value)
+        .BitNot -> unary_bit_not(expr, inner.value)
+    }
+}
+
+// ---- arithmetic helpers ---------------------------------------------------
+
+// `Add` accepts strings (concat) in addition to numeric pairs, hence
+// the dedicated wrapper. Other arith ops go through `arithmetic` which
+// rejects strings with `C4006`.
+arithmetic_or_concat :: fn(
+    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
+    int_op: fn(i64, i64) -> i64,
+) -> EvalResult {
+    match left {
+        is StringValue as ls -> {
+            match right {
+                is StringValue as rs -> { return ok(string_val("${ls.value}${rs.value}")) }
+                _ -> { return type_mismatch(expr, "string + non-string") }
+            }
+        }
+        _ -> {}
+    }
+    return arithmetic(expr, left, right, int_op)
+}
+
+arithmetic :: fn(
+    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
+    int_op: fn(i64, i64) -> i64,
+) -> EvalResult {
+    match left {
+        is IntValue as li -> {
+            match right {
+                is IntValue as ri -> { return ok(int_val_typed(int_op(li.value, ri.value), li.type_name)) }
+                _ -> {}
+            }
+        }
+        is FloatValue as lf -> {
+            match right {
+                is FloatValue as rf -> { return ok(float_val_typed(float_arith(expr.op, lf.value, rf.value), lf.type_name)) }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
+    return type_mismatch(expr, "operand kinds disagree for arithmetic op")
+}
+
+arithmetic_int :: fn(
+    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
+    int_op: fn(i64, i64) -> i64,
+) -> EvalResult {
+    match left {
+        is IntValue as li -> {
+            match right {
+                is IntValue as ri -> { return ok(int_val_typed(int_op(li.value, ri.value), li.type_name)) }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
+    return type_mismatch(expr, "operand kinds disagree for bit / mod / shift op")
+}
+
+bool_op :: fn(
+    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
+    op: fn(bool, bool) -> bool,
+) -> EvalResult {
+    match left {
+        is BoolValue as lb -> {
+            match right {
+                is BoolValue as rb -> {
+                    if op(lb.value, rb.value) { return ok(VAL_TRUE) }
+                    return ok(VAL_FALSE)
+                }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
+    return type_mismatch(expr, "logical operator requires bool operands")
+}
+
+// ---- comparison helpers ---------------------------------------------------
+
+CompareOp :: enum(u8) { Eq, Neq, Lt, Lte, Gt, Gte }
+
+compare :: fn(
+    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue, op: CompareOp,
+) -> EvalResult {
+    match left {
+        is IntValue as li -> {
+            match right {
+                is IntValue as ri -> { return ok(bool_value(int_compare(li.value, ri.value, op))) }
+                _ -> {}
+            }
+        }
+        is FloatValue as lf -> {
+            match right {
+                is FloatValue as rf -> { return ok(bool_value(float_compare(lf.value, rf.value, op))) }
+                _ -> {}
+            }
+        }
+        is BoolValue as lb -> {
+            match right {
+                is BoolValue as rb -> { return ok(bool_value(bool_compare(lb.value, rb.value, op))) }
+                _ -> {}
+            }
+        }
+        is StringValue as ls -> {
+            match right {
+                is StringValue as rs -> { return ok(bool_value(string_compare(ls.value, rs.value, op))) }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
+    return type_mismatch(expr, "comparison operand kinds disagree")
+}
+
+int_compare :: fn(left: i64, right: i64, op: CompareOp) -> bool = match op {
+    .Eq  -> left == right
+    .Neq -> left != right
+    .Lt  -> left < right
+    .Lte -> left <= right
+    .Gt  -> left > right
+    .Gte -> left >= right
+}
+
+float_compare :: fn(left: f64, right: f64, op: CompareOp) -> bool = match op {
+    .Eq  -> left == right
+    .Neq -> left != right
+    .Lt  -> left < right
+    .Lte -> left <= right
+    .Gt  -> left > right
+    .Gte -> left >= right
+}
+
+bool_compare :: fn(left: bool, right: bool, op: CompareOp) -> bool = match op {
+    .Eq  -> left == right
+    .Neq -> left != right
+    _    -> false
+}
+
+string_compare :: fn(left: string, right: string, op: CompareOp) -> bool = match op {
+    .Eq  -> left == right
+    .Neq -> left != right
+    _    -> false
+}
+
+bool_value :: fn(b: bool) -> ComptimeValue {
+    if b { return VAL_TRUE }
+    return VAL_FALSE
+}
+
+// ---- unary helpers --------------------------------------------------------
+
+unary_neg :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
+    match inner {
+        is IntValue   as i -> { return ok(int_val_typed(-i.value, i.type_name)) }
+        is FloatValue as f -> { return ok(float_val_typed(-f.value, f.type_name)) }
+        _                  -> { return unary_type_mismatch(expr, "`-` requires numeric") }
+    }
+}
+
+unary_not :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
+    match inner {
+        is BoolValue as b -> {
+            if b.value { return ok(VAL_FALSE) }
+            return ok(VAL_TRUE)
+        }
+        _ -> { return unary_type_mismatch(expr, "`!` requires bool") }
+    }
+}
+
+unary_bit_not :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
+    match inner {
+        is IntValue as i -> { return ok(int_val_typed(bit_not_i64(i.value), i.type_name)) }
+        _                -> { return unary_type_mismatch(expr, "`~` requires int") }
+    }
+}
+
+// Vader doesn't expose `~` as a builtin yet ; emulate via `xor` with -1.
+bit_not_i64 :: fn(value: i64) -> i64 { return value ^ i64(-1) }
+
+// ---- error helpers --------------------------------------------------------
+
+type_mismatch :: fn(expr: AST.BinaryExpr, detail: string) -> EvalResult {
+    return fail(comptime_error(.TypeMismatch, expr.span, detail))
+}
+
+unary_type_mismatch :: fn(expr: AST.UnaryExpr, detail: string) -> EvalResult {
+    return fail(comptime_error(.TypeMismatch, expr.span, detail))
+}
+
+// ---- per-op closures ------------------------------------------------------
+
+op_add     :: fn(left: i64, right: i64) -> i64 { return left + right }
+op_sub     :: fn(left: i64, right: i64) -> i64 { return left - right }
+op_mul     :: fn(left: i64, right: i64) -> i64 { return left * right }
+op_div     :: fn(left: i64, right: i64) -> i64 { return left / right }
+op_mod     :: fn(left: i64, right: i64) -> i64 { return left % right }
+op_shl     :: fn(left: i64, right: i64) -> i64 { return left << right }
+op_shr     :: fn(left: i64, right: i64) -> i64 { return left >> right }
+op_bit_and :: fn(left: i64, right: i64) -> i64 { return left & right }
+op_bit_or  :: fn(left: i64, right: i64) -> i64 { return left | right }
+op_bit_xor :: fn(left: i64, right: i64) -> i64 { return left ^ right }
+op_and     :: fn(left: bool, right: bool) -> bool { return left && right }
+op_or      :: fn(left: bool, right: bool) -> bool { return left || right }
+
+// Float arithmetic dispatches inline since the i64 closure won't fit.
+float_arith :: fn(op: AST.BinaryOp, left: f64, right: f64) -> f64 = match op {
+    .Add -> left + right
+    .Sub -> left - right
+    .Mul -> left * right
+    .Div -> left / right
+    _    -> 0.0
+}

@@ -1,0 +1,55 @@
+// vader/comptime/eval_types — shared types + helpers for the evaluator.
+//
+// Lives in its own file so per-variant evaluators (`eval_lit`,
+// `eval_binary`, `eval_ident`) can import `EvalResult` / `ComptimeContext`
+// without depending on the dispatcher (`eval.vader`). Avoids the import
+// cycle that would otherwise form when the dispatcher imports the
+// per-variant modules and they each import back for these shapes.
+
+import "std/collections" { MutableMap }
+import "vader/diagnostics/diagnostic" { Diagnostic, Span, comptime_error }
+import "vader/diagnostics/codes" { ComptimeCode }
+import "vader/parser/ast" { Expr }
+import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/comptime/value" { ComptimeValue }
+
+/// Context threaded through the recursive evaluator.
+/// @field typed     owning typed program — gives the resolver lookup
+///                  (`resolved.idents` / `resolved.symbols`) plus the
+///                  decl type tables.
+/// @field bindings  `Symbol.id → ComptimeValue` for already-evaluated
+///                  `@comptime` decls in the current module ; built up
+///                  as `evaluate_module_decls` walks the topo-sorted
+///                  order.
+export ComptimeContext :: struct {
+    typed:    TypedProgram
+    bindings: MutableMap(i32, ComptimeValue)
+}
+
+/// Result of evaluating one expression. Three states :
+///   - `value=Some, diag=null`    : evaluated to a concrete value.
+///   - `value=null, diag=Some`    : an error fired (cycle / unsupported
+///                                  shape / type mismatch / sandbox).
+///   - `value=null, diag=null`    : intentional skip — caller drops
+///                                  the decl from `comptime_decls`.
+export EvalResult :: struct {
+    value: ComptimeValue | null
+    diag:  Diagnostic | null
+}
+
+/// Build an `EvalResult` carrying a value.
+export ok :: fn(value: ComptimeValue) -> EvalResult {
+    return EvalResult { .value = value, .diag = null }
+}
+
+/// Build an `EvalResult` carrying a diagnostic.
+export fail :: fn(diag: Diagnostic) -> EvalResult {
+    return EvalResult { .value = null, .diag = diag }
+}
+
+/// Build a `C4002 vm-required` diagnostic at `span` with `kind_label`
+/// describing the unsupported expression. Standardised helper so every
+/// "needs the VM" call site uses the same wording.
+export vm_required :: fn(span: Span, kind_label: string) -> EvalResult {
+    return fail(comptime_error(.VmRequired, span, kind_label))
+}

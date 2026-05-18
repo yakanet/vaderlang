@@ -1,46 +1,98 @@
 // vader/comptime/check — comptime orchestrator entry point.
 //
-// Mirror of `src/comptime/evaluate.ts::evaluateProject`'s shape — for
-// Phase 3 of the comptime port this is a stub : it returns an
-// `EvaluatedProject` with one `EvaluatedProgram` per module but every
-// `comptime_decls` map empty. Phase 4 wires the tree-walk evaluator
-// behind `evaluate_module`. Activating the dump stage now lets every
-// later phase parity-test against the existing `comptime.snapshot`
-// fixtures byte-for-byte.
+// Mirror of `src/comptime/evaluate.ts::evaluateProject`. For Phase 4 of
+// the comptime port this drives the tree-walk evaluator over every
+// module's `@comptime const` decls in topological order, accumulating
+// values into `EvaluatedProgram.comptime_decls` keyed by Symbol id.
+// Phase 6 will add the monomorphizer pass downstream of this.
 
 import "std/collections" { MutableMap, keys }
 import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/resolver/loader" { LoadedProject }
 import "vader/typecheck/typed_ast" { TypedProject, TypedProgram }
 import "vader/comptime/evaluated_ast" {
     EvaluatedProject, EvaluatedProgram, new_evaluated_project, new_evaluated_program,
 }
+import "vader/comptime/value" { ComptimeValue }
+import "vader/comptime/deps" { sort_comptime_decls, ComptimeOrder }
+import "vader/comptime/eval_types" { ComptimeContext }
+import "vader/comptime/eval" { evaluate_expr }
+AST :: import "vader/parser/ast"
 
-/// Evaluate every `@comptime` decl across `typed`, run the
-/// monomorphizer, and return the project-wide evaluated view. The
-/// resulting `EvaluatedProject` carries an empty `comptime_decls`
-/// for every module until Phase 4 lands the tree-walk evaluator.
-/// @param typed  the typed project produced by `check_project_with_bodies`.
-/// @param diags  any diagnostics emitted during evaluation (cycle,
-///               assert, sandbox, type-mismatch).
-/// @return       the evaluated project (currently a per-module stub).
-export evaluate_project :: fn(typed: TypedProject, diags: Diagnostic[]) -> EvaluatedProject {
+/// Evaluate every `@comptime` decl across the project's typed view,
+/// run the monomorphizer, and return the cross-module evaluated AST.
+/// Takes both `LoadedProject` (for the source decls) and `TypedProject`
+/// (for the typed view) because the resolver doesn't carry decls onto
+/// `ResolvedModule` ; later passes always re-derive from the loaded
+/// program. Mirrors how `check_project_with_bodies` works.
+/// @param loaded  the loaded project (for source decls per module).
+/// @param typed   the typed project (for typecheck side-tables).
+/// @param diags   diagnostics emitted during evaluation (cycle, assert,
+///                sandbox, type-mismatch, vm-required).
+/// @return        the evaluated project, ready to feed the dumper.
+export evaluate_project :: fn(
+    loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
+) -> EvaluatedProject {
     project :: new_evaluated_project(typed)
     for module_id in typed.modules.keys() {
         module_typed :: typed.modules[module_id]
         if module_typed is null { continue }
-        project.modules[module_id] = new_evaluated_program(module_typed)
+        program :: new_evaluated_program(module_typed)
+        decls :: lookup_module_decls(loaded, module_id)
+        match decls {
+            is null -> {}
+            _       -> { evaluate_module_decls(decls, module_typed, program, diags) }
+        }
+        project.modules[module_id] = program
     }
     return project
 }
 
-// ---- tests ----------------------------------------------------------------
-
-import "std/testing" { assert_eq }
-import "vader/typecheck/typed_ast" { new_typed_project }
-
-@test test_evaluate_project_stub_returns_empty :: fn() -> void {
-    diags: Diagnostic[] = []
-    project :: evaluate_project(new_typed_project(), diags)
-    assert_eq(project.modules.size, usize(0))
-    assert_eq(diags.len(), usize(0))
+lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[] | null {
+    module_loaded :: loaded.modules[module_id]
+    if module_loaded is null { return null }
+    if module_loaded.module.files.len() == usize(0) { return null }
+    return module_loaded.module.files[0].program.decls
 }
+
+evaluate_module_decls :: fn(
+    decls: AST.Decl[], typed: TypedProgram, program: EvaluatedProgram, diags: Diagnostic[],
+) -> void {
+    order :: sort_comptime_decls(decls, typed)
+    for diagnostic in order.cycle_diags { diags.push(diagnostic) }
+    context :: ComptimeContext {
+        .typed    = typed,
+        .bindings = program.comptime_decls,
+    }
+    for decl in order.order {
+        result :: evaluate_expr(decl.value, context)
+        match result.value {
+            is null -> {}
+            _       -> {
+                symbol :: lookup_decl_symbol(decl, typed)
+                if !(symbol is null) {
+                    program.comptime_decls[symbol.id] = result.value
+                }
+            }
+        }
+        match result.diag {
+            is null -> {}
+            _       -> { diags.push(result.diag) }
+        }
+    }
+}
+
+// Same lookup as `deps.vader::lookup_const_symbol` — resolver doesn't
+// write decl name_spans into `idents`, so walk `resolved.symbols`.
+lookup_decl_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Symbol | null {
+    for symbol in typed.resolved.symbols {
+        if i32(symbol.kind) != i32(SymbolKind.Const) { continue }
+        if symbol.name == decl.name { return symbol }
+    }
+    return null
+}
+
+// Per-evaluator @tests live in `eval_lit.vader` / `eval_binary.vader`
+// / `eval_ident.vader` ; the orchestrator's behaviour is covered by
+// the end-to-end snippet snapshots (Phase 4 verification step).

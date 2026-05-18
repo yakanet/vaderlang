@@ -1,0 +1,130 @@
+// vader/comptime/eval — tree-walk expression dispatcher.
+//
+// Per-variant `match` over `AST.Expr` routing each kind to its
+// dedicated evaluator (`eval_lit`, `eval_binary`, `eval_ident`).
+// Replaces TS's `lower-decl.ts` + `run.ts` + VM round-trip for the
+// subset of comptime expressions the lowerer + bytecode emitter port
+// haven't unlocked yet. Anything outside that subset surfaces `C4002`.
+
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/comptime/eval_types" {
+    EvalResult, ComptimeContext, ok, fail, vm_required,
+}
+import "vader/comptime/eval_lit" {
+    evaluate_int_lit, evaluate_float_lit, evaluate_bool_lit,
+    evaluate_char_lit, evaluate_null_lit, evaluate_string_lit,
+}
+import "vader/comptime/eval_binary" { evaluate_binary_expr, evaluate_unary_expr }
+import "vader/comptime/eval_ident" { evaluate_ident }
+AST :: import "vader/parser/ast"
+
+/// Tree-walk dispatcher. Returns whatever the per-variant helper
+/// reports ; unrecognised variants surface as C4002.
+/// @param expr     the expression to evaluate.
+/// @param context  the comptime evaluator context.
+/// @return         the evaluation result.
+export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult = match expr {
+    is AST.IntLitExpr    as x -> evaluate_int_lit(x)
+    is AST.FloatLitExpr  as x -> evaluate_float_lit(x)
+    is AST.BoolLitExpr   as x -> evaluate_bool_lit(x)
+    is AST.CharLitExpr   as x -> evaluate_char_lit(x)
+    is AST.NullLitExpr   as x -> evaluate_null_lit(x)
+    is AST.StringLitExpr as x -> evaluate_string_lit(x, context)
+    is AST.IdentExpr     as x -> evaluate_ident(x, context)
+    is AST.BinaryExpr    as x -> evaluate_binary_expr(x, context, evaluate_expr)
+    is AST.UnaryExpr     as x -> evaluate_unary_expr(x, context, evaluate_expr)
+    _                         -> vm_required(span_of(expr), expr_kind_label(expr))
+}
+
+/// Recover the span of any expression variant for diagnostic emission.
+/// Every Expr variant carries a `span` field, so the match list mirrors
+/// the AST.Expr union exactly.
+export span_of :: fn(expr: AST.Expr) -> Span = match expr {
+    is AST.IntLitExpr        as x -> x.span
+    is AST.FloatLitExpr      as x -> x.span
+    is AST.BoolLitExpr       as x -> x.span
+    is AST.NullLitExpr       as x -> x.span
+    is AST.CharLitExpr       as x -> x.span
+    is AST.StringLitExpr     as x -> x.span
+    is AST.IdentExpr         as x -> x.span
+    is AST.CallExpr          as x -> x.span
+    is AST.FieldExpr         as x -> x.span
+    is AST.IndexExpr         as x -> x.span
+    is AST.UnaryExpr         as x -> x.span
+    is AST.BinaryExpr        as x -> x.span
+    is AST.IfExpr            as x -> x.span
+    is AST.MatchExpr         as x -> x.span
+    is AST.BlockExpr         as x -> x.span
+    is AST.LambdaExpr        as x -> x.span
+    is AST.StructLitExpr     as x -> x.span
+    is AST.SeqLitExpr        as x -> x.span
+    is AST.RangeExpr         as x -> x.span
+    is AST.TryExpr           as x -> x.span
+    is AST.CastExpr          as x -> x.span
+    is AST.GenericInstExpr   as x -> x.span
+    is AST.IntrinsicCallExpr as x -> x.span
+    is AST.DotVariantExpr    as x -> x.span
+    is AST.FnTypeExpr        as x -> x.span
+    is AST.ArrayTypeExpr     as x -> x.span
+}
+
+// Human-readable label for unsupported variants. Surfaces in the C4002
+// detail so the user sees `comptime expression requires VM execution :
+// MatchExpr` rather than a generic catch-all message.
+expr_kind_label :: fn(expr: AST.Expr) -> string = match expr {
+    is AST.CallExpr          -> "CallExpr"
+    is AST.FieldExpr         -> "FieldExpr"
+    is AST.IndexExpr         -> "IndexExpr"
+    is AST.IfExpr            -> "IfExpr"
+    is AST.MatchExpr         -> "MatchExpr"
+    is AST.BlockExpr         -> "BlockExpr"
+    is AST.LambdaExpr        -> "LambdaExpr"
+    is AST.StructLitExpr     -> "StructLitExpr"
+    is AST.SeqLitExpr        -> "SeqLitExpr"
+    is AST.RangeExpr         -> "RangeExpr"
+    is AST.TryExpr           -> "TryExpr"
+    is AST.CastExpr          -> "CastExpr"
+    is AST.GenericInstExpr   -> "GenericInstExpr"
+    is AST.IntrinsicCallExpr -> "IntrinsicCallExpr"
+    is AST.DotVariantExpr    -> "DotVariantExpr"
+    is AST.FnTypeExpr        -> "FnTypeExpr"
+    is AST.ArrayTypeExpr     -> "ArrayTypeExpr"
+    _                        -> "Expr"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/collections" { MutableMap }
+import "std/testing" { assert_eq }
+import "vader/comptime/value" { ComptimeValue, display_value }
+import "vader/typecheck/typed_ast" { empty_typed_program }
+import "vader/diagnostics/diagnostic" { empty_span }
+
+@test test_evaluate_int_literal :: fn() -> void {
+    expr :: AST.IntLitExpr { .span = empty_span(), .id = usize(0), .value = u64(42), .suffix = null }
+    context :: empty_context()
+    result :: evaluate_expr(expr, context)
+    match result.value {
+        is null -> { assert_eq("expected a value", "got null") }
+        _       -> { assert_eq(display_value(result.value), "42_i32") }
+    }
+}
+
+@test test_evaluate_unsupported_emits_c4002 :: fn() -> void {
+    // `CallExpr` falls through to vm_required at this MVP.
+    callee :: AST.IdentExpr { .span = empty_span(), .id = usize(0), .name = "f", .implicit_dot = false, .is_type_param_intro = false }
+    expr :: AST.CallExpr { .span = empty_span(), .id = usize(0), .callee = callee, .args = [] }
+    context :: empty_context()
+    result :: evaluate_expr(expr, context)
+    match result.diag {
+        is null -> { assert_eq("expected C4002 diag", "got null") }
+        _       -> {}
+    }
+}
+
+empty_context :: fn() -> ComptimeContext {
+    return ComptimeContext {
+        .typed    = empty_typed_program(),
+        .bindings = MutableMap(i32, ComptimeValue) { .buckets = [], .size = 0 },
+    }
+}
