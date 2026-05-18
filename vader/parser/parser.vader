@@ -615,6 +615,7 @@ parse_sam_arrow_member :: fn(p: Parser) -> FnDecl {
         .decorators           = [],
         .sam_synthetic        = true,
         .is_expression_bodied = false,
+        .materialized         = false,
     }
 }
 
@@ -632,6 +633,7 @@ parse_sam_block_member :: fn(p: Parser) -> FnDecl {
         .decorators           = [],
         .sam_synthetic        = true,
         .is_expression_bodied = false,
+        .materialized         = false,
     }
 }
 
@@ -669,6 +671,7 @@ parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, 
         .decorators           = decorators,
         .sam_synthetic        = false,
         .is_expression_bodied = tail.is_expression_bodied,
+        .materialized         = false,
     }
 }
 
@@ -734,6 +737,7 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
         .decorators           = decorators,
         .sam_synthetic        = false,
         .is_expression_bodied = tail.is_expression_bodied,
+        .materialized         = false,
     }
 }
 

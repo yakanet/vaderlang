@@ -1138,104 +1138,104 @@
   StructDecl     WildcardPattern      :: WildcardPattern
   expr 112:18   IdentExpr      :: usize
   expr 122:34   IdentExpr      :: usize
-  expr 137:26   IdentExpr      :: usize
-  expr 149:26   IdentExpr      :: usize
-  expr 160:23   IdentExpr      :: usize
-  expr 172:23   IdentExpr      :: usize
+  expr 143:26   IdentExpr      :: usize
+  expr 155:26   IdentExpr      :: usize
+  expr 166:23   IdentExpr      :: usize
+  expr 178:23   IdentExpr      :: usize
   expr 17:30    CallExpr       :: usize
   expr 17:30    IdentExpr      :: type
-  expr 184:24   IdentExpr      :: usize
-  expr 203:24   IdentExpr      :: usize
-  expr 217:29   IdentExpr      :: usize
-  expr 231:24   IdentExpr      :: usize
-  expr 244:23   IdentExpr      :: usize
-  expr 258:23   IdentExpr      :: usize
-  expr 270:20   IdentExpr      :: usize
-  expr 282:22   IdentExpr      :: usize
-  expr 289:21   IdentExpr      :: usize
-  expr 295:17   IdentExpr      :: usize
-  expr 303:22   IdentExpr      :: usize
-  expr 310:19   IdentExpr      :: usize
-  expr 317:17   IdentExpr      :: usize
-  expr 323:18   IdentExpr      :: usize
+  expr 190:24   IdentExpr      :: usize
+  expr 209:24   IdentExpr      :: usize
+  expr 223:29   IdentExpr      :: usize
+  expr 237:24   IdentExpr      :: usize
+  expr 250:23   IdentExpr      :: usize
+  expr 264:23   IdentExpr      :: usize
+  expr 276:20   IdentExpr      :: usize
+  expr 288:22   IdentExpr      :: usize
+  expr 295:21   IdentExpr      :: usize
+  expr 301:17   IdentExpr      :: usize
+  expr 309:22   IdentExpr      :: usize
+  expr 316:19   IdentExpr      :: usize
+  expr 323:17   IdentExpr      :: usize
   expr 329:18   IdentExpr      :: usize
-  expr 348:18   IdentExpr      :: usize
+  expr 335:18   IdentExpr      :: usize
   expr 354:18   IdentExpr      :: usize
-  expr 360:17   IdentExpr      :: usize
-  expr 381:19   IdentExpr      :: usize
-  expr 392:19   IdentExpr      :: usize
-  expr 399:18   IdentExpr      :: usize
-  expr 405:17   IdentExpr      :: usize
-  expr 410:18   IdentExpr      :: usize
+  expr 360:18   IdentExpr      :: usize
+  expr 366:17   IdentExpr      :: usize
+  expr 387:19   IdentExpr      :: usize
+  expr 398:19   IdentExpr      :: usize
+  expr 405:18   IdentExpr      :: usize
+  expr 411:17   IdentExpr      :: usize
   expr 416:18   IdentExpr      :: usize
-  expr 420:75   IdentExpr      :: usize
-  expr 421:75   IdentExpr      :: usize
-  expr 434:32   IdentExpr      :: usize
-  expr 442:19   IdentExpr      :: usize
-  expr 449:19   IdentExpr      :: usize
-  expr 457:23   IdentExpr      :: usize
-  expr 468:19   IdentExpr      :: usize
-  expr 483:20   IdentExpr      :: usize
-  expr 498:18   IdentExpr      :: usize
-  expr 506:23   StringLitExpr  :: string
-  expr 513:24   IdentExpr      :: usize
-  expr 524:22   IdentExpr      :: usize
-  expr 536:20   IdentExpr      :: usize
-  expr 544:21   IdentExpr      :: usize
-  expr 553:24   IdentExpr      :: usize
-  expr 561:22   IdentExpr      :: usize
-  expr 570:22   IdentExpr      :: usize
-  expr 579:17   IdentExpr      :: usize
-  expr 587:21   IdentExpr      :: usize
-  expr 593:22   IdentExpr      :: usize
-  expr 603:18   IdentExpr      :: usize
-  expr 609:19   IdentExpr      :: usize
-  expr 616:22   IdentExpr      :: usize
-  expr 629:22   IdentExpr      :: usize
-  expr 637:25   IdentExpr      :: usize
+  expr 422:18   IdentExpr      :: usize
+  expr 426:75   IdentExpr      :: usize
+  expr 427:75   IdentExpr      :: usize
+  expr 440:32   IdentExpr      :: usize
+  expr 448:19   IdentExpr      :: usize
+  expr 455:19   IdentExpr      :: usize
+  expr 463:23   IdentExpr      :: usize
+  expr 474:19   IdentExpr      :: usize
+  expr 489:20   IdentExpr      :: usize
+  expr 504:18   IdentExpr      :: usize
+  expr 512:23   StringLitExpr  :: string
+  expr 519:24   IdentExpr      :: usize
+  expr 530:22   IdentExpr      :: usize
+  expr 542:20   IdentExpr      :: usize
+  expr 550:21   IdentExpr      :: usize
+  expr 559:24   IdentExpr      :: usize
+  expr 567:22   IdentExpr      :: usize
+  expr 576:22   IdentExpr      :: usize
+  expr 585:17   IdentExpr      :: usize
+  expr 593:21   IdentExpr      :: usize
+  expr 599:22   IdentExpr      :: usize
+  expr 609:18   IdentExpr      :: usize
+  expr 615:19   IdentExpr      :: usize
+  expr 622:22   IdentExpr      :: usize
+  expr 635:22   IdentExpr      :: usize
   expr 63:18    IdentExpr      :: usize
-  expr 648:20   IdentExpr      :: usize
-  expr 656:19   IdentExpr      :: usize
-  expr 663:21   IdentExpr      :: usize
-  expr 669:22   IdentExpr      :: usize
-  expr 675:73   IdentExpr      :: usize
-  expr 678:60   IdentExpr      :: usize
-  expr 682:17   IdentExpr      :: usize
-  expr 688:20   IdentExpr      :: usize
-  expr 697:20   IdentExpr      :: usize
-  expr 709:24   IdentExpr      :: usize
-  expr 720:24   IdentExpr      :: usize
-  expr 734:19   SeqLitExpr     :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 735:27   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 735:30   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 735:5    CallExpr       :: void
-  expr 735:5    IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
-  expr 736:12   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 643:25   IdentExpr      :: usize
+  expr 654:20   IdentExpr      :: usize
+  expr 662:19   IdentExpr      :: usize
+  expr 669:21   IdentExpr      :: usize
+  expr 675:22   IdentExpr      :: usize
+  expr 681:73   IdentExpr      :: usize
+  expr 684:60   IdentExpr      :: usize
+  expr 688:17   IdentExpr      :: usize
+  expr 694:20   IdentExpr      :: usize
+  expr 703:20   IdentExpr      :: usize
+  expr 715:24   IdentExpr      :: usize
+  expr 726:24   IdentExpr      :: usize
   expr 73:31    IdentExpr      :: usize
-  expr 740:11   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 740:5    MatchExpr      :: void
-  expr 742:13   IfExpr         :: void
-  expr 742:16   BinaryExpr     :: bool
-  expr 742:16   FieldExpr      :: BinaryOp
-  expr 742:16   IdentExpr      :: BinaryExpr
-  expr 742:24   DotVariantExpr :: BinaryOp
-  expr 743:17   CallExpr       :: void
-  expr 743:17   IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
-  expr 743:39   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 743:39   IdentExpr      :: BinaryExpr
-  expr 743:47   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 744:17   CallExpr       :: void
-  expr 744:17   IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
-  expr 744:39   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 744:39   IdentExpr      :: BinaryExpr
-  expr 744:48   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 747:13   CallExpr       :: void
-  expr 747:13   FieldExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr) -> void
-  expr 747:13   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 747:22   IdentExpr      :: BinaryExpr
-  expr 749:16   CallExpr       :: void
-  expr 749:16   FieldExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr) -> void
-  expr 749:16   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 749:25   IdentExpr      :: ArrayTypeExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 740:19   SeqLitExpr     :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 741:27   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 741:30   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 741:5    CallExpr       :: void
+  expr 741:5    IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
+  expr 742:12   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 746:11   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 746:5    MatchExpr      :: void
+  expr 748:13   IfExpr         :: void
+  expr 748:16   BinaryExpr     :: bool
+  expr 748:16   FieldExpr      :: BinaryOp
+  expr 748:16   IdentExpr      :: BinaryExpr
+  expr 748:24   DotVariantExpr :: BinaryOp
+  expr 749:17   CallExpr       :: void
+  expr 749:17   IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
+  expr 749:39   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 749:39   IdentExpr      :: BinaryExpr
+  expr 749:47   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 750:17   CallExpr       :: void
+  expr 750:17   IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
+  expr 750:39   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 750:39   IdentExpr      :: BinaryExpr
+  expr 750:48   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 753:13   CallExpr       :: void
+  expr 753:13   FieldExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr) -> void
+  expr 753:13   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 753:22   IdentExpr      :: BinaryExpr
+  expr 755:16   CallExpr       :: void
+  expr 755:16   FieldExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr) -> void
+  expr 755:16   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 755:25   IdentExpr      :: ArrayTypeExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 81:17    IdentExpr      :: usize
   expr 94:23    IdentExpr      :: usize

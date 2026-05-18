@@ -130,6 +130,12 @@ export FnDecl :: struct {
     decorators:            Decorator[]
     sam_synthetic:         bool
     is_expression_bodied:  bool
+    /// `true` when this FnDecl was synthesised by `materialize_default_members`
+    /// — i.e. cloned from a trait default body into an impl. The body's
+    /// spans point at the trait's source, so re-typechecking the clone
+    /// emits duplicate diagnostics at unhelpful spans. Walkers skip such
+    /// methods (the trait itself already type-checked the body once).
+    materialized:          bool
 }
 
 export FnParam :: struct {

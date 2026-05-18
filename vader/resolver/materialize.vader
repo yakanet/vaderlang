@@ -84,6 +84,7 @@ synth_with_body :: fn(
         .decorators = decorators,
         .sam_synthetic = false,
         .is_expression_bodied = method.is_expression_bodied,
+        .materialized = true,
     }
 }
 
@@ -189,6 +190,7 @@ synth_signature :: fn(
         .decorators = decorators,
         .sam_synthetic = false,
         .is_expression_bodied = method.is_expression_bodied,
+        .materialized = true,
     }
 }
 

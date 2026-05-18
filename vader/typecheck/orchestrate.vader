@@ -1106,6 +1106,11 @@ export walk_bodies :: fn(
 }
 
 walk_fn_body :: fn(fd: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    // Materialized methods are clones of a trait's default body with
+    // substituted spans pointing at the trait source. Re-typechecking the
+    // clone emits duplicate diagnostics at unhelpful spans for behaviour
+    // that's already validated where the trait was typechecked. Skip.
+    if fd.materialized { return }
     match fd.body {
         is null -> {}
         is AST.BlockExpr as body -> { check_fn_body(fd, body, typed, diags, check_expr) }
