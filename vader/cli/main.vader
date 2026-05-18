@@ -19,8 +19,12 @@ import "vader/resolver/symbol" { new_factory }
 import "vader/resolver/resolve" { ResolvedProject, ResolvedModule, resolve_module }
 import "vader/resolver/dump" { dump_project }
 import "vader/typecheck/orchestrate" { check_module_with_bodies, check_project_with_bodies }
+import "vader/typecheck/check" { CheckResult }
+import "vader/typecheck/typed_ast" { TypedProject, new_typed_project }
 import "vader/resolver/loader" { load_project }
 import "vader/typecheck/dump" { dump_program as dump_typed, dump_program_with_others }
+import "vader/comptime/check" { evaluate_project }
+import "vader/comptime/dump" { dump_evaluated }
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/fmt/cli" { run_fmt }
 import "vader/vm/exec" { run_virt }
@@ -305,9 +309,12 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if stage == "typed-ast" {
         return file.run_typecheck_stage()
     }
+    if stage == "evaluated-ast" {
+        return file.run_comptime_stage()
+    }
 
     // Recognised TS stages — we know about them but can't run them yet.
-    if stage == "evaluated-ast" || stage == "lowered-ast" || stage == "dced-ast" ||
+    if stage == "lowered-ast" || stage == "dced-ast" ||
        stage == "bytecode" || stage == "c" || stage == "wasm" {
         eprintln("vader dump: stage \"${stage}\" not yet implemented")
         return 2
@@ -389,5 +396,32 @@ run_typecheck_stage :: fn(file: string) -> i32 {
         println(diags.dump_diagnostics())
     }
     return 0
+}
+
+run_comptime_stage :: fn(file: string) -> i32 {
+    project :: load_project(file)
+    typecheck_diags: Diagnostic[] = []
+    result :: check_project_with_bodies(project, typecheck_diags)
+    typed_project :: assemble_typed_project(result)
+    comptime_diags: Diagnostic[] = []
+    evaluated :: evaluate_project(typed_project, comptime_diags)
+    println(dump_evaluated(evaluated))
+    // Comptime-stage diagnostics surface separately ; typecheck diagnostics
+    // already shipped via the typed-ast stage and aren't replayed here.
+    if comptime_diags.len() > 0 {
+        println(comptime_diags.dump_diagnostics())
+    }
+    return 0
+}
+
+// Bridge the typecheck orchestrator's `CheckResult` (entry + others)
+// into the `TypedProject` shape the comptime engine expects.
+assemble_typed_project :: fn(result: CheckResult) -> TypedProject {
+    project :: new_typed_project()
+    project.modules[result.typed.resolved.path] = result.typed
+    for other in result.others {
+        project.modules[other.resolved.path] = other
+    }
+    return project
 }
 

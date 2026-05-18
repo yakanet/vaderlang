@@ -1,0 +1,92 @@
+// vader/comptime/dump — `# Comptime` snapshot dump.
+//
+// Mirror of `tests/snapshot.ts::dumpComptime`. Walks every non-stdlib
+// `EvaluatedProgram` in the project, sorts module ids alphabetically,
+// sorts each module's `@comptime` decl lines alphabetically, and
+// renders the body in the form
+//
+//   ## <module display path>
+//     @comptime  <name padded to 20>  = <display_value>
+//
+// Generic instances land in a trailing `## generic instances` section
+// (Phase 6 fills it ; for now the section is omitted when empty).
+
+import "std/collections" { keys }
+import "std/sort" { sort }
+import "std/string" { compare_ascending, pad_end }
+import "std/string_builder" { new_builder, append, append_char }
+import "vader/resolver/module" { is_stdlib_module }
+import "vader/comptime/evaluated_ast" { EvaluatedProject, EvaluatedProgram }
+import "vader/comptime/value" { ComptimeValue, display_value }
+import "vader/typecheck/typed_ast" { TypedProgram }
+AST :: import "vader/parser/ast"
+
+/// Render the project's `# Comptime` dump as a single string.
+/// Stdlib modules are filtered out so the dump matches the TS
+/// `dumpComptime` helper byte-for-byte.
+/// @param project  the evaluated project (from `evaluate_project`).
+/// @return         the formatted dump, no trailing newline.
+export dump_evaluated :: fn(project: EvaluatedProject) -> string {
+    sb := new_builder()
+    sb.append("# Comptime")
+    module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
+    for module_id in module_ids {
+        module_program :: project.modules[module_id]
+        if module_program is null { continue }
+        display_path :: module_display_path(module_program)
+        if is_stdlib_module(display_path) { continue }
+        sb.append_char('\n')
+        sb.append_char('\n')
+        sb.append("## ")
+        sb.append(display_path)
+        entries :: format_module_entries(module_program)
+        for line in entries {
+            sb.append_char('\n')
+            sb.append(line)
+        }
+    }
+    return sb.to_string()
+}
+
+// Build the per-decl entry lines, sorted alphabetically so the dump
+// is stable across runs regardless of MutableMap iteration order.
+format_module_entries :: fn(module_program: EvaluatedProgram) -> string[] {
+    entries: string[] = []
+    typed :: module_program.typed
+    for symbol_id in module_program.comptime_decls.keys() {
+        value :: module_program.comptime_decls[symbol_id]
+        if value is null { continue }
+        name :: lookup_comptime_decl_name(typed, symbol_id)
+        if name == "" { continue }
+        entries.push("  @comptime  ${pad_end(name, usize(20), ' ')} = ${display_value(value)}")
+    }
+    return sort(entries, (a: string, b: string) -> compare_ascending(a, b))
+}
+
+// Recover a `@comptime` decl's source name from its Symbol id by
+// walking `resolved.symbols`. Called once per evaluated decl during
+// dump emission — cold path, linear scan is fine.
+lookup_comptime_decl_name :: fn(typed: TypedProgram, symbol_id: i32) -> string {
+    for symbol in typed.resolved.symbols {
+        if symbol.id == symbol_id { return symbol.name }
+    }
+    return ""
+}
+
+// The owning module's display path. Carried on the `ResolvedModule`
+// per existing convention ; mirrors `m.typed.resolved.module.displayPath`
+// in the TS dump.
+module_display_path :: fn(module_program: EvaluatedProgram) -> string {
+    return module_program.typed.resolved.path
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "vader/typecheck/typed_ast" { new_typed_project }
+import "vader/comptime/evaluated_ast" { new_evaluated_project }
+
+@test test_dump_empty_project_header_only :: fn() -> void {
+    project :: new_evaluated_project(new_typed_project())
+    assert_eq(dump_evaluated(project), "# Comptime")
+}

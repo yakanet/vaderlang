@@ -1,0 +1,46 @@
+// vader/comptime/check — comptime orchestrator entry point.
+//
+// Mirror of `src/comptime/evaluate.ts::evaluateProject`'s shape — for
+// Phase 3 of the comptime port this is a stub : it returns an
+// `EvaluatedProject` with one `EvaluatedProgram` per module but every
+// `comptime_decls` map empty. Phase 4 wires the tree-walk evaluator
+// behind `evaluate_module`. Activating the dump stage now lets every
+// later phase parity-test against the existing `comptime.snapshot`
+// fixtures byte-for-byte.
+
+import "std/collections" { MutableMap, keys }
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/typecheck/typed_ast" { TypedProject, TypedProgram }
+import "vader/comptime/evaluated_ast" {
+    EvaluatedProject, EvaluatedProgram, new_evaluated_project, new_evaluated_program,
+}
+
+/// Evaluate every `@comptime` decl across `typed`, run the
+/// monomorphizer, and return the project-wide evaluated view. The
+/// resulting `EvaluatedProject` carries an empty `comptime_decls`
+/// for every module until Phase 4 lands the tree-walk evaluator.
+/// @param typed  the typed project produced by `check_project_with_bodies`.
+/// @param diags  any diagnostics emitted during evaluation (cycle,
+///               assert, sandbox, type-mismatch).
+/// @return       the evaluated project (currently a per-module stub).
+export evaluate_project :: fn(typed: TypedProject, diags: Diagnostic[]) -> EvaluatedProject {
+    project :: new_evaluated_project(typed)
+    for module_id in typed.modules.keys() {
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        project.modules[module_id] = new_evaluated_program(module_typed)
+    }
+    return project
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "vader/typecheck/typed_ast" { new_typed_project }
+
+@test test_evaluate_project_stub_returns_empty :: fn() -> void {
+    diags: Diagnostic[] = []
+    project :: evaluate_project(new_typed_project(), diags)
+    assert_eq(project.modules.size, usize(0))
+    assert_eq(diags.len(), usize(0))
+}
