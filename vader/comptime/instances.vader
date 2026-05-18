@@ -1,0 +1,214 @@
+// vader/comptime/instances — passive registry of generic instantiations.
+//
+// Mirror of `src/comptime/instances.ts`. The typechecker already
+// represents `List(i32)` as `Struct { symbol, args }` ; this pass
+// scans every typed-AST type-expression, normalises each instance,
+// and registers it under a canonical key. Sorted output goes into
+// `EvaluatedProject.instances` and becomes the `## generic instances`
+// section of the `comptime.snapshot` dump.
+
+import "std/collections" { MutableMap, keys }
+import "std/sort" { sort }
+import "std/string" { compare_ascending }
+import "vader/resolver/symbol" { Symbol }
+import "vader/typecheck/types" {
+    Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
+    FnType, TypeParamType, UnionType, UnresolvedType, FreeIntType, FreeFloatType,
+    SelfType, display_type,
+}
+
+/// One registered instantiation. `args` carries the concrete (or
+/// possibly type-param) type arguments ; `display_key` is the
+/// canonical dedup key built from the symbol id + arg display form.
+export GenericInstance :: struct {
+    symbol:      Symbol
+    args:        Type[]
+    display_key: string
+}
+
+/// Append-only registry. `by_key` dedups by `display_key` ; `order`
+/// preserves insertion order so callers can iterate deterministically
+/// before the final sort.
+export InstanceRegistry :: struct {
+    by_key: MutableMap(string, GenericInstance)
+    order:  GenericInstance[]
+}
+
+/// Build an empty registry.
+/// @return  a fresh registry with no instances.
+export new_registry :: fn() -> InstanceRegistry {
+    return InstanceRegistry {
+        .by_key = MutableMap(string, GenericInstance) { .buckets = [], .size = 0 },
+        .order  = [],
+    }
+}
+
+/// Register `(symbol, args)` if not already present. Returns the
+/// canonical instance (existing or newly-added). Insertion order
+/// preserved in `order`.
+/// @param registry  the registry.
+/// @param symbol    the generic decl's resolver symbol.
+/// @param args      the concrete type arguments.
+/// @return          the registered instance.
+export add :: fn(registry: InstanceRegistry, symbol: Symbol, args: Type[]) -> GenericInstance {
+    key :: build_display_key(symbol, args)
+    existing :: registry.by_key[key]
+    match existing {
+        is GenericInstance -> { return existing }
+        _ -> {}
+    }
+    instance :: GenericInstance {
+        .symbol      = symbol,
+        .args        = args,
+        .display_key = key,
+    }
+    registry.by_key[key] = instance
+    registry.order.push(instance)
+    return instance
+}
+
+/// Walk `t`, registering every `StructType` / `EnumType` / `TraitType`
+/// instance whose args list is non-empty AND made of resolved types
+/// (no `Unresolved` / `FreeInt` / `FreeFloat` / `Self`). TypeParam
+/// references are accepted — they appear in the snapshot as the bare
+/// name (`T`), matching what TS does.
+/// @param registry  the registry.
+/// @param t         the type to scan.
+export observe :: fn(registry: InstanceRegistry, t: Type) -> void {
+    walk_type(registry, t)
+}
+
+walk_type :: fn(registry: InstanceRegistry, t: Type) -> void {
+    match t {
+        is StructType as s -> {
+            if s.args.len() > usize(0) && all_concrete_enough(s.args) {
+                registry.add(s.symbol, s.args)
+            }
+            for arg in s.args { walk_type(registry, arg) }
+        }
+        is EnumType -> {}
+        is TraitType as t2 -> {
+            if t2.args.len() > usize(0) && all_concrete_enough(t2.args) {
+                registry.add(t2.symbol, t2.args)
+            }
+            for arg in t2.args { walk_type(registry, arg) }
+        }
+        is ArrayType as a -> { walk_type(registry, a.element) }
+        is TupleType as tu -> { for el in tu.elements { walk_type(registry, el) } }
+        is UnionType as u  -> { for v in u.variants { walk_type(registry, v) } }
+        is FnType as f -> {
+            for p in f.params { walk_type(registry, p) }
+            walk_type(registry, f.return_type)
+        }
+        _ -> {}
+    }
+}
+
+// Filter that mirrors TS `isConcrete` but allows TypeParam through —
+// the TS code does too in practice (the registry stores `Yield(T)` etc.
+// as observed alongside `Yield(i32)`). Rejects only types that signal
+// "not yet resolved" or "free literal".
+all_concrete_enough :: fn(args: Type[]) -> bool {
+    for arg in args {
+        if !is_concrete_enough(arg) { return false }
+    }
+    return true
+}
+
+is_concrete_enough :: fn(t: Type) -> bool {
+    match t {
+        is UnresolvedType -> { return false }
+        is FreeIntType    -> { return false }
+        is FreeFloatType  -> { return false }
+        is SelfType       -> { return false }
+        _ -> { return true }
+    }
+}
+
+build_display_key :: fn(symbol: Symbol, args: Type[]) -> string {
+    return "${symbol.id}(${canonical_args_key(args)})"
+}
+
+// Mirror of `canonicalArgsKey` from TS. Stable, structure-anchored —
+// type-param symbol ids make `T_struct_A_t` and `T_struct_B_t` distinct
+// keys, so the same surface name `T` can register multiple instances.
+canonical_args_key :: fn(args: Type[]) -> string {
+    out := ""
+    for i in 0..<args.len() {
+        if i > usize(0) { out = "${out}," }
+        out = "${out}${canonical_type_key(args[i])}"
+    }
+    return out
+}
+
+canonical_type_key :: fn(t: Type) -> string = match t {
+    is PrimitiveType  as p  -> "P:${p.name}"
+    is StructType     as s  -> "S:${s.symbol.id}(${canonical_args_key(s.args)})"
+    is EnumType       as e  -> "E:${e.symbol.id}"
+    is TraitType      as r  -> "T:${r.symbol.id}(${canonical_args_key(r.args)})"
+    is ArrayType      as a  -> "A:${canonical_type_key(a.element)}"
+    is TupleType      as tu -> "U:(${canonical_args_key(tu.elements)})"
+    is FnType         as f  -> "F:(${canonical_args_key(f.params)})->${canonical_type_key(f.return_type)}"
+    is TypeParamType  as p  -> "X:${p.symbol.id}"
+    is UnionType      as u  -> "N:(${canonical_args_key(u.variants)})"
+    _                       -> "?"
+}
+
+/// Return the registry's instances sorted alphabetically by
+/// `display_key`. Matches `InstanceRegistry.entries()` in TS.
+/// @param registry  the registry.
+/// @return          the sorted instance list.
+export sorted_instances :: fn(registry: InstanceRegistry) -> GenericInstance[] {
+    return sort(registry.order, (a: GenericInstance, b: GenericInstance) -> compare_ascending(a.display_key, b.display_key))
+}
+
+/// Render an instance as the dump-line text. Matches TS's
+/// `${symbol.name}(${args.map(displayType).join(", ")})`.
+/// @param instance  the instance.
+/// @return          the rendered text without leading indentation.
+export render_instance :: fn(instance: GenericInstance) -> string {
+    parts := ""
+    for i in 0..<instance.args.len() {
+        if i > usize(0) { parts = "${parts}, " }
+        parts = "${parts}${display_type(instance.args[i])}"
+    }
+    return "${instance.symbol.name}(${parts})"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "vader/typecheck/types" { mk_struct, mk_primitive }
+import "vader/resolver/symbol" { SymbolKind }
+import "vader/parser/ast" { Visibility }
+
+@test test_add_deduplicates :: fn() -> void {
+    registry :: new_registry()
+    sym :: dummy_struct_symbol("Foo")
+    i32_type :: mk_primitive("i32")
+    args: Type[] = [i32_type]
+    registry.add(sym, args)
+    registry.add(sym, args)
+    assert_eq(registry.order.len(), usize(1))
+}
+
+@test test_observe_struct_instance :: fn() -> void {
+    registry :: new_registry()
+    sym :: dummy_struct_symbol("List")
+    args: Type[] = [mk_primitive("i32")]
+    list_type :: mk_struct(sym, args)
+    registry.observe(list_type)
+    assert_eq(registry.order.len(), usize(1))
+    assert_eq(render_instance(registry.order[0]), "List(i32)")
+}
+
+dummy_struct_symbol :: fn(name: string) -> Symbol {
+    return Symbol {
+        .id         = 1,
+        .kind       = .Struct,
+        .name       = name,
+        .module     = "t",
+        .visibility = .Public,
+        .defined_at = null,
+    }
+}

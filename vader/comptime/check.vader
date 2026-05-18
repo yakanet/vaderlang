@@ -18,6 +18,9 @@ import "vader/comptime/value" { ComptimeValue }
 import "vader/comptime/deps" { sort_comptime_decls, ComptimeOrder }
 import "vader/comptime/eval_types" { ComptimeContext }
 import "vader/comptime/eval" { evaluate_expr }
+import "vader/comptime/instances" {
+    InstanceRegistry, new_registry, observe, sorted_instances, GenericInstance,
+}
 AST :: import "vader/parser/ast"
 
 /// Evaluate every `@comptime` decl across the project's typed view,
@@ -46,7 +49,56 @@ export evaluate_project :: fn(
         }
         project.modules[module_id] = program
     }
+    project.instances = harvest_instances(typed)
     return project
+}
+
+// Walk every typed module's expr / decl / param / local type tables
+// and register each generic instance. Mirrors TS's `collectInstances`
+// minus the for-in / Into / fn-call passes (those land alongside the
+// lowerer port when their downstream consumers exist).
+harvest_instances :: fn(typed: TypedProject) -> GenericInstance[] {
+    registry :: new_registry()
+    for module_id in typed.modules.keys() {
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        for symbol_id in module_typed.decl_types.keys() {
+            t :: module_typed.decl_types[symbol_id]
+            match t {
+                is null -> {}
+                _       -> { observe(registry, t) }
+            }
+        }
+        for span_or_id in module_typed.expr_types.keys() {
+            t :: module_typed.expr_types[span_or_id]
+            match t {
+                is null -> {}
+                _       -> { observe(registry, t) }
+            }
+        }
+        for binding_id in module_typed.local_types.keys() {
+            t :: module_typed.local_types[binding_id]
+            match t {
+                is null -> {}
+                _       -> { observe(registry, t) }
+            }
+        }
+        for param_id in module_typed.param_types.keys() {
+            t :: module_typed.param_types[param_id]
+            match t {
+                is null -> {}
+                _       -> { observe(registry, t) }
+            }
+        }
+        for type_id in module_typed.type_expr_types.keys() {
+            t :: module_typed.type_expr_types[type_id]
+            match t {
+                is null -> {}
+                _       -> { observe(registry, t) }
+            }
+        }
+    }
+    return sorted_instances(registry)
 }
 
 lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[] | null {

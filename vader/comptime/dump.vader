@@ -18,6 +18,7 @@ import "std/string_builder" { new_builder, append, append_char }
 import "vader/resolver/module" { is_stdlib_module }
 import "vader/comptime/evaluated_ast" { EvaluatedProject, EvaluatedProgram }
 import "vader/comptime/value" { ComptimeValue, display_value }
+import "vader/comptime/instances" { GenericInstance, render_instance }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 
@@ -43,6 +44,16 @@ export dump_evaluated :: fn(project: EvaluatedProject) -> string {
         for line in entries {
             sb.append_char('\n')
             sb.append(line)
+        }
+    }
+    if project.instances.len() > usize(0) {
+        sb.append_char('\n')
+        sb.append_char('\n')
+        sb.append("## generic instances")
+        for instance in project.instances {
+            sb.append_char('\n')
+            sb.append("  ")
+            sb.append(render_instance(instance))
         }
     }
     return sb.to_string()

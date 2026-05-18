@@ -13,6 +13,7 @@ import "vader/typecheck/types" { Type }
 import "vader/typecheck/typed_ast" { TypedProgram, TypedProject }
 import "vader/comptime/value" { ComptimeValue }
 import "vader/comptime/mono_ast" { MonoProject, new_mono_project }
+import "vader/comptime/instances" { GenericInstance }
 
 /// One blanket-Into impl member observation. The typer records a coercion
 /// site that needs the impl's `into` member specialised with these type
@@ -71,6 +72,12 @@ export EvaluatedProject :: struct {
     /// the struct-indexed generic impls. Empty when the project uses
     /// no user-declared `Into` impls.
     into_members: IntoMemberObservation[]
+
+    /// Sorted list of every generic instantiation seen in the typed AST
+    /// (Struct/Trait with non-empty args). Drives the `## generic
+    /// instances` section of the comptime.snapshot dump. Sorted by
+    /// `display_key` so ordering is deterministic across runs.
+    instances: GenericInstance[]
 }
 
 /// Construct an empty `EvaluatedProgram` bound to `typed`. Used by the
@@ -96,6 +103,7 @@ export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
         .mono         = new_mono_project(),
         .file_exprs   = MutableMap(usize, string) { .buckets = [], .size = 0 },
         .into_members = [],
+        .instances    = [],
     }
 }
 
