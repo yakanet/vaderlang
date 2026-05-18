@@ -688,11 +688,10 @@ export lower_block :: fn(
     ctx.blocks.push(new_block_ctx(is_fn_root, is_loop_body))
     stmts: LoweredStmt[] = []
     for stmt in block.stmts {
-        result :: lower_stmt(ctx, stmt)
-        match result {
-            is null -> {}
-            _       -> { stmts.push(result) }
-        }
+        // `lower_stmt_into` pushes 0..N stmts ; tuple-destructure
+        // `let [a, b] := ...` expands to one synthetic `__tup_N` let
+        // + per-leaf `let a = __tup_N._0` etc.
+        lower_stmt_into(ctx, stmt, stmts)
     }
     trailing :: lower_trailing(ctx, block.trailing)
     block_type :: trailing_type(trailing)
@@ -729,67 +728,178 @@ trailing_type :: fn(trailing: LoweredExpr | null) -> Type {
     }
 }
 
-lower_stmt :: fn(ctx: FnLowerCtx, stmt: Stmt) -> LoweredStmt | null {
+// Lower a single stmt and push its lowered form(s) onto `out`. Most
+// stmts produce exactly one ; tuple-destructure `let` produces one
+// __tup binding + N leaf lets ; defer currently produces zero.
+lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
     match stmt {
-        is LetStmt      as let_stmt      -> { return lower_let(ctx, let_stmt) }
-        is AssignStmt   as assign_stmt   -> { return lower_assign(ctx, assign_stmt) }
+        is LetStmt      as let_stmt      -> { lower_let_into(ctx, let_stmt, out) }
+        is AssignStmt   as assign_stmt   -> { out.push(lower_assign(ctx, assign_stmt)) }
         is ExprStmt     as expr_stmt     -> {
-            return LoweredExprStmt { .span = expr_stmt.span, .expr = lower_expr(ctx, expr_stmt.expr) }
+            out.push(LoweredExprStmt { .span = expr_stmt.span, .expr = lower_expr(ctx, expr_stmt.expr) })
         }
-        is ReturnStmt   as return_stmt   -> { return lower_return(ctx, return_stmt) }
-        is ForStmt      as for_stmt      -> { return lower_for(ctx, for_stmt) }
+        is ReturnStmt   as return_stmt   -> { out.push(lower_return(ctx, return_stmt)) }
+        is ForStmt      as for_stmt      -> { out.push(lower_for(ctx, for_stmt)) }
         is BreakStmt    as break_stmt    -> {
-            return LoweredBreak { .span = break_stmt.span, .label = break_stmt.label }
+            out.push(LoweredBreak { .span = break_stmt.span, .label = break_stmt.label })
         }
         is ContinueStmt as continue_stmt -> {
-            return LoweredContinue { .span = continue_stmt.span, .label = continue_stmt.label }
+            out.push(LoweredContinue { .span = continue_stmt.span, .label = continue_stmt.label })
         }
         is DeferStmt    as defer_stmt    -> {
             // Defer replay (reverse on every block-exit edge) is Phase 5
             // territory. Drop the stmt entirely until the dedicated
             // pass surfaces ; the dump stays predictable.
-            return null
         }
     }
 }
 
-lower_let :: fn(ctx: FnLowerCtx, let_stmt: LetStmt) -> LoweredStmt | null {
+lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> void {
     match let_stmt.binding {
         is SimpleBinding as simple -> {
             symbol :: lookup_local_symbol(ctx.typed.resolved, simple.name_span)
             match symbol {
-                is null -> { return null }
+                is null -> {}
                 is Symbol as resolved -> {
                     binding_type :: ctx.types.local_type(simple)
-                    return LoweredLet {
+                    out.push(LoweredLet {
                         .span = let_stmt.span, .name = simple.name,
                         .symbol = resolved, .type = binding_type,
                         .value = lower_expr(ctx, let_stmt.value),
-                    }
+                    })
                 }
             }
         }
-        is TupleBinding -> {
-            return LoweredExprStmt {
-                .span = let_stmt.span,
-                .expr = LoweredUnreachable {
-                    .span = let_stmt.span, .type = TY_VOID,
-                    .reason = "tuple destructure lowering deferred to Phase 5",
-                },
-            }
+        is TupleBinding as tup -> {
+            // Desugar `let [a, b] := value` into :
+            //   let __tup_n = value
+            //   let a = __tup_n._0   (or __tup_n[0] for arrays)
+            //   let b = __tup_n._1   (or __tup_n[1] for arrays)
+            value :: lower_expr(ctx, let_stmt.value)
+            value_type :: type_of(value)
+            tup_symbol :: fresh_synthetic_symbol(ctx, "tup")
+            out.push(LoweredLet {
+                .span = let_stmt.span, .name = tup_symbol.name,
+                .symbol = tup_symbol, .type = value_type, .value = value,
+            })
+            tup_ref :: LoweredIdent { .span = let_stmt.span, .type = value_type, .symbol = tup_symbol }
+            emit_let_binding_leaves(ctx, tup, tup_ref, value_type, let_stmt.span, out)
         }
         is WildcardBinding -> {
-            return LoweredExprStmt {
+            out.push(LoweredExprStmt {
                 .span = let_stmt.span, .expr = lower_expr(ctx, let_stmt.value),
-            }
+            })
         }
         is RestBinding -> {
-            return LoweredExprStmt {
+            out.push(LoweredExprStmt {
                 .span = let_stmt.span,
                 .expr = LoweredUnreachable {
                     .span = let_stmt.span, .type = TY_VOID,
                     .reason = "rest-binding only valid inside tuple destructure",
                 },
+            })
+        }
+    }
+}
+
+// Walk a `LetBinding` tree, emitting one `LoweredLet` per leaf with
+// the target ident's `_<i>` field (tuples) or `[i]` index (arrays).
+emit_let_binding_leaves :: fn(
+    ctx: FnLowerCtx, binding: TupleBinding, target: LoweredExpr,
+    target_type: Type, span: Span, out: LoweredStmt[],
+) -> void {
+    for i in 0..<binding.elements.len() {
+        leaf :: binding.elements[i]
+        emit_let_leaf(ctx, leaf, target, target_type, i, span, out)
+    }
+}
+
+emit_let_leaf :: fn(
+    ctx: FnLowerCtx, leaf: LetBinding, target: LoweredExpr,
+    target_type: Type, index: usize, span: Span, out: LoweredStmt[],
+) -> void {
+    match leaf {
+        is WildcardBinding -> {}
+        is RestBinding -> {
+            // Rest binding inside a tuple destructure : MVP emits an
+            // unreachable so the dump shape stays well-formed. The
+            // full TS port routes through `emitArrayDestructure` (an
+            // index-loop that fills a fresh array).
+            out.push(LoweredExprStmt {
+                .span = span,
+                .expr = LoweredUnreachable {
+                    .span = span, .type = TY_VOID,
+                    .reason = "rest-binding (`...name`) lowering deferred",
+                },
+            })
+        }
+        is SimpleBinding as simple -> {
+            symbol :: lookup_local_symbol(ctx.typed.resolved, simple.name_span)
+            if symbol is null { return }
+            elem_type :: tuple_or_array_element_type(target_type, index, ctx, simple)
+            access :: build_leaf_access(target, target_type, elem_type, simple.span, index)
+            out.push(LoweredLet {
+                .span = simple.span, .name = simple.name, .symbol = symbol,
+                .type = elem_type, .value = access,
+            })
+        }
+        is TupleBinding as nested -> {
+            elem_type :: tuple_or_array_element_type(target_type, index, ctx, simple_placeholder(nested))
+            access :: build_leaf_access(target, target_type, elem_type, nested.span, index)
+            emit_let_binding_leaves(ctx, nested, access, elem_type, nested.span, out)
+        }
+    }
+}
+
+// Fallback `SimpleBinding`-shaped span carrier for nested-tuple leaf
+// type lookup (we read the binding's `local_types` entry by its
+// `name_span` which doesn't exist for tuples ; in MVP just return
+// TY_UNRESOLVED via the placeholder shape).
+simple_placeholder :: fn(nested: TupleBinding) -> SimpleBinding {
+    return SimpleBinding {
+        .span = nested.span, .name = "", .name_span = nested.span,
+    }
+}
+
+tuple_or_array_element_type :: fn(
+    target_type: Type, index: usize, ctx: FnLowerCtx, binding: SimpleBinding,
+) -> Type {
+    // Prefer the typer's per-binding type (already substituted) when
+    // available — most accurate for the user's slot.
+    from_typed :: ctx.types.local_type(binding)
+    match from_typed {
+        is UnresolvedType -> {}
+        _ -> { return from_typed }
+    }
+    match target_type {
+        is TupleType as tup -> {
+            if index < tup.elements.len() { return tup.elements[index] }
+            return TY_UNRESOLVED
+        }
+        is ArrayType as arr -> { return arr.element }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+import "vader/typecheck/types" { UnresolvedType }
+
+// Build the `_<index>` field access (tuple) or `[index]` index
+// (array) used to read the leaf value from the synthetic `__tup_n`.
+build_leaf_access :: fn(
+    target: LoweredExpr, target_type: Type, elem_type: Type, span: Span, index: usize,
+) -> LoweredExpr {
+    match target_type {
+        is ArrayType -> {
+            return LoweredIndex {
+                .span = span, .type = elem_type, .target = target,
+                .index = LoweredIntLit {
+                    .span = span, .type = mk_primitive("usize"), .value = i64(index),
+                },
+            }
+        }
+        _ -> {
+            return LoweredFieldAccess {
+                .span = span, .type = elem_type, .target = target, .field = "_${index}",
             }
         }
     }
