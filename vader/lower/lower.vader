@@ -83,6 +83,9 @@ import "vader/typecheck/impls" { build_impl_registry, ImplEntry }
 // Populate `core_symbols` from std/core's resolved view so the
 // lowerer can resolve `Range`, `Yield`, `ArrayIterator`, `Iterator`,
 // `Display`, `Error`, … without re-walking the project per call.
+// `iter_symbols` gets the same treatment for std/iter's exports
+// (`MapIterator` / `FilterIterator` / etc.) so chain-fusion can spot
+// the well-known struct shapes by symbol id.
 populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
     for module_id in typed.modules.keys() {
         module_typed :: typed.modules[module_id]
@@ -101,8 +104,34 @@ populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -
                 }
             }
         }
+        // `std/iter`'s top-level symbols : copy under `iter_symbols`
+        // so chain fusion's `MapIterator` / `FilterIterator` lookups
+        // resolve to the canonical struct symbols.
+        if is_std_iter_module(module_id) {
+            iter_table :: ensure_iter_table(project_ctx)
+            for entry in module_typed.resolved.symbols {
+                iter_table[entry.name] = entry
+            }
+        }
     }
 }
+
+is_std_iter_module :: fn(module_id: string) -> bool {
+    return module_id.contains("stdlib/std/iter.vader")
+}
+
+ensure_iter_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap(string, Symbol) {
+    match project_ctx.iter_symbols {
+        is null -> {
+            table :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+            project_ctx.iter_symbols = table
+            return table
+        }
+        is MutableMap(string, Symbol) as existing -> { return existing }
+    }
+}
+
+import "std/string" { contains }
 
 // Aggregate every loaded module's impl decls into the project ctx's
 // registry. `build_impl_registry` works per-module ; we drain every

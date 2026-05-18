@@ -55,6 +55,18 @@ export lower_for_in :: fn(
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt {
     span :: for_stmt.span
+    // Fast path : `for x in <chain>` where `<chain>` is one or more
+    // `std/iter` lazy combinators (`MapIterator` / `FilterIterator`,
+    // struct-literal form) wrapping a literal integer range — fuse
+    // the whole pipeline into a single counter loop. Skipped when the
+    // bottom isn't an int range, when any layer references its source
+    // via a variable, or when a `f` / `pred` field isn't a bare fn
+    // reference (the slow path handles those).
+    chain_form :: try_lower_chain_fusion(ctx, for_stmt, in_form, recurse, block_lowerer)
+    match chain_form {
+        is null -> {}
+        _ -> { return chain_form }
+    }
     // Fast path : `for x in lo..<hi` / `for x in lo..=hi` over an
     // integer range lowers to a direct counter loop ; no Range
     // allocation, no `Iterator.next` dispatch. Falls through to the
@@ -448,5 +460,358 @@ build_int_range_body :: fn(user_body: LoweredBlock, inc_stmt: LoweredStmt) -> Lo
         out.push(LoweredExprStmt { .span = span_of(user_body.trailing), .expr = user_body.trailing })
     }
     out.push(inc_stmt)
+    return out
+}
+
+// ---- chain fusion ---------------------------------------------------------
+
+import "std/collections" { keys }
+
+// One layer of an `it.map(f).filter(p)` chain. `Range` is the bottom
+// (integer-typed) ; `Map` / `Filter` wrap a `source` layer + the fn
+// expression. The chain bottoms out at a `RangeExpr` with an integer
+// bound type — non-int ranges, runtime-bound chains, etc fall back to
+// the generic slow path.
+IterChainKind :: enum(u8) {
+    Range,
+    Map,
+    Filter,
+}
+
+IterChain :: struct {
+    kind:         IterChainKind
+    // Range bottom
+    range_lower:  AST.Expr | null
+    range_upper:  AST.Expr | null
+    inclusive:    bool
+    element_type: Type
+    // Map / Filter layers
+    source:       IterChain | null
+    map_fn:       AST.Expr | null
+    output_type:  Type
+    pred_fn:      AST.Expr | null
+    span:         Span
+}
+
+// Top-level entry — recognise `for x in <chain>` and emit the fused
+// counter loop. Returns null whenever the chain doesn't match the
+// MVP pattern (Map / Filter struct literals over an int Range bottom).
+try_lower_chain_fusion :: fn(
+    ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
+) -> LoweredStmt | null {
+    chain :: descend_chain(ctx, in_form.iter)
+    if chain is null { return null }
+    // Bare ranges already hit the int-range fast path ; bypassing
+    // would lose `default_if_free` + counter-name fidelity vs TS.
+    if i32(chain.kind) == i32(IterChainKind.Range) { return null }
+    binding_symbol :: resolve_binding_or_synth(ctx, in_form)
+    user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    body_template :: BodyTemplate {
+        .binding_name   = in_form.binding,
+        .binding_symbol = binding_symbol,
+        .element_type   = chain_element_type(chain),
+        .user_body      = user_body,
+    }
+    stmts :: emit_fused_chain(ctx, chain, for_stmt.label, for_stmt.span, body_template, recurse)
+    return LoweredExprStmt {
+        .span = for_stmt.span,
+        .expr = LoweredBlock {
+            .span = for_stmt.span, .type = TY_VOID,
+            .stmts = stmts, .trailing = null,
+        },
+    }
+}
+
+BodyTemplate :: struct {
+    binding_name:   string
+    binding_symbol: Symbol
+    element_type:   Type
+    user_body:      LoweredBlock
+}
+
+// Walk the iter expression top-down. Each layer either matches a
+// known `std/iter` combinator (struct literal with the source field
+// inline) or bottoms at an integer-typed `RangeExpr`. Anything else
+// returns null.
+descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
+    match expr {
+        is AST.RangeExpr as range -> {
+            bound :: ctx.types.expr_type(range.lower)
+            if !is_integer_type(bound) { return null }
+            element :: default_if_free(bound)
+            return IterChain {
+                .kind = IterChainKind.Range,
+                .range_lower = range.lower,
+                .range_upper = range.upper,
+                .inclusive = range.inclusive,
+                .element_type = element,
+                .source = null, .map_fn = null, .output_type = TY_UNRESOLVED,
+                .pred_fn = null, .span = range.span,
+            }
+        }
+        is AST.StructLitExpr as struct_lit -> {
+            iter_symbols :: ctx.project.iter_symbols
+            if iter_symbols is null { return null }
+            map_symbol_opt    :: iter_symbols["MapIterator"]
+            filter_symbol_opt :: iter_symbols["FilterIterator"]
+            struct_type :: ctx.types.expr_type(struct_lit)
+            match struct_type {
+                is StructType as st -> {
+                    if matches_iter_symbol(map_symbol_opt, st.symbol.id) {
+                        return descend_map(ctx, struct_lit, st)
+                    }
+                    if matches_iter_symbol(filter_symbol_opt, st.symbol.id) {
+                        return descend_filter(ctx, struct_lit, st)
+                    }
+                }
+                _ -> {}
+            }
+            return null
+        }
+        _ -> { return null }
+    }
+}
+
+matches_iter_symbol :: fn(opt: Symbol | null, id: i32) -> bool {
+    match opt {
+        is null -> { return false }
+        is Symbol as s -> { return s.id == id }
+    }
+}
+
+descend_map :: fn(ctx: FnLowerCtx, struct_lit: AST.StructLitExpr, struct_type: StructType) -> IterChain | null {
+    source_expr :: find_inline_field(struct_lit, "source")
+    map_fn      :: find_inline_field(struct_lit, "f")
+    if source_expr is null { return null }
+    if map_fn is null { return null }
+    inner :: descend_chain(ctx, source_expr)
+    if inner is null { return null }
+    if struct_type.args.len() < usize(2) { return null }
+    output_type :: struct_type.args[1]
+    return IterChain {
+        .kind = IterChainKind.Map,
+        .range_lower = null, .range_upper = null, .inclusive = false,
+        .element_type = TY_UNRESOLVED,
+        .source = inner, .map_fn = map_fn, .output_type = output_type,
+        .pred_fn = null, .span = struct_lit.span,
+    }
+}
+
+descend_filter :: fn(ctx: FnLowerCtx, struct_lit: AST.StructLitExpr, struct_type: StructType) -> IterChain | null {
+    source_expr :: find_inline_field(struct_lit, "source")
+    pred_fn     :: find_inline_field(struct_lit, "pred")
+    if source_expr is null { return null }
+    if pred_fn is null { return null }
+    inner :: descend_chain(ctx, source_expr)
+    if inner is null { return null }
+    return IterChain {
+        .kind = IterChainKind.Filter,
+        .range_lower = null, .range_upper = null, .inclusive = false,
+        .element_type = TY_UNRESOLVED,
+        .source = inner, .map_fn = null, .output_type = TY_UNRESOLVED,
+        .pred_fn = pred_fn, .span = struct_lit.span,
+    }
+}
+
+import "vader/parser/ast" { StructLitField as ASTStructLitField, StructLitSpread as ASTStructLitSpread }
+
+find_inline_field :: fn(struct_lit: AST.StructLitExpr, name: string) -> AST.Expr | null {
+    for item in struct_lit.items {
+        match item {
+            is ASTStructLitField as field -> {
+                if field.name == name { return field.value }
+            }
+            is ASTStructLitSpread -> { return null }
+        }
+    }
+    return null
+}
+
+chain_element_type :: fn(chain: IterChain) -> Type {
+    if i32(chain.kind) == i32(IterChainKind.Range) { return chain.element_type }
+    if i32(chain.kind) == i32(IterChainKind.Map) { return chain.output_type }
+    // Filter : element type comes from the source.
+    if chain.source is null { return TY_UNRESOLVED }
+    return chain_element_type(chain.source)
+}
+
+// Emit the fused chain recursively : each Map layer wraps the inner
+// body with `let __mapped_n = f(prev)` ; each Filter layer guards
+// the inner body with `if pred(prev) { ... }`. The Range bottom
+// expands into the counter loop.
+emit_fused_chain :: fn(
+    ctx: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
+    template: BodyTemplate,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredStmt[] {
+    if i32(chain.kind) == i32(IterChainKind.Range) {
+        return emit_fused_range(ctx, chain, loop_label, outer_span, template, recurse)
+    }
+    if i32(chain.kind) == i32(IterChainKind.Map) {
+        return emit_fused_chain_map(ctx, chain, loop_label, outer_span, template, recurse)
+    }
+    return emit_fused_chain_filter(ctx, chain, loop_label, outer_span, template, recurse)
+}
+
+emit_fused_chain_map :: fn(
+    ctx: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
+    template: BodyTemplate,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredStmt[] {
+    if chain.source is null { return [] }
+    if chain.map_fn is null { return [] }
+    inner_chain :: chain.source
+    map_fn :: chain.map_fn
+    output_type :: chain.output_type
+    span :: chain.span
+    // Inner template wraps the user body with `let __mapped_n = f(<prev>)`
+    // and rebinds the user's loop var to that mapped value.
+    inner_template :: BodyTemplate {
+        .binding_name = "__mapped_${ctx.uniq}",
+        .binding_symbol = fresh_synthetic_symbol(ctx, "mapped"),
+        .element_type = output_type,
+        .user_body = wrap_with_map(ctx, template, map_fn, output_type, span, recurse),
+    }
+    return emit_fused_chain(ctx, inner_chain, loop_label, outer_span, inner_template, recurse)
+}
+
+emit_fused_chain_filter :: fn(
+    ctx: FnLowerCtx, chain: IterChain, loop_label: string | null, outer_span: Span,
+    template: BodyTemplate,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredStmt[] {
+    if chain.source is null { return [] }
+    if chain.pred_fn is null { return [] }
+    inner_chain :: chain.source
+    pred_fn :: chain.pred_fn
+    span :: chain.span
+    inner_template :: BodyTemplate {
+        .binding_name = template.binding_name,
+        .binding_symbol = template.binding_symbol,
+        .element_type = template.element_type,
+        .user_body = wrap_with_filter(ctx, template, pred_fn, span, recurse),
+    }
+    return emit_fused_chain(ctx, inner_chain, loop_label, outer_span, inner_template, recurse)
+}
+
+// Build the inner body for a Map layer : it consumes the *previous*
+// counter / source value, computes the mapped value, and feeds it as
+// the user's loop variable.
+wrap_with_map :: fn(
+    ctx: FnLowerCtx, template: BodyTemplate, map_fn: AST.Expr,
+    output_type: Type, span: Span,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredBlock {
+    callee :: recurse(ctx, map_fn)
+    // The inner symbol carries the *previous* layer's value — its id
+    // gets rebound at emit time when this template fires. We refer to
+    // it via `template.binding_symbol` as a placeholder ; the recurse
+    // chain captures the right symbol via lambda-style capture (Vader
+    // uses by-value structs, so the recurse step that wraps THIS body
+    // is the one whose binding_symbol is the current layer's source).
+    // Phase 5f's MVP uses the user-level binding name as-is.
+    arg_ref :: LoweredIdent {
+        .span = span, .type = template.element_type,
+        .symbol = template.binding_symbol,
+    }
+    call_args: LoweredExpr[] = []
+    call_args.push(arg_ref)
+    mapped_call :: LoweredCall {
+        .span = span, .type = output_type,
+        .callee = callee, .args = call_args,
+    }
+    let_stmt :: LoweredLet {
+        .span = span, .name = template.binding_name, .symbol = template.binding_symbol,
+        .type = output_type, .value = mapped_call,
+    }
+    out_stmts: LoweredStmt[] = []
+    out_stmts.push(let_stmt)
+    for stmt in template.user_body.stmts { out_stmts.push(stmt) }
+    return LoweredBlock {
+        .span = span, .type = TY_VOID,
+        .stmts = out_stmts, .trailing = template.user_body.trailing,
+    }
+}
+
+wrap_with_filter :: fn(
+    ctx: FnLowerCtx, template: BodyTemplate, pred_fn: AST.Expr, span: Span,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredBlock {
+    callee :: recurse(ctx, pred_fn)
+    arg_ref :: LoweredIdent {
+        .span = span, .type = template.element_type,
+        .symbol = template.binding_symbol,
+    }
+    call_args: LoweredExpr[] = []
+    call_args.push(arg_ref)
+    cond :: LoweredCall {
+        .span = span, .type = TY_BOOL,
+        .callee = callee, .args = call_args,
+    }
+    if_stmt :: LoweredExprStmt {
+        .span = span,
+        .expr = LoweredIf {
+            .span = span, .type = TY_VOID,
+            .cond = cond,
+            .then_block = template.user_body,
+            .else_block = null,
+        },
+    }
+    inner_stmts: LoweredStmt[] = []
+    inner_stmts.push(if_stmt)
+    return LoweredBlock {
+        .span = span, .type = TY_VOID,
+        .stmts = inner_stmts, .trailing = null,
+    }
+}
+
+// Emit the counter loop at the Range bottom. The user binding is
+// re-cast under the surface name so the body sees the same symbol
+// the resolver bound.
+emit_fused_range :: fn(
+    ctx: FnLowerCtx, range_chain: IterChain, loop_label: string | null, outer_span: Span,
+    template: BodyTemplate,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredStmt[] {
+    span :: range_chain.span
+    int_type :: range_chain.element_type
+    if range_chain.range_lower is null { return [] }
+    if range_chain.range_upper is null { return [] }
+    lo :: recurse(ctx, range_chain.range_lower)
+    hi :: recurse(ctx, range_chain.range_upper)
+
+    counter_init :: LoweredLet {
+        .span = span, .name = template.binding_name, .symbol = template.binding_symbol,
+        .type = int_type, .value = lo,
+    }
+    counter_ref :: LoweredIdent {
+        .span = span, .type = int_type, .symbol = template.binding_symbol,
+    }
+    op :: cmp_op_for_inclusive(range_chain.inclusive)
+    cond :: LoweredBinary {
+        .span = span, .type = TY_BOOL, .op = op, .left = counter_ref, .right = hi,
+    }
+    inc_stmt :: LoweredAssign {
+        .span = span, .target = counter_ref,
+        .value = LoweredBinary {
+            .span = span, .type = int_type, .op = LoweredBinaryOp.Add,
+            .left = counter_ref,
+            .right = LoweredIntLit { .span = span, .type = int_type, .value = i64(1) },
+        },
+    }
+
+    body_stmts :: build_int_range_body(template.user_body, inc_stmt)
+    loop_stmt :: LoweredLoop {
+        .span = outer_span, .label = loop_label, .cond = cond,
+        .body = LoweredBlock {
+            .span = span, .type = TY_VOID,
+            .stmts = body_stmts, .trailing = null,
+        },
+    }
+    out: LoweredStmt[] = []
+    out.push(counter_init)
+    out.push(loop_stmt)
     return out
 }
