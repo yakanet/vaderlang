@@ -108,7 +108,7 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         is LambdaExpr    as e -> { return lower_lambda(ctx, e, lower_block) }
         is RangeExpr     as e -> { return lower_range_expr(ctx, e, type, lower_expr) }
         is GenericInstExpr  as e -> { return stub(e.span, type, "generic-inst expression not lowered") }
-        is DotVariantExpr   as e -> { return stub(e.span, type, "dot-variant lowering deferred") }
+        is DotVariantExpr   as e -> { return lower_dot_variant(ctx, e, type) }
         // Type-position expressions in value position — earlier phases
         // emit T3035 ; the lowerer just emits a stub.
         is FnTypeExpr    as e -> { return stub(e.span, type, "type-valued slot not lowered") }
@@ -349,7 +349,53 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
 }
 
-import "vader/typecheck/types" { StructType }
+import "vader/typecheck/types" { StructType, EnumType }
+import "vader/resolver/symbol" { SymbolKind as KindForEnum }
+
+// `.North` resolves through context : the surrounding slot's expected
+// type pins the enum. Look up the variant's integer index off the
+// resolved `EnumType` and emit a `LoweredIntLit`. Falls back to a
+// stub when the context isn't an enum (defensive — earlier
+// diagnostics should have caught the bad use).
+lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> LoweredExpr {
+    resolved :: enum_type_or_unwrap(ctx, type)
+    match resolved {
+        is EnumType as enum_type -> {
+            index :: enum_type.indices[expr.variant]
+            match index {
+                is null -> { return stub(expr.span, type, "unknown variant `${expr.variant}` on `${enum_type.symbol.name}`") }
+                is i64 as value -> {
+                    return LoweredIntLit {
+                        .span = expr.span, .type = mk_primitive(enum_type.repr), .value = value,
+                    }
+                }
+            }
+        }
+        _ -> { return stub(expr.span, type, "`.${expr.variant}` against non-enum context type") }
+    }
+}
+
+// Unwrap the StructType-as-Enum placeholder if needed (same trick as
+// `lower_match::unwrap_enum_type`).
+enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
+    match type {
+        is EnumType -> { return type }
+        is StructType as st -> {
+            if i32(st.symbol.kind) != i32(KindForEnum.Enum) { return type }
+            match st.symbol.defined_at {
+                is null -> { return type }
+                is Span as defined -> {
+                    real :: ctx.typed.decl_types[span_key(defined)]
+                    match real {
+                        is EnumType -> { return real }
+                        _ -> { return type }
+                    }
+                }
+            }
+        }
+        _ -> { return type }
+    }
+}
 
 build_struct_lit_fields :: fn(
     ctx: FnLowerCtx, type: Type,
