@@ -4,7 +4,7 @@
 // emits the same JSON schema as the TS compiler.
 
 import "std/string" { is_empty }
-import "vader/diagnostics/codes" { LexerCode, ParserCode, ResolverCode, TypecheckCode, WarningCode, lexer_info, parser_info, resolver_info, typecheck_info, warning_info, CodeInfo }
+import "vader/diagnostics/codes" { LexerCode, ParserCode, ResolverCode, TypecheckCode, ComptimeCode, WarningCode, lexer_info, parser_info, resolver_info, typecheck_info, comptime_info, warning_info, CodeInfo }
 
 export Severity :: enum {
     Error,
@@ -97,6 +97,9 @@ export typecheck_error :: fn(code: TypecheckCode, primary: Span, detail: string)
 
 export resolver_error :: fn(code: ResolverCode, primary: Span, detail: string) =
     new_diagnostic(.Error, resolver_info(code), primary, detail)
+
+export comptime_error :: fn(code: ComptimeCode, primary: Span, detail: string) =
+    new_diagnostic(.Error, comptime_info(code), primary, detail)
 
 export warning :: fn(code: WarningCode, primary: Span, detail: string) =
     new_diagnostic(.Warning, warning_info(code), primary, detail)
