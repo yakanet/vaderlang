@@ -41,10 +41,14 @@ import "vader/lower/lowered_ast" {
     LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
     LoweredFieldAccess, LoweredIndex, LoweredUnary, LoweredUnaryOp,
     LoweredBinary, LoweredBinaryOp, LoweredIf, LoweredStructLit,
-    LoweredStructLitField, LoweredArrayLit, LoweredCast, LoweredUnreachable,
-    LoweredIntrinsicCall, LoweredLet, LoweredAssign, LoweredReturn,
-    LoweredLoop, LoweredBreak, LoweredContinue,
+    LoweredStructLitField, LoweredArrayLit, LoweredCast, LoweredTypeCheck,
+    LoweredUnreachable, LoweredIntrinsicCall, LoweredLet, LoweredAssign,
+    LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
+    INTRINSIC_BUILDER_NEW, INTRINSIC_BUILDER_APPEND_STR,
+    INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
 }
+import "vader/lower/lower_match" { lower_match }
+import "vader/lower/helpers" { fresh_synthetic_symbol }
 
 // ============================================================================
 // Expression dispatcher
@@ -97,8 +101,8 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         // Match / try / lambda / range / for-in are deferred to phases
         // 4 / 5. Until then, emit an unreachable so the dump shape is
         // consistent and downstream phases can spot the gap.
-        is MatchExpr     as e -> { return stub(e.span, type, "match lowering deferred to Phase 4") }
-        is TryExpr       as e -> { return stub(e.span, type, "try lowering deferred to Phase 4") }
+        is MatchExpr     as e -> { return lower_match(ctx, e, type, lower_expr) }
+        is TryExpr       as e -> { return stub(e.span, type, "try lowering deferred — needs impl-by-trait queries") }
         is LambdaExpr    as e -> { return stub(e.span, type, "lambda lowering deferred to Phase 5") }
         is RangeExpr     as e -> { return stub(e.span, type, "range lowering deferred to Phase 5") }
         is GenericInstExpr  as e -> { return stub(e.span, type, "generic-inst expression not lowered") }
@@ -128,21 +132,86 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
     }
 }
 
-// Plain string lit only — interpolation parts route to a stub until
-// Phase 4's `lower_string_interp` lands. The TS lowerer fast-paths
-// single-text parts ; we mirror that here.
+// Plain text-only string lit becomes a single `LoweredStringLit`. Any
+// `${expr}` segment routes through a builder-chain : `builder.new` +
+// per-part `builder.append_str` / `builder.append_display` +
+// `builder.finish`. Primitive-typed segments take the
+// `builder.append_display` fast path ; non-primitive segments emit an
+// `append_display` call too (the bytecode emitter resolves the right
+// `<T>.Display.to_string` impl via the impl table once it lands —
+// today this means the lowered IR carries the call shape but the impl
+// lookup is deferred).
 lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
-    if has_interp_part(expr) {
-        return stub(expr.span, type, "string interpolation lowering deferred to Phase 4")
+    if !has_interp_part(expr) {
+        body := ""
+        for part in expr.parts {
+            match part {
+                is StringLitText as text -> { body = body + text.value }
+                _ -> {}
+            }
+        }
+        return LoweredStringLit { .span = expr.span, .type = mk_primitive("string"), .value = body }
     }
-    body := ""
+    builder_symbol :: fresh_synthetic_symbol(ctx, "sb")
+    string_type :: mk_primitive("string")
+    stmts: LoweredStmt[] = []
+    stmts.push(LoweredLet {
+        .span = expr.span, .name = builder_symbol.name, .symbol = builder_symbol,
+        .type = TY_UNRESOLVED,
+        .value = LoweredIntrinsicCall {
+            .span = expr.span, .type = TY_UNRESOLVED,
+            .name = INTRINSIC_BUILDER_NEW, .args = [], .display_for = null,
+        },
+    })
     for part in expr.parts {
         match part {
-            is StringLitText as text -> { body = body + text.value }
-            _ -> {}
+            is StringLitText as text -> {
+                builder_ref :: LoweredIdent {
+                    .span = text.span, .type = TY_UNRESOLVED, .symbol = builder_symbol,
+                }
+                literal :: LoweredStringLit {
+                    .span = text.span, .type = string_type, .value = text.value,
+                }
+                args: LoweredExpr[] = []
+                args.push(builder_ref)
+                args.push(literal)
+                stmts.push(LoweredExprStmt {
+                    .span = text.span,
+                    .expr = LoweredIntrinsicCall {
+                        .span = text.span, .type = TY_VOID,
+                        .name = INTRINSIC_BUILDER_APPEND_STR, .args = args, .display_for = null,
+                    },
+                })
+            }
+            is StringLitInterp as interp -> {
+                inner :: lower_expr(ctx, interp.expr)
+                builder_ref :: LoweredIdent {
+                    .span = interp.span, .type = TY_UNRESOLVED, .symbol = builder_symbol,
+                }
+                args: LoweredExpr[] = []
+                args.push(builder_ref)
+                args.push(inner)
+                stmts.push(LoweredExprStmt {
+                    .span = interp.span,
+                    .expr = LoweredIntrinsicCall {
+                        .span = interp.span, .type = TY_VOID,
+                        .name = INTRINSIC_BUILDER_APPEND_DISPLAY,
+                        .args = args, .display_for = ctx.types.expr_type(interp.expr),
+                    },
+                })
+            }
         }
     }
-    return LoweredStringLit { .span = expr.span, .type = mk_primitive("string"), .value = body }
+    finish_args: LoweredExpr[] = []
+    finish_args.push(LoweredIdent { .span = expr.span, .type = TY_UNRESOLVED, .symbol = builder_symbol })
+    return LoweredBlock {
+        .span = expr.span, .type = string_type,
+        .stmts = stmts,
+        .trailing = LoweredIntrinsicCall {
+            .span = expr.span, .type = string_type,
+            .name = INTRINSIC_BUILDER_FINISH, .args = finish_args, .display_for = null,
+        },
+    }
 }
 
 has_interp_part :: fn(expr: StringLitExpr) -> bool {
@@ -169,11 +238,17 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
 }
 
 lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {
-    // The AST carries an `Is` op for `expr is T` ; lower it to a
-    // type-check stub until Phase 4's match lowerer surfaces a proper
-    // `LoweredTypeCheck`.
+    // `expr is T` lowers to a runtime tag check ; the RHS is a type
+    // expression, not a value. The `bind_as` parsing is handled inside
+    // `if x is T as alias` where the if's then-branch consumes the
+    // alias — that path lives in the typechecker's narrowing logic
+    // and lowers to a regular `LoweredCast` reaching the alias slot.
     if i32(binary.op) == i32(BinaryOp.Is) {
-        return stub(binary.span, type, "`is T` lowering deferred to Phase 4")
+        return LoweredTypeCheck {
+            .span = binary.span, .type = TY_BOOL,
+            .value = lower_expr(ctx, binary.left),
+            .check_type = ctx.types.expr_type(binary.right),
+        }
     }
     if i32(binary.op) == i32(BinaryOp.In) || i32(binary.op) == i32(BinaryOp.NotIn) {
         return stub(binary.span, type, "`in` / `not in` lowering deferred")

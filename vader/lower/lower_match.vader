@@ -1,0 +1,443 @@
+// vader/lower/lower_match — match-expression lowerer.
+//
+// Mirror of `src/lower/passes/match.ts`. Flattens `match scrutinee { arm... }`
+// to a let-bind on the scrutinee + a chain of `if (predicate) <arm-body>`
+// blocks. Pattern bindings (`x is T as alias`, `BindingPattern("name")`,
+// struct destructure, tuple destructure) are introduced inside the arm
+// block so they're scoped per-arm.
+//
+// Out of scope in Phase 4 : tuple-with-union narrowing (`is null | [a, b]`
+// case) — emits a simple sequential check without the union-variant cast.
+// The full TS-side `narrowToTupleVariant` lands when the typecheck-side
+// `union_variants` accessor surfaces.
+//
+// Callback parameters break the `lower_expr ↔ lower_match` import
+// cycle ; top-level fn-type aliases hit a parser limitation in Vader
+// so the shape gets inlined at every site.
+
+import "std/collections" { MutableMap, values }
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/parser/ast" {
+    MatchExpr, MatchArm, Pattern, WildcardPattern, BindingPattern, IsPattern,
+    StructPattern, StructPatternField, PatternFieldValue, PatternBinding,
+    PatternLiteral, TuplePattern, EnumVariantPattern, LiteralPattern, Expr,
+}
+import "vader/resolver/symbol" { Symbol }
+// `lower_expr` is supplied as a callback ; this breaks the cycle
+// between `lower_expr` (which imports this module) and the body of
+// `lower_match` (which calls back into `lower_expr` for nested
+// expression lowering). Same pattern as
+// `vader/comptime/eval_binary.vader::evaluate_binary`'s `recurse` arg.
+import "vader/typecheck/types" {
+    Type, UnionType, TupleType, StructType, EnumType, mk_primitive,
+    TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED,
+}
+import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/lower/ctx" { FnLowerCtx }
+import "vader/lower/entry_types" { EntryTypes, expr_type, type_expr_type }
+import "vader/lower/helpers" { fresh_synthetic_symbol, type_of, span_of }
+import "vader/lower/lowered_ast" {
+    LoweredExpr, LoweredBlock, LoweredStmt, LoweredLet, LoweredExprStmt,
+    LoweredIdent, LoweredIf, LoweredBinary, LoweredBinaryOp, LoweredBoolLit,
+    LoweredTypeCheck, LoweredCast, LoweredFieldAccess, LoweredIntLit,
+    LoweredUnreachable, LoweredReturn,
+}
+
+/// Lower a `MatchExpr` to a block containing the scrutinee binding
+/// + an if-chain over the arms.
+/// @param ctx          the fn-body context.
+/// @param expr         the source match.
+/// @param result_type  the result type the surrounding context expects.
+/// @param recurse      callback to lower nested expressions (breaks the
+///                     `lower_expr ↔ lower_match` import cycle).
+/// @return             the lowered block.
+export lower_match :: fn(
+    ctx: FnLowerCtx, expr: MatchExpr, result_type: Type,
+    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
+) -> LoweredExpr {
+    scrut_type :: ctx.types.expr_type(expr.scrutinee)
+    scrut_symbol :: fresh_synthetic_symbol(ctx, "scrut")
+    scrut_value :: recurse(ctx, expr.scrutinee)
+
+    stmts: LoweredStmt[] = []
+    stmts.push(LoweredLet {
+        .span = span_of(scrut_value), .name = scrut_symbol.name, .symbol = scrut_symbol,
+        .type = scrut_type, .value = scrut_value,
+    })
+
+    fallback: LoweredBlock = wrap_block(expr.span, LoweredUnreachable {
+        .span = expr.span, .type = result_type,
+        .reason = "non-exhaustive match (T3013 should have caught this)",
+    })
+
+    arm_count :: expr.arms.len()
+    if arm_count == usize(0) {
+        for stmt in fallback.stmts { stmts.push(stmt) }
+        return LoweredBlock {
+            .span = expr.span, .type = result_type,
+            .stmts = stmts, .trailing = fallback.trailing,
+        }
+    }
+
+    chain: LoweredBlock = fallback
+    cursor := arm_count
+    for cursor > usize(0) {
+        cursor = cursor - usize(1)
+        arm :: expr.arms[cursor]
+        arm_block :: lower_arm(ctx, arm, scrut_symbol, scrut_type, recurse)
+        predicate :: arm_predicate(ctx, arm, scrut_symbol, scrut_type, recurse)
+        match predicate {
+            is null -> { chain = arm_block }
+            _ -> {
+                if_node :: LoweredIf {
+                    .span = arm.span, .type = result_type,
+                    .cond = predicate, .then_block = arm_block, .else_block = chain,
+                }
+                chain = wrap_block(arm.span, if_node)
+            }
+        }
+    }
+
+    for stmt in chain.stmts { stmts.push(stmt) }
+    return LoweredBlock {
+        .span = expr.span, .type = result_type,
+        .stmts = stmts, .trailing = chain.trailing,
+    }
+}
+
+lower_arm :: fn(
+    ctx: FnLowerCtx, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
+    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
+) -> LoweredBlock {
+    stmts: LoweredStmt[] = []
+    introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, stmts, arm.span)
+    body :: recurse(ctx, arm.body)
+    return LoweredBlock {
+        .span = arm.span, .type = type_of(body),
+        .stmts = stmts, .trailing = body,
+    }
+}
+
+arm_predicate :: fn(
+    ctx: FnLowerCtx, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
+    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
+) -> LoweredExpr | null {
+    span :: arm.pattern.span
+    scrut_ident :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
+    core :: pattern_predicate(ctx, arm.pattern, scrut_ident, scrut_type, span, recurse)
+    match arm.guard {
+        is null -> { return core }
+        _ -> {
+            guard :: recurse(ctx, arm.guard)
+            match core {
+                is null -> { return guard }
+                _ -> {
+                    return LoweredBinary {
+                        .span = arm.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                        .left = core, .right = guard,
+                    }
+                }
+            }
+        }
+    }
+}
+
+pattern_predicate :: fn(
+    ctx: FnLowerCtx, pattern: Pattern, target: LoweredExpr, target_type: Type, span: Span,
+    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
+) -> LoweredExpr | null {
+    match pattern {
+        is WildcardPattern -> { return null }
+        is BindingPattern  -> { return null }
+        is IsPattern as is_pattern -> {
+            return LoweredTypeCheck {
+                .span = span, .type = TY_BOOL,
+                .value = target,
+                .check_type = ctx.types.type_expr_type(is_pattern.ty),
+            }
+        }
+        is StructPattern as struct_pattern -> {
+            return struct_pattern_predicate(ctx, struct_pattern, target, span, recurse)
+        }
+        is EnumVariantPattern as variant_pattern -> {
+            variant_lit :: enum_variant_literal(target_type, variant_pattern.variant, span)
+            return LoweredBinary {
+                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+                .left = target, .right = variant_lit,
+            }
+        }
+        is LiteralPattern as literal_pattern -> {
+            literal :: recurse(ctx, literal_pattern.value)
+            return LoweredBinary {
+                .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+                .left = target, .right = literal,
+            }
+        }
+        is TuplePattern as tuple_pattern -> {
+            return tuple_pattern_predicate(ctx, tuple_pattern, target, target_type, span, recurse)
+        }
+    }
+}
+
+struct_pattern_predicate :: fn(
+    ctx: FnLowerCtx, pattern: StructPattern, target: LoweredExpr, span: Span,
+    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
+) -> LoweredExpr {
+    accumulator: LoweredExpr = LoweredBoolLit { .span = span, .type = TY_BOOL, .value = true }
+    for field in pattern.fields {
+        match field.value {
+            is PatternLiteral as literal -> {
+                literal_value :: recurse(ctx, literal.value)
+                eq :: LoweredBinary {
+                    .span = field.span, .type = TY_BOOL, .op = LoweredBinaryOp.Eq,
+                    .left = LoweredFieldAccess {
+                        .span = field.span, .type = type_of(literal_value),
+                        .target = target, .field = field.name,
+                    },
+                    .right = literal_value,
+                }
+                accumulator = LoweredBinary {
+                    .span = field.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                    .left = accumulator, .right = eq,
+                }
+            }
+            _ -> {}
+        }
+    }
+    return accumulator
+}
+
+tuple_pattern_predicate :: fn(
+    ctx: FnLowerCtx, pattern: TuplePattern, target: LoweredExpr, target_type: Type, span: Span,
+    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
+) -> LoweredExpr | null {
+    accumulator: LoweredExpr | null = null
+    element_types :: tuple_element_types(target_type, pattern.elements.len())
+    for i in 0..<pattern.elements.len() {
+        element_pattern :: pattern.elements[i]
+        element_type :: element_types[i]
+        field_access :: LoweredFieldAccess {
+            .span = element_pattern.span, .type = element_type,
+            .target = target, .field = "_${i}",
+        }
+        sub :: pattern_predicate(ctx, element_pattern, field_access, element_type, element_pattern.span, recurse)
+        match sub {
+            is null -> {}
+            _ -> {
+                match accumulator {
+                    is null -> { accumulator = sub }
+                    _ -> {
+                        accumulator = LoweredBinary {
+                            .span = element_pattern.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                            .left = accumulator, .right = sub,
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return accumulator
+}
+
+tuple_element_types :: fn(target_type: Type, arity: usize) -> Type[] {
+    match target_type {
+        is TupleType as tup -> {
+            if tup.elements.len() == arity { return tup.elements }
+            return fill_unresolved(arity)
+        }
+        _ -> { return fill_unresolved(arity) }
+    }
+}
+
+fill_unresolved :: fn(arity: usize) -> Type[] {
+    out: Type[] = []
+    for i in 0..<arity { out.push(TY_UNRESOLVED) }
+    return out
+}
+
+enum_variant_literal :: fn(target_type: Type, name: string, span: Span) -> LoweredExpr {
+    match target_type {
+        is EnumType as enum_type -> {
+            index :: enum_type.indices[name]
+            match index {
+                is null -> {
+                    return LoweredUnreachable {
+                        .span = span, .type = TY_UNRESOLVED,
+                        .reason = "unknown variant `${name}` on `${enum_type.symbol.name}`",
+                    }
+                }
+                is i64 as value -> {
+                    return LoweredIntLit {
+                        .span = span, .type = mk_primitive(enum_type.repr), .value = value,
+                    }
+                }
+            }
+        }
+        _ -> {
+            return LoweredUnreachable {
+                .span = span, .type = TY_UNRESOLVED,
+                .reason = "`.${name}` against unresolved type",
+            }
+        }
+    }
+}
+
+// ============================================================================
+// Pattern bindings (let-stmts introduced inside the arm)
+// ============================================================================
+
+introduce_pattern_bindings :: fn(
+    ctx: FnLowerCtx, pattern: Pattern, scrut_symbol: Symbol, scrut_type: Type,
+    out: LoweredStmt[], span: Span,
+) -> void {
+    scrut_ref :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
+    walk_pattern_bindings(ctx, pattern, scrut_ref, scrut_type, out, span)
+}
+
+walk_pattern_bindings :: fn(
+    ctx: FnLowerCtx, pattern: Pattern, target: LoweredExpr, target_type: Type,
+    out: LoweredStmt[], span: Span,
+) -> void {
+    match pattern {
+        is BindingPattern as binding -> {
+            symbol :: resolve_pattern_symbol(ctx, binding.span, binding.name)
+            out.push(LoweredLet {
+                .span = span, .name = binding.name, .symbol = symbol,
+                .type = target_type, .value = target,
+            })
+        }
+        is IsPattern as is_pattern -> {
+            inner_type :: ctx.types.type_expr_type(is_pattern.ty)
+            narrowed_target :: narrow_target(target, target_type, inner_type, span)
+            match is_pattern.bind_as {
+                is null -> {}
+                is string as alias -> {
+                    symbol :: resolve_pattern_symbol(ctx, is_pattern.span, alias)
+                    out.push(LoweredLet {
+                        .span = span, .name = alias, .symbol = symbol,
+                        .type = inner_type, .value = narrowed_target,
+                    })
+                }
+            }
+            match is_pattern.inner {
+                is null -> {}
+                _ -> {
+                    walk_pattern_bindings(ctx, is_pattern.inner, narrowed_target, inner_type, out, span)
+                }
+            }
+        }
+        is StructPattern as struct_pattern -> {
+            for field in struct_pattern.fields {
+                match field.value {
+                    is PatternBinding as binding -> {
+                        field_type :: struct_field_type(ctx, target_type, field.name)
+                        field_access :: LoweredFieldAccess {
+                            .span = field.span, .type = field_type,
+                            .target = target, .field = field.name,
+                        }
+                        symbol :: resolve_pattern_symbol(ctx, binding.span, binding.name)
+                        out.push(LoweredLet {
+                            .span = field.span, .name = binding.name, .symbol = symbol,
+                            .type = field_type, .value = field_access,
+                        })
+                    }
+                    _ -> {}
+                }
+            }
+        }
+        is TuplePattern as tuple_pattern -> {
+            element_types :: tuple_element_types(target_type, tuple_pattern.elements.len())
+            for i in 0..<tuple_pattern.elements.len() {
+                element_pattern :: tuple_pattern.elements[i]
+                element_type :: element_types[i]
+                field_access :: LoweredFieldAccess {
+                    .span = element_pattern.span, .type = element_type,
+                    .target = target, .field = "_${i}",
+                }
+                walk_pattern_bindings(ctx, element_pattern, field_access, element_type, out, element_pattern.span)
+            }
+        }
+        is WildcardPattern -> {}
+        is EnumVariantPattern -> {}
+        is LiteralPattern -> {}
+    }
+}
+
+narrow_target :: fn(target: LoweredExpr, target_type: Type, inner_type: Type, span: Span) -> LoweredExpr {
+    match target_type {
+        is UnionType -> { return LoweredCast { .span = span, .type = inner_type, .value = target } }
+        _ -> { return target }
+    }
+}
+
+struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) -> Type {
+    match target_type {
+        is StructType as st -> {
+            decl :: ctx.typed.struct_decls[st.symbol.id]
+            if decl is null { return TY_UNRESOLVED }
+            for field in decl.fields {
+                if field.name == field_name {
+                    return ctx.types.type_expr_type(field.ty)
+                }
+            }
+            return TY_UNRESOLVED
+        }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+// Pattern-introduced bindings : `resolved.idents.values()` exposes
+// every Symbol the resolver minted (use-sites stored against scope-
+// owned symbols). Scan once for one whose `defined_at` matches the
+// pattern's name_span. Synthesise a fresh symbol when the resolver
+// didn't write one — defensive against cascading diagnostics.
+resolve_pattern_symbol :: fn(ctx: FnLowerCtx, name_span: Span, name: string) -> Symbol {
+    target_key :: span_key(name_span)
+    for symbol in ctx.typed.resolved.idents.values() {
+        match symbol.defined_at {
+            is null -> {}
+            is Span as defined -> {
+                if span_key(defined) == target_key { return symbol }
+            }
+        }
+    }
+    return fresh_synthetic_symbol(ctx, name)
+}
+
+import "vader/lower/entry_types" { span_key }
+
+wrap_block :: fn(span: Span, expr: LoweredExpr) -> LoweredBlock {
+    return LoweredBlock { .span = span, .type = type_of(expr), .stmts = [], .trailing = expr }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq, assert }
+import "std/string" { byte_len }
+import "vader/diagnostics/diagnostic" { empty_span }
+
+@test test_fill_unresolved_emits_unresolved_array :: fn() -> void {
+    types :: fill_unresolved(usize(3))
+    assert_eq(types.len(), usize(3))
+}
+
+@test test_enum_variant_literal_unknown_emits_unreachable :: fn() -> void {
+    // Calling against an unresolved target yields a `LoweredUnreachable`
+    // carrying the variant-not-found reason. The lowerer never blows up
+    // on a malformed match — it always emits a well-formed shape so the
+    // dump stays predictable for cascading-diagnostic recovery.
+    result :: enum_variant_literal(TY_UNRESOLVED, "Foo", empty_span())
+    match result {
+        is LoweredUnreachable as u -> {
+            assert(u.reason.byte_len() > usize(0), "expected a non-empty reason")
+        }
+        _ -> { assert(false, "expected LoweredUnreachable") }
+    }
+}
+
+@test test_tuple_element_types_falls_back_to_unresolved :: fn() -> void {
+    // Non-tuple target widens to an all-unresolved slot list ; matches
+    // the typecheck's recovery semantics for arity mismatches.
+    types :: tuple_element_types(TY_UNRESOLVED, usize(2))
+    assert_eq(types.len(), usize(2))
+}
