@@ -1,0 +1,249 @@
+// vader/lower/lower — project-level lowerer orchestrator.
+//
+// Mirror of `src/lower/lower.ts::lowerProject`. Walks every top-level
+// decl across the project's typed modules, builds a stub `MonoEntry`
+// per non-generic decl, and dispatches to the per-decl-kind lowerer.
+// Phase 2 ships the skeleton with empty bodies ; Phase 3 fills in the
+// actual expression / statement lowering.
+//
+// The orchestrator takes `LoadedProject` (for source decls) +
+// `TypedProject` (for typed side-tables) + `EvaluatedProject` (for
+// comptime values + mono entries). Today's `EvaluatedProject.mono`
+// ships empty (the monomorphizer port is deferred to the bytecode emit
+// chantier) ; we walk loaded module decls directly until then.
+
+import "std/collections" { MutableMap, keys }
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/parser/ast" {
+    Decl, FnDecl, StructDecl, ConstDecl,
+}
+import "vader/resolver/loader" { LoadedProject, LoadedModule }
+import "vader/typecheck/typed_ast" { TypedProject, TypedProgram }
+import "vader/typecheck/substitution" { Substitution, new_substitution }
+import "vader/typecheck/types" {
+    Type, FnType, StructType, mk_struct, display_type, TY_UNRESOLVED, TY_VOID,
+}
+import "vader/comptime/evaluated_ast" { EvaluatedProject }
+import "vader/comptime/mono_ast" { MonoEntry }
+import "vader/lower/ctx" { LowerProjectCtx, new_lower_project_ctx }
+import "vader/lower/lowered_ast" {
+    LoweredProject, LoweredModule, LoweredDecl,
+    LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
+    LoweredParam, LoweredStructField, LoweredExpr, LoweredUnreachable,
+    new_lowered_project,
+}
+import "vader/lower/entry_types" {
+    EntryTypes, make_entry_types, span_key,
+    type_expr_type, fn_decl_type, const_decl_type, param_type, struct_decl_type,
+}
+
+/// Lower every module's top-level decls into a `LoweredProject`.
+/// @param loaded     the loaded project (for source decls per module).
+/// @param typed      the typed project (for side-tables).
+/// @param evaluated  the comptime engine's output.
+/// @param diags      diagnostics emitted by the lowerer (L5xxx codes).
+/// @return           the lowered project ready for downstream phases.
+export lower_project :: fn(
+    loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject, diags: Diagnostic[],
+) -> LoweredProject {
+    project_ctx :: new_lower_project_ctx(evaluated)
+    project :: new_lowered_project()
+
+    module_ids :: typed.modules.keys()
+    for module_id in module_ids {
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        module_loaded :: loaded.modules[module_id]
+        if module_loaded is null { continue }
+        decls :: module_decls(module_loaded)
+        lowered_module :: lower_module(module_id, module_typed, decls, project_ctx, diags)
+        project.modules[module_id] = lowered_module
+    }
+    return project
+}
+
+// Per-module driver. Walks the decl list, dispatches by kind, and
+// builds the resulting `LoweredModule`.
+lower_module :: fn(
+    module_id: string, typed: TypedProgram, decls: Decl[],
+    project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> LoweredModule {
+    out_decls: LoweredDecl[] = []
+    for decl in decls {
+        result :: lower_decl(decl, typed, project_ctx, diags)
+        match result {
+            is null -> {}
+            _       -> { out_decls.push(result) }
+        }
+    }
+    return LoweredModule {
+        .module_id    = module_id,
+        .display_path = module_id,
+        .decls        = out_decls,
+    }
+}
+
+// Per-decl dispatcher. Routes FnDecl / StructDecl / ConstDecl through
+// the matching phase-2 stub ; every other decl kind (Impl, Enum, Trait,
+// TypeAlias, Import, Assert) returns null (impl members surface via
+// the per-member fn-decl entries Phase 3 emits ; the others don't
+// produce runtime slots).
+lower_decl :: fn(
+    decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> LoweredDecl | null {
+    match decl {
+        is FnDecl     as fn_decl     -> { return lower_fn_decl(fn_decl, typed, project_ctx, diags) }
+        is StructDecl as struct_decl -> { return lower_struct_decl(struct_decl, typed, project_ctx, diags) }
+        is ConstDecl  as const_decl  -> { return lower_const_decl(const_decl, typed, project_ctx, diags) }
+        _ -> { return null }
+    }
+}
+
+// FnDecl → empty-body `LoweredFnDecl`. Phase 3 swaps the body in. The
+// generic case (`type_params.len() > 0`) is skipped until the mono pass
+// ships ; Phase 2's stub emits one entry per non-generic fn so the
+// dump shows the project's surface even before bodies fill in.
+lower_fn_decl :: fn(
+    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> LoweredDecl | null {
+    if fn_decl.type_params.len() > usize(0) { return null }
+    types :: make_entry_types(typed, new_substitution())
+    params: LoweredParam[] = []
+    for ast_param in fn_decl.params {
+        symbol :: typed.resolved.idents[span_key(ast_param.span)]
+        if symbol is null { continue }
+        param_type_val :: types.param_type(ast_param)
+        params.push(LoweredParam {
+            .name = ast_param.name, .symbol = symbol, .type = param_type_val,
+        })
+    }
+    return LoweredFnDecl {
+        .mangled     = fn_decl.name,
+        .params      = params,
+        .return_type = return_type_of(fn_decl, types),
+        .body        = null,
+        .origin      = stub_entry(fn_decl, typed),
+    }
+}
+
+// StructDecl → `LoweredStructDecl` with resolved field types. Phase 2
+// already needs this since the dump format includes the field list.
+lower_struct_decl :: fn(
+    struct_decl: StructDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> LoweredDecl | null {
+    if struct_decl.type_params.len() > usize(0) { return null }
+    types :: make_entry_types(typed, new_substitution())
+    fields: LoweredStructField[] = []
+    for field in struct_decl.fields {
+        fields.push(LoweredStructField {
+            .name = field.name,
+            .type = types.type_expr_type(field.ty),
+        })
+    }
+    return LoweredStructDecl {
+        .mangled = struct_decl.name,
+        .fields  = fields,
+        .origin  = stub_entry(struct_decl, typed),
+    }
+}
+
+// ConstDecl → `LoweredConstDecl` with a stub `LoweredUnreachable` value.
+// Phase 3 swaps the value in once the expression lowerer is online.
+lower_const_decl :: fn(
+    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> LoweredDecl | null {
+    types :: make_entry_types(typed, new_substitution())
+    type_val :: types.const_decl_type(const_decl)
+    value: LoweredExpr = LoweredUnreachable {
+        .span = const_decl.span, .type = type_val,
+        .reason = "const body lowering not yet ported",
+    }
+    return LoweredConstDecl {
+        .mangled = const_decl.name,
+        .type    = type_val,
+        .value   = value,
+        .origin  = stub_entry(const_decl, typed),
+    }
+}
+
+// Recover a fn-decl's resolved return type from `decl_types`. Falls
+// back to `void` when the decl-type lookup misses (the fn was rejected
+// upstream — cascading diagnostics already surfaced).
+return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
+    decl_type :: types.fn_decl_type(fn_decl)
+    match decl_type {
+        is FnType as ft -> { return ft.return_type }
+        _ -> { return TY_VOID }
+    }
+}
+
+// Build a stub `MonoEntry` for a decl ; Phase 2 doesn't need the full
+// substitution / mangling pipeline, just a carrier for `origin` so the
+// lowered nodes carry a back-pointer.
+stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
+    return MonoEntry {
+        .id             = i32(0),
+        .is_main        = is_main_decl(decl),
+        .mangled        = decl_name(decl),
+        .decl           = decl,
+        .symbol         = null,
+        .subst          = new_substitution(),
+        .type_arguments = [],
+        .module         = typed,
+    }
+}
+
+// Recover the source name from any top-level decl. Used for the stub
+// entry's `mangled` field ; Phase 3 will switch to the proper mangled
+// name once the monomorphizer ports.
+decl_name :: fn(decl: Decl) -> string = match decl {
+    is FnDecl     as f -> f.name
+    is StructDecl as s -> s.name
+    is ConstDecl  as c -> c.name
+    _ -> ""
+}
+
+is_main_decl :: fn(decl: Decl) -> bool {
+    match decl {
+        is FnDecl as f -> { return f.name == "main" }
+        _ -> { return false }
+    }
+}
+
+// Per-module decls. Loaded module's first file carries them ;
+// folder-modules with multiple files are flattened at load time so the
+// per-file accessor doesn't have to walk multiple files here. (Mirrors
+// `vader/comptime/check.vader::lookup_module_decls`.)
+module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
+    if module_loaded.module.files.len() == usize(0) { return [] }
+    out: Decl[] = []
+    for source_file in module_loaded.module.files {
+        for decl in source_file.program.decls {
+            out.push(decl)
+        }
+    }
+    return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "vader/typecheck/typed_ast" { new_typed_project }
+import "vader/comptime/evaluated_ast" { new_evaluated_project }
+
+@test test_lower_empty_project :: fn() -> void {
+    loaded :: LoadedProject {
+        .entry        = "",
+        .modules      = MutableMap(string, LoadedModule) { .buckets = [], .size = 0 },
+        .factory      = factory_for_test(),
+        .project_root = null,
+    }
+    typed :: new_typed_project()
+    evaluated :: new_evaluated_project(typed)
+    diags: Diagnostic[] = []
+    project :: lower_project(loaded, typed, evaluated, diags)
+    assert_eq(project.modules.size, usize(0))
+}
+
+import "vader/resolver/symbol" { new_factory, SymbolFactory }
+factory_for_test :: fn() -> SymbolFactory { return new_factory() }

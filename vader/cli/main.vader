@@ -25,6 +25,8 @@ import "vader/resolver/loader" { load_project }
 import "vader/typecheck/dump" { dump_program as dump_typed, dump_program_with_others }
 import "vader/comptime/check" { evaluate_project }
 import "vader/comptime/dump" { dump_evaluated }
+import "vader/lower/lower" { lower_project }
+import "vader/lower/dump" { dump_lowered }
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/fmt/cli" { run_fmt }
 import "vader/vm/exec" { run_virt }
@@ -312,9 +314,12 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if stage == "evaluated-ast" {
         return file.run_comptime_stage()
     }
+    if stage == "lowered-ast" {
+        return file.run_lower_stage()
+    }
 
     // Recognised TS stages — we know about them but can't run them yet.
-    if stage == "lowered-ast" || stage == "dced-ast" ||
+    if stage == "dced-ast" ||
        stage == "bytecode" || stage == "c" || stage == "wasm" {
         eprintln("vader dump: stage \"${stage}\" not yet implemented")
         return 2
@@ -399,19 +404,54 @@ run_typecheck_stage :: fn(file: string) -> i32 {
 }
 
 run_comptime_stage :: fn(file: string) -> i32 {
-    project :: load_project(file)
-    typecheck_diags: Diagnostic[] = []
-    result :: check_project_with_bodies(project, typecheck_diags)
-    typed_project :: assemble_typed_project(result)
-    comptime_diags: Diagnostic[] = []
-    evaluated :: evaluate_project(project, typed_project, comptime_diags)
-    println(dump_evaluated(evaluated))
+    pipeline :: prepare_evaluated_project(file)
+    println(dump_evaluated(pipeline.evaluated))
     // Comptime-stage diagnostics surface separately ; typecheck diagnostics
     // already shipped via the typed-ast stage and aren't replayed here.
-    if comptime_diags.len() > 0 {
-        println(comptime_diags.dump_diagnostics())
+    if pipeline.comptime_diags.len() > 0 {
+        println(pipeline.comptime_diags.dump_diagnostics())
     }
     return 0
+}
+
+run_lower_stage :: fn(file: string) -> i32 {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[] = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    println(dump_lowered(lowered))
+    // Only emit lowerer-stage diagnostics ; earlier-stage ones already
+    // surfaced via their own dump commands.
+    if lower_diags.len() > 0 {
+        println(lower_diags.dump_diagnostics())
+    }
+    return 0
+}
+
+import "vader/resolver/loader" { LoadedProject }
+import "vader/comptime/evaluated_ast" { EvaluatedProject }
+
+// Pipeline state shared by the comptime + lowerer dump stages : both
+// run load → typecheck → comptime and only diverge on the final dump.
+EvaluatedPipeline :: struct {
+    loaded:         LoadedProject
+    typed:          TypedProject
+    evaluated:      EvaluatedProject
+    comptime_diags: Diagnostic[]
+}
+
+prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
+    loaded :: load_project(file)
+    typecheck_diags: Diagnostic[] = []
+    result :: check_project_with_bodies(loaded, typecheck_diags)
+    typed :: assemble_typed_project(result)
+    comptime_diags: Diagnostic[] = []
+    evaluated :: evaluate_project(loaded, typed, comptime_diags)
+    return EvaluatedPipeline {
+        .loaded         = loaded,
+        .typed          = typed,
+        .evaluated      = evaluated,
+        .comptime_diags = comptime_diags,
+    }
 }
 
 // Bridge the typecheck orchestrator's `CheckResult` (entry + others)

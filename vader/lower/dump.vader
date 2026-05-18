@@ -1,0 +1,429 @@
+// vader/lower/dump — `# Lower` snapshot dump.
+//
+// Mirror of `tests/snapshot.ts::dumpLower`. Walks every non-stdlib
+// `LoweredModule`, sorts module ids alphabetically, and renders each
+// module's decls in a compact tree form :
+//
+//   # Lower
+//
+//   ## <module display path>
+//     fn <mangled>(<params>) -> <type>
+//       <body…>
+//     struct <mangled> { <field>: <type>, … }
+//     const <mangled>: <type> =
+//       <expr…>
+//
+// Expression rendering follows the same indent rules as the TS dumper
+// so byte-for-byte parity holds once Phase 3 fills the bodies.
+
+import "std/collections" { keys }
+import "std/sort" { sort }
+import "std/string" { compare_ascending }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/resolver/module" { is_stdlib_module }
+import "vader/resolver/symbol" { Symbol }
+import "vader/typecheck/types" { Type, display_type }
+import "vader/lower/lowered_ast" {
+    LoweredProject, LoweredModule, LoweredDecl,
+    LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
+    LoweredStmt, LoweredLet, LoweredAssign, LoweredCellSet, LoweredExprStmt,
+    LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
+    LoweredExpr, LoweredBlock, LoweredIntLit, LoweredFloatLit, LoweredBoolLit,
+    LoweredNullLit, LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
+    LoweredVirtualCall, LoweredFieldAccess, LoweredIndex, LoweredUnary,
+    LoweredUnaryOp, LoweredBinary, LoweredBinaryOp, LoweredIf, LoweredStructLit,
+    LoweredArrayLit, LoweredDataConst, LoweredCast, LoweredTypeCheck,
+    LoweredUnreachable, LoweredIntrinsicCall, LoweredArrayLen, LoweredArrayPush,
+    LoweredArraySlice, LoweredCellNew, LoweredCellGet, LoweredMakeClosure,
+    LoweredTypeConst,
+}
+
+/// Render the project's `# Lower` dump as a single string. Stdlib
+/// modules are filtered out to match the TS dumper byte-for-byte.
+/// @param project  the lowered project.
+/// @return         the formatted dump (no trailing newline).
+export dump_lowered :: fn(project: LoweredProject) -> string {
+    lines: string[] = []
+    lines.push("# Lower")
+    module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
+    for module_id in module_ids {
+        module :: project.modules[module_id]
+        if module is null { continue }
+        if is_stdlib_module(module.display_path) { continue }
+        lines.push("")
+        lines.push("## ${module.display_path}")
+        for decl in module.decls {
+            emit_decl(lines, decl, "  ")
+        }
+    }
+    return join_lines(lines)
+}
+
+emit_decl :: fn(lines: string[], decl: LoweredDecl, indent: string) -> void {
+    match decl {
+        is LoweredFnDecl as fn_decl -> {
+            params :: render_params(fn_decl.params)
+            lines.push("${indent}fn ${fn_decl.mangled}(${params}) -> ${display_type(fn_decl.return_type)}")
+            match fn_decl.body {
+                is null -> { lines.push("${indent}  <extern / signature only>") }
+                is LoweredBlock as body -> { emit_block(lines, body, "${indent}  ") }
+            }
+        }
+        is LoweredStructDecl as struct_decl -> {
+            fields :: render_fields(struct_decl.fields)
+            lines.push("${indent}struct ${struct_decl.mangled} { ${fields} }")
+        }
+        is LoweredConstDecl as const_decl -> {
+            lines.push("${indent}const ${const_decl.mangled}: ${display_type(const_decl.type)} =")
+            emit_expr(lines, const_decl.value, "${indent}  ")
+        }
+    }
+}
+
+import "vader/lower/lowered_ast" { LoweredParam, LoweredStructField }
+
+render_params :: fn(params: LoweredParam[]) -> string {
+    sb := new_builder()
+    for i in 0..<params.len() {
+        if i > usize(0) { sb.append(", ") }
+        sb.append("${params[i].name}: ${display_type(params[i].type)}")
+    }
+    return sb.to_string()
+}
+
+render_fields :: fn(fields: LoweredStructField[]) -> string {
+    sb := new_builder()
+    for i in 0..<fields.len() {
+        if i > usize(0) { sb.append(", ") }
+        sb.append("${fields[i].name}: ${display_type(fields[i].type)}")
+    }
+    return sb.to_string()
+}
+
+emit_block :: fn(lines: string[], block: LoweredBlock, indent: string) -> void {
+    for stmt in block.stmts {
+        emit_stmt(lines, stmt, indent)
+    }
+    match block.trailing {
+        is null -> {}
+        _       -> {
+            lines.push("${indent}~>")
+            emit_expr(lines, block.trailing, "${indent}  ")
+        }
+    }
+}
+
+emit_stmt :: fn(lines: string[], stmt: LoweredStmt, indent: string) -> void {
+    match stmt {
+        is LoweredLet as let_stmt -> {
+            inline_value :: expr_inline(let_stmt.value)
+            match inline_value {
+                is string as single -> {
+                    lines.push("${indent}let ${let_stmt.name}: ${display_type(let_stmt.type)} = ${single}")
+                }
+                is null -> {
+                    lines.push("${indent}let ${let_stmt.name}: ${display_type(let_stmt.type)} =")
+                    emit_expr(lines, let_stmt.value, "${indent}  ")
+                }
+            }
+        }
+        is LoweredAssign as assign -> {
+            lines.push("${indent}assign")
+            lines.push("${indent}  target:")
+            emit_expr(lines, assign.target, "${indent}    ")
+            lines.push("${indent}  value:")
+            emit_expr(lines, assign.value, "${indent}    ")
+        }
+        is LoweredCellSet as cell_set -> {
+            lines.push("${indent}cell.set :${display_type(cell_set.value_type)}")
+            lines.push("${indent}  target:")
+            emit_expr(lines, cell_set.target, "${indent}    ")
+            lines.push("${indent}  value:")
+            emit_expr(lines, cell_set.value, "${indent}    ")
+        }
+        is LoweredExprStmt as expr_stmt -> {
+            emit_expr(lines, expr_stmt.expr, indent)
+        }
+        is LoweredReturn as ret -> {
+            match ret.value {
+                is null -> { lines.push("${indent}return") }
+                _ -> {
+                    inline_value :: expr_inline(ret.value)
+                    match inline_value {
+                        is string as single -> { lines.push("${indent}return ${single}") }
+                        is null -> {
+                            lines.push("${indent}return")
+                            emit_expr(lines, ret.value, "${indent}  ")
+                        }
+                    }
+                }
+            }
+        }
+        is LoweredLoop as loop_stmt -> {
+            cond_suffix :: render_loop_cond(loop_stmt.cond)
+            label_suffix :: render_label(loop_stmt.label)
+            lines.push("${indent}loop${cond_suffix}${label_suffix}")
+            emit_block(lines, loop_stmt.body, "${indent}  ")
+        }
+        is LoweredBreak as break_stmt -> {
+            lines.push("${indent}break${render_label(break_stmt.label)}")
+        }
+        is LoweredContinue as continue_stmt -> {
+            lines.push("${indent}continue${render_label(continue_stmt.label)}")
+        }
+    }
+}
+
+render_loop_cond :: fn(cond: LoweredExpr | null) -> string {
+    match cond {
+        is null -> { return "" }
+        _ -> {
+            inline_value :: expr_inline(cond)
+            match inline_value {
+                is string as single -> { return " while (${single})" }
+                is null -> { return " while (<…>)" }
+            }
+        }
+    }
+}
+
+render_label :: fn(label: string | null) -> string {
+    match label {
+        is null -> { return "" }
+        is string as text -> { return " :${text}" }
+    }
+}
+
+emit_expr :: fn(lines: string[], expr: LoweredExpr, indent: string) -> void {
+    inline_value :: expr_inline(expr)
+    match inline_value {
+        is string as single -> { lines.push("${indent}${single}") }
+        is null -> { emit_expr_compound(lines, expr, indent) }
+    }
+}
+
+emit_expr_compound :: fn(lines: string[], expr: LoweredExpr, indent: string) -> void {
+    match expr {
+        is LoweredCall as call_expr -> {
+            lines.push("${indent}call :${display_type(call_expr.type)}")
+            lines.push("${indent}  callee:")
+            emit_expr(lines, call_expr.callee, "${indent}    ")
+            for i in 0..<call_expr.args.len() {
+                lines.push("${indent}  arg${i}:")
+                emit_expr(lines, call_expr.args[i], "${indent}    ")
+            }
+        }
+        is LoweredVirtualCall as vcall -> {
+            lines.push("${indent}vcall ${vcall.trait_name}.${vcall.method} :${display_type(vcall.type)}")
+            lines.push("${indent}  recv:")
+            emit_expr(lines, vcall.receiver, "${indent}    ")
+            for i in 0..<vcall.args.len() {
+                lines.push("${indent}  arg${i}:")
+                emit_expr(lines, vcall.args[i], "${indent}    ")
+            }
+        }
+        is LoweredFieldAccess as field -> {
+            lines.push("${indent}.${field.field} :${display_type(field.type)}")
+            emit_expr(lines, field.target, "${indent}  ")
+        }
+        is LoweredIndex as idx -> {
+            lines.push("${indent}index :${display_type(idx.type)}")
+            lines.push("${indent}  on:")
+            emit_expr(lines, idx.target, "${indent}    ")
+            lines.push("${indent}  ix:")
+            emit_expr(lines, idx.index, "${indent}    ")
+        }
+        is LoweredUnary as unary -> {
+            lines.push("${indent}${unary_op_name(unary.op)} :${display_type(unary.type)}")
+            emit_expr(lines, unary.operand, "${indent}  ")
+        }
+        is LoweredBinary as binary -> {
+            lines.push("${indent}${binary_op_name(binary.op)} :${display_type(binary.type)}")
+            lines.push("${indent}  l:")
+            emit_expr(lines, binary.left, "${indent}    ")
+            lines.push("${indent}  r:")
+            emit_expr(lines, binary.right, "${indent}    ")
+        }
+        is LoweredIf as if_expr -> {
+            lines.push("${indent}if :${display_type(if_expr.type)}")
+            lines.push("${indent}  cond:")
+            emit_expr(lines, if_expr.cond, "${indent}    ")
+            lines.push("${indent}  then:")
+            emit_block(lines, if_expr.then_block, "${indent}    ")
+            match if_expr.else_block {
+                is null -> {}
+                is LoweredBlock as else_block -> {
+                    lines.push("${indent}  else:")
+                    emit_block(lines, else_block, "${indent}    ")
+                }
+            }
+        }
+        is LoweredBlock as block -> {
+            lines.push("${indent}block :${display_type(block.type)}")
+            emit_block(lines, block, "${indent}  ")
+        }
+        is LoweredStructLit as struct_lit -> {
+            lines.push("${indent}${display_type(struct_lit.type)} {")
+            for field in struct_lit.fields {
+                inline_field :: expr_inline(field.value)
+                match inline_field {
+                    is string as single -> { lines.push("${indent}  ${field.name}: ${single}") }
+                    is null -> {
+                        lines.push("${indent}  ${field.name}:")
+                        emit_expr(lines, field.value, "${indent}    ")
+                    }
+                }
+            }
+            lines.push("${indent}}")
+        }
+        is LoweredArrayLit as array_lit -> {
+            lines.push("${indent}array :${display_type(array_lit.type)}")
+            for element in array_lit.elements {
+                emit_expr(lines, element, "${indent}  ")
+            }
+        }
+        is LoweredDataConst as data_const -> {
+            lines.push("${indent}data_const #${data_const.pool_index} :${display_type(data_const.type)}")
+        }
+        is LoweredCast as cast -> {
+            lines.push("${indent}cast → ${display_type(cast.type)}")
+            emit_expr(lines, cast.value, "${indent}  ")
+        }
+        is LoweredTypeCheck as type_check -> {
+            lines.push("${indent}is ${display_type(type_check.check_type)} :bool")
+            emit_expr(lines, type_check.value, "${indent}  ")
+        }
+        is LoweredIntrinsicCall as intrinsic -> {
+            tail :: render_display_for(intrinsic.display_for)
+            lines.push("${indent}@${intrinsic.name}${tail} :${display_type(intrinsic.type)}")
+            for arg in intrinsic.args {
+                emit_expr(lines, arg, "${indent}  ")
+            }
+        }
+        is LoweredArraySlice as slice -> {
+            lines.push("${indent}slice :${display_type(slice.type)}")
+            lines.push("${indent}  on:")
+            emit_expr(lines, slice.target, "${indent}    ")
+            lines.push("${indent}  lo:")
+            emit_expr(lines, slice.lo, "${indent}    ")
+            lines.push("${indent}  hi:")
+            emit_expr(lines, slice.hi, "${indent}    ")
+        }
+        // Variants the TS dumper falls through to `default` — render
+        // their canonical kind tag so they don't show up empty.
+        _ -> {
+            lines.push("${indent}${expr_kind_label(expr)}")
+        }
+    }
+}
+
+// Compact-line renderer. Returns `null` when the expr needs a vertical
+// expansion (`emit_expr_compound` handles those). Mirrors the TS
+// `exprInline` table : literals, ident, unreachable → single line ;
+// everything else returns null.
+expr_inline :: fn(expr: LoweredExpr) -> string | null {
+    match expr {
+        is LoweredIntLit as lit    -> { return "int(${lit.value}) :${display_type(lit.type)}" }
+        is LoweredFloatLit as lit  -> { return "float(${lit.value}) :${display_type(lit.type)}" }
+        is LoweredBoolLit as lit   -> { return "${lit.value}" }
+        is LoweredNullLit          -> { return "null" }
+        is LoweredCharLit as lit   -> { return "char(0x${hex_string(lit.value)})" }
+        is LoweredStringLit as lit -> { return "${quote_simple(lit.value)} :string" }
+        is LoweredIdent as ident   -> { return "${ident.symbol.name} :${display_type(ident.type)}" }
+        is LoweredUnreachable as u -> { return "unreachable(\"${u.reason}\") :${display_type(u.type)}" }
+        _ -> { return null }
+    }
+}
+
+import "std/numbers" { to_hex }
+hex_string :: fn(value: u32) -> string {
+    return to_hex(u64(value))
+}
+
+// Simple-escape mirror of the TS `quoteSimple` helper. Doubles up `"`
+// and `\`, encodes `\n` / `\t` / `\r` ; passes everything else through
+// codepoint-by-codepoint so multi-byte UTF-8 sequences round-trip.
+quote_simple :: fn(value: string) -> string {
+    sb := new_builder()
+    sb.append_char('"')
+    for c in value {
+        if c == '"' { sb.append("\\\"") }
+        else if c == '\\' { sb.append("\\\\") }
+        else if c == '\n' { sb.append("\\n") }
+        else if c == '\t' { sb.append("\\t") }
+        else if c == '\r' { sb.append("\\r") }
+        else { sb.append_char(c) }
+    }
+    sb.append_char('"')
+    return sb.to_string()
+}
+
+unary_op_name :: fn(op: LoweredUnaryOp) -> string = match op {
+    .Neg    -> "neg"
+    .Not    -> "not"
+    .BitNot -> "bitnot"
+}
+
+binary_op_name :: fn(op: LoweredBinaryOp) -> string = match op {
+    .Add    -> "add"
+    .Sub    -> "sub"
+    .Mul    -> "mul"
+    .Div    -> "div"
+    .Mod    -> "mod"
+    .Shl    -> "shl"
+    .Shr    -> "shr"
+    .BitAnd -> "bitand"
+    .BitOr  -> "bitor"
+    .BitXor -> "bitxor"
+    .And    -> "and"
+    .Or     -> "or"
+    .Eq     -> "eq"
+    .Neq    -> "neq"
+    .Lt     -> "lt"
+    .Lte    -> "lte"
+    .Gt     -> "gt"
+    .Gte    -> "gte"
+}
+
+render_display_for :: fn(display_for: Type | null) -> string {
+    match display_for {
+        is null -> { return "" }
+        _ -> { return " <for ${display_type(display_for)}>" }
+    }
+}
+
+// Per-variant label fallback for shapes the TS dumper renders via
+// `e.kind` — matches the canonical kind tag the TS interface declares.
+expr_kind_label :: fn(expr: LoweredExpr) -> string = match expr {
+    is LoweredArrayLen     -> "LoweredArrayLen"
+    is LoweredArrayPush    -> "LoweredArrayPush"
+    is LoweredCellNew      -> "LoweredCellNew"
+    is LoweredCellGet      -> "LoweredCellGet"
+    is LoweredMakeClosure  -> "LoweredMakeClosure"
+    is LoweredTypeConst    -> "LoweredTypeConst"
+    _ -> "<unknown>"
+}
+
+join_lines :: fn(lines: string[]) -> string {
+    sb := new_builder()
+    for i in 0..<lines.len() {
+        if i > usize(0) { sb.append_char('\n') }
+        sb.append(lines[i])
+    }
+    return sb.to_string()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_dump_empty_project_header_only :: fn() -> void {
+    project :: empty_test_project()
+    assert_eq(dump_lowered(project), "# Lower")
+}
+
+import "vader/lower/lowered_ast" { new_lowered_project }
+empty_test_project :: fn() -> LoweredProject {
+    return new_lowered_project()
+}

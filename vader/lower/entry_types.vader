@@ -118,10 +118,13 @@ export const_decl_type :: fn(self: EntryTypes, decl: ConstDecl) -> Type {
     return apply_or_unresolved(self, self.typed.decl_types[span_key(decl.name_span)])
 }
 
-// Span-key mirror of `vader/resolver/scope::span_key` — duplicated
-// here so the lower layer doesn't pull the scope module in. Format is
-// `"line:column"` of the span's start.
-span_key :: fn(span: Span) -> string {
+/// Span-key mirror of `vader/resolver/scope::span_key` — re-exposed on
+/// the lower layer so passes can index span-keyed side-tables without
+/// importing the scope module. Format is `"line:column"` of the
+/// span's start.
+/// @param span  any AST span.
+/// @return      the `"line:column"` lookup key.
+export span_key :: fn(span: Span) -> string {
     return "${span.start.line}:${span.start.column}"
 }
 
