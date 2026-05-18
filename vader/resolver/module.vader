@@ -142,7 +142,7 @@ export load_module_files :: fn(root_path: string) -> SourceFile[] {
     return out
 }
 
-list_vader_files :: fn(root_path: string) -> string[] {
+export list_vader_files :: fn(root_path: string) -> string[] {
     if !exists(root_path) { return [] }
     if !is_dir(root_path) {
         if ends_with(root_path, ".vader") { return [root_path] }

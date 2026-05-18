@@ -14,7 +14,7 @@
 //   - Auto-loads no `std/core` ; only what the entry transitively
 //     imports.
 
-import "std/collections" { MutableMap }
+import "std/collections" { MutableMap, keys }
 import "vader/parser" { NodeIdFactory, new_node_id_factory }
 import "vader/resolver/collect" { CollectedModule, collect_module }
 import "vader/resolver/module" {
@@ -52,12 +52,19 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
     stdlib_root :: default_stdlib_root()
     project_root :: find_manifest_root(entry_path)
 
-    entry_id :: module_id_from_root(entry_path)
+    // When the entry is a single `.vader` file living inside a folder
+    // that contains other `.vader` files (e.g. `vader/lexer/lexer.vader`
+    // alongside `token.vader` + `keywords.vader`), the file is part of
+    // a folder-module. Promote the entry to the parent dir so the whole
+    // module loads — otherwise cross-file references inside the same
+    // logical module surface as R2006 / cascading `?` types.
+    promoted_entry :: promote_to_folder_module(entry_path)
+    entry_id :: module_id_from_root(promoted_entry)
     // Auto-load `std/core` (mirrors TS `loadProject`'s autoloadCore
     // behavior). Lets `Range`, `Field`, `Display` and other core
     // structs/traits resolve cross-module even when the entry
     // doesn't explicitly import them.
-    core_target :: resolve_import_path("std/core", entry_path, stdlib_root, project_root)
+    core_target :: resolve_import_path("std/core", promoted_entry, stdlib_root, project_root)
     match core_target {
         is null -> {}
         _ -> { load_one(core_target, stdlib_root, modules, factory) }
@@ -72,7 +79,7 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
     // smaller-memory transitive load (Vader self-host OOMs on the
     // ~150-module vader/* tree today) or on-demand load triggered
     // from the wire pass.
-    load_one(entry_path, stdlib_root, modules, factory)
+    load_one(promoted_entry, stdlib_root, modules, factory)
     entry_loaded :: modules[entry_id]
     match entry_loaded {
         is null -> {}
@@ -121,11 +128,41 @@ has_module :: fn(modules: MutableMap(string, LoadedModule), id: string) -> bool 
 }
 
 collect_files :: fn(files: SourceFile[], module_id: string, factory: SymbolFactory) -> CollectedModule {
-    // Multi-file collect : run collect_module on each file's program
-    // and merge into one `CollectedModule`. For MVP we collect from
-    // file 0 only ; the multi-file merge lands later (no parity
-    // snippet today exercises a multi-file local module).
-    return collect_module(files[0].program, module_id, factory)
+    // Multi-file collect : merge every file's collected view into one
+    // module-wide table. Each file mints fresh Symbol ids through the
+    // shared factory, so the maps just need their entries union'd.
+    merged :: collect_module(files[0].program, module_id, factory)
+    for i in 1..<files.len() {
+        per_file :: collect_module(files[i].program, module_id, factory)
+        merge_collected(merged, per_file)
+    }
+    return merged
+}
+
+merge_collected :: fn(dst: CollectedModule, src: CollectedModule) -> void {
+    for name in src.symbols.keys() {
+        sym :: src.symbols[name]
+        if sym is null { continue }
+        dst.symbols[name] = sym
+    }
+    for name in src.fn_overloads.keys() {
+        bucket :: src.fn_overloads[name]
+        if bucket is null { continue }
+        existing :: dst.fn_overloads[name]
+        match existing {
+            is null -> { dst.fn_overloads[name] = bucket }
+            _ -> {
+                for s in bucket { existing.push(s) }
+                dst.fn_overloads[name] = existing
+            }
+        }
+    }
+    for id in src.imports.keys() {
+        info :: src.imports[id]
+        if info is null { continue }
+        dst.imports[id] = info
+    }
+    for p in src.import_paths { dst.import_paths.push(p) }
 }
 
 /// Display-path heuristic : when `root` lives under `stdlib_root`,
@@ -148,3 +185,17 @@ import "std/string" {
 
 substring_from :: fn(s: string, lo: usize) -> string { return slice(s, lo, s.byte_len()) }
 substring_until :: fn(s: string, hi: usize) -> string { return slice(s, usize(0), hi) }
+
+import "vader/resolver/module" { list_vader_files, dir_of }
+
+promote_to_folder_module :: fn(entry_path: string) -> string {
+    if !entry_path.ends_with(".vader") { return entry_path }
+    parent :: dir_of(entry_path)
+    if parent == "" { return entry_path }
+    siblings :: list_vader_files(parent)
+    // Only promote when more than one .vader sits in the parent dir ;
+    // a single-file folder (e.g. `stdlib/std/json.vader`) keeps the
+    // file-as-module semantics so per-file dumps stay focused.
+    if siblings.len() <= usize(1) { return entry_path }
+    return parent
+}
