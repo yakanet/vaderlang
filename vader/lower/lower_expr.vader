@@ -303,10 +303,30 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
 }
 
 lower_seq_lit :: fn(ctx: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr {
-    elements: LoweredExpr[] = []
-    for element in lit.elements { elements.push(lower_expr(ctx, element)) }
-    return LoweredArrayLit { .span = lit.span, .type = type, .elements = elements }
+    // Tuples share the parser shape `[a, b, c]` with arrays — disambiguate
+    // by the resolved type. Tuple-typed literals become struct lits with
+    // synthetic `_0` / `_1` / ... fields ; the bytecode emit reads them
+    // off the same struct layout the typer pins.
+    match type {
+        is TupleType -> {
+            fields: LoweredStructLitField[] = []
+            for i in 0..<lit.elements.len() {
+                fields.push(LoweredStructLitField {
+                    .name = "_${i}",
+                    .value = lower_expr(ctx, lit.elements[i]),
+                })
+            }
+            return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
+        }
+        _ -> {
+            elements: LoweredExpr[] = []
+            for element in lit.elements { elements.push(lower_expr(ctx, element)) }
+            return LoweredArrayLit { .span = lit.span, .type = type, .elements = elements }
+        }
+    }
 }
+
+import "vader/typecheck/types" { TupleType }
 
 // Preserve the `@<name>(args)` call shape. Comptime-foldable variants
 // (`@size_of`, `@type_kind`, …) get baked at evaluation time and reach
