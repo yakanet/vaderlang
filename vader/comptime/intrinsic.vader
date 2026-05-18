@@ -1,0 +1,172 @@
+// vader/comptime/intrinsic — comptime evaluator for `@<name>(args)` calls.
+//
+// Minimal Phase 5 scope : `@size_of`, `@align_of`, `@type_name`,
+// `@type_kind`. Every other intrinsic falls back to `C4002` ; richer
+// coverage (`@field`, `@fields`, `@file`, `@env`, …) lands when the
+// downstream consumer (lowerer / bytecode emit) is ported and the
+// missing infrastructure can be validated end-to-end.
+
+import "vader/comptime/eval_types" { EvalResult, ComptimeContext, ok, fail, vm_required }
+import "vader/comptime/value" { ComptimeValue, int_val_typed, string_val }
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/types" {
+    Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
+    FnType, TypeParamType, UnionType, UnresolvedType, display_type,
+}
+import "vader/diagnostics/diagnostic" { Diagnostic, comptime_error }
+import "vader/diagnostics/codes" { ComptimeCode }
+AST :: import "vader/parser/ast"
+
+/// Dispatch a `@<name>(args)` call to the matching evaluator. Returns
+/// `vm_required` for unknown intrinsics so the caller skips the decl.
+/// @param expr     the intrinsic call node.
+/// @param context  the evaluator context — used for `type_from_expr`.
+/// @return         the evaluated value or a `C4xxx` diagnostic.
+export evaluate_intrinsic_call :: fn(
+    expr: AST.IntrinsicCallExpr, context: ComptimeContext,
+) -> EvalResult {
+    if expr.name == "size_of"   { return intrinsic_size_of(expr, context) }
+    if expr.name == "align_of"  { return intrinsic_align_of(expr, context) }
+    if expr.name == "type_name" { return intrinsic_type_name(expr, context) }
+    if expr.name == "type_kind" { return intrinsic_type_kind(expr, context) }
+    return vm_required(expr.span, "@${expr.name}")
+}
+
+intrinsic_size_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
+    if expr.args.len() != usize(1) {
+        return arg_count_error(expr, "size_of", usize(1))
+    }
+    arg_type :: resolve_type_arg(expr.args[0], context)
+    match arg_type {
+        is null -> { return arg_error(expr, "size_of: argument is not a type") }
+        _       -> { return ok(int_val_typed(byte_size(arg_type), "usize")) }
+    }
+}
+
+intrinsic_align_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
+    if expr.args.len() != usize(1) {
+        return arg_count_error(expr, "align_of", usize(1))
+    }
+    arg_type :: resolve_type_arg(expr.args[0], context)
+    match arg_type {
+        is null -> { return arg_error(expr, "align_of: argument is not a type") }
+        _       -> { return ok(int_val_typed(byte_align(arg_type), "usize")) }
+    }
+}
+
+intrinsic_type_name :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
+    if expr.args.len() != usize(1) {
+        return arg_count_error(expr, "type_name", usize(1))
+    }
+    arg_type :: resolve_type_arg(expr.args[0], context)
+    match arg_type {
+        is null -> { return arg_error(expr, "type_name: argument is not a type") }
+        _       -> { return ok(string_val(display_type(arg_type))) }
+    }
+}
+
+intrinsic_type_kind :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
+    if expr.args.len() != usize(1) {
+        return arg_count_error(expr, "type_kind", usize(1))
+    }
+    arg_type :: resolve_type_arg(expr.args[0], context)
+    match arg_type {
+        is null -> { return arg_error(expr, "type_kind: argument is not a type") }
+        _       -> { return ok(string_val(type_kind_label(arg_type))) }
+    }
+}
+
+// ---- helpers --------------------------------------------------------------
+
+// Resolve `expr` (a type-position expression like `i32` or `MutableMap(K, V)`)
+// to a `Type`. Returns null when resolution fails — the caller surfaces
+// C4005 with a friendly message.
+resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null {
+    raw :: type_from_expr(expr, context.typed.resolved, diag_sink())
+    match raw {
+        is UnresolvedType -> { return null }
+        _                 -> { return raw }
+    }
+}
+
+diag_sink :: fn() -> Diagnostic[] { return [] }
+
+// Primitive byte sizes match `intrinsic_assert`'s expectations
+// (`@size_of(i32) == 4`, `@size_of(string) == 16`, …). Composite types
+// (struct / array / tuple) fall back to a placeholder until the
+// lowerer port lands and ABI-accurate sizing becomes meaningful.
+byte_size :: fn(t: Type) -> i64 = match t {
+    is PrimitiveType as p -> primitive_size(p.name)
+    _                     -> 0
+}
+
+byte_align :: fn(t: Type) -> i64 = match t {
+    is PrimitiveType as p -> primitive_align(p.name)
+    _                     -> 0
+}
+
+primitive_size :: fn(name: string) -> i64 {
+    if name == "i8"     { return 1 }
+    if name == "u8"     { return 1 }
+    if name == "bool"   { return 1 }
+    if name == "i16"    { return 2 }
+    if name == "u16"    { return 2 }
+    if name == "i32"    { return 4 }
+    if name == "u32"    { return 4 }
+    if name == "char"   { return 4 }
+    if name == "f32"    { return 4 }
+    if name == "i64"    { return 8 }
+    if name == "u64"    { return 8 }
+    if name == "f64"    { return 8 }
+    if name == "isize"  { return 8 }
+    if name == "usize"  { return 8 }
+    if name == "string" { return 16 }
+    return 0
+}
+
+primitive_align :: fn(name: string) -> i64 {
+    // 64-bit targets : alignment == size for every primitive we expose.
+    return primitive_size(name)
+}
+
+type_kind_label :: fn(t: Type) -> string = match t {
+    is PrimitiveType  -> "primitive"
+    is StructType     -> "struct"
+    is EnumType       -> "enum"
+    is TraitType      -> "trait"
+    is ArrayType      -> "array"
+    is TupleType      -> "tuple"
+    is FnType         -> "fn"
+    is TypeParamType  -> "type_param"
+    is UnionType      -> "union"
+    _                 -> "unknown"
+}
+
+arg_count_error :: fn(expr: AST.IntrinsicCallExpr, name: string, expected: usize) -> EvalResult {
+    return fail(comptime_error(.IntrinsicArg, expr.span,
+        "@${name} expects ${expected} argument(s), got ${expr.args.len()}"))
+}
+
+arg_error :: fn(expr: AST.IntrinsicCallExpr, detail: string) -> EvalResult {
+    return fail(comptime_error(.IntrinsicArg, expr.span, detail))
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_primitive_size_table :: fn() -> void {
+    assert_eq(primitive_size("i32"), i64(4))
+    assert_eq(primitive_size("i64"), i64(8))
+    assert_eq(primitive_size("string"), i64(16))
+    assert_eq(primitive_size("unknown_type"), i64(0))
+}
+
+@test test_type_kind_label :: fn() -> void {
+    int_type :: type_for_primitive("i32")
+    assert_eq(type_kind_label(int_type), "primitive")
+}
+
+import "vader/typecheck/types" { mk_primitive }
+
+type_for_primitive :: fn(name: string) -> Type { return mk_primitive(name) }

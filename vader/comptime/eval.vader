@@ -16,6 +16,7 @@ import "vader/comptime/eval_lit" {
 }
 import "vader/comptime/eval_binary" { evaluate_binary_expr, evaluate_unary_expr }
 import "vader/comptime/eval_ident" { evaluate_ident }
+import "vader/comptime/intrinsic" { evaluate_intrinsic_call }
 AST :: import "vader/parser/ast"
 
 /// Tree-walk dispatcher. Returns whatever the per-variant helper
@@ -31,9 +32,10 @@ export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResu
     is AST.NullLitExpr   as x -> evaluate_null_lit(x)
     is AST.StringLitExpr as x -> evaluate_string_lit(x, context)
     is AST.IdentExpr     as x -> evaluate_ident(x, context)
-    is AST.BinaryExpr    as x -> evaluate_binary_expr(x, context, evaluate_expr)
-    is AST.UnaryExpr     as x -> evaluate_unary_expr(x, context, evaluate_expr)
-    _                         -> vm_required(span_of(expr), expr_kind_label(expr))
+    is AST.BinaryExpr        as x -> evaluate_binary_expr(x, context, evaluate_expr)
+    is AST.UnaryExpr         as x -> evaluate_unary_expr(x, context, evaluate_expr)
+    is AST.IntrinsicCallExpr as x -> evaluate_intrinsic_call(x, context)
+    _                             -> vm_required(span_of(expr), expr_kind_label(expr))
 }
 
 /// Recover the span of any expression variant for diagnostic emission.
