@@ -31,7 +31,7 @@ export try_into :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
     return false
 }
 
-try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
+export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
     if !(got is ArrayType) { return false }
     if !(expected is TraitType) { return false }
     if expected.symbol.name != "Iterator" { return false }

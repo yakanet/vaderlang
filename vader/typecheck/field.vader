@@ -307,6 +307,7 @@ import "vader/typecheck/types" {
     FnType, TypeParamType,
     mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
 }
+import "vader/typecheck/coerce" { try_array_to_iter, try_trait_widen }
 import "vader/typecheck/type_ops" { union_of }
 import "vader/typecheck/types" { mk_primitive, mk_union, TY_VOID }
 
@@ -639,7 +640,7 @@ try_free_fn_ufcs_with_first :: fn(
                 ft :: typed.decl_types[span_key(sp)]
                 if ft is null { continue }
                 if !(ft is FnType) { continue }
-                curried :: try_curry_receiver(ft, target_ty)
+                curried :: try_curry_receiver(ft, target_ty, typed)
                 if !(curried is null) {
                     return UfcsResult { .curried = curried, .first_param = ft.params[0] }
                 }
@@ -651,7 +652,7 @@ try_free_fn_ufcs_with_first :: fn(
         is null -> {}
         _ -> {
             for ft in imported {
-                curried :: try_curry_receiver(ft, target_ty)
+                curried :: try_curry_receiver(ft, target_ty, typed)
                 if !(curried is null) {
                     return UfcsResult { .curried = curried, .first_param = ft.params[0] }
                 }
@@ -661,12 +662,28 @@ try_free_fn_ufcs_with_first :: fn(
     return null
 }
 
-try_curry_receiver :: fn(ft: FnType, target_ty: Type) -> Type | null {
+try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Type | null {
     if ft.params.len() == 0 { return null }
-    if !is_assignable(target_ty, ft.params[0], null) { return null }
+    if !receiver_fits_first_param(target_ty, ft.params[0], typed) { return null }
     rest: Type[] = []
     for i in 1..<ft.params.len() { rest.push(ft.params[i]) }
     return mk_fn(rest, ft.return_type)
+}
+
+// A receiver fits a UFCS first-param when (a) direct assignability holds,
+// (b) the param is a wildcard TypeParam, or (c) the param is a trait the
+// receiver implements — same flexibility TS gives `rankOverloadsByFirstParam`.
+// Trait widening here covers user `T implements Trait` impls AND
+// `Array(T) implements Iterator(T)` (which is hardcoded via `try_array_to_iter`
+// because adding it to `is_assignable` bloats c-emit).
+receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgram) -> bool {
+    if is_assignable(target_ty, first, null) { return true }
+    if first is TypeParamType { return true }
+    if first is TraitType {
+        if try_trait_widen(target_ty, first, typed) { return true }
+        if try_array_to_iter(target_ty, first) { return true }
+    }
+    return false
 }
 
 // Walk `param` against `actual` and record `TypeParam.symbol.id →
