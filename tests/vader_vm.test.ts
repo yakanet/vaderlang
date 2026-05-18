@@ -18,9 +18,7 @@ import { existsSync, readFileSync } from "node:fs";
 
 import { formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
-import { ensureCliBuilt, runCli } from "./cli-bin.ts";
-
-ensureCliBuilt();
+import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
 // Snippets that the self-host VM can't yet run end-to-end. New entries
 // should carry a one-line explanation + a link to the issue / commit
@@ -73,5 +71,5 @@ for (const s of scenarios) {
         snapshotDiff(cmp.snapPath, cmp.expected, actual),
       );
     }
-  }, { timeout: 30_000 });
+  }, { timeout: MEDIUM_BUILD });
 }

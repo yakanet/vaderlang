@@ -5,6 +5,7 @@ import {
   loadConfig, snapshotEquals,
 } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
+import { MEDIUM_BUILD } from "./cli-bin.ts";
 
 // Each phase entry describes one compilation stage to snapshot:
 //   name    — label used in test names and error messages.
@@ -52,6 +53,6 @@ for (const s of scenarios) {
           snapshotDiff(result.snapPath, result.expected, actual),
         );
       }
-    }, { timeout: 60_000 });
+    }, { timeout: MEDIUM_BUILD });
   }
 }

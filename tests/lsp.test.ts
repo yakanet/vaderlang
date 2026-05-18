@@ -11,6 +11,8 @@
 
 import { test, expect } from "bun:test";
 
+import { MEDIUM_BUILD } from "./cli-bin.ts";
+
 const ENABLED = process.env.RUN_LSP_TESTS === "1";
 
 type Json = unknown;
@@ -215,7 +217,7 @@ test("lsp: goto-def + hover end-to-end", async () => {
   // 4 + 5: unknown / whitespace → null
   expect(results[4]!.result).toBeNull();
   expect(results[5]!.result).toBeNull();
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 test("lsp: empty document doesn't crash, returns null on lookups", async () => {
   if (!ENABLED) return;
@@ -228,7 +230,7 @@ test("lsp: empty document doesn't crash, returns null on lookups", async () => {
   const results = await driveLsp("", queries);
   expect(results[0]!.result).toBeNull();
   expect(results[1]!.result).toBeNull();
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 // Bindings : params + locals + for-in. Each runs in its own session so
 // the assertion failures point at a single concept.
@@ -260,7 +262,7 @@ test("lsp: goto-def jumps to fn param", async () => {
   // → `x` at character 13.
   expect(loc.range.start).toEqual({ line: 2, character: 13 });
   expect(loc.range.end).toEqual({ line: 2, character: 14 });
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 test("lsp: hover on fn param shows its type", async () => {
   if (!ENABLED) return;
@@ -270,7 +272,7 @@ test("lsp: hover on fn param shows its type", async () => {
   const hov = results[0]!.result as Hover;
   expect(hov.contents.kind).toBe("markdown");
   expect(hov.contents.value).toContain("```vader\nx: i32\n```");
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 test("lsp: goto-def jumps to local let-binding", async () => {
   if (!ENABLED) return;
@@ -282,7 +284,7 @@ test("lsp: goto-def jumps to local let-binding", async () => {
   const loc = results[0]!.result as Location;
   expect(loc.range.start).toEqual({ line: 3, character: 4 });
   expect(loc.range.end).toEqual({ line: 3, character: 5 });
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 test("lsp: hover on local shows its binding form", async () => {
   if (!ENABLED) return;
@@ -291,7 +293,7 @@ test("lsp: hover on local shows its binding form", async () => {
   ]);
   const hov = results[0]!.result as Hover;
   expect(hov.contents.value).toContain("```vader\ny :: x * 2\n```");
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 test("lsp: goto-def jumps to for-in binding", async () => {
   if (!ENABLED) return;
@@ -304,7 +306,7 @@ test("lsp: goto-def jumps to for-in binding", async () => {
   const loc = results[0]!.result as Location;
   expect(loc.range.start).toEqual({ line: 9, character: 8 });
   expect(loc.range.end).toEqual({ line: 9, character: 9 });
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 test("lsp: param goto-def is not visible outside its fn body", async () => {
   if (!ENABLED) return;
@@ -324,7 +326,7 @@ main :: fn() -> i32 {
     { method: "textDocument/definition", position: { line: 5, character: 11 } },
   ]);
   expect(results[0]!.result).toBeNull();
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 // Cross-file goto-def : the indexer scans `import { ... }` bindings, the
 // resolver maps `std/*` / `vader/*` module paths to absolute file
@@ -356,7 +358,7 @@ test("lsp: goto-def follows imports across files (std/io)", async () => {
   // would churn on every stdlib edit. The contract is "lands in
   // io.vader on a non-zero line".
   expect(loc.range.start.line).toBeGreaterThan(0);
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 test("lsp: goto-def follows imports across files (collections)", async () => {
   if (!ENABLED) return;
@@ -367,7 +369,7 @@ test("lsp: goto-def follows imports across files (collections)", async () => {
   const loc = results[0]!.result as Location;
   expect(loc.uri).toMatch(/stdlib\/std\/collections\.vader$/);
   expect(loc.range.start.line).toBeGreaterThan(0);
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 test("lsp: hover on imported symbol surfaces its origin signature", async () => {
   if (!ENABLED) return;
@@ -379,7 +381,7 @@ test("lsp: hover on imported symbol surfaces its origin signature", async () => 
   // Signature comes from the source decl, not the importing file.
   expect(hov.contents.value).toContain("println");
   expect(hov.contents.value).toContain("```vader");
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 test("lsp: cross-file resolution doesn't bleed for non-imported names", async () => {
   if (!ENABLED) return;
@@ -394,7 +396,7 @@ test("lsp: cross-file resolution doesn't bleed for non-imported names", async ()
     { method: "textDocument/definition", position: { line: 1, character: 6 } },
   ]);
   expect(results[0]!.result).toBeNull();
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 test("lsp: definition returns LocationLink when client supports it", async () => {
   if (!ENABLED) return;
@@ -476,7 +478,7 @@ main :: fn() -> i32 {
   const sel = link.targetSelectionRange as { start: Position; end: Position };
   expect(sel.start).toEqual({ line: 0, character: 0 });
   expect(sel.end).toEqual({ line: 0, character: 6 });
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });
 
 test("lsp: initialize advertises definition + hover providers", async () => {
   if (!ENABLED) return;
@@ -525,4 +527,4 @@ test("lsp: initialize advertises definition + hover providers", async () => {
   expect(caps).toBeDefined();
   expect(caps!.definitionProvider).toBe(true);
   expect(caps!.hoverProvider).toBe(true);
-}, { timeout: 60_000 });
+}, { timeout: MEDIUM_BUILD });

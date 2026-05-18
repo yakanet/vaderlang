@@ -1,13 +1,16 @@
-// Shared rebuild hook + spawn wrapper for the Vader CLI native binary,
-// used by parity and vader_vm tests. Idempotent across test files — the
-// mtime check short-circuits when the binary is fresh, so multiple test
-// files share one actual rebuild.
+// Shared rebuild hook + spawn wrapper for the Vader CLI native binary.
+// Idempotent — the mtime check short-circuits when the binary is fresh,
+// so the N test files that load this share one actual rebuild.
 
 import { beforeAll } from "bun:test";
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 export const CLI_BIN = `build/vader${process.platform === "win32" ? ".exe" : ""}`;
+
+// Per-test timeout budgets shared across the CLI / VM / format suites.
+export const MEDIUM_BUILD = 30_000;
+export const LONG_BUILD = 120_000;
 
 let cachedSourceMtime: number | undefined;
 

@@ -17,6 +17,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 import { parseSource } from "../src/parser/pipeline.ts";
+import { MEDIUM_BUILD } from "./cli-bin.ts";
 
 const ENABLED = process.env.RUN_FMT_TESTS === "1";
 
@@ -102,7 +103,7 @@ for (const name of SNIPPETS) {
     const f1 = fmtStdout(path);
     const f2 = fmtString(f1);
     expect(f2).toBe(f1);
-  }, { timeout: 30_000 });
+  }, { timeout: MEDIUM_BUILD });
 
   test(`fmt parse round-trip : ${name}`, async () => {
     if (!ENABLED) return;
@@ -113,5 +114,5 @@ for (const name of SNIPPETS) {
     const src = readFileSync(path, "utf8");
     const formatted = fmtStdout(path);
     expect(astJson(formatted, path)).toBe(astJson(src, path));
-  }, { timeout: 30_000 });
+  }, { timeout: MEDIUM_BUILD });
 }

@@ -12,9 +12,7 @@ import { test, expect } from "bun:test";
 
 import { listSnippets } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
-import { ensureCliBuilt, runCli } from "./cli-bin.ts";
-
-ensureCliBuilt();
+import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
 interface Stage {
   label: string;
@@ -61,6 +59,6 @@ for (const stage of STAGES) {
           snapshotDiff(snapPath, expected, stdout),
         );
       }
-    }, { timeout: 60_000 });
+    }, { timeout: MEDIUM_BUILD });
   }
 }

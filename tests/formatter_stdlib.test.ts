@@ -11,6 +11,7 @@
 import { test, expect } from "bun:test";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { MEDIUM_BUILD } from "./cli-bin.ts";
 
 const ENABLED = process.env.RUN_FMT_TESTS === "1";
 
@@ -75,7 +76,7 @@ for (const path of listStdlibFiles()) {
     const f1 = fmtStdout(path);
     const f2 = fmtString(f1);
     expect(f2).toBe(f1);
-  }, { timeout: 30_000 });
+  }, { timeout: MEDIUM_BUILD });
 
   if (NO_OP_FILES.has(base)) {
     test(`stdlib byte-for-byte no-op : ${base}`, async () => {
@@ -83,6 +84,6 @@ for (const path of listStdlibFiles()) {
       const src = readFileSync(path, "utf8");
       const formatted = fmtStdout(path);
       expect(formatted).toBe(src);
-    }, { timeout: 30_000 });
+    }, { timeout: MEDIUM_BUILD });
   }
 }

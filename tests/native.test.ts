@@ -9,6 +9,7 @@
 import { test, expect } from "bun:test";
 import { join, resolve } from "node:path";
 
+import { MEDIUM_BUILD } from "./cli-bin.ts";
 import { VM_ERROR_PREFIXES, formatRun, listSnippets } from "./snapshot.ts";
 import { pipelineBytecode } from "../src/pipeline.ts";
 import { emitC } from "../src/c_emit/emit.ts";
@@ -92,5 +93,5 @@ for (const s of scenarios) {
         snapshotDiff("vm.snapshot", expected, actual),
       );
     }
-  }, { timeout: 30_000 });
+  }, { timeout: MEDIUM_BUILD });
 }

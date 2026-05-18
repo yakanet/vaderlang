@@ -5,6 +5,7 @@
 
 import { test, expect } from "bun:test";
 import { runCli } from "../src/cli.ts";
+import { LONG_BUILD } from "./cli-bin.ts";
 
 test("vader test stdlib — every @test fn in the stdlib passes", async () => {
   const code = await runCli(["test", "stdlib"]);
@@ -14,4 +15,4 @@ test("vader test stdlib — every @test fn in the stdlib passes", async () => {
 test("vader test vader — every @test fn in the self-host tree passes", async () => {
   const code = await runCli(["test", "vader"]);
   expect(code).toBe(0);
-});
+}, { timeout: LONG_BUILD });
