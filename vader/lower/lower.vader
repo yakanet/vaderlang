@@ -161,16 +161,21 @@ lower_fn_body :: fn(
 
 // StructDecl → `LoweredStructDecl` with resolved field types. Phase 2
 // already needs this since the dump format includes the field list.
+// Field types come from `struct_field_types` (the typecheck-side
+// side-table the impl pass writes) when available — that's the only
+// place self-referential types like `Node.next: Node | null` reach
+// without going through a `TypeExpr` lookup that may miss.
 lower_struct_decl :: fn(
     struct_decl: StructDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl | null {
     if struct_decl.type_params.len() > usize(0) { return null }
     types :: make_entry_types(typed, new_substitution())
+    field_table :: lookup_struct_field_table(struct_decl, typed)
     fields: LoweredStructField[] = []
     for field in struct_decl.fields {
         fields.push(LoweredStructField {
             .name = field.name,
-            .type = types.type_expr_type(field.ty),
+            .type = resolve_field_type(types, field, field_table),
         })
     }
     entry :: stub_entry(struct_decl, typed)
@@ -178,6 +183,43 @@ lower_struct_decl :: fn(
         .mangled = entry.mangled,
         .fields  = fields,
         .origin  = entry,
+    }
+}
+
+import "vader/parser/ast" { StructField }
+
+// Recover the field-type-by-name table the typecheck wrote alongside
+// `struct_decls`. Returns `null` when the typer hasn't surfaced one
+// for this decl (e.g. cascading-diagnostic recovery).
+lookup_struct_field_table :: fn(
+    struct_decl: StructDecl, typed: TypedProgram,
+) -> MutableMap(string, Type) | null {
+    for symbol_id in typed.struct_decls.keys() {
+        candidate :: typed.struct_decls[symbol_id]
+        if candidate is null { continue }
+        if candidate.name == struct_decl.name {
+            return typed.struct_field_types[symbol_id]
+        }
+    }
+    return null
+}
+
+// Pick the most-resolved type available : the typecheck-written
+// `struct_field_types` entry first, falling back to the lowerer's
+// `EntryTypes.type_expr_type` which reads `type_expr_types` (often
+// unpopulated for self-referential fields).
+resolve_field_type :: fn(
+    types: EntryTypes, field: StructField, table: MutableMap(string, Type) | null,
+) -> Type {
+    match table {
+        is null -> { return types.type_expr_type(field.ty) }
+        _ -> {
+            from_table :: table[field.name]
+            match from_table {
+                is null -> { return types.type_expr_type(field.ty) }
+                _ -> { return from_table }
+            }
+        }
     }
 }
 
