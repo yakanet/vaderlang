@@ -137,7 +137,34 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
     match symbol {
         is null -> { return stub(ident.span, type, "unresolved ident `${ident.name}`") }
         is Symbol as resolved -> {
+            // When we're lowering inside a lifted lambda body, captured
+            // outer symbols don't have a local slot — read them off the
+            // env-struct param via `env.cap_N`.
+            via_env :: try_route_through_env(ctx, resolved, ident.span, type)
+            match via_env {
+                is null -> {}
+                _ -> { return via_env }
+            }
             return LoweredIdent { .span = ident.span, .type = type, .symbol = resolved }
+        }
+    }
+}
+
+try_route_through_env :: fn(
+    ctx: FnLowerCtx, symbol: Symbol, span: Span, type: Type,
+) -> LoweredExpr | null {
+    lifted :: ctx.lifted_context
+    if lifted is null { return null }
+    field_name :: lifted.capture_fields[symbol.id]
+    match field_name {
+        is null -> { return null }
+        is string as name -> {
+            env_ident :: LoweredIdent {
+                .span = span, .type = lifted.env_type, .symbol = lifted.env_symbol,
+            }
+            return LoweredFieldAccess {
+                .span = span, .type = type, .target = env_ident, .field = name,
+            }
         }
     }
 }
