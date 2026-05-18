@@ -282,6 +282,11 @@ export substitute_by_name :: fn(
             for a in s.args { sargs.push(substitute_by_name(a, tps, args)) }
             return mk_struct(s.symbol, sargs)
         }
+        is TraitType as r -> {
+            rargs: Type[] = []
+            for a in r.args { rargs.push(substitute_by_name(a, tps, args)) }
+            return mk_trait(r.symbol, rargs)
+        }
         is UnionType as u -> {
             vs: Type[] = []
             for v in u.variants { vs.push(substitute_by_name(v, tps, args)) }
@@ -300,7 +305,7 @@ import "std/collections" { MutableMap }
 import "std/math" { min }
 import "vader/typecheck/types" {
     FnType, TypeParamType,
-    mk_array, mk_fn, mk_struct, mk_tuple,
+    mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
 }
 import "vader/typecheck/type_ops" { union_of }
 import "vader/typecheck/types" { mk_primitive, mk_union, TY_VOID }
