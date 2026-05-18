@@ -36,7 +36,14 @@ export infer_lambda :: fn(
     expected_ret :: pick_return(e.return_type, expected_fn, typed.resolved, diags)
     ctx_return :: pick_ctx_return(expected_ret)
     ctx :: new_fn_context(ctx_return, null)
+    // Mirror `check_fn_body`: push the lambda's ctx onto the global
+    // stack so nested `if` / `match` arms (which `check_return` reaches
+    // via the recursive `check_expr_fn` path with `ctx=null`) validate
+    // against the lambda's return type instead of the enclosing fn's.
+    prev_ctx :: typed.current_fn_ctx
+    typed.current_fn_ctx = ctx
     body :: check_block(e.body, expected_ret, typed, diags, ctx, check_expr_fn)
+    typed.current_fn_ctx = prev_ctx
     ret :: pick_final_return(expected_ret, body)
     return mk_fn(param_types, ret)
 }
