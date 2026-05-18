@@ -72,6 +72,14 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         is IdentExpr      as e -> { return lower_ident(ctx, e, type) }
         is CallExpr       as e -> { return lower_call(ctx, e, type) }
         is FieldExpr      as e -> {
+            // `Enum.Variant` — the target is the enum's type name in
+            // value position. Lower to the variant's integer index
+            // (matches `lower_dot_variant`'s context-resolved path).
+            enum_variant :: try_lower_enum_field(ctx, e, type)
+            match enum_variant {
+                is null -> {}
+                _ -> { return enum_variant }
+            }
             return LoweredFieldAccess {
                 .span = e.span, .type = type,
                 .target = lower_expr(ctx, e.target), .field = e.field,
@@ -372,6 +380,34 @@ lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> Lo
             }
         }
         _ -> { return stub(expr.span, type, "`.${expr.variant}` against non-enum context type") }
+    }
+}
+
+// `Enum.Variant` field access on the type-name ident — detect when the
+// FieldExpr's target is an IdentExpr resolving to an enum symbol +
+// the field name matches a variant. Returns null when either check
+// fails ; caller falls back to a regular field-access lowering.
+try_lower_enum_field :: fn(ctx: FnLowerCtx, expr: FieldExpr, type: Type) -> LoweredExpr | null {
+    match expr.target {
+        is IdentExpr as target_ident -> {
+            target_type :: ctx.types.expr_type(target_ident)
+            enum_type :: enum_type_or_unwrap(ctx, target_type)
+            match enum_type {
+                is EnumType as et -> {
+                    index :: et.indices[expr.field]
+                    match index {
+                        is null -> { return null }
+                        is i64 as value -> {
+                            return LoweredIntLit {
+                                .span = expr.span, .type = mk_primitive(et.repr), .value = value,
+                            }
+                        }
+                    }
+                }
+                _ -> { return null }
+            }
+        }
+        _ -> { return null }
     }
 }
 
