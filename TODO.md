@@ -473,6 +473,65 @@ until the full VM-round-trip path is online.
 
 (none recorded yet)
 
+### 2.5c Port the lowerer — partial (basic + match + interp + range, 2026-05-18)
+
+Lowerer port covering the subset the comptime + typecheck side-tables
+already expose. Lambda lifting, for-in / Iterator, try, display-coerce,
+and the inline-consts pass defer until the missing impl-by-trait
+queries + closure-analysis pass land on the typechecker side.
+
+- [x] **Phase 1** — Foundations : `LoweredProject` / `LoweredDecl` /
+      `LoweredExpr` / `LoweredStmt` shapes, `LowerProjectCtx` +
+      `FnLowerCtx` + `BlockCtx` + `LiftedFnContext` +
+      `ClosureAnalysis`, `EntryTypes` accessor, `std/core` symbol
+      lookups, helpers + L5xxx codes
+      (`vader/lower/{lowered_ast,ctx,entry_types,core_symbols,helpers}.vader`,
+      `vader/typecheck/substitution.vader`).
+- [x] **Phase 2** — Orchestrator skeleton + `# Lower` dump + CLI
+      `--stage=lowered-ast` handler
+      (`vader/lower/{lower,dump}.vader`).
+- [x] **Phase 3** — Basic expression + block / stmt lowering : every
+      literal, ident, binop, unop, field, index, cast, if-expr,
+      block, struct lit, array lit, intrinsic call, plain string lit ;
+      `let` / `assign` / `return` / `expr-stmt` / `break` / `continue` ;
+      infinite + `while`-style `for` loops
+      (`vader/lower/lower_expr.vader`).
+- [x] **Phase 4** — `match` lowering + string-interp builder chain +
+      `is T` runtime tag check (`vader/lower/lower_match.vader`).
+- [x] **Phase 5** — `a..<b` / `a..=b` range desugaring to `Range`
+      struct literals (`vader/lower/lower_range.vader`).
+
+#### Deferred until typecheck-side support lands
+
+- [ ] **Lambda lifting** — synth fn + env struct + `MakeClosure` at
+      the call site. Prototype landed but hits a runtime crash inside
+      the synth `Decl` union construction ; re-enable after isolating
+      the issue. The dump currently routes `LambdaExpr` through a
+      `LoweredUnreachable` with a clear reason string.
+- [ ] **Closure analysis** — free-variable walker that identifies
+      captured outer-scope bindings per lambda. Needed before lambda
+      lifting can correctly hoist captures into `Cell(T)` boxes.
+- [ ] **for-in / Iterator step loop** — `for x in iter` collapses to
+      an Iterator step-loop dispatched through the impl table. Needs
+      `impl_by_trait` / `lookupImplFor` queries on `TypedProject` ;
+      neither is wired on the Vader typechecker yet.
+- [ ] **try** — `expr?` early-return on error variants. Needs
+      `Error`-trait impl queries (same blocker as for-in).
+- [ ] **Display / Into coercion** — non-primitive `${expr}` in string
+      interpolation routes through `<T>.Display.to_string` and
+      blanket `Into(Target)` impls. Same `impl_by_trait` blocker.
+- [ ] **Inline-consts pass** — post-lowering const substitution +
+      data-pool routing. No upstream blocker, but lands alongside the
+      bytecode-emit chantier where the data pool actually matters.
+- [ ] **Snapshot flip** — `tests/snapshot.test.ts` still consumes
+      TS's `dumpLower`. Flip to a `dumpLowerViaVader` helper when the
+      Vader output is close enough to TS to regenerate the ~226
+      `lower.snapshot` fixtures without massive churn.
+
+#### TS divergences (Vader is correct)
+
+(none recorded yet)
+
 ### 2.6 Port the type-checker (last)
 - [x] Port to Vader.
 - [ ] Snapshot-test parity on every sample.
