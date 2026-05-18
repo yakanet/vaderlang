@@ -42,7 +42,10 @@ export check_module_with_bodies :: fn(
 ) -> CheckResult {
     result :: check_module(program, resolved, factory, diags)
     walk_bodies(program.decls, result.typed, diags)
-    return CheckResult { .typed = result.typed, .impls = result.impls, .others = [] }
+    return CheckResult {
+        .typed = result.typed, .impls = result.impls, .others = [],
+        .all_modules = MutableMap(string, TypedProgram) { .buckets = [], .size = 0 },
+    }
 }
 
 /// Multi-module typecheck. Types the entry module fully, then
@@ -55,7 +58,10 @@ export check_project_with_bodies :: fn(
 ) -> CheckResult {
     entry_loaded :: project.modules[project.entry]
     if entry_loaded is null {
-        return CheckResult { .typed = empty_fallback(project), .impls = empty_impls(), .others = [] }
+        return CheckResult {
+            .typed = empty_fallback(project), .impls = empty_impls(), .others = [],
+            .all_modules = MutableMap(string, TypedProgram) { .buckets = [], .size = 0 },
+        }
     }
 
     // Phase A0 : materialise single-abstract-method sugar
@@ -165,7 +171,10 @@ export check_project_with_bodies :: fn(
     // Every directly-imported non-stdlib module gets its own `## <path>`
     // section in the dump.
     others: TypedProgram[] = collect_direct_imports(entry_loaded, project, per_module)
-    return CheckResult { .typed = entry_typed, .impls = impls, .others = others }
+    return CheckResult {
+        .typed = entry_typed, .impls = impls, .others = others,
+        .all_modules = per_module,
+    }
 }
 
 collect_direct_imports :: fn(

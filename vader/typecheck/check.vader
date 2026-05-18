@@ -13,6 +13,7 @@ import "vader/resolver/symbol" { SymbolFactory }
 import "vader/typecheck/decl" { declare_module }
 import "vader/typecheck/impls" { ImplRegistry, build_impl_registry }
 import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
+import "std/collections" { MutableMap }
 
 /// Output of `check_module` — the typed program plus the impl registry
 /// it built. Callers that want both can grab them from one place.
@@ -24,6 +25,13 @@ export CheckResult :: struct {
     /// to render `expr` lines from `std/iter` etc under the entry's
     /// header (matches TS).
     others: TypedProgram[]
+    /// Every typed module in the project including std/*. Populated
+    /// when the orchestrator runs the full multi-module pipeline ;
+    /// downstream passes that need impl-by-trait queries (lower,
+    /// bytecode emit) read this so std-defined impls
+    /// (`MutableMap[K,V] implements IndexSet[K, V]`, etc.) are
+    /// reachable. `others` keeps the legacy filter that skips std/.
+    all_modules: MutableMap(string, TypedProgram)
 }
 
 /// Type-check `program` (parsed + resolved against `resolved`). Returns
@@ -37,7 +45,10 @@ export check_module :: fn(
     impls :: build_impl_registry(program.decls, resolved)
     typed :: new_typed_program(resolved)
     declare_module(program.decls, resolved, typed, factory, diags)
-    return CheckResult { .typed = typed, .impls = impls, .others = [] }
+    return CheckResult {
+        .typed = typed, .impls = impls, .others = [],
+        .all_modules = MutableMap(string, TypedProgram) { .buckets = [], .size = 0 },
+    }
 }
 
 // ---- tests ----------------------------------------------------------------

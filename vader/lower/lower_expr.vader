@@ -773,10 +773,64 @@ export lookup_local_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> S
 import "vader/resolver/resolve" { ResolvedModule }
 
 lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
+    // `m[k] = v` over an IndexSet-impl receiver lowers to a static
+    // `set_at(m, k, v)` call (mirrors TS's IndexSet sugar). Detected
+    // off the LHS shape : `target` is an IndexExpr whose receiver
+    // type has a user-defined IndexSet impl.
+    via_index_set :: try_lower_index_set_assign(ctx, assign_stmt)
+    match via_index_set {
+        is null -> {}
+        _ -> { return via_index_set }
+    }
     return LoweredAssign {
         .span = assign_stmt.span,
         .target = lower_expr(ctx, assign_stmt.target),
         .value  = lower_expr(ctx, assign_stmt.value),
+    }
+}
+
+import "vader/typecheck/impls" { ImplEntry }
+import "vader/lower/core_symbols" { find_impl_for }
+
+try_lower_index_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt | null {
+    target :: assign_stmt.target
+    match target {
+        is IndexExpr as idx -> {
+            target_type :: ctx.types.expr_type(idx.target)
+            entry :: find_impl_for(ctx.project, target_type, "IndexSet")
+            if entry is null { return null }
+            // Build `set_at(target, index, value)` direct call.
+            receiver :: lower_expr(ctx, idx.target)
+            index :: lower_expr(ctx, idx.index)
+            value :: lower_expr(ctx, assign_stmt.value)
+            set_at_symbol :: synth_set_at_symbol(ctx)
+            args: LoweredExpr[] = []
+            args.push(receiver)
+            args.push(index)
+            args.push(value)
+            return LoweredExprStmt {
+                .span = assign_stmt.span,
+                .expr = LoweredCall {
+                    .span = assign_stmt.span, .type = TY_VOID,
+                    .callee = LoweredIdent {
+                        .span = assign_stmt.span, .type = TY_VOID, .symbol = set_at_symbol,
+                    },
+                    .args = args,
+                },
+            }
+        }
+        _ -> { return null }
+    }
+}
+
+synth_set_at_symbol :: fn(ctx: FnLowerCtx) -> Symbol {
+    return Symbol {
+        .id         = i32(0),
+        .kind       = SymbolKind.Fn,
+        .name       = "set_at",
+        .module     = ctx.typed.resolved.path,
+        .visibility = Visibility.Private,
+        .defined_at = null,
     }
 }
 

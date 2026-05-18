@@ -9,6 +9,7 @@
 // "not yet implemented" message.
 
 import "std/io" { println, eprintln, read_file }
+import "std/collections" { keys }
 import "std/string" { starts_with, ends_with }
 import "std/iter" { slice as slice_arr }
 import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
@@ -459,6 +460,19 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
 assemble_typed_project :: fn(result: CheckResult) -> TypedProject {
     project :: new_typed_project()
     project.modules[result.typed.resolved.path] = result.typed
+    // Drain every typed module the orchestrator built — entry + direct
+    // imports + std/* — so downstream passes that need impl-by-trait
+    // queries (lower, bytecode emit) see std-defined impls.
+    if result.all_modules.size > usize(0) {
+        for module_id in result.all_modules.keys() {
+            module_typed :: result.all_modules[module_id]
+            if module_typed is null { continue }
+            project.modules[module_id] = module_typed
+        }
+        return project
+    }
+    // Fallback for single-module / shortcut callers : iterate the
+    // legacy `others` filter (skips std/*).
     for other in result.others {
         project.modules[other.resolved.path] = other
     }

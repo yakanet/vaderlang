@@ -51,6 +51,11 @@ export dump_lowered :: fn(project: LoweredProject) -> string {
         module :: project.modules[module_id]
         if module is null { continue }
         if is_stdlib_module(module.display_path) { continue }
+        // The orchestrator now exposes std modules under their on-
+        // disk `stdlib/std/...` keys so the impl-by-trait query
+        // reaches them ; the dump still filters them out to match
+        // the TS snapshot format.
+        if is_stdlib_path(module.display_path) { continue }
         lines.push("")
         lines.push("## ${module.display_path}")
         for decl in module.decls {
@@ -58,6 +63,12 @@ export dump_lowered :: fn(project: LoweredProject) -> string {
         }
     }
     return join_lines(lines)
+}
+
+import "std/string" { contains }
+
+is_stdlib_path :: fn(path: string) -> bool {
+    return path.contains("stdlib/std/")
 }
 
 emit_decl :: fn(lines: string[], decl: LoweredDecl, indent: string) -> void {
