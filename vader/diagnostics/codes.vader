@@ -123,6 +123,17 @@ export ComptimeCode :: enum(u8) {
     TypeMismatch,                           // C4006
 }
 
+// Mirror of `LOWER` in `src/diagnostics/codes.ts`. L-codes belong to
+// the lowering pass (AST -> Lowered IR) ; once shipped, never re-used.
+export LowerCode :: enum(u8) {
+    IteratorImplMissing,                    // L5001
+    LambdaCaptureUnsupported,               // L5002
+    UnreachableMatchPath,                   // L5003
+    IntoCoercionFailed,                     // L5004
+    IntrinsicUnsupported,                   // L5005
+    SelfReceiverMissing,                    // L5006
+}
+
 // `WARNING` — non-fatal diagnostics. New entries appended ; never reused.
 export WarningCode :: enum(u8) {
     UseOfDeprecated,                        // W0001
@@ -194,6 +205,15 @@ export comptime_info :: fn(c: ComptimeCode) = match c {
     .AssertFailed                       -> CodeInfo { .id = "C4004", .message = "`@assert` failed at comptime" }
     .IntrinsicArg                       -> CodeInfo { .id = "C4005", .message = "invalid argument to comptime intrinsic" }
     .TypeMismatch                       -> CodeInfo { .id = "C4006", .message = "type mismatch during comptime evaluation" }
+}
+
+export lower_info :: fn(c: LowerCode) = match c {
+    .IteratorImplMissing                -> CodeInfo { .id = "L5001", .message = "for-in receiver has no `Iterator` impl" }
+    .LambdaCaptureUnsupported           -> CodeInfo { .id = "L5002", .message = "lambda capture not yet supported for this binding kind" }
+    .UnreachableMatchPath               -> CodeInfo { .id = "L5003", .message = "match arm is unreachable after lowering" }
+    .IntoCoercionFailed                 -> CodeInfo { .id = "L5004", .message = "`Into` coercion cannot be lowered" }
+    .IntrinsicUnsupported               -> CodeInfo { .id = "L5005", .message = "intrinsic not implemented by the lowerer" }
+    .SelfReceiverMissing                -> CodeInfo { .id = "L5006", .message = "method call lacks a resolvable `self` receiver" }
 }
 
 export typecheck_info :: fn(c: TypecheckCode) = match c {

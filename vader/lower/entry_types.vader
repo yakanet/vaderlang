@@ -1,0 +1,161 @@
+// vader/lower/entry_types — type-table accessor for a lowering pass.
+//
+// Mirror of `src/lower/entry-types.ts`. Hides the `(TypedProgram,
+// Substitution)` pair behind a single accessor — lower passes call
+// `expr_type(view, e)` rather than `substitute(typed.expr_types[e.id]
+// ?? TY_UNRESOLVED, subst)`. The boundary lets future changes (e.g.
+// materialising substituted bodies on `MonoEntry`) touch one file.
+
+import "std/collections" { MutableMap }
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/parser/ast" {
+    Expr, TypeExpr, SimpleBinding, RestBinding, FnParam,
+    FnDecl, StructDecl, ConstDecl,
+}
+import "vader/typecheck/types" { Type, TY_UNRESOLVED }
+import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/typecheck/substitution" { Substitution, substitute, is_empty_substitution }
+
+/// Per-entry view over the typed program with substitution applied at
+/// every read. The struct holds both inputs ; the accessor functions
+/// short-circuit when `subst` is empty.
+export EntryTypes :: struct {
+    typed: TypedProgram
+    subst: Substitution
+}
+
+/// Build an `EntryTypes` view for `(typed, subst)`.
+/// @param typed  the module's typed program.
+/// @param subst  the entry's substitution (may be empty).
+/// @return       a fresh view.
+export make_entry_types :: fn(typed: TypedProgram, subst: Substitution) -> EntryTypes {
+    return EntryTypes { .typed = typed, .subst = subst }
+}
+
+/// Apply the entry's substitution to an arbitrary type. No-op when the
+/// substitution is empty (the common case for non-generic decls).
+/// @param self  the entry-types view.
+/// @param t     the type to rewrite.
+/// @return      the rewritten type (may be `t` itself).
+export apply :: fn(self: EntryTypes, t: Type) -> Type {
+    if is_empty_substitution(self.subst) { return t }
+    return substitute(t, self.subst)
+}
+
+// Apply the entry's substitution to a `Type | null` lookup result,
+// falling back to `TY_UNRESOLVED` on misses. The lookup-and-substitute
+// pattern repeats across every per-table accessor — centralised here
+// so a future side-table rekey only touches one match site.
+apply_or_unresolved :: fn(self: EntryTypes, raw: Type | null) -> Type {
+    if raw is null { return TY_UNRESOLVED }
+    return apply(self, raw)
+}
+
+/// Per-expression type, with substitution applied. Falls back to
+/// `TY_UNRESOLVED` when the node has no recorded type (matches the
+/// inline lookups it replaces).
+/// @param self  the entry-types view.
+/// @param expr  the AST expression node.
+/// @return      the resolved type.
+export expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
+    return apply_or_unresolved(self, self.typed.expr_types[expr.id])
+}
+
+/// Per-local-binding type. Same fallback convention as `expr_type`.
+/// @param self     the entry-types view.
+/// @param binding  the `SimpleBinding` AST node.
+/// @return         the resolved type.
+export local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
+    return apply_or_unresolved(self, self.typed.local_types[span_key(binding.span)])
+}
+
+/// Per-rest-binding type (rest pattern in destructure).
+/// @param self     the entry-types view.
+/// @param binding  the `RestBinding` AST node.
+/// @return         the resolved type.
+export rest_local_type :: fn(self: EntryTypes, binding: RestBinding) -> Type {
+    return apply_or_unresolved(self, self.typed.local_types[span_key(binding.span)])
+}
+
+/// Per-fn-param type.
+/// @param self   the entry-types view.
+/// @param param  the `FnParam` AST node.
+/// @return       the resolved type.
+export param_type :: fn(self: EntryTypes, param: FnParam) -> Type {
+    return apply_or_unresolved(self, self.typed.param_types[span_key(param.span)])
+}
+
+/// Per-type-expression type.
+/// @param self       the entry-types view.
+/// @param type_expr  the `TypeExpr` AST node.
+/// @return           the resolved type.
+export type_expr_type :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
+    return apply_or_unresolved(self, self.typed.type_expr_types[span_key(type_expr.span)])
+}
+
+/// Per-fn-decl type. Uses `name_span` as the key (matches how
+/// `decl_types` is populated by the typechecker).
+/// @param self  the entry-types view.
+/// @param decl  the fn decl.
+/// @return      the resolved type.
+export fn_decl_type :: fn(self: EntryTypes, decl: FnDecl) -> Type {
+    return apply_or_unresolved(self, self.typed.decl_types[span_key(decl.name_span)])
+}
+
+/// Per-struct-decl type.
+/// @param self  the entry-types view.
+/// @param decl  the struct decl.
+/// @return      the resolved type.
+export struct_decl_type :: fn(self: EntryTypes, decl: StructDecl) -> Type {
+    return apply_or_unresolved(self, self.typed.decl_types[span_key(decl.name_span)])
+}
+
+/// Per-const-decl type.
+/// @param self  the entry-types view.
+/// @param decl  the const decl.
+/// @return      the resolved type.
+export const_decl_type :: fn(self: EntryTypes, decl: ConstDecl) -> Type {
+    return apply_or_unresolved(self, self.typed.decl_types[span_key(decl.name_span)])
+}
+
+// Span-key mirror of `vader/resolver/scope::span_key` — duplicated
+// here so the lower layer doesn't pull the scope module in. Format is
+// `"line:column"` of the span's start.
+span_key :: fn(span: Span) -> string {
+    return "${span.start.line}:${span.start.column}"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "vader/typecheck/typed_ast" { empty_typed_program }
+import "vader/typecheck/substitution" { new_substitution }
+import "vader/typecheck/types" {
+    mk_primitive, mk_array, mk_type_param, display_type,
+}
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/parser/ast" { Visibility }
+
+@test test_apply_is_identity_under_empty_subst :: fn() -> void {
+    typed :: empty_typed_program()
+    view  :: make_entry_types(typed, new_substitution())
+    same  :: apply(view, mk_primitive("i64"))
+    assert_eq(display_type(same), "i64")
+}
+
+@test test_apply_substitutes_type_param :: fn() -> void {
+    typed :: empty_typed_program()
+    subst :: new_substitution()
+    symbol :: Symbol {
+        .id         = i32(11),
+        .kind       = SymbolKind.TypeParam,
+        .name       = "T",
+        .module     = "test",
+        .visibility = Visibility.Private,
+        .defined_at = null,
+    }
+    subst.type_params[i32(11)] = mk_primitive("string")
+    view :: make_entry_types(typed, subst)
+    rewritten :: apply(view, mk_array(mk_type_param(symbol), false))
+    assert_eq(display_type(rewritten), "string[]")
+}

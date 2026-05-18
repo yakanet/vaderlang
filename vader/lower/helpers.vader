@@ -1,0 +1,288 @@
+// vader/lower/helpers — AST construction helpers shared across passes.
+//
+// Mirror of `src/lower/passes/helpers.ts`. Synthetic-symbol minting,
+// block wrapping, OR-chain assembly, enum-variant index lookup, cell
+// initialisation. Kept on the lower side rather than the typecheck side
+// since every consumer lives in `vader/lower/`.
+
+import "std/collections" { MutableSet, MutableMap, contains }
+import "vader/diagnostics/diagnostic" { Span, empty_span }
+import "vader/parser/ast" { Visibility }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck/types" {
+    Type, EnumType, mk_primitive,
+    TY_BOOL, TY_UNRESOLVED, TY_VOID,
+}
+import "vader/lower/ctx" { FnLowerCtx }
+import "vader/lower/lowered_ast" {
+    LoweredBinary, LoweredBinaryOp,
+    LoweredExpr, LoweredExprStmt, LoweredStmt,
+}
+
+/// Mint a synthetic local symbol unique within the entry's body.
+/// `hint` becomes part of the name (`__<hint>_<n>`) ; IDs are negative
+/// so they can't collide with resolver-minted positive IDs.
+/// @param ctx   the fn-body context (carries `uniq` + project counter).
+/// @param hint  short kebab-case-ish tag describing the synth slot.
+/// @return      the freshly minted symbol.
+export fresh_synthetic_symbol :: fn(ctx: FnLowerCtx, hint: string) -> Symbol {
+    n :: ctx.uniq
+    ctx.uniq = n + i32(1)
+    next_id :: ctx.project.next_synthetic_id
+    ctx.project.next_synthetic_id = next_id - i32(1)
+    return Symbol {
+        .id         = next_id,
+        .kind       = SymbolKind.Synthetic,
+        .name       = "__${hint}_${n}",
+        .module     = ctx.typed.resolved.path,
+        .visibility = Visibility.Private,
+        .defined_at = null,
+    }
+}
+
+/// Pack a sequence of statements into a single statement, transparent
+/// to control flow. Single-element lists return that statement directly ;
+/// otherwise the lowerer wraps the sequence into a `LoweredBlock`
+/// inside a `LoweredExprStmt`.
+/// @param span   span to attach to the wrapping stmt.
+/// @param stmts  statements to wrap.
+/// @return       a single stmt that runs every input stmt in order.
+export wrap_stmts :: fn(span: Span, stmts: LoweredStmt[]) -> LoweredStmt {
+    if stmts.len() == usize(1) { return stmts[0] }
+    block :: LoweredBlock {
+        .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null,
+    }
+    return LoweredExprStmt { .span = span, .expr = block }
+}
+
+/// Wrap a single expression as a block whose value is that expression.
+/// Used by passes that need a `LoweredBlock` slot but produce a single
+/// trailing expression.
+/// @param expr  the trailing expression.
+/// @param span  span of the wrapping block.
+/// @return      a fresh block carrying `expr` as its trailing value.
+export wrap_as_block :: fn(expr: LoweredExpr, span: Span) -> LoweredBlock {
+    return LoweredBlock { .span = span, .type = type_of(expr), .stmts = [], .trailing = expr }
+}
+
+/// Flatten a block's trailing expression into its `stmts` list. Useful
+/// when a block needs to be re-typed to `void` (no-else `if`, for-in
+/// body) and any trailing value should be evaluated then discarded.
+/// @param block  the block to re-shape.
+/// @return       the stmts list, with the trailing expression appended
+///               as an `LoweredExprStmt` when one is present.
+export block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
+    trailing :: block.trailing
+    if trailing is null { return block.stmts }
+    out: LoweredStmt[] = []
+    for stmt in block.stmts { out.push(stmt) }
+    out.push(LoweredExprStmt { .span = span_of(trailing), .expr = trailing })
+    return out
+}
+
+/// Resolve a variant name on a lowered enum type to its integer index.
+/// Falls back to `LoweredUnreachable` when the enum's `indices` table
+/// hasn't been populated — happens on cascaded earlier diagnostics.
+/// @param enum_type  the typed enum the `.Variant` reference resolved to.
+/// @param name       the variant name.
+/// @param span       span of the reference site (kept on the lowered node).
+/// @return           an int-lit lowered expression, or unreachable on miss.
+export lowered_enum_variant :: fn(enum_type: Type, name: string, span: Span) -> LoweredExpr {
+    match enum_type {
+        is EnumType as e -> {
+            index :: e.indices[name]
+            match index {
+                is null -> {
+                    return LoweredUnreachable {
+                        .span = span, .type = TY_UNRESOLVED,
+                        .reason = "unknown variant `${name}` on `${e.symbol.name}` — earlier diagnostics apply",
+                    }
+                }
+                is i64 as value -> {
+                    return LoweredIntLit {
+                        .span = span,
+                        .type = mk_primitive(e.repr),
+                        .value = value,
+                    }
+                }
+            }
+        }
+        _ -> {
+            return LoweredUnreachable {
+                .span = span, .type = TY_UNRESOLVED,
+                .reason = "`.${name}` against unresolved type — earlier diagnostics apply",
+            }
+        }
+    }
+}
+
+/// Combine a list of boolean expressions with short-circuit OR. Empty
+/// input degrades to `false` ; a single element returns itself.
+/// @param span   span attached to every synthesised binary node.
+/// @param parts  individual boolean expressions.
+/// @return       the OR-chained expression.
+export or_all :: fn(span: Span, parts: LoweredExpr[]) -> LoweredExpr {
+    if parts.len() == usize(0) {
+        return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = false }
+    }
+    accumulator: LoweredExpr = parts[0]
+    for i in 1..<parts.len() {
+        accumulator = LoweredBinary {
+            .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Or,
+            .left = accumulator, .right = parts[i],
+        }
+    }
+    return accumulator
+}
+
+/// Initialisation result for a let-binding whose owning slot may need
+/// heap-promotion to a `Cell(T)`. The lowerer threads `slot_type` into
+/// the binding's static type and `value` into its initialiser.
+export CellInit :: struct {
+    value:     LoweredExpr
+    slot_type: Type
+}
+
+/// Wrap the initialiser in `LoweredCellNew` when `symbol` is captured
+/// by an inner lambda. Reads through `ctx.project.closures` to decide ;
+/// non-captured slots return their input verbatim.
+/// @param ctx         the fn-body context.
+/// @param symbol      the binding's symbol.
+/// @param value       the initialiser expression.
+/// @param value_type  the statically-known slot type.
+/// @param span        span attached to the cell-new node when emitted.
+/// @return            the `(value, slot_type)` to use for the binding.
+export lower_cell_init :: fn(
+    ctx: FnLowerCtx, symbol: Symbol, value: LoweredExpr, value_type: Type, span: Span,
+) -> CellInit {
+    captured :: ctx.project.closures.captured_symbols.contains(symbol.id)
+    if !captured {
+        return CellInit { .value = value, .slot_type = value_type }
+    }
+    cell :: LoweredCellNew {
+        .span = span, .type = TY_UNRESOLVED, .value = value, .value_type = value_type,
+    }
+    return CellInit { .value = cell, .slot_type = TY_UNRESOLVED }
+}
+
+// ---- internal helpers -----------------------------------------------------
+
+// Union types in Vader auto-promote a field only when every variant
+// carries one with an identical name + type. `LoweredExpr.type` and
+// `.span` qualify in theory but the typechecker doesn't surface that
+// yet, so every consumer has to dispatch on the variant — these two
+// helpers centralise the match so passes don't replicate it.
+
+import "vader/lower/lowered_ast" {
+    LoweredArrayLen, LoweredArrayLit, LoweredArrayPush, LoweredArraySlice,
+    LoweredBlock, LoweredBoolLit, LoweredCall, LoweredCast, LoweredCellGet, LoweredCellNew,
+    LoweredCharLit, LoweredDataConst, LoweredFieldAccess, LoweredFloatLit,
+    LoweredIdent, LoweredIf, LoweredIndex, LoweredIntLit, LoweredIntrinsicCall,
+    LoweredMakeClosure, LoweredNullLit, LoweredStringLit, LoweredStructLit,
+    LoweredTypeCheck, LoweredTypeConst, LoweredUnary, LoweredUnreachable, LoweredVirtualCall,
+}
+
+/// Pull the static `Type` off any `LoweredExpr` variant.
+/// @param expr  the lowered expression node.
+/// @return      the variant's `type` field.
+export type_of :: fn(expr: LoweredExpr) -> Type = match expr {
+    is LoweredIntLit         as x -> x.type
+    is LoweredFloatLit       as x -> x.type
+    is LoweredBoolLit        as x -> x.type
+    is LoweredNullLit        as x -> x.type
+    is LoweredCharLit        as x -> x.type
+    is LoweredStringLit      as x -> x.type
+    is LoweredIdent          as x -> x.type
+    is LoweredCall           as x -> x.type
+    is LoweredVirtualCall    as x -> x.type
+    is LoweredFieldAccess    as x -> x.type
+    is LoweredIndex          as x -> x.type
+    is LoweredUnary          as x -> x.type
+    is LoweredBinary         as x -> x.type
+    is LoweredIf             as x -> x.type
+    is LoweredBlock          as x -> x.type
+    is LoweredStructLit      as x -> x.type
+    is LoweredArrayLit       as x -> x.type
+    is LoweredDataConst      as x -> x.type
+    is LoweredCast           as x -> x.type
+    is LoweredTypeCheck      as x -> x.type
+    is LoweredUnreachable    as x -> x.type
+    is LoweredIntrinsicCall  as x -> x.type
+    is LoweredArrayLen       as x -> x.type
+    is LoweredArrayPush      as x -> x.type
+    is LoweredArraySlice     as x -> x.type
+    is LoweredCellNew        as x -> x.type
+    is LoweredCellGet        as x -> x.type
+    is LoweredMakeClosure    as x -> x.type
+    is LoweredTypeConst      as x -> x.type
+}
+
+/// Pull the source `Span` off any `LoweredExpr` variant.
+/// @param expr  the lowered expression node.
+/// @return      the variant's `span` field.
+export span_of :: fn(expr: LoweredExpr) -> Span = match expr {
+    is LoweredIntLit         as x -> x.span
+    is LoweredFloatLit       as x -> x.span
+    is LoweredBoolLit        as x -> x.span
+    is LoweredNullLit        as x -> x.span
+    is LoweredCharLit        as x -> x.span
+    is LoweredStringLit      as x -> x.span
+    is LoweredIdent          as x -> x.span
+    is LoweredCall           as x -> x.span
+    is LoweredVirtualCall    as x -> x.span
+    is LoweredFieldAccess    as x -> x.span
+    is LoweredIndex          as x -> x.span
+    is LoweredUnary          as x -> x.span
+    is LoweredBinary         as x -> x.span
+    is LoweredIf             as x -> x.span
+    is LoweredBlock          as x -> x.span
+    is LoweredStructLit      as x -> x.span
+    is LoweredArrayLit       as x -> x.span
+    is LoweredDataConst      as x -> x.span
+    is LoweredCast           as x -> x.span
+    is LoweredTypeCheck      as x -> x.span
+    is LoweredUnreachable    as x -> x.span
+    is LoweredIntrinsicCall  as x -> x.span
+    is LoweredArrayLen       as x -> x.span
+    is LoweredArrayPush      as x -> x.span
+    is LoweredArraySlice     as x -> x.span
+    is LoweredCellNew        as x -> x.span
+    is LoweredCellGet        as x -> x.span
+    is LoweredMakeClosure    as x -> x.span
+    is LoweredTypeConst      as x -> x.span
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "vader/typecheck/types" { display_type }
+
+@test test_or_all_empty_emits_false :: fn() -> void {
+    span :: empty_span()
+    result :: or_all(span, [])
+    match result {
+        is LoweredBoolLit as b -> { assert_eq(b.value, false) }
+        _ -> {}
+    }
+}
+
+@test test_or_all_single_returns_input :: fn() -> void {
+    span :: empty_span()
+    only: LoweredExpr = LoweredBoolLit { .span = span, .type = TY_BOOL, .value = true }
+    parts: LoweredExpr[] = []
+    parts.push(only)
+    result :: or_all(span, parts)
+    // single-element chain returns the input unchanged
+    match result {
+        is LoweredBoolLit as b -> { assert_eq(b.value, true) }
+        _ -> {}
+    }
+}
+
+@test test_type_of_recovers_type :: fn() -> void {
+    span :: empty_span()
+    lit: LoweredExpr = LoweredIntLit {
+        .span = span, .type = mk_primitive("i32"), .value = i64(7),
+    }
+    assert_eq(display_type(type_of(lit)), "i32")
+}

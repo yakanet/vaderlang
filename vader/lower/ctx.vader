@@ -1,0 +1,266 @@
+// vader/lower/ctx — shared context threaded through every lowering pass.
+//
+// Mirror of `src/lower/ctx.ts`. `LowerProjectCtx` is built once per
+// `lower_project` call and holds the inputs every pass reads — mono
+// entries, impl registry, std/core symbol caches, closure-analysis
+// output. `FnLowerCtx` is pushed per fn body — it carries the active
+// substitution, return type, and a stack of `BlockCtx` so defers can be
+// replayed at every block exit.
+
+import "std/collections" { MutableMap, MutableSet }
+import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/parser/ast" { Stmt, LambdaExpr }
+import "vader/resolver/symbol" { Symbol }
+import "vader/typecheck/types" { Type }
+import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/typecheck/impls" { ImplRegistry, new_registry }
+import "vader/typecheck/substitution" { Substitution, new_substitution }
+import "vader/comptime/evaluated_ast" { EvaluatedProject }
+import "vader/comptime/mono_ast" { MonoProject, MonoEntry, new_mono_project }
+import "vader/lower/lowered_ast" { LoweredDecl, LoweredExpr }
+import "vader/lower/entry_types" { EntryTypes, make_entry_types }
+
+// ============================================================================
+// Closure analysis output
+// ============================================================================
+
+/// One captured-by-an-inner-lambda binding. `symbol` is the outer slot
+/// (param / local / pattern binding) and `type` its statically-known type
+/// at capture time. Phase 5's `closure_analysis` populates the list per
+/// lambda ; Phase 1 ships the shape so other modules can reference it.
+export Capture :: struct {
+    symbol: Symbol
+    type:   Type
+}
+
+/// Free-variable analysis output. `captured_symbols` lists every symbol
+/// ID that needs heap-promotion via `Cell(T)` ; `lambda_captures` keys
+/// the per-lambda capture list (field order in the generated env struct
+/// mirrors this order). Both populated by Phase 5's `analyze_closures`.
+export ClosureAnalysis :: struct {
+    captured_symbols: MutableSet(i32)
+    lambda_captures:  MutableMap(usize, Capture[])
+}
+
+/// Construct an empty `ClosureAnalysis`. Lets the phase-2 orchestrator
+/// build a `LowerProjectCtx` before the analyser has populated it.
+/// @return  a fresh analysis with no captures recorded.
+export new_closure_analysis :: fn() -> ClosureAnalysis {
+    return ClosureAnalysis {
+        .captured_symbols = MutableSet(i32) {
+            .inner = MutableMap(i32, bool) { .buckets = [], .size = usize(0) },
+        },
+        .lambda_captures  = MutableMap(usize, Capture[]) { .buckets = [], .size = 0 },
+    }
+}
+
+// ============================================================================
+// Project context
+// ============================================================================
+
+/// Inputs every lowering pass reads. Built once at `lower_project`
+/// entry — passes never mutate the upstream `evaluated` view, only the
+/// mutable side-tables (`synth_decls`, `next_synthetic_id`, `diags`).
+export LowerProjectCtx :: struct {
+    evaluated:           EvaluatedProject
+    mono:                MonoProject
+    impls:               ImplRegistry
+
+    /// `name -> Symbol` from `std/core` (cached once at construction
+    /// so trait / struct lookups don't re-walk the module map).
+    core_symbols:        MutableMap(string, Symbol)
+
+    /// `name -> Symbol` from `std/iter`. Null when the project doesn't
+    /// import `std/iter` (in which case for-in chain fusion never fires).
+    iter_symbols:        MutableMap(string, Symbol) | null
+
+    /// `name -> Symbol` from `std/collections`. Null when the project
+    /// doesn't import `std/collections` (in which case the for-in
+    /// `MutableMap` / `MutableSet` inline path never fires).
+    collections_symbols: MutableMap(string, Symbol) | null
+
+    /// Per-trait `Symbol | null` cache — populated lazily on first
+    /// `find_core_trait` hit. `null` means "looked up and not found".
+    core_trait_cache:    MutableMap(string, Symbol | null)
+
+    /// Free-variable analysis output. Phase 5 populates ; Phase 1-4
+    /// callers see an empty analysis (no captures).
+    closures:            ClosureAnalysis
+
+    /// Synthetic decls produced during lowering — chiefly the lifted
+    /// top-level fns and their env structs spawned by lambda lifting.
+    /// Appended to the result project under `synth_module_id` so the
+    /// bytecode emit picks them up alongside user decls.
+    synth_decls:         LoweredDecl[]
+
+    /// Monotonically-decreasing counter for synthetic symbol IDs.
+    /// Starts at `-1` so it cannot collide with resolver-minted IDs
+    /// (which are `≥ 1`).
+    next_synthetic_id:   i32
+
+    diags:               Diagnostic[]
+}
+
+/// Build an empty `LowerProjectCtx` bound to the given `evaluated`
+/// view. Phase 2's orchestrator extends this with the mono / impl /
+/// closure tables ; Phase 1 ships the constructor so call sites can
+/// at least allocate the shape.
+/// @param evaluated  the comptime engine's output for this project.
+/// @return           a fresh project context with empty side-tables.
+export new_lower_project_ctx :: fn(evaluated: EvaluatedProject) -> LowerProjectCtx {
+    return LowerProjectCtx {
+        .evaluated           = evaluated,
+        .mono                = new_mono_project(),
+        .impls               = new_registry(),
+        .core_symbols        = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .iter_symbols        = null,
+        .collections_symbols = null,
+        .core_trait_cache    = MutableMap(string, Symbol | null) { .buckets = [], .size = 0 },
+        .closures            = new_closure_analysis(),
+        .synth_decls         = [],
+        .next_synthetic_id   = i32(-1),
+        .diags               = [],
+    }
+}
+
+// ============================================================================
+// Block context
+// ============================================================================
+
+/// Per-block bookkeeping. `defers` is filled by every `DeferStmt`
+/// encountered in source order ; every block-exit edge replays it in
+/// reverse. `is_fn_root` is true for the body of the enclosing fn,
+/// `is_loop_body` for the body of an enclosing loop — both fields drive
+/// `break` / `continue` / `return` defer replay semantics.
+export BlockCtx :: struct {
+    defers:       Stmt[]
+    is_fn_root:   bool
+    is_loop_body: bool
+}
+
+/// Construct a fresh `BlockCtx` with no defers. The `is_*` flags get
+/// set at construction by the caller.
+/// @param is_fn_root    true when this block is the enclosing fn body.
+/// @param is_loop_body  true when this block is the body of a loop.
+/// @return              a fresh block context.
+export new_block_ctx :: fn(is_fn_root: bool, is_loop_body: bool) -> BlockCtx {
+    return BlockCtx {
+        .defers       = [],
+        .is_fn_root   = is_fn_root,
+        .is_loop_body = is_loop_body,
+    }
+}
+
+// ============================================================================
+// Lifted-fn context
+// ============================================================================
+
+/// Per-lambda lifting context. Set on `FnLowerCtx` when we're lowering a
+/// lambda's lifted top-level body : captured outer symbols are reached
+/// via `env.<field>` rather than as direct locals. The map keys on the
+/// outer symbol's ID ; the value is the env field name.
+export LiftedFnContext :: struct {
+    env_symbol:      Symbol
+    env_type:        Type
+    capture_fields:  MutableMap(i32, string)
+}
+
+// ============================================================================
+// Function-body context
+// ============================================================================
+
+/// Per-fn lowering context. Threaded through every expr / stmt pass
+/// while a single function body is being lowered. The block stack
+/// drives defer-replay ; `lifted_context` is non-null only when we're
+/// inside the body of a lifted lambda ; `comptime_bindings` carries
+/// `@comptime for x in arr { … }` substitutions active inside an
+/// unrolled body.
+export FnLowerCtx :: struct {
+    project:            LowerProjectCtx
+    entry:              MonoEntry
+    typed:              TypedProgram
+    subst:              Substitution
+
+    /// Typed-AST view with `subst` already applied at every read.
+    /// Lower passes consume this instead of reaching into `typed` /
+    /// `subst` directly.
+    types:              EntryTypes
+
+    return_type:        Type
+    self_type:          Type | null
+    blocks:             BlockCtx[]
+
+    /// Monotonically-increasing counter used to mint unique synthetic
+    /// hint suffixes per fn body. Reset at fn entry so two parallel
+    /// lowerings of different bodies don't intersect.
+    uniq:               i32
+
+    /// Non-null while lowering the body of a lifted lambda. Captured
+    /// symbols defined OUTSIDE the lambda are accessed via env-struct
+    /// fields rather than as direct locals.
+    lifted_context:     LiftedFnContext | null
+
+    /// `@comptime for x in arr { … }` substitutions — keyed by the
+    /// loop-var symbol's id, the value is the per-iter literal that
+    /// replaces every reference to `x` in the body. Pushed at unroll
+    /// entry, popped at exit ; shape mirrors `narrowed` in typecheck.
+    comptime_bindings:  MutableMap(i32, LoweredExpr)
+}
+
+/// Build a fresh `FnLowerCtx` for `entry`'s body. Populates the
+/// `EntryTypes` accessor from `(typed, subst)` and snapshots the
+/// entry's substitution ; further blocks / lifted contexts are pushed
+/// by the per-decl pass as it walks.
+/// @param project      the shared project context.
+/// @param entry        the monomorphization entry being lowered.
+/// @param typed        the owning module's typed program.
+/// @param subst        the entry's substitution (empty for non-generic).
+/// @param return_type  the entry's resolved return type.
+/// @param self_type    the receiver type for impl members ; null otherwise.
+/// @return             a fresh fn-body context.
+export new_fn_lower_ctx :: fn(
+    project: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
+    subst: Substitution, return_type: Type, self_type: Type | null,
+) -> FnLowerCtx {
+    return FnLowerCtx {
+        .project           = project,
+        .entry             = entry,
+        .typed             = typed,
+        .subst             = subst,
+        .types             = make_entry_types(typed, subst),
+        .return_type       = return_type,
+        .self_type         = self_type,
+        .blocks            = [],
+        .uniq              = i32(0),
+        .lifted_context    = null,
+        .comptime_bindings = MutableMap(i32, LoweredExpr) { .buckets = [], .size = 0 },
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/typecheck/typed_ast" { new_typed_project }
+import "vader/comptime/evaluated_ast" { new_evaluated_project }
+
+@test test_new_lower_project_ctx_is_empty :: fn() -> void {
+    evaluated :: new_evaluated_project(new_typed_project())
+    project :: new_lower_project_ctx(evaluated)
+    assert_eq(project.core_symbols.size, usize(0))
+    assert_eq(project.synth_decls.len(), usize(0))
+    assert_eq(project.next_synthetic_id, i32(-1))
+    assert_eq(project.diags.len(), usize(0))
+}
+
+@test test_new_closure_analysis_is_empty :: fn() -> void {
+    analysis :: new_closure_analysis()
+    assert_eq(analysis.captured_symbols.inner.size, usize(0))
+    assert_eq(analysis.lambda_captures.size, usize(0))
+}
+
+@test test_new_block_ctx_sets_flags :: fn() -> void {
+    block :: new_block_ctx(true, false)
+    assert(block.is_fn_root, "expected is_fn_root to be true")
+    assert(!block.is_loop_body, "expected is_loop_body to be false")
+    assert_eq(block.defers.len(), usize(0))
+}

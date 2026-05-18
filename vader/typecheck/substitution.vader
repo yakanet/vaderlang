@@ -1,0 +1,135 @@
+// vader/typecheck/substitution — Type IR substitution.
+//
+// Mirror of `Substitution` + `substitute` in `src/typecheck/types.ts`.
+// Substitutions map `TypeParam.symbol.id` to a concrete `Type` and
+// optionally rebind `Self`. The lowerer threads one substitution per
+// monomorphisation entry through every type-table read so generic
+// decls collapse to concrete types in the lowered IR.
+
+import "std/collections" { MutableMap }
+import "vader/typecheck/types" {
+    Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
+    FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
+    UnresolvedType, FreeIntType, FreeFloatType, NeverType, mk_array, mk_tuple, mk_fn,
+}
+
+/// Mapping from `TypeParam.symbol.id` to a concrete replacement type.
+/// `self` rebinds `Self` to its concrete carrier inside an impl ;
+/// callers leave it `null` for non-impl entries.
+export Substitution :: struct {
+    type_params: MutableMap(i32, Type)
+    self_type:   Type | null
+}
+
+/// Build an empty substitution. Cheap — both fields start empty and
+/// `substitute` short-circuits when no entry matches.
+/// @return  a fresh substitution with no type-param bindings.
+export new_substitution :: fn() -> Substitution {
+    return Substitution {
+        .type_params = MutableMap(i32, Type) { .buckets = [], .size = 0 },
+        .self_type   = null,
+    }
+}
+
+/// True when `subst` has no bindings — every accessor's hot path skips
+/// the `substitute` walk in this case.
+/// @param subst  the substitution under test.
+/// @return       true when no type-param and no `self` binding exist.
+export is_empty_substitution :: fn(subst: Substitution) -> bool {
+    if subst.type_params.size != usize(0) { return false }
+    if !(subst.self_type is null) { return false }
+    return true
+}
+
+/// Replace `TypeParam` and `Self` occurrences in `t` per `subst`.
+/// Walks the Type tree structurally ; returns the original `t` unchanged
+/// when no replacement applies (no allocation).
+/// @param t      the type to rewrite.
+/// @param subst  the substitution to apply.
+/// @return       the rewritten type (may be `t` itself when nothing changed).
+export substitute :: fn(t: Type, subst: Substitution) -> Type {
+    if is_empty_substitution(subst) { return t }
+    match t {
+        is TypeParamType as tp -> {
+            replacement :: subst.type_params[tp.symbol.id]
+            match replacement {
+                is null -> { return t }
+                _       -> { return replacement }
+            }
+        }
+        is SelfType -> {
+            match subst.self_type {
+                is null -> { return t }
+                _       -> { return subst.self_type }
+            }
+        }
+        is StructType as st -> {
+            new_args :: substitute_each(st.args, subst)
+            return StructType { .symbol = st.symbol, .args = new_args }
+        }
+        is TraitType as tr -> {
+            new_args :: substitute_each(tr.args, subst)
+            return TraitType { .symbol = tr.symbol, .args = new_args }
+        }
+        is ArrayType as arr -> {
+            return mk_array(substitute(arr.element, subst), arr.immutable)
+        }
+        is TupleType as tup -> {
+            return mk_tuple(substitute_each(tup.elements, subst))
+        }
+        is FnType as fty -> {
+            return mk_fn(substitute_each(fty.params, subst), substitute(fty.return_type, subst))
+        }
+        is UnionType as un -> {
+            return UnionType { .variants = substitute_each(un.variants, subst) }
+        }
+        _ -> { return t }
+    }
+}
+
+substitute_each :: fn(types: Type[], subst: Substitution) -> Type[] {
+    out: Type[] = []
+    for t in types { out.push(substitute(t, subst)) }
+    return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/typecheck/types" { mk_primitive, mk_type_param, display_type }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/parser/ast" { Visibility }
+
+fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
+    return Symbol {
+        .id         = symbol_id,
+        .kind       = SymbolKind.TypeParam,
+        .name       = name,
+        .module     = "test",
+        .visibility = Visibility.Private,
+        .defined_at = null,
+    }
+}
+
+@test test_empty_substitution_is_identity :: fn() -> void {
+    subst :: new_substitution()
+    assert(is_empty_substitution(subst), "fresh substitution should be empty")
+    same :: substitute(mk_primitive("i32"), subst)
+    assert_eq(display_type(same), "i32")
+}
+
+@test test_substitute_type_param :: fn() -> void {
+    sym :: fresh_type_param(7, "T")
+    subst :: new_substitution()
+    subst.type_params[i32(7)] = mk_primitive("i64")
+    rewritten :: substitute(mk_type_param(sym), subst)
+    assert_eq(display_type(rewritten), "i64")
+}
+
+@test test_substitute_into_array :: fn() -> void {
+    sym :: fresh_type_param(3, "T")
+    subst :: new_substitution()
+    subst.type_params[i32(3)] = mk_primitive("string")
+    rewritten :: substitute(mk_array(mk_type_param(sym), false), subst)
+    assert_eq(display_type(rewritten), "string[]")
+}

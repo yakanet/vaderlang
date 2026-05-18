@@ -1,19 +1,26 @@
 // vader/comptime/mono_ast — monomorphizer output shapes.
 //
 // Mirror of `src/comptime/specialize.ts`'s `MonoProject` + `MonoEntry`.
-// Phase 1 of the comptime port lands the empty `MonoProject` so other
-// modules (`EvaluatedProject`) can refer to it ; the fields land in
-// phase 6 when the monomorphizer pass goes online.
+// The shapes are filled to match the TS reference (decl + symbol +
+// substitution + type-args + owning module + mangled name + entry-id) so
+// the lowerer port can rely on them ; the specialisation pass that
+// populates these tables ships alongside the lowerer (until then,
+// `new_mono_project` returns an empty view).
 
 import "std/collections" { MutableMap }
+import "vader/parser/ast" { Decl }
+import "vader/typecheck/types" { Type }
+import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/typecheck/substitution" { Substitution, new_substitution }
+import "vader/resolver/symbol" { Symbol }
 
 /// Specialised view of every fn / struct decl after monomorphization.
-/// Phase 6 fills `entries` + the per-key lookup tables ; until then the
-/// shape stays empty so downstream code can hold a placeholder.
+/// The orchestrator builds one `MonoEntry` per non-generic top-level
+/// decl plus one per concrete generic instance harvested from the
+/// instance registry.
 export MonoProject :: struct {
     /// One specialised entry per non-generic decl plus one per generic
-    /// instance harvested from `InstanceRegistry`. Filled by
-    /// `monomorphize_project` in phase 6.
+    /// instance.
     entries: MonoEntry[]
 
     /// `"${trait_method.symbol.id}::${args_key}" -> MonoEntry` —
@@ -26,17 +33,50 @@ export MonoProject :: struct {
     fn_instance_entries: MutableMap(string, MonoEntry)
 }
 
-/// One specialised decl. Phase 6 adds the substituted decl + the
-/// `(symbol, args)` key ; the placeholder shape here lets other modules
-/// hold a `MonoEntry[]` without depending on the full content.
+/// One specialised decl. Carries every field downstream phases need to
+/// emit a concrete function / struct / const : the source decl, its
+/// owning module, the resolved substitution, the (possibly empty)
+/// type-arg list, plus a stable `id` + `mangled` name used as routing
+/// identity by the bytecode emit, the C emitter, and the binary writer.
 export MonoEntry :: struct {
-    /// Symbol-id of the generic source decl ; phase 6 uses this to key
-    /// `impl_method_entries` / `fn_instance_entries`.
-    symbol_id: i32
+    /// Pipeline-stable numeric identity. Used by DCE root detection,
+    /// VM entry-point lookup, and the C emitter's `main()` shim — none
+    /// of them re-parse `mangled` to recover the entry's role. Assigned
+    /// monotonically at construction.
+    id: i32
+
+    /// True iff the origin decl is the top-level `main` fn. Replaces
+    /// the older `mangled.endsWith("$main")` heuristic so back-ends are
+    /// free to rename the externalised symbol without breaking routing.
+    is_main: bool
+
+    /// External / human-readable name : `main`, `List$i32`, … Used by
+    /// the C emitter for the C symbol, the binary writer for the
+    /// section header, and `vader dump` for diagnostics.
+    mangled: string
+
+    /// Origin decl in the source AST. Multiple `MonoEntry` can share
+    /// the same origin (different specialisations).
+    decl: Decl
+
+    /// The decl's symbol, when applicable. `ImplDecl` has none — its
+    /// members ship as separate entries.
+    symbol: Symbol | null
+
+    /// Substitution mapping `TypeParam.symbol.id` to the concrete
+    /// type-args. Empty for non-generic decls.
+    subst: Substitution
+
+    /// Concrete type-args in source order when this entry comes from a
+    /// generic instantiation ; empty otherwise.
+    type_arguments: Type[]
+
+    /// Module the origin decl lives in — needed for resolver-table
+    /// lookups (TypedProgram side-tables are per-module).
+    module: TypedProgram | null
 }
 
-/// Construct an empty `MonoProject`. Phase 1 callers use this until
-/// `monomorphize_project` is wired in phase 6.
+/// Construct an empty `MonoProject`.
 /// @return  a fresh empty mono project.
 export new_mono_project :: fn() -> MonoProject {
     return MonoProject {

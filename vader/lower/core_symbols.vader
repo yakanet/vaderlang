@@ -1,0 +1,86 @@
+// vader/lower/core_symbols — stdlib symbol cache lookups.
+//
+// Mirror of `src/lower/passes/core.ts`. The for-in / try / display
+// passes need to resolve `std/core` traits + structs by name without
+// re-walking the loaded module map. `LowerProjectCtx.core_symbols` is
+// populated once at project entry ; these helpers wrap the lookups and
+// build the matching nominal types.
+
+import "std/collections" { MutableMap }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck/types" { Type, StructType, TraitType, mk_struct, mk_union, mk_primitive }
+import "vader/lower/ctx" { FnLowerCtx, LowerProjectCtx }
+
+/// Resolve a `std/core` symbol by name from the project's cache.
+/// @param ctx   the fn-body context.
+/// @param name  the symbol's source-level name (e.g. `"Iterator"`).
+/// @return      the resolved symbol, or `null` when no entry exists.
+export lookup_core_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null {
+    return ctx.project.core_symbols[name]
+}
+
+/// Build a `std/core` struct type with the given concrete args. Returns
+/// `null` when the named symbol is missing (project didn't import core)
+/// or resolves to a non-struct kind.
+/// @param ctx   the fn-body context.
+/// @param name  the source-level struct name (e.g. `"Yield"`).
+/// @param args  concrete type arguments in source order ; empty for
+///              non-generic structs.
+/// @return      the struct type, or `null` when not resolvable.
+export find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type | null {
+    symbol :: lookup_core_symbol(ctx, name)
+    match symbol {
+        is null -> { return null }
+        is Symbol as s -> {
+            if i32(s.kind) != i32(SymbolKind.Struct) { return null }
+            return mk_struct(s, args)
+        }
+    }
+}
+
+/// Resolve a `std/core` trait symbol by name. Re-resolves on every
+/// call ; the `core_trait_cache` field on `LowerProjectCtx` is reserved
+/// for a future hash-set-backed negative cache (today's `MutableMap`
+/// cannot distinguish "absent" from "cached as null", and trait lookups
+/// happen at a low enough frequency to not warrant the workaround).
+/// @param ctx   the project context.
+/// @param name  the source-level trait name (e.g. `"Display"`).
+/// @return      the resolved trait symbol, or `null`.
+export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | null {
+    raw :: ctx.core_symbols[name]
+    match raw {
+        is null -> { return null }
+        is Symbol as s -> {
+            if i32(s.kind) != i32(SymbolKind.Trait) { return null }
+            return s
+        }
+    }
+}
+
+/// Build the `Yield(T) | null` union the for-in step loop uses as the
+/// `Iterator(T).next()` return type.
+/// @param yielded  the element type yielded by the iterator.
+/// @return         the resolved union type.
+export union_of_yield_null :: fn(yielded: Type) -> Type {
+    return mk_union([yielded, mk_primitive("null")])
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+import "vader/typecheck/types" { display_type }
+import "vader/typecheck/typed_ast" { new_typed_project }
+import "vader/comptime/evaluated_ast" { new_evaluated_project }
+import "vader/lower/ctx" { new_lower_project_ctx }
+
+@test test_lookup_core_symbol_missing_returns_null :: fn() -> void {
+    project :: new_lower_project_ctx(new_evaluated_project(new_typed_project()))
+    // No symbols pre-seeded — every lookup should miss.
+    assert(find_core_trait(project, "Display") is null, "expected miss to return null")
+}
+
+@test test_union_of_yield_null_renders :: fn() -> void {
+    union_ty :: union_of_yield_null(mk_primitive("i32"))
+    // `display_type` for a 2-arm union joins with ` | `.
+    assert_eq(display_type(union_ty), "i32 | null")
+}
