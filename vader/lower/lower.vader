@@ -96,10 +96,11 @@ lower_module :: fn(
 }
 
 // Per-decl dispatcher. Routes FnDecl / StructDecl / ConstDecl through
-// the matching phase-2 stub ; every other decl kind (Impl, Enum, Trait,
-// TypeAlias, Import, Assert) returns null (impl members surface via
-// the per-member fn-decl entries Phase 3 emits ; the others don't
-// produce runtime slots).
+// the matching phase-2 stub ; ImplDecl drains into per-member fn-decl
+// entries appended to `project_ctx.synth_decls` so the module driver
+// picks them up alongside the regular decls. Every other decl kind
+// (Enum, Trait, TypeAlias, Import, Assert) returns null — they don't
+// produce runtime slots.
 lower_decl :: fn(
     decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl | null {
@@ -107,7 +108,131 @@ lower_decl :: fn(
         is FnDecl     as fn_decl     -> { return lower_fn_decl(fn_decl, typed, project_ctx, diags) }
         is StructDecl as struct_decl -> { return lower_struct_decl(struct_decl, typed, project_ctx, diags) }
         is ConstDecl  as const_decl  -> { return lower_const_decl(const_decl, typed, project_ctx, diags) }
+        is ImplDecl   as impl_decl   -> {
+            lower_impl_members(impl_decl, typed, project_ctx, diags)
+            return null
+        }
         _ -> { return null }
+    }
+}
+
+import "vader/parser/ast" { ImplDecl }
+
+// Each `T implements Trait { method ... }` member surfaces as a fn
+// decl with mangled name `<module>$<for-type>$<trait>$<method>`.
+// `self` is the first parameter ; its type comes from the impl's
+// `for_type`. The lifted fns are appended to `project_ctx.synth_decls`
+// so the module driver drains them in the right order.
+lower_impl_members :: fn(
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> void {
+    // Skip generic impls entirely — they need the mono pass to bind
+    // concrete type args before each member can lower with a known
+    // substitution.
+    if impl_decl.type_params.len() > usize(0) { return }
+    self_type :: lower_for_type(impl_decl, typed)
+    base_mangle :: "${mangle_module_id(typed.resolved.path)}$${impl_decl.trait_name}"
+    for member in impl_decl.members {
+        if member.type_params.len() > usize(0) { continue }
+        subst :: new_substitution()
+        types :: make_entry_types(typed, subst)
+        params :: build_impl_member_params(member, self_type, types, typed)
+        return_type :: return_type_of(member, types)
+        mangled :: impl_member_mangled(impl_decl, member, typed)
+        entry :: synth_impl_entry(member, typed, mangled)
+        body :: lower_fn_body(member, typed, project_ctx, entry, subst, return_type)
+        project_ctx.synth_decls.push(LoweredFnDecl {
+            .mangled     = mangled,
+            .params      = params,
+            .return_type = return_type,
+            .body        = body,
+            .origin      = entry,
+        })
+    }
+}
+
+build_impl_member_params :: fn(
+    member: FnDecl, self_type: Type, types: EntryTypes, typed: TypedProgram,
+) -> LoweredParam[] {
+    params: LoweredParam[] = []
+    for ast_param in member.params {
+        // `self` may have no use-sites inside the body (`-> "point"`),
+        // in which case `resolved.idents` doesn't surface the symbol.
+        // Fall back to a synthesised symbol carrying the param's name
+        // so the dump renders the signature correctly.
+        symbol_or_null :: lookup_local_symbol(typed.resolved, ast_param.span)
+        symbol :: synth_param_or(symbol_or_null, ast_param.name, typed)
+        // The lone `self` param carries an absent TypeExpr ; substitute the
+        // impl's `for_type` so downstream phases see the concrete receiver
+        // type rather than `Self`.
+        param_type :: if ast_param.name == "self" { self_type } else { types.param_type(ast_param) }
+        params.push(LoweredParam {
+            .name = ast_param.name, .symbol = symbol, .type = param_type,
+        })
+    }
+    return params
+}
+
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/parser/ast" { Visibility }
+
+synth_param_or :: fn(symbol_or_null: Symbol | null, name: string, typed: TypedProgram) -> Symbol {
+    match symbol_or_null {
+        is Symbol as s -> { return s }
+        is null -> {
+            return Symbol {
+                .id         = i32(0),
+                .kind       = SymbolKind.Param,
+                .name       = name,
+                .module     = typed.resolved.path,
+                .visibility = Visibility.Private,
+                .defined_at = null,
+            }
+        }
+    }
+}
+
+impl_member_mangled :: fn(impl_decl: ImplDecl, member: FnDecl, typed: TypedProgram) -> string {
+    target_name :: for_type_name(impl_decl.for_type, typed)
+    return "${mangle_module_id(typed.resolved.path)}$${target_name}$${impl_decl.trait_name}$${member.name}"
+}
+
+// Recover the target struct / enum / alias name from the impl's
+// `for_type`. Only `IdentExpr` and `GenericInstExpr(IdentExpr)` shapes
+// surface as nominal impls today ; anything else falls back to the
+// raw display string (defensive — never expected to fire).
+import "vader/parser/ast" { IdentExpr, GenericInstExpr }
+for_type_name :: fn(for_type: TypeExpr, typed: TypedProgram) -> string {
+    match for_type {
+        is IdentExpr as e -> { return e.name }
+        is GenericInstExpr as e -> {
+            match e.callee {
+                is IdentExpr as inner -> { return inner.name }
+                _ -> { return "<unknown>" }
+            }
+        }
+        _ -> { return "<unknown>" }
+    }
+}
+
+import "vader/parser/ast" { TypeExpr }
+import "vader/typecheck/type_expr" { type_from_expr }
+
+lower_for_type :: fn(impl_decl: ImplDecl, typed: TypedProgram) -> Type {
+    scratch: Diagnostic[] = []
+    return type_from_expr(impl_decl.for_type, typed.resolved, scratch)
+}
+
+synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string) -> MonoEntry {
+    return MonoEntry {
+        .id             = i32(0),
+        .is_main        = false,
+        .mangled        = mangled,
+        .decl           = member,
+        .symbol         = null,
+        .subst          = new_substitution(),
+        .type_arguments = [],
+        .module         = typed,
     }
 }
 
