@@ -1,0 +1,113 @@
+// vader/comptime/evaluated_ast — output shapes of the comptime engine.
+//
+// Mirror of `src/comptime/evaluated-ast.ts`. The comptime pass reads a
+// `TypedProject` and produces an `EvaluatedProject` carrying one
+// `EvaluatedProgram` per module plus the cross-module monomorphizer
+// view and a few host-side side-tables (file contents, blanket-Into
+// observations). Downstream consumers (lowerer, bytecode emit) read
+// `EvaluatedProject` directly — never `TypedProject` for comptime data.
+
+import "std/collections" { MutableMap }
+import "vader/parser/ast" { FnDecl }
+import "vader/typecheck/types" { Type }
+import "vader/typecheck/typed_ast" { TypedProgram, TypedProject }
+import "vader/comptime/value" { ComptimeValue }
+import "vader/comptime/mono_ast" { MonoProject, new_mono_project }
+
+/// One blanket-Into impl member observation. The typer records a coercion
+/// site that needs the impl's `into` member specialised with these type
+/// arguments ; the mono pass reads `into_members` to emit one `MonoEntry`
+/// per `(member, type_arguments)` pair.
+export IntoMemberObservation :: struct {
+    /// Impl's `into` fn decl ; the mono pass clones it.
+    member:          FnDecl
+    /// Module owning the impl decl — needed for the entry's
+    /// symbol-resolution context.
+    program:         TypedProgram
+    /// Concrete values bound to the impl's own type parameters,
+    /// in `entry.decl.type_params` order.
+    type_arguments:  Type[]
+}
+
+/// Per-module comptime output. Side-tables stay separated by concern :
+/// `comptime_decls` is the only one this struct adds beyond pointing at
+/// the typed program ; project-wide tables (`mono`, `file_exprs`,
+/// `into_members`) live on `EvaluatedProject`.
+export EvaluatedProgram :: struct {
+    /// Owning typed program ; the comptime engine never mutates it.
+    typed: TypedProgram
+
+    /// `@comptime`-marked const decls keyed by the decl's Symbol id.
+    /// Phase 4 populates ; phase 3 leaves empty. Symbol-id keying
+    /// matches every other declaration-keyed side-table in the
+    /// project (`decl_types` switching to id-keyed is tracked in TODO).
+    comptime_decls: MutableMap(i32, ComptimeValue)
+}
+
+/// Project-wide comptime output. Carries the per-module slices plus the
+/// monomorphizer view, the host-baked `@file` contents, and the
+/// blanket-Into observation list.
+export EvaluatedProject :: struct {
+    /// Owning typed project — the source of every module the comptime
+    /// pass evaluated.
+    typed: TypedProject
+
+    /// Per-module `EvaluatedProgram`, keyed by canonical module path
+    /// (matches `TypedProject.modules` keying).
+    modules: MutableMap(string, EvaluatedProgram)
+
+    /// Specialised entries (one per non-generic decl plus one per
+    /// generic instance from the registry). Phase 6 fills ; phase 3
+    /// leaves empty via `new_mono_project()`.
+    mono: MonoProject
+
+    /// `@file("path")` expression-position calls baked at comptime,
+    /// keyed by the IntrinsicCallExpr's AST node id. Lower reads this
+    /// to emit a `LoweredStringLit` of the file contents.
+    file_exprs: MutableMap(usize, string)
+
+    /// Blanket-Into impl members observed at typer coercion sites.
+    /// Mono pass consumes this to materialise the members alongside
+    /// the struct-indexed generic impls. Empty when the project uses
+    /// no user-declared `Into` impls.
+    into_members: IntoMemberObservation[]
+}
+
+/// Construct an empty `EvaluatedProgram` bound to `typed`. Used by the
+/// orchestrator skeleton in phase 3 ; phase 4 populates `comptime_decls`.
+/// @param typed  the module's typed program.
+/// @return       a fresh evaluated program with no comptime decls.
+export new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
+    return EvaluatedProgram {
+        .typed          = typed,
+        .comptime_decls = MutableMap(i32, ComptimeValue) { .buckets = [], .size = 0 },
+    }
+}
+
+/// Construct an empty `EvaluatedProject` bound to `typed`. Phase 3 stub
+/// returns this directly ; later phases populate the per-module slices
+/// + the host tables.
+/// @param typed  the typed project to wrap.
+/// @return       a fresh evaluated project with empty side-tables.
+export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
+    return EvaluatedProject {
+        .typed        = typed,
+        .modules      = MutableMap(string, EvaluatedProgram) { .buckets = [], .size = 0 },
+        .mono         = new_mono_project(),
+        .file_exprs   = MutableMap(usize, string) { .buckets = [], .size = 0 },
+        .into_members = [],
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "vader/typecheck/typed_ast" { new_typed_project }
+
+@test test_new_evaluated_project_is_empty :: fn() -> void {
+    project :: new_evaluated_project(new_typed_project())
+    assert_eq(project.modules.size, usize(0))
+    assert_eq(project.file_exprs.size, usize(0))
+    assert_eq(project.into_members.len(), usize(0))
+    assert_eq(project.mono.entries.len(), usize(0))
+}

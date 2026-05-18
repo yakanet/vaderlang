@@ -1,0 +1,220 @@
+// vader/comptime/value — comptime value IR.
+//
+// Mirror of `src/comptime/value.ts`. Tagged union holding everything the
+// comptime evaluator can produce : primitive ints / floats / bools /
+// chars / strings, the sentinel `Null` + `Void`, composite arrays and
+// structs, plus type-valued slots (`@comptime t :: i32`). `display_value`
+// renders each variant in the form the snapshot harness expects.
+
+import "std/collections" { MutableMap, keys }
+import "std/string_builder" { new_builder, append, append_char }
+import "std/numbers" { to_hex }
+import "std/string" { pad_start }
+import "vader/typecheck/types" { Type, display_type }
+
+/// One comptime-evaluated value. Variants closed — every new
+/// representation lives behind a new variant rather than a `?` payload.
+export ComptimeValue ::
+    | IntValue
+    | FloatValue
+    | BoolValue
+    | CharValue
+    | StringValue
+    | NullValue
+    | VoidValue
+    | ArrayValue
+    | StructValue
+    | TypeValue
+
+/// Signed integer with the typechecker-resolved primitive name (`i32`,
+/// `i64`, `u8`, `isize`, …). The dump prints `<value>_<typeName>`.
+export IntValue :: struct {
+    value:     i64
+    type_name: string
+}
+
+/// IEEE-754 float64 carrier — `f32` values widen on entry, narrow on
+/// emit. `type_name` keeps the source-level kind so the dump round-trips.
+export FloatValue :: struct {
+    value:     f64
+    type_name: string
+}
+
+export BoolValue :: struct { value: bool }
+
+/// Unicode scalar value. Stored as `u32` (matches the codepoint range) ;
+/// the dump emits `'\uXXXX'` zero-padded to 4 hex digits to stay
+/// readable for both ASCII and astral scalars.
+export CharValue :: struct { value: u32 }
+
+export StringValue :: struct { value: string }
+
+/// The literal `null` value — distinct from a `void`-returning fn.
+export NullValue :: struct {}
+
+/// The result of a `void`-returning fn ; a unit value.
+export VoidValue :: struct {}
+
+/// A `T[]` literal evaluated at comptime. `element_type_name` matches
+/// what the type-checker resolved for the element slot ; lets the dump
+/// distinguish `i32[]` from `i64[]` even when both are empty.
+export ArrayValue :: struct {
+    elements:          ComptimeValue[]
+    element_type_name: string
+}
+
+/// A `T { .a = ..., .b = ... }` literal. Fields stored insertion-ordered
+/// so the dump matches the source ordering ; UFCS access at intrinsic
+/// evaluation time goes through `fields[name]`.
+export StructValue :: struct {
+    type_name: string
+    fields:    MutableMap(string, ComptimeValue)
+}
+
+/// `@comptime t :: i32` — the value of `t` is the Type IR itself. The
+/// dump uses `display_type` so the rendering matches every other
+/// type-position dump in the project.
+export TypeValue :: struct { value: Type }
+
+/// Pre-built constants for the common cases. Construction sites can
+/// reuse these rather than allocating fresh `NullValue {}` each time.
+export VAL_NULL  :: NullValue {}
+export VAL_VOID  :: VoidValue {}
+export VAL_TRUE  :: BoolValue { .value = true }
+export VAL_FALSE :: BoolValue { .value = false }
+
+/// Build an `IntValue` with the canonical default type name `i32`.
+/// @param value      the integer value (any signed 64-bit width).
+/// @return           the wrapped comptime value.
+export int_val :: fn(value: i64) -> ComptimeValue {
+    return IntValue { .value = value, .type_name = "i32" }
+}
+
+/// Build an `IntValue` with an explicit primitive name.
+/// @param value      the integer value.
+/// @param type_name  the typechecker-resolved primitive name (`u8`,
+///                   `usize`, `isize`, …).
+/// @return           the wrapped comptime value.
+export int_val_typed :: fn(value: i64, type_name: string) -> ComptimeValue {
+    return IntValue { .value = value, .type_name = type_name }
+}
+
+/// Build a `FloatValue` with the canonical default type name `f64`.
+/// @param value      the float value (any IEEE-754 width).
+/// @return           the wrapped comptime value.
+export float_val :: fn(value: f64) -> ComptimeValue {
+    return FloatValue { .value = value, .type_name = "f64" }
+}
+
+/// Build a `FloatValue` with an explicit primitive name (`f32` / `f64`).
+/// @param value      the float value.
+/// @param type_name  the typechecker-resolved primitive name.
+/// @return           the wrapped comptime value.
+export float_val_typed :: fn(value: f64, type_name: string) -> ComptimeValue {
+    return FloatValue { .value = value, .type_name = type_name }
+}
+
+/// Build a `StringValue`.
+/// @param value      the string body.
+/// @return           the wrapped comptime value.
+export string_val :: fn(value: string) -> ComptimeValue {
+    return StringValue { .value = value }
+}
+
+/// Build a `TypeValue` from a typechecker `Type`.
+/// @param value      the resolved type.
+/// @return           the wrapped comptime value.
+export type_val :: fn(value: Type) -> ComptimeValue {
+    return TypeValue { .value = value }
+}
+
+/// Render a `ComptimeValue` as the snapshot-stable string. Mirrors
+/// `displayValue` in `src/comptime/value.ts` byte-for-byte ; divergence
+/// here triggers mass `comptime.snapshot` mismatches across 200+ tests.
+/// @param value  the value to render.
+/// @return       the printable form.
+export display_value :: fn(value: ComptimeValue) -> string = match value {
+    is IntValue    as x -> "${x.value}_${x.type_name}"
+    is FloatValue  as x -> "${x.value}_${x.type_name}"
+    is BoolValue   as x -> "${x.value}"
+    is CharValue   as x -> "'\\u${pad_start(to_hex(u64(x.value)), usize(4), '0')}'"
+    is StringValue as x -> "\"${x.value}\""
+    is NullValue        -> "null"
+    is VoidValue        -> "void"
+    is ArrayValue  as x -> render_array(x)
+    is StructValue as x -> render_struct(x)
+    is TypeValue   as x -> display_type(x.value)
+}
+
+render_array :: fn(array: ArrayValue) -> string {
+    sb := new_builder()
+    sb.append_char('[')
+    for i in 0..<array.elements.len() {
+        if i > usize(0) { sb.append(", ") }
+        sb.append(display_value(array.elements[i]))
+    }
+    sb.append_char(']')
+    return sb.to_string()
+}
+
+// Field names sorted before rendering so the snapshot output is
+// deterministic. `MutableMap` iteration order tracks insertion + bucket
+// state ; relying on it would silently drift snapshots once Phase 4
+// starts populating maps from different code paths.
+render_struct :: fn(struct_value: StructValue) -> string {
+    sb := new_builder()
+    sb.append(struct_value.type_name)
+    sb.append(" { ")
+    names :: sort(struct_value.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
+    for i in 0..<names.len() {
+        name :: names[i]
+        field_value :: struct_value.fields[name]
+        if field_value is null { continue }
+        if i > usize(0) { sb.append(", ") }
+        sb.append_char('.')
+        sb.append(name)
+        sb.append(" = ")
+        sb.append(display_value(field_value))
+    }
+    sb.append(" }")
+    return sb.to_string()
+}
+
+import "std/sort" { sort }
+import "std/string" { compare_ascending }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_display_int :: fn() -> void {
+    assert_eq(display_value(int_val(42)), "42_i32")
+    assert_eq(display_value(int_val_typed(255, "u8")), "255_u8")
+}
+
+@test test_display_bool_null_void :: fn() -> void {
+    assert_eq(display_value(VAL_TRUE),  "true")
+    assert_eq(display_value(VAL_FALSE), "false")
+    assert_eq(display_value(VAL_NULL),  "null")
+    assert_eq(display_value(VAL_VOID),  "void")
+}
+
+@test test_display_string :: fn() -> void {
+    assert_eq(display_value(string_val("hi")), "\"hi\"")
+}
+
+@test test_display_array :: fn() -> void {
+    elements: ComptimeValue[] = [int_val(1), int_val(2), int_val(3)]
+    array_value :: ArrayValue { .elements = elements, .element_type_name = "i32" }
+    assert_eq(display_value(array_value), "[1_i32, 2_i32, 3_i32]")
+}
+
+@test test_display_struct :: fn() -> void {
+    fields :: MutableMap(string, ComptimeValue) { .buckets = [], .size = 0 }
+    fields["x"] = int_val(1)
+    fields["y"] = int_val(2)
+    struct_value :: StructValue { .type_name = "Point", .fields = fields }
+    // `render_struct` sorts field names before rendering, so the output
+    // is alphabetical regardless of insertion / bucket order.
+    assert_eq(display_value(struct_value), "Point { .x = 1_i32, .y = 2_i32 }")
+}

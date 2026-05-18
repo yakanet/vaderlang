@@ -112,6 +112,17 @@ export ResolverCode :: enum(u8) {
     ReservedName,                           // R2019
 }
 
+// Mirror of `COMPTIME` in `src/diagnostics/codes.ts`. C-codes belong to
+// the comptime evaluator + monomorphizer ; once shipped, never re-used.
+export ComptimeCode :: enum(u8) {
+    DependencyCycle,                        // C4001
+    VmRequired,                             // C4002
+    SandboxViolation,                       // C4003
+    AssertFailed,                           // C4004
+    IntrinsicArg,                           // C4005
+    TypeMismatch,                           // C4006
+}
+
 // `WARNING` — non-fatal diagnostics. New entries appended ; never reused.
 export WarningCode :: enum(u8) {
     UseOfDeprecated,                        // W0001
@@ -174,6 +185,15 @@ export resolver_info :: fn(c: ResolverCode) = match c {
 
 export warning_info :: fn(c: WarningCode) = match c {
     .UseOfDeprecated                    -> CodeInfo { .id = "W0001", .message = "use of deprecated declaration" }
+}
+
+export comptime_info :: fn(c: ComptimeCode) = match c {
+    .DependencyCycle                    -> CodeInfo { .id = "C4001", .message = "`@comptime` decls form a dependency cycle" }
+    .VmRequired                         -> CodeInfo { .id = "C4002", .message = "comptime expression requires VM execution" }
+    .SandboxViolation                   -> CodeInfo { .id = "C4003", .message = "comptime host intrinsic refused by sandbox" }
+    .AssertFailed                       -> CodeInfo { .id = "C4004", .message = "`@assert` failed at comptime" }
+    .IntrinsicArg                       -> CodeInfo { .id = "C4005", .message = "invalid argument to comptime intrinsic" }
+    .TypeMismatch                       -> CodeInfo { .id = "C4006", .message = "type mismatch during comptime evaluation" }
 }
 
 export typecheck_info :: fn(c: TypecheckCode) = match c {

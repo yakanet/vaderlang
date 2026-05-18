@@ -1,0 +1,58 @@
+// vader/comptime/mono_ast — monomorphizer output shapes.
+//
+// Mirror of `src/comptime/specialize.ts`'s `MonoProject` + `MonoEntry`.
+// Phase 1 of the comptime port lands the empty `MonoProject` so other
+// modules (`EvaluatedProject`) can refer to it ; the fields land in
+// phase 6 when the monomorphizer pass goes online.
+
+import "std/collections" { MutableMap }
+
+/// Specialised view of every fn / struct decl after monomorphization.
+/// Phase 6 fills `entries` + the per-key lookup tables ; until then the
+/// shape stays empty so downstream code can hold a placeholder.
+export MonoProject :: struct {
+    /// One specialised entry per non-generic decl plus one per generic
+    /// instance harvested from `InstanceRegistry`. Filled by
+    /// `monomorphize_project` in phase 6.
+    entries: MonoEntry[]
+
+    /// `"${trait_method.symbol.id}::${args_key}" -> MonoEntry` —
+    /// indexed lookup the lowerer uses to recover the specialised
+    /// impl-member from a call site.
+    impl_method_entries: MutableMap(string, MonoEntry)
+
+    /// `"${fn_symbol.id}::${args_key}" -> MonoEntry` — direct lookup
+    /// for explicit-typearg call sites.
+    fn_instance_entries: MutableMap(string, MonoEntry)
+}
+
+/// One specialised decl. Phase 6 adds the substituted decl + the
+/// `(symbol, args)` key ; the placeholder shape here lets other modules
+/// hold a `MonoEntry[]` without depending on the full content.
+export MonoEntry :: struct {
+    /// Symbol-id of the generic source decl ; phase 6 uses this to key
+    /// `impl_method_entries` / `fn_instance_entries`.
+    symbol_id: i32
+}
+
+/// Construct an empty `MonoProject`. Phase 1 callers use this until
+/// `monomorphize_project` is wired in phase 6.
+/// @return  a fresh empty mono project.
+export new_mono_project :: fn() -> MonoProject {
+    return MonoProject {
+        .entries             = [],
+        .impl_method_entries = MutableMap(string, MonoEntry) { .buckets = [], .size = 0 },
+        .fn_instance_entries = MutableMap(string, MonoEntry) { .buckets = [], .size = 0 },
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_new_mono_project_is_empty :: fn() -> void {
+    project :: new_mono_project()
+    assert_eq(project.entries.len(), usize(0))
+    assert_eq(project.impl_method_entries.size, usize(0))
+    assert_eq(project.fn_instance_entries.size, usize(0))
+}
