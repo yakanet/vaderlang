@@ -1,0 +1,79 @@
+// vader/lower/lower_range — `a..<b` / `a..=b` range lowering.
+//
+// Mirror of `src/lower/passes/for-in.ts::lowerRangeExpr`. Desugars an
+// `AST.RangeExpr` into a `Range { .start, .end, .inclusive, .cursor }`
+// struct literal so for-in can dispatch through the standard Iterator
+// impl rather than a bespoke fast path.
+//
+// The struct's symbol comes from the project context's
+// `core_symbols["Range"]` cache. When `std/core` isn't reachable, the
+// lowered shape falls back to a `LoweredUnreachable` carrying the
+// reason — same defensive shape every other "deferred" lowerer uses.
+
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/parser/ast" { RangeExpr, Expr }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck/types" { Type, mk_struct, TY_BOOL, TY_UNRESOLVED }
+import "vader/lower/ctx" { FnLowerCtx }
+import "vader/lower/lowered_ast" {
+    LoweredExpr, LoweredStructLit, LoweredStructLitField, LoweredBoolLit,
+    LoweredUnreachable,
+}
+
+/// Lower a `RangeExpr` into a `Range` struct literal.
+/// @param ctx          the fn-body context.
+/// @param expr         the source range.
+/// @param result_type  the surrounding context's expected type.
+/// @param recurse      callback to lower `expr.lower` + `expr.upper`.
+/// @return             the lowered struct literal (or unreachable on miss).
+export lower_range_expr :: fn(
+    ctx: FnLowerCtx, expr: RangeExpr, result_type: Type,
+    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
+) -> LoweredExpr {
+    range_symbol :: ctx.project.core_symbols["Range"]
+    match range_symbol {
+        is null -> {
+            return LoweredUnreachable {
+                .span = expr.span, .type = result_type,
+                .reason = "`std/core::Range` not reachable — cannot lower range expression",
+            }
+        }
+        is Symbol as symbol -> {
+            if i32(symbol.kind) != i32(SymbolKind.Struct) {
+                return LoweredUnreachable {
+                    .span = expr.span, .type = result_type,
+                    .reason = "`std/core::Range` resolved to a non-struct symbol",
+                }
+            }
+            return build_range_lit(expr, result_type, recurse, ctx)
+        }
+    }
+}
+
+build_range_lit :: fn(
+    expr: RangeExpr, result_type: Type,
+    recurse: fn(FnLowerCtx, Expr) -> LoweredExpr,
+    ctx: FnLowerCtx,
+) -> LoweredExpr {
+    span :: expr.span
+    lower_bound :: recurse(ctx, expr.lower)
+    upper_bound :: recurse(ctx, expr.upper)
+    inclusive :: LoweredBoolLit { .span = span, .type = TY_BOOL, .value = expr.inclusive }
+    // Re-lower `expr.lower` so the cursor reads independently from the
+    // `start` field — when the bound is a free ident, each emits its
+    // own slot read.
+    cursor :: recurse(ctx, expr.lower)
+    fields: LoweredStructLitField[] = []
+    fields.push(LoweredStructLitField { .name = "start",     .value = lower_bound })
+    fields.push(LoweredStructLitField { .name = "end",       .value = upper_bound })
+    fields.push(LoweredStructLitField { .name = "inclusive", .value = inclusive })
+    fields.push(LoweredStructLitField { .name = "cursor",    .value = cursor })
+    return LoweredStructLit { .span = span, .type = result_type, .fields = fields }
+}
+
+// End-to-end tests for `lower_range_expr` need a wired-up
+// `FnLowerCtx` that the lowerer can thread through ; the test
+// scaffolding to build one stub-free without dragging in the resolver
+// + typechecker is more code than the function under test. The
+// behaviour is exercised by the snippet harness via the `range_*`
+// fixtures once the snapshot flip lands in Phase 6.

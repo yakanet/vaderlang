@@ -48,6 +48,7 @@ import "vader/lower/lowered_ast" {
     INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
 }
 import "vader/lower/lower_match" { lower_match }
+import "vader/lower/lower_range" { lower_range_expr }
 import "vader/lower/helpers" { fresh_synthetic_symbol }
 
 // ============================================================================
@@ -103,8 +104,8 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         // consistent and downstream phases can spot the gap.
         is MatchExpr     as e -> { return lower_match(ctx, e, type, lower_expr) }
         is TryExpr       as e -> { return stub(e.span, type, "try lowering deferred — needs impl-by-trait queries") }
-        is LambdaExpr    as e -> { return stub(e.span, type, "lambda lowering deferred to Phase 5") }
-        is RangeExpr     as e -> { return stub(e.span, type, "range lowering deferred to Phase 5") }
+        is LambdaExpr    as e -> { return stub(e.span, type, "lambda lifting deferred — needs closure-analysis + synth-Decl construction") }
+        is RangeExpr     as e -> { return lower_range_expr(ctx, e, type, lower_expr) }
         is GenericInstExpr  as e -> { return stub(e.span, type, "generic-inst expression not lowered") }
         is DotVariantExpr   as e -> { return stub(e.span, type, "dot-variant lowering deferred") }
         // Type-position expressions in value position — earlier phases
