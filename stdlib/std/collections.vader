@@ -78,7 +78,7 @@ ensure_buckets :: fn[K, V](self: MutableMap(K, V)) -> void {
 /// @param self   the map receiver.
 /// @param key    key with which `value` is associated.
 /// @param value  the new value.
-put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void {
+put :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K, value: V) -> void {
     self.ensure_buckets()
     h :: key.hash()
     idx :: bucket_index(h)
@@ -115,7 +115,7 @@ put :: fn[K, V](self: MutableMap(K, V), key: K, value: V) -> void {
 /// @param self  the map receiver.
 /// @param key   key to look up.
 /// @return      `V` when present, `null` otherwise.
-get :: fn[K, V](self: MutableMap(K, V), key: K) -> V | null {
+get :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K) -> V | null {
     if self.buckets.len() == 0 {
         return null
     }
@@ -144,7 +144,7 @@ get :: fn[K, V](self: MutableMap(K, V), key: K) -> V | null {
 /// "key maps to a null-typed value" — `get` collapses both to `null`.
 /// @param self  the map receiver.
 /// @param key   key to test.
-contains_key :: fn[K, V](self: MutableMap(K, V), key: K) -> bool {
+contains_key :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K) -> bool {
     if self.buckets.len() == 0 {
         return false
     }
