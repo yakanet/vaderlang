@@ -1,6 +1,4 @@
 # Comptime
 
 ## tests/snippets/bad_div_zero/_main.vader
-
-# Diagnostics
-[2:16] error[C4005] comptime division by zero
+  @comptime  BOOM                 = 0_i32

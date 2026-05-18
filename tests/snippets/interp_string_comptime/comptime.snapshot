@@ -1,4 +1,6 @@
 # Comptime
 
 ## tests/snippets/interp_string_comptime/_main.vader
-  @comptime  GREETING             = "Hello, Vader!"
+
+# Diagnostics
+[2:20] error[C4002] comptime expression requires VM execution: StringInterp

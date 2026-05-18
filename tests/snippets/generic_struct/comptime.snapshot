@@ -4,3 +4,6 @@
 
 ## generic instances
   Stack(i32)
+  Stack(T)
+  Stack(T)
+  Stackable(T)

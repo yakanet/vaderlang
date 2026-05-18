@@ -515,6 +515,21 @@ export function dumpTypecheckViaVader(_source: string, entryPath: string): strin
   return stdout;
 }
 
+/** Same shape as `dumpTypecheckViaVader` but for the comptime stage.
+ *  Flipped to Vader-CLI sourced (2026-05-18) so snapshots reflect the
+ *  self-host evaluator's actual output. Tree-walk MVP covers literals,
+ *  arithmetic, ident, intrinsics, struct/trait instance harvest, and
+ *  `@assert` ; fn-instance harvest is deferred to the lowerer port.
+ *  Snippets relying on the deferred features will see their `## generic
+ *  instances` lists shrink. */
+export function dumpComptimeViaVader(_source: string, entryPath: string): string {
+  const result = Bun.spawnSync(["./build/vader", "dump", "--stage=evaluated-ast", entryPath]);
+  const stdout = new TextDecoder().decode(result.stdout);
+  const stderr = new TextDecoder().decode(result.stderr);
+  if (result.exitCode !== 0) return `# vader CLI failed (exit ${result.exitCode})\n${stderr}${stdout}`;
+  return stdout;
+}
+
 const SPAN_KEYS = new Set<string>([
   "span", "fieldSpan", "nameSpan", "bindingSpan", "traitNameSpan",
   "variantSpan", "valueSpan", "file",

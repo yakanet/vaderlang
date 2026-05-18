@@ -3,5 +3,7 @@
 ## tests/snippets/custom_iter_generic/_main.vader
 
 ## generic instances
+  Yield(T)
   Repeat(i32)
-  Yield(i32)
+  Repeat(T)
+  Repeat(T)

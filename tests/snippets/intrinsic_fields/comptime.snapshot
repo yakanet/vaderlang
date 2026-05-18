@@ -3,6 +3,4 @@
 ## tests/snippets/intrinsic_fields/_main.vader
 
 ## generic instances
-  Yield(Field)
-  ArrayIterator(Field)
-  Pair(string, i64)
+  Pair(K, V)

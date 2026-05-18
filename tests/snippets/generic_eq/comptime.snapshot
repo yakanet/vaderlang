@@ -1,6 +1,3 @@
 # Comptime
 
 ## tests/snippets/generic_eq/_main.vader
-
-## generic instances
-  are_eq(i32)

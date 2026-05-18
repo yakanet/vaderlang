@@ -1,7 +1,3 @@
 # Comptime
 
 ## tests/snippets/spread_destructure/_main.vader
-
-## generic instances
-  Yield(i32)
-  ArrayIterator(i32)

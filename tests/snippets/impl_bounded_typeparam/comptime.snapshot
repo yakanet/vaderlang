@@ -5,3 +5,5 @@
 ## generic instances
   Wrap(Cat)
   Wrap(Dog)
+  Wrap(T)
+  Wrap(T)

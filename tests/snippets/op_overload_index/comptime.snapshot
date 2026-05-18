@@ -1,7 +1,3 @@
 # Comptime
 
 ## tests/snippets/op_overload_index/_main.vader
-
-## generic instances
-  Yield(string)
-  ArrayIterator(string)

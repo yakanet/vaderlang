@@ -3,5 +3,4 @@
 ## tests/snippets/contains_op/_main.vader
 
 ## generic instances
-  Yield(i32)
   Range(i32)

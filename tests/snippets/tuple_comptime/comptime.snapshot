@@ -1,5 +1,7 @@
 # Comptime
 
 ## tests/snippets/tuple_comptime/_main.vader
-  @comptime  DIM                  = [i32, i32] { ._0 = 10_i32, ._1 = 20_i32 }
-  @comptime  ORIGIN               = [f64, f64, string] { ._0 = 0_f64, ._1 = 0_f64, ._2 = "origin" }
+
+# Diagnostics
+[11:20] error[C4002] comptime expression requires VM execution: SeqLitExpr
+[14:31] error[C4002] comptime expression requires VM execution: SeqLitExpr

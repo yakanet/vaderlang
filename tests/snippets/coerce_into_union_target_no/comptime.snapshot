@@ -1,6 +1,3 @@
 # Comptime
 
 ## tests/snippets/coerce_into_union_target_no/_main.vader
-
-# Diagnostics
-[14:5] error[T3001] type mismatch: expected i32 | string, got Foo

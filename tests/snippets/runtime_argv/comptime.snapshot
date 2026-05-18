@@ -1,7 +1,3 @@
 # Comptime
 
 ## tests/snippets/runtime_argv/_main.vader
-
-## generic instances
-  Yield(string)
-  ArrayIterator(string)

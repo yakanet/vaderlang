@@ -1,6 +1,3 @@
 # Comptime
 
 ## tests/snippets/trait_dispatch_struct/_main.vader
-
-## generic instances
-  apply_tag(i32)

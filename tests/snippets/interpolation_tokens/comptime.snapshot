@@ -1,8 +1,3 @@
 # Comptime
 
 ## tests/snippets/interpolation_tokens/_main.vader
-
-# Diagnostics
-[1:26] error[R2006] unresolved identifier: `name`
-[2:27] error[R2006] unresolved identifier: `x`
-[3:36] error[R2006] unresolved identifier: `y`

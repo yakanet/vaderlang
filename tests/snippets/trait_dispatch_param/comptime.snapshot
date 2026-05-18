@@ -1,6 +1,3 @@
 # Comptime
 
 ## tests/snippets/trait_dispatch_param/_main.vader
-
-## generic instances
-  hash_twice(i32)

@@ -3,12 +3,10 @@
 ## tests/snippets/trait_box_range_iter/_main.vader
 
 ## generic instances
-  count(i32)
-  Greeter(i32)
-  Iterator(i32)
-  Yield(i32)
+  Iterator(T)
+  Yield(T)
   Range(i32)
-  ArrayIterator(i32)
-  Doubler(i32)
-  invoke(i32)
-  twice(i32)
+  Greeter(T)
+  Greeter(T)
+  Doubler(T)
+  Doubler(T)

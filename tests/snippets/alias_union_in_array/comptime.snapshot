@@ -3,7 +3,3 @@
 ## tests/snippets/alias_union_in_array/_main.vader
 
 ## tests/snippets/alias_union_in_array/types
-
-## generic instances
-  Yield(Cat | Dog)
-  ArrayIterator(Cat | Dog)

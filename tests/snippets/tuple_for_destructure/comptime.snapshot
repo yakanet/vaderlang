@@ -1,7 +1,3 @@
 # Comptime
 
 ## tests/snippets/tuple_for_destructure/_main.vader
-
-## generic instances
-  Yield([string, i32])
-  ArrayIterator([string, i32])

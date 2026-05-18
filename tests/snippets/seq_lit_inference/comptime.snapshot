@@ -1,7 +1,3 @@
 # Comptime
 
 ## tests/snippets/seq_lit_inference/_main.vader
-
-## generic instances
-  Yield(i32)
-  ArrayIterator(i32)

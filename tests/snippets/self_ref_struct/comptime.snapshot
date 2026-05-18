@@ -4,3 +4,4 @@
 
 ## generic instances
   Node(i32)
+  Node(T)

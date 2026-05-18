@@ -1,12 +1,3 @@
 # Comptime
 
 ## tests/snippets/trait_dispatch_bounded/_main.vader
-
-## generic instances
-  count_matching(i32)
-  count_matching(string)
-  Yield(i32)
-  Yield(string)
-  ArrayIterator(T)
-  ArrayIterator(i32)
-  ArrayIterator(string)

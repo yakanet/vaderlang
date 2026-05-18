@@ -1,7 +1,3 @@
 # Comptime
 
 ## tests/snippets/array_iter/_main.vader
-
-## generic instances
-  Yield(i32)
-  ArrayIterator(i32)

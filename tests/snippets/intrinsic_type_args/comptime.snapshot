@@ -3,6 +3,4 @@
 ## tests/snippets/intrinsic_type_args/_main.vader
 
 ## generic instances
-  Pair(string, i64)
-  Yield(type)
-  ArrayIterator(type)
+  Pair(K, V)

@@ -1,7 +1,3 @@
 # Comptime
 
 ## tests/snippets/std_string_builder/_main.vader
-
-## generic instances
-  Yield(i32)
-  Range(i32)

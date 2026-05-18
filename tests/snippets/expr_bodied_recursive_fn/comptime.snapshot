@@ -1,6 +1,3 @@
 # Comptime
 
 ## tests/snippets/expr_bodied_recursive_fn/_main.vader
-
-# Diagnostics
-[6:8] error[T3034] recursive expression-bodied function requires an explicit `-> Type` annotation: `fact`

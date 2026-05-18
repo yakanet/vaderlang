@@ -4,3 +4,4 @@
 
 ## generic instances
   Wrapper(i32)
+  Wrapper(T)

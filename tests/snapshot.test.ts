@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import {
-  LEXER_PARSER_CORPUS, MAIN_FILE, dumpBytecode, dumpCfg, dumpComptime,
+  LEXER_PARSER_CORPUS, MAIN_FILE, dumpBytecode, dumpCfg, dumpComptimeViaVader,
   dumpLexer, dumpLower, dumpParser, dumpTypecheckViaVader, errMsg, listSnippets,
   loadConfig, snapshotEquals,
 } from "./snapshot.ts";
@@ -17,7 +17,7 @@ const PHASES = [
   { name: "lexer",     snap: "lexer.snapshot",     dump: dumpLexer,     usePath: false },
   { name: "parser",    snap: "parser.snapshot",    dump: dumpParser,    usePath: false },
   { name: "typecheck", snap: "typecheck.snapshot", dump: dumpTypecheckViaVader, usePath: true  },
-  { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptime,  usePath: true  },
+  { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptimeViaVader,  usePath: true  },
   { name: "lower",     snap: "lower.snapshot",     dump: dumpLower,     usePath: true  },
   { name: "cfg",       snap: "cfg.snapshot",       dump: dumpCfg,       usePath: true  },
   // `.virt` suffix : the bytecode snapshot is the `.virt` text-IR dump and

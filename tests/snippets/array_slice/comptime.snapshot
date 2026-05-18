@@ -3,8 +3,5 @@
 ## tests/snippets/array_slice/_main.vader
 
 ## generic instances
-  Yield(i32)
-  Yield(usize)
   Range(i32)
   Range(usize)
-  ArrayIterator(i32)

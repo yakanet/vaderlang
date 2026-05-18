@@ -1,6 +1,3 @@
 # Comptime
 
 ## tests/snippets/tuple_generic_swap/_main.vader
-
-## generic instances
-  swap(i32, string)

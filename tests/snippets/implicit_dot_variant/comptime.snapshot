@@ -1,7 +1,3 @@
 # Comptime
 
 ## tests/snippets/implicit_dot_variant/_main.vader
-
-## generic instances
-  Yield(Day)
-  ArrayIterator(Day)

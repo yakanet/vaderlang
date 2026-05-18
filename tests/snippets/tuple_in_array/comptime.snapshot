@@ -1,7 +1,3 @@
 # Comptime
 
 ## tests/snippets/tuple_in_array/_main.vader
-
-## generic instances
-  Yield([i32, string])
-  ArrayIterator([i32, string])

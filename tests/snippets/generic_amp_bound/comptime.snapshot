@@ -1,7 +1,3 @@
 # Comptime
 
 ## tests/snippets/generic_amp_bound/_main.vader
-
-## generic instances
-  needs_add(string)
-  bar(i32, i32)

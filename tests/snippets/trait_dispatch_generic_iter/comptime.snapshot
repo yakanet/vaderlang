@@ -3,7 +3,13 @@
 ## tests/snippets/trait_dispatch_generic_iter/_main.vader
 
 ## generic instances
-  Repeat(i32)
   Iterator(i32)
   Yield(i32)
+  Yield(T)
+  Yield(T)
+  Repeat(i32)
+  Repeat(T)
+  Repeat(T)
   Once(i32)
+  Once(T)
+  Once(T)
