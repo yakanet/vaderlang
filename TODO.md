@@ -541,6 +541,23 @@ queries + closure-analysis pass land on the typechecker side.
       - `lower_string_lit` : non-primitive interp segments now
         route through `<T>.Display.to_string(value)` +
         `builder.append_str` (was : always `builder.append_display`).
+- [x] **Phase 5f** — Match-count chantier : raised lower.snapshot
+      byte-match rate from 60 / 226 to 67 / 226 across seven fixes :
+      - `for-in` slow path (Iterator step loop + ArrayIterator
+        auto-wrap) + int-range fast path (counter loop) +
+        for-binding synth fallback (`vader/lower/lower_for_in.vader`).
+      - `core_symbols` populated at lower entry from every module's
+        `resolved.core_symbols` so `find_core_type("Yield", [T])`
+        etc. resolve.
+      - Wide-unsigned widths (u32 / u64 / usize) route through
+        `<T>.Display.to_string` (signed-carrier VM workaround).
+      - `CheckResult.all_modules` exposes std-module typed views so
+        the project-wide impl registry sees
+        `MutableMap[K,V] implements IndexSet[K, V]` etc.
+      - `m[k] = v` IndexSet sugar rewrites to direct `set_at(m, k, v)`.
+      - `arr[lo..<hi]` / `arr[lo..=hi]` literal-range slicing emits
+        `LoweredArraySlice` (zero-copy view).
+      - `<namespace>.foo(args)` collapses to direct `foo(args)` call.
 
 #### Deferred until typecheck-side support lands
 
