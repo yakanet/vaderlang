@@ -1000,6 +1000,21 @@ lookup_external_type :: fn(
 export walk_bodies :: fn(
     decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
+    // Pre-pass : seed `struct_implemented_traits` for every impl in the
+    // module so any earlier-declared impl's body that returns a
+    // later-declared type can still trait-widen. Bigger metadata (impl
+    // methods, iter_element_types, Into-keys, …) still lands in the main
+    // pass so the order-of-operations within each impl block stays the
+    // same — fewer surprises for downstream passes.
+    for decl in decls {
+        match decl {
+            is AST.ImplDecl as id -> {
+                for_ty :: type_from_expr(id.for_type, typed.resolved, diag_sink())
+                record_struct_trait(typed, for_ty, id.trait_name)
+            }
+            _ -> {}
+        }
+    }
     for decl in decls {
         match decl {
             is AST.FnDecl as fd -> { walk_fn_body(fd, typed, diags) }
