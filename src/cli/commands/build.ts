@@ -24,12 +24,14 @@ export async function cmdBuild(opts: GlobalOpts, args: string[]): Promise<number
   const stripped: string[] = [];
   let shortOut: string | undefined;
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "-o" && i + 1 < args.length) {
+    const arg = args[i];
+    if (arg === undefined) continue;
+    if (arg === "-o" && i + 1 < args.length) {
       shortOut = args[i + 1];
       i++;
       continue;
     }
-    stripped.push(args[i]);
+    stripped.push(arg);
   }
   const positional = stripped.filter((a) => !a.startsWith("--"));
   const flags = stripped.filter((a) => a.startsWith("--"));
