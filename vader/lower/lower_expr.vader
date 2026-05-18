@@ -88,13 +88,7 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
                 .target = lower_expr(ctx, e.target), .field = e.field,
             }
         }
-        is IndexExpr      as e -> {
-            return LoweredIndex {
-                .span = e.span, .type = type,
-                .target = lower_expr(ctx, e.target),
-                .index  = lower_expr(ctx, e.index),
-            }
-        }
+        is IndexExpr      as e -> { return lower_index(ctx, e, type) }
         is UnaryExpr      as e -> {
             return LoweredUnary {
                 .span = e.span, .type = type,
@@ -337,17 +331,23 @@ has_interp_part :: fn(expr: StringLitExpr) -> bool {
 // rewrites, no generic-fn instance lookups. Lowers the callee + every
 // arg directly. Phase 4 extends this with the typecheck's
 // `directCallOverloads` table once the equivalent surfaces in Vader.
-// Special-cased : `arr.push(x)` / `arr.len()` route to the dedicated
-// `LoweredArrayPush` / `LoweredArrayLen` ops when the receiver is an
-// array — the bytecode emit expects those node shapes for the fast
-// path. Mirrors the TS `fieldResolutions["array-op"]` arm but
-// detected here directly since Vader's typer doesn't yet write the
-// equivalent side-table.
+// Special cases :
+// - `arr.push(x)` / `arr.len()` route to the dedicated
+//   `LoweredArrayPush` / `LoweredArrayLen` ops when the receiver is
+//   an array.
+// - `<namespace>.foo(args)` where `<namespace>` is an `ImportBinding`
+//   ident collapses to a direct `foo(args)` call ; the surrounding
+//   namespace prefix is purely a source-level concept.
 lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     array_form :: try_lower_array_op(ctx, call, type)
     match array_form {
         is null -> {}
         _ -> { return array_form }
+    }
+    namespace_form :: try_lower_namespace_call(ctx, call, type)
+    match namespace_form {
+        is null -> {}
+        _ -> { return namespace_form }
     }
     args: LoweredExpr[] = []
     for call_arg in call.args {
@@ -355,6 +355,53 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     }
     callee :: lower_expr(ctx, call.callee)
     return LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
+}
+
+// Detect `<namespace_ident>.<member>(args)`. The target ident's
+// resolved symbol has kind `ImportBinding` (namespace import). Emit
+// a direct call to the imported member by name — the dump format
+// shows just the bare callee name, matching TS's behaviour for
+// namespace-prefixed calls.
+try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+    callee :: call.callee
+    match callee {
+        is FieldExpr as field_expr -> {
+            target_ident :: as_ident(field_expr.target)
+            if target_ident is null { return null }
+            namespace_symbol :: ctx.typed.resolved.idents[span_key(target_ident.span)]
+            if namespace_symbol is null { return null }
+            if i32(namespace_symbol.kind) != i32(SymbolKind.ImportBinding) { return null }
+            member_symbol :: synth_namespace_member(ctx, field_expr.field, type)
+            args: LoweredExpr[] = []
+            for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+            return LoweredCall {
+                .span = call.span, .type = type,
+                .callee = LoweredIdent {
+                    .span = field_expr.span, .type = type, .symbol = member_symbol,
+                },
+                .args = args,
+            }
+        }
+        _ -> { return null }
+    }
+}
+
+as_ident :: fn(expr: Expr) -> IdentExpr | null {
+    match expr {
+        is IdentExpr as ident -> { return ident }
+        _ -> { return null }
+    }
+}
+
+synth_namespace_member :: fn(ctx: FnLowerCtx, name: string, type: Type) -> Symbol {
+    return Symbol {
+        .id         = i32(0),
+        .kind       = SymbolKind.Fn,
+        .name       = name,
+        .module     = ctx.typed.resolved.path,
+        .visibility = Visibility.Private,
+        .defined_at = null,
+    }
 }
 
 import "vader/typecheck/types" { ArrayType }
@@ -791,6 +838,60 @@ lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
 
 import "vader/typecheck/impls" { ImplEntry }
 import "vader/lower/core_symbols" { find_impl_for }
+
+// `arr[lo..<hi]` / `arr[lo..=hi]` over an array-typed receiver lowers
+// to `LoweredArraySlice` (zero-copy view). Other index expressions
+// (single-element access, user IndexExpr on structs) keep the
+// generic `LoweredIndex` shape.
+import "vader/lower/lowered_ast" { LoweredArraySlice }
+
+lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
+    target_type :: ctx.types.expr_type(expr.target)
+    match target_type {
+        is ArrayType -> {
+            sliced :: try_lower_array_slice(ctx, expr, type)
+            match sliced {
+                is null -> {}
+                _ -> { return sliced }
+            }
+        }
+        _ -> {}
+    }
+    return LoweredIndex {
+        .span = expr.span, .type = type,
+        .target = lower_expr(ctx, expr.target),
+        .index  = lower_expr(ctx, expr.index),
+    }
+}
+
+try_lower_array_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr | null {
+    match expr.index {
+        is RangeExpr as range_lit -> {
+            target_lowered :: lower_expr(ctx, expr.target)
+            lo_value :: cast_to_usize(lower_expr(ctx, range_lit.lower), range_lit.span)
+            hi_raw   :: cast_to_usize(lower_expr(ctx, range_lit.upper), range_lit.span)
+            hi_value :: adjust_hi_inclusive(hi_raw, range_lit.inclusive, range_lit.span)
+            return LoweredArraySlice {
+                .span = expr.span, .type = type,
+                .target = target_lowered, .lo = lo_value, .hi = hi_value,
+            }
+        }
+        _ -> { return null }
+    }
+}
+
+cast_to_usize :: fn(value: LoweredExpr, span: Span) -> LoweredExpr {
+    return LoweredCast { .span = span, .type = mk_primitive("usize"), .value = value }
+}
+
+adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> LoweredExpr {
+    if !inclusive { return hi }
+    return LoweredBinary {
+        .span = span, .type = mk_primitive("usize"), .op = LoweredBinaryOp.Add,
+        .left = hi,
+        .right = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = i64(1) },
+    }
+}
 
 try_lower_index_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt | null {
     target :: assign_stmt.target
