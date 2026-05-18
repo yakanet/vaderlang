@@ -230,13 +230,59 @@ has_interp_part :: fn(expr: StringLitExpr) -> bool {
 // rewrites, no generic-fn instance lookups. Lowers the callee + every
 // arg directly. Phase 4 extends this with the typecheck's
 // `directCallOverloads` table once the equivalent surfaces in Vader.
+// Special-cased : `arr.push(x)` / `arr.len()` route to the dedicated
+// `LoweredArrayPush` / `LoweredArrayLen` ops when the receiver is an
+// array — the bytecode emit expects those node shapes for the fast
+// path. Mirrors the TS `fieldResolutions["array-op"]` arm but
+// detected here directly since Vader's typer doesn't yet write the
+// equivalent side-table.
 lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
+    array_form :: try_lower_array_op(ctx, call, type)
+    match array_form {
+        is null -> {}
+        _ -> { return array_form }
+    }
     args: LoweredExpr[] = []
     for call_arg in call.args {
         args.push(lower_expr(ctx, call_arg.value))
     }
     callee :: lower_expr(ctx, call.callee)
     return LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
+}
+
+import "vader/typecheck/types" { ArrayType }
+import "vader/lower/lowered_ast" { LoweredArrayLen, LoweredArrayPush }
+
+// Detect `arr.push(x)` / `arr.len()` and emit the dedicated op. Returns
+// null when the receiver isn't an array or the field isn't a recognised
+// array intrinsic — caller falls back to the generic call path.
+try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+    callee :: call.callee
+    match callee {
+        is FieldExpr as field_expr -> {
+            target_type :: ctx.types.expr_type(field_expr.target)
+            match target_type {
+                is ArrayType -> {
+                    if field_expr.field == "len" && call.args.len() == usize(0) {
+                        return LoweredArrayLen {
+                            .span = call.span, .type = mk_primitive("usize"),
+                            .target = lower_expr(ctx, field_expr.target),
+                        }
+                    }
+                    if field_expr.field == "push" && call.args.len() == usize(1) {
+                        return LoweredArrayPush {
+                            .span = call.span, .type = mk_primitive("void"),
+                            .target = lower_expr(ctx, field_expr.target),
+                            .value  = lower_expr(ctx, call.args[0].value),
+                        }
+                    }
+                    return null
+                }
+                _ -> { return null }
+            }
+        }
+        _ -> { return null }
+    }
 }
 
 lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {
