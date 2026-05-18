@@ -55,6 +55,15 @@ export lower_for_in :: fn(
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt {
     span :: for_stmt.span
+    // Fast path : `for x in lo..<hi` / `for x in lo..=hi` over an
+    // integer range lowers to a direct counter loop ; no Range
+    // allocation, no `Iterator.next` dispatch. Falls through to the
+    // slow path when the range bound isn't an integer.
+    int_range :: try_lower_for_in_int_range(ctx, for_stmt, in_form, recurse, block_lowerer)
+    match int_range {
+        is null -> {}
+        _ -> { return int_range }
+    }
     iter_lowered_raw :: recurse(ctx, in_form.iter)
     iter_type_raw :: type_of(iter_lowered_raw)
 
@@ -77,16 +86,7 @@ export lower_for_in :: fn(
         }
     }
     yield_type :: yield_type_opt
-    binding_symbol :: lookup_for_binding(ctx, in_form.binding_span)
-    if binding_symbol is null {
-        return LoweredExprStmt {
-            .span = span,
-            .expr = LoweredUnreachable {
-                .span = span, .type = TY_VOID,
-                .reason = "for-in binding `${in_form.binding}` not resolved",
-            },
-        }
-    }
+    binding_symbol :: resolve_binding_or_synth(ctx, in_form)
 
     iter_symbol :: fresh_synthetic_symbol(ctx, "iter")
     step_symbol :: fresh_synthetic_symbol(ctx, "step")
@@ -311,4 +311,142 @@ lookup_for_binding :: fn(ctx: FnLowerCtx, binding_span: Span) -> Symbol | null {
     return null
 }
 
+// For-in bindings that the body never references don't appear in
+// `resolved.idents` (the use-site map). Synthesize a placeholder
+// symbol so the lowered shape stays consistent.
+resolve_binding_or_synth :: fn(ctx: FnLowerCtx, in_form: AST.InFor) -> Symbol {
+    found :: lookup_for_binding(ctx, in_form.binding_span)
+    match found {
+        is Symbol as s -> { return s }
+        is null -> {
+            return Symbol {
+                .id         = i32(0),
+                .kind       = SymbolKind.Local,
+                .name       = in_form.binding,
+                .module     = ctx.typed.resolved.path,
+                .visibility = AST.Visibility.Private,
+                .defined_at = null,
+            }
+        }
+    }
+}
+
 import "std/collections" { values }
+
+// ---- int-range fast path --------------------------------------------------
+
+import "vader/lower/lowered_ast" { LoweredBinary, LoweredBinaryOp, LoweredAssign }
+
+// `for x in lo..<hi` / `for x in lo..=hi` over an integer-typed range
+// bottom emits a counter loop. Mirrors TS's `tryLowerForInIntRange`.
+// Returns null when the bound isn't an integer ; caller falls back to
+// the slow path (Iterator step dispatch).
+try_lower_for_in_int_range :: fn(
+    ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
+) -> LoweredStmt | null {
+    range :: extract_range(in_form.iter)
+    if range is null { return null }
+    raw_bound :: ctx.types.expr_type(range.lower)
+    if !is_integer_type(raw_bound) { return null }
+    // FreeInt → i32 default — matches TS's `defaultIfFree` call site.
+    bound_type :: default_if_free(raw_bound)
+    // For-in bindings that the body never references don't surface
+    // in `resolved.idents` (the use-site map). Synthesize a placeholder
+    // when the lookup misses so the dump still renders ; matches the
+    // shape TS produces via its dedicated `resolved.forIns` table.
+    binding_symbol :: resolve_binding_or_synth(ctx, in_form)
+    span :: for_stmt.span
+    lo :: recurse(ctx, range.lower)
+    hi :: recurse(ctx, range.upper)
+
+    counter_init :: LoweredLet {
+        .span = span, .name = in_form.binding, .symbol = binding_symbol,
+        .type = bound_type, .value = lo,
+    }
+    counter_ref :: LoweredIdent {
+        .span = span, .type = bound_type, .symbol = binding_symbol,
+    }
+    op :: cmp_op_for_inclusive(range.inclusive)
+    cond :: LoweredBinary {
+        .span = span, .type = TY_BOOL, .op = op,
+        .left = counter_ref, .right = hi,
+    }
+    inc_stmt :: LoweredAssign {
+        .span = span, .target = counter_ref,
+        .value = LoweredBinary {
+            .span = span, .type = bound_type, .op = LoweredBinaryOp.Add,
+            .left = counter_ref,
+            .right = LoweredIntLit {
+                .span = span, .type = bound_type, .value = i64(1),
+            },
+        },
+    }
+
+    user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    loop_stmts :: build_int_range_body(user_body, inc_stmt)
+    loop_stmt :: LoweredLoop {
+        .span = span, .label = for_stmt.label, .cond = cond,
+        .body = LoweredBlock {
+            .span = span, .type = TY_VOID, .stmts = loop_stmts, .trailing = null,
+        },
+    }
+
+    block_stmts: LoweredStmt[] = []
+    block_stmts.push(counter_init)
+    block_stmts.push(loop_stmt)
+    return LoweredExprStmt {
+        .span = span,
+        .expr = LoweredBlock {
+            .span = span, .type = TY_VOID,
+            .stmts = block_stmts, .trailing = null,
+        },
+    }
+}
+
+extract_range :: fn(iter: AST.Expr) -> AST.RangeExpr | null {
+    match iter {
+        is AST.RangeExpr as r -> { return r }
+        _ -> { return null }
+    }
+}
+
+is_integer_type :: fn(t: Type) -> bool {
+    match t {
+        is PrimitiveType as p -> {
+            // Mirrors `isInteger` in `typecheck/types.ts`.
+            if p.name == "i8"    { return true }
+            if p.name == "i16"   { return true }
+            if p.name == "i32"   { return true }
+            if p.name == "i64"   { return true }
+            if p.name == "isize" { return true }
+            if p.name == "u8"    { return true }
+            if p.name == "u16"   { return true }
+            if p.name == "u32"   { return true }
+            if p.name == "u64"   { return true }
+            if p.name == "usize" { return true }
+            return false
+        }
+        is FreeIntType -> { return true }
+        _ -> { return false }
+    }
+}
+
+import "vader/typecheck/types" { FreeIntType }
+import "vader/typecheck/type_ops" { default_if_free }
+
+cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {
+    if inclusive { return LoweredBinaryOp.Lte }
+    return LoweredBinaryOp.Lt
+}
+
+build_int_range_body :: fn(user_body: LoweredBlock, inc_stmt: LoweredStmt) -> LoweredStmt[] {
+    out: LoweredStmt[] = []
+    for stmt in user_body.stmts { out.push(stmt) }
+    if !(user_body.trailing is null) {
+        out.push(LoweredExprStmt { .span = span_of(user_body.trailing), .expr = user_body.trailing })
+    }
+    out.push(inc_stmt)
+    return out
+}
