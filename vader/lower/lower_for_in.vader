@@ -1,0 +1,314 @@
+// vader/lower/lower_for_in — `for x in iter` lowering.
+//
+// Mirror of `src/lower/passes/for-in.ts::lowerForIn` (MVP slow path).
+// Desugars `for x in <iter> { body }` into the Iterator step loop :
+//
+//   let __iter_n :: <iter, optionally array-wrapped>
+//   loop {
+//     let __step_m :: <iter>.Iterator.next()
+//     if __step_m is null { break }
+//     let x :: (__step_m as Yield(T)).value
+//     <body>
+//   }
+//
+// Auto-wraps `T[]` iterators into `ArrayIterator(T)` so the loop
+// dispatches through the standard Iterator impl. The TS code has
+// several fast paths (int-range counter loop, std/iter chain fusion,
+// MutableMap inline) that the Vader MVP skips — they're snapshot-
+// matching wins for ~5-10 specific snippets but each is a substantial
+// port.
+
+import "vader/diagnostics/diagnostic" { Span }
+AST :: import "vader/parser/ast"
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck/types" {
+    Type, ArrayType, StructType, TraitType, EnumType, PrimitiveType,
+    mk_struct, mk_array, mk_union, mk_primitive, display_type,
+    TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED,
+    STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR,
+}
+import "vader/lower/ctx" { FnLowerCtx }
+import "vader/lower/entry_types" { expr_type, span_key }
+import "vader/lower/helpers" { fresh_synthetic_symbol, type_of, span_of }
+import "vader/lower/core_symbols" {
+    lookup_core_symbol, find_core_type, union_of_yield_null,
+}
+import "vader/lower/lowered_ast" {
+    LoweredExpr, LoweredBlock, LoweredStmt, LoweredLet, LoweredExprStmt,
+    LoweredIdent, LoweredIf, LoweredTypeCheck, LoweredCast, LoweredCall,
+    LoweredFieldAccess, LoweredArrayLen, LoweredVirtualCall, LoweredBreak,
+    LoweredLoop, LoweredStructLit, LoweredStructLitField, LoweredUnreachable,
+    LoweredIntLit,
+}
+
+/// Lower a `for x in iter { body }` statement to a step-loop driven
+/// by the `Iterator(T).next()` dispatch.
+/// @param ctx          the fn-body context.
+/// @param for_stmt     the source for-stmt (carries label + body).
+/// @param in_form      the iter binding + iter expression.
+/// @param recurse      callback to lower nested expressions.
+/// @param block_lowerer callback to lower the body block (cycle break).
+/// @return             the lowered stmt (a block wrapping the loop).
+export lower_for_in :: fn(
+    ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
+) -> LoweredStmt {
+    span :: for_stmt.span
+    iter_lowered_raw :: recurse(ctx, in_form.iter)
+    iter_type_raw :: type_of(iter_lowered_raw)
+
+    // Auto-wrap `T[]` → ArrayIterator(T) so the step-loop can dispatch
+    // through the standard Iterator impl. Falls through to the raw
+    // value when the array iterator type isn't reachable.
+    wrap_result :: try_wrap_array_iter(ctx, iter_lowered_raw, iter_type_raw, span)
+    iter_lowered :: wrap_result.iter
+    iter_type :: wrap_result.iter_type
+    element_type :: resolve_element_type(ctx, iter_type_raw, iter_type)
+
+    yield_type_opt :: find_core_type(ctx, STRUCT_YIELD, build_one(element_type))
+    if yield_type_opt is null {
+        return LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable {
+                .span = span, .type = TY_VOID,
+                .reason = "for-in needs std/core::Yield",
+            },
+        }
+    }
+    yield_type :: yield_type_opt
+    binding_symbol :: lookup_for_binding(ctx, in_form.binding_span)
+    if binding_symbol is null {
+        return LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable {
+                .span = span, .type = TY_VOID,
+                .reason = "for-in binding `${in_form.binding}` not resolved",
+            },
+        }
+    }
+
+    iter_symbol :: fresh_synthetic_symbol(ctx, "iter")
+    step_symbol :: fresh_synthetic_symbol(ctx, "step")
+    step_union :: union_of_yield_null(yield_type)
+
+    iter_let :: LoweredLet {
+        .span = span, .name = iter_symbol.name, .symbol = iter_symbol,
+        .type = iter_type, .value = iter_lowered,
+    }
+
+    iter_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = iter_symbol }
+    step_call :: build_step_call(ctx, iter_ref, iter_type, step_union, span)
+    step_let :: LoweredLet {
+        .span = span, .name = step_symbol.name, .symbol = step_symbol,
+        .type = step_union, .value = step_call,
+    }
+
+    step_ref :: LoweredIdent { .span = span, .type = step_union, .symbol = step_symbol }
+    is_done :: LoweredTypeCheck {
+        .span = span, .type = TY_BOOL, .value = step_ref, .check_type = mk_primitive("null"),
+    }
+
+    yield_cast :: LoweredCast { .span = span, .type = yield_type, .value = step_ref }
+    value_access :: LoweredFieldAccess {
+        .span = span, .type = element_type, .target = yield_cast, .field = "value",
+    }
+    bind_let :: LoweredLet {
+        .span = span, .name = in_form.binding, .symbol = binding_symbol,
+        .type = element_type, .value = value_access,
+    }
+
+    user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    body_stmts :: build_body_stmts(bind_let, user_body)
+
+    branch_if :: LoweredExprStmt {
+        .span = span,
+        .expr = LoweredIf {
+            .span = span, .type = TY_VOID,
+            .cond = is_done,
+            .then_block = LoweredBlock {
+                .span = span, .type = TY_VOID,
+                .stmts = build_break_stmts(span), .trailing = null,
+            },
+            .else_block = LoweredBlock {
+                .span = span, .type = TY_VOID, .stmts = body_stmts, .trailing = null,
+            },
+        },
+    }
+
+    loop_stmts: LoweredStmt[] = []
+    loop_stmts.push(step_let)
+    loop_stmts.push(branch_if)
+
+    loop_stmt :: LoweredLoop {
+        .span = span, .label = for_stmt.label, .cond = null,
+        .body = LoweredBlock {
+            .span = span, .type = TY_VOID, .stmts = loop_stmts, .trailing = null,
+        },
+    }
+
+    block_stmts: LoweredStmt[] = []
+    block_stmts.push(iter_let)
+    block_stmts.push(loop_stmt)
+    return LoweredExprStmt {
+        .span = span,
+        .expr = LoweredBlock {
+            .span = span, .type = TY_VOID,
+            .stmts = block_stmts, .trailing = null,
+        },
+    }
+}
+
+// ---- helpers --------------------------------------------------------------
+
+build_one :: fn(t: Type) -> Type[] {
+    out: Type[] = []
+    out.push(t)
+    return out
+}
+
+build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
+    out: LoweredStmt[] = []
+    out.push(LoweredBreak { .span = span, .label = null })
+    return out
+}
+
+build_body_stmts :: fn(bind_let: LoweredStmt, user_body: LoweredBlock) -> LoweredStmt[] {
+    out: LoweredStmt[] = []
+    out.push(bind_let)
+    for stmt in user_body.stmts { out.push(stmt) }
+    if user_body.trailing is null { return out }
+    out.push(LoweredExprStmt { .span = span_of(user_body.trailing), .expr = user_body.trailing })
+    return out
+}
+
+WrapResult :: struct {
+    iter:      LoweredExpr
+    iter_type: Type
+}
+
+// Wrap a `T[]` iterator into `ArrayIterator(T)` so the step-loop has
+// a struct-typed iter to dispatch on. Returns the input verbatim
+// when the type isn't an array or ArrayIterator isn't in std/core.
+try_wrap_array_iter :: fn(
+    ctx: FnLowerCtx, iter: LoweredExpr, iter_type: Type, span: Span,
+) -> WrapResult {
+    match iter_type {
+        is ArrayType as arr -> {
+            array_iter_symbol :: lookup_core_symbol(ctx, STRUCT_ARRAY_ITERATOR)
+            match array_iter_symbol {
+                is null -> { return WrapResult { .iter = iter, .iter_type = iter_type } }
+                is Symbol as resolved -> {
+                    args: Type[] = []
+                    args.push(arr.element)
+                    wrapped_type :: mk_struct(resolved, args)
+                    fields: LoweredStructLitField[] = []
+                    fields.push(LoweredStructLitField {
+                        .name = "arr", .value = iter,
+                    })
+                    fields.push(LoweredStructLitField {
+                        .name = "cursor",
+                        .value = LoweredIntLit {
+                            .span = span, .type = mk_primitive("usize"), .value = i64(0),
+                        },
+                    })
+                    wrapped :: LoweredStructLit {
+                        .span = span, .type = wrapped_type, .fields = fields,
+                    }
+                    return WrapResult { .iter = wrapped, .iter_type = wrapped_type }
+                }
+            }
+        }
+        _ -> { return WrapResult { .iter = iter, .iter_type = iter_type } }
+    }
+}
+
+// Determine the element type yielded by the iterator. Tries :
+// 1. The raw iter type's first type-arg (Range(T), ArrayIterator(T)).
+// 2. `typed.iter_element_types[display_type(raw_iter_type)]` — written
+//    by the typecheck when checking the Iterator impl.
+// 3. Falls back to TY_UNRESOLVED so the lowered loop still emits a
+//    well-formed shape (the typer's earlier diagnostics already
+//    surfaced the missing impl).
+resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type) -> Type {
+    match iter_type {
+        is StructType as st -> {
+            if st.args.len() > usize(0) { return st.args[0] }
+        }
+        _ -> {}
+    }
+    match raw_iter_type {
+        is StructType as st -> {
+            if st.args.len() > usize(0) { return st.args[0] }
+        }
+        is TraitType as tt -> {
+            if tt.args.len() > usize(0) { return tt.args[0] }
+        }
+        _ -> {}
+    }
+    side_table_key :: display_type(iter_type)
+    from_typed :: ctx.typed.iter_element_types[side_table_key]
+    if !(from_typed is null) { return from_typed }
+    return TY_UNRESOLVED
+}
+
+// Build the per-iter `.next()` step call. Trait-typed iter →
+// `LoweredVirtualCall` ; concrete struct iter → `LoweredCall` to a
+// synth `next` symbol. The bytecode emit resolves the synth callee
+// via the impl-member mangling once that wiring lands.
+build_step_call :: fn(
+    ctx: FnLowerCtx, iter_ref: LoweredExpr, iter_type: Type, step_union: Type, span: Span,
+) -> LoweredExpr {
+    match iter_type {
+        is TraitType as tt -> {
+            if tt.symbol.name == TRAIT_ITERATOR {
+                args: LoweredExpr[] = []
+                return LoweredVirtualCall {
+                    .span = span, .type = step_union,
+                    .trait_name = TRAIT_ITERATOR, .method = "next",
+                    .receiver = iter_ref, .args = args,
+                }
+            }
+        }
+        _ -> {}
+    }
+    next_symbol :: synth_next_symbol(ctx)
+    args: LoweredExpr[] = []
+    args.push(iter_ref)
+    return LoweredCall {
+        .span = span, .type = step_union,
+        .callee = LoweredIdent {
+            .span = span, .type = TY_UNRESOLVED, .symbol = next_symbol,
+        },
+        .args = args,
+    }
+}
+
+synth_next_symbol :: fn(ctx: FnLowerCtx) -> Symbol {
+    return Symbol {
+        .id         = i32(0),
+        .kind       = SymbolKind.Fn,
+        .name       = "next",
+        .module     = ctx.typed.resolved.path,
+        .visibility = AST.Visibility.Private,
+        .defined_at = null,
+    }
+}
+
+// Look up the for-in binding's resolver-minted Symbol — scan
+// `idents.values()` by `defined_at == binding_span`. Mirrors the
+// `lookup_local_symbol` shape used elsewhere.
+lookup_for_binding :: fn(ctx: FnLowerCtx, binding_span: Span) -> Symbol | null {
+    target_key :: span_key(binding_span)
+    for symbol in ctx.typed.resolved.idents.values() {
+        match symbol.defined_at {
+            is null -> {}
+            is Span as defined -> {
+                if span_key(defined) == target_key { return symbol }
+            }
+        }
+    }
+    return null
+}
+
+import "std/collections" { values }

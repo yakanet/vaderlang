@@ -53,6 +53,10 @@ export lower_project :: fn(
     // is precomputed so per-decl lowering can read it without re-
     // walking the AST.
     project_ctx.closures = analyze_closures(loaded, typed)
+    // Populate `core_symbols` from each module's `resolved.core_symbols`
+    // table (auto-imported std/core exports). Lookups like
+    // `find_core_type("Yield", [T])` go through this cache.
+    populate_core_symbols(typed, project_ctx)
     // Build the project-wide impl registry — aggregate every module's
     // `T implements Trait { … }` decls so downstream phases can query
     // by `(for_type, trait_name)`. Unblocks Display dispatch for
@@ -75,6 +79,30 @@ export lower_project :: fn(
 }
 
 import "vader/typecheck/impls" { build_impl_registry, ImplEntry }
+
+// Populate `core_symbols` from std/core's resolved view so the
+// lowerer can resolve `Range`, `Yield`, `ArrayIterator`, `Iterator`,
+// `Display`, `Error`, … without re-walking the project per call.
+populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
+    for module_id in typed.modules.keys() {
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        // `core_symbols` on `ResolvedModule` carries cross-module
+        // auto-import bindings — std/core's own entry has its
+        // exported symbols here. Iterate every module's table and
+        // copy into the project context ; std/core's entries
+        // dominate since every module imports them.
+        for symbol_name in module_typed.resolved.core_symbols.keys() {
+            symbol :: module_typed.resolved.core_symbols[symbol_name]
+            match symbol {
+                is null -> {}
+                is Symbol as resolved -> {
+                    project_ctx.core_symbols[symbol_name] = resolved
+                }
+            }
+        }
+    }
+}
 
 // Aggregate every loaded module's impl decls into the project ctx's
 // registry. `build_impl_registry` works per-module ; we drain every

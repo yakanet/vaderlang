@@ -52,6 +52,7 @@ import "vader/lower/lower_match" { lower_match }
 import "vader/lower/lower_range" { lower_range_expr }
 import "vader/lower/lower_lambda" { lower_lambda }
 import "vader/lower/lower_try" { lower_try }
+import "vader/lower/lower_for_in" { lower_for_in }
 import "vader/lower/helpers" { fresh_synthetic_symbol }
 
 // ============================================================================
@@ -800,14 +801,8 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
                 .cond = cond, .body = body,
             }
         }
-        is InFor -> {
-            return LoweredExprStmt {
-                .span = for_stmt.span,
-                .expr = LoweredUnreachable {
-                    .span = for_stmt.span, .type = TY_VOID,
-                    .reason = "`for x in iter` lowering deferred to Phase 5",
-                },
-            }
+        is InFor as in_form -> {
+            return lower_for_in(ctx, for_stmt, in_form, lower_expr, lower_block)
         }
     }
 }
