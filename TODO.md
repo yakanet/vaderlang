@@ -206,6 +206,7 @@ Patterns counted on the existing Vader code that paid an outsized boilerplate co
 - [x] Flow-narrowing on `if x is T` (Phase A, ident scrutinee) — recognises `x is T`, `x == null`, `x != null` + leading `!`. Phase B (FieldExpr LHS receiver narrowing) deferred — needs path-based keying + immutability check.
 - [x] `if x is T as binding { ... }` — mirrors match-arm shape ; binding scoped to then-block.
 - [x] Drop `fn` keyword on lambda expressions — new form `(params) -> body` or `x -> body`. Decls still use `name :: fn(...) -> R { ... }`.
+- [ ] **`for <range> { ... }` shorthand** — desugar `for <expr> { body }` where `<expr>` types as `Range(T)` into `for _ in <expr> { body }` at parse or typecheck time. Neither parser supports it today, both go down the `while-cond` path and the typechecker emits T3019 (`Range(i32)` is not `bool`). Surfaced 2026-05-18 in `stdlib/std/string_builder.vader::append_repeated` and `stdlib/std/collections.vader:69` — both currently fixed by hand-adding `_ in`. Once the sugar lands, those `_ in` can go away.
 
 ### 1.14 Snapshot test infrastructure — done
 - [x] Single-source-per-test layout in `tests/snippets/{name}/_main.vader` + `{phase}.snapshot` files. Driver runs every pipeline phase. `UPDATE_SNAPSHOTS=1 bun test` for refresh. 80+ snippets covering generics, traits, comptime, error propagation, GC stress, closures, iter combinators.

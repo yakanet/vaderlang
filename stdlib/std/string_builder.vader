@@ -54,7 +54,7 @@ export append_char :: fn(self: StringBuilder, c: char) -> void {
 /// @param c      codepoint to repeat.
 /// @param count  number of copies to append (≤ 0 → no-op).
 export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
-    for 0..<count {
+    for _ in 0..<count {
         self.append_char(c)
     }
 }
