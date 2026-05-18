@@ -320,6 +320,22 @@ export dispatch_key :: fn(t: Type) -> string {
     return type_base_name(default_if_free(t))
 }
 
+/// True iff the nominal carrier of `t` is registered as implementing the
+/// trait named `trait_name` in `typed.struct_implemented_traits`. Returns
+/// false for shapes with no nominal name (Union, Fn, Array, …) and for
+/// nominal types that have no impl entry. Shared by `expr?` error-stripping,
+/// trait-bound widening and UFCS dispatch.
+export struct_implements_trait :: fn(t: Type, trait_name: string, typed: TypedProgram) -> bool {
+    name :: dispatch_key(t)
+    if name == "" { return false }
+    bucket :: typed.struct_implemented_traits[name]
+    if bucket is null { return false }
+    for n in bucket { if n == trait_name { return true } }
+    return false
+}
+
+import "vader/typecheck/typed_ast" { TypedProgram }
+
 /// Bidirectional narrowing : when a Free* literal flows into a slot that
 /// wants a concrete numeric of the matching family, fold the literal to
 /// the concrete primitive. Used by every check_expr-style call site.

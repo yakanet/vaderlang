@@ -8,35 +8,38 @@
 // inner type (downstream still gets a useful Type).
 
 import "vader/diagnostics/diagnostic" { Diagnostic }
-import "vader/typecheck/types" { Type, TraitType, UnionType, mk_union }
+import "vader/typecheck/types" { Type, TraitType, UnionType, TRAIT_ERROR, mk_union }
+import "vader/typecheck/type_ops" { struct_implements_trait }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 
-/// Type-check `inner?`. Strips the `Error` (or any trait) variant
-/// from a union — `string | Error` → `string`. Non-union inner types
-/// pass through unchanged.
+/// Type-check `inner?`. Strips every `Error`-implementing variant from a
+/// union — `string | JsonError` → `string`. Non-union inner types pass
+/// through unchanged.
 export infer_try :: fn(
     e: AST.TryExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     inner :: check_expr_fn(e.inner, null, typed, diags)
-    return strip_error_variants(inner)
+    return strip_error_variants(inner, typed)
 }
 
-strip_error_variants :: fn(t: Type) -> Type {
+strip_error_variants :: fn(t: Type, typed: TypedProgram) -> Type {
     if !(t is UnionType) { return t }
     kept: Type[] = []
     for v in t.variants {
-        if !is_error_like(v) { kept.push(v) }
+        if !is_error_like(v, typed) { kept.push(v) }
     }
     if kept.len() == 0 { return t }
     if kept.len() == 1 { return kept[0] }
     return mk_union(kept)
 }
 
-is_error_like :: fn(t: Type) -> bool {
+// `TraitType` is handled separately because trait symbols don't live in
+// `struct_implemented_traits` — only their concrete implementers do.
+is_error_like :: fn(t: Type, typed: TypedProgram) -> bool {
     match t {
-        is TraitType as tr -> { return tr.symbol.name == "Error" }
-        _ -> { return false }
+        is TraitType as tr -> { return tr.symbol.name == TRAIT_ERROR }
+        _ -> { return struct_implements_trait(t, TRAIT_ERROR, typed) }
     }
 }
