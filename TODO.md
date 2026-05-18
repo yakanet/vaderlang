@@ -508,12 +508,16 @@ queries + closure-analysis pass land on the typechecker side.
       `Decl` ; every field on the stub `FnDecl` / `StructDecl` is
       now initialised explicitly (`vader/lower/lower_lambda.vader`,
       `vader/lower/lower.vader::lower_module`).
-- [x] **Phase 5c** — Convergence with TS `lower.snapshot` :
-      module-path mangling, `struct_field_types` lookup for self-
-      referential fields, `type_from_expr` fallback for `IsPattern`,
-      tuple-typed `SeqLitExpr → LoweredStructLit` with `_N` fields.
-      `./build/vader dump --stage=lowered-ast` now byte-matches
-      53 / 226 TS-sourced fixtures (was 0 / 226 before mangling).
+- [x] **Phase 5c** — Convergence with TS `lower.snapshot` : seven
+      incremental fixes — module-path mangling, `struct_field_types`
+      lookup, `type_from_expr` fallback for `IsPattern`, tuple-typed
+      `SeqLitExpr → LoweredStructLit` with `_N` fields, `arr.push(x)`
+      / `arr.len()` → dedicated array ops, `ImplDecl` members emitted
+      as fns with `<module>$<for-type>$<trait>$<method>` mangling,
+      struct lit defaults filled in decl order, `EnumDecl → EnumType`
+      unwrap for `DotVariantExpr` + match-arm predicates. The lowered
+      dump now byte-matches **60 / 226** TS-sourced fixtures (was
+      0 / 226 before mangling).
 
 #### Deferred until typecheck-side support lands
 
