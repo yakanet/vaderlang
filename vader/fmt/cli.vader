@@ -13,23 +13,14 @@ import "vader/diagnostics/diagnostic" { Diagnostic, render }
 import "vader/fmt/format" { format_source, FormatResult, ParseFailure, Formatted }
 
 // Per-file outcome. Typed so call sites can pattern-match instead of
-// chaining magic-number comparisons. `to_exit_code` collapses to the OS
-// integer at the very end of `run_fmt` ; mirrors the contract in the
-// TS shim (`src/cli/commands/fmt.ts`).
+// chaining magic-number comparisons. Discriminants ARE the OS exit codes —
+// `i32(r)` at the call site collapses to the integer ; mirrors the
+// contract in the TS shim (`src/cli/commands/fmt.ts`).
 FileResult :: enum(u8) {
-    Ok,           // no change, or written successfully
-    Drift,        // --check : would format
-    ParseSkip,    // skipped because the parser emitted diagnostics
-    IoError,      // read / write / readdir failed
-}
-
-to_exit_code :: fn(r: FileResult) -> i32 {
-    match r {
-        .Ok        -> 0
-        .Drift     -> 1
-        .ParseSkip -> 2
-        .IoError   -> 3
-    }
+    Ok,           // 0 — no change, or written successfully
+    Drift,        // 1 — --check : would format
+    ParseSkip,    // 2 — skipped because the parser emitted diagnostics
+    IoError,      // 3 — read / write / readdir failed
 }
 
 Mode :: enum(u8) {
@@ -116,9 +107,9 @@ export run_fmt :: fn(args: string[]) -> i32 {
     if opts.mode == Mode.Stdout {
         if opts.paths.len() != usize(1) {
             eprintln("vader fmt: --stdout requires exactly one file path")
-            return to_exit_code(FileResult.Drift)
+            return i32(FileResult.Drift)
         }
-        return to_exit_code(run_one_stdout(opts.paths[0]))
+        return i32(run_one_stdout(opts.paths[0]))
     }
 
     files: string[] = []
@@ -136,10 +127,10 @@ export run_fmt :: fn(args: string[]) -> i32 {
         }
     }
 
-    if errors > 0 { return to_exit_code(FileResult.IoError) }
-    if opts.mode == Mode.Check && drift > 0 { return to_exit_code(FileResult.Drift) }
-    if skipped > 0 { return to_exit_code(FileResult.ParseSkip) }
-    return to_exit_code(FileResult.Ok)
+    if errors > 0 { return i32(FileResult.IoError) }
+    if opts.mode == Mode.Check && drift > 0 { return i32(FileResult.Drift) }
+    if skipped > 0 { return i32(FileResult.ParseSkip) }
+    return i32(FileResult.Ok)
 }
 
 // Format one file. Returns a FileResult.
