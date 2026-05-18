@@ -136,7 +136,7 @@ lower_fn_decl :: fn(
     entry :: stub_entry(fn_decl, typed)
     body :: lower_fn_body(fn_decl, typed, project_ctx, entry, subst, return_type)
     return LoweredFnDecl {
-        .mangled     = fn_decl.name,
+        .mangled     = entry.mangled,
         .params      = params,
         .return_type = return_type,
         .body        = body,
@@ -173,10 +173,11 @@ lower_struct_decl :: fn(
             .type = types.type_expr_type(field.ty),
         })
     }
+    entry :: stub_entry(struct_decl, typed)
     return LoweredStructDecl {
-        .mangled = struct_decl.name,
+        .mangled = entry.mangled,
         .fields  = fields,
-        .origin  = stub_entry(struct_decl, typed),
+        .origin  = entry,
     }
 }
 
@@ -194,7 +195,7 @@ lower_const_decl :: fn(
     fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, type_val, null)
     value :: lower_expr(fn_ctx, const_decl.value)
     return LoweredConstDecl {
-        .mangled = const_decl.name,
+        .mangled = entry.mangled,
         .type    = type_val,
         .value   = value,
         .origin  = entry,
@@ -212,14 +213,19 @@ return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
     }
 }
 
-// Build a stub `MonoEntry` for a decl ; Phase 2 doesn't need the full
-// substitution / mangling pipeline, just a carrier for `origin` so the
-// lowered nodes carry a back-pointer.
+// Build a stub `MonoEntry` for a decl. `mangled` follows the TS
+// `<module-id-with-slashes-and-dots-replaced-by-underscores>$<name>`
+// convention so downstream phases + the snapshot harness see the same
+// stable identifier as the TS lowerer. `is_main` stays the routing
+// identity ; the bytecode emit reads that flag (not the mangled
+// name) to pick the entry point.
 stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
+    name :: decl_name(decl)
+    mangled :: "${mangle_module_id(typed.resolved.path)}$${name}"
     return MonoEntry {
         .id             = i32(0),
         .is_main        = is_main_decl(decl),
-        .mangled        = decl_name(decl),
+        .mangled        = mangled,
         .decl           = decl,
         .symbol         = null,
         .subst          = new_substitution(),
@@ -227,6 +233,20 @@ stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
         .module         = typed,
     }
 }
+
+// Slash-and-dot → underscore substitution. Matches the TS prefix the
+// lowerer's `mangled` field renders against.
+mangle_module_id :: fn(module_id: string) -> string {
+    sb := new_builder()
+    for c in module_id {
+        if c == '/' { sb.append_char('_') }
+        else if c == '.' { sb.append_char('_') }
+        else { sb.append_char(c) }
+    }
+    return sb.to_string()
+}
+
+import "std/string_builder" { new_builder, append, append_char }
 
 // Recover the source name from any top-level decl. Used for the stub
 // entry's `mangled` field ; Phase 3 will switch to the proper mangled
