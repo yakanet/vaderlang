@@ -25,17 +25,18 @@ import "vader/typecheck/types" {
 }
 import "vader/comptime/evaluated_ast" { EvaluatedProject }
 import "vader/comptime/mono_ast" { MonoEntry }
-import "vader/lower/ctx" { LowerProjectCtx, new_lower_project_ctx }
+import "vader/lower/ctx" { LowerProjectCtx, new_lower_project_ctx, FnLowerCtx, new_fn_lower_ctx }
 import "vader/lower/lowered_ast" {
     LoweredProject, LoweredModule, LoweredDecl,
     LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
-    LoweredParam, LoweredStructField, LoweredExpr, LoweredUnreachable,
+    LoweredParam, LoweredStructField, LoweredExpr, LoweredBlock, LoweredUnreachable,
     new_lowered_project,
 }
 import "vader/lower/entry_types" {
     EntryTypes, make_entry_types, span_key,
     type_expr_type, fn_decl_type, const_decl_type, param_type, struct_decl_type,
 }
+import "vader/lower/lower_expr" { lower_expr, lower_block, lookup_local_symbol }
 
 /// Lower every module's top-level decls into a `LoweredProject`.
 /// @param loaded     the loaded project (for source decls per module).
@@ -99,30 +100,51 @@ lower_decl :: fn(
     }
 }
 
-// FnDecl → empty-body `LoweredFnDecl`. Phase 3 swaps the body in. The
-// generic case (`type_params.len() > 0`) is skipped until the mono pass
-// ships ; Phase 2's stub emits one entry per non-generic fn so the
-// dump shows the project's surface even before bodies fill in.
+// FnDecl → `LoweredFnDecl`. Phase 3 wires up the body lowering via the
+// shared `lower_block` driver. Generic fns (`type_params.len() > 0`)
+// stay skipped until the mono pass ships ; phase 2's narrow contract
+// holds — non-generic decls only.
 lower_fn_decl :: fn(
     fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl | null {
     if fn_decl.type_params.len() > usize(0) { return null }
-    types :: make_entry_types(typed, new_substitution())
+    subst :: new_substitution()
+    types :: make_entry_types(typed, subst)
     params: LoweredParam[] = []
     for ast_param in fn_decl.params {
-        symbol :: typed.resolved.idents[span_key(ast_param.span)]
+        // Param symbols live behind `resolved.idents` use-sites — recover
+        // by matching `defined_at` against the param's source span.
+        symbol :: lookup_local_symbol(typed.resolved, ast_param.span)
         if symbol is null { continue }
         param_type_val :: types.param_type(ast_param)
         params.push(LoweredParam {
             .name = ast_param.name, .symbol = symbol, .type = param_type_val,
         })
     }
+    return_type :: return_type_of(fn_decl, types)
+    entry :: stub_entry(fn_decl, typed)
+    body :: lower_fn_body(fn_decl, typed, project_ctx, entry, subst, return_type)
     return LoweredFnDecl {
         .mangled     = fn_decl.name,
         .params      = params,
-        .return_type = return_type_of(fn_decl, types),
-        .body        = null,
-        .origin      = stub_entry(fn_decl, typed),
+        .return_type = return_type,
+        .body        = body,
+        .origin      = entry,
+    }
+}
+
+// Build the fn-body context and invoke the block lowerer. Returns
+// `null` for `@extern` / signature-only fns (`body is null`).
+lower_fn_body :: fn(
+    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+    entry: MonoEntry, subst: Substitution, return_type: Type,
+) -> LoweredBlock | null {
+    match fn_decl.body {
+        is null -> { return null }
+        _ -> {
+            fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type, null)
+            return lower_block(fn_ctx, fn_decl.body, true, false)
+        }
     }
 }
 
@@ -147,22 +169,24 @@ lower_struct_decl :: fn(
     }
 }
 
-// ConstDecl → `LoweredConstDecl` with a stub `LoweredUnreachable` value.
-// Phase 3 swaps the value in once the expression lowerer is online.
+// ConstDecl → `LoweredConstDecl`. Phase 3 wires the value to the
+// expression lowerer. `@comptime`-baked constants live in
+// `evaluated.modules[…].comptime_decls` ; the bytecode-emit chantier
+// will fold them into `LoweredIntLit` / `LoweredArrayLit` here.
 lower_const_decl :: fn(
     const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl | null {
-    types :: make_entry_types(typed, new_substitution())
+    subst :: new_substitution()
+    types :: make_entry_types(typed, subst)
     type_val :: types.const_decl_type(const_decl)
-    value: LoweredExpr = LoweredUnreachable {
-        .span = const_decl.span, .type = type_val,
-        .reason = "const body lowering not yet ported",
-    }
+    entry :: stub_entry(const_decl, typed)
+    fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, type_val, null)
+    value :: lower_expr(fn_ctx, const_decl.value)
     return LoweredConstDecl {
         .mangled = const_decl.name,
         .type    = type_val,
         .value   = value,
-        .origin  = stub_entry(const_decl, typed),
+        .origin  = entry,
     }
 }
 

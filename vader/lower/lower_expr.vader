@@ -1,0 +1,501 @@
+// vader/lower/lower_expr — expression + block + statement lowerer.
+//
+// Mirror of `src/lower/passes/expr.ts` + `block.ts`. Vader's module
+// system rejects the TS-style mutual import between an "expr" and a
+// "block" file (block contains stmts contains exprs contains blocks),
+// so the two layers live together here.
+//
+// Phase 3 scope : literals, ident, binop / unop, field, index, cast,
+// if-expr, block, struct lit, array lit, intrinsic call, plain string
+// lit, let / assign / return / expr-stmt / break / continue, plus
+// `while`-style for loops. Match / try / lambda / range / for-in /
+// string interp / defer / tuple destructure stay at stub level until
+// the dedicated module ports in Phase 4 / 5.
+
+import "std/collections" { MutableMap, values }
+import "vader/parser/ast" {
+    Expr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr,
+    StringLitExpr, StringLitText, StringLitInterp, IdentExpr, CallExpr,
+    FieldExpr, IndexExpr, UnaryExpr, UnaryOp, BinaryExpr, BinaryOp, IfExpr,
+    BlockExpr, MatchExpr, LambdaExpr, StructLitExpr, StructLitField,
+    StructLitSpread, SeqLitExpr, RangeExpr, TryExpr, CastExpr,
+    GenericInstExpr, IntrinsicCallExpr, DotVariantExpr, IfElse, IfElseIf,
+    IfElseBlock, CallArg, FnTypeExpr, ArrayTypeExpr,
+    Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, ForStmt,
+    BreakStmt, ContinueStmt, DeferStmt, ForForm, InfiniteFor, WhileFor, InFor,
+    LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
+}
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck/types" {
+    Type, FnType, PrimitiveType, FreeIntType, FreeFloatType,
+    TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, mk_primitive,
+}
+import "vader/typecheck/type_ops" { default_if_free }
+import "vader/lower/ctx" { FnLowerCtx, BlockCtx, new_block_ctx }
+import "vader/lower/entry_types" { expr_type, type_expr_type, local_type, span_key }
+import "vader/lower/helpers" { type_of }
+import "vader/lower/lowered_ast" {
+    LoweredExpr, LoweredBlock, LoweredStmt, LoweredExprStmt,
+    LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
+    LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
+    LoweredFieldAccess, LoweredIndex, LoweredUnary, LoweredUnaryOp,
+    LoweredBinary, LoweredBinaryOp, LoweredIf, LoweredStructLit,
+    LoweredStructLitField, LoweredArrayLit, LoweredCast, LoweredUnreachable,
+    LoweredIntrinsicCall, LoweredLet, LoweredAssign, LoweredReturn,
+    LoweredLoop, LoweredBreak, LoweredContinue,
+}
+
+// ============================================================================
+// Expression dispatcher
+// ============================================================================
+
+/// Lower an `AST.Expr` to its `LoweredExpr` form.
+/// @param ctx   the fn-body context.
+/// @param expr  the source expression.
+/// @return      the lowered expression.
+export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
+    type :: ctx.types.expr_type(expr)
+    match expr {
+        is IntLitExpr     as e -> { return LoweredIntLit { .span = e.span, .type = default_if_free(type), .value = i64(e.value) } }
+        is FloatLitExpr   as e -> { return LoweredFloatLit { .span = e.span, .type = default_if_free(type), .value = e.value } }
+        is BoolLitExpr    as e -> { return LoweredBoolLit { .span = e.span, .type = TY_BOOL, .value = e.value } }
+        is NullLitExpr    as e -> { return LoweredNullLit { .span = e.span, .type = mk_primitive("null") } }
+        is CharLitExpr    as e -> { return LoweredCharLit { .span = e.span, .type = mk_primitive("char"), .value = e.value } }
+        is StringLitExpr  as e -> { return lower_string_lit(ctx, e, type) }
+        is IdentExpr      as e -> { return lower_ident(ctx, e, type) }
+        is CallExpr       as e -> { return lower_call(ctx, e, type) }
+        is FieldExpr      as e -> {
+            return LoweredFieldAccess {
+                .span = e.span, .type = type,
+                .target = lower_expr(ctx, e.target), .field = e.field,
+            }
+        }
+        is IndexExpr      as e -> {
+            return LoweredIndex {
+                .span = e.span, .type = type,
+                .target = lower_expr(ctx, e.target),
+                .index  = lower_expr(ctx, e.index),
+            }
+        }
+        is UnaryExpr      as e -> {
+            return LoweredUnary {
+                .span = e.span, .type = type,
+                .op = lower_unary_op(e.op),
+                .operand = lower_expr(ctx, e.operand),
+            }
+        }
+        is BinaryExpr     as e -> { return lower_binary(ctx, e, type) }
+        is IfExpr         as e -> { return lower_if(ctx, e, type) }
+        is BlockExpr      as e -> { return lower_block(ctx, e, false, false) }
+        is StructLitExpr  as e -> { return lower_struct_lit(ctx, e, type) }
+        is SeqLitExpr     as e -> { return lower_seq_lit(ctx, e, type) }
+        is CastExpr       as e -> {
+            return LoweredCast { .span = e.span, .type = type, .value = lower_expr(ctx, e.value) }
+        }
+        is IntrinsicCallExpr as e -> { return lower_intrinsic(ctx, e, type) }
+        // Match / try / lambda / range / for-in are deferred to phases
+        // 4 / 5. Until then, emit an unreachable so the dump shape is
+        // consistent and downstream phases can spot the gap.
+        is MatchExpr     as e -> { return stub(e.span, type, "match lowering deferred to Phase 4") }
+        is TryExpr       as e -> { return stub(e.span, type, "try lowering deferred to Phase 4") }
+        is LambdaExpr    as e -> { return stub(e.span, type, "lambda lowering deferred to Phase 5") }
+        is RangeExpr     as e -> { return stub(e.span, type, "range lowering deferred to Phase 5") }
+        is GenericInstExpr  as e -> { return stub(e.span, type, "generic-inst expression not lowered") }
+        is DotVariantExpr   as e -> { return stub(e.span, type, "dot-variant lowering deferred") }
+        // Type-position expressions in value position — earlier phases
+        // emit T3035 ; the lowerer just emits a stub.
+        is FnTypeExpr    as e -> { return stub(e.span, type, "type-valued slot not lowered") }
+        is ArrayTypeExpr as e -> { return stub(e.span, type, "type-valued slot not lowered") }
+    }
+}
+
+stub :: fn(span: Span, type: Type, reason: string) -> LoweredExpr {
+    return LoweredUnreachable { .span = span, .type = type, .reason = reason }
+}
+
+// ============================================================================
+// Per-kind expression lowerers
+// ============================================================================
+
+lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr {
+    symbol :: ctx.typed.resolved.idents[span_key(ident.span)]
+    match symbol {
+        is null -> { return stub(ident.span, type, "unresolved ident `${ident.name}`") }
+        is Symbol as resolved -> {
+            return LoweredIdent { .span = ident.span, .type = type, .symbol = resolved }
+        }
+    }
+}
+
+// Plain string lit only — interpolation parts route to a stub until
+// Phase 4's `lower_string_interp` lands. The TS lowerer fast-paths
+// single-text parts ; we mirror that here.
+lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
+    if has_interp_part(expr) {
+        return stub(expr.span, type, "string interpolation lowering deferred to Phase 4")
+    }
+    body := ""
+    for part in expr.parts {
+        match part {
+            is StringLitText as text -> { body = body + text.value }
+            _ -> {}
+        }
+    }
+    return LoweredStringLit { .span = expr.span, .type = mk_primitive("string"), .value = body }
+}
+
+has_interp_part :: fn(expr: StringLitExpr) -> bool {
+    for part in expr.parts {
+        match part {
+            is StringLitInterp -> { return true }
+            _ -> {}
+        }
+    }
+    return false
+}
+
+// Basic call lowering — no direct-call overload overrides, no UFCS
+// rewrites, no generic-fn instance lookups. Lowers the callee + every
+// arg directly. Phase 4 extends this with the typecheck's
+// `directCallOverloads` table once the equivalent surfaces in Vader.
+lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
+    args: LoweredExpr[] = []
+    for call_arg in call.args {
+        args.push(lower_expr(ctx, call_arg.value))
+    }
+    callee :: lower_expr(ctx, call.callee)
+    return LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
+}
+
+lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {
+    // The AST carries an `Is` op for `expr is T` ; lower it to a
+    // type-check stub until Phase 4's match lowerer surfaces a proper
+    // `LoweredTypeCheck`.
+    if i32(binary.op) == i32(BinaryOp.Is) {
+        return stub(binary.span, type, "`is T` lowering deferred to Phase 4")
+    }
+    if i32(binary.op) == i32(BinaryOp.In) || i32(binary.op) == i32(BinaryOp.NotIn) {
+        return stub(binary.span, type, "`in` / `not in` lowering deferred")
+    }
+    return LoweredBinary {
+        .span = binary.span, .type = type,
+        .op    = lower_binary_op(binary.op),
+        .left  = lower_expr(ctx, binary.left),
+        .right = lower_expr(ctx, binary.right),
+    }
+}
+
+lower_if :: fn(ctx: FnLowerCtx, if_expr: IfExpr, type: Type) -> LoweredExpr {
+    cond :: lower_expr(ctx, if_expr.cond)
+    then_block :: lower_block(ctx, if_expr.then_block, false, false)
+    else_block :: lower_if_else(ctx, if_expr.else_branch)
+    return LoweredIf {
+        .span = if_expr.span, .type = type,
+        .cond = cond, .then_block = then_block, .else_block = else_block,
+    }
+}
+
+lower_if_else :: fn(ctx: FnLowerCtx, branch: IfElse | null) -> LoweredBlock | null {
+    match branch {
+        is null -> { return null }
+        is IfElseIf as if_else_if -> {
+            chained :: lower_if(ctx, if_else_if.branch, ctx.types.expr_type(if_else_if.branch))
+            return LoweredBlock {
+                .span = if_else_if.branch.span, .type = type_of(chained),
+                .stmts = [], .trailing = chained,
+            }
+        }
+        is IfElseBlock as if_else_block -> { return lower_block(ctx, if_else_block.block, false, false) }
+    }
+}
+
+lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> LoweredExpr {
+    fields: LoweredStructLitField[] = []
+    for item in lit.items {
+        match item {
+            is StructLitField as field -> {
+                fields.push(LoweredStructLitField {
+                    .name = field.name, .value = lower_expr(ctx, field.value),
+                })
+            }
+            is StructLitSpread -> {}
+        }
+    }
+    return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
+}
+
+lower_seq_lit :: fn(ctx: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr {
+    elements: LoweredExpr[] = []
+    for element in lit.elements { elements.push(lower_expr(ctx, element)) }
+    return LoweredArrayLit { .span = lit.span, .type = type, .elements = elements }
+}
+
+// Preserve the `@<name>(args)` call shape. Comptime-foldable variants
+// (`@size_of`, `@type_kind`, …) get baked at evaluation time and reach
+// the lowerer as bound `@comptime const` references ; what remains is
+// the runtime-bound shape, which the bytecode emit consumes.
+lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr {
+    args: LoweredExpr[] = []
+    for arg_expr in intrinsic.args {
+        args.push(lower_expr(ctx, arg_expr))
+    }
+    return LoweredIntrinsicCall {
+        .span = intrinsic.span, .type = type, .name = intrinsic.name,
+        .args = args, .display_for = null,
+    }
+}
+
+// ============================================================================
+// Block + statement lowering
+// ============================================================================
+
+/// Lower a `BlockExpr` to a `LoweredBlock`. Block frames are pushed
+/// onto `ctx.blocks` so defer-aware lowering (Phase 5) can replay
+/// in reverse at every exit edge ; Phase 3 just bookkeeps the stack.
+/// @param ctx           the fn-body context.
+/// @param block         the source block.
+/// @param is_fn_root    true when this is the enclosing fn's body.
+/// @param is_loop_body  true when this is the body of a loop.
+/// @return              the lowered block.
+export lower_block :: fn(
+    ctx: FnLowerCtx, block: BlockExpr, is_fn_root: bool, is_loop_body: bool,
+) -> LoweredBlock {
+    ctx.blocks.push(new_block_ctx(is_fn_root, is_loop_body))
+    stmts: LoweredStmt[] = []
+    for stmt in block.stmts {
+        result :: lower_stmt(ctx, stmt)
+        match result {
+            is null -> {}
+            _       -> { stmts.push(result) }
+        }
+    }
+    trailing :: lower_trailing(ctx, block.trailing)
+    block_type :: trailing_type(trailing)
+    // Vader's `[]` lacks a generic `pop` — drop the top frame by
+    // resizing the array via a helper. Phase 5's defer pass will
+    // formalise this when block-exit edges start consuming the frame.
+    drop_top_block_frame(ctx)
+    return LoweredBlock {
+        .span = block.span, .type = block_type, .stmts = stmts, .trailing = trailing,
+    }
+}
+
+drop_top_block_frame :: fn(ctx: FnLowerCtx) -> void {
+    if ctx.blocks.len() == usize(0) { return }
+    // Rebuild without the last element. Phase 5 will swap this for a
+    // proper depth-cursor when defer-replay needs O(1) push / pop.
+    new_blocks: BlockCtx[] = []
+    upper :: ctx.blocks.len() - usize(1)
+    for i in 0..<upper { new_blocks.push(ctx.blocks[i]) }
+    ctx.blocks = new_blocks
+}
+
+lower_trailing :: fn(ctx: FnLowerCtx, trailing: Expr | null) -> LoweredExpr | null {
+    match trailing {
+        is null -> { return null }
+        _ -> { return lower_expr(ctx, trailing) }
+    }
+}
+
+trailing_type :: fn(trailing: LoweredExpr | null) -> Type {
+    match trailing {
+        is null -> { return TY_VOID }
+        _ -> { return type_of(trailing) }
+    }
+}
+
+lower_stmt :: fn(ctx: FnLowerCtx, stmt: Stmt) -> LoweredStmt | null {
+    match stmt {
+        is LetStmt      as let_stmt      -> { return lower_let(ctx, let_stmt) }
+        is AssignStmt   as assign_stmt   -> { return lower_assign(ctx, assign_stmt) }
+        is ExprStmt     as expr_stmt     -> {
+            return LoweredExprStmt { .span = expr_stmt.span, .expr = lower_expr(ctx, expr_stmt.expr) }
+        }
+        is ReturnStmt   as return_stmt   -> { return lower_return(ctx, return_stmt) }
+        is ForStmt      as for_stmt      -> { return lower_for(ctx, for_stmt) }
+        is BreakStmt    as break_stmt    -> {
+            return LoweredBreak { .span = break_stmt.span, .label = break_stmt.label }
+        }
+        is ContinueStmt as continue_stmt -> {
+            return LoweredContinue { .span = continue_stmt.span, .label = continue_stmt.label }
+        }
+        is DeferStmt    as defer_stmt    -> {
+            // Defer replay (reverse on every block-exit edge) is Phase 5
+            // territory. Drop the stmt entirely until the dedicated
+            // pass surfaces ; the dump stays predictable.
+            return null
+        }
+    }
+}
+
+lower_let :: fn(ctx: FnLowerCtx, let_stmt: LetStmt) -> LoweredStmt | null {
+    match let_stmt.binding {
+        is SimpleBinding as simple -> {
+            symbol :: lookup_local_symbol(ctx.typed.resolved, simple.name_span)
+            match symbol {
+                is null -> { return null }
+                is Symbol as resolved -> {
+                    binding_type :: ctx.types.local_type(simple)
+                    return LoweredLet {
+                        .span = let_stmt.span, .name = simple.name,
+                        .symbol = resolved, .type = binding_type,
+                        .value = lower_expr(ctx, let_stmt.value),
+                    }
+                }
+            }
+        }
+        is TupleBinding -> {
+            return LoweredExprStmt {
+                .span = let_stmt.span,
+                .expr = LoweredUnreachable {
+                    .span = let_stmt.span, .type = TY_VOID,
+                    .reason = "tuple destructure lowering deferred to Phase 5",
+                },
+            }
+        }
+        is WildcardBinding -> {
+            return LoweredExprStmt {
+                .span = let_stmt.span, .expr = lower_expr(ctx, let_stmt.value),
+            }
+        }
+        is RestBinding -> {
+            return LoweredExprStmt {
+                .span = let_stmt.span,
+                .expr = LoweredUnreachable {
+                    .span = let_stmt.span, .type = TY_VOID,
+                    .reason = "rest-binding only valid inside tuple destructure",
+                },
+            }
+        }
+    }
+}
+
+/// Recover the resolver-minted `Symbol` whose `defined_at` matches the
+/// given binding-site span. Local + param symbols don't live in
+/// `resolved.symbols` (that's the top-level table) ; they surface via
+/// `resolved.idents`, the use-site map. Scan its values once and pick
+/// the first symbol whose `defined_at` matches the target span. Returns
+/// `null` when the binding has no use sites (rare in well-formed code).
+/// @param resolved  the module's resolved view (`typed.resolved`).
+/// @param name_span the binding-site name span.
+/// @return          the resolver-minted symbol, or `null` if absent.
+export lookup_local_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Symbol | null {
+    target_key :: span_key(name_span)
+    for symbol in resolved.idents.values() {
+        match symbol.defined_at {
+            is null -> {}
+            is Span as defined -> {
+                if span_key(defined) == target_key { return symbol }
+            }
+        }
+    }
+    return null
+}
+
+import "vader/resolver/resolve" { ResolvedModule }
+
+lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
+    return LoweredAssign {
+        .span = assign_stmt.span,
+        .target = lower_expr(ctx, assign_stmt.target),
+        .value  = lower_expr(ctx, assign_stmt.value),
+    }
+}
+
+lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
+    match return_stmt.value {
+        is null -> { return LoweredReturn { .span = return_stmt.span, .value = null } }
+        _ -> {
+            return LoweredReturn {
+                .span = return_stmt.span,
+                .value = lower_expr(ctx, return_stmt.value),
+            }
+        }
+    }
+}
+
+// Phase 3 covers infinite-for and while-for. for-in collapses to an
+// Iterator step-loop via Phase 5's dedicated module ; emit a stub here.
+lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
+    match for_stmt.form {
+        is InfiniteFor -> {
+            body :: lower_block(ctx, for_stmt.body, false, true)
+            return LoweredLoop {
+                .span = for_stmt.span, .label = for_stmt.label,
+                .cond = null, .body = body,
+            }
+        }
+        is WhileFor as while_for -> {
+            cond :: lower_expr(ctx, while_for.cond)
+            body :: lower_block(ctx, for_stmt.body, false, true)
+            return LoweredLoop {
+                .span = for_stmt.span, .label = for_stmt.label,
+                .cond = cond, .body = body,
+            }
+        }
+        is InFor -> {
+            return LoweredExprStmt {
+                .span = for_stmt.span,
+                .expr = LoweredUnreachable {
+                    .span = for_stmt.span, .type = TY_VOID,
+                    .reason = "`for x in iter` lowering deferred to Phase 5",
+                },
+            }
+        }
+    }
+}
+
+// ============================================================================
+// Op translation tables
+// ============================================================================
+
+lower_unary_op :: fn(op: UnaryOp) -> LoweredUnaryOp = match op {
+    .Neg    -> LoweredUnaryOp.Neg
+    .Not    -> LoweredUnaryOp.Not
+    .BitNot -> LoweredUnaryOp.BitNot
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_lower_unary_op_table :: fn() -> void {
+    assert_eq(i32(lower_unary_op(UnaryOp.Neg)),    i32(LoweredUnaryOp.Neg))
+    assert_eq(i32(lower_unary_op(UnaryOp.Not)),    i32(LoweredUnaryOp.Not))
+    assert_eq(i32(lower_unary_op(UnaryOp.BitNot)), i32(LoweredUnaryOp.BitNot))
+}
+
+@test test_lower_binary_op_basic_arithmetic :: fn() -> void {
+    assert_eq(i32(lower_binary_op(BinaryOp.Add)), i32(LoweredBinaryOp.Add))
+    assert_eq(i32(lower_binary_op(BinaryOp.Eq)),  i32(LoweredBinaryOp.Eq))
+    // `Is` is routed through the dedicated lowerer ; the table maps it
+    // to `Eq` to keep the match exhaustive without firing.
+    assert_eq(i32(lower_binary_op(BinaryOp.Is)),  i32(LoweredBinaryOp.Eq))
+}
+
+lower_binary_op :: fn(op: BinaryOp) -> LoweredBinaryOp = match op {
+    .Add    -> LoweredBinaryOp.Add
+    .Sub    -> LoweredBinaryOp.Sub
+    .Mul    -> LoweredBinaryOp.Mul
+    .Div    -> LoweredBinaryOp.Div
+    .Mod    -> LoweredBinaryOp.Mod
+    .Shl    -> LoweredBinaryOp.Shl
+    .Shr    -> LoweredBinaryOp.Shr
+    .BitAnd -> LoweredBinaryOp.BitAnd
+    .BitOr  -> LoweredBinaryOp.BitOr
+    .BitXor -> LoweredBinaryOp.BitXor
+    .And    -> LoweredBinaryOp.And
+    .Or     -> LoweredBinaryOp.Or
+    .Eq     -> LoweredBinaryOp.Eq
+    .Neq    -> LoweredBinaryOp.Neq
+    .Lt     -> LoweredBinaryOp.Lt
+    .Lte    -> LoweredBinaryOp.Lte
+    .Gt     -> LoweredBinaryOp.Gt
+    .Gte    -> LoweredBinaryOp.Gte
+    // Is / In / NotIn are routed through dedicated lowerers above ;
+    // mapping them to `Eq` keeps `match` exhaustive without firing.
+    .Is     -> LoweredBinaryOp.Eq
+    .In     -> LoweredBinaryOp.Eq
+    .NotIn  -> LoweredBinaryOp.Eq
+}
