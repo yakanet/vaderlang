@@ -24,6 +24,7 @@ import "vader/parser/ast" {
     Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, ForStmt,
     BreakStmt, ContinueStmt, DeferStmt, ForForm, InfiniteFor, WhileFor, InFor,
     LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
+    Visibility,
 }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -223,20 +224,42 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
             }
             is StringLitInterp as interp -> {
                 inner :: lower_expr(ctx, interp.expr)
+                inner_type :: type_of(inner)
                 builder_ref :: LoweredIdent {
                     .span = interp.span, .type = TY_UNRESOLVED, .symbol = builder_symbol,
                 }
-                args: LoweredExpr[] = []
-                args.push(builder_ref)
-                args.push(inner)
-                stmts.push(LoweredExprStmt {
-                    .span = interp.span,
-                    .expr = LoweredIntrinsicCall {
-                        .span = interp.span, .type = TY_VOID,
-                        .name = INTRINSIC_BUILDER_APPEND_DISPLAY,
-                        .args = args, .display_for = ctx.types.expr_type(interp.expr),
-                    },
-                })
+                if is_primitive_for_display(inner_type) {
+                    args: LoweredExpr[] = []
+                    args.push(builder_ref)
+                    args.push(inner)
+                    stmts.push(LoweredExprStmt {
+                        .span = interp.span,
+                        .expr = LoweredIntrinsicCall {
+                            .span = interp.span, .type = TY_VOID,
+                            .name = INTRINSIC_BUILDER_APPEND_DISPLAY,
+                            .args = args, .display_for = inner_type,
+                        },
+                    })
+                } else {
+                    // Non-primitive segment : route through `<T>.Display
+                    // .to_string(value)` then feed the string into
+                    // `builder.append_str`. Mirrors TS's `wrapAsDisplay`
+                    // path. The `to_string` symbol is synthesised here ;
+                    // the bytecode emit resolves it via the impl-member
+                    // mangling once that wiring lands.
+                    str_call :: build_display_to_string_call(ctx, inner, interp.span)
+                    args: LoweredExpr[] = []
+                    args.push(builder_ref)
+                    args.push(str_call)
+                    stmts.push(LoweredExprStmt {
+                        .span = interp.span,
+                        .expr = LoweredIntrinsicCall {
+                            .span = interp.span, .type = TY_VOID,
+                            .name = INTRINSIC_BUILDER_APPEND_STR,
+                            .args = args, .display_for = null,
+                        },
+                    })
+                }
             }
         }
     }
@@ -249,6 +272,43 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
             .span = expr.span, .type = string_type,
             .name = INTRINSIC_BUILDER_FINISH, .args = finish_args, .display_for = null,
         },
+    }
+}
+
+// Primitive integer/float/bool/char/string types take the fast
+// `builder.append_display` path ; the bytecode emit has dedicated ops
+// per width. FreeInt / FreeFloat (un-defaulted lit types) also count —
+// they default to `i32` / `f64` at codegen time. Every other shape
+// (struct / enum / trait / union / array / ...) needs `to_string` first.
+is_primitive_for_display :: fn(t: Type) -> bool {
+    match t {
+        is PrimitiveType -> { return true }
+        is FreeIntType -> { return true }
+        is FreeFloatType -> { return true }
+        _ -> { return false }
+    }
+}
+
+// Build a `<T>.Display.to_string(value)` call shape. The callee is a
+// synthesised `LoweredIdent` named `to_string` ; the bytecode emit
+// resolves it to the real impl-member symbol via mangling once that
+// wiring lands.
+build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -> LoweredExpr {
+    string_type :: mk_primitive("string")
+    callee_symbol :: Symbol {
+        .id         = i32(0),
+        .kind       = SymbolKind.Fn,
+        .name       = "to_string",
+        .module     = ctx.typed.resolved.path,
+        .visibility = Visibility.Private,
+        .defined_at = null,
+    }
+    args: LoweredExpr[] = []
+    args.push(value)
+    return LoweredCall {
+        .span = span, .type = string_type,
+        .callee = LoweredIdent { .span = span, .type = string_type, .symbol = callee_symbol },
+        .args = args,
     }
 }
 
