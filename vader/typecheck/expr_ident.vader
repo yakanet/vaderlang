@@ -90,8 +90,17 @@ lookup_in :: fn(sym: Symbol, table: MutableMap(string, Type)) -> Type {
 
 /// Lookup with cross-module fallback : when the local `decl_types`
 /// misses (the symbol lives in another module), consult
-/// `typed.external_types` keyed by Symbol.id.
+/// `typed.external_types` keyed by Symbol.id. When `sym.module` is
+/// a different module than the entry's, skip the local lookup entirely —
+/// `decl_types` is span-keyed (`line:col`) and two top-level decls at
+/// the same line:col in different files (e.g. entry's `JsonNumber` at
+/// L30:8 vs std/testing's `fail` at L30:8) would otherwise collide.
 lookup_decl :: fn(sym: Symbol, typed: TypedProgram) -> Type {
+    if sym.module != typed.resolved.path {
+        ext :: typed.external_types[sym.id]
+        if ext is null { return TY_UNRESOLVED }
+        return ext
+    }
     local :: lookup_in(sym, typed.decl_types)
     match local {
         is UnresolvedType -> {
