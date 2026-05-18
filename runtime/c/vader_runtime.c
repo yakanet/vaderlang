@@ -135,6 +135,19 @@ static int vader_in_old_any(const void* p) {
         && (const char*)p < (const char*)vader_old_end;
 }
 
+/* Read a positive byte-count from `env_name`. Returns `fallback` when the
+ * variable is unset, empty, non-numeric, or parses to zero. Lets users tune
+ * the heap (e.g. `VADER_GC_OLD_BYTES=134217728` for 128 MB old) without
+ * rebuilding the runtime. */
+static size_t vader_gc_env_bytes(const char* env_name, size_t fallback) {
+    const char* raw = getenv(env_name);
+    if (raw == NULL || raw[0] == '\0') return fallback;
+    char* end = NULL;
+    unsigned long long v = strtoull(raw, &end, 10);
+    if (end == raw || v == 0ull) return fallback;
+    return (size_t)v;
+}
+
 void vader_gc_init(void) {
     if (g_gc_initialized) return;
 
@@ -142,7 +155,7 @@ void vader_gc_init(void) {
     g_gc_stress = (stress_env != NULL && stress_env[0] != '\0' && stress_env[0] != '0');
 
     /* Young: one malloc spanning both semi-spaces. */
-    size_t young_bytes = (size_t)VADER_GC_YOUNG_BYTES;
+    size_t young_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t)VADER_GC_YOUNG_BYTES);
     g_young.block = (char*) malloc(young_bytes * 2u);
     if (g_young.block == NULL) vader_trap("vader_gc_init: young arena malloc failed");
     g_young.half_bytes = young_bytes;
@@ -155,7 +168,7 @@ void vader_gc_init(void) {
 
     /* Old: one malloc spanning both semi-spaces, contiguous to ease the
      * card-table indexing. */
-    size_t old_bytes = (size_t)VADER_GC_OLD_BYTES;
+    size_t old_bytes = vader_gc_env_bytes("VADER_GC_OLD_BYTES", (size_t)VADER_GC_OLD_BYTES);
     g_old.block = (char*) malloc(old_bytes * 2u);
     if (g_old.block == NULL) vader_trap("vader_gc_init: old arena malloc failed");
     g_old.half_bytes = old_bytes;
