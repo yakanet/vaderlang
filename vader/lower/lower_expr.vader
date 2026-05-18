@@ -279,11 +279,21 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
 // Primitive integer/float/bool/char/string types take the fast
 // `builder.append_display` path ; the bytecode emit has dedicated ops
 // per width. FreeInt / FreeFloat (un-defaulted lit types) also count —
-// they default to `i32` / `f64` at codegen time. Every other shape
-// (struct / enum / trait / union / array / ...) needs `to_string` first.
+// they default to `i32` / `f64` at codegen time. Wide unsigned widths
+// (u32, u64, usize) are an exception : the VM collapses every integer
+// onto `I32Val` / `I64Val` which are signed carriers, so a bit pattern
+// outside the signed-i64 range would print negative. Routing them
+// through `<u32>.Display.to_string` gives the VM a mangled-name hook
+// to pick the unsigned stringifier ; the C target inlines via the
+// @intrinsic impl so this is free at native codegen.
 is_primitive_for_display :: fn(t: Type) -> bool {
     match t {
-        is PrimitiveType -> { return true }
+        is PrimitiveType as p -> {
+            if p.name == "u32"   { return false }
+            if p.name == "u64"   { return false }
+            if p.name == "usize" { return false }
+            return true
+        }
         is FreeIntType -> { return true }
         is FreeFloatType -> { return true }
         _ -> { return false }
