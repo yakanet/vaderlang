@@ -65,6 +65,45 @@ export union_of_yield_null :: fn(yielded: Type) -> Type {
     return mk_union([yielded, mk_primitive("null")])
 }
 
+import "vader/typecheck/impls" { ImplEntry, find_user, type_to_target_symbol }
+
+/// Find the user-impl entry for `(for_type, trait_name)` in the
+/// project-wide registry. Mirrors TS's `lookupImplFor` — the lowerer's
+/// for-in / try / display-coerce sites consult this to dispatch
+/// through the matching impl member.
+/// @param ctx         the project context.
+/// @param for_type    the receiver type (struct / enum).
+/// @param trait_name  the trait's source-level name (e.g. `"Display"`).
+/// @return            the registered entry, or `null` when no impl
+///                    matches (defensive — earlier diagnostics should
+///                    have caught the missing impl).
+export find_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_name: string) -> ImplEntry | null {
+    for_symbol :: type_to_target_symbol(for_type)
+    if for_symbol is null { return null }
+    trait_symbol :: find_core_trait(ctx, trait_name)
+    match trait_symbol {
+        is null -> { return find_via_all(ctx, for_symbol, trait_name) }
+        is Symbol as resolved -> { return ctx.impls.find_user(for_symbol, resolved) }
+    }
+}
+
+// Fallback path : when `find_core_trait` misses (project doesn't
+// import std/core, or the trait lives in a user module), scan the
+// registry's flat list for an entry matching `for_symbol.id` + the
+// trait's source-level name. O(N) but the registry is bounded.
+find_via_all :: fn(ctx: LowerProjectCtx, for_symbol: Symbol, trait_name: string) -> ImplEntry | null {
+    for entry in ctx.impls.all {
+        if entry.trait_symbol.name != trait_name { continue }
+        match entry.for_symbol {
+            is null -> {}
+            is Symbol as fs -> {
+                if fs.id == for_symbol.id { return entry }
+            }
+        }
+    }
+    return null
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }

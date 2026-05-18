@@ -1,0 +1,146 @@
+// vader/lower/lower_try — `expr?` operator lowering.
+//
+// Mirror of `src/lower/passes/try.ts`. Splits the operand's type into
+// error / ok variants and emits an early-return for the error half :
+//
+//   let __try_n :: <inner>
+//   if (<error-tag-check on __try_n>) {
+//     return __try_n      // propagate the error variant
+//   } else {
+//     <__try_n cast to ok-type>  // narrow back to the surface type
+//   }
+//
+// Error detection : a variant is an "error" when it's the trait
+// `Error` itself (`string!` desugars to `Error | string`) or when its
+// nominal type has a user impl `T implements Error`. The lookup uses
+// the project-wide `impl_by_trait` query.
+//
+// Cycle-breaker pattern : `lower_expr` is supplied as a callback to
+// dodge the import cycle with `lower_expr.vader`.
+
+import "vader/diagnostics/diagnostic" { Span }
+AST :: import "vader/parser/ast"
+import "vader/resolver/symbol" { Symbol }
+import "vader/typecheck/types" {
+    Type, UnionType, StructType, TraitType, PrimitiveType, EnumType,
+    TY_BOOL, TY_NEVER,
+}
+import "vader/typecheck/impls" { ImplEntry }
+import "vader/lower/ctx" { FnLowerCtx, LowerProjectCtx }
+import "vader/lower/entry_types" { expr_type }
+import "vader/lower/helpers" { fresh_synthetic_symbol, type_of, span_of, or_all }
+import "vader/lower/core_symbols" { find_impl_for }
+import "vader/lower/lowered_ast" {
+    LoweredExpr, LoweredBlock, LoweredStmt, LoweredLet, LoweredReturn,
+    LoweredIdent, LoweredIf, LoweredTypeCheck, LoweredCast, LoweredBoolLit,
+}
+
+/// Lower a `TryExpr` to a let-binding + if-chain over error variants.
+/// @param ctx          the fn-body context.
+/// @param expr         the source `expr?` node.
+/// @param result_type  the surrounding context's expected type (the
+///                     `Ok` half of the operand's union).
+/// @param recurse      callback to lower nested expressions.
+/// @return             the lowered block.
+export lower_try :: fn(
+    ctx: FnLowerCtx, expr: AST.TryExpr, result_type: Type,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+) -> LoweredExpr {
+    inner :: recurse(ctx, expr.inner)
+    inner_type :: type_of(inner)
+    inner_symbol :: fresh_synthetic_symbol(ctx, "try")
+    span :: expr.span
+
+    let_stmt: LoweredStmt = LoweredLet {
+        .span = span, .name = inner_symbol.name, .symbol = inner_symbol,
+        .type = inner_type, .value = inner,
+    }
+    ident_ref :: LoweredIdent { .span = span, .type = inner_type, .symbol = inner_symbol }
+
+    error_variants :: error_variants_of(inner_type, ctx.project)
+    error_predicate :: build_error_predicate(span, ident_ref, error_variants)
+
+    then_block :: LoweredBlock {
+        .span = span, .type = TY_NEVER,
+        .stmts = build_return_stmts(span, ident_ref),
+        .trailing = null,
+    }
+    else_block :: LoweredBlock {
+        .span = span, .type = result_type,
+        .stmts = [],
+        .trailing = LoweredCast { .span = span, .type = result_type, .value = ident_ref },
+    }
+    if_node: LoweredExpr = LoweredIf {
+        .span = span, .type = result_type,
+        .cond = error_predicate,
+        .then_block = then_block,
+        .else_block = else_block,
+    }
+
+    stmts: LoweredStmt[] = []
+    stmts.push(let_stmt)
+    return LoweredBlock {
+        .span = span, .type = result_type, .stmts = stmts, .trailing = if_node,
+    }
+}
+
+build_return_stmts :: fn(span: Span, ident: LoweredExpr) -> LoweredStmt[] {
+    out: LoweredStmt[] = []
+    out.push(LoweredReturn { .span = span, .value = ident })
+    return out
+}
+
+build_error_predicate :: fn(span: Span, ident: LoweredExpr, variants: Type[]) -> LoweredExpr {
+    checks: LoweredExpr[] = []
+    for variant in variants {
+        checks.push(LoweredTypeCheck {
+            .span = span, .type = TY_BOOL,
+            .value = ident, .check_type = variant,
+        })
+    }
+    if checks.len() == usize(0) {
+        return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = false }
+    }
+    return or_all(span, checks)
+}
+
+// Compute the error half of the operand's union. A variant counts as
+// an error when :
+//   - it's the `Error` trait itself (`string!` → `Error | string`)
+//   - it's a nominal struct/enum with a user impl `T implements Error`
+//   - it's a primitive — best-effort skipped here since Vader's typer
+//     doesn't yet expose `forPrimitive` impls.
+error_variants_of :: fn(operand_type: Type, project: LowerProjectCtx) -> Type[] {
+    raw_variants :: variants_of(operand_type)
+    out: Type[] = []
+    for variant in raw_variants {
+        if is_error_variant(variant, project) { out.push(variant) }
+    }
+    return out
+}
+
+variants_of :: fn(t: Type) -> Type[] {
+    match t {
+        is UnionType as un -> { return un.variants }
+        _ -> {
+            single: Type[] = []
+            single.push(t)
+            return single
+        }
+    }
+}
+
+is_error_variant :: fn(variant: Type, project: LowerProjectCtx) -> bool {
+    match variant {
+        is TraitType as tt -> { return tt.symbol.name == "Error" }
+        is StructType as st -> {
+            entry :: find_impl_for(project, variant, "Error")
+            return entry is ImplEntry
+        }
+        is EnumType -> {
+            entry :: find_impl_for(project, variant, "Error")
+            return entry is ImplEntry
+        }
+        _ -> { return false }
+    }
+}

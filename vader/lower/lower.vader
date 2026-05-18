@@ -53,6 +53,12 @@ export lower_project :: fn(
     // is precomputed so per-decl lowering can read it without re-
     // walking the AST.
     project_ctx.closures = analyze_closures(loaded, typed)
+    // Build the project-wide impl registry — aggregate every module's
+    // `T implements Trait { … }` decls so downstream phases can query
+    // by `(for_type, trait_name)`. Unblocks Display dispatch for
+    // string interp, try for non-primitive Error variants, and the
+    // for-in / Iterator step loop.
+    populate_impls(loaded, typed, project_ctx)
     project :: new_lowered_project()
 
     module_ids :: typed.modules.keys()
@@ -66,6 +72,33 @@ export lower_project :: fn(
         project.modules[module_id] = lowered_module
     }
     return project
+}
+
+import "vader/typecheck/impls" { build_impl_registry, ImplEntry }
+
+// Aggregate every loaded module's impl decls into the project ctx's
+// registry. `build_impl_registry` works per-module ; we drain every
+// resulting entry into `project_ctx.impls.all` (+ rekey `user_index`
+// by `for_symbol.id::trait_symbol.id`, same as the per-module shape).
+populate_impls :: fn(loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
+    for module_id in typed.modules.keys() {
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        module_loaded :: loaded.modules[module_id]
+        if module_loaded is null { continue }
+        module_decls_list :: module_decls(module_loaded)
+        per_module :: build_impl_registry(module_decls_list, module_typed.resolved)
+        for entry in per_module.all {
+            project_ctx.impls.all.push(entry)
+            match entry.for_symbol {
+                is null -> {}
+                is Symbol as for_symbol -> {
+                    key :: "${for_symbol.id}::${entry.trait_symbol.id}"
+                    project_ctx.impls.user_index[key] = entry
+                }
+            }
+        }
+    }
 }
 
 // Per-module driver. Walks the decl list, dispatches by kind, and
