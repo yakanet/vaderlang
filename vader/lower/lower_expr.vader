@@ -334,18 +334,71 @@ lower_if_else :: fn(ctx: FnLowerCtx, branch: IfElse | null) -> LoweredBlock | nu
 }
 
 lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> LoweredExpr {
-    fields: LoweredStructLitField[] = []
+    // Index the literal's provided values by name so we can walk the
+    // struct decl in declaration order ; this matches the TS emit's
+    // canonical field ordering even when the source literal reorders
+    // fields or omits ones with defaults.
+    provided: MutableMap(string, Expr) = MutableMap(string, Expr) { .buckets = [], .size = 0 }
+    for item in lit.items {
+        match item {
+            is StructLitField as field -> { provided[field.name] = field.value }
+            is StructLitSpread -> {}
+        }
+    }
+    fields :: build_struct_lit_fields(ctx, type, provided, lit)
+    return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
+}
+
+import "vader/typecheck/types" { StructType }
+
+build_struct_lit_fields :: fn(
+    ctx: FnLowerCtx, type: Type,
+    provided: MutableMap(string, Expr), lit: StructLitExpr,
+) -> LoweredStructLitField[] {
+    out: LoweredStructLitField[] = []
+    match type {
+        is StructType as st -> {
+            decl :: ctx.typed.struct_decls[st.symbol.id]
+            if decl is null { return fallback_provided_order(ctx, lit) }
+            for field_decl in decl.fields {
+                user_value :: provided[field_decl.name]
+                if user_value is null {
+                    match field_decl.default {
+                        is null -> {}
+                        _ -> {
+                            out.push(LoweredStructLitField {
+                                .name = field_decl.name,
+                                .value = lower_expr(ctx, field_decl.default),
+                            })
+                        }
+                    }
+                } else {
+                    out.push(LoweredStructLitField {
+                        .name = field_decl.name, .value = lower_expr(ctx, user_value),
+                    })
+                }
+            }
+            return out
+        }
+        _ -> { return fallback_provided_order(ctx, lit) }
+    }
+}
+
+// Defensive fallback : when the struct decl can't be reached, emit
+// fields in source order (the previous behaviour).
+fallback_provided_order :: fn(ctx: FnLowerCtx, lit: StructLitExpr) -> LoweredStructLitField[] {
+    out: LoweredStructLitField[] = []
     for item in lit.items {
         match item {
             is StructLitField as field -> {
-                fields.push(LoweredStructLitField {
+                out.push(LoweredStructLitField {
                     .name = field.name, .value = lower_expr(ctx, field.value),
                 })
             }
             is StructLitSpread -> {}
         }
     }
-    return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
+    return out
 }
 
 lower_seq_lit :: fn(ctx: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr {
