@@ -530,6 +530,17 @@ queries + closure-analysis pass land on the typechecker side.
       (`LoweredCellNew` / `LoweredCellGet` for by-reference closure
       semantics) stays a follow-up — the dump shape now mirrors TS
       except for the cell ops on captured-mutables.
+- [x] **Phase 5e** — Project-wide impl-by-trait registry +
+      `find_impl_for(ctx, for_type, trait_name)` query in
+      `vader/lower/core_symbols.vader`. Multi-module aggregation
+      happens at lower entry via `populate_impls`. First consumers :
+      - `lower_try.vader` : `expr?` splits the operand into error /
+        ok variants using `find_impl_for(.., "Error")` per variant,
+        emits `let __try_n :: <inner>` + an if whose error branch
+        returns the bound ident.
+      - `lower_string_lit` : non-primitive interp segments now
+        route through `<T>.Display.to_string(value)` +
+        `builder.append_str` (was : always `builder.append_display`).
 
 #### Deferred until typecheck-side support lands
 
