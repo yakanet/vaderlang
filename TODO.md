@@ -500,17 +500,23 @@ queries + closure-analysis pass land on the typechecker side.
       `is T` runtime tag check (`vader/lower/lower_match.vader`).
 - [x] **Phase 5** — `a..<b` / `a..=b` range desugaring to `Range`
       struct literals (`vader/lower/lower_range.vader`).
+- [x] **Phase 5b** — Lambda lifting (no-capture MVP) :
+      `LambdaExpr → LoweredMakeClosure` with a synthesised lifted fn
+      + an empty env struct, both appended to the owning module's
+      decl list. The previous crash was a Vader codegen quirk when
+      relying on struct-field default values inside the synthesised
+      `Decl` ; every field on the stub `FnDecl` / `StructDecl` is
+      now initialised explicitly (`vader/lower/lower_lambda.vader`,
+      `vader/lower/lower.vader::lower_module`).
 
 #### Deferred until typecheck-side support lands
 
-- [ ] **Lambda lifting** — synth fn + env struct + `MakeClosure` at
-      the call site. Prototype landed but hits a runtime crash inside
-      the synth `Decl` union construction ; re-enable after isolating
-      the issue. The dump currently routes `LambdaExpr` through a
-      `LoweredUnreachable` with a clear reason string.
 - [ ] **Closure analysis** — free-variable walker that identifies
-      captured outer-scope bindings per lambda. Needed before lambda
-      lifting can correctly hoist captures into `Cell(T)` boxes.
+      captured outer-scope bindings per lambda. Phase 5b ships the
+      lifting machinery but assumes an empty capture set ; outer
+      idents inside the lambda body still resolve via the
+      parent-scope symbol table. Adding closure analysis fills the
+      `Cell(T)` heap-promotion path the bytecode emit will need.
 - [ ] **for-in / Iterator step loop** — `for x in iter` collapses to
       an Iterator step-loop dispatched through the impl table. Needs
       `impl_by_trait` / `lookupImplFor` queries on `TypedProject` ;

@@ -49,6 +49,7 @@ import "vader/lower/lowered_ast" {
 }
 import "vader/lower/lower_match" { lower_match }
 import "vader/lower/lower_range" { lower_range_expr }
+import "vader/lower/lower_lambda" { lower_lambda }
 import "vader/lower/helpers" { fresh_synthetic_symbol }
 
 // ============================================================================
@@ -104,7 +105,7 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         // consistent and downstream phases can spot the gap.
         is MatchExpr     as e -> { return lower_match(ctx, e, type, lower_expr) }
         is TryExpr       as e -> { return stub(e.span, type, "try lowering deferred — needs impl-by-trait queries") }
-        is LambdaExpr    as e -> { return stub(e.span, type, "lambda lifting deferred — needs closure-analysis + synth-Decl construction") }
+        is LambdaExpr    as e -> { return lower_lambda(ctx, e, lower_block) }
         is RangeExpr     as e -> { return lower_range_expr(ctx, e, type, lower_expr) }
         is GenericInstExpr  as e -> { return stub(e.span, type, "generic-inst expression not lowered") }
         is DotVariantExpr   as e -> { return stub(e.span, type, "dot-variant lowering deferred") }

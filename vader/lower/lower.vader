@@ -64,11 +64,15 @@ export lower_project :: fn(
 }
 
 // Per-module driver. Walks the decl list, dispatches by kind, and
-// builds the resulting `LoweredModule`.
+// builds the resulting `LoweredModule`. Lambda-lifted synth decls
+// accumulated on `project_ctx.synth_decls` during the walk get drained
+// into this module's `decls` list — they were spawned while lowering
+// this module's bodies, so they ship alongside the regular decls.
 lower_module :: fn(
     module_id: string, typed: TypedProgram, decls: Decl[],
     project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredModule {
+    synth_baseline :: project_ctx.synth_decls.len()
     out_decls: LoweredDecl[] = []
     for decl in decls {
         result :: lower_decl(decl, typed, project_ctx, diags)
@@ -76,6 +80,13 @@ lower_module :: fn(
             is null -> {}
             _       -> { out_decls.push(result) }
         }
+    }
+    // Drain newly-spawned synth decls (everything appended after the
+    // baseline snapshot). These belong to the current module since
+    // their bodies were lowered above.
+    synth_total :: project_ctx.synth_decls.len()
+    for i in synth_baseline..<synth_total {
+        out_decls.push(project_ctx.synth_decls[i])
     }
     return LoweredModule {
         .module_id    = module_id,
