@@ -519,14 +519,27 @@ queries + closure-analysis pass land on the typechecker side.
       dump now byte-matches **60 / 226** TS-sourced fixtures (was
       0 / 226 before mangling).
 
+- [x] **Phase 5d** — Closure analysis : free-variable walker
+      (`vader/lower/closure_analysis.vader`) + capture-routing in
+      lambda lift. `analyze_closures(loaded, typed)` runs once at
+      project entry and populates `ClosureAnalysis.lambda_captures`
+      keyed by `LambdaExpr.id`. `lower_lambda` reads the captures,
+      builds the env struct with `cap_<N>` fields, and threads a
+      `LiftedFnContext` so captured idents inside the body route
+      through `env.cap_N` via `LoweredFieldAccess`. Cell promotion
+      (`LoweredCellNew` / `LoweredCellGet` for by-reference closure
+      semantics) stays a follow-up — the dump shape now mirrors TS
+      except for the cell ops on captured-mutables.
+
 #### Deferred until typecheck-side support lands
 
-- [ ] **Closure analysis** — free-variable walker that identifies
-      captured outer-scope bindings per lambda. Phase 5b ships the
-      lifting machinery but assumes an empty capture set ; outer
-      idents inside the lambda body still resolve via the
-      parent-scope symbol table. Adding closure analysis fills the
-      `Cell(T)` heap-promotion path the bytecode emit will need.
+- [ ] **`Cell(T)` heap promotion** — captured locals need to round
+      through a 1-slot heap box so multiple closures + the enclosing
+      fn observe the same mutable slot. `helpers.vader::lower_cell_init`
+      stub is in place ; wire it into `lower_let` for captured
+      symbols + emit `LoweredCellGet` in `lower_ident` when reading
+      a captured slot. Phase 5d's closure-analysis output already
+      identifies the relevant symbols via `captured_symbols`.
 - [ ] **for-in / Iterator step loop** — `for x in iter` collapses to
       an Iterator step-loop dispatched through the impl table. Needs
       `impl_by_trait` / `lookupImplFor` queries on `TypedProject` ;
