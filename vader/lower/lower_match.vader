@@ -29,10 +29,12 @@ import "vader/resolver/symbol" { Symbol }
 // expression lowering). Same pattern as
 // `vader/comptime/eval_binary.vader::evaluate_binary`'s `recurse` arg.
 import "vader/typecheck/types" {
-    Type, UnionType, TupleType, StructType, EnumType, mk_primitive,
+    Type, UnionType, TupleType, StructType, EnumType, UnresolvedType, mk_primitive,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/lower/ctx" { FnLowerCtx }
 import "vader/lower/entry_types" { EntryTypes, expr_type, type_expr_type }
 import "vader/lower/helpers" { fresh_synthetic_symbol, type_of, span_of }
@@ -153,7 +155,7 @@ pattern_predicate :: fn(
             return LoweredTypeCheck {
                 .span = span, .type = TY_BOOL,
                 .value = target,
-                .check_type = ctx.types.type_expr_type(is_pattern.ty),
+                .check_type = resolve_pattern_type(ctx, is_pattern.ty),
             }
         }
         is StructPattern as struct_pattern -> {
@@ -307,7 +309,7 @@ walk_pattern_bindings :: fn(
             })
         }
         is IsPattern as is_pattern -> {
-            inner_type :: ctx.types.type_expr_type(is_pattern.ty)
+            inner_type :: resolve_pattern_type(ctx, is_pattern.ty)
             narrowed_target :: narrow_target(target, target_type, inner_type, span)
             match is_pattern.bind_as {
                 is null -> {}
@@ -408,6 +410,23 @@ import "vader/lower/entry_types" { span_key }
 
 wrap_block :: fn(span: Span, expr: LoweredExpr) -> LoweredBlock {
     return LoweredBlock { .span = span, .type = type_of(expr), .stmts = [], .trailing = expr }
+}
+
+import "vader/parser/ast" { TypeExpr }
+
+// Pattern-position type expressions don't always get a
+// `type_expr_types` entry — the typecheck's match arm walker doesn't
+// re-resolve pattern.ty through the type-expr pass. Try the
+// side-table first ; on miss, fall back to `type_from_expr` against
+// the resolver view (the same helper the typecheck uses for fn
+// signatures).
+resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type {
+    from_table :: ctx.types.type_expr_type(type_expr)
+    if from_table is UnresolvedType {
+        scratch: Diagnostic[] = []
+        return type_from_expr(type_expr, ctx.typed.resolved, scratch)
+    }
+    return from_table
 }
 
 // ---- tests ----------------------------------------------------------------
