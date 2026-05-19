@@ -1220,12 +1220,72 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
             _ -> { return null_rewrite }
         }
     }
+    // Arithmetic + / − / × / ÷ on a user struct with a matching impl
+    // (`Vec implements Add { add(self, other) }` etc.) lowers to a
+    // direct call `add(a, b)`. Mirror of TS's `binaryOpResolutions`
+    // dispatch in `src/lower/passes/expr.ts:715-738`.
+    op_call :: try_lower_op_overload(ctx, binary, type)
+    match op_call {
+        is null -> {}
+        _ -> { return op_call }
+    }
     return LoweredBinary {
         .span = binary.span, .type = type,
         .op    = lower_binary_op(binary.op),
         .left  = lower_expr(ctx, binary.left),
         .right = lower_expr(ctx, binary.right),
     }
+}
+
+try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
+    info :: op_trait_method(binary.op)
+    if info is null { return null }
+    if info is OpTraitInfo as oti {
+        left_ty :: ctx.types.expr_type(binary.left)
+        left_name :: type_surface_name(left_ty)
+        if left_name == "" { return null }
+        // Primitive operands stay on the built-in path.
+        if left_ty is PrimitiveType { return null }
+        for entry in ctx.project.impls.all {
+            decl :: entry.decl
+            if decl.trait_name != oti.trait_name { continue }
+            if !impl_targets_name(decl.for_type, left_name) { continue }
+            for m in decl.members {
+                if m.name != oti.method_name { continue }
+                lowered_left  :: lower_expr(ctx, binary.left)
+                lowered_right :: lower_expr(ctx, binary.right)
+                args: LoweredExpr[] = []
+                args.push(lowered_left)
+                args.push(lowered_right)
+                return LoweredCall {
+                    .span = binary.span, .type = type,
+                    .callee = LoweredIdent {
+                        .span = binary.span, .type = type,
+                        .symbol = Symbol {
+                            .id = i32(0), .kind = SymbolKind.Fn, .name = oti.method_name,
+                            .module = ctx.typed.resolved.path,
+                            .visibility = Visibility.Private, .defined_at = null,
+                        },
+                    },
+                    .args = args,
+                }
+            }
+        }
+    }
+    return null
+}
+
+OpTraitInfo :: struct {
+    trait_name:  string
+    method_name: string
+}
+
+op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
+    if i32(op) == i32(BinaryOp.Add) { return OpTraitInfo { .trait_name = "Add", .method_name = "add" } }
+    if i32(op) == i32(BinaryOp.Sub) { return OpTraitInfo { .trait_name = "Sub", .method_name = "sub" } }
+    if i32(op) == i32(BinaryOp.Mul) { return OpTraitInfo { .trait_name = "Mul", .method_name = "mul" } }
+    if i32(op) == i32(BinaryOp.Div) { return OpTraitInfo { .trait_name = "Div", .method_name = "div" } }
+    return null
 }
 
 try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | null {
