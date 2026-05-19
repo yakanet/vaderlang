@@ -717,6 +717,7 @@ type_surface_name :: fn(t: Type) -> string {
     }
 }
 
+
 impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
     match for_type {
         is IdentExpr        as e -> { return e.name == name }
@@ -1091,6 +1092,10 @@ build_struct_lit_fields :: fn(
             decl :: ctx.typed.struct_decls[st.symbol.id]
             if decl is null { return fallback_provided_order(ctx, lit) }
             for field_decl in decl.fields {
+                // Resolve the field's declared type so a union-typed
+                // field widens literal initializers (e.g.
+                // `flag: int(42)` against `flag: i32 | null`).
+                field_type :: resolve_pattern_type(ctx, field_decl.ty)
                 user_value :: provided[field_decl.name]
                 if user_value is null {
                     match field_decl.default {
@@ -1098,13 +1103,18 @@ build_struct_lit_fields :: fn(
                         _ -> {
                             out.push(LoweredStructLitField {
                                 .name = field_decl.name,
-                                .value = lower_expr(ctx, field_decl.default),
+                                .value = widen_literal_to_context(
+                                    lower_expr(ctx, field_decl.default), field_type,
+                                ),
                             })
                         }
                     }
                 } else {
                     out.push(LoweredStructLitField {
-                        .name = field_decl.name, .value = lower_expr(ctx, user_value),
+                        .name = field_decl.name,
+                        .value = widen_literal_to_context(
+                            lower_expr(ctx, user_value), field_type,
+                        ),
                     })
                 }
             }

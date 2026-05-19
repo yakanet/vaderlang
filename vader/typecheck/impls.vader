@@ -14,7 +14,7 @@
 //     for `Foo` matches every concrete `Foo(args)`. Adds when the test
 //     corpus surfaces a generic conflict.
 
-import "std/collections" { MutableMap }
+import "std/collections" { MutableMap, keys }
 import "vader/parser/ast" { ImplDecl, Decl, IdentExpr, GenericInstExpr, TypeExpr }
 import "vader/resolver/resolve" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -55,6 +55,19 @@ export build_impl_registry :: fn(
     reg :: new_registry()
     by_name :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
     for s in resolved.symbols { by_name[s.name] = s }
+    // Auto-imported traits (`Display`, `Iterator`, `Error`, …) live in
+    // `core_symbols`, not `symbols`. Fold them in so `impl T implements
+    // Display { … }` finds the trait symbol when Display wasn't
+    // explicitly imported in the user's module.
+    for name in resolved.core_symbols.keys() {
+        if by_name[name] is null {
+            core_sym :: resolved.core_symbols[name]
+            match core_sym {
+                is null -> {}
+                is Symbol as s -> { by_name[name] = s }
+            }
+        }
+    }
     for d in program_decls {
         match d {
             is ImplDecl as impl_ -> { reg.collect_impl(impl_, by_name) }
