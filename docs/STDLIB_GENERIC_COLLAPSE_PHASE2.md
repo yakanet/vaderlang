@@ -1,7 +1,20 @@
 # Phase 2 — Automatic erasure pass
 
-> **Status**: planning, after Phase 1 (committed `0d9ebc80`). The main
-> event of the erasure plan.
+> **Status**: **PAUSED 2026-05-19 — option (Φ) selected.** See
+> `STDLIB_GENERIC_COLLAPSE.md` Decision log entry "Phase 2 paused via
+> option (Φ)". Full automatic erasure deferred ; partial deliverables
+> shipped as independent wins :
+> - **Phase 0** vtable runtime + slot registry + `Any` Type kind
+> - **Phase 1** packed inline-box (multi-field POD ≤ 16B)
+> - **β fix** raw-array for-in skips `ArrayIterator(T)` wrap
+> - **η fix** comptime `observeFnCall` registers Any-bearing instances
+> - **Phase 2 plumbing** (`erasureDedupe`, `symbolRedirects`, lower
+>   `Any` dispatch, `@specialize` decorator) committed but gated off
+>   in `src/comptime/evaluate.ts`.
+>
+> Re-enable starting point : flip `evaluate.ts` to call
+> `erasureDedupe(monomorphizeProject(...), project)` and address
+> §9 Issue 9 (the cascade) via path (γ).
 >
 > **Goal**: rewrite every generic instantiation through a single erased
 > form. Every type-parameter position becomes `Any` in the IR; method

@@ -116,6 +116,55 @@ Decisions taken during the planning phase, in chronological order.
     user code never writes them.
   - Phase 6 (`Any` user exposure) is deferred indefinitely. Revisit
     only if FFI or reflection demands it.
+- **2026-05-19 (end of session) — Phase 2 paused via option (Φ).**
+  After ~12 hours of empirical exploration, Phase 2 (automatic erasure
+  pass) revealed a fundamental cascade : every `@specialize`d generic
+  reachable from an erased decl receives Any-bearing queries against
+  its concrete-arg registry, which doesn't have entries for those
+  shapes. Local mitigations (per-decl `@specialize`) just push the
+  cascade one step out — see `STDLIB_GENERIC_COLLAPSE_PHASE2.md` §9
+  Issue 9. Two paths were considered :
+  - **(γ)** Synthesise Any-bearing instances for every `@specialize`d
+    generic reachable from an erased field. Bounded recursion. ~3-5 d.
+  - **(Φ)** Accept the `cc -O3` cost. Ship Phase 0 vtable + Phase 1
+    inline-box + β raw-array for-in + Phase 2 plumbing as the actual
+    deliverables. Defer full automatic erasure.
+
+  **Chosen : Φ.** The cascade exploration surfaced too many structural
+  assumptions in the compiler for a confidence-bound Phase 2 ship.
+  The partial deliverables stand on their own : Phase 0 + Phase 1
+  ship independent perf and infra wins ; the β fix removes a brittle
+  ArrayIterator dependency ; the Phase 2 plumbing (erasure-dedupe,
+  symbol-redirects, lower Any dispatch, @specialize decorator) is
+  dormant code paths the future investigation can re-enable.
+
+  **Status of dormant infrastructure** (kept committed, gated off in
+  `src/comptime/evaluate.ts`):
+  - `erasureDedupe` post-pass in `src/comptime/erasure-dedupe.ts`
+  - `symbolRedirects` plumbing through Mono/Lowered/CFG → bytecode
+  - `Any` Type kind in `src/typecheck/types.ts` (no producer)
+  - lower-side `Any` dispatch branch in `src/lower/passes/expr.ts`
+    (no consumer)
+
+  **What survives operationally**:
+  - Phase 0 vtable runtime + slot registry — emits 130 vtables on
+    self-host, used eventually by Phase 2 (γ) or any future erasure
+    investigation.
+  - Phase 1 packed inline-box — multi-field POD ≤ 16B pack into the
+    existing `payload.packed[16]` view, **already live** ; no perf
+    regression.
+  - β raw-array for-in — `lowerForInRawArray` skips
+    `ArrayIterator(T)` wrap for raw `T[]` iteration, **already live**.
+  - η `observeFnCall` Any-substitution — independently-valid bug fix
+    for comptime instance registration, **already live**.
+
+  **For the Vader self-host port** : skip Phase 2's automatic erasure
+  entirely. The TS-side exploration surfaced 9 distinct cascade
+  issues ; doing the same exploration on Vader would be wasted
+  effort. Re-investigate with a different design when there's a
+  concrete user-facing need (currently the cc -O3 baseline of 177 s
+  isn't blocking any workflow). Phase 0 + Phase 1 + β should be
+  ported as-is.
 - **2026-05-19 — Phase 1 closed.** Inline-box generalisation
   (`docs/STDLIB_GENERIC_COLLAPSE_PHASE1.md`) shipped in ~3 hours of
   work, well under the 1-2 week original estimate. Key insight: the
