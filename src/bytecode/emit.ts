@@ -413,6 +413,7 @@ export function valTypeOf(t: Type): ValType {
     case "TypeParam":
     case "TypeMeta":
     case "Self":
+    case "Any":
       return "ref";
   }
 }

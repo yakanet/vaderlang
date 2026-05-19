@@ -35,6 +35,16 @@
 extern char** environ;
 #endif
 
+/* ----------------------------------------------------------------- vtable
+ *
+ * Weak fallback definitions for the per-module vtable globals declared in
+ * `vader.h`. Empty by default; the C emit will override with strong
+ * symbols once it learns to emit vtables (Phase 0 task P0-3). Until then,
+ * `vader_virtual_dispatch` returns NULL for every tag — safe because no
+ * existing code calls it. */
+__attribute__((weak)) const vader_vtable_t* const vader_vtable_table[1] = { NULL };
+__attribute__((weak)) const size_t                vader_vtable_count    = 0;
+
 /* ----------------------------------------------------------------- gc arena */
 
 #define VADER_GC_ALIGN 8u

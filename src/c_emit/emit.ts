@@ -26,6 +26,7 @@ import {
   isRefVal, signatureFor, valTypeOfBcType, zeroInit,
 } from "./body.ts";
 import { emitVtableDispatchers, emitVtableForwardDecls } from "./ops.ts";
+import { emitVtables } from "./emit-vtable.ts";
 
 export interface EmitOptions {
   /** When true (the user passed `--release`), skip `#line` directives — the
@@ -520,6 +521,11 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
   }
   out.push(`};`);
   out.push(``);
+
+  // Per-tag trait-method vtables — Phase 0 of the erasure plan. Override
+  // the weak fallback in `vader_runtime.c` so `vader_virtual_dispatch`
+  // resolves correctly for any concrete type implementing a trait.
+  emitVtables(ctx.module, ctx.fnNames, out);
 }
 
 function emitFnTrampolines(ctx: EmitCtx, out: string[]): void {

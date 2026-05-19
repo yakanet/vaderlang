@@ -8,6 +8,7 @@ import { findCoreSymbols } from "./ctx.ts";
 import { buildImplRegistry } from "./impls.ts";
 import { inheritStructBounds } from "./passes/inherit-bounds.ts";
 import { validateStructBounds } from "./passes/struct-bounds.ts";
+import { buildSlotRegistry } from "./trait-slots.ts";
 import type { TypedProject, TypedProgram } from "./typed-ast.ts";
 
 export type { TypedProgram, TypedProject } from "./typed-ast.ts";
@@ -62,5 +63,10 @@ export function checkProject(project: ResolvedProject, diags: DiagnosticCollecto
   // the declared bound on its formal type-param.
   validateStructBounds(globals, impls, diags);
 
-  return { resolved: project, modules };
+  // Pass 4: build the trait-method slot registry (Phase 0 of the erasure
+  // plan). Pinned slots for the std/core traits are assigned at construction;
+  // user-defined trait methods get slots after sorting alphabetically.
+  const traitSlots = buildSlotRegistry(project);
+
+  return { resolved: project, modules, traitSlots };
 }

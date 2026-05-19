@@ -15,7 +15,132 @@
 > extensions), §3.8 (`Into[Target]` auto-coerce, trait-object boxing);
 > `docs/DESIGN_TYPE_FIRST.md` (Zig-style `fn(comptime K: type) -> type`
 > direction for generics — a *different* answer to the monomorphisation
-> question, worth reading alongside).
+> question, worth reading alongside);
+> `docs/STDLIB_GENERIC_COLLAPSE_POC.md` (hand-written POC plan that
+> precedes Phase 0 and gates the whole effort).
+
+---
+
+## Decision log
+
+Decisions taken during the planning phase, in chronological order.
+
+- **2026-05-19 — `Any` is the IR-internal universal pointer type, *and*
+  the future user-facing name.** The earlier draft separated
+  `ErasedReference` (IR-only) from `Any` (potential user surface). Since
+  both denote the same thing — a `vader_box_t*` with a runtime type tag —
+  the doc now uses `Any` throughout. The compiler uses `Any` for the
+  erasure boundary; user code may use `Any` later for heterogeneous
+  containers / FFI / reflection. Diagnostic output like
+  `vader dump --stage=erased-ast` will show `Any` everywhere — acceptable
+  because the surface language enforces the original generic types at
+  typecheck. See §3.
+- **2026-05-19 — A POC precedes Phase 0.** Investigation surfaced three
+  prerequisites that the original doc downplayed: no vtable exists today
+  (trait dispatch is direct post-monomorphisation), no `box_to_any` /
+  `checkcast` runtime helpers exist in `runtime/c/vader.h`, and
+  `src/comptime/specialize.ts` is 376 LoC (not the 180 originally
+  estimated) with 4 direct + 14 indirect lower-side consumers via
+  `LowerProjectCtx`. A 3–5 day hand-written POC on
+  `MutableMap(string, User)` precedes Phase 0 to validate the model
+  against five measurable success criteria before committing to ~14
+  weeks of TS work. See `docs/STDLIB_GENERIC_COLLAPSE_POC.md`.
+- **2026-05-19 — Vtable runtime is its own phase (Phase 0).** Because
+  trait method dispatch on generic params is direct post-mono today,
+  the erasure pass cannot "reuse" an existing indirect dispatch — it
+  must build one. Phase 0 adds the vtable layout, the trait-method-slot
+  registry, and the `vader_virtual_dispatch` C helper. Estimated 1–2
+  weeks. See §2.0.
+- **2026-05-19 — TS first, then port to Vader self-host.** The TS
+  compiler lands the erasure pass; the Vader self-host port (currently
+  at 181/226 lower-snapshot parity) absorbs it later. During TS work,
+  the self-host port continues in parallel on `c_emit` (the next
+  sequential step), which is independent of the IR-shape change.
+- **2026-05-19 — `Into` ↔ `checkcast` interaction: distinct IR node on
+  TS, unification on port.** The TS lower currently lacks
+  `try_emit_into_coercion` at return / struct-lit / let sites (the
+  Vader self-host has it, added by commit 8f371c22). To avoid blocking
+  Phase 3 on a TS-side `Into` alignment, the `checkcast` is inserted as
+  a distinct IR node on the TS side. When porting to Vader, the
+  alignment of `Into` between TS and Vader is done first, then
+  `checkcast` is folded into `try_emit_into_coercion` as one of its
+  coercion strategies (option (a) of the original three).
+- **2026-05-19 — Self-host port not paused.** The port continues on
+  `c_emit` in parallel with TS erasure work. When Phase 5 measurement
+  completes on TS, the port absorbs the erasure pass as a follow-up.
+- **2026-05-19 — Stage dump `--stage=erased-ast` deferred to Phase 4.**
+  Nice-to-have for debugging, not needed for Phase 2 implementation.
+- **2026-05-19 — Naming of `@specialize` vs structural heuristic for
+  iterator skip: deferred.** The erasure pass needs a way to mark
+  `ArrayIterator(T)`, `Yield(T)`, and similar types as "do not erase"
+  so for-in fusion (`src/lower/passes/for-in.ts`) can keep inlining
+  them. Two options on the table: an explicit `@specialize` decorator
+  (clean, predictable, one new keyword) or a structural heuristic
+  (magic, no new surface). Decision deferred until the POC; default
+  during POC is to *not* implement the skip (POC scope = one
+  collection, no iterators).
+- **2026-05-19 — Baseline `cc -O3` wall-time = 161 s.** Carried over
+  from TODO §3.5 measurement. Re-measure during POC for a fresh
+  reference point.
+- **2026-05-19 — No bytecode cache exists today.** Confirmed: the IR
+  shape change does not invalidate any persisted artefact.
+- **2026-05-19 — Proceed to Phase 0 after POC.** The hand-written POC
+  (`docs/STDLIB_GENERIC_COLLAPSE_POC.md`, `bench/poc_erasure/`) scored
+  3 PASS / 1 FAIL / 1 DEFERRED. The fail (criterion #2, get runtime
+  1.15-1.20× mono vs ≤ 1.10× target) is intrinsic to indirect dispatch
+  and only ~5-10 pp above threshold on a synthetic micro-bench. The
+  pass on criterion #3 (cc -O3 wall-time -44 % at 45 instantiations)
+  is large and directly addresses the primary motivation. User chose
+  option (A): proceed to Phase 0 (vtable runtime) with the explicit
+  exit criterion that pivot-test real-world `get` regression must be
+  ≤ 15 % after Phase 0 lands. Detailed plan in
+  `docs/STDLIB_GENERIC_COLLAPSE_PHASE0.md`.
+- **2026-05-19 — Vtable layout: external table (per POC criterion #5).**
+  External table indexed by tag is the chosen layout. Inline-vt variant
+  measured in the POC (vtable function pointers stored directly on the
+  map struct) was not faster — the larger map struct offset the saved
+  load. `vader_box_t` stays at 24 bytes.
+- **2026-05-19 (post-Phase-0-kickoff) — `Any` is compiler-internal
+  only.** Earlier "Any is IR-internal *and* future user-facing"
+  decision rolled back. Phase 0 (and any subsequent phase until
+  explicitly re-decided) does **not** expose `Any` in the parser, in
+  the surface language, or in LSP-facing types. User-facing API: only
+  generics. The compiler's internal IR still uses a Type kind named
+  `Any` (visible in `--stage=lowered-ast` dumps), but no source
+  program can mention it. Consequence for Phase 0:
+
+  - Drop the parser change (no `Any` keyword).
+  - Drop the sink/source typing rules (no user-visible `T(any)` cast).
+  - Keep the internal Type kind, populated only by the erasure pass.
+  - The compiler inserts checkcasts mechanically at internal boundaries;
+    user code never writes them.
+  - Phase 6 (`Any` user exposure) is deferred indefinitely. Revisit
+    only if FFI or reflection demands it.
+- **2026-05-19 — Phase 0 closed.** 5/5 active tasks done (P0-1 runtime
+  helper, P0-2 slot registry, P0-3 C emit vtables, P0-4 internal `Any`
+  Type kind, P0-6 validation). P0-5 (lower dispatch on `Any` receivers)
+  deferred to Phase 2 as it has no isolated test path. Exit criterion
+  met via `bench/poc_erasure/Makefile :: verify` — compiler emits
+  per-tag vtables in `vader_virtual_dispatch`-compatible format ; a
+  Vader binary using a user-defined trait impl compiles and runs.
+  Self-host build re-measured: **168 s** (vs 177 s pre-Phase-0
+  baseline) — no regression from vtable emit despite 130 vtables /
+  840 tags being added to the output. Phase 1 (inline-box generalisation)
+  and Phase 2 (automatic erasure pass) can start next.
+- **2026-05-19 (later) — `@erase` decorator scaffolding removed.**
+  Earlier Phase 0 draft introduced an `@erase` decorator as a
+  per-decl opt-in for testing the vtable dispatch path before the
+  full automatic erasure pass (Phase 2) lands. This contradicted the
+  "user-facing API: only generics" principle: even temporary user
+  surface that we'd remove later is wrong direction. Phase 0 scope
+  narrowed to **C-level infrastructure only** — runtime vtable + slot
+  registry + C emit vtables + internal `Any` Type kind + dormant
+  lower dispatch — validated via an extension of `bench/poc_erasure/`
+  consuming compiler-emitted vtables. End-to-end Vader-level
+  validation (`get` regression ≤ 15 %, stdlib `MutableMap_erased`,
+  pivot-test bench, etc.) moves to Phase 2, where automatic erasure
+  actually runs on real Vader code. Phase 0 remaining effort cut from
+  ~7.5-9.5 d to ~3-4 d.
 
 ---
 
@@ -45,17 +170,30 @@
 - **Backend-friendly.** The lowered IR becomes smaller and more regular —
   beneficial for the future direct-ASM backend (§3.5 line 683) and WASM
   target (§3.10), which inherit fewer specialisations to translate.
-- **`Any` becomes optional.** No new mandatory language surface; `Any` can
-  be added later as a thin alias when FFI or reflection demands it.
+- **Compiler-internal `Any` IR type — no new user surface.** `Any`
+  exists only inside the compiler (typecheck / lower / IR dumps) as a
+  single runtime representation (`vader_box_t*`). User code keeps
+  writing generics; the erasure pass and `@erase` decorator are the
+  only producers of `Any` types. User exposure (Phase 6) is deferred
+  indefinitely.
 - **Documented precedent for the soundness model.** Erased generics with
   typecheck-at-boundary discipline are implemented in Java, Kotlin, and
   Scala; the design is referenceable from public sources.
 
 ### Cons
 
-- **Significant compiler work.** ~4–5 weeks of focused effort, mostly in the
-  lower. Larger commitment than the manual Core/Shell alternative (~2
-  weeks), with deeper code-paths touched.
+- **Significant compiler work.** ~11–14 weeks of focused effort (TS only;
+  add 30–40 % for porting to the Vader self-host). Larger commitment than
+  the manual Core/Shell alternative (~2 weeks), with deeper code-paths
+  touched. Earlier "4–5 weeks" estimates underestimated the vtable
+  prerequisite (§2.0), the inline-box design (§2.1) and the comptime
+  entanglement (§8.5).
+- **Vtable must be built from scratch.** Trait method dispatch on generic
+  params is direct post-monomorphisation today
+  (`src/lower/passes/expr.ts:190-205`, case `"trait-method"`). The
+  erasure pass cannot reuse an existing indirect dispatch — Phase 0
+  builds the vtable layout, the slot registry, and the
+  `vader_virtual_dispatch` C helper. ~1–2 weeks.
 - **IR-shape change is hard to reverse.** Once C-emit, WASM, and direct-ASM
   backends are written against the erased lowered IR, reverting to a
   monomorphising lower means rewriting those backends.
@@ -71,7 +209,7 @@
   alternatives (`IntMap`-style). A `@specialize` decorator can be added
   later if demand surfaces, but is not part of this plan.
 - **Debugger and dump experience regresses.** `vader dump --stage=lowered-ast`
-  shows `ErasedReference` instead of `K` / `V`. User-friendly diagnostics from any
+  shows `Any` instead of `K` / `V`. User-friendly diagnostics from any
   pass operating on the lowered AST must re-attach the original type via
   the side-table.
 - **Comptime interaction needs validation.** Generic functions called from
@@ -121,8 +259,8 @@ collapse, once, for all generics**.
 
 A new pass runs between typecheck and lower. It rewrites generic instantiations
 to a single erased form by replacing every type-parameter position with a
-uniform `ErasedReference` (an IR-only universal pointer type, never user-visible).
-At generic call sites, the lower wraps arguments with `box_to_reference(...)`.
+uniform `Any` (an IR-only universal pointer type, never user-visible).
+At generic call sites, the lower wraps arguments with `box_to_any(...)`.
 At generic returns, the lower inserts a `checkcast(...)` to recover the
 statically-known type — the same operation the user can already express as
 `T(value)` in their own code.
@@ -163,12 +301,12 @@ MutableMap__erased :: struct {
 }
 
 Entry__erased :: struct {
-    key:   ErasedReference
-    value: ErasedReference
+    key:   Any
+    value: Any
     next:  Entry__erased | null
 }
 
-put__erased :: fn(self: MutableMap__erased, key: ErasedReference, value: ErasedReference) -> void {
+put__erased :: fn(self: MutableMap__erased, key: Any, value: Any) -> void {
     self.ensure_buckets()
     key_hash        :: virtual_dispatch(key, hash)         // indirect dispatch via box header
     bucket_position :: bucket_index(key_hash)
@@ -180,23 +318,68 @@ put__erased :: fn(self: MutableMap__erased, key: ErasedReference, value: ErasedR
 
 ```vader
 // Pseudocode — users.put("mathieu", User { ... }) becomes:
-put__erased(users, box_to_reference("mathieu"), box_to_reference(user_instance))
+put__erased(users, box_to_any("mathieu"), box_to_any(user_instance))
 
 // users.get("mathieu") becomes:
-boxed_value :: get__erased(users, box_to_reference("mathieu"))    // boxed_value : ErasedReference | null
+boxed_value :: get__erased(users, box_to_any("mathieu"))    // boxed_value : Any | null
 match boxed_value {
     is null             -> { found = null }
-    is ErasedReference  -> { found = User(boxed_value) }           // checkcast
+    is Any  -> { found = User(boxed_value) }           // checkcast
 }
 ```
 
 The `User(raw)` cast at the boundary is the same type-call cast the user
 already writes for numeric conversions (`i32(x)`, `usize(16)`). The erasure
-pass uses the same machinery for struct downcasts from `ErasedReference`.
+pass uses the same machinery for struct downcasts from `Any`.
 
 ---
 
 ## 2. Required compiler work
+
+### 2.0 Vtable runtime — PREREQUISITE (new phase, not in the original draft)
+
+Investigation (2026-05-19) of `src/lower/passes/expr.ts:190-205` confirms
+that trait method dispatch on generic params is **direct after
+monomorphisation**: a call `key.hash()` on `key: K` where `K: Hash &
+Equals` becomes a static call to the monomorphised
+`i32_hash` / `string_hash` / `User_hash` once `K` is substituted. No
+vtable, no indirection.
+
+Once the erasure pass replaces `K` with `Any`, this direct dispatch can
+no longer fire — the lower no longer knows which concrete `hash` impl to
+call. The erasure pass must produce
+`vader_virtual_dispatch(boxed_key, HASH_SLOT)` instead, dispatched at
+runtime via a per-tag vtable.
+
+Phase 0 builds this dispatch infrastructure:
+
+- **Vtable layout.** Two options to choose between during Phase 0:
+  - **(a) External table indexed by tag.** A global
+    `vader_vtable_t* vader_vtables_by_tag[]` lookup; box stays 24 bytes.
+    Cost: one extra indirection per virtual call.
+  - **(b) In-box vtable pointer.** `vader_box_t` grows from 24 to 32
+    bytes; box stores a direct vtable pointer. Cost: 33 % memory
+    overhead per box, GC scanner unchanged otherwise.
+  - **Decision deferred to POC** (`docs/STDLIB_GENERIC_COLLAPSE_POC.md`
+    §5 criterion #5).
+- **Trait method slot registry.** Compiler assigns a stable integer slot
+  to each trait method: `Hash::hash → 0`, `Equals::equals → 1`,
+  `Ord::compare → 2`, etc. Persisted in a side-table shared by the
+  vtable emitter and the lower's call-site rewriter.
+- **`vader_virtual_dispatch` C helper.** Minimal C function that takes a
+  boxed value and a slot index and returns a function pointer. Inlined
+  by `cc` in `-O3`.
+- **Lower pass rewriting.** When a trait method is called on a value
+  whose type was erased to `Any`, the lower rewrites
+  `key.hash()` → `(*vader_virtual_dispatch(key, HASH_SLOT))(key)`. The
+  rewrite is mechanical given the slot registry.
+
+**Risk**: if option (b) is chosen and `vader_box_t` grows to 32 bytes,
+every inline-box gain measured today shifts. POC must measure both
+layouts.
+
+**Estimated cost**: ~1–2 weeks. Layout decision + slot registry + C
+helper + lower pass + GC scanner update if option (b).
 
 ### 2.1 Inline-box generalisation — PREREQUISITE (design task, not measurement)
 
@@ -233,13 +416,13 @@ optimisation is structurally one-field-only by design.
 
 A new pass between typecheck and lower. It walks the typed AST and:
 
-- Replaces each generic type parameter position with `ErasedReference`.
+- Replaces each generic type parameter position with `Any`.
 - Collapses `Foo(A, B)` and `Foo(C, D)` instantiations into a single
   `Foo__erased` definition.
 - Records, at each generic boundary (call site, return, field access), the
   original concrete type for the next pass.
 
-`ErasedReference` is an IR-internal type — it does not appear in user source, in
+`Any` is an IR-internal type — it does not appear in user source, in
 the typed AST exposed to LSP, or in diagnostics. It exists strictly between
 the erasure pass and codegen.
 
@@ -253,7 +436,7 @@ estimates assumed lower-only scope.
 ### 2.3 Auto-box at generic call sites
 
 Lower walks the typed AST. At each call to a generic function, arguments
-flowing into erased parameter slots are wrapped with `box_to_reference(...)`. The
+flowing into erased parameter slots are wrapped with `box_to_any(...)`. The
 box header carries the runtime type tag the GC and `checkcast` already use.
 
 For arguments already boxed (struct types, strings) this is a no-op tag
@@ -277,7 +460,7 @@ is the same; the difference is who decides to insert it (compiler vs user).
 
 ### 2.5 GC interaction
 
-`ErasedReference` is a uniform pointer to a `vader_box_t`. The existing GC
+`Any` is a uniform pointer to a `vader_box_t`. The existing GC
 scanner follows it like any other pointer; the per-instance type tag in
 the box header drives the precise field scan. **No new GC surface.**
 
@@ -288,27 +471,39 @@ sufficient — same harness the existing collections already run through.
 
 ---
 
-## 3. The `Any` question
+## 3. `Any` — IR type and future user-facing type
 
-With automatic erasure, **`Any` is no longer required** for any container.
-The compiler does the boxing internally; the stdlib never names an
-"untyped" type.
+`Any` is **one type with one runtime representation** (`vader_box_t*`)
+used in two contexts:
 
-`Any` remains useful for three independent use cases:
+1. **IR-internal (always).** The erasure pass replaces every generic
+   type parameter position with `Any`. The lower receives an AST where
+   former generic slots contain `Any`. User code never directly types
+   `Any` in this mode — the typecheck enforces the original generic
+   types, the erasure happens after typecheck.
 
-1. **Explicit heterogeneous containers** — `MutableMap(string, Any)` for
-   caches with mixed value types, message buses, configuration trees.
-2. **FFI** — receive an opaque pointer from a C library without committing
-   to a specific Vader type.
-3. **Reflection / visitors** — `fn inspect(value: Any) -> string`.
+2. **User-facing (future, optional).** When FFI or reflection demands
+   it, `Any` is exposed as a user-writable type for:
+   - **Heterogeneous containers** — `MutableMap(string, Any)` for
+     caches, message buses, configuration trees.
+   - **FFI** — receive an opaque pointer from a C library without
+     committing to a specific Vader type.
+   - **Reflection / visitors** — `fn inspect(value: Any) -> string`.
 
-If `Any` is added later, it is simply a user-visible alias for `ErasedReference`
-that the compiler treats as a sink (implicit coercion from any `T`) and a
-source (requires `T(value)` to use). No further work needed beyond exposure.
+   In this mode, `Any` is a sink (implicit coercion from any `T`) and a
+   source (requires `T(value)` to use). No new runtime needed beyond
+   what the erasure pass already provides.
 
-**Decision deferred**: ship the erasure pass first; expose `Any` as a
-separate, smaller follow-up once FFI or reflection actually demands it.
-~0.5 day when needed.
+**Naming consequence**: `vader dump --stage=erased-ast` shows `Any`
+everywhere. This is acceptable because:
+
+- The surface language (user source, typed AST, LSP, diagnostics from
+  pre-erasure passes) shows the original generic types.
+- Lower-AST dumps are a low-level diagnostic, not a user-facing
+  artefact.
+
+**User-facing exposure**: ~0.5 day work, deferred until FFI or
+reflection actually demands it. Independent of Phases 0–5.
 
 ---
 
@@ -404,6 +599,26 @@ assume in advance.
 
 ## 6. Migration plan
 
+### Phase POC — Hand-written erased map (~3–5 days)
+
+Validate the model before committing to deeper phases. See
+`docs/STDLIB_GENERIC_COLLAPSE_POC.md` for the detailed plan.
+
+**Exit criterion**: 5/5 success criteria pass on the hand-written POC.
+
+### Phase 0 — Vtable runtime (~1–2 weeks)
+
+Add the runtime indirection that erasure requires (§2.0). Build:
+
+- Vtable layout decision (external table vs in-box pointer; POC informs).
+- Trait method slot registry shared by emitter and lower.
+- `vader_virtual_dispatch` C helper in `runtime/c/`.
+- Lower pass rewrite for trait method calls on erased values.
+
+**Exit criterion**: a hand-rolled snippet that calls
+`(key as Any).hash()` correctly dispatches to the right concrete
+`hash` impl via the vtable.
+
 ### Phase 1 — Inline-box generalisation (~1–2 weeks)
 
 Design and implement the packed-payload variant of `vader_box_t` so any
@@ -414,10 +629,10 @@ count. See §2.1 for the scope. Add `bench/map_pair_value.vader` exercising
 **Exit criterion**: `MutableMap(Pair, i64)` insertions allocate only the
 entry node, never an extra box for the payload.
 
-### Phase 2 — Erasure pass (~4–6 weeks)
+### Phase 2 — Erasure pass (~6–8 weeks)
 
 Implement the new pass between typecheck and lower. Build:
-- `ErasedReference` IR type.
+- `Any` IR type.
 - AST rewriting for generic decls and instantiations.
 - Side-table recording original types at each generic boundary.
 - Integration with existing DCE and hash-cons.
@@ -425,15 +640,21 @@ Implement the new pass between typecheck and lower. Build:
 **Exit criterion**: lower receives an AST with no generic types, and a
 side-table sufficient to reconstruct boundary types.
 
-### Phase 3 — Auto-box / auto-cast in lower (~1 week)
+### Phase 3 — Auto-box / auto-cast in lower (~1.5 weeks)
 
 Patch `src/lower/passes/call.ts` and the return / field-load paths to
-insert `box_to_reference` and `checkcast` using the side-table from Phase 2.
-Verify that the user-level `T(value)` cast still works as a synonym for
-`checkcast` so user code is consistent with compiler-inserted casts.
+insert `box_to_any` and `checkcast` using the side-table from Phase 2.
+On TS, `checkcast` is a **distinct IR node** (the TS lower lacks
+`try_emit_into_coercion` at return / struct-lit / let sites; aligning
+that is deferred to Phase 7 during the Vader port). Verify that the
+user-level `T(value)` cast still works as a synonym for `checkcast` so
+user code is consistent with compiler-inserted casts.
 
 **Exit criterion**: full test suite green; `MutableMap` snippets produce
-correct values end-to-end.
+correct values end-to-end. 3 pivot tests for smoke-test:
+- `tests/snippets/for_in_into_iter/_main.vader` (collections + iterators + desugar)
+- `bench/map_iter.vader` (`Entry(K, V)` generic + 1M `Yield` allocations)
+- `tests/snippets/custom_iter_generic/_main.vader` (generic struct + trait bound)
 
 ### Phase 4 — GC + bench validation (~1 week)
 
@@ -452,8 +673,26 @@ Compare against the §5.2 / §5.3 ranges; record actuals in this doc.
 
 ### Phase 6 — `Any` as user-visible type (optional, ~0.5 day)
 
-When FFI or reflection demands it, expose `Any` as a user-visible alias
-for `ErasedReference`. Independent of the rest; can be added or deferred freely.
+When FFI or reflection demands it, expose `Any` as a user-writable type.
+The runtime representation is unchanged from Phases 0–5 (`vader_box_t*`);
+the only work is opening the user-facing typing rules (sink coercion
+from any `T`, source requires `T(value)` to use). Independent of the
+rest; can be added or deferred freely.
+
+### Phase 7 — Port erasure pass to Vader self-host (+30–40 % of Phases 0–5)
+
+Mirror Phases 0–5 in `vader/comptime/` and `vader/lower/`. Starts with
+aligning `Into` between TS and Vader: bring TS up to parity with
+`vader/lower/lower_expr.vader` (add `try_emit_into_coercion` at
+return / struct-lit / let sites in `src/lower/passes/block.ts` and
+`expr.ts`). Then refactor the TS-side `checkcast` distinct IR node
+into `try_emit_into_coercion` as one of its coercion strategies
+(option (a) from the original three-way design). Port the unified
+result to Vader.
+
+**Exit criterion**: Vader self-host emits the same erased lowered AST
+as TS for the full snippet suite; lower-snapshot parity reaches
+226/226.
 
 ---
 
@@ -488,7 +727,7 @@ that future revisits have the trade-off in context.
 ### 8.1 Inline-box coverage on small types
 
 The single highest-impact risk. If the inline-box opt does not cover any
-8-byte-or-less type stored in an `ErasedReference` slot, `MutableMap(i64, i64)`
+8-byte-or-less type stored in an `Any` slot, `MutableMap(i64, i64)`
 heap-allocates per insertion and the whole proposal becomes a perf
 regression. Phase 1 must validate this before Phase 2 starts.
 
@@ -512,18 +751,30 @@ becomes a problem:
 
 ### 8.4 Debugger and diagnostics
 
-`vader dump --stage=lowered-ast` will show `ErasedReference` instead of `K`/`V`.
+`vader dump --stage=lowered-ast` will show `Any` instead of `K`/`V`.
 Diagnostics from a backend that operates on the lowered AST need to
 re-attach the original type via the side-table for user-friendly messages.
 
 ### 8.5 Interaction with comptime — significant entanglement
 
 Comptime today **is** the source-of-truth for monomorphisation. The pass
-`monomorphizeProject` lives in `src/comptime/specialize.ts` (~180 LoC),
-called from `src/comptime/evaluate.ts:evaluateProject`. It walks
+`monomorphizeProject` lives in `src/comptime/specialize.ts` (**376
+LoC** — measured 2026-05-19, larger than the 180 LoC originally
+estimated). It is called from
+`src/comptime/evaluate.ts:evaluateProject`. It walks
 `(generic decl, typeArgs)` pairs, substitutes types throughout the body,
-and chains transitive specialisation via `genericFnCalls`. Every later
-pass (lower, C-emit) consumes the monomorphised `MonoEntry` records.
+and chains transitive specialisation via `genericFnCalls` (defined in
+`src/typecheck/typed-ast.ts`,
+`readonly genericFnCalls: ReadonlyMap<A.CallExpr, readonly Type[]>`).
+Every later pass (lower, C-emit) consumes the monomorphised `MonoEntry`
+records via `LowerProjectCtx.mono: MonoProject` in `src/lower/ctx.ts`.
+
+**Consumers**: 4 files in `src/lower/` import `MonoEntry` / `MonoProject`
+directly (`ctx.ts`, `lower.ts`, `lowered-ast.ts`, `entry-types.ts`); all
+other 14 lower-side files consume them indirectly through
+`LowerProjectCtx`. `src/c_emit/` does **not** import `specialize.ts`
+directly — it consumes the bytecode produced after lowering. The
+critical surface to redesign is therefore lower-side, not c-emit-side.
 
 The erasure pass cannot simply "run after" this — by the time
 monomorphisation is done, the generic structure has been erased *the wrong
@@ -555,12 +806,21 @@ global wins.
 
 ## 9. Decision points
 
-1. **Naming of `ErasedReference`** — internal-only; will not appear in user
-   source. Picked at implementation; `BoxedAny`, `OpaqueRef`, `GenericRef`
-   are alternatives.
-2. **`Any` exposure timing** — defer to demand. Not blocking.
-3. **`@specialize` escape hatch** — defer until a real perf complaint
-   surfaces. Not blocking.
+1. **Naming `Any`** — *decided 2026-05-19.* The IR-internal universal
+   pointer type and the future user-facing universal pointer type share
+   one name and one runtime representation (`vader_box_t*`). See
+   "Decision log" near the top.
+2. **`Any` user-facing exposure timing** — deferred to demand (FFI,
+   reflection). Independent ~0.5 day work, not blocking.
+3. **Iterator-skip mechanism (`@specialize` decorator vs structural
+   heuristic)** — *deferred to POC.* The erasure pass needs a way to
+   mark `ArrayIterator(T)`, `Yield(T)`, and similar types as "do not
+   erase" so for-in fusion (`src/lower/passes/for-in.ts`) can keep
+   inlining them. POC scope does not exercise iterators; decision made
+   during Phase 1.
+4. **Vtable layout (external table vs in-box pointer)** — *deferred to
+   POC.* See §2.0. The POC measures both layouts and picks one based on
+   the 5-criterion grid (`docs/STDLIB_GENERIC_COLLAPSE_POC.md` §5).
 
 ---
 
@@ -568,18 +828,38 @@ global wins.
 
 | Phase | Effort | Blocker |
 |---|---|---|
-| 1 — Inline-box generalisation (design + impl) | ~1–2 weeks | none |
-| 2 — Erasure pass (replaces or post-processes `monomorphizeProject`) | ~4–6 weeks | Phase 1 |
-| 3 — Auto-box / auto-cast in lower | ~1 week | Phase 2 |
-| 4 — GC + bench validation | ~1 week | Phase 3 |
+| **POC** — hand-written erased `MutableMap` + dispatch helper + bench | **3–5 days** | none |
+| 0 — Vtable runtime (layout + slot registry + C helper + lower rewrite) | ~1–2 weeks | POC pass |
+| 1 — Inline-box generalisation (design + impl) | ~1–2 weeks | POC pass |
+| 2 — Erasure pass (rewrites `specialize.ts` 376 LoC + 14 consumers) | ~6–8 weeks | Phase 0 & 1 |
+| 3 — Auto-box / auto-cast in lower (distinct IR node on TS) | ~1.5 weeks | Phase 2 |
+| 4 — GC + bench validation + `--stage=erased-ast` dump | ~1 week | Phase 3 |
 | 5 — Measure on self-host | ~2 days | Phase 4 |
-| 6 — `Any` exposure | ~0.5 day | independent |
+| 6 — `Any` user-facing exposure | ~0.5 day | independent |
+| 7 — Port erasure pass to Vader self-host + unify `Into` ↔ `checkcast` | +30–40 % of Phases 0–5 | Phase 5 |
 
-**Total realistic work**: ~8–10 weeks for Phases 1–5. Earlier "4–5 weeks"
-estimates underestimated the inline-box design task (§2.1) and the comptime
-entanglement (§8.5). Phase 6 is independent and deferrable.
+**Total realistic work**:
+- POC: 3–5 days (gate before any deeper work)
+- Phases 0–5 (TS only): **~11–14 weeks**
+- Phases 0–5 + Phase 7 (TS + Vader parity): **~15–18 weeks**
+
+Earlier "4–5 weeks" estimates underestimated the vtable prerequisite
+(§2.0, not in original plan), the inline-box design task (§2.1), and
+the comptime entanglement (§8.5: 376 LoC, not 180). Phase 6 is
+independent and deferrable. Phase 7 is sequential on Phase 5 but its
+internal sub-phases can pipeline against any remaining self-host port
+work on `c_emit` happening in parallel.
 
 This plan is independent of §3.5 levers (a) split-per-module and (b)
-precompiled stdlib, and combines multiplicatively with both. Combined with
-lever (a), the wall-time picture changes qualitatively from 161 s toward
-the tens of seconds; the exact landing point is for Phase 5 to measure.
+precompiled stdlib, and combines multiplicatively with both. Combined
+with lever (a), the wall-time picture changes qualitatively from 161 s
+toward the tens of seconds; the exact landing point is for Phase 5 to
+measure.
+
+**Self-host port during Phases 0–5**: the Vader self-host (currently at
+181/226 lower-snapshot byte parity) continues its sequential port on
+`c_emit` (the next step that is not yet ported) in parallel with TS
+erasure work. The IR-shape change does not block port progress on
+c_emit — the IR shape `c_emit` consumes is unchanged. When Phase 5
+measurement completes, Phase 7 absorbs the erasure pass into the Vader
+self-host.

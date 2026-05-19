@@ -19,7 +19,8 @@ export type Type =
   | UnresolvedType
   | FreeIntType
   | FreeFloatType
-  | NeverType;
+  | NeverType
+  | AnyType;
 
 export type PrimitiveName =
   | "i8" | "i16" | "i32" | "i64" | "isize"
@@ -160,6 +161,18 @@ export interface NeverType {
   readonly kind: "Never";
 }
 
+/** Universal pointer type used by the erasure pipeline — `vader_box_t*` at
+ *  runtime, dispatched through `vader_virtual_dispatch` for trait method
+ *  calls. **Compiler-internal only**: never produced from user-written
+ *  source, never resolved from an `IdentExpr`. The future erasure pass
+ *  (Phase 2 of the erasure plan, see
+ *  `docs/STDLIB_GENERIC_COLLAPSE_PHASE0.md`) is the only producer. Visible
+ *  in `--stage=lowered-ast` dumps as `Any`; side-tables preserve the
+ *  original generic type for diagnostics. */
+export interface AnyType {
+  readonly kind: "Any";
+}
+
 // ---------------------------------------------------------------- interning
 //
 // Composite Type constructors below funnel through a global cache so two
@@ -217,6 +230,7 @@ export function canonicalKey(t: Type): string {
     case "Never":      return "!";
     case "FreeInt":    return "FI";
     case "FreeFloat":  return "FF";
+    case "Any":        return "Any";
   }
 }
 
@@ -378,6 +392,10 @@ export const TY = {
   never:  { kind: "Never" } as NeverType,
   freeInt:   { kind: "FreeInt" } as FreeIntType,
   freeFloat: { kind: "FreeFloat" } as FreeFloatType,
+  /** Compiler-internal universal pointer type. Produced only by the
+   *  erasure pass (Phase 2 of the erasure plan). Never resolved from
+   *  user-written source. */
+  any:    { kind: "Any" } as AnyType,
 } as const;
 
 export const SIGNED_INTS: readonly PrimitiveName[]   = ["i8", "i16", "i32", "i64", "isize"];
@@ -440,6 +458,8 @@ export function sizeOfType(t: Type): number {
     case "FreeFloat":
     case "Never":
       return 0;
+    case "Any":
+      return 16;     // vader_box_t (tag + payload), same as other refs
   }
 }
 
@@ -501,6 +521,7 @@ export function kindStringOfType(t: Type): string {
     case "FreeFloat":
     case "Never":
       return "unknown";
+    case "Any":       return "any";
   }
 }
 
@@ -537,6 +558,8 @@ export function alignOfType(t: Type): number {
     case "FreeFloat":
     case "Never":
       return 1;
+    case "Any":
+      return 8;      // pointer-aligned
   }
 }
 
@@ -562,6 +585,7 @@ export function displayType(t: Type): string {
       return `fn(${ps}) -> ${displayType(t.returnType)}`;
     }
     case "Union":      return t.variants.map(displayType).join(" | ");
+    case "Any":        return "Any";
   }
 }
 
@@ -594,6 +618,7 @@ export function equalsType(a: Type, b: Type): boolean {
     case "Never":
     case "FreeInt":
     case "FreeFloat":
+    case "Any":
       return true;
     case "TypeParam":
       return a.symbol.id === (b as TypeParamType).symbol.id;

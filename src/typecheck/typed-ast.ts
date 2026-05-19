@@ -2,6 +2,7 @@ import type * as A from "../parser/ast.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { ImplEntry } from "./impls.ts";
+import type { TraitSlotRegistry } from "./trait-slots.ts";
 import type { Substitution, Type } from "./types.ts";
 
 export interface MethodResolution {
@@ -158,6 +159,11 @@ export interface TypedProgram {
 export interface TypedProject {
   readonly resolved: ResolvedProject;
   readonly modules: ReadonlyMap<string, TypedProgram>;
+  /** Per-project registry assigning a stable integer slot to each trait
+   *  method, used by `Any` indirect dispatch (Phase 0 of the erasure plan
+   *  — see `docs/STDLIB_GENERIC_COLLAPSE_PHASE0.md`). Populated by
+   *  `checkProject` after every TraitDecl is known. */
+  readonly traitSlots: TraitSlotRegistry;
 }
 
 /** Recorded `S implements Into(T)` coercion site — see `TypedProgram.intoCoercions`. */

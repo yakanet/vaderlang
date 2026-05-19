@@ -1,0 +1,6 @@
+# Build artefacts produced by `make` and `make verify`.
+*.o
+*.size.o
+bench
+vtable_emit_test
+vtable_emit_test.c
