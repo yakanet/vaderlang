@@ -538,12 +538,32 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
         is null -> {}
         _ -> { return vcall_form }
     }
-    args: LoweredExpr[] = []
-    for call_arg in call.args {
-        args.push(lower_expr(ctx, call_arg.value))
-    }
     callee :: lower_expr(ctx, call.callee)
+    // Widen literal args to the matching param's union type so the dump
+    // shows `int(42) :i32 | null` for `describe(42)` against
+    // `describe(x: i32 | null)`. Mirror of the TS typer's
+    // context-propagation that records the wide type at the literal.
+    param_types :: param_types_of(type_of(callee))
+    args: LoweredExpr[] = []
+    for i in 0..<call.args.len() {
+        arg :: lower_expr(ctx, call.args[i].value)
+        if i < param_types.len() {
+            args.push(widen_literal_to_context(arg, param_types[i]))
+        } else {
+            args.push(arg)
+        }
+    }
     return LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
+}
+
+param_types_of :: fn(callee_type: Type) -> Type[] {
+    match callee_type {
+        is FnType as ft -> { return ft.params }
+        _ -> {
+            empty: Type[] = []
+            return empty
+        }
+    }
 }
 
 /// `recv.method(args)` against a trait-typed receiver lowers to a
