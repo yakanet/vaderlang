@@ -83,7 +83,7 @@ export encode :: fn[T](value: T) -> string {
 encode_into :: fn[T](value: T, builder: StringBuilder) -> void {
     if @is_struct(T) {
         builder.append("{")
-        for [field, position] in @fields(T).enumerate() {        // unrolled — @fields(T) is comptime
+        for [field, position] in @fields(T).with_index() {        // unrolled — @fields(T) is comptime
             if position > 0 {
                 builder.append(",")
             }
@@ -93,7 +93,7 @@ encode_into :: fn[T](value: T, builder: StringBuilder) -> void {
         builder.append("}")
     } else if @is_array(T) {
         builder.append("[")
-        for [item, position] in value.enumerate() {              // runtime loop — value is runtime
+        for [item, position] in value.with_index() {              // runtime loop — value is runtime
             if position > 0 { builder.append(",") }
             encode_into(item, builder)
         }
@@ -398,6 +398,28 @@ v2 does **one extra allocation** vs. a hypothetical streaming derive
 (the intermediate `JsonValue` tree). Acceptable for v2.0 ; a streaming
 variant can land later as `jason.decode_streaming[T]` if profiling
 demands it.
+
+### Small std/iter addition
+
+The encoder snippets use `with_index() -> [T, usize]` to thread the
+"is this the first element?" check through the comma separator.
+`std/iter` exposes `enumerate() -> [usize, T]` today ; v2 prefers
+`with_index()` for three reasons :
+
+- Value-first tuple ordering matches usage — `for [field, position]`
+  reads as "field is the thing, position is supplementary".
+- The name says what it does (couple the index to the value) rather
+  than naming the operation by an unspecific verb.
+- The earlier draft of these snippets bound `[field, position]` under
+  `enumerate()`'s `[usize, T]` ordering, which silently swapped the
+  meanings. `with_index()`'s value-first ordering keeps the names
+  honest by construction.
+
+`with_index` is a small parallel implementation in `std/iter`
+(structurally identical to `enumerate` with swapped tuple positions —
+not a wrapper, to avoid an extra map pass and allocation). Add it as
+part of Phase 4 (encoder). `enumerate` stays — it has existing users
+(`stdlib/std/iter.vader:514`).
 
 ---
 
