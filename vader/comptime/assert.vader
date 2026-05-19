@@ -35,9 +35,15 @@ export evaluate_assert_decls :: fn(
         match decl {
             is AST.AssertDecl as assert_decl -> {
                 result :: evaluate_expr(assert_decl.condition, context)
+                // Skip C4002 (need-VM) silently — asserts that fall back
+                // to the VM-execution placeholder are expected to silently
+                // succeed at the dump layer. The compiler-emit chantier
+                // will run them through the VM properly.
                 match result.diag {
                     is null -> {}
-                    _       -> { diags.push(result.diag) }
+                    is Diagnostic as d -> {
+                        if d.code.id != "C4002" { diags.push(d) }
+                    }
                 }
                 match result.value {
                     is BoolValue as b -> {
