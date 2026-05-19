@@ -137,18 +137,13 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
     typed: project, modules, instances: instances.entries(),
     mono: EMPTY_MONO, fileExprs, intoMembers,
   };
-  // `erasureDedupe` is wired but disabled pending §9 Issue 9 (match
-  // arms against Any-typed values miss their tag check). The η fix in
-  // `InstanceRegistry.observeFnCall` (Issue 8) is independent : it
-  // registers Any-bearing instances for generic calls inside generic
-  // bodies, ensuring `fnInstanceEntries` is populated for every
-  // reachable fnDecl. With erasureDedupe live, set_at correctly routes
-  // to put__Any__Any, but match arms in user code (e.g. `match v1 {
-  // is null -> ... is i32 -> ... }` where v1 is Any|null) hit the
-  // unreachable else branch instead of binding to `is i32`. Investigate
-  // `src/lower/passes/match.ts` Any-typed value handling. Re-enable by
-  // replacing the line below with
-  // `erasureDedupe(monomorphizeProject(evaluatedCore), project)`.
+  // `erasureDedupe` is wired but disabled pending §9 Issue 9 — the
+  // erasure cascade can't be locally pinned with `@specialize` because
+  // any code path from an erased decl through a specialized one creates
+  // Any-bearing queries against the specialized type's registered
+  // concrete-arg instances. Recommended path forward : (γ) synthesise
+  // Any-bearing instances for `@specialize`d containers reachable from
+  // erased fields, with bounded recursion through the type graph.
   const mono = monomorphizeProject(evaluatedCore);
   return { ...evaluatedCore, mono };
 }

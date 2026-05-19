@@ -439,11 +439,51 @@ mismatch.
 **Recommended**: (ξ) first to isolate the failure, then (μ) to fix
 the root cause. Probably ~2-3 d combined.
 
+**Update (2026-05-19, post-(ξ) experiment)**: (ξ) doesn't isolate
+the failure cleanly. Tagging `MutableMap`, `MutableSet`, and
+`Entry` with `@specialize` to keep them out of erasure produced a
+different B5001 :
+`Contains.contains has no monomorphised instance` at
+`collections.vader:308`. Reason : `MutableSet.contains` (a generic
+free fn) is NOT `@specialize`d, so its body is erased. Inside :
+`value in self.inner` where `self.inner: MutableMap(T, bool)` after
+subst → `MutableMap(Any, bool)`. The lookup
+`lookupImplEntry(Contains.contains, [MutableMap(Any, bool), Any])`
+queries against MutableMap's `@specialize`d registry which only
+has concrete-key entries (`[MutableMap(string, i32), string]` etc).
+Miss → unreachable.
+
+**Confirmed**: the cascade is **fundamental** — locally pinning
+any container with `@specialize` just pushes the cascade one step
+out. Every erased decl that references a specialized container
+creates Any-bearing queries against the container's concrete-key
+registry. Local mitigations don't work.
+
+**Path forward (γ revisited)**: synthesise Any-bearing instances
+for **every** `@specialize`d generic struct/trait that's reachable
+from an erased field. Walk the type graph from each erased decl's
+field types ; for every nested `Struct(Any, ...)` reference,
+register an instance against the typecheck registry so the impl
+materialisation pipeline picks it up. The recursion is bounded by
+the project's type graph depth. Estimated 3-5 d.
+
+**Alternative path (Φ)**: step back from full erasure and accept
+the cc -O3 cost. The POC measured 177 s baseline. The whole Phase
+2 effort targets cutting that by 40-44 % at scale, but each
+implementation step has revealed deeper compiler assumptions
+about concrete-arg lookups. Practical net gain may be smaller than
+projected once all cascade fixes land. Document the achieved
+sub-deliverables (Phase 0 vtable infra + Phase 1 inline-box +
+β raw-array for-in + Phase 2 plumbing) as the actual ship, defer
+full automatic erasure to a future investigation.
+
 **Vader port note**: same struct layout question for
 `vader_struct_..._MutableMap__Any__Any_t` when porting. The
 `f_buckets: vader_box_t` representation may need a different shape
 under erasure — possibly a `vader_array_t*` direct field bypassing
-the box wrapper.
+the box wrapper. Also : when porting, prefer (Φ) — the TS-side
+investigation here surfaces every structural assumption. Re-doing
+the same exploration on Vader side would be wasted effort.
 
 ### Issue 8 — Comptime under-registers generic calls inside erased bodies
 
