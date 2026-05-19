@@ -610,35 +610,7 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
             args.push(arg)
         }
     }
-    // Overload-resolved direct calls render the callee's type as the
-    // call's return type (matches TS's `directCallOverloads` path). The
-    // single-fn-direct-call path keeps the fn signature so the dump
-    // shows `println :fn(string) -> void`.
-    retyped_callee :: retype_callee_for_overload(ctx, call.callee, callee, type)
-    return LoweredCall { .span = call.span, .type = type, .callee = retyped_callee, .args = args }
-}
-
-retype_callee_for_overload :: fn(
-    ctx: FnLowerCtx, src_callee: Expr, lowered_callee: LoweredExpr, return_type: Type,
-) -> LoweredExpr {
-    // Only retype when the source callee is an `IdentExpr` whose name
-    // has more than one entry in `fn_overloads` — those are the calls
-    // whose dispatch the typer routes through `directCallOverloads`.
-    callee_ident :: as_ident(src_callee)
-    if callee_ident is null { return lowered_callee }
-    if callee_ident is IdentExpr as id {
-        bucket :: ctx.typed.resolved.fn_overloads[id.name]
-        if bucket is null { return lowered_callee }
-        if bucket is Symbol[] as syms {
-            if syms.len() < usize(2) { return lowered_callee }
-        }
-    }
-    match lowered_callee {
-        is LoweredIdent as li -> {
-            return LoweredIdent { .span = li.span, .type = return_type, .symbol = li.symbol }
-        }
-        _ -> { return lowered_callee }
-    }
+    return LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
 }
 
 param_types_of :: fn(callee_type: Type) -> Type[] {
