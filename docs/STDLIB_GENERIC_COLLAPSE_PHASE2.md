@@ -386,7 +386,66 @@ types.
 the same way in `vader/comptime/`. The TS-side decision sets
 precedent.
 
-### Issue 9 — Match arms against Any-typed values miss tag check
+### Issue 9 — Erased generic body segfaults on Any-typed field access
+
+**Date**: 2026-05-19 (after Issue 8 fix η + investigation).
+
+**Symptom**: with `erasureDedupe` enabled AND η fix applied, the
+`mutable_map_string` snippet binary exits with **SIGSEGV (139)** —
+not a clean unreachable trap or wrong-output failure. Earlier
+hypothesis ("match arms miss tag check") was based on the 28
+`vader_unreachable` calls visible in the emitted main body, but the
+runtime actually crashes before reaching them.
+
+**Cause** (current hypothesis): the erased MutableMap struct stores
+`f_buckets: vader_box_t` for what was `(Entry(K, V) | null)[]`. The
+C struct decl :
+
+```c
+struct vader_struct_std_collections_MutableMap__Any__Any_t {
+    vader_obj_header_t header;
+    vader_box_t f_buckets;   // <-- holds an array's box
+    size_t f_size;
+};
+```
+
+When `ensure_buckets` (or first `put`) reads `self.buckets`, it gets
+a `vader_box_t`. With erasure, the body's access pattern expects an
+array but the box might be in a state incompatible with the access
+sequence (NULL payload at unexpected offset, or tag mismatch leading
+to a wild pointer deref).
+
+The β fix (`lowerForInRawArray`) only handles `for x in self.buckets`
+in user code ; the stdlib's `ensure_buckets` uses `array.push` on the
+field directly, which goes through different lowering. After erasure
+the type at that site is `Any[]` or `Any` (depending on whether the
+substitution flowed through correctly), and the runtime sees a
+mismatch.
+
+**Mitigation candidates**:
+- **(μ) Trace the segfault** : compile with `-fsanitize=address` and
+  run to get the exact failing access. Likely a struct.get or
+  array.push on a box whose tag/payload doesn't match the access
+  shape. ~1 d.
+- **(ν) Inspect the lowered IR for `ensure_buckets`** : `vader dump
+  --stage=lowered-ast --filter=ensure_buckets__Any__Any` to see what
+  the substituted body shape is. Maybe the array-of-union encoding
+  needs additional erasure handling.
+- **(ξ) Conservative skip** : flag MutableMap as `@specialize` for
+  now to verify the rest of the erasure plumbing works on simpler
+  cases (no array-of-union fields). Localises the bug to types with
+  this shape.
+
+**Recommended**: (ξ) first to isolate the failure, then (μ) to fix
+the root cause. Probably ~2-3 d combined.
+
+**Vader port note**: same struct layout question for
+`vader_struct_..._MutableMap__Any__Any_t` when porting. The
+`f_buckets: vader_box_t` representation may need a different shape
+under erasure — possibly a `vader_array_t*` direct field bypassing
+the box wrapper.
+
+### Issue 8 — Comptime under-registers generic calls inside erased bodies
 
 **Date**: 2026-05-19 (after Issue 8 fix η landed).
 
