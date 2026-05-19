@@ -1479,6 +1479,11 @@ lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
 
 widen_literal_to_context :: fn(expr: LoweredExpr, context_type: Type) -> LoweredExpr {
     if !(context_type is UnionType) { return expr }
+    // Only widen when the literal's narrow type appears as one of the
+    // union's variants. For enum-context returns / args, the literal's
+    // i32 / repr type is NOT a variant — leave it alone.
+    inner :: type_of(expr)
+    if !union_contains_variant(context_type, inner) { return expr }
     match expr {
         is LoweredIntLit    as lit -> { return LoweredIntLit    { .span = lit.span, .type = context_type, .value = lit.value } }
         is LoweredFloatLit  as lit -> { return LoweredFloatLit  { .span = lit.span, .type = context_type, .value = lit.value } }
@@ -1486,6 +1491,18 @@ widen_literal_to_context :: fn(expr: LoweredExpr, context_type: Type) -> Lowered
         is LoweredCharLit   as lit -> { return LoweredCharLit   { .span = lit.span, .type = context_type, .value = lit.value } }
         is LoweredBoolLit   as lit -> { return LoweredBoolLit   { .span = lit.span, .type = context_type, .value = lit.value } }
         _ -> { return expr }
+    }
+}
+
+union_contains_variant :: fn(union: Type, variant: Type) -> bool {
+    match union {
+        is UnionType as u -> {
+            for v in u.variants {
+                if equals_type(v, variant) { return true }
+            }
+            return false
+        }
+        _ -> { return false }
     }
 }
 
