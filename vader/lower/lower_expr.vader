@@ -594,7 +594,12 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     for i in 0..<call.args.len() {
         arg :: lower_expr(ctx, call.args[i].value)
         if i < param_types.len() {
-            args.push(widen_literal_to_context(arg, param_types[i]))
+            widened :: widen_literal_to_context(arg, param_types[i])
+            coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), param_types[i], call.args[i].value.span)
+            match coerced {
+                is null -> { args.push(widened) }
+                _ -> { args.push(coerced) }
+            }
         } else {
             args.push(arg)
         }
