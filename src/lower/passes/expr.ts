@@ -191,6 +191,18 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
             // Apply call-site substitution to the receiver TypeParam, then
             // look up the impl member just like a regular method call.
             const concreteRecv = ctx.types.apply(fr.resolution.receiverParam);
+            // Erased receiver : the call site lives inside a generic decl
+            // whose type-params got substituted to `Any` by the erasure
+            // pass. Dispatch through the runtime vtable instead of looking
+            // up a concrete impl — the tag carried in the box selects the
+            // right method at runtime.
+            if (concreteRecv.kind === "Any" && expr.callee.kind === "FieldExpr") {
+              const dispatched = lowerVirtualDispatch(
+                ctx, expr, expr.callee, exprType,
+                fr.resolution.trait, fr.resolution.member.name,
+              );
+              if (dispatched !== null) return dispatched;
+            }
             const impl = lookupImplFor(ctx.project, concreteRecv, fr.resolution.trait);
             if (impl !== null) {
               const member = impl.decl.members.find((m) => m.name === fr.resolution.member.name);
