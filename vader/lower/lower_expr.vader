@@ -38,7 +38,7 @@ import "vader/comptime/value" {
     NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
 }
 import "vader/comptime/evaluated_ast" { EvaluatedProgram }
-import "vader/parser/ast" { ConstDecl }
+import "vader/parser/ast" { ConstDecl, ImplDecl }
 import "vader/lower/ctx" { FnLowerCtx, BlockCtx, new_block_ctx }
 import "vader/lower/entry_types" { expr_type, type_expr_type, local_type, span_key }
 import "vader/lower/helpers" { type_of }
@@ -826,13 +826,67 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     }
     if !is_type_shaped { return null }
     arg :: lower_expr(ctx, call.args[0].value)
+    arg_type :: type_of(arg)
+    // `Target(value)` probes for `value : Source` where
+    // `Source implements Into[Target]`. When the Into impl exists, the
+    // typer's `tryInto` lifts `value` to `into(value)` ; we recreate
+    // that lift at lower time. The numeric-primitive cast then wraps
+    // the lifted call for byte-parity (`cast → i32 / call into(u)`).
+    coerced :: try_emit_into_coercion(ctx, arg, arg_type, type, call.span)
+    inner :: match coerced {
+        is null -> arg
+        _ -> coerced
+    }
     if type is PrimitiveType as pt {
         if pt.name == "string" || pt.name == "bool" || pt.name == "void" || pt.name == "null" {
-            return arg
+            return inner
         }
-        return LoweredCast { .span = call.span, .type = type, .value = arg }
+        return LoweredCast { .span = call.span, .type = type, .value = inner }
     }
-    return arg
+    return inner
+}
+
+/// `Target(value)` where `value : Source` and `Source implements Into[Target]`
+/// emits `LoweredCall { callee: into, args: [value] }`. Mirror of the typer's
+/// `tryInto` coercion path in TS.
+try_emit_into_coercion :: fn(
+    ctx: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
+) -> LoweredExpr | null {
+    src_name :: type_surface_name(arg_type)
+    if src_name == "" { return null }
+    // Find `Source implements Into[Target] { into }`. The decl carries
+    // `trait_name = "Into"` and a single trait_arg the surface name of
+    // which must equal target_type's surface name.
+    target_name :: type_surface_name(target_type)
+    if target_name == "" { return null }
+    for entry in ctx.project.impls.all {
+        decl :: entry.decl
+        if decl.trait_name != "Into" { continue }
+        if !impl_targets_name(decl.for_type, src_name) { continue }
+        if !impl_trait_first_arg_is(decl, target_name) { continue }
+        for m in decl.members {
+            if m.name != "into" { continue }
+            return LoweredCall {
+                .span = span, .type = target_type,
+                .callee = LoweredIdent {
+                    .span = span, .type = target_type,
+                    .symbol = Symbol {
+                        .id = i32(0), .kind = SymbolKind.Fn, .name = "into",
+                        .module = ctx.typed.resolved.path,
+                        .visibility = Visibility.Private, .defined_at = null,
+                    },
+                },
+                .args = [arg],
+            }
+        }
+    }
+    return null
+}
+
+impl_trait_first_arg_is :: fn(decl: ImplDecl, name: string) -> bool {
+    if decl.trait_args.len() == usize(0) { return false }
+    arg :: decl.trait_args[0]
+    return impl_targets_name(arg, name)
 }
 
 // Detect `<namespace_ident>.<member>(args)`. The target ident's
