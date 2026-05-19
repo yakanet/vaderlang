@@ -386,6 +386,33 @@ types.
 the same way in `vader/comptime/`. The TS-side decision sets
 precedent.
 
+### Issue 5b — P2-2 boundary side-table is unnecessary
+
+**Symptom**: planning §3 originally proposed a new
+`boundaryTypes: Map<Expr, Type>` side-table on `TypedProject`,
+recording the original concrete type at each generic boundary so
+the lower could emit `checkcast` later.
+
+**Cause for the simplification**: the typed AST already contains the
+needed information :
+- `ctx.typed.exprTypes.get(expr)` — typecheck's view of the
+  expression's type (concrete, computed before erasure).
+- `ctx.types.exprType(expr)` — same expression after applying the
+  entry's substitution (Any-bearing post-erasure).
+
+When the two diverge AND `ctx.types.exprType(expr).kind === "Any"`,
+the lower knows : this is a generic-erasure boundary, insert
+`checkcast(concrete_type)` here.
+
+**Implication**: P2-2 collapses into a documentation task (add the
+contract comment to `src/lower/entry-types.ts`). The actual
+checkcast insertion is P2-6's responsibility — single lower-side
+predicate `needsCheckcast(expr)`, no pre-computed map.
+
+**Vader port note**: when porting, the same observation holds for
+the Vader self-host — `ctx.typed.expr_types` vs `ctx.types.apply`
+divergence is the boundary detector. No additional side-table.
+
 ### Issue 5 — Lower-side dispatch on Any (P2-4) works
 
 **Symptom (positive)**: with P2-4 active (commit `1639dbf3`), method
@@ -411,24 +438,104 @@ should not need new ops.
 
 ## 10. Path forward (revised after 2026-05-19 experiment)
 
-Sequencing change : do P2-2 (boundary side-table) and P2-5 (auto-box
-verification) BEFORE attempting P2-1.b again. Also decide §8 issue #4
-(integration path option a vs b) — current lean : **option (b) post-
-process**.
+Three tasks reduced or eliminated by the post-experiment analysis :
+- **P2-2** : no new side-table needed (Issue 5b). Becomes a one-line
+  contract comment in `entry-types.ts`.
+- **P2-5** : auto-boxing already works via existing bytecode val→ref
+  coercion (Issue 3). Becomes a verification pass on edge cases.
+- **P2-4** : already done dormant (commit `1639dbf3`).
 
-Revised order :
-1. ~~P2-3 `@specialize`~~ ✅ done
-2. ~~P2-1.a foundation~~ ✅ done
-3. ~~P2-4 lower dispatch on Any~~ ✅ done (dormant)
-4. **P2-2 boundary side-table** — next session start
-5. **P2-5 auto-box verification** (now 1 d, not 3) — confirm existing
-   coercion handles the common cases
-6. **Decision: option (a) vs (b) in §8 issue #4** — this is the pivot
-   point ; commit to a direction before P2-1.b
-7. P2-1.b switch flip (under the chosen integration path)
-8. P2-6 auto-cast — depends on P2-2 side-table
-9. P2-7 comptime interaction
-10. P2-8 registry rekeying
-11. P2-9 snapshot audit
-12. P2-10 perf check
-13. P2-11 self-host parity rebaseline
+Remaining real work :
+1. **Decide integration path (a) vs (b)** — §11 below details the
+   trade-offs ; cannot proceed without this.
+2. **P2-1.b** under the chosen path — flip the switch.
+3. **P2-6** auto-cast — single lower-side predicate as per Issue 5b.
+4. **P2-7** comptime interaction validation.
+5. **P2-8** registry rekeying (touches DCE + hash-cons + impl).
+6. **P2-9** snapshot audit + bulk update.
+7. **P2-10** perf check.
+8. **P2-11** self-host parity rebaseline.
+
+---
+
+## 11. Integration path decision (BLOCKING P2-1.b)
+
+The 2026-05-19 experiment showed option (a) from parent doc §8.5
+("replace `monomorphizeProject` entirely") has problems the original
+plan didn't surface. Reconsider :
+
+### Option (a) — Replace `monomorphizeProject` entirely
+
+The erasure happens INSIDE `monomorphizeProject` ; for non-`@specialize`d
+generics, the function emits one MonoEntry with `subst = K→Any` instead
+of N entries per typeArgs combo.
+
+- **Pro** : single pass, no extra IR layer.
+- **Pro** : downstream sees fewer MonoEntries (less work in lower +
+  bytecode).
+- **Con (NEW, from experiment)** : the comptime instance registry is
+  populated BEFORE erasure runs, so it captures concrete instances
+  (`ArrayIterator(Entry(string, i32) | null)`). Post-erasure code
+  queries the registry with Any-bearing types
+  (`ArrayIterator(Entry(Any, Any) | null)`) → lookup fails → backend
+  B5001 errors (Issue 1, 4 above).
+- **Mitigation**: synthesise extra instances during erasure for each
+  Any-bearing form reachable from erased fields. Doable but recursive
+  (a struct's field type may reference another generic which
+  references another…).
+
+### Option (b) — Post-process the mono output
+
+`monomorphizeProject` runs as-is (concrete N-per-decl entries). A
+new pass runs between mono and lower that, for each non-`@specialize`d
+generic decl :
+- Picks ONE representative entry (the first concrete instance, say).
+- Re-substitutes its body with `K → Any` (instead of `K → string`).
+- Marks the other (N-1) entries as redirects → the representative.
+- Lookups update : `lookupImplEntry` returns the representative for
+  any matching `(member, typeArgs)`.
+
+- **Pro** : the instance registry stays semantically intact
+  (Issue 1 disappears).
+- **Pro** : the post-pass is bounded — it only touches entries the
+  registry already produced, no recursive type discovery.
+- **Pro** : reverting / debugging is local to the post-pass ; mono
+  itself stays unchanged.
+- **Con** : two passes instead of one (mono + post-pass). Wasted
+  work : N concrete entries computed then discarded. Estimated
+  overhead : moderate during typecheck (the cost is at compile-time,
+  not runtime, and the entries themselves are cheap structurally).
+- **Con** : the redirect map adds a layer of indirection in
+  `lookupImplEntry` / `lookupFnInstance`.
+
+### Recommendation
+
+**Option (b)** — the experimental cost of (a) (synthesising recursive
+instances) outweighs its single-pass elegance, and (b)'s "wasted
+work" is bounded and trivially undoable.
+
+Path forward under (b) :
+- Keep `monomorphizeProject` as-is.
+- Add a new pass `erasureDedupe(mono: MonoProject) → MonoProject` in
+  a new file `src/comptime/erasure-dedupe.ts`.
+- The pass walks `mono.entries`, groups by `decl`, and for each
+  non-`@specialize`d generic group :
+  - Picks the first entry as representative.
+  - Re-emits the entry's `subst` with type-params mapped to
+    `TY.any`.
+  - Replaces all other group members in `mono.entries` with the
+    representative.
+- Rebuilds `lookupByInstance`, `implMethodEntries`, `fnInstanceEntries`
+  so every concrete-typeArgs query resolves to the representative.
+- The lower walks the deduped mono and sees the Any-bearing
+  representative ; `lookupImplEntry(member, args)` returns it for any
+  matching `(member, args)` pair.
+
+Under (b), `ERASED_KEY` from P2-1.a becomes irrelevant (the lookup
+maps key by concrete args, but every concrete-args query resolves to
+the same representative entry). The ERASED_KEY fallback in
+`lookupImplEntry` / `lookupFnInstance` stays harmless dead code (a
+miss falls through to the `??` chain returning null) — can be
+removed after (b) lands.
+
+**Action**: confirm option (b) before resuming P2-1.b.
