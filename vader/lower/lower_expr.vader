@@ -30,7 +30,7 @@ import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
-    TypeParamType, ArrayType, TupleType,
+    TypeParamType, ArrayType, TupleType, TypeMetaType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, mk_primitive,
 }
 import "vader/typecheck/type_ops" { default_if_free, equals_type }
@@ -1633,6 +1633,11 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
                 is null -> synth_unused_local(ctx, simple.name)
             }
             binding_type :: ctx.types.local_type(simple)
+            // `let t: type = …` is an in-fn type alias — no runtime
+            // slot, the typer pre-resolved the type. Skip emit so the
+            // dump matches the TS lowerer's `letTypeAliases`
+            // short-circuit (`src/lower/passes/block.ts:101-103`).
+            if binding_type is TypeMetaType { return }
             raw_value :: lower_expr(ctx, let_stmt.value)
             widened :: widen_literal_to_context(raw_value, binding_type)
             // Auto-Into coercion when the binding's declared type
