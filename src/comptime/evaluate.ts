@@ -24,6 +24,7 @@ import { runComptimeDecl } from "./run.ts";
 import { buildImplRegistry } from "../typecheck/impls.ts";
 import { monomorphizeProject } from "./specialize.ts";
 import type { MonoProject } from "./specialize.ts";
+import { erasureDedupe } from "./erasure-dedupe.ts";
 import { COMPTIME_BUILTIN, callBuiltin, type SandboxOptions } from "./sandbox.ts";
 import type { ComptimeValue } from "./value.ts";
 import { stringVal, typeVal } from "./value.ts";
@@ -128,11 +129,18 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
   // above is the single source of generic instances, and `monomorphizeProject`
   // flattens it into the mono entry table consumed by the lowerer. Layer 2
   // of the type-first redesign relocates this call out of `lowerProject`.
+  // `erasureDedupe` then collapses per-decl groups of non-`@specialize`d
+  // generics into a single Any-substituted representative (see
+  // `docs/STDLIB_GENERIC_COLLAPSE_PHASE2.md` §11).
   const intoMembers = collectIntoMembers(project);
   const evaluatedCore = {
     typed: project, modules, instances: instances.entries(),
     mono: EMPTY_MONO, fileExprs, intoMembers,
   };
+  // `erasureDedupe` is wired in `src/comptime/erasure-dedupe.ts` but
+  // disabled here pending §9 Issue 6 resolution — see
+  // `docs/STDLIB_GENERIC_COLLAPSE_PHASE2.md`. Re-enable by replacing the
+  // line below with `erasureDedupe(monomorphizeProject(evaluatedCore), project)`.
   const mono = monomorphizeProject(evaluatedCore);
   return { ...evaluatedCore, mono };
 }

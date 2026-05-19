@@ -33,7 +33,7 @@ export const ERASED_KEY = "$erased";
  *  types in stdlib (`ArrayIterator`, `Yield`, `MapIterator`, …) carry
  *  this tag because for-in fusion (`src/lower/passes/for-in.ts`)
  *  inlines their bodies and needs the per-instantiation source. */
-function isSpecialized(decl: { decorators?: readonly { name: string }[] }): boolean {
+export function isSpecialized(decl: { decorators?: readonly { name: string }[] }): boolean {
   return decl.decorators !== undefined && hasDecorator(decl.decorators, DEC.specialize);
 }
 

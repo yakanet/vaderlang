@@ -386,6 +386,62 @@ types.
 the same way in `vader/comptime/`. The TS-side decision sets
 precedent.
 
+### Issue 6 — Option (b) post-process doesn't solve the cascade either
+
+**Date**: 2026-05-19 (later in the same session).
+
+**Symptom**: with `erasureDedupe` wired in `src/comptime/evaluate.ts`,
+the same B5001 errors appear : `for x in iter requires Iterator impl
+on ArrayIterator(Entry(Any, Any) | null)`. Plus a new flavour :
+`Contains.contains has no monomorphised instance`.
+
+**Cause**: option (b) was meant to keep the instance registry
+semantically intact (concrete-typed instances) and let the dedupe
+collapse only the non-`@specialize`d entries. But the cascade is
+**inside the erased body**. After dedupe, the representative
+`MutableMap.put` body has `for bucket in self.buckets` ; the lower
+substitutes `self.buckets` to `(Entry(Any, Any) | null)[]`. The
+for-in lowering wraps the array into `ArrayIterator((Entry(Any, Any) | null))`,
+then queries the registry for the Iterator impl on that exact shape.
+The query misses because the registry only saw the concrete shapes
+(`ArrayIterator(Entry(string, i32) | null)` etc.).
+
+**Implication**: BOTH options (a) and (b) cascade equally — the
+difference is only WHERE the substituted type-shape leaks. The real
+problem is the for-in lowering's hard dependency on a registered
+Iterator impl entry whose typeArgs exactly match the iter's struct
+args. `ArrayIterator` being `@specialize`d means there's no fallback.
+
+**Root mitigation candidates**:
+- **(α) De-`@specialize` `ArrayIterator`** : let the dedupe collapse
+  it too. Then `ArrayIterator(Entry(Any, Any) | null)` queries find
+  the representative and dispatch correctly. **Cost**: lose the
+  for-in fusion gain (22.6 → 9.7 ms on `bench/map_iter`) that
+  motivated `@specialize` for iterators in the first place.
+- **(β) Make raw-array for-in skip `ArrayIterator` entirely** :
+  detect `iterType.kind === "Array"` in `lowerForIn` and emit a
+  counter loop directly (cursor + indexing), without the
+  `wrapArrayAsIter` step. **Cost**: ~1-2 d of careful rewrite of
+  the array-iter fast path in `src/lower/passes/for-in.ts` ; once
+  done, ArrayIterator's only remaining callers are user code calling
+  it explicitly, and the typed-AST-driven fusion still inlines for
+  user iterator chains. **Best long-term answer** — for-in on
+  arrays should never have gone through ArrayIterator in the first
+  place ; the wrap was a syntactic shortcut.
+- **(γ) Synthesise Any-bearing instances during dedupe** : walk
+  each erased body's typed-AST, find every `@specialize`d container
+  use, and pre-register the Any-bearing form in the registry +
+  mono. **Cost**: recursive ; non-trivial to bound ; introduces
+  synthetic instances the comptime never observed.
+
+**Recommended**: (β) — fix the for-in lowering to handle raw arrays
+without ArrayIterator. Unblocks erasure cleanly and improves the
+for-in path independently.
+
+**Vader port note**: when porting Phase 2, the equivalent
+investigation must run on `vader/lower/lower_for.vader`. The
+`wrapArrayAsIter` step there has the same cascade liability.
+
 ### Issue 5b — P2-2 boundary side-table is unnecessary
 
 **Symptom**: planning §3 originally proposed a new
