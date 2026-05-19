@@ -408,7 +408,7 @@ struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) 
             if decl is null { return TY_UNRESOLVED }
             for field in decl.fields {
                 if field.name == field_name {
-                    return ctx.types.type_expr_type(field.ty)
+                    return resolve_pattern_type(ctx, field.ty)
                 }
             }
             return TY_UNRESOLVED

@@ -45,6 +45,7 @@ import "vader/lower/lowered_ast" {
     LoweredStructLitField, LoweredArrayLit, LoweredCast, LoweredTypeCheck,
     LoweredUnreachable, LoweredIntrinsicCall, LoweredLet, LoweredAssign,
     LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
+    LoweredCellNew, LoweredCellGet, LoweredCellSet,
     INTRINSIC_BUILDER_NEW, INTRINSIC_BUILDER_APPEND_STR,
     INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
 }
@@ -146,6 +147,18 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
                 is null -> {}
                 _ -> { return via_env }
             }
+            // Local captured by an inner lambda : the slot stores a cell
+            // ref, the value lives behind a `LoweredCellGet`. Mirror of
+            // `lowerIdent`'s captured-symbol path in `expr.ts:559-561`.
+            if ctx.project.closures.captured_symbols.contains(resolved.id) {
+                cell_ref :: LoweredIdent {
+                    .span = ident.span, .type = type, .symbol = resolved,
+                }
+                return LoweredCellGet {
+                    .span = ident.span, .type = type,
+                    .target = cell_ref, .value_type = type,
+                }
+            }
             // Match-arm narrowing : the slot stores the declared union
             // (e.g. `Error | string`), the typed-AST narrows this use to a
             // concrete variant (e.g. `string`) — emit a `LoweredCast` so the
@@ -164,6 +177,30 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             }
             return LoweredIdent { .span = ident.span, .type = type, .symbol = resolved }
         }
+    }
+}
+
+CellInit :: struct {
+    value:     LoweredExpr
+    slot_type: Type
+}
+
+/// When `symbol` is captured by an inner lambda, wrap the let-initialiser
+/// in `LoweredCellNew` so the slot stores a cell ref. Reads must then go
+/// through `LoweredCellGet`. Mirror of `lowerCellInit` in
+/// `src/lower/passes/helpers.ts:95-105`.
+cell_wrap_init :: fn(
+    ctx: FnLowerCtx, symbol: Symbol, value: LoweredExpr, value_type: Type, span: Span,
+) -> CellInit {
+    if !ctx.project.closures.captured_symbols.contains(symbol.id) {
+        return CellInit { .value = value, .slot_type = value_type }
+    }
+    return CellInit {
+        .value = LoweredCellNew {
+            .span = span, .type = TY_UNRESOLVED,
+            .value = value, .value_type = value_type,
+        },
+        .slot_type = TY_UNRESOLVED,
     }
 }
 
@@ -195,8 +232,15 @@ try_route_through_env :: fn(
             env_ident :: LoweredIdent {
                 .span = span, .type = lifted.env_type, .symbol = lifted.env_symbol,
             }
-            return LoweredFieldAccess {
+            cell_ref :: LoweredFieldAccess {
                 .span = span, .type = type, .target = env_ident, .field = name,
+            }
+            // The env-struct slot holds a cell ref ; unwrap via
+            // `LoweredCellGet` to materialise the value. Mirror of
+            // `lowerIdent`'s lifted-context branch in `expr.ts:550-555`.
+            return LoweredCellGet {
+                .span = span, .type = type,
+                .target = cell_ref, .value_type = type,
             }
         }
     }
@@ -904,10 +948,12 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
                 is null -> {}
                 is Symbol as resolved -> {
                     binding_type :: ctx.types.local_type(simple)
+                    value :: lower_expr(ctx, let_stmt.value)
+                    init :: cell_wrap_init(ctx, resolved, value, binding_type, let_stmt.span)
                     out.push(LoweredLet {
                         .span = let_stmt.span, .name = simple.name,
-                        .symbol = resolved, .type = binding_type,
-                        .value = lower_expr(ctx, let_stmt.value),
+                        .symbol = resolved, .type = init.slot_type,
+                        .value = init.value,
                     })
                 }
             }
@@ -1081,11 +1127,42 @@ lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
         is null -> {}
         _ -> { return via_index_set }
     }
+    // Reassignment to a captured local : write into its cell rather than
+    // overwriting the slot. Mirror of `lowerStmt`'s captured-symbol
+    // branch in `src/lower/passes/block.ts:159-169`.
+    via_cell :: try_lower_cell_set_assign(ctx, assign_stmt)
+    match via_cell {
+        is null -> {}
+        _ -> { return via_cell }
+    }
     return LoweredAssign {
         .span = assign_stmt.span,
         .target = lower_assign_target(ctx, assign_stmt.target),
         .value  = lower_expr(ctx, assign_stmt.value),
     }
+}
+
+try_lower_cell_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt | null {
+    target_ident :: as_ident(assign_stmt.target)
+    if target_ident is null { return null }
+    if target_ident is IdentExpr as ident {
+        symbol :: ctx.typed.resolved.idents[span_key(ident.span)]
+        if symbol is null { return null }
+        if symbol is Symbol as resolved {
+            if !ctx.project.closures.captured_symbols.contains(resolved.id) { return null }
+            value_type :: ctx.types.expr_type(ident)
+            cell_ref :: LoweredIdent {
+                .span = ident.span, .type = value_type, .symbol = resolved,
+            }
+            return LoweredCellSet {
+                .span = assign_stmt.span,
+                .target = cell_ref,
+                .value = lower_expr(ctx, assign_stmt.value),
+                .value_type = value_type,
+            }
+        }
+    }
+    return null
 }
 
 /// Lvalue lowerer — bypasses the match-narrowing `LoweredCast` wrap that

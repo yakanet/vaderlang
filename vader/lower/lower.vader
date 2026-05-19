@@ -67,6 +67,11 @@ export lower_project :: fn(
 
     module_ids :: typed.modules.keys()
     for module_id in module_ids {
+        // Skip stdlib bodies — they're filtered from the dump anyway
+        // (`is_stdlib_path` in dump.vader) and lowering them would
+        // pollute the per-project synthetic-id counter, breaking
+        // `__lambda_1` / `__lambda_env_2` numbering in user fixtures.
+        if is_stdlib_path(module_id) { continue }
         module_typed :: typed.modules[module_id]
         if module_typed is null { continue }
         module_loaded :: loaded.modules[module_id]
@@ -76,6 +81,10 @@ export lower_project :: fn(
         project.modules[module_id] = lowered_module
     }
     return project
+}
+
+is_stdlib_path :: fn(path: string) -> bool {
+    return path.contains("stdlib/std/")
 }
 
 import "vader/typecheck/impls" { build_impl_registry, ImplEntry }
