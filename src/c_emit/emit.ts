@@ -212,6 +212,11 @@ function emitTypeDecls(ctx: EmitCtx, out: string[]): void {
   }
   out.push(``);
 
+  // Emit each struct's body plus, when applicable, a header-less mirror
+  // twin used by the packed-payload fast path. Mirroring lets the C
+  // compiler do the layout for fields packed directly into
+  // `vader_box_t.payload.packed[]`. Mutated structs are excluded from
+  // the inline-variant fast path so the mirror is never needed.
   for (let i = 0; i < ctx.module.types.length; i++) {
     const t = ctx.module.types[i]!;
     if (t.kind !== "struct") continue;
@@ -232,6 +237,17 @@ function emitTypeDecls(ctx: EmitCtx, out: string[]): void {
       out.push(`    ${cTypeFor(ctx, fieldType)} f_${sanitise(field.name)};`);
     }
     out.push(`};`);
+
+    const isPacked = !ctx.mutatedStructs.has(i)
+      && inlineVariantPayload(t, ctx.module.types) === "packed";
+    if (isPacked) {
+      out.push(`typedef struct {`);
+      for (const field of t.fields) {
+        const fieldType = ctx.module.types[field.typeIndex]!;
+        out.push(`    ${cTypeFor(ctx, fieldType)} f_${sanitise(field.name)};`);
+      }
+      out.push(`} ${packedStructName(cname)};`);
+    }
   }
   out.push(``);
 
@@ -460,16 +476,18 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
     const t = types[i]!;
     if (t.kind === "struct") {
       // Inline-variant structs (empty-body / single-primitive-field /
-      // single-ref-field) are encoded directly inside `vader_box_t.payload`
-      // — they never get a heap allocation. Mutated structs are excluded :
-      // they keep the heap rep so `struct.set` is observable across aliases.
+      // single-ref-field / multi-field POD packed into `payload.packed[]`)
+      // are encoded directly inside `vader_box_t.payload` — they never
+      // get a heap allocation. Mutated structs are excluded : they keep
+      // the heap rep so `struct.set` is observable across aliases.
       const inlinePayload = !ctx.mutatedStructs.has(i)
         ? inlineVariantPayload(t, types)
         : null;
       if (inlinePayload === "void" || (inlinePayload !== null && inlinePayload !== "ref")) {
-        // Empty + primitive inline : `payload` is non-pointer data, GC skips
-        // the slot. Leave the entry at its zero-init KIND_NONE so
-        // `vader_gc_scan_box` short-circuits before touching the payload.
+        // Empty / single-primitive / packed-multi-field : `payload` is
+        // non-pointer data, GC skips the slot. Leave the entry at its
+        // zero-init KIND_NONE so `vader_gc_scan_box` short-circuits before
+        // touching the payload.
         continue;
       }
       if (inlinePayload === "ref") {
@@ -522,9 +540,9 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
   out.push(`};`);
   out.push(``);
 
-  // Per-tag trait-method vtables — Phase 0 of the erasure plan. Override
-  // the weak fallback in `vader_runtime.c` so `vader_virtual_dispatch`
-  // resolves correctly for any concrete type implementing a trait.
+  // Per-tag trait-method vtables. Override the weak fallback in
+  // `vader_runtime.c` so `vader_virtual_dispatch` resolves correctly for
+  // any concrete type implementing a trait.
   emitVtables(ctx.module, ctx.fnNames, out);
 }
 
@@ -920,6 +938,14 @@ const C_RESERVED: ReadonlySet<string> = new Set([
 export function sanitise(raw: string): string {
   const out = raw.replace(/[^A-Za-z0-9_]/g, "_");
   return C_RESERVED.has(out) ? `${out}_v` : out;
+}
+
+/** Maps a regular struct's C identifier (`vader_struct_<name>_t`) to its
+ *  packed-payload mirror twin (`vader_packed_<name>_t`). The mirror is
+ *  emitted by `emitTypeDecls` next to the regular typedef when the struct
+ *  fits the multi-field packed-payload inline-variant. */
+export function packedStructName(structCName: string): string {
+  return structCName.replace(/^vader_struct_/, "vader_packed_");
 }
 
 export function cStringLit(s: string): string {

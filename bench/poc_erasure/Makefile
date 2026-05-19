@@ -58,7 +58,33 @@ run: bench
 	./bench
 
 clean:
-	rm -f *.o *.size.o bench vtable_emit_test vtable_emit_test.c
+	rm -f *.o *.size.o bench vtable_emit_test vtable_emit_test.c \
+	    packed_inline_test packed_inline_test.c
+
+# Phase 1 P1-6 exit-criterion validation. Compiles a minimal Vader file
+# with a multi-field POD struct (`Pair { x: i32, y: i32 }`) and confirms
+# the emitted C uses the packed-payload fast path: a mirror struct
+# `vader_packed_*Pair*_t` is emitted, and struct.new + struct.get cast
+# `payload.packed` to it rather than allocating a heap copy.
+verify_packed:
+	@echo "--- compile packed_inline_test.vader ---"
+	@bun ../../src/index.ts build packed_inline_test.vader \
+	    --target=native --release --out=packed_inline_test
+	@echo "--- grep emitted C for packed-payload fast path ---"
+	@grep -q "vader_packed_.*Pair.*_t" packed_inline_test.c \
+	    && echo "  ok: mirror struct emitted"
+	@grep -qe "f_x = INT32_C" packed_inline_test.c \
+	    && echo "  ok: struct.new writes via mirror"
+	@grep -qe "payload.packed" packed_inline_test.c \
+	    && echo "  ok: struct.get reads via packed payload"
+	@! grep -qe "vader_gc_alloc(sizeof(vader_struct_.*Pair" packed_inline_test.c \
+	    && echo "  ok: no heap alloc for Pair"
+	@echo "--- run binary, expect 'Pair(3, 4) sum=7' ---"
+	@out=$$(./packed_inline_test) ; \
+	    test "$$out" = "Pair(3, 4) sum=7" \
+	    && echo "  ok: binary runs and prints expected output" \
+	    || (echo "  FAIL: binary printed '$$out'" && exit 1)
+	@echo "Phase 1 P1-6 verify_packed: PASS"
 
 # Phase 0 P0-6 exit-criterion validation. Compiles a minimal Vader file
 # with a user-defined trait impl, then verifies the emitted C contains
@@ -86,4 +112,4 @@ verify:
 	    || (echo "  FAIL: binary printed '$$out'" && exit 1)
 	@echo "Phase 0 P0-6 verify: PASS"
 
-.PHONY: all sizes run clean verify
+.PHONY: all sizes run clean verify verify_packed

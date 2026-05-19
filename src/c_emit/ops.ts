@@ -18,7 +18,7 @@ import type { BcType, ValType } from "../bytecode/types.ts";
 import { arrayKindIndex, arrayKindOf, inlineVariantPayload, nullableRefVariant } from "../bytecode/types.ts";
 
 import type { EmitCtx } from "./emit.ts";
-import { cStringLit, cStringLitFromBytes, escapeC, sanitise } from "./emit.ts";
+import { cStringLit, cStringLitFromBytes, escapeC, packedStructName, sanitise } from "./emit.ts";
 import {
   b1SlotVariant, boxExpr, boxExprUnknown, coerce, coerceExpr, cTypeFor,
   cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, decl, isRefVal, line,
@@ -343,6 +343,23 @@ export function emitStructNew(
       // reads the referent's own header tag rather than ours.
       const v = fieldVals[0]!;
       line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${v.name}.payload.obj);`);
+    } else if (inlinePayload === "packed") {
+      // Multi-field POD packed into `payload.packed[16]`. Cast the byte
+      // array to the header-less mirror struct (emitted next to the
+      // regular typedef in `emitTypeDecls`) and assign each field
+      // directly ; the C compiler resolves the layout.
+      const pname = packedStructName(cname);
+      line(s, `${decl(s, "ref", tmp)} = (vader_box_t){ .tag = ${op.typeIndex}u, ._pad = 0 };`);
+      line(s, `{`);
+      line(s, `    ${pname}* __packed = (${pname}*)${tmp}.payload.packed;`);
+      for (let i = 0; i < t.fields.length; i++) {
+        const f = t.fields[i]!;
+        const v = fieldVals[i]!;
+        const fval = valTypeOfField(s.ctx, f.typeIndex);
+        const coerced = coerce(s, v.name, v.val, fval);
+        line(s, `    __packed->f_${sanitise(f.name)} = ${coerced};`);
+      }
+      line(s, `}`);
     } else {
       // Single primitive field — coerce the incoming value into the matching
       // payload slot, then box with the variant's tag. `boxExpr` knows how
@@ -410,6 +427,15 @@ export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }
     // concrete referent struct (Entry, MapIterator, …).
     const tmp = newTmp(s, fval);
     line(s, `${decl(s, fval, tmp)} = vader_box_obj(${f.typeIndex}u, ${obj.name}.payload.obj);`);
+    return;
+  }
+  if (inlinePayload === "packed") {
+    // Multi-field POD stored inline in `payload.packed[16]`. Read the
+    // field through the header-less mirror struct ; the C compiler
+    // resolves the offset.
+    const pname = packedStructName(cname);
+    const tmp = newTmp(s, fval);
+    line(s, `${decl(s, fval, tmp)} = ((const ${pname}*)${obj.name}.payload.packed)->f_${sanitise(f.name)};`);
     return;
   }
   if (inlinePayload !== null && inlinePayload !== "void") {

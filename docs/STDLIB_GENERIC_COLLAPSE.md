@@ -116,6 +116,21 @@ Decisions taken during the planning phase, in chronological order.
     user code never writes them.
   - Phase 6 (`Any` user exposure) is deferred indefinitely. Revisit
     only if FFI or reflection demands it.
+- **2026-05-19 — Phase 1 closed.** Inline-box generalisation
+  (`docs/STDLIB_GENERIC_COLLAPSE_PHASE1.md`) shipped in ~3 hours of
+  work, well under the 1-2 week original estimate. Key insight: the
+  existing `vader_box_t.payload` union is already 16 bytes wide
+  (because `vader_string_t` is a 16-byte fat pointer), so a new view
+  `uint8_t packed[16]` costs nothing in struct size. Multi-field POD
+  structs ≤ 16 bytes with all-primitive fields (no string, no refs)
+  now pack into the payload via a header-less mirror struct
+  `vader_packed_<name>_t` that the C emit overlays onto the byte
+  array. Validated via `bench/poc_erasure/Makefile :: verify_packed`
+  on `Pair { x: i32, y: i32 }` — mirror emitted, no heap alloc,
+  binary runs correctly. 252/252 native tests pass. Ref-bearing
+  packed payloads deferred (would need a GC scanner extension).
+  Phase 2 can now erase generic value slots holding small PODs
+  without inducing per-op allocs.
 - **2026-05-19 — Phase 0 closed.** 5/5 active tasks done (P0-1 runtime
   helper, P0-2 slot registry, P0-3 C emit vtables, P0-4 internal `Any`
   Type kind, P0-6 validation). P0-5 (lower dispatch on `Any` receivers)

@@ -4,3 +4,5 @@
 bench
 vtable_emit_test
 vtable_emit_test.c
+packed_inline_test
+packed_inline_test.c

@@ -99,6 +99,12 @@ typedef struct {
         vader_bool_t   b;
         vader_string_t s;
         void*          obj;     /* struct / array ref */
+        /* Multi-field POD packed payload. `vader_string_t` already makes
+         * this union 16 bytes wide, so the new view costs nothing. The C
+         * emit overlays a header-less mirror struct
+         * (`struct vader_packed_<name>_t`) at byte offset 0 of this
+         * array to read/write fields with natural C layout. */
+        uint8_t        packed[16];
     } payload;
 } vader_box_t;
 

@@ -4,7 +4,7 @@
 //                 type_check ops.
 
 import type { PrimitiveName } from "../typecheck/types.ts";
-import { ALL_INTS, FLOATS, NUMERICS } from "../typecheck/types.ts";
+import { ALL_INTS, FLOATS, NUMERICS, PRIMITIVE_NAMES } from "../typecheck/types.ts";
 
 export type ValType =
   | PrimitiveName
@@ -297,9 +297,8 @@ export function nullableRefVariant(union: BcUnion, types: readonly BcType[]): nu
  *    - `"ref"` — single-ref-field shape ; `payload.obj` is the field's
  *      obj pointer, the wrapper struct is never allocated
  */
-export function inlineVariantPayload(t: BcStruct, types: readonly BcType[]): ValType | "void" | "ref" | null {
+export function inlineVariantPayload(t: BcStruct, types: readonly BcType[]): ValType | "void" | "ref" | "packed" | null {
   if (t.fields.length === 0) return "void";
-  if (t.fields.length > 1) return null;
   // Closure-cell wrapper structs (`$Cell_N`) are designed for cross-closure
   // sharing : a captured local is held in the cell and every closure
   // referencing it reads/writes through the *same* cell. Inlining would
@@ -312,22 +311,68 @@ export function inlineVariantPayload(t: BcStruct, types: readonly BcType[]): Val
   // box. Cheaper to exclude every Cell type up-front than to detect
   // late-bound writes.
   if (t.name.startsWith("$Cell_")) return null;
-  const fieldType = types[t.fields[0]!.typeIndex];
-  if (fieldType === undefined) return null;
-  if (fieldType.kind === "primitive") {
-    // `void` and `null` aren't legitimate single-field types ; everything else
-    // (ints, floats, bool, char, string) fits in vader_box_t.payload.
-    if (fieldType.val === "void" || fieldType.val === "null") return null;
-    return fieldType.val;
+
+  if (t.fields.length === 1) {
+    const fieldType = types[t.fields[0]!.typeIndex];
+    if (fieldType === undefined) return null;
+    if (fieldType.kind === "primitive") {
+      // `void` and `null` aren't legitimate single-field types ; everything else
+      // (ints, floats, bool, char, string) fits in vader_box_t.payload.
+      if (fieldType.val === "void" || fieldType.val === "null") return null;
+      return fieldType.val;
+    }
+    // Heap-ref single field — struct or array. The wrapper struct itself
+    // never allocates ; the field's obj pointer IS the inline-variant's
+    // payload. Skip when the field's own type is *also* inline-variant
+    // (e.g. `Box(Box(i32))`) — the inner box doesn't carry a heap pointer
+    // we could borrow, just a primitive payload overlapping the `obj` slot
+    // of the union. Arrays are always heap-backed by their `vader_array_t`,
+    // so the `payload.obj` slot is always a real pointer.
+    if (fieldType.kind === "array") return "ref";
+    if (fieldType.kind === "struct" && inlineVariantPayload(fieldType, types) === null) return "ref";
+    return null;
   }
-  // Heap-ref single field — struct or array. The wrapper struct itself
-  // never allocates ; the field's obj pointer IS the inline-variant's
-  // payload. Skip when the field's own type is *also* inline-variant
-  // (e.g. `Box(Box(i32))`) — the inner box doesn't carry a heap pointer
-  // we could borrow, just a primitive payload overlapping the `obj` slot
-  // of the union. Arrays are always heap-backed by their `vader_array_t`,
-  // so the `payload.obj` slot is always a real pointer.
-  if (fieldType.kind === "array") return "ref";
-  if (fieldType.kind === "struct" && inlineVariantPayload(fieldType, types) === null) return "ref";
-  return null;
+
+  // Multi-field struct — pack the fields directly into
+  // `vader_box_t.payload.packed[16]` iff all fields are primitive numerics
+  // or bool/char AND the C-equivalent layout fits 16 bytes (the existing
+  // union width).
+  //
+  // Strings excluded : `vader_string_t` carries a heap-backed `char*` whose
+  // mark-sweep arena tracking is bypassed if the value is `memcpy`'d into
+  // a raw byte block.
+  //
+  // Refs / structs / arrays excluded too — packed types emit
+  // `ptr_count = 0` in their type info, so the GC scanner would miss any
+  // ref embedded in the payload.
+  return tryPackedLayout(t, types);
+}
+
+/** Subset of `PrimitiveName` that may appear in a packed payload — all
+ *  primitives except those that carry GC-managed state (`string`) or
+ *  whose runtime values are illegitimate (`void`, `null`). */
+const PACKED_PRIMITIVE_NAMES: ReadonlySet<string> = new Set(
+  PRIMITIVE_NAMES.filter(n => n !== "string" && n !== "void" && n !== "null"),
+);
+
+/** Compute the C-equivalent layout size for `t` and return `"packed"` iff
+ *  it fits 16 bytes with all-primitive fields. Layout follows the standard
+ *  C rule : each field aligned to its own alignment, struct rounded to its
+ *  max field alignment. */
+function tryPackedLayout(t: BcStruct, types: readonly BcType[]): "packed" | null {
+  let size = 0;
+  let maxAlign = 1;
+  for (const f of t.fields) {
+    const ft = types[f.typeIndex];
+    if (ft === undefined || ft.kind !== "primitive") return null;
+    if (!PACKED_PRIMITIVE_NAMES.has(ft.val)) return null;
+    const fsize = sizeOfBcType(ft);
+    const falign = Math.min(fsize, 8);   // C ABI caps natural alignment at 8 on most targets
+    if (fsize === 0) return null;
+    if (falign > maxAlign) maxAlign = falign;
+    if (size % falign !== 0) size += falign - (size % falign);
+    size += fsize;
+  }
+  if (size % maxAlign !== 0) size += maxAlign - (size % maxAlign);
+  return size > 0 && size <= 16 ? "packed" : null;
 }
