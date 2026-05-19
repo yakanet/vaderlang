@@ -13,11 +13,45 @@
 // at the end of bake, before returning the `EvaluatedProject` to the lowerer.
 
 import type * as A from "../parser/ast.ts";
+import { DEC, hasDecorator } from "../parser/decorators.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
-import { canonicalArgsKey, displayType, type Substitution, type Type } from "../typecheck/types.ts";
+import { canonicalArgsKey, displayType, TY, type Substitution, type Type } from "../typecheck/types.ts";
 import type { EvaluatedProject } from "./evaluated-ast.ts";
 import type { GenericInstance } from "./instances.ts";
+
+/** Sentinel inner-key for `implMethodEntries` / `fnInstanceEntries`
+ *  when the owning generic decl is erased (no `@specialize` decorator).
+ *  Distinct from any `canonicalArgsKey` output : non-generic impls use
+ *  `""`, generic ones use type-id-prefixed strings (`p<name>`, `s<id>`,
+ *  …) — neither collides with `$erased`. Consumers in
+ *  `src/lower/passes/for-in.ts:lookupImplEntry` fall back to this key
+ *  when the per-args lookup misses for an erased decl. */
+export const ERASED_KEY = "$erased";
+
+/** True when `decl` opts out of erasure via `@specialize`. Iterator
+ *  types in stdlib (`ArrayIterator`, `Yield`, `MapIterator`, …) carry
+ *  this tag because for-in fusion (`src/lower/passes/for-in.ts`)
+ *  inlines their bodies and needs the per-instantiation source. */
+function isSpecialized(decl: { decorators?: readonly { name: string }[] }): boolean {
+  return decl.decorators !== undefined && hasDecorator(decl.decorators, DEC.specialize);
+}
+
+/** Build a substitution mapping every type-parameter of `typeParams` to
+ *  the IR-internal `Any` type. Produced by the erasure pass for every
+ *  generic decl that did NOT opt out via `@specialize` ; consumed by
+ *  the lower through `entry.subst` so the substituted body sees `Any`
+ *  wherever the generic source said `K` or `V`. */
+function anySubst(
+  typeParams: readonly A.TypeParam[], program: ResolvedProgram,
+): Substitution {
+  const map = new Map<number, Type>();
+  for (const tp of typeParams) {
+    const sym = program.typeParams.get(tp);
+    if (sym !== undefined) map.set(sym.id, TY.any);
+  }
+  return { typeParams: map };
+}
 
 // ============================================================================
 // Specialised AST shape
@@ -237,6 +271,21 @@ function putImplEntry(
     map.set(member, inner);
   }
   inner.set(argsKey(args), entry);
+}
+
+/** Same as `putImplEntry` but keys the inner map under `ERASED_KEY`. The
+ *  lookup side (`src/lower/passes/for-in.ts:lookupImplEntry`) falls back
+ *  to this key when no per-args match exists. */
+function putImplEntryErased(
+  map: Map<A.FnDecl, Map<string, MonoEntry>>,
+  member: A.FnDecl, entry: MonoEntry,
+): void {
+  let inner = map.get(member);
+  if (inner === undefined) {
+    inner = new Map();
+    map.set(member, inner);
+  }
+  inner.set(ERASED_KEY, entry);
 }
 
 function argsKey(args: readonly Type[]): string {

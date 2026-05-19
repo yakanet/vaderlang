@@ -9,7 +9,7 @@ import type { Symbol } from "../../resolver/symbol.ts";
 import type { ImplEntry } from "../../typecheck/impls.ts";
 import type { Type } from "../../typecheck/types.ts";
 import { CORE_STRUCTS, CORE_TRAITS, TY, canonicalArgsKey, displayType, isInteger, mkArray, mkStruct, mkUnion, substitute } from "../../typecheck/types.ts";
-import type { MonoEntry } from "../../comptime/specialize.ts";
+import { ERASED_KEY, type MonoEntry } from "../../comptime/specialize.ts";
 
 import type { FnLowerCtx, LowerProjectCtx } from "../ctx.ts";
 import { err } from "../diag.ts";
@@ -952,7 +952,10 @@ export function lookupImplFor(
 export function lookupImplEntry(ctx: FnLowerCtx, member: A.FnDecl, args: readonly Type[]): MonoEntry | null {
   const inner = ctx.project.mono.implMethodEntries.get(member);
   if (inner === undefined) return null;
-  return inner.get(canonicalArgsKey(args)) ?? null;
+  // First try the per-args specialised entry. If the impl's host struct is
+  // erased (no `@specialize`), the entry was emitted under `ERASED_KEY`
+  // instead — fall back to that.
+  return inner.get(canonicalArgsKey(args)) ?? inner.get(ERASED_KEY) ?? null;
 }
 
 /** Wrap a `[T]`-typed lowered expression into an `ArrayIterator(T)` struct
