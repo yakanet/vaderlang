@@ -1291,11 +1291,13 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
             symbol_or_null :: lookup_local_symbol(ctx.typed.resolved, simple.name_span)
             // Synthesise a Local symbol when the resolver dropped this
             // binding (cascading-error case, e.g. T3001 on an invalid
-            // annotation). The TS lowerer keeps emitting the let so the
-            // dump reflects the user-written shape ; we mirror that.
+            // annotation, OR an unused let with zero body use-sites).
+            // Mint without bumping `ctx.uniq` so the synth doesn't
+            // drift later `fresh_synthetic_symbol("sb")` / `("try")` /
+            // … naming away from the TS reference.
             symbol :: match symbol_or_null {
                 is Symbol as s -> s
-                is null -> fresh_synthetic_symbol(ctx, simple.name)
+                is null -> synth_unused_local(ctx, simple.name)
             }
             binding_type :: ctx.types.local_type(simple)
             raw_value :: lower_expr(ctx, let_stmt.value)
@@ -1451,6 +1453,19 @@ build_leaf_access :: fn(
 /// @param resolved  the module's resolved view (`typed.resolved`).
 /// @param name_span the binding-site name span.
 /// @return          the resolver-minted symbol, or `null` if absent.
+synth_unused_local :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
+    next_id :: ctx.project.next_synthetic_id
+    ctx.project.next_synthetic_id = next_id - i32(1)
+    return Symbol {
+        .id         = next_id,
+        .kind       = SymbolKind.Local,
+        .name       = name,
+        .module     = ctx.typed.resolved.path,
+        .visibility = Visibility.Private,
+        .defined_at = null,
+    }
+}
+
 export lookup_local_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Symbol | null {
     target_key :: span_key(name_span)
     // Walk `idents` (use-site → Symbol) first — fast path when the
