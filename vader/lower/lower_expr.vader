@@ -26,7 +26,8 @@ import "vader/parser/ast" {
     LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
     Visibility,
 }
-import "vader/diagnostics/diagnostic" { Span }
+import "vader/diagnostics/diagnostic" { Span, Diagnostic }
+import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
@@ -39,7 +40,9 @@ import "vader/comptime/value" {
     NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
 }
 import "vader/comptime/evaluated_ast" { EvaluatedProgram }
+import "vader/comptime/intrinsic" { byte_size, byte_align }
 import "vader/parser/ast" { ConstDecl, ImplDecl }
+import "vader/typecheck/types" { display_type }
 import "vader/lower/ctx" { FnLowerCtx, BlockCtx, new_block_ctx, GenericFnInstance }
 import "vader/lower/entry_types" { expr_type, type_expr_type, local_type, span_key }
 import "vader/lower/helpers" { type_of }
@@ -1528,6 +1531,14 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
             }
         }
     }
+    // Static-arg intrinsics fold at lower time when the typer recorded
+    // the arg's underlying Type. Mirror of `lowerIntrinsic`'s
+    // `targetTy`-based branches in `src/lower/passes/expr.ts:380-402`.
+    folded :: try_fold_static_intrinsic(ctx, intrinsic, type)
+    match folded {
+        is null -> {}
+        _ -> { return folded }
+    }
     args: LoweredExpr[] = []
     for arg_expr in intrinsic.args {
         args.push(lower_expr(ctx, arg_expr))
@@ -1540,6 +1551,90 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
 
 lookup_file_baked :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr) -> string | null {
     return ctx.project.evaluated.file_exprs[intrinsic.id]
+}
+
+/// Fold `@size_of` / `@align_of` / `@type_name` / `@type_kind` to a
+/// literal when the single arg resolves to a concrete `Type`. The
+/// typer's `type_expr_types` table covers most cases ; `type_from_expr`
+/// fallback handles type-alias idents the typer left as Unresolved.
+try_fold_static_intrinsic :: fn(
+    ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
+) -> LoweredExpr | null {
+    name :: intrinsic.name
+    if name != "size_of" && name != "align_of" && name != "type_name" && name != "type_kind" {
+        return null
+    }
+    if intrinsic.args.len() != usize(1) { return null }
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
+    if arg_or_null is null { return null }
+    ty :: arg_ty_or_unresolved(arg_or_null)
+    if ty is UnresolvedType { return null }
+    if name == "size_of" {
+        return LoweredIntLit { .span = intrinsic.span, .type = type, .value = byte_size(ty) }
+    }
+    if name == "align_of" {
+        return LoweredIntLit { .span = intrinsic.span, .type = type, .value = byte_align(ty) }
+    }
+    if name == "type_name" {
+        return LoweredStringLit { .span = intrinsic.span, .type = mk_primitive("string"), .value = display_type(ty) }
+    }
+    if name == "type_kind" {
+        return LoweredStringLit { .span = intrinsic.span, .type = mk_primitive("string"), .value = kind_string_of_type(ty) }
+    }
+    return null
+}
+
+arg_ty_or_unresolved :: fn(t: Type | null) -> Type {
+    match t {
+        is null -> { return TY_UNRESOLVED }
+        _ -> { return t }
+    }
+}
+
+resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
+    raw :: ctx.types.type_expr_type(arg)
+    if !(raw is UnresolvedType) { return raw }
+    scratch: Diagnostic[] = []
+    via_type_expr :: type_from_expr(arg, ctx.typed.resolved, scratch)
+    if !(via_type_expr is UnresolvedType) { return via_type_expr }
+    // Last resort : if arg is an IdentExpr resolving to a comptime const
+    // whose value is a TypeValue, lift it out of `comptime_decls`.
+    if arg is IdentExpr as id {
+        sym :: ctx.typed.resolved.idents[span_key(id.span)]
+        if sym is null { return via_type_expr }
+        if sym is Symbol as s {
+            for module_id in ctx.project.evaluated.modules.keys() {
+                program :: ctx.project.evaluated.modules[module_id]
+                match program {
+                    is null -> {}
+                    is EvaluatedProgram as ep -> {
+                        v :: ep.comptime_decls[s.id]
+                        match v {
+                            is null -> {}
+                            is TypeValue as tv -> { return tv.value }
+                            _ -> {}
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return via_type_expr
+}
+
+kind_string_of_type :: fn(t: Type) -> string {
+    match t {
+        is PrimitiveType -> { return "primitive" }
+        is StructType    -> { return "struct" }
+        is EnumType      -> { return "enum" }
+        is TraitType     -> { return "trait" }
+        is ArrayType     -> { return "array" }
+        is TupleType     -> { return "tuple" }
+        is FnType        -> { return "fn" }
+        is UnionType     -> { return "union" }
+        is TypeParamType -> { return "type-param" }
+        _ -> { return "unknown" }
+    }
 }
 
 // ============================================================================

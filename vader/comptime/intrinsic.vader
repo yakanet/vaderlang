@@ -95,12 +95,12 @@ diag_sink :: fn() -> Diagnostic[] { return [] }
 // (`@size_of(i32) == 4`, `@size_of(string) == 16`, …). Composite types
 // (struct / array / tuple) fall back to a placeholder until the
 // lowerer port lands and ABI-accurate sizing becomes meaningful.
-byte_size :: fn(t: Type) -> i64 = match t {
+export byte_size :: fn(t: Type) -> i64 = match t {
     is PrimitiveType as p -> primitive_size(p.name)
     _                     -> 0
 }
 
-byte_align :: fn(t: Type) -> i64 = match t {
+export byte_align :: fn(t: Type) -> i64 = match t {
     is PrimitiveType as p -> primitive_align(p.name)
     _                     -> 0
 }
