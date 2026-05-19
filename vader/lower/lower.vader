@@ -32,7 +32,7 @@ import "vader/comptime/value" {
     NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
 }
 import "vader/comptime/mono_ast" { MonoEntry }
-import "vader/lower/ctx" { LowerProjectCtx, new_lower_project_ctx, FnLowerCtx, new_fn_lower_ctx }
+import "vader/lower/ctx" { LowerProjectCtx, new_lower_project_ctx, FnLowerCtx, new_fn_lower_ctx, GenericFnInstance }
 import "vader/lower/lowered_ast" {
     LoweredProject, LoweredModule, LoweredDecl,
     LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
@@ -95,6 +95,11 @@ export lower_project :: fn(
     // their matching generic-impl members. Each `evaluated.instances`
     // entry yields a `StructDecl<Concrete>` + per-impl `__T` member fns.
     materialize_generic_instances(loaded, typed, project_ctx, project, diags)
+    // Generic-fn instances observed at call sites get one
+    // monomorphized `LoweredFnDecl` per `(fn_symbol, args)` tuple. The
+    // body inherits the source fn-decl but lowered against a typeParam
+    // substitution that binds T → arg[i].
+    materialize_generic_fn_instances(loaded, typed, project_ctx, project, diags)
     return project
 }
 
@@ -702,6 +707,110 @@ is_main_decl :: fn(decl: Decl) -> bool {
 /// `Symbol__T1__T2 { field: ConcreteT }` ; generic-impl members
 /// follow as `Symbol$Trait$method__T1__T2(...)`. Mirror of TS's
 /// `monomorphizeProject` (`src/comptime/specialize.ts`) pass-2.
+/// Walk the project ctx's `fn_instances` table and emit one
+/// monomorphized `LoweredFnDecl` per instance. The body lowers the
+/// source FnDecl against a fresh `Substitution` binding the fn's
+/// typeParams to the call site's concrete types.
+materialize_generic_fn_instances :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    project: LoweredProject, diags: Diagnostic[],
+) -> void {
+    for inst in project_ctx.fn_instances_order {
+        materialize_fn_instance(inst, loaded, typed, project_ctx, project, diags)
+    }
+}
+
+materialize_fn_instance :: fn(
+    inst: GenericFnInstance, loaded: LoadedProject, typed: TypedProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
+) -> void {
+    owner_module_id :: inst.owner_module
+    owner_module :: loaded.modules[owner_module_id]
+    if owner_module is null { return }
+    owner_typed :: typed.modules[owner_module_id]
+    if owner_typed is null { return }
+    if owner_typed is TypedProgram as ot {
+        if owner_module is LoadedModule as ol {
+            decls :: module_decls(ol)
+            fn_decl :: find_fn_decl_by_name(decls, inst.fn_symbol.name, inst.type_args.len())
+            if fn_decl is null { return }
+            if fn_decl is FnDecl as fd {
+                subst :: build_fn_subst(fd, inst.type_args, ot)
+                types :: make_entry_types(ot, subst)
+                params: LoweredParam[] = []
+                for ast_param in fd.params {
+                    symbol_or_null :: lookup_local_symbol(ot.resolved, ast_param.span)
+                    sym :: synth_param_or(symbol_or_null, ast_param.name, ot)
+                    raw_ty :: types.param_type(ast_param)
+                    params.push(LoweredParam {
+                        .name = ast_param.name, .symbol = sym, .type = raw_ty,
+                    })
+                }
+                return_type :: substitute(return_type_of(fd, types), subst)
+                entry_decl: Decl = fd
+                entry :: MonoEntry {
+                    .id             = i32(0),
+                    .is_main        = false,
+                    .mangled        = inst.mangled,
+                    .decl           = entry_decl,
+                    .symbol         = inst.fn_symbol,
+                    .subst          = subst,
+                    .type_arguments = inst.type_args,
+                    .module         = ot,
+                }
+                body :: lower_fn_body(fd, ot, project_ctx, entry, subst, return_type)
+                push_to_module(project, owner_module_id, LoweredFnDecl {
+                    .mangled     = inst.mangled,
+                    .params      = params,
+                    .return_type = return_type,
+                    .body        = body,
+                    .origin      = entry,
+                })
+            }
+        }
+    }
+}
+
+find_fn_decl_by_name :: fn(decls: Decl[], name: string, arity: usize) -> FnDecl | null {
+    for d in decls {
+        match d {
+            is FnDecl as f -> {
+                if f.name != name { continue }
+                if f.type_params.len() == usize(0) { continue }
+                if f.type_params.len() != arity { continue }
+                return f
+            }
+            _ -> {}
+        }
+    }
+    return null
+}
+
+build_fn_subst :: fn(fd: FnDecl, args: Type[], typed: TypedProgram) -> Substitution {
+    subst :: new_substitution()
+    for i in 0..<fd.type_params.len() {
+        if i >= args.len() { break }
+        tp_span :: fd.type_params[i].span
+        target_key :: span_key(tp_span)
+        // Span-precise lookup : the resolver minted the TypeParam symbol
+        // with `defined_at = tp.span`. Scan `idents.values()` for the
+        // matching slot.
+        for s in typed.resolved.idents.values() {
+            match s.defined_at {
+                is null -> {}
+                is Span as def -> {
+                    if span_key(def) == target_key {
+                        if i32(s.kind) == i32(SymbolKind.TypeParam) {
+                            subst.type_params[s.id] = args[i]
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return subst
+}
+
 materialize_generic_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],

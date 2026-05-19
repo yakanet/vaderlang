@@ -30,6 +30,7 @@ import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
+    TypeParamType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, mk_primitive,
 }
 import "vader/typecheck/type_ops" { default_if_free, equals_type }
@@ -39,7 +40,7 @@ import "vader/comptime/value" {
 }
 import "vader/comptime/evaluated_ast" { EvaluatedProgram }
 import "vader/parser/ast" { ConstDecl, ImplDecl }
-import "vader/lower/ctx" { FnLowerCtx, BlockCtx, new_block_ctx }
+import "vader/lower/ctx" { FnLowerCtx, BlockCtx, new_block_ctx, GenericFnInstance }
 import "vader/lower/entry_types" { expr_type, type_expr_type, local_type, span_key }
 import "vader/lower/helpers" { type_of }
 import "vader/lower/lowered_ast" {
@@ -584,6 +585,11 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
         is null -> {}
         _ -> { return ufcs_form }
     }
+    generic_form :: try_lower_generic_fn_call(ctx, call, type)
+    match generic_form {
+        is null -> {}
+        _ -> { return generic_form }
+    }
     callee :: lower_expr(ctx, call.callee)
     // Widen literal args to the matching param's union type so the dump
     // shows `int(42) :i32 | null` for `describe(42)` against
@@ -640,6 +646,137 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
         }
     }
     return null
+}
+
+/// `fn[T, U](a, b)` call to a top-level generic fn lowers to a direct
+/// call against the monomorphized instance. Detection : callee is an
+/// IdentExpr resolving to a Fn symbol whose source FnDecl has
+/// `type_params.len() > 0`. Type args come from the args' inferred
+/// types — for `identity(42)` the FnType has param `T`, arg has type
+/// `i32`, so `T = i32`. The synth monomorphic decl is registered
+/// with the project ctx ; dedup is by `(fn_symbol.id, args_key)`.
+try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+    callee_ident :: as_ident(call.callee)
+    if callee_ident is null { return null }
+    if callee_ident is IdentExpr as id {
+        sym :: ctx.typed.resolved.idents[span_key(id.span)]
+        if sym is null { return null }
+        if sym is Symbol as fn_sym {
+            if i32(fn_sym.kind) != i32(SymbolKind.Fn) { return null }
+            // Probe `decl_types` to find the fn's signature. Generic fns
+            // record their type-param-bearing signature here.
+            callee_ty :: ctx.types.expr_type(id)
+            if !(callee_ty is FnType) { return null }
+            if callee_ty is FnType as ft {
+                if !type_has_param(ft) { return null }
+                // Resolve concrete type args from the call's arg types.
+                concrete_args: Type[] = []
+                for i in 0..<call.args.len() {
+                    if i >= ft.params.len() { break }
+                    arg_ty :: default_if_free(ctx.types.expr_type(call.args[i].value))
+                    concrete_args.push(arg_ty)
+                }
+                if !all_concrete(concrete_args) { return null }
+                // Build the monomorphized mangled name. TS doubles up
+                // the module prefix (`<module>$<module>$<name>__T`).
+                module_id :: ctx.typed.resolved.path
+                mod_mangle :: mangle_module_id_local(module_id)
+                suffix :: mono_suffix(concrete_args)
+                mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
+                // Register the instance for materialisation at the end
+                // of `lower_project`. Dedup by `<symbol.id>::<suffix>` ;
+                // `fn_instances_order` preserves insertion order for
+                // deterministic dump output.
+                inst_key :: "${fn_sym.id}::${suffix}"
+                if ctx.project.fn_instances[inst_key] is null {
+                    new_inst :: GenericFnInstance {
+                        .fn_symbol    = fn_sym,
+                        .type_args    = concrete_args,
+                        .mangled      = mangled,
+                        .owner_module = module_id,
+                    }
+                    ctx.project.fn_instances[inst_key] = new_inst
+                    ctx.project.fn_instances_order.push(new_inst)
+                }
+                // Build args first ; the callee's mangled symbol is the
+                // monomorphic instance.
+                lowered_args: LoweredExpr[] = []
+                for ca in call.args { lowered_args.push(lower_expr(ctx, ca.value)) }
+                mono_sym :: Symbol {
+                    .id         = i32(0),
+                    .kind       = SymbolKind.Fn,
+                    .name       = fn_sym.name,
+                    .module     = module_id,
+                    .visibility = Visibility.Private,
+                    .defined_at = null,
+                }
+                return LoweredCall {
+                    .span = call.span, .type = type,
+                    .callee = LoweredIdent {
+                        .span = id.span, .type = type, .symbol = mono_sym,
+                    },
+                    .args = lowered_args,
+                }
+            }
+        }
+    }
+    return null
+}
+
+type_has_param :: fn(ft: FnType) -> bool {
+    for p in ft.params {
+        if type_contains_param(p) { return true }
+    }
+    return type_contains_param(ft.return_type)
+}
+
+type_contains_param :: fn(t: Type) -> bool {
+    match t {
+        is TypeParamType -> { return true }
+        is StructType as s -> {
+            for a in s.args { if type_contains_param(a) { return true } }
+            return false
+        }
+        is ArrayType as ar -> { return type_contains_param(ar.element) }
+        is FnType as ft -> { return type_has_param(ft) }
+        _ -> { return false }
+    }
+}
+
+all_concrete :: fn(args: Type[]) -> bool {
+    for a in args {
+        if type_contains_param(a) { return false }
+        if a is UnresolvedType { return false }
+    }
+    return true
+}
+
+mono_suffix :: fn(args: Type[]) -> string {
+    sb := new_builder_for_mangle()
+    for a in args {
+        sb.append("__")
+        sb.append(surface_for_mangle(a))
+    }
+    return sb.to_string()
+}
+
+surface_for_mangle :: fn(t: Type) -> string {
+    match t {
+        is PrimitiveType as p -> { return p.name }
+        is StructType    as s -> { return s.symbol.name }
+        is EnumType      as e -> { return e.symbol.name }
+        _ -> { return "T" }
+    }
+}
+
+mangle_module_id_local :: fn(module_id: string) -> string {
+    sb := new_builder_for_mangle()
+    for c in module_id {
+        if c == '/' { sb.append_char('_') }
+        else if c == '.' { sb.append_char('_') }
+        else { sb.append_char(c) }
+    }
+    return sb.to_string()
 }
 
 as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
@@ -810,7 +947,7 @@ mangle_module_id :: fn(module_id: string) -> string {
     return sb.to_string()
 }
 
-import "std/string_builder" { new_builder as new_builder_for_mangle, append_char }
+import "std/string_builder" { new_builder as new_builder_for_mangle, append_char, append }
 
 /// `T(value)` cast-call detector. Returns a `LoweredCast` when the callee
 /// is a type-shaped symbol (builtin primitive, struct, or type alias) with
