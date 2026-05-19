@@ -13,6 +13,8 @@
 // chantier) ; we walk loaded module decls directly until then.
 
 import "std/collections" { MutableMap, keys, values }
+import "std/sort" { sort }
+import "std/string" { compare_ascending }
 import "vader/diagnostics/diagnostic" { Diagnostic, Span }
 import "vader/parser/ast" {
     Decl, FnDecl, StructDecl, ConstDecl,
@@ -715,9 +717,28 @@ materialize_generic_fn_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
 ) -> void {
-    for inst in project_ctx.fn_instances_order {
+    // Sort by `<fn_symbol.id>::<args_key>` to match TS's `displayKey`
+    // ordering in `src/comptime/instances.ts:33`. The `symbol.id`
+    // prefix groups overloads of the same fn ; within a group, args
+    // sort alphabetically (so `id(f64)` < `id(i32)` < `id(string)`).
+    sorted :: sort(project_ctx.fn_instances_order, fn_instance_less)
+    for inst in sorted {
         materialize_fn_instance(inst, loaded, typed, project_ctx, project, diags)
     }
+}
+
+fn_instance_less :: fn(a: GenericFnInstance, b: GenericFnInstance) -> bool {
+    return compare_ascending(fn_instance_key(a), fn_instance_key(b))
+}
+
+fn_instance_key :: fn(inst: GenericFnInstance) -> string {
+    sb := new_builder()
+    sb.append("${inst.fn_symbol.id}::")
+    for a in inst.type_args {
+        sb.append(":")
+        sb.append(display_type(a))
+    }
+    return sb.to_string()
 }
 
 materialize_fn_instance :: fn(
