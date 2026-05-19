@@ -1172,6 +1172,21 @@ import "vader/typecheck/types" { TupleType }
 // the lowerer as bound `@comptime const` references ; what remains is
 // the runtime-bound shape, which the bytecode emit consumes.
 lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr {
+    // `@file("path")` was baked at comptime — substitute the file's
+    // contents as a `LoweredStringLit` so downstream phases see the
+    // materialised constant rather than re-running the AST. Mirror of
+    // `lowerIntrinsic`'s `fileExprs` branch in `src/lower/lower.ts`.
+    if intrinsic.name == "file" {
+        baked :: lookup_file_baked(ctx, intrinsic)
+        match baked {
+            is null -> {}
+            is string as text -> {
+                return LoweredStringLit {
+                    .span = intrinsic.span, .type = mk_primitive("string"), .value = text,
+                }
+            }
+        }
+    }
     args: LoweredExpr[] = []
     for arg_expr in intrinsic.args {
         args.push(lower_expr(ctx, arg_expr))
@@ -1180,6 +1195,10 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
         .span = intrinsic.span, .type = type, .name = intrinsic.name,
         .args = args, .display_for = null,
     }
+}
+
+lookup_file_baked :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr) -> string | null {
+    return ctx.project.evaluated.file_exprs[intrinsic.id]
 }
 
 // ============================================================================

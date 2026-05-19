@@ -549,7 +549,8 @@ return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
 // name) to pick the entry point.
 stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
     name :: decl_name(decl)
-    mangled :: "${mangle_module_id(typed.resolved.path)}$${name}"
+    suffix :: overload_suffix_for(decl, typed)
+    mangled :: "${mangle_module_id(typed.resolved.path)}$${name}${suffix}"
     return MonoEntry {
         .id             = i32(0),
         .is_main        = is_main_decl(decl),
@@ -559,6 +560,43 @@ stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
         .subst          = new_substitution(),
         .type_arguments = [],
         .module         = typed,
+    }
+}
+
+/// `_N` suffix for overloaded fn names. The resolver groups every
+/// fn-decl with the same name into `fn_overloads[name]` ; this fn
+/// finds the current decl's position in that bucket and emits the
+/// matching index. Returns `""` for unique names + non-fn decls.
+overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
+    name_span_or_null :: decl_name_span(decl)
+    if name_span_or_null is null { return "" }
+    if name_span_or_null is Span as name_span {
+        bucket :: typed.resolved.fn_overloads[decl_name(decl)]
+        if bucket is null { return "" }
+        if bucket is Symbol[] as symbols {
+            if symbols.len() < usize(2) { return "" }
+            for i in 0..<symbols.len() {
+                match symbols[i].defined_at {
+                    is null -> {}
+                    is Span as defined -> {
+                        if span_key(defined) == span_key(name_span) {
+                            if i == usize(0) { return "" }
+                            return "_${i}"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return ""
+}
+
+decl_name_span :: fn(decl: Decl) -> Span | null {
+    match decl {
+        is FnDecl     as f -> { return f.name_span }
+        is StructDecl as s -> { return s.name_span }
+        is ConstDecl  as c -> { return c.name_span }
+        _ -> { return null }
     }
 }
 
