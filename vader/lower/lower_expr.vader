@@ -12,7 +12,7 @@
 // string interp / defer / tuple destructure stay at stub level until
 // the dedicated module ports in Phase 4 / 5.
 
-import "std/collections" { MutableMap, values }
+import "std/collections" { MutableMap, values, keys }
 import "vader/parser/ast" {
     Expr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr,
     StringLitExpr, StringLitText, StringLitInterp, IdentExpr, CallExpr,
@@ -33,6 +33,11 @@ import "vader/typecheck/types" {
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, mk_primitive,
 }
 import "vader/typecheck/type_ops" { default_if_free, equals_type }
+import "vader/comptime/value" {
+    ComptimeValue, IntValue, FloatValue, BoolValue, CharValue, StringValue,
+    NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
+}
+import "vader/comptime/evaluated_ast" { EvaluatedProgram }
 import "vader/lower/ctx" { FnLowerCtx, BlockCtx, new_block_ctx }
 import "vader/lower/entry_types" { expr_type, type_expr_type, local_type, span_key }
 import "vader/lower/helpers" { type_of }
@@ -159,6 +164,23 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
                     .target = cell_ref, .value_type = type,
                 }
             }
+            // Scalar const inlining : when a `const` decl carries a
+            // comptime-baked scalar (int / float / bool / char / string /
+            // null), substitute its value at every use site. Mirror of
+            // the TS `inlineConsts` pass's scalar bucket. Compound values
+            // (arrays, structs) are deferred — they'd need data-pool /
+            // fn-wrap routing for byte-parity. Also covers param /
+            // import-binding symbols when the resolver chained the
+            // ident to the original const symbol via aliasing.
+            baked :: lookup_const_baked_value(ctx, resolved)
+            match baked {
+                is null -> {}
+                _ -> {
+                    if is_scalar_comptime(baked) {
+                        return comptime_value_to_lowered(baked, type, ident.span)
+                    }
+                }
+            }
             // Match-arm narrowing : the slot stores the declared union
             // (e.g. `Error | string`), the typed-AST narrows this use to a
             // concrete variant (e.g. `string`) — emit a `LoweredCast` so the
@@ -201,6 +223,82 @@ cell_wrap_init :: fn(
             .value = value, .value_type = value_type,
         },
         .slot_type = TY_UNRESOLVED,
+    }
+}
+
+lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue | null {
+    // The const symbol may live in this module or in an imported one.
+    // Probe every module's `comptime_decls` against the symbol id.
+    for module_id in ctx.project.evaluated.modules.keys() {
+        program :: ctx.project.evaluated.modules[module_id]
+        match program {
+            is null -> { continue }
+            is EvaluatedProgram as ep -> {
+                v :: ep.comptime_decls[symbol.id]
+                match v {
+                    is null -> { continue }
+                    _ -> { return v }
+                }
+            }
+        }
+    }
+    return null
+}
+
+/// Materialise a `ComptimeValue` as a `LoweredExpr` literal. Compound
+/// values (arrays, structs) recurse field-by-field. Mirror of
+/// `comptimeValueToLowered` in `src/lower/lower.ts:245-275`.
+export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: Span) -> LoweredExpr {
+    match v {
+        is IntValue    as iv -> { return LoweredIntLit { .span = span, .type = type_hint, .value = iv.value } }
+        is FloatValue  as fv -> { return LoweredFloatLit { .span = span, .type = type_hint, .value = fv.value } }
+        is BoolValue   as bv -> { return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = bv.value } }
+        is CharValue   as cv -> { return LoweredCharLit { .span = span, .type = mk_primitive("char"), .value = cv.value } }
+        is StringValue as sv -> { return LoweredStringLit { .span = span, .type = mk_primitive("string"), .value = sv.value } }
+        is NullValue         -> { return LoweredNullLit { .span = span, .type = mk_primitive("null") } }
+        is VoidValue         -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime void value" } }
+        is ArrayValue as av -> {
+            element_type :: array_element_type(type_hint)
+            elements: LoweredExpr[] = []
+            for e in av.elements { elements.push(comptime_value_to_lowered(e, element_type, span)) }
+            return LoweredArrayLit { .span = span, .type = type_hint, .elements = elements }
+        }
+        is StructValue as sv -> {
+            fields: LoweredStructLitField[] = []
+            for name in sv.fields.keys() {
+                val :: sv.fields[name]
+                match val {
+                    is null -> {}
+                    _ -> {
+                        fields.push(LoweredStructLitField {
+                            .name = name,
+                            .value = comptime_value_to_lowered(val, TY_UNRESOLVED, span),
+                        })
+                    }
+                }
+            }
+            return LoweredStructLit { .span = span, .type = type_hint, .fields = fields }
+        }
+        is TypeValue -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime type-value lowering deferred" } }
+    }
+}
+
+array_element_type :: fn(t: Type) -> Type {
+    match t {
+        is ArrayType as at -> { return at.element }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
+    match v {
+        is IntValue    -> { return true }
+        is FloatValue  -> { return true }
+        is BoolValue   -> { return true }
+        is CharValue   -> { return true }
+        is StringValue -> { return true }
+        is NullValue   -> { return true }
+        _              -> { return false }
     }
 }
 
