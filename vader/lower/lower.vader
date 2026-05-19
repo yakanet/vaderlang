@@ -194,7 +194,7 @@ lower_module :: fn(
         // where `impl Foo: Trait { fn m… }` is followed by every other
         // top-level decl in textual order.
         before :: project_ctx.synth_decls.len()
-        result :: lower_decl(decl, typed, project_ctx, diags)
+        result :: lower_decl(decl, typed, project_ctx, diags, decls)
         match result {
             is null -> {}
             _       -> { out_decls.push(result) }
@@ -219,13 +219,14 @@ lower_module :: fn(
 // produce runtime slots.
 lower_decl :: fn(
     decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+    module_decls: Decl[],
 ) -> LoweredDecl | null {
     match decl {
         is FnDecl     as fn_decl     -> { return lower_fn_decl(fn_decl, typed, project_ctx, diags) }
         is StructDecl as struct_decl -> { return lower_struct_decl(struct_decl, typed, project_ctx, diags) }
         is ConstDecl  as const_decl  -> { return lower_const_decl(const_decl, typed, project_ctx, diags) }
         is ImplDecl   as impl_decl   -> {
-            lower_impl_members(impl_decl, typed, project_ctx, diags)
+            lower_impl_members(impl_decl, typed, project_ctx, diags, module_decls)
             return null
         }
         _ -> { return null }
@@ -241,6 +242,7 @@ import "vader/parser/ast" { ImplDecl }
 // so the module driver drains them in the right order.
 lower_impl_members :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+    module_decls: Decl[],
 ) -> void {
     // Skip generic impls entirely — they need the mono pass to bind
     // concrete type args before each member can lower with a known
@@ -254,7 +256,7 @@ lower_impl_members :: fn(
         types :: make_entry_types(typed, subst)
         params :: build_impl_member_params(member, self_type, types, typed)
         return_type :: return_type_of(member, types)
-        mangled :: impl_member_mangled(impl_decl, member, typed)
+        mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
         entry :: synth_impl_entry(member, typed, mangled)
         body :: lower_fn_body(member, typed, project_ctx, entry, subst, return_type)
         project_ctx.synth_decls.push(LoweredFnDecl {
@@ -308,9 +310,58 @@ synth_param_or :: fn(symbol_or_null: Symbol | null, name: string, typed: TypedPr
     }
 }
 
-impl_member_mangled :: fn(impl_decl: ImplDecl, member: FnDecl, typed: TypedProgram) -> string {
+impl_member_mangled :: fn(
+    impl_decl: ImplDecl, member: FnDecl, typed: TypedProgram, decls: Decl[],
+) -> string {
     target_name :: for_type_name(impl_decl.for_type, typed)
-    return "${mangle_module_id(typed.resolved.path)}$${target_name}$${impl_decl.trait_name}$${member.name}"
+    suffix :: impl_member_overload_suffix(member, impl_decl, target_name, decls)
+    return "${mangle_module_id(typed.resolved.path)}$${target_name}$${impl_decl.trait_name}$${member.name}${suffix}"
+}
+
+/// Number of earlier impl members in `decls` that share the same
+/// `(target_name, trait_name, method.name)` triple. The first
+/// occurrence yields `""` ; later ones get `_1`, `_2`, …. Mirrors TS's
+/// per-impl-method numbering for distinct trait-impl bundles of the
+/// same trait against the same target type.
+impl_member_overload_suffix :: fn(
+    member: FnDecl, owning_impl: ImplDecl, target_name: string, decls: Decl[],
+) -> string {
+    if member.name_span.start.offset < usize(0) { return "" }
+    target_offset :: member.name_span.start.offset
+    seen :: i32(0)
+    counter := seen
+    for d in decls {
+        match d {
+            is ImplDecl as other -> {
+                other_target :: for_type_name_of(other.for_type)
+                if other_target != target_name { continue }
+                if other.trait_name != owning_impl.trait_name { continue }
+                for m in other.members {
+                    if m.name != member.name { continue }
+                    if m.name_span.start.offset == target_offset {
+                        if counter == i32(0) { return "" }
+                        return "_${counter}"
+                    }
+                    counter = counter + i32(1)
+                }
+            }
+            _ -> {}
+        }
+    }
+    return ""
+}
+
+for_type_name_of :: fn(for_type: TypeExpr) -> string {
+    match for_type {
+        is IdentExpr as e -> { return e.name }
+        is GenericInstExpr as gi -> {
+            match gi.callee {
+                is IdentExpr as inner -> { return inner.name }
+                _ -> { return "" }
+            }
+        }
+        _ -> { return "" }
+    }
 }
 
 // Recover the target struct / enum / alias name from the impl's
