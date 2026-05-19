@@ -605,11 +605,67 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     if i32(binary.op) == i32(BinaryOp.In) || i32(binary.op) == i32(BinaryOp.NotIn) {
         return stub(binary.span, type, "`in` / `not in` lowering deferred")
     }
+    // `<union>` `==` / `!=` `null` reduces to a tag-only `LoweredTypeCheck`.
+    // The C/VM emit can't compare two `vader_box_t` directly anyway and
+    // the type-check is the operation we actually want. Mirror of
+    // `lowerBinary`'s null-eq branch in `expr.ts:677-693`.
+    if i32(binary.op) == i32(BinaryOp.Eq) || i32(binary.op) == i32(BinaryOp.Neq) {
+        null_rewrite :: try_lower_null_eq(ctx, binary)
+        match null_rewrite {
+            is null -> {}
+            _ -> { return null_rewrite }
+        }
+    }
     return LoweredBinary {
         .span = binary.span, .type = type,
         .op    = lower_binary_op(binary.op),
         .left  = lower_expr(ctx, binary.left),
         .right = lower_expr(ctx, binary.right),
+    }
+}
+
+try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | null {
+    union_operand: Expr | null = null
+    if is_null_lit(binary.left) && is_union_with_null(ctx.types.expr_type(binary.right)) {
+        union_operand = binary.right
+    }
+    if is_null_lit(binary.right) && is_union_with_null(ctx.types.expr_type(binary.left)) {
+        union_operand = binary.left
+    }
+    if union_operand is null { return null }
+    if union_operand is Expr as operand {
+        check :: LoweredTypeCheck {
+            .span = binary.span, .type = TY_BOOL,
+            .value = lower_expr(ctx, operand),
+            .check_type = mk_primitive("null"),
+        }
+        if i32(binary.op) == i32(BinaryOp.Eq) { return check }
+        return LoweredUnary {
+            .span = binary.span, .type = TY_BOOL,
+            .op = LoweredUnaryOp.Not, .operand = check,
+        }
+    }
+    return null
+}
+
+is_null_lit :: fn(e: Expr) -> bool {
+    match e {
+        is NullLitExpr -> { return true }
+        _ -> { return false }
+    }
+}
+
+is_union_with_null :: fn(type: Type) -> bool {
+    match type {
+        is UnionType as u -> {
+            for v in u.variants {
+                if v is PrimitiveType as p {
+                    if p.name == "null" { return true }
+                }
+            }
+            return false
+        }
+        _ -> { return false }
     }
 }
 
@@ -943,20 +999,23 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
 lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> void {
     match let_stmt.binding {
         is SimpleBinding as simple -> {
-            symbol :: lookup_local_symbol(ctx.typed.resolved, simple.name_span)
-            match symbol {
-                is null -> {}
-                is Symbol as resolved -> {
-                    binding_type :: ctx.types.local_type(simple)
-                    value :: lower_expr(ctx, let_stmt.value)
-                    init :: cell_wrap_init(ctx, resolved, value, binding_type, let_stmt.span)
-                    out.push(LoweredLet {
-                        .span = let_stmt.span, .name = simple.name,
-                        .symbol = resolved, .type = init.slot_type,
-                        .value = init.value,
-                    })
-                }
+            symbol_or_null :: lookup_local_symbol(ctx.typed.resolved, simple.name_span)
+            // Synthesise a Local symbol when the resolver dropped this
+            // binding (cascading-error case, e.g. T3001 on an invalid
+            // annotation). The TS lowerer keeps emitting the let so the
+            // dump reflects the user-written shape ; we mirror that.
+            symbol :: match symbol_or_null {
+                is Symbol as s -> s
+                is null -> fresh_synthetic_symbol(ctx, simple.name)
             }
+            binding_type :: ctx.types.local_type(simple)
+            value :: lower_expr(ctx, let_stmt.value)
+            init :: cell_wrap_init(ctx, symbol, value, binding_type, let_stmt.span)
+            out.push(LoweredLet {
+                .span = let_stmt.span, .name = simple.name,
+                .symbol = symbol, .type = init.slot_type,
+                .value = init.value,
+            })
         }
         is TupleBinding as tup -> {
             // Desugar `let [a, b] := value` into :

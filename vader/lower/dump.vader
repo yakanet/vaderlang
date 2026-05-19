@@ -146,12 +146,10 @@ emit_stmt :: fn(lines: string[], stmt: LoweredStmt, indent: string) -> void {
             lines.push("${indent}  value:")
             emit_expr(lines, assign.value, "${indent}    ")
         }
-        is LoweredCellSet as cell_set -> {
-            lines.push("${indent}cell.set :${display_type(cell_set.value_type)}")
-            lines.push("${indent}  target:")
-            emit_expr(lines, cell_set.target, "${indent}    ")
-            lines.push("${indent}  value:")
-            emit_expr(lines, cell_set.value, "${indent}    ")
+        is LoweredCellSet -> {
+            // TS's `emitStmt` doesn't render `LoweredCellSet` (falls
+            // through the switch silently — `tests/snapshot.ts:332-369`).
+            // Match the omission so byte-for-byte snapshots stay aligned.
         }
         is LoweredExprStmt as expr_stmt -> {
             emit_expr(lines, expr_stmt.expr, indent)
