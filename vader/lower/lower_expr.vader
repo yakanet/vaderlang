@@ -30,7 +30,7 @@ import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
-    TypeParamType, ArrayType,
+    TypeParamType, ArrayType, TupleType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, mk_primitive,
 }
 import "vader/typecheck/type_ops" { default_if_free, equals_type }
@@ -783,6 +783,15 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap(i32, Type
             unify_params(pft.return_type, cft.return_type, bindings, order)
         }
     }
+    if pattern is TupleType as ptup {
+        if concrete is TupleType as ctup {
+            n :: ptup.elements.len()
+            for i in 0..<n {
+                if i >= ctup.elements.len() { break }
+                unify_params(ptup.elements[i], ctup.elements[i], bindings, order)
+            }
+        }
+    }
 }
 
 type_has_param :: fn(ft: FnType) -> bool {
@@ -801,6 +810,10 @@ type_contains_param :: fn(t: Type) -> bool {
         }
         is ArrayType as ar -> { return type_contains_param(ar.element) }
         is FnType as ft -> { return type_has_param(ft) }
+        is TupleType as tup -> {
+            for e in tup.elements { if type_contains_param(e) { return true } }
+            return false
+        }
         _ -> { return false }
     }
 }
@@ -1486,7 +1499,6 @@ lower_seq_lit :: fn(ctx: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr
     }
 }
 
-import "vader/typecheck/types" { TupleType }
 
 // Preserve the `@<name>(args)` call shape. Comptime-foldable variants
 // (`@size_of`, `@type_kind`, …) get baked at evaluation time and reach
