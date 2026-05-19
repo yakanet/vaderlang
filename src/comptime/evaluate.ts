@@ -137,13 +137,17 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
     typed: project, modules, instances: instances.entries(),
     mono: EMPTY_MONO, fileExprs, intoMembers,
   };
-  // `erasureDedupe` is wired in `src/comptime/erasure-dedupe.ts` but
-  // disabled here pending §9 Issue 8 (comptime instance registration
-  // for generic calls inside erased bodies). The symbol-redirect
-  // infrastructure (Issue 7) is plumbed end-to-end through
-  // MonoProject → LoweredProject → CFGProject → bytecode emit, but
-  // redirects can't fire when no representative was created in the
-  // first place. Re-enable by replacing the line below with
+  // `erasureDedupe` is wired but disabled pending §9 Issue 9 (match
+  // arms against Any-typed values miss their tag check). The η fix in
+  // `InstanceRegistry.observeFnCall` (Issue 8) is independent : it
+  // registers Any-bearing instances for generic calls inside generic
+  // bodies, ensuring `fnInstanceEntries` is populated for every
+  // reachable fnDecl. With erasureDedupe live, set_at correctly routes
+  // to put__Any__Any, but match arms in user code (e.g. `match v1 {
+  // is null -> ... is i32 -> ... }` where v1 is Any|null) hit the
+  // unreachable else branch instead of binding to `is i32`. Investigate
+  // `src/lower/passes/match.ts` Any-typed value handling. Re-enable by
+  // replacing the line below with
   // `erasureDedupe(monomorphizeProject(evaluatedCore), project)`.
   const mono = monomorphizeProject(evaluatedCore);
   return { ...evaluatedCore, mono };

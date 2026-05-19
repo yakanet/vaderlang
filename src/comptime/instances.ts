@@ -5,7 +5,7 @@
 // concrete specializations to materialize.
 
 import type { Type, StructType, TraitType } from "../typecheck/types.ts";
-import { canonicalArgsKey, forEachType } from "../typecheck/types.ts";
+import { canonicalArgsKey, forEachType, TY } from "../typecheck/types.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 
 export interface GenericInstance {
@@ -50,14 +50,23 @@ export class InstanceRegistry {
     });
   }
 
-  /** Register a generic-fn call site whose explicit type args are concrete.
-   *  The downstream monomorphizer doesn't yet materialise fn instances (still
-   *  deferred — see TODO §1.5b), but the registry already accepts them so the
-   *  surface is in place when that work lands. */
+  /** Register a generic-fn call site. Concrete-arg calls register under
+   *  their canonical key. Calls whose typeArgs still mention type-params
+   *  (i.e. the call is inside another generic body and the surrounding
+   *  decl will be erased) register under an Any-substituted key — this
+   *  ensures `fnInstanceEntries.get(fnDecl)` has at least one entry for
+   *  the downstream lookup site, so the erasure dedupe pass can collapse
+   *  it into a representative. See
+   *  `docs/STDLIB_GENERIC_COLLAPSE_PHASE2.md` §9 Issue 8. */
   observeFnCall(sym: Symbol, typeArgs: readonly Type[]): void {
     if (sym.kind !== "fn") return;
-    if (typeArgs.length === 0 || !typeArgs.every(isConcrete)) return;
-    this.add(sym, typeArgs);
+    if (typeArgs.length === 0) return;
+    if (typeArgs.every(isConcrete)) {
+      this.add(sym, typeArgs);
+      return;
+    }
+    const erasedArgs = typeArgs.map((t) => isConcrete(t) ? t : TY.any);
+    this.add(sym, erasedArgs);
   }
 
   entries(): readonly GenericInstance[] {

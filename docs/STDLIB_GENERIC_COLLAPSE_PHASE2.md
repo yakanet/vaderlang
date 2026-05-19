@@ -386,6 +386,59 @@ types.
 the same way in `vader/comptime/`. The TS-side decision sets
 precedent.
 
+### Issue 9 — Match arms against Any-typed values miss tag check
+
+**Date**: 2026-05-19 (after Issue 8 fix η landed).
+
+**Symptom**: with `erasureDedupe` enabled AND η fix applied,
+`set_at__Any__Any` correctly calls `put__Any__Any` (Issue 8 resolved).
+But the test snippet `mutable_map_string` still produces no output
+and exits 0. The emitted C body of `main` has 28 `vader_unreachable`
+calls in match else branches. The user code is :
+
+```vader
+v1 :: m["hello"]
+match v1 {
+    is null -> { println("hello: missing") }
+    is i32  -> { println("hello = ${v1}") }
+}
+```
+
+`v1` is typed as `Any | null` after erasure (V = Any). At runtime the
+boxed value has `tag = i32_tag`. The match's `is i32` arm should fire,
+but the lowering of `is i32` against an `Any | null` value generates a
+type-check that's looking for an exact tag match against a different
+value. The `is null` and `is i32` arms both miss, falling into the
+synthesised `else { unreachable }`.
+
+**Cause** (hypothesis pending investigation): the match lowering pass
+(`src/lower/passes/match.ts`) substitutes the SCRUTINEE type via
+`ctx.types.apply`. For `v1: V | null` with V=Any, this gives `Any | null`.
+The match arms' `is T` checks compile against the original concrete
+typeArg `i32`. The runtime tag check probably uses the wrong tag or
+the wrong type identity comparison.
+
+Alternative hypothesis: the match arms see a value boxed with a
+HEAP tag (because `get` returns through `Any`), but the `is i32` arm
+expected a stack-value primitive tag, so the comparison fails.
+
+**Mitigation candidates**:
+- **(κ) Trace match lowering with Any** : instrument
+  `src/lower/passes/match.ts` to see what type-check op gets emitted
+  for `is i32` when the scrutinee is `Any | null`. Likely a fix in
+  the lowering to compare tags structurally rather than by static
+  type identity.
+- **(λ) Insert checkcast pre-match** : at the lowered IR level, when
+  scrutinee is `Any | null`, insert a `checkcast` (or just unbox)
+  before each arm's type check so the arm sees the concrete tag.
+
+**Recommended**: (κ) — fix the match lowering. Probably ~1 d in
+`src/lower/passes/match.ts` once the failure mode is traced.
+
+**Vader port note**: same investigation must run on
+`vader/lower/lower_match.vader` (when ported). The boxed-tag check
+against an erased typeArg is the same scenario.
+
 ### Issue 8 — Comptime under-registers generic calls inside erased bodies
 
 **Date**: 2026-05-19 (after Issue 7 infrastructure shipped).
