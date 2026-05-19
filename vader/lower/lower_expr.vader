@@ -1079,6 +1079,9 @@ try_emit_into_coercion :: fn(
     // which must equal target_type's surface name.
     target_name :: type_surface_name(target_type)
     if target_name == "" { return null }
+    // Identity-coercion guard : `T(value)` where `value: T` is a no-op
+    // ; never inject `into(self)` against the surrounding type.
+    if src_name == target_name { return null }
     for entry in ctx.project.impls.all {
         decl :: entry.decl
         if decl.trait_name != "Into" { continue }
