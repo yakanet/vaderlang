@@ -1108,7 +1108,8 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
                 is null -> fresh_synthetic_symbol(ctx, simple.name)
             }
             binding_type :: ctx.types.local_type(simple)
-            value :: lower_expr(ctx, let_stmt.value)
+            raw_value :: lower_expr(ctx, let_stmt.value)
+            value :: widen_literal_to_context(raw_value, binding_type)
             init :: cell_wrap_init(ctx, symbol, value, binding_type, let_stmt.span)
             out.push(LoweredLet {
                 .span = let_stmt.span, .name = simple.name,
@@ -1443,11 +1444,28 @@ lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
     match return_stmt.value {
         is null -> { return LoweredReturn { .span = return_stmt.span, .value = null } }
         _ -> {
-            return LoweredReturn {
-                .span = return_stmt.span,
-                .value = lower_expr(ctx, return_stmt.value),
-            }
+            lowered :: lower_expr(ctx, return_stmt.value)
+            // Widen a literal-shaped return value to the fn's declared
+            // return type when the return type is a union and the literal
+            // currently carries its narrow inferred type. The typer in
+            // Vader doesn't propagate context types into literals ; this
+            // late widening matches the TS dump which always records the
+            // wider expected type at the use site.
+            retyped :: widen_literal_to_context(lowered, ctx.return_type)
+            return LoweredReturn { .span = return_stmt.span, .value = retyped }
         }
+    }
+}
+
+widen_literal_to_context :: fn(expr: LoweredExpr, context_type: Type) -> LoweredExpr {
+    if !(context_type is UnionType) { return expr }
+    match expr {
+        is LoweredIntLit    as lit -> { return LoweredIntLit    { .span = lit.span, .type = context_type, .value = lit.value } }
+        is LoweredFloatLit  as lit -> { return LoweredFloatLit  { .span = lit.span, .type = context_type, .value = lit.value } }
+        is LoweredStringLit as lit -> { return LoweredStringLit { .span = lit.span, .type = context_type, .value = lit.value } }
+        is LoweredCharLit   as lit -> { return LoweredCharLit   { .span = lit.span, .type = context_type, .value = lit.value } }
+        is LoweredBoolLit   as lit -> { return LoweredBoolLit   { .span = lit.span, .type = context_type, .value = lit.value } }
+        _ -> { return expr }
     }
 }
 
