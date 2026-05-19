@@ -1434,7 +1434,22 @@ build_leaf_access :: fn(
 /// @return          the resolver-minted symbol, or `null` if absent.
 export lookup_local_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Symbol | null {
     target_key :: span_key(name_span)
+    // Walk `idents` (use-site → Symbol) first — fast path when the
+    // binding is referenced in the body.
     for symbol in resolved.idents.values() {
+        match symbol.defined_at {
+            is null -> {}
+            is Span as defined -> {
+                if span_key(defined) == target_key { return symbol }
+            }
+        }
+    }
+    // Fallback : scan every minted symbol. The resolver writes the
+    // definition span on each `Symbol.defined_at` even when the binding
+    // has zero use-sites (e.g. shadowed or scope-exit unused). Without
+    // this fallback, `lower_let_into`'s synth-fallback bumps `ctx.uniq`
+    // and drifts later `__sb_N` / `__try_N` naming.
+    for symbol in resolved.symbols {
         match symbol.defined_at {
             is null -> {}
             is Span as defined -> {
