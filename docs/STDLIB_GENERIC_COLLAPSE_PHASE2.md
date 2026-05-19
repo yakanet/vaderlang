@@ -246,8 +246,10 @@ P2-4 through P2-7 are serial. P2-9 onwards is serial.
 
 ## 8. Decision points outstanding
 
-1. **Iterator skip mechanism**: confirm (i) `@specialize` decorator or
-   (ii) structural heuristic — see §2. **Blocking P2-3.**
+1. **Iterator skip mechanism**: ~~confirm (i) `@specialize` decorator or
+   (ii) structural heuristic~~ — resolved 2026-05-19 : option (i)
+   landed in `0695b459`. Option (ii) future enhancement noted in
+   TODO.md §3.5 lever (c).
 2. **Comptime + erasure trade-off**: if P2-7 surfaces that comptime
    needs specialised generic fns, decide between:
    - (a) Keep mono for `@comptime`-reachable decls, erase the rest.
@@ -255,3 +257,178 @@ P2-4 through P2-7 are serial. P2-9 onwards is serial.
    - Decision deferred to during P2-7.
 3. **Pivot-test regression threshold**: POC said 15 % ; do we hold that
    line if real-world shows 17-18 %? Decision deferred to P2-10.
+4. **Integration path (a) vs (b) from parent doc §8.5**: ~~chosen (a)
+   replace `monomorphizeProject` entirely~~ — under reconsideration
+   after the 2026-05-19 P2-1.b experiment (see §9 issue 4). Option
+   (b) post-process gains relevance because cascading Any types
+   through `@specialize`d containers can't be predicted at comptime
+   when erasure runs pre-comptime. Decision : revisit before
+   resuming P2-1.b.
+
+---
+
+## 9. Issues encountered (2026-05-19 P2-1.b experiment)
+
+Recorded for two reasons : (1) the same issues will resurface during
+the Vader self-host port of Phase 2 (per `feedback_vader_port_rules`),
+(2) the next attempt on P2-1.b must address these or accept the
+fallback to option (b).
+
+### Issue 1 — Cascading Any through `@specialize`d containers
+
+**Symptom**: backend error `B5001: \`for x in iter\` requires Iterator
+impl on ArrayIterator(Entry(Any, Any) | null)` at
+`stdlib/std/collections.vader:200`.
+
+**Cause**: `MutableMap[K, V]` is erased → field
+`buckets: (Entry(K, V) | null)[]` becomes
+`(Entry(Any, Any) | null)[]`. The for-in fusion then needs
+`ArrayIterator(Entry(Any, Any) | null)` which was never registered as
+an instance at comptime (the registry only saw concrete shapes like
+`ArrayIterator(Entry(string, i32) | null)`).
+
+**Fix candidates**:
+- **(a)** Synthesise extra instances during the erasure pass : for
+  every `@specialize`d generic container reachable from an erased
+  decl's fields, register the Any-bearing instance.
+- **(b)** Switch to the parent doc §8.5 option (b) — post-process the
+  mono output to dedupe erased entries. The instance registry stays
+  as-is (concrete instances only) ; the post-pass collapses what it
+  can.
+- **(c)** Make the for-in fusion's `ArrayIterator` lookup
+  Any-tolerant — if the queried `ArrayIterator(T)` isn't registered,
+  fall back to the unparameterised `ArrayIterator` decl's body and
+  treat `T` as opaque.
+
+**Vader port note**: the cascade happens any time an erased struct's
+field type mentions a `@specialize`d generic. Audit `vader/comptime/`
+and `vader/lower/passes/for-in.vader` for the same assumption.
+
+### Issue 2 — Pass 3 (free generic fns) must also erase
+
+**Symptom**: `vader_unreachable` traps inside erased impl methods
+that call free generic fns (`self.put(...)` inside
+`MutableMap.set_at`).
+
+**Cause**: Pass 3 of `monomorphizeProject` (lines 178-189) emits one
+`MonoEntry` per `(FnDecl, typeArgs)` for free generic fns. When the
+caller is erased, the call-site typeArgs are post-subst `[Any, Any]`,
+which never appears in the registry → `lookupFnInstance` returns
+null → bytecode emit emits unreachable.
+
+**Fix**: P2-1.b must include the Pass 3 branch too (experimental fix
+worked structurally but uncovered Issue 1 as the next blocker).
+Pattern : same `isSpecialized(fnDecl)` ? per-instance : single erased
+entry under `ERASED_KEY`. Mirror in `lookupFnInstance`'s lookup with
+ERASED_KEY fallback (already shipped as part of the experiment but
+reverted with the rest).
+
+**Vader port note**: applies identically. Pass 3 in
+`vader/comptime/specialize.vader` (when ported) gets the same branch.
+
+### Issue 3 — Auto-boxing at call sites is partially free
+
+**Symptom (positive)**: in the experimental `/tmp/mm.c`, call sites
+like `set_at(t3, vader_box_string(2u, vader_str_0),
+vader_box_i32(1u, INT32_C(1)))` showed automatic boxing of
+concrete-typed args into the erased Any-typed params. The existing
+bytecode emit's val→ref coercion handles this without needing a new
+auto-box pass.
+
+**Implication**: P2-5 estimate of 3 days was too generous. The real
+work is :
+- Verify no edge case where the existing coercion misses (e.g. when
+  the param is `Any | null` rather than plain `Any`).
+- Handle the box-tag selection : today's boxing uses primitive tags
+  (`vader_box_string`, `vader_box_i32`, etc.) which are correct ; for
+  struct-typed args flowing into an Any slot, confirm
+  `vader_box_obj(structTag, ptr)` is what gets emitted.
+
+**Revised P2-5 effort**: probably 1 day, mostly verification.
+
+**Vader port note**: identical optimisation should apply when
+porting. The Vader bytecode emit (in `vader/bytecode/`, currently a
+stub) inherits the same val→ref coercion behaviour.
+
+### Issue 4 — Erasure pre-comptime corrupts the instance registry signal
+
+**Symptom**: combining Issues 1 + 2 produces a build that compiles
+but traps at runtime on many tests (24/252 native).
+
+**Root cause**: the current order is
+```
+typecheck → comptime (records instances + monomorphises) → lower → bytecode → emit
+```
+Phase 2 plugs erasure into the comptime step. But the instance
+registry is **populated during typecheck-driven comptime evaluation**
+— BEFORE erasure substitutes K→Any. So the registry reflects the
+pre-erasure types ; the post-erasure IR queries it with the wrong
+types.
+
+**Fix candidates** :
+- **(a) Erase later** : keep `monomorphizeProject` as-is, then run a
+  separate post-pass between mono and lower that collapses concrete
+  entries to their erased equivalents. Lookups happen against the
+  post-pass output. This is the §8.5 option (b) the parent doc
+  considered "wasteful" but it solves Issue 1 + 2 cleanly because
+  the instance registry stays semantically meaningful.
+- **(b) Re-register erased instances during the erasure pass** :
+  before lowering, synthesise extra registry entries for the
+  Any-bearing forms that the erased code paths will need
+  (`ArrayIterator(Entry(Any, Any) | null)`, etc.). Doable but
+  requires traversing erased field types to discover what to
+  synthesise.
+
+**Tentative**: option (a) is now the recommended path. The original
+"option (a) replace entirely" from parent doc §8.5 needs revision.
+
+**Vader port note**: when porting, this design choice must be made
+the same way in `vader/comptime/`. The TS-side decision sets
+precedent.
+
+### Issue 5 — Lower-side dispatch on Any (P2-4) works
+
+**Symptom (positive)**: with P2-4 active (commit `1639dbf3`), method
+calls on `Any` receivers correctly route to `lowerVirtualDispatch`,
+which emits `LoweredVirtualCall` → `virtual.call` bytecode op →
+runtime dispatch via the existing `BytecodeModule.vtables` map.
+
+**Implication**: the Phase 0 vtable runtime (`vader_vtable_table`)
+is parallel infrastructure ready for direct calls from C-emitted
+code, but the lower itself uses the older `virtual.call` op which
+already worked for trait-typed receivers. No new IR node needed.
+
+**Confirmation that nothing was broken by P2-4**: 252/252 native
+tests still pass with P2-4 active (no Any producers in stable code).
+
+**Vader port note**: when porting P2-4, mirror the
+`receiverType.kind === "Any"` branch in `vader/lower/lower_expr.vader`
+trait-method handling. The vtable dispatch infrastructure on the
+Vader side is whatever the bytecode-level `vtables` map exposes —
+should not need new ops.
+
+---
+
+## 10. Path forward (revised after 2026-05-19 experiment)
+
+Sequencing change : do P2-2 (boundary side-table) and P2-5 (auto-box
+verification) BEFORE attempting P2-1.b again. Also decide §8 issue #4
+(integration path option a vs b) — current lean : **option (b) post-
+process**.
+
+Revised order :
+1. ~~P2-3 `@specialize`~~ ✅ done
+2. ~~P2-1.a foundation~~ ✅ done
+3. ~~P2-4 lower dispatch on Any~~ ✅ done (dormant)
+4. **P2-2 boundary side-table** — next session start
+5. **P2-5 auto-box verification** (now 1 d, not 3) — confirm existing
+   coercion handles the common cases
+6. **Decision: option (a) vs (b) in §8 issue #4** — this is the pivot
+   point ; commit to a direction before P2-1.b
+7. P2-1.b switch flip (under the chosen integration path)
+8. P2-6 auto-cast — depends on P2-2 side-table
+9. P2-7 comptime interaction
+10. P2-8 registry rekeying
+11. P2-9 snapshot audit
+12. P2-10 perf check
+13. P2-11 self-host parity rebaseline
