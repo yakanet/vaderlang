@@ -144,16 +144,19 @@ export function lowerForIn(
   let iterLowered = lowerExpr(ctx, iterExpr);
   let iterType = iterLowered.type;
 
-  // Auto-wrap raw arrays into `ArrayIter(T)` so users can write
-  // `for x in arr` without an explicit `.iter()`. The struct literal
-  // captures the array, sets cursor=0, and pre-computes the length via the
-  // `array.len` op (no generic `len(arr)` fn needed).
+  // Fast path : `for x in arr` over a raw `T[]` lowers to a direct counter
+  // loop over indices — no `ArrayIterator(T)` wrapper, no per-iter
+  // `Iterator.next()` dispatch, no `Yield(T)` allocation. Replaces the
+  // older `wrapArrayAsIter` approach which broke under post-typecheck
+  // erasure (the wrapped `ArrayIterator(T)` query would need an
+  // Iterator impl entry for every Any-bearing T-shape reachable from an
+  // erased decl). See `docs/STDLIB_GENERIC_COLLAPSE_PHASE2.md` §9
+  // Issue 6.
   if (iterType.kind === "Array") {
-    const wrapped = wrapArrayAsIter(ctx, iterLowered, iterType.element, iterExpr.span, span);
-    if (wrapped !== null) {
-      iterLowered = wrapped;
-      iterType = wrapped.type;
-    }
+    const inlined = lowerForInRawArray(
+      ctx, stmt, iterLowered, iterType.element, bindingName, bindingSym, span,
+    );
+    if (inlined !== null) return inlined;
   }
 
   // Two dispatch paths :
@@ -332,6 +335,84 @@ function tryLowerForInIntRange(
   };
 
   return wrapStmts(span, [...hoistStmts, counterInit, loop]);
+}
+
+/** Lower `for x in arr` over a raw `T[]` to a counter loop over indices.
+ *  Equivalent to `for i in 0..<arr.len { let x = arr[i] ; <body> }`
+ *  without ever materialising an `ArrayIterator(T)` struct. Saves an
+ *  allocation per loop and — critically — removes a brittle dependency
+ *  on `ArrayIterator(T)` having a registered Iterator impl for every
+ *  Any-bearing `T` reachable from an erased decl. */
+function lowerForInRawArray(
+  ctx: FnLowerCtx, stmt: A.ForStmt,
+  arrayLowered: LoweredExpr, elementType: Type,
+  bindingName: string, bindingSym: Symbol | undefined,
+  span: Span,
+): LoweredStmt | null {
+  if (bindingSym === undefined) return null;
+  const arrayType = arrayLowered.type;
+  if (arrayType.kind !== "Array") return null;
+
+  const arrSym = freshSyntheticSymbol(ctx, "for_arr");
+  const lenSym = freshSyntheticSymbol(ctx, "for_len");
+  const idxSym = freshSyntheticSymbol(ctx, "for_i");
+
+  const arrRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: arrayType, symbol: arrSym,
+  });
+  const lenRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: TY.usize, symbol: lenSym,
+  });
+  const idxRef = (): LoweredExpr => ({
+    kind: "LoweredIdent", span, type: TY.usize, symbol: idxSym,
+  });
+
+  const setupStmts: LoweredStmt[] = [
+    { kind: "LoweredLet", span, name: arrSym.name, symbol: arrSym, type: arrayType, value: arrayLowered },
+    {
+      kind: "LoweredLet", span, name: lenSym.name, symbol: lenSym, type: TY.usize,
+      value: { kind: "LoweredArrayLen", span, type: TY.usize, target: arrRef() },
+    },
+    {
+      kind: "LoweredLet", span, name: idxSym.name, symbol: idxSym, type: TY.usize,
+      value: { kind: "LoweredIntLit", span, type: TY.usize, value: 0n },
+    },
+  ];
+
+  const cond: LoweredExpr = {
+    kind: "LoweredBinary", span, type: TY.bool, op: "lt",
+    left: idxRef(), right: lenRef(),
+  };
+
+  const bindStmt: LoweredStmt = {
+    kind: "LoweredLet", span, name: bindingName, symbol: bindingSym,
+    type: elementType,
+    value: { kind: "LoweredIndex", span, type: elementType, target: arrRef(), index: idxRef() },
+  };
+
+  const incStmt: LoweredStmt = {
+    kind: "LoweredAssign", span,
+    target: idxRef(),
+    value: {
+      kind: "LoweredBinary", span, type: TY.usize, op: "add",
+      left: idxRef(),
+      right: { kind: "LoweredIntLit", span, type: TY.usize, value: 1n },
+    },
+  };
+
+  const userBody = lowerBlock(ctx, stmt.body, /*isFnRoot*/ false, /*isLoopBody*/ true);
+  const advancedBody = prependIncBeforeMatchingContinue(userBody, incStmt, stmt.label);
+
+  const loopBody: LoweredBlock = {
+    kind: "LoweredBlock", span, type: TY.void,
+    stmts: [bindStmt, ...blockStmtsWithTrailing(advancedBody), incStmt],
+    trailing: null,
+  };
+  const loop: LoweredStmt = {
+    kind: "LoweredLoop", span, label: stmt.label, cond, body: loopBody,
+  };
+
+  return wrapStmts(span, [...setupStmts, loop]);
 }
 
 // =========================================================================

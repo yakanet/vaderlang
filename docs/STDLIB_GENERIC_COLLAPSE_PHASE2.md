@@ -386,6 +386,51 @@ types.
 the same way in `vader/comptime/`. The TS-side decision sets
 precedent.
 
+### Issue 7 — Symbol-id → fnIndex routing breaks after dedupe
+
+**Date**: 2026-05-19 (post-β fix).
+
+**Symptom**: with `erasureDedupe` enabled AND the β fix to `for-in`
+applied (`lowerForInRawArray`), the build succeeds but 32/252 native
+tests fail. The emitted C shows `set_at__i32__bool` (and similar
+concrete-named functions) with body `vader_unreachable`.
+
+**Cause**: the dedupe rebuilds the three lookup maps so every concrete
+`(member, typeArgs)` query returns the representative entry — that's
+correct at the lower's `lookupImplEntry` / `lookupFnInstance` level.
+**But** : each concrete entry that got redirected still had its own
+synthesised `Symbol` (with a unique `id`). The bytecode emit's
+`fnIndexBySymId` map is keyed by `Symbol.id` ; representative gets a
+fnIndex, the redirected symbols don't. When the lower stores
+`entry.symbol` somewhere (e.g. a LoweredIdent inside an existing
+call site that wasn't re-resolved by the new lookup), the bytecode
+emit sees an unknown symbol id and emits `unreachable` at the call
+site.
+
+**Mitigation candidates**:
+- **(δ) Symbol redirection table** : the dedupe maintains
+  `symbolReplacements: Map<Symbol.id, Symbol.id>` (old → representative).
+  The bytecode emit walks this table when looking up fnIndex by sym
+  id and follows redirects. ~0.5 d.
+- **(ε) Force-walk lookups during lower** : after dedupe, re-run the
+  lower's call-site resolution so every `LoweredIdent` referring to
+  a redirected symbol gets re-pointed to the representative. More
+  invasive ; touches multiple lower passes.
+- **(ζ) Drop redirected entries entirely from `entries[]`** and
+  ensure every consumer of `entries[]` (the bytecode emit's
+  per-entry walker) only sees the representatives. Dedupe currently
+  does this for `newEntries[]` but the per-call-site references in
+  the lowered IR still point at old symbols.
+
+**Recommended**: (δ) — minimal touch, keeps the dedupe local.
+Implementation : extend `MonoProject` with
+`symbolRedirects: ReadonlyMap<number, number>` ; bytecode emit
+checks this map before declaring an unknown symbol.
+
+**Vader port note**: when porting, the equivalent map lives in
+`vader/bytecode/emit.vader` (when ported). The fnIndexBySymId
+construction must handle redirects from the start.
+
 ### Issue 6 — Option (b) post-process doesn't solve the cascade either
 
 **Date**: 2026-05-19 (later in the same session).

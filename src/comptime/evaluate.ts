@@ -138,8 +138,8 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
     mono: EMPTY_MONO, fileExprs, intoMembers,
   };
   // `erasureDedupe` is wired in `src/comptime/erasure-dedupe.ts` but
-  // disabled here pending §9 Issue 6 resolution — see
-  // `docs/STDLIB_GENERIC_COLLAPSE_PHASE2.md`. Re-enable by replacing the
+  // disabled here pending §9 Issue 7 resolution (symbol-id → fnIndex
+  // redirection on the bytecode-emit side). Re-enable by replacing the
   // line below with `erasureDedupe(monomorphizeProject(evaluatedCore), project)`.
   const mono = monomorphizeProject(evaluatedCore);
   return { ...evaluatedCore, mono };

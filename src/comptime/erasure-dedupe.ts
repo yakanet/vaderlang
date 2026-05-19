@@ -18,7 +18,7 @@ import type { Symbol } from "../resolver/symbol.ts";
 import type { TypedProject } from "../typecheck/typed-ast.ts";
 import { TY, type Substitution, type Type } from "../typecheck/types.ts";
 
-import { isSpecialized, type MonoEntry, type MonoProject } from "./specialize.ts";
+import { ERASED_KEY, isSpecialized, type MonoEntry, type MonoProject } from "./specialize.ts";
 
 /** Wraps a TypedProject + ResolvedProgram so the pass can resolve a
  *  member FnDecl back to its owning impl's host struct (needed to
@@ -109,6 +109,35 @@ function makeRepresentative(first: MonoEntry): MonoEntry {
   };
 }
 
+/** Rewrite a per-FnDecl-per-argsKey lookup map so every value that was
+ *  collapsed into a representative points at the representative ;
+ *  unaffected entries pass through. When any entry in an inner map is
+ *  redirected, also add an `ERASED_KEY` row pointing to the
+ *  representative so the lower's `lookupImplEntry` / `lookupFnInstance`
+ *  fallback finds it for Any-bearing typeArgs queries. */
+function redirectInner(
+  src: ReadonlyMap<A.FnDecl, ReadonlyMap<string, MonoEntry>>,
+  replacements: ReadonlyMap<MonoEntry, MonoEntry>,
+): Map<A.FnDecl, Map<string, MonoEntry>> {
+  const out = new Map<A.FnDecl, Map<string, MonoEntry>>();
+  for (const [fnDecl, inner] of src) {
+    const newInner = new Map<string, MonoEntry>();
+    let representative: MonoEntry | null = null;
+    for (const [k, entry] of inner) {
+      const target = replacements.get(entry);
+      if (target !== undefined) {
+        newInner.set(k, target);
+        representative = target;
+      } else {
+        newInner.set(k, entry);
+      }
+    }
+    if (representative !== null) newInner.set(ERASED_KEY, representative);
+    out.set(fnDecl, newInner);
+  }
+  return out;
+}
+
 export function erasureDedupe(mono: MonoProject, project: TypedProject): MonoProject {
   const ctx = buildDedupeCtx(project);
 
@@ -151,23 +180,8 @@ export function erasureDedupe(mono: MonoProject, project: TypedProject): MonoPro
     newLookupByInstance.set(key, replacements.get(entry) ?? entry);
   }
 
-  const newImplMethodEntries = new Map<A.FnDecl, Map<string, MonoEntry>>();
-  for (const [fnDecl, inner] of mono.implMethodEntries) {
-    const newInner = new Map<string, MonoEntry>();
-    for (const [k, entry] of inner) {
-      newInner.set(k, replacements.get(entry) ?? entry);
-    }
-    newImplMethodEntries.set(fnDecl, newInner);
-  }
-
-  const newFnInstanceEntries = new Map<A.FnDecl, Map<string, MonoEntry>>();
-  for (const [fnDecl, inner] of mono.fnInstanceEntries) {
-    const newInner = new Map<string, MonoEntry>();
-    for (const [k, entry] of inner) {
-      newInner.set(k, replacements.get(entry) ?? entry);
-    }
-    newFnInstanceEntries.set(fnDecl, newInner);
-  }
+  const newImplMethodEntries = redirectInner(mono.implMethodEntries, replacements);
+  const newFnInstanceEntries = redirectInner(mono.fnInstanceEntries, replacements);
 
   return {
     entries: newEntries,
