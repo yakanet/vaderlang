@@ -94,6 +94,19 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // struct whose slots are named `_0`, `_1`, … — mirror the TS
             // lowerer's `isNumeric` rewrite so the dump shows `._0`.
             field_name :: if e.is_numeric { "_${e.field}" } else { e.field }
+            // Union-typed receiver with a common field (every variant
+            // carries `f` at the same offset+type) — emit a single cast
+            // to the first variant, then a regular field access. The
+            // boxed values share `ref` ValType so the cast is free at the
+            // bytecode level. Mirror of `lowerUnionFieldAccess`'s
+            // `sameOffsetShortcutApplies` short-circuit in
+            // `src/lower/passes/expr.ts:1072-1080`.
+            target_type :: ctx.types.expr_type(e.target)
+            shortcut :: try_lower_common_union_field(ctx, e, type, target_type, field_name)
+            match shortcut {
+                is null -> {}
+                _ -> { return shortcut }
+            }
             return LoweredFieldAccess {
                 .span = e.span, .type = type,
                 .target = lower_expr(ctx, e.target), .field = field_name,
@@ -317,6 +330,34 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
     key :: span_key(defined_at)
     if i32(symbol.kind) == i32(SymbolKind.Param) { return ctx.typed.param_types[key] }
     return ctx.typed.local_types[key]
+}
+
+try_lower_common_union_field :: fn(
+    ctx: FnLowerCtx, expr: FieldExpr, expr_type: Type, target_type: Type, field_name: string,
+) -> LoweredExpr | null {
+    if !(target_type is UnionType) { return null }
+    match target_type {
+        is UnionType as u -> {
+            if u.variants.len() == usize(0) { return null }
+            first_variant :: u.variants[0]
+            if !(first_variant is StructType) { return null }
+            // Every variant must be a struct exposing the same field
+            // name with the same resolved type. Bail out otherwise — the
+            // general per-variant cascade isn't ported yet.
+            for v in u.variants {
+                if !(v is StructType) { return null }
+            }
+            cast_target :: LoweredCast {
+                .span = expr.span, .type = first_variant,
+                .value = lower_expr(ctx, expr.target),
+            }
+            return LoweredFieldAccess {
+                .span = expr.span, .type = expr_type,
+                .target = cast_target, .field = field_name,
+            }
+        }
+        _ -> { return null }
+    }
 }
 
 try_route_through_env :: fn(
@@ -671,6 +712,7 @@ type_surface_name :: fn(t: Type) -> string {
     match t {
         is PrimitiveType as p -> { return p.name }
         is StructType    as s -> { return s.symbol.name }
+        is EnumType      as e -> { return e.symbol.name }
         _ -> { return "" }
     }
 }
@@ -854,19 +896,16 @@ try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | nu
         union_operand = binary.left
     }
     if union_operand is null { return null }
-    if union_operand is Expr as operand {
-        check :: LoweredTypeCheck {
-            .span = binary.span, .type = TY_BOOL,
-            .value = lower_expr(ctx, operand),
-            .check_type = mk_primitive("null"),
-        }
-        if i32(binary.op) == i32(BinaryOp.Eq) { return check }
-        return LoweredUnary {
-            .span = binary.span, .type = TY_BOOL,
-            .op = LoweredUnaryOp.Not, .operand = check,
-        }
+    check :: LoweredTypeCheck {
+        .span = binary.span, .type = TY_BOOL,
+        .value = lower_expr(ctx, union_operand),
+        .check_type = mk_primitive("null"),
     }
-    return null
+    if i32(binary.op) == i32(BinaryOp.Eq) { return check }
+    return LoweredUnary {
+        .span = binary.span, .type = TY_BOOL,
+        .op = LoweredUnaryOp.Not, .operand = check,
+    }
 }
 
 is_null_lit :: fn(e: Expr) -> bool {
