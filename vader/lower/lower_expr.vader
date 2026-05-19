@@ -658,22 +658,86 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         recv_type :: type_of(receiver)
         // Trait-typed receivers route through vcall (handled above).
         if recv_type is TraitType { return null }
+        // Impl-member path first (e.g. `x.to_string()` over
+        // `i32 implements Display { to_string }`).
         member :: find_impl_member_for(ctx, recv_type, field_expr.field)
-        if member is null { return null }
-        if member is UfcsMember as found {
-            args: LoweredExpr[] = []
-            args.push(receiver)
-            for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
-            return LoweredCall {
-                .span = call.span, .type = type,
-                .callee = LoweredIdent {
-                    .span = field_expr.span, .type = type, .symbol = found.symbol,
-                },
-                .args = args,
+        if !(member is null) {
+            if member is UfcsMember as found {
+                args: LoweredExpr[] = []
+                args.push(receiver)
+                for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+                return LoweredCall {
+                    .span = call.span, .type = type,
+                    .callee = LoweredIdent {
+                        .span = field_expr.span, .type = type, .symbol = found.symbol,
+                    },
+                    .args = args,
+                }
+            }
+        }
+        // Free-fn UFCS : look in `resolved.fn_overloads` for a fn whose
+        // first param's nominal type matches the receiver's surface name.
+        // Covers `a.inc()` over an `inc :: fn(self: A) -> i32` free fn.
+        free :: find_free_fn_ufcs(ctx, recv_type, field_expr.field)
+        if !(free is null) {
+            if free is UfcsMember as found_free {
+                args: LoweredExpr[] = []
+                args.push(receiver)
+                for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+                return LoweredCall {
+                    .span = call.span, .type = type,
+                    .callee = LoweredIdent {
+                        .span = field_expr.span, .type = type, .symbol = found_free.symbol,
+                    },
+                    .args = args,
+                }
             }
         }
     }
     return null
+}
+
+find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsMember | null {
+    recv_name :: type_surface_name(recv_type)
+    if recv_name == "" { return null }
+    overloads :: ctx.typed.resolved.fn_overloads[name]
+    if overloads is null { return null }
+    if overloads is Symbol[] as symbols {
+        for sym in symbols {
+            if first_param_targets_name(ctx, sym, recv_name) {
+                return UfcsMember { .symbol = sym }
+            }
+        }
+    }
+    return null
+}
+
+first_param_targets_name :: fn(ctx: FnLowerCtx, sym: Symbol, recv_name: string) -> bool {
+    // Look up the fn's FnType via the decl_types table, then match the
+    // first param's surface name. Walks every loaded typed module since
+    // the fn may live in an imported namespace.
+    for module_id in ctx.project.evaluated.modules.keys() {
+        program :: ctx.project.evaluated.modules[module_id]
+        match program {
+            is null -> {}
+            is EvaluatedProgram as ep -> {
+                defined_at :: sym.defined_at
+                if defined_at is null { continue }
+                if defined_at is Span as def_span {
+                    fn_ty :: ep.typed.decl_types[span_key(def_span)]
+                    match fn_ty {
+                        is null -> {}
+                        is FnType as ft -> {
+                            if ft.params.len() == usize(0) { return false }
+                            return type_surface_name(ft.params[0]) == recv_name
+                        }
+                        _ -> {}
+                    }
+                }
+            }
+        }
+    }
+    return false
 }
 
 UfcsMember :: struct {
