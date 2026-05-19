@@ -1424,7 +1424,16 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
             }
             binding_type :: ctx.types.local_type(simple)
             raw_value :: lower_expr(ctx, let_stmt.value)
-            value :: widen_literal_to_context(raw_value, binding_type)
+            widened :: widen_literal_to_context(raw_value, binding_type)
+            // Auto-Into coercion when the binding's declared type
+            // differs from the value's type AND an `Into[binding_type]`
+            // impl exists for the source. Mirror of the typer's
+            // `tryInto` hook at let-stmt's value-position.
+            coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), binding_type, let_stmt.span)
+            value :: match coerced {
+                is null -> widened
+                _ -> coerced
+            }
             init :: cell_wrap_init(ctx, symbol, value, binding_type, let_stmt.span)
             out.push(LoweredLet {
                 .span = let_stmt.span, .name = simple.name,
