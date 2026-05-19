@@ -27,12 +27,12 @@ import "vader/parser/ast" {
     Visibility,
 }
 import "vader/diagnostics/diagnostic" { Span, Diagnostic }
-import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck/type_expr" { type_from_expr, primitive_from_name }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
     TypeParamType, ArrayType, TupleType, TypeMetaType,
-    TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, mk_primitive,
+    TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive,
 }
 import "vader/typecheck/type_ops" { default_if_free, equals_type }
 import "vader/comptime/value" {
@@ -41,11 +41,13 @@ import "vader/comptime/value" {
 }
 import "vader/comptime/evaluated_ast" { EvaluatedProgram }
 import "vader/comptime/intrinsic" { byte_size, byte_align }
+import "vader/typecheck/impls" { type_to_target_symbol, has_user }
+import "vader/resolver/wire" { ImportTargetTable, SymbolTarget }
 import "vader/parser/ast" { ConstDecl, ImplDecl }
 import "vader/typecheck/types" { display_type }
 import "vader/lower/ctx" { FnLowerCtx, BlockCtx, new_block_ctx, GenericFnInstance }
 import "vader/lower/entry_types" { expr_type, type_expr_type, local_type, span_key }
-import "vader/lower/helpers" { type_of }
+import "vader/lower/helpers" { type_of, block_stmts_with_trailing }
 import "vader/lower/lowered_ast" {
     LoweredExpr, LoweredBlock, LoweredStmt, LoweredExprStmt,
     LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
@@ -55,7 +57,7 @@ import "vader/lower/lowered_ast" {
     LoweredStructLitField, LoweredArrayLit, LoweredCast, LoweredTypeCheck,
     LoweredUnreachable, LoweredIntrinsicCall, LoweredLet, LoweredAssign,
     LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
-    LoweredCellNew, LoweredCellGet, LoweredCellSet,
+    LoweredCellNew, LoweredCellGet, LoweredCellSet, LoweredTypeConst,
     INTRINSIC_BUILDER_NEW, INTRINSIC_BUILDER_APPEND_STR,
     INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
 }
@@ -162,6 +164,18 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
     match symbol {
         is null -> { return stub(ident.span, type, "unresolved ident `${ident.name}`") }
         is Symbol as resolved -> {
+            // TypeMeta-typed ident in value position — reify the
+            // underlying Type so the bytecode emit can lower it to
+            // `type.const N`. Mirror of `lowerIdent`'s TypeMeta branch in
+            // `src/lower/passes/expr.ts:533-538`.
+            if type is TypeMetaType {
+                meta :: resolve_type_meta_symbol(ctx, resolved)
+                if !(meta is null) {
+                    return LoweredTypeConst {
+                        .span = ident.span, .type = type, .value = arg_ty_or_unresolved(meta),
+                    }
+                }
+            }
             // When we're lowering inside a lifted lambda body, captured
             // outer symbols don't have a local slot — read them off the
             // env-struct param via `env.cap_N`.
@@ -215,7 +229,12 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
                     }
                 }
             }
-            return LoweredIdent { .span = ident.span, .type = type, .symbol = resolved }
+            // Named import-binding redirect : `import "p" { foo as bar }`
+            // means every `bar` reference dumps with the target's
+            // identity. Mirror of TS's `resolveImportRedirect` (
+            // `src/resolver/resolve.ts:809-815`) applied at idents.set time.
+            final_sym :: follow_import_binding(ctx, resolved)
+            return LoweredIdent { .span = ident.span, .type = type, .symbol = final_sym }
         }
     }
 }
@@ -318,6 +337,20 @@ is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
         is NullValue   -> { return true }
         _              -> { return false }
     }
+}
+
+/// Reify a TypeMeta-typed symbol's underlying Type. Mirror of
+/// `resolveTypeMetaSymbol` in `src/lower/passes/expr.ts:646-657`.
+/// Sources: `@comptime const X :: Type` aliases land in
+/// `resolved.alias_types`; primitive builtins reconstruct from their
+/// name. Returns null for shapes we can't reify yet (e.g. type-params).
+resolve_type_meta_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
+    aliased :: ctx.typed.resolved.alias_types[symbol.id]
+    if !(aliased is null) { return aliased }
+    if i32(symbol.kind) == i32(SymbolKind.BuiltinType) {
+        return primitive_from_name(symbol.name)
+    }
+    return null
 }
 
 declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
@@ -658,13 +691,30 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
 /// types — for `identity(42)` the FnType has param `T`, arg has type
 /// `i32`, so `T = i32`. The synth monomorphic decl is registered
 /// with the project ctx ; dedup is by `(fn_symbol.id, args_key)`.
+/// Chase an `ImportBinding` symbol through `import_targets.symbol_targets`
+/// to its concrete export target. Returns the original symbol when it
+/// isn't an ImportBinding, or when the target lookup fails (let the
+/// caller's kind-check filter the wrong shape).
+follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
+    if i32(sym.kind) != i32(SymbolKind.ImportBinding) { return sym }
+    targets :: ctx.typed.import_targets
+    if targets is null { return sym }
+    if targets is ImportTargetTable as t {
+        st :: t.symbol_targets[sym.id]
+        if st is null { return sym }
+        if st is SymbolTarget as found { return found.symbol }
+    }
+    return sym
+}
+
 try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     callee_ident :: as_ident(call.callee)
     if callee_ident is null { return null }
     if callee_ident is IdentExpr as id {
-        sym :: ctx.typed.resolved.idents[span_key(id.span)]
-        if sym is null { return null }
-        if sym is Symbol as fn_sym {
+        raw_sym :: ctx.typed.resolved.idents[span_key(id.span)]
+        if raw_sym is null { return null }
+        if raw_sym is Symbol as raw_resolved {
+            fn_sym :: follow_import_binding(ctx, raw_resolved)
             if i32(fn_sym.kind) != i32(SymbolKind.Fn) { return null }
             // Probe `decl_types` to find the fn's signature. Generic fns
             // record their type-param-bearing signature here.
@@ -921,11 +971,42 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
     recv_name :: type_surface_name(recv_type)
     if recv_name == "" { return null }
     overloads :: ctx.typed.resolved.fn_overloads[name]
-    if overloads is null { return null }
     if overloads is Symbol[] as symbols {
         for sym in symbols {
             if first_param_targets_name(ctx, sym, recv_name) {
                 return UfcsMember { .symbol = sym }
+            }
+        }
+    }
+    // Imported free fn — `import "p" { name }` registers `name` in
+    // `symbols` as an ImportBinding but not in `fn_overloads`. Follow
+    // the import target to the source symbol and probe its signature.
+    for candidate in ctx.typed.resolved.symbols {
+        if candidate.name != name { continue }
+        if i32(candidate.kind) != i32(SymbolKind.ImportBinding) { continue }
+        target :: follow_import_binding(ctx, candidate)
+        if i32(target.kind) == i32(SymbolKind.Fn) {
+            if first_param_targets_name(ctx, target, recv_name) {
+                return UfcsMember { .symbol = target }
+            }
+        }
+    }
+    // Cross-module free fn — `s.len()` against `MutableSet`'s
+    // `len :: fn[T](self: MutableSet(T)) -> usize` defined in
+    // `stdlib/std/collections.vader` even though the user file never
+    // `import`s `len`. Mirror of TS's `inferField` which scans every
+    // loaded module's exports via `fieldRefs` (`ufcs-free` ref).
+    for module_id in ctx.project.evaluated.modules.keys() {
+        program :: ctx.project.evaluated.modules[module_id]
+        if program is null { continue }
+        if program is EvaluatedProgram as ep {
+            bucket :: ep.typed.resolved.fn_overloads[name]
+            if bucket is Symbol[] as bucket_syms {
+                for sym in bucket_syms {
+                    if first_param_targets_name(ctx, sym, recv_name) {
+                        return UfcsMember { .symbol = sym }
+                    }
+                }
             }
         }
     }
@@ -935,7 +1016,9 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
 first_param_targets_name :: fn(ctx: FnLowerCtx, sym: Symbol, recv_name: string) -> bool {
     // Look up the fn's FnType via the decl_types table, then match the
     // first param's surface name. Walks every loaded typed module since
-    // the fn may live in an imported namespace.
+    // the fn may live in an imported namespace. A `TypeParam` first
+    // param matches any receiver — generic fns like `identity[T](x: T)`
+    // accept a primitive or struct receiver through UFCS.
     for module_id in ctx.project.evaluated.modules.keys() {
         program :: ctx.project.evaluated.modules[module_id]
         match program {
@@ -949,7 +1032,9 @@ first_param_targets_name :: fn(ctx: FnLowerCtx, sym: Symbol, recv_name: string) 
                         is null -> {}
                         is FnType as ft -> {
                             if ft.params.len() == usize(0) { return false }
-                            return type_surface_name(ft.params[0]) == recv_name
+                            first :: ft.params[0]
+                            if first is TypeParamType { return true }
+                            return type_surface_name(first) == recv_name
                         }
                         _ -> {}
                     }
@@ -997,6 +1082,10 @@ type_surface_name :: fn(t: Type) -> string {
         is PrimitiveType as p -> { return p.name }
         is StructType    as s -> { return s.symbol.name }
         is EnumType      as e -> { return e.symbol.name }
+        // Generic-shape pattern + concrete receiver agree on a canonical
+        // token : `T[]` and `i32[]` both surface as `[]` for UFCS lookup.
+        is ArrayType          -> { return "[]" }
+        is TupleType          -> { return "()" }
         _ -> { return "" }
     }
 }
@@ -1285,6 +1374,7 @@ op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
     if i32(op) == i32(BinaryOp.Sub) { return OpTraitInfo { .trait_name = "Sub", .method_name = "sub" } }
     if i32(op) == i32(BinaryOp.Mul) { return OpTraitInfo { .trait_name = "Mul", .method_name = "mul" } }
     if i32(op) == i32(BinaryOp.Div) { return OpTraitInfo { .trait_name = "Div", .method_name = "div" } }
+    if i32(op) == i32(BinaryOp.Mod) { return OpTraitInfo { .trait_name = "Rem", .method_name = "rem" } }
     return null
 }
 
@@ -1334,9 +1424,28 @@ lower_if :: fn(ctx: FnLowerCtx, if_expr: IfExpr, type: Type) -> LoweredExpr {
     cond :: lower_expr(ctx, if_expr.cond)
     then_block :: lower_then_with_binding(ctx, if_expr)
     else_block :: lower_if_else(ctx, if_expr.else_branch)
+    // Else-less `if` : the body's value is unobservable (the typechecker
+    // widens to `T | void`, but `void` has no representation), so force
+    // the if to `void` and convert the then-block's trailing expression
+    // into an `ExprStmt`. Mirror of `lowerIf`'s else-null branch in
+    // `src/lower/passes/expr.ts:1005-1010`.
+    if else_block is null {
+        then_void :: voidify_block(then_block)
+        return LoweredIf {
+            .span = if_expr.span, .type = TY_VOID,
+            .cond = cond, .then_block = then_void, .else_block = null,
+        }
+    }
     return LoweredIf {
         .span = if_expr.span, .type = type,
         .cond = cond, .then_block = then_block, .else_block = else_block,
+    }
+}
+
+voidify_block :: fn(block: LoweredBlock) -> LoweredBlock {
+    return LoweredBlock {
+        .span = block.span, .type = TY_VOID,
+        .stmts = block_stmts_with_trailing(block), .trailing = null,
     }
 }
 
@@ -1606,10 +1715,22 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
     for arg_expr in intrinsic.args {
         args.push(lower_expr(ctx, arg_expr))
     }
+    // `@size_of(x)` over a `type`-valued runtime expression routes
+    // through the dedicated `size_of.type` intrinsic so the bytecode
+    // emit picks the right opcode. Mirror of the static-fold-failed
+    // fallback in `src/lower/passes/expr.ts:393-396`.
+    final_name :: runtime_intrinsic_name(intrinsic.name, args)
     return LoweredIntrinsicCall {
-        .span = intrinsic.span, .type = type, .name = intrinsic.name,
+        .span = intrinsic.span, .type = type, .name = final_name,
         .args = args, .display_for = null,
     }
+}
+
+runtime_intrinsic_name :: fn(name: string, args: LoweredExpr[]) -> string {
+    if name == "size_of" && args.len() == usize(1) {
+        return "size_of.type"
+    }
+    return name
 }
 
 lookup_file_baked :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr) -> string | null {
@@ -1624,6 +1745,15 @@ try_fold_static_intrinsic :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
     name :: intrinsic.name
+    if name == "satisfies" {
+        return try_fold_satisfies(ctx, intrinsic, type)
+    }
+    if name == "type_of" {
+        return try_fold_type_of(ctx, intrinsic, type)
+    }
+    if name == "type_args" {
+        return try_fold_type_args(ctx, intrinsic, type)
+    }
     if name != "size_of" && name != "align_of" && name != "type_name" && name != "type_kind" {
         return null
     }
@@ -1645,6 +1775,89 @@ try_fold_static_intrinsic :: fn(
         return LoweredStringLit { .span = intrinsic.span, .type = mk_primitive("string"), .value = kind_string_of_type(ty) }
     }
     return null
+}
+
+/// Fold `@type_of(x)` to a `LoweredTypeConst` carrying `x`'s static
+/// type. The arg is NOT evaluated (Zig-style `@TypeOf`) — only the
+/// typed AST's recorded expr-type is read. Mirror of
+/// `lowerIntrinsic`'s `case "type_of"` in `src/lower/passes/expr.ts:431-437`.
+try_fold_type_of :: fn(
+    ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
+) -> LoweredExpr | null {
+    if intrinsic.args.len() != usize(1) { return null }
+    arg_type :: expr_type(ctx.types, intrinsic.args[0])
+    return LoweredTypeConst {
+        .span = intrinsic.span, .type = type, .value = arg_type,
+    }
+}
+
+/// Fold `@type_args(T)` to an array literal of `LoweredTypeConst`s — one
+/// per generic argument of `T`. Mirror of `lowerIntrinsic`'s
+/// `case "type_args"` in `src/lower/passes/expr.ts:474-483`. Returns an
+/// empty array for non-generic shapes.
+try_fold_type_args :: fn(
+    ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
+) -> LoweredExpr | null {
+    if intrinsic.args.len() != usize(1) { return null }
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
+    args: Type[] = []
+    if !(arg_or_null is null) {
+        ty :: arg_ty_or_unresolved(arg_or_null)
+        if ty is StructType as st { args = st.args }
+        if ty is TraitType as tt { args = tt.args }
+    }
+    elements: LoweredExpr[] = []
+    for a in args {
+        elements.push(LoweredTypeConst {
+            .span = intrinsic.span, .type = TY_TYPE, .value = a,
+        })
+    }
+    return LoweredArrayLit {
+        .span = intrinsic.span, .type = type, .elements = elements,
+    }
+}
+
+/// Fold `@satisfies(T, Trait)` to a literal bool. True iff a user impl
+/// `T implements Trait` exists in the registry. Mirror of
+/// `lowerIntrinsic`'s `case "satisfies"` branch in
+/// `src/lower/passes/expr.ts:416-423`.
+try_fold_satisfies :: fn(
+    ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
+) -> LoweredExpr | null {
+    if intrinsic.args.len() != usize(2) { return null }
+    target_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
+    trait_or_null  :: resolve_intrinsic_type_arg(ctx, intrinsic.args[1])
+    value: bool = false
+    if !(target_or_null is null) && !(trait_or_null is null) {
+        match arg_ty_or_unresolved(trait_or_null) {
+            is TraitType as tt -> {
+                value = impl_exists_for(ctx, arg_ty_or_unresolved(target_or_null), tt.symbol)
+            }
+            _ -> {}
+        }
+    }
+    return LoweredBoolLit { .span = intrinsic.span, .type = type, .value = value }
+}
+
+/// Mirror of `ImplRegistry.findFor` in `src/typecheck/impls.ts:81`: a struct
+/// or enum target resolves through `has_user`, a primitive target falls
+/// back to a name-match scan over the registry's flat entry list (those
+/// impls carry `for_symbol = null`).
+impl_exists_for :: fn(ctx: FnLowerCtx, target_ty: Type, trait_sym: Symbol) -> bool {
+    target_sym :: type_to_target_symbol(target_ty)
+    if target_sym is Symbol as ts {
+        return ctx.project.impls.has_user(ts, trait_sym)
+    }
+    if target_ty is PrimitiveType as pt {
+        for entry in ctx.project.impls.all {
+            if entry.for_symbol is Symbol { continue }
+            if entry.trait_symbol.id != trait_sym.id { continue }
+            if entry.decl.for_type is IdentExpr as id {
+                if id.name == pt.name { return true }
+            }
+        }
+    }
+    return false
 }
 
 arg_ty_or_unresolved :: fn(t: Type | null) -> Type {

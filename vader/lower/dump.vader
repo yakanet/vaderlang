@@ -23,7 +23,7 @@ import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/module" { is_stdlib_module }
 import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck/types" { Type, display_type }
+import "vader/typecheck/types" { Type, PrimitiveType, display_type }
 import "vader/lower/lowered_ast" {
     LoweredProject, LoweredModule, LoweredDecl,
     LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
@@ -333,7 +333,7 @@ emit_expr_compound :: fn(lines: string[], expr: LoweredExpr, indent: string) -> 
 // everything else returns null.
 expr_inline :: fn(expr: LoweredExpr) -> string | null {
     match expr {
-        is LoweredIntLit as lit    -> { return "int(${lit.value}) :${display_type(lit.type)}" }
+        is LoweredIntLit as lit    -> { return "int(${format_int_value(lit.value, lit.type)}) :${display_type(lit.type)}" }
         is LoweredFloatLit as lit  -> { return "float(${format_float(lit.value)}) :${display_type(lit.type)}" }
         is LoweredBoolLit as lit   -> { return "${lit.value}" }
         is LoweredNullLit          -> { return "null" }
@@ -346,6 +346,23 @@ expr_inline :: fn(expr: LoweredExpr) -> string | null {
 }
 
 import "std/numbers" { to_hex }
+/// Print `value` as a decimal string ; for `u32` / `u64` / `usize` types
+/// reinterpret the i64 storage as the matching unsigned width so the
+/// snapshot keeps `int(18446744073700000000)` rather than the sign-flipped
+/// `int(-9551616)`. Mirror of the TS `LoweredIntLit.toString()` path that
+/// prints BigInts unsigned-cast to the slot type.
+format_int_value :: fn(value: i64, t: Type) -> string {
+    if t is PrimitiveType as p {
+        if p.name == "u64" || p.name == "usize" {
+            if value < i64(0) { return "${u64(value)}" }
+        }
+        if p.name == "u32" {
+            if value < i64(0) { return "${u32(value)}" }
+        }
+    }
+    return "${value}"
+}
+
 hex_string :: fn(value: u32) -> string {
     // Lowercase hex digits — match the TS dump's `n.toString(16)` casing.
     return to_lower(to_hex(u64(value)))
