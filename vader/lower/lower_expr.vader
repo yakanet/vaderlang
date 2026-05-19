@@ -38,6 +38,7 @@ import "vader/comptime/value" {
     NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
 }
 import "vader/comptime/evaluated_ast" { EvaluatedProgram }
+import "vader/parser/ast" { ConstDecl }
 import "vader/lower/ctx" { FnLowerCtx, BlockCtx, new_block_ctx }
 import "vader/lower/entry_types" { expr_type, type_expr_type, local_type, span_key }
 import "vader/lower/helpers" { type_of }
@@ -236,7 +237,7 @@ lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue
             is EvaluatedProgram as ep -> {
                 v :: ep.comptime_decls[symbol.id]
                 match v {
-                    is null -> { continue }
+                    is null -> {}
                     _ -> { return v }
                 }
             }

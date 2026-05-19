@@ -98,6 +98,12 @@ export LowerProjectCtx :: struct {
     /// (which are `≥ 1`).
     next_synthetic_id:   i32
 
+    /// Monotonically-increasing counter for synthetic `MonoEntry` IDs,
+    /// separated from the symbol-id pool so minting an entry doesn't
+    /// bump `__lambda_N` / `__lambda_env_N` naming. Mirror of TS's
+    /// `synthLambdaEntryId` in `src/lower/passes/lambda.ts:198`.
+    next_mono_entry_id:  i32
+
     diags:               Diagnostic[]
 }
 
@@ -117,6 +123,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject) -> LowerProjectC
         .collections_symbols = null,
         .core_trait_cache    = MutableMap(string, Symbol | null) { .buckets = [], .size = 0 },
         .closures            = new_closure_analysis(),
+        .next_mono_entry_id  = i32(1_000_000),
         .synth_decls         = [],
         .next_synthetic_id   = i32(-1),
         .diags               = [],

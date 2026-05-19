@@ -137,6 +137,35 @@ evaluate_module_decls :: fn(
             _       -> { diags.push(result.diag) }
         }
     }
+    // Second pass : best-effort fold of plain consts (no `@comptime`
+    // decorator). Successful folds populate `comptime_decls` so the
+    // lowerer can inline scalar use sites. Failures are silently
+    // swallowed — these decls don't promise comptime evaluability.
+    for decl in decls {
+        match decl {
+            is AST.ConstDecl as cd -> {
+                if has_comptime_decorator(cd) { continue }
+                symbol :: lookup_decl_symbol(cd, typed)
+                if symbol is null { continue }
+                if symbol is Symbol as s {
+                    if !(program.comptime_decls[s.id] is null) { continue }
+                    result :: evaluate_expr(cd.value, context)
+                    match result.value {
+                        is null -> {}
+                        _       -> { program.comptime_decls[s.id] = result.value }
+                    }
+                }
+            }
+            _ -> {}
+        }
+    }
+}
+
+has_comptime_decorator :: fn(decl: AST.ConstDecl) -> bool {
+    for d in decl.decorators {
+        if d.name == "comptime" { return true }
+    }
+    return false
 }
 
 // Same lookup as `deps.vader::lookup_const_symbol` — resolver doesn't
