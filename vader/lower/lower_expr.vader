@@ -29,10 +29,10 @@ import "vader/parser/ast" {
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck/types" {
-    Type, FnType, PrimitiveType, FreeIntType, FreeFloatType,
+    Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, mk_primitive,
 }
-import "vader/typecheck/type_ops" { default_if_free }
+import "vader/typecheck/type_ops" { default_if_free, equals_type }
 import "vader/lower/ctx" { FnLowerCtx, BlockCtx, new_block_ctx }
 import "vader/lower/entry_types" { expr_type, type_expr_type, local_type, span_key }
 import "vader/lower/helpers" { type_of }
@@ -48,7 +48,7 @@ import "vader/lower/lowered_ast" {
     INTRINSIC_BUILDER_NEW, INTRINSIC_BUILDER_APPEND_STR,
     INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
 }
-import "vader/lower/lower_match" { lower_match }
+import "vader/lower/lower_match" { lower_match, resolve_pattern_type }
 import "vader/lower/lower_range" { lower_range_expr }
 import "vader/lower/lower_lambda" { lower_lambda }
 import "vader/lower/lower_try" { lower_try }
@@ -83,9 +83,13 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
                 is null -> {}
                 _ -> { return enum_variant }
             }
+            // Tuple `t.0` → `_0` : tuple types are backed by an anonymous
+            // struct whose slots are named `_0`, `_1`, … — mirror the TS
+            // lowerer's `isNumeric` rewrite so the dump shows `._0`.
+            field_name :: if e.is_numeric { "_${e.field}" } else { e.field }
             return LoweredFieldAccess {
                 .span = e.span, .type = type,
-                .target = lower_expr(ctx, e.target), .field = e.field,
+                .target = lower_expr(ctx, e.target), .field = field_name,
             }
         }
         is IndexExpr      as e -> { return lower_index(ctx, e, type) }
@@ -142,9 +146,41 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
                 is null -> {}
                 _ -> { return via_env }
             }
+            // Match-arm narrowing : the slot stores the declared union
+            // (e.g. `Error | string`), the typed-AST narrows this use to a
+            // concrete variant (e.g. `string`) — emit a `LoweredCast` so the
+            // dump and the runtime unbox via the variant layout instead of
+            // the union slot. Mirror of `lowerIdent` in `expr.ts:563-573`.
+            declared :: declared_type_of_symbol(ctx, resolved)
+            if declared is UnionType {
+                if !equals_type(declared, type) {
+                    return LoweredCast {
+                        .span = ident.span, .type = type,
+                        .value = LoweredIdent {
+                            .span = ident.span, .type = declared, .symbol = resolved,
+                        },
+                    }
+                }
+            }
             return LoweredIdent { .span = ident.span, .type = type, .symbol = resolved }
         }
     }
+}
+
+declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
+    // Most idents (Fn, Const, ImportBinding, …) can't be narrowed —
+    // bail before paying the `span_key` allocation on the hot path.
+    match symbol.kind {
+        .Param   -> {}
+        .Local   -> {}
+        .Binding -> {}
+        _        -> { return null }
+    }
+    defined_at :: symbol.defined_at
+    if defined_at is null { return null }
+    key :: span_key(defined_at)
+    if i32(symbol.kind) == i32(SymbolKind.Param) { return ctx.typed.param_types[key] }
+    return ctx.typed.local_types[key]
 }
 
 try_route_through_env :: fn(
@@ -349,12 +385,45 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
         is null -> {}
         _ -> { return namespace_form }
     }
+    cast_form :: try_lower_cast_call(ctx, call, type)
+    match cast_form {
+        is null -> {}
+        _ -> { return cast_form }
+    }
     args: LoweredExpr[] = []
     for call_arg in call.args {
         args.push(lower_expr(ctx, call_arg.value))
     }
     callee :: lower_expr(ctx, call.callee)
     return LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
+}
+
+/// `T(value)` cast-call detector. Returns a `LoweredCast` when the callee
+/// is a type-shaped symbol (builtin primitive, struct, or type alias) with
+/// a single arg. For non-numeric targets the typer already routed the arg
+/// through `tryInto` ; we emit the lowered arg verbatim. Mirror of
+/// `lowerCall`'s cast branch in `src/lower/passes/expr.ts:62-83`.
+try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+    if call.args.len() != usize(1) { return null }
+    callee_ident :: as_ident(call.callee)
+    if callee_ident is null { return null }
+    callee_symbol :: ctx.typed.resolved.idents[span_key(callee_ident.span)]
+    if callee_symbol is null { return null }
+    is_type_shaped :: match callee_symbol.kind {
+        .BuiltinType -> true
+        .Struct      -> true
+        .TypeAlias   -> true
+        _            -> false
+    }
+    if !is_type_shaped { return null }
+    arg :: lower_expr(ctx, call.args[0].value)
+    if type is PrimitiveType as pt {
+        if pt.name == "string" || pt.name == "bool" || pt.name == "void" || pt.name == "null" {
+            return arg
+        }
+        return LoweredCast { .span = call.span, .type = type, .value = arg }
+    }
+    return arg
 }
 
 // Detect `<namespace_ident>.<member>(args)`. The target ident's
@@ -465,12 +534,48 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
 
 lower_if :: fn(ctx: FnLowerCtx, if_expr: IfExpr, type: Type) -> LoweredExpr {
     cond :: lower_expr(ctx, if_expr.cond)
-    then_block :: lower_block(ctx, if_expr.then_block, false, false)
+    then_block :: lower_then_with_binding(ctx, if_expr)
     else_block :: lower_if_else(ctx, if_expr.else_branch)
     return LoweredIf {
         .span = if_expr.span, .type = type,
         .cond = cond, .then_block = then_block, .else_block = else_block,
     }
+}
+
+/// Prepend a `let <bind_as> = cast → T (scrut)` when the if-condition is
+/// `<scrut> is T as <bind_as>`. The binding only lives inside the
+/// then-block ; the lowering site materialises its slot once and every
+/// downstream read sees the narrowed type. Mirror of `lowerThenWithBinding`
+/// in `src/lower/passes/expr.ts:1020-1044`.
+lower_then_with_binding :: fn(ctx: FnLowerCtx, if_expr: IfExpr) -> LoweredBlock {
+    block :: lower_block(ctx, if_expr.then_block, false, false)
+    cond :: if_expr.cond
+    if !(cond is BinaryExpr) { return block }
+    if cond is BinaryExpr as bin {
+        if i32(bin.op) != i32(BinaryOp.Is) { return block }
+        if bin.bind_as == "" { return block }
+        scrut_type :: ctx.types.expr_type(bin.left)
+        inner_type :: resolve_pattern_type(ctx, bin.right)
+        scrut_value :: lower_expr(ctx, bin.left)
+        cast_value: LoweredExpr = if scrut_type is UnionType {
+            LoweredCast { .span = bin.span, .type = inner_type, .value = scrut_value }
+        } else {
+            scrut_value
+        }
+        symbol :: fresh_synthetic_symbol(ctx, bin.bind_as)
+        let_stmt: LoweredStmt = LoweredLet {
+            .span = bin.span, .name = bin.bind_as, .symbol = symbol,
+            .type = inner_type, .value = cast_value,
+        }
+        new_stmts: LoweredStmt[] = []
+        new_stmts.push(let_stmt)
+        for s in block.stmts { new_stmts.push(s) }
+        return LoweredBlock {
+            .span = block.span, .type = block.type,
+            .stmts = new_stmts, .trailing = block.trailing,
+        }
+    }
+    return block
 }
 
 lower_if_else :: fn(ctx: FnLowerCtx, branch: IfElse | null) -> LoweredBlock | null {
@@ -941,9 +1046,26 @@ lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
     }
     return LoweredAssign {
         .span = assign_stmt.span,
-        .target = lower_expr(ctx, assign_stmt.target),
+        .target = lower_assign_target(ctx, assign_stmt.target),
         .value  = lower_expr(ctx, assign_stmt.value),
     }
+}
+
+/// Lvalue lowerer — bypasses the match-narrowing `LoweredCast` wrap that
+/// `lower_ident` applies on use-site reads. The bytecode emitter resolves
+/// assignment slots via the raw `LoweredIdent` ; a cast in target position
+/// breaks that pattern match. Mirror of `rawIdentTarget` in
+/// `src/lower/passes/block.ts:177-179`.
+lower_assign_target :: fn(ctx: FnLowerCtx, target: Expr) -> LoweredExpr {
+    if target is IdentExpr as ident {
+        symbol :: ctx.typed.resolved.idents[span_key(ident.span)]
+        if symbol is Symbol as resolved {
+            return LoweredIdent {
+                .span = ident.span, .type = ctx.types.expr_type(ident), .symbol = resolved,
+            }
+        }
+    }
+    return lower_expr(ctx, target)
 }
 
 import "vader/typecheck/impls" { ImplEntry }

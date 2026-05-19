@@ -447,7 +447,7 @@ import "vader/parser/ast" { TypeExpr }
 // side-table first ; on miss, fall back to `type_from_expr` against
 // the resolver view (the same helper the typecheck uses for fn
 // signatures).
-resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type {
+export resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type {
     from_table :: ctx.types.type_expr_type(type_expr)
     if from_table is UnresolvedType {
         scratch: Diagnostic[] = []

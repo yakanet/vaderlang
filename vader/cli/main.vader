@@ -420,10 +420,16 @@ run_lower_stage :: fn(file: string) -> i32 {
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     println(dump_lowered(lowered))
-    // Only emit lowerer-stage diagnostics ; earlier-stage ones already
-    // surfaced via their own dump commands.
-    if lower_diags.len() > 0 {
-        println(lower_diags.dump_diagnostics())
+    // Mirror `dumpLower` in `tests/snapshot.ts` : emit one merged
+    // `# Diagnostics` block covering every stage (resolver + typecheck
+    // + comptime + lower). `typecheck_diags` already includes the
+    // resolver-side forward (`orchestrate.vader:168`).
+    all_diags: Diagnostic[] = []
+    for d in pipeline.typecheck_diags { all_diags.push(d) }
+    for d in pipeline.comptime_diags  { all_diags.push(d) }
+    for d in lower_diags              { all_diags.push(d) }
+    if all_diags.len() > 0 {
+        println(all_diags.dump_diagnostics())
     }
     return 0
 }
@@ -434,10 +440,11 @@ import "vader/comptime/evaluated_ast" { EvaluatedProject }
 // Pipeline state shared by the comptime + lowerer dump stages : both
 // run load → typecheck → comptime and only diverge on the final dump.
 EvaluatedPipeline :: struct {
-    loaded:         LoadedProject
-    typed:          TypedProject
-    evaluated:      EvaluatedProject
-    comptime_diags: Diagnostic[]
+    loaded:          LoadedProject
+    typed:           TypedProject
+    evaluated:       EvaluatedProject
+    typecheck_diags: Diagnostic[]
+    comptime_diags:  Diagnostic[]
 }
 
 prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
@@ -448,10 +455,11 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
     comptime_diags: Diagnostic[] = []
     evaluated :: evaluate_project(loaded, typed, comptime_diags)
     return EvaluatedPipeline {
-        .loaded         = loaded,
-        .typed          = typed,
-        .evaluated      = evaluated,
-        .comptime_diags = comptime_diags,
+        .loaded          = loaded,
+        .typed           = typed,
+        .evaluated       = evaluated,
+        .typecheck_diags = typecheck_diags,
+        .comptime_diags  = comptime_diags,
     }
 }
 
