@@ -355,6 +355,7 @@ export skip :: fn[T](self: Iterator(T), n: usize) -> SkipIterator(T) {
 /// Lazy map. `next()` pulls one item from `source`, transforms it via `f`,
 /// and yields it. Stops when the source is exhausted.
 /// Construct as `MapIterator(T, U) { .source = it, .f = mapper }`.
+@specialize
 export MapIterator :: struct[T, U] {
     source: Iterator(T)
     f:      fn(T) -> U
@@ -372,6 +373,7 @@ MapIterator[T, U] implements Iterator[U] {
 /// Lazy filter. `next()` pulls items from `source` until `pred` returns
 /// `true` ; that one is yielded, the next call resumes the search.
 /// Construct as `FilterIterator(T) { .source = it, .pred = predicate }`.
+@specialize
 export FilterIterator :: struct[T] {
     source: Iterator(T)
     pred:   fn(T) -> bool
@@ -398,6 +400,7 @@ FilterIterator[T] implements Iterator[T] {
 /// stops. `remaining` counts down across calls — once it hits zero the
 /// iterator returns `null` even if `source` still has items.
 /// Construct as `TakeIterator(T) { .source = it, .remaining = n }`.
+@specialize
 export TakeIterator :: struct[T] {
     source:    Iterator(T)
     remaining: usize
@@ -420,6 +423,7 @@ TakeIterator[T] implements Iterator[T] {
 /// `next()` call, then forwards every subsequent item. After the prefix is
 /// consumed `remaining` stays at zero so the steady state is a pass-through.
 /// Construct as `SkipIterator(T) { .source = it, .remaining = n }`.
+@specialize
 export SkipIterator :: struct[T] {
     source:    Iterator(T)
     remaining: usize

@@ -192,6 +192,7 @@ export Error :: trait {
 /// `Yield(T) | null` lowers to a single `void*` slot (T's obj_ptr or
 /// NULL) ; for T = primitive, the value rides in `vader_box_t.payload`
 /// with no wrapper allocation.
+@specialize
 export Yield :: struct[T] { value: T }
 
 /// One field of a struct type as exposed by the `@fields(T)` reflection
@@ -243,6 +244,7 @@ Range[T] implements[T: Comparable & Step] Iterator[T] {
 
 /// Iterator over a `T[]`. The lowerer auto-wraps array exprs flowing into
 /// `for x in arr`, so direct construction is rarely needed.
+@specialize
 export ArrayIterator :: struct[T] {
     arr:    T[]
     cursor: usize

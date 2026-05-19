@@ -240,6 +240,7 @@ export values :: fn[K, V](self: MutableMap(K, V)) -> V[] {
 /// then chain-by-chain — no snapshot allocation, unlike `keys()` / `values()`.
 /// Iteration order follows the hash distribution, not insertion. Mutating
 /// `self` while a `MapIterator` is live yields undefined behaviour.
+@specialize
 export MapIterator :: struct[K: Hash & Equals, V] {
     map:           MutableMap(K, V)
     bucket_cursor: usize
@@ -331,6 +332,7 @@ MutableSet[T] implements Contains[T] {
 /// `Yield(Entry(T, bool))` payload, which the VM's variant tag check
 /// doesn't drill into yet. Same undefined-behaviour caveat as `MapIterator` on
 /// concurrent mutation.
+@specialize
 export SetIterator :: struct[T: Hash & Equals] {
     set:           MutableSet(T)
     bucket_cursor: usize
