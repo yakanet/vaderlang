@@ -192,7 +192,7 @@ function bundleProject(
     });
   }
   // Comptime virtual dispatch isn't yet supported — emit an empty vtable list.
-  return { modules, vtableEntries: [], dataPool: [] };
+  return { modules, vtableEntries: [], dataPool: [], symbolRedirects: new Map() };
 }
 
 function newLowerProjectCtx(input: CompileInput): LowerProjectCtx {
@@ -211,6 +211,7 @@ function newLowerProjectCtx(input: CompileInput): LowerProjectCtx {
   const mono: MonoProject = {
     entries: [], lookupByInstance: new Map(),
     implMethodEntries: new Map(), fnInstanceEntries: new Map(),
+    symbolRedirects: new Map(),
   };
   return {
     evaluated: input.liveEvaluated,

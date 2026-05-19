@@ -386,6 +386,56 @@ types.
 the same way in `vader/comptime/`. The TS-side decision sets
 precedent.
 
+### Issue 8 — Comptime under-registers generic calls inside erased bodies
+
+**Date**: 2026-05-19 (after Issue 7 infrastructure shipped).
+
+**Symptom**: with `erasureDedupe` enabled AND symbol redirects plumbed
+through `MonoProject → LoweredProject → CFGProject → bytecode emit`,
+the build still produces `unreachable` bodies for ~6 stdlib functions
+(`into`, `ensure_buckets`, `put`, `get`, `contains_key`, `assert_eq`).
+The redirect log shows `9 redirects produced ; 3/9 applied`. The
+6 missed redirects point to representative symbol ids that aren't in
+`fnIndexBySymId` because the representatives were DCE-eliminated.
+
+**Cause**: when the lower processes a UFCS-free call like
+`self.put(key, v)` inside an erased fn body, it calls
+`lookupFnInstance(ctx, putFnDecl, ufcsTypeArgs)`. The lookup queries
+`mono.fnInstanceEntries.get(putFnDecl)?.get(...)`. If the comptime
+instance registry **never observed `put` as a separate instance**
+(e.g. because every observed call site is inside another erased
+generic fn that erased its own type-params before observing `put`),
+`fnInstanceEntries.get(putFnDecl)` is `undefined`. The lookup
+returns null, the caller falls back to `fr.symbol` (the generic decl
+symbol, no fnIndex), and the bytecode emit emits `unreachable`.
+
+The symbol redirect map (Issue 7) only carries id→id mappings for
+entries that EXIST. If no representative was created, no redirect.
+
+**Mitigation candidates**:
+- **(η) Strengthen comptime observation** : when the comptime
+  evaluator processes a generic call site that uses TypeParam
+  arguments (e.g. `self.put(key, v)` where K, V are typeparams of
+  the enclosing impl), it should still register the call as an
+  instance — using the FOR-NOW-CONCRETE typeArgs computed from the
+  current evaluation context. This way Pass 3 sees at least one
+  instance per actually-called generic free fn.
+- **(θ) Lazy materialise during dedupe** : if the dedupe sees an
+  erased decl referencing a generic free fn with no instances
+  registered, synthesise one. Same recursion risk as Issue 6 fix (γ).
+- **(ι) Fallback at lookup time** : if `lookupFnInstance` fails AND
+  the call site is inside an erased body, fall back to ANY entry in
+  `mono.entries` whose decl matches the fnDecl. Hack ; non-
+  deterministic ; pickup-the-first-one semantics. Avoid.
+
+**Recommended**: (η) — fix the root cause in comptime. Probably
+~1-2 d in `src/comptime/evaluate.ts` + `src/comptime/instances.ts`.
+
+**Vader port note**: same investigation required in
+`vader/comptime/` (when porting). The `InstanceRegistry`'s
+observation policy for type-param-bearing arguments is the touch
+point.
+
 ### Issue 7 — Symbol-id → fnIndex routing breaks after dedupe
 
 **Date**: 2026-05-19 (post-β fix).

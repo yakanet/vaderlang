@@ -183,10 +183,23 @@ export function erasureDedupe(mono: MonoProject, project: TypedProject): MonoPro
   const newImplMethodEntries = redirectInner(mono.implMethodEntries, replacements);
   const newFnInstanceEntries = redirectInner(mono.fnInstanceEntries, replacements);
 
+  // Build the symbol-id redirect table : for every redirected entry, map
+  // its old `symbol.id` to the representative's `symbol.id`. The bytecode
+  // emit uses this to redirect any `LoweredCall` that still references
+  // the original entry's symbol (left over in the lowered IR from before
+  // dedupe) to the representative's fnIndex.
+  const symbolRedirects = new Map<number, number>();
+  for (const [oldEntry, repr] of replacements) {
+    if (oldEntry.symbol === null || repr.symbol === null) continue;
+    if (oldEntry.symbol.id === repr.symbol.id) continue;
+    symbolRedirects.set(oldEntry.symbol.id, repr.symbol.id);
+  }
+
   return {
     entries: newEntries,
     lookupByInstance: newLookupByInstance,
     implMethodEntries: newImplMethodEntries,
     fnInstanceEntries: newFnInstanceEntries,
+    symbolRedirects,
   };
 }

@@ -92,6 +92,7 @@ export function lowerProject(
     modules,
     vtableEntries: collectVtableEntries(impls, mono),
     dataPool: [],
+    symbolRedirects: mono.symbolRedirects,
   };
   return inlineConsts(project, ctx.nextSyntheticId).project;
 }

@@ -51,7 +51,7 @@ export function annotateEscape(p: CFGProject): { project: CFGProject; stats: Esc
     });
   }
   return {
-    project: { modules, vtableEntries: p.vtableEntries, strings: p.strings, dataPool: p.dataPool },
+    project: { modules, vtableEntries: p.vtableEntries, strings: p.strings, dataPool: p.dataPool, symbolRedirects: p.symbolRedirects },
     stats: { totalAllocs, stackPromoted },
   };
 }

@@ -88,6 +88,7 @@ export function buildCFGProject(lp: L.LoweredProject): CFGProject {
     vtableEntries: lp.vtableEntries,
     strings: ctx.strings,
     dataPool: lp.dataPool,
+    symbolRedirects: lp.symbolRedirects,
   };
 }
 

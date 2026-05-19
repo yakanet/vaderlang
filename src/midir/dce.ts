@@ -181,7 +181,7 @@ export function pruneUnreachable(lp: LoweredProject, opts: PruneOpts = {}): Lowe
   // ids — no need to mirror the filter here. dataPool entries are addressed by
   // index from surviving `LoweredDataConst` nodes ; their indices must stay
   // stable across this pass, so carry the pool verbatim.
-  return { modules, vtableEntries: lp.vtableEntries, dataPool: lp.dataPool };
+  return { modules, vtableEntries: lp.vtableEntries, dataPool: lp.dataPool, symbolRedirects: lp.symbolRedirects };
 }
 
 function declSurvives(
@@ -239,7 +239,7 @@ export function eliminateDeadCFG(p: CFGProject): CFGProject {
       structDecls: m.structDecls,
     });
   }
-  return { modules, vtableEntries: p.vtableEntries, strings: p.strings, dataPool: p.dataPool };
+  return { modules, vtableEntries: p.vtableEntries, strings: p.strings, dataPool: p.dataPool, symbolRedirects: p.symbolRedirects };
 }
 
 function optimiseFunction(fn: CFGFunction): CFGFunction {

@@ -473,6 +473,9 @@ export interface CFGProject {
   /** Mirrors `LoweredProject.dataPool` — carried verbatim into
    *  `BytecodeModule.dataPool`. `InstrDataConst` references entries by index. */
   readonly dataPool: readonly BcDataEntry[];
+  /** Forwarded from `LoweredProject.symbolRedirects` ; consumed by the
+   *  bytecode emit (`fnIndexBySymId` builder). */
+  readonly symbolRedirects: ReadonlyMap<number, number>;
 }
 
 export interface CFGModule {

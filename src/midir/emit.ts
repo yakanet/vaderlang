@@ -61,6 +61,19 @@ export function emitBytecodeFromCFG(
     for (const s of m.structDecls) reserveCFGStruct(s, ctx);
   }
 
+  // Erasure-dedupe symbol redirects : when the erasure pass collapsed N
+  // concrete MonoEntries into one representative, the (N-1) abandoned
+  // symbols still appear in the lowered IR (left over from when those
+  // entries had their own bodies). Forward each abandoned symbol id to
+  // the representative's fnIndex so call sites resolve correctly.
+  // Erasure-dedupe symbol redirects : forward each abandoned symbol id to
+  // the representative's fnIndex so call sites in the surviving lowered
+  // IR resolve correctly.
+  for (const [oldSymId, newSymId] of cfg.symbolRedirects) {
+    const newIdx = ctx.fnIndexBySymId.get(newSymId);
+    if (newIdx !== undefined) ctx.fnIndexBySymId.set(oldSymId, newIdx);
+  }
+
   // Pre-translate the CFG's string indices into the bytecode pool's indices
   // so per-instr emit is a plain array lookup instead of a hash re-intern.
   const stringIndexMap: number[] = cfg.strings.map((s) => internString(ctx, s));

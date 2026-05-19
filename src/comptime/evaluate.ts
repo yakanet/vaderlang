@@ -138,9 +138,13 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
     mono: EMPTY_MONO, fileExprs, intoMembers,
   };
   // `erasureDedupe` is wired in `src/comptime/erasure-dedupe.ts` but
-  // disabled here pending §9 Issue 7 resolution (symbol-id → fnIndex
-  // redirection on the bytecode-emit side). Re-enable by replacing the
-  // line below with `erasureDedupe(monomorphizeProject(evaluatedCore), project)`.
+  // disabled here pending §9 Issue 8 (comptime instance registration
+  // for generic calls inside erased bodies). The symbol-redirect
+  // infrastructure (Issue 7) is plumbed end-to-end through
+  // MonoProject → LoweredProject → CFGProject → bytecode emit, but
+  // redirects can't fire when no representative was created in the
+  // first place. Re-enable by replacing the line below with
+  // `erasureDedupe(monomorphizeProject(evaluatedCore), project)`.
   const mono = monomorphizeProject(evaluatedCore);
   return { ...evaluatedCore, mono };
 }
@@ -191,6 +195,7 @@ const EMPTY_MONO: MonoProject = {
   lookupByInstance: new Map(),
   implMethodEntries: new Map(),
   fnInstanceEntries: new Map(),
+  symbolRedirects: new Map(),
 };
 
 /** Build a synthetic EvaluatedProject whose per-module overlays all alias

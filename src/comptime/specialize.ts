@@ -100,6 +100,13 @@ export interface MonoProject {
    *  key. Populated by the fn-instance pass for call sites of the form
    *  `foo(T)(args)`. */
   readonly fnInstanceEntries: ReadonlyMap<A.FnDecl, ReadonlyMap<string, MonoEntry>>;
+  /** Maps a `Symbol.id` that was attached to a now-redirected MonoEntry to
+   *  the `Symbol.id` of its representative. Populated by `erasureDedupe`
+   *  when entries collapse under post-typecheck erasure ; consumed by the
+   *  bytecode emit (`fnIndexBySymId` builder) so a `LoweredCall` carrying
+   *  an old symbol id still resolves to the representative's fnIndex.
+   *  Empty when erasure is disabled or no collapse happened. */
+  readonly symbolRedirects: ReadonlyMap<number, number>;
 }
 
 // ============================================================================
@@ -247,7 +254,7 @@ export function monomorphizeProject(evaluated: EvaluatedProject): MonoProject {
     putImplEntry(implMethodEntries, member, obs.typeArgs, memberEntry);
   }
 
-  return { entries, lookupByInstance: byInstance, implMethodEntries, fnInstanceEntries };
+  return { entries, lookupByInstance: byInstance, implMethodEntries, fnInstanceEntries, symbolRedirects: new Map() };
 }
 
 /** Find the `ImplDecl` whose `members` array contains `member`. Linear

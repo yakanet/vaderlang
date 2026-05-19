@@ -85,7 +85,7 @@ export function inlineConsts(p: LoweredProject, nextSyntheticId: number = 1_000_
     modules.set(id, { moduleId: m.moduleId, displayPath: m.displayPath, decls });
   }
   return {
-    project: { modules, vtableEntries: p.vtableEntries, dataPool: collected.dataPool },
+    project: { modules, vtableEntries: p.vtableEntries, dataPool: collected.dataPool, symbolRedirects: p.symbolRedirects },
     nextSyntheticId: collected.nextSyntheticId,
   };
 }

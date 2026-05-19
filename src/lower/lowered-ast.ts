@@ -18,6 +18,11 @@ export interface LoweredProject {
    *  populates this for eligible primitive-element const arrays ; references
    *  become `LoweredDataConst` nodes carrying the pool index. */
   readonly dataPool: readonly BcDataEntry[];
+  /** Forwarded from `MonoProject.symbolRedirects` — maps an old MonoEntry's
+   *  `symbol.id` to its representative's `symbol.id` after the erasure
+   *  dedupe collapsed it. Consumed by the bytecode emit's `fnIndexBySymId`
+   *  builder. Empty when erasure produced no collapses. */
+  readonly symbolRedirects: ReadonlyMap<number, number>;
 }
 
 export interface VtableEntry {
