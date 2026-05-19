@@ -24,6 +24,7 @@ import "vader/typecheck/substitution" { new_substitution }
 import "vader/comptime/mono_ast" { MonoEntry }
 import "vader/lower/ctx" { FnLowerCtx, LiftedFnContext, Capture, new_fn_lower_ctx }
 import "vader/lower/entry_types" { expr_type, param_type, span_key }
+import "vader/lower/helpers" { fresh_synthetic_symbol }
 import "vader/lower/lowered_ast" {
     LoweredExpr, LoweredFnDecl, LoweredStructDecl, LoweredParam,
     LoweredMakeClosure, LoweredStructLit, LoweredStructLitField,
@@ -188,14 +189,9 @@ next_synthetic_id :: fn(ctx: FnLowerCtx) -> i32 {
 }
 
 synth_env_param_symbol :: fn(ctx: FnLowerCtx) -> Symbol {
-    return Symbol {
-        .id         = next_synthetic_id(ctx),
-        .kind       = SymbolKind.Synthetic,
-        .name       = "__env",
-        .module     = ctx.typed.resolved.path,
-        .visibility = AST.Visibility.Private,
-        .defined_at = null,
-    }
+    // Use the per-fn `uniq` counter so the name matches TS's
+    // `freshSyntheticSymbol("env")` form (`__env_0`, `__env_1`, …).
+    return fresh_synthetic_symbol(ctx, "env")
 }
 
 fresh_lifted_symbol :: fn(ctx: FnLowerCtx, is_env: bool) -> Symbol {

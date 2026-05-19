@@ -167,21 +167,23 @@ lower_module :: fn(
     module_id: string, typed: TypedProgram, decls: Decl[],
     project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredModule {
-    synth_baseline :: project_ctx.synth_decls.len()
     out_decls: LoweredDecl[] = []
     for decl in decls {
+        // Each iteration drains the impl-member buffer it generates
+        // before moving on, so impl members land in source order
+        // (right after their parent `ImplDecl`) — matches the TS dump
+        // where `impl Foo: Trait { fn m… }` is followed by every other
+        // top-level decl in textual order.
+        before :: project_ctx.synth_decls.len()
         result :: lower_decl(decl, typed, project_ctx, diags)
         match result {
             is null -> {}
             _       -> { out_decls.push(result) }
         }
-    }
-    // Drain newly-spawned synth decls (everything appended after the
-    // baseline snapshot). These belong to the current module since
-    // their bodies were lowered above.
-    synth_total :: project_ctx.synth_decls.len()
-    for i in synth_baseline..<synth_total {
-        out_decls.push(project_ctx.synth_decls[i])
+        after :: project_ctx.synth_decls.len()
+        for i in before..<after {
+            out_decls.push(project_ctx.synth_decls[i])
+        }
     }
     return LoweredModule {
         .module_id    = module_id,

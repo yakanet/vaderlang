@@ -18,7 +18,7 @@
 
 import "std/collections" { keys }
 import "std/sort" { sort }
-import "std/string" { compare_ascending }
+import "std/string" { compare_ascending, to_lower, ends_with, slice, byte_len }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/module" { is_stdlib_module }
@@ -336,7 +336,7 @@ emit_expr_compound :: fn(lines: string[], expr: LoweredExpr, indent: string) -> 
 expr_inline :: fn(expr: LoweredExpr) -> string | null {
     match expr {
         is LoweredIntLit as lit    -> { return "int(${lit.value}) :${display_type(lit.type)}" }
-        is LoweredFloatLit as lit  -> { return "float(${lit.value}) :${display_type(lit.type)}" }
+        is LoweredFloatLit as lit  -> { return "float(${format_float(lit.value)}) :${display_type(lit.type)}" }
         is LoweredBoolLit as lit   -> { return "${lit.value}" }
         is LoweredNullLit          -> { return "null" }
         is LoweredCharLit as lit   -> { return "char(0x${hex_string(lit.value)})" }
@@ -349,7 +349,20 @@ expr_inline :: fn(expr: LoweredExpr) -> string | null {
 
 import "std/numbers" { to_hex }
 hex_string :: fn(value: u32) -> string {
-    return to_hex(u64(value))
+    // Lowercase hex digits — match the TS dump's `n.toString(16)` casing.
+    return to_lower(to_hex(u64(value)))
+}
+
+/// Mirror JS's `${number}` stringification : drop the `.0` suffix when the
+/// float happens to be integer-valued (`4.0` → `"4"`, `3.14` → `"3.14"`).
+/// The dump uses this so snapshot fixtures generated from the TS lowerer
+/// stay byte-identical.
+format_float :: fn(value: f64) -> string {
+    raw :: "${value}"
+    if raw.ends_with(".0") {
+        return raw.slice(usize(0), raw.byte_len() - usize(2))
+    }
+    return raw
 }
 
 // Simple-escape mirror of the TS `quoteSimple` helper. Doubles up `"`

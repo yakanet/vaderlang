@@ -29,7 +29,7 @@ import "vader/parser/ast" {
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck/types" {
-    Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType,
+    Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, mk_primitive,
 }
 import "vader/typecheck/type_ops" { default_if_free, equals_type }
@@ -40,7 +40,7 @@ import "vader/lower/lowered_ast" {
     LoweredExpr, LoweredBlock, LoweredStmt, LoweredExprStmt,
     LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
     LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
-    LoweredFieldAccess, LoweredIndex, LoweredUnary, LoweredUnaryOp,
+    LoweredFieldAccess, LoweredIndex, LoweredUnary, LoweredUnaryOp, LoweredVirtualCall,
     LoweredBinary, LoweredBinaryOp, LoweredIf, LoweredStructLit,
     LoweredStructLitField, LoweredArrayLit, LoweredCast, LoweredTypeCheck,
     LoweredUnreachable, LoweredIntrinsicCall, LoweredLet, LoweredAssign,
@@ -390,12 +390,49 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
         is null -> {}
         _ -> { return cast_form }
     }
+    vcall_form :: try_lower_virtual_call(ctx, call, type)
+    match vcall_form {
+        is null -> {}
+        _ -> { return vcall_form }
+    }
     args: LoweredExpr[] = []
     for call_arg in call.args {
         args.push(lower_expr(ctx, call_arg.value))
     }
     callee :: lower_expr(ctx, call.callee)
     return LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
+}
+
+/// `recv.method(args)` against a trait-typed receiver lowers to a
+/// `LoweredVirtualCall` — the bytecode emit dispatches in O(1) via the
+/// per-(trait, method) vtable. Detection : the callee is a `FieldExpr`
+/// and the lowered receiver's runtime type is a `TraitType` (the typer
+/// already narrowed unions / cast-call sites so the lowered tree carries
+/// the dispatch type at the surface). Mirror of `lowerVirtualDispatch`
+/// in `src/lower/passes/expr.ts:957-989`.
+try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+    callee_field :: as_field_expr(call.callee)
+    if callee_field is null { return null }
+    if callee_field is FieldExpr as field_expr {
+        receiver :: lower_expr(ctx, field_expr.target)
+        if type_of(receiver) is TraitType as tt {
+            args: LoweredExpr[] = []
+            for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+            return LoweredVirtualCall {
+                .span = call.span, .type = type,
+                .trait_name = tt.symbol.name, .method = field_expr.field,
+                .receiver = receiver, .args = args,
+            }
+        }
+    }
+    return null
+}
+
+as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
+    match expr {
+        is FieldExpr as f -> { return f }
+        _ -> { return null }
+    }
 }
 
 /// `T(value)` cast-call detector. Returns a `LoweredCast` when the callee
