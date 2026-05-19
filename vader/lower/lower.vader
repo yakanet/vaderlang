@@ -12,16 +12,17 @@
 // ships empty (the monomorphizer port is deferred to the bytecode emit
 // chantier) ; we walk loaded module decls directly until then.
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap, keys, values }
 import "vader/diagnostics/diagnostic" { Diagnostic, Span }
 import "vader/parser/ast" {
     Decl, FnDecl, StructDecl, ConstDecl,
 }
 import "vader/resolver/loader" { LoadedProject, LoadedModule }
 import "vader/typecheck/typed_ast" { TypedProject, TypedProgram }
-import "vader/typecheck/substitution" { Substitution, new_substitution }
+import "vader/typecheck/substitution" { Substitution, new_substitution, substitute }
+import "vader/typecheck/types" { UnresolvedType }
 import "vader/typecheck/types" {
-    Type, FnType, StructType, TypeMetaType, ArrayType, mk_struct, mk_primitive,
+    Type, FnType, StructType, TypeMetaType, TypeParamType, ArrayType, mk_struct, mk_primitive,
     display_type, TY_BOOL, TY_UNRESOLVED, TY_VOID,
 }
 import "vader/typecheck/type_ops" { default_if_free }
@@ -90,6 +91,10 @@ export lower_project :: fn(
         lowered_module :: lower_module(module_id, module_typed, decls, project_ctx, diags)
         project.modules[module_id] = lowered_module
     }
+    // After per-module lowering, materialise generic-struct instances +
+    // their matching generic-impl members. Each `evaluated.instances`
+    // entry yields a `StructDecl<Concrete>` + per-impl `__T` member fns.
+    materialize_generic_instances(loaded, typed, project_ctx, project, diags)
     return project
 }
 
@@ -246,8 +251,14 @@ lower_impl_members :: fn(
 ) -> void {
     // Skip generic impls entirely — they need the mono pass to bind
     // concrete type args before each member can lower with a known
-    // substitution.
+    // substitution. Two generic shapes :
+    //   - bounded form : `[T] Wrap[T] implements …` carries explicit
+    //     `type_params` on the impl decl.
+    //   - legacy form : `Wrap[T] implements …` (no impl-level
+    //     `type_params`) — the for-type is a `GenericInstExpr` whose
+    //     args reference the struct's typeParams.
     if impl_decl.type_params.len() > usize(0) { return }
+    if impl_decl.for_type is GenericInstExpr { return }
     self_type :: lower_for_type(impl_decl, typed)
     base_mangle :: "${mangle_module_id(typed.resolved.path)}$${impl_decl.trait_name}"
     for member in impl_decl.members {
@@ -686,6 +697,349 @@ is_main_decl :: fn(decl: Decl) -> bool {
 // folder-modules with multiple files are flattened at load time so the
 // per-file accessor doesn't have to walk multiple files here. (Mirrors
 // `vader/comptime/check.vader::lookup_module_decls`.)
+/// Walk `evaluated.instances` and emit a synthetic monomorphic decl
+/// per concrete generic instance. Structs land as
+/// `Symbol__T1__T2 { field: ConcreteT }` ; generic-impl members
+/// follow as `Symbol$Trait$method__T1__T2(...)`. Mirror of TS's
+/// `monomorphizeProject` (`src/comptime/specialize.ts`) pass-2.
+materialize_generic_instances :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    project: LoweredProject, diags: Diagnostic[],
+) -> void {
+    // Emit struct + impl-member decls into the synthetic module, then
+    // merge into the entry module's decls so the dump renders them
+    // alongside the user decls. The TS pipeline puts them in the
+    // owning module of the symbol — match that.
+    for inst in project_ctx.evaluated.instances {
+        materialize_one_instance(inst, loaded, typed, project_ctx, project, diags)
+    }
+}
+
+materialize_one_instance :: fn(
+    inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
+) -> void {
+    // Only concrete instances get a monomorphized decl. Skip uses where
+    // any arg is still a TypeParam (those are the generic decl's own
+    // body referencing itself).
+    if !all_concrete_args(inst.args) { return }
+    sym :: inst.symbol
+    owner_module_id :: sym.module
+    if is_stdlib_path(owner_module_id) { return }
+    owner_module :: loaded.modules[owner_module_id]
+    if owner_module is null { return }
+    owner_typed :: typed.modules[owner_module_id]
+    if owner_typed is null { return }
+    if owner_typed is TypedProgram as owner_typed_ok {
+        if owner_module is LoadedModule as owner_loaded {
+            owner_decls :: module_decls(owner_loaded)
+            // (1) Find the StructDecl for this instance ; emit a
+            // monomorphized struct decl.
+            if i32(sym.kind) == i32(SymbolKind.Struct) {
+                materialize_struct_instance(inst, owner_decls, owner_typed_ok, project_ctx, project)
+                // (2) For every generic impl whose for_type targets the
+                // same struct symbol, materialize each member.
+                materialize_impl_members_for(inst, owner_decls, owner_typed_ok, project_ctx, project, loaded, typed, diags)
+            }
+        }
+    }
+}
+
+all_concrete_args :: fn(args: Type[]) -> bool {
+    for a in args {
+        if has_type_param(a) { return false }
+    }
+    return true
+}
+
+has_type_param :: fn(t: Type) -> bool {
+    match t {
+        is TypeParamType -> { return true }
+        is StructType as s -> {
+            for a in s.args { if has_type_param(a) { return true } }
+            return false
+        }
+        is ArrayType as ar -> { return has_type_param(ar.element) }
+        _ -> { return false }
+    }
+}
+
+materialize_struct_instance :: fn(
+    inst: GenericInstance, owner_decls: Decl[], owner_typed: TypedProgram,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+) -> void {
+    decl :: find_struct_decl_by_name(owner_decls, inst.symbol.name)
+    if decl is null { return }
+    if decl is StructDecl as sd {
+        if sd.type_params.len() == usize(0) { return }
+        mangled :: "${mangle_module_id(owner_typed.resolved.path)}$${inst.symbol.name}${args_suffix(inst.args)}"
+        subst :: build_struct_subst(sd, inst.args, owner_typed)
+        fields: LoweredStructField[] = []
+        for f in sd.fields {
+            raw_ty :: resolve_field_type(f.ty, owner_typed, sd, inst.args)
+            field_ty :: substitute(raw_ty, subst)
+            fields.push(LoweredStructField {
+                .name = f.name,
+                .type = field_ty,
+            })
+        }
+        entry_decl: Decl = sd
+        entry :: MonoEntry {
+            .id             = i32(0),
+            .is_main        = false,
+            .mangled        = mangled,
+            .decl           = entry_decl,
+            .symbol         = inst.symbol,
+            .subst          = subst,
+            .type_arguments = inst.args,
+            .module         = owner_typed,
+        }
+        push_to_module(project, owner_typed.resolved.path, LoweredStructDecl {
+            .mangled = mangled,
+            .fields  = fields,
+            .origin  = entry,
+        })
+    }
+}
+
+resolve_field_type :: fn(
+    ty: TypeExpr, owner_typed: TypedProgram, sd: StructDecl, args: Type[],
+) -> Type {
+    // Prefer the typer's recorded type ; fall back to `type_from_expr`
+    // resolving fresh against the struct's typeParam-shadowed scope.
+    raw :: owner_typed.type_expr_types[span_key(ty.span)]
+    if !(raw is null) {
+        if raw is Type as t {
+            if !(t is UnresolvedType) { return t }
+        }
+    }
+    scratch: Diagnostic[] = []
+    return type_from_expr(ty, owner_typed.resolved, scratch)
+}
+
+materialize_impl_members_for :: fn(
+    inst: GenericInstance, owner_decls: Decl[], owner_typed: TypedProgram,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+    loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
+) -> void {
+    // Walk every module's impls (impls can be in foreign modules) and
+    // emit a synth fn for each matching impl member.
+    for module_id in typed.modules.keys() {
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        if module_typed is TypedProgram as mt {
+            module_loaded :: loaded.modules[module_id]
+            if module_loaded is null { continue }
+            if module_loaded is LoadedModule as ml {
+                for d in module_decls(ml) {
+                    match d {
+                        is ImplDecl as impl_decl -> {
+                            if !is_generic_impl_for(impl_decl, inst.symbol.name) { continue }
+                            materialize_impl_for_instance(
+                                impl_decl, inst, mt, owner_typed, project_ctx, project,
+                            )
+                        }
+                        _ -> {}
+                    }
+                }
+            }
+        }
+    }
+}
+
+is_generic_impl_for :: fn(impl_decl: ImplDecl, struct_name: string) -> bool {
+    match impl_decl.for_type {
+        is GenericInstExpr as gi -> {
+            match gi.callee {
+                is IdentExpr as id -> { return id.name == struct_name }
+                _ -> { return false }
+            }
+        }
+        _ -> { return false }
+    }
+}
+
+materialize_impl_for_instance :: fn(
+    impl_decl: ImplDecl, inst: GenericInstance,
+    impl_typed: TypedProgram, owner_typed: TypedProgram,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+) -> void {
+    self_struct :: StructType { .symbol = inst.symbol, .args = inst.args }
+    self_type: Type = self_struct
+    suffix :: args_suffix(inst.args)
+    subst :: build_impl_subst(impl_decl, inst.args, impl_typed, owner_typed)
+    types :: make_entry_types(impl_typed, subst)
+    for member in impl_decl.members {
+        params :: build_impl_member_params(member, self_type, types, impl_typed)
+        return_type :: return_type_of(member, types)
+        mangled :: "${mangle_module_id(owner_typed.resolved.path)}$${inst.symbol.name}$${impl_decl.trait_name}$${member.name}${suffix}"
+        entry_decl: Decl = member
+        entry :: MonoEntry {
+            .id             = i32(0),
+            .is_main        = false,
+            .mangled        = mangled,
+            .decl           = entry_decl,
+            .symbol         = null,
+            .subst          = subst,
+            .type_arguments = inst.args,
+            .module         = impl_typed,
+        }
+        body :: lower_fn_body(member, impl_typed, project_ctx, entry, subst, return_type)
+        push_to_module(project, owner_typed.resolved.path, LoweredFnDecl {
+            .mangled     = mangled,
+            .params      = params,
+            .return_type = return_type,
+            .body        = body,
+            .origin      = entry,
+        })
+    }
+}
+
+build_struct_subst :: fn(decl: StructDecl, args: Type[], typed: TypedProgram) -> Substitution {
+    subst :: new_substitution()
+    for i in 0..<decl.type_params.len() {
+        if i >= args.len() { break }
+        tp_name :: decl.type_params[i].name
+        tp_span :: decl.type_params[i].span
+        bound :: find_type_param_in_resolved(typed.resolved, tp_name, tp_span)
+        match bound {
+            is null -> {}
+            is Symbol as s -> { subst.type_params[s.id] = args[i] }
+        }
+    }
+    return subst
+}
+
+find_type_param_in_resolved :: fn(resolved: ResolvedModule, name: string, def_span: Span) -> Symbol | null {
+    target_key :: span_key(def_span)
+    // Use-site lookup : every use of `T` inside the struct's fields /
+    // impl body lands in `idents` ; the value's `defined_at` points
+    // back at the TypeParam's source span.
+    for s in resolved.idents.values() {
+        if s.name != name { continue }
+        if i32(s.kind) != i32(SymbolKind.TypeParam) { continue }
+        match s.defined_at {
+            is null -> {}
+            is Span as def -> {
+                if span_key(def) == target_key { return s }
+            }
+        }
+    }
+    // Fallback : name-only match (no use-site exists, e.g. a generic
+    // decl never instantiated in this very module).
+    for s in resolved.idents.values() {
+        if s.name == name && i32(s.kind) == i32(SymbolKind.TypeParam) { return s }
+    }
+    return null
+}
+
+build_impl_subst :: fn(
+    impl_decl: ImplDecl, args: Type[],
+    impl_typed: TypedProgram, owner_typed: TypedProgram,
+) -> Substitution {
+    subst :: new_substitution()
+    // Bounded form (impl-own typeParams) : substitute against impl's
+    // typeParams. The legacy `Foo[T] implements ...` form is handled
+    // by walking through the impl-side resolved symbols (the resolver
+    // hoists struct typeParam names into the impl's scope).
+    if impl_decl.type_params.len() > usize(0) {
+        for i in 0..<impl_decl.type_params.len() {
+            if i >= args.len() { break }
+            tp_sym :: lookup_type_param_symbol(impl_typed.resolved, impl_decl.type_params[i].span)
+            if tp_sym is null { continue }
+            if tp_sym is Symbol as s { subst.type_params[s.id] = args[i] }
+        }
+        return subst
+    }
+    // Legacy form : the struct's typeParams are referenced by name in
+    // the impl body. Bind by name against the impl module's symbols.
+    match impl_decl.for_type {
+        is GenericInstExpr as gi -> {
+            for i in 0..<gi.type_args.len() {
+                if i >= args.len() { break }
+                tp_name :: type_expr_simple_name(gi.type_args[i])
+                if tp_name == "" { continue }
+                for s in impl_typed.resolved.symbols {
+                    if s.name == tp_name && i32(s.kind) == i32(SymbolKind.TypeParam) {
+                        subst.type_params[s.id] = args[i]
+                        break
+                    }
+                }
+            }
+        }
+        _ -> {}
+    }
+    return subst
+}
+
+type_expr_simple_name :: fn(e: TypeExpr) -> string {
+    match e {
+        is IdentExpr as id -> { return id.name }
+        _ -> { return "" }
+    }
+}
+
+find_struct_decl_by_name :: fn(decls: Decl[], name: string) -> StructDecl | null {
+    for d in decls {
+        match d {
+            is StructDecl as sd -> { if sd.name == name { return sd } }
+            _ -> {}
+        }
+    }
+    return null
+}
+
+lookup_type_param_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Symbol | null {
+    target_key :: span_key(name_span)
+    for s in resolved.symbols {
+        match s.defined_at {
+            is null -> {}
+            is Span as def -> {
+                if span_key(def) == target_key { return s }
+            }
+        }
+    }
+    for s in resolved.idents.values() {
+        match s.defined_at {
+            is null -> {}
+            is Span as def -> {
+                if span_key(def) == target_key { return s }
+            }
+        }
+    }
+    return null
+}
+
+args_suffix :: fn(args: Type[]) -> string {
+    sb := new_builder()
+    for a in args {
+        sb.append("__")
+        sb.append(type_surface_for_mangle(a))
+    }
+    return sb.to_string()
+}
+
+type_surface_for_mangle :: fn(t: Type) -> string {
+    match t {
+        is PrimitiveType as p -> { return p.name }
+        is StructType    as s -> { return s.symbol.name }
+        is EnumType      as e -> { return e.symbol.name }
+        _ -> { return "T" }
+    }
+}
+
+push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDecl) -> void {
+    m :: project.modules[module_id]
+    if m is null { return }
+    if m is LoweredModule as mod {
+        mod.decls.push(decl)
+    }
+}
+
+import "vader/comptime/instances" { GenericInstance }
+import "vader/typecheck/types" { EnumType, PrimitiveType }
+import "vader/resolver/resolve" { ResolvedModule }
+
 module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
     if module_loaded.module.files.len() == usize(0) { return [] }
     out: Decl[] = []
