@@ -30,7 +30,7 @@ import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
-    TypeParamType,
+    TypeParamType, ArrayType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, mk_primitive,
 }
 import "vader/typecheck/type_ops" { default_if_free, equals_type }
@@ -669,13 +669,12 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
             if !(callee_ty is FnType) { return null }
             if callee_ty is FnType as ft {
                 if !type_has_param(ft) { return null }
-                // Resolve concrete type args from the call's arg types.
-                concrete_args: Type[] = []
-                for i in 0..<call.args.len() {
-                    if i >= ft.params.len() { break }
-                    arg_ty :: default_if_free(ctx.types.expr_type(call.args[i].value))
-                    concrete_args.push(arg_ty)
-                }
+                // Resolve concrete type args by unifying each
+                // `ft.params[i]` (which carries the generic shape) with
+                // the call arg's inferred concrete type. Each unique
+                // TypeParam symbol in the fn's signature contributes one
+                // entry to `concrete_args` in source-declared order.
+                concrete_args :: infer_type_args(ft, call, ctx)
                 if !all_concrete(concrete_args) { return null }
                 // Build the monomorphized mangled name. TS doubles up
                 // the module prefix (`<module>$<module>$<name>__T`).
@@ -721,6 +720,69 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
         }
     }
     return null
+}
+
+infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
+    // For each fn-param's generic shape, walk it and the matching
+    // call-arg's concrete type in lock-step. The first time we see a
+    // TypeParam symbol on the pattern side, record its concrete-side
+    // counterpart. Repeated bindings of the same symbol must agree.
+    bindings :: MutableMap(i32, Type) { .buckets = [], .size = 0 }
+    order: i32[] = []
+    n :: ft.params.len()
+    if n > call.args.len() { return [] }
+    for i in 0..<n {
+        pattern :: ft.params[i]
+        concrete :: default_if_free(ctx.types.expr_type(call.args[i].value))
+        unify_params(pattern, concrete, bindings, order)
+    }
+    out: Type[] = []
+    for id in order {
+        v :: bindings[id]
+        match v {
+            is null -> {}
+            _ -> { out.push(v) }
+        }
+    }
+    return out
+}
+
+unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap(i32, Type), order: i32[]) -> void {
+    if pattern is TypeParamType as tp {
+        existing :: bindings[tp.symbol.id]
+        match existing {
+            is null -> {
+                bindings[tp.symbol.id] = concrete
+                order.push(tp.symbol.id)
+            }
+            _ -> {}
+        }
+        return
+    }
+    if pattern is StructType as ps {
+        if concrete is StructType as cs {
+            n :: ps.args.len()
+            for i in 0..<n {
+                if i >= cs.args.len() { break }
+                unify_params(ps.args[i], cs.args[i], bindings, order)
+            }
+        }
+    }
+    if pattern is ArrayType as pa {
+        if concrete is ArrayType as ca {
+            unify_params(pa.element, ca.element, bindings, order)
+        }
+    }
+    if pattern is FnType as pft {
+        if concrete is FnType as cft {
+            n :: pft.params.len()
+            for i in 0..<n {
+                if i >= cft.params.len() { break }
+                unify_params(pft.params[i], cft.params[i], bindings, order)
+            }
+            unify_params(pft.return_type, cft.return_type, bindings, order)
+        }
+    }
 }
 
 type_has_param :: fn(ft: FnType) -> bool {
@@ -1078,7 +1140,6 @@ synth_namespace_member :: fn(ctx: FnLowerCtx, name: string, type: Type) -> Symbo
     }
 }
 
-import "vader/typecheck/types" { ArrayType }
 import "vader/lower/lowered_ast" { LoweredArrayLen, LoweredArrayPush }
 
 // Detect `arr.push(x)` / `arr.len()` and emit the dedicated op. Returns
