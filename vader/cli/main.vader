@@ -28,6 +28,9 @@ import "vader/comptime/check" { evaluate_project }
 import "vader/comptime/dump" { dump_evaluated }
 import "vader/lower/lower" { lower_project }
 import "vader/lower/dump" { dump_lowered }
+import "vader/bytecode/emit" { emit_project }
+import "vader/bytecode/emit_ctx" { default_emit_options }
+import "vader/bytecode/dump" { dump_bytecode }
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/fmt/cli" { run_fmt }
 import "vader/vm/exec" { run_virt }
@@ -318,10 +321,12 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if stage == "lowered-ast" {
         return file.run_lower_stage()
     }
+    if stage == "bytecode" {
+        return file.run_bytecode_stage()
+    }
 
     // Recognised TS stages — we know about them but can't run them yet.
-    if stage == "dced-ast" ||
-       stage == "bytecode" || stage == "c" || stage == "wasm" {
+    if stage == "dced-ast" || stage == "c" || stage == "wasm" {
         eprintln("vader dump: stage \"${stage}\" not yet implemented")
         return 2
     }
@@ -415,23 +420,37 @@ run_comptime_stage :: fn(file: string) -> i32 {
     return 0
 }
 
+run_bytecode_stage :: fn(file: string) -> i32 {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[] = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    module :: emit_project(lowered, default_emit_options())
+    println(dump_bytecode(module))
+    print_pipeline_diags(pipeline, lower_diags)
+    return 0
+}
+
 run_lower_stage :: fn(file: string) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     println(dump_lowered(lowered))
-    // Mirror `dumpLower` in `tests/snapshot.ts` : emit one merged
-    // `# Diagnostics` block covering every stage (resolver + typecheck
-    // + comptime + lower). `typecheck_diags` already includes the
-    // resolver-side forward (`orchestrate.vader:168`).
+    print_pipeline_diags(pipeline, lower_diags)
+    return 0
+}
+
+// Print the merged typecheck + comptime + caller-supplied diags as a
+// single `# Diagnostics` block, matching `dumpLower` in
+// `tests/snapshot.ts`. `typecheck_diags` already includes the
+// resolver-side forward (`orchestrate.vader:168`).
+print_pipeline_diags :: fn(pipeline: EvaluatedPipeline, extra: Diagnostic[]) -> void {
     all_diags: Diagnostic[] = []
     for d in pipeline.typecheck_diags { all_diags.push(d) }
     for d in pipeline.comptime_diags  { all_diags.push(d) }
-    for d in lower_diags              { all_diags.push(d) }
+    for d in extra                    { all_diags.push(d) }
     if all_diags.len() > 0 {
         println(all_diags.dump_diagnostics())
     }
-    return 0
 }
 
 import "vader/resolver/loader" { LoadedProject }

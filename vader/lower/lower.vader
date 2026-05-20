@@ -620,12 +620,19 @@ stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
     name :: decl_name(decl)
     suffix :: overload_suffix_for(decl, typed)
     mangled :: "${mangle_module_id(typed.resolved.path)}$${name}${suffix}"
+    // Propagate the resolver-side `Symbol` so downstream phases (notably
+    // the bytecode emit's `function_index_by_symbol_id` index) can route
+    // call sites — `LoweredIdent.symbol` holds the same id, so the two
+    // ends meet at the resolver symbol rather than the (null) mono one.
+    // `symbol_for_decl` disambiguates fn overloads via `name_span`, which
+    // a name-only lookup would mis-route.
+    resolved_symbol :: symbol_for_decl(decl, typed)
     return MonoEntry {
         .id             = i32(0),
         .is_main        = is_main_decl(decl),
         .mangled        = mangled,
         .decl           = decl,
-        .symbol         = null,
+        .symbol         = resolved_symbol,
         .subst          = new_substitution(),
         .type_arguments = [],
         .module         = typed,
@@ -1249,6 +1256,7 @@ push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDe
 import "vader/comptime/instances" { GenericInstance }
 import "vader/typecheck/types" { EnumType, PrimitiveType }
 import "vader/resolver/resolve" { ResolvedModule }
+import "vader/comptime/specialize" { symbol_for_decl }
 
 module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
     if module_loaded.module.files.len() == usize(0) { return [] }

@@ -659,7 +659,7 @@ is_main_decl :: fn(decl: Decl) -> bool = match decl {
 /// Returns `null` when no matching symbol is found ; downstream
 /// consumers (bytecode emit's `fn_index_by_sym_id` builder) treat
 /// `null` as "no resolver entry" and skip it.
-symbol_for_decl :: fn(decl: Decl, module_typed: TypedProgram) -> Symbol | null = match decl {
+export symbol_for_decl :: fn(decl: Decl, module_typed: TypedProgram) -> Symbol | null = match decl {
     is FnDecl as f        -> symbol_for_fn(f, module_typed)
     is StructDecl as s    -> symbol_for_kind(s.name, SymbolKind.Struct, module_typed)
     is ConstDecl as c     -> symbol_for_kind(c.name, SymbolKind.Const, module_typed)

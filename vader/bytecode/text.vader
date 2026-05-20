@@ -121,7 +121,7 @@ write_strings :: fn(out: StringBuilder, strings: string[]) -> void {
 /// JSON-style quoting — wraps in `"..."` with `\\`, `\"`, `\n`, `\r`,
 /// `\t` escaped. Mirrors the encoding `parser.parse_string_decl` reads
 /// (via `decode_escapes`).
-quote_string :: fn(value: string) -> string {
+export quote_string :: fn(value: string) -> string {
     out :: new_builder()
     out.append("\"")
     n :: value.byte_len()

@@ -67,8 +67,8 @@ export emit_block :: fn(block: LoweredBlock, state: FnEmitState, ctx: EmitterCtx
         emit_stmt(block.stmts[i], state, ctx)
     }
     match block.trailing {
-        is LoweredExpr as trailing_expr -> emit_expr(trailing_expr, state, ctx)
-        _ -> {}
+        is null -> {}
+        _ -> emit_expr(block.trailing, state, ctx)
     }
 }
 
@@ -96,8 +96,8 @@ emit_stmt :: fn(stmt: LoweredStmt, state: FnEmitState, ctx: EmitterCtx) -> void 
 /// stack when it pops the frame.
 emit_return :: fn(return_stmt: LoweredReturn, state: FnEmitState, ctx: EmitterCtx) -> void {
     match return_stmt.value {
-        is LoweredExpr as value_expr -> emit_expr(value_expr, state, ctx)
-        _ -> {}
+        is null -> {}
+        _ -> emit_expr(return_stmt.value, state, ctx)
     }
     push_op(state, Return {})
 }
@@ -590,14 +590,14 @@ emit_loop :: fn(loop_stmt: LoweredLoop, state: FnEmitState, ctx: EmitterCtx) -> 
     // While-style cond : `if !cond { break }` — `BoolNot` + `BranchIf`
     // targeting the surrounding Block.
     match loop_stmt.cond {
-        is LoweredExpr as cond_expr -> {
-            emit_expr(cond_expr, state, ctx)
+        is null -> {}
+        _ -> {
+            emit_expr(loop_stmt.cond, state, ctx)
             push_op(state, BoolNot {})
             cond_branch_pc :: i32(state.body.len())
             push_op(state, BranchIf {})
             state.scope_stack[block_index].pending_breaks.push(cond_branch_pc)
         }
-        _ -> {}
     }
 
     // Body.

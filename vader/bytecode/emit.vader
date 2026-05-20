@@ -274,10 +274,9 @@ emit_fn_body :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
     }
 }
 
-/// Resolve a `LoweredFnDecl` to its fn-table slot via the
-/// reserved `function_index_by_symbol_id` mapping. Returns `-1` when
-/// the decl carried no resolver symbol (impl-member style synth
-/// decls handled separately in Phase 2).
+/// Resolve a `LoweredFnDecl` to its fn-table slot via the reserved
+/// `function_index_by_symbol_id` mapping. Returns `-1` when the decl
+/// carried no resolver symbol — body emit then no-ops.
 lookup_function_index :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> i32 {
     match function_decl.origin.symbol {
         is Symbol as symbol -> {

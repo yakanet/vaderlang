@@ -1,0 +1,235 @@
+// vader/bytecode/dump — `BytecodeModule` → text dump.
+//
+// Phase 6b minimum : produces a readable summary of the module that
+// surfaces every fn's name + signature + body op list. Not yet
+// byte-for-byte aligned with the TS `writeVir` output ; that
+// alignment ships in a follow-up commit alongside the snapshot
+// regeneration (`bytecode.snapshot.virt` files will need refresh).
+//
+// Output shape (per fn) :
+//
+//     fn N name (params) -> result
+//       op
+//       op
+//       …
+//     end
+//
+// Headers : `module NAME`, `type N <decl>`, `string N "..."`,
+// `import N name mangled (params) -> ret`, `export main N`. Data
+// pool + vtables + impl table are summarised when non-empty,
+// elided otherwise.
+
+import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "vader/bytecode/module" {
+    BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport, BcExport,
+    ImplEntry, VtableRow,
+}
+import "vader/bytecode/types" {
+    BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
+    BcField, BcDataEntry, ValType, val_type_name,
+}
+import "vader/bytecode/text" { quote_string }
+import "vader/vm/op" {
+    Op,
+    I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst, NullConst,
+    LocalGet, LocalSet, LocalTee, Return, Drop, Call,
+    If, Else, End, StructNew, StructGet, StructSet,
+    Block, Loop, Branch, BranchIf, BoolNot,
+    ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice,
+    DataConst, TypeConst, TypeCheck, RefCast, Convert,
+    MakeClosure, CallIndirect, VirtualCall, CallImport,
+    BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
+    SizeOfType, FnRef,
+    I32Add, I32Sub, I32Mul, I32Div, I32Eq,
+    I64Add, I64Sub, I64Mul, I64Div, I64Eq,
+    F64Add, F64Sub, F64Mul, F64Div, F64Eq,
+    BoolEq, CharEq, StringEq, StringConcat,
+}
+
+/// Render a `BytecodeModule` as a `.virt`-style text dump. The
+/// resulting string carries a trailing newline ; pipe to stdout
+/// directly.
+///
+/// @param module  the bytecode module to render.
+/// @return        the textual dump.
+export dump_bytecode :: fn(module: BytecodeModule) -> string {
+    sb :: new_builder()
+    sb.append("module ${module.name}\n")
+    write_types(sb, module.types)
+    write_strings(sb, module.strings)
+    write_imports(sb, module.imports)
+    write_exports(sb, module.exports, module.functions)
+    for i in 0..<module.functions.len() {
+        sb.append("\n")
+        write_function(sb, module.functions[i], i32(i))
+    }
+    return "${sb}"
+}
+
+write_types :: fn(sb: StringBuilder, types: BcType[]) -> void {
+    for i in 0..<types.len() {
+        sb.append("type ${i} ${format_bc_type(types[i])}\n")
+    }
+}
+
+format_bc_type :: fn(t: BcType) -> string = match t {
+    is BcPrimitive as p -> "primitive ${val_type_name(p.val)}"
+    is BcStruct as s    -> "struct ${s.name} (${s.fields.len()} fields)"
+    is BcArray as a     -> "array ${a.element}"
+    is BcUnion as u     -> "union (${u.variants.len()} variants)"
+    is BcRef as r       -> "ref ${r.trait_name}"
+    is BcFn as f        -> "fn (${f.params.len()} params) -> ${f.return_type}"
+}
+
+write_strings :: fn(sb: StringBuilder, strings: string[]) -> void {
+    for i in 0..<strings.len() {
+        sb.append("string ${i} ${quote_string(strings[i])}\n")
+    }
+}
+
+write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
+    for i in 0..<imports.len() {
+        imp :: imports[i]
+        sb.append("import ${i} ${imp.extern_name} ${imp.mangled_name} ")
+        write_signature(sb, imp.signature)
+        sb.append("\n")
+    }
+}
+
+write_exports :: fn(sb: StringBuilder, exports: BcExport[], functions: BcFunction[]) -> void {
+    // `export main N` line — surface the entry fn explicitly.
+    for i in 0..<functions.len() {
+        if functions[i].is_main {
+            sb.append("export main ${i}\n")
+            return
+        }
+    }
+    for i in 0..<exports.len() {
+        sb.append("export ${exports[i].extern_name} ${exports[i].fn_index}\n")
+    }
+}
+
+write_signature :: fn(sb: StringBuilder, signature: BcSignature) -> void {
+    sb.append_char('(')
+    for i in 0..<signature.params.len() {
+        if i > usize(0) { sb.append(",") }
+        sb.append(val_type_name(signature.params[i]))
+    }
+    sb.append(") -> ")
+    sb.append(val_type_name(signature.result))
+}
+
+write_function :: fn(sb: StringBuilder, function_decl: BcFunction, function_index: i32) -> void {
+    sb.append("fn ${function_index} ${function_decl.name} ")
+    write_signature(sb, function_decl.signature)
+    sb.append("\n")
+    for i in 0..<function_decl.locals.len() {
+        local :: function_decl.locals[i]
+        sb.append("  local \"${local.name}\" ${val_type_name(local.val)}\n")
+    }
+    for i in 0..<function_decl.body.len() {
+        sb.append("  ")
+        sb.append(format_op(function_decl.body[i]))
+        sb.append_char('\n')
+    }
+    sb.append("end\n")
+}
+
+/// Render an op as its `.virt`-style name + operands (when any).
+/// Not yet byte-for-byte aligned with the TS `writeVir` rendering ;
+/// good enough for human-readable debug output of the bytecode.
+format_op :: fn(op: Op) -> string = match op {
+    is I32Const as c            -> "i32.const ${c.value}"
+    is I64Const as c            -> "i64.const ${c.value}"
+    is F64Const as c            -> "f64.const ${c.value}"
+    is BoolConst as c           -> "bool.const ${c.value}"
+    is CharConst as c           -> "char.const ${u32(c.value)}"
+    is NullConst                -> "null.const"
+    is StringConst as s         -> "string.const ${s.index}"
+    is LocalGet as l            -> "local.get ${l.slot}"
+    is LocalSet as l            -> "local.set ${l.slot}"
+    is LocalTee as l            -> "local.tee ${l.slot}"
+    is Return                   -> "return"
+    is Drop                     -> "drop"
+    is Call as c                -> "call ${c.function_index}"
+    is CallImport as c          -> "call.import ${c.index}"
+    is CallIndirect as c        -> "call.indirect ${c.type_id}"
+    is VirtualCall as v         -> "virtual.call ${v.parameter_count} ${v.vtable_key}"
+    is FnRef as f               -> "fn.ref ${f.function_index}"
+    is MakeClosure as m         -> "make_closure ${m.function_index}"
+    is If                       -> "if"
+    is Else                     -> "else"
+    is End                      -> "end"
+    is Block                    -> "block"
+    is Loop                     -> "loop"
+    is Branch                   -> "br"
+    is BranchIf                 -> "br_if"
+    is BoolNot                  -> "bool.not"
+    is StructNew as s           -> "struct.new ${s.type_id}"
+    is StructGet as s           -> "struct.get ${s.type_id} ${s.field_index}"
+    is StructSet as s           -> "struct.set ${s.type_id} ${s.field_index}"
+    is ArrayNew as a            -> "array.new ${a.type_id} ${a.length}"
+    is ArrayLen                 -> "array.len"
+    is ArrayPush as a           -> "array.push ${a.type_id}"
+    is ArrayGet as a            -> "array.get ${a.type_id}"
+    is ArraySet as a            -> "array.set ${a.type_id}"
+    is ArraySlice as a          -> "array.slice ${a.type_id}"
+    is DataConst as d           -> "data.const ${d.pool_index} ${d.type_id}"
+    is TypeConst as t           -> "type.const ${t.type_id}"
+    is TypeCheck as t           -> "type_check ${t.type_id}"
+    is RefCast                  -> "ref.cast"
+    is Convert                  -> "convert"
+    is BuilderNew               -> "builder.new"
+    is BuilderAppendStr         -> "builder.append_str"
+    is BuilderAppendDisplay     -> "builder.append_display"
+    is BuilderFinish            -> "builder.finish"
+    is SizeOfType               -> "size_of.type"
+    is I32Add                   -> "i32.add"
+    is I32Sub                   -> "i32.sub"
+    is I32Mul                   -> "i32.mul"
+    is I32Div                   -> "i32.div"
+    is I32Eq                    -> "i32.eq"
+    is I64Add                   -> "i64.add"
+    is I64Sub                   -> "i64.sub"
+    is I64Mul                   -> "i64.mul"
+    is I64Div                   -> "i64.div"
+    is I64Eq                    -> "i64.eq"
+    is F64Add                   -> "f64.add"
+    is F64Sub                   -> "f64.sub"
+    is F64Mul                   -> "f64.mul"
+    is F64Div                   -> "f64.div"
+    is F64Eq                    -> "f64.eq"
+    is BoolEq                   -> "bool.eq"
+    is CharEq                   -> "char.eq"
+    is StringEq                 -> "string.eq"
+    is StringConcat             -> "string.concat"
+    _                           -> "<op>"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_dump_empty_module :: fn() -> void {
+    types: BcType[] = []
+    strings: string[] = []
+    data_pool: BcDataEntry[] = []
+    functions: BcFunction[] = []
+    imports: BcImport[] = []
+    exports: BcExport[] = []
+    impl_table: ImplEntry[] = []
+    vtables: VtableRow[] = []
+    module :: BytecodeModule {
+        .name        = "test",
+        .types       = types,
+        .strings     = strings,
+        .data_pool   = data_pool,
+        .functions   = functions,
+        .imports     = imports,
+        .exports     = exports,
+        .impl_table  = impl_table,
+        .vtables     = vtables,
+    }
+    out :: dump_bytecode(module)
+    assert_eq(out, "module test\n")
+}
