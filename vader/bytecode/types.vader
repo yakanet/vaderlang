@@ -182,6 +182,72 @@ export is_64_bit_int_val :: fn(v: ValType) -> bool = match v {
     .Any   -> false
 }
 
+/// True when the val-type is one of the 64-bit-wide unsigned integer
+/// widths. Consumed by the bytecode emit's `op_select` to route `div`
+/// / `mod` / comparison ops onto the `U64X` op family instead of the
+/// sign-aware `I64X` family — sign-aware ops would mis-handle u64
+/// values with the high bit set (e.g. SHA-256 round constants).
+///
+/// @param v  the value class to classify.
+/// @return   `true` for `u64` / `usize`, `false` otherwise.
+export is_u64_class :: fn(v: ValType) -> bool = match v {
+    .U64   -> true
+    .Usize -> true
+    .I8 -> false
+    .I16 -> false
+    .I32 -> false
+    .I64 -> false
+    .Isize -> false
+    .U8 -> false
+    .U16 -> false
+    .U32 -> false
+    .F32 -> false
+    .F64 -> false
+    .Bool -> false
+    .Char -> false
+    .String -> false
+    .Null -> false
+    .Void -> false
+    .Ref -> false
+    .Any -> false
+}
+
+/// True when the val-type is one of the narrow (≤ 32-bit) unsigned
+/// integer widths. Companion to `is_u64_class` ; together they cover
+/// the entire unsigned int spectrum so the bytecode emit routes to
+/// the right `U32X` / `U64X` op family.
+///
+/// @param v  the value class to classify.
+/// @return   `true` for `u8` / `u16` / `u32`, `false` otherwise.
+export is_u32_class :: fn(v: ValType) -> bool = match v {
+    .U8  -> true
+    .U16 -> true
+    .U32 -> true
+    .I8 -> false
+    .I16 -> false
+    .I32 -> false
+    .I64 -> false
+    .Isize -> false
+    .U64 -> false
+    .Usize -> false
+    .F32 -> false
+    .F64 -> false
+    .Bool -> false
+    .Char -> false
+    .String -> false
+    .Null -> false
+    .Void -> false
+    .Ref -> false
+    .Any -> false
+}
+
+/// True when the val-type is any unsigned integer width (narrow or
+/// 64-bit). Disjunction of `is_u32_class` and `is_u64_class`.
+///
+/// @param v  the value class to classify.
+/// @return   `true` for any of `u8` / `u16` / `u32` / `u64` / `usize`.
+export is_unsigned_val :: fn(v: ValType) -> bool = is_u32_class(v) || is_u64_class(v)
+
 /// True when the val-type is exactly `String`. Companion to
 /// `is_integer_val` / `is_float_val` ; consumed by the C emitter's
 /// per-struct field-classification walk (string fields land in the

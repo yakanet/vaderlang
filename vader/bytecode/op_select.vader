@@ -1,0 +1,307 @@
+// vader/bytecode/op_select — `LoweredBinaryOp` / `LoweredUnaryOp`
+// → concrete `Op` variant.
+//
+// Mirrors `binaryOpFor` / unary handling in `src/bytecode/emit.ts`.
+// Per-shape emit fns in `emit_body.vader` call `binary_op_for` /
+// `unary_op_for` to pick the right typed op once both operands are
+// on the stack.
+//
+// Width-aliasing : narrow integer widths (`i8`, `i16`, `i32`, `u8`,
+// `u16`, `u32`) collapse onto the `I32X` op family ; the wider
+// 64-bit widths (`i64`, `u64`, `isize`, `usize`) use `I64X`. The
+// VM aliases every integer width to `I32Val` / `I64Val` accordingly
+// (see `op.vader` comments on the I32 / I64 op blocks).
+//
+// Unsigned ops : when the comparison or division would mis-sign on
+// the I32 / I64 path (e.g. SHA-256 round constants with the high bit
+// set divide negative under signed I32Div), the U32X / U64X variants
+// take over. Same width-aliasing rule : narrow unsigned widths use
+// U32X, 64-bit unsigned widths use U64X.
+//
+// `and` / `or` : the lowerer explodes short-circuit binaries into
+// if/else, so `binary_op_for` returning `BoolAnd` / `BoolOr` is the
+// eager-eval safety net (no short-circuit guarantee here — diagnose
+// at the lower-side if a non-exploded And/Or reaches this fn).
+
+import "vader/lower/lowered_ast" {
+    LoweredBinaryOp, LoweredUnaryOp,
+}
+import "vader/bytecode/types" {
+    ValType, is_64_bit_int_val, is_integer_val, is_float_val,
+    is_u32_class, is_u64_class, is_unsigned_val,
+}
+import "vader/vm/op" {
+    Op,
+    I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Neg, I32BitNot,
+    I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU,
+    I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge,
+    I64Add, I64Sub, I64Mul, I64Div, I64Mod, I64Neg,
+    I64BitAnd, I64BitOr, I64BitXor, I64BitNot,
+    I64Shl, I64Shr, I64ShrU,
+    I64Eq, I64Ne, I64Lt, I64Le, I64Gt, I64Ge,
+    U32Div, U32Mod, U32Lt, U32Le, U32Gt, U32Ge,
+    U64Div, U64Mod, U64Lt, U64Le, U64Gt, U64Ge,
+    F64Add, F64Sub, F64Mul, F64Div, F64Neg,
+    F64Eq, F64Ne, F64Lt, F64Le, F64Gt, F64Ge,
+    BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot,
+    CharEq, StringEq, StringConcat,
+}
+
+/// Pick the bytecode op for a `LoweredBinaryOp` over operands of class
+/// `lhs`. `add` over `string` collapses to `StringConcat` ; `eq` /
+/// `neq` over reference shapes (`ref` / `any`) reuse the i32 compare
+/// since both sides hold the boxed pointer tag.
+///
+/// @param op   the source-level binary operator.
+/// @param lhs  the operand stack class (both operands share it after
+///             typecheck-time numeric promotions).
+/// @return     the concrete op to push.
+export binary_op_for :: fn(op: LoweredBinaryOp, lhs: ValType) -> Op = match op {
+    .Add    -> arith_add(lhs)
+    .Sub    -> arith_op(lhs, "sub")
+    .Mul    -> arith_op(lhs, "mul")
+    .Div    -> div_op(lhs)
+    .Mod    -> mod_op(lhs)
+    .Shl    -> shl_op(lhs)
+    .Shr    -> shr_op(lhs)
+    .BitAnd -> bit_op(lhs, "and")
+    .BitOr  -> bit_op(lhs, "or")
+    .BitXor -> bit_op(lhs, "xor")
+    .And    -> BoolAnd {}
+    .Or     -> BoolOr {}
+    .Eq     -> cmp_eq(lhs)
+    .Neq    -> cmp_ne(lhs)
+    .Lt     -> cmp_lt(lhs)
+    .Lte    -> cmp_le(lhs)
+    .Gt     -> cmp_gt(lhs)
+    .Gte    -> cmp_ge(lhs)
+}
+
+/// Pick the bytecode op for a `LoweredUnaryOp` over an operand of
+/// class `operand`. `Not` always resolves to `BoolNot` (the lowerer
+/// guarantees a bool-typed operand) ; `Neg` / `BitNot` route through
+/// the integer / float family helpers.
+///
+/// @param op       the source-level unary operator.
+/// @param operand  the operand stack class.
+/// @return         the concrete op to push.
+export unary_op_for :: fn(op: LoweredUnaryOp, operand: ValType) -> Op = match op {
+    .Neg    -> neg_op(operand)
+    .Not    -> BoolNot {}
+    .BitNot -> bitnot_op(operand)
+}
+
+// ---- arithmetic ----------------------------------------------------------
+
+arith_add :: fn(lhs: ValType) -> Op {
+    if lhs == ValType.String { return StringConcat {} }
+    return arith_op(lhs, "add")
+}
+
+// Generic arith dispatcher : picks the I32 / I64 / F64 family based on
+// width-aliasing, then maps the `op` token to the concrete variant.
+arith_op :: fn(lhs: ValType, op: string) -> Op {
+    if is_float_val(lhs) {
+        if op == "add" { return F64Add {} }
+        if op == "sub" { return F64Sub {} }
+        if op == "mul" { return F64Mul {} }
+        return F64Div {}
+    }
+    if is_64_bit_int_val(lhs) {
+        if op == "add" { return I64Add {} }
+        if op == "sub" { return I64Sub {} }
+        if op == "mul" { return I64Mul {} }
+        return I64Div {}
+    }
+    if op == "add" { return I32Add {} }
+    if op == "sub" { return I32Sub {} }
+    if op == "mul" { return I32Mul {} }
+    return I32Div {}
+}
+
+// Division is unsigned-aware : u32 / u64 widths route through `U32Div`
+// / `U64Div` so values with the high bit set don't divide as negative.
+div_op :: fn(lhs: ValType) -> Op {
+    if is_u64_class(lhs) { return U64Div {} }
+    if is_u32_class(lhs) { return U32Div {} }
+    return arith_op(lhs, "div")
+}
+
+mod_op :: fn(lhs: ValType) -> Op {
+    if is_u64_class(lhs) { return U64Mod {} }
+    if is_u32_class(lhs) { return U32Mod {} }
+    if is_64_bit_int_val(lhs) { return I64Mod {} }
+    return I32Mod {}
+}
+
+// ---- bitwise -------------------------------------------------------------
+
+bit_op :: fn(lhs: ValType, op: string) -> Op {
+    if is_64_bit_int_val(lhs) {
+        if op == "and" { return I64BitAnd {} }
+        if op == "or"  { return I64BitOr {} }
+        return I64BitXor {}
+    }
+    if op == "and" { return I32BitAnd {} }
+    if op == "or"  { return I32BitOr {} }
+    return I32BitXor {}
+}
+
+shl_op :: fn(lhs: ValType) -> Op {
+    if is_64_bit_int_val(lhs) { return I64Shl {} }
+    return I32Shl {}
+}
+
+// Unsigned `shr` is a logical (zero-filling) shift ; signed `shr` is
+// arithmetic (sign-extending). The VM distinguishes via the I32Shr /
+// I32ShrU op pair (resp. I64Shr / I64ShrU).
+shr_op :: fn(lhs: ValType) -> Op {
+    unsigned :: is_unsigned_val(lhs)
+    if is_64_bit_int_val(lhs) {
+        if unsigned { return I64ShrU {} }
+        return I64Shr {}
+    }
+    if unsigned { return I32ShrU {} }
+    return I32Shr {}
+}
+
+// ---- comparisons ---------------------------------------------------------
+
+cmp_eq :: fn(lhs: ValType) -> Op {
+    if lhs == ValType.Bool   { return BoolEq {} }
+    if lhs == ValType.Char   { return CharEq {} }
+    if lhs == ValType.String { return StringEq {} }
+    if is_float_val(lhs)     { return F64Eq {} }
+    if is_64_bit_int_val(lhs) { return I64Eq {} }
+    // ref / any / null all fall through to the i32 compare — the boxed
+    // pointer identity bits fit a 32-bit word and compare correctly.
+    return I32Eq {}
+}
+
+cmp_ne :: fn(lhs: ValType) -> Op {
+    if lhs == ValType.Bool   { return BoolNe {} }
+    if is_float_val(lhs)     { return F64Ne {} }
+    if is_64_bit_int_val(lhs) { return I64Ne {} }
+    return I32Ne {}
+}
+
+cmp_lt :: fn(lhs: ValType) -> Op {
+    if is_float_val(lhs) { return F64Lt {} }
+    if is_u64_class(lhs) { return U64Lt {} }
+    if is_u32_class(lhs) { return U32Lt {} }
+    if is_64_bit_int_val(lhs) { return I64Lt {} }
+    return I32Lt {}
+}
+
+cmp_le :: fn(lhs: ValType) -> Op {
+    if is_float_val(lhs) { return F64Le {} }
+    if is_u64_class(lhs) { return U64Le {} }
+    if is_u32_class(lhs) { return U32Le {} }
+    if is_64_bit_int_val(lhs) { return I64Le {} }
+    return I32Le {}
+}
+
+cmp_gt :: fn(lhs: ValType) -> Op {
+    if is_float_val(lhs) { return F64Gt {} }
+    if is_u64_class(lhs) { return U64Gt {} }
+    if is_u32_class(lhs) { return U32Gt {} }
+    if is_64_bit_int_val(lhs) { return I64Gt {} }
+    return I32Gt {}
+}
+
+cmp_ge :: fn(lhs: ValType) -> Op {
+    if is_float_val(lhs) { return F64Ge {} }
+    if is_u64_class(lhs) { return U64Ge {} }
+    if is_u32_class(lhs) { return U32Ge {} }
+    if is_64_bit_int_val(lhs) { return I64Ge {} }
+    return I32Ge {}
+}
+
+// ---- unary ---------------------------------------------------------------
+
+neg_op :: fn(operand: ValType) -> Op {
+    if is_float_val(operand)     { return F64Neg {} }
+    if is_64_bit_int_val(operand) { return I64Neg {} }
+    return I32Neg {}
+}
+
+bitnot_op :: fn(operand: ValType) -> Op {
+    if is_64_bit_int_val(operand) { return I64BitNot {} }
+    return I32BitNot {}
+}
+
+// ---- tests ---------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_add_i32 :: fn() -> void {
+    op :: binary_op_for(LoweredBinaryOp.Add, ValType.I32)
+    if op is I32Add { return }
+    assert_eq("expected I32Add", "")
+}
+
+@test test_add_i64 :: fn() -> void {
+    op :: binary_op_for(LoweredBinaryOp.Add, ValType.I64)
+    if op is I64Add { return }
+    assert_eq("expected I64Add", "")
+}
+
+@test test_add_string_collapses_to_concat :: fn() -> void {
+    op :: binary_op_for(LoweredBinaryOp.Add, ValType.String)
+    if op is StringConcat { return }
+    assert_eq("expected StringConcat", "")
+}
+
+@test test_div_unsigned_uses_u32div :: fn() -> void {
+    op :: binary_op_for(LoweredBinaryOp.Div, ValType.U32)
+    if op is U32Div { return }
+    assert_eq("expected U32Div", "")
+}
+
+@test test_lt_float_uses_f64lt :: fn() -> void {
+    op :: binary_op_for(LoweredBinaryOp.Lt, ValType.F64)
+    if op is F64Lt { return }
+    assert_eq("expected F64Lt", "")
+}
+
+@test test_eq_bool_uses_booleq :: fn() -> void {
+    op :: binary_op_for(LoweredBinaryOp.Eq, ValType.Bool)
+    if op is BoolEq { return }
+    assert_eq("expected BoolEq", "")
+}
+
+@test test_neg_f64 :: fn() -> void {
+    op :: unary_op_for(LoweredUnaryOp.Neg, ValType.F64)
+    if op is F64Neg { return }
+    assert_eq("expected F64Neg", "")
+}
+
+@test test_not_bool :: fn() -> void {
+    op :: unary_op_for(LoweredUnaryOp.Not, ValType.Bool)
+    if op is BoolNot { return }
+    assert_eq("expected BoolNot", "")
+}
+
+@test test_bitnot_i64 :: fn() -> void {
+    op :: unary_op_for(LoweredUnaryOp.BitNot, ValType.I64)
+    if op is I64BitNot { return }
+    assert_eq("expected I64BitNot", "")
+}
+
+@test test_shr_unsigned_uses_logical_shift :: fn() -> void {
+    op :: binary_op_for(LoweredBinaryOp.Shr, ValType.U32)
+    if op is I32ShrU { return }
+    assert_eq("expected I32ShrU", "")
+}
+
+@test test_shr_signed_uses_arithmetic_shift :: fn() -> void {
+    op :: binary_op_for(LoweredBinaryOp.Shr, ValType.I32)
+    if op is I32Shr { return }
+    assert_eq("expected I32Shr", "")
+}
+
+@test test_mod_u64_uses_unsigned :: fn() -> void {
+    op :: binary_op_for(LoweredBinaryOp.Mod, ValType.U64)
+    if op is U64Mod { return }
+    assert_eq("expected U64Mod", "")
+}

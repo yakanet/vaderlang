@@ -40,10 +40,19 @@ import "vader/vm/op" {
     MakeClosure, CallIndirect, VirtualCall, CallImport,
     BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
     SizeOfType, FnRef,
-    I32Add, I32Sub, I32Mul, I32Div, I32Eq,
-    I64Add, I64Sub, I64Mul, I64Div, I64Eq,
-    F64Add, F64Sub, F64Mul, F64Div, F64Eq,
-    BoolEq, CharEq, StringEq, StringConcat,
+    I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Neg, I32BitNot,
+    I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU,
+    I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge,
+    I64Add, I64Sub, I64Mul, I64Div, I64Mod, I64Neg,
+    I64BitAnd, I64BitOr, I64BitXor, I64BitNot,
+    I64Shl, I64Shr, I64ShrU,
+    I64Eq, I64Ne, I64Lt, I64Le, I64Gt, I64Ge,
+    U32Div, U32Mod, U32Lt, U32Le, U32Gt, U32Ge,
+    U64Div, U64Mod, U64Lt, U64Le, U64Gt, U64Ge,
+    F64Add, F64Sub, F64Mul, F64Div, F64Neg,
+    F64Eq, F64Ne, F64Lt, F64Le, F64Gt, F64Ge,
+    BoolEq, BoolNe, BoolAnd, BoolOr,
+    CharEq, StringEq, StringConcat,
 }
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The
@@ -188,18 +197,67 @@ format_op :: fn(op: Op) -> string = match op {
     is I32Sub                   -> "i32.sub"
     is I32Mul                   -> "i32.mul"
     is I32Div                   -> "i32.div"
+    is I32Mod                   -> "i32.mod"
+    is I32Neg                   -> "i32.neg"
+    is I32BitNot                -> "i32.bitnot"
+    is I32BitAnd                -> "i32.bitand"
+    is I32BitOr                 -> "i32.bitor"
+    is I32BitXor                -> "i32.bitxor"
+    is I32Shl                   -> "i32.shl"
+    is I32Shr                   -> "i32.shr"
+    is I32ShrU                  -> "i32.shr_u"
     is I32Eq                    -> "i32.eq"
+    is I32Ne                    -> "i32.ne"
+    is I32Lt                    -> "i32.lt"
+    is I32Le                    -> "i32.le"
+    is I32Gt                    -> "i32.gt"
+    is I32Ge                    -> "i32.ge"
     is I64Add                   -> "i64.add"
     is I64Sub                   -> "i64.sub"
     is I64Mul                   -> "i64.mul"
     is I64Div                   -> "i64.div"
+    is I64Mod                   -> "i64.mod"
+    is I64Neg                   -> "i64.neg"
+    is I64BitAnd                -> "i64.bitand"
+    is I64BitOr                 -> "i64.bitor"
+    is I64BitXor                -> "i64.bitxor"
+    is I64BitNot                -> "i64.bitnot"
+    is I64Shl                   -> "i64.shl"
+    is I64Shr                   -> "i64.shr"
+    is I64ShrU                  -> "i64.shr_u"
     is I64Eq                    -> "i64.eq"
+    is I64Ne                    -> "i64.ne"
+    is I64Lt                    -> "i64.lt"
+    is I64Le                    -> "i64.le"
+    is I64Gt                    -> "i64.gt"
+    is I64Ge                    -> "i64.ge"
+    is U32Div                   -> "u32.div"
+    is U32Mod                   -> "u32.mod"
+    is U32Lt                    -> "u32.lt"
+    is U32Le                    -> "u32.le"
+    is U32Gt                    -> "u32.gt"
+    is U32Ge                    -> "u32.ge"
+    is U64Div                   -> "u64.div"
+    is U64Mod                   -> "u64.mod"
+    is U64Lt                    -> "u64.lt"
+    is U64Le                    -> "u64.le"
+    is U64Gt                    -> "u64.gt"
+    is U64Ge                    -> "u64.ge"
     is F64Add                   -> "f64.add"
     is F64Sub                   -> "f64.sub"
     is F64Mul                   -> "f64.mul"
     is F64Div                   -> "f64.div"
+    is F64Neg                   -> "f64.neg"
     is F64Eq                    -> "f64.eq"
+    is F64Ne                    -> "f64.ne"
+    is F64Lt                    -> "f64.lt"
+    is F64Le                    -> "f64.le"
+    is F64Gt                    -> "f64.gt"
+    is F64Ge                    -> "f64.ge"
     is BoolEq                   -> "bool.eq"
+    is BoolNe                   -> "bool.ne"
+    is BoolAnd                  -> "bool.and"
+    is BoolOr                   -> "bool.or"
     is CharEq                   -> "char.eq"
     is StringEq                 -> "string.eq"
     is StringConcat             -> "string.concat"

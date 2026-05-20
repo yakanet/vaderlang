@@ -10,6 +10,11 @@
 // each statement routing through `emit_stmt`, expressions through
 // `emit_expr`. Structured-control (`emit_loop` / `emit_break` /
 // `emit_continue`) reads + mutates `FnEmitState.scope_stack`.
+//
+// SIZE WATCH : at ~85 % of the 800 LoC hard cap as of Phase 7. Plan
+// to split before Phase 8 (Match + BlockExpr-as-value) piles on — a
+// natural seam is statements (let / assign / loop / break / continue /
+// return / cell_set) versus expressions (everything else).
 
 import "std/collections" { MutableMap }
 import "vader/typecheck/types" { Type }
@@ -25,10 +30,12 @@ import "vader/lower/lowered_ast" {
     LoweredTypeConst, LoweredDataConst, LoweredUnreachable,
     LoweredMakeClosure, LoweredVirtualCall, LoweredIntrinsicCall,
     LoweredCellNew, LoweredCellGet,
+    LoweredBinary, LoweredUnary,
     INTRINSIC_BUILDER_NEW, INTRINSIC_BUILDER_APPEND_STR,
     INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
     INTRINSIC_SIZE_OF_TYPE,
 }
+import "vader/bytecode/op_select" { binary_op_for, unary_op_for }
 import "vader/bytecode/module" { BcLocal, DebugPos }
 import "vader/bytecode/types" {
     BcType, BcPrimitive, BcStruct, BcField, ValType, is_64_bit_int_val,
@@ -175,10 +182,39 @@ emit_expr :: fn(expr: LoweredExpr, state: FnEmitState, ctx: EmitterCtx) -> void 
         is LoweredIntrinsicCall as intr     -> emit_intrinsic_call(intr, state, ctx)
         is LoweredCellNew as cell_new       -> emit_cell_new(cell_new, state, ctx)
         is LoweredCellGet as cell_get       -> emit_cell_get(cell_get, state, ctx)
+        is LoweredBinary as binary          -> emit_binary(binary, state, ctx)
+        is LoweredUnary as unary            -> emit_unary(unary, state, ctx)
         _ -> {
-            // Phase 7+ stubs : Match, Unary, Binary, BlockExpr (as value).
+            // Phase 8+ stubs : Match, BlockExpr (as value).
         }
     }
+}
+
+/// Emit a binary expression : left then right (operand stack discipline),
+/// then the typed op picked via `binary_op_for` based on the left operand's
+/// stack class. The lowerer guarantees both operands have the same
+/// `ValType` after numeric promotion.
+///
+/// @param binary  the lowered binary expression.
+/// @param state   the per-fn emit state.
+/// @param ctx     the emitter context.
+emit_binary :: fn(binary: LoweredBinary, state: FnEmitState, ctx: EmitterCtx) -> void {
+    emit_expr(binary.left, state, ctx)
+    emit_expr(binary.right, state, ctx)
+    lhs_val :: val_type_of_type(lowered_expr_type(binary.left))
+    push_op(state, binary_op_for(binary.op, lhs_val))
+}
+
+/// Emit a unary expression : operand then the typed op picked via
+/// `unary_op_for` based on the operand's stack class.
+///
+/// @param unary  the lowered unary expression.
+/// @param state  the per-fn emit state.
+/// @param ctx    the emitter context.
+emit_unary :: fn(unary: LoweredUnary, state: FnEmitState, ctx: EmitterCtx) -> void {
+    emit_expr(unary.operand, state, ctx)
+    operand_val :: val_type_of_type(lowered_expr_type(unary.operand))
+    push_op(state, unary_op_for(unary.op, operand_val))
 }
 
 /// Emit an int literal — picks `I64Const` for 64-bit-wide integer
