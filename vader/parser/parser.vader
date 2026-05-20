@@ -1964,7 +1964,6 @@ infix_for :: fn(k: TokenKind) = match k {
     .KwStruct     -> no_infix()
     .KwTrait      -> no_infix()
     .KwImplements -> no_infix()
-    .KwImpl       -> no_infix()
     .KwEnum       -> no_infix()
     .KwIf         -> no_infix()
     .KwElse       -> no_infix()
@@ -2046,7 +2045,6 @@ postfix_bp :: fn(k: TokenKind) = match k {
     .KwStruct     -> -1
     .KwTrait      -> -1
     .KwImplements -> -1
-    .KwImpl       -> -1
     .KwEnum       -> -1
     .KwIf         -> -1
     .KwElse       -> -1

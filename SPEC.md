@@ -205,7 +205,7 @@ Every public method in the standard library carries a VaderDoc block following t
 ### Reserved keywords
 
 ```
-fn struct trait implements impl enum
+fn struct trait implements enum
 if else match is for in return defer break continue
 import as
 export

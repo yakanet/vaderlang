@@ -155,7 +155,6 @@ export kind_name :: fn(k: TokenKind) = match k {
     .KwStruct     -> "kw_struct"
     .KwTrait      -> "kw_trait"
     .KwImplements -> "kw_implements"
-    .KwImpl       -> "kw_impl"
     .KwEnum       -> "kw_enum"
     .KwIf         -> "kw_if"
     .KwElse       -> "kw_else"

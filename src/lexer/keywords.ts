@@ -7,7 +7,6 @@ export const KEYWORDS: Readonly<Record<string, TokenKind>> = {
   struct:     "kw_struct",
   trait:      "kw_trait",
   implements: "kw_implements",
-  impl:       "kw_impl",
   if:         "kw_if",
   else:       "kw_else",
   match:      "kw_match",

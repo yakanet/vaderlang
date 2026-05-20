@@ -168,7 +168,6 @@ classify_token :: fn(t: Token) -> i32 {
     if k == .KwStruct     { return i32(TokenType.Keyword) }
     if k == .KwTrait      { return i32(TokenType.Keyword) }
     if k == .KwImplements { return i32(TokenType.Keyword) }
-    if k == .KwImpl       { return i32(TokenType.Keyword) }
     if k == .KwEnum       { return i32(TokenType.Keyword) }
     if k == .KwIf         { return i32(TokenType.Keyword) }
     if k == .KwElse       { return i32(TokenType.Keyword) }

@@ -27,7 +27,7 @@ export TokenKind :: enum(u8) {
     InterpClose,
 
     // Keywords
-    KwFn, KwStruct, KwTrait, KwImplements, KwImpl, KwEnum,
+    KwFn, KwStruct, KwTrait, KwImplements, KwEnum,
     KwIf, KwElse, KwMatch, KwIs, KwFor, KwIn,
     KwReturn, KwDefer, KwBreak, KwContinue,
     KwImport, KwAs, KwExport,

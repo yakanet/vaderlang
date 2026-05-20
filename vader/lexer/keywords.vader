@@ -14,7 +14,6 @@ export lookup_keyword :: fn(text: string) -> TokenKind {
     if text == "struct"     { return .KwStruct }
     if text == "trait"      { return .KwTrait }
     if text == "implements" { return .KwImplements }
-    if text == "impl"       { return .KwImpl }
     if text == "enum"       { return .KwEnum }
     if text == "if"         { return .KwIf }
     if text == "else"       { return .KwElse }
