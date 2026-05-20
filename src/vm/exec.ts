@@ -680,8 +680,8 @@ function receiverTypeIndex(v: Value, m: BytecodeModule): number | null {
  *  ; cached to amortise the O(types) scan. Mirrors c_emit's
  *  `computeSiblingLayoutsOf` so VM and native agree on which runtime
  *  shapes satisfy a static struct match. */
-const STRUCT_SIBLINGS_CACHE = new WeakMap<BytecodeModule, ReadonlyMap<number, readonly number[]>>();
-function structSiblingsOf(m: BytecodeModule, idx: number): readonly number[] {
+const STRUCT_SIBLINGS_CACHE = new WeakMap<BytecodeModule, ReadonlyMap<number, ReadonlySet<number>>>();
+function structSiblingsOf(m: BytecodeModule, idx: number): ReadonlySet<number> | null {
   let cache = STRUCT_SIBLINGS_CACHE.get(m);
   if (cache === undefined) {
     const groups = new Map<string | number, number[]>();
@@ -694,15 +694,17 @@ function structSiblingsOf(m: BytecodeModule, idx: number): readonly number[] {
       if (list !== undefined) list.push(i);
       else groups.set(key, [i]);
     }
-    const built = new Map<number, readonly number[]>();
+    const built = new Map<number, ReadonlySet<number>>();
     for (const indices of groups.values()) {
       if (indices.length < 2) continue;
-      for (const i of indices) built.set(i, indices.filter((j) => j !== i));
+      for (const i of indices) {
+        built.set(i, new Set(indices.filter((j) => j !== i)));
+      }
     }
     cache = built;
     STRUCT_SIBLINGS_CACHE.set(m, cache);
   }
-  return cache.get(idx) ?? [];
+  return cache.get(idx) ?? null;
 }
 
 function typeMatches(m: BytecodeModule, v: Value, typeIndex: number): boolean {
@@ -723,7 +725,7 @@ function matchTo(m: BytecodeModule, v: Value, t: BcType, idx: number): boolean {
       // match arm typed `is Yield(i32)`). Accept any sibling in the
       // same symbolId / tuple-arity group. C-emit does the analogous
       // disjunction inside `emitTypeCheck` for native runs.
-      return structSiblingsOf(m, idx).includes(v.typeIndex);
+      return structSiblingsOf(m, idx)?.has(v.typeIndex) ?? false;
     case "array":
       return v.tag === "array" && v.typeIndex === idx;
     case "union":

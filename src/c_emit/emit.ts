@@ -139,13 +139,14 @@ function newCtx(m: BytecodeModule, release: boolean): EmitCtx {
       else structIdxsByTrait.set(traitName, [structIdx]);
     }
   }
+  const erasureGroups = computeErasureGroups(m);
   return {
     module: m, stringTagIndex: stringIdx, errorTagIndex: errorIdx,
     fnNames, structNames, primitiveTagOf, structIdxsByTrait,
     mayAlloc: computeMayAlloc(m),
     mutatedStructs: computeMutatedStructs(m),
-    anyCounterpartOf: computeAnyCounterpartOf(m),
-    siblingLayoutsOf: computeSiblingLayoutsOf(m),
+    anyCounterpartOf: erasureGroups.anyCounterpartOf,
+    siblingLayoutsOf: erasureGroups.siblingLayoutsOf,
     release,
   };
 }
@@ -160,16 +161,9 @@ function newCtx(m: BytecodeModule, release: boolean): EmitCtx {
  *  Two grouping keys :
  *    - `symbolId` — set by `internStructDecl` for user `struct[T]` decls
  *      (Yield(T), Box(T), Repeat(T), …).
- *    - anonymous tuples — no symbolId ; group by the synthetic key
- *      ``tuple:${arity}`` so `[i32, string]` and `[Any, Any]` link as
- *      siblings of the same generic shape. */
-/** Per-concrete-struct-typeIndex, the set of sibling layouts (same
- *  symbolId group or tuple-arity group, distinct typeIndex). Lets the
- *  boundary reshape dispatch on the runtime tag when multiple shapes
- *  could flow in (e.g. tuples where some fields are concrete and
- *  others were erased to Any — `[usize, T]` post-subst `[usize, Any]`
- *  is distinct from both `[usize, string]` and `[Any, Any]`). */
-function computeSiblingLayoutsOf(m: BytecodeModule): Map<number, number[]> {
+ *    - anonymous tuples — no symbolId ; group by `tuple:${arity}` so
+ *      `[i32, string]` and `[Any, Any]` link as siblings. */
+function groupStructsByShape(m: BytecodeModule): Map<string | number, number[]> {
   const groups = new Map<string | number, number[]>();
   for (let i = 0; i < m.types.length; i++) {
     const t = m.types[i]!;
@@ -180,45 +174,35 @@ function computeSiblingLayoutsOf(m: BytecodeModule): Map<number, number[]> {
     if (list !== undefined) list.push(i);
     else groups.set(key, [i]);
   }
-  const out = new Map<number, number[]>();
-  for (const indices of groups.values()) {
-    if (indices.length < 2) continue;
-    for (const i of indices) {
-      out.set(i, indices.filter((j) => j !== i));
-    }
-  }
-  return out;
+  return groups;
 }
 
-function computeAnyCounterpartOf(m: BytecodeModule): Map<number, number> {
-  const out = new Map<number, number>();
-  const groups = new Map<string | number, number[]>();
-  for (let i = 0; i < m.types.length; i++) {
-    const t = m.types[i]!;
-    if (t.kind !== "struct") continue;
-    const key = t.symbolId ?? (t.name.startsWith("__Tuple_") ? `tuple:${t.fields.length}` : undefined);
-    if (key === undefined) continue;
-    const list = groups.get(key);
-    if (list !== undefined) list.push(i);
-    else groups.set(key, [i]);
-  }
+function computeErasureGroups(m: BytecodeModule): {
+  anyCounterpartOf: Map<number, number>;
+  siblingLayoutsOf: Map<number, readonly number[]>;
+} {
+  const groups = groupStructsByShape(m);
+  const anyCounterpartOf = new Map<number, number>();
+  const siblingLayoutsOf = new Map<number, readonly number[]>();
   for (const indices of groups.values()) {
     if (indices.length < 2) continue;
-    // The all-Any entry has every field typed as a heap reference (`ref`).
-    // Concrete entries have at least one primitive / typed field.
+    // Siblings : every other entry in the group, for the multi-tag
+    // dispatch in `emitHeapStructReshape`.
+    for (const i of indices) siblingLayoutsOf.set(i, indices.filter((j) => j !== i));
+    // Any-counterpart : the entry whose fields are all heap refs (the
+    // post-erasure shared shape). Concrete entries have at least one
+    // primitive / typed field ; skip the group when no canonical
+    // all-ref entry exists.
     const anyIdx = indices.find((i) => {
       const t = m.types[i] as { kind: "struct"; fields: readonly { typeIndex: number }[] };
-      return t.fields.every((f) => {
-        const ft = m.types[f.typeIndex];
-        return ft?.kind === "ref";
-      });
+      return t.fields.every((f) => m.types[f.typeIndex]?.kind === "ref");
     });
     if (anyIdx === undefined) continue;
     for (const i of indices) {
-      if (i !== anyIdx) out.set(i, anyIdx);
+      if (i !== anyIdx) anyCounterpartOf.set(i, anyIdx);
     }
   }
-  return out;
+  return { anyCounterpartOf, siblingLayoutsOf };
 }
 
 /** Walk every fn body once and collect the type indices of every struct
@@ -648,24 +632,6 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
   emitVtables(ctx.module, ctx.fnNames, out);
 }
 
-/** Inline C expression that unboxes a `vader_box_t` named `boxName` to
- *  the concrete ValType `target`. Used by lift / tramp wrappers to bridge
- *  the canonical erased (vader_box_t) calling convention against the
- *  underlying fn's concrete-typed parameters. */
-function unboxArgExpr(_ctx: EmitCtx, boxName: string, target: ValType): string {
-  if (target === "ref" || target === "any") return boxName;
-  return unboxExpr(boxName, target);
-}
-
-/** Inline C expression that boxes the value of a fn-call expression
- *  whose runtime type is `resultVal` / BcType `resultTypeIndex` into a
- *  `vader_box_t`. Used by the canonical erased fn-pointer wrappers to
- *  return through the uniform vader_box_t ABI. */
-function boxRetExpr(ctx: EmitCtx, callExpr: string, resultVal: ValType, resultTypeIndex: number): string {
-  if (resultVal === "ref" || resultVal === "any") return callExpr;
-  return boxExpr(ctx, callExpr, resultVal, resultTypeIndex);
-}
-
 function emitFnTrampolines(ctx: EmitCtx, out: string[]): void {
   // Walk every fn body to discover which fns are taken by reference and
   // which lifted fns get instantiated via `make_closure`. Each kind needs a
@@ -700,12 +666,16 @@ function emitFnTrampolines(ctx: EmitCtx, out: string[]): void {
     const head = tailParams.length === 0 ? "void* env" : `void* env, ${tailParams.join(", ")}`;
     out.push(`static vader_box_t vader_fn_tramp_${fnIndex}(${head}) {`);
     out.push(`    (void) env;`);
-    const unboxedArgs = fn.signature.params.map((p, j) => `${unboxArgExpr(ctx, `a${j}`, p)}`).join(", ");
+    const unboxedArgs = fn.signature.params.map((p, j) => unboxExpr(`a${j}`, p)).join(", ");
     if (fn.signature.result === "void") {
       out.push(`    ${cname}(${unboxedArgs});`);
       out.push(`    return vader_box_null();`);
     } else {
-      out.push(`    return ${boxRetExpr(ctx, `${cname}(${unboxedArgs})`, fn.signature.result, fn.signature.resultType)};`);
+      const callExpr = `${cname}(${unboxedArgs})`;
+      const boxed = fn.signature.result === "ref" || fn.signature.result === "any"
+        ? callExpr
+        : boxExpr(ctx, callExpr, fn.signature.result, fn.signature.resultType);
+      out.push(`    return ${boxed};`);
     }
     out.push(`}`);
     out.push(`static vader_fn_t vader_fn_static_${fnIndex} = { { ${typeIndex}u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_${fnIndex}, NULL };`);
@@ -722,13 +692,17 @@ function emitFnTrampolines(ctx: EmitCtx, out: string[]): void {
     const head = tailParams.length === 0 ? "void* env" : `void* env, ${tailParams.join(", ")}`;
     out.push(`static vader_box_t vader_fn_lift_${fnIndex}(${head}) {`);
     out.push(`    vader_box_t env_box; env_box.tag = 0u; env_box._pad = 0u; env_box.payload.obj = env;`);
-    const unboxedTail = tailVals.map((p, j) => unboxArgExpr(ctx, `a${j}`, p)).join(", ");
+    const unboxedTail = tailVals.map((p, j) => unboxExpr(`a${j}`, p)).join(", ");
     const callArgs = unboxedTail.length === 0 ? `env_box` : `env_box, ${unboxedTail}`;
     if (fn.signature.result === "void") {
       out.push(`    ${cname}(${callArgs});`);
       out.push(`    return vader_box_null();`);
     } else {
-      out.push(`    return ${boxRetExpr(ctx, `${cname}(${callArgs})`, fn.signature.result, fn.signature.resultType)};`);
+      const callExpr = `${cname}(${callArgs})`;
+      const boxed = fn.signature.result === "ref" || fn.signature.result === "any"
+        ? callExpr
+        : boxExpr(ctx, callExpr, fn.signature.result, fn.signature.resultType);
+      out.push(`    return ${boxed};`);
     }
     out.push(`}`);
   }

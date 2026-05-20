@@ -606,16 +606,12 @@ export function emitCallIndirect(s: FnState, op: Extract<Op, { kind: "call.indir
     line(s, `vader_unreachable("call.indirect on non-fn type");`);
     return;
   }
-  // Stack order (WASM convention): args... then fn ref on top.
-  // Universally box every arg to vader_box_t and cast the fn pointer
-  // to the canonical erased sig — the lift/tramp wrapper emitted in
-  // `emitFnTrampolines` uses the same erased ABI regardless of the
-  // underlying fn's concrete sig, so a closure created with a
-  // (i32) -> i32 lambda can flow through an erased `fn(Any) -> Any`
-  // call site (e.g. erased `map` body invoking its `f` callback)
-  // without a calling-convention mismatch. The result is captured as
-  // vader_box_t and coerced to the call site's expected slot type via
-  // `emitCallResult`'s standard coerce chain.
+  // Universal erased ABI : box every arg to vader_box_t, cast through
+  // `vader_fn_erased_sig_N_t`. Lets a concrete-typed closure flow
+  // through an erased call site (e.g. erased `map` calling its `f`
+  // callback) without a calling-convention mismatch. The wrapper
+  // emitted in `emitFnTrampolines` unboxes per the underlying fn's
+  // concrete sig.
   const fnVal = pop(s);
   const args: string[] = [];
   for (let i = t.params.length - 1; i >= 0; i--) {
@@ -626,12 +622,9 @@ export function emitCallIndirect(s: FnState, op: Extract<Op, { kind: "call.indir
   line(s, `vader_fn_t* ${fnObj} = (vader_fn_t*) ${fnVal.name}.payload.obj;`);
   const callArgs = args.length === 0 ? `${fnObj}->env` : `${fnObj}->env, ${args.join(", ")}`;
   const callExpr = `((vader_fn_erased_sig_${t.params.length}_t) ${fnObj}->code)(${callArgs})`;
-  // The wrapper returns vader_box_t ; the call site's static return is
-  // whatever `t.returnType` says (often a primitive like bool / i32 /
-  // char). Bridge the two : capture the call result as `any`, then
-  // coerce on the stack to the static return ValType so downstream
-  // direct-readers (`if cond`, `local.set` to a primitive slot, ...)
-  // see a value of the expected C type.
+  // Wrapper returns vader_box_t ; coerce on the stack to the static
+  // return ValType so direct readers (`if cond`, primitive-slot
+  // `local.set`) see the expected C type.
   const retVal = valTypeOfBcType(s.ctx.module.types[t.returnType]!);
   if (retVal === "void") {
     line(s, `${callExpr};`);
