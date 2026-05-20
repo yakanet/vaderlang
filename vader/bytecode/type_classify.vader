@@ -1,0 +1,126 @@
+// vader/bytecode/type_classify — typecheck `Type` → bytecode shapes.
+//
+// Shared by `vader/bytecode/emit` (per-decl interning) and any
+// future pass that needs to project a `Type` into the bytecode IR
+// (e.g. the data-pool encoder, the WASM emit, the LSP type-info
+// renderer).
+//
+// Three helpers :
+//   - `type_intern_key(t)` — string used as cache key by `intern_type`.
+//     Primitives use the bare name (no allocation) ; every composite
+//     shape falls back to `display_type(t)`.
+//   - `val_type_of_type(t)` — stack-class of a `Type`. Primitives map
+//     by name ; every composite (struct / array / union / ref / fn)
+//     collapses to `Ref` so the operand stack carries a uniform
+//     reference width.
+//   - `bc_type_of(t)` — translate a `Type` to a `BcType`. Phase 1
+//     covers primitives ; composite shapes land as
+//     `BcPrimitive{.val=Ref}` until the lower-decl walker lands.
+
+import "vader/typecheck/types" {
+    Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType,
+    UnionType, FnType, TupleType, TypeParamType, TypeMetaType, SelfType,
+    UnresolvedType, FreeIntType, FreeFloatType, NeverType,
+    display_type,
+}
+import "vader/bytecode/types" { BcType, BcPrimitive, ValType, parse_val_type }
+
+/// Cache key for `intern_type`. Primitives skip the `display_type`
+/// allocation by keying directly on the primitive name (already a
+/// stable interned string the typechecker passes around).
+///
+/// @param t  the type to key.
+/// @return   the key string ; pass to `MutableMap(string, i32)`.
+export type_intern_key :: fn(t: Type) -> string = match t {
+    is PrimitiveType as p -> p.name
+    is StructType         -> display_type(t)
+    is EnumType           -> display_type(t)
+    is TraitType          -> display_type(t)
+    is ArrayType          -> display_type(t)
+    is UnionType          -> display_type(t)
+    is FnType             -> display_type(t)
+    is TupleType          -> display_type(t)
+    is TypeParamType      -> display_type(t)
+    is TypeMetaType       -> display_type(t)
+    is SelfType           -> display_type(t)
+    is UnresolvedType     -> display_type(t)
+    is FreeIntType        -> display_type(t)
+    is FreeFloatType      -> display_type(t)
+    is NeverType          -> display_type(t)
+}
+
+/// Stack-class of a `Type`. Primitive types map by name ; every
+/// composite shape (struct / array / union / ref / fn) lands in
+/// `Ref` so the operand stack carries a uniform reference width.
+///
+/// @param t  the type to classify.
+/// @return   the `ValType` the operand stack carries for this slot.
+export val_type_of_type :: fn(t: Type) -> ValType = match t {
+    is PrimitiveType as p -> val_type_of_primitive_name(p.name)
+    is StructType         -> ValType.Ref
+    is EnumType           -> ValType.Ref
+    is TraitType          -> ValType.Ref
+    is ArrayType          -> ValType.Ref
+    is UnionType          -> ValType.Ref
+    is FnType             -> ValType.Ref
+    is TupleType          -> ValType.Ref
+    is TypeParamType      -> ValType.Any
+    is TypeMetaType       -> ValType.Any
+    is SelfType           -> ValType.Ref
+    is UnresolvedType     -> ValType.Any
+    is FreeIntType        -> ValType.I32
+    is FreeFloatType      -> ValType.F64
+    is NeverType          -> ValType.Void
+}
+
+/// Translate a `Type` to a `BcType`. Phase 1 covers primitives ;
+/// composite shapes (struct / array / union / ref / fn) return a
+/// placeholder `BcPrimitive{.val=Ref}` — the runtime sees
+/// `vader_box_t` either way, type-table accuracy for those shapes
+/// lands in Phase 2 alongside the lower-decl walker.
+///
+/// Derived from `val_type_of_type` to keep the two classifiers in
+/// lock-step ; a previous double-table drifted when one was updated
+/// without the other.
+///
+/// @param t  the type to translate.
+/// @return   a `BcType` suitable for the type table.
+export bc_type_of :: fn(t: Type) -> BcType = BcPrimitive { .val = val_type_of_type(t) }
+
+/// Map a primitive name to its `ValType`. Unknown names degrade to
+/// `Any` so the upstream typechecker has the only say in rejecting
+/// the source.
+///
+/// @param name  the primitive name (`"i32"`, `"string"`, …).
+/// @return      the matching `ValType` ; `Any` for unrecognised names.
+export val_type_of_primitive_name :: fn(name: string) -> ValType {
+    parsed :: parse_val_type(name)
+    if parsed is null { return ValType.Any }
+    return parsed
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "vader/typecheck/types" { mk_primitive }
+
+@test test_val_type_of_type_primitive :: fn() -> void {
+    v :: val_type_of_type(mk_primitive("i32"))
+    match v {
+        .I32 -> {}
+        _    -> assert_eq("expected I32", "")
+    }
+}
+
+@test test_val_type_of_type_unknown_primitive_degrades_to_any :: fn() -> void {
+    v :: val_type_of_type(mk_primitive("madeup"))
+    match v {
+        .Any -> {}
+        _    -> assert_eq("expected Any", "")
+    }
+}
+
+@test test_type_intern_key_primitive_uses_name :: fn() -> void {
+    key :: type_intern_key(mk_primitive("i32"))
+    assert_eq(key, "i32")
+}

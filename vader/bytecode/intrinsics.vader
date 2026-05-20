@@ -1,0 +1,93 @@
+// vader/bytecode/intrinsics — mangled name → dedicated bytecode op.
+//
+// Mirror of `OP_INTRINSIC_BY_MANGLED` in `src/bytecode/emit.ts:74`.
+// Stdlib `@intrinsic` impl members map to a dedicated bytecode op
+// rather than a host-provided import — `s1 + s2` and `"a".add("b")`
+// both emit the same `string.concat` op.
+//
+// Expanded here as an if-cascade since Vader has no map-literal
+// syntax and a per-startup `MutableMap` fill costs the same lookup
+// with extra heap traffic.
+
+import "vader/vm/op" {
+    Op, I32Add, I32Sub, I32Mul, I32Div, I32Eq,
+    I64Add, I64Sub, I64Mul, I64Div, I64Eq,
+    F64Add, F64Sub, F64Mul, F64Div, F64Eq,
+    BoolEq, CharEq, StringEq, StringConcat,
+}
+import "vader/resolver/symbol" { Symbol }
+
+/// True when the call's mangled name resolves to a dedicated
+/// bytecode op (e.g. `std_core\$i32\$Add\$add` → `i32.add`). Returns
+/// the pre-built op to push, or `null` for non-intrinsic calls.
+///
+/// @param mangled  the fn's mangled name (from `MonoEntry.mangled`).
+/// @return         the matching bytecode op, or `null` when no
+///                 intrinsic applies — caller emits a regular `Call`.
+export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
+    // Numeric ops : Add / Sub / Mul / Div / Equals per width.
+    // Widths ≤ 32 bits alias onto `I32*` ; 64-bit-wide onto `I64*`.
+    // Floats land on `F64*` (TS aliases f32 onto f64-shaped ops).
+    if mangled == "std_core\$i32\$Add\$add"        { return I32Add {} }
+    if mangled == "std_core\$i32\$Sub\$sub"        { return I32Sub {} }
+    if mangled == "std_core\$i32\$Mul\$mul"        { return I32Mul {} }
+    if mangled == "std_core\$i32\$Div\$div"        { return I32Div {} }
+    if mangled == "std_core\$i32\$Equals\$equals"  { return I32Eq {} }
+    if mangled == "std_core\$i64\$Add\$add"        { return I64Add {} }
+    if mangled == "std_core\$i64\$Sub\$sub"        { return I64Sub {} }
+    if mangled == "std_core\$i64\$Mul\$mul"        { return I64Mul {} }
+    if mangled == "std_core\$i64\$Div\$div"        { return I64Div {} }
+    if mangled == "std_core\$i64\$Equals\$equals"  { return I64Eq {} }
+    if mangled == "std_core\$f64\$Add\$add"        { return F64Add {} }
+    if mangled == "std_core\$f64\$Sub\$sub"        { return F64Sub {} }
+    if mangled == "std_core\$f64\$Mul\$mul"        { return F64Mul {} }
+    if mangled == "std_core\$f64\$Div\$div"        { return F64Div {} }
+    if mangled == "std_core\$f64\$Equals\$equals"  { return F64Eq {} }
+    if mangled == "std_core\$bool\$Equals\$equals"   { return BoolEq {} }
+    if mangled == "std_core\$char\$Equals\$equals"   { return CharEq {} }
+    if mangled == "std_core\$string\$Equals\$equals" { return StringEq {} }
+    if mangled == "std_core\$string\$Add\$add"       { return StringConcat {} }
+    return null
+}
+
+/// `intrinsic_op_for_mangled` keyed on a `Symbol` (the bytecode
+/// emit's natural input). Symbol's `name` carries the mangled form
+/// for the stdlib `@intrinsic` impl members that this dispatcher
+/// recognises.
+///
+/// @param symbol  the call target's resolver symbol.
+/// @return        the matching bytecode op, or `null` when no
+///                intrinsic applies.
+export intrinsic_op_for_symbol_name :: fn(symbol: Symbol) -> Op | null {
+    return intrinsic_op_for_mangled(symbol.name)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_intrinsic_op_for_mangled_i32_add :: fn() -> void {
+    op :: intrinsic_op_for_mangled("std_core\$i32\$Add\$add")
+    match op {
+        is I32Add -> {}
+        _         -> assert_eq("expected I32Add", "")
+    }
+}
+
+@test test_intrinsic_op_for_mangled_string_concat :: fn() -> void {
+    op :: intrinsic_op_for_mangled("std_core\$string\$Add\$add")
+    match op {
+        is StringConcat -> {}
+        _               -> assert_eq("expected StringConcat", "")
+    }
+}
+
+@test test_intrinsic_op_for_mangled_unknown_returns_null :: fn() -> void {
+    op :: intrinsic_op_for_mangled("std_core\$Foo\$Bar\$baz")
+    assert_eq(op is null, true)
+}
+
+@test test_intrinsic_op_for_mangled_regular_fn_returns_null :: fn() -> void {
+    op :: intrinsic_op_for_mangled("user_module\$main")
+    assert_eq(op is null, true)
+}
