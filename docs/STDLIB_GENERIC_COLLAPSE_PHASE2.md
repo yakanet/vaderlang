@@ -1,20 +1,51 @@
 # Phase 2 — Automatic erasure pass
 
-> **Status**: **PAUSED 2026-05-19 — option (Φ) selected.** See
-> `STDLIB_GENERIC_COLLAPSE.md` Decision log entry "Phase 2 paused via
-> option (Φ)". Full automatic erasure deferred ; partial deliverables
-> shipped as independent wins :
+> **Status**: **PROGRESSIVE PATH (γ) — 2026-05-20.** Erasure
+> infrastructure massively extended ; native suite reduced from 31
+> fails (the original cascade) to **6 fails** with `erasureDedupe`
+> flipped on. Gated off by default so baseline stays 252/252 green.
+> Each of the 6 remaining cases is a distinct compile-time / runtime
+> interaction pattern documented in §9.
+>
+> **Sub-deliverables shipped (path γ progressive) :**
+> - **Famille A** — `synthesiseIntrinsicWrappers` (`bytecode/emit.ts`)
+>   creates BcFunction wrappers for `@intrinsic` impl members so
+>   vtable dispatch on `Hash.hash` / `Equals.equals` / `Add.add` /
+>   ... lands on a real `fnIndex` ; `vtableSignatures`
+>   (`c_emit/ops.ts`) detects heterogeneous-`resultType` traits and
+>   forces uniform `any` return ; the dispatcher per-arm boxes when
+>   the impl's return diverges from the uniform.
+> - **Famille B** — `synthesiseErasedSpecializedInstances`
+>   (`comptime/evaluate.ts`) pre-registers `Self(Any, ...)` for every
+>   `@specialize`d generic ; `erasureDedupe` (`comptime/erasure-dedupe.ts`)
+>   splits struct vs fn handling : fn entries collapse to one
+>   representative + per-shape vtable rows via `redirectInner`
+>   preserving `typeArgs` ; struct entries keep per-instance identity
+>   with uniform Any-rewritten layout ; an extra `Repeat(Any)`-flavoured
+>   struct entry per group lets the shared fn body intern the
+>   matching BcType ; runtime `vader_array_buf_t.element_tag` carries
+>   the BcType index of primitive-storage arrays so
+>   `vader_array_load_slot` returns properly-tagged boxes.
+> - **Boundary conversion (β)** — `virtual.call` / `call` ops carry
+>   `resultTypeIndex` / `expectedResultType` ; `BcStruct.symbolId` +
+>   `computeAnyCounterpartOf` (`c_emit/emit.ts`) maps concrete struct
+>   → its all-`Any` counterpart (also covers anonymous tuples by
+>   arity-grouping) ; `emitErasureBoundaryConversion` (`c_emit/ops.ts`)
+>   inserts an unbox+repack at the boundary in three forms :
+>   single-primitive-field inline, single-ref-field inline, heap
+>   field-by-field reshape. Triggered whenever the dispatcher's
+>   `resultType` differs from the call site's `expectedResultType`.
+>
+> **Dormant / earlier deliverables :**
 > - **Phase 0** vtable runtime + slot registry + `Any` Type kind
 > - **Phase 1** packed inline-box (multi-field POD ≤ 16B)
 > - **β fix** raw-array for-in skips `ArrayIterator(T)` wrap
 > - **η fix** comptime `observeFnCall` registers Any-bearing instances
-> - **Phase 2 plumbing** (`erasureDedupe`, `symbolRedirects`, lower
->   `Any` dispatch, `@specialize` decorator) committed but gated off
->   in `src/comptime/evaluate.ts`.
 >
-> Re-enable starting point : flip `evaluate.ts` to call
-> `erasureDedupe(monomorphizeProject(...), project)` and address
-> §9 Issue 9 (the cascade) via path (γ).
+> **Re-enable starting point** : flip `evaluate.ts` to call
+> `erasureDedupe(monoRaw, project)` instead of the gated-off `monoRaw`
+> assignment, then iterate on §9 Issue 10 (the 6 remaining cascade
+> patterns).
 >
 > **Goal**: rewrite every generic instantiation through a single erased
 > form. Every type-parameter position becomes `Any` in the IR; method
@@ -280,12 +311,65 @@ P2-4 through P2-7 are serial. P2-9 onwards is serial.
 
 ---
 
-## 9. Issues encountered (2026-05-19 P2-1.b experiment)
+## 9. Issues encountered (2026-05-19 P2-1.b experiment + 2026-05-20 path γ)
 
 Recorded for two reasons : (1) the same issues will resurface during
 the Vader self-host port of Phase 2 (per `feedback_vader_port_rules`),
 (2) the next attempt on P2-1.b must address these or accept the
 fallback to option (b).
+
+### Issue 10 — Remaining cascade patterns after path γ (2026-05-20)
+
+After the Famille A + B + boundary-conversion infrastructure ships
+(commits 1e0ea55d, b291c7ad, 6e91fd55), flipping `erasureDedupe` on
+leaves **6/252 native tests failing** — each surfacing a distinct
+interaction the current boundary machinery doesn't bridge.
+
+**(10-a) Argument-side erasure conversion missing** — `tuple_generic_swap`
+passes `Tuple_24 { i32, string }` to `swap[T,U]` whose erased body
+expects `Tuple_2 { vader_box_t, vader_box_t }`. The return-side
+`emitHeapStructReshape` correctly converts the result back, but the
+argument is sent as-is → swap reads its fields through the wrong
+layout. **Fix path** : extend `emitCallTo` to also reshape arguments
+when the callee's `paramTypes[i]` differs from the caller's argument
+type, symmetric to the return-side conversion.
+
+**(10-b) Multi-level inline-box accessor mismatch** — `generic_helper_chain`
+chains `Box(Box(i32))` accesses. The outer `Box(Box(i32))` is heap
+(its field is itself inline-eligible, per `inlineVariantPayload` line
+332). After my reshape, the outer is correctly reshaped. But the
+inner field `f_value` carries a `vader_box_t` whose payload IS the
+inline-form Box(i32) — a single i32 in `payload.i`. The C-emit's
+`struct.get` for Box(i32) then attempts a heap-pointer dereference
+(`((Box_i32_t*) recv.payload.obj)->f_value`) instead of the inline
+unbox path. **Fix path** : the inner `.value.value` access chain
+needs the boundary conversion to recurse — when the outer reshape
+copies a field whose type is itself inline-eligible AND comes from
+a heap source, unbox the heap payload's first field and re-pack
+inline. Tricky because the inner Box(i32) was never separately
+returned — it's a field of the outer.
+
+**(10-c) Iterator-pipeline chained boundary** — `iter_combinators`,
+`iter_zip_chain`, `std_sort`, `json_basics` all use generic functions
+that consume / produce iterators (`sum`, `fold`, `take`, `parse`,
+`stringify`, ...). Each is itself erased, returning Any-form values.
+The caller's `local.set` coercion to the concrete static type works
+for primitives (unbox via `payload.i`), but the iterator pipeline
+threading carries the cascade through multiple call boundaries before
+the value lands in a concrete slot. **Fix path** : likely needs the
+argument-side conversion from (10-a) plus more aggressive recursive
+reshape through union variants.
+
+**Mitigation note** : (10-a) is the highest leverage — adding
+argument-side reshape symmetric to the existing return-side reshape
+probably unblocks `tuple_generic_swap` + half of (10-c). Estimated
+~4-6 h.
+
+**Vader port note** : the path-γ infrastructure (Famille A wrappers,
+struct/fn dedupe split, boundary conversion, `BcStruct.symbolId`,
+`anyCounterpartOf`) all has direct Vader self-host port equivalents.
+The fixes are mechanical once the TS side stabilises. (10-a) gates
+the next visible win.
 
 ### Issue 1 — Cascading Any through `@specialize`d containers
 
