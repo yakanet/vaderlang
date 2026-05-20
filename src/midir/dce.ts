@@ -599,6 +599,12 @@ export function pruneUnusedTypes(
         case "make_closure":
           visit(op.typeIndex);
           break;
+        case "call":
+          if (op.expectedResultType !== undefined) visit(op.expectedResultType);
+          break;
+        case "virtual.call":
+          if (op.resultTypeIndex !== undefined) visit(op.resultTypeIndex);
+          break;
         default:
           break;
       }
@@ -628,7 +634,8 @@ export function pruneUnusedTypes(
     switch (t.kind) {
       case "struct":
         kept[i] = { kind: "struct", name: t.name,
-          fields: t.fields.map((f) => ({ name: f.name, typeIndex: re(f.typeIndex) })) };
+          fields: t.fields.map((f) => ({ name: f.name, typeIndex: re(f.typeIndex) })),
+          symbolId: t.symbolId };
         break;
       case "union":
         kept[i] = { kind: "union", variants: t.variants.map(re) };
@@ -682,6 +689,18 @@ export function pruneUnusedTypes(
         case "fn.ref":
         case "make_closure":
           fn.body[i] = { ...op, typeIndex: re(op.typeIndex) } as typeof op;
+          break;
+        case "call":
+          if (op.expectedResultType !== undefined) {
+            const r = re(op.expectedResultType);
+            fn.body[i] = { ...op, expectedResultType: r >= 0 ? r : undefined };
+          }
+          break;
+        case "virtual.call":
+          if (op.resultTypeIndex !== undefined) {
+            const r = re(op.resultTypeIndex);
+            fn.body[i] = { ...op, resultTypeIndex: r >= 0 ? r : undefined };
+          }
           break;
         default:
           break;

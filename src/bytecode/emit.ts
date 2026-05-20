@@ -4,7 +4,8 @@
 
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type * as L from "../lower/lowered-ast.ts";
-import type { CFGExternDecl, CFGFunction, CFGStructDecl } from "../midir/cfg.ts";
+import type { CFGExternDecl, CFGFunction, CFGProject, CFGStructDecl } from "../midir/cfg.ts";
+import { DEC, hasDecorator } from "../parser/decorators.ts";
 import type { PrimitiveName, Type } from "../typecheck/types.ts";
 import { displayType, mkStruct } from "../typecheck/types.ts";
 import type { ImplRegistry } from "../typecheck/impls.ts";
@@ -200,6 +201,61 @@ export function reserveCFGExtern(ext: CFGExternDecl, ctx: EmitterCtx): void {
   // there's no export entry to add.
 }
 
+/** Synthesise wrapper BcFunctions for `@intrinsic` impl members so virtual
+ *  dispatch through the vtable can land on a real fnIndex. Without this,
+ *  `Hash.hash` / `Equals.equals` / `Add.add` / ... on primitive receivers
+ *  reaches `buildVtables` with an `e.fnSymbol.id` only present in
+ *  `importIndexBySymId` — the lookup misses, the entry is dropped, and the
+ *  runtime dispatcher's `default` arm fires (`vader_unreachable("vtable
+ *  miss in ...")`).
+ *
+ *  Static call sites are unaffected : `emitCallInstr` checks
+ *  `importIndexBySymId` first, inlining the op via `OP_INTRINSIC_BY_MANGLED`
+ *  or emitting `call.import` to the runtime shim. The wrapper is only
+ *  reached through `virtual.call` → fnIndex.
+ *
+ *  Body shape : `local.get 0 .. local.get N-1`, then either the inline op
+ *  (when the mangled name is in `OP_INTRINSIC_BY_MANGLED`) or a
+ *  `call.import` forwarding to the runtime shim. Followed by `return`.
+ *
+ *  Must run AFTER all `reserveCFGExtern` calls (so the import table is
+ *  populated) and BEFORE `buildVtables` (which consults
+ *  `fnIndexBySymId`). */
+export function synthesiseIntrinsicWrappers(ctx: EmitterCtx, cfg: CFGProject): void {
+  for (const m of cfg.modules.values()) {
+    for (const ext of m.externs) {
+      if (ext.origin.symbol === null) continue;
+      const decl = ext.origin.decl;
+      if (decl.kind !== "FnDecl") continue;
+      if (!hasDecorator(decl.decorators ?? [], DEC.intrinsic)) continue;
+      // Skip if the symbol already has a fn slot — guards against double
+      // wrapping when the pass runs twice (shouldn't happen, but cheap to
+      // assert via early-exit).
+      if (ctx.fnIndexBySymId.has(ext.origin.symbol.id)) continue;
+      const importIdx = ctx.importIndexBySymId.get(ext.origin.symbol.id);
+      if (importIdx === undefined) continue;
+      const sig = ctx.imports[importIdx]!.signature;
+      const body: Op[] = [];
+      for (let i = 0; i < sig.params.length; i++) {
+        body.push({ kind: "local.get", slot: i });
+      }
+      const opFactory = OP_INTRINSIC_BY_MANGLED.get(ext.mangled);
+      if (opFactory !== undefined) {
+        body.push(opFactory());
+      } else {
+        body.push({ kind: "call.import", importIndex: importIdx });
+      }
+      body.push({ kind: "return" });
+      const fnIndex = ctx.functions.length;
+      ctx.fnIndexBySymId.set(ext.origin.symbol.id, fnIndex);
+      ctx.functions.push({
+        name: `${ext.mangled}$vt`, isMain: false, signature: sig, locals: [],
+        body, debug: body.map(() => null),
+      });
+    }
+  }
+}
+
 function paramsToSignature(
   params: readonly { type: Type }[], returnType: Type, ctx: EmitterCtx,
 ): BcSignature {
@@ -372,7 +428,8 @@ function internStructDecl(d: CFGStructDecl, ctx: EmitterCtx): number {
   const fields = d.fields.map((f) => ({
     name: f.name, typeIndex: internType(ctx, f.type),
   }));
-  ctx.types[idx] = { kind: "struct", name: d.mangled, fields };
+  const symbolId = d.origin.symbol?.id;
+  ctx.types[idx] = { kind: "struct", name: d.mangled, fields, symbolId };
 
   const traits = ctx.traitsBySymbolId.get(d.origin.symbol.id);
   if (traits !== undefined && traits.length > 0) ctx.implTable.set(idx, traits);

@@ -200,6 +200,11 @@ export interface BcStruct {
   readonly kind: "struct";
   readonly name: string;          // mangled name from the lowerer
   readonly fields: readonly BcField[];
+  /** Symbol id of the source `A.StructDecl` (when known). Distinct
+   *  monomorphisations of the same generic source share a `symbolId` ;
+   *  C-emit groups them to find a struct's all-`Any` counterpart for the
+   *  erasure boundary conversion (see `emitErasureBoundaryConversion`). */
+  readonly symbolId?: number;
 }
 
 export interface BcField {

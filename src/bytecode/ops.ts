@@ -74,7 +74,13 @@ export type Op =
   | { readonly kind: "unreachable" }
 
   // -- Calls --------------------------------------------------------------
-  | { readonly kind: "call"; readonly fnIndex: number }
+  /** Direct call to a bytecode fn. `expectedResultType` is the BcType
+   *  index of the destination local's static type at the call site ;
+   *  the C-emit consults it to detect erasure-induced layout mismatch
+   *  (callee's body returns the Any-substituted heap form while the
+   *  caller expects the concrete inline form) and insert a boundary
+   *  conversion. */
+  | { readonly kind: "call"; readonly fnIndex: number; readonly expectedResultType?: number }
   | { readonly kind: "call.import"; readonly importIndex: number }
   | { readonly kind: "call.indirect"; readonly typeIndex: number }   // …args, fn ref ⇒ result
   | { readonly kind: "fn.ref"; readonly fnIndex: number; readonly typeIndex: number }  // ⇒ fn ref
@@ -83,8 +89,13 @@ export type Op =
   /** Virtual dispatch through the module's vtable. Stack: …args, receiver ⇒ result.
    *  `vtableKey` keys `BytecodeModule.vtables`; the runtime indexes by the
    *  receiver's type tag to pick the impl fn. `paramCount` includes the
-   *  receiver — matches the impl fn's arity. */
-  | { readonly kind: "virtual.call"; readonly vtableKey: string; readonly paramCount: number }
+   *  receiver — matches the impl fn's arity. `resultTypeIndex` is the
+   *  BcType index of the destination local's static type (when known) ;
+   *  the C-emit consults it after the helper call to detect erasure-
+   *  layout mismatch (body returns `Yield(Any)` heap-form while the call
+   *  site expects `Yield(i32)` inline-form) and insert an unbox+repack
+   *  conversion. The VM ignores it (values are dynamically typed). */
+  | { readonly kind: "virtual.call"; readonly vtableKey: string; readonly paramCount: number; readonly resultTypeIndex?: number }
 
   // -- Struct (GC-style) --------------------------------------------------
   | { readonly kind: "struct.new"; readonly typeIndex: number }

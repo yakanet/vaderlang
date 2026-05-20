@@ -94,6 +94,12 @@ export interface EmitCtx {
    *  values. Closure environments, `Counter { value: i32 }`-style mutables,
    *  and any single-field struct the user writes to fall into this set. */
   readonly mutatedStructs: ReadonlySet<number>;
+  /** Concrete struct type-index → its all-`Any` counterpart type-index, when
+   *  one was registered (via erasure dedupe's extra entry). Used at the
+   *  virtual.call / call boundary : if the runtime receiver carries the
+   *  Any-counterpart tag, the C-emit re-packs the heap layout into the
+   *  expected inline-eligible struct's payload shape. */
+  readonly anyCounterpartOf: ReadonlyMap<number, number>;
   /** Set when `--release` was passed. Gates `#line` directives in the per-op
    *  body emit — debug builds emit them so `gdb`/`lldb` step through the
    *  original Vader source. */
@@ -127,8 +133,45 @@ function newCtx(m: BytecodeModule, release: boolean): EmitCtx {
     fnNames, structNames, primitiveTagOf, structIdxsByTrait,
     mayAlloc: computeMayAlloc(m),
     mutatedStructs: computeMutatedStructs(m),
+    anyCounterpartOf: computeAnyCounterpartOf(m),
     release,
   };
+}
+
+/** Group struct types by their source decl's symbol id ; for each group,
+ *  identify the all-`Any`-args entry (every field's BcType is `ref` —
+ *  i.e. an opaque heap pointer — which is the post-erasure shape) and
+ *  link every other entry in the group to it. Used by `emitErasureBoundaryConversion`
+ *  to recognise when a runtime box carries the heap-form layout of an
+ *  otherwise inline-eligible struct. Generic source decls with only one
+ *  instantiation, and non-generic structs, yield no entries. */
+function computeAnyCounterpartOf(m: BytecodeModule): Map<number, number> {
+  const out = new Map<number, number>();
+  const groups = new Map<number, number[]>();
+  for (let i = 0; i < m.types.length; i++) {
+    const t = m.types[i]!;
+    if (t.kind !== "struct" || t.symbolId === undefined) continue;
+    const list = groups.get(t.symbolId);
+    if (list !== undefined) list.push(i);
+    else groups.set(t.symbolId, [i]);
+  }
+  for (const indices of groups.values()) {
+    if (indices.length < 2) continue;
+    // The all-Any entry has every field typed as a heap reference (`ref`).
+    // Concrete entries have at least one primitive / typed field.
+    const anyIdx = indices.find((i) => {
+      const t = m.types[i] as { kind: "struct"; fields: readonly { typeIndex: number }[] };
+      return t.fields.every((f) => {
+        const ft = m.types[f.typeIndex];
+        return ft?.kind === "ref";
+      });
+    });
+    if (anyIdx === undefined) continue;
+    for (const i of indices) {
+      if (i !== anyIdx) out.set(i, anyIdx);
+    }
+  }
+  return out;
 }
 
 /** Walk every fn body once and collect the type indices of every struct

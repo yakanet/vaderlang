@@ -253,13 +253,22 @@ typedef struct {
 
 /* `capacity` / `length` are mirrored from the parent vader_array_t — the
  * GC needs them at scan time and there's no back-pointer to the array.
- * `slots` is byte-typed ; the actual width is `element_size(element_kind)`. */
+ * `slots` is byte-typed ; the actual width is `element_size(element_kind)`.
+ *
+ * `element_tag` is the BcType index of the array's static element type. For
+ * BOXED kind the per-slot box already carries its own tag (one slot may hold
+ * different concrete types under an `Any[]` view) ; element_tag is unused.
+ * For primitive kinds (I32, F64, BOOL, ...) all elements share the same tag —
+ * `vader_array_load_slot` stamps it onto the returned box so virtual-dispatch
+ * call sites that observe the array through an erased `Any[]` view get a
+ * properly-tagged receiver. */
 typedef struct vader_array_buf {
     vader_obj_header_t       header;
     size_t                   capacity;
     size_t                   length;
+    uint32_t                 element_tag;
     uint8_t                  element_kind;
-    uint8_t                  _pad[7];
+    uint8_t                  _pad[3];
     uint8_t                  slots[];
 } vader_array_buf_t;
 
@@ -274,7 +283,7 @@ static inline vader_box_t* vader_array_box_slots(vader_array_buf_t* buf) {
  * for variable-length objects. */
 #define VADER_TYPE_INDEX_ARRAY_BUF UINT32_C(0xFFFFFFFE)
 
-vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind);
+vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind, uint32_t element_tag);
 vader_box_t    vader_array_get(vader_array_t* a, size_t i);
 void           vader_array_set(vader_array_t* a, size_t i, vader_box_t v);
 void           vader_array_push(vader_array_t* a, vader_box_t v);

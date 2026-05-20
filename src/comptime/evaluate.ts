@@ -8,13 +8,12 @@ import type * as A from "../parser/ast.ts";
 import type { Symbol } from "../resolver/symbol.ts";
 import type { TypedProgram, TypedProject } from "../typecheck/index.ts";
 import type { Substitution, Type } from "../typecheck/types.ts";
-import { CORE_STRUCTS, canonicalArgsKey, substitute } from "../typecheck/types.ts";
+import { CORE_STRUCTS, TY, canonicalArgsKey, substitute } from "../typecheck/types.ts";
 import { buildStructSubst } from "../typecheck/ctx.ts";
 import type { ResolvedProgram } from "../resolver/resolved-ast.ts";
 import type { ImplRegistry } from "../typecheck/impls.ts";
 
 import { staticStringValue, UNASSIGNED_NODE_ID } from "../parser/ast.ts";
-import { DEC } from "../parser/decorators.ts";
 
 import { err } from "./diag.ts";
 import type { EvaluatedProgram, EvaluatedProject, IntoMemberObservation } from "./evaluated-ast.ts";
@@ -22,7 +21,7 @@ import { InstanceRegistry } from "./instances.ts";
 import { planComptimeOrder } from "./deps.ts";
 import { runComptimeDecl } from "./run.ts";
 import { buildImplRegistry } from "../typecheck/impls.ts";
-import { monomorphizeProject } from "./specialize.ts";
+import { isSpecialized, monomorphizeProject } from "./specialize.ts";
 import type { MonoProject } from "./specialize.ts";
 import { erasureDedupe } from "./erasure-dedupe.ts";
 import { COMPTIME_BUILTIN, callBuiltin, type SandboxOptions } from "./sandbox.ts";
@@ -137,14 +136,12 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
     typed: project, modules, instances: instances.entries(),
     mono: EMPTY_MONO, fileExprs, intoMembers,
   };
-  // `erasureDedupe` is wired but disabled pending §9 Issue 9 — the
-  // erasure cascade can't be locally pinned with `@specialize` because
-  // any code path from an erased decl through a specialized one creates
-  // Any-bearing queries against the specialized type's registered
-  // concrete-arg instances. Recommended path forward : (γ) synthesise
-  // Any-bearing instances for `@specialize`d containers reachable from
-  // erased fields, with bounded recursion through the type graph.
-  const mono = monomorphizeProject(evaluatedCore);
+  // WIP — path (γ) progressive enablement. Famille A (intrinsic vtable
+  // wrappers) shipped in `bytecode/emit.ts:synthesiseIntrinsicWrappers`.
+  // Famille B (Any-bearing instance synthesis) + Famille C (match / cast
+  // on Any) still pending — see PHASE2.md §9.
+  const monoRaw = monomorphizeProject(evaluatedCore);
+  const mono = erasureDedupe(monoRaw, project);
   return { ...evaluatedCore, mono };
 }
 
@@ -451,6 +448,16 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry, dia
     }
   }
 
+  // Erasure cascade (Issue 9 path γ) : every `@specialize`d generic struct
+  // /trait may be reached from an erased decl with Any-bearing type args
+  // (e.g. `ArrayIterator(Entry(Any, Any) | null)` after `MutableMap` is
+  // erased). Pre-register the all-Any view of each `@specialize`d generic
+  // so `closeOverGenericImpls` materialises its impl members with Any-arg
+  // substitutions. Over-registration is benign — DCE drops unused mono
+  // entries downstream ; under-registration crashes with `vader_unreachable`
+  // at the vtable miss.
+  synthesiseErasedSpecializedInstances(project, registry);
+
   // Transitive closure: when `ArrayIter(string)` is registered, the impl `step`
   // returns `Done | Yielded(T)`. Substituting T=string yields `Yielded(string)`,
   // which must also be observed so mono materialises it. Without this sweep the
@@ -461,6 +468,35 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry, dia
   // need their substituted types/instances observed to materialise the right
   // mono entries downstream.
   closeOverGenericImpls(project, registry, arrayIterSymbol, diags);
+}
+
+/** Path (γ) — register an Any-bearing instance for every `@specialize`d
+ *  generic struct/trait declared in the project. The reasoning : when the
+ *  erasure pass collapses N concrete instantiations of a non-`@specialize`d
+ *  decl into one Any-substituted representative, that representative's
+ *  body / field types may reference a `@specialize`d generic with Any-bearing
+ *  args (e.g. `MutableMap` erased → `Entry(Any, Any)`, with `Entry` /
+ *  `ArrayIterator(Entry(...))` being `@specialize`d and needing the Any-arg
+ *  instance materialised for virtual dispatch to land somewhere).
+ *
+ *  The simplest sound approach : register every `@specialize`d generic with
+ *  all-Any args (`Self(Any, Any, ...)`). Transitive observation in
+ *  `closeOverGenericImpls` materialises the impl members against the new
+ *  instance ; DCE prunes anything actually unused. */
+function synthesiseErasedSpecializedInstances(
+  project: TypedProject, registry: InstanceRegistry,
+): void {
+  for (const m of project.modules.values()) {
+    for (const decl of m.resolved.source.decls) {
+      if (decl.kind !== "StructDecl" && decl.kind !== "TraitDecl") continue;
+      if (decl.typeParams.length === 0) continue;
+      if (!isSpecialized(decl)) continue;
+      const sym = m.resolved.module.symbols.get(decl.name);
+      if (sym === undefined) continue;
+      const anyArgs: Type[] = decl.typeParams.map(() => TY.any);
+      registry.add(sym, anyArgs);
+    }
+  }
 }
 
 interface ImplSite {

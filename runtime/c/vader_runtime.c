@@ -964,17 +964,18 @@ static size_t vader_array_buf_bytes(size_t capacity, uint8_t element_kind) {
  * sentinel as its type tag — the GC scan loop dispatches on that to walk
  * `length` slots dynamically. The struct itself plus its trailing slot
  * area land in a single GC arena allocation. */
-static vader_array_buf_t* vader_array_buf_alloc(size_t capacity, uint8_t element_kind) {
+static vader_array_buf_t* vader_array_buf_alloc(size_t capacity, uint8_t element_kind, uint32_t element_tag) {
     size_t bytes = vader_array_buf_bytes(capacity, element_kind);
     vader_array_buf_t* buf = (vader_array_buf_t*) vader_gc_alloc(bytes);
     vader_obj_header_init(buf, VADER_TYPE_INDEX_ARRAY_BUF);
     buf->capacity     = capacity;
     buf->length       = 0;
     buf->element_kind = element_kind;
+    buf->element_tag  = element_tag;
     return buf;
 }
 
-vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind) {
+vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind, uint32_t element_tag) {
     /* Single-block initial allocation: struct followed by an inline buf in
      * the same GC alloc. Two-step allocation has a window where one half is
      * unreachable from the shadow stack — a collection mid-construction
@@ -1004,6 +1005,7 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t eleme
     buf->capacity     = cap;
     buf->length       = length;
     buf->element_kind = element_kind;
+    buf->element_tag  = element_tag;
     return a;
 }
 
@@ -1015,7 +1017,13 @@ static vader_array_t* vader_array_resolve(vader_array_t* a);
 static vader_box_t vader_array_load_slot(vader_array_buf_t* buf, size_t i) {
     uint8_t* base = buf->slots;
     vader_box_t out;
-    out.tag = 0; out._pad = 0; out.payload.i = 0;
+    /* Tag from the buf's recorded element BcType so virtual dispatch on a
+     * receiver coming from a primitive-storage array (i32[], bool[], ...)
+     * observed through an erased `Any[]` view sees the right runtime tag.
+     * BOXED kind returns the per-slot box verbatim — its tag was stamped
+     * at store time and may differ slot-to-slot under a heterogeneous
+     * `Any[]` view. */
+    out.tag = buf->element_tag; out._pad = 0; out.payload.i = 0;
     switch (buf->element_kind) {
         case VADER_ARRAY_KIND_BOXED:
             return vader_array_box_slots(buf)[i];
@@ -1146,7 +1154,7 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
         vader_gc_top = &frame;
         size_t cap = a->capacity == 0 ? 4 : a->capacity * 2;
         if (cap <= a->length) cap = a->length + 1;
-        vader_array_buf_t* fresh = vader_array_buf_alloc(cap, kind);
+        vader_array_buf_t* fresh = vader_array_buf_alloc(cap, kind, a->buf->element_tag);
         a = (vader_array_t*) a_box.payload.obj;
         vader_array_buf_t* old = a->buf;
         while (old != NULL && old->header.forward != NULL) {
@@ -1289,7 +1297,7 @@ vader_u8_t vader_string_byte_at(vader_string_t s, size_t i) {
  * Each `vader_array_push` may collect; the shadow-stack frame keeps `arr_box`
  * reachable so its `payload.obj` tracks the array across moves. */
 vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint32_t str_type) {
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED));
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED, str_type));
     VADER_GC_PUSH1(arr_box);
     for (int i = 0; i < argc; i++) {
         const char* a = argv[i];
@@ -1304,7 +1312,7 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
 
 vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,
                                   uint32_t arr_type, uint32_t str_type) {
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED));
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED, str_type));
     VADER_GC_PUSH1(arr_box);
     if (sep.len == 0) {
         for (size_t i = 0; i < s.len; i++) {
@@ -1671,7 +1679,7 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
         return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
     }
 
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED));
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED, str_type));
     VADER_GC_PUSH1(arr_box);
     do {
         const char* name = fd.cFileName;
@@ -1717,7 +1725,7 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
         return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
     }
 
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED));
+    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED, str_type));
     VADER_GC_PUSH1(arr_box);
     struct dirent* ent;
     while ((ent = readdir(d)) != NULL) {

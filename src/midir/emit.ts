@@ -21,7 +21,7 @@ import {
   binaryOpFor, buildVtables, declareLocal, emitFloatConst, emitIntConst,
   internCellType, internString, internType, newEmitterCtx,
   OP_INTRINSIC_BY_MANGLED, pushOp, reserveCFGExtern, reserveCFGFunction,
-  reserveCFGStruct, valTypeOf,
+  reserveCFGStruct, synthesiseIntrinsicWrappers, valTypeOf,
   type EmitOptions, type EmitterCtx, type FnEmitCtx,
 } from "../bytecode/emit.ts";
 import type {
@@ -61,14 +61,21 @@ export function emitBytecodeFromCFG(
     for (const s of m.structDecls) reserveCFGStruct(s, ctx);
   }
 
+  // Synthesise wrapper BcFunctions for `@intrinsic` impl members. The
+  // wrappers register the impl member's symbol in `fnIndexBySymId` so
+  // `buildVtables` (called below) finds a fnIndex for trait dispatch on
+  // primitive receivers (e.g. `Hash.hash` on `i32`/`string`,
+  // `Equals.equals` on every primitive, `Add.add` on numerics, ...).
+  // Static call sites are unaffected — `emitCallInstr` still hits the
+  // `importIndexBySymId` → `OP_INTRINSIC_BY_MANGLED` / `call.import`
+  // path first.
+  synthesiseIntrinsicWrappers(ctx, cfg);
+
   // Erasure-dedupe symbol redirects : when the erasure pass collapsed N
   // concrete MonoEntries into one representative, the (N-1) abandoned
   // symbols still appear in the lowered IR (left over from when those
   // entries had their own bodies). Forward each abandoned symbol id to
   // the representative's fnIndex so call sites resolve correctly.
-  // Erasure-dedupe symbol redirects : forward each abandoned symbol id to
-  // the representative's fnIndex so call sites in the surviving lowered
-  // IR resolve correctly.
   for (const [oldSymId, newSymId] of cfg.symbolRedirects) {
     const newIdx = ctx.fnIndexBySymId.get(newSymId);
     if (newIdx !== undefined) ctx.fnIndexBySymId.set(oldSymId, newIdx);
@@ -417,7 +424,13 @@ function emitCallInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Call" 
   const fnIdx = ctx.project.fnIndexBySymId.get(ins.callee.id);
   if (fnIdx !== undefined) {
     emitArgs(ctx, ins, ins.args);
-    pushOp(ctx.emit, { kind: "call", fnIndex: fnIdx }, ins.span);
+    // Pass the destination local's static type so the C-emit can recognise
+    // erasure boundary cases (callee body returns Any-form heap struct,
+    // caller expects concrete inline form — see `emitErasureBoundaryConversion`).
+    const expectedResultType = ins.dst !== null
+      ? internType(ctx.project, ctx.fn.locals[ins.dst]!.type)
+      : undefined;
+    pushOp(ctx.emit, { kind: "call", fnIndex: fnIdx, expectedResultType }, ins.span);
     emitInstrResultIfAny(ctx, ins, ins.dst, ins.span);
     return;
   }
@@ -456,10 +469,19 @@ function emitVirtualCall(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Virt
   if (ins.args.length > 0) emitArgs(ctx, ins, ins.args);
   if (ins.args.length > 0) emitGet(ctx, ins.receiver, ins.span);
   else emitFirstOperand(ctx, ins, ins.receiver, ins.span);
+  // Pass the destination local's static BcType index so the C-emit can
+  // recognise an erasure-induced layout mismatch (impl body returns the
+  // Any-substituted heap form ; caller expects the inline form) and
+  // insert an unbox+repack conversion. Undefined when there is no dst
+  // (void result) ; the C-emit treats it as "no conversion needed".
+  const resultTypeIndex = ins.dst !== null
+    ? internType(ctx.project, ctx.fn.locals[ins.dst]!.type)
+    : undefined;
   pushOp(ctx.emit, {
     kind: "virtual.call",
     vtableKey: `${ins.traitName}.${ins.method}`,
     paramCount: ins.args.length + 1,
+    resultTypeIndex,
   }, ins.span);
   emitInstrResultIfAny(ctx, ins, ins.dst, ins.span);
 }

@@ -30,7 +30,7 @@ import {
 
 export function emitCall(s: FnState, op: Extract<Op, { kind: "call" }>): void {
   const callee = s.ctx.module.functions[op.fnIndex]!;
-  emitCallTo(s, s.ctx.fnNames[op.fnIndex]!, callee.signature);
+  emitCallTo(s, s.ctx.fnNames[op.fnIndex]!, callee.signature, op.expectedResultType);
 }
 
 export function emitCallImport(s: FnState, op: Extract<Op, { kind: "call.import" }>): void {
@@ -43,7 +43,9 @@ export function emitCallImport(s: FnState, op: Extract<Op, { kind: "call.import"
  *  if the callee expects a `void*`, and re-boxes a B1 return back into
  *  a `vader_box_t` tmp so downstream ops continue to see a normal ref
  *  value on the stack. */
-function emitCallTo(s: FnState, calleeName: string, sig: BcSignature): void {
+function emitCallTo(
+  s: FnState, calleeName: string, sig: BcSignature, expectedResultType?: number,
+): void {
   const args: string[] = [];
   for (let i = sig.params.length - 1; i >= 0; i--) {
     const v = pop(s);
@@ -51,13 +53,21 @@ function emitCallTo(s: FnState, calleeName: string, sig: BcSignature): void {
     args.unshift(coerceForB1Arg(s.ctx, boxed, sig.paramTypes[i]!));
   }
   const callExpr = `${calleeName}(${args.join(", ")})`;
-  emitCallResult(s, callExpr, sig.result, sig.resultType);
+  emitCallResult(s, callExpr, sig.result, sig.resultType, expectedResultType);
 }
 
 /** Lower a (callExpr, expected result valType, result BcType idx)
  *  triple into a statement that captures the result on the value stack
- *  — re-boxing void* via `vader_b1_to_box` when the slot is B1. */
-function emitCallResult(s: FnState, callExpr: string, retVal: ValType, retTypeIndex: number): void {
+ *  — re-boxing void* via `vader_b1_to_box` when the slot is B1.
+ *  `expectedResultType` (when provided) names the call site's static
+ *  type — different from `retTypeIndex` (the callee's actual return
+ *  type) under erasure (callee returns Yield(Any) | null, caller
+ *  expects Yield(i32) | null). Trigger boundary conversion when they
+ *  diverge and the expected type is an inline-eligible struct. */
+function emitCallResult(
+  s: FnState, callExpr: string, retVal: ValType, retTypeIndex: number,
+  expectedResultType?: number,
+): void {
   if (retVal === "void") {
     line(s, `${callExpr};`);
     return;
@@ -67,10 +77,18 @@ function emitCallResult(s: FnState, callExpr: string, retVal: ValType, retTypeIn
     const raw = newTmp(s, "ref");
     line(s, `void* ${raw}_b1 = ${callExpr};`);
     line(s, `${decl(s, "ref", raw)} = vader_b1_to_box(${raw}_b1, ${b1}u);`);
+    if (expectedResultType !== undefined && expectedResultType !== retTypeIndex) {
+      emitErasureBoundaryConversion(s, raw, expectedResultType);
+    }
     return;
   }
   const t = newTmp(s, retVal);
   line(s, `${decl(s, retVal, t)} = ${callExpr};`);
+  if (retVal === "ref" || retVal === "any") {
+    if (expectedResultType !== undefined && expectedResultType !== retTypeIndex) {
+      emitErasureBoundaryConversion(s, t, expectedResultType);
+    }
+  }
 }
 
 /** When the callee's slot is B1, downgrade the boxed arg to a raw
@@ -111,23 +129,121 @@ export function emitVirtualCall(s: FnState, op: Extract<Op, { kind: "virtual.cal
   }
   const tmp = newTmp(s, sig.result);
   line(s, `${decl(s, sig.result, tmp)} = ${helper}(${[recvBoxed, ...boxedArgs].join(", ")});`);
+
+  // Erasure-aware result conversion : the dispatched impl body was lowered
+  // with type-params substituted to Any, so for `@specialize`d structs
+  // whose layout is inline-eligible (Yield(T), Box(T), …) the body
+  // returns the heap-allocated Any-version (`payload.obj` = heap struct).
+  // The call site's static type expects the concrete inline-form
+  // (`payload.i` / `payload.s` / … with the variant tag). Re-pack at the
+  // boundary so downstream `struct.get` / `local.set` / `coerce` see the
+  // expected layout.
+  if (sig.result === "any" && op.resultTypeIndex !== undefined) {
+    emitErasureBoundaryConversion(s, tmp, op.resultTypeIndex);
+  }
+}
+
+/** When the dispatcher returns a heap-form Any-version of a struct but
+ *  the call site expects the inline-form, read the heap struct's first
+ *  field through a raw pointer offset and re-pack as the inline-tagged
+ *  box. Handles the single-primitive-field and single-ref-field cases
+ *  directly ; packed multi-field is deferred (Range[T] still goes
+ *  through the heap path until a packed-layout reader lands). */
+function emitErasureBoundaryConversion(s: FnState, tmp: string, expectedTypeIndex: number): void {
+  // Resolve the inline-eligible struct in the expected type. `Yield(T) | null`
+  // unions are common ; pick the non-null variant. For unions with multiple
+  // struct variants (e.g. `i64 | ParseError`) the result is ambiguous : skip
+  // conversion ; the heap layout will be propagated as-is.
+  const expected = s.ctx.module.types[expectedTypeIndex];
+  if (expected === undefined) return;
+  let structIdx = -1;
+  if (expected.kind === "struct") {
+    structIdx = expectedTypeIndex;
+  } else if (expected.kind === "union") {
+    let structCount = 0;
+    for (const variant of expected.variants) {
+      const t = s.ctx.module.types[variant];
+      if (t?.kind === "struct") { structIdx = variant; structCount++; }
+    }
+    if (structCount !== 1) return;                       // ambiguous, skip
+  }
+  if (structIdx < 0) return;
+  const structT = s.ctx.module.types[structIdx]!;
+  if (structT.kind !== "struct") return;
+  if (s.ctx.mutatedStructs.has(structIdx)) return;     // heap-form on both sides, no conversion
+  const inline = inlineVariantPayload(structT, s.ctx.module.types);
+  if (inline === null || inline === "void") return;
+  if (inline === "packed") return;                     // TODO : packed-layout repack
+
+  // Only convert when the runtime receiver carries the Any-counterpart's
+  // tag — any other tag (e.g. an alternate union variant) means the runtime
+  // already matches the call site's expectation. Without this guard, calling
+  // `parse_int_in_base(...) : i64 | ParseError` would mis-fire on the i64
+  // arm (tag ≠ 0, ≠ ParseError, ≠ Any-counterpart-of-ParseError).
+  const anyIdx = s.ctx.anyCounterpartOf.get(structIdx);
+  if (anyIdx === undefined) return;                    // no Any-version exists, nothing to convert
+
+  // Tag check : convert only when the receiver carries the Any-version's tag.
+  // Read the field from the Any-version heap layout (vader_box_t slot just
+  // after the obj header) and re-pack into the inline-form.
+  const field = structT.fields[0];
+  if (field === undefined) return;
+  line(s, `if (${tmp}.tag == ${anyIdx}u) {`);
+  line(s, `    vader_box_t __any_field_0 = *(vader_box_t*)((char*)${tmp}.payload.obj + sizeof(vader_obj_header_t));`);
+  if (inline === "ref") {
+    line(s, `    ${tmp} = vader_box_obj(${structIdx}u, __any_field_0.payload.obj);`);
+  } else {
+    const unboxed = unboxExpr("__any_field_0", inline as ValType);
+    const repack = boxExpr(s.ctx, unboxed, inline as ValType, structIdx);
+    line(s, `    ${tmp} = ${repack};`);
+  }
+  line(s, `}`);
 }
 
 export function vtableHelperName(key: string): string {
   return `vader_vt_${sanitise(key.replace(".", "__"))}`;
 }
 
-/** Per-vtable canonical signature, derived from the first impl fn in each
- *  table. All impls of a given trait method share their non-receiver param
- *  types (the receiver is taken as `any`/`vader_box_t` in the dispatcher). */
+/** Per-vtable canonical signature. Most traits have homogeneous result
+ *  types across all impls (`Hash.hash` always returns u64, `Equals.equals`
+ *  always returns bool) — those use the first impl's sig directly. Traits
+ *  whose impl results diverge in ValType (`Add.add` returning i32/string/
+ *  bool/...) or in BcType (`Iterator.next` returning Yield(i32)|null vs
+ *  Yield(Any)|null — both fold to ValType "ref" but the BcTypes differ
+ *  in their B1 eligibility and per-tag downstream coercion) get a
+ *  synthetic uniform sig with `result: "any"` so the call site uses the
+ *  erasure-boundary conversion path. */
 export function vtableSignatures(ctx: EmitCtx): ReadonlyMap<string, BcSignature> {
   const out = new Map<string, BcSignature>();
   for (const [key, table] of ctx.module.vtables) {
     const firstFnIdx = table.values().next().value;
     if (firstFnIdx === undefined) continue;
-    const fn = ctx.module.functions[firstFnIdx];
-    if (fn === undefined) continue;
-    out.set(key, fn.signature);
+    const firstFn = ctx.module.functions[firstFnIdx];
+    if (firstFn === undefined) continue;
+    let uniform = true;
+    const firstResult = firstFn.signature.result;
+    const firstResultType = firstFn.signature.resultType;
+    for (const fnIdx of table.values()) {
+      const fn = ctx.module.functions[fnIdx];
+      if (fn === undefined) continue;
+      if (fn.signature.result !== firstResult
+          || fn.signature.resultType !== firstResultType) {
+        uniform = false; break;
+      }
+    }
+    if (uniform) {
+      out.set(key, firstFn.signature);
+    } else {
+      // Synthetic uniform sig — params are taken from the first impl (their
+      // boxed-`any` projection happens in `emitVtableForwardDecls`), result
+      // is forced to `any` so all arms can box-and-return uniformly.
+      out.set(key, {
+        params: firstFn.signature.params,
+        paramTypes: firstFn.signature.paramTypes,
+        result: "any",
+        resultType: firstFn.signature.resultType,
+      });
+    }
   }
   return out;
 }
@@ -138,20 +254,20 @@ export function emitVtableForwardDecls(ctx: EmitCtx, out: string[]): void {
   if (ctx.module.vtables.size === 0) return;
   out.push(``);
   out.push(`/* ----------------------------------------------- vtable forwards */`);
+  const sigs = vtableSignatures(ctx);
   for (const [key, table] of ctx.module.vtables) {
-    const firstFnIdx = table.values().next().value;
-    if (firstFnIdx === undefined) continue;
-    const sig = ctx.module.functions[firstFnIdx]!.signature;
+    if (table.size === 0) continue;
+    const sig = sigs.get(key);
+    if (sig === undefined) continue;
     // Tail params are typed `vader_box_t` so the dispatcher can host arms
     // with divergent monomorphised signatures. Each arm unboxes to its
     // concrete impl signature.
     const tailCount = sig.params.length - 1;
     const tailParamDecls = Array.from({ length: tailCount }, (_, i) => `vader_box_t a${i}`).join(", ");
     const formal = tailCount > 0 ? `vader_box_t recv, ${tailParamDecls}` : `vader_box_t recv`;
-    // Vtable adapter uses the non-B1 ABI (vader_box_t) uniformly — each
-    // impl arm may have its own B1 status (T-ref → void* ; T-primitive →
-    // vader_box_t), and the adapter can't pick a single ABI to forward.
-    // Per-arm `return` coerces the impl's result back to vader_box_t below.
+    // Result type comes from `vtableSignatures` — uniform across impls when
+    // all agree, falls back to `vader_box_t` (sig.result = "any") when impls
+    // diverge (e.g. `Add.add` returning i32/string/bool/...).
     const cret = cTypeForVal(ctx, sig.result);
     out.push(`static ${cret} ${vtableHelperName(key)}(${formal});`);
   }
@@ -166,10 +282,11 @@ export function emitVtableDispatchers(ctx: EmitCtx, out: string[]): void {
   if (ctx.module.vtables.size === 0) return;
   out.push(``);
   out.push(`/* ----------------------------------------------- vtable dispatchers */`);
+  const sigs = vtableSignatures(ctx);
   for (const [key, table] of ctx.module.vtables) {
-    const firstFnIdx = table.values().next().value;
-    if (firstFnIdx === undefined) continue;
-    const sig = ctx.module.functions[firstFnIdx]!.signature;
+    if (table.size === 0) continue;
+    const sig = sigs.get(key);
+    if (sig === undefined) continue;
     const helper = vtableHelperName(key);
     const tailCount = sig.params.length - 1;
     const tailParamDecls = Array.from({ length: tailCount }, (_, i) => `vader_box_t a${i}`).join(", ");
@@ -187,15 +304,24 @@ export function emitVtableDispatchers(ctx: EmitCtx, out: string[]): void {
       if (sig.result === "void") {
         out.push(`        case ${tag}u: ${calleeName}(${allArgs}); return;`);
       } else {
-        // Each impl may emit its result through B1 (raw void*) when its
-        // resultType folds to nullable-ref. Rebox via `vader_b1_to_box`
-        // into the adapter's uniform `vader_box_t` ABI ; for non-B1
-        // impls the call expression already has the right type.
-        const b1Variant = b1SlotVariant(ctx, calleeSig.resultType);
         const callExpr = `${calleeName}(${allArgs})`;
-        const wrapped = b1Variant !== null
-          ? `vader_b1_to_box(${callExpr}, ${b1Variant}u)`
-          : callExpr;
+        // Box per-arm when the dispatcher's expected result type doesn't
+        // match the impl's. Three flavours :
+        //  - impl returns ref/any AND dispatcher returns any → pass through
+        //  - impl returns B1 (nullable ref) → `vader_b1_to_box`
+        //  - impl returns primitive AND dispatcher returns any → `coerceExpr`
+        //    boxes via `boxExprUnknown`
+        //  - impl/result types already match → bare callExpr
+        const implResult = calleeSig.result;
+        let wrapped: string;
+        if (sig.result === "any" && implResult !== "any" && implResult !== "ref" && implResult !== "void") {
+          wrapped = coerceExpr(ctx, callExpr, implResult, "any");
+        } else {
+          const b1Variant = b1SlotVariant(ctx, calleeSig.resultType);
+          wrapped = b1Variant !== null
+            ? `vader_b1_to_box(${callExpr}, ${b1Variant}u)`
+            : callExpr;
+        }
         out.push(`        case ${tag}u: return ${wrapped};`);
       }
     }
@@ -509,11 +635,16 @@ export function emitArrayNew(s: FnState, op: Extract<Op, { kind: "array.new" }>)
     ? arrayKindOf(s.ctx.module.types[arrType.element]!)
     : "boxed";
   const kindIdx = arrayKindIndex(elemKind);
-  line(s, `vader_array_t* ${tmp}_arr = vader_array_new(${op.typeIndex}u, ${op.length}u, ${kindIdx}u);`);
+  const elemTag = arrType !== undefined && arrType.kind === "array"
+    ? arrType.element : 0;
+  line(s, `vader_array_t* ${tmp}_arr = vader_array_new(${op.typeIndex}u, ${op.length}u, ${kindIdx}u, ${elemTag}u);`);
   if (op.length > 0) {
     for (let i = 0; i < op.length; i++) {
       const v = elements[i]!;
-      line(s, `vader_array_set(${tmp}_arr, ${i}u, ${boxExpr(s.ctx, v.name, v.val, op.typeIndex)});`);
+      // Box with the element type's tag, not the array's. Without this,
+      // virtual dispatch on a value read back from the array would see
+      // recv.tag = array_index instead of element_index → vtable miss.
+      line(s, `vader_array_set(${tmp}_arr, ${i}u, ${boxExpr(s.ctx, v.name, v.val, elemTag)});`);
     }
   }
   line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${tmp}_arr);`);
@@ -523,6 +654,10 @@ export function emitArrayGet(s: FnState, _op: Extract<Op, { kind: "array.get" }>
   const idx = pop(s);
   const arr = pop(s);
   const tmp = newTmp(s, "any");
+  // Tag is stamped in `vader_array_load_slot` from the buf's recorded
+  // `element_tag` (set at `vader_array_new` time), so virtual dispatch on
+  // a receiver coming from a primitive-storage array sees a properly-tagged
+  // box even when the static type at the call site is erased to `Any[]`.
   line(s, `${decl(s, "any", tmp)} = vader_array_get((vader_array_t*) ${asObjPtr(arr)}, (size_t) ${idx.name});`);
 }
 
@@ -530,7 +665,11 @@ export function emitArraySet(s: FnState, op: Extract<Op, { kind: "array.set" }>)
   const value = pop(s);
   const idx = pop(s);
   const arr = pop(s);
-  line(s, `vader_array_set((vader_array_t*) ${asObjPtr(arr)}, (size_t) ${idx.name}, ${boxExpr(s.ctx, value.name, value.val, op.typeIndex)});`);
+  // Box with the element type's tag (same reasoning as `emitArrayNew`).
+  const arrType = s.ctx.module.types[op.typeIndex];
+  const elemTag = arrType !== undefined && arrType.kind === "array"
+    ? arrType.element : op.typeIndex;
+  line(s, `vader_array_set((vader_array_t*) ${asObjPtr(arr)}, (size_t) ${idx.name}, ${boxExpr(s.ctx, value.name, value.val, elemTag)});`);
 }
 
 export function emitArraySlice(s: FnState, op: Extract<Op, { kind: "array.slice" }>): void {

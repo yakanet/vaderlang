@@ -110,11 +110,15 @@ function makeRepresentative(first: MonoEntry): MonoEntry {
 }
 
 /** Rewrite a per-FnDecl-per-argsKey lookup map so every value that was
- *  collapsed into a representative points at the representative ;
- *  unaffected entries pass through. When any entry in an inner map is
- *  redirected, also add an `ERASED_KEY` row pointing to the
- *  representative so the lower's `lookupImplEntry` / `lookupFnInstance`
- *  fallback finds it for Any-bearing typeArgs queries. */
+ *  collapsed into a representative points at the representative — but
+ *  preserve the original `typeArgs` on each redirected entry. Downstream
+ *  consumers (notably `collectVtableEntries` in `src/lower/lower.ts`)
+ *  read `typeArgs` to materialise per-concrete-tag vtable rows ; if we
+ *  replaced the entry with the representative wholesale, every row
+ *  would be keyed on `(struct, [Any, Any, ...])` and runtime dispatch
+ *  on a concrete receiver tag (Range(i32), MutableMap(string, User), …)
+ *  would miss. Symbol is redirected to the representative's symbol so
+ *  the bytecode `fnIndexBySymId` lookup resolves. */
 function redirectInner(
   src: ReadonlyMap<A.FnDecl, ReadonlyMap<string, MonoEntry>>,
   replacements: ReadonlyMap<MonoEntry, MonoEntry>,
@@ -126,7 +130,9 @@ function redirectInner(
     for (const [k, entry] of inner) {
       const target = replacements.get(entry);
       if (target !== undefined) {
-        newInner.set(k, target);
+        // Redirect symbol but keep this entry's typeArgs so the
+        // vtable-entry collector can stamp a row per concrete shape.
+        newInner.set(k, { ...entry, symbol: target.symbol });
         representative = target;
       } else {
         newInner.set(k, entry);
@@ -141,7 +147,14 @@ function redirectInner(
 export function erasureDedupe(mono: MonoProject, project: TypedProject): MonoProject {
   const ctx = buildDedupeCtx(project);
 
-  // Group entries by origin decl.
+  // Group entries by origin decl, separating struct entries from the rest.
+  // Struct entries get a different treatment : their LAYOUT is unified to
+  // all-Any fields (so the lower emits a single uniform shape), but their
+  // IDENTITY is preserved (each concrete instantiation keeps its own
+  // MonoEntry and mangled name → distinct BcType tag at runtime). This is
+  // what lets virtual dispatch on `Repeat(i32)` find the right vtable row
+  // : the receiver carries the Repeat(i32) tag, vtable maps Repeat(i32) →
+  // representative fn (via the per-shape rows kept by `redirectInner`).
   const groups = new Map<MonoEntry["decl"], MonoEntry[]>();
   for (const entry of mono.entries) {
     let g = groups.get(entry.decl);
@@ -149,28 +162,68 @@ export function erasureDedupe(mono: MonoProject, project: TypedProject): MonoPro
     g.push(entry);
   }
 
-  // For each erasable group, build the representative + a replacement map
-  // (each member entry → representative).
+  // For each erasable FN group, build a single representative + replacement
+  // map (each member entry → representative). Struct groups don't dedupe ;
+  // they get a per-entry subst rewrite below, plus one extra Repeat(Any)
+  // representative so the shared fn body (which substitutes self : T → Any)
+  // can intern a `Struct(Repeat, [Any])` BcType when accessing fields.
   const replacements = new Map<MonoEntry, MonoEntry>();
+  const structAnyRewrites = new Map<MonoEntry, MonoEntry>();     // entry → rewritten copy
+  const extraStructEntries: MonoEntry[] = [];
   for (const [_decl, group] of groups) {
+    if (group.length === 0) continue;
     const eraseGroup = group.some((e) => shouldErase(e, ctx));
     if (!eraseGroup) continue;
-    if (group.length === 0) continue;
-    const repr = makeRepresentative(group[0]!);
-    for (const e of group) replacements.set(e, repr);
+    if (group[0]!.decl.kind === "StructDecl") {
+      // Per-instance shape rewrite : keep mangled / typeArgs for distinct
+      // identity at the BcType level, override subst to K→Any so the
+      // lowered struct has all-Any fields (single shared shape under
+      // multiple tags).
+      for (const e of group) {
+        if (!shouldErase(e, ctx)) continue;
+        structAnyRewrites.set(e, { ...e, subst: anySubstForEntry(e) });
+      }
+      // Extra Repeat(Any)-flavoured entry. The fn-side representative
+      // body substitutes `self : Repeat(T)` to `Repeat(Any)` ; without
+      // this entry, `internType(Struct(Repeat, [Any]))` misses → field
+      // access emits `unreachable`. Distinct mangled name so it doesn't
+      // collide with the rewritten `Repeat__i32` / `Repeat__string` /
+      // ... entries that retain their original mangling.
+      const first = group[0]!;
+      const erasedArgs: Type[] = first.typeArgs.map(() => TY.any);
+      extraStructEntries.push({
+        id: first.id,
+        isMain: first.isMain,
+        // Strip the per-instance suffix and append `__Any` — same convention
+        // the legacy `monomorphizeProject` would have used had this entry
+        // come through the regular instance pass.
+        mangled: first.mangled.replace(/__[^_]+(_\d+)?$/, "") + "__Any",
+        decl: first.decl,
+        symbol: first.symbol,
+        subst: anySubstForEntry(first),
+        typeArgs: erasedArgs,
+        module: first.module,
+      });
+    } else {
+      const repr = makeRepresentative(group[0]!);
+      for (const e of group) replacements.set(e, repr);
+    }
   }
 
-  // Project the original `entries` list through `replacements`. Each
-  // representative appears exactly once ; entries from non-erasable
-  // groups pass through unchanged.
+  // Project the original `entries` list. Fn entries route through
+  // `replacements` (collapsed to one representative). Struct entries swap
+  // for their all-Any-subst rewrite when present. Non-erasable entries
+  // pass through unchanged. Finally append the extra Repeat(Any)-flavoured
+  // struct entries so they materialise in the lowered IR.
   const seen = new Set<MonoEntry>();
   const newEntries: MonoEntry[] = [];
   for (const entry of mono.entries) {
-    const target = replacements.get(entry) ?? entry;
+    const target = replacements.get(entry) ?? structAnyRewrites.get(entry) ?? entry;
     if (seen.has(target)) continue;
     seen.add(target);
     newEntries.push(target);
   }
+  for (const extra of extraStructEntries) newEntries.push(extra);
 
   // Rebuild the three lookup maps. Every concrete-args query that used
   // to land on one of the deduped entries now resolves to the
