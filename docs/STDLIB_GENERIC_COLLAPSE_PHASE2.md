@@ -354,25 +354,51 @@ inline form via tag check and reads `payload.i` vs `payload.obj`
 accordingly. (b1) is cleaner ; estimated ~1-2 weeks rewrite of the
 dedupe + downstream consumers.
 
-**(10-c) Iterator-pipeline chained boundary** — `iter_combinators`,
-`iter_zip_chain`, `std_sort`, `json_basics` all use generic functions
-that consume / produce iterators (`sum`, `fold`, `take`, `sort`,
-`parse`, ...). Each is itself erased, returning Any-form values.
-The caller's `local.set` coercion to the concrete static type works
-for primitives (unbox via `payload.i`), but the iterator pipeline
-threading carries the cascade through multiple call boundaries
-before the value lands in a concrete slot. Additionally,
-`json_basics`-style `match` arms (`is JsonObject -> ...`) check
-runtime tags against concrete struct identities that differ from the
-Any-version's tag → arm misses → fallthrough. **Fix paths** :
-(c1) extend the boundary conversion to recursively descend through
-union variants in the expected type. (c2) for match arms, emit a
-tag-tolerant check that accepts either the concrete tag OR the
-Any-counterpart's tag (then unbox/reshape inside the arm). (c3) the
-sort-style higher-order-fn callback receives erased args ; the
-caller-side coerce path needs to also reshape per-arg when the
-callback's signature requires concrete types. Each is ~3-5 d
-investigation per failing test.
+**(10-c → 10-d) Array element-kind cascade through erased fns** —
+deeper inspection (2026-05-20) shows that all 4 remaining
+iterator/sort/json failures share one structural pattern :
+
+```vader
+// stdlib
+export map :: fn[T, U](arr: T[], f: fn(T) -> U) -> U[]
+export sum :: fn(arr: i32[]) -> i32              // concrete
+
+// user
+squares := map([1, 2, 3, 4, 5], (x: i32) -> x * x)
+s1 := sum(squares)
+```
+
+`map` is erased → its body allocates `out: U[]` via `array.new`
+with `ins.type = Array(Any)` → C-emit's `arrayKindOf(ref _)` returns
+`"boxed"` → the array's `buf.element_kind = BOXED` ; each slot
+stores a `vader_box_t`. Then `sum(squares)` calls a concrete fn
+expecting `arr.buf.element_kind = I32` (tightly-packed `int32_t[]`).
+Reading `slots[i]` reads the first 4 bytes of the first
+`vader_box_t` (= the tag) instead of an i32. The boundary conversion
+machinery handles boxed wrapper structs but doesn't reshape array
+storage.
+
+**Fix paths** :
+- (d1) erased `array.new` emits with the runtime element_kind by
+  carrying per-call-site element-type metadata. Hard because the
+  body is shared.
+- (d2) caller-side array reshape : allocate a fresh
+  concrete-element-kind array, copy slot-by-slot with unboxing.
+  Allocation per call defeats the perf goal of erasure.
+- (d3) stdlib API shift : sum/sort/take operate on `Iterator(T)`
+  rather than `T[]` ; per-slot `virtual.call` path handles boxing
+  already. Mechanical but breaks API.
+- (d4) the `match` arm in `json_basics` is a separate aspect —
+  `parsed : JsonValue` (union of 6 non-generic structs +
+  `JsonError`). One of the variants contains a generic
+  `MutableMap(string, JsonValue)` field. After erasure the parsed
+  JsonObject probably segfaults at its `entries` field access. The
+  segfault (exit 139) is downstream of the same array-kind /
+  layout mismatch.
+
+Each option is multi-day work and requires a stdlib-API or
+compiler-architecture choice. Until then, the 5 remaining tests are
+gated behind `erasureDedupe` being off.
 
 **Vader port note** : the path-γ infrastructure (Famille A wrappers,
 struct/fn dedupe split, boundary conversion, `BcStruct.symbolId`,
