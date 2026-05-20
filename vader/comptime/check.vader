@@ -22,6 +22,7 @@ import "vader/comptime/instances" {
     InstanceRegistry, new_registry, observe, sorted_instances, GenericInstance,
 }
 import "vader/comptime/assert" { evaluate_assert_decls }
+import "vader/comptime/specialize" { monomorphize_project }
 AST :: import "vader/parser/ast"
 
 /// Evaluate every `@comptime` decl across the project's typed view,
@@ -54,6 +55,11 @@ export evaluate_project :: fn(
         project.modules[module_id] = program
     }
     project.instances = harvest_instances(typed)
+    // Specialise — populate `MonoProject` with one entry per
+    // non-generic decl, one per concrete generic instance, one per
+    // generic-fn call site, one per blanket-Into observation.
+    // Output feeds the lowerer + bytecode emit + c_emit.
+    project.mono = monomorphize_project(loaded, project)
     return project
 }
 
