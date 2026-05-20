@@ -133,9 +133,16 @@ async function buildNative(
     ...userLdflags,
     "-o", out, "-lm",
   ], { stderr: "pipe", stdout: "ignore" });
-  const code = await proc.exited;
+  // Drain stderr concurrently with the exit await — gcc on Ubuntu can emit
+  // a verbose warning burst (the codegen produces a handful of -Winteger-
+  // overflow lines per i64-min literal, and gcc tends to be louder than
+  // clang) that saturates the 64 KB pipe buffer and deadlocks the child
+  // when nothing reads from the pipe.
+  const [err, code] = await Promise.all([
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ]);
   if (code !== 0) {
-    const err = await new Response(proc.stderr).text();
     console.error(`vader build: ${cc} failed (exit ${code})`);
     console.error(err);
     console.error(`(generated C kept at ${cFile})`);

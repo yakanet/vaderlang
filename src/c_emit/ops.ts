@@ -1037,6 +1037,18 @@ export function emitTypedBinop(s: FnState, t: ValType, verb: string): void {
     const v = pop(s);
     const tmp = newTmp(s, t);
     const op = verb === "neg" ? "-" : "~";
+    // Source `-9223372036854775808` reaches the codegen as
+    // `i64.const 2^63` + `i64.neg`. The literal renders as
+    // `(int64_t)UINT64_C(9223372036854775808)`, and `-INT64_MIN`
+    // overflows — gcc / clang both emit a -Winteger-overflow line per
+    // occurrence, and the verbose burst is noisy enough to deadlock the
+    // build pipe on busy CI runners. Fold the pair into `INT64_MIN`
+    // directly here.
+    if (verb === "neg" && t === "i64"
+        && v.name === "(int64_t)UINT64_C(9223372036854775808)") {
+      line(s, `${decl(s, t, tmp)} = INT64_MIN;`);
+      return;
+    }
     line(s, `${decl(s, t, tmp)} = ${op}${v.name};`);
     return;
   }
