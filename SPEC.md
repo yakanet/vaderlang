@@ -77,7 +77,7 @@ The pipeline is therefore **incremental**: to evaluate a `@comptime`, its depend
 
 ### Monomorphization
 
-Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `List[i32]`, `Map[string, User]`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct[args]` reference points to a freshly-emitted concrete decl, and every generic-fn call is rewritten to call its specialised instance.
+Monomorphization runs **after** the comptime pass and **before** the lowerer. The comptime pass populates a registry of every concrete generic instantiation that appears in the program (e.g. `ArrayIterator[i32]`, `MutableMap[string, User]`); the monomorphizer reads this registry and clones each generic decl once per `(decl, type-args)` pair, substituting type parameters in signatures, field types, and bodies. The output is a flat AST with **no abstract generics**: every `Struct[args]` reference points to a freshly-emitted concrete decl, and every generic-fn call is rewritten to call its specialised instance.
 
 Registry collection is **transitive**: when `outer[i32]` is observed, the comptime pass walks `outer`'s body, substitutes `T = i32`, and observes every nested generic call site (`inner_fn(arr)` becomes `inner_fn[i32]`), every `for x in arr` over `T[]` (registers `ArrayIterator(i32)`), and every substituted struct/trait reference inside the body (so e.g. `Yield(string)` materialises when `next` is monomorphised over a `string[]`). The fixpoint is bounded — recursive generic types are caught by an iteration cap rather than custom heuristics.
 
@@ -209,7 +209,7 @@ if else match is for in return defer break continue
 import as
 export
 true false null
-self
+self Self
 const
 @<decorator>
 ```
@@ -291,7 +291,7 @@ Bitwise      : & | ^ ~ << >>
 Comparison   : == != < <= > >=
 Membership   : in   (sugar for `right.contains(left)`)
               !in   (sugar for `!right.contains(left)`, parsed as `bang` + `kw_in`)
-Type test    : is Type   (used in match arms)
+Type test    : is Type   (in `match` arms and in `if`/`else` conditions ; narrows the scrutinee)
 Logical      : && || !
 Assignment   : =
 Declaration  : x :: value           (immutable, type inferred)
@@ -898,7 +898,7 @@ Local bindings come in four shapes that share a single `LetStmt` AST node ; the 
 | `name: T : value`     | immutable  | typed       | `cap: usize : 1024`           |
 | `name: T = value`     | mutable    | typed       | `count: u64 = 0`              |
 
-The typed forms run the same bidirectional inference as the inferred forms — `T` is propagated as the expected type, so free numeric literals adopt it (`x: i64 = 42` ⇒ `42: i64`) and trait-typed slots trigger the implicit-coercion machinery (e.g. `T[]` → `Iterator[T]`, see §11).
+The typed forms run the same bidirectional inference as the inferred forms — `T` is propagated as the expected type, so free numeric literals adopt it (`x: i64 = 42` ⇒ `42: i64`) and trait-typed slots trigger the implicit-coercion machinery (e.g. `T[]` → `Iterator[T]`, see §4 *Type coercion via `Into`*).
 
 Reassignment uses `=` and is only valid on mutable bindings :
 
@@ -906,7 +906,7 @@ Reassignment uses `=` and is only valid on mutable bindings :
 n := 0          // mutable, inferred i32
 n = n + 1       // OK
 k :: 0          // immutable
-k = 1           // ERROR — cannot reassign immutable binding (diagnostic not yet emitted ; see follow-up)
+k = 1           // ERROR — cannot reassign immutable binding
 ```
 
 Top-level constants follow the same pattern but are restricted to compile-time expressions (`PI :: 3.14`, `MAX: u64 : 1_000_000`).
@@ -1026,7 +1026,7 @@ print_it :: fn[T: Display](x: T) {
 - Implementation: `T implements Trait { ... }` (three forms — see below).
 - A union satisfies a trait iff all its members satisfy it.
 - Operator overloading via stdlib traits — see *Operator overloading* below.
-- **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in an `impl Foo` block, `Self = Foo`. Outside trait/impl context, `Self` is undefined (`T3023`).
+- **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in a `Foo implements Trait { … }` block, `Self = Foo`. Outside trait/impl context, `Self` is undefined (`T3023`).
 
 #### Bounded-generic impls
 
@@ -1172,7 +1172,7 @@ Resolution rule for **arithmetic** operators (`+ - * / %`) :
 
 Resolution rule for **equality** (`==` / `!=`) :
 1. Primitive operands (numerics, strings, chars, bools, null) use the built-in equality op.
-2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists ; without an impl they fall back to **reference identity** (see §4 memory model). No error.
+2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists ; without an impl they fall back to **reference identity** (see §8 *Memory Model*). No error.
 3. Mismatched types are T3017.
 
 Resolution rule for **ordering** (`< <= > >=`) :
@@ -1880,7 +1880,7 @@ f32 f64    bool   char    void    string
 ```
 
 Anything else (struct / array / union / fn-typed param / trait / type-param) is `T3050`. Future iterations may add :
-- opaque pointer types alongside §3.6 unsafe blocks
+- opaque pointer types alongside a future `unsafe` block facility (deferred — see Appendix B)
 - struct passing for `@repr(C)` Vader structs
 - callbacks (C → Vader function pointers)
 
@@ -1928,13 +1928,13 @@ vader build prog.vader --target=native --ldflags="helper.o -lcrypto -L/usr/local
 
 ### VM behaviour
 
-The VM resolves `@extern` user imports against a **host registry** (`src/vm/host.ts`) keyed by `(mangledName, externName)`. Each `call.import` consults the registry and dispatches to the registered JS handler ; unbound imports throw `vm: unbound host import …`. The registry is populated by callers of `vader run` (the test runner, the comptime engine, embedders) — there is no auto-discovery.
+The VM resolves `@extern` user imports against a **host registry** keyed by `(mangledName, externName)`. Each `call.import` consults the registry and dispatches to the registered host handler ; unbound imports throw `vm: unbound host import …`. The registry is populated by callers of `vader run` (the test runner, the comptime engine, embedders) — there is no auto-discovery.
 
 C-emit and WASM continue to resolve `@extern` against the system linker / module import table respectively ; the same `@extern` decl compiles for all three backends, only the binding mechanism differs.
 
 ### Future WASM target
 
-When the WASM emitter lands (§3.10), `@extern` will additionally support the WASM `(module, field)` shape :
+When the WASM emitter lands (see §17 *Compilation Targets*), `@extern` will additionally support the WASM `(module, field)` shape :
 - 2-arg form `@extern("env", "console_log") log` → `(import "env" "console_log" (func …))`
 - 1-arg / 0-arg form defaults the module to `"env"`.
 
@@ -1989,7 +1989,7 @@ See section 2 (Compilation Model).
 
 ### Implementation note (comptime engine)
 
-The comptime engine is the **bytecode VM** (`src/comptime/run.ts`). The original AST-walking interpreter shipped with the MVP and was deleted once typed-AST → bytecode lowering covered the comptime-eligible subset (Sprint 1.5b). The same VM serves `vader run` for executing source files and `@comptime` for compile-time evaluation. Generic instances are observed during comptime evaluation and fed back into the monomorphizer.
+The comptime engine is the **bytecode VM**. The original AST-walking interpreter shipped with the MVP and was deleted once typed-AST → bytecode lowering covered the comptime-eligible subset. The same VM serves `vader run` for executing source files and `@comptime` for compile-time evaluation. Generic instances are observed during comptime evaluation and fed back into the monomorphizer.
 
 ### Reflection / comptime intrinsics
 
@@ -2038,7 +2038,7 @@ Traits : `Display`, `Equals`, `Comparable`, `Step`, `Into[Target]`, `Add`, `Sub`
 
 Types : `Yield[T]`, `Range`, `ArrayIterator[T]`, `Field` (reflection — see §14).
 
-Primitive trait impls : `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index[usize, char]` (powers `s[i]`), and `Equals`/`Hash`/`Comparable`/`Step` on the integer primitives + `char`. `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. `Comparable` and `Step` impls are written in Vader (arrow form) ; the rest are `@intrinsic` and bodies are host-provided.
+Primitive trait impls : `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index[usize, char]` (powers `s[i]`), and `Equals`/`Hash`/`Comparable`/`Step` on the integer primitives + `char`. `Add`/`Sub`/`Mul`/`Div`/`Rem` on every numeric primitive. `Comparable` and `Step` impls are written in Vader (arrow form) ; the rest are `@intrinsic` and bodies are host-provided.
 
 The `Contains[T]` trait powers the `in` / `!in` operators :
 
@@ -2851,9 +2851,9 @@ Already landed (cross-reference for B's reader) :
 - LSP (`vader/lsp/`, partial — server + completion / hover / definition / semantic tokens)
 - Resolver self-host (`vader/resolver/` — 9 modules)
 - Reflection intrinsics `@type_of`, `@fields`, `@type_args`, `@field`, `@comptime for` loop unrolling
-- FFI VM host registry (`@extern` user imports now run on the VM via `src/vm/host.ts`)
+- FFI VM host registry (`@extern` user imports now run on the VM via a host-side handler table)
 - Lazy iterator combinators (`MapIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator` in `std/iter`)
-- Mid-IR CFG layer (`src/midir/`) + escape analysis + loop-carried-dependency check
+- Mid-IR CFG layer + escape analysis + loop-carried-dependency check
 - Single-binary distribution (`bun build --compile` + per-OS tarballs)
 - Reference benchmark suite (`bench/`)
 - Self-host VM (`vader/vm/`, partial — runs `.virt` text bytecode subset)
