@@ -509,6 +509,15 @@ function emitFieldGet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "FieldGe
   }
   emitFirstOperand(ctx, ins, ins.target, ins.span);
   pushOp(ctx.emit, { kind: "struct.get", typeIndex, fieldIndex }, ins.span);
+  // Under erasure the BcType's field is `ref` (vader_box_t) even when the
+  // CFG's static field type is a primitive ; struct.get pushes the BcType
+  // ValType, so a `i32.to_i64` (or similar typed op) reading downstream
+  // would see a vader_box_t and produce broken C. Insert a `ref.cast` to
+  // unbox to the expected primitive, mirroring `emitArrayGet`'s pattern.
+  const elemVal = valTypeOf(ins.type);
+  if (elemVal !== "ref" && elemVal !== "any" && elemVal !== "void") {
+    pushOp(ctx.emit, { kind: "ref.cast", typeIndex: internType(ctx.project, ins.type) }, ins.span);
+  }
   emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 
