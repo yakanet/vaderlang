@@ -90,8 +90,8 @@ function emitArgReshape(s: FnState, src: string, concreteIdx: number, anyIdx: nu
   if (concrete.fields.length !== any.fields.length) return src;
   const anyCName = s.ctx.structNames[anyIdx];
   const concreteCName = s.ctx.structNames[concreteIdx];
-  if (anyCName === null || anyCName === undefined) return src;
-  if (concreteCName === null || concreteCName === undefined) return src;
+  if (!anyCName) return src;
+  if (!concreteCName) return src;
   for (const f of concrete.fields) {
     const ft = s.ctx.module.types[f.typeIndex];
     if (ft === undefined) return src;
@@ -367,7 +367,7 @@ function emitHeapStructReshape(s: FnState, tmp: string, expectedIdx: number, any
   const expected = s.ctx.module.types[expectedIdx];
   if (expected?.kind !== "struct") return;
   const cname = s.ctx.structNames[expectedIdx];
-  if (cname === null || cname === undefined) return;
+  if (!cname) return;
 
   // Skip when the expected layout already matches the Any-version (all
   // fields stored as `ref`/`any` heap slots). Reshaping into an
@@ -378,18 +378,21 @@ function emitHeapStructReshape(s: FnState, tmp: string, expectedIdx: number, any
   // union variant) ; the all-ref case is the post-erasure shared shape.
   const allFieldsRef = expected.fields.every((f) => {
     const ft = s.ctx.module.types[f.typeIndex];
-    return ft?.kind === "ref";
+    return ft?.kind === "ref" || ft?.kind === "union";
   });
   if (allFieldsRef) return;
 
-  // Bail when any expected field has a shape that needs more than a
-  // primitive unbox / ref re-tag (arrays / unions / fns — each carries
-  // its own runtime invariants that the boundary copy can't bridge
-  // generically). Caller falls back to the un-converted heap box.
+  // Bail when any expected field has a shape the per-sibling copy
+  // can't bridge (array / fn — each carries its own runtime
+  // invariants). Union fields are accepted : the per-sibling routine
+  // copies them as `vader_box_t` (the runtime carries the variant
+  // tag in the slot itself, no per-arm reshape needed). Primitive +
+  // struct + ref + union are all handled by the per-sibling field
+  // dispatch.
   for (const f of expected.fields) {
     const ft = s.ctx.module.types[f.typeIndex];
     if (ft === undefined) return;
-    if (ft.kind !== "primitive" && ft.kind !== "struct" && ft.kind !== "ref") return;
+    if (ft.kind === "array" || ft.kind === "fn") return;
   }
 
   // Enumerate every sibling layout (same logical shape group) so the
@@ -416,7 +419,7 @@ function emitHeapStructReshapeForSibling(
   cname: string,
 ): void {
   const sibCname = s.ctx.structNames[sibIdx];
-  if (sibCname === null || sibCname === undefined) return;
+  if (!sibCname) return;
   line(s, `if (${tmp}.tag == ${sibIdx}u) {`);
   line(s, `    ${cname}* __reshape = (${cname}*) vader_gc_alloc(sizeof(${cname}));`);
   line(s, `    vader_obj_header_init(__reshape, ${expectedIdx}u);`);
