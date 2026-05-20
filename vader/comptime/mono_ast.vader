@@ -2,10 +2,18 @@
 //
 // Mirror of `src/comptime/specialize.ts`'s `MonoProject` + `MonoEntry`.
 // The shapes are filled to match the TS reference (decl + symbol +
-// substitution + type-args + owning module + mangled name + entry-id) so
-// the lowerer port can rely on them ; the specialisation pass that
-// populates these tables ships alongside the lowerer (until then,
-// `new_mono_project` returns an empty view).
+// substitution + type-args + owning module + mangled name + entry-id +
+// lookup maps + erasure redirects) so the specialisation pass + the
+// downstream lowerer / bytecode emit / c_emit can rely on them.
+//
+// Companion files :
+//   - `specialize.vader` — fills the entries via the four-pass
+//     monomorphizer (non-generic decls, struct instances, fn instances,
+//     blanket-Into members) ; until that ports lands, `new_mono_project`
+//     returns an empty view.
+//   - `erasure_dedupe.vader` — post-process collapses N entries of the
+//     same generic group into one Any-substituted representative ; that
+//     pass populates `symbol_redirects`.
 
 import "std/collections" { MutableMap }
 import "vader/parser/ast" { Decl }
@@ -14,23 +22,63 @@ import "vader/typecheck/typed_ast" { TypedProgram }
 import "vader/typecheck/substitution" { Substitution, new_substitution }
 import "vader/resolver/symbol" { Symbol }
 
-/// Specialised view of every fn / struct decl after monomorphization.
-/// The orchestrator builds one `MonoEntry` per non-generic top-level
-/// decl plus one per concrete generic instance harvested from the
-/// instance registry.
+/// Sentinel inner-key used by `impl_method_entries` /
+/// `fn_instance_entries` for the representative entry of an erased
+/// generic group. Lookups by concrete-args canonical key (e.g.
+/// `"s17(p:i32)"`) fall back to this sentinel when the per-args entry
+/// has been redirected to the group's all-Any representative.
+///
+/// Distinct from any `canonical_args_key` output : non-generic impls
+/// key on `""`, generic ones on type-id-prefixed strings (`p<name>`,
+/// `s<id>`, …) — neither collides with `$erased`. Mirrors
+/// `ERASED_KEY` in `src/comptime/specialize.ts:30`.
+///
+/// NB: the `\$` escape is required — Vader strings interpolate
+/// `$<ident>` (no braces) as a variable reference, so the literal
+/// `"$erased"` would be parsed as `${erased}`. Resulting byte value
+/// is the plain `"$erased"` ASCII string, identical to TS.
+export ERASED_KEY :: "\$erased"
+
+/// Specialised view of every fn / struct / const / impl-member decl
+/// after monomorphization. The orchestrator builds one `MonoEntry` per
+/// non-generic top-level decl, one per concrete `(generic struct,
+/// type_args)` instance, one per `(generic fn, type_args)` call site,
+/// and one per impl-member of each materialised generic impl.
 export MonoProject :: struct {
     /// One specialised entry per non-generic decl plus one per generic
-    /// instance.
+    /// instance. Emission order is monotonic per source decl ;
+    /// entries[i].id assigned at construction matches the index.
     entries: MonoEntry[]
 
-    /// `"${trait_method.symbol.id}::${args_key}" -> MonoEntry` —
+    /// `display_key -> MonoEntry` — lookup by canonical instance key
+    /// (the one built by `instances.build_display_key`). Used to map
+    /// a `GenericInstance` back to its specialised entry. Populated
+    /// during the struct-instance pass.
+    lookup_by_instance: MutableMap(string, MonoEntry)
+
+    /// `"\${trait_method.symbol.id}::\${args_key}" -> MonoEntry` —
     /// indexed lookup the lowerer uses to recover the specialised
-    /// impl-member from a call site.
+    /// impl-member from a call site. Inner key is `""` for non-generic
+    /// impls ; for generic impls it's the `canonical_args_key(args)`
+    /// of the struct (structurally stable, insensitive to display
+    /// rewrites). After erasure dedupe, every redirected per-args row
+    /// resolves to its representative ; the representative is also
+    /// indexed under [[ERASED_KEY]] so callers that miss the
+    /// per-args lookup can fall back.
     impl_method_entries: MutableMap(string, MonoEntry)
 
-    /// `"${fn_symbol.id}::${args_key}" -> MonoEntry` — direct lookup
-    /// for explicit-typearg call sites.
+    /// `"\${fn_symbol.id}::\${args_key}" -> MonoEntry` — direct lookup
+    /// for explicit-typearg call sites (`foo(T)(args)`). Same dedupe
+    /// behaviour as `impl_method_entries`.
     fn_instance_entries: MutableMap(string, MonoEntry)
+
+    /// `old_symbol_id -> representative_symbol_id` — populated by
+    /// [[erasure_dedupe]] when entries collapse under post-typecheck
+    /// erasure. Consumed by the bytecode emit's `fn_index_by_sym_id`
+    /// builder so a `LoweredCall` carrying an old symbol id still
+    /// resolves to the representative's fn index. Empty when erasure
+    /// is disabled or no collapse happened.
+    symbol_redirects: MutableMap(i32, i32)
 }
 
 /// One specialised decl. Carries every field downstream phases need to
@@ -46,11 +94,11 @@ export MonoEntry :: struct {
     id: i32
 
     /// True iff the origin decl is the top-level `main` fn. Replaces
-    /// the older `mangled.endsWith("$main")` heuristic so back-ends are
+    /// the older `mangled.endsWith("\$main")` heuristic so back-ends are
     /// free to rename the externalised symbol without breaking routing.
     is_main: bool
 
-    /// External / human-readable name : `main`, `List$i32`, … Used by
+    /// External / human-readable name : `main`, `List\$i32`, … Used by
     /// the C emitter for the C symbol, the binary writer for the
     /// section header, and `vader dump` for diagnostics.
     mangled: string
@@ -76,23 +124,140 @@ export MonoEntry :: struct {
     module: TypedProgram | null
 }
 
-/// Construct an empty `MonoProject`.
+/// Construct an empty `MonoProject`. Phase 3 stub returns this ;
+/// `monomorphize_project` (Phase 6) populates each table.
 /// @return  a fresh empty mono project.
 export new_mono_project :: fn() -> MonoProject {
     return MonoProject {
         .entries             = [],
+        .lookup_by_instance  = MutableMap(string, MonoEntry) { .buckets = [], .size = 0 },
         .impl_method_entries = MutableMap(string, MonoEntry) { .buckets = [], .size = 0 },
         .fn_instance_entries = MutableMap(string, MonoEntry) { .buckets = [], .size = 0 },
+        .symbol_redirects    = MutableMap(i32, i32) { .buckets = [], .size = 0 },
     }
+}
+
+// ---- specialisation predicate ---------------------------------------------
+//
+// `is_specialized` answers "should this decl opt out of post-typecheck
+// erasure ?". Iterator types in stdlib (`ArrayIterator`, `Yield`,
+// `MapIterator`, …) carry `@specialize` because for-in fusion (see
+// `vader/lower/lower_for_in`) inlines their bodies and needs the
+// per-instantiation source.
+//
+// Mirror of `isSpecialized` in `src/comptime/specialize.ts:36`. Lifted
+// to a public helper here so both the specialisation pass and the
+// erasure dedupe pass can share the check without duplicating the
+// decorator-name string literal.
+
+import "vader/parser/ast" {
+    FnDecl, StructDecl, EnumDecl, TraitDecl, ImplDecl,
+    TypeAliasDecl, ConstDecl, AssertDecl, ImportDecl, Decorator,
+}
+
+/// True when `decl` carries an `@specialize` decorator. The check is
+/// per-decl-kind because the `decorators` field lives on each variant
+/// independently — `ImportDecl` has none, so it always answers `false`.
+///
+/// @param decl  the source-level decl.
+/// @return      `true` when `@specialize` is present on the decl.
+export is_specialized :: fn(decl: Decl) -> bool = match decl {
+    is FnDecl as d         -> has_specialize_decorator(d.decorators)
+    is StructDecl as d     -> has_specialize_decorator(d.decorators)
+    is EnumDecl as d       -> has_specialize_decorator(d.decorators)
+    is TraitDecl as d      -> has_specialize_decorator(d.decorators)
+    is ImplDecl as d       -> has_specialize_decorator(d.decorators)
+    is TypeAliasDecl as d  -> has_specialize_decorator(d.decorators)
+    is ConstDecl as d      -> has_specialize_decorator(d.decorators)
+    is AssertDecl          -> false
+    is ImportDecl          -> false
+}
+
+/// Linear scan over a `Decorator[]` for one whose name is `"specialize"`.
+has_specialize_decorator :: fn(decorators: Decorator[]) -> bool {
+    i: usize = 0
+    for i < decorators.len() {
+        if decorators[i].name == "specialize" { return true }
+        i += 1
+    }
+    return false
 }
 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq }
+import "vader/diagnostics/diagnostic" { Position, Span }
 
 @test test_new_mono_project_is_empty :: fn() -> void {
     project :: new_mono_project()
     assert_eq(project.entries.len(), usize(0))
+    assert_eq(project.lookup_by_instance.size, usize(0))
     assert_eq(project.impl_method_entries.size, usize(0))
     assert_eq(project.fn_instance_entries.size, usize(0))
+    assert_eq(project.symbol_redirects.size, usize(0))
 }
+
+@test test_erased_key_is_distinct_sentinel :: fn() -> void {
+    // ERASED_KEY must not collide with any canonical_args_key output.
+    // The canonical keys all start with a type-tag letter (P, S, T, …) ;
+    // ERASED_KEY starts with `$`.
+    assert_eq(ERASED_KEY, "\$erased")
+}
+
+@test test_is_specialized_returns_false_when_no_decorators :: fn() -> void {
+    p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }
+    sp :: Span { .start = p, .end = p }
+    empty_decorators: Decorator[] = []
+    cdecl :: ConstDecl {
+        .span = sp,
+        .id = usize(0),
+        .name = "PI",
+        .name_span = sp,
+        .visibility = Visibility.Private,
+        .ty = null,
+        .value = NullLitExpr { .span = sp, .id = usize(0) },
+        .decorators = empty_decorators,
+    }
+    assert_eq(is_specialized(cdecl), false)
+}
+
+@test test_is_specialized_returns_true_with_specialize :: fn() -> void {
+    p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }
+    sp :: Span { .start = p, .end = p }
+    no_args: Expr[] = []
+    deco :: Decorator { .span = sp, .id = usize(0), .name = "specialize", .args = no_args }
+    decorators: Decorator[] = [deco]
+    cdecl :: ConstDecl {
+        .span = sp,
+        .id = usize(0),
+        .name = "PI",
+        .name_span = sp,
+        .visibility = Visibility.Private,
+        .ty = null,
+        .value = NullLitExpr { .span = sp, .id = usize(0) },
+        .decorators = decorators,
+    }
+    assert_eq(is_specialized(cdecl), true)
+}
+
+@test test_is_specialized_ignores_other_decorators :: fn() -> void {
+    p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }
+    sp :: Span { .start = p, .end = p }
+    no_args: Expr[] = []
+    deprecated :: Decorator { .span = sp, .id = usize(0), .name = "deprecated", .args = no_args }
+    test_deco :: Decorator { .span = sp, .id = usize(0), .name = "test", .args = no_args }
+    decorators: Decorator[] = [deprecated, test_deco]
+    cdecl :: ConstDecl {
+        .span = sp,
+        .id = usize(0),
+        .name = "PI",
+        .name_span = sp,
+        .visibility = Visibility.Private,
+        .ty = null,
+        .value = NullLitExpr { .span = sp, .id = usize(0) },
+        .decorators = decorators,
+    }
+    assert_eq(is_specialized(cdecl), false)
+}
+
+import "vader/parser/ast" { Expr, NullLitExpr, Visibility }

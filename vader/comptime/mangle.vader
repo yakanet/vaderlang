@@ -1,0 +1,217 @@
+// vader/comptime/mangle — mangled-name + sanitisation helpers shared by
+// the monomorphizer (`specialize.vader`) and the erasure-dedupe pass
+// (`erasure_dedupe.vader`).
+//
+// Mirror of the private helpers `mangle`, `forTypeName`, `sanitise`,
+// `uniq` in `src/comptime/specialize.ts` (lines 383-432). Exported
+// here so the dedupe pass can reuse `mangle` for the extra Any-flavoured
+// struct entries it synthesises (TS `erasure-dedupe.ts:243`).
+//
+// Two design notes against the TS reference :
+//   - TS routes through `program.module.displayPath`. The Vader-side
+//     `ResolvedModule` keeps `path: string` flat, so the public entry
+//     `mangle` here takes `module_path` directly. Callers thread
+//     `module.path` (matches what the loader writes).
+//   - `sanitise_ident` is distinct from `vader/c_emit/body.sanitise` :
+//     the C-emit version also escapes C keywords (`int`, `static`, …),
+//     which would corrupt user identifiers in the mangled-name space.
+
+import "std/collections" { MutableMap }
+import "std/string" { byte_len, byte_at }
+import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "vader/parser/ast" {
+    TypeExpr, IdentExpr, GenericInstExpr,
+}
+import "vader/typecheck/types" { Type, display_type }
+
+/// Mangled name for a `(decl_name, module_path, type_arguments)` triple.
+/// Format mirrors TS `mangle` exactly so the bytecode emitter, the C
+/// emitter, and the binary writer all read the same string :
+///
+///   - non-generic top-level decl, module name matches decl name :
+///       `mangle("main", "main", [])` → `"main"`
+///   - non-generic, distinct module :
+///       `mangle("hello", "tests/hello", [])` → `"tests_hello$hello"`
+///   - generic instance :
+///       `mangle("Vec", "stdlib/std/vec", [i32])` → `"stdlib_std_vec$Vec__i32"`
+///
+/// @param decl_name       the source-level decl name.
+/// @param module_path     the owning module's display path (`ResolvedModule.path`).
+/// @param type_arguments  concrete type-args ; empty for non-generic decls.
+/// @return                the mangled name.
+export mangle :: fn(decl_name: string, module_path: string, type_arguments: Type[]) -> string {
+    module_stem :: sanitise_ident(module_path)
+    head: string = ""
+    if module_stem == "" || module_stem == decl_name {
+        head = decl_name
+    } else {
+        head = "${module_stem}\$${decl_name}"
+    }
+    if type_arguments.len() == 0 {
+        return head
+    }
+    sb :: new_builder()
+    sb.append(head)
+    sb.append("__")
+    i: usize = 0
+    for i < type_arguments.len() {
+        if i > 0 { sb.append("__") }
+        sb.append(sanitise_ident(display_type(type_arguments[i])))
+        i += 1
+    }
+    return "${sb}"
+}
+
+/// Replace every byte outside `[A-Za-z0-9_]` with `_`. Distinct from
+/// `vader/c_emit/body.sanitise` — the C-emit variant additionally
+/// suffixes the result with `_v` on C-keyword collision. The mangled-
+/// name space here doesn't need that since `$` and `__` separators
+/// prevent collision with any single C keyword.
+///
+/// @param raw  the source identifier (decl name, module path, type display).
+/// @return     the sanitised form, safe to splice into a mangled name.
+export sanitise_ident :: fn(raw: string) -> string {
+    sb :: new_builder()
+    n :: raw.byte_len()
+    i: usize = 0
+    for i < n {
+        b :: raw.byte_at(i)
+        if is_ident_byte(b) {
+            sb.append_char(char(u32(b)))
+        } else {
+            sb.append_char('_')
+        }
+        i += 1
+    }
+    return "${sb}"
+}
+
+/// True when `b` is a `[A-Za-z0-9_]` byte. Bytes outside this class
+/// are replaced with `_` by `sanitise_ident`.
+is_ident_byte :: fn(b: u8) -> bool {
+    if b >= 0x41_u8 && b <= 0x5A_u8 { return true }     // A-Z
+    if b >= 0x61_u8 && b <= 0x7A_u8 { return true }     // a-z
+    if b >= 0x30_u8 && b <= 0x39_u8 { return true }     // 0-9
+    if b == 0x5F_u8 { return true }                     // _
+    return false
+}
+
+/// Return a candidate name that's not yet in `seen`, suffixing with
+/// `_1` / `_2` / ... until a fresh one is found. Adds the result to
+/// `seen` so subsequent calls don't reuse it. Mirrors TS `uniq` in
+/// `src/comptime/specialize.ts:425`.
+///
+/// @param seen        registry of names already taken.
+/// @param candidate   the preferred name ; returned as-is when free.
+/// @return            a fresh name (either `candidate` or `candidate_N`).
+export uniq :: fn(seen: MutableMap(string, bool), candidate: string) -> string {
+    existing :: seen[candidate]
+    match existing {
+        is bool -> {
+            // collision — find the next free `candidate_N`.
+            i: i32 = 1
+            for i < 1_000_000 {     // hard-stop for malformed input
+                fresh :: "${candidate}_${i}"
+                taken :: seen[fresh]
+                match taken {
+                    is bool -> { i += 1 }
+                    _       -> {
+                        seen[fresh] = true
+                        return fresh
+                    }
+                }
+            }
+            // unreachable in practice ; defensive fall-through.
+            return candidate
+        }
+        _ -> {
+            seen[candidate] = true
+            return candidate
+        }
+    }
+}
+
+/// Name part used for impl-member mangling (`<for_type>$<trait>$<method>`).
+/// Mirrors TS `forTypeName` in `src/comptime/specialize.ts:391`. Returns
+/// `"?"` for the rare degenerate TypeExpr shapes (lambda / fn-type in
+/// impl position) — the resulting mangled name carries the literal `?`
+/// so a downstream consumer can spot it.
+///
+/// @param t  the type expression in an `impl <for_type> { ... }` clause.
+/// @return   the bare type name, or `"?"` when not extractable.
+export for_type_name :: fn(t: TypeExpr) -> string = match t {
+    is IdentExpr as ident    -> ident.name
+    is GenericInstExpr as gi -> generic_callee_name(gi)
+    _                        -> "?"
+}
+
+/// Pull the bare name out of a `GenericInstExpr` whose callee is an
+/// IdentExpr (`Foo[T]` form). Falls back to `"?"` for unusual shapes
+/// (`Mod.Foo[T]`, `(fn() -> i32)[T]`, …).
+generic_callee_name :: fn(gi: GenericInstExpr) -> string = match gi.callee {
+    is IdentExpr as ident -> ident.name
+    _                     -> "?"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "vader/typecheck/types" { mk_primitive }
+import "vader/diagnostics/diagnostic" { Position, Span }
+
+@test test_mangle_non_generic_same_name :: fn() -> void {
+    args: Type[] = []
+    assert_eq(mangle("main", "main", args), "main")
+}
+
+@test test_mangle_non_generic_distinct_module :: fn() -> void {
+    args: Type[] = []
+    assert_eq(mangle("hello", "tests/hello", args), "tests_hello\$hello")
+}
+
+@test test_mangle_generic_one_arg :: fn() -> void {
+    args: Type[] = [mk_primitive("i32")]
+    assert_eq(mangle("Vec", "stdlib/std/vec", args), "stdlib_std_vec\$Vec__i32")
+}
+
+@test test_mangle_generic_two_args :: fn() -> void {
+    args: Type[] = [mk_primitive("string"), mk_primitive("i32")]
+    assert_eq(
+        mangle("Map", "stdlib/std/map", args),
+        "stdlib_std_map\$Map__string__i32",
+    )
+}
+
+@test test_sanitise_ident_passes_through_clean :: fn() -> void {
+    assert_eq(sanitise_ident("foo_bar"), "foo_bar")
+}
+
+@test test_sanitise_ident_replaces_slashes_and_dots :: fn() -> void {
+    assert_eq(sanitise_ident("tests/snippets/arith.vader"), "tests_snippets_arith_vader")
+}
+
+@test test_uniq_returns_candidate_when_free :: fn() -> void {
+    seen :: MutableMap(string, bool) { .buckets = [], .size = 0 }
+    assert_eq(uniq(seen, "foo"), "foo")
+    // Subsequent registration should reflect the addition.
+    assert_eq(uniq(seen, "foo"), "foo_1")
+}
+
+@test test_uniq_skips_already_taken_suffixes :: fn() -> void {
+    seen :: MutableMap(string, bool) { .buckets = [], .size = 0 }
+    seen["foo"] = true
+    seen["foo_1"] = true
+    assert_eq(uniq(seen, "foo"), "foo_2")
+}
+
+@test test_for_type_name_ident :: fn() -> void {
+    p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }
+    sp :: Span { .start = p, .end = p }
+    ident :: IdentExpr {
+        .span = sp,
+        .name = "Pair",
+        .implicit_dot = false,
+        .is_type_param_intro = false,
+    }
+    assert_eq(for_type_name(ident), "Pair")
+}
