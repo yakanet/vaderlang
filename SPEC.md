@@ -12,7 +12,7 @@ This document describes the Vader language, its execution model, type system, MV
 
 ### Mission
 
-Vader is a **general-purpose application language**, **strongly typed with type inference**, **portable** (Linux, macOS, Windows, WebAssembly), designed to remain **simple to learn** (close to Java/Kotlin/TypeScript in mental model) while allowing performant programs through a transparent compilation pipeline.
+Vader is a **general-purpose application language**, **strongly typed with type inference**, **portable** (Linux, macOS, Windows, WebAssembly), designed to remain **simple to learn** while allowing performant programs through a transparent compilation pipeline.
 
 ### Tagline
 
@@ -23,7 +23,7 @@ Vader is a **general-purpose application language**, **strongly typed with type 
 - **No OOP** — no inheritance, no classes, no "real" methods. UFCS (`a.f(b)` ≡ `f(a, b)`) covers object-call ergonomics.
 - **No visible pointers** in source code. No pointer arithmetic. Memory layout is opaque.
 - **No implicit `null`**. Nullability is expressed only as an explicit union (`T | null`).
-- **No exceptions** in the Java/Python sense. Errors are values.
+- **No exceptions**. Errors are values, returned in a union with the success type.
 - **No text macros** nor runtime reflection. Metaprogramming goes through typed `@comptime`.
 
 ### Philosophy
@@ -59,7 +59,7 @@ Source (.vader)
   └──→ WASM emitter     → .wasm (~1:1 mapping with bytecode, since WASM is also stack-based)
 ```
 
-Self-host status (Vader-side under `vader/`) : Lexer ✅, Parser ✅, Resolver ✅ (9 modules under `vader/resolver/`), Formatter 🟡 (partial — see §18), LSP ✅, VM 🟡 (`.virt` subset), Type-checker / Lower / Mid-IR / Bytecode emitter / C emitter not yet ported. The TS-side under `src/` remains the reference. Parity is enforced per-stage by `tests/parity.test.ts` (CLI byte-for-byte stdout diff) — currently covers `lexer`, `parser`, `resolved-ast`.
+Self-host status (Vader-side under `vader/`) : Lexer ✅, Parser ✅, Resolver ✅ (9 modules under `vader/resolver/`), Formatter 🟡 (partial — see §18), LSP ✅, VM 🟡 (`.virt` subset), Bytecode emitter 🟡 (scaffolding + literal emit landed), Type-checker / Lower / Mid-IR / C emitter not yet ported. The TS-side under `src/` remains the reference. Parity is enforced per-stage by `tests/parity.test.ts` (CLI byte-for-byte stdout diff) — currently covers `lexer`, `parser`, `resolved-ast`.
 
 ### Canonical IR
 
@@ -135,8 +135,7 @@ Code in `@comptime` context can:
 - ✅ compute (pure functions)
 - ✅ allocate memory and manipulate structures
 - ✅ read project files (via `@file(path)` — see §14)
-- ⚠️ read `ENV` / `args`: **opt-in** only, via `vader build --allow-env`
-- ❌ network syscalls / exec / stdout: **forbidden**, to preserve build reproducibility
+- ❌ read `ENV` / `args`, network syscalls, exec, stdout: **forbidden**, to preserve build reproducibility
 
 ---
 
@@ -168,7 +167,7 @@ main :: fn() -> i32 { return 0 }
 */
 ```
 
-Nested block comments follow the Rust convention. The lexer tracks nesting depth and only closes the outer comment when depth returns to zero.
+Nested block comments are supported : the lexer tracks nesting depth and only closes the outer comment when depth returns to zero.
 
 ### VaderDoc
 
@@ -301,7 +300,7 @@ Declaration  : x :: value           (immutable, type inferred)
                x: T = value         (mutable,   typed)
 Range        : 0..<10 (exclusive)  0..=10 (inclusive)
 Postfix      : ? (try, propagates the error)
-Cast         : Type(expr) (Go-style; numeric ↔ numeric, char ↔ integer)
+Cast         : Type(expr) (numeric ↔ numeric, char ↔ integer)
 Field access : .name
 Index access : [expr]
 ```
@@ -342,7 +341,7 @@ Trailing commas are allowed in every comma-separated list: function arguments, f
 
 ### Newline-significant
 
-A newline terminates a statement (Go-style). No `;` is required. The lexer emits a `NEWLINE` token at every line break **except** in the four cases below, where the newline is silently absorbed:
+A newline terminates a statement. No `;` is required. The lexer emits a `NEWLINE` token at every line break **except** in the four cases below, where the newline is silently absorbed:
 
 1. **Inside an unclosed bracket** `(`, `[`, or `{` — newlines inside parens / array / block construction are insignificant.
 2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `..<`, `..=`, `?` (postfix is fine, only prefix-pending matters), and unary `!`.
@@ -394,21 +393,21 @@ x := a + \
 
 ### Built-in type aliases
 
-To ease migration from Java/Kotlin and reduce typing in everyday code, the compiler recognises a set of **canonical aliases** for primitive types. They are fully transparent — the compiler treats an alias and its target as the same type everywhere (error messages, snapshots, inference).
+To reduce typing in everyday code, the compiler recognises a set of **canonical aliases** for primitive types. They are fully transparent — the compiler treats an alias and its target as the same type everywhere (error messages, snapshots, inference).
 
-| Alias | Resolves to | Java / C equivalent |
-|-------|-------------|---------------------|
-| `int` | `i32` | Java `int`, C `int32_t` |
-| `long` | `i64` | Java `long`, C `int64_t` |
-| `float` | `f32` | Java `float`, C `float` |
-| `double` | `f64` | Java `double`, C `double` |
-| `byte` | `u8` | Java `byte` (sign differs — Vader byte is unsigned) |
+| Alias | Resolves to |
+|-------|-------------|
+| `int` | `i32` |
+| `long` | `i64` |
+| `float` | `f32` |
+| `double` | `f64` |
+| `byte` | `u8` (unsigned) |
 
 `char` and `string` are already first-class names in the primitive table, so they need no alias.
 
-`usize` is a **target-dependent** unsigned integer used for sizes and indexes (analogous to C's `size_t`, Rust's `usize`). It maps to `size_t` in the C backend (typically 64-bit on modern hosts). The bytecode/VM bootstrap treats it as a 64-bit value. The WASM backend will choose the platform-native width when implemented (likely WASM64 only at first).
+`usize` is a **target-dependent** unsigned integer used for sizes and indexes. It maps to `size_t` in the C backend (typically 64-bit on modern hosts). The bytecode/VM bootstrap treats it as a 64-bit value. The WASM backend will choose the platform-native width when implemented (likely WASM64 only at first).
 
-`isize` is its **signed** counterpart — a target-dependent signed integer used for pointer differences and signed indexing (analogous to C's `ptrdiff_t`, Rust's `isize`). Maps to `ptrdiff_t` in the C backend and is 64-bit in the bytecode/VM bootstrap. Use `isize` when you need a signed offset (e.g. iterating backwards), `usize` when the value is a count or index that can't be negative.
+`isize` is its **signed** counterpart — a target-dependent signed integer used for pointer differences and signed indexing. Maps to `ptrdiff_t` in the C backend and is 64-bit in the bytecode/VM bootstrap. Use `isize` when you need a signed offset (e.g. iterating backwards), `usize` when the value is a count or index that can't be negative.
 
 Array `len()` returns `usize`, and array indexing accepts `usize` (the runtime also accepts narrower integer types for ergonomic literals — `arr[2]` compiles, `arr.len() == 12` compiles, no explicit casts needed).
 
@@ -449,7 +448,7 @@ A literal float with no suffix **infers to `f64`** (`x := 3.14` ⇒ `x: f64`).
 
 There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exception is unsuffixed numeric literals: `x: i64 = 42` works because `42` is left flexible until it lands in a typed context.
 
-### Numeric-literal context-sensitivity (Zig comptime-int style)
+### Numeric-literal context-sensitivity
 
 An unsuffixed integer literal stays as a *free* (untyped) numeric until its surrounding context provides a concrete width ; at that point it adopts the slot's type *without* a runtime conversion. This is what makes `x: usize = 5`, `Box { .size = 10 }`, `arr.slice(0, n - 1)`, `if usz == 42`, and `g: i64 = -50` all compile without explicit casts even though `5`, `10`, `0`, `42`, `50` would otherwise default to `i32`.
 
@@ -485,7 +484,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 **Rules**
 - **Target must be concrete or a trait.** `Struct`, `Enum`, `Primitive`, and `Trait` targets trigger the probe ; `Union` and `TypeParam` slots are excluded. A union target leaves the typer unable to pick a variant ; a `TypeParam` slot resolves after mono. Direct trait widening (when `S` already implements `T`) runs first via `isAssignable`, so `tryInto` only fires for `Trait` targets when the source needs an actual conversion (the canonical case being `T[] → Iterator[T]` via the blanket `T[] implements[T] Into[Iterator[T]]`).
 - **No identity.** `T implements Into[T]` is forbidden (diagnostic **T3039** at the impl site) — it would shadow simple assignment and clutter the registry.
-- **No transitive chains.** The lookup is a single registry probe. `S → U → T` never auto-composes ; if both impls exist, the user must declare `S implements Into[T]` explicitly to bridge them. (Mirrors Rust's `Into` strictness ; prevents the "where did this allocation come from?" debugging trap.)
+- **No transitive chains.** The lookup is a single registry probe. `S → U → T` never auto-composes ; if both impls exist, the user must declare `S implements Into[T]` explicitly to bridge them. Prevents the "where did this allocation come from?" debugging trap.
 - **One impl per `(Source, Target)`.** Duplicate impls are caught by the standard resolver duplicate-impl diagnostic.
 - **Overload resolution is decided first.** When a call has overloaded candidates, the typer ranks them *without* `Into` ; the second-pass with `Into` only fires if no exact-match overload was found.
 
@@ -506,7 +505,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 ### Signed overflow
 
-`a + b` that overflows **panics in debug, wraps in release** (Rust-style). Behavior not configurable in MVP.
+`a + b` that overflows **panics in debug, wraps in release**. Behavior not configurable in MVP.
 
 ### Strings
 
@@ -573,7 +572,7 @@ println(pair.1)      // "answer"
 ```
 
 - **Field access** : `t.0`, `t.1`, ... — numeric, in source order.
-- **Disambiguation of seq literals** is contextual (TS-style) :
+- **Disambiguation of seq literals** is contextual :
   - `[1, 2, 3]` → array (homogeneous, no annotation).
   - `[1, "x"]` → tuple (heterogeneous, no annotation).
   - With an annotation, the annotation wins : `xs: int[] = [1, 2, 3]` is array ; `p: [int, string] = [1, "x"]` is tuple.
@@ -621,7 +620,7 @@ Point :: struct {
 p :: Point { .x = 1.0, .y = 2.0 }
 ```
 
-- Heap-allocated by default (Java-style).
+- Heap-allocated by default.
 - `p2 := p` copies the **reference**, not the contents.
 - `==` is reference identity by default. For structural comparison: implement the `Equals` trait, or call a free function `equals(a, b)`.
 - Field layout is **not guaranteed** (the compiler arranges fields freely).
@@ -677,7 +676,7 @@ if (Point { .x = 1 }) == p {
 
 The rule applies to the **immediate** condition expression. Struct literals nested inside calls, ranges, or other parenthesised contexts inside the condition remain valid without an extra pair of parens.
 
-### Unions (TS-style)
+### Unions
 
 ```vader
 Result :: string | i32 | null
@@ -914,7 +913,7 @@ Top-level constants follow the same pattern but are restricted to compile-time e
 
 ### Type inference
 
-**Bidirectional**, TS/Swift-style:
+**Bidirectional** inference:
 
 - Local: `x := 12` infers `x: i32`.
 - Top-down: function signatures used to infer lambda arguments.
@@ -923,7 +922,7 @@ Top-level constants follow the same pattern but are restricted to compile-time e
 
 ### Casts
 
-Go-style, "constructor-call" syntax:
+"Constructor-call" syntax:
 
 ```vader
 x: i32 = 42
@@ -999,7 +998,7 @@ make_buffer :: fn[N: i32]() -> FixedArray[u8, N] { ... }
 - At every call site of a generic fn, walks the call-site type-args against each type-param's bracketed bound (`[T: Trait]`). Any concrete type lacking an explicit `T implements Trait` impl yields T3006 (« trait not satisfied »).
 
 **Limitations (MVP)**:
-- **No "associated functions"** (Java-style static methods) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap[K, V] { ... }` for struct-literal construction. Post-MVP candidate.
+- **No "associated functions"** (static methods on a type) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap[K, V] { ... }` for struct-literal construction. Post-MVP candidate.
 
 Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `[T: Add]` succeeds for every primitive numeric type as well as for `string` (concat). `Hash` and `Equals` impls are user-explicit (only `i32`/`u32`/`usize`/`string` carry them today) ; extend per use case.
 
@@ -1173,7 +1172,7 @@ Resolution rule for **arithmetic** operators (`+ - * / %`) :
 
 Resolution rule for **equality** (`==` / `!=`) :
 1. Primitive operands (numerics, strings, chars, bools, null) use the built-in equality op.
-2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists ; without an impl they fall back to **reference identity** (Java-style — SPEC §4 memory model). No error.
+2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists ; without an impl they fall back to **reference identity** (see §4 memory model). No error.
 3. Mismatched types are T3017.
 
 Resolution rule for **ordering** (`< <= > >=`) :
@@ -1205,7 +1204,7 @@ match u {
 |------|----------------------|
 | Primitives (numeric, bool, char) | Bit-for-bit |
 | `string` | Structural (compares contents) |
-| Struct, array | **Reference identity** (Java-style) |
+| Struct, array | **Reference identity** |
 | Type with `impl Equals` | Delegated to `Equals.equals` |
 
 To compare two structs structurally, implement `Equals` or call `equals(a, b)`.
@@ -1225,7 +1224,7 @@ To compare two structs structurally, implement `Equals` or call `equals(a, b)`.
 `::` freezes the binding, not the contents. If `p :: Point { ... }`, you cannot `p = otherPoint`, but `p.x = 5` is allowed.
 
 For deep immutability of collections, use **stdlib convention** :
-- raw `T[]` arrays are mutable (Java-style — `arr.push`, `arr[i] = v`)
+- raw `T[]` arrays are mutable (`arr.push`, `arr[i] = v`)
 - read-only `List[T]` / `Map[K, V]` / `Set[T]` will pair with mutable variants when implemented (post-MVP — currently struct stubs in `std/collections`)
 
 ### Explicit type annotations
@@ -1267,7 +1266,7 @@ log :: fn(message: string) {
 
 `return` is valid anywhere. If the last expression of a block is an expression and its type matches the return type, `return` is optional.
 
-**No-return functions** drop the `-> void` annotation. Internally the compiler still has a unit/void type, but it is not user-facing — `void` is **not** a name available in source code. Function-pointer types that produce no value drop the arrow likewise: `callback: fn()` instead of `callback: fn() -> void`. This mirrors Rust's `()` being implicit.
+**No-return functions** drop the `-> void` annotation. Internally the compiler still has a unit/void type, but it is not user-facing — `void` is **not** a name available in source code. Function-pointer types that produce no value drop the arrow likewise: `callback: fn()` instead of `callback: fn() -> void`.
 
 ### `main` entry point
 
@@ -1342,7 +1341,7 @@ items.map(inc)
 
 The `name :: fn(...) -> R { ... }` form is a regular function declaration (top-level **or** local to a fn body), not a value-position lambda. Parameter and return-type annotations are required for top-level fns (see §4 inference rules).
 
-Closures capture their environment **by reference** (consistent with the Java-style model). Captured locals are heap-promoted into single-slot cells at the lowering pass: the cell lives on the GC heap, the binding becomes a pointer to it, and every closure that mentions the variable shares the same cell. This is what makes mutation visible across closures (a counter built via `n := 0; inc :: fn() { n = n + 1 }; get :: fn() -> i32 { n }` works as expected). Lifting itself is transparent: the closure value is a `(code, env)` fat pointer where `code` points to a synthesised top-level fn taking the env as its first parameter, and `env` is a heap-allocated struct holding refs to the captured cells.
+Closures capture their environment **by reference** (consistent with Vader's reference-semantics model for non-primitive values). Captured locals are heap-promoted into single-slot cells at the lowering pass: the cell lives on the GC heap, the binding becomes a pointer to it, and every closure that mentions the variable shares the same cell. This is what makes mutation visible across closures (a counter built via `n := 0; inc :: fn() { n = n + 1 }; get :: fn() -> i32 { n }` works as expected). Lifting itself is transparent: the closure value is a `(code, env)` fat pointer where `code` points to a synthesised top-level fn taking the env as its first parameter, and `env` is a heap-allocated struct holding refs to the captured cells.
 
 ### Function values
 
@@ -1413,7 +1412,7 @@ Rules :
 
 ### Visibility
 
-- **Private by default** (TypeScript-style). Top-level decls are visible only inside their **module** (= folder) unless explicitly exported.
+- **Private by default**. Top-level decls are visible only inside their **module** (= folder) unless explicitly exported.
 - **`export`** prefix to make a symbol visible across module boundaries.
 - The top-level `main` function is **always public** — the resolver promotes its visibility to `public` regardless of whether the source carries the `export` keyword.
 
@@ -1547,7 +1546,7 @@ Without a label, `break`/`continue` act on the innermost loop.
 
 ### `defer`
 
-Block-scoped, executed when leaving the block where it was written (Zig/Swift-style):
+Block-scoped, executed when leaving the block where it was written:
 
 ```vader
 process :: fn(path: string) -> string! {
@@ -1600,8 +1599,6 @@ All non-primitive values (struct, array, string buffer contents, future stdlib t
 
 ### Storage semantics
 
-**Java-style**:
-
 - Primitives (`i32`, `f64`, `bool`, etc.): value, copied on assignment.
 - `string`: fat value `(ptr, len)`, copied on assignment, immutable shared content.
 - Structs, arrays: heap-allocated, manipulated via implicit references (the user does not see pointers).
@@ -1616,7 +1613,7 @@ The spec **allows** the compiler to allocate a struct on the stack if analysis p
 
 ### Explicit allocators (post-MVP)
 
-API for perf-critical zones, Zig-style. Allows allocating into an arena, a buffer, etc., without breaking the GC model. To be specified when needed.
+API for perf-critical zones. Allows allocating into an arena, a buffer, etc., without breaking the GC model. To be specified when needed.
 
 ### Finalizers
 
@@ -1813,11 +1810,11 @@ A source file may contain only:
 - Constant declarations: `PI :: 3.14159`
 - Decorators on any of the above
 
-**No executable statements at the top level** — no top-level `print(...)`, no top-level loops. Every side-effecting expression lives inside a function body, typically `main`. This keeps the parser simple, makes module loading order independent of execution order, and means `import`-ing a module never runs code (unlike Python).
+**No executable statements at the top level** — no top-level `print(...)`, no top-level loops. Every side-effecting expression lives inside a function body, typically `main`. This keeps the parser simple, makes module loading order independent of execution order, and means `import`-ing a module never runs code.
 
 ### Future: programmable build API
 
-Following Jai/Zig, post-MVP: a `build.vader` file that drives the build via Vader code (instead of a declarative manifest).
+Post-MVP : a `build.vader` file that drives the build via Vader code (instead of a declarative manifest).
 
 ---
 
@@ -1996,11 +1993,13 @@ The comptime engine is the **bytecode VM** (`src/comptime/run.ts`). The original
 
 ### Reflection / comptime intrinsics
 
-Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators, which annotate declarations. Reflection intrinsics operate on a type expression and **fold to a constant at lower time** ; the comptime-host builtins (`@file`, `@env`) read project state and bake their result before the lower phase. Both shapes compose freely with `@assert(...)` and (eventually) `where` predicates to drive comptime branching on type shape, layout, or external content.
+Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators, which annotate declarations. Reflection intrinsics operate on a type expression and **fold to a constant at lower time** ; the comptime-host builtin `@file` reads project state and bakes its result before the lower phase. Both shapes compose freely with `@assert(...)` and (eventually) `where` predicates to drive comptime branching on type shape, layout, or external content.
+
+The « Signature » column below uses `T: type` for arguments that name a type. A bare type-ident like `i32` is a value of the metatype `type` (§4), so `@size_of(i32)` reads `i32` *as a value* — the intrinsic itself takes a value-position arg, and the typechecker validates it is `type`-typed. `@size_of` uniquely also accepts a runtime `type` value (e.g. a fn param `fn(t: type)`) ; the other reflection intrinsics require the arg to fold to a static type at the call site.
 
 | Intrinsic | Signature | Result | Notes |
 |-----------|-----------|--------|-------|
-| `@size_of(T)` | `(T: type) -> usize` | Byte size of `T` as a runtime value. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string`/`null` → 16) ; aggregate or reference types are stored as `vader_box_t` (16 bytes) ; comptime-only / unresolved kinds → 0. |
+| `@size_of(T)` | `(T: type) -> usize` | Byte size of `T` as a runtime value. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string`/`null` → 16) ; aggregate or reference types are stored as `vader_box_t` (16 bytes) ; comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value ; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
 | `@align_of(T)` | `(T: type) -> usize` | Alignment in bytes. | Mirrors `size_of` for primitives ; aggregates align to the pointer boundary (8). |
 | `@type_name(T)` | `(T: type) -> string` | Printable name of `T`. | Same shape as the typechecker's `displayType` (`"i32"`, `"MutableMap[i32, string]"`, `"i32 \| string"`). |
 | `@type_kind(T)` | `(T: type) -> string` | Discriminator of `T`'s shape. | Stable strings : `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`, `"tuple"`, `"fn"`, `"trait"`, `"type"`, `"unknown"`. User code is expected to compare on exact match (`if @type_kind(T) == "struct" { ... }`). |
@@ -2009,8 +2008,7 @@ Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct f
 | `@field_index(T, "name")` | `(T: type, name: string-literal) -> usize` | 0-based position of `name` in `T`'s field list. | `T` must be a `struct` (not a Tuple, not a primitive) ; `name` must be a *static* string literal naming an existing field. T3002 if either constraint is violated, T3009 if the field is unknown. |
 | `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope. | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core`, so e.g. `@satisfies(i32, Add)` is `true`. The same impls underpin the Layer 7e automatic enforcement of `[T: Trait]` bounds. |
 | `@file(path)` | `(path: string) -> string` | UTF-8 contents of the file at `path`, baked at compile time. | The path is resolved relative to the source file containing the call. `path` must be comptime-evaluable — a string literal, an ident pointing at a string-typed const, or any expression whose result the comptime VM can reduce to a string (e.g. `FILENAME + ".txt"`). The sandbox confines the resolved path to the project root ; escapes raise `C4011`. Missing file raises `C4006`. |
-| `@env(name)` | `(name: string) -> string` | Value of the named env var, baked at compile time. | Empty string if unset. Gated by `--allow-env` (otherwise `C4008`). Same comptime-evaluable rule as `@file` for `name`. |
-| `@type_of(x)` | `(x: value) -> type` | Static type of `x` as a `type` runtime value. | Argument is **not evaluated** (Zig-style). The result is whatever the typechecker assigns to `x` at the call site — useful as input to other reflection intrinsics (`@fields(@type_of(point))`). |
+| `@type_of(x)` | `(x: value) -> type` | Static type of `x` as a `type` runtime value. | Argument is **not evaluated at runtime** — only its static type is read at the call site. Useful as input to other reflection intrinsics (`@fields(@type_of(point))`). |
 | `@fields(T)` | `(T: type) -> Field[]` | Field introspection for a struct. | `Field` carries `name: string`, `offset: usize`, `ty: type`. Materialised at lower time as a `Field[]` literal in the const pool. T3002 if `T` isn't a struct. |
 | `@type_args(T)` | `(T: type) -> type[]` | Generic-argument list of a struct or trait instance. | Returns `[]` for non-generic types. |
 | `@field(x, "name")` | `(x: value, name: value) -> <field type>` | Dynamic field access by static-string-literal name. | `name` must be a static string literal (or a `f.name` access that folds to one inside `@comptime for f in @fields(T)`). Result type is the field's declared type, resolved per-call. |
@@ -2089,6 +2087,7 @@ Width-based helpers (`pad_start`, `pad_end`) measure bytes, not codepoints.
 ```vader
 // Core access (intrinsics — no body in Vader).
 byte_len    :: fn(s: string) -> usize                  // UTF-8 bytes ; pair with count_chars() for codepoints
+is_empty    :: fn(s: string) -> bool                   // sugar for byte_len() == 0
 slice       :: fn(s: string, start: usize, end: usize) -> string
 contains    :: fn(s: string, sub: string) -> bool
 starts_with :: fn(s: string, prefix: string) -> bool
@@ -2097,12 +2096,13 @@ split       :: fn(s: string, sep: string) -> string[]
 trim        :: fn(s: string) -> string
 to_upper    :: fn(s: string) -> string
 to_lower    :: fn(s: string) -> string
+
+// Parsing. `ParseError` is the union arm raised on malformed / empty / overflow.
+ParseError  :: struct { msg: string }              // implements Error
 parse_int   :: fn(s: string) -> i32!
 parse_float :: fn(s: string) -> f64!
 
-// Codepoint walkers. `s[i]` (Index impl in std/core) replaces the old
-// `char_at` surface.
-is_empty         :: fn(s: string) -> bool                       // sugar for byte_len() == 0
+// Codepoint walkers. `s[i]` (Index impl in std/core) is the primary access form.
 count_chars      :: fn(s: string) -> usize                      // codepoint count, allocation-free
 chars            :: fn(s: string) -> StringChars                // StringChars implements Iterator[char]
 decode_codepoint :: fn(s: string, i: usize) -> [char, usize]    // (codepoint, byte width)
@@ -2111,9 +2111,14 @@ decode_codepoint :: fn(s: string, i: usize) -> [char, usize]    // (codepoint, b
 byte_at :: fn(s: string, i: usize) -> u8
 bytes   :: fn(s: string) -> StringBytes                         // StringBytes implements Iterator[u8]
 
-// Indexing helpers. `min_index` and the result use `isize` so the
+// Indexing helpers. `min_index` / `from` and the result use `isize` so the
 // `-1`-on-miss sentinel stays expressible without a `usize | null`.
+index_of      :: fn(s: string, c: char, from: usize) -> isize
 last_index_of :: fn(s: string, c: char, min_index: isize) -> isize
+
+// Ordering — case-sensitive and case-insensitive lexicographic comparators.
+compare_ascending    :: fn(a: string, b: string) -> bool
+compare_ascending_ci :: fn(a: string, b: string) -> bool
 
 // Format helpers (pure Vader).
 pad_start :: fn(s: string, width: usize, fill: char) -> string
@@ -2123,16 +2128,17 @@ pad_end   :: fn(s: string, width: usize, fill: char) -> string
 is_alpha         :: fn(c: char) -> bool                         // a-z, A-Z
 is_alnum         :: fn(c: char) -> bool                         // a-z, A-Z, 0-9
 is_digit         :: fn(c: char) -> bool                         // 0-9
-is_hex_digit     :: fn(c: char) -> bool                         // 0-9, a-f, A-F
 is_white_char    :: fn(c: char) -> bool                         // space, tab, newline, CR
-is_digit_in_base :: fn(c: char, base: i32) -> bool
 
-// Pattern helpers (ad-hoc — no real regex engine in MVP).
-replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string
-trim_suffix         :: fn(s: string, suffix: string) -> string
+// Pattern / scanner helpers (ad-hoc — no real regex engine in MVP).
 trim_prefix         :: fn(s: string, prefix: string) -> string
+trim_suffix         :: fn(s: string, suffix: string) -> string
+replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string
 split_where         :: fn(s: string, pred: fn(char) -> bool) -> string[]   // e.g. `s.split_where(is_white_char)`
+decode_escapes      :: fn(body: string) -> string               // decode `\n`, `\t`, `\u{HHHH}`, …
 ```
+
+`is_hex_digit`, `is_digit_in_base`, and base-specific parsing helpers live in [`std/numbers`](#stdnumbers) — they belong to numeric reading, not string scanning.
 
 ### `std/numbers`
 
@@ -2190,21 +2196,18 @@ in MVP. Immutable `List[T]` will pair with arrays once read-only views
 land (post-MVP).
 
 ```vader
-// Hash map — chaining HashMap with fixed bucket count.
+// Hash map — chained buckets with a fixed bucket count. The public surface
+// is the trait-operator triad below ; `put` / `get` / `contains_key` are
+// internal helpers used by the impls.
 MutableMap[K: Hash & Equals, V]
-Map[K, V]          // read-only (struct stub, post-MVP API)
-put          :: fn(self: MutableMap[K, V], key: K, value: V) -> void
-get          :: fn(self: MutableMap[K, V], key: K) -> V | null
-contains_key :: fn(self: MutableMap[K, V], key: K) -> bool
-len          :: fn(self: MutableMap[K, V]) -> usize
-is_empty     :: fn(self: MutableMap[K, V]) -> bool
-keys         :: fn(self: MutableMap[K, V]) -> K[]
-values       :: fn(self: MutableMap[K, V]) -> V[]
+len      :: fn(self: MutableMap[K, V]) -> usize
+is_empty :: fn(self: MutableMap[K, V]) -> bool
+keys     :: fn(self: MutableMap[K, V]) -> K[]
+values   :: fn(self: MutableMap[K, V]) -> V[]
 
-// Hash set — wraps a `MutableMap[T, bool]` (Java HashSet pattern). Lookups
-// inherit the chained-bucket O(1) behaviour from the underlying map.
+// Hash set — wraps a `MutableMap[T, bool]`. Lookups inherit the
+// chained-bucket O(1) behaviour from the underlying map.
 MutableSet[T: Hash & Equals]
-Set[T]             // read-only (struct stub, post-MVP API)
 add      :: fn(self: MutableSet[T], value: T) -> bool   // true if newly added
 contains :: fn(self: MutableSet[T], value: T) -> bool
 len      :: fn(self: MutableSet[T]) -> usize
@@ -2212,12 +2215,13 @@ is_empty :: fn(self: MutableSet[T]) -> bool
 ```
 
 `MutableMap` carries `Index[K, V | null]` / `IndexSet[K, V]` / `Contains[K]`
-impls, so the trait operators (§4 *Operator overloading*) work directly :
+impls, so the trait operators (§4 *Operator overloading*) are the canonical
+access surface :
 
 ```vader
-m["a"] = 10              // IndexSet — same as `m.put("a", 10)`
-match m["a"] { … }       // Index   — same as `m.get("a")`, returns `V | null`
-if "a" in m { … }        // Contains — same as `m.contains_key("a")`
+m["a"] = 10              // IndexSet — store
+match m["a"] { … }       // Index    — fetch, returns `V | null`
+if "a" in m { … }        // Contains — membership
 ```
 
 `MutableSet` carries a `Contains[T]` impl ; `value in set` / `value !in set`
@@ -2293,16 +2297,16 @@ Iterator :: trait[T] {
 - **Lazy combinators** — return a struct (`MapIterator(T, U)`, `FilterIterator(T)`, `TakeIterator(T)`, `SkipIterator(T)`) that itself implements `Iterator(T)`. Chains fuse through `Iterator(T)` slots without allocating intermediate arrays. UFCS lets calls chain fluently :
 
   ```vader
-  arr.into_iter().filter(p).map(f).take(10).collect()
+  arr.filter(p).map(f).take(10).collect()
   ```
 
-  The auto-coerce `T[] implements[T] Into(Iterator(T))` makes raw arrays drop into any `Iterator(T)` slot, so `arr.filter(p)` is equivalent to `arr.into_iter().filter(p)`. Short-circuiting combinators (`any`, `all`, `find`, `find_map`) live in this family too — they take a single `Iterator(T)` (raw arrays auto-coerce) and stop on the first match.
+  The auto-coerce `T[] implements[T] Into(Iterator(T))` makes raw arrays drop into any `Iterator(T)` slot, so a raw `T[]` flows straight into the first combinator with no explicit wrap. Short-circuiting combinators (`any`, `all`, `find`, `find_map`) live in this family too — they take a single `Iterator(T)` (raw arrays auto-coerce) and stop on the first match.
 
 The eager and lazy families converge on the same `Iterator(T)` trait : an eager `collect(it)` materialises whatever the lazy chain produces ; a lazy chain accepts a raw `T[]` via the same `Into(Iterator(T))` coercion.
 
 ### `std/runtime`
 
-Runtime introspection and controls — currently GC-only, named `runtime` (Go-style) since Vader has no compiler-private visibility tier today. Mostly a debug/test surface :
+Runtime introspection and controls — currently GC-only. The module is named `runtime` since Vader has no compiler-private visibility tier today ; the surface is meant for debugging and testing rather than production code.
 
 ```vader
 collect      :: fn() -> void   // force a Cheney cycle
@@ -2383,7 +2387,7 @@ The trait-widening limitation (struct implementing `Error` → `Error`) prevents
 ### Out of MVP
 
 - networking (no HTTP / sockets in stdlib)
-- compile-time-generated JSON parsers (kotlinx-serialization style ; runtime parser ships today via `std/json`)
+- compile-time-generated JSON parsers (runtime parser ships today via `std/json`)
 - threads / async
 - compression
 
@@ -2419,7 +2423,7 @@ Add `async` and `await` keywords. Single-threaded cooperative semantics, lowered
 
 ### Later — coroutines
 
-Kotlin-style envisioned (continuation-passing), to provide better ergonomics than plain `async`/`await`.
+Continuation-passing coroutines envisioned, to provide better ergonomics than plain `async`/`await`.
 
 ### Native threads
 
@@ -2444,13 +2448,15 @@ Possibly post-MVP, in `std/thread`, **not available on the WASM target** (compil
 
 ### IR (Intermediate Representation)
 
-A first-class debug/inspection target. The bytecode IR is serialized into a textual `.vir` file alongside any final artifact, and can be requested as the **only** output of a build via `--target=ir`.
+A first-class debug/inspection target. The bytecode IR is emitted as a standalone build artifact in one of two formats:
 
-- Stack-based, mirrors the in-memory bytecode 1:1.
-- Textual, line-oriented, human-readable.
-- Includes source positions (mapping IR ops back to `file:line:col` in the original Vader source).
-- Generated for the **whole program** post-monomorphization: every specialized generic instance is materialized.
-- Loadable: `vader run program.vir` re-executes the IR via the VM without re-parsing the source.
+- `--target=ir` → `.vir` — **binary** module, compact, what `vader run program.vir` consumes.
+- `--target=ir-text` → `.virt` — **textual**, line-oriented, human-readable ; `vader run program.virt` re-parses it back into the in-memory bytecode without touching the original source.
+
+Both formats:
+- mirror the in-memory bytecode 1:1 (stack-based) ;
+- include source positions (mapping IR ops back to `file:line:col` in the original Vader source) ;
+- are generated for the **whole program** post-monomorphization: every specialized generic instance is materialized.
 
 Use cases:
 - Debugging the compiler pipeline ("did monomorphization specialize as expected?").
@@ -2460,7 +2466,7 @@ Use cases:
 
 ### Single codegen strategy
 
-A single C native backend + a single WASM backend + IR text emission = **three output targets to maintain** (the IR is a near-trivial textualization of the in-memory bytecode). No QBE/Cranelift/LLVM in MVP.
+A single C native backend + a single WASM backend + IR text + IR binary emission = **four output artifacts to maintain** (the IR text form is a near-trivial textualization of the binary form, which is itself the in-memory bytecode written to disk). No QBE/Cranelift/LLVM in MVP.
 
 ---
 
@@ -2505,11 +2511,15 @@ Interactive mode (`vader` with no arg). Reuses the VM.
 ### Tests
 
 ```vader
+import "std/testing" { assert_eq }
+
 @test
 test_addition :: fn() {
     assert_eq(1 + 1, 2)
 }
 ```
+
+`assert_eq` / `assert` / `assert_ne` / `assert_close` and friends live in `std/testing` (see §15) — `std/testing` is not auto-imported, every test module imports the asserts it uses.
 
 ### Debugging
 
@@ -2577,7 +2587,7 @@ Diagnostic plumbing is **MVP-mandatory** and consumed by both the CLI rendering 
 - **Structured, not stringly-typed**. Every diagnostic carries `severity` (`error` / `warning` / `info` / `hint`), `code` (stable identifier like `T3001`), `message`, primary `span`, optional secondary spans (with their own labels), optional `notes`, and optional machine-readable `fixes`.
 - **Continuation after error**. No phase aborts on the first diagnostic. The lexer recovers at the next newline; the parser at the next top-level keyword or matching brace; the type-checker continues per-declaration. The user sees a maximal harvest of issues in one run.
 - **Two output modes from the same data**:
-  - **Terminal**: rich rendering with source snippet, primary-span underline, color, fix hints — Rust/Elm-style.
+  - **Terminal**: rich rendering with source snippet, primary-span underline, color, fix hints.
   - **JSON**: stable schema, suitable for LSP consumption and CI tooling. Toggle via `--diagnostics=json` on every command that compiles.
 - **Source positions are byte-accurate**. The LSP needs UTF-16 column counts; we emit UTF-8 byte offsets and rely on a small conversion layer at the LSP boundary, so the compiler stays in one encoding.
 
@@ -2616,7 +2626,7 @@ As soon as the TS compiler can compile simple functions (a syntactic subset: fns
 5. **LSP** ✅ (`vader/lsp/`) — hover, definition, completion, semantic tokens (consumes the resolver).
 6. **VM** 🟡 (`vader/vm/`) — `.virt` text bytecode subset runs in Vader ; full op coverage WIP.
 7. **C-emit** ⏳ (text emission, mechanical).
-8. **Bytecode-emit** ⏳ (mechanical).
+8. **Bytecode-emit** 🟡 (scaffolding + literal emit landed under `vader/bytecode/`).
 9. **WASM-emit** ⏳ (slightly more complex due to binary encoding).
 10. **Type-checker** ⏳ (the most complex, last — Vader must be mature enough to self-represent).
 11. **Lower / Mid-IR / DCE** ⏳ (touches every pass downstream of typecheck).
@@ -2827,7 +2837,7 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 - Explicit allocator API (arena, etc.) for perf-critical zones
 - Auto string marshalling WASM ↔ JS
 - Async / await
-- Kotlin-style coroutines
+- Continuation-passing coroutines
 - Native threads (`std/thread`)
 - Networking, regex, time, random
 - Programmable build API (`build.vader`)
