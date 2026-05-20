@@ -223,6 +223,15 @@ function emitErasureBoundaryConversion(s: FnState, tmp: string, expectedTypeInde
   // conversion ; the heap layout will be propagated as-is.
   const expected = s.ctx.module.types[expectedTypeIndex];
   if (expected === undefined) return;
+  // Array-typed expected : the erased fn allocated `Array(Any)` with
+  // BOXED element storage (vader_box_t[] backing), but the caller's
+  // concrete element type expects tightly-packed primitive slots
+  // (`int32_t[]` for `i32[]`). Reshape by allocating a fresh array of
+  // the right element_kind and copying slot-by-slot with unboxing.
+  if (expected.kind === "array") {
+    emitArrayElementKindReshape(s, tmp, expectedTypeIndex, expected);
+    return;
+  }
   let structIdx = -1;
   if (expected.kind === "struct") {
     structIdx = expectedTypeIndex;
@@ -272,6 +281,43 @@ function emitErasureBoundaryConversion(s: FnState, tmp: string, expectedTypeInde
     const repack = boxExpr(s.ctx, unboxed, inline as ValType, structIdx);
     line(s, `    ${tmp} = ${repack};`);
   }
+  line(s, `}`);
+}
+
+/** Array element_kind reshape : an erased fn returned a BOXED-backing
+ *  `Array(Any)` but the call site expects a primitive-element-kind
+ *  array (e.g. `i32[]` with element_kind = I32). The runtime can't
+ *  re-interpret BOXED slots as int32_t in place — sizes differ.
+ *  Allocate a fresh array of the right element_kind via
+ *  `vader_array_new`, then for each slot pop the box, unbox to the
+ *  primitive, and store. The reshape is O(length) allocations and
+ *  copies — expensive ; the perf-aware path is the stdlib API shift
+ *  to `Iterator(T)`. Bails on arrays whose element type is itself
+ *  non-primitive (struct, array, union — would cascade more
+ *  conversions). */
+function emitArrayElementKindReshape(
+  s: FnState, tmp: string, expectedTypeIndex: number,
+  expected: { kind: "array"; element: number },
+): void {
+  const elemBcType = s.ctx.module.types[expected.element];
+  if (elemBcType === undefined) return;
+  if (elemBcType.kind !== "primitive") return;     // only primitive elems handled
+  if (elemBcType.val === "string") return;         // string arrays already BOXED-backed
+  const elemKind = arrayKindOf(elemBcType);
+  if (elemKind === "boxed") return;                // source and target both BOXED, no reshape
+  const kindIdx = arrayKindIndex(elemKind);
+  // Allocate fresh array with the right element_kind. Use the expected
+  // BcType index as both the array's type tag and its element_tag for
+  // primitive-storage tagging (used by `vader_array_load_slot`).
+  line(s, `if (${tmp}.payload.obj != NULL) {`);
+  line(s, `    vader_array_t* __src_arr = (vader_array_t*) ${tmp}.payload.obj;`);
+  line(s, `    size_t __n = __src_arr->length;`);
+  line(s, `    vader_array_t* __dst_arr = vader_array_new(${expectedTypeIndex}u, __n, ${kindIdx}u, ${expected.element}u);`);
+  line(s, `    for (size_t __i = 0; __i < __n; __i++) {`);
+  line(s, `        vader_box_t __slot = vader_array_get(__src_arr, __i);`);
+  line(s, `        vader_array_set(__dst_arr, __i, ${boxExpr(s.ctx, unboxExpr("__slot", elemBcType.val as ValType), elemBcType.val as ValType, expected.element)});`);
+  line(s, `    }`);
+  line(s, `    ${tmp} = vader_box_obj(${expectedTypeIndex}u, __dst_arr);`);
   line(s, `}`);
 }
 
