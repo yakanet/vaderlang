@@ -2,10 +2,10 @@
 
 > **Status**: **PROGRESSIVE PATH (γ) — 2026-05-20.** Erasure
 > infrastructure massively extended ; native suite reduced from 31
-> fails (the original cascade) to **6 fails** with `erasureDedupe`
+> fails (the original cascade) to **5 fails** with `erasureDedupe`
 > flipped on. Gated off by default so baseline stays 252/252 green.
-> Each of the 6 remaining cases is a distinct compile-time / runtime
-> interaction pattern documented in §9.
+> Each of the 5 remaining cases is a distinct compile-time / runtime
+> interaction pattern documented in §9 Issue 10.
 >
 > **Sub-deliverables shipped (path γ progressive) :**
 > - **Famille A** — `synthesiseIntrinsicWrappers` (`bytecode/emit.ts`)
@@ -320,56 +320,66 @@ fallback to option (b).
 
 ### Issue 10 — Remaining cascade patterns after path γ (2026-05-20)
 
-After the Famille A + B + boundary-conversion infrastructure ships
-(commits 1e0ea55d, b291c7ad, 6e91fd55), flipping `erasureDedupe` on
-leaves **6/252 native tests failing** — each surfacing a distinct
-interaction the current boundary machinery doesn't bridge.
+After the Famille A + B + boundary-conversion + arg-reshape
+infrastructure ships (commits 1e0ea55d, b291c7ad, 6e91fd55, fe57385c),
+flipping `erasureDedupe` on leaves **5/252 native tests failing** —
+each surfacing a distinct interaction the current boundary machinery
+doesn't bridge.
 
-**(10-a) Argument-side erasure conversion missing** — `tuple_generic_swap`
+**(10-a) Argument-side erasure conversion** — ~~`tuple_generic_swap`
 passes `Tuple_24 { i32, string }` to `swap[T,U]` whose erased body
-expects `Tuple_2 { vader_box_t, vader_box_t }`. The return-side
-`emitHeapStructReshape` correctly converts the result back, but the
-argument is sent as-is → swap reads its fields through the wrong
-layout. **Fix path** : extend `emitCallTo` to also reshape arguments
-when the callee's `paramTypes[i]` differs from the caller's argument
-type, symmetric to the return-side conversion.
+expects `Tuple_2 { vader_box_t, vader_box_t }`~~. **RESOLVED via
+commit `fe57385c`** — `emitArgReshape` allocates the Any-layout
+struct, boxes each concrete field, passes the new vader_box_t.
+Symmetric to the existing return-side `emitHeapStructReshape`.
 
-**(10-b) Multi-level inline-box accessor mismatch** — `generic_helper_chain`
-chains `Box(Box(i32))` accesses. The outer `Box(Box(i32))` is heap
-(its field is itself inline-eligible, per `inlineVariantPayload` line
-332). After my reshape, the outer is correctly reshaped. But the
-inner field `f_value` carries a `vader_box_t` whose payload IS the
-inline-form Box(i32) — a single i32 in `payload.i`. The C-emit's
-`struct.get` for Box(i32) then attempts a heap-pointer dereference
-(`((Box_i32_t*) recv.payload.obj)->f_value`) instead of the inline
-unbox path. **Fix path** : the inner `.value.value` access chain
-needs the boundary conversion to recurse — when the outer reshape
-copies a field whose type is itself inline-eligible AND comes from
-a heap source, unbox the heap payload's first field and re-pack
-inline. Tricky because the inner Box(i32) was never separately
-returned — it's a field of the outer.
+**(10-b) Multi-level inline-box eligibility cascade** —
+`generic_helper_chain` chains `Box(Box(i32))` accesses. The post-erasure
+struct entries for `Box(i32)` carry all-`ref` field types (because
+my struct dedupe rewrites `subst` to `K→Any` even for distinct-identity
+entries) ; consequently `inlineVariantPayload(Box(i32))` returns
+`null` from the type table's perspective, even though Vader's
+inline-box logic at the user level recognises Box(i32) as inline as
+"i32". Phase 1's inline-box optimisation is effectively disabled
+for any non-`@specialize`d generic struct under erasure. **Root
+cause** : the dedupe trades inline-box eligibility for layout
+uniformity (so per-instance struct entries share one heap shape).
+**Fix path** : two options — (b1) keep struct entries' `subst`
+concrete (don't rewrite to Any), accepting per-instance struct
+decls with concrete field types ; inline-box stays functional but
+the body's substitution path must adapt to per-instance struct
+references rather than the shared Any one. (b2) materialise a
+"shape-bridge" at each `struct.get` site that detects the runtime
+inline form via tag check and reads `payload.i` vs `payload.obj`
+accordingly. (b1) is cleaner ; estimated ~1-2 weeks rewrite of the
+dedupe + downstream consumers.
 
 **(10-c) Iterator-pipeline chained boundary** — `iter_combinators`,
 `iter_zip_chain`, `std_sort`, `json_basics` all use generic functions
-that consume / produce iterators (`sum`, `fold`, `take`, `parse`,
-`stringify`, ...). Each is itself erased, returning Any-form values.
+that consume / produce iterators (`sum`, `fold`, `take`, `sort`,
+`parse`, ...). Each is itself erased, returning Any-form values.
 The caller's `local.set` coercion to the concrete static type works
 for primitives (unbox via `payload.i`), but the iterator pipeline
-threading carries the cascade through multiple call boundaries before
-the value lands in a concrete slot. **Fix path** : likely needs the
-argument-side conversion from (10-a) plus more aggressive recursive
-reshape through union variants.
-
-**Mitigation note** : (10-a) is the highest leverage — adding
-argument-side reshape symmetric to the existing return-side reshape
-probably unblocks `tuple_generic_swap` + half of (10-c). Estimated
-~4-6 h.
+threading carries the cascade through multiple call boundaries
+before the value lands in a concrete slot. Additionally,
+`json_basics`-style `match` arms (`is JsonObject -> ...`) check
+runtime tags against concrete struct identities that differ from the
+Any-version's tag → arm misses → fallthrough. **Fix paths** :
+(c1) extend the boundary conversion to recursively descend through
+union variants in the expected type. (c2) for match arms, emit a
+tag-tolerant check that accepts either the concrete tag OR the
+Any-counterpart's tag (then unbox/reshape inside the arm). (c3) the
+sort-style higher-order-fn callback receives erased args ; the
+caller-side coerce path needs to also reshape per-arg when the
+callback's signature requires concrete types. Each is ~3-5 d
+investigation per failing test.
 
 **Vader port note** : the path-γ infrastructure (Famille A wrappers,
 struct/fn dedupe split, boundary conversion, `BcStruct.symbolId`,
-`anyCounterpartOf`) all has direct Vader self-host port equivalents.
-The fixes are mechanical once the TS side stabilises. (10-a) gates
-the next visible win.
+`anyCounterpartOf`, argument-side `emitArgReshape`, return-side
+`emitHeapStructReshape`) all has direct Vader self-host port
+equivalents. The fixes are mechanical once the TS side stabilises.
+(10-b) is the foundational rethink ; everything else is incremental.
 
 ### Issue 1 — Cascading Any through `@specialize`d containers
 
