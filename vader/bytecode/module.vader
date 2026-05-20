@@ -28,7 +28,11 @@ import "vader/vm/op" { Op }
 /// params ; slot index of `locals[i]` is `signature.params.len() + i`.
 /// `debug[i]` corresponds to `body[i]`, with `null` meaning "no source
 /// span for this op" — handy for synthesised ops (struct.new_stack,
-/// trampoline shims).
+/// trampoline shims). `jump_table[i]` is the resolved target pc for
+/// branching ops (`Branch` / `BranchIf` / `If` / `Else`) and `-1` for
+/// every other op ; mirrors `vm/op.BytecodeFunction.jump_table` so
+/// downstream consumers (VM exec, c-emit) read the same shape
+/// regardless of which front-end produced the module.
 export BcFunction :: struct {
     name: string
     is_main: bool
@@ -36,6 +40,7 @@ export BcFunction :: struct {
     locals: BcLocal[]
     body: Op[]
     debug: (DebugPos | null)[]
+    jump_table: i32[]
 }
 
 /// Static signature of a fn-shaped slot. The VM only consults `params`

@@ -52,9 +52,15 @@ import "vader/vm/op" {
     Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
     NullConst, LocalGet, LocalSet, LocalTee, Return, Drop, Call,
     If, Else, End, StructNew, StructGet,
+    Block, Loop, Branch, BranchIf, BoolNot,
 }
 import "vader/bytecode/intrinsics" {
     intrinsic_op_for_mangled, intrinsic_op_for_symbol_name,
+}
+import "vader/bytecode/emit_state" {
+    FnEmitState, ScopeEntry, ScopeKind,
+    init_fn_emit_state, allocate_local_slot, push_op, set_jump_target,
+    pop_scope, find_break_target, find_continue_target,
 }
 
 // =========================================================================
@@ -138,53 +144,6 @@ new_emitter_ctx :: fn() -> EmitterCtx {
     }
 }
 
-// =========================================================================
-// Per-fn emit state
-// =========================================================================
-
-/// Mutable state threaded through a single fn body emit. Owns the
-/// op + debug arrays, the slot allocator (params get the first
-/// `params.len()` slots ; lets append from there), and the per-fn
-/// `symbol_id → slot` map for `Ident` / `Assign` resolution.
-///
-/// Lives only for the lifetime of `emit_fn_body` ; thrown away once
-/// the populated arrays land on the `BcFunction` record.
-FnEmitState :: struct {
-    body:                  Op[]
-    debug:                 (DebugPos | null)[]
-    locals:                BcLocal[]
-    /// `symbol.id → slot index`. Slot index = params.len() + N for
-    /// the N-th let ; param slots are pre-registered by
-    /// `init_fn_emit_state`.
-    slot_by_symbol_id:     MutableMap(i32, i32)
-}
-
-/// Initialise per-fn emit state. Pre-registers each param's symbol
-/// at its slot (params occupy slots 0..N-1 ; lets append from N).
-init_fn_emit_state :: fn(function_decl: LoweredFnDecl) -> FnEmitState {
-    state :: FnEmitState {
-        .body              = [],
-        .debug             = [],
-        .locals            = [],
-        .slot_by_symbol_id = MutableMap(i32, i32) { .buckets = [], .size = 0 },
-    }
-    for i in 0..<function_decl.params.len() {
-        param :: function_decl.params[i]
-        state.slot_by_symbol_id[param.symbol.id] = i32(i)
-    }
-    return state
-}
-
-/// Allocate a fresh local slot for `symbol` with stack class `val`.
-/// The new slot index = current `locals.len() + params.len()` ; we
-/// derive it from the next free index in `slot_by_symbol_id` instead
-/// since that map already includes params.
-allocate_local_slot :: fn(state: FnEmitState, symbol: Symbol, name: string, val: ValType) -> i32 {
-    new_slot :: i32(state.slot_by_symbol_id.size)
-    state.slot_by_symbol_id[symbol.id] = new_slot
-    state.locals.push(BcLocal { .name = name, .val = val })
-    return new_slot
-}
 
 // =========================================================================
 // Top-level entry
@@ -257,14 +216,16 @@ reserve_fn :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
     function_index :: i32(ctx.functions.len())
     empty_body: Op[] = []
     empty_debug: (DebugPos | null)[] = []
+    empty_jump_table: i32[] = []
     empty_locals: BcLocal[] = []
     ctx.functions.push(BcFunction {
-        .name      = function_decl.mangled,
-        .is_main   = function_decl.origin.is_main,
-        .signature = signature,
-        .locals    = empty_locals,
-        .body      = empty_body,
-        .debug     = empty_debug,
+        .name       = function_decl.mangled,
+        .is_main    = function_decl.origin.is_main,
+        .signature  = signature,
+        .locals     = empty_locals,
+        .body       = empty_body,
+        .debug      = empty_debug,
+        .jump_table = empty_jump_table,
     })
     match function_decl.origin.symbol {
         is Symbol as symbol -> { ctx.function_index_by_symbol_id[symbol.id] = function_index }
@@ -333,16 +294,6 @@ build_signature :: fn(params: LoweredParam[], return_type: Type, ctx: EmitterCtx
 // Pass 2 — body emit
 // =========================================================================
 
-/// Append `op` to both the body and the debug arrays in lock-step.
-/// Centralises the two-push pattern so callers can't leave the arrays
-/// out of sync (silent miscompile : the per-op `DebugPos` lookup
-/// would shift). `Phase 2` will accept a `DebugPos | null` argument
-/// so source spans propagate ; today every site passes `null`.
-push_op :: fn(body: Op[], debug: (DebugPos | null)[], op: Op) -> void {
-    body.push(op)
-    debug.push(null)
-}
-
 /// Per-decl body dispatcher. FnDecls walk their body block ; structs
 /// + consts no-op in Phase 1.
 emit_decl :: fn(decl: LoweredDecl, ctx: EmitterCtx) -> void {
@@ -367,19 +318,20 @@ emit_fn_body :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
         _ -> {}
     }
     if !ends_with_return(state.body) {
-        push_op(state.body, state.debug, Return {})
+        push_op(state, Return {})
     }
     // Rebuild the reserved entry — Vader records are by-value, so we
     // can't mutate `body` / `debug` in place. The two metadata
     // fields (name / is_main / signature) pass through unchanged.
     reserved :: ctx.functions[usize(function_index)]
     ctx.functions[usize(function_index)] = BcFunction {
-        .name      = reserved.name,
-        .is_main   = reserved.is_main,
-        .signature = reserved.signature,
-        .locals    = state.locals,
-        .body      = state.body,
-        .debug     = state.debug,
+        .name       = reserved.name,
+        .is_main    = reserved.is_main,
+        .signature  = reserved.signature,
+        .locals     = state.locals,
+        .body       = state.body,
+        .debug      = state.debug,
+        .jump_table = state.jump_table,
     }
 }
 
@@ -421,23 +373,22 @@ emit_block :: fn(block: LoweredBlock, state: FnEmitState, ctx: EmitterCtx) -> vo
     }
 }
 
-/// Per-stmt dispatcher. Phase 2 covers `Return`, `ExprStmt`, `Let`,
-/// `Assign`. The remaining shapes (`Loop` / `Break` / `Continue` /
-/// `CellSet`) are Phase 3 stubs ; their no-op skip surfaces as a
-/// missing op (VM traps with a debug-friendly diagnostic).
+/// Per-stmt dispatcher. Phase 4 covers `Return`, `ExprStmt`, `Let`,
+/// `Assign`, `Loop`, `Break`, `Continue`. `CellSet` (closure cells)
+/// remains a Phase 5 stub.
 emit_stmt :: fn(stmt: LoweredStmt, state: FnEmitState, ctx: EmitterCtx) -> void {
     match stmt {
-        is LoweredReturn as return_stmt -> emit_return(return_stmt, state, ctx)
-        is LoweredExprStmt as expr_stmt -> {
+        is LoweredReturn as return_stmt     -> emit_return(return_stmt, state, ctx)
+        is LoweredExprStmt as expr_stmt     -> {
             emit_expr(expr_stmt.expr, state, ctx)
-            push_op(state.body, state.debug, Drop {})
+            push_op(state, Drop {})
         }
-        is LoweredLet as let_stmt       -> emit_let(let_stmt, state, ctx)
-        is LoweredAssign as assign_stmt -> emit_assign(assign_stmt, state, ctx)
-        is LoweredCellSet  -> {}
-        is LoweredLoop     -> {}
-        is LoweredBreak    -> {}
-        is LoweredContinue -> {}
+        is LoweredLet as let_stmt           -> emit_let(let_stmt, state, ctx)
+        is LoweredAssign as assign_stmt     -> emit_assign(assign_stmt, state, ctx)
+        is LoweredLoop as loop_stmt         -> emit_loop(loop_stmt, state, ctx)
+        is LoweredBreak as break_stmt       -> emit_break(break_stmt, state)
+        is LoweredContinue as continue_stmt -> emit_continue(continue_stmt, state)
+        is LoweredCellSet                   -> {}
     }
 }
 
@@ -449,7 +400,7 @@ emit_return :: fn(return_stmt: LoweredReturn, state: FnEmitState, ctx: EmitterCt
         is LoweredExpr as value_expr -> emit_expr(value_expr, state, ctx)
         _ -> {}
     }
-    push_op(state.body, state.debug, Return {})
+    push_op(state, Return {})
 }
 
 /// Emit a `let` statement. Allocates a fresh local slot, emits the
@@ -460,7 +411,7 @@ emit_let :: fn(let_stmt: LoweredLet, state: FnEmitState, ctx: EmitterCtx) -> voi
     emit_expr(let_stmt.value, state, ctx)
     val :: val_type_of_type(let_stmt.type)
     slot :: allocate_local_slot(state, let_stmt.symbol, let_stmt.name, val)
-    push_op(state.body, state.debug, LocalSet { .slot = slot })
+    push_op(state, LocalSet { .slot = slot })
 }
 
 /// Emit an `assign` statement. Phase 2 only handles `target` being a
@@ -472,18 +423,18 @@ emit_assign :: fn(assign_stmt: LoweredAssign, state: FnEmitState, ctx: EmitterCt
         is LoweredIdent as target_ident -> {
             slot :: state.slot_by_symbol_id[target_ident.symbol.id]
             match slot {
-                is i32 as s -> push_op(state.body, state.debug, LocalSet { .slot = s })
+                is i32 as s -> push_op(state, LocalSet { .slot = s })
                 _ -> {
                     // Symbol not in scope — Phase 3 will route through
                     // the global / cell-set machinery. Drop the value
                     // to keep the stack balanced.
-                    push_op(state.body, state.debug, Drop {})
+                    push_op(state, Drop {})
                 }
             }
         }
         _ -> {
             // Non-ident LHS — Phase 3 (struct.set / array.set).
-            push_op(state.body, state.debug, Drop {})
+            push_op(state, Drop {})
         }
     }
 }
@@ -495,13 +446,13 @@ emit_assign :: fn(assign_stmt: LoweredAssign, state: FnEmitState, ctx: EmitterCt
 emit_expr :: fn(expr: LoweredExpr, state: FnEmitState, ctx: EmitterCtx) -> void {
     match expr {
         is LoweredIntLit as int_lit         -> emit_int_lit(int_lit, state)
-        is LoweredFloatLit as float_lit     -> push_op(state.body, state.debug, F64Const { .value = float_lit.value })
-        is LoweredBoolLit as bool_lit       -> push_op(state.body, state.debug, BoolConst { .value = bool_lit.value })
-        is LoweredCharLit as char_lit       -> push_op(state.body, state.debug, CharConst { .value = char(char_lit.value) })
-        is LoweredNullLit                   -> push_op(state.body, state.debug, NullConst {})
+        is LoweredFloatLit as float_lit     -> push_op(state, F64Const { .value = float_lit.value })
+        is LoweredBoolLit as bool_lit       -> push_op(state, BoolConst { .value = bool_lit.value })
+        is LoweredCharLit as char_lit       -> push_op(state, CharConst { .value = char(char_lit.value) })
+        is LoweredNullLit                   -> push_op(state, NullConst {})
         is LoweredStringLit as string_lit   -> {
             string_index :: intern_string(string_lit.value, ctx)
-            push_op(state.body, state.debug, StringConst { .index = string_index })
+            push_op(state, StringConst { .index = string_index })
         }
         is LoweredIdent as ident            -> emit_ident(ident, state, ctx)
         is LoweredCall as call              -> emit_call(call, state, ctx)
@@ -520,9 +471,9 @@ emit_expr :: fn(expr: LoweredExpr, state: FnEmitState, ctx: EmitterCtx) -> void 
 /// to `I32Const`.
 emit_int_lit :: fn(literal: LoweredIntLit, state: FnEmitState) -> void {
     if is_64_bit_int_val(val_type_of_type(literal.type)) {
-        push_op(state.body, state.debug, I64Const { .value = literal.value })
+        push_op(state, I64Const { .value = literal.value })
     } else {
-        push_op(state.body, state.debug, I32Const { .value = i32(literal.value) })
+        push_op(state, I32Const { .value = i32(literal.value) })
     }
 }
 
@@ -532,7 +483,7 @@ emit_int_lit :: fn(literal: LoweredIntLit, state: FnEmitState) -> void {
 emit_ident :: fn(ident: LoweredIdent, state: FnEmitState, ctx: EmitterCtx) -> void {
     slot :: state.slot_by_symbol_id[ident.symbol.id]
     match slot {
-        is i32 as s -> push_op(state.body, state.debug, LocalGet { .slot = s })
+        is i32 as s -> push_op(state, LocalGet { .slot = s })
         _ -> {
             // Symbol not local — Phase 3 fn.ref / closure path.
         }
@@ -557,7 +508,7 @@ emit_call :: fn(call: LoweredCall, state: FnEmitState, ctx: EmitterCtx) -> void 
             // routes through CallIndirect. Today we'd leave args on
             // the stack ; drop them to keep balance.
             for _ in 0..<call.args.len() {
-                push_op(state.body, state.debug, Drop {})
+                push_op(state, Drop {})
             }
         }
     }
@@ -569,11 +520,11 @@ emit_call :: fn(call: LoweredCall, state: FnEmitState, ctx: EmitterCtx) -> void 
 emit_call_to_symbol :: fn(symbol: Symbol, state: FnEmitState, ctx: EmitterCtx) -> void {
     intrinsic :: intrinsic_op_for_symbol_name(symbol)
     match intrinsic {
-        is Op as op -> push_op(state.body, state.debug, op)
+        is Op as op -> push_op(state, op)
         _ -> {
             target_index :: ctx.function_index_by_symbol_id[symbol.id]
             match target_index {
-                is i32 as index -> push_op(state.body, state.debug, Call { .function_index = index })
+                is i32 as index -> push_op(state, Call { .function_index = index })
                 _ -> {
                     // Unknown target — Phase 4 will route through
                     // the import table (`CallImport`).
@@ -595,16 +546,16 @@ emit_call_to_symbol :: fn(symbol: Symbol, state: FnEmitState, ctx: EmitterCtx) -
 /// the markers (each branch ends with an `ExprStmt`-shaped trailing).
 emit_if :: fn(if_expr: LoweredIf, state: FnEmitState, ctx: EmitterCtx) -> void {
     emit_expr(if_expr.cond, state, ctx)
-    push_op(state.body, state.debug, If {})
+    push_op(state, If {})
     emit_block(if_expr.then_block, state, ctx)
     match if_expr.else_block {
         is LoweredBlock as else_block -> {
-            push_op(state.body, state.debug, Else {})
+            push_op(state, Else {})
             emit_block(else_block, state, ctx)
         }
         _ -> {}
     }
-    push_op(state.body, state.debug, End {})
+    push_op(state, End {})
 }
 
 /// Emit a struct literal : per-field value emit (in declaration
@@ -620,7 +571,7 @@ emit_struct_lit :: fn(struct_lit: LoweredStructLit, state: FnEmitState, ctx: Emi
     for i in 0..<struct_lit.fields.len() {
         emit_expr(struct_lit.fields[i].value, state, ctx)
     }
-    push_op(state.body, state.debug, StructNew { .type_id = type_id })
+    push_op(state, StructNew { .type_id = type_id })
 }
 
 /// Emit a field access : target struct emit then
@@ -633,7 +584,7 @@ emit_field_access :: fn(field_access: LoweredFieldAccess, state: FnEmitState, ct
     target_type_id :: intern_type(lowered_expr_type(field_access.target), ctx)
     emit_expr(field_access.target, state, ctx)
     field_index :: lookup_field_index(ctx, target_type_id, field_access.field)
-    push_op(state.body, state.debug, StructGet {
+    push_op(state, StructGet {
         .type_id     = target_type_id,
         .field_index = field_index,
     })
@@ -727,6 +678,111 @@ assemble_module :: fn(ctx: EmitterCtx, _opts: EmitOptions) -> BytecodeModule {
         .impl_table  = impl_table,
         .vtables     = vtables,
     }
+}
+
+// =========================================================================
+// Structured-control emit — Loop / Break / Continue + scope tracking
+// =========================================================================
+
+/// Emit a `for` loop. Vader's surface form is one of :
+///   - infinite loop : `for { body }` — `cond` is null
+///   - while-style   : `for cond { body }` — `cond` is the predicate
+/// Both lower to the same WASM-style structured-control sequence :
+///
+///     Block            ; break target (forward jump to End)
+///       Loop           ; continue target (backward jump to body start)
+///         cond ; BoolNot ; BranchIf   ; while-style only — bail to Block end
+///         body
+///         Branch       ; unconditional continue (back to Loop start)
+///       End            ; closes Loop
+///     End              ; closes Block — patches all pending breaks
+///
+/// `label` ships from the source (`for outer { … }`) and propagates
+/// onto both the Block and Loop scopes so labelled break / continue
+/// finds the matching pair.
+emit_loop :: fn(loop_stmt: LoweredLoop, state: FnEmitState, ctx: EmitterCtx) -> void {
+    // Block scope — break target.
+    no_pending: i32[] = []
+    block_index :: state.scope_stack.len()
+    state.scope_stack.push(ScopeEntry {
+        .kind           = ScopeKind.Block,
+        .opener_pc      = i32(state.body.len()),
+        .label          = loop_stmt.label,
+        .pending_breaks = no_pending,
+    })
+    push_op(state, Block {})
+
+    // Loop scope — continue target.
+    loop_index :: state.scope_stack.len()
+    no_pending_loop: i32[] = []
+    state.scope_stack.push(ScopeEntry {
+        .kind           = ScopeKind.Loop,
+        .opener_pc      = i32(state.body.len()),
+        .label          = loop_stmt.label,
+        .pending_breaks = no_pending_loop,
+    })
+    push_op(state, Loop {})
+
+    // While-style cond : `if !cond { break }` — `BoolNot` + `BranchIf`
+    // targeting the surrounding Block.
+    match loop_stmt.cond {
+        is LoweredExpr as cond_expr -> {
+            emit_expr(cond_expr, state, ctx)
+            push_op(state, BoolNot {})
+            cond_branch_pc :: i32(state.body.len())
+            push_op(state, BranchIf {})
+            state.scope_stack[block_index].pending_breaks.push(cond_branch_pc)
+        }
+        _ -> {}
+    }
+
+    // Body.
+    emit_block(loop_stmt.body, state, ctx)
+
+    // Implicit continue : Branch back to the Loop's body start
+    // (opener_pc + 1 = right after the Loop marker).
+    continue_branch_pc :: i32(state.body.len())
+    push_op(state, Branch {})
+    loop_scope :: state.scope_stack[loop_index]
+    set_jump_target(state, continue_branch_pc, loop_scope.opener_pc + i32(1))
+
+    // Close Loop scope.
+    push_op(state, End {})
+    pop_scope(state)
+
+    // Close Block scope — patch all pending forward branches.
+    block_end_target :: i32(state.body.len()) + i32(1)
+    push_op(state, End {})
+    block_scope :: state.scope_stack[block_index]
+    for i in 0..<block_scope.pending_breaks.len() {
+        set_jump_target(state, block_scope.pending_breaks[i], block_end_target)
+    }
+    pop_scope(state)
+}
+
+/// Emit a `break` statement. Resolves the target Block scope (by
+/// `label`, or the innermost Block when unlabelled), emits a
+/// `Branch`, and records the pc in the scope's `pending_breaks`
+/// list for `End`-time patching.
+emit_break :: fn(break_stmt: LoweredBreak, state: FnEmitState) -> void {
+    target_index :: find_break_target(state, break_stmt.label)
+    if target_index < 0 { return }
+    branch_pc :: i32(state.body.len())
+    push_op(state, Branch {})
+    state.scope_stack[usize(target_index)].pending_breaks.push(branch_pc)
+}
+
+/// Emit a `continue` statement. Resolves the target Loop scope and
+/// emits a `Branch` whose jump_table entry points back at the Loop's
+/// body start (`opener_pc + 1`) — backward jumps resolve immediately
+/// since the Loop opener is already in `state.body`.
+emit_continue :: fn(continue_stmt: LoweredContinue, state: FnEmitState) -> void {
+    target_index :: find_continue_target(state, continue_stmt.label)
+    if target_index < 0 { return }
+    target_scope :: state.scope_stack[usize(target_index)]
+    branch_pc :: i32(state.body.len())
+    push_op(state, Branch {})
+    set_jump_target(state, branch_pc, target_scope.opener_pc + i32(1))
 }
 
 // ---- tests ----------------------------------------------------------------
