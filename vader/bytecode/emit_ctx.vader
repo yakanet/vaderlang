@@ -1,0 +1,175 @@
+// vader/bytecode/emit_ctx — per-project emit context + interning.
+//
+// Extracted from `emit.vader` to keep that file under the 800 LoC
+// hard cap. Owns `EmitOptions` + `EmitterCtx` (the project-wide
+// type / string / fn / import tables) and the two interners
+// (`intern_type`, `intern_string`) every per-shape emit fn calls.
+
+import "std/collections" { MutableMap }
+import "vader/typecheck/types" { Type }
+import "vader/bytecode/module" { BcFunction, BcImport, BcExport }
+import "vader/bytecode/types" { BcType, BcPrimitive, ValType }
+import "vader/bytecode/type_classify" { type_intern_key, bc_type_of }
+
+/// Knobs threaded through the emit. Today only `optimize` matters —
+/// when true, the future peephole pass runs over each fn body.
+export EmitOptions :: struct {
+    optimize: bool
+}
+
+/// Default options : peephole ON (matches TS default).
+/// @return  a fresh `EmitOptions` with `optimize = true`.
+export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = true }
+
+/// Per-project emit context. Built once at the top of `emit_project`,
+/// threaded through every reservation + body-emit call. Carries the
+/// type / string / fn / import interning tables plus the inverse
+/// lookups (symbol id → fn / import index) downstream phases query.
+///
+/// Distinct from `EmitOptions` so the constructor stays cheap and the
+/// helpers don't need an `opts` parameter when they only touch the
+/// shared state.
+export EmitterCtx :: struct {
+    /// Type table being built. Index 0 is reserved for the `null`
+    /// primitive so unboxed nulls have a well-defined tag at runtime
+    /// (matches `VADER_BOX_TAG_NULL = 0` in `runtime/c/vader.h`).
+    types: BcType[]
+    /// `type_intern_key(t)` → index into `types`. Pre-loaded with
+    /// `"null"` at index 0 by `new_emitter_ctx`.
+    type_key: MutableMap(string, i32)
+
+    /// String literal pool. Deduplicated by content via `string_key`.
+    strings: string[]
+    /// `string content` → index into `strings`.
+    string_key: MutableMap(string, i32)
+
+    /// Function table. Each entry mirrors a top-level `LoweredFnDecl`
+    /// (regular fns) ; `is_extern`-flagged decls route to `imports`
+    /// instead.
+    functions: BcFunction[]
+    /// `MonoEntry.symbol.id` → index into `functions`. Lets call sites
+    /// resolve target fn slots through the symbol id rather than the
+    /// mangled name.
+    function_index_by_symbol_id: MutableMap(i32, i32)
+
+    /// Host-side import table (`@extern` user decls + stdlib
+    /// `@intrinsic` shims). Each entry's `signature` mirrors what the
+    /// host expects at the C-ABI boundary.
+    imports: BcImport[]
+    /// `MonoEntry.symbol.id` → index into `imports`. Same role as
+    /// `function_index_by_symbol_id` for the import side.
+    import_index_by_symbol_id: MutableMap(i32, i32)
+
+    /// `@export` decls — exposed to the host linker. C-emit's `main`
+    /// shim consults this to pick the program entry point.
+    exports: BcExport[]
+}
+
+/// Construct a fresh `EmitterCtx`. Reserves type-table slot 0 for the
+/// `null` primitive (runtime depends on the tag invariant).
+///
+/// @return  a fresh emitter context ready for `emit_project` to fill.
+export new_emitter_ctx :: fn() -> EmitterCtx {
+    types: BcType[] = []
+    types.push(BcPrimitive { .val = ValType.Null })
+    type_key :: MutableMap(string, i32) { .buckets = [], .size = 0 }
+    type_key["null"] = i32(0)
+    return EmitterCtx {
+        .types                       = types,
+        .type_key                    = type_key,
+        .strings                     = [],
+        .string_key                  = MutableMap(string, i32) { .buckets = [], .size = 0 },
+        .functions                   = [],
+        .function_index_by_symbol_id = MutableMap(i32, i32) { .buckets = [], .size = 0 },
+        .imports                     = [],
+        .import_index_by_symbol_id   = MutableMap(i32, i32) { .buckets = [], .size = 0 },
+        .exports                     = [],
+    }
+}
+
+/// Intern a `Type` into the module-wide type table, returning its
+/// index. Idempotent : repeat calls with structurally-equal types
+/// return the same index.
+///
+/// Primitive types take a fast path keyed on the primitive name (a
+/// short interned string the typechecker already passes around), so
+/// the common `i32` / `string` / `bool` cases skip the
+/// `display_type` allocation entirely. Composite types fall back to
+/// the `display_type` key — conservative but stable across the
+/// pipeline.
+///
+/// @param t    the type to intern.
+/// @param ctx  the emit context — its `types` + `type_key` get mutated.
+/// @return     the type table index.
+export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
+    key :: type_intern_key(t)
+    existing :: ctx.type_key[key]
+    if existing is i32 { return existing }
+    new_index :: i32(ctx.types.len())
+    ctx.types.push(bc_type_of(t))
+    ctx.type_key[key] = new_index
+    return new_index
+}
+
+/// Intern a string literal into the module-wide pool. Returns the
+/// pool index. Like `intern_type`, idempotent on identical content.
+///
+/// @param s    the string to intern.
+/// @param ctx  the emit context.
+/// @return     the pool index.
+export intern_string :: fn(s: string, ctx: EmitterCtx) -> i32 {
+    existing :: ctx.string_key[s]
+    if existing is i32 { return existing }
+    new_index :: i32(ctx.strings.len())
+    ctx.strings.push(s)
+    ctx.string_key[s] = new_index
+    return new_index
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "vader/typecheck/types" { mk_primitive }
+
+@test test_new_emitter_ctx_reserves_null_slot :: fn() -> void {
+    ctx :: new_emitter_ctx()
+    assert_eq(ctx.types.len(), usize(1))
+    null_idx :: ctx.type_key["null"]
+    match null_idx {
+        is i32 as i -> assert_eq(i, i32(0))
+        _ -> assert_eq("null missing", "")
+    }
+}
+
+@test test_intern_type_idempotent :: fn() -> void {
+    ctx :: new_emitter_ctx()
+    a :: intern_type(mk_primitive("i32"), ctx)
+    b :: intern_type(mk_primitive("i32"), ctx)
+    assert_eq(a, b)
+}
+
+@test test_intern_type_distinct_primitives_get_distinct_indices :: fn() -> void {
+    ctx :: new_emitter_ctx()
+    i32_idx :: intern_type(mk_primitive("i32"), ctx)
+    str_idx :: intern_type(mk_primitive("string"), ctx)
+    if i32_idx == str_idx { assert_eq("indices should differ", "") }
+}
+
+@test test_intern_string_idempotent :: fn() -> void {
+    ctx :: new_emitter_ctx()
+    a :: intern_string("hello", ctx)
+    b :: intern_string("hello", ctx)
+    assert_eq(a, b)
+}
+
+@test test_intern_string_distinct_strings_get_distinct_indices :: fn() -> void {
+    ctx :: new_emitter_ctx()
+    a :: intern_string("hello", ctx)
+    b :: intern_string("world", ctx)
+    if a == b { assert_eq("indices should differ", "") }
+}
+
+@test test_default_emit_options :: fn() -> void {
+    opts :: default_emit_options()
+    assert_eq(opts.optimize, true)
+}

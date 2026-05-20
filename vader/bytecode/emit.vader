@@ -35,7 +35,9 @@ import "vader/lower/lowered_ast" {
     LoweredExpr, LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
     LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
     LoweredBlock, LoweredIf, LoweredStructLit, LoweredStructLitField,
-    LoweredFieldAccess,
+    LoweredFieldAccess, LoweredArrayLit, LoweredArrayLen, LoweredArrayPush,
+    LoweredArraySlice, LoweredIndex, LoweredCast, LoweredTypeCheck,
+    LoweredTypeConst, LoweredDataConst, LoweredUnreachable,
 }
 import "vader/bytecode/module" {
     BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport, BcExport,
@@ -53,6 +55,9 @@ import "vader/vm/op" {
     NullConst, LocalGet, LocalSet, LocalTee, Return, Drop, Call,
     If, Else, End, StructNew, StructGet,
     Block, Loop, Branch, BranchIf, BoolNot,
+    ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySlice,
+    DataConst, TypeConst, TypeCheck, RefCast,
+    Convert, ConvertTarget,
 }
 import "vader/bytecode/intrinsics" {
     intrinsic_op_for_mangled, intrinsic_op_for_symbol_name,
@@ -62,87 +67,11 @@ import "vader/bytecode/emit_state" {
     init_fn_emit_state, allocate_local_slot, push_op, set_jump_target,
     pop_scope, find_break_target, find_continue_target,
 }
-
-// =========================================================================
-// EmitOptions + EmitterCtx
-// =========================================================================
-
-/// Knobs threaded through the emit. Today only `optimize` matters —
-/// when true, the future peephole pass runs over each fn body. Phase 1
-/// always returns false (no opts yet).
-export EmitOptions :: struct {
-    optimize: bool
+import "vader/bytecode/emit_ctx" {
+    EmitOptions, EmitterCtx, default_emit_options, new_emitter_ctx,
+    intern_type, intern_string,
 }
 
-/// Default options : peephole ON (matches TS default).
-/// @return  a fresh `EmitOptions` with `optimize = true`.
-export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = true }
-
-/// Per-project emit context. Built once at the top of `emit_project`,
-/// threaded through every reservation + body-emit call. Carries the
-/// type / string / fn / import interning tables plus the inverse
-/// lookups (symbol id → fn / import index) downstream phases query.
-///
-/// Distinct from `EmitOptions` so the constructor stays cheap and the
-/// helpers don't need an `opts` parameter when they only touch the
-/// shared state.
-export EmitterCtx :: struct {
-    /// Type table being built. Index 0 is reserved for the `null`
-    /// primitive so unboxed nulls have a well-defined tag at runtime
-    /// (matches `VADER_BOX_TAG_NULL = 0` in `runtime/c/vader.h`).
-    types: BcType[]
-    /// `display_type(t)` → index into `types`. Pre-loaded with `"null"`
-    /// at index 0 by `new_emitter_ctx`.
-    type_key: MutableMap(string, i32)
-
-    /// String literal pool. Deduplicated by content via `string_key`.
-    strings: string[]
-    /// `string content` → index into `strings`.
-    string_key: MutableMap(string, i32)
-
-    /// Function table. Each entry mirrors a top-level `LoweredFnDecl`
-    /// (regular fns) ; `is_extern`-flagged decls route to `imports`
-    /// instead.
-    functions: BcFunction[]
-    /// `MonoEntry.symbol.id` → index into `functions`. Lets call sites
-    /// resolve target fn slots through the symbol id rather than the
-    /// mangled name.
-    function_index_by_symbol_id: MutableMap(i32, i32)
-
-    /// Host-side import table (`@extern` user decls + stdlib
-    /// `@intrinsic` shims). Each entry's `signature` mirrors what the
-    /// host expects at the C-ABI boundary.
-    imports: BcImport[]
-    /// `MonoEntry.symbol.id` → index into `imports`. Same role as
-    /// `function_index_by_symbol_id` for the import side.
-    import_index_by_symbol_id: MutableMap(i32, i32)
-
-    /// `@export` decls — exposed to the host linker. C-emit's `main`
-    /// shim consults this to pick the program entry point.
-    exports: BcExport[]
-}
-
-/// Construct a fresh `EmitterCtx`. Reserves type-table slot 0 for the
-/// `null` primitive (runtime depends on the tag invariant).
-///
-/// @return  a fresh emitter context ready for `emit_project` to fill.
-new_emitter_ctx :: fn() -> EmitterCtx {
-    types: BcType[] = []
-    types.push(BcPrimitive { .val = ValType.Null })
-    type_key :: MutableMap(string, i32) { .buckets = [], .size = 0 }
-    type_key["null"] = i32(0)
-    return EmitterCtx {
-        .types                  = types,
-        .type_key               = type_key,
-        .strings                = [],
-        .string_key             = MutableMap(string, i32) { .buckets = [], .size = 0 },
-        .functions              = [],
-        .function_index_by_symbol_id     = MutableMap(i32, i32) { .buckets = [], .size = 0 },
-        .imports                = [],
-        .import_index_by_symbol_id = MutableMap(i32, i32) { .buckets = [], .size = 0 },
-        .exports                = [],
-    }
-}
 
 
 // =========================================================================
@@ -439,10 +368,12 @@ emit_assign :: fn(assign_stmt: LoweredAssign, state: FnEmitState, ctx: EmitterCt
     }
 }
 
-/// Per-expr emit dispatcher. Phase 3 adds `If` (forward If/Else/End
-/// markers — c-emit / VM resolve branch targets at consume time),
-/// `StructLit` (per-field emit + StructNew), and `FieldAccess` (target
-/// emit + StructGet via the cached BcStruct field index).
+/// Per-expr emit dispatcher. Phase 5 adds `ArrayLit` / `ArrayLen` /
+/// `ArrayPush` / `ArraySlice` / `Index` for collections, `Cast`
+/// (Convert op via target ValType), `TypeConst` / `TypeCheck` for
+/// reflection + match-arm runtime tests, `DataConst` for module-
+/// level const-array literals, and `Unreachable` (no-op stub —
+/// downstream consumers ignore for now).
 emit_expr :: fn(expr: LoweredExpr, state: FnEmitState, ctx: EmitterCtx) -> void {
     match expr {
         is LoweredIntLit as int_lit         -> emit_int_lit(int_lit, state)
@@ -459,9 +390,20 @@ emit_expr :: fn(expr: LoweredExpr, state: FnEmitState, ctx: EmitterCtx) -> void 
         is LoweredIf as if_expr             -> emit_if(if_expr, state, ctx)
         is LoweredStructLit as struct_lit   -> emit_struct_lit(struct_lit, state, ctx)
         is LoweredFieldAccess as field_get  -> emit_field_access(field_get, state, ctx)
+        is LoweredArrayLit as array_lit     -> emit_array_lit(array_lit, state, ctx)
+        is LoweredArrayLen as array_len     -> emit_array_len(array_len, state, ctx)
+        is LoweredArrayPush as array_push   -> emit_array_push(array_push, state, ctx)
+        is LoweredArraySlice as array_slice -> emit_array_slice(array_slice, state, ctx)
+        is LoweredIndex as index_get        -> emit_index(index_get, state, ctx)
+        is LoweredCast as cast              -> emit_cast(cast, state, ctx)
+        is LoweredTypeCheck as type_check   -> emit_type_check(type_check, state, ctx)
+        is LoweredTypeConst as type_const   -> emit_type_const(type_const, state, ctx)
+        is LoweredDataConst as data_const   -> emit_data_const(data_const, state, ctx)
+        is LoweredUnreachable               -> {}
         _ -> {
-            // Phase 4 stubs : VirtualCall, ArrayLit, Match, Lambda,
-            // TypeMeta, Loop expr, etc.
+            // Phase 6+ stubs : VirtualCall, MakeClosure, CellNew,
+            // CellGet, Match, Lambda, BlockExpr (as value), Unary,
+            // Binary, IntrinsicCall.
         }
     }
 }
@@ -607,50 +549,124 @@ lookup_field_index :: fn(ctx: EmitterCtx, type_id: i32, field_name: string) -> i
     }
 }
 
+/// Emit an array literal : each element value in source order, then
+/// `ArrayNew { type_id, length }`. The VM pops `length` values back
+/// in caller-push order (first pushed = `elements[0]`) so the
+/// runtime element layout matches the source.
+emit_array_lit :: fn(array_lit: LoweredArrayLit, state: FnEmitState, ctx: EmitterCtx) -> void {
+    type_id :: intern_type(array_lit.type, ctx)
+    for i in 0..<array_lit.elements.len() {
+        emit_expr(array_lit.elements[i], state, ctx)
+    }
+    push_op(state, ArrayNew { .type_id = type_id, .length = i32(array_lit.elements.len()) })
+}
 
-// =========================================================================
-// Interning
-// =========================================================================
+/// Emit `array.len` : push the target array, then `ArrayLen {}`
+/// (the op has no operand — it reads the array header's length).
+emit_array_len :: fn(array_len: LoweredArrayLen, state: FnEmitState, ctx: EmitterCtx) -> void {
+    emit_expr(array_len.target, state, ctx)
+    push_op(state, ArrayLen {})
+}
 
-/// Intern a `Type` into the module-wide type table, returning its
-/// index. Idempotent : repeat calls with structurally-equal types
-/// return the same index.
-///
-/// Primitive types take a fast path keyed on the primitive name (a
-/// short interned string the typechecker already passes around), so
-/// the common `i32` / `string` / `bool` cases skip the
-/// `display_type` allocation entirely. Composite types fall back to
-/// the `display_type` key — conservative but stable across the
-/// pipeline.
-///
-/// @param t    the type to intern.
-/// @param ctx  the emit context — its `types` + `type_key` get mutated.
-/// @return     the type table index.
-export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
-    key :: type_intern_key(t)
-    existing :: ctx.type_key[key]
-    if existing is i32 { return existing }
-    new_index :: i32(ctx.types.len())
-    ctx.types.push(bc_type_of(t))
-    ctx.type_key[key] = new_index
-    return new_index
+/// Emit `array.push` : push the target array, then the value, then
+/// `ArrayPush { type_id }`. Statement-form — no value pushed back.
+emit_array_push :: fn(array_push: LoweredArrayPush, state: FnEmitState, ctx: EmitterCtx) -> void {
+    array_type_id :: intern_type(lowered_expr_type(array_push.target), ctx)
+    emit_expr(array_push.target, state, ctx)
+    emit_expr(array_push.value, state, ctx)
+    push_op(state, ArrayPush { .type_id = array_type_id })
+}
+
+/// Emit `array.slice` : push target / lo / hi, then `ArraySlice {
+/// type_id }`. The runtime fresh-allocates a header sharing the
+/// parent buffer.
+emit_array_slice :: fn(array_slice: LoweredArraySlice, state: FnEmitState, ctx: EmitterCtx) -> void {
+    type_id :: intern_type(array_slice.type, ctx)
+    emit_expr(array_slice.target, state, ctx)
+    emit_expr(array_slice.lo, state, ctx)
+    emit_expr(array_slice.hi, state, ctx)
+    push_op(state, ArraySlice { .type_id = type_id })
+}
+
+/// Emit an array index get : push the target array + index, then
+/// `ArrayGet { type_id }`. The op uses the array's type_id (not the
+/// element's) — the VM dereferences through the array header to
+/// reach the element-kind discriminator.
+emit_index :: fn(index_get: LoweredIndex, state: FnEmitState, ctx: EmitterCtx) -> void {
+    array_type_id :: intern_type(lowered_expr_type(index_get.target), ctx)
+    emit_expr(index_get.target, state, ctx)
+    emit_expr(index_get.index, state, ctx)
+    push_op(state, ArrayGet { .type_id = array_type_id })
+}
+
+/// Emit a numeric / char cast as `Convert { target }`. The target
+/// `ConvertTarget` derives from the result type's stack class
+/// (every integer ≤ 32 bits collapses onto `I32` ; 64-bit-wide
+/// integers onto `I64` ; floats onto `F64` ; char onto `Char`).
+/// Casts that don't change the stack class (e.g. struct → struct)
+/// fall through as no-ops — the runtime carries the tag through
+/// unchanged.
+emit_cast :: fn(cast: LoweredCast, state: FnEmitState, ctx: EmitterCtx) -> void {
+    emit_expr(cast.value, state, ctx)
+    target :: convert_target_of(val_type_of_type(cast.type))
+    match target {
+        is ConvertTarget as t -> push_op(state, Convert { .target = t })
+        _ -> {}     // Non-numeric cast : no convert op needed.
+    }
+}
+
+/// Map a `ValType` to the matching `ConvertTarget`. Returns `null`
+/// for non-numeric / non-char targets — callers skip the Convert
+/// emit since the runtime tag stays unchanged.
+convert_target_of :: fn(v: ValType) -> ConvertTarget | null = match v {
+    .I8    -> ConvertTarget.I32
+    .I16   -> ConvertTarget.I32
+    .I32   -> ConvertTarget.I32
+    .U8    -> ConvertTarget.I32
+    .U16   -> ConvertTarget.I32
+    .U32   -> ConvertTarget.I32
+    .I64   -> ConvertTarget.I64
+    .U64   -> ConvertTarget.I64
+    .Isize -> ConvertTarget.I64
+    .Usize -> ConvertTarget.I64
+    .F32   -> ConvertTarget.F64
+    .F64   -> ConvertTarget.F64
+    .Char  -> ConvertTarget.Char
+    .Bool  -> null
+    .String -> null
+    .Null  -> null
+    .Void  -> null
+    .Ref   -> null
+    .Any   -> null
+}
+
+/// Emit a runtime type check : push the value, then `TypeCheck {
+/// type_id }`. The VM pops the value + pushes a `BoolVal`.
+emit_type_check :: fn(type_check: LoweredTypeCheck, state: FnEmitState, ctx: EmitterCtx) -> void {
+    emit_expr(type_check.value, state, ctx)
+    target_id :: intern_type(type_check.check_type, ctx)
+    push_op(state, TypeCheck { .type_id = target_id })
+}
+
+/// Emit a reified type value : `TypeConst { type_id }` — pushes a
+/// `TypeVal` carrying the interned type's index.
+emit_type_const :: fn(type_const: LoweredTypeConst, state: FnEmitState, ctx: EmitterCtx) -> void {
+    inner_id :: intern_type(type_const.value, ctx)
+    push_op(state, TypeConst { .type_id = inner_id })
+}
+
+/// Emit a data-pool reference : `DataConst { pool_index, type_id }`.
+/// The pool index is pre-assigned by the lowerer ; we just intern
+/// the array type and emit the op.
+emit_data_const :: fn(data_const: LoweredDataConst, state: FnEmitState, ctx: EmitterCtx) -> void {
+    type_id :: intern_type(data_const.type, ctx)
+    push_op(state, DataConst {
+        .pool_index = i32(data_const.pool_index),
+        .type_id    = type_id,
+    })
 }
 
 
-/// Intern a string literal into the module-wide pool. Returns the
-/// pool index. Like `intern_type`, idempotent on identical content.
-///
-/// @param s    the string to intern.
-/// @param ctx  the emit context.
-/// @return     the pool index.
-export intern_string :: fn(s: string, ctx: EmitterCtx) -> i32 {
-    existing :: ctx.string_key[s]
-    if existing is i32 { return existing }
-    idx :: i32(ctx.strings.len())
-    ctx.strings.push(s)
-    ctx.string_key[s] = idx
-    return idx
-}
 
 // =========================================================================
 // Assembly — ctx → BytecodeModule
@@ -788,55 +804,6 @@ emit_continue :: fn(continue_stmt: LoweredContinue, state: FnEmitState) -> void 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq }
-import "vader/typecheck/types" { mk_primitive }
-
-@test test_new_emitter_ctx_reserves_null_slot :: fn() -> void {
-    ctx :: new_emitter_ctx()
-    // Type table seeded with `null` at index 0.
-    assert_eq(ctx.types.len(), usize(1))
-    null_idx :: ctx.type_key["null"]
-    match null_idx {
-        is i32 as i -> assert_eq(i, i32(0))
-        _ -> assert_eq("null missing", "")
-    }
-}
-
-@test test_intern_type_idempotent :: fn() -> void {
-    ctx :: new_emitter_ctx()
-    a :: intern_type(mk_primitive("i32"), ctx)
-    b :: intern_type(mk_primitive("i32"), ctx)
-    assert_eq(a, b)
-}
-
-@test test_intern_type_distinct_primitives_get_distinct_indices :: fn() -> void {
-    ctx :: new_emitter_ctx()
-    i32_idx :: intern_type(mk_primitive("i32"), ctx)
-    str_idx :: intern_type(mk_primitive("string"), ctx)
-    if i32_idx == str_idx {
-        assert_eq("indices should differ", "")
-    }
-}
-
-@test test_intern_string_idempotent :: fn() -> void {
-    ctx :: new_emitter_ctx()
-    a :: intern_string("hello", ctx)
-    b :: intern_string("hello", ctx)
-    assert_eq(a, b)
-}
-
-@test test_intern_string_distinct_strings_get_distinct_indices :: fn() -> void {
-    ctx :: new_emitter_ctx()
-    a :: intern_string("hello", ctx)
-    b :: intern_string("world", ctx)
-    if a == b {
-        assert_eq("indices should differ", "")
-    }
-}
-
-@test test_default_emit_options :: fn() -> void {
-    opts :: default_emit_options()
-    assert_eq(opts.optimize, true)
-}
 
 @test test_ends_with_return_empty_body :: fn() -> void {
     body: Op[] = []
@@ -847,5 +814,34 @@ import "vader/typecheck/types" { mk_primitive }
     body: Op[] = []
     body.push(Return {})
     assert_eq(ends_with_return(body), true)
+}
+
+@test test_convert_target_of_i32_maps_to_i32 :: fn() -> void {
+    target :: convert_target_of(ValType.I32)
+    if target is null {
+        assert_eq("expected non-null target", "")
+        return
+    }
+    match target {
+        .I32 -> {}
+        _    -> assert_eq("expected I32", "")
+    }
+}
+
+@test test_convert_target_of_i64_widths_collapse_to_i64 :: fn() -> void {
+    target :: convert_target_of(ValType.Usize)
+    if target is null {
+        assert_eq("expected non-null target", "")
+        return
+    }
+    match target {
+        .I64 -> {}
+        _    -> assert_eq("expected I64", "")
+    }
+}
+
+@test test_convert_target_of_bool_returns_null :: fn() -> void {
+    target :: convert_target_of(ValType.Bool)
+    assert_eq(target is null, true)
 }
 
