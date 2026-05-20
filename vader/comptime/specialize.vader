@@ -1,0 +1,403 @@
+// vader/comptime/specialize — monomorphizer pass.
+//
+// Mirror of `src/comptime/specialize.ts::monomorphizeProject`. Flattens
+// the comptime engine's instance registry into a list of concrete
+// `MonoEntry` items the lowerer / bytecode emit / c_emit consume :
+//
+//   Pass 1 — every non-generic top-level decl gets one entry with an
+//            empty substitution. Non-generic ImplDecl members ship
+//            as separate entries (impls have no symbol, so their
+//            members are synthesised individually).
+//   Pass 2 — every concrete `(generic struct, type_args)` instance
+//            from `EvaluatedProject.instances` gets one entry, plus
+//            one entry per impl member of each matching generic impl.
+//   Pass 3 — every `(generic fn, type_args)` call site gets one entry.
+//   Pass 4 — blanket `Into` impl members observed at coercion sites
+//            ship via `EvaluatedProject.into_members`.
+//
+// This file lands Pass 1 (port sub-phase B1). Passes 2-4 land in
+// follow-up commits as `monomorphize_project` grows ; until then,
+// generic instances and Into members aren't materialised — the lower
+// pass still falls back to its own decl-walk for those.
+//
+// Wiring into `check.vader` is deferred to a later commit (it changes
+// every `evaluated-ast` snapshot, so it ships separately).
+
+import "std/collections" { MutableMap, keys }
+import "vader/parser/ast" {
+    Decl, FnDecl, StructDecl, ConstDecl, ImplDecl,
+    AssertDecl, ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl,
+    GenericInstExpr,
+}
+import "vader/typecheck/typed_ast" { TypedProgram, TypedProject }
+import "vader/typecheck/types" { Type }
+import "vader/typecheck/substitution" { Substitution, new_substitution }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/resolver/loader" { LoadedProject, LoadedModule }
+import "vader/comptime/evaluated_ast" { EvaluatedProject }
+import "vader/comptime/instances" { canonical_args_key }
+import "vader/comptime/mono_ast" { MonoEntry, MonoProject, new_mono_project }
+import "vader/comptime/mangle" { mangle, for_type_name, uniq }
+
+/// Top-level entry. Builds a `MonoProject` from the comptime engine's
+/// `EvaluatedProject`. Phase B1 ships Pass 1 only ; the returned
+/// project carries one `MonoEntry` per non-generic top-level decl
+/// (FnDecl / StructDecl / ConstDecl) plus one per non-generic
+/// ImplDecl member. Generic instances + Into members ship empty
+/// `lookup_by_instance` / `impl_method_entries` / `fn_instance_entries`
+/// tables until later phases land.
+///
+/// `loaded` is needed because `TypedProgram.resolved` doesn't carry
+/// the source decls — they live on `LoadedModule.module.files[].program.decls`.
+///
+/// @param loaded     the loaded project (source decls per module).
+/// @param evaluated  the comptime engine's output.
+/// @return           a populated `MonoProject` ready for downstream
+///                   passes ; today only entries[] is populated, the
+///                   lookup tables are empty.
+export monomorphize_project :: fn(
+    loaded: LoadedProject, evaluated: EvaluatedProject,
+) -> MonoProject {
+    project :: new_mono_project()
+    state :: new_state()
+
+    // Pass 1 — walk every typed module's decls. One entry per
+    // non-generic top-level decl ; one per non-generic-impl member.
+    for module_id in evaluated.typed.modules.keys() {
+        module_typed :: evaluated.typed.modules[module_id]
+        if module_typed is null { continue }
+        decls_opt :: module_decls_for(loaded, module_id)
+        if decls_opt is null { continue }
+        decls :: decls_opt
+        run_pass_1(decls, module_typed, project, state)
+    }
+
+    return project
+}
+
+// =========================================================================
+// Pass 1 — non-generic top-level decls + non-generic impl members
+// =========================================================================
+
+run_pass_1 :: fn(
+    decls: Decl[], module_typed: TypedProgram,
+    project: MonoProject, state: PassState,
+) -> void {
+    i: usize = 0
+    for i < decls.len() {
+        decl :: decls[i]
+        match decl {
+            is FnDecl as f -> {
+                if f.type_params.len() == usize(0) {
+                    push_entry(project, make_entry(decl, f.name, module_typed, state))
+                }
+            }
+            is StructDecl as s -> {
+                if s.type_params.len() == usize(0) {
+                    push_entry(project, make_entry(decl, s.name, module_typed, state))
+                }
+            }
+            is ConstDecl as c -> {
+                push_entry(project, make_entry(decl, c.name, module_typed, state))
+            }
+            is ImplDecl as impl_decl -> {
+                run_pass_1_impl(impl_decl, module_typed, project, state)
+            }
+            _ -> {}
+        }
+        i += 1
+    }
+}
+
+/// Pass 1 helper for impl decls. Concrete-for-type impls (`Foo
+/// implements Trait` where Foo is a bare ident, not `Foo[T]`) emit
+/// one entry per member. Generic-for-type impls (`Foo[T] implements
+/// Trait`) defer to Pass 2 — one entry per `(member, struct
+/// instance)` pair.
+run_pass_1_impl :: fn(
+    impl_decl: ImplDecl, module_typed: TypedProgram,
+    project: MonoProject, state: PassState,
+) -> void {
+    // Generic impls ship in Pass 2 — Pass 1 skips them. The check is
+    // structural : if the for-type is a `Foo[T]` GenericInstExpr,
+    // the impl is generic.
+    if is_generic_for_type(impl_decl) { return }
+    i: usize = 0
+    for_name :: for_type_name(impl_decl.for_type)
+    no_args: Type[] = []
+    for i < impl_decl.members.len() {
+        member :: impl_decl.members[i]
+        base :: "${for_name}\$${impl_decl.trait_name}\$${member.name}"
+        entry :: make_impl_member_entry(member, base, module_typed, new_substitution(), no_args, state)
+        push_entry(project, entry)
+        put_impl_entry(project.impl_method_entries, member, no_args, entry)
+        i += 1
+    }
+}
+
+is_generic_for_type :: fn(impl_decl: ImplDecl) -> bool {
+    // The for-type is generic when it's a `Foo[T]` instantiation —
+    // i.e. a `GenericInstExpr` rather than a bare `IdentExpr`. Lifted
+    // out for clarity ; future expansions might also check
+    // `impl_decl.type_params.len() > 0` once `[T] Foo implements …` form
+    // routes through the same logic.
+    return impl_decl.for_type is GenericInstExpr
+}
+
+
+// =========================================================================
+// Entry construction
+// =========================================================================
+
+/// Build a top-level decl entry. Wraps `make_with_symbol` after looking
+/// up the decl's resolver Symbol — `null` when the decl has no
+/// associated symbol (the dump-only kinds : ImportDecl / AssertDecl
+/// shouldn't reach here, but stay defensive).
+make_entry :: fn(
+    decl: Decl, base_name: string, module_typed: TypedProgram,
+    state: PassState,
+) -> MonoEntry {
+    sym :: symbol_for_decl(decl, module_typed)
+    no_args: Type[] = []
+    return MonoEntry {
+        .id              = next_entry_id(state),
+        .is_main         = is_main_decl(decl),
+        .mangled         = uniq(state.seen_mangled, mangle(base_name, module_typed.resolved.path, no_args)),
+        .decl            = decl,
+        .symbol          = sym,
+        .subst           = new_substitution(),
+        .type_arguments  = no_args,
+        .module          = module_typed,
+    }
+}
+
+/// Build an impl-member entry. Synthesises a fresh `Symbol` for the
+/// member (impl members aren't exposed at the module level, so the
+/// resolver doesn't mint a Symbol for them). The synthesised id
+/// starts at `1_000_000` so it can't collide with resolver-minted ids.
+make_impl_member_entry :: fn(
+    member: FnDecl, base_name: string, module_typed: TypedProgram,
+    subst: Substitution, type_arguments: Type[],
+    state: PassState,
+) -> MonoEntry {
+    sym :: synth_member_symbol(member, module_typed, state)
+    return MonoEntry {
+        .id              = next_entry_id(state),
+        .is_main         = false,     // impl members can't be the entry-point
+        .mangled         = uniq(state.seen_mangled, mangle(base_name, module_typed.resolved.path, type_arguments)),
+        .decl            = member,
+        .symbol          = sym,
+        .subst           = subst,
+        .type_arguments  = type_arguments,
+        .module          = module_typed,
+    }
+}
+
+/// True for the top-level `fn main`. Other decl shapes never qualify ;
+/// `main` defined as a struct or const is an error caught earlier by
+/// the typechecker (T3033 — `main` must be a fn).
+is_main_decl :: fn(decl: Decl) -> bool = match decl {
+    is FnDecl as f -> f.name == "main"
+    _              -> false
+}
+
+/// Look up the resolver Symbol that backs a top-level decl. For
+/// FnDecls we scan `fn_overloads[name]` to find the one whose
+/// `defined_at` matches the decl's `name_span` — that's what
+/// distinguishes overloaded fns sharing a name. For other kinds the
+/// single entry in `resolved.symbols` matches by name + kind.
+///
+/// Returns `null` when no matching symbol is found ; downstream
+/// consumers (bytecode emit's `fn_index_by_sym_id` builder) treat
+/// `null` as "no resolver entry" and skip it.
+symbol_for_decl :: fn(decl: Decl, module_typed: TypedProgram) -> Symbol | null = match decl {
+    is FnDecl as f        -> symbol_for_fn(f, module_typed)
+    is StructDecl as s    -> symbol_for_kind(s.name, SymbolKind.Struct, module_typed)
+    is ConstDecl as c     -> symbol_for_kind(c.name, SymbolKind.Const, module_typed)
+    is EnumDecl as e      -> symbol_for_kind(e.name, SymbolKind.Enum, module_typed)
+    is TraitDecl as t     -> symbol_for_kind(t.name, SymbolKind.Trait, module_typed)
+    is TypeAliasDecl as a -> symbol_for_kind(a.name, SymbolKind.TypeAlias, module_typed)
+    is ImplDecl           -> null
+    is AssertDecl         -> null
+    is ImportDecl         -> null
+}
+
+symbol_for_fn :: fn(decl: FnDecl, module_typed: TypedProgram) -> Symbol | null {
+    bucket :: module_typed.resolved.fn_overloads[decl.name]
+    if bucket is null {
+        return symbol_for_kind(decl.name, SymbolKind.Fn, module_typed)
+    }
+    syms :: bucket
+    i: usize = 0
+    for i < syms.len() {
+        sym :: syms[i]
+        if symbol_defines_span(sym, decl.name_span) { return sym }
+        i += 1
+    }
+    // No span-match — fall back to the first overload. Single
+    // declarations always satisfy this branch.
+    if syms.len() > usize(0) { return syms[0] }
+    return null
+}
+
+symbol_for_kind :: fn(name: string, kind: SymbolKind, module_typed: TypedProgram) -> Symbol | null {
+    syms :: module_typed.resolved.symbols
+    i: usize = 0
+    for i < syms.len() {
+        sym :: syms[i]
+        if sym.name == name && sym.kind == kind { return sym }
+        i += 1
+    }
+    return null
+}
+
+symbol_defines_span :: fn(sym: Symbol, name_span: Span) -> bool {
+    match sym.defined_at {
+        is Span as s -> {
+            return s.start.offset == name_span.start.offset && s.start.file == name_span.start.file
+        }
+        _ -> { return false }
+    }
+}
+
+import "vader/diagnostics/diagnostic" { Span }
+
+/// Synthesise a `Symbol` for an impl member. Impl members aren't
+/// resolver-tracked, so monotonic ids minted from `state.synth_id`
+/// stay clear of resolver-minted ones (resolver hands out ids from
+/// 1, our synth counter starts at 1_000_000).
+synth_member_symbol :: fn(
+    member: FnDecl, module_typed: TypedProgram, state: PassState,
+) -> Symbol {
+    id :: state.synth_id
+    state.synth_id = id + 1
+    return Symbol {
+        .id         = id,
+        .kind       = SymbolKind.Fn,
+        .name       = member.name,
+        .module     = module_typed.resolved.path,
+        .visibility = member.visibility,
+        .defined_at = member.span,
+    }
+}
+
+// =========================================================================
+// State carried through the four passes
+// =========================================================================
+
+/// Mutable counters + dedup tables shared across the four passes :
+///   - `entry_id` — monotonic per emission, becomes `MonoEntry.id`.
+///   - `synth_id` — synth Symbol ids for impl members ; starts at
+///     1_000_000 so it can't collide with resolver-minted ids.
+///   - `seen_mangled` — collision tracker passed to `uniq` ; ensures
+///     mangled names stay unique across the project.
+PassState :: struct {
+    entry_id: i32
+    synth_id: i32
+    seen_mangled: MutableMap(string, bool)
+}
+
+new_state :: fn() -> PassState {
+    return PassState {
+        .entry_id = 0,
+        .synth_id = 1_000_000,
+        .seen_mangled = MutableMap(string, bool) { .buckets = [], .size = 0 },
+    }
+}
+
+next_entry_id :: fn(state: PassState) -> i32 {
+    id :: state.entry_id
+    state.entry_id = id + 1
+    return id
+}
+
+push_entry :: fn(project: MonoProject, entry: MonoEntry) -> void {
+    project.entries.push(entry)
+}
+
+/// Inner-map insertion key — `canonical_args_key(args)` for generic
+/// instances, `""` for non-generic ones. Mirrors TS `argsKey` +
+/// `putImplEntry`. The composite outer key
+/// `${member.id}::${args_key}` keeps the table flat
+/// (`MutableMap(string, MonoEntry)`) rather than the nested-map shape
+/// TS uses (`Map<FnDecl, Map<string, MonoEntry>>`).
+put_impl_entry :: fn(
+    table: MutableMap(string, MonoEntry),
+    member: FnDecl, args: Type[], entry: MonoEntry,
+) -> void {
+    outer :: outer_impl_key(member, args)
+    table[outer] = entry
+}
+
+args_key :: fn(args: Type[]) -> string {
+    if args.len() == usize(0) { return "" }
+    return canonical_args_key(args)
+}
+
+outer_impl_key :: fn(member: FnDecl, args: Type[]) -> string {
+    return "${member.id}::${args_key(args)}"
+}
+
+// =========================================================================
+// Module lookup helper
+// =========================================================================
+
+/// Per-module decl list, mirrored from `vader/comptime/check.vader`'s
+/// `lookup_module_decls`. Duplicated here to keep `specialize` free of
+/// a dependency on `check`. Returns `null` when the loaded module
+/// carries no source files (synthetic / extern-only modules).
+module_decls_for :: fn(loaded: LoadedProject, module_id: string) -> Decl[] | null {
+    module_loaded :: loaded.modules[module_id]
+    if module_loaded is null { return null }
+    m :: module_loaded
+    if m.module.files.len() == usize(0) { return null }
+    return m.module.files[0].program.decls
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_pass_state_starts_clean :: fn() -> void {
+    state :: new_state()
+    assert_eq(state.entry_id, i32(0))
+    assert_eq(state.synth_id, i32(1_000_000))
+    assert_eq(state.seen_mangled.size, usize(0))
+}
+
+@test test_next_entry_id_is_monotonic :: fn() -> void {
+    state :: new_state()
+    assert_eq(next_entry_id(state), i32(0))
+    assert_eq(next_entry_id(state), i32(1))
+    assert_eq(next_entry_id(state), i32(2))
+}
+
+@test test_args_key_empty_for_no_args :: fn() -> void {
+    no_args: Type[] = []
+    assert_eq(args_key(no_args), "")
+}
+
+@test test_monomorphize_empty_project_is_empty :: fn() -> void {
+    // An empty `EvaluatedProject` (no typed modules) yields a fresh
+    // empty `MonoProject` — Pass 1 has nothing to walk.
+    loaded :: LoadedProject {
+        .entry        = "",
+        .modules      = MutableMap(string, LoadedModule) { .buckets = [], .size = 0 },
+        .factory      = new_factory(),
+        .project_root = null,
+    }
+    evaluated :: EvaluatedProject {
+        .typed        = new_typed_project(),
+        .modules      = MutableMap(string, EvaluatedProgram) { .buckets = [], .size = 0 },
+        .mono         = new_mono_project(),
+        .file_exprs   = MutableMap(usize, string) { .buckets = [], .size = 0 },
+        .into_members = [],
+        .instances    = [],
+    }
+    project :: monomorphize_project(loaded, evaluated)
+    assert_eq(project.entries.len(), usize(0))
+}
+
+import "vader/typecheck/typed_ast" { new_typed_project }
+import "vader/comptime/evaluated_ast" { EvaluatedProgram }
+import "vader/resolver/symbol" { new_factory }

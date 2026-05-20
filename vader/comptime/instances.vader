@@ -132,7 +132,17 @@ build_display_key :: fn(symbol: Symbol, args: Type[]) -> string {
 // Mirror of `canonicalArgsKey` from TS. Stable, structure-anchored —
 // type-param symbol ids make `T_struct_A_t` and `T_struct_B_t` distinct
 // keys, so the same surface name `T` can register multiple instances.
-canonical_args_key :: fn(args: Type[]) -> string {
+/// Canonical, structure-anchored stringification of a type-arg list.
+/// Stable across `display_type` rewrites (each variant prefixed with
+/// its type tag : `P:` primitives, `S:` structs, `T:` traits, `A:`
+/// arrays, `U:` tuples, `F:` fns, `M:` type-metas, `N:` unions, `R:`
+/// refs, `?` unresolved/free/never/self). Used as the inner-key of
+/// `MonoProject.impl_method_entries` / `fn_instance_entries` so a
+/// `(member, struct args)` lookup is structurally stable.
+///
+/// @param args  the concrete type arguments.
+/// @return      the canonical key ; empty when `args` is empty.
+export canonical_args_key :: fn(args: Type[]) -> string {
     out := ""
     for i in 0..<args.len() {
         if i > usize(0) { out = "${out}," }
