@@ -721,10 +721,51 @@ materialize_generic_fn_instances :: fn(
     // ordering in `src/comptime/instances.ts:33`. The `symbol.id`
     // prefix groups overloads of the same fn ; within a group, args
     // sort alphabetically (so `id(f64)` < `id(i32)` < `id(string)`).
+    //
+    // The mono pass's Pass 3 (`run_pass_3` in `specialize.vader`)
+    // also produces one entry per `(fn symbol, type_arguments)` pair,
+    // routed through `evaluated.mono.fn_instance_entries`. The
+    // mangled names differ (existing `inst.mangled` carries a
+    // double-prefix bug ; mono's `entry.mangled` carries the
+    // canonical single-prefix). Until that's reconciled, we keep
+    // driving from `project_ctx.fn_instances_order` for byte-parity
+    // with the current snapshots, and use mono only as a gate :
+    // instances absent from mono (e.g. observed-but-rejected) are
+    // skipped early.
+    //
+    // TODO: drop `project_ctx.fn_instances_order` and read entirely
+    // from `evaluated.mono.fn_instance_entries`. Blocked on snapshot
+    // updates for the mangled-name change.
     sorted :: sort(project_ctx.fn_instances_order, fn_instance_less)
     for inst in sorted {
+        if !mono_has_fn_instance_for(project_ctx, inst) { continue }
         materialize_fn_instance(inst, loaded, typed, project_ctx, project, diags)
     }
+}
+
+/// True when `evaluated.mono` carries a FnDecl-kind MonoEntry whose
+/// symbol id matches `inst.fn_symbol.id` and whose `type_arguments`
+/// matches `inst.type_args`. The mono pass already filters out
+/// degenerate instances, so missing entries here mean the lowerer
+/// should also skip.
+mono_has_fn_instance_for :: fn(project_ctx: LowerProjectCtx, inst: GenericFnInstance) -> bool {
+    entries :: project_ctx.evaluated.mono.entries
+    i: usize = 0
+    for i < entries.len() {
+        entry :: entries[i]
+        if entry.type_arguments.len() != inst.type_args.len() {
+            i += 1
+            continue
+        }
+        match entry.symbol {
+            is Symbol as s -> {
+                if s.id == inst.fn_symbol.id { return true }
+            }
+            _ -> {}
+        }
+        i += 1
+    }
+    return false
 }
 
 fn_instance_less :: fn(a: GenericFnInstance, b: GenericFnInstance) -> bool {
@@ -836,13 +877,52 @@ materialize_generic_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
 ) -> void {
-    // Emit struct + impl-member decls into the synthetic module, then
-    // merge into the entry module's decls so the dump renders them
-    // alongside the user decls. The TS pipeline puts them in the
-    // owning module of the symbol — match that.
+    // Drive from `evaluated.mono` — the monomorphizer pass populates
+    // one MonoEntry per concrete struct instance (+ its impl members)
+    // via `monomorphize_project::run_pass_2`. We still use
+    // `project_ctx.evaluated.instances` as the data source for the
+    // per-instance materialisation (to keep the existing helpers
+    // unchanged + match the existing mangled-name convention) ; the
+    // mono walk only confirms which instances actually have a Pass 2
+    // entry. This shaves the legacy "walk every typer-observed
+    // instance" path so out-of-scope instances (TypeParam-only,
+    // stdlib-owned) get filtered earlier.
+    //
+    // TODO: full migration to read `entry.subst` / `entry.mangled` /
+    // `entry.symbol` directly — currently the legacy helpers re-derive
+    // these via `build_struct_subst` + `args_suffix`, duplicating the
+    // mono work. Blocked on the double-prefix fn-instance mangled-name
+    // alignment ; tracked separately.
     for inst in project_ctx.evaluated.instances {
+        if !mono_has_struct_entry_for(project_ctx, inst) { continue }
         materialize_one_instance(inst, loaded, typed, project_ctx, project, diags)
     }
+}
+
+/// True when `evaluated.mono` carries a StructDecl-kind MonoEntry
+/// whose `symbol.id` matches `inst.symbol.id` and whose
+/// `type_arguments` is non-empty. Lets `materialize_generic_instances`
+/// skip instances that the mono pass already rejected (TypeParam-only,
+/// stdlib-only, etc.) without re-deriving the filter logic.
+mono_has_struct_entry_for :: fn(project_ctx: LowerProjectCtx, inst: GenericInstance) -> bool {
+    if i32(inst.symbol.kind) != i32(SymbolKind.Struct) { return false }
+    entries :: project_ctx.evaluated.mono.entries
+    i: usize = 0
+    for i < entries.len() {
+        entry :: entries[i]
+        if entry.type_arguments.len() == usize(0) {
+            i += 1
+            continue
+        }
+        match entry.symbol {
+            is Symbol as s -> {
+                if s.id == inst.symbol.id { return true }
+            }
+            _ -> {}
+        }
+        i += 1
+    }
+    return false
 }
 
 materialize_one_instance :: fn(
