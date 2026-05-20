@@ -601,6 +601,7 @@ export function pruneUnusedTypes(
           break;
         case "call":
           if (op.expectedResultType !== undefined) visit(op.expectedResultType);
+          if (op.argTypeIndices !== undefined) for (const idx of op.argTypeIndices) visit(idx);
           break;
         case "virtual.call":
           if (op.resultTypeIndex !== undefined) visit(op.resultTypeIndex);
@@ -690,12 +691,24 @@ export function pruneUnusedTypes(
         case "make_closure":
           fn.body[i] = { ...op, typeIndex: re(op.typeIndex) } as typeof op;
           break;
-        case "call":
+        case "call": {
+          let newOp = op;
           if (op.expectedResultType !== undefined) {
             const r = re(op.expectedResultType);
-            fn.body[i] = { ...op, expectedResultType: r >= 0 ? r : undefined };
+            newOp = { ...newOp, expectedResultType: r >= 0 ? r : undefined };
           }
+          if (op.argTypeIndices !== undefined) {
+            const remapped = op.argTypeIndices.map(re);
+            // Drop the field if any entry got pruned (caller will fall back
+            // to the no-reshape path) — preserves the existing op shape
+            // when remapping fails so the C-emit's stack walk stays sound.
+            newOp = remapped.every((r) => r >= 0)
+              ? { ...newOp, argTypeIndices: remapped }
+              : { ...newOp, argTypeIndices: undefined };
+          }
+          if (newOp !== op) fn.body[i] = newOp;
           break;
+        }
         case "virtual.call":
           if (op.resultTypeIndex !== undefined) {
             const r = re(op.resultTypeIndex);

@@ -79,8 +79,11 @@ export type Op =
    *  the C-emit consults it to detect erasure-induced layout mismatch
    *  (callee's body returns the Any-substituted heap form while the
    *  caller expects the concrete inline form) and insert a boundary
-   *  conversion. */
-  | { readonly kind: "call"; readonly fnIndex: number; readonly expectedResultType?: number }
+   *  conversion. `argTypeIndices` is the per-arg BcType index of the
+   *  caller's static argument type — symmetric purpose, the C-emit
+   *  reshapes a concrete-shape arg into the callee's expected Any
+   *  layout before the call when they diverge. */
+  | { readonly kind: "call"; readonly fnIndex: number; readonly expectedResultType?: number; readonly argTypeIndices?: readonly number[] }
   | { readonly kind: "call.import"; readonly importIndex: number }
   | { readonly kind: "call.indirect"; readonly typeIndex: number }   // …args, fn ref ⇒ result
   | { readonly kind: "fn.ref"; readonly fnIndex: number; readonly typeIndex: number }  // ⇒ fn ref

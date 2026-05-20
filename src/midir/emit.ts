@@ -430,7 +430,11 @@ function emitCallInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Call" 
     const expectedResultType = ins.dst !== null
       ? internType(ctx.project, ctx.fn.locals[ins.dst]!.type)
       : undefined;
-    pushOp(ctx.emit, { kind: "call", fnIndex: fnIdx, expectedResultType }, ins.span);
+    // Per-arg static BcType so the C-emit can reshape a concrete-shape arg
+    // (e.g. `Tuple_24 { i32, string }`) into the callee's expected Any
+    // layout (`Tuple_2 { vader_box_t, vader_box_t }`) before the call.
+    const argTypeIndices = ins.args.map((a) => internType(ctx.project, ctx.fn.locals[a]!.type));
+    pushOp(ctx.emit, { kind: "call", fnIndex: fnIdx, expectedResultType, argTypeIndices }, ins.span);
     emitInstrResultIfAny(ctx, ins, ins.dst, ins.span);
     return;
   }

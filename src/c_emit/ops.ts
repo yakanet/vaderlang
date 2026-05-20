@@ -30,7 +30,7 @@ import {
 
 export function emitCall(s: FnState, op: Extract<Op, { kind: "call" }>): void {
   const callee = s.ctx.module.functions[op.fnIndex]!;
-  emitCallTo(s, s.ctx.fnNames[op.fnIndex]!, callee.signature, op.expectedResultType);
+  emitCallTo(s, s.ctx.fnNames[op.fnIndex]!, callee.signature, op.expectedResultType, op.argTypeIndices);
 }
 
 export function emitCallImport(s: FnState, op: Extract<Op, { kind: "call.import" }>): void {
@@ -45,15 +45,77 @@ export function emitCallImport(s: FnState, op: Extract<Op, { kind: "call.import"
  *  value on the stack. */
 function emitCallTo(
   s: FnState, calleeName: string, sig: BcSignature, expectedResultType?: number,
+  argTypeIndices?: readonly number[],
 ): void {
   const args: string[] = [];
   for (let i = sig.params.length - 1; i >= 0; i--) {
     const v = pop(s);
-    const boxed = coerce(s, v.name, v.val, sig.params[i]!);
+    let boxed = coerce(s, v.name, v.val, sig.params[i]!);
+    // Argument-side erasure reshape : when the caller's static arg type
+    // is a struct with an Any-counterpart matching the callee's expected
+    // paramType, allocate the Any-version layout, box each field, and
+    // pass that instead of the raw concrete struct. Symmetric to the
+    // return-side `emitErasureBoundaryConversion` ; without this,
+    // calling an erased fn (`swap[T,U]`) with a concrete tuple
+    // (`Tuple_24 { i32, string }`) makes the callee read through the
+    // Any layout (`Tuple_2 { vader_box_t, vader_box_t }`) → field
+    // size/offset mismatch → garbage.
+    if (argTypeIndices !== undefined && (v.val === "ref" || v.val === "any")) {
+      const callerTypeIdx = argTypeIndices[i];
+      const calleeTypeIdx = sig.paramTypes[i];
+      if (callerTypeIdx !== undefined && calleeTypeIdx !== undefined
+          && callerTypeIdx !== calleeTypeIdx
+          && s.ctx.anyCounterpartOf.get(callerTypeIdx) === calleeTypeIdx) {
+        boxed = emitArgReshape(s, boxed, callerTypeIdx, calleeTypeIdx);
+      }
+    }
     args.unshift(coerceForB1Arg(s.ctx, boxed, sig.paramTypes[i]!));
   }
   const callExpr = `${calleeName}(${args.join(", ")})`;
   emitCallResult(s, callExpr, sig.result, sig.resultType, expectedResultType);
+}
+
+/** Inverse of `emitHeapStructReshape` : the caller has a vader_box_t
+ *  pointing at the concrete-shape struct (`Tuple_24 { i32, string }`),
+ *  the callee expects the Any-shape layout (`Tuple_2 { vader_box_t,
+ *  vader_box_t }`). Allocate the Any-shape struct, box each concrete
+ *  field, return the new vader_box_t. Skips fields whose ValType the
+ *  generic boxing path can't bridge (arrays / unions / fns) — caller
+ *  passes the unmodified box and accepts whatever runtime fault may
+ *  surface ; the dispatch-side fallback is the existing path. */
+function emitArgReshape(s: FnState, src: string, concreteIdx: number, anyIdx: number): string {
+  const concrete = s.ctx.module.types[concreteIdx];
+  const any = s.ctx.module.types[anyIdx];
+  if (concrete?.kind !== "struct" || any?.kind !== "struct") return src;
+  if (concrete.fields.length !== any.fields.length) return src;
+  const anyCName = s.ctx.structNames[anyIdx];
+  const concreteCName = s.ctx.structNames[concreteIdx];
+  if (anyCName === null || anyCName === undefined) return src;
+  if (concreteCName === null || concreteCName === undefined) return src;
+  for (const f of concrete.fields) {
+    const ft = s.ctx.module.types[f.typeIndex];
+    if (ft === undefined) return src;
+    if (ft.kind !== "primitive" && ft.kind !== "struct" && ft.kind !== "ref") return src;
+  }
+  const tmp = newTmp(s, "ref");
+  line(s, `${anyCName}* ${tmp}_arg = (${anyCName}*) vader_gc_alloc(sizeof(${anyCName}));`);
+  line(s, `vader_obj_header_init(${tmp}_arg, ${anyIdx}u);`);
+  for (let i = 0; i < concrete.fields.length; i++) {
+    const cf = concrete.fields[i]!;
+    const af = any.fields[i]!;
+    const cval = valTypeOfField(s.ctx, cf.typeIndex);
+    const fieldName = sanitise(cf.name);
+    const concreteFieldExpr = `((${concreteCName}*) ${src}.payload.obj)->f_${fieldName}`;
+    let boxedField: string;
+    if (cval === "ref" || cval === "any") {
+      boxedField = concreteFieldExpr;
+    } else {
+      boxedField = boxExpr(s.ctx, concreteFieldExpr, cval as ValType, cf.typeIndex);
+    }
+    line(s, `${tmp}_arg->f_${sanitise(af.name)} = ${boxedField};`);
+  }
+  line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${anyIdx}u, ${tmp}_arg);`);
+  return tmp;
 }
 
 /** Lower a (callExpr, expected result valType, result BcType idx)
@@ -231,6 +293,19 @@ function emitHeapStructReshape(s: FnState, tmp: string, expectedIdx: number, any
   const cname = s.ctx.structNames[expectedIdx];
   if (cname === null || cname === undefined) return;
 
+  // Skip when the expected layout already matches the Any-version (all
+  // fields stored as `ref`/`any` heap slots). Reshaping into an
+  // identical layout adds an unnecessary heap allocation per call and
+  // its `__inner_field_0` recursion can hit a non-existent inner
+  // inline form, producing broken C. Layouts only diverge when at
+  // least one expected field is typed concretely (primitive / array /
+  // union variant) ; the all-ref case is the post-erasure shared shape.
+  const allFieldsRef = expected.fields.every((f) => {
+    const ft = s.ctx.module.types[f.typeIndex];
+    return ft?.kind === "ref";
+  });
+  if (allFieldsRef) return;
+
   // Bail when any expected field has a shape that needs more than a
   // primitive unbox / ref re-tag (arrays / unions / fns — each carries
   // its own runtime invariants that the boundary copy can't bridge
@@ -251,6 +326,29 @@ function emitHeapStructReshape(s: FnState, tmp: string, expectedIdx: number, any
     const slot = `__any_fields[${i}]`;
     let rhs: string;
     if (fval === "ref" || fval === "any") {
+      // Field is a heap reference — copy the vader_box_t as-is, then
+      // recursively normalise if the field's static type is inline-
+      // eligible (a heap-boxed Any-version flowing into an inline-form
+      // slot must unbox & re-pack). Without the recursion, chains like
+      // `Box(Box(i32))` propagate the Any-version inwards undetected,
+      // and the next `struct.get` reads `payload.i` of a heap pointer.
+      const ft = s.ctx.module.types[ef.typeIndex];
+      if (ft?.kind === "struct" && !s.ctx.mutatedStructs.has(ef.typeIndex)) {
+        const innerInline = inlineVariantPayload(ft, s.ctx.module.types);
+        const innerAny = s.ctx.anyCounterpartOf.get(ef.typeIndex);
+        if (innerInline !== null && innerInline !== "void" && innerInline !== "packed" && innerAny !== undefined) {
+          line(s, `    if (${slot}.tag == ${innerAny}u) {`);
+          line(s, `        vader_box_t __inner_field_0 = *(vader_box_t*)((char*)${slot}.payload.obj + sizeof(vader_obj_header_t));`);
+          if (innerInline === "ref") {
+            line(s, `        ${slot} = vader_box_obj(${ef.typeIndex}u, __inner_field_0.payload.obj);`);
+          } else {
+            const unboxed = unboxExpr("__inner_field_0", innerInline as ValType);
+            const repack = boxExpr(s.ctx, unboxed, innerInline as ValType, ef.typeIndex);
+            line(s, `        ${slot} = ${repack};`);
+          }
+          line(s, `    }`);
+        }
+      }
       rhs = slot;
     } else {
       rhs = unboxExpr(slot, fval as ValType);
