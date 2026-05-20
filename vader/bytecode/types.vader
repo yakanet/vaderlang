@@ -1,0 +1,439 @@
+// vader/bytecode/types — bytecode-level type primitives.
+//
+// Mirror of `src/bytecode/types.ts`. Distinct from `vader/vm/op.TypeDecl`,
+// which is the *runtime-only* type table the Vader-side VM carries on
+// values for `type_check` / `struct.get` diagnostics. The shapes here
+// instead match what the bytecode emitter (T2) writes and what the C
+// emitter (T1) consumes — they carry every field name, every typeIndex,
+// every symbolId required to lower a module to C, none of which the VM
+// needs at runtime.
+//
+// Two top-level types :
+//   - `ValType` — stack-machine value class. Closed enum over every
+//                 supported primitive plus the two reference shapes
+//                 (`ref`, `any`).
+//   - `BcType`  — type-table entry. One variant per kind ; type-index
+//                 references in `BcField`, `BcArray.element`, `BcFn`
+//                 are simple `i32`s into the parent module's type list.
+//
+// Both shapes are intentionally read-only after construction (the
+// emitter assembles each module once, the C-emit then walks it).
+
+/// Stack-machine value class — every operand the VM / C-emit can carry
+/// in a local or on the operand stack lands in exactly one of these
+/// classes. Mirrors the TS `ValType` string union one-for-one. Closed
+/// enum so `match` arms stay exhaustive across the pipeline.
+export ValType :: enum(u8) {
+    // Signed integers
+    I8, I16, I32, I64, Isize,
+    // Unsigned integers
+    U8, U16, U32, U64, Usize,
+    // Floats
+    F32, F64,
+    // Other primitives
+    Bool, Char, String, Null, Void,
+    // Reference shapes
+    Ref, Any,
+}
+
+/// String name of a `ValType`, matching the source-level spelling used
+/// throughout the .virt text format and the C-emit identifier mangling.
+/// Inverse of `parse_val_type`.
+///
+/// @param v  the value class to render.
+/// @return   the source-level spelling (`"i32"`, `"string"`, `"any"`, …).
+export val_type_name :: fn(v: ValType) -> string = match v {
+    .I8 -> "i8"
+    .I16 -> "i16"
+    .I32 -> "i32"
+    .I64 -> "i64"
+    .Isize -> "isize"
+    .U8 -> "u8"
+    .U16 -> "u16"
+    .U32 -> "u32"
+    .U64 -> "u64"
+    .Usize -> "usize"
+    .F32 -> "f32"
+    .F64 -> "f64"
+    .Bool -> "bool"
+    .Char -> "char"
+    .String -> "string"
+    .Null -> "null"
+    .Void -> "void"
+    .Ref -> "ref"
+    .Any -> "any"
+}
+
+/// Parse a source-level type name back into a `ValType`. Returns `null`
+/// when the spelling isn't a recognised value-type name (caller decides
+/// whether that's a hard error or a bypass for a user-defined struct).
+/// Or-patterns aren't supported yet, so the switch is spelled out via
+/// an if-cascade rather than a per-literal `match` arm.
+///
+/// @param name  the source-level spelling (`"i32"`, `"string"`, …).
+/// @return      the matching `ValType` variant, or `null` when the
+///              name isn't a recognised primitive / reference shape.
+export parse_val_type :: fn(name: string) -> ValType | null {
+    if name == "i8" { return ValType.I8 }
+    if name == "i16" { return ValType.I16 }
+    if name == "i32" { return ValType.I32 }
+    if name == "i64" { return ValType.I64 }
+    if name == "isize" { return ValType.Isize }
+    if name == "u8" { return ValType.U8 }
+    if name == "u16" { return ValType.U16 }
+    if name == "u32" { return ValType.U32 }
+    if name == "u64" { return ValType.U64 }
+    if name == "usize" { return ValType.Usize }
+    if name == "f32" { return ValType.F32 }
+    if name == "f64" { return ValType.F64 }
+    if name == "bool" { return ValType.Bool }
+    if name == "char" { return ValType.Char }
+    if name == "string" { return ValType.String }
+    if name == "null" { return ValType.Null }
+    if name == "void" { return ValType.Void }
+    if name == "ref" { return ValType.Ref }
+    if name == "any" { return ValType.Any }
+    return null
+}
+
+/// True when the val-type is an integer (any width, signed or unsigned).
+/// @param v  the value class to classify.
+/// @return   `true` for `i8`..`i64`/`isize` and `u8`..`u64`/`usize`.
+export is_integer_val :: fn(v: ValType) -> bool = match v {
+    .I8 -> true
+    .I16 -> true
+    .I32 -> true
+    .I64 -> true
+    .Isize -> true
+    .U8 -> true
+    .U16 -> true
+    .U32 -> true
+    .U64 -> true
+    .Usize -> true
+    .F32 -> false
+    .F64 -> false
+    .Bool -> false
+    .Char -> false
+    .String -> false
+    .Null -> false
+    .Void -> false
+    .Ref -> false
+    .Any -> false
+}
+
+/// True when the val-type is an IEEE 754 float.
+/// @param v  the value class to classify.
+/// @return   `true` for `f32` / `f64`.
+export is_float_val :: fn(v: ValType) -> bool = match v {
+    .F32 -> true
+    .F64 -> true
+    .I8 -> false
+    .I16 -> false
+    .I32 -> false
+    .I64 -> false
+    .Isize -> false
+    .U8 -> false
+    .U16 -> false
+    .U32 -> false
+    .U64 -> false
+    .Usize -> false
+    .Bool -> false
+    .Char -> false
+    .String -> false
+    .Null -> false
+    .Void -> false
+    .Ref -> false
+    .Any -> false
+}
+
+/// True when the val-type is any kind of number (integer or float).
+/// @param v  the value class to classify.
+/// @return   `true` for any signed/unsigned integer width or float width.
+export is_numeric_val :: fn(v: ValType) -> bool = is_integer_val(v) || is_float_val(v)
+
+/// True when the val-type is exactly `String`. Companion to
+/// `is_integer_val` / `is_float_val` ; consumed by the C emitter's
+/// per-struct field-classification walk (string fields land in the
+/// dedicated `_strs[]` GC-root array, distinct from heap-ref fields).
+///
+/// @param v  the value class to classify.
+/// @return   `true` for `ValType.String`, `false` otherwise.
+export is_string_val :: fn(v: ValType) -> bool = match v {
+    .String -> true
+    .I8 -> false
+    .I16 -> false
+    .I32 -> false
+    .I64 -> false
+    .Isize -> false
+    .U8 -> false
+    .U16 -> false
+    .U32 -> false
+    .U64 -> false
+    .Usize -> false
+    .F32 -> false
+    .F64 -> false
+    .Bool -> false
+    .Char -> false
+    .Null -> false
+    .Void -> false
+    .Ref -> false
+    .Any -> false
+}
+
+// =========================================================================
+// Native-runtime element-storage discriminator
+// =========================================================================
+
+/// Mirrors the `vader_array_kind_t` enum in `runtime/c/vader.h`. The
+/// bytecode emitter computes one of these per array type and threads it
+/// to the runtime so primitive arrays store raw values instead of boxed
+/// slots. `Boxed` is the catch-all for non-primitive elements (string,
+/// struct, array, ref, fn, union…) which live in `vader_box_t` slots.
+export ArrayKind :: enum(u8) {
+    Boxed,
+    U8, U16, U32, U64,
+    I8, I16, I32, I64,
+    F32, F64,
+    Char, Bool,
+}
+
+/// Numeric index of an `ArrayKind`, matching the runtime enum ordering.
+/// Used in C-emit data-pool initialisers (`element_kind = Nu`).
+/// @param k  the storage discriminator.
+/// @return   the numeric index (`0..12`) matching `vader_array_kind_t`.
+export array_kind_index :: fn(k: ArrayKind) -> i32 = match k {
+    .Boxed -> 0
+    .U8 -> 1
+    .U16 -> 2
+    .U32 -> 3
+    .U64 -> 4
+    .I8 -> 5
+    .I16 -> 6
+    .I32 -> 7
+    .I64 -> 8
+    .F32 -> 9
+    .F64 -> 10
+    .Char -> 11
+    .Bool -> 12
+}
+
+/// Inverse of `array_kind_index`. Returns `null` for unrecognised
+/// indices — the parser uses this for error reporting on malformed
+/// `.virt` data directives.
+/// @param idx  the numeric index from the `.virt` data directive.
+/// @return     the `ArrayKind` variant, or `null` when the index is
+///             outside the recognised `0..12` range.
+export array_kind_from_index :: fn(idx: i32) -> ArrayKind | null {
+    if idx == 0 { return ArrayKind.Boxed }
+    if idx == 1 { return ArrayKind.U8 }
+    if idx == 2 { return ArrayKind.U16 }
+    if idx == 3 { return ArrayKind.U32 }
+    if idx == 4 { return ArrayKind.U64 }
+    if idx == 5 { return ArrayKind.I8 }
+    if idx == 6 { return ArrayKind.I16 }
+    if idx == 7 { return ArrayKind.I32 }
+    if idx == 8 { return ArrayKind.I64 }
+    if idx == 9 { return ArrayKind.F32 }
+    if idx == 10 { return ArrayKind.F64 }
+    if idx == 11 { return ArrayKind.Char }
+    if idx == 12 { return ArrayKind.Bool }
+    return null
+}
+
+/// Byte width per slot of a primitive array kind. `Boxed` is the size
+/// of `vader_box_t` (24 B) on native but pool entries never use it ;
+/// returns 0 for `Boxed` so callers can guard.
+/// @param k  the storage discriminator.
+/// @return   the per-slot byte width (1, 2, 4, 8), or `0` for `Boxed`.
+export array_kind_element_size :: fn(k: ArrayKind) -> i32 = match k {
+    .U8 -> 1
+    .I8 -> 1
+    .Bool -> 1
+    .U16 -> 2
+    .I16 -> 2
+    .U32 -> 4
+    .I32 -> 4
+    .F32 -> 4
+    .Char -> 4
+    .U64 -> 8
+    .I64 -> 8
+    .F64 -> 8
+    .Boxed -> 0
+}
+
+// =========================================================================
+// Data pool — module-level static arrays of primitive elements
+// =========================================================================
+
+/// One pre-materialised `const T[]` literal. Built once at module-load
+/// time on the VM, baked into `.rodata` on native. `data.const N`
+/// references the parent module's `data_pool[N]`.
+///
+/// `items` carries one u64 entry per element — the raw bit pattern at
+/// the element's natural width (low bits used). For signed integers,
+/// callers reinterpret the u64 as `iN` ; for floats, as the IEEE 754
+/// bit pattern. The host TS code uses `bigint` for the same role —
+/// Vader's u64 is wide enough.
+export BcDataEntry :: struct {
+    kind: ArrayKind         // never Boxed — primitive arrays only
+    items: u64[]
+}
+
+// =========================================================================
+// Type-table entries
+// =========================================================================
+
+/// Top-level union over every kind of bytecode type. `BytecodeModule.types`
+/// is a `BcType[]` and every `typeIndex` in this file (`BcField.type_index`,
+/// `BcArray.element`, `BcFn.params`, `BcFn.return_type`, `BcUnion.variants`)
+/// is an index into that array.
+export BcType :: BcPrimitive
+    | BcStruct
+    | BcArray
+    | BcUnion
+    | BcRef
+    | BcFn
+
+/// Plain primitive — wraps a `ValType` with a stable index.
+export BcPrimitive :: struct {
+    val: ValType
+}
+
+/// One field of a `BcStruct`. `type_index` keys the parent module's
+/// type table.
+export BcField :: struct {
+    name: string
+    type_index: i32
+}
+
+/// Concrete struct, post-monomorphization. Field order is significant
+/// (matches the .virt encoding and the C struct layout). `symbol_id`
+/// is `-1` when unknown ; distinct monomorphisations of the same
+/// generic source decl share a `symbol_id`, which C-emit uses to find
+/// a struct's all-`Any` counterpart for the erasure boundary
+/// conversion (mirrors `BcStruct.symbolId` in TS).
+export BcStruct :: struct {
+    name: string
+    fields: BcField[]
+    symbol_id: i32          // -1 = unknown
+}
+
+/// Heap-allocated array of a single element type. `element` is a
+/// type-index into the parent module's type table.
+export BcArray :: struct {
+    element: i32
+}
+
+/// Tagged union of variants. Each variant is a type-index ; the
+/// runtime tag is the variant's position in `variants`, and the
+/// payload slot is wide enough for the largest variant. Used by
+/// `type_check`'s recursive variant matching (`is T` patterns).
+export BcUnion :: struct {
+    variants: i32[]
+}
+
+/// Open reference type — `ref any` from the verifier's PoV. Only used
+/// for trait-typed slots that escaped monomorphization. `trait_name`
+/// is `""` for the wildcard `ref _` form.
+export BcRef :: struct {
+    trait_name: string
+}
+
+/// Function-value signature. Referenced by `call.indirect` to validate
+/// the call-site stack shape and (in C-emit) to pick the right function-
+/// pointer cast. Param/return slots are type indices into the same
+/// type table.
+export BcFn :: struct {
+    params: i32[]
+    return_type: i32
+}
+
+// =========================================================================
+// Helpers
+// =========================================================================
+
+/// Byte size of a `ValType` — primitives use their native widths, every
+/// reference shape collapses to the box-slot width (16 B). Shared
+/// between `size_of_bc_type` and any caller that already narrowed to
+/// a primitive class.
+/// @param v  the value class.
+/// @return   the byte size (`0` for `Void` / `Null` — those never
+///           reach a struct field or signature slot).
+export size_of_val_type :: fn(v: ValType) -> i32 = match v {
+    .I8 -> 1
+    .U8 -> 1
+    .Bool -> 1
+    .I16 -> 2
+    .U16 -> 2
+    .I32 -> 4
+    .U32 -> 4
+    .F32 -> 4
+    .Char -> 4
+    .I64 -> 8
+    .U64 -> 8
+    .F64 -> 8
+    .Isize -> 8
+    .Usize -> 8
+    .String -> 16
+    .Void -> 0
+    .Null -> 0
+    .Ref -> 16
+    .Any -> 16
+}
+
+/// Byte size of a `BcType` — primitives use their native widths, every
+/// reference shape (struct, array, union, ref, fn) fits in `vader_box_t`
+/// (16 B) at the boxed boundary. Backs `@size_of(t)` and the C-emit
+/// `vader_type_size[]` table.
+/// @param t  the bytecode type-table entry.
+/// @return   the byte size in the runtime layout.
+export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
+    is BcPrimitive as p -> size_of_val_type(p.val)
+    is BcStruct -> 16
+    is BcArray -> 16
+    is BcUnion -> 16
+    is BcRef -> 16
+    is BcFn -> 16
+}
+
+/// Map a `BcType` (the element of an array) to its native storage class.
+/// Anything that's not a small fixed-width primitive collapses to
+/// `Boxed` — strings, structs, unions, refs, fns all live in a
+/// `vader_box_t` slot.
+/// @param element  the array element's bytecode type.
+/// @return         the storage discriminator the runtime uses.
+export array_kind_of :: fn(element: BcType) -> ArrayKind = match element {
+    is BcPrimitive as p -> array_kind_of_val(p.val)
+    is BcStruct -> ArrayKind.Boxed
+    is BcArray -> ArrayKind.Boxed
+    is BcUnion -> ArrayKind.Boxed
+    is BcRef -> ArrayKind.Boxed
+    is BcFn -> ArrayKind.Boxed
+}
+
+/// `array_kind_of` specialisation when the caller already narrowed to
+/// a `ValType` (e.g. inside a primitive match arm).
+/// @param v  the value class.
+/// @return   the matching storage discriminator (`Boxed` for `String`
+///           / `Null` / `Void` / `Ref` / `Any`).
+export array_kind_of_val :: fn(v: ValType) -> ArrayKind = match v {
+    .U8 -> ArrayKind.U8
+    .U16 -> ArrayKind.U16
+    .U32 -> ArrayKind.U32
+    .U64 -> ArrayKind.U64
+    .Usize -> ArrayKind.U64
+    .I8 -> ArrayKind.I8
+    .I16 -> ArrayKind.I16
+    .I32 -> ArrayKind.I32
+    .I64 -> ArrayKind.I64
+    .Isize -> ArrayKind.I64
+    .F32 -> ArrayKind.F32
+    .F64 -> ArrayKind.F64
+    .Char -> ArrayKind.Char
+    .Bool -> ArrayKind.Bool
+    .String -> ArrayKind.Boxed
+    .Null -> ArrayKind.Boxed
+    .Void -> ArrayKind.Boxed
+    .Ref -> ArrayKind.Boxed
+    .Any -> ArrayKind.Boxed
+}

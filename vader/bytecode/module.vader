@@ -1,0 +1,149 @@
+// vader/bytecode/module — in-memory bytecode module shape, the lingua
+// franca shared by the bytecode emitter (T2), the VM, and the C / WASM
+// emitters (T1 / T4).
+//
+// Mirror of `src/bytecode/module.ts`. Distinct from `vader/vm/op.Module`,
+// which is the *runtime-only* shape consumed by the self-host VM after
+// parsing a `.virt` text file. The shape here carries the richer
+// information the bytecode emitter writes and the C-emit later reads :
+// per-fn signatures, per-local val-types, struct symbol-ids, the full
+// import/export tables, and the vtable map.
+//
+// Two construction sites :
+//   - the bytecode emitter (`vader/bytecode/emit`, TODO) builds a fresh
+//     `BytecodeModule` per project ;
+//   - the .virt parser (TODO) builds one from a text dump.
+//
+// One consumer (today) : `vader/c_emit/emit` lowers it to a single C
+// source file.
+
+import "vader/bytecode/types" { BcType, BcDataEntry, ValType }
+import "vader/vm/op" { Op }
+
+/// One Vader function body, post-lowering. Closely mirrors TS `BcFunction`.
+///
+/// `is_main` is propagated from `MonoEntry.isMain` through the IR layers
+/// so the VM and the C-emit can locate the entry without re-parsing the
+/// mangled name. `locals` are *additional* locals declared after the
+/// params ; slot index of `locals[i]` is `signature.params.len() + i`.
+/// `debug[i]` corresponds to `body[i]`, with `null` meaning "no source
+/// span for this op" — handy for synthesised ops (struct.new_stack,
+/// trampoline shims).
+export BcFunction :: struct {
+    name: string
+    is_main: bool
+    signature: BcSignature
+    locals: BcLocal[]
+    body: Op[]
+    debug: (DebugPos | null)[]
+}
+
+/// Static signature of a fn-shaped slot. The VM only consults `params`
+/// / `result` (which carry the stack-erased `ValType`s) ; the C-emit
+/// reads `param_types` / `result_type` to apply B1 (nullable-ref inline
+/// rep) and the path-γ erasure boundary at the call site. Both slot
+/// arrays are parallel — `param_types[i]` is the `BcType` index of
+/// `params[i]`.
+export BcSignature :: struct {
+    params: ValType[]
+    result: ValType                  // Void = leaves nothing on the stack
+    param_types: i32[]               // parallel to params, length identical
+    result_type: i32                 // BcType index of the return slot
+}
+
+/// One declared local — name + stack-erased `ValType`. The C-emit
+/// re-derives the underlying `BcType` from the fn's signature when it
+/// needs the richer info (e.g. for B1 / boundary reshaping).
+export BcLocal :: struct {
+    name: string
+    val: ValType
+}
+
+/// Per-op source mapping. `file` is the absolute path of the source
+/// file ; `line` and `column` are 1-based.
+export DebugPos :: struct {
+    file: string
+    line: i32
+    column: i32
+}
+
+/// One external symbol expected from the host. Two flavours, switched
+/// on `is_extern` :
+///   - `@extern` decls (`is_extern = true`) — foreign symbol resolved
+///     by the host linker (libc, user-supplied .o).
+///   - `@intrinsic` stdlib ops (`is_extern = false`) — c-emit's shim
+///     switch routes these to runtime helpers (`vader_*`) rather than
+///     emitting an extern declaration.
+export BcImport :: struct {
+    extern_name: string              // user-facing name in source
+    mangled_name: string
+    signature: BcSignature
+    is_extern: bool
+}
+
+/// One symbol exposed to the host (`@export` fns). `extern_name` is
+/// the user-facing C name ; `fn_index` keys the parent module's
+/// `functions[]`.
+export BcExport :: struct {
+    extern_name: string
+    fn_index: i32
+}
+
+/// One row of the impl table — `struct_type_index implements trait_name`.
+/// Materialised side-by-side with the per-(trait, method) vtable so
+/// `is Trait` patterns can be answered without walking every fn name.
+/// In TS, the impl table is a `Map<number, readonly string[]>` keyed by
+/// struct type-index ; here we use an explicit-row representation to
+/// keep the shape data-only (no map encoding into Vader maps).
+export ImplEntry :: struct {
+    struct_type_index: i32
+    trait_name: string
+}
+
+/// One vtable, keyed by `<TraitName>.<MethodName>`, listing the
+/// (receiver type-index → fn-index) mapping the `virtual.call` op
+/// indexes in O(1). Built by the bytecode emitter from every
+/// `T implements Trait { … }` decl. The .virt text format itself
+/// doesn't carry vtable directives — they're rebuilt by the VM's
+/// `build_vtables` from mangled fn names.
+export VtableEntry :: struct {
+    receiver_type_index: i32
+    fn_index: i32
+}
+
+/// One `(trait, method) → entries[]` row of the vtable table.
+export VtableRow :: struct {
+    key: string                      // "<Trait>.<method>"
+    entries: VtableEntry[]
+}
+
+/// Top-level holder. Read-only after construction.
+///
+/// - `types`    — the type table. Indices referenced by `struct.*`,
+///                `array.*`, `type_check`, `ref.cast`, and `BcSignature`.
+/// - `strings`  — interned string-literal pool. `string.const N` reads
+///                this directly ; the C-emit hoists each entry to a
+///                static `vader_string_t`.
+/// - `data_pool`— pre-materialised primitive arrays. `data.const N` op
+///                references entries here ; the C-emit lowers each into
+///                a `.rodata` block.
+/// - `functions`— every Vader-side fn body, in emission order. `Call`
+///                ops reference these by index.
+/// - `imports`  — external symbols. `call.import` references these by
+///                index ; the C-emit emits a per-import shim that the
+///                in-module call points to.
+/// - `exports`  — symbols exposed to the host. The C-emit uses these to
+///                pick `main`'s linkage.
+/// - `impl_table`— rows of `T implements Trait`.
+/// - `vtables`  — per-(trait, method) virtual-dispatch table.
+export BytecodeModule :: struct {
+    name: string
+    types: BcType[]
+    strings: string[]
+    data_pool: BcDataEntry[]
+    functions: BcFunction[]
+    imports: BcImport[]
+    exports: BcExport[]
+    impl_table: ImplEntry[]
+    vtables: VtableRow[]
+}
