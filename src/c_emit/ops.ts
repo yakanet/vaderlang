@@ -626,10 +626,26 @@ export function emitCallIndirect(s: FnState, op: Extract<Op, { kind: "call.indir
   line(s, `vader_fn_t* ${fnObj} = (vader_fn_t*) ${fnVal.name}.payload.obj;`);
   const callArgs = args.length === 0 ? `${fnObj}->env` : `${fnObj}->env, ${args.join(", ")}`;
   const callExpr = `((vader_fn_erased_sig_${t.params.length}_t) ${fnObj}->code)(${callArgs})`;
-  // Result always comes back as vader_box_t ; let the standard call
-  // result path tag it as "any" and downstream `local.set` / coerce
-  // unbox to the static expected type.
-  emitCallResult(s, callExpr, "any", t.returnType);
+  // The wrapper returns vader_box_t ; the call site's static return is
+  // whatever `t.returnType` says (often a primitive like bool / i32 /
+  // char). Bridge the two : capture the call result as `any`, then
+  // coerce on the stack to the static return ValType so downstream
+  // direct-readers (`if cond`, `local.set` to a primitive slot, ...)
+  // see a value of the expected C type.
+  const retVal = valTypeOfBcType(s.ctx.module.types[t.returnType]!);
+  if (retVal === "void") {
+    line(s, `${callExpr};`);
+    return;
+  }
+  const anyTmp = newTmp(s, "any");
+  line(s, `${decl(s, "any", anyTmp)} = ${callExpr};`);
+  // Pop the "any" tmp ; coerce back to the static return type by
+  // re-pushing through `coerce`. For ref/any returns this is a
+  // pass-through ; for primitives it unboxes via `unboxExpr`.
+  if (retVal === "ref" || retVal === "any") return;
+  pop(s);
+  const t2 = newTmp(s, retVal);
+  line(s, `${decl(s, retVal, t2)} = ${coerce(s, anyTmp, "any", retVal)};`);
 }
 
 export function emitIntrinsic(s: FnState, op: Extract<Op, { kind: "intrinsic" }>): void {
