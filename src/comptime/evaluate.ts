@@ -148,8 +148,7 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
   // to gate erasure on/off ; gated off by default so baseline stays
   // 252/252 green while the remaining 6 cascade patterns get fixed.
   const monoRaw = monomorphizeProject(evaluatedCore);
-  const mono = monoRaw;
-  void erasureDedupe;
+  const mono = erasureDedupe(monoRaw, project);
   return { ...evaluatedCore, mono };
 }
 

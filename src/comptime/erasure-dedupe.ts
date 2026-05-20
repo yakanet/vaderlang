@@ -76,6 +76,50 @@ function resolveHostStruct(impl: A.ImplDecl, ctx: DedupeCtx): A.StructDecl | nul
   return null;
 }
 
+/** Replace every concrete leaf in a `Type` tree with `TY.any` while
+ *  preserving generic wrappers (Struct / Trait / Array / Union /
+ *  Tuple). E.g. `Box(Box(i32))` → `Box(Box(Any))`, `MutableMap(string,
+ *  Vec(JsonValue))` → `MutableMap(Any, Vec(Any))`. The result is the
+ *  type-arg shape the post-erasure shared fn body will reference at
+ *  runtime ; used to enumerate extra struct entries so `internType`
+ *  finds a real BcType instead of a `ref _` stub. */
+function anyLeavesOf(t: Type): Type {
+  switch (t.kind) {
+    case "Struct":
+    case "Trait":
+      return t.args.length > 0 ? { ...t, args: t.args.map(anyLeavesOf) } : TY.any;
+    case "Array":
+      return { ...t, element: anyLeavesOf(t.element) };
+    case "Union":
+      return { ...t, variants: t.variants.map(anyLeavesOf) };
+    case "Tuple":
+      return { ...t, elements: t.elements.map(anyLeavesOf) };
+    default:
+      return TY.any;
+  }
+}
+
+/** Short stable display used when synthesising the mangled name for
+ *  an extra struct entry. Matches the convention from
+ *  `specialize.ts:mangle` for readability. */
+function displayAnyArg(t: Type): string {
+  switch (t.kind) {
+    case "Struct":
+    case "Trait":
+      return t.args.length > 0
+        ? `${t.symbol.name}_${t.args.map(displayAnyArg).join("_")}`
+        : t.symbol.name;
+    case "Array":
+      return `${displayAnyArg(t.element)}_arr`;
+    case "Union":
+      return t.variants.map(displayAnyArg).join("__");
+    case "Tuple":
+      return `Tup_${t.elements.map(displayAnyArg).join("_")}`;
+    default:
+      return "Any";
+  }
+}
+
 /** Build a Substitution mapping each of `decl`'s type-parameters to
  *  `TY.any`. Mirrors `anySubst` in `specialize.ts` (kept private there
  *  for the in-pass erasure path ; replicated here to avoid an extra
@@ -183,27 +227,34 @@ export function erasureDedupe(mono: MonoProject, project: TypedProject): MonoPro
         if (!shouldErase(e, ctx)) continue;
         structAnyRewrites.set(e, { ...e, subst: anySubstForEntry(e) });
       }
-      // Extra Repeat(Any)-flavoured entry. The fn-side representative
-      // body substitutes `self : Repeat(T)` to `Repeat(Any)` ; without
-      // this entry, `internType(Struct(Repeat, [Any]))` misses → field
-      // access emits `unreachable`. Distinct mangled name so it doesn't
-      // collide with the rewritten `Repeat__i32` / `Repeat__string` /
-      // ... entries that retain their original mangling.
+      // Extra "Any-flavoured" entries. The shared fn body (which
+      // substitutes T → Any everywhere) will reach struct shapes whose
+      // typeArgs are all-Any at every nesting level — e.g. `Box(Box(T))`
+      // becomes `Box(Box(Any))`, not just `Box(Any)`. Without distinct
+      // entries for each Any-flavoured shape, `internType` falls back to
+      // a `ref _` stub and `struct.new` against the stub emits a no-op,
+      // dropping the wrapping in the body. Enumerate one extra entry per
+      // distinct any-leaves shape derived from the group's original
+      // typeArgs ; deduplicate by mangled name.
       const first = group[0]!;
-      const erasedArgs: Type[] = first.typeArgs.map(() => TY.any);
-      extraStructEntries.push({
-        id: first.id,
-        isMain: first.isMain,
-        // Strip the per-instance suffix and append `__Any` — same convention
-        // the legacy `monomorphizeProject` would have used had this entry
-        // come through the regular instance pass.
-        mangled: first.mangled.replace(/__[^_]+(_\d+)?$/, "") + "__Any",
-        decl: first.decl,
-        symbol: first.symbol,
-        subst: anySubstForEntry(first),
-        typeArgs: erasedArgs,
-        module: first.module,
-      });
+      const seenExtraMangled = new Set<string>();
+      for (const e of group) {
+        const anyArgs = e.typeArgs.map(anyLeavesOf);
+        const mangled = first.mangled.replace(/__[^_]+(_\d+)?$/, "")
+          + "__" + anyArgs.map(displayAnyArg).join("__");
+        if (seenExtraMangled.has(mangled)) continue;
+        seenExtraMangled.add(mangled);
+        extraStructEntries.push({
+          id: first.id,
+          isMain: first.isMain,
+          mangled,
+          decl: first.decl,
+          symbol: first.symbol,
+          subst: anySubstForEntry(first),
+          typeArgs: anyArgs,
+          module: first.module,
+        });
+      }
     } else {
       // Prefer an entry whose subst already binds the decl's type-params
       // — `anySubstForEntry` only maps keys present in the entry's subst,

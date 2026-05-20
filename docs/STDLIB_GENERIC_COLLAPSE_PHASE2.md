@@ -1,11 +1,11 @@
 # Phase 2 — Automatic erasure pass
 
-> **Status**: **PROGRESSIVE PATH (γ) — 2026-05-20.** Erasure
-> infrastructure massively extended ; native suite reduced from 31
-> fails (the original cascade) to **2 fails** with `erasureDedupe`
-> flipped on. Gated off by default so baseline stays 252/252 green.
-> Each of the 2 remaining cases is a distinct compile-time / runtime
-> interaction pattern documented in §9 Issue 10.
+> **Status**: **PATH γ COMPLETE — 2026-05-20.** Erasure infrastructure
+> ships full ; native suite **252/252** AND VM suite **251/251** (4 skip)
+> with `erasureDedupe` enabled by default. Baseline parity preserved.
+> All cascade patterns identified during the original Phase 2 paused
+> exploration and during the path-γ session are documented in §9 Issue
+> 10 with their fix paths for the future Vader self-host port.
 >
 > **Sub-deliverables shipped (path γ progressive) :**
 > - **Famille A** — `synthesiseIntrinsicWrappers` (`bytecode/emit.ts`)
@@ -42,10 +42,9 @@
 > - **β fix** raw-array for-in skips `ArrayIterator(T)` wrap
 > - **η fix** comptime `observeFnCall` registers Any-bearing instances
 >
-> **Re-enable starting point** : flip `evaluate.ts` to call
-> `erasureDedupe(monoRaw, project)` instead of the gated-off `monoRaw`
-> assignment, then iterate on §9 Issue 10 (the 6 remaining cascade
-> patterns).
+> **Default state** : `evaluate.ts` calls
+> `erasureDedupe(monoRaw, project)` ; gate left in place for ease of
+> A/B comparison during the Vader port.
 >
 > **Goal**: rewrite every generic instantiation through a single erased
 > form. Every type-parameter position becomes `Any` in the IR; method
@@ -318,119 +317,336 @@ the Vader self-host port of Phase 2 (per `feedback_vader_port_rules`),
 (2) the next attempt on P2-1.b must address these or accept the
 fallback to option (b).
 
-### Issue 10 — Remaining cascade patterns after path γ (2026-05-20)
+### Issue 10 — Path γ exhaustive cascade catalog (2026-05-20)
 
-After the Famille A + B + boundary-conversion + arg-reshape + lambda
-trampoline + multi-sibling tag-dispatch infrastructure ships (commits
-1e0ea55d, b291c7ad, 6e91fd55, fe57385c, 2f5431ba, 82d96888, 8acd9d78),
-flipping `erasureDedupe` on leaves **2/252 native tests failing** —
-each surfacing a distinct interaction the current boundary machinery
-doesn't bridge.
+Final state after path γ : **0 fails** on both native (252/252) and
+VM (251/251 ; 4 skip) with `erasureDedupe` enabled. The list below
+catalogs every cascade pattern hit during the path-γ exploration
+along with the concrete fix, the file/symbol that implements it,
+the TS commit that shipped it, and a Vader-port note. The intent is
+that when porting this compiler to Vader self-host, each section
+becomes a checklist item — no need to re-explore.
 
-**Resolved by this session (2026-05-20)** :
-  - tuple_generic_swap (arg-side reshape, fe57385c)
-  - trait_dispatch_generic_iter (broader sig divergence trigger, 6e91fd55)
-  - iter_combinators, std_sort (lambda trampoline via canonical
-    erased fn-pointer ABI, 82d96888)
-  - iter_zip_chain (multi-sibling tag-dispatching reshape for tuples
-    with mixed concrete + erased fields, 8acd9d78)
+**Cascade A — `@intrinsic` impls don't dispatch through vtable**
+- Symptom : `vader_unreachable("vtable miss in Hash.hash")` /
+  `Equals.equals` / `Add.add` etc. at runtime for any value typed
+  `Any` ; affects every common trait on primitives.
+- Cause : `@intrinsic` impl members have `body: null` → routed to
+  `importIndexBySymId` ; vtable lookup checks `fnIndexBySymId`
+  which is empty for these symbols.
+- Fix : synthesise BcFunction wrappers per `@intrinsic` impl member
+  ; each wrapper body is `local.get 0..N-1` then either the inline
+  op (`OP_INTRINSIC_BY_MANGLED` hit) or `call.import` ; registered
+  under the impl member's `Symbol.id` in `fnIndexBySymId` so
+  `buildVtables` finds it.
+- Files : `src/bytecode/emit.ts:synthesiseIntrinsicWrappers`,
+  called from `src/midir/emit.ts` after Pass 1 reserve.
+- Commit : 1e0ea55d.
+- Vader port : same mechanism — emit wrapper BcFunctions in the
+  bytecode emit pass after extern reserve.
 
-**(10-a) Argument-side erasure conversion** — ~~`tuple_generic_swap`
-passes `Tuple_24 { i32, string }` to `swap[T,U]` whose erased body
-expects `Tuple_2 { vader_box_t, vader_box_t }`~~. **RESOLVED via
-commit `fe57385c`** — `emitArgReshape` allocates the Any-layout
-struct, boxes each concrete field, passes the new vader_box_t.
-Symmetric to the existing return-side `emitHeapStructReshape`.
+**Cascade A2 — Vtable dispatcher heterogeneous return types**
+- Symptom : C compile error `returning 'vader_string_t' from a
+  function with incompatible result type 'int8_t'` when the
+  intrinsic wrappers add e.g. `Add.add` to the vtable with multiple
+  return ValTypes (i32/string/...).
+- Cause : `vtableSignatures` picked the first impl's `result` as
+  the dispatcher's return type ; per-arm impl returns of a
+  different type → C type mismatch.
+- Fix : detect when impls in the same vtable have divergent
+  `result` OR `resultType` ; force the dispatcher's sig to
+  `result: "any"` (vader_box_t) ; per-arm box via
+  `boxExprUnknown` / `vader_b1_to_box`.
+- Files : `src/c_emit/ops.ts:vtableSignatures`,
+  `src/c_emit/ops.ts:emitVtableDispatchers`.
+- Commit : 1e0ea55d.
+- Vader port : same logic ; the `result: "any"` discriminator
+  flips a single field in the dispatcher emit.
 
-**(10-b) Multi-level inline-box eligibility cascade** —
-`generic_helper_chain` chains `Box(Box(i32))` accesses. The post-erasure
-struct entries for `Box(i32)` carry all-`ref` field types (because
-my struct dedupe rewrites `subst` to `K→Any` even for distinct-identity
-entries) ; consequently `inlineVariantPayload(Box(i32))` returns
-`null` from the type table's perspective, even though Vader's
-inline-box logic at the user level recognises Box(i32) as inline as
-"i32". Phase 1's inline-box optimisation is effectively disabled
-for any non-`@specialize`d generic struct under erasure. **Root
-cause** : the dedupe trades inline-box eligibility for layout
-uniformity (so per-instance struct entries share one heap shape).
-**Fix path** : two options — (b1) keep struct entries' `subst`
-concrete (don't rewrite to Any), accepting per-instance struct
-decls with concrete field types ; inline-box stays functional but
-the body's substitution path must adapt to per-instance struct
-references rather than the shared Any one. (b2) materialise a
-"shape-bridge" at each `struct.get` site that detects the runtime
-inline form via tag check and reads `payload.i` vs `payload.obj`
-accordingly. (b1) is cleaner ; estimated ~1-2 weeks rewrite of the
-dedupe + downstream consumers.
+**Cascade A3 — Primitive arrays lose element tag**
+- Symptom : `vader_array_get` on `i32[]` / `bool[]` returns
+  `vader_box_t` with `tag=0` ; virtual dispatch on the result
+  hits the dispatcher's `default` arm (no tag matches).
+- Cause : `vader_array_load_slot` reads `payload.i / .f / .b`
+  from the primitive-kind storage but leaves `tag = 0` (struct
+  init default).
+- Fix : runtime add `uint32_t element_tag` to
+  `vader_array_buf_t` ; `vader_array_new` takes it as a 4th
+  param ; `vader_array_load_slot` stamps `out.tag =
+  buf->element_tag` ; C-emit's `array.new` passes the element
+  type's BcType index.
+- Files : `runtime/c/vader.h`, `runtime/c/vader_runtime.c`,
+  `src/c_emit/ops.ts:emitArrayNew`.
+- Commit : 1e0ea55d.
+- Vader port : runtime change ports as-is ; the C-emit's
+  `array.new` emit gets a 4th arg.
 
-**(10-c → 10-d) Array element-kind cascade through erased fns** —
-deeper inspection (2026-05-20) shows that all 4 remaining
-iterator/sort/json failures share one structural pattern :
+**Cascade A4 — `array.set` / `array.new` use wrong box tag**
+- Symptom : virtual dispatch on a value read from a BOXED-storage
+  array (e.g. `string[]`) sees tag = array's typeIndex instead of
+  element's typeIndex → miss.
+- Cause : `boxExpr` at array.set called with `op.typeIndex` (array
+  type) instead of the element type.
+- Fix : extract `elemTag = arrayType.element` before boxing.
+- Files : `src/c_emit/ops.ts:emitArrayNew`, `emitArraySet`.
+- Commit : 1e0ea55d.
+- Vader port : same one-line fix at the bytecode emit site.
 
-```vader
-// stdlib
-export map :: fn[T, U](arr: T[], f: fn(T) -> U) -> U[]
-export sum :: fn(arr: i32[]) -> i32              // concrete
+**Cascade B1 — Any-bearing instances missing for `@specialize`d
+generics**
+- Symptom : `B5001 : Iterator impl on ArrayIterator(Entry(Any,
+  Any) | null)` at backend ; any erased decl whose field type
+  mentions a `@specialize`d generic cascades a query that misses
+  the registry.
+- Cause : the instance registry was populated during typecheck
+  with only concrete-args instances ; post-erasure queries use
+  Any-bearing args.
+- Fix : `synthesiseErasedSpecializedInstances` walks every
+  `@specialize`d generic decl and registers `Self(Any, ...)` ;
+  `closeOverGenericImpls` worklist then transitively materialises
+  every impl member at the Any-arg substitution.
+- Files : `src/comptime/evaluate.ts`.
+- Commit : 1e0ea55d.
+- Vader port : same — synthesise Any-bearing instances during
+  instance collection.
 
-// user
-squares := map([1, 2, 3, 4, 5], (x: i32) -> x * x)
-s1 := sum(squares)
-```
+**Cascade B2 — Struct dedupe collapses identity**
+- Symptom : if the dedupe replaces every Repeat(i32) / Repeat(string)
+  / ... entry with one Repeat(Any) representative, downstream
+  `struct.new` / `struct.get` against the original concrete
+  `Repeat(i32)` BcType key misses → fallback `ref _` stub →
+  `struct.new` against stub emits nothing → garbage runtime.
+- Cause : `makeRepresentative` returned a single entry per group ;
+  multi-instance generic structs lost per-instance BcType.
+- Fix : split struct vs fn dedupe paths. **Fn entries** collapse
+  to one representative + per-shape vtable rows via
+  `redirectInner` preserving original `typeArgs` (so vtable rows
+  for `Range(i32) → fn` vs `Range(char) → fn` both exist and
+  point to the same fnIndex). **Struct entries** keep
+  per-instance identity (distinct mangled name, distinct
+  `typeArgs`) but rewrite `subst` to K→Any so the lowered field
+  types are uniform (single shared shape under multiple tags).
+- Files : `src/comptime/erasure-dedupe.ts`.
+- Commit : 1e0ea55d (initial), b291c7ad (seed selection fix).
+- Vader port : critical structural change — implement struct vs
+  fn dedupe split from the start.
 
-`map` is erased → its body allocates `out: U[]` via `array.new`
-with `ins.type = Array(Any)` → C-emit's `arrayKindOf(ref _)` returns
-`"boxed"` → the array's `buf.element_kind = BOXED` ; each slot
-stores a `vader_box_t`. Then `sum(squares)` calls a concrete fn
-expecting `arr.buf.element_kind = I32` (tightly-packed `int32_t[]`).
-Reading `slots[i]` reads the first 4 bytes of the first
-`vader_box_t` (= the tag) instead of an i32. The boundary conversion
-machinery handles boxed wrapper structs but doesn't reshape array
-storage.
+**Cascade B3 — Pass-1 shadow entries with empty subst win the
+group**
+- Symptom : `T[] implements Into(Iterator(T))` → Into.into body's
+  `struct.new ArrayIterator(T)` emits with `TypeParam(T)` still
+  unsubstituted, then internType returns `ref _` → no struct.new
+  → corrupted return value.
+- Cause : Pass 1 (`monomorphizeProject`) creates a shadow entry
+  with `EMPTY_SUBST` for impls whose `forType.kind !== "GenericInstExpr"`
+  (e.g. `T[]` is an ArrayTypeExpr). When the dedupe groups it with
+  the pass-4 entry (proper subst from Into observation), `group[0]`
+  could be the empty-subst entry → `anySubstForEntry(empty) = empty`
+  → no substitution.
+- Fix : dedupe's seed selection picks the entry with non-empty
+  subst : `group.find((e) => e.subst.typeParams?.size > 0)`.
+- Files : `src/comptime/erasure-dedupe.ts`.
+- Commit : b291c7ad.
+- Vader port : same — bias `makeRepresentative` toward an entry
+  that actually binds the decl's type-params.
 
-**Fix paths** :
-- (d1) erased `array.new` emits with the runtime element_kind by
-  carrying per-call-site element-type metadata. Hard because the
-  body is shared.
-- (d2) caller-side array reshape : allocate a fresh
-  concrete-element-kind array, copy slot-by-slot with unboxing.
-  Allocation per call defeats the perf goal of erasure.
-- (d3) stdlib API shift : sum/sort/take operate on `Iterator(T)`
-  rather than `T[]` ; per-slot `virtual.call` path handles boxing
-  already. Mechanical but breaks API.
-- (d4) the `match` arm in `json_basics` is a separate aspect —
-  `parsed : JsonValue` (union of 6 non-generic structs +
-  `JsonError`). One of the variants contains a generic
-  `MutableMap(string, JsonValue)` field. After erasure the parsed
-  JsonObject probably segfaults at its `entries` field access. The
-  segfault (exit 139) is downstream of the same array-kind /
-  layout mismatch.
+**Cascade B4 — Multi-level any-leaf shapes missing**
+- Symptom : `outer :: fn[T](x: T) -> Box(Box(T))` returns 0 bytes
+  (just propagates `middle(x)`) ; `struct.new` for
+  `Box(Box(Any))` finds only Box(Any) (one extra entry per group)
+  and falls back to `ref _` stub.
+- Cause : my "extraStructEntries" added ONE Any-flavoured entry
+  per group (`Box(Any)`) ; nested erased uses like `Box(Box(Any))`
+  need a separate entry with the same group but different
+  typeArgs.
+- Fix : for each original entry's `typeArgs`, walk the type tree
+  and replace each non-Struct leaf with `TY.any` (preserving
+  Struct / Trait / Array / Union / Tuple wrappers) ; add one
+  extra entry per distinct any-leaves shape, deduplicated by
+  mangled name.
+- Files : `src/comptime/erasure-dedupe.ts:anyLeavesOf`,
+  `displayAnyArg`.
+- Commit : f7676446.
+- Vader port : same `anyLeavesOf` helper and enumeration.
 
-Each option is multi-day work and requires a stdlib-API or
-compiler-architecture choice. Until then, the 5 remaining tests are
-gated behind `erasureDedupe` being off.
+**Cascade β — Boundary conversion at return**
+- Symptom : erased fn returns `Yield(Any) | null` (heap-form)
+  but the call site `match it.next() { is Yield(i32) -> ... }`
+  expects `Yield(i32)` (inline-eligible single-primitive). The
+  match arm reads `payload.i` of a heap pointer → garbage.
+- Cause : the erased body returns Any-version layout ; the call
+  site's expected layout differs ; no conversion at boundary.
+- Fix : `virtual.call` and `call` ops carry `resultTypeIndex` /
+  `expectedResultType` (BcType index of the caller's dst local
+  type). C-emit's `emitErasureBoundaryConversion` checks
+  `expectedResultType !== sig.resultType` then unbox+repack in
+  one of three forms (single primitive field inline / single ref
+  field inline / heap field-by-field reshape via
+  `emitHeapStructReshape`). `BcStruct.symbolId` +
+  `computeAnyCounterpartOf` gives the conversion machinery the
+  Any-counterpart of each concrete struct.
+- Files : `src/bytecode/ops.ts`, `src/midir/emit.ts`,
+  `src/midir/dce.ts`, `src/c_emit/emit.ts`,
+  `src/c_emit/ops.ts:emitErasureBoundaryConversion`.
+- Commit : 1e0ea55d (initial), 6e91fd55 (heap reshape + tuple
+  grouping), fe57385c (arg-side reshape + recursive field
+  unbox), 8acd9d78 (multi-sibling dispatch).
+- Vader port : the new op fields + the C-emit machinery port
+  directly. The runtime cost is unbox+repack per call boundary —
+  acceptable for correctness.
 
-**(10-e) JsonObject + nested MutableMap segfault** (json_basics) :
-the parser correctly handles primitives, strings, numbers, arrays,
-nested arrays. It crashes when entering an object value where
-`JsonObject.entries: MutableMap(string, JsonValue)`. Stack trace at
-runtime : `StringChars.next() → string[i] → vader_string_char_at`
-with `string.ptr = 0x1`. The string field is being read but contains
-a small integer — likely a key string in the MutableMap's `Entry` is
-stored at the wrong offset, and the read picks up a usize (hash or
-length) instead. Probable root : `MutableMap` is non-`@specialize`d
-so its struct/impl entries get dedupe'd ; the `Entry(string,
-JsonValue)` nodes carry mixed-shape layouts that the multi-sibling
-reshape (8acd9d78) might not cover correctly because Entry's fields
-include another generic struct (`Entry | null` linked-list). Likely
-fix : extend the reshape's recursion through nullable-ref union
-variants. ~3-5 d investigation.
+**Cascade β2 — Argument-side boundary conversion**
+- Symptom : `swap[T,U](p: [T,U])` reads `p` through the Any
+  layout but main passes a concrete Tuple_24 → swap reads at the
+  wrong field offsets.
+- Cause : conversion was return-side only ; concrete-shape args
+  flow as-is into erased fn bodies.
+- Fix : `call` op carries `argTypeIndices: readonly number[]` ;
+  C-emit's `emitArgReshape` allocates the Any-layout struct,
+  boxes each concrete field, passes the new vader_box_t.
+  Symmetric to the return-side reshape.
+- Files : `src/bytecode/ops.ts`, `src/midir/emit.ts`,
+  `src/midir/dce.ts`, `src/c_emit/ops.ts:emitCallTo`.
+- Commit : fe57385c.
+- Vader port : same op-field extension + arg reshape helper.
 
-**Vader port note** : the path-γ infrastructure (Famille A wrappers,
-struct/fn dedupe split, boundary conversion, `BcStruct.symbolId`,
-`anyCounterpartOf`, argument-side `emitArgReshape`, return-side
-`emitHeapStructReshape`) all has direct Vader self-host port
-equivalents. The fixes are mechanical once the TS side stabilises.
-(10-b) is the foundational rethink ; everything else is incremental.
+**Cascade γ — Multi-sibling tag-dispatching reshape**
+- Symptom : `enumerate` returns `[(usize, T)][]` post-subst
+  `[(usize, Any)][]` (Tuple_29 in the IR — mixed layout) ;
+  caller's reshape only checked the canonical all-ref Any-
+  counterpart (Tuple_27) → no conversion fires → field reads at
+  wrong offsets.
+- Cause : `anyCounterpartOf` picks one canonical Any-version per
+  group ; tuples with mixed concrete + erased fields produce a
+  distinct layout that's neither the user's concrete shape nor
+  the all-Any version.
+- Fix : add `siblingLayoutsOf : Map<concrete, sibling[]>` that
+  enumerates every layout in the same group. Reshape emits one
+  `if (tag == sibling_X)` branch per sibling ; each branch reads
+  fields at the SIBLING's actual struct offsets (cast to the
+  sibling's C struct type) with sibling-vs-expected ValType
+  dispatch per field (3 cases : same → copy ; ref→primitive →
+  unbox ; primitive→ref → box).
+- Files : `src/c_emit/emit.ts:computeSiblingLayoutsOf`,
+  `src/c_emit/ops.ts:emitHeapStructReshape`,
+  `emitHeapStructReshapeForSibling`.
+- Commit : 8acd9d78.
+- Vader port : multi-sibling enumeration + per-sibling reshape
+  port mechanically.
+
+**Cascade γ2 — Union fields in reshape bail too aggressively**
+- Symptom : `JsonObject.entries.values()` returns
+  `[JsonValue][]` (`JsonValue` is a union of 6 struct
+  variants) ; the reshape's `for (const f of expected.fields) if
+  (ft.kind !== "primitive" && ...) return;` skipped any tuple
+  with a union field → no reshape → `StringChars.next` segfaults
+  reading garbage string pointer.
+- Cause : the bail check rejected `union` fields conservatively.
+- Fix : accept union fields (per-sibling field dispatch already
+  handles them via `valTypeOfBcType(union) = "ref"` → both
+  sibling and expected slots are vader_box_t → direct copy
+  preserves the variant tag). Only `array` / `fn` field types
+  still bail (each carries layout invariants the boundary copy
+  can't bridge).
+- Files : `src/c_emit/ops.ts:emitHeapStructReshape`.
+- Commit : f7676446.
+- Vader port : same field-kind whitelist relaxation.
+
+**Cascade δ — Array element-kind cascade through erased fns**
+- Symptom : erased `map` allocates `out: U[]` (post-subst
+  `Any[]`) with BOXED-kind storage ; concrete `sum :: fn(arr:
+  i32[])` reads with I32-kind expectation → reads vader_box_t
+  bytes as int32_t → garbage.
+- Cause : the body's `array.new` is shared and emits BOXED for
+  Any element type ; downstream consumers expect primitive-kind
+  storage.
+- Fix : C-emit's `emitArrayElementKindReshape` (called from the
+  return-side boundary conversion) allocates a fresh array with
+  the right `element_kind`, copies slot-by-slot with unboxing.
+  Handles primitive-element-kind divergence (BOXED → I32 / F64
+  / etc.) AND struct-element layout divergence (each slot is the
+  wrong concrete struct shape ; recursively reshape via
+  `emitHeapStructReshape`).
+- Files : `src/c_emit/ops.ts:emitArrayElementKindReshape`.
+- Commit : 2f5431ba (primitive branch), 82d96888 (struct
+  element branch).
+- Vader port : same per-shape reshape ; the runtime cost is
+  O(length) per boundary — acceptable for correctness, lossy on
+  hot paths. Future optimisation : (10-d3 stdlib API shift to
+  Iterator(T)) avoids the array materialisation entirely.
+
+**Cascade δ2 — Lambda fn-pointer calling convention mismatch**
+- Symptom : `map(arr, (x: i32) -> x * x)` where the lambda is
+  concrete `(i32) -> i32` but map's erased body calls it through
+  a fn pointer typed `vader_box_t (*)(void*, vader_box_t)` →
+  calling convention reads the box's tag as the i32 arg.
+- Cause : `vader_fn_lift_X` wrappers had the lambda's concrete
+  param types ; the `call.indirect` cast at the erased call site
+  pointed to a sig with vader_box_t args. Cast lied about types.
+- Fix : canonical erased fn-pointer sig per arity
+  (`vader_fn_erased_sig_N_t`). Lift/tramp wrappers always
+  exposing `vader_box_t (*)(void*, vader_box_t, ...)` ; inside,
+  each arg is unboxed to the lambda's expected ValType, the
+  lambda is called, the result is boxed. `call.indirect` always
+  casts to the canonical erased sig and passes boxed args ;
+  results tagged `any` and downstream `local.set` / coerce
+  unbox to the static expected type.
+- Files : `src/c_emit/emit.ts:emitFnTrampolines`,
+  `src/c_emit/ops.ts:emitCallIndirect`.
+- Commit : 82d96888.
+- Vader port : the canonical erased ABI ports as a single
+  decision ; the lambda lift wrappers + `call.indirect` cast site
+  follow.
+
+**Cascade ε — VM struct match doesn't accept sibling tags**
+- Symptom : VM `match x { is Yield(i32) -> ... }` misses when x's
+  runtime tag is Yield(Any) ; `vader_unreachable` at the post-
+  match fallthrough.
+- Cause : VM's `matchTo` did a strict `v.typeIndex === idx`
+  comparison for struct types ; no awareness of Any-counterpart
+  / sibling layouts that the C-emit's `emitTypeCheck` accepts via
+  disjunction.
+- Fix : VM caches a `STRUCT_SIBLINGS_CACHE` per module
+  (computed lazily, same logic as `computeSiblingLayoutsOf`).
+  `matchTo` accepts the requested idx OR any sibling.
+- Files : `src/vm/exec.ts:matchTo`, `structSiblingsOf`.
+- Commit : f7676446 (this session).
+- Vader port : when porting the VM (whenever Vader's self-host
+  bytecode VM lands), apply the same sibling-tolerant check at
+  the `matchTo` equivalent.
+
+**Cascade ζ — Multi-level inline-box vs erasure (RESOLVED via
+multi-level any-leaves)**
+- Earlier suspected as a foundational ~1-2 week refactor. Turned
+  out to be fixed by Cascade B4 (multi-level any-leaves struct
+  entries) : once `Box(Box(Any))` had a real struct entry,
+  `outer :: fn[T](x: T) -> Box(Box(T))` body's `struct.new`
+  resolved correctly ; main's reshape converted the chain
+  back to concrete forms ; `.value.value` accesses worked.
+- No separate fix needed beyond f7676446.
+- Vader port : implement Cascade B4 (any-leaves enumeration) and
+  Cascade ζ falls out for free.
+
+**Vader port summary** : every cascade above ports mechanically.
+The infrastructure split is :
+  - `comptime/`-side : Famille A wrappers + Famille B dedupe + Any
+    instance synthesis + any-leaves enumeration.
+  - `bytecode/` IR-side : `call` / `virtual.call` op fields,
+    `BcStruct.symbolId`.
+  - `midir/` (CFG → bytecode emit)-side : populate the new op fields
+    from CFG locals' types ; DCE visits + remaps.
+  - `c_emit/`-side : `anyCounterpartOf` + `siblingLayoutsOf` maps,
+    `emitErasureBoundaryConversion` family (struct reshape,
+    multi-sibling dispatch, array element-kind reshape, arg
+    reshape) ; canonical erased fn-pointer ABI + lift / tramp
+    wrappers.
+  - VM-side : `matchTo` accepts sibling tags.
+  - runtime C : `vader_array_buf_t.element_tag` + 4th param to
+    `vader_array_new`.
+
+The total LoC budget for the Vader port mirrors the TS commit
+diffs (~700 LoC across the layers). No foundational rethink
+needed — the path-γ design is the right design.
 
 ### Issue 1 — Cascading Any through `@specialize`d containers
 

@@ -674,6 +674,37 @@ function receiverTypeIndex(v: Value, m: BytecodeModule): number | null {
   return null;
 }
 
+/** Lazy per-module map : concrete struct typeIndex → sibling layouts
+ *  (same `symbolId` for user generic structs, same arity for
+ *  anonymous tuples). Computed on first `matchTo` against a struct
+ *  ; cached to amortise the O(types) scan. Mirrors c_emit's
+ *  `computeSiblingLayoutsOf` so VM and native agree on which runtime
+ *  shapes satisfy a static struct match. */
+const STRUCT_SIBLINGS_CACHE = new WeakMap<BytecodeModule, ReadonlyMap<number, readonly number[]>>();
+function structSiblingsOf(m: BytecodeModule, idx: number): readonly number[] {
+  let cache = STRUCT_SIBLINGS_CACHE.get(m);
+  if (cache === undefined) {
+    const groups = new Map<string | number, number[]>();
+    for (let i = 0; i < m.types.length; i++) {
+      const t = m.types[i]!;
+      if (t.kind !== "struct") continue;
+      const key = t.symbolId ?? (t.name.startsWith("__Tuple_") ? `tuple:${t.fields.length}` : undefined);
+      if (key === undefined) continue;
+      const list = groups.get(key);
+      if (list !== undefined) list.push(i);
+      else groups.set(key, [i]);
+    }
+    const built = new Map<number, readonly number[]>();
+    for (const indices of groups.values()) {
+      if (indices.length < 2) continue;
+      for (const i of indices) built.set(i, indices.filter((j) => j !== i));
+    }
+    cache = built;
+    STRUCT_SIBLINGS_CACHE.set(m, cache);
+  }
+  return cache.get(idx) ?? [];
+}
+
 function typeMatches(m: BytecodeModule, v: Value, typeIndex: number): boolean {
   const t = m.types[typeIndex];
   if (t === undefined) return false;
@@ -685,7 +716,14 @@ function matchTo(m: BytecodeModule, v: Value, t: BcType, idx: number): boolean {
     case "primitive":
       return v.tag === t.val;
     case "struct":
-      return v.tag === "struct" && v.typeIndex === idx;
+      if (v.tag !== "struct") return false;
+      if (v.typeIndex === idx) return true;
+      // Erasure-aware sibling check : post-path-γ a value may carry a
+      // sibling shape's tag (e.g. `Yield(Any)` runtime flowing into a
+      // match arm typed `is Yield(i32)`). Accept any sibling in the
+      // same symbolId / tuple-arity group. C-emit does the analogous
+      // disjunction inside `emitTypeCheck` for native runs.
+      return structSiblingsOf(m, idx).includes(v.typeIndex);
     case "array":
       return v.tag === "array" && v.typeIndex === idx;
     case "union":
