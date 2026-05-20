@@ -711,6 +711,24 @@ function lowerBinary(ctx: FnLowerCtx, expr: A.BinaryExpr, exprType: Type): Lower
   if (opRes !== undefined) {
     return lowerOverloadedBinary(ctx, expr, exprType, opRes);
   }
+  // Generic-T `==` / `!=` constrained by `T: Equals`. After erasure
+  // both sides are `Any` ; the primitive `ref.ne` path would compare
+  // pointer identity (two boxed-bigint instances mismatch even when
+  // they hold the same value), so route through the `Equals` vtable
+  // to land on the per-instantiation impl.
+  if (expr.op === "eq" || expr.op === "neq") {
+    const lhsRaw = ctx.types.exprType(expr.left);
+    if (lhsRaw.kind === "Any" || lhsRaw.kind === "TypeParam") {
+      const eqCall: LoweredExpr = {
+        kind: "LoweredVirtualCall", span: expr.span, type: TY.bool,
+        traitName: "Equals", method: "equals",
+        receiver: lowerExpr(ctx, expr.left),
+        args: [lowerExpr(ctx, expr.right)],
+      };
+      if (expr.op === "eq") return eqCall;
+      return { kind: "LoweredUnary", span: expr.span, type: TY.bool, op: "not", operand: eqCall };
+    }
+  }
   return {
     kind: "LoweredBinary", span: expr.span, type: exprType,
     op: expr.op,

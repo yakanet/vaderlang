@@ -207,10 +207,15 @@ import "vader/diagnostics/diagnostic" { Position, Span }
 @test test_for_type_name_ident :: fn() -> void {
     p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }
     sp :: Span { .start = p, .end = p }
+    // Set `.id` explicitly — the TS host lowerer's foreign-default
+    // expansion stumbles when an imported const (here `UNASSIGNED_NODE_ID`
+    // from `vader/parser/ast`) is referenced from a default field value
+    // in a struct lit, and lands the whole fn on `LoweredUnreachable`.
     ident :: IdentExpr {
-        .span = sp,
-        .name = "Pair",
-        .implicit_dot = false,
+        .span                = sp,
+        .id                  = usize(0),
+        .name                = "Pair",
+        .implicit_dot        = false,
         .is_type_param_intro = false,
     }
     assert_eq(for_type_name(ident), "Pair")

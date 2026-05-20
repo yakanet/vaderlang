@@ -551,26 +551,23 @@ is_primitive_for_display :: fn(t: Type) -> bool {
     }
 }
 
-// Build a `<T>.Display.to_string(value)` call shape. The callee is a
-// synthesised `LoweredIdent` named `to_string` ; the bytecode emit
-// resolves it to the real impl-member symbol via mangling once that
-// wiring lands.
+// Build a `<T>.Display.to_string(value)` call shape. Lowered as a
+// `LoweredVirtualCall` keyed on `Display.to_string` so the bytecode
+// VM (`virtual.call`) / C-emit (`vader_virtual_dispatch`) pick the
+// per-receiver impl through the vtable rather than a static call —
+// the wide unsigned widths (u32/u64/usize) and generic-T receivers
+// don't have a statically-resolvable target at lower-time. Empty
+// `args` ; the receiver carries the value to display.
 build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -> LoweredExpr {
     string_type :: mk_primitive("string")
-    callee_symbol :: Symbol {
-        .id         = i32(0),
-        .kind       = SymbolKind.Fn,
-        .name       = "to_string",
-        .module     = ctx.typed.resolved.path,
-        .visibility = Visibility.Private,
-        .defined_at = null,
-    }
-    args: LoweredExpr[] = []
-    args.push(value)
-    return LoweredCall {
-        .span = span, .type = string_type,
-        .callee = LoweredIdent { .span = span, .type = string_type, .symbol = callee_symbol },
-        .args = args,
+    no_args: LoweredExpr[] = []
+    return LoweredVirtualCall {
+        .span       = span,
+        .type       = string_type,
+        .trait_name = "Display",
+        .method     = "to_string",
+        .receiver   = value,
+        .args       = no_args,
     }
 }
 

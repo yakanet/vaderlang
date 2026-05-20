@@ -25,17 +25,29 @@ import type { LoweredExpr } from "../lowered-ast.ts";
 import { findCoreTrait } from "./core.ts";
 import { lookupImplEntry, lookupImplFor } from "./for-in.ts";
 
-/** Wrap `value` (lowered, type matches `sourceType`) in a static call to the
- *  `<sourceType>.Display.to_string` impl member. Returns `null` when the
- *  impl can't be located — caller falls back to the bare lowered expression
- *  so the typecheck-time error stays the only diagnostic surface. */
+/** Wrap `value` (lowered, type matches `sourceType`) in a call to the
+ *  `<sourceType>.Display.to_string` impl member. Routes through a direct
+ *  `LoweredCall` when the impl is statically resolvable (primitives,
+ *  concrete structs), and falls back to a `LoweredVirtualCall` when the
+ *  source type is a type-parameter constrained by `T: Display` (the impl
+ *  exists per-instantiation but isn't reachable at lowering time). Both
+ *  paths produce a `string`-typed expression so the builder chain stays
+ *  type-correct. */
 export function wrapAsDisplay(
   ctx: FnLowerCtx, value: LoweredExpr, sourceType: Type, span: Span,
 ): LoweredExpr | null {
   const display = findCoreTrait(ctx.project, CORE_TRAITS.Display);
   if (display === null) return null;
   const impl = lookupImplFor(ctx.project, sourceType, display);
-  if (impl === null) return null;
+  if (impl === null) {
+    // No static impl — generic-T case constrained by `T: Display`. Route
+    // through the vtable so the per-instantiation impl wins at runtime.
+    return {
+      kind: "LoweredVirtualCall", span, type: TY.string,
+      traitName: "Display", method: "to_string",
+      receiver: value, args: [],
+    };
+  }
   const member = impl.decl.members.find((m) => m.name === "to_string");
   if (member === undefined) return null;
   // Generic struct receivers (e.g. `Foo($T) implements Display { … }`) need
