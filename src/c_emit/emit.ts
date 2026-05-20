@@ -22,8 +22,8 @@ import type { ArrayKind, BcDataEntry, BcStruct, BcType, ValType } from "../bytec
 import { arrayKindIndex, arrayKindOf, inlineVariantPayload, nullableRefVariant, sizeOfBcType } from "../bytecode/types.ts";
 
 import {
-  cTypeFor, cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, emitFunctions,
-  isRefVal, signatureFor, valTypeOfBcType, zeroInit,
+  boxExpr, cTypeFor, cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, emitFunctions,
+  isRefVal, signatureFor, unboxExpr, valTypeOfBcType, zeroInit,
 } from "./body.ts";
 import { emitVtableDispatchers, emitVtableForwardDecls } from "./ops.ts";
 import { emitVtables } from "./emit-vtable.ts";
@@ -452,6 +452,18 @@ function emitFnSigTypedefs(ctx: EmitCtx, out: string[]): void {
     const head = `void* env`;
     out.push(`typedef ${cret} (*vader_fn_sig_${i}_t)(${params.length === 0 ? head : `${head}, ${params.join(", ")}`});`);
   }
+  // Canonical erased fn-pointer signatures per arity. Used by
+  // `call.indirect` to cast `closure->code` uniformly so the lift /
+  // tramp wrapper (which always exposes the erased vader_box_t ABI)
+  // can be called from either concrete-typed or erased-typed call
+  // sites without a calling-convention mismatch.
+  const maxArity = ctx.module.types.reduce((acc, t) =>
+    t.kind === "fn" ? Math.max(acc, t.params.length) : acc, 0);
+  for (let n = 0; n <= maxArity; n++) {
+    const tail = Array.from({ length: n }, (_, j) => `vader_box_t a${j}`).join(", ");
+    const head = n === 0 ? "void* env" : `void* env, ${tail}`;
+    out.push(`typedef vader_box_t (*vader_fn_erased_sig_${n}_t)(${head});`);
+  }
   out.push(``);
 }
 
@@ -597,6 +609,24 @@ function emitTypeInfoTable(ctx: EmitCtx, out: string[]): void {
   emitVtables(ctx.module, ctx.fnNames, out);
 }
 
+/** Inline C expression that unboxes a `vader_box_t` named `boxName` to
+ *  the concrete ValType `target`. Used by lift / tramp wrappers to bridge
+ *  the canonical erased (vader_box_t) calling convention against the
+ *  underlying fn's concrete-typed parameters. */
+function unboxArgExpr(_ctx: EmitCtx, boxName: string, target: ValType): string {
+  if (target === "ref" || target === "any") return boxName;
+  return unboxExpr(boxName, target);
+}
+
+/** Inline C expression that boxes the value of a fn-call expression
+ *  whose runtime type is `resultVal` / BcType `resultTypeIndex` into a
+ *  `vader_box_t`. Used by the canonical erased fn-pointer wrappers to
+ *  return through the uniform vader_box_t ABI. */
+function boxRetExpr(ctx: EmitCtx, callExpr: string, resultVal: ValType, resultTypeIndex: number): string {
+  if (resultVal === "ref" || resultVal === "any") return callExpr;
+  return boxExpr(ctx, callExpr, resultVal, resultTypeIndex);
+}
+
 function emitFnTrampolines(ctx: EmitCtx, out: string[]): void {
   // Walk every fn body to discover which fns are taken by reference and
   // which lifted fns get instantiated via `make_closure`. Each kind needs a
@@ -614,51 +644,52 @@ function emitFnTrampolines(ctx: EmitCtx, out: string[]): void {
   }
   if (fnRefMap.size === 0 && closureMap.size === 0) return;
 
+  // Trampolines + lift wrappers use a canonical erased signature
+  // (vader_box_t for every arg + return) so a single function pointer
+  // can be safely cast at any `call.indirect` site regardless of
+  // whether the static fn type at the call site is concrete
+  // (`(i32) -> i32`) or erased (`(Any) -> Any`). Inside, each arg gets
+  // unboxed to the underlying fn's concrete ValType, the actual fn is
+  // called, the return is boxed. Costs one box+unbox per arg+return
+  // per indirect call — acceptable for the correctness gain ;
+  // statically-known direct calls still hit `emitCall` and skip the
+  // wrapper entirely.
   for (const [fnIndex, typeIndex] of fnRefMap) {
     const fn = ctx.module.functions[fnIndex]!;
     const cname = ctx.fnNames[fnIndex]!;
-    const params = fn.signature.params.map((p, j) => `${cTypeForValBare(p)} a${j}`);
-    const cret = fn.signature.result === "void" ? "void" : cTypeForValBare(fn.signature.result);
-    const argList = fn.signature.params.map((_, j) => `a${j}`).join(", ");
-    out.push(`static ${cret} vader_fn_tramp_${fnIndex}(${params.length === 0 ? "void* env" : `void* env, ${params.join(", ")}`}) {`);
+    const tailParams = fn.signature.params.map((_, j) => `vader_box_t a${j}`);
+    const head = tailParams.length === 0 ? "void* env" : `void* env, ${tailParams.join(", ")}`;
+    out.push(`static vader_box_t vader_fn_tramp_${fnIndex}(${head}) {`);
     out.push(`    (void) env;`);
+    const unboxedArgs = fn.signature.params.map((p, j) => `${unboxArgExpr(ctx, `a${j}`, p)}`).join(", ");
     if (fn.signature.result === "void") {
-      out.push(`    ${cname}(${argList});`);
+      out.push(`    ${cname}(${unboxedArgs});`);
+      out.push(`    return vader_box_null();`);
     } else {
-      out.push(`    return ${cname}(${argList});`);
+      out.push(`    return ${boxRetExpr(ctx, `${cname}(${unboxedArgs})`, fn.signature.result, fn.signature.resultType)};`);
     }
     out.push(`}`);
     out.push(`static vader_fn_t vader_fn_static_${fnIndex} = { { ${typeIndex}u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_${fnIndex}, NULL };`);
   }
 
-  // Lifted-lambda wrappers — the bytecode signature of a lifted fn is
-  // `(ref, ...originalParams) → ret` where the leading `ref` is the env
-  // boxed as vader_box_t. The wrapper takes `void* env`, boxes it, and
-  // invokes the underlying lifted fn. The `make_closure` op grabs the
-  // wrapper's address at allocation time.
   for (const [fnIndex, _typeIndex] of closureMap) {
     const fn = ctx.module.functions[fnIndex]!;
     const cname = ctx.fnNames[fnIndex]!;
-    if (fn.signature.params.length === 0) {
-      // Defensive — a lifted fn always has at least the env param.
-      continue;
-    }
-    // Skip the env param at index 0; the rest mirror the original lambda's params.
-    const tailParams = fn.signature.params.slice(1).map((p, j) => `${cTypeForValBare(p)} a${j}`);
-    const tailArgs = fn.signature.params.slice(1).map((_, j) => `a${j}`).join(", ");
-    const cret = fn.signature.result === "void" ? "void" : cTypeForValBare(fn.signature.result);
+    if (fn.signature.params.length === 0) continue;
+    // Skip the env slot (index 0) — the wrapper takes `void* env`
+    // and boxes it back into the vader_box_t the lifted fn expects.
+    const tailVals = fn.signature.params.slice(1);
+    const tailParams = tailVals.map((_, j) => `vader_box_t a${j}`);
     const head = tailParams.length === 0 ? "void* env" : `void* env, ${tailParams.join(", ")}`;
-    out.push(`static ${cret} vader_fn_lift_${fnIndex}(${head}) {`);
-    // Box raw env back into the vader_box_t shape the lifted fn expects.
-    // The BcFn type index of the env doesn't matter to the lifted fn body —
-    // only the raw obj pointer is dereferenced via struct.get on the env
-    // struct's fields. Tag 0 is reserved for null and is harmless here.
+    out.push(`static vader_box_t vader_fn_lift_${fnIndex}(${head}) {`);
     out.push(`    vader_box_t env_box; env_box.tag = 0u; env_box._pad = 0u; env_box.payload.obj = env;`);
-    const callArgs = tailArgs.length === 0 ? `env_box` : `env_box, ${tailArgs}`;
+    const unboxedTail = tailVals.map((p, j) => unboxArgExpr(ctx, `a${j}`, p)).join(", ");
+    const callArgs = unboxedTail.length === 0 ? `env_box` : `env_box, ${unboxedTail}`;
     if (fn.signature.result === "void") {
       out.push(`    ${cname}(${callArgs});`);
+      out.push(`    return vader_box_null();`);
     } else {
-      out.push(`    return ${cname}(${callArgs});`);
+      out.push(`    return ${boxRetExpr(ctx, `${cname}(${callArgs})`, fn.signature.result, fn.signature.resultType)};`);
     }
     out.push(`}`);
   }

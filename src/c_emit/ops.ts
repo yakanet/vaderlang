@@ -301,24 +301,56 @@ function emitArrayElementKindReshape(
 ): void {
   const elemBcType = s.ctx.module.types[expected.element];
   if (elemBcType === undefined) return;
-  if (elemBcType.kind !== "primitive") return;     // only primitive elems handled
-  if (elemBcType.val === "string") return;         // string arrays already BOXED-backed
-  const elemKind = arrayKindOf(elemBcType);
-  if (elemKind === "boxed") return;                // source and target both BOXED, no reshape
-  const kindIdx = arrayKindIndex(elemKind);
-  // Allocate fresh array with the right element_kind. Use the expected
-  // BcType index as both the array's type tag and its element_tag for
-  // primitive-storage tagging (used by `vader_array_load_slot`).
-  line(s, `if (${tmp}.payload.obj != NULL) {`);
-  line(s, `    vader_array_t* __src_arr = (vader_array_t*) ${tmp}.payload.obj;`);
-  line(s, `    size_t __n = __src_arr->length;`);
-  line(s, `    vader_array_t* __dst_arr = vader_array_new(${expectedTypeIndex}u, __n, ${kindIdx}u, ${expected.element}u);`);
-  line(s, `    for (size_t __i = 0; __i < __n; __i++) {`);
-  line(s, `        vader_box_t __slot = vader_array_get(__src_arr, __i);`);
-  line(s, `        vader_array_set(__dst_arr, __i, ${boxExpr(s.ctx, unboxExpr("__slot", elemBcType.val as ValType), elemBcType.val as ValType, expected.element)});`);
-  line(s, `    }`);
-  line(s, `    ${tmp} = vader_box_obj(${expectedTypeIndex}u, __dst_arr);`);
-  line(s, `}`);
+
+  // Two reshape flavours, dispatched on the expected element type :
+  //
+  //  (a) Primitive non-string element : the source is BOXED-backed
+  //      (vader_box_t per slot) but the target expects tightly-packed
+  //      primitive storage (`int32_t[]`). Allocate a fresh array with
+  //      the right element_kind, unbox+repack per slot.
+  //  (b) Struct element with an Any-counterpart : both source and
+  //      target use BOXED storage so the array shape matches, but
+  //      each slot is the wrong concrete struct shape (`Tuple(Any,
+  //      Any)` source, `Tuple(string, i32)` target). Allocate a fresh
+  //      array, reshape each slot box through the recursive struct
+  //      converter, push.
+  //
+  // Other shapes (ref, array, union, fn — and primitive `string`
+  // already BOXED-backed) bail without conversion.
+  if (elemBcType.kind === "primitive" && elemBcType.val !== "string") {
+    const elemKind = arrayKindOf(elemBcType);
+    if (elemKind === "boxed") return;
+    const kindIdx = arrayKindIndex(elemKind);
+    line(s, `if (${tmp}.payload.obj != NULL) {`);
+    line(s, `    vader_array_t* __src_arr = (vader_array_t*) ${tmp}.payload.obj;`);
+    line(s, `    size_t __n = __src_arr->length;`);
+    line(s, `    vader_array_t* __dst_arr = vader_array_new(${expectedTypeIndex}u, __n, ${kindIdx}u, ${expected.element}u);`);
+    line(s, `    for (size_t __i = 0; __i < __n; __i++) {`);
+    line(s, `        vader_box_t __slot = vader_array_get(__src_arr, __i);`);
+    line(s, `        vader_array_set(__dst_arr, __i, ${boxExpr(s.ctx, unboxExpr("__slot", elemBcType.val as ValType), elemBcType.val as ValType, expected.element)});`);
+    line(s, `    }`);
+    line(s, `    ${tmp} = vader_box_obj(${expectedTypeIndex}u, __dst_arr);`);
+    line(s, `}`);
+    return;
+  }
+
+  if (elemBcType.kind === "struct") {
+    const elemAnyIdx = s.ctx.anyCounterpartOf.get(expected.element);
+    if (elemAnyIdx === undefined) return;          // element layout already uniform
+    if (s.ctx.mutatedStructs.has(expected.element)) return;
+    line(s, `if (${tmp}.payload.obj != NULL) {`);
+    line(s, `    vader_array_t* __src_arr = (vader_array_t*) ${tmp}.payload.obj;`);
+    line(s, `    size_t __n = __src_arr->length;`);
+    line(s, `    vader_array_t* __dst_arr = vader_array_new(${expectedTypeIndex}u, __n, ${arrayKindIndex("boxed")}u, ${expected.element}u);`);
+    line(s, `    for (size_t __i = 0; __i < __n; __i++) {`);
+    line(s, `        vader_box_t __slot = vader_array_get(__src_arr, __i);`);
+    emitHeapStructReshape(s, "__slot", expected.element, elemAnyIdx);
+    line(s, `        vader_array_set(__dst_arr, __i, __slot);`);
+    line(s, `    }`);
+    line(s, `    ${tmp} = vader_box_obj(${expectedTypeIndex}u, __dst_arr);`);
+    line(s, `}`);
+    return;
+  }
 }
 
 /** Heap-form reshape : the runtime carries an all-`Any`-fields heap
@@ -562,20 +594,29 @@ export function emitCallIndirect(s: FnState, op: Extract<Op, { kind: "call.indir
     return;
   }
   // Stack order (WASM convention): args... then fn ref on top.
+  // Universally box every arg to vader_box_t and cast the fn pointer
+  // to the canonical erased sig — the lift/tramp wrapper emitted in
+  // `emitFnTrampolines` uses the same erased ABI regardless of the
+  // underlying fn's concrete sig, so a closure created with a
+  // (i32) -> i32 lambda can flow through an erased `fn(Any) -> Any`
+  // call site (e.g. erased `map` body invoking its `f` callback)
+  // without a calling-convention mismatch. The result is captured as
+  // vader_box_t and coerced to the call site's expected slot type via
+  // `emitCallResult`'s standard coerce chain.
   const fnVal = pop(s);
   const args: string[] = [];
   for (let i = t.params.length - 1; i >= 0; i--) {
     const v = pop(s);
-    const expectedVal = valTypeOfBcType(s.ctx.module.types[t.params[i]!]!);
-    const boxed = coerce(s, v.name, v.val, expectedVal);
-    args.unshift(coerceForB1Arg(s.ctx, boxed, t.params[i]!));
+    args.unshift(coerce(s, v.name, v.val, "any"));
   }
-  const retVal = valTypeOfBcType(s.ctx.module.types[t.returnType]!);
   const fnObj = `fnobj_${s.tmpCounter++}`;
   line(s, `vader_fn_t* ${fnObj} = (vader_fn_t*) ${fnVal.name}.payload.obj;`);
   const callArgs = args.length === 0 ? `${fnObj}->env` : `${fnObj}->env, ${args.join(", ")}`;
-  const callExpr = `((vader_fn_sig_${op.typeIndex}_t) ${fnObj}->code)(${callArgs})`;
-  emitCallResult(s, callExpr, retVal, t.returnType);
+  const callExpr = `((vader_fn_erased_sig_${t.params.length}_t) ${fnObj}->code)(${callArgs})`;
+  // Result always comes back as vader_box_t ; let the standard call
+  // result path tag it as "any" and downstream `local.set` / coerce
+  // unbox to the static expected type.
+  emitCallResult(s, callExpr, "any", t.returnType);
 }
 
 export function emitIntrinsic(s: FnState, op: Extract<Op, { kind: "intrinsic" }>): void {
