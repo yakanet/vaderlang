@@ -8,17 +8,21 @@
 //            empty substitution. Non-generic ImplDecl members ship
 //            as separate entries (impls have no symbol, so their
 //            members are synthesised individually).
-//   Pass 2 — every concrete `(generic struct, type_args)` instance
-//            from `EvaluatedProject.instances` gets one entry, plus
-//            one entry per impl member of each matching generic impl.
-//   Pass 3 — every `(generic fn, type_args)` call site gets one entry.
+//   Pass 2 — every concrete `(generic struct, type_arguments)`
+//            instance from `EvaluatedProject.instances` gets one
+//            entry, plus one entry per impl member of each matching
+//            generic impl.
+//   Pass 3 — every `(generic fn, type_arguments)` call site gets one
+//            entry.
 //   Pass 4 — blanket `Into` impl members observed at coercion sites
 //            ship via `EvaluatedProject.into_members`.
 //
-// This file lands Pass 1 (port sub-phase B1). Passes 2-4 land in
-// follow-up commits as `monomorphize_project` grows ; until then,
-// generic instances and Into members aren't materialised — the lower
-// pass still falls back to its own decl-walk for those.
+// All four passes live in this file — splitting them across modules
+// triggered an import cycle (Pass 2/3/4 need the entry construction
+// helpers from Pass 1's side, the orchestrator needs the pass
+// functions from Pass 2/3/4's side). Result is ~830 LoC, slightly
+// over the 500 LoC soft target ; tradeoff documented here so future
+// readers don't re-attempt the split.
 //
 // Wiring into `check.vader` is deferred to a later commit (it changes
 // every `evaluated-ast` snapshot, so it ships separately).
@@ -27,17 +31,19 @@ import "std/collections" { MutableMap, keys }
 import "vader/parser/ast" {
     Decl, FnDecl, StructDecl, ConstDecl, ImplDecl,
     AssertDecl, ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl,
-    GenericInstExpr,
+    TypeParam, GenericInstExpr, TypeExpr, IdentExpr,
 }
 import "vader/typecheck/typed_ast" { TypedProgram, TypedProject }
-import "vader/typecheck/types" { Type }
+import "vader/typecheck/types" { Type, PrimitiveType, StructType }
 import "vader/typecheck/substitution" { Substitution, new_substitution }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/resolver/resolve" { ResolvedModule }
 import "vader/resolver/loader" { LoadedProject, LoadedModule }
-import "vader/comptime/evaluated_ast" { EvaluatedProject }
-import "vader/comptime/instances" { canonical_args_key }
+import "vader/comptime/evaluated_ast" { EvaluatedProject, IntoMemberObservation }
+import "vader/comptime/instances" { canonical_args_key, GenericInstance }
 import "vader/comptime/mono_ast" { MonoEntry, MonoProject, new_mono_project }
-import "vader/comptime/mangle" { mangle, for_type_name, uniq }
+import "vader/comptime/mangle" { mangle, uniq, for_type_name }
+import "vader/diagnostics/diagnostic" { Span }
 
 /// Top-level entry. Builds a `MonoProject` from the comptime engine's
 /// `EvaluatedProject`. Phase B1 ships Pass 1 only ; the returned
@@ -71,6 +77,27 @@ export monomorphize_project :: fn(
         decls :: decls_opt
         run_pass_1(decls, module_typed, project, state)
     }
+
+    // Pre-index generic impls by their target struct name so Pass 2
+    // can resolve `(struct instance, matching generic impls)` in O(1)
+    // per instance.
+    generic_impls :: build_generic_impls_by_struct(loaded, evaluated.typed)
+
+    // Pass 2 — every concrete `(generic struct, type_arguments)`
+    // instance gets one MonoEntry, plus one impl-member entry per
+    // matching generic impl on that struct.
+    run_pass_2(loaded, evaluated, project, state, generic_impls)
+
+    // Pass 3 — every `(generic fn, type_arguments)` call site that
+    // showed up in the instance registry gets one impl-member-style
+    // entry routed through `fn_instance_entries`.
+    run_pass_3(loaded, evaluated, project, state)
+
+    // Pass 4 — blanket-Into impl members observed at typer coercion
+    // sites. The typer records one `IntoMemberObservation` per
+    // dedup'd `(member, type_arguments)` pair ; we materialise one
+    // MonoEntry per observation.
+    run_pass_4(loaded, evaluated, project, state)
 
     return project
 }
@@ -142,6 +169,428 @@ is_generic_for_type :: fn(impl_decl: ImplDecl) -> bool {
     // `impl_decl.type_params.len() > 0` once `[T] Foo implements …` form
     // routes through the same logic.
     return impl_decl.for_type is GenericInstExpr
+}
+
+// =========================================================================
+// Pass 2 — struct instances + generic impl members
+// =========================================================================
+
+/// Per-target-struct list of generic impls. Outer key is the bare
+/// struct name (`"List"`, `"Map"`, …) ; inner entries carry both the
+/// impl decl and the typed program it lives in (the impl-side
+/// type-params resolve to symbols in *that* program, distinct from
+/// the struct's own program).
+GenericImplsByStruct :: struct {
+    by_struct_name: MutableMap(string, GenericImplsBucket)
+}
+
+GenericImplsBucket :: struct {
+    entries: GenericImplEntry[]
+}
+
+GenericImplEntry :: struct {
+    decl:           ImplDecl
+    impl_program:   TypedProgram
+}
+
+/// Build the per-target-struct index. Walks every module's decls
+/// once and buckets each generic ImplDecl under its for-type's bare
+/// name.
+build_generic_impls_by_struct :: fn(loaded: LoadedProject, typed: TypedProject) -> GenericImplsByStruct {
+    table :: GenericImplsByStruct {
+        .by_struct_name = MutableMap(string, GenericImplsBucket) { .buckets = [], .size = 0 },
+    }
+    for module_id in typed.modules.keys() {
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        decls_opt :: module_decls_for(loaded, module_id)
+        if decls_opt is null { continue }
+        decls :: decls_opt
+        i: usize = 0
+        for i < decls.len() {
+            d :: decls[i]
+            match d {
+                is ImplDecl as impl_decl -> {
+                    if impl_decl.for_type is GenericInstExpr {
+                        name :: for_type_name(impl_decl.for_type)
+                        if name != "?" {
+                            entry :: GenericImplEntry { .decl = impl_decl, .impl_program = module_typed }
+                            bucket_existing :: table.by_struct_name[name]
+                            if bucket_existing is null {
+                                fresh: GenericImplEntry[] = [entry]
+                                table.by_struct_name[name] = GenericImplsBucket { .entries = fresh }
+                            } else {
+                                bucket_existing.entries.push(entry)
+                            }
+                        }
+                    }
+                }
+                _ -> {}
+            }
+            i += 1
+        }
+    }
+    return table
+}
+
+run_pass_2 :: fn(
+    loaded: LoadedProject, evaluated: EvaluatedProject,
+    project: MonoProject, state: PassState,
+    generic_impls: GenericImplsByStruct,
+) -> void {
+    instances :: evaluated.instances
+    i: usize = 0
+    for i < instances.len() {
+        inst :: instances[i]
+        materialise_struct_instance(loaded, evaluated, inst, project, state, generic_impls)
+        i += 1
+    }
+}
+
+/// Materialise one struct instance : push the struct's own
+/// MonoEntry, then walk every matching generic impl and push one
+/// MonoEntry per member. Skips non-struct instances (trait /
+/// blanket-into instances ship in other passes).
+materialise_struct_instance :: fn(
+    loaded: LoadedProject, evaluated: EvaluatedProject,
+    inst: GenericInstance, project: MonoProject, state: PassState,
+    generic_impls: GenericImplsByStruct,
+) -> void {
+    if inst.symbol.kind != SymbolKind.Struct { return }
+    module_typed :: evaluated.typed.modules[inst.symbol.module]
+    if module_typed is null { return }
+    program :: module_typed
+
+    struct_decl_opt :: find_struct_decl(loaded, inst.symbol.module, inst.symbol.name)
+    if struct_decl_opt is null { return }
+    struct_decl :: struct_decl_opt
+    if struct_decl.type_params.len() != inst.args.len() { return }
+
+    // Push the struct's own MonoEntry (`Foo$i32` etc.).
+    struct_entry :: MonoEntry {
+        .id              = next_entry_id(state),
+        .is_main         = false,
+        .mangled         = uniq(state.seen_mangled, mangle(struct_decl.name, program.resolved.path, inst.args)),
+        .decl            = struct_decl,
+        .symbol          = inst.symbol,
+        .subst           = build_subst(struct_decl.type_params, inst.args, program.resolved),
+        .type_arguments  = inst.args,
+        .module          = program,
+    }
+    push_entry(project, struct_entry)
+    project.lookup_by_instance[inst.display_key] = struct_entry
+
+    // Walk matching generic impls.
+    bucket :: generic_impls.by_struct_name[inst.symbol.name]
+    if bucket is null { return }
+    j: usize = 0
+    for j < bucket.entries.len() {
+        impl_entry :: bucket.entries[j]
+        impl_decl :: impl_entry.decl
+        impl_program :: impl_entry.impl_program
+        if !impl_for_type_matches(impl_decl.for_type, inst.args, impl_program.resolved) {
+            j += 1
+            continue
+        }
+        subst :: if impl_decl.type_params.len() > usize(0) {
+            build_subst(impl_decl.type_params, inst.args, impl_program.resolved)
+        } else {
+            build_subst(struct_decl.type_params, inst.args, program.resolved)
+        }
+        k: usize = 0
+        for k < impl_decl.members.len() {
+            member :: impl_decl.members[k]
+            base :: "${inst.symbol.name}\$${impl_decl.trait_name}\$${member.name}"
+            member_entry :: make_impl_member_entry(member, base, impl_program, subst, inst.args, state)
+            push_entry(project, member_entry)
+            put_impl_entry(project.impl_method_entries, member, inst.args, member_entry)
+            k += 1
+        }
+        j += 1
+    }
+}
+
+/// Look up a `StructDecl` by name in the loaded project's source
+/// decls of the given module. The TS side reads
+/// `inst.symbol.source.decl` directly — Vader's Symbol doesn't carry
+/// `source`, so we re-find by name + kind.
+find_struct_decl :: fn(loaded: LoadedProject, module_id: string, name: string) -> StructDecl | null {
+    decls_opt :: module_decls_for(loaded, module_id)
+    if decls_opt is null { return null }
+    decls :: decls_opt
+    i: usize = 0
+    for i < decls.len() {
+        d :: decls[i]
+        match d {
+            is StructDecl as s -> {
+                if s.name == name { return s }
+            }
+            _ -> {}
+        }
+        i += 1
+    }
+    return null
+}
+
+/// Build a `Substitution` mapping `type_params[i].symbol.id` → args[i].
+/// The TypeParam symbol is recovered by scanning `program.symbols`
+/// for a matching `kind == TypeParam` entry with the same `name` and
+/// span.
+///
+/// @param type_params  the source-level type-param list of the decl.
+/// @param args         the concrete type arguments (same length).
+/// @param program      the resolved module — owns the TypeParam symbols.
+/// @return             a substitution ; bindings limited to params with
+///                     a resolvable Symbol.
+build_subst :: fn(type_params: TypeParam[], args: Type[], program: ResolvedModule) -> Substitution {
+    subst :: new_substitution()
+    n :: type_params.len()
+    if args.len() < n { return subst }
+    i: usize = 0
+    for i < n {
+        tp :: type_params[i]
+        sym :: find_type_param_symbol(program, tp)
+        if sym is Symbol {
+            subst.type_params[sym.id] = args[i]
+        }
+        i += 1
+    }
+    return subst
+}
+
+/// Find the resolver Symbol for a `TypeParam` AST node. Symbol's
+/// `defined_at` carries the param's span — we match by span offset,
+/// fall back to a name-only match for materialised clones whose
+/// spans drift.
+find_type_param_symbol :: fn(program: ResolvedModule, tp: TypeParam) -> Symbol | null {
+    syms :: program.symbols
+    i: usize = 0
+    for i < syms.len() {
+        sym :: syms[i]
+        if sym.kind == SymbolKind.TypeParam && sym.name == tp.name {
+            if symbol_defines_span(sym, tp.span) { return sym }
+        }
+        i += 1
+    }
+    j: usize = 0
+    for j < syms.len() {
+        sym :: syms[j]
+        if sym.kind == SymbolKind.TypeParam && sym.name == tp.name { return sym }
+        j += 1
+    }
+    return null
+}
+
+/// True when the impl's for-type args are compatible with `inst_args`.
+/// Concrete-arg impls (`Range[i32]`) match only their exact instance ;
+/// generic-arg impls (`Foo[T]`) match any concrete instantiation.
+/// Mirrors `implForTypeMatches` in `src/comptime/specialize.ts:400`.
+impl_for_type_matches :: fn(for_type: TypeExpr, inst_args: Type[], program: ResolvedModule) -> bool {
+    match for_type {
+        is GenericInstExpr as gi -> {
+            if gi.type_args.len() != inst_args.len() { return false }
+            i: usize = 0
+            for i < gi.type_args.len() {
+                decl_arg :: gi.type_args[i]
+                query_arg :: inst_args[i]
+                if !for_type_arg_matches(decl_arg, query_arg, program) { return false }
+                i += 1
+            }
+            return true
+        }
+        _ -> { return true }
+    }
+}
+
+/// Per-arg matcher for `impl_for_type_matches`. A `decl_arg` that's
+/// an IdentExpr referring to a type-param accepts any concrete arg ;
+/// otherwise we require name-level compatibility (concrete primitive
+/// or struct).
+for_type_arg_matches :: fn(decl_arg: TypeExpr, query_arg: Type, program: ResolvedModule) -> bool {
+    match decl_arg {
+        is IdentExpr as ident -> {
+            if is_type_param_name(program, ident.name) { return true }
+            return query_arg_matches_name(query_arg, ident.name)
+        }
+        _ -> { return false }
+    }
+}
+
+is_type_param_name :: fn(program: ResolvedModule, name: string) -> bool {
+    syms :: program.symbols
+    i: usize = 0
+    for i < syms.len() {
+        sym :: syms[i]
+        if sym.kind == SymbolKind.TypeParam && sym.name == name { return true }
+        i += 1
+    }
+    return false
+}
+
+query_arg_matches_name :: fn(query_arg: Type, name: string) -> bool = match query_arg {
+    is PrimitiveType as p -> p.name == name
+    is StructType as s    -> s.symbol.name == name
+    _                     -> false
+}
+
+// =========================================================================
+// Pass 3 — fn instances
+// =========================================================================
+
+run_pass_3 :: fn(
+    loaded: LoadedProject, evaluated: EvaluatedProject,
+    project: MonoProject, state: PassState,
+) -> void {
+    instances :: evaluated.instances
+    i: usize = 0
+    for i < instances.len() {
+        inst :: instances[i]
+        if inst.symbol.kind != SymbolKind.Fn {
+            i += 1
+            continue
+        }
+        materialise_fn_instance(loaded, evaluated, inst, project, state)
+        i += 1
+    }
+}
+
+materialise_fn_instance :: fn(
+    loaded: LoadedProject, evaluated: EvaluatedProject,
+    inst: GenericInstance, project: MonoProject, state: PassState,
+) -> void {
+    module_typed :: evaluated.typed.modules[inst.symbol.module]
+    if module_typed is null { return }
+    program :: module_typed
+    fn_decl_opt :: find_fn_decl_for_symbol(loaded, inst.symbol)
+    if fn_decl_opt is null { return }
+    fn_decl :: fn_decl_opt
+    if fn_decl.type_params.len() == usize(0) { return }
+    if fn_decl.type_params.len() != inst.args.len() { return }
+    subst :: build_subst(fn_decl.type_params, inst.args, program.resolved)
+    entry :: make_impl_member_entry(fn_decl, inst.symbol.name, program, subst, inst.args, state)
+    push_entry(project, entry)
+    put_fn_instance_entry(project.fn_instance_entries, fn_decl, inst.args, entry)
+}
+
+/// Look up the `FnDecl` backing a fn-kind Symbol. Scans the loaded
+/// module's decls for a FnDecl matching `sym.name` ; when overloads
+/// exist, picks the one whose `name_span` matches the Symbol's
+/// `defined_at`. Falls back to first-match by name when no span
+/// agreement exists.
+find_fn_decl_for_symbol :: fn(loaded: LoadedProject, sym: Symbol) -> FnDecl | null {
+    decls_opt :: module_decls_for(loaded, sym.module)
+    if decls_opt is null { return null }
+    decls :: decls_opt
+    span_match :: find_fn_by_span(decls, sym)
+    if span_match is FnDecl { return span_match }
+    return find_first_fn_named(decls, sym.name)
+}
+
+find_first_fn_named :: fn(decls: Decl[], name: string) -> FnDecl | null {
+    i: usize = 0
+    for i < decls.len() {
+        d :: decls[i]
+        match d {
+            is FnDecl as f -> {
+                if f.name == name { return f }
+            }
+            _ -> {}
+        }
+        i += 1
+    }
+    return null
+}
+
+find_fn_by_span :: fn(decls: Decl[], sym: Symbol) -> FnDecl | null {
+    i: usize = 0
+    for i < decls.len() {
+        d :: decls[i]
+        match d {
+            is FnDecl as f -> {
+                if f.name == sym.name && symbol_defines_span(sym, f.name_span) { return f }
+            }
+            _ -> {}
+        }
+        i += 1
+    }
+    return null
+}
+
+/// `(fn_decl, args)` → MonoEntry routing. Composite key
+/// `${fn_decl.id}::${args_key(args)}` matches the
+/// `impl_method_entries` shape so the bytecode emit can resolve
+/// either via one indexed lookup.
+put_fn_instance_entry :: fn(
+    table: MutableMap(string, MonoEntry),
+    fn_decl: FnDecl, args: Type[], entry: MonoEntry,
+) -> void {
+    table["${fn_decl.id}::${args_key(args)}"] = entry
+}
+
+// =========================================================================
+// Pass 4 — blanket-Into impl members
+// =========================================================================
+
+run_pass_4 :: fn(
+    loaded: LoadedProject, evaluated: EvaluatedProject,
+    project: MonoProject, state: PassState,
+) -> void {
+    observations :: evaluated.into_members
+    i: usize = 0
+    for i < observations.len() {
+        obs :: observations[i]
+        materialise_into_member(loaded, obs, project, state)
+        i += 1
+    }
+}
+
+materialise_into_member :: fn(
+    loaded: LoadedProject, obs: IntoMemberObservation,
+    project: MonoProject, state: PassState,
+) -> void {
+    impl_decl_opt :: find_owning_impl(loaded, obs.program, obs.member)
+    if impl_decl_opt is null { return }
+    impl_decl :: impl_decl_opt
+    subst :: if obs.type_arguments.len() > usize(0) {
+        build_subst(impl_decl.type_params, obs.type_arguments, obs.program.resolved)
+    } else {
+        new_substitution()
+    }
+    for_name :: for_type_name(impl_decl.for_type)
+    base :: "${for_name}\$${impl_decl.trait_name}\$${obs.member.name}"
+    entry :: make_impl_member_entry(obs.member, base, obs.program, subst, obs.type_arguments, state)
+    push_entry(project, entry)
+    put_impl_entry(project.impl_method_entries, obs.member, obs.type_arguments, entry)
+}
+
+/// Linear scan over the loaded module's decls for the ImplDecl
+/// whose `members` array contains `member`. Mirrors `findOwningImpl`
+/// in `src/comptime/specialize.ts:263`.
+find_owning_impl :: fn(loaded: LoadedProject, program: TypedProgram, member: FnDecl) -> ImplDecl | null {
+    decls_opt :: module_decls_for(loaded, program.resolved.path)
+    if decls_opt is null { return null }
+    decls :: decls_opt
+    i: usize = 0
+    for i < decls.len() {
+        d :: decls[i]
+        match d {
+            is ImplDecl as impl_decl -> {
+                if impl_includes_member(impl_decl, member) { return impl_decl }
+            }
+            _ -> {}
+        }
+        i += 1
+    }
+    return null
+}
+
+impl_includes_member :: fn(impl_decl: ImplDecl, member: FnDecl) -> bool {
+    i: usize = 0
+    for i < impl_decl.members.len() {
+        if impl_decl.members[i].id == member.id { return true }
+        i += 1
+    }
+    return false
 }
 
 
@@ -259,8 +708,6 @@ symbol_defines_span :: fn(sym: Symbol, name_span: Span) -> bool {
         _ -> { return false }
     }
 }
-
-import "vader/diagnostics/diagnostic" { Span }
 
 /// Synthesise a `Symbol` for an impl member. Impl members aren't
 /// resolver-tracked, so monotonic ids minted from `state.synth_id`
