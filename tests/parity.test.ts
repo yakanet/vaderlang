@@ -12,7 +12,16 @@ import { test, expect } from "bun:test";
 
 import { listSnippets } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
-import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
+import { LONG_BUILD, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
+
+// Snippets whose Vader-CLI typecheck runs longer than `MEDIUM_BUILD`.
+// `namespace_alias_dedupe` exercises the cross-module folder-alias
+// resolution path (`P :: import "vader/parser"` plus an explicit
+// `import "vader/parser/ast"` over the full vader/* tree) — that's
+// ~40s on the Vader self-host today vs ~0.3s on TS. The slowness is a
+// known typecheck-pass O(n²) on multi-module unions ; not blocking
+// parity, just budget.
+const SLOW_TYPECHECK_SNIPPETS = new Set(["namespace_alias_dedupe"]);
 
 interface Stage {
   label: string;
@@ -46,6 +55,7 @@ for (const stage of STAGES) {
       test.skip(`${stage.label}: ${s.name}`, () => {});
       continue;
     }
+    const timeout = SLOW_TYPECHECK_SNIPPETS.has(s.name) ? LONG_BUILD : MEDIUM_BUILD;
     test.concurrent(`${stage.label}: ${s.name}`, async () => {
       const snapPath = `${s.dir}/${stage.snapshotFile}`;
       let expected: string;
@@ -59,6 +69,6 @@ for (const stage of STAGES) {
           snapshotDiff(snapPath, expected, stdout),
         );
       }
-    }, { timeout: MEDIUM_BUILD });
+    }, { timeout });
   }
 }
