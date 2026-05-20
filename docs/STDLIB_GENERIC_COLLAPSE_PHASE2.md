@@ -2,9 +2,9 @@
 
 > **Status**: **PROGRESSIVE PATH (γ) — 2026-05-20.** Erasure
 > infrastructure massively extended ; native suite reduced from 31
-> fails (the original cascade) to **5 fails** with `erasureDedupe`
+> fails (the original cascade) to **2 fails** with `erasureDedupe`
 > flipped on. Gated off by default so baseline stays 252/252 green.
-> Each of the 5 remaining cases is a distinct compile-time / runtime
+> Each of the 2 remaining cases is a distinct compile-time / runtime
 > interaction pattern documented in §9 Issue 10.
 >
 > **Sub-deliverables shipped (path γ progressive) :**
@@ -320,11 +320,20 @@ fallback to option (b).
 
 ### Issue 10 — Remaining cascade patterns after path γ (2026-05-20)
 
-After the Famille A + B + boundary-conversion + arg-reshape
-infrastructure ships (commits 1e0ea55d, b291c7ad, 6e91fd55, fe57385c),
-flipping `erasureDedupe` on leaves **5/252 native tests failing** —
+After the Famille A + B + boundary-conversion + arg-reshape + lambda
+trampoline + multi-sibling tag-dispatch infrastructure ships (commits
+1e0ea55d, b291c7ad, 6e91fd55, fe57385c, 2f5431ba, 82d96888, 8acd9d78),
+flipping `erasureDedupe` on leaves **2/252 native tests failing** —
 each surfacing a distinct interaction the current boundary machinery
 doesn't bridge.
+
+**Resolved by this session (2026-05-20)** :
+  - tuple_generic_swap (arg-side reshape, fe57385c)
+  - trait_dispatch_generic_iter (broader sig divergence trigger, 6e91fd55)
+  - iter_combinators, std_sort (lambda trampoline via canonical
+    erased fn-pointer ABI, 82d96888)
+  - iter_zip_chain (multi-sibling tag-dispatching reshape for tuples
+    with mixed concrete + erased fields, 8acd9d78)
 
 **(10-a) Argument-side erasure conversion** — ~~`tuple_generic_swap`
 passes `Tuple_24 { i32, string }` to `swap[T,U]` whose erased body
@@ -399,6 +408,22 @@ storage.
 Each option is multi-day work and requires a stdlib-API or
 compiler-architecture choice. Until then, the 5 remaining tests are
 gated behind `erasureDedupe` being off.
+
+**(10-e) JsonObject + nested MutableMap segfault** (json_basics) :
+the parser correctly handles primitives, strings, numbers, arrays,
+nested arrays. It crashes when entering an object value where
+`JsonObject.entries: MutableMap(string, JsonValue)`. Stack trace at
+runtime : `StringChars.next() → string[i] → vader_string_char_at`
+with `string.ptr = 0x1`. The string field is being read but contains
+a small integer — likely a key string in the MutableMap's `Entry` is
+stored at the wrong offset, and the read picks up a usize (hash or
+length) instead. Probable root : `MutableMap` is non-`@specialize`d
+so its struct/impl entries get dedupe'd ; the `Entry(string,
+JsonValue)` nodes carry mixed-shape layouts that the multi-sibling
+reshape (8acd9d78) might not cover correctly because Entry's fields
+include another generic struct (`Entry | null` linked-list). Likely
+fix : extend the reshape's recursion through nullable-ref union
+variants. ~3-5 d investigation.
 
 **Vader port note** : the path-γ infrastructure (Famille A wrappers,
 struct/fn dedupe split, boundary conversion, `BcStruct.symbolId`,
