@@ -53,7 +53,7 @@ export function ensureCliBuilt(): void {
       const err = await new Response(proc.stderr).text();
       throw new Error(`vader CLI build failed (exit ${code}):\n${err}`);
     }
-  }, 300_000);
+  }, 600_000);
 }
 
 export interface CliResult {
