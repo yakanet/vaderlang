@@ -143,9 +143,13 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
   // boundary, …) tracked in PHASE2.md §9. Flip the call here to expose
   // them ; the boundary conversion / wrappers / synthesis stay correct
   // for the baseline (252/252 with erasure off).
+  // Path (γ) progressive infrastructure — see prior commit message.
+  // Flip `mono` between `monoRaw` and `erasureDedupe(monoRaw, project)`
+  // to gate erasure on/off ; gated off by default so baseline stays
+  // 252/252 green while the remaining 6 cascade patterns get fixed.
   const monoRaw = monomorphizeProject(evaluatedCore);
   const mono = monoRaw;
-  void erasureDedupe;     // keep the import live ; flip the line above to enable.
+  void erasureDedupe;
   return { ...evaluatedCore, mono };
 }
 

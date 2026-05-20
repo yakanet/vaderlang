@@ -143,17 +143,25 @@ function newCtx(m: BytecodeModule, release: boolean): EmitCtx {
  *  i.e. an opaque heap pointer — which is the post-erasure shape) and
  *  link every other entry in the group to it. Used by `emitErasureBoundaryConversion`
  *  to recognise when a runtime box carries the heap-form layout of an
- *  otherwise inline-eligible struct. Generic source decls with only one
- *  instantiation, and non-generic structs, yield no entries. */
+ *  otherwise inline-eligible struct.
+ *
+ *  Two grouping keys :
+ *    - `symbolId` — set by `internStructDecl` for user `struct[T]` decls
+ *      (Yield(T), Box(T), Repeat(T), …).
+ *    - anonymous tuples — no symbolId ; group by the synthetic key
+ *      ``tuple:${arity}`` so `[i32, string]` and `[Any, Any]` link as
+ *      siblings of the same generic shape. */
 function computeAnyCounterpartOf(m: BytecodeModule): Map<number, number> {
   const out = new Map<number, number>();
-  const groups = new Map<number, number[]>();
+  const groups = new Map<string | number, number[]>();
   for (let i = 0; i < m.types.length; i++) {
     const t = m.types[i]!;
-    if (t.kind !== "struct" || t.symbolId === undefined) continue;
-    const list = groups.get(t.symbolId);
+    if (t.kind !== "struct") continue;
+    const key = t.symbolId ?? (t.name.startsWith("__Tuple_") ? `tuple:${t.fields.length}` : undefined);
+    if (key === undefined) continue;
+    const list = groups.get(key);
     if (list !== undefined) list.push(i);
-    else groups.set(t.symbolId, [i]);
+    else groups.set(key, [i]);
   }
   for (const indices of groups.values()) {
     if (indices.length < 2) continue;

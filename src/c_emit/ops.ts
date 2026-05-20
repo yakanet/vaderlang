@@ -138,7 +138,12 @@ export function emitVirtualCall(s: FnState, op: Extract<Op, { kind: "virtual.cal
   // (`payload.i` / `payload.s` / … with the variant tag). Re-pack at the
   // boundary so downstream `struct.get` / `local.set` / `coerce` see the
   // expected layout.
-  if (sig.result === "any" && op.resultTypeIndex !== undefined) {
+  // Boundary conversion fires whenever the dispatcher's actual return type
+  // differs from the call site's static expectation — covers both the
+  // heterogeneous-impl case (`Add.add` on numerics, dispatcher boxes to
+  // any) AND the homogeneous-but-erased case (`Iterator.next` impls all
+  // return Yield(Any) | null while walk expects Yield(i32) | null).
+  if (op.resultTypeIndex !== undefined && op.resultTypeIndex !== sig.resultType) {
     emitErasureBoundaryConversion(s, tmp, op.resultTypeIndex);
   }
 }
@@ -150,9 +155,9 @@ export function emitVirtualCall(s: FnState, op: Extract<Op, { kind: "virtual.cal
  *  directly ; packed multi-field is deferred (Range[T] still goes
  *  through the heap path until a packed-layout reader lands). */
 function emitErasureBoundaryConversion(s: FnState, tmp: string, expectedTypeIndex: number): void {
-  // Resolve the inline-eligible struct in the expected type. `Yield(T) | null`
-  // unions are common ; pick the non-null variant. For unions with multiple
-  // struct variants (e.g. `i64 | ParseError`) the result is ambiguous : skip
+  // Resolve the struct in the expected type. `Yield(T) | null` unions are
+  // common ; pick the non-null variant. For unions with multiple struct
+  // variants (e.g. `i64 | ParseError`) the result is ambiguous : skip
   // conversion ; the heap layout will be propagated as-is.
   const expected = s.ctx.module.types[expectedTypeIndex];
   if (expected === undefined) return;
@@ -171,21 +176,29 @@ function emitErasureBoundaryConversion(s: FnState, tmp: string, expectedTypeInde
   const structT = s.ctx.module.types[structIdx]!;
   if (structT.kind !== "struct") return;
   if (s.ctx.mutatedStructs.has(structIdx)) return;     // heap-form on both sides, no conversion
-  const inline = inlineVariantPayload(structT, s.ctx.module.types);
-  if (inline === null || inline === "void") return;
-  if (inline === "packed") return;                     // TODO : packed-layout repack
 
   // Only convert when the runtime receiver carries the Any-counterpart's
   // tag — any other tag (e.g. an alternate union variant) means the runtime
-  // already matches the call site's expectation. Without this guard, calling
-  // `parse_int_in_base(...) : i64 | ParseError` would mis-fire on the i64
-  // arm (tag ≠ 0, ≠ ParseError, ≠ Any-counterpart-of-ParseError).
+  // already matches the call site's expectation.
   const anyIdx = s.ctx.anyCounterpartOf.get(structIdx);
   if (anyIdx === undefined) return;                    // no Any-version exists, nothing to convert
 
-  // Tag check : convert only when the receiver carries the Any-version's tag.
-  // Read the field from the Any-version heap layout (vader_box_t slot just
-  // after the obj header) and re-pack into the inline-form.
+  const inline = inlineVariantPayload(structT, s.ctx.module.types);
+  if (inline === "void") return;
+  if (inline === "packed") return;                     // TODO : packed-layout repack
+
+  if (inline === null) {
+    // Heap-form on the expected side too. Conversion needed only when the
+    // field layouts diverge (e.g. tuple `[string, i32]` expected vs the
+    // Any-version `[Any, Any]`). Allocate a fresh concrete-shaped struct
+    // and copy each field through `boxExpr`/`unboxExpr`.
+    emitHeapStructReshape(s, tmp, structIdx, anyIdx);
+    return;
+  }
+
+  // Inline-eligible expected, heap-form runtime. Read the field from the
+  // Any-version heap layout (vader_box_t slot just after the obj header)
+  // and re-pack into the inline-form.
   const field = structT.fields[0];
   if (field === undefined) return;
   line(s, `if (${tmp}.tag == ${anyIdx}u) {`);
@@ -197,6 +210,54 @@ function emitErasureBoundaryConversion(s: FnState, tmp: string, expectedTypeInde
     const repack = boxExpr(s.ctx, unboxed, inline as ValType, structIdx);
     line(s, `    ${tmp} = ${repack};`);
   }
+  line(s, `}`);
+}
+
+/** Heap-form reshape : the runtime carries an all-`Any`-fields heap
+ *  struct (e.g. `Tuple_2 { vader_box_t f__0, f__1 }` from an erased fn
+ *  body) but the call site reads it through the concrete-fields layout
+ *  (`Tuple_25 { string f__0, i32 f__1 }`). Allocate a fresh concrete
+ *  struct, read each Any-version field as `vader_box_t` at its sequential
+ *  offset, unbox to the concrete field's ValType, write into the new
+ *  struct. Fields whose layout already matches (both ref / both same
+ *  primitive) skip the unbox. Skips conversion when any concrete field
+ *  is a non-primitive non-ref shape we don't know how to bridge (arrays,
+ *  unions, fn types). */
+function emitHeapStructReshape(s: FnState, tmp: string, expectedIdx: number, anyIdx: number): void {
+  const expected = s.ctx.module.types[expectedIdx];
+  const any = s.ctx.module.types[anyIdx];
+  if (expected?.kind !== "struct" || any?.kind !== "struct") return;
+  if (expected.fields.length !== any.fields.length) return;
+  const cname = s.ctx.structNames[expectedIdx];
+  if (cname === null || cname === undefined) return;
+
+  // Bail when any expected field has a shape that needs more than a
+  // primitive unbox / ref re-tag (arrays / unions / fns — each carries
+  // its own runtime invariants that the boundary copy can't bridge
+  // generically). Caller falls back to the un-converted heap box.
+  for (const f of expected.fields) {
+    const ft = s.ctx.module.types[f.typeIndex];
+    if (ft === undefined) return;
+    if (ft.kind !== "primitive" && ft.kind !== "struct" && ft.kind !== "ref") return;
+  }
+
+  line(s, `if (${tmp}.tag == ${anyIdx}u) {`);
+  line(s, `    ${cname}* __reshape = (${cname}*) vader_gc_alloc(sizeof(${cname}));`);
+  line(s, `    vader_obj_header_init(__reshape, ${expectedIdx}u);`);
+  line(s, `    vader_box_t* __any_fields = (vader_box_t*)((char*)${tmp}.payload.obj + sizeof(vader_obj_header_t));`);
+  for (let i = 0; i < expected.fields.length; i++) {
+    const ef = expected.fields[i]!;
+    const fval = valTypeOfField(s.ctx, ef.typeIndex);
+    const slot = `__any_fields[${i}]`;
+    let rhs: string;
+    if (fval === "ref" || fval === "any") {
+      rhs = slot;
+    } else {
+      rhs = unboxExpr(slot, fval as ValType);
+    }
+    line(s, `    __reshape->f_${sanitise(ef.name)} = ${rhs};`);
+  }
+  line(s, `    ${tmp} = vader_box_obj(${expectedIdx}u, __reshape);`);
   line(s, `}`);
 }
 
