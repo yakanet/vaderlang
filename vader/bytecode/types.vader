@@ -151,6 +151,37 @@ export is_float_val :: fn(v: ValType) -> bool = match v {
 /// @return   `true` for any signed/unsigned integer width or float width.
 export is_numeric_val :: fn(v: ValType) -> bool = is_integer_val(v) || is_float_val(v)
 
+/// True when the val-type is a 64-bit-wide integer slot. Used by the
+/// bytecode emitter to pick `I64Const` over `I32Const` for int
+/// literals whose static type binds to one of these widths. The four
+/// 64-bit-wide variants : `i64`, `u64`, `isize`, `usize` — every
+/// narrower integer + every float / bool / char / ref shape returns
+/// false.
+///
+/// @param v  the value class to classify.
+/// @return   `true` for the four 64-bit integer widths, false otherwise.
+export is_64_bit_int_val :: fn(v: ValType) -> bool = match v {
+    .I64   -> true
+    .U64   -> true
+    .Isize -> true
+    .Usize -> true
+    .I8    -> false
+    .I16   -> false
+    .I32   -> false
+    .U8    -> false
+    .U16   -> false
+    .U32   -> false
+    .F32   -> false
+    .F64   -> false
+    .Bool  -> false
+    .Char  -> false
+    .String -> false
+    .Null  -> false
+    .Void  -> false
+    .Ref   -> false
+    .Any   -> false
+}
+
 /// True when the val-type is exactly `String`. Companion to
 /// `is_integer_val` / `is_float_val` ; consumed by the C emitter's
 /// per-struct field-classification walk (string fields land in the

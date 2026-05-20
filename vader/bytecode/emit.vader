@@ -46,7 +46,7 @@ import "vader/bytecode/module" {
     ImplEntry, VtableRow, DebugPos,
 }
 import "vader/bytecode/types" {
-    BcType, BcPrimitive, ValType, BcDataEntry, parse_val_type,
+    BcType, BcPrimitive, ValType, BcDataEntry, parse_val_type, is_64_bit_int_val,
 }
 import "vader/vm/op" {
     Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
@@ -65,6 +65,7 @@ export EmitOptions :: struct {
 }
 
 /// Default options : peephole ON (matches TS default).
+/// @return  a fresh `EmitOptions` with `optimize = true`.
 export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = true }
 
 /// Per-project emit context. Built once at the top of `emit_project`,
@@ -96,15 +97,15 @@ export EmitterCtx :: struct {
     /// `MonoEntry.symbol.id` → index into `functions`. Lets call sites
     /// resolve target fn slots through the symbol id rather than the
     /// mangled name.
-    fn_index_by_sym_id: MutableMap(i32, i32)
+    function_index_by_symbol_id: MutableMap(i32, i32)
 
     /// Host-side import table (`@extern` user decls + stdlib
     /// `@intrinsic` shims). Each entry's `signature` mirrors what the
     /// host expects at the C-ABI boundary.
     imports: BcImport[]
     /// `MonoEntry.symbol.id` → index into `imports`. Same role as
-    /// `fn_index_by_sym_id` for the import side.
-    import_index_by_sym_id: MutableMap(i32, i32)
+    /// `function_index_by_symbol_id` for the import side.
+    import_index_by_symbol_id: MutableMap(i32, i32)
 
     /// `@export` decls — exposed to the host linker. C-emit's `main`
     /// shim consults this to pick the program entry point.
@@ -126,9 +127,9 @@ new_emitter_ctx :: fn() -> EmitterCtx {
         .strings                = [],
         .string_key             = MutableMap(string, i32) { .buckets = [], .size = 0 },
         .functions              = [],
-        .fn_index_by_sym_id     = MutableMap(i32, i32) { .buckets = [], .size = 0 },
+        .function_index_by_symbol_id     = MutableMap(i32, i32) { .buckets = [], .size = 0 },
         .imports                = [],
-        .import_index_by_sym_id = MutableMap(i32, i32) { .buckets = [], .size = 0 },
+        .import_index_by_symbol_id = MutableMap(i32, i32) { .buckets = [], .size = 0 },
         .exports                = [],
     }
 }
@@ -190,59 +191,69 @@ export emit_project :: fn(lowered: LoweredProject, opts: EmitOptions) -> Bytecod
 /// skips consts in Phase 1 (lowered to fns by a later pass).
 reserve_decl :: fn(decl: LoweredDecl, ctx: EmitterCtx) -> void {
     match decl {
-        is LoweredFnDecl as fd     -> reserve_fn(fd, ctx)
-        is LoweredStructDecl as sd -> reserve_struct(sd, ctx)
-        is LoweredConstDecl        -> {
+        is LoweredFnDecl as function_decl   -> reserve_fn(function_decl, ctx)
+        is LoweredStructDecl as struct_decl -> reserve_struct(struct_decl, ctx)
+        is LoweredConstDecl                 -> {
             // Phase 1 : consts not yet emitted ; tracked in a future
             // commit alongside `LoweredConstDecl` → BcImport routing.
         }
     }
 }
 
-reserve_fn :: fn(fd: LoweredFnDecl, ctx: EmitterCtx) -> void {
-    sig :: build_signature(fd.params, fd.return_type, ctx)
-    fn_index :: i32(ctx.functions.len())
-    placeholder_body: Op[] = []
-    placeholder_debug: (DebugPos | null)[] = []
-    placeholder_locals: BcLocal[] = []
+/// Allocate a fn-table slot for `function_decl`, intern the
+/// signature types, and register the symbol-id → index mapping.
+/// Body emit happens in Pass 2 ; the placeholder arrays here get
+/// replaced wholesale by `emit_fn_body`.
+reserve_fn :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
+    signature :: build_signature(function_decl.params, function_decl.return_type, ctx)
+    function_index :: i32(ctx.functions.len())
+    empty_body: Op[] = []
+    empty_debug: (DebugPos | null)[] = []
+    empty_locals: BcLocal[] = []
     ctx.functions.push(BcFunction {
-        .name      = fd.mangled,
-        .is_main   = fd.origin.is_main,
-        .signature = sig,
-        .locals    = placeholder_locals,
-        .body      = placeholder_body,
-        .debug     = placeholder_debug,
+        .name      = function_decl.mangled,
+        .is_main   = function_decl.origin.is_main,
+        .signature = signature,
+        .locals    = empty_locals,
+        .body      = empty_body,
+        .debug     = empty_debug,
     })
-    match fd.origin.symbol {
-        is Symbol as s -> { ctx.fn_index_by_sym_id[s.id] = fn_index }
+    match function_decl.origin.symbol {
+        is Symbol as symbol -> { ctx.function_index_by_symbol_id[symbol.id] = function_index }
         _ -> {}
     }
 }
 
-reserve_struct :: fn(sd: LoweredStructDecl, ctx: EmitterCtx) -> void {
-    // Phase 1 stub : real struct interning lands in Phase 2. The
-    // type-table slot is created lazily when a field references the
-    // struct elsewhere.
+/// Phase 1 stub : real struct interning lands in Phase 2. The
+/// type-table slot is created lazily when a field references the
+/// struct elsewhere.
+reserve_struct :: fn(struct_decl: LoweredStructDecl, ctx: EmitterCtx) -> void {
 }
 
 /// Build a `BcSignature` from the lowered fn params + return type.
 /// Each param's static `Type` interns into the type table once ; the
 /// stack-class `ValType` derives via `val_type_of_type`.
-build_signature :: fn(params: LoweredParam[], ret: Type, ctx: EmitterCtx) -> BcSignature {
-    param_vals: ValType[] = []
-    param_type_idxs: i32[] = []
+///
+/// Two walks per param (`val_type_of_type` then `intern_type`)
+/// dispatch on the same `Type` variant — the duplication is
+/// acceptable today because both fns dispatch in O(1) on the runtime
+/// tag. Phase 2 will collapse this into a single `intern_and_classify`
+/// once the LoweredCall site count justifies the helper.
+build_signature :: fn(params: LoweredParam[], return_type: Type, ctx: EmitterCtx) -> BcSignature {
+    param_val_types: ValType[] = []
+    param_type_indices: i32[] = []
     i: usize = 0
     for i < params.len() {
-        p :: params[i]
-        param_vals.push(val_type_of_type(p.type))
-        param_type_idxs.push(intern_type(p.type, ctx))
+        param :: params[i]
+        param_val_types.push(val_type_of_type(param.type))
+        param_type_indices.push(intern_type(param.type, ctx))
         i += 1
     }
     return BcSignature {
-        .params       = param_vals,
-        .result       = val_type_of_type(ret),
-        .param_types  = param_type_idxs,
-        .result_type  = intern_type(ret, ctx),
+        .params       = param_val_types,
+        .result       = val_type_of_type(return_type),
+        .param_types  = param_type_indices,
+        .result_type  = intern_type(return_type, ctx),
     }
 }
 
@@ -250,49 +261,65 @@ build_signature :: fn(params: LoweredParam[], ret: Type, ctx: EmitterCtx) -> BcS
 // Pass 2 — body emit
 // =========================================================================
 
+/// Append `op` to both the body and the debug arrays in lock-step.
+/// Centralises the two-push pattern so callers can't leave the arrays
+/// out of sync (silent miscompile : the per-op `DebugPos` lookup
+/// would shift). `Phase 2` will accept a `DebugPos | null` argument
+/// so source spans propagate ; today every site passes `null`.
+push_op :: fn(body: Op[], debug: (DebugPos | null)[], op: Op) -> void {
+    body.push(op)
+    debug.push(null)
+}
+
 /// Per-decl body dispatcher. FnDecls walk their body block ; structs
 /// + consts no-op in Phase 1.
 emit_decl :: fn(decl: LoweredDecl, ctx: EmitterCtx) -> void {
     match decl {
-        is LoweredFnDecl as fd     -> emit_fn_body(fd, ctx)
-        is LoweredStructDecl       -> {}
-        is LoweredConstDecl        -> {}
+        is LoweredFnDecl as function_decl -> emit_fn_body(function_decl, ctx)
+        is LoweredStructDecl              -> {}
+        is LoweredConstDecl               -> {}
     }
 }
 
-emit_fn_body :: fn(fd: LoweredFnDecl, ctx: EmitterCtx) -> void {
-    // Locate the placeholder reserved in Pass 1.
-    fn_index :: lookup_fn_index(fd, ctx)
-    if fn_index < 0 { return }
+/// Walk a fn's body block + emit the op sequence, then patch the
+/// reserved fn-table slot with the populated body + debug arrays.
+/// The implicit-return tail keeps the VM + C-emit terminator-driven
+/// even when the source body ends with a trailing expression.
+emit_fn_body :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
+    function_index :: lookup_function_index(function_decl, ctx)
+    if function_index < 0 { return }
     body: Op[] = []
     debug: (DebugPos | null)[] = []
-    match fd.body {
-        is LoweredBlock as blk -> emit_block(blk, body, debug, ctx)
+    match function_decl.body {
+        is LoweredBlock as block -> emit_block(block, body, debug, ctx)
         _ -> {}
     }
-    // Append the implicit `return` so VM / C-emit see a terminator.
     if !ends_with_return(body) {
-        body.push(Return {})
-        debug.push(null)
+        push_op(body, debug, Return {})
     }
-    // Patch the reserved fn entry. The current `BcFunction` is
-    // immutable from the Vader-record PoV ; we rebuild the record
-    // with the new body + debug arrays.
-    old :: ctx.functions[usize(fn_index)]
-    ctx.functions[usize(fn_index)] = BcFunction {
-        .name      = old.name,
-        .is_main   = old.is_main,
-        .signature = old.signature,
-        .locals    = old.locals,
+    // Rebuild the reserved entry — Vader records are by-value, so we
+    // can't mutate `body` / `debug` in place. The four metadata
+    // fields (name / is_main / signature / locals) pass through
+    // unchanged.
+    reserved :: ctx.functions[usize(function_index)]
+    ctx.functions[usize(function_index)] = BcFunction {
+        .name      = reserved.name,
+        .is_main   = reserved.is_main,
+        .signature = reserved.signature,
+        .locals    = reserved.locals,
         .body      = body,
         .debug     = debug,
     }
 }
 
-lookup_fn_index :: fn(fd: LoweredFnDecl, ctx: EmitterCtx) -> i32 {
-    match fd.origin.symbol {
-        is Symbol as s -> {
-            entry :: ctx.fn_index_by_sym_id[s.id]
+/// Resolve a `LoweredFnDecl` to its fn-table slot via the
+/// reserved `function_index_by_symbol_id` mapping. Returns `-1` when
+/// the decl carried no resolver symbol (impl-member style synth
+/// decls handled separately in Phase 2).
+lookup_function_index :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> i32 {
+    match function_decl.origin.symbol {
+        is Symbol as symbol -> {
+            entry :: ctx.function_index_by_symbol_id[symbol.id]
             if entry is i32 { return entry }
             return -1
         }
@@ -300,6 +327,8 @@ lookup_fn_index :: fn(fd: LoweredFnDecl, ctx: EmitterCtx) -> i32 {
     }
 }
 
+/// True when the body's last op is a `Return`. Used to suppress the
+/// implicit-return tail when the source already supplied one.
 ends_with_return :: fn(body: Op[]) -> bool {
     n :: body.len()
     if n == usize(0) { return false }
@@ -307,42 +336,51 @@ ends_with_return :: fn(body: Op[]) -> bool {
     return last is Return
 }
 
-emit_block :: fn(blk: LoweredBlock, body: Op[], debug: (DebugPos | null)[], ctx: EmitterCtx) -> void {
+/// Walk a lowered block : every statement in order, then the
+/// trailing expression (if any). Trailing exprs leave their value on
+/// the operand stack — callers (`emit_fn_body`) decide whether to
+/// drop or return it.
+emit_block :: fn(block: LoweredBlock, body: Op[], debug: (DebugPos | null)[], ctx: EmitterCtx) -> void {
     i: usize = 0
-    for i < blk.stmts.len() {
-        emit_stmt(blk.stmts[i], body, debug, ctx)
+    for i < block.stmts.len() {
+        emit_stmt(block.stmts[i], body, debug, ctx)
         i += 1
     }
-    match blk.trailing {
-        is LoweredExpr as e -> emit_expr(e, body, debug, ctx)
+    match block.trailing {
+        is LoweredExpr as trailing_expr -> emit_expr(trailing_expr, body, debug, ctx)
         _ -> {}
     }
 }
 
+/// Per-stmt dispatcher. Phase 1 only emits `Return` + `ExprStmt`
+/// (with the expression value dropped). The other six stmt variants
+/// are no-op stubs until Phase 2 lands `Let` / `Assign` / `Loop` /
+/// `Break` / `Continue` / `CellSet`.
 emit_stmt :: fn(stmt: LoweredStmt, body: Op[], debug: (DebugPos | null)[], ctx: EmitterCtx) -> void {
     match stmt {
-        is LoweredReturn as r -> emit_return(r, body, debug, ctx)
-        is LoweredExprStmt as e -> {
-            emit_expr(e.expr, body, debug, ctx)
-            body.push(Drop {})
-            debug.push(null)
+        is LoweredReturn as return_stmt -> emit_return(return_stmt, body, debug, ctx)
+        is LoweredExprStmt as expr_stmt -> {
+            emit_expr(expr_stmt.expr, body, debug, ctx)
+            push_op(body, debug, Drop {})
         }
-        is LoweredLet         -> {}
-        is LoweredAssign      -> {}
-        is LoweredCellSet     -> {}
-        is LoweredLoop        -> {}
-        is LoweredBreak       -> {}
-        is LoweredContinue    -> {}
+        is LoweredLet      -> {}
+        is LoweredAssign   -> {}
+        is LoweredCellSet  -> {}
+        is LoweredLoop     -> {}
+        is LoweredBreak    -> {}
+        is LoweredContinue -> {}
     }
 }
 
-emit_return :: fn(r: LoweredReturn, body: Op[], debug: (DebugPos | null)[], ctx: EmitterCtx) -> void {
-    match r.value {
-        is LoweredExpr as e -> emit_expr(e, body, debug, ctx)
+/// Emit a `return` statement. Pushes the value expression (if any)
+/// then the `Return` op so the VM sees the operand at the top of the
+/// stack when it pops the frame.
+emit_return :: fn(return_stmt: LoweredReturn, body: Op[], debug: (DebugPos | null)[], ctx: EmitterCtx) -> void {
+    match return_stmt.value {
+        is LoweredExpr as value_expr -> emit_expr(value_expr, body, debug, ctx)
         _ -> {}
     }
-    body.push(Return {})
-    debug.push(null)
+    push_op(body, debug, Return {})
 }
 
 /// Per-expr emit dispatcher. Phase 1 supports literal constants only ;
@@ -351,27 +389,14 @@ emit_return :: fn(r: LoweredReturn, body: Op[], debug: (DebugPos | null)[], ctx:
 /// the unimplemented case).
 emit_expr :: fn(expr: LoweredExpr, body: Op[], debug: (DebugPos | null)[], ctx: EmitterCtx) -> void {
     match expr {
-        is LoweredIntLit as i -> emit_int_lit(i, body, debug)
-        is LoweredFloatLit as f -> {
-            body.push(F64Const { .value = f.value })
-            debug.push(null)
-        }
-        is LoweredBoolLit as b -> {
-            body.push(BoolConst { .value = b.value })
-            debug.push(null)
-        }
-        is LoweredCharLit as c -> {
-            body.push(CharConst { .value = char(c.value) })
-            debug.push(null)
-        }
-        is LoweredNullLit -> {
-            body.push(NullConst {})
-            debug.push(null)
-        }
-        is LoweredStringLit as s -> {
-            idx :: intern_string(s.value, ctx)
-            body.push(StringConst { .index = idx })
-            debug.push(null)
+        is LoweredIntLit as int_lit       -> emit_int_lit(int_lit, body, debug)
+        is LoweredFloatLit as float_lit   -> push_op(body, debug, F64Const { .value = float_lit.value })
+        is LoweredBoolLit as bool_lit     -> push_op(body, debug, BoolConst { .value = bool_lit.value })
+        is LoweredCharLit as char_lit     -> push_op(body, debug, CharConst { .value = char(char_lit.value) })
+        is LoweredNullLit                 -> push_op(body, debug, NullConst {})
+        is LoweredStringLit as string_lit -> {
+            string_index :: intern_string(string_lit.value, ctx)
+            push_op(body, debug, StringConst { .index = string_index })
         }
         _ -> {
             // Phase 1 stub : Ident / Call / Field / Binop / etc.
@@ -380,40 +405,15 @@ emit_expr :: fn(expr: LoweredExpr, body: Op[], debug: (DebugPos | null)[], ctx: 
     }
 }
 
-/// Emit an int literal — picks the right Const op based on the
-/// literal's static type. Defaults to `I32Const` when the type
-/// doesn't resolve to a recognised width.
-emit_int_lit :: fn(lit: LoweredIntLit, body: Op[], debug: (DebugPos | null)[]) -> void {
-    width :: val_type_of_type(lit.type)
-    if is_64_bit_int(width) {
-        body.push(I64Const { .value = lit.value })
-        debug.push(null)
+/// Emit an int literal — picks `I64Const` for 64-bit-wide integer
+/// types (`i64`, `u64`, `isize`, `usize`) ; everything narrower falls
+/// to `I32Const`.
+emit_int_lit :: fn(literal: LoweredIntLit, body: Op[], debug: (DebugPos | null)[]) -> void {
+    if is_64_bit_int_val(val_type_of_type(literal.type)) {
+        push_op(body, debug, I64Const { .value = literal.value })
     } else {
-        body.push(I32Const { .value = i32(lit.value) })
-        debug.push(null)
+        push_op(body, debug, I32Const { .value = i32(literal.value) })
     }
-}
-
-is_64_bit_int :: fn(v: ValType) -> bool = match v {
-    .I64   -> true
-    .U64   -> true
-    .Isize -> true
-    .Usize -> true
-    .I8    -> false
-    .I16   -> false
-    .I32   -> false
-    .U8    -> false
-    .U16   -> false
-    .U32   -> false
-    .F32   -> false
-    .F64   -> false
-    .Bool  -> false
-    .Char  -> false
-    .String -> false
-    .Null  -> false
-    .Void  -> false
-    .Ref   -> false
-    .Any   -> false
 }
 
 // =========================================================================
@@ -422,54 +422,62 @@ is_64_bit_int :: fn(v: ValType) -> bool = match v {
 
 /// Intern a `Type` into the module-wide type table, returning its
 /// index. Idempotent : repeat calls with structurally-equal types
-/// return the same index. Keying by `display_type(t)` is conservative
-/// but stable across the pipeline.
+/// return the same index.
+///
+/// Primitive types take a fast path keyed on the primitive name (a
+/// short interned string the typechecker already passes around), so
+/// the common `i32` / `string` / `bool` cases skip the
+/// `display_type` allocation entirely. Composite types fall back to
+/// the `display_type` key — conservative but stable across the
+/// pipeline.
 ///
 /// @param t    the type to intern.
 /// @param ctx  the emit context — its `types` + `type_key` get mutated.
 /// @return     the type table index.
 export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
-    key :: display_type(t)
+    key :: type_intern_key(t)
     existing :: ctx.type_key[key]
     if existing is i32 { return existing }
-    idx :: i32(ctx.types.len())
-    bc :: bc_type_of(t)
-    ctx.types.push(bc)
-    ctx.type_key[key] = idx
-    return idx
+    new_index :: i32(ctx.types.len())
+    ctx.types.push(bc_type_of(t))
+    ctx.type_key[key] = new_index
+    return new_index
+}
+
+/// Key used by `intern_type`. Primitives use the bare name (no
+/// allocation needed — already a string field on `PrimitiveType`) ;
+/// every other shape falls back to `display_type(t)`.
+type_intern_key :: fn(t: Type) -> string = match t {
+    is PrimitiveType as p -> p.name
+    is StructType         -> display_type(t)
+    is EnumType           -> display_type(t)
+    is TraitType          -> display_type(t)
+    is ArrayType          -> display_type(t)
+    is UnionType          -> display_type(t)
+    is FnType             -> display_type(t)
+    is TupleType          -> display_type(t)
+    is TypeParamType      -> display_type(t)
+    is TypeMetaType       -> display_type(t)
+    is SelfType           -> display_type(t)
+    is UnresolvedType     -> display_type(t)
+    is FreeIntType        -> display_type(t)
+    is FreeFloatType      -> display_type(t)
+    is NeverType          -> display_type(t)
 }
 
 /// Translate a typecheck `Type` to a `BcType`. Phase 1 covers
-/// primitives ; struct / array / union / ref / fn shapes return a
-/// placeholder `BcPrimitive { .val = ValType.Ref }` (the runtime sees
-/// `vader_box_t` either way ; the type-table accuracy lands in Phase
-/// 2 alongside the lower-decl walker).
-bc_type_of :: fn(t: Type) -> BcType = match t {
-    is PrimitiveType as p -> bc_type_of_primitive(p.name)
-    is StructType         -> BcPrimitive { .val = ValType.Ref }
-    is EnumType           -> BcPrimitive { .val = ValType.Ref }
-    is TraitType          -> BcPrimitive { .val = ValType.Ref }
-    is ArrayType          -> BcPrimitive { .val = ValType.Ref }
-    is UnionType          -> BcPrimitive { .val = ValType.Ref }
-    is FnType             -> BcPrimitive { .val = ValType.Ref }
-    is TupleType          -> BcPrimitive { .val = ValType.Ref }
-    is TypeParamType      -> BcPrimitive { .val = ValType.Any }
-    is TypeMetaType       -> BcPrimitive { .val = ValType.Any }
-    is SelfType           -> BcPrimitive { .val = ValType.Ref }
-    is UnresolvedType     -> BcPrimitive { .val = ValType.Any }
-    is FreeIntType        -> BcPrimitive { .val = ValType.I32 }
-    is FreeFloatType      -> BcPrimitive { .val = ValType.F64 }
-    is NeverType          -> BcPrimitive { .val = ValType.Void }
-}
-
-bc_type_of_primitive :: fn(name: string) -> BcType {
-    parsed :: parse_val_type(name)
-    if parsed is null { return BcPrimitive { .val = ValType.Any } }
-    return BcPrimitive { .val = parsed }
-}
+/// primitives ; composite shapes (struct / array / union / ref / fn)
+/// return a placeholder `BcPrimitive { .val = Ref }` — the runtime
+/// sees `vader_box_t` either way, type-table accuracy for those
+/// lands in Phase 2 alongside the lower-decl walker.
+///
+/// Derived from `val_type_of_type` to keep the two classifiers in
+/// lock-step ; previous double-table drifted when one was updated
+/// without the other.
+bc_type_of :: fn(t: Type) -> BcType = BcPrimitive { .val = val_type_of_type(t) }
 
 /// Stack-class of a `Type`. Primitive types map by name ; every
-/// non-primitive shape (struct / array / union / ref / fn) lands in
+/// composite shape (struct / array / union / ref / fn) lands in
 /// `Ref` so the operand stack carries a uniform reference width.
 val_type_of_type :: fn(t: Type) -> ValType = match t {
     is PrimitiveType as p -> val_type_of_primitive_name(p.name)
@@ -489,6 +497,9 @@ val_type_of_type :: fn(t: Type) -> ValType = match t {
     is NeverType          -> ValType.Void
 }
 
+/// Map a primitive name to its `ValType`. Unknown names degrade to
+/// `Any` so the upstream typechecker has the only say in rejecting
+/// the source.
 val_type_of_primitive_name :: fn(name: string) -> ValType {
     parsed :: parse_val_type(name)
     if parsed is null { return ValType.Any }
@@ -518,6 +529,9 @@ export intern_string :: fn(s: string, ctx: EmitterCtx) -> i32 {
 /// the `impl_table` + `vtables` ship empty ; the lowered project
 /// already carries `vtable_entries`, but their translation lands in
 /// Phase 2 alongside the impl-member emit.
+///
+/// `_opts` is unused until Phase 3 gates the peephole pass through
+/// it — the leading underscore documents the deferred consumer.
 assemble_module :: fn(ctx: EmitterCtx, _opts: EmitOptions) -> BytecodeModule {
     impl_table: ImplEntry[] = []
     vtables: VtableRow[] = []
@@ -601,7 +615,7 @@ import "vader/typecheck/types" { mk_primitive }
     assert_eq(ends_with_return(body), false)
 }
 
-@test test_ends_with_return_with_return :: fn() -> void {
+@test test_ends_with_return_terminated_body :: fn() -> void {
     body: Op[] = []
     body.push(Return {})
     assert_eq(ends_with_return(body), true)
