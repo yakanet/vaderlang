@@ -136,12 +136,16 @@ export function evaluateProject(project: TypedProject, opts: EvaluateOptions): E
     typed: project, modules, instances: instances.entries(),
     mono: EMPTY_MONO, fileExprs, intoMembers,
   };
-  // WIP — path (γ) progressive enablement. Famille A (intrinsic vtable
-  // wrappers) shipped in `bytecode/emit.ts:synthesiseIntrinsicWrappers`.
-  // Famille B (Any-bearing instance synthesis) + Famille C (match / cast
-  // on Any) still pending — see PHASE2.md §9.
+  // Path (γ) progressive infrastructure shipped but gated off by default.
+  // With erasureDedupe enabled, 7/252 native tests fail (down from 31/252
+  // pre-γ). The remaining 7 each surface a distinct cascade pattern (tuple
+  // field layout, match-arm tag check on Any, multi-level inline-box
+  // boundary, …) tracked in PHASE2.md §9. Flip the call here to expose
+  // them ; the boundary conversion / wrappers / synthesis stay correct
+  // for the baseline (252/252 with erasure off).
   const monoRaw = monomorphizeProject(evaluatedCore);
-  const mono = erasureDedupe(monoRaw, project);
+  const mono = monoRaw;
+  void erasureDedupe;     // keep the import live ; flip the line above to enable.
   return { ...evaluatedCore, mono };
 }
 

@@ -205,7 +205,13 @@ export function erasureDedupe(mono: MonoProject, project: TypedProject): MonoPro
         module: first.module,
       });
     } else {
-      const repr = makeRepresentative(group[0]!);
+      // Prefer an entry whose subst already binds the decl's type-params
+      // — `anySubstForEntry` only maps keys present in the entry's subst,
+      // so picking an entry with empty subst (e.g. pass 1's array-impl
+      // shadow that ignored the impl's typeParams) yields an empty Any
+      // map and leaves the body's TypeParam unsubstituted.
+      const seed = group.find((e) => (e.subst.typeParams?.size ?? 0) > 0) ?? group[0]!;
+      const repr = makeRepresentative(seed);
       for (const e of group) replacements.set(e, repr);
     }
   }
