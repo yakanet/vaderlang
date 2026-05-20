@@ -365,9 +365,7 @@ function emitArrayElementKindReshape(
  *  unions, fn types). */
 function emitHeapStructReshape(s: FnState, tmp: string, expectedIdx: number, anyIdx: number): void {
   const expected = s.ctx.module.types[expectedIdx];
-  const any = s.ctx.module.types[anyIdx];
-  if (expected?.kind !== "struct" || any?.kind !== "struct") return;
-  if (expected.fields.length !== any.fields.length) return;
+  if (expected?.kind !== "struct") return;
   const cname = s.ctx.structNames[expectedIdx];
   if (cname === null || cname === undefined) return;
 
@@ -394,42 +392,54 @@ function emitHeapStructReshape(s: FnState, tmp: string, expectedIdx: number, any
     if (ft.kind !== "primitive" && ft.kind !== "struct" && ft.kind !== "ref") return;
   }
 
-  line(s, `if (${tmp}.tag == ${anyIdx}u) {`);
+  // Enumerate every sibling layout (same logical shape group) so the
+  // reshape dispatches on the runtime tag. Always includes the
+  // canonical Any-version (`anyIdx`) at the front ; tuples with mixed
+  // concrete + erased fields (e.g. `[usize, T]` post-subst `[usize,
+  // Any]`) add a distinct sibling that the canonical all-ref version
+  // doesn't cover.
+  const siblings = s.ctx.siblingLayoutsOf.get(expectedIdx) ?? [anyIdx];
+  for (const sibIdx of siblings) {
+    if (sibIdx === expectedIdx) continue;
+    const sib = s.ctx.module.types[sibIdx];
+    if (sib?.kind !== "struct") continue;
+    if (sib.fields.length !== expected.fields.length) continue;
+    emitHeapStructReshapeForSibling(s, tmp, expectedIdx, expected, sibIdx, sib, cname);
+  }
+}
+
+function emitHeapStructReshapeForSibling(
+  s: FnState, tmp: string, expectedIdx: number,
+  expected: { kind: "struct"; fields: readonly { name: string; typeIndex: number }[] },
+  sibIdx: number,
+  sib: { kind: "struct"; fields: readonly { name: string; typeIndex: number }[] },
+  cname: string,
+): void {
+  const sibCname = s.ctx.structNames[sibIdx];
+  if (sibCname === null || sibCname === undefined) return;
+  line(s, `if (${tmp}.tag == ${sibIdx}u) {`);
   line(s, `    ${cname}* __reshape = (${cname}*) vader_gc_alloc(sizeof(${cname}));`);
   line(s, `    vader_obj_header_init(__reshape, ${expectedIdx}u);`);
-  line(s, `    vader_box_t* __any_fields = (vader_box_t*)((char*)${tmp}.payload.obj + sizeof(vader_obj_header_t));`);
+  line(s, `    ${sibCname}* __sib = (${sibCname}*) ${tmp}.payload.obj;`);
   for (let i = 0; i < expected.fields.length; i++) {
     const ef = expected.fields[i]!;
-    const fval = valTypeOfField(s.ctx, ef.typeIndex);
-    const slot = `__any_fields[${i}]`;
+    const sf = sib.fields[i]!;
+    const efVal = valTypeOfField(s.ctx, ef.typeIndex);
+    const sfVal = valTypeOfField(s.ctx, sf.typeIndex);
+    const sibFieldExpr = `__sib->f_${sanitise(sf.name)}`;
     let rhs: string;
-    if (fval === "ref" || fval === "any") {
-      // Field is a heap reference — copy the vader_box_t as-is, then
-      // recursively normalise if the field's static type is inline-
-      // eligible (a heap-boxed Any-version flowing into an inline-form
-      // slot must unbox & re-pack). Without the recursion, chains like
-      // `Box(Box(i32))` propagate the Any-version inwards undetected,
-      // and the next `struct.get` reads `payload.i` of a heap pointer.
-      const ft = s.ctx.module.types[ef.typeIndex];
-      if (ft?.kind === "struct" && !s.ctx.mutatedStructs.has(ef.typeIndex)) {
-        const innerInline = inlineVariantPayload(ft, s.ctx.module.types);
-        const innerAny = s.ctx.anyCounterpartOf.get(ef.typeIndex);
-        if (innerInline !== null && innerInline !== "void" && innerInline !== "packed" && innerAny !== undefined) {
-          line(s, `    if (${slot}.tag == ${innerAny}u) {`);
-          line(s, `        vader_box_t __inner_field_0 = *(vader_box_t*)((char*)${slot}.payload.obj + sizeof(vader_obj_header_t));`);
-          if (innerInline === "ref") {
-            line(s, `        ${slot} = vader_box_obj(${ef.typeIndex}u, __inner_field_0.payload.obj);`);
-          } else {
-            const unboxed = unboxExpr("__inner_field_0", innerInline as ValType);
-            const repack = boxExpr(s.ctx, unboxed, innerInline as ValType, ef.typeIndex);
-            line(s, `        ${slot} = ${repack};`);
-          }
-          line(s, `    }`);
-        }
-      }
-      rhs = slot;
+    if (efVal === sfVal) {
+      rhs = sibFieldExpr;
+    } else if (efVal === "ref" || efVal === "any") {
+      // Sibling field is concrete primitive, expected is ref → box up.
+      rhs = boxExpr(s.ctx, sibFieldExpr, sfVal as ValType, sf.typeIndex);
+    } else if (sfVal === "ref" || sfVal === "any") {
+      // Sibling field is ref/any (vader_box_t), expected is primitive
+      // → unbox.
+      rhs = unboxExpr(sibFieldExpr, efVal as ValType);
     } else {
-      rhs = unboxExpr(slot, fval as ValType);
+      // Both primitive but different — defensive cast through unbox.
+      rhs = `(${cTypeForVal(s.ctx, efVal)}) ${sibFieldExpr}`;
     }
     line(s, `    __reshape->f_${sanitise(ef.name)} = ${rhs};`);
   }

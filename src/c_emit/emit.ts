@@ -100,6 +100,17 @@ export interface EmitCtx {
    *  Any-counterpart tag, the C-emit re-packs the heap layout into the
    *  expected inline-eligible struct's payload shape. */
   readonly anyCounterpartOf: ReadonlyMap<number, number>;
+  /** Per-concrete-struct-typeIndex, the set of sibling layout
+   *  type-indices that could carry the same logical value at runtime.
+   *  Used to dispatch the boundary reshape against multiple possible
+   *  runtime shapes (e.g. anonymous tuples where `[usize, T]` →
+   *  `[usize, Any]` is a different layout than `[Any, Any]`, and both
+   *  may flow into a `[usize, string]` call site depending on which
+   *  erased fn produced the value). Subset of `anyCounterpartOf` —
+   *  the latter picks one canonical Any-version ; this one enumerates
+   *  every sibling so the boundary reshape can switch on the runtime
+   *  tag. */
+  readonly siblingLayoutsOf: ReadonlyMap<number, readonly number[]>;
   /** Set when `--release` was passed. Gates `#line` directives in the per-op
    *  body emit — debug builds emit them so `gdb`/`lldb` step through the
    *  original Vader source. */
@@ -134,6 +145,7 @@ function newCtx(m: BytecodeModule, release: boolean): EmitCtx {
     mayAlloc: computeMayAlloc(m),
     mutatedStructs: computeMutatedStructs(m),
     anyCounterpartOf: computeAnyCounterpartOf(m),
+    siblingLayoutsOf: computeSiblingLayoutsOf(m),
     release,
   };
 }
@@ -151,6 +163,33 @@ function newCtx(m: BytecodeModule, release: boolean): EmitCtx {
  *    - anonymous tuples — no symbolId ; group by the synthetic key
  *      ``tuple:${arity}`` so `[i32, string]` and `[Any, Any]` link as
  *      siblings of the same generic shape. */
+/** Per-concrete-struct-typeIndex, the set of sibling layouts (same
+ *  symbolId group or tuple-arity group, distinct typeIndex). Lets the
+ *  boundary reshape dispatch on the runtime tag when multiple shapes
+ *  could flow in (e.g. tuples where some fields are concrete and
+ *  others were erased to Any — `[usize, T]` post-subst `[usize, Any]`
+ *  is distinct from both `[usize, string]` and `[Any, Any]`). */
+function computeSiblingLayoutsOf(m: BytecodeModule): Map<number, number[]> {
+  const groups = new Map<string | number, number[]>();
+  for (let i = 0; i < m.types.length; i++) {
+    const t = m.types[i]!;
+    if (t.kind !== "struct") continue;
+    const key = t.symbolId ?? (t.name.startsWith("__Tuple_") ? `tuple:${t.fields.length}` : undefined);
+    if (key === undefined) continue;
+    const list = groups.get(key);
+    if (list !== undefined) list.push(i);
+    else groups.set(key, [i]);
+  }
+  const out = new Map<number, number[]>();
+  for (const indices of groups.values()) {
+    if (indices.length < 2) continue;
+    for (const i of indices) {
+      out.set(i, indices.filter((j) => j !== i));
+    }
+  }
+  return out;
+}
+
 function computeAnyCounterpartOf(m: BytecodeModule): Map<number, number> {
   const out = new Map<number, number>();
   const groups = new Map<string | number, number[]>();
