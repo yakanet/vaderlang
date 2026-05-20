@@ -40,7 +40,11 @@ function binaryMtime(): number {
 }
 
 // 5-minute timeout covers cold-CI builds. `--release` keeps per-test parse
-// latency below the parity suite's 30 s per-test timeout.
+// latency below the parity suite's 30 s per-test timeout. Stdout + stderr
+// are drained concurrently with the exit await — same rationale as
+// `runCli` below : the cc subprocess can emit a verbose burst of warnings
+// that saturates the 64 KB pipe buffer, deadlocking the child if nothing
+// reads from those pipes.
 export function ensureCliBuilt(): void {
   beforeAll(async () => {
     if (binaryMtime() >= newestSourceMtime()) return;
@@ -48,12 +52,15 @@ export function ensureCliBuilt(): void {
       ["bun", "src/index.ts", "build", "vader/cli/main.vader", "--target=native", "--release", `--out=${CLI_BIN}`],
       { stdout: "pipe", stderr: "pipe" },
     );
-    const code = await proc.exited;
+    const [_stdout, stderr, code] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ]);
     if (code !== 0) {
-      const err = await new Response(proc.stderr).text();
-      throw new Error(`vader CLI build failed (exit ${code}):\n${err}`);
+      throw new Error(`vader CLI build failed (exit ${code}):\n${stderr}`);
     }
-  }, 600_000);
+  }, 300_000);
 }
 
 export interface CliResult {
