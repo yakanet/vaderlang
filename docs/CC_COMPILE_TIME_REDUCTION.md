@@ -1644,3 +1644,93 @@ interleaved). Estimated 1-2 days of refactor for another ~-19 %.
 Worth doing if cc time is still a constraint — the current 3.83 s
 `-O0` is comfortable for devloop ; the bigger payoff would be on
 release builds (14.5 s `-O3` → ~10 s).
+
+## 21. POC results — piste 6 Phase C (2026-05-21)
+
+Same mechanical pattern as Phase B applied to `infer_field` :
+extract each `if target_ty is X { ... }` block into a free fn
+`try_X_field_dispatch(target_ty, e, typed, diags) -> Type | null`,
+rewrite `infer_field` as a chain of `match candidate { is null -> {}
+_ -> return candidate }` calls. The terminal struct-field lookup +
+T3008/T3009 diagnostics live in a dedicated `resolve_struct_field`
+fallback fn (returns `Type` rather than `Type | null`).
+
+10 new `try_*` helpers + 1 terminal :
+- `try_array_method_dispatch`, `try_primitive_method_dispatch`
+- `try_impl_method_ufcs` (handles both display-keyed and
+  base-name-keyed impl_methods, with `check_trait_ambiguity` side
+  effects)
+- `try_typeparam_bound_method` (the original code called this twice
+  in the cascade ; the duplicate site collapses naturally — first
+  hit returns, second site is now `null` because the bound was
+  already exhausted)
+- `try_free_fn_ufcs_dispatch` (records `ufcs_receiver_types` side
+  effect)
+- `try_trait_method_dispatch`, `try_default_trait_method_dispatch`
+- `try_tuple_index_dispatch`, `try_union_common_field_dispatch`,
+  `try_enum_variant_dispatch`
+- `resolve_struct_field` (terminal fallback)
+
+**Measurements** (build/vader.c) :
+
+| Metric                  | Baseline (post-Phase-B) | Post-Phase-C | Δ          |
+|-------------------------|------------------------:|-------------:|-----------:|
+| `build/vader.c` lines   | 157 814                 | 116 608      | **-26.1 %** |
+| `infer_field` C size    | 41 679                  | 525          | **-98.7 %** |
+| `cc -O0 -ggdb`          | 3.83 s                  | **1.67 s**   | **-56.4 %** |
+| `cc -O3 -DNDEBUG`       | 14.50 s                 | **9.62 s**   | **-33.7 %** |
+
+**Cumulative since pre-piste-5 baseline** : 335 364 → 116 608 =
+**−65.2 %** lines ; 27.6 s → 1.67 s = **−93.9 %** cc -O0 ; 154.94 s
+→ 9.62 s = **−93.8 %** cc -O3.
+
+**Top-fn ranking post-Phase-C** :
+
+| # | Fn | Lines |
+|---|---|---:|
+| 1 | `vm.exec` | 4 186 |
+| 2 | `parse_op_line` | 4 042 |
+| 3 | `dispatch_import` | 1 176 |
+| 4 | `try_lex_operator` | 1 092 |
+| 5 | `int_op_for` | 921 |
+
+`infer_field` dropped out of the top — its 525 lines now sit
+mid-pack. `vm.exec` is the new biggest fn (cascade match on op kind)
+— similar refactor would split it further if needed.
+
+**Regressions** : zero. native 252/252, vm + vader_vm 446 pass / 8
+skip / 0 fail (snapshots byte-identical), parity 1005/1005,
+formatter + lexer + lsp 114/114, cli + e2e 14/14.
+
+**Implementation surface** : single file `vader/typecheck/field.vader`.
+`infer_field` shrinks from 200 → 47 LoC, +160 LoC of `try_*` helpers
+added after. Net : +0 LoC source (the file stays at 907 LoC). No
+TS / SPEC change. No import edit (all helpers stay in field.vader,
+no cross-module cycle).
+
+**Sprint 3 (piste 6) closeout** :
+
+Phase B + Phase C cumulative on top of pre-piste-5 baseline :
+
+|                        | Baseline    | Post Phase C | Δ           |
+|------------------------|------------:|-------------:|------------:|
+| `build/vader.c` lines  | 335 364     | 116 608      | **-65.2 %** |
+| `cc -O0 -ggdb`         | 27.6 s      | 1.67 s       | **-93.9 %** |
+| `cc -O3 -DNDEBUG`      | 154.94 s    | 9.62 s       | **-93.8 %** |
+| `build/vader.c` bytes  | ~31 MB      | ~7.5 MB      | **-76 %** |
+
+Best ROI in the whole plan : ~280 LoC of Vader source rewrite for
+−92 k lines of generated C and −93 % cc time. Pure Vader, no TS /
+SPEC change.
+
+**Optional next attack** (if the user still wants gains) :
+
+`vm.exec` at 4 186 lines (cascade match on op kind for the VM
+interpreter) is the next candidate. Same pattern would split it into
+per-op-kind fns. Estimated -3 k lines (modest), and may regress VM
+dispatch perf (extra indirection per op). Only worth doing if a
+real benchmark identifies VM dispatch cost as a bottleneck.
+
+Other plan items (piste 2 gc_roots, piste 4 br_table) remain
+gated on benchmark evidence — current cc time is so comfortable
+that they're not worth their risk profile right now.

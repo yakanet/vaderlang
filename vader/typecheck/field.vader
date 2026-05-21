@@ -27,15 +27,16 @@ import "vader/typecheck/types" {
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
 
-/// Type-check a `FieldExpr`. `check_expr_fn` is threaded for the
-/// recursive target check (cycle break, same as call.vader).
+/// Type-check a `FieldExpr`. Chains the per-target-shape attempts in
+/// priority order ; each `try_*` returns `Type | null` (null = "not
+/// my case"). `try_struct_field` is the terminal fallback that emits
+/// T3008/T3009 when nothing matches.
 export infer_field :: fn(
     e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    // Namespace-import field access : `mod.foo` where `mod` resolves
-    // to an `ImportBinding` namespace target. Lookup `foo` directly
-    // in the target module's collected symbols + its decl_types.
+    // Namespace-import field access — `mod.foo` where `mod` is an
+    // import binding. Runs before the recursive target check.
     ns_lookup :: try_namespace_field(e, typed)
     match ns_lookup {
         is null -> {}
@@ -43,29 +44,59 @@ export infer_field :: fn(
     }
     target_ty :: check_expr_fn(e.target, null, typed, diags)
     if target_ty is UnresolvedType { return TY_UNRESOLVED }
-    // Array UFCS : `arr.len()` / `arr.push(x)` / `arr.pop()` dispatch
-    // through stdlib free fns. MVP returns a synthesised FnType
-    // matching each method's signature ; impl-driven UFCS lookup
-    // arrives with `coerce.vader`.
-    if target_ty is ArrayType {
-        array_ufcs :: array_method_type(e.field, target_ty)
-        match array_ufcs {
-            is null -> {}
-            _ -> { return array_ufcs }
-        }
-    }
-    if target_ty is PrimitiveType {
-        prim_ufcs :: primitive_method_type(target_ty.name, e.field)
-        match prim_ufcs {
-            is null -> {}
-            _ -> { return prim_ufcs }
-        }
-    }
-    // Impl-method UFCS dispatch : `x.method()` where there's an
-    // `<x-type> implements <Trait> { method :: ... }`. Indexed by
-    // orchestrate.vader at impl-load time. Try exact display first,
-    // then fall back to the base-name key + substitute the impl's
-    // type-params against the receiver's concrete args.
+
+    candidate: Type | null = null
+    candidate = try_array_method_dispatch(target_ty, e)
+    match candidate { is null -> {} _ -> { return candidate } }
+    candidate = try_primitive_method_dispatch(target_ty, e)
+    match candidate { is null -> {} _ -> { return candidate } }
+    candidate = try_impl_method_ufcs(target_ty, e, typed, diags)
+    match candidate { is null -> {} _ -> { return candidate } }
+    // Bounded TypeParam dispatch runs BEFORE free-fn UFCS : a free fn
+    // whose first param accepts the TypeParam wildcard would otherwise
+    // hijack the dispatch instead of routing through the type-param's
+    // trait bound.
+    candidate = try_typeparam_bound_method(target_ty, e, typed)
+    match candidate { is null -> {} _ -> { return candidate } }
+    candidate = try_free_fn_ufcs_dispatch(target_ty, e, typed)
+    match candidate { is null -> {} _ -> { return candidate } }
+    candidate = try_trait_method_dispatch(target_ty, e, typed)
+    match candidate { is null -> {} _ -> { return candidate } }
+    candidate = try_default_trait_method_dispatch(target_ty, e, typed)
+    match candidate { is null -> {} _ -> { return candidate } }
+    candidate = try_tuple_index_dispatch(target_ty, e, diags)
+    match candidate { is null -> {} _ -> { return candidate } }
+    candidate = try_union_common_field_dispatch(target_ty, e, typed, diags)
+    match candidate { is null -> {} _ -> { return candidate } }
+    candidate = try_enum_variant_dispatch(target_ty, e, diags)
+    match candidate { is null -> {} _ -> { return candidate } }
+    return resolve_struct_field(target_ty, e, typed, diags)
+}
+
+// ---- per-target-shape dispatch fns ---------------------------------------
+//
+// Each `try_*` returns null when the target_ty kind doesn't match its
+// shape, or when the shape matches but the lookup yielded nothing.
+// Splitting `infer_field`'s cascade into these tiny fns keeps each C
+// body bounded instead of the original 40 k-line monster.
+
+try_array_method_dispatch :: fn(target_ty: Type, e: AST.FieldExpr) -> Type | null {
+    if !(target_ty is ArrayType) { return null }
+    return array_method_type(e.field, target_ty)
+}
+
+try_primitive_method_dispatch :: fn(target_ty: Type, e: AST.FieldExpr) -> Type | null {
+    if !(target_ty is PrimitiveType) { return null }
+    return primitive_method_type(target_ty.name, e.field)
+}
+
+// `x.method()` where `<x-type> implements <Trait> { method :: ... }`.
+// Indexed by orchestrate.vader at impl-load time. Try exact display
+// first, then fall back to the base-name key + substitute the impl's
+// type-params against the receiver's concrete args.
+try_impl_method_ufcs :: fn(
+    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[],
+) -> Type | null {
     impl_ufcs :: typed.impl_methods["${display_type(target_ty)}::${e.field}"]
     match impl_ufcs {
         is null -> {}
@@ -76,102 +107,102 @@ export infer_field :: fn(
     }
     base_impl :: typed.impl_methods["${type_base_name(target_ty)}::${e.field}"]
     match base_impl {
-        is null -> {}
+        is null -> { return null }
         _ -> {
             check_trait_ambiguity(e, target_ty, typed, diags)
             return substitute_impl_method(base_impl, target_ty, typed)
         }
     }
-    // Bounded TypeParam dispatch runs BEFORE free-fn UFCS : a free
-    // fn whose first param accepts the TypeParam wildcard would
-    // otherwise hijack the dispatch instead of routing through the
-    // type-param's trait bound.
-    if target_ty is TypeParamType {
-        bound :: typed.resolved.type_param_bounds[target_ty.symbol.id]
-        if !(bound is null) {
-            tm :: dispatch_bounded_method(bound, e.field, typed)
-            match tm {
-                is null -> {}
-                _ -> { return substitute_self(tm, target_ty) }
-            }
-        }
-    }
-    // Free-fn UFCS : `x.foo()` dispatches to a free fn `foo` whose
-    // first param accepts `target_ty`. Walks the local module's
-    // `fn_overloads` bucket and returns the curried fn type (sans the
-    // receiver param). Skips when no bucket matches the field name.
+}
+
+try_typeparam_bound_method :: fn(
+    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram,
+) -> Type | null {
+    if !(target_ty is TypeParamType) { return null }
+    bound :: typed.resolved.type_param_bounds[target_ty.symbol.id]
+    if bound is null { return null }
+    tm :: dispatch_bounded_method(bound, e.field, typed)
+    if tm is null { return null }
+    return substitute_self(tm, target_ty)
+}
+
+// `x.foo()` dispatching to a free fn `foo` whose first param accepts
+// `target_ty`. Walks the local module's `fn_overloads` bucket and
+// returns the curried fn type (receiver stripped). Records the
+// receiver type in `ufcs_receiver_types` for the call-site lowerer.
+try_free_fn_ufcs_dispatch :: fn(
+    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram,
+) -> Type | null {
     free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, typed)
     match free_ufcs {
-        is null -> {}
+        is null -> { return null }
         _ -> {
             typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
             return free_ufcs.curried
         }
     }
-    // Trait method dispatch : `t.method()` where `t: <SomeTrait>`
-    // returns the trait's declared method signature with `Self`
-    // substituted for the receiver's type.
-    if target_ty is TraitType {
-        trait_method :: try_trait_method(target_ty, e.field, typed)
-        match trait_method {
-            is null -> {}
-            _ -> { return substitute_self(trait_method, target_ty) }
-        }
+}
+
+try_trait_method_dispatch :: fn(
+    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram,
+) -> Type | null {
+    if !(target_ty is TraitType) { return null }
+    trait_method :: try_trait_method(target_ty, e.field, typed)
+    if trait_method is null { return null }
+    return substitute_self(trait_method, target_ty)
+}
+
+// Struct that implements a trait carrying a same-named method WITH a
+// default body (`Iterator.count` / `Iterator.is_empty`) — synthesise
+// the dispatch from the trait method's signature.
+try_default_trait_method_dispatch :: fn(
+    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram,
+) -> Type | null {
+    if !(target_ty is StructType) { return null }
+    return try_default_trait_method(target_ty, e.field, typed)
+}
+
+// `tup.0` — positional access on tuples. Out-of-range raises T3009.
+try_tuple_index_dispatch :: fn(
+    target_ty: Type, e: AST.FieldExpr, diags: Diagnostic[],
+) -> Type | null {
+    if !(target_ty is TupleType) { return null }
+    idx :: parse_tuple_index(e.field)
+    if idx < 0 || idx >= target_ty.elements.len() {
+        diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
+            "`${e.field}` on ${display_type(target_ty)}"))
+        return TY_UNRESOLVED
     }
-    // Default-bodied trait method inheritance : when target is a
-    // struct that implements a trait carrying a same-named method
-    // WITH a default body (`Iterator.count` / `Iterator.is_empty`),
-    // synthesise the dispatch from the trait method's signature.
-    if target_ty is StructType {
-        inherited :: try_default_trait_method(target_ty, e.field, typed)
-        match inherited {
-            is null -> {}
-            _ -> { return inherited }
-        }
+    return target_ty.elements[idx]
+}
+
+try_union_common_field_dispatch :: fn(
+    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[],
+) -> Type | null {
+    if !(target_ty is UnionType) { return null }
+    return union_common_field(target_ty, e.field, typed, diags)
+}
+
+// `Direction.North` — variant access on the enum type itself.
+try_enum_variant_dispatch :: fn(
+    target_ty: Type, e: AST.FieldExpr, diags: Diagnostic[],
+) -> Type | null {
+    if !(target_ty is EnumType) { return null }
+    idx :: target_ty.indices[e.field]
+    if idx is null {
+        diags.push(typecheck_error(.UnknownEnumVariant, e.field_span,
+            "`${e.field}` is not a variant of ${display_type(target_ty)}"))
+        return TY_UNRESOLVED
     }
-    // Bounded TypeParam : `x.method()` where `x: T` with `T: Trait`
-    // (or `T: Trait1 & Trait2`) dispatches to whichever bound trait
-    // exposes the named method ; `Self` substitutes to `T`.
-    if target_ty is TypeParamType {
-        bound :: typed.resolved.type_param_bounds[target_ty.symbol.id]
-        if !(bound is null) {
-            tm :: dispatch_bounded_method(bound, e.field, typed)
-            match tm {
-                is null -> {}
-                _ -> { return substitute_self(tm, target_ty) }
-            }
-        }
-    }
-    // `tup.0` — positional access on tuples.
-    if target_ty is TupleType {
-        idx :: parse_tuple_index(e.field)
-        if idx < 0 || idx >= target_ty.elements.len() {
-            diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
-                "`${e.field}` on ${display_type(target_ty)}"))
-            return TY_UNRESOLVED
-        }
-        return target_ty.elements[idx]
-    }
-    // Union common-field access — every variant must be a struct
-    // carrying a field of the same name. Returns the union of each
-    // variant's field type (collapsed if all equal).
-    if target_ty is UnionType {
-        union_field :: union_common_field(target_ty, e.field, typed, diags)
-        match union_field {
-            is null -> {}
-            _ -> { return union_field }
-        }
-    }
-    // `Direction.North` — variant access on the enum type itself.
-    if target_ty is EnumType {
-        idx :: target_ty.indices[e.field]
-        if idx is null {
-            diags.push(typecheck_error(.UnknownEnumVariant, e.field_span,
-                "`${e.field}` is not a variant of ${display_type(target_ty)}"))
-            return TY_UNRESOLVED
-        }
-        return target_ty
-    }
+    return target_ty
+}
+
+// Terminal struct-field lookup + the catch-all diagnostics for any
+// other unsupported shape. Returns a real Type (not Type | null)
+// since this is the last fallthrough.
+resolve_struct_field :: fn(
+    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
     if !(target_ty is StructType) {
         diags.push(typecheck_error(.NotIndexable, e.span,
             "`.${e.field}` on non-struct type ${display_type(target_ty)}"))
@@ -179,14 +210,12 @@ export infer_field :: fn(
     }
     decl :: typed.struct_decls[target_ty.symbol.id]
     if decl is null {
-        // The struct decl isn't indexed — declare_module didn't see it
-        // (e.g. cross-module reference before wire.vader lands).
+        // declare_module didn't index the struct decl (cross-module
+        // reference before wire.vader lands, typically).
         return TY_UNRESOLVED
     }
-    // Cross-module path : `struct_field_types` carries the
-    // already-resolved field types using the OWNING module's
-    // resolved.idents. Falls back to walking the AST locally when
-    // the entry hasn't seen this struct.
+    // Cross-module : `struct_field_types` carries already-resolved
+    // field types using the OWNING module's resolved.idents.
     pre_resolved :: lookup_pre_resolved_field(target_ty.symbol.id, e.field, typed)
     found: Type | null = pre_resolved
     if found is null {
@@ -200,10 +229,6 @@ export infer_field :: fn(
         }
         _ -> {
             substituted :: substitute_struct_field(found, decl, target_ty)
-            // Field flow narrowing : if the receiver is an `IdentExpr`
-            // resolving to a local Symbol and a `${sym_id}.${field}`
-            // slot was pushed by a divergent / branch-scoped guard,
-            // return the narrowed type instead of the declared one.
             return narrow_field_if_active(e, substituted, typed)
         }
     }
