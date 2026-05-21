@@ -64,49 +64,22 @@ MissingRequiredFieldInStructLit · T3038 FieldAlreadyProvided
 The `tests/parity.test.ts::typecheck` stage diffs the Vader CLI's
 `dump --stage=typed-ast` byte-for-byte against the TS-generated
 `typecheck.snapshot` for every snippet under `tests/snippets/`.
-Current scoring : **128/251 (~51%) pass**. The remaining 124 fall
-into the buckets below, ordered by impact :
 
-### Bucket A — Cross-module imports — **DONE**
+**Current scoring : 251/251 (100 %) pass** (2026-05-22).
 
-The full multi-module wire pipeline (`vader/resolver/{loader,
-module, wire}.vader` + `imports.vader` + `orchestrate.vader::
-check_project_with_bodies` + `expr_ident.vader::redirect` +
-`field.vader::try_namespace_field`) ships in the binary and types
-both namespace (`fs :: import "std/io"` → `fs.println`) and
-destructured (`{ println }`) forms against the loaded module's
-exports. `std/core` auto-loads so `Range(T)`, `Display`, etc.
-resolve concretely.
+All four follow-up buckets that were tracked here previously
+(B flow-sensitive narrowing, C mutation diagnostics, D Iterator-
+trait dispatch, E self-referential / decorator / lambda corner
+cases) have been closed in earlier sessions. The doc note about
+"~51 % parity, 124 fails remaining" is historical ; the suite is
+green end-to-end today.
 
-### Bucket B — Flow-sensitive narrowing (~25 fails)
-
-`if x is T as a { use(a) }` and per-arm `match` narrowing both rely
-on the resolver minting a `Binding` Symbol for the `bind_as` ident.
-The mint exists for `IsPattern` (match arms) but not for the
-`BinaryExpr.Is.bind_as` in `if` conds. The narrow.vader API is
-ready ; producers in `expr_if.vader` / `match_expr.vader` plug in
-after the resolver lands the binding.
-
-### Bucket C — Mutation rejection diagnostics (~10 fails)
-
-T3041 ("cannot reassign `::` binding") and T3042 ("cannot mutate
-immutable array") both need the resolver to back-reference the
-`LetStmt.mutable` flag / `ArrayType.immutable` from the
-`Local`/`Param` Symbol. Resolver work, then a one-line check in
-`stmt.vader::check_assign`.
-
-### Bucket D — Iterator-trait dispatch (~5 fails)
-
-`for x in custom_iter()` where the iter type implements
-`Iterator(T)` should bind `x: T`. Vader's `check_for` only handles
-`T[]` natively today ; the `Iterator` trait lookup lands with
-`coerce.vader` once `ImplRegistry.find_for(ty, trait_sym)` exists.
-
-### Bucket E — Remaining (~4 fails)
-
-Self-referential struct fields (`Node.next: Node | null`),
-decorator-body expressions (`@assert(cond)`), lambda-body
-expressions not landing in `expr_types`. Each a small fix.
+What can still drift : new snippets added under `tests/snippets/`
+that exercise typecheck behaviours not previously covered (rare —
+most additions are codegen / native / vm tests). If a new typecheck
+snippet fails parity, the gap typically lands in `expr_*.vader`
+(per-expr inference) or `stmt.vader` (per-stmt checking) — fix in
+those files, rerun parity, commit.
 
 ## Still deferred (next sessions)
 
