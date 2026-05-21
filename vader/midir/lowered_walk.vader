@@ -1,0 +1,236 @@
+// vader/midir/lowered_walk — RefVisitor walks over LoweredDecl.
+//
+// Mirror of `src/midir/lowered_walk.ts`. Visits every symbol / type
+// reference inside a LoweredDecl. The whole-program DCE in
+// `dce.vader` uses it to walk struct/const decls (which the CFG
+// passes through unchanged) and to seed externs that aren't in the
+// CFG.
+//
+// Three visitor channels :
+//   - RefVisitor(symbolId) — fires on every Symbol reference.
+//   - StructInstVisitor(key) — fires per concrete struct *instance*
+//     so DCE can prune mono variants (`ArrayIterator(string)` vs
+//     `ArrayIterator(i32)`) the symbol-only set can't distinguish.
+//   - VirtualCallVisitor(trait, method) — fires per LoweredVirtualCall
+//     so DCE keeps every impl-fn-symbol alive for that (trait, method).
+
+import "vader/typecheck/types" { Type, StructType, TraitType, canonical_args_key, for_each_type }
+import "vader/lower/lowered_ast" {
+    LoweredBlock, LoweredDecl, LoweredExpr, LoweredStmt,
+    LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
+    LoweredLet, LoweredAssign, LoweredExprStmt, LoweredReturn,
+    LoweredLoop, LoweredBreak, LoweredContinue, LoweredCellSet,
+    LoweredIdent, LoweredCall, LoweredVirtualCall, LoweredFieldAccess,
+    LoweredIndex, LoweredUnary, LoweredBinary, LoweredIf,
+    LoweredStructLit, LoweredArrayLit, LoweredArrayLen, LoweredArrayPush,
+    LoweredArraySlice, LoweredCast, LoweredTypeCheck, LoweredIntrinsicCall,
+    LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
+    LoweredCharLit, LoweredStringLit, LoweredUnreachable,
+    LoweredCellNew, LoweredCellGet, LoweredMakeClosure,
+    LoweredDataConst, LoweredTypeConst,
+}
+
+/// Per-symbol-reference callback. DCE accumulates the reachable
+/// symbol set on each visit.
+export RefVisitor :: fn(i32) -> void
+
+/// Concrete struct-instance callback. Keyed on
+/// `${symbol.id}|${canonical_args_key(args)}` — see `struct_inst_key`.
+export StructInstVisitor :: fn(string) -> void
+
+/// Per-LoweredVirtualCall callback. Receives the trait + method names ;
+/// DCE wires them to a `(trait, method) → impl-fn-symbols` index.
+export VirtualCallVisitor :: fn(string, string) -> void
+
+/// Visitor bundle threaded through the walk. The virtual + struct-inst
+/// channels are optional — DCE uses both ; lighter callers may pass
+/// `null` for either.
+export WalkCtx :: struct {
+    visit:             RefVisitor
+    visit_virtual:     VirtualCallVisitor | null
+    visit_struct_inst: StructInstVisitor | null
+}
+
+/// Canonical key for a concrete struct instance — shared between
+/// DCE's reachability set and LoweredStructDecl.origin lookup.
+export struct_inst_key :: fn(symbol_id: i32, args: Type[]) -> string {
+    return "${symbol_id}|${canonical_args_key(args)}"
+}
+
+/// Walk every Symbol + Type reference reachable from `decl`. The
+/// caller supplies the three visitor channels via `ctx`.
+export for_each_reference :: fn(decl: LoweredDecl, ctx: WalkCtx) -> void {
+    match decl {
+        is LoweredFnDecl as d -> {
+            for p in d.params { walk_type(p.type, ctx) }
+            walk_type(d.return_type, ctx)
+            match d.body {
+                is null -> {}
+                _ -> { walk_block(d.body, ctx) }
+            }
+        }
+        is LoweredStructDecl as d -> {
+            for f in d.fields { walk_type(f.type, ctx) }
+        }
+        is LoweredConstDecl as d -> {
+            walk_type(d.type, ctx)
+            walk_expr(d.value, ctx)
+        }
+    }
+}
+
+walk_block :: fn(b: LoweredBlock, ctx: WalkCtx) -> void {
+    walk_type(b.type, ctx)
+    for s in b.stmts { walk_stmt(s, ctx) }
+    match b.trailing {
+        is null -> {}
+        _ -> { walk_expr(b.trailing, ctx) }
+    }
+}
+
+walk_stmt :: fn(s: LoweredStmt, ctx: WalkCtx) -> void {
+    match s {
+        is LoweredLet as st -> {
+            walk_type(st.type, ctx)
+            walk_expr(st.value, ctx)
+        }
+        is LoweredAssign as st -> {
+            walk_expr(st.target, ctx)
+            walk_expr(st.value, ctx)
+        }
+        is LoweredExprStmt as st -> { walk_expr(st.expr, ctx) }
+        is LoweredReturn as st -> {
+            match st.value {
+                is null -> {}
+                _ -> { walk_expr(st.value, ctx) }
+            }
+        }
+        is LoweredLoop as st -> {
+            match st.cond {
+                is null -> {}
+                _ -> { walk_expr(st.cond, ctx) }
+            }
+            walk_block(st.body, ctx)
+        }
+        is LoweredBreak    -> {}
+        is LoweredContinue -> {}
+        is LoweredCellSet as st -> {
+            walk_expr(st.target, ctx)
+            walk_expr(st.value, ctx)
+            walk_type(st.value_type, ctx)
+        }
+    }
+}
+
+walk_expr :: fn(e: LoweredExpr, ctx: WalkCtx) -> void {
+    walk_type(e.type, ctx)
+    match e {
+        is LoweredIdent as i -> { ctx.visit(i.symbol.id) }
+        is LoweredCall as c -> {
+            walk_expr(c.callee, ctx)
+            for a in c.args { walk_expr(a, ctx) }
+        }
+        is LoweredVirtualCall as v -> {
+            match ctx.visit_virtual {
+                is null -> {}
+                _ -> { ctx.visit_virtual(v.trait_name, v.method) }
+            }
+            walk_expr(v.receiver, ctx)
+            for a in v.args { walk_expr(a, ctx) }
+        }
+        is LoweredFieldAccess as fa -> { walk_expr(fa.target, ctx) }
+        is LoweredIndex as ix -> {
+            walk_expr(ix.target, ctx)
+            walk_expr(ix.index, ctx)
+        }
+        is LoweredUnary as u -> { walk_expr(u.operand, ctx) }
+        is LoweredBinary as b -> {
+            walk_expr(b.left, ctx)
+            walk_expr(b.right, ctx)
+        }
+        is LoweredIf as ie -> {
+            walk_expr(ie.cond, ctx)
+            walk_block(ie.then_block, ctx)
+            match ie.else_block {
+                is null -> {}
+                _ -> { walk_block(ie.else_block, ctx) }
+            }
+        }
+        is LoweredBlock as bl -> { walk_block(bl, ctx) }
+        is LoweredStructLit as sl -> {
+            for f in sl.fields { walk_expr(f.value, ctx) }
+        }
+        is LoweredArrayLit as al -> {
+            for el in al.elements { walk_expr(el, ctx) }
+        }
+        is LoweredArrayLen as al -> { walk_expr(al.target, ctx) }
+        is LoweredArrayPush as ap -> {
+            walk_expr(ap.target, ctx)
+            walk_expr(ap.value, ctx)
+        }
+        is LoweredArraySlice as asl -> {
+            walk_expr(asl.target, ctx)
+            walk_expr(asl.lo, ctx)
+            walk_expr(asl.hi, ctx)
+        }
+        is LoweredCast as cs -> { walk_expr(cs.value, ctx) }
+        is LoweredTypeCheck as tc -> {
+            walk_expr(tc.value, ctx)
+            walk_type(tc.check_type, ctx)
+        }
+        is LoweredIntrinsicCall as ic -> {
+            for a in ic.args { walk_expr(a, ctx) }
+            match ic.display_for {
+                is null -> {}
+                _ -> { walk_type(ic.display_for, ctx) }
+            }
+        }
+        is LoweredCellNew as cn -> {
+            walk_expr(cn.value, ctx)
+            walk_type(cn.value_type, ctx)
+        }
+        is LoweredCellGet as cg -> {
+            walk_expr(cg.target, ctx)
+            walk_type(cg.value_type, ctx)
+        }
+        is LoweredMakeClosure as mc -> {
+            // Synthesised symbols carry negative ids ; we still emit
+            // the visit so DCE keeps the lifted decl alive.
+            ctx.visit(mc.fn_symbol.id)
+            walk_expr(mc.env, ctx)
+        }
+        is LoweredDataConst as dc -> { walk_type(dc.type, ctx) }
+        is LoweredTypeConst as tc -> {
+            // Both `type` (metatype) and `value` (concrete type the
+            // alias points at) must keep referenced struct/enum symbols
+            // alive — DCE musn't prune types reachable only through
+            // `type.const`.
+            walk_type(tc.type, ctx)
+            walk_type(tc.value, ctx)
+        }
+        // Pure leaf literals — no nested references.
+        is LoweredIntLit       -> {}
+        is LoweredFloatLit     -> {}
+        is LoweredBoolLit      -> {}
+        is LoweredNullLit      -> {}
+        is LoweredCharLit      -> {}
+        is LoweredStringLit    -> {}
+        is LoweredUnreachable  -> {}
+    }
+}
+
+walk_type :: fn(t: Type, ctx: WalkCtx) -> void {
+    for_each_type(t, (sub: Type) -> {
+        match sub {
+            is StructType as s -> {
+                ctx.visit(s.symbol.id)
+                match ctx.visit_struct_inst {
+                    is null -> {}
+                    _ -> { ctx.visit_struct_inst(struct_inst_key(s.symbol.id, s.args)) }
+                }
+            }
+            is TraitType as r -> { ctx.visit(r.symbol.id) }
+            _ -> {}
+        }
+    })
+}

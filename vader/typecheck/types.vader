@@ -257,6 +257,68 @@ write_type_list :: fn(sb: StringBuilder, items: Type[], sep: string) -> void {
     }
 }
 
+// ---- canonical key + walk -------------------------------------------------
+
+/// Stable single-line key for a type. Used by mono-instance DCE
+/// (`structInstKey`), specialize's `implMethodEntries` indexing, and
+/// any side-table keyed on Type identity. Distinct types always
+/// produce distinct keys ; equivalent types always produce equal keys.
+export canonical_key :: fn(t: Type) -> string {
+    match t {
+        is PrimitiveType  as p -> { return "p${p.name}" }
+        is StructType     as s -> { return "s${s.symbol.id}<${canonical_args_key(s.args)}>" }
+        is TraitType      as r -> { return "t${r.symbol.id}<${canonical_args_key(r.args)}>" }
+        is ArrayType      as a -> {
+            if a.immutable { return "ac(${canonical_key(a.element)})" }
+            return "am(${canonical_key(a.element)})"
+        }
+        is TupleType      as p -> { return "T<${canonical_args_key(p.elements)}>" }
+        is FnType         as f -> { return "F<${canonical_args_key(f.params)}>>${canonical_key(f.return_type)}" }
+        is UnionType      as u -> { return "U<${canonical_args_key(u.variants)}>" }
+        is TypeParamType  as p -> { return "P${p.symbol.id}" }
+        is EnumType       as e -> { return "e${e.symbol.id}" }
+        is TypeMetaType        -> { return "M" }
+        is SelfType            -> { return "S" }
+        is UnresolvedType      -> { return "?" }
+        is NeverType           -> { return "!" }
+        is FreeIntType         -> { return "FI" }
+        is FreeFloatType       -> { return "FF" }
+    }
+}
+
+/// Compose an arg-list canonical key — used as the inner key in
+/// mono-instance DCE and impl-method indexing.
+export canonical_args_key :: fn(args: Type[]) -> string {
+    if args.len() == usize(0) { return "" }
+    sb :: new_builder()
+    first := true
+    for a in args {
+        if !first { sb.append(",") }
+        first = false
+        sb.append(canonical_key(a))
+    }
+    return sb.to_string()
+}
+
+/// Walk `t` and every nested type (struct/trait args, array element,
+/// tuple elements, fn params + return, union variants) calling `visit`
+/// on each. Pre-order, root included.
+export for_each_type :: fn(t: Type, visit: fn(Type) -> void) -> void {
+    visit(t)
+    match t {
+        is StructType as s -> { for a in s.args { for_each_type(a, visit) } }
+        is TraitType  as r -> { for a in r.args { for_each_type(a, visit) } }
+        is ArrayType  as a -> { for_each_type(a.element, visit) }
+        is TupleType  as p -> { for el in p.elements { for_each_type(el, visit) } }
+        is FnType     as f -> {
+            for p in f.params { for_each_type(p, visit) }
+            for_each_type(f.return_type, visit)
+        }
+        is UnionType  as u -> { for v in u.variants { for_each_type(v, visit) } }
+        _ -> {}
+    }
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
