@@ -23,8 +23,8 @@ import {
   aux, b1SlotVariant, boxExpr, boxExprUnknown, coerce, coerceExpr, cTypeFor,
   cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, isRefVal, line,
   nameOf, newTmp, peek, pop, primitiveMatchesType, pushBinop, pushBinopAny,
-  pushExpr, pushFnCall2, pushLit, pushLocalRef, pushUnop, signatureFor,
-  unboxExpr, valTypeOfBcType, valTypeOfField, zeroInit,
+  pushBinopExpr, pushExpr, pushFnCall2, pushLit, pushLocalRef, pushUnop,
+  signatureFor, unboxExpr, valTypeOfBcType, valTypeOfField, zeroInit,
   type FnState,
 } from "./body.ts";
 
@@ -1022,24 +1022,22 @@ export function emitNumericOp(s: FnState, kind: string): void {
 
 export function emitConvert(s: FnState, from: ValType, to: ValType): void {
   const v = pop(s);
-  const tmp = newTmp(s, to);
   if (from === to) {
-    line(s, `${tmp} = ${v.name};`);
-  } else {
-    // Cast through `from` first so signedness drives any width-change
-    // extension. The stack value's C type can mismatch `from` because
-    // small unsigned constants ride on `i32.const` (the bytecode has no
-    // dedicated `uN.const`), so a literal like `(int32_t)UINT32_C(N)` for
-    // a u32-repr enum would sign-extend on `(uint64_t) v` if we skipped
-    // the inner cast.
-    line(s, `${tmp} = (${cTypeForVal(s.ctx, to)}) (${cTypeForVal(s.ctx, from)}) ${v.name};`);
+    pushExpr(s, to, v.name);
+    return;
   }
+  // Cast through `from` first so signedness drives any width-change
+  // extension. The stack value's C type can mismatch `from` because
+  // small unsigned constants ride on `i32.const` (the bytecode has no
+  // dedicated `uN.const`), so a literal like `(int32_t)UINT32_C(N)` for
+  // a u32-repr enum would sign-extend on `(uint64_t) v` if we skipped
+  // the inner cast.
+  pushExpr(s, to, `((${cTypeForVal(s.ctx, to)}) (${cTypeForVal(s.ctx, from)}) ${v.name})`);
 }
 
 export function emitTypedBinop(s: FnState, t: ValType, verb: string): void {
   if (verb === "neg" || verb === "bitnot") {
     const v = pop(s);
-    const tmp = newTmp(s, t);
     const op = verb === "neg" ? "-" : "~";
     // Source `-9223372036854775808` reaches the codegen as
     // `i64.const 2^63` + `i64.neg`. The literal renders as
@@ -1050,10 +1048,10 @@ export function emitTypedBinop(s: FnState, t: ValType, verb: string): void {
     // directly here.
     if (verb === "neg" && t === "i64"
         && v.name === "(int64_t)UINT64_C(9223372036854775808)") {
-      line(s, `${tmp} = INT64_MIN;`);
+      pushLit(s, t, "INT64_MIN");
       return;
     }
-    line(s, `${tmp} = ${op}${v.name};`);
+    pushExpr(s, t, `${op}(${v.name})`);
     return;
   }
   const r = pop(s);
@@ -1066,13 +1064,19 @@ export function emitTypedBinop(s: FnState, t: ValType, verb: string): void {
     eq: "==", ne: "!=", lt: "<", le: "<=", gt: ">", ge: ">=",
   };
   if (arith[verb]) {
-    const tmp = newTmp(s, t);
-    line(s, `${tmp} = ${l.name} ${arith[verb]} ${r.name};`);
+    // `div` and `rem` trap on a zero rhs — keep them eager so the trap
+    // fires unconditionally at the bytecode-op point rather than being
+    // deferred (and possibly skipped) by a `dup`/dead-consumer chain.
+    if (verb === "div" || verb === "rem") {
+      const tmp = newTmp(s, t);
+      line(s, `${tmp} = ${l.name} ${arith[verb]} ${r.name};`);
+      return;
+    }
+    pushExpr(s, t, `(${l.name} ${arith[verb]} ${r.name})`);
     return;
   }
   if (cmp[verb]) {
-    const tmp = newTmp(s, "bool");
-    line(s, `${tmp} = ${l.name} ${cmp[verb]} ${r.name};`);
+    pushBinopExpr(s, l.name, cmp[verb]!, r.name, "bool");
     return;
   }
   // Unhandled — emit a trap so the failure surfaces at runtime.

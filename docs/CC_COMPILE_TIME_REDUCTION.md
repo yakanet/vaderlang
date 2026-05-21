@@ -630,3 +630,59 @@ file-size win, not a cc-time win.
 - Refine the "materialise ALL expr on `local.set`" rule by tracking a
   `readSlots` set on each expr-kind so only dependent exprs commit.
   Cheap, restores some inlining lost to the conservative rule.
+
+## 11. POC results — piste 5.d (2026-05-21)
+
+**Patch** : extends the expr-kind machinery to all side-effect-free
+binary, unary, and conversion ops :
+- `pushBinop` (bool / char comparisons + `&&` / `||`) and `pushUnop`
+  (`!`, `-`, `~`) now route through `pushExpr`.
+- `emitTypedBinop` pushes expr for every comparison and for pure
+  arithmetic (`+`, `-`, `*`, `&`, `|`, `^`, `<<`, `>>`). `div` / `rem`
+  stay eager — they trap on a zero rhs, and we don't want the trap
+  deferred or skipped by a downstream `dup` / dead-consumer path.
+- `emitConvert` pushes expr for the `(target) (source) value` cast.
+- A new shared `pushBinopExpr(l, op, r, resultT)` helper picks the
+  outer-paren rule : equality (`==` / `!=`) stays paren-free so
+  `if (${expr})` doesn't trip clang's `-Wparentheses-equality` warning
+  at the consumer ; every other operator carries an outer paren for
+  precedence safety (`a || b` inside an `&& c` consumer must commit
+  the parens, otherwise it parses the wrong way).
+- The `i64.neg INT64_MIN` special case (folded to `INT64_MIN` literal
+  to silence `-Winteger-overflow`) now pushes a literal instead of a
+  one-shot tmp.
+
+**Measurements** (same machine, `cc -O0 -ggdb`) :
+
+| Metric                                     | Post 5.c   | Post 5.d   | Δ        |
+|--------------------------------------------|-----------:|-----------:|---------:|
+| `build/vader.c` lines                      | 309 880    | 300 061    | -3.2 %   |
+| `cc -O0 -ggdb -c vader.c`                  | ~7.25 s    | 6.25 s     | -14 %    |
+
+**Cumulative since baseline** : 335 364 → 300 061 = **-10.5 %** lines ;
+27.6 s → 6.25 s = **-77.4 % cc wall time**.
+
+**Regressions** : none. native 252 / 252, vm + vader_vm 446 pass / 0
+fail, parity + cli + e2e 1021 / 1021, formatter + lexer + lsp 139 / 139.
+
+**/simplify** review : LGTM. Helper boundary clean, paren rule
+correctly scoped to `==`/`!=` (the only operator hitting the warning),
+`materializeStackForSlot` extra cost dwarfed by the clang-side win.
+
+**Implementation surface** :
+- `body.ts` : `pushBinop` / `pushBinopAny` / `pushUnop` rewritten as
+  three-line wrappers around `pushExpr` / `pushBinopExpr`. ~25 lines
+  changed.
+- `ops.ts` : `emitTypedBinop` arith/cmp/neg paths and `emitConvert`
+  rewired through `pushExpr` / `pushBinopExpr`. ~35 lines changed.
+- No SPEC.md change (codegen-only).
+
+**Remaining open** (out of scope for piste 5) :
+- Coalesce tmp + local decls per ValType in the prelude (§9
+  follow-up).
+- Sprint 2 piste 2 (gc_roots pruning via per-fn liveness) — highest
+  correctness risk in the plan ; revisit only after a real motivating
+  hot path appears in profiling.
+- Sprint 3 piste 4 (`match_tag` bytecode + br_table emit) — broader
+  surface (bytecode op + VM + serialise) ; defer until a benchmark
+  shows the chained-if dispatch dominating.

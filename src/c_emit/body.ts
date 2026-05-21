@@ -640,28 +640,35 @@ function emitReturn(s: FnState): void {
 
 export function pushBinop(s: FnState, _t: ValType, op: string, resultT: ValType): void {
   const r = pop(s); const l = pop(s);
-  const tmp = newTmp(s, resultT);
-  line(s, `${tmp} = ${l.name} ${op} ${r.name};`);
+  pushBinopExpr(s, l.name, op, r.name, resultT);
+}
+
+/** Side-effect-free binop push. Equality (`==` / `!=`) stays paren-free
+ *  so `if (${expr})` doesn't trip clang's `-Wparentheses-equality` ;
+ *  every other operator gets an outer paren for precedence safety
+ *  (`a || b` consumed by `& c` would parse the wrong way without it). */
+export function pushBinopExpr(s: FnState, l: string, op: string, r: string, resultT: ValType): void {
+  const text = op === "==" || op === "!="
+    ? `${l} ${op} ${r}`
+    : `(${l} ${op} ${r})`;
+  pushExpr(s, resultT, text);
 }
 
 export function pushBinopAny(s: FnState, op: string, resultT: ValType): void {
   const r = pop(s); const l = pop(s);
-  const tmp = newTmp(s, resultT);
   // C forbids `==` directly on a struct, and `vader_box_t` *is* the γ
   // representation for `ref`/`any` slots — so route through the runtime
   // helper which compares the tag plus the payload word.
   const neg = op === "!=" ? "!" : "";
-  line(s, `${tmp} = ${neg}vader_box_eq(${l.name}, ${r.name});`);
+  pushExpr(s, resultT, `${neg}vader_box_eq(${l.name}, ${r.name})`);
 }
 
 export function pushUnop(s: FnState, _t: ValType, op: string, resultT: ValType): void {
   const v = pop(s);
-  const tmp = newTmp(s, resultT);
-  // Parenthesise the operand : `expr`-kind stack values store their text
-  // without outer parens (so `if (X)` doesn't double-wrap), but unary
-  // operators bind tighter than `==`/comparison, so `!l0.tag == 0u` would
-  // mis-parse as `(!l0.tag) == 0u`.
-  line(s, `${tmp} = ${op}(${v.name});`);
+  // Wrap the operand : `expr`-kind values store their text without outer
+  // parens, but unary ops bind tighter than `==`/comparisons so e.g.
+  // `!l0.tag == 0u` would mis-parse as `(!l0.tag) == 0u`.
+  pushExpr(s, resultT, `${op}(${v.name})`);
 }
 
 export function pushFnCall2(s: FnState, resultT: ValType, fn: string): void {
