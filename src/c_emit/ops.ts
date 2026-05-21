@@ -23,8 +23,8 @@ import {
   aux, b1SlotVariant, boxExpr, boxExprUnknown, coerce, coerceExpr, cTypeFor,
   cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, isRefVal, line,
   nameOf, newTmp, peek, pop, primitiveMatchesType, pushBinop, pushBinopAny,
-  pushFnCall2, pushLit, pushLocalRef, pushUnop, signatureFor, unboxExpr,
-  valTypeOfBcType, valTypeOfField, zeroInit,
+  pushExpr, pushFnCall2, pushLit, pushLocalRef, pushUnop, signatureFor,
+  unboxExpr, valTypeOfBcType, valTypeOfField, zeroInit,
   type FnState,
 } from "./body.ts";
 
@@ -966,10 +966,11 @@ export function emitDataConst(s: FnState, op: Extract<Op, { kind: "data.const" }
 
 export function emitTypeCheck(s: FnState, op: Extract<Op, { kind: "type_check" }>): void {
   const v = pop(s);
-  const tmp = newTmp(s, "bool");
   // The value's static `val` tells us whether we're testing a boxed slot or
   // a primitively-typed one. For boxed values we compare tags; for primitives
-  // we compare the slot's static type against the target tag.
+  // we compare the slot's static type against the target tag. The result is
+  // a pure expression — push as `expr` so a downstream `br_if` / `if` /
+  // boolean-combinator can inline it instead of binding a one-shot tmp.
   if (v.val === "ref" || v.val === "any") {
     const targetType = s.ctx.module.types[op.typeIndex];
     // For trait references, check whether the value's tag corresponds to any
@@ -977,15 +978,12 @@ export function emitTypeCheck(s: FnState, op: Extract<Op, { kind: "type_check" }
     // Also always include a direct tag comparison against op.typeIndex itself:
     // built-in ref types like Error are tagged with their own type index.
     if (targetType?.kind === "ref" && targetType.traitName !== null) {
-      const cond = traitCheckExpr(s.ctx, v.name, targetType.traitName, op.typeIndex);
-      line(s, `${tmp} = ${cond};`);
+      pushExpr(s, "bool", traitCheckExpr(s.ctx, v.name, targetType.traitName, op.typeIndex));
     } else {
-      line(s, `${tmp} = (${v.name}.tag == ${op.typeIndex}u);`);
+      pushExpr(s, "bool", `${v.name}.tag == ${op.typeIndex}u`);
     }
   } else {
-    // Primitive slot can only match if its static ValType corresponds to the
-    // target type's primitive (or struct/array typeIndex matches).
-    line(s, `${tmp} = ${primitiveMatchesType(s.ctx, v.val, op.typeIndex) ? "true" : "false"};`);
+    pushLit(s, "bool", primitiveMatchesType(s.ctx, v.val, op.typeIndex) ? "true" : "false");
   }
 }
 

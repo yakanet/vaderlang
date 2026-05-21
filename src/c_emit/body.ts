@@ -253,24 +253,28 @@ function emitLocalDecls(
 
 // ------------------------------------------------------------- per-fn state
 
-/** A value sitting on the C-side stack. Three flavours :
+/** A value sitting on the C-side stack. Four flavours :
  *
  *  - `tmp` — already materialised into a fresh `tN`. The eager case ; used
  *    for any expression with side effects, ref/any types (GC-rooted), or
- *    once a `local-ref` has been forced by an intervening write.
+ *    once a `local-ref` / `expr` has been forced by an intervening write
+ *    or a `dup`.
  *  - `literal` — a pure literal text (`"42"`, `"true"`, …). Always safe to
  *    inline at the consumer ; never invalidated.
  *  - `local-ref` — a snapshot of `lN` taken at push time. Inlined as `lN`
  *    when popped UNLESS a later `local.set/tee N` happens before the pop,
  *    in which case `materializeStackForSlot` upgrades it to a `tmp` first.
- *
- *  Lazy materialisation halves the line count on the Vader self-host
- *  output by skipping the constant-then-immediately-used boilerplate
- *  (`int32_t t6 = INT32_C(1); l4 = t6;` → `l4 = 1;`). */
+ *  - `expr` — a side-effect-free C expression text (`(l0.tag == 322u)`,
+ *    `(l1 < 5)`, …). Inlined verbatim at the consumer. Treated like a
+ *    `local-ref` for materialisation : any `local.set/tee` *anywhere*
+ *    forces every live `expr` to a tmp (conservative — we don't track
+ *    operand dependencies), and `dup` always materialises first so the
+ *    two consumers don't re-evaluate the text. */
 export type StackVal =
   | { kind: "tmp";       name: string; idx: number; val: ValType }
   | { kind: "literal";   text: string; val: ValType }
-  | { kind: "local-ref"; slot:  number; val: ValType };
+  | { kind: "local-ref"; slot:  number; val: ValType }
+  | { kind: "expr";      text: string; val: ValType };
 
 export interface FnState {
   readonly fn: BcFunction;
@@ -362,8 +366,16 @@ function emitOp(s: FnState, ip: number, op: Op): void {
       // Push the same StackVal — literals + local-refs are safe to share ;
       // tmps just reference the same name. Bump the tmp refcount so the
       // recycler doesn't free the index until both consumers have popped.
-      const top = s.stack[s.stack.length - 1];
+      // `expr` entries are materialised first : sharing the text would
+      // re-evaluate the C expression at each consumer, both bloating the
+      // output and creating a mutation-race window if a local that the
+      // expr reads gets written between the two pops.
+      let top = s.stack[s.stack.length - 1];
       if (top === undefined) return;
+      if (top.kind === "expr") {
+        top = materialiseEntry(s, top.val, top.text);
+        s.stack[s.stack.length - 1] = top;
+      }
       if (top.kind === "tmp") s.tmpRefcount[top.idx]!++;
       s.stack.push(top);
       return;
@@ -645,7 +657,11 @@ export function pushBinopAny(s: FnState, op: string, resultT: ValType): void {
 export function pushUnop(s: FnState, _t: ValType, op: string, resultT: ValType): void {
   const v = pop(s);
   const tmp = newTmp(s, resultT);
-  line(s, `${tmp} = ${op}${v.name};`);
+  // Parenthesise the operand : `expr`-kind stack values store their text
+  // without outer parens (so `if (X)` doesn't double-wrap), but unary
+  // operators bind tighter than `==`/comparison, so `!l0.tag == 0u` would
+  // mis-parse as `(!l0.tag) == 0u`.
+  line(s, `${tmp} = ${op}(${v.name});`);
 }
 
 export function pushFnCall2(s: FnState, resultT: ValType, fn: string): void {
@@ -658,6 +674,14 @@ export function pushFnCall2(s: FnState, resultT: ValType, fn: string): void {
  *  the consumer site. No `Type tN = lit;` line is emitted. */
 export function pushLit(s: FnState, t: ValType, lit: string): void {
   s.stack.push({ kind: "literal", text: lit, val: t });
+}
+
+/** Push a side-effect-free C expression — `text` must be safe to inline
+ *  verbatim at the consumer (parenthesise if needed). Materialised to a
+ *  tmp on `dup` and on any `local.set/tee` (since we don't track which
+ *  locals the expression depends on). */
+export function pushExpr(s: FnState, t: ValType, text: string): void {
+  s.stack.push({ kind: "expr", text, val: t });
 }
 
 /** Push a snapshot of `lN` taken at this point. The pop site reads back
@@ -707,13 +731,14 @@ export function aux(s: FnState, suffix: string): string {
   return `_a${s.auxCounter++}_${suffix}`;
 }
 
-/** Inline-able C text for a stack value. Literals expand to their text,
- *  tmps to the tmp name, local-refs to `lN`. */
+/** Inline-able C text for a stack value. Literals/exprs expand to their
+ *  text, tmps to the tmp name, local-refs to `lN`. */
 export function nameOf(v: StackVal): string {
   switch (v.kind) {
     case "tmp":       return v.name;
     case "literal":   return v.text;
     case "local-ref": return `l${v.slot}`;
+    case "expr":      return v.text;
   }
 }
 
@@ -744,19 +769,31 @@ export function peek(s: FnState): { name: string; val: ValType } {
 }
 
 /** Before a `local.set/tee N` mutates `lN`, force every stack entry that
- *  references `lN` to snapshot its current value into a fresh tmp.
- *  Without this, popping a `local-ref{slot:N}` after the set would read
- *  the *new* value of `lN` instead of the old one. */
+ *  might observe the change to snapshot its current value into a fresh
+ *  tmp. Covers `local-ref{slot:N}` (the exact alias) and *every* `expr`
+ *  entry (conservative — we don't track which locals each expr depends
+ *  on, so any mutation forces all in-flight expressions). */
 export function materializeStackForSlot(s: FnState, slot: number): void {
   for (let i = 0; i < s.stack.length; i++) {
     const v = s.stack[i]!;
-    if (v.kind !== "local-ref" || v.slot !== slot) continue;
-    const idx = allocTmpIdx(s, v.val);
-    const name = `t${idx}`;
-    line(s, `${name} = l${v.slot};`);
-    s.tmpRefcount[idx] = 1;
-    s.stack[i] = { kind: "tmp", name, idx, val: v.val };
+    if (v.kind === "local-ref" && v.slot === slot) {
+      s.stack[i] = materialiseEntry(s, v.val, `l${v.slot}`);
+    } else if (v.kind === "expr") {
+      s.stack[i] = materialiseEntry(s, v.val, v.text);
+    }
   }
+}
+
+/** Emit `tN = <text>;` and return the new `tmp` StackVal. Shared by
+ *  `materializeStackForSlot` and the `dup` arm of `emitOp` (which
+ *  materialises expr-kind tops to avoid the two-consumer re-evaluation
+ *  hazard). */
+function materialiseEntry(s: FnState, val: ValType, text: string): StackVal {
+  const idx = allocTmpIdx(s, val);
+  const name = `t${idx}`;
+  line(s, `${name} = ${text};`);
+  s.tmpRefcount[idx] = 1;
+  return { kind: "tmp", name, idx, val };
 }
 
 export function line(s: FnState, code: string): void { s.out.push(`${s.indent}${code}`); }

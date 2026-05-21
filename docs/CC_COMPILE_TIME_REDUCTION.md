@@ -571,3 +571,62 @@ declares tmps and locals separately. Coalescing same-`ValType` tmps +
 locals into a single decl line would shave another ~10-20 % off the
 prelude. Worth doing after piste 5.c (expr-kind stack values), which
 reshapes the body more aggressively.
+
+## 10. POC results — piste 5.c (2026-05-21)
+
+**Patch** : `StackVal` gains a fourth variant `{ kind: "expr"; text; val }`
+for side-effect-free C expressions. `emitTypeCheck` now pushes an expr
+(`lN.tag == K`) instead of allocating a one-shot tmp. The text inlines
+verbatim at the consumer — typically `if (cond.name)` / `br_if`, so
+7 562 `tN = (lN.tag == K);` decl-and-test pairs collapse to a single
+`if (lN.tag == K)`.
+
+Safety rails :
+- `dup` of an expr materialises it to a tmp first (the two consumers
+  would otherwise re-evaluate the text — bloat + a mutation race
+  window if a referenced local is written between the pops).
+- `materializeStackForSlot` (fired on `local.set/tee`) now materialises
+  every `expr` on the value stack alongside the slot-aliasing
+  `local-ref`s. Conservative — we don't track operand dependencies, so
+  any mutation forces every in-flight expression to commit.
+- `pushUnop` parenthesises its operand (`!(${v.name})`) — expr text is
+  stored without outer parens to avoid clang's
+  `-Wparentheses-equality` warning at the `if` consumer, but `!` binds
+  tighter than `==` so the inline must wrap.
+
+**Measurements** (same machine, `cc -O0 -ggdb`) :
+
+| Metric                                     | Post 1     | Post 5.c   | Δ        |
+|--------------------------------------------|-----------:|-----------:|---------:|
+| `build/vader.c` lines                      | 318 274    | 309 880    | -2.6 %   |
+| `cc -O0 -ggdb -c vader.c` (2-run avg)      | 6.6 s      | 7.25 s     | within noise |
+| `tN = (lN.tag == K);` decl-and-test        | 7 622      | 9          | -99.9 %  |
+| `if (lN.tag == K)` inlined                 | 0          | 7 120      | +∞       |
+| `if (tN.tag == K)` inlined                 | 0          | 442        | +∞       |
+
+**Cumulative since baseline** : 335 364 → 309 880 lines = **-7.6 %** ;
+27.6 s → 7.25 s = **-73.7 % cc wall time**.
+
+**Regressions** : none. native 252 / 252 pass, vm + vader_vm 446 pass /
+0 fail, parity + cli + e2e 1021 / 1021, formatter + lexer + lsp 139 / 139.
+
+**cc time** : did not improve materially over piste 1. The `expr` push
+avoids one tmp index + one decl, but the actual body emit stays roughly
+the same shape — the saved lines were in fast paths. The wall-time gain
+plateau aligns with the prediction in the /simplify review : 5.c is a
+file-size win, not a cc-time win.
+
+**Implementation surface** :
+- `body.ts` : +30 lines (`pushExpr` helper, `materialiseEntry` shared
+  factory, the `dup` materialisation arm, the extended
+  `materializeStackForSlot`, `pushUnop` paren wrap).
+- `ops.ts` : `emitTypeCheck` rewritten to push expr or literal. ~10
+  lines changed.
+- No SPEC.md change (codegen-only).
+
+**Follow-up candidates** (deferred to 5.d / later) :
+- `pushBinop` for primitive comparisons (`<`, `<=`, `==`, …) — same
+  inlining trick as typecheck. Heaviest pattern remaining.
+- Refine the "materialise ALL expr on `local.set`" rule by tracking a
+  `readSlots` set on each expr-kind so only dependent exprs commit.
+  Cheap, restores some inlining lost to the conservative rule.
