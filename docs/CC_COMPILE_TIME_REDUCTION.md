@@ -1141,3 +1141,189 @@ committing to the sprint plan.
   sprint.
 - `.vir` serialisation as a stable user artefact. Pre-MVP : we regen
   snapshots on every format change.
+
+## 15. Pre-implementation trace — sprint 2 go/no-go (2026-05-21)
+
+Ran the §14 checklist against `tests/snippets/contains_op/`. The
+`DigitSet.contains` fn exercises **both** target patterns in 17 source
+lines :
+
+```vader
+contains :: fn(self, value: i32) -> bool {
+    if value < 0 || value > 9 {
+        return false                    // ← 7.f
+    }
+    mask := 1 << value
+    return (self.bits & mask) != 0      // ← 7.c on self.bits
+}
+```
+
+**Bytecode dump confirms the patterns** (excerpt from
+`tests/snippets/contains_op/bytecode.snapshot.virt`, pre-peephole) :
+
+```
+bool.const false      ; <— 7.f pair starts
+return                ; <—
+
+local.get 0           ; <— 7.c pair starts (self)
+struct.get 1 0        ; <—  (.bits)
+```
+
+**Pipeline mapping** :
+
+| Layer | File | Site |
+|-------|------|------|
+| Lowering: FieldGet → bytecode | `src/midir/emit.ts:527-528` | `emitFirstOperand` + `pushOp(struct.get)` |
+| Lowering: Return → bytecode | `src/midir/emit.ts:269-275` | `case "Return"` in `emitBlockContents` |
+| Peephole + slot-coalesce | `src/midir/emit.ts:107-110` | gated by `ctx.optimize` (true in prod, false in `dumpBytecode`) |
+| c-emit consumer (struct.get) | `src/c_emit/ops.ts:806-859` | `emitStructGet` (5 paths) |
+
+**Peephole fragmentation verdict** :
+- Rule 1 (`local.set N ; local.get N → local.tee N`) does not intersect
+  7.c or 7.f.
+- Rules 2/3/4 (bool.not folding) do not intersect.
+- Rule 5 (dead-store elim) and Rule 6 (const-prop single-use) do not
+  fragment the target sequences.
+
+→ **Fuser must run before** `runPeepholes`, i.e. **during midir emit**.
+Place look-back in `emitFieldGet` and the `case "Return"` arm. Detector :
+after the receiver/value push, check if `ctx.emit.body[last]` is the
+fusable predecessor (`local.get` for 7.c, a literal const op for 7.f) ;
+if yes, pop it and emit the fused op.
+
+**Peephole + slot-coalesce EXTENSIONS required** before shipping any
+fused op that references a slot (so 7.c, 7.d, 7.e — not 7.f) :
+
+- `slotOf` in `src/bytecode/slot-coalesce.ts:117` must recognise the
+  slot reference inside `local.field`, `field.chain`, and `local.alias`.
+  Otherwise `coalesceSlots` could collapse the slot with another and
+  silently corrupt the read.
+- `dropDeadStores` (Rule 5, `src/bytecode/peephole.ts:106`) must count
+  the new ops as reads of their slot ; else upstream `local.set N` gets
+  treated as dead.
+- `propagateConstSingleUse` (Rule 6, `src/bytecode/peephole.ts:195`)
+  must count the new ops as `gets` ; else const-prop fires on a slot
+  that's actually still being read by a fused op.
+
+→ ~15 LoC across three files, mandatory for 7.c+ but not for 7.f.
+
+**c-emit safety rails** (already in place from 5.c/5.d) :
+- `dup` of an `expr` StackVal materialises via `materialiseEntry`
+  (`src/c_emit/body.ts:375-378`).
+- `materializeStackForSlot` flushes **all** `expr` entries on every
+  `local.set` / `local.tee` (lines 783-792, conservative strategy).
+
+→ 7.c pushes an `expr` exactly like `emitTypeCheck` / `pushBinopExpr`
+already do. **No new safety rail needed for c-emit.**
+
+**Baseline equivalence** (must be preserved post-fusion) :
+- `./tests/snippets/contains_op/native` → `range yes / range !in yes / range incl yes / set has 4 / set lacks 5 / set has 7`, exit 0.
+- `build/vader run tests/snippets/contains_op/bytecode.snapshot.virt` →
+  identical.
+- `tests/snippets/contains_op/vm.snapshot` → identical.
+
+Triple agreement.
+
+**Go / no-go** : **GO**. The trace surfaced no redesign-worthy hazard.
+Two implementation notes carried into sprint 2 :
+
+1. **7.f first stays correct as the familiarisation step** — it touches
+   no slot, so the peephole/coalesce extensions aren't needed for it.
+   Ship 7.f end-to-end (lowerer + emit_c + VM + serialise + snippet
+   diff) before tackling 7.c.
+2. **7.c (and 7.d/7.e) ship with the slot-aware peephole/coalesce
+   extensions in the same PR**. The 15 LoC must not lag.
+
+Snippet `tests/snippets/contains_op/` will serve as the **regression
+trace** for sprint 2 : compare bytecode dump + native output + vm output
+before and after each fused-op PR.
+
+## 16. POC results — piste 7.f (2026-05-21)
+
+**Patch** : new op `return.lit` in `src/bytecode/ops.ts` carrying an inner
+`ConstOp`. Lowerer fuses in `src/midir/emit.ts` `case "Return"` via look-
+back on `ctx.emit.body[last]`. Handlers in `src/c_emit/body.ts`
+(`emitReturnLit` + shared `constLitC` helper), `src/vm/exec.ts`
+(`pushConstLit` helper + inline case), `src/bytecode/text.ts` and
+`src/bytecode/binary.ts` (round-trip via recursive `formatOp` /
+`writeOp` on the inner const).
+
+**Measurements** (same machine, current branch) :
+
+| Metric                            | Baseline (post-flatten) | Post 7.f   | Δ        |
+|-----------------------------------|------------------------:|-----------:|---------:|
+| `build/vader.c` lines             | 222 107                 | 222 107    |  0       |
+| `build/vader.c` bytes             | 13.82 MB                | 13.72 MB   | **-0.7 %** |
+| `cc -O0 -ggdb` (1 run)            | 5.04 s                  | 5.01 s     | within noise |
+| `return.lit` sites (contains_op fn) | 0                     | 3          |  |
+
+**Regressions** : zero on substantive suites. native 252/252, vm +
+vader_vm 446 pass / 8 skip / 0 fail, formatter + lexer + lsp 114/114,
+cli + e2e 14/14. The pre-existing `snapshot.test.ts` failures (stale
+`.virt` fixtures) are unaffected and out of scope.
+
+**Why the line count didn't drop**
+
+`emitReturn` (pre-7.f) already emits exactly one C line per return :
+
+```c
+{ vader_box_t __vret = wireRet; vader_gc_top = gc_frame.prev; return __vret; }
+```
+
+`emitReturnLit` emits one line too :
+
+```c
+{ vader_gc_top = gc_frame.prev; return <lit>; }
+```
+
+Same line count, fewer bytes (the `__vret` snapshot tmp is gone — safe
+for literals because they don't read frame-pinned locals, so the pop-
+frame-then-return order is trivially correct). VM dispatch wins one op
+per site, and the bytecode body shrinks proportionally.
+
+**Bug surfaced + fixed** : the early-return flattening pass in
+`src/midir/emit.ts:317-322` (commit `fdc2bc28`) decides whether to
+flatten an `if then-exits else …` cascade by looking at
+`lastOp.kind === "return"`. After 7.f the predecessor literal-return op
+is `"return.lit"`, which **was not in the exit set** — so every early-
+return cascade re-nested under `else` branches, ballooning the C output
+by +5 403 lines on the first 7.f build. Fix : add
+`lastOp.kind === "return.lit"` to the exit predicate. With the fix,
+file size is back to baseline (and bytes are smaller).
+
+**Lesson for 7.c / 7.d / 7.e** — extend the §15 checklist :
+
+- Step 7 (NEW) : **grep every site that look-backs on the last emitted
+  bytecode op** (`ctx.emit.body[...].kind === "..."` patterns,
+  peephole / coalesce / dce reads). Each must learn the new fused op
+  kind, otherwise its detector silently misses the pattern. Concretely
+  for the rest of piste 7 :
+  - `src/midir/emit.ts:317-322` (flatten detector) — already extended.
+  - `src/bytecode/peephole.ts` Rule 1 / 5 / 6 + `constOpValType` —
+    needed for 7.c / 7.e (slot-aware ops).
+  - `src/bytecode/slot-coalesce.ts:117` `slotOf` — needed for 7.c /
+    7.e.
+  - `src/midir/dce.ts:584` and `:672` typeIndex visitors — only if the
+    new op carries a typeIndex (7.c does ; 7.d / 7.e too).
+
+**Sequencing verdict** : 7.f was correctly placed as the familiarisation
+step. The line-count miss is expected (literal returns were already
+oneliners). The structurer-interaction bug it caught is exactly the
+kind of failure mode you want to surface on the smallest possible op.
+7.c will see real LoC gains because `struct.get` currently emits a
+separate `tN = ...;` line that disappears entirely when fused as an
+`expr`-kind push.
+
+**Implementation surface** (TS only ; Vader port absorbs the new op
+when each phase advances) :
+
+- `src/bytecode/ops.ts` : +18 LoC (ConstOp alias, isConstOp guard,
+  return.lit kind).
+- `src/midir/emit.ts` : +14 LoC (lowerer fusion in `case "Return"` +
+  the 1-line flatten fix).
+- `src/c_emit/body.ts` : +29 LoC (`emitReturnLit`, `constLitC` helper)
+  -10 LoC (the 8 const-op cases collapsed through `constLitC`).
+- `src/vm/exec.ts` : +24 LoC (case + `pushConstLit` helper).
+- `src/bytecode/text.ts` : +16 LoC (format + parse + `isConstOpKind`).
+- `src/bytecode/binary.ts` : +9 LoC (write + read).
+- Total : ~100 LoC added, ~10 LoC removed. No SPEC.md change.

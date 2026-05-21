@@ -9,7 +9,7 @@
 
 import type { BcExport, BcFunction, BcImport, BcLocal, BcSignature, BytecodeModule, DebugPos } from "./module.ts";
 import type { Op } from "./ops.ts";
-import { intrinsicIdByName, intrinsicNameById } from "./ops.ts";
+import { intrinsicIdByName, intrinsicNameById, isConstOp } from "./ops.ts";
 import type { ArrayKind, BcDataEntry, BcType, ValType } from "./types.ts";
 import { arrayKindElementSize, isValType, readArrayKindLE, writeArrayKindLE } from "./types.ts";
 import { bytecodeFail } from "../diagnostics/errors.ts";
@@ -205,6 +205,7 @@ function formatOp(op: Op): string {
     case "type_check":   return `type_check ${op.typeIndex}`;
     case "type.const":   return `type.const ${op.typeIndex}`;
     case "ref.cast":     return `ref.cast ${op.typeIndex}`;
+    case "return.lit":   return `return.lit ${formatOp(op.value)}`;
     default:
       // Operand-less ops: their kind string is the whole encoding.
       return op.kind;
@@ -578,6 +579,14 @@ function parseOp(text: string, scopes: { name: string }[], ctx: ParseCtx): Op {
     case "type_check":   return { kind: "type_check", typeIndex: Number(tail) };
     case "type.const":   return { kind: "type.const", typeIndex: Number(tail) };
     case "ref.cast":     return { kind: "ref.cast", typeIndex: Number(tail) };
+    case "return.lit": {
+      // Tail is the inner const op verbatim (e.g. `bool.const true`).
+      const inner = parseOp(tail, scopes, ctx);
+      if (!isConstOp(inner)) {
+        fail(ctx, `return.lit expects a const operand, got ${inner.kind}`);
+      }
+      return { kind: "return.lit", value: inner };
+    }
     default:
       // Operand-less / typed-arith ops keep their kind verbatim.
       return { kind: head as Op["kind"] } as Op;

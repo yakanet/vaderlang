@@ -14,7 +14,7 @@
 // also use.
 
 import type { BcFunction, BcImport, BcSignature, BytecodeModule } from "../bytecode/module.ts";
-import type { Op } from "../bytecode/ops.ts";
+import type { ConstOp, Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
 import { nullableRefVariant } from "../bytecode/types.ts";
@@ -408,24 +408,11 @@ function emitOp(s: FnState, ip: number, op: Op): void {
       return;
     }
 
-    case "i32.const":    return pushLit(s, "i32", i32LitC(op.value));
-    case "i64.const":    return pushLit(s, "i64", i64LitC(op.value));
-    case "f32.const":    return pushLit(s, "f32", floatLit(op.value, "f"));
-    case "f64.const":    return pushLit(s, "f64", floatLit(op.value, ""));
-    case "bool.const":   return pushLit(s, "bool", op.value ? "true" : "false");
-    case "char.const":   return pushLit(s, "char", `${op.value}u`);
-    case "null.const": {
-      // Tag the null literal with the `null` primitive's BcType index when
-      // it's available — keeps `type_check` semantics consistent across
-      // boxed and unboxed paths.
-      const tag = s.ctx.primitiveTagOf.get("null") ?? 0;
-      return pushLit(s, "any", `vader_box_obj(${tag}u, NULL)`);
+    case "i32.const": case "i64.const": case "f32.const": case "f64.const":
+    case "bool.const": case "char.const": case "null.const": case "string.const": {
+      const lit = constLitC(s, op);
+      return pushLit(s, lit.val, lit.text);
     }
-    case "string.const":
-      // Pool entry is already a `vader_string_t` static — push by name
-      // and let the consumer copy it inline. No allocation, no temp.
-      pushLit(s, "string", `vader_str_${op.index}`);
-      return;
 
     case "bool.and":   return pushBinop(s, "bool", "&&", "bool");
     case "bool.or":    return pushBinop(s, "bool", "||", "bool");
@@ -458,6 +445,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "br":         return emitBr(s, ip, op.depth, /*conditional*/ false);
     case "br_if":      return emitBr(s, ip, op.depth, /*conditional*/ true);
     case "return":     return emitReturn(s);
+    case "return.lit": return emitReturnLit(s, op.value);
     case "unreachable":
       line(s, `vader_unreachable("${escapeC(s.fn.name)}+${ip}");`);
       markUnreachable(s);
@@ -632,6 +620,45 @@ function emitReturn(s: FnState): void {
     }
   }
   markUnreachable(s);
+}
+
+/** Skips the `__vret` snapshot tmp that `emitReturn` uses : the value
+ *  is a const, so it can't read frame-pinned locals — evaluating after
+ *  the `gc_top` restore is safe. */
+function emitReturnLit(s: FnState, value: ConstOp): void {
+  const lit = constLitC(s, value);
+  const ret = coerce(s, lit.text, lit.val, s.fn.signature.result);
+  const b1 = b1SlotVariant(s.ctx, s.fn.signature.resultType);
+  const wireRet = b1 !== null ? `vader_box_to_b1(${ret})` : ret;
+  if (s.noFrame) {
+    line(s, `return ${wireRet};`);
+  } else {
+    line(s, `{ vader_gc_top = gc_frame.prev; return ${wireRet}; }`);
+  }
+  markUnreachable(s);
+}
+
+/** Shared C-form for every `ConstOp`. */
+export function constLitC(s: FnState, op: ConstOp): { val: ValType; text: string } {
+  switch (op.kind) {
+    case "i32.const":    return { val: "i32",  text: i32LitC(op.value) };
+    case "i64.const":    return { val: "i64",  text: i64LitC(op.value) };
+    case "f32.const":    return { val: "f32",  text: floatLit(op.value, "f") };
+    case "f64.const":    return { val: "f64",  text: floatLit(op.value, "") };
+    case "bool.const":   return { val: "bool", text: op.value ? "true" : "false" };
+    case "char.const":   return { val: "char", text: `${op.value}u` };
+    case "null.const": {
+      // Tag the null literal with the `null` primitive's BcType index when
+      // it's available — keeps `type_check` semantics consistent across
+      // boxed and unboxed paths.
+      const tag = s.ctx.primitiveTagOf.get("null") ?? 0;
+      return { val: "any", text: `vader_box_obj(${tag}u, NULL)` };
+    }
+    case "string.const":
+      // Pool entry is already a `vader_string_t` static — push by name
+      // and let the consumer copy it inline. No allocation, no temp.
+      return { val: "string", text: `vader_str_${op.index}` };
+  }
 }
 
 // ------------------------------------------------------------- calls

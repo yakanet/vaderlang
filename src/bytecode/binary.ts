@@ -12,6 +12,7 @@ import type {
   BcExport, BcFunction, BcImport, BcLocal, BcSignature, BytecodeModule, DebugPos,
 } from "./module.ts";
 import type { Op } from "./ops.ts";
+import { isConstOp } from "./ops.ts";
 import type { BcDataEntry, BcType, ValType } from "./types.ts";
 import { arrayKindElementSize, arrayKindFromIndex, arrayKindIndex, readArrayKindLE, writeArrayKindLE } from "./types.ts";
 import { BYTECODE_VERSION, formatBytecodeVersion } from "../version.ts";
@@ -94,7 +95,7 @@ function buildOpKinds(): readonly string[] {
   for (const f of CONVERT_WIDTHS) for (const t of CONVERT_WIDTHS) out.push(`${f}.to_${t}`);
   out.push("ref.cast");
   out.push("block", "loop", "if", "else", "end");
-  out.push("br", "br_if", "return", "unreachable");
+  out.push("br", "br_if", "return", "unreachable", "return.lit");
   out.push("call", "call.import", "call.indirect", "fn.ref", "make_closure",
            "intrinsic", "virtual.call");
   out.push("struct.new", "struct.new_stack", "struct.get", "struct.set", "struct.set_stack");
@@ -430,6 +431,8 @@ function writeOp(w: Writer, op: Op): void {
       w.u32(op.poolIndex); w.u32(op.typeIndex); return;
     case "ref.cast": case "type_check": case "type.const":
       w.u32(op.typeIndex); return;
+    case "return.lit":
+      writeOp(w, op.value); return;
     default:
       // Pure-kind ops (drop, dup, return, end, ..., all arithmetic / cmp /
       // convert) carry no operands beyond the tag.
@@ -773,6 +776,11 @@ function readOp(r: Reader): Op {
       return { kind: "type_check", typeIndex: r.u32() };
     case "type.const":
       return { kind: "type.const", typeIndex: r.u32() };
+    case "return.lit": {
+      const inner = readOp(r);
+      if (!isConstOp(inner)) r.fail(`return.lit expects a const inner op, got ${inner.kind}`);
+      return { kind: "return.lit", value: inner };
+    }
     default:
       // Pure-kind op (no operands beyond the tag).
       return { kind } as Op;

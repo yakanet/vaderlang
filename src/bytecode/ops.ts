@@ -71,6 +71,10 @@ export type Op =
   | { readonly kind: "br";    readonly depth: number }
   | { readonly kind: "br_if"; readonly depth: number }
   | { readonly kind: "return" }
+  // Fused `<T>.const X ; return` — the inner const stays as a typed
+  // value so every backend inlines the literal in its own dialect
+  // without re-detecting the pattern.
+  | { readonly kind: "return.lit"; readonly value: ConstOp }
   | { readonly kind: "unreachable" }
 
   // -- Calls --------------------------------------------------------------
@@ -142,6 +146,24 @@ export type Op =
   // used in value position flows through the VM. Round-trips with
   // `ComptimeValue.type`.
   | { readonly kind: "type.const"; readonly typeIndex: number };
+
+/** Primitive literal-producing ops. Carried by `return.lit` so the
+ *  fused op stays self-describing for every backend. */
+export type ConstOp = Extract<Op, {
+  readonly kind:
+    | "i32.const" | "i64.const" | "f32.const" | "f64.const"
+    | "bool.const" | "char.const" | "null.const" | "string.const";
+}>;
+
+export function isConstOp(op: Op): op is ConstOp {
+  switch (op.kind) {
+    case "i32.const": case "i64.const": case "f32.const": case "f64.const":
+    case "bool.const": case "char.const": case "null.const": case "string.const":
+      return true;
+    default:
+      return false;
+  }
+}
 
 // =========================================================================
 // Per-type op-kind families (kept as string unions so we don't repeat

@@ -20,14 +20,14 @@ import { TY } from "../typecheck/types.ts";
 import {
   binaryOpFor, buildVtables, declareLocal, emitFloatConst, emitIntConst,
   internCellType, internString, internType, newEmitterCtx,
-  OP_INTRINSIC_BY_MANGLED, pushOp, reserveCFGExtern, reserveCFGFunction,
+  OP_INTRINSIC_BY_MANGLED, popLastOp, pushOp, reserveCFGExtern, reserveCFGFunction,
   reserveCFGStruct, synthesiseIntrinsicWrappers, valTypeOf,
   type EmitOptions, type EmitterCtx, type FnEmitCtx,
 } from "../bytecode/emit.ts";
 import type {
   BitNotOpKind, ConvertOpKind, IntrinsicId, NegOpKind, Op,
 } from "../bytecode/ops.ts";
-import { intrinsicIdByName } from "../bytecode/ops.ts";
+import { intrinsicIdByName, isConstOp } from "../bytecode/ops.ts";
 import type { BytecodeModule, BcLocal, DebugPos } from "../bytecode/module.ts";
 import { runPeepholes } from "../bytecode/peephole.ts";
 import { coalesceSlots } from "../bytecode/slot-coalesce.ts";
@@ -270,6 +270,17 @@ function emitBlockContents(
       if (t.value !== null && !ctx.hints.skipTerminatorGet.has(blockId)) {
         emitGet(ctx, t.value, t.span);
       }
+      // Fuse `<const>.const X ; return` into `return.lit X`. The const
+      // typically reaches us via the scheduler's skipTerminatorGet path
+      // (value left on the stack by the predecessor instruction).
+      if (t.value !== null) {
+        const last = ctx.emit.body[ctx.emit.body.length - 1];
+        if (last !== undefined && isConstOp(last)) {
+          popLastOp(ctx.emit);
+          pushOp(ctx.emit, { kind: "return.lit", value: last }, t.span);
+          return null;
+        }
+      }
       pushOp(ctx.emit, { kind: "return" }, t.span);
       return null;
     }
@@ -303,7 +314,8 @@ function emitBlockContents(
       // the post-merge code, which must still execute.
       const lastOp = ctx.emit.body[ctx.emit.body.length - 1];
       const thenExits = lastOp !== undefined
-        && (lastOp.kind === "return" || lastOp.kind === "unreachable" || lastOp.kind === "br");
+        && (lastOp.kind === "return" || lastOp.kind === "return.lit"
+            || lastOp.kind === "unreachable" || lastOp.kind === "br");
       if (thenExits && t.else !== merge) {
         ctx.scopes.pop();
         pushOp(ctx.emit, { kind: "end" }, t.span);

@@ -287,6 +287,15 @@ export function pushOp(fn: FnEmitCtx, op: Op, span?: Span): void {
   });
 }
 
+/** Pop the most recently emitted op (keeping body/debug in sync) and
+ *  return it. Used by lowerer-side peepholes that decide to rewrite
+ *  what they just emitted. */
+export function popLastOp(fn: FnEmitCtx): Op | undefined {
+  const op = fn.body.pop();
+  if (op !== undefined) fn.debug.pop();
+  return op;
+}
+
 export function declareLocal(fn: FnEmitCtx, name: string, val: ValType): number {
   const slot = fn.signature.params.length + fn.locals.length;
   fn.locals.push({ name, val });

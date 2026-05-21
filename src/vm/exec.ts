@@ -4,7 +4,7 @@
 // type-assertion accessors trip only on an emitter bug.
 
 import type { BytecodeModule, BcFunction } from "../bytecode/module.ts";
-import type { Op } from "../bytecode/ops.ts";
+import type { ConstOp, Op } from "../bytecode/ops.ts";
 import { INTRINSIC_TABLE } from "../bytecode/ops.ts";
 import { isFloatVal, sizeOfBcType } from "../bytecode/types.ts";
 import type { BcDataEntry, BcType, ValType } from "../bytecode/types.ts";
@@ -307,6 +307,11 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       return f.fn.signature.result === "void"
         ? VOID
         : (f.stack.length === 0 ? zeroFor(f.fn.signature.result) : f.stack[f.stack.length - 1]!);
+    case "return.lit": {
+      pushConstLit(f, ctx, op.value);
+      return f.fn.signature.result === "void"
+        ? VOID : f.stack[f.stack.length - 1]!;
+    }
     case "unreachable":
       throw new VmError("vm: reached unreachable", debugOf(f.fn, f.ip));
 
@@ -479,6 +484,27 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
   applyParsedOp(f, op.kind);
   f.ip++;
   return;
+}
+
+/** Mirrors the const-op cases in `step()` so `return.lit` can replay the
+ *  fused literal without going through dispatch. Kept duplicated rather
+ *  than factored so neither call site goes through an extra fn call. */
+function pushConstLit(f: Frame, ctx: RunCtx, op: ConstOp): void {
+  switch (op.kind) {
+    case "i32.const":    f.stack.push(num("i32", op.value)); return;
+    case "i64.const":    f.stack.push(i64("i64", op.value)); return;
+    case "f32.const":    f.stack.push(num("f32", op.value)); return;
+    case "f64.const":    f.stack.push(num("f64", op.value)); return;
+    case "bool.const":   f.stack.push(bool(op.value));       return;
+    case "char.const":   f.stack.push(ch(op.value));         return;
+    case "null.const":   f.stack.push(NULL);                 return;
+    case "string.const": {
+      const s = ctx.stringPool[op.index];
+      if (s === undefined) throw new VmError(`vm: bad string index ${op.index}`, debugOf(f.fn, f.ip));
+      f.stack.push(s);
+      return;
+    }
+  }
 }
 
 // ----------------------------------------------------------- typed numeric ops
