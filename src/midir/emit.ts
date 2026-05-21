@@ -292,6 +292,23 @@ function emitBlockContents(
       pushOp(ctx.emit, { kind: "if", result: "void" }, t.span);
       ctx.scopes.push({ kind: "if", target: merge ?? -1 });
       if (merge === null || t.then !== merge) emitRange(ctx, t.then, merge);
+      // Early-return flattening : when the then-branch ends with a true
+      // exit op (Return / Unreachable / `br` jumping out), the else-body
+      // can be emitted as siblings at the parent scope instead of nested
+      // under an `else` op. This collapses cascades like
+      //   `if a { return X } else { if b { return Y } else { ... } }`
+      // into a flat sequence of guarded `if … return … end` blocks. A
+      // silent fall-through (Branch to `until`) emits no op and therefore
+      // does NOT trigger flattening — semantically the if's else-body is
+      // the post-merge code, which must still execute.
+      const lastOp = ctx.emit.body[ctx.emit.body.length - 1];
+      const thenExits = lastOp !== undefined
+        && (lastOp.kind === "return" || lastOp.kind === "unreachable" || lastOp.kind === "br");
+      if (thenExits && t.else !== merge) {
+        ctx.scopes.pop();
+        pushOp(ctx.emit, { kind: "end" }, t.span);
+        return t.else;
+      }
       pushOp(ctx.emit, { kind: "else" }, t.span);
       if (merge === null || t.else !== merge) emitRange(ctx, t.else, merge);
       ctx.scopes.pop();

@@ -706,3 +706,74 @@ count :
 inliner ; once the prologue + tmp churn is gone, both functions sit
 comfortably in the optimiser's working set and the wall time collapses
 to ~20 s. The release-build experience is roughly 7× faster.
+
+## 13. POC results — early-return flattening in the structurer (2026-05-21)
+
+**Symptom** : even after pistes 5.a/1/5.c/5.d, `is_assignable` and
+`infer_field` had a 30-level deep `if-else` cascade in their generated
+C — every early-return guard (`if from is UnresolvedType { return true }`,
+etc.) nested the rest of the function in the previous `else` branch.
+**31 levels of indentation** observed.
+
+**Cause** : `src/midir/emit.ts:289` `CondBranch` case unconditionally
+emits the structured-bytecode triple `if / else / end`. The post-dominator
+analysis correctly identifies the merge block, but when the then-branch
+terminates (Return / Unreachable / `br` out), the rest of the function
+naturally lives in the else-branch CFG-wise — so the structurer ends up
+nesting subsequent ops under each successive `else`.
+
+**Fix** : after emitting the then-range, peek at the last bytecode op.
+If it's a true exit (`return` / `unreachable` / `br`), skip the `else`
+op entirely and return `t.else` so the outer `emitRange` continues at
+the else block as siblings at the parent scope. A silent fall-through
+(Branch to `until`, which emits no op) does NOT trigger the flatten —
+the else-body is then the post-merge code that must still execute.
+
+```c
+// BEFORE
+if (l0.tag == 322u) { return true; }
+else { /* else */
+    if (l1.tag == 322u) { return true; }
+    else { /* else */
+        if (l0.tag == 313u) { return true; }
+        else { /* else */ ... 28 levels deep ... } } }
+
+// AFTER
+if (l0.tag == 322u) { return true; } end_2: ;
+if (l1.tag == 322u) { return true; } end_8: ;
+if (l0.tag == 313u) { return true; } end_14: ;
+... siblings at the function-top scope ...
+```
+
+**Measurements** :
+
+| Metric                              | Post 5.d   | Post flatten | Δ           |
+|-------------------------------------|-----------:|-------------:|------------:|
+| `build/vader.c` lines               | 300 061    | 277 097      | **-7.65 %** |
+| `cc -O0 -ggdb -c vader.c`           | 6.25 s     | 6.08 s       | -2.7 %      |
+| `cc -O3 -DNDEBUG -c vader.c`        | ~20.8 s    | 21.05 s      | within noise|
+| `is_assignable` lines               | ~85 k pre  | 54 613       | dominant    |
+| `is_assignable` max nesting depth   | 31         | 15           | -52 %       |
+
+**Cumulative since baseline** : 335 364 → 277 097 = **-17.4 %** lines ;
+27.6 s → 6.08 s = **-78.0 %** cc `-O0` wall time ; 154.94 s → 21.05 s =
+**-86.4 %** cc `-O3` wall time.
+
+**Iteration note** : the first patch had a correctness bug — it treated
+*silent fall-through* (Branch to merge, which emits no op) as
+"terminated", which broke 33 native snippets (`match` with non-exiting
+arms, `if x is X` narrowing followed by post-match code, …). The fix
+distinguishes real exits by inspecting the last emitted op rather than
+the return signal of `emitRange`. With the corrected detection, native
+tests are back to 252/252.
+
+**Regressions** : none on the test files unaffected by stale snapshots.
+native 252 / 252, vm + vader_vm 446 pass / 0 fail, parity + cli + e2e
+1021 / 1021, formatter + lexer + lsp 139 / 139. Total = 1858 passing.
+
+**Implementation surface** : 17 LoC in `src/midir/emit.ts`. No SPEC.md
+change (codegen-only). Lowerer + bytecode + VM + C-emit are unchanged.
+
+**Side benefit — readability** : the generated C is now navigable. Step
+debugging `is_assignable` no longer requires scrolling through 30
+indent levels.
