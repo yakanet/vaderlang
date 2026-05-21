@@ -536,8 +536,19 @@ function emitFieldGet(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "FieldGe
     pushOp(ctx.emit, { kind: "unreachable" }, ins.span);
     return;
   }
+  // Fuse `local.get N ; struct.get T F` into `local.field N T F` when
+  // `emitFirstOperand` actually emitted the get. With `skipFirstGet`
+  // set, the scheduler kept the receiver on the stack from the previous
+  // instruction so the body's tail belongs to that other op, not ours.
+  const skippedReceiverGet = ctx.hints.skipFirstGet.has(ins);
   emitFirstOperand(ctx, ins, ins.target, ins.span);
-  pushOp(ctx.emit, { kind: "struct.get", typeIndex, fieldIndex }, ins.span);
+  const slot = ctx.localToSlot[ins.target];
+  if (!skippedReceiverGet && slot !== undefined) {
+    popLastOp(ctx.emit);
+    pushOp(ctx.emit, { kind: "local.field", slot, typeIndex, fieldIndex }, ins.span);
+  } else {
+    pushOp(ctx.emit, { kind: "struct.get", typeIndex, fieldIndex }, ins.span);
+  }
   // Under erasure the BcType's field is `ref` (vader_box_t) even when the
   // CFG's static field type is a primitive ; struct.get pushes the BcType
   // ValType, so a `i32.to_i64` (or similar typed op) reading downstream

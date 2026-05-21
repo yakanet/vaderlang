@@ -24,7 +24,7 @@ import { cStringLit, cStringLitFromBytes, escapeC, floatLit, i32LitC, i64LitC, s
 import {
   asObjPtr, emitArrayGet, emitArrayNew, emitArraySet, emitArraySlice, emitCall, emitCallImport, emitDataConst,
   emitCallIndirect, emitConvert, emitFnRef, emitIntrinsic, emitMakeClosure,
-  emitNumericOp, emitRefCast, emitStructGet, emitStructNew, emitStructSet,
+  emitLocalField, emitNumericOp, emitRefCast, emitStructGet, emitStructNew, emitStructSet,
   emitTypeCheck, emitTypedBinop, emitVirtualCall,
 } from "./ops.ts";
 import { tryEmitStaticTable } from "./static_table.ts";
@@ -462,6 +462,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "struct.new":
     case "struct.new_stack": return emitStructNew(s, op);
     case "struct.get":   return emitStructGet(s, op);
+    case "local.field":  return emitLocalField(s, op);
     case "struct.set":
     case "struct.set_stack": return emitStructSet(s, op);
 

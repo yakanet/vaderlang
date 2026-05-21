@@ -111,6 +111,11 @@ export type Op =
   // (avoids GC pressure); the VM treats it as a regular heap struct.
   | { readonly kind: "struct.new_stack"; readonly typeIndex: number }
   | { readonly kind: "struct.get"; readonly typeIndex: number; readonly fieldIndex: number }
+  // Fused `local.get N ; struct.get T F` — keeps the slot read inline at
+  // every backend, no intermediate stack push. The receiver type is the
+  // outer struct, so emit_c / emit_wasm can pick the right deref path
+  // from the slot directly.
+  | { readonly kind: "local.field"; readonly slot: number; readonly typeIndex: number; readonly fieldIndex: number }
   | { readonly kind: "struct.set"; readonly typeIndex: number; readonly fieldIndex: number }
   // Field write to a target the escape analysis proved stack-allocated. The
   // C-emit skips the `VADER_WRITE_BARRIER` macro it would otherwise emit

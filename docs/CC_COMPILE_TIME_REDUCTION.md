@@ -1327,3 +1327,87 @@ when each phase advances) :
 - `src/bytecode/text.ts` : +16 LoC (format + parse + `isConstOpKind`).
 - `src/bytecode/binary.ts` : +9 LoC (write + read).
 - Total : ~100 LoC added, ~10 LoC removed. No SPEC.md change.
+
+## 17. POC results — piste 7.c (2026-05-21)
+
+**Patch** : new op `local.field { slot, typeIndex, fieldIndex }` fusing
+`local.get N ; struct.get T F`. Lowerer detection in `emitFieldGet`
+(`src/midir/emit.ts`) gated on `!skipFirstGet && last === local.get N
+&& last.slot === slotForReceiver`. emit_c handler `emitLocalField`
+mirrors the 5 paths of `emitStructGet` but pushes an `expr` StackVal
+with `lN` inlined directly ; the B1 nullable-ref path uses
+`vader_b1_to_box(raw, tag)` for single-eval of the receiver. VM case
+reads `slots[op.slot]` and dispatches like `struct.get`. Text + binary
+serialisation extended.
+
+**Measurements** (Mac arm64, current branch) :
+
+| Metric                        | Baseline (post-7.f) | Post 7.c   | Δ        |
+|-------------------------------|--------------------:|-----------:|---------:|
+| `build/vader.c` lines         | 222 107             | 213 212    | **-4.0 %** |
+| `build/vader.c` bytes         | 13.72 MB            | 13.36 MB   | -2.6 %   |
+| `cc -O0 -ggdb` (1 run)        | 6.13 s              | 5.63 s     | **-8.2 %** |
+| `cc -O3 -DNDEBUG`             | 21.15 s             | 20.49 s    | -3.2 %   |
+
+**Cumulative since original baseline** : 335 364 → 213 212 = **-36.4 %**
+lines ; 27.6 s → 5.63 s = **-79.6 %** cc -O0 ; 154.94 s → 20.49 s =
+**-86.8 %** cc -O3.
+
+**Regressions** : zero on substantive suites. native 252/252, vm +
+vader_vm 446 pass / 8 skip / 0 fail, parity 1005/1005, formatter +
+lexer + lsp 114/114, cli + e2e 14/14.
+
+**Bugs surfaced + fixed during validation** :
+
+1. **First lowerer attempt fused too eagerly**. The naive `if
+   last.kind === "local.get" { fuse }` misfired when
+   `emitFirstOperand` was skipped by the scheduler's `skipFirstGet`
+   hint — the trailing `local.get` then belonged to a previous
+   instruction, not the FieldGet's receiver. Fix : gate on
+   `!skippedReceiverGet` AND `last.slot === ctx.localToSlot[ins.target]`.
+   Surfaced as `v.tag` undefined VM crashes on union-arm bodies that
+   chained reads through the stack.
+
+2. **`coalesceSlots` body-rewrite missed `local.field`**. The slot-
+   coalesce pass renumbers `local.get/set/tee` slots after computing
+   ranges, but the rewrite loop (`src/bytecode/slot-coalesce.ts:104-111`)
+   was extended via `slotOf` to extend ranges through `local.field` —
+   and I forgot to extend the rewrite loop too. Slots in `local.field`
+   stayed stale post-coalesce → `local.field 5 ...` referencing a slot
+   that had been merged into 2. Fix : extend the rewrite loop with a
+   `local.field` arm.
+
+Both bugs were caught by the native + vm test suites within a single
+build/test cycle. The §16 checklist held up — the slot-coalesce miss
+was an oversight in **applying** the extension, not in identifying
+the call site.
+
+**Implementation surface** :
+
+- `src/bytecode/ops.ts` : +6 LoC (new op kind).
+- `src/midir/emit.ts` : +18 LoC (fusion detector with hint + slot guards).
+- `src/c_emit/ops.ts` : +35 LoC (`emitLocalField` with 5 paths).
+- `src/c_emit/body.ts` : +2 LoC (import + dispatch case).
+- `src/vm/exec.ts` : +5 LoC (case).
+- `src/bytecode/text.ts` : +5 LoC (format + parse).
+- `src/bytecode/binary.ts` : +6 LoC (write + read + table).
+- `src/bytecode/peephole.ts` : +5 LoC (Rule 5 reads counter + Rule 6 gets counter + dropDeadStores rewrite).
+- `src/bytecode/slot-coalesce.ts` : +7 LoC (`slotOf` + rewrite loop).
+- `src/midir/dce.ts` : +2 LoC (typeIndex visitors both pre- and post-prune).
+- Total : ~90 LoC added. No SPEC.md change.
+
+**Lessons for 7.e / 7.d** :
+
+- **Apply, don't just identify.** The §16 checklist listed every site
+  that needed extension ; the slot-coalesce miss was at the
+  **rewrite** step, not the **range computation**. Both halves of any
+  pass that touches slots need extending — confirmed there's no second
+  pass that touches `local.field` slots post-coalesce.
+- **Scheduler hints matter at the fusion site.** `skipFirstGet` and
+  `skipTerminatorGet` rewrite what a "last emitted op" means. Future
+  fused ops looking back at the bytecode stream must gate on the same
+  hints.
+- **`local.alias` (7.e) reads a slot** and writes another — both must
+  be added to `slotOf`, the read-counter in `dropDeadStores`, the
+  get-counter in `propagateConstSingleUse`, and the rewrite loops in
+  `slot-coalesce.ts` and `dropDeadStores`.

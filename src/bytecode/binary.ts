@@ -98,7 +98,7 @@ function buildOpKinds(): readonly string[] {
   out.push("br", "br_if", "return", "unreachable", "return.lit");
   out.push("call", "call.import", "call.indirect", "fn.ref", "make_closure",
            "intrinsic", "virtual.call");
-  out.push("struct.new", "struct.new_stack", "struct.get", "struct.set", "struct.set_stack");
+  out.push("struct.new", "struct.new_stack", "struct.get", "struct.set", "struct.set_stack", "local.field");
   out.push("array.new", "array.get", "array.set", "array.len", "array.push", "array.slice");
   out.push("data.const");
   out.push("string.concat");
@@ -423,6 +423,8 @@ function writeOp(w: Writer, op: Op): void {
       w.u32(op.typeIndex); return;
     case "struct.get": case "struct.set": case "struct.set_stack":
       w.u32(op.typeIndex); w.u32(op.fieldIndex); return;
+    case "local.field":
+      w.u32(op.slot); w.u32(op.typeIndex); w.u32(op.fieldIndex); return;
     case "array.new":
       w.u32(op.typeIndex); w.u32(op.length); return;
     case "array.get": case "array.set": case "array.push": case "array.slice":
@@ -764,6 +766,8 @@ function readOp(r: Reader): Op {
       return { kind, typeIndex: r.u32() } as Op;
     case "struct.get": case "struct.set": case "struct.set_stack":
       return { kind, typeIndex: r.u32(), fieldIndex: r.u32() } as Op;
+    case "local.field":
+      return { kind: "local.field", slot: r.u32(), typeIndex: r.u32(), fieldIndex: r.u32() };
     case "array.new":
       return { kind: "array.new", typeIndex: r.u32(), length: r.u32() };
     case "array.get": case "array.set": case "array.push": case "array.slice":

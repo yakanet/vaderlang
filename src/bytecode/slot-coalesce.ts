@@ -107,6 +107,11 @@ export function coalesceSlots(fn: FnEmitCtx): void {
       const newSlot = remap[op.slot];
       if (newSlot === undefined || newSlot === -1) continue;
       fn.body[i] = { kind: op.kind, slot: newSlot };
+    } else if (op.kind === "local.field") {
+      const newSlot = remap[op.slot];
+      if (newSlot === undefined || newSlot === -1) continue;
+      fn.body[i] = { kind: "local.field", slot: newSlot,
+                     typeIndex: op.typeIndex, fieldIndex: op.fieldIndex };
     }
   }
 
@@ -118,6 +123,10 @@ function slotOf(op: Op): number | null {
   if (op.kind === "local.get" || op.kind === "local.set" || op.kind === "local.tee") {
     return op.slot;
   }
+  // Fused ops carrying a slot reference must extend the slot's live
+  // range too — otherwise coalesce could collapse the slot with another
+  // and corrupt the read.
+  if (op.kind === "local.field") return op.slot;
   return null;
 }
 

@@ -407,6 +407,11 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       f.stack.push(v.fields[op.fieldIndex] ?? VOID);
       f.ip++; return;
     }
+    case "local.field": {
+      const v = asStruct(f.slots[op.slot]!);
+      f.stack.push(v.fields[op.fieldIndex] ?? VOID);
+      f.ip++; return;
+    }
     case "struct.set":
     case "struct.set_stack": {
       // The VM has no write barrier — both ops have identical runtime

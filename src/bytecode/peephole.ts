@@ -108,7 +108,9 @@ function dropDeadStores(fn: MutFn): void {
   const totalSlots = paramCount + fn.locals.length;
   const reads = new Array<number>(totalSlots).fill(0);
   for (const op of fn.body) {
-    if (op.kind === "local.get") reads[op.slot]!++;
+    // Slot-reading ops keep the local alive — fused reads (local.field)
+    // count alongside the bare local.get.
+    if (op.kind === "local.get" || op.kind === "local.field") reads[op.slot]!++;
   }
 
   // Param slots stay alive even when unread — the ABI keeps their slot index
@@ -143,6 +145,12 @@ function dropDeadStores(fn: MutFn): void {
     }
     if (op.kind === "local.get" || op.kind === "local.set" || op.kind === "local.tee") {
       out.push({ kind: op.kind, slot: remap[op.slot]! });
+      dbg.push(span);
+      continue;
+    }
+    if (op.kind === "local.field") {
+      out.push({ kind: "local.field", slot: remap[op.slot]!,
+                 typeIndex: op.typeIndex, fieldIndex: op.fieldIndex });
       dbg.push(span);
       continue;
     }
@@ -207,6 +215,9 @@ function propagateConstSingleUse(fn: MutFn): void {
     if (op.kind === "local.set") { stats[op.slot]!.sets++; stats[op.slot]!.setIdx = i; }
     else if (op.kind === "local.get") { stats[op.slot]!.gets++; stats[op.slot]!.getIdx = i; }
     else if (op.kind === "local.tee") { stats[op.slot]!.tees++; }
+    // Fused slot-reading ops bump the get counter so the const-prop
+    // doesn't drop a set whose value is consumed by a fused read.
+    else if (op.kind === "local.field") { stats[op.slot]!.gets++; stats[op.slot]!.getIdx = i; }
   }
 
   const toDelete = new Set<number>();

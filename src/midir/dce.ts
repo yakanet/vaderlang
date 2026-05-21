@@ -587,6 +587,7 @@ export function pruneUnusedTypes(
         case "struct.get":
         case "struct.set":
         case "struct.set_stack":
+        case "local.field":
         case "array.new":
         case "array.get":
         case "array.set":
@@ -685,6 +686,7 @@ export function pruneUnusedTypes(
         case "struct.get":
         case "struct.set":
         case "struct.set_stack":
+        case "local.field":
           fn.body[i] = { ...op, typeIndex: re(op.typeIndex) } as typeof op;
           break;
         case "fn.ref":

@@ -858,6 +858,45 @@ export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }
   line(s, `${tmp} = ((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)};`);
 }
 
+/** Fused `local.get N ; struct.get T F`. Mirrors the 5 paths of
+ *  `emitStructGet` but pushes the read as an `expr` StackVal (the
+ *  receiver is `lN` directly, so consumers inline the dereference at
+ *  use-site without an intermediate tmp). The nullable-ref path uses
+ *  `vader_b1_to_box` so the raw pointer read isn't duplicated when the
+ *  expression text is inlined. */
+export function emitLocalField(s: FnState, op: Extract<Op, { kind: "local.field" }>): void {
+  const t = s.ctx.module.types[op.typeIndex]!;
+  if (t.kind !== "struct") return;
+  const cname = s.ctx.structNames[op.typeIndex]!;
+  const f = t.fields[op.fieldIndex]!;
+  const fval = valTypeOfField(s.ctx, f.typeIndex);
+  const recv = `l${op.slot}`;
+
+  const inlinePayload = !s.ctx.mutatedStructs.has(op.typeIndex)
+    ? inlineVariantPayload(t, s.ctx.module.types)
+    : null;
+  if (inlinePayload === "ref") {
+    pushExpr(s, fval, `vader_box_obj(${f.typeIndex}u, ${recv}.payload.obj)`);
+    return;
+  }
+  if (inlinePayload === "packed") {
+    const pname = packedStructName(cname);
+    pushExpr(s, fval, `((const ${pname}*) ${recv}.payload.packed)->f_${sanitise(f.name)}`);
+    return;
+  }
+  if (inlinePayload !== null && inlinePayload !== "void") {
+    pushExpr(s, fval, coerceExpr(s.ctx, unboxExpr(recv, inlinePayload), inlinePayload, fval));
+    return;
+  }
+  const refVariant = b1SlotVariant(s.ctx, f.typeIndex);
+  if (refVariant !== null) {
+    const raw = `((${cname}*) ${recv}.payload.obj)->f_${sanitise(f.name)}`;
+    pushExpr(s, fval, `vader_b1_to_box(${raw}, ${refVariant}u)`);
+    return;
+  }
+  pushExpr(s, fval, `((${cname}*) ${recv}.payload.obj)->f_${sanitise(f.name)}`);
+}
+
 export function emitStructSet(
   s: FnState, op: Extract<Op, { kind: "struct.set" | "struct.set_stack" }>,
 ): void {
