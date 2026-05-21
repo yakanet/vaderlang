@@ -1,7 +1,14 @@
 # C compile-time reduction
 
-> **Status**: open (2026-05-21). 5 pistes scoped, POC required for piste 5
-> before committing to the full plan.
+> **Status**: in progress (2026-05-21). Pistes 5.a / 1 / 5.c / 5.d /
+> structurer flatten landed → 222 k lines (-33.7 % vs baseline), 6.08 s
+> `cc -O0` (-78 %), 21 s `cc -O3` (-86 %). Piste 7 engaged in
+> **bytecode-fused form** because emit_wasm is on the short-to-mid-term
+> roadmap (lands after the Vader port completes) and a c-emit-only
+> peephole would force a duplicate peephole in the wasm backend later.
+> 7.a / 7.b cancelled (0 survivors measured). 7.c / 7.f / 7.e / 7.d
+> engaged. Option B sequencing : TS first, the in-flight Vader port
+> absorbs the new ops as it progresses.
 
 ## 0. Motivation
 
@@ -376,40 +383,333 @@ can stay if we want consistency, but the LoC win is on the Vader side.)
 **Depends on** : nothing in this plan. Can land in parallel with the
 codegen pistes.
 
+---
+
+### Piste 7 — Fused / compound bytecode ops (`ENGAGED 2026-05-21`)
+
+**Status** : engaged in bytecode-fused form. 7.a / 7.b cancelled. 7.c /
+7.f / 7.e / 7.d to land in TS first, the in-flight Vader port absorbs the
+new ops as it progresses (option B).
+
+**Why bytecode-fused (and not c-emit-only)**
+
+Three backends consume the same bytecode :
+- **emit_c** — live.
+- **VM** — live (used by `vader run` + parity tests).
+- **emit_wasm** — short-to-mid-term roadmap, lands after the Vader port
+  completes.
+
+A c-emit-only peephole (the "5.e" alternative considered earlier) solves
+the C-side now but forces emit_wasm to re-implement the same patterns
+later. Fusing at the bytecode layer means **the lowerer pays the
+detection cost once** ; every backend consumes the optimised form. The
+ratio surface bytecode-fused vs c-emit-only collapses from ~7× to ~1.4×
+once the emit_wasm peephole duplication is added to the c-emit-only
+column.
+
+Bytecode-fused gains :
+- C lines : same as c-emit-only (the inlined C is identical).
+- VM dispatch : -N ops per site (one fused dispatch instead of two-or-
+  three).
+- emit_wasm : maps directly to WASM-GC `local.get + struct.get` /
+  `local.get + ref.test` shapes (one-to-one), and to WASM 1.0 linear
+  `local.get + i32.load offset=K` (one-to-one). No backend-side peephole
+  to rewrite.
+- `.vir` text format reads more cleanly (`local.field N T F` vs two
+  separate ops).
+
+**Selection criteria** (codified to avoid op zoo growth)
+
+1. Op pair must appear ≥ 500 times in `build/vader.c` (current self-host).
+2. Fused form must save ≥ 1 line per site OR ≥ 2 ops per site.
+3. Op must be representable in WASM 1.0 linear AND in WASM-GC.
+4. Semantic must be statically verifiable from operands alone.
+
+7.c / 7.f / 7.e / 7.d all pass. 7.a / 7.b would pass criteria 1-4 but
+have zero remaining sites — cancelled below.
+
+**Pattern frequencies — re-measured 2026-05-21 against current
+`build/vader.c` (post-flatten, 222 k lines)**
+
+| Op pair / triplet                          | Sites      | Lines per site | Ops per site |
+|--------------------------------------------|-----------:|---------------:|-------------:|
+| `local.get → type_check K`                 | 0 surviving (was 8 700) — captured by 5.c | n/a | n/a |
+| `local.get → struct.get F`                 | **14 785** | 1 | 2 |
+| `local.get → ref.cast K → local.set M`     | **7 807**  | 1 (post-coalesce: more) | 3 |
+| literal `bool.const X → return`            | **416**    | 1 | 2 |
+| `struct.get F1 → struct.get F2` (chains)   | emerges from 7.c | 2 | 2 |
+
+---
+
+#### 7.a `local.tag_check N K` — CANCELLED (2026-05-21)
+
+Measured 0 surviving sites in `build/vader.c` post-piste 5.c. The `expr`-
+kind StackVal already inlines `lN.tag == K` at the consumer. No new
+bytecode op needed.
+
+#### 7.b `local.trait_check N traitName refTypeIndex` — CANCELLED (2026-05-21)
+
+Same as 7.a : `traitCheckExpr` in `src/c_emit/ops.ts:981` already pushes
+the chained-OR expression as an `expr` StackVal under 5.c. No new op.
+
+---
+
+#### 7.c `local.field N T F` — PRIORITY 2 (biggest absolute win)
+
+**Symptom** : 14 785 sites `tN = ((Type*) lN.payload.obj)->f_F;` in
+`build/vader.c`. Each is a `local.get → struct.get` pair the lowerer emits
+and `emitStructGet` (`src/c_emit/ops.ts:806`) materialises into a tmp
+because every code path calls `newTmp()`.
+
+**New op**
+
+```ts
+{ kind: "local.field"; slot: number; typeIndex: number; fieldIndex: number }
+```
+
+Semantics : equivalent to `local.get slot; struct.get typeIndex fieldIndex`.
+Push : the field's ValType (per `valTypeOfField`).
+
+**Lowerer** (`src/lower/passes/expr.ts`) : when lowering `LoweredFieldAccess`
+whose target is a `LoweredIdent` resolving to a local, emit `local.field`
+directly instead of the two-op sequence.
+
+**emit_c handler** : pushes an `expr` StackVal carrying the C expression
+for the field read. Five branches mirror current `emitStructGet` :
+- generic : `((${cname}*) lN.payload.obj)->f_${field}`
+- packed : `((const ${pname}*) lN.payload.packed)->f_${field}`
+- inline ref : `vader_box_obj(${f.typeIndex}u, lN.payload.obj)`
+- inline primitive : `coerce(unboxExpr(lN, inlinePayload), inlinePayload, fval)`
+- nullable-ref B1 : `vader_b1_to_box(((${cname}*) lN.payload.obj)->f_${field}, ${variant}u)`
+  (uses the helper from `runtime/c/vader.h:153` for single-eval of the
+  receiver).
+
+**VM exec** : one new case in `src/vm/exec.ts` — read `slots[slot]`,
+unbox, deref via `module.types[typeIndex]` field offset, push.
+
+**emit_wasm 1.0 linear** : `local.get N ; i32.load offset=<field-offset>`
+(offset derived from layout table for `typeIndex`).
+
+**emit_wasm-GC** : `local.get $local_N ; struct.get $T_typeIndex F`.
+
+**peephole** : the new op is its own kind. Rule 1 (`local.set N; local.get
+N → local.tee N`) doesn't interact ; the fuser runs before peephole and
+keeps fused ops opaque. Text format : `local.field N T F`.
+
+**Expected gain** : C lines -7 to -12 k (~3-5 %). VM ops -14 800.
+`field.chain` (7.d) emerges naturally when the consumer is another field
+access on the result.
+
+**Risks** : same as 5.c/5.d — `dup` materialises an `expr` push, and
+`materializeStackForSlot` materialises on `local.set`. Both already wired
+in `body.ts`. New : verify the lowerer's detector doesn't misfire on
+field access of a non-local (return value, complex expr) — bail to the
+decomposed pair in those cases.
+
+---
+
+#### 7.f `return.lit T value` — PRIORITY 1 (familiarisation)
+
+**Symptom** : 416 bare `return true;` / `return false;` + ~150 numeric
+literal returns. Pattern `<T>.const X ; return` decomposes into two ops.
+
+**New op**
+
+```ts
+{ kind: "return.lit"; val: ValType; lit: string }   // lit pre-formatted C/wasm-compatible
+```
+
+Single dispatch ; the lowerer emits when it sees a literal-typed expression
+as the sole arg of a return.
+
+**emit_c** : `return <lit>;` as one statement (or `return vader_box_<T>(K, lit);`
+when the return type is boxed).
+
+**VM** : push lit + return — one case.
+
+**emit_wasm 1.0** : `<T>.const lit ; return`.
+
+**emit_wasm-GC** : same as 1.0.
+
+**Expected gain** : 300-400 C lines, ~800 VM ops. Small. Picked first as
+**familiarisation step** with the bytecode-op-introduction pipeline
+(`ops.ts` + lowerer + emit_c + VM + serialise text/binary + peephole
+sanity test). Narrow surface, low blast radius.
+
+---
+
+#### 7.e `local.alias N M` — PRIORITY 3
+
+**Symptom** : 7 807 sites `lM = lN;` in `build/vader.c`. Source pattern :
+`local.get N → ref.cast K → local.set M` (the `is X as bind ->` lowering).
+Since `ref.cast` is a bytecode-level no-op for boxed values
+(`src/lower/passes/expr.ts:1099`), this collapses to `local.get N;
+local.set M` ; the C copy is wasteful.
+
+**Two-step approach** :
+
+1. **Peephole Rule 7** (`src/bytecode/peephole.ts`) : detect
+   `local.get N; local.set M` where M is single-set (and not a param),
+   rewrite as `local.alias N M`. Recorded in a side-table consumed by
+   `slot-coalesce`.
+
+2. **`local.alias N M` op** : marker op consumed by
+   `src/bytecode/slot-coalesce.ts`. After coalescing, when M and N share
+   a slot the alias op is dropped entirely. When slots stay distinct
+   (rare — typically because M outlives N or they're in conflicting bound
+   regions), the op falls through to a regular `lM = lN;` emit.
+
+**emit_c** : `lM = lN;` if the slots aren't coalesced ; nothing if they
+are.
+
+**VM** : `slots[M] = slots[N]; ip++` — trivial.
+
+**emit_wasm 1.0 / GC** : `local.get N ; local.set M` if not coalesced ;
+nothing if coalesced. Native WASM op pair — no encoding work.
+
+**Expected gain** : C lines -5 to -7 k (~2-3 %), VM ops -23 400 (3 → 0
+in the optimal case).
+
+**Risks** : the slot-coalesce pass already exists and is conservative
+(linear live ranges + loop back-edge widening). Adding alias-aware
+coalescing must not break the per-arm scope of `is X as bind ->` chains.
+Snippet to add : `is X as bind -> use_bind ; is X as bind2 -> use_bind2`
+where the two binds are scope-disjoint, plus a nested `is X as bind1 ->
+is Y as bind2 -> use_both` for live-range overlap.
+
+---
+
+#### 7.d `field.chain` — PRIORITY 4 (emerges from 7.c)
+
+**Symptom** : after 7.c lands, expressions like `a.foo.bar.baz` lower to
+`local.field N T F1 ; struct.get T2 F2 ; struct.get T3 F3`. Three ops
+where one chained C expression suffices.
+
+**New op (variable arity)**
+
+```ts
+{ kind: "field.chain"; slot: number;
+  steps: readonly { typeIndex: number; fieldIndex: number }[] }
+```
+
+Lowerer emits when it sees a run of N field accesses on a local. emit_c
+pushes a single chained `expr` StackVal.
+
+**emit_c** : nested cast/deref expression :
+`((T3*) ((T2*) ((T1*) lN.payload.obj)->f_F1.payload.obj)->f_F2.payload.obj)->f_F3`,
+with per-step coerce for primitive / ref / B1 mixes.
+
+**VM** : iterate `steps`, unbox + deref at each.
+
+**emit_wasm-GC** : N `struct.get` ops in sequence — same as decomposed
+but the lowerer skipped a re-detection round in the wasm backend.
+
+**emit_wasm 1.0 linear** : N `i32.load` with cumulative offsets.
+
+**Expected gain** : 2-4 k C lines (chains of depth ≥ 2), -6-8 k VM ops.
+
+**Risks** : chain interruption by a non-trivial op (cast, intermediate
+binding, method call) — detector must conservatively bail to a
+`struct.get` sequence.
+
+---
+
+### Sequencing within piste 7
+
+Order : **7.f → 7.c → 7.e → 7.d**.
+
+- **7.f first** : smallest surface, exercises the full bytecode-op
+  introduction process on a low-blast-radius pattern. Sets the template
+  for the other three.
+- **7.c second** : biggest absolute LoC win, blocks 7.d.
+- **7.e third** : extends the existing slot-coalesce pass ; independent
+  of 7.c/7.d.
+- **7.d last** : emergent from 7.c, adds the variable-arity wrinkle on
+  top of a settled bytecode-op infrastructure.
+
+### TS / Vader split (option B confirmed)
+
+TS lands the four ops in `src/`. The in-flight Vader port (currently at
+bytecode emit phase per TODO §2.2) absorbs the new ops as it progresses ;
+each Vader phase port carries the fused-op handling of its layer. No
+parallel TS-only / Vader-only branches.
+
+### Implementation surface (per fused op)
+
+- `src/bytecode/ops.ts` — op kind + dispatch enum (~10 LoC)
+- `src/lower/passes/expr.ts` or `passes/match.ts` — detector + emitter (~30-60 LoC)
+- `src/c_emit/body.ts` + `c_emit/ops.ts` — handler pushing expr/line (~30-50 LoC)
+- `src/bytecode/text.ts` + `binary.ts` — serialisation (~20 LoC)
+- `src/vm/exec.ts` — interpret (~20-30 LoC)
+- `src/bytecode/peephole.ts` — opacity guard / new rule (~10-30 LoC)
+
+→ ~120-200 LoC per op TS-side, ~200-300 LoC Vader-side (more dump /
+dispatch fanout).
+
+### Depends on / order vs other pistes
+
+Independent of pistes 1, 2, 4, 6. Subsumes part of piste 1's remaining
+prologue pressure (fewer tmps created in the first place). The sprint
+ordering in §5 reflects this.
+
 ## 5. Sprint ordering
 
 ```
-Sprint 1 (POC + acceptance) ─────────────────────────────
-    5.a POC (TS only)  →  measure  →  decision gate
+Sprint 1 (DONE 2026-05-21) ──────────────────────────────
+    5.a  local-ref inlining           (TS done, Vader port pending)
+    1    tmp recycle + per-pool free  (TS done, Vader port pending)
+    5.c  expr-kind for type_check     (TS done, Vader port pending)
+    5.d  expr-kind for pure binops    (TS done, Vader port pending)
+    flatten  midir early-return       (TS done, Vader port pending)
+    → 335 k → 222 k lines (-33.7 %), 27.6 s → 6.08 s cc -O0 (-78 %)
                                        │
-                                       ▼
-                             go ─┬──► no-go ─► STOP, redesign
-                                 │
-                                 ▼
-    5.a Vader port    →    5.b extension (struct/field reads)
+Sprint 2 (engaged 2026-05-21) ────────  ▼
+    Piste 7 (bytecode-fused) — option B : TS first, port absorbs
+        7.f  return.lit       (familiarisation, smallest surface)
+        7.c  local.field      (biggest absolute win)
+        7.e  local.alias      (slot-coalesce extension)
+        7.d  field.chain      (emerges from 7.c)
+    7.a / 7.b cancelled (0 surviving sites measured)
                                        │
-Sprint 2 ────────────────────────────  ▼
-    Piste 1 (recycle) ─► Piste 2 (gc roots) — TS, then Vader
-
 Sprint 3 ────────────────────────────  ▼
-    Piste 4 (br_table) — TS, then Vader
+    Piste 2 (gc_roots pruning via liveness) — TS, then Vader
+                          highest correctness risk in the plan ;
+                          revisit only if cc time still dominates
+                          after piste 7
+                                       │
+Sprint 4 ────────────────────────────  ▼
+    Piste 4 (match_tag + br_table)   — defer until a benchmark
+                          shows chained-if dispatch dominates
 
 Parallel track (no compiler dep) ──────
-    Piste 6 (type refactor)
+    Piste 6 (Type → trait refactor in Vader, biggest LoC drop overall)
 ```
+
+Note : piste 7 stays ahead of pistes 1-extension and 2 because (a) it
+shrinks the **body** (not just the prologue) and so attacks the dominant
+97 % share of the file, (b) it benefits the future emit_wasm and the VM,
+not only emit_c, and (c) the in-flight Vader port absorbs each new op as
+it progresses, avoiding a separate Vader port pass for piste 7 later.
 
 ## 6. Acceptance criteria per sprint
 
-| Sprint | Wall-time target (`is_assignable` only, `cc -O0`) | LoC target |
-|--------|--------------------------------------------------:|-----------:|
-| 0 (today)        | baseline ~3 min total            | 334 k |
-| 1 (piste 5.a+b)  | -25 % file size                  | ~250 k |
-| 2 (pistes 1, 2)  | -40 % file size, ~50 % cc time   | ~200 k |
-| 3 (piste 4)      | -50 % file size, ~60 % cc time   | ~170 k |
-| Refactor (piste 6) | -80 % file size, ~80 % cc time | ~70 k  |
+Re-calibrated 2026-05-21 against current measured state (post-flatten).
+Total file targets, full `build/vader.c` :
 
-Wall-time targets are estimates ; the POC for piste 5 produces the first
-real measurement and lets us recalibrate.
+| Sprint | `cc -O0 -ggdb` | `cc -O3 -DNDEBUG` | LoC (`build/vader.c`) |
+|--------|---------------:|------------------:|----------------------:|
+| 0 (original baseline, pre-piste-5)    | 27.6 s | 154.9 s | 335 k |
+| 1 (DONE — pistes 5.a/1/5.c/5.d/flatten) | **6.08 s** | **21.05 s** | **222 k** |
+| 2 (piste 7 set, target)               | ~5.0 s | ~16 s   | ~200 k |
+| 3 (piste 2 gc_roots, optional)        | ~4.5 s | ~14 s   | ~190 k |
+| 4 (piste 4 br_table, optional)        | ~4.0 s | ~12 s   | ~180 k |
+| Refactor (piste 6 — parallel track)   | ~1.5 s | ~5 s    | ~60 k  |
+
+Sprint 2 acceptance (per sub-piste) : each fused op ships its own
+before/after measurement, plus a snippet pair (manual op list ↔ source
+program) proving byte-identical runtime output and shrinking C output.
+The cumulative sprint target is -10 % file size / -15 % cc -O0 time vs
+post-sprint-1 baseline.
 
 ## 7. Issues encountered
 
@@ -777,3 +1077,67 @@ change (codegen-only). Lowerer + bytecode + VM + C-emit are unchanged.
 **Side benefit — readability** : the generated C is now navigable. Step
 debugging `is_assignable` no longer requires scrolling through 30
 indent levels.
+
+## 14. Decision log — piste 7 engagement (2026-05-21)
+
+**Decision** : piste 7 (fused / compound bytecode ops) is **engaged in
+bytecode-fused form** (not in c-emit-only alternative form considered
+during the study).
+
+**Inputs to the decision** :
+
+- emit_wasm is on the **short-to-mid-term roadmap** (lands after the
+  Vader port completes). A c-emit-only peephole would force a duplicate
+  peephole effort in the wasm backend later. Bytecode-fused fuses **once
+  at the lowerer** and lets all three backends (emit_c, VM, emit_wasm)
+  consume the optimised form.
+- Surface ratio bytecode-fused vs c-emit-only collapses from ~7× to
+  ~1.4× once the emit_wasm peephole work is folded into the c-emit-only
+  column.
+- The in-flight Vader port is at bytecode-emit phase, so adding new ops
+  now means each Vader phase port carries the new op handling of its
+  layer (option B sequencing). No separate "port piste 7 to Vader"
+  sprint needed later.
+- Re-measurement of piste 7 targets against the current 222 k-line
+  `build/vader.c` (post-sprint-1) :
+  - 7.a / 7.b : 0 surviving sites (captured by 5.c). **Cancelled.**
+  - 7.c local.get → struct.get : 14 785 sites. **Engaged priority 2.**
+  - 7.e local.get → ref.cast → local.set : 7 807 sites. **Engaged priority 3.**
+  - 7.f bool.const → return : 416 bare sites. **Engaged priority 1**
+    (familiarisation step).
+  - 7.d field.chain : 0 visible (emerges from 7.c). **Engaged priority 4.**
+
+**Pre-implementation exploration (run before sprint 2 starts)**
+
+Per the `explore_before_commit_to_phase` rule, trace one minimum-cascade
+example through the full pipeline before writing the first line of the
+new op :
+
+1. Pick a representative `local.get N → struct.get T F` site in
+   `tests/snippets/` (a small program that exercises the pattern in
+   isolation).
+2. Dump the bytecode at that site (`vader build --dump-bytecode` or VM
+   inspector).
+3. Identify the exact lowering site in `src/lower/passes/expr.ts` where
+   the pair is emitted, and the exact consumer site in `src/c_emit/ops.ts`
+   (`emitStructGet` at line 806) that materialises the tmp.
+4. Verify peephole ordering : `runPeepholes` (Rule 1 : `local.set N;
+   local.get N → local.tee N`) currently runs after lowering. The 7.c
+   detector must run **before** Rule 1 fragments the pattern (or be
+   robust to a tee in the middle — choose at design time).
+5. Confirm that `dup` and `materializeStackForSlot` already cover the
+   WAR / dup hazards for `expr`-kind pushes coming from `local.field`.
+6. Run the snippet under VM and emit_c — confirm byte-identical output
+   for the trace.
+
+If the trace surfaces a fragmentation hazard or an unexpected interaction
+with the existing peephole / slot-coalesce passes, redesign before
+committing to the sprint plan.
+
+**Out of scope for sprint 2** :
+
+- emit_wasm itself. The fused ops are designed to map cleanly to WASM
+  1.0 linear and WASM-GC, but no wasm backend code is written in this
+  sprint.
+- `.vir` serialisation as a stable user artefact. Pre-MVP : we regen
+  snapshots on every format change.
