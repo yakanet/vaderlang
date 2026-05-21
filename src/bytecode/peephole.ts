@@ -31,7 +31,7 @@
 
 import type { Op } from "./ops.ts";
 import type { BcLocal, DebugPos } from "./module.ts";
-import { slotRead, slotTouched, withRemappedSlot } from "./slot-refs.ts";
+import { slotRead, slotTouched, slotWrite, withRemappedSlot } from "./slot-refs.ts";
 import type { ValType } from "./types.ts";
 
 const INVERSE_VERB: Record<string, string> = {
@@ -49,6 +49,7 @@ interface MutFn {
 export function runPeepholes(fn: MutFn): void {
   applyLocalRules(fn);
   propagateConstSingleUse(fn);
+  propagateLocalAlias(fn);
   dropDeadStores(fn);
 }
 
@@ -271,6 +272,101 @@ function propagateConstSingleUse(fn: MutFn): void {
  *  `${from}.to_${to}` ConvertOpKind covers. */
 function canNumericConvert(from: ValType, to: ValType): boolean {
   return NUMERIC_OR_CHAR.has(from) && NUMERIC_OR_CHAR.has(to);
+}
+
+/** Rule 7 — local-alias propagation. The `is X as bind ->` lowering
+ *  produces a chain of `local.get N ; local.set M` where M is a fresh
+ *  slot that just shadows N for the arm body. Forwarding the reads of
+ *  M to N erases the copy and lets `dropDeadStores` collect M.
+ *
+ *  Detects:                       Becomes:
+ *      local.get N                <ops>             // copy gone
+ *      local.set M                <ops>
+ *      <ops>                      local.get N       // M's read sites
+ *      local.get M                                  // rewritten
+ *
+ *  Conditions :
+ *    - M is a non-param slot with exactly 1 set, 0 tees, ≥ 1 read.
+ *    - The op preceding `local.set M` is `local.get N` (with N ≠ M).
+ *    - M and N share the same ValType (no implicit coerce to preserve).
+ *    - N is not written between the alias point and M's last read —
+ *      otherwise the forwarded read would see a different value.
+ *      Conservative check : no `local.set N` / `local.tee N` in that
+ *      range.
+ *
+ *  Slot-aware ops (`local.get M`, `local.field M T F`) all forward via
+ *  `withRemappedSlot`. After this pass M has 0 reads / writes ;
+ *  `dropDeadStores` collects it.
+ */
+function propagateLocalAlias(fn: MutFn): void {
+  const paramCount = fn.signature.params.length;
+  const totalSlots = paramCount + fn.locals.length;
+  if (totalSlots <= paramCount) return;
+
+  type SlotStat = { setIdx: number; sets: number; gets: number; tees: number };
+  const stats: SlotStat[] = [];
+  for (let s = 0; s < totalSlots; s++) {
+    stats.push({ setIdx: -1, sets: 0, gets: 0, tees: 0 });
+  }
+  for (let i = 0; i < fn.body.length; i++) {
+    const op = fn.body[i]!;
+    if (op.kind === "local.set") { stats[op.slot]!.sets++; stats[op.slot]!.setIdx = i; continue; }
+    if (op.kind === "local.tee") { stats[op.slot]!.tees++; continue; }
+    const r = slotRead(op);
+    if (r !== null) stats[r]!.gets++;
+  }
+
+  const toDelete = new Set<number>();
+  const remapReads = new Map<number, number>();   // body index → new slot for that read
+  for (let s = paramCount; s < totalSlots; s++) {
+    const stat = stats[s]!;
+    if (stat.tees !== 0 || stat.sets !== 1 || stat.gets < 1) continue;
+    const setIdx = stat.setIdx;
+    if (setIdx === 0) continue;
+    const prev = fn.body[setIdx - 1]!;
+    if (prev.kind !== "local.get" || prev.slot === s) continue;
+    const sourceSlot = prev.slot;
+    // Params are slot-typed too but their ValType lives in fn.signature ;
+    // we only enforce the ValType match for local→local aliases.
+    const sourceVal = sourceSlot < paramCount
+      ? null
+      : fn.locals[sourceSlot - paramCount]!.val;
+    const targetVal = fn.locals[s - paramCount]!.val;
+    if (sourceVal !== null && sourceVal !== targetVal) continue;
+
+    // Collect every read of M after the alias point. If a write to N
+    // appears, break — every read scanned so far precedes that write
+    // and is safe to forward, but any later read of M is now stale.
+    // The `readSites.length !== stat.gets` check below catches the
+    // stale-read case (post-write reads aren't collected, count
+    // mismatches).
+    const readSites: number[] = [];
+    for (let i = setIdx + 1; i < fn.body.length; i++) {
+      const op = fn.body[i]!;
+      if (slotRead(op) === s) readSites.push(i);
+      else if (slotWrite(op) === sourceSlot) break;
+    }
+    if (readSites.length !== stat.gets) continue;
+
+    toDelete.add(setIdx - 1);
+    toDelete.add(setIdx);
+    for (const idx of readSites) remapReads.set(idx, sourceSlot);
+  }
+
+  if (toDelete.size === 0 && remapReads.size === 0) return;
+
+  const newBody: Op[] = [];
+  const newDbg: (DebugPos | null)[] = [];
+  for (let i = 0; i < fn.body.length; i++) {
+    if (toDelete.has(i)) continue;
+    const newSlot = remapReads.get(i);
+    newBody.push(newSlot !== undefined ? withRemappedSlot(fn.body[i]!, newSlot) : fn.body[i]!);
+    newDbg.push(fn.debug[i]!);
+  }
+  fn.body.length = 0;
+  for (const op of newBody) fn.body.push(op);
+  fn.debug.length = 0;
+  for (const d of newDbg) fn.debug.push(d);
 }
 
 const NUMERIC_OR_CHAR: ReadonlySet<ValType> = new Set<ValType>([

@@ -1411,3 +1411,87 @@ the call site.
   be added to `slotOf`, the read-counter in `dropDeadStores`, the
   get-counter in `propagateConstSingleUse`, and the rewrite loops in
   `slot-coalesce.ts` and `dropDeadStores`.
+
+## 18. POC results — piste 7.e (2026-05-21)
+
+**Design change vs §4 plan** : the plan called for a 2-step approach (a
+new `local.alias N M` op + slot-coalesce extension). Replaced with a
+**pure peephole rule** (Rule 7 — `propagateLocalAlias`) :
+
+- Detect a non-param slot M with `sets=1, tees=0, gets≥1` whose write
+  is fed by `local.get N` (N ≠ M, same ValType).
+- Verify N isn't written between the alias point and M's last read
+  (otherwise the forwarded read would see a different value).
+- Forward every read of M (bare `local.get` or fused `local.field`) to
+  N via `withRemappedSlot`, drop the `local.get N ; local.set M` pair.
+- `dropDeadStores` then collects M.
+
+No new bytecode op. No c-emit / VM / serialise changes. ~80 LoC in
+`src/bytecode/peephole.ts`.
+
+**Why simpler than the plan** : an explicit `local.alias` op pays for
+itself only when slot-coalesce can later collapse M into N. The pure-
+peephole approach gets the same C-side win (the `lM = lN;` line is
+gone whenever the rule fires) without the bytecode-op surface.
+
+**Helper extraction** : before 7.e landed, I factored the slot-touching
+predicate into `src/bytecode/slot-refs.ts` (`slotRead`, `slotWrite`,
+`slotTouched`, `withRemappedSlot`). peephole + slot-coalesce funnel
+through it now. -23 LoC net, and Rule 7 was easier to write because
+slot-aware ops (including the upcoming 7.d `field.chain`) are picked
+up automatically.
+
+**Measurements** (current branch, build/vader.c) :
+
+| Metric                          | Baseline (post-7.c) | Post 7.e   | Δ        |
+|---------------------------------|--------------------:|-----------:|---------:|
+| `build/vader.c` lines           | 213 212             | 212 087    | -0.5 %   |
+| `build/vader.c` bytes           | 13.36 MB            | 13.34 MB   | -0.2 %   |
+| `cc -O0 -ggdb` (1 run)          | 6.27 s              | 5.54 s     | -11.6 %  |
+| `cc -O3 -DNDEBUG`               | 20.49 s             | 20.85 s    | within noise |
+| `lM = lN;` copies eliminated    | 7 807               | 7 120      | -687 sites |
+
+**Cumulative since original baseline** : 335 364 → 212 087 = **-36.8 %**
+lines ; 27.6 s → 5.54 s = **-79.9 %** cc -O0.
+
+**Why the gain is modest vs the plan's -5–7 k estimate** :
+
+The plan assumed slot-coalesce would aggressively merge bind locals
+into their scrutinee. The pure-peephole rule only fires when the
+`local.get N ; local.set M` pair is **adjacent** in the bytecode (post
+applyLocalRules / propagateConstSingleUse). Many `lM = lN;` copies in
+`build/vader.c` arise from non-adjacent sequences — typically the
+scheduler interleaves other ops between the get and the set so the
+rule's adjacency check fails. The plan's 2-step (new op + coalesce
+extension) would catch these, at the cost of the surface that
+motivated using a peephole here.
+
+Worth revisiting if the per-fn `lM = lN;` density measurably hurts cc
+time on a new hot fn ; for now, the modest gain is acceptable as the
+peephole is invisible to backends and zero-risk.
+
+**Regressions** : zero. native 252/252, vm + vader_vm 446 pass / 8 skip
+/ 0 fail (snapshots byte-identical), parity 1005/1005, formatter +
+lexer + lsp 114/114, cli + e2e 14/14.
+
+**Implementation surface** :
+
+- `src/bytecode/slot-refs.ts` : new file, 54 LoC (`slotRead`,
+  `slotWrite`, `slotTouched`, `withRemappedSlot`).
+- `src/bytecode/peephole.ts` : Rule 7 added (~80 LoC), Rule 5 & Rule 6
+  refactored through `slotRead` / `slotTouched` / `withRemappedSlot`
+  (-15 LoC net there).
+- `src/bytecode/slot-coalesce.ts` : refactored through the same helpers
+  (-12 LoC net).
+
+The helper extraction (separate commit) is what unlocks the
+`local.field` and the future `field.chain` (7.d) being picked up
+automatically — adding a new fused slot-touching op needs editing one
+file (`slot-refs.ts`) instead of five.
+
+**Lessons for 7.d** :
+
+7.d (`field.chain`) reads a slot like `local.field` does. With
+`slot-refs.ts` in place, all that's needed is one arm in `slotRead`
+and `withRemappedSlot`. The peephole, slot-coalesce, dropDeadStores,
+and propagateLocalAlias passes pick it up for free.
