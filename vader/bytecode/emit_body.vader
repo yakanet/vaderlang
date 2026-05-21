@@ -184,9 +184,7 @@ emit_expr :: fn(expr: LoweredExpr, state: FnEmitState, ctx: EmitterCtx) -> void 
         is LoweredCellGet as cell_get       -> emit_cell_get(cell_get, state, ctx)
         is LoweredBinary as binary          -> emit_binary(binary, state, ctx)
         is LoweredUnary as unary            -> emit_unary(unary, state, ctx)
-        _ -> {
-            // Phase 8+ stubs : Match, BlockExpr (as value).
-        }
+        is LoweredBlock as block_expr       -> emit_block(block_expr, state, ctx)
     }
 }
 
