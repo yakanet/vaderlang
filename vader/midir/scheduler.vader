@@ -1,0 +1,180 @@
+// vader/midir/scheduler — stack-pass-through hints.
+//
+// Mirror of `src/midir/scheduler.ts`. Recognises CFG patterns where an
+// instruction's result is consumed immediately by its single successor's
+// first operand, and hints the bytecode emitter to leave the value on
+// the operand stack instead of round-tripping through a named local.
+// Closes most of the 3-address overhead the converter introduces vs
+// the legacy stack-based emit path.
+//
+// Conditions for elision (per block, intra-block only) :
+//   - `cur.dst` is single-use in the whole function (use-count = 1).
+//   - `cur` is the immediately-preceding instruction of `next`.
+//   - `cur.dst` matches `next`'s first stack-pushed operand.
+//
+// Same shape for last-instruction → terminator with Return.value /
+// CondBranch.cond.
+//
+// Vader-specific design : `Set<Instruction>` keyed by object identity
+// (TS Map default) doesn't translate ; we use position-encoded keys
+// instead. `pos_key(block, idx) = block × POS_STRIDE + idx`. Consumers
+// compute the same key when querying. POS_STRIDE picks a per-block
+// upper bound on instruction count ; 1 000 000 keeps a 32-bit signed
+// budget for blocks up to ~2 000 with that many instructions each.
+
+import "std/collections" { MutableMap, MutableSet }
+import "vader/midir/cfg" {
+    BasicBlock, BlockId, CFGFunction, Instruction, LocalId, Terminator,
+    TermBranch, TermCondBranch, TermReturn, TermUnreachable,
+    InstrConst, InstrBinOp, InstrUnOp, InstrCall, InstrCallIndirect,
+    InstrFnRef, InstrVirtualCall, InstrFieldGet, InstrFieldSet,
+    InstrArrayGet, InstrArraySet, InstrArrayLen, InstrArrayPush,
+    InstrArraySlice, InstrStructNew, InstrArrayNew, InstrDataConst,
+    InstrTypeCheck, InstrTypeConst, InstrCast, InstrCellNew,
+    InstrCellGet, InstrCellSet, InstrMakeClosure, InstrIntrinsic,
+    InstrMove,
+}
+import "vader/midir/analyses" { count_uses, dst_of }
+
+export POS_STRIDE :: i32(1000000)
+
+/// Encode a (block, instruction-index) position as a single i32 key.
+/// Used by both producer (scheduler) and consumers (emit) to query
+/// the hint sets.
+export pos_key :: fn(block: BlockId, idx: usize) -> i32 {
+    return block * POS_STRIDE + i32(idx)
+}
+
+/// Stack-pass-through hints for one fn.
+export ScheduleHints :: struct {
+    /// Instructions whose result should be left on the stack
+    /// (no `local.set`). Keys = `pos_key(block, instr_idx)`.
+    skip_set: MutableSet(i32)
+    /// Instructions whose first stack-pushed operand should be read
+    /// from the stack (no `local.get`). Same key scheme as skip_set.
+    skip_first_get: MutableSet(i32)
+    /// Block IDs whose terminator's first read should come from the
+    /// stack.
+    skip_terminator_get: MutableSet(BlockId)
+}
+
+/// Empty hints — `scheduleStack` callers that disable scheduling get
+/// this sentinel. Every `.contains()` query returns false.
+export no_hints :: fn() -> ScheduleHints {
+    return ScheduleHints {
+        .skip_set            = MutableSet(i32) { .inner = MutableMap(i32, bool) { .buckets = [], .size = 0 } },
+        .skip_first_get      = MutableSet(i32) { .inner = MutableMap(i32, bool) { .buckets = [], .size = 0 } },
+        .skip_terminator_get = MutableSet(BlockId) { .inner = MutableMap(BlockId, bool) { .buckets = [], .size = 0 } },
+    }
+}
+
+export schedule_stack :: fn(fn_: CFGFunction) -> ScheduleHints {
+    use_count :: count_uses(fn_)
+    hints :: no_hints()
+    for b in fn_.blocks {
+        for i in 0..<b.instructions.len() {
+            if i + usize(1) >= b.instructions.len() { break }
+            cur :: b.instructions[i]
+            next :: b.instructions[i + usize(1)]
+            if !can_pass_through_stack(cur, next, use_count) { continue }
+            hints.skip_set.add(pos_key(b.id, i))
+            hints.skip_first_get.add(pos_key(b.id, i + usize(1)))
+        }
+        // Last instruction → terminator. Same single-use condition,
+        // but the consumer is whatever the terminator reads first.
+        if b.instructions.len() == usize(0) { continue }
+        last_idx :: b.instructions.len() - usize(1)
+        last :: b.instructions[last_idx]
+        if !can_pass_through_terminator(last, b.terminator, use_count) { continue }
+        hints.skip_set.add(pos_key(b.id, last_idx))
+        hints.skip_terminator_get.add(b.id)
+    }
+    return hints
+}
+
+can_pass_through_stack :: fn(
+    cur: Instruction, next: Instruction,
+    use_count: MutableMap(LocalId, i32),
+) -> bool {
+    dst :: dst_of(cur)
+    match dst {
+        is null -> { return false }
+        _ -> {
+            count :: use_count[dst]
+            match count {
+                is null -> { return false }
+                _ -> { if count != 1 { return false } }
+            }
+            first_op :: first_stack_operand(next)
+            match first_op {
+                is null -> { return false }
+                _ -> { return first_op == dst }
+            }
+        }
+    }
+}
+
+can_pass_through_terminator :: fn(
+    cur: Instruction, t: Terminator,
+    use_count: MutableMap(LocalId, i32),
+) -> bool {
+    dst :: dst_of(cur)
+    match dst {
+        is null -> { return false }
+        _ -> {
+            count :: use_count[dst]
+            match count {
+                is null -> { return false }
+                _ -> { if count != 1 { return false } }
+            }
+            first_op :: first_terminator_operand(t)
+            match first_op {
+                is null -> { return false }
+                _ -> { return first_op == dst }
+            }
+        }
+    }
+}
+
+/// First operand pushed onto the stack by the instruction's emit
+/// sequence. Mirrors the per-instr emit order in `emit.vader`.
+/// Returns null for instructions that take no operands.
+first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
+    match ins {
+        is InstrConst             -> { return null }
+        is InstrFnRef             -> { return null }
+        is InstrDataConst         -> { return null }
+        is InstrTypeConst         -> { return null }
+        is InstrMove         as i -> { return i.src }
+        is InstrBinOp        as i -> { return i.lhs }
+        is InstrUnOp         as i -> { return i.operand }
+        is InstrCall         as i -> { if i.args.len() > usize(0) { return i.args[0] } ; return null }
+        is InstrCallIndirect as i -> { if i.args.len() > usize(0) { return i.args[0] } ; return i.callee }
+        is InstrVirtualCall  as i -> { if i.args.len() > usize(0) { return i.args[0] } ; return i.receiver }
+        is InstrFieldGet     as i -> { return i.target }
+        is InstrFieldSet     as i -> { return i.target }
+        is InstrArrayGet     as i -> { return i.target }
+        is InstrArraySet     as i -> { return i.target }
+        is InstrArrayLen     as i -> { return i.target }
+        is InstrArrayPush    as i -> { return i.target }
+        is InstrArraySlice   as i -> { return i.target }
+        is InstrStructNew    as i -> { if i.fields.len() > usize(0) { return i.fields[0] } ; return null }
+        is InstrArrayNew     as i -> { if i.elements.len() > usize(0) { return i.elements[0] } ; return null }
+        is InstrTypeCheck    as i -> { return i.value }
+        is InstrCast         as i -> { return i.value }
+        is InstrCellNew      as i -> { return i.value }
+        is InstrCellGet      as i -> { return i.cell }
+        is InstrCellSet      as i -> { return i.cell }
+        is InstrMakeClosure  as i -> { return i.env }
+        is InstrIntrinsic    as i -> { if i.args.len() > usize(0) { return i.args[0] } ; return null }
+    }
+}
+
+first_terminator_operand :: fn(t: Terminator) -> LocalId | null {
+    match t {
+        is TermBranch          -> { return null }
+        is TermUnreachable     -> { return null }
+        is TermCondBranch as c -> { return c.cond }
+        is TermReturn     as r -> { return r.value }
+    }
+}
