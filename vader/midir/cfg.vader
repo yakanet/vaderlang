@@ -1,0 +1,476 @@
+// vader/midir/cfg — CFG / Instruction / Terminator data types.
+//
+// Mirror of `src/midir/cfg.ts`. Pure type declarations ; no behaviour.
+// The Lowered ↔ CFG ↔ bytecode pipeline keeps the two IRs distinct :
+// the build pass (`build.vader`) walks LoweredProject into CFGProject ;
+// CFG-private types (this file) include BasicBlock / Instruction /
+// Terminator and never leak back into the Lowered tree.
+//
+// Cross-IR carry : MonoEntry, Type, Symbol, LoweredBinaryOp /
+// LoweredUnaryOp, VtableEntry are imported from upstream phases.
+// IntrinsicName is a `string` here (TS uses a const-literal union
+// over the 5 fixed names ; Vader stores the verbatim string).
+
+import "vader/diagnostics/diagnostic" { Span }
+import "vader/typecheck/types" { Type }
+import "vader/resolver/symbol" { Symbol }
+import "vader/comptime/mono_ast" { MonoEntry }
+import "vader/bytecode/types" { BcDataEntry }
+import "vader/lower/lowered_ast" {
+    LoweredBinaryOp, LoweredUnaryOp, VtableEntry,
+}
+import "std/collections" { MutableMap }
+
+// ---- index types ----------------------------------------------------------
+
+/// Index of a basic block within a function's `blocks` table. The entry
+/// block is always at index 0 by convention.
+export BlockId :: i32
+
+/// Index of a local within a function's `locals` table. Locals are
+/// mutable named storage cells, like bytecode locals.
+export LocalId :: i32
+
+// ---- function / decl shapes ----------------------------------------------
+
+/// A function's CFG — entry block, all blocks, all locals/params.
+/// Carries enough metadata for bytecode reservation (export/extern
+/// routing) so the emitter never has to walk back into the LoweredAST.
+export CFGFunction :: struct {
+    mangled:     string
+    params:      CFGParam[]
+    return_type: Type
+    locals:      CFGLocal[]
+    blocks:      BasicBlock[]
+    entry:       BlockId               // canonically 0
+    origin:      MonoEntry              // mirrored from LoweredFnDecl.origin
+    /// Source-level name used when registering an @export entry or when
+    /// this fn carries @extern (with a body). Falls back to `mangled`
+    /// when the origin decl is synthetic (no source-level FnDecl).
+    extern_name: string
+    /// True only for the unusual case of an @extern-decorated fn that
+    /// still has a body. Bodyless extern stubs live in
+    /// `CFGModule.externs`.
+    is_extern:   bool
+    /// True when @export-decorated. Drives the bytecode export table.
+    is_exported: bool
+}
+
+/// Declaration of a bodyless fn (typically @extern). Bytecode emit
+/// registers these in the import table and never tries to emit a body.
+export CFGExternDecl :: struct {
+    mangled:     string
+    params:      CFGParam[]
+    return_type: Type
+    origin:      MonoEntry
+    extern_name: string
+    is_exported: bool
+    /// True when the originating decl carried @extern (user-supplied
+    /// foreign symbol — c-emit emits a real `extern …(…)` declaration
+    /// that the linker resolves). False for @intrinsic-style bodyless
+    /// fns (stdlib host bindings handled by the c-emit shim switch).
+    is_extern:   bool
+}
+
+/// A struct declaration carrying only what the bytecode emitter needs
+/// to intern its layout into the type table. CFG-native (no Lowered
+/// import).
+export CFGStructDecl :: struct {
+    mangled: string
+    fields:  CFGStructField[]
+    origin:  MonoEntry
+}
+
+export CFGStructField :: struct {
+    name: string
+    type: Type
+}
+
+export CFGParam :: struct {
+    name:   string
+    symbol: Symbol
+    type:   Type
+    /// The local slot the param's initial value is written to. The
+    /// translator emits an implicit Const/Param write at fn entry ;
+    /// from there on, the param is just another local.
+    local:  LocalId
+}
+
+export CFGLocal :: struct {
+    name:   string                      // user-facing name when known ; "$tmp_<n>" for synthesised
+    type:   Type
+    /// Source-level symbol when the local corresponds to a user
+    /// binding ; null for compiler-synthesised tmp slots.
+    symbol: Symbol | null
+}
+
+// ---- block + terminator ---------------------------------------------------
+
+/// Single-entry single-exit basic block. Control enters at
+/// `instructions[0]`, flows linearly through, and leaves via the
+/// terminator. The terminator is the only point where BlockIds are
+/// referenced.
+export BasicBlock :: struct {
+    id:           BlockId
+    instructions: Instruction[]
+    terminator:   Terminator
+    span:         Span                  // representative ; per-instruction spans live on Instruction
+}
+
+/// Exactly one terminator per block, control transfer at block exit.
+export Terminator ::
+    | TermBranch
+    | TermCondBranch
+    | TermReturn
+    | TermUnreachable
+
+export TermBranch :: struct {
+    span:   Span
+    target: BlockId
+}
+
+export TermCondBranch :: struct {
+    span:        Span
+    cond:        LocalId
+    then_block:  BlockId
+    else_block:  BlockId
+}
+
+export TermReturn :: struct {
+    span:  Span
+    /// null for void returns.
+    value: LocalId | null
+}
+
+/// Trap at runtime ; `reason` is shown in the diagnostic. Used for
+/// unreachable paths (e.g. exhaustive-match fall-through) and for the
+/// bytecode `unreachable` op.
+export TermUnreachable :: struct {
+    span:   Span
+    reason: string
+}
+
+// ---- instructions ---------------------------------------------------------
+//
+// Three-address code, pre-SSA. Each instruction reads operand LocalIds
+// and (when applicable) writes its result to `dst`.
+
+export Instruction ::
+    | InstrConst
+    | InstrBinOp
+    | InstrUnOp
+    | InstrCall
+    | InstrCallIndirect
+    | InstrFnRef
+    | InstrVirtualCall
+    | InstrFieldGet
+    | InstrFieldSet
+    | InstrArrayGet
+    | InstrArraySet
+    | InstrArrayLen
+    | InstrArrayPush
+    | InstrArraySlice
+    | InstrStructNew
+    | InstrArrayNew
+    | InstrDataConst
+    | InstrTypeCheck
+    | InstrTypeConst
+    | InstrCast
+    | InstrCellNew
+    | InstrCellGet
+    | InstrCellSet
+    | InstrMakeClosure
+    | InstrIntrinsic
+    | InstrMove
+
+export InstrConst :: struct {
+    span:  Span
+    dst:   LocalId
+    value: ConstValue
+    type:  Type
+}
+
+export InstrBinOp :: struct {
+    span: Span
+    dst:  LocalId
+    op:   LoweredBinaryOp
+    lhs:  LocalId
+    rhs:  LocalId
+    type: Type
+}
+
+export InstrUnOp :: struct {
+    span:    Span
+    dst:     LocalId
+    op:      LoweredUnaryOp
+    operand: LocalId
+    type:    Type
+}
+
+/// Direct call — the callee is a known fn symbol. The bytecode emit
+/// decides whether to route as `call <fn>` or `call.import <imp>`
+/// (and whether to apply the OP_INTRINSIC fast path for stdlib hot
+/// calls like `string.concat`) based on which side-table the symbol
+/// lives in.
+export InstrCall :: struct {
+    span:   Span
+    /// null when the call returns void.
+    dst:    LocalId | null
+    callee: Symbol
+    args:   LocalId[]
+    type:   Type
+}
+
+/// Indirect call — the callee is a fn-typed local (closure or fn-ref
+/// read out of a struct field). Emits `call.indirect <typeIdx>`.
+export InstrCallIndirect :: struct {
+    span:    Span
+    dst:     LocalId | null
+    callee:  LocalId
+    args:    LocalId[]
+    fn_type: Type                       // for type-table interning at emit time
+    type:    Type                       // result type
+}
+
+/// Materialise a fn value (a fat pointer `{ code, env }` with
+/// `env = null` for non-capturing globals). The CFG uses this when a
+/// fn name is read in a non-call position.
+export InstrFnRef :: struct {
+    span:      Span
+    dst:       LocalId
+    fn_symbol: Symbol
+    type:      Type                     // the fn type
+}
+
+/// Trait-method virtual dispatch. Lowers to bytecode `virtual.call`.
+export InstrVirtualCall :: struct {
+    span:       Span
+    dst:        LocalId | null
+    trait_name: string
+    method:     string
+    receiver:   LocalId
+    args:       LocalId[]
+    type:       Type
+}
+
+export InstrFieldGet :: struct {
+    span:   Span
+    dst:    LocalId
+    target: LocalId
+    field:  string
+    type:   Type
+}
+
+export InstrFieldSet :: struct {
+    span:   Span
+    target: LocalId
+    field:  string
+    value:  LocalId
+    /// When true, the target is provably stack-allocated and the C
+    /// emit can skip the write-barrier macro. Set by escape analysis
+    /// after forward-propagating stack-alloc origin through Move/Cast
+    /// aliasing ; defaults to false (barrier emitted) when unset.
+    barrierless: bool
+}
+
+export InstrArrayGet :: struct {
+    span:   Span
+    dst:    LocalId
+    target: LocalId
+    index:  LocalId
+    type:   Type
+}
+
+export InstrArraySet :: struct {
+    span:   Span
+    target: LocalId
+    index:  LocalId
+    value:  LocalId
+}
+
+export InstrArrayLen :: struct {
+    span:   Span
+    dst:    LocalId
+    target: LocalId
+}
+
+export InstrArrayPush :: struct {
+    span:   Span
+    target: LocalId
+    value:  LocalId
+}
+
+export InstrArraySlice :: struct {
+    span: Span
+    dst:  LocalId
+    /// BcType index of the result — the slice view inherits the parent
+    /// array's element type, mangled the same way.
+    type:   Type
+    target: LocalId
+    lo:     LocalId
+    hi:     LocalId
+}
+
+export InstrStructNew :: struct {
+    span: Span
+    dst:  LocalId
+    type: Type
+    /// Per-field initialiser locals, in declaration order.
+    fields: LocalId[]
+    /// True when the struct value never escapes its fn and can be
+    /// stack-allocated. Set by escape.vader ; defaults to false (heap
+    /// alloc). Stack-alloc codegen lives in a later phase ; the flag
+    /// is informational + shows up in the dump.
+    stack: bool
+}
+
+export InstrArrayNew :: struct {
+    span:     Span
+    dst:      LocalId
+    type:     Type
+    length:   i32
+    elements: LocalId[]
+    /// Same `stack` semantics as InstrStructNew.
+    stack: bool
+}
+
+/// Pre-materialised module-level `const T[]` literal. Pool entry built
+/// by inline-consts ; emit lowers to bytecode `data.const`. No operands
+/// — the value is the static pool entry's runtime ref.
+export InstrDataConst :: struct {
+    span:       Span
+    dst:        LocalId
+    type:       Type                    // `const T[]` array type
+    pool_index: i32
+}
+
+/// Runtime tag check — `is X`.
+export InstrTypeCheck :: struct {
+    span:       Span
+    dst:        LocalId
+    value:      LocalId
+    check_type: Type
+}
+
+/// Reify a type as a runtime value. `value_type` is the concrete Type
+/// the alias resolves to ; the bytecode emit interns it via the
+/// module's type table and emits `type.const N`. `type` is TypeMeta.
+export InstrTypeConst :: struct {
+    span:       Span
+    dst:        LocalId
+    type:       Type
+    value_type: Type
+}
+
+/// Static type cast — same as LoweredCast ; emits a tag re-stamp or
+/// no-op depending on source/target representation.
+export InstrCast :: struct {
+    span:  Span
+    dst:   LocalId
+    value: LocalId
+    type:  Type
+}
+
+/// Allocate a heap closure cell holding `value`.
+export InstrCellNew :: struct {
+    span:       Span
+    dst:        LocalId
+    value:      LocalId
+    value_type: Type
+}
+
+export InstrCellGet :: struct {
+    span:       Span
+    dst:        LocalId
+    cell:       LocalId
+    value_type: Type
+}
+
+export InstrCellSet :: struct {
+    span:       Span
+    cell:       LocalId
+    value:      LocalId
+    value_type: Type
+}
+
+/// Allocate a closure value `{ fn, env }`.
+export InstrMakeClosure :: struct {
+    span:      Span
+    dst:       LocalId
+    fn_symbol: Symbol
+    env:       LocalId
+    type:      Type
+}
+
+/// Compiler/runtime intrinsic call (builder.new, builder.append_*, …).
+/// `name` is the verbatim mangled intrinsic name ; TS uses a const-
+/// literal union (5 fixed strings) but Vader stores the string.
+export InstrIntrinsic :: struct {
+    span:        Span
+    dst:         LocalId | null
+    name:        string
+    args:        LocalId[]
+    display_for: Type | null
+}
+
+/// Local-to-local copy. Surfaces in lowered constructs like
+/// `let x = y` where the RHS is already in a local — the converter
+/// emits a Move rather than synthesising a fresh tmp. SSA conversion
+/// elides moves entirely (rename instead).
+export InstrMove :: struct {
+    span: Span
+    dst:  LocalId
+    src:  LocalId
+}
+
+// ---- constants — payload of InstrConst -----------------------------------
+
+export ConstValue ::
+    | ConstInt
+    | ConstFloat
+    | ConstBool
+    | ConstChar
+    | ConstString
+    | ConstNull
+
+export ConstInt    :: struct { value: i64 }
+export ConstFloat  :: struct { value: f64 }
+export ConstBool   :: struct { value: bool }
+export ConstChar   :: struct { value: i32 }
+/// Index into `CFGProject.strings`.
+export ConstString :: struct { index: i32 }
+export ConstNull   :: struct {}
+
+// ---- project + module shapes ----------------------------------------------
+
+/// Collection of CFGFunctions, mirrors LoweredProject's shape.
+export CFGProject :: struct {
+    modules: MutableMap(string, CFGModule)
+    /// Same vtable entries the LoweredProject carries — bytecode emit
+    /// reuses them as-is.
+    vtable_entries: VtableEntry[]
+    /// Project-level string pool. The converter interns each
+    /// LoweredStringLit here ; ConstString stores the index. The
+    /// emitter reuses this pool verbatim as `BcModule.strings`.
+    strings: string[]
+    /// Mirrors LoweredProject.dataPool — carried verbatim into
+    /// `BytecodeModule.dataPool`. InstrDataConst references entries by
+    /// index.
+    data_pool: BcDataEntry[]
+    /// Forwarded from LoweredProject.symbolRedirects ; consumed by the
+    /// bytecode emit (fnIndexBySymId builder).
+    symbol_redirects: MutableMap(i32, i32)
+}
+
+export CFGModule :: struct {
+    module_id:    string
+    display_path: string
+    functions:    CFGFunction[]
+    /// Bodyless fn declarations (@extern stubs). Bytecode emit routes
+    /// these to the import table ; no CFG body exists for them.
+    externs: CFGExternDecl[]
+    /// Struct declarations the bytecode emit needs to intern into the
+    /// type table. Const decls don't appear here — they're inlined
+    /// into every read site by the inline-consts lowering pass.
+    struct_decls: CFGStructDecl[]
+}
