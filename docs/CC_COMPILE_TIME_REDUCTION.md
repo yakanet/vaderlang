@@ -513,3 +513,61 @@ inlines stack values into expressions.
 
 Logged for after piste 1, where they compose better with the recycler's
 free-list bookkeeping.
+
+## 9. POC results — piste 1 (2026-05-21)
+
+**Patch** : `src/c_emit/body.ts` gains per-pool tmp recycling. Each `pop()`
+returns the index to its pool's free-list once refcount hits zero ;
+`newTmp()` pulls from the free-list before incrementing `tmpCounter`.
+`dup` bumps refcount so a shared index doesn't free until both consumers
+have popped. All tmps land in the prelude (one comma-separated decl per
+pool) so the body emits bare `tN = …` assignments with no inline type
+prefix — `decl()` is gone, callers were swept.
+
+Auxiliary C scratch vars (`_obj`, `_arg`, `_arr`, `_b1`, `_storage`)
+previously named after the tmp index (`${tmp}_obj`) are now sourced from
+a separate `aux(s, suffix)` helper backed by a monotone `auxCounter`.
+Decoupling prevents collisions when the surrounding tmp is recycled.
+
+**Measurements** (same machine, `cc -O0 -ggdb`) :
+
+| Metric                           | Pre-5.a    | Post 5.a   | Post 1     | Δ vs 5.a |
+|----------------------------------|-----------:|-----------:|-----------:|---------:|
+| `build/vader.c` lines            | 335 364    | 318 429    | 318 274    | -0.05 %  |
+| `cc -O0 -ggdb -c vader.c` (avg)  | 27.6 s     | 7.8 s      | 6.6 s      | -15 %    |
+| `is_assignable` prologue (lines) | ~4 500     | n/a        | ~7         | dominant |
+| `is_assignable` `gc_roots[N]`    | N=26 849   | n/a        | N=40       | -99.9 %  |
+| `infer_field` body (lines)       | 78 720     | n/a        | 503        | n/a      |
+
+The file-size drop is tiny because the body is unchanged — each emit op
+still produces one line. The savings are entirely in the prologue : on
+`is_assignable` we go from ~4 500 `vader_box_t tN = vader_box_null()`
+decls to ~7, and from a 26 849-entry `gc_roots[]` array to a 40-entry
+one. clang's SSA-numbering pass scales super-linearly with per-fn symbol
+count, so the prologue compression is the cc-time lever.
+
+**Cumulative since baseline** : 27.6 s → 6.6 s = **-76 % cc wall time**
+on the self-host C build.
+
+**Regressions** : none on the test files unaffected by the pre-existing
+stale bytecode snapshots. native 252 / 252, vm + vader_vm 446 pass / 0
+fail, parity + cli + e2e 1021 / 1021, formatter + lexer + lsp 139 / 139.
+Total = 1858 passing.
+
+**Implementation surface** :
+- `body.ts` : +90 lines (FnState fields, `poolKey` / `allocTmpIdx` /
+  `releaseTmp` / `aux` helpers, prelude assembly per pool). `decl()` is
+  removed (was a tautology post-piste-1).
+- `ops.ts` : 27 callsites swept from `${decl(s, X, t)} = …` to
+  `${t} = …` ; aux scratch vars routed through the new `aux(s, suffix)`
+  helper instead of `${tmp}_<suffix>` collisions.
+- No SPEC.md change (codegen-only).
+- Vader port not updated — `vader/c_emit/body.vader` only holds helpers ;
+  the per-op walker port (TODO §2.2) needs to carry both piste 5.a and
+  piste 1 when it lands.
+
+**Follow-up candidate** (from /simplify Agent 3) : the prelude still
+declares tmps and locals separately. Coalescing same-`ValType` tmps +
+locals into a single decl line would shave another ~10-20 % off the
+prelude. Worth doing after piste 5.c (expr-kind stack values), which
+reshapes the body more aggressively.

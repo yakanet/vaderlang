@@ -86,17 +86,27 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
   // boilerplate of fns with many primitives.
   emitLocalDecls(out, ctx, fn, noFrame ? null : rootAddrs);
 
-  // Per-op tmp vars: every push allocates a fresh `tN`. The stack tracks
-  // `{ name, val }` so we know how to coerce when crossing slot boundaries.
+  // Per-op tmp vars: every push allocates a `tN` index — either fresh
+  // from the monotone `tmpCounter` or recycled from `tmpFreeList` once a
+  // previous holder popped off the stack. The pool key collapses ref+any
+  // (same `vader_box_t` storage) so they share a free-list ; primitives
+  // each get their own pool so the C decl type doesn't clash on reuse.
+  // `auxCounter` feeds emit ops that need block-local C scratch vars
+  // (e.g. `_a3_obj` for `struct.new`'s `vader_gc_alloc` result) — the
+  // counter is monotone so recycled tmps never collide on the scratch
+  // name.
   const state: FnState = {
     fn, ctx,
     stack: [],
     tmpCounter: 0,
+    auxCounter: 0,
     out,
     indent: "    ",
     labels: precomputeLabels(fn),
     scopeStack: [],
-    refTmpIndices: [],
+    tmpsByPool: new Map(),
+    tmpFreeList: new Map(),
+    tmpRefcount: [],
     noFrame,
   };
 
@@ -146,20 +156,35 @@ function emitFunctionBody(ctx: EmitCtx, fn: BcFunction, _fnIndex: number, out: s
     }
   }
 
-  // Build prelude: ref-tmp declarations + gc_roots + frame push. No-alloc
+  // Build prelude: tmp declarations + gc_roots + frame push. No-alloc
   // fns (`noFrame` set) skip the gc_roots[] / gc_frame / gc_top lines —
   // they still pre-declare ref tmps for liveness, but those don't need to
   // be GC roots since no GC pass can fire while in this fn.
+  //
+  // All tmps land in the prelude (one comma-separated decl per pool) so
+  // recycled indices don't redeclare in the body. Ref/any tmps carry
+  // `= vader_box_null()` (GC scan reaches them before first write) and
+  // chain into `gc_roots[]` ; primitives skip the init.
   const prelude: string[] = [];
-  if (state.refTmpIndices.length > 0) {
+  const refTmpIndices = state.tmpsByPool.get("ref");
+  if (refTmpIndices !== undefined && refTmpIndices.length > 0) {
     const PER_LINE = 6;
     if (!noFrame) {
-      for (const idx of state.refTmpIndices) rootAddrs.push(`&t${idx}`);
+      for (const idx of refTmpIndices) rootAddrs.push(`&t${idx}`);
     }
-    for (let i = 0; i < state.refTmpIndices.length; i += PER_LINE) {
-      const chunk = state.refTmpIndices.slice(i, i + PER_LINE)
+    for (let i = 0; i < refTmpIndices.length; i += PER_LINE) {
+      const chunk = refTmpIndices.slice(i, i + PER_LINE)
         .map((idx) => `t${idx} = vader_box_null()`).join(", ");
       prelude.push(`    vader_box_t ${chunk};`);
+    }
+  }
+  for (const [pool, indices] of state.tmpsByPool) {
+    if (pool === "ref" || indices.length === 0) continue;
+    const ctype = cTypeForVal(ctx, pool);
+    const PER_LINE = 10;
+    for (let i = 0; i < indices.length; i += PER_LINE) {
+      const chunk = indices.slice(i, i + PER_LINE).map((idx) => `t${idx}`).join(", ");
+      prelude.push(`    ${ctype} ${chunk};`);
     }
   }
   if (!noFrame) {
@@ -243,7 +268,7 @@ function emitLocalDecls(
  *  output by skipping the constant-then-immediately-used boilerplate
  *  (`int32_t t6 = INT32_C(1); l4 = t6;` → `l4 = 1;`). */
 export type StackVal =
-  | { kind: "tmp";       name: string; val: ValType }
+  | { kind: "tmp";       name: string; idx: number; val: ValType }
   | { kind: "literal";   text: string; val: ValType }
   | { kind: "local-ref"; slot:  number; val: ValType };
 
@@ -252,13 +277,25 @@ export interface FnState {
   readonly ctx: EmitCtx;
   readonly stack: StackVal[];
   tmpCounter: number;
+  /** Monotone counter for per-op C-side scratch identifiers (`_a<N>_obj`,
+   *  `_a<N>_arg`, …). Never resets, never recycles, so block-local
+   *  scratch vars stay unique across the function body. */
+  auxCounter: number;
   readonly out: string[];
   indent: string;
   readonly labels: LabelTable;
   readonly scopeStack: ActiveScope[];
-  /** tmp indices that hold ref-typed values — pre-declared in the function
-   *  prelude and registered as GC roots via the shadow stack frame. */
-  readonly refTmpIndices: number[];
+  /** Pool key (`poolKey`) → indices ever allocated in that pool. Drives
+   *  the prelude decl. `ref`/`any` share the `"ref"` key (same C type);
+   *  primitives have one pool each. */
+  readonly tmpsByPool: Map<ValType, number[]>;
+  /** Pool key → free-list of recyclable indices. A pop returns the index
+   *  here once its refcount hits zero ; `newTmp` pulls before incrementing
+   *  `tmpCounter`. */
+  readonly tmpFreeList: Map<ValType, number[]>;
+  /** Per-tmp-index refcount on the value stack. `dup` bumps it ; `pop`
+   *  decrements. Keeps `dup`-shared entries from double-freeing. */
+  readonly tmpRefcount: number[];
   /** True when the fn is provably no-alloc (per `EmitCtx.mayAlloc`). Tells
    *  `emitReturn` to skip the `vader_gc_top = gc_frame.prev` restore. */
   readonly noFrame: boolean;
@@ -323,9 +360,12 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "drop":     s.stack.pop(); return;
     case "dup": {
       // Push the same StackVal — literals + local-refs are safe to share ;
-      // tmps just reference the same name. Each consumer reads consistently.
+      // tmps just reference the same name. Bump the tmp refcount so the
+      // recycler doesn't free the index until both consumers have popped.
       const top = s.stack[s.stack.length - 1];
-      if (top !== undefined) s.stack.push(top);
+      if (top === undefined) return;
+      if (top.kind === "tmp") s.tmpRefcount[top.idx]!++;
+      s.stack.push(top);
       return;
     }
 
@@ -384,7 +424,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "string.ne": {
       const r = pop(s); const l = pop(s);
       const t = newTmp(s, "bool");
-      line(s, `bool ${t} = !vader_string_eq(${l.name}, ${r.name});`);
+      line(s, `${t} = !vader_string_eq(${l.name}, ${r.name});`);
       return;
     }
     case "char.eq":    return pushBinop(s, "char", "==", "bool");
@@ -431,7 +471,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "array.len": {
       const arr = pop(s);
       const t = newTmp(s, "usize");
-      line(s, `size_t ${t} = vader_array_len((vader_array_t*) ${asObjPtr(arr)});`);
+      line(s, `${t} = vader_array_len((vader_array_t*) ${asObjPtr(arr)});`);
       return;
     }
     case "array.push": {
@@ -513,7 +553,7 @@ function emitEnd(s: FnState, ip: number): void {
     s.scopeStack.pop();
     if (info.resultType !== "void") {
       const t = newTmp(s, info.resultType);
-      line(s, `${decl(s, info.resultType, t)} = blockres_${info.openIp};`);
+      line(s, `${t} = blockres_${info.openIp};`);
     }
   } else {
     line(s, `}`);
@@ -589,7 +629,7 @@ function emitReturn(s: FnState): void {
 export function pushBinop(s: FnState, _t: ValType, op: string, resultT: ValType): void {
   const r = pop(s); const l = pop(s);
   const tmp = newTmp(s, resultT);
-  line(s, `${decl(s, resultT, tmp)} = ${l.name} ${op} ${r.name};`);
+  line(s, `${tmp} = ${l.name} ${op} ${r.name};`);
 }
 
 export function pushBinopAny(s: FnState, op: string, resultT: ValType): void {
@@ -599,19 +639,19 @@ export function pushBinopAny(s: FnState, op: string, resultT: ValType): void {
   // representation for `ref`/`any` slots — so route through the runtime
   // helper which compares the tag plus the payload word.
   const neg = op === "!=" ? "!" : "";
-  line(s, `${decl(s, resultT, tmp)} = ${neg}vader_box_eq(${l.name}, ${r.name});`);
+  line(s, `${tmp} = ${neg}vader_box_eq(${l.name}, ${r.name});`);
 }
 
 export function pushUnop(s: FnState, _t: ValType, op: string, resultT: ValType): void {
   const v = pop(s);
   const tmp = newTmp(s, resultT);
-  line(s, `${decl(s, resultT, tmp)} = ${op}${v.name};`);
+  line(s, `${tmp} = ${op}${v.name};`);
 }
 
 export function pushFnCall2(s: FnState, resultT: ValType, fn: string): void {
   const r = pop(s); const l = pop(s);
   const tmp = newTmp(s, resultT);
-  line(s, `${decl(s, resultT, tmp)} = ${fn}(${l.name}, ${r.name});`);
+  line(s, `${tmp} = ${fn}(${l.name}, ${r.name});`);
 }
 
 /** Push a pure literal — the text is stashed on the stack and inlined at
@@ -627,24 +667,44 @@ export function pushLocalRef(s: FnState, slot: number, val: ValType): void {
   s.stack.push({ kind: "local-ref", slot, val });
 }
 
-/** Materialise a fresh `tN` on the stack and emit its declaration. Used
- *  by every push that produces a value with side effects (calls, allocs,
- *  ops between non-literals, ref/any results). */
-export function newTmp(s: FnState, val: ValType): string {
+/** Pool key for the tmp recycler. `ref` and `any` share storage as
+ *  `vader_box_t` so they pool together ; every primitive has its own
+ *  pool so a recycled C identifier never carries the wrong type. */
+function poolKey(val: ValType): ValType {
+  return isRefVal(val) ? "ref" : val;
+}
+
+/** Allocate (or recycle) a tmp index for `val`. Records the index in
+ *  `tmpsByPool` on first allocation so the prelude decl pass sees it. */
+function allocTmpIdx(s: FnState, val: ValType): number {
+  const pool = poolKey(val);
+  const free = s.tmpFreeList.get(pool);
+  if (free !== undefined && free.length > 0) return free.pop()!;
   const idx = s.tmpCounter++;
+  let allocated = s.tmpsByPool.get(pool);
+  if (allocated === undefined) { allocated = []; s.tmpsByPool.set(pool, allocated); }
+  allocated.push(idx);
+  return idx;
+}
+
+/** Materialise a fresh `tN` on the stack. Used by every push that
+ *  produces a value with side effects (calls, allocs, ops between
+ *  non-literals, ref/any results). The index may be recycled from a
+ *  previously-popped tmp of the same pool ; the prelude declares each
+ *  index exactly once. */
+export function newTmp(s: FnState, val: ValType): string {
+  const idx = allocTmpIdx(s, val);
   const name = `t${idx}`;
-  s.stack.push({ kind: "tmp", name, val });
-  if (val === "ref" || val === "any") s.refTmpIndices.push(idx);
+  s.stack.push({ kind: "tmp", name, idx, val });
+  s.tmpRefcount[idx] = 1;
   return name;
 }
 
-/** Tmp declaration prefix. Ref-typed tmps are pre-declared in the prelude
- *  (see `emitFunctionBody`) so they can be `&`-taken into the GC root array;
- *  body emission produces a bare assignment for them. Primitives still get a
- *  fresh `<ctype> name` declaration on first use. */
-export function decl(s: FnState, val: ValType, name: string): string {
-  if (val === "ref" || val === "any") return name;
-  return `${cTypeForVal(s.ctx, val)} ${name}`;
+/** Per-emit-op scratch C identifier — `_a<auxCounter>_<suffix>`. The
+ *  counter is monotone, so even when the surrounding tmp index has been
+ *  recycled, every scratch decl in the function body has a unique name. */
+export function aux(s: FnState, suffix: string): string {
+  return `_a${s.auxCounter++}_${suffix}`;
 }
 
 /** Inline-able C text for a stack value. Literals expand to their text,
@@ -660,7 +720,21 @@ export function nameOf(v: StackVal): string {
 export function pop(s: FnState): { name: string; val: ValType } {
   const v = s.stack.pop();
   if (v === undefined) return { name: "0", val: "i32" };  // defensive — emitter bug
+  if (v.kind === "tmp") releaseTmp(s, v.idx, v.val);
   return { name: nameOf(v), val: v.val };
+}
+
+/** Decrement the refcount for a popped tmp index and return it to its
+ *  pool's free-list once unreferenced. `dup`-shared tmps stay alive
+ *  until every consumer has popped. */
+function releaseTmp(s: FnState, idx: number, val: ValType): void {
+  const rc = s.tmpRefcount[idx]! - 1;
+  s.tmpRefcount[idx] = rc;
+  if (rc > 0) return;
+  const pool = poolKey(val);
+  let free = s.tmpFreeList.get(pool);
+  if (free === undefined) { free = []; s.tmpFreeList.set(pool, free); }
+  free.push(idx);
 }
 
 export function peek(s: FnState): { name: string; val: ValType } {
@@ -677,11 +751,11 @@ export function materializeStackForSlot(s: FnState, slot: number): void {
   for (let i = 0; i < s.stack.length; i++) {
     const v = s.stack[i]!;
     if (v.kind !== "local-ref" || v.slot !== slot) continue;
-    const idx = s.tmpCounter++;
+    const idx = allocTmpIdx(s, v.val);
     const name = `t${idx}`;
-    line(s, `${decl(s, v.val, name)} = l${v.slot};`);
-    if (v.val === "ref" || v.val === "any") s.refTmpIndices.push(idx);
-    s.stack[i] = { kind: "tmp", name, val: v.val };
+    line(s, `${name} = l${v.slot};`);
+    s.tmpRefcount[idx] = 1;
+    s.stack[i] = { kind: "tmp", name, idx, val: v.val };
   }
 }
 

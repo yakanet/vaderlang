@@ -20,8 +20,8 @@ import { arrayKindIndex, arrayKindOf, inlineVariantPayload, nullableRefVariant }
 import type { EmitCtx } from "./emit.ts";
 import { cStringLit, cStringLitFromBytes, escapeC, packedStructName, sanitise } from "./emit.ts";
 import {
-  b1SlotVariant, boxExpr, boxExprUnknown, coerce, coerceExpr, cTypeFor,
-  cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, decl, isRefVal, line,
+  aux, b1SlotVariant, boxExpr, boxExprUnknown, coerce, coerceExpr, cTypeFor,
+  cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, isRefVal, line,
   nameOf, newTmp, peek, pop, primitiveMatchesType, pushBinop, pushBinopAny,
   pushFnCall2, pushLit, pushLocalRef, pushUnop, signatureFor, unboxExpr,
   valTypeOfBcType, valTypeOfField, zeroInit,
@@ -98,8 +98,9 @@ function emitArgReshape(s: FnState, src: string, concreteIdx: number, anyIdx: nu
     if (ft.kind !== "primitive" && ft.kind !== "struct" && ft.kind !== "ref") return src;
   }
   const tmp = newTmp(s, "ref");
-  line(s, `${anyCName}* ${tmp}_arg = (${anyCName}*) vader_gc_alloc(sizeof(${anyCName}));`);
-  line(s, `vader_obj_header_init(${tmp}_arg, ${anyIdx}u);`);
+  const argObj = aux(s, "arg");
+  line(s, `${anyCName}* ${argObj} = (${anyCName}*) vader_gc_alloc(sizeof(${anyCName}));`);
+  line(s, `vader_obj_header_init(${argObj}, ${anyIdx}u);`);
   for (let i = 0; i < concrete.fields.length; i++) {
     const cf = concrete.fields[i]!;
     const af = any.fields[i]!;
@@ -112,9 +113,9 @@ function emitArgReshape(s: FnState, src: string, concreteIdx: number, anyIdx: nu
     } else {
       boxedField = boxExpr(s.ctx, concreteFieldExpr, cval as ValType, cf.typeIndex);
     }
-    line(s, `${tmp}_arg->f_${sanitise(af.name)} = ${boxedField};`);
+    line(s, `${argObj}->f_${sanitise(af.name)} = ${boxedField};`);
   }
-  line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${anyIdx}u, ${tmp}_arg);`);
+  line(s, `${tmp} = vader_box_obj(${anyIdx}u, ${argObj});`);
   return tmp;
 }
 
@@ -137,15 +138,16 @@ function emitCallResult(
   const b1 = b1SlotVariant(s.ctx, retTypeIndex);
   if (b1 !== null) {
     const raw = newTmp(s, "ref");
-    line(s, `void* ${raw}_b1 = ${callExpr};`);
-    line(s, `${decl(s, "ref", raw)} = vader_b1_to_box(${raw}_b1, ${b1}u);`);
+    const b1Raw = aux(s, "b1");
+    line(s, `void* ${b1Raw} = ${callExpr};`);
+    line(s, `${raw} = vader_b1_to_box(${b1Raw}, ${b1}u);`);
     if (expectedResultType !== undefined && expectedResultType !== retTypeIndex) {
       emitErasureBoundaryConversion(s, raw, expectedResultType);
     }
     return;
   }
   const t = newTmp(s, retVal);
-  line(s, `${decl(s, retVal, t)} = ${callExpr};`);
+  line(s, `${t} = ${callExpr};`);
   if (retVal === "ref" || retVal === "any") {
     if (expectedResultType !== undefined && expectedResultType !== retTypeIndex) {
       emitErasureBoundaryConversion(s, t, expectedResultType);
@@ -161,7 +163,7 @@ function coerceForB1Arg(ctx: EmitCtx, boxed: string, slotTypeIndex: number): str
 
 export function emitFnRef(s: FnState, op: Extract<Op, { kind: "fn.ref" }>): void {
   const tmp = newTmp(s, "ref");
-  line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, &vader_fn_static_${op.fnIndex});`);
+  line(s, `${tmp} = vader_box_obj(${op.typeIndex}u, &vader_fn_static_${op.fnIndex});`);
 }
 
 export function emitVirtualCall(s: FnState, op: Extract<Op, { kind: "virtual.call" }>): void {
@@ -190,7 +192,7 @@ export function emitVirtualCall(s: FnState, op: Extract<Op, { kind: "virtual.cal
     return;
   }
   const tmp = newTmp(s, sig.result);
-  line(s, `${decl(s, sig.result, tmp)} = ${helper}(${[recvBoxed, ...boxedArgs].join(", ")});`);
+  line(s, `${tmp} = ${helper}(${[recvBoxed, ...boxedArgs].join(", ")});`);
 
   // Erasure-aware result conversion : the dispatched impl body was lowered
   // with type-params substituted to Any, so for `@specialize`d structs
@@ -597,7 +599,7 @@ export function emitMakeClosure(s: FnState, op: Extract<Op, { kind: "make_closur
   line(s, `vader_obj_header_init(${fnObj}, ${op.typeIndex}u);`);
   line(s, `${fnObj}->code = (void*) &vader_fn_lift_${op.fnIndex};`);
   line(s, `${fnObj}->env = ${envBox.name}.payload.obj;`);
-  line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${fnObj});`);
+  line(s, `${tmp} = vader_box_obj(${op.typeIndex}u, ${fnObj});`);
 }
 
 export function emitCallIndirect(s: FnState, op: Extract<Op, { kind: "call.indirect" }>): void {
@@ -631,14 +633,14 @@ export function emitCallIndirect(s: FnState, op: Extract<Op, { kind: "call.indir
     return;
   }
   const anyTmp = newTmp(s, "any");
-  line(s, `${decl(s, "any", anyTmp)} = ${callExpr};`);
+  line(s, `${anyTmp} = ${callExpr};`);
   // Pop the "any" tmp ; coerce back to the static return type by
   // re-pushing through `coerce`. For ref/any returns this is a
   // pass-through ; for primitives it unboxes via `unboxExpr`.
   if (retVal === "ref" || retVal === "any") return;
   pop(s);
   const t2 = newTmp(s, retVal);
-  line(s, `${decl(s, retVal, t2)} = ${coerce(s, anyTmp, "any", retVal)};`);
+  line(s, `${t2} = ${coerce(s, anyTmp, "any", retVal)};`);
 }
 
 export function emitIntrinsic(s: FnState, op: Extract<Op, { kind: "intrinsic" }>): void {
@@ -665,7 +667,7 @@ export function emitIntrinsic(s: FnState, op: Extract<Op, { kind: "intrinsic" }>
     case INTRINSIC_TABLE.builderFinish.id: {
       const sb = pop(s);
       const t = newTmp(s, "string");
-      line(s, `vader_string_t ${t} = vader_builder_finish((vader_builder_t*) ${sb.name}.payload.obj);`);
+      line(s, `${t} = vader_builder_finish((vader_builder_t*) ${sb.name}.payload.obj);`);
       return;
     }
     case INTRINSIC_TABLE.sizeOfType.id: {
@@ -674,7 +676,7 @@ export function emitIntrinsic(s: FnState, op: Extract<Op, { kind: "intrinsic" }>
       // `vader_type_size[]` is emitted in `c_emit/emit.ts`.
       const tv = pop(s);
       const out = newTmp(s, "usize");
-      line(s, `size_t ${out} = vader_type_size[(int32_t)(uintptr_t)${tv.name}.payload.obj];`);
+      line(s, `${out} = vader_type_size[(int32_t)(uintptr_t)${tv.name}.payload.obj];`);
       return;
     }
   }
@@ -729,21 +731,21 @@ export function emitStructNew(
     const tmp = newTmp(s, "ref");
     if (inlinePayload === "void") {
       // Empty-body — tag identifies, no payload to carry.
-      line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, NULL);`);
+      line(s, `${tmp} = vader_box_obj(${op.typeIndex}u, NULL);`);
     } else if (inlinePayload === "ref") {
       // Single-ref-field — the wrapper itself never allocates ; we just
       // re-tag the field's heap pointer with our struct's tag. The GC
       // scans via `VADER_TYPE_KIND_INLINE_REF`'s scan_raw path, which
       // reads the referent's own header tag rather than ours.
       const v = fieldVals[0]!;
-      line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${v.name}.payload.obj);`);
+      line(s, `${tmp} = vader_box_obj(${op.typeIndex}u, ${v.name}.payload.obj);`);
     } else if (inlinePayload === "packed") {
       // Multi-field POD packed into `payload.packed[16]`. Cast the byte
       // array to the header-less mirror struct (emitted next to the
       // regular typedef in `emitTypeDecls`) and assign each field
       // directly ; the C compiler resolves the layout.
       const pname = packedStructName(cname);
-      line(s, `${decl(s, "ref", tmp)} = (vader_box_t){ .tag = ${op.typeIndex}u, ._pad = 0 };`);
+      line(s, `${tmp} = (vader_box_t){ .tag = ${op.typeIndex}u, ._pad = 0 };`);
       line(s, `{`);
       line(s, `    ${pname}* __packed = (${pname}*)${tmp}.payload.packed;`);
       for (let i = 0; i < t.fields.length; i++) {
@@ -760,12 +762,13 @@ export function emitStructNew(
       // to widen / sign-zero-extend each integer width.
       const v = fieldVals[0]!;
       const coerced = coerce(s, v.name, v.val, inlinePayload);
-      line(s, `${decl(s, "ref", tmp)} = ${boxExpr(s.ctx, coerced, inlinePayload, op.typeIndex)};`);
+      line(s, `${tmp} = ${boxExpr(s.ctx, coerced, inlinePayload, op.typeIndex)};`);
     }
     return;
   }
 
   const tmp = newTmp(s, "ref");
+  const auxObj = aux(s, "obj");
   if (onStack) {
     // Escape analysis proved the value can't outlive the fn — allocate the
     // storage as a C local, skip the GC. If a GC cycle hits before the box
@@ -773,12 +776,13 @@ export function emitStructNew(
     // shadow-stack scan) ; the stale `forward` slot left in the alloca'd
     // header is harmless since the C frame goes away on return and any
     // reuse runs `vader_obj_header_init` again.
-    line(s, `${cname} ${tmp}_storage;`);
-    line(s, `${cname}* ${tmp}_obj = &${tmp}_storage;`);
+    const auxStorage = aux(s, "storage");
+    line(s, `${cname} ${auxStorage};`);
+    line(s, `${cname}* ${auxObj} = &${auxStorage};`);
   } else {
-    line(s, `${cname}* ${tmp}_obj = (${cname}*) vader_gc_alloc(sizeof(${cname}));`);
+    line(s, `${cname}* ${auxObj} = (${cname}*) vader_gc_alloc(sizeof(${cname}));`);
   }
-  line(s, `vader_obj_header_init(${tmp}_obj, ${op.typeIndex}u);`);
+  line(s, `vader_obj_header_init(${auxObj}, ${op.typeIndex}u);`);
   for (let i = 0; i < t.fields.length; i++) {
     const f = t.fields[i]!;
     const v = fieldVals[i]!;
@@ -787,16 +791,16 @@ export function emitStructNew(
     // and the heap pointer for the ref variant, which is exactly what the
     // raw slot wants.
     if (isNullableRefField(s.ctx, f.typeIndex)) {
-      line(s, `${tmp}_obj->f_${sanitise(f.name)} = ${v.name}.payload.obj;`);
+      line(s, `${auxObj}->f_${sanitise(f.name)} = ${v.name}.payload.obj;`);
       continue;
     }
     const fval = valTypeOfField(s.ctx, f.typeIndex);
-    line(s, `${tmp}_obj->f_${sanitise(f.name)} = ${coerce(s, v.name, v.val, fval)};`);
+    line(s, `${auxObj}->f_${sanitise(f.name)} = ${coerce(s, v.name, v.val, fval)};`);
   }
   // Always emit struct values as boxed vader_box_t so they flow uniformly
   // through `ref` slots and across fn boundaries. struct.get unboxes via
   // .payload.obj before downcasting.
-  line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${tmp}_obj);`);
+  line(s, `${tmp} = vader_box_obj(${op.typeIndex}u, ${auxObj});`);
 }
 
 export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }>): void {
@@ -820,7 +824,7 @@ export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }
     // the referent (not the wrapper). `f.typeIndex` already names the
     // concrete referent struct (Entry, MapIterator, …).
     const tmp = newTmp(s, fval);
-    line(s, `${decl(s, fval, tmp)} = vader_box_obj(${f.typeIndex}u, ${obj.name}.payload.obj);`);
+    line(s, `${tmp} = vader_box_obj(${f.typeIndex}u, ${obj.name}.payload.obj);`);
     return;
   }
   if (inlinePayload === "packed") {
@@ -829,12 +833,12 @@ export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }
     // resolves the offset.
     const pname = packedStructName(cname);
     const tmp = newTmp(s, fval);
-    line(s, `${decl(s, fval, tmp)} = ((const ${pname}*)${obj.name}.payload.packed)->f_${sanitise(f.name)};`);
+    line(s, `${tmp} = ((const ${pname}*)${obj.name}.payload.packed)->f_${sanitise(f.name)};`);
     return;
   }
   if (inlinePayload !== null && inlinePayload !== "void") {
     const tmp = newTmp(s, fval);
-    line(s, `${decl(s, fval, tmp)} = ${coerce(s, unboxExpr(obj.name, inlinePayload), inlinePayload, fval)};`);
+    line(s, `${tmp} = ${coerce(s, unboxExpr(obj.name, inlinePayload), inlinePayload, fval)};`);
     return;
   }
 
@@ -847,11 +851,11 @@ export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }
     const nullTag = s.ctx.primitiveTagOf.get("null") ?? 0;
     const tmp = newTmp(s, fval);
     const raw = `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)}`;
-    line(s, `${decl(s, fval, tmp)} = (${raw} == NULL) ? vader_box_obj(${nullTag}u, NULL) : vader_box_obj(${refVariant}u, ${raw});`);
+    line(s, `${tmp} = (${raw} == NULL) ? vader_box_obj(${nullTag}u, NULL) : vader_box_obj(${refVariant}u, ${raw});`);
     return;
   }
   const tmp = newTmp(s, fval);
-  line(s, `${decl(s, fval, tmp)} = ((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)};`);
+  line(s, `${tmp} = ((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)};`);
 }
 
 export function emitStructSet(
@@ -905,17 +909,18 @@ export function emitArrayNew(s: FnState, op: Extract<Op, { kind: "array.new" }>)
   const kindIdx = arrayKindIndex(elemKind);
   const elemTag = arrType !== undefined && arrType.kind === "array"
     ? arrType.element : 0;
-  line(s, `vader_array_t* ${tmp}_arr = vader_array_new(${op.typeIndex}u, ${op.length}u, ${kindIdx}u, ${elemTag}u);`);
+  const arrBuf = aux(s, "arr");
+  line(s, `vader_array_t* ${arrBuf} = vader_array_new(${op.typeIndex}u, ${op.length}u, ${kindIdx}u, ${elemTag}u);`);
   if (op.length > 0) {
     for (let i = 0; i < op.length; i++) {
       const v = elements[i]!;
       // Box with the element type's tag, not the array's. Without this,
       // virtual dispatch on a value read back from the array would see
       // recv.tag = array_index instead of element_index → vtable miss.
-      line(s, `vader_array_set(${tmp}_arr, ${i}u, ${boxExpr(s.ctx, v.name, v.val, elemTag)});`);
+      line(s, `vader_array_set(${arrBuf}, ${i}u, ${boxExpr(s.ctx, v.name, v.val, elemTag)});`);
     }
   }
-  line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${tmp}_arr);`);
+  line(s, `${tmp} = vader_box_obj(${op.typeIndex}u, ${arrBuf});`);
 }
 
 export function emitArrayGet(s: FnState, _op: Extract<Op, { kind: "array.get" }>): void {
@@ -926,7 +931,7 @@ export function emitArrayGet(s: FnState, _op: Extract<Op, { kind: "array.get" }>
   // `element_tag` (set at `vader_array_new` time), so virtual dispatch on
   // a receiver coming from a primitive-storage array sees a properly-tagged
   // box even when the static type at the call site is erased to `Any[]`.
-  line(s, `${decl(s, "any", tmp)} = vader_array_get((vader_array_t*) ${asObjPtr(arr)}, (size_t) ${idx.name});`);
+  line(s, `${tmp} = vader_array_get((vader_array_t*) ${asObjPtr(arr)}, (size_t) ${idx.name});`);
 }
 
 export function emitArraySet(s: FnState, op: Extract<Op, { kind: "array.set" }>): void {
@@ -945,8 +950,9 @@ export function emitArraySlice(s: FnState, op: Extract<Op, { kind: "array.slice"
   const lo = pop(s);
   const arr = pop(s);
   const tmp = newTmp(s, "ref");
-  line(s, `vader_array_t* ${tmp}_arr = vader_array_slice((vader_array_t*) ${asObjPtr(arr)}, (size_t) ${lo.name}, (size_t) ${hi.name});`);
-  line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, ${tmp}_arr);`);
+  const arrBuf = aux(s, "arr");
+  line(s, `vader_array_t* ${arrBuf} = vader_array_slice((vader_array_t*) ${asObjPtr(arr)}, (size_t) ${lo.name}, (size_t) ${hi.name});`);
+  line(s, `${tmp} = vader_box_obj(${op.typeIndex}u, ${arrBuf});`);
 }
 
 export function emitDataConst(s: FnState, op: Extract<Op, { kind: "data.const" }>): void {
@@ -955,7 +961,7 @@ export function emitDataConst(s: FnState, op: Extract<Op, { kind: "data.const" }
   // pointer. Writers would trip `array.set` which the typechecker has
   // already forbidden (T3042) ; the cast is sound at this point.
   const tmp = newTmp(s, "ref");
-  line(s, `${decl(s, "ref", tmp)} = vader_box_obj(${op.typeIndex}u, (void*) &__vader_data_${op.poolIndex});`);
+  line(s, `${tmp} = vader_box_obj(${op.typeIndex}u, (void*) &__vader_data_${op.poolIndex});`);
 }
 
 export function emitTypeCheck(s: FnState, op: Extract<Op, { kind: "type_check" }>): void {
@@ -972,14 +978,14 @@ export function emitTypeCheck(s: FnState, op: Extract<Op, { kind: "type_check" }
     // built-in ref types like Error are tagged with their own type index.
     if (targetType?.kind === "ref" && targetType.traitName !== null) {
       const cond = traitCheckExpr(s.ctx, v.name, targetType.traitName, op.typeIndex);
-      line(s, `bool ${tmp} = ${cond};`);
+      line(s, `${tmp} = ${cond};`);
     } else {
-      line(s, `bool ${tmp} = (${v.name}.tag == ${op.typeIndex}u);`);
+      line(s, `${tmp} = (${v.name}.tag == ${op.typeIndex}u);`);
     }
   } else {
     // Primitive slot can only match if its static ValType corresponds to the
     // target type's primitive (or struct/array typeIndex matches).
-    line(s, `bool ${tmp} = ${primitiveMatchesType(s.ctx, v.val, op.typeIndex) ? "true" : "false"};`);
+    line(s, `${tmp} = ${primitiveMatchesType(s.ctx, v.val, op.typeIndex) ? "true" : "false"};`);
   }
 }
 
@@ -999,9 +1005,9 @@ export function emitRefCast(s: FnState, op: Extract<Op, { kind: "ref.cast" }>): 
   const targetVal = valTypeOfBcType(target);
   const tmp = newTmp(s, targetVal);
   if (v.val === "ref" || v.val === "any") {
-    line(s, `${decl(s, targetVal, tmp)} = ${unboxExpr(v.name, targetVal)};`);
+    line(s, `${tmp} = ${unboxExpr(v.name, targetVal)};`);
   } else {
-    line(s, `${decl(s, targetVal, tmp)} = (${cTypeForVal(s.ctx, targetVal)}) ${v.name};`);
+    line(s, `${tmp} = (${cTypeForVal(s.ctx, targetVal)}) ${v.name};`);
   }
 }
 
@@ -1020,7 +1026,7 @@ export function emitConvert(s: FnState, from: ValType, to: ValType): void {
   const v = pop(s);
   const tmp = newTmp(s, to);
   if (from === to) {
-    line(s, `${decl(s, to, tmp)} = ${v.name};`);
+    line(s, `${tmp} = ${v.name};`);
   } else {
     // Cast through `from` first so signedness drives any width-change
     // extension. The stack value's C type can mismatch `from` because
@@ -1028,7 +1034,7 @@ export function emitConvert(s: FnState, from: ValType, to: ValType): void {
     // dedicated `uN.const`), so a literal like `(int32_t)UINT32_C(N)` for
     // a u32-repr enum would sign-extend on `(uint64_t) v` if we skipped
     // the inner cast.
-    line(s, `${decl(s, to, tmp)} = (${cTypeForVal(s.ctx, to)}) (${cTypeForVal(s.ctx, from)}) ${v.name};`);
+    line(s, `${tmp} = (${cTypeForVal(s.ctx, to)}) (${cTypeForVal(s.ctx, from)}) ${v.name};`);
   }
 }
 
@@ -1046,10 +1052,10 @@ export function emitTypedBinop(s: FnState, t: ValType, verb: string): void {
     // directly here.
     if (verb === "neg" && t === "i64"
         && v.name === "(int64_t)UINT64_C(9223372036854775808)") {
-      line(s, `${decl(s, t, tmp)} = INT64_MIN;`);
+      line(s, `${tmp} = INT64_MIN;`);
       return;
     }
-    line(s, `${decl(s, t, tmp)} = ${op}${v.name};`);
+    line(s, `${tmp} = ${op}${v.name};`);
     return;
   }
   const r = pop(s);
@@ -1063,12 +1069,12 @@ export function emitTypedBinop(s: FnState, t: ValType, verb: string): void {
   };
   if (arith[verb]) {
     const tmp = newTmp(s, t);
-    line(s, `${decl(s, t, tmp)} = ${l.name} ${arith[verb]} ${r.name};`);
+    line(s, `${tmp} = ${l.name} ${arith[verb]} ${r.name};`);
     return;
   }
   if (cmp[verb]) {
     const tmp = newTmp(s, "bool");
-    line(s, `${decl(s, "bool", tmp)} = ${l.name} ${cmp[verb]} ${r.name};`);
+    line(s, `${tmp} = ${l.name} ${cmp[verb]} ${r.name};`);
     return;
   }
   // Unhandled — emit a trap so the failure surfaces at runtime.
