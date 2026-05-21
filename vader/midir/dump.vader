@@ -1,0 +1,170 @@
+// vader/midir/dump — pretty-printer for the Mid-IR CFG.
+//
+// Mirror of `src/midir/dump.ts`. Produces a stable, human-readable
+// text rendering used by `vader dump --stage=cfg <file>` and by
+// snapshot tests. Locals are referenced as `%<index>` ; blocks as
+// `bb<index>`. Spans are omitted to keep the output focused on the
+// structure.
+
+import "std/collections" { values }
+import "std/string_builder" { StringBuilder, new_builder }
+import "vader/typecheck/types" { display_type }
+import "vader/midir/cfg" {
+    BasicBlock, CFGFunction, CFGProject, ConstValue, Instruction, LocalId,
+    Terminator, TermBranch, TermCondBranch, TermReturn, TermUnreachable,
+    ConstInt, ConstFloat, ConstBool, ConstChar, ConstString, ConstNull,
+    InstrConst, InstrBinOp, InstrUnOp, InstrCall, InstrCallIndirect,
+    InstrFnRef, InstrVirtualCall, InstrFieldGet, InstrFieldSet,
+    InstrArrayGet, InstrArraySet, InstrArrayLen, InstrArrayPush,
+    InstrArraySlice, InstrStructNew, InstrArrayNew, InstrDataConst,
+    InstrTypeCheck, InstrTypeConst, InstrCast, InstrCellNew,
+    InstrCellGet, InstrCellSet, InstrMakeClosure, InstrIntrinsic,
+    InstrMove,
+}
+
+/// Optional filter / shape controls for `dump_cfg_project`.
+export DumpCfgOptions :: struct {
+    /// When non-null, modules whose `display_path` returns false are
+    /// skipped. Snapshot tests use this to elide stdlib so the captured
+    /// output stays focused on the user snippet.
+    include_module: fn(string) -> bool | null
+    /// When false, the project-level string pool is not appended.
+    include_strings: bool
+}
+
+export dump_cfg_project :: fn(p: CFGProject, opts: DumpCfgOptions) -> string {
+    sb :: new_builder()
+    sb.append("# CFG\n")
+    for m in values(p.modules) {
+        match opts.include_module {
+            is null -> {}
+            _ -> { if !opts.include_module(m.display_path) { continue } }
+        }
+        if m.functions.len() == usize(0) && m.externs.len() == usize(0) && m.struct_decls.len() == usize(0) {
+            continue
+        }
+        sb.append("\n## ${m.display_path}\n")
+        for fn_ in m.functions {
+            sb.append("\n")
+            dump_function(fn_, sb)
+        }
+    }
+    if opts.include_strings && p.strings.len() > usize(0) {
+        sb.append("\n## strings\n")
+        for i in 0..<p.strings.len() {
+            sb.append("  ${i}: \"${p.strings[i]}\"\n")
+        }
+    }
+    return sb.to_string()
+}
+
+dump_function :: fn(fn_: CFGFunction, sb: StringBuilder) -> void {
+    sb.append("fn ${fn_.mangled}(")
+    first := true
+    for p in fn_.params {
+        if !first { sb.append(", ") }
+        first = false
+        sb.append("%${p.local}: ${display_type(p.type)}")
+    }
+    sb.append(") -> ${display_type(fn_.return_type)}\n")
+    sb.append("  locals:\n")
+    for i in 0..<fn_.locals.len() {
+        l :: fn_.locals[i]
+        sb.append("    %${i} ${l.name}: ${display_type(l.type)}")
+        match l.symbol {
+            is null -> {}
+            _ -> { sb.append(" (${l.symbol.kind} ${l.symbol.name})") }
+        }
+        sb.append("\n")
+    }
+    for b in fn_.blocks { dump_block(b, sb) }
+}
+
+dump_block :: fn(b: BasicBlock, sb: StringBuilder) -> void {
+    sb.append("  bb${b.id}:\n")
+    for ins in b.instructions { sb.append("    ${dump_instr(ins)}\n") }
+    sb.append("    ${dump_terminator(b.terminator)}\n")
+}
+
+dump_instr :: fn(ins: Instruction) -> string {
+    match ins {
+        is InstrConst        as i -> { return "%${i.dst} = const ${dump_const(i.value)} :${display_type(i.type)}" }
+        is InstrBinOp        as i -> { return "%${i.dst} = binop ${i32(i.op)} %${i.lhs} %${i.rhs} :${display_type(i.type)}" }
+        is InstrUnOp         as i -> { return "%${i.dst} = unop ${i32(i.op)} %${i.operand} :${display_type(i.type)}" }
+        is InstrCall         as i -> { return "${dump_dst(i.dst)}call ${i.callee.name}(${dump_args(i.args)}) :${display_type(i.type)}" }
+        is InstrCallIndirect as i -> { return "${dump_dst(i.dst)}call_indirect %${i.callee}(${dump_args(i.args)}) :${display_type(i.type)}" }
+        is InstrFnRef        as i -> { return "%${i.dst} = fn_ref ${i.fn_symbol.name} :${display_type(i.type)}" }
+        is InstrVirtualCall  as i -> {
+            extra :: if i.args.len() > usize(0) { ", ${dump_args(i.args)}" } else { "" }
+            return "${dump_dst(i.dst)}vcall ${i.trait_name}.${i.method}(recv=%${i.receiver}${extra}) :${display_type(i.type)}"
+        }
+        is InstrFieldGet     as i -> { return "%${i.dst} = field_get %${i.target}.${i.field} :${display_type(i.type)}" }
+        is InstrFieldSet     as i -> { return "field_set %${i.target}.${i.field} = %${i.value}" }
+        is InstrArrayGet     as i -> { return "%${i.dst} = array_get %${i.target}[%${i.index}] :${display_type(i.type)}" }
+        is InstrArraySet     as i -> { return "array_set %${i.target}[%${i.index}] = %${i.value}" }
+        is InstrArrayLen     as i -> { return "%${i.dst} = array_len %${i.target}" }
+        is InstrArrayPush    as i -> { return "array_push %${i.target}, %${i.value}" }
+        is InstrArraySlice   as i -> { return "%${i.dst} = array_slice %${i.target}[%${i.lo}..%${i.hi}] :${display_type(i.type)}" }
+        is InstrStructNew    as i -> {
+            tag :: if i.stack { "[stack]" } else { "" }
+            return "%${i.dst} = struct_new${tag} ${display_type(i.type)}(${dump_args(i.fields)})"
+        }
+        is InstrArrayNew     as i -> {
+            tag :: if i.stack { "[stack]" } else { "" }
+            return "%${i.dst} = array_new${tag} ${display_type(i.type)}[${i.length}](${dump_args(i.elements)})"
+        }
+        is InstrDataConst    as i -> { return "%${i.dst} = data_const ${i.pool_index} :${display_type(i.type)}" }
+        is InstrTypeCheck    as i -> { return "%${i.dst} = type_check %${i.value} is ${display_type(i.check_type)}" }
+        is InstrTypeConst    as i -> { return "%${i.dst} = type_const ${display_type(i.value_type)}" }
+        is InstrCast         as i -> { return "%${i.dst} = cast %${i.value} :${display_type(i.type)}" }
+        is InstrCellNew      as i -> { return "%${i.dst} = cell_new %${i.value} :${display_type(i.value_type)}" }
+        is InstrCellGet      as i -> { return "%${i.dst} = cell_get %${i.cell} :${display_type(i.value_type)}" }
+        is InstrCellSet      as i -> { return "cell_set %${i.cell} = %${i.value} :${display_type(i.value_type)}" }
+        is InstrMakeClosure  as i -> { return "%${i.dst} = make_closure ${i.fn_symbol.name} env=%${i.env} :${display_type(i.type)}" }
+        is InstrIntrinsic    as i -> { return "${dump_dst(i.dst)}intrinsic ${i.name}(${dump_args(i.args)})" }
+        is InstrMove         as i -> { return "%${i.dst} = move %${i.src}" }
+    }
+}
+
+dump_terminator :: fn(t: Terminator) -> string {
+    match t {
+        is TermBranch      as br -> { return "branch -> bb${br.target}" }
+        is TermCondBranch  as cb -> { return "cond_branch %${cb.cond} ? bb${cb.then_block} : bb${cb.else_block}" }
+        is TermReturn      as r  -> {
+            match r.value {
+                is null -> { return "return" }
+                _ -> { return "return %${r.value}" }
+            }
+        }
+        is TermUnreachable as u  -> { return "unreachable ; ${u.reason}" }
+    }
+}
+
+dump_const :: fn(v: ConstValue) -> string {
+    match v {
+        is ConstInt    as c -> { return "int(${c.value})" }
+        is ConstFloat  as c -> { return "float(${c.value})" }
+        is ConstBool   as c -> { return "bool(${c.value})" }
+        is ConstChar   as c -> { return "char(${c.value})" }
+        is ConstString as c -> { return "string(#${c.index})" }
+        is ConstNull        -> { return "null" }
+    }
+}
+
+dump_dst :: fn(d: LocalId | null) -> string {
+    match d {
+        is null -> { return "" }
+        _ -> { return "%${d} = " }
+    }
+}
+
+dump_args :: fn(a: LocalId[]) -> string {
+    sb :: new_builder()
+    first := true
+    for x in a {
+        if !first { sb.append(", ") }
+        first = false
+        sb.append("%${x}")
+    }
+    return sb.to_string()
+}
