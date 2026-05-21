@@ -396,6 +396,11 @@ Begins as soon as the TS compiler can compile a non-trivial subset. Goal : valid
 ### 2.2 Port the C emitter
 - [ ] Port to Vader.
 - [ ] Snapshot-test parity.
+- [ ] **Carry piste 5.a (local-ref inlining) into the Vader walker port**.
+      `vader/c_emit/body.vader` currently holds helpers only ; when the
+      per-op walker is ported, `local.get` / `local.tee` for ref/any
+      slots must route through `push_local_ref` (no refTmp snapshot).
+      See `docs/CC_COMPILE_TIME_REDUCTION.md` §8 for the TS reference.
 
 ### 2.3 Port the bytecode emitter — feature-complete on current LoweredAST, plumbing dormant (2026-05-21)
 

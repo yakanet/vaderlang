@@ -332,16 +332,10 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "local.get": {
       const val = slotValType(s, op.slot);
       if (val === "void") return;       // void slots: no real storage, no push
-      // Inline `lN` for primitives (no GC concern) ; for ref/any, snapshot
-      // into a refTmp so the value stays a GC root through any intervening
-      // allocation. C may otherwise evaluate `l0.payload.obj` *before* a
-      // sibling alloc arg, leaving a stale pointer post-collection.
-      if (val === "ref" || val === "any") {
-        const t = newTmp(s, val);
-        line(s, `${decl(s, val, t)} = l${op.slot};`);
-      } else {
-        pushLocalRef(s, op.slot, val);
-      }
+      // Ref/any locals are already pinned via `gc_roots[]`, so no refTmp
+      // snapshot needed — `materializeStackForSlot` covers the set/tee
+      // aliasing case.
+      pushLocalRef(s, op.slot, val);
       return;
     }
     case "local.set": {
@@ -358,14 +352,7 @@ function emitOp(s: FnState, ip: number, op: Op): void {
       materializeStackForSlot(s, op.slot);
       const v = pop(s);
       line(s, `l${op.slot} = ${coerce(s, v.name, v.val, slotVal)};`);
-      // Push a fresh snapshot — primitives inline as `lN`, refs/any need
-      // a refTmp for GC-precision (see local.get).
-      if (slotVal === "ref" || slotVal === "any") {
-        const t = newTmp(s, slotVal);
-        line(s, `${decl(s, slotVal, t)} = l${op.slot};`);
-      } else {
-        pushLocalRef(s, op.slot, slotVal);
-      }
+      pushLocalRef(s, op.slot, slotVal);
       return;
     }
 

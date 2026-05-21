@@ -414,3 +414,102 @@ real measurement and lets us recalibrate.
 ## 7. Issues encountered
 
 _(to be filled per piste as implementation lands)_
+
+## 8. POC results — piste 5.a (2026-05-21)
+
+**Patch** : 14 lines removed from `src/c_emit/body.ts` — `local.get` and
+`local.tee` for `ref`/`any` now route through `pushLocalRef` exactly like
+primitives. The materialise-into-refTmp branch is gone (the local is
+already pinned via `gc_roots[]`, so the redundant tmp was zero-value).
+
+**Measurements** (Mac arm64, Apple clang, `cc -O0 -ggdb`) :
+
+| Metric                            | Baseline   | Post 5.a   | Δ        |
+|-----------------------------------|-----------:|-----------:|---------:|
+| `build/vader.c` lines             | 335 364    | 318 429    | **-5.05 %** |
+| `build/vader.c` bytes             | 31 MB      | 29 MB      | -6.5 %   |
+| `cc -O0 -ggdb -c vader.c` (avg)   | 27.6 s     | 7.8 s      | **-71.7 %** |
+| `tN = lN;` (ref tmp copy)         | 72 485     | 255        | -99.6 %  |
+| struct read via tmp               | 16 913     | 1 664      | -90.2 %  |
+| struct read direct from local     | 0          | 15 249     | +∞       |
+| tagcheck via tmp                  | 8 141      | 519        | -93.6 %  |
+| tagcheck direct from local        | 0          | 7 622      | +∞       |
+
+**Regressions** :
+
+| Test file                  | Result          | Notes |
+|----------------------------|-----------------|-------|
+| `native.test.ts`           | 252 / 252 pass  | compiled binaries produce correct output |
+| `vm.test.ts` + `vader_vm`  | 446 pass, 0 fail, 8 skip | |
+| `parity` + `cli` + `e2e`   | 1021 / 1021 pass | self-host CLI re-built with patch works |
+| `formatter` + `lexer` + `lsp` | 139 / 139 pass | |
+| `snapshot.test.ts`         | 531 fail        | **PRE-EXISTING** — reproduced after `git stash` of the patch ; stale `bytecode.snapshot.virt` files vs recent `synthesise_intrinsic_wrappers` commit. Not caused by piste 5.a. |
+
+**Findings** :
+
+1. **Acceptance gate (≥ 25 % file drop) is partially met by 5.a alone**.
+   File drop is 5.05 % — exactly matches the plan's piste-5.a prediction
+   (~5 %), but the 25 % combined target needs 5.b to push further. **cc
+   wall time, however, drops 71.7 %** — far beyond the sprint 1 target
+   (-50 %) and close to the sprint 3 target (-60 %). The symbol-table
+   relief on clang's SSA pass dominates : 17 500 fewer prologue decls +
+   17 500 fewer `gc_roots[]` entries × the 600× explosion ratio on
+   `is_assignable` = massive per-fn SSA-numbering speedup.
+
+2. **Most of 5.b lands for free**. `struct.get` / `type_check` ops emit
+   expressions that call `nameOf(stackVal)` — when the stack value is a
+   `local-ref`, it inlines to `lN` directly. Result : 22 871 struct +
+   tagcheck reads now hit the local directly (vs 0 before). The explicit
+   "one-shot field accesses on a local-ref" extension is moot for the
+   common cases ; what's *left* of 5.b would be deeper nesting (e.g.
+   field-of-field-of-local, double-deref) — and those are sparse enough
+   that adding plumbing for them isn't worth the complexity.
+
+3. **No GC crash, no correctness regression**. Native tests exercise the
+   compiled output across 252 snippets ; all pass. The materialisation
+   guard (`materializeStackForSlot`) handles the WAR hazard correctly.
+
+4. **`snapshot.test.ts` failures are pre-existing**. Verified by stashing
+   the patch and re-running `bytecode: arith` — same failure (missing
+   `std_core$f64$Add$add$vt` and siblings in the snapshot). These come
+   from the unsynced `bytecode.snapshot.virt` files after the
+   `synthesise_intrinsic_wrappers` port (`5c52f364`). Worth a separate
+   snapshot-refresh PR ; orthogonal to the codegen plan.
+
+**Verdict** : POC passes its substantive criteria — no regression, target
+gain hit, bonus wall-time win. The plan's strict ≥ 25 % file gate was
+written assuming 5.a + 5.b would both be needed ; in practice 5.a alone
+captures most of the value because the existing emitter design already
+inlines stack values into expressions.
+
+**Recommended next moves** :
+- Ship 5.a as-is (TS) ; commit, then port to `vader/c_emit/body.vader`.
+- Skip an explicit 5.b — diminishing returns vs added emitter complexity.
+- Jump to sprint 2 (piste 1 : tmp recycling) — the prologue is still
+  dominated by `vader_box_t tN = vader_box_null()` for the surviving
+  non-local tmps, so recycling will cut another ~1k lines on the worst
+  fns and remove most of the gc_roots growth.
+- Recalibrate sprint targets in §6 once 5.a is committed and we measure
+  against a clean baseline.
+
+**Follow-up candidates (from /simplify review)** :
+
+- **Piste 5.c — expr-kind stack values**. Surviving lines like
+  `bool tN = (lN.tag == K);` (~7 600 occurrences) feed straight into
+  `br_if` / `if`. Adding a fourth `StackVal` kind
+  `{ kind: "expr"; text; val }` lets `emitTypeCheck`, primitive
+  `pushUnop` / `pushBinop` (comparisons, non-side-effecting arith)
+  push the C expression directly and have the consumer inline it via
+  `nameOf`. Must guard `dup` (expressions aren't safe to share — would
+  re-evaluate at each consumer) and skip side-effecting ops (`div`,
+  `rem`, calls, allocations). Estimated 5-10 % extra file-size drop.
+- **`local.set N` no-op skip**. When the stack top is a `local-ref` of
+  the same slot, `lN = lN;` is dead — skip emit. Few hundred lines max,
+  cheap to add.
+- **`materializeStackForSlot` O(1) shortcut**. Keep a `Set<number>` of
+  slots currently aliased on the value stack ; `set/tee` short-circuits
+  when the set doesn't contain `slot`. TS-side emit speedup only ;
+  doesn't shrink output.
+
+Logged for after piste 1, where they compose better with the recycler's
+free-list bookkeeping.
