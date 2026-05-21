@@ -13,7 +13,8 @@ AST :: import "vader/parser/ast"
 import "vader/typecheck/context" { FnContext, new_fn_context }
 import "vader/typecheck/coerce" { try_into }
 import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/type_ops" { is_assignable, default_if_free, narrow_for_expected }
+import "vader/typecheck/type_ops" { default_if_free, narrow_for_expected }
+import "vader/typecheck/type_assign" { is_assignable }
 import "vader/typecheck/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
     TY_BOOL, TY_NEVER, TY_VOID, TY_UNRESOLVED,

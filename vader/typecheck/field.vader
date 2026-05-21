@@ -741,7 +741,7 @@ substitute_by_id :: fn(t: Type, bindings: MutableMap(i32, Type)) -> Type {
     }
 }
 
-import "vader/typecheck/type_ops" { is_assignable }
+import "vader/typecheck/type_assign" { is_assignable }
 
 // Parse `0`, `1`, … from a tuple `.N` field name. Returns -1 when
 // the name isn't a non-negative integer literal — `.foo` on a tuple

@@ -13,7 +13,7 @@ lookup_pre_resolved_field_for_lit :: fn(struct_id: i32, name: string, typed: Typ
     if fmap is null { return null }
     return fmap[name]
 }
-import "vader/typecheck/type_ops" { is_assignable }
+import "vader/typecheck/type_assign" { is_assignable }
 import "vader/typecheck/types" { Type, StructType, display_type, TY_UNRESOLVED }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/typed_ast" { TypedProgram }

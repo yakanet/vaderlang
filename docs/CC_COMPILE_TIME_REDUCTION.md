@@ -1566,3 +1566,81 @@ phase port. No standalone sprint needed (option B sequencing held).
 Sprint 3 (piste 2, gc_roots pruning) and Sprint 4 (piste 4, br_table)
 remain optional — gated on a real benchmark showing the relevant
 overhead dominates. Current cc time is comfortable.
+
+## 20. POC results — piste 6 Phase B (2026-05-21)
+
+**Design change vs §4 plan** : the §4 plan called for converting
+`Type` from union into a trait. Hit Vader's TODO §3.8 limitation
+(`union_value.method()` doesn't resolve UFCS, even when every variant
+implements the trait). Workaround pattern : keep `Type :: | ... |`
+union, split `is_assignable` into per-variant **free fns**
+(`is_assignable_struct`, `is_assignable_tuple`, ...) and dispatch via
+external `match` — same shape as `display_value` in `vader/vm/op.vader`.
+
+Same C-side win as a "real" trait dispatch (compiler emits N small
+fns + 1 switch instead of one monster cascade), without the new
+syntax. The trait conversion stays as a future cleanup when §3.8
+lands.
+
+**Implementation** : new file `vader/typecheck/type_assign.vader` (220
+LoC) owns `is_assignable` (the dispatcher) + 8 per-variant fns
+(`check_common` covers Primitive/Enum/TypeMeta/Self/etc., specific
+fns for Struct/Trait/Tuple/Array/Fn/Union/FreeInt/FreeFloat) +
+`fn_param_compatible` + `struct_args_compatible` helpers.
+
+`type_ops.vader` removes `is_assignable` (was 150 LoC) and 5 of its
+tests (moved to `type_assign.vader` alongside the impl). 7 callsites
+add `import "vader/typecheck/type_assign" { is_assignable }` next to
+their existing `type_ops` import.
+
+**Measurements** (build/vader.c) :
+
+| Metric                       | Baseline (post-piste-7) | Post-Phase-B | Δ          |
+|------------------------------|------------------------:|-------------:|-----------:|
+| `build/vader.c` lines        | 208 870                 | 157 814      | **-24.4 %** |
+| `is_assignable` C size       | 51 536                  | 443          | **-99.1 %** |
+| `is_assignable_*` helpers    | (n/a)                   | ~270 cumul   | (new)      |
+| `check_common` helper        | (n/a)                   | 442          | (new)      |
+| cc -O0 -ggdb                 | 5.01 s                  | 3.83 s       | **-23.5 %** |
+| cc -O3 -DNDEBUG              | 19.54 s                 | 14.50 s      | **-25.8 %** |
+
+**Cumulative since pre-piste-5 baseline** : 335 364 → 157 814 =
+**-52.9 %** lines ; 27.6 s → 3.83 s = **-86.1 %** cc -O0 ;
+154.94 s → 14.50 s = **-90.6 %** cc -O3.
+
+**Top-fn ranking post-Phase-B** :
+
+| # | Fn | Lines |
+|---|---|---:|
+| 1 | `infer_field` | 41 679 |
+| 2 | `vm.exec` | 4 186 |
+| 3 | `parse_op_line` | 4 042 |
+| 4 | `dispatch_import` | 1 176 |
+| 5 | `try_lex_operator` | 1 092 |
+| ... | (is_assignable dropped out of top 10) | |
+
+`infer_field` is now the obvious single biggest fn at 41 k lines.
+Phase C (`infer_field` split) would attack it ; estimated -30 k more
+lines = -19 % further (cumulative ~-65 %).
+
+**Regressions** : zero. native 252/252, vm + vader_vm 446 pass / 8
+skip / 0 fail (snapshots byte-identical), parity 1005/1005,
+formatter + lexer + lsp 114/114, cli + e2e 14/14.
+
+**Implementation surface** (pure Vader, no TS / SPEC change) :
+
+- `vader/typecheck/type_assign.vader` : NEW, 220 LoC.
+- `vader/typecheck/type_ops.vader` : -160 LoC (`is_assignable` + 5
+  tests removed).
+- 7 callsite imports updated (one line each).
+
+Net : +60 LoC of Vader source for -51 k lines of generated C. Best
+LoC-to-gain ratio in the entire plan.
+
+**Phase C decision** : `infer_field` is structurally similar
+(cascade match on target type → resolve field) but more complex
+(UFCS lookup, impl dispatch, primitive/array specialisation
+interleaved). Estimated 1-2 days of refactor for another ~-19 %.
+Worth doing if cc time is still a constraint — the current 3.83 s
+`-O0` is comfortable for devloop ; the bigger payoff would be on
+release builds (14.5 s `-O3` → ~10 s).

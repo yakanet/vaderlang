@@ -12,7 +12,8 @@ import "vader/typecheck/narrow" {
     field_chain_key, pop_field_narrow, pop_narrow,
     push_field_narrow, push_narrow,
 }
-import "vader/typecheck/type_ops" { is_assignable, types_overlap, union_of }
+import "vader/typecheck/type_ops" { types_overlap, union_of }
+import "vader/typecheck/type_assign" { is_assignable }
 import "vader/typecheck/types" { Type, UnionType, display_type, TY_BOOL }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"

@@ -18,7 +18,8 @@ import "vader/typecheck/narrow" {
 }
 import "vader/typecheck/stmt" { check_block }
 import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/type_ops" { is_assignable, subtract_type, union_of }
+import "vader/typecheck/type_ops" { subtract_type, union_of }
+import "vader/typecheck/type_assign" { is_assignable }
 import "vader/typecheck/types" { Type, UnresolvedType, display_type, mk_primitive, TY_BOOL, TY_VOID, TY_UNRESOLVED }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"

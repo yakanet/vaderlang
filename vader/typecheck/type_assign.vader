@@ -1,0 +1,239 @@
+// Assignability dispatch + per-variant fns. The dispatcher does the
+// symmetric pre-checks (Unresolved, Never, equals, TypeParam wildcard),
+// then routes to one of the per-variant fns via a single `match from`.
+//
+// All variants pass through `check_common` last : oracle-driven trait
+// widening + `to is Union` element-wise widening. Several "no implicit
+// widening" variants (Primitive, Enum, TypeMeta, Self, …) have no
+// logic beyond the common path and skip the dedicated fn entirely.
+//
+// Why the split : a single fn matching `from × to` over 15 × 15
+// variants compiles to a ~50 k-line C monster ; splitting into one
+// fn per `from` variant bounds each at ~50 C lines and lets cc's
+// per-fn passes scale.
+
+import "vader/typecheck/types" {
+    Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
+    FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
+    UnresolvedType, FreeIntType, FreeFloatType, NeverType,
+}
+import "vader/typecheck/type_ops" {
+    TraitOracle, equals_type, is_int_name, is_float_name,
+}
+
+/// Whether `from` can flow into a slot expecting `to` without explicit
+/// coercion. Trait-widening is gated by `oracle` ; pass `null` if the
+/// registry isn't built yet (Phase 1) — widening then falls back to false.
+export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
+    if from is UnresolvedType { return true }
+    if to   is UnresolvedType { return true }
+    if from is NeverType      { return true }
+    if equals_type(from, to) { return true }
+
+    // TypeParam wildcard — accepts any concrete type. Lets a generic
+    // `fn[K, V](self: MutableMap(K, V))` fn accept a concrete
+    // `MutableMap(string, i32)` receiver via UFCS dispatch.
+    if from is TypeParamType { return true }
+    if to is TypeParamType { return true }
+
+    return match from {
+        is StructType    as s -> is_assignable_struct(from, s, to, oracle)
+        is TraitType     as t -> is_assignable_trait_from(from, t, to, oracle)
+        is TupleType     as t -> is_assignable_tuple(from, t, to, oracle)
+        is ArrayType     as a -> is_assignable_array(from, a, to, oracle)
+        is FnType        as f -> is_assignable_fn(from, f, to, oracle)
+        is UnionType     as u -> is_assignable_union(from, u, to, oracle)
+        is FreeIntType        -> is_assignable_freeint(from, to, oracle)
+        is FreeFloatType      -> is_assignable_freefloat(from, to, oracle)
+        _ -> check_common(from, to, oracle)
+    }
+}
+
+/// Common widening checks applied after every variant's specific
+/// dispatch fails : oracle-gated trait widening and union-to walking.
+export check_common :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
+    match oracle {
+        is null -> {}
+        _ -> {
+            match to {
+                is TraitType as tt -> {
+                    if oracle.has_impl(from, tt) { return true }
+                }
+                _ -> {}
+            }
+        }
+    }
+    match to {
+        is UnionType as tu -> {
+            for v in tu.variants {
+                if is_assignable(from, v, oracle) { return true }
+            }
+        }
+        _ -> {}
+    }
+    return false
+}
+
+/// `from is StructType`. Nominal match with TypeParam-bearing args.
+export is_assignable_struct :: fn(from: Type, self: StructType, to: Type, oracle: TraitOracle | null) -> bool {
+    match to {
+        is StructType as ts -> {
+            if self.symbol.id == ts.symbol.id {
+                if struct_args_compatible(self.args, ts.args, oracle) { return true }
+            }
+        }
+        _ -> {}
+    }
+    return check_common(from, to, oracle)
+}
+
+/// `from is TraitType`. Same nominal-with-args shape as StructType.
+export is_assignable_trait_from :: fn(from: Type, self: TraitType, to: Type, oracle: TraitOracle | null) -> bool {
+    match to {
+        is TraitType as tt -> {
+            if self.symbol.id == tt.symbol.id {
+                if struct_args_compatible(self.args, tt.args, oracle) { return true }
+            }
+        }
+        _ -> {}
+    }
+    return check_common(from, to, oracle)
+}
+
+/// `from is TupleType`. Element-wise. No Array ↔ Tuple by design.
+export is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type, oracle: TraitOracle | null) -> bool {
+    match to {
+        is TupleType as tt -> {
+            if self.elements.len() != tt.elements.len() { return false }
+            for i in 0..<self.elements.len() {
+                if !is_assignable(self.elements[i], tt.elements[i], oracle) {
+                    return false
+                }
+            }
+            return true
+        }
+        _ -> {}
+    }
+    return check_common(from, to, oracle)
+}
+
+/// `from is ArrayType`. `T[] <: const T[]` (mutable into const ; reverse
+/// forbidden). Element compatibility uses `fn_param_compatible` so
+/// TypeParam elements act as wildcards.
+export is_assignable_array :: fn(from: Type, self: ArrayType, to: Type, oracle: TraitOracle | null) -> bool {
+    match to {
+        is ArrayType as ta -> {
+            if self.immutable && !ta.immutable { return false }
+            return fn_param_compatible(self.element, ta.element, oracle)
+        }
+        _ -> {}
+    }
+    return check_common(from, to, oracle)
+}
+
+/// `from is FnType`. Params contravariant, return covariant. TypeParam
+/// on either side is a wildcard (MVP — bound enforcement lives in unify).
+export is_assignable_fn :: fn(from: Type, self: FnType, to: Type, oracle: TraitOracle | null) -> bool {
+    match to {
+        is FnType as ft -> {
+            if self.params.len() != ft.params.len() { return false }
+            for i in 0..<self.params.len() {
+                if !fn_param_compatible(ft.params[i], self.params[i], oracle) { return false }
+            }
+            return fn_param_compatible(self.return_type, ft.return_type, oracle)
+        }
+        _ -> {}
+    }
+    return check_common(from, to, oracle)
+}
+
+/// `from is UnionType`. Every variant must be assignable to `to`.
+export is_assignable_union :: fn(from: Type, self: UnionType, to: Type, oracle: TraitOracle | null) -> bool {
+    match to {
+        is UnionType -> {
+            for v in self.variants {
+                if !is_assignable(v, to, oracle) { return false }
+            }
+            return true
+        }
+        _ -> {}
+    }
+    return check_common(from, to, oracle)
+}
+
+/// `from is FreeIntType`. Widens to any integer primitive.
+export is_assignable_freeint :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
+    match to {
+        is PrimitiveType as tp -> { if is_int_name(tp.name) { return true } }
+        _ -> {}
+    }
+    return check_common(from, to, oracle)
+}
+
+/// `from is FreeFloatType`. Widens to any float primitive.
+export is_assignable_freefloat :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
+    match to {
+        is PrimitiveType as tp -> { if is_float_name(tp.name) { return true } }
+        _ -> {}
+    }
+    return check_common(from, to, oracle)
+}
+
+// ---- helpers shared by struct/fn/array variants ---------------------------
+
+/// Single-arg compatibility used by Fn → Fn and Array → Array. The
+/// TypeParam wildcard is already handled symmetrically by
+/// `is_assignable` itself ; this alias documents the variance intent
+/// at the call site.
+export fn_param_compatible :: fn(a: Type, b: Type, oracle: TraitOracle | null) -> bool {
+    return is_assignable(a, b, oracle)
+}
+
+/// Element-wise compatibility for the args list carried by StructType /
+/// TraitType. Length must match ; then per-element via `fn_param_compatible`.
+export struct_args_compatible :: fn(a: Type[], b: Type[], oracle: TraitOracle | null) -> bool {
+    if a.len() != b.len() { return false }
+    for i in 0..<a.len() {
+        if !fn_param_compatible(a[i], b[i], oracle) { return false }
+    }
+    return true
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert }
+import "vader/typecheck/types" { mk_array, mk_primitive, mk_union, TY_FREE_INT, TY_NEVER }
+
+@test
+test_assignable_identity :: fn() -> void {
+    assert(is_assignable(mk_primitive("i32"), mk_primitive("i32"), null), "i32 → i32")
+}
+
+@test
+test_assignable_free_int_to_primitive :: fn() -> void {
+    assert(is_assignable(TY_FREE_INT, mk_primitive("i64"), null), "FreeInt → i64")
+    assert(!is_assignable(TY_FREE_INT, mk_primitive("string"), null), "FreeInt → string forbidden")
+}
+
+@test
+test_assignable_never_to_anything :: fn() -> void {
+    assert(is_assignable(TY_NEVER, mk_primitive("i32"), null), "Never → i32")
+    assert(is_assignable(TY_NEVER, mk_primitive("string"), null), "Never → string")
+}
+
+@test
+test_assignable_into_union :: fn() -> void {
+    i32_t: Type = mk_primitive("i32")
+    str_t: Type = mk_primitive("string")
+    u :: mk_union([i32_t, str_t])
+    assert(is_assignable(mk_primitive("i32"), u, null), "i32 → i32 | string")
+    assert(!is_assignable(mk_primitive("bool"), u, null), "bool → i32 | string forbidden")
+}
+
+@test
+test_assignable_array_mut_into_const :: fn() -> void {
+    mut_arr: Type = mk_array(mk_primitive("i32"), false)
+    const_arr: Type = mk_array(mk_primitive("i32"), true)
+    assert(is_assignable(mut_arr, const_arr, null), "T[] → const T[]")
+    assert(!is_assignable(const_arr, mut_arr, null), "const T[] ↛ T[]")
+}

@@ -7,7 +7,8 @@
 // coercion lands once the resolver indexes core's Iterator trait.
 
 import "vader/typecheck/types" { Type, FnType, display_type }
-import "vader/typecheck/type_ops" { dispatch_key, is_assignable }
+import "vader/typecheck/type_ops" { dispatch_key }
+import "vader/typecheck/type_assign" { is_assignable }
 import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Look up `${got}::into::${expected}` in the impl-method index. The
