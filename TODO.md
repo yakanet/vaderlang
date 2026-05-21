@@ -397,9 +397,131 @@ Begins as soon as the TS compiler can compile a non-trivial subset. Goal : valid
 - [ ] Port to Vader.
 - [ ] Snapshot-test parity.
 
-### 2.3 Port the bytecode emitter
-- [ ] Port to Vader.
-- [ ] Snapshot-test parity.
+### 2.3 Port the bytecode emitter — feature-complete on current LoweredAST, plumbing dormant (2026-05-21)
+
+The emit walker covers all 29 `LoweredExpr` variants + all `LoweredStmt`
+shapes. `vader dump --stage=bytecode` runs through the Vader-side
+pipeline (`./build/vader`). The CLI binary builds in ~2:30 local /
+~3-4 min on CI Ubuntu.
+
+Files :
+- `vader/bytecode/emit.vader` (561 LoC) — top-level orchestration
+  (Pass 1 reservation → Pass 1.5 intrinsic-wrapper synth → Pass 2
+  body emit → assemble), `reserve_fn` / `reserve_extern` /
+  `emit_fn_body`, `synthesise_intrinsic_wrappers`, `translate_vtables`,
+  `translate_data_pool`, `assemble_module`.
+- `vader/bytecode/emit_body.vader` (725 LoC, ≈90 % of 800 cap) —
+  every per-shape `emit_<X>` for stmts + exprs. Not splittable
+  because of Vader's mutual-import constraint (same as
+  `lower_expr.vader`'s doc note).
+- `vader/bytecode/emit_ctx.vader` — `EmitterCtx`, `intern_type`,
+  `intern_string`, `intern_cell_type` ($Cell\<T\> synth struct).
+- `vader/bytecode/emit_state.vader` — per-fn `FnEmitState` + scope
+  stack + jump_table.
+- `vader/bytecode/op_select.vader` (~290 LoC) — `binary_op_for(op,
+  lhs_val)` / `unary_op_for(op, operand_val)` selectors covering
+  I32X / I64X / U32X / U64X / F64X / Bool / Char / String op
+  families with width-aliasing rules.
+- `vader/bytecode/dump.vader` (~300 LoC) — `dump_bytecode :
+  BytecodeModule → string`, `.virt`-style text writer (covers all
+  ops emitted today ; minor spelling drift from `text.vader`'s
+  canonical writer).
+- `vader/bytecode/intrinsics.vader` — `intrinsic_op_for_mangled`
+  table (raw-string keys).
+
+What works end-to-end :
+- [x] All LoweredExpr variants (literals, ident, call, binary, unary,
+      if, block-as-value, struct lit, field access, array lit/len/
+      push/slice, index, cast, type_check, type_const, data_const,
+      make_closure, virtual_call, intrinsic_call, cell_new/get/set).
+- [x] All LoweredStmt variants (return, expr_stmt, let, assign,
+      loop, break, continue, cell_set).
+- [x] Static + intrinsic + import call dispatch
+      (`emit_call_to_symbol` cascade).
+- [x] Indirect calls (`CallIndirect` via fn-typed local slot or
+      complex callee expression). `FnRef` for fn taken in value
+      position.
+- [x] Vtable translation (`translate_vtables` groups
+      `LoweredProject.vtable_entries` by (trait, method) into
+      `VtableRow[]`).
+- [x] $Cell\<T\> synth struct for closure cells
+      (`intern_cell_type` materialises a `BcStruct { fields:
+      [value: T] }` ; cell_new/get/set use StructNew/Get/Set).
+- [x] Stage wired into CLI (`vader dump --stage=bytecode` produces
+      `.virt`-style text). Validated on `tests/snippets/arith`,
+      `tests/snippets/closure_counter`.
+
+Plumbed but DORMANT (require lower-side changes first) :
+- [~] `synthesise_intrinsic_wrappers` — implementation matches
+      `src/bytecode/emit.ts::synthesiseIntrinsicWrappers`. Walks
+      imports for `@intrinsic` entries, creates `<mangled>$vt`
+      wrapper fns so virtual.call on primitive receivers can land
+      on a real fn-index. **Inactive today** because the Vader-side
+      lower explicitly skips stdlib paths
+      (`lower.vader:87 is_stdlib_path`) so `@intrinsic` decls never
+      reach reservation. Activates automatically once stdlib externs
+      surface (likely via a separate emit-side enumeration pass to
+      keep the lambda counter clean).
+- [~] `translate_data_pool` — empty pass-through. The lower never
+      populates `DataPoolEntry`. The string-element parser would
+      duplicate `parse_<type>` logic ; consider mirroring the TS
+      shape (have the lower produce `u64[]` items directly) and
+      delete this fn rather than implementing the parser.
+
+Known gaps vs TS-side emit :
+- [ ] Mid-IR (CFG/DCE/escape) — not ported. Vader uses direct
+      LoweredAST → bytecode (no peephole / no slot-coalesce / no
+      DCE on the bytecode side).
+- [ ] **Lower-side stdlib surface** — the `is_stdlib_path` skip
+      (lower.vader:87) keeps stdlib `@intrinsic` / `@extern` decls
+      out of `LoweredProject.modules`. Either drop the skip (would
+      pollute the synthetic-id counter — see existing comment
+      rationale), or add a separate "enumerate-stdlib-externs" pass
+      that surfaces imports on-demand at emit time. Until then,
+      every Vader-side dump misses the import table + stdlib
+      vtable rows + intrinsic wrappers.
+- [ ] **emit_body.vader file split** — blocked by Vader's
+      mutual-import limitation. `emit_block ↔ emit_stmt ↔ emit_expr
+      ↔ emit_if / emit_loop` form a cycle ; no seam is viable
+      without cyclic imports. Same constraint forces
+      `lower_expr.vader` to live as a single 1300+ LoC file. When
+      Phase 8+ piles on more emit_* helpers, either add Vader
+      forward-decls or bump the per-file cap for this file
+      specifically.
+- [ ] **Performance** : reviewers flagged the 4-map cascade in
+      `emit_call_to_symbol` (slot → intrinsic → fn-table → import)
+      and the per-call string allocation in `intern_cell_type`.
+      Refactor candidate : a single `MutableMap(symbol_id,
+      CallTarget)` keyed at registration time. Deferred until
+      bytecode emit shows up on a profiler.
+- [ ] Snapshot-test parity (Vader-emit `.virt` vs TS-emit `.virt`).
+      Spelling drift remains in `dump.vader::format_op` (e.g.
+      `i32.mod` vs `i32.rem`, `i32.shr_u` vs `u32.shr`) ; reconcile
+      first, then byte-diff.
+
+Recent commits (this work) :
+- `5c52f364` — port synthesise_intrinsic_wrappers + extern→imports routing
+- `bb5c77a2` — Phase 7+ : CallIndirect/Import + FnRef + vtable wiring + $Cell synth struct
+- `86ec9013` — Phase 8 : LoweredBlock-as-value emit
+- `99c3c5aa` — Phase 7 : LoweredBinary + LoweredUnary emit
+- `395a1f9b` — Phase 6b : wire bytecode stage end-to-end
+- `54bdb551` — Phase 6a : closures + intrinsics + VirtualCall
+- earlier Phases 1-5 already in history.
+
+Tests : `bun src/index.ts test vader` = 314/314 pass.
+
+Pick-up checklist for next session :
+1. Decide on lower-side stdlib surface strategy (drop the skip vs
+   on-demand enumeration). Without it, every wiring downstream
+   misses externs.
+2. Once externs surface, validate intrinsic wrappers actually
+   generate, then verify VirtualCall on primitive receivers lands
+   on the wrapper fn-index.
+3. Reconcile `dump.vader::format_op` spellings with
+   `text.vader::write_op_line`, then enable per-snippet
+   bytecode parity tests (Vader-emit vs TS-emit).
+4. Split `emit_body.vader` only when forced (cap bump or Vader
+   forward-decls).
 
 ### 2.4 Port the VM
 
