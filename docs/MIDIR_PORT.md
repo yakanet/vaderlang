@@ -1,6 +1,29 @@
 # Midir port to Vader self-host
 
-> **Status** : open (2026-05-22). 10 phases scoped, Phase M.1 starting.
+> **Status** : in progress (2026-05-22). 6 / 10 phases shipped, 4 heavy
+> phases remaining (M.4 / M.6 / M.8 / M.10). Cumulative : ~1 850 LoC
+> Vader produced for ~1 393 LoC TS ported. Files isolated — nothing
+> wired into the pipeline yet (M.10 does the wiring).
+>
+> Shipped (commits 33498d9e → 73343ae0) :
+> - M.1 cfg.vader (476 LoC) — types
+> - M.2 lowered_walk.vader (236 LoC) — RefVisitor walks
+> - M.3 analyses.vader (373 LoC) — dom / liveness / loops
+> - M.5 escape.vader (343 LoC) — escape analysis
+> - M.7 scheduler.vader (212 LoC) — stack-pass-through hints
+> - M.9 dump.vader (196 LoC) — CFG pretty-printer
+>
+> Remaining (heavy, ~3 000 LoC) :
+> - M.4 build.vader — 865 LoC TS, ~37 fns. LoweredAST → CFG. Largest
+>   single file, will need split.
+> - M.6 dce.vader — 750 LoC TS. pruneUnreachable + eliminateDeadCFG.
+> - M.8 emit.vader — 876 LoC TS. CFG → bytecode. **Contains flatten +
+>   fusion 7.f/7.c/7.e/7.d** — the whole point of this port.
+> - M.10 wiring — small, replaces shortcut in `vader/bytecode/emit.vader`.
+>
+> Each remaining phase needs a dedicated session to port correctly
+> without subtle bugs (no wiring = no integration validation until
+> M.10 lands).
 
 ## 0. Why now
 
