@@ -396,11 +396,25 @@ Begins as soon as the TS compiler can compile a non-trivial subset. Goal : valid
 ### 2.2 Port the C emitter
 - [ ] Port to Vader.
 - [ ] Snapshot-test parity.
-- [ ] **Carry piste 5.a (local-ref inlining) into the Vader walker port**.
+- [ ] **Carry the C-emit codegen pistes into the Vader walker port**.
       `vader/c_emit/body.vader` currently holds helpers only ; when the
-      per-op walker is ported, `local.get` / `local.tee` for ref/any
-      slots must route through `push_local_ref` (no refTmp snapshot).
-      See `docs/CC_COMPILE_TIME_REDUCTION.md` §8 for the TS reference.
+      per-op walker is ported, it must include :
+      - **Piste 5.a** — `local.get` / `local.tee` for ref/any route
+        through `push_local_ref` (no refTmp snapshot ; locals are
+        already pinned via `gc_roots[]`). See plan §8.
+      - **Piste 1** — per-pool tmp recycling (free-list + refcount on
+        `dup`) with prelude-declared tmps and aux scratch vars from a
+        monotone `auxCounter`. See plan §9.
+      - **Piste 5.c** — `expr`-kind StackVal for `type_check` ; the
+        consumer inlines via `nameOf`. `materializeStackForSlot`
+        materialises every in-flight expr at any `local.set/tee`.
+        `dup` materialises expr first. See plan §10.
+      - **Piste 5.d** — `expr`-kind for pure binops / cmps / unary /
+        casts ; `div` / `rem` stay eager. Equality (`==` / `!=`)
+        stores text paren-free ; every other op wraps for precedence.
+        `pushUnop` parenthesises its operand. See plan §11.
+      Cumulative gain on the TS side : -10.5 % file size, -77.4 % cc
+      time (-O0), -86.6 % cc time (-O3).
 
 ### 2.3 Port the bytecode emitter — feature-complete on current LoweredAST, plumbing dormant (2026-05-21)
 

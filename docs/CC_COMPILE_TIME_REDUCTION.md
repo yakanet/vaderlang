@@ -686,3 +686,23 @@ correctly scoped to `==`/`!=` (the only operator hitting the warning),
 - Sprint 3 piste 4 (`match_tag` bytecode + br_table emit) — broader
   surface (bytecode op + VM + serialise) ; defer until a benchmark
   shows the chained-if dispatch dominating.
+
+## 12. `-O3` re-measurement (2026-05-21)
+
+The four pistes were tuned against `cc -O0 -ggdb` (the debug build path
+used by tests). Re-running against the release flags
+(`cc -O3 -DNDEBUG`, what `vader build --target=native --release` uses)
+shows the optimisation passes amplify the win because clang's IPSCCP /
+inliner / DCE / SROA passes scale super-linearly with per-fn symbol
+count :
+
+| Flag combo            | Baseline   | Post 5.d   | Δ           |
+|-----------------------|-----------:|-----------:|------------:|
+| `-O0 -ggdb`           | 27.6 s     | 6.25 s     | **-77.4 %** |
+| `-O3 -DNDEBUG` (1 run)| 154.94 s   | ~20.8 s    | **-86.6 %** |
+
+`-O3` baseline at 2:35 is dominated by the
+`is_assignable` / `infer_field` monster fns saturating SCCP and the
+inliner ; once the prologue + tmp churn is gone, both functions sit
+comfortably in the optimiser's working set and the wall time collapses
+to ~20 s. The release-build experience is roughly 7× faster.
