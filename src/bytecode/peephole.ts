@@ -28,6 +28,13 @@
 //      the get site. Eliminates the temp local entirely (Rule 5 then drops
 //      the slot). Massive on struct-literal lowering, where each field
 //      expr is stashed in a fresh slot for evaluation-order safety.
+//   8. Constant folding on integer arith — collapse
+//      `<T>.const A ; <T>.const B ; <T>.<op>` into a single
+//      `<T>.const (A op B)` for safe ops (add, sub, mul, bitand, bitor,
+//      bitxor). Div/rem and shifts skipped (trap-on-zero / UB on out-of-
+//      range shift). Floats skipped (NaN, signed zero, precision).
+//      Runs before const-prop so the folded result can propagate through
+//      single-use locals as well.
 
 import type { Op } from "./ops.ts";
 import type { BcLocal, DebugPos } from "./module.ts";
@@ -49,6 +56,10 @@ interface MutFn {
 export function runPeepholes(fn: MutFn): void {
   applyLocalRules(fn);
   propagateConstSingleUse(fn);
+  // Rule 8 needs the intermediate `local.set N ; local.get N` round-trips
+  // collapsed by const-prop first, otherwise `<T>.const A ; local.set ; …
+  // ; local.get ; <T>.const B ; <T>.<op>` never looks adjacent.
+  constFoldArith(fn);
   propagateLocalAlias(fn);
   dropDeadStores(fn);
 }
@@ -97,6 +108,71 @@ function applyLocalRules(fn: MutFn): void {
   for (const op of out) fn.body.push(op);
   fn.debug.length = 0;
   for (const d of dbg) fn.debug.push(d);
+}
+
+/** Rule 8 — collapse `<T>.const A ; <T>.const B ; <T>.<op>` into a single
+ *  `<T>.const (A op B)` for safe integer arith. div/rem skipped (trap on
+ *  rhs=0) ; shifts skipped (UB on shift ≥ width) ; floats skipped (NaN,
+ *  signed zero, precision drift). When the pattern matches, the 2
+ *  trailing consts on `out` get popped and replaced by the folded const ;
+ *  the arith op itself is consumed. */
+function constFoldArith(fn: MutFn): void {
+  const out: Op[] = [];
+  const dbg: (DebugPos | null)[] = [];
+  for (let i = 0; i < fn.body.length; i++) {
+    const op = fn.body[i]!;
+    const span = fn.debug[i]!;
+    const folded = tryFoldArith(op, out);
+    if (folded !== null) {
+      // Pop the two trailing const ops (lhs + rhs) and replace with the folded result.
+      out.pop(); dbg.pop();
+      out.pop(); dbg.pop();
+      out.push(folded);
+      dbg.push(span);
+      continue;
+    }
+    out.push(op);
+    dbg.push(span);
+  }
+  fn.body.length = 0;
+  for (const o of out) fn.body.push(o);
+  fn.debug.length = 0;
+  for (const d of dbg) fn.debug.push(d);
+}
+
+function tryFoldArith(op: Op, out: readonly Op[]): Op | null {
+  if (out.length < 2) return null;
+  const right = out[out.length - 1]!;
+  const left = out[out.length - 2]!;
+  // i32-width fold. Use `| 0` for 32-bit wrap on add/sub/bitwise ;
+  // `Math.imul` matches WASM `i32.mul` semantics.
+  if (left.kind === "i32.const" && right.kind === "i32.const") {
+    switch (op.kind) {
+      case "i32.add":    return { kind: "i32.const", value: (left.value + right.value) | 0 };
+      case "i32.sub":    return { kind: "i32.const", value: (left.value - right.value) | 0 };
+      case "i32.mul":    return { kind: "i32.const", value: Math.imul(left.value, right.value) };
+      case "i32.bitand": return { kind: "i32.const", value: (left.value & right.value) | 0 };
+      case "i32.bitor":  return { kind: "i32.const", value: (left.value | right.value) | 0 };
+      case "i32.bitxor": return { kind: "i32.const", value: (left.value ^ right.value) | 0 };
+      default:           return null;
+    }
+  }
+  // i64-width fold via bigint, then mask to 64-bit signed for wrap
+  // parity with the runtime.
+  if (left.kind === "i64.const" && right.kind === "i64.const") {
+    const a = left.value;
+    const b = right.value;
+    switch (op.kind) {
+      case "i64.add":    return { kind: "i64.const", value: BigInt.asIntN(64, a + b) };
+      case "i64.sub":    return { kind: "i64.const", value: BigInt.asIntN(64, a - b) };
+      case "i64.mul":    return { kind: "i64.const", value: BigInt.asIntN(64, a * b) };
+      case "i64.bitand": return { kind: "i64.const", value: a & b };
+      case "i64.bitor":  return { kind: "i64.const", value: a | b };
+      case "i64.bitxor": return { kind: "i64.const", value: a ^ b };
+      default:           return null;
+    }
+  }
+  return null;
 }
 
 /** Rule 5 — eliminate locals whose only references are writes. After
