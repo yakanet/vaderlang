@@ -40,13 +40,15 @@ import "vader/lower/lowered_ast" {
     LoweredTypeConst, LoweredDataConst, LoweredUnreachable,
     LoweredMakeClosure, LoweredVirtualCall, LoweredIntrinsicCall,
     LoweredCellNew, LoweredCellGet,
+    VtableEntry as LoweredVtableEntry,
+    DataPoolEntry,
     INTRINSIC_BUILDER_NEW, INTRINSIC_BUILDER_APPEND_STR,
     INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
     INTRINSIC_SIZE_OF_TYPE,
 }
 import "vader/bytecode/module" {
     BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport, BcExport,
-    ImplEntry, VtableRow, DebugPos,
+    ImplEntry, VtableEntry, VtableRow, DebugPos,
 }
 import "vader/bytecode/types" {
     BcType, BcPrimitive, BcStruct, BcField, ValType, BcDataEntry,
@@ -125,7 +127,7 @@ export emit_project :: fn(lowered: LoweredProject, opts: EmitOptions) -> Bytecod
         }
     }
 
-    return assemble_module(ctx, opts)
+    return assemble_module(ctx, opts, lowered)
 }
 
 // =========================================================================
@@ -301,17 +303,17 @@ ends_with_return :: fn(body: Op[]) -> bool {
 // Assembly — ctx → BytecodeModule
 // =========================================================================
 
-/// Finalise a populated `EmitterCtx` into a `BytecodeModule`. Today
-/// the `impl_table` + `vtables` ship empty ; the lowered project
-/// already carries `vtable_entries`, but their translation lands in
-/// a future commit alongside the impl-member emit.
+/// Finalise a populated `EmitterCtx` into a `BytecodeModule`. Pulls
+/// the cross-module side-tables (`vtable_entries`, `data_pool`,
+/// future-`impl_table`) from `lowered` and translates them into the
+/// bytecode-shaped equivalents the VM / C-emit / .virt parser consume.
 ///
 /// `_opts` is unused until the peephole pass gates through it —
 /// the leading underscore documents the deferred consumer.
-assemble_module :: fn(ctx: EmitterCtx, _opts: EmitOptions) -> BytecodeModule {
+assemble_module :: fn(ctx: EmitterCtx, _opts: EmitOptions, lowered: LoweredProject) -> BytecodeModule {
     impl_table: ImplEntry[] = []
-    vtables: VtableRow[] = []
-    data_pool: BcDataEntry[] = []
+    vtables :: translate_vtables(lowered.vtable_entries, ctx)
+    data_pool :: translate_data_pool(lowered.data_pool)
     return BytecodeModule {
         .name        = "main",
         .types       = ctx.types,
@@ -323,6 +325,50 @@ assemble_module :: fn(ctx: EmitterCtx, _opts: EmitOptions) -> BytecodeModule {
         .impl_table  = impl_table,
         .vtables     = vtables,
     }
+}
+
+/// Group `VtableEntry`s by `(trait, method)` and translate each into
+/// a `VtableRow { key: "Trait.method", entries: [(type_index → fn_index)] }`.
+/// The VM's `virtual.call` op walks this by `vtable_key` then receiver
+/// type tag to land on the right impl-member fn.
+///
+/// @param entries  cross-module vtable seeds from the lowerer.
+/// @param ctx      emitter context (consulted for type interning + fn-index map).
+/// @return         one `VtableRow` per distinct (trait, method) pair.
+translate_vtables :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> VtableRow[] {
+    out: VtableRow[] = []
+    row_index_by_key :: MutableMap(string, i32) { .buckets = [], .size = 0 }
+    for entry in entries {
+        fn_index :: ctx.function_index_by_symbol_id[entry.fn_symbol.id]
+        if fn_index is i32 as fi {
+            type_index :: intern_type(entry.struct_type, ctx)
+            key :: "${entry.trait_name}.${entry.method_name}"
+            entry_record :: VtableEntry { .receiver_type_index = type_index, .fn_index = fi }
+            existing_index :: row_index_by_key[key]
+            if existing_index is i32 as ri {
+                out[usize(ri)].entries.push(entry_record)
+            } else {
+                row_entries: VtableEntry[] = [entry_record]
+                out.push(VtableRow { .key = key, .entries = row_entries })
+                row_index_by_key[key] = i32(out.len() - usize(1))
+            }
+        }
+    }
+    return out
+}
+
+/// Translate the lowered project's `DataPoolEntry[]` into bytecode-side
+/// `BcDataEntry[]`. Empty pass-through today : the Vader-side lower
+/// doesn't populate the pool yet (inline-consts pass not ported), so
+/// the per-element-type parser isn't on the critical path. When that
+/// pass lands, decode each `entries[i].elements: string[]` per
+/// `element_type_name` into a `u64[]` items array. A simpler long-term
+/// path is to mirror the TS shape (have the lower produce `u64[]`
+/// items directly) and drop this fn — the string indirection is
+/// Vader-only.
+translate_data_pool :: fn(_entries: DataPoolEntry[]) -> BcDataEntry[] {
+    out: BcDataEntry[] = []
+    return out
 }
 
 // ---- tests ----------------------------------------------------------------

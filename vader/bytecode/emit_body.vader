@@ -48,13 +48,12 @@ import "vader/bytecode/emit_state" {
     allocate_local_slot, push_op, set_jump_target,
     pop_scope, find_break_target, find_continue_target,
 }
-import "vader/bytecode/emit_ctx" { EmitterCtx, intern_type, intern_string }
-import "vader/bytecode/intrinsics" {
-    intrinsic_op_for_mangled, intrinsic_op_for_symbol_name,
-}
+import "vader/bytecode/emit_ctx" { EmitterCtx, intern_type, intern_string, intern_cell_type }
+import "vader/bytecode/intrinsics" { intrinsic_op_for_symbol_name }
 import "vader/vm/op" {
     Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
-    NullConst, LocalGet, LocalSet, Return, Drop, Call,
+    NullConst, LocalGet, LocalSet, Return, Drop, Call, CallImport, CallIndirect,
+    FnRef,
     If, Else, End, StructNew, StructGet, StructSet,
     Block, Loop, Branch, BranchIf, BoolNot,
     ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice,
@@ -226,23 +225,42 @@ emit_int_lit :: fn(literal: LoweredIntLit, state: FnEmitState) -> void {
     }
 }
 
-/// Emit a `LoweredIdent` as a `LocalGet` from the per-fn slot map.
-/// When the symbol isn't in the local map, falls through to a stub
-/// emit (Phase 3 will route to fn-ref / global / closure-capture).
+/// Emit a `LoweredIdent` as either a `LocalGet` (when the symbol
+/// references a per-fn slot — param / let / for-in binding) or a
+/// `FnRef` (when the symbol points at a top-level fn taken in value
+/// position : `let f = some_fn` / `arr.each(some_fn)` / closure
+/// passed as arg). Resolution order : per-fn slot first, then the
+/// project-wide fn-table ; missing both is a lowerer bug we leave
+/// silent so the downstream emit doesn't crash on it.
 emit_ident :: fn(ident: LoweredIdent, state: FnEmitState, ctx: EmitterCtx) -> void {
     slot :: state.slot_by_symbol_id[ident.symbol.id]
-    match slot {
-        is i32 as s -> push_op(state, LocalGet { .slot = s })
-        _ -> {
-            // Symbol not local — Phase 3 fn.ref / closure path.
-        }
+    if slot is i32 as s {
+        push_op(state, LocalGet { .slot = s })
+        return
     }
+    fn_index :: ctx.function_index_by_symbol_id[ident.symbol.id]
+    if fn_index is i32 as fi {
+        push_op(state, FnRef { .function_index = fi })
+        return
+    }
+    // Symbol resolves to neither slot nor fn-table entry. Lowerer bug —
+    // surface downstream as a stack-imbalance rather than crash here.
 }
 
-/// Emit a `LoweredCall`. Routes through `intrinsic_op_for_mangled`
-/// first (matches stdlib `@intrinsic` impls that map to dedicated
-/// bytecode ops like `i32.add` / `string.concat`) ; falls back to a
-/// regular `Call` op resolved via the callee's symbol id.
+/// Emit a `LoweredCall`. Three routing paths :
+///
+///   1. Static fn / intrinsic — callee is a `LoweredIdent` pointing at
+///      a top-level fn (`function_index_by_symbol_id` hit), or at a
+///      stdlib `@intrinsic` impl member that maps to a dedicated op
+///      (`intrinsic_op_for_symbol_name` hit). Emits `Call` / op /
+///      `CallImport` directly.
+///   2. Indirect call through a fn-typed local — callee is a
+///      `LoweredIdent` pointing at a per-fn slot of fn type
+///      (closures captured via `MakeClosure`, parameters of fn type,
+///      lambdas stored in `let`). Emits `LocalGet` + `CallIndirect`.
+///   3. Indirect call through a complex expression — callee is any
+///      other `LoweredExpr` (struct field of fn type, `arr[i]` over a
+///      fn-array, etc.). Emits the callee expr + `CallIndirect`.
 ///
 /// Args are emitted left-to-right so the VM's per-arg pops walk in
 /// reverse order land them in the right slots.
@@ -251,35 +269,61 @@ emit_call :: fn(call: LoweredCall, state: FnEmitState, ctx: EmitterCtx) -> void 
         emit_expr(call.args[i], state, ctx)
     }
     match call.callee {
-        is LoweredIdent as callee_ident -> emit_call_to_symbol(callee_ident.symbol, state, ctx)
-        _ -> {
-            // Indirect call (fn-typed local / expr) — Phase 4
-            // routes through CallIndirect. Today we'd leave args on
-            // the stack ; drop them to keep balance.
-            for _ in 0..<call.args.len() {
-                push_op(state, Drop {})
+        is LoweredIdent as callee_ident -> {
+            // Static-fn path wins when the ident resolves to a fn-table
+            // entry / intrinsic / import. Local fn-typed slot falls
+            // through to the indirect emit below.
+            slot :: state.slot_by_symbol_id[callee_ident.symbol.id]
+            if slot is i32 as s {
+                push_op(state, LocalGet { .slot = s })
+                callee_type_id :: intern_type(callee_ident.type, ctx)
+                push_op(state, CallIndirect { .type_id = callee_type_id })
+                return
             }
+            emit_call_to_symbol(callee_ident.symbol, state, ctx)
+        }
+        _ -> {
+            emit_expr(call.callee, state, ctx)
+            callee_type_id :: intern_type(lowered_expr_type(call.callee), ctx)
+            push_op(state, CallIndirect { .type_id = callee_type_id })
         }
     }
 }
 
-/// Resolve a call target via its symbol's mangled name. Try the
-/// intrinsic op first (cheap string compare on stdlib mangles) ;
-/// fall back to `function_index_by_symbol_id` for a regular `Call`.
+/// Resolve a static-fn call target. Dispatch order :
+///
+///   1. `@intrinsic` impl member — emits the dedicated bytecode op
+///      (e.g. `std_core$i32$Add$add` → `I32Add`). Cheap string
+///      compare on the mangled name.
+///   2. Vader-side fn — emits `Call { function_index }` resolved
+///      via `function_index_by_symbol_id`.
+///   3. Host import (`@extern` user decl / stdlib `@intrinsic` shim
+///      that didn't fold to an op) — emits `CallImport { index }`
+///      resolved via `import_index_by_symbol_id`.
+///   4. Nothing matched — lowerer bug. Stays silent so downstream
+///      sees a stack imbalance rather than a crash.
+///
+/// Order matters once `synthesise_intrinsic_wrappers` lands on the
+/// Vader side : that pass double-registers intrinsic symbols in BOTH
+/// the fn-table and the import table. The intrinsic-name check has
+/// to fire first or we'd emit `Call <wrapper>` instead of inlining
+/// the op. The TS dispatcher (`src/midir/emit.ts:emitCallInstr`)
+/// gates the intrinsic check on the import map for the same reason.
 emit_call_to_symbol :: fn(symbol: Symbol, state: FnEmitState, ctx: EmitterCtx) -> void {
     intrinsic :: intrinsic_op_for_symbol_name(symbol)
-    match intrinsic {
-        is Op as op -> push_op(state, op)
-        _ -> {
-            target_index :: ctx.function_index_by_symbol_id[symbol.id]
-            match target_index {
-                is i32 as index -> push_op(state, Call { .function_index = index })
-                _ -> {
-                    // Unknown target — Phase 4 will route through
-                    // the import table (`CallImport`).
-                }
-            }
-        }
+    if intrinsic is Op as op {
+        push_op(state, op)
+        return
+    }
+    target_index :: ctx.function_index_by_symbol_id[symbol.id]
+    if target_index is i32 as index {
+        push_op(state, Call { .function_index = index })
+        return
+    }
+    import_index :: ctx.import_index_by_symbol_id[symbol.id]
+    if import_index is i32 as imp_idx {
+        push_op(state, CallImport { .index = imp_idx })
+        return
     }
 }
 
@@ -539,40 +583,37 @@ emit_intrinsic_call :: fn(intrinsic: LoweredIntrinsicCall, state: FnEmitState, c
 }
 
 /// Emit a closure-cell construction. Cells are heap-allocated
-/// single-slot boxes that give captured locals by-reference
-/// semantics — every closure that captures the same local reads /
-/// writes through the same cell.
+/// single-slot boxes that give captured locals by-reference semantics
+/// — every closure that captures the same local reads / writes
+/// through the same cell.
 ///
-/// Phase 6 lowers cells onto a 1-element `ArrayNew` (the simplest
-/// shape the VM already supports). Phase 7 will switch to a
-/// dedicated `$Cell_T` synth struct (matching TS) once the
-/// reserve pass synthesises the struct decl automatically — the
-/// runtime layout difference is invisible to user code.
+/// Lowered onto a synthetic `$Cell<T>` struct (one field `value: T`)
+/// interned via `intern_cell_type`. Pushes the inner value, then
+/// `StructNew` over the cell type — the struct constructor pops the
+/// single field arg back. Same shape as the TS pipeline.
 emit_cell_new :: fn(cell_new: LoweredCellNew, state: FnEmitState, ctx: EmitterCtx) -> void {
-    cell_type_id :: intern_type(cell_new.type, ctx)
+    cell_type_id :: intern_cell_type(cell_new.value_type, ctx)
     emit_expr(cell_new.value, state, ctx)
-    push_op(state, ArrayNew { .type_id = cell_type_id, .length = i32(1) })
+    push_op(state, StructNew { .type_id = cell_type_id })
 }
 
-/// Read a closure cell's contents : push the target cell + a
-/// zero index, then `ArrayGet { type_id }`. Mirrors `emit_cell_new`'s
-/// 1-element-array representation.
+/// Read a closure cell's contents : emit the cell target, then
+/// `StructGet { type_id, field_index = 0 }` — the cell's single
+/// `value` field.
 emit_cell_get :: fn(cell_get: LoweredCellGet, state: FnEmitState, ctx: EmitterCtx) -> void {
-    cell_type_id :: intern_type(lowered_expr_type(cell_get.target), ctx)
+    cell_type_id :: intern_cell_type(cell_get.value_type, ctx)
     emit_expr(cell_get.target, state, ctx)
-    push_op(state, I32Const { .value = i32(0) })
-    push_op(state, ArrayGet { .type_id = cell_type_id })
+    push_op(state, StructGet { .type_id = cell_type_id, .field_index = i32(0) })
 }
 
-/// Update a closure cell's contents : push the target cell + a
-/// zero index + the new value, then `ArraySet { type_id }`.
-/// Statement-form ; no value pushed back. Mirrors `emit_cell_get`.
+/// Update a closure cell's contents : emit the target + the new value,
+/// then `StructSet { type_id, field_index = 0 }`. Statement-form ;
+/// no value pushed back.
 emit_cell_set :: fn(cell_set: LoweredCellSet, state: FnEmitState, ctx: EmitterCtx) -> void {
-    cell_type_id :: intern_type(lowered_expr_type(cell_set.target), ctx)
+    cell_type_id :: intern_cell_type(cell_set.value_type, ctx)
     emit_expr(cell_set.target, state, ctx)
-    push_op(state, I32Const { .value = i32(0) })
     emit_expr(cell_set.value, state, ctx)
-    push_op(state, ArraySet { .type_id = cell_type_id })
+    push_op(state, StructSet { .type_id = cell_type_id, .field_index = i32(0) })
 }
 
 

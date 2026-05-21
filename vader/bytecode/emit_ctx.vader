@@ -8,7 +8,7 @@
 import "std/collections" { MutableMap }
 import "vader/typecheck/types" { Type }
 import "vader/bytecode/module" { BcFunction, BcImport, BcExport }
-import "vader/bytecode/types" { BcType, BcPrimitive, ValType }
+import "vader/bytecode/types" { BcType, BcPrimitive, BcStruct, BcField, ValType }
 import "vader/bytecode/type_classify" { type_intern_key, bc_type_of }
 
 /// Knobs threaded through the emit. Today only `optimize` matters —
@@ -123,6 +123,37 @@ export intern_string :: fn(s: string, ctx: EmitterCtx) -> i32 {
     new_index :: i32(ctx.strings.len())
     ctx.strings.push(s)
     ctx.string_key[s] = new_index
+    return new_index
+}
+
+/// Intern a synthetic `$Cell<T>` struct type whose only field is
+/// `value: T`. Closure-cell construction / read / write all read this
+/// type-index off the `$Cell` slot rather than allocating a one-element
+/// array (the earlier shortcut). Idempotent : repeat calls with the
+/// same `slot_type` return the same index.
+///
+/// Keyed under `$Cell<<slot-intern-key>>` so the cache is independent
+/// of `intern_type`'s keying (the inner `value` field shares its key
+/// with the slot type's regular interning).
+///
+/// @param slot_type  the captured local's type.
+/// @param ctx        the emit context.
+/// @return           the type-table index of the `$Cell<T>` struct.
+export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
+    slot_index :: intern_type(slot_type, ctx)
+    key :: "\$Cell<${type_intern_key(slot_type)}>"
+    existing :: ctx.type_key[key]
+    if existing is i32 { return existing }
+    new_index :: i32(ctx.types.len())
+    field :: BcField { .name = "value", .type_index = slot_index }
+    fields: BcField[] = []
+    fields.push(field)
+    ctx.types.push(BcStruct {
+        .name      = "\$Cell_${new_index}",
+        .fields    = fields,
+        .symbol_id = i32(-1),
+    })
+    ctx.type_key[key] = new_index
     return new_index
 }
 
