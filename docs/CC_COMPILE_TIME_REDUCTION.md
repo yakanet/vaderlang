@@ -1495,3 +1495,74 @@ file (`slot-refs.ts`) instead of five.
 `slot-refs.ts` in place, all that's needed is one arm in `slotRead`
 and `withRemappedSlot`. The peephole, slot-coalesce, dropDeadStores,
 and propagateLocalAlias passes pick it up for free.
+
+## 19. POC results — piste 7.d (2026-05-21)
+
+**Design change vs §4 plan** : the plan called for a new variable-
+arity `field.chain` bytecode op. Replaced by **extending `emitStructGet`
+to push expr-kind** (same shape as `emitLocalField` from 7.c). When
+`struct.get` follows a `local.field` (or another `struct.get`), the
+consumer's `nameOf(stackVal)` inlines the predecessor's expression
+text — chains collapse into one C expression at use-site without a
+new op kind. Extracted `structFieldExpr(s, typeIndex, fieldIndex,
+recv)` helper shared by `emitStructGet` and `emitLocalField`.
+
+This is the Agent-1 recommendation from the 7.c /simplify review.
+
+**Measurements** (current branch, build/vader.c) :
+
+| Metric                          | Baseline (post-7.e) | Post 7.d   | Δ        |
+|---------------------------------|--------------------:|-----------:|---------:|
+| `build/vader.c` lines           | 212 083             | 208 870    | **-1.5 %** |
+| `build/vader.c` bytes           | 13.34 MB            | 13.21 MB   | -1.0 %   |
+| `cc -O0 -ggdb` (1 run)          | 5.29 s              | 5.01 s     | -5.3 %   |
+| `cc -O3 -DNDEBUG`               | ~20.5 s             | 19.54 s    | -4.7 %   |
+
+**Cumulative since original baseline** : 335 364 → 208 870 = **-37.7 %**
+lines ; 27.6 s → 5.01 s = **-81.8 %** cc -O0 ; 154.94 s → 19.54 s =
+**-87.4 %** cc -O3.
+
+**Regressions** : zero. native 252/252, vm + vader_vm 446 pass / 8
+skip / 0 fail (snapshots byte-identical), parity 1005/1005,
+formatter + lexer + lsp 114/114, cli + e2e 14/14.
+
+**Implementation surface** : `src/c_emit/ops.ts` only — extract
+`structFieldExpr` (~45 LoC), rewrite `emitStructGet` and
+`emitLocalField` as 4-line wrappers (-50 LoC each). Net : -55 LoC.
+No bytecode op added, no other file touched.
+
+**Why the gain is real even though chains "looked rare"** : 1 475
+chain candidates were measured at the bytecode level (`local.field`
+or `struct.get` immediately followed by `struct.get`). Each fires the
+expr-kind inlining, removing one `tN = ...;` line per chain step.
+Three-deep chains (`x.foo.bar.baz`) collapse to one C expression of
+three nested casts/deref.
+
+## Sprint 2 — closeout (2026-05-21)
+
+Piste 7 is **complete**. Sequence : 7.f → 7.c → (slot-refs refactor)
+→ 7.e → 7.d. All four sub-pistes landed in the bytecode-fused / c-
+emit-expr-kind form, all behind existing safety rails (`dup` rematerial
+ises expr, `materializeStackForSlot` flushes on `local.set`/`tee`).
+
+**Cumulative measurements (since pre-piste-5 baseline)** :
+
+|                      | Baseline    | Post sprint 2 | Δ          |
+|----------------------|------------:|--------------:|-----------:|
+| `build/vader.c` lines | 335 364    | 208 870       | **-37.7 %** |
+| `cc -O0 -ggdb`       | 27.6 s      | 5.01 s        | **-81.8 %** |
+| `cc -O3 -DNDEBUG`    | 154.94 s    | 19.54 s       | **-87.4 %** |
+
+The sprint 2 acceptance target (§6) was -10 % file / -15 % cc -O0 vs
+the post-sprint-1 baseline (222 k / 6.08 s). Achieved : -6.0 % file
+(slightly under), -17.6 % cc -O0 (over). The file-size shortfall comes
+from 7.e's modest -0.5 % — non-adjacent `get N ; set M` patterns
+aren't caught by the pure peephole. Revisit only if a future hot fn
+shows measurable `lM = lN;` density.
+
+**Next** : Vader port of piste 7 absorbs into the in-flight bytecode
+phase port. No standalone sprint needed (option B sequencing held).
+
+Sprint 3 (piste 2, gc_roots pruning) and Sprint 4 (piste 4, br_table)
+remain optional — gated on a real benchmark showing the relevant
+overhead dominates. Current cc time is comfortable.

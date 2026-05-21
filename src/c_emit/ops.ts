@@ -803,98 +803,62 @@ export function emitStructNew(
   line(s, `${tmp} = vader_box_obj(${op.typeIndex}u, ${auxObj});`);
 }
 
-export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }>): void {
-  const t = s.ctx.module.types[op.typeIndex]!;
-  if (t.kind !== "struct") return;
-  const cname = s.ctx.structNames[op.typeIndex]!;
-  const obj = pop(s);
-  const f = t.fields[op.fieldIndex]!;
+/** C expression for reading field `fieldIndex` of struct type
+ *  `typeIndex` off `recv` (which must name a `vader_box_t`). Shared
+ *  body of `emitStructGet` and `emitLocalField` ; piste 7.d chains
+ *  fall out naturally because struct.get also pushes as expr now and
+ *  the consumer inlines the receiver text. Returns null for non-struct
+ *  types (defensive — the lowerer shouldn't emit those). */
+function structFieldExpr(
+  s: FnState, typeIndex: number, fieldIndex: number, recv: string,
+): { val: ValType; text: string } | null {
+  const t = s.ctx.module.types[typeIndex]!;
+  if (t.kind !== "struct") return null;
+  const cname = s.ctx.structNames[typeIndex]!;
+  const f = t.fields[fieldIndex]!;
   const fval = valTypeOfField(s.ctx, f.typeIndex);
 
-  // Inline-variant struct : the field's value is encoded directly in the
-  // receiver box's payload. Read it via `unboxExpr` instead of dereferencing
-  // through a heap struct that doesn't exist. Same exclusion as struct.new :
-  // structs the module mutates anywhere keep the heap rep.
-  const inlinePayload = !s.ctx.mutatedStructs.has(op.typeIndex)
+  // Inline-variant struct : the field's value is encoded directly in
+  // the receiver box's payload, not via a heap dereference. Same
+  // exclusion as struct.new : structs the module mutates anywhere keep
+  // the heap rep.
+  const inlinePayload = !s.ctx.mutatedStructs.has(typeIndex)
     ? inlineVariantPayload(t, s.ctx.module.types)
     : null;
   if (inlinePayload === "ref") {
     // Single-ref-field : the wrapper's `payload.obj` IS the referent's
-    // heap pointer. Rebox with the field's own type tag so consumers see
-    // the referent (not the wrapper). `f.typeIndex` already names the
-    // concrete referent struct (Entry, MapIterator, …).
-    const tmp = newTmp(s, fval);
-    line(s, `${tmp} = vader_box_obj(${f.typeIndex}u, ${obj.name}.payload.obj);`);
-    return;
+    // heap pointer. Rebox with the field's own type tag.
+    return { val: fval, text: `vader_box_obj(${f.typeIndex}u, ${recv}.payload.obj)` };
   }
   if (inlinePayload === "packed") {
-    // Multi-field POD stored inline in `payload.packed[16]`. Read the
-    // field through the header-less mirror struct ; the C compiler
-    // resolves the offset.
+    // Multi-field POD stored inline in `payload.packed[16]`.
     const pname = packedStructName(cname);
-    const tmp = newTmp(s, fval);
-    line(s, `${tmp} = ((const ${pname}*)${obj.name}.payload.packed)->f_${sanitise(f.name)};`);
-    return;
+    return { val: fval, text: `((const ${pname}*) ${recv}.payload.packed)->f_${sanitise(f.name)}` };
   }
   if (inlinePayload !== null && inlinePayload !== "void") {
-    const tmp = newTmp(s, fval);
-    line(s, `${tmp} = ${coerce(s, unboxExpr(obj.name, inlinePayload), inlinePayload, fval)};`);
-    return;
+    return { val: fval, text: coerceExpr(s.ctx, unboxExpr(recv, inlinePayload), inlinePayload, fval) };
   }
-
-  // Nullable-ref field stored as `void*` — read the raw pointer and box it
-  // back to a `vader_box_t` so downstream ops see a uniform value rep.
-  // NULL → null-tagged box ; non-null → ref-tagged box with the variant's
-  // type index.
-  const refVariant = b1SlotVariant(s.ctx, f.typeIndex);
-  if (refVariant !== null) {
-    const nullTag = s.ctx.primitiveTagOf.get("null") ?? 0;
-    const tmp = newTmp(s, fval);
-    const raw = `((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)}`;
-    line(s, `${tmp} = (${raw} == NULL) ? vader_box_obj(${nullTag}u, NULL) : vader_box_obj(${refVariant}u, ${raw});`);
-    return;
-  }
-  const tmp = newTmp(s, fval);
-  line(s, `${tmp} = ((${cname}*) ${asObjPtr(obj)})->f_${sanitise(f.name)};`);
-}
-
-/** Fused `local.get N ; struct.get T F`. Mirrors the 5 paths of
- *  `emitStructGet` but pushes the read as an `expr` StackVal (the
- *  receiver is `lN` directly, so consumers inline the dereference at
- *  use-site without an intermediate tmp). The nullable-ref path uses
- *  `vader_b1_to_box` so the raw pointer read isn't duplicated when the
- *  expression text is inlined. */
-export function emitLocalField(s: FnState, op: Extract<Op, { kind: "local.field" }>): void {
-  const t = s.ctx.module.types[op.typeIndex]!;
-  if (t.kind !== "struct") return;
-  const cname = s.ctx.structNames[op.typeIndex]!;
-  const f = t.fields[op.fieldIndex]!;
-  const fval = valTypeOfField(s.ctx, f.typeIndex);
-  const recv = `l${op.slot}`;
-
-  const inlinePayload = !s.ctx.mutatedStructs.has(op.typeIndex)
-    ? inlineVariantPayload(t, s.ctx.module.types)
-    : null;
-  if (inlinePayload === "ref") {
-    pushExpr(s, fval, `vader_box_obj(${f.typeIndex}u, ${recv}.payload.obj)`);
-    return;
-  }
-  if (inlinePayload === "packed") {
-    const pname = packedStructName(cname);
-    pushExpr(s, fval, `((const ${pname}*) ${recv}.payload.packed)->f_${sanitise(f.name)}`);
-    return;
-  }
-  if (inlinePayload !== null && inlinePayload !== "void") {
-    pushExpr(s, fval, coerceExpr(s.ctx, unboxExpr(recv, inlinePayload), inlinePayload, fval));
-    return;
-  }
+  // Nullable-ref field stored as `void*` — `vader_b1_to_box` single-
+  // evaluates the raw pointer read so inlining doesn't duplicate it.
   const refVariant = b1SlotVariant(s.ctx, f.typeIndex);
   if (refVariant !== null) {
     const raw = `((${cname}*) ${recv}.payload.obj)->f_${sanitise(f.name)}`;
-    pushExpr(s, fval, `vader_b1_to_box(${raw}, ${refVariant}u)`);
-    return;
+    return { val: fval, text: `vader_b1_to_box(${raw}, ${refVariant}u)` };
   }
-  pushExpr(s, fval, `((${cname}*) ${recv}.payload.obj)->f_${sanitise(f.name)}`);
+  return { val: fval, text: `((${cname}*) ${recv}.payload.obj)->f_${sanitise(f.name)}` };
+}
+
+export function emitStructGet(s: FnState, op: Extract<Op, { kind: "struct.get" }>): void {
+  const obj = pop(s);
+  const result = structFieldExpr(s, op.typeIndex, op.fieldIndex, obj.name);
+  if (result === null) return;
+  pushExpr(s, result.val, result.text);
+}
+
+export function emitLocalField(s: FnState, op: Extract<Op, { kind: "local.field" }>): void {
+  const result = structFieldExpr(s, op.typeIndex, op.fieldIndex, `l${op.slot}`);
+  if (result === null) return;
+  pushExpr(s, result.val, result.text);
 }
 
 export function emitStructSet(
