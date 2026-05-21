@@ -31,6 +31,7 @@
 
 import type { Op } from "./ops.ts";
 import type { BcLocal, DebugPos } from "./module.ts";
+import { slotRead, slotTouched, withRemappedSlot } from "./slot-refs.ts";
 import type { ValType } from "./types.ts";
 
 const INVERSE_VERB: Record<string, string> = {
@@ -108,9 +109,8 @@ function dropDeadStores(fn: MutFn): void {
   const totalSlots = paramCount + fn.locals.length;
   const reads = new Array<number>(totalSlots).fill(0);
   for (const op of fn.body) {
-    // Slot-reading ops keep the local alive — fused reads (local.field)
-    // count alongside the bare local.get.
-    if (op.kind === "local.get" || op.kind === "local.field") reads[op.slot]!++;
+    const r = slotRead(op);
+    if (r !== null) reads[r]!++;
   }
 
   // Param slots stay alive even when unread — the ABI keeps their slot index
@@ -143,18 +143,10 @@ function dropDeadStores(fn: MutFn): void {
       // the consumer reads it directly.
       continue;
     }
-    if (op.kind === "local.get" || op.kind === "local.set" || op.kind === "local.tee") {
-      out.push({ kind: op.kind, slot: remap[op.slot]! });
-      dbg.push(span);
-      continue;
-    }
-    if (op.kind === "local.field") {
-      out.push({ kind: "local.field", slot: remap[op.slot]!,
-                 typeIndex: op.typeIndex, fieldIndex: op.fieldIndex });
-      dbg.push(span);
-      continue;
-    }
-    out.push(op);
+    // Surviving slot-touching ops get their slot renumbered into the
+    // compacted range ; other ops pass through unchanged.
+    const slot = slotTouched(op);
+    out.push(slot !== null ? withRemappedSlot(op, remap[slot]!) : op);
     dbg.push(span);
   }
   fn.body.length = 0;
@@ -212,12 +204,13 @@ function propagateConstSingleUse(fn: MutFn): void {
   }
   for (let i = 0; i < fn.body.length; i++) {
     const op = fn.body[i]!;
-    if (op.kind === "local.set") { stats[op.slot]!.sets++; stats[op.slot]!.setIdx = i; }
-    else if (op.kind === "local.get") { stats[op.slot]!.gets++; stats[op.slot]!.getIdx = i; }
-    else if (op.kind === "local.tee") { stats[op.slot]!.tees++; }
-    // Fused slot-reading ops bump the get counter so the const-prop
-    // doesn't drop a set whose value is consumed by a fused read.
-    else if (op.kind === "local.field") { stats[op.slot]!.gets++; stats[op.slot]!.getIdx = i; }
+    if (op.kind === "local.set") { stats[op.slot]!.sets++; stats[op.slot]!.setIdx = i; continue; }
+    if (op.kind === "local.tee") { stats[op.slot]!.tees++; continue; }
+    // Any slot-reading op (bare local.get or a fused read like
+    // local.field) counts toward the get tally — otherwise const-prop
+    // would happily drop a `set` whose value is consumed by the fused op.
+    const r = slotRead(op);
+    if (r !== null) { stats[r]!.gets++; stats[r]!.getIdx = i; }
   }
 
   const toDelete = new Set<number>();

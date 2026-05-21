@@ -12,6 +12,7 @@
 import type { Op } from "./ops.ts";
 import type { FnEmitCtx } from "./emit.ts";
 import type { BcLocal } from "./module.ts";
+import { slotTouched, withRemappedSlot } from "./slot-refs.ts";
 
 interface Range {
   first: number;
@@ -25,8 +26,7 @@ export function coalesceSlots(fn: FnEmitCtx): void {
 
   const ranges: (Range | null)[] = new Array(totalSlots).fill(null);
   for (let i = 0; i < fn.body.length; i++) {
-    const op = fn.body[i]!;
-    const slot = slotOf(op);
+    const slot = slotTouched(fn.body[i]!);
     if (slot === null) continue;
     const r = ranges[slot];
     if (r === null || r === undefined) ranges[slot] = { first: i, last: i };
@@ -103,31 +103,15 @@ export function coalesceSlots(fn: FnEmitCtx): void {
 
   for (let i = 0; i < fn.body.length; i++) {
     const op = fn.body[i]!;
-    if (op.kind === "local.get" || op.kind === "local.set" || op.kind === "local.tee") {
-      const newSlot = remap[op.slot];
-      if (newSlot === undefined || newSlot === -1) continue;
-      fn.body[i] = { kind: op.kind, slot: newSlot };
-    } else if (op.kind === "local.field") {
-      const newSlot = remap[op.slot];
-      if (newSlot === undefined || newSlot === -1) continue;
-      fn.body[i] = { kind: "local.field", slot: newSlot,
-                     typeIndex: op.typeIndex, fieldIndex: op.fieldIndex };
-    }
+    const slot = slotTouched(op);
+    if (slot === null) continue;
+    const newSlot = remap[slot];
+    if (newSlot === undefined || newSlot === -1) continue;
+    fn.body[i] = withRemappedSlot(op, newSlot);
   }
 
   fn.locals.length = 0;
   fn.locals.push(...newLocals);
-}
-
-function slotOf(op: Op): number | null {
-  if (op.kind === "local.get" || op.kind === "local.set" || op.kind === "local.tee") {
-    return op.slot;
-  }
-  // Fused ops carrying a slot reference must extend the slot's live
-  // range too — otherwise coalesce could collapse the slot with another
-  // and corrupt the read.
-  if (op.kind === "local.field") return op.slot;
-  return null;
 }
 
 function rangesOverlap(a: Range, b: Range): boolean {
