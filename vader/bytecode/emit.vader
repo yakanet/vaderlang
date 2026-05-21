@@ -26,6 +26,7 @@ import "std/collections" { MutableMap, keys }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/typecheck/types" { Type }
 import "vader/resolver/symbol" { Symbol }
+import "vader/parser/ast" { Decl, FnDecl, Decorator }
 import "vader/lower/lowered_ast" {
     LoweredProject, LoweredModule, LoweredDecl,
     LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
@@ -59,7 +60,7 @@ import "vader/bytecode/type_classify" {
 }
 import "vader/vm/op" {
     Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
-    NullConst, LocalGet, LocalSet, LocalTee, Return, Drop, Call,
+    NullConst, LocalGet, LocalSet, LocalTee, Return, Drop, Call, CallImport,
     If, Else, End, StructNew, StructGet, StructSet,
     Block, Loop, Branch, BranchIf, BoolNot,
     ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySlice,
@@ -118,7 +119,18 @@ export emit_project :: fn(lowered: LoweredProject, opts: EmitOptions) -> Bytecod
         }
     }
 
-    // Pass 2 — emit each fn's body.
+    // Pass 1.5 — synthesise wrapper fns for `@intrinsic` impl members
+    // so virtual dispatch (`virtual.call`) can land on a real
+    // fn-index. Without these, primitive receivers on `Equals.equals`
+    // / `Display.to_string` / `Add.add` / ... would miss the vtable
+    // and the runtime dispatcher would fall through to its unreachable
+    // arm. Static call sites are unaffected (`emit_call_to_symbol`
+    // routes intrinsics directly to the op).
+    synthesise_intrinsic_wrappers(ctx)
+
+    // Pass 2 — emit each fn's body. Extern decls were routed to
+    // `ctx.imports` in Pass 1, so their `lookup_function_index` miss
+    // turns the body-emit into a no-op.
     for module_id in lowered.modules.keys() {
         m :: lowered.modules[module_id]
         if m is null { continue }
@@ -128,6 +140,86 @@ export emit_project :: fn(lowered: LoweredProject, opts: EmitOptions) -> Bytecod
     }
 
     return assemble_module(ctx, opts, lowered)
+}
+
+/// Walk the import table and synthesise a wrapper fn in `ctx.functions`
+/// for every `@intrinsic` entry (`is_extern = false`) that doesn't
+/// already have a fn-table slot. The wrapper body is the minimum
+/// passthrough — load every param via `local.get`, then either the
+/// dedicated bytecode op (when `intrinsic_op_for_mangled` knows the
+/// shortcut) or a `call.import` forwarding to the runtime, then
+/// `return`. Mirrors `src/bytecode/emit.ts::synthesiseIntrinsicWrappers`
+/// — the wrappers are the bridge between vtable indirection (which
+/// keys on fn-index) and the import-table-backed runtime helpers.
+synthesise_intrinsic_wrappers :: fn(ctx: EmitterCtx) -> void {
+    import_count :: i32(ctx.imports.len())
+    i: i32 = 0
+    for i < import_count {
+        import_index :: i
+        imp :: ctx.imports[usize(import_index)]
+        i += 1
+        if imp.is_extern { continue }
+        // Already in fn-table — either a Vader-side fn shadowing the
+        // import (shouldn't happen for intrinsics) or a prior synth
+        // pass ran (idempotency guard).
+        // The import-side keyed `import_index_by_symbol_id` ; the
+        // fn-side keyed `function_index_by_symbol_id` — so we need
+        // to know which Symbol id this import was registered under.
+        symbol_id :: lookup_symbol_id_for_import(ctx, import_index)
+        if symbol_id < 0 { continue }
+        if ctx.function_index_by_symbol_id[symbol_id] is i32 { continue }
+        wrapper_body :: build_intrinsic_wrapper_body(imp, import_index)
+        wrapper_debug: (DebugPos | null)[] = []
+        for _b in 0..<wrapper_body.len() { wrapper_debug.push(null) }
+        wrapper_jump_table: i32[] = []
+        for _j in 0..<wrapper_body.len() { wrapper_jump_table.push(i32(-1)) }
+        no_locals: BcLocal[] = []
+        fn_index :: i32(ctx.functions.len())
+        ctx.functions.push(BcFunction {
+            .name       = "${imp.mangled_name}\$vt",
+            .is_main    = false,
+            .signature  = imp.signature,
+            .locals     = no_locals,
+            .body       = wrapper_body,
+            .debug      = wrapper_debug,
+            .jump_table = wrapper_jump_table,
+        })
+        ctx.function_index_by_symbol_id[symbol_id] = fn_index
+    }
+}
+
+/// Build the wrapper body : per-param `local.get` in order, then the
+/// dedicated bytecode op (when one exists) or a `call.import`
+/// fallback, then `return`. Caller wraps the result into a
+/// `BcFunction` and registers the fn-index.
+build_intrinsic_wrapper_body :: fn(imp: BcImport, import_index: i32) -> Op[] {
+    body: Op[] = []
+    for i in 0..<imp.signature.params.len() {
+        body.push(LocalGet { .slot = i32(i) })
+    }
+    intrinsic :: intrinsic_op_for_mangled(imp.mangled_name)
+    if intrinsic is Op as inline_op {
+        body.push(inline_op)
+    } else {
+        body.push(CallImport { .index = import_index })
+    }
+    body.push(Return {})
+    return body
+}
+
+/// Reverse the `import_index_by_symbol_id` map to find which Symbol
+/// registered a given import. Linear scan over the map — fine for
+/// emit-time (called once per intrinsic during synth). Returns -1
+/// when the import has no associated symbol (synth imports from
+/// elsewhere in the pipeline).
+lookup_symbol_id_for_import :: fn(ctx: EmitterCtx, import_index: i32) -> i32 {
+    for key in ctx.import_index_by_symbol_id.keys() {
+        v :: ctx.import_index_by_symbol_id[key]
+        if v is i32 as idx {
+            if idx == import_index { return key }
+        }
+    }
+    return -1
 }
 
 // =========================================================================
@@ -148,12 +240,18 @@ reserve_decl :: fn(decl: LoweredDecl, ctx: EmitterCtx) -> void {
     }
 }
 
-/// Allocate a fn-table slot for `function_decl`, intern the
-/// signature types, and register the symbol-id → index mapping.
-/// Body emit happens in Pass 2 ; the placeholder arrays here get
-/// replaced wholesale by `emit_fn_body`.
+/// Allocate a slot for `function_decl` — either in the fn-table
+/// (regular Vader-side fn ; body emit happens in Pass 2) or in the
+/// import table (`body is null` → `@extern` user decl or `@intrinsic`
+/// stdlib shim). `synthesise_intrinsic_wrappers` later upgrades
+/// every `@intrinsic` import with a wrapper fn so virtual dispatch
+/// can land on a real fn-index.
 reserve_fn :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
     signature :: build_signature(function_decl.params, function_decl.return_type, ctx)
+    if function_decl.body is null {
+        reserve_extern(function_decl, signature, ctx)
+        return
+    }
     function_index :: i32(ctx.functions.len())
     empty_body: Op[] = []
     empty_debug: (DebugPos | null)[] = []
@@ -172,6 +270,52 @@ reserve_fn :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
         is Symbol as symbol -> { ctx.function_index_by_symbol_id[symbol.id] = function_index }
         _ -> {}
     }
+}
+
+/// Register a bodyless fn in the import table. `is_extern = true`
+/// for user `@extern` decls (foreign symbol, host linker resolves) ;
+/// `is_extern = false` for stdlib `@intrinsic` shims (host runtime
+/// provides). The distinction tells the C-emit whether to forward-
+/// declare the symbol or route to a `vader_*` runtime helper.
+reserve_extern :: fn(
+    function_decl: LoweredFnDecl, signature: BcSignature, ctx: EmitterCtx,
+) -> void {
+    is_extern :: fn_has_decorator(function_decl, "extern")
+    import_index :: i32(ctx.imports.len())
+    ctx.imports.push(BcImport {
+        .extern_name   = bare_name_for(function_decl),
+        .mangled_name  = function_decl.mangled,
+        .signature     = signature,
+        .is_extern     = is_extern,
+    })
+    match function_decl.origin.symbol {
+        is Symbol as symbol -> { ctx.import_index_by_symbol_id[symbol.id] = import_index }
+        _ -> {}
+    }
+}
+
+/// True when `function_decl` carries the given decorator (e.g. `extern`,
+/// `intrinsic`). Walks the source-AST decorator list ; safe to call on
+/// non-FnDecl origins (returns false).
+fn_has_decorator :: fn(function_decl: LoweredFnDecl, name: string) -> bool {
+    match function_decl.origin.decl {
+        is FnDecl as fn_ast -> {
+            for d in fn_ast.decorators {
+                if d.name == name { return true }
+            }
+            return false
+        }
+        _ -> { return false }
+    }
+}
+
+/// Extract the user-facing bare name (`println` rather than the
+/// mangled `std_io$println`). The C-emit uses this as the external
+/// symbol name for `@extern` user decls — the mangled form keys
+/// the call-site lookup tables.
+bare_name_for :: fn(function_decl: LoweredFnDecl) -> string = match function_decl.origin.decl {
+    is FnDecl as fn_ast -> fn_ast.name
+    _                   -> function_decl.mangled
 }
 
 /// Intern a struct decl into the type table. Field types are
