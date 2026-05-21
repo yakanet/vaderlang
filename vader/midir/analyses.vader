@@ -1,0 +1,373 @@
+// vader/midir/analyses — shared CFG analyses + traversals.
+//
+// Mirror of `src/midir/analyses.ts`. Pure data — no IO, no diagnostics.
+// Used by the structurer (`emit.vader`), DCE (`dce.vader`), and any
+// future Mid-IR pass (SSA, escape).
+//
+// Operand-walking helpers (`for_each_read_local`,
+// `for_each_read_in_terminator`) thread a closure that gets called on
+// every LocalId read. `dst_of` returns the single LocalId written by
+// an instruction (or null for pure side-effecting ops + zero-result
+// calls). `instruction_has_side_effect` keeps DCE from dropping ops
+// whose dst is unread but whose execution observably mutates state.
+
+import "std/collections" { MutableMap, MutableSet, keys }
+import "vader/midir/cfg" {
+    BasicBlock, BlockId, CFGFunction, Instruction, LocalId, Terminator,
+    TermBranch, TermCondBranch, TermReturn, TermUnreachable,
+    InstrConst, InstrBinOp, InstrUnOp, InstrCall, InstrCallIndirect,
+    InstrFnRef, InstrVirtualCall, InstrFieldGet, InstrFieldSet,
+    InstrArrayGet, InstrArraySet, InstrArrayLen, InstrArrayPush,
+    InstrArraySlice, InstrStructNew, InstrArrayNew, InstrDataConst,
+    InstrTypeCheck, InstrTypeConst, InstrCast, InstrCellNew,
+    InstrCellGet, InstrCellSet, InstrMakeClosure, InstrIntrinsic,
+    InstrMove,
+}
+
+// ---- successor / predecessor edges ---------------------------------------
+
+/// Successors of a block, derived from its terminator.
+export successors_of :: fn(b: BasicBlock) -> BlockId[] {
+    match b.terminator {
+        is TermBranch     as t -> { return [t.target] }
+        is TermCondBranch as t -> { return [t.then_block, t.else_block] }
+        is TermReturn          -> { return [] }
+        is TermUnreachable     -> { return [] }
+    }
+}
+
+/// Predecessor lists keyed by BlockId. The returned array is dense
+/// (one entry per block, possibly empty).
+export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
+    out: BlockId[][] = []
+    for _ in fn_.blocks { out.push([]) }
+    for b in fn_.blocks {
+        for succ in successors_of(b) { out[succ].push(b.id) }
+    }
+    return out
+}
+
+// ---- side-effect classification ------------------------------------------
+
+/// True when the instruction has observable effect outside its `dst`
+/// slot. DCE keeps these alive even when their result local is unread.
+export instruction_has_side_effect :: fn(ins: Instruction) -> bool {
+    match ins {
+        is InstrCall         -> { return true }
+        is InstrCallIndirect -> { return true }
+        is InstrVirtualCall  -> { return true }
+        is InstrIntrinsic    -> { return true }
+        is InstrFieldSet     -> { return true }
+        is InstrArraySet     -> { return true }
+        is InstrArrayPush    -> { return true }
+        is InstrCellSet      -> { return true }
+        _                    -> { return false }
+    }
+}
+
+// ---- operand walks --------------------------------------------------------
+
+/// Apply `visit` to every local read by the instruction (its operands).
+export for_each_read_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -> void {
+    match ins {
+        is InstrConst        -> {}
+        is InstrFnRef        -> {}
+        is InstrMove         as i -> { visit(i.src) }
+        is InstrBinOp        as i -> { visit(i.lhs); visit(i.rhs) }
+        is InstrUnOp         as i -> { visit(i.operand) }
+        is InstrCall         as i -> { for a in i.args { visit(a) } }
+        is InstrCallIndirect as i -> { visit(i.callee); for a in i.args { visit(a) } }
+        is InstrVirtualCall  as i -> { visit(i.receiver); for a in i.args { visit(a) } }
+        is InstrFieldGet     as i -> { visit(i.target) }
+        is InstrFieldSet     as i -> { visit(i.target); visit(i.value) }
+        is InstrArrayGet     as i -> { visit(i.target); visit(i.index) }
+        is InstrArraySet     as i -> { visit(i.target); visit(i.index); visit(i.value) }
+        is InstrArrayLen     as i -> { visit(i.target) }
+        is InstrArrayPush    as i -> { visit(i.target); visit(i.value) }
+        is InstrArraySlice   as i -> { visit(i.target); visit(i.lo); visit(i.hi) }
+        is InstrStructNew    as i -> { for f in i.fields { visit(f) } }
+        is InstrArrayNew     as i -> { for e in i.elements { visit(e) } }
+        is InstrTypeCheck    as i -> { visit(i.value) }
+        is InstrTypeConst         -> {}
+        is InstrDataConst         -> {}
+        is InstrCast         as i -> { visit(i.value) }
+        is InstrCellNew      as i -> { visit(i.value) }
+        is InstrCellGet      as i -> { visit(i.cell) }
+        is InstrCellSet      as i -> { visit(i.cell); visit(i.value) }
+        is InstrMakeClosure  as i -> { visit(i.env) }
+        is InstrIntrinsic    as i -> { for a in i.args { visit(a) } }
+    }
+}
+
+/// Apply `visit` to every local read by the terminator.
+export for_each_read_in_terminator :: fn(t: Terminator, visit: fn(LocalId) -> void) -> void {
+    match t {
+        is TermBranch          -> {}
+        is TermUnreachable     -> {}
+        is TermCondBranch as c -> { visit(c.cond) }
+        is TermReturn     as r -> {
+            match r.value {
+                is null -> {}
+                _ -> { visit(r.value) }
+            }
+        }
+    }
+}
+
+// ---- natural loops --------------------------------------------------------
+
+/// Natural-loop bodies, keyed by header block id. A back-edge u→v
+/// exists when v dominates u ; the natural loop's body is
+/// `{v} ∪ all blocks that reach u without going through v`. Returns
+/// one entry per back-edge target. Pure-fn — caller passes the preds
+/// + idom they already computed.
+export natural_loop_bodies :: fn(
+    fn_: CFGFunction, preds: BlockId[][], idom: i32[],
+) -> MutableMap(BlockId, MutableSet(BlockId)) {
+    out :: MutableMap(BlockId, MutableSet(BlockId)) { .buckets = [], .size = 0 }
+    for h in 0..<fn_.blocks.len() {
+        h_id :: BlockId(h)
+        back_edge_sources: BlockId[] = []
+        for p in preds[h] {
+            if dominates(idom, h_id, p) { back_edge_sources.push(p) }
+        }
+        if back_edge_sources.len() == usize(0) { continue }
+        body :: MutableSet(BlockId) { .inner = MutableMap(BlockId, bool) { .buckets = [], .size = 0 } }
+        body.add(h_id)
+        stack: BlockId[] = []
+        for s in back_edge_sources { stack.push(s) }
+        while stack.len() > usize(0) {
+            cur :: stack.pop()
+            if body.contains(cur) { continue }
+            body.add(cur)
+            for p in preds[cur] {
+                if p != h_id { stack.push(p) }
+            }
+        }
+        out[h_id] = body
+    }
+    return out
+}
+
+// ---- use counts -----------------------------------------------------------
+
+/// Per-LocalId read count across the whole fn body. Every read in an
+/// instruction or terminator counts once. Used by copy folding, the
+/// stack scheduler, and any pass that needs use-counts.
+export count_uses :: fn(fn_: CFGFunction) -> MutableMap(LocalId, i32) {
+    counts :: MutableMap(LocalId, i32) { .buckets = [], .size = 0 }
+    bump :: (l: LocalId) -> {
+        existing :: counts[l]
+        match existing {
+            is null -> { counts[l] = 1 }
+            _ -> { counts[l] = existing + 1 }
+        }
+    }
+    for b in fn_.blocks {
+        for ins in b.instructions { for_each_read_local(ins, bump) }
+        for_each_read_in_terminator(b.terminator, bump)
+    }
+    return counts
+}
+
+// ---- dominator analysis ---------------------------------------------------
+
+/// Reverse-postorder of the CFG starting from the entry. Stable
+/// across runs. Used by every dataflow analysis that wants to visit
+/// predecessors before successors (forward flow) or successors
+/// before predecessors (backward).
+export reverse_postorder :: fn(fn_: CFGFunction) -> BlockId[] {
+    order: BlockId[] = []
+    visited: bool[] = []
+    for _ in fn_.blocks { visited.push(false) }
+    walk_rpo(fn_, fn_.entry, visited, order)
+    // Reverse in place.
+    out: BlockId[] = []
+    i := order.len()
+    while i > usize(0) {
+        i = i - 1
+        out.push(order[i])
+    }
+    return out
+}
+
+walk_rpo :: fn(fn_: CFGFunction, b: BlockId, visited: bool[], order: BlockId[]) -> void {
+    if visited[b] { return }
+    visited[b] = true
+    for s in successors_of(fn_.blocks[b]) { walk_rpo(fn_, s, visited, order) }
+    order.push(b)
+}
+
+/// Cooper-Harvey-Kennedy iterative dominator computation. Returns
+/// `idom[b]` = immediate dominator of `b` (entry's idom is itself ;
+/// unreachable blocks return -1 — interpreted as "no known idom").
+export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
+    n :: fn_.blocks.len()
+    idom: i32[] = []
+    for _ in 0..<n { idom.push(-1) }
+    idom[fn_.entry] = fn_.entry
+    rpo :: reverse_postorder(fn_)
+    changed := true
+    while changed {
+        changed = false
+        for b in rpo {
+            if b == fn_.entry { continue }
+            new_idom := -1
+            for p in preds[b] {
+                if idom[p] == -1 { continue }
+                if new_idom == -1 {
+                    new_idom = p
+                } else {
+                    new_idom = intersect_dom_tree(p, new_idom, idom)
+                }
+            }
+            if new_idom != -1 && idom[b] != new_idom {
+                idom[b] = new_idom
+                changed = true
+            }
+        }
+    }
+    return idom
+}
+
+/// Lowest-common-ancestor in a (post-)dominator tree. Walks `a`'s
+/// ancestor chain into a set, then walks `b`'s chain until hitting a
+/// known ancestor. We fall back to the LCA walk because block IDs
+/// don't follow RPO order after CFG construction (block IDs reflect
+/// creation order in the converter, not RPO).
+export intersect_dom_tree :: fn(a: BlockId, b: BlockId, idom: i32[]) -> BlockId {
+    seen :: MutableSet(i32) { .inner = MutableMap(i32, bool) { .buckets = [], .size = 0 } }
+    x := a
+    while x != -1 && !seen.contains(x) {
+        seen.add(x)
+        next :: idom[x]
+        if next == x { break }
+        x = next
+    }
+    y := b
+    while y != -1 {
+        if seen.contains(y) { return y }
+        next :: idom[y]
+        if next == y { break }
+        y = next
+    }
+    return -1
+}
+
+/// True iff `a` dominates `b` (every path from entry to `b` passes
+/// through `a`). Walks `b`'s idom chain.
+export dominates :: fn(idom: i32[], a: BlockId, b: BlockId) -> bool {
+    cur := b
+    while cur != -1 {
+        if cur == a { return true }
+        next :: idom[cur]
+        if next == cur { return cur == a }
+        cur = next
+    }
+    return false
+}
+
+// ---- liveness -------------------------------------------------------------
+
+/// Per-block live-in / live-out sets. Standard backward dataflow on
+/// the use/def of each block. Used by DCE (kill-dead-stores).
+export Liveness :: struct {
+    live_in:  MutableSet(LocalId)[]
+    live_out: MutableSet(LocalId)[]
+}
+
+export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
+    n :: fn_.blocks.len()
+    use_: MutableSet(LocalId)[] = []
+    def_: MutableSet(LocalId)[] = []
+    for i in 0..<n {
+        b :: fn_.blocks[i]
+        u :: MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } }
+        d :: MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } }
+        for ins in b.instructions {
+            for_each_read_local(ins, (l: LocalId) -> {
+                if !d.contains(l) { u.add(l) }
+            })
+            ds :: dst_of(ins)
+            match ds {
+                is null -> {}
+                _ -> { d.add(ds) }
+            }
+        }
+        for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
+            if !d.contains(l) { u.add(l) }
+        })
+        use_.push(u)
+        def_.push(d)
+    }
+
+    succs: BlockId[][] = []
+    for b in fn_.blocks { succs.push(successors_of(b)) }
+
+    live_in:  MutableSet(LocalId)[] = []
+    live_out: MutableSet(LocalId)[] = []
+    for _ in 0..<n {
+        live_in.push(MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } })
+        live_out.push(MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } })
+    }
+
+    changed := true
+    while changed {
+        changed = false
+        i := n
+        while i > usize(0) {
+            i = i - 1
+            out :: MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } }
+            for s in succs[i] {
+                for l in keys(live_in[s].inner) { out.add(l) }
+            }
+            in_set :: MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } }
+            for l in keys(use_[i].inner) { in_set.add(l) }
+            for l in keys(out.inner) { if !def_[i].contains(l) { in_set.add(l) } }
+            if !sets_equal(out, live_out[i]) { live_out[i] = out; changed = true }
+            if !sets_equal(in_set, live_in[i]) { live_in[i] = in_set; changed = true }
+        }
+    }
+    return Liveness { .live_in = live_in, .live_out = live_out }
+}
+
+sets_equal :: fn(a: MutableSet(LocalId), b: MutableSet(LocalId)) -> bool {
+    if a.inner.size != b.inner.size { return false }
+    for x in keys(a.inner) { if !b.contains(x) { return false } }
+    return true
+}
+
+// ---- dst extraction -------------------------------------------------------
+
+/// The local an instruction writes to, or `null` for pure side-
+/// effecting ops (FieldSet, ArraySet, …) and zero-result calls.
+export dst_of :: fn(ins: Instruction) -> LocalId | null {
+    match ins {
+        is InstrConst        as i -> { return i.dst }
+        is InstrMove         as i -> { return i.dst }
+        is InstrBinOp        as i -> { return i.dst }
+        is InstrUnOp         as i -> { return i.dst }
+        is InstrFieldGet     as i -> { return i.dst }
+        is InstrArrayGet     as i -> { return i.dst }
+        is InstrArrayLen     as i -> { return i.dst }
+        is InstrArraySlice   as i -> { return i.dst }
+        is InstrStructNew    as i -> { return i.dst }
+        is InstrArrayNew     as i -> { return i.dst }
+        is InstrTypeCheck    as i -> { return i.dst }
+        is InstrTypeConst    as i -> { return i.dst }
+        is InstrCast         as i -> { return i.dst }
+        is InstrCellNew      as i -> { return i.dst }
+        is InstrCellGet      as i -> { return i.dst }
+        is InstrMakeClosure  as i -> { return i.dst }
+        is InstrFnRef        as i -> { return i.dst }
+        is InstrDataConst    as i -> { return i.dst }
+        is InstrCall         as i -> { return i.dst }
+        is InstrCallIndirect as i -> { return i.dst }
+        is InstrVirtualCall  as i -> { return i.dst }
+        is InstrIntrinsic    as i -> { return i.dst }
+        is InstrFieldSet          -> { return null }
+        is InstrArraySet          -> { return null }
+        is InstrArrayPush         -> { return null }
+        is InstrCellSet           -> { return null }
+    }
+}
