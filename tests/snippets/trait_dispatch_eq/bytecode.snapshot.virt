@@ -16,6 +16,21 @@ type 13 primitive f32
 type 14 primitive f64
 type 15 primitive bool
 type 16 primitive char
+vtable Equals.equals 1 4
+vtable Equals.equals 3 2
+vtable Equals.equals 4 16
+vtable Equals.equals 5 3
+vtable Equals.equals 6 5
+vtable Equals.equals 7 6
+vtable Equals.equals 8 7
+vtable Equals.equals 9 8
+vtable Equals.equals 10 9
+vtable Equals.equals 11 10
+vtable Equals.equals 12 11
+vtable Equals.equals 13 12
+vtable Equals.equals 14 13
+vtable Equals.equals 15 14
+vtable Equals.equals 16 15
 
 fn 0 tests_snippets_trait_dispatch_eq__main_vader$main () -> i32
   local n1 i32

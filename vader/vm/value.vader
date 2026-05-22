@@ -10,7 +10,7 @@
 // so the per-Value helpers can return `… | Trap` without forming an
 // import cycle with the executor.
 
-import "std/string" { starts_with }
+import "std/string" { starts_with, byte_at, byte_len, slice }
 op :: import "vader/vm/op"
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
@@ -273,7 +273,7 @@ export type_matches :: fn(module: op.Module, v: op.Value, type_id: i32) -> bool 
     return match type_decl {
         is op.PrimitiveType as p -> primitive_matches(v, p.kind)
         is op.StructType         -> match v {
-            is op.StructVal as s -> s.type_id == type_id
+            is op.StructVal as s -> s.type_id == type_id || struct_siblings_match(module, s.type_id, type_id)
             _                 -> false
         }
         is op.ArrayType          -> match v {
@@ -284,6 +284,66 @@ export type_matches :: fn(module: op.Module, v: op.Value, type_id: i32) -> bool 
         is op.RefType       as r -> ref_type_matches(module, v, r.trait_name)
         is op.FnType             -> false
     }
+}
+
+/// Erasure-aware sibling check : returns true when both struct types
+/// come from the same generic source declaration. Post-path-γ a value
+/// may carry a sibling shape's tag (e.g. `Yield(Any)` runtime flowing
+/// into a match arm typed `is Yield(i32)`). We approximate the TS
+/// `symbolId`-based grouping by comparing mangled-name prefixes up to
+/// the first `__` (which separates the source name from the type-arg
+/// suffix).
+///
+/// @param module   the running module (struct names live in `types`).
+/// @param value_type_id   actual tag of the runtime value.
+/// @param target_type_id  static type the value is being matched against.
+/// @return         `true` when both refer to struct types whose names
+///                 share the same pre-`__` prefix ; `false` otherwise.
+struct_siblings_match :: fn(module: op.Module, value_type_id: i32, target_type_id: i32) -> bool {
+    if value_type_id == target_type_id { return true }
+    if value_type_id < 0 || usize(value_type_id) >= module.types.len() { return false }
+    if target_type_id < 0 || usize(target_type_id) >= module.types.len() { return false }
+    value_name :: struct_name_at(module, value_type_id)
+    target_name :: struct_name_at(module, target_type_id)
+    if value_name == "" || target_name == "" { return false }
+    value_prefix :: prefix_before_double_underscore(value_name)
+    if value_prefix == "" { return false }
+    return value_prefix == prefix_before_double_underscore(target_name)
+}
+
+/// Return the mangled name of the struct type at `type_id`, or `""` when
+/// `type_id` doesn't point to a `StructType`.
+struct_name_at :: fn(module: op.Module, type_id: i32) -> string = match module.types[usize(type_id)] {
+    is op.StructType as s -> s.name
+    _ -> ""
+}
+
+/// Slice `s` up to the first `__` byte pair occurring *after* the last
+/// `$`. That's the type-arg separator the lowerer emits for
+/// monomorphised generics (`std_core$Yield__Any`,
+/// `std_iter$MapIterator__i32__i32`). For non-generic structs there is
+/// no such `__`, and we return the empty string to signal "no sibling
+/// family" — using the full mangled name would false-match other
+/// non-generic structs declared in a path whose folder name contains
+/// `__` (e.g. `tests_snippets_if_is_narrow__main_vader$Cat` vs `$Dog`).
+prefix_before_double_underscore :: fn(s: string) -> string {
+    n :: s.byte_len()
+    if n < 2 { return "" }
+    last_dollar: i32 = -1
+    i: usize = 0
+    for i < n {
+        if s.byte_at(i) == b'$' { last_dollar = i32(i) }
+        i += 1
+    }
+    start: usize = if last_dollar < 0 { 0 } else { usize(last_dollar) + 1 }
+    j: usize = start
+    for j + 1 < n {
+        if s.byte_at(j) == b'_' && s.byte_at(j + 1) == b'_' {
+            return s.slice(0, j)
+        }
+        j += 1
+    }
+    return ""
 }
 
 /// Match a value against a `ref Trait` type. Mirrors `matchTo`'s

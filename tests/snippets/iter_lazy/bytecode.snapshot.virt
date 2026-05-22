@@ -58,6 +58,50 @@ impl 28 Iterator
 impl 29 Iterator
 impl 30 Iterator
 impl 31 Iterator
+vtable Comparable.gt 1 10
+vtable Comparable.gt 5 4
+vtable Comparable.gt 6 7
+vtable Comparable.gt 7 13
+vtable Comparable.gt 8 16
+vtable Comparable.gt 9 19
+vtable Comparable.gt 10 22
+vtable Comparable.gt 11 25
+vtable Comparable.gt 12 28
+vtable Comparable.gt 13 31
+vtable Comparable.gt 14 34
+vtable Comparable.gte 1 11
+vtable Comparable.gte 5 5
+vtable Comparable.gte 6 8
+vtable Comparable.gte 7 14
+vtable Comparable.gte 8 17
+vtable Comparable.gte 9 20
+vtable Comparable.gte 10 23
+vtable Comparable.gte 11 26
+vtable Comparable.gte 12 29
+vtable Comparable.gte 13 32
+vtable Comparable.gte 14 35
+vtable Iterator.next 15 47
+vtable Iterator.next 21 47
+vtable Iterator.next 23 48
+vtable Iterator.next 24 49
+vtable Iterator.next 26 50
+vtable Iterator.next 27 51
+vtable Iterator.next 28 52
+vtable Iterator.next 29 53
+vtable Iterator.next 30 54
+vtable Iterator.next 31 55
+vtable Iterator.next 39 47
+vtable Step.step 1 38
+vtable Step.step 5 36
+vtable Step.step 6 37
+vtable Step.step 7 39
+vtable Step.step 8 40
+vtable Step.step 9 41
+vtable Step.step 10 42
+vtable Step.step 11 43
+vtable Step.step 12 44
+vtable Step.step 13 45
+vtable Step.step 14 46
 
 fn 0 tests_snippets_iter_lazy__main_vader$main () -> i32
   local sq ref

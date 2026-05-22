@@ -35,6 +35,45 @@ impl 22 Iterator
 impl 23 Iterator
 impl 26 Contains
 impl 26 Iterator
+vtable Comparable.gt 2 14
+vtable Comparable.gt 8 8
+vtable Comparable.gt 10 11
+vtable Comparable.gt 11 17
+vtable Comparable.gt 12 20
+vtable Comparable.gt 13 23
+vtable Comparable.gt 14 26
+vtable Comparable.gt 15 29
+vtable Comparable.gt 16 32
+vtable Comparable.gt 17 35
+vtable Comparable.gt 18 38
+vtable Comparable.gte 2 15
+vtable Comparable.gte 8 9
+vtable Comparable.gte 10 12
+vtable Comparable.gte 11 18
+vtable Comparable.gte 12 21
+vtable Comparable.gte 13 24
+vtable Comparable.gte 14 27
+vtable Comparable.gte 15 30
+vtable Comparable.gte 16 33
+vtable Comparable.gte 17 36
+vtable Comparable.gte 18 39
+vtable Doubler.doubled 2 1
+vtable Greeter.greet 1 0
+vtable Iterator.next 19 51
+vtable Iterator.next 22 52
+vtable Iterator.next 23 53
+vtable Iterator.next 26 51
+vtable Step.step 2 42
+vtable Step.step 8 40
+vtable Step.step 10 41
+vtable Step.step 11 43
+vtable Step.step 12 44
+vtable Step.step 13 45
+vtable Step.step 14 46
+vtable Step.step 15 47
+vtable Step.step 16 48
+vtable Step.step 17 49
+vtable Step.step 18 50
 
 fn 0 tests_snippets_trait_box_range_iter__main_vader$Hello$Greeter$greet (ref) -> i32
   return.lit i32.const 100

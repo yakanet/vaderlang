@@ -42,6 +42,19 @@ export function writeVir(m: BytecodeModule, opts: WriteVirOptions = {}): string 
       out.push(`impl ${typeIdx} ${quoteIdent(trait)}`);
     }
   }
+  // Vtable entries — one `vtable KEY TYPE_ID FN_INDEX` line per (key, type)
+  // mapping. Required so the Vader-VM re-parse can recover entries that
+  // the mangled-name heuristic can't (e.g. erased `Range__i32` and
+  // `Range__char` sharing a single implementation fn). Sorted by key,
+  // then by type-id.
+  const vtableKeys = [...m.vtables.keys()].sort();
+  for (const key of vtableKeys) {
+    const table = m.vtables.get(key)!;
+    const typeIds = [...table.keys()].sort((a, b) => a - b);
+    for (const tid of typeIds) {
+      out.push(`vtable ${quoteIdent(key)} ${tid} ${table.get(tid)!}`);
+    }
+  }
   for (const e of m.exports) out.push(`export ${quoteIdent(e.externName)} ${e.fnIndex}`);
 
   for (let i = 0; i < m.functions.length; i++) {
@@ -264,10 +277,11 @@ interface MutableModule {
   imports: BcImport[];
   exports: BcExport[];
   implTable: Map<number, string[]>;
+  vtables: Map<string, Map<number, number>>;
 }
 
 function newMutableModule(): MutableModule {
-  return { name: "", types: [], strings: [], dataPool: [], functions: [], imports: [], exports: [], implTable: new Map() };
+  return { name: "", types: [], strings: [], dataPool: [], functions: [], imports: [], exports: [], implTable: new Map(), vtables: new Map() };
 }
 
 function finalizeModule(m: MutableModule): BytecodeModule {
@@ -275,7 +289,7 @@ function finalizeModule(m: MutableModule): BytecodeModule {
     name: m.name, types: m.types, strings: m.strings, dataPool: m.dataPool,
     functions: m.functions, imports: m.imports, exports: m.exports,
     implTable: m.implTable,
-    vtables: new Map(),
+    vtables: m.vtables,
   };
 }
 
@@ -334,6 +348,16 @@ function parseHeaderLine(line: string, m: MutableModule, ctx: ParseCtx): void {
       const list = m.implTable.get(idx);
       if (list !== undefined) list.push(trait);
       else m.implTable.set(idx, [trait]);
+      return;
+    }
+    case "vtable": {
+      const parts = rest.split(/\s+/);
+      const fnIdx = Number(parts.pop());
+      const tid = Number(parts.pop());
+      const key = unquoteIdent(parts.join(" "));
+      let table = m.vtables.get(key);
+      if (table === undefined) { table = new Map(); m.vtables.set(key, table); }
+      table.set(tid, fnIdx);
       return;
     }
     case "fn":

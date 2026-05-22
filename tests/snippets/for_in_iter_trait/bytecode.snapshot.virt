@@ -74,6 +74,51 @@ impl 43 Iterator
 impl 44 Iterator
 impl 49 Iterator
 impl 50 Display
+vtable Comparable.gt 2 12
+vtable Comparable.gt 3 36
+vtable Comparable.gt 6 33
+vtable Comparable.gt 10 6
+vtable Comparable.gt 11 9
+vtable Comparable.gt 12 15
+vtable Comparable.gt 13 18
+vtable Comparable.gt 14 21
+vtable Comparable.gt 15 24
+vtable Comparable.gt 16 27
+vtable Comparable.gt 17 30
+vtable Comparable.gte 2 13
+vtable Comparable.gte 3 37
+vtable Comparable.gte 6 34
+vtable Comparable.gte 10 7
+vtable Comparable.gte 11 10
+vtable Comparable.gte 12 16
+vtable Comparable.gte 13 19
+vtable Comparable.gte 14 22
+vtable Comparable.gte 15 25
+vtable Comparable.gte 16 28
+vtable Comparable.gte 17 31
+vtable Iterator.next 18 49
+vtable Iterator.next 21 50
+vtable Iterator.next 22 51
+vtable Iterator.next 25 52
+vtable Iterator.next 28 53
+vtable Iterator.next 31 54
+vtable Iterator.next 35 49
+vtable Iterator.next 43 55
+vtable Iterator.next 44 56
+vtable Iterator.next 49 59
+vtable Iterator.next 52 49
+vtable Iterator.next 53 49
+vtable Step.step 2 40
+vtable Step.step 3 48
+vtable Step.step 6 47
+vtable Step.step 10 38
+vtable Step.step 11 39
+vtable Step.step 12 41
+vtable Step.step 13 42
+vtable Step.step 14 43
+vtable Step.step 15 44
+vtable Step.step 16 45
+vtable Step.step 17 46
 
 fn 0 tests_snippets_for_in_iter_trait__main_vader$sum_iter (ref) -> i32
   local total i32

@@ -18,6 +18,21 @@ type 15 primitive f64
 type 16 primitive char
 type 17 primitive void
 import 0 println std_io$println (string) -> void
+vtable Equals.equals 1 4
+vtable Equals.equals 3 14
+vtable Equals.equals 4 2
+vtable Equals.equals 5 16
+vtable Equals.equals 6 3
+vtable Equals.equals 7 5
+vtable Equals.equals 8 6
+vtable Equals.equals 9 7
+vtable Equals.equals 10 8
+vtable Equals.equals 11 9
+vtable Equals.equals 12 10
+vtable Equals.equals 13 11
+vtable Equals.equals 14 12
+vtable Equals.equals 15 13
+vtable Equals.equals 16 15
 
 fn 0 tests_snippets_generic_eq__main_vader$main () -> i32
   local __sb_0 any

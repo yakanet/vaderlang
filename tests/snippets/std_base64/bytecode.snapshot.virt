@@ -61,6 +61,7 @@ import 4 byte_at std_string$byte_at (string,usize) -> u8
 import 5 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 10 Error
 impl 11 Display
+vtable Error.message 10 3
 
 fn 0 tests_snippets_std_base64__main_vader$show_decode (string,string) -> void
   local out ref

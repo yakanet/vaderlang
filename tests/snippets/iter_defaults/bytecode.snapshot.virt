@@ -48,6 +48,54 @@ impl 18 Contains
 impl 18 Iterator
 impl 24 Contains
 impl 24 Iterator
+vtable Comparable.gt 4 32
+vtable Comparable.gt 5 11
+vtable Comparable.gt 8 5
+vtable Comparable.gt 10 8
+vtable Comparable.gt 11 14
+vtable Comparable.gt 12 17
+vtable Comparable.gt 13 20
+vtable Comparable.gt 14 23
+vtable Comparable.gt 15 26
+vtable Comparable.gt 16 29
+vtable Comparable.gt 17 35
+vtable Comparable.gte 4 33
+vtable Comparable.gte 5 12
+vtable Comparable.gte 8 6
+vtable Comparable.gte 10 9
+vtable Comparable.gte 11 15
+vtable Comparable.gte 12 18
+vtable Comparable.gte 13 21
+vtable Comparable.gte 14 24
+vtable Comparable.gte 15 27
+vtable Comparable.gte 16 30
+vtable Comparable.gte 17 36
+vtable Display.to_string 4 61
+vtable Display.to_string 5 54
+vtable Display.to_string 7 66
+vtable Display.to_string 8 52
+vtable Display.to_string 9 64
+vtable Display.to_string 10 53
+vtable Display.to_string 11 55
+vtable Display.to_string 12 56
+vtable Display.to_string 13 57
+vtable Display.to_string 14 58
+vtable Display.to_string 15 59
+vtable Display.to_string 16 60
+vtable Display.to_string 17 65
+vtable Display.to_string 22 62
+vtable Display.to_string 23 63
+vtable Step.step 4 46
+vtable Step.step 5 39
+vtable Step.step 8 37
+vtable Step.step 10 38
+vtable Step.step 11 40
+vtable Step.step 12 41
+vtable Step.step 13 42
+vtable Step.step 14 43
+vtable Step.step 15 44
+vtable Step.step 16 45
+vtable Step.step 17 47
 
 fn 0 tests_snippets_iter_defaults__main_vader$Countdown$Iterator$next (ref) -> ref
   local $field_1 i32

@@ -21,6 +21,10 @@ impl 3 Iterator
 impl 6 Iterator
 impl 7 Iterator
 impl 9 Iterator
+vtable Iterator.next 3 2
+vtable Iterator.next 6 3
+vtable Iterator.next 7 2
+vtable Iterator.next 9 3
 
 fn 0 tests_snippets_trait_dispatch_generic_iter__main_vader$walk (ref) -> i32
   local sum i32

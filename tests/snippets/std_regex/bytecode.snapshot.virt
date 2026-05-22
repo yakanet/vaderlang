@@ -130,6 +130,28 @@ impl 18 Contains
 impl 18 Iterator
 impl 24 Error
 impl 43 Display
+vtable Comparable.lt 4 10
+vtable Comparable.lt 5 4
+vtable Comparable.lt 7 7
+vtable Comparable.lt 8 13
+vtable Comparable.lt 9 16
+vtable Comparable.lt 10 19
+vtable Comparable.lt 11 22
+vtable Comparable.lt 12 25
+vtable Comparable.lt 13 28
+vtable Comparable.lt 14 31
+vtable Comparable.lt 15 34
+vtable Comparable.lte 4 11
+vtable Comparable.lte 5 5
+vtable Comparable.lte 7 8
+vtable Comparable.lte 8 14
+vtable Comparable.lte 9 17
+vtable Comparable.lte 10 20
+vtable Comparable.lte 11 23
+vtable Comparable.lte 12 26
+vtable Comparable.lte 13 29
+vtable Comparable.lte 14 32
+vtable Comparable.lte 15 35
 
 fn 0 tests_snippets_std_regex__main_vader$run_match (string,ref,string) -> void
   local __sb_0 any

@@ -23,6 +23,7 @@ import 1 spawn_run std_process$spawn_run (ref) -> i32
 import 2 spawn_last_stdout std_process$spawn_last_stdout () -> string
 import 3 spawn_last_stderr std_process$spawn_last_stderr () -> string
 impl 6 Error
+vtable Error.message 6 1
 
 fn 0 tests_snippets_process_spawn__main_vader$main () -> i32
   local r ref

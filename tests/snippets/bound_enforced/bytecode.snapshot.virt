@@ -16,6 +16,18 @@ type 13 primitive char
 type 14 primitive string
 string 0 "foo"
 import 0 hash std_core$string$Hash$hash (string) -> u64
+vtable Hash.hash 1 4
+vtable Hash.hash 4 2
+vtable Hash.hash 5 10
+vtable Hash.hash 6 3
+vtable Hash.hash 7 5
+vtable Hash.hash 8 6
+vtable Hash.hash 9 7
+vtable Hash.hash 10 8
+vtable Hash.hash 11 9
+vtable Hash.hash 12 11
+vtable Hash.hash 13 12
+vtable Hash.hash 14 13
 
 fn 0 tests_snippets_bound_enforced__main_vader$main () -> i32
   string.const 0

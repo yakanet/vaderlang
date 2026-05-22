@@ -38,6 +38,61 @@ impl 13 Contains
 impl 13 Iterator
 impl 19 Contains
 impl 19 Iterator
+vtable Comparable.gt 1 57
+vtable Comparable.gt 3 17
+vtable Comparable.gt 4 7
+vtable Comparable.gt 5 12
+vtable Comparable.gt 6 22
+vtable Comparable.gt 7 27
+vtable Comparable.gt 8 32
+vtable Comparable.gt 9 37
+vtable Comparable.gt 10 42
+vtable Comparable.gt 11 47
+vtable Comparable.gt 12 52
+vtable Comparable.gte 1 58
+vtable Comparable.gte 3 18
+vtable Comparable.gte 4 8
+vtable Comparable.gte 5 13
+vtable Comparable.gte 6 23
+vtable Comparable.gte 7 28
+vtable Comparable.gte 8 33
+vtable Comparable.gte 9 38
+vtable Comparable.gte 10 43
+vtable Comparable.gte 11 48
+vtable Comparable.gte 12 53
+vtable Comparable.lt 1 55
+vtable Comparable.lt 3 15
+vtable Comparable.lt 4 5
+vtable Comparable.lt 5 10
+vtable Comparable.lt 6 20
+vtable Comparable.lt 7 25
+vtable Comparable.lt 8 30
+vtable Comparable.lt 9 35
+vtable Comparable.lt 10 40
+vtable Comparable.lt 11 45
+vtable Comparable.lt 12 50
+vtable Comparable.lte 1 56
+vtable Comparable.lte 3 16
+vtable Comparable.lte 4 6
+vtable Comparable.lte 5 11
+vtable Comparable.lte 6 21
+vtable Comparable.lte 7 26
+vtable Comparable.lte 8 31
+vtable Comparable.lte 9 36
+vtable Comparable.lte 10 41
+vtable Comparable.lte 11 46
+vtable Comparable.lte 12 51
+vtable Step.step 1 69
+vtable Step.step 3 61
+vtable Step.step 4 59
+vtable Step.step 5 60
+vtable Step.step 6 62
+vtable Step.step 7 63
+vtable Step.step 8 64
+vtable Step.step 9 65
+vtable Step.step 10 66
+vtable Step.step 11 67
+vtable Step.step 12 68
 
 fn 0 tests_snippets_char_range_contains__main_vader$is_digit (char) -> bool
   char.const 48

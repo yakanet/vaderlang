@@ -59,6 +59,33 @@ impl 27 Contains
 impl 27 Into
 impl 28 Contains
 impl 28 Into
+vtable Equals.equals 1 21
+vtable Equals.equals 2 19
+vtable Equals.equals 3 27
+vtable Equals.equals 4 20
+vtable Equals.equals 5 22
+vtable Equals.equals 6 23
+vtable Equals.equals 7 24
+vtable Equals.equals 8 25
+vtable Equals.equals 9 26
+vtable Equals.equals 10 28
+vtable Equals.equals 11 32
+vtable Equals.equals 12 33
+vtable Equals.equals 13 29
+vtable Equals.equals 14 30
+vtable Equals.equals 15 31
+vtable Hash.hash 1 3
+vtable Hash.hash 2 1
+vtable Hash.hash 3 9
+vtable Hash.hash 4 2
+vtable Hash.hash 5 4
+vtable Hash.hash 6 5
+vtable Hash.hash 7 6
+vtable Hash.hash 8 7
+vtable Hash.hash 9 8
+vtable Hash.hash 10 10
+vtable Hash.hash 11 11
+vtable Hash.hash 12 34
 
 fn 0 tests_snippets_map_set_iter__main_vader$main () -> i32
   local $arr_0 ref

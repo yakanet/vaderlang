@@ -25,6 +25,33 @@ string 1 "bar"
 string 2 "baz"
 import 0 hash std_core$string$Hash$hash (string) -> u64
 import 1 println std_io$println (string) -> void
+vtable Equals.equals 1 15
+vtable Equals.equals 4 13
+vtable Equals.equals 5 21
+vtable Equals.equals 6 14
+vtable Equals.equals 7 16
+vtable Equals.equals 8 17
+vtable Equals.equals 9 18
+vtable Equals.equals 10 19
+vtable Equals.equals 11 20
+vtable Equals.equals 12 22
+vtable Equals.equals 13 26
+vtable Equals.equals 14 27
+vtable Equals.equals 15 23
+vtable Equals.equals 16 24
+vtable Equals.equals 17 25
+vtable Hash.hash 1 4
+vtable Hash.hash 4 2
+vtable Hash.hash 5 10
+vtable Hash.hash 6 3
+vtable Hash.hash 7 5
+vtable Hash.hash 8 6
+vtable Hash.hash 9 7
+vtable Hash.hash 10 8
+vtable Hash.hash 11 9
+vtable Hash.hash 12 11
+vtable Hash.hash 13 12
+vtable Hash.hash 14 28
 
 fn 0 tests_snippets_trait_dispatch_bounded__main_vader$main () -> i32
   local nums ref

@@ -131,6 +131,7 @@ export parse_virt :: fn(source: string) -> op.Module {
     functions: op.BytecodeFunction[] = []
     impls: op.Impl[] = []
     data_pool: op.ArrayVal[] = []
+    serialised_vtables: op.Vtable[] = []
     main_index := -1
 
     // Per-function metadata held outside the state bundle since they're
@@ -174,6 +175,7 @@ export parse_virt :: fn(source: string) -> op.Module {
             if head == "data"   { parse_data_decl(cleaned, data_pool) continue }
             if head == "import" { parse_import_decl(cleaned, imports) continue }
             if head == "impl"   { parse_impl_decl(cleaned, impls) continue }
+            if head == "vtable" { parse_vtable_decl(cleaned, serialised_vtables) continue }
             if head == "export" {
                 found :: parse_export_main_index(cleaned)
                 if found >= 0 { main_index = found }
@@ -226,12 +228,21 @@ export parse_virt :: fn(source: string) -> op.Module {
         main_index = find_main_by_suffix(functions)
     }
 
+    // Prefer the explicit `vtable` directives written by the TS emitter ;
+    // fall back to the mangled-name heuristic for older .virt snapshots
+    // that don't carry them.
+    final_vtables: op.Vtable[] = []
+    if serialised_vtables.len() > 0 {
+        final_vtables = serialised_vtables
+    } else {
+        final_vtables = build_vtables(functions, types)
+    }
     return op.Module {
         .strings    = strings,
         .imports    = imports,
         .types      = types,
         .functions  = functions,
-        .vtables    = build_vtables(functions, types),
+        .vtables    = final_vtables,
         .impls      = impls,
         .data_pool  = data_pool,
         .main_index = main_index,
@@ -281,15 +292,25 @@ TraitImplSlot :: struct {
 /// Inspect `function_name` for the trait-impl mangling shape. Returns `null`
 /// when the name is a regular function (no `$<TraitName>$<MethodName>`
 /// suffix matching a registered `op.StructType`).
+///
+/// `@intrinsic`-synthesised vtable wrappers append a `$vt` suffix to the
+/// dispatcher key (e.g. `std_core$i32$Add$add$vt`); strip it before the
+/// trait-shape walk so the trait/method/type decoding lines up with
+/// hand-written impls.
 parse_trait_impl_name :: fn(function_name: string, types: op.TypeDecl[]) -> TraitImplSlot | null {
-    last_dollar :: last_index_of_dollar(function_name)
+    vt_suffix :: "\$vt"
+    name := function_name
+    if name.ends_with(vt_suffix) {
+        name = name.slice(0, name.byte_len() - vt_suffix.byte_len())
+    }
+    last_dollar :: last_index_of_dollar(name)
     if last_dollar < 0 { return null }
-    second_last :: last_index_of_dollar_before(function_name, last_dollar)
+    second_last :: last_index_of_dollar_before(name, last_dollar)
     if second_last < 0 { return null }
     // Require a module prefix `$` before the `<Type>$<Trait>$<Method>` tail —
     // bare `$Type$Method` shapes (no module) are never trait impls.
-    if last_index_of_dollar_before(function_name, second_last) < 0 { return null }
-    method_full :: function_name.slice(usize(last_dollar + 1), function_name.byte_len())
+    if last_index_of_dollar_before(name, second_last) < 0 { return null }
+    method_full :: name.slice(usize(last_dollar + 1), name.byte_len())
     // Generic-monomorphised impls mangle as `<Type>__T1[..]$<Trait>$<method>__T1[..]`,
     // so the `__T...` tail on the method name mirrors the receiver type's own
     // suffix. Detach it from the method name and append it to the type prefix
@@ -301,8 +322,8 @@ parse_trait_impl_name :: fn(function_name: string, types: op.TypeDecl[]) -> Trai
         method_name = method_full.slice(0, usize(underscore_at))
         generic_suffix = method_full.slice(usize(underscore_at), method_full.byte_len())
     }
-    trait_name :: function_name.slice(usize(second_last + 1), usize(last_dollar))
-    type_prefix :: function_name.slice(0, usize(second_last))
+    trait_name :: name.slice(usize(second_last + 1), usize(last_dollar))
+    type_prefix :: name.slice(0, usize(second_last))
     type_name :: "${type_prefix}${generic_suffix}"
     type_id :: find_struct_type_id(types, type_name)
     if type_id < 0 { return null }
@@ -736,6 +757,46 @@ parse_impl_decl :: fn(cleaned: string, impls: op.Impl[]) -> void {
         unquoted = trait_name.slice(1, trait_name.byte_len() - 1)
     }
     impls.push(op.Impl { .type_id = i32(parsed), .trait_name = unquoted })
+}
+
+/// Parse a `vtable KEY TYPE_ID FN_INDEX` directive. The KEY is the
+/// `<trait>.<method>` join produced by the TS emitter (e.g.
+/// `Iterator.next`). Multiple lines may share the same key — each
+/// pushes a new entry into the matching `op.Vtable`.
+parse_vtable_decl :: fn(cleaned: string, vtables: op.Vtable[]) -> void {
+    after :: cleaned.slice("vtable ".byte_len(), cleaned.byte_len()).trim()
+    // Last two tokens are integers, everything before is the key.
+    last_space :: last_index_of_space(after)
+    if last_space < 0 { return }
+    fn_text :: after.slice(usize(last_space) + 1, after.byte_len()).trim()
+    fn_parsed :: parse_int_in_base(fn_text, 10)
+    if fn_parsed is Error { return }
+    head :: after.slice(0, usize(last_space)).trim()
+    second_space :: last_index_of_space(head)
+    if second_space < 0 { return }
+    type_text :: head.slice(usize(second_space) + 1, head.byte_len()).trim()
+    type_parsed :: parse_int_in_base(type_text, 10)
+    if type_parsed is Error { return }
+    raw_key :: head.slice(0, usize(second_space)).trim()
+    key: string = raw_key
+    if raw_key.byte_len() >= 2 && raw_key.byte_at(0) == b'"' && raw_key.byte_at(raw_key.byte_len() - 1) == b'"' {
+        key = raw_key.slice(1, raw_key.byte_len() - 1)
+    }
+    register_vtable_entry(vtables, key, op.VtableEntry {
+        .type_id        = i32(type_parsed),
+        .function_index = i32(fn_parsed),
+    })
+}
+
+/// Index of the last ASCII space in `s`, or `-1` if absent.
+last_index_of_space :: fn(s: string) -> i32 {
+    n :: i32(s.byte_len())
+    i: i32 = n - 1
+    for i >= 0 {
+        if s.byte_at(usize(i)) == b' ' { return i }
+        i -= 1
+    }
+    return -1
 }
 
 parse_export_main_index :: fn(cleaned: string) -> i32 {

@@ -55,6 +55,7 @@ export write_virt :: fn(module: op.Module) -> string {
     write_data_pool(out, module.data_pool)
     write_imports(out, module.imports)
     write_impls(out, module.impls)
+    write_vtables(out, module.vtables)
     out.append("export main ${module.main_index}\n")
 
     fn_index: usize = 0
@@ -275,6 +276,22 @@ write_impls :: fn(out: StringBuilder, impls: op.Impl[]) -> void {
     for i < impls.len() {
         e :: impls[i]
         out.append("impl ${e.type_id} ${e.trait_name}\n")
+        i += 1
+    }
+}
+
+/// Emit `vtable KEY TYPE_ID FN_INDEX` for every entry. Entries are
+/// already sorted by build_vtables (key alphabetical, type_id ascending).
+write_vtables :: fn(out: StringBuilder, vtables: op.Vtable[]) -> void {
+    i: usize = 0
+    for i < vtables.len() {
+        vt :: vtables[i]
+        j: usize = 0
+        for j < vt.entries.len() {
+            e :: vt.entries[j]
+            out.append("vtable ${vt.key} ${e.type_id} ${e.function_index}\n")
+            j += 1
+        }
         i += 1
     }
 }

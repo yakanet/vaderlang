@@ -73,6 +73,33 @@ impl 30 Contains
 impl 30 Into
 impl 31 Iterator
 impl 34 Display
+vtable Equals.equals 1 24
+vtable Equals.equals 2 22
+vtable Equals.equals 3 30
+vtable Equals.equals 4 23
+vtable Equals.equals 5 25
+vtable Equals.equals 6 26
+vtable Equals.equals 7 27
+vtable Equals.equals 8 28
+vtable Equals.equals 9 29
+vtable Equals.equals 10 31
+vtable Equals.equals 11 35
+vtable Equals.equals 12 36
+vtable Equals.equals 13 32
+vtable Equals.equals 14 33
+vtable Equals.equals 15 34
+vtable Hash.hash 1 3
+vtable Hash.hash 2 1
+vtable Hash.hash 3 9
+vtable Hash.hash 4 2
+vtable Hash.hash 5 4
+vtable Hash.hash 6 5
+vtable Hash.hash 7 6
+vtable Hash.hash 8 7
+vtable Hash.hash 9 8
+vtable Hash.hash 10 10
+vtable Hash.hash 11 11
+vtable Hash.hash 12 37
 
 fn 0 tests_snippets_for_in_into_iter__main_vader$main () -> i32
   local arr_total i32

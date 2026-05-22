@@ -141,6 +141,55 @@ impl 49 Index
 impl 49 IndexSet
 impl 49 Contains
 impl 49 Into
+vtable Comparable.lt 3 20
+vtable Comparable.lt 4 14
+vtable Comparable.lt 5 38
+vtable Comparable.lt 6 17
+vtable Comparable.lt 7 23
+vtable Comparable.lt 8 26
+vtable Comparable.lt 9 29
+vtable Comparable.lt 10 32
+vtable Comparable.lt 11 35
+vtable Comparable.lt 12 41
+vtable Comparable.lt 13 44
+vtable Comparable.lte 3 21
+vtable Comparable.lte 4 15
+vtable Comparable.lte 5 39
+vtable Comparable.lte 6 18
+vtable Comparable.lte 7 24
+vtable Comparable.lte 8 27
+vtable Comparable.lte 9 30
+vtable Comparable.lte 10 33
+vtable Comparable.lte 11 36
+vtable Comparable.lte 12 42
+vtable Comparable.lte 13 45
+vtable Equals.equals 1 107
+vtable Equals.equals 3 95
+vtable Equals.equals 4 93
+vtable Equals.equals 5 101
+vtable Equals.equals 6 94
+vtable Equals.equals 7 96
+vtable Equals.equals 8 97
+vtable Equals.equals 9 98
+vtable Equals.equals 10 99
+vtable Equals.equals 11 100
+vtable Equals.equals 12 102
+vtable Equals.equals 13 106
+vtable Equals.equals 14 105
+vtable Equals.equals 17 103
+vtable Equals.equals 18 104
+vtable Hash.hash 1 108
+vtable Hash.hash 3 4
+vtable Hash.hash 4 2
+vtable Hash.hash 5 10
+vtable Hash.hash 6 3
+vtable Hash.hash 7 5
+vtable Hash.hash 8 6
+vtable Hash.hash 9 7
+vtable Hash.hash 10 8
+vtable Hash.hash 11 9
+vtable Hash.hash 12 11
+vtable Hash.hash 13 12
 
 fn 0 tests_snippets_json_basics__main_vader$show (string,string) -> void
   local parsed ref

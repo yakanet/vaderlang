@@ -14,6 +14,18 @@ type 11 primitive usize
 type 12 primitive char
 type 13 primitive string
 import 0 hash std_core$string$Hash$hash (string) -> u64
+vtable Hash.hash 1 4
+vtable Hash.hash 3 10
+vtable Hash.hash 4 2
+vtable Hash.hash 5 3
+vtable Hash.hash 6 5
+vtable Hash.hash 7 6
+vtable Hash.hash 8 7
+vtable Hash.hash 9 8
+vtable Hash.hash 10 9
+vtable Hash.hash 11 11
+vtable Hash.hash 12 12
+vtable Hash.hash 13 13
 
 fn 0 tests_snippets_trait_dispatch_param__main_vader$main () -> i32
   i32.const 7

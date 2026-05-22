@@ -14,6 +14,19 @@ type 11 primitive u64
 type 12 primitive usize
 type 13 primitive f32
 type 14 primitive f64
+vtable Add.add 1 5
+vtable Add.add 3 3
+vtable Add.add 4 15
+vtable Add.add 5 4
+vtable Add.add 6 6
+vtable Add.add 7 7
+vtable Add.add 8 8
+vtable Add.add 9 9
+vtable Add.add 10 10
+vtable Add.add 11 11
+vtable Add.add 12 12
+vtable Add.add 13 13
+vtable Add.add 14 14
 
 fn 0 tests_snippets_numeric_add_trait__main_vader$main () -> i32
   local a i32

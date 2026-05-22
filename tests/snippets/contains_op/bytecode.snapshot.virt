@@ -30,6 +30,28 @@ impl 14 Contains
 impl 14 Iterator
 impl 17 Contains
 impl 17 Iterator
+vtable Comparable.lt 2 9
+vtable Comparable.lt 4 3
+vtable Comparable.lt 5 6
+vtable Comparable.lt 6 12
+vtable Comparable.lt 7 15
+vtable Comparable.lt 8 18
+vtable Comparable.lt 9 21
+vtable Comparable.lt 10 24
+vtable Comparable.lt 11 27
+vtable Comparable.lt 12 30
+vtable Comparable.lt 13 33
+vtable Comparable.lte 2 10
+vtable Comparable.lte 4 4
+vtable Comparable.lte 5 7
+vtable Comparable.lte 6 13
+vtable Comparable.lte 7 16
+vtable Comparable.lte 8 19
+vtable Comparable.lte 9 22
+vtable Comparable.lte 10 25
+vtable Comparable.lte 11 28
+vtable Comparable.lte 12 31
+vtable Comparable.lte 13 34
 
 fn 0 tests_snippets_contains_op__main_vader$DigitSet$Contains$contains (ref,i32) -> bool
   local or_res bool

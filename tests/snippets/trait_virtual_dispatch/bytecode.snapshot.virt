@@ -13,6 +13,8 @@ string 3 "timeout"
 import 0 println std_io$println (string) -> void
 impl 1 Error
 impl 3 Error
+vtable Error.message 1 0
+vtable Error.message 3 1
 
 fn 0 tests_snippets_trait_virtual_dispatch__main_vader$ParseErr$Error$message (ref) -> string
   local __sb_0 any
