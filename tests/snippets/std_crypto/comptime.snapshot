@@ -1,3 +1,27 @@
 # Comptime
 
+## stdlib/std/core.vader
+
+## stdlib/std/crypto.vader
+  @comptime  MASK_U32             = 4294967295_u32
+
+## stdlib/std/io.vader
+
 ## tests/snippets/std_crypto/_main.vader
+
+## generic instances
+  Index(I, T)
+  IndexSet(I, T)
+  Contains(T)
+  Iterator(T)
+  Iterator(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  Into(Target)

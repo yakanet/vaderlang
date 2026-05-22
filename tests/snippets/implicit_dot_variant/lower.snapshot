@@ -61,49 +61,46 @@
         int(0) :i32
         int(2) :i32
     block :void
-      let __iter_0: ArrayIterator(Day) =
-        ArrayIterator(Day) {
-          arr: days :Day[]
-          cursor: int(0) :usize
-        }
-      loop
-        let __step_1: Yield(Day) | null =
-          call :Yield(Day) | null
-            callee:
-              next :?
-            arg0:
-              __iter_0 :ArrayIterator(Day)
-        if :void
-          cond:
-            is null :bool
-              __step_1 :Yield(Day) | null
-          then:
-            break
-          else:
-            let d: Day =
-              .value :Day
-                cast → Yield(Day)
-                  __step_1 :Yield(Day) | null
-            call :void
+      let __for_arr_0: Day[] = days :Day[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let d: Day =
+          index :Day
+            on:
+              __for_arr_0 :Day[]
+            ix:
+              __for_i_2 :usize
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            call :string
               callee:
-                println :fn(string) -> void
+                show_day :fn(Day) -> string
               arg0:
-                call :string
-                  callee:
-                    show_day :fn(Day) -> string
-                  arg0:
-                    d :Day
+                d :Day
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
     let m: None | Some =
       Some {
         value: int(42) :i32
       }
     block :void
-      let __scrut_2: None | Some = m :None | Some
+      let __scrut_3: None | Some = m :None | Some
       ~>
         if :void
           cond:
             is Some :bool
-              __scrut_2 :None | Some
+              __scrut_3 :None | Some
           then:
             ~>
               call :void
@@ -111,25 +108,25 @@
                   println :fn(string) -> void
                 arg0:
                   block :string
-                    let __sb_3: ? =
+                    let __sb_4: ? =
                       @builder.new :?
                     @builder.append_str :void
-                      __sb_3 :?
+                      __sb_4 :?
                       "got=" :string
                     @builder.append_display <for i32> :void
-                      __sb_3 :?
+                      __sb_4 :?
                       .value :i32
                         cast → Some
                           m :None | Some
                     ~>
                       @builder.finish :string
-                        __sb_3 :?
+                        __sb_4 :?
           else:
             ~>
               if :void
                 cond:
                   is None :bool
-                    __scrut_2 :None | Some
+                    __scrut_3 :None | Some
                 then:
                   ~>
                     call :void
@@ -144,12 +141,12 @@
       None {
       }
     block :void
-      let __scrut_4: None | Some = n :None | Some
+      let __scrut_5: None | Some = n :None | Some
       ~>
         if :void
           cond:
             is Some :bool
-              __scrut_4 :None | Some
+              __scrut_5 :None | Some
           then:
             ~>
               call :void
@@ -157,25 +154,25 @@
                   println :fn(string) -> void
                 arg0:
                   block :string
-                    let __sb_5: ? =
+                    let __sb_6: ? =
                       @builder.new :?
                     @builder.append_str :void
-                      __sb_5 :?
+                      __sb_6 :?
                       "got=" :string
                     @builder.append_display <for i32> :void
-                      __sb_5 :?
+                      __sb_6 :?
                       .value :i32
                         cast → Some
                           n :None | Some
                     ~>
                       @builder.finish :string
-                        __sb_5 :?
+                        __sb_6 :?
           else:
             ~>
               if :void
                 cond:
                   is None :bool
-                    __scrut_4 :None | Some
+                    __scrut_5 :None | Some
                 then:
                   ~>
                     call :void

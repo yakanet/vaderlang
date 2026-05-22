@@ -1,6 +1,25 @@
 # Comptime
 
+## stdlib/std/core.vader
+
 ## tests/snippets/interp_string_comptime/_main.vader
+
+## generic instances
+  Index(I, T)
+  IndexSet(I, T)
+  Contains(T)
+  Iterator(T)
+  Iterator(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  Into(Target)
 
 # Diagnostics
 [2:20] error[C4002] comptime expression requires VM execution: StringInterp

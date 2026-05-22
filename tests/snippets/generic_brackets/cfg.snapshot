@@ -33,15 +33,15 @@ fn tests_snippets_generic_brackets__main_vader$main() -> i32
     %12 = binop add %10 %11 :i32
     return %12
 
-fn tests_snippets_generic_brackets__main_vader$tests_snippets_generic_brackets__main_vader$identity__i32(%0: i32) -> i32
+fn tests_snippets_generic_brackets__main_vader$tests_snippets_generic_brackets__main_vader$identity__i32(%0: Any) -> Any
   locals:
-    %0 x: i32 (param x)
+    %0 x: Any (param x)
   bb0:
     return %0
 
-fn tests_snippets_generic_brackets__main_vader$tests_snippets_generic_brackets__main_vader$swap__i32__i32(%0: i32, %1: i32) -> i32
+fn tests_snippets_generic_brackets__main_vader$tests_snippets_generic_brackets__main_vader$swap__i32__i32(%0: Any, %1: Any) -> Any
   locals:
-    %0 a: i32 (param a)
-    %1 b: i32 (param b)
+    %0 a: Any (param a)
+    %1 b: Any (param b)
   bb0:
     return %1

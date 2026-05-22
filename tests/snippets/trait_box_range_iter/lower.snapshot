@@ -63,21 +63,21 @@
               c :i32
         r:
           d :i32
-  fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$count__i32(it: Iterator(i32)) -> i32
+  fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$count__i32(it: Iterator(Any)) -> i32
     let n: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
       ~>
         block :void
-          let __scrut_0: null | Yield(i32) =
-            vcall Iterator.next :null | Yield(i32)
+          let __scrut_0: null | Yield(Any) =
+            vcall Iterator.next :null | Yield(Any)
               recv:
-                it :Iterator(i32)
+                it :Iterator(Any)
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield(i32)
+                  __scrut_0 :null | Yield(Any)
               then:
                 ~>
                   block :void
@@ -90,8 +90,8 @@
                 ~>
                   if :void
                     cond:
-                      is Yield(i32) :bool
-                        __scrut_0 :null | Yield(i32)
+                      is Yield(Any) :bool
+                        __scrut_0 :null | Yield(Any)
                     then:
                       ~>
                         block :void
@@ -108,13 +108,13 @@
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return n :i32
-  fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$invoke__i32(g: Greeter(i32)) -> i32
+  fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$invoke__i32(g: Greeter(Any)) -> Any
     return
-      vcall Greeter.greet :i32
+      vcall Greeter.greet :Any
         recv:
-          g :Greeter(i32)
-  fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$twice__i32(x: Doubler(i32)) -> i32
+          g :Greeter(Any)
+  fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$twice__i32(x: Doubler(Any)) -> Any
     return
-      vcall Doubler.doubled :i32
+      vcall Doubler.doubled :Any
         recv:
-          x :Doubler(i32)
+          x :Doubler(Any)

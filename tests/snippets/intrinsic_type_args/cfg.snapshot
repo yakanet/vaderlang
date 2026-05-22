@@ -6,69 +6,60 @@ fn tests_snippets_intrinsic_type_args__main_vader$main() -> i32
   locals:
     %0 $type_const_0: type
     %1 $type_const_1: type
-    %2 $arr_2: type[]
-    %3 $k_3: usize
-    %4 __iter_0: ArrayIterator(type) (synthetic __iter_0)
-    %5 $call_6: Yield(type) | null
-    %6 __step_1: Yield(type) | null (synthetic __step_1)
-    %7 $type_check_8: bool
-    %8 $cast_9: Yield(type)
-    %9 t: type (binding t)
-    %10 $intrinsic_12: ?
-    %11 __sb_2: ? (synthetic __sb_2)
-    %12 $k_14: string
-    %13 $intrinsic_15: usize
-    %14 $call_16: string
-    %15 $intrinsic_17: string
-    %16 args: type[] (local args)
-    %17 $intrinsic_20: ?
-    %18 __sb_3: ? (synthetic __sb_3)
-    %19 $k_22: string
-    %20 $len_23: usize
-    %21 $call_24: string
-    %22 $intrinsic_25: string
-    %23 $k_26: i32
+    %2 __for_arr_0: type[] (synthetic __for_arr_0)
+    %3 __for_len_1: usize (synthetic __for_len_1)
+    %4 __for_i_2: usize (synthetic __for_i_2)
+    %5 $lt_8: bool
+    %6 t: type (binding t)
+    %7 $intrinsic_11: ?
+    %8 __sb_3: ? (synthetic __sb_3)
+    %9 $k_13: string
+    %10 $intrinsic_14: usize
+    %11 $call_15: string
+    %12 $intrinsic_16: string
+    %13 $k_17: usize
+    %14 args: type[] (local args)
+    %15 $intrinsic_21: ?
+    %16 __sb_4: ? (synthetic __sb_4)
+    %17 $k_23: string
+    %18 $len_24: usize
+    %19 $call_25: string
+    %20 $intrinsic_26: string
+    %21 $k_27: i32
   bb0:
     %0 = type_const string
     %1 = type_const i64
-    %2 = array_new type[][2](%0, %1)
-    %3 = const int(0) :usize
-    %4 = struct_new ArrayIterator(type)(%2, %3)
+    %2 = array_new[stack] type[][2](%0, %1)
+    %3 = array_len %2
+    %4 = const int(0) :usize
     branch -> bb1
   bb1:
-    branch -> bb2
+    %5 = binop lt %4 %3 :bool
+    cond_branch %5 ? bb2 : bb3
   bb2:
-    %5 = call next(%4) :Yield(type) | null
-    %6 = move %5
-    %7 = type_check %6 is null
-    cond_branch %7 ? bb4 : bb5
-  bb3:
-    %16 = array_new[stack] type[][0]()
-    %17 = intrinsic builder.new()
-    %18 = move %17
-    %19 = const string(#1) :string
-    intrinsic builder.append_str(%18, %19)
-    %20 = array_len %16
-    %21 = call to_string(%20) :string
-    intrinsic builder.append_str(%18, %21)
-    %22 = intrinsic builder.finish(%18)
-    call println(%22) :void
-    %23 = const int(0) :i32
-    return %23
-  bb4:
-    branch -> bb3
-  bb5:
-    %8 = cast %6 :Yield(type)
-    %9 = field_get %8.value :type
-    %10 = intrinsic builder.new()
-    %11 = move %10
-    %12 = const string(#0) :string
-    intrinsic builder.append_str(%11, %12)
-    %13 = intrinsic size_of.type(%9)
-    %14 = call to_string(%13) :string
-    intrinsic builder.append_str(%11, %14)
-    %15 = intrinsic builder.finish(%11)
-    call println(%15) :void
-    branch -> bb6
-  bb6:
+    %6 = array_get %2[%4] :type
+    %7 = intrinsic builder.new()
+    %8 = move %7
+    %9 = const string(#0) :string
+    intrinsic builder.append_str(%8, %9)
+    %10 = intrinsic size_of.type(%6)
+    %11 = call to_string(%10) :string
+    intrinsic builder.append_str(%8, %11)
+    %12 = intrinsic builder.finish(%8)
+    call println(%12) :void
+    %13 = const int(1) :usize
+    %4 = binop add %4 %13 :usize
     branch -> bb1
+  bb3:
+    %14 = array_new[stack] type[][0]()
+    %15 = intrinsic builder.new()
+    %16 = move %15
+    %17 = const string(#1) :string
+    intrinsic builder.append_str(%16, %17)
+    %18 = array_len %14
+    %19 = call to_string(%18) :string
+    intrinsic builder.append_str(%16, %19)
+    %20 = intrinsic builder.finish(%16)
+    call println(%20) :void
+    %21 = const int(0) :i32
+    return %21

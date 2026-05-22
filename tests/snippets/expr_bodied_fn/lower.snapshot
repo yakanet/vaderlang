@@ -158,12 +158,6 @@
           arg0:
             "hello" :string
     return int(0) :i32
-  fn tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__f64(x: f64) -> f64
+  fn tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__f64(x: Any) -> Any
     ~>
-      x :f64
-  fn tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__i32(x: i32) -> i32
-    ~>
-      x :i32
-  fn tests_snippets_expr_bodied_fn__main_vader$tests_snippets_expr_bodied_fn__main_vader$id__string(x: string) -> string
-    ~>
-      x :string
+      x :Any

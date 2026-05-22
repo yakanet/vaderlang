@@ -102,6 +102,7 @@
               cat_wrap_result :i32
             r:
               int(8) :i32
-  struct tests_snippets_vm_trait_dispatch__main_vader$Wrapper__i32 { inner: i32 }
+  struct tests_snippets_vm_trait_dispatch__main_vader$Wrapper__i32 { inner: Any }
   fn tests_snippets_vm_trait_dispatch__main_vader$Wrapper$Printable$label__i32(self: Wrapper(i32)) -> string
     return "wrapped" :string
+  struct tests_snippets_vm_trait_dispatch__main_vader$Wrapper__Any { inner: Any }

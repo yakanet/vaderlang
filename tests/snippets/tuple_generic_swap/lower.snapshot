@@ -36,13 +36,13 @@
             @builder.finish :string
               __sb_0 :?
     return int(0) :i32
-  fn tests_snippets_tuple_generic_swap__main_vader$tests_snippets_tuple_generic_swap__main_vader$swap__i32__string(p: [i32, string]) -> [string, i32]
+  fn tests_snippets_tuple_generic_swap__main_vader$tests_snippets_tuple_generic_swap__main_vader$swap__i32__string(p: [Any, Any]) -> [Any, Any]
     return
-      [string, i32] {
+      [Any, Any] {
         _0:
-          ._1 :string
-            p :[i32, string]
+          ._1 :Any
+            p :[Any, Any]
         _1:
-          ._0 :i32
-            p :[i32, string]
+          ._0 :Any
+            p :[Any, Any]
       }

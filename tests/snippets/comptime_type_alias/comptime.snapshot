@@ -1,6 +1,27 @@
 # Comptime
 
+## stdlib/std/core.vader
+
+## stdlib/std/io.vader
+
 ## tests/snippets/comptime_type_alias/_main.vader
   @comptime  byte_int             = i32
   @comptime  byte_long            = i64
   @comptime  byte_string          = string
+
+## generic instances
+  Index(I, T)
+  IndexSet(I, T)
+  Contains(T)
+  Iterator(T)
+  Iterator(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  Into(Target)

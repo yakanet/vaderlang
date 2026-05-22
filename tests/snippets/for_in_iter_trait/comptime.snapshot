@@ -1,9 +1,64 @@
 # Comptime
 
+## stdlib/std/core.vader
+
+## stdlib/std/io.vader
+
+## stdlib/std/iter.vader
+
+## stdlib/std/string.vader
+
 ## tests/snippets/for_in_iter_trait/_main.vader
 
 ## generic instances
+  Index(I, T)
+  IndexSet(I, T)
+  Contains(T)
+  Iterator(char)
   Iterator(i32)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Yield(char)
+  Yield(u8)
+  Yield(T)
+  Yield(T)
+  Yield(U)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
   Range(i32)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  MapIterator(T, U)
+  MapIterator(T, U)
+  MapIterator(T, U)
   FilterIterator(char)
   FilterIterator(T)
+  FilterIterator(T)
+  FilterIterator(T)
+  TakeIterator(T)
+  TakeIterator(T)
+  TakeIterator(T)
+  SkipIterator(T)
+  SkipIterator(T)
+  SkipIterator(T)
+  Into(Target)

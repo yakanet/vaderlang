@@ -8,45 +8,42 @@
         int(20) :i32
         int(30) :i32
     block :void
-      let __iter_0: ArrayIterator(i32) =
-        ArrayIterator(i32) {
-          arr: scores :i32[]
-          cursor: int(0) :usize
-        }
-      loop
-        let __step_1: Yield(i32) | null =
-          call :Yield(i32) | null
-            callee:
-              next :?
-            arg0:
-              __iter_0 :ArrayIterator(i32)
-        if :void
-          cond:
-            is null :bool
-              __step_1 :Yield(i32) | null
-          then:
-            break
-          else:
-            let s: i32 =
-              .value :i32
-                cast → Yield(i32)
-                  __step_1 :Yield(i32) | null
-            call :void
-              callee:
-                println :fn(string) -> void
-              arg0:
-                block :string
-                  let __sb_2: ? =
-                    @builder.new :?
-                  @builder.append_str :void
-                    __sb_2 :?
-                    "score=" :string
-                  @builder.append_display <for i32> :void
-                    __sb_2 :?
-                    s :i32
-                  ~>
-                    @builder.finish :string
-                      __sb_2 :?
+      let __for_arr_0: i32[] = scores :i32[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let s: i32 =
+          index :i32
+            on:
+              __for_arr_0 :i32[]
+            ix:
+              __for_i_2 :usize
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            block :string
+              let __sb_3: ? =
+                @builder.new :?
+              @builder.append_str :void
+                __sb_3 :?
+                "score=" :string
+              @builder.append_display <for i32> :void
+                __sb_3 :?
+                s :i32
+              ~>
+                @builder.finish :string
+                  __sb_3 :?
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
     let entry: [i32, string] =
       [i32, string] {
         _0: int(42) :i32
@@ -57,33 +54,33 @@
         println :fn(string) -> void
       arg0:
         block :string
-          let __sb_3: ? =
+          let __sb_4: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_3 :?
+            __sb_4 :?
             "id=" :string
           @builder.append_display <for i32> :void
-            __sb_3 :?
+            __sb_4 :?
             ._0 :i32
               entry :[i32, string]
           ~>
             @builder.finish :string
-              __sb_3 :?
+              __sb_4 :?
     call :void
       callee:
         println :fn(string) -> void
       arg0:
         block :string
-          let __sb_4: ? =
+          let __sb_5: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_4 :?
+            __sb_5 :?
             "label=" :string
           @builder.append_display <for string> :void
-            __sb_4 :?
+            __sb_5 :?
             ._1 :string
               entry :[i32, string]
           ~>
             @builder.finish :string
-              __sb_4 :?
+              __sb_5 :?
     return int(0) :i32

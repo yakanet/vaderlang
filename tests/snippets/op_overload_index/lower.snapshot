@@ -5,112 +5,106 @@
   fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(self: Cell, key: string) -> i32
     let i: i32 = int(0) :i32
     block :void
-      let __iter_0: ArrayIterator(string) =
-        ArrayIterator(string) {
-          arr:
-            .keys :string[]
-              self :Cell
-          cursor: int(0) :usize
-        }
-      loop
-        let __step_1: Yield(string) | null =
-          call :Yield(string) | null
-            callee:
-              next :?
-            arg0:
-              __iter_0 :ArrayIterator(string)
+      let __for_arr_0: string[] =
+        .keys :string[]
+          self :Cell
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let k: string =
+          index :string
+            on:
+              __for_arr_0 :string[]
+            ix:
+              __for_i_2 :usize
         if :void
           cond:
-            is null :bool
-              __step_1 :Yield(string) | null
+            eq :bool
+              l:
+                k :string
+              r:
+                key :string
           then:
-            break
-          else:
-            let k: string =
-              .value :string
-                cast → Yield(string)
-                  __step_1 :Yield(string) | null
-            if :void
-              cond:
-                eq :bool
-                  l:
-                    k :string
-                  r:
-                    key :string
-              then:
-                return
-                  index :i32
-                    on:
-                      .vals :i32[]
-                        self :Cell
-                    ix:
-                      i :i32
-            assign
-              target:
+            return
+              index :i32
+                on:
+                  .vals :i32[]
+                    self :Cell
+                ix:
+                  i :i32
+        assign
+          target:
+            i :i32
+          value:
+            add :i32
+              l:
                 i :i32
-              value:
-                add :i32
-                  l:
-                    i :i32
-                  r:
-                    int(1) :i32
+              r:
+                int(1) :i32
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
     return int(0) :i32
   fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(self: Cell, key: string, v: i32) -> void
     let i: i32 = int(0) :i32
     block :void
-      let __iter_0: ArrayIterator(string) =
-        ArrayIterator(string) {
-          arr:
-            .keys :string[]
-              self :Cell
-          cursor: int(0) :usize
-        }
-      loop
-        let __step_1: Yield(string) | null =
-          call :Yield(string) | null
-            callee:
-              next :?
-            arg0:
-              __iter_0 :ArrayIterator(string)
+      let __for_arr_0: string[] =
+        .keys :string[]
+          self :Cell
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let k: string =
+          index :string
+            on:
+              __for_arr_0 :string[]
+            ix:
+              __for_i_2 :usize
         if :void
           cond:
-            is null :bool
-              __step_1 :Yield(string) | null
+            eq :bool
+              l:
+                k :string
+              r:
+                key :string
           then:
-            break
-          else:
-            let k: string =
-              .value :string
-                cast → Yield(string)
-                  __step_1 :Yield(string) | null
-            if :void
-              cond:
-                eq :bool
-                  l:
-                    k :string
-                  r:
-                    key :string
-              then:
-                assign
-                  target:
-                    index :i32
-                      on:
-                        .vals :i32[]
-                          self :Cell
-                      ix:
-                        i :i32
-                  value:
-                    v :i32
-                return
             assign
               target:
-                i :i32
-              value:
-                add :i32
-                  l:
+                index :i32
+                  on:
+                    .vals :i32[]
+                      self :Cell
+                  ix:
                     i :i32
-                  r:
-                    int(1) :i32
+              value:
+                v :i32
+            return
+        assign
+          target:
+            i :i32
+          value:
+            add :i32
+              l:
+                i :i32
+              r:
+                int(1) :i32
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
     LoweredArrayPush
     ~>
       LoweredArrayPush

@@ -101,36 +101,35 @@ fn tests_snippets_std_random__main_vader$main() -> i32
     %94 $call_113: string
     %95 $intrinsic_114: string
     %96 sum: i32 (local sum)
-    %97 $k_117: usize
-    %98 __iter_5: ArrayIterator(i32) (synthetic __iter_5)
-    %99 $call_120: Yield(i32) | null
-    %100 __step_6: Yield(i32) | null (synthetic __step_6)
-    %101 $type_check_122: bool
-    %102 $cast_123: Yield(i32)
-    %103 x: i32 (binding x)
-    %104 $intrinsic_127: ?
-    %105 __sb_7: ? (synthetic __sb_7)
-    %106 $k_129: string
-    %107 $intrinsic_130: string
-    %108 $k_131: u64
-    %109 $cast_132: u64
-    %110 $call_133: Rng
-    %111 bs: Rng (local bs)
-    %112 seen_t: bool (local seen_t)
-    %113 seen_f: bool (local seen_f)
-    %114 p: i32 (local p)
-    %115 $k_141: i32
-    %116 $lt_142: bool
-    %117 $call_143: bool
-    %118 bx: bool (local bx)
-    %119 $not_146: bool
-    %120 $k_148: i32
-    %121 $intrinsic_150: ?
-    %122 __sb_8: ? (synthetic __sb_8)
-    %123 $k_152: string
-    %124 and_res: bool
-    %125 $intrinsic_155: string
-    %126 $k_156: i32
+    %97 __for_arr_5: i32[] (synthetic __for_arr_5)
+    %98 __for_len_6: usize (synthetic __for_len_6)
+    %99 __for_i_7: usize (synthetic __for_i_7)
+    %100 $lt_122: bool
+    %101 x: i32 (binding x)
+    %102 $k_126: usize
+    %103 $intrinsic_128: ?
+    %104 __sb_8: ? (synthetic __sb_8)
+    %105 $k_130: string
+    %106 $intrinsic_131: string
+    %107 $k_132: u64
+    %108 $cast_133: u64
+    %109 $call_134: Rng
+    %110 bs: Rng (local bs)
+    %111 seen_t: bool (local seen_t)
+    %112 seen_f: bool (local seen_f)
+    %113 p: i32 (local p)
+    %114 $k_142: i32
+    %115 $lt_143: bool
+    %116 $call_144: bool
+    %117 bx: bool (local bx)
+    %118 $not_147: bool
+    %119 $k_149: i32
+    %120 $intrinsic_151: ?
+    %121 __sb_9: ? (synthetic __sb_9)
+    %122 $k_153: string
+    %123 and_res: bool
+    %124 $intrinsic_156: string
+    %125 $k_157: i32
   bb0:
     %0 = const int(42) :u64
     %1 = cast %0 :u64
@@ -289,8 +288,9 @@ fn tests_snippets_std_random__main_vader$main() -> i32
     %95 = intrinsic builder.finish(%91)
     call println(%95) :void
     %96 = const int(0) :i32
-    %97 = const int(0) :usize
-    %98 = struct_new ArrayIterator(i32)(%89, %97)
+    %97 = move %89
+    %98 = array_len %97
+    %99 = const int(0) :usize
     branch -> bb25
   bb21:
     %62 = const bool(false) :bool
@@ -307,73 +307,66 @@ fn tests_snippets_std_random__main_vader$main() -> i32
     %63 = binop add %63 %72 :i32
     branch -> bb18
   bb25:
-    branch -> bb26
+    %100 = binop lt %99 %98 :bool
+    cond_branch %100 ? bb26 : bb27
   bb26:
-    %99 = call next(%98) :Yield(i32) | null
-    %100 = move %99
-    %101 = type_check %100 is null
-    cond_branch %101 ? bb28 : bb29
-  bb27:
-    %104 = intrinsic builder.new()
-    %105 = move %104
-    %106 = const string(#5) :string
-    intrinsic builder.append_str(%105, %106)
-    intrinsic builder.append_display(%105, %96)
-    %107 = intrinsic builder.finish(%105)
-    call println(%107) :void
-    %108 = const int(2026) :u64
-    %109 = cast %108 :u64
-    %110 = call new_seeded(%109) :Rng
-    %111 = move %110
-    %112 = const bool(false) :bool
-    %113 = const bool(false) :bool
-    %114 = const int(0) :i32
-    branch -> bb31
-  bb28:
-    branch -> bb27
-  bb29:
-    %102 = cast %100 :Yield(i32)
-    %103 = field_get %102.value :i32
-    %96 = binop add %96 %103 :i32
-    branch -> bb30
-  bb30:
+    %101 = array_get %97[%99] :i32
+    %96 = binop add %96 %101 :i32
+    %102 = const int(1) :usize
+    %99 = binop add %99 %102 :usize
     branch -> bb25
+  bb27:
+    %103 = intrinsic builder.new()
+    %104 = move %103
+    %105 = const string(#5) :string
+    intrinsic builder.append_str(%104, %105)
+    intrinsic builder.append_display(%104, %96)
+    %106 = intrinsic builder.finish(%104)
+    call println(%106) :void
+    %107 = const int(2026) :u64
+    %108 = cast %107 :u64
+    %109 = call new_seeded(%108) :Rng
+    %110 = move %109
+    %111 = const bool(false) :bool
+    %112 = const bool(false) :bool
+    %113 = const int(0) :i32
+    branch -> bb28
+  bb28:
+    %114 = const int(64) :i32
+    %115 = binop lt %113 %114 :bool
+    cond_branch %115 ? bb29 : bb30
+  bb29:
+    %116 = call next_bool(%110) :bool
+    %117 = move %116
+    cond_branch %117 ? bb31 : bb32
+  bb30:
+    %120 = intrinsic builder.new()
+    %121 = move %120
+    %122 = const string(#6) :string
+    intrinsic builder.append_str(%121, %122)
+    cond_branch %111 ? bb35 : bb36
   bb31:
-    %115 = const int(64) :i32
-    %116 = binop lt %114 %115 :bool
-    cond_branch %116 ? bb32 : bb33
+    %111 = const bool(true) :bool
+    branch -> bb32
   bb32:
-    %117 = call next_bool(%111) :bool
-    %118 = move %117
-    cond_branch %118 ? bb34 : bb35
+    %118 = unop not %117 :bool
+    cond_branch %118 ? bb33 : bb34
   bb33:
-    %121 = intrinsic builder.new()
-    %122 = move %121
-    %123 = const string(#6) :string
-    intrinsic builder.append_str(%122, %123)
-    cond_branch %112 ? bb38 : bb39
-  bb34:
     %112 = const bool(true) :bool
-    branch -> bb35
+    branch -> bb34
+  bb34:
+    %119 = const int(1) :i32
+    %113 = binop add %113 %119 :i32
+    branch -> bb28
   bb35:
-    %119 = unop not %118 :bool
-    cond_branch %119 ? bb36 : bb37
+    %123 = move %112
+    branch -> bb37
   bb36:
-    %113 = const bool(true) :bool
+    %123 = const bool(false) :bool
     branch -> bb37
   bb37:
-    %120 = const int(1) :i32
-    %114 = binop add %114 %120 :i32
-    branch -> bb31
-  bb38:
-    %124 = move %113
-    branch -> bb40
-  bb39:
-    %124 = const bool(false) :bool
-    branch -> bb40
-  bb40:
-    intrinsic builder.append_display(%122, %124)
-    %125 = intrinsic builder.finish(%122)
-    call println(%125) :void
-    %126 = const int(0) :i32
-    return %126
+    intrinsic builder.append_display(%121, %123)
+    %124 = intrinsic builder.finish(%121)
+    call println(%124) :void
+    %125 = const int(0) :i32
+    return %125
