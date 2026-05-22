@@ -748,3 +748,133 @@ export function pruneUnusedTypes(
     for (const [k, v] of remapped) table.set(k, v);
   }
 }
+
+// =============================================================================
+// Drop vtable entries whose (trait, method) key no live `virtual.call`
+// references. Mutates `vtables` in place — entries vanish completely when
+// no call site can possibly dispatch through them. The downstream
+// `pruneUnusedFunctions` then drops the orphaned `_vt` wrappers those
+// entries used to root.
+// =============================================================================
+
+export function pruneUnusedVtables(
+  ctx: EmitterCtx, vtables: Map<string, Map<number, number>>,
+): void {
+  const used = new Set<string>();
+  for (const fn of ctx.functions) {
+    for (const op of fn.body) {
+      if (op.kind === "virtual.call") used.add(op.vtableKey);
+    }
+  }
+  for (const key of [...vtables.keys()]) {
+    if (!used.has(key)) vtables.delete(key);
+  }
+}
+
+// =============================================================================
+// Drop fn defs no live call/fn.ref/make_closure references — and that aren't
+// otherwise rooted (main, @export, vtable entries). The `synthesise_intrinsic
+// _wrappers` pass synthesises a `_vt` wrapper for every stdlib `@intrinsic`
+// shim so virtual.call dispatch on primitive types resolves to a real fn
+// slot. Without this prune, a snippet that only uses `println("hello")`
+// drags in `Add.add$vt`, `Equals.equals$vt`, `Hash.hash$vt`, … for every
+// numeric primitive — ~80 unused fn defs in the bytecode + the same amount
+// of C code downstream.
+// =============================================================================
+
+export function pruneUnusedFunctions(
+  ctx: EmitterCtx, vtables: ReadonlyMap<string, Map<number, number>>,
+): void {
+  const n = ctx.functions.length;
+  const reachable = new Set<number>();
+
+  // Roots : main, @export, vtable entries. The vtable values directly name
+  // fn indices that virtual.call dispatch can land on, so they're reachable
+  // even when no direct call/fn.ref reaches them.
+  for (let i = 0; i < n; i++) {
+    const f = ctx.functions[i]!;
+    if (f.isMain) reachable.add(i);
+  }
+  for (const e of ctx.exports) reachable.add(e.fnIndex);
+  for (const table of vtables.values()) {
+    for (const fnIdx of table.values()) reachable.add(fnIdx);
+  }
+
+  // Worklist : walk every reachable fn's body and pick up callees / fn-refs
+  // / closure-fns. Iterate to a fixpoint — a vtable-rooted fn may itself
+  // call other fns.
+  const work = [...reachable];
+  while (work.length > 0) {
+    const i = work.pop()!;
+    const fn = ctx.functions[i];
+    if (fn === undefined) continue;
+    for (const op of fn.body) {
+      let callee: number | null = null;
+      if (op.kind === "call") callee = op.fnIndex;
+      else if (op.kind === "fn.ref") callee = op.fnIndex;
+      else if (op.kind === "make_closure") callee = op.fnIndex;
+      if (callee === null) continue;
+      if (reachable.has(callee)) continue;
+      reachable.add(callee);
+      work.push(callee);
+    }
+  }
+
+  // No roots (no main, no @export, no vtable values) — we're in a
+  // comptime / library-only emit context where every top-level fn is
+  // potentially the entry. Skip the prune so the caller still has
+  // bodies to dispatch into.
+  if (reachable.size === 0) return;
+  if (reachable.size === n) return;
+
+  // Remap fn indices : surviving fns stay dense from 0.
+  const remap = new Int32Array(n);
+  const kept: typeof ctx.functions = [];
+  for (let i = 0; i < n; i++) {
+    if (reachable.has(i)) {
+      remap[i] = kept.length;
+      kept.push(ctx.functions[i]!);
+    } else {
+      remap[i] = -1;
+    }
+  }
+
+  // Rewrite every fn-index reference in surviving bodies.
+  for (const fn of kept) {
+    for (let i = 0; i < fn.body.length; i++) {
+      const op = fn.body[i]!;
+      if (op.kind === "call" || op.kind === "fn.ref" || op.kind === "make_closure") {
+        fn.body[i] = { ...op, fnIndex: remap[op.fnIndex]! };
+      }
+    }
+  }
+
+  // Rewrite @export entries.
+  for (const e of ctx.exports) {
+    (e as { fnIndex: number }).fnIndex = remap[e.fnIndex]!;
+  }
+
+  // Rewrite vtable values.
+  for (const table of vtables.values()) {
+    const remapped = new Map<number, number>();
+    for (const [recvIdx, fnIdx] of table) {
+      const r = remap[fnIdx];
+      if (r !== undefined && r >= 0) remapped.set(recvIdx, r);
+    }
+    table.clear();
+    for (const [k, v] of remapped) table.set(k, v);
+  }
+
+  // Rewrite `fnIndexBySymId` so any consumer reading it post-emit sees the
+  // remapped slots. Drop entries whose fn was pruned.
+  const newSymMap = new Map<number, number>();
+  for (const [symId, fnIdx] of ctx.fnIndexBySymId) {
+    const r = remap[fnIdx];
+    if (r !== undefined && r >= 0) newSymMap.set(symId, r);
+  }
+  ctx.fnIndexBySymId.clear();
+  for (const [k, v] of newSymMap) ctx.fnIndexBySymId.set(k, v);
+
+  ctx.functions.length = 0;
+  for (const f of kept) ctx.functions.push(f);
+}

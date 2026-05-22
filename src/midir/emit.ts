@@ -42,7 +42,7 @@ import {
   predecessorsOf, reversePostorder, successorsOf,
 } from "./analyses.ts";
 import { NO_HINTS, scheduleStack, type ScheduleHints } from "./scheduler.ts";
-import { pruneUnusedImports, pruneUnusedTypes } from "./dce.ts";
+import { pruneUnusedFunctions, pruneUnusedImports, pruneUnusedTypes, pruneUnusedVtables } from "./dce.ts";
 
 // ============================================================================
 // Project-level entry point
@@ -115,11 +115,21 @@ export function emitBytecodeFromCFG(
     }
   }
 
-  pruneUnusedImports(ctx);
-  // Vtables must be built BEFORE type-table DCE so their struct type
-  // indices are visible to the prune pass — otherwise the impl entries
-  // would point at slots we'd just dropped.
+  // Vtables built before the prunes so their fn indices and struct type
+  // indices anchor the reachability set.
   const vtables = buildVtables(ctx, cfg.vtableEntries);
+  // Drop vtables whose (trait, method) key no `virtual.call` references —
+  // a snippet without any virtual dispatch shouldn't drag in `Add.add$vt`,
+  // `Equals.equals$vt`, … for every primitive. Must run before
+  // pruneUnusedFunctions, which uses vtable values as fn roots.
+  pruneUnusedVtables(ctx, vtables);
+  // Fn DCE — drops `_vt` wrappers (and any other fn) that nothing alive
+  // references.
+  pruneUnusedFunctions(ctx, vtables);
+  // Imports prune AFTER fn prune so the `call.import` ops in dropped vt
+  // wrappers no longer keep their imports alive. Types prune last —
+  // surviving fns' signatures drive type reachability.
+  pruneUnusedImports(ctx);
   pruneUnusedTypes(ctx, vtables);
 
   return {
