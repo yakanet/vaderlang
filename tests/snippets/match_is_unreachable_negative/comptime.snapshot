@@ -20,3 +20,9 @@
   ArrayIterator(T)
   ArrayIterator(T)
   Into(Target)
+
+# Diagnostics
+[19:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`
+[26:9] error[T3040] test can never match — operands have no overlapping values: `Bird` is never a value of `Cat | Dog`
+[33:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `i32`
+[39:13] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`

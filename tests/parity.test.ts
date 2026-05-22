@@ -10,7 +10,7 @@
 
 import { test, expect } from "bun:test";
 
-import { listSnippets } from "./snapshot.ts";
+import { listSnippets, loadConfig } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { LONG_BUILD, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
@@ -41,6 +41,7 @@ const STAGES: Stage[] = [
   { label: "parser", dumpStage: "ast", snapshotFile: "parser.snapshot", skip: new Set() },
   { label: "resolver", dumpStage: "resolved-ast", snapshotFile: "resolver.snapshot", skip: new Set() },
   { label: "typecheck", dumpStage: "typed-ast", snapshotFile: "typecheck.snapshot", skip: new Set() },
+  { label: "comptime", dumpStage: "evaluated-ast", snapshotFile: "comptime.snapshot", skip: new Set() },
 ];
 
 const scenarios = listSnippets("tests/snippets");
@@ -55,6 +56,13 @@ for (const stage of STAGES) {
       test.skip(`${stage.label}: ${s.name}`, () => {});
       continue;
     }
+    // Honour `_config.json`'s `phases` allow-list — matches `snapshot.test.ts`.
+    // Without this, a stage excluded from the snapshot-regeneration loop
+    // (whose `.snapshot` file is therefore frozen and possibly stale) would
+    // still be parity-checked here, producing false failures.
+    const config = loadConfig(s.dir);
+    if (config.phases && !config.phases.includes(stage.label as never)) continue;
+
     const timeout = SLOW_TYPECHECK_SNIPPETS.has(s.name) ? LONG_BUILD : MEDIUM_BUILD;
     test.concurrent(`${stage.label}: ${s.name}`, async () => {
       const snapPath = `${s.dir}/${stage.snapshotFile}`;

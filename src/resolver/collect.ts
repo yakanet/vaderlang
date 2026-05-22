@@ -117,7 +117,10 @@ function addFnSymbol(
     return;
   }
   if (existing.kind !== "fn") {
-    // Name already taken by a non-fn (e.g. a struct/const). Real conflict.
+    // Name already taken by a non-fn (e.g. a struct/const). Real conflict —
+    // unless the previous decl lives in a sibling file of the same
+    // folder-module (SPEC §11), in which case silently first-wins.
+    if (existing.definedAt !== null && existing.definedAt.start.file !== decl.nameSpan.start.file) return;
     err(input.diags, "R2004", decl.nameSpan, `\`${decl.name}\` already declared in this module`,
       existing.definedAt !== null ? [{ span: existing.definedAt, label: "previous declaration" }] : undefined);
   }
@@ -135,6 +138,11 @@ function addSymbol(
   checkReservedIdent(name, span, input.diags);
   const existing = symbols.get(name);
   if (existing !== undefined) {
+    // Folder-module : sibling files share a namespace (SPEC §11). When the
+    // previous decl lives in a different file, silently first-wins —
+    // matches Vader's `collect_files` merge behaviour. Real intra-file
+    // duplicates still trip R2004.
+    if (existing.definedAt !== null && existing.definedAt.start.file !== span.start.file) return;
     err(input.diags, "R2004", span, `\`${name}\` already declared in this module`,
       existing.definedAt !== null ? [{ span: existing.definedAt, label: "previous declaration" }] : undefined);
     return;
@@ -190,6 +198,12 @@ function bindImport(
   checkReservedIdent(localName, span, input.diags);
   const existing = symbols.get(localName);
   if (existing !== undefined) {
+    // Folder-module : sibling files often re-import the same binding from
+    // the same module. Treat that as idempotent — first import wins, no
+    // diagnostic. Mirrors Vader's `merge_collected` behaviour. Real
+    // shadowing of a non-import binding (e.g. a local fn vs an import)
+    // still trips R2011.
+    if (existing.kind === "import-binding") return;
     err(input.diags, "R2011", span, `\`${localName}\``,
       existing.definedAt !== null ? [{ span: existing.definedAt, label: "previous binding" }] : undefined);
     return;

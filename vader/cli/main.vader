@@ -412,11 +412,12 @@ run_typecheck_stage :: fn(file: string) -> i32 {
 run_comptime_stage :: fn(file: string) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     println(dump_evaluated(pipeline.evaluated))
-    // Comptime-stage diagnostics surface separately ; typecheck diagnostics
-    // already shipped via the typed-ast stage and aren't replayed here.
-    if pipeline.comptime_diags.len() > 0 {
-        println(pipeline.comptime_diags.dump_diagnostics())
-    }
+    // Mirror `run_lower_stage` / `run_bytecode_stage` : surface the merged
+    // typecheck + comptime diags as a single `# Diagnostics` block. The
+    // TS reference (`dumpComptime` in `tests/snapshot.ts`) accumulates
+    // resolve + typecheck + comptime into one collector, so the parity
+    // snapshots only line up when this stage does the same.
+    print_pipeline_diags(pipeline, [])
     return 0
 }
 

@@ -1,7 +1,7 @@
 // Module graph loader. Starts from an entry path (file or folder), walks
 // imports transitively, and returns the full ModuleGraph. Detects cycles.
 
-import { relative, resolve as resolvePath, sep } from "node:path";
+import { dirname, relative, resolve as resolvePath, sep } from "node:path";
 
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import { zeroSpan } from "../diagnostics/diagnostic.ts";
@@ -38,7 +38,14 @@ export function loadProject(opts: LoadOptions): LoadedProject {
   const factory = new SymbolFactory();
   const modules = new Map<ModuleId, Module>();
 
-  const entryRoot = resolvePath(opts.entryPath);
+  // When the entry is a single `.vader` file living inside a folder that
+  // contains other `.vader` files (e.g. `vader/lexer/lexer.vader` next to
+  // `token.vader` + `keywords.vader`), the file is part of a folder-module.
+  // Promote the entry to the parent dir so the whole module loads —
+  // otherwise cross-file references inside the same logical module surface
+  // as R2006 / cascading `?` types. Mirrors Vader's `promote_to_folder_module`
+  // in `vader/resolver/loader.vader`.
+  const entryRoot = resolvePath(promoteToFolderModule(opts.entryPath));
   const queue: string[] = [entryRoot];
   if (opts.autoloadCore !== false) {
     const corePath = resolveImportPath("std/core", {
@@ -94,6 +101,25 @@ export function loadProject(opts: LoadOptions): LoadedProject {
   computeModuleFingerprints(modules);
 
   return { layout, modules, factory };
+}
+
+/** If `entryPath` is a `.vader` file inside a folder with sibling `.vader`
+ *  files, return the parent folder so the loader treats them as one module.
+ *  Single-file folders (e.g. `stdlib/std/json.vader`) keep file-as-module
+ *  semantics. */
+const VADER_SIBLING_GLOB = new Bun.Glob("*.vader");
+
+function promoteToFolderModule(entryPath: string): string {
+  if (!entryPath.endsWith(".vader")) return entryPath;
+  if (pathKind(entryPath) !== "file") return entryPath;
+  const parent = dirname(entryPath);
+  let count = 0;
+  try {
+    for (const _ of VADER_SIBLING_GLOB.scanSync({ cwd: parent, onlyFiles: true })) {
+      if (++count > 1) return parent;
+    }
+  } catch { return entryPath; }
+  return entryPath;
 }
 
 function displayPathFor(root: string, layout: ProjectLayout): string {

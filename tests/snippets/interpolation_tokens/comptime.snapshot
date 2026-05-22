@@ -20,3 +20,8 @@
   ArrayIterator(T)
   ArrayIterator(T)
   Into(Target)
+
+# Diagnostics
+[1:26] error[R2006] unresolved identifier: `name`
+[2:27] error[R2006] unresolved identifier: `x`
+[3:36] error[R2006] unresolved identifier: `y`

@@ -24,3 +24,10 @@
   ArrayIterator(T)
   ArrayIterator(T)
   Into(Target)
+
+# Diagnostics
+[20:14] error[T3001] type mismatch: expected string, got usize
+[24:32] error[T3001] type mismatch: expected string, got i32
+[29:14] error[T3001] type mismatch: expected string, got bool
+[30:14] error[T3001] type mismatch: expected string, got bool
+[33:13] error[T3001] type mismatch: expected string, got usize

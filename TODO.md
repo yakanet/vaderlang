@@ -12,30 +12,13 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 ## Priority — next up
 
-- [ ] **Folder-module semantics for `stdlib/std/` — pending decision** (surfaced 2026-05-22). The typecheck parity suite is too narrow (251 isolated snippets, ~24 LoC each). Adding a broad byte-diff TS-vs-Vader run on real modules under `vader/` and `stdlib/` requires aligning TS on Vader's folder-module promotion. The alignment work itself uncovered a deeper inconsistency that needs an arbitrage before the broad-parity rig can land.
+- [ ] **Module system redesign** (designed 2026-05-22). SPEC §11's implicit "folder = module" rule conflicts with `stdlib/std/*.vader`'s flat layout (each file is logically its own module, but sibling files share names like `Parser`, `byte_len`). Vader self-host silently masks the collisions ; TS exposes them. Original driver : the 251 snippet tests average ~24 LoC and are too narrow ; a broad TS-vs-Vader parity rig on real `vader/` and `stdlib/` modules is gated on a coherent module model.
 
-      **What's been tried (uncommitted patches in working tree)**
-      - `src/resolver/loader.ts` — `promoteToFolderModule(entryPath)` (Bun.Glob) mirrors `vader/resolver/loader.vader::promote_to_folder_module`. When the entry is a `.vader` file in a folder containing ≥2 `.vader` siblings, the load root is hoisted to the parent dir.
-      - `src/resolver/collect.ts` — R2011 (duplicate import binding) silenced when `existing.kind === "import-binding"` (sibling files re-importing the same name) ; R2004 (duplicate top-level symbol) silenced when `existing.definedAt.start.file !== span.start.file` (cross-file in a folder-module). Mirrors Vader's `merge_collected` silent first-wins.
+      **Decision (frozen).** Replace the implicit rule with an explicit `module "..."` keyword in every `.vader` file. Module identity is decoupled from filesystem layout, but a folder still hosts at most one module. Full design — semantics, configuration, diagnostics, 10-phase rollout plan, decision log (29 arbitrated points) — lives in [`docs/MODULE_SYSTEM.md`](./docs/MODULE_SYSTEM.md).
 
-      **Result on real `vader/*` modules** (TS `dump --stage=typed-ast`, error count) :
-      - `vader/lexer/lexer.vader` 0, `vader/parser/parser.vader` 0
-      - `vader/bytecode/emit.vader` 3, `vader/comptime/eval.vader` 17, `vader/lower/lower.vader` 51, `vader/typecheck/check.vader` 136
-      The 3 on `bytecode/emit.vader` are real T3001 from a double-load via self-import (`import "vader/bytecode/module"` re-loads `module.vader` as a separate single-file module, so `BcFunction` exists in two distinct modules). The remaining 51 / 136 are downstream T3xxx that need per-error triage but are real divergences worth fixing.
+      **Working-tree state.** Exploratory patches surfacing the problem (`src/resolver/loader.ts::promoteToFolderModule` + `src/resolver/collect.ts` silent first-wins on R2004/R2011) are kept uncommitted as a quick way to compare the new resolver against the legacy behaviour. Revert with `git checkout -- src/resolver/loader.ts src/resolver/collect.ts` before starting Phase 7 — they become obsolete then. Snippet parity (251/251) is unaffected today.
 
-      **Result on `stdlib/std/*.vader`** (with the same patch) : **565+ errors per file**.
-      - `Parser :: struct` is defined in `stdlib/std/regex.vader:113` AND `stdlib/std/json.vader:60`. Under folder-module promotion they collide (T3009 cursor/insts/pattern on Parser — 240 occurrences).
-      - `byte_len` / `byte_at` / `slice` from `stdlib/std/string.vader` collide with same-named decls in sibling files (T3032 ambiguous overload).
-      - Vader reports 0 errors but its dump shows `:: ?` (Unresolved) everywhere — it masks the same collisions silently rather than resolving them. `./build/vader dump --stage=typed-ast stdlib/std/string.vader` is a 1209-line dump of `?` types.
-
-      **Root cause**. SPEC §11 says "One folder = one module" but `stdlib/std/` is in practice a flat **collection** of independent modules (`import "std/string"` designates one file, not the folder). The two intents collide ; today only Vader's silence hides it.
-
-      **Three options to arbitrate** (each impacts the user-facing module story) :
-      1. **Reorganise stdlib** : one folder per module (`stdlib/std/string/string.vader`, `stdlib/std/json/json.vader`, …). Aligns everything on SPEC §11, but moves every stdlib file ; every `import "std/X"` keeps working since `std/X` still resolves to a folder. Cleanest.
-      2. **Explicit folder-module marker** : a `_module.vader` file or a `"modules": [...]` field in `vader.json` listing the folders that should be promoted. Minimal-invasive ; needs a SPEC §11 amendment.
-      3. **Heuristic promotion** : only promote when at least one sibling does `import "<this-folder>/..."` or `import "./..."` (proof of cross-file dependency). No user-facing change ; fragile and slower (extra parse-time scan).
-
-      **Until decided**, the broad-parity rig cannot byte-diff TS vs Vader honestly. The patches are kept in the working tree for fast iteration ; revert with `git checkout -- src/resolver/loader.ts src/resolver/collect.ts` if needed. The snippet-based parity (251/251) is unaffected — snippets are single-file folders so neither promotion nor silencing fires.
+      **Next action.** Phase 1 of [`docs/MODULE_SYSTEM.md`](./docs/MODULE_SYSTEM.md) — rewrite `SPEC.md` §11 with the new semantics.
 
 - [x] **Single-binary distribution** (2026-05-10) — `bun build --compile` + per-OS tarballs (`vader-<os>-<arch>.tar.gz`) bundling the binary with `stdlib/` and `runtime/c/` sidecars. `scripts/dist.ts` + `dist:*` npm scripts.
 - [~] **`vader fmt` MVP** (first pass 2026-05-11) — written in Vader under `vader/fmt/`, exercises the self-host parser end-to-end. Idempotency + parse round-trip green on the stdlib ; byte-for-byte no-op pending on three stylistic gaps : (a) `::` column alignment in decl groups, (b) per-line grouping inside multi-line imports, (c) cap at 1 blank line between decls vs the stdlib's occasional double-blank. Tests : `tests/formatter*.test.ts` (gated `RUN_FMT_TESTS=1`). Open : column alignment decision, hand-curated snapshot scenarios, growing `NO_OP_FILES`.
