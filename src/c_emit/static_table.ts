@@ -45,6 +45,7 @@
 import type { BcFunction, BytecodeModule } from "../bytecode/module.ts";
 import type { Op } from "../bytecode/ops.ts";
 import type { BcType, ValType } from "../bytecode/types.ts";
+import { cStringLit } from "./emit.ts";
 
 /** Three emission flavours :
  *  - `struct` — fn returns a struct ref, dense 0..N-1 cases, no wildcard.
@@ -80,7 +81,9 @@ interface StaticSwitchInfo {
   readonly scrutValType: ValType;
   readonly resultValType: ValType;
   readonly resultCType: string;
-  readonly cases: ReadonlyArray<{ k: bigint; value: ConstValue }>;
+  /** Per-case head ip — its `fn.debug[headIp]` pins the source line for
+   *  the `#line` directive that precedes the `case K: return V;` row. */
+  readonly cases: ReadonlyArray<{ k: bigint; value: ConstValue; headIp: number }>;
   readonly defaultValue: ConstValue | null;   // null → exhaustive (emit unreachable)
 }
 
@@ -99,9 +102,17 @@ type ConstValue =
   | { kind: "null" };
 
 /** Try to detect+emit the static-table form. Returns true if emitted (the
- *  caller should skip the default fn body emission). */
+ *  caller should skip the default fn body emission). When `ctx.release` is
+ *  false, threads per-arm `#line` directives so debuggers / coverage tools
+ *  map each `case K:` back to its source line — matches the per-op `#line`
+ *  emission in `body.ts:140-159` so the table form isn't a debug-info hole. */
 export function tryEmitStaticTable(
-  ctx: { module: BytecodeModule; structNames: readonly (string | null)[]; fnNames: readonly string[] },
+  ctx: {
+    module: BytecodeModule;
+    structNames: readonly (string | null)[];
+    fnNames: readonly string[];
+    release: boolean;
+  },
   fn: BcFunction, fnIdx: number, out: string[],
 ): boolean {
   const info = detectStaticTable(ctx.module, fn);
@@ -110,6 +121,7 @@ export function tryEmitStaticTable(
   const fnName = ctx.fnNames[fnIdx]!;
   const tableName = `vader_static_table_${fnName}`;
   const paramCType = cTypeForPrim(info.scrutValType);
+  const debug = ctx.release ? null : fn.debug;
 
   if (info.kind === "struct") {
     const tag = info.resultStructIndex;
@@ -134,7 +146,23 @@ export function tryEmitStaticTable(
     // depends on density and -O3 picks the best dispatch.
     out.push(`static ${info.resultCType} ${fnName}(${paramCType} l0) {`);
     out.push(`    switch (l0) {`);
+    // Mirror of `body.ts:142-156` : raw `file` compare so `cStringLit`
+    // only runs on file change, and `dbg.file` truthiness guard for
+    // synthetic spans (where `file` may be empty / undefined past the
+    // static type).
+    let lastLine = -1;
+    let lastFile = "";
+    let lastFileLit = "";
     for (const c of info.cases) {
+      if (debug !== null) {
+        const dbg = debug[c.headIp];
+        const file = dbg?.file;
+        if (file && (dbg!.line !== lastLine || file !== lastFile)) {
+          if (file !== lastFile) { lastFile = file; lastFileLit = cStringLit(file); }
+          out.push(`#line ${dbg!.line} ${lastFileLit}`);
+          lastLine = dbg!.line;
+        }
+      }
       const v = renderConstValue(c.value, info.resultValType, info.resultCType);
       out.push(`        case ${c.k.toString()}u: return ${v};`);
     }
@@ -197,7 +225,7 @@ function detectStaticTable(m: BytecodeModule, fn: BcFunction): StaticTableInfo |
   //    a final slot the fn reads-and-returns. Innermost else terminates
   //    the cascade with another `<consts>; (struct.new)?; local.set INNER`
   //    (the `_` wildcard arm) and the propagation chain handles the rest.
-  const cases: Array<{ k: bigint; bodyOps: Op[] }> = [];
+  const cases: Array<{ k: bigint; bodyOps: Op[]; headIp: number }> = [];
   let defaultBodyOps: Op[] | null = null;
   let armShape: "return" | "set" | null = null;
   let resultStructIdx: number | null = null;
@@ -214,15 +242,24 @@ function detectStaticTable(m: BytecodeModule, fn: BcFunction): StaticTableInfo |
       if (resultStructIdx === null) resultStructIdx = armParse.structIdx!;
       else if (resultStructIdx !== armParse.structIdx) return null;
     }
-    cases.push({ k: armStart.k, bodyOps: armParse.bodyOps });
+    cases.push({ k: armStart.k, bodyOps: armParse.bodyOps, headIp: armStart.headIp });
     ip = armParse.nextIp;
 
-    if (body[ip]?.kind !== "else") return null;
+    // Separator between arms depends on the arm shape :
+    //  - "return" arms : either `else` (un-flattened nested form) or `end`
+    //    (midir's early-return flattening — `src/midir/emit.ts:300-324` —
+    //    drops the `else` op when the then-branch ends with `return`).
+    //  - "set" arms : always `else` (no early exit so the nesting survives).
+    const sep = body[ip];
+    if (sep === undefined) return null;
+    const sepIsEnd = armShape === "return" && sep.kind === "end";
+    if (!sepIsEnd && sep.kind !== "else") return null;
     ip++;
 
     if (armShape === "return") {
-      // expression-bodied : innermost else must be `unreachable` + closing
-      // ends, OR a wildcard arm body (consts + return) followed by ends.
+      // expression-bodied : innermost separator must precede `unreachable`
+      // + closing ends (nested) or `unreachable` alone (flat), OR a
+      // wildcard arm body (consts + return) followed by ends.
       if (body[ip]?.kind === "unreachable") {
         ip++;
         while (ip < body.length && body[ip]!.kind === "end") ip++;
@@ -290,12 +327,12 @@ function detectStaticTable(m: BytecodeModule, fn: BcFunction): StaticTableInfo |
     // struct returns would need a per-case `static const T VAL_K = ...;`
     // and a switch returning boxed refs ; tracked as Prop 2 follow-up.
     if (isStructResult) return null;
-    const switchCases: Array<{ k: bigint; value: ConstValue }> = [];
+    const switchCases: Array<{ k: bigint; value: ConstValue; headIp: number }> = [];
     for (const c of cases) {
       const cv = constValueFromOp(c.bodyOps[0]!);
       if (cv === null) return null;
       if (!constMatchesField(cv, resultVal)) return null;
-      switchCases.push({ k: c.k, value: cv });
+      switchCases.push({ k: c.k, value: cv, headIp: c.headIp });
     }
     let defaultValue: ConstValue | null = null;
     if (defaultBodyOps !== null) {
@@ -370,6 +407,9 @@ const PRIMITIVE_VALS: ReadonlySet<ValType> = new Set<ValType>([
 interface ArmHead {
   readonly k: bigint;             // variant tag value
   readonly bodyStartIp: number;   // ip just after the `if void`
+  readonly headIp: number;        // ip of the arm's `local.get scrut` — its
+                                  // dbg pins the arm body's source line for
+                                  // `#line` directives in non-release builds.
 }
 
 interface ArmBody {
@@ -438,6 +478,7 @@ function parseArmHead(body: readonly Op[], ip: number, scrutSlot: number): ArmHe
   if (body[ip]?.kind !== "local.get" || (body[ip] as Extract<Op, { kind: "local.get" }>).slot !== scrutSlot) {
     return null;
   }
+  const headIp = ip;
   ip++;
   // Expect a const op.
   const constOp = body[ip];
@@ -459,7 +500,7 @@ function parseArmHead(body: readonly Op[], ip: number, scrutSlot: number): ArmHe
   // if void.
   const ifOp = body[ip];
   if (!ifOp || ifOp.kind !== "if" || ifOp.result !== "void") return null;
-  return { k, bodyStartIp: ip + 1 };
+  return { k, bodyStartIp: ip + 1, headIp };
 }
 
 function constValueFromOp(op: Op): ConstValue | null {
