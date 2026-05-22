@@ -53,6 +53,11 @@ export dump_program_with_others :: fn(
     for o in others { sections.push(o) }
     sorted :: sort(sections, (a: TypedProgram, b: TypedProgram) -> compare_ascending(a.resolved.path, b.resolved.path))
     for mod in sorted {
+        // Skip stdlib bodies (matches TS `formatTypedDump`). TS keys
+        // on the module name (`displayPath` starts with `std/`) ; here
+        // the path is filesystem-relative (`stdlib/std/X/...`), so use
+        // substring containment.
+        if "stdlib/std/" in mod.resolved.path { continue }
         sb.append("\n\n## ")
         sb.append(mod.resolved.path)
         for line in build_decl_lines(mod) { sb.append("\n") sb.append(line) }
