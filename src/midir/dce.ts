@@ -793,7 +793,7 @@ export function pruneUnusedFunctions(
   // even when no direct call/fn.ref reaches them.
   for (let i = 0; i < n; i++) {
     const f = ctx.functions[i]!;
-    if (f.isMain) reachable.add(i);
+    if (f.isMain || f.isTest) reachable.add(i);
   }
   for (const e of ctx.exports) reachable.add(e.fnIndex);
   for (const table of vtables.values()) {

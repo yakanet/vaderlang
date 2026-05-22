@@ -126,6 +126,10 @@ export interface EmitterCtx {
 interface MutableFn {
   readonly name: string;
   readonly isMain: boolean;
+  /** True when the source declaration carries `@test`. Drives the test-
+   *  runner build's DCE roots: `pruneUnusedFunctions` keeps these even
+   *  though nothing else statically references them. */
+  readonly isTest: boolean;
   readonly signature: BcSignature;
   locals: BcLocal[];
   body: Op[];
@@ -183,8 +187,10 @@ export function reserveCFGFunction(fn: CFGFunction, ctx: EmitterCtx): void {
 
   const fnIndex = ctx.functions.length;
   if (fn.origin.symbol !== null) ctx.fnIndexBySymId.set(fn.origin.symbol.id, fnIndex);
+  const srcDecl = fn.origin.decl;
+  const isTest = srcDecl.kind === "FnDecl" && hasDecorator(srcDecl.decorators ?? [], DEC.test);
   ctx.functions.push({
-    name: fn.mangled, isMain: fn.origin.isMain, signature: sig, locals: [], body: [], debug: [],
+    name: fn.mangled, isMain: fn.origin.isMain, isTest, signature: sig, locals: [], body: [], debug: [],
   });
   if (fn.isExported) {
     ctx.exports.push({ externName: fn.externName, fnIndex });
@@ -249,7 +255,7 @@ export function synthesiseIntrinsicWrappers(ctx: EmitterCtx, cfg: CFGProject): v
       const fnIndex = ctx.functions.length;
       ctx.fnIndexBySymId.set(ext.origin.symbol.id, fnIndex);
       ctx.functions.push({
-        name: `${ext.mangled}$vt`, isMain: false, signature: sig, locals: [],
+        name: `${ext.mangled}$vt`, isMain: false, isTest: false, signature: sig, locals: [],
         body, debug: body.map(() => null),
       });
     }

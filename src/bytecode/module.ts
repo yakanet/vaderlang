@@ -35,6 +35,11 @@ export interface BcFunction {
    *  so the VM and the C emitter can locate `main` without re-parsing
    *  the mangled name. */
   readonly isMain: boolean;
+  /** True when the source declaration carried `@test`. Roots this fn
+   *  during the test-runner build's `pruneUnusedFunctions` pass so the
+   *  test runner can still resolve it by mangled name even though no
+   *  static call site references it. */
+  readonly isTest: boolean;
   readonly signature: BcSignature;
   /** Locals declared in addition to the params. Slot index = `params.length + i`. */
   readonly locals: readonly BcLocal[];
