@@ -11,7 +11,7 @@ string 3 "value"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 println std_io$println (string) -> void
 
-fn 0 tests_snippets_comptime_for__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local __sb_0 any
   local $call_4 string
   intrinsic builder.new

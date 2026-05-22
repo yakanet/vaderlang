@@ -14,7 +14,7 @@ import 0 to_string std_core$u32$Display$to_string (u32) -> string
 import 1 to_string std_core$u64$Display$to_string (u64) -> string
 import 2 println std_io$println (string) -> void
 
-fn 0 tests_snippets_range_widths__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local su u64
   local i u64
   local __sb_0 any

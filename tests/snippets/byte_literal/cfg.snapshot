@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/byte_literal/_main.vader
+## snippet
 
-fn tests_snippets_byte_literal__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 a: u8 (local a)
     %1 nl: u8 (local nl)

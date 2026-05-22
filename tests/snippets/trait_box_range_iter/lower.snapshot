@@ -1,17 +1,17 @@
 # Lower
 
-## tests/snippets/trait_box_range_iter/_main.vader
-  struct tests_snippets_trait_box_range_iter__main_vader$Hello {  }
-  fn tests_snippets_trait_box_range_iter__main_vader$Hello$Greeter$greet(self: Hello) -> i32
+## snippet
+  struct snippet$Hello {  }
+  fn snippet$Hello$Greeter$greet(self: Hello) -> i32
     return int(100) :i32
-  fn tests_snippets_trait_box_range_iter__main_vader$i32$Doubler$doubled(self: i32) -> i32
+  fn snippet$i32$Doubler$doubled(self: i32) -> i32
     return
       add :i32
         l:
           self :i32
         r:
           self :i32
-  fn tests_snippets_trait_box_range_iter__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let a: i32 =
       call :i32
         callee:
@@ -63,7 +63,7 @@
               c :i32
         r:
           d :i32
-  fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$count__i32(it: Iterator(Any)) -> i32
+  fn snippet$snippet$count__i32(it: Iterator(Any)) -> i32
     let n: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
@@ -108,12 +108,12 @@
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return n :i32
-  fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$invoke__i32(g: Greeter(Any)) -> Any
+  fn snippet$snippet$invoke__i32(g: Greeter(Any)) -> Any
     return
       vcall Greeter.greet :Any
         recv:
           g :Greeter(Any)
-  fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$twice__i32(x: Doubler(Any)) -> Any
+  fn snippet$snippet$twice__i32(x: Doubler(Any)) -> Any
     return
       vcall Doubler.doubled :Any
         recv:

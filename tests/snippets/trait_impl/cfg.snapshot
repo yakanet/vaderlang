@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/trait_impl/_main.vader
+## snippet
 
-fn tests_snippets_trait_impl__main_vader$Point$Display$to_string(%0: Point) -> string
+fn snippet$Point$Display$to_string(%0: Point) -> string
   locals:
     %0 self: Point (param self)
     %1 $k_1: string

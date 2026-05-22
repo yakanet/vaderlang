@@ -32,7 +32,7 @@ vtable Equals.equals 14 13
 vtable Equals.equals 15 14
 vtable Equals.equals 16 15
 
-fn 0 tests_snippets_trait_dispatch_eq__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local n1 i32
   local n2 i32
   local n3 i32
@@ -59,7 +59,7 @@ fn 0 tests_snippets_trait_dispatch_eq__main_vader$main () -> i32
   return
 end
 
-fn 1 tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq__main_vader$both_equal__i32 (ref,ref,ref) -> i32
+fn 1 snippet$snippet$both_equal__i32 (ref,ref,ref) -> i32
   local n i32
   i32.const 0
   local.set 3

@@ -1,14 +1,14 @@
 # Lower
 
-## tests/snippets/lambda_no_fn/_main.vader
-  fn tests_snippets_lambda_no_fn__main_vader$call_it(f: fn(i32) -> i32, x: i32) -> i32
+## snippet
+  fn snippet$call_it(f: fn(i32) -> i32, x: i32) -> i32
     return
       call :i32
         callee:
           f :fn(i32) -> i32
         arg0:
           x :i32
-  fn tests_snippets_lambda_no_fn__main_vader$call_two(f: fn(i32, i32) -> i32, a: i32, b: i32) -> i32
+  fn snippet$call_two(f: fn(i32, i32) -> i32, a: i32, b: i32) -> i32
     return
       call :i32
         callee:
@@ -17,12 +17,12 @@
           a :i32
         arg1:
           b :i32
-  fn tests_snippets_lambda_no_fn__main_vader$call_none(f: fn() -> i32) -> i32
+  fn snippet$call_none(f: fn() -> i32) -> i32
     return
       call :i32
         callee:
           f :fn() -> i32
-  fn tests_snippets_lambda_no_fn__main_vader$main() -> i32
+  fn snippet$main() -> i32
     call :void
       callee:
         println :fn(string) -> void

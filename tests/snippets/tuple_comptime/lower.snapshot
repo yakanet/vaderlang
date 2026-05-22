@@ -1,18 +1,18 @@
 # Lower
 
-## tests/snippets/tuple_comptime/_main.vader
-  const tests_snippets_tuple_comptime__main_vader$DIM: [i32, i32] =
+## snippet
+  const snippet$DIM: [i32, i32] =
     [i32, i32] {
       _0: int(10) :?
       _1: int(20) :?
     }
-  const tests_snippets_tuple_comptime__main_vader$ORIGIN: [f64, f64, string] =
+  const snippet$ORIGIN: [f64, f64, string] =
     [f64, f64, string] {
       _0: float(0) :?
       _1: float(0) :?
       _2: "origin" :string
     }
-  fn tests_snippets_tuple_comptime__main_vader$main() -> i32
+  fn snippet$main() -> i32
     call :void
       callee:
         println :fn(string) -> void

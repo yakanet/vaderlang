@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/gc_array_survive/_main.vader
-  fn tests_snippets_gc_array_survive__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let list: i32[] =
       array :i32[]
     let i: i32 = int(0) :i32

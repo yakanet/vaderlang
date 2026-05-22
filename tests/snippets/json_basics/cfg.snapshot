@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/json_basics/_main.vader
+## snippet
 
-fn tests_snippets_json_basics__main_vader$show(%0: string, %1: string) -> void
+fn snippet$show(%0: string, %1: string) -> void
   locals:
     %0 label: string (param label)
     %1 src: string (param src)
@@ -183,7 +183,7 @@ fn tests_snippets_json_basics__main_vader$show(%0: string, %1: string) -> void
   bb21:
     branch -> bb18
 
-fn tests_snippets_json_basics__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $k_1: string

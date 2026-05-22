@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/std_random/_main.vader
+## snippet
 
-fn tests_snippets_std_random__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: u64
     %1 $cast_1: u64

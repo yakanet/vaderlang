@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/numeric_add_trait/_main.vader
+## snippet
 
-fn tests_snippets_numeric_add_trait__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $call_1: i32
@@ -29,7 +29,7 @@ fn tests_snippets_numeric_add_trait__main_vader$main() -> i32
     %10 = binop add %9 %8 :i32
     return %10
 
-fn tests_snippets_numeric_add_trait__main_vader$tests_snippets_numeric_add_trait__main_vader$double__i32(%0: Any) -> Any
+fn snippet$snippet$double__i32(%0: Any) -> Any
   locals:
     %0 x: Any (param x)
     %1 $vcall_1: Any
@@ -37,7 +37,7 @@ fn tests_snippets_numeric_add_trait__main_vader$tests_snippets_numeric_add_trait
     %1 = vcall Add.add(recv=%0, %0) :Any
     return %1
 
-fn tests_snippets_numeric_add_trait__main_vader$tests_snippets_numeric_add_trait__main_vader$triple__i32(%0: Any) -> Any
+fn snippet$snippet$triple__i32(%0: Any) -> Any
   locals:
     %0 x: Any (param x)
     %1 $vcall_1: Any

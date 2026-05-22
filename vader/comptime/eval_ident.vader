@@ -11,15 +11,13 @@
 
 module "vader/comptime"
 
-import "vader/comptime/eval_types" { EvalResult, ComptimeContext, ok, fail, vm_required }
-import "vader/comptime/value" { ComptimeValue, type_val }
-import "vader/resolver/scope" { span_key }
+import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind, kind_name }
-import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck" { type_from_expr }
 import "vader/types" { Type, UnresolvedType }
-import "vader/diagnostics/diagnostic" { Diagnostic, comptime_error }
-import "vader/diagnostics/codes" { ComptimeCode }
-AST :: import "vader/parser/ast"
+import "vader/diagnostics" { Diagnostic, comptime_error }
+import "vader/diagnostics" { ComptimeCode }
+AST :: import "vader/parser"
 
 /// Evaluate an `IdentExpr`. Path 1 (bound const) wins ; path 2 (type
 /// reference) covers nominal types ; everything else falls back to C4002.

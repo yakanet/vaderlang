@@ -24,19 +24,13 @@ module "vader/typecheck"
 
 import "std/collections" { MutableMap, keys }
 import "std/math" { min }
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-AST :: import "vader/parser/ast"
-import "vader/typecheck/coerce" { try_into }
-import "vader/typecheck/type_ops" { default_if_free, dispatch_key }
-import "vader/typecheck/type_assign" { is_assignable }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
+AST :: import "vader/parser"
 import "vader/types" {
     ArrayType, Type, FnType, StructType, TraitType, TypeMetaType, UnresolvedType,
     display_type, mk_array, TY_UNRESOLVED,
 }
-import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/typed_ast" { TypedProgram }
-import "vader/typecheck/unify" { substitute, type_contains_type_param, unify_type_param }
-import "vader/resolver/scope" { span_full_key, span_key }
+import "vader/resolver" { span_full_key, span_key }
 import "vader/resolver/symbol" { SymbolKind }
 
 // Inspect the callee : when it's a bare ident whose `fn_overloads`
@@ -150,7 +144,7 @@ export infer_call :: fn(
         seed_ufcs_bindings(c.callee, typed, bindings)
         arg_types: Type[] = []
         for i in 0..<n {
-            param_ty :: substitute(callee_ty.params[i], bindings)
+            param_ty :: substitute_map(callee_ty.params[i], bindings)
             arg_ty :: check_expr_fn(c.args[i].value, param_ty, typed, diags)
             unify_type_param(callee_ty.params[i], arg_ty, bindings)
             // `fn[T](g: Greeter(T))` called with `Hello{}` (where
@@ -161,7 +155,7 @@ export infer_call :: fn(
             arg_types.push(arg_ty)
         }
         for i in 0..<n {
-            expected :: substitute(callee_ty.params[i], bindings)
+            expected :: substitute_map(callee_ty.params[i], bindings)
             if type_contains_type_param(expected) { continue }
             if is_assignable(arg_types[i], expected, null) { continue }
             if try_into(arg_types[i], expected, typed) { continue }
@@ -180,7 +174,7 @@ export infer_call :: fn(
         // T3006 : enforce `T: Trait` bounds on the callee's fn-decl
         // type-params against the bindings we ended up with.
         check_typeparam_bounds(c, bindings, typed, diags)
-        return substitute(callee_ty.return_type, bindings)
+        return substitute_map(callee_ty.return_type, bindings)
     }
     for i in 0..<n {
         param_ty :: callee_ty.params[i]
@@ -279,7 +273,7 @@ lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl
     if !(callee is AST.IdentExpr) { return null }
     sym :: typed.resolved.idents[span_key(callee.span)]
     if sym is null { return null }
-    redirected :: redirect_import(sym, typed)
+    redirected :: redirect_import_typed(sym, typed)
     decl :: typed.fn_decls[redirected.id]
     if decl is null { return null }
     return decl
@@ -293,9 +287,9 @@ callee_name :: fn(callee: AST.Expr) -> string {
     }
 }
 
-import "vader/resolver/wire" { resolve_import_redirect }
+import "vader/resolver" { resolve_import_redirect }
 
-redirect_import :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
+redirect_import_typed :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
     match typed.import_targets {
         is null -> { return sym }
         _ -> { return resolve_import_redirect(sym, typed.import_targets) }
@@ -350,11 +344,8 @@ check_args_no_expected :: fn(
 
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module, ResolvedModule }
+import "vader/resolver" { resolve_module, ResolvedModule }
 import "vader/resolver/symbol" { Symbol, new_factory }
-import "vader/typecheck/check" { check_module }
-import "vader/typecheck/expr_ident" { infer_ident }
-import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }
 
 // Tiny stub : handles the variants the call tests touch. Real call sites
 // use `expr.vader::check_expr` — we can't import that here (cycle).
@@ -370,7 +361,6 @@ stub_check_expr :: fn(
     }
 }
 
-import "vader/typecheck/test_helpers" { find_first_in_block }
 
 // Parse + resolve + check `src`, then find the first `CallExpr` reached
 // by a depth-first walk of the last decl's body via the shared

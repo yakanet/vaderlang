@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/std_regex/_main.vader
-  fn tests_snippets_std_regex__main_vader$run_match(label: string, p: Pattern, input: string) -> void
+## snippet
+  fn snippet$run_match(label: string, p: Pattern, input: string) -> void
     ~>
       call :void
         callee:
@@ -28,7 +28,7 @@
             ~>
               @builder.finish :string
                 __sb_0 :?
-  fn tests_snippets_std_regex__main_vader$run_find(label: string, p: Pattern, input: string) -> void
+  fn snippet$run_find(label: string, p: Pattern, input: string) -> void
     let r: Match | null =
       call :Match | null
         callee:
@@ -111,7 +111,7 @@
                   ~>
                     @builder.finish :string
                       __sb_1 :?
-  fn tests_snippets_std_regex__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let p_lit: Error | Pattern =
       call :Error | Pattern
         callee:

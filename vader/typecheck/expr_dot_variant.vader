@@ -7,14 +7,13 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-import "vader/resolver/scope" { span_key }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
+import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { SymbolKind }
 import "vader/types" {
     Type, EnumType, StructType, UnionType, display_type, TY_UNRESOLVED,
 }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Resolve a `.Variant` against the expected enum slot.
 export infer_dot_variant :: fn(

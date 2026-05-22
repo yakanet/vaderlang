@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/expr_bodied_recursive_typed/_main.vader
+## snippet
 
-fn tests_snippets_expr_bodied_recursive_typed__main_vader$fact(%0: i32) -> i32
+fn snippet$fact(%0: i32) -> i32
   locals:
     %0 n: i32 (param n)
     %1 $k_1: i32
@@ -27,7 +27,7 @@ fn tests_snippets_expr_bodied_recursive_typed__main_vader$fact(%0: i32) -> i32
   bb3:
     return %3
 
-fn tests_snippets_expr_bodied_recursive_typed__main_vader$fib(%0: i32) -> i32
+fn snippet$fib(%0: i32) -> i32
   locals:
     %0 n: i32 (param n)
     %1 $k_1: i32
@@ -58,7 +58,7 @@ fn tests_snippets_expr_bodied_recursive_typed__main_vader$fib(%0: i32) -> i32
   bb3:
     return %3
 
-fn tests_snippets_expr_bodied_recursive_typed__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $intrinsic_0: ?
     %1 __sb_0: ? (synthetic __sb_0)

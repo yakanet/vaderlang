@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/tuple_match_nested/_main.vader
-  fn tests_snippets_tuple_match_nested__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let record: [[i32, string], bool] =
       [[i32, string], bool] {
         _0:

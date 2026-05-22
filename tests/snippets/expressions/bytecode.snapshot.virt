@@ -52,14 +52,14 @@ import 31 at std_core$string$Index$at (string,usize) -> char
 impl 16 Contains
 impl 16 Iterator
 
-fn 0 tests_snippets_expressions__main_vader$add (i32,i32) -> i32
+fn 0 snippet$add (i32,i32) -> i32
   local.get 0
   local.get 1
   i32.add
   return
 end
 
-fn 1 tests_snippets_expressions__main_vader$demo () -> i32
+fn 1 snippet$demo () -> i32
   local $mul_3 i32
   local and_res bool
   i32.const 6

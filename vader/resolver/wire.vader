@@ -8,9 +8,6 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "vader/resolver/imports" { ImportInfo }
-import "vader/resolver/loader" { LoadedProject, LoadedModule }
-import "vader/resolver/module" { Module }
 import "vader/resolver/symbol" { Symbol }
 
 /// What an ImportBinding resolves to. Three flat side-tables keyed
@@ -103,7 +100,6 @@ build_path_index :: fn(
     return index
 }
 
-import "vader/resolver/module" { default_stdlib_root, module_id_from_root, resolve_import_path }
 
 try_resolve :: fn(
     raw: string, from_file: string, stdlib_root: string, project_root: string | null,

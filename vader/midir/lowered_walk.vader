@@ -17,7 +17,7 @@
 module "vader/midir"
 
 import "vader/types" { Type, StructType, TraitType, canonical_args_key, for_each_type }
-import "vader/lower/lowered_ast" {
+import "vader/lower" {
     LoweredBlock, LoweredDecl, LoweredExpr, LoweredStmt,
     LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
     LoweredLet, LoweredAssign, LoweredExprStmt, LoweredReturn,

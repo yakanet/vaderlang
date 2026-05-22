@@ -1,8 +1,8 @@
 # Lower
 
-## tests/snippets/closure_pattern_binding/_main.vader
-  struct tests_snippets_closure_pattern_binding__main_vader$P { name: string }
-  fn tests_snippets_closure_pattern_binding__main_vader$greet(v: i32 | P) -> void
+## snippet
+  struct snippet$P { name: string }
+  fn snippet$greet(v: i32 | P) -> void
     ~>
       block :void
         let __scrut_0: i32 | P = v :i32 | P
@@ -79,7 +79,7 @@
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void
-  fn tests_snippets_closure_pattern_binding__main_vader$main() -> i32
+  fn snippet$main() -> i32
     call :void
       callee:
         greet :fn(i32 | P) -> void

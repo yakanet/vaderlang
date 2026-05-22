@@ -1,14 +1,14 @@
 # Lower
 
-## tests/snippets/fn_decl/_main.vader
-  fn tests_snippets_fn_decl__main_vader$add(a: i32, b: i32) -> i32
+## snippet
+  fn snippet$add(a: i32, b: i32) -> i32
     return
       add :i32
         l:
           a :i32
         r:
           b :i32
-  fn tests_snippets_fn_decl__main_vader$greet(name: string, prefix: string) -> string
+  fn snippet$greet(name: string, prefix: string) -> string
     return prefix :string
-  fn tests_snippets_fn_decl__main_vader$host_log(level: i32, msg: string) -> void
+  fn snippet$host_log(level: i32, msg: string) -> void
     <extern / signature only>

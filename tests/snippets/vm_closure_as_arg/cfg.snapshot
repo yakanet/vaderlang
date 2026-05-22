@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/vm_closure_as_arg/_main.vader
+## snippet
 
-fn tests_snippets_vm_closure_as_arg__main_vader$apply(%0: fn(i32) -> i32, %1: i32) -> i32
+fn snippet$apply(%0: fn(i32) -> i32, %1: i32) -> i32
   locals:
     %0 f: fn(i32) -> i32 (param f)
     %1 n: i32 (param n)
@@ -11,7 +11,7 @@ fn tests_snippets_vm_closure_as_arg__main_vader$apply(%0: fn(i32) -> i32, %1: i3
     %2 = call_indirect %0(%1) :i32
     return %2
 
-fn tests_snippets_vm_closure_as_arg__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 bias: ? (local bias)

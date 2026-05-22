@@ -48,8 +48,8 @@ import "vader/parser" {
     StructLitField, StructLitSpread,
 }
 import "vader/lexer" { Token, tokenize }
-import "vader/diagnostics/diagnostic" { Span, Position }
-import "vader/fmt/comments" { Comment, CommentKind, CommentMap, scan_comments }
+import "vader/diagnostics" { Span, Position }
+import "vader/fmt" { Comment, CommentKind, CommentMap, scan_comments }
 
 /// What kind of declaration a DeclEntry points at. Drives the hover
 /// signature template + helps clients decide on icon / styling.

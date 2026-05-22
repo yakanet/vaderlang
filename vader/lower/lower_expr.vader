@@ -15,7 +15,7 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap, values, keys }
-import "vader/parser/ast" {
+import "vader/parser" {
     Expr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr,
     StringLitExpr, StringLitText, StringLitInterp, IdentExpr, CallExpr,
     FieldExpr, IndexExpr, UnaryExpr, UnaryOp, BinaryExpr, BinaryOp, IfExpr,
@@ -28,47 +28,25 @@ import "vader/parser/ast" {
     LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
     Visibility,
 }
-import "vader/diagnostics/diagnostic" { Span, Diagnostic }
-import "vader/typecheck/type_expr" { type_from_expr, primitive_from_name }
+import "vader/diagnostics" { Span, Diagnostic }
+import "vader/typecheck" { type_from_expr, primitive_from_name }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
     TypeParamType, ArrayType, TupleType, TypeMetaType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive,
 }
-import "vader/typecheck/type_ops" { default_if_free, equals_type }
-import "vader/comptime/value" {
+import "vader/typecheck" { default_if_free, equals_type }
+import "vader/comptime" {
     ComptimeValue, IntValue, FloatValue, BoolValue, CharValue, StringValue,
     NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
 }
-import "vader/comptime/evaluated_ast" { EvaluatedProgram }
-import "vader/comptime/intrinsic" { byte_size, byte_align }
-import "vader/typecheck/impls" { type_to_target_symbol, has_user }
-import "vader/resolver/wire" { ImportTargetTable, SymbolTarget }
-import "vader/parser/ast" { ConstDecl, ImplDecl }
+import "vader/comptime" { EvaluatedProgram }
+import "vader/comptime" { byte_size, byte_align }
+import "vader/typecheck" { type_to_target_symbol, has_user }
+import "vader/resolver" { ImportTargetTable, SymbolTarget }
+import "vader/parser" { ConstDecl, ImplDecl }
 import "vader/types" { display_type }
-import "vader/lower/ctx" { FnLowerCtx, LowerProjectCtx, BlockCtx, new_block_ctx, GenericFnInstance }
-import "vader/lower/entry_types" { expr_type, type_expr_type, local_type, span_key }
-import "vader/lower/helpers" { type_of, block_stmts_with_trailing }
-import "vader/lower/lowered_ast" {
-    LoweredExpr, LoweredBlock, LoweredStmt, LoweredExprStmt,
-    LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
-    LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
-    LoweredFieldAccess, LoweredIndex, LoweredUnary, LoweredUnaryOp, LoweredVirtualCall,
-    LoweredBinary, LoweredBinaryOp, LoweredIf, LoweredStructLit,
-    LoweredStructLitField, LoweredArrayLit, LoweredCast, LoweredTypeCheck,
-    LoweredUnreachable, LoweredIntrinsicCall, LoweredLet, LoweredAssign,
-    LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
-    LoweredCellNew, LoweredCellGet, LoweredCellSet, LoweredTypeConst,
-    INTRINSIC_BUILDER_NEW, INTRINSIC_BUILDER_APPEND_STR,
-    INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
-}
-import "vader/lower/lower_match" { lower_match, resolve_pattern_type }
-import "vader/lower/lower_range" { lower_range_expr }
-import "vader/lower/lower_lambda" { lower_lambda }
-import "vader/lower/lower_try" { lower_try }
-import "vader/lower/lower_for_in" { lower_for_in }
-import "vader/lower/helpers" { fresh_synthetic_symbol }
 
 // ============================================================================
 // Expression dispatcher
@@ -1236,7 +1214,6 @@ synth_namespace_member :: fn(ctx: FnLowerCtx, name: string, type: Type) -> Symbo
     }
 }
 
-import "vader/lower/lowered_ast" { LoweredArrayLen, LoweredArrayPush }
 
 // Detect `arr.push(x)` / `arr.len()` and emit the dedicated op. Returns
 // null when the receiver isn't an array or the field isn't a recognised
@@ -2208,7 +2185,7 @@ ensure_local_symbol_index :: fn(
     return index
 }
 
-import "vader/resolver/resolve" { ResolvedModule }
+import "vader/resolver" { ResolvedModule }
 
 lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
     // `m[k] = v` over an IndexSet-impl receiver lowers to a static
@@ -2275,14 +2252,12 @@ lower_assign_target :: fn(ctx: FnLowerCtx, target: Expr) -> LoweredExpr {
     return lower_expr(ctx, target)
 }
 
-import "vader/typecheck/impls" { ImplEntry }
-import "vader/lower/core_symbols" { find_impl_for }
+import "vader/typecheck" { ImplEntry }
 
 // `arr[lo..<hi]` / `arr[lo..=hi]` over an array-typed receiver lowers
 // to `LoweredArraySlice` (zero-copy view). Other index expressions
 // (single-element access, user IndexExpr on structs) keep the
 // generic `LoweredIndex` shape.
-import "vader/lower/lowered_ast" { LoweredArraySlice }
 
 lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
     target_type :: ctx.types.expr_type(expr.target)

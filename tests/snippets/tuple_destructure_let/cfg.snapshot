@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/tuple_destructure_let/_main.vader
+## snippet
 
-fn tests_snippets_tuple_destructure_let__main_vader$make_pair() -> [i32, string]
+fn snippet$make_pair() -> [i32, string]
   locals:
     %0 $k_0: i32
     %1 $k_1: string
@@ -13,7 +13,7 @@ fn tests_snippets_tuple_destructure_let__main_vader$make_pair() -> [i32, string]
     %2 = struct_new [i32, string](%0, %1)
     return %2
 
-fn tests_snippets_tuple_destructure_let__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $call_0: [i32, string]
     %1 __tup_0: [i32, string] (synthetic __tup_0)

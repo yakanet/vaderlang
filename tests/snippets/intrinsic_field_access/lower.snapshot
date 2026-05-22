@@ -1,8 +1,8 @@
 # Lower
 
-## tests/snippets/intrinsic_field_access/_main.vader
-  struct tests_snippets_intrinsic_field_access__main_vader$User { name: string, age: i32 }
-  fn tests_snippets_intrinsic_field_access__main_vader$derive_print(self: User) -> void
+## snippet
+  struct snippet$User { name: string, age: i32 }
+  fn snippet$derive_print(self: User) -> void
     block :void
       call :void
         callee:
@@ -44,7 +44,7 @@
             ~>
               @builder.finish :string
                 __sb_1 :?
-  fn tests_snippets_intrinsic_field_access__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let u: User =
       User {
         name: "alice" :string

@@ -18,19 +18,16 @@
 module "vader/typecheck"
 
 import "std/collections" { MutableMap }
-import "vader/diagnostics/diagnostic" { Diagnostic, Span, typecheck_error }
-import "vader/resolver/resolve" { ResolvedModule }
+import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
+import "vader/resolver" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol, SymbolFactory, make }
-import "vader/resolver/scope" { span_key }
-AST :: import "vader/parser/ast"
+import "vader/resolver" { span_key }
+AST :: import "vader/parser"
 import "vader/parser" { Visibility }
 import "vader/types" {
     Type, ArrayType, PrimitiveType, mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
     TY_UNRESOLVED, TY_VOID,
 }
-import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/typed_ast" { TypedProgram }
-import "vader/typecheck/enum_pass" { resolve_enum_indices }
 
 /// Walk every top-level decl in `program.decls` and mint its `Type` into
 /// `typed.decl_types`. The pass is single-shot — re-running it is
@@ -287,7 +284,7 @@ declare_type_alias :: fn(
     }
 }
 
-import "vader/parser/ast" { TypeAliasDecl }
+import "vader/parser" { TypeAliasDecl }
 
 declare_const :: fn(
     decl: AST.ConstDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
@@ -338,7 +335,6 @@ is_type_position_value :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     return false
 }
 
-import "vader/typecheck/type_expr" { primitive_from_name }
 import "vader/types" { TY_TYPE }
 
 // ---- helpers --------------------------------------------------------------
@@ -363,16 +359,14 @@ resolve_repr :: fn(
     }
 }
 
-import "vader/typecheck/type_ops" { is_int_name }
 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
 import "vader/types" { display_type }
-import "vader/typecheck/typed_ast" { new_typed_program }
 
 // Resolve `src`, declare-types, then look up the type of the decl
 // named `name` by rendering its `display_type`. Returns `<missing>` if

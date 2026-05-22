@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 union 3,0
-type 3 struct tests_snippets_b1_fn_boundary__main_vader$Node { value:1,next:2 }
+type 3 struct snippet$Node { value:1,next:2 }
 type 4 primitive string
 type 5 primitive void
 string 0 "length="
@@ -10,14 +10,14 @@ string 1 "not found"
 string 2 "found "
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_b1_fn_boundary__main_vader$cons (i32,ref) -> ref
+fn 0 snippet$cons (i32,ref) -> ref
   local.get 0
   local.get 1
   struct.new 3
   return
 end
 
-fn 1 tests_snippets_b1_fn_boundary__main_vader$find (ref,i32) -> ref
+fn 1 snippet$find (ref,i32) -> ref
   local __scrut_0 ref
   local if_res ref
   local.get 0
@@ -49,7 +49,7 @@ fn 1 tests_snippets_b1_fn_boundary__main_vader$find (ref,i32) -> ref
   unreachable
 end
 
-fn 2 tests_snippets_b1_fn_boundary__main_vader$length (ref) -> i32
+fn 2 snippet$length (ref) -> i32
   local __scrut_0 ref
   local $call_11 i32
   local.get 0
@@ -73,7 +73,7 @@ fn 2 tests_snippets_b1_fn_boundary__main_vader$length (ref) -> i32
   unreachable
 end
 
-fn 3 tests_snippets_b1_fn_boundary__main_vader$main () -> i32
+fn 3 snippet$main () -> i32
   local $k_3 null
   local $call_4 ref
   local __sb_0 any

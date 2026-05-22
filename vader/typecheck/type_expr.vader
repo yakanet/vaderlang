@@ -18,16 +18,15 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-import "vader/resolver/resolve" { ResolvedModule }
-import "vader/resolver/scope" { span_key }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
+import "vader/resolver" { ResolvedModule }
+import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 import "vader/types" {
     Type, mk_primitive, mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
     mk_type_param, is_primitive_name, TY_TYPE, TY_SELF, TY_UNRESOLVED, TY_VOID,
 }
-import "vader/typecheck/type_ops" { union_of }
 
 /// Lower `expr` from type position to a `Type`. Unresolvable shapes
 /// surface T3002 and return `TY_UNRESOLVED` ; downstream passes treat
@@ -315,7 +314,7 @@ export primitive_from_name :: fn(name: string) -> Type | null {
 
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
 import "vader/types" { PrimitiveType, display_type }
 
@@ -395,7 +394,7 @@ test_fn_type_expr_lowers_to_fn :: fn() -> void {
     assert_eq(lower_first_param_type("f :: fn(cb: fn(i32) -> bool) -> void {}"), "fn(i32) -> bool")
 }
 
-import "vader/diagnostics/diagnostic" { Span, Position }
+import "vader/diagnostics" { Span, Position }
 
 @test
 test_value_position_expr_emits_T3002 :: fn() -> void {

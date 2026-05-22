@@ -17,22 +17,6 @@ module "vader/midir"
 
 import "std/collections" { MutableMap, MutableSet, keys, values, add }
 import "std/iter" { slice }
-import "vader/midir/cfg" {
-    BasicBlock, BlockId, CFGFunction, CFGModule, CFGProject,
-    Instruction, LocalId, Terminator,
-    TermReturn, TermBranch, TermCondBranch, TermUnreachable,
-    InstrConst, InstrBinOp, InstrUnOp, InstrCall, InstrCallIndirect,
-    InstrFnRef, InstrVirtualCall, InstrFieldGet, InstrFieldSet,
-    InstrArrayGet, InstrArraySet, InstrArrayLen, InstrArrayPush,
-    InstrArraySlice, InstrStructNew, InstrArrayNew, InstrDataConst,
-    InstrTypeCheck, InstrTypeConst, InstrCast, InstrCellNew,
-    InstrCellGet, InstrCellSet, InstrMakeClosure, InstrIntrinsic,
-    InstrMove,
-}
-import "vader/midir/analyses" {
-    compute_dominators, compute_liveness, dst_of, natural_loop_bodies,
-    predecessors_of,
-}
 
 export EscapeStats :: struct {
     total_allocs:    i32

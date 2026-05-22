@@ -18,15 +18,14 @@ module "vader/lsp"
 import "std/collections" { MutableMap }
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool }
 import "std/string" { byte_len, slice, starts_with }
-import "vader/diagnostics/diagnostic" { Diagnostic, Span }
-import "vader/lsp/state" { ServerState }
-import "vader/resolver/loader" { load_project }
-import "vader/resolver/scope" { span_key }
-import "vader/typecheck/orchestrate" { check_project_with_bodies }
-import "vader/typecheck/check" { CheckResult }
-import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/diagnostics" { Diagnostic, Span }
+import "vader/resolver" { load_project }
+import "vader/resolver" { span_key }
+import "vader/typecheck" { check_project_with_bodies }
+import "vader/typecheck" { CheckResult }
+import "vader/typecheck" { TypedProgram }
 import "vader/types" { Type, UnresolvedType, FreeIntType, FreeFloatType, display_type }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Build the inlay-hint array for the document carried in `params`.
 /// Returns a `JsonArray` (possibly empty) — the LSP spec mandates an

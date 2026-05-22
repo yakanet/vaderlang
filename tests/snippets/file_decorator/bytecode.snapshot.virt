@@ -6,7 +6,7 @@ type 3 primitive void
 string 0 "Hello from file!"
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_file_decorator__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   string.const 0
   call 1
   return.lit i32.const 0

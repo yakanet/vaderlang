@@ -9,22 +9,10 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-import "vader/resolver/scope" { span_key }
-import "vader/typecheck/context" { FnContext }
-import "vader/typecheck/expr_ident" { type_of_symbol }
-import "vader/typecheck/narrow" {
-    narrow_for_field, pick_field_vs_null, pick_ident_vs_null,
-    pop_field_narrow, pop_narrow, push_field_narrow, push_narrow,
-    resolve_field_chain_static,
-}
-import "vader/typecheck/stmt" { check_block }
-import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/type_ops" { subtract_type, union_of }
-import "vader/typecheck/type_assign" { is_assignable }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
+import "vader/resolver" { span_key }
 import "vader/types" { Type, UnresolvedType, display_type, mk_primitive, TY_BOOL, TY_VOID, TY_UNRESOLVED }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Type-check an `IfExpr`. `expected` flows into both branches so
 /// `let x: i64 = if c { 1 } else { 2 }` narrows each literal to i64.
@@ -222,13 +210,8 @@ detect_is_narrow :: fn(
 
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/check" { check_module }
-import "vader/typecheck/expr_ident" { infer_ident }
-import "vader/typecheck/expr_literals" { infer_int_lit, infer_bool_lit }
-import "vader/typecheck/test_helpers" { find_first_in_block }
-import "vader/typecheck/type_ops" { narrow_for_expected }
 
 stub_check_expr :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],

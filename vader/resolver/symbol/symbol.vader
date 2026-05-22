@@ -7,7 +7,7 @@
 
 module "vader/resolver/symbol"
 
-import "vader/diagnostics/diagnostic" { Span }
+import "vader/diagnostics" { Span }
 import "vader/parser" { Visibility }
 
 // SymbolKind values are kept as i32 (rather than an enum) so an empty list

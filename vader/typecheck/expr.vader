@@ -19,36 +19,10 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic, resolver_error, warning }
-import "vader/typecheck/type_expr" { primitive_from_name }
-import "vader/resolver/scope" { span_full_key, span_key }
-AST :: import "vader/parser/ast"
+import "vader/diagnostics" { Diagnostic, resolver_error, warning }
+import "vader/resolver" { span_full_key, span_key }
+AST :: import "vader/parser"
 import "vader/types" { Type, FreeIntType, FreeFloatType, TY_UNRESOLVED }
-import "vader/typecheck/type_ops" { narrow_for_expected }
-import "vader/typecheck/typed_ast" { TypedProgram }
-import "vader/typecheck/expr_literals" {
-    infer_int_lit, infer_float_lit, infer_bool_lit, infer_null_lit,
-    infer_char_lit, infer_string_lit,
-}
-import "vader/typecheck/expr_ident" { infer_ident }
-import "vader/typecheck/expr_if" { infer_if }
-import "vader/typecheck/match_expr" { infer_match }
-import "vader/typecheck/stmt" { check_block }
-import "vader/typecheck/call" { infer_call }
-import "vader/typecheck/binary" { infer_binary }
-import "vader/typecheck/field" { infer_field }
-import "vader/typecheck/expr_cast" { infer_cast }
-import "vader/typecheck/expr_dot_variant" { infer_dot_variant }
-import "vader/typecheck/expr_generic_inst" { infer_generic_inst }
-import "vader/typecheck/expr_index" { infer_index }
-import "vader/typecheck/expr_intrinsic" { infer_intrinsic }
-import "vader/typecheck/expr_lambda" { infer_lambda }
-import "vader/typecheck/expr_range" { infer_range }
-import "vader/typecheck/expr_try" { infer_try }
-import "vader/typecheck/expr_type_value" { infer_array_type_value, infer_fn_type_value }
-import "vader/typecheck/expr_unary" { infer_unary }
-import "vader/typecheck/seq_lit" { infer_seq_lit }
-import "vader/typecheck/struct_lit" { infer_struct_lit }
 
 /// Type-check `expr`. `expected` provides bidirectional context — pass
 /// `null` for fresh-position uses. The returned `Type` is the post-
@@ -172,9 +146,8 @@ infer_expr :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
-import "vader/diagnostics/diagnostic" { empty_span }
+import "vader/diagnostics" { empty_span }
 import "vader/types" { mk_primitive, display_type }
-import "vader/typecheck/typed_ast" { empty_typed_program }
 
 @test
 test_check_expr_writes_into_expr_types :: fn() -> void {

@@ -20,13 +20,7 @@ import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
 }
 import "std/collections" { MutableMap }
-import "vader/lsp/state" { ServerState, index_for }
-import "vader/lsp/indexer" {
-    DocIndex, DeclEntry, find_at, name_at, span_at,
-    span_to_range_json, SpanRange,
-}
-import "vader/lsp/resolver" { ExternalHit, resolve }
-import "vader/diagnostics/diagnostic" { Span }
+import "vader/diagnostics" { Span }
 
 /// Resolve goto-def for the position carried in `params`. Returns
 /// `LocationLink[]` (when `linkSupport`) or a bare `Location`, or

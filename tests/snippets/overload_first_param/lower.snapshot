@@ -1,9 +1,9 @@
 # Lower
 
-## tests/snippets/overload_first_param/_main.vader
-  struct tests_snippets_overload_first_param__main_vader$Box { v: i32 }
-  struct tests_snippets_overload_first_param__main_vader$Bag { v: string }
-  fn tests_snippets_overload_first_param__main_vader$describe(b: Box) -> string
+## snippet
+  struct snippet$Box { v: i32 }
+  struct snippet$Bag { v: string }
+  fn snippet$describe(b: Box) -> string
     return
       block :string
         let __sb_0: ? =
@@ -18,7 +18,7 @@
         ~>
           @builder.finish :string
             __sb_0 :?
-  fn tests_snippets_overload_first_param__main_vader$describe_1(b: Bag) -> string
+  fn snippet$describe_1(b: Bag) -> string
     return
       block :string
         let __sb_0: ? =
@@ -33,7 +33,7 @@
         ~>
           @builder.finish :string
             __sb_0 :?
-  fn tests_snippets_overload_first_param__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let a: Box =
       Box {
         v: int(42) :i32

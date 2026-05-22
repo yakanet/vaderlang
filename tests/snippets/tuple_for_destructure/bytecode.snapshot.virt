@@ -11,7 +11,7 @@ string 2 "c"
 string 3 "="
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_tuple_for_destructure__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local $struct_2 ref
   local $struct_5 ref
   local $struct_8 ref

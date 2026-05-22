@@ -18,8 +18,8 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "vader/diagnostics/diagnostic" { Span, empty_span }
-AST :: import "vader/parser/ast"
+import "vader/diagnostics" { Span, empty_span }
+AST :: import "vader/parser"
 
 /// Name → replacement TypeExpr. Built by callers (materialize entry
 /// points) and passed once through the substitution walker.

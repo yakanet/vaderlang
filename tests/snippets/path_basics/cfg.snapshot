@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/path_basics/_main.vader
+## snippet
 
-fn tests_snippets_path_basics__main_vader$show_path(%0: string, %1: Path) -> void
+fn snippet$show_path(%0: string, %1: Path) -> void
   locals:
     %0 label: string (param label)
     %1 p: Path (param p)
@@ -23,7 +23,7 @@ fn tests_snippets_path_basics__main_vader$show_path(%0: string, %1: Path) -> voi
     call println(%6) :void
     return
 
-fn tests_snippets_path_basics__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $call_1: Path

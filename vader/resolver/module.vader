@@ -61,7 +61,7 @@ export Module :: struct {
 /// or null. `from_file` is the absolute path of the file containing
 /// the import ; `stdlib_root` is where `std/...` lives ; `project_root`
 /// (when non-null) is the directory of the nearest `vader.json` and
-/// anchors bare-name imports like `import "vader/parser/ast"`.
+/// anchors bare-name imports like `import "vader/parser"`.
 export resolve_import_path :: fn(
     raw_path: string, from_file: string, stdlib_root: string,
     project_root: string | null,
@@ -86,7 +86,7 @@ export resolve_import_path :: fn(
 
 /// Walk up from `start` looking for `MANIFEST_FILENAME`. Returns
 /// the containing directory, or null if no manifest is found up to
-/// the filesystem root. Used to anchor `import "vader/parser/ast"`
+/// the filesystem root. Used to anchor `import "vader/parser"`
 /// style bare-name imports.
 export find_manifest_root :: fn(start: string) -> string | null {
     // Accept either a file or a directory as the start point ; for

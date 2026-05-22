@@ -19,9 +19,6 @@ import "vader/types" {
     FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
     UnresolvedType, FreeIntType, FreeFloatType, NeverType,
 }
-import "vader/typecheck/type_ops" {
-    TraitOracle, equals_type, is_int_name, is_float_name,
-}
 
 /// Whether `from` can flow into a slot expecting `to` without explicit
 /// coercion. Trait-widening is gated by `oracle` ; pass `null` if the

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/custom_iter/_main.vader
+## snippet
 
-fn tests_snippets_custom_iter__main_vader$Countdown$Iterator$next(%0: Countdown) -> null | Yield(i32)
+fn snippet$Countdown$Iterator$next(%0: Countdown) -> null | Yield(i32)
   locals:
     %0 self: Countdown (param self)
     %1 $field_1: i32
@@ -31,7 +31,7 @@ fn tests_snippets_custom_iter__main_vader$Countdown$Iterator$next(%0: Countdown)
     %9 = struct_new Yield(i32)(%5)
     return %9
 
-fn tests_snippets_custom_iter__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 __iter_0: Countdown (synthetic __iter_0)

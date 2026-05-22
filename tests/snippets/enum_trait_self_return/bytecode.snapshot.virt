@@ -10,7 +10,7 @@ string 2 "S"
 string 3 "W"
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_left (i32) -> i32
+fn 0 snippet$Direction$Turnable$turn_left (i32) -> i32
   local.get 0
   i32.const 0
   i32.eq
@@ -42,7 +42,7 @@ fn 0 tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_l
   unreachable
 end
 
-fn 1 tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_right (i32) -> i32
+fn 1 snippet$Direction$Turnable$turn_right (i32) -> i32
   local.get 0
   i32.const 0
   i32.eq
@@ -74,7 +74,7 @@ fn 1 tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_r
   unreachable
 end
 
-fn 2 tests_snippets_enum_trait_self_return__main_vader$Direction$Display$to_string (i32) -> any
+fn 2 snippet$Direction$Display$to_string (i32) -> any
   local.get 0
   i32.const 0
   i32.eq
@@ -106,7 +106,7 @@ fn 2 tests_snippets_enum_trait_self_return__main_vader$Direction$Display$to_stri
   unreachable
 end
 
-fn 3 tests_snippets_enum_trait_self_return__main_vader$main () -> i32
+fn 3 snippet$main () -> i32
   local d i32
   i32.const 0
   local.tee 0

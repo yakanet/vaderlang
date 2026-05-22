@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/null_blockres/_main.vader
+## snippet
 
-fn tests_snippets_null_blockres__main_vader$pick(%0: bool) -> null | string
+fn snippet$pick(%0: bool) -> null | string
   locals:
     %0 c: bool (param c)
     %1 if_res: null
@@ -31,7 +31,7 @@ fn tests_snippets_null_blockres__main_vader$pick(%0: bool) -> null | string
     %6 = const null :null
     return %6
 
-fn tests_snippets_null_blockres__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: bool
     %1 $call_1: null | string

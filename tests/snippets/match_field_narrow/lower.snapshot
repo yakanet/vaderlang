@@ -1,12 +1,12 @@
 # Lower
 
-## tests/snippets/match_field_narrow/_main.vader
-  struct tests_snippets_match_field_narrow__main_vader$Bag { items: i32[] | null }
-  fn tests_snippets_match_field_narrow__main_vader$count(items: i32[]) -> i32
+## snippet
+  struct snippet$Bag { items: i32[] | null }
+  fn snippet$count(items: i32[]) -> i32
     return
       cast → i32
         LoweredArrayLen
-  fn tests_snippets_match_field_narrow__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let b: Bag =
       Bag {
         items:

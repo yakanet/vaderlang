@@ -1,9 +1,9 @@
 # Lower
 
-## tests/snippets/ufcs_overload/_main.vader
-  struct tests_snippets_ufcs_overload__main_vader$A { x: i32 }
-  struct tests_snippets_ufcs_overload__main_vader$B { y: i32 }
-  fn tests_snippets_ufcs_overload__main_vader$inc(self: A) -> i32
+## snippet
+  struct snippet$A { x: i32 }
+  struct snippet$B { y: i32 }
+  fn snippet$inc(self: A) -> i32
     return
       add :i32
         l:
@@ -11,7 +11,7 @@
             self :A
         r:
           int(1) :i32
-  fn tests_snippets_ufcs_overload__main_vader$inc_1(self: B) -> i32
+  fn snippet$inc_1(self: B) -> i32
     return
       add :i32
         l:
@@ -19,7 +19,7 @@
             self :B
         r:
           int(100) :i32
-  fn tests_snippets_ufcs_overload__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let a: A =
       A {
         x: int(5) :i32

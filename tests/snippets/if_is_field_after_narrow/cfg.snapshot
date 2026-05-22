@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/if_is_field_after_narrow/_main.vader
+## snippet
 
-fn tests_snippets_if_is_field_after_narrow__main_vader$type_id_of(%0: ArrayVal | IntVal | StructVal) -> i32
+fn snippet$type_id_of(%0: ArrayVal | IntVal | StructVal) -> i32
   locals:
     %0 v: ArrayVal | IntVal | StructVal (param v)
     %1 $type_check_1: bool
@@ -34,7 +34,7 @@ fn tests_snippets_if_is_field_after_narrow__main_vader$type_id_of(%0: ArrayVal |
     %9 = unop neg %8 :i32
     return %9
 
-fn tests_snippets_if_is_field_after_narrow__main_vader$first_item(%0: ArrayVal | IntVal | StructVal) -> i32
+fn snippet$first_item(%0: ArrayVal | IntVal | StructVal) -> i32
   locals:
     %0 v: ArrayVal | IntVal | StructVal (param v)
     %1 $type_check_1: bool
@@ -58,7 +58,7 @@ fn tests_snippets_if_is_field_after_narrow__main_vader$first_item(%0: ArrayVal |
     %7 = unop neg %6 :i32
     return %7
 
-fn tests_snippets_if_is_field_after_narrow__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $k_1: i32

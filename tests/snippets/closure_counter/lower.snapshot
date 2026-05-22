@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/closure_counter/_main.vader
-  fn tests_snippets_closure_counter__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let n: ? =
       LoweredCellNew
     let inc: fn() -> i32 =

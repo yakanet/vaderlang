@@ -7,9 +7,8 @@
 
 module "vader/typecheck"
 
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 import "vader/types" { Type, mk_primitive, TY_BOOL, TY_FREE_INT, TY_FREE_FLOAT, TY_UNRESOLVED }
-import "vader/typecheck/type_expr" { primitive_from_name }
 
 /// `42` → FreeInt ; `42i64` → i64. Unknown suffix → Unresolved (the
 /// lexer already rejected unknown suffixes ; this is defensive).
@@ -42,7 +41,7 @@ export infer_string_lit :: fn(_: AST.StringLitExpr) -> Type { return mk_primitiv
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
-import "vader/diagnostics/diagnostic" { empty_span }
+import "vader/diagnostics" { empty_span }
 import "vader/types" { display_type, FreeIntType, FreeFloatType }
 
 @test

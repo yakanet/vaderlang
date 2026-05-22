@@ -1,21 +1,21 @@
 # Lower
 
-## tests/snippets/vm_fn_value_callback/_main.vader
-  fn tests_snippets_vm_fn_value_callback__main_vader$triple(n: i32) -> i32
+## snippet
+  fn snippet$triple(n: i32) -> i32
     return
       mul :i32
         l:
           n :i32
         r:
           int(3) :i32
-  fn tests_snippets_vm_fn_value_callback__main_vader$apply(f: fn(i32) -> i32, n: i32) -> i32
+  fn snippet$apply(f: fn(i32) -> i32, n: i32) -> i32
     return
       call :i32
         callee:
           f :fn(i32) -> i32
         arg0:
           n :i32
-  fn tests_snippets_vm_fn_value_callback__main_vader$main() -> i32
+  fn snippet$main() -> i32
     return
       call :i32
         callee:

@@ -18,14 +18,12 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap, MutableSet, contains, add, values, keys }
-import "vader/diagnostics/diagnostic" { Span }
-AST :: import "vader/parser/ast"
+import "vader/diagnostics" { Span }
+AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" { Type, TY_UNRESOLVED }
-import "vader/typecheck/typed_ast" { TypedProject, TypedProgram }
-import "vader/resolver/loader" { LoadedProject, LoadedModule }
-import "vader/lower/ctx" { ClosureAnalysis, Capture, new_closure_analysis }
-import "vader/lower/entry_types" { span_key }
+import "vader/typecheck" { TypedProject, TypedProgram }
+import "vader/resolver" { LoadedProject, LoadedModule }
 
 /// Walk every fn body in the project, populate `ClosureAnalysis` with
 /// each lambda's capture list + the union of captured symbol IDs.

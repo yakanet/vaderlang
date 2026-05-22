@@ -33,7 +33,7 @@ import 10 to_upper std_string$to_upper (string) -> string
 import 11 to_lower std_string$to_lower (string) -> string
 impl 8 Display
 
-fn 0 tests_snippets_std_string__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local s string
   local __sb_0 any
   local $call_5 string

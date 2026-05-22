@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/coerce_into_basic/_main.vader
+## snippet
 
-fn tests_snippets_coerce_into_basic__main_vader$UserId$Into$into(%0: UserId) -> i32
+fn snippet$UserId$Into$into(%0: UserId) -> i32
   locals:
     %0 self: UserId (param self)
     %1 $field_1: i32
@@ -10,7 +10,7 @@ fn tests_snippets_coerce_into_basic__main_vader$UserId$Into$into(%0: UserId) -> 
     %1 = field_get %0.value :i32
     return %1
 
-fn tests_snippets_coerce_into_basic__main_vader$UserId$Into$into_1(%0: UserId) -> string
+fn snippet$UserId$Into$into_1(%0: UserId) -> string
   locals:
     %0 self: UserId (param self)
     %1 $intrinsic_1: ?
@@ -28,7 +28,7 @@ fn tests_snippets_coerce_into_basic__main_vader$UserId$Into$into_1(%0: UserId) -
     %5 = intrinsic builder.finish(%2)
     return %5
 
-fn tests_snippets_coerce_into_basic__main_vader$take_i32(%0: i32) -> i32
+fn snippet$take_i32(%0: i32) -> i32
   locals:
     %0 x: i32 (param x)
     %1 $k_1: i32
@@ -38,7 +38,7 @@ fn tests_snippets_coerce_into_basic__main_vader$take_i32(%0: i32) -> i32
     %2 = binop add %0 %1 :i32
     return %2
 
-fn tests_snippets_coerce_into_basic__main_vader$get_id(%0: UserId) -> i32
+fn snippet$get_id(%0: UserId) -> i32
   locals:
     %0 u: UserId (param u)
     %1 $call_1: i32
@@ -46,7 +46,7 @@ fn tests_snippets_coerce_into_basic__main_vader$get_id(%0: UserId) -> i32
     %1 = call into(%0) :i32
     return %1
 
-fn tests_snippets_coerce_into_basic__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 u: UserId (local u)

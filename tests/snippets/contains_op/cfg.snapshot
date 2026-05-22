@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/contains_op/_main.vader
+## snippet
 
-fn tests_snippets_contains_op__main_vader$DigitSet$Contains$contains(%0: DigitSet, %1: i32) -> bool
+fn snippet$DigitSet$Contains$contains(%0: DigitSet, %1: i32) -> bool
   locals:
     %0 self: DigitSet (param self)
     %1 value: i32 (param value)
@@ -42,7 +42,7 @@ fn tests_snippets_contains_op__main_vader$DigitSet$Contains$contains(%0: DigitSe
     %12 = binop neq %10 %11 :bool
     return %12
 
-fn tests_snippets_contains_op__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $k_1: i32

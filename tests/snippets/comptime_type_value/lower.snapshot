@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/comptime_type_value/_main.vader
-  fn tests_snippets_comptime_type_value__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     call :void
       callee:
         accept_type :fn(type) -> void
@@ -28,4 +28,4 @@
       arg0:
         "ok" :string
     return int(0) :i32
-  fn tests_snippets_comptime_type_value__main_vader$accept_type(t: type) -> void
+  fn snippet$accept_type(t: type) -> void

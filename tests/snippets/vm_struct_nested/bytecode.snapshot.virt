@@ -1,10 +1,10 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct tests_snippets_vm_struct_nested__main_vader$Inner { v:1 }
-type 3 struct tests_snippets_vm_struct_nested__main_vader$Outer { lhs:2,rhs:2 }
+type 2 struct snippet$Inner { v:1 }
+type 3 struct snippet$Outer { lhs:2,rhs:2 }
 
-fn 0 tests_snippets_vm_struct_nested__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local $struct_1 ref
   local $struct_3 ref
   local $field_7 i32

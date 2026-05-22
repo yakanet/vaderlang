@@ -16,7 +16,7 @@ string 8 "not_zero"
 string 9 "not_top"
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_u32_bitops__main_vader$check (string,bool) -> void
+fn 0 snippet$check (string,bool) -> void
   local.get 1
   if $L0 void
     local.get 0
@@ -28,7 +28,7 @@ fn 0 tests_snippets_u32_bitops__main_vader$check (string,bool) -> void
   return
 end
 
-fn 1 tests_snippets_u32_bitops__main_vader$main () -> i32
+fn 1 snippet$main () -> i32
   local a u32
   local b u32
   local $shr_6 u32

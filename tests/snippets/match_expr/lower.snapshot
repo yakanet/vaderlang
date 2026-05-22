@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/match_expr/_main.vader
-  fn tests_snippets_match_expr__main_vader$classify(x: i32 | null | string) -> string
+## snippet
+  fn snippet$classify(x: i32 | null | string) -> string
     return
       block :string
         let __scrut_0: i32 | null | string = x :i32 | null | string

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/interpolation/_main.vader
+## snippet
 
-fn tests_snippets_interpolation__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 name: string (local name)
     %1 age: i32 (local age)

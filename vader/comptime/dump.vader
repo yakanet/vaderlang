@@ -17,12 +17,9 @@ import "std/collections" { keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, pad_end }
 import "std/string_builder" { new_builder, append, append_char }
-import "vader/resolver/module" { is_stdlib_module }
-import "vader/comptime/evaluated_ast" { EvaluatedProject, EvaluatedProgram }
-import "vader/comptime/value" { ComptimeValue, display_value }
-import "vader/comptime/instances" { GenericInstance, render_instance }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+import "vader/resolver" { is_stdlib_module }
+import "vader/typecheck" { TypedProgram }
+AST :: import "vader/parser"
 
 /// Render the project's `# Comptime` dump as a single string.
 /// Stdlib modules are filtered out so the dump matches the TS
@@ -96,8 +93,7 @@ module_display_path :: fn(module_program: EvaluatedProgram) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq }
-import "vader/typecheck/typed_ast" { new_typed_project }
-import "vader/comptime/evaluated_ast" { new_evaluated_project }
+import "vader/typecheck" { new_typed_project }
 
 @test test_dump_empty_project_header_only :: fn() -> void {
     project :: new_evaluated_project(new_typed_project())

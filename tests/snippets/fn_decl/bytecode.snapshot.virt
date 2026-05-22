@@ -48,14 +48,14 @@ import 29 not_equals std_core$string$Equals$not_equals (string,string) -> bool
 import 30 hash std_core$string$Hash$hash (string) -> u64
 import 31 at std_core$string$Index$at (string,usize) -> char
 
-fn 0 tests_snippets_fn_decl__main_vader$add (i32,i32) -> i32
+fn 0 snippet$add (i32,i32) -> i32
   local.get 0
   local.get 1
   i32.add
   return
 end
 
-fn 1 tests_snippets_fn_decl__main_vader$greet (string,string) -> string
+fn 1 snippet$greet (string,string) -> string
   local.get 1
   return
 end

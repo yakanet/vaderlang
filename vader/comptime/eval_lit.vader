@@ -7,16 +7,10 @@
 
 module "vader/comptime"
 
-import "vader/comptime/eval_types" { EvalResult, ComptimeContext, ok, fail }
-import "vader/comptime/value" {
-    ComptimeValue, CharValue,
-    int_val, int_val_typed, float_val, float_val_typed, string_val,
-    VAL_NULL, VAL_TRUE, VAL_FALSE,
-}
 import "std/string_builder" { new_builder, append, append_char }
-import "vader/diagnostics/diagnostic" { comptime_error }
-import "vader/diagnostics/codes" { ComptimeCode }
-AST :: import "vader/parser/ast"
+import "vader/diagnostics" { comptime_error }
+import "vader/diagnostics" { ComptimeCode }
+AST :: import "vader/parser"
 
 /// Evaluate an `IntLitExpr`. The parser stores the unsigned magnitude
 /// (negatives wrap a `UnaryExpr.Neg` around a positive lit), and the

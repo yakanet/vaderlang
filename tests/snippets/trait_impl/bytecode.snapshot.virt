@@ -1,6 +1,6 @@
 module _main
 type 0 primitive null
-type 1 struct tests_snippets_trait_impl__main_vader$Point { x:3,y:3 }
+type 1 struct snippet$Point { x:3,y:3 }
 type 2 primitive string
 type 3 primitive f64
 type 4 primitive i8
@@ -51,7 +51,7 @@ import 30 hash std_core$string$Hash$hash (string) -> u64
 import 31 at std_core$string$Index$at (string,usize) -> char
 impl 1 Display
 
-fn 0 tests_snippets_trait_impl__main_vader$Point$Display$to_string (ref) -> string
+fn 0 snippet$Point$Display$to_string (ref) -> string
   return.lit string.const 0
 end
 

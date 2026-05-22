@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/range_widths/_main.vader
-  fn tests_snippets_range_widths__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let nu: u64 = int(3) :u64
     let su: u64 = int(0) :u64
     block :void

@@ -28,7 +28,7 @@ vtable Add.add 12 12
 vtable Add.add 13 13
 vtable Add.add 14 14
 
-fn 0 tests_snippets_numeric_add_trait__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local a i32
   local b i32
   local c i32
@@ -49,14 +49,14 @@ fn 0 tests_snippets_numeric_add_trait__main_vader$main () -> i32
   return
 end
 
-fn 1 tests_snippets_numeric_add_trait__main_vader$tests_snippets_numeric_add_trait__main_vader$double__i32 (ref) -> ref
+fn 1 snippet$snippet$double__i32 (ref) -> ref
   local.get 0
   local.get 0
   virtual.call 2 Add.add
   return
 end
 
-fn 2 tests_snippets_numeric_add_trait__main_vader$tests_snippets_numeric_add_trait__main_vader$triple__i32 (ref) -> ref
+fn 2 snippet$snippet$triple__i32 (ref) -> ref
   local $vcall_1 ref
   local.get 0
   local.get 0

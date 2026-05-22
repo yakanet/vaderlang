@@ -1,8 +1,8 @@
 # Lower
 
-## tests/snippets/vm_struct_point/_main.vader
-  struct tests_snippets_vm_struct_point__main_vader$Point { x: i32, y: i32 }
-  fn tests_snippets_vm_struct_point__main_vader$main() -> i32
+## snippet
+  struct snippet$Point { x: i32, y: i32 }
+  fn snippet$main() -> i32
     let p: Point =
       Point {
         x: int(3) :i32

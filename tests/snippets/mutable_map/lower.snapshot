@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/mutable_map/_main.vader
-  fn tests_snippets_mutable_map__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let m: MutableMap(i32, i32) =
       MutableMap(i32, i32) {
         buckets:

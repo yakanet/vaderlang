@@ -13,6 +13,8 @@ import { parseSource } from "../parser/pipeline.ts";
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import { runtimeRoots } from "../runtime-resources.ts";
 
+import { err } from "./diag.ts";
+import type { ModuleIndex } from "./discover.ts";
 import type { ModuleId, Symbol, SymbolFactory } from "./symbol.ts";
 
 /** `import "std/…"` and the `displayPath` of any stdlib module both start
@@ -81,6 +83,11 @@ export interface VaderManifest {
   readonly version?: string;
   readonly entries?: Record<string, string>;
   readonly stdlib?: string;
+  /** Per §2.2 of docs/MODULE_SYSTEM.md : explicit list of source roots
+   *  to scan for module declarations. Stdlib resolution is independent
+   *  (see `resolveStdlibRoot`). Paths are literal folders ; glob
+   *  patterns are not supported (decision #41). */
+  readonly modules?: readonly string[];
 }
 
 export function findManifestRoot(start: string): string | null {
@@ -126,28 +133,43 @@ export function resolveStdlibRoot(projectRoot: string | null, manifest: VaderMan
 // -------------------------------------------------------- module discovery
 
 export interface ResolveImportOptions {
-  readonly fromFile: string;        // absolute path of the file containing the import
-  readonly projectRoot: string | null;
-  readonly stdlibRoot: string;
+  /** Module index built by `discoverModules` — the strict resolver's
+   *  source of truth. Import paths are resolved by name-lookup against
+   *  this index ; there is no filesystem fallback. */
+  readonly index: ModuleIndex;
+  /** Module name of the file containing the import, used for self-import
+   *  detection (§1.5) and for the std/core-redundancy check (§1.5).
+   *  Null only at the bootstrap step that locates the entry module. */
+  readonly fromModuleName: string | null;
+  /** Span of the offending `import "..."` literal — used as the primary
+   *  span for any diagnostic the lookup emits. */
+  readonly span: Span;
+  readonly diags: DiagnosticCollector;
 }
 
-/** Resolve a raw `import "path"` string to an on-disk module location, or null. */
+/** Resolve `import "name"` to the target module's folder by looking the
+ *  name up in the project-wide module index. Emits the diagnostic for
+ *  any failure path (R2025 relative path, R2024 self-import, R2028
+ *  explicit std/core, R2001 not found). */
 export function resolveImportPath(rawPath: string, opts: ResolveImportOptions): string | null {
-  if (rawPath.startsWith(STDLIB_PATH_PREFIX)) {
-    return resolveStdlibImport(rawPath, opts.stdlibRoot);
-  }
   if (rawPath.startsWith("./") || rawPath.startsWith("../")) {
-    return resolveOnDisk(join(dirname(opts.fromFile), rawPath));
+    err(opts.diags, "R2025", opts.span, `\`${rawPath}\``);
+    return null;
   }
-  if (opts.projectRoot !== null) {
-    return resolveOnDisk(join(opts.projectRoot, rawPath));
+  if (opts.fromModuleName !== null && rawPath === opts.fromModuleName) {
+    err(opts.diags, "R2024", opts.span, `\`${rawPath}\``);
+    return null;
   }
-  // Single-file mode: try relative to fromFile.
-  return resolveOnDisk(join(dirname(opts.fromFile), rawPath));
-}
-
-function resolveStdlibImport(path: string, stdlibRoot: string): string | null {
-  return resolveOnDisk(join(stdlibRoot, path));
+  if (rawPath === "std/core" && opts.fromModuleName !== "std/core") {
+    err(opts.diags, "R2028", opts.span);
+    return null;
+  }
+  const target = opts.index.get(rawPath);
+  if (target === undefined) {
+    err(opts.diags, "R2001", opts.span, `\`${rawPath}\``);
+    return null;
+  }
+  return target.folder;
 }
 
 export function pathKind(p: string): "dir" | "file" | null {

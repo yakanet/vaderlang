@@ -1,66 +1,14 @@
 # CFG
 
-## tests/snippets/struct_name_collision/_main.vader
+## snippet
 
-fn tests_snippets_struct_name_collision__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
-    %0 $call_0: Box
-    %1 a: Box (local a)
-    %2 $call_2: Box
-    %3 b: Box (local b)
-    %4 $intrinsic_4: ?
-    %5 __sb_0: ? (synthetic __sb_0)
-    %6 $k_6: string
-    %7 $field_7: i32
-    %8 $intrinsic_8: string
-    %9 $intrinsic_9: ?
-    %10 __sb_1: ? (synthetic __sb_1)
-    %11 $k_11: string
-    %12 $field_12: string
-    %13 $intrinsic_13: string
-    %14 $k_14: i32
   bb0:
-    %0 = call make_a() :Box
-    %1 = move %0
-    %2 = call make_b() :Box
-    %3 = move %2
-    %4 = intrinsic builder.new()
-    %5 = move %4
-    %6 = const string(#0) :string
-    intrinsic builder.append_str(%5, %6)
-    %7 = field_get %1.id :i32
-    intrinsic builder.append_display(%5, %7)
-    %8 = intrinsic builder.finish(%5)
-    call println(%8) :void
-    %9 = intrinsic builder.new()
-    %10 = move %9
-    %11 = const string(#1) :string
-    intrinsic builder.append_str(%10, %11)
-    %12 = field_get %3.label :string
-    intrinsic builder.append_display(%10, %12)
-    %13 = intrinsic builder.finish(%10)
-    call println(%13) :void
-    %14 = const int(0) :i32
-    return %14
+    unreachable ; unresolved ident make_a
 
-## tests/snippets/struct_name_collision/mod_a
-
-fn tests_snippets_struct_name_collision_mod_a$make_a() -> Box
-  locals:
-    %0 $k_0: i32
-    %1 $struct_1: Box
-  bb0:
-    %0 = const int(42) :i32
-    %1 = struct_new Box(%0)
-    return %1
-
-## tests/snippets/struct_name_collision/mod_b
-
-fn tests_snippets_struct_name_collision_mod_b$make_b() -> Box
-  locals:
-    %0 $k_0: string
-    %1 $struct_1: Box
-  bb0:
-    %0 = const string(#2) :string
-    %1 = struct_new Box(%0)
-    return %1
+# Diagnostics
+[13:1] error[R2025] relative import (`./` / `../`) is not part of the language: `./mod_a`
+[14:1] error[R2025] relative import (`./` / `../`) is not part of the language: `./mod_b`
+[1:1] error[R2020] module declaration missing on first non-trivial line: `/Users/mbroutin/Developments/default/vaderlang2/tests/snippets/struct_name_collision/mod_a/mod_a.vader`
+[1:1] error[R2020] module declaration missing on first non-trivial line: `/Users/mbroutin/Developments/default/vaderlang2/tests/snippets/struct_name_collision/mod_b/mod_b.vader`

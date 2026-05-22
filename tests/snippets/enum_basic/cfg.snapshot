@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/enum_basic/_main.vader
+## snippet
 
-fn tests_snippets_enum_basic__main_vader$describe(%0: Direction) -> string
+fn snippet$describe(%0: Direction) -> string
   locals:
     %0 d: Direction (param d)
     %1 __scrut_0: Direction (synthetic __scrut_0)
@@ -61,7 +61,7 @@ fn tests_snippets_enum_basic__main_vader$describe(%0: Direction) -> string
     %10 = move %13
     branch -> bb9
 
-fn tests_snippets_enum_basic__main_vader$main() -> void
+fn snippet$main() -> void
   locals:
     %0 d: Direction (local d)
     %1 $call_2: string

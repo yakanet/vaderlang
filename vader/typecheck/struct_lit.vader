@@ -6,20 +6,15 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-import "vader/typecheck/coerce" { try_into }
-import "vader/typecheck/field" { find_struct_field_type, substitute_by_name }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
 
 lookup_pre_resolved_field_for_lit :: fn(struct_id: i32, name: string, typed: TypedProgram) -> Type | null {
     fmap :: typed.struct_field_types[struct_id]
     if fmap is null { return null }
     return fmap[name]
 }
-import "vader/typecheck/type_assign" { is_assignable }
 import "vader/types" { Type, StructType, display_type, TY_UNRESOLVED }
-import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Type-check a `StructLitExpr`. Always returns the struct type even
 /// when the body has errors so downstream passes keep flowing.
@@ -109,10 +104,6 @@ check_field :: fn(
         "expected ${display_type(expected)}, got ${display_type(got)}"))
 }
 
-contains_name :: fn(names: string[], target: string) -> bool {
-    for n in names { if n == target { return true } }
-    return false
-}
 
 check_missing_fields :: fn(
     e: AST.StructLitExpr, st: StructType, decl: AST.StructDecl,
@@ -142,26 +133,13 @@ check_item_no_expected :: fn(
     return
 }
 
-join_commas :: fn(parts: string[]) -> string {
-    out := ""
-    for i in 0..<parts.len() {
-        if i > usize(0) { out = "${out}, " }
-        out = "${out}${parts[i]}"
-    }
-    return out
-}
 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/check" { check_module }
-import "vader/typecheck/expr_ident" { infer_ident }
-import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }
-import "vader/typecheck/test_helpers" { find_first_in_block }
-import "vader/typecheck/type_ops" { narrow_for_expected }
 
 stub_check_expr :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
@@ -208,7 +186,7 @@ expect_struct_lit :: fn(src: string) -> ExpectedSL {
     return ExpectedSL { .typed = result.typed, .sl = synthetic_sl() }
 }
 
-import "vader/diagnostics/diagnostic" { empty_span }
+import "vader/diagnostics" { empty_span }
 
 synthetic_sl :: fn() -> AST.StructLitExpr {
     sp :: empty_span()

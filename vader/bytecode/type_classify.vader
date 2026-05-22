@@ -25,7 +25,6 @@ import "vader/types" {
     UnresolvedType, FreeIntType, FreeFloatType, NeverType,
     display_type,
 }
-import "vader/bytecode/types" { BcType, BcPrimitive, ValType, parse_val_type }
 
 /// Cache key for `intern_type`. Primitives skip the `display_type`
 /// allocation by keying directly on the primitive name (already a
@@ -131,7 +130,7 @@ export lowered_expr_type :: fn(expr: LoweredExpr) -> Type = match expr {
     is LoweredTypeConst as e     -> e.type
 }
 
-import "vader/lower/lowered_ast" {
+import "vader/lower" {
     LoweredExpr, LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
     LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
     LoweredVirtualCall, LoweredFieldAccess, LoweredIndex, LoweredUnary,
@@ -179,7 +178,7 @@ import "vader/types" { mk_primitive }
     assert_eq(key, "i32")
 }
 
-import "vader/diagnostics/diagnostic" { Position, Span }
+import "vader/diagnostics" { Position, Span }
 
 @test test_lowered_expr_type_int_literal :: fn() -> void {
     p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }

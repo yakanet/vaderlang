@@ -11,10 +11,8 @@ module "vader/fmt"
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
 import "std/string" { byte_len, byte_at, slice as str_slice }
 import "std/io" { eprintln }
-import "vader/diagnostics/diagnostic" { Span, Position }
+import "vader/diagnostics" { Span, Position }
 p :: import "vader/parser"
-import "vader/fmt/style" { INDENT, MAX_LINE, NL, binary_op_symbol, unary_op_symbol }
-import "vader/fmt/comments" { CommentMap, Comment, CommentKind, has_before, peek_before, take_before, take_trailing, drain_remaining }
 
 // ============================================================================
 // Printer

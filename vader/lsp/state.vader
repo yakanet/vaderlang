@@ -11,8 +11,6 @@ import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
 import "std/collections" { MutableMap }
-import "vader/lsp/indexer" { DocIndex, build_index }
-import "vader/lsp/diagnostics" { publish_diagnostics_for_uri, clear_diagnostics_for_uri }
 
 /// One LSP server instance's document table. The single shared state is
 /// passed to every handler ; no globals.

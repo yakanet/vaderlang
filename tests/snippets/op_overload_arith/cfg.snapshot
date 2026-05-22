@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/op_overload_arith/_main.vader
+## snippet
 
-fn tests_snippets_op_overload_arith__main_vader$Vec$Add$add(%0: Vec, %1: Vec) -> Vec
+fn snippet$Vec$Add$add(%0: Vec, %1: Vec) -> Vec
   locals:
     %0 self: Vec (param self)
     %1 other: Vec (param other)
@@ -23,7 +23,7 @@ fn tests_snippets_op_overload_arith__main_vader$Vec$Add$add(%0: Vec, %1: Vec) ->
     %8 = struct_new Vec(%4, %7)
     return %8
 
-fn tests_snippets_op_overload_arith__main_vader$Vec$Sub$sub(%0: Vec, %1: Vec) -> Vec
+fn snippet$Vec$Sub$sub(%0: Vec, %1: Vec) -> Vec
   locals:
     %0 self: Vec (param self)
     %1 other: Vec (param other)
@@ -44,7 +44,7 @@ fn tests_snippets_op_overload_arith__main_vader$Vec$Sub$sub(%0: Vec, %1: Vec) ->
     %8 = struct_new Vec(%4, %7)
     return %8
 
-fn tests_snippets_op_overload_arith__main_vader$Vec$Mul$mul(%0: Vec, %1: Vec) -> Vec
+fn snippet$Vec$Mul$mul(%0: Vec, %1: Vec) -> Vec
   locals:
     %0 self: Vec (param self)
     %1 other: Vec (param other)
@@ -65,7 +65,7 @@ fn tests_snippets_op_overload_arith__main_vader$Vec$Mul$mul(%0: Vec, %1: Vec) ->
     %8 = struct_new Vec(%4, %7)
     return %8
 
-fn tests_snippets_op_overload_arith__main_vader$Vec$Div$div(%0: Vec, %1: Vec) -> Vec
+fn snippet$Vec$Div$div(%0: Vec, %1: Vec) -> Vec
   locals:
     %0 self: Vec (param self)
     %1 other: Vec (param other)
@@ -86,7 +86,7 @@ fn tests_snippets_op_overload_arith__main_vader$Vec$Div$div(%0: Vec, %1: Vec) ->
     %8 = struct_new Vec(%4, %7)
     return %8
 
-fn tests_snippets_op_overload_arith__main_vader$Vec$Rem$rem(%0: Vec, %1: Vec) -> Vec
+fn snippet$Vec$Rem$rem(%0: Vec, %1: Vec) -> Vec
   locals:
     %0 self: Vec (param self)
     %1 other: Vec (param other)
@@ -107,7 +107,7 @@ fn tests_snippets_op_overload_arith__main_vader$Vec$Rem$rem(%0: Vec, %1: Vec) ->
     %8 = struct_new Vec(%4, %7)
     return %8
 
-fn tests_snippets_op_overload_arith__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $k_1: i32

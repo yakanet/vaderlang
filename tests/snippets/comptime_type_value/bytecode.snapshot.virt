@@ -8,7 +8,7 @@ type 5 primitive i64
 string 0 "ok"
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_comptime_type_value__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   type.const 1
   call 1
   type.const 5
@@ -22,7 +22,7 @@ fn 0 tests_snippets_comptime_type_value__main_vader$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 tests_snippets_comptime_type_value__main_vader$accept_type (ref) -> void
+fn 1 snippet$accept_type (ref) -> void
   return
 end
 

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/if_is_as_bind/_main.vader
+## snippet
 
-fn tests_snippets_if_is_as_bind__main_vader$direct(%0: V01 | V02) -> i32
+fn snippet$direct(%0: V01 | V02) -> i32
   locals:
     %0 x: V01 | V02 (param x)
     %1 $type_check_1: bool
@@ -42,7 +42,7 @@ fn tests_snippets_if_is_as_bind__main_vader$direct(%0: V01 | V02) -> i32
     %13 = unop neg %12 :i32
     return %13
 
-fn tests_snippets_if_is_as_bind__main_vader$post_narrow(%0: V01 | V02) -> i32
+fn snippet$post_narrow(%0: V01 | V02) -> i32
   locals:
     %0 x: V01 | V02 (param x)
     %1 $type_check_1: bool
@@ -66,7 +66,7 @@ fn tests_snippets_if_is_as_bind__main_vader$post_narrow(%0: V01 | V02) -> i32
     %7 = field_get %6.f :i32
     return %7
 
-fn tests_snippets_if_is_as_bind__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $intrinsic_0: ?
     %1 __sb_0: ? (synthetic __sb_0)

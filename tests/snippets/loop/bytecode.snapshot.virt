@@ -6,7 +6,7 @@ type 3 primitive void
 string 0 "sum 1..5 = "
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_loop__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local sum i32
   local i i32
   local __sb_0 any

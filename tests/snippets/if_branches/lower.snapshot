@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/if_branches/_main.vader
-  fn tests_snippets_if_branches__main_vader$classify(n: i32) -> string
+## snippet
+  fn snippet$classify(n: i32) -> string
     return
       if :string
         cond:

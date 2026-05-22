@@ -1,8 +1,8 @@
 module _main
 type 0 primitive null
-type 1 struct tests_snippets_nested_field_narrow__main_vader$Outer { inner:3 }
+type 1 struct snippet$Outer { inner:3 }
 type 2 primitive i32
-type 3 struct tests_snippets_nested_field_narrow__main_vader$Inner { flag:4 }
+type 3 struct snippet$Inner { flag:4 }
 type 4 union 2,0
 type 5 primitive string
 type 6 primitive void
@@ -12,7 +12,7 @@ string 2 "unwrap(set)="
 string 3 "unwrap(unset)="
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_nested_field_narrow__main_vader$count_match (ref) -> i32
+fn 0 snippet$count_match (ref) -> i32
   local if_res i32
   local $field_8 i32
   local.field 0 1 0
@@ -35,7 +35,7 @@ fn 0 tests_snippets_nested_field_narrow__main_vader$count_match (ref) -> i32
   return
 end
 
-fn 1 tests_snippets_nested_field_narrow__main_vader$unwrap (ref) -> i32
+fn 1 snippet$unwrap (ref) -> i32
   local.field 0 1 0
   struct.get 3 0
   type_check 0
@@ -50,7 +50,7 @@ fn 1 tests_snippets_nested_field_narrow__main_vader$unwrap (ref) -> i32
   return
 end
 
-fn 2 tests_snippets_nested_field_narrow__main_vader$main () -> i32
+fn 2 snippet$main () -> i32
   local set ref
   local unset ref
   local __sb_0 any

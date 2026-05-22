@@ -29,10 +29,9 @@ import "std/collections" { keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, compare_ascending_ci, pad_end, split }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
-import "vader/resolver/scope" { span_key }
+import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" { display_type }
-import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Render a single typed module. The header omits the `# Typecheck` banner
 /// when `with_banner = false` so multi-module callers can compose without
@@ -177,9 +176,8 @@ lookup_decl_type :: fn(typed: TypedProgram, s: Symbol) -> string {
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
 import "vader/resolver/symbol" { new_factory }
-import "vader/resolver/resolve" { resolve_module }
-import "vader/typecheck/check" { check_module }
-import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/resolver" { resolve_module }
+import "vader/diagnostics" { Diagnostic }
 
 dump_test :: fn(src: string) -> string {
     parsed :: parse_source(src, "t.vader")

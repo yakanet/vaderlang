@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/enum_to_repr_cast/_main.vader
-  fn tests_snippets_enum_to_repr_cast__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let a: u8 =
       cast → u8
         int(2) :u8

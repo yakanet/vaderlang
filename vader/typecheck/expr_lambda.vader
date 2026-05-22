@@ -11,14 +11,10 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-import "vader/resolver/scope" { span_key }
-import "vader/typecheck/context" { FnContext, new_fn_context }
-import "vader/typecheck/stmt" { check_block }
-import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
+import "vader/resolver" { span_key }
 import "vader/types" { Type, FnType, mk_fn, TY_UNRESOLVED }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Type-check a `LambdaExpr`. Returns `fn(params...) -> body`.
 export infer_lambda :: fn(
@@ -77,7 +73,7 @@ infer_param :: fn(
     return TY_UNRESOLVED
 }
 
-import "vader/resolver/resolve" { ResolvedModule }
+import "vader/resolver" { ResolvedModule }
 
 pick_return :: fn(
     annot: AST.TypeExpr | null, expected_fn: FnType | null,
@@ -117,6 +113,4 @@ pick_final_return :: fn(expected: Type | null, body: Type) -> Type {
     }
 }
 
-import "vader/typecheck/type_ops" { default_if_free }
 import "vader/types" { FreeIntType, FreeFloatType }
-import "vader/typecheck/unify" { type_contains_type_param }

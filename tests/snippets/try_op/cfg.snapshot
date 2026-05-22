@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/try_op/_main.vader
+## snippet
 
-fn tests_snippets_try_op__main_vader$read_or_default(%0: string) -> Error | string
+fn snippet$read_or_default(%0: string) -> Error | string
   locals:
     %0 path: string (param path)
     %1 $call_1: Error | string
@@ -22,7 +22,7 @@ fn tests_snippets_try_op__main_vader$read_or_default(%0: string) -> Error | stri
   bb3:
     return %4
 
-fn tests_snippets_try_op__main_vader$show(%0: Error | string) -> void
+fn snippet$show(%0: Error | string) -> void
   locals:
     %0 res: Error | string (param res)
     %1 __scrut_0: Error | string (synthetic __scrut_0)
@@ -52,7 +52,7 @@ fn tests_snippets_try_op__main_vader$show(%0: Error | string) -> void
   bb6:
     branch -> bb3
 
-fn tests_snippets_try_op__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $call_1: Error | string

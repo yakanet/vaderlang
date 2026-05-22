@@ -25,18 +25,6 @@
 module "vader/midir"
 
 import "std/collections" { MutableMap, MutableSet, add }
-import "vader/midir/cfg" {
-    BasicBlock, BlockId, CFGFunction, Instruction, LocalId, Terminator,
-    TermBranch, TermCondBranch, TermReturn, TermUnreachable,
-    InstrConst, InstrBinOp, InstrUnOp, InstrCall, InstrCallIndirect,
-    InstrFnRef, InstrVirtualCall, InstrFieldGet, InstrFieldSet,
-    InstrArrayGet, InstrArraySet, InstrArrayLen, InstrArrayPush,
-    InstrArraySlice, InstrStructNew, InstrArrayNew, InstrDataConst,
-    InstrTypeCheck, InstrTypeConst, InstrCast, InstrCellNew,
-    InstrCellGet, InstrCellSet, InstrMakeClosure, InstrIntrinsic,
-    InstrMove,
-}
-import "vader/midir/analyses" { count_uses, dst_of }
 
 export POS_STRIDE :: i32(1000000)
 

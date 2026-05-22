@@ -51,7 +51,7 @@ import 29 not_equals std_core$string$Equals$not_equals (string,string) -> bool
 import 30 hash std_core$string$Hash$hash (string) -> u64
 import 31 at std_core$string$Index$at (string,usize) -> char
 
-fn 0 tests_snippets_if_branches__main_vader$classify (i32) -> string
+fn 0 snippet$classify (i32) -> string
   local if_res string
   local if_res string
   local.get 0

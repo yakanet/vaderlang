@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/range_widths/_main.vader
+## snippet
 
-fn tests_snippets_range_widths__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 nu: u64 (local nu)
     %1 su: u64 (local su)

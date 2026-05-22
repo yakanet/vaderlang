@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/intrinsic_field_access/_main.vader
+## snippet
 
-fn tests_snippets_intrinsic_field_access__main_vader$derive_print(%0: User) -> void
+fn snippet$derive_print(%0: User) -> void
   locals:
     %0 self: User (param self)
     %1 $intrinsic_1: ?
@@ -40,7 +40,7 @@ fn tests_snippets_intrinsic_field_access__main_vader$derive_print(%0: User) -> v
     call println(%12) :void
     return
 
-fn tests_snippets_intrinsic_field_access__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $k_1: i32

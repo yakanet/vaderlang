@@ -11,7 +11,6 @@ module "vader/lower"
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" { Type, StructType, TraitType, mk_struct, mk_union, mk_primitive }
-import "vader/lower/ctx" { FnLowerCtx, LowerProjectCtx }
 
 /// Resolve a `std/core` symbol by name from the project's cache.
 /// @param ctx   the fn-body context.
@@ -67,7 +66,7 @@ export union_of_yield_null :: fn(yielded: Type) -> Type {
     return mk_union([yielded, mk_primitive("null")])
 }
 
-import "vader/typecheck/impls" { ImplEntry, find_user, type_to_target_symbol }
+import "vader/typecheck" { ImplEntry, find_user, type_to_target_symbol }
 
 /// Find the user-impl entry for `(for_type, trait_name)` in the
 /// project-wide registry. Mirrors TS's `lookupImplFor` — the lowerer's
@@ -110,9 +109,8 @@ find_via_all :: fn(ctx: LowerProjectCtx, for_symbol: Symbol, trait_name: string)
 
 import "std/testing" { assert, assert_eq }
 import "vader/types" { display_type }
-import "vader/typecheck/typed_ast" { new_typed_project }
-import "vader/comptime/evaluated_ast" { new_evaluated_project }
-import "vader/lower/ctx" { new_lower_project_ctx }
+import "vader/typecheck" { new_typed_project }
+import "vader/comptime" { new_evaluated_project }
 
 @test test_lookup_core_symbol_missing_returns_null :: fn() -> void {
     project :: new_lower_project_ctx(new_evaluated_project(new_typed_project()))

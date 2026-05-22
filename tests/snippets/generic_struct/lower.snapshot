@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/generic_struct/_main.vader
-  fn tests_snippets_generic_struct__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let s: Stack(i32) =
       Stack(i32) {
         data:
@@ -90,8 +90,8 @@
             @builder.finish :string
               __sb_2 :?
     return int(0) :i32
-  struct tests_snippets_generic_struct__main_vader$Stack__i32 { data: Any[], size: i32 }
-  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$push__i32(self: Stack(Any), value: Any) -> void
+  struct snippet$Stack__i32 { data: Any[], size: i32 }
+  fn snippet$Stack$Stackable$push__i32(self: Stack(Any), value: Any) -> void
     LoweredArrayPush
     assign
       target:
@@ -104,7 +104,7 @@
               self :Stack(Any)
           r:
             int(1) :i32
-  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$pop__i32(self: Stack(Any)) -> Any
+  fn snippet$Stack$Stackable$pop__i32(self: Stack(Any)) -> Any
     assign
       target:
         .size :i32
@@ -124,11 +124,11 @@
         ix:
           .size :i32
             self :Stack(Any)
-  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$len__i32(self: Stack(Any)) -> i32
+  fn snippet$Stack$Stackable$len__i32(self: Stack(Any)) -> i32
     return
       .size :i32
         self :Stack(Any)
-  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$is_empty__i32(self: Stack(Any)) -> bool
+  fn snippet$Stack$Stackable$is_empty__i32(self: Stack(Any)) -> bool
     return
       eq :bool
         l:
@@ -136,4 +136,4 @@
             self :Stack(Any)
         r:
           int(0) :i32
-  struct tests_snippets_generic_struct__main_vader$Stack__Any { data: Any[], size: i32 }
+  struct snippet$Stack__Any { data: Any[], size: i32 }

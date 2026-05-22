@@ -1,9 +1,9 @@
 # Lower
 
-## tests/snippets/comptime_const/_main.vader
-  const tests_snippets_comptime_const__main_vader$ANSWER: i32 =
+## snippet
+  const snippet$ANSWER: i32 =
     int(42) :i32
-  const tests_snippets_comptime_const__main_vader$GREETING: string =
+  const snippet$GREETING: string =
     "hello, world" :string
-  fn tests_snippets_comptime_const__main_vader$main() -> i32
+  fn snippet$main() -> i32
     return int(42) :i32

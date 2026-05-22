@@ -53,7 +53,7 @@ import 29 not_equals std_core$string$Equals$not_equals (string,string) -> bool
 import 30 hash std_core$string$Hash$hash (string) -> u64
 import 31 at std_core$string$Index$at (string,usize) -> char
 
-fn 0 tests_snippets_match_expr__main_vader$classify (ref) -> string
+fn 0 snippet$classify (ref) -> string
   local __scrut_0 ref
   local and_res bool
   local $cast_4 i32

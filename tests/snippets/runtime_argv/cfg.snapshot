@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/runtime_argv/_main.vader
+## snippet
 
-fn tests_snippets_runtime_argv__main_vader$main(%0: string[]) -> i32
+fn snippet$main(%0: string[]) -> i32
   locals:
     %0 argv: string[] (param argv)
     %1 $intrinsic_1: ?

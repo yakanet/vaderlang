@@ -10,9 +10,9 @@
 module "vader/typecheck"
 
 import "std/collections" { MutableMap }
-import "vader/parser/ast" { FnDecl, StructDecl, TraitDecl, TypeAliasDecl }
-AST :: import "vader/parser/ast"
-import "vader/resolver/resolve" { ResolvedModule }
+import "vader/parser" { FnDecl, StructDecl, TraitDecl, TypeAliasDecl }
+AST :: import "vader/parser"
+import "vader/resolver" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type }
 
@@ -190,10 +190,9 @@ export TypedProgram :: struct {
     node_spans: MutableMap(usize, Span)
 }
 
-import "vader/diagnostics/diagnostic" { Span }
-import "vader/typecheck/context" { FnContext }
+import "vader/diagnostics" { Span }
 
-import "vader/resolver/wire" { ImportTargetTable }
+import "vader/resolver" { ImportTargetTable }
 
 /// Across the whole project — multi-module aggregation. Populated by
 /// the orchestrator (`check.vader`).

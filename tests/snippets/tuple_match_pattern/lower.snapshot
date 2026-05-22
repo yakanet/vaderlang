@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/tuple_match_pattern/_main.vader
-  fn tests_snippets_tuple_match_pattern__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let pair: [i32, string] =
       [i32, string] {
         _0: int(3) :i32

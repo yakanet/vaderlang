@@ -14,7 +14,6 @@
 module "vader/typecheck"
 
 import "std/collections" { MutableMap }
-import "vader/typecheck/type_ops" { equals_type }
 import "vader/types" {
     Type, ArrayType, TupleType, StructType, TraitType, FnType, UnionType,
     TypeParamType, FreeIntType, FreeFloatType,
@@ -173,31 +172,33 @@ find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
 
 import "std/math" { min }
 import "vader/types" { mk_array, mk_tuple, mk_struct, mk_trait, mk_fn }
-import "vader/typecheck/type_ops" { union_of }
 
 /// Walk `t` and replace each `TypeParam` whose symbol id appears in
-/// `subst` with the bound concrete type. Mirror of TS `substitute`.
-export substitute :: fn(t: Type, subst: MutableMap(i32, Type)) -> Type {
+/// `subst` with the bound concrete type. The `_map` suffix distinguishes
+/// this fn from the `Substitution`-arg version exported by
+/// `substitution.vader` — both share the same first-param type so the
+/// resolver's UFCS dispatch can't tell them apart in an overload set.
+export substitute_map :: fn(t: Type, subst: MutableMap(i32, Type)) -> Type {
     match t {
         is TypeParamType as tp -> {
             repl :: subst[tp.symbol.id]
             if repl is null { return t }
             return repl
         }
-        is ArrayType as a -> { return mk_array(substitute(a.element, subst), a.immutable) }
-        is TupleType as tu -> { return mk_tuple(substitute_each(tu.elements, subst)) }
-        is StructType as s -> { return mk_struct(s.symbol, substitute_each(s.args, subst)) }
-        is TraitType as tr -> { return mk_trait(tr.symbol, substitute_each(tr.args, subst)) }
+        is ArrayType as a -> { return mk_array(substitute_map(a.element, subst), a.immutable) }
+        is TupleType as tu -> { return mk_tuple(substitute_each_map(tu.elements, subst)) }
+        is StructType as s -> { return mk_struct(s.symbol, substitute_each_map(s.args, subst)) }
+        is TraitType as tr -> { return mk_trait(tr.symbol, substitute_each_map(tr.args, subst)) }
         is FnType as f -> {
-            return mk_fn(substitute_each(f.params, subst), substitute(f.return_type, subst))
+            return mk_fn(substitute_each_map(f.params, subst), substitute_map(f.return_type, subst))
         }
-        is UnionType as u -> { return union_of(substitute_each(u.variants, subst)) }
+        is UnionType as u -> { return union_of(substitute_each_map(u.variants, subst)) }
         _ -> { return t }
     }
 }
 
-substitute_each :: fn(types: Type[], subst: MutableMap(i32, Type)) -> Type[] {
+substitute_each_map :: fn(types: Type[], subst: MutableMap(i32, Type)) -> Type[] {
     out: Type[] = []
-    for t in types { out.push(substitute(t, subst)) }
+    for t in types { out.push(substitute_map(t, subst)) }
     return out
 }

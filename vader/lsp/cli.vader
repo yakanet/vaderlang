@@ -9,7 +9,6 @@
 
 module "vader/lsp"
 
-import "vader/lsp/main" { run_server }
 
 /// Entry point invoked from `vader/cli/main.vader::cmd_lsp`. Delegates
 /// to the event-loop in `vader/lsp/main.vader`.

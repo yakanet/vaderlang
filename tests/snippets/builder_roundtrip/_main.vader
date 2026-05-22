@@ -20,8 +20,8 @@
 module "snippet"
 
 import "std/io" { println }
-op :: import "vader/vm/op"
-import "vader/vm/builder" {
+op :: import "vader/vm"
+import "vader/vm" {
     ModuleBuilder, FunctionBuilder,
     new_module_builder, new_function_builder,
     add_type, add_import, add_function, set_main, finish,
@@ -30,10 +30,10 @@ import "vader/vm/builder" {
     builder_new, builder_append_display, builder_finish,
     int_to_char,
 }
-import "vader/vm/exec" { exec }
-import "vader/vm/value" { VmResult, Ok, Trap }
-import "vader/vm/parser" { parse_virt }
-import "vader/bytecode/text" { write_virt }
+import "vader/vm" { exec }
+import "vader/vm" { VmResult, Ok, Trap }
+import "vader/vm" { parse_virt }
+import "vader/bytecode" { write_virt }
 
 build_test_module :: fn() -> op.Module {
     module_builder :: new_module_builder()

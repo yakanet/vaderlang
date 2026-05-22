@@ -9,23 +9,11 @@
 module "vader/comptime"
 
 import "std/collections" { MutableMap, keys }
-import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/diagnostics" { Diagnostic }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/resolver/loader" { LoadedProject }
-import "vader/typecheck/typed_ast" { TypedProject, TypedProgram }
-import "vader/comptime/evaluated_ast" {
-    EvaluatedProject, EvaluatedProgram, new_evaluated_project, new_evaluated_program,
-}
-import "vader/comptime/value" { ComptimeValue }
-import "vader/comptime/deps" { sort_comptime_decls, ComptimeOrder }
-import "vader/comptime/eval_types" { ComptimeContext }
-import "vader/comptime/eval" { evaluate_expr }
-import "vader/comptime/instances" {
-    InstanceRegistry, new_registry, observe, sorted_instances, GenericInstance,
-}
-import "vader/comptime/assert" { evaluate_assert_decls }
-import "vader/comptime/specialize" { monomorphize_project }
-AST :: import "vader/parser/ast"
+import "vader/resolver" { LoadedProject }
+import "vader/typecheck" { TypedProject, TypedProgram }
+AST :: import "vader/parser"
 
 /// Evaluate every `@comptime` decl across the project's typed view,
 /// run the monomorphizer, and return the cross-module evaluated AST.

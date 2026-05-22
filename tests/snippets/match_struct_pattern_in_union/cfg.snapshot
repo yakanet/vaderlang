@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/match_struct_pattern_in_union/_main.vader
+## snippet
 
-fn tests_snippets_match_struct_pattern_in_union__main_vader$describe(%0: null | Point) -> string
+fn snippet$describe(%0: null | Point) -> string
   locals:
     %0 value: null | Point (param value)
     %1 __scrut_0: null | Point (synthetic __scrut_0)
@@ -58,7 +58,7 @@ fn tests_snippets_match_struct_pattern_in_union__main_vader$describe(%0: null | 
     %3 = move %5
     branch -> bb3
 
-fn tests_snippets_match_struct_pattern_in_union__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $k_1: i32

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/interp_string/_main.vader
+## snippet
 
-fn tests_snippets_interp_string__main_vader$greet(%0: string, %1: i32) -> string
+fn snippet$greet(%0: string, %1: i32) -> string
   locals:
     %0 name: string (param name)
     %1 age: i32 (param age)

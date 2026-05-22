@@ -1,8 +1,8 @@
 # Lower
 
-## tests/snippets/match_struct_pattern_binding/_main.vader
-  struct tests_snippets_match_struct_pattern_binding__main_vader$P { x: i32, name: string }
-  fn tests_snippets_match_struct_pattern_binding__main_vader$main() -> i32
+## snippet
+  struct snippet$P { x: i32, name: string }
+  fn snippet$main() -> i32
     let p: P =
       P {
         x: int(10) :i32

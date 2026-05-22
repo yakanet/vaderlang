@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/iter_coerce_array/_main.vader
-  fn tests_snippets_iter_coerce_array__main_vader$walk(it: Iterator(i32)) -> i32
+## snippet
+  fn snippet$walk(it: Iterator(i32)) -> i32
     let sum: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
@@ -50,7 +50,7 @@
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return sum :i32
-  fn tests_snippets_iter_coerce_array__main_vader$make_iter() -> Iterator(i32)
+  fn snippet$make_iter() -> Iterator(i32)
     let arr: i32[] =
       array :i32[]
         int(100) :i32
@@ -62,7 +62,7 @@
           into :ArrayIterator(i32)
         arg0:
           arr :i32[]
-  fn tests_snippets_iter_coerce_array__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let a: i32 =
       call :i32
         callee:

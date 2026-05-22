@@ -12,7 +12,7 @@ string 1 " "
 string 2 "q"
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_tuple_triple_quad__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local triple ref
   local __sb_0 any
   local $field_7 i32

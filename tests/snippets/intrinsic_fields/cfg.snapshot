@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/intrinsic_fields/_main.vader
+## snippet
 
-fn tests_snippets_intrinsic_fields__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $type_const_1: type

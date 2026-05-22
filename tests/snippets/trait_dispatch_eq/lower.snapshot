@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/trait_dispatch_eq/_main.vader
-  fn tests_snippets_trait_dispatch_eq__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let n1: i32 =
       call :i32
         callee:
@@ -42,7 +42,7 @@
               n2 :i32
         r:
           n3 :i32
-  fn tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq__main_vader$both_equal__i32(a: Any, b: Any, c: Any) -> i32
+  fn snippet$snippet$both_equal__i32(a: Any, b: Any, c: Any) -> i32
     let n: i32 = int(0) :i32
     if :void
       cond:

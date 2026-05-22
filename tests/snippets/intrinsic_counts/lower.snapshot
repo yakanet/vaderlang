@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/intrinsic_counts/_main.vader
-  struct tests_snippets_intrinsic_counts__main_vader$Pair { first: i32, second: i32 }
-  struct tests_snippets_intrinsic_counts__main_vader$Triple { a: i8, b: i8, c: i8 }
-  fn tests_snippets_intrinsic_counts__main_vader$main() -> i32
+## snippet
+  struct snippet$Pair { first: i32, second: i32 }
+  struct snippet$Triple { a: i8, b: i8, c: i8 }
+  fn snippet$main() -> i32
     return int(0) :i32

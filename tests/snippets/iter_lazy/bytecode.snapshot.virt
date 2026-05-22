@@ -103,7 +103,7 @@ vtable Step.step 12 44
 vtable Step.step 13 45
 vtable Step.step 14 46
 
-fn 0 tests_snippets_iter_lazy__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local sq ref
   local total i32
   local __step_2 ref

@@ -22,16 +22,7 @@
 module "vader/bytecode"
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
-import "vader/bytecode/module" {
-    BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport, BcExport,
-    ImplEntry, VtableRow,
-}
-import "vader/bytecode/types" {
-    BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
-    BcField, BcDataEntry, ValType, val_type_name,
-}
-import "vader/bytecode/text" { quote_string }
-import "vader/vm/op" {
+import "vader/vm" {
     Op,
     I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst, NullConst,
     LocalGet, LocalSet, LocalTee, Return, Drop, Call,

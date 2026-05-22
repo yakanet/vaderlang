@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/generic_eq/_main.vader
+## snippet
 
-fn tests_snippets_generic_eq__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $intrinsic_0: ?
     %1 __sb_0: ? (synthetic __sb_0)
@@ -37,7 +37,7 @@ fn tests_snippets_generic_eq__main_vader$main() -> i32
     %12 = const int(0) :i32
     return %12
 
-fn tests_snippets_generic_eq__main_vader$tests_snippets_generic_eq__main_vader$are_eq__i32(%0: Any, %1: Any) -> bool
+fn snippet$snippet$are_eq__i32(%0: Any, %1: Any) -> bool
   locals:
     %0 a: Any (param a)
     %1 b: Any (param b)

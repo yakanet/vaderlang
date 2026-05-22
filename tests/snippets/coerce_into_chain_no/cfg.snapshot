@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/coerce_into_chain_no/_main.vader
+## snippet
 
-fn tests_snippets_coerce_into_chain_no__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 c: C (local c)

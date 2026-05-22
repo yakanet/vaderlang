@@ -19,23 +19,23 @@ import "vader/version" { CLI_VERSION }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
 import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
-import "vader/resolver/resolve" { ResolvedProject, ResolvedModule, resolve_module }
-import "vader/resolver/dump" { dump_project }
-import "vader/typecheck/orchestrate" { check_module_with_bodies, check_project_with_bodies }
-import "vader/typecheck/check" { CheckResult }
-import "vader/typecheck/typed_ast" { TypedProject, new_typed_project }
-import "vader/resolver/loader" { load_project }
-import "vader/typecheck/dump" { dump_program as dump_typed, dump_program_with_others }
-import "vader/comptime/check" { evaluate_project }
-import "vader/comptime/dump" { dump_evaluated }
-import "vader/lower/lower" { lower_project }
-import "vader/lower/dump" { dump_lowered }
-import "vader/bytecode/emit" { emit_project }
-import "vader/bytecode/emit_ctx" { default_emit_options }
-import "vader/bytecode/dump" { dump_bytecode }
-import "vader/diagnostics/diagnostic" { Diagnostic }
-import "vader/fmt/cli" { run_fmt }
-import "vader/vm/exec" { run_virt }
+import "vader/resolver" { ResolvedProject, ResolvedModule, resolve_module }
+import "vader/resolver" { dump_project }
+import "vader/typecheck" { check_module_with_bodies, check_project_with_bodies }
+import "vader/typecheck" { CheckResult }
+import "vader/typecheck" { TypedProject, new_typed_project }
+import "vader/resolver" { load_project }
+import "vader/typecheck" { dump_program as dump_typed, dump_program_with_others }
+import "vader/comptime" { evaluate_project }
+import "vader/comptime" { dump_evaluated }
+import "vader/lower" { lower_project }
+import "vader/lower" { dump_lowered }
+import "vader/bytecode" { emit_project }
+import "vader/bytecode" { default_emit_options }
+import "vader/bytecode" { dump_bytecode }
+import "vader/diagnostics" { Diagnostic }
+import "vader/fmt" { run_fmt }
+import "vader/vm" { run_virt }
 
 // Byte-for-byte copy of `HELP` in `src/cli.ts`. Triple-quoted strings drop
 // the newline immediately after the opening `"""`, so the body starts at
@@ -456,8 +456,8 @@ print_pipeline_diags :: fn(pipeline: EvaluatedPipeline, extra: Diagnostic[]) -> 
     }
 }
 
-import "vader/resolver/loader" { LoadedProject }
-import "vader/comptime/evaluated_ast" { EvaluatedProject }
+import "vader/resolver" { LoadedProject }
+import "vader/comptime" { EvaluatedProject }
 
 // Pipeline state shared by the comptime + lowerer dump stages : both
 // run load → typecheck → comptime and only diverge on the final dump.

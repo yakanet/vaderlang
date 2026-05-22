@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/null_blockres/_main.vader
-  fn tests_snippets_null_blockres__main_vader$pick(c: bool) -> null | string
+## snippet
+  fn snippet$pick(c: bool) -> null | string
     let x: null =
       if :null
         cond:
@@ -22,7 +22,7 @@
       then:
         return "got null" :string
     return null
-  fn tests_snippets_null_blockres__main_vader$main() -> i32
+  fn snippet$main() -> i32
     block :void
       let __scrut_0: null | string =
         call :null | string

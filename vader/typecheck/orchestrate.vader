@@ -12,28 +12,21 @@
 module "vader/typecheck"
 
 import "std/collections" { MutableMap, keys }
-import "vader/diagnostics/diagnostic" { Diagnostic, Span }
-AST :: import "vader/parser/ast"
-import "vader/parser/ast" { Program }
-import "vader/resolver/loader" { LoadedProject, LoadedModule }
-import "vader/resolver/resolve" { ResolvedModule, resolve_module, resolve_module_with_collected }
-import "vader/resolver/scope" { span_key }
+import "vader/diagnostics" { Diagnostic, Span }
+AST :: import "vader/parser"
+import "vader/parser" { Program }
+import "vader/resolver" { LoadedProject, LoadedModule }
+import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected }
+import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
-import "vader/resolver/wire" { wire_imports, ImportTargetTable }
-import "vader/typecheck/check" { check_module, CheckResult }
-import "vader/typecheck/decl" { declare_module }
-import "vader/typecheck/expr" { check_expr }
-import "vader/typecheck/stmt" { check_fn_body }
-import "vader/typecheck/type_ops" { default_if_free, equals_type }
+import "vader/resolver" { wire_imports, ImportTargetTable }
 import "vader/types" { display_type, type_base_name }
-import "vader/diagnostics/diagnostic" { typecheck_error }
-import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
+import "vader/diagnostics" { typecheck_error }
 import "vader/types" {
     Type, ArrayType, FnType, SelfType, StructType, TupleType, UnionType,
     mk_array, mk_fn, mk_struct, mk_tuple, mk_union,
     TY_UNRESOLVED, TY_TYPE, TY_VOID,
 }
-import "vader/typecheck/type_expr" { type_from_expr }
 
 /// Run the full typecheck pipeline : decl-level + body-walking. The
 /// result carries the same `TypedProgram` + `ImplRegistry` as
@@ -205,9 +198,8 @@ collect_direct_imports :: fn(
 }
 
 import "std/string" { starts_with }
-import "vader/resolver/module" { default_stdlib_root, module_id_from_root, resolve_import_path }
+import "vader/resolver" { default_stdlib_root, module_id_from_root, resolve_import_path }
 
-import "vader/typecheck/impls" { ImplRegistry, build_impl_registry, new_registry }
 
 empty_impls :: fn() -> ImplRegistry { return new_registry() }
 
@@ -465,7 +457,7 @@ find_trait_decl_in_project :: fn(
     return null
 }
 
-import "vader/resolver/materialize" {
+import "vader/resolver" {
     materialize_default_members, materialize_intrinsic_members, materialize_sam_members,
 }
 
@@ -983,9 +975,8 @@ build_namespace_type_members :: fn(
     return out
 }
 
-import "vader/typecheck/type_expr" { type_from_symbol }
 
-import "vader/resolver/wire" { SymbolTarget }
+import "vader/resolver" { SymbolTarget }
 
 lookup_external_type :: fn(
     st: SymbolTarget, per_module: MutableMap(string, TypedProgram),
@@ -1230,34 +1221,6 @@ declare_impl_return :: fn(
     return TY_VOID
 }
 
-substitute_self :: fn(t: Type, for_ty: Type) -> Type {
-    match t {
-        is SelfType -> { return for_ty }
-        is ArrayType as a -> { return mk_array(substitute_self(a.element, for_ty), a.immutable) }
-        is FnType as f -> {
-            params: Type[] = []
-            for p in f.params { params.push(substitute_self(p, for_ty)) }
-            return mk_fn(params, substitute_self(f.return_type, for_ty))
-        }
-        is UnionType as u -> {
-            vs: Type[] = []
-            for v in u.variants { vs.push(substitute_self(v, for_ty)) }
-            return mk_union(vs)
-        }
-        is TupleType as p -> {
-            es: Type[] = []
-            for e in p.elements { es.push(substitute_self(e, for_ty)) }
-            return mk_tuple(es)
-        }
-        is StructType as s -> {
-            args: Type[] = []
-            for a in s.args { args.push(substitute_self(a, for_ty)) }
-            return mk_struct(s.symbol, args)
-        }
-        _ -> { return t }
-    }
-}
-
 
 param_type :: fn(
     p: AST.FnParam, for_ty: Type, typed: TypedProgram, diags: Diagnostic[],
@@ -1348,6 +1311,5 @@ is_type_kind :: fn(k: SymbolKind) -> bool = match k {
     _ -> false
 }
 
-import "vader/typecheck/type_expr" { primitive_from_name }
 import "vader/resolver/symbol" { SymbolKind }
 

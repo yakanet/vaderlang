@@ -14,10 +14,9 @@
 
 module "vader/typecheck"
 
-import "vader/resolver/scope" { span_key }
+import "vader/resolver" { span_key }
 import "vader/types" { Type }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Push a narrowed type for `sym_id` ; returns the prior narrowing
 /// (or null) so the caller can restore it on scope exit.
@@ -108,7 +107,7 @@ export resolve_field_chain_static :: fn(
     return FieldChainStatic { .field_key = key, .static_ty = static_ty }
 }
 
-import "vader/resolver/scope" { span_full_key }
+import "vader/resolver" { span_full_key }
 import "vader/types" { UnresolvedType }
 
 /// Walk a FieldExpr down to its root `IdentExpr` and return the

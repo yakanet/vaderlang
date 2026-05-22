@@ -21,14 +21,13 @@
 
 module "vader/typecheck"
 
-import "vader/resolver/scope" { span_key }
+import "vader/resolver" { span_key }
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 import "vader/types" {
     Type, mk_type_param, TY_TYPE, TY_UNRESOLVED,
 }
-import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Return the Type of an `IdentExpr` in value position. Returns
 /// `TY_UNRESOLVED` when the resolver couldn't bind the ident (the
@@ -45,8 +44,7 @@ export infer_ident :: fn(e: AST.IdentExpr, typed: TypedProgram) -> Type {
     return narrow_for_binding(typed, redirected.id, static_ty)
 }
 
-import "vader/typecheck/narrow" { narrow_for_binding }
-import "vader/resolver/wire" { resolve_import_redirect }
+import "vader/resolver" { resolve_import_redirect }
 
 /// Follow an ImportBinding to its concrete export when the wire
 /// pass populated `typed.import_targets`. Other symbols pass through.
@@ -119,11 +117,10 @@ import "vader/types" { UnresolvedType }
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
-import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/diagnostics" { Diagnostic }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/check" { check_module }
 import "vader/types" { display_type }
 
 // Test harness — bundles parse + resolve + check. Returns the parsed

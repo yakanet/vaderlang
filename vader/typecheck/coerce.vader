@@ -9,9 +9,6 @@
 module "vader/typecheck"
 
 import "vader/types" { Type, FnType, display_type }
-import "vader/typecheck/type_ops" { dispatch_key }
-import "vader/typecheck/type_assign" { is_assignable }
-import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Look up `${got}::into::${expected}` in the impl-method index. The
 /// per-target keying lets a source type carry multiple `Into(T)`
@@ -46,7 +43,6 @@ export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
 }
 
 import "vader/types" { ArrayType, TypeParamType }
-import "vader/typecheck/type_ops" { equals_type }
 
 /// True when `got` implements the trait `expected` (or a variant of
 /// `expected` if it's a union). Handles struct receivers AND primitives

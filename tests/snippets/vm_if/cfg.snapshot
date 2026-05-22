@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/vm_if/_main.vader
+## snippet
 
-fn tests_snippets_vm_if__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 n: i32 (local n)
     %1 $k_2: i32

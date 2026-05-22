@@ -22,24 +22,10 @@ import "std/collections" { keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, to_lower, ends_with, slice, byte_len }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
-import "vader/diagnostics/diagnostic" { Span }
-import "vader/resolver/module" { is_stdlib_module }
+import "vader/diagnostics" { Span }
+import "vader/resolver" { is_stdlib_module }
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type, PrimitiveType, display_type }
-import "vader/lower/lowered_ast" {
-    LoweredProject, LoweredModule, LoweredDecl,
-    LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
-    LoweredStmt, LoweredLet, LoweredAssign, LoweredCellSet, LoweredExprStmt,
-    LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
-    LoweredExpr, LoweredBlock, LoweredIntLit, LoweredFloatLit, LoweredBoolLit,
-    LoweredNullLit, LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
-    LoweredVirtualCall, LoweredFieldAccess, LoweredIndex, LoweredUnary,
-    LoweredUnaryOp, LoweredBinary, LoweredBinaryOp, LoweredIf, LoweredStructLit,
-    LoweredArrayLit, LoweredDataConst, LoweredCast, LoweredTypeCheck,
-    LoweredUnreachable, LoweredIntrinsicCall, LoweredArrayLen, LoweredArrayPush,
-    LoweredArraySlice, LoweredCellNew, LoweredCellGet, LoweredMakeClosure,
-    LoweredTypeConst,
-}
 
 /// Render the project's `# Lower` dump as a single string. Stdlib
 /// modules are filtered out to match the TS dumper byte-for-byte.
@@ -94,7 +80,6 @@ emit_decl :: fn(lines: string[], decl: LoweredDecl, indent: string) -> void {
     }
 }
 
-import "vader/lower/lowered_ast" { LoweredParam, LoweredStructField }
 
 render_params :: fn(params: LoweredParam[]) -> string {
     sb := new_builder()
@@ -464,7 +449,6 @@ import "std/testing" { assert_eq }
     assert_eq(dump_lowered(project), "# Lower")
 }
 
-import "vader/lower/lowered_ast" { new_lowered_project }
 empty_test_project :: fn() -> LoweredProject {
     return new_lowered_project()
 }

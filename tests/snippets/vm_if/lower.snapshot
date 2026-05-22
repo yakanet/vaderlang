@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/vm_if/_main.vader
-  fn tests_snippets_vm_if__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let n: i32 = int(5) :i32
     if :void
       cond:

@@ -19,7 +19,7 @@ import 0 println std_io$println (string) -> void
 impl 8 Error
 impl 9 Display
 
-fn 0 tests_snippets_dot_variant_in_union__main_vader$parse (char) -> ref
+fn 0 snippet$parse (char) -> ref
   local.get 0
   char.const 78
   char.eq
@@ -49,7 +49,7 @@ fn 0 tests_snippets_dot_variant_in_union__main_vader$parse (char) -> ref
   return
 end
 
-fn 1 tests_snippets_dot_variant_in_union__main_vader$dir_label (i32) -> string
+fn 1 snippet$dir_label (i32) -> string
   local.get 0
   i32.const 0
   i32.eq
@@ -81,7 +81,7 @@ fn 1 tests_snippets_dot_variant_in_union__main_vader$dir_label (i32) -> string
   unreachable
 end
 
-fn 2 tests_snippets_dot_variant_in_union__main_vader$main () -> i32
+fn 2 snippet$main () -> i32
   local __scrut_0 ref
   local __scrut_1 ref
   char.const 78

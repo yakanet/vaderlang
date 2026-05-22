@@ -13,9 +13,6 @@ import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
 import "std/collections" { MutableMap }
-import "vader/lsp/state" { ServerState }
-import "vader/lsp/semantic_tokens" { TOKEN_TYPES, TOKEN_MODIFIERS }
-import "vader/lsp/log" { log_info }
 
 /// Build the response payload for `initialize` and remember the
 /// client-side capability flags that downstream handlers care about

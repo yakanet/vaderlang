@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/dot_variant_in_union/_main.vader
-  fn tests_snippets_dot_variant_in_union__main_vader$parse(c: char) -> Direction | Error
+## snippet
+  fn snippet$parse(c: char) -> Direction | Error
     if :void
       cond:
         eq :bool
@@ -42,7 +42,7 @@
       ParseError {
         msg: "unknown" :string
       }
-  fn tests_snippets_dot_variant_in_union__main_vader$dir_label(d: Direction) -> string
+  fn snippet$dir_label(d: Direction) -> string
     ~>
       block :string
         let __scrut_0: Direction = d :Direction
@@ -96,7 +96,7 @@
                               else:
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
-  fn tests_snippets_dot_variant_in_union__main_vader$main() -> i32
+  fn snippet$main() -> i32
     block :void
       let __scrut_0: Direction | Error =
         call :Direction | Error

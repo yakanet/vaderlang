@@ -19,7 +19,7 @@ import 1 println std_io$println (string) -> void
 impl 5 Contains
 impl 5 Iterator
 
-fn 0 tests_snippets_array_slice__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local arr ref
   local $cast_8 usize
   local $cast_10 usize

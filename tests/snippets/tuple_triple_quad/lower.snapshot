@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/tuple_triple_quad/_main.vader
-  fn tests_snippets_tuple_triple_quad__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let triple: [i32, string, bool] =
       [i32, string, bool] {
         _0: int(1) :i32

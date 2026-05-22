@@ -18,8 +18,8 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap, values }
-import "vader/diagnostics/diagnostic" { Span }
-import "vader/parser/ast" {
+import "vader/diagnostics" { Span }
+import "vader/parser" {
     MatchExpr, MatchArm, Pattern, WildcardPattern, BindingPattern, IsPattern,
     StructPattern, StructPatternField, PatternFieldValue, PatternBinding,
     PatternLiteral, TuplePattern, EnumVariantPattern, LiteralPattern, Expr,
@@ -34,18 +34,9 @@ import "vader/types" {
     Type, UnionType, TupleType, StructType, EnumType, UnresolvedType, mk_primitive,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED,
 }
-import "vader/typecheck/typed_ast" { TypedProgram }
-import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/diagnostics/diagnostic" { Diagnostic }
-import "vader/lower/ctx" { FnLowerCtx }
-import "vader/lower/entry_types" { EntryTypes, expr_type, type_expr_type }
-import "vader/lower/helpers" { fresh_synthetic_symbol, type_of, span_of }
-import "vader/lower/lowered_ast" {
-    LoweredExpr, LoweredBlock, LoweredStmt, LoweredLet, LoweredExprStmt,
-    LoweredIdent, LoweredIf, LoweredBinary, LoweredBinaryOp, LoweredBoolLit,
-    LoweredTypeCheck, LoweredCast, LoweredFieldAccess, LoweredIntLit,
-    LoweredUnreachable, LoweredReturn,
-}
+import "vader/typecheck" { TypedProgram }
+import "vader/typecheck" { type_from_expr }
+import "vader/diagnostics" { Diagnostic }
 
 /// Lower a `MatchExpr` to a block containing the scrutinee binding
 /// + an if-chain over the arms.
@@ -293,7 +284,6 @@ enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnL
 }
 
 import "vader/resolver/symbol" { SymbolKind }
-import "vader/lower/entry_types" { span_key }
 
 unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
     match target_type {
@@ -441,7 +431,7 @@ wrap_block :: fn(span: Span, expr: LoweredExpr) -> LoweredBlock {
     return LoweredBlock { .span = span, .type = type_of(expr), .stmts = [], .trailing = expr }
 }
 
-import "vader/parser/ast" { TypeExpr }
+import "vader/parser" { TypeExpr }
 
 // Pattern-position type expressions don't always get a
 // `type_expr_types` entry — the typecheck's match arm walker doesn't
@@ -462,7 +452,7 @@ export resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type 
 
 import "std/testing" { assert_eq, assert }
 import "std/string" { byte_len }
-import "vader/diagnostics/diagnostic" { empty_span }
+import "vader/diagnostics" { empty_span }
 
 @test test_fill_unresolved_emits_unresolved_array :: fn() -> void {
     types :: fill_unresolved(usize(3))

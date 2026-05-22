@@ -17,8 +17,8 @@
 module "vader/typecheck"
 
 import "std/collections" { MutableMap, keys }
-import "vader/parser/ast" { ImplDecl, Decl, IdentExpr, GenericInstExpr, TypeExpr }
-import "vader/resolver/resolve" { ResolvedModule }
+import "vader/parser" { ImplDecl, Decl, IdentExpr, GenericInstExpr, TypeExpr }
+import "vader/resolver" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" { Type, StructType, EnumType, TraitType }
 
@@ -152,7 +152,7 @@ export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
 
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
 
 build_test_registry :: fn(src: string) -> ImplRegistry {

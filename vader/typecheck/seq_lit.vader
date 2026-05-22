@@ -14,14 +14,12 @@
 module "vader/typecheck"
 
 import "std/math" { min }
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-import "vader/typecheck/type_ops" { default_if_free, union_of }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/types" {
     Type, ArrayType, TupleType, TypeParamType, UnionType, UnresolvedType,
     display_type, mk_array, mk_tuple, TY_UNRESOLVED,
 }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Type a bracketed literal contextually : returns `Tuple(...)` when
 /// `expected` is a tuple-shaped slot, `Array(...)` otherwise.
@@ -141,15 +139,10 @@ pick_seq_variant :: fn(u: UnionType, arity: usize) -> Type | null {
 
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/check" { check_module }
-import "vader/typecheck/expr_ident" { infer_ident }
-import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }
-import "vader/typecheck/test_helpers" { find_first_in_block }
-import "vader/typecheck/type_ops" { narrow_for_expected }
 import "vader/types" { mk_primitive }
-import "vader/diagnostics/diagnostic" { empty_span }
+import "vader/diagnostics" { empty_span }
 
 stub_check_expr :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],

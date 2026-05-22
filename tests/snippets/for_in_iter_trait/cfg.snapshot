@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/for_in_iter_trait/_main.vader
+## snippet
 
-fn tests_snippets_for_in_iter_trait__main_vader$sum_iter(%0: Iterator(i32)) -> i32
+fn snippet$sum_iter(%0: Iterator(i32)) -> i32
   locals:
     %0 it: Iterator(i32) (param it)
     %1 total: i32 (local total)
@@ -35,7 +35,7 @@ fn tests_snippets_for_in_iter_trait__main_vader$sum_iter(%0: Iterator(i32)) -> i
   bb6:
     branch -> bb1
 
-fn tests_snippets_for_in_iter_trait__main_vader$is_l(%0: char) -> bool
+fn snippet$is_l(%0: char) -> bool
   locals:
     %0 c: char (param c)
     %1 $k_1: char
@@ -45,7 +45,7 @@ fn tests_snippets_for_in_iter_trait__main_vader$is_l(%0: char) -> bool
     %2 = binop eq %0 %1 :bool
     return %2
 
-fn tests_snippets_for_in_iter_trait__main_vader$count_ls(%0: string) -> usize
+fn snippet$count_ls(%0: string) -> usize
   locals:
     %0 s: string (param s)
     %1 $call_1: StringChars
@@ -59,7 +59,7 @@ fn tests_snippets_for_in_iter_trait__main_vader$count_ls(%0: string) -> usize
     %4 = call count(%3) :usize
     return %4
 
-fn tests_snippets_for_in_iter_trait__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $k_1: i32

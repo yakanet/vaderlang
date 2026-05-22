@@ -10,12 +10,9 @@
 module "vader/comptime"
 
 import "std/collections" { MutableMap }
-import "vader/parser/ast" { FnDecl }
+import "vader/parser" { FnDecl }
 import "vader/types" { Type }
-import "vader/typecheck/typed_ast" { TypedProgram, TypedProject }
-import "vader/comptime/value" { ComptimeValue }
-import "vader/comptime/mono_ast" { MonoProject, new_mono_project }
-import "vader/comptime/instances" { GenericInstance }
+import "vader/typecheck" { TypedProgram, TypedProject }
 
 /// One blanket-Into impl member observation. The typer records a coercion
 /// site that needs the impl's `into` member specialised with these type
@@ -112,7 +109,7 @@ export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq }
-import "vader/typecheck/typed_ast" { new_typed_project }
+import "vader/typecheck" { new_typed_project }
 
 @test test_new_evaluated_project_is_empty :: fn() -> void {
     project :: new_evaluated_project(new_typed_project())

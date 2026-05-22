@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/tuple_destructure_wildcard/_main.vader
+## snippet
 
-fn tests_snippets_tuple_destructure_wildcard__main_vader$triple() -> [i32, string, bool]
+fn snippet$triple() -> [i32, string, bool]
   locals:
     %0 $k_0: i32
     %1 $k_1: string
@@ -15,7 +15,7 @@ fn tests_snippets_tuple_destructure_wildcard__main_vader$triple() -> [i32, strin
     %3 = struct_new [i32, string, bool](%0, %1, %2)
     return %3
 
-fn tests_snippets_tuple_destructure_wildcard__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $call_0: [i32, string, bool]
     %1 __tup_0: [i32, string, bool] (synthetic __tup_0)

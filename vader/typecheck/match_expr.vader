@@ -7,18 +7,10 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-import "vader/resolver/scope" { span_key }
-import "vader/typecheck/context" { FnContext }
-import "vader/typecheck/narrow" {
-    field_chain_key, pop_field_narrow, pop_narrow,
-    push_field_narrow, push_narrow,
-}
-import "vader/typecheck/type_ops" { types_overlap, union_of }
-import "vader/typecheck/type_assign" { is_assignable }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
+import "vader/resolver" { span_key }
 import "vader/types" { Type, UnionType, display_type, TY_BOOL }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Type-check a `MatchExpr`. `expected` flows into every arm body so
 /// `let x: i32 = match v { is Foo -> 1, is Bar -> 2 }` narrows each
@@ -134,7 +126,6 @@ arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Ty
     }
 }
 
-import "vader/typecheck/type_ops" { subtract_type }
 
 is_overlap_checkable :: fn(t: Type) -> bool {
     match t {
@@ -258,22 +249,15 @@ pick_tuple_variant :: fn(t: Type, arity: usize) -> TupleType | null {
 }
 
 import "vader/types" { StructType, TupleType }
-import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/field" { find_struct_field_type }
 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/check" { check_module }
-import "vader/typecheck/expr_ident" { infer_ident }
-import "vader/typecheck/expr_literals" { infer_int_lit, infer_bool_lit, infer_string_lit }
-import "vader/typecheck/test_helpers" { find_first_in_block }
-import "vader/typecheck/type_ops" { narrow_for_expected }
 import "vader/types" { TY_UNRESOLVED }
-import "vader/diagnostics/diagnostic" { empty_span }
+import "vader/diagnostics" { empty_span }
 
 stub_check_expr :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],

@@ -8,16 +8,14 @@
 
 module "vader/comptime"
 
-import "vader/comptime/eval_types" { EvalResult, ComptimeContext, ok, fail, vm_required }
-import "vader/comptime/value" { ComptimeValue, int_val_typed, string_val }
-import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/typecheck" { type_from_expr }
 import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
     FnType, TypeParamType, UnionType, UnresolvedType, display_type,
 }
-import "vader/diagnostics/diagnostic" { Diagnostic, comptime_error }
-import "vader/diagnostics/codes" { ComptimeCode }
-AST :: import "vader/parser/ast"
+import "vader/diagnostics" { Diagnostic, comptime_error }
+import "vader/diagnostics" { ComptimeCode }
+AST :: import "vader/parser"
 
 /// Dispatch a `@<name>(args)` call to the matching evaluator. Returns
 /// `vm_required` for unknown intrinsics so the caller skips the decl.

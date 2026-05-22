@@ -7,16 +7,12 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-import "vader/typecheck/type_ops" { is_int_name }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/types" {
     Type, ArrayType, PrimitiveType, FreeIntType, StructType, UnresolvedType,
     display_type, mk_array, mk_primitive, TY_UNRESOLVED,
 }
-import "vader/typecheck/type_ops" { subtract_type }
-import "vader/typecheck/field" { substitute_by_name }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Type-check `target[index]`. Returns `T` when `target: T[]`.
 export infer_index :: fn(

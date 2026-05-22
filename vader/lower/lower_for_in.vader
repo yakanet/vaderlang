@@ -20,27 +20,14 @@
 
 module "vader/lower"
 
-import "vader/diagnostics/diagnostic" { Span }
-AST :: import "vader/parser/ast"
+import "vader/diagnostics" { Span }
+AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
     Type, ArrayType, StructType, TraitType, EnumType, PrimitiveType,
     mk_struct, mk_array, mk_union, mk_primitive, display_type,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED,
     STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR,
-}
-import "vader/lower/ctx" { FnLowerCtx }
-import "vader/lower/entry_types" { expr_type, span_key }
-import "vader/lower/helpers" { fresh_synthetic_symbol, type_of, span_of }
-import "vader/lower/core_symbols" {
-    lookup_core_symbol, find_core_type, union_of_yield_null,
-}
-import "vader/lower/lowered_ast" {
-    LoweredExpr, LoweredBlock, LoweredStmt, LoweredLet, LoweredExprStmt,
-    LoweredIdent, LoweredIf, LoweredTypeCheck, LoweredCast, LoweredCall,
-    LoweredFieldAccess, LoweredArrayLen, LoweredVirtualCall, LoweredBreak,
-    LoweredLoop, LoweredStructLit, LoweredStructLitField, LoweredUnreachable,
-    LoweredIntLit,
 }
 
 /// Lower a `for x in iter { body }` statement to a step-loop driven
@@ -349,7 +336,6 @@ import "std/collections" { values }
 
 // ---- int-range fast path --------------------------------------------------
 
-import "vader/lower/lowered_ast" { LoweredBinary, LoweredBinaryOp, LoweredAssign }
 
 // `for x in lo..<hi` / `for x in lo..=hi` over an integer-typed range
 // bottom emits a counter loop. Mirrors TS's `tryLowerForInIntRange`.
@@ -448,7 +434,7 @@ is_integer_type :: fn(t: Type) -> bool {
 }
 
 import "vader/types" { FreeIntType }
-import "vader/typecheck/type_ops" { default_if_free }
+import "vader/typecheck" { default_if_free }
 
 cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {
     if inclusive { return LoweredBinaryOp.Lte }
@@ -617,7 +603,7 @@ descend_filter :: fn(ctx: FnLowerCtx, struct_lit: AST.StructLitExpr, struct_type
     }
 }
 
-import "vader/parser/ast" { StructLitField as ASTStructLitField, StructLitSpread as ASTStructLitSpread }
+import "vader/parser" { StructLitField as ASTStructLitField, StructLitSpread as ASTStructLitSpread }
 
 find_inline_field :: fn(struct_lit: AST.StructLitExpr, name: string) -> AST.Expr | null {
     for item in struct_lit.items {

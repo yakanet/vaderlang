@@ -8,7 +8,6 @@
 
 module "vader/lsp"
 
-import "vader/lsp/main" { run_server }
 
 main :: fn(argv: string[]) -> i32 {
     // argv[0] is the binary path ; everything else flows into the

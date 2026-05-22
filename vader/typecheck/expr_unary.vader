@@ -6,14 +6,12 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-import "vader/typecheck/type_ops" { is_int_name, is_numeric_name }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/types" {
     Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
     display_type, TY_BOOL, TY_UNRESOLVED,
 }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Type-check a `UnaryExpr`. T3017 when the op doesn't admit the
 /// operand's family.
@@ -54,29 +52,8 @@ export infer_unary :: fn(
     }
 }
 
-is_numeric :: fn(t: Type) -> bool {
-    if t is FreeIntType   { return true }
-    if t is FreeFloatType { return true }
-    match t {
-        is PrimitiveType as p -> { return is_numeric_name(p.name) }
-        _ -> { return false }
-    }
-}
 
-is_integer :: fn(t: Type) -> bool {
-    if t is FreeIntType { return true }
-    match t {
-        is PrimitiveType as p -> { return is_int_name(p.name) }
-        _ -> { return false }
-    }
-}
 
-is_bool :: fn(t: Type) -> bool {
-    match t {
-        is PrimitiveType as p -> { return p.name == "bool" }
-        _ -> { return false }
-    }
-}
 
 push_op_undefined :: fn(e: AST.UnaryExpr, operand: Type, sym: string, diags: Diagnostic[]) -> void {
     diags.push(typecheck_error(.OperatorNotDefined, e.span,

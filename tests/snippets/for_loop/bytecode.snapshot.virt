@@ -48,7 +48,7 @@ import 29 not_equals std_core$string$Equals$not_equals (string,string) -> bool
 import 30 hash std_core$string$Hash$hash (string) -> u64
 import 31 at std_core$string$Index$at (string,usize) -> char
 
-fn 0 tests_snippets_for_loop__main_vader$mixed_loops (i32) -> i32
+fn 0 snippet$mixed_loops (i32) -> i32
   local n i32
   local i i32
   local $mod_9 i32

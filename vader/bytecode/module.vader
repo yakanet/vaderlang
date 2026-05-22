@@ -19,8 +19,7 @@
 
 module "vader/bytecode"
 
-import "vader/bytecode/types" { BcType, BcDataEntry, ValType }
-import "vader/vm/op" { Op }
+import "vader/vm" { Op }
 
 /// One Vader function body, post-lowering. Closely mirrors TS `BcFunction`.
 ///

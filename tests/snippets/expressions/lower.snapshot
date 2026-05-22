@@ -1,14 +1,14 @@
 # Lower
 
-## tests/snippets/expressions/_main.vader
-  fn tests_snippets_expressions__main_vader$add(x: i32, y: i32) -> i32
+## snippet
+  fn snippet$add(x: i32, y: i32) -> i32
     return
       add :i32
         l:
           x :i32
         r:
           y :i32
-  fn tests_snippets_expressions__main_vader$demo() -> i32
+  fn snippet$demo() -> i32
     let a: i32 =
       add :{integer}
         l:

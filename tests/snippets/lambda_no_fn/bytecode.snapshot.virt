@@ -20,14 +20,14 @@ string 4 "forty_two() = "
 string 5 "block(3) = "
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_lambda_no_fn__main_vader$call_it (ref,i32) -> i32
+fn 0 snippet$call_it (ref,i32) -> i32
   local.get 1
   local.get 0
   call.indirect 1
   return
 end
 
-fn 1 tests_snippets_lambda_no_fn__main_vader$call_two (ref,i32,i32) -> i32
+fn 1 snippet$call_two (ref,i32,i32) -> i32
   local.get 1
   local.get 2
   local.get 0
@@ -35,13 +35,13 @@ fn 1 tests_snippets_lambda_no_fn__main_vader$call_two (ref,i32,i32) -> i32
   return
 end
 
-fn 2 tests_snippets_lambda_no_fn__main_vader$call_none (ref) -> i32
+fn 2 snippet$call_none (ref) -> i32
   local.get 0
   call.indirect 4
   return
 end
 
-fn 3 tests_snippets_lambda_no_fn__main_vader$main () -> i32
+fn 3 snippet$main () -> i32
   local __sb_0 any
   local $closure_4 ref
   local $call_6 i32

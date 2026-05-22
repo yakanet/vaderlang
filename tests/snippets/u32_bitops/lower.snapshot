@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/u32_bitops/_main.vader
-  fn tests_snippets_u32_bitops__main_vader$check(name: string, ok: bool) -> void
+## snippet
+  fn snippet$check(name: string, ok: bool) -> void
     ~>
       if :void
         cond:
@@ -20,7 +20,7 @@
                 println :fn(string) -> void
               arg0:
                 "BAD" :string
-  fn tests_snippets_u32_bitops__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let a: u32 = int(4294967295) :u32
     let b: u32 = int(2147483648) :u32
     call :void

@@ -8,17 +8,12 @@
 module "vader/lower"
 
 import "std/collections" { MutableSet, MutableMap, contains }
-import "vader/diagnostics/diagnostic" { Span, empty_span }
-import "vader/parser/ast" { Visibility }
+import "vader/diagnostics" { Span, empty_span }
+import "vader/parser" { Visibility }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
     Type, EnumType, mk_primitive,
     TY_BOOL, TY_UNRESOLVED, TY_VOID,
-}
-import "vader/lower/ctx" { FnLowerCtx }
-import "vader/lower/lowered_ast" {
-    LoweredBinary, LoweredBinaryOp,
-    LoweredExpr, LoweredExprStmt, LoweredStmt,
 }
 
 /// Mint a synthetic local symbol unique within the entry's body.
@@ -175,14 +170,6 @@ export lower_cell_init :: fn(
 // yet, so every consumer has to dispatch on the variant — these two
 // helpers centralise the match so passes don't replicate it.
 
-import "vader/lower/lowered_ast" {
-    LoweredArrayLen, LoweredArrayLit, LoweredArrayPush, LoweredArraySlice,
-    LoweredBlock, LoweredBoolLit, LoweredCall, LoweredCast, LoweredCellGet, LoweredCellNew,
-    LoweredCharLit, LoweredDataConst, LoweredFieldAccess, LoweredFloatLit,
-    LoweredIdent, LoweredIf, LoweredIndex, LoweredIntLit, LoweredIntrinsicCall,
-    LoweredMakeClosure, LoweredNullLit, LoweredStringLit, LoweredStructLit,
-    LoweredTypeCheck, LoweredTypeConst, LoweredUnary, LoweredUnreachable, LoweredVirtualCall,
-}
 
 /// Pull the static `Type` off any `LoweredExpr` variant.
 /// @param expr  the lowered expression node.

@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/generic_helper_chain/_main.vader
-  fn tests_snippets_generic_helper_chain__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let a: Box(Box(i32)) =
       call :Box(Box(i32))
         callee:
@@ -45,14 +45,14 @@
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
-  struct tests_snippets_generic_helper_chain__main_vader$Box__Any { value: Any }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__i32 { value: Any }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__string { value: Any }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__Box_i32_ { value: Any }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__Box_string_ { value: Any }
-  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__Any(x: Any) -> Any
+  struct snippet$Box__Any { value: Any }
+  struct snippet$Box__i32 { value: Any }
+  struct snippet$Box__string { value: Any }
+  struct snippet$Box__Box_i32_ { value: Any }
+  struct snippet$Box__Box_string_ { value: Any }
+  fn snippet$snippet$inner__Any(x: Any) -> Any
     return x :Any
-  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__Any(x: Any) -> Box(Any)
+  fn snippet$snippet$middle__Any(x: Any) -> Box(Any)
     return
       Box(Any) {
         value:
@@ -62,7 +62,7 @@
             arg0:
               x :Any
       }
-  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__i32(x: Any) -> Box(Box(Any))
+  fn snippet$snippet$outer__i32(x: Any) -> Box(Box(Any))
     return
       Box(Box(Any)) {
         value:
@@ -72,5 +72,5 @@
             arg0:
               x :Any
       }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__Any { value: Any }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__Box_Any { value: Any }
+  struct snippet$Box__Any { value: Any }
+  struct snippet$Box__Box_Any { value: Any }

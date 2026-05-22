@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/interpolation_tokens/_main.vader
-  const tests_snippets_interpolation_tokens__main_vader$simple: string =
+## snippet
+  const snippet$simple: string =
     block :string
       let __sb_0: ? =
         @builder.new :?
@@ -16,7 +16,7 @@
       ~>
         @builder.finish :string
           __sb_0 :?
-  const tests_snippets_interpolation_tokens__main_vader$expr: string =
+  const snippet$expr: string =
     block :string
       let __sb_0: ? =
         @builder.new :?
@@ -35,7 +35,7 @@
       ~>
         @builder.finish :string
           __sb_0 :?
-  const tests_snippets_interpolation_tokens__main_vader$nested: string =
+  const snippet$nested: string =
     block :string
       let __sb_0: ? =
         @builder.new :?

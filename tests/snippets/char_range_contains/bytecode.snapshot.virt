@@ -94,7 +94,7 @@ vtable Step.step 10 66
 vtable Step.step 11 67
 vtable Step.step 12 68
 
-fn 0 tests_snippets_char_range_contains__main_vader$is_digit (char) -> bool
+fn 0 snippet$is_digit (char) -> bool
   char.const 48
   char.const 57
   bool.const true
@@ -105,7 +105,7 @@ fn 0 tests_snippets_char_range_contains__main_vader$is_digit (char) -> bool
   return
 end
 
-fn 1 tests_snippets_char_range_contains__main_vader$is_lower (char) -> bool
+fn 1 snippet$is_lower (char) -> bool
   char.const 97
   char.const 122
   bool.const true
@@ -116,7 +116,7 @@ fn 1 tests_snippets_char_range_contains__main_vader$is_lower (char) -> bool
   return
 end
 
-fn 2 tests_snippets_char_range_contains__main_vader$is_alpha (char) -> bool
+fn 2 snippet$is_alpha (char) -> bool
   local or_res bool
   char.const 97
   char.const 122
@@ -142,7 +142,7 @@ fn 2 tests_snippets_char_range_contains__main_vader$is_alpha (char) -> bool
   return
 end
 
-fn 3 tests_snippets_char_range_contains__main_vader$main () -> i32
+fn 3 snippet$main () -> i32
   local n i32
   local __iter_0 ref
   local __sb_2 any

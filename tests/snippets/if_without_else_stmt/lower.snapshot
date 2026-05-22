@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/if_without_else_stmt/_main.vader
-  fn tests_snippets_if_without_else_stmt__main_vader$expect_lparen(s: string) -> string
+## snippet
+  fn snippet$expect_lparen(s: string) -> string
     return
       block :string
         let __sb_0: ? =
@@ -15,7 +15,7 @@
         ~>
           @builder.finish :string
             __sb_0 :?
-  fn tests_snippets_if_without_else_stmt__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let matched: bool = false
     if :void
       cond:

@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/runtime_argv/_main.vader
-  fn tests_snippets_runtime_argv__main_vader$main(argv: string[]) -> i32
+## snippet
+  fn snippet$main(argv: string[]) -> i32
     call :void
       callee:
         println :fn(string) -> void

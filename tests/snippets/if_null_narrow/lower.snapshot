@@ -1,9 +1,9 @@
 # Lower
 
-## tests/snippets/if_null_narrow/_main.vader
-  struct tests_snippets_if_null_narrow__main_vader$Cat { name: string, age: i32 }
-  struct tests_snippets_if_null_narrow__main_vader$Dog { name: string, age: i32 }
-  fn tests_snippets_if_null_narrow__main_vader$greet(a: Cat | Dog | null) -> string
+## snippet
+  struct snippet$Cat { name: string, age: i32 }
+  struct snippet$Dog { name: string, age: i32 }
+  fn snippet$greet(a: Cat | Dog | null) -> string
     if :void
       cond:
         not :bool
@@ -27,7 +27,7 @@
               @builder.finish :string
                 __sb_0 :?
     return "no animal" :string
-  fn tests_snippets_if_null_narrow__main_vader$greet_v2(a: Cat | Dog | null) -> string
+  fn snippet$greet_v2(a: Cat | Dog | null) -> string
     if :void
       cond:
         is null :bool
@@ -50,7 +50,7 @@
         ~>
           @builder.finish :string
             __sb_0 :?
-  fn tests_snippets_if_null_narrow__main_vader$greet_v3(a: Cat | Dog | null) -> string
+  fn snippet$greet_v3(a: Cat | Dog | null) -> string
     if :void
       cond:
         not :bool
@@ -74,7 +74,7 @@
               @builder.finish :string
                 __sb_0 :?
     return "nada" :string
-  fn tests_snippets_if_null_narrow__main_vader$greet_v4(a: Cat | Dog | null) -> string
+  fn snippet$greet_v4(a: Cat | Dog | null) -> string
     let out: string = "" :string
     ~>
       if :never
@@ -102,7 +102,7 @@
           return out2 :string
         else:
           return "missing" :string
-  fn tests_snippets_if_null_narrow__main_vader$combine(a: Cat | Dog | null, b: Cat | Dog | null) -> string
+  fn snippet$combine(a: Cat | Dog | null, b: Cat | Dog | null) -> string
     if :void
       cond:
         is null :bool
@@ -137,7 +137,7 @@
         ~>
           @builder.finish :string
             __sb_0 :?
-  fn tests_snippets_if_null_narrow__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let cat: Cat | Dog | null =
       Cat {
         name: "Whiskers" :string

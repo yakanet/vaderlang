@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/enum_match/_main.vader
-  fn tests_snippets_enum_match__main_vader$classify(n: i32) -> Severity
+## snippet
+  fn snippet$classify(n: i32) -> Severity
     if :void
       cond:
         lt :bool
@@ -21,7 +21,7 @@
       then:
         return int(1) :i32
     return int(0) :i32
-  fn tests_snippets_enum_match__main_vader$label(c: Color) -> string
+  fn snippet$label(c: Color) -> string
     ~>
       block :string
         let __scrut_0: Color = c :Color
@@ -63,14 +63,14 @@
                         else:
                           ~>
                             unreachable("non-exhaustive match (T3013 should have caught this)") :string
-  fn tests_snippets_enum_match__main_vader$same_color(a: Color, b: Color) -> bool
+  fn snippet$same_color(a: Color, b: Color) -> bool
     ~>
       eq :bool
         l:
           a :Color
         r:
           b :Color
-  fn tests_snippets_enum_match__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let c: Color = int(1) :i32
     call :void
       callee:

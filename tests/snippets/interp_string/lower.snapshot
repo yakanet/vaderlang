@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/interp_string/_main.vader
-  fn tests_snippets_interp_string__main_vader$greet(name: string, age: i32) -> string
+## snippet
+  fn snippet$greet(name: string, age: i32) -> string
     return
       block :string
         let __sb_0: ? =

@@ -192,7 +192,7 @@ export render_instance :: fn(instance: GenericInstance) -> string {
 import "std/testing" { assert_eq }
 import "vader/types" { mk_struct, mk_primitive }
 import "vader/resolver/symbol" { SymbolKind }
-import "vader/parser/ast" { Visibility }
+import "vader/parser" { Visibility }
 
 @test test_add_deduplicates :: fn() -> void {
     registry :: new_registry()

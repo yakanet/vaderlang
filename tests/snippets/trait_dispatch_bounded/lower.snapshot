@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/trait_dispatch_bounded/_main.vader
-  fn tests_snippets_trait_dispatch_bounded__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let nums: i32[] =
       array :i32[]
         int(1) :i32
@@ -56,7 +56,7 @@
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
-  fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__i32(items: Any[], target: Any) -> i32
+  fn snippet$snippet$count_matching__i32(items: Any[], target: Any) -> i32
     let n: i32 = int(0) :i32
     block :void
       let __for_arr_0: Any[] = items :Any[]

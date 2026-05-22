@@ -16,18 +16,15 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-AST :: import "vader/parser/ast"
-import "vader/resolver/scope" { span_full_key }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
+AST :: import "vader/parser"
+import "vader/resolver" { span_full_key }
 import "vader/resolver/symbol" { SymbolKind }
-import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/type_ops" { is_numeric_name, is_int_name, is_float_name }
 import "vader/types" {
     Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
     EnumType, FnType, StructType, TraitType, UnionType,
     display_type, type_base_name, mk_primitive, TY_BOOL, TY_UNRESOLVED,
 }
-import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Type-check a `BinaryExpr`. `check_expr_fn` is threaded to break the
 /// cyclic import with `expr.vader::check_expr`.
@@ -154,7 +151,6 @@ is_resolved_enough :: fn(t: Type) -> bool {
 }
 
 import "vader/types" { TypeParamType }
-import "vader/typecheck/type_ops" { equals_type, types_overlap }
 
 check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
     if !is_bool(left)  && !(left  is UnresolvedType) {
@@ -332,13 +328,10 @@ push_op_undefined :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagn
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
-import "vader/diagnostics/diagnostic" { empty_span }
+import "vader/diagnostics" { empty_span }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module, ResolvedModule }
+import "vader/resolver" { resolve_module, ResolvedModule }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/check" { check_module }
-import "vader/typecheck/expr_ident" { infer_ident }
-import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }
 
 stub_check_expr :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
@@ -360,7 +353,6 @@ narrow :: fn(got: Type, expected: Type | null) -> Type {
     return got
 }
 
-import "vader/typecheck/test_helpers" { find_first_in_block }
 
 accept_binary :: fn(e: AST.Expr) -> AST.Expr | null {
     if e is AST.BinaryExpr { return e }

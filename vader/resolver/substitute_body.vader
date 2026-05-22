@@ -20,8 +20,7 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "vader/resolver/substitute" { Subst, substitute_type_expr }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Clone a BlockExpr, recursively substituting TypeParam idents.
 export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {

@@ -12,7 +12,7 @@ string 4 "warning"
 string 5 "error"
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_enum_match__main_vader$classify (i32) -> i32
+fn 0 snippet$classify (i32) -> i32
   local.get 0
   i32.const 0
   i32.lt
@@ -28,7 +28,7 @@ fn 0 tests_snippets_enum_match__main_vader$classify (i32) -> i32
   return.lit i32.const 0
 end
 
-fn 1 tests_snippets_enum_match__main_vader$label (i32) -> string
+fn 1 snippet$label (i32) -> string
   local.get 0
   i32.const 0
   i32.eq
@@ -53,14 +53,14 @@ fn 1 tests_snippets_enum_match__main_vader$label (i32) -> string
   unreachable
 end
 
-fn 2 tests_snippets_enum_match__main_vader$same_color (i32,i32) -> bool
+fn 2 snippet$same_color (i32,i32) -> bool
   local.get 0
   local.get 1
   i32.eq
   return
 end
 
-fn 3 tests_snippets_enum_match__main_vader$main () -> i32
+fn 3 snippet$main () -> i32
   local c i32
   local __sb_0 any
   local $call_11 bool

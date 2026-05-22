@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/vm_call_recursive/_main.vader
-  fn tests_snippets_vm_call_recursive__main_vader$factorial(n: i32) -> i32
+## snippet
+  fn snippet$factorial(n: i32) -> i32
     if :void
       cond:
         lte :bool
@@ -25,7 +25,7 @@
                   n :i32
                 r:
                   int(1) :i32
-  fn tests_snippets_vm_call_recursive__main_vader$main() -> i32
+  fn snippet$main() -> i32
     return
       call :i32
         callee:

@@ -6,6 +6,7 @@ import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type * as A from "../parser/ast.ts";
 
 import { checkReservedIdent, err } from "./diag.ts";
+import type { ModuleIndex } from "./discover.ts";
 import type { ImportEntry, SourceFile } from "./module.ts";
 import { resolveImportPath } from "./module.ts";
 import type { ModuleId, Symbol } from "./symbol.ts";
@@ -13,11 +14,14 @@ import type { SymbolFactory } from "./symbol.ts";
 
 export interface CollectInput {
   readonly moduleId: ModuleId;
+  /** Module name of the file(s) being collected — used by import
+   *  resolution to detect self-imports and the implicit-prelude exemption. */
+  readonly moduleName: string;
   readonly files: readonly SourceFile[];
   readonly factory: SymbolFactory;
   readonly diags: DiagnosticCollector;
-  readonly projectRoot: string | null;
-  readonly stdlibRoot: string;
+  /** Project-wide module index for name-lookup-based import resolution. */
+  readonly index: ModuleIndex;
 }
 
 export interface CollectResult {
@@ -138,6 +142,17 @@ function addSymbol(
   checkReservedIdent(name, span, input.diags);
   const existing = symbols.get(name);
   if (existing !== undefined) {
+    // A real decl always wins over an import-binding of the same name :
+    // strict mode (Phase 7) processes files alphabetically, so a sibling
+    // file's `import "this/module" { Name }` (self-import that resolveImport
+    // already flagged with R2024) lands first and would otherwise shadow
+    // the local export. Replace it.
+    if (existing.kind === "import-binding") {
+      symbols.set(name, input.factory.make({
+        kind, name, module: input.moduleId, visibility, definedAt: span, source,
+      }));
+      return;
+    }
     // Folder-module : sibling files share a namespace (SPEC §11). When the
     // previous decl lives in a different file, silently first-wins —
     // matches Vader's `collect_files` merge behaviour. Real intra-file
@@ -164,11 +179,11 @@ function collectImport(
     return;
   }
   const resolvedTo = resolveImportPath(decl.path, {
-    fromFile,
-    projectRoot: input.projectRoot,
-    stdlibRoot: input.stdlibRoot,
+    index: input.index,
+    fromModuleName: input.moduleName,
+    span: decl.span,
+    diags: input.diags,
   });
-  if (resolvedTo === null) err(input.diags, "R2001", decl.span, `\`${decl.path}\``);
   imports.push({ span: decl.span, fromFile, path: decl.path, resolvedTo });
 
   switch (decl.binding.kind) {

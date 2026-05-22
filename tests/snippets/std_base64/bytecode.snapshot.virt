@@ -63,7 +63,7 @@ impl 10 Error
 impl 11 Display
 vtable Error.message 10 3
 
-fn 0 tests_snippets_std_base64__main_vader$show_decode (string,string) -> void
+fn 0 snippet$show_decode (string,string) -> void
   local out ref
   local __scrut_0 ref
   local __sb_2 any
@@ -116,7 +116,7 @@ fn 0 tests_snippets_std_base64__main_vader$show_decode (string,string) -> void
   unreachable
 end
 
-fn 1 tests_snippets_std_base64__main_vader$main () -> i32
+fn 1 snippet$main () -> i32
   local __sb_0 any
   local $call_4 string
   local __for_arr_6 ref

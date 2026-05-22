@@ -30,13 +30,10 @@ module "vader/c_emit"
 
 import "std/string" { byte_len }
 import "std/string_builder" { StringBuilder, new_builder, append }
-import "vader/bytecode/module" { BytecodeModule, BcFunction }
-import "vader/bytecode/types" {
+import "vader/bytecode" { BytecodeModule, BcFunction }
+import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
     BcField, ValType, size_of_bc_type, size_of_val_type, is_string_val,
-}
-import "vader/c_emit/body" {
-    sanitise, c_type_for, c_type_for_val_bare, c_string_lit, struct_c_name,
 }
 
 /// Options threaded through the emit. Mirrors TS `EmitOptions`.

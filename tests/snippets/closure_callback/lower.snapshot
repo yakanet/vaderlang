@@ -1,14 +1,14 @@
 # Lower
 
-## tests/snippets/closure_callback/_main.vader
-  fn tests_snippets_closure_callback__main_vader$apply(f: fn(i32) -> i32, x: i32) -> i32
+## snippet
+  fn snippet$apply(f: fn(i32) -> i32, x: i32) -> i32
     return
       call :i32
         callee:
           f :fn(i32) -> i32
         arg0:
           x :i32
-  fn tests_snippets_closure_callback__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let bias: ? =
       LoweredCellNew
     let biased: fn(i32) -> i32 =

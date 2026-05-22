@@ -21,7 +21,7 @@ module "vader/comptime"
 import "std/collections" { MutableMap }
 import "std/string" { byte_len, byte_at }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
-import "vader/parser/ast" {
+import "vader/parser" {
     TypeExpr, IdentExpr, GenericInstExpr,
 }
 import "vader/types" { Type, display_type }
@@ -159,7 +159,7 @@ generic_callee_name :: fn(gi: GenericInstExpr) -> string = match gi.callee {
 
 import "std/testing" { assert_eq }
 import "vader/types" { mk_primitive }
-import "vader/diagnostics/diagnostic" { Position, Span }
+import "vader/diagnostics" { Position, Span }
 
 @test test_mangle_non_generic_same_name :: fn() -> void {
     args: Type[] = []

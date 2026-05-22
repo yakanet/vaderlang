@@ -1,8 +1,8 @@
 # Lower
 
-## tests/snippets/numeric_context_sensitivity/_main.vader
-  struct tests_snippets_numeric_context_sensitivity__main_vader$Counter { n: usize, delta: isize }
-  fn tests_snippets_numeric_context_sensitivity__main_vader$main() -> i32
+## snippet
+  struct snippet$Counter { n: usize, delta: isize }
+  fn snippet$main() -> i32
     let a8: i8 = int(5) :i8
     let b16: i16 = int(100) :i16
     let c32: i32 = int(1000) :i32

@@ -1,14 +1,14 @@
 # Lower
 
-## tests/snippets/arith/_main.vader
-  fn tests_snippets_arith__main_vader$add(a: i32, b: i32) -> i32
+## snippet
+  fn snippet$add(a: i32, b: i32) -> i32
     return
       add :i32
         l:
           a :i32
         r:
           b :i32
-  fn tests_snippets_arith__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let x: i32 =
       call :i32
         callee:

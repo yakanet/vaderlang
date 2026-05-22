@@ -25,8 +25,8 @@ import "std/numbers" {
     parse_uint_in_base, is_int_suffix, is_float_suffix,
     strip_numeric_text,
 }
-import "vader/diagnostics/diagnostic" { Diagnostic, lexer_error }
-import "vader/diagnostics/codes" { LexerCode }
+import "vader/diagnostics" { Diagnostic, lexer_error }
+import "vader/diagnostics" { LexerCode }
 // Position/Span are re-imported transparently via token.vader (same module);
 // no need to import them again here — that would trigger R2011.
 

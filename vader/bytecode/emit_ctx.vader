@@ -9,9 +9,6 @@ module "vader/bytecode"
 
 import "std/collections" { MutableMap }
 import "vader/types" { Type }
-import "vader/bytecode/module" { BcFunction, BcImport, BcExport }
-import "vader/bytecode/types" { BcType, BcPrimitive, BcStruct, BcField, ValType }
-import "vader/bytecode/type_classify" { type_intern_key, bc_type_of }
 
 /// Knobs threaded through the emit. Today only `optimize` matters —
 /// when true, the future peephole pass runs over each fn body.

@@ -7,7 +7,6 @@
 
 module "vader/vm"
 
-import "std/core" { Display }
 import "std/string_builder" { StringBuilder, new_builder, append }
 
 /// The full op set understood by the Vader-side VM. Each variant is

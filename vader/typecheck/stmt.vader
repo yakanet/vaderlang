@@ -9,19 +9,13 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic, Span, typecheck_error }
-import "vader/resolver/scope" { span_full_key, span_key }
-AST :: import "vader/parser/ast"
-import "vader/typecheck/context" { FnContext, new_fn_context }
-import "vader/typecheck/coerce" { try_into }
-import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/type_ops" { default_if_free, narrow_for_expected }
-import "vader/typecheck/type_assign" { is_assignable }
+import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
+import "vader/resolver" { span_full_key, span_key }
+AST :: import "vader/parser"
 import "vader/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
     TY_BOOL, TY_NEVER, TY_VOID, TY_UNRESOLVED,
 }
-import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
 
 /// Check every statement in `block`, then type the trailing expression
 /// (or `void` when none). Writes the block's type into `expr_types`.
@@ -511,14 +505,6 @@ import "vader/types" { mk_primitive }
 
 diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
 
-import "vader/typecheck/narrow" {
-    narrow_for_binding, narrow_for_field,
-    pick_field_vs_null, pick_ident_vs_null,
-    pop_field_narrow, pop_narrow, push_field_narrow, push_narrow,
-    resolve_field_chain_static,
-}
-import "vader/typecheck/expr_ident" { type_of_symbol }
-import "vader/typecheck/type_ops" { subtract_type }
 
 // Pull the iterator's element type. `T[]` yields `T` directly ;
 // generic `StructType` falls back to first type arg (covers Range and
@@ -550,7 +536,6 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
     }
 }
 
-import "vader/typecheck/field" { substitute_by_name }
 
 lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
     decl_ty :: typed.decl_types[span_key(fn_decl.name_span)]
@@ -616,11 +601,8 @@ assign_tuple :: fn(
 
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/decl" { declare_module }
-import "vader/typecheck/expr_ident" { infer_ident }
-import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }
 // Bundles parse + resolve + declare + walks fn bodies with the stub.
 // Returns both `typed` and `diags` so test sites can assert on either.
 StubResult :: struct {

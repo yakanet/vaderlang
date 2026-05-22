@@ -25,14 +25,10 @@
 
 module "vader/bytecode"
 
-import "vader/lower/lowered_ast" {
+import "vader/lower" {
     LoweredBinaryOp, LoweredUnaryOp,
 }
-import "vader/bytecode/types" {
-    ValType, is_64_bit_int_val, is_integer_val, is_float_val,
-    is_u32_class, is_u64_class, is_unsigned_val,
-}
-import "vader/vm/op" {
+import "vader/vm" {
     Op,
     I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Neg, I32BitNot,
     I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU,

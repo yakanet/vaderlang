@@ -12,18 +12,6 @@ import "std/collections" { values }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "vader/resolver/symbol" { kind_name }
 import "vader/types" { display_type }
-import "vader/midir/cfg" {
-    BasicBlock, CFGFunction, CFGProject, ConstValue, Instruction, LocalId,
-    Terminator, TermBranch, TermCondBranch, TermReturn, TermUnreachable,
-    ConstInt, ConstFloat, ConstBool, ConstChar, ConstString, ConstNull,
-    InstrConst, InstrBinOp, InstrUnOp, InstrCall, InstrCallIndirect,
-    InstrFnRef, InstrVirtualCall, InstrFieldGet, InstrFieldSet,
-    InstrArrayGet, InstrArraySet, InstrArrayLen, InstrArrayPush,
-    InstrArraySlice, InstrStructNew, InstrArrayNew, InstrDataConst,
-    InstrTypeCheck, InstrTypeConst, InstrCast, InstrCellNew,
-    InstrCellGet, InstrCellSet, InstrMakeClosure, InstrIntrinsic,
-    InstrMove,
-}
 
 /// Optional filter / shape controls for `dump_cfg_project`.
 export DumpCfgOptions :: struct {

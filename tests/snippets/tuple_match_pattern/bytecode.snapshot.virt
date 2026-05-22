@@ -9,7 +9,7 @@ string 1 "n="
 string 2 " s="
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_tuple_match_pattern__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local __scrut_0 ref
   local n i32
   local s string

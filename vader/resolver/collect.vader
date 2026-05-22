@@ -13,14 +13,13 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "vader/diagnostics/diagnostic" { Span }
+import "vader/diagnostics" { Span }
 import "vader/parser" {
     Program, Decl, ImportDecl, FnDecl, StructDecl, EnumDecl, TraitDecl,
     ImplDecl, TypeAliasDecl, ConstDecl, AssertDecl, Visibility,
     ImportBinding, NamedNamespaceImport, DestructureImport,
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
-import "vader/resolver/imports" { ImportInfo, new_import_table }
 
 /// Output of one module's collect pass.
 /// `symbols` is keyed by local name ; `fn_overloads` carries every fn

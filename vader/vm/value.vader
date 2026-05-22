@@ -1,10 +1,10 @@
-// vader/vm/value — `op.Value` projections + type-matching helpers shared
+// vader/vm/value — `Value` projections + type-matching helpers shared
 // across the executor and the host-import dispatcher.
 //
 // Every `read_*` here unwraps the matching `op.*Val` variant or surfaces
 // a `Trap` with a labelled mismatch message ; `type_matches` and its
 // friends answer the runtime `is T` / `ref Trait` patterns by walking
-// `op.Module.types` and `op.Module.impls` / `op.Module.vtables`.
+// `Module.types` and `Module.impls` / `Module.vtables`.
 //
 // `VmResult` / `Ok` / `Trap` also live here (rather than in exec.vader)
 // so the per-Value helpers can return `… | Trap` without forming an
@@ -13,7 +13,6 @@
 module "vader/vm"
 
 import "std/string" { starts_with, byte_at, byte_len, slice }
-op :: import "vader/vm/op"
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
 /// return value ; `Trap` carries a debug-friendly message so the host
@@ -22,19 +21,19 @@ export VmResult :: Ok | Trap
 export Ok   :: struct { value: i32 }
 export Trap :: struct { message: string }
 
-/// Default-zero `op.Value`, used to size each frame's locals at fn entry.
-export zero_value :: fn() -> op.Value { return op.I32Val { .value = 0 } }
+/// Default-zero `Value`, used to size each frame's locals at fn entry.
+export zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 
-/// Size in bytes of an `op.TypeDecl` — backs `@size_of(t)` runtime path.
+/// Size in bytes of an `TypeDecl` — backs `@size_of(t)` runtime path.
 /// Primitives use their native widths ; everything else fits in a 16-byte
 /// box at the typed boundary (struct/array/fn refs, unions, opaque refs).
-export size_of_bc_type :: fn(t: op.TypeDecl) -> usize = match t {
-    is op.PrimitiveType as p -> size_of_primitive(p.kind)
-    is op.StructType         -> usize(16)
-    is op.ArrayType          -> usize(16)
-    is op.RefType            -> usize(16)
-    is op.FnType             -> usize(16)
-    is op.UnionType          -> usize(16)
+export size_of_bc_type :: fn(t: TypeDecl) -> usize = match t {
+    is PrimitiveType as p -> size_of_primitive(p.kind)
+    is StructType         -> usize(16)
+    is ArrayType          -> usize(16)
+    is RefType            -> usize(16)
+    is FnType             -> usize(16)
+    is UnionType          -> usize(16)
 }
 
 size_of_primitive :: fn(kind: string) -> usize {
@@ -59,32 +58,32 @@ size_of_primitive :: fn(kind: string) -> usize {
 /// Short human-readable name of the value's variant — used by every
 /// `read_*` helper's mismatch Trap so messages don't fan out per pair
 /// of expected/actual tags. Exhaustive `match` so the compiler catches
-/// any future `op.Value` variant added without updating this fn.
+/// any future `Value` variant added without updating this fn.
 ///
 /// @param v  the tagged value.
 /// @return   `"i32"` / `"i64"` / `"f64"` / `"string"` / `"struct"` / `"array"`
 ///           / `"builder"` / `"fn"` / `"null"` / `"bool"` / `"char"` / `"error"`
 ///           / `"type"`.
-export describe_value_tag :: fn(v: op.Value) = match v {
-    is op.I32Val     -> "i32"
-    is op.I64Val     -> "i64"
-    is op.F64Val     -> "f64"
-    is op.StringVal  -> "string"
-    is op.StructVal  -> "struct"
-    is op.ArrayVal   -> "array"
-    is op.BuilderVal -> "builder"
-    is op.FnVal      -> "fn"
-    is op.NullVal    -> "null"
-    is op.BoolVal    -> "bool"
-    is op.CharVal    -> "char"
-    is op.ErrorVal   -> "error"
-    is op.TypeVal    -> "type"
+export describe_value_tag :: fn(v: Value) = match v {
+    is I32Val     -> "i32"
+    is I64Val     -> "i64"
+    is F64Val     -> "f64"
+    is StringVal  -> "string"
+    is StructVal  -> "struct"
+    is ArrayVal   -> "array"
+    is BuilderVal -> "builder"
+    is FnVal      -> "fn"
+    is NullVal    -> "null"
+    is BoolVal    -> "bool"
+    is CharVal    -> "char"
+    is ErrorVal   -> "error"
+    is TypeVal    -> "type"
 }
 
-/// Unwrap an `op.F64Val` from a `op.Value`. Integer values are NOT auto-
+/// Unwrap an `F64Val` from a `Value`. Integer values are NOT auto-
 /// promoted — Vader bytecode uses explicit `.to_f64` conversions for that.
-export read_f64 :: fn(v: op.Value, at_pc: i32, label: string) -> op.F64Val | Trap {
-    if v is op.F64Val { return v }
+export read_f64 :: fn(v: Value, at_pc: i32, label: string) -> F64Val | Trap {
+    if v is F64Val { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected f64, got ${describe_value_tag(v)}" }
 }
 
@@ -92,63 +91,63 @@ export read_f64 :: fn(v: op.Value, at_pc: i32, label: string) -> op.F64Val | Tra
 /// already at the target storage is a no-op fast path — avoids the box
 /// reallocation when `mask32(u32 x)` (hot in SHA-256 / MD5) hits an
 /// already-I32Val.
-export convert_value :: fn(v: op.Value, target: op.ConvertTarget, at_pc: i32) -> op.Value | Trap {
+export convert_value :: fn(v: Value, target: ConvertTarget, at_pc: i32) -> Value | Trap {
     if target == .I32 {
-        if v is op.I32Val { return v }
+        if v is I32Val { return v }
         n :: read_numeric_as_i64(v, at_pc)
         if n is Trap { return n }
-        return op.I32Val { .value = i32(n) }
+        return I32Val { .value = i32(n) }
     }
     if target == .I64 {
-        if v is op.I64Val { return v }
+        if v is I64Val { return v }
         n :: read_numeric_as_i64(v, at_pc)
         if n is Trap { return n }
-        return op.I64Val { .value = n }
+        return I64Val { .value = n }
     }
     if target == .F64 {
-        if v is op.F64Val { return v }
+        if v is F64Val { return v }
         n :: read_numeric_as_f64(v, at_pc)
         if n is Trap { return n }
-        return op.F64Val { .value = n }
+        return F64Val { .value = n }
     }
-    if v is op.CharVal { return v }
+    if v is CharVal { return v }
     n :: read_numeric_as_i64(v, at_pc)
     if n is Trap { return n }
-    return op.CharVal { .value = char(u32(n)) }
+    return CharVal { .value = char(u32(n)) }
 }
 
-read_numeric_as_i64 :: fn(v: op.Value, at_pc: i32) -> i64 | Trap {
+read_numeric_as_i64 :: fn(v: Value, at_pc: i32) -> i64 | Trap {
     return match v {
-        is op.I64Val  as i -> i.value
-        is op.I32Val  as i -> i64(i.value)
-        is op.F64Val  as f -> i64(f.value)
-        is op.CharVal as c -> i64(u32(c.value))
-        is op.BoolVal as b -> if b.value { i64(1) } else { i64(0) }
+        is I64Val  as i -> i.value
+        is I32Val  as i -> i64(i.value)
+        is F64Val  as f -> i64(f.value)
+        is CharVal as c -> i64(u32(c.value))
+        is BoolVal as b -> if b.value { i64(1) } else { i64(0) }
         _ -> Trap { .message = "convert at pc=${at_pc}: cannot read ${describe_value_tag(v)} as numeric" }
     }
 }
 
 // `I32Val`/`I64Val` ahead of `F64Val` : `int → f64` is the common case
 // (e.g. `unit_f64`'s `f64(next_u64() >> 12)`), already-f64 is rare.
-read_numeric_as_f64 :: fn(v: op.Value, at_pc: i32) -> f64 | Trap {
+read_numeric_as_f64 :: fn(v: Value, at_pc: i32) -> f64 | Trap {
     return match v {
-        is op.I32Val  as i -> f64(i.value)
-        is op.I64Val  as i -> f64(i.value)
-        is op.F64Val  as f -> f.value
-        is op.CharVal as c -> f64(u32(c.value))
+        is I32Val  as i -> f64(i.value)
+        is I64Val  as i -> f64(i.value)
+        is F64Val  as f -> f.value
+        is CharVal as c -> f64(u32(c.value))
         _ -> Trap { .message = "convert at pc=${at_pc}: cannot read ${describe_value_tag(v)} as f64" }
     }
 }
 
-/// Unwrap an `i32` from a `op.Value`. Accepts `CharVal` (codepoint) and
+/// Unwrap an `i32` from a `Value`. Accepts `CharVal` (codepoint) and
 /// `I64Val` (truncating to the bottom 32 bits) transparently — both no-op
-/// `op.Convert` carriers and width-narrowing consumers (array.get index,
+/// `Convert` carriers and width-narrowing consumers (array.get index,
 /// `int.to_char`) need the i32 view of those tags.
-export read_i32 :: fn(v: op.Value, at_pc: i32, label: string) -> op.I32Val | Trap {
+export read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
     return match v {
-        is op.I32Val  as i -> i
-        is op.CharVal as c -> op.I32Val { .value = i32(u32(c.value)) }
-        is op.I64Val  as i -> op.I32Val { .value = i32(i.value) }
+        is I32Val  as i -> i
+        is CharVal as c -> I32Val { .value = i32(u32(c.value)) }
+        is I64Val  as i -> I32Val { .value = i32(i.value) }
         _ -> Trap { .message = "${label} at pc=${at_pc}: expected i32, got ${describe_value_tag(v)}" }
     }
 }
@@ -156,18 +155,18 @@ export read_i32 :: fn(v: op.Value, at_pc: i32, label: string) -> op.I32Val | Tra
 /// Unwrap an `I64Val` from a `Value`. `I32Val` arrivals widen
 /// transparently so mixed-width ops (e.g. an `i32.const N` flowing into
 /// `i64.add`) just work.
-export read_i64 :: fn(v: op.Value, at_pc: i32, label: string) -> op.I64Val | Trap {
+export read_i64 :: fn(v: Value, at_pc: i32, label: string) -> I64Val | Trap {
     return match v {
-        is op.I64Val as i -> i
-        is op.I32Val as i -> op.I64Val { .value = i64(i.value) }
+        is I64Val as i -> i
+        is I32Val as i -> I64Val { .value = i64(i.value) }
         _                 -> Trap { .message = "${label} at pc=${at_pc}: expected i64, got ${describe_value_tag(v)}" }
     }
 }
 
-/// Unwrap a `op.StructVal` from a `op.Value`. Used by the struct-op arms
+/// Unwrap a `StructVal` from a `Value`. Used by the struct-op arms
 /// to recover the receiver on top of the stack.
-export read_struct :: fn(v: op.Value, at_pc: i32, label: string) -> op.StructVal | Trap {
-    if v is op.StructVal { return v }
+export read_struct :: fn(v: Value, at_pc: i32, label: string) -> StructVal | Trap {
+    if v is StructVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected struct, got ${describe_value_tag(v)}" }
 }
 
@@ -175,7 +174,7 @@ export read_struct :: fn(v: op.Value, at_pc: i32, label: string) -> op.StructVal
 /// the struct-tag check and the bounds check used by every field-read op
 /// (`struct.get`, `local.field`).
 ///
-/// @param v            the candidate `op.Value` (typically off the stack
+/// @param v            the candidate `Value` (typically off the stack
 ///                     or out of `frame.slots`).
 /// @param field_index  index into `StructVal.fields`. Must be `>= 0` and
 ///                     `<` the unwrapped struct's field count.
@@ -184,7 +183,7 @@ export read_struct :: fn(v: op.Value, at_pc: i32, label: string) -> op.StructVal
 ///                     (e.g. `"struct.get"`, `"local.field"`).
 /// @return             the requested field value on success, or a `Trap`.
 /// @error              `v` isn't a struct, or `field_index` is out of range.
-export read_struct_field :: fn(v: op.Value, field_index: i32, at_pc: i32, label: string) -> op.Value | Trap {
+export read_struct_field :: fn(v: Value, field_index: i32, at_pc: i32, label: string) -> Value | Trap {
     struct_unwrap :: read_struct(v, at_pc, "${label} receiver")
     if struct_unwrap is Trap { return struct_unwrap }
     if field_index < 0 || usize(field_index) >= struct_unwrap.fields.len() {
@@ -193,61 +192,61 @@ export read_struct_field :: fn(v: op.Value, field_index: i32, at_pc: i32, label:
     return struct_unwrap.fields[usize(field_index)]
 }
 
-/// Unwrap an `op.ArrayVal` from a `op.Value`. Used by the array-op arms
+/// Unwrap an `ArrayVal` from a `Value`. Used by the array-op arms
 /// (`array.push` / `array.get` / `array.set` / `array.len`).
-export read_array :: fn(v: op.Value, at_pc: i32, label: string) -> op.ArrayVal | Trap {
-    if v is op.ArrayVal { return v }
+export read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal | Trap {
+    if v is ArrayVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected array, got ${describe_value_tag(v)}" }
 }
 
-/// Unwrap a `op.BoolVal` from a `op.Value`. Used by the boolean op arms.
-export read_bool :: fn(v: op.Value, at_pc: i32, label: string) -> op.BoolVal | Trap {
-    if v is op.BoolVal { return v }
+/// Unwrap a `BoolVal` from a `Value`. Used by the boolean op arms.
+export read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
+    if v is BoolVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected bool, got ${describe_value_tag(v)}" }
 }
 
-/// Unwrap a `op.CharVal` from a `op.Value`. `i32.to_char` / `u32.to_char`
-/// lower to a no-op `op.Convert` so the source integer passes through ;
-/// re-wrap as `op.CharVal` so consumers see the codepoint with the
+/// Unwrap a `CharVal` from a `Value`. `i32.to_char` / `u32.to_char`
+/// lower to a no-op `Convert` so the source integer passes through ;
+/// re-wrap as `CharVal` so consumers see the codepoint with the
 /// expected tag. `I64Val` arrivals come from `u32.const N` (the parser
 /// promotes to I64Const to preserve the full unsigned range) and need a
 /// truncated reinterpretation.
-export read_char :: fn(v: op.Value, at_pc: i32, label: string) -> op.CharVal | Trap {
+export read_char :: fn(v: Value, at_pc: i32, label: string) -> CharVal | Trap {
     return match v {
-        is op.CharVal as c -> c
-        is op.I32Val  as i -> op.CharVal { .value = char(u32(i.value)) }
-        is op.I64Val  as i -> op.CharVal { .value = char(u32(i32(i.value))) }
+        is CharVal as c -> c
+        is I32Val  as i -> CharVal { .value = char(u32(i.value)) }
+        is I64Val  as i -> CharVal { .value = char(u32(i32(i.value))) }
         _ -> Trap { .message = "${label} at pc=${at_pc}: expected char, got ${describe_value_tag(v)}" }
     }
 }
 
 /// Read a truthy condition (`if` / `br_if`). Accepts both legacy numeric
-/// form (`op.I32Val` — non-zero is true) and modern bool form
-/// (`op.BoolVal`). Other variants Trap.
-export read_truthy :: fn(v: op.Value, at_pc: i32, label: string) -> bool | Trap {
-    if v is op.BoolVal { return v.value }
-    if v is op.I32Val  { return v.value != 0 }
+/// form (`I32Val` — non-zero is true) and modern bool form
+/// (`BoolVal`). Other variants Trap.
+export read_truthy :: fn(v: Value, at_pc: i32, label: string) -> bool | Trap {
+    if v is BoolVal { return v.value }
+    if v is I32Val  { return v.value != 0 }
     return Trap { .message = "${label} at pc=${at_pc}: expected bool or i32, got ${describe_value_tag(v)}" }
 }
 
-/// Unwrap a `op.FnVal` from a `op.Value`. Used by the `op.CallIndirect` arm
+/// Unwrap a `FnVal` from a `Value`. Used by the `CallIndirect` arm
 /// to recover the function reference on top of the stack.
-export read_fn :: fn(v: op.Value, at_pc: i32, label: string) -> op.FnVal | Trap {
-    if v is op.FnVal { return v }
+export read_fn :: fn(v: Value, at_pc: i32, label: string) -> FnVal | Trap {
+    if v is FnVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected fn, got ${describe_value_tag(v)}" }
 }
 
-/// Unwrap a `op.BuilderVal` from a `op.Value`. Used by the builder-
+/// Unwrap a `BuilderVal` from a `Value`. Used by the builder-
 /// intrinsic arms to recover the receiver from the stack.
-export read_builder :: fn(v: op.Value, at_pc: i32, label: string) -> op.BuilderVal | Trap {
-    if v is op.BuilderVal { return v }
+export read_builder :: fn(v: Value, at_pc: i32, label: string) -> BuilderVal | Trap {
+    if v is BuilderVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected builder, got ${describe_value_tag(v)}" }
 }
 
-/// Unwrap a `string` from a `op.Value`. Used by the host dispatcher to
+/// Unwrap a `string` from a `Value`. Used by the host dispatcher to
 /// recover the `string` payload of a `println`-style argument.
-export read_string :: fn(v: op.Value, at_pc: i32, label: string) -> op.StringVal | Trap {
-    if v is op.StringVal { return v }
+export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Trap {
+    if v is StringVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected string, got ${describe_value_tag(v)}" }
 }
 
@@ -255,13 +254,13 @@ export read_string :: fn(v: op.Value, at_pc: i32, label: string) -> op.StringVal
 /// (`I32Val` / `BoolVal` / `CharVal` / `StringVal`) and `NullVal` ; heap-
 /// allocated variants Trap because the lowerer only emits `ref.eq` against
 /// null or between freshly-built sentinels.
-export value_ref_eq :: fn(a: op.Value, b: op.Value, at_pc: i32, label: string) -> bool | Trap {
+export value_ref_eq :: fn(a: Value, b: Value, at_pc: i32, label: string) -> bool | Trap {
     return match a {
-        is op.NullVal         -> b is op.NullVal
-        is op.I32Val    as ai -> match b { is op.I32Val    as bi -> ai.value == bi.value, _ -> false }
-        is op.BoolVal   as ab -> match b { is op.BoolVal   as bb -> ab.value == bb.value, _ -> false }
-        is op.CharVal   as ac -> match b { is op.CharVal   as bc -> ac.value == bc.value, _ -> false }
-        is op.StringVal as ax -> match b { is op.StringVal as bx -> ax.value == bx.value, _ -> false }
+        is NullVal         -> b is NullVal
+        is I32Val    as ai -> match b { is I32Val    as bi -> ai.value == bi.value, _ -> false }
+        is BoolVal   as ab -> match b { is BoolVal   as bb -> ab.value == bb.value, _ -> false }
+        is CharVal   as ac -> match b { is CharVal   as bc -> ac.value == bc.value, _ -> false }
+        is StringVal as ax -> match b { is StringVal as bx -> ax.value == bx.value, _ -> false }
         _                  -> Trap { .message = "${label} on ${describe_value_tag(a)} not supported at pc=${at_pc} (only null + primitive operands)" }
     }
 }
@@ -269,22 +268,22 @@ export value_ref_eq :: fn(a: op.Value, b: op.Value, at_pc: i32, label: string) -
 /// Type-check : does `v`'s runtime tag match `module.types[type_id]` ?
 /// Mirrors `typeMatches` + `matchTo` in `src/vm/exec.ts`. Returns `false`
 /// for `FnType` (placeholder until ref/trait dispatch lands).
-export type_matches :: fn(module: op.Module, v: op.Value, type_id: i32) -> bool {
+export type_matches :: fn(module: Module, v: Value, type_id: i32) -> bool {
     if type_id < 0 || usize(type_id) >= module.types.len() { return false }
     type_decl :: module.types[usize(type_id)]
     return match type_decl {
-        is op.PrimitiveType as p -> primitive_matches(v, p.kind)
-        is op.StructType         -> match v {
-            is op.StructVal as s -> s.type_id == type_id || struct_siblings_match(module, s.type_id, type_id)
+        is PrimitiveType as p -> primitive_matches(v, p.kind)
+        is StructType         -> match v {
+            is StructVal as s -> s.type_id == type_id || struct_siblings_match(module, s.type_id, type_id)
             _                 -> false
         }
-        is op.ArrayType          -> match v {
-            is op.ArrayVal as a  -> a.type_id == type_id
+        is ArrayType          -> match v {
+            is ArrayVal as a  -> a.type_id == type_id
             _                 -> false
         }
-        is op.UnionType     as u -> union_matches(module, v, u.variant_type_ids)
-        is op.RefType       as r -> ref_type_matches(module, v, r.trait_name)
-        is op.FnType             -> false
+        is UnionType     as u -> union_matches(module, v, u.variant_type_ids)
+        is RefType       as r -> ref_type_matches(module, v, r.trait_name)
+        is FnType             -> false
     }
 }
 
@@ -301,7 +300,7 @@ export type_matches :: fn(module: op.Module, v: op.Value, type_id: i32) -> bool 
 /// @param target_type_id  static type the value is being matched against.
 /// @return         `true` when both refer to struct types whose names
 ///                 share the same pre-`__` prefix ; `false` otherwise.
-struct_siblings_match :: fn(module: op.Module, value_type_id: i32, target_type_id: i32) -> bool {
+struct_siblings_match :: fn(module: Module, value_type_id: i32, target_type_id: i32) -> bool {
     if value_type_id == target_type_id { return true }
     if value_type_id < 0 || usize(value_type_id) >= module.types.len() { return false }
     if target_type_id < 0 || usize(target_type_id) >= module.types.len() { return false }
@@ -315,8 +314,8 @@ struct_siblings_match :: fn(module: op.Module, value_type_id: i32, target_type_i
 
 /// Return the mangled name of the struct type at `type_id`, or `""` when
 /// `type_id` doesn't point to a `StructType`.
-struct_name_at :: fn(module: op.Module, type_id: i32) -> string = match module.types[usize(type_id)] {
-    is op.StructType as s -> s.name
+struct_name_at :: fn(module: Module, type_id: i32) -> string = match module.types[usize(type_id)] {
+    is StructType as s -> s.name
     _ -> ""
 }
 
@@ -352,25 +351,25 @@ prefix_before_double_underscore :: fn(s: string) -> string {
 /// `case "ref"` arm in `src/vm/exec.ts` — `is Error` routes to
 /// `ErrorVal` + impl-table check, `ref _` (empty trait name) accepts any
 /// heap variant, other trait names resolve through the impl table.
-export ref_type_matches :: fn(module: op.Module, v: op.Value, trait_name: string) -> bool {
+export ref_type_matches :: fn(module: Module, v: Value, trait_name: string) -> bool {
     if trait_name == "Error" {
-        if v is op.ErrorVal { return true }
+        if v is ErrorVal { return true }
         return match v {
-            is op.StructVal as s -> trait_implemented_by(module, "Error", s.type_id)
+            is StructVal as s -> trait_implemented_by(module, "Error", s.type_id)
             _                    -> false
         }
     }
     if trait_name == "" {
         return match v {
-            is op.StructVal  -> true
-            is op.ArrayVal   -> true
-            is op.BuilderVal -> true
-            is op.FnVal      -> true
+            is StructVal  -> true
+            is ArrayVal   -> true
+            is BuilderVal -> true
+            is FnVal      -> true
             _                -> false
         }
     }
     return match v {
-        is op.StructVal as s -> trait_implemented_by(module, trait_name, s.type_id)
+        is StructVal as s -> trait_implemented_by(module, trait_name, s.type_id)
         _                    -> false
     }
 }
@@ -381,7 +380,7 @@ export ref_type_matches :: fn(module: op.Module, v: op.Value, trait_name: string
 /// writer emits one entry per implTable pair regardless of whether the
 /// method bodies are reachable. Falls back to scanning `module.vtables`
 /// for legacy modules whose .virt predates the directive.
-export trait_implemented_by :: fn(module: op.Module, trait_name: string, type_id: i32) -> bool {
+export trait_implemented_by :: fn(module: Module, trait_name: string, type_id: i32) -> bool {
     i: usize = 0
     for i < module.impls.len() {
         if module.impls[i].type_id == type_id && module.impls[i].trait_name == trait_name {
@@ -409,10 +408,10 @@ export trait_implemented_by :: fn(module: op.Module, trait_name: string, type_id
 /// level lookup via the type table to find the `PrimitiveType` entry
 /// matching the value's runtime tag. Returns `-1` when nothing matches
 /// (caller traps).
-export receiver_type_id_of :: fn(module: op.Module, v: op.Value) -> i32 {
+export receiver_type_id_of :: fn(module: Module, v: Value) -> i32 {
     return match v {
-        is op.StructVal as s -> s.type_id
-        is op.ArrayVal  as a -> a.type_id
+        is StructVal as s -> s.type_id
+        is ArrayVal  as a -> a.type_id
         _                    -> primitive_type_id(module, v)
     }
 }
@@ -420,12 +419,12 @@ export receiver_type_id_of :: fn(module: op.Module, v: op.Value) -> i32 {
 /// Find the `PrimitiveType` entry in `module.types` whose `kind` matches
 /// `v`'s runtime tag. Used by `receiver_type_id_of` to dispatch trait
 /// methods implemented on primitives (e.g. `i32 implements Doubler`).
-export primitive_type_id :: fn(module: op.Module, v: op.Value) -> i32 {
+export primitive_type_id :: fn(module: Module, v: Value) -> i32 {
     tag :: describe_value_tag(v)
     i: usize = 0
     for i < module.types.len() {
         match module.types[i] {
-            is op.PrimitiveType as p -> { if p.kind == tag { return i32(i) } }
+            is PrimitiveType as p -> { if p.kind == tag { return i32(i) } }
             _                        -> { }
         }
         i += 1
@@ -435,7 +434,7 @@ export primitive_type_id :: fn(module: op.Module, v: op.Value) -> i32 {
 
 /// Look up the function index in the vtable for `key` by receiver
 /// `type_id`. Returns `-1` when either the key or the type_id is missing.
-export lookup_vtable :: fn(vtables: op.Vtable[], key: string, type_id: i32) -> i32 {
+export lookup_vtable :: fn(vtables: Vtable[], key: string, type_id: i32) -> i32 {
     i: usize = 0
     for i < vtables.len() {
         if vtables[i].key == key {
@@ -452,19 +451,19 @@ export lookup_vtable :: fn(vtables: op.Vtable[], key: string, type_id: i32) -> i
     return -1
 }
 
-/// Match a value against a `op.PrimitiveType.kind` string. Direct kinds
+/// Match a value against a `PrimitiveType.kind` string. Direct kinds
 /// (`i32` / `string` / `bool` / `null` / `char`) lookup reuses
 /// `describe_value_tag`. Width-suffixed integer kinds (i8 / i64 / u32 / …)
-/// collapse onto `op.I32Val` — **latent miscompile risk** : a snippet
+/// collapse onto `I32Val` — **latent miscompile risk** : a snippet
 /// `if x is i64 { … }` against an `I32Val` matches and runs with i32
 /// semantics. Sprint 5d / per-width values will replace the alias collapse.
-export primitive_matches :: fn(v: op.Value, kind: string) -> bool {
+export primitive_matches :: fn(v: Value, kind: string) -> bool {
     if kind == describe_value_tag(v) { return true }
-    if is_integer_alias(kind) { return v is op.I32Val }
+    if is_integer_alias(kind) { return v is I32Val }
     return false
 }
 
-/// Width-suffixed integer kinds that currently alias to `op.I32Val`.
+/// Width-suffixed integer kinds that currently alias to `I32Val`.
 export is_integer_alias :: fn(kind: string) -> bool {
     if kind == "i8"  { return true }
     if kind == "i16" { return true }
@@ -480,7 +479,7 @@ export is_integer_alias :: fn(kind: string) -> bool {
 
 /// Match a value against a union's set of variant type ids by recursing
 /// through `type_matches` on each.
-export union_matches :: fn(module: op.Module, v: op.Value, variant_type_ids: i32[]) -> bool {
+export union_matches :: fn(module: Module, v: Value, variant_type_ids: i32[]) -> bool {
     i: usize = 0
     for i < variant_type_ids.len() {
         if type_matches(module, v, variant_type_ids[i]) { return true }

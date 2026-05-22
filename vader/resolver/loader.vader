@@ -18,11 +18,6 @@ module "vader/resolver"
 
 import "std/collections" { MutableMap, keys }
 import "vader/parser" { NodeIdFactory, new_node_id_factory }
-import "vader/resolver/collect" { CollectedModule, collect_module }
-import "vader/resolver/module" {
-    Module, SourceFile, default_stdlib_root, load_module_files,
-    find_manifest_root, module_id_from_root, resolve_import_path,
-}
 import "vader/resolver/symbol" { SymbolFactory, new_factory }
 
 /// Output of one project load : the entry module's id, the full set
@@ -188,7 +183,6 @@ import "std/string" {
 substring_from :: fn(s: string, lo: usize) -> string { return slice(s, lo, s.byte_len()) }
 substring_until :: fn(s: string, hi: usize) -> string { return slice(s, usize(0), hi) }
 
-import "vader/resolver/module" { list_vader_files, dir_of }
 
 promote_to_folder_module :: fn(entry_path: string) -> string {
     if !entry_path.ends_with(".vader") { return entry_path }

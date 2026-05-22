@@ -12,7 +12,7 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "vader/diagnostics/diagnostic" { Span }
+import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol }
 
 /// LIFO stack of binding frames — innermost at the end, root at index 0.
@@ -91,7 +91,7 @@ export span_full_key :: fn(s: Span) -> string {
 import "std/testing" { assert, assert_eq }
 import "vader/resolver/symbol" { SymbolFactory, SymbolKind, new_factory, make }
 import "vader/parser" { Visibility }
-import "vader/diagnostics/diagnostic" { Position }
+import "vader/diagnostics" { Position }
 
 @test
 test_scope_lookup_finds_root_binding :: fn() -> void {

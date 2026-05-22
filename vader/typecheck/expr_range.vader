@@ -9,13 +9,11 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic }
-import "vader/typecheck/type_ops" { default_if_free, is_int_name }
+import "vader/diagnostics" { Diagnostic }
 import "vader/types" {
     Type, PrimitiveType, FreeIntType, TY_UNRESOLVED,
 }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Type-check a range. Resolves to `Range(T)` when `std/core::Range`
 /// is loaded (auto-loaded by `loader.vader`), otherwise Unresolved.

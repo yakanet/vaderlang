@@ -24,10 +24,9 @@ module "vader/resolver"
 import "std/collections" { MutableMap, MutableSet, add, contains }
 import "std/math" { min }
 import "std/testing" { assert, assert_eq }
-import "vader/diagnostics/diagnostic" { Span }
+import "vader/diagnostics" { Span }
 import "vader/parser" { parse_source }
-AST :: import "vader/parser/ast"
-import "vader/resolver/substitute" { Subst, new_subst, bind, substitute_type_expr }
+AST :: import "vader/parser"
 
 /// `@intrinsic impl ... {}` carries an empty body : fill it with one
 /// stub FnDecl per trait method so downstream phases see the impl's
@@ -91,7 +90,6 @@ synth_with_body :: fn(
 }
 
 import "vader/parser" { NodeIdFactory }
-import "vader/resolver/substitute_body" { substitute_block_materialized }
 
 /// SAM-synthetic members come out of the parser with a placeholder
 /// name and an empty param list ; the trait's lone required method

@@ -172,7 +172,6 @@ export struct_implements_trait :: fn(t: Type, trait_name: string, typed: TypedPr
     return false
 }
 
-import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Bidirectional narrowing : when a Free* literal flows into a slot that
 /// wants a concrete numeric of the matching family, fold the literal to

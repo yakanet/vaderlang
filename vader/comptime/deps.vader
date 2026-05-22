@@ -8,12 +8,12 @@
 module "vader/comptime"
 
 import "std/collections" { MutableMap, keys }
-import "vader/diagnostics/diagnostic" { Diagnostic, comptime_error }
-import "vader/diagnostics/codes" { ComptimeCode }
-import "vader/resolver/scope" { span_key }
+import "vader/diagnostics" { Diagnostic, comptime_error }
+import "vader/diagnostics" { ComptimeCode }
+import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+import "vader/typecheck" { TypedProgram }
+AST :: import "vader/parser"
 
 /// Result of dependency analysis : the `@comptime const` decls in
 /// evaluation order, plus the diagnostics emitted for any detected
@@ -330,9 +330,9 @@ collect_stmt_deps :: fn(
 
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/check" { check_module }
+import "vader/typecheck" { check_module }
 
 build_order :: fn(src: string) -> ComptimeOrder {
     parsed :: parse_source(src, "t.vader")

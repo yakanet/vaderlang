@@ -1,17 +1,19 @@
-// Module graph loader. Starts from an entry path (file or folder), walks
-// imports transitively, and returns the full ModuleGraph. Detects cycles.
+// Module graph loader. Phase 7 of the module-system rollout : the
+// strict resolver discovers every module under the scoped roots
+// upfront (via `discover.ts`), then BFS-walks the import graph by
+// name-lookup against that index. No filesystem fallbacks.
 
-import { dirname, relative, resolve as resolvePath, sep } from "node:path";
+import { dirname, join, resolve as resolvePath, sep } from "node:path";
 
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import { zeroSpan } from "../diagnostics/diagnostic.ts";
 
 import { collectModuleSymbols } from "./collect.ts";
 import { err } from "./diag.ts";
+import { discoverModules, type DiscoveredModule, type ModuleIndex } from "./discover.ts";
 import { computeModuleFingerprints } from "./fingerprint.ts";
 import {
-  findManifestRoot, loadModuleSourceFiles, moduleIdFromRoot, pathKind,
-  readManifest, resolveImportPath, resolveStdlibRoot,
+  findManifestRoot, pathKind, readManifest, resolveStdlibRoot,
 } from "./module.ts";
 import type { LoadedProject, Module, ProjectLayout } from "./module.ts";
 import type { ModuleId } from "./symbol.ts";
@@ -36,60 +38,79 @@ export function discoverLayout(entryPath: string): ProjectLayout {
 export function loadProject(opts: LoadOptions): LoadedProject {
   const layout = discoverLayout(opts.entryPath);
   const factory = new SymbolFactory();
-  const modules = new Map<ModuleId, Module>();
 
-  // When the entry is a single `.vader` file living inside a folder that
-  // contains other `.vader` files (e.g. `vader/lexer/lexer.vader` next to
-  // `token.vader` + `keywords.vader`), the file is part of a folder-module.
-  // Promote the entry to the parent dir so the whole module loads —
-  // otherwise cross-file references inside the same logical module surface
-  // as R2006 / cascading `?` types. Mirrors Vader's `promote_to_folder_module`
-  // in `vader/resolver/loader.vader`.
-  const entryRoot = resolvePath(promoteToFolderModule(opts.entryPath));
-  const queue: string[] = [entryRoot];
-  if (opts.autoloadCore !== false) {
-    const corePath = resolveImportPath("std/core", {
-      fromFile: layout.entryFile ?? entryRoot,
-      projectRoot: layout.projectRoot,
-      stdlibRoot: layout.stdlibRoot,
-    });
-    if (corePath !== null) queue.push(corePath);
+  // 1. Build the scoped-roots list per §2 of docs/MODULE_SYSTEM.md :
+  //    stdlib (always) + vader.json::modules (when present) + the entry
+  //    file's containing folder when it lies outside the whitelist
+  //    (CLI fallback, §2.3). Single-folder repos rely entirely on the
+  //    fallback ; manifest-driven projects pin down what to scan.
+  const manifest = layout.projectRoot !== null ? readManifest(layout.projectRoot) : null;
+  const scopedRoots: string[] = [layout.stdlibRoot];
+  if (manifest?.modules !== undefined && layout.projectRoot !== null) {
+    for (const m of manifest.modules) {
+      scopedRoots.push(resolvePath(join(layout.projectRoot, m)));
+    }
+  }
+  const entryAbs = resolvePath(opts.entryPath);
+  const entryFolder = layout.entryFile !== null ? dirname(entryAbs) : entryAbs;
+  if (!isUnderAnyRoot(entryFolder, scopedRoots)) {
+    scopedRoots.push(entryFolder);
+  }
+
+  // 2. Scan + validate (R2020/R2022/R2023) → name-indexed module table.
+  const index = discoverModules(scopedRoots, opts.diags);
+
+  // 3. Locate the entry's module via folder-match. The discover scan
+  //    bucketed every .vader file by its containing folder, so a single
+  //    lookup is enough.
+  const entryModule = findModuleByFolder(entryFolder, index);
+  const modules = new Map<ModuleId, Module>();
+  if (entryModule === null) {
+    err(opts.diags, "R2001", zeroSpan(entryAbs),
+      `entry file's containing folder is not in any scanned root`);
+    return { layout, modules, factory };
+  }
+
+  // 4. Pre-load std/core so the prelude (§1.5) is reachable from every
+  //    other module. The loader doesn't yet *inject* its exports into
+  //    every scope — that's the resolver's job downstream — but it must
+  //    at least make the module known.
+  const queue: DiscoveredModule[] = [entryModule];
+  const coreModule = opts.autoloadCore !== false ? index.get("std/core") : undefined;
+  if (coreModule !== undefined && coreModule !== entryModule) {
+    queue.push(coreModule);
   }
 
   while (queue.length > 0) {
-    const root = queue.shift()!;
-    const id = moduleIdFromRoot(root);
+    const m = queue.shift()!;
+    const id = moduleIdFromDiscovered(m);
     if (modules.has(id)) continue;
-
-    const files = loadModuleSourceFiles(root, opts.diags);
-    if (files.length === 0) {
-      err(opts.diags, "R2015", zeroSpan(root), `\`${root}\``);
-      continue;
-    }
 
     const collected = collectModuleSymbols({
       moduleId: id,
-      files,
+      moduleName: m.name,
+      files: m.files,
       factory,
       diags: opts.diags,
-      projectRoot: layout.projectRoot,
-      stdlibRoot: layout.stdlibRoot,
+      index,
     });
 
     modules.set(id, {
       id,
-      displayPath: displayPathFor(root, layout),
-      rootDir: root,
-      files,
+      displayPath: m.name,
+      rootDir: m.folder,
+      files: m.files,
       symbols: collected.symbols,
       fnOverloads: collected.fnOverloads,
       imports: collected.imports,
-      fingerprint: "",     // populated by computeModuleFingerprints below
+      fingerprint: "",
     });
 
     for (const imp of collected.imports) {
-      if (imp.resolvedTo !== null && !modules.has(imp.resolvedTo)) {
-        queue.push(imp.resolvedTo);
+      if (imp.resolvedTo === null) continue;
+      const target = findModuleByFolder(imp.resolvedTo, index);
+      if (target !== null && !modules.has(moduleIdFromDiscovered(target))) {
+        queue.push(target);
       }
     }
   }
@@ -103,40 +124,29 @@ export function loadProject(opts: LoadOptions): LoadedProject {
   return { layout, modules, factory };
 }
 
-/** If `entryPath` is a `.vader` file inside a folder with sibling `.vader`
- *  files, return the parent folder so the loader treats them as one module.
- *  Single-file folders (e.g. `stdlib/std/json.vader`) keep file-as-module
- *  semantics. */
-const VADER_SIBLING_GLOB = new Bun.Glob("*.vader");
-
-function promoteToFolderModule(entryPath: string): string {
-  if (!entryPath.endsWith(".vader")) return entryPath;
-  if (pathKind(entryPath) !== "file") return entryPath;
-  const parent = dirname(entryPath);
-  let count = 0;
-  try {
-    for (const _ of VADER_SIBLING_GLOB.scanSync({ cwd: parent, onlyFiles: true })) {
-      if (++count > 1) return parent;
-    }
-  } catch { return entryPath; }
-  return entryPath;
+/** Use the resolved folder path as the canonical module identifier, so
+ *  `Module.id` keeps the same shape as the pre-Phase-7 loader (downstream
+ *  side-tables key on absolute paths). */
+function moduleIdFromDiscovered(m: DiscoveredModule): ModuleId {
+  return m.folder;
 }
 
-function displayPathFor(root: string, layout: ProjectLayout): string {
-  const fromStdlib = relativeUnder(root, layout.stdlibRoot);
-  if (fromStdlib !== null) return fromStdlib.replace(/\.vader$/, "");
-  if (layout.projectRoot !== null) {
-    const fromProject = relativeUnder(root, layout.projectRoot);
-    if (fromProject !== null) return fromProject.length > 0 ? fromProject : ".";
+function findModuleByFolder(folder: string, index: ModuleIndex): DiscoveredModule | null {
+  const canonical = resolvePath(folder);
+  for (const m of index.values()) {
+    if (m.folder === canonical) return m;
   }
-  return root;
+  return null;
 }
 
-/** Return `path` relative to `base` iff `path` is `base` or under it; null otherwise. */
-function relativeUnder(path: string, base: string): string | null {
-  if (path === base) return "";
-  if (!path.startsWith(base + sep)) return null;
-  return relative(base, path).split(sep).join("/");
+function isUnderAnyRoot(folder: string, roots: readonly string[]): boolean {
+  const canonical = resolvePath(folder);
+  for (const root of roots) {
+    const rootAbs = resolvePath(root);
+    if (canonical === rootAbs) return true;
+    if (canonical.startsWith(rootAbs + sep)) return true;
+  }
+  return false;
 }
 
 function detectCycles(modules: ReadonlyMap<ModuleId, Module>, diags: DiagnosticCollector): void {
@@ -194,4 +204,3 @@ function detectCycles(modules: ReadonlyMap<ModuleId, Module>, diags: DiagnosticC
     if (color.get(id) === WHITE) visit(id);
   }
 }
-

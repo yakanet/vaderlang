@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/std_crypto/_main.vader
-  fn tests_snippets_std_crypto__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     call :void
       callee:
         println :fn(string) -> void

@@ -1,9 +1,9 @@
 # Lower
 
-## tests/snippets/if_is_as_bind/_main.vader
-  struct tests_snippets_if_is_as_bind__main_vader$V01 { f: i32 }
-  struct tests_snippets_if_is_as_bind__main_vader$V02 { f: i32 }
-  fn tests_snippets_if_is_as_bind__main_vader$direct(x: V01 | V02) -> i32
+## snippet
+  struct snippet$V01 { f: i32 }
+  struct snippet$V02 { f: i32 }
+  fn snippet$direct(x: V01 | V02) -> i32
     if :void
       cond:
         is V01 :bool
@@ -38,7 +38,7 @@
     return
       neg :i32
         int(1) :i32
-  fn tests_snippets_if_is_as_bind__main_vader$post_narrow(x: V01 | V02) -> i32
+  fn snippet$post_narrow(x: V01 | V02) -> i32
     if :void
       cond:
         is V01 :bool
@@ -58,7 +58,7 @@
       .f :i32
         cast → V02
           x :V01 | V02
-  fn tests_snippets_if_is_as_bind__main_vader$main() -> i32
+  fn snippet$main() -> i32
     call :void
       callee:
         println :fn(string) -> void

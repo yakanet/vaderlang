@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/vm_interp_mixed/_main.vader
-  fn tests_snippets_vm_interp_mixed__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let sum: i32 = int(7) :i32
     let who: string = "alice" :string
     let age: i32 = int(30) :i32

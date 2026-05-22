@@ -1,11 +1,11 @@
 # Lower
 
-## tests/snippets/strings/_main.vader
-  const tests_snippets_strings__main_vader$plain: string =
+## snippet
+  const snippet$plain: string =
     "hello" :string
-  const tests_snippets_strings__main_vader$escaped: string =
+  const snippet$escaped: string =
     "a\nb\tc" :string
-  const tests_snippets_strings__main_vader$raw: string =
+  const snippet$raw: string =
     "C:\\Users\\path" :string
-  const tests_snippets_strings__main_vader$multi: string =
+  const snippet$multi: string =
     "line one\nline two\n" :string

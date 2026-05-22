@@ -1,14 +1,14 @@
 # Lower
 
-## tests/snippets/tuple_destructure_wildcard/_main.vader
-  fn tests_snippets_tuple_destructure_wildcard__main_vader$triple() -> [i32, string, bool]
+## snippet
+  fn snippet$triple() -> [i32, string, bool]
     return
       [i32, string, bool] {
         _0: int(7) :i32
         _1: "ignored" :string
         _2: true
       }
-  fn tests_snippets_tuple_destructure_wildcard__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let __tup_0: [i32, string, bool] =
       call :[i32, string, bool]
         callee:

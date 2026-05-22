@@ -13,7 +13,7 @@
 
 module "vader/typecheck"
 
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Walk the first decl's body looking for the first expression that
 /// `pred` accepts (returns non-null). Descends through `BlockExpr`,

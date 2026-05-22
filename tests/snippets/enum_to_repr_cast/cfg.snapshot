@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/enum_to_repr_cast/_main.vader
+## snippet
 
-fn tests_snippets_enum_to_repr_cast__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: u8
     %1 a: u8 (local a)

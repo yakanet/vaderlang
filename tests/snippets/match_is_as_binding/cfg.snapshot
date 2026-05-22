@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/match_is_as_binding/_main.vader
+## snippet
 
-fn tests_snippets_match_is_as_binding__main_vader$show(%0: null | P | Q) -> string
+fn snippet$show(%0: null | P | Q) -> string
   locals:
     %0 a: null | P | Q (param a)
     %1 __scrut_0: null | P | Q (synthetic __scrut_0)
@@ -70,7 +70,7 @@ fn tests_snippets_match_is_as_binding__main_vader$show(%0: null | P | Q) -> stri
     %5 = move %13
     branch -> bb6
 
-fn tests_snippets_match_is_as_binding__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $struct_1: P

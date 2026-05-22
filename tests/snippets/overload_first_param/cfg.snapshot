@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/overload_first_param/_main.vader
+## snippet
 
-fn tests_snippets_overload_first_param__main_vader$describe(%0: Box) -> string
+fn snippet$describe(%0: Box) -> string
   locals:
     %0 b: Box (param b)
     %1 $intrinsic_1: ?
@@ -20,7 +20,7 @@ fn tests_snippets_overload_first_param__main_vader$describe(%0: Box) -> string
     %5 = intrinsic builder.finish(%2)
     return %5
 
-fn tests_snippets_overload_first_param__main_vader$describe_1(%0: Bag) -> string
+fn snippet$describe_1(%0: Bag) -> string
   locals:
     %0 b: Bag (param b)
     %1 $intrinsic_1: ?
@@ -38,7 +38,7 @@ fn tests_snippets_overload_first_param__main_vader$describe_1(%0: Bag) -> string
     %5 = intrinsic builder.finish(%2)
     return %5
 
-fn tests_snippets_overload_first_param__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 a: Box (local a)

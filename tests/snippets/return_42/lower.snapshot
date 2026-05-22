@@ -1,5 +1,5 @@
 # Lower
 
-## tests/snippets/return_42/_main.vader
-  fn tests_snippets_return_42__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     return int(42) :i32

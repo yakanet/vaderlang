@@ -30,22 +30,18 @@
 module "vader/comptime"
 
 import "std/collections" { MutableMap, keys }
-import "vader/parser/ast" {
+import "vader/parser" {
     Decl, FnDecl, StructDecl, ConstDecl, ImplDecl,
     AssertDecl, ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl,
     TypeParam, GenericInstExpr, TypeExpr, IdentExpr,
 }
-import "vader/typecheck/typed_ast" { TypedProgram, TypedProject }
+import "vader/typecheck" { TypedProgram, TypedProject }
 import "vader/types" { Type, PrimitiveType, StructType }
-import "vader/typecheck/substitution" { Substitution, new_substitution }
+import "vader/typecheck" { Substitution, new_substitution }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/resolver/resolve" { ResolvedModule }
-import "vader/resolver/loader" { LoadedProject, LoadedModule }
-import "vader/comptime/evaluated_ast" { EvaluatedProject, IntoMemberObservation }
-import "vader/comptime/instances" { canonical_args_key, GenericInstance }
-import "vader/comptime/mono_ast" { MonoEntry, MonoProject, new_mono_project }
-import "vader/comptime/mangle" { mangle, uniq, for_type_name }
-import "vader/diagnostics/diagnostic" { Span }
+import "vader/resolver" { ResolvedModule }
+import "vader/resolver" { LoadedProject, LoadedModule }
+import "vader/diagnostics" { Span }
 
 /// Top-level entry. Builds a `MonoProject` from the comptime engine's
 /// `EvaluatedProject`. Phase B1 ships Pass 1 only ; the returned
@@ -847,6 +843,5 @@ import "std/testing" { assert_eq }
     assert_eq(project.entries.len(), usize(0))
 }
 
-import "vader/typecheck/typed_ast" { new_typed_project }
-import "vader/comptime/evaluated_ast" { EvaluatedProgram }
+import "vader/typecheck" { new_typed_project }
 import "vader/resolver/symbol" { new_factory }

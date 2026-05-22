@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/match_partial/_main.vader
-  fn tests_snippets_match_partial__main_vader$weekend_only(d: Day) -> string
+## snippet
+  fn snippet$weekend_only(d: Day) -> string
     return
       block :string
         let __scrut_0: Day = d :Day
@@ -91,7 +91,7 @@
                                                 else:
                                                   ~>
                                                     unreachable("non-exhaustive match (T3013 should have caught this)") :string
-  fn tests_snippets_match_partial__main_vader$main() -> i32
+  fn snippet$main() -> i32
     call :void
       callee:
         println :fn(string) -> void

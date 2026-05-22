@@ -17,14 +17,11 @@ import "std/collections" { MutableMap, values }
 import "std/string" { compare_ascending }
 import "std/sort" { sort }
 import "vader/parser" { Program }
-import "vader/parser/ast" { Expr, TypeAliasDecl }
+import "vader/parser" { Expr, TypeAliasDecl }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
-import "vader/resolver/body" { resolve_program }
-import "vader/resolver/builtins" { make_builtin_scope }
-import "vader/resolver/collect" { collect_module, CollectedModule }
 import "vader/types" { Type }
 
-import "vader/diagnostics/diagnostic" { Diagnostic }
+import "vader/diagnostics" { Diagnostic }
 
 /// One resolver output entry per source module.
 ///

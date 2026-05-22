@@ -1,14 +1,14 @@
 # Lower
 
-## tests/snippets/b1_fn_boundary/_main.vader
-  struct tests_snippets_b1_fn_boundary__main_vader$Node { value: i32, next: Node | null }
-  fn tests_snippets_b1_fn_boundary__main_vader$cons(head: i32, tail: Node | null) -> Node | null
+## snippet
+  struct snippet$Node { value: i32, next: Node | null }
+  fn snippet$cons(head: i32, tail: Node | null) -> Node | null
     return
       Node {
         value: head :i32
         next: tail :Node | null
       }
-  fn tests_snippets_b1_fn_boundary__main_vader$find(n: Node | null, needle: i32) -> Node | null
+  fn snippet$find(n: Node | null, needle: i32) -> Node | null
     ~>
       block :Node | null
         let __scrut_0: Node | null = n :Node | null
@@ -55,7 +55,7 @@
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :Node | null
-  fn tests_snippets_b1_fn_boundary__main_vader$length(n: Node | null) -> i32
+  fn snippet$length(n: Node | null) -> i32
     ~>
       block :i32
         let __scrut_0: Node | null = n :Node | null
@@ -91,7 +91,7 @@
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :i32
-  fn tests_snippets_b1_fn_boundary__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let head: Node | null =
       call :Node | null
         callee:

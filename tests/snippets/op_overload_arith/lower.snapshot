@@ -1,8 +1,8 @@
 # Lower
 
-## tests/snippets/op_overload_arith/_main.vader
-  struct tests_snippets_op_overload_arith__main_vader$Vec { x: i32, y: i32 }
-  fn tests_snippets_op_overload_arith__main_vader$Vec$Add$add(self: Vec, other: Vec) -> Vec
+## snippet
+  struct snippet$Vec { x: i32, y: i32 }
+  fn snippet$Vec$Add$add(self: Vec, other: Vec) -> Vec
     return
       Vec {
         x:
@@ -22,7 +22,7 @@
               .y :i32
                 other :Vec
       }
-  fn tests_snippets_op_overload_arith__main_vader$Vec$Sub$sub(self: Vec, other: Vec) -> Vec
+  fn snippet$Vec$Sub$sub(self: Vec, other: Vec) -> Vec
     return
       Vec {
         x:
@@ -42,7 +42,7 @@
               .y :i32
                 other :Vec
       }
-  fn tests_snippets_op_overload_arith__main_vader$Vec$Mul$mul(self: Vec, other: Vec) -> Vec
+  fn snippet$Vec$Mul$mul(self: Vec, other: Vec) -> Vec
     return
       Vec {
         x:
@@ -62,7 +62,7 @@
               .y :i32
                 other :Vec
       }
-  fn tests_snippets_op_overload_arith__main_vader$Vec$Div$div(self: Vec, other: Vec) -> Vec
+  fn snippet$Vec$Div$div(self: Vec, other: Vec) -> Vec
     return
       Vec {
         x:
@@ -82,7 +82,7 @@
               .y :i32
                 other :Vec
       }
-  fn tests_snippets_op_overload_arith__main_vader$Vec$Rem$rem(self: Vec, other: Vec) -> Vec
+  fn snippet$Vec$Rem$rem(self: Vec, other: Vec) -> Vec
     return
       Vec {
         x:
@@ -102,7 +102,7 @@
               .y :i32
                 other :Vec
       }
-  fn tests_snippets_op_overload_arith__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let a: Vec =
       Vec {
         x: int(10) :i32

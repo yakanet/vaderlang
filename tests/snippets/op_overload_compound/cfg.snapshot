@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/op_overload_compound/_main.vader
+## snippet
 
-fn tests_snippets_op_overload_compound__main_vader$Vec$Add$add(%0: Vec, %1: Vec) -> Vec
+fn snippet$Vec$Add$add(%0: Vec, %1: Vec) -> Vec
   locals:
     %0 self: Vec (param self)
     %1 other: Vec (param other)
@@ -23,7 +23,7 @@ fn tests_snippets_op_overload_compound__main_vader$Vec$Add$add(%0: Vec, %1: Vec)
     %8 = struct_new Vec(%4, %7)
     return %8
 
-fn tests_snippets_op_overload_compound__main_vader$Vec$Sub$sub(%0: Vec, %1: Vec) -> Vec
+fn snippet$Vec$Sub$sub(%0: Vec, %1: Vec) -> Vec
   locals:
     %0 self: Vec (param self)
     %1 other: Vec (param other)
@@ -44,7 +44,7 @@ fn tests_snippets_op_overload_compound__main_vader$Vec$Sub$sub(%0: Vec, %1: Vec)
     %8 = struct_new Vec(%4, %7)
     return %8
 
-fn tests_snippets_op_overload_compound__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 n: i32 (local n)
     %1 $k_2: i32

@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/byte_literal/_main.vader
-  fn tests_snippets_byte_literal__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let a: u8 = int(123) :u8
     let nl: u8 = int(10) :u8
     let bs: u8 = int(92) :u8

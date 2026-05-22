@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/u32_bitops/_main.vader
+## snippet
 
-fn tests_snippets_u32_bitops__main_vader$check(%0: string, %1: bool) -> void
+fn snippet$check(%0: string, %1: bool) -> void
   locals:
     %0 name: string (param name)
     %1 ok: bool (param ok)
@@ -19,7 +19,7 @@ fn tests_snippets_u32_bitops__main_vader$check(%0: string, %1: bool) -> void
   bb3:
     return
 
-fn tests_snippets_u32_bitops__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 a: u32 (local a)
     %1 b: u32 (local b)

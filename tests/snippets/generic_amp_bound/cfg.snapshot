@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/generic_amp_bound/_main.vader
+## snippet
 
-fn tests_snippets_generic_amp_bound__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $call_1: string
@@ -19,13 +19,13 @@ fn tests_snippets_generic_amp_bound__main_vader$main() -> i32
     %5 = move %4
     return %5
 
-fn tests_snippets_generic_amp_bound__main_vader$tests_snippets_generic_amp_bound__main_vader$needs_add__string(%0: Any) -> Any
+fn snippet$snippet$needs_add__string(%0: Any) -> Any
   locals:
     %0 x: Any (param x)
   bb0:
     return %0
 
-fn tests_snippets_generic_amp_bound__main_vader$tests_snippets_generic_amp_bound__main_vader$bar__i32__i32(%0: Any, %1: Any) -> Any
+fn snippet$snippet$bar__i32__i32(%0: Any, %1: Any) -> Any
   locals:
     %0 key: Any (param key)
     %1 value: Any (param value)

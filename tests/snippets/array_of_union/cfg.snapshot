@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/array_of_union/_main.vader
+## snippet
 
-fn tests_snippets_array_of_union__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 arr: Node(i32) | null[] (local arr)
     %1 $k_2: null

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/void_ident_rejected/_main.vader
+## snippet
 
-fn tests_snippets_void_ident_rejected__main_vader$mk() -> void
+fn snippet$mk() -> void
   locals:
     %0 void: i32 (local void)
     %1 $intrinsic_2: ?
@@ -17,7 +17,7 @@ fn tests_snippets_void_ident_rejected__main_vader$mk() -> void
     call println(%3) :void
     return
 
-fn tests_snippets_void_ident_rejected__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
   bb0:

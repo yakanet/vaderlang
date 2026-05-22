@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/generic_type_alias/_main.vader
+## snippet
 
-fn tests_snippets_generic_type_alias__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 x: i32 | null (local x)
     %1 y: i32 | null (local y)

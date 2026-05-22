@@ -29,7 +29,7 @@ module "vader/c_emit"
 
 import "std/string" { byte_len, byte_at }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
-import "vader/bytecode/types" {
+import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
     ValType, ArrayKind,
 }

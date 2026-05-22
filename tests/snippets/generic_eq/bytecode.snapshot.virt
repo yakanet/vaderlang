@@ -34,7 +34,7 @@ vtable Equals.equals 14 12
 vtable Equals.equals 15 13
 vtable Equals.equals 16 15
 
-fn 0 tests_snippets_generic_eq__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local __sb_0 any
   local $call_4 bool
   intrinsic builder.new
@@ -64,7 +64,7 @@ fn 0 tests_snippets_generic_eq__main_vader$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 tests_snippets_generic_eq__main_vader$tests_snippets_generic_eq__main_vader$are_eq__i32 (ref,ref) -> bool
+fn 1 snippet$snippet$are_eq__i32 (ref,ref) -> bool
   local.get 1
   local.get 0
   virtual.call 2 Equals.equals

@@ -32,19 +32,16 @@
 module "vader/comptime"
 
 import "std/collections" { MutableMap, keys }
-import "vader/parser/ast" {
+import "vader/parser" {
     Decl, FnDecl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr,
 }
 import "vader/types" {
     Type, PrimitiveType, StructType, TraitType, ArrayType, UnionType, TupleType,
     mk_primitive,
 }
-import "vader/typecheck/typed_ast" { TypedProject }
-import "vader/typecheck/substitution" { Substitution, new_substitution }
+import "vader/typecheck" { TypedProject }
+import "vader/typecheck" { Substitution, new_substitution }
 import "vader/resolver/symbol" { Symbol }
-import "vader/comptime/mono_ast" {
-    MonoEntry, MonoProject, new_mono_project, is_specialized, ERASED_KEY,
-}
 
 // =========================================================================
 // Context — member → owning impl + struct-by-name lookups
@@ -521,7 +518,7 @@ decl_id_of :: fn(d: Decl) -> i32 = match d {
     _                    -> -1
 }
 
-import "vader/parser/ast" {
+import "vader/parser" {
     ConstDecl, EnumDecl, TraitDecl, TypeAliasDecl, AssertDecl, ImportDecl,
 }
 
@@ -685,4 +682,4 @@ no_decls_callback :: fn(module_id: string) -> Decl[] | null {
     assert_eq(result.entries.len(), usize(0))
 }
 
-import "vader/typecheck/typed_ast" { new_typed_project }
+import "vader/typecheck" { new_typed_project }

@@ -40,7 +40,7 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "vader/diagnostics/diagnostic",
+      "path": "vader/diagnostics",
       "binding": {
         "kind": "destructure",
         "names": [

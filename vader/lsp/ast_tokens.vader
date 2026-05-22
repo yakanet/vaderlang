@@ -18,10 +18,9 @@ module "vader/lsp"
 
 import "std/collections" { MutableMap }
 import "vader/parser" { parse_source }
-AST :: import "vader/parser/ast"
-import "vader/diagnostics/diagnostic" { Span }
-import "vader/lsp/tokens" { RawToken, TokenType }
-import "vader/resolver/body" { resolve_program, ResolvedFile }
+AST :: import "vader/parser"
+import "vader/diagnostics" { Span }
+import "vader/resolver" { resolve_program, ResolvedFile }
 import "vader/resolver/symbol" { Symbol, SymbolKind, new_factory }
 
 /// Primitive type names recognised by the lexer / typechecker but not as

@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/const_array_bad/_main.vader
-  fn tests_snippets_const_array_bad__main_vader$write_first(a: const i32[]) -> void
+## snippet
+  fn snippet$write_first(a: const i32[]) -> void
     assign
       target:
         index :?
@@ -11,7 +11,7 @@
             int(0) :i32
       value:
         int(99) :?
-  fn tests_snippets_const_array_bad__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let arr: i32[] =
       array :i32[]
         int(10) :i32

@@ -17,9 +17,6 @@ import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
 }
 import "std/collections" { MutableMap }
-import "vader/lsp/state" { ServerState, index_for }
-import "vader/lsp/indexer" { DocIndex, DeclEntry, find_at, name_at }
-import "vader/lsp/resolver" { ExternalHit, resolve }
 
 /// Build the hover response payload for the position carried in `params`.
 /// Returns a `Hover` object on hit, `JsonNull` on miss.
@@ -491,12 +488,12 @@ span_size :: fn(s: Span) -> u64 {
     return (line_extent << usize(16)) + col_extent
 }
 
-import "vader/diagnostics/diagnostic" { Diagnostic, Span }
-import "vader/resolver/loader" { load_project }
-import "vader/typecheck/orchestrate" { check_project_with_bodies }
-import "vader/typecheck/typed_ast" { TypedProgram }
+import "vader/diagnostics" { Diagnostic, Span }
+import "vader/resolver" { load_project }
+import "vader/typecheck" { check_project_with_bodies }
+import "vader/typecheck" { TypedProgram }
 import "vader/types" { Type, display_type }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 // ---- params extraction (mirrors definition.vader) ------------------------
 

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/trait_dispatch_struct/_main.vader
+## snippet
 
-fn tests_snippets_trait_dispatch_struct__main_vader$i32$Tagger$tag(%0: i32) -> i32
+fn snippet$i32$Tagger$tag(%0: i32) -> i32
   locals:
     %0 self: i32 (param self)
     %1 $k_1: i32
@@ -12,7 +12,7 @@ fn tests_snippets_trait_dispatch_struct__main_vader$i32$Tagger$tag(%0: i32) -> i
     %2 = binop mul %0 %1 :i32
     return %2
 
-fn tests_snippets_trait_dispatch_struct__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $call_1: i32
@@ -21,7 +21,7 @@ fn tests_snippets_trait_dispatch_struct__main_vader$main() -> i32
     %1 = call apply_tag(%0) :i32
     return %1
 
-fn tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32(%0: Any) -> i32
+fn snippet$snippet$apply_tag__i32(%0: Any) -> i32
   locals:
     %0 x: Any (param x)
     %1 $vcall_1: i32

@@ -10,8 +10,6 @@ module "vader/lsp"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber }
 import "std/collections" { MutableMap }
-import "vader/lsp/transport" { write_frame }
-import "vader/lsp/rpc" { encode_notification }
 
 /// Severity tag per LSP spec.
 export LogLevel :: enum(i32) {

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/generic_helper_chain/_main.vader
+## snippet
 
-fn tests_snippets_generic_helper_chain__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $call_1: Box(Box(i32))
@@ -45,13 +45,13 @@ fn tests_snippets_generic_helper_chain__main_vader$main() -> i32
     %16 = const int(0) :i32
     return %16
 
-fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__Any(%0: Any) -> Any
+fn snippet$snippet$inner__Any(%0: Any) -> Any
   locals:
     %0 x: Any (param x)
   bb0:
     return %0
 
-fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__Any(%0: Any) -> Box(Any)
+fn snippet$snippet$middle__Any(%0: Any) -> Box(Any)
   locals:
     %0 x: Any (param x)
     %1 $call_1: Any
@@ -61,7 +61,7 @@ fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper
     %2 = struct_new Box(Any)(%1)
     return %2
 
-fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__i32(%0: Any) -> Box(Box(Any))
+fn snippet$snippet$outer__i32(%0: Any) -> Box(Box(Any))
   locals:
     %0 x: Any (param x)
     %1 $call_1: Box(Any)

@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/for_loop/_main.vader
-  fn tests_snippets_for_loop__main_vader$mixed_loops(start: i32) -> i32
+## snippet
+  fn snippet$mixed_loops(start: i32) -> i32
     let n: i32 = int(0) :i32
     let i: i32 = start :i32
     loop while (<…>)

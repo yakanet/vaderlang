@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/tuple_destructure_after_narrow/_main.vader
-  fn tests_snippets_tuple_destructure_after_narrow__main_vader$make_pair(ok: bool) -> [i32, i32] | null
+## snippet
+  fn snippet$make_pair(ok: bool) -> [i32, i32] | null
     if :void
       cond:
         ok :bool
@@ -12,7 +12,7 @@
             _1: int(20) :i32
           }
     return null
-  fn tests_snippets_tuple_destructure_after_narrow__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let pair: [i32, i32] | null =
       call :[i32, i32] | null
         callee:

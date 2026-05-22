@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/match_wildcard_narrow/_main.vader
+## snippet
 
-fn tests_snippets_match_wildcard_narrow__main_vader$greet_wildcard(%0: Cat | Dog | null) -> string
+fn snippet$greet_wildcard(%0: Cat | Dog | null) -> string
   locals:
     %0 p: Cat | Dog | null (param p)
     %1 __scrut_0: Cat | Dog | null (synthetic __scrut_0)
@@ -37,7 +37,7 @@ fn tests_snippets_match_wildcard_narrow__main_vader$greet_wildcard(%0: Cat | Dog
   bb3:
     return %3
 
-fn tests_snippets_match_wildcard_narrow__main_vader$greet_binding(%0: Cat | Dog | null) -> string
+fn snippet$greet_binding(%0: Cat | Dog | null) -> string
   locals:
     %0 p: Cat | Dog | null (param p)
     %1 __scrut_0: Cat | Dog | null (synthetic __scrut_0)
@@ -74,7 +74,7 @@ fn tests_snippets_match_wildcard_narrow__main_vader$greet_binding(%0: Cat | Dog 
   bb3:
     return %3
 
-fn tests_snippets_match_wildcard_narrow__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $struct_1: Cat

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/if_branches/_main.vader
+## snippet
 
-fn tests_snippets_if_branches__main_vader$classify(%0: i32) -> string
+fn snippet$classify(%0: i32) -> string
   locals:
     %0 n: i32 (param n)
     %1 $k_1: i32

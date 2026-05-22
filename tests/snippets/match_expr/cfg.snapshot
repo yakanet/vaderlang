@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/match_expr/_main.vader
+## snippet
 
-fn tests_snippets_match_expr__main_vader$classify(%0: i32 | null | string) -> string
+fn snippet$classify(%0: i32 | null | string) -> string
   locals:
     %0 x: i32 | null | string (param x)
     %1 __scrut_0: i32 | null | string (synthetic __scrut_0)

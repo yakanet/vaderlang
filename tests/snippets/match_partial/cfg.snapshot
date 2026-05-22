@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/match_partial/_main.vader
+## snippet
 
-fn tests_snippets_match_partial__main_vader$weekend_only(%0: Day) -> string
+fn snippet$weekend_only(%0: Day) -> string
   locals:
     %0 d: Day (param d)
     %1 __scrut_0: Day (synthetic __scrut_0)
@@ -100,7 +100,7 @@ fn tests_snippets_match_partial__main_vader$weekend_only(%0: Day) -> string
     %19 = move %22
     branch -> bb18
 
-fn tests_snippets_match_partial__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $call_1: string

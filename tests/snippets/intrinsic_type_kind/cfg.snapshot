@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/intrinsic_type_kind/_main.vader
+## snippet
 
-fn tests_snippets_intrinsic_type_kind__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 kp: string (local kp)
     %1 ks: string (local ks)

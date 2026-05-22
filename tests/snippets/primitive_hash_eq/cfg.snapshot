@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/primitive_hash_eq/_main.vader
+## snippet
 
-fn tests_snippets_primitive_hash_eq__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 a: i32 (local a)
     %1 b: i32 (local b)

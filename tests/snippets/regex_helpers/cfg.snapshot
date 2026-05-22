@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/regex_helpers/_main.vader
+## snippet
 
-fn tests_snippets_regex_helpers__main_vader$is_non_id(%0: char) -> bool
+fn snippet$is_non_id(%0: char) -> bool
   locals:
     %0 c: char (param c)
     %1 $k_1: char
@@ -83,7 +83,7 @@ fn tests_snippets_regex_helpers__main_vader$is_non_id(%0: char) -> bool
     %19 = const bool(true) :bool
     return %19
 
-fn tests_snippets_regex_helpers__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $k_1: string

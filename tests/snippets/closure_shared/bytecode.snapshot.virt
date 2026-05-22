@@ -9,7 +9,7 @@ type 6 struct $Cell_20 { value:1 }
 type 7 fn () -> 3
 type 8 fn () -> 1
 
-fn 0 tests_snippets_closure_shared__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local n any
   local inc ref
   local get ref

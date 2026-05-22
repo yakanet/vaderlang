@@ -1,21 +1,21 @@
 # Lower
 
-## tests/snippets/std_sort/_main.vader
-  fn tests_snippets_std_sort__main_vader$i32_lt(a: i32, b: i32) -> bool
+## snippet
+  fn snippet$i32_lt(a: i32, b: i32) -> bool
     return
       lt :bool
         l:
           a :i32
         r:
           b :i32
-  fn tests_snippets_std_sort__main_vader$i32_gt(a: i32, b: i32) -> bool
+  fn snippet$i32_gt(a: i32, b: i32) -> bool
     return
       gt :bool
         l:
           a :i32
         r:
           b :i32
-  fn tests_snippets_std_sort__main_vader$print_ints(arr: i32[]) -> void
+  fn snippet$print_ints(arr: i32[]) -> void
     let sb: string = "" :string
     let i: i32 = int(0) :i32
     block :void
@@ -94,7 +94,7 @@
           println :fn(string) -> void
         arg0:
           sb :string
-  fn tests_snippets_std_sort__main_vader$print_strings(arr: string[]) -> void
+  fn snippet$print_strings(arr: string[]) -> void
     let sb: string = "" :string
     let i: i32 = int(0) :i32
     block :void
@@ -173,7 +173,7 @@
           println :fn(string) -> void
         arg0:
           sb :string
-  fn tests_snippets_std_sort__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let one: i32[] =
       call :i32[]
         callee:

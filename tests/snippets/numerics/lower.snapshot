@@ -1,27 +1,27 @@
 # Lower
 
-## tests/snippets/numerics/_main.vader
-  const tests_snippets_numerics__main_vader$a: i32 =
+## snippet
+  const snippet$a: i32 =
     int(42) :i32
-  const tests_snippets_numerics__main_vader$b: i32 =
+  const snippet$b: i32 =
     int(1000000) :i32
-  const tests_snippets_numerics__main_vader$c: i32 =
+  const snippet$c: i32 =
     int(255) :i32
-  const tests_snippets_numerics__main_vader$d: i32 =
+  const snippet$d: i32 =
     int(65535) :i32
-  const tests_snippets_numerics__main_vader$e: i32 =
+  const snippet$e: i32 =
     int(10) :i32
-  const tests_snippets_numerics__main_vader$f: i32 =
+  const snippet$f: i32 =
     int(493) :i32
-  const tests_snippets_numerics__main_vader$g: i64 =
+  const snippet$g: i64 =
     int(42) :i64
-  const tests_snippets_numerics__main_vader$h: u32 =
+  const snippet$h: u32 =
     int(100) :u32
-  const tests_snippets_numerics__main_vader$i: f64 =
+  const snippet$i: f64 =
     float(3.14) :f64
-  const tests_snippets_numerics__main_vader$j: f64 =
+  const snippet$j: f64 =
     float(1.5e-10) :f64
-  const tests_snippets_numerics__main_vader$k: f32 =
+  const snippet$k: f32 =
     float(3.14) :f32
-  const tests_snippets_numerics__main_vader$l: f64 =
+  const snippet$l: f64 =
     float(0.5) :f64

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/parse_int_match/_main.vader
+## snippet
 
-fn tests_snippets_parse_int_match__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $call_1: Error | i32

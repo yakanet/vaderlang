@@ -40,7 +40,7 @@ module "vader/bytecode"
 
 import "std/string" { byte_len, byte_at, slice }
 import "std/string_builder" { StringBuilder, new_builder, append }
-op :: import "vader/vm/op"
+op :: import "vader/vm"
 
 /// Render an `op.Module` as a `.virt` text dump. The result is a single
 /// trailing-newline-terminated string ; the format matches what

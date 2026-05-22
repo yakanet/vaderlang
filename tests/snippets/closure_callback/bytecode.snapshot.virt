@@ -6,14 +6,14 @@ type 3 struct __lambda_env_2 { cap_0:4 }
 type 4 ref _
 type 5 struct $Cell_19 { value:2 }
 
-fn 0 tests_snippets_closure_callback__main_vader$apply (ref,i32) -> i32
+fn 0 snippet$apply (ref,i32) -> i32
   local.get 1
   local.get 0
   call.indirect 1
   return
 end
 
-fn 1 tests_snippets_closure_callback__main_vader$main () -> i32
+fn 1 snippet$main () -> i32
   local biased ref
   i32.const 100
   struct.new 5

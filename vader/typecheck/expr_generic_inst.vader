@@ -9,11 +9,9 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic }
-import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/diagnostics" { Diagnostic }
 import "vader/types" { Type }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Type-check `callee[T1, T2, …]`. Returns the callee's type for now.
 export infer_generic_inst :: fn(

@@ -5,7 +5,7 @@ type 2 ref _
 type 3 primitive string
 string 0 "hello"
 
-fn 0 tests_snippets_generic_amp_bound__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   string.const 0
   call 1
   drop
@@ -15,12 +15,12 @@ fn 0 tests_snippets_generic_amp_bound__main_vader$main () -> i32
   return
 end
 
-fn 1 tests_snippets_generic_amp_bound__main_vader$tests_snippets_generic_amp_bound__main_vader$needs_add__string (ref) -> ref
+fn 1 snippet$snippet$needs_add__string (ref) -> ref
   local.get 0
   return
 end
 
-fn 2 tests_snippets_generic_amp_bound__main_vader$tests_snippets_generic_amp_bound__main_vader$bar__i32__i32 (ref,ref) -> ref
+fn 2 snippet$snippet$bar__i32__i32 (ref,ref) -> ref
   local.get 1
   return
 end

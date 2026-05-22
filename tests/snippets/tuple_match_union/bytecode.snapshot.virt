@@ -13,7 +13,7 @@ string 4 " s="
 string 5 "missing"
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_tuple_match_union__main_vader$lookup (string) -> ref
+fn 0 snippet$lookup (string) -> ref
   local.get 0
   string.const 0
   string.eq
@@ -26,7 +26,7 @@ fn 0 tests_snippets_tuple_match_union__main_vader$lookup (string) -> ref
   return.lit null.const
 end
 
-fn 1 tests_snippets_tuple_match_union__main_vader$main () -> i32
+fn 1 snippet$main () -> i32
   local __scrut_0 ref
   local n i32
   local s string

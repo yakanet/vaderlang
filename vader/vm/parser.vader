@@ -16,7 +16,6 @@ module "vader/vm"
 
 import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of, decode_escapes }
 import "std/numbers" { hex_digit_value, parse_int_in_base, parse_uint_in_base }
-op :: import "vader/vm/op"
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
 /// true for back-edges (br jumps to opener+1) ; anything else jumps
@@ -50,7 +49,7 @@ PendingBranch :: struct {
 /// `scopes` and `pending` are reused across functions (only their
 /// cursors reset to 0).
 ParserState :: struct {
-    ops:        op.Op[]
+    ops:        Op[]
     table:      i32[]
     scopes:     ScopeEntry[]
     scope_sp:   usize[]
@@ -123,17 +122,17 @@ head_of :: fn(s: string) -> string {
 /// resolves every branching op's target pc in the same single pass.
 ///
 /// @param source  the full .virt text dump (UTF-8).
-/// @return        a `op.Module` ready for `exec` ; never errors — malformed
+/// @return        a `Module` ready for `exec` ; never errors — malformed
 ///                lines are dropped silently and the resulting module may
 ///                trap at run time with a labelled `Trap`.
-export parse_virt :: fn(source: string) -> op.Module {
+export parse_virt :: fn(source: string) -> Module {
     strings: string[] = []
-    imports: op.ImportInfo[] = []
-    types: op.TypeDecl[] = []
-    functions: op.BytecodeFunction[] = []
-    impls: op.Impl[] = []
-    data_pool: op.ArrayVal[] = []
-    serialised_vtables: op.Vtable[] = []
+    imports: ImportInfo[] = []
+    types: TypeDecl[] = []
+    functions: BytecodeFunction[] = []
+    impls: Impl[] = []
+    data_pool: ArrayVal[] = []
+    serialised_vtables: Vtable[] = []
     main_index := -1
 
     // Per-function metadata held outside the state bundle since they're
@@ -206,7 +205,7 @@ export parse_virt :: fn(source: string) -> op.Module {
         // Bare `end` at scope depth zero closes the current function.
         // Nested `end` (`end $L0`) is handled below as a regular op.
         if cleaned == "end" && state.scope_sp[0] == 0 {
-            functions.push(op.BytecodeFunction {
+            functions.push(BytecodeFunction {
                 .name            = current_name,
                 .parameter_count = current_parameter_count,
                 .local_count     = current_local_count,
@@ -233,13 +232,13 @@ export parse_virt :: fn(source: string) -> op.Module {
     // Prefer the explicit `vtable` directives written by the TS emitter ;
     // fall back to the mangled-name heuristic for older .virt snapshots
     // that don't carry them.
-    final_vtables: op.Vtable[] = []
+    final_vtables: Vtable[] = []
     if serialised_vtables.len() > 0 {
         final_vtables = serialised_vtables
     } else {
         final_vtables = build_vtables(functions, types)
     }
-    return op.Module {
+    return Module {
         .strings    = strings,
         .imports    = imports,
         .types      = types,
@@ -254,18 +253,18 @@ export parse_virt :: fn(source: string) -> op.Module {
 /// Synthesise the per-(trait, method) vtables by scanning every function's
 /// mangled name for the `…$<TypeName>$<TraitName>$<MethodName>` suffix
 /// that the lowerer emits when materialising a trait impl. The TypeName
-/// segment is matched against `module.types[i]`'s `op.StructType.name`
+/// segment is matched against `module.types[i]`'s `StructType.name`
 /// (which contains the same module-path-qualified prefix). The `.virt`
 /// text format itself doesn't carry vtable directives — this is a
 /// runtime-side reconstruction. Mirrors `src/bytecode/emit.ts:buildVtables`.
 ///
 /// @param functions  the module's function table.
 /// @param types      the module's type table.
-/// @return           a list of `op.Vtable { key = "<TraitName>.<MethodName>",
+/// @return           a list of `Vtable { key = "<TraitName>.<MethodName>",
 ///                   entries = [(type_id, function_index), …] }`. Empty
 ///                   when no function's name matches the trait-impl shape.
-export build_vtables :: fn(functions: op.BytecodeFunction[], types: op.TypeDecl[]) -> op.Vtable[] {
-    vtables: op.Vtable[] = []
+export build_vtables :: fn(functions: BytecodeFunction[], types: TypeDecl[]) -> Vtable[] {
+    vtables: Vtable[] = []
     function_index: usize = 0
     for function_index < functions.len() {
         function_name :: functions[function_index].name
@@ -274,7 +273,7 @@ export build_vtables :: fn(functions: op.BytecodeFunction[], types: op.TypeDecl[
             function_index += 1
             continue
         }
-        register_vtable_entry(vtables, slot.vtable_key, op.VtableEntry {
+        register_vtable_entry(vtables, slot.vtable_key, VtableEntry {
             .type_id        = slot.type_id,
             .function_index = i32(function_index),
         })
@@ -293,13 +292,13 @@ TraitImplSlot :: struct {
 
 /// Inspect `function_name` for the trait-impl mangling shape. Returns `null`
 /// when the name is a regular function (no `$<TraitName>$<MethodName>`
-/// suffix matching a registered `op.StructType`).
+/// suffix matching a registered `StructType`).
 ///
 /// `@intrinsic`-synthesised vtable wrappers append a `$vt` suffix to the
 /// dispatcher key (e.g. `std_core$i32$Add$add$vt`); strip it before the
 /// trait-shape walk so the trait/method/type decoding lines up with
 /// hand-written impls.
-parse_trait_impl_name :: fn(function_name: string, types: op.TypeDecl[]) -> TraitImplSlot | null {
+parse_trait_impl_name :: fn(function_name: string, types: TypeDecl[]) -> TraitImplSlot | null {
     vt_suffix :: "\$vt"
     name := function_name
     if name.ends_with(vt_suffix) {
@@ -349,8 +348,8 @@ find_double_underscore :: fn(s: string, start: usize) -> i32 {
     return -1
 }
 
-/// Walk `types` for a `op.StructType` whose mangled `name` equals `target`.
-find_struct_type_id :: fn(types: op.TypeDecl[], target: string) -> i32 {
+/// Walk `types` for a `StructType` whose mangled `name` equals `target`.
+find_struct_type_id :: fn(types: TypeDecl[], target: string) -> i32 {
     i: usize = 0
     for i < types.len() {
         type_id_match :: struct_name_matches(types[i], target)
@@ -373,17 +372,17 @@ find_struct_type_id :: fn(types: op.TypeDecl[], target: string) -> i32 {
     return -1
 }
 
-/// `match`-bodied because of the §1.13e narrowing bug : `if td is op.StructType { td.name == target }`
+/// `match`-bodied because of the §1.13e narrowing bug : `if td is StructType { td.name == target }`
 /// fails at C-emit time.
-struct_name_matches :: fn(td: op.TypeDecl, target: string) -> bool = match td {
-    is op.StructType as s -> s.name == target
+struct_name_matches :: fn(td: TypeDecl, target: string) -> bool = match td {
+    is StructType as s -> s.name == target
     _                  -> false
 }
 
 /// Same shape for the primitive-name lookup used by primitive trait
 /// receivers (e.g. matching `i32` against `PrimitiveType { kind: "i32" }`).
-primitive_name_matches :: fn(td: op.TypeDecl, target: string) -> bool = match td {
-    is op.PrimitiveType as p -> p.kind == target
+primitive_name_matches :: fn(td: TypeDecl, target: string) -> bool = match td {
+    is PrimitiveType as p -> p.kind == target
     _                        -> false
 }
 
@@ -402,7 +401,7 @@ last_index_of_dollar_before :: fn(s: string, end_exclusive: i32) -> i32 {
 last_index_of_dollar :: fn(s: string) -> i32 = last_index_of_dollar_before(s, i32(s.byte_len()))
 
 /// Append an entry into the vtable for `key` (creates the vtable if absent).
-register_vtable_entry :: fn(vtables: op.Vtable[], key: string, entry: op.VtableEntry) -> void {
+register_vtable_entry :: fn(vtables: Vtable[], key: string, entry: VtableEntry) -> void {
     i: usize = 0
     for i < vtables.len() {
         if vtables[i].key == key {
@@ -411,21 +410,21 @@ register_vtable_entry :: fn(vtables: op.Vtable[], key: string, entry: op.VtableE
         }
         i += 1
     }
-    fresh_entries: op.VtableEntry[] = [entry]
-    vtables.push(op.Vtable { .key = key, .entries = fresh_entries })
+    fresh_entries: VtableEntry[] = [entry]
+    vtables.push(Vtable { .key = key, .entries = fresh_entries })
 }
 
 /// Parse `type N KIND ...` and append the entry to `types`. The
 /// ordinal is implicit in the array index — every `type` line emits
-/// one entry, including unknown KINDs (a `op.RefType` placeholder is
+/// one entry, including unknown KINDs (a `RefType` placeholder is
 /// pushed so subsequent ordinals stay aligned).
 ///
 /// @param cleaned  the .virt line (comment-stripped).
 /// @param types    the module type table, appended to in place.
-parse_type_decl :: fn(cleaned: string, types: op.TypeDecl[]) -> void {
+parse_type_decl :: fn(cleaned: string, types: TypeDecl[]) -> void {
     after_type :: cleaned.slice("type ".byte_len(), cleaned.byte_len()).trim()
     first_space :: after_type.index_of(' ', 0)
-    if first_space < 0 { types.push(op.RefType { .trait_name = "" }) return }
+    if first_space < 0 { types.push(RefType { .trait_name = "" }) return }
     rest :: after_type.slice(usize(first_space) + 1, after_type.byte_len()).trim()
 
     if rest.starts_with("struct ") {
@@ -434,14 +433,14 @@ parse_type_decl :: fn(cleaned: string, types: op.TypeDecl[]) -> void {
     }
     if rest.starts_with("primitive ") {
         kind :: rest.slice("primitive ".byte_len(), rest.byte_len()).trim()
-        types.push(op.PrimitiveType { .kind = kind })
+        types.push(PrimitiveType { .kind = kind })
         return
     }
     if rest.starts_with("array ") {
         element_text :: rest.slice("array ".byte_len(), rest.byte_len()).trim()
         parsed :: parse_int_in_base(element_text, 10)
-        if parsed is Error { types.push(op.RefType { .trait_name = "" }) return }
-        types.push(op.ArrayType { .element_type_id = i32(parsed) })
+        if parsed is Error { types.push(RefType { .trait_name = "" }) return }
+        types.push(ArrayType { .element_type_id = i32(parsed) })
         return
     }
     if rest.starts_with("ref ") {
@@ -451,7 +450,7 @@ parse_type_decl :: fn(cleaned: string, types: op.TypeDecl[]) -> void {
         // string and matches no specific trait.
         name :: rest.slice("ref ".byte_len(), rest.byte_len()).trim()
         normalised: string = if name == "_" { "" } else { name }
-        types.push(op.RefType { .trait_name = normalised })
+        types.push(RefType { .trait_name = normalised })
         return
     }
     if rest.starts_with("fn ") {
@@ -463,31 +462,31 @@ parse_type_decl :: fn(cleaned: string, types: op.TypeDecl[]) -> void {
         return
     }
     // Unknown kind — push a placeholder so the type-id ordinal isn't shifted.
-    types.push(op.RefType { .trait_name = "" })
+    types.push(RefType { .trait_name = "" })
 }
 
-/// Parse `struct NAME { field:tid, ... }` into a `op.StructType`.
+/// Parse `struct NAME { field:tid, ... }` into a `StructType`.
 ///
 /// @param rest  the type-decl body after the `type N ` prefix, starting
 ///              with `struct `.
-/// @return      a `op.StructType` carrying the mangled name and the count
+/// @return      a `StructType` carrying the mangled name and the count
 ///              of comma-separated fields (0 for `{ }`).
-parse_struct_type :: fn(rest: string) -> op.StructType {
+parse_struct_type :: fn(rest: string) -> StructType {
     after_struct :: rest.slice("struct ".byte_len(), rest.byte_len())
     open :: after_struct.index_of('{', 0)
     name :: if open < 0 { after_struct.trim() } else { after_struct.slice(0, usize(open)).trim() }
-    return op.StructType { .name = name, .field_count = count_delimited_items(after_struct, '{', '}') }
+    return StructType { .name = name, .field_count = count_delimited_items(after_struct, '{', '}') }
 }
 
-/// Parse `union T1,T2,...` into a `op.UnionType`. Sprint 5b consumes this
+/// Parse `union T1,T2,...` into a `UnionType`. Sprint 5b consumes this
 /// in `type_check`'s recursive variant matching.
 ///
 /// @param rest  the type-decl body starting with `union `.
-/// @return      a `op.UnionType` ; malformed input yields an empty variant
+/// @return      a `UnionType` ; malformed input yields an empty variant
 ///              list (the resulting type matches nothing).
-parse_union_type :: fn(rest: string) -> op.UnionType {
+parse_union_type :: fn(rest: string) -> UnionType {
     after :: rest.slice("union ".byte_len(), rest.byte_len()).trim()
-    return op.UnionType { .variant_type_ids = parse_int_list(after) }
+    return UnionType { .variant_type_ids = parse_int_list(after) }
 }
 
 /// Parse a comma-separated list of base-10 i32s — used by both
@@ -510,13 +509,13 @@ parse_int_list :: fn(csv: string) -> i32[] {
     return ids
 }
 
-/// Parse `fn (TIDs) -> TID` into a `op.FnType`. Sprint 4 (b1) records
+/// Parse `fn (TIDs) -> TID` into a `FnType`. Sprint 4 (b1) records
 /// this but doesn't use the data ; `call.indirect` will at (b4).
 ///
 /// @param rest  the type-decl body starting with `fn `.
-/// @return      a `op.FnType` ; on malformed input, returns one with an
+/// @return      a `FnType` ; on malformed input, returns one with an
 ///              empty parameter list and `return_type_id = 0`.
-parse_fn_type :: fn(rest: string) -> op.FnType {
+parse_fn_type :: fn(rest: string) -> FnType {
     open :: rest.index_of('(', 0)
     close :: rest.index_of(')', 0)
     parameter_type_ids: i32[] = if open >= 0 && close >= 0 && close > open + 1 {
@@ -531,7 +530,7 @@ parse_fn_type :: fn(rest: string) -> op.FnType {
         parsed :: parse_int_in_base(ret_text, 10)
         if !(parsed is Error) { return_type_id = i32(parsed) }
     }
-    return op.FnType { .parameter_type_ids = parameter_type_ids, .return_type_id = return_type_id }
+    return FnType { .parameter_type_ids = parameter_type_ids, .return_type_id = return_type_id }
 }
 
 /// Parse `string N "..."`. Anything inside the quotes is taken
@@ -555,7 +554,7 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> void {
 ///
 /// @param cleaned    the .virt line, already comment-stripped.
 /// @param data_pool  the module-wide data pool, appended to in place.
-parse_data_decl :: fn(cleaned: string, data_pool: op.ArrayVal[]) -> void {
+parse_data_decl :: fn(cleaned: string, data_pool: ArrayVal[]) -> void {
     after :: cleaned.slice("data ".byte_len(), cleaned.byte_len())
     sp1 :: after.index_of(' ', 0)
     if sp1 < 0 { return }
@@ -573,7 +572,7 @@ parse_data_decl :: fn(cleaned: string, data_pool: op.ArrayVal[]) -> void {
     if rest.byte_at(rest.byte_len() - 1) != u8(b'"') { return }
     hex_body :: rest.slice(4, rest.byte_len() - 1)
     elements :: data_entry_elements(kind, hex_body)
-    data_pool.push(op.ArrayVal { .type_id = 0, .elements = elements })
+    data_pool.push(ArrayVal { .type_id = 0, .elements = elements })
 }
 
 /// Decode the `<kind> hex"…"` payload into a `Value[]`. Each element
@@ -582,12 +581,12 @@ parse_data_decl :: fn(cleaned: string, data_pool: op.ArrayVal[]) -> void {
 /// @param kind      the primitive array-kind tag (`u32`, `i64`, ...).
 /// @param hex_body  raw hex digits (no enclosing quotes).
 /// @return          one `Value` per element, in pool order.
-data_entry_elements :: fn(kind: string, hex_body: string) -> op.Value[] {
+data_entry_elements :: fn(kind: string, hex_body: string) -> Value[] {
     elem_size :: data_entry_element_size(kind)
     if elem_size == 0 { return [] }
     bytes :: hex_to_bytes(hex_body)
     count :: bytes.len() / elem_size
-    out: op.Value[] = []
+    out: Value[] = []
     i: usize = 0
     for i < count {
         out.push(read_data_item(kind, bytes, i * elem_size))
@@ -624,31 +623,31 @@ data_entry_element_size :: fn(kind: string) -> usize {
 /// @param bytes   the decoded hex blob.
 /// @param offset  byte offset of the first element byte.
 /// @return        a `Value` carrying the decoded payload.
-read_data_item :: fn(kind: string, bytes: u8[], offset: usize) -> op.Value {
-    if kind == "u8"   { return op.I32Val { .value = i32(u32(bytes[offset])) } }
+read_data_item :: fn(kind: string, bytes: u8[], offset: usize) -> Value {
+    if kind == "u8"   { return I32Val { .value = i32(u32(bytes[offset])) } }
     if kind == "i8"   {
         b :: bytes[offset]
-        return op.I32Val { .value = if b >= u8(0x80) { i32(b) - 256 } else { i32(b) } }
+        return I32Val { .value = if b >= u8(0x80) { i32(b) - 256 } else { i32(b) } }
     }
-    if kind == "bool" { return op.BoolVal { .value = bytes[offset] != u8(0) } }
-    if kind == "u16"  { return op.I32Val { .value = i32(read_u16_le(bytes, offset)) } }
+    if kind == "bool" { return BoolVal { .value = bytes[offset] != u8(0) } }
+    if kind == "u16"  { return I32Val { .value = i32(read_u16_le(bytes, offset)) } }
     if kind == "i16"  {
         v :: read_u16_le(bytes, offset)
-        return op.I32Val { .value = if v >= u32(0x8000) { i32(v) - 65536 } else { i32(v) } }
+        return I32Val { .value = if v >= u32(0x8000) { i32(v) - 65536 } else { i32(v) } }
     }
-    if kind == "u32"  { return op.I32Val { .value = i32(read_u32_le(bytes, offset)) } }
-    if kind == "i32"  { return op.I32Val { .value = i32(read_u32_le(bytes, offset)) } }
-    if kind == "char" { return op.CharVal { .value = char(read_u32_le(bytes, offset)) } }
-    if kind == "u64"  { return op.I64Val { .value = i64(read_u64_le(bytes, offset)) } }
-    if kind == "i64"  { return op.I64Val { .value = i64(read_u64_le(bytes, offset)) } }
+    if kind == "u32"  { return I32Val { .value = i32(read_u32_le(bytes, offset)) } }
+    if kind == "i32"  { return I32Val { .value = i32(read_u32_le(bytes, offset)) } }
+    if kind == "char" { return CharVal { .value = char(read_u32_le(bytes, offset)) } }
+    if kind == "u64"  { return I64Val { .value = i64(read_u64_le(bytes, offset)) } }
+    if kind == "i64"  { return I64Val { .value = i64(read_u64_le(bytes, offset)) } }
     // f32 / f64 require bit-cast helpers (`@extern` from a free fn) — not
     // exercised by the current crypto tables which are all u32. When a
     // float pool entry first appears, wire in the bit-cast helpers and
     // expand this dispatch.
     if kind == "f32" || kind == "f64" {
-        return op.F64Val { .value = 0.0 }
+        return F64Val { .value = 0.0 }
     }
-    return op.I32Val { .value = 0 }
+    return I32Val { .value = 0 }
 }
 
 /// Decode a hex string (lowercase or uppercase digits) into a byte array.
@@ -714,7 +713,7 @@ read_u64_le :: fn(bytes: u8[], offset: usize) -> u64 {
 ///
 /// @param cleaned  the .virt line, already comment-stripped.
 /// @param imports  the module-wide import table, appended to in place.
-parse_import_decl :: fn(cleaned: string, imports: op.ImportInfo[]) -> void {
+parse_import_decl :: fn(cleaned: string, imports: ImportInfo[]) -> void {
     after :: cleaned.slice("import ".byte_len(), cleaned.byte_len())
     parts :: after.split(" ")
     if parts.len() < 4 { return }
@@ -722,7 +721,7 @@ parse_import_decl :: fn(cleaned: string, imports: op.ImportInfo[]) -> void {
     mangled :: parts[2]
     parameter_count :: count_delimited_items(cleaned, '(', ')')
     has_return :: !cleaned.contains("-> void")
-    imports.push(op.ImportInfo {
+    imports.push(ImportInfo {
         .name            = name,
         .mangled         = mangled,
         .parameter_count = parameter_count,
@@ -743,7 +742,7 @@ parse_import_decl :: fn(cleaned: string, imports: op.ImportInfo[]) -> void {
 ///
 /// @param cleaned  the .virt line (comment-stripped).
 /// @param impls    the module impl table, appended to in place.
-parse_impl_decl :: fn(cleaned: string, impls: op.Impl[]) -> void {
+parse_impl_decl :: fn(cleaned: string, impls: Impl[]) -> void {
     after :: cleaned.slice("impl ".byte_len(), cleaned.byte_len()).trim()
     space :: after.index_of(' ', 0)
     if space < 0 { return }
@@ -758,14 +757,14 @@ parse_impl_decl :: fn(cleaned: string, impls: op.Impl[]) -> void {
     if trait_name.byte_len() >= 2 && trait_name.byte_at(0) == b'"' && trait_name.byte_at(trait_name.byte_len() - 1) == b'"' {
         unquoted = trait_name.slice(1, trait_name.byte_len() - 1)
     }
-    impls.push(op.Impl { .type_id = i32(parsed), .trait_name = unquoted })
+    impls.push(Impl { .type_id = i32(parsed), .trait_name = unquoted })
 }
 
 /// Parse a `vtable KEY TYPE_ID FN_INDEX` directive. The KEY is the
 /// `<trait>.<method>` join produced by the TS emitter (e.g.
 /// `Iterator.next`). Multiple lines may share the same key — each
-/// pushes a new entry into the matching `op.Vtable`.
-parse_vtable_decl :: fn(cleaned: string, vtables: op.Vtable[]) -> void {
+/// pushes a new entry into the matching `Vtable`.
+parse_vtable_decl :: fn(cleaned: string, vtables: Vtable[]) -> void {
     after :: cleaned.slice("vtable ".byte_len(), cleaned.byte_len()).trim()
     // Last two tokens are integers, everything before is the key.
     last_space :: last_index_of_space(after)
@@ -784,7 +783,7 @@ parse_vtable_decl :: fn(cleaned: string, vtables: op.Vtable[]) -> void {
     if raw_key.byte_len() >= 2 && raw_key.byte_at(0) == b'"' && raw_key.byte_at(raw_key.byte_len() - 1) == b'"' {
         key = raw_key.slice(1, raw_key.byte_len() - 1)
     }
-    register_vtable_entry(vtables, key, op.VtableEntry {
+    register_vtable_entry(vtables, key, VtableEntry {
         .type_id        = i32(type_parsed),
         .function_index = i32(fn_parsed),
     })
@@ -818,7 +817,7 @@ parse_export_main_index :: fn(cleaned: string) -> i32 {
 /// @return           the matching index, or `0` if no match (the entry
 ///                   then defaults to the first function and a downstream
 ///                   Trap will surface if it's wrong).
-export find_main_by_suffix :: fn(functions: op.BytecodeFunction[]) -> i32 {
+export find_main_by_suffix :: fn(functions: BytecodeFunction[]) -> i32 {
     i: usize = 0
     for i < functions.len() {
         if functions[i].name.ends_with(r"$main") { return i32(i) }
@@ -865,7 +864,7 @@ count_delimited_items :: fn(line: string, open_char: char, close_char: char) -> 
 
 /// Push the op for `cleaned` onto `ops`. The per-variant match arms
 /// are required by Vader's exhaustiveness rules — `parse_op_line`
-/// returns `op.Op | null` and this fn narrows back to each concrete
+/// returns `Op | null` and this fn narrows back to each concrete
 /// variant before pushing.
 ///
 /// @param cleaned  the .virt line (comment-stripped).
@@ -874,7 +873,7 @@ count_delimited_items :: fn(line: string, open_char: char, close_char: char) -> 
 /// @return         `true` if a known op was recognised and pushed ;
 ///                 `false` for unknown lines (silently dropped so they
 ///                 don't shift pc indices).
-try_push_op :: fn(cleaned: string, head: string, ops: op.Op[]) -> bool {
+try_push_op :: fn(cleaned: string, head: string, ops: Op[]) -> bool {
     parsed :: parse_op_line(cleaned, head)
     if parsed is null { return false }
     ops.push(parsed)
@@ -1008,14 +1007,14 @@ drain_pending :: fn(state: ParserState, label: string, is_loop: bool, opener_pc:
     state.pending_sp[0] = new_sp
 }
 
-/// Dispatch on the line's head token to construct the matching `op.Op`
+/// Dispatch on the line's head token to construct the matching `Op`
 /// variant. Unknown ops return `null` ; the parser keeps going past
 /// directives a sprint doesn't yet handle (no pc shift, no diagnostic).
 ///
 /// @param cleaned  the .virt line (comment-stripped).
 /// @param head     the line's pre-computed head token (see `head_of`).
 /// @return         the parsed op, or `null` for unrecognised lines.
-parse_op_line :: fn(cleaned: string, head: string) -> op.Op | null {
+parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
     dot :: head.index_of('.', 0)
     if dot >= 0 {
         width :: head.slice(0, usize(dot))
@@ -1042,8 +1041,8 @@ parse_op_line :: fn(cleaned: string, head: string) -> op.Op | null {
             // dedicated ops ; everything else routes through `parse_convert`.
             // `f32` stays a valid from-type for forward compatibility even
             // though the bytecode emit doesn't currently produce it.
-            if width == "char" && suffix.starts_with("to_") { return op.CharToInt {} }
-            if suffix == "to_char" { return op.IntToChar {} }
+            if width == "char" && suffix.starts_with("to_") { return CharToInt {} }
+            if suffix == "to_char" { return IntToChar {} }
             if suffix.starts_with("to_") {
                 target :: suffix.slice("to_".byte_len(), suffix.byte_len())
                 if is_int_width(target) || target == "f32" || target == "f64" { return parse_convert(cleaned) }
@@ -1054,17 +1053,17 @@ parse_op_line :: fn(cleaned: string, head: string) -> op.Op | null {
                 if !(int_op is null) { return int_op }
             }
             if is_f64 {
-                if suffix == "add" { return op.F64Add {} }
-                if suffix == "sub" { return op.F64Sub {} }
-                if suffix == "mul" { return op.F64Mul {} }
-                if suffix == "div" { return op.F64Div {} }
-                if suffix == "neg" { return op.F64Neg {} }
-                if suffix == "eq"  { return op.F64Eq {} }
-                if suffix == "ne"  { return op.F64Ne {} }
-                if suffix == "lt"  { return op.F64Lt {} }
-                if suffix == "le"  { return op.F64Le {} }
-                if suffix == "gt"  { return op.F64Gt {} }
-                if suffix == "ge"  { return op.F64Ge {} }
+                if suffix == "add" { return F64Add {} }
+                if suffix == "sub" { return F64Sub {} }
+                if suffix == "mul" { return F64Mul {} }
+                if suffix == "div" { return F64Div {} }
+                if suffix == "neg" { return F64Neg {} }
+                if suffix == "eq"  { return F64Eq {} }
+                if suffix == "ne"  { return F64Ne {} }
+                if suffix == "lt"  { return F64Lt {} }
+                if suffix == "le"  { return F64Le {} }
+                if suffix == "gt"  { return F64Gt {} }
+                if suffix == "ge"  { return F64Ge {} }
             }
         }
     }
@@ -1090,48 +1089,48 @@ parse_op_line :: fn(cleaned: string, head: string) -> op.Op | null {
     if head == "array.push"       { return parse_array_push(cleaned) }
     if head == "array.get"        { return parse_array_get(cleaned) }
     if head == "array.set"        { return parse_array_set(cleaned) }
-    if head == "array.len"        { return op.ArrayLen {} }
+    if head == "array.len"        { return ArrayLen {} }
     if head == "array.slice"      { return parse_array_slice(cleaned) }
     if head == "data.const"       { return parse_data_const(cleaned) }
-    if head == "ref.cast"         { return op.RefCast {} }
+    if head == "ref.cast"         { return RefCast {} }
     if head == "intrinsic" {
-        if cleaned == "intrinsic builder.new"             { return op.BuilderNew {} }
-        if cleaned == "intrinsic builder.append_str"      { return op.BuilderAppendStr {} }
-        if cleaned == "intrinsic builder.append_display"  { return op.BuilderAppendDisplay {} }
-        if cleaned == "intrinsic builder.finish"          { return op.BuilderFinish {} }
-        if cleaned == "intrinsic size_of.type"            { return op.SizeOfType {} }
+        if cleaned == "intrinsic builder.new"             { return BuilderNew {} }
+        if cleaned == "intrinsic builder.append_str"      { return BuilderAppendStr {} }
+        if cleaned == "intrinsic builder.append_display"  { return BuilderAppendDisplay {} }
+        if cleaned == "intrinsic builder.finish"          { return BuilderFinish {} }
+        if cleaned == "intrinsic size_of.type"            { return SizeOfType {} }
         return null
     }
-    if head == "null.const"     { return op.NullConst {} }
+    if head == "null.const"     { return NullConst {} }
     if head == "bool.const"     { return parse_bool_const(cleaned) }
-    if head == "bool.eq"        { return op.BoolEq {} }
-    if head == "bool.ne"        { return op.BoolNe {} }
-    if head == "bool.and"       { return op.BoolAnd {} }
-    if head == "bool.or"        { return op.BoolOr {} }
-    if head == "bool.not"       { return op.BoolNot {} }
+    if head == "bool.eq"        { return BoolEq {} }
+    if head == "bool.ne"        { return BoolNe {} }
+    if head == "bool.and"       { return BoolAnd {} }
+    if head == "bool.or"        { return BoolOr {} }
+    if head == "bool.not"       { return BoolNot {} }
     if head == "char.const"     { return parse_char_const(cleaned) }
-    if head == "char.eq"        { return op.CharEq {} }
-    if head == "char.ne"        { return op.CharNe {} }
-    if head == "char.lt"        { return op.CharLt {} }
-    if head == "char.le"        { return op.CharLe {} }
-    if head == "char.gt"        { return op.CharGt {} }
-    if head == "char.ge"        { return op.CharGe {} }
-    if head == "string.eq"      { return op.StringEq {} }
-    if head == "string.ne"      { return op.StringNe {} }
-    if head == "string.concat"  { return op.StringConcat {} }
-    if head == "ref.eq"         { return op.RefEq {} }
-    if head == "ref.ne"         { return op.RefNe {} }
-    if head == "drop"           { return op.Drop {} }
+    if head == "char.eq"        { return CharEq {} }
+    if head == "char.ne"        { return CharNe {} }
+    if head == "char.lt"        { return CharLt {} }
+    if head == "char.le"        { return CharLe {} }
+    if head == "char.gt"        { return CharGt {} }
+    if head == "char.ge"        { return CharGe {} }
+    if head == "string.eq"      { return StringEq {} }
+    if head == "string.ne"      { return StringNe {} }
+    if head == "string.concat"  { return StringConcat {} }
+    if head == "ref.eq"         { return RefEq {} }
+    if head == "ref.ne"         { return RefNe {} }
+    if head == "drop"           { return Drop {} }
     if head == "type_check"     { return parse_type_check(cleaned) }
     if head == "type.const"     { return parse_type_const(cleaned) }
-    if head == "block"          { return op.Block {} }
-    if head == "loop"           { return op.Loop {} }
-    if head == "if"             { return op.If {} }
-    if head == "else"           { return op.Else {} }
-    if head == "end"            { return op.End {} }
-    if head == "br_if"          { return op.BranchIf {} }
-    if head == "br"             { return op.Branch {} }
-    if head == "return"         { return op.Return {} }
+    if head == "block"          { return Block {} }
+    if head == "loop"           { return Loop {} }
+    if head == "if"             { return If {} }
+    if head == "else"           { return Else {} }
+    if head == "end"            { return End {} }
+    if head == "br_if"          { return BranchIf {} }
+    if head == "br"             { return Branch {} }
+    if head == "return"         { return Return {} }
     return null
 }
 
@@ -1144,7 +1143,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> op.Op | null {
 /// @param width   the integer width prefix (`i32`, `u8`, ..., `usize`).
 /// @param suffix  the verb tail (`add`, `shl`, `neg`, ...).
 /// @return        the matching op, or `null` for an unrecognised suffix.
-int_op_for :: fn(width: string, suffix: string) -> op.Op | null {
+int_op_for :: fn(width: string, suffix: string) -> Op | null {
     is_wide :: width == "i64" || width == "u64"
     // Unsigned widths route compare / div / rem to dedicated U32*/U64*
     // ops so values with the high bit set don't read as negative. add /
@@ -1152,66 +1151,66 @@ int_op_for :: fn(width: string, suffix: string) -> op.Op | null {
     // complement and stay on the signed family.
     is_unsigned :: is_unsigned_width(width)
     if is_wide {
-        if suffix == "add" { return op.I64Add {} }
-        if suffix == "sub" { return op.I64Sub {} }
-        if suffix == "mul" { return op.I64Mul {} }
-        if suffix == "eq"  { return op.I64Eq {} }
-        if suffix == "ne"  { return op.I64Ne {} }
-        if suffix == "neg" { return op.I64Neg {} }
+        if suffix == "add" { return I64Add {} }
+        if suffix == "sub" { return I64Sub {} }
+        if suffix == "mul" { return I64Mul {} }
+        if suffix == "eq"  { return I64Eq {} }
+        if suffix == "ne"  { return I64Ne {} }
+        if suffix == "neg" { return I64Neg {} }
         if is_unsigned {
-            if suffix == "div" { return op.U64Div {} }
-            if suffix == "rem" { return op.U64Mod {} }
-            if suffix == "lt"  { return op.U64Lt {} }
-            if suffix == "le"  { return op.U64Le {} }
-            if suffix == "gt"  { return op.U64Gt {} }
-            if suffix == "ge"  { return op.U64Ge {} }
+            if suffix == "div" { return U64Div {} }
+            if suffix == "rem" { return U64Mod {} }
+            if suffix == "lt"  { return U64Lt {} }
+            if suffix == "le"  { return U64Le {} }
+            if suffix == "gt"  { return U64Gt {} }
+            if suffix == "ge"  { return U64Ge {} }
         }
-        if suffix == "div" { return op.I64Div {} }
-        if suffix == "rem" { return op.I64Mod {} }
-        if suffix == "lt"  { return op.I64Lt {} }
-        if suffix == "le"  { return op.I64Le {} }
-        if suffix == "gt"  { return op.I64Gt {} }
-        if suffix == "ge"  { return op.I64Ge {} }
+        if suffix == "div" { return I64Div {} }
+        if suffix == "rem" { return I64Mod {} }
+        if suffix == "lt"  { return I64Lt {} }
+        if suffix == "le"  { return I64Le {} }
+        if suffix == "gt"  { return I64Gt {} }
+        if suffix == "ge"  { return I64Ge {} }
         // 64-bit bitwise / shift stay in the I64 family so wide-width
         // operands don't truncate via the I32 path's i32 apply closure.
-        if suffix == "bitand" { return op.I64BitAnd {} }
-        if suffix == "bitor"  { return op.I64BitOr {} }
-        if suffix == "bitxor" { return op.I64BitXor {} }
-        if suffix == "bitnot" { return op.I64BitNot {} }
-        if suffix == "shl"    { return op.I64Shl {} }
+        if suffix == "bitand" { return I64BitAnd {} }
+        if suffix == "bitor"  { return I64BitOr {} }
+        if suffix == "bitxor" { return I64BitXor {} }
+        if suffix == "bitnot" { return I64BitNot {} }
+        if suffix == "shl"    { return I64Shl {} }
         if suffix == "shr" {
-            if is_unsigned { return op.I64ShrU {} }
-            return op.I64Shr {}
+            if is_unsigned { return I64ShrU {} }
+            return I64Shr {}
         }
     }
-    if suffix == "add"    { return op.I32Add {} }
-    if suffix == "sub"    { return op.I32Sub {} }
-    if suffix == "mul"    { return op.I32Mul {} }
-    if suffix == "eq"     { return op.I32Eq {} }
-    if suffix == "ne"     { return op.I32Ne {} }
-    if suffix == "neg"    { return op.I32Neg {} }
+    if suffix == "add"    { return I32Add {} }
+    if suffix == "sub"    { return I32Sub {} }
+    if suffix == "mul"    { return I32Mul {} }
+    if suffix == "eq"     { return I32Eq {} }
+    if suffix == "ne"     { return I32Ne {} }
+    if suffix == "neg"    { return I32Neg {} }
     if is_unsigned {
-        if suffix == "div" { return op.U32Div {} }
-        if suffix == "rem" { return op.U32Mod {} }
-        if suffix == "lt"  { return op.U32Lt {} }
-        if suffix == "le"  { return op.U32Le {} }
-        if suffix == "gt"  { return op.U32Gt {} }
-        if suffix == "ge"  { return op.U32Ge {} }
+        if suffix == "div" { return U32Div {} }
+        if suffix == "rem" { return U32Mod {} }
+        if suffix == "lt"  { return U32Lt {} }
+        if suffix == "le"  { return U32Le {} }
+        if suffix == "gt"  { return U32Gt {} }
+        if suffix == "ge"  { return U32Ge {} }
     }
-    if suffix == "div"    { return op.I32Div {} }
-    if suffix == "rem"    { return op.I32Mod {} }
-    if suffix == "lt"     { return op.I32Lt {} }
-    if suffix == "le"     { return op.I32Le {} }
-    if suffix == "gt"     { return op.I32Gt {} }
-    if suffix == "ge"     { return op.I32Ge {} }
-    if suffix == "bitnot" { return op.I32BitNot {} }
-    if suffix == "bitand" { return op.I32BitAnd {} }
-    if suffix == "bitor"  { return op.I32BitOr {} }
-    if suffix == "bitxor" { return op.I32BitXor {} }
-    if suffix == "shl"    { return op.I32Shl {} }
+    if suffix == "div"    { return I32Div {} }
+    if suffix == "rem"    { return I32Mod {} }
+    if suffix == "lt"     { return I32Lt {} }
+    if suffix == "le"     { return I32Le {} }
+    if suffix == "gt"     { return I32Gt {} }
+    if suffix == "ge"     { return I32Ge {} }
+    if suffix == "bitnot" { return I32BitNot {} }
+    if suffix == "bitand" { return I32BitAnd {} }
+    if suffix == "bitor"  { return I32BitOr {} }
+    if suffix == "bitxor" { return I32BitXor {} }
+    if suffix == "shl"    { return I32Shl {} }
     if suffix == "shr" {
-        if is_unsigned { return op.I32ShrU {} }
-        return op.I32Shr {}
+        if is_unsigned { return I32ShrU {} }
+        return I32Shr {}
     }
     return null
 }
@@ -1221,7 +1220,7 @@ int_op_for :: fn(width: string, suffix: string) -> op.Op | null {
 /// so the unsigned wide widths (e.g. `u32.const 4000000000`) survive
 /// without wraparound. Downstream `read_i32` truncates the i64 back to
 /// i32 when an i32 consumer wants it.
-parse_int_const_text :: fn(rest: string) -> op.Op | null {
+parse_int_const_text :: fn(rest: string) -> Op | null {
     // The .virt only ever emits non-negative `<width>.const N` (the
     // bytecode lowers a negative literal as `const |N|` + `<width>.neg`),
     // so parse as `u64` to catch the full unsigned range — i.e. literals
@@ -1232,9 +1231,9 @@ parse_int_const_text :: fn(rest: string) -> op.Op | null {
     parsed :: parse_uint_in_base(rest, 10)
     if parsed is Error { return null }
     if parsed <= u64(0x7fffffff) {
-        return op.I32Const { .value = i32(parsed) }
+        return I32Const { .value = i32(parsed) }
     }
-    return op.I64Const { .value = i64(parsed) }
+    return I64Const { .value = i64(parsed) }
 }
 
 /// True iff `width` is one of the 10 integer prefixes the VM recognises
@@ -1284,16 +1283,16 @@ parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
     return i32(parsed)
 }
 
-/// Parse a `<from>.to_<to>` line into the matching `op.Convert`. Only
+/// Parse a `<from>.to_<to>` line into the matching `Convert`. Only
 /// the target width affects runtime semantics — the executor re-tags
 /// the top of the stack to the target's storage class.
 ///
 /// @param cleaned  the .virt line, already comment-stripped.
-/// @return         the `op.Convert` op carrying the target tag.
-parse_convert :: fn(cleaned: string) -> op.Op {
+/// @return         the `Convert` op carrying the target tag.
+parse_convert :: fn(cleaned: string) -> Op {
     dot :: cleaned.index_of('.', 0)
     suffix :: cleaned.slice(usize(dot) + 1 + usize(3), cleaned.byte_len())
-    return op.Convert { .target = convert_target_of(suffix) }
+    return Convert { .target = convert_target_of(suffix) }
 }
 
 /// Collapse a target width to its `ConvertTarget` storage class. Every
@@ -1302,7 +1301,7 @@ parse_convert :: fn(cleaned: string) -> op.Op {
 ///
 /// @param width  the target width literal (`i32`, `f64`, `char`, ...).
 /// @return       the matching `ConvertTarget`.
-convert_target_of :: fn(width: string) -> op.ConvertTarget {
+convert_target_of :: fn(width: string) -> ConvertTarget {
     if width == "i64"   { return .I64 }
     if width == "u64"   { return .I64 }
     if width == "f32"   { return .F64 }
@@ -1311,11 +1310,11 @@ convert_target_of :: fn(width: string) -> op.ConvertTarget {
     return .I32
 }
 
-parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> op.Op | null {
+parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
     parsed :: parse_int_after_prefix(line, prefix)
     if parsed is null { return null }
-    if is_get { return op.LocalGet { .slot = parsed } }
-    return op.LocalSet { .slot = parsed }
+    if is_get { return LocalGet { .slot = parsed } }
+    return LocalSet { .slot = parsed }
 }
 
 /// Parse `f64.const N.M` where the operand is a decimal float literal
@@ -1324,13 +1323,13 @@ parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> op.Op | null
 /// canonical writer ; this parser mirrors its inverse.
 ///
 /// @param line  the comment-stripped op line.
-/// @return      `op.F64Const { value }` on success, `null` on malformed
+/// @return      `F64Const { value }` on success, `null` on malformed
 ///              input.
-parse_f64_const :: fn(line: string) -> op.Op | null {
+parse_f64_const :: fn(line: string) -> Op | null {
     rest :: line.slice("f64.const ".byte_len(), line.byte_len()).trim()
     parsed :: parse_decimal_f64(rest)
     if parsed is null { return null }
-    return op.F64Const { .value = parsed }
+    return F64Const { .value = parsed }
 }
 
 /// Decimal float parser for `<int>(.<frac>)?(e<int>)?` (sign, exponent,
@@ -1419,22 +1418,22 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
     return result
 }
 
-parse_string_const :: fn(line: string) -> op.Op | null {
+parse_string_const :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "string.const ")
     if parsed is null { return null }
-    return op.StringConst { .index = parsed }
+    return StringConst { .index = parsed }
 }
 
-parse_call_import :: fn(line: string) -> op.Op | null {
+parse_call_import :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "call.import ")
     if parsed is null { return null }
-    return op.CallImport { .index = parsed }
+    return CallImport { .index = parsed }
 }
 
-parse_call :: fn(line: string) -> op.Op | null {
+parse_call :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "call ")
     if parsed is null { return null }
-    return op.Call { .function_index = parsed }
+    return Call { .function_index = parsed }
 }
 
 /// Parse `bool.const true` / `bool.const false`. The TS bytecode
@@ -1442,34 +1441,34 @@ parse_call :: fn(line: string) -> op.Op | null {
 /// no numeric path to support.
 ///
 /// @param line  the .virt line (comment-stripped).
-/// @return      `op.BoolConst { value }`, or `null` on malformed input.
-parse_bool_const :: fn(line: string) -> op.Op | null {
+/// @return      `BoolConst { value }`, or `null` on malformed input.
+parse_bool_const :: fn(line: string) -> Op | null {
     rest :: line.slice("bool.const ".byte_len(), line.byte_len()).trim()
-    if rest == "true"  { return op.BoolConst { .value = true  } }
-    if rest == "false" { return op.BoolConst { .value = false } }
+    if rest == "true"  { return BoolConst { .value = true  } }
+    if rest == "false" { return BoolConst { .value = false } }
     return null
 }
 
 /// Parse `char.const N` where N is the codepoint as a base-10 integer.
-parse_char_const :: fn(line: string) -> op.Op | null {
+parse_char_const :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "char.const ")
     if parsed is null { return null }
-    return op.CharConst { .value = char(u32(parsed)) }
+    return CharConst { .value = char(u32(parsed)) }
 }
 
-parse_call_indirect :: fn(line: string) -> op.Op | null {
+parse_call_indirect :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "call.indirect ")
     if parsed is null { return null }
-    return op.CallIndirect { .type_id = parsed }
+    return CallIndirect { .type_id = parsed }
 }
 
 /// Parse `virtual.call PARAM_COUNT VTABLE_KEY` — the vtable key is the
 /// remainder of the line (it contains a `.`, never a space).
 ///
 /// @param line  the .virt line (comment-stripped).
-/// @return      `op.VirtualCall { parameter_count, vtable_key }`, or `null`
+/// @return      `VirtualCall { parameter_count, vtable_key }`, or `null`
 ///              on malformed input.
-parse_virtual_call :: fn(line: string) -> op.Op | null {
+parse_virtual_call :: fn(line: string) -> Op | null {
     rest :: line.slice("virtual.call ".byte_len(), line.byte_len()).trim()
     space :: rest.index_of(' ', 0)
     if space < 0 { return null }
@@ -1477,7 +1476,7 @@ parse_virtual_call :: fn(line: string) -> op.Op | null {
     parsed_pc :: parse_int_in_base(pc_text, 10)
     if parsed_pc is Error { return null }
     key :: rest.slice(usize(space) + 1, rest.byte_len()).trim()
-    return op.VirtualCall { .parameter_count = i32(parsed_pc), .vtable_key = key }
+    return VirtualCall { .parameter_count = i32(parsed_pc), .vtable_key = key }
 }
 
 /// Parse `fn.ref FN_INDEX TYPE_ID` — the TYPE_ID operand is parsed
@@ -1486,48 +1485,48 @@ parse_virtual_call :: fn(line: string) -> op.Op | null {
 /// that drives the call's parameter count.
 ///
 /// @param line  the .virt line (comment-stripped).
-/// @return      `op.FnRef { function_index }`, or `null` on malformed input.
-parse_fn_ref :: fn(line: string) -> op.Op | null {
+/// @return      `FnRef { function_index }`, or `null` on malformed input.
+parse_fn_ref :: fn(line: string) -> Op | null {
     pair :: parse_int_pair_after_prefix(line, "fn.ref ")
     if pair is null { return null }
     [fn_idx, _] :: pair
-    return op.FnRef { .function_index = fn_idx }
+    return FnRef { .function_index = fn_idx }
 }
 
 /// Parse `make_closure FN_INDEX TYPE_ID` — same shape as `fn.ref`. The
 /// TYPE_ID is again static-only (consumed for validation, not stored).
 ///
 /// @param line  the .virt line (comment-stripped).
-/// @return      `op.MakeClosure { function_index }`, or `null` on malformed input.
-parse_make_closure :: fn(line: string) -> op.Op | null {
+/// @return      `MakeClosure { function_index }`, or `null` on malformed input.
+parse_make_closure :: fn(line: string) -> Op | null {
     pair :: parse_int_pair_after_prefix(line, "make_closure ")
     if pair is null { return null }
     [fn_idx, _] :: pair
-    return op.MakeClosure { .function_index = fn_idx }
+    return MakeClosure { .function_index = fn_idx }
 }
 
-parse_type_check :: fn(line: string) -> op.Op | null {
+parse_type_check :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "type_check ")
     if parsed is null { return null }
-    return op.TypeCheck { .type_id = parsed }
+    return TypeCheck { .type_id = parsed }
 }
 
-parse_type_const :: fn(line: string) -> op.Op | null {
+parse_type_const :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "type.const ")
     if parsed is null { return null }
-    return op.TypeConst { .type_id = parsed }
+    return TypeConst { .type_id = parsed }
 }
 
-parse_local_tee :: fn(line: string) -> op.Op | null {
+parse_local_tee :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "local.tee ")
     if parsed is null { return null }
-    return op.LocalTee { .slot = parsed }
+    return LocalTee { .slot = parsed }
 }
 
-parse_struct_new_after :: fn(line: string, prefix: string) -> op.Op | null {
+parse_struct_new_after :: fn(line: string, prefix: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, prefix)
     if parsed is null { return null }
-    return op.StructNew { .type_id = parsed }
+    return StructNew { .type_id = parsed }
 }
 
 /// Parse two space-separated base-10 ints after `prefix`. Used by
@@ -1548,11 +1547,11 @@ parse_int_pair_after_prefix :: fn(line: string, prefix: string) -> [i32, i32] | 
     return [i32(a), i32(b)]
 }
 
-parse_struct_get :: fn(line: string) -> op.Op | null {
+parse_struct_get :: fn(line: string) -> Op | null {
     pair :: parse_int_pair_after_prefix(line, "struct.get ")
     if pair is null { return null }
     [tid, fi] :: pair
-    return op.StructGet { .type_id = tid, .field_index = fi }
+    return StructGet { .type_id = tid, .field_index = fi }
 }
 
 /// Parse `local.field SLOT TYPE FIELD` — three whitespace-separated
@@ -1561,7 +1560,7 @@ parse_struct_get :: fn(line: string) -> op.Op | null {
 /// @param line  full line, leading whitespace already stripped.
 /// @return      a `LocalField` op on success, `null` on any parse error
 ///              (missing space, non-integer token, …).
-parse_local_field :: fn(line: string) -> op.Op | null {
+parse_local_field :: fn(line: string) -> Op | null {
     rest :: line.slice("local.field ".byte_len(), line.byte_len()).trim()
     s1 :: rest.index_of(' ', 0)
     if s1 < 0 { return null }
@@ -1576,7 +1575,7 @@ parse_local_field :: fn(line: string) -> op.Op | null {
     if tid is Error { return null }
     fi :: parse_int_in_base(field_str, 10)
     if fi is Error { return null }
-    return op.LocalField { .slot = i32(slot), .type_id = i32(tid), .field_index = i32(fi) }
+    return LocalField { .slot = i32(slot), .type_id = i32(tid), .field_index = i32(fi) }
 }
 
 /// Parse `return.lit <inner-const-op>` — the inner literal is parsed
@@ -1587,57 +1586,57 @@ parse_local_field :: fn(line: string) -> op.Op | null {
 /// @param line  full line, leading whitespace already stripped.
 /// @return      a `ReturnLit` op on success, `null` when the inner op
 ///              isn't a recognised const-producing op.
-parse_return_lit :: fn(line: string) -> op.Op | null {
+parse_return_lit :: fn(line: string) -> Op | null {
     inner_raw :: line.slice("return.lit ".byte_len(), line.byte_len()).trim()
     space :: inner_raw.index_of(' ', 0)
     inner_head: string = ""
     if space < 0 { inner_head = inner_raw } else { inner_head = inner_raw.slice(0, usize(space)) }
     inner_op :: parse_op_line(inner_raw, inner_head)
     if inner_op is null { return null }
-    const_inner :: op.const_op_of(inner_op)
+    const_inner :: const_op_of(inner_op)
     if const_inner is null { return null }
-    return op.ReturnLit { .value = const_inner }
+    return ReturnLit { .value = const_inner }
 }
 
-parse_struct_set_after :: fn(line: string, prefix: string) -> op.Op | null {
+parse_struct_set_after :: fn(line: string, prefix: string) -> Op | null {
     pair :: parse_int_pair_after_prefix(line, prefix)
     if pair is null { return null }
     [tid, fi] :: pair
-    return op.StructSet { .type_id = tid, .field_index = fi }
+    return StructSet { .type_id = tid, .field_index = fi }
 }
 
-parse_array_new :: fn(line: string) -> op.Op | null {
+parse_array_new :: fn(line: string) -> Op | null {
     pair :: parse_int_pair_after_prefix(line, "array.new ")
     if pair is null { return null }
     [tid, len] :: pair
-    return op.ArrayNew { .type_id = tid, .length = len }
+    return ArrayNew { .type_id = tid, .length = len }
 }
 
-parse_array_push :: fn(line: string) -> op.Op | null {
+parse_array_push :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "array.push ")
     if parsed is null { return null }
-    return op.ArrayPush { .type_id = parsed }
+    return ArrayPush { .type_id = parsed }
 }
 
-parse_array_get :: fn(line: string) -> op.Op | null {
+parse_array_get :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "array.get ")
     if parsed is null { return null }
-    return op.ArrayGet { .type_id = parsed }
+    return ArrayGet { .type_id = parsed }
 }
 
-parse_array_set :: fn(line: string) -> op.Op | null {
+parse_array_set :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "array.set ")
     if parsed is null { return null }
-    return op.ArraySet { .type_id = parsed }
+    return ArraySet { .type_id = parsed }
 }
 
-parse_array_slice :: fn(line: string) -> op.Op | null {
+parse_array_slice :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "array.slice ")
     if parsed is null { return null }
-    return op.ArraySlice { .type_id = parsed }
+    return ArraySlice { .type_id = parsed }
 }
 
-parse_data_const :: fn(line: string) -> op.Op | null {
+parse_data_const :: fn(line: string) -> Op | null {
     after :: line.slice("data.const ".byte_len(), line.byte_len())
     sp :: after.index_of(' ', 0)
     if sp < 0 { return null }
@@ -1647,5 +1646,5 @@ parse_data_const :: fn(line: string) -> op.Op | null {
     if pool_parsed is Error { return null }
     type_parsed :: parse_int_in_base(type_text, 10)
     if type_parsed is Error { return null }
-    return op.DataConst { .pool_index = i32(pool_parsed), .type_id = i32(type_parsed) }
+    return DataConst { .pool_index = i32(pool_parsed), .type_id = i32(type_parsed) }
 }

@@ -2,7 +2,7 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 
-fn 0 tests_snippets_intrinsic_satisfies__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   bool.const true
   if $L0 void
     return.lit i32.const 99

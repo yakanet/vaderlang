@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/mutable_set/_main.vader
-  fn tests_snippets_mutable_set__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let s: MutableSet(i32) =
       MutableSet(i32) {
         inner:

@@ -10,7 +10,7 @@ string 1 "got string"
 string 2 "nothing"
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_null_blockres__main_vader$pick (bool) -> ref
+fn 0 snippet$pick (bool) -> ref
   local if_res null
   local $k_5 null
   local.get 0
@@ -32,7 +32,7 @@ fn 0 tests_snippets_null_blockres__main_vader$pick (bool) -> ref
   return.lit null.const
 end
 
-fn 1 tests_snippets_null_blockres__main_vader$main () -> i32
+fn 1 snippet$main () -> i32
   local __scrut_0 ref
   bool.const true
   call 0

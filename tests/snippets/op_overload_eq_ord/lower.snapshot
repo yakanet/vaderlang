@@ -1,8 +1,8 @@
 # Lower
 
-## tests/snippets/op_overload_eq_ord/_main.vader
-  struct tests_snippets_op_overload_eq_ord__main_vader$Money { amount: i32 }
-  fn tests_snippets_op_overload_eq_ord__main_vader$Money$Equals$equals(self: Money, other: Money) -> bool
+## snippet
+  struct snippet$Money { amount: i32 }
+  fn snippet$Money$Equals$equals(self: Money, other: Money) -> bool
     ~>
       eq :bool
         l:
@@ -11,7 +11,7 @@
         r:
           .amount :i32
             other :Money
-  fn tests_snippets_op_overload_eq_ord__main_vader$Money$Equals$not_equals(self: Money, other: Money) -> bool
+  fn snippet$Money$Equals$not_equals(self: Money, other: Money) -> bool
     return
       not :bool
         call :bool
@@ -21,7 +21,7 @@
             self :Money
           arg1:
             other :Money
-  fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$compare(self: Money, other: Money) -> i32
+  fn snippet$Money$Comparable$compare(self: Money, other: Money) -> i32
     if :void
       cond:
         lt :bool
@@ -47,7 +47,7 @@
       then:
         return int(1) :i32
     return int(0) :i32
-  fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$lt(self: Money, other: Money) -> bool
+  fn snippet$Money$Comparable$lt(self: Money, other: Money) -> bool
     return
       lt :bool
         l:
@@ -60,7 +60,7 @@
               other :Money
         r:
           int(0) :i32
-  fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$lte(self: Money, other: Money) -> bool
+  fn snippet$Money$Comparable$lte(self: Money, other: Money) -> bool
     return
       lte :bool
         l:
@@ -73,7 +73,7 @@
               other :Money
         r:
           int(0) :i32
-  fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$gt(self: Money, other: Money) -> bool
+  fn snippet$Money$Comparable$gt(self: Money, other: Money) -> bool
     return
       gt :bool
         l:
@@ -86,7 +86,7 @@
               other :Money
         r:
           int(0) :i32
-  fn tests_snippets_op_overload_eq_ord__main_vader$Money$Comparable$gte(self: Money, other: Money) -> bool
+  fn snippet$Money$Comparable$gte(self: Money, other: Money) -> bool
     return
       gte :bool
         l:
@@ -99,7 +99,7 @@
               other :Money
         r:
           int(0) :i32
-  fn tests_snippets_op_overload_eq_ord__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let a: Money =
       Money {
         amount: int(100) :i32

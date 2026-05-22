@@ -39,7 +39,7 @@
 module "vader/bytecode"
 
 import "std/iter" { take }
-vmop :: import "vader/vm/op"
+vmop :: import "vader/vm"
 
 /// Apply every peephole rule above to `function`, mutating `ops` in
 /// place ; `jump_table` is NOT touched (the caller computes it after

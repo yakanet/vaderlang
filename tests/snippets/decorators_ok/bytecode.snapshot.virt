@@ -2,9 +2,9 @@ module _main
 type 0 primitive null
 type 1 primitive void
 type 2 primitive i32
-import 0 extern console_log tests_snippets_decorators_ok__main_vader$log (i32,i32) -> void
+import 0 extern console_log snippet$log (i32,i32) -> void
 
-fn 0 tests_snippets_decorators_ok__main_vader$test_log () -> void
+fn 0 snippet$test_log () -> void
   i32.const 0
   i32.const 0
   call.import 0

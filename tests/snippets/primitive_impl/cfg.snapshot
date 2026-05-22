@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/primitive_impl/_main.vader
+## snippet
 
-fn tests_snippets_primitive_impl__main_vader$i32$Display$to_string(%0: i32) -> string
+fn snippet$i32$Display$to_string(%0: i32) -> string
   locals:
     %0 self: i32 (param self)
     %1 $intrinsic_1: ?
@@ -18,7 +18,7 @@ fn tests_snippets_primitive_impl__main_vader$i32$Display$to_string(%0: i32) -> s
     %4 = intrinsic builder.finish(%2)
     return %4
 
-fn tests_snippets_primitive_impl__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 x: i32 (local x)
     %1 $call_2: string

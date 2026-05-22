@@ -20,22 +20,14 @@
 
 module "vader/lower"
 
-import "vader/diagnostics/diagnostic" { Span }
-AST :: import "vader/parser/ast"
+import "vader/diagnostics" { Span }
+AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" {
     Type, UnionType, StructType, TraitType, PrimitiveType, EnumType,
     TY_BOOL, TY_NEVER,
 }
-import "vader/typecheck/impls" { ImplEntry }
-import "vader/lower/ctx" { FnLowerCtx, LowerProjectCtx }
-import "vader/lower/entry_types" { expr_type }
-import "vader/lower/helpers" { fresh_synthetic_symbol, type_of, span_of, or_all }
-import "vader/lower/core_symbols" { find_impl_for }
-import "vader/lower/lowered_ast" {
-    LoweredExpr, LoweredBlock, LoweredStmt, LoweredLet, LoweredReturn,
-    LoweredIdent, LoweredIf, LoweredTypeCheck, LoweredCast, LoweredBoolLit,
-}
+import "vader/typecheck" { ImplEntry }
 
 /// Lower a `TryExpr` to a let-binding + if-chain over error variants.
 /// @param ctx          the fn-body context.

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/op_overload_index/_main.vader
+## snippet
 
-fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(%0: Cell, %1: string) -> i32
+fn snippet$Cell$Index$at(%0: Cell, %1: string) -> i32
   locals:
     %0 self: Cell (param self)
     %1 key: string (param key)
@@ -45,7 +45,7 @@ fn tests_snippets_op_overload_index__main_vader$Cell$Index$at(%0: Cell, %1: stri
     %5 = binop add %5 %12 :usize
     branch -> bb1
 
-fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(%0: Cell, %1: string, %2: i32) -> void
+fn snippet$Cell$IndexSet$set_at(%0: Cell, %1: string, %2: i32) -> void
   locals:
     %0 self: Cell (param self)
     %1 key: string (param key)
@@ -92,7 +92,7 @@ fn tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at(%0: Cell, %
     %6 = binop add %6 %12 :usize
     branch -> bb1
 
-fn tests_snippets_op_overload_index__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $arr_0: string[]
     %1 $arr_1: i32[]

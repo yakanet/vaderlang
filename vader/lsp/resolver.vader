@@ -15,11 +15,6 @@ module "vader/lsp"
 
 import "std/io" { read_file, read_dir, is_dir }
 import "std/string" { byte_len, byte_at, slice, starts_with, contains }
-import "vader/lsp/state" { ServerState }
-import "vader/lsp/indexer" {
-    DocIndex, DeclEntry, ImportEntry,
-    build_index, find_toplevel, find_import,
-}
 
 /// Where a cross-file goto-def landed : a file URI + the target's
 /// `name_span` so the handler can encode an LSP `Location`. Returns

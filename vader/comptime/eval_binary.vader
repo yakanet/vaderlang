@@ -7,16 +7,9 @@
 
 module "vader/comptime"
 
-import "vader/comptime/eval_types" {
-    EvalResult, ComptimeContext, ok, fail, vm_required,
-}
-import "vader/comptime/value" {
-    ComptimeValue, IntValue, FloatValue, BoolValue, StringValue,
-    int_val_typed, float_val_typed, string_val, VAL_TRUE, VAL_FALSE,
-}
-import "vader/diagnostics/diagnostic" { Diagnostic, comptime_error }
-import "vader/diagnostics/codes" { ComptimeCode }
-AST :: import "vader/parser/ast"
+import "vader/diagnostics" { Diagnostic, comptime_error }
+import "vader/diagnostics" { ComptimeCode }
+AST :: import "vader/parser"
 
 /// Evaluate a `BinaryExpr`. Recurses into both operands ; combines
 /// per `op`. Short-circuits on operand failure (the operand's error

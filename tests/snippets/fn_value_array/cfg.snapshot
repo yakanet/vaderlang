@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/fn_value_array/_main.vader
+## snippet
 
-fn tests_snippets_fn_value_array__main_vader$inc(%0: i32) -> i32
+fn snippet$inc(%0: i32) -> i32
   locals:
     %0 x: i32 (param x)
     %1 $k_1: i32
@@ -12,7 +12,7 @@ fn tests_snippets_fn_value_array__main_vader$inc(%0: i32) -> i32
     %2 = binop add %0 %1 :i32
     return %2
 
-fn tests_snippets_fn_value_array__main_vader$double(%0: i32) -> i32
+fn snippet$double(%0: i32) -> i32
   locals:
     %0 x: i32 (param x)
     %1 $k_1: i32
@@ -22,7 +22,7 @@ fn tests_snippets_fn_value_array__main_vader$double(%0: i32) -> i32
     %2 = binop mul %0 %1 :i32
     return %2
 
-fn tests_snippets_fn_value_array__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $fn_ref_0: fn(i32) -> i32
     %1 $fn_ref_1: fn(i32) -> i32

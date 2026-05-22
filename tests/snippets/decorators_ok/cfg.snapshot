@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/decorators_ok/_main.vader
+## snippet
 
-fn tests_snippets_decorators_ok__main_vader$test_log() -> void
+fn snippet$test_log() -> void
   locals:
     %0 $k_0: i32
     %1 $k_1: i32

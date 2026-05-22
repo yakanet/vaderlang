@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/generic_fn/_main.vader
-  fn tests_snippets_generic_fn__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let n: i32 =
       call :i32
         callee:
@@ -54,9 +54,9 @@
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
-  fn tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$identity__i32(x: Any) -> Any
+  fn snippet$snippet$identity__i32(x: Any) -> Any
     return x :Any
-  fn tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$first__i32(arr: Any[], fallback: Any) -> Any
+  fn snippet$snippet$first__i32(arr: Any[], fallback: Any) -> Any
     if :void
       cond:
         gt :bool

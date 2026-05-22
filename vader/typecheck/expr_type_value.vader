@@ -9,11 +9,9 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics/diagnostic" { Diagnostic }
-import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/diagnostics" { Diagnostic }
 import "vader/types" { Type, TY_TYPE }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// `T[]` in value position : lower the element for side-effects,
 /// return the metatype value.

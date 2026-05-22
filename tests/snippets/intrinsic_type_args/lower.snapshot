@@ -1,8 +1,8 @@
 # Lower
 
-## tests/snippets/intrinsic_type_args/_main.vader
-  struct tests_snippets_intrinsic_type_args__main_vader$Wrapper { inner: i32 }
-  fn tests_snippets_intrinsic_type_args__main_vader$main() -> i32
+## snippet
+  struct snippet$Wrapper { inner: i32 }
+  fn snippet$main() -> i32
     block :void
       let __for_arr_0: type[] =
         array :type[]
@@ -71,5 +71,5 @@
             @builder.finish :string
               __sb_4 :?
     return int(0) :i32
-  struct tests_snippets_intrinsic_type_args__main_vader$Pair__string__i64 { key: Any, value: Any }
-  struct tests_snippets_intrinsic_type_args__main_vader$Pair__string__Any__Any { key: Any, value: Any }
+  struct snippet$Pair__string__i64 { key: Any, value: Any }
+  struct snippet$Pair__string__Any__Any { key: Any, value: Any }

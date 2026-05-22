@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/enum_trait_self_return/_main.vader
+## snippet
 
-fn tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_left(%0: Direction) -> Direction
+fn snippet$Direction$Turnable$turn_left(%0: Direction) -> Direction
   locals:
     %0 self: Direction (param self)
     %1 __scrut_0: Direction (synthetic __scrut_0)
@@ -61,7 +61,7 @@ fn tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_lef
     %10 = move %13
     branch -> bb9
 
-fn tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_right(%0: Direction) -> Direction
+fn snippet$Direction$Turnable$turn_right(%0: Direction) -> Direction
   locals:
     %0 self: Direction (param self)
     %1 __scrut_0: Direction (synthetic __scrut_0)
@@ -120,7 +120,7 @@ fn tests_snippets_enum_trait_self_return__main_vader$Direction$Turnable$turn_rig
     %10 = move %13
     branch -> bb9
 
-fn tests_snippets_enum_trait_self_return__main_vader$Direction$Display$to_string(%0: Direction) -> ?
+fn snippet$Direction$Display$to_string(%0: Direction) -> ?
   locals:
     %0 self: Direction (param self)
     %1 __scrut_0: Direction (synthetic __scrut_0)
@@ -179,7 +179,7 @@ fn tests_snippets_enum_trait_self_return__main_vader$Direction$Display$to_string
     %10 = move %13
     branch -> bb9
 
-fn tests_snippets_enum_trait_self_return__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 d: Direction (local d)
     %1 $call_2: ?

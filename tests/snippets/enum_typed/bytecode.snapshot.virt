@@ -14,7 +14,7 @@ string 6 "pop"
 string 7 "add"
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_enum_typed__main_vader$describe (u8) -> string
+fn 0 snippet$describe (u8) -> string
   local.get 0
   i32.const 1
   i32.to_u8
@@ -50,7 +50,7 @@ fn 0 tests_snippets_enum_typed__main_vader$describe (u8) -> string
   unreachable
 end
 
-fn 1 tests_snippets_enum_typed__main_vader$main () -> i32
+fn 1 snippet$main () -> i32
   local __scrut_0 u16
   i32.const 1
   call 0

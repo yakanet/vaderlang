@@ -25,11 +25,11 @@
 module "vader/bytecode"
 
 import "std/collections" { MutableMap, keys }
-import "vader/diagnostics/diagnostic" { Span }
+import "vader/diagnostics" { Span }
 import "vader/types" { Type }
 import "vader/resolver/symbol" { Symbol }
-import "vader/parser/ast" { Decl, FnDecl, Decorator }
-import "vader/lower/lowered_ast" {
+import "vader/parser" { Decl, FnDecl, Decorator }
+import "vader/lower" {
     LoweredProject, LoweredModule, LoweredDecl,
     LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
     LoweredParam, LoweredStructField,
@@ -49,18 +49,7 @@ import "vader/lower/lowered_ast" {
     INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
     INTRINSIC_SIZE_OF_TYPE,
 }
-import "vader/bytecode/module" {
-    BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport, BcExport,
-    ImplEntry, VtableEntry, VtableRow, DebugPos,
-}
-import "vader/bytecode/types" {
-    BcType, BcPrimitive, BcStruct, BcField, ValType, BcDataEntry,
-    is_64_bit_int_val,
-}
-import "vader/bytecode/type_classify" {
-    type_intern_key, val_type_of_type, bc_type_of, lowered_expr_type,
-}
-import "vader/vm/op" {
+import "vader/vm" {
     Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
     NullConst, LocalGet, LocalSet, LocalTee, Return, Drop, Call, CallImport,
     If, Else, End, StructNew, StructGet, StructSet,
@@ -72,20 +61,6 @@ import "vader/vm/op" {
     BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
     SizeOfType,
 }
-import "vader/bytecode/intrinsics" {
-    intrinsic_op_for_mangled, intrinsic_op_for_symbol_name,
-}
-import "vader/bytecode/emit_state" {
-    FnEmitState, ScopeEntry, ScopeKind,
-    init_fn_emit_state, allocate_local_slot, push_op, set_jump_target,
-    pop_scope, find_break_target, find_continue_target,
-}
-import "vader/bytecode/emit_ctx" {
-    EmitOptions, EmitterCtx, default_emit_options, new_emitter_ctx,
-    intern_type, intern_string,
-}
-import "vader/bytecode/emit_body" { emit_block }
-import "vader/bytecode/emit_body" { convert_target_of }
 
 
 

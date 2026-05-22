@@ -191,7 +191,7 @@ vtable Hash.hash 11 9
 vtable Hash.hash 12 11
 vtable Hash.hash 13 12
 
-fn 0 tests_snippets_json_basics__main_vader$show (string,string) -> void
+fn 0 snippet$show (string,string) -> void
   local parsed ref
   local __scrut_0 ref
   local __sb_7 any
@@ -350,7 +350,7 @@ fn 0 tests_snippets_json_basics__main_vader$show (string,string) -> void
   unreachable
 end
 
-fn 1 tests_snippets_json_basics__main_vader$main () -> i32
+fn 1 snippet$main () -> i32
   string.const 2
   string.const 2
   call 0

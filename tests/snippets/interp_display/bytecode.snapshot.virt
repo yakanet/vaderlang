@@ -51,7 +51,7 @@ import 29 not_equals std_core$string$Equals$not_equals (string,string) -> bool
 import 30 hash std_core$string$Hash$hash (string) -> u64
 import 31 at std_core$string$Index$at (string,usize) -> char
 
-fn 0 tests_snippets_interp_display__main_vader$greet (string,i32) -> string
+fn 0 snippet$greet (string,i32) -> string
   local __sb_0 any
   intrinsic builder.new
   local.set 2

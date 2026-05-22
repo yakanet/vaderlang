@@ -120,7 +120,7 @@ vtable Step.step 15 44
 vtable Step.step 16 45
 vtable Step.step 17 46
 
-fn 0 tests_snippets_for_in_iter_trait__main_vader$sum_iter (ref) -> i32
+fn 0 snippet$sum_iter (ref) -> i32
   local total i32
   local __step_1 ref
   local x i32
@@ -150,14 +150,14 @@ fn 0 tests_snippets_for_in_iter_trait__main_vader$sum_iter (ref) -> i32
   return
 end
 
-fn 1 tests_snippets_for_in_iter_trait__main_vader$is_l (char) -> bool
+fn 1 snippet$is_l (char) -> bool
   local.get 0
   char.const 108
   char.eq
   return
 end
 
-fn 2 tests_snippets_for_in_iter_trait__main_vader$count_ls (string) -> usize
+fn 2 snippet$count_ls (string) -> usize
   local $call_1 ref
   local $fn_ref_2 ref
   local.get 0
@@ -172,7 +172,7 @@ fn 2 tests_snippets_for_in_iter_trait__main_vader$count_ls (string) -> usize
   return
 end
 
-fn 3 tests_snippets_for_in_iter_trait__main_vader$main () -> i32
+fn 3 snippet$main () -> i32
   local a i32
   local b i32
   local __sb_0 any

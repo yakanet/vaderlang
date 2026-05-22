@@ -12,7 +12,7 @@ import 0 println std_io$println (string) -> void
 import 1 collect std_runtime$collect () -> void
 import 2 collections std_runtime$collections () -> i32
 
-fn 0 tests_snippets_gc_array_survive__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local list ref
   local i i32
   local __sb_0 any

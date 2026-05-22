@@ -7,7 +7,7 @@
 
 module "vader/lexer"
 
-import "vader/diagnostics/diagnostic" { Position, Span }
+import "vader/diagnostics" { Position, Span }
 
 export TokenKind :: enum(u8) {
     // Layout

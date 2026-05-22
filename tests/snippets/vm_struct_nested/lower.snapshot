@@ -1,9 +1,9 @@
 # Lower
 
-## tests/snippets/vm_struct_nested/_main.vader
-  struct tests_snippets_vm_struct_nested__main_vader$Inner { v: i32 }
-  struct tests_snippets_vm_struct_nested__main_vader$Outer { lhs: Inner, rhs: Inner }
-  fn tests_snippets_vm_struct_nested__main_vader$main() -> i32
+## snippet
+  struct snippet$Inner { v: i32 }
+  struct snippet$Outer { lhs: Inner, rhs: Inner }
+  fn snippet$main() -> i32
     let o: Outer =
       Outer {
         lhs:

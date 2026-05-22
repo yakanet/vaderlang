@@ -13,12 +13,12 @@
 
 module "vader/midir"
 
-import "vader/diagnostics/diagnostic" { Span }
+import "vader/diagnostics" { Span }
 import "vader/types" { Type }
 import "vader/resolver/symbol" { Symbol }
-import "vader/comptime/mono_ast" { MonoEntry }
-import "vader/bytecode/types" { BcDataEntry }
-import "vader/lower/lowered_ast" {
+import "vader/comptime" { MonoEntry }
+import "vader/bytecode" { BcDataEntry }
+import "vader/lower" {
     LoweredBinaryOp, LoweredUnaryOp, VtableEntry,
 }
 import "std/collections" { MutableMap }

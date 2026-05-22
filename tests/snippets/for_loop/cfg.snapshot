@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/for_loop/_main.vader
+## snippet
 
-fn tests_snippets_for_loop__main_vader$mixed_loops(%0: i32) -> i32
+fn snippet$mixed_loops(%0: i32) -> i32
   locals:
     %0 start: i32 (param start)
     %1 n: i32 (local n)

@@ -1,11 +1,11 @@
 # Lower
 
-## tests/snippets/file_decorator/_main.vader
-  const tests_snippets_file_decorator__main_vader$FILENAME: string =
+## snippet
+  const snippet$FILENAME: string =
     "data" :string
-  const tests_snippets_file_decorator__main_vader$GREETING: string =
+  const snippet$GREETING: string =
     "Hello from file!" :string
-  fn tests_snippets_file_decorator__main_vader$main() -> i32
+  fn snippet$main() -> i32
     call :void
       callee:
         println :fn(string) -> void

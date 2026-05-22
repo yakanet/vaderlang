@@ -1,17 +1,17 @@
 # Lower
 
-## tests/snippets/impl_bounded_typeparam/_main.vader
-  struct tests_snippets_impl_bounded_typeparam__main_vader$Cat { name: string }
-  fn tests_snippets_impl_bounded_typeparam__main_vader$Cat$Tag$tag(self: Cat) -> string
+## snippet
+  struct snippet$Cat { name: string }
+  fn snippet$Cat$Tag$tag(self: Cat) -> string
     return
       .name :string
         self :Cat
-  struct tests_snippets_impl_bounded_typeparam__main_vader$Dog { name: string }
-  fn tests_snippets_impl_bounded_typeparam__main_vader$Dog$Tag$tag(self: Dog) -> string
+  struct snippet$Dog { name: string }
+  fn snippet$Dog$Tag$tag(self: Dog) -> string
     return
       .name :string
         self :Dog
-  fn tests_snippets_impl_bounded_typeparam__main_vader$main() -> i32
+  fn snippet$main() -> i32
     let a: Wrap(Cat) =
       Wrap(Cat) {
         value:
@@ -45,8 +45,8 @@
           arg0:
             b :Wrap(Dog)
     return int(0) :i32
-  struct tests_snippets_impl_bounded_typeparam__main_vader$Wrap__Cat { value: Any }
-  fn tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Cat(self: Wrap(Any)) -> string
+  struct snippet$Wrap__Cat { value: Any }
+  fn snippet$Wrap$Display$to_string__Cat(self: Wrap(Any)) -> string
     return "wrapped" :string
-  struct tests_snippets_impl_bounded_typeparam__main_vader$Wrap__Dog { value: Any }
-  struct tests_snippets_impl_bounded_typeparam__main_vader$Wrap__Any { value: Any }
+  struct snippet$Wrap__Dog { value: Any }
+  struct snippet$Wrap__Any { value: Any }

@@ -21,7 +21,7 @@ module "vader/bytecode"
 import "std/collections" { MutableMap }
 import "vader/types" { Type }
 import "vader/resolver/symbol" { Symbol }
-import "vader/lower/lowered_ast" {
+import "vader/lower" {
     LoweredStmt, LoweredLet, LoweredAssign, LoweredCellSet,
     LoweredExprStmt, LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
     LoweredExpr, LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
@@ -37,22 +37,7 @@ import "vader/lower/lowered_ast" {
     INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
     INTRINSIC_SIZE_OF_TYPE,
 }
-import "vader/bytecode/op_select" { binary_op_for, unary_op_for }
-import "vader/bytecode/module" { BcLocal, DebugPos }
-import "vader/bytecode/types" {
-    BcType, BcPrimitive, BcStruct, BcField, ValType, is_64_bit_int_val,
-}
-import "vader/bytecode/type_classify" {
-    val_type_of_type, lowered_expr_type,
-}
-import "vader/bytecode/emit_state" {
-    FnEmitState, ScopeEntry, ScopeKind,
-    allocate_local_slot, push_op, set_jump_target,
-    pop_scope, find_break_target, find_continue_target,
-}
-import "vader/bytecode/emit_ctx" { EmitterCtx, intern_type, intern_string, intern_cell_type }
-import "vader/bytecode/intrinsics" { intrinsic_op_for_symbol_name }
-import "vader/vm/op" {
+import "vader/vm" {
     Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
     NullConst, LocalGet, LocalSet, Return, Drop, Call, CallImport, CallIndirect,
     FnRef,

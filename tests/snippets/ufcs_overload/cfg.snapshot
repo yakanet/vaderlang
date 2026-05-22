@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/ufcs_overload/_main.vader
+## snippet
 
-fn tests_snippets_ufcs_overload__main_vader$inc(%0: A) -> i32
+fn snippet$inc(%0: A) -> i32
   locals:
     %0 self: A (param self)
     %1 $field_1: i32
@@ -14,7 +14,7 @@ fn tests_snippets_ufcs_overload__main_vader$inc(%0: A) -> i32
     %3 = binop add %1 %2 :i32
     return %3
 
-fn tests_snippets_ufcs_overload__main_vader$inc_1(%0: B) -> i32
+fn snippet$inc_1(%0: B) -> i32
   locals:
     %0 self: B (param self)
     %1 $field_1: i32
@@ -26,7 +26,7 @@ fn tests_snippets_ufcs_overload__main_vader$inc_1(%0: B) -> i32
     %3 = binop add %1 %2 :i32
     return %3
 
-fn tests_snippets_ufcs_overload__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 a: A (local a)

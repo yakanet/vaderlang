@@ -87,7 +87,7 @@ vtable Hash.hash 10 10
 vtable Hash.hash 11 11
 vtable Hash.hash 12 34
 
-fn 0 tests_snippets_map_set_iter__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local $arr_0 ref
   local total i32
   local __iter_buckets_len_2 usize

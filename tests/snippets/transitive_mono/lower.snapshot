@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/transitive_mono/_main.vader
-  fn tests_snippets_transitive_mono__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     call :void
       callee:
         println :fn(string) -> void
@@ -45,7 +45,7 @@
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
-  fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$inner_count__Any(arr: Any[]) -> i32
+  fn snippet$snippet$inner_count__Any(arr: Any[]) -> i32
     let n: i32 = int(0) :i32
     block :void
       let __for_arr_0: Any[] = arr :Any[]
@@ -78,7 +78,7 @@
               r:
                 int(1) :usize
     return n :i32
-  fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$outer__i32(arr: Any[]) -> i32
+  fn snippet$snippet$outer__i32(arr: Any[]) -> i32
     return
       call :i32
         callee:

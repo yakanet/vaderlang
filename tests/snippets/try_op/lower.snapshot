@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/try_op/_main.vader
-  fn tests_snippets_try_op__main_vader$read_or_default(path: string) -> Error | string
+## snippet
+  fn snippet$read_or_default(path: string) -> Error | string
     return
       block :string
         let __try_0: Error | string =
@@ -21,7 +21,7 @@
               ~>
                 cast → string
                   __try_0 :Error | string
-  fn tests_snippets_try_op__main_vader$show(res: Error | string) -> void
+  fn snippet$show(res: Error | string) -> void
     ~>
       block :void
         let __scrut_0: Error | string = res :Error | string
@@ -54,7 +54,7 @@
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void
-  fn tests_snippets_try_op__main_vader$main() -> i32
+  fn snippet$main() -> i32
     call :void
       callee:
         show :fn(Error | string) -> void

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/dot_variant_in_union/_main.vader
+## snippet
 
-fn tests_snippets_dot_variant_in_union__main_vader$parse(%0: char) -> Direction | Error
+fn snippet$parse(%0: char) -> Direction | Error
   locals:
     %0 c: char (param c)
     %1 $k_1: char
@@ -52,7 +52,7 @@ fn tests_snippets_dot_variant_in_union__main_vader$parse(%0: char) -> Direction 
     %14 = struct_new ParseError(%13)
     return %14
 
-fn tests_snippets_dot_variant_in_union__main_vader$dir_label(%0: Direction) -> string
+fn snippet$dir_label(%0: Direction) -> string
   locals:
     %0 d: Direction (param d)
     %1 __scrut_0: Direction (synthetic __scrut_0)
@@ -111,7 +111,7 @@ fn tests_snippets_dot_variant_in_union__main_vader$dir_label(%0: Direction) -> s
     %10 = move %13
     branch -> bb9
 
-fn tests_snippets_dot_variant_in_union__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: char
     %1 $call_1: Direction | Error

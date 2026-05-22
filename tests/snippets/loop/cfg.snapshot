@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/loop/_main.vader
+## snippet
 
-fn tests_snippets_loop__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 sum: i32 (local sum)
     %1 i: i32 (local i)

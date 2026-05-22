@@ -22,10 +22,7 @@ import "std/json" {
 }
 import "std/collections" { MutableMap }
 import "vader/lexer" { tokenize, Token, TokenKind }
-import "vader/fmt/comments" { scan_comments, Comment, CommentKind }
-import "vader/lsp/state" { ServerState, source_for }
-import "vader/lsp/tokens" { RawToken, TokenType }
-import "vader/lsp/ast_tokens" { collect_ast_idents }
+import "vader/fmt" { scan_comments, Comment, CommentKind }
 
 // ---- legend ---------------------------------------------------------------
 //

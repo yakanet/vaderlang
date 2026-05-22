@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/trait_box_range_iter/_main.vader
+## snippet
 
-fn tests_snippets_trait_box_range_iter__main_vader$Hello$Greeter$greet(%0: Hello) -> i32
+fn snippet$Hello$Greeter$greet(%0: Hello) -> i32
   locals:
     %0 self: Hello (param self)
     %1 $k_1: i32
@@ -10,7 +10,7 @@ fn tests_snippets_trait_box_range_iter__main_vader$Hello$Greeter$greet(%0: Hello
     %1 = const int(100) :i32
     return %1
 
-fn tests_snippets_trait_box_range_iter__main_vader$i32$Doubler$doubled(%0: i32) -> i32
+fn snippet$i32$Doubler$doubled(%0: i32) -> i32
   locals:
     %0 self: i32 (param self)
     %1 $add_1: i32
@@ -18,7 +18,7 @@ fn tests_snippets_trait_box_range_iter__main_vader$i32$Doubler$doubled(%0: i32) 
     %1 = binop add %0 %0 :i32
     return %1
 
-fn tests_snippets_trait_box_range_iter__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $k_1: i32
@@ -69,7 +69,7 @@ fn tests_snippets_trait_box_range_iter__main_vader$main() -> i32
     %22 = binop add %21 %19 :i32
     return %22
 
-fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$count__i32(%0: Iterator(Any)) -> i32
+fn snippet$snippet$count__i32(%0: Iterator(Any)) -> i32
   locals:
     %0 it: Iterator(Any) (param it)
     %1 n: i32 (local n)
@@ -109,7 +109,7 @@ fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_rang
   bb9:
     branch -> bb6
 
-fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$invoke__i32(%0: Greeter(Any)) -> Any
+fn snippet$snippet$invoke__i32(%0: Greeter(Any)) -> Any
   locals:
     %0 g: Greeter(Any) (param g)
     %1 $vcall_1: Any
@@ -117,7 +117,7 @@ fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_rang
     %1 = vcall Greeter.greet(recv=%0) :Any
     return %1
 
-fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$twice__i32(%0: Doubler(Any)) -> Any
+fn snippet$snippet$twice__i32(%0: Doubler(Any)) -> Any
   locals:
     %0 x: Doubler(Any) (param x)
     %1 $vcall_1: Any

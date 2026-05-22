@@ -1,4 +1,4 @@
 # Lower
 
-## tests/snippets/struct_decl/_main.vader
-  struct tests_snippets_struct_decl__main_vader$Point { x: f64, y: f64 }
+## snippet
+  struct snippet$Point { x: f64, y: f64 }

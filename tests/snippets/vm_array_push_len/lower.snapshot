@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/vm_array_push_len/_main.vader
-  fn tests_snippets_vm_array_push_len__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let arr: i32[] =
       array :i32[]
     LoweredArrayPush

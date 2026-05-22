@@ -7,7 +7,7 @@ string 0 "i="
 string 1 " sum="
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_vm_interp_loop__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local sum i32
   local i i32
   local __sb_0 any

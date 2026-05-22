@@ -1,8 +1,8 @@
 # Lower
 
-## tests/snippets/contains_op/_main.vader
-  struct tests_snippets_contains_op__main_vader$DigitSet { bits: i32 }
-  fn tests_snippets_contains_op__main_vader$DigitSet$Contains$contains(self: DigitSet, value: i32) -> bool
+## snippet
+  struct snippet$DigitSet { bits: i32 }
+  fn snippet$DigitSet$Contains$contains(self: DigitSet, value: i32) -> bool
     if :void
       cond:
         or :bool
@@ -37,7 +37,7 @@
               mask :i32
         r:
           int(0) :i32
-  fn tests_snippets_contains_op__main_vader$main() -> i32
+  fn snippet$main() -> i32
     if :void
       cond:
         call :bool

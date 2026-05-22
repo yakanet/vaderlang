@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/generic_type_alias/_main.vader
-  fn tests_snippets_generic_type_alias__main_vader$main() -> i32
+## snippet
+  fn snippet$main() -> i32
     let x: i32 | null = int(42) :i32 | null
     let y: i32 | null = null
     block :void

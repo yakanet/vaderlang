@@ -6,7 +6,7 @@ module "snippet"
 
 import "std/io" { println }
 import "vader/lexer" { tokenize, TokenKind }
-import "vader/diagnostics/diagnostic" { render }
+import "vader/diagnostics" { render }
 
 // Subset of TokenKind names we expect to print. Anything else falls through
 // to "??" so the snapshot makes the gap visible if it ever fires.

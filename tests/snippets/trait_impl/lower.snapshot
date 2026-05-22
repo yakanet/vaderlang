@@ -1,6 +1,6 @@
 # Lower
 
-## tests/snippets/trait_impl/_main.vader
-  struct tests_snippets_trait_impl__main_vader$Point { x: f64, y: f64 }
-  fn tests_snippets_trait_impl__main_vader$Point$Display$to_string(self: Point) -> string
+## snippet
+  struct snippet$Point { x: f64, y: f64 }
+  fn snippet$Point$Display$to_string(self: Point) -> string
     return "point" :string

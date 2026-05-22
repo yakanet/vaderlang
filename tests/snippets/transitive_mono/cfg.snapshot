@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/transitive_mono/_main.vader
+## snippet
 
-fn tests_snippets_transitive_mono__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $intrinsic_0: ?
     %1 __sb_0: ? (synthetic __sb_0)
@@ -49,7 +49,7 @@ fn tests_snippets_transitive_mono__main_vader$main() -> i32
     %18 = const int(0) :i32
     return %18
 
-fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$inner_count__Any(%0: Any[]) -> i32
+fn snippet$snippet$inner_count__Any(%0: Any[]) -> i32
   locals:
     %0 arr: Any[] (param arr)
     %1 n: i32 (local n)
@@ -77,7 +77,7 @@ fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__ma
   bb3:
     return %1
 
-fn tests_snippets_transitive_mono__main_vader$tests_snippets_transitive_mono__main_vader$outer__i32(%0: Any[]) -> i32
+fn snippet$snippet$outer__i32(%0: Any[]) -> i32
   locals:
     %0 arr: Any[] (param arr)
     %1 $call_1: i32

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/usize_arith/_main.vader
+## snippet
 
-fn tests_snippets_usize_arith__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 n: usize (local n)
     %1 $k_2: usize

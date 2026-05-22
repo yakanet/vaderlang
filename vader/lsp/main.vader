@@ -21,16 +21,6 @@ module "vader/lsp"
 import "std/io" { eprintln }
 import "std/string" { byte_len, starts_with, slice }
 import "std/json" { parse, JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonError, JsonBool, JsonArray }
-import "vader/lsp/transport" { read_frame, write_frame }
-import "vader/lsp/lifecycle" { handle_initialize, server_capabilities }
-import "vader/lsp/state" { ServerState, new_state, handle_did_open, handle_did_change, handle_did_close }
-import "vader/lsp/semantic_tokens" { handle_semantic_tokens_full }
-import "vader/lsp/definition" { handle_definition }
-import "vader/lsp/hover" { handle_hover }
-import "vader/lsp/inlay_hint" { handle_inlay_hint }
-import "vader/lsp/signature_help" { handle_signature_help }
-import "vader/lsp/rpc" { request_id, method_name, params_value, encode_response, encode_method_not_found, encode_error, is_json_null }
-import "vader/lsp/log" { log_info, log_warn }
 
 /// LSP server entry. Blocks reading frames until EOF or `exit`
 /// notification. `args` is parsed for `--stdlib-root=…` and

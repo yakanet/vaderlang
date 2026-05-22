@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/trait_dispatch_generic_iter/_main.vader
+## snippet
 
-fn tests_snippets_trait_dispatch_generic_iter__main_vader$walk(%0: Iterator(i32)) -> i32
+fn snippet$walk(%0: Iterator(i32)) -> i32
   locals:
     %0 it: Iterator(i32) (param it)
     %1 sum: i32 (local sum)
@@ -44,7 +44,7 @@ fn tests_snippets_trait_dispatch_generic_iter__main_vader$walk(%0: Iterator(i32)
   bb9:
     branch -> bb6
 
-fn tests_snippets_trait_dispatch_generic_iter__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $k_1: i32
@@ -89,7 +89,7 @@ fn tests_snippets_trait_dispatch_generic_iter__main_vader$main() -> i32
     %16 = const int(0) :i32
     return %16
 
-fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$next__i32(%0: Repeat(Any)) -> null | Yield(Any)
+fn snippet$Repeat$Iterator$next__i32(%0: Repeat(Any)) -> null | Yield(Any)
   locals:
     %0 self: Repeat(Any) (param self)
     %1 $field_1: i32
@@ -118,7 +118,7 @@ fn tests_snippets_trait_dispatch_generic_iter__main_vader$Repeat$Iterator$next__
     %9 = struct_new Yield(Any)(%5)
     return %9
 
-fn tests_snippets_trait_dispatch_generic_iter__main_vader$Once$Iterator$next__i32(%0: Once(Any)) -> null | Yield(Any)
+fn snippet$Once$Iterator$next__i32(%0: Once(Any)) -> null | Yield(Any)
   locals:
     %0 self: Once(Any) (param self)
     %1 $field_1: bool

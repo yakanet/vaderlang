@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/cast_test/_main.vader
+## snippet
 
-fn tests_snippets_cast_test__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 n: i32 (local n)
     %1 m: u64 (local m)

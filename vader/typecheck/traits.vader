@@ -15,8 +15,7 @@
 module "vader/typecheck"
 
 import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck/typed_ast" { TypedProgram }
-AST :: import "vader/parser/ast"
+AST :: import "vader/parser"
 
 /// Walk a `TraitDecl`'s `bases` list (when it uses `= A & B` sugar)
 /// and resolve each ident to its Symbol via the resolver's idents map.

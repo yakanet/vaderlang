@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/char_range_contains/_main.vader
-  fn tests_snippets_char_range_contains__main_vader$is_digit(c: char) -> bool
+## snippet
+  fn snippet$is_digit(c: char) -> bool
     return
       call :bool
         callee:
@@ -15,7 +15,7 @@
           }
         arg1:
           c :char
-  fn tests_snippets_char_range_contains__main_vader$is_lower(c: char) -> bool
+  fn snippet$is_lower(c: char) -> bool
     return
       call :bool
         callee:
@@ -29,7 +29,7 @@
           }
         arg1:
           c :char
-  fn tests_snippets_char_range_contains__main_vader$is_alpha(c: char) -> bool
+  fn snippet$is_alpha(c: char) -> bool
     return
       or :bool
         l:
@@ -58,7 +58,7 @@
               }
             arg1:
               c :char
-  fn tests_snippets_char_range_contains__main_vader$main() -> i32
+  fn snippet$main() -> i32
     if :void
       cond:
         call :bool

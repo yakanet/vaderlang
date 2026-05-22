@@ -1,10 +1,10 @@
 # Lower
 
-## tests/snippets/match_is_unreachable_negative/_main.vader
-  struct tests_snippets_match_is_unreachable_negative__main_vader$Cat { name: string }
-  struct tests_snippets_match_is_unreachable_negative__main_vader$Dog { name: string }
-  struct tests_snippets_match_is_unreachable_negative__main_vader$Bird { song: string }
-  fn tests_snippets_match_is_unreachable_negative__main_vader$m1(p: Cat | Dog) -> bool
+## snippet
+  struct snippet$Cat { name: string }
+  struct snippet$Dog { name: string }
+  struct snippet$Bird { song: string }
+  fn snippet$m1(p: Cat | Dog) -> bool
     return
       block :bool
         let __scrut_0: Cat | Dog = p :Cat | Dog
@@ -19,7 +19,7 @@
             else:
               ~>
                 true
-  fn tests_snippets_match_is_unreachable_negative__main_vader$m2(p: Cat | Dog) -> bool
+  fn snippet$m2(p: Cat | Dog) -> bool
     return
       block :bool
         let __scrut_0: Cat | Dog = p :Cat | Dog
@@ -34,7 +34,7 @@
             else:
               ~>
                 true
-  fn tests_snippets_match_is_unreachable_negative__main_vader$m3(n: i32) -> bool
+  fn snippet$m3(n: i32) -> bool
     return
       block :bool
         let __scrut_0: i32 = n :i32
@@ -49,7 +49,7 @@
             else:
               ~>
                 true
-  fn tests_snippets_match_is_unreachable_negative__main_vader$m4(p: Cat | Dog) -> bool
+  fn snippet$m4(p: Cat | Dog) -> bool
     if :void
       cond:
         is null :bool
@@ -57,7 +57,7 @@
       then:
         return false
     return true
-  fn tests_snippets_match_is_unreachable_negative__main_vader$main() -> i32
+  fn snippet$main() -> i32
     return int(0) :i32
 
 # Diagnostics

@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/map_set_iter/_main.vader
+## snippet
 
-fn tests_snippets_map_set_iter__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $arr_0: Entry(string, i32) | null[]
     %1 $k_1: usize

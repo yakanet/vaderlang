@@ -19,7 +19,7 @@ import 0 println std_io$println (string) -> void
 import 1 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 6 Display
 
-fn 0 tests_snippets_std_string_builder__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local sb ref
   local __sb_0 any
   local $call_18 string

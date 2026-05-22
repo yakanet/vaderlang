@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/if_null_narrow/_main.vader
+## snippet
 
-fn tests_snippets_if_null_narrow__main_vader$greet(%0: Cat | Dog | null) -> string
+fn snippet$greet(%0: Cat | Dog | null) -> string
   locals:
     %0 a: Cat | Dog | null (param a)
     %1 $type_check_1: bool
@@ -34,7 +34,7 @@ fn tests_snippets_if_null_narrow__main_vader$greet(%0: Cat | Dog | null) -> stri
     %10 = const string(#1) :string
     return %10
 
-fn tests_snippets_if_null_narrow__main_vader$greet_v2(%0: Cat | Dog | null) -> string
+fn snippet$greet_v2(%0: Cat | Dog | null) -> string
   locals:
     %0 a: Cat | Dog | null (param a)
     %1 $type_check_1: bool
@@ -64,7 +64,7 @@ fn tests_snippets_if_null_narrow__main_vader$greet_v2(%0: Cat | Dog | null) -> s
     %9 = intrinsic builder.finish(%4)
     return %9
 
-fn tests_snippets_if_null_narrow__main_vader$greet_v3(%0: Cat | Dog | null) -> string
+fn snippet$greet_v3(%0: Cat | Dog | null) -> string
   locals:
     %0 a: Cat | Dog | null (param a)
     %1 $type_check_1: bool
@@ -96,7 +96,7 @@ fn tests_snippets_if_null_narrow__main_vader$greet_v3(%0: Cat | Dog | null) -> s
     %10 = const string(#4) :string
     return %10
 
-fn tests_snippets_if_null_narrow__main_vader$greet_v4(%0: Cat | Dog | null) -> string
+fn snippet$greet_v4(%0: Cat | Dog | null) -> string
   locals:
     %0 a: Cat | Dog | null (param a)
     %1 $type_check_3: bool
@@ -133,7 +133,7 @@ fn tests_snippets_if_null_narrow__main_vader$greet_v4(%0: Cat | Dog | null) -> s
   bb3:
     return %3
 
-fn tests_snippets_if_null_narrow__main_vader$combine(%0: Cat | Dog | null, %1: Cat | Dog | null) -> string
+fn snippet$combine(%0: Cat | Dog | null, %1: Cat | Dog | null) -> string
   locals:
     %0 a: Cat | Dog | null (param a)
     %1 b: Cat | Dog | null (param b)
@@ -179,7 +179,7 @@ fn tests_snippets_if_null_narrow__main_vader$combine(%0: Cat | Dog | null, %1: C
     %15 = intrinsic builder.finish(%7)
     return %15
 
-fn tests_snippets_if_null_narrow__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $k_1: i32

@@ -9,7 +9,7 @@ string 2 "! You are "
 string 3 " year(s) old."
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_interpolation__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local __sb_0 any
   intrinsic builder.new
   local.set 0

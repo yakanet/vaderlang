@@ -1,7 +1,7 @@
 # Lower
 
-## tests/snippets/enum_basic/_main.vader
-  fn tests_snippets_enum_basic__main_vader$describe(d: Direction) -> string
+## snippet
+  fn snippet$describe(d: Direction) -> string
     ~>
       block :string
         let __scrut_0: Direction = d :Direction
@@ -55,7 +55,7 @@
                               else:
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
-  fn tests_snippets_enum_basic__main_vader$main() -> void
+  fn snippet$main() -> void
     let d: Direction = int(2) :i32
     call :void
       callee:

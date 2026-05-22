@@ -12,7 +12,7 @@ string 1 "wrapper-arg count="
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 println std_io$println (string) -> void
 
-fn 0 tests_snippets_intrinsic_type_args__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local $type_const_0 ref
   local $type_const_1 ref
   local __for_len_1 usize

@@ -9,8 +9,8 @@ import "std/string" { slice, starts_with, chars, is_digit }
 import "vader/lexer" {
     tokenize, Token, TokenKind, Lexer, empty_span, make_token, kind_name,
 }
-import "vader/diagnostics/diagnostic" { Diagnostic, Position, parser_error }
-import "vader/diagnostics/codes" { ParserCode }
+import "vader/diagnostics" { Diagnostic, Position, parser_error }
+import "vader/diagnostics" { ParserCode }
 
 // ============================================================================
 // Public entry

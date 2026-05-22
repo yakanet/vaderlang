@@ -10,7 +10,7 @@ string 3 "sq="
 string 4 "eq="
 import 0 println std_io$println (string) -> void
 
-fn 0 tests_snippets_byte_literal__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local __sb_0 any
   local $cast_11 i32
   local $eq_34 bool

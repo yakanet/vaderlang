@@ -17,7 +17,7 @@ import 1 read_file std_io$read_file (string) -> ref
 import 2 write_file std_io$write_file (string,string) -> ref
 import 3 exists std_io$exists (string) -> bool
 
-fn 0 tests_snippets_io_roundtrip__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local path string
   local __sb_0 any
   local $call_7 bool

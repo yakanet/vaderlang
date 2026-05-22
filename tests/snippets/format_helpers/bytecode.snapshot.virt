@@ -27,7 +27,7 @@ import 1 byte_len std_string$byte_len (string) -> usize
 import 2 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 9 Display
 
-fn 0 tests_snippets_format_helpers__main_vader$main () -> i32
+fn 0 snippet$main () -> i32
   local __sb_0 any
   local $call_6 string
   local n u64

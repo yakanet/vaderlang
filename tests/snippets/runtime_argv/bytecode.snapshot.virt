@@ -9,7 +9,7 @@ string 0 "argc="
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 println std_io$println (string) -> void
 
-fn 0 tests_snippets_runtime_argv__main_vader$main (ref) -> i32
+fn 0 snippet$main (ref) -> i32
   local __sb_0 any
   local $len_4 usize
   local $call_7 string

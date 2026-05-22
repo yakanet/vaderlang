@@ -17,17 +17,14 @@
 module "vader/typecheck"
 
 import "std/string" { byte_at, byte_len }
-import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
-AST :: import "vader/parser/ast"
-import "vader/resolver/resolve" { ResolvedModule }
-import "vader/resolver/scope" { span_key }
-import "vader/typecheck/narrow" { field_chain_key, narrow_for_field }
-import "vader/typecheck/type_expr" { type_from_expr }
+import "vader/diagnostics" { Diagnostic, typecheck_error }
+AST :: import "vader/parser"
+import "vader/resolver" { ResolvedModule }
+import "vader/resolver" { span_key }
 import "vader/types" {
     Type, ArrayType, EnumType, PrimitiveType, StructType, TraitType, TupleType, UnionType, UnresolvedType,
     display_type, type_base_name, TY_UNRESOLVED,
 }
-import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Type-check a `FieldExpr`. Chains the per-target-shape attempts in
 /// priority order ; each `try_*` returns `Type | null` (null = "not
@@ -334,8 +331,6 @@ import "vader/types" {
     FnType, TypeParamType,
     mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
 }
-import "vader/typecheck/coerce" { try_array_to_iter, try_trait_widen }
-import "vader/typecheck/type_ops" { union_of }
 import "vader/types" { mk_primitive, mk_union, TY_VOID }
 
 /// MVP UFCS dispatch for the canonical array methods. Returns the
@@ -410,9 +405,8 @@ primitive_method_type :: fn(prim: string, name: string) -> Type | null {
     return null
 }
 
-import "vader/resolver/scope" { span_full_key }
+import "vader/resolver" { span_full_key }
 import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck/expr_ident" { type_of_symbol }
 
 /// When `e.target` is an `IdentExpr` resolving to a namespace
 /// `ImportBinding`, look up `e.field` in the target module's
@@ -768,7 +762,6 @@ substitute_by_id :: fn(t: Type, bindings: MutableMap(i32, Type)) -> Type {
     }
 }
 
-import "vader/typecheck/type_assign" { is_assignable }
 
 // Parse `0`, `1`, … from a tuple `.N` field name. Returns -1 when
 // the name isn't a non-negative integer literal — `.foo` on a tuple
@@ -822,12 +815,8 @@ export find_struct_field_type :: fn(
 
 import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
-import "vader/resolver/resolve" { resolve_module }
+import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/check" { check_module }
-import "vader/typecheck/expr_ident" { infer_ident }
-import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }
-import "vader/typecheck/test_helpers" { find_first_in_block }
 
 // Stub that handles only the variants the field tests touch — Ident
 // (for `p` in `p.x`), Field (for nested `obj.a.b`), and Int literals.

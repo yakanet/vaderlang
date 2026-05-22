@@ -1,8 +1,8 @@
 # CFG
 
-## tests/snippets/vm_call_chain/_main.vader
+## snippet
 
-fn tests_snippets_vm_call_chain__main_vader$inner(%0: i32) -> i32
+fn snippet$inner(%0: i32) -> i32
   locals:
     %0 n: i32 (param n)
     %1 $k_1: i32
@@ -12,7 +12,7 @@ fn tests_snippets_vm_call_chain__main_vader$inner(%0: i32) -> i32
     %2 = binop add %0 %1 :i32
     return %2
 
-fn tests_snippets_vm_call_chain__main_vader$middle(%0: i32) -> i32
+fn snippet$middle(%0: i32) -> i32
   locals:
     %0 n: i32 (param n)
     %1 $call_1: i32
@@ -24,7 +24,7 @@ fn tests_snippets_vm_call_chain__main_vader$middle(%0: i32) -> i32
     %3 = binop add %1 %2 :i32
     return %3
 
-fn tests_snippets_vm_call_chain__main_vader$outer(%0: i32) -> i32
+fn snippet$outer(%0: i32) -> i32
   locals:
     %0 n: i32 (param n)
     %1 $call_1: i32
@@ -36,7 +36,7 @@ fn tests_snippets_vm_call_chain__main_vader$outer(%0: i32) -> i32
     %3 = binop add %1 %2 :i32
     return %3
 
-fn tests_snippets_vm_call_chain__main_vader$main() -> i32
+fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $call_1: i32
