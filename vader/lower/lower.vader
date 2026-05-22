@@ -1026,9 +1026,10 @@ resolve_field_type :: fn(
     // resolving fresh against the struct's typeParam-shadowed scope.
     raw :: owner_typed.type_expr_types[span_key(ty.span)]
     if !(raw is null) {
-        if raw is Type as t {
-            if !(t is UnresolvedType) { return t }
-        }
+        // `raw is Type as t` would always be false — `Type` is the union
+        // alias and the runtime tag carries the concrete variant, not the
+        // alias. After the null check, `raw` already narrows to `Type`.
+        if !(raw is UnresolvedType) { return raw }
     }
     scratch: Diagnostic[] = []
     return type_from_expr(ty, owner_typed.resolved, scratch)

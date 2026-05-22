@@ -71,8 +71,12 @@ export interface CliResult {
 
 // Both pipes are drained concurrently — leaving stderr unread can deadlock
 // the child once the 64 KB pipe buffer fills on a verbose trap.
-export async function runCli(args: string[]): Promise<CliResult> {
-  const proc = Bun.spawn([CLI_BIN, ...args], { stdout: "pipe", stderr: "pipe" });
+export async function runCli(args: string[], env?: Record<string, string>): Promise<CliResult> {
+  const proc = Bun.spawn([CLI_BIN, ...args], {
+    stdout: "pipe",
+    stderr: "pipe",
+    env: { ...process.env, ...(env ?? {}) },
+  });
   const [stdout, stderr, exit] = await Promise.all([
     new Response(proc.stdout).text(),
     new Response(proc.stderr).text(),
