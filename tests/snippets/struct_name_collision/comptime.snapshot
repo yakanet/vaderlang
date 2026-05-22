@@ -6,10 +6,6 @@
 
 ## tests/snippets/struct_name_collision/_main.vader
 
-## tests/snippets/struct_name_collision/mod_a
-
-## tests/snippets/struct_name_collision/mod_b
-
 ## generic instances
   Index(I, T)
   IndexSet(I, T)

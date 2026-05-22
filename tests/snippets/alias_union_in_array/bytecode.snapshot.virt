@@ -1,6 +1,120 @@
 module _main
 type 0 primitive null
+type 1 array 2
+type 2 union 3,4
+type 3 struct snippet_types$Cat { name:6 }
+type 4 struct snippet_types$Dog { name:6 }
+type 5 primitive void
+type 6 primitive string
+type 7 primitive i32
+string 0 "cat "
+string 1 "dog "
+string 2 "Whiskers"
+string 3 "Rex"
+import 0 println std_io$println (string) -> void
 
-# Diagnostics
-[1:1] error[R2001] module not found: entry file's containing folder is not in any scanned root
-[12:8] error[R2023] two folders declare the same module name globally: module `snippet` already declared by another folder
+fn 0 snippet$push_pet (ref,ref) -> void
+  local.get 0
+  local.get 1
+  array.push 2
+  return
+end
+
+fn 1 snippet$describe (ref) -> string
+  local __scrut_0 ref
+  local __sb_2 any
+  local $field_9 string
+  local.get 0
+  local.tee 1
+  type_check 3
+  if $L0 void
+    intrinsic builder.new
+    local.set 2
+    local.get 2
+    string.const 0
+    intrinsic builder.append_str
+    local.field 1 3 0
+    ref.cast 6
+    local.set 3
+    local.get 2
+    local.get 3
+    intrinsic builder.append_display
+    local.get 2
+    intrinsic builder.finish
+    return
+  end $L0
+  local.get 1
+  type_check 4
+  if $L1 void
+    intrinsic builder.new
+    local.set 2
+    local.get 2
+    string.const 1
+    intrinsic builder.append_str
+    local.field 1 4 0
+    ref.cast 6
+    local.set 3
+    local.get 2
+    local.get 3
+    intrinsic builder.append_display
+    local.get 2
+    intrinsic builder.finish
+    return
+  end $L1
+  unreachable
+end
+
+fn 2 snippet$main () -> i32
+  local pets ref
+  local $struct_3 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
+  array.new 1 0
+  local.set 0
+  string.const 2
+  struct.new 3
+  local.set 1
+  local.get 0
+  local.get 1
+  call 0
+  string.const 3
+  struct.new 4
+  local.set 1
+  local.get 0
+  local.get 1
+  call 0
+  local.get 0
+  local.tee 0
+  array.len
+  local.set 2
+  i64.const 0
+  local.set 3
+  block $L0 void
+    loop $L1 void
+      local.get 3
+      local.get 2
+      usize.lt
+      if $L2 void
+        local.get 0
+        local.get 3
+        array.get 1
+        call 1
+        call 3
+        local.get 3
+        i64.const 1
+        i64.to_usize
+        usize.add
+        local.set 3
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  return.lit i32.const 0
+end
+
+fn 3 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
+  return
+end

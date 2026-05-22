@@ -10,8 +10,8 @@
 module "snippet"
 
 import "std/io" { println }
-import "./mod_a" { make_a }
-import "./mod_b" { make_b }
+import "snippet/mod_a" { make_a }
+import "snippet/mod_b" { make_b }
 
 main :: fn() -> i32 {
     a :: make_a()

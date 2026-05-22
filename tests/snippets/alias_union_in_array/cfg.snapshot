@@ -1,5 +1,111 @@
 # CFG
 
-# Diagnostics
-[1:1] error[R2001] module not found: entry file's containing folder is not in any scanned root
-[12:8] error[R2023] two folders declare the same module name globally: module `snippet` already declared by another folder
+## snippet
+
+fn snippet$push_pet(%0: Cat | Dog[], %1: Cat | Dog) -> void
+  locals:
+    %0 arr: Cat | Dog[] (param arr)
+    %1 p: Cat | Dog (param p)
+  bb0:
+    array_push %0, %1
+    return
+
+fn snippet$describe(%0: Cat | Dog) -> string
+  locals:
+    %0 p: Cat | Dog (param p)
+    %1 __scrut_0: Cat | Dog (synthetic __scrut_0)
+    %2 $type_check_2: bool
+    %3 if_res: string
+    %4 c: Cat (binding c)
+    %5 $intrinsic_6: ?
+    %6 __sb_2: ? (synthetic __sb_2)
+    %7 $k_8: string
+    %8 $field_9: string
+    %9 $intrinsic_10: string
+    %10 $type_check_11: bool
+    %11 if_res: string
+    %12 d: Dog (binding d)
+    %13 $intrinsic_15: ?
+    %14 __sb_1: ? (synthetic __sb_1)
+    %15 $k_17: string
+    %16 $field_18: string
+    %17 $intrinsic_19: string
+  bb0:
+    %1 = move %0
+    %2 = type_check %1 is Cat
+    cond_branch %2 ? bb1 : bb2
+  bb1:
+    %4 = cast %1 :Cat
+    %5 = intrinsic builder.new()
+    %6 = move %5
+    %7 = const string(#0) :string
+    intrinsic builder.append_str(%6, %7)
+    %8 = field_get %4.name :string
+    intrinsic builder.append_display(%6, %8)
+    %9 = intrinsic builder.finish(%6)
+    %3 = move %9
+    branch -> bb3
+  bb2:
+    %10 = type_check %1 is Dog
+    cond_branch %10 ? bb4 : bb5
+  bb3:
+    return %3
+  bb4:
+    %12 = cast %1 :Dog
+    %13 = intrinsic builder.new()
+    %14 = move %13
+    %15 = const string(#1) :string
+    intrinsic builder.append_str(%14, %15)
+    %16 = field_get %12.name :string
+    intrinsic builder.append_display(%14, %16)
+    %17 = intrinsic builder.finish(%14)
+    %11 = move %17
+    branch -> bb6
+  bb5:
+    unreachable ; non-exhaustive match (T3013 should have caught this)
+  bb6:
+    %3 = move %11
+    branch -> bb3
+
+fn snippet$main() -> i32
+  locals:
+    %0 pets: Cat | Dog[] (local pets)
+    %1 $k_2: string
+    %2 $struct_3: Cat
+    %3 $k_4: string
+    %4 $struct_5: Dog
+    %5 __for_arr_0: Cat | Dog[] (synthetic __for_arr_0)
+    %6 __for_len_1: usize (synthetic __for_len_1)
+    %7 __for_i_2: usize (synthetic __for_i_2)
+    %8 $lt_11: bool
+    %9 p: Cat | Dog (binding p)
+    %10 $call_14: string
+    %11 $k_15: usize
+    %12 $k_17: i32
+  bb0:
+    %0 = array_new Cat | Dog[][0]()
+    %1 = const string(#2) :string
+    %2 = struct_new Cat(%1)
+    call push_pet(%0, %2) :void
+    %3 = const string(#3) :string
+    %4 = struct_new Dog(%3)
+    call push_pet(%0, %4) :void
+    %5 = move %0
+    %6 = array_len %5
+    %7 = const int(0) :usize
+    branch -> bb1
+  bb1:
+    %8 = binop lt %7 %6 :bool
+    cond_branch %8 ? bb2 : bb3
+  bb2:
+    %9 = array_get %5[%7] :Cat | Dog
+    %10 = call describe(%9) :string
+    call println(%10) :void
+    %11 = const int(1) :usize
+    %7 = binop add %7 %11 :usize
+    branch -> bb1
+  bb3:
+    %12 = const int(0) :i32
+    return %12
+
+## snippet/types

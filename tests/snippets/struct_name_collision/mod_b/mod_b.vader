@@ -1,6 +1,8 @@
 // Module B : its `Box` carries a string `label`. Same name as
 // `mod_a::Box`, different shape — that's the whole point of the
 // regression test.
+module "snippet/mod_b"
+
 export Box :: struct {
     label: string
 }

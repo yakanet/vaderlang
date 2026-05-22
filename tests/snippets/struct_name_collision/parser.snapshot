@@ -22,7 +22,7 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "./mod_a",
+      "path": "snippet/mod_a",
       "binding": {
         "kind": "destructure",
         "names": [
@@ -36,7 +36,7 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "./mod_b",
+      "path": "snippet/mod_b",
       "binding": {
         "kind": "destructure",
         "names": [

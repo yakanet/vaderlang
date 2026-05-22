@@ -22,7 +22,7 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "./types",
+      "path": "snippet/types",
       "binding": {
         "kind": "destructure",
         "names": [

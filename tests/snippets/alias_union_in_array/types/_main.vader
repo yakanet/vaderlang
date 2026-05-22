@@ -1,4 +1,4 @@
-module "snippet"
+module "snippet/types"
 
 export Cat :: struct { name: string }
 export Dog :: struct { name: string }

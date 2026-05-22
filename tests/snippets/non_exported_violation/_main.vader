@@ -1,6 +1,6 @@
 module "snippet"
 
-import "./lib" { secret_helper }
+import "snippet/lib" { secret_helper }
 
 main :: fn() -> i32 {
     public_helper()

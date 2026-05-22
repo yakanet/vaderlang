@@ -1,4 +1,6 @@
 // Module A : its `Box` carries a numeric `id`.
+module "snippet/mod_a"
+
 export Box :: struct {
     id: i32
 }

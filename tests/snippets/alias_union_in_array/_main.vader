@@ -12,7 +12,7 @@
 module "snippet"
 
 import "std/io" { println }
-import "./types" { Cat, Dog, Pet }
+import "snippet/types" { Cat, Dog, Pet }
 
 push_pet :: fn(arr: Pet[], p: Pet) -> void {
     arr.push(p)

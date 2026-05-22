@@ -1,3 +1,5 @@
+module "snippet/lib"
+
 secret_helper :: fn() -> i32 {
     return 42
 }

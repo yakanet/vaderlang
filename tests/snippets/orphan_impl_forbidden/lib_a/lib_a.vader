@@ -1,2 +1,4 @@
 // Module A defines a struct `Foo` — owns the type, not the trait.
+module "snippet/lib_a"
+
 export Foo :: struct { value: i32 }

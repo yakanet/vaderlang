@@ -8,7 +8,7 @@
   "decls": [
     {
       "kind": "ImportDecl",
-      "path": "./lib_a",
+      "path": "snippet/lib_a",
       "binding": {
         "kind": "destructure",
         "names": [
@@ -22,7 +22,7 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "./lib_b",
+      "path": "snippet/lib_b",
       "binding": {
         "kind": "destructure",
         "names": [
