@@ -1,0 +1,13 @@
+// `NotATrait` is a struct, not a trait — `MyType implements NotATrait`
+// should trigger R2009 (`trait name does not refer to a trait`).
+NotATrait :: struct { x: i32 }
+
+MyType :: struct { y: i32 }
+
+MyType implements NotATrait {
+    foo :: fn(self) -> i32 { return self.y }
+}
+
+main :: fn() -> i32 {
+    return 0
+}

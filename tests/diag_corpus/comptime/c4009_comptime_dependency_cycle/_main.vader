@@ -1,0 +1,12 @@
+// `@comptime` declarations forming a dep cycle — TS emits C4009 on the
+// cycle. Vader's codes.vader assigns C4001 to DependencyCycle, so the
+// diag-parity surface shows the same situation as TS-C4009 vs Vader-C4001.
+@comptime
+export A :: B + 1
+
+@comptime
+export B :: A + 1
+
+main :: fn() -> i32 {
+    return A
+}

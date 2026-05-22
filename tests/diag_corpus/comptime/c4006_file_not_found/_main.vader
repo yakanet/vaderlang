@@ -1,0 +1,10 @@
+// `@file("path")` reads a project-rooted file at comptime ; when the
+// target doesn't exist, TS emits C4006. Vader's codes.vader maps C4006
+// to a generic TypeMismatch, so this snippet exposes which code Vader
+// chose to use for the ENOENT path (if any).
+@comptime
+export DATA :: @file("definitely_not_a_real_file.txt")
+
+main :: fn() -> i32 {
+    return 0
+}

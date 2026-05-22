@@ -1,0 +1,6 @@
+@unknown_decorator_here
+foo :: fn() -> i32 { return 1 }
+
+main :: fn() -> i32 {
+    return foo()
+}

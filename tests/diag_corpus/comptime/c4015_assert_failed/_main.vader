@@ -1,0 +1,8 @@
+// `@assert(false)` — TS emits C4015 ("compile-time assertion failed").
+// Vader's codes.vader maps AssertFailed to C4004 instead, so this
+// snippet flips between TS-only C4015 and Vader-only C4004.
+@assert(1 + 1 == 3)
+
+main :: fn() -> i32 {
+    return 0
+}

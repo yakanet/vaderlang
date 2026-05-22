@@ -1,0 +1,10 @@
+// @comptime division by zero — TS emits C4005 ("comptime division by
+// zero"). Vader's codes.vader renumbered this to C4007, so the
+// diag-parity surface flips this snippet from C4005 (TS-only) to
+// C4007 (Vader-only).
+@comptime
+export BOOM :: 10 / 0
+
+main :: fn() -> i32 {
+    return BOOM
+}

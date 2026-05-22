@@ -1,0 +1,5 @@
+import "nonexistent/module/path" { something }
+
+main :: fn() -> i32 {
+    return 0
+}

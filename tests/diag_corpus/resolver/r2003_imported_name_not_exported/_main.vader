@@ -1,0 +1,6 @@
+// `std/io` doesn't export `nonexistent_export` — should trigger R2003.
+import "std/io" { nonexistent_export }
+
+main :: fn() -> i32 {
+    return 0
+}
