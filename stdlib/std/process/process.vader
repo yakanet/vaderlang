@@ -7,6 +7,8 @@
 
 // Sentinels mirror the negative codes returned by `vader_spawn_run` — kept
 // in sync with `runtime/c/vader.h`'s VADER_SPAWN_* macros.
+module "std/process"
+
 LAUNCH_FAIL :: -1
 SIGNALED    :: -2
 

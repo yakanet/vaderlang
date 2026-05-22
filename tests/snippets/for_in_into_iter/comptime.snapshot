@@ -1,12 +1,12 @@
 # Comptime
 
-## stdlib/std/collections.vader
+## stdlib/std/collections
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
-## stdlib/std/io.vader
+## stdlib/std/io
 
-## stdlib/std/string.vader
+## stdlib/std/string
 
 ## tests/snippets/for_in_into_iter/_main.vader
 

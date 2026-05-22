@@ -5,6 +5,8 @@
 // For benchmarking use `Monotonic` ; for display / persistence use
 // `Instant`.
 
+module "std/time"
+
 import "std/string" { byte_len, byte_at, pad_start }
 import "std/math" { abs }
 

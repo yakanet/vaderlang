@@ -5,6 +5,8 @@
 
 /// Raised by every fallible operation in this module — `read_file`,
 /// `write_file`, `read_line`, `read_dir`. Carries a short diagnostic.
+module "std/io"
+
 export IOError :: struct {
     msg: string
 }

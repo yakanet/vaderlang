@@ -1,8 +1,8 @@
 # Comptime
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
-## stdlib/std/io.vader
+## stdlib/std/io
 
 ## tests/snippets/decorator_deprecated/_main.vader
   @comptime  KING                 = 42_i32

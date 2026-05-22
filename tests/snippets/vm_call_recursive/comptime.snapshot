@@ -1,6 +1,6 @@
 # Comptime
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
 ## tests/snippets/vm_call_recursive/_main.vader
 

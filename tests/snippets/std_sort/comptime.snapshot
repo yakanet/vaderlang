@@ -1,12 +1,12 @@
 # Comptime
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
-## stdlib/std/io.vader
+## stdlib/std/io
 
-## stdlib/std/sort.vader
+## stdlib/std/sort
 
-## stdlib/std/string.vader
+## stdlib/std/string
 
 ## tests/snippets/std_sort/_main.vader
 

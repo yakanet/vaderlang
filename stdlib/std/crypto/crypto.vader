@@ -15,6 +15,8 @@
 // chunked API lands (`Sha256.update(bytes)` / `.finalize()` —
 // post-MVP).
 
+module "std/crypto"
+
 import "std/string" { byte_len, byte_at }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 

@@ -1,10 +1,10 @@
 # Comptime
 
-## stdlib/std/cli.vader
+## stdlib/std/cli
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
-## stdlib/std/io.vader
+## stdlib/std/io
 
 ## tests/snippets/std_cli_basic/_main.vader
 

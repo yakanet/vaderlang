@@ -14,6 +14,8 @@
 // `=` inside values (`--out=a=b`) are out of scope for MVP. Add when a real
 // caller needs them.
 
+module "std/cli"
+
 import "std/collections" { MutableMap }
 import "std/string" { starts_with, slice, byte_len, split }
 

@@ -4855,7 +4855,7 @@ fn 64 std_regex$run_at (ref,string,usize) -> ref
       local.get 7
       usize.le
       if $L2 void
-        char.const 0
+        char.const 32
         local.set 8
         i64.const 0
         local.set 9

@@ -1,6 +1,6 @@
 # Comptime
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
 ## tests/snippets/intrinsic_field_index/_main.vader
 

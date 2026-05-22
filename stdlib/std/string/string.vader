@@ -4,6 +4,8 @@
 // Width-based helpers (`pad_start`, `pad_end`) measure width in bytes, not
 // codepoints — accurate for ASCII, approximate for non-ASCII content.
 
+module "std/string"
+
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/math" { min }
 import "std/utf8" { codepoint_byte_len }

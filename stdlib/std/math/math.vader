@@ -1,6 +1,8 @@
 // std/math — basic numeric operations and constants.
 
 /// π (3.141592653589793).
+module "std/math"
+
 export pi :: 3.141592653589793
 /// Euler's number, e (2.718281828459045).
 export e :: 2.718281828459045

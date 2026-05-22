@@ -10,6 +10,8 @@
 // 256 consecutive u64s. For a cryptographic PRNG plug `std/crypto`
 // (post-MVP).
 
+module "std/random"
+
 import "std/time" { monotonic_ns }
 
 /// Mutable RNG state. Two 64-bit words ; the seeder guarantees at least

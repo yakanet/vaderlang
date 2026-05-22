@@ -7,6 +7,8 @@
 //
 // Pure Vader, zero host imports — WASM-ready as-is.
 
+module "std/base64"
+
 import "std/string" { byte_len, byte_at }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 

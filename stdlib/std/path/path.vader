@@ -4,6 +4,8 @@
 // Path rather than mutating. POSIX-style `/` separator only in MVP — Windows
 // support deferred (will replace the constant with a runtime-determined value).
 
+module "std/path"
+
 import "std/string" {
     byte_len, is_empty, slice, last_index_of,
     starts_with as str_starts_with, ends_with as str_ends_with,

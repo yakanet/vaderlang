@@ -12,6 +12,8 @@
 /// Trap the current execution with `msg`. Surface for the VM is a thrown
 /// `VmError`; on native, the process aborts after printing to stderr.
 /// Kept private — external callers should reach for `fail(msg)` instead.
+module "std/testing"
+
 @intrinsic panic :: fn(msg: string) -> void
 
 /// Local f64-abs — kept inline to avoid a `std/math` import, which would

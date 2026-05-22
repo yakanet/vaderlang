@@ -30,6 +30,8 @@
 
 /// Number of items in the array. Trivial wrapper over `arr.len()` ;
 /// exposed for symmetry with the future Iterator-driven `count(it)`.
+module "std/iter"
+
 export count :: fn[T](arr: T[]) -> usize {
     return arr.len()
 }

@@ -32,6 +32,8 @@
 // first put so the struct-literal constructor stays simple.
 // ===========================================================================
 
+module "std/collections"
+
 BUCKET_COUNT :: usize(16)
 
 Entry :: struct[K, V] {

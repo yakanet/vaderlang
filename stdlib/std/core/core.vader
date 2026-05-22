@@ -18,6 +18,8 @@
 /// string interpolation (`"${value}"`) and the `print` / `println` family
 /// in `std/io`. Every primitive type ships an `@intrinsic` impl ; user
 /// types opt in by declaring their own `to_string`.
+module "std/core"
+
 export Display :: trait {
     to_string :: fn(self) -> string
 }

@@ -1,10 +1,10 @@
 # Comptime
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
-## stdlib/std/io.vader
+## stdlib/std/io
 
-## stdlib/std/regex.vader
+## stdlib/std/regex
 
 ## tests/snippets/std_regex/_main.vader
 

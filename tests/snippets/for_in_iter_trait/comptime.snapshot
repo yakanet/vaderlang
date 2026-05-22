@@ -1,12 +1,12 @@
 # Comptime
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
-## stdlib/std/io.vader
+## stdlib/std/io
 
-## stdlib/std/iter.vader
+## stdlib/std/iter
 
-## stdlib/std/string.vader
+## stdlib/std/string
 
 ## tests/snippets/for_in_iter_trait/_main.vader
 

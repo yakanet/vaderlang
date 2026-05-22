@@ -1,6 +1,6 @@
 # Comptime
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
 ## tests/snippets/closure_counter/_main.vader
 

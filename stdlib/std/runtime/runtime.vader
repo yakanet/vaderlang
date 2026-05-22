@@ -7,6 +7,8 @@
 
 /// Force a Cheney semi-space collection cycle now. Returns once the cycle
 /// completes ; live objects have been moved to the new from-space.
+module "std/runtime"
+
 @intrinsic
 export collect :: fn() -> void
 

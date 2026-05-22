@@ -1,8 +1,8 @@
 # Comptime
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
-## stdlib/std/io.vader
+## stdlib/std/io
 
 ## tests/snippets/if_without_else_stmt/_main.vader
 

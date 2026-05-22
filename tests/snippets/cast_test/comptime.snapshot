@@ -1,8 +1,8 @@
 # Comptime
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
-## stdlib/std/io.vader
+## stdlib/std/io
 
 ## tests/snippets/cast_test/_main.vader
 

@@ -14,6 +14,8 @@
 /// Amortised-O(1) string accumulator. Pushes UTF-8 parts onto an internal
 /// `[string]` buffer ; flushed in one allocation by `Display::to_string`
 /// (called automatically through `${sb}` interpolation).
+module "std/string_builder"
+
 export StringBuilder :: struct {
     parts: string[]
 }

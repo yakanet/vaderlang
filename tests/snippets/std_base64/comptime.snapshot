@@ -1,11 +1,11 @@
 # Comptime
 
-## stdlib/std/base64.vader
+## stdlib/std/base64
   @comptime  ALPHABET             = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
-## stdlib/std/io.vader
+## stdlib/std/io
 
 ## tests/snippets/std_base64/_main.vader
 

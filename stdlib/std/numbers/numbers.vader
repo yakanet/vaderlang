@@ -3,6 +3,8 @@
 // Lives outside std/core so we can use std/builder for efficient construction.
 // UFCS-callable as `n.to_hex()` once `import "std/numbers"` is in scope.
 
+module "std/numbers"
+
 import "std/string" { byte_len, chars, ends_with, is_digit, is_empty, slice, contains, replace_chars_where }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 

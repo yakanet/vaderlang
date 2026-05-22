@@ -21,6 +21,8 @@
 //
 // Pure Vader, zero host imports — WASM-ready as-is.
 
+module "std/regex"
+
 import "std/string" { byte_len, byte_at, slice, is_empty }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 
@@ -721,7 +723,7 @@ run_at :: fn(p: Pattern, input: string, start: usize) -> Match | null {
     matched: Match | null = null
     pos := start
     for pos <= input.byte_len() {
-        c_at_pos: char = ' '
+        c_at_pos: char = ' '
         bytes_consumed: usize = 0
         if pos < input.byte_len() {
             c_at_pos = input[pos]

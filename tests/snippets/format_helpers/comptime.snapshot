@@ -1,12 +1,12 @@
 # Comptime
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
-## stdlib/std/io.vader
+## stdlib/std/io
 
-## stdlib/std/numbers.vader
+## stdlib/std/numbers
 
-## stdlib/std/string.vader
+## stdlib/std/string
 
 ## tests/snippets/format_helpers/_main.vader
 

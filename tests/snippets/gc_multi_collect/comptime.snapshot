@@ -1,10 +1,10 @@
 # Comptime
 
-## stdlib/std/core.vader
+## stdlib/std/core
 
-## stdlib/std/io.vader
+## stdlib/std/io
 
-## stdlib/std/runtime.vader
+## stdlib/std/runtime
 
 ## tests/snippets/gc_multi_collect/_main.vader
 

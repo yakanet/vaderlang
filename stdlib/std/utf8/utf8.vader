@@ -20,6 +20,8 @@
 /// Codepoints above `U+10FFFF` clamp to 4 — invalid Unicode anyway.
 /// @param c  the codepoint to measure.
 /// @return   its UTF-8 encoded length in bytes (1, 2, 3, or 4).
+module "std/utf8"
+
 export codepoint_byte_len :: fn(c: char) -> usize {
     cp :: u32(c)
     if cp < u32(0x80)    { return 1 }

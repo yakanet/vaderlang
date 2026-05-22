@@ -10,6 +10,8 @@
 // (TODO §1.18b). Once it lands we'll add `sort_by_compare(arr)` that calls
 // `Comparable::compare` internally.
 
+module "std/sort"
+
 import "std/iter" { clone }
 
 /// Return a fresh array containing `arr`'s elements in sorted order. The
