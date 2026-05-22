@@ -68,19 +68,6 @@ publish :: fn(uri: string, diags: Diagnostic[]) -> void {
 
 is_unresolved_cascade :: fn(d: Diagnostic) = "?" in d.detail
 
-contains :: fn(s: string, needle: string) -> bool {
-    n :: s.byte_len()
-    m :: needle.byte_len()
-    if m == 0 { return true }
-    if m > n  { return false }
-    i: usize = 0
-    for i + m <= n {
-        if s.slice(i, i + m) == needle { return true }
-        i = i + usize(1)
-    }
-    return false
-}
-
 // ---- encoding ------------------------------------------------------------
 
 encode_diagnostic :: fn(d: Diagnostic) -> JsonValue {
