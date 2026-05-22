@@ -41,8 +41,8 @@ combine_binary :: fn(expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeV
     .Add    -> arithmetic_or_concat(expr, left, right, op_add)
     .Sub    -> arithmetic(expr, left, right, op_sub)
     .Mul    -> arithmetic(expr, left, right, op_mul)
-    .Div    -> arithmetic(expr, left, right, op_div)
-    .Mod    -> arithmetic_int(expr, left, right, op_mod)
+    .Div    -> int_div_check(expr, left, right, op_div)
+    .Mod    -> int_mod_check(expr, left, right, op_mod)
     .Shl    -> arithmetic_int(expr, left, right, op_shl)
     .Shr    -> arithmetic_int(expr, left, right, op_shr)
     .BitAnd -> arithmetic_int(expr, left, right, op_bit_and)
@@ -136,6 +136,29 @@ arithmetic_int :: fn(
         _ -> {}
     }
     return type_mismatch(expr, "operand kinds disagree for bit / mod / shift op")
+}
+
+// Short-circuit before the C-level division — `idiv` by 0 traps with
+// SIGFPE on x86_64, which is host-platform UB the evaluator can't
+// otherwise observe.
+int_div_check :: fn(
+    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
+    int_op: fn(i64, i64) -> i64,
+) -> EvalResult {
+    if right is IntValue as ri {
+        if ri.value == 0_i64 { return division_by_zero(expr, "/") }
+    }
+    return arithmetic(expr, left, right, int_op)
+}
+
+int_mod_check :: fn(
+    expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
+    int_op: fn(i64, i64) -> i64,
+) -> EvalResult {
+    if right is IntValue as ri {
+        if ri.value == 0_i64 { return division_by_zero(expr, "%") }
+    }
+    return arithmetic_int(expr, left, right, int_op)
 }
 
 bool_op :: fn(
@@ -263,6 +286,10 @@ bit_not_i64 :: fn(value: i64) -> i64 { return value ^ i64(-1) }
 
 type_mismatch :: fn(expr: AST.BinaryExpr, detail: string) -> EvalResult {
     return fail(comptime_error(.TypeMismatch, expr.span, detail))
+}
+
+division_by_zero :: fn(expr: AST.BinaryExpr, op_sym: string) -> EvalResult {
+    return fail(comptime_error(.DivisionByZero, expr.span, op_sym))
 }
 
 unary_type_mismatch :: fn(expr: AST.UnaryExpr, detail: string) -> EvalResult {

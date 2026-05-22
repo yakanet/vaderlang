@@ -121,6 +121,7 @@ export ComptimeCode :: enum(u8) {
     AssertFailed,                           // C4004
     IntrinsicArg,                           // C4005
     TypeMismatch,                           // C4006
+    DivisionByZero,                         // C4007
 }
 
 // Mirror of `LOWER` in `src/diagnostics/codes.ts`. L-codes belong to
@@ -205,6 +206,7 @@ export comptime_info :: fn(c: ComptimeCode) = match c {
     .AssertFailed                       -> CodeInfo { .id = "C4004", .message = "`@assert` failed at comptime" }
     .IntrinsicArg                       -> CodeInfo { .id = "C4005", .message = "invalid argument to comptime intrinsic" }
     .TypeMismatch                       -> CodeInfo { .id = "C4006", .message = "type mismatch during comptime evaluation" }
+    .DivisionByZero                     -> CodeInfo { .id = "C4007", .message = "comptime division by zero" }
 }
 
 export lower_info :: fn(c: LowerCode) = match c {
