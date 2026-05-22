@@ -169,7 +169,6 @@ ensure_iter_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap(string, Symb
     }
 }
 
-import "std/string" { contains }
 
 // Aggregate every loaded module's impl decls into the project ctx's
 // registry. `build_impl_registry` works per-module ; we drain every

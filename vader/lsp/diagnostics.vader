@@ -66,9 +66,7 @@ publish :: fn(uri: string, diags: Diagnostic[]) -> void {
     write_frame(encode_notification("textDocument/publishDiagnostics", JsonObject { .entries = params }))
 }
 
-is_unresolved_cascade :: fn(d: Diagnostic) -> bool {
-    return contains(d.detail, "?")
-}
+is_unresolved_cascade :: fn(d: Diagnostic) = "?" in d.detail
 
 contains :: fn(s: string, needle: string) -> bool {
     n :: s.byte_len()

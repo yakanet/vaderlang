@@ -6,21 +6,16 @@
 
 ## stdlib/std/io
 
-## stdlib/std/string
-
 ## tests/snippets/for_in_into_iter/_main.vader
 
 ## generic instances
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
-  Iterator(char)
   Iterator(Entry(K, V))
   Iterator(T)
   Iterator(T)
   Iterator(T)
-  Yield(char)
-  Yield(u8)
   Yield(Entry(K, V))
   Yield(T)
   Yield(T)

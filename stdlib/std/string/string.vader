@@ -31,8 +31,11 @@ export is_empty :: fn(s: string) = s.byte_len() == 0
 /// @param end    byte offset just past the last char (exclusive).
 export slice :: fn(s: string, start: usize, end: usize) -> string
 
-/// True iff `sub` appears anywhere in `s`. Byte-wise scan.
-export contains :: fn(s: string, sub: string) -> bool
+/// True iff `sub` appears anywhere in `s`. Byte-wise scan. Module-
+/// private — external callers go through `sub in s` (Contains trait
+/// impl below) or UFCS `s.contains(sub)`. The decl stays here so the
+/// trait impl body can delegate to the runtime intrinsic.
+contains :: fn(s: string, sub: string) -> bool
 
 /// True iff `s` starts with `prefix`. Byte-wise comparison.
 export starts_with :: fn(s: string, prefix: string) -> bool
@@ -506,10 +509,10 @@ import "std/testing" { assert, assert_eq, assert_close }
 }
 
 @test test_contains :: fn() -> void {
-    assert(contains("hello world", "world"), "contains world")
-    assert(contains("abc", "a"), "contains first char")
-    assert(!contains("abc", "z"), "does not contain z")
-    assert(contains("anything", ""), "every string contains empty")
+    assert("world" in "hello world", "contains world")
+    assert("a" in "abc", "contains first char")
+    assert(!("z" in "abc"), "does not contain z")
+    assert("" in "anything", "every string contains empty")
 }
 
 @test test_starts_ends_with :: fn() -> void {

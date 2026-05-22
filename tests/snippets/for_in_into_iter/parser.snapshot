@@ -43,15 +43,6 @@
       "decorators": []
     },
     {
-      "kind": "ImportDecl",
-      "path": "std/string",
-      "binding": {
-        "kind": "destructure",
-        "names": []
-      },
-      "decorators": []
-    },
-    {
       "kind": "FnDecl",
       "name": "main",
       "visibility": "private",

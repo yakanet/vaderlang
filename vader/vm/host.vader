@@ -16,7 +16,7 @@ import "std/numbers" { parse_int_in_base }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/time" { monotonic_ns, now_unix_ms }
 import "std/string_builder" { new_builder, append }
-import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, contains, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
+import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
 
 /// Outcome of a successful host call. `value` is unused when the import
 /// has `has_return == false` — the exec checks the import's signature

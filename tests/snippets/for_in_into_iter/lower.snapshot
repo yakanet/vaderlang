@@ -265,54 +265,24 @@
             @builder.finish :string
               __sb_17 :?
     let chars: i32 = int(0) :i32
-    block :void
-      let __iter_18: StringChars =
-        call :StringChars
-          callee:
-            into :StringChars
-          arg0:
-            "héllo 世界" :string
-      loop
-        let __step_19: Yield(char) | null =
-          call :Yield(char) | null
-            callee:
-              next :?
-            arg0:
-              __iter_18 :StringChars
-        if :void
-          cond:
-            is null :bool
-              __step_19 :Yield(char) | null
-          then:
-            break
-          else:
-            let _c: char =
-              .value :char
-                cast → Yield(char)
-                  __step_19 :Yield(char) | null
-            assign
-              target:
-                chars :i32
-              value:
-                add :i32
-                  l:
-                    chars :i32
-                  r:
-                    int(1) :i32
+    unreachable("no Iterator impl on string") :void
     call :void
       callee:
         println :fn(string) -> void
       arg0:
         block :string
-          let __sb_20: ? =
+          let __sb_18: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_20 :?
+            __sb_18 :?
             "chars=" :string
           @builder.append_display <for i32> :void
-            __sb_20 :?
+            __sb_18 :?
             chars :i32
           ~>
             @builder.finish :string
-              __sb_20 :?
+              __sb_18 :?
     return int(0) :i32
+
+# Diagnostics
+[48:5] error[B5001] language feature not yet supported by the backend: `for x in iter` requires Iterator impl on string (deferred — see TODO §1.5b iterators)

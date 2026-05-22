@@ -10,7 +10,6 @@ import "std/collections" { MutableMap, MutableSet, add }
 // `std/string` imported for its blanket `string implements Into(Iterator(char))`
 // impl. The chars / bytes helpers aren't referenced directly — the Into
 // coercion routes through them at lowering.
-import "std/string" {}
 
 main :: fn() -> i32 {
     // Array — direct lowerer wrap, no Into coerce. Sum every element.

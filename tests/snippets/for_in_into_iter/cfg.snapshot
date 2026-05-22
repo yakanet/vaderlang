@@ -66,19 +66,6 @@ fn snippet$main() -> i32
     %59 __sb_17: ? (synthetic __sb_17)
     %60 $k_91: string
     %61 $intrinsic_92: string
-    %62 chars: i32 (local chars)
-    %63 $k_95: string
-    %64 $call_96: StringChars
-    %65 __iter_18: StringChars (synthetic __iter_18)
-    %66 $call_98: Yield(char) | null
-    %67 __step_19: Yield(char) | null (synthetic __step_19)
-    %68 $type_check_100: bool
-    %69 $k_104: i32
-    %70 $intrinsic_106: ?
-    %71 __sb_20: ? (synthetic __sb_20)
-    %72 $k_108: string
-    %73 $intrinsic_109: string
-    %74 $k_110: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const int(20) :i32
@@ -183,11 +170,7 @@ fn snippet$main() -> i32
     intrinsic builder.append_display(%59, %46)
     %61 = intrinsic builder.finish(%59)
     call println(%61) :void
-    %62 = const int(0) :i32
-    %63 = const string(#5) :string
-    %64 = call into(%63) :StringChars
-    %65 = move %64
-    branch -> bb20
+    unreachable ; no Iterator impl on string
   bb15:
     %54 = binop gte %51 %50 :bool
     cond_branch %54 ? bb18 : bb19
@@ -206,28 +189,6 @@ fn snippet$main() -> i32
     %55 = const int(1) :usize
     %51 = binop add %51 %55 :usize
     branch -> bb17
-  bb20:
-    branch -> bb21
-  bb21:
-    %66 = call next(%65) :Yield(char) | null
-    %67 = move %66
-    %68 = type_check %67 is null
-    cond_branch %68 ? bb23 : bb24
-  bb22:
-    %70 = intrinsic builder.new()
-    %71 = move %70
-    %72 = const string(#6) :string
-    intrinsic builder.append_str(%71, %72)
-    intrinsic builder.append_display(%71, %62)
-    %73 = intrinsic builder.finish(%71)
-    call println(%73) :void
-    %74 = const int(0) :i32
-    return %74
-  bb23:
-    branch -> bb22
-  bb24:
-    %69 = const int(1) :i32
-    %62 = binop add %62 %69 :i32
-    branch -> bb25
-  bb25:
-    branch -> bb20
+
+# Diagnostics
+[48:5] error[B5001] language feature not yet supported by the backend: `for x in iter` requires Iterator impl on string (deferred — see TODO §1.5b iterators)

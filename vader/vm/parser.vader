@@ -14,7 +14,7 @@
 
 module "vader/vm"
 
-import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, contains, index_of, decode_escapes }
+import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, split, index_of, decode_escapes }
 import "std/numbers" { hex_digit_value, parse_int_in_base, parse_uint_in_base }
 
 /// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is

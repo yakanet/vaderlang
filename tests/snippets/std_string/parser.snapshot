@@ -43,10 +43,6 @@
             "alias": null
           },
           {
-            "name": "contains",
-            "alias": null
-          },
-          {
             "name": "starts_with",
             "alias": null
           },

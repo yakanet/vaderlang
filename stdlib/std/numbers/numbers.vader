@@ -5,7 +5,7 @@
 
 module "std/numbers"
 
-import "std/string" { byte_len, chars, ends_with, is_digit, is_empty, slice, contains, replace_chars_where }
+import "std/string" { byte_len, chars, ends_with, is_digit, is_empty, slice, replace_chars_where }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 /// Raised by every fallible parser in this module. The shape mirrors
