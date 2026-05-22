@@ -663,3 +663,39 @@ phases ran. Future architecture-level work : run a `find imports |
 folder-aggregate | check-DAG` pass on the existing codebase before
 freezing decisions that assume specific aggregation rules.
 
+### Phase 8 full port — blocked on eager parse memory (2026-05-22)
+
+A scratch port of `src/resolver/loader.ts`'s strict-mode BFS to
+`vader/resolver/loader.vader` works end-to-end (38 modules indexed,
+BFS reaches every transitive import) — but the compiled Vader CLI
+OOMs under the default GC arenas (4 MB young / 16 MB old) on any
+real entry because `discover_modules` parses every `.vader` file
+in the scoped roots up-front (~170 files for stdlib + vader/* +
+entry's folder). The TS pipeline runs in V8's heap and doesn't
+notice ; the Vader self-host's GC arenas can't hold every parsed
+`Program`.
+
+Workarounds tested :
+- bumping the GC arenas via `VADER_GC_YOUNG_BYTES` /
+  `VADER_GC_OLD_BYTES` (16 / 128 MB) — works for broad-parity,
+  unrealistic as a default for snippet runs.
+- reverting `vader/resolver/loader.vader` to the legacy depth-1
+  BFS — what ships today.
+
+Resolution path : add a **header-only parse mode** to
+`vader/parser/parse_source` that extracts just the `module "..."`
+decl (and parser state needed to find it — shebang + comments
+prelude + the `ident("module") + string` lookahead). `discover_modules`
+calls the header-only path to build the name → folder index ; the
+full `parse_source` runs lazily when BFS visits each module. Memory
+footprint drops from "every Program" to "just the indexed file
+list" — same shape as the TS version's behaviour under V8's
+generational GC.
+
+Estimated effort : ~2-3 h for the header-only parse infra +
+re-port of `load_project`. Until then, Phase 8 ships with the
+additive infrastructure committed (codes R2020-R2028 in
+`vader/diagnostics/codes.vader`, `vader/resolver/discover.vader`
+ready to wire), and the legacy depth-1 BFS continues to drive the
+compiled Vader CLI.
+
