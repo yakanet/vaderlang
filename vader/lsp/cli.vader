@@ -16,6 +16,4 @@ module "vader/lsp"
 ///              defined yet ; reserved for `--log <path>`, `--stdio`,
 ///              `--port N`, etc.
 /// @return      OS exit code (0 on clean shutdown, 1 on error).
-export run_lsp :: fn(args: string[]) -> i32 {
-    return run_server(args)
-}
+export run_lsp :: fn(args: string[]) = run_server(args)

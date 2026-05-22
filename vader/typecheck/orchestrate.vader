@@ -197,7 +197,7 @@ collect_direct_imports :: fn(
     return out
 }
 
-import "std/string" { starts_with }
+import "std/string" { starts_with, ends_with }
 import "vader/resolver" { default_stdlib_root, module_id_from_root, resolve_import_path }
 
 
@@ -876,23 +876,11 @@ stdlib_core_id :: fn(project: LoadedProject) -> string | null {
     for id in project.modules.keys() {
         // Conservative match : any module whose path ends with
         // `std/core.vader` or `std/core` is core.
-        if ends_with_str(id, "std/core.vader") || ends_with_str(id, "std/core") {
+        if id.ends_with("std/core.vader") || id.ends_with("std/core") {
             return id
         }
     }
     return null
-}
-
-import "std/string" { byte_at, byte_len }
-
-ends_with_str :: fn(s: string, suffix: string) -> bool {
-    sl :: s.byte_len()
-    pl :: suffix.byte_len()
-    if sl < pl { return false }
-    for i in 0..<pl {
-        if s.byte_at(sl - pl + i) != suffix.byte_at(i) { return false }
-    }
-    return true
 }
 
 build_namespace_exports :: fn(
