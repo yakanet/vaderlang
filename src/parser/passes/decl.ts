@@ -200,7 +200,7 @@ function parseImportNameListRest(p: Parser): A.ImportName[] {
   return names;
 }
 
-function expectStringLiteral(p: Parser, what: string): { text: string; span: Span } {
+export function expectStringLiteral(p: Parser, what: string): { text: string; span: Span } {
   if (!p.check("string_begin")) {
     const t = p.peek();
     p.error("P1002", t.span, `expected ${what} (got ${describeToken(t)})`);

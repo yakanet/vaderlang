@@ -1,0 +1,6 @@
+#!/usr/bin/env vader
+module "main"
+
+main :: fn() -> i32 {
+    return 0
+}

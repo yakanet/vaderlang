@@ -168,6 +168,7 @@ function p404(file: string): Program {
     kind: "Program",
     id: UNASSIGNED_NODE_ID, file,
     span: { start: { file, offset: 0, line: 1, column: 1 }, end: { file, offset: 0, line: 1, column: 1 } },
+    module: null,
     decls: [],
   };
 }

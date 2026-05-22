@@ -24,7 +24,22 @@ export interface AstNode { readonly id: number; readonly span: Span; }
 export interface Program extends AstNode {
   readonly kind: "Program";
   readonly file: string;
+  /** The `module "..."` declaration that opens the file. Null in tolerant
+   *  parsing mode (Phase 2 of the module-system rollout) when the source
+   *  predates the new requirement ; Phase 7 flips this to mandatory and
+   *  emits a parser diagnostic when absent. See docs/MODULE_SYSTEM.md. */
+  readonly module: ModuleDecl | null;
   readonly decls: readonly Decl[];
+}
+
+/** The `module "<name>"` declaration that opens every `.vader` file
+ *  (mandatory once the strict resolver flip lands in Phase 7). Carries
+ *  the validated module name and its source span. The leading `module`
+ *  keyword's own span lives implicitly in the node's overall `span`. */
+export interface ModuleDecl extends AstNode {
+  readonly kind: "ModuleDecl";
+  readonly name: string;
+  readonly nameSpan: Span;
 }
 
 // ============================================================================

@@ -52,6 +52,7 @@ export const PARSER = {
   P1022: "tuple pattern requires at least 2 elements",
   P1023: "let destructure requires at least 2 elements",
   P1027: "invalid `const` qualifier placement",
+  P1028: "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)",
 } as const;
 
 export type ParserCode = keyof typeof PARSER;

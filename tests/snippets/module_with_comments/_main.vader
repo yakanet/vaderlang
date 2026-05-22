@@ -1,0 +1,10 @@
+// File-level leading comment — should not block the module decl from
+// being recognised as the file's identity declaration.
+
+/* A block comment may also precede the module keyword. */
+
+module "main"
+
+main :: fn() -> i32 {
+    return 0
+}

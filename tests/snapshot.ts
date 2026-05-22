@@ -540,6 +540,7 @@ function formatProgram(program: unknown): string {
     if (SPAN_KEYS.has(key)) return undefined;
     if (key === "id") return undefined;       // internal node id; hidden from snapshots
     if (key === "immutable" && value === false) return undefined;  // omit default for parity with self-host dumper
+    if (key === "module" && value === null) return undefined;       // tolerant-mode placeholder; only shown when present
     if (typeof value === "bigint") return `${value.toString()}n`;
     return value;
   }, 2);

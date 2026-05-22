@@ -19,7 +19,10 @@ export type TokenKind =
   | "interp_open"
   | "interp_close"
 
-  // Keywords
+  // Keywords. `module` is a *soft* keyword: it stays an `ident` token in
+  // the stream and is only recognised by the parser when it appears at the
+  // file prologue position (see §11). This avoids shadowing the many
+  // existing uses of `module` as a struct field name.
   | "kw_fn" | "kw_struct" | "kw_trait" | "kw_implements" | "kw_enum"
   | "kw_if" | "kw_else" | "kw_match" | "kw_is" | "kw_for" | "kw_in"
   | "kw_return" | "kw_defer" | "kw_break" | "kw_continue"

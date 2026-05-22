@@ -127,6 +127,7 @@ function mergeFilePrograms(programs: readonly ResolvedProgram[]): ResolvedProgra
     kind: "Program",
     id: UNASSIGNED_NODE_ID, file: first.module.rootDir,
     span: first.source.span,
+    module: first.source.module,
     decls: allDecls,
   };
   const merge = <K, V>(maps: ReadonlyArray<ReadonlyMap<K, V>>): Map<K, V> => {
