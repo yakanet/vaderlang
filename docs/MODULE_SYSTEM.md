@@ -575,3 +575,91 @@ Open arbitrations from the design discussion, with the final call :
 
 This list freezes the design. Any deviation during implementation
 needs to be brought back here as an amendment.
+
+## 8. Issues encountered
+
+### Phase 7 frozen (2026-05-22) — `vader/` self-host architecturally incompatible with folder-modules
+
+**Symptom.** Phases 1-6 landed clean (tolerant parsers, all .vader files
+annotated with `module "..."`, examples + bench restructured into per-file
+subfolders, codes registry + `discover.ts` foundation committed). Two sub-
+commits of the Phase 7b strict flip landed (codes `a3c6ce0c`, discover
+`9b43e33f`). The third sub-commit — wiring discover into the loader and
+flipping `resolveImportPath` to strict index lookup — broke in cascade.
+
+**Cause.** The Phase-5 decision to give every file under `vader/X/`
+the same `module "vader/X"` declaration (one module per folder) is
+incompatible with the self-host's actual dependency structure. Three
+issues surfaced when strict mode activated :
+
+1. **956 sub-path imports** — the existing self-host uses
+   `import "vader/X/Y" { Z }` (a leftover of the legacy per-file
+   resolver). Under folder-modules these names don't exist ; only
+   `vader/X` does. Mechanical rewrite is possible (956 → 0) but reveals
+   the next two issues.
+
+2. **450 self-imports** — after rewriting `import "vader/X/Y"` to
+   `import "vader/X"`, files inside `vader/X/` end up importing their
+   own module. Strict mode emits R2024 ; in legacy mode the per-file
+   modules made these legitimate cross-module imports. Cross-file
+   references *within* the same folder-module need to drop the
+   `import` line (visibility shared by §1.6) but the imported names
+   must stay reachable — and the resolver's symbol merge in
+   `collect.ts` first-wins (silent) when a sibling file's
+   import-binding shadows a local export.
+
+3. **Cross-folder cycle** — `vader/typecheck/types.vader` declares the
+   `Type` union and imports `Symbol` from `vader/resolver/symbol.vader`.
+   `vader/resolver/resolve.vader` and `vader/resolver/builtins.vader`
+   reach back into `vader/typecheck/types.vader` for `Type` /
+   `PRIMITIVE_NAMES`. Under per-file modules (legacy) the dependency
+   stays at file granularity and is acyclic
+   (`resolve.vader → types.vader → symbol.vader`). Under folder-modules
+   (Phase 5) the dependency aggregates : `vader/resolver` and
+   `vader/typecheck` become mutually dependent and the strict resolver
+   emits R2005 ("import cycle detected"), per decision #4.
+
+   Breaking this cycle requires either (a) co-locating `Symbol` and
+   `Type` in the same module (architectural merge), or (b) decoupling
+   via IDs / a type registry (`Symbol → TypeId`, lookup table outside).
+   Both are multi-day refactors touching ~50+ files.
+
+**Decision.** Phase 7 is frozen at sub-commit `9b43e33f` (discover.ts
+landed but unwired). The strict-flip work (loader rewrite,
+`resolveImportPath` strict, parser flip, prelude injection) sits behind
+the architectural refactor. Three candidate paths to resume :
+
+- **Path A — Rollback Phase 5 to per-file modules.** Each `vader/X/Y.vader`
+  declares `module "vader/X/Y"`. Equivalent semantics to the legacy
+  promote-to-folder-module patch. Existing imports stay valid. Cross-file
+  private visibility *within* a folder disappears — every cross-file
+  reference needs an explicit `export`. Cost : redo Phase 5 + audit
+  missing exports (~1-2 h).
+- **Path B — Hybrid : folder-modules for `stdlib/`, per-file for `vader/`.**
+  `stdlib/std/*` keeps the Phase-4 layout (one file per module is a
+  natural fit there ; flat sibling layout was the original pain point).
+  `vader/*` reverts to per-file. SPEC §11 needs an amendment authorising
+  the asymmetry. Same cost as Path A on the `vader/` side.
+- **Path C — Architectural refactor of `vader/`.** Extract a `vader/types`
+  module hosting `Type` + `PRIMITIVE_NAMES` (and any other Symbol-Type
+  cross-references), keep folder-modules, follow with mass-rewrite of
+  imports and self-import removal. Multi-day chantier touching 50+
+  self-host files. Aligns the codebase with the design's folder-module
+  rule but is the heaviest lift.
+
+The 42 decisions in §7 stay frozen. The refactor path (whichever is
+chosen) is its own chantier ; resuming Phase 7 strict-flip happens after
+that work lands. Sub-commits `a3c6ce0c` + `9b43e33f` are additive
+infrastructure and remain useful regardless of which path is chosen.
+
+**Lessons (per `feedback_explore_before_commit_to_phase`).** The
+Phase 1 design and Phase 7 plan agent both missed the
+`Type ↔ Symbol` cycle — neither traced an actual cross-folder
+dependency through the existing self-host before declaring the
+folder-module rule applicable. A 30-minute walk of the `vader/`
+dependency graph at design time would have surfaced the cycle and
+re-routed Phase 5 (per-file vs per-folder) before the migration
+phases ran. Future architecture-level work : run a `find imports |
+folder-aggregate | check-DAG` pass on the existing codebase before
+freezing decisions that assume specific aggregation rules.
+
