@@ -231,23 +231,23 @@ static size_t g_string_gc_threshold = VADER_STRING_GC_THRESHOLD_FLOOR;
 
 static size_t g_string_total_bytes;  /* tentative def — see string arena */
 
+/* Throttle the string mark-sweep across minor collects. With the O(log N)
+ * mark in place, sweep cost is dominated by the qsort that rebuilds the
+ * sorted index — ~50 % of total runtime on the typechecker bootstrap.
+ * Skipping every Nth sweep cuts that proportionally. Strings unreachable
+ * during the skipped cycles stay live a bit longer, but the adaptive
+ * `g_string_gc_threshold` trigger (`bytes > 2 × live`) always overrides
+ * the throttle so unbounded retention is impossible. Major collects
+ * skip the throttle entirely — they sweep on their own path. */
+#ifndef VADER_STRING_SWEEP_MINOR_INTERVAL
+#define VADER_STRING_SWEEP_MINOR_INTERVAL 8u
+#endif
+static unsigned g_minor_since_string_sweep = 0u;
+
 /* Internal bump in the young from-space. Caller must have ensured capacity. */
 static void* vader_gc_alloc_young_unchecked(size_t aligned) {
     void* p = g_young.from.cur;
     g_young.from.cur += aligned;
-    return p;
-}
-
-/* Bump in old.from — used by promotion during minor and by major's evacuation
- * into the spare old semi-space (where `to` is the active target). The
- * `target` arena is whichever old semi-space the caller is filling. */
-static void* vader_gc_alloc_in_old(vader_arena_t* target, size_t bytes) {
-    size_t aligned = vader_gc_align(bytes);
-    if (target->cur + aligned > target->end) {
-        return NULL;                                     /* caller handles overflow */
-    }
-    void* p = target->cur;
-    target->cur += aligned;
     return p;
 }
 
@@ -549,8 +549,18 @@ void vader_minor_collect(void) {
     g_cycle = saved;
 
     /* String mark-sweep runs after the swap so it walks the freshly
-     * compacted survivor set. */
-    vader_string_gc_collect();
+     * compacted survivor set. Throttled : skip on minors triggered by
+     * young-space pressure when string churn hasn't crossed the adaptive
+     * threshold. `MAJOR_DRAIN` skips unconditionally — the enclosing
+     * `vader_major_collect` will sweep after its own old-Cheney pass. */
+    g_minor_since_string_sweep++;
+    int inside_major  = (saved == VADER_CYCLE_MAJOR_DRAIN);
+    int strings_hot   = (g_string_total_bytes > g_string_gc_threshold);
+    int counter_hit   = (g_minor_since_string_sweep >= VADER_STRING_SWEEP_MINOR_INTERVAL);
+    if (!inside_major && (strings_hot || counter_hit)) {
+        vader_string_gc_collect();
+        g_minor_since_string_sweep = 0u;
+    }
 }
 
 void vader_major_collect(void) {
@@ -584,6 +594,7 @@ void vader_major_collect(void) {
     g_cycle = VADER_CYCLE_NONE;
     g_total_collections++;
     vader_string_gc_collect();
+    g_minor_since_string_sweep = 0u;
 }
 
 /* Public alias. `runtime.collect()` in Vader maps here; tests rely on it
