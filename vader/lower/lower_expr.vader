@@ -45,7 +45,7 @@ import "vader/typecheck/impls" { type_to_target_symbol, has_user }
 import "vader/resolver/wire" { ImportTargetTable, SymbolTarget }
 import "vader/parser/ast" { ConstDecl, ImplDecl }
 import "vader/typecheck/types" { display_type }
-import "vader/lower/ctx" { FnLowerCtx, BlockCtx, new_block_ctx, GenericFnInstance }
+import "vader/lower/ctx" { FnLowerCtx, LowerProjectCtx, BlockCtx, new_block_ctx, GenericFnInstance }
 import "vader/lower/entry_types" { expr_type, type_expr_type, local_type, span_key }
 import "vader/lower/helpers" { type_of, block_stmts_with_trailing }
 import "vader/lower/lowered_ast" {
@@ -1971,7 +1971,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
 lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> void {
     match let_stmt.binding {
         is SimpleBinding as simple -> {
-            symbol_or_null :: lookup_local_symbol(ctx.typed.resolved, simple.name_span)
+            symbol_or_null :: lookup_local_symbol(ctx.project, ctx.typed.resolved, simple.name_span)
             // Synthesise a Local symbol when the resolver dropped this
             // binding (cascading-error case, e.g. T3001 on an invalid
             // annotation, OR an unused let with zero body use-sites).
@@ -2070,7 +2070,7 @@ emit_let_leaf :: fn(
             })
         }
         is SimpleBinding as simple -> {
-            symbol :: lookup_local_symbol(ctx.typed.resolved, simple.name_span)
+            symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, simple.name_span)
             if symbol is null { return }
             elem_type :: tuple_or_array_element_type(target_type, index, ctx, simple)
             access :: build_leaf_access(target, target_type, elem_type, simple.span, index)
@@ -2163,32 +2163,47 @@ synth_unused_local :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
     }
 }
 
-export lookup_local_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Symbol | null {
-    target_key :: span_key(name_span)
-    // Walk `idents` (use-site → Symbol) first — fast path when the
-    // binding is referenced in the body.
+export lookup_local_symbol :: fn(
+    project_ctx: LowerProjectCtx, resolved: ResolvedModule, name_span: Span,
+) -> Symbol | null {
+    index :: ensure_local_symbol_index(project_ctx, resolved)
+    return index[span_key(name_span)]
+}
+
+// Build (or fetch) the per-module `defined_span_key -> Symbol` index.
+// The first call for a given module pays the O(symbols + idents) build
+// cost ; every subsequent lookup is constant-time. The resolver's
+// `idents` map is the use-site → Symbol view ; combined with the
+// flat `symbols` array (for zero-use bindings) it covers exactly
+// the two passes of the previous naive walk.
+ensure_local_symbol_index :: fn(
+    project_ctx: LowerProjectCtx, resolved: ResolvedModule,
+) -> MutableMap(string, Symbol) {
+    cached :: project_ctx.local_symbol_indices[resolved.path]
+    if !(cached is null) { return cached }
+    index :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    // `idents` first — every referenced binding's defined_at lands here.
     for symbol in resolved.idents.values() {
         match symbol.defined_at {
             is null -> {}
-            is Span as defined -> {
-                if span_key(defined) == target_key { return symbol }
-            }
+            is Span as defined -> { index[span_key(defined)] = symbol }
         }
     }
-    // Fallback : scan every minted symbol. The resolver writes the
-    // definition span on each `Symbol.defined_at` even when the binding
-    // has zero use-sites (e.g. shadowed or scope-exit unused). Without
-    // this fallback, `lower_let_into`'s synth-fallback bumps `ctx.uniq`
-    // and drifts later `__sb_N` / `__try_N` naming.
+    // Flat symbol list catches definitions with zero use-sites (shadowed
+    // bindings, unused params). Resolver writes `defined_at` for every
+    // minted Symbol.
     for symbol in resolved.symbols {
         match symbol.defined_at {
             is null -> {}
             is Span as defined -> {
-                if span_key(defined) == target_key { return symbol }
+                key :: span_key(defined)
+                existing :: index[key]
+                if existing is null { index[key] = symbol }
             }
         }
     }
-    return null
+    project_ctx.local_symbol_indices[resolved.path] = index
+    return index
 }
 
 import "vader/resolver/resolve" { ResolvedModule }

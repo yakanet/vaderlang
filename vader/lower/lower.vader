@@ -298,7 +298,7 @@ lower_impl_members :: fn(
         if member.type_params.len() > usize(0) { continue }
         subst :: new_substitution()
         types :: make_entry_types(typed, subst)
-        params :: build_impl_member_params(member, self_type, types, typed)
+        params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
         return_type :: return_type_of(member, types)
         mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
         entry :: synth_impl_entry(member, typed, mangled)
@@ -314,7 +314,8 @@ lower_impl_members :: fn(
 }
 
 build_impl_member_params :: fn(
-    member: FnDecl, self_type: Type, types: EntryTypes, typed: TypedProgram,
+    member: FnDecl, self_type: Type, types: EntryTypes,
+    typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> LoweredParam[] {
     params: LoweredParam[] = []
     for ast_param in member.params {
@@ -322,7 +323,7 @@ build_impl_member_params :: fn(
         // in which case `resolved.idents` doesn't surface the symbol.
         // Fall back to a synthesised symbol carrying the param's name
         // so the dump renders the signature correctly.
-        symbol_or_null :: lookup_local_symbol(typed.resolved, ast_param.span)
+        symbol_or_null :: lookup_local_symbol(project_ctx, typed.resolved, ast_param.span)
         symbol :: synth_param_or(symbol_or_null, ast_param.name, typed)
         // The lone `self` param carries an absent TypeExpr ; substitute the
         // impl's `for_type` so downstream phases see the concrete receiver
@@ -464,7 +465,7 @@ lower_fn_decl :: fn(
         // `@extern` decls have no body and params with no use-sites in the
         // declared body fall through the same gap. Synthesise a Param
         // symbol carrying the source name so the signature renders.
-        symbol_or_null :: lookup_local_symbol(typed.resolved, ast_param.span)
+        symbol_or_null :: lookup_local_symbol(project_ctx, typed.resolved, ast_param.span)
         symbol :: synth_param_or(symbol_or_null, ast_param.name, typed)
         param_type_val :: types.param_type(ast_param)
         params.push(LoweredParam {
@@ -834,7 +835,7 @@ materialize_fn_instance :: fn(
                 types :: make_entry_types(ot, subst)
                 params: LoweredParam[] = []
                 for ast_param in fd.params {
-                    symbol_or_null :: lookup_local_symbol(ot.resolved, ast_param.span)
+                    symbol_or_null :: lookup_local_symbol(project_ctx, ot.resolved, ast_param.span)
                     sym :: synth_param_or(symbol_or_null, ast_param.name, ot)
                     raw_ty :: types.param_type(ast_param)
                     params.push(LoweredParam {
@@ -1114,7 +1115,7 @@ materialize_impl_for_instance :: fn(
     subst :: build_impl_subst(impl_decl, inst.args, impl_typed, owner_typed)
     types :: make_entry_types(impl_typed, subst)
     for member in impl_decl.members {
-        params :: build_impl_member_params(member, self_type, types, impl_typed)
+        params :: build_impl_member_params(member, self_type, types, impl_typed, project_ctx)
         return_type :: return_type_of(member, types)
         mangled :: "${mangle_module_id(owner_typed.resolved.path)}$${inst.symbol.name}$${impl_decl.trait_name}$${member.name}${suffix}"
         entry_decl: Decl = member
