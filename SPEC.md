@@ -1412,7 +1412,7 @@ Rules :
 
 ### Visibility
 
-- **Private by default**. Top-level decls are visible only inside their **module** (= folder) unless explicitly exported.
+- **Private by default**. Top-level decls are visible only inside their **module** (every `.vader` file declares its module via `module "..."` — see §11) unless explicitly exported.
 - **`export`** prefix to make a symbol visible across module boundaries.
 - The top-level `main` function is **always public** — the resolver promotes its visibility to `public` regardless of whether the source carries the `export` keyword.
 
@@ -1732,74 +1732,163 @@ match r {
 
 ## 11. Modules
 
-### Granularity
+### Module declaration
 
-**One folder = one module.** All `.vader` files in a folder share a common namespace. Files see each other (including non-exported symbols).
+Every `.vader` file declares its module on its first non-trivial line via the `module` keyword followed by a double-quoted string literal :
+
+```vader
+#!/usr/bin/env vader            // optional shebang
+// optional leading comments
+
+module "std/string"             // mandatory
+```
+
+Rules :
+
+- Exactly one `module` declaration per file. Repeating it is a compile error.
+- Must appear before any `import`, `export`, or top-level decl. Only shebang and comments may precede it.
+- Missing declaration is a compile error (no implicit module name).
+- The REPL injects `module "main"` implicitly so REPL fragments don't need to type it.
+
+### Module name grammar
+
+```
+module-name ::= segment ('/' segment)*
+segment     ::= [a-z] [a-z0-9_]*
+```
+
+Examples accepted : `main`, `std/string`, `std/string/utf8`, `vader/lexer`, `my_app/util_2`.
+
+Examples rejected : `Std/String` (uppercase), `std/1string` (segment starts with digit), `std//string` (empty segment), `std/string/` (trailing slash), `./relative` (special chars).
+
+The `/` inside a name is a regular character ; segment-level parsing exists only for the grammar check above.
+
+### Granularity and identity
+
+Module identity is **not** derived from the filesystem. The filesystem is the storage layer ; the `module "..."` declaration is the identity. This implies :
+
+- A folder contains **at most one** module : all `.vader` files in the same folder must declare the same module name. Mixed declarations are a scan-time error.
+- A folder may contain zero `.vader` files (skipped silently by the scan).
+- Across every scoped source root (project whitelist + stdlib + future deps), each module name appears in **exactly one** folder. Two folders declaring the same module name is a compile error.
+- Sub-modules are **independent** : `std/string` and `std/string/utf8` are unrelated logical modules. Their shared prefix has no semantics — no parent-child relationship, no implicit re-export, no automatic visibility.
 
 ### Imports
 
 ```vader
-io :: import "std/io"                        // namespace : io.read_file()
-io :: import "std/io" { read_file }          // scoped namespace : only `read_file` reachable as io.read_file
-import "std/io" { read_file, write_file }    // destructuring : read_file() direct
+import "std/string"                              // pure namespace import
+str :: import "std/string"                       // named namespace import
+import "std/string" { byte_len }                 // destructured import
+str :: import "std/string" { byte_len, slice }   // scoped namespace import
 ```
 
 A namespace import always names its binding explicitly (`name :: import "..."`) — there is no implicit last-segment binding and no `as` suffix. The destructure form (`import "..." { a, b }`) pulls names into the importing module's top-level scope. The combined form (`name :: import "..." { a, b, c }`) is **scoped** : only the listed names are reachable through `name.X` ; the rest of the target module is hidden, and the listed names are NOT also pulled into top-level scope.
 
-### Path resolution
+#### Resolution rules
 
-| Form | Resolution |
-|------|-----------|
-| `std/...` | Stdlib embedded in the compiler |
-| `./foo/bar` | Relative to current file |
-| `foo/bar` (no `./`) | Relative to project root (where `vader.json` lives) |
+- The string passed to `import` is **strictly** a module name, looked up in the discovered index. No filesystem fallback.
+- Relative paths (`./foo`, `../foo`) and bareword filesystem walks are not part of the language.
+- Self-import (a file inside module `X` writing `import "X"`) is a compile error.
+- `import` declarations are **file-scoped**. Names bound in one file of a multi-file module are not visible in sibling files of the same module ; each file declares its own imports.
+- Two destructured bindings of the same name in the same file — whether from two distinct modules or shadowing a prelude binding — are a compile error.
+- Import cycles (`A → … → A`) are forbidden ; the resolver emits a diagnostic.
+- **No re-exports.** A module cannot republish another module's bindings ; a façade must wrap each binding manually.
 
-**No external packages in MVP.** Post-MVP topic.
+#### Prelude
 
-### Manifest
+`std/core` is an **implicit prelude** : every `export` from `std/core` is automatically in scope in every other module without an `import`. `Range`, `Field`, `Display`, `Iterator`, etc. are usable directly. The prelude does not apply inside `std/core` itself. Writing `import "std/core"` explicitly from any other module is a compile error (duplicate of the prelude).
 
-**`vader.json`** at the root, JSON format:
+### Visibility
+
+Two levels :
+
+- **`export`** — the decl is visible to importers via `import "<this-module>"`.
+- **default (no keyword)** — the decl is private to the module : visible to every file of the same module without an import, and invisible to any other module.
+
+There is no file-private level. If a decl needs to live in only one file, place it in that file alone — but sibling files of the same module can still see it ; this is by design.
+
+The `main` function is **always public** — the resolver promotes its visibility regardless of an explicit `export` keyword (which is then redundant). See §6.
+
+#### Intra-module collisions
+
+Two top-level decls with the same name in the same module raise a compile error :
+
+- Two structs / type aliases / consts / enums / traits with the same name across files of the module → hard error (no canonical "winner").
+- Two `fn` decls with the same name across files of the module → join the same overload set, exactly like multiple `fn` decls inside one file today. Ambiguity surfaces at the call site if parameter shapes overlap.
+
+#### Visibility leak
+
+An `export`ed decl whose signature mentions a module-private type, alias, const, enum, or trait is a compile error. A public surface must be reachable through public types only — either `export` the referenced decl or refactor the signature.
+
+### Configuration : `vader.json`
+
+`vader.json` is **optional**. When present, the `modules` field declares the source roots to scan :
 
 ```json
 {
   "name": "myapp",
   "version": "0.1.0",
-  "entries": {
-    "main": "src/main.vader",
-    "cli":  "src/cli.vader"
-  }
+  "modules": ["src/", "vader/"]
 }
 ```
 
-Manifest is **optional** — `vader build single_file.vader` also works as long as `single_file.vader` contains a `main` function.
+Folders not listed (`tests/`, `bench/`, `examples/`, `build/`, `dist/`, `node_modules/`, `.git/`, …) are excluded from the scan, even when they contain `.vader` files. They cannot be imported by name.
 
-### Visibility
+The `modules` field accepts **literal folder paths only** — no glob patterns. Each root is a plain relative path resolved from the manifest's directory.
 
-- **Default (no keyword)**: visible only **within the module** (other files in the same folder OK), invisible outside.
-- **`export`**: visible everywhere a consumer imports this module.
-- The `main` function is **always public** — the resolver promotes its visibility regardless of an explicit `export` keyword (which is then redundant). See §6.
+#### Default whitelist
 
-### Forbidden import cycles
+When `vader.json` is absent or omits `modules`, the scan covers only the entry file's containing folder, plus the stdlib (below). Single-file invocations and trivial projects need no manifest ; larger projects with multiple source roots do.
 
-A → B → A is a compile-time error.
+#### Stdlib resolution
+
+The stdlib is resolved out-of-band, independently of `vader.json` :
+
+- **Release** — sidecar of the binary at `<dir-of-binary>/stdlib/`.
+- **Dev** — hard-coded `<workspace>/stdlib/` when running from source.
+
+The stdlib's modules participate in the global index like any other scope ; they're simply discovered through a fixed path.
+
+#### CLI fallback for out-of-scope files
+
+For invocations like `vader dump tests/snippets/arith/_main.vader` or `vader run examples/hello.vader` where the entry file lives outside the active whitelist, the compiler implicitly adds the file's containing folder to the scan **for that invocation only**. This keeps the whitelist strict for indexing while making single-file invocations ergonomic.
+
+**No external packages in MVP.** Post-MVP topic.
+
+### Discovery and scan
+
+At project load, the compiler performs a single pass that scans every scoped root recursively and builds an in-memory index mapping each module name to its folder and file list. Symlinks are not followed, neither for `.vader` files nor for folders containing them. Scan order is not deterministic across platforms ; diagnostics that mention "first / second occurrence" are stable within an invocation but may swap roles between machines. The index is rebuilt on each invocation (no on-disk cache in MVP).
+
+The same scan + index applies to every CLI subcommand — `run`, `build`, `dump`, `test`, `fmt`, `lsp`, `check`. The contract checks (uniqueness, name grammar) and the diagnostic surface are identical across subcommands ; only the downstream work differs.
+
+### Compilation modes
+
+| Mode | Triggered by | Behaviour |
+|------|---|---|
+| **Focus** (default) | `vader run`, `vader build`, `vader dump <file>` | Scan everything in scope to build the index and validate uniqueness. Typecheck **only** the entry's module + its transitive imports. |
+| **Whole** (post-MVP) | `vader check --all` (or equivalent) | Scan + typecheck every module reachable from the project's roots, including those not imported by any entry. |
+
+Focus mode tolerates work-in-progress modules that aren't yet linked into the main graph.
 
 ### Entry point
 
 Always a `main` function. No overloaded conventions. Write it without the `export` keyword — the resolver promotes it to public (see §6).
 
 ```vader
+module "main"
+
 main :: fn() -> i32 {
     println("Hello")
     return 0
 }
 ```
 
-`main` may also return `void` (equivalent to returning `0` from `i32`). Or return `i32!` to propagate errors via `?`.
+`main` may also return `void` (equivalent to returning `0` from `i32`) or `i32!` to propagate errors via `?`.
 
 ### What appears at the top level of a `.vader` file
 
-A source file may contain only:
+A source file may contain only :
 
+- The `module` declaration (mandatory, first non-trivial line)
 - `import` statements
 - Type declarations: `Result :: A | B | C` and `Maybe[T] :: T | null`
 - Function declarations: `name :: fn(...) -> T { ... }`
@@ -1812,7 +1901,17 @@ A source file may contain only:
 
 **No executable statements at the top level** — no top-level `print(...)`, no top-level loops. Every side-effecting expression lives inside a function body, typically `main`. This keeps the parser simple, makes module loading order independent of execution order, and means `import`-ing a module never runs code.
 
-### Future: programmable build API
+### Rationale : why module identity is decoupled from the filesystem
+
+Earlier iterations of Vader used "one folder = one module" as identity : the resolver inferred a module's name from its folder path. That rule broke down on flat stdlib layouts (sibling `.vader` files each conceptually a distinct module) and pinned naming choices to filesystem structure. The explicit `module "..."` declaration :
+
+- Lets module names be globally unique without forcing a specific folder layout.
+- Decouples conceptual organisation from on-disk storage : a small module lives as a single file in a single-file folder ; a large module splits across siblings without changing its name.
+- Makes import resolution a pure name lookup, removing the need for filesystem heuristics.
+
+The folder remains the colocation unit (one folder ≤ one module), but the module's name and identity come from the source file, not the directory.
+
+### Future : programmable build API
 
 Post-MVP : a `build.vader` file that drives the build via Vader code (instead of a declarative manifest).
 
