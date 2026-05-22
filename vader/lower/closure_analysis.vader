@@ -15,6 +15,8 @@
 // inner closure. The walker collects this in post-order : descend into
 // each nested lambda, record its captures, then fold them upward.
 
+module "vader/lower"
+
 import "std/collections" { MutableMap, MutableSet, contains, add, values, keys }
 import "vader/diagnostics/diagnostic" { Span }
 AST :: import "vader/parser/ast"

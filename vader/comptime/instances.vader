@@ -7,6 +7,8 @@
 // `EvaluatedProject.instances` and becomes the `## generic instances`
 // section of the `comptime.snapshot` dump.
 
+module "vader/comptime"
+
 import "std/collections" { MutableMap, keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending }

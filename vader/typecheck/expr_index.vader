@@ -5,6 +5,8 @@
 // Custom `Index` trait dispatch (powers `s[i]` on user structs) lands
 // with the trait-method machinery.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/typecheck/type_ops" { is_int_name }
 import "vader/typecheck/types" {

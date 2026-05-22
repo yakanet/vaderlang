@@ -5,6 +5,8 @@
 // in expression position lowers to an `IntrinsicCallExpr` or surfaces
 // P1014 (unknown decorator placement).
 
+module "vader/parser"
+
 export IntrinsicArgKind :: enum(u8) {
     Type,
     Value,

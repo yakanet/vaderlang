@@ -15,6 +15,8 @@
 // no current consumer needs default-method body cloning : the Vader
 // typechecker still runs on the TS side, which has its own materialize.
 
+module "vader/resolver"
+
 import "std/collections" { MutableMap }
 import "vader/diagnostics/diagnostic" { Span, empty_span }
 AST :: import "vader/parser/ast"

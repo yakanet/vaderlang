@@ -6,6 +6,8 @@
 // cycle that would otherwise form when the dispatcher imports the
 // per-variant modules and they each import back for these shapes.
 
+module "vader/comptime"
+
 import "std/collections" { MutableMap }
 import "vader/diagnostics/diagnostic" { Diagnostic, Span, comptime_error }
 import "vader/diagnostics/codes" { ComptimeCode }

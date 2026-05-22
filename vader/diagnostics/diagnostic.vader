@@ -3,6 +3,8 @@
 // shapes (Severity / Position / Span / Diagnostic) so a Vader-driven LSP
 // emits the same JSON schema as the TS compiler.
 
+module "vader/diagnostics"
+
 import "std/string" { is_empty }
 import "vader/diagnostics/codes" { LexerCode, ParserCode, ResolverCode, TypecheckCode, ComptimeCode, LowerCode, WarningCode, lexer_info, parser_info, resolver_info, typecheck_info, comptime_info, lower_info, warning_info, CodeInfo }
 

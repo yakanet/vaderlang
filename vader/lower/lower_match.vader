@@ -15,6 +15,8 @@
 // cycle ; top-level fn-type aliases hit a parser limitation in Vader
 // so the shape gets inlined at every site.
 
+module "vader/lower"
+
 import "std/collections" { MutableMap, values }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/parser/ast" {

@@ -9,6 +9,8 @@
 // are assigned by the factory's `next` counter in the order seen here.
 // New primitives append at the end.
 
+module "vader/resolver"
+
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
 // `PRIMITIVE_NAMES` is the source of truth in `vader/typecheck/types.vader`.

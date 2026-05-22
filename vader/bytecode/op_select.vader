@@ -23,6 +23,8 @@
 // eager-eval safety net (no short-circuit guarantee here — diagnose
 // at the lower-side if a non-exploded And/Or reaches this fn).
 
+module "vader/bytecode"
+
 import "vader/lower/lowered_ast" {
     LoweredBinaryOp, LoweredUnaryOp,
 }

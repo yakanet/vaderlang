@@ -7,6 +7,8 @@
 // didChange / didClose / textDocument/semanticTokens/full. Hover, go-to-
 // definition, completion come later.
 
+module "vader/lsp"
+
 import "vader/lsp/main" { run_server }
 
 /// Entry point invoked from `vader/cli/main.vader::cmd_lsp`. Delegates

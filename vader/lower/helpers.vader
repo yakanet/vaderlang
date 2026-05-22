@@ -5,6 +5,8 @@
 // initialisation. Kept on the lower side rather than the typecheck side
 // since every consumer lives in `vader/lower/`.
 
+module "vader/lower"
+
 import "std/collections" { MutableSet, MutableMap, contains }
 import "vader/diagnostics/diagnostic" { Span, empty_span }
 import "vader/parser/ast" { Visibility }

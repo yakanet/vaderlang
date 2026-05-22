@@ -8,6 +8,8 @@
 // `dump --stage=lexer` ; everything else exits 2 with a TS-identical
 // "not yet implemented" message.
 
+module "vader/cli"
+
 import "std/io" { println, eprintln, read_file }
 import "std/collections" { keys }
 import "std/string" { starts_with, ends_with }

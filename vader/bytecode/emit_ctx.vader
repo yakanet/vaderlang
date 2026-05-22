@@ -5,6 +5,8 @@
 // type / string / fn / import tables) and the two interners
 // (`intern_type`, `intern_string`) every per-shape emit fn calls.
 
+module "vader/bytecode"
+
 import "std/collections" { MutableMap }
 import "vader/typecheck/types" { Type }
 import "vader/bytecode/module" { BcFunction, BcImport, BcExport }

@@ -11,6 +11,8 @@
 // exactly that many bytes for the body. Both directions use the same
 // framing.
 
+module "vader/lsp"
+
 import "std/io" { read_stdin, print, eprintln }
 import "std/string" { byte_len, starts_with, slice, parse_int }
 import "std/string_builder" { new_builder, append }

@@ -5,6 +5,8 @@
 // side-table keyed by Symbol.id so the symbol graph stays
 // immutable.
 
+module "vader/resolver"
+
 import "std/collections" { MutableMap }
 import "vader/resolver/imports" { ImportInfo }
 import "vader/resolver/loader" { LoadedProject, LoadedModule }

@@ -11,6 +11,8 @@
 // path needs `ImplRegistry.find_for(...)` plus impl-typeParam
 // inversion which lands once `coerce.vader` materialises.
 
+module "vader/typecheck"
+
 import "std/collections" { MutableMap }
 import "vader/typecheck/type_ops" { equals_type }
 import "vader/typecheck/types" {

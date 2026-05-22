@@ -5,6 +5,8 @@
 // `ComptimeValue` ; type-name suffixes round-trip through the value
 // (`42_i64` keeps its `i64` tag).
 
+module "vader/comptime"
+
 import "vader/comptime/eval_types" { EvalResult, ComptimeContext, ok, fail }
 import "vader/comptime/value" {
     ComptimeValue, CharValue,

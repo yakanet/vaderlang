@@ -6,6 +6,8 @@
 // populated once at project entry ; these helpers wrap the lookups and
 // build the matching nominal types.
 
+module "vader/lower"
+
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck/types" { Type, StructType, TraitType, mk_struct, mk_union, mk_primitive }

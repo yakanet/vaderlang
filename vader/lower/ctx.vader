@@ -7,6 +7,8 @@
 // substitution, return type, and a stack of `BlockCtx` so defers can be
 // replayed at every block exit.
 
+module "vader/lower"
+
 import "std/collections" { MutableMap, MutableSet }
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/parser/ast" { Stmt, LambdaExpr }

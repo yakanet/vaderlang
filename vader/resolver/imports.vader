@@ -7,6 +7,8 @@
 // non-null means a destructured name (`import "p" { foo }` or
 // `{ foo as bar }` — `imported_name` is always the *exported* name).
 
+module "vader/resolver"
+
 import "std/collections" { MutableMap }
 
 export ImportInfo :: struct {

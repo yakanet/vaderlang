@@ -13,6 +13,8 @@
 // lands, this fn walks `impl.type_params` and stamps inherited
 // bounds. Today : no-op.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"

@@ -16,6 +16,8 @@
 // Anything else is answered with a JSON-RPC `MethodNotFound` error so the
 // client gracefully degrades.
 
+module "vader/lsp"
+
 import "std/io" { eprintln }
 import "std/string" { byte_len, starts_with, slice }
 import "std/json" { parse, JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonError, JsonBool, JsonArray }

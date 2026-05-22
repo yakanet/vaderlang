@@ -12,6 +12,8 @@
 // ships empty (the monomorphizer port is deferred to the bytecode emit
 // chantier) ; we walk loaded module decls directly until then.
 
+module "vader/lower"
+
 import "std/collections" { MutableMap, keys, values }
 import "std/sort" { sort }
 import "std/string" { compare_ascending }

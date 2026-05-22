@@ -7,6 +7,8 @@
 // `UnresolvedType` — downstream still iterates correctly because
 // `for x in 0..10` doesn't consult expr_types for the range itself.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/typecheck/type_ops" { default_if_free, is_int_name }
 import "vader/typecheck/types" {

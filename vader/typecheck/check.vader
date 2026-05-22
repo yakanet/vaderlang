@@ -6,6 +6,8 @@
 // from their test blocks and would form `binary → check → expr →
 // binary` cycles otherwise.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/parser/ast" { Program }
 import "vader/resolver/resolve" { ResolvedModule }

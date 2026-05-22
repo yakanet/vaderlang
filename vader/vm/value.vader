@@ -10,6 +10,8 @@
 // so the per-Value helpers can return `… | Trap` without forming an
 // import cycle with the executor.
 
+module "vader/vm"
+
 import "std/string" { starts_with, byte_at, byte_len, slice }
 op :: import "vader/vm/op"
 

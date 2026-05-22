@@ -6,6 +6,8 @@
 // `type_ops.vader` walks structurally instead of relying on reference
 // identity). Interning lands when a downstream hot path needs it.
 
+module "vader/typecheck"
+
 import "std/collections" { MutableMap }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/resolver/symbol" { Symbol }

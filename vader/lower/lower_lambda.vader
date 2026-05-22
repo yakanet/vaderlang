@@ -13,6 +13,8 @@
 // fn's body is lowered with a `lifted_context` so captured idents
 // route through `env.cap_N` rather than resolving to outer locals.
 
+module "vader/lower"
+
 import "std/collections" { MutableMap, values }
 import "vader/diagnostics/diagnostic" { Span, empty_span }
 AST :: import "vader/parser/ast"

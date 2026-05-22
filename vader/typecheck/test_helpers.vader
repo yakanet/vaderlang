@@ -11,6 +11,8 @@
 // test_helpers from their test block) or force every caller to absorb
 // the exhaustive-match boilerplate for `AST.Expr | null`.
 
+module "vader/typecheck"
+
 AST :: import "vader/parser/ast"
 
 /// Walk the first decl's body looking for the first expression that

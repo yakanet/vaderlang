@@ -6,6 +6,8 @@
 // `bb<index>`. Spans are omitted to keep the output focused on the
 // structure.
 
+module "vader/midir"
+
 import "std/collections" { values }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "vader/resolver/symbol" { kind_name }

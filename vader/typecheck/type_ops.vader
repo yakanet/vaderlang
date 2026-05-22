@@ -7,6 +7,8 @@
 // MVP version takes a `TraitOracle` interface so callers can stub the
 // trait check (returns false → no widening).
 
+module "vader/typecheck"
+
 import "std/string" { compare_ascending_ci }
 import "std/sort" { sort }
 import "vader/typecheck/types" {

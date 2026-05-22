@@ -11,6 +11,8 @@
 // so there's nothing to enforce. API lives here so future work plugs
 // in without changing every call site.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, Span }
 import "vader/typecheck/types" { Type }
 import "vader/typecheck/typed_ast" { TypedProgram }

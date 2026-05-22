@@ -13,6 +13,8 @@
 //   - char literals + escape sequences
 //   - string literals, raw strings, triple strings, interpolation
 
+module "vader/lexer"
+
 import "std/string" { byte_at, byte_len, is_empty, slice, parse_float, is_alpha, is_alnum, is_digit, contains }
 import "std/utf8" { codepoint_byte_len }
 

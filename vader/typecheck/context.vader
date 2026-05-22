@@ -13,6 +13,8 @@
 // the TS-side split between `MutableTyped.exprTypes` (during) and
 // `TypedProgram.exprTypes` (after).
 
+module "vader/typecheck"
+
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
 import "vader/typecheck/types" { Type }

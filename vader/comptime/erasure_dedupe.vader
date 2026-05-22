@@ -29,6 +29,8 @@
 // `symbol_redirects` (old_sym.id → repr_sym.id) is populated for
 // downstream `LoweredCall` → fn-index resolution.
 
+module "vader/comptime"
+
 import "std/collections" { MutableMap, keys }
 import "vader/parser/ast" {
     Decl, FnDecl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr,

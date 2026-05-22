@@ -36,6 +36,8 @@
 // `run_peepholes` ; pass `false` to disable everything (matches the
 // `--no-bytecode-opt` CLI escape hatch on the TS side).
 
+module "vader/bytecode"
+
 import "std/iter" { take }
 vmop :: import "vader/vm/op"
 

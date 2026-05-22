@@ -12,6 +12,8 @@
 // fn per `from` variant bounds each at ~50 C lines and lets cc's
 // per-fn passes scale.
 
+module "vader/typecheck"
+
 import "vader/typecheck/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
     FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,

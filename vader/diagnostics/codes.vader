@@ -12,6 +12,8 @@
 // shape can carry a code from any phase without losing the per-phase
 // exhaustiveness.
 
+module "vader/diagnostics"
+
 export LexerCode :: enum(u8) {
     UnexpectedCharacter,                    // L0001
     UnterminatedStringLiteral,              // L0002

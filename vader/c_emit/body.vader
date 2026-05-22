@@ -25,6 +25,8 @@
 //        - `struct_c_name` — `vader_struct_<sanitised>_t` ; the canonical
 //                            C type name for a `BcStruct` slot.
 
+module "vader/c_emit"
+
 import "std/string" { byte_len, byte_at }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/bytecode/types" {

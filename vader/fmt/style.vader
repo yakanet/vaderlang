@@ -5,6 +5,8 @@
 // `stdlib/std/collections.vader`) — 4-space indent, K&R braces, uniform
 // operator spacing, normalized trailing commas in multi-line lists.
 
+module "vader/fmt"
+
 import "vader/parser" { BinaryOp, UnaryOp }
 
 // Visual indent width (4 spaces). Tabs are deliberately not on the table.

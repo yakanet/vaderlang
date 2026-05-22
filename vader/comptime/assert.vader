@@ -8,6 +8,8 @@
 // the build can't validate them yet but the diagnostic surfaces at
 // the call site of `evaluate_expr` for visibility.
 
+module "vader/comptime"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, comptime_error }
 import "vader/diagnostics/codes" { ComptimeCode }
 import "vader/typecheck/typed_ast" { TypedProgram }

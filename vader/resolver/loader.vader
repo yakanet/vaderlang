@@ -14,6 +14,8 @@
 //   - Auto-loads no `std/core` ; only what the entry transitively
 //     imports.
 
+module "vader/resolver"
+
 import "std/collections" { MutableMap, keys }
 import "vader/parser" { NodeIdFactory, new_node_id_factory }
 import "vader/resolver/collect" { CollectedModule, collect_module }

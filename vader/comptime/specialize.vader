@@ -27,6 +27,8 @@
 // Wiring into `check.vader` is deferred to a later commit (it changes
 // every `evaluated-ast` snapshot, so it ships separately).
 
+module "vader/comptime"
+
 import "std/collections" { MutableMap, keys }
 import "vader/parser/ast" {
     Decl, FnDecl, StructDecl, ConstDecl, ImplDecl,

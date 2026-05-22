@@ -11,6 +11,8 @@
 // IntrinsicName is a `string` here (TS uses a const-literal union
 // over the 5 fixed names ; Vader stores the verbatim string).
 
+module "vader/midir"
+
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/typecheck/types" { Type }
 import "vader/resolver/symbol" { Symbol }

@@ -7,6 +7,8 @@
 // (emit_block / emit_stmt / emit_expr / emit_call / emit_loop / …)
 // stay in `emit.vader`.
 
+module "vader/bytecode"
+
 import "std/collections" { MutableMap }
 import "vader/lower/lowered_ast" { LoweredFnDecl }
 import "vader/bytecode/module" { BcLocal, DebugPos }

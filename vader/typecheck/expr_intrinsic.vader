@@ -8,6 +8,8 @@
 // the last two stay Unresolved for now (they need `@fields` array
 // materialisation which lives in lower, not typecheck).
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/parser/intrinsics" { intrinsic_spec, IntrinsicArgKind }
 import "vader/resolver/symbol" { Symbol }

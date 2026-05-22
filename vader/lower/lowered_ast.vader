@@ -7,6 +7,8 @@
 // carries its static `Type` so downstream phases never need to revisit
 // the typed-AST tables.
 
+module "vader/lower"
+
 import "std/collections" { MutableMap }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/symbol" { Symbol }

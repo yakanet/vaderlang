@@ -4,6 +4,8 @@
 // up the struct's fields via `typed.struct_decls`, and checks each item.
 // Returns the struct type.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/typecheck/coerce" { try_into }
 import "vader/typecheck/field" { find_struct_field_type, substitute_by_name }

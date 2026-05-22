@@ -19,6 +19,8 @@
 // pool + vtables + impl table are summarised when non-empty,
 // elided otherwise.
 
+module "vader/bytecode"
+
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/bytecode/module" {
     BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport, BcExport,

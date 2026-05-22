@@ -9,6 +9,8 @@
 // `LoadedProject` (multi-module) and propagates wire + cross-module
 // type info into the entry module's `TypedProgram`.
 
+module "vader/typecheck"
+
 import "std/collections" { MutableMap, keys }
 import "vader/diagnostics/diagnostic" { Diagnostic, Span }
 AST :: import "vader/parser/ast"

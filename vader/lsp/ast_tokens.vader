@@ -14,6 +14,8 @@
 //      kind. This is what distinguishes a parameter use site from a
 //      local use site — Phase 1 can't tell them apart.
 
+module "vader/lsp"
+
 import "std/collections" { MutableMap }
 import "vader/parser" { parse_source }
 AST :: import "vader/parser/ast"

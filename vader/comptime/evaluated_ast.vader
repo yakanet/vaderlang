@@ -7,6 +7,8 @@
 // observations). Downstream consumers (lowerer, bytecode emit) read
 // `EvaluatedProject` directly — never `TypedProject` for comptime data.
 
+module "vader/comptime"
+
 import "std/collections" { MutableMap }
 import "vader/parser/ast" { FnDecl }
 import "vader/typecheck/types" { Type }

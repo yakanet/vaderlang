@@ -6,6 +6,8 @@
 // ?? TY_UNRESOLVED, subst)`. The boundary lets future changes (e.g.
 // materialising substituted bodies on `MonoEntry`) touch one file.
 
+module "vader/lower"
+
 import "std/collections" { MutableMap }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/parser/ast" {

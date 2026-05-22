@@ -20,6 +20,8 @@
 //   - No named-arg matching ; positional only.
 //   - No spread-arg handling.
 
+module "vader/typecheck"
+
 import "std/collections" { MutableMap, keys }
 import "std/math" { min }
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }

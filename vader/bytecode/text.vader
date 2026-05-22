@@ -36,6 +36,8 @@
 //   - per-op debug annotations (`; file:line:col`) : the Vader VM
 //     doesn't track source spans on ops yet.
 
+module "vader/bytecode"
+
 import "std/string" { byte_len, byte_at, slice }
 import "std/string_builder" { StringBuilder, new_builder, append }
 op :: import "vader/vm/op"

@@ -5,6 +5,8 @@
 // Control-flow ops (`If`, `Else`, `End`, `Branch`, `BranchIf`) carry
 // no operand here — their target pc lives in `BytecodeFunction.jump_table[pc]`.
 
+module "vader/vm"
+
 import "std/core" { Display }
 import "std/string_builder" { StringBuilder, new_builder, append }
 

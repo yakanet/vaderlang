@@ -9,6 +9,8 @@
 // syntax and a per-startup `MutableMap` fill costs the same lookup
 // with extra heap traffic.
 
+module "vader/bytecode"
+
 import "vader/vm/op" {
     Op, I32Add, I32Sub, I32Mul, I32Div, I32Eq,
     I64Add, I64Sub, I64Mul, I64Div, I64Eq,

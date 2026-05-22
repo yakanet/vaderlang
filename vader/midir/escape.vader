@@ -13,6 +13,8 @@
 // Move, CondBranch, …) keep the value local. Allocs with no escaping
 // reachable use are marked `stack: true` for downstream codegen.
 
+module "vader/midir"
+
 import "std/collections" { MutableMap, MutableSet, keys, values, add }
 import "std/iter" { slice }
 import "vader/midir/cfg" {

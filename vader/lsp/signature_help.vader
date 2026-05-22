@@ -11,6 +11,8 @@
 // SignatureInformation :
 //   { label, documentation?, parameters?: [{ label, documentation? }] }
 
+module "vader/lsp"
+
 import "std/collections" { MutableMap }
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool }
 import "std/string" { byte_len, slice, starts_with }

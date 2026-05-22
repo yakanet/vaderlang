@@ -5,6 +5,8 @@
 // concat). Type mismatches surface as `C4006` ; the operators the VM
 // would otherwise handle (`Is`, `In`, `NotIn`) fall back to `C4002`.
 
+module "vader/comptime"
+
 import "vader/comptime/eval_types" {
     EvalResult, ComptimeContext, ok, fail, vm_required,
 }

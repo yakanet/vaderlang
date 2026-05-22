@@ -19,6 +19,8 @@
 //     Unresolved for MVP. ImportBindings resolve cross-module via
 //     `wire.vader` ; the others land with their producing pass.
 
+module "vader/typecheck"
+
 import "vader/resolver/scope" { span_key }
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind }

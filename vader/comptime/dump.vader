@@ -11,6 +11,8 @@
 // Generic instances land in a trailing `## generic instances` section
 // (Phase 6 fills it ; for now the section is omitted when empty).
 
+module "vader/comptime"
+
 import "std/collections" { keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, pad_end }

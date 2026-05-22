@@ -7,6 +7,8 @@
 // numeric-trailing repinning, divergence-aware `Never` folding.
 // Those land with `narrow.vader`.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/resolver/scope" { span_key }
 import "vader/typecheck/context" { FnContext }

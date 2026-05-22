@@ -11,6 +11,8 @@
 // imports (`./mod`, `../lib/foo`) resolve relative to the importing
 // file's path (extracted from its `file://` URI).
 
+module "vader/lsp"
+
 import "std/io" { read_file, read_dir, is_dir }
 import "std/string" { byte_len, byte_at, slice, starts_with, contains }
 import "vader/lsp/state" { ServerState }

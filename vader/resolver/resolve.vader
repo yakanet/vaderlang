@@ -11,6 +11,8 @@
 // CLI consumers (`dump --stage=resolved-ast`) read `.symbols` ; LSP
 // consumers read `.idents`. Both views come out of one call.
 
+module "vader/resolver"
+
 import "std/collections" { MutableMap, values }
 import "std/string" { compare_ascending }
 import "std/sort" { sort }

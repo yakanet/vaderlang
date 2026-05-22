@@ -10,6 +10,8 @@
 // belongs to `type_expr.vader` (Phase 2.2). This file handles only what
 // needs no type-expression machinery — repr is passed in as a string.
 
+module "vader/typecheck"
+
 import "std/collections" { MutableMap, MutableSet, add, contains }
 import "vader/diagnostics/diagnostic" { Diagnostic, Span, typecheck_error }
 import "vader/parser/ast" { EnumDecl, EnumVariant }

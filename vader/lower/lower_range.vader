@@ -10,6 +10,8 @@
 // lowered shape falls back to a `LoweredUnreachable` carrying the
 // reason — same defensive shape every other "deferred" lowerer uses.
 
+module "vader/lower"
+
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/parser/ast" { RangeExpr, Expr }
 import "vader/resolver/symbol" { Symbol, SymbolKind }

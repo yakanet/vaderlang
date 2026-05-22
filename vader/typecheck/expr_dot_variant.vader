@@ -5,6 +5,8 @@
 // T3027 when the variant doesn't exist on the expected enum, T3028
 // when `expected` isn't an enum-typed slot.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/resolver/scope" { span_key }
 import "vader/resolver/symbol" { SymbolKind }

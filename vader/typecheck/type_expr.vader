@@ -16,6 +16,8 @@
 //     (Phase 2.3) will look them up in `decl_types` for the canonical
 //     instance once it's wired.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/resolver/resolve" { ResolvedModule }
 import "vader/resolver/scope" { span_key }

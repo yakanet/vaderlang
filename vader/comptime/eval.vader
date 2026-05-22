@@ -6,6 +6,8 @@
 // subset of comptime expressions the lowerer + bytecode emitter port
 // haven't unlocked yet. Anything outside that subset surfaces `C4002`.
 
+module "vader/comptime"
+
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/comptime/eval_types" {
     EvalResult, ComptimeContext, ok, fail, vm_required,

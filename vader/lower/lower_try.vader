@@ -18,6 +18,8 @@
 // Cycle-breaker pattern : `lower_expr` is supplied as a callback to
 // dodge the import cycle with `lower_expr.vader`.
 
+module "vader/lower"
+
 import "vader/diagnostics/diagnostic" { Span }
 AST :: import "vader/parser/ast"
 import "vader/resolver/symbol" { Symbol }

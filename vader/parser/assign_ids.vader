@@ -14,6 +14,8 @@
 /// expected ownership shape ; cloned bodies in `materialize.vader` re-use
 /// the host module's factory so cloned-node IDs stay disjoint from
 /// pre-existing IDs in that module.
+module "vader/parser"
+
 export NodeIdFactory :: struct { next: usize }
 
 /// Build a fresh factory. IDs start at 1 — `0` is reserved for

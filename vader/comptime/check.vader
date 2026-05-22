@@ -6,6 +6,8 @@
 // values into `EvaluatedProgram.comptime_decls` keyed by Symbol id.
 // Phase 6 will add the monomorphizer pass downstream of this.
 
+module "vader/comptime"
+
 import "std/collections" { MutableMap, keys }
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/resolver/symbol" { Symbol, SymbolKind }

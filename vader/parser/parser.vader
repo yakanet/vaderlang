@@ -3,6 +3,8 @@
 // Errors flow into the parser's `errors` array ; after an error the parser
 // synchronises on `}` / top-level keywords / NEWLINE so it can keep going.
 
+module "vader/parser"
+
 import "std/string" { slice, starts_with, chars, is_digit }
 import "vader/lexer" {
     tokenize, Token, TokenKind, Lexer, empty_span, make_token, kind_name,

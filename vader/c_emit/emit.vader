@@ -26,6 +26,8 @@
 // two newlines (TS `out.join("\n") + "\n"` where the last `out` entry
 // already carries a `\n`).
 
+module "vader/c_emit"
+
 import "std/string" { byte_len }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "vader/bytecode/module" { BytecodeModule, BcFunction }

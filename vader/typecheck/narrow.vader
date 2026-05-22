@@ -12,6 +12,8 @@
 // in match arms today) ; once that lands, `expr_if.vader::infer_if`
 // will call `push_narrow` before the then-branch.
 
+module "vader/typecheck"
+
 import "vader/resolver/scope" { span_key }
 import "vader/typecheck/types" { Type }
 import "vader/typecheck/typed_ast" { TypedProgram }

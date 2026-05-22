@@ -17,6 +17,8 @@
 //     (Phase 3.2+). The orchestrator's match still dispatches on every
 //     variant so future passes plug in cleanly.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, resolver_error, warning }
 import "vader/typecheck/type_expr" { primitive_from_name }
 import "vader/resolver/scope" { span_full_key, span_key }

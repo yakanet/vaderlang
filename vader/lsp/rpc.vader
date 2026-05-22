@@ -11,6 +11,8 @@
 // that Vader's pattern checker hits when a `| null` is added to an
 // already-aliased union.
 
+module "vader/lsp"
+
 import "std/string" { byte_len }
 import "std/string_builder" { new_builder, append }
 import "std/json" {

@@ -1,5 +1,7 @@
 // vader/fmt/format — top-level entry points for the formatter.
 
+module "vader/fmt"
+
 import "vader/parser" { parse_source, Program }
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/fmt/comments" { scan_comments }

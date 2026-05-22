@@ -21,6 +21,8 @@
 // follow-ups since the AST already exposes the shapes (`IsPattern.bind_as`,
 // `LambdaExpr.params`, etc.).
 
+module "vader/lsp"
+
 import "std/string" { byte_len, byte_at, slice, trim }
 import "vader/parser" {
     parse_source,

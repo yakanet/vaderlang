@@ -9,6 +9,8 @@
 //   3. Anything else (Param / Local / Fn / ImportBinding / …) →
 //      `C4002` ; needs VM execution.
 
+module "vader/comptime"
+
 import "vader/comptime/eval_types" { EvalResult, ComptimeContext, ok, fail, vm_required }
 import "vader/comptime/value" { ComptimeValue, type_val }
 import "vader/resolver/scope" { span_key }

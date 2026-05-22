@@ -9,6 +9,8 @@
 // `span_key` lives here too because every consumer of `Scope` also
 // stamps `IdentExpr → Symbol` entries keyed by the ident's span.
 
+module "vader/resolver"
+
 import "std/collections" { MutableMap }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/symbol" { Symbol }

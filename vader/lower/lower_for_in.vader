@@ -18,6 +18,8 @@
 // matching wins for ~5-10 specific snippets but each is a substantial
 // port.
 
+module "vader/lower"
+
 import "vader/diagnostics/diagnostic" { Span }
 AST :: import "vader/parser/ast"
 import "vader/resolver/symbol" { Symbol, SymbolKind }

@@ -15,6 +15,8 @@
 //   - ImplDecls contribute to `ImplRegistry` (Phase 2.4), not here.
 //   - AssertDecl is a no-op (handled by comptime).
 
+module "vader/typecheck"
+
 import "std/collections" { MutableMap }
 import "vader/diagnostics/diagnostic" { Diagnostic, Span, typecheck_error }
 import "vader/resolver/resolve" { ResolvedModule }

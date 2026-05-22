@@ -4,6 +4,8 @@
 // `!x` requires bool and returns bool. `~x` requires an integer and
 // returns the same integer shape.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/typecheck/type_ops" { is_int_name, is_numeric_name }
 import "vader/typecheck/types" {

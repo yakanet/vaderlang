@@ -14,6 +14,8 @@
 // and dumps — for stdlib this is the raw `std/...` text ; for local
 // imports it's the path relative to the project / entry root.
 
+module "vader/resolver"
+
 import "std/io" { exists, is_dir, read_dir, read_file }
 import "std/path" { Path, to_path, as_string, parent }
 import "std/sort" { sort }

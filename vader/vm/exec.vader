@@ -25,6 +25,8 @@
 //   This file keeps the frame stack, apply-op helpers, the main `exec`
 //   loop, and the `run_virt` entry point.
 
+module "vader/vm"
+
 import "std/io" { read_file, eprintln }
 import "std/string_builder" { StringBuilder }
 op :: import "vader/vm/op"

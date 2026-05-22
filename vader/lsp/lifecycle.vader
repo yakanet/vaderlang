@@ -6,6 +6,8 @@
 // names). After this, the client sends `initialized` (notification) and
 // the connection becomes operational.
 
+module "vader/lsp"
+
 import "std/string" { byte_len }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray

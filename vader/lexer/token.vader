@@ -5,6 +5,8 @@
 // `vader/diagnostics/diagnostic` so tokens and diagnostics share the same
 // canonical source-location types.
 
+module "vader/lexer"
+
 import "vader/diagnostics/diagnostic" { Position, Span }
 
 export TokenKind :: enum(u8) {

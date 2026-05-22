@@ -9,6 +9,8 @@
 // whether the lookup hit. Returning a `TokenKind | null` would be cleaner
 // but every call site already needs the fallback `Ident`, so this saves
 // the unwrap.
+module "vader/lexer"
+
 export lookup_keyword :: fn(text: string) -> TokenKind {
     if text == "fn"         { return .KwFn }
     if text == "struct"     { return .KwStruct }

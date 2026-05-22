@@ -14,6 +14,8 @@
 //   - No generic-arg substitution on field types — fields with
 //     type-params resolve to their unsubstituted shape.
 
+module "vader/typecheck"
+
 import "std/string" { byte_at, byte_len }
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"

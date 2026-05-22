@@ -19,6 +19,8 @@
 // All three share the `Self → impl_.for_type` + trait type-param →
 // impl trait-arg substitution wired through `substitute.vader`.
 
+module "vader/resolver"
+
 import "std/collections" { MutableMap, MutableSet, add, contains }
 import "std/math" { min }
 import "std/testing" { assert, assert_eq }

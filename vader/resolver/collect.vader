@@ -10,6 +10,8 @@
 // silently first-wins on duplicates today and re-uses parity gating to
 // keep it honest until the diag codes land.
 
+module "vader/resolver"
+
 import "std/collections" { MutableMap }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/parser" {

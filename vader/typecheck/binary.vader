@@ -14,6 +14,8 @@
 //     and same-name primitive ; mixed widths (`i32 + i64`) surface
 //     T3017 instead of widening.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 AST :: import "vader/parser/ast"
 import "vader/resolver/scope" { span_full_key }

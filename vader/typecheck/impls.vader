@@ -14,6 +14,8 @@
 //     for `Foo` matches every concrete `Foo(args)`. Adds when the test
 //     corpus surfaces a generic conflict.
 
+module "vader/typecheck"
+
 import "std/collections" { MutableMap, keys }
 import "vader/parser/ast" { ImplDecl, Decl, IdentExpr, GenericInstExpr, TypeExpr }
 import "vader/resolver/resolve" { ResolvedModule }

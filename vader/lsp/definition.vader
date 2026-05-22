@@ -14,6 +14,8 @@
 //             client understands.
 // `JsonNull` for "no result" in both cases.
 
+module "vader/lsp"
+
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
 }

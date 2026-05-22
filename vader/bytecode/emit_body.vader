@@ -16,6 +16,8 @@
 // natural seam is statements (let / assign / loop / break / continue /
 // return / cell_set) versus expressions (everything else).
 
+module "vader/bytecode"
+
 import "std/collections" { MutableMap }
 import "vader/typecheck/types" { Type }
 import "vader/resolver/symbol" { Symbol }

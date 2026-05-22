@@ -12,6 +12,8 @@
 // owns the composition-reading half so future work has one place to
 // plug it.
 
+module "vader/typecheck"
+
 import "vader/resolver/symbol" { Symbol }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"

@@ -13,6 +13,8 @@
 // The CLI wrapper adds the trailing newline via `println`, so this
 // function returns text without one (matches `dump_program`).
 
+module "vader/resolver"
+
 import "std/string" { pad_end }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/resolver/symbol" { Symbol, SymbolKind, kind_name }

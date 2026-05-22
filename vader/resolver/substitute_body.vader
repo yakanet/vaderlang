@@ -17,6 +17,8 @@
 // once per impl × default-bodied trait method, then walk the cloned
 // body via `check_block` in entry's typed_program.
 
+module "vader/resolver"
+
 import "std/collections" { MutableMap }
 import "vader/resolver/substitute" { Subst, substitute_type_expr }
 AST :: import "vader/parser/ast"

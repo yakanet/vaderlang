@@ -4,6 +4,8 @@
 // `didClose` notifications. Semantic tokens read from the doc table ;
 // goto-def + hover read from the per-document index built in parallel.
 
+module "vader/lsp"
+
 import "std/string" { byte_len }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray

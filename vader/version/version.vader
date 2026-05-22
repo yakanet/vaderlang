@@ -3,6 +3,8 @@
 // and any future binary-bytecode I/O on the Vader side will read the
 // `BYTECODE_VERSION_*` constants.
 
+module "vader/version"
+
 export CLI_VERSION :: "0.0.0-pre-mvp"
 
 export BYTECODE_VERSION_MAJOR :: 0

@@ -6,6 +6,8 @@
 // startup latency tiny and dodges generic-mono conflicts the bigger CLI
 // surfaces. Editors spawn this binary directly.
 
+module "vader/lsp"
+
 import "vader/lsp/main" { run_server }
 
 main :: fn(argv: string[]) -> i32 {

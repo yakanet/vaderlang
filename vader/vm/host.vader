@@ -8,6 +8,8 @@
 // `vader/vm/exec.vader` 2026-05-14) so the executor stays focused on
 // the dispatch loop.
 
+module "vader/vm"
+
 import "std/io" { read_file, write_file, exists, eprintln, println, print }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/numbers" { parse_int_in_base }

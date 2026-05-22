@@ -5,6 +5,8 @@
 // narrowing (binding patterns like `is X as x` typing `x` to X) — both
 // land with `narrow.vader`. Guards must be `bool` (T3019).
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/resolver/scope" { span_key }
 import "vader/typecheck/context" { FnContext }

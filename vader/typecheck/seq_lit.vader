@@ -11,6 +11,8 @@
 //                        when they unify (single post-dedup type),
 //                        tuple otherwise.
 
+module "vader/typecheck"
+
 import "std/math" { min }
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/typecheck/type_ops" { default_if_free, union_of }

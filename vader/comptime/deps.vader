@@ -5,6 +5,8 @@
 // its RHS references, then DFS-topo-sorts so evaluation lands deps-first.
 // Cycles surface as C4001 ; decls inside a cycle drop out of the order.
 
+module "vader/comptime"
+
 import "std/collections" { MutableMap, keys }
 import "vader/diagnostics/diagnostic" { Diagnostic, comptime_error }
 import "vader/diagnostics/codes" { ComptimeCode }

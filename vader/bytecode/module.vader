@@ -17,6 +17,8 @@
 // One consumer (today) : `vader/c_emit/emit` lowers it to a single C
 // source file.
 
+module "vader/bytecode"
+
 import "vader/bytecode/types" { BcType, BcDataEntry, ValType }
 import "vader/vm/op" { Op }
 

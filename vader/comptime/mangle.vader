@@ -16,6 +16,8 @@
 //     the C-emit version also escapes C keywords (`int`, `static`, …),
 //     which would corrupt user identifiers in the mangled-name space.
 
+module "vader/comptime"
+
 import "std/collections" { MutableMap }
 import "std/string" { byte_len, byte_at }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }

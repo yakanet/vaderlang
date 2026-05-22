@@ -10,6 +10,8 @@
 // We omit `range` for now — the client falls back to highlighting the
 // word under the cursor on its own.
 
+module "vader/lsp"
+
 import "std/string" { byte_len, byte_at, split, trim, starts_with, slice }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool

@@ -7,6 +7,8 @@
 // — same convention as `vader/resolver/body.vader::ResolvedFile.idents`,
 // since Vader AST nodes lack stable ids for WeakMap-style indexing.
 
+module "vader/typecheck"
+
 import "std/collections" { MutableMap }
 import "vader/parser/ast" { FnDecl, StructDecl, TraitDecl, TypeAliasDecl }
 AST :: import "vader/parser/ast"

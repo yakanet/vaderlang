@@ -22,6 +22,8 @@
 // the VM + the C emitter both consume. Each expr emit pushes one
 // value ; each statement is push-then-drop or pure side-effect.
 
+module "vader/bytecode"
+
 import "std/collections" { MutableMap, keys }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/typecheck/types" { Type }

@@ -23,6 +23,8 @@
 // `wire.vader`. The TS pass iterates `typed.modules` ; here we render a
 // single `TypedProgram`.
 
+module "vader/typecheck"
+
 import "std/collections" { keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, compare_ascending_ci, pad_end, split }

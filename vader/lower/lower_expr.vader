@@ -12,6 +12,8 @@
 // string interp / defer / tuple destructure stay at stub level until
 // the dedicated module ports in Phase 4 / 5.
 
+module "vader/lower"
+
 import "std/collections" { MutableMap, values, keys }
 import "vader/parser/ast" {
     Expr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr, CharLitExpr,

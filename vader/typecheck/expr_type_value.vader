@@ -7,6 +7,8 @@
 // expression is `type` (the metatype) ; downstream callers that need
 // the underlying shape go through `type_from_expr`.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/types" { Type, TY_TYPE }

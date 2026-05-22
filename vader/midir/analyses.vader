@@ -11,6 +11,8 @@
 // calls). `instruction_has_side_effect` keeps DCE from dropping ops
 // whose dst is unread but whose execution observably mutates state.
 
+module "vader/midir"
+
 import "std/collections" { MutableMap, MutableSet, keys, add }
 import "std/iter" { slice }
 import "vader/midir/cfg" {

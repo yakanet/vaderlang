@@ -16,6 +16,8 @@
 // Expression rendering follows the same indent rules as the TS dumper
 // so byte-for-byte parity holds once Phase 3 fills the bodies.
 
+module "vader/lower"
+
 import "std/collections" { keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, to_lower, ends_with, slice, byte_len }

@@ -6,6 +6,8 @@
 // structs, plus type-valued slots (`@comptime t :: i32`). `display_value`
 // renders each variant in the form the snapshot harness expects.
 
+module "vader/comptime"
+
 import "std/collections" { MutableMap, keys }
 import "std/string_builder" { new_builder, append, append_char }
 import "std/numbers" { to_hex }

@@ -23,6 +23,8 @@
 /// in a local or on the operand stack lands in exactly one of these
 /// classes. Mirrors the TS `ValType` string union one-for-one. Closed
 /// enum so `match` arms stay exhaustive across the pipeline.
+module "vader/bytecode"
+
 export ValType :: enum(u8) {
     // Signed integers
     I8, I16, I32, I64, Isize,

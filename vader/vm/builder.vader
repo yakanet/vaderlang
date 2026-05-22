@@ -32,6 +32,8 @@
 // online resolution that `parser.vader::wire_control_flow` performs at
 // parse time.
 
+module "vader/vm"
+
 import "std/collections" { MutableMap }
 op :: import "vader/vm/op"
 import "vader/vm/parser" { build_vtables, find_main_by_suffix }

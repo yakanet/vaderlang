@@ -9,6 +9,8 @@
 // type inference beyond what each ident resolves to. T3024 when a
 // param can't be inferred.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/resolver/scope" { span_key }
 import "vader/typecheck/context" { FnContext, new_fn_context }

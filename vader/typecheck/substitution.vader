@@ -6,6 +6,8 @@
 // monomorphisation entry through every type-table read so generic
 // decls collapse to concrete types in the lowered IR.
 
+module "vader/typecheck"
+
 import "std/collections" { MutableMap }
 import "vader/typecheck/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,

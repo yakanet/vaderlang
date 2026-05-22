@@ -7,6 +7,8 @@
 // lands with `coerce.vader`. Today the result is the same as the
 // inner type (downstream still gets a useful Type).
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/typecheck/types" { Type, TraitType, UnionType, TRAIT_ERROR, mk_union }
 import "vader/typecheck/type_ops" { struct_implements_trait }

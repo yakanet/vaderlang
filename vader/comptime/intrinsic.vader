@@ -6,6 +6,8 @@
 // downstream consumer (lowerer / bytecode emit) is ported and the
 // missing infrastructure can be validated end-to-end.
 
+module "vader/comptime"
+
 import "vader/comptime/eval_types" { EvalResult, ComptimeContext, ok, fail, vm_required }
 import "vader/comptime/value" { ComptimeValue, int_val_typed, string_val }
 import "vader/typecheck/type_expr" { type_from_expr }

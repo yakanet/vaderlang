@@ -7,6 +7,8 @@
 // Iterator trait lookup, `comptime for` unrolling, and `Self`
 // substitution — those land with later phases.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic, Span, typecheck_error }
 import "vader/resolver/scope" { span_full_key, span_key }
 AST :: import "vader/parser/ast"

@@ -14,6 +14,8 @@
 //   - VirtualCallVisitor(trait, method) — fires per LoweredVirtualCall
 //     so DCE keeps every impl-fn-symbol alive for that (trait, method).
 
+module "vader/midir"
+
 import "vader/typecheck/types" { Type, StructType, TraitType, canonical_args_key, for_each_type }
 import "vader/lower/lowered_ast" {
     LoweredBlock, LoweredDecl, LoweredExpr, LoweredStmt,

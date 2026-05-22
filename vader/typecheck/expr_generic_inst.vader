@@ -7,6 +7,8 @@
 // returned as-is and `call.vader` uses the concrete arg types it
 // derives from positional args.
 
+module "vader/typecheck"
+
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/types" { Type }

@@ -17,6 +17,8 @@
 //     covers primitives ; composite shapes land as
 //     `BcPrimitive{.val=Ref}` until the lower-decl walker lands.
 
+module "vader/bytecode"
+
 import "vader/typecheck/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType,
     UnionType, FnType, TupleType, TypeParamType, TypeMetaType, SelfType,

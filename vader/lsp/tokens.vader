@@ -7,6 +7,8 @@
 /// on the wire ; the legend (sent on `initialize`) maps each index to
 /// the canonical type name. Order MUST stay in sync with `TOKEN_TYPES` in
 /// `semantic_tokens.vader`.
+module "vader/lsp"
+
 export TokenType :: enum(u8) {
     Namespace,    // import path
     Type,         // UpperCase ident (struct / trait / enum)

@@ -6,6 +6,8 @@
 // T3001/T3020 when a valid coercion exists. Auto-array-to-Iterator
 // coercion lands once the resolver indexes core's Iterator trait.
 
+module "vader/typecheck"
+
 import "vader/typecheck/types" { Type, FnType, display_type }
 import "vader/typecheck/type_ops" { dispatch_key }
 import "vader/typecheck/type_assign" { is_assignable }

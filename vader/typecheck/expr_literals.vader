@@ -5,6 +5,8 @@
 // and floats fold to the concrete primitive, the bare form stays as a
 // Free numeric until the bidirectional pass narrows it.
 
+module "vader/typecheck"
+
 AST :: import "vader/parser/ast"
 import "vader/typecheck/types" { Type, mk_primitive, TY_BOOL, TY_FREE_INT, TY_FREE_FLOAT, TY_UNRESOLVED }
 import "vader/typecheck/type_expr" { primitive_from_name }
