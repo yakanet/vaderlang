@@ -57,10 +57,31 @@ is_primitive_type_name :: fn(name: string) -> bool {
 export collect_ast_idents :: fn(source: string, uri: string, out: RawToken[]) -> void {
     parsed :: parse_source(source, uri)
     program :: parsed.program
+    // Soft keyword : `module "..."` on the first non-trivial line is
+    // not a `Kw*` token at the lexer level (it stays an Ident — see
+    // the soft-keyword note in src/lexer/token.ts). Surface the
+    // keyword colour here using the parsed AST.ModuleDecl's nameSpan
+    // start to anchor the 6-char "module" span.
+    match program.module {
+        is null -> {}
+        is AST.ModuleDecl as md -> { push_module_keyword_span(md, out) }
+    }
     for d in program.decls {
         walk_decl(d, out)
     }
     refine_via_resolver(program, uri, out)
+}
+
+push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
+    // The `module` keyword occupies the first 6 chars of the decl ;
+    // md.span.start lines up with the `m` of `module`.
+    out.push(RawToken {
+        .line      = md.span.start.line - 1,
+        .col       = md.span.start.column - 1,
+        .length    = i32(6),
+        .tok_type  = i32(TokenType.Keyword),
+        .modifiers = i32(0),
+    })
 }
 
 /// Walk every ident through the body-resolver and override matching
