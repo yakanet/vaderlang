@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/match_struct_pattern_binding/_main.vader
+## tests/snippets/match_struct_pattern_binding
   FnDecl         main                 :: fn() -> i32
   StructDecl     P                    :: P
   expr 12:10    StructLitExpr  :: P

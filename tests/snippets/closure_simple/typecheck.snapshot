@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/closure_simple/_main.vader
+## tests/snippets/closure_simple
   FnDecl         main                 :: fn() -> i32
   expr 5:14     LambdaExpr     :: fn(i32) -> i32
   expr 6:16     BinaryExpr     :: i32

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/for_in_iter_trait/_main.vader
+## tests/snippets/for_in_iter_trait
   FnDecl         count_ls             :: fn(string) -> usize
   FnDecl         is_l                 :: fn(char) -> bool
   FnDecl         main                 :: fn() -> i32

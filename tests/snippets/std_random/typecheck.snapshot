@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/std_random/_main.vader
+## tests/snippets/std_random
   FnDecl         main                 :: fn() -> i32
   expr 19:10    CallExpr       :: Rng
   expr 19:10    IdentExpr      :: fn(u64) -> Rng

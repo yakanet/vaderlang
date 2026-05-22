@@ -2,9 +2,10 @@
 
 ## stdlib/std/core
 
-## tests/snippets/generic_brackets/_main.vader
+## tests/snippets/generic_brackets
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -21,4 +22,3 @@
   ArrayIterator(T)
   Pair(i32, i32)
   Pair(A, B)
-  Into(Target)

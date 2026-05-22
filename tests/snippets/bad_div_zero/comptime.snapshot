@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/bad_div_zero/_main.vader
+## tests/snippets/bad_div_zero
 
 ## generic instances
   Index(I, T)

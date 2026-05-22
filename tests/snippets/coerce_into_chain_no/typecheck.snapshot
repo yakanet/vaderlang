@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/coerce_into_chain_no/_main.vader
+## tests/snippets/coerce_into_chain_no
   StructDecl     A                    :: A
   StructDecl     B                    :: B
   StructDecl     C                    :: C

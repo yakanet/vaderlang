@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/tuple_in_array/_main.vader
+## tests/snippets/tuple_in_array
 
 ## generic instances
   Index(I, T)

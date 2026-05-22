@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/null_blockres/_main.vader
+## tests/snippets/null_blockres
   FnDecl         main                 :: fn() -> i32
   FnDecl         pick                 :: fn(bool) -> null | string
   expr 10:5     IfExpr         :: void

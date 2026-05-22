@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/type_valued_local_rejected/_main.vader
+## tests/snippets/type_valued_local_rejected
   FnDecl         main                 :: fn() -> i32
   expr 10:15    IdentExpr      :: type
   expr 11:27    IfExpr         :: type

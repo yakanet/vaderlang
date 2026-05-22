@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/sam_impl/_main.vader
+## tests/snippets/sam_impl
   FnDecl         main                 :: fn() -> i32
   expr 11:22    StringLitExpr  :: string
   expr 12:12    StringLitExpr  :: string

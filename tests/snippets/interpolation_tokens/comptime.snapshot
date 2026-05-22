@@ -2,9 +2,10 @@
 
 ## stdlib/std/core
 
-## tests/snippets/interpolation_tokens/_main.vader
+## tests/snippets/interpolation_tokens
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -19,7 +20,6 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)
 
 # Diagnostics
 [3:26] error[R2006] unresolved identifier: `name`

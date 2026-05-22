@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/alias_import/_main.vader
+## tests/snippets/alias_import
 
 ## generic instances
   Index(I, T)

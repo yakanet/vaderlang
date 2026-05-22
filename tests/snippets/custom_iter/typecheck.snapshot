@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/custom_iter/_main.vader
+## tests/snippets/custom_iter
   StructDecl     Countdown            :: Countdown
   FnDecl         main                 :: fn() -> i32
   expr 12:13    BinaryExpr     :: bool

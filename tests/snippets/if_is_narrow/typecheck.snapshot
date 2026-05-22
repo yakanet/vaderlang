@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/if_is_narrow/_main.vader
+## tests/snippets/if_is_narrow
   FnDecl         cascade              :: fn(Cat | Dog | Pig) -> string
   StructDecl     Cat                  :: Cat
   FnDecl         direct               :: fn(Cat | Dog) -> string

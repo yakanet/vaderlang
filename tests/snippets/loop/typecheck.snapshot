@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/loop/_main.vader
+## tests/snippets/loop
   FnDecl         main                 :: fn() -> i32
   expr 10:13    BinaryExpr     :: i32
   expr 10:13    IdentExpr      :: i32

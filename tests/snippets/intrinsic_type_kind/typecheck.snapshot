@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/intrinsic_type_kind/_main.vader
+## tests/snippets/intrinsic_type_kind
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair
   expr 14:11    IntrinsicCallExpr :: string

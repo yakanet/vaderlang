@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/fn_decl/_main.vader
+## tests/snippets/fn_decl
   FnDecl         add                  :: fn(i32, i32) -> i32
   FnDecl         greet                :: fn(string, string) -> string
   FnDecl         host_log             :: fn(i32, string) -> void

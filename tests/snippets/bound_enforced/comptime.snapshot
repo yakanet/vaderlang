@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/bound_enforced/_main.vader
+## tests/snippets/bound_enforced
 
 ## generic instances
   Index(I, T)

@@ -6,9 +6,12 @@
 
 ## stdlib/std/io
 
-## tests/snippets/map_set_iter/_main.vader
+## stdlib/std/testing
+
+## tests/snippets/map_set_iter
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -76,4 +79,3 @@
   SetIterator(T)
   SetIterator(T)
   SetIterator(T)
-  Into(Target)

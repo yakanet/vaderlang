@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/enum_bad_repr/_main.vader
+## tests/snippets/enum_bad_repr
   EnumDecl       DupVal               :: DupVal
   EnumDecl       NotInt               :: NotInt
   EnumDecl       TooBig               :: TooBig

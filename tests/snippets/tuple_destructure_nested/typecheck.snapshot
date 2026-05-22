@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_destructure_nested/_main.vader
+## tests/snippets/tuple_destructure_nested
   FnDecl         main                 :: fn() -> i32
   FnDecl         make_record          :: fn() -> [[i32, string], bool]
   expr 12:30    CallExpr       :: [[i32, string], bool]

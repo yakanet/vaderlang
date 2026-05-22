@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/for_loop/_main.vader
+## tests/snippets/for_loop
 
 ## generic instances
   Index(I, T)

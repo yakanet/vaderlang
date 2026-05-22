@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/seq_lit_inference/_main.vader
+## tests/snippets/seq_lit_inference
   FnDecl         main                 :: fn() -> i32
   expr 12:15    SeqLitExpr     :: i32[]
   expr 13:14    IdentExpr      :: i32[]

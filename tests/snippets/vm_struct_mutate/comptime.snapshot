@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/vm_struct_mutate/_main.vader
+## tests/snippets/vm_struct_mutate
 
 ## generic instances
   Index(I, T)

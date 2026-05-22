@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/iter_coerce_array/_main.vader
+## tests/snippets/iter_coerce_array
   FnDecl         main                 :: fn() -> i32
   FnDecl         make_iter            :: fn() -> Iterator(i32)
   FnDecl         walk                 :: fn(Iterator(i32)) -> i32

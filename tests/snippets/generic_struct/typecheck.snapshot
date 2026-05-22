@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/generic_struct/_main.vader
+## tests/snippets/generic_struct
   FnDecl         main                 :: fn() -> i32
   StructDecl     Stack                :: Stack(T)
   TraitDecl      Stackable            :: Stackable(T)

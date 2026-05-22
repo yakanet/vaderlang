@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/conformance_explicit/_main.vader
+## tests/snippets/conformance_explicit
   FnDecl         add                  :: fn(Vec3, Vec3) -> Vec3
   FnDecl         double               :: fn(T) -> T
   FnDecl         main                 :: fn() -> i32

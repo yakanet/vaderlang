@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/path_basics/_main.vader
+## tests/snippets/path_basics
   FnDecl         main                 :: fn() -> i32
   FnDecl         show_path            :: fn(string, Path) -> void
   expr 12:13    StringLitExpr  :: string

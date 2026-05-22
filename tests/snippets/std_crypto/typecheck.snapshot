@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/std_crypto/_main.vader
+## tests/snippets/std_crypto
   FnDecl         main                 :: fn() -> i32
   expr 10:13    StringLitExpr  :: string
   expr 10:29    CallExpr       :: string

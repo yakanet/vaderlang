@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/regex_helpers/_main.vader
+## tests/snippets/regex_helpers
   FnDecl         is_non_id            :: fn(char) -> bool
   FnDecl         main                 :: fn() -> i32
   expr 10:20    BinaryExpr     :: bool

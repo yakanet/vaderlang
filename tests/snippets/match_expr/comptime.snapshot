@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/match_expr/_main.vader
+## tests/snippets/match_expr
 
 ## generic instances
   Index(I, T)

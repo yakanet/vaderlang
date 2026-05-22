@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/process_spawn/_main.vader
+## tests/snippets/process_spawn
   FnDecl         main                 :: fn() -> i32
   expr 11:10    CallExpr       :: Error | ProcessResult
   expr 11:10    IdentExpr      :: fn(string[]) -> Error | ProcessResult

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/std_sort/_main.vader
+## tests/snippets/std_sort
   FnDecl         i32_gt               :: fn(i32, i32) -> bool
   FnDecl         i32_lt               :: fn(i32, i32) -> bool
   FnDecl         main                 :: fn() -> i32

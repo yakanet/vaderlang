@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_in_array/_main.vader
+## tests/snippets/tuple_in_array
   FnDecl         main                 :: fn() -> i32
   expr 6:29     SeqLitExpr     :: [i32, string][]
   expr 6:30     SeqLitExpr     :: [i32, string]

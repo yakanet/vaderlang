@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/let_type_alias/_main.vader
+## tests/snippets/let_type_alias
 
 ## generic instances
   Index(I, T)

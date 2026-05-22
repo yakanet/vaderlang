@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/coerce_into_overload/_main.vader
+## tests/snippets/coerce_into_overload
   FnDecl         double               :: fn(i32) -> i32
   FnDecl         double               :: fn(f64) -> f64
   FnDecl         main                 :: fn() -> i32

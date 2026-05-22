@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/string_bytes/_main.vader
+## tests/snippets/string_bytes
   FnDecl         main                 :: fn() -> i32
   expr 10:14    CallExpr       :: StringBytes
   expr 10:14    FieldExpr      :: fn() -> StringBytes

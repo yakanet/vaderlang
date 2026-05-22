@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/tuple_for_destructure/_main.vader
+## tests/snippets/tuple_for_destructure
 
 ## generic instances
   Index(I, T)

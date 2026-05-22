@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/fn_value_arg/_main.vader
+## tests/snippets/fn_value_arg
   FnDecl         apply                :: fn(fn(i32) -> i32, i32) -> i32
   FnDecl         inc                  :: fn(i32) -> i32
   FnDecl         main                 :: fn() -> i32

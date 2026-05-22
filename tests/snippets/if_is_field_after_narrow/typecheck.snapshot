@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/if_is_field_after_narrow/_main.vader
+## tests/snippets/if_is_field_after_narrow
   StructDecl     ArrayVal             :: ArrayVal
   FnDecl         first_item           :: fn(ArrayVal | IntVal | StructVal) -> i32
   StructDecl     IntVal               :: IntVal

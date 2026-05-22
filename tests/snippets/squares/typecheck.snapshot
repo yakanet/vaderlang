@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/squares/_main.vader
+## tests/snippets/squares
   FnDecl         main                 :: fn() -> i32
   FnDecl         square               :: fn(i32) -> i32
   expr 10:13    StringLitExpr  :: string

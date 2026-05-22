@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/interpolation/_main.vader
+## tests/snippets/interpolation
 
 ## generic instances
   Index(I, T)

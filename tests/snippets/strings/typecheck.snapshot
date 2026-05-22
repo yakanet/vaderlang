@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/strings/_main.vader
+## tests/snippets/strings
   ConstDecl      escaped              :: string
   ConstDecl      multi                :: string
   ConstDecl      plain                :: string

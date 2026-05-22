@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/intrinsic_size_of/_main.vader
+## tests/snippets/intrinsic_size_of
 
 ## generic instances
   Index(I, T)

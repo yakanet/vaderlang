@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/string_chars/_main.vader
+## tests/snippets/string_chars
   FnDecl         main                 :: fn() -> i32
   expr 10:17    StringLitExpr  :: string
   expr 10:20    IdentExpr      :: char

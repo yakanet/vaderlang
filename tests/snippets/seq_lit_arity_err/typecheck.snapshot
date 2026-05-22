@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/seq_lit_arity_err/_main.vader
+## tests/snippets/seq_lit_arity_err
   FnDecl         main                 :: fn() -> i32
   expr 6:27     SeqLitExpr     :: [i32, string, bool]
   expr 6:31     StringLitExpr  :: string

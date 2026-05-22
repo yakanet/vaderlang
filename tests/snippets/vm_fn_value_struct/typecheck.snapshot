@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_fn_value_struct/_main.vader
+## tests/snippets/vm_fn_value_struct
   StructDecl     Calculator           :: Calculator
   FnDecl         main                 :: fn() -> i32
   FnDecl         mul                  :: fn(i32, i32) -> i32

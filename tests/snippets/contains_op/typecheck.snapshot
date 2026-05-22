@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/contains_op/_main.vader
+## tests/snippets/contains_op
   StructDecl     DigitSet             :: DigitSet
   FnDecl         main                 :: fn() -> i32
   expr 12:12    BinaryExpr     :: bool

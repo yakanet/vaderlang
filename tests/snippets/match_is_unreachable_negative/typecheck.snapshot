@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/match_is_unreachable_negative/_main.vader
+## tests/snippets/match_is_unreachable_negative
   StructDecl     Bird                 :: Bird
   StructDecl     Cat                  :: Cat
   StructDecl     Dog                  :: Dog

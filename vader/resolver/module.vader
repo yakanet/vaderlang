@@ -207,3 +207,38 @@ export default_stdlib_root :: fn() -> string {
     if exists("stdlib") && is_dir("stdlib") { return "stdlib" }
     return "stdlib"
 }
+
+import "std/json" { parse, JsonValue, JsonObject, JsonArray, JsonString }
+
+/// Read the `modules` array from `vader.json` at `project_root`, or
+/// an empty list when the file is missing / malformed / lacks the
+/// field. Each entry is a literal folder path (no glob patterns) —
+/// callers are expected to `join_path(project_root, m)` before
+/// passing to `discover_modules`.
+export read_manifest_modules :: fn(project_root: string) -> string[] {
+    out: string[] = []
+    manifest_path :: join_path(project_root, MANIFEST_FILENAME)
+    if !exists(manifest_path) { return out }
+    content :: try_read(manifest_path)
+    raw :: match content { is string as s -> s, _ -> "" }
+    if raw == "" { return out }
+    parsed :: parse(raw)
+    match parsed {
+        is JsonObject as obj -> {
+            entry :: obj.entries["modules"]
+            match entry {
+                is JsonArray as arr -> {
+                    for item in arr.items {
+                        match item {
+                            is JsonString as s -> { out.push(s.value) }
+                            _ -> {}
+                        }
+                    }
+                }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
+    return out
+}

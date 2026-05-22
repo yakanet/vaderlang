@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/if_field_narrow/_main.vader
+## tests/snippets/if_field_narrow
   StructDecl     Bag                  :: Bag
   FnDecl         count                :: fn(i32[]) -> i32
   FnDecl         main                 :: fn() -> i32

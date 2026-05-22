@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/if_branches/_main.vader
+## tests/snippets/if_branches
 
 ## generic instances
   Index(I, T)

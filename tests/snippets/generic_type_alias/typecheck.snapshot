@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/generic_type_alias/_main.vader
+## tests/snippets/generic_type_alias
   FnDecl         main                 :: fn() -> i32
   TypeAliasDecl  Maybe                :: null | T
   TypeAliasDecl  Pair                 :: A | B

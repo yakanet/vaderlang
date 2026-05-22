@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/cast_test/_main.vader
+## tests/snippets/cast_test
 
 ## generic instances
   Index(I, T)

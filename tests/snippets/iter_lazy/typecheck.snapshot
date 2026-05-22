@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/iter_lazy/_main.vader
+## tests/snippets/iter_lazy
   FnDecl         main                 :: fn() -> i32
   expr 11:14    IdentExpr      :: MapIterator(i32, i32)
   expr 12:17    BinaryExpr     :: i32

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/enum_to_repr_cast/_main.vader
+## tests/snippets/enum_to_repr_cast
   EnumDecl       Big                  :: Big
   EnumDecl       Color                :: Color
   EnumDecl       Day                  :: Day

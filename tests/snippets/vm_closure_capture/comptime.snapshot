@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/vm_closure_capture/_main.vader
+## tests/snippets/vm_closure_capture
 
 ## generic instances
   Index(I, T)

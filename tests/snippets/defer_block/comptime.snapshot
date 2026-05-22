@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/defer_block/_main.vader
+## tests/snippets/defer_block
 
 ## generic instances
   Index(I, T)

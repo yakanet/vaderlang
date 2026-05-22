@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/tuple_triple_quad/_main.vader
+## tests/snippets/tuple_triple_quad
 
 ## generic instances
   Index(I, T)

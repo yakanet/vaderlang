@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_destructure_after_narrow/_main.vader
+## tests/snippets/tuple_destructure_after_narrow
   FnDecl         main                 :: fn() -> i32
   FnDecl         make_pair            :: fn(bool) -> [i32, i32] | null
   expr 19:20    SeqLitExpr     :: [i32, i32]

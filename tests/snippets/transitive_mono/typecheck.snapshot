@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/transitive_mono/_main.vader
+## tests/snippets/transitive_mono
   FnDecl         inner_count          :: fn(T[]) -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         outer                :: fn(T[]) -> i32

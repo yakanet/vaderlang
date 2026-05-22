@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/cast_test/_main.vader
+## tests/snippets/cast_test
   FnDecl         main                 :: fn() -> i32
   expr 7:14     CallExpr       :: u64
   expr 7:14     IdentExpr      :: type

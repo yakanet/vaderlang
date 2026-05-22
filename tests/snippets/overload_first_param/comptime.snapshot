@@ -8,9 +8,12 @@
   @comptime  e                    = 2.718281828459045_f64
   @comptime  pi                   = 3.141592653589793_f64
 
-## tests/snippets/overload_first_param/_main.vader
+## stdlib/std/testing
+
+## tests/snippets/overload_first_param
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -25,4 +28,3 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)

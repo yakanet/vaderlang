@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/file_decorator/_main.vader
+## tests/snippets/file_decorator
   ConstDecl      FILENAME             :: string
   ConstDecl      GREETING             :: string
   FnDecl         main                 :: fn() -> i32

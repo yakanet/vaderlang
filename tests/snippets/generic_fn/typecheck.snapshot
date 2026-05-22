@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/generic_fn/_main.vader
+## tests/snippets/generic_fn
   FnDecl         first                :: fn(T[], T) -> T
   FnDecl         identity             :: fn(T) -> T
   FnDecl         main                 :: fn() -> i32

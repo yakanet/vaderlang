@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/decorator_assert/_main.vader
+## tests/snippets/decorator_assert
   FnDecl         DOUBLE               :: fn(i32) -> i32
   FnDecl         main                 :: fn() -> i32
   expr 11:38    BinaryExpr     :: i32

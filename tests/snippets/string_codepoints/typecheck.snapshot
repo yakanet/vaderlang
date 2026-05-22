@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/string_codepoints/_main.vader
+## tests/snippets/string_codepoints
   FnDecl         main                 :: fn() -> i32
   expr 10:13    StringLitExpr  :: string
   expr 10:26    CallExpr       :: usize

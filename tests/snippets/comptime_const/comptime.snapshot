@@ -2,11 +2,12 @@
 
 ## stdlib/std/core
 
-## tests/snippets/comptime_const/_main.vader
+## tests/snippets/comptime_const
   @comptime  ANSWER               = 42_i32
   @comptime  GREETING             = "hello, world"
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -21,4 +22,3 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)

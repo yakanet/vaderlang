@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/map_set_iter/_main.vader
+## tests/snippets/map_set_iter
   FnDecl         main                 :: fn() -> i32
   expr 10:5     IdentExpr      :: MutableMap(string, i32)
   expr 10:7     StringLitExpr  :: string

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/if_branches/_main.vader
+## tests/snippets/if_branches
   FnDecl         classify             :: fn(i32) -> string
   expr 4:12     IfExpr         :: string
   expr 4:16     BinaryExpr     :: bool

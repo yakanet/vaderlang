@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/expressions/_main.vader
+## tests/snippets/expressions
   FnDecl         add                  :: fn(i32, i32) -> i32
   FnDecl         demo                 :: fn() -> i32
   expr 10:10    BinaryExpr     :: i32

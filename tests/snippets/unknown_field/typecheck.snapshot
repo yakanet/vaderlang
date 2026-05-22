@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/unknown_field/_main.vader
+## tests/snippets/unknown_field
   FnDecl         dist                 :: fn(Point) -> f64
   StructDecl     Point                :: Point
   expr 9:12     FieldExpr      :: ?

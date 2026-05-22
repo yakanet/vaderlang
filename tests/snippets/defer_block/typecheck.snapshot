@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/defer_block/_main.vader
+## tests/snippets/defer_block
   FnDecl         main                 :: fn() -> i32
   expr 10:17    StringLitExpr  :: string
   expr 10:9     CallExpr       :: void

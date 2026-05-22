@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/if_without_else_stmt/_main.vader
+## tests/snippets/if_without_else_stmt
   FnDecl         expect_lparen        :: fn(string) -> string
   FnDecl         main                 :: fn() -> i32
   expr 12:12    StringLitExpr  :: string

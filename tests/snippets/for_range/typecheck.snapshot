@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/for_range/_main.vader
+## tests/snippets/for_range
   FnDecl         main                 :: fn() -> i32
   expr 10:13    StringLitExpr  :: string
   expr 10:25    IdentExpr      :: i32

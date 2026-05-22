@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/if_null_narrow/_main.vader
+## tests/snippets/if_null_narrow
   ConstDecl      Animal               :: type
   StructDecl     Cat                  :: Cat
   FnDecl         combine              :: fn(Cat | Dog | null, Cat | Dog | null) -> string

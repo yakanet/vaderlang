@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/enum_implements_trait/_main.vader
+## tests/snippets/enum_implements_trait
   EnumDecl       Direction            :: Direction
   FnDecl         main                 :: fn() -> i32
   expr 14:15    IdentExpr      :: Direction

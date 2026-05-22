@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/struct_spread/_main.vader
+## tests/snippets/struct_spread
   FnDecl         main                 :: fn() -> i32
   StructDecl     P                    :: P
   expr 12:13    StructLitExpr  :: P

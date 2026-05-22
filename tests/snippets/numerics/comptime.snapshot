@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/numerics/_main.vader
+## tests/snippets/numerics
   @comptime  a                    = 42_i32
   @comptime  b                    = 1000000_i32
   @comptime  c                    = 255_i32
@@ -17,6 +17,7 @@
   @comptime  l                    = 0.5_f64
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -31,4 +32,3 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)

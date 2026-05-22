@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/interpolation_tokens/_main.vader
+## tests/snippets/interpolation_tokens
   ConstDecl      expr                 :: string
   ConstDecl      nested               :: string
   ConstDecl      simple               :: string

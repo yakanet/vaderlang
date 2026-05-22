@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/byte_literal/_main.vader
+## tests/snippets/byte_literal
   FnDecl         main                 :: fn() -> i32
   expr 15:13    StringLitExpr  :: string
   expr 15:18    CallExpr       :: i32

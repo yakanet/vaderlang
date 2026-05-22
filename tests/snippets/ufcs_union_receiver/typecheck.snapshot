@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/ufcs_union_receiver/_main.vader
+## tests/snippets/ufcs_union_receiver
   FnDecl         area                 :: fn(Circle | Square) -> i32
   StructDecl     Circle               :: Circle
   FnDecl         describe             :: fn(Circle | Square) -> string

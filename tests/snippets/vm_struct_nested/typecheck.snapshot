@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_struct_nested/_main.vader
+## tests/snippets/vm_struct_nested
   StructDecl     Inner                :: Inner
   FnDecl         main                 :: fn() -> i32
   StructDecl     Outer                :: Outer

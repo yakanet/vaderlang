@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/sam_impl/_main.vader
+## tests/snippets/sam_impl
 
 ## generic instances
   Index(I, T)

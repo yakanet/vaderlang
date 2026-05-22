@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/std_cli_basic/_main.vader
+## tests/snippets/std_cli_basic
   FnDecl         main                 :: fn() -> i32
   expr 11:13    SeqLitExpr     :: string[]
   expr 11:14    StringLitExpr  :: string

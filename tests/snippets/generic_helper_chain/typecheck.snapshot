@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/generic_helper_chain/_main.vader
+## tests/snippets/generic_helper_chain
   StructDecl     Box                  :: Box(T)
   FnDecl         inner                :: fn(T) -> T
   FnDecl         main                 :: fn() -> i32

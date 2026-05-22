@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/expr_bodied_mixed_form/_main.vader
+## tests/snippets/expr_bodied_mixed_form
   FnDecl         main                 :: fn() -> i32
   FnDecl         square               :: fn(i32) -> i32
   expr 8:38     BinaryExpr     :: i32

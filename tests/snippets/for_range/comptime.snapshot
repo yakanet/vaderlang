@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/for_range/_main.vader
+## tests/snippets/for_range
 
 ## generic instances
   Index(I, T)

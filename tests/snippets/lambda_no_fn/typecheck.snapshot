@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/lambda_no_fn/_main.vader
+## tests/snippets/lambda_no_fn
   FnDecl         call_it              :: fn(fn(i32) -> i32, i32) -> i32
   FnDecl         call_none            :: fn(fn() -> i32) -> i32
   FnDecl         call_two             :: fn(fn(i32, i32) -> i32, i32, i32) -> i32

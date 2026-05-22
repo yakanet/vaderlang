@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/strings/_main.vader
+## tests/snippets/strings
   @comptime  escaped              = "a
 b	c"
   @comptime  multi                = "line one
@@ -12,6 +12,7 @@ line two
   @comptime  raw                  = "C:\Users\path"
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -26,4 +27,3 @@ line two
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)

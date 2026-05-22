@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/match_struct_pattern_in_union/_main.vader
+## tests/snippets/match_struct_pattern_in_union
   FnDecl         describe             :: fn(null | Point) -> string
   FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point

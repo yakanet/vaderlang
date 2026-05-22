@@ -4,23 +4,23 @@
 
 ## stdlib/std/io
 
-## tests/snippets/self_ref_struct/_main.vader
+## tests/snippets/self_ref_struct
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
   Iterator(T)
   Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
   Node(i32)
   Node(T)
-  Into(Target)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)

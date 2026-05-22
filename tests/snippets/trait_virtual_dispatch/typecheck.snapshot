@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/trait_virtual_dispatch/_main.vader
+## tests/snippets/trait_virtual_dispatch
   FnDecl         main                 :: fn() -> i32
   StructDecl     NetErr               :: NetErr
   StructDecl     ParseErr             :: ParseErr

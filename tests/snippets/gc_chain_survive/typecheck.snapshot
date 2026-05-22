@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/gc_chain_survive/_main.vader
+## tests/snippets/gc_chain_survive
   FnDecl         main                 :: fn() -> i32
   StructDecl     Node                 :: Node
   expr 12:25    StructLitExpr  :: Node

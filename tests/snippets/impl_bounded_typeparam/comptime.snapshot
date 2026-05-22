@@ -4,9 +4,10 @@
 
 ## stdlib/std/io
 
-## tests/snippets/impl_bounded_typeparam/_main.vader
+## tests/snippets/impl_bounded_typeparam
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -25,4 +26,3 @@
   Wrap(Dog)
   Wrap(T)
   Wrap(T)
-  Into(Target)

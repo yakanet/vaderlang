@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/implicit_type_alias/_main.vader
+## tests/snippets/implicit_type_alias
   FnDecl         classify             :: fn(i32 | string) -> i32
   FnDecl         main                 :: fn() -> i32
   ConstDecl      Mixed                :: type

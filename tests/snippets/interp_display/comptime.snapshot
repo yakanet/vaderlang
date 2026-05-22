@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/interp_display/_main.vader
+## tests/snippets/interp_display
 
 ## generic instances
   Index(I, T)

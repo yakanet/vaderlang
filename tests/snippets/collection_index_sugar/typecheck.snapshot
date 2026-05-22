@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/collection_index_sugar/_main.vader
+## tests/snippets/collection_index_sugar
   FnDecl         main                 :: fn() -> i32
   expr 11:10    StructLitExpr  :: MutableMap(string, i32)
   expr 11:47    SeqLitExpr     :: Entry(string, i32) | null[]

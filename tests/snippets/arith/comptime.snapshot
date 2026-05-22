@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/arith/_main.vader
+## tests/snippets/arith
 
 ## generic instances
   Index(I, T)

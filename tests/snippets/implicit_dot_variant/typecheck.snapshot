@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/implicit_dot_variant/_main.vader
+## tests/snippets/implicit_dot_variant
   EnumDecl       Day                  :: Day
   FnDecl         main                 :: fn() -> i32
   ConstDecl      Maybe                :: type

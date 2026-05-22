@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/vm_closure_mutating/_main.vader
+## tests/snippets/vm_closure_mutating
 
 ## generic instances
   Index(I, T)

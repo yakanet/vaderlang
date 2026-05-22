@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/simple_arith/_main.vader
+## tests/snippets/simple_arith
   ConstDecl      ANSWER               :: i32
   FnDecl         main                 :: fn() -> i32
   expr 4:19     BinaryExpr     :: {integer}

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/coerce_into_identity_rejected/_main.vader
+## tests/snippets/coerce_into_identity_rejected
   StructDecl     Foo                  :: Foo
   FnDecl         main                 :: fn() -> i32
   expr 10:38    IdentExpr      :: Foo

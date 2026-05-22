@@ -4,22 +4,22 @@
 
 ## stdlib/std/io
 
-## tests/snippets/comptime_for/_main.vader
+## tests/snippets/comptime_for
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
   Iterator(T)
   Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
   Pair(K, V)
-  Into(Target)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)

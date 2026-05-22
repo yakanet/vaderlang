@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/bound_enforced/_main.vader
+## tests/snippets/bound_enforced
   FnDecl         main                 :: fn() -> i32
   FnDecl         needs_hash           :: fn(T) -> bool
   expr 10:12    BinaryExpr     :: bool

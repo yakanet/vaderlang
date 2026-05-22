@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/vm_fn_value_local/_main.vader
+## tests/snippets/vm_fn_value_local
 
 ## generic instances
   Index(I, T)

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/intrinsic_field_access/_main.vader
+## tests/snippets/intrinsic_field_access
   FnDecl         derive_print         :: fn(User) -> void
   FnDecl         main                 :: fn() -> i32
   StructDecl     User                 :: User

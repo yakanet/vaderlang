@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/match_expr/_main.vader
+## tests/snippets/match_expr
   FnDecl         classify             :: fn(i32 | null | string) -> string
   expr 4:12     MatchExpr      :: string
   expr 4:18     IdentExpr      :: i32 | null | string

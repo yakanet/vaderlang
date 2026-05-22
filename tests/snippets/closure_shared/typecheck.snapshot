@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/closure_shared/_main.vader
+## tests/snippets/closure_shared
   FnDecl         main                 :: fn() -> i32
   expr 11:5     CallExpr       :: void
   expr 11:5     IdentExpr      :: fn() -> void

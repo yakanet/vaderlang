@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/struct_defaults/_main.vader
+## tests/snippets/struct_defaults
   FnDecl         main                 :: fn() -> i32
   StructDecl     Settings             :: Settings
   expr 12:11    StructLitExpr  :: Settings

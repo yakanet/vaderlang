@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_interp_basic/_main.vader
+## tests/snippets/vm_interp_basic
   FnDecl         main                 :: fn() -> i32
   expr 11:13    StringLitExpr  :: string
   expr 11:26    IdentExpr      :: i32

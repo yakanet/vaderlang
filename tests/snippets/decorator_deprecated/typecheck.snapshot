@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/decorator_deprecated/_main.vader
+## tests/snippets/decorator_deprecated
   ConstDecl      KING                 :: i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         new_helper           :: fn(i32) -> i32

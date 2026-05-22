@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_pair_return/_main.vader
+## tests/snippets/tuple_pair_return
   FnDecl         main                 :: fn() -> i32
   FnDecl         make_pair            :: fn() -> [i32, string]
   expr 11:10    CallExpr       :: [i32, string]

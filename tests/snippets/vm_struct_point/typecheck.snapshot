@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_struct_point/_main.vader
+## tests/snippets/vm_struct_point
   FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point
   expr 10:12    BinaryExpr     :: i32

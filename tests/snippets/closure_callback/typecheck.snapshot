@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/closure_callback/_main.vader
+## tests/snippets/closure_callback
   FnDecl         apply                :: fn(fn(i32) -> i32, i32) -> i32
   FnDecl         main                 :: fn() -> i32
   expr 10:16    BinaryExpr     :: i32

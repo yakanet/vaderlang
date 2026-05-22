@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/trait_box_range_iter/_main.vader
+## tests/snippets/trait_box_range_iter
   FnDecl         count                :: fn(Iterator(T)) -> i32
   TraitDecl      Doubler              :: Doubler(T)
   TraitDecl      Greeter              :: Greeter(T)

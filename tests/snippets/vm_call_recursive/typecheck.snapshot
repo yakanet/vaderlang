@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_call_recursive/_main.vader
+## tests/snippets/vm_call_recursive
   FnDecl         factorial            :: fn(i32) -> i32
   FnDecl         main                 :: fn() -> i32
   expr 11:12    BinaryExpr     :: i32

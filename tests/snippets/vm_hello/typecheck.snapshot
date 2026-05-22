@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_hello/_main.vader
+## tests/snippets/vm_hello
   FnDecl         main                 :: fn() -> i32
   expr 8:13     StringLitExpr  :: string
   expr 8:5      CallExpr       :: void

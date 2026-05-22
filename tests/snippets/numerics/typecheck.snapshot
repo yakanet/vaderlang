@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/numerics/_main.vader
+## tests/snippets/numerics
   ConstDecl      a                    :: i32
   ConstDecl      b                    :: i32
   ConstDecl      c                    :: i32

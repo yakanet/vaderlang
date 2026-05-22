@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/coerce_into_union_target_no/_main.vader
+## tests/snippets/coerce_into_union_target_no
   StructDecl     Foo                  :: Foo
   FnDecl         main                 :: fn() -> i32
   expr 11:38    FieldExpr      :: i32

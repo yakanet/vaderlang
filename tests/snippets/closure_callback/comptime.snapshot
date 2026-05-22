@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/closure_callback/_main.vader
+## tests/snippets/closure_callback
 
 ## generic instances
   Index(I, T)

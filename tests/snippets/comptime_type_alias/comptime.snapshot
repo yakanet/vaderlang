@@ -4,12 +4,13 @@
 
 ## stdlib/std/io
 
-## tests/snippets/comptime_type_alias/_main.vader
+## tests/snippets/comptime_type_alias
   @comptime  byte_int             = i32
   @comptime  byte_long            = i64
   @comptime  byte_string          = string
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -24,4 +25,3 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)

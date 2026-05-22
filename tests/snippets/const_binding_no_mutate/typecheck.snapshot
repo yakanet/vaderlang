@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/const_binding_no_mutate/_main.vader
+## tests/snippets/const_binding_no_mutate
   FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point
   expr 18:5     IdentExpr      :: i32

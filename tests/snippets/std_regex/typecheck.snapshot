@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/std_regex/_main.vader
+## tests/snippets/std_regex
   FnDecl         main                 :: fn() -> i32
   FnDecl         run_find             :: fn(string, Pattern, string) -> void
   FnDecl         run_match            :: fn(string, Pattern, string) -> void

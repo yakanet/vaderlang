@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/json_basics/_main.vader
+## tests/snippets/json_basics
   FnDecl         main                 :: fn() -> i32
   FnDecl         show                 :: fn(string, string) -> void
   expr 10:15    CallExpr       :: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString

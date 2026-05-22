@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/tuple_match_pattern/_main.vader
+## tests/snippets/tuple_match_pattern
 
 ## generic instances
   Index(I, T)

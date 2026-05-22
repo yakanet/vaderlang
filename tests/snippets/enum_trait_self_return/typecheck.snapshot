@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/enum_trait_self_return/_main.vader
+## tests/snippets/enum_trait_self_return
   EnumDecl       Direction            :: Direction
   FnDecl         main                 :: fn() -> i32
   TraitDecl      Turnable             :: Turnable

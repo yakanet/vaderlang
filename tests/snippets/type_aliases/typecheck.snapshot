@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/type_aliases/_main.vader
+## tests/snippets/type_aliases
   FnDecl         add                  :: fn(i32, i32) -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         sum_doubles          :: fn(f64, f64) -> f64

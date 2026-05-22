@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/intrinsic_field_index/_main.vader
+## tests/snippets/intrinsic_field_index
 
 ## generic instances
   Index(I, T)

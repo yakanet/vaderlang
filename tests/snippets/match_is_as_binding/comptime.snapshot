@@ -4,9 +4,10 @@
 
 ## stdlib/std/io
 
-## tests/snippets/match_is_as_binding/_main.vader
+## tests/snippets/match_is_as_binding
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -21,4 +22,3 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/dot_variant_in_union/_main.vader
+## tests/snippets/dot_variant_in_union
   FnDecl         dir_label            :: fn(Direction) -> string
   EnumDecl       Direction            :: Direction
   FnDecl         main                 :: fn() -> i32

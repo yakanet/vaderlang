@@ -1,4 +1,4 @@
 # Typecheck
 
-## tests/snippets/return_42/_main.vader
+## tests/snippets/return_42
   FnDecl         main                 :: fn() -> i32

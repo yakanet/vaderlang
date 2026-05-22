@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/ufcs_overload/_main.vader
+## tests/snippets/ufcs_overload
   StructDecl     A                    :: A
   StructDecl     B                    :: B
   FnDecl         inc                  :: fn(A) -> i32

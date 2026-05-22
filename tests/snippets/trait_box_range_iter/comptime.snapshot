@@ -2,9 +2,12 @@
 
 ## stdlib/std/core
 
-## tests/snippets/trait_box_range_iter/_main.vader
+## tests/snippets/trait_box_range_iter
 
 ## generic instances
+  Into(Target)
+  Greeter(T)
+  Greeter(T)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -22,8 +25,5 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Greeter(T)
-  Greeter(T)
   Doubler(T)
   Doubler(T)
-  Into(Target)

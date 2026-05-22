@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/coerce_into_explicit/_main.vader
+## tests/snippets/coerce_into_explicit
   FnDecl         main                 :: fn() -> i32
   StructDecl     UserId               :: UserId
   expr 13:38    FieldExpr      :: i32

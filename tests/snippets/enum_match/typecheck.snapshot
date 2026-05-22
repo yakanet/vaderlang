@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/enum_match/_main.vader
+## tests/snippets/enum_match
   FnDecl         classify             :: fn(i32) -> Severity
   EnumDecl       Color                :: Color
   FnDecl         label                :: fn(Color) -> string

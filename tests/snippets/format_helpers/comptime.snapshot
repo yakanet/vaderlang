@@ -4,13 +4,24 @@
 
 ## stdlib/std/io
 
+## stdlib/std/math
+  @comptime  e                    = 2.718281828459045_f64
+  @comptime  pi                   = 3.141592653589793_f64
+
 ## stdlib/std/numbers
 
 ## stdlib/std/string
 
-## tests/snippets/format_helpers/_main.vader
+## stdlib/std/string_builder
+
+## stdlib/std/testing
+
+## stdlib/std/utf8
+
+## tests/snippets/format_helpers
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -28,4 +39,3 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)

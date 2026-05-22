@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_fn_value_callback/_main.vader
+## tests/snippets/vm_fn_value_callback
   FnDecl         apply                :: fn(fn(i32) -> i32, i32) -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         triple               :: fn(i32) -> i32

@@ -2,9 +2,10 @@
 
 ## stdlib/std/core
 
-## tests/snippets/coerce_into_chain_no/_main.vader
+## tests/snippets/coerce_into_chain_no
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -19,7 +20,6 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)
 
 # Diagnostics
 [21:5] error[T3001] type mismatch: expected C, got A

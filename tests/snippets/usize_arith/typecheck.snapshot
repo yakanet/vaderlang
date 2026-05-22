@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/usize_arith/_main.vader
+## tests/snippets/usize_arith
   FnDecl         main                 :: fn() -> i32
   expr 7:16     BinaryExpr     :: usize
   expr 7:16     IdentExpr      :: usize

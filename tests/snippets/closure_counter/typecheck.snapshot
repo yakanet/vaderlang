@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/closure_counter/_main.vader
+## tests/snippets/closure_counter
   FnDecl         main                 :: fn() -> i32
   expr 10:10    CallExpr       :: i32
   expr 10:10    IdentExpr      :: fn() -> i32

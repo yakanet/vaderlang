@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/match_literal_patterns/_main.vader
+## tests/snippets/match_literal_patterns
   FnDecl         describe_char        :: fn(char) -> string
   FnDecl         describe_int         :: fn(i32) -> string
   FnDecl         flag_label           :: fn(bool) -> string

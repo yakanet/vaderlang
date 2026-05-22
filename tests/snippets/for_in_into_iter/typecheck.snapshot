@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/for_in_into_iter/_main.vader
+## tests/snippets/for_in_into_iter
   FnDecl         main                 :: fn() -> i32
   expr 16:12    SeqLitExpr     :: i32[]
   expr 18:14    IdentExpr      :: i32[]

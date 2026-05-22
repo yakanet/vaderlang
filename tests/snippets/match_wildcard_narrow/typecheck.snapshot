@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/match_wildcard_narrow/_main.vader
+## tests/snippets/match_wildcard_narrow
   StructDecl     Cat                  :: Cat
   StructDecl     Dog                  :: Dog
   FnDecl         greet_binding        :: fn(Cat | Dog | null) -> string

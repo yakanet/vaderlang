@@ -505,8 +505,18 @@ export function dumpTypecheck(_source: string, entryPath: string): string {
  *  spans). `tests/parity.test.ts` then trivially passes (Vader vs Vader)
  *  while `snapshot.test.ts` (which exercises the TS pipeline) becomes
  *  the place where TS divergences from Vader surface. */
+// Bumped GC arenas — under the strict resolver the typecheck stage
+// loads the full transitive closure of every visited module, which
+// the default 4M / 16M young / old can't hold for non-trivial entries
+// (e.g. anything pulling in `vader/parser` or `vader/typecheck`).
+const VADER_TYPECHECK_ENV = {
+  ...process.env,
+  VADER_GC_YOUNG_BYTES: String(16 * 1024 * 1024),
+  VADER_GC_OLD_BYTES:   String(128 * 1024 * 1024),
+};
+
 export function dumpTypecheckViaVader(_source: string, entryPath: string): string {
-  const result = Bun.spawnSync(["./build/vader", "dump", "--stage=typed-ast", entryPath]);
+  const result = Bun.spawnSync(["./build/vader", "dump", "--stage=typed-ast", entryPath], { env: VADER_TYPECHECK_ENV });
   const stdout = new TextDecoder().decode(result.stdout);
   const stderr = new TextDecoder().decode(result.stderr);
   // Surface CLI failures inline so snapshot diffs are debuggable rather
@@ -523,7 +533,7 @@ export function dumpTypecheckViaVader(_source: string, entryPath: string): strin
  *  Snippets relying on the deferred features will see their `## generic
  *  instances` lists shrink. */
 export function dumpComptimeViaVader(_source: string, entryPath: string): string {
-  const result = Bun.spawnSync(["./build/vader", "dump", "--stage=evaluated-ast", entryPath]);
+  const result = Bun.spawnSync(["./build/vader", "dump", "--stage=evaluated-ast", entryPath], { env: VADER_TYPECHECK_ENV });
   const stdout = new TextDecoder().decode(result.stdout);
   const stderr = new TextDecoder().decode(result.stderr);
   if (result.exitCode !== 0) return `# vader CLI failed (exit ${result.exitCode})\n${stderr}${stdout}`;

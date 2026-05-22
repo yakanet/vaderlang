@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/bad_div_zero/_main.vader
+## tests/snippets/bad_div_zero
   ConstDecl      BOOM                 :: i32
   FnDecl         main                 :: fn() -> i32
   expr 4:16     BinaryExpr     :: {integer}

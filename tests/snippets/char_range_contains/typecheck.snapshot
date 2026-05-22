@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/char_range_contains/_main.vader
+## tests/snippets/char_range_contains
   FnDecl         is_alpha             :: fn(char) -> bool
   FnDecl         is_digit             :: fn(char) -> bool
   FnDecl         is_lower             :: fn(char) -> bool

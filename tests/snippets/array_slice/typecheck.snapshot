@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/array_slice/_main.vader
+## tests/snippets/array_slice
   FnDecl         main                 :: fn() -> i32
   expr 13:18    SeqLitExpr     :: i32[]
   expr 16:11    IdentExpr      :: i32[]

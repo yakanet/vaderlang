@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/exhaustive_union/_main.vader
+## tests/snippets/exhaustive_union
   FnDecl         classify             :: fn(bool | i32) -> string
   expr 4:12     MatchExpr      :: string
   expr 4:18     IdentExpr      :: bool | i32

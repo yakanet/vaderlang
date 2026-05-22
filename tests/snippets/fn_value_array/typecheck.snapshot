@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/fn_value_array/_main.vader
+## tests/snippets/fn_value_array
   FnDecl         double               :: fn(i32) -> i32
   FnDecl         inc                  :: fn(i32) -> i32
   FnDecl         main                 :: fn() -> i32

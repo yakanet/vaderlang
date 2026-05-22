@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/generic_eq/_main.vader
+## tests/snippets/generic_eq
   FnDecl         are_eq               :: fn(T, T) -> bool
   FnDecl         main                 :: fn() -> i32
   expr 10:13    StringLitExpr  :: string

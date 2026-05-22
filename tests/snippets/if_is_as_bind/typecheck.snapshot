@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/if_is_as_bind/_main.vader
+## tests/snippets/if_is_as_bind
   FnDecl         direct               :: fn(V01 | V02) -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         post_narrow          :: fn(V01 | V02) -> i32

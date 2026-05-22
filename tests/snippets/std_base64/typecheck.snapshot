@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/std_base64/_main.vader
+## tests/snippets/std_base64
   FnDecl         main                 :: fn() -> i32
   FnDecl         show_decode          :: fn(string, string) -> void
   expr 10:12    CallExpr       :: Error | string

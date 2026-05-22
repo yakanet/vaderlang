@@ -6,9 +6,10 @@
 
 ## stdlib/std/string_builder
 
-## tests/snippets/std_string_builder/_main.vader
+## tests/snippets/std_string_builder
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -23,4 +24,3 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)

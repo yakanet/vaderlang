@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_comptime/_main.vader
+## tests/snippets/tuple_comptime
   ConstDecl      DIM                  :: [i32, i32]
   FnDecl         main                 :: fn() -> i32
   ConstDecl      ORIGIN               :: [f64, f64, string]

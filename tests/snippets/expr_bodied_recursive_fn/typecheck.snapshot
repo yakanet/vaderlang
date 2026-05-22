@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/expr_bodied_recursive_fn/_main.vader
+## tests/snippets/expr_bodied_recursive_fn
   FnDecl         fact                 :: fn(i32) -> ?
   FnDecl         main                 :: fn() -> i32
   expr 11:12    CallExpr       :: ?

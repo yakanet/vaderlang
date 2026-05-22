@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/comptime_type_value/_main.vader
+## tests/snippets/comptime_type_value
   FnDecl         accept_type          :: fn(type) -> void
   ConstDecl      alias_int            :: type
   FnDecl         main                 :: fn() -> i32

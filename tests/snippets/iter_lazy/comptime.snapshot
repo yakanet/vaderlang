@@ -6,9 +6,12 @@
 
 ## stdlib/std/iter
 
-## tests/snippets/iter_lazy/_main.vader
+## stdlib/std/testing
+
+## tests/snippets/iter_lazy
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -58,4 +61,3 @@
   SkipIterator(T)
   SkipIterator(T)
   SkipIterator(T)
-  Into(Target)

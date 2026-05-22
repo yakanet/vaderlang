@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/spread_destructure/_main.vader
+## tests/snippets/spread_destructure
   FnDecl         main                 :: fn() -> i32
   expr 10:14    IdentExpr      :: i32[]
   expr 10:21    CallExpr       :: void

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/for_loop/_main.vader
+## tests/snippets/for_loop
   FnDecl         mixed_loops          :: fn(i32) -> i32
   expr 10:13    BinaryExpr     :: bool
   expr 10:13    BinaryExpr     :: i32

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/intrinsic_fields/_main.vader
+## tests/snippets/intrinsic_fields
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair(K, V)
   StructDecl     Point                :: Point

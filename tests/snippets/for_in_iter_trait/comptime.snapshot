@@ -6,11 +6,22 @@
 
 ## stdlib/std/iter
 
+## stdlib/std/math
+  @comptime  e                    = 2.718281828459045_f64
+  @comptime  pi                   = 3.141592653589793_f64
+
 ## stdlib/std/string
 
-## tests/snippets/for_in_iter_trait/_main.vader
+## stdlib/std/string_builder
+
+## stdlib/std/testing
+
+## stdlib/std/utf8
+
+## tests/snippets/for_in_iter_trait
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -61,4 +72,3 @@
   SkipIterator(T)
   SkipIterator(T)
   SkipIterator(T)
-  Into(Target)

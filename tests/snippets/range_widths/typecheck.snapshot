@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/range_widths/_main.vader
+## tests/snippets/range_widths
   FnDecl         main                 :: fn() -> i32
   expr 14:14    RangeExpr      :: Range(u64)
   expr 14:18    IdentExpr      :: u64

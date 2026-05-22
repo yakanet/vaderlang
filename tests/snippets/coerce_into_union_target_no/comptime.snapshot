@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/coerce_into_union_target_no/_main.vader
+## tests/snippets/coerce_into_union_target_no
 
 ## generic instances
   Index(I, T)

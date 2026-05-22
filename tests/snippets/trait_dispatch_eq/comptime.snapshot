@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/trait_dispatch_eq/_main.vader
+## tests/snippets/trait_dispatch_eq
 
 ## generic instances
   Index(I, T)

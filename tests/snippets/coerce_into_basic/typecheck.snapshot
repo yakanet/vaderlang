@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/coerce_into_basic/_main.vader
+## tests/snippets/coerce_into_basic
   FnDecl         get_id               :: fn(UserId) -> i32
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair

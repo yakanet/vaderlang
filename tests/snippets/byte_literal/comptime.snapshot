@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/byte_literal/_main.vader
+## tests/snippets/byte_literal
 
 ## generic instances
   Index(I, T)

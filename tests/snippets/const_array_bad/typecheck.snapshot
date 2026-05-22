@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/const_array_bad/_main.vader
+## tests/snippets/const_array_bad
   FnDecl         main                 :: fn() -> i32
   FnDecl         write_first          :: fn(const i32[]) -> void
   expr 10:12    SeqLitExpr     :: i32[]

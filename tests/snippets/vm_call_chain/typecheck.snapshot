@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_call_chain/_main.vader
+## tests/snippets/vm_call_chain
   FnDecl         inner                :: fn(i32) -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         middle               :: fn(i32) -> i32

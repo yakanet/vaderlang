@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/runtime_argv/_main.vader
+## tests/snippets/runtime_argv
   FnDecl         main                 :: fn(string[]) -> i32
   expr 11:14    IdentExpr      :: string[]
   expr 12:12    IdentExpr      :: bool

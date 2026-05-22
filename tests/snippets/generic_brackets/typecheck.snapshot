@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/generic_brackets/_main.vader
+## tests/snippets/generic_brackets
   FnDecl         identity             :: fn(T) -> T
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair(A, B)

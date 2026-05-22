@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/unknown_ident/_main.vader
+## tests/snippets/unknown_ident
   FnDecl         main                 :: fn() -> i32
   expr 4:5      CallExpr       :: ?
   expr 4:5      IdentExpr      :: ?

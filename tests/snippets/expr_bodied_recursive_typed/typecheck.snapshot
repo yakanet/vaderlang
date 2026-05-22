@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/expr_bodied_recursive_typed/_main.vader
+## tests/snippets/expr_bodied_recursive_typed
   FnDecl         fact                 :: fn(i32) -> i32
   FnDecl         fib                  :: fn(i32) -> i32
   FnDecl         main                 :: fn() -> i32

@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/runtime_argv/_main.vader
+## tests/snippets/runtime_argv
 
 ## generic instances
   Index(I, T)

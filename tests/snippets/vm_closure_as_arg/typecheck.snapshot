@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_closure_as_arg/_main.vader
+## tests/snippets/vm_closure_as_arg
   FnDecl         apply                :: fn(fn(i32) -> i32, i32) -> i32
   FnDecl         main                 :: fn() -> i32
   expr 13:17    LambdaExpr     :: fn(i32) -> i32

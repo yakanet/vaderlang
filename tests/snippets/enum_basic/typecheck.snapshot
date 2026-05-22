@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/enum_basic/_main.vader
+## tests/snippets/enum_basic
   FnDecl         describe             :: fn(Direction) -> string
   EnumDecl       Direction            :: Direction
   FnDecl         main                 :: fn() -> void

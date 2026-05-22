@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_call_simple/_main.vader
+## tests/snippets/vm_call_simple
   FnDecl         add                  :: fn(i32, i32) -> i32
   FnDecl         main                 :: fn() -> i32
   expr 11:12    CallExpr       :: i32

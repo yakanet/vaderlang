@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/op_overload_index/_main.vader
+## tests/snippets/op_overload_index
   StructDecl     Cell                 :: Cell
   FnDecl         main                 :: fn() -> i32
   expr 16:18    FieldExpr      :: string[]

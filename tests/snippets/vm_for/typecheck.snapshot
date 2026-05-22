@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_for/_main.vader
+## tests/snippets/vm_for
   FnDecl         main                 :: fn() -> i32
   expr 10:15    BinaryExpr     :: i32
   expr 10:15    IdentExpr      :: i32

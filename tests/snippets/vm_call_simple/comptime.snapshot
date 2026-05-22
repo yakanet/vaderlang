@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/vm_call_simple/_main.vader
+## tests/snippets/vm_call_simple
 
 ## generic instances
   Index(I, T)

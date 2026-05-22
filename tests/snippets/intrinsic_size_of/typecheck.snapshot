@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/intrinsic_size_of/_main.vader
+## tests/snippets/intrinsic_size_of
   FnDecl         main                 :: fn() -> i32
   expr 10:13    IntrinsicCallExpr :: usize
   expr 10:22    IdentExpr      :: type

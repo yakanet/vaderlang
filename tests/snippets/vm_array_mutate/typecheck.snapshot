@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_array_mutate/_main.vader
+## tests/snippets/vm_array_mutate
   FnDecl         main                 :: fn() -> i32
   expr 7:18     SeqLitExpr     :: i32[]
   expr 8:5      IdentExpr      :: i32[]

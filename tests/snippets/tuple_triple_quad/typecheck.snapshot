@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_triple_quad/_main.vader
+## tests/snippets/tuple_triple_quad
   FnDecl         main                 :: fn() -> i32
   expr 10:13    StringLitExpr  :: string
   expr 10:16    FieldExpr      :: i32

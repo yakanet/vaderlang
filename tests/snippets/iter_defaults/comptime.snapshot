@@ -4,9 +4,10 @@
 
 ## stdlib/std/io
 
-## tests/snippets/iter_defaults/_main.vader
+## tests/snippets/iter_defaults
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -23,7 +24,6 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)
 
 # Diagnostics
 [22:14] error[T3001] type mismatch: expected string, got usize

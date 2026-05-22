@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/range_widths/_main.vader
+## tests/snippets/range_widths
 
 ## generic instances
   Index(I, T)

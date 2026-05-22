@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/trait_dispatch_struct/_main.vader
+## tests/snippets/trait_dispatch_struct
   FnDecl         apply_tag            :: fn(T) -> i32
   FnDecl         main                 :: fn() -> i32
   TraitDecl      Tagger               :: Tagger

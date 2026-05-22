@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/iter_zip_chain/_main.vader
+## tests/snippets/iter_zip_chain
   FnDecl         main                 :: fn() -> i32
   expr 10:15    CallExpr       :: i32[]
   expr 10:15    IdentExpr      :: fn(T[]) -> T[]

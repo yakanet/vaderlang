@@ -64,12 +64,20 @@ for (const stage of STAGES) {
     if (config.phases && !config.phases.includes(stage.label as never)) continue;
 
     const timeout = SLOW_TYPECHECK_SNIPPETS.has(s.name) ? LONG_BUILD : MEDIUM_BUILD;
+    // The cross-module `namespace_alias_dedupe` snippet pulls in the
+    // full `vader/parser` transitive closure under the strict resolver
+    // (~50 modules). The compiled Vader CLI's 4M / 16M default GC
+    // arenas can't hold that much typecheck state in flight ; bump for
+    // this case only.
+    const env = SLOW_TYPECHECK_SNIPPETS.has(s.name)
+      ? { VADER_GC_YOUNG_BYTES: String(16 * 1024 * 1024), VADER_GC_OLD_BYTES: String(128 * 1024 * 1024) }
+      : undefined;
     test.concurrent(`${stage.label}: ${s.name}`, async () => {
       const snapPath = `${s.dir}/${stage.snapshotFile}`;
       let expected: string;
       try { expected = await Bun.file(snapPath).text(); } catch { return; }
 
-      const { stdout } = await runCli(["dump", `--stage=${stage.dumpStage}`, s.mainPath]);
+      const { stdout } = await runCli(["dump", `--stage=${stage.dumpStage}`, s.mainPath], env);
 
       if (stdout !== expected) {
         throw new Error(

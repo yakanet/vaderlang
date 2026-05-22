@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/decorator_assert/_main.vader
+## tests/snippets/decorator_assert
 
 ## generic instances
   Index(I, T)

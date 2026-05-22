@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/array_push/_main.vader
+## tests/snippets/array_push
 
 ## generic instances
   Index(I, T)

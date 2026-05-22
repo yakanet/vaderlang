@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_for_destructure/_main.vader
+## tests/snippets/tuple_for_destructure
   FnDecl         main                 :: fn() -> i32
   expr 10:30    SeqLitExpr     :: [string, i32][]
   expr 10:31    SeqLitExpr     :: [string, i32]

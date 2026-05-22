@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/vm_array_push_len/_main.vader
+## tests/snippets/vm_array_push_len
 
 ## generic instances
   Index(I, T)

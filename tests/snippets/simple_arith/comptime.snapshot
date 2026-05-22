@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/simple_arith/_main.vader
+## tests/snippets/simple_arith
   @comptime  ANSWER               = 42_i32
 
 ## generic instances

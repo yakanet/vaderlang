@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/gc_multi_collect/_main.vader
+## tests/snippets/gc_multi_collect
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair
   expr 14:9     BinaryExpr     :: bool

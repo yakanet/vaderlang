@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/spread_destructure/_main.vader
+## tests/snippets/spread_destructure
 
 ## generic instances
   Index(I, T)

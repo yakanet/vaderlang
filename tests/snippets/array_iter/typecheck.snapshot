@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/array_iter/_main.vader
+## tests/snippets/array_iter
   FnDecl         main                 :: fn() -> i32
   expr 11:13    StringLitExpr  :: string
   expr 11:22    IdentExpr      :: i32

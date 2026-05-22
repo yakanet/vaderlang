@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_destructure_let/_main.vader
+## tests/snippets/tuple_destructure_let
   FnDecl         main                 :: fn() -> i32
   FnDecl         make_pair            :: fn() -> [i32, string]
   expr 10:15    CallExpr       :: [i32, string]

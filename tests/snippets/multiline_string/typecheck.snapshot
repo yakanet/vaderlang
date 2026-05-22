@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/multiline_string/_main.vader
+## tests/snippets/multiline_string
   FnDecl         main                 :: fn() -> i32
   expr 11:11    IdentExpr      :: string
   expr 11:5     CallExpr       :: void

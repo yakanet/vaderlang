@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_struct_mutate/_main.vader
+## tests/snippets/vm_struct_mutate
   StructDecl     Counter              :: Counter
   FnDecl         main                 :: fn() -> i32
   expr 10:5     FieldExpr      :: i32

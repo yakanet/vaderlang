@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_match_nested/_main.vader
+## tests/snippets/tuple_match_nested
   FnDecl         main                 :: fn() -> i32
   expr 6:37     SeqLitExpr     :: [[i32, string], bool]
   expr 6:38     SeqLitExpr     :: [i32, string]

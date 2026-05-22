@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/bad_assignment/_main.vader
+## tests/snippets/bad_assignment
   FnDecl         length               :: fn(string) -> i32
   expr 4:12     IdentExpr      :: string
 

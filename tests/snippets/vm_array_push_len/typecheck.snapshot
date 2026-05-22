@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_array_push_len/_main.vader
+## tests/snippets/vm_array_push_len
   FnDecl         main                 :: fn() -> i32
   expr 10:5     CallExpr       :: void
   expr 10:5     FieldExpr      :: fn(i32) -> void

@@ -1,7 +1,8 @@
 // vader/resolver/discover — scoped-root scanner that builds the module
 // index. Mirror of src/resolver/discover.ts. Walks each root recursively
-// (no symlinks), parses every `.vader` file, buckets by the file's
-// `module "..."` decl, and returns a name → DiscoveredModule map.
+// (no symlinks), extracts each `.vader` file's `module "..."` header,
+// and returns a name → DiscoveredModule map (file paths only — full
+// parse happens lazily when the loader visits a module).
 //
 // Scan-time validations :
 //   - missing module decl                → R2020
@@ -20,12 +21,14 @@ import "std/sort" { sort }
 import "std/string" { compare_ascending, ends_with }
 import "vader/diagnostics" { Diagnostic, Span, resolver_error, empty_span }
 
-/// A module discovered during the scan : its declared name, the
-/// folder containing it, and the parsed files that belong to it.
+/// A module discovered during the scan. `files` carries the file paths
+/// only — the parsed Programs are not stashed here, since the
+/// Vader self-host's GC arenas can't hold ~170 parsed ASTs at once.
+/// The loader runs `load_module_files` on visit to get full SourceFiles.
 export DiscoveredModule :: struct {
     name:   string
     folder: string
-    files:  SourceFile[]
+    files:  string[]
 }
 
 /// Name-indexed module table. Keyed by the `module "name"` decl.
@@ -33,7 +36,7 @@ export DiscoveredModule :: struct {
 /// resolution is a direct lookup.
 export ModuleIndex :: MutableMap(string, DiscoveredModule)
 
-/// Walk each scoped root, parse every `.vader` file, bucket by
+/// Walk each scoped root, header-parse every `.vader` file, bucket by
 /// folder + declared module name, emit R2020/R2022/R2023, and return
 /// the unified index.
 export discover_modules :: fn(roots: string[], diags: Diagnostic[]) -> ModuleIndex {
@@ -41,7 +44,6 @@ export discover_modules :: fn(roots: string[], diags: Diagnostic[]) -> ModuleInd
     for root in roots { walk_root(root, folder_buckets, diags) }
 
     index :: MutableMap(string, DiscoveredModule) { .buckets = [], .size = 0 }
-    first_seen_at :: MutableMap(string, Span) { .buckets = [], .size = 0 }
     for folder in folder_buckets.keys() {
         bucket :: folder_buckets[folder]
         if bucket is null { continue }
@@ -56,7 +58,6 @@ export discover_modules :: fn(roots: string[], diags: Diagnostic[]) -> ModuleInd
                 index[bucket.name] = DiscoveredModule {
                     .name = bucket.name, .folder = folder, .files = bucket.files,
                 }
-                first_seen_at[bucket.name] = bucket.first_decl_span
             }
         }
     }
@@ -69,7 +70,7 @@ export discover_modules :: fn(roots: string[], diags: Diagnostic[]) -> ModuleInd
 FolderBucket :: struct {
     name:            string
     first_decl_span: Span
-    files:           SourceFile[]
+    files:           string[]
 }
 
 walk_root :: fn(root: string, buckets: MutableMap(string, FolderBucket), diags: Diagnostic[]) -> void {
@@ -104,29 +105,21 @@ walk_dir :: fn(dir: string, buckets: MutableMap(string, FolderBucket), diags: Di
         content_opt :: read_file(path)
         content :: match content_opt { is string as s -> s, _ -> "" }
         if content == "" { continue }
-        parsed :: parse_source(content, path)
-        for d in parsed.errors { diags.push(d) }
-        bucket.files.push(SourceFile {
-            .path       = path,
-            .content    = content,
-            .program    = parsed.program,
-            .id_factory = parsed.id_factory,
-        })
-
-        decl :: parsed.program.module
-        match decl {
+        bucket.files.push(path)
+        header :: parse_module_header(content, path)
+        match header {
             is null -> {
                 diags.push(resolver_error(.ModuleDeclMissing, empty_span(),
                     "`${path}`"))
             }
-            is ModuleDecl as md -> {
+            is ModuleHeader as h -> {
                 if bucket.name == "" {
-                    bucket.name = md.name
-                    bucket.first_decl_span = md.name_span
+                    bucket.name = h.name
+                    bucket.first_decl_span = h.name_span
                 } else {
-                    if md.name != bucket.name {
-                        diags.push(resolver_error(.MixedModuleNamesInFolder, md.name_span,
-                            "`${md.name}` declared here, but `${bucket.name}` was declared earlier in this folder"))
+                    if h.name != bucket.name {
+                        diags.push(resolver_error(.MixedModuleNamesInFolder, h.name_span,
+                            "`${h.name}` declared here, but `${bucket.name}` was declared earlier in this folder"))
                     }
                 }
             }
@@ -135,4 +128,4 @@ walk_dir :: fn(dir: string, buckets: MutableMap(string, FolderBucket), diags: Di
     buckets[dir] = bucket
 }
 
-import "vader/parser" { ModuleDecl, parse_source }
+import "vader/parser" { ModuleHeader, parse_module_header }

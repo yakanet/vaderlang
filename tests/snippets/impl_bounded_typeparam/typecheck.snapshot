@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/impl_bounded_typeparam/_main.vader
+## tests/snippets/impl_bounded_typeparam
   StructDecl     Cat                  :: Cat
   StructDecl     Dog                  :: Dog
   FnDecl         main                 :: fn() -> i32

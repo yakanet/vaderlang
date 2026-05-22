@@ -1,23 +1,24 @@
 // vader/resolver/loader — module graph loader.
 //
-// Starts from an entry file/folder, walks its imports transitively,
-// and returns the full set of loaded modules keyed by canonical
-// path. Each module is loaded once even if reached through multiple
-// import chains.
+// Mirror of `src/resolver/loader.ts`. Discovers every module under the
+// scoped roots up-front via `discover_modules` (header-only parse, no
+// AST held in memory), then BFS-walks the import graph by name-lookup
+// against that index. Each visited module pays a full `parse_source`
+// once ; unreached modules' files are never read past their header.
 //
-// MVP-trimmed against the TS loader (`src/resolver/loader.ts`) :
-//   - No fingerprint computation (no caching layer downstream yet).
-//   - No cycle detection (post-MVP : a self-recursive import will
-//     bottom out at the seen-set check, not raise R2005).
-//   - No vader.json manifest reading — `stdlib_root` is resolved
-//     once via `default_stdlib_root` from `module.vader`.
-//   - Auto-loads no `std/core` ; only what the entry transitively
-//     imports.
+// Scope :
+//   - stdlib (always — `default_stdlib_root`).
+//   - `vader.json::modules` when a manifest is found.
+//   - The entry file's containing folder (CLI fallback) when it lies
+//     outside the whitelist.
 
 module "vader/resolver"
 
 import "std/collections" { MutableMap, keys }
-import "vader/parser" { NodeIdFactory, new_node_id_factory }
+import "std/io" { exists, is_dir, read_file }
+import "std/string" { byte_at, byte_len, ends_with, slice, starts_with }
+import "vader/diagnostics" { Diagnostic }
+import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source }
 import "vader/resolver/symbol" { SymbolFactory, new_factory }
 
 /// Output of one project load : the entry module's id, the full set
@@ -48,76 +49,149 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
     modules :: MutableMap(string, LoadedModule) { .buckets = [], .size = 0 }
     stdlib_root :: default_stdlib_root()
     project_root :: find_manifest_root(entry_path)
+    entry_folder :: entry_folder_of(entry_path)
 
-    // When the entry is a single `.vader` file living inside a folder
-    // that contains other `.vader` files (e.g. `vader/lexer/lexer.vader`
-    // alongside `token.vader` + `keywords.vader`), the file is part of
-    // a folder-module. Promote the entry to the parent dir so the whole
-    // module loads — otherwise cross-file references inside the same
-    // logical module surface as R2006 / cascading `?` types.
-    promoted_entry :: promote_to_folder_module(entry_path)
-    entry_id :: module_id_from_root(promoted_entry)
-    // Auto-load `std/core` (mirrors TS `loadProject`'s autoloadCore
-    // behavior). Lets `Range`, `Field`, `Display` and other core
-    // structs/traits resolve cross-module even when the entry
-    // doesn't explicitly import them.
-    core_target :: resolve_import_path("std/core", promoted_entry, stdlib_root, project_root)
-    match core_target {
+    // Scoped roots : stdlib + manifest::modules + CLI fallback when the
+    // entry sits outside the whitelist.
+    scoped_roots: string[] = [stdlib_root]
+    match project_root {
         is null -> {}
-        _ -> { load_one(core_target, stdlib_root, modules, factory) }
-    }
-    // MVP : entry + direct imports only (depth-1). Mid-graph
-    // modules (a project module imported by the entry that itself
-    // imports a third project module) fail to resolve their imports
-    // during wire — every cross-module type reference in those mid-
-    // graph modules collapses to `?`. Cascade filter in
-    // `vader/lsp/diagnostics.vader` hides the noise but doesn't fix
-    // the underlying type info loss. Proper fix needs either a
-    // smaller-memory transitive load (Vader self-host OOMs on the
-    // ~150-module vader/* tree today) or on-demand load triggered
-    // from the wire pass.
-    load_one(promoted_entry, stdlib_root, modules, factory)
-    entry_loaded :: modules[entry_id]
-    match entry_loaded {
-        is null -> {}
-        _ -> {
-            from_file :: entry_loaded.module.files[0].path
-            for raw in entry_loaded.collected.import_paths {
-                target :: resolve_import_path(raw, from_file, stdlib_root, project_root)
-                match target {
-                    is null -> {}
-                    _ -> { load_one(target, stdlib_root, modules, factory) }
-                }
+        is string as pr -> {
+            for m in read_manifest_modules(pr) {
+                scoped_roots.push(join_path(pr, m))
             }
         }
     }
+    if !is_under_any_root(entry_folder, scoped_roots) {
+        scoped_roots.push(entry_folder)
+    }
 
-    return LoadedProject {
-        .entry = entry_id, .modules = modules, .factory = factory,
-        .project_root = project_root,
+    // Header-only scan : index every module under scope by its
+    // declared name. The parsed Programs are NOT retained — full
+    // parsing happens below, lazily, only for modules the BFS visits.
+    discard_diags: Diagnostic[] = []
+    index: MutableMap(string, DiscoveredModule) = discover_modules(scoped_roots, discard_diags)
+
+    entry_module :: find_by_folder(index, entry_folder)
+    match entry_module {
+        is null -> {
+            return LoadedProject {
+                .entry = entry_folder, .modules = modules, .factory = factory,
+                .project_root = project_root,
+            }
+        }
+        is DiscoveredModule as em -> {
+            queue: DiscoveredModule[] = [em]
+            core :: index["std/core"]
+            match core {
+                is DiscoveredModule as cm -> {
+                    if cm.folder != em.folder { queue.push(cm) }
+                }
+                _ -> {}
+            }
+            cursor: usize = 0
+            for cursor < queue.len() {
+                m :: queue[cursor]
+                cursor = cursor + usize(1)
+                id :: m.folder
+                if has_module(modules, id) { continue }
+                ingest_module(m, stdlib_root, modules, factory)
+                ingested :: modules[id]
+                match ingested {
+                    is null -> {}
+                    is LoadedModule as lm -> {
+                        for raw in lm.collected.import_paths {
+                            target :: index[raw]
+                            match target {
+                                is DiscoveredModule as t -> {
+                                    if !has_module(modules, t.folder) { queue.push(t) }
+                                }
+                                _ -> {}
+                            }
+                        }
+                    }
+                }
+            }
+            return LoadedProject {
+                .entry = em.folder, .modules = modules, .factory = factory,
+                .project_root = project_root,
+            }
+        }
     }
 }
 
-load_one :: fn(
-    root: string, stdlib_root: string,
+// Full-parse + collect each file the BFS pulls in. Mirrors the legacy
+// `load_one` / `collect_files` path : the header-only index records
+// the file *paths*, so we re-read + re-parse here to produce the
+// SourceFile + CollectedModule the resolver / typechecker downstream
+// expect.
+ingest_module :: fn(
+    m: DiscoveredModule, stdlib_root: string,
     modules: MutableMap(string, LoadedModule), factory: SymbolFactory,
 ) -> void {
-    id :: module_id_from_root(root)
-    if has_module(modules, id) { return }
-    files :: load_module_files(root)
-    if files.len() == 0 { return }
-    collected :: collect_files(files, id, factory)
-    // Hand `materialize.vader` the same factory that parse used for
-    // files[0] (the file whose decls feed collect + downstream phases)
-    // so cloned default-method bodies mint IDs in the same namespace.
-    modules[id] = LoadedModule {
+    if m.files.len() == 0 { return }
+    sources :: parse_module_files(m.files)
+    if sources.len() == 0 { return }
+    collected :: collect_files(sources, m.folder, factory)
+    modules[m.folder] = LoadedModule {
         .module = Module {
-            .id = id, .display_path = display_path_for(root, stdlib_root),
-            .root_dir = root, .files = files,
+            .id = m.folder, .display_path = display_path_for(m.folder, stdlib_root),
+            .root_dir = m.folder, .files = sources,
         },
         .collected       = collected,
-        .node_id_factory = files[0].id_factory,
+        .node_id_factory = sources[0].id_factory,
     }
+}
+
+parse_module_files :: fn(paths: string[]) -> SourceFile[] {
+    out: SourceFile[] = []
+    for path in paths {
+        content_opt :: read_file(path)
+        content :: match content_opt { is string as s -> s, _ -> "" }
+        if content == "" { continue }
+        parsed :: parse_source(content, path)
+        out.push(SourceFile {
+            .path       = path,
+            .content    = content,
+            .program    = parsed.program,
+            .id_factory = parsed.id_factory,
+        })
+    }
+    return out
+}
+
+find_by_folder :: fn(index: MutableMap(string, DiscoveredModule), folder: string) -> DiscoveredModule | null {
+    for name in index.keys() {
+        m :: index[name]
+        match m {
+            is DiscoveredModule as dm -> {
+                if dm.folder == folder { return dm }
+            }
+            _ -> {}
+        }
+    }
+    return null
+}
+
+entry_folder_of :: fn(path: string) -> string {
+    if exists(path) && is_dir(path) { return path }
+    return dir_of(path)
+}
+
+is_under_any_root :: fn(folder: string, roots: string[]) -> bool {
+    for r in roots {
+        norm :: trim_trailing_slash(r)
+        if folder == norm { return true }
+        if folder.starts_with("${norm}/") { return true }
+    }
+    return false
+}
+
+trim_trailing_slash :: fn(s: string) -> string {
+    n :: s.byte_len()
+    if n == usize(0) { return s }
+    if s.byte_at(n - usize(1)) == u8(0x2F) { return slice(s, usize(0), n - usize(1)) }
+    return s
 }
 
 has_module :: fn(modules: MutableMap(string, LoadedModule), id: string) -> bool {
@@ -162,36 +236,15 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule) -> void {
     for p in src.import_paths { dst.import_paths.push(p) }
 }
 
-/// Display-path heuristic : when `root` lives under `stdlib_root`,
-/// strip the prefix and the `.vader` extension so `stdlib/std/io.vader`
-/// renders as `std/io`. Otherwise return the root as-is.
+/// When `root` lives under `stdlib_root`, strip the prefix and the
+/// `.vader` extension so `stdlib/std/io` renders as `std/io`.
 display_path_for :: fn(root: string, stdlib_root: string) -> string {
     if root.starts_with("${stdlib_root}/") {
-        rel :: substring_from(root, stdlib_root.byte_len() + usize(1))
+        rel :: slice(root, stdlib_root.byte_len() + usize(1), root.byte_len())
         if rel.ends_with(".vader") {
-            return substring_until(rel, rel.byte_len() - usize(6))
+            return slice(rel, usize(0), rel.byte_len() - usize(6))
         }
         return rel
     }
     return root
-}
-
-import "std/string" {
-    byte_len, ends_with, slice, starts_with,
-}
-
-substring_from :: fn(s: string, lo: usize) -> string { return slice(s, lo, s.byte_len()) }
-substring_until :: fn(s: string, hi: usize) -> string { return slice(s, usize(0), hi) }
-
-
-promote_to_folder_module :: fn(entry_path: string) -> string {
-    if !entry_path.ends_with(".vader") { return entry_path }
-    parent :: dir_of(entry_path)
-    if parent == "" { return entry_path }
-    siblings :: list_vader_files(parent)
-    // Only promote when more than one .vader sits in the parent dir ;
-    // a single-file folder (e.g. `stdlib/std/json.vader`) keeps the
-    // file-as-module semantics so per-file dumps stay focused.
-    if siblings.len() <= usize(1) { return entry_path }
-    return parent
 }

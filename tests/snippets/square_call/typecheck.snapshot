@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/square_call/_main.vader
+## tests/snippets/square_call
   FnDecl         main                 :: fn() -> i32
   ConstDecl      NINE                 :: i32
   FnDecl         square               :: fn(i32) -> i32

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/cross_decl/_main.vader
+## tests/snippets/cross_decl
   ConstDecl      A                    :: i32
   ConstDecl      B                    :: i32
   ConstDecl      C                    :: i32

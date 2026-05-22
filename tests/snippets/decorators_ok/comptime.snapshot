@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/decorators_ok/_main.vader
+## tests/snippets/decorators_ok
 
 ## generic instances
   Index(I, T)

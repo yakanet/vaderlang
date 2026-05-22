@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/vm_if/_main.vader
+## tests/snippets/vm_if
 
 ## generic instances
   Index(I, T)

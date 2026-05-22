@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/generic_amp_bound/_main.vader
+## tests/snippets/generic_amp_bound
   FnDecl         bar                  :: fn(K, V) -> V
   FnDecl         main                 :: fn() -> i32
   FnDecl         needs_add            :: fn(T) -> T

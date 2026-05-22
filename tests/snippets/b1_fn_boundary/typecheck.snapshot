@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/b1_fn_boundary/_main.vader
+## tests/snippets/b1_fn_boundary
   FnDecl         cons                 :: fn(i32, Node | null) -> Node | null
   FnDecl         find                 :: fn(Node | null, i32) -> Node | null
   FnDecl         length               :: fn(Node | null) -> i32

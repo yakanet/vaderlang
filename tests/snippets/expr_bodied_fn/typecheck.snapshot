@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/expr_bodied_fn/_main.vader
+## tests/snippets/expr_bodied_fn
   FnDecl         a                    :: fn(i32) -> i32
   FnDecl         b                    :: fn(i32) -> i32
   FnDecl         id                   :: fn(T) -> T

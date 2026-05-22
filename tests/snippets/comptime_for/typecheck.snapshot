@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/comptime_for/_main.vader
+## tests/snippets/comptime_for
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair(K, V)
   expr 16:24    IntrinsicCallExpr :: type[]

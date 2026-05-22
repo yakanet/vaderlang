@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/op_overload_arith/_main.vader
+## tests/snippets/op_overload_arith
   FnDecl         main                 :: fn() -> i32
   StructDecl     Vec                  :: Vec
   expr 13:100   BinaryExpr     :: i32

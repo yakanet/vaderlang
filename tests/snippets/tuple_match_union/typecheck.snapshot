@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_match_union/_main.vader
+## tests/snippets/tuple_match_union
   FnDecl         lookup               :: fn(string) -> [i32, string] | null
   FnDecl         main                 :: fn() -> i32
   expr 10:15    StringLitExpr  :: string

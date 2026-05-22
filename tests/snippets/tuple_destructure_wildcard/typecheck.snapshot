@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_destructure_wildcard/_main.vader
+## tests/snippets/tuple_destructure_wildcard
   FnDecl         main                 :: fn() -> i32
   FnDecl         triple               :: fn() -> [i32, string, bool]
   expr 10:18    CallExpr       :: [i32, string, bool]

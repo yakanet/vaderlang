@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/io_roundtrip/_main.vader
+## tests/snippets/io_roundtrip
   FnDecl         main                 :: fn() -> i32
   expr 11:13    StringLitExpr  :: string
   expr 11:24    CallExpr       :: bool

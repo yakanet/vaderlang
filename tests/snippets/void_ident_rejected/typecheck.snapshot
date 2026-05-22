@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/void_ident_rejected/_main.vader
+## tests/snippets/void_ident_rejected
   FnDecl         main                 :: fn() -> i32
   FnDecl         mk                   :: fn() -> void
   expr 12:5     CallExpr       :: void

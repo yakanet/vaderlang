@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/overload_first_param/_main.vader
+## tests/snippets/overload_first_param
   StructDecl     Bag                  :: Bag
   StructDecl     Box                  :: Box
   FnDecl         describe             :: fn(Box) -> string

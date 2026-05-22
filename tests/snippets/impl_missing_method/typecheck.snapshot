@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/impl_missing_method/_main.vader
+## tests/snippets/impl_missing_method
   StructDecl     Foo                  :: Foo
   FnDecl         main                 :: fn() -> i32
   TraitDecl      TwoFn                :: TwoFn

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/numeric_add_trait/_main.vader
+## tests/snippets/numeric_add_trait
   FnDecl         double               :: fn(T) -> T
   FnDecl         main                 :: fn() -> i32
   FnDecl         triple               :: fn(T) -> T

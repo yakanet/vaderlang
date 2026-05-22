@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/extern_native_basic/_main.vader
+## tests/snippets/extern_native_basic
   FnDecl         add_i32              :: fn(i32, i32) -> i32
   FnDecl         c_strlen             :: fn(string) -> usize
   FnDecl         main                 :: fn() -> i32

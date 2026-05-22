@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/let_type_alias/_main.vader
+## tests/snippets/let_type_alias
   FnDecl         main                 :: fn() -> i32
   expr 17:19    IdentExpr      :: type
   expr 18:19    IdentExpr      :: type

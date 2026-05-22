@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/numeric_context_sensitivity/_main.vader
+## tests/snippets/numeric_context_sensitivity
   StructDecl     Counter              :: Counter
   FnDecl         main                 :: fn() -> i32
   expr 16:20    UnaryExpr      :: isize

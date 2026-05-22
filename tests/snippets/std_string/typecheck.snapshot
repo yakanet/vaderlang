@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/std_string/_main.vader
+## tests/snippets/std_string
   FnDecl         main                 :: fn() -> i32
   expr 10:13    CallExpr       :: string
   expr 10:13    FieldExpr      :: fn() -> string

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/interp_string_comptime/_main.vader
+## tests/snippets/interp_string_comptime
   ConstDecl      GREETING             :: string
   FnDecl         main                 :: fn() -> i32
   FnDecl         name                 :: fn() -> string

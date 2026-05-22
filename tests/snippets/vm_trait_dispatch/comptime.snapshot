@@ -2,9 +2,10 @@
 
 ## stdlib/std/core
 
-## tests/snippets/vm_trait_dispatch/_main.vader
+## tests/snippets/vm_trait_dispatch
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -21,4 +22,3 @@
   ArrayIterator(T)
   Wrapper(i32)
   Wrapper(T)
-  Into(Target)

@@ -4,17 +4,35 @@
 
 ## stdlib/std/io
 
+## stdlib/std/math
+  @comptime  e                    = 2.718281828459045_f64
+  @comptime  pi                   = 3.141592653589793_f64
+
 ## stdlib/std/random
   @comptime  MASK_U64             = -1_u64
 
-## tests/snippets/std_random/_main.vader
+## stdlib/std/string
+
+## stdlib/std/string_builder
+
+## stdlib/std/testing
+
+## stdlib/std/time
+
+## stdlib/std/utf8
+
+## tests/snippets/std_random
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
+  Iterator(char)
   Iterator(T)
   Iterator(T)
+  Yield(char)
+  Yield(u8)
   Yield(T)
   Yield(T)
   Yield(T)
@@ -24,4 +42,3 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)

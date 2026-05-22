@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/alias_union_in_array/_main.vader
+## tests/snippets/alias_union_in_array
   FnDecl         describe             :: fn(?) -> string
   FnDecl         main                 :: fn() -> i32
   FnDecl         push_pet             :: fn(?[], ?) -> void

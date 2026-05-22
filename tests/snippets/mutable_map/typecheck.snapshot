@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/mutable_map/_main.vader
+## tests/snippets/mutable_map
   FnDecl         main                 :: fn() -> i32
   expr 10:5     IdentExpr      :: MutableMap(i32, i32)
   expr 11:5     IdentExpr      :: MutableMap(i32, i32)

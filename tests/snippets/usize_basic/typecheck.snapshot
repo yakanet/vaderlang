@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/usize_basic/_main.vader
+## tests/snippets/usize_basic
   FnDecl         add                  :: fn(usize, usize) -> usize
   FnDecl         main                 :: fn() -> i32
   expr 11:16    CallExpr       :: usize

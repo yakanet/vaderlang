@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/tuple_match_pattern/_main.vader
+## tests/snippets/tuple_match_pattern
   FnDecl         main                 :: fn() -> i32
   expr 6:27     SeqLitExpr     :: [i32, string]
   expr 6:31     StringLitExpr  :: string

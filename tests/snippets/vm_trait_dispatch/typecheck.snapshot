@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_trait_dispatch/_main.vader
+## tests/snippets/vm_trait_dispatch
   StructDecl     Cat                  :: Cat
   FnDecl         describe             :: fn(Cat | Dog) -> i32
   FnDecl         describe_wrapper     :: fn(Cat | Wrapper(i32)) -> i32

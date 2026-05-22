@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/expr_bodied_mixed_form/_main.vader
+## tests/snippets/expr_bodied_mixed_form
 
 ## generic instances
   Index(I, T)

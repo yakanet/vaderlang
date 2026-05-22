@@ -4,11 +4,15 @@
 
 ## stdlib/std/io
 
-## tests/snippets/trait_dispatch_generic_iter/_main.vader
+## tests/snippets/trait_dispatch_generic_iter
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
+  Repeat(i32)
+  Repeat(T)
+  Repeat(T)
   Contains(T)
   Iterator(i32)
   Iterator(T)
@@ -25,10 +29,6 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Repeat(i32)
-  Repeat(T)
-  Repeat(T)
   Once(i32)
   Once(T)
   Once(T)
-  Into(Target)

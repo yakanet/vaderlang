@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/vm_call_recursive/_main.vader
+## tests/snippets/vm_call_recursive
 
 ## generic instances
   Index(I, T)

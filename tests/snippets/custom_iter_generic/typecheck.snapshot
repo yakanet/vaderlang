@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/custom_iter_generic/_main.vader
+## tests/snippets/custom_iter_generic
   FnDecl         main                 :: fn() -> i32
   StructDecl     Repeat               :: Repeat(T)
   expr 13:13    BinaryExpr     :: bool

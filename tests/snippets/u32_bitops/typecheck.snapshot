@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/u32_bitops/_main.vader
+## tests/snippets/u32_bitops
   FnDecl         check                :: fn(string, bool) -> void
   FnDecl         main                 :: fn() -> i32
   expr 12:13    CallExpr       :: void

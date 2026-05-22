@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/expr_bodied_recursive_fn/_main.vader
+## tests/snippets/expr_bodied_recursive_fn
 
 ## generic instances
   Index(I, T)

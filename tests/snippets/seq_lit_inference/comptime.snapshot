@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/seq_lit_inference/_main.vader
+## tests/snippets/seq_lit_inference
 
 ## generic instances
   Index(I, T)

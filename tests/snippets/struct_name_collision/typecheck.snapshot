@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/struct_name_collision/_main.vader
+## tests/snippets/struct_name_collision
   FnDecl         main                 :: fn() -> i32
   expr 17:10    CallExpr       :: ?
   expr 17:10    IdentExpr      :: ?

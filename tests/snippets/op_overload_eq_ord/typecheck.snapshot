@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/op_overload_eq_ord/_main.vader
+## tests/snippets/op_overload_eq_ord
   FnDecl         main                 :: fn() -> i32
   StructDecl     Money                :: Money
   expr 16:28    BinaryExpr     :: bool

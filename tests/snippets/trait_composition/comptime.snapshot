@@ -2,24 +2,24 @@
 
 ## stdlib/std/core
 
-## tests/snippets/trait_composition/_main.vader
+## tests/snippets/trait_composition
 
 ## generic instances
+  Numeric(T)
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  Numeric(T)
   Hashable(T)
+  Iterator(T)
+  Iterator(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
   Aliased(T)
-  Into(Target)

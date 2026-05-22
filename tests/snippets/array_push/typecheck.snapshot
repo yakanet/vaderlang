@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/array_push/_main.vader
+## tests/snippets/array_push
   FnDecl         main                 :: fn() -> i32
   expr 10:13    StringLitExpr  :: string
   expr 10:16    CallExpr       :: usize

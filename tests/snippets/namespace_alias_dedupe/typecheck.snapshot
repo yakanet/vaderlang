@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/namespace_alias_dedupe/_main.vader
+## tests/snippets/namespace_alias_dedupe
   FnDecl         via_file             :: fn(?) -> i32
   FnDecl         via_folder           :: fn(?) -> i32
   expr 25:12    CallExpr       :: i32
@@ -68,6 +68,7 @@
   ConstDecl      ForForm              :: ?
   StructDecl     ForStmt              :: ?
   StructDecl     GenericInstExpr      :: ?
+  FnDecl         header_budget        :: ?
   FnDecl         ident_expr           :: ?
   StructDecl     IdentExpr            :: ?
   ConstDecl      IfElse               :: ?
@@ -110,6 +111,7 @@
   FnDecl         merge_type_params    :: ?
   FnDecl         mint                 :: fn(NodeIdFactory) -> usize
   StructDecl     ModuleDecl           :: ?
+  StructDecl     ModuleHeader         :: ?
   StructDecl     NamedNamespaceImport :: ?
   FnDecl         new_node_id_factory  :: fn() -> NodeIdFactory
   FnDecl         new_parser           :: ?
@@ -147,9 +149,10 @@
   FnDecl         parse_lhs_generic_alias_decl :: ?
   FnDecl         parse_match_arm      :: ?
   FnDecl         parse_match_expr     :: ?
+  FnDecl         parse_module_header  :: ?
   FnDecl         parse_named_decl     :: ?
   FnDecl         parse_named_import_decl :: ?
-  FnDecl         parse_optional_module_decl :: ?
+  FnDecl         parse_optional_module_decl :: fn(BlockExpr, NodeIdFactory) -> void
   FnDecl         parse_paren          :: ?
   FnDecl         parse_pattern        :: ?
   FnDecl         parse_postfix        :: ?
@@ -183,7 +186,7 @@
   StructDecl     PatternBinding       :: ?
   ConstDecl      PatternFieldValue    :: ?
   StructDecl     PatternLiteral       :: ?
-  FnDecl         peek                 :: ?
+  FnDecl         peek                 :: fn(?, NodeIdFactory) -> void
   FnDecl         peek_at              :: ?
   FnDecl         peek_is_classic_impl_body :: ?
   FnDecl         peek_is_generic_struct_lit :: ?
@@ -197,7 +200,9 @@
   StructDecl     ReturnStmt           :: ?
   StructDecl     SeqLitExpr           :: ?
   StructDecl     SimpleBinding        :: ?
-  FnDecl         skip_newlines        :: fn(FnDecl, NodeIdFactory) -> void
+  FnDecl         skip_block_comment   :: ?
+  FnDecl         skip_newlines        :: ?
+  FnDecl         skip_to_eol          :: ?
   FnDecl         span_of              :: ?
   ConstDecl      Stmt                 :: ?
   StructDecl     StringLitExpr        :: ?

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/std_time/_main.vader
+## tests/snippets/std_time
   FnDecl         main                 :: fn() -> i32
   expr 21:13    CallExpr       :: Duration
   expr 21:13    CallExpr       :: string

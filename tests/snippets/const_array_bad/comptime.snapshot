@@ -2,7 +2,7 @@
 
 ## stdlib/std/core
 
-## tests/snippets/const_array_bad/_main.vader
+## tests/snippets/const_array_bad
 
 ## generic instances
   Index(I, T)

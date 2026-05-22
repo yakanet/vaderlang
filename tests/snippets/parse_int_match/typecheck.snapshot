@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/parse_int_match/_main.vader
+## tests/snippets/parse_int_match
   FnDecl         main                 :: fn() -> i32
   expr 11:11    CallExpr       :: Error | i32
   expr 11:11    IdentExpr      :: fn(string) -> Error | i32

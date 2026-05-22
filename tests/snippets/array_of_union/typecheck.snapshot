@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/array_of_union/_main.vader
+## tests/snippets/array_of_union
   FnDecl         main                 :: fn() -> i32
   StructDecl     Node                 :: Node(T)
   expr 11:33    SeqLitExpr     :: Node(i32) | null[]

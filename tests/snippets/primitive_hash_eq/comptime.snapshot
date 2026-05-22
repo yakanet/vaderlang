@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/primitive_hash_eq/_main.vader
+## tests/snippets/primitive_hash_eq
 
 ## generic instances
   Index(I, T)

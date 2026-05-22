@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/vm_interp_loop/_main.vader
+## tests/snippets/vm_interp_loop
   FnDecl         main                 :: fn() -> i32
   expr 11:9     BinaryExpr     :: bool
   expr 11:9     IdentExpr      :: i32

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/match_union/_main.vader
+## tests/snippets/match_union
   FnDecl         describe             :: fn(i32 | null | string) -> string
   FnDecl         main                 :: fn() -> i32
   expr 14:13    CallExpr       :: string

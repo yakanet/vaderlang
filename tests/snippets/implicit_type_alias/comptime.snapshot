@@ -2,9 +2,10 @@
 
 ## stdlib/std/core
 
-## tests/snippets/implicit_type_alias/_main.vader
+## tests/snippets/implicit_type_alias
 
 ## generic instances
+  Into(Target)
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
@@ -19,4 +20,3 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-  Into(Target)

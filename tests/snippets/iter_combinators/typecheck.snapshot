@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/iter_combinators/_main.vader
+## tests/snippets/iter_combinators
   FnDecl         main                 :: fn() -> i32
   expr 10:16    CallExpr       :: i32[]
   expr 10:16    IdentExpr      :: fn(T[], fn(T) -> U) -> U[]

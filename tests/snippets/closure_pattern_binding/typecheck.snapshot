@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/closure_pattern_binding/_main.vader
+## tests/snippets/closure_pattern_binding
   FnDecl         greet                :: fn(i32 | P) -> void
   FnDecl         main                 :: fn() -> i32
   StructDecl     P                    :: P

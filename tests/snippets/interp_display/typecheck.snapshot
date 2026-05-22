@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/interp_display/_main.vader
+## tests/snippets/interp_display
   FnDecl         greet                :: fn(string, i32) -> string
   expr 4:12     StringLitExpr  :: string
   expr 4:22     IdentExpr      :: string

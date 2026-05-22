@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/nested_field_narrow/_main.vader
+## tests/snippets/nested_field_narrow
   FnDecl         count_match          :: fn(Outer) -> i32
   StructDecl     Inner                :: Inner
   FnDecl         main                 :: fn() -> i32

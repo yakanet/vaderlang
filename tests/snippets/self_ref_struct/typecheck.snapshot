@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/self_ref_struct/_main.vader
+## tests/snippets/self_ref_struct
   FnDecl         main                 :: fn() -> i32
   StructDecl     Node                 :: Node(T)
   expr 11:13    StructLitExpr  :: Node(i32)

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/try_op/_main.vader
+## tests/snippets/try_op
   FnDecl         main                 :: fn() -> i32
   FnDecl         read_or_default      :: fn(string) -> Error | string
   FnDecl         show                 :: fn(Error | string) -> void

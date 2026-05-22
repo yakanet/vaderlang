@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/usize_arith/_main.vader
+## tests/snippets/usize_arith
 
 ## generic instances
   Index(I, T)
