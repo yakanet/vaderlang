@@ -12,6 +12,8 @@
 // spelled identically on both sides ; with the fallback the call type-
 // checks because both symbols share the same source location.
 
+module "snippet"
+
 import "vader/parser/ast" { Decl }
 P :: import "vader/parser"
 

@@ -3,6 +3,8 @@
 // static type of `x` without evaluating it. The snapshot golden
 // validates the bytecode shape.
 
+module "snippet"
+
 import "std/io" { println }
 
 @comptime alias_int :: i32

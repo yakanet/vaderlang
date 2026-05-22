@@ -3,6 +3,8 @@
 // trait without an explicit `implements` line. T3006 fires at the
 // generic call site.
 
+module "snippet"
+
 Vec3 :: struct { x: i32, y: i32, z: i32 }
 
 // Vec3 has an `add` method (UFCS-callable free fn) but NO

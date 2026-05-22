@@ -3,6 +3,8 @@
 // declaration with T3036 instead of slipping through to a runtime
 // "field does not exist" T3009 at the call site.
 
+module "snippet"
+
 TwoFn :: trait {
     first  :: fn(self) -> i32
     second :: fn(self) -> i32

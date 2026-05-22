@@ -2,6 +2,8 @@
 // small Vader program and prints every token on its own line. The snapshot
 // is compared by the bundled snapshot driver.
 
+module "snippet"
+
 import "std/io" { println }
 import "vader/lexer" { tokenize, TokenKind }
 import "vader/diagnostics/diagnostic" { render }

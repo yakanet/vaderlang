@@ -3,23 +3,23 @@
 ## tests/snippets/intrinsic_type_kind/_main.vader
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair
-  expr 12:11    IntrinsicCallExpr :: string
-  expr 13:11    IntrinsicCallExpr :: string
   expr 14:11    IntrinsicCallExpr :: string
   expr 15:11    IntrinsicCallExpr :: string
-  expr 16:14    StringLitExpr  :: string
-  expr 16:29    BinaryExpr     :: bool
-  expr 16:29    IdentExpr      :: string
-  expr 16:35    StringLitExpr  :: string
-  expr 16:47    BinaryExpr     :: bool
-  expr 16:47    IdentExpr      :: string
-  expr 16:5     IfExpr         :: void
-  expr 16:53    StringLitExpr  :: string
-  expr 16:64    BinaryExpr     :: bool
-  expr 16:64    IdentExpr      :: string
-  expr 16:70    StringLitExpr  :: string
-  expr 16:8     BinaryExpr     :: bool
-  expr 16:8     BinaryExpr     :: bool
-  expr 16:8     BinaryExpr     :: bool
-  expr 16:8     BinaryExpr     :: bool
-  expr 16:8     IdentExpr      :: string
+  expr 16:11    IntrinsicCallExpr :: string
+  expr 17:11    IntrinsicCallExpr :: string
+  expr 18:14    StringLitExpr  :: string
+  expr 18:29    BinaryExpr     :: bool
+  expr 18:29    IdentExpr      :: string
+  expr 18:35    StringLitExpr  :: string
+  expr 18:47    BinaryExpr     :: bool
+  expr 18:47    IdentExpr      :: string
+  expr 18:5     IfExpr         :: void
+  expr 18:53    StringLitExpr  :: string
+  expr 18:64    BinaryExpr     :: bool
+  expr 18:64    IdentExpr      :: string
+  expr 18:70    StringLitExpr  :: string
+  expr 18:8     BinaryExpr     :: bool
+  expr 18:8     BinaryExpr     :: bool
+  expr 18:8     BinaryExpr     :: bool
+  expr 18:8     BinaryExpr     :: bool
+  expr 18:8     IdentExpr      :: string

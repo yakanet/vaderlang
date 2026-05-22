@@ -5,15 +5,15 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         middle               :: fn(i32) -> i32
   FnDecl         outer                :: fn(i32) -> i32
-  expr 10:12    BinaryExpr     :: i32
-  expr 10:12    CallExpr       :: i32
-  expr 10:12    IdentExpr      :: fn(i32) -> i32
-  expr 10:18    IdentExpr      :: i32
-  expr 14:12    BinaryExpr     :: i32
-  expr 14:12    CallExpr       :: i32
-  expr 14:12    IdentExpr      :: fn(i32) -> i32
-  expr 14:19    IdentExpr      :: i32
-  expr 18:12    CallExpr       :: i32
-  expr 18:12    IdentExpr      :: fn(i32) -> i32
-  expr 6:12     BinaryExpr     :: i32
-  expr 6:12     IdentExpr      :: i32
+  expr 12:12    BinaryExpr     :: i32
+  expr 12:12    CallExpr       :: i32
+  expr 12:12    IdentExpr      :: fn(i32) -> i32
+  expr 12:18    IdentExpr      :: i32
+  expr 16:12    BinaryExpr     :: i32
+  expr 16:12    CallExpr       :: i32
+  expr 16:12    IdentExpr      :: fn(i32) -> i32
+  expr 16:19    IdentExpr      :: i32
+  expr 20:12    CallExpr       :: i32
+  expr 20:12    IdentExpr      :: fn(i32) -> i32
+  expr 8:12     BinaryExpr     :: i32
+  expr 8:12     IdentExpr      :: i32

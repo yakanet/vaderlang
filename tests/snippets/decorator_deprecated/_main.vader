@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // `@deprecated(message)` annotates a declaration so every reference site

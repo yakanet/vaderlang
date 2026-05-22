@@ -1,3 +1,5 @@
+module "snippet"
+
 export length :: fn(s: string) -> i32 {
     return s
 }

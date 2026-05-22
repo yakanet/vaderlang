@@ -10,6 +10,8 @@
 // heap struct (avoids the inline-variant escape hatch where the value
 // fits in `vader_box_t.payload` directly).
 
+module "snippet"
+
 import "std/io" { println }
 
 StructVal :: struct {

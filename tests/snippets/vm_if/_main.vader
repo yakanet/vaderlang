@@ -1,6 +1,8 @@
 // Sprint 2b: comparisons + if/else.
 // 5 > 3 → returns 1.
 
+module "snippet"
+
 main :: fn() -> i32 {
     n :: 5
     if n > 3 {

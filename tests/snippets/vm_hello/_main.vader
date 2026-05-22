@@ -1,5 +1,7 @@
 // Sprint 3 acceptance: string literal + println host import.
 
+module "snippet"
+
 import "std/io" { println }
 
 main :: fn() -> i32 {

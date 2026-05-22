@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println, write_file, read_file, exists }
 
 main :: fn() -> i32 {

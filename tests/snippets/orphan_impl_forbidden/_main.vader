@@ -5,6 +5,8 @@
 // SomeTrait` is allowed even when neither side is local, since Vader
 // has no newtype-pattern infrastructure to recover the use case.
 
+module "snippet"
+
 import "./lib_a" { Foo }
 import "./lib_b" { Bar }
 

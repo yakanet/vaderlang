@@ -1,6 +1,8 @@
 // `@comptime` decls are evaluated at compile time and baked into the lowered
 // IR as literals. The arith below never runs at runtime.
 
+module "snippet"
+
 @comptime
 export ANSWER :: (40 + 2) * 1
 

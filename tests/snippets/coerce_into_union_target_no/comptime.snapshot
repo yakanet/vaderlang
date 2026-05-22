@@ -22,4 +22,4 @@
   Into(Target)
 
 # Diagnostics
-[14:5] error[T3001] type mismatch: expected i32 | string, got Foo
+[16:5] error[T3001] type mismatch: expected i32 | string, got Foo

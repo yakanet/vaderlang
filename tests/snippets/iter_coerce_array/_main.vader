@@ -7,6 +7,8 @@
 // wrap; the comptime engine pre-registers the matching `ArrayIterator(T)`
 // instance so mono materialises the specialised step impl.
 
+module "snippet"
+
 import "std/io" { println }
 
 walk :: fn(it: Iterator(i32)) -> i32 {

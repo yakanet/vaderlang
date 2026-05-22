@@ -5,6 +5,8 @@
 // e is V2 { e.f } else ...`) so the runtime reads the right struct
 // layout.
 
+module "snippet"
+
 import "std/io" { println }
 
 Cat :: struct { name: string, age: i32 }

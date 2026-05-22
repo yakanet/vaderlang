@@ -10,6 +10,8 @@
 //   - argv handling so the same binary accepts an external file at runtime
 //   - UFCS chained calls (`s.trim().split_where(is_white_char)`, `m.dir.turn_left()`)
 
+module "main"
+
 import "std/io" { println, eprintln, read_file }
 import "std/string" {
     byte_len, chars, is_white_char, parse_int,

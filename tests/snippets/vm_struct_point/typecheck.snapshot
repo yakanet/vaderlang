@@ -3,9 +3,9 @@
 ## tests/snippets/vm_struct_point/_main.vader
   FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point
-  expr 7:10     StructLitExpr  :: Point
-  expr 8:12     BinaryExpr     :: i32
-  expr 8:12     FieldExpr      :: i32
-  expr 8:12     IdentExpr      :: Point
-  expr 8:18     FieldExpr      :: i32
-  expr 8:18     IdentExpr      :: Point
+  expr 10:12    BinaryExpr     :: i32
+  expr 10:12    FieldExpr      :: i32
+  expr 10:12    IdentExpr      :: Point
+  expr 10:18    FieldExpr      :: i32
+  expr 10:18    IdentExpr      :: Point
+  expr 9:10     StructLitExpr  :: Point

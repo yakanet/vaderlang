@@ -4,11 +4,11 @@
   FnDecl         apply                :: fn(fn(i32) -> i32, i32) -> i32
   FnDecl         inc                  :: fn(i32) -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 10:12    CallExpr       :: i32
-  expr 10:12    IdentExpr      :: fn(fn(i32) -> i32, i32) -> i32
-  expr 10:18    IdentExpr      :: fn(i32) -> i32
-  expr 2:12     CallExpr       :: i32
-  expr 2:12     IdentExpr      :: fn(i32) -> i32
-  expr 2:14     IdentExpr      :: i32
-  expr 6:12     BinaryExpr     :: i32
-  expr 6:12     IdentExpr      :: i32
+  expr 12:12    CallExpr       :: i32
+  expr 12:12    IdentExpr      :: fn(fn(i32) -> i32, i32) -> i32
+  expr 12:18    IdentExpr      :: fn(i32) -> i32
+  expr 4:12     CallExpr       :: i32
+  expr 4:12     IdentExpr      :: fn(i32) -> i32
+  expr 4:14     IdentExpr      :: i32
+  expr 8:12     BinaryExpr     :: i32
+  expr 8:12     IdentExpr      :: i32

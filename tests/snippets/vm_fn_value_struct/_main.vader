@@ -2,6 +2,8 @@
 // via struct.get + call.indirect. Mirror of the pre-existing
 // `fn_value_struct` snippet, adapted into the vm_ family.
 
+module "snippet"
+
 Calculator :: struct {
     op: fn(i32, i32) -> i32
 }

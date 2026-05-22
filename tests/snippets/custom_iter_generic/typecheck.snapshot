@@ -3,26 +3,26 @@
 ## tests/snippets/custom_iter_generic/_main.vader
   FnDecl         main                 :: fn() -> i32
   StructDecl     Repeat               :: Repeat(T)
-  expr 11:13    BinaryExpr     :: bool
-  expr 11:13    FieldExpr      :: i32
-  expr 11:13    IdentExpr      :: Repeat(T)
-  expr 11:9     IfExpr         :: void
-  expr 14:14    FieldExpr      :: T
-  expr 14:14    IdentExpr      :: Repeat(T)
-  expr 15:26    BinaryExpr     :: i32
-  expr 15:26    FieldExpr      :: i32
-  expr 15:26    IdentExpr      :: Repeat(T)
-  expr 15:9     FieldExpr      :: i32
-  expr 15:9     IdentExpr      :: Repeat(T)
-  expr 16:16    StructLitExpr  :: Yield(T)
-  expr 16:36    IdentExpr      :: T
-  expr 22:11    StructLitExpr  :: Repeat(i32)
-  expr 24:14    IdentExpr      :: Repeat(i32)
-  expr 25:15    BinaryExpr     :: i32
-  expr 25:15    IdentExpr      :: i32
-  expr 25:21    IdentExpr      :: i32
-  expr 25:9     IdentExpr      :: i32
-  expr 28:13    StringLitExpr  :: string
-  expr 28:16    IdentExpr      :: i32
-  expr 28:5     CallExpr       :: void
-  expr 28:5     IdentExpr      :: fn(string) -> void
+  expr 13:13    BinaryExpr     :: bool
+  expr 13:13    FieldExpr      :: i32
+  expr 13:13    IdentExpr      :: Repeat(T)
+  expr 13:9     IfExpr         :: void
+  expr 16:14    FieldExpr      :: T
+  expr 16:14    IdentExpr      :: Repeat(T)
+  expr 17:26    BinaryExpr     :: i32
+  expr 17:26    FieldExpr      :: i32
+  expr 17:26    IdentExpr      :: Repeat(T)
+  expr 17:9     FieldExpr      :: i32
+  expr 17:9     IdentExpr      :: Repeat(T)
+  expr 18:16    StructLitExpr  :: Yield(T)
+  expr 18:36    IdentExpr      :: T
+  expr 24:11    StructLitExpr  :: Repeat(i32)
+  expr 26:14    IdentExpr      :: Repeat(i32)
+  expr 27:15    BinaryExpr     :: i32
+  expr 27:15    IdentExpr      :: i32
+  expr 27:21    IdentExpr      :: i32
+  expr 27:9     IdentExpr      :: i32
+  expr 30:13    StringLitExpr  :: string
+  expr 30:16    IdentExpr      :: i32
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(string) -> void

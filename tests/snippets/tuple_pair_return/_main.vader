@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Functions can return tuples directly — heterogeneous fixed-arity.

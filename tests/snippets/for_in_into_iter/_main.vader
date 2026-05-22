@@ -3,6 +3,8 @@
 // set (impls in std/collections), string (impl in std/string —
 // codepoint default, so UTF-8 multi-byte sequences count as one).
 
+module "snippet"
+
 import "std/io" { println }
 import "std/collections" { MutableMap, MutableSet, add }
 // `std/string` imported for its blanket `string implements Into(Iterator(char))`

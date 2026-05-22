@@ -9,6 +9,8 @@
 // the alias carry `null` would conflate "this is a pet" with "there's
 // no pet" and weaken the narrowing demo.
 
+module "snippet"
+
 import "std/io" { println }
 
 Cat :: struct { name: string }

@@ -4,6 +4,8 @@
 // like `Maybe[i32]`. Mirrors the non-generic implicit alias `Foo :: i32 | u32`
 // — `type` is no longer a keyword in Vader.
 
+module "snippet"
+
 import "std/io" { println }
 
 export Maybe[T] :: T | null

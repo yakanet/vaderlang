@@ -3,8 +3,8 @@
 ## tests/snippets/decorator_assert/_main.vader
   FnDecl         DOUBLE               :: fn(i32) -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 11:9     BinaryExpr     :: bool
-  expr 11:9     CallExpr       :: i32
-  expr 11:9     IdentExpr      :: fn(i32) -> i32
-  expr 9:38     BinaryExpr     :: i32
-  expr 9:38     IdentExpr      :: i32
+  expr 11:38    BinaryExpr     :: i32
+  expr 11:38    IdentExpr      :: i32
+  expr 13:9     BinaryExpr     :: bool
+  expr 13:9     CallExpr       :: i32
+  expr 13:9     IdentExpr      :: fn(i32) -> i32

@@ -1,3 +1,5 @@
+module "snippet"
+
 export Op :: struct {
     op: fn(i32, i32) -> i32
 }

@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // User newtype with an explicit Into impl. Tests the four implicit-coercion

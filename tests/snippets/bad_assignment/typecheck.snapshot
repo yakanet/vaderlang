@@ -2,7 +2,7 @@
 
 ## tests/snippets/bad_assignment/_main.vader
   FnDecl         length               :: fn(string) -> i32
-  expr 2:12     IdentExpr      :: string
+  expr 4:12     IdentExpr      :: string
 
 # Diagnostics
-[2:5] error[T3020] function body returns a value incompatible with its declared return type: expected i32, got string
+[4:5] error[T3020] function body returns a value incompatible with its declared return type: expected i32, got string

@@ -4,16 +4,16 @@
   ConstDecl      expr                 :: string
   ConstDecl      nested               :: string
   ConstDecl      simple               :: string
-  expr 1:18     StringLitExpr  :: string
-  expr 1:26     IdentExpr      :: ?
-  expr 2:16     StringLitExpr  :: string
-  expr 2:27     BinaryExpr     :: ?
-  expr 2:27     IdentExpr      :: ?
   expr 3:18     StringLitExpr  :: string
-  expr 3:27     StringLitExpr  :: string
-  expr 3:36     IdentExpr      :: ?
+  expr 3:26     IdentExpr      :: ?
+  expr 4:16     StringLitExpr  :: string
+  expr 4:27     BinaryExpr     :: ?
+  expr 4:27     IdentExpr      :: ?
+  expr 5:18     StringLitExpr  :: string
+  expr 5:27     StringLitExpr  :: string
+  expr 5:36     IdentExpr      :: ?
 
 # Diagnostics
-[1:26] error[R2006] unresolved identifier: `name`
-[2:27] error[R2006] unresolved identifier: `x`
-[3:36] error[R2006] unresolved identifier: `y`
+[3:26] error[R2006] unresolved identifier: `name`
+[4:27] error[R2006] unresolved identifier: `x`
+[5:36] error[R2006] unresolved identifier: `y`

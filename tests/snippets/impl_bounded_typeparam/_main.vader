@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // User trait that we'll bound on (just a marker, not invoked here).

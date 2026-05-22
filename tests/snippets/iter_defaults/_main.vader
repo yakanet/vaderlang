@@ -2,6 +2,8 @@
 // derive from the user's `step`. Every Iterator impl (Range, ArrayIterator,
 // StringChars, …) inherits the three methods without writing a body.
 
+module "snippet"
+
 import "std/io" { println }
 
 Countdown :: struct { remaining: i32 }

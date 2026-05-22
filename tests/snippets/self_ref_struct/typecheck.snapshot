@@ -3,13 +3,13 @@
 ## tests/snippets/self_ref_struct/_main.vader
   FnDecl         main                 :: fn() -> i32
   StructDecl     Node                 :: Node(T)
-  expr 10:13    StructLitExpr  :: Node(i32)
-  expr 10:46    IdentExpr      :: Node(i32)
   expr 11:13    StructLitExpr  :: Node(i32)
-  expr 11:46    IdentExpr      :: Node(i32)
-  expr 12:13    StringLitExpr  :: string
-  expr 12:29    FieldExpr      :: i32
-  expr 12:29    IdentExpr      :: Node(i32)
-  expr 12:5     CallExpr       :: void
-  expr 12:5     IdentExpr      :: fn(string) -> void
-  expr 9:13     StructLitExpr  :: Node(i32)
+  expr 12:13    StructLitExpr  :: Node(i32)
+  expr 12:46    IdentExpr      :: Node(i32)
+  expr 13:13    StructLitExpr  :: Node(i32)
+  expr 13:46    IdentExpr      :: Node(i32)
+  expr 14:13    StringLitExpr  :: string
+  expr 14:29    FieldExpr      :: i32
+  expr 14:29    IdentExpr      :: Node(i32)
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(string) -> void

@@ -3,16 +3,16 @@
 ## tests/snippets/if_without_else_stmt/_main.vader
   FnDecl         expect_lparen        :: fn(string) -> string
   FnDecl         main                 :: fn() -> i32
-  expr 10:12    StringLitExpr  :: string
-  expr 10:19    IdentExpr      :: string
-  expr 15:5     IfExpr         :: string | void
-  expr 15:8     IdentExpr      :: bool
-  expr 18:23    StringLitExpr  :: string
-  expr 18:9     CallExpr       :: string
-  expr 18:9     IdentExpr      :: fn(string) -> string
-  expr 20:5     IfExpr         :: void
-  expr 20:8     UnaryExpr      :: bool
-  expr 20:9     IdentExpr      :: bool
-  expr 21:17    StringLitExpr  :: string
-  expr 21:9     CallExpr       :: void
-  expr 21:9     IdentExpr      :: fn(string) -> void
+  expr 12:12    StringLitExpr  :: string
+  expr 12:19    IdentExpr      :: string
+  expr 17:5     IfExpr         :: string | void
+  expr 17:8     IdentExpr      :: bool
+  expr 20:23    StringLitExpr  :: string
+  expr 20:9     CallExpr       :: string
+  expr 20:9     IdentExpr      :: fn(string) -> string
+  expr 22:5     IfExpr         :: void
+  expr 22:8     UnaryExpr      :: bool
+  expr 22:9     IdentExpr      :: bool
+  expr 23:17    StringLitExpr  :: string
+  expr 23:9     CallExpr       :: void
+  expr 23:9     IdentExpr      :: fn(string) -> void

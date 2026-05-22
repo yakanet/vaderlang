@@ -4,7 +4,7 @@
   ConstDecl      GREETING             :: string
   FnDecl         main                 :: fn() -> i32
   FnDecl         name                 :: fn() -> string
-  expr 2:20     StringLitExpr  :: string
-  expr 2:30     CallExpr       :: string
-  expr 2:30     IdentExpr      :: fn() -> string
-  expr 5:12     StringLitExpr  :: string
+  expr 4:20     StringLitExpr  :: string
+  expr 4:30     CallExpr       :: string
+  expr 4:30     IdentExpr      :: fn() -> string
+  expr 7:12     StringLitExpr  :: string

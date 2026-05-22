@@ -27,6 +27,8 @@
 // registers at module construction are visible to the C runtime's GC
 // type-index table the same way parser-produced modules are.
 
+module "main"
+
 import "std/io" { eprintln, read_file }
 import "std/iter" { filter }
 import "std/string" { chars }

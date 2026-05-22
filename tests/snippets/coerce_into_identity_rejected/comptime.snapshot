@@ -22,4 +22,4 @@
   Into(Target)
 
 # Diagnostics
-[7:1] error[T3039] `Into(T)` cannot use `T` as its target (identity coercion is forbidden): `Foo implements Into(Foo)` — source and target must differ
+[9:1] error[T3039] `Into(T)` cannot use `T` as its target (identity coercion is forbidden): `Foo implements Into(Foo)` — source and target must differ

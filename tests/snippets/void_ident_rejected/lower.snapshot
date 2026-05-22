@@ -24,4 +24,4 @@
     return int(0) :i32
 
 # Diagnostics
-[5:5] error[R2019] `void` is reserved and cannot be used as an identifier: `void`
+[7:5] error[R2019] `void` is reserved and cannot be used as an identifier: `void`

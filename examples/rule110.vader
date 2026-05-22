@@ -7,6 +7,8 @@
 // generation has a single live cell on the right end, which is the seed
 // classically used to display the rule's drift to the left.
 
+module "main"
+
 import "std/io" { print, println }
 import "std/string_builder" { new_builder, append_char }
 

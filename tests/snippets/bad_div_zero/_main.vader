@@ -1,3 +1,5 @@
+module "snippet"
+
 @comptime
 export BOOM :: 10 / 0
 

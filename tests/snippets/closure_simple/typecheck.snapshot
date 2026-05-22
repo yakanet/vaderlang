@@ -2,9 +2,9 @@
 
 ## tests/snippets/closure_simple/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 3:14     LambdaExpr     :: fn(i32) -> i32
-  expr 4:16     BinaryExpr     :: i32
-  expr 4:16     IdentExpr      :: i32
-  expr 4:20     IdentExpr      :: i32
-  expr 6:12     CallExpr       :: i32
-  expr 6:12     IdentExpr      :: fn(i32) -> i32
+  expr 5:14     LambdaExpr     :: fn(i32) -> i32
+  expr 6:16     BinaryExpr     :: i32
+  expr 6:16     IdentExpr      :: i32
+  expr 6:20     IdentExpr      :: i32
+  expr 8:12     CallExpr       :: i32
+  expr 8:12     IdentExpr      :: fn(i32) -> i32

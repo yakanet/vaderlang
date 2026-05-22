@@ -2,10 +2,10 @@
 
 ## tests/snippets/cast_test/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 5:14     CallExpr       :: u64
-  expr 5:14     IdentExpr      :: type
-  expr 5:18     IdentExpr      :: i32
-  expr 6:13     StringLitExpr  :: string
-  expr 6:16     IdentExpr      :: u64
-  expr 6:5      CallExpr       :: void
-  expr 6:5      IdentExpr      :: fn(string) -> void
+  expr 7:14     CallExpr       :: u64
+  expr 7:14     IdentExpr      :: type
+  expr 7:18     IdentExpr      :: i32
+  expr 8:13     StringLitExpr  :: string
+  expr 8:16     IdentExpr      :: u64
+  expr 8:5      CallExpr       :: void
+  expr 8:5      IdentExpr      :: fn(string) -> void

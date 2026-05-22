@@ -3,12 +3,12 @@
 ## tests/snippets/void_ident_rejected/_main.vader
   FnDecl         main                 :: fn() -> i32
   FnDecl         mk                   :: fn() -> void
-  expr 10:5     CallExpr       :: void
-  expr 10:5     IdentExpr      :: fn() -> void
-  expr 6:13     StringLitExpr  :: string
-  expr 6:16     IdentExpr      :: i32
-  expr 6:5      CallExpr       :: void
-  expr 6:5      IdentExpr      :: fn(string) -> void
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn() -> void
+  expr 8:13     StringLitExpr  :: string
+  expr 8:16     IdentExpr      :: i32
+  expr 8:5      CallExpr       :: void
+  expr 8:5      IdentExpr      :: fn(string) -> void
 
 # Diagnostics
-[5:5] error[R2019] `void` is reserved and cannot be used as an identifier: `void`
+[7:5] error[R2019] `void` is reserved and cannot be used as an identifier: `void`

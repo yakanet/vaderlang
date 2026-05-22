@@ -6,6 +6,8 @@
 // generic UFCS arguments (via an import alias), and negated literals
 // flowing into signed slots.
 
+module "snippet"
+
 import "std/io" { println }
 import "std/iter" { slice as slice_array }
 

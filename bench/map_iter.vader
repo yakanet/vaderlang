@@ -4,6 +4,8 @@
 /// devirtualisation of the `MapIterator.next()` call, and the GC under
 /// 1 M `Yielded(Entry(K, V))` allocs.
 
+module "main"
+
 import "std/io" { println }
 import "std/collections" { MutableMap }
 

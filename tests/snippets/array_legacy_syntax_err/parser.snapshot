@@ -1,6 +1,10 @@
 # AST
 {
   "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
   "decls": [
     {
       "kind": "FnDecl",
@@ -67,4 +71,4 @@
 }
 
 # Diagnostics
-[7:12] error[P1021] 1-tuple types are not allowed: use postfix `T[]` for an array, or a plain value if you meant the element
+[9:12] error[P1021] 1-tuple types are not allowed: use postfix `T[]` for an array, or a plain value if you meant the element

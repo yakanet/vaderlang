@@ -5,14 +5,6 @@
   EnumDecl       Direction            :: Direction
   FnDecl         main                 :: fn() -> i32
   FnDecl         parse                :: fn(char) -> Direction | Error
-  expr 12:26    DotVariantExpr :: Direction
-  expr 12:5     IfExpr         :: void
-  expr 12:8     BinaryExpr     :: bool
-  expr 12:8     IdentExpr      :: char
-  expr 13:26    DotVariantExpr :: Direction
-  expr 13:5     IfExpr         :: void
-  expr 13:8     BinaryExpr     :: bool
-  expr 13:8     IdentExpr      :: char
   expr 14:26    DotVariantExpr :: Direction
   expr 14:5     IfExpr         :: void
   expr 14:8     BinaryExpr     :: bool
@@ -21,33 +13,41 @@
   expr 15:5     IfExpr         :: void
   expr 15:8     BinaryExpr     :: bool
   expr 15:8     IdentExpr      :: char
-  expr 16:12    StructLitExpr  :: ParseError
-  expr 16:32    StringLitExpr  :: string
-  expr 20:11    IdentExpr      :: Direction
-  expr 20:5     MatchExpr      :: string
-  expr 21:19    StringLitExpr  :: string
-  expr 22:19    StringLitExpr  :: string
+  expr 16:26    DotVariantExpr :: Direction
+  expr 16:5     IfExpr         :: void
+  expr 16:8     BinaryExpr     :: bool
+  expr 16:8     IdentExpr      :: char
+  expr 17:26    DotVariantExpr :: Direction
+  expr 17:5     IfExpr         :: void
+  expr 17:8     BinaryExpr     :: bool
+  expr 17:8     IdentExpr      :: char
+  expr 18:12    StructLitExpr  :: ParseError
+  expr 18:32    StringLitExpr  :: string
+  expr 22:11    IdentExpr      :: Direction
+  expr 22:5     MatchExpr      :: string
   expr 23:19    StringLitExpr  :: string
   expr 24:19    StringLitExpr  :: string
-  expr 29:11    CallExpr       :: Direction | Error
-  expr 29:11    IdentExpr      :: fn(char) -> Direction | Error
-  expr 29:5     MatchExpr      :: void
-  expr 30:30    CallExpr       :: void
-  expr 30:30    IdentExpr      :: fn(string) -> void
-  expr 30:38    CallExpr       :: string
-  expr 30:38    IdentExpr      :: fn(Direction) -> string
-  expr 30:48    IdentExpr      :: Direction
-  expr 31:31    CallExpr       :: void
-  expr 31:31    IdentExpr      :: fn(string) -> void
-  expr 31:39    StringLitExpr  :: string
-  expr 33:11    CallExpr       :: Direction | Error
-  expr 33:11    IdentExpr      :: fn(char) -> Direction | Error
-  expr 33:5     MatchExpr      :: void
-  expr 34:30    CallExpr       :: void
-  expr 34:30    IdentExpr      :: fn(string) -> void
-  expr 34:38    CallExpr       :: string
-  expr 34:38    IdentExpr      :: fn(Direction) -> string
-  expr 34:48    IdentExpr      :: Direction
-  expr 35:31    CallExpr       :: void
-  expr 35:31    IdentExpr      :: fn(string) -> void
-  expr 35:39    StringLitExpr  :: string
+  expr 25:19    StringLitExpr  :: string
+  expr 26:19    StringLitExpr  :: string
+  expr 31:11    CallExpr       :: Direction | Error
+  expr 31:11    IdentExpr      :: fn(char) -> Direction | Error
+  expr 31:5     MatchExpr      :: void
+  expr 32:30    CallExpr       :: void
+  expr 32:30    IdentExpr      :: fn(string) -> void
+  expr 32:38    CallExpr       :: string
+  expr 32:38    IdentExpr      :: fn(Direction) -> string
+  expr 32:48    IdentExpr      :: Direction
+  expr 33:31    CallExpr       :: void
+  expr 33:31    IdentExpr      :: fn(string) -> void
+  expr 33:39    StringLitExpr  :: string
+  expr 35:11    CallExpr       :: Direction | Error
+  expr 35:11    IdentExpr      :: fn(char) -> Direction | Error
+  expr 35:5     MatchExpr      :: void
+  expr 36:30    CallExpr       :: void
+  expr 36:30    IdentExpr      :: fn(string) -> void
+  expr 36:38    CallExpr       :: string
+  expr 36:38    IdentExpr      :: fn(Direction) -> string
+  expr 36:48    IdentExpr      :: Direction
+  expr 37:31    CallExpr       :: void
+  expr 37:31    IdentExpr      :: fn(string) -> void
+  expr 37:39    StringLitExpr  :: string

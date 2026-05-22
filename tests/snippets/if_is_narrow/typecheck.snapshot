@@ -9,87 +9,87 @@
   FnDecl         negated              :: fn(Cat | Dog) -> string
   StructDecl     Pig                  :: Pig
   FnDecl         primitive_is         :: fn(i32 | string) -> string
-  expr 15:13    IdentExpr      :: Cat
-  expr 15:5     IfExpr         :: void
-  expr 15:8     BinaryExpr     :: bool
-  expr 15:8     IdentExpr      :: Cat | Dog
-  expr 16:16    StringLitExpr  :: string
-  expr 16:23    FieldExpr      :: string
-  expr 16:23    IdentExpr      :: Cat
-  expr 19:12    StringLitExpr  :: string
-  expr 19:24    FieldExpr      :: string
-  expr 19:24    IdentExpr      :: Dog
-  expr 23:10    BinaryExpr     :: bool
-  expr 23:10    IdentExpr      :: Cat | Dog
-  expr 23:15    IdentExpr      :: Cat
-  expr 23:5     IfExpr         :: void
-  expr 23:8     UnaryExpr      :: bool
-  expr 24:16    StringLitExpr  :: string
-  expr 24:28    FieldExpr      :: string
-  expr 24:28    IdentExpr      :: Dog
-  expr 26:12    StringLitExpr  :: string
-  expr 26:19    FieldExpr      :: string
-  expr 26:19    IdentExpr      :: Cat
-  expr 30:13    IdentExpr      :: Cat
-  expr 30:26    StringLitExpr  :: string
-  expr 30:33    FieldExpr      :: string
-  expr 30:33    IdentExpr      :: Cat
-  expr 30:5     IfExpr         :: void
-  expr 30:8     BinaryExpr     :: bool
-  expr 30:8     IdentExpr      :: Cat | Dog | Pig
-  expr 31:13    IdentExpr      :: Dog
-  expr 31:26    StringLitExpr  :: string
-  expr 31:38    FieldExpr      :: string
-  expr 31:38    IdentExpr      :: Dog
-  expr 31:5     IfExpr         :: void
-  expr 31:8     BinaryExpr     :: bool
-  expr 31:8     IdentExpr      :: Dog | Pig
-  expr 33:12    StringLitExpr  :: string
-  expr 33:22    FieldExpr      :: i32
-  expr 33:22    IdentExpr      :: Pig
-  expr 37:13    IdentExpr      :: i32
-  expr 37:26    StringLitExpr  :: string
-  expr 37:33    IdentExpr      :: i32
-  expr 37:5     IfExpr         :: void
-  expr 37:8     BinaryExpr     :: bool
-  expr 37:8     IdentExpr      :: i32 | string
-  expr 38:12    StringLitExpr  :: string
-  expr 38:19    IdentExpr      :: string
-  expr 42:13    CallExpr       :: string
-  expr 42:13    IdentExpr      :: fn(Cat | Dog) -> string
-  expr 42:20    StructLitExpr  :: Cat
-  expr 42:34    StringLitExpr  :: string
-  expr 42:5     CallExpr       :: void
-  expr 42:5     IdentExpr      :: fn(string) -> void
-  expr 43:13    CallExpr       :: string
-  expr 43:13    IdentExpr      :: fn(Cat | Dog) -> string
-  expr 43:20    StructLitExpr  :: Dog
-  expr 43:35    StringLitExpr  :: string
-  expr 43:5     CallExpr       :: void
-  expr 43:5     IdentExpr      :: fn(string) -> void
+  expr 17:13    IdentExpr      :: Cat
+  expr 17:5     IfExpr         :: void
+  expr 17:8     BinaryExpr     :: bool
+  expr 17:8     IdentExpr      :: Cat | Dog
+  expr 18:16    StringLitExpr  :: string
+  expr 18:23    FieldExpr      :: string
+  expr 18:23    IdentExpr      :: Cat
+  expr 21:12    StringLitExpr  :: string
+  expr 21:24    FieldExpr      :: string
+  expr 21:24    IdentExpr      :: Dog
+  expr 25:10    BinaryExpr     :: bool
+  expr 25:10    IdentExpr      :: Cat | Dog
+  expr 25:15    IdentExpr      :: Cat
+  expr 25:5     IfExpr         :: void
+  expr 25:8     UnaryExpr      :: bool
+  expr 26:16    StringLitExpr  :: string
+  expr 26:28    FieldExpr      :: string
+  expr 26:28    IdentExpr      :: Dog
+  expr 28:12    StringLitExpr  :: string
+  expr 28:19    FieldExpr      :: string
+  expr 28:19    IdentExpr      :: Cat
+  expr 32:13    IdentExpr      :: Cat
+  expr 32:26    StringLitExpr  :: string
+  expr 32:33    FieldExpr      :: string
+  expr 32:33    IdentExpr      :: Cat
+  expr 32:5     IfExpr         :: void
+  expr 32:8     BinaryExpr     :: bool
+  expr 32:8     IdentExpr      :: Cat | Dog | Pig
+  expr 33:13    IdentExpr      :: Dog
+  expr 33:26    StringLitExpr  :: string
+  expr 33:38    FieldExpr      :: string
+  expr 33:38    IdentExpr      :: Dog
+  expr 33:5     IfExpr         :: void
+  expr 33:8     BinaryExpr     :: bool
+  expr 33:8     IdentExpr      :: Dog | Pig
+  expr 35:12    StringLitExpr  :: string
+  expr 35:22    FieldExpr      :: i32
+  expr 35:22    IdentExpr      :: Pig
+  expr 39:13    IdentExpr      :: i32
+  expr 39:26    StringLitExpr  :: string
+  expr 39:33    IdentExpr      :: i32
+  expr 39:5     IfExpr         :: void
+  expr 39:8     BinaryExpr     :: bool
+  expr 39:8     IdentExpr      :: i32 | string
+  expr 40:12    StringLitExpr  :: string
+  expr 40:19    IdentExpr      :: string
   expr 44:13    CallExpr       :: string
   expr 44:13    IdentExpr      :: fn(Cat | Dog) -> string
-  expr 44:21    StructLitExpr  :: Cat
-  expr 44:35    StringLitExpr  :: string
+  expr 44:20    StructLitExpr  :: Cat
+  expr 44:34    StringLitExpr  :: string
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(string) -> void
   expr 45:13    CallExpr       :: string
   expr 45:13    IdentExpr      :: fn(Cat | Dog) -> string
-  expr 45:21    StructLitExpr  :: Dog
-  expr 45:36    StringLitExpr  :: string
+  expr 45:20    StructLitExpr  :: Dog
+  expr 45:35    StringLitExpr  :: string
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(string) -> void
   expr 46:13    CallExpr       :: string
-  expr 46:13    IdentExpr      :: fn(Cat | Dog | Pig) -> string
-  expr 46:21    StructLitExpr  :: Pig
+  expr 46:13    IdentExpr      :: fn(Cat | Dog) -> string
+  expr 46:21    StructLitExpr  :: Cat
+  expr 46:35    StringLitExpr  :: string
   expr 46:5     CallExpr       :: void
   expr 46:5     IdentExpr      :: fn(string) -> void
   expr 47:13    CallExpr       :: string
-  expr 47:13    IdentExpr      :: fn(i32 | string) -> string
+  expr 47:13    IdentExpr      :: fn(Cat | Dog) -> string
+  expr 47:21    StructLitExpr  :: Dog
+  expr 47:36    StringLitExpr  :: string
   expr 47:5     CallExpr       :: void
   expr 47:5     IdentExpr      :: fn(string) -> void
   expr 48:13    CallExpr       :: string
-  expr 48:13    IdentExpr      :: fn(i32 | string) -> string
-  expr 48:26    StringLitExpr  :: string
+  expr 48:13    IdentExpr      :: fn(Cat | Dog | Pig) -> string
+  expr 48:21    StructLitExpr  :: Pig
   expr 48:5     CallExpr       :: void
   expr 48:5     IdentExpr      :: fn(string) -> void
+  expr 49:13    CallExpr       :: string
+  expr 49:13    IdentExpr      :: fn(i32 | string) -> string
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(string) -> void
+  expr 50:13    CallExpr       :: string
+  expr 50:13    IdentExpr      :: fn(i32 | string) -> string
+  expr 50:26    StringLitExpr  :: string
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(string) -> void

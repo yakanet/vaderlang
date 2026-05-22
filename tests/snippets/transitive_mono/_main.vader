@@ -3,6 +3,8 @@
 // Without that, `outer_fn<i32>` would fail to find `inner_fn<i32>` at lower
 // time and emit `unreachable`.
 
+module "snippet"
+
 import "std/io" { println }
 
 export inner_count :: fn[T](arr: T[]) -> i32 {

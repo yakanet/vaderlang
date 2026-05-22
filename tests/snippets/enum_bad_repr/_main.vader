@@ -1,4 +1,6 @@
 // Backing-type / bounds / duplicate-value diagnostics.
+module "snippet"
+
 export TooBig :: enum(u8) {
     A
     B = 300       // out of u8 range

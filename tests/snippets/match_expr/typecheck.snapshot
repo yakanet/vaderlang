@@ -2,12 +2,12 @@
 
 ## tests/snippets/match_expr/_main.vader
   FnDecl         classify             :: fn(i32 | null | string) -> string
-  expr 2:12     MatchExpr      :: string
-  expr 2:18     IdentExpr      :: i32 | null | string
-  expr 3:19     BinaryExpr     :: bool
-  expr 3:19     IdentExpr      :: i32
-  expr 3:28     StringLitExpr  :: string
-  expr 4:19     StringLitExpr  :: string
-  expr 5:22     IdentExpr      :: string
-  expr 6:20     StringLitExpr  :: string
-  expr 7:14     StringLitExpr  :: string
+  expr 4:12     MatchExpr      :: string
+  expr 4:18     IdentExpr      :: i32 | null | string
+  expr 5:19     BinaryExpr     :: bool
+  expr 5:19     IdentExpr      :: i32
+  expr 5:28     StringLitExpr  :: string
+  expr 6:19     StringLitExpr  :: string
+  expr 7:22     IdentExpr      :: string
+  expr 8:20     StringLitExpr  :: string
+  expr 9:14     StringLitExpr  :: string

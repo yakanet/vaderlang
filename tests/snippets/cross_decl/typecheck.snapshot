@@ -5,9 +5,9 @@
   ConstDecl      B                    :: i32
   ConstDecl      C                    :: i32
   FnDecl         main                 :: fn() -> i32
-  expr 11:12    IdentExpr      :: i32
-  expr 5:13     BinaryExpr     :: i32
-  expr 5:13     IdentExpr      :: i32
-  expr 8:13     BinaryExpr     :: i32
-  expr 8:13     IdentExpr      :: i32
-  expr 8:17     IdentExpr      :: i32
+  expr 10:13    BinaryExpr     :: i32
+  expr 10:13    IdentExpr      :: i32
+  expr 10:17    IdentExpr      :: i32
+  expr 13:12    IdentExpr      :: i32
+  expr 7:13     BinaryExpr     :: i32
+  expr 7:13     IdentExpr      :: i32

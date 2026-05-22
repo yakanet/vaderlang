@@ -4,42 +4,42 @@
   EnumDecl       Direction            :: Direction
   FnDecl         main                 :: fn() -> i32
   TraitDecl      Turnable             :: Turnable
-  expr 16:29    MatchExpr      :: Direction
-  expr 16:35    IdentExpr      :: Direction
-  expr 17:19    DotVariantExpr :: Direction
-  expr 18:19    DotVariantExpr :: Direction
+  expr 18:29    MatchExpr      :: Direction
+  expr 18:35    IdentExpr      :: Direction
   expr 19:19    DotVariantExpr :: Direction
   expr 20:19    DotVariantExpr :: Direction
-  expr 23:30    MatchExpr      :: Direction
-  expr 23:36    IdentExpr      :: Direction
-  expr 24:19    DotVariantExpr :: Direction
-  expr 25:19    DotVariantExpr :: Direction
+  expr 21:19    DotVariantExpr :: Direction
+  expr 22:19    DotVariantExpr :: Direction
+  expr 25:30    MatchExpr      :: Direction
+  expr 25:36    IdentExpr      :: Direction
   expr 26:19    DotVariantExpr :: Direction
   expr 27:19    DotVariantExpr :: Direction
-  expr 32:29    MatchExpr      :: string
-  expr 32:35    IdentExpr      :: Direction
-  expr 33:19    StringLitExpr  :: string
-  expr 34:19    StringLitExpr  :: string
+  expr 28:19    DotVariantExpr :: Direction
+  expr 29:19    DotVariantExpr :: Direction
+  expr 34:29    MatchExpr      :: string
+  expr 34:35    IdentExpr      :: Direction
   expr 35:19    StringLitExpr  :: string
   expr 36:19    StringLitExpr  :: string
-  expr 41:10    FieldExpr      :: Direction
-  expr 41:10    IdentExpr      :: Direction
-  expr 42:13    CallExpr       :: ?
-  expr 42:13    FieldExpr      :: fn() -> ?
-  expr 42:13    IdentExpr      :: Direction
-  expr 42:5     CallExpr       :: void
-  expr 42:5     IdentExpr      :: fn(string) -> void
-  expr 43:13    CallExpr       :: ?
-  expr 43:13    CallExpr       :: Direction
-  expr 43:13    FieldExpr      :: fn() -> ?
-  expr 43:13    FieldExpr      :: fn() -> Direction
-  expr 43:13    IdentExpr      :: Direction
-  expr 43:5     CallExpr       :: void
-  expr 43:5     IdentExpr      :: fn(string) -> void
+  expr 37:19    StringLitExpr  :: string
+  expr 38:19    StringLitExpr  :: string
+  expr 43:10    FieldExpr      :: Direction
+  expr 43:10    IdentExpr      :: Direction
   expr 44:13    CallExpr       :: ?
-  expr 44:13    CallExpr       :: Direction
   expr 44:13    FieldExpr      :: fn() -> ?
-  expr 44:13    FieldExpr      :: fn() -> Direction
   expr 44:13    IdentExpr      :: Direction
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(string) -> void
+  expr 45:13    CallExpr       :: ?
+  expr 45:13    CallExpr       :: Direction
+  expr 45:13    FieldExpr      :: fn() -> ?
+  expr 45:13    FieldExpr      :: fn() -> Direction
+  expr 45:13    IdentExpr      :: Direction
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(string) -> void
+  expr 46:13    CallExpr       :: ?
+  expr 46:13    CallExpr       :: Direction
+  expr 46:13    FieldExpr      :: fn() -> ?
+  expr 46:13    FieldExpr      :: fn() -> Direction
+  expr 46:13    IdentExpr      :: Direction
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(string) -> void

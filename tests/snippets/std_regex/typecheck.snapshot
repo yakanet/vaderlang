@@ -4,203 +4,200 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         run_find             :: fn(string, Pattern, string) -> void
   FnDecl         run_match            :: fn(string, Pattern, string) -> void
-  expr 100:17   StringLitExpr  :: string
-  expr 100:27   CallExpr       :: string
-  expr 100:27   FieldExpr      :: fn(string, string) -> string
-  expr 100:27   IdentExpr      :: Pattern
-  expr 100:48   StringLitExpr  :: string
-  expr 100:61   StringLitExpr  :: string
-  expr 100:9    CallExpr       :: void
-  expr 100:9    IdentExpr      :: fn(string) -> void
-  expr 104:12   CallExpr       :: Error | Pattern
-  expr 104:12   IdentExpr      :: fn(string) -> Error | Pattern
-  expr 104:20   StringLitExpr  :: string
-  expr 105:15   IdentExpr      :: Error
-  expr 105:5    IfExpr         :: void
-  expr 105:8    BinaryExpr     :: bool
-  expr 105:8    IdentExpr      :: Error | Pattern
-  expr 106:17   StringLitExpr  :: string
-  expr 106:9    CallExpr       :: void
-  expr 106:9    IdentExpr      :: fn(string) -> void
-  expr 13:13    StringLitExpr  :: string
-  expr 13:16    IdentExpr      :: string
-  expr 13:25    CallExpr       :: bool
-  expr 13:25    FieldExpr      :: fn(string) -> bool
-  expr 13:25    IdentExpr      :: Pattern
-  expr 13:35    IdentExpr      :: string
-  expr 13:5     CallExpr       :: void
-  expr 13:5     IdentExpr      :: fn(string) -> void
-  expr 17:10    CallExpr       :: Match | null
-  expr 17:10    FieldExpr      :: fn(string) -> Match | null
-  expr 17:10    IdentExpr      :: Pattern
-  expr 17:17    IdentExpr      :: string
-  expr 18:13    IdentExpr      :: Match
-  expr 18:5     IfExpr         :: void
-  expr 18:8     BinaryExpr     :: bool
-  expr 18:8     IdentExpr      :: Match | null
-  expr 19:17    StringLitExpr  :: string
-  expr 19:20    IdentExpr      :: string
-  expr 19:29    FieldExpr      :: usize
-  expr 19:29    IdentExpr      :: Match
-  expr 19:41    FieldExpr      :: usize
-  expr 19:41    IdentExpr      :: Match
-  expr 19:50    FieldExpr      :: string[]
-  expr 19:50    IdentExpr      :: Match
-  expr 19:50    IndexExpr      :: string
-  expr 19:9     CallExpr       :: void
-  expr 19:9     IdentExpr      :: fn(string) -> void
+  expr 100:17   CallExpr       :: Error | Pattern
+  expr 100:17   IdentExpr      :: fn(string) -> Error | Pattern
+  expr 100:25   StringLitExpr  :: string
+  expr 101:20   IdentExpr      :: Pattern
+  expr 101:5    IfExpr         :: void
+  expr 101:8    BinaryExpr     :: bool
+  expr 101:8    IdentExpr      :: Error | Pattern
+  expr 102:17   StringLitExpr  :: string
+  expr 102:27   CallExpr       :: string
+  expr 102:27   FieldExpr      :: fn(string, string) -> string
+  expr 102:27   IdentExpr      :: Pattern
+  expr 102:48   StringLitExpr  :: string
+  expr 102:61   StringLitExpr  :: string
+  expr 102:9    CallExpr       :: void
+  expr 102:9    IdentExpr      :: fn(string) -> void
+  expr 106:12   CallExpr       :: Error | Pattern
+  expr 106:12   IdentExpr      :: fn(string) -> Error | Pattern
+  expr 106:20   StringLitExpr  :: string
+  expr 107:15   IdentExpr      :: Error
+  expr 107:5    IfExpr         :: void
+  expr 107:8    BinaryExpr     :: bool
+  expr 107:8    IdentExpr      :: Error | Pattern
+  expr 108:17   StringLitExpr  :: string
+  expr 108:9    CallExpr       :: void
+  expr 108:9    IdentExpr      :: fn(string) -> void
+  expr 15:13    StringLitExpr  :: string
+  expr 15:16    IdentExpr      :: string
+  expr 15:25    CallExpr       :: bool
+  expr 15:25    FieldExpr      :: fn(string) -> bool
+  expr 15:25    IdentExpr      :: Pattern
+  expr 15:35    IdentExpr      :: string
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 19:10    CallExpr       :: Match | null
+  expr 19:10    FieldExpr      :: fn(string) -> Match | null
+  expr 19:10    IdentExpr      :: Pattern
+  expr 19:17    IdentExpr      :: string
+  expr 20:13    IdentExpr      :: Match
+  expr 20:5     IfExpr         :: void
+  expr 20:8     BinaryExpr     :: bool
+  expr 20:8     IdentExpr      :: Match | null
   expr 21:17    StringLitExpr  :: string
   expr 21:20    IdentExpr      :: string
+  expr 21:29    FieldExpr      :: usize
+  expr 21:29    IdentExpr      :: Match
+  expr 21:41    FieldExpr      :: usize
+  expr 21:41    IdentExpr      :: Match
+  expr 21:50    FieldExpr      :: string[]
+  expr 21:50    IdentExpr      :: Match
+  expr 21:50    IndexExpr      :: string
   expr 21:9     CallExpr       :: void
   expr 21:9     IdentExpr      :: fn(string) -> void
-  expr 27:14    CallExpr       :: Error | Pattern
-  expr 27:14    IdentExpr      :: fn(string) -> Error | Pattern
-  expr 27:22    StringLitExpr  :: string
-  expr 28:17    IdentExpr      :: Pattern
-  expr 28:5     IfExpr         :: void
-  expr 28:8     BinaryExpr     :: bool
-  expr 28:8     IdentExpr      :: Error | Pattern
-  expr 29:19    StringLitExpr  :: string
-  expr 29:34    IdentExpr      :: Pattern
-  expr 29:41    StringLitExpr  :: string
-  expr 29:9     CallExpr       :: void
-  expr 29:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 30:19    StringLitExpr  :: string
-  expr 30:34    IdentExpr      :: Pattern
-  expr 30:41    StringLitExpr  :: string
-  expr 30:9     CallExpr       :: void
-  expr 30:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 34:17    CallExpr       :: Error | Pattern
-  expr 34:17    IdentExpr      :: fn(string) -> Error | Pattern
-  expr 34:25    StringLitExpr  :: string
-  expr 35:20    IdentExpr      :: Pattern
-  expr 35:5     IfExpr         :: void
-  expr 35:8     BinaryExpr     :: bool
-  expr 35:8     IdentExpr      :: Error | Pattern
-  expr 36:19    StringLitExpr  :: string
-  expr 36:33    IdentExpr      :: Pattern
-  expr 36:43    StringLitExpr  :: string
-  expr 36:9     CallExpr       :: void
-  expr 36:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 37:19    StringLitExpr  :: string
-  expr 37:33    IdentExpr      :: Pattern
-  expr 37:43    StringLitExpr  :: string
-  expr 37:9     CallExpr       :: void
-  expr 37:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 41:15    CallExpr       :: Error | Pattern
-  expr 41:15    IdentExpr      :: fn(string) -> Error | Pattern
-  expr 41:23    StringLitExpr  :: string
-  expr 42:18    IdentExpr      :: Pattern
-  expr 42:5     IfExpr         :: void
-  expr 42:8     BinaryExpr     :: bool
-  expr 42:8     IdentExpr      :: Error | Pattern
-  expr 43:18    StringLitExpr  :: string
-  expr 43:32    IdentExpr      :: Pattern
-  expr 43:40    StringLitExpr  :: string
-  expr 43:9     CallExpr       :: void
-  expr 43:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 44:16    CallExpr       :: Match[]
-  expr 44:16    FieldExpr      :: fn(string) -> Match[]
-  expr 44:16    IdentExpr      :: Pattern
-  expr 44:32    StringLitExpr  :: string
-  expr 45:17    StringLitExpr  :: string
-  expr 45:31    CallExpr       :: usize
-  expr 45:31    FieldExpr      :: fn() -> usize
-  expr 45:31    IdentExpr      :: Match[]
+  expr 23:17    StringLitExpr  :: string
+  expr 23:20    IdentExpr      :: string
+  expr 23:9     CallExpr       :: void
+  expr 23:9     IdentExpr      :: fn(string) -> void
+  expr 29:14    CallExpr       :: Error | Pattern
+  expr 29:14    IdentExpr      :: fn(string) -> Error | Pattern
+  expr 29:22    StringLitExpr  :: string
+  expr 30:17    IdentExpr      :: Pattern
+  expr 30:5     IfExpr         :: void
+  expr 30:8     BinaryExpr     :: bool
+  expr 30:8     IdentExpr      :: Error | Pattern
+  expr 31:19    StringLitExpr  :: string
+  expr 31:34    IdentExpr      :: Pattern
+  expr 31:41    StringLitExpr  :: string
+  expr 31:9     CallExpr       :: void
+  expr 31:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 32:19    StringLitExpr  :: string
+  expr 32:34    IdentExpr      :: Pattern
+  expr 32:41    StringLitExpr  :: string
+  expr 32:9     CallExpr       :: void
+  expr 32:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 36:17    CallExpr       :: Error | Pattern
+  expr 36:17    IdentExpr      :: fn(string) -> Error | Pattern
+  expr 36:25    StringLitExpr  :: string
+  expr 37:20    IdentExpr      :: Pattern
+  expr 37:5     IfExpr         :: void
+  expr 37:8     BinaryExpr     :: bool
+  expr 37:8     IdentExpr      :: Error | Pattern
+  expr 38:19    StringLitExpr  :: string
+  expr 38:33    IdentExpr      :: Pattern
+  expr 38:43    StringLitExpr  :: string
+  expr 38:9     CallExpr       :: void
+  expr 38:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 39:19    StringLitExpr  :: string
+  expr 39:33    IdentExpr      :: Pattern
+  expr 39:43    StringLitExpr  :: string
+  expr 39:9     CallExpr       :: void
+  expr 39:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 43:15    CallExpr       :: Error | Pattern
+  expr 43:15    IdentExpr      :: fn(string) -> Error | Pattern
+  expr 43:23    StringLitExpr  :: string
+  expr 44:18    IdentExpr      :: Pattern
+  expr 44:5     IfExpr         :: void
+  expr 44:8     BinaryExpr     :: bool
+  expr 44:8     IdentExpr      :: Error | Pattern
+  expr 45:18    StringLitExpr  :: string
+  expr 45:32    IdentExpr      :: Pattern
+  expr 45:40    StringLitExpr  :: string
   expr 45:9     CallExpr       :: void
-  expr 45:9     IdentExpr      :: fn(string) -> void
-  expr 47:13    BinaryExpr     :: bool
-  expr 47:13    IdentExpr      :: usize
-  expr 47:17    CallExpr       :: usize
-  expr 47:17    FieldExpr      :: fn() -> usize
-  expr 47:17    IdentExpr      :: Match[]
-  expr 48:13    CallExpr       :: void
-  expr 48:13    IdentExpr      :: fn(string) -> void
-  expr 48:21    StringLitExpr  :: string
-  expr 48:29    IdentExpr      :: usize
-  expr 48:35    FieldExpr      :: string[]
-  expr 48:35    IdentExpr      :: Match[]
-  expr 48:35    IndexExpr      :: Match
-  expr 48:35    IndexExpr      :: string
-  expr 48:39    IdentExpr      :: usize
+  expr 45:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 46:16    CallExpr       :: Match[]
+  expr 46:16    FieldExpr      :: fn(string) -> Match[]
+  expr 46:16    IdentExpr      :: Pattern
+  expr 46:32    StringLitExpr  :: string
+  expr 47:17    StringLitExpr  :: string
+  expr 47:31    CallExpr       :: usize
+  expr 47:31    FieldExpr      :: fn() -> usize
+  expr 47:31    IdentExpr      :: Match[]
+  expr 47:9     CallExpr       :: void
+  expr 47:9     IdentExpr      :: fn(string) -> void
+  expr 49:13    BinaryExpr     :: bool
   expr 49:13    IdentExpr      :: usize
-  expr 49:17    BinaryExpr     :: usize
-  expr 49:17    IdentExpr      :: usize
-  expr 49:21    CallExpr       :: usize
-  expr 49:21    IdentExpr      :: type
-  expr 54:17    CallExpr       :: Error | Pattern
-  expr 54:17    IdentExpr      :: fn(string) -> Error | Pattern
-  expr 54:25    StringLitExpr  :: string
-  expr 55:20    IdentExpr      :: Pattern
-  expr 55:5     IfExpr         :: void
-  expr 55:8     BinaryExpr     :: bool
-  expr 55:8     IdentExpr      :: Error | Pattern
-  expr 56:18    StringLitExpr  :: string
-  expr 56:33    IdentExpr      :: Pattern
-  expr 56:43    StringLitExpr  :: string
-  expr 56:9     CallExpr       :: void
-  expr 56:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 57:18    StringLitExpr  :: string
-  expr 57:33    IdentExpr      :: Pattern
-  expr 57:43    StringLitExpr  :: string
-  expr 57:9     CallExpr       :: void
-  expr 57:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 61:16    CallExpr       :: Error | Pattern
-  expr 61:16    IdentExpr      :: fn(string) -> Error | Pattern
-  expr 61:24    StringLitExpr  :: string
-  expr 62:19    IdentExpr      :: Pattern
-  expr 62:5     IfExpr         :: void
-  expr 62:8     BinaryExpr     :: bool
-  expr 62:8     IdentExpr      :: Error | Pattern
-  expr 63:14    CallExpr       :: Match | null
-  expr 63:14    FieldExpr      :: fn(string) -> Match | null
-  expr 63:14    IdentExpr      :: Pattern
-  expr 63:27    StringLitExpr  :: string
-  expr 64:12    BinaryExpr     :: bool
-  expr 64:12    IdentExpr      :: Match | null
-  expr 64:17    IdentExpr      :: Match
-  expr 64:9     IfExpr         :: void
-  expr 65:13    CallExpr       :: void
-  expr 65:13    IdentExpr      :: fn(string) -> void
-  expr 65:21    StringLitExpr  :: string
-  expr 65:36    FieldExpr      :: string[]
-  expr 65:36    IdentExpr      :: Match
-  expr 65:36    IndexExpr      :: string
-  expr 66:13    CallExpr       :: void
-  expr 66:13    IdentExpr      :: fn(string) -> void
-  expr 66:21    StringLitExpr  :: string
-  expr 66:35    FieldExpr      :: string[]
-  expr 66:35    IdentExpr      :: Match
-  expr 66:35    IndexExpr      :: string
+  expr 49:17    CallExpr       :: usize
+  expr 49:17    FieldExpr      :: fn() -> usize
+  expr 49:17    IdentExpr      :: Match[]
+  expr 50:13    CallExpr       :: void
+  expr 50:13    IdentExpr      :: fn(string) -> void
+  expr 50:21    StringLitExpr  :: string
+  expr 50:29    IdentExpr      :: usize
+  expr 50:35    FieldExpr      :: string[]
+  expr 50:35    IdentExpr      :: Match[]
+  expr 50:35    IndexExpr      :: Match
+  expr 50:35    IndexExpr      :: string
+  expr 50:39    IdentExpr      :: usize
+  expr 51:13    IdentExpr      :: usize
+  expr 51:17    BinaryExpr     :: usize
+  expr 51:17    IdentExpr      :: usize
+  expr 51:21    CallExpr       :: usize
+  expr 51:21    IdentExpr      :: type
+  expr 56:17    CallExpr       :: Error | Pattern
+  expr 56:17    IdentExpr      :: fn(string) -> Error | Pattern
+  expr 56:25    StringLitExpr  :: string
+  expr 57:20    IdentExpr      :: Pattern
+  expr 57:5     IfExpr         :: void
+  expr 57:8     BinaryExpr     :: bool
+  expr 57:8     IdentExpr      :: Error | Pattern
+  expr 58:18    StringLitExpr  :: string
+  expr 58:33    IdentExpr      :: Pattern
+  expr 58:43    StringLitExpr  :: string
+  expr 58:9     CallExpr       :: void
+  expr 58:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 59:18    StringLitExpr  :: string
+  expr 59:33    IdentExpr      :: Pattern
+  expr 59:43    StringLitExpr  :: string
+  expr 59:9     CallExpr       :: void
+  expr 59:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 63:16    CallExpr       :: Error | Pattern
+  expr 63:16    IdentExpr      :: fn(string) -> Error | Pattern
+  expr 63:24    StringLitExpr  :: string
+  expr 64:19    IdentExpr      :: Pattern
+  expr 64:5     IfExpr         :: void
+  expr 64:8     BinaryExpr     :: bool
+  expr 64:8     IdentExpr      :: Error | Pattern
+  expr 65:14    CallExpr       :: Match | null
+  expr 65:14    FieldExpr      :: fn(string) -> Match | null
+  expr 65:14    IdentExpr      :: Pattern
+  expr 65:27    StringLitExpr  :: string
+  expr 66:12    BinaryExpr     :: bool
+  expr 66:12    IdentExpr      :: Match | null
+  expr 66:17    IdentExpr      :: Match
+  expr 66:9     IfExpr         :: void
   expr 67:13    CallExpr       :: void
   expr 67:13    IdentExpr      :: fn(string) -> void
   expr 67:21    StringLitExpr  :: string
-  expr 67:35    FieldExpr      :: string[]
-  expr 67:35    IdentExpr      :: Match
-  expr 67:35    IndexExpr      :: string
+  expr 67:36    FieldExpr      :: string[]
+  expr 67:36    IdentExpr      :: Match
+  expr 67:36    IndexExpr      :: string
   expr 68:13    CallExpr       :: void
   expr 68:13    IdentExpr      :: fn(string) -> void
   expr 68:21    StringLitExpr  :: string
-  expr 68:34    FieldExpr      :: string[]
-  expr 68:34    IdentExpr      :: Match
-  expr 68:34    IndexExpr      :: string
-  expr 72:14    CallExpr       :: Error | Pattern
-  expr 72:14    IdentExpr      :: fn(string) -> Error | Pattern
-  expr 72:22    StringLitExpr  :: string
-  expr 73:17    IdentExpr      :: Pattern
-  expr 73:5     IfExpr         :: void
-  expr 73:8     BinaryExpr     :: bool
-  expr 73:8     IdentExpr      :: Error | Pattern
-  expr 74:19    StringLitExpr  :: string
-  expr 74:31    IdentExpr      :: Pattern
-  expr 74:38    StringLitExpr  :: string
-  expr 74:9     CallExpr       :: void
-  expr 74:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 75:19    StringLitExpr  :: string
-  expr 75:31    IdentExpr      :: Pattern
-  expr 75:38    StringLitExpr  :: string
-  expr 75:9     CallExpr       :: void
-  expr 75:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 68:35    FieldExpr      :: string[]
+  expr 68:35    IdentExpr      :: Match
+  expr 68:35    IndexExpr      :: string
+  expr 69:13    CallExpr       :: void
+  expr 69:13    IdentExpr      :: fn(string) -> void
+  expr 69:21    StringLitExpr  :: string
+  expr 69:35    FieldExpr      :: string[]
+  expr 69:35    IdentExpr      :: Match
+  expr 69:35    IndexExpr      :: string
+  expr 70:13    CallExpr       :: void
+  expr 70:13    IdentExpr      :: fn(string) -> void
+  expr 70:21    StringLitExpr  :: string
+  expr 70:34    FieldExpr      :: string[]
+  expr 70:34    IdentExpr      :: Match
+  expr 70:34    IndexExpr      :: string
+  expr 74:14    CallExpr       :: Error | Pattern
+  expr 74:14    IdentExpr      :: fn(string) -> Error | Pattern
+  expr 74:22    StringLitExpr  :: string
+  expr 75:17    IdentExpr      :: Pattern
+  expr 75:5     IfExpr         :: void
+  expr 75:8     BinaryExpr     :: bool
+  expr 75:8     IdentExpr      :: Error | Pattern
   expr 76:19    StringLitExpr  :: string
   expr 76:31    IdentExpr      :: Pattern
   expr 76:38    StringLitExpr  :: string
@@ -211,64 +208,67 @@
   expr 77:38    StringLitExpr  :: string
   expr 77:9     CallExpr       :: void
   expr 77:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 81:13    CallExpr       :: Error | Pattern
-  expr 81:13    IdentExpr      :: fn(string) -> Error | Pattern
-  expr 81:21    StringLitExpr  :: string
-  expr 82:16    IdentExpr      :: Pattern
-  expr 82:5     IfExpr         :: void
-  expr 82:8     BinaryExpr     :: bool
-  expr 82:8     IdentExpr      :: Error | Pattern
-  expr 83:19    StringLitExpr  :: string
-  expr 83:29    IdentExpr      :: Pattern
-  expr 83:35    StringLitExpr  :: string
-  expr 83:9     CallExpr       :: void
-  expr 83:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 84:19    StringLitExpr  :: string
-  expr 84:29    IdentExpr      :: Pattern
-  expr 84:35    StringLitExpr  :: string
-  expr 84:9     CallExpr       :: void
-  expr 84:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 86:15    CallExpr       :: Error | Pattern
-  expr 86:15    IdentExpr      :: fn(string) -> Error | Pattern
-  expr 86:23    StringLitExpr  :: string
-  expr 87:18    IdentExpr      :: Pattern
-  expr 87:5     IfExpr         :: void
-  expr 87:8     BinaryExpr     :: bool
-  expr 87:8     IdentExpr      :: Error | Pattern
-  expr 88:19    StringLitExpr  :: string
-  expr 88:29    IdentExpr      :: Pattern
-  expr 88:37    StringLitExpr  :: string
-  expr 88:9     CallExpr       :: void
-  expr 88:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 89:19    StringLitExpr  :: string
-  expr 89:29    IdentExpr      :: Pattern
-  expr 89:37    StringLitExpr  :: string
-  expr 89:9     CallExpr       :: void
-  expr 89:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 78:19    StringLitExpr  :: string
+  expr 78:31    IdentExpr      :: Pattern
+  expr 78:38    StringLitExpr  :: string
+  expr 78:9     CallExpr       :: void
+  expr 78:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 79:19    StringLitExpr  :: string
+  expr 79:31    IdentExpr      :: Pattern
+  expr 79:38    StringLitExpr  :: string
+  expr 79:9     CallExpr       :: void
+  expr 79:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 83:13    CallExpr       :: Error | Pattern
+  expr 83:13    IdentExpr      :: fn(string) -> Error | Pattern
+  expr 83:21    StringLitExpr  :: string
+  expr 84:16    IdentExpr      :: Pattern
+  expr 84:5     IfExpr         :: void
+  expr 84:8     BinaryExpr     :: bool
+  expr 84:8     IdentExpr      :: Error | Pattern
+  expr 85:19    StringLitExpr  :: string
+  expr 85:29    IdentExpr      :: Pattern
+  expr 85:35    StringLitExpr  :: string
+  expr 85:9     CallExpr       :: void
+  expr 85:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 86:19    StringLitExpr  :: string
+  expr 86:29    IdentExpr      :: Pattern
+  expr 86:35    StringLitExpr  :: string
+  expr 86:9     CallExpr       :: void
+  expr 86:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 88:15    CallExpr       :: Error | Pattern
+  expr 88:15    IdentExpr      :: fn(string) -> Error | Pattern
+  expr 88:23    StringLitExpr  :: string
+  expr 89:18    IdentExpr      :: Pattern
+  expr 89:5     IfExpr         :: void
+  expr 89:8     BinaryExpr     :: bool
+  expr 89:8     IdentExpr      :: Error | Pattern
   expr 90:19    StringLitExpr  :: string
   expr 90:29    IdentExpr      :: Pattern
   expr 90:37    StringLitExpr  :: string
   expr 90:9     CallExpr       :: void
   expr 90:9     IdentExpr      :: fn(string, Pattern, string) -> void
-  expr 94:15    CallExpr       :: Error | Pattern
-  expr 94:15    IdentExpr      :: fn(string) -> Error | Pattern
-  expr 94:23    StringLitExpr  :: string
-  expr 95:18    IdentExpr      :: Pattern
-  expr 95:5     IfExpr         :: void
-  expr 95:8     BinaryExpr     :: bool
-  expr 95:8     IdentExpr      :: Error | Pattern
-  expr 96:17    StringLitExpr  :: string
-  expr 96:25    CallExpr       :: string
-  expr 96:25    FieldExpr      :: fn(string, string) -> string
-  expr 96:25    IdentExpr      :: Pattern
-  expr 96:44    StringLitExpr  :: string
-  expr 96:63    StringLitExpr  :: string
-  expr 96:9     CallExpr       :: void
-  expr 96:9     IdentExpr      :: fn(string) -> void
-  expr 98:17    CallExpr       :: Error | Pattern
-  expr 98:17    IdentExpr      :: fn(string) -> Error | Pattern
-  expr 98:25    StringLitExpr  :: string
-  expr 99:20    IdentExpr      :: Pattern
-  expr 99:5     IfExpr         :: void
-  expr 99:8     BinaryExpr     :: bool
-  expr 99:8     IdentExpr      :: Error | Pattern
+  expr 91:19    StringLitExpr  :: string
+  expr 91:29    IdentExpr      :: Pattern
+  expr 91:37    StringLitExpr  :: string
+  expr 91:9     CallExpr       :: void
+  expr 91:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 92:19    StringLitExpr  :: string
+  expr 92:29    IdentExpr      :: Pattern
+  expr 92:37    StringLitExpr  :: string
+  expr 92:9     CallExpr       :: void
+  expr 92:9     IdentExpr      :: fn(string, Pattern, string) -> void
+  expr 96:15    CallExpr       :: Error | Pattern
+  expr 96:15    IdentExpr      :: fn(string) -> Error | Pattern
+  expr 96:23    StringLitExpr  :: string
+  expr 97:18    IdentExpr      :: Pattern
+  expr 97:5     IfExpr         :: void
+  expr 97:8     BinaryExpr     :: bool
+  expr 97:8     IdentExpr      :: Error | Pattern
+  expr 98:17    StringLitExpr  :: string
+  expr 98:25    CallExpr       :: string
+  expr 98:25    FieldExpr      :: fn(string, string) -> string
+  expr 98:25    IdentExpr      :: Pattern
+  expr 98:44    StringLitExpr  :: string
+  expr 98:63    StringLitExpr  :: string
+  expr 98:9     CallExpr       :: void
+  expr 98:9     IdentExpr      :: fn(string) -> void

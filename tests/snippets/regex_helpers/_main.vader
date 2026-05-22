@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 import "std/string" {
     trim_suffix, trim_prefix, replace_chars_where, split_where, is_white_char,

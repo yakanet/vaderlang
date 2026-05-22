@@ -3,14 +3,14 @@
 ## tests/snippets/bound_enforced/_main.vader
   FnDecl         main                 :: fn() -> i32
   FnDecl         needs_hash           :: fn(T) -> bool
-  expr 12:19    StringLitExpr  :: string
-  expr 12:5     IfExpr         :: void
-  expr 12:8     CallExpr       :: bool
-  expr 12:8     IdentExpr      :: fn(T) -> bool
-  expr 7:10     CallExpr       :: u64
-  expr 7:10     FieldExpr      :: fn() -> u64
-  expr 7:10     IdentExpr      :: T
-  expr 8:12     BinaryExpr     :: bool
-  expr 8:12     IdentExpr      :: u64
-  expr 8:16     CallExpr       :: u64
-  expr 8:16     IdentExpr      :: type
+  expr 10:12    BinaryExpr     :: bool
+  expr 10:12    IdentExpr      :: u64
+  expr 10:16    CallExpr       :: u64
+  expr 10:16    IdentExpr      :: type
+  expr 14:19    StringLitExpr  :: string
+  expr 14:5     IfExpr         :: void
+  expr 14:8     CallExpr       :: bool
+  expr 14:8     IdentExpr      :: fn(T) -> bool
+  expr 9:10     CallExpr       :: u64
+  expr 9:10     FieldExpr      :: fn() -> u64
+  expr 9:10     IdentExpr      :: T

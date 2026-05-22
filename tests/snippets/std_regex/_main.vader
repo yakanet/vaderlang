@@ -3,6 +3,8 @@
 // `{n,m}`), anchors, capture groups, alternation, find / find_all,
 // replace_all with `$N` backrefs, and the compile-error path.
 
+module "snippet"
+
 import "std/io" { println }
 import "std/regex" {
     Pattern, Match, RegexError,

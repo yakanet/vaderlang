@@ -1,6 +1,8 @@
 // Sprint 2 acceptance: locals + i32 arith.
 // `7 * 5 + 3 - 2 = 36`.
 
+module "snippet"
+
 main :: fn() -> i32 {
     a :: 7
     b :: 5

@@ -2,6 +2,8 @@
 // a fn-value, the caller passes in a closure that captures `bias`.
 // `apply(add_bias, 7) = (7 + 5) = 12`.
 
+module "snippet"
+
 apply :: fn(f: fn(i32) -> i32, n: i32) -> i32 {
     return f(n)
 }

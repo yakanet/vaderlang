@@ -6,6 +6,8 @@
 // has both `x` narrowed to `T` and a fresh `a: T` ; subsequent code has
 // `x` narrowed to the complement.
 
+module "snippet"
+
 import "std/io" { println }
 
 V01 :: struct { f: i32 }

@@ -3,14 +3,14 @@
 ## tests/snippets/match_struct_pattern_binding/_main.vader
   FnDecl         main                 :: fn() -> i32
   StructDecl     P                    :: P
-  expr 10:10    StructLitExpr  :: P
-  expr 10:31    StringLitExpr  :: string
-  expr 11:11    IdentExpr      :: P
-  expr 11:5     MatchExpr      :: void
-  expr 12:33    CallExpr       :: void
-  expr 12:33    IdentExpr      :: fn(string) -> void
-  expr 12:41    StringLitExpr  :: string
-  expr 12:54    IdentExpr      :: string
-  expr 13:14    CallExpr       :: void
-  expr 13:14    IdentExpr      :: fn(string) -> void
-  expr 13:22    StringLitExpr  :: string
+  expr 12:10    StructLitExpr  :: P
+  expr 12:31    StringLitExpr  :: string
+  expr 13:11    IdentExpr      :: P
+  expr 13:5     MatchExpr      :: void
+  expr 14:33    CallExpr       :: void
+  expr 14:33    IdentExpr      :: fn(string) -> void
+  expr 14:41    StringLitExpr  :: string
+  expr 14:54    IdentExpr      :: string
+  expr 15:14    CallExpr       :: void
+  expr 15:14    IdentExpr      :: fn(string) -> void
+  expr 15:22    StringLitExpr  :: string

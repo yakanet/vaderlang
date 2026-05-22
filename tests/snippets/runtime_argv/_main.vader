@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // argv[0] is the program/script path — implementation-defined and differs

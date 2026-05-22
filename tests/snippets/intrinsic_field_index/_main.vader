@@ -3,6 +3,8 @@
 // referring to an existing field. Useful for derive-style codegen where
 // dispatch on field position matters (e.g. tuple-based encoding).
 
+module "snippet"
+
 Vec3 :: struct {
     x: f32
     y: f32

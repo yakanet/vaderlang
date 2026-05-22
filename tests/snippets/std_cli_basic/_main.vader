@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 import "std/cli" { FlagSpec, FlagKind, parse, bool_flag, string_flag }
 

@@ -4,6 +4,8 @@
 // resolution in `binaryOpResolutions`, and the lowerer rewrites the
 // `LoweredBinary` into a direct call against the impl member.
 
+module "snippet"
+
 import "std/io" { println }
 
 Vec :: struct { x: i32, y: i32 }

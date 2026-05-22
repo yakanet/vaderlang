@@ -26,8 +26,8 @@
   Into(Target)
 
 # Diagnostics
-[20:14] error[T3001] type mismatch: expected string, got usize
-[24:32] error[T3001] type mismatch: expected string, got i32
-[29:14] error[T3001] type mismatch: expected string, got bool
-[30:14] error[T3001] type mismatch: expected string, got bool
-[33:13] error[T3001] type mismatch: expected string, got usize
+[22:14] error[T3001] type mismatch: expected string, got usize
+[26:32] error[T3001] type mismatch: expected string, got i32
+[31:14] error[T3001] type mismatch: expected string, got bool
+[32:14] error[T3001] type mismatch: expected string, got bool
+[35:13] error[T3001] type mismatch: expected string, got usize

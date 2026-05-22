@@ -2,6 +2,8 @@
 // exit status + captured stdout/stderr in a `ProcessResult`. Used by the
 // self-host build pipeline to drive `cc` from inside a Vader compiler.
 
+module "snippet"
+
 import "std/io" { println }
 import "std/process" { spawn, ProcessResult }
 

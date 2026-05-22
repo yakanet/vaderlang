@@ -3,28 +3,6 @@
 ## tests/snippets/op_overload_arith/_main.vader
   FnDecl         main                 :: fn() -> i32
   StructDecl     Vec                  :: Vec
-  expr 11:100   BinaryExpr     :: i32
-  expr 11:100   FieldExpr      :: i32
-  expr 11:100   IdentExpr      :: Vec
-  expr 11:109   FieldExpr      :: i32
-  expr 11:109   IdentExpr      :: Vec
-  expr 11:66    StructLitExpr  :: Vec
-  expr 11:77    BinaryExpr     :: i32
-  expr 11:77    FieldExpr      :: i32
-  expr 11:77    IdentExpr      :: Vec
-  expr 11:86    FieldExpr      :: i32
-  expr 11:86    IdentExpr      :: Vec
-  expr 12:100   BinaryExpr     :: i32
-  expr 12:100   FieldExpr      :: i32
-  expr 12:100   IdentExpr      :: Vec
-  expr 12:109   FieldExpr      :: i32
-  expr 12:109   IdentExpr      :: Vec
-  expr 12:66    StructLitExpr  :: Vec
-  expr 12:77    BinaryExpr     :: i32
-  expr 12:77    FieldExpr      :: i32
-  expr 12:77    IdentExpr      :: Vec
-  expr 12:86    FieldExpr      :: i32
-  expr 12:86    IdentExpr      :: Vec
   expr 13:100   BinaryExpr     :: i32
   expr 13:100   FieldExpr      :: i32
   expr 13:100   IdentExpr      :: Vec
@@ -58,14 +36,30 @@
   expr 15:77    IdentExpr      :: Vec
   expr 15:86    FieldExpr      :: i32
   expr 15:86    IdentExpr      :: Vec
-  expr 18:10    StructLitExpr  :: Vec
-  expr 19:10    StructLitExpr  :: Vec
-  expr 20:10    BinaryExpr     :: Vec
-  expr 20:10    IdentExpr      :: Vec
-  expr 20:14    IdentExpr      :: Vec
-  expr 21:10    BinaryExpr     :: Vec
-  expr 21:10    IdentExpr      :: Vec
-  expr 21:14    IdentExpr      :: Vec
+  expr 16:100   BinaryExpr     :: i32
+  expr 16:100   FieldExpr      :: i32
+  expr 16:100   IdentExpr      :: Vec
+  expr 16:109   FieldExpr      :: i32
+  expr 16:109   IdentExpr      :: Vec
+  expr 16:66    StructLitExpr  :: Vec
+  expr 16:77    BinaryExpr     :: i32
+  expr 16:77    FieldExpr      :: i32
+  expr 16:77    IdentExpr      :: Vec
+  expr 16:86    FieldExpr      :: i32
+  expr 16:86    IdentExpr      :: Vec
+  expr 17:100   BinaryExpr     :: i32
+  expr 17:100   FieldExpr      :: i32
+  expr 17:100   IdentExpr      :: Vec
+  expr 17:109   FieldExpr      :: i32
+  expr 17:109   IdentExpr      :: Vec
+  expr 17:66    StructLitExpr  :: Vec
+  expr 17:77    BinaryExpr     :: i32
+  expr 17:77    FieldExpr      :: i32
+  expr 17:77    IdentExpr      :: Vec
+  expr 17:86    FieldExpr      :: i32
+  expr 17:86    IdentExpr      :: Vec
+  expr 20:10    StructLitExpr  :: Vec
+  expr 21:10    StructLitExpr  :: Vec
   expr 22:10    BinaryExpr     :: Vec
   expr 22:10    IdentExpr      :: Vec
   expr 22:14    IdentExpr      :: Vec
@@ -75,26 +69,32 @@
   expr 24:10    BinaryExpr     :: Vec
   expr 24:10    IdentExpr      :: Vec
   expr 24:14    IdentExpr      :: Vec
-  expr 25:13    StringLitExpr  :: string
-  expr 25:19    FieldExpr      :: i32
-  expr 25:19    IdentExpr      :: Vec
-  expr 25:26    FieldExpr      :: i32
-  expr 25:26    IdentExpr      :: Vec
-  expr 25:37    FieldExpr      :: i32
-  expr 25:37    IdentExpr      :: Vec
-  expr 25:44    FieldExpr      :: i32
-  expr 25:44    IdentExpr      :: Vec
-  expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
-  expr 25:55    FieldExpr      :: i32
-  expr 25:55    IdentExpr      :: Vec
-  expr 25:62    FieldExpr      :: i32
-  expr 25:62    IdentExpr      :: Vec
-  expr 25:73    FieldExpr      :: i32
-  expr 25:73    IdentExpr      :: Vec
-  expr 25:80    FieldExpr      :: i32
-  expr 25:80    IdentExpr      :: Vec
-  expr 25:91    FieldExpr      :: i32
-  expr 25:91    IdentExpr      :: Vec
-  expr 25:98    FieldExpr      :: i32
-  expr 25:98    IdentExpr      :: Vec
+  expr 25:10    BinaryExpr     :: Vec
+  expr 25:10    IdentExpr      :: Vec
+  expr 25:14    IdentExpr      :: Vec
+  expr 26:10    BinaryExpr     :: Vec
+  expr 26:10    IdentExpr      :: Vec
+  expr 26:14    IdentExpr      :: Vec
+  expr 27:13    StringLitExpr  :: string
+  expr 27:19    FieldExpr      :: i32
+  expr 27:19    IdentExpr      :: Vec
+  expr 27:26    FieldExpr      :: i32
+  expr 27:26    IdentExpr      :: Vec
+  expr 27:37    FieldExpr      :: i32
+  expr 27:37    IdentExpr      :: Vec
+  expr 27:44    FieldExpr      :: i32
+  expr 27:44    IdentExpr      :: Vec
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(string) -> void
+  expr 27:55    FieldExpr      :: i32
+  expr 27:55    IdentExpr      :: Vec
+  expr 27:62    FieldExpr      :: i32
+  expr 27:62    IdentExpr      :: Vec
+  expr 27:73    FieldExpr      :: i32
+  expr 27:73    IdentExpr      :: Vec
+  expr 27:80    FieldExpr      :: i32
+  expr 27:80    IdentExpr      :: Vec
+  expr 27:91    FieldExpr      :: i32
+  expr 27:91    IdentExpr      :: Vec
+  expr 27:98    FieldExpr      :: i32
+  expr 27:98    IdentExpr      :: Vec

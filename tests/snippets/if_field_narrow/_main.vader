@@ -3,6 +3,8 @@
 // in the matching branch. Without per-field flow narrowing the body
 // sees `i32[] | null` and a fn boundary expecting `i32[]` raises T3001.
 
+module "snippet"
+
 import "std/io" { println }
 
 Bag :: struct {

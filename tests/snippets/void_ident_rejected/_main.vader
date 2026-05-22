@@ -1,4 +1,6 @@
 // `void` is reserved (R2019) — any binding site that introduces it errors.
+module "snippet"
+
 import "std/io" { println }
 
 mk :: fn() {

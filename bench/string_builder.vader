@@ -6,6 +6,8 @@
 /// Sized so the natively compiled binary takes ~50-150 ms ; the VM run
 /// takes a few seconds.
 
+module "main"
+
 import "std/io" { println }
 import "std/string_builder" { new_builder, append }
 import "std/string" { byte_len }

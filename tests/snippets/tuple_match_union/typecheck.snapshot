@@ -3,35 +3,35 @@
 ## tests/snippets/tuple_match_union/_main.vader
   FnDecl         lookup               :: fn(string) -> [i32, string] | null
   FnDecl         main                 :: fn() -> i32
-  expr 15:10    CallExpr       :: [i32, string] | null
-  expr 15:10    IdentExpr      :: fn(string) -> [i32, string] | null
-  expr 15:17    StringLitExpr  :: string
-  expr 16:11    IdentExpr      :: [i32, string] | null
-  expr 16:5     MatchExpr      :: void
-  expr 17:20    CallExpr       :: void
-  expr 17:20    IdentExpr      :: fn(string) -> void
-  expr 17:28    StringLitExpr  :: string
-  expr 18:19    CallExpr       :: void
-  expr 18:19    IdentExpr      :: fn(string) -> void
-  expr 18:27    StringLitExpr  :: string
-  expr 18:32    IdentExpr      :: i32
-  expr 18:39    IdentExpr      :: string
-  expr 20:10    CallExpr       :: [i32, string] | null
-  expr 20:10    IdentExpr      :: fn(string) -> [i32, string] | null
-  expr 20:17    StringLitExpr  :: string
-  expr 21:11    IdentExpr      :: [i32, string] | null
-  expr 21:5     MatchExpr      :: void
-  expr 22:20    CallExpr       :: void
-  expr 22:20    IdentExpr      :: fn(string) -> void
-  expr 22:28    StringLitExpr  :: string
-  expr 23:19    CallExpr       :: void
-  expr 23:19    IdentExpr      :: fn(string) -> void
-  expr 23:27    StringLitExpr  :: string
-  expr 23:32    IdentExpr      :: i32
-  expr 23:39    IdentExpr      :: string
-  expr 8:15     StringLitExpr  :: string
-  expr 8:5      IfExpr         :: void
-  expr 8:8      BinaryExpr     :: bool
-  expr 8:8      IdentExpr      :: string
-  expr 9:16     SeqLitExpr     :: [i32, string]
-  expr 9:21     StringLitExpr  :: string
+  expr 10:15    StringLitExpr  :: string
+  expr 10:5     IfExpr         :: void
+  expr 10:8     BinaryExpr     :: bool
+  expr 10:8     IdentExpr      :: string
+  expr 11:16    SeqLitExpr     :: [i32, string]
+  expr 11:21    StringLitExpr  :: string
+  expr 17:10    CallExpr       :: [i32, string] | null
+  expr 17:10    IdentExpr      :: fn(string) -> [i32, string] | null
+  expr 17:17    StringLitExpr  :: string
+  expr 18:11    IdentExpr      :: [i32, string] | null
+  expr 18:5     MatchExpr      :: void
+  expr 19:20    CallExpr       :: void
+  expr 19:20    IdentExpr      :: fn(string) -> void
+  expr 19:28    StringLitExpr  :: string
+  expr 20:19    CallExpr       :: void
+  expr 20:19    IdentExpr      :: fn(string) -> void
+  expr 20:27    StringLitExpr  :: string
+  expr 20:32    IdentExpr      :: i32
+  expr 20:39    IdentExpr      :: string
+  expr 22:10    CallExpr       :: [i32, string] | null
+  expr 22:10    IdentExpr      :: fn(string) -> [i32, string] | null
+  expr 22:17    StringLitExpr  :: string
+  expr 23:11    IdentExpr      :: [i32, string] | null
+  expr 23:5     MatchExpr      :: void
+  expr 24:20    CallExpr       :: void
+  expr 24:20    IdentExpr      :: fn(string) -> void
+  expr 24:28    StringLitExpr  :: string
+  expr 25:19    CallExpr       :: void
+  expr 25:19    IdentExpr      :: fn(string) -> void
+  expr 25:27    StringLitExpr  :: string
+  expr 25:32    IdentExpr      :: i32
+  expr 25:39    IdentExpr      :: string

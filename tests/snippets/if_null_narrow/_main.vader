@@ -7,6 +7,8 @@
 // the complement narrowing to the subsequent statements of the enclosing
 // block, so `if x == null { return } x.f` works without an outer match.
 
+module "snippet"
+
 import "std/io" { println }
 
 Cat :: struct { name: string, age: i32 }

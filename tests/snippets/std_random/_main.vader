@@ -3,6 +3,8 @@
 // fixed expected literal (deterministic seed) or a "true"/"false"
 // shape so the snapshot stays stable.
 
+module "snippet"
+
 import "std/io" { println }
 import "std/random" {
     Rng, new_seeded,

@@ -6,6 +6,8 @@
 /// dormant — no `Any` receiver yet, dispatch goes through the existing
 /// direct-call path).
 
+module "main"
+
 import "std/io" { println }
 
 Greet :: trait { greet :: fn(self) -> string }

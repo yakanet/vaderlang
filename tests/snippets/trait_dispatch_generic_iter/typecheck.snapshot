@@ -5,50 +5,50 @@
   StructDecl     Once                 :: Once(T)
   StructDecl     Repeat               :: Repeat(T)
   FnDecl         walk                 :: fn(Iterator(i32)) -> i32
-  expr 22:12    BinaryExpr     :: bool
-  expr 22:12    FieldExpr      :: i32
-  expr 22:12    IdentExpr      :: Repeat(T)
-  expr 22:9     IfExpr         :: void
-  expr 23:14    FieldExpr      :: T
-  expr 23:14    IdentExpr      :: Repeat(T)
-  expr 24:26    BinaryExpr     :: i32
-  expr 24:26    FieldExpr      :: i32
-  expr 24:26    IdentExpr      :: Repeat(T)
-  expr 24:9     FieldExpr      :: i32
-  expr 24:9     IdentExpr      :: Repeat(T)
-  expr 25:16    StructLitExpr  :: Yield(T)
-  expr 25:36    IdentExpr      :: T
-  expr 36:12    FieldExpr      :: bool
-  expr 36:12    IdentExpr      :: Once(T)
-  expr 36:9     IfExpr         :: void
-  expr 37:9     FieldExpr      :: bool
-  expr 37:9     IdentExpr      :: Once(T)
-  expr 38:16    StructLitExpr  :: Yield(T)
-  expr 38:36    FieldExpr      :: T
-  expr 38:36    IdentExpr      :: Once(T)
-  expr 45:9     IdentExpr      :: bool
-  expr 46:15    CallExpr       :: null | Yield(i32)
-  expr 46:15    FieldExpr      :: fn() -> null | Yield(i32)
-  expr 46:15    IdentExpr      :: Iterator(i32)
-  expr 46:9     MatchExpr      :: void
-  expr 47:26    IdentExpr      :: bool
-  expr 48:37    IdentExpr      :: i32
-  expr 48:43    BinaryExpr     :: i32
-  expr 48:43    IdentExpr      :: i32
-  expr 48:49    FieldExpr      :: i32
-  expr 48:49    IdentExpr      :: Yield(i32)
-  expr 51:12    IdentExpr      :: i32
-  expr 55:10    StructLitExpr  :: Repeat(i32)
-  expr 56:10    StructLitExpr  :: Once(i32)
-  expr 57:13    StringLitExpr  :: string
-  expr 57:23    CallExpr       :: i32
-  expr 57:23    IdentExpr      :: fn(Iterator(i32)) -> i32
-  expr 57:28    IdentExpr      :: Repeat(i32)
-  expr 57:5     CallExpr       :: void
-  expr 57:5     IdentExpr      :: fn(string) -> void
-  expr 58:13    StringLitExpr  :: string
-  expr 58:21    CallExpr       :: i32
-  expr 58:21    IdentExpr      :: fn(Iterator(i32)) -> i32
-  expr 58:26    IdentExpr      :: Once(i32)
-  expr 58:5     CallExpr       :: void
-  expr 58:5     IdentExpr      :: fn(string) -> void
+  expr 24:12    BinaryExpr     :: bool
+  expr 24:12    FieldExpr      :: i32
+  expr 24:12    IdentExpr      :: Repeat(T)
+  expr 24:9     IfExpr         :: void
+  expr 25:14    FieldExpr      :: T
+  expr 25:14    IdentExpr      :: Repeat(T)
+  expr 26:26    BinaryExpr     :: i32
+  expr 26:26    FieldExpr      :: i32
+  expr 26:26    IdentExpr      :: Repeat(T)
+  expr 26:9     FieldExpr      :: i32
+  expr 26:9     IdentExpr      :: Repeat(T)
+  expr 27:16    StructLitExpr  :: Yield(T)
+  expr 27:36    IdentExpr      :: T
+  expr 38:12    FieldExpr      :: bool
+  expr 38:12    IdentExpr      :: Once(T)
+  expr 38:9     IfExpr         :: void
+  expr 39:9     FieldExpr      :: bool
+  expr 39:9     IdentExpr      :: Once(T)
+  expr 40:16    StructLitExpr  :: Yield(T)
+  expr 40:36    FieldExpr      :: T
+  expr 40:36    IdentExpr      :: Once(T)
+  expr 47:9     IdentExpr      :: bool
+  expr 48:15    CallExpr       :: null | Yield(i32)
+  expr 48:15    FieldExpr      :: fn() -> null | Yield(i32)
+  expr 48:15    IdentExpr      :: Iterator(i32)
+  expr 48:9     MatchExpr      :: void
+  expr 49:26    IdentExpr      :: bool
+  expr 50:37    IdentExpr      :: i32
+  expr 50:43    BinaryExpr     :: i32
+  expr 50:43    IdentExpr      :: i32
+  expr 50:49    FieldExpr      :: i32
+  expr 50:49    IdentExpr      :: Yield(i32)
+  expr 53:12    IdentExpr      :: i32
+  expr 57:10    StructLitExpr  :: Repeat(i32)
+  expr 58:10    StructLitExpr  :: Once(i32)
+  expr 59:13    StringLitExpr  :: string
+  expr 59:23    CallExpr       :: i32
+  expr 59:23    IdentExpr      :: fn(Iterator(i32)) -> i32
+  expr 59:28    IdentExpr      :: Repeat(i32)
+  expr 59:5     CallExpr       :: void
+  expr 59:5     IdentExpr      :: fn(string) -> void
+  expr 60:13    StringLitExpr  :: string
+  expr 60:21    CallExpr       :: i32
+  expr 60:21    IdentExpr      :: fn(Iterator(i32)) -> i32
+  expr 60:26    IdentExpr      :: Once(i32)
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(string) -> void

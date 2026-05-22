@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 import "std/math" { sqrt, pow, floor, ceil, round }
 

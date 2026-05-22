@@ -10,18 +10,18 @@
   FnDecl         m4                   :: fn(Cat | Dog) -> bool
   FnDecl         main                 :: fn() -> i32
   ConstDecl      Pet                  :: type
-  expr 18:12    MatchExpr      :: bool
-  expr 18:18    IdentExpr      :: Cat | Dog
-  expr 25:12    MatchExpr      :: bool
-  expr 25:18    IdentExpr      :: Cat | Dog
-  expr 32:12    MatchExpr      :: bool
-  expr 32:18    IdentExpr      :: i32
-  expr 39:5     IfExpr         :: void
-  expr 39:8     BinaryExpr     :: bool
-  expr 39:8     IdentExpr      :: Cat | Dog
+  expr 20:12    MatchExpr      :: bool
+  expr 20:18    IdentExpr      :: Cat | Dog
+  expr 27:12    MatchExpr      :: bool
+  expr 27:18    IdentExpr      :: Cat | Dog
+  expr 34:12    MatchExpr      :: bool
+  expr 34:18    IdentExpr      :: i32
+  expr 41:5     IfExpr         :: void
+  expr 41:8     BinaryExpr     :: bool
+  expr 41:8     IdentExpr      :: Cat | Dog
 
 # Diagnostics
-[19:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`
-[26:9] error[T3040] test can never match — operands have no overlapping values: `Bird` is never a value of `Cat | Dog`
-[33:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `i32`
-[39:13] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`
+[21:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`
+[28:9] error[T3040] test can never match — operands have no overlapping values: `Bird` is never a value of `Cat | Dog`
+[35:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `i32`
+[41:13] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`

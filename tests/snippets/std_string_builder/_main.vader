@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 

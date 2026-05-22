@@ -10,6 +10,8 @@
 // so the snippet uses it for the `Add`-bounded case ; `bar` uses
 // `Hash & Equals` which `i32` and `string` satisfy.
 
+module "snippet"
+
 needs_add :: fn[T: Add](x: T) -> T = x
 
 bar :: fn[K: Hash & Equals, V](key: K, value: V) -> V = value

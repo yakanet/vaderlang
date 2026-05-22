@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/nonexistent" { do_thing }
 
 main :: fn() -> i32 {

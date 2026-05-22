@@ -4,19 +4,19 @@
   FnDecl         accept_type          :: fn(type) -> void
   ConstDecl      alias_int            :: type
   FnDecl         main                 :: fn() -> i32
-  expr 11:17    IdentExpr      :: type
-  expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn(type) -> void
-  expr 12:17    IdentExpr      :: type
-  expr 12:5     CallExpr       :: void
-  expr 12:5     IdentExpr      :: fn(type) -> void
-  expr 13:17    IntrinsicCallExpr :: type
+  expr 13:17    IdentExpr      :: type
   expr 13:5     CallExpr       :: void
   expr 13:5     IdentExpr      :: fn(type) -> void
-  expr 14:17    IntrinsicCallExpr :: type
-  expr 14:26    StringLitExpr  :: string
+  expr 14:17    IdentExpr      :: type
   expr 14:5     CallExpr       :: void
   expr 14:5     IdentExpr      :: fn(type) -> void
-  expr 15:13    StringLitExpr  :: string
+  expr 15:17    IntrinsicCallExpr :: type
   expr 15:5     CallExpr       :: void
-  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 15:5     IdentExpr      :: fn(type) -> void
+  expr 16:17    IntrinsicCallExpr :: type
+  expr 16:26    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(type) -> void
+  expr 17:13    StringLitExpr  :: string
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(string) -> void

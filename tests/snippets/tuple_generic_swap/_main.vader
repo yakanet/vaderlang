@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Generic inference through a tuple parameter. The unifier and the

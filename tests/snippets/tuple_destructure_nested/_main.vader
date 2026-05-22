@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Nested tuple destructuring : the outer let binds `pair` (inner tuple)

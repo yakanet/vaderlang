@@ -4,27 +4,27 @@
   FnDecl         derive_print         :: fn(User) -> void
   FnDecl         main                 :: fn() -> i32
   StructDecl     User                 :: User
-  expr 16:24    IntrinsicCallExpr :: Field[]
-  expr 17:17    StringLitExpr  :: string
-  expr 17:20    FieldExpr      :: string
-  expr 17:20    IdentExpr      :: Field
-  expr 17:31    IntrinsicCallExpr :: ?
-  expr 17:38    IdentExpr      :: User
-  expr 17:44    FieldExpr      :: string
-  expr 17:44    IdentExpr      :: Field
-  expr 17:9     CallExpr       :: void
-  expr 17:9     IdentExpr      :: fn(string) -> void
-  expr 22:10    StructLitExpr  :: User
-  expr 22:25    StringLitExpr  :: string
-  expr 24:13    StringLitExpr  :: string
-  expr 24:24    IntrinsicCallExpr :: string
-  expr 24:31    IdentExpr      :: User
-  expr 24:34    StringLitExpr  :: string
-  expr 24:46    IntrinsicCallExpr :: i32
-  expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(string) -> void
-  expr 24:53    IdentExpr      :: User
-  expr 24:56    StringLitExpr  :: string
-  expr 27:18    IdentExpr      :: User
-  expr 27:5     CallExpr       :: void
-  expr 27:5     IdentExpr      :: fn(User) -> void
+  expr 18:24    IntrinsicCallExpr :: Field[]
+  expr 19:17    StringLitExpr  :: string
+  expr 19:20    FieldExpr      :: string
+  expr 19:20    IdentExpr      :: Field
+  expr 19:31    IntrinsicCallExpr :: ?
+  expr 19:38    IdentExpr      :: User
+  expr 19:44    FieldExpr      :: string
+  expr 19:44    IdentExpr      :: Field
+  expr 19:9     CallExpr       :: void
+  expr 19:9     IdentExpr      :: fn(string) -> void
+  expr 24:10    StructLitExpr  :: User
+  expr 24:25    StringLitExpr  :: string
+  expr 26:13    StringLitExpr  :: string
+  expr 26:24    IntrinsicCallExpr :: string
+  expr 26:31    IdentExpr      :: User
+  expr 26:34    StringLitExpr  :: string
+  expr 26:46    IntrinsicCallExpr :: i32
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(string) -> void
+  expr 26:53    IdentExpr      :: User
+  expr 26:56    StringLitExpr  :: string
+  expr 29:18    IdentExpr      :: User
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(User) -> void

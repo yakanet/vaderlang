@@ -4,6 +4,8 @@
 // i32 + f64 overloads — free integer literals default to i32 so the
 // integer overload wins on `abs(-7)` etc.
 
+module "snippet"
+
 import "std/io" { println }
 import "std/math" { min, max, abs, clamp }
 

@@ -6,48 +6,48 @@
   FnDecl         main                 :: fn() -> i32
   StructDecl     Outer                :: Outer
   FnDecl         unwrap               :: fn(Outer) -> i32
-  expr 13:11    FieldExpr      :: Inner
-  expr 13:11    FieldExpr      :: i32 | null
-  expr 13:11    IdentExpr      :: Outer
-  expr 13:5     MatchExpr      :: i32
-  expr 15:20    BinaryExpr     :: i32
-  expr 15:20    FieldExpr      :: Inner
-  expr 15:20    FieldExpr      :: i32
-  expr 15:20    IdentExpr      :: Outer
-  expr 21:38    UnaryExpr      :: i32
-  expr 21:5     IfExpr         :: void
-  expr 21:8     BinaryExpr     :: bool
-  expr 21:8     FieldExpr      :: Inner
-  expr 21:8     FieldExpr      :: i32 | null
-  expr 21:8     IdentExpr      :: Outer
-  expr 22:12    FieldExpr      :: Inner
-  expr 22:12    FieldExpr      :: i32
-  expr 22:12    IdentExpr      :: Outer
-  expr 26:14    StructLitExpr  :: Outer
-  expr 26:31    StructLitExpr  :: Inner
-  expr 27:14    StructLitExpr  :: Outer
-  expr 27:31    StructLitExpr  :: Inner
-  expr 28:13    StringLitExpr  :: string
-  expr 28:27    CallExpr       :: i32
-  expr 28:27    IdentExpr      :: fn(Outer) -> i32
-  expr 28:39    IdentExpr      :: Outer
-  expr 28:5     CallExpr       :: void
-  expr 28:5     IdentExpr      :: fn(string) -> void
-  expr 29:13    StringLitExpr  :: string
-  expr 29:29    CallExpr       :: i32
-  expr 29:29    IdentExpr      :: fn(Outer) -> i32
-  expr 29:41    IdentExpr      :: Outer
-  expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(string) -> void
+  expr 15:11    FieldExpr      :: Inner
+  expr 15:11    FieldExpr      :: i32 | null
+  expr 15:11    IdentExpr      :: Outer
+  expr 15:5     MatchExpr      :: i32
+  expr 17:20    BinaryExpr     :: i32
+  expr 17:20    FieldExpr      :: Inner
+  expr 17:20    FieldExpr      :: i32
+  expr 17:20    IdentExpr      :: Outer
+  expr 23:38    UnaryExpr      :: i32
+  expr 23:5     IfExpr         :: void
+  expr 23:8     BinaryExpr     :: bool
+  expr 23:8     FieldExpr      :: Inner
+  expr 23:8     FieldExpr      :: i32 | null
+  expr 23:8     IdentExpr      :: Outer
+  expr 24:12    FieldExpr      :: Inner
+  expr 24:12    FieldExpr      :: i32
+  expr 24:12    IdentExpr      :: Outer
+  expr 28:14    StructLitExpr  :: Outer
+  expr 28:31    StructLitExpr  :: Inner
+  expr 29:14    StructLitExpr  :: Outer
+  expr 29:31    StructLitExpr  :: Inner
   expr 30:13    StringLitExpr  :: string
-  expr 30:28    CallExpr       :: i32
-  expr 30:28    IdentExpr      :: fn(Outer) -> i32
-  expr 30:35    IdentExpr      :: Outer
+  expr 30:27    CallExpr       :: i32
+  expr 30:27    IdentExpr      :: fn(Outer) -> i32
+  expr 30:39    IdentExpr      :: Outer
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(string) -> void
   expr 31:13    StringLitExpr  :: string
-  expr 31:30    CallExpr       :: i32
-  expr 31:30    IdentExpr      :: fn(Outer) -> i32
-  expr 31:37    IdentExpr      :: Outer
+  expr 31:29    CallExpr       :: i32
+  expr 31:29    IdentExpr      :: fn(Outer) -> i32
+  expr 31:41    IdentExpr      :: Outer
   expr 31:5     CallExpr       :: void
   expr 31:5     IdentExpr      :: fn(string) -> void
+  expr 32:13    StringLitExpr  :: string
+  expr 32:28    CallExpr       :: i32
+  expr 32:28    IdentExpr      :: fn(Outer) -> i32
+  expr 32:35    IdentExpr      :: Outer
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(string) -> void
+  expr 33:13    StringLitExpr  :: string
+  expr 33:30    CallExpr       :: i32
+  expr 33:30    IdentExpr      :: fn(Outer) -> i32
+  expr 33:37    IdentExpr      :: Outer
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(string) -> void

@@ -2,6 +2,8 @@
 // `let c: C = a` does NOT auto-compose them. T3001 fires at the let site.
 // # compile errors
 
+module "snippet"
+
 A :: struct { value: i32 }
 B :: struct { value: i32 }
 C :: struct { value: i32 }

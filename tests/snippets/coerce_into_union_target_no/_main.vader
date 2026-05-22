@@ -3,6 +3,8 @@
 // so `tryInto` returns false and the standard T3001 mismatch fires.
 // # compile errors
 
+module "snippet"
+
 Foo :: struct { value: i32 }
 
 Foo implements Into(i32) {

@@ -5,6 +5,8 @@
 // primes. Classic O(N log log N) ; far more efficient than trial-division
 // for any non-trivial bound.
 
+module "main"
+
 import "std/io" { println, print }
 
 N :: 100

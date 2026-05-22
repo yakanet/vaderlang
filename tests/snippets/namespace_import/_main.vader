@@ -1,3 +1,5 @@
+module "snippet"
+
 io :: import "std/io"
 
 main :: fn() -> i32 {

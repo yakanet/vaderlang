@@ -4,6 +4,8 @@
 // the first-param type. Free fn `describe(v: Shape) -> string` is reachable
 // as `shape.describe()` without an explicit `match`.
 
+module "snippet"
+
 import "std/io" { println }
 
 Circle :: struct { radius: i32 }

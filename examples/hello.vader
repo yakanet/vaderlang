@@ -6,6 +6,8 @@
 // Or run via the interpreter:
 //   vader run examples/hello.vader
 
+module "main"
+
 import "std/io" { println }
 
 main :: fn() -> i32 {

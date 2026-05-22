@@ -2,14 +2,14 @@
 
 ## tests/snippets/vm_array_mutate/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 5:18     SeqLitExpr     :: i32[]
-  expr 6:5      IdentExpr      :: i32[]
-  expr 6:5      IndexExpr      :: i32
-  expr 7:12     BinaryExpr     :: i32
-  expr 7:12     BinaryExpr     :: i32
-  expr 7:12     IdentExpr      :: i32[]
-  expr 7:12     IndexExpr      :: i32
-  expr 7:21     IdentExpr      :: i32[]
-  expr 7:21     IndexExpr      :: i32
-  expr 7:30     IdentExpr      :: i32[]
-  expr 7:30     IndexExpr      :: i32
+  expr 7:18     SeqLitExpr     :: i32[]
+  expr 8:5      IdentExpr      :: i32[]
+  expr 8:5      IndexExpr      :: i32
+  expr 9:12     BinaryExpr     :: i32
+  expr 9:12     BinaryExpr     :: i32
+  expr 9:12     IdentExpr      :: i32[]
+  expr 9:12     IndexExpr      :: i32
+  expr 9:21     IdentExpr      :: i32[]
+  expr 9:21     IndexExpr      :: i32
+  expr 9:30     IdentExpr      :: i32[]
+  expr 9:30     IndexExpr      :: i32

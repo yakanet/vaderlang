@@ -2,22 +2,12 @@
 
 ## tests/snippets/let_type_alias/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 15:19    IdentExpr      :: type
-  expr 16:19    IdentExpr      :: type
-  expr 17:19    BinaryExpr     :: type
   expr 17:19    IdentExpr      :: type
-  expr 17:25    IdentExpr      :: type
-  expr 18:19    ArrayTypeExpr  :: type
-  expr 20:13    StringLitExpr  :: string
-  expr 20:32    IntrinsicCallExpr :: usize
-  expr 20:41    IdentExpr      :: type
-  expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(string) -> void
-  expr 21:13    StringLitExpr  :: string
-  expr 21:32    IntrinsicCallExpr :: usize
-  expr 21:41    IdentExpr      :: type
-  expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 18:19    IdentExpr      :: type
+  expr 19:19    BinaryExpr     :: type
+  expr 19:19    IdentExpr      :: type
+  expr 19:25    IdentExpr      :: type
+  expr 20:19    ArrayTypeExpr  :: type
   expr 22:13    StringLitExpr  :: string
   expr 22:32    IntrinsicCallExpr :: usize
   expr 22:41    IdentExpr      :: type
@@ -28,3 +18,13 @@
   expr 23:41    IdentExpr      :: type
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(string) -> void
+  expr 24:13    StringLitExpr  :: string
+  expr 24:32    IntrinsicCallExpr :: usize
+  expr 24:41    IdentExpr      :: type
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 25:13    StringLitExpr  :: string
+  expr 25:32    IntrinsicCallExpr :: usize
+  expr 25:41    IdentExpr      :: type
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(string) -> void

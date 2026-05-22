@@ -4,10 +4,10 @@
   ConstDecl      FILENAME             :: string
   ConstDecl      GREETING             :: string
   FnDecl         main                 :: fn() -> i32
-  expr 3:13     StringLitExpr  :: string
-  expr 4:13     IntrinsicCallExpr :: string
-  expr 4:19     StringLitExpr  :: string
-  expr 4:22     IdentExpr      :: string
-  expr 7:13     IdentExpr      :: string
-  expr 7:5      CallExpr       :: void
-  expr 7:5      IdentExpr      :: fn(string) -> void
+  expr 5:13     StringLitExpr  :: string
+  expr 6:13     IntrinsicCallExpr :: string
+  expr 6:19     StringLitExpr  :: string
+  expr 6:22     IdentExpr      :: string
+  expr 9:13     IdentExpr      :: string
+  expr 9:5      CallExpr       :: void
+  expr 9:5      IdentExpr      :: fn(string) -> void

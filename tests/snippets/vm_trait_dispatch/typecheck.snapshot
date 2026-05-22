@@ -8,39 +8,39 @@
   FnDecl         main                 :: fn() -> i32
   TraitDecl      Printable            :: Printable
   StructDecl     Wrapper              :: Wrapper(T)
-  expr 19:42    FieldExpr      :: string
-  expr 19:42    IdentExpr      :: Dog
-  expr 28:42    StringLitExpr  :: string
-  expr 32:11    IdentExpr      :: Cat | Dog
-  expr 32:5     MatchExpr      :: i32
-  expr 39:11    IdentExpr      :: Cat | Wrapper(i32)
-  expr 39:5     MatchExpr      :: i32
-  expr 46:10    StructLitExpr  :: Dog
-  expr 46:24    StringLitExpr  :: string
-  expr 47:10    StructLitExpr  :: Cat
-  expr 47:24    StringLitExpr  :: string
-  expr 48:10    StructLitExpr  :: Wrapper(i32)
-  expr 50:19    CallExpr       :: i32
-  expr 50:19    IdentExpr      :: fn(Cat | Dog) -> i32
-  expr 50:28    IdentExpr      :: Dog
-  expr 51:19    CallExpr       :: i32
-  expr 51:19    IdentExpr      :: fn(Cat | Dog) -> i32
-  expr 51:28    IdentExpr      :: Cat
-  expr 53:30    IdentExpr      :: Wrapper(i32)
-  expr 54:20    CallExpr       :: i32
-  expr 54:20    IdentExpr      :: fn(Cat | Wrapper(i32)) -> i32
-  expr 54:37    IdentExpr      :: Cat | Wrapper(i32)
-  expr 56:30    IdentExpr      :: Cat
-  expr 57:24    CallExpr       :: i32
-  expr 57:24    IdentExpr      :: fn(Cat | Wrapper(i32)) -> i32
-  expr 57:41    IdentExpr      :: Cat | Wrapper(i32)
-  expr 60:12    BinaryExpr     :: i32
-  expr 60:12    BinaryExpr     :: i32
-  expr 60:12    BinaryExpr     :: i32
-  expr 60:12    IdentExpr      :: i32
-  expr 60:25    BinaryExpr     :: i32
-  expr 60:25    IdentExpr      :: i32
-  expr 60:42    BinaryExpr     :: i32
-  expr 60:42    IdentExpr      :: i32
-  expr 60:60    BinaryExpr     :: i32
-  expr 60:60    IdentExpr      :: i32
+  expr 21:42    FieldExpr      :: string
+  expr 21:42    IdentExpr      :: Dog
+  expr 30:42    StringLitExpr  :: string
+  expr 34:11    IdentExpr      :: Cat | Dog
+  expr 34:5     MatchExpr      :: i32
+  expr 41:11    IdentExpr      :: Cat | Wrapper(i32)
+  expr 41:5     MatchExpr      :: i32
+  expr 48:10    StructLitExpr  :: Dog
+  expr 48:24    StringLitExpr  :: string
+  expr 49:10    StructLitExpr  :: Cat
+  expr 49:24    StringLitExpr  :: string
+  expr 50:10    StructLitExpr  :: Wrapper(i32)
+  expr 52:19    CallExpr       :: i32
+  expr 52:19    IdentExpr      :: fn(Cat | Dog) -> i32
+  expr 52:28    IdentExpr      :: Dog
+  expr 53:19    CallExpr       :: i32
+  expr 53:19    IdentExpr      :: fn(Cat | Dog) -> i32
+  expr 53:28    IdentExpr      :: Cat
+  expr 55:30    IdentExpr      :: Wrapper(i32)
+  expr 56:20    CallExpr       :: i32
+  expr 56:20    IdentExpr      :: fn(Cat | Wrapper(i32)) -> i32
+  expr 56:37    IdentExpr      :: Cat | Wrapper(i32)
+  expr 58:30    IdentExpr      :: Cat
+  expr 59:24    CallExpr       :: i32
+  expr 59:24    IdentExpr      :: fn(Cat | Wrapper(i32)) -> i32
+  expr 59:41    IdentExpr      :: Cat | Wrapper(i32)
+  expr 62:12    BinaryExpr     :: i32
+  expr 62:12    BinaryExpr     :: i32
+  expr 62:12    BinaryExpr     :: i32
+  expr 62:12    IdentExpr      :: i32
+  expr 62:25    BinaryExpr     :: i32
+  expr 62:25    IdentExpr      :: i32
+  expr 62:42    BinaryExpr     :: i32
+  expr 62:42    IdentExpr      :: i32
+  expr 62:60    BinaryExpr     :: i32
+  expr 62:60    IdentExpr      :: i32

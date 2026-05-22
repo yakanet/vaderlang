@@ -3,6 +3,8 @@
 // a different slot than `o.inner` or `o.flag` and only the matching
 // chain inside the arm body / then-branch sees the narrowed type.
 
+module "snippet"
+
 import "std/io" { println }
 
 Inner :: struct { flag: i32 | null }

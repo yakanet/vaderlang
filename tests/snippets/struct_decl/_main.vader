@@ -1,3 +1,5 @@
+module "snippet"
+
 export Point :: struct {
     x: f64
     y: f64

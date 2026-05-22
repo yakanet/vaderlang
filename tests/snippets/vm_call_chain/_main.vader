@@ -2,6 +2,8 @@
 // `outer(7)` calls `middle(7)` calls `inner(7)`, each adds something.
 // Result : `7 + 1 + 10 + 100 = 118`.
 
+module "snippet"
+
 inner :: fn(n: i32) -> i32 {
     return n + 100
 }

@@ -1,6 +1,8 @@
 // User-declared trait + impl + generic fn dispatching via where-clause.
 // Verifies non-stdlib traits flow through the same machinery as built-ins.
 
+module "snippet"
+
 export Tagger :: trait {
     tag :: fn(self) -> i32
 }

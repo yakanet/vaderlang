@@ -2,26 +2,26 @@
 
 ## tests/snippets/intrinsic_size_of/_main.vader
   FnDecl         main                 :: fn() -> i32
+  expr 10:13    IntrinsicCallExpr :: usize
+  expr 10:22    IdentExpr      :: type
   expr 11:13    IntrinsicCallExpr :: usize
-  expr 12:13    IntrinsicCallExpr :: usize
-  expr 14:13    IntrinsicCallExpr :: string
-  expr 16:12    CallExpr       :: i32
-  expr 16:12    IdentExpr      :: type
-  expr 16:16    BinaryExpr     :: usize
-  expr 16:16    BinaryExpr     :: usize
-  expr 16:16    BinaryExpr     :: usize
-  expr 16:16    BinaryExpr     :: usize
-  expr 16:16    BinaryExpr     :: usize
-  expr 16:16    IdentExpr      :: usize
-  expr 16:21    IdentExpr      :: usize
-  expr 16:27    IdentExpr      :: usize
-  expr 16:33    IdentExpr      :: usize
-  expr 16:40    IdentExpr      :: usize
-  expr 16:46    IdentExpr      :: usize
-  expr 6:13     IntrinsicCallExpr :: usize
-  expr 6:22     IdentExpr      :: type
-  expr 7:13     IntrinsicCallExpr :: usize
-  expr 7:22     IdentExpr      :: type
+  expr 11:22    IdentExpr      :: type
+  expr 13:13    IntrinsicCallExpr :: usize
+  expr 14:13    IntrinsicCallExpr :: usize
+  expr 16:13    IntrinsicCallExpr :: string
+  expr 18:12    CallExpr       :: i32
+  expr 18:12    IdentExpr      :: type
+  expr 18:16    BinaryExpr     :: usize
+  expr 18:16    BinaryExpr     :: usize
+  expr 18:16    BinaryExpr     :: usize
+  expr 18:16    BinaryExpr     :: usize
+  expr 18:16    BinaryExpr     :: usize
+  expr 18:16    IdentExpr      :: usize
+  expr 18:21    IdentExpr      :: usize
+  expr 18:27    IdentExpr      :: usize
+  expr 18:33    IdentExpr      :: usize
+  expr 18:40    IdentExpr      :: usize
+  expr 18:46    IdentExpr      :: usize
   expr 8:13     IntrinsicCallExpr :: usize
   expr 8:22     IdentExpr      :: type
   expr 9:13     IntrinsicCallExpr :: usize

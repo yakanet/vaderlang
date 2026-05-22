@@ -3,36 +3,36 @@
 ## tests/snippets/trait_dispatch_eq/_main.vader
   FnDecl         both_equal           :: fn(T, T, T) -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 10:13    IdentExpr      :: T
-  expr 10:5     IfExpr         :: void
-  expr 10:8     BinaryExpr     :: bool
-  expr 10:8     IdentExpr      :: T
-  expr 11:13    BinaryExpr     :: i32
-  expr 11:13    IdentExpr      :: i32
-  expr 11:9     IdentExpr      :: i32
-  expr 13:13    IdentExpr      :: T
-  expr 13:5     IfExpr         :: void
-  expr 13:8     BinaryExpr     :: bool
-  expr 13:8     IdentExpr      :: T
-  expr 14:13    BinaryExpr     :: i32
-  expr 14:13    IdentExpr      :: i32
-  expr 14:9     IdentExpr      :: i32
-  expr 16:12    IdentExpr      :: i32
-  expr 21:11    CallExpr       :: i32
-  expr 21:11    IdentExpr      :: fn(T, T, T) -> i32
+  expr 10:13    BinaryExpr     :: i32
+  expr 10:13    IdentExpr      :: i32
+  expr 10:9     IdentExpr      :: i32
+  expr 12:13    IdentExpr      :: T
+  expr 12:5     IfExpr         :: void
+  expr 12:8     BinaryExpr     :: bool
+  expr 12:8     IdentExpr      :: T
+  expr 13:13    BinaryExpr     :: i32
+  expr 13:13    IdentExpr      :: i32
+  expr 13:9     IdentExpr      :: i32
+  expr 15:13    IdentExpr      :: T
+  expr 15:5     IfExpr         :: void
+  expr 15:8     BinaryExpr     :: bool
+  expr 15:8     IdentExpr      :: T
+  expr 16:13    BinaryExpr     :: i32
+  expr 16:13    IdentExpr      :: i32
+  expr 16:9     IdentExpr      :: i32
+  expr 18:12    IdentExpr      :: i32
   expr 23:11    CallExpr       :: i32
   expr 23:11    IdentExpr      :: fn(T, T, T) -> i32
   expr 25:11    CallExpr       :: i32
   expr 25:11    IdentExpr      :: fn(T, T, T) -> i32
-  expr 26:12    BinaryExpr     :: i32
-  expr 26:12    BinaryExpr     :: i32
-  expr 26:12    IdentExpr      :: i32
-  expr 26:17    IdentExpr      :: i32
-  expr 26:22    IdentExpr      :: i32
-  expr 7:13     IdentExpr      :: T
-  expr 7:5      IfExpr         :: void
-  expr 7:8      BinaryExpr     :: bool
-  expr 7:8      IdentExpr      :: T
-  expr 8:13     BinaryExpr     :: i32
-  expr 8:13     IdentExpr      :: i32
-  expr 8:9      IdentExpr      :: i32
+  expr 27:11    CallExpr       :: i32
+  expr 27:11    IdentExpr      :: fn(T, T, T) -> i32
+  expr 28:12    BinaryExpr     :: i32
+  expr 28:12    BinaryExpr     :: i32
+  expr 28:12    IdentExpr      :: i32
+  expr 28:17    IdentExpr      :: i32
+  expr 28:22    IdentExpr      :: i32
+  expr 9:13     IdentExpr      :: T
+  expr 9:5      IfExpr         :: void
+  expr 9:8      BinaryExpr     :: bool
+  expr 9:8      IdentExpr      :: T

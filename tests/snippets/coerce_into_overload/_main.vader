@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Overload resolution second-pass : when no exact-match candidate fits the

@@ -1,6 +1,8 @@
 // Sprint 4 (b5) acceptance: closure capturing an immutable local.
 // `add_x(5) = x + 5 = 17`.
 
+module "snippet"
+
 main :: fn() -> i32 {
     x := 12
     add_x :: fn(y: i32) -> i32 {

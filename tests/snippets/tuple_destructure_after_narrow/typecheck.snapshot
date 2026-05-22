@@ -3,21 +3,21 @@
 ## tests/snippets/tuple_destructure_after_narrow/_main.vader
   FnDecl         main                 :: fn() -> i32
   FnDecl         make_pair            :: fn(bool) -> [i32, i32] | null
-  expr 17:20    SeqLitExpr     :: [i32, i32]
-  expr 17:5     IfExpr         :: void
-  expr 17:8     IdentExpr      :: bool
-  expr 22:13    CallExpr       :: [i32, i32] | null
-  expr 22:13    IdentExpr      :: fn(bool) -> [i32, i32] | null
-  expr 23:30    UnaryExpr      :: i32
-  expr 23:5     IfExpr         :: void
-  expr 23:8     BinaryExpr     :: bool
-  expr 23:8     IdentExpr      :: [i32, i32] | null
-  expr 24:15    IdentExpr      :: [i32, i32]
-  expr 25:13    StringLitExpr  :: string
-  expr 25:18    IdentExpr      :: i32
-  expr 25:25    IdentExpr      :: i32
-  expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
-  expr 26:12    BinaryExpr     :: i32
-  expr 26:12    IdentExpr      :: i32
-  expr 26:16    IdentExpr      :: i32
+  expr 19:20    SeqLitExpr     :: [i32, i32]
+  expr 19:5     IfExpr         :: void
+  expr 19:8     IdentExpr      :: bool
+  expr 24:13    CallExpr       :: [i32, i32] | null
+  expr 24:13    IdentExpr      :: fn(bool) -> [i32, i32] | null
+  expr 25:30    UnaryExpr      :: i32
+  expr 25:5     IfExpr         :: void
+  expr 25:8     BinaryExpr     :: bool
+  expr 25:8     IdentExpr      :: [i32, i32] | null
+  expr 26:15    IdentExpr      :: [i32, i32]
+  expr 27:13    StringLitExpr  :: string
+  expr 27:18    IdentExpr      :: i32
+  expr 27:25    IdentExpr      :: i32
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(string) -> void
+  expr 28:12    BinaryExpr     :: i32
+  expr 28:12    IdentExpr      :: i32
+  expr 28:16    IdentExpr      :: i32

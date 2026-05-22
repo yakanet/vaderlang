@@ -5,6 +5,8 @@
 // expressions, let-bound range values, and usize-typed bounds all work.
 // Empty slices (`arr[i..<i]`) produce a zero-length array.
 
+module "snippet"
+
 import "std/io" { println }
 
 main :: fn() -> i32 {

@@ -1,3 +1,5 @@
+module "snippet"
+
 export classify :: fn(n: i32) -> string {
     return if (n > 0) {
         "positive"

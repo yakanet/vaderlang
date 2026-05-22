@@ -2,10 +2,10 @@
 
 ## tests/snippets/vm_interp_mixed/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 10:13    StringLitExpr  :: string
-  expr 10:24    IdentExpr      :: i32
-  expr 10:37    IdentExpr      :: string
-  expr 10:48    IdentExpr      :: i32
-  expr 10:5     CallExpr       :: void
-  expr 10:5     IdentExpr      :: fn(string) -> void
-  expr 8:12     StringLitExpr  :: string
+  expr 10:12    StringLitExpr  :: string
+  expr 12:13    StringLitExpr  :: string
+  expr 12:24    IdentExpr      :: i32
+  expr 12:37    IdentExpr      :: string
+  expr 12:48    IdentExpr      :: i32
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(string) -> void

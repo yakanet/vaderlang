@@ -3,14 +3,14 @@
 ## tests/snippets/vm_call_recursive/_main.vader
   FnDecl         factorial            :: fn(i32) -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 13:12    CallExpr       :: i32
-  expr 13:12    IdentExpr      :: fn(i32) -> i32
-  expr 6:5      IfExpr         :: void
-  expr 6:8      BinaryExpr     :: bool
-  expr 6:8      IdentExpr      :: i32
-  expr 9:12     BinaryExpr     :: i32
-  expr 9:12     IdentExpr      :: i32
-  expr 9:16     CallExpr       :: i32
-  expr 9:16     IdentExpr      :: fn(i32) -> i32
-  expr 9:26     BinaryExpr     :: i32
-  expr 9:26     IdentExpr      :: i32
+  expr 11:12    BinaryExpr     :: i32
+  expr 11:12    IdentExpr      :: i32
+  expr 11:16    CallExpr       :: i32
+  expr 11:16    IdentExpr      :: fn(i32) -> i32
+  expr 11:26    BinaryExpr     :: i32
+  expr 11:26    IdentExpr      :: i32
+  expr 15:12    CallExpr       :: i32
+  expr 15:12    IdentExpr      :: fn(i32) -> i32
+  expr 8:5      IfExpr         :: void
+  expr 8:8      BinaryExpr     :: bool
+  expr 8:8      IdentExpr      :: i32

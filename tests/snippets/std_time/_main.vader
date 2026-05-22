@@ -4,6 +4,8 @@
 // stable across runs. Wall-clock / monotonic readouts themselves are
 // never printed verbatim.
 
+module "snippet"
+
 import "std/io" { println }
 import "std/time" {
     Instant, Monotonic, Duration,

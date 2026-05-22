@@ -129,4 +129,4 @@ fn tests_snippets_enum_basic__main_vader$main() -> void
     return
 
 # Diagnostics
-[19:1] error[T3033] invalid `main` signature: main must return i32
+[21:1] error[T3033] invalid `main` signature: main must return i32

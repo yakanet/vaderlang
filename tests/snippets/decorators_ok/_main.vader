@@ -1,3 +1,5 @@
+module "snippet"
+
 @extern("env", "console_log")
 export log :: fn(ptr: i32, len: i32)
 

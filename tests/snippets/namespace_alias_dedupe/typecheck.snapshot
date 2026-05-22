@@ -3,9 +3,9 @@
 ## tests/snippets/namespace_alias_dedupe/_main.vader
   FnDecl         via_file             :: fn(AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl) -> i32
   FnDecl         via_folder           :: fn(?) -> i32
-  expr 23:12    CallExpr       :: i32
-  expr 23:12    IdentExpr      :: fn(?) -> i32
-  expr 23:23    IdentExpr      :: AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl
+  expr 25:12    CallExpr       :: i32
+  expr 25:12    IdentExpr      :: fn(?) -> i32
+  expr 25:23    IdentExpr      :: AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl
 
 ## vader/parser
   FnDecl         advance              :: ?

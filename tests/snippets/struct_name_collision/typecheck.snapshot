@@ -2,20 +2,20 @@
 
 ## tests/snippets/struct_name_collision/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 15:10    CallExpr       :: Box
-  expr 15:10    IdentExpr      :: fn() -> Box
-  expr 16:10    CallExpr       :: Box
-  expr 16:10    IdentExpr      :: fn() -> Box
-  expr 17:13    StringLitExpr  :: string
-  expr 17:23    FieldExpr      :: i32
-  expr 17:23    IdentExpr      :: Box
-  expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(string) -> void
-  expr 18:13    StringLitExpr  :: string
-  expr 18:26    FieldExpr      :: string
-  expr 18:26    IdentExpr      :: Box
-  expr 18:5     CallExpr       :: void
-  expr 18:5     IdentExpr      :: fn(string) -> void
+  expr 17:10    CallExpr       :: Box
+  expr 17:10    IdentExpr      :: fn() -> Box
+  expr 18:10    CallExpr       :: Box
+  expr 18:10    IdentExpr      :: fn() -> Box
+  expr 19:13    StringLitExpr  :: string
+  expr 19:23    FieldExpr      :: i32
+  expr 19:23    IdentExpr      :: Box
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(string) -> void
+  expr 20:13    StringLitExpr  :: string
+  expr 20:26    FieldExpr      :: string
+  expr 20:26    IdentExpr      :: Box
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(string) -> void
 
 ## tests/snippets/struct_name_collision/mod_a
   StructDecl     Box                  :: Box

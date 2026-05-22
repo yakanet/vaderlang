@@ -9,6 +9,8 @@
 // the dependency : every `T :: …` is registered project-wide before any
 // fn signature gets lowered.
 
+module "snippet"
+
 import "std/io" { println }
 import "./types" { Cat, Dog, Pet }
 

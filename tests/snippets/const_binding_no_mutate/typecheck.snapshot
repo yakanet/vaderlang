@@ -3,18 +3,18 @@
 ## tests/snippets/const_binding_no_mutate/_main.vader
   FnDecl         main                 :: fn() -> i32
   StructDecl     Point                :: Point
-  expr 16:5     IdentExpr      :: i32
-  expr 17:5     BinaryExpr     :: i32
-  expr 17:5     IdentExpr      :: i32
-  expr 21:10    StructLitExpr  :: Point
-  expr 22:5     FieldExpr      :: i32
-  expr 22:5     IdentExpr      :: Point
-  expr 23:12    BinaryExpr     :: i32
-  expr 23:12    FieldExpr      :: i32
-  expr 23:12    IdentExpr      :: Point
-  expr 23:18    IdentExpr      :: i32
+  expr 18:5     IdentExpr      :: i32
+  expr 19:5     BinaryExpr     :: i32
+  expr 19:5     IdentExpr      :: i32
+  expr 23:10    StructLitExpr  :: Point
+  expr 24:5     FieldExpr      :: i32
+  expr 24:5     IdentExpr      :: Point
+  expr 25:12    BinaryExpr     :: i32
+  expr 25:12    FieldExpr      :: i32
+  expr 25:12    IdentExpr      :: Point
+  expr 25:18    IdentExpr      :: i32
 
 # Diagnostics
-[10:5] error[T3041] cannot reassign a constant binding: `x` is declared with `::` — use `:=` to allow mutation
-[11:5] error[T3041] cannot reassign a constant binding: `x` is declared with `::` — use `:=` to allow mutation
 [12:5] error[T3041] cannot reassign a constant binding: `x` is declared with `::` — use `:=` to allow mutation
+[13:5] error[T3041] cannot reassign a constant binding: `x` is declared with `::` — use `:=` to allow mutation
+[14:5] error[T3041] cannot reassign a constant binding: `x` is declared with `::` — use `:=` to allow mutation

@@ -3,4 +3,4 @@
 ## tests/snippets/trait_impl/_main.vader
   TraitDecl      Display              :: Display
   StructDecl     Point                :: Point
-  expr 12:16    StringLitExpr  :: string
+  expr 14:16    StringLitExpr  :: string

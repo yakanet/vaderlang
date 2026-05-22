@@ -2,15 +2,15 @@
 
 ## tests/snippets/defer_block/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 4:11     CallExpr       :: void
-  expr 4:11     IdentExpr      :: fn(string) -> void
-  expr 4:19     StringLitExpr  :: string
-  expr 5:13     StringLitExpr  :: string
-  expr 5:5      CallExpr       :: void
-  expr 5:5      IdentExpr      :: fn(string) -> void
-  expr 7:15     CallExpr       :: void
-  expr 7:15     IdentExpr      :: fn(string) -> void
-  expr 7:23     StringLitExpr  :: string
-  expr 8:17     StringLitExpr  :: string
-  expr 8:9      CallExpr       :: void
-  expr 8:9      IdentExpr      :: fn(string) -> void
+  expr 10:17    StringLitExpr  :: string
+  expr 10:9     CallExpr       :: void
+  expr 10:9     IdentExpr      :: fn(string) -> void
+  expr 6:11     CallExpr       :: void
+  expr 6:11     IdentExpr      :: fn(string) -> void
+  expr 6:19     StringLitExpr  :: string
+  expr 7:13     StringLitExpr  :: string
+  expr 7:5      CallExpr       :: void
+  expr 7:5      IdentExpr      :: fn(string) -> void
+  expr 9:15     CallExpr       :: void
+  expr 9:15     IdentExpr      :: fn(string) -> void
+  expr 9:23     StringLitExpr  :: string

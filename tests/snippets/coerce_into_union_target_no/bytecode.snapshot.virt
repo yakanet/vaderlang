@@ -9,4 +9,4 @@ fn 0 tests_snippets_coerce_into_union_target_no__main_vader$main () -> i32
 end
 
 # Diagnostics
-[14:5] error[T3001] type mismatch: expected i32 | string, got Foo
+[16:5] error[T3001] type mismatch: expected i32 | string, got Foo

@@ -3,23 +3,23 @@
 ## tests/snippets/coerce_into_explicit/_main.vader
   FnDecl         main                 :: fn() -> i32
   StructDecl     UserId               :: UserId
-  expr 11:38    FieldExpr      :: i32
-  expr 11:38    IdentExpr      :: UserId
-  expr 15:41    StringLitExpr  :: string
-  expr 15:49    FieldExpr      :: i32
-  expr 15:49    IdentExpr      :: UserId
-  expr 19:10    StructLitExpr  :: UserId
-  expr 21:10    CallExpr       :: i32
-  expr 21:10    IdentExpr      :: type
-  expr 21:14    IdentExpr      :: UserId
-  expr 22:13    StringLitExpr  :: string
-  expr 22:18    IdentExpr      :: i32
-  expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(string) -> void
-  expr 24:10    CallExpr       :: string
-  expr 24:10    IdentExpr      :: type
-  expr 24:17    IdentExpr      :: UserId
-  expr 25:13    StringLitExpr  :: string
-  expr 25:18    IdentExpr      :: string
-  expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 13:38    FieldExpr      :: i32
+  expr 13:38    IdentExpr      :: UserId
+  expr 17:41    StringLitExpr  :: string
+  expr 17:49    FieldExpr      :: i32
+  expr 17:49    IdentExpr      :: UserId
+  expr 21:10    StructLitExpr  :: UserId
+  expr 23:10    CallExpr       :: i32
+  expr 23:10    IdentExpr      :: type
+  expr 23:14    IdentExpr      :: UserId
+  expr 24:13    StringLitExpr  :: string
+  expr 24:18    IdentExpr      :: i32
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 26:10    CallExpr       :: string
+  expr 26:10    IdentExpr      :: type
+  expr 26:17    IdentExpr      :: UserId
+  expr 27:13    StringLitExpr  :: string
+  expr 27:18    IdentExpr      :: string
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(string) -> void

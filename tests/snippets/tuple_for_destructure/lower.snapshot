@@ -22,13 +22,13 @@
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
       loop while (<…>)
-        let __for_9_5: [string, i32] =
+        let __for_11_5: [string, i32] =
           index :[string, i32]
             on:
               __for_arr_0 :[string, i32][]
             ix:
               __for_i_2 :usize
-        let __tup_3: [string, i32] = __for_9_5 :[string, i32]
+        let __tup_3: [string, i32] = __for_11_5 :[string, i32]
         let k: string =
           ._0 :string
             __tup_3 :[string, i32]

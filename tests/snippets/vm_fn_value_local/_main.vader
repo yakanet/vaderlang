@@ -1,6 +1,8 @@
 // Sprint 4 (b4) acceptance: fn stored in a local, called via call.indirect.
 // `f = add ; f(40, 2) = 42`.
 
+module "snippet"
+
 add :: fn(a: i32, b: i32) -> i32 {
     return a + b
 }

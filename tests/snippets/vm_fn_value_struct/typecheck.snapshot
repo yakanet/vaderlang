@@ -4,11 +4,11 @@
   StructDecl     Calculator           :: Calculator
   FnDecl         main                 :: fn() -> i32
   FnDecl         mul                  :: fn(i32, i32) -> i32
-  expr 10:12    BinaryExpr     :: i32
-  expr 10:12    IdentExpr      :: i32
-  expr 10:16    IdentExpr      :: i32
-  expr 14:10    StructLitExpr  :: Calculator
-  expr 14:29    IdentExpr      :: fn(i32, i32) -> i32
-  expr 15:12    CallExpr       :: i32
-  expr 15:12    FieldExpr      :: fn(i32, i32) -> i32
-  expr 15:12    IdentExpr      :: Calculator
+  expr 12:12    BinaryExpr     :: i32
+  expr 12:12    IdentExpr      :: i32
+  expr 12:16    IdentExpr      :: i32
+  expr 16:10    StructLitExpr  :: Calculator
+  expr 16:29    IdentExpr      :: fn(i32, i32) -> i32
+  expr 17:12    CallExpr       :: i32
+  expr 17:12    FieldExpr      :: fn(i32, i32) -> i32
+  expr 17:12    IdentExpr      :: Calculator

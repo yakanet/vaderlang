@@ -9,6 +9,8 @@
 // still fail with T3035 until Layer 4 milestone B.1 lands TypeValue
 // end-to-end through the comptime VM.
 
+module "snippet"
+
 import "std/io" { println }
 
 main :: fn() -> i32 {

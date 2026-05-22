@@ -2,12 +2,12 @@
 
 ## tests/snippets/tuple_match_pattern/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 4:27     SeqLitExpr     :: [i32, string]
-  expr 4:31     StringLitExpr  :: string
-  expr 5:11     IdentExpr      :: [i32, string]
-  expr 5:5      MatchExpr      :: void
-  expr 6:19     CallExpr       :: void
-  expr 6:19     IdentExpr      :: fn(string) -> void
-  expr 6:27     StringLitExpr  :: string
-  expr 6:32     IdentExpr      :: i32
-  expr 6:39     IdentExpr      :: string
+  expr 6:27     SeqLitExpr     :: [i32, string]
+  expr 6:31     StringLitExpr  :: string
+  expr 7:11     IdentExpr      :: [i32, string]
+  expr 7:5      MatchExpr      :: void
+  expr 8:19     CallExpr       :: void
+  expr 8:19     IdentExpr      :: fn(string) -> void
+  expr 8:27     StringLitExpr  :: string
+  expr 8:32     IdentExpr      :: i32
+  expr 8:39     IdentExpr      :: string

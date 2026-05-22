@@ -1,3 +1,5 @@
+module "snippet"
+
 main :: fn() -> i32 {
     n := 0
     inc :: fn() {

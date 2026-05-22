@@ -3,6 +3,8 @@
 /// reified as a `type` runtime value, which feeds back through `@size_of`.
 /// Covered shapes : (1) non-generic struct, (2) generic instance — the
 /// substitution flows so `Pair(string, i64)` reports `value` as 8 bytes.
+module "snippet"
+
 import "std/io" { println }
 
 Point :: struct {

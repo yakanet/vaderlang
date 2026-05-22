@@ -5,16 +5,16 @@
   StructDecl     B                    :: B
   StructDecl     C                    :: C
   FnDecl         main                 :: fn() -> i32
-  expr 10:36    StructLitExpr  :: B
-  expr 10:49    FieldExpr      :: i32
-  expr 10:49    IdentExpr      :: A
-  expr 14:36    StructLitExpr  :: C
-  expr 14:49    FieldExpr      :: i32
-  expr 14:49    IdentExpr      :: B
-  expr 18:10    StructLitExpr  :: A
-  expr 19:12    IdentExpr      :: A
-  expr 20:12    FieldExpr      :: i32
-  expr 20:12    IdentExpr      :: C
+  expr 12:36    StructLitExpr  :: B
+  expr 12:49    FieldExpr      :: i32
+  expr 12:49    IdentExpr      :: A
+  expr 16:36    StructLitExpr  :: C
+  expr 16:49    FieldExpr      :: i32
+  expr 16:49    IdentExpr      :: B
+  expr 20:10    StructLitExpr  :: A
+  expr 21:12    IdentExpr      :: A
+  expr 22:12    FieldExpr      :: i32
+  expr 22:12    IdentExpr      :: C
 
 # Diagnostics
-[19:5] error[T3001] type mismatch: expected C, got A
+[21:5] error[T3001] type mismatch: expected C, got A

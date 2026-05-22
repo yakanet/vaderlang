@@ -7,28 +7,28 @@
   FnDecl         preferred            :: fn(UserId) -> i32
   FnDecl         preferred            :: fn(i32) -> i32
   StructDecl     UserId               :: UserId
-  expr 10:38    FieldExpr      :: i32
-  expr 10:38    IdentExpr      :: UserId
-  expr 14:38    BinaryExpr     :: i32
-  expr 14:38    IdentExpr      :: i32
-  expr 14:42    IdentExpr      :: i32
-  expr 15:38    BinaryExpr     :: f64
-  expr 15:38    IdentExpr      :: f64
-  expr 15:42    IdentExpr      :: f64
-  expr 19:41    BinaryExpr     :: i32
-  expr 19:41    IdentExpr      :: i32
-  expr 22:10    StructLitExpr  :: UserId
-  expr 24:10    CallExpr       :: i32
-  expr 24:10    IdentExpr      :: fn(i32) -> i32
-  expr 24:17    IdentExpr      :: UserId
-  expr 25:13    StringLitExpr  :: string
-  expr 25:18    IdentExpr      :: i32
-  expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
-  expr 28:10    CallExpr       :: i32
-  expr 28:10    IdentExpr      :: fn(UserId) -> i32
-  expr 28:20    IdentExpr      :: UserId
-  expr 29:13    StringLitExpr  :: string
-  expr 29:18    IdentExpr      :: i32
-  expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(string) -> void
+  expr 12:38    FieldExpr      :: i32
+  expr 12:38    IdentExpr      :: UserId
+  expr 16:38    BinaryExpr     :: i32
+  expr 16:38    IdentExpr      :: i32
+  expr 16:42    IdentExpr      :: i32
+  expr 17:38    BinaryExpr     :: f64
+  expr 17:38    IdentExpr      :: f64
+  expr 17:42    IdentExpr      :: f64
+  expr 21:41    BinaryExpr     :: i32
+  expr 21:41    IdentExpr      :: i32
+  expr 24:10    StructLitExpr  :: UserId
+  expr 26:10    CallExpr       :: i32
+  expr 26:10    IdentExpr      :: fn(i32) -> i32
+  expr 26:17    IdentExpr      :: UserId
+  expr 27:13    StringLitExpr  :: string
+  expr 27:18    IdentExpr      :: i32
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(string) -> void
+  expr 30:10    CallExpr       :: i32
+  expr 30:10    IdentExpr      :: fn(UserId) -> i32
+  expr 30:20    IdentExpr      :: UserId
+  expr 31:13    StringLitExpr  :: string
+  expr 31:18    IdentExpr      :: i32
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(string) -> void

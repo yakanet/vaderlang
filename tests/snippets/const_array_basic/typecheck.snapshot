@@ -3,12 +3,12 @@
 ## tests/snippets/const_array_basic/_main.vader
   FnDecl         main                 :: fn() -> i32
   FnDecl         read_first           :: fn(const i32[]) -> i32
-  expr 4:12     IdentExpr      :: const i32[]
-  expr 4:12     IndexExpr      :: i32
-  expr 8:12     SeqLitExpr     :: i32[]
-  expr 9:13     StringLitExpr  :: string
-  expr 9:22     CallExpr       :: i32
-  expr 9:22     IdentExpr      :: fn(const i32[]) -> i32
-  expr 9:33     IdentExpr      :: i32[]
-  expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn(string) -> void
+  expr 10:12    SeqLitExpr     :: i32[]
+  expr 11:13    StringLitExpr  :: string
+  expr 11:22    CallExpr       :: i32
+  expr 11:22    IdentExpr      :: fn(const i32[]) -> i32
+  expr 11:33    IdentExpr      :: i32[]
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(string) -> void
+  expr 6:12     IdentExpr      :: const i32[]
+  expr 6:12     IndexExpr      :: i32

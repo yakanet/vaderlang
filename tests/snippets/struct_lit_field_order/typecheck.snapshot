@@ -3,13 +3,13 @@
 ## tests/snippets/struct_lit_field_order/_main.vader
   FnDecl         main                 :: fn() -> i32
   StructDecl     P                    :: P
-  expr 14:10    StructLitExpr  :: P
-  expr 15:13    StringLitExpr  :: string
-  expr 15:18    FieldExpr      :: i32
-  expr 15:18    IdentExpr      :: P
-  expr 15:27    FieldExpr      :: i32
-  expr 15:27    IdentExpr      :: P
-  expr 15:36    FieldExpr      :: i32
-  expr 15:36    IdentExpr      :: P
-  expr 15:5     CallExpr       :: void
-  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 16:10    StructLitExpr  :: P
+  expr 17:13    StringLitExpr  :: string
+  expr 17:18    FieldExpr      :: i32
+  expr 17:18    IdentExpr      :: P
+  expr 17:27    FieldExpr      :: i32
+  expr 17:27    IdentExpr      :: P
+  expr 17:36    FieldExpr      :: i32
+  expr 17:36    IdentExpr      :: P
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(string) -> void

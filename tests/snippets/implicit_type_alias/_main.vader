@@ -6,6 +6,8 @@
 // The const itself produces no runtime slot ; the type-position users
 // resolve through the implicit-alias side-table populated at typecheck.
 
+module "snippet"
+
 Mixed :: i32 | string
 
 classify :: fn(x: Mixed) -> i32 {

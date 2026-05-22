@@ -3,6 +3,8 @@
 // any other shape. Folded to a constant at lower time so a comptime
 // `@assert` can compare without runtime overhead.
 
+module "snippet"
+
 Pair :: struct {
     first: i32
     second: i32

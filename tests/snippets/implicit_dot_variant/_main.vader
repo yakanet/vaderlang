@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // `.Variant` shorthand triggers when the expected type at the call site

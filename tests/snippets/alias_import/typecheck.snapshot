@@ -2,6 +2,6 @@
 
 ## tests/snippets/alias_import/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 4:16     StringLitExpr  :: string
-  expr 4:5      CallExpr       :: void
-  expr 4:5      FieldExpr      :: fn(string) -> void
+  expr 6:16     StringLitExpr  :: string
+  expr 6:5      CallExpr       :: void
+  expr 6:5      FieldExpr      :: fn(string) -> void

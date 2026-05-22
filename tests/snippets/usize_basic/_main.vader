@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 export add :: fn(a: usize, b: usize) -> usize {

@@ -6,29 +6,29 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         middle               :: fn(T) -> Box(T)
   FnDecl         outer                :: fn(T) -> Box(Box(T))
-  expr 10:36    IdentExpr      :: T
-  expr 13:12    StructLitExpr  :: Box(T)
-  expr 13:30    CallExpr       :: T
-  expr 13:30    IdentExpr      :: fn(T) -> T
-  expr 13:36    IdentExpr      :: T
-  expr 17:12    StructLitExpr  :: Box(Box(T))
-  expr 17:35    CallExpr       :: Box(T)
-  expr 17:35    IdentExpr      :: fn(T) -> Box(T)
-  expr 17:42    IdentExpr      :: T
-  expr 21:10    CallExpr       :: Box(Box(i32))
-  expr 21:10    IdentExpr      :: fn(T) -> Box(Box(T))
-  expr 22:10    CallExpr       :: Box(Box(string))
-  expr 22:10    IdentExpr      :: fn(T) -> Box(Box(T))
-  expr 22:16    StringLitExpr  :: string
-  expr 23:13    StringLitExpr  :: string
-  expr 23:16    FieldExpr      :: Box(i32)
-  expr 23:16    FieldExpr      :: i32
-  expr 23:16    IdentExpr      :: Box(Box(i32))
-  expr 23:5     CallExpr       :: void
-  expr 23:5     IdentExpr      :: fn(string) -> void
-  expr 24:13    StringLitExpr  :: string
-  expr 24:16    FieldExpr      :: Box(string)
-  expr 24:16    FieldExpr      :: string
-  expr 24:16    IdentExpr      :: Box(Box(string))
-  expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 12:36    IdentExpr      :: T
+  expr 15:12    StructLitExpr  :: Box(T)
+  expr 15:30    CallExpr       :: T
+  expr 15:30    IdentExpr      :: fn(T) -> T
+  expr 15:36    IdentExpr      :: T
+  expr 19:12    StructLitExpr  :: Box(Box(T))
+  expr 19:35    CallExpr       :: Box(T)
+  expr 19:35    IdentExpr      :: fn(T) -> Box(T)
+  expr 19:42    IdentExpr      :: T
+  expr 23:10    CallExpr       :: Box(Box(i32))
+  expr 23:10    IdentExpr      :: fn(T) -> Box(Box(T))
+  expr 24:10    CallExpr       :: Box(Box(string))
+  expr 24:10    IdentExpr      :: fn(T) -> Box(Box(T))
+  expr 24:16    StringLitExpr  :: string
+  expr 25:13    StringLitExpr  :: string
+  expr 25:16    FieldExpr      :: Box(i32)
+  expr 25:16    FieldExpr      :: i32
+  expr 25:16    IdentExpr      :: Box(Box(i32))
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 26:13    StringLitExpr  :: string
+  expr 26:16    FieldExpr      :: Box(string)
+  expr 26:16    FieldExpr      :: string
+  expr 26:16    IdentExpr      :: Box(Box(string))
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(string) -> void

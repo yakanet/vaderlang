@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Regression: `is T as p` in a match arm used to make `p` a fresh synthetic

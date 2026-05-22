@@ -10,6 +10,8 @@
 // dispatch `iter.fn(...)` on a trait-typed-first-param overload (e.g.
 // `std/iter.filter(it: Iterator(T), pred)`) is now also routable.
 
+module "snippet"
+
 import "std/io" { println }
 import "std/iter" { filter }
 import "std/string" { chars }

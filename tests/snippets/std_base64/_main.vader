@@ -1,6 +1,8 @@
 // std/base64 — RFC 4648 vectors, padding shapes, roundtrip, and the
 // two error paths (bad length, bad character).
 
+module "snippet"
+
 import "std/io" { println }
 import "std/base64" { encode, decode, Base64Error }
 

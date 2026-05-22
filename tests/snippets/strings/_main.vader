@@ -1,3 +1,5 @@
+module "snippet"
+
 export plain :: "hello"
 export escaped :: "a\nb\tc"
 export raw :: r"C:\Users\path"

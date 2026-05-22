@@ -2,6 +2,8 @@
 // materialises the impl member matching the call-site substitution; the
 // lowerer rewrites `x.hash()` into a direct call against the specialised fn.
 
+module "snippet"
+
 import "std/io" { println }
 
 export count_matching :: fn[T: Hash & Equals](items: T[], target: T) -> i32 {

@@ -1,6 +1,8 @@
 // Sprint 4 (b1) acceptance: struct.set on a mutable struct binding.
 // `c.value` is reassigned from 0 to 100 and read back.
 
+module "snippet"
+
 Counter :: struct { value: i32 }
 
 main :: fn() -> i32 {

@@ -5,17 +5,17 @@
   StructDecl     Cat                  :: Cat
   TraitDecl      Greet                :: Greet
   FnDecl         main                 :: fn() -> i32
-  expr 11:61    StringLitExpr  :: string
-  expr 11:66    FieldExpr      :: string
-  expr 11:66    IdentExpr      :: Cat
-  expr 12:61    StringLitExpr  :: string
-  expr 12:66    FieldExpr      :: string
-  expr 12:66    IdentExpr      :: Cat
-  expr 15:10    StructLitExpr  :: Cat
-  expr 15:24    StringLitExpr  :: string
-  expr 17:10    CallExpr       :: string
-  expr 17:10    FieldExpr      :: fn() -> string
-  expr 17:10    IdentExpr      :: Cat
+  expr 13:61    StringLitExpr  :: string
+  expr 13:66    FieldExpr      :: string
+  expr 13:66    IdentExpr      :: Cat
+  expr 14:61    StringLitExpr  :: string
+  expr 14:66    FieldExpr      :: string
+  expr 14:66    IdentExpr      :: Cat
+  expr 17:10    StructLitExpr  :: Cat
+  expr 17:24    StringLitExpr  :: string
+  expr 19:10    CallExpr       :: string
+  expr 19:10    FieldExpr      :: fn() -> string
+  expr 19:10    IdentExpr      :: Cat
 
 # Diagnostics
-[17:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot
+[19:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot

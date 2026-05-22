@@ -1,6 +1,10 @@
 # AST
 {
   "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
   "decls": [
     {
       "kind": "FnDecl",
@@ -68,6 +72,6 @@
 }
 
 # Diagnostics
-[2:12] error[P1003] expected an expression: got `==`
-[2:12] error[P1010] non-associative operator chained: chained ``==``
-[3:13] error[P1003] expected an expression: got `+`
+[4:12] error[P1003] expected an expression: got `==`
+[4:12] error[P1010] non-associative operator chained: chained ``==``
+[5:13] error[P1003] expected an expression: got `+`

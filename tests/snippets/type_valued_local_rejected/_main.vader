@@ -4,6 +4,8 @@
 // and the user got `reached unreachable` at runtime instead of a useful
 // diagnostic.
 
+module "snippet"
+
 main :: fn() -> i32 {
     t: type = i32
     runtime_typed: type = if 1 == 1 { i32 } else { i64 }

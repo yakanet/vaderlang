@@ -4,6 +4,8 @@
 /// native test runner pre-compiles `helper.c` → `helper.o` and links
 /// it into the binary ; the VM target is skipped (user externs have
 /// no VM host-fn registry).
+module "snippet"
+
 import "std/io" { println }
 
 @extern add_i32 :: fn(a: i32, b: i32) -> i32

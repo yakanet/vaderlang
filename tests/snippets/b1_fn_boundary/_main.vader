@@ -4,6 +4,8 @@
 // instead of `vader_box_t`. The roundtrip below also tests that null and
 // non-null variants survive intact across the conversion.
 
+module "snippet"
+
 import "std/io" { println }
 
 Node :: struct {

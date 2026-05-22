@@ -1,5 +1,7 @@
 /// `@type_args(T)` exposes a generic instance's type-args as a `type[]`
 /// literal. Sibling of `@fields(T)` ; non-generic types yield `[]`.
+module "snippet"
+
 import "std/io" { println }
 
 Pair :: struct[K, V] {

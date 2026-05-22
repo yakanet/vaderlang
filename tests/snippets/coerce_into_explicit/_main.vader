@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Explicit form of the `Into(Target)` coercion : `Target(value)`. For

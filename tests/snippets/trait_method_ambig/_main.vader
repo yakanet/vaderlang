@@ -3,6 +3,8 @@
 // T3032. The user has to pick one explicitly (today via direct trait
 // dispatch ; future qualified-call syntax is post-MVP).
 
+module "snippet"
+
 Greet :: trait { greet :: fn(self) -> string }
 Annot :: trait { greet :: fn(self) -> string }
 

@@ -1,3 +1,5 @@
+module "snippet"
+
 export Cat :: struct { name: string }
 export Dog :: struct { name: string }
 export Pet :: Cat | Dog

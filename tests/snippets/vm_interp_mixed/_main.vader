@@ -1,6 +1,8 @@
 // Sprint 4 (b3) acceptance: string interpolation mixing i32 + string.
 // Prints "result: 7 (name=alice age=30)" then returns 0.
 
+module "snippet"
+
 import "std/io" { println }
 
 main :: fn() -> i32 {

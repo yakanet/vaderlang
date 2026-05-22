@@ -3,6 +3,8 @@
 // (declared in std/core), so this call type-checks. The negative case
 // (passing a non-Hash type) would emit T3006 « trait not satisfied ».
 
+module "snippet"
+
 needs_hash :: fn[T: Hash](x: T) -> bool {
     h :: x.hash()
     return h > u64(0)

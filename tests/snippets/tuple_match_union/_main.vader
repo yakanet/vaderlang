@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // `[i32, string] | null` carries a tuple variant alongside null. Matching

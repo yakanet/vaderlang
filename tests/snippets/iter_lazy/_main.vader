@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 import "std/iter" { MapIterator, FilterIterator, TakeIterator, SkipIterator }
 

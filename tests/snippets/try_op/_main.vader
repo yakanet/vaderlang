@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println, read_file }
 
 // Exercise the `?` operator end-to-end: read_file returns string!, the

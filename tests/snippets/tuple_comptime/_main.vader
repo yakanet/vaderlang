@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Comptime tuple values — the comptime VM materialises a Tuple result

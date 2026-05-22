@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Regression: an `if cond { body }` without else used to lower to bytecode

@@ -2,26 +2,26 @@
 
 ## tests/snippets/io_roundtrip/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 11:17    CallExpr       :: Error | string
-  expr 11:17    IdentExpr      :: fn(string) -> Error | string
-  expr 11:27    IdentExpr      :: string
-  expr 12:11    IdentExpr      :: Error | string
-  expr 12:5     MatchExpr      :: void
-  expr 13:22    CallExpr       :: void
-  expr 13:22    IdentExpr      :: fn(string) -> void
-  expr 13:30    StringLitExpr  :: string
-  expr 13:39    IdentExpr      :: string
-  expr 14:22    CallExpr       :: void
-  expr 14:22    IdentExpr      :: fn(string) -> void
-  expr 14:30    StringLitExpr  :: string
-  expr 4:13     StringLitExpr  :: string
-  expr 7:16     IdentExpr      :: string
-  expr 7:22     StringLitExpr  :: string
-  expr 7:5      CallExpr       :: Error | null
-  expr 7:5      IdentExpr      :: fn(string, string) -> Error | null
-  expr 9:13     StringLitExpr  :: string
-  expr 9:24     CallExpr       :: bool
-  expr 9:24     IdentExpr      :: fn(string) -> bool
-  expr 9:31     IdentExpr      :: string
-  expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn(string) -> void
+  expr 11:13    StringLitExpr  :: string
+  expr 11:24    CallExpr       :: bool
+  expr 11:24    IdentExpr      :: fn(string) -> bool
+  expr 11:31    IdentExpr      :: string
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(string) -> void
+  expr 13:17    CallExpr       :: Error | string
+  expr 13:17    IdentExpr      :: fn(string) -> Error | string
+  expr 13:27    IdentExpr      :: string
+  expr 14:11    IdentExpr      :: Error | string
+  expr 14:5     MatchExpr      :: void
+  expr 15:22    CallExpr       :: void
+  expr 15:22    IdentExpr      :: fn(string) -> void
+  expr 15:30    StringLitExpr  :: string
+  expr 15:39    IdentExpr      :: string
+  expr 16:22    CallExpr       :: void
+  expr 16:22    IdentExpr      :: fn(string) -> void
+  expr 16:30    StringLitExpr  :: string
+  expr 6:13     StringLitExpr  :: string
+  expr 9:16     IdentExpr      :: string
+  expr 9:22     StringLitExpr  :: string
+  expr 9:5      CallExpr       :: Error | null
+  expr 9:5      IdentExpr      :: fn(string, string) -> Error | null

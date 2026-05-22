@@ -7,6 +7,8 @@
 //
 // This snippet pins the fix : both `Box`es must round-trip their data
 // through `make_*` + field access without collision.
+module "snippet"
+
 import "std/io" { println }
 import "./mod_a" { make_a }
 import "./mod_b" { make_b }

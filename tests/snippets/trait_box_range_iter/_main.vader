@@ -8,6 +8,8 @@
 // Each case dispatches `step` / `greet` / `doubled` through the per-(trait,
 // method) vtable populated from `mono.implMethodEntries`.
 
+module "snippet"
+
 count :: fn[T](it: Iterator(T)) -> i32 {
     n := 0
     cont := true

@@ -5,6 +5,8 @@
 // a lambda from a parenthesised expression. Single-param lambdas can
 // omit the parens (`x -> x + 1`).
 
+module "snippet"
+
 import "std/io" { println }
 
 call_it :: fn(f: fn(i32) -> i32, x: i32) -> i32 {

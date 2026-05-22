@@ -3,6 +3,8 @@
 // the wildcard sees `i32[] | null` and trying to read `.len()` on it
 // (or pass it to a fn expecting the non-null variant) raises T3001.
 
+module "snippet"
+
 import "std/io" { println }
 
 Bag :: struct {

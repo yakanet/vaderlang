@@ -2,6 +2,8 @@
 // Exercises `builder.new` + `builder.append_str` + `builder.append_display`
 // + `builder.finish` + `call.import println`.
 
+module "snippet"
+
 import "std/io" { println }
 
 main :: fn() -> i32 {

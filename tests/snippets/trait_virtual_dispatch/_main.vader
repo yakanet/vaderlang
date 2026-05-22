@@ -2,6 +2,8 @@
 // `is X -> X_method(box)` cascade over every impl of the trait, picked by the
 // runtime tag carried in the boxed value.
 
+module "snippet"
+
 import "std/io" { println }
 
 export ParseErr :: struct { msg: string }

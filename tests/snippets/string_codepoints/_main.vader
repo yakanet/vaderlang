@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 import "std/string" { byte_len, count_chars, decode_codepoint }
 import "std/utf8" { codepoint_byte_len }

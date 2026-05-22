@@ -3,6 +3,8 @@
 /// body per element with `x` substituted by each element's literal.
 /// Folds `@size_of(t)` to a constant and `f.name` / `f.type` to literals,
 /// so the unrolled body is straight-line constant-laden code.
+module "snippet"
+
 import "std/io" { println }
 
 Pair :: struct[K, V] {

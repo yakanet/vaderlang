@@ -3,6 +3,8 @@
 // `true`. Useful for build-config sanity, generic-instance invariants,
 // and anything else that should be enforced before the program ever runs.
 
+module "snippet"
+
 @assert(2 + 2 == 4)
 @assert(40 + 2 == 42)
 

@@ -24,5 +24,5 @@
   Into(Target)
 
 # Diagnostics
-[11:20] error[C4002] comptime expression requires VM execution: SeqLitExpr
-[14:31] error[C4002] comptime expression requires VM execution: SeqLitExpr
+[13:20] error[C4002] comptime expression requires VM execution: SeqLitExpr
+[16:31] error[C4002] comptime expression requires VM execution: SeqLitExpr

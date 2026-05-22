@@ -25,4 +25,4 @@
     return int(0) :i32
 
 # Diagnostics
-[4:5] error[T3042] cannot mutate an immutable array: cannot mutate `const i32[]` — declared with `const`
+[6:5] error[T3042] cannot mutate an immutable array: cannot mutate `const i32[]` — declared with `const`

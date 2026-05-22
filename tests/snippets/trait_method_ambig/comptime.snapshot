@@ -22,4 +22,4 @@
   Into(Target)
 
 # Diagnostics
-[17:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot
+[19:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot

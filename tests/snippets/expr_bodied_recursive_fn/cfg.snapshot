@@ -37,4 +37,4 @@ fn tests_snippets_expr_bodied_recursive_fn__main_vader$main() -> i32
     return %1
 
 # Diagnostics
-[6:8] error[T3034] recursive expression-bodied function requires an explicit `-> Type` annotation: `fact`
+[8:8] error[T3034] recursive expression-bodied function requires an explicit `-> Type` annotation: `fact`

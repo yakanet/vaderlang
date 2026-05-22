@@ -3,8 +3,8 @@
 ## tests/snippets/vm_struct_mutate/_main.vader
   StructDecl     Counter              :: Counter
   FnDecl         main                 :: fn() -> i32
-  expr 7:10     StructLitExpr  :: Counter
-  expr 8:5      FieldExpr      :: i32
-  expr 8:5      IdentExpr      :: Counter
-  expr 9:12     FieldExpr      :: i32
-  expr 9:12     IdentExpr      :: Counter
+  expr 10:5     FieldExpr      :: i32
+  expr 10:5     IdentExpr      :: Counter
+  expr 11:12    FieldExpr      :: i32
+  expr 11:12    IdentExpr      :: Counter
+  expr 9:10     StructLitExpr  :: Counter

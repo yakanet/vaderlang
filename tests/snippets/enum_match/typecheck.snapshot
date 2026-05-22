@@ -7,102 +7,102 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         same_color           :: fn(Color, Color) -> bool
   EnumDecl       Severity             :: Severity
-  expr 10:24    DotVariantExpr :: Severity
-  expr 10:5     IfExpr         :: void
-  expr 10:8     BinaryExpr     :: bool
-  expr 10:8     IdentExpr      :: i32
-  expr 11:12    DotVariantExpr :: Severity
-  expr 16:11    IdentExpr      :: Color
-  expr 16:5     MatchExpr      :: string
-  expr 17:19    StringLitExpr  :: string
-  expr 18:19    StringLitExpr  :: string
+  expr 11:23    DotVariantExpr :: Severity
+  expr 11:5     IfExpr         :: void
+  expr 11:8     BinaryExpr     :: bool
+  expr 11:8     IdentExpr      :: i32
+  expr 12:24    DotVariantExpr :: Severity
+  expr 12:5     IfExpr         :: void
+  expr 12:8     BinaryExpr     :: bool
+  expr 12:8     IdentExpr      :: i32
+  expr 13:12    DotVariantExpr :: Severity
+  expr 18:11    IdentExpr      :: Color
+  expr 18:5     MatchExpr      :: string
   expr 19:19    StringLitExpr  :: string
-  expr 25:10    IdentExpr      :: Color
-  expr 25:5     BinaryExpr     :: bool
-  expr 25:5     IdentExpr      :: Color
-  expr 30:16    DotVariantExpr :: Color
-  expr 31:13    CallExpr       :: string
-  expr 31:13    IdentExpr      :: fn(Color) -> string
-  expr 31:19    IdentExpr      :: Color
-  expr 31:5     CallExpr       :: void
-  expr 31:5     IdentExpr      :: fn(string) -> void
-  expr 32:13    CallExpr       :: string
-  expr 32:13    IdentExpr      :: fn(Color) -> string
-  expr 32:19    DotVariantExpr :: Color
-  expr 32:5     CallExpr       :: void
-  expr 32:5     IdentExpr      :: fn(string) -> void
+  expr 20:19    StringLitExpr  :: string
+  expr 21:19    StringLitExpr  :: string
+  expr 27:10    IdentExpr      :: Color
+  expr 27:5     BinaryExpr     :: bool
+  expr 27:5     IdentExpr      :: Color
+  expr 32:16    DotVariantExpr :: Color
   expr 33:13    CallExpr       :: string
   expr 33:13    IdentExpr      :: fn(Color) -> string
-  expr 33:19    DotVariantExpr :: Color
+  expr 33:19    IdentExpr      :: Color
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(string) -> void
-  expr 36:13    StringLitExpr  :: string
-  expr 36:16    CallExpr       :: bool
-  expr 36:16    IdentExpr      :: fn(Color, Color) -> bool
-  expr 36:27    DotVariantExpr :: Color
-  expr 36:33    DotVariantExpr :: Color
-  expr 36:5     CallExpr       :: void
-  expr 36:5     IdentExpr      :: fn(string) -> void
-  expr 37:13    StringLitExpr  :: string
-  expr 37:16    CallExpr       :: bool
-  expr 37:16    IdentExpr      :: fn(Color, Color) -> bool
-  expr 37:27    DotVariantExpr :: Color
-  expr 37:33    DotVariantExpr :: Color
-  expr 37:5     CallExpr       :: void
-  expr 37:5     IdentExpr      :: fn(string) -> void
-  expr 40:13    StringLitExpr  :: string
-  expr 40:16    BinaryExpr     :: bool
-  expr 40:16    IdentExpr      :: Color
-  expr 40:21    DotVariantExpr :: Color
-  expr 40:5     CallExpr       :: void
-  expr 40:5     IdentExpr      :: fn(string) -> void
-  expr 41:13    StringLitExpr  :: string
-  expr 41:16    BinaryExpr     :: bool
-  expr 41:16    IdentExpr      :: Color
-  expr 41:21    DotVariantExpr :: Color
-  expr 41:5     CallExpr       :: void
-  expr 41:5     IdentExpr      :: fn(string) -> void
-  expr 44:10    CallExpr       :: Severity
-  expr 44:10    IdentExpr      :: fn(i32) -> Severity
-  expr 44:19    UnaryExpr      :: i32
-  expr 45:11    IdentExpr      :: Severity
-  expr 45:5     MatchExpr      :: void
-  expr 46:21    CallExpr       :: void
-  expr 46:21    IdentExpr      :: fn(string) -> void
-  expr 46:29    StringLitExpr  :: string
-  expr 47:21    CallExpr       :: void
-  expr 47:21    IdentExpr      :: fn(string) -> void
-  expr 47:29    StringLitExpr  :: string
+  expr 34:13    CallExpr       :: string
+  expr 34:13    IdentExpr      :: fn(Color) -> string
+  expr 34:19    DotVariantExpr :: Color
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(string) -> void
+  expr 35:13    CallExpr       :: string
+  expr 35:13    IdentExpr      :: fn(Color) -> string
+  expr 35:19    DotVariantExpr :: Color
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(string) -> void
+  expr 38:13    StringLitExpr  :: string
+  expr 38:16    CallExpr       :: bool
+  expr 38:16    IdentExpr      :: fn(Color, Color) -> bool
+  expr 38:27    DotVariantExpr :: Color
+  expr 38:33    DotVariantExpr :: Color
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(string) -> void
+  expr 39:13    StringLitExpr  :: string
+  expr 39:16    CallExpr       :: bool
+  expr 39:16    IdentExpr      :: fn(Color, Color) -> bool
+  expr 39:27    DotVariantExpr :: Color
+  expr 39:33    DotVariantExpr :: Color
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(string) -> void
+  expr 42:13    StringLitExpr  :: string
+  expr 42:16    BinaryExpr     :: bool
+  expr 42:16    IdentExpr      :: Color
+  expr 42:21    DotVariantExpr :: Color
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(string) -> void
+  expr 43:13    StringLitExpr  :: string
+  expr 43:16    BinaryExpr     :: bool
+  expr 43:16    IdentExpr      :: Color
+  expr 43:21    DotVariantExpr :: Color
+  expr 43:5     CallExpr       :: void
+  expr 43:5     IdentExpr      :: fn(string) -> void
+  expr 46:10    CallExpr       :: Severity
+  expr 46:10    IdentExpr      :: fn(i32) -> Severity
+  expr 46:19    UnaryExpr      :: i32
+  expr 47:11    IdentExpr      :: Severity
+  expr 47:5     MatchExpr      :: void
   expr 48:21    CallExpr       :: void
   expr 48:21    IdentExpr      :: fn(string) -> void
   expr 48:29    StringLitExpr  :: string
-  expr 51:11    CallExpr       :: Severity
-  expr 51:11    IdentExpr      :: fn(i32) -> Severity
-  expr 52:11    IdentExpr      :: Severity
-  expr 52:5     MatchExpr      :: void
-  expr 53:21    CallExpr       :: void
-  expr 53:21    IdentExpr      :: fn(string) -> void
-  expr 53:29    StringLitExpr  :: string
-  expr 54:21    CallExpr       :: void
-  expr 54:21    IdentExpr      :: fn(string) -> void
-  expr 54:29    StringLitExpr  :: string
+  expr 49:21    CallExpr       :: void
+  expr 49:21    IdentExpr      :: fn(string) -> void
+  expr 49:29    StringLitExpr  :: string
+  expr 50:21    CallExpr       :: void
+  expr 50:21    IdentExpr      :: fn(string) -> void
+  expr 50:29    StringLitExpr  :: string
+  expr 53:11    CallExpr       :: Severity
+  expr 53:11    IdentExpr      :: fn(i32) -> Severity
+  expr 54:11    IdentExpr      :: Severity
+  expr 54:5     MatchExpr      :: void
   expr 55:21    CallExpr       :: void
   expr 55:21    IdentExpr      :: fn(string) -> void
   expr 55:29    StringLitExpr  :: string
-  expr 58:11    CallExpr       :: Severity
-  expr 58:11    IdentExpr      :: fn(i32) -> Severity
-  expr 59:11    IdentExpr      :: Severity
-  expr 59:5     MatchExpr      :: void
-  expr 60:21    CallExpr       :: void
-  expr 60:21    IdentExpr      :: fn(string) -> void
-  expr 60:29    StringLitExpr  :: string
-  expr 61:21    CallExpr       :: void
-  expr 61:21    IdentExpr      :: fn(string) -> void
-  expr 61:29    StringLitExpr  :: string
+  expr 56:21    CallExpr       :: void
+  expr 56:21    IdentExpr      :: fn(string) -> void
+  expr 56:29    StringLitExpr  :: string
+  expr 57:21    CallExpr       :: void
+  expr 57:21    IdentExpr      :: fn(string) -> void
+  expr 57:29    StringLitExpr  :: string
+  expr 60:11    CallExpr       :: Severity
+  expr 60:11    IdentExpr      :: fn(i32) -> Severity
+  expr 61:11    IdentExpr      :: Severity
+  expr 61:5     MatchExpr      :: void
   expr 62:21    CallExpr       :: void
   expr 62:21    IdentExpr      :: fn(string) -> void
   expr 62:29    StringLitExpr  :: string
-  expr 9:23     DotVariantExpr :: Severity
-  expr 9:5      IfExpr         :: void
-  expr 9:8      BinaryExpr     :: bool
-  expr 9:8      IdentExpr      :: i32
+  expr 63:21    CallExpr       :: void
+  expr 63:21    IdentExpr      :: fn(string) -> void
+  expr 63:29    StringLitExpr  :: string
+  expr 64:21    CallExpr       :: void
+  expr 64:21    IdentExpr      :: fn(string) -> void
+  expr 64:29    StringLitExpr  :: string

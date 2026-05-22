@@ -2,7 +2,7 @@
 
 ## tests/snippets/exhaustive_union/_main.vader
   FnDecl         classify             :: fn(bool | i32) -> string
-  expr 2:12     MatchExpr      :: string
-  expr 2:18     IdentExpr      :: bool | i32
-  expr 3:20     StringLitExpr  :: string
-  expr 4:20     StringLitExpr  :: string
+  expr 4:12     MatchExpr      :: string
+  expr 4:18     IdentExpr      :: bool | i32
+  expr 5:20     StringLitExpr  :: string
+  expr 6:20     StringLitExpr  :: string

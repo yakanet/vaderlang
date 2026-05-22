@@ -3,6 +3,8 @@
 // The bound type is picked from the first concrete operand, so a FreeInt
 // literal on the left adopts the upper bound's width.
 
+module "snippet"
+
 import "std/io" { println }
 
 main :: fn() -> i32 {

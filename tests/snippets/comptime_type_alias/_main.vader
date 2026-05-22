@@ -3,6 +3,8 @@
 // resolved by the typechecker (Layer 4 milestone B.0). Downstream uses
 // of `t` in type-demanding slots resolve through `constTypeAliases`.
 
+module "snippet"
+
 import "std/io" { println }
 
 @comptime byte_int   :: i32

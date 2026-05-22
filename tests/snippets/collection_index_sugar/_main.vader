@@ -2,6 +2,8 @@
 // `m[k]`, `m[k] = v`, `k in m` dispatch through the trait impls in
 // `std/collections` ; no manual `put` / `get` / `contains_key` import needed.
 
+module "snippet"
+
 import "std/io" { println }
 import "std/collections" { MutableMap, MutableSet, add }
 

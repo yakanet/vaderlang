@@ -4,17 +4,17 @@
   FnDecl         double               :: fn(i32) -> i32
   FnDecl         inc                  :: fn(i32) -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 10:11    SeqLitExpr     :: fn(i32) -> i32[]
-  expr 10:12    IdentExpr      :: fn(i32) -> i32
-  expr 10:17    IdentExpr      :: fn(i32) -> i32
-  expr 11:12    BinaryExpr     :: i32
-  expr 11:12    CallExpr       :: i32
-  expr 11:12    IdentExpr      :: fn(i32) -> i32[]
-  expr 11:12    IndexExpr      :: fn(i32) -> i32
-  expr 11:23    CallExpr       :: i32
-  expr 11:23    IdentExpr      :: fn(i32) -> i32[]
-  expr 11:23    IndexExpr      :: fn(i32) -> i32
-  expr 2:12     BinaryExpr     :: i32
-  expr 2:12     IdentExpr      :: i32
-  expr 6:12     BinaryExpr     :: i32
-  expr 6:12     IdentExpr      :: i32
+  expr 12:11    SeqLitExpr     :: fn(i32) -> i32[]
+  expr 12:12    IdentExpr      :: fn(i32) -> i32
+  expr 12:17    IdentExpr      :: fn(i32) -> i32
+  expr 13:12    BinaryExpr     :: i32
+  expr 13:12    CallExpr       :: i32
+  expr 13:12    IdentExpr      :: fn(i32) -> i32[]
+  expr 13:12    IndexExpr      :: fn(i32) -> i32
+  expr 13:23    CallExpr       :: i32
+  expr 13:23    IdentExpr      :: fn(i32) -> i32[]
+  expr 13:23    IndexExpr      :: fn(i32) -> i32
+  expr 4:12     BinaryExpr     :: i32
+  expr 4:12     IdentExpr      :: i32
+  expr 8:12     BinaryExpr     :: i32
+  expr 8:12     IdentExpr      :: i32

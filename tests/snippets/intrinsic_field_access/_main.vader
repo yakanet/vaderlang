@@ -5,6 +5,8 @@
 /// the Layer 6 reflection loop — derive macros (`to_string`, `eq`,
 /// `json_encode`, …) materialise as N copies of the body with each
 /// field substituted in.
+module "snippet"
+
 import "std/io" { println }
 
 User :: struct {

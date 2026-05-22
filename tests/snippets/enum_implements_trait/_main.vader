@@ -3,6 +3,8 @@
 // the lower-side guard distinguishing `EnumName.Variant` from
 // `enum_value.method` on the same dotted-target shape.
 
+module "snippet"
+
 import "std/io" { println }
 
 Direction :: enum { North, East, South, West }

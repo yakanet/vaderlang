@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 import "std/string" { chars, byte_len }
 

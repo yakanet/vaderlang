@@ -3,6 +3,8 @@
 // fns (the inferrer can't bind the return type from a recursive call
 // site alone) and is otherwise a free way to pin a public signature.
 
+module "snippet"
+
 export square :: fn(x: i32) -> i32 = x * x
 
 main :: fn() -> i32 {

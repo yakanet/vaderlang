@@ -5,6 +5,8 @@
 // to a plain `x = x op v` upstream so the single check covers every
 // form.
 
+module "snippet"
+
 main :: fn() -> i32 {
     x :: 42
     x = 100        // T3041 — bare reassignment

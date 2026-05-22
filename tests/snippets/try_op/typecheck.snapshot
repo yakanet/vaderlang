@@ -4,25 +4,25 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         read_or_default      :: fn(string) -> Error | string
   FnDecl         show                 :: fn(Error | string) -> void
-  expr 10:11    IdentExpr      :: Error | string
-  expr 10:5     MatchExpr      :: void
-  expr 11:22    CallExpr       :: void
-  expr 11:22    IdentExpr      :: fn(string) -> void
-  expr 11:30    IdentExpr      :: string
-  expr 12:22    CallExpr       :: void
-  expr 12:22    IdentExpr      :: fn(string) -> void
-  expr 12:30    StringLitExpr  :: string
-  expr 17:10    CallExpr       :: Error | string
-  expr 17:10    IdentExpr      :: fn(string) -> Error | string
-  expr 17:26    StringLitExpr  :: string
-  expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(Error | string) -> void
-  expr 18:10    CallExpr       :: Error | string
-  expr 18:10    IdentExpr      :: fn(string) -> Error | string
-  expr 18:26    StringLitExpr  :: string
-  expr 18:5     CallExpr       :: void
-  expr 18:5     IdentExpr      :: fn(Error | string) -> void
-  expr 6:12     CallExpr       :: Error | string
-  expr 6:12     IdentExpr      :: fn(string) -> Error | string
-  expr 6:12     TryExpr        :: string
-  expr 6:22     IdentExpr      :: string
+  expr 12:11    IdentExpr      :: Error | string
+  expr 12:5     MatchExpr      :: void
+  expr 13:22    CallExpr       :: void
+  expr 13:22    IdentExpr      :: fn(string) -> void
+  expr 13:30    IdentExpr      :: string
+  expr 14:22    CallExpr       :: void
+  expr 14:22    IdentExpr      :: fn(string) -> void
+  expr 14:30    StringLitExpr  :: string
+  expr 19:10    CallExpr       :: Error | string
+  expr 19:10    IdentExpr      :: fn(string) -> Error | string
+  expr 19:26    StringLitExpr  :: string
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(Error | string) -> void
+  expr 20:10    CallExpr       :: Error | string
+  expr 20:10    IdentExpr      :: fn(string) -> Error | string
+  expr 20:26    StringLitExpr  :: string
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(Error | string) -> void
+  expr 8:12     CallExpr       :: Error | string
+  expr 8:12     IdentExpr      :: fn(string) -> Error | string
+  expr 8:12     TryExpr        :: string
+  expr 8:22     IdentExpr      :: string

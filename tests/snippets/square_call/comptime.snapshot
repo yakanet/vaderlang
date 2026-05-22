@@ -22,4 +22,4 @@
   Into(Target)
 
 # Diagnostics
-[6:16] error[C4002] comptime expression requires VM execution: CallExpr
+[8:16] error[C4002] comptime expression requires VM execution: CallExpr

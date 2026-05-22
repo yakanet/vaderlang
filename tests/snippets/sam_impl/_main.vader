@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Arrow form: corps mono-expression. Le compilateur synthétise

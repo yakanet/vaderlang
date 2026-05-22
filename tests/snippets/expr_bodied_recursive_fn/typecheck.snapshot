@@ -3,17 +3,17 @@
 ## tests/snippets/expr_bodied_recursive_fn/_main.vader
   FnDecl         fact                 :: fn(i32) -> ?
   FnDecl         main                 :: fn() -> i32
-  expr 6:29     IfExpr         :: ?
-  expr 6:32     BinaryExpr     :: bool
-  expr 6:32     IdentExpr      :: i32
-  expr 6:52     BinaryExpr     :: ?
-  expr 6:52     IdentExpr      :: i32
-  expr 6:56     CallExpr       :: ?
-  expr 6:56     IdentExpr      :: fn(i32) -> ?
-  expr 6:61     BinaryExpr     :: i32
-  expr 6:61     IdentExpr      :: i32
-  expr 9:12     CallExpr       :: ?
-  expr 9:12     IdentExpr      :: fn(i32) -> ?
+  expr 11:12    CallExpr       :: ?
+  expr 11:12    IdentExpr      :: fn(i32) -> ?
+  expr 8:29     IfExpr         :: ?
+  expr 8:32     BinaryExpr     :: bool
+  expr 8:32     IdentExpr      :: i32
+  expr 8:52     BinaryExpr     :: ?
+  expr 8:52     IdentExpr      :: i32
+  expr 8:56     CallExpr       :: ?
+  expr 8:56     IdentExpr      :: fn(i32) -> ?
+  expr 8:61     BinaryExpr     :: i32
+  expr 8:61     IdentExpr      :: i32
 
 # Diagnostics
-[6:8] error[T3034] recursive expression-bodied function requires an explicit `-> Type` annotation: `fact`
+[8:8] error[T3034] recursive expression-bodied function requires an explicit `-> Type` annotation: `fact`

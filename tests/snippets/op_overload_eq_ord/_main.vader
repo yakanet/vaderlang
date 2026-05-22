@@ -7,6 +7,8 @@
 // `<` / `<=` / `>` / `>=` route to `Comparable::compare` ; the lowerer
 // rewrites the comparison into `compare(a, b) <op> 0` using primitive i32 ops.
 
+module "snippet"
+
 import "std/io" { println }
 
 Money :: struct { amount: i32 }

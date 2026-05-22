@@ -2,6 +2,8 @@
 // parser into `lhs = lhs <op> rhs` so user-type operator overload dispatch
 // is reused without a parallel code path.
 
+module "snippet"
+
 import "std/io" { println }
 
 Vec :: struct { x: i32, y: i32 }

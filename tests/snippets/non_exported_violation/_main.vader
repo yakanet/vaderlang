@@ -1,3 +1,5 @@
+module "snippet"
+
 import "./lib" { secret_helper }
 
 main :: fn() -> i32 {

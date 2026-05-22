@@ -5,25 +5,25 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         new_helper           :: fn(i32) -> i32
   FnDecl         old_helper           :: fn(i32) -> i32
-  expr 12:12    BinaryExpr     :: i32
-  expr 12:12    IdentExpr      :: i32
-  expr 19:10    CallExpr       :: i32
-  expr 19:10    IdentExpr      :: fn(i32) -> i32
-  expr 19:21    IdentExpr      :: i32
-  expr 20:10    CallExpr       :: i32
-  expr 20:10    IdentExpr      :: fn(i32) -> i32
+  expr 10:12    BinaryExpr     :: i32
+  expr 10:12    IdentExpr      :: i32
+  expr 14:12    BinaryExpr     :: i32
+  expr 14:12    IdentExpr      :: i32
   expr 21:10    CallExpr       :: i32
   expr 21:10    IdentExpr      :: fn(i32) -> i32
-  expr 22:13    StringLitExpr  :: string
-  expr 22:16    IdentExpr      :: i32
-  expr 22:21    IdentExpr      :: i32
-  expr 22:26    IdentExpr      :: i32
-  expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(string) -> void
-  expr 8:12     BinaryExpr     :: i32
-  expr 8:12     IdentExpr      :: i32
+  expr 21:21    IdentExpr      :: i32
+  expr 22:10    CallExpr       :: i32
+  expr 22:10    IdentExpr      :: fn(i32) -> i32
+  expr 23:10    CallExpr       :: i32
+  expr 23:10    IdentExpr      :: fn(i32) -> i32
+  expr 24:13    StringLitExpr  :: string
+  expr 24:16    IdentExpr      :: i32
+  expr 24:21    IdentExpr      :: i32
+  expr 24:26    IdentExpr      :: i32
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(string) -> void
 
 # Diagnostics
-[19:10] warning[W0001] use of deprecated declaration: `old_helper`: use new_helper instead
-[19:21] warning[W0001] use of deprecated declaration: `KING`: KING is too dramatic, prefer THE_BEST
 [21:10] warning[W0001] use of deprecated declaration: `old_helper`: use new_helper instead
+[21:21] warning[W0001] use of deprecated declaration: `KING`: KING is too dramatic, prefer THE_BEST
+[23:10] warning[W0001] use of deprecated declaration: `old_helper`: use new_helper instead

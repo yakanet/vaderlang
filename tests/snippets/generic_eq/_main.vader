@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 export are_eq :: fn[T](a: T, b: T) -> bool {

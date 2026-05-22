@@ -2,6 +2,8 @@
 // Layer 6 of the type-first design ; values are folded to constants at lower
 // time so the runtime sees plain literals.
 
+module "snippet"
+
 main :: fn() -> i32 {
     s8   :: @size_of(i8)
     s32  :: @size_of(i32)

@@ -2,6 +2,6 @@
 
 ## tests/snippets/interp_display/_main.vader
   FnDecl         greet                :: fn(string, i32) -> string
-  expr 2:12     StringLitExpr  :: string
-  expr 2:22     IdentExpr      :: string
-  expr 2:39     IdentExpr      :: i32
+  expr 4:12     StringLitExpr  :: string
+  expr 4:22     IdentExpr      :: string
+  expr 4:39     IdentExpr      :: i32

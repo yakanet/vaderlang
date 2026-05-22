@@ -1,3 +1,5 @@
+module "snippet"
+
 @comptime
 export GREETING :: "Hello, ${name()}!"
 

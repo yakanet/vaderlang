@@ -4,8 +4,8 @@
   StructDecl     Foo                  :: Foo
   FnDecl         main                 :: fn() -> i32
   TraitDecl      TwoFn                :: TwoFn
-  expr 14:39    FieldExpr      :: i32
-  expr 14:39    IdentExpr      :: Foo
+  expr 16:39    FieldExpr      :: i32
+  expr 16:39    IdentExpr      :: Foo
 
 # Diagnostics
-[13:16] error[T3036] impl block missing required trait method: `TwoFn` requires method `second` — not provided in this impl block
+[15:16] error[T3036] impl block missing required trait method: `TwoFn` requires method `second` — not provided in this impl block

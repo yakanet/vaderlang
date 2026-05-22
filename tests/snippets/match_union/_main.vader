@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 export describe :: fn(x: i32 | string | null) -> string {

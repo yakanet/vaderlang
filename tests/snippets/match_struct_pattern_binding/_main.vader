@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Regression: `is P { x: 10, y }` introduces `y` as a binding for the field

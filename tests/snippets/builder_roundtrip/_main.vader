@@ -17,6 +17,8 @@
 // ops, locals, direct calls between functions, string-builder + display
 // intrinsics for the printed integer, and an import dispatch.
 
+module "snippet"
+
 import "std/io" { println }
 op :: import "vader/vm/op"
 import "vader/vm/builder" {

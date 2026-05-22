@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 import "std/iter" { map, filter, fold, sum, take, skip, slice }
 

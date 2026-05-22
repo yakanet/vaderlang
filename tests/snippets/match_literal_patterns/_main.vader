@@ -5,6 +5,8 @@
 // `LoweredBinary { op: "eq" }` predicate per arm — same primitive
 // comparison the user would write by hand with `if c == '>'` etc.
 
+module "snippet"
+
 import "std/io" { println }
 
 // Char scrutinee — the BF compiler in `examples/brainfuck.vader` is

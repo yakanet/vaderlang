@@ -5,6 +5,8 @@
 // every numeric primitive, and `(5).add(7)` shares the same path as
 // `5 + 7`.
 
+module "snippet"
+
 double :: fn[T: Add](x: T) -> T = x.add(x)
 
 triple :: fn[T: Add](x: T) -> T = x.add(x).add(x)

@@ -2,13 +2,13 @@
 
 ## tests/snippets/vm_for/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 11:12    IdentExpr      :: i32
-  expr 7:9      BinaryExpr     :: bool
-  expr 7:9      IdentExpr      :: i32
-  expr 8:15     BinaryExpr     :: i32
-  expr 8:15     IdentExpr      :: i32
-  expr 8:21     IdentExpr      :: i32
-  expr 8:9      IdentExpr      :: i32
-  expr 9:13     BinaryExpr     :: i32
-  expr 9:13     IdentExpr      :: i32
+  expr 10:15    BinaryExpr     :: i32
+  expr 10:15    IdentExpr      :: i32
+  expr 10:21    IdentExpr      :: i32
+  expr 10:9     IdentExpr      :: i32
+  expr 11:13    BinaryExpr     :: i32
+  expr 11:13    IdentExpr      :: i32
+  expr 11:9     IdentExpr      :: i32
+  expr 13:12    IdentExpr      :: i32
+  expr 9:9      BinaryExpr     :: bool
   expr 9:9      IdentExpr      :: i32

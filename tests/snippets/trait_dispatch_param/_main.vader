@@ -1,6 +1,8 @@
 // Trait-method dispatch on a bounded type param: `fn[T: Hash](x: T)`.
 // `x.hash()` resolves at mono time to the concrete type's `hash` impl.
 
+module "snippet"
+
 export hash_twice :: fn[T: Hash](x: T) -> u64 {
     return x.hash() + x.hash()
 }

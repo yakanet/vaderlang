@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Arity 3 and 4 tuples — confirms field access via `.0` / `.1` / `.2` /

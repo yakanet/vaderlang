@@ -29,4 +29,4 @@ fn 2 std_io$println$vt (string) -> void
 end
 
 # Diagnostics
-[5:5] error[R2019] `void` is reserved and cannot be used as an identifier: `void`
+[7:5] error[R2019] `void` is reserved and cannot be used as an identifier: `void`

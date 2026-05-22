@@ -4,6 +4,8 @@
 // automatic bound enforcement of `where T: Trait` clauses (Layer 7e).
 
 // Positive cases — std/core wires these impls explicitly.
+module "snippet"
+
 @assert(@satisfies(string, Add),  "string implements Add (concat)")
 @assert(@satisfies(string, Hash), "string implements Hash")
 @assert(@satisfies(i32, Hash),    "i32 implements Hash")

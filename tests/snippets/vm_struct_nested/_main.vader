@@ -2,6 +2,8 @@
 // Exercises the `Value[]` self-reference inside `StructVal` — fields
 // can themselves be `StructVal`s. `10 + 32 = 42`.
 
+module "snippet"
+
 Inner :: struct { v: i32 }
 Outer :: struct { lhs: Inner, rhs: Inner }
 

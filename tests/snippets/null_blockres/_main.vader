@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Regression: when an if/else block has type `null`, the C emitter must

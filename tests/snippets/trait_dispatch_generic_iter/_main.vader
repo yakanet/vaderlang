@@ -10,6 +10,8 @@
 // match would reject `is Yield(i32)` arms because `step` would be typed as
 // returning `Yield($T) | null`.
 
+module "snippet"
+
 import "std/io" { println }
 
 export Repeat :: struct[T] {

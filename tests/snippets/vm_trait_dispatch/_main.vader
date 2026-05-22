@@ -2,6 +2,8 @@
 // that implement a trait (via `T implements Trait { … }`), including generic
 // monomorphised structs.  This exercises the VM impl-table path.
 
+module "snippet"
+
 export Printable :: trait {
     label :: fn(self) -> string
 }

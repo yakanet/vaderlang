@@ -4,9 +4,9 @@
   ConstDecl      ANSWER               :: i32
   ConstDecl      GREETING             :: string
   FnDecl         main                 :: fn() -> i32
-  expr 11:12    IdentExpr      :: i32
-  expr 5:19     BinaryExpr     :: {integer}
-  expr 5:19     BinaryExpr     :: {integer}
-  expr 8:20     BinaryExpr     :: string
-  expr 8:20     StringLitExpr  :: string
-  expr 8:32     StringLitExpr  :: string
+  expr 10:20    BinaryExpr     :: string
+  expr 10:20    StringLitExpr  :: string
+  expr 10:32    StringLitExpr  :: string
+  expr 13:12    IdentExpr      :: i32
+  expr 7:19     BinaryExpr     :: {integer}
+  expr 7:19     BinaryExpr     :: {integer}

@@ -1,6 +1,8 @@
 // Sprint 4 (b3) acceptance: string interpolation inside a loop + i32 calc.
 // Prints `i=0 sum=0` ... `i=4 sum=10`, returns sum=10.
 
+module "snippet"
+
 import "std/io" { println }
 
 main :: fn() -> i32 {

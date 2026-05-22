@@ -8,6 +8,8 @@
 /// Sized so the natively compiled binary takes ~100-200 ms on a 2026-era
 /// laptop ; the VM run takes a few seconds.
 
+module "main"
+
 import "std/io" { println }
 
 Node :: struct {

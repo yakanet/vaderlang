@@ -3,13 +3,13 @@
 ## tests/snippets/closure_callback/_main.vader
   FnDecl         apply                :: fn(fn(i32) -> i32, i32) -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 10:12    CallExpr       :: i32
-  expr 10:12    IdentExpr      :: fn(fn(i32) -> i32, i32) -> i32
-  expr 10:18    IdentExpr      :: fn(i32) -> i32
-  expr 2:12     CallExpr       :: i32
-  expr 2:12     IdentExpr      :: fn(i32) -> i32
-  expr 2:14     IdentExpr      :: i32
-  expr 7:15     LambdaExpr     :: fn(i32) -> i32
-  expr 8:16     BinaryExpr     :: i32
-  expr 8:16     IdentExpr      :: i32
-  expr 8:20     IdentExpr      :: i32
+  expr 10:16    BinaryExpr     :: i32
+  expr 10:16    IdentExpr      :: i32
+  expr 10:20    IdentExpr      :: i32
+  expr 12:12    CallExpr       :: i32
+  expr 12:12    IdentExpr      :: fn(fn(i32) -> i32, i32) -> i32
+  expr 12:18    IdentExpr      :: fn(i32) -> i32
+  expr 4:12     CallExpr       :: i32
+  expr 4:12     IdentExpr      :: fn(i32) -> i32
+  expr 4:14     IdentExpr      :: i32
+  expr 9:15     LambdaExpr     :: fn(i32) -> i32

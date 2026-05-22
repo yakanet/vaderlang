@@ -11,6 +11,8 @@
 // expressions (`if`/`match`/`block`) reject postfix `[ … ]` and
 // `( … )` chaining ; parens force the form when really wanted.
 
+module "snippet"
+
 import "std/io" { println }
 
 make_pair :: fn(ok: bool) -> [i32, i32] | null {

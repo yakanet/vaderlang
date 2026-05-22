@@ -1,6 +1,10 @@
 # AST
 {
   "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
   "decls": [
     {
       "kind": "ImportDecl",
@@ -120,7 +124,7 @@
             "label": null,
             "form": {
               "kind": "in",
-              "binding": "__for_9_5",
+              "binding": "__for_11_5",
               "iter": {
                 "kind": "IdentExpr",
                 "name": "pairs"
@@ -148,7 +152,7 @@
                   "type": null,
                   "value": {
                     "kind": "IdentExpr",
-                    "name": "__for_9_5"
+                    "name": "__for_11_5"
                   }
                 }
               ],

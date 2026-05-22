@@ -3,6 +3,6 @@
 ## tests/snippets/expr_bodied_mixed_form/_main.vader
   FnDecl         main                 :: fn() -> i32
   FnDecl         square               :: fn(i32) -> i32
-  expr 6:38     BinaryExpr     :: i32
-  expr 6:38     IdentExpr      :: i32
-  expr 6:42     IdentExpr      :: i32
+  expr 8:38     BinaryExpr     :: i32
+  expr 8:38     IdentExpr      :: i32
+  expr 8:42     IdentExpr      :: i32

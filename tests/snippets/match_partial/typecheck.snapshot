@@ -4,22 +4,22 @@
   EnumDecl       Day                  :: Day
   FnDecl         main                 :: fn() -> i32
   FnDecl         weekend_only         :: fn(Day) -> string
-  expr 10:21    MatchExpr      :: string
-  expr 10:27    IdentExpr      :: Day
-  expr 11:22    StringLitExpr  :: string
-  expr 12:22    StringLitExpr  :: string
+  expr 12:21    MatchExpr      :: string
+  expr 12:27    IdentExpr      :: Day
   expr 13:22    StringLitExpr  :: string
   expr 14:22    StringLitExpr  :: string
-  expr 15:23    StringLitExpr  :: string
+  expr 15:22    StringLitExpr  :: string
   expr 16:22    StringLitExpr  :: string
-  expr 17:22    StringLitExpr  :: string
-  expr 22:13    CallExpr       :: string
-  expr 22:13    IdentExpr      :: fn(Day) -> string
-  expr 22:26    DotVariantExpr :: Day
-  expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(string) -> void
-  expr 23:13    CallExpr       :: string
-  expr 23:13    IdentExpr      :: fn(Day) -> string
-  expr 23:26    DotVariantExpr :: Day
-  expr 23:5     CallExpr       :: void
-  expr 23:5     IdentExpr      :: fn(string) -> void
+  expr 17:23    StringLitExpr  :: string
+  expr 18:22    StringLitExpr  :: string
+  expr 19:22    StringLitExpr  :: string
+  expr 24:13    CallExpr       :: string
+  expr 24:13    IdentExpr      :: fn(Day) -> string
+  expr 24:26    DotVariantExpr :: Day
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 25:13    CallExpr       :: string
+  expr 25:13    IdentExpr      :: fn(Day) -> string
+  expr 25:26    DotVariantExpr :: Day
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(string) -> void

@@ -4,57 +4,57 @@
   FnDecl         main                 :: fn() -> i32
   StructDecl     Stack                :: Stack(T)
   TraitDecl      Stackable            :: Stackable(T)
-  expr 17:24    IdentExpr      :: T
-  expr 17:9     CallExpr       :: void
-  expr 17:9     FieldExpr      :: T[]
-  expr 17:9     FieldExpr      :: fn(T) -> void
-  expr 17:9     IdentExpr      :: Stack(T)
-  expr 18:21    BinaryExpr     :: i32
-  expr 18:21    FieldExpr      :: i32
-  expr 18:21    IdentExpr      :: Stack(T)
-  expr 18:9     FieldExpr      :: i32
-  expr 18:9     IdentExpr      :: Stack(T)
-  expr 21:21    BinaryExpr     :: i32
-  expr 21:21    FieldExpr      :: i32
-  expr 21:21    IdentExpr      :: Stack(T)
-  expr 21:9     FieldExpr      :: i32
-  expr 21:9     IdentExpr      :: Stack(T)
-  expr 22:16    FieldExpr      :: T[]
-  expr 22:16    IdentExpr      :: Stack(T)
-  expr 22:16    IndexExpr      :: T
-  expr 22:26    FieldExpr      :: i32
-  expr 22:26    IdentExpr      :: Stack(T)
-  expr 25:16    FieldExpr      :: i32
-  expr 25:16    IdentExpr      :: Stack(T)
-  expr 28:16    BinaryExpr     :: bool
-  expr 28:16    FieldExpr      :: i32
-  expr 28:16    IdentExpr      :: Stack(T)
-  expr 33:10    StructLitExpr  :: Stack(i32)
-  expr 33:31    SeqLitExpr     :: i32[]
-  expr 34:5     CallExpr       :: void
-  expr 34:5     FieldExpr      :: fn(i32) -> void
-  expr 34:5     IdentExpr      :: Stack(i32)
-  expr 35:5     CallExpr       :: void
-  expr 35:5     FieldExpr      :: fn(i32) -> void
-  expr 35:5     IdentExpr      :: Stack(i32)
+  expr 19:24    IdentExpr      :: T
+  expr 19:9     CallExpr       :: void
+  expr 19:9     FieldExpr      :: T[]
+  expr 19:9     FieldExpr      :: fn(T) -> void
+  expr 19:9     IdentExpr      :: Stack(T)
+  expr 20:21    BinaryExpr     :: i32
+  expr 20:21    FieldExpr      :: i32
+  expr 20:21    IdentExpr      :: Stack(T)
+  expr 20:9     FieldExpr      :: i32
+  expr 20:9     IdentExpr      :: Stack(T)
+  expr 23:21    BinaryExpr     :: i32
+  expr 23:21    FieldExpr      :: i32
+  expr 23:21    IdentExpr      :: Stack(T)
+  expr 23:9     FieldExpr      :: i32
+  expr 23:9     IdentExpr      :: Stack(T)
+  expr 24:16    FieldExpr      :: T[]
+  expr 24:16    IdentExpr      :: Stack(T)
+  expr 24:16    IndexExpr      :: T
+  expr 24:26    FieldExpr      :: i32
+  expr 24:26    IdentExpr      :: Stack(T)
+  expr 27:16    FieldExpr      :: i32
+  expr 27:16    IdentExpr      :: Stack(T)
+  expr 30:16    BinaryExpr     :: bool
+  expr 30:16    FieldExpr      :: i32
+  expr 30:16    IdentExpr      :: Stack(T)
+  expr 35:10    StructLitExpr  :: Stack(i32)
+  expr 35:31    SeqLitExpr     :: i32[]
   expr 36:5     CallExpr       :: void
   expr 36:5     FieldExpr      :: fn(i32) -> void
   expr 36:5     IdentExpr      :: Stack(i32)
-  expr 37:13    StringLitExpr  :: string
-  expr 37:22    CallExpr       :: i32
-  expr 37:22    FieldExpr      :: fn() -> i32
-  expr 37:22    IdentExpr      :: Stack(i32)
   expr 37:5     CallExpr       :: void
-  expr 37:5     IdentExpr      :: fn(string) -> void
-  expr 38:13    StringLitExpr  :: string
-  expr 38:22    CallExpr       :: i32
-  expr 38:22    FieldExpr      :: fn() -> i32
-  expr 38:22    IdentExpr      :: Stack(i32)
+  expr 37:5     FieldExpr      :: fn(i32) -> void
+  expr 37:5     IdentExpr      :: Stack(i32)
   expr 38:5     CallExpr       :: void
-  expr 38:5     IdentExpr      :: fn(string) -> void
+  expr 38:5     FieldExpr      :: fn(i32) -> void
+  expr 38:5     IdentExpr      :: Stack(i32)
   expr 39:13    StringLitExpr  :: string
   expr 39:22    CallExpr       :: i32
   expr 39:22    FieldExpr      :: fn() -> i32
   expr 39:22    IdentExpr      :: Stack(i32)
   expr 39:5     CallExpr       :: void
   expr 39:5     IdentExpr      :: fn(string) -> void
+  expr 40:13    StringLitExpr  :: string
+  expr 40:22    CallExpr       :: i32
+  expr 40:22    FieldExpr      :: fn() -> i32
+  expr 40:22    IdentExpr      :: Stack(i32)
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(string) -> void
+  expr 41:13    StringLitExpr  :: string
+  expr 41:22    CallExpr       :: i32
+  expr 41:22    FieldExpr      :: fn() -> i32
+  expr 41:22    IdentExpr      :: Stack(i32)
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(string) -> void

@@ -4,6 +4,8 @@
 /// run takes a few seconds. The `bench/` peers (TS, Go) compute the same
 /// checksum so cross-language equivalence is easy to verify.
 
+module "main"
+
 import "std/io" { println }
 
 WIDTH    :: 240

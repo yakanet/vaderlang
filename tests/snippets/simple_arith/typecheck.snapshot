@@ -3,6 +3,6 @@
 ## tests/snippets/simple_arith/_main.vader
   ConstDecl      ANSWER               :: i32
   FnDecl         main                 :: fn() -> i32
-  expr 2:19     BinaryExpr     :: {integer}
-  expr 2:19     BinaryExpr     :: {integer}
-  expr 5:12     IdentExpr      :: i32
+  expr 4:19     BinaryExpr     :: {integer}
+  expr 4:19     BinaryExpr     :: {integer}
+  expr 7:12     IdentExpr      :: i32

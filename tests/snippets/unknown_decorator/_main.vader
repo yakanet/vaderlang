@@ -1,3 +1,5 @@
+module "snippet"
+
 @bogus
 main :: fn() -> i32 {
     return 0

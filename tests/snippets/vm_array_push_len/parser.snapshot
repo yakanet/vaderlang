@@ -1,6 +1,10 @@
 # AST
 {
   "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
   "decls": [
     {
       "kind": "FnDecl",

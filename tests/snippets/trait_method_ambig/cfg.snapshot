@@ -34,4 +34,4 @@ fn tests_snippets_trait_method_ambig__main_vader$main() -> i32
     return %3
 
 # Diagnostics
-[17:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot
+[19:12] error[T3032] ambiguous overload resolution: `greet` on Cat is ambiguous between traits: Greet, Annot

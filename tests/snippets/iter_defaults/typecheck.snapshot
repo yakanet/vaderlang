@@ -3,53 +3,53 @@
 ## tests/snippets/iter_defaults/_main.vader
   StructDecl     Countdown            :: Countdown
   FnDecl         main                 :: fn() -> i32
-  expr 11:12    BinaryExpr     :: bool
-  expr 11:12    FieldExpr      :: i32
-  expr 11:12    IdentExpr      :: Countdown
-  expr 11:9     IfExpr         :: void
-  expr 12:14    FieldExpr      :: i32
-  expr 12:14    IdentExpr      :: Countdown
-  expr 13:26    BinaryExpr     :: i32
-  expr 13:26    FieldExpr      :: i32
-  expr 13:26    IdentExpr      :: Countdown
-  expr 13:9     FieldExpr      :: i32
-  expr 13:9     IdentExpr      :: Countdown
-  expr 14:16    StructLitExpr  :: Yield(i32)
-  expr 14:38    IdentExpr      :: i32
-  expr 20:14    CallExpr       :: usize
-  expr 20:14    FieldExpr      :: fn() -> usize
-  expr 20:14    RangeExpr      :: Range(i32)
-  expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(string) -> void
-  expr 23:12    CallExpr       :: i32 | null
-  expr 23:12    FieldExpr      :: fn() -> i32 | null
-  expr 23:12    RangeExpr      :: Range(i32)
-  expr 23:5     MatchExpr      :: void
-  expr 24:24    CallExpr       :: void
-  expr 24:24    IdentExpr      :: fn(string) -> void
-  expr 24:32    IdentExpr      :: i32
-  expr 25:24    CallExpr       :: void
-  expr 25:24    IdentExpr      :: fn(string) -> void
-  expr 25:32    StringLitExpr  :: string
-  expr 29:14    CallExpr       :: bool
-  expr 29:14    FieldExpr      :: fn() -> bool
-  expr 29:14    RangeExpr      :: Range(i32)
-  expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(string) -> void
-  expr 30:14    CallExpr       :: bool
-  expr 30:14    FieldExpr      :: fn() -> bool
-  expr 30:14    RangeExpr      :: Range(i32)
-  expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(string) -> void
-  expr 33:13    CallExpr       :: usize
-  expr 33:13    FieldExpr      :: fn() -> usize
-  expr 33:13    StructLitExpr  :: Countdown
-  expr 33:5     CallExpr       :: void
-  expr 33:5     IdentExpr      :: fn(string) -> void
+  expr 13:12    BinaryExpr     :: bool
+  expr 13:12    FieldExpr      :: i32
+  expr 13:12    IdentExpr      :: Countdown
+  expr 13:9     IfExpr         :: void
+  expr 14:14    FieldExpr      :: i32
+  expr 14:14    IdentExpr      :: Countdown
+  expr 15:26    BinaryExpr     :: i32
+  expr 15:26    FieldExpr      :: i32
+  expr 15:26    IdentExpr      :: Countdown
+  expr 15:9     FieldExpr      :: i32
+  expr 15:9     IdentExpr      :: Countdown
+  expr 16:16    StructLitExpr  :: Yield(i32)
+  expr 16:38    IdentExpr      :: i32
+  expr 22:14    CallExpr       :: usize
+  expr 22:14    FieldExpr      :: fn() -> usize
+  expr 22:14    RangeExpr      :: Range(i32)
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(string) -> void
+  expr 25:12    CallExpr       :: i32 | null
+  expr 25:12    FieldExpr      :: fn() -> i32 | null
+  expr 25:12    RangeExpr      :: Range(i32)
+  expr 25:5     MatchExpr      :: void
+  expr 26:24    CallExpr       :: void
+  expr 26:24    IdentExpr      :: fn(string) -> void
+  expr 26:32    IdentExpr      :: i32
+  expr 27:24    CallExpr       :: void
+  expr 27:24    IdentExpr      :: fn(string) -> void
+  expr 27:32    StringLitExpr  :: string
+  expr 31:14    CallExpr       :: bool
+  expr 31:14    FieldExpr      :: fn() -> bool
+  expr 31:14    RangeExpr      :: Range(i32)
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(string) -> void
+  expr 32:14    CallExpr       :: bool
+  expr 32:14    FieldExpr      :: fn() -> bool
+  expr 32:14    RangeExpr      :: Range(i32)
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(string) -> void
+  expr 35:13    CallExpr       :: usize
+  expr 35:13    FieldExpr      :: fn() -> usize
+  expr 35:13    StructLitExpr  :: Countdown
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(string) -> void
 
 # Diagnostics
-[20:14] error[T3001] type mismatch: expected string, got usize
-[24:32] error[T3001] type mismatch: expected string, got i32
-[29:14] error[T3001] type mismatch: expected string, got bool
-[30:14] error[T3001] type mismatch: expected string, got bool
-[33:13] error[T3001] type mismatch: expected string, got usize
+[22:14] error[T3001] type mismatch: expected string, got usize
+[26:32] error[T3001] type mismatch: expected string, got i32
+[31:14] error[T3001] type mismatch: expected string, got bool
+[32:14] error[T3001] type mismatch: expected string, got bool
+[35:13] error[T3001] type mismatch: expected string, got usize

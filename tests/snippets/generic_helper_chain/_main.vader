@@ -3,6 +3,8 @@
 // InstanceRegistry's worklist must materialise every callee at every
 // concrete instantiation reached by the call chain.
 
+module "snippet"
+
 import "std/io" { println }
 
 Box :: struct[T] { value: T }

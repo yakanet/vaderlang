@@ -4,13 +4,13 @@
   FnDecl         add_i32              :: fn(i32, i32) -> i32
   FnDecl         c_strlen             :: fn(string) -> usize
   FnDecl         main                 :: fn() -> i32
-  expr 13:12    CallExpr       :: i32
-  expr 13:12    IdentExpr      :: fn(i32, i32) -> i32
-  expr 14:10    CallExpr       :: usize
-  expr 14:10    IdentExpr      :: fn(string) -> usize
-  expr 14:19    StringLitExpr  :: string
-  expr 15:13    StringLitExpr  :: string
-  expr 15:20    IdentExpr      :: i32
-  expr 15:34    IdentExpr      :: usize
-  expr 15:5     CallExpr       :: void
-  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 15:12    CallExpr       :: i32
+  expr 15:12    IdentExpr      :: fn(i32, i32) -> i32
+  expr 16:10    CallExpr       :: usize
+  expr 16:10    IdentExpr      :: fn(string) -> usize
+  expr 16:19    StringLitExpr  :: string
+  expr 17:13    StringLitExpr  :: string
+  expr 17:20    IdentExpr      :: i32
+  expr 17:34    IdentExpr      :: usize
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(string) -> void

@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Regression: `is Point { x, y }` (struct destructure) on a union scrutinee

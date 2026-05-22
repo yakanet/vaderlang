@@ -6,6 +6,8 @@
 // `@satisfies(T, Foo)` against the composed trait list.
 
 // Pure alias — Numeric requires Add, Sub, Mul (no own methods).
+module "snippet"
+
 Numeric :: trait[T] = Add & Sub & Mul
 
 // With own methods — Hashable requires Hash and Equals, plus declares its own.

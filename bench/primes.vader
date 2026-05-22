@@ -11,6 +11,8 @@
 /// `count` and `sum` are i64 — the sum of primes ≤ 200 K is ~1.7·10⁹ which
 /// already overflows i32.
 
+module "main"
+
 import "std/io" { println }
 
 N :: 1_000_000

@@ -2,6 +2,8 @@
 // Return type is inferred from the body. Forward references resolve via
 // the typecheck fixpoint pass. Generics work because each call instantiates.
 
+module "snippet"
+
 import "std/io" { println }
 
 export square :: fn(x: i32) = x * x

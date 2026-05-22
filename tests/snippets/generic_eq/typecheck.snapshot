@@ -3,16 +3,16 @@
 ## tests/snippets/generic_eq/_main.vader
   FnDecl         are_eq               :: fn(T, T) -> bool
   FnDecl         main                 :: fn() -> i32
-  expr 4:12     BinaryExpr     :: bool
-  expr 4:12     IdentExpr      :: T
-  expr 4:17     IdentExpr      :: T
-  expr 8:13     StringLitExpr  :: string
-  expr 8:16     CallExpr       :: bool
-  expr 8:16     IdentExpr      :: fn(T, T) -> bool
-  expr 8:5      CallExpr       :: void
-  expr 8:5      IdentExpr      :: fn(string) -> void
-  expr 9:13     StringLitExpr  :: string
-  expr 9:16     CallExpr       :: bool
-  expr 9:16     IdentExpr      :: fn(T, T) -> bool
-  expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn(string) -> void
+  expr 10:13    StringLitExpr  :: string
+  expr 10:16    CallExpr       :: bool
+  expr 10:16    IdentExpr      :: fn(T, T) -> bool
+  expr 10:5     CallExpr       :: void
+  expr 10:5     IdentExpr      :: fn(string) -> void
+  expr 11:13    StringLitExpr  :: string
+  expr 11:16    CallExpr       :: bool
+  expr 11:16    IdentExpr      :: fn(T, T) -> bool
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(string) -> void
+  expr 6:12     BinaryExpr     :: bool
+  expr 6:12     IdentExpr      :: T
+  expr 6:17     IdentExpr      :: T

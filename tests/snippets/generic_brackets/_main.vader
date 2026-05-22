@@ -3,6 +3,8 @@
 // during the migration window — both produce the same AST shape.
 
 // Generic fn, new bracketed form
+module "snippet"
+
 identity :: fn[T](x: T) -> T = x
 
 // Generic fn, multiple type-params, multiple bracketed

@@ -7,6 +7,8 @@
 /// fast path is taken at struct.new + struct.get sites. Then runs the
 /// binary to confirm semantic correctness.
 
+module "main"
+
 import "std/io" { println }
 
 Pair :: struct { x: i32, y: i32 }

@@ -4,6 +4,8 @@
 // and substitutes the trait's type-parameters from the impl's declared
 // `traitArgs`. The lowerer rewrites both forms into direct calls.
 
+module "snippet"
+
 import "std/io" { println }
 
 Cell :: struct { keys: string[], vals: i32[] }

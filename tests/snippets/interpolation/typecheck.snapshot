@@ -2,9 +2,9 @@
 
 ## tests/snippets/interpolation/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 4:13     StringLitExpr  :: string
   expr 6:13     StringLitExpr  :: string
-  expr 6:23     IdentExpr      :: string
-  expr 6:40     IdentExpr      :: i32
-  expr 6:5      CallExpr       :: void
-  expr 6:5      IdentExpr      :: fn(string) -> void
+  expr 8:13     StringLitExpr  :: string
+  expr 8:23     IdentExpr      :: string
+  expr 8:40     IdentExpr      :: i32
+  expr 8:5      CallExpr       :: void
+  expr 8:5      IdentExpr      :: fn(string) -> void

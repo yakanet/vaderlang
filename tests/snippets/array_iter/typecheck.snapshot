@@ -2,21 +2,21 @@
 
 ## tests/snippets/array_iter/_main.vader
   FnDecl         main                 :: fn() -> i32
-  expr 12:14    SeqLitExpr     :: i32[]
-  expr 14:9     IdentExpr      :: i32[]
-  expr 15:9     BinaryExpr     :: i32
-  expr 15:9     IdentExpr      :: i32
-  expr 17:13    StringLitExpr  :: string
-  expr 17:24    IdentExpr      :: i32
-  expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(string) -> void
-  expr 4:12     SeqLitExpr     :: i32[]
-  expr 6:14     IdentExpr      :: i32[]
-  expr 7:15     BinaryExpr     :: i32
-  expr 7:15     IdentExpr      :: i32
-  expr 7:21     IdentExpr      :: i32
-  expr 7:9      IdentExpr      :: i32
-  expr 9:13     StringLitExpr  :: string
-  expr 9:22     IdentExpr      :: i32
-  expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn(string) -> void
+  expr 11:13    StringLitExpr  :: string
+  expr 11:22    IdentExpr      :: i32
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(string) -> void
+  expr 14:14    SeqLitExpr     :: i32[]
+  expr 16:9     IdentExpr      :: i32[]
+  expr 17:9     BinaryExpr     :: i32
+  expr 17:9     IdentExpr      :: i32
+  expr 19:13    StringLitExpr  :: string
+  expr 19:24    IdentExpr      :: i32
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(string) -> void
+  expr 6:12     SeqLitExpr     :: i32[]
+  expr 8:14     IdentExpr      :: i32[]
+  expr 9:15     BinaryExpr     :: i32
+  expr 9:15     IdentExpr      :: i32
+  expr 9:21     IdentExpr      :: i32
+  expr 9:9      IdentExpr      :: i32

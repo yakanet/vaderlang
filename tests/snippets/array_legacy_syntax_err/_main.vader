@@ -3,6 +3,8 @@
 // the element type). The bracketed `[T1, T2, ...]` shape is reserved for
 // tuples (≥ 2 elements).
 
+module "snippet"
+
 main :: fn() -> i32 {
     items: [i32] = [1, 2, 3]
     return 0

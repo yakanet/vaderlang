@@ -1,5 +1,7 @@
 // T3042 — mutating an array typed `const T[]` is rejected at typecheck.
 
+module "snippet"
+
 write_first :: fn(a: const i32[]) -> void {
     a[0] = 99
 }

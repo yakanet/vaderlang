@@ -10,6 +10,8 @@
 /// struct-lit-direct form (`MapIterator { source = FilterIterator { … } }`)
 /// but reads as an iterator pipeline.
 
+module "main"
+
 import "std/io" { println }
 import "std/iter" { filter, map }
 

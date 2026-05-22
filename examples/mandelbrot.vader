@@ -1,3 +1,5 @@
+module "main"
+
 import "std/io" { println }
 import "std/string_builder" { new_builder, append_char }
 

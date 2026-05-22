@@ -2,6 +2,8 @@
 // `.virt` text dump and exit 42. First acceptance test of the bootstrap
 // sprint (docs/SELFHOST_VM.md).
 
+module "snippet"
+
 main :: fn() -> i32 {
     return 42
 }

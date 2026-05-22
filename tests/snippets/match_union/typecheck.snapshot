@@ -3,21 +3,21 @@
 ## tests/snippets/match_union/_main.vader
   FnDecl         describe             :: fn(i32 | null | string) -> string
   FnDecl         main                 :: fn() -> i32
-  expr 12:13    CallExpr       :: string
-  expr 12:13    IdentExpr      :: fn(i32 | null | string) -> string
-  expr 12:5     CallExpr       :: void
-  expr 12:5     IdentExpr      :: fn(string) -> void
-  expr 13:13    CallExpr       :: string
-  expr 13:13    IdentExpr      :: fn(i32 | null | string) -> string
-  expr 13:22    StringLitExpr  :: string
-  expr 13:5     CallExpr       :: void
-  expr 13:5     IdentExpr      :: fn(string) -> void
   expr 14:13    CallExpr       :: string
   expr 14:13    IdentExpr      :: fn(i32 | null | string) -> string
   expr 14:5     CallExpr       :: void
   expr 14:5     IdentExpr      :: fn(string) -> void
-  expr 4:12     MatchExpr      :: string
-  expr 4:18     IdentExpr      :: i32 | null | string
-  expr 5:22     StringLitExpr  :: string
-  expr 6:22     StringLitExpr  :: string
+  expr 15:13    CallExpr       :: string
+  expr 15:13    IdentExpr      :: fn(i32 | null | string) -> string
+  expr 15:22    StringLitExpr  :: string
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 16:13    CallExpr       :: string
+  expr 16:13    IdentExpr      :: fn(i32 | null | string) -> string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(string) -> void
+  expr 6:12     MatchExpr      :: string
+  expr 6:18     IdentExpr      :: i32 | null | string
   expr 7:22     StringLitExpr  :: string
+  expr 8:22     StringLitExpr  :: string
+  expr 9:22     StringLitExpr  :: string

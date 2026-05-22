@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // `for [k, v] in pairs` destructures each tuple element bound by the loop.

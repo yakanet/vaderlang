@@ -1,6 +1,8 @@
 // std/crypto — SHA-256 + MD5 vectors against the well-known
 // reference digests from RFC 6234 (SHA-256) and RFC 1321 (MD5).
 
+module "snippet"
+
 import "std/io" { println }
 import "std/crypto" { sha256, md5 }
 

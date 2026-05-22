@@ -22,4 +22,4 @@
   Into(Target)
 
 # Diagnostics
-[2:20] error[C4002] comptime expression requires VM execution: StringInterp
+[4:20] error[C4002] comptime expression requires VM execution: StringInterp

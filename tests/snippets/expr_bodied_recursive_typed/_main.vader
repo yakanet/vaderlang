@@ -1,3 +1,5 @@
+module "snippet"
+
 import "std/io" { println }
 
 // Recursive expression-bodied fn — only possible with an explicit return

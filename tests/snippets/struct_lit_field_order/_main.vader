@@ -2,6 +2,8 @@
 // regardless of the order fields appear in the source. Pre-fix, the
 // lowerer passed values positionally to `struct.new`, so writing
 // `{ .c = 3, .a = 1, .b = 2 }` produced `c=3, a=1, b=2`.
+module "snippet"
+
 import "std/io" { println }
 
 P :: struct {

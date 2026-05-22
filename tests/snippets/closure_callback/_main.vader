@@ -1,3 +1,5 @@
+module "snippet"
+
 export apply :: fn(f: fn(i32) -> i32, x: i32) -> i32 {
     return f(x)
 }

@@ -5,6 +5,8 @@
 //   - a divergent guard (`if x is T { return }`) propagates the complement
 //     narrowing to subsequent statements
 
+module "snippet"
+
 import "std/io" { println }
 
 Cat :: struct { name: string }

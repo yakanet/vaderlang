@@ -3,6 +3,8 @@
 // (Self → forType, here Direction) propagated as the body's expected type
 // so the dot-shorthand arms (`.West`, `.South`, ...) can resolve.
 
+module "snippet"
+
 import "std/io" { println }
 
 Direction :: enum { North, East, South, West }

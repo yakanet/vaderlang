@@ -3,6 +3,8 @@
 // Covers plain ASCII, escapes (`\n`, `\t`, `\\`, `\'`, `\0`), and use
 // in comparisons.
 
+module "snippet"
+
 import "std/io" { println }
 
 main :: fn() -> i32 {

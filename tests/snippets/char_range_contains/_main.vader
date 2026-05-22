@@ -5,6 +5,8 @@
 // round-trip `char(u32(self.cursor) + u32(1))` since char has no
 // dedicated `+ i32` operator.
 
+module "snippet"
+
 import "std/io" { println }
 
 is_digit :: fn(c: char) -> bool {

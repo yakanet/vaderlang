@@ -3,6 +3,8 @@
 // `fn(...) -> Direction! { ... }` (= `Direction | Error`) failed because
 // inferDotVariant only accepted bare-Enum expected types.
 
+module "snippet"
+
 import "std/io" { println }
 import "std/string" { ParseError }
 

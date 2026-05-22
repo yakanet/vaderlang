@@ -3,6 +3,8 @@
 // "type", or "unknown". Folded to a literal at lower time so the comparison
 // becomes a constant-time string match.
 
+module "snippet"
+
 Pair :: struct {
     first: i32
     second: i32
