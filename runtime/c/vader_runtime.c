@@ -728,19 +728,74 @@ static void vader_string_gc_capture_stack_bottom(void) {
 #endif
 }
 
+/* Sorted index over the live string headers, keyed by start pointer.
+ * Built once at the top of each `vader_string_gc_collect` ; consumed by
+ * `vader_string_mark_ptr` for an O(log N) lookup instead of the O(N)
+ * walk of `g_string_head`. With tens of thousands of live strings
+ * (typechecker bootstrap territory) the naive walk dominates runtime
+ * — `vader_string_mark_ptr` accounts for ~54 % of total time on a
+ * self-host eval_types.vader run. */
+static vader_string_header_t** g_string_sorted_index          = NULL;
+static size_t                  g_string_sorted_index_capacity = 0;
+
+static int vader_string_header_start_cmp(const void* a, const void* b) {
+    const vader_string_header_t* ha = *(const vader_string_header_t* const*) a;
+    const vader_string_header_t* hb = *(const vader_string_header_t* const*) b;
+    const char* sa = (const char*) (ha + 1);
+    const char* sb = (const char*) (hb + 1);
+    if (sa < sb) return -1;
+    if (sa > sb) return 1;
+    return 0;
+}
+
+/* Build the sorted index AND reset all marks in a single linked-list
+ * walk. Folding the two passes saves one full traversal of `g_string_head`
+ * per sweep (the previous shape walked the list once here, once again as
+ * step 1 of `vader_string_gc_collect`). */
+static void vader_string_prepare_marks(void) {
+    if (g_string_total_count > g_string_sorted_index_capacity) {
+        size_t new_cap = g_string_sorted_index_capacity == 0u ? 256u
+                                                              : g_string_sorted_index_capacity * 2u;
+        while (new_cap < g_string_total_count) new_cap *= 2u;
+        free(g_string_sorted_index);
+        g_string_sorted_index = (vader_string_header_t**) malloc(new_cap * sizeof(*g_string_sorted_index));
+        if (g_string_sorted_index == NULL) vader_trap("vader_string_prepare_marks: malloc failed");
+        g_string_sorted_index_capacity = new_cap;
+    }
+    size_t i = 0u;
+    for (vader_string_header_t* h = g_string_head; h != NULL; h = h->next) {
+        h->mark = 0;
+        g_string_sorted_index[i++] = h;
+    }
+    qsort(g_string_sorted_index, g_string_total_count, sizeof(*g_string_sorted_index),
+          vader_string_header_start_cmp);
+}
+
 /* Mark the buffer that contains `p` (if any). Interior pointers are
  * supported — `vader_string_slice` returns `s.ptr + start`, so any byte
- * inside a live buffer is a valid root. O(n) over the live list per call ;
- * with arenas of a few thousand strings this is fine. */
+ * inside a live buffer is a valid root. Uses the sorted index built by
+ * `vader_string_prepare_marks` for an O(log N) range lookup. */
 static void vader_string_mark_ptr(const void* p) {
     if (p == NULL || p == vader_string_empty_sentinel) return;
-    for (vader_string_header_t* h = g_string_head; h != NULL; h = h->next) {
-        const char* start = (const char*) (h + 1);
-        const char* end   = start + h->size;
-        if ((const char*) p >= start && (const char*) p < end) {
-            h->mark = 1;
-            return;
+    if (g_string_total_count == 0u) return;
+    /* upper_bound : largest index `lo` where start(headers[lo-1]) <= p. */
+    size_t lo = 0u;
+    size_t hi = g_string_total_count;
+    while (lo < hi) {
+        size_t mid = lo + (hi - lo) / 2u;
+        const char* mid_start = (const char*) (g_string_sorted_index[mid] + 1);
+        if (mid_start <= (const char*) p) {
+            lo = mid + 1u;
+        } else {
+            hi = mid;
         }
+    }
+    if (lo == 0u) return;
+    vader_string_header_t* h = g_string_sorted_index[lo - 1u];
+    const char* start = (const char*) (h + 1);
+    const char* end   = start + h->size;
+    if ((const char*) p >= start && (const char*) p < end) {
+        h->mark = 1;
     }
 }
 
@@ -815,10 +870,10 @@ static void vader_string_mark_obj(char* scan, uint32_t type_index) {
 static void vader_string_gc_collect(void) {
     if (g_string_head == NULL) return;
 
-    /* 1. Reset all marks. */
-    for (vader_string_header_t* h = g_string_head; h != NULL; h = h->next) {
-        h->mark = 0;
-    }
+    /* 1. Build the sorted index used by `vader_string_mark_ptr` AND
+     *    reset all marks in one walk. The sorted index buys O(log N)
+     *    per mark instead of the previous O(N) (== O(N²) total). */
+    vader_string_prepare_marks();
 
     /* 2. Mark via module globals. */
     vader_string_mark_ptr(g_spawn_stdout_buf);
