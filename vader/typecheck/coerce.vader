@@ -8,7 +8,7 @@
 
 module "vader/typecheck"
 
-import "vader/typecheck/types" { Type, FnType, display_type }
+import "vader/types" { Type, FnType, display_type }
 import "vader/typecheck/type_ops" { dispatch_key }
 import "vader/typecheck/type_assign" { is_assignable }
 import "vader/typecheck/typed_ast" { TypedProgram }
@@ -45,7 +45,7 @@ export try_array_to_iter :: fn(got: Type, expected: Type) -> bool {
     return equals_type(got.element, expected.args[0])
 }
 
-import "vader/typecheck/types" { ArrayType, TypeParamType }
+import "vader/types" { ArrayType, TypeParamType }
 import "vader/typecheck/type_ops" { equals_type }
 
 /// True when `got` implements the trait `expected` (or a variant of
@@ -70,4 +70,4 @@ export try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> 
 }
 
 
-import "vader/typecheck/types" { StructType, TraitType, UnionType }
+import "vader/types" { StructType, TraitType, UnionType }

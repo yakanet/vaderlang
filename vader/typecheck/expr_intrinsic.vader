@@ -13,7 +13,7 @@ module "vader/typecheck"
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/parser/intrinsics" { intrinsic_spec, IntrinsicArgKind }
 import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, mk_array, mk_primitive, mk_struct, TY_BOOL, TY_TYPE, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
@@ -89,7 +89,7 @@ static_string_value :: fn(e: AST.StringLitExpr) -> string {
 }
 
 import "vader/resolver/scope" { span_full_key }
-import "vader/typecheck/types" { StructType, UnresolvedType }
+import "vader/types" { StructType, UnresolvedType }
 
 import "vader/typecheck/type_expr" { type_from_expr }
 

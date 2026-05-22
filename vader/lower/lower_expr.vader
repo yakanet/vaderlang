@@ -31,7 +31,7 @@ import "vader/parser/ast" {
 import "vader/diagnostics/diagnostic" { Span, Diagnostic }
 import "vader/typecheck/type_expr" { type_from_expr, primitive_from_name }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
     TypeParamType, ArrayType, TupleType, TypeMetaType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive,
@@ -46,7 +46,7 @@ import "vader/comptime/intrinsic" { byte_size, byte_align }
 import "vader/typecheck/impls" { type_to_target_symbol, has_user }
 import "vader/resolver/wire" { ImportTargetTable, SymbolTarget }
 import "vader/parser/ast" { ConstDecl, ImplDecl }
-import "vader/typecheck/types" { display_type }
+import "vader/types" { display_type }
 import "vader/lower/ctx" { FnLowerCtx, LowerProjectCtx, BlockCtx, new_block_ctx, GenericFnInstance }
 import "vader/lower/entry_types" { expr_type, type_expr_type, local_type, span_key }
 import "vader/lower/helpers" { type_of, block_stmts_with_trailing }
@@ -1503,7 +1503,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
 }
 
-import "vader/typecheck/types" { StructType, EnumType }
+import "vader/types" { StructType, EnumType }
 import "vader/resolver/symbol" { SymbolKind as KindForEnum }
 
 // `.North` resolves through context : the surrounding slot's expected
@@ -2119,7 +2119,7 @@ tuple_or_array_element_type :: fn(
     }
 }
 
-import "vader/typecheck/types" { UnresolvedType }
+import "vader/types" { UnresolvedType }
 
 // Build the `_<index>` field access (tuple) or `[index]` index
 // (array) used to read the leaf value from the synthetic `__tup_n`.

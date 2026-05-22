@@ -17,7 +17,7 @@ import "vader/typecheck/coerce" { try_into }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/type_ops" { default_if_free, narrow_for_expected }
 import "vader/typecheck/type_assign" { is_assignable }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
     TY_BOOL, TY_NEVER, TY_VOID, TY_UNRESOLVED,
 }
@@ -174,7 +174,7 @@ contains_unresolved :: fn(t: Type) -> bool {
     }
 }
 
-import "vader/typecheck/types" { mk_fn, UnionType }
+import "vader/types" { mk_fn, UnionType }
 
 // Push T3020 when `got` doesn't flow into `expected`. Shared between
 // `check_return` and the implicit-return check in `check_fn_body` so
@@ -222,7 +222,7 @@ check_let :: fn(
     assign_binding_types(s.binding, declared, typed, diags)
 }
 
-import "vader/typecheck/types" { TypeMetaType }
+import "vader/types" { TypeMetaType }
 
 check_assign :: fn(
     s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[],
@@ -506,7 +506,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     }
 }
 
-import "vader/typecheck/types" { mk_primitive }
+import "vader/types" { mk_primitive }
 
 
 diag_sink_stmt :: fn() -> Diagnostic[] { return [] }

@@ -13,7 +13,7 @@ import "std/collections" { MutableMap, keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending }
 import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
     FnType, TypeParamType, UnionType, UnresolvedType, FreeIntType, FreeFloatType,
     SelfType, display_type,
@@ -190,7 +190,7 @@ export render_instance :: fn(instance: GenericInstance) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq }
-import "vader/typecheck/types" { mk_struct, mk_primitive }
+import "vader/types" { mk_struct, mk_primitive }
 import "vader/resolver/symbol" { SymbolKind }
 import "vader/parser/ast" { Visibility }
 

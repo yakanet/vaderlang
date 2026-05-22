@@ -5,7 +5,7 @@
 // kind, name, visibility and the source span ; the AST-decl back-reference
 // the TS resolver stores is deferred until typecheck/lower needs it.
 
-module "vader/resolver"
+module "vader/resolver/symbol"
 
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/parser" { Visibility }

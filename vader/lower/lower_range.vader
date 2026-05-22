@@ -15,7 +15,7 @@ module "vader/lower"
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/parser/ast" { RangeExpr, Expr }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck/types" { Type, mk_struct, TY_BOOL, TY_UNRESOLVED }
+import "vader/types" { Type, mk_struct, TY_BOOL, TY_UNRESOLVED }
 import "vader/lower/ctx" { FnLowerCtx }
 import "vader/lower/lowered_ast" {
     LoweredExpr, LoweredStructLit, LoweredStructLitField, LoweredBoolLit,

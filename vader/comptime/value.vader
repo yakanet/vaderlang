@@ -12,7 +12,7 @@ import "std/collections" { MutableMap, keys }
 import "std/string_builder" { new_builder, append, append_char }
 import "std/numbers" { to_hex }
 import "std/string" { pad_start }
-import "vader/typecheck/types" { Type, display_type }
+import "vader/types" { Type, display_type }
 
 /// One comptime-evaluated value. Variants closed — every new
 /// representation lives behind a new variant rather than a `?` payload.

@@ -26,7 +26,7 @@ module "vader/bytecode"
 
 import "std/collections" { MutableMap, keys }
 import "vader/diagnostics/diagnostic" { Span }
-import "vader/typecheck/types" { Type }
+import "vader/types" { Type }
 import "vader/resolver/symbol" { Symbol }
 import "vader/parser/ast" { Decl, FnDecl, Decorator }
 import "vader/lower/lowered_ast" {

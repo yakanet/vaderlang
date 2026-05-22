@@ -9,7 +9,7 @@
 module "vader/typecheck"
 
 import "std/collections" { MutableMap }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
     FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
     UnresolvedType, FreeIntType, FreeFloatType, NeverType, mk_array, mk_tuple, mk_fn,
@@ -98,7 +98,7 @@ substitute_each :: fn(types: Type[], subst: Substitution) -> Type[] {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
-import "vader/typecheck/types" { mk_primitive, mk_type_param, display_type }
+import "vader/types" { mk_primitive, mk_type_param, display_type }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/parser/ast" { Visibility }
 

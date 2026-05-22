@@ -11,7 +11,7 @@ module "vader/comptime"
 import "vader/comptime/eval_types" { EvalResult, ComptimeContext, ok, fail, vm_required }
 import "vader/comptime/value" { ComptimeValue, int_val_typed, string_val }
 import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
     FnType, TypeParamType, UnionType, UnresolvedType, display_type,
 }
@@ -169,6 +169,6 @@ import "std/testing" { assert_eq }
     assert_eq(type_kind_label(int_type), "primitive")
 }
 
-import "vader/typecheck/types" { mk_primitive }
+import "vader/types" { mk_primitive }
 
 type_for_primitive :: fn(name: string) -> Type { return mk_primitive(name) }

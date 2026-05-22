@@ -9,7 +9,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/types" { Type }
+import "vader/types" { Type }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 

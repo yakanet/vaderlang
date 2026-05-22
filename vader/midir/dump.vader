@@ -11,7 +11,7 @@ module "vader/midir"
 import "std/collections" { values }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "vader/resolver/symbol" { kind_name }
-import "vader/typecheck/types" { display_type }
+import "vader/types" { display_type }
 import "vader/midir/cfg" {
     BasicBlock, CFGFunction, CFGProject, ConstValue, Instruction, LocalId,
     Terminator, TermBranch, TermCondBranch, TermReturn, TermUnreachable,

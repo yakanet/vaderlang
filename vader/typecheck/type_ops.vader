@@ -11,7 +11,7 @@ module "vader/typecheck"
 
 import "std/string" { compare_ascending_ci }
 import "std/sort" { sort }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
     FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
     UnresolvedType, FreeIntType, FreeFloatType, NeverType,
@@ -232,7 +232,7 @@ export subtract_type :: fn(from: Type, removed: Type) -> Type {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
-import "vader/typecheck/types" { mk_array, mk_fn, mk_tuple, TY_FREE_INT, TY_FREE_FLOAT }
+import "vader/types" { mk_array, mk_fn, mk_tuple, TY_FREE_INT, TY_FREE_FLOAT }
 
 @test
 test_equals_primitive :: fn() -> void {

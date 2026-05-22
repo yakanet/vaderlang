@@ -29,7 +29,7 @@ AST :: import "vader/parser/ast"
 import "vader/typecheck/coerce" { try_into }
 import "vader/typecheck/type_ops" { default_if_free, dispatch_key }
 import "vader/typecheck/type_assign" { is_assignable }
-import "vader/typecheck/types" {
+import "vader/types" {
     ArrayType, Type, FnType, StructType, TraitType, TypeMetaType, UnresolvedType,
     display_type, mk_array, TY_UNRESOLVED,
 }

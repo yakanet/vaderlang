@@ -11,7 +11,7 @@ import "std/collections" { MutableSet, MutableMap, contains }
 import "vader/diagnostics/diagnostic" { Span, empty_span }
 import "vader/parser/ast" { Visibility }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, EnumType, mk_primitive,
     TY_BOOL, TY_UNRESOLVED, TY_VOID,
 }
@@ -257,7 +257,7 @@ export span_of :: fn(expr: LoweredExpr) -> Span = match expr {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq }
-import "vader/typecheck/types" { display_type }
+import "vader/types" { display_type }
 
 @test test_or_all_empty_emits_false :: fn() -> void {
     span :: empty_span()

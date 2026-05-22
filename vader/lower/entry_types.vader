@@ -14,7 +14,7 @@ import "vader/parser/ast" {
     Expr, TypeExpr, SimpleBinding, RestBinding, FnParam,
     FnDecl, StructDecl, ConstDecl,
 }
-import "vader/typecheck/types" { Type, TY_UNRESOLVED }
+import "vader/types" { Type, TY_UNRESOLVED }
 import "vader/typecheck/typed_ast" { TypedProgram }
 import "vader/typecheck/substitution" { Substitution, substitute, is_empty_substitution }
 
@@ -135,7 +135,7 @@ export span_key :: fn(span: Span) -> string {
 import "std/testing" { assert_eq }
 import "vader/typecheck/typed_ast" { empty_typed_program }
 import "vader/typecheck/substitution" { new_substitution }
-import "vader/typecheck/types" {
+import "vader/types" {
     mk_primitive, mk_array, mk_type_param, display_type,
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind }

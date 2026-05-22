@@ -24,8 +24,8 @@ import "vader/parser/ast" {
 import "vader/resolver/loader" { LoadedProject, LoadedModule }
 import "vader/typecheck/typed_ast" { TypedProject, TypedProgram }
 import "vader/typecheck/substitution" { Substitution, new_substitution, substitute }
-import "vader/typecheck/types" { UnresolvedType }
-import "vader/typecheck/types" {
+import "vader/types" { UnresolvedType }
+import "vader/types" {
     Type, FnType, StructType, TypeMetaType, TypeParamType, ArrayType, mk_struct, mk_primitive,
     display_type, TY_BOOL, TY_UNRESOLVED, TY_VOID,
 }
@@ -1284,7 +1284,7 @@ push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDe
 }
 
 import "vader/comptime/instances" { GenericInstance }
-import "vader/typecheck/types" { EnumType, PrimitiveType }
+import "vader/types" { EnumType, PrimitiveType }
 import "vader/resolver/resolve" { ResolvedModule }
 import "vader/comptime/specialize" { symbol_for_decl }
 

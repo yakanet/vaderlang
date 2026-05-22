@@ -25,7 +25,7 @@ import "vader/resolver/scope" { span_key }
 import "vader/typecheck/orchestrate" { check_project_with_bodies }
 import "vader/typecheck/check" { CheckResult }
 import "vader/typecheck/typed_ast" { TypedProgram }
-import "vader/typecheck/types" { Type, UnresolvedType, FreeIntType, FreeFloatType, display_type }
+import "vader/types" { Type, UnresolvedType, FreeIntType, FreeFloatType, display_type }
 AST :: import "vader/parser/ast"
 
 /// Build the inlay-hint array for the document carried in `params`.

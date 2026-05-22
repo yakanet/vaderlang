@@ -11,7 +11,7 @@ module "vader/comptime"
 
 import "std/collections" { MutableMap }
 import "vader/parser/ast" { FnDecl }
-import "vader/typecheck/types" { Type }
+import "vader/types" { Type }
 import "vader/typecheck/typed_ast" { TypedProgram, TypedProject }
 import "vader/comptime/value" { ComptimeValue }
 import "vader/comptime/mono_ast" { MonoProject, new_mono_project }

@@ -12,7 +12,7 @@ module "vader/lower"
 import "std/collections" { MutableMap }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck/types" { Type }
+import "vader/types" { Type }
 import "vader/comptime/mono_ast" { MonoEntry }
 
 // ============================================================================

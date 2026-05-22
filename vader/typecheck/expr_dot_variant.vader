@@ -10,7 +10,7 @@ module "vader/typecheck"
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/resolver/scope" { span_key }
 import "vader/resolver/symbol" { SymbolKind }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, EnumType, StructType, UnionType, display_type, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }

@@ -14,7 +14,7 @@ import "vader/parser/ast" { FnDecl, StructDecl, TraitDecl, TypeAliasDecl }
 AST :: import "vader/parser/ast"
 import "vader/resolver/resolve" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck/types" { Type }
+import "vader/types" { Type }
 
 /// Per-module typechecker output. Every side-table is keyed by a span
 /// string ("line:column") obtained from `scope.span_key(node.span)`.
@@ -236,7 +236,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
     }
 }
 
-import "vader/typecheck/types" { FnType }
+import "vader/types" { FnType }
 
 export new_typed_project :: fn() -> TypedProject {
     return TypedProject {
@@ -269,7 +269,7 @@ export empty_typed_program :: fn() -> TypedProgram {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
-import "vader/typecheck/types" { mk_primitive, PrimitiveType }
+import "vader/types" { mk_primitive, PrimitiveType }
 
 fresh_module :: fn() -> ResolvedModule {
     return ResolvedModule {

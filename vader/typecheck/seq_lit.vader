@@ -16,7 +16,7 @@ module "vader/typecheck"
 import "std/math" { min }
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/typecheck/type_ops" { default_if_free, union_of }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, ArrayType, TupleType, TypeParamType, UnionType, UnresolvedType,
     display_type, mk_array, mk_tuple, TY_UNRESOLVED,
 }
@@ -148,7 +148,7 @@ import "vader/typecheck/expr_ident" { infer_ident }
 import "vader/typecheck/expr_literals" { infer_int_lit, infer_string_lit }
 import "vader/typecheck/test_helpers" { find_first_in_block }
 import "vader/typecheck/type_ops" { narrow_for_expected }
-import "vader/typecheck/types" { mk_primitive }
+import "vader/types" { mk_primitive }
 import "vader/diagnostics/diagnostic" { empty_span }
 
 stub_check_expr :: fn(

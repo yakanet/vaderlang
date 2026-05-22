@@ -19,7 +19,7 @@
 
 module "vader/bytecode"
 
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType,
     UnionType, FnType, TupleType, TypeParamType, TypeMetaType, SelfType,
     UnresolvedType, FreeIntType, FreeFloatType, NeverType,
@@ -156,7 +156,7 @@ export val_type_of_primitive_name :: fn(name: string) -> ValType {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq }
-import "vader/typecheck/types" { mk_primitive }
+import "vader/types" { mk_primitive }
 
 @test test_val_type_of_type_primitive :: fn() -> void {
     v :: val_type_of_type(mk_primitive("i32"))

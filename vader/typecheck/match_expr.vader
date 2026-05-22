@@ -16,7 +16,7 @@ import "vader/typecheck/narrow" {
 }
 import "vader/typecheck/type_ops" { types_overlap, union_of }
 import "vader/typecheck/type_assign" { is_assignable }
-import "vader/typecheck/types" { Type, UnionType, display_type, TY_BOOL }
+import "vader/types" { Type, UnionType, display_type, TY_BOOL }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 
@@ -123,7 +123,7 @@ is_never :: fn(t: Type) -> bool {
     match t { is NeverType -> { return true } _ -> { return false } }
 }
 
-import "vader/typecheck/types" { NeverType, TY_NEVER }
+import "vader/types" { NeverType, TY_NEVER }
 
 arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Type | null {
     match p {
@@ -146,7 +146,7 @@ is_overlap_checkable :: fn(t: Type) -> bool {
     }
 }
 
-import "vader/typecheck/types" { TraitType, TypeMetaType, TypeParamType, UnresolvedType }
+import "vader/types" { TraitType, TypeMetaType, TypeParamType, UnresolvedType }
 
 scrutinee_sym_id :: fn(scrut: AST.Expr, typed: TypedProgram) -> i32 {
     if !(scrut is AST.IdentExpr) { return -1 }
@@ -257,7 +257,7 @@ pick_tuple_variant :: fn(t: Type, arity: usize) -> TupleType | null {
     }
 }
 
-import "vader/typecheck/types" { StructType, TupleType }
+import "vader/types" { StructType, TupleType }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/field" { find_struct_field_type }
 
@@ -272,7 +272,7 @@ import "vader/typecheck/expr_ident" { infer_ident }
 import "vader/typecheck/expr_literals" { infer_int_lit, infer_bool_lit, infer_string_lit }
 import "vader/typecheck/test_helpers" { find_first_in_block }
 import "vader/typecheck/type_ops" { narrow_for_expected }
-import "vader/typecheck/types" { TY_UNRESOLVED }
+import "vader/types" { TY_UNRESOLVED }
 import "vader/diagnostics/diagnostic" { empty_span }
 
 stub_check_expr :: fn(

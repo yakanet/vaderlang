@@ -36,7 +36,7 @@ import "vader/parser/ast" {
     TypeParam, GenericInstExpr, TypeExpr, IdentExpr,
 }
 import "vader/typecheck/typed_ast" { TypedProgram, TypedProject }
-import "vader/typecheck/types" { Type, PrimitiveType, StructType }
+import "vader/types" { Type, PrimitiveType, StructType }
 import "vader/typecheck/substitution" { Substitution, new_substitution }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/resolver/resolve" { ResolvedModule }

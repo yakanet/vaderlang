@@ -25,10 +25,10 @@ import "vader/typecheck/decl" { declare_module }
 import "vader/typecheck/expr" { check_expr }
 import "vader/typecheck/stmt" { check_fn_body }
 import "vader/typecheck/type_ops" { default_if_free, equals_type }
-import "vader/typecheck/types" { display_type, type_base_name }
+import "vader/types" { display_type, type_base_name }
 import "vader/diagnostics/diagnostic" { typecheck_error }
 import "vader/typecheck/typed_ast" { TypedProgram, new_typed_program }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, ArrayType, FnType, SelfType, StructType, TupleType, UnionType,
     mk_array, mk_fn, mk_struct, mk_tuple, mk_union,
     TY_UNRESOLVED, TY_TYPE, TY_VOID,
@@ -562,7 +562,7 @@ is_alias_value_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     return false
 }
 
-import "vader/typecheck/types" { is_primitive_name }
+import "vader/types" { is_primitive_name }
 
 // Mirror every non-entry module's `alias_types` / `alias_decls` into
 // the entry's resolver tables so cross-module aliases (e.g. `Pet`

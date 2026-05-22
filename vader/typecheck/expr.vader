@@ -23,7 +23,7 @@ import "vader/diagnostics/diagnostic" { Diagnostic, resolver_error, warning }
 import "vader/typecheck/type_expr" { primitive_from_name }
 import "vader/resolver/scope" { span_full_key, span_key }
 AST :: import "vader/parser/ast"
-import "vader/typecheck/types" { Type, FreeIntType, FreeFloatType, TY_UNRESOLVED }
+import "vader/types" { Type, FreeIntType, FreeFloatType, TY_UNRESOLVED }
 import "vader/typecheck/type_ops" { narrow_for_expected }
 import "vader/typecheck/typed_ast" { TypedProgram }
 import "vader/typecheck/expr_literals" {
@@ -173,7 +173,7 @@ infer_expr :: fn(
 
 import "std/testing" { assert, assert_eq }
 import "vader/diagnostics/diagnostic" { empty_span }
-import "vader/typecheck/types" { mk_primitive, display_type }
+import "vader/types" { mk_primitive, display_type }
 import "vader/typecheck/typed_ast" { empty_typed_program }
 
 @test

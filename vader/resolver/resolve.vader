@@ -22,7 +22,7 @@ import "vader/resolver/symbol" { Symbol, SymbolFactory }
 import "vader/resolver/body" { resolve_program }
 import "vader/resolver/builtins" { make_builtin_scope }
 import "vader/resolver/collect" { collect_module, CollectedModule }
-import "vader/typecheck/types" { Type }
+import "vader/types" { Type }
 
 import "vader/diagnostics/diagnostic" { Diagnostic }
 

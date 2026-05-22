@@ -23,7 +23,7 @@ import "vader/resolver/resolve" { ResolvedModule }
 import "vader/resolver/scope" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 AST :: import "vader/parser/ast"
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, mk_primitive, mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
     mk_type_param, is_primitive_name, TY_TYPE, TY_SELF, TY_UNRESOLVED, TY_VOID,
 }
@@ -159,7 +159,7 @@ walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
 }
 
 import "std/math" { min }
-import "vader/typecheck/types" {
+import "vader/types" {
     ArrayType, FnType, StructType, TraitType, TupleType, TypeParamType, UnionType,
     mk_union,
 }
@@ -317,7 +317,7 @@ import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
 import "vader/resolver/resolve" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/types" { PrimitiveType, display_type }
+import "vader/types" { PrimitiveType, display_type }
 
 resolve_test_module :: fn(src: string) -> ResolvedModule {
     parsed :: parse_source(src, "t.vader")

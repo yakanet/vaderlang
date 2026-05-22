@@ -30,7 +30,7 @@ import "vader/resolver/symbol" { Symbol }
 // `lower_match` (which calls back into `lower_expr` for nested
 // expression lowering). Same pattern as
 // `vader/comptime/eval_binary.vader::evaluate_binary`'s `recurse` arg.
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, UnionType, TupleType, StructType, EnumType, UnresolvedType, mk_primitive,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED,
 }

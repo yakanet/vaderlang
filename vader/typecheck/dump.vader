@@ -31,7 +31,7 @@ import "std/string" { compare_ascending, compare_ascending_ci, pad_end, split }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/resolver/scope" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck/types" { display_type }
+import "vader/types" { display_type }
 import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Render a single typed module. The header omits the `# Typecheck` banner

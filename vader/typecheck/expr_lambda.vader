@@ -16,7 +16,7 @@ import "vader/resolver/scope" { span_key }
 import "vader/typecheck/context" { FnContext, new_fn_context }
 import "vader/typecheck/stmt" { check_block }
 import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/types" { Type, FnType, mk_fn, TY_UNRESOLVED }
+import "vader/types" { Type, FnType, mk_fn, TY_UNRESOLVED }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 
@@ -118,5 +118,5 @@ pick_final_return :: fn(expected: Type | null, body: Type) -> Type {
 }
 
 import "vader/typecheck/type_ops" { default_if_free }
-import "vader/typecheck/types" { FreeIntType, FreeFloatType }
+import "vader/types" { FreeIntType, FreeFloatType }
 import "vader/typecheck/unify" { type_contains_type_param }

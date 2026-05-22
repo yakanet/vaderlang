@@ -19,7 +19,7 @@ module "vader/comptime"
 
 import "std/collections" { MutableMap }
 import "vader/parser/ast" { Decl }
-import "vader/typecheck/types" { Type }
+import "vader/types" { Type }
 import "vader/typecheck/typed_ast" { TypedProgram }
 import "vader/typecheck/substitution" { Substitution, new_substitution }
 import "vader/resolver/symbol" { Symbol }

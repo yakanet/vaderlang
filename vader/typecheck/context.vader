@@ -17,7 +17,7 @@ module "vader/typecheck"
 
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
-import "vader/typecheck/types" { Type }
+import "vader/types" { Type }
 
 /// Project-level shared state. Built once at the start of `check_project`
 /// and threaded through every pass.
@@ -65,7 +65,7 @@ export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnCont
 
 import "std/testing" { assert, assert_eq }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/types" { mk_primitive, PrimitiveType, TY_NEVER }
+import "vader/types" { mk_primitive, PrimitiveType, TY_NEVER }
 
 @test
 test_new_globals_factory_starts_at_one :: fn() -> void {

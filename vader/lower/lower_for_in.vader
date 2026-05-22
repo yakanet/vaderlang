@@ -23,7 +23,7 @@ module "vader/lower"
 import "vader/diagnostics/diagnostic" { Span }
 AST :: import "vader/parser/ast"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, ArrayType, StructType, TraitType, EnumType, PrimitiveType,
     mk_struct, mk_array, mk_union, mk_primitive, display_type,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED,
@@ -447,7 +447,7 @@ is_integer_type :: fn(t: Type) -> bool {
     }
 }
 
-import "vader/typecheck/types" { FreeIntType }
+import "vader/types" { FreeIntType }
 import "vader/typecheck/type_ops" { default_if_free }
 
 cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {

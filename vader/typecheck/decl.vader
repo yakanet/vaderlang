@@ -24,7 +24,7 @@ import "vader/resolver/symbol" { Symbol, SymbolFactory, make }
 import "vader/resolver/scope" { span_key }
 AST :: import "vader/parser/ast"
 import "vader/parser" { Visibility }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, ArrayType, PrimitiveType, mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
     TY_UNRESOLVED, TY_VOID,
 }
@@ -339,7 +339,7 @@ is_type_position_value :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
 }
 
 import "vader/typecheck/type_expr" { primitive_from_name }
-import "vader/typecheck/types" { TY_TYPE }
+import "vader/types" { TY_TYPE }
 
 // ---- helpers --------------------------------------------------------------
 
@@ -371,7 +371,7 @@ import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
 import "vader/resolver/resolve" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/types" { display_type }
+import "vader/types" { display_type }
 import "vader/typecheck/typed_ast" { new_typed_program }
 
 // Resolve `src`, declare-types, then look up the type of the decl

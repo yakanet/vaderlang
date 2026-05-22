@@ -25,7 +25,7 @@ import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/diagnostics/diagnostic" { Span }
 import "vader/resolver/module" { is_stdlib_module }
 import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck/types" { Type, PrimitiveType, display_type }
+import "vader/types" { Type, PrimitiveType, display_type }
 import "vader/lower/lowered_ast" {
     LoweredProject, LoweredModule, LoweredDecl,
     LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,

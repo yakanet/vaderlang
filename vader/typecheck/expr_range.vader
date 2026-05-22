@@ -11,7 +11,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics/diagnostic" { Diagnostic }
 import "vader/typecheck/type_ops" { default_if_free, is_int_name }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, PrimitiveType, FreeIntType, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
@@ -54,7 +54,7 @@ pick_bound_or_default :: fn(t: Type) -> Type {
 }
 
 import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck/types" { mk_struct, mk_primitive }
+import "vader/types" { mk_struct, mk_primitive }
 
 pick_bound :: fn(t: Type) -> Type | null {
     match t {

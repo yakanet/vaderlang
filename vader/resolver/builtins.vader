@@ -15,7 +15,7 @@ import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
 // `PRIMITIVE_NAMES` is the source of truth in `vader/typecheck/types.vader`.
 // Consumers needing the list import it directly from there.
-import "vader/typecheck/types" { PRIMITIVE_NAMES }
+import "vader/types" { PRIMITIVE_NAMES }
 
 /// Synthetic module id every builtin symbol carries in its `.module` field.
 export BUILTIN_MODULE_ID :: "<builtin>"

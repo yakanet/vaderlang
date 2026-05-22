@@ -35,7 +35,7 @@ import "std/collections" { MutableMap, keys }
 import "vader/parser/ast" {
     Decl, FnDecl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr,
 }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, PrimitiveType, StructType, TraitType, ArrayType, UnionType, TupleType,
     mk_primitive,
 }

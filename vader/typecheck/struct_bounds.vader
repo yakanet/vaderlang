@@ -14,7 +14,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics/diagnostic" { Diagnostic, Span }
-import "vader/typecheck/types" { Type }
+import "vader/types" { Type }
 import "vader/typecheck/typed_ast" { TypedProgram }
 
 /// Verify that `args` satisfy the bounds attached to `type_param_syms`.

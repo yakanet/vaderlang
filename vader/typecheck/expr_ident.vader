@@ -25,7 +25,7 @@ import "vader/resolver/scope" { span_key }
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 AST :: import "vader/parser/ast"
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, mk_type_param, TY_TYPE, TY_UNRESOLVED,
 }
 import "vader/typecheck/typed_ast" { TypedProgram }
@@ -114,7 +114,7 @@ lookup_decl :: fn(sym: Symbol, typed: TypedProgram) -> Type {
     }
 }
 
-import "vader/typecheck/types" { UnresolvedType }
+import "vader/types" { UnresolvedType }
 
 // ---- tests ----------------------------------------------------------------
 
@@ -124,7 +124,7 @@ import "vader/parser" { parse_source }
 import "vader/resolver/resolve" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
 import "vader/typecheck/check" { check_module }
-import "vader/typecheck/types" { display_type }
+import "vader/types" { display_type }
 
 // Test harness — bundles parse + resolve + check. Returns the parsed
 // program and the populated typed program ; tests reach into both.

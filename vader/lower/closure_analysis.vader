@@ -21,7 +21,7 @@ import "std/collections" { MutableMap, MutableSet, contains, add, values, keys }
 import "vader/diagnostics/diagnostic" { Span }
 AST :: import "vader/parser/ast"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck/types" { Type, TY_UNRESOLVED }
+import "vader/types" { Type, TY_UNRESOLVED }
 import "vader/typecheck/typed_ast" { TypedProject, TypedProgram }
 import "vader/resolver/loader" { LoadedProject, LoadedModule }
 import "vader/lower/ctx" { ClosureAnalysis, Capture, new_closure_analysis }

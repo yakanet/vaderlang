@@ -59,7 +59,7 @@ import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
 import "vader/resolver/resolve" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/typecheck/types" { display_type }
+import "vader/types" { display_type }
 
 run_check :: fn(src: string) -> CheckResult {
     parsed :: parse_source(src, "t.vader")

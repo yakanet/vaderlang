@@ -15,7 +15,7 @@ module "vader/typecheck"
 
 import "std/collections" { MutableMap }
 import "vader/typecheck/type_ops" { equals_type }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, ArrayType, TupleType, StructType, TraitType, FnType, UnionType,
     TypeParamType, FreeIntType, FreeFloatType,
 }
@@ -172,7 +172,7 @@ find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
 }
 
 import "std/math" { min }
-import "vader/typecheck/types" { mk_array, mk_tuple, mk_struct, mk_trait, mk_fn }
+import "vader/types" { mk_array, mk_tuple, mk_struct, mk_trait, mk_fn }
 import "vader/typecheck/type_ops" { union_of }
 
 /// Walk `t` and replace each `TypeParam` whose symbol id appears in

@@ -23,7 +23,7 @@ import "vader/resolver/scope" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck/orchestrate" { check_project_with_bodies }
 import "vader/typecheck/typed_ast" { TypedProgram }
-import "vader/typecheck/types" { Type, FnType, display_type }
+import "vader/types" { Type, FnType, display_type }
 AST :: import "vader/parser/ast"
 
 /// Build the signature-help payload for the cursor in `params`. Returns

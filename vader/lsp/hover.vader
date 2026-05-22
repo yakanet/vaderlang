@@ -495,7 +495,7 @@ import "vader/diagnostics/diagnostic" { Diagnostic, Span }
 import "vader/resolver/loader" { load_project }
 import "vader/typecheck/orchestrate" { check_project_with_bodies }
 import "vader/typecheck/typed_ast" { TypedProgram }
-import "vader/typecheck/types" { Type, display_type }
+import "vader/types" { Type, display_type }
 AST :: import "vader/parser/ast"
 
 // ---- params extraction (mirrors definition.vader) ------------------------

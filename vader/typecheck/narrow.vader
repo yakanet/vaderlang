@@ -15,7 +15,7 @@
 module "vader/typecheck"
 
 import "vader/resolver/scope" { span_key }
-import "vader/typecheck/types" { Type }
+import "vader/types" { Type }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"
 
@@ -109,7 +109,7 @@ export resolve_field_chain_static :: fn(
 }
 
 import "vader/resolver/scope" { span_full_key }
-import "vader/typecheck/types" { UnresolvedType }
+import "vader/types" { UnresolvedType }
 
 /// Walk a FieldExpr down to its root `IdentExpr` and return the
 /// matching `chain_key`. Returns `""` when the root isn't a plain ident

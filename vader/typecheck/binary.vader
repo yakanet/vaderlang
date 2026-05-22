@@ -22,7 +22,7 @@ import "vader/resolver/scope" { span_full_key }
 import "vader/resolver/symbol" { SymbolKind }
 import "vader/typecheck/type_expr" { type_from_expr }
 import "vader/typecheck/type_ops" { is_numeric_name, is_int_name, is_float_name }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
     EnumType, FnType, StructType, TraitType, UnionType,
     display_type, type_base_name, mk_primitive, TY_BOOL, TY_UNRESOLVED,
@@ -106,7 +106,7 @@ substitute_self_in :: fn(t: Type, self_ty: Type) -> Type {
     }
 }
 
-import "vader/typecheck/types" { SelfType }
+import "vader/types" { SelfType }
 
 check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     if is_numeric(left) && is_numeric(right) { return TY_BOOL }
@@ -153,7 +153,7 @@ is_resolved_enough :: fn(t: Type) -> bool {
     }
 }
 
-import "vader/typecheck/types" { TypeParamType }
+import "vader/types" { TypeParamType }
 import "vader/typecheck/type_ops" { equals_type, types_overlap }
 
 check_logical :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
@@ -303,7 +303,7 @@ is_metatype :: fn(t: Type) -> bool {
     }
 }
 
-import "vader/typecheck/types" { TypeMetaType }
+import "vader/types" { TypeMetaType }
 
 is_integer :: fn(t: Type) -> bool {
     if t is UnresolvedType { return true }

@@ -19,7 +19,7 @@ import "std/collections" { MutableMap, values }
 import "vader/diagnostics/diagnostic" { Span, empty_span }
 AST :: import "vader/parser/ast"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, FnType, mk_struct, TY_UNRESOLVED, TY_VOID,
 }
 import "vader/typecheck/substitution" { new_substitution }

@@ -16,7 +16,7 @@ import "vader/comptime/value" { ComptimeValue, type_val }
 import "vader/resolver/scope" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind, kind_name }
 import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/types" { Type, UnresolvedType }
+import "vader/types" { Type, UnresolvedType }
 import "vader/diagnostics/diagnostic" { Diagnostic, comptime_error }
 import "vader/diagnostics/codes" { ComptimeCode }
 AST :: import "vader/parser/ast"

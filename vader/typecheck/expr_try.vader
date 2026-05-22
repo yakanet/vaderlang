@@ -10,7 +10,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics/diagnostic" { Diagnostic }
-import "vader/typecheck/types" { Type, TraitType, UnionType, TRAIT_ERROR, mk_union }
+import "vader/types" { Type, TraitType, UnionType, TRAIT_ERROR, mk_union }
 import "vader/typecheck/type_ops" { struct_implements_trait }
 import "vader/typecheck/typed_ast" { TypedProgram }
 AST :: import "vader/parser/ast"

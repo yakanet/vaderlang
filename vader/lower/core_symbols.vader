@@ -10,7 +10,7 @@ module "vader/lower"
 
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck/types" { Type, StructType, TraitType, mk_struct, mk_union, mk_primitive }
+import "vader/types" { Type, StructType, TraitType, mk_struct, mk_union, mk_primitive }
 import "vader/lower/ctx" { FnLowerCtx, LowerProjectCtx }
 
 /// Resolve a `std/core` symbol by name from the project's cache.
@@ -109,7 +109,7 @@ find_via_all :: fn(ctx: LowerProjectCtx, for_symbol: Symbol, trait_name: string)
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }
-import "vader/typecheck/types" { display_type }
+import "vader/types" { display_type }
 import "vader/typecheck/typed_ast" { new_typed_project }
 import "vader/comptime/evaluated_ast" { new_evaluated_project }
 import "vader/lower/ctx" { new_lower_project_ctx }

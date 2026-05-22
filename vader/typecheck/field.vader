@@ -23,7 +23,7 @@ import "vader/resolver/resolve" { ResolvedModule }
 import "vader/resolver/scope" { span_key }
 import "vader/typecheck/narrow" { field_chain_key, narrow_for_field }
 import "vader/typecheck/type_expr" { type_from_expr }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, ArrayType, EnumType, PrimitiveType, StructType, TraitType, TupleType, UnionType, UnresolvedType,
     display_type, type_base_name, TY_UNRESOLVED,
 }
@@ -330,13 +330,13 @@ export substitute_by_name :: fn(
 
 import "std/collections" { MutableMap }
 import "std/math" { min }
-import "vader/typecheck/types" {
+import "vader/types" {
     FnType, TypeParamType,
     mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
 }
 import "vader/typecheck/coerce" { try_array_to_iter, try_trait_widen }
 import "vader/typecheck/type_ops" { union_of }
-import "vader/typecheck/types" { mk_primitive, mk_union, TY_VOID }
+import "vader/types" { mk_primitive, mk_union, TY_VOID }
 
 /// MVP UFCS dispatch for the canonical array methods. Returns the
 /// per-method `FnType` synthesised from the element type, or `null`
@@ -506,7 +506,7 @@ substitute_self :: fn(t: Type, self_ty: Type) -> Type {
     }
 }
 
-import "vader/typecheck/types" { SelfType }
+import "vader/types" { SelfType }
 
 // Walk a TypeParam bound expression (single trait or `A & B` chain)
 // and return the first trait whose declared methods include `name`.

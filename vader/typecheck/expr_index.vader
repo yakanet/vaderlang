@@ -9,7 +9,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics/diagnostic" { Diagnostic, typecheck_error }
 import "vader/typecheck/type_ops" { is_int_name }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, ArrayType, PrimitiveType, FreeIntType, StructType, UnresolvedType,
     display_type, mk_array, mk_primitive, TY_UNRESOLVED,
 }

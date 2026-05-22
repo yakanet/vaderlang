@@ -23,7 +23,7 @@ module "vader/lower"
 import "vader/diagnostics/diagnostic" { Span }
 AST :: import "vader/parser/ast"
 import "vader/resolver/symbol" { Symbol }
-import "vader/typecheck/types" {
+import "vader/types" {
     Type, UnionType, StructType, TraitType, PrimitiveType, EnumType,
     TY_BOOL, TY_NEVER,
 }
