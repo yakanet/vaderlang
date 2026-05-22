@@ -715,7 +715,10 @@ function readFunctions(r: Reader, debugFiles: readonly string[]): BcFunction[] {
     // user's main fn, plus the unsuffixed `main` produced by single-
     // module mode).
     const isMain = name === "main" || name.endsWith("$main");
-    out.push({ name, isMain, signature, locals, body, debug });
+    // `isTest` is consumed during midir DCE before serialization, so any
+    // function that survived into the bytecode is already retained — default
+    // to false here until the format gains a per-fn flags byte.
+    out.push({ name, isMain, isTest: false, signature, locals, body, debug });
   }
   return out;
 }

@@ -484,7 +484,10 @@ function parseFn(headerLine: string, m: MutableModule, ctx: ParseCtx): void {
   // Text format predates the `isMain` flag — recover from the name suffix.
   // Convention matches the bytecode emitter (`$main` or bare `main`).
   const isMain = name === "main" || name.endsWith("$main");
-  m.functions[idx] = { name, isMain, signature: sig, locals, body, debug };
+  // `isTest` is consumed during midir DCE before serialization, so any
+  // function that survived into the textual dump is already retained —
+  // default to false until the format gains an explicit marker.
+  m.functions[idx] = { name, isMain, isTest: false, signature: sig, locals, body, debug };
 }
 
 function parseOpLine(raw: string, scopes: { name: string }[], ctx: ParseCtx): { op: Op; dbg: DebugPos | null } {
