@@ -19,24 +19,22 @@ coverage/
 !.vscode/extensions.json
 .idea/
 
-# Bench artifacts — native binaries + generated C from `bench/run.ts`
-bench/mandelbrot
-bench/mandelbrot.c
-bench/mandelbrot_go
-bench/primes
-bench/primes.c
-bench/primes_go
-bench/iter_chain
-bench/iter_chain.c
-bench/iter_chain_go
-bench/binary_trees
-bench/binary_trees.c
-bench/binary_trees_go
-bench/string_builder
-bench/string_builder.c
-bench/string_builder_go
-bench/map_iter
-bench/map_iter.c
-bench/map_iter_go
+# Bench artifacts — native binaries + generated C from `bench/run.ts`. Each
+# bench source lives in `bench/<name>/<name>.vader` (post-Phase-7 module-system
+# rollout) ; the C-emit + native-build outputs land alongside as
+# `bench/<name>/<name>` (binary) and `bench/<name>/<name>.c` (transient C).
+# Per-language ports stay flat under `bench/` (e.g. bench/primes.go,
+# bench/primes_go, bench/primes.class).
+bench/*/*.c
+bench/binary_trees/binary_trees
+bench/iter_chain/iter_chain
+bench/mandelbrot/mandelbrot
+bench/map_iter/map_iter
+bench/primes/primes
+bench/string_builder/string_builder
+bench/poc_erasure/packed_inline_test/packed_inline_test
+bench/poc_erasure/vtable_emit_test/vtable_emit_test
+bench/poc_erasure/*/*.c
+bench/*_go
 bench/*.class
 *.dSYM/

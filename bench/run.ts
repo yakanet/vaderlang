@@ -98,12 +98,12 @@ const IMPLS: readonly Impl[] = [
   //
   // {
   //   name: "vader-vm",
-  //   run: (w) => ({ cmd: "bun", args: ["src/index.ts", "run", `bench/${w}.vader`] }),
+  //   run: (w) => ({ cmd: "bun", args: ["src/index.ts", "run", `bench/${w}/${w}.vader`] }),
   // },
   {
     name: "vader-native",
-    build: (w) => runBuild("bun", ["src/index.ts", "build", "--target=native", "--release", `bench/${w}.vader`], `vader build for ${w}`),
-    run: (w) => ({ cmd: `./bench/${w}`, args: [] }),
+    build: (w) => runBuild("bun", ["src/index.ts", "build", "--target=native", "--release", `bench/${w}/${w}.vader`], `vader build for ${w}`),
+    run: (w) => ({ cmd: `./bench/${w}/${w}`, args: [] }),
   },
   {
     name: "bun-ts",

@@ -18,9 +18,9 @@
 // emits a "store 0" sequence and the BF program sees end-of-stream as 0.
 //
 // Usage :
-//   vader run examples/brainfuck.vader              # defaults to examples/hello.bf
-//   vader run examples/brainfuck.vader path/to.bf   # arbitrary BF source
-//   vader build examples/brainfuck.vader --target=native --out=bf
+//   vader run examples/brainfuck/brainfuck.vader              # defaults to examples/brainfuck/hello.bf
+//   vader run examples/brainfuck/brainfuck.vader path/to.bf   # arbitrary BF source
+//   vader build examples/brainfuck/brainfuck.vader --target=native --out=bf
 //
 // Runs on both the interpreted path (`vader run`) and the native C
 // emitter (`--target=native`) ; the synthetic types the builder
@@ -48,7 +48,7 @@ import "vader/vm/builder" {
 import "vader/vm/exec" { exec }
 import "vader/vm/value" { VmResult, Ok, Trap }
 
-DEFAULT_PATH :: "examples/hello.bf"
+DEFAULT_PATH :: "examples/brainfuck/hello.bf"
 
 // ---- BF lexer ------------------------------------------------------------
 
