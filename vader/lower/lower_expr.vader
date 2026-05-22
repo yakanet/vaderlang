@@ -265,21 +265,10 @@ cell_wrap_init :: fn(
 
 lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue | null {
     // The const symbol may live in this module or in an imported one.
-    // Probe every module's `comptime_decls` against the symbol id.
-    for module_id in ctx.project.evaluated.modules.keys() {
-        program :: ctx.project.evaluated.modules[module_id]
-        match program {
-            is null -> { continue }
-            is EvaluatedProgram as ep -> {
-                v :: ep.comptime_decls[symbol.id]
-                match v {
-                    is null -> {}
-                    _ -> { return v }
-                }
-            }
-        }
-    }
-    return null
+    // `comptime_value_by_symbol_id` was flattened at lower-project entry
+    // so this lookup is O(1) instead of walking every loaded module's
+    // `comptime_decls` map per call (this fn fires on every IdentExpr).
+    return ctx.project.comptime_value_by_symbol_id[symbol.id]
 }
 
 /// Materialise a `ComptimeValue` as a `LoweredExpr` literal. Compound
@@ -1876,19 +1865,11 @@ resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
         sym :: ctx.typed.resolved.idents[span_key(id.span)]
         if sym is null { return via_type_expr }
         if sym is Symbol as s {
-            for module_id in ctx.project.evaluated.modules.keys() {
-                program :: ctx.project.evaluated.modules[module_id]
-                match program {
-                    is null -> {}
-                    is EvaluatedProgram as ep -> {
-                        v :: ep.comptime_decls[s.id]
-                        match v {
-                            is null -> {}
-                            is TypeValue as tv -> { return tv.value }
-                            _ -> {}
-                        }
-                    }
-                }
+            v :: ctx.project.comptime_value_by_symbol_id[s.id]
+            match v {
+                is null -> {}
+                is TypeValue as tv -> { return tv.value }
+                _ -> {}
             }
         }
     }
@@ -1935,23 +1916,16 @@ export lower_block :: fn(
     }
     trailing :: lower_trailing(ctx, block.trailing)
     block_type :: trailing_type(trailing)
-    // Vader's `[]` lacks a generic `pop` — drop the top frame by
-    // resizing the array via a helper. Phase 5's defer pass will
-    // formalise this when block-exit edges start consuming the frame.
-    drop_top_block_frame(ctx)
+    // No frame pop : nothing reads `ctx.blocks` (verified by grep —
+    // only push + len()-for-empty-guard sites exist). The naive rebuild
+    // was O(depth) per exit + a fresh array alloc, which showed up on
+    // the typecheck-port profile as a steady stream of GC pressure
+    // from inside lower_block. Phase 5's defer pass will reintroduce
+    // a proper depth-cursor when block-exit edges start consuming
+    // frames.
     return LoweredBlock {
         .span = block.span, .type = block_type, .stmts = stmts, .trailing = trailing,
     }
-}
-
-drop_top_block_frame :: fn(ctx: FnLowerCtx) -> void {
-    if ctx.blocks.len() == usize(0) { return }
-    // Rebuild without the last element. Phase 5 will swap this for a
-    // proper depth-cursor when defer-replay needs O(1) push / pop.
-    new_blocks: BlockCtx[] = []
-    upper :: ctx.blocks.len() - usize(1)
-    for i in 0..<upper { new_blocks.push(ctx.blocks[i]) }
-    ctx.blocks = new_blocks
 }
 
 lower_trailing :: fn(ctx: FnLowerCtx, trailing: Expr | null) -> LoweredExpr | null {

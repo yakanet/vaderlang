@@ -16,6 +16,7 @@ import "vader/typecheck/typed_ast" { TypedProgram }
 import "vader/typecheck/impls" { ImplRegistry, new_registry }
 import "vader/typecheck/substitution" { Substitution, new_substitution }
 import "vader/comptime/evaluated_ast" { EvaluatedProject }
+import "vader/comptime/value" { ComptimeValue }
 import "vader/comptime/mono_ast" { MonoProject, MonoEntry, new_mono_project }
 import "vader/lower/lowered_ast" { LoweredDecl, LoweredExpr }
 import "vader/lower/entry_types" { EntryTypes, make_entry_types }
@@ -83,6 +84,13 @@ export LowerProjectCtx :: struct {
     /// `find_core_trait` hit. `null` means "looked up and not found".
     core_trait_cache:    MutableMap(string, Symbol | null)
 
+    /// Global `symbol_id -> ComptimeValue` index over every loaded
+    /// module's `evaluated.modules[*].comptime_decls`. Populated once
+    /// at the start of `lower_project` so per-ident const-baked lookups
+    /// in `lower_expr.vader::lower_ident` run in O(1) instead of
+    /// walking every module's map per call.
+    comptime_value_by_symbol_id: MutableMap(i32, ComptimeValue)
+
     /// Free-variable analysis output. Phase 5 populates ; Phase 1-4
     /// callers see an empty analysis (no captures).
     closures:            ClosureAnalysis
@@ -141,6 +149,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject) -> LowerProjectC
         .iter_symbols        = null,
         .collections_symbols = null,
         .core_trait_cache    = MutableMap(string, Symbol | null) { .buckets = [], .size = 0 },
+        .comptime_value_by_symbol_id = MutableMap(i32, ComptimeValue) { .buckets = [], .size = 0 },
         .closures            = new_closure_analysis(),
         .next_mono_entry_id  = i32(1_000_000),
         .fn_instances        = MutableMap(string, GenericFnInstance) { .buckets = [], .size = 0 },

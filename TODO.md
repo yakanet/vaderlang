@@ -139,6 +139,7 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 - [x] **GC** : Cheney semi-space copying GC (`runtime/c/vader_runtime.c`). Precise roots via shadow stack + emitted `vader_gc_frame_t`s ; per-type pointer maps from C-emit. Knobs : `VADER_GC_ARENA_BYTES`. Stress tests under `tests/snippets/gc_*`.
 - [x] **Arrays GC-tracked** — `vader_array_t` carries a header with single ref to a separately-allocated `vader_array_buf_t` ; Cheney scan dispatches on sentinel `0xFFFFFFFE`.
 - [x] **Strings off the GC arena** — string buffers `malloc`'d outside the arena. Strings leak for the program's lifetime ; fine for MVP.
+- [ ] **Array `pop` intrinsic** — O(1) pop is trivially `vader_array_t.length-- ; buf->length--` (both `length` fields are mirrored ; capacity is preserved so the slot is GC-collectable on the next sweep via the new length). No primitive today : `vader/lower/lower_expr.vader::lower_block` had to skip its `ctx.blocks` frame pop entirely because the only available shape was rebuild-array-minus-last (O(N) per pop). Self-host sites that want a real LIFO stack (lowerer block frames, future defer-replay walker, parser look-ahead buffers) need this. Implementation surface : add `vader_array_pop(vader_array_t*)` in `runtime/c/vader_runtime.c`, a `@array_pop` intrinsic + `LoweredArrayPop` opcode, and a stdlib `pop :: fn(arr: T[]) -> T | null` wrapper.
 - [ ] String runtime polish, array runtime polish, StringBuilder support consolidation, panic handler.
 - [ ] libc-backed I/O glue for `std/io`.
 

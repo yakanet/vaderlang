@@ -28,7 +28,7 @@ import "vader/typecheck/types" {
     display_type, TY_BOOL, TY_UNRESOLVED, TY_VOID,
 }
 import "vader/typecheck/type_ops" { default_if_free }
-import "vader/comptime/evaluated_ast" { EvaluatedProject }
+import "vader/comptime/evaluated_ast" { EvaluatedProject, EvaluatedProgram }
 import "vader/comptime/value" {
     ComptimeValue, IntValue, FloatValue, BoolValue, CharValue, StringValue,
     NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
@@ -70,6 +70,10 @@ export lower_project :: fn(
     // table (auto-imported std/core exports). Lookups like
     // `find_core_type("Yield", [T])` go through this cache.
     populate_core_symbols(typed, project_ctx)
+    // Build the global symbol_id -> ComptimeValue index so per-ident
+    // const-baked lookups (`lookup_const_baked_value`) hit O(1) instead
+    // of walking every loaded module's `comptime_decls` map per call.
+    populate_comptime_value_index(project_ctx)
     // Build the project-wide impl registry — aggregate every module's
     // `T implements Trait { … }` decls so downstream phases can query
     // by `(for_type, trait_name)`. Unblocks Display dispatch for
@@ -142,6 +146,28 @@ populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -
             iter_table :: ensure_iter_table(project_ctx)
             for entry in module_typed.resolved.symbols {
                 iter_table[entry.name] = entry
+            }
+        }
+    }
+}
+
+populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
+    // Flatten every loaded module's `comptime_decls` into one global
+    // `symbol_id -> ComptimeValue` map. Const symbol ids are project-
+    // unique (resolver mints from a single counter), so no module can
+    // collide with another — direct assignment is safe.
+    for module_id in project_ctx.evaluated.modules.keys() {
+        program :: project_ctx.evaluated.modules[module_id]
+        match program {
+            is null -> {}
+            is EvaluatedProgram as ep -> {
+                for symbol_id in ep.comptime_decls.keys() {
+                    v :: ep.comptime_decls[symbol_id]
+                    match v {
+                        is null -> {}
+                        _ -> { project_ctx.comptime_value_by_symbol_id[symbol_id] = v }
+                    }
+                }
             }
         }
     }
