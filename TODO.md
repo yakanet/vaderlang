@@ -12,6 +12,31 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 ## Priority — next up
 
+- [ ] **Folder-module semantics for `stdlib/std/` — pending decision** (surfaced 2026-05-22). The typecheck parity suite is too narrow (251 isolated snippets, ~24 LoC each). Adding a broad byte-diff TS-vs-Vader run on real modules under `vader/` and `stdlib/` requires aligning TS on Vader's folder-module promotion. The alignment work itself uncovered a deeper inconsistency that needs an arbitrage before the broad-parity rig can land.
+
+      **What's been tried (uncommitted patches in working tree)**
+      - `src/resolver/loader.ts` — `promoteToFolderModule(entryPath)` (Bun.Glob) mirrors `vader/resolver/loader.vader::promote_to_folder_module`. When the entry is a `.vader` file in a folder containing ≥2 `.vader` siblings, the load root is hoisted to the parent dir.
+      - `src/resolver/collect.ts` — R2011 (duplicate import binding) silenced when `existing.kind === "import-binding"` (sibling files re-importing the same name) ; R2004 (duplicate top-level symbol) silenced when `existing.definedAt.start.file !== span.start.file` (cross-file in a folder-module). Mirrors Vader's `merge_collected` silent first-wins.
+
+      **Result on real `vader/*` modules** (TS `dump --stage=typed-ast`, error count) :
+      - `vader/lexer/lexer.vader` 0, `vader/parser/parser.vader` 0
+      - `vader/bytecode/emit.vader` 3, `vader/comptime/eval.vader` 17, `vader/lower/lower.vader` 51, `vader/typecheck/check.vader` 136
+      The 3 on `bytecode/emit.vader` are real T3001 from a double-load via self-import (`import "vader/bytecode/module"` re-loads `module.vader` as a separate single-file module, so `BcFunction` exists in two distinct modules). The remaining 51 / 136 are downstream T3xxx that need per-error triage but are real divergences worth fixing.
+
+      **Result on `stdlib/std/*.vader`** (with the same patch) : **565+ errors per file**.
+      - `Parser :: struct` is defined in `stdlib/std/regex.vader:113` AND `stdlib/std/json.vader:60`. Under folder-module promotion they collide (T3009 cursor/insts/pattern on Parser — 240 occurrences).
+      - `byte_len` / `byte_at` / `slice` from `stdlib/std/string.vader` collide with same-named decls in sibling files (T3032 ambiguous overload).
+      - Vader reports 0 errors but its dump shows `:: ?` (Unresolved) everywhere — it masks the same collisions silently rather than resolving them. `./build/vader dump --stage=typed-ast stdlib/std/string.vader` is a 1209-line dump of `?` types.
+
+      **Root cause**. SPEC §11 says "One folder = one module" but `stdlib/std/` is in practice a flat **collection** of independent modules (`import "std/string"` designates one file, not the folder). The two intents collide ; today only Vader's silence hides it.
+
+      **Three options to arbitrate** (each impacts the user-facing module story) :
+      1. **Reorganise stdlib** : one folder per module (`stdlib/std/string/string.vader`, `stdlib/std/json/json.vader`, …). Aligns everything on SPEC §11, but moves every stdlib file ; every `import "std/X"` keeps working since `std/X` still resolves to a folder. Cleanest.
+      2. **Explicit folder-module marker** : a `_module.vader` file or a `"modules": [...]` field in `vader.json` listing the folders that should be promoted. Minimal-invasive ; needs a SPEC §11 amendment.
+      3. **Heuristic promotion** : only promote when at least one sibling does `import "<this-folder>/..."` or `import "./..."` (proof of cross-file dependency). No user-facing change ; fragile and slower (extra parse-time scan).
+
+      **Until decided**, the broad-parity rig cannot byte-diff TS vs Vader honestly. The patches are kept in the working tree for fast iteration ; revert with `git checkout -- src/resolver/loader.ts src/resolver/collect.ts` if needed. The snippet-based parity (251/251) is unaffected — snippets are single-file folders so neither promotion nor silencing fires.
+
 - [x] **Single-binary distribution** (2026-05-10) — `bun build --compile` + per-OS tarballs (`vader-<os>-<arch>.tar.gz`) bundling the binary with `stdlib/` and `runtime/c/` sidecars. `scripts/dist.ts` + `dist:*` npm scripts.
 - [~] **`vader fmt` MVP** (first pass 2026-05-11) — written in Vader under `vader/fmt/`, exercises the self-host parser end-to-end. Idempotency + parse round-trip green on the stdlib ; byte-for-byte no-op pending on three stylistic gaps : (a) `::` column alignment in decl groups, (b) per-line grouping inside multi-line imports, (c) cap at 1 blank line between decls vs the stdlib's occasional double-blank. Tests : `tests/formatter*.test.ts` (gated `RUN_FMT_TESTS=1`). Open : column alignment decision, hand-curated snapshot scenarios, growing `NO_OP_FILES`.
 - [x] **Reference benchmark** (2026-05-14) — `bench/` with mandelbrot + primes in Vader / TS / Go ; `bun run bench` compares against `bench/baseline.json` (10 % regression budget). See [`bench/README.md`](./bench/README.md).
@@ -818,6 +843,82 @@ Audit summary : ran `./build/vader dump --stage=typed-ast` on every `.vader` fil
 - [x] **`struct_implemented_traits` pre-pass across all impls** (commit `f98af266`) — `walk_bodies` recorded each impl's metadata and walked its body in the same per-impl iteration. An impl earlier in source order whose body returned a struct declared to implement a trait later in the file lost trait-widening. Concrete case : `MutableMap implements Into(Iterator(Entry(K,V)))`'s `into` body returned `MapIterator`, which only got registered ~6 lines later. Added a tiny pre-pass that seeds `struct_implemented_traits` for every impl before any body-checking starts. Closed 2 T3020s.
 - [x] **Skip body-walk for materialized default-method clones** (commit `cded9837`) — trait default methods are cloned into every impl by `materialize_default_members`, preserving the trait source's spans (`std/core.vader:138` for `Iterator.is_empty`). Re-typechecking the clone in the impl context emitted duplicate diagnostics at unhelpful spans for a body the trait itself already validated. Added a `materialized: bool` flag on `FnDecl`, set true in `synth_with_body` / `synth_signature`, early-exit in `walk_fn_body`. Closed 2 T3013s in `collections.vader` and cleaned ~80 dead dump entries out of 5 snapshots (custom_iter, custom_iter_generic, iter_defaults, op_overload_eq_ord, trait_dispatch_generic_iter, namespace_alias_dedupe).
 - [x] **Single-file entry inside multi-file folder loads the whole module** (commit `6fb42f4f`) — `vader/lexer/lexer.vader` typechecked in isolation didn't see `make_token` (`token.vader`), `lookup_keyword` (`keywords.vader`), `new_builder` (`dump.vader`) as in-module references → R2006 cascade → ~96 cascading T3028 / T3001 / T3020 / T3034. `load_project` now detects single-file inside multi-`.vader` folder and promotes to folder-module ; `collect_files` walks every file (was `files[0]` only). Cleared 103 errors on `vader/lexer/lexer.vader` alone. Regenerated `namespace_alias_dedupe` typecheck snapshot.
+
+### 2.6b Self-host perf — pistes restantes (post-2026-05-22)
+
+Four perf landings in the 2026-05-22 session brought the typecheck-port
+bootstrap from "unusable" (eval_types.vader OOM, 9/17 broad-parity modules
+timeout) to working in 3.2 s for the full broad-parity suite. Remaining
+pistes, ranked by likely payoff. **Reprofile first** (`/tmp/vader_perf`
+with -O2 -g + `sample`) — the hot path has moved several times already.
+
+#### Runtime GC
+
+- [ ] **Specialized pointer sort in `vader_string_prepare_marks`** —
+      `runtime/c/vader_runtime.c:753-769` calls libc `qsort` on the
+      sorted-string-headers array. After the throttle landed in
+      `3b983d97`, the post-throttle profile still shows ~5-10 % of
+      total runtime in `qsort` (`_qsort` in `libsystem_c.dylib`).
+      A specialized introsort/heapsort over `uintptr_t` (no
+      function-pointer indirection) would beat qsort 2-3× on this
+      workload. Localised change, no API impact.
+- [ ] **Tune `VADER_STRING_SWEEP_MINOR_INTERVAL`** — currently `8`
+      (`runtime/c/vader_runtime.c:242`). Try `16` / `32` against
+      `RUN_BROAD_PARITY=1` ; higher values defer sweeps further but
+      let the adaptive `g_string_gc_threshold` trigger fire sooner.
+      May be a net win if mark cost is now low.
+- [ ] **Array `pop` intrinsic** — see §1.11.
+
+#### Lower
+
+- [ ] **Replace `span_key`'s string interpolation with an i64 key**
+      (`vader/lower/entry_types.vader:127`). Every lookup against
+      `idents` / `expr_types` / `local_types` / `narrowed_bindings`
+      / the new `local_symbol_indices` / etc. mints a fresh
+      `"${line}:${column}"` string. Profile-confirmed hot allocator
+      site. Encode as `(line << 32) | column` ; flip every
+      `MutableMap(string, …)` keyed by span to `MutableMap(i64, …)`.
+      Touch points : every typecheck / lower / comptime side-table.
+      Invasive but the alloc reduction would cascade into less GC
+      pressure across the whole pipeline.
+- [ ] **Pre-allocate `stmts: LoweredStmt[]` in `lower_block`**
+      (`vader/lower/lower_expr.vader:1929`). The `[] = []` + repeated
+      `out.push` pattern grows by doubling, causing log-N realloc
+      copies per block. Knowing `block.stmts.len()` upfront lets the
+      caller reserve capacity. Requires either a stdlib `with_capacity`
+      helper or a runtime intrinsic — same surface as the `pop` note
+      in §1.11. ~187 sites in the lower/typecheck use the
+      `T[] = []` shape ; this one fires per-block.
+- [ ] **Reprofile after these land** — the d467d5b1 lookup_local_symbol
+      fix cut 49 % off `orchestrate.vader` lowered-ast on its own.
+      Each fix shifts the next hot path, so the order matters less
+      than re-sampling between rounds.
+
+#### Typecheck
+
+- [ ] **Scope-down `settle_external_expr_bodied_returns`** — already
+      listed in §2.6 follow-ups but quoted here for cross-reference :
+      `vader/typecheck/orchestrate.vader:695-707` walks every non-entry
+      module's bodies even when none have expr-bodied fns. Limit to
+      modules where `has_expr_bodied_fn` returns true. Profile-side
+      this hasn't shown up as dominant (the lowered-ast path was way
+      lower-bound), but the savings stack with the lower perf chantier.
+
+#### Algorithmic / data-structure
+
+- [ ] **MutableMap small-map specialisation** — `std/collections.vader`
+      uses chained HashMap with fixed bucket count. For the many
+      maps that hold < 8 entries (per-module symbol caches, narrowing
+      bindings, …) the bucket array + chain is overkill. A "small
+      map" inline-array variant (linear scan up to N entries before
+      switching to buckets) cuts allocation count.
+- [ ] **String interning for hot identifiers** — names like
+      `"self"`, `"Iterator"`, `"next"`, `"to_string"` are repeatedly
+      compared / allocated. An interning table would replace string
+      equality with identity comparison and drop the per-mention
+      alloc. Surface : `vader/resolver/symbol.vader` for the canonical
+      home ; consumers in lower / typecheck switch to comparing
+      interned ids.
 
 ### 2.7 Bootstrap success check
 - [ ] Compile Vader compiler with TS compiler → `compiler_v1`.
