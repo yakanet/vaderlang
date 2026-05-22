@@ -113,6 +113,17 @@ export ParserCode :: enum(u8) {
 export ResolverCode :: enum(u8) {
     UnresolvedIdent,                        // R2006
     ReservedName,                           // R2019
+    // R2020-R2028 — module-system strict flip (Phase 7/8 of the rollout).
+    // Mirrors src/diagnostics/codes.ts ; see docs/MODULE_SYSTEM.md §3.
+    ModuleDeclMissing,                      // R2020
+    DuplicateModuleDecl,                    // R2021
+    MixedModuleNamesInFolder,               // R2022
+    DuplicateModuleNameGlobally,            // R2023
+    SelfImport,                             // R2024
+    RelativeImportRemoved,                  // R2025
+    DuplicateNonFnDeclInModule,             // R2026
+    VisibilityLeak,                         // R2027
+    ExplicitCorePreludeImport,              // R2028
 }
 
 // Mirror of `COMPTIME` in `src/diagnostics/codes.ts`. C-codes belong to
@@ -197,6 +208,15 @@ export parser_info :: fn(c: ParserCode) = match c {
 export resolver_info :: fn(c: ResolverCode) = match c {
     .UnresolvedIdent                    -> CodeInfo { .id = "R2006", .message = "unresolved identifier" }
     .ReservedName                       -> CodeInfo { .id = "R2019", .message = "`void` is reserved and cannot be used as an identifier" }
+    .ModuleDeclMissing                  -> CodeInfo { .id = "R2020", .message = "module declaration missing on first non-trivial line" }
+    .DuplicateModuleDecl                -> CodeInfo { .id = "R2021", .message = "more than one module declaration in the same file" }
+    .MixedModuleNamesInFolder           -> CodeInfo { .id = "R2022", .message = "files in the same folder declare different module names" }
+    .DuplicateModuleNameGlobally        -> CodeInfo { .id = "R2023", .message = "two folders declare the same module name globally" }
+    .SelfImport                         -> CodeInfo { .id = "R2024", .message = "self-import: file imports its own module" }
+    .RelativeImportRemoved              -> CodeInfo { .id = "R2025", .message = "relative import (`./` / `../`) is not part of the language" }
+    .DuplicateNonFnDeclInModule         -> CodeInfo { .id = "R2026", .message = "duplicate non-fn declaration across files of the same module" }
+    .VisibilityLeak                     -> CodeInfo { .id = "R2027", .message = "exported decl references a module-private decl in its signature" }
+    .ExplicitCorePreludeImport          -> CodeInfo { .id = "R2028", .message = "explicit `import \"std/core\"` is redundant (prelude already in scope)" }
 }
 
 export warning_info :: fn(c: WarningCode) = match c {
