@@ -92,6 +92,9 @@
   StructDecl     IntrinsicSpec        :: ?
   FnDecl         is_impl_decl         :: ?
   FnDecl         is_literal_start     :: ?
+  FnDecl         is_module_segment_continue :: ?
+  FnDecl         is_module_segment_start :: ?
+  FnDecl         is_valid_module_name :: ?
   StructDecl     IsPattern            :: ?
   FnDecl         kind_entry           :: ?
   StructDecl     LambdaExpr           :: ?
@@ -106,6 +109,7 @@
   StructDecl     MatchExpr            :: ?
   FnDecl         merge_type_params    :: ?
   FnDecl         mint                 :: fn(NodeIdFactory) -> usize
+  StructDecl     ModuleDecl           :: ?
   StructDecl     NamedNamespaceImport :: ?
   FnDecl         new_node_id_factory  :: fn() -> NodeIdFactory
   FnDecl         new_parser           :: ?
@@ -134,7 +138,7 @@
   FnDecl         parse_ident_or_struct_lit :: ?
   FnDecl         parse_if_expr        :: ?
   FnDecl         parse_impl_decl      :: ?
-  FnDecl         parse_import_decl    :: fn(BlockExpr, NodeIdFactory) -> void
+  FnDecl         parse_import_decl    :: ?
   FnDecl         parse_import_name_list_rest :: ?
   FnDecl         parse_lambda         :: ?
   FnDecl         parse_lambda_without_fn :: ?
@@ -145,6 +149,7 @@
   FnDecl         parse_match_expr     :: ?
   FnDecl         parse_named_decl     :: ?
   FnDecl         parse_named_import_decl :: ?
+  FnDecl         parse_optional_module_decl :: ?
   FnDecl         parse_paren          :: ?
   FnDecl         parse_pattern        :: ?
   FnDecl         parse_postfix        :: ?
@@ -192,7 +197,7 @@
   StructDecl     ReturnStmt           :: ?
   StructDecl     SeqLitExpr           :: ?
   StructDecl     SimpleBinding        :: ?
-  FnDecl         skip_newlines        :: ?
+  FnDecl         skip_newlines        :: fn(FnDecl, NodeIdFactory) -> void
   FnDecl         span_of              :: ?
   ConstDecl      Stmt                 :: ?
   StructDecl     StringLitExpr        :: ?
@@ -216,7 +221,7 @@
   StructDecl     TupleBinding         :: ?
   StructDecl     TuplePattern         :: ?
   StructDecl     TypeAliasDecl        :: ?
-  ConstDecl      TypeExpr             :: fn(BlockExpr, NodeIdFactory) -> void
+  ConstDecl      TypeExpr             :: ?
   StructDecl     TypeParam            :: ?
   FnDecl         unary_op_name        :: ?
   StructDecl     UnaryExpr            :: ?
@@ -264,6 +269,7 @@
   FnDecl         write_let_binding    :: ?
   FnDecl         write_let_bindings   :: ?
   FnDecl         write_match_arms     :: ?
+  FnDecl         write_module_decl    :: ?
   FnDecl         write_null           :: ?
   FnDecl         write_optional_expr  :: ?
   FnDecl         write_optional_type  :: ?
@@ -285,120 +291,124 @@
   FnDecl         write_type_params    :: ?
   FnDecl         write_types          :: ?
   FnDecl         write_visibility     :: ?
-  expr 100:13   FieldExpr      :: ?
-  expr 100:13   IdentExpr      :: TypeAliasDecl
-  expr 100:20   CallExpr       :: usize
-  expr 100:20   FieldExpr      :: fn() -> usize
-  expr 100:20   IdentExpr      :: NodeIdFactory
-  expr 101:23   FieldExpr      :: ?
-  expr 101:23   IdentExpr      :: TypeAliasDecl
+  expr 100:22   FieldExpr      :: ?
+  expr 100:22   IdentExpr      :: ImplDecl
+  expr 100:34   CallExpr       :: void
+  expr 100:34   IdentExpr      :: fn(FnDecl, NodeIdFactory) -> void
+  expr 100:47   IdentExpr      :: ?
+  expr 100:50   IdentExpr      :: NodeIdFactory
+  expr 101:24   FieldExpr      :: ?
+  expr 101:24   IdentExpr      :: ImplDecl
   expr 101:39   CallExpr       :: void
-  expr 101:39   IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
-  expr 101:55   IdentExpr      :: ?
+  expr 101:39   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
+  expr 101:54   IdentExpr      :: ?
   expr 101:59   IdentExpr      :: NodeIdFactory
-  expr 102:13   CallExpr       :: void
-  expr 102:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 102:23   FieldExpr      :: ?
-  expr 102:23   IdentExpr      :: TypeAliasDecl
-  expr 102:34   IdentExpr      :: NodeIdFactory
-  expr 103:24   FieldExpr      :: ?
-  expr 103:24   IdentExpr      :: TypeAliasDecl
-  expr 103:39   CallExpr       :: void
-  expr 103:39   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 103:54   IdentExpr      :: ?
-  expr 103:59   IdentExpr      :: NodeIdFactory
-  expr 106:13   FieldExpr      :: ?
-  expr 106:13   IdentExpr      :: ConstDecl
-  expr 106:20   CallExpr       :: usize
-  expr 106:20   FieldExpr      :: fn() -> usize
-  expr 106:20   IdentExpr      :: NodeIdFactory
-  expr 107:13   MatchExpr      :: void
-  expr 107:19   FieldExpr      :: ?
-  expr 107:19   IdentExpr      :: ConstDecl
-  expr 109:24   CallExpr       :: void
-  expr 109:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 109:34   FieldExpr      :: ?
-  expr 109:34   IdentExpr      :: ConstDecl
-  expr 109:40   IdentExpr      :: NodeIdFactory
-  expr 111:13   CallExpr       :: void
-  expr 111:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 111:23   FieldExpr      :: ?
-  expr 111:23   IdentExpr      :: ConstDecl
-  expr 111:32   IdentExpr      :: NodeIdFactory
-  expr 112:24   FieldExpr      :: ?
-  expr 112:24   IdentExpr      :: ConstDecl
-  expr 112:39   CallExpr       :: void
-  expr 112:39   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 112:54   IdentExpr      :: ?
-  expr 112:59   IdentExpr      :: NodeIdFactory
-  expr 115:13   FieldExpr      :: ?
-  expr 115:13   IdentExpr      :: AssertDecl
-  expr 115:20   CallExpr       :: usize
-  expr 115:20   FieldExpr      :: fn() -> usize
-  expr 115:20   IdentExpr      :: NodeIdFactory
-  expr 116:13   CallExpr       :: void
-  expr 116:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 116:23   FieldExpr      :: ?
-  expr 116:23   IdentExpr      :: AssertDecl
-  expr 116:36   IdentExpr      :: NodeIdFactory
-  expr 117:24   FieldExpr      :: ?
-  expr 117:24   IdentExpr      :: AssertDecl
-  expr 117:39   CallExpr       :: void
-  expr 117:39   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 117:54   IdentExpr      :: ?
-  expr 117:59   IdentExpr      :: NodeIdFactory
-  expr 123:12   CallExpr       :: usize
-  expr 123:12   FieldExpr      :: fn() -> usize
-  expr 123:12   IdentExpr      :: NodeIdFactory
-  expr 123:5    FieldExpr      :: ?
-  expr 123:5    IdentExpr      :: FnDecl
-  expr 124:16   FieldExpr      :: ?
-  expr 124:16   IdentExpr      :: FnDecl
-  expr 124:31   CallExpr       :: void
-  expr 124:31   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 124:46   IdentExpr      :: ?
-  expr 124:51   IdentExpr      :: NodeIdFactory
-  expr 125:15   FieldExpr      :: ?
-  expr 125:15   IdentExpr      :: FnDecl
-  expr 125:31   CallExpr       :: void
-  expr 125:31   IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
-  expr 125:47   IdentExpr      :: ?
-  expr 125:51   IdentExpr      :: NodeIdFactory
-  expr 126:14   FieldExpr      :: ?
-  expr 126:14   IdentExpr      :: FnDecl
-  expr 126:25   CallExpr       :: void
-  expr 126:25   IdentExpr      :: fn(FnParam, NodeIdFactory) -> void
-  expr 126:39   IdentExpr      :: ?
-  expr 126:42   IdentExpr      :: NodeIdFactory
-  expr 127:11   FieldExpr      :: ?
-  expr 127:11   IdentExpr      :: FnDecl
-  expr 127:5    MatchExpr      :: void
-  expr 129:16   CallExpr       :: void
-  expr 129:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 129:26   FieldExpr      :: ?
-  expr 129:26   IdentExpr      :: FnDecl
-  expr 129:41   IdentExpr      :: NodeIdFactory
+  expr 104:13   FieldExpr      :: ?
+  expr 104:13   IdentExpr      :: TypeAliasDecl
+  expr 104:20   CallExpr       :: usize
+  expr 104:20   FieldExpr      :: fn() -> usize
+  expr 104:20   IdentExpr      :: NodeIdFactory
+  expr 105:23   FieldExpr      :: ?
+  expr 105:23   IdentExpr      :: TypeAliasDecl
+  expr 105:39   CallExpr       :: void
+  expr 105:39   IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
+  expr 105:55   IdentExpr      :: ?
+  expr 105:59   IdentExpr      :: NodeIdFactory
+  expr 106:13   CallExpr       :: void
+  expr 106:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 106:23   FieldExpr      :: ?
+  expr 106:23   IdentExpr      :: TypeAliasDecl
+  expr 106:34   IdentExpr      :: NodeIdFactory
+  expr 107:24   FieldExpr      :: ?
+  expr 107:24   IdentExpr      :: TypeAliasDecl
+  expr 107:39   CallExpr       :: void
+  expr 107:39   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
+  expr 107:54   IdentExpr      :: ?
+  expr 107:59   IdentExpr      :: NodeIdFactory
+  expr 110:13   FieldExpr      :: ?
+  expr 110:13   IdentExpr      :: ConstDecl
+  expr 110:20   CallExpr       :: usize
+  expr 110:20   FieldExpr      :: fn() -> usize
+  expr 110:20   IdentExpr      :: NodeIdFactory
+  expr 111:13   MatchExpr      :: void
+  expr 111:19   FieldExpr      :: ?
+  expr 111:19   IdentExpr      :: ConstDecl
+  expr 113:24   CallExpr       :: void
+  expr 113:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 113:34   FieldExpr      :: ?
+  expr 113:34   IdentExpr      :: ConstDecl
+  expr 113:40   IdentExpr      :: NodeIdFactory
+  expr 115:13   CallExpr       :: void
+  expr 115:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 115:23   FieldExpr      :: ?
+  expr 115:23   IdentExpr      :: ConstDecl
+  expr 115:32   IdentExpr      :: NodeIdFactory
+  expr 116:24   FieldExpr      :: ?
+  expr 116:24   IdentExpr      :: ConstDecl
+  expr 116:39   CallExpr       :: void
+  expr 116:39   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
+  expr 116:54   IdentExpr      :: ?
+  expr 116:59   IdentExpr      :: NodeIdFactory
+  expr 119:13   FieldExpr      :: ?
+  expr 119:13   IdentExpr      :: AssertDecl
+  expr 119:20   CallExpr       :: usize
+  expr 119:20   FieldExpr      :: fn() -> usize
+  expr 119:20   IdentExpr      :: NodeIdFactory
+  expr 120:13   CallExpr       :: void
+  expr 120:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 120:23   FieldExpr      :: ?
+  expr 120:23   IdentExpr      :: AssertDecl
+  expr 120:36   IdentExpr      :: NodeIdFactory
+  expr 121:24   FieldExpr      :: ?
+  expr 121:24   IdentExpr      :: AssertDecl
+  expr 121:39   CallExpr       :: void
+  expr 121:39   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
+  expr 121:54   IdentExpr      :: ?
+  expr 121:59   IdentExpr      :: NodeIdFactory
+  expr 127:12   CallExpr       :: usize
+  expr 127:12   FieldExpr      :: fn() -> usize
+  expr 127:12   IdentExpr      :: NodeIdFactory
+  expr 127:5    FieldExpr      :: ?
+  expr 127:5    IdentExpr      :: FnDecl
+  expr 128:16   FieldExpr      :: ?
+  expr 128:16   IdentExpr      :: FnDecl
+  expr 128:31   CallExpr       :: void
+  expr 128:31   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
+  expr 128:46   IdentExpr      :: ?
+  expr 128:51   IdentExpr      :: NodeIdFactory
+  expr 129:15   FieldExpr      :: ?
+  expr 129:15   IdentExpr      :: FnDecl
+  expr 129:31   CallExpr       :: void
+  expr 129:31   IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
+  expr 129:47   IdentExpr      :: ?
+  expr 129:51   IdentExpr      :: NodeIdFactory
+  expr 130:14   FieldExpr      :: ?
+  expr 130:14   IdentExpr      :: FnDecl
+  expr 130:25   CallExpr       :: void
+  expr 130:25   IdentExpr      :: fn(FnParam, NodeIdFactory) -> void
+  expr 130:39   IdentExpr      :: ?
+  expr 130:42   IdentExpr      :: NodeIdFactory
   expr 131:11   FieldExpr      :: ?
   expr 131:11   IdentExpr      :: FnDecl
   expr 131:5    MatchExpr      :: void
   expr 133:16   CallExpr       :: void
-  expr 133:16   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 133:27   FieldExpr      :: ?
-  expr 133:27   IdentExpr      :: FnDecl
-  expr 133:35   IdentExpr      :: NodeIdFactory
-  expr 138:12   CallExpr       :: usize
-  expr 138:12   FieldExpr      :: fn() -> usize
-  expr 138:12   IdentExpr      :: NodeIdFactory
-  expr 138:5    FieldExpr      :: ?
-  expr 138:5    IdentExpr      :: FnParam
-  expr 139:11   FieldExpr      :: ?
-  expr 139:11   IdentExpr      :: FnParam
-  expr 139:5    MatchExpr      :: void
-  expr 141:16   CallExpr       :: void
-  expr 141:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 141:26   FieldExpr      :: ?
-  expr 141:26   IdentExpr      :: FnParam
-  expr 141:32   IdentExpr      :: NodeIdFactory
+  expr 133:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 133:26   FieldExpr      :: ?
+  expr 133:26   IdentExpr      :: FnDecl
+  expr 133:41   IdentExpr      :: NodeIdFactory
+  expr 135:11   FieldExpr      :: ?
+  expr 135:11   IdentExpr      :: FnDecl
+  expr 135:5    MatchExpr      :: void
+  expr 137:16   CallExpr       :: void
+  expr 137:16   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
+  expr 137:27   FieldExpr      :: ?
+  expr 137:27   IdentExpr      :: FnDecl
+  expr 137:35   IdentExpr      :: NodeIdFactory
+  expr 142:12   CallExpr       :: usize
+  expr 142:12   FieldExpr      :: fn() -> usize
+  expr 142:12   IdentExpr      :: NodeIdFactory
+  expr 142:5    FieldExpr      :: ?
+  expr 142:5    IdentExpr      :: FnParam
   expr 143:11   FieldExpr      :: ?
   expr 143:11   IdentExpr      :: FnParam
   expr 143:5    MatchExpr      :: void
@@ -406,894 +416,899 @@
   expr 145:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 145:26   FieldExpr      :: ?
   expr 145:26   IdentExpr      :: FnParam
-  expr 145:43   IdentExpr      :: NodeIdFactory
-  expr 150:13   CallExpr       :: usize
-  expr 150:13   FieldExpr      :: fn() -> usize
-  expr 150:13   IdentExpr      :: NodeIdFactory
-  expr 150:5    FieldExpr      :: ?
-  expr 150:5    IdentExpr      :: TypeParam
-  expr 151:11   FieldExpr      :: ?
-  expr 151:11   IdentExpr      :: TypeParam
-  expr 151:5    MatchExpr      :: void
-  expr 153:16   CallExpr       :: void
-  expr 153:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 153:26   FieldExpr      :: ?
-  expr 153:26   IdentExpr      :: TypeParam
-  expr 153:36   IdentExpr      :: NodeIdFactory
-  expr 158:12   CallExpr       :: usize
-  expr 158:12   FieldExpr      :: fn() -> usize
-  expr 158:12   IdentExpr      :: NodeIdFactory
-  expr 158:5    FieldExpr      :: ?
-  expr 158:5    IdentExpr      :: Decorator
-  expr 159:14   FieldExpr      :: ?
-  expr 159:14   IdentExpr      :: Decorator
-  expr 159:23   CallExpr       :: void
-  expr 159:23   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 159:33   IdentExpr      :: ?
-  expr 159:36   IdentExpr      :: NodeIdFactory
-  expr 163:11   IdentExpr      :: ?
-  expr 163:5    MatchExpr      :: void
-  expr 165:13   MatchExpr      :: void
-  expr 165:19   FieldExpr      :: ?
-  expr 165:19   IdentExpr      :: NamedNamespaceImport
-  expr 167:33   FieldExpr      :: ?
-  expr 167:33   IdentExpr      :: NamedNamespaceImport
-  expr 167:49   FieldExpr      :: ?
-  expr 167:49   IdentExpr      :: ?
-  expr 167:56   CallExpr       :: usize
-  expr 167:56   FieldExpr      :: fn() -> usize
-  expr 167:56   IdentExpr      :: NodeIdFactory
-  expr 171:22   FieldExpr      :: ?
-  expr 171:22   IdentExpr      :: DestructureImport
-  expr 171:32   FieldExpr      :: ?
-  expr 171:32   IdentExpr      :: ?
-  expr 171:39   CallExpr       :: usize
-  expr 171:39   FieldExpr      :: fn() -> usize
-  expr 171:39   IdentExpr      :: NodeIdFactory
-  expr 179:11   IdentExpr      :: ?
-  expr 179:5    MatchExpr      :: void
-  expr 180:36   FieldExpr      :: ?
-  expr 180:36   IdentExpr      :: IntLitExpr
-  expr 180:43   CallExpr       :: usize
-  expr 180:43   FieldExpr      :: fn() -> usize
-  expr 180:43   IdentExpr      :: NodeIdFactory
-  expr 181:36   FieldExpr      :: ?
-  expr 181:36   IdentExpr      :: FloatLitExpr
-  expr 181:43   CallExpr       :: usize
-  expr 181:43   FieldExpr      :: fn() -> usize
-  expr 181:43   IdentExpr      :: NodeIdFactory
-  expr 182:36   FieldExpr      :: ?
-  expr 182:36   IdentExpr      :: BoolLitExpr
-  expr 182:43   CallExpr       :: usize
-  expr 182:43   FieldExpr      :: fn() -> usize
-  expr 182:43   IdentExpr      :: NodeIdFactory
-  expr 183:36   FieldExpr      :: ?
-  expr 183:36   IdentExpr      :: NullLitExpr
-  expr 183:43   CallExpr       :: usize
-  expr 183:43   FieldExpr      :: fn() -> usize
-  expr 183:43   IdentExpr      :: NodeIdFactory
+  expr 145:32   IdentExpr      :: NodeIdFactory
+  expr 147:11   FieldExpr      :: ?
+  expr 147:11   IdentExpr      :: FnParam
+  expr 147:5    MatchExpr      :: void
+  expr 149:16   CallExpr       :: void
+  expr 149:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 149:26   FieldExpr      :: ?
+  expr 149:26   IdentExpr      :: FnParam
+  expr 149:43   IdentExpr      :: NodeIdFactory
+  expr 154:13   CallExpr       :: usize
+  expr 154:13   FieldExpr      :: fn() -> usize
+  expr 154:13   IdentExpr      :: NodeIdFactory
+  expr 154:5    FieldExpr      :: ?
+  expr 154:5    IdentExpr      :: TypeParam
+  expr 155:11   FieldExpr      :: ?
+  expr 155:11   IdentExpr      :: TypeParam
+  expr 155:5    MatchExpr      :: void
+  expr 157:16   CallExpr       :: void
+  expr 157:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 157:26   FieldExpr      :: ?
+  expr 157:26   IdentExpr      :: TypeParam
+  expr 157:36   IdentExpr      :: NodeIdFactory
+  expr 162:12   CallExpr       :: usize
+  expr 162:12   FieldExpr      :: fn() -> usize
+  expr 162:12   IdentExpr      :: NodeIdFactory
+  expr 162:5    FieldExpr      :: ?
+  expr 162:5    IdentExpr      :: Decorator
+  expr 163:14   FieldExpr      :: ?
+  expr 163:14   IdentExpr      :: Decorator
+  expr 163:23   CallExpr       :: void
+  expr 163:23   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 163:33   IdentExpr      :: ?
+  expr 163:36   IdentExpr      :: NodeIdFactory
+  expr 167:11   IdentExpr      :: ?
+  expr 167:5    MatchExpr      :: void
+  expr 169:13   MatchExpr      :: void
+  expr 169:19   FieldExpr      :: ?
+  expr 169:19   IdentExpr      :: NamedNamespaceImport
+  expr 171:33   FieldExpr      :: ?
+  expr 171:33   IdentExpr      :: NamedNamespaceImport
+  expr 171:49   FieldExpr      :: ?
+  expr 171:49   IdentExpr      :: ?
+  expr 171:56   CallExpr       :: usize
+  expr 171:56   FieldExpr      :: fn() -> usize
+  expr 171:56   IdentExpr      :: NodeIdFactory
+  expr 175:22   FieldExpr      :: ?
+  expr 175:22   IdentExpr      :: DestructureImport
+  expr 175:32   FieldExpr      :: ?
+  expr 175:32   IdentExpr      :: ?
+  expr 175:39   CallExpr       :: usize
+  expr 175:39   FieldExpr      :: fn() -> usize
+  expr 175:39   IdentExpr      :: NodeIdFactory
+  expr 183:11   IdentExpr      :: ?
+  expr 183:5    MatchExpr      :: void
   expr 184:36   FieldExpr      :: ?
-  expr 184:36   IdentExpr      :: CharLitExpr
+  expr 184:36   IdentExpr      :: IntLitExpr
   expr 184:43   CallExpr       :: usize
   expr 184:43   FieldExpr      :: fn() -> usize
   expr 184:43   IdentExpr      :: NodeIdFactory
-  expr 186:13   FieldExpr      :: ?
-  expr 186:13   IdentExpr      :: StringLitExpr
-  expr 186:20   CallExpr       :: usize
-  expr 186:20   FieldExpr      :: fn() -> usize
-  expr 186:20   IdentExpr      :: NodeIdFactory
-  expr 187:22   FieldExpr      :: ?
-  expr 187:22   IdentExpr      :: StringLitExpr
-  expr 188:17   MatchExpr      :: void
-  expr 188:23   IdentExpr      :: ?
-  expr 189:50   FieldExpr      :: ?
-  expr 189:50   IdentExpr      :: StringLitText
-  expr 189:57   CallExpr       :: usize
-  expr 189:57   FieldExpr      :: fn() -> usize
-  expr 189:57   IdentExpr      :: NodeIdFactory
-  expr 191:25   FieldExpr      :: ?
-  expr 191:25   IdentExpr      :: StringLitInterp
-  expr 191:32   CallExpr       :: usize
-  expr 191:32   FieldExpr      :: fn() -> usize
-  expr 191:32   IdentExpr      :: NodeIdFactory
-  expr 192:25   CallExpr       :: void
-  expr 192:25   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 192:35   FieldExpr      :: ?
-  expr 192:35   IdentExpr      :: StringLitInterp
-  expr 192:43   IdentExpr      :: NodeIdFactory
-  expr 197:32   FieldExpr      :: ?
-  expr 197:32   IdentExpr      :: IdentExpr
-  expr 197:39   CallExpr       :: usize
-  expr 197:39   FieldExpr      :: fn() -> usize
-  expr 197:39   IdentExpr      :: NodeIdFactory
-  expr 199:13   FieldExpr      :: ?
-  expr 199:13   IdentExpr      :: CallExpr
-  expr 199:20   CallExpr       :: usize
-  expr 199:20   FieldExpr      :: fn() -> usize
-  expr 199:20   IdentExpr      :: NodeIdFactory
-  expr 200:13   CallExpr       :: void
-  expr 200:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 200:23   FieldExpr      :: ?
-  expr 200:23   IdentExpr      :: CallExpr
-  expr 200:33   IdentExpr      :: NodeIdFactory
-  expr 201:22   FieldExpr      :: ?
-  expr 201:22   IdentExpr      :: CallExpr
-  expr 202:17   FieldExpr      :: ?
-  expr 202:17   IdentExpr      :: ?
-  expr 202:24   CallExpr       :: usize
-  expr 202:24   FieldExpr      :: fn() -> usize
-  expr 202:24   IdentExpr      :: NodeIdFactory
-  expr 203:17   CallExpr       :: void
-  expr 203:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 203:27   FieldExpr      :: ?
-  expr 203:27   IdentExpr      :: ?
-  expr 203:36   IdentExpr      :: NodeIdFactory
-  expr 207:13   FieldExpr      :: ?
-  expr 207:13   IdentExpr      :: FieldExpr
-  expr 207:20   CallExpr       :: usize
-  expr 207:20   FieldExpr      :: fn() -> usize
-  expr 207:20   IdentExpr      :: NodeIdFactory
-  expr 208:13   CallExpr       :: void
-  expr 208:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 208:23   FieldExpr      :: ?
-  expr 208:23   IdentExpr      :: FieldExpr
-  expr 208:33   IdentExpr      :: NodeIdFactory
+  expr 185:36   FieldExpr      :: ?
+  expr 185:36   IdentExpr      :: FloatLitExpr
+  expr 185:43   CallExpr       :: usize
+  expr 185:43   FieldExpr      :: fn() -> usize
+  expr 185:43   IdentExpr      :: NodeIdFactory
+  expr 186:36   FieldExpr      :: ?
+  expr 186:36   IdentExpr      :: BoolLitExpr
+  expr 186:43   CallExpr       :: usize
+  expr 186:43   FieldExpr      :: fn() -> usize
+  expr 186:43   IdentExpr      :: NodeIdFactory
+  expr 187:36   FieldExpr      :: ?
+  expr 187:36   IdentExpr      :: NullLitExpr
+  expr 187:43   CallExpr       :: usize
+  expr 187:43   FieldExpr      :: fn() -> usize
+  expr 187:43   IdentExpr      :: NodeIdFactory
+  expr 188:36   FieldExpr      :: ?
+  expr 188:36   IdentExpr      :: CharLitExpr
+  expr 188:43   CallExpr       :: usize
+  expr 188:43   FieldExpr      :: fn() -> usize
+  expr 188:43   IdentExpr      :: NodeIdFactory
+  expr 190:13   FieldExpr      :: ?
+  expr 190:13   IdentExpr      :: StringLitExpr
+  expr 190:20   CallExpr       :: usize
+  expr 190:20   FieldExpr      :: fn() -> usize
+  expr 190:20   IdentExpr      :: NodeIdFactory
+  expr 191:22   FieldExpr      :: ?
+  expr 191:22   IdentExpr      :: StringLitExpr
+  expr 192:17   MatchExpr      :: void
+  expr 192:23   IdentExpr      :: ?
+  expr 193:50   FieldExpr      :: ?
+  expr 193:50   IdentExpr      :: StringLitText
+  expr 193:57   CallExpr       :: usize
+  expr 193:57   FieldExpr      :: fn() -> usize
+  expr 193:57   IdentExpr      :: NodeIdFactory
+  expr 195:25   FieldExpr      :: ?
+  expr 195:25   IdentExpr      :: StringLitInterp
+  expr 195:32   CallExpr       :: usize
+  expr 195:32   FieldExpr      :: fn() -> usize
+  expr 195:32   IdentExpr      :: NodeIdFactory
+  expr 196:25   CallExpr       :: void
+  expr 196:25   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 196:35   FieldExpr      :: ?
+  expr 196:35   IdentExpr      :: StringLitInterp
+  expr 196:43   IdentExpr      :: NodeIdFactory
+  expr 201:32   FieldExpr      :: ?
+  expr 201:32   IdentExpr      :: IdentExpr
+  expr 201:39   CallExpr       :: usize
+  expr 201:39   FieldExpr      :: fn() -> usize
+  expr 201:39   IdentExpr      :: NodeIdFactory
+  expr 203:13   FieldExpr      :: ?
+  expr 203:13   IdentExpr      :: CallExpr
+  expr 203:20   CallExpr       :: usize
+  expr 203:20   FieldExpr      :: fn() -> usize
+  expr 203:20   IdentExpr      :: NodeIdFactory
+  expr 204:13   CallExpr       :: void
+  expr 204:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 204:23   FieldExpr      :: ?
+  expr 204:23   IdentExpr      :: CallExpr
+  expr 204:33   IdentExpr      :: NodeIdFactory
+  expr 205:22   FieldExpr      :: ?
+  expr 205:22   IdentExpr      :: CallExpr
+  expr 206:17   FieldExpr      :: ?
+  expr 206:17   IdentExpr      :: ?
+  expr 206:24   CallExpr       :: usize
+  expr 206:24   FieldExpr      :: fn() -> usize
+  expr 206:24   IdentExpr      :: NodeIdFactory
+  expr 207:17   CallExpr       :: void
+  expr 207:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 207:27   FieldExpr      :: ?
+  expr 207:27   IdentExpr      :: ?
+  expr 207:36   IdentExpr      :: NodeIdFactory
   expr 211:13   FieldExpr      :: ?
-  expr 211:13   IdentExpr      :: IndexExpr
+  expr 211:13   IdentExpr      :: FieldExpr
   expr 211:20   CallExpr       :: usize
   expr 211:20   FieldExpr      :: fn() -> usize
   expr 211:20   IdentExpr      :: NodeIdFactory
   expr 212:13   CallExpr       :: void
   expr 212:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 212:23   FieldExpr      :: ?
-  expr 212:23   IdentExpr      :: IndexExpr
+  expr 212:23   IdentExpr      :: FieldExpr
   expr 212:33   IdentExpr      :: NodeIdFactory
-  expr 213:13   CallExpr       :: void
-  expr 213:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 213:23   FieldExpr      :: ?
-  expr 213:23   IdentExpr      :: IndexExpr
-  expr 213:32   IdentExpr      :: NodeIdFactory
-  expr 216:13   FieldExpr      :: ?
-  expr 216:13   IdentExpr      :: UnaryExpr
-  expr 216:20   CallExpr       :: usize
-  expr 216:20   FieldExpr      :: fn() -> usize
-  expr 216:20   IdentExpr      :: NodeIdFactory
+  expr 215:13   FieldExpr      :: ?
+  expr 215:13   IdentExpr      :: IndexExpr
+  expr 215:20   CallExpr       :: usize
+  expr 215:20   FieldExpr      :: fn() -> usize
+  expr 215:20   IdentExpr      :: NodeIdFactory
+  expr 216:13   CallExpr       :: void
+  expr 216:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 216:23   FieldExpr      :: ?
+  expr 216:23   IdentExpr      :: IndexExpr
+  expr 216:33   IdentExpr      :: NodeIdFactory
   expr 217:13   CallExpr       :: void
   expr 217:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 217:23   FieldExpr      :: ?
-  expr 217:23   IdentExpr      :: UnaryExpr
-  expr 217:34   IdentExpr      :: NodeIdFactory
+  expr 217:23   IdentExpr      :: IndexExpr
+  expr 217:32   IdentExpr      :: NodeIdFactory
   expr 220:13   FieldExpr      :: ?
-  expr 220:13   IdentExpr      :: BinaryExpr
+  expr 220:13   IdentExpr      :: UnaryExpr
   expr 220:20   CallExpr       :: usize
   expr 220:20   FieldExpr      :: fn() -> usize
   expr 220:20   IdentExpr      :: NodeIdFactory
   expr 221:13   CallExpr       :: void
   expr 221:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 221:23   FieldExpr      :: ?
-  expr 221:23   IdentExpr      :: BinaryExpr
-  expr 221:31   IdentExpr      :: NodeIdFactory
-  expr 222:13   CallExpr       :: void
-  expr 222:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 222:23   FieldExpr      :: ?
-  expr 222:23   IdentExpr      :: BinaryExpr
-  expr 222:32   IdentExpr      :: NodeIdFactory
-  expr 225:13   FieldExpr      :: ?
-  expr 225:13   IdentExpr      :: IfExpr
-  expr 225:20   CallExpr       :: usize
-  expr 225:20   FieldExpr      :: fn() -> usize
-  expr 225:20   IdentExpr      :: NodeIdFactory
+  expr 221:23   IdentExpr      :: UnaryExpr
+  expr 221:34   IdentExpr      :: NodeIdFactory
+  expr 224:13   FieldExpr      :: ?
+  expr 224:13   IdentExpr      :: BinaryExpr
+  expr 224:20   CallExpr       :: usize
+  expr 224:20   FieldExpr      :: fn() -> usize
+  expr 224:20   IdentExpr      :: NodeIdFactory
+  expr 225:13   CallExpr       :: void
+  expr 225:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 225:23   FieldExpr      :: ?
+  expr 225:23   IdentExpr      :: BinaryExpr
+  expr 225:31   IdentExpr      :: NodeIdFactory
   expr 226:13   CallExpr       :: void
   expr 226:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 226:23   FieldExpr      :: ?
-  expr 226:23   IdentExpr      :: IfExpr
-  expr 226:31   IdentExpr      :: NodeIdFactory
-  expr 227:13   CallExpr       :: void
-  expr 227:13   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 227:24   FieldExpr      :: ?
-  expr 227:24   IdentExpr      :: IfExpr
-  expr 227:38   IdentExpr      :: NodeIdFactory
-  expr 228:13   MatchExpr      :: void
-  expr 228:19   FieldExpr      :: ?
-  expr 228:19   IdentExpr      :: IfExpr
+  expr 226:23   IdentExpr      :: BinaryExpr
+  expr 226:32   IdentExpr      :: NodeIdFactory
+  expr 229:13   FieldExpr      :: ?
+  expr 229:13   IdentExpr      :: IfExpr
+  expr 229:20   CallExpr       :: usize
+  expr 229:20   FieldExpr      :: fn() -> usize
+  expr 229:20   IdentExpr      :: NodeIdFactory
   expr 22:12    StructLitExpr  :: NodeIdFactory
   expr 22:36    CallExpr       :: usize
   expr 22:36    IdentExpr      :: type
-  expr 230:43   CallExpr       :: void
-  expr 230:43   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 230:53   FieldExpr      :: ?
-  expr 230:53   IdentExpr      :: IfElseIf
-  expr 230:64   IdentExpr      :: NodeIdFactory
-  expr 231:43   CallExpr       :: void
-  expr 231:43   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 231:54   FieldExpr      :: ?
-  expr 231:54   IdentExpr      :: IfElseBlock
-  expr 231:64   IdentExpr      :: NodeIdFactory
-  expr 235:13   FieldExpr      :: ?
-  expr 235:13   IdentExpr      :: MatchExpr
-  expr 235:20   CallExpr       :: usize
-  expr 235:20   FieldExpr      :: fn() -> usize
-  expr 235:20   IdentExpr      :: NodeIdFactory
-  expr 236:13   CallExpr       :: void
-  expr 236:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 236:23   FieldExpr      :: ?
-  expr 236:23   IdentExpr      :: MatchExpr
-  expr 236:36   IdentExpr      :: NodeIdFactory
-  expr 237:22   FieldExpr      :: ?
-  expr 237:22   IdentExpr      :: MatchExpr
-  expr 238:17   FieldExpr      :: ?
-  expr 238:17   IdentExpr      :: ?
-  expr 238:24   CallExpr       :: usize
-  expr 238:24   FieldExpr      :: fn() -> usize
-  expr 238:24   IdentExpr      :: NodeIdFactory
-  expr 239:17   CallExpr       :: void
-  expr 239:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 239:30   FieldExpr      :: ?
-  expr 239:30   IdentExpr      :: ?
-  expr 239:41   IdentExpr      :: NodeIdFactory
-  expr 240:17   MatchExpr      :: void
+  expr 230:13   CallExpr       :: void
+  expr 230:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 230:23   FieldExpr      :: ?
+  expr 230:23   IdentExpr      :: IfExpr
+  expr 230:31   IdentExpr      :: NodeIdFactory
+  expr 231:13   CallExpr       :: void
+  expr 231:13   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
+  expr 231:24   FieldExpr      :: ?
+  expr 231:24   IdentExpr      :: IfExpr
+  expr 231:38   IdentExpr      :: NodeIdFactory
+  expr 232:13   MatchExpr      :: void
+  expr 232:19   FieldExpr      :: ?
+  expr 232:19   IdentExpr      :: IfExpr
+  expr 234:43   CallExpr       :: void
+  expr 234:43   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 234:53   FieldExpr      :: ?
+  expr 234:53   IdentExpr      :: IfElseIf
+  expr 234:64   IdentExpr      :: NodeIdFactory
+  expr 235:43   CallExpr       :: void
+  expr 235:43   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
+  expr 235:54   FieldExpr      :: ?
+  expr 235:54   IdentExpr      :: IfElseBlock
+  expr 235:64   IdentExpr      :: NodeIdFactory
+  expr 239:13   FieldExpr      :: ?
+  expr 239:13   IdentExpr      :: MatchExpr
+  expr 239:20   CallExpr       :: usize
+  expr 239:20   FieldExpr      :: fn() -> usize
+  expr 239:20   IdentExpr      :: NodeIdFactory
+  expr 240:13   CallExpr       :: void
+  expr 240:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 240:23   FieldExpr      :: ?
-  expr 240:23   IdentExpr      :: ?
-  expr 242:28   CallExpr       :: void
-  expr 242:28   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 242:38   FieldExpr      :: ?
-  expr 242:38   IdentExpr      :: ?
-  expr 242:47   IdentExpr      :: NodeIdFactory
-  expr 244:17   CallExpr       :: void
-  expr 244:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 244:27   FieldExpr      :: ?
-  expr 244:27   IdentExpr      :: ?
-  expr 244:35   IdentExpr      :: NodeIdFactory
-  expr 247:32   CallExpr       :: void
-  expr 247:32   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 247:43   IdentExpr      :: BlockExpr
-  expr 247:46   IdentExpr      :: NodeIdFactory
-  expr 249:13   FieldExpr      :: ?
-  expr 249:13   IdentExpr      :: LambdaExpr
-  expr 249:20   CallExpr       :: usize
-  expr 249:20   FieldExpr      :: fn() -> usize
-  expr 249:20   IdentExpr      :: NodeIdFactory
-  expr 250:22   FieldExpr      :: ?
-  expr 250:22   IdentExpr      :: LambdaExpr
-  expr 250:33   CallExpr       :: void
-  expr 250:33   IdentExpr      :: fn(FnParam, NodeIdFactory) -> void
-  expr 250:47   IdentExpr      :: ?
-  expr 250:50   IdentExpr      :: NodeIdFactory
-  expr 251:13   MatchExpr      :: void
-  expr 251:19   FieldExpr      :: ?
-  expr 251:19   IdentExpr      :: LambdaExpr
-  expr 253:24   CallExpr       :: void
-  expr 253:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 253:34   FieldExpr      :: ?
-  expr 253:34   IdentExpr      :: LambdaExpr
-  expr 253:49   IdentExpr      :: NodeIdFactory
-  expr 255:13   CallExpr       :: void
-  expr 255:13   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 255:24   FieldExpr      :: ?
-  expr 255:24   IdentExpr      :: LambdaExpr
-  expr 255:32   IdentExpr      :: NodeIdFactory
-  expr 258:13   FieldExpr      :: ?
-  expr 258:13   IdentExpr      :: StructLitExpr
-  expr 258:20   CallExpr       :: usize
-  expr 258:20   FieldExpr      :: fn() -> usize
-  expr 258:20   IdentExpr      :: NodeIdFactory
+  expr 240:23   IdentExpr      :: MatchExpr
+  expr 240:36   IdentExpr      :: NodeIdFactory
+  expr 241:22   FieldExpr      :: ?
+  expr 241:22   IdentExpr      :: MatchExpr
+  expr 242:17   FieldExpr      :: ?
+  expr 242:17   IdentExpr      :: ?
+  expr 242:24   CallExpr       :: usize
+  expr 242:24   FieldExpr      :: fn() -> usize
+  expr 242:24   IdentExpr      :: NodeIdFactory
+  expr 243:17   CallExpr       :: void
+  expr 243:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 243:30   FieldExpr      :: ?
+  expr 243:30   IdentExpr      :: ?
+  expr 243:41   IdentExpr      :: NodeIdFactory
+  expr 244:17   MatchExpr      :: void
+  expr 244:23   FieldExpr      :: ?
+  expr 244:23   IdentExpr      :: ?
+  expr 246:28   CallExpr       :: void
+  expr 246:28   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 246:38   FieldExpr      :: ?
+  expr 246:38   IdentExpr      :: ?
+  expr 246:47   IdentExpr      :: NodeIdFactory
+  expr 248:17   CallExpr       :: void
+  expr 248:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 248:27   FieldExpr      :: ?
+  expr 248:27   IdentExpr      :: ?
+  expr 248:35   IdentExpr      :: NodeIdFactory
+  expr 251:32   CallExpr       :: void
+  expr 251:32   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
+  expr 251:43   IdentExpr      :: BlockExpr
+  expr 251:46   IdentExpr      :: NodeIdFactory
+  expr 253:13   FieldExpr      :: ?
+  expr 253:13   IdentExpr      :: LambdaExpr
+  expr 253:20   CallExpr       :: usize
+  expr 253:20   FieldExpr      :: fn() -> usize
+  expr 253:20   IdentExpr      :: NodeIdFactory
+  expr 254:22   FieldExpr      :: ?
+  expr 254:22   IdentExpr      :: LambdaExpr
+  expr 254:33   CallExpr       :: void
+  expr 254:33   IdentExpr      :: fn(FnParam, NodeIdFactory) -> void
+  expr 254:47   IdentExpr      :: ?
+  expr 254:50   IdentExpr      :: NodeIdFactory
+  expr 255:13   MatchExpr      :: void
+  expr 255:19   FieldExpr      :: ?
+  expr 255:19   IdentExpr      :: LambdaExpr
+  expr 257:24   CallExpr       :: void
+  expr 257:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 257:34   FieldExpr      :: ?
+  expr 257:34   IdentExpr      :: LambdaExpr
+  expr 257:49   IdentExpr      :: NodeIdFactory
   expr 259:13   CallExpr       :: void
-  expr 259:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 259:23   FieldExpr      :: ?
-  expr 259:23   IdentExpr      :: StructLitExpr
-  expr 259:36   IdentExpr      :: NodeIdFactory
-  expr 260:25   FieldExpr      :: ?
-  expr 260:25   IdentExpr      :: StructLitExpr
-  expr 261:17   MatchExpr      :: void
-  expr 261:23   IdentExpr      :: ?
-  expr 263:25   FieldExpr      :: ?
-  expr 263:25   IdentExpr      :: StructLitField
-  expr 263:34   CallExpr       :: usize
-  expr 263:34   FieldExpr      :: fn() -> usize
-  expr 263:34   IdentExpr      :: NodeIdFactory
-  expr 264:25   CallExpr       :: void
-  expr 264:25   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 264:35   FieldExpr      :: ?
-  expr 264:35   IdentExpr      :: StructLitField
-  expr 264:46   IdentExpr      :: NodeIdFactory
+  expr 259:13   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
+  expr 259:24   FieldExpr      :: ?
+  expr 259:24   IdentExpr      :: LambdaExpr
+  expr 259:32   IdentExpr      :: NodeIdFactory
+  expr 262:13   FieldExpr      :: ?
+  expr 262:13   IdentExpr      :: StructLitExpr
+  expr 262:20   CallExpr       :: usize
+  expr 262:20   FieldExpr      :: fn() -> usize
+  expr 262:20   IdentExpr      :: NodeIdFactory
+  expr 263:13   CallExpr       :: void
+  expr 263:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 263:23   FieldExpr      :: ?
+  expr 263:23   IdentExpr      :: StructLitExpr
+  expr 263:36   IdentExpr      :: NodeIdFactory
+  expr 264:25   FieldExpr      :: ?
+  expr 264:25   IdentExpr      :: StructLitExpr
+  expr 265:17   MatchExpr      :: void
+  expr 265:23   IdentExpr      :: ?
   expr 267:25   FieldExpr      :: ?
-  expr 267:25   IdentExpr      :: StructLitSpread
-  expr 267:33   CallExpr       :: usize
-  expr 267:33   FieldExpr      :: fn() -> usize
-  expr 267:33   IdentExpr      :: NodeIdFactory
+  expr 267:25   IdentExpr      :: StructLitField
+  expr 267:34   CallExpr       :: usize
+  expr 267:34   FieldExpr      :: fn() -> usize
+  expr 267:34   IdentExpr      :: NodeIdFactory
   expr 268:25   CallExpr       :: void
   expr 268:25   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 268:35   FieldExpr      :: ?
-  expr 268:35   IdentExpr      :: StructLitSpread
-  expr 268:44   IdentExpr      :: NodeIdFactory
-  expr 274:13   FieldExpr      :: ?
-  expr 274:13   IdentExpr      :: SeqLitExpr
-  expr 274:20   CallExpr       :: usize
-  expr 274:20   FieldExpr      :: fn() -> usize
-  expr 274:20   IdentExpr      :: NodeIdFactory
-  expr 275:23   FieldExpr      :: ?
-  expr 275:23   IdentExpr      :: SeqLitExpr
-  expr 275:36   CallExpr       :: void
-  expr 275:36   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 275:46   IdentExpr      :: ?
-  expr 275:50   IdentExpr      :: NodeIdFactory
+  expr 268:35   IdentExpr      :: StructLitField
+  expr 268:46   IdentExpr      :: NodeIdFactory
+  expr 271:25   FieldExpr      :: ?
+  expr 271:25   IdentExpr      :: StructLitSpread
+  expr 271:33   CallExpr       :: usize
+  expr 271:33   FieldExpr      :: fn() -> usize
+  expr 271:33   IdentExpr      :: NodeIdFactory
+  expr 272:25   CallExpr       :: void
+  expr 272:25   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 272:35   FieldExpr      :: ?
+  expr 272:35   IdentExpr      :: StructLitSpread
+  expr 272:44   IdentExpr      :: NodeIdFactory
   expr 278:13   FieldExpr      :: ?
-  expr 278:13   IdentExpr      :: RangeExpr
+  expr 278:13   IdentExpr      :: SeqLitExpr
   expr 278:20   CallExpr       :: usize
   expr 278:20   FieldExpr      :: fn() -> usize
   expr 278:20   IdentExpr      :: NodeIdFactory
-  expr 279:13   CallExpr       :: void
-  expr 279:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 279:23   FieldExpr      :: ?
-  expr 279:23   IdentExpr      :: RangeExpr
-  expr 279:32   IdentExpr      :: NodeIdFactory
+  expr 279:23   IdentExpr      :: SeqLitExpr
+  expr 279:36   CallExpr       :: void
+  expr 279:36   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 279:46   IdentExpr      :: ?
+  expr 279:50   IdentExpr      :: NodeIdFactory
   expr 27:11    FieldExpr      :: usize
   expr 27:11    IdentExpr      :: NodeIdFactory
-  expr 280:13   CallExpr       :: void
-  expr 280:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 280:23   FieldExpr      :: ?
-  expr 280:23   IdentExpr      :: RangeExpr
-  expr 280:32   IdentExpr      :: NodeIdFactory
-  expr 283:13   FieldExpr      :: ?
-  expr 283:13   IdentExpr      :: TryExpr
-  expr 283:20   CallExpr       :: usize
-  expr 283:20   FieldExpr      :: fn() -> usize
-  expr 283:20   IdentExpr      :: NodeIdFactory
+  expr 282:13   FieldExpr      :: ?
+  expr 282:13   IdentExpr      :: RangeExpr
+  expr 282:20   CallExpr       :: usize
+  expr 282:20   FieldExpr      :: fn() -> usize
+  expr 282:20   IdentExpr      :: NodeIdFactory
+  expr 283:13   CallExpr       :: void
+  expr 283:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 283:23   FieldExpr      :: ?
+  expr 283:23   IdentExpr      :: RangeExpr
+  expr 283:32   IdentExpr      :: NodeIdFactory
   expr 284:13   CallExpr       :: void
   expr 284:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 284:23   FieldExpr      :: ?
-  expr 284:23   IdentExpr      :: TryExpr
+  expr 284:23   IdentExpr      :: RangeExpr
   expr 284:32   IdentExpr      :: NodeIdFactory
   expr 287:13   FieldExpr      :: ?
-  expr 287:13   IdentExpr      :: CastExpr
+  expr 287:13   IdentExpr      :: TryExpr
   expr 287:20   CallExpr       :: usize
   expr 287:20   FieldExpr      :: fn() -> usize
   expr 287:20   IdentExpr      :: NodeIdFactory
   expr 288:13   CallExpr       :: void
   expr 288:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 288:23   FieldExpr      :: ?
-  expr 288:23   IdentExpr      :: CastExpr
-  expr 288:33   IdentExpr      :: NodeIdFactory
-  expr 289:13   CallExpr       :: void
-  expr 289:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 289:23   FieldExpr      :: ?
-  expr 289:23   IdentExpr      :: CastExpr
-  expr 289:32   IdentExpr      :: NodeIdFactory
+  expr 288:23   IdentExpr      :: TryExpr
+  expr 288:32   IdentExpr      :: NodeIdFactory
   expr 28:17    BinaryExpr     :: usize
   expr 28:17    IdentExpr      :: usize
   expr 28:22    CallExpr       :: usize
   expr 28:22    IdentExpr      :: type
   expr 28:5     FieldExpr      :: usize
   expr 28:5     IdentExpr      :: NodeIdFactory
-  expr 292:13   FieldExpr      :: ?
-  expr 292:13   IdentExpr      :: GenericInstExpr
-  expr 292:20   CallExpr       :: usize
-  expr 292:20   FieldExpr      :: fn() -> usize
-  expr 292:20   IdentExpr      :: NodeIdFactory
+  expr 291:13   FieldExpr      :: ?
+  expr 291:13   IdentExpr      :: CastExpr
+  expr 291:20   CallExpr       :: usize
+  expr 291:20   FieldExpr      :: fn() -> usize
+  expr 291:20   IdentExpr      :: NodeIdFactory
+  expr 292:13   CallExpr       :: void
+  expr 292:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 292:23   FieldExpr      :: ?
+  expr 292:23   IdentExpr      :: CastExpr
+  expr 292:33   IdentExpr      :: NodeIdFactory
   expr 293:13   CallExpr       :: void
   expr 293:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 293:23   FieldExpr      :: ?
-  expr 293:23   IdentExpr      :: GenericInstExpr
-  expr 293:33   IdentExpr      :: NodeIdFactory
-  expr 294:23   FieldExpr      :: ?
-  expr 294:23   IdentExpr      :: GenericInstExpr
-  expr 294:37   CallExpr       :: void
-  expr 294:37   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 294:47   IdentExpr      :: ?
-  expr 294:51   IdentExpr      :: NodeIdFactory
-  expr 297:13   FieldExpr      :: ?
-  expr 297:13   IdentExpr      :: IntrinsicCallExpr
-  expr 297:20   CallExpr       :: usize
-  expr 297:20   FieldExpr      :: fn() -> usize
-  expr 297:20   IdentExpr      :: NodeIdFactory
-  expr 298:22   FieldExpr      :: ?
-  expr 298:22   IdentExpr      :: IntrinsicCallExpr
-  expr 298:31   CallExpr       :: void
-  expr 298:31   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 298:41   IdentExpr      :: ?
-  expr 298:44   IdentExpr      :: NodeIdFactory
+  expr 293:23   IdentExpr      :: CastExpr
+  expr 293:32   IdentExpr      :: NodeIdFactory
+  expr 296:13   FieldExpr      :: ?
+  expr 296:13   IdentExpr      :: GenericInstExpr
+  expr 296:20   CallExpr       :: usize
+  expr 296:20   FieldExpr      :: fn() -> usize
+  expr 296:20   IdentExpr      :: NodeIdFactory
+  expr 297:13   CallExpr       :: void
+  expr 297:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 297:23   FieldExpr      :: ?
+  expr 297:23   IdentExpr      :: GenericInstExpr
+  expr 297:33   IdentExpr      :: NodeIdFactory
+  expr 298:23   FieldExpr      :: ?
+  expr 298:23   IdentExpr      :: GenericInstExpr
+  expr 298:37   CallExpr       :: void
+  expr 298:37   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 298:47   IdentExpr      :: ?
+  expr 298:51   IdentExpr      :: NodeIdFactory
   expr 29:12    IdentExpr      :: usize
-  expr 300:37   FieldExpr      :: ?
-  expr 300:37   IdentExpr      :: DotVariantExpr
-  expr 300:44   CallExpr       :: usize
-  expr 300:44   FieldExpr      :: fn() -> usize
-  expr 300:44   IdentExpr      :: NodeIdFactory
-  expr 302:13   FieldExpr      :: ?
-  expr 302:13   IdentExpr      :: FnTypeExpr
-  expr 302:20   CallExpr       :: usize
-  expr 302:20   FieldExpr      :: fn() -> usize
-  expr 302:20   IdentExpr      :: NodeIdFactory
-  expr 303:22   FieldExpr      :: ?
-  expr 303:22   IdentExpr      :: FnTypeExpr
-  expr 303:33   CallExpr       :: void
-  expr 303:33   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 303:43   IdentExpr      :: ?
-  expr 303:46   IdentExpr      :: NodeIdFactory
-  expr 304:13   MatchExpr      :: void
-  expr 304:19   FieldExpr      :: ?
-  expr 304:19   IdentExpr      :: FnTypeExpr
-  expr 306:24   CallExpr       :: void
-  expr 306:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 306:34   FieldExpr      :: ?
-  expr 306:34   IdentExpr      :: FnTypeExpr
-  expr 306:49   IdentExpr      :: NodeIdFactory
-  expr 310:13   FieldExpr      :: ?
-  expr 310:13   IdentExpr      :: ArrayTypeExpr
-  expr 310:20   CallExpr       :: usize
-  expr 310:20   FieldExpr      :: fn() -> usize
-  expr 310:20   IdentExpr      :: NodeIdFactory
-  expr 311:13   CallExpr       :: void
-  expr 311:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 311:23   FieldExpr      :: ?
-  expr 311:23   IdentExpr      :: ArrayTypeExpr
-  expr 311:34   IdentExpr      :: NodeIdFactory
-  expr 319:12   CallExpr       :: usize
-  expr 319:12   FieldExpr      :: fn() -> usize
-  expr 319:12   IdentExpr      :: NodeIdFactory
-  expr 319:5    FieldExpr      :: ?
-  expr 319:5    IdentExpr      :: BlockExpr
-  expr 320:14   FieldExpr      :: ?
-  expr 320:14   IdentExpr      :: BlockExpr
-  expr 320:24   CallExpr       :: void
-  expr 320:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 320:34   IdentExpr      :: ?
-  expr 320:37   IdentExpr      :: NodeIdFactory
-  expr 321:11   FieldExpr      :: ?
-  expr 321:11   IdentExpr      :: BlockExpr
-  expr 321:5    MatchExpr      :: void
-  expr 323:16   CallExpr       :: void
-  expr 323:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 323:26   FieldExpr      :: ?
-  expr 323:26   IdentExpr      :: BlockExpr
-  expr 323:38   IdentExpr      :: NodeIdFactory
-  expr 328:11   IdentExpr      :: ?
-  expr 328:5    MatchExpr      :: void
-  expr 330:13   FieldExpr      :: ?
-  expr 330:13   IdentExpr      :: LetStmt
-  expr 330:20   CallExpr       :: usize
-  expr 330:20   FieldExpr      :: fn() -> usize
-  expr 330:20   IdentExpr      :: NodeIdFactory
-  expr 331:13   CallExpr       :: void
-  expr 331:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 331:30   FieldExpr      :: ?
-  expr 331:30   IdentExpr      :: LetStmt
-  expr 331:41   IdentExpr      :: NodeIdFactory
-  expr 332:13   MatchExpr      :: void
-  expr 332:19   FieldExpr      :: ?
-  expr 332:19   IdentExpr      :: LetStmt
-  expr 334:24   CallExpr       :: void
-  expr 334:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 334:34   FieldExpr      :: ?
-  expr 334:34   IdentExpr      :: LetStmt
-  expr 334:40   IdentExpr      :: NodeIdFactory
-  expr 336:13   CallExpr       :: void
-  expr 336:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 336:23   FieldExpr      :: ?
-  expr 336:23   IdentExpr      :: LetStmt
-  expr 336:32   IdentExpr      :: NodeIdFactory
-  expr 339:13   FieldExpr      :: ?
-  expr 339:13   IdentExpr      :: AssignStmt
-  expr 339:20   CallExpr       :: usize
-  expr 339:20   FieldExpr      :: fn() -> usize
-  expr 339:20   IdentExpr      :: NodeIdFactory
+  expr 301:13   FieldExpr      :: ?
+  expr 301:13   IdentExpr      :: IntrinsicCallExpr
+  expr 301:20   CallExpr       :: usize
+  expr 301:20   FieldExpr      :: fn() -> usize
+  expr 301:20   IdentExpr      :: NodeIdFactory
+  expr 302:22   FieldExpr      :: ?
+  expr 302:22   IdentExpr      :: IntrinsicCallExpr
+  expr 302:31   CallExpr       :: void
+  expr 302:31   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 302:41   IdentExpr      :: ?
+  expr 302:44   IdentExpr      :: NodeIdFactory
+  expr 304:37   FieldExpr      :: ?
+  expr 304:37   IdentExpr      :: DotVariantExpr
+  expr 304:44   CallExpr       :: usize
+  expr 304:44   FieldExpr      :: fn() -> usize
+  expr 304:44   IdentExpr      :: NodeIdFactory
+  expr 306:13   FieldExpr      :: ?
+  expr 306:13   IdentExpr      :: FnTypeExpr
+  expr 306:20   CallExpr       :: usize
+  expr 306:20   FieldExpr      :: fn() -> usize
+  expr 306:20   IdentExpr      :: NodeIdFactory
+  expr 307:22   FieldExpr      :: ?
+  expr 307:22   IdentExpr      :: FnTypeExpr
+  expr 307:33   CallExpr       :: void
+  expr 307:33   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 307:43   IdentExpr      :: ?
+  expr 307:46   IdentExpr      :: NodeIdFactory
+  expr 308:13   MatchExpr      :: void
+  expr 308:19   FieldExpr      :: ?
+  expr 308:19   IdentExpr      :: FnTypeExpr
+  expr 310:24   CallExpr       :: void
+  expr 310:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 310:34   FieldExpr      :: ?
+  expr 310:34   IdentExpr      :: FnTypeExpr
+  expr 310:49   IdentExpr      :: NodeIdFactory
+  expr 314:13   FieldExpr      :: ?
+  expr 314:13   IdentExpr      :: ArrayTypeExpr
+  expr 314:20   CallExpr       :: usize
+  expr 314:20   FieldExpr      :: fn() -> usize
+  expr 314:20   IdentExpr      :: NodeIdFactory
+  expr 315:13   CallExpr       :: void
+  expr 315:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 315:23   FieldExpr      :: ?
+  expr 315:23   IdentExpr      :: ArrayTypeExpr
+  expr 315:34   IdentExpr      :: NodeIdFactory
+  expr 323:12   CallExpr       :: usize
+  expr 323:12   FieldExpr      :: fn() -> usize
+  expr 323:12   IdentExpr      :: NodeIdFactory
+  expr 323:5    FieldExpr      :: ?
+  expr 323:5    IdentExpr      :: BlockExpr
+  expr 324:14   FieldExpr      :: ?
+  expr 324:14   IdentExpr      :: BlockExpr
+  expr 324:24   CallExpr       :: void
+  expr 324:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 324:34   IdentExpr      :: ?
+  expr 324:37   IdentExpr      :: NodeIdFactory
+  expr 325:11   FieldExpr      :: ?
+  expr 325:11   IdentExpr      :: BlockExpr
+  expr 325:5    MatchExpr      :: void
+  expr 327:16   CallExpr       :: void
+  expr 327:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 327:26   FieldExpr      :: ?
+  expr 327:26   IdentExpr      :: BlockExpr
+  expr 327:38   IdentExpr      :: NodeIdFactory
+  expr 332:11   IdentExpr      :: ?
+  expr 332:5    MatchExpr      :: void
+  expr 334:13   FieldExpr      :: ?
+  expr 334:13   IdentExpr      :: LetStmt
+  expr 334:20   CallExpr       :: usize
+  expr 334:20   FieldExpr      :: fn() -> usize
+  expr 334:20   IdentExpr      :: NodeIdFactory
+  expr 335:13   CallExpr       :: void
+  expr 335:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 335:30   FieldExpr      :: ?
+  expr 335:30   IdentExpr      :: LetStmt
+  expr 335:41   IdentExpr      :: NodeIdFactory
+  expr 336:13   MatchExpr      :: void
+  expr 336:19   FieldExpr      :: ?
+  expr 336:19   IdentExpr      :: LetStmt
+  expr 338:24   CallExpr       :: void
+  expr 338:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 338:34   FieldExpr      :: ?
+  expr 338:34   IdentExpr      :: LetStmt
+  expr 338:40   IdentExpr      :: NodeIdFactory
   expr 340:13   CallExpr       :: void
   expr 340:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 340:23   FieldExpr      :: ?
-  expr 340:23   IdentExpr      :: AssignStmt
-  expr 340:33   IdentExpr      :: NodeIdFactory
-  expr 341:13   CallExpr       :: void
-  expr 341:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 341:23   FieldExpr      :: ?
-  expr 341:23   IdentExpr      :: AssignStmt
-  expr 341:32   IdentExpr      :: NodeIdFactory
-  expr 344:13   FieldExpr      :: ?
-  expr 344:13   IdentExpr      :: ExprStmt
-  expr 344:20   CallExpr       :: usize
-  expr 344:20   FieldExpr      :: fn() -> usize
-  expr 344:20   IdentExpr      :: NodeIdFactory
+  expr 340:23   IdentExpr      :: LetStmt
+  expr 340:32   IdentExpr      :: NodeIdFactory
+  expr 343:13   FieldExpr      :: ?
+  expr 343:13   IdentExpr      :: AssignStmt
+  expr 343:20   CallExpr       :: usize
+  expr 343:20   FieldExpr      :: fn() -> usize
+  expr 343:20   IdentExpr      :: NodeIdFactory
+  expr 344:13   CallExpr       :: void
+  expr 344:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 344:23   FieldExpr      :: ?
+  expr 344:23   IdentExpr      :: AssignStmt
+  expr 344:33   IdentExpr      :: NodeIdFactory
   expr 345:13   CallExpr       :: void
   expr 345:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 345:23   FieldExpr      :: ?
-  expr 345:23   IdentExpr      :: ExprStmt
-  expr 345:31   IdentExpr      :: NodeIdFactory
+  expr 345:23   IdentExpr      :: AssignStmt
+  expr 345:32   IdentExpr      :: NodeIdFactory
   expr 348:13   FieldExpr      :: ?
-  expr 348:13   IdentExpr      :: ReturnStmt
+  expr 348:13   IdentExpr      :: ExprStmt
   expr 348:20   CallExpr       :: usize
   expr 348:20   FieldExpr      :: fn() -> usize
   expr 348:20   IdentExpr      :: NodeIdFactory
-  expr 349:13   MatchExpr      :: void
-  expr 349:19   FieldExpr      :: ?
-  expr 349:19   IdentExpr      :: ReturnStmt
-  expr 351:24   CallExpr       :: void
-  expr 351:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 351:34   FieldExpr      :: ?
-  expr 351:34   IdentExpr      :: ReturnStmt
-  expr 351:43   IdentExpr      :: NodeIdFactory
-  expr 355:13   FieldExpr      :: ?
-  expr 355:13   IdentExpr      :: ForStmt
-  expr 355:20   CallExpr       :: usize
-  expr 355:20   FieldExpr      :: fn() -> usize
-  expr 355:20   IdentExpr      :: NodeIdFactory
-  expr 356:13   CallExpr       :: void
-  expr 356:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 356:27   FieldExpr      :: ?
-  expr 356:27   IdentExpr      :: ForStmt
-  expr 356:35   IdentExpr      :: NodeIdFactory
-  expr 357:13   CallExpr       :: void
-  expr 357:13   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 357:24   FieldExpr      :: ?
-  expr 357:24   IdentExpr      :: ForStmt
-  expr 357:32   IdentExpr      :: NodeIdFactory
-  expr 359:32   FieldExpr      :: ?
-  expr 359:32   IdentExpr      :: BreakStmt
-  expr 359:39   CallExpr       :: usize
-  expr 359:39   FieldExpr      :: fn() -> usize
-  expr 359:39   IdentExpr      :: NodeIdFactory
-  expr 360:35   FieldExpr      :: ?
-  expr 360:35   IdentExpr      :: ContinueStmt
-  expr 360:42   CallExpr       :: usize
-  expr 360:42   FieldExpr      :: fn() -> usize
-  expr 360:42   IdentExpr      :: NodeIdFactory
-  expr 362:13   FieldExpr      :: ?
-  expr 362:13   IdentExpr      :: DeferStmt
-  expr 362:20   CallExpr       :: usize
-  expr 362:20   FieldExpr      :: fn() -> usize
-  expr 362:20   IdentExpr      :: NodeIdFactory
-  expr 363:13   MatchExpr      :: void
-  expr 363:19   FieldExpr      :: ?
-  expr 363:19   IdentExpr      :: DeferStmt
-  expr 364:46   CallExpr       :: void
-  expr 364:46   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 364:56   FieldExpr      :: ?
-  expr 364:56   IdentExpr      :: DeferStmtBody
-  expr 364:65   IdentExpr      :: NodeIdFactory
-  expr 365:46   CallExpr       :: void
-  expr 365:46   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 365:57   FieldExpr      :: ?
-  expr 365:57   IdentExpr      :: DeferBlockBody
-  expr 365:67   IdentExpr      :: NodeIdFactory
-  expr 372:11   IdentExpr      :: ?
-  expr 372:5    MatchExpr      :: void
-  expr 374:31   CallExpr       :: void
-  expr 374:31   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 374:41   FieldExpr      :: ?
-  expr 374:41   IdentExpr      :: WhileFor
-  expr 374:49   IdentExpr      :: NodeIdFactory
-  expr 375:28   CallExpr       :: void
-  expr 375:28   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 375:38   FieldExpr      :: ?
-  expr 375:38   IdentExpr      :: InFor
-  expr 375:46   IdentExpr      :: NodeIdFactory
+  expr 349:13   CallExpr       :: void
+  expr 349:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 349:23   FieldExpr      :: ?
+  expr 349:23   IdentExpr      :: ExprStmt
+  expr 349:31   IdentExpr      :: NodeIdFactory
+  expr 352:13   FieldExpr      :: ?
+  expr 352:13   IdentExpr      :: ReturnStmt
+  expr 352:20   CallExpr       :: usize
+  expr 352:20   FieldExpr      :: fn() -> usize
+  expr 352:20   IdentExpr      :: NodeIdFactory
+  expr 353:13   MatchExpr      :: void
+  expr 353:19   FieldExpr      :: ?
+  expr 353:19   IdentExpr      :: ReturnStmt
+  expr 355:24   CallExpr       :: void
+  expr 355:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 355:34   FieldExpr      :: ?
+  expr 355:34   IdentExpr      :: ReturnStmt
+  expr 355:43   IdentExpr      :: NodeIdFactory
+  expr 359:13   FieldExpr      :: ?
+  expr 359:13   IdentExpr      :: ForStmt
+  expr 359:20   CallExpr       :: usize
+  expr 359:20   FieldExpr      :: fn() -> usize
+  expr 359:20   IdentExpr      :: NodeIdFactory
+  expr 360:13   CallExpr       :: void
+  expr 360:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 360:27   FieldExpr      :: ?
+  expr 360:27   IdentExpr      :: ForStmt
+  expr 360:35   IdentExpr      :: NodeIdFactory
+  expr 361:13   CallExpr       :: void
+  expr 361:13   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
+  expr 361:24   FieldExpr      :: ?
+  expr 361:24   IdentExpr      :: ForStmt
+  expr 361:32   IdentExpr      :: NodeIdFactory
+  expr 363:32   FieldExpr      :: ?
+  expr 363:32   IdentExpr      :: BreakStmt
+  expr 363:39   CallExpr       :: usize
+  expr 363:39   FieldExpr      :: fn() -> usize
+  expr 363:39   IdentExpr      :: NodeIdFactory
+  expr 364:35   FieldExpr      :: ?
+  expr 364:35   IdentExpr      :: ContinueStmt
+  expr 364:42   CallExpr       :: usize
+  expr 364:42   FieldExpr      :: fn() -> usize
+  expr 364:42   IdentExpr      :: NodeIdFactory
+  expr 366:13   FieldExpr      :: ?
+  expr 366:13   IdentExpr      :: DeferStmt
+  expr 366:20   CallExpr       :: usize
+  expr 366:20   FieldExpr      :: fn() -> usize
+  expr 366:20   IdentExpr      :: NodeIdFactory
+  expr 367:13   MatchExpr      :: void
+  expr 367:19   FieldExpr      :: ?
+  expr 367:19   IdentExpr      :: DeferStmt
+  expr 368:46   CallExpr       :: void
+  expr 368:46   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 368:56   FieldExpr      :: ?
+  expr 368:56   IdentExpr      :: DeferStmtBody
+  expr 368:65   IdentExpr      :: NodeIdFactory
+  expr 369:46   CallExpr       :: void
+  expr 369:46   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
+  expr 369:57   FieldExpr      :: ?
+  expr 369:57   IdentExpr      :: DeferBlockBody
+  expr 369:67   IdentExpr      :: NodeIdFactory
+  expr 376:11   IdentExpr      :: ?
+  expr 376:5    MatchExpr      :: void
+  expr 378:31   CallExpr       :: void
+  expr 378:31   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 378:41   FieldExpr      :: ?
+  expr 378:41   IdentExpr      :: WhileFor
+  expr 378:49   IdentExpr      :: NodeIdFactory
+  expr 379:28   CallExpr       :: void
+  expr 379:28   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 379:38   FieldExpr      :: ?
+  expr 379:38   IdentExpr      :: InFor
+  expr 379:46   IdentExpr      :: NodeIdFactory
   expr 37:12    CallExpr       :: usize
   expr 37:12    FieldExpr      :: fn() -> usize
   expr 37:12    IdentExpr      :: NodeIdFactory
   expr 37:5     FieldExpr      :: ?
   expr 37:5     IdentExpr      :: Program
-  expr 380:11   IdentExpr      :: ?
-  expr 380:5    MatchExpr      :: void
-  expr 381:38   FieldExpr      :: ?
-  expr 381:38   IdentExpr      :: SimpleBinding
-  expr 381:45   CallExpr       :: usize
-  expr 381:45   FieldExpr      :: fn() -> usize
-  expr 381:45   IdentExpr      :: NodeIdFactory
-  expr 382:38   FieldExpr      :: ?
-  expr 382:38   IdentExpr      :: WildcardBinding
-  expr 382:45   CallExpr       :: usize
-  expr 382:45   FieldExpr      :: fn() -> usize
-  expr 382:45   IdentExpr      :: NodeIdFactory
-  expr 383:38   FieldExpr      :: ?
-  expr 383:38   IdentExpr      :: RestBinding
-  expr 383:45   CallExpr       :: usize
-  expr 383:45   FieldExpr      :: fn() -> usize
-  expr 383:45   IdentExpr      :: NodeIdFactory
-  expr 385:13   FieldExpr      :: ?
-  expr 385:13   IdentExpr      :: TupleBinding
-  expr 385:20   CallExpr       :: usize
-  expr 385:20   FieldExpr      :: fn() -> usize
-  expr 385:20   IdentExpr      :: NodeIdFactory
-  expr 386:23   FieldExpr      :: ?
-  expr 386:23   IdentExpr      :: TupleBinding
-  expr 386:36   CallExpr       :: void
-  expr 386:36   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 386:53   IdentExpr      :: ?
-  expr 386:57   IdentExpr      :: NodeIdFactory
-  expr 38:14    FieldExpr      :: ?
-  expr 38:14    IdentExpr      :: Program
-  expr 38:24    CallExpr       :: void
-  expr 38:24    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 38:34    IdentExpr      :: ?
-  expr 38:37    IdentExpr      :: NodeIdFactory
-  expr 392:11   IdentExpr      :: ?
-  expr 392:5    MatchExpr      :: void
-  expr 394:13   FieldExpr      :: ?
-  expr 394:13   IdentExpr      :: IsPattern
-  expr 394:20   CallExpr       :: usize
-  expr 394:20   FieldExpr      :: fn() -> usize
-  expr 394:20   IdentExpr      :: NodeIdFactory
-  expr 395:13   CallExpr       :: void
-  expr 395:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 395:23   FieldExpr      :: ?
-  expr 395:23   IdentExpr      :: IsPattern
-  expr 395:29   IdentExpr      :: NodeIdFactory
-  expr 396:13   MatchExpr      :: void
-  expr 396:19   FieldExpr      :: ?
-  expr 396:19   IdentExpr      :: IsPattern
-  expr 398:24   CallExpr       :: void
-  expr 398:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 398:37   FieldExpr      :: ?
-  expr 398:37   IdentExpr      :: IsPattern
-  expr 398:46   IdentExpr      :: NodeIdFactory
-  expr 402:13   FieldExpr      :: ?
-  expr 402:13   IdentExpr      :: StructPattern
-  expr 402:20   CallExpr       :: usize
-  expr 402:20   FieldExpr      :: fn() -> usize
-  expr 402:20   IdentExpr      :: NodeIdFactory
-  expr 403:24   FieldExpr      :: ?
-  expr 403:24   IdentExpr      :: StructPattern
-  expr 404:17   FieldExpr      :: ?
-  expr 404:17   IdentExpr      :: ?
-  expr 404:26   CallExpr       :: usize
-  expr 404:26   FieldExpr      :: fn() -> usize
-  expr 404:26   IdentExpr      :: NodeIdFactory
-  expr 405:17   MatchExpr      :: void
-  expr 405:23   FieldExpr      :: ?
-  expr 405:23   IdentExpr      :: ?
-  expr 406:50   FieldExpr      :: ?
-  expr 406:50   IdentExpr      :: PatternBinding
-  expr 406:58   CallExpr       :: usize
-  expr 406:58   FieldExpr      :: fn() -> usize
-  expr 406:58   IdentExpr      :: NodeIdFactory
-  expr 407:50   CallExpr       :: void
-  expr 407:50   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 407:60   FieldExpr      :: ?
-  expr 407:60   IdentExpr      :: PatternLiteral
-  expr 407:70   IdentExpr      :: NodeIdFactory
-  expr 412:13   FieldExpr      :: ?
-  expr 412:13   IdentExpr      :: TuplePattern
-  expr 412:20   CallExpr       :: usize
-  expr 412:20   FieldExpr      :: fn() -> usize
-  expr 412:20   IdentExpr      :: NodeIdFactory
-  expr 413:23   FieldExpr      :: ?
-  expr 413:23   IdentExpr      :: TuplePattern
-  expr 413:36   CallExpr       :: void
-  expr 413:36   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 413:49   IdentExpr      :: ?
-  expr 413:53   IdentExpr      :: NodeIdFactory
-  expr 415:41   FieldExpr      :: ?
-  expr 415:41   IdentExpr      :: WildcardPattern
-  expr 415:48   CallExpr       :: usize
-  expr 415:48   FieldExpr      :: fn() -> usize
-  expr 415:48   IdentExpr      :: NodeIdFactory
-  expr 416:41   FieldExpr      :: ?
-  expr 416:41   IdentExpr      :: BindingPattern
-  expr 416:48   CallExpr       :: usize
-  expr 416:48   FieldExpr      :: fn() -> usize
-  expr 416:48   IdentExpr      :: NodeIdFactory
-  expr 417:41   FieldExpr      :: ?
-  expr 417:41   IdentExpr      :: EnumVariantPattern
-  expr 417:48   CallExpr       :: usize
-  expr 417:48   FieldExpr      :: fn() -> usize
-  expr 417:48   IdentExpr      :: NodeIdFactory
-  expr 419:13   FieldExpr      :: ?
-  expr 419:13   IdentExpr      :: LiteralPattern
-  expr 419:20   CallExpr       :: usize
-  expr 419:20   FieldExpr      :: fn() -> usize
-  expr 419:20   IdentExpr      :: NodeIdFactory
-  expr 420:13   CallExpr       :: void
-  expr 420:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 420:23   FieldExpr      :: ?
-  expr 420:23   IdentExpr      :: LiteralPattern
-  expr 420:32   IdentExpr      :: NodeIdFactory
-  expr 431:10   CallExpr       :: NodeIdFactory
-  expr 431:10   IdentExpr      :: fn() -> NodeIdFactory
-  expr 432:15   CallExpr       :: usize
-  expr 432:15   FieldExpr      :: fn() -> usize
-  expr 432:15   IdentExpr      :: NodeIdFactory
-  expr 432:25   CallExpr       :: usize
-  expr 432:25   IdentExpr      :: type
-  expr 432:5    CallExpr       :: ?
-  expr 432:5    IdentExpr      :: ?
-  expr 433:15   CallExpr       :: usize
-  expr 433:15   FieldExpr      :: fn() -> usize
-  expr 433:15   IdentExpr      :: NodeIdFactory
-  expr 433:25   CallExpr       :: usize
-  expr 433:25   IdentExpr      :: type
-  expr 433:5    CallExpr       :: ?
-  expr 433:5    IdentExpr      :: ?
-  expr 434:15   CallExpr       :: usize
-  expr 434:15   FieldExpr      :: fn() -> usize
-  expr 434:15   IdentExpr      :: NodeIdFactory
-  expr 434:25   CallExpr       :: usize
-  expr 434:25   IdentExpr      :: type
-  expr 434:5    CallExpr       :: ?
-  expr 434:5    IdentExpr      :: ?
-  expr 439:15   CallExpr       :: ?
-  expr 439:15   IdentExpr      :: ?
-  expr 439:28   StringLitExpr  :: string
-  expr 444:6    StringLitExpr  :: string
-  expr 447:12   BinaryExpr     :: bool
-  expr 447:12   FieldExpr      :: ?
-  expr 447:12   FieldExpr      :: ?
-  expr 447:12   IdentExpr      :: ?
-  expr 447:33   IdentExpr      :: NodeIdFactory
-  expr 447:5    CallExpr       :: ?
-  expr 447:5    IdentExpr      :: ?
-  expr 447:53   StringLitExpr  :: string
-  expr 448:14   FieldExpr      :: ?
-  expr 448:14   FieldExpr      :: ?
-  expr 448:14   IdentExpr      :: ?
-  expr 449:15   IdentExpr      :: ?
-  expr 449:9    MatchExpr      :: void
-  expr 451:17   CallExpr       :: ?
-  expr 451:17   IdentExpr      :: ?
-  expr 451:24   BinaryExpr     :: bool
-  expr 451:24   FieldExpr      :: ?
-  expr 451:24   IdentExpr      :: FnDecl
+  expr 384:11   IdentExpr      :: ?
+  expr 384:5    MatchExpr      :: void
+  expr 385:38   FieldExpr      :: ?
+  expr 385:38   IdentExpr      :: SimpleBinding
+  expr 385:45   CallExpr       :: usize
+  expr 385:45   FieldExpr      :: fn() -> usize
+  expr 385:45   IdentExpr      :: NodeIdFactory
+  expr 386:38   FieldExpr      :: ?
+  expr 386:38   IdentExpr      :: WildcardBinding
+  expr 386:45   CallExpr       :: usize
+  expr 386:45   FieldExpr      :: fn() -> usize
+  expr 386:45   IdentExpr      :: NodeIdFactory
+  expr 387:38   FieldExpr      :: ?
+  expr 387:38   IdentExpr      :: RestBinding
+  expr 387:45   CallExpr       :: usize
+  expr 387:45   FieldExpr      :: fn() -> usize
+  expr 387:45   IdentExpr      :: NodeIdFactory
+  expr 389:13   FieldExpr      :: ?
+  expr 389:13   IdentExpr      :: TupleBinding
+  expr 389:20   CallExpr       :: usize
+  expr 389:20   FieldExpr      :: fn() -> usize
+  expr 389:20   IdentExpr      :: NodeIdFactory
+  expr 38:11    FieldExpr      :: ?
+  expr 38:11    IdentExpr      :: Program
+  expr 38:5     MatchExpr      :: void
+  expr 390:23   FieldExpr      :: ?
+  expr 390:23   IdentExpr      :: TupleBinding
+  expr 390:36   CallExpr       :: void
+  expr 390:36   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 390:53   IdentExpr      :: ?
+  expr 390:57   IdentExpr      :: NodeIdFactory
+  expr 396:11   IdentExpr      :: ?
+  expr 396:5    MatchExpr      :: void
+  expr 398:13   FieldExpr      :: ?
+  expr 398:13   IdentExpr      :: IsPattern
+  expr 398:20   CallExpr       :: usize
+  expr 398:20   FieldExpr      :: fn() -> usize
+  expr 398:20   IdentExpr      :: NodeIdFactory
+  expr 399:13   CallExpr       :: void
+  expr 399:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 399:23   FieldExpr      :: ?
+  expr 399:23   IdentExpr      :: IsPattern
+  expr 399:29   IdentExpr      :: NodeIdFactory
+  expr 400:13   MatchExpr      :: void
+  expr 400:19   FieldExpr      :: ?
+  expr 400:19   IdentExpr      :: IsPattern
+  expr 402:24   CallExpr       :: void
+  expr 402:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 402:37   FieldExpr      :: ?
+  expr 402:37   IdentExpr      :: IsPattern
+  expr 402:46   IdentExpr      :: NodeIdFactory
+  expr 406:13   FieldExpr      :: ?
+  expr 406:13   IdentExpr      :: StructPattern
+  expr 406:20   CallExpr       :: usize
+  expr 406:20   FieldExpr      :: fn() -> usize
+  expr 406:20   IdentExpr      :: NodeIdFactory
+  expr 407:24   FieldExpr      :: ?
+  expr 407:24   IdentExpr      :: StructPattern
+  expr 408:17   FieldExpr      :: ?
+  expr 408:17   IdentExpr      :: ?
+  expr 408:26   CallExpr       :: usize
+  expr 408:26   FieldExpr      :: fn() -> usize
+  expr 408:26   IdentExpr      :: NodeIdFactory
+  expr 409:17   MatchExpr      :: void
+  expr 409:23   FieldExpr      :: ?
+  expr 409:23   IdentExpr      :: ?
+  expr 40:28    FieldExpr      :: ?
+  expr 40:28    FieldExpr      :: ?
+  expr 40:28    IdentExpr      :: Program
+  expr 40:42    CallExpr       :: usize
+  expr 40:42    FieldExpr      :: fn() -> usize
+  expr 40:42    IdentExpr      :: NodeIdFactory
+  expr 410:50   FieldExpr      :: ?
+  expr 410:50   IdentExpr      :: PatternBinding
+  expr 410:58   CallExpr       :: usize
+  expr 410:58   FieldExpr      :: fn() -> usize
+  expr 410:58   IdentExpr      :: NodeIdFactory
+  expr 411:50   CallExpr       :: void
+  expr 411:50   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 411:60   FieldExpr      :: ?
+  expr 411:60   IdentExpr      :: PatternLiteral
+  expr 411:70   IdentExpr      :: NodeIdFactory
+  expr 416:13   FieldExpr      :: ?
+  expr 416:13   IdentExpr      :: TuplePattern
+  expr 416:20   CallExpr       :: usize
+  expr 416:20   FieldExpr      :: fn() -> usize
+  expr 416:20   IdentExpr      :: NodeIdFactory
+  expr 417:23   FieldExpr      :: ?
+  expr 417:23   IdentExpr      :: TuplePattern
+  expr 417:36   CallExpr       :: void
+  expr 417:36   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 417:49   IdentExpr      :: ?
+  expr 417:53   IdentExpr      :: NodeIdFactory
+  expr 419:41   FieldExpr      :: ?
+  expr 419:41   IdentExpr      :: WildcardPattern
+  expr 419:48   CallExpr       :: usize
+  expr 419:48   FieldExpr      :: fn() -> usize
+  expr 419:48   IdentExpr      :: NodeIdFactory
+  expr 420:41   FieldExpr      :: ?
+  expr 420:41   IdentExpr      :: BindingPattern
+  expr 420:48   CallExpr       :: usize
+  expr 420:48   FieldExpr      :: fn() -> usize
+  expr 420:48   IdentExpr      :: NodeIdFactory
+  expr 421:41   FieldExpr      :: ?
+  expr 421:41   IdentExpr      :: EnumVariantPattern
+  expr 421:48   CallExpr       :: usize
+  expr 421:48   FieldExpr      :: fn() -> usize
+  expr 421:48   IdentExpr      :: NodeIdFactory
+  expr 423:13   FieldExpr      :: ?
+  expr 423:13   IdentExpr      :: LiteralPattern
+  expr 423:20   CallExpr       :: usize
+  expr 423:20   FieldExpr      :: fn() -> usize
+  expr 423:20   IdentExpr      :: NodeIdFactory
+  expr 424:13   CallExpr       :: void
+  expr 424:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 424:23   FieldExpr      :: ?
+  expr 424:23   IdentExpr      :: LiteralPattern
+  expr 424:32   IdentExpr      :: NodeIdFactory
+  expr 42:14    FieldExpr      :: ?
+  expr 42:14    IdentExpr      :: Program
+  expr 42:24    CallExpr       :: void
+  expr 42:24    IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 42:34    IdentExpr      :: ?
+  expr 42:37    IdentExpr      :: NodeIdFactory
+  expr 435:10   CallExpr       :: NodeIdFactory
+  expr 435:10   IdentExpr      :: fn() -> NodeIdFactory
+  expr 436:15   CallExpr       :: usize
+  expr 436:15   FieldExpr      :: fn() -> usize
+  expr 436:15   IdentExpr      :: NodeIdFactory
+  expr 436:25   CallExpr       :: usize
+  expr 436:25   IdentExpr      :: type
+  expr 436:5    CallExpr       :: ?
+  expr 436:5    IdentExpr      :: ?
+  expr 437:15   CallExpr       :: usize
+  expr 437:15   FieldExpr      :: fn() -> usize
+  expr 437:15   IdentExpr      :: NodeIdFactory
+  expr 437:25   CallExpr       :: usize
+  expr 437:25   IdentExpr      :: type
+  expr 437:5    CallExpr       :: ?
+  expr 437:5    IdentExpr      :: ?
+  expr 438:15   CallExpr       :: usize
+  expr 438:15   FieldExpr      :: fn() -> usize
+  expr 438:15   IdentExpr      :: NodeIdFactory
+  expr 438:25   CallExpr       :: usize
+  expr 438:25   IdentExpr      :: type
+  expr 438:5    CallExpr       :: ?
+  expr 438:5    IdentExpr      :: ?
+  expr 443:15   CallExpr       :: ?
+  expr 443:15   IdentExpr      :: ?
+  expr 443:28   StringLitExpr  :: string
+  expr 448:6    StringLitExpr  :: string
+  expr 451:12   BinaryExpr     :: bool
+  expr 451:12   FieldExpr      :: ?
+  expr 451:12   FieldExpr      :: ?
+  expr 451:12   IdentExpr      :: ?
   expr 451:33   IdentExpr      :: NodeIdFactory
+  expr 451:5    CallExpr       :: ?
+  expr 451:5    IdentExpr      :: ?
   expr 451:53   StringLitExpr  :: string
-  expr 452:26   FieldExpr      :: ?
-  expr 452:26   IdentExpr      :: FnDecl
-  expr 453:21   CallExpr       :: ?
-  expr 453:21   IdentExpr      :: ?
-  expr 453:28   BinaryExpr     :: bool
-  expr 453:28   FieldExpr      :: ?
-  expr 453:28   IdentExpr      :: ?
-  expr 453:36   IdentExpr      :: NodeIdFactory
-  expr 453:56   StringLitExpr  :: string
-  expr 46:16    IdentExpr      :: BlockExpr
-  expr 46:19    IdentExpr      :: NodeIdFactory
-  expr 46:5     CallExpr       :: void
-  expr 46:5     IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 52:11    IdentExpr      :: ?
-  expr 52:5     MatchExpr      :: void
-  expr 54:13    FieldExpr      :: ?
-  expr 54:13    IdentExpr      :: ImportDecl
-  expr 54:20    CallExpr       :: usize
-  expr 54:20    FieldExpr      :: fn() -> usize
-  expr 54:20    IdentExpr      :: NodeIdFactory
-  expr 55:13    CallExpr       :: void
-  expr 55:13    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 55:33    FieldExpr      :: ?
-  expr 55:33    IdentExpr      :: ImportDecl
-  expr 55:44    IdentExpr      :: NodeIdFactory
-  expr 56:24    FieldExpr      :: ?
-  expr 56:24    IdentExpr      :: ImportDecl
-  expr 56:39    CallExpr       :: void
-  expr 56:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 56:54    IdentExpr      :: ?
-  expr 56:59    IdentExpr      :: NodeIdFactory
-  expr 58:29    CallExpr       :: void
-  expr 58:29    IdentExpr      :: fn(FnDecl, NodeIdFactory) -> void
-  expr 58:42    IdentExpr      :: FnDecl
-  expr 58:45    IdentExpr      :: NodeIdFactory
-  expr 60:13    FieldExpr      :: ?
-  expr 60:13    IdentExpr      :: StructDecl
-  expr 60:20    CallExpr       :: usize
-  expr 60:20    FieldExpr      :: fn() -> usize
-  expr 60:20    IdentExpr      :: NodeIdFactory
-  expr 61:23    FieldExpr      :: ?
-  expr 61:23    IdentExpr      :: StructDecl
-  expr 61:39    CallExpr       :: void
-  expr 61:39    IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
-  expr 61:55    IdentExpr      :: ?
-  expr 61:59    IdentExpr      :: NodeIdFactory
-  expr 62:24    FieldExpr      :: ?
-  expr 62:24    IdentExpr      :: StructDecl
-  expr 63:17    FieldExpr      :: ?
-  expr 63:17    IdentExpr      :: ?
-  expr 63:26    CallExpr       :: usize
-  expr 63:26    FieldExpr      :: fn() -> usize
-  expr 63:26    IdentExpr      :: NodeIdFactory
-  expr 64:17    CallExpr       :: void
-  expr 64:17    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 64:27    FieldExpr      :: ?
-  expr 64:27    IdentExpr      :: ?
-  expr 64:35    IdentExpr      :: NodeIdFactory
-  expr 65:17    MatchExpr      :: void
+  expr 452:14   FieldExpr      :: ?
+  expr 452:14   FieldExpr      :: ?
+  expr 452:14   IdentExpr      :: ?
+  expr 453:15   IdentExpr      :: ?
+  expr 453:9    MatchExpr      :: void
+  expr 455:17   CallExpr       :: ?
+  expr 455:17   IdentExpr      :: ?
+  expr 455:24   BinaryExpr     :: bool
+  expr 455:24   FieldExpr      :: ?
+  expr 455:24   IdentExpr      :: FnDecl
+  expr 455:33   IdentExpr      :: NodeIdFactory
+  expr 455:53   StringLitExpr  :: string
+  expr 456:26   FieldExpr      :: ?
+  expr 456:26   IdentExpr      :: FnDecl
+  expr 457:21   CallExpr       :: ?
+  expr 457:21   IdentExpr      :: ?
+  expr 457:28   BinaryExpr     :: bool
+  expr 457:28   FieldExpr      :: ?
+  expr 457:28   IdentExpr      :: ?
+  expr 457:36   IdentExpr      :: NodeIdFactory
+  expr 457:56   StringLitExpr  :: string
+  expr 50:16    IdentExpr      :: BlockExpr
+  expr 50:19    IdentExpr      :: NodeIdFactory
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
+  expr 56:11    IdentExpr      :: ?
+  expr 56:5     MatchExpr      :: void
+  expr 58:13    FieldExpr      :: ?
+  expr 58:13    IdentExpr      :: ImportDecl
+  expr 58:20    CallExpr       :: usize
+  expr 58:20    FieldExpr      :: fn() -> usize
+  expr 58:20    IdentExpr      :: NodeIdFactory
+  expr 59:13    CallExpr       :: void
+  expr 59:13    IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 59:33    FieldExpr      :: ?
+  expr 59:33    IdentExpr      :: ImportDecl
+  expr 59:44    IdentExpr      :: NodeIdFactory
+  expr 60:24    FieldExpr      :: ?
+  expr 60:24    IdentExpr      :: ImportDecl
+  expr 60:39    CallExpr       :: void
+  expr 60:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
+  expr 60:54    IdentExpr      :: ?
+  expr 60:59    IdentExpr      :: NodeIdFactory
+  expr 62:29    CallExpr       :: void
+  expr 62:29    IdentExpr      :: fn(FnDecl, NodeIdFactory) -> void
+  expr 62:42    IdentExpr      :: FnDecl
+  expr 62:45    IdentExpr      :: NodeIdFactory
+  expr 64:13    FieldExpr      :: ?
+  expr 64:13    IdentExpr      :: StructDecl
+  expr 64:20    CallExpr       :: usize
+  expr 64:20    FieldExpr      :: fn() -> usize
+  expr 64:20    IdentExpr      :: NodeIdFactory
   expr 65:23    FieldExpr      :: ?
-  expr 65:23    IdentExpr      :: ?
-  expr 67:28    CallExpr       :: void
-  expr 67:28    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 67:38    FieldExpr      :: ?
-  expr 67:38    IdentExpr      :: ?
-  expr 67:51    IdentExpr      :: NodeIdFactory
-  expr 70:24    FieldExpr      :: ?
-  expr 70:24    IdentExpr      :: StructDecl
-  expr 70:39    CallExpr       :: void
-  expr 70:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 70:54    IdentExpr      :: ?
-  expr 70:59    IdentExpr      :: NodeIdFactory
-  expr 73:13    FieldExpr      :: ?
-  expr 73:13    IdentExpr      :: EnumDecl
-  expr 73:20    CallExpr       :: usize
-  expr 73:20    FieldExpr      :: fn() -> usize
-  expr 73:20    IdentExpr      :: NodeIdFactory
-  expr 74:13    MatchExpr      :: void
-  expr 74:19    FieldExpr      :: ?
-  expr 74:19    IdentExpr      :: EnumDecl
-  expr 76:24    CallExpr       :: void
-  expr 76:24    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 76:34    FieldExpr      :: ?
-  expr 76:34    IdentExpr      :: EnumDecl
-  expr 76:42    IdentExpr      :: NodeIdFactory
-  expr 78:22    FieldExpr      :: ?
-  expr 78:22    IdentExpr      :: EnumDecl
-  expr 78:35    FieldExpr      :: ?
-  expr 78:35    IdentExpr      :: ?
-  expr 78:42    CallExpr       :: usize
-  expr 78:42    FieldExpr      :: fn() -> usize
-  expr 78:42    IdentExpr      :: NodeIdFactory
-  expr 79:24    FieldExpr      :: ?
-  expr 79:24    IdentExpr      :: EnumDecl
-  expr 79:39    CallExpr       :: void
-  expr 79:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 79:54    IdentExpr      :: ?
-  expr 79:59    IdentExpr      :: NodeIdFactory
-  expr 82:13    FieldExpr      :: ?
-  expr 82:13    IdentExpr      :: TraitDecl
-  expr 82:20    CallExpr       :: usize
-  expr 82:20    FieldExpr      :: fn() -> usize
-  expr 82:20    IdentExpr      :: NodeIdFactory
-  expr 83:23    FieldExpr      :: ?
-  expr 83:23    IdentExpr      :: TraitDecl
+  expr 65:23    IdentExpr      :: StructDecl
+  expr 65:39    CallExpr       :: void
+  expr 65:39    IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
+  expr 65:55    IdentExpr      :: ?
+  expr 65:59    IdentExpr      :: NodeIdFactory
+  expr 66:24    FieldExpr      :: ?
+  expr 66:24    IdentExpr      :: StructDecl
+  expr 67:17    FieldExpr      :: ?
+  expr 67:17    IdentExpr      :: ?
+  expr 67:26    CallExpr       :: usize
+  expr 67:26    FieldExpr      :: fn() -> usize
+  expr 67:26    IdentExpr      :: NodeIdFactory
+  expr 68:17    CallExpr       :: void
+  expr 68:17    IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 68:27    FieldExpr      :: ?
+  expr 68:27    IdentExpr      :: ?
+  expr 68:35    IdentExpr      :: NodeIdFactory
+  expr 69:17    MatchExpr      :: void
+  expr 69:23    FieldExpr      :: ?
+  expr 69:23    IdentExpr      :: ?
+  expr 71:28    CallExpr       :: void
+  expr 71:28    IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 71:38    FieldExpr      :: ?
+  expr 71:38    IdentExpr      :: ?
+  expr 71:51    IdentExpr      :: NodeIdFactory
+  expr 74:24    FieldExpr      :: ?
+  expr 74:24    IdentExpr      :: StructDecl
+  expr 74:39    CallExpr       :: void
+  expr 74:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
+  expr 74:54    IdentExpr      :: ?
+  expr 74:59    IdentExpr      :: NodeIdFactory
+  expr 77:13    FieldExpr      :: ?
+  expr 77:13    IdentExpr      :: EnumDecl
+  expr 77:20    CallExpr       :: usize
+  expr 77:20    FieldExpr      :: fn() -> usize
+  expr 77:20    IdentExpr      :: NodeIdFactory
+  expr 78:13    MatchExpr      :: void
+  expr 78:19    FieldExpr      :: ?
+  expr 78:19    IdentExpr      :: EnumDecl
+  expr 80:24    CallExpr       :: void
+  expr 80:24    IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 80:34    FieldExpr      :: ?
+  expr 80:34    IdentExpr      :: EnumDecl
+  expr 80:42    IdentExpr      :: NodeIdFactory
+  expr 82:22    FieldExpr      :: ?
+  expr 82:22    IdentExpr      :: EnumDecl
+  expr 82:35    FieldExpr      :: ?
+  expr 82:35    IdentExpr      :: ?
+  expr 82:42    CallExpr       :: usize
+  expr 82:42    FieldExpr      :: fn() -> usize
+  expr 82:42    IdentExpr      :: NodeIdFactory
+  expr 83:24    FieldExpr      :: ?
+  expr 83:24    IdentExpr      :: EnumDecl
   expr 83:39    CallExpr       :: void
-  expr 83:39    IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
-  expr 83:55    IdentExpr      :: ?
+  expr 83:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
+  expr 83:54    IdentExpr      :: ?
   expr 83:59    IdentExpr      :: NodeIdFactory
-  expr 84:13    MatchExpr      :: void
-  expr 84:19    FieldExpr      :: ?
-  expr 84:19    IdentExpr      :: TraitDecl
-  expr 86:24    CallExpr       :: void
-  expr 86:24    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 86:34    FieldExpr      :: ?
-  expr 86:34    IdentExpr      :: TraitDecl
-  expr 86:46    IdentExpr      :: NodeIdFactory
-  expr 88:22    FieldExpr      :: ?
-  expr 88:22    IdentExpr      :: TraitDecl
-  expr 88:34    CallExpr       :: void
-  expr 88:34    IdentExpr      :: fn(FnDecl, NodeIdFactory) -> void
-  expr 88:47    IdentExpr      :: ?
-  expr 88:50    IdentExpr      :: NodeIdFactory
-  expr 89:24    FieldExpr      :: ?
-  expr 89:24    IdentExpr      :: TraitDecl
-  expr 89:39    CallExpr       :: void
-  expr 89:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 89:54    IdentExpr      :: ?
-  expr 89:59    IdentExpr      :: NodeIdFactory
-  expr 92:13    FieldExpr      :: ?
-  expr 92:13    IdentExpr      :: ImplDecl
-  expr 92:20    CallExpr       :: usize
-  expr 92:20    FieldExpr      :: fn() -> usize
-  expr 92:20    IdentExpr      :: NodeIdFactory
-  expr 93:23    FieldExpr      :: ?
-  expr 93:23    IdentExpr      :: ImplDecl
+  expr 86:13    FieldExpr      :: ?
+  expr 86:13    IdentExpr      :: TraitDecl
+  expr 86:20    CallExpr       :: usize
+  expr 86:20    FieldExpr      :: fn() -> usize
+  expr 86:20    IdentExpr      :: NodeIdFactory
+  expr 87:23    FieldExpr      :: ?
+  expr 87:23    IdentExpr      :: TraitDecl
+  expr 87:39    CallExpr       :: void
+  expr 87:39    IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
+  expr 87:55    IdentExpr      :: ?
+  expr 87:59    IdentExpr      :: NodeIdFactory
+  expr 88:13    MatchExpr      :: void
+  expr 88:19    FieldExpr      :: ?
+  expr 88:19    IdentExpr      :: TraitDecl
+  expr 90:24    CallExpr       :: void
+  expr 90:24    IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 90:34    FieldExpr      :: ?
+  expr 90:34    IdentExpr      :: TraitDecl
+  expr 90:46    IdentExpr      :: NodeIdFactory
+  expr 92:22    FieldExpr      :: ?
+  expr 92:22    IdentExpr      :: TraitDecl
+  expr 92:34    CallExpr       :: void
+  expr 92:34    IdentExpr      :: fn(FnDecl, NodeIdFactory) -> void
+  expr 92:47    IdentExpr      :: ?
+  expr 92:50    IdentExpr      :: NodeIdFactory
+  expr 93:24    FieldExpr      :: ?
+  expr 93:24    IdentExpr      :: TraitDecl
   expr 93:39    CallExpr       :: void
-  expr 93:39    IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
-  expr 93:55    IdentExpr      :: ?
+  expr 93:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
+  expr 93:54    IdentExpr      :: ?
   expr 93:59    IdentExpr      :: NodeIdFactory
-  expr 94:13    CallExpr       :: void
-  expr 94:13    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 94:23    FieldExpr      :: ?
-  expr 94:23    IdentExpr      :: ImplDecl
-  expr 94:35    IdentExpr      :: NodeIdFactory
-  expr 95:23    FieldExpr      :: ?
-  expr 95:23    IdentExpr      :: ImplDecl
-  expr 95:38    CallExpr       :: void
-  expr 95:38    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 95:48    IdentExpr      :: ?
-  expr 95:52    IdentExpr      :: NodeIdFactory
-  expr 96:22    FieldExpr      :: ?
-  expr 96:22    IdentExpr      :: ImplDecl
-  expr 96:34    CallExpr       :: void
-  expr 96:34    IdentExpr      :: fn(FnDecl, NodeIdFactory) -> void
-  expr 96:47    IdentExpr      :: ?
-  expr 96:50    IdentExpr      :: NodeIdFactory
-  expr 97:24    FieldExpr      :: ?
-  expr 97:24    IdentExpr      :: ImplDecl
+  expr 96:13    FieldExpr      :: ?
+  expr 96:13    IdentExpr      :: ImplDecl
+  expr 96:20    CallExpr       :: usize
+  expr 96:20    FieldExpr      :: fn() -> usize
+  expr 96:20    IdentExpr      :: NodeIdFactory
+  expr 97:23    FieldExpr      :: ?
+  expr 97:23    IdentExpr      :: ImplDecl
   expr 97:39    CallExpr       :: void
-  expr 97:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 97:54    IdentExpr      :: ?
+  expr 97:39    IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
+  expr 97:55    IdentExpr      :: ?
   expr 97:59    IdentExpr      :: NodeIdFactory
+  expr 98:13    CallExpr       :: void
+  expr 98:13    IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 98:23    FieldExpr      :: ?
+  expr 98:23    IdentExpr      :: ImplDecl
+  expr 98:35    IdentExpr      :: NodeIdFactory
+  expr 99:23    FieldExpr      :: ?
+  expr 99:23    IdentExpr      :: ImplDecl
+  expr 99:38    CallExpr       :: void
+  expr 99:38    IdentExpr      :: fn(?, NodeIdFactory) -> void
+  expr 99:48    IdentExpr      :: ?
+  expr 99:52    IdentExpr      :: NodeIdFactory
 
 ## vader/parser/ast.vader
   FnDecl         append_bitor_variants :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
@@ -1355,6 +1370,7 @@
   StructDecl     LiteralPattern       :: LiteralPattern
   StructDecl     MatchArm             :: MatchArm
   StructDecl     MatchExpr            :: MatchExpr
+  StructDecl     ModuleDecl           :: ModuleDecl
   StructDecl     NamedNamespaceImport :: NamedNamespaceImport
   StructDecl     NullLitExpr          :: NullLitExpr
   ConstDecl      Pattern              :: type
@@ -1394,106 +1410,107 @@
   StructDecl     WhileFor             :: WhileFor
   StructDecl     WildcardBinding      :: WildcardBinding
   StructDecl     WildcardPattern      :: WildcardPattern
-  expr 112:18   IdentExpr      :: usize
-  expr 122:34   IdentExpr      :: usize
-  expr 143:26   IdentExpr      :: usize
-  expr 155:26   IdentExpr      :: usize
-  expr 166:23   IdentExpr      :: usize
-  expr 178:23   IdentExpr      :: usize
+  expr 110:23   IdentExpr      :: usize
+  expr 128:18   IdentExpr      :: usize
+  expr 138:34   IdentExpr      :: usize
+  expr 159:26   IdentExpr      :: usize
+  expr 171:26   IdentExpr      :: usize
   expr 17:30    CallExpr       :: usize
   expr 17:30    IdentExpr      :: type
-  expr 190:24   IdentExpr      :: usize
-  expr 209:24   IdentExpr      :: usize
-  expr 223:29   IdentExpr      :: usize
-  expr 237:24   IdentExpr      :: usize
-  expr 250:23   IdentExpr      :: usize
-  expr 264:23   IdentExpr      :: usize
-  expr 276:20   IdentExpr      :: usize
-  expr 288:22   IdentExpr      :: usize
-  expr 295:21   IdentExpr      :: usize
-  expr 301:17   IdentExpr      :: usize
-  expr 309:22   IdentExpr      :: usize
-  expr 316:19   IdentExpr      :: usize
-  expr 323:17   IdentExpr      :: usize
-  expr 329:18   IdentExpr      :: usize
-  expr 335:18   IdentExpr      :: usize
-  expr 354:18   IdentExpr      :: usize
-  expr 360:18   IdentExpr      :: usize
-  expr 366:17   IdentExpr      :: usize
-  expr 387:19   IdentExpr      :: usize
-  expr 398:19   IdentExpr      :: usize
-  expr 405:18   IdentExpr      :: usize
-  expr 411:17   IdentExpr      :: usize
-  expr 416:18   IdentExpr      :: usize
-  expr 422:18   IdentExpr      :: usize
-  expr 426:75   IdentExpr      :: usize
-  expr 427:75   IdentExpr      :: usize
-  expr 440:32   IdentExpr      :: usize
-  expr 448:19   IdentExpr      :: usize
-  expr 455:19   IdentExpr      :: usize
-  expr 463:23   IdentExpr      :: usize
-  expr 474:19   IdentExpr      :: usize
-  expr 489:20   IdentExpr      :: usize
-  expr 504:18   IdentExpr      :: usize
-  expr 512:23   StringLitExpr  :: string
-  expr 519:24   IdentExpr      :: usize
-  expr 530:22   IdentExpr      :: usize
-  expr 542:20   IdentExpr      :: usize
-  expr 550:21   IdentExpr      :: usize
-  expr 559:24   IdentExpr      :: usize
-  expr 567:22   IdentExpr      :: usize
-  expr 576:22   IdentExpr      :: usize
-  expr 585:17   IdentExpr      :: usize
-  expr 593:21   IdentExpr      :: usize
-  expr 599:22   IdentExpr      :: usize
-  expr 609:18   IdentExpr      :: usize
-  expr 615:19   IdentExpr      :: usize
-  expr 622:22   IdentExpr      :: usize
-  expr 635:22   IdentExpr      :: usize
-  expr 63:18    IdentExpr      :: usize
-  expr 643:25   IdentExpr      :: usize
-  expr 654:20   IdentExpr      :: usize
-  expr 662:19   IdentExpr      :: usize
-  expr 669:21   IdentExpr      :: usize
-  expr 675:22   IdentExpr      :: usize
-  expr 681:73   IdentExpr      :: usize
-  expr 684:60   IdentExpr      :: usize
-  expr 688:17   IdentExpr      :: usize
-  expr 694:20   IdentExpr      :: usize
-  expr 703:20   IdentExpr      :: usize
-  expr 715:24   IdentExpr      :: usize
-  expr 726:24   IdentExpr      :: usize
-  expr 73:31    IdentExpr      :: usize
-  expr 740:19   SeqLitExpr     :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 741:27   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 741:30   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 741:5    CallExpr       :: void
-  expr 741:5    IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
-  expr 742:12   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 746:11   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 746:5    MatchExpr      :: void
-  expr 748:13   IfExpr         :: void
-  expr 748:16   BinaryExpr     :: bool
-  expr 748:16   FieldExpr      :: BinaryOp
-  expr 748:16   IdentExpr      :: BinaryExpr
-  expr 748:24   DotVariantExpr :: BinaryOp
-  expr 749:17   CallExpr       :: void
-  expr 749:17   IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
-  expr 749:39   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 749:39   IdentExpr      :: BinaryExpr
-  expr 749:47   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 750:17   CallExpr       :: void
-  expr 750:17   IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
-  expr 750:39   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 750:39   IdentExpr      :: BinaryExpr
-  expr 750:48   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 753:13   CallExpr       :: void
-  expr 753:13   FieldExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr) -> void
-  expr 753:13   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 753:22   IdentExpr      :: BinaryExpr
-  expr 755:16   CallExpr       :: void
-  expr 755:16   FieldExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr) -> void
-  expr 755:16   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
-  expr 755:25   IdentExpr      :: ArrayTypeExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 81:17    IdentExpr      :: usize
-  expr 94:23    IdentExpr      :: usize
+  expr 182:23   IdentExpr      :: usize
+  expr 194:23   IdentExpr      :: usize
+  expr 206:24   IdentExpr      :: usize
+  expr 225:24   IdentExpr      :: usize
+  expr 239:29   IdentExpr      :: usize
+  expr 253:24   IdentExpr      :: usize
+  expr 266:23   IdentExpr      :: usize
+  expr 280:23   IdentExpr      :: usize
+  expr 292:20   IdentExpr      :: usize
+  expr 304:22   IdentExpr      :: usize
+  expr 311:21   IdentExpr      :: usize
+  expr 317:17   IdentExpr      :: usize
+  expr 325:22   IdentExpr      :: usize
+  expr 332:19   IdentExpr      :: usize
+  expr 339:17   IdentExpr      :: usize
+  expr 345:18   IdentExpr      :: usize
+  expr 351:18   IdentExpr      :: usize
+  expr 370:18   IdentExpr      :: usize
+  expr 376:18   IdentExpr      :: usize
+  expr 382:17   IdentExpr      :: usize
+  expr 403:19   IdentExpr      :: usize
+  expr 414:19   IdentExpr      :: usize
+  expr 421:18   IdentExpr      :: usize
+  expr 427:17   IdentExpr      :: usize
+  expr 432:18   IdentExpr      :: usize
+  expr 438:18   IdentExpr      :: usize
+  expr 442:75   IdentExpr      :: usize
+  expr 443:75   IdentExpr      :: usize
+  expr 456:32   IdentExpr      :: usize
+  expr 464:19   IdentExpr      :: usize
+  expr 471:19   IdentExpr      :: usize
+  expr 479:23   IdentExpr      :: usize
+  expr 490:19   IdentExpr      :: usize
+  expr 505:20   IdentExpr      :: usize
+  expr 520:18   IdentExpr      :: usize
+  expr 528:23   StringLitExpr  :: string
+  expr 535:24   IdentExpr      :: usize
+  expr 546:22   IdentExpr      :: usize
+  expr 558:20   IdentExpr      :: usize
+  expr 566:21   IdentExpr      :: usize
+  expr 575:24   IdentExpr      :: usize
+  expr 583:22   IdentExpr      :: usize
+  expr 592:22   IdentExpr      :: usize
+  expr 601:17   IdentExpr      :: usize
+  expr 609:21   IdentExpr      :: usize
+  expr 615:22   IdentExpr      :: usize
+  expr 625:18   IdentExpr      :: usize
+  expr 631:19   IdentExpr      :: usize
+  expr 638:22   IdentExpr      :: usize
+  expr 63:22    IdentExpr      :: usize
+  expr 651:22   IdentExpr      :: usize
+  expr 659:25   IdentExpr      :: usize
+  expr 670:20   IdentExpr      :: usize
+  expr 678:19   IdentExpr      :: usize
+  expr 685:21   IdentExpr      :: usize
+  expr 691:22   IdentExpr      :: usize
+  expr 697:73   IdentExpr      :: usize
+  expr 700:60   IdentExpr      :: usize
+  expr 704:17   IdentExpr      :: usize
+  expr 710:20   IdentExpr      :: usize
+  expr 719:20   IdentExpr      :: usize
+  expr 731:24   IdentExpr      :: usize
+  expr 742:24   IdentExpr      :: usize
+  expr 756:19   SeqLitExpr     :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 757:27   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 757:30   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 757:5    CallExpr       :: void
+  expr 757:5    IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
+  expr 758:12   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 762:11   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 762:5    MatchExpr      :: void
+  expr 764:13   IfExpr         :: void
+  expr 764:16   BinaryExpr     :: bool
+  expr 764:16   FieldExpr      :: BinaryOp
+  expr 764:16   IdentExpr      :: BinaryExpr
+  expr 764:24   DotVariantExpr :: BinaryOp
+  expr 765:17   CallExpr       :: void
+  expr 765:17   IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
+  expr 765:39   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 765:39   IdentExpr      :: BinaryExpr
+  expr 765:47   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 766:17   CallExpr       :: void
+  expr 766:17   IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]) -> void
+  expr 766:39   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 766:39   IdentExpr      :: BinaryExpr
+  expr 766:48   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 769:13   CallExpr       :: void
+  expr 769:13   FieldExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr) -> void
+  expr 769:13   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 769:22   IdentExpr      :: BinaryExpr
+  expr 771:16   CallExpr       :: void
+  expr 771:16   FieldExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr) -> void
+  expr 771:16   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr[]
+  expr 771:25   IdentExpr      :: ArrayTypeExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 78:24    IdentExpr      :: usize
+  expr 89:31    IdentExpr      :: usize
+  expr 97:17    IdentExpr      :: usize

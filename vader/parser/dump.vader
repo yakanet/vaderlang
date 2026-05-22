@@ -117,8 +117,26 @@ kind_entry :: fn(sb: StringBuilder, level: i32, kind: string) -> void {
 write_program :: fn(sb: StringBuilder, prog: Program, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "Program")
+    // The `module` field is suppressed when null so pre-migration files
+    // (still in tolerant mode) keep their existing AST dump byte-for-byte.
+    // Mirrors the TS-side suppression in `tests/snapshot.ts::formatProgram`.
+    match prog.module {
+        is null       -> { }
+        is ModuleDecl -> {
+            sb.entry(false, level + 1, "module")
+            sb.write_module_decl(prog.module, level + 1)
+        }
+    }
     sb.entry(false, level + 1, "decls")
     sb.write_decls(prog.decls, level + 1)
+    sb.close_obj(level)
+}
+
+write_module_decl :: fn(sb: StringBuilder, d: ModuleDecl, level: i32) -> void {
+    sb.open_obj()
+    sb.kind_entry(level + 1, "ModuleDecl")
+    sb.entry(false, level + 1, "name")
+    sb.write_string(d.name)
     sb.close_obj(level)
 }
 

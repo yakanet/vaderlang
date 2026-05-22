@@ -32,24 +32,13 @@ interface Stage {
   skip: Set<string>;
 }
 
-// Snippets exercising the `module "..."` header introduced by the TS
-// parser in Phase 2 of the module-system rollout. The Vader self-host
-// parser still ignores the header (Phase 3 will mirror Phase 2), so
-// CLI parser parity is gated off here until then. Lexer parity is fine —
-// `module` is a soft keyword and stays an `ident` token on both sides.
-const MODULE_PORT_PENDING = new Set([
-  "module_basic",
-  "module_with_shebang",
-  "module_with_comments",
-]);
-
 // `dumpStage` is the CLI flag value ; `label` is what appears in test
 // names. Both stages map 1:1 onto a snapshot file produced by `tests/
 // snapshot.ts`. The label / dumpStage divergence (`parser` vs `ast`)
 // preserves the historical snapshot filename.
 const STAGES: Stage[] = [
   { label: "lexer", dumpStage: "lexer", snapshotFile: "lexer.snapshot", skip: new Set() },
-  { label: "parser", dumpStage: "ast", snapshotFile: "parser.snapshot", skip: MODULE_PORT_PENDING },
+  { label: "parser", dumpStage: "ast", snapshotFile: "parser.snapshot", skip: new Set() },
   { label: "resolver", dumpStage: "resolved-ast", snapshotFile: "resolver.snapshot", skip: new Set() },
   { label: "typecheck", dumpStage: "typed-ast", snapshotFile: "typecheck.snapshot", skip: new Set() },
   { label: "comptime", dumpStage: "evaluated-ast", snapshotFile: "comptime.snapshot", skip: new Set() },

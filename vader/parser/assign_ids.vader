@@ -35,6 +35,10 @@ export mint :: fn(self: NodeIdFactory) -> usize {
 /// IDs.
 export assign_program_ids :: fn(p: Program, f: NodeIdFactory) -> void {
     p.id = f.mint()
+    match p.module {
+        is null       -> {}
+        is ModuleDecl -> { p.module.id = f.mint() }
+    }
     for d in p.decls { walk_decl(d, f) }
 }
 

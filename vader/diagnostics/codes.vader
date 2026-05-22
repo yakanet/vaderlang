@@ -103,6 +103,7 @@ export ParserCode :: enum(u8) {
     TuplePatternRequiresTwoElements,        // P1022
     LetDestructureRequiresTwoElements,      // P1023
     InvalidConstQualifierPlacement,         // P1027
+    InvalidModuleName,                      // P1028
 }
 
 // Mirror of `RESOLVER` in `src/diagnostics/codes.ts`. R-codes belong
@@ -188,6 +189,7 @@ export parser_info :: fn(c: ParserCode) = match c {
     .TuplePatternRequiresTwoElements    -> CodeInfo { .id = "P1022", .message = "tuple pattern requires at least 2 elements" }
     .LetDestructureRequiresTwoElements  -> CodeInfo { .id = "P1023", .message = "let destructure requires at least 2 elements" }
     .InvalidConstQualifierPlacement     -> CodeInfo { .id = "P1027", .message = "invalid `const` qualifier placement" }
+    .InvalidModuleName                  -> CodeInfo { .id = "P1028", .message = "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)" }
 }
 
 export resolver_info :: fn(c: ResolverCode) = match c {

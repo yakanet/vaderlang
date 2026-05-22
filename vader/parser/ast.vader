@@ -58,10 +58,26 @@ export Visibility :: enum(u8) {
 // ============================================================================
 
 export Program :: struct {
-    file:  string
-    span:  Span
-    id:  usize = UNASSIGNED_NODE_ID
-    decls: Decl[]
+    file:    string
+    span:    Span
+    id:      usize = UNASSIGNED_NODE_ID
+    /// The `module "..."` declaration that opens the file. Null in
+    /// tolerant parsing mode (Phase 2/3 of the module-system rollout)
+    /// when the source predates the new requirement ; Phase 7/8 flip
+    /// this to mandatory. See docs/MODULE_SYSTEM.md.
+    module:  ModuleDecl | null = null
+    decls:   Decl[]
+}
+
+/// The `module "<name>"` declaration that opens every `.vader` file
+/// (mandatory once the strict resolver flip lands). Carries the validated
+/// module name and its source span ; the leading `module` keyword's own
+/// span lives implicitly in the node's overall `span`.
+export ModuleDecl :: struct {
+    span:      Span
+    id:        usize = UNASSIGNED_NODE_ID
+    name:      string
+    name_span: Span
 }
 
 // ============================================================================
