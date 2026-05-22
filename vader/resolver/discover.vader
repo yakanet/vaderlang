@@ -1,0 +1,144 @@
+// vader/resolver/discover — scoped-root scanner that builds the module
+// index. Mirror of src/resolver/discover.ts. Walks each scoped root
+// recursively (symlinks excluded per decision #39), parses every
+// `.vader` file, and buckets by the file's `module "..."` declaration
+// to build:
+//
+//   ModuleIndex = MutableMap<ModuleName, DiscoveredModule>
+//   DiscoveredModule = { name, folder, files: SourceFile[] }
+//
+// Validations performed at scan time :
+//   §1.1 missing module decl → R2020
+//   §1.2 mixed module names in same folder → R2022
+//   §1.3 duplicate module name across folders → R2023
+//   (P1028 invalid name grammar already caught by parser)
+//
+// Sub-folders are walked independently — `std/string` and
+// `std/string/utf8` are unrelated modules (decision #6). Scan order
+// is not guaranteed deterministic across platforms (decision #38) ;
+// tests must not pin to a specific "first vs second" assignment.
+
+module "vader/resolver"
+
+import "std/collections" { MutableMap, keys }
+import "std/io" { exists, is_dir, read_dir, read_file }
+import "std/sort" { sort }
+import "std/string" { compare_ascending, ends_with }
+import "vader/diagnostics" { Diagnostic, Span, resolver_error, empty_span }
+
+/// A module discovered during the scan : its declared name, the
+/// folder containing it, and the parsed files that belong to it.
+export DiscoveredModule :: struct {
+    name:   string
+    folder: string
+    files:  SourceFile[]
+}
+
+/// Name-indexed module table. Keyed by the `module "name"` decl.
+/// Same key shape as the import path in `import "name"`, so import
+/// resolution is a direct lookup.
+export ModuleIndex :: MutableMap(string, DiscoveredModule)
+
+/// Walk each scoped root, parse every `.vader` file, bucket by
+/// folder + declared module name, emit R2020/R2022/R2023, and return
+/// the unified index.
+export discover_modules :: fn(roots: string[], diags: Diagnostic[]) -> ModuleIndex {
+    folder_buckets :: MutableMap(string, FolderBucket) { .buckets = [], .size = 0 }
+    for root in roots { walk_root(root, folder_buckets, diags) }
+
+    index :: MutableMap(string, DiscoveredModule) { .buckets = [], .size = 0 }
+    first_seen_at :: MutableMap(string, Span) { .buckets = [], .size = 0 }
+    for folder in folder_buckets.keys() {
+        bucket :: folder_buckets[folder]
+        if bucket is null { continue }
+        if bucket.name == "" { continue }   // every file in the bucket already raised R2020
+        existing :: index[bucket.name]
+        match existing {
+            is DiscoveredModule -> {
+                diags.push(resolver_error(.DuplicateModuleNameGlobally, bucket.first_decl_span,
+                    "module `${bucket.name}` already declared by another folder"))
+            }
+            is null -> {
+                index[bucket.name] = DiscoveredModule {
+                    .name = bucket.name, .folder = folder, .files = bucket.files,
+                }
+                first_seen_at[bucket.name] = bucket.first_decl_span
+            }
+        }
+    }
+    return index
+}
+
+// Per-folder accumulator used during the scan. `name` is "" until
+// the first file in the folder declares its module ; subsequent
+// files in the same folder must match that name (else R2022).
+FolderBucket :: struct {
+    name:            string
+    first_decl_span: Span
+    files:           SourceFile[]
+}
+
+walk_root :: fn(root: string, buckets: MutableMap(string, FolderBucket), diags: Diagnostic[]) -> void {
+    if !exists(root) { return }
+    if !is_dir(root) { return }
+    walk_dir(root, buckets, diags)
+}
+
+walk_dir :: fn(dir: string, buckets: MutableMap(string, FolderBucket), diags: Diagnostic[]) -> void {
+    entries_opt :: read_dir(dir)
+    empty_strs: string[] = []
+    raw: string[] = match entries_opt { is string[] as ss -> ss, _ -> empty_strs }
+    if raw.len() == 0 { return }
+    sorted :: sort(raw, (a: string, b: string) -> compare_ascending(a, b))
+
+    files_here: string[] = []
+    for name in sorted {
+        full :: join_path(dir, name)
+        if is_dir(full) {
+            walk_dir(full, buckets, diags)
+            continue
+        }
+        if ends_with(name, ".vader") { files_here.push(full) }
+    }
+    if files_here.len() == 0 { return }
+
+    bucket :: FolderBucket {
+        .name = "", .first_decl_span = empty_span(),
+        .files = [],
+    }
+    for path in files_here {
+        content_opt :: read_file(path)
+        content :: match content_opt { is string as s -> s, _ -> "" }
+        if content == "" { continue }
+        parsed :: parse_source(content, path)
+        for d in parsed.errors { diags.push(d) }
+        bucket.files.push(SourceFile {
+            .path       = path,
+            .content    = content,
+            .program    = parsed.program,
+            .id_factory = parsed.id_factory,
+        })
+
+        decl :: parsed.program.module
+        match decl {
+            is null -> {
+                diags.push(resolver_error(.ModuleDeclMissing, empty_span(),
+                    "`${path}`"))
+            }
+            is ModuleDecl as md -> {
+                if bucket.name == "" {
+                    bucket.name = md.name
+                    bucket.first_decl_span = md.name_span
+                } else {
+                    if md.name != bucket.name {
+                        diags.push(resolver_error(.MixedModuleNamesInFolder, md.name_span,
+                            "`${md.name}` declared here, but `${bucket.name}` was declared earlier in this folder"))
+                    }
+                }
+            }
+        }
+    }
+    buckets[dir] = bucket
+}
+
+import "vader/parser" { ModuleDecl, parse_source }
