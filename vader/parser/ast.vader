@@ -63,18 +63,15 @@ export Program :: struct {
     file:    string
     span:    Span
     id:      usize = UNASSIGNED_NODE_ID
-    /// The `module "..."` declaration that opens the file. Null in
-    /// tolerant parsing mode (Phase 2/3 of the module-system rollout)
-    /// when the source predates the new requirement ; Phase 7/8 flip
-    /// this to mandatory. See docs/MODULE_SYSTEM.md.
+    /// The `module "..."` declaration. Null when absent — the parser
+    /// is tolerant ; the resolver's scan emits R2020 on absence.
     module:  ModuleDecl | null = null
     decls:   Decl[]
 }
 
-/// The `module "<name>"` declaration that opens every `.vader` file
-/// (mandatory once the strict resolver flip lands). Carries the validated
-/// module name and its source span ; the leading `module` keyword's own
-/// span lives implicitly in the node's overall `span`.
+/// The `module "<name>"` decl that opens every `.vader` file. Carries
+/// the validated module name + its source span (the `module` keyword
+/// itself lives in the node's overall `span`).
 export ModuleDecl :: struct {
     span:      Span
     id:        usize = UNASSIGNED_NODE_ID

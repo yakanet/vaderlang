@@ -4,12 +4,11 @@
 // Module IDs are canonicalized absolute paths so the same physical location
 // always maps to the same ID across resolution passes.
 
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve as resolvePath } from "node:path";
 
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type { Program } from "../parser/ast.ts";
-import { parseSource } from "../parser/pipeline.ts";
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import { runtimeRoots } from "../runtime-resources.ts";
 
@@ -83,10 +82,9 @@ export interface VaderManifest {
   readonly version?: string;
   readonly entries?: Record<string, string>;
   readonly stdlib?: string;
-  /** Per §2.2 of docs/MODULE_SYSTEM.md : explicit list of source roots
-   *  to scan for module declarations. Stdlib resolution is independent
-   *  (see `resolveStdlibRoot`). Paths are literal folders ; glob
-   *  patterns are not supported (decision #41). */
+  /** Explicit list of source roots to scan for module declarations.
+   *  Stdlib resolution is independent (see `resolveStdlibRoot`).
+   *  Paths are literal folders ; glob patterns are not supported. */
   readonly modules?: readonly string[];
 }
 
@@ -138,8 +136,8 @@ export interface ResolveImportOptions {
    *  this index ; there is no filesystem fallback. */
   readonly index: ModuleIndex;
   /** Module name of the file containing the import, used for self-import
-   *  detection (§1.5) and for the std/core-redundancy check (§1.5).
-   *  Null only at the bootstrap step that locates the entry module. */
+   *  detection and for the std/core-redundancy check. Null only at the
+   *  bootstrap step that locates the entry module. */
   readonly fromModuleName: string | null;
   /** Span of the offending `import "..."` literal — used as the primary
    *  span for any diagnostic the lookup emits. */
@@ -147,10 +145,9 @@ export interface ResolveImportOptions {
   readonly diags: DiagnosticCollector;
 }
 
-/** Resolve `import "name"` to the target module's folder by looking the
- *  name up in the project-wide module index. Emits the diagnostic for
- *  any failure path (R2025 relative path, R2024 self-import, R2028
- *  explicit std/core, R2001 not found). */
+/** Resolve `import "name"` to the target module's folder via the
+ *  project-wide module index. Emits R2025 / R2024 / R2028 / R2001
+ *  on the respective failure paths. */
 export function resolveImportPath(rawPath: string, opts: ResolveImportOptions): string | null {
   if (rawPath.startsWith("./") || rawPath.startsWith("../")) {
     err(opts.diags, "R2025", opts.span, `\`${rawPath}\``);
@@ -176,35 +173,6 @@ export function pathKind(p: string): "dir" | "file" | null {
   if (!existsSync(p)) return null;
   const s = statSync(p);
   return s.isDirectory() ? "dir" : s.isFile() ? "file" : null;
-}
-
-function resolveOnDisk(path: string): string | null {
-  if (pathKind(path) === "dir") return resolvePath(path);
-  const withExt = path.endsWith(".vader") ? path : `${path}.vader`;
-  if (pathKind(withExt) === "file") return resolvePath(withExt);
-  return null;
-}
-
-// ----------------------------------------------------- single-module loading
-
-/** Load a single module's source files (folder → all *.vader, file → just that file). */
-export function loadModuleSourceFiles(rootPath: string, diags: DiagnosticCollector): SourceFile[] {
-  const out: SourceFile[] = [];
-  const stat = statSync(rootPath);
-  const files = stat.isDirectory()
-    ? readdirSync(rootPath)
-        .filter((n) => n.endsWith(".vader"))
-        .map((n) => join(rootPath, n))
-        .sort()
-    : [rootPath];
-
-  for (const file of files) {
-    const content = readFileSync(file, "utf8");
-    const { program, diagnostics } = parseSource(content, file);
-    for (const d of diagnostics.sorted()) diags.emit(d);
-    out.push({ path: resolvePath(file), content, program });
-  }
-  return out;
 }
 
 export function moduleIdFromRoot(rootPath: string): ModuleId {

@@ -207,7 +207,7 @@ parse_program :: fn(p: Parser) -> Program {
 // lexer level and is only recognised here when the prologue position
 // has `ident("module") + StringBegin`. Every other occurrence (struct
 // field name, field-access target) keeps the regular identifier
-// semantics. Phase 7/8 will flip this from tolerant to mandatory.
+// semantics. Parser stays tolerant ; resolver enforces presence.
 parse_optional_module_decl :: fn(p: Parser) -> ModuleDecl | null {
     t :: p.peek()
     if t.kind != .Ident { return null }

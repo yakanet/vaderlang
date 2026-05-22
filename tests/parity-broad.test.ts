@@ -99,11 +99,7 @@ for (const dir of modules) {
         errorLines.slice(0, 10).join("\n"),
       );
     }
-    // Phase 10's byte-diff against TS is gated behind a separate flag —
-    // a scratch comparison post-Phase-7 surfaced ~38 divergences across
-    // stdlib/* + vader/* (Vader emits typed-expression entries that TS
-    // doesn't, suggesting a dump-filter or per-file-scope drift between
-    // the two implementations). Real bug surface, but a separate
-    // chantier ; this rig stays smoke-only until that drift is fixed.
+    // The byte-diff vs. TS planned for this rig is intentionally
+    // skipped — see the file header for the open drift.
   }, { timeout: LONG_BUILD });
 }

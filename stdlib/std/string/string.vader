@@ -220,17 +220,12 @@ to_lower_byte :: fn(c: u8) -> u8 {
     return c
 }
 
-/// Byte-index of the LAST occurrence of `c` at or after `min_index`,
-/// scanning from the right. Returns `-1` when not found. The signed
-/// `isize` return type lets callers branch on `result < 0` ; `usize` would
-/// have collapsed "absent" into "0" ambiguously.
-/// @param s          source string.
-/// Byte offset of the *last* occurrence of `c` in `s`. Walks `s`
-/// codepoint-by-codepoint (UTF-8 safe — the byte cursor advances by
-/// each codepoint's encoded width, so multi-byte sequences are never
-/// sliced mid-stream), tracking the latest matching position. The
-/// returned offset is a leading-byte index ; valid input to `slice`.
-///
+/// Byte offset of the *last* occurrence of `c` in `s` at or after
+/// `min_index`. Walks codepoint-by-codepoint (UTF-8 safe — the byte
+/// cursor advances by each codepoint's encoded width), tracking the
+/// latest match. Returns `-1` when not found ; the signed `isize`
+/// return type lets callers branch on `result < 0` instead of folding
+/// "absent" into a zero offset.
 /// @param s          source string.
 /// @param c          codepoint to find.
 /// @param min_index  earliest leading-byte position to keep as a

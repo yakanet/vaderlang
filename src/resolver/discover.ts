@@ -1,18 +1,16 @@
 // Scoped-root scanner that builds the module index : every `.vader` file
 // in a whitelisted root has its `module "..."` declaration extracted and
-// indexed under the declared name. Mirrors §1.4 of docs/MODULE_SYSTEM.md.
+// indexed under the declared name. The index is the source of truth for
+// import resolution — paths become name-lookups, not filesystem walks.
 //
-// The index is the source of truth for Phase 7's strict resolver — import
-// paths become name-lookups (`import "std/string"` → index["std/string"]),
-// not filesystem walks. Scan-time validations live here :
-//   §1.2 "same folder = same module name"      → R2022
-//   §1.3 "no two folders share a name globally" → R2023
-//   §1.1 "module decl present on each file"    → R2020
-//   (P1028 "invalid name grammar" already fired by the parser)
+// Scan-time validations :
+//   - missing module decl                → R2020
+//   - mixed module names in same folder  → R2022
+//   - duplicate module name globally     → R2023
+//   - invalid name grammar               → P1028 (already from parser)
 //
-// Symlinks are not followed (decision #39). Scan order is not guaranteed
-// deterministic across platforms (decision #38) ; tests must not rely on
-// which of two conflicting folders is "first".
+// Symlinks are not followed. Scan order is platform-dependent ; tests
+// must not rely on which of two conflicting folders is "first".
 
 import { lstatSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve as resolvePath } from "node:path";

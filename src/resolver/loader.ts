@@ -1,5 +1,4 @@
-// Module graph loader. Phase 7 of the module-system rollout : the
-// strict resolver discovers every module under the scoped roots
+// Module graph loader. Discovers every module under the scoped roots
 // upfront (via `discover.ts`), then BFS-walks the import graph by
 // name-lookup against that index. No filesystem fallbacks.
 
@@ -10,7 +9,7 @@ import { zeroSpan } from "../diagnostics/diagnostic.ts";
 
 import { collectModuleSymbols } from "./collect.ts";
 import { err } from "./diag.ts";
-import { discoverModules, type DiscoveredModule, type ModuleIndex } from "./discover.ts";
+import { discoverModules, type DiscoveredModule } from "./discover.ts";
 import { computeModuleFingerprints } from "./fingerprint.ts";
 import {
   findManifestRoot, pathKind, readManifest, resolveStdlibRoot,
@@ -39,11 +38,10 @@ export function loadProject(opts: LoadOptions): LoadedProject {
   const layout = discoverLayout(opts.entryPath);
   const factory = new SymbolFactory();
 
-  // 1. Build the scoped-roots list per §2 of docs/MODULE_SYSTEM.md :
-  //    stdlib (always) + vader.json::modules (when present) + the entry
-  //    file's containing folder when it lies outside the whitelist
-  //    (CLI fallback, §2.3). Single-folder repos rely entirely on the
-  //    fallback ; manifest-driven projects pin down what to scan.
+  // Scoped roots : stdlib (always) + vader.json::modules (when present) +
+  // the entry file's containing folder when it lies outside the whitelist
+  // (CLI fallback). Single-folder repos rely entirely on the fallback ;
+  // manifest-driven projects pin down what to scan.
   const manifest = layout.projectRoot !== null ? readManifest(layout.projectRoot) : null;
   const scopedRoots: string[] = [layout.stdlibRoot];
   if (manifest?.modules !== undefined && layout.projectRoot !== null) {
@@ -57,13 +55,13 @@ export function loadProject(opts: LoadOptions): LoadedProject {
     scopedRoots.push(entryFolder);
   }
 
-  // 2. Scan + validate (R2020/R2022/R2023) → name-indexed module table.
+  // Scan scoped roots into a name-indexed module table + a parallel
+  // folder→module reverse map for O(1) lookups during BFS.
   const index = discoverModules(scopedRoots, opts.diags);
+  const byFolder = new Map<string, DiscoveredModule>();
+  for (const m of index.values()) byFolder.set(m.folder, m);
 
-  // 3. Locate the entry's module via folder-match. The discover scan
-  //    bucketed every .vader file by its containing folder, so a single
-  //    lookup is enough.
-  const entryModule = findModuleByFolder(entryFolder, index);
+  const entryModule = byFolder.get(resolvePath(entryFolder)) ?? null;
   const modules = new Map<ModuleId, Module>();
   if (entryModule === null) {
     err(opts.diags, "R2001", zeroSpan(entryAbs),
@@ -71,10 +69,6 @@ export function loadProject(opts: LoadOptions): LoadedProject {
     return { layout, modules, factory };
   }
 
-  // 4. Pre-load std/core so the prelude (§1.5) is reachable from every
-  //    other module. The loader doesn't yet *inject* its exports into
-  //    every scope — that's the resolver's job downstream — but it must
-  //    at least make the module known.
   const queue: DiscoveredModule[] = [entryModule];
   const coreModule = opts.autoloadCore !== false ? index.get("std/core") : undefined;
   if (coreModule !== undefined && coreModule !== entryModule) {
@@ -108,35 +102,23 @@ export function loadProject(opts: LoadOptions): LoadedProject {
 
     for (const imp of collected.imports) {
       if (imp.resolvedTo === null) continue;
-      const target = findModuleByFolder(imp.resolvedTo, index);
-      if (target !== null && !modules.has(moduleIdFromDiscovered(target))) {
+      const target = byFolder.get(imp.resolvedTo);
+      if (target !== undefined && !modules.has(moduleIdFromDiscovered(target))) {
         queue.push(target);
       }
     }
   }
 
   detectCycles(modules, opts.diags);
-  // Compute fingerprints in topological order so each module's hash sees
-  // its dependencies' final fingerprints. Phase 1 only exposes the value;
-  // phase 2 wires it into the parser cache.
   computeModuleFingerprints(modules);
 
   return { layout, modules, factory };
 }
 
-/** Use the resolved folder path as the canonical module identifier, so
- *  `Module.id` keeps the same shape as the pre-Phase-7 loader (downstream
- *  side-tables key on absolute paths). */
+/** Resolved folder path as the canonical module identifier — downstream
+ *  side-tables key on absolute paths, not on module names. */
 function moduleIdFromDiscovered(m: DiscoveredModule): ModuleId {
   return m.folder;
-}
-
-function findModuleByFolder(folder: string, index: ModuleIndex): DiscoveredModule | null {
-  const canonical = resolvePath(folder);
-  for (const m of index.values()) {
-    if (m.folder === canonical) return m;
-  }
-  return null;
 }
 
 function isUnderAnyRoot(folder: string, roots: readonly string[]): boolean {

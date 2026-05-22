@@ -53,9 +53,8 @@ export const PARSER = {
   P1023: "let destructure requires at least 2 elements",
   P1027: "invalid `const` qualifier placement",
   P1028: "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)",
-  // P1029 — Phase 7 strict flip: `module "..."` decl required as first
-  // non-trivial line. Until the flip lands, the parser stays tolerant
-  // and the resolver's discover pass emits R2020 instead.
+  // P1029 / P1030 — reserved for a future strict-flip of the parser
+  // (currently the resolver's R2020 catches missing decls at scan time).
   P1029: "module declaration missing (first non-trivial line must be `module \"<name>\"`)",
   P1030: "module declaration malformed (expected exactly one double-quoted string literal after `module`)",
 } as const;
@@ -82,8 +81,6 @@ export const RESOLVER = {
   R2017: "feature not yet implemented",
   R2018: "orphan impl forbidden",
   R2019: "`void` is reserved and cannot be used as an identifier",
-  // R2020-R2028 land with Phase 7's strict resolver flip
-  // (see docs/MODULE_SYSTEM.md §3).
   R2020: "module declaration missing on first non-trivial line",
   R2021: "more than one module declaration in the same file",
   R2022: "files in the same folder declare different module names",

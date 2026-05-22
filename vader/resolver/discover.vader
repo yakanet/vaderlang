@@ -1,22 +1,16 @@
 // vader/resolver/discover — scoped-root scanner that builds the module
-// index. Mirror of src/resolver/discover.ts. Walks each scoped root
-// recursively (symlinks excluded per decision #39), parses every
-// `.vader` file, and buckets by the file's `module "..."` declaration
-// to build:
+// index. Mirror of src/resolver/discover.ts. Walks each root recursively
+// (no symlinks), parses every `.vader` file, buckets by the file's
+// `module "..."` decl, and returns a name → DiscoveredModule map.
 //
-//   ModuleIndex = MutableMap<ModuleName, DiscoveredModule>
-//   DiscoveredModule = { name, folder, files: SourceFile[] }
-//
-// Validations performed at scan time :
-//   §1.1 missing module decl → R2020
-//   §1.2 mixed module names in same folder → R2022
-//   §1.3 duplicate module name across folders → R2023
-//   (P1028 invalid name grammar already caught by parser)
+// Scan-time validations :
+//   - missing module decl                → R2020
+//   - mixed module names in same folder  → R2022
+//   - duplicate module name globally     → R2023
 //
 // Sub-folders are walked independently — `std/string` and
-// `std/string/utf8` are unrelated modules (decision #6). Scan order
-// is not guaranteed deterministic across platforms (decision #38) ;
-// tests must not pin to a specific "first vs second" assignment.
+// `std/string/utf8` are unrelated modules. Scan order is platform-
+// dependent ; tests must not rely on a specific "first vs second" pick.
 
 module "vader/resolver"
 

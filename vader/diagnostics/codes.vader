@@ -113,8 +113,7 @@ export ParserCode :: enum(u8) {
 export ResolverCode :: enum(u8) {
     UnresolvedIdent,                        // R2006
     ReservedName,                           // R2019
-    // R2020-R2028 — module-system strict flip (Phase 7/8 of the rollout).
-    // Mirrors src/diagnostics/codes.ts ; see docs/MODULE_SYSTEM.md §3.
+    // Module-system strict-mode codes (mirror of src/diagnostics/codes.ts).
     ModuleDeclMissing,                      // R2020
     DuplicateModuleDecl,                    // R2021
     MixedModuleNamesInFolder,               // R2022

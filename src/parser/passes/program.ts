@@ -3,9 +3,8 @@
 // past the failure and resumes at the next top-level start.
 //
 // Before the first declaration, optionally consume the `module "<name>"`
-// header introduced by the module-system redesign (see docs/MODULE_SYSTEM.md).
-// In this tolerant phase the header is optional ; Phase 7 flips it to
-// mandatory.
+// header. The parser is tolerant (accepts files without the decl) ; the
+// resolver's scan emits R2020 when it's missing.
 
 import type * as A from "../ast.ts";
 import { UNASSIGNED_NODE_ID } from "../ast.ts";

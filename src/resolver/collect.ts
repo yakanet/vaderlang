@@ -109,13 +109,9 @@ function addFnSymbol(
   }
   const existing = symbols.get(decl.name)!;
   if (existing.kind === "import-binding") {
-    // Local fn coexists with a same-named import : the local takes the
-    // primary slot in `symbols` so unqualified references resolve to it,
-    // and the import-binding joins `fnOverloads` so UFCS dispatch can pick
-    // it when the receiver matches the imported fn's first param. The
-    // import-binding's target is wired up only later (in `wireImports`) ;
-    // a post-collect pass in `resolveLoadedProject` follows the redirect
-    // and replaces each entry with its concrete fn before typecheck runs.
+    // Local fn wins the primary slot for unqualified lookups ; the
+    // import-binding joins the overload set so UFCS dispatch can still
+    // pick it when the receiver matches the imported fn's first param.
     fnOverloads.get(decl.name)!.push(existing);
     symbols.set(decl.name, sym);
     return;
@@ -142,21 +138,19 @@ function addSymbol(
   checkReservedIdent(name, span, input.diags);
   const existing = symbols.get(name);
   if (existing !== undefined) {
-    // A real decl always wins over an import-binding of the same name :
-    // strict mode (Phase 7) processes files alphabetically, so a sibling
-    // file's `import "this/module" { Name }` (self-import that resolveImport
-    // already flagged with R2024) lands first and would otherwise shadow
-    // the local export. Replace it.
+    // A real decl always wins over an import-binding of the same name.
+    // Files are collected in alphabetical order, so a sibling file's
+    // self-import binding (already flagged R2024) can land first and
+    // would otherwise shadow the local export.
     if (existing.kind === "import-binding") {
       symbols.set(name, input.factory.make({
         kind, name, module: input.moduleId, visibility, definedAt: span, source,
       }));
       return;
     }
-    // Folder-module : sibling files share a namespace (SPEC §11). When the
-    // previous decl lives in a different file, silently first-wins —
-    // matches Vader's `collect_files` merge behaviour. Real intra-file
-    // duplicates still trip R2004.
+    // Sibling files of a multi-file module share a namespace (§1.6) ;
+    // a cross-file duplicate silently first-wins (matches Vader's
+    // `merge_collected`). Intra-file duplicates still trip R2004.
     if (existing.definedAt !== null && existing.definedAt.start.file !== span.start.file) return;
     err(input.diags, "R2004", span, `\`${name}\` already declared in this module`,
       existing.definedAt !== null ? [{ span: existing.definedAt, label: "previous declaration" }] : undefined);
