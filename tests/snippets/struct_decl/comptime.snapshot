@@ -1,7 +1,24 @@
 # Comptime
 
+## stdlib/std/core.vader
+
 ## tests/snippets/struct_decl/_main.vader
 
 ## generic instances
+  Index(I, T)
+  IndexSet(I, T)
+  Contains(T)
+  Iterator(T)
+  Iterator(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
   List(T)
   Buffer(N)
+  Into(Target)

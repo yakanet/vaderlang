@@ -26,8 +26,8 @@ fn 0 tests_snippets_overload_first_param__main_vader$describe (ref) -> string
   local.get 1
   string.const 0
   intrinsic builder.append_str
-  local.get 0
-  struct.get 1 0
+  local.field 0 1 0
+  ref.cast 4
   local.set 2
   local.get 1
   local.get 2
@@ -45,8 +45,8 @@ fn 1 tests_snippets_overload_first_param__main_vader$describe_1 (ref) -> string
   local.get 1
   string.const 1
   intrinsic builder.append_str
-  local.get 0
-  struct.get 3 0
+  local.field 0 3 0
+  ref.cast 2
   local.set 2
   local.get 1
   local.get 2
@@ -70,16 +70,16 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   local.set 1
   local.get 0
   call 0
-  call.import 0
+  call 11
   local.get 1
   call 1
-  call.import 0
+  call 11
   local.get 0
   call 0
-  call.import 0
+  call 11
   local.get 1
   call 1
-  call.import 0
+  call 11
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -94,7 +94,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call.import 0
+  call 11
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -109,7 +109,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call.import 0
+  call 11
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -127,7 +127,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call.import 0
+  call 11
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -142,7 +142,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call.import 0
+  call 11
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -157,7 +157,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call.import 0
+  call 11
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -173,7 +173,7 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call.import 0
+  call 11
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -189,9 +189,8 @@ fn 2 tests_snippets_overload_first_param__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call.import 0
-  i32.const 0
-  return
+  call 11
+  return.lit i32.const 0
 end
 
 fn 3 std_math$min (f64,f64) -> f64
@@ -307,5 +306,11 @@ fn 10 std_math$clamp_1 (i32,i32,i32) -> i32
   call 6
   local.get 2
   call 4
+  return
+end
+
+fn 11 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
   return
 end

@@ -17,53 +17,50 @@
           _1: int(3) :i32
         }
     block :void
-      let __iter_0: ArrayIterator([string, i32]) =
-        ArrayIterator([string, i32]) {
-          arr: pairs :[string, i32][]
-          cursor: int(0) :usize
-        }
-      loop
-        let __step_1: Yield([string, i32]) | null =
-          call :Yield([string, i32]) | null
-            callee:
-              next :?
-            arg0:
-              __iter_0 :ArrayIterator([string, i32])
-        if :void
-          cond:
-            is null :bool
-              __step_1 :Yield([string, i32]) | null
-          then:
-            break
-          else:
-            let __for_9_5: [string, i32] =
-              .value :[string, i32]
-                cast → Yield([string, i32])
-                  __step_1 :Yield([string, i32]) | null
-            let __tup_2: [string, i32] = __for_9_5 :[string, i32]
-            let k: string =
-              ._0 :string
-                __tup_2 :[string, i32]
-            let v: i32 =
-              ._1 :i32
-                __tup_2 :[string, i32]
-            call :void
-              callee:
-                println :fn(string) -> void
-              arg0:
-                block :string
-                  let __sb_3: ? =
-                    @builder.new :?
-                  @builder.append_display <for string> :void
-                    __sb_3 :?
-                    k :string
-                  @builder.append_str :void
-                    __sb_3 :?
-                    "=" :string
-                  @builder.append_display <for i32> :void
-                    __sb_3 :?
-                    v :i32
-                  ~>
-                    @builder.finish :string
-                      __sb_3 :?
+      let __for_arr_0: [string, i32][] = pairs :[string, i32][]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let __for_9_5: [string, i32] =
+          index :[string, i32]
+            on:
+              __for_arr_0 :[string, i32][]
+            ix:
+              __for_i_2 :usize
+        let __tup_3: [string, i32] = __for_9_5 :[string, i32]
+        let k: string =
+          ._0 :string
+            __tup_3 :[string, i32]
+        let v: i32 =
+          ._1 :i32
+            __tup_3 :[string, i32]
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            block :string
+              let __sb_4: ? =
+                @builder.new :?
+              @builder.append_display <for string> :void
+                __sb_4 :?
+                k :string
+              @builder.append_str :void
+                __sb_4 :?
+                "=" :string
+              @builder.append_display <for i32> :void
+                __sb_4 :?
+                v :i32
+              ~>
+                @builder.finish :string
+                  __sb_4 :?
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
     return int(0) :i32

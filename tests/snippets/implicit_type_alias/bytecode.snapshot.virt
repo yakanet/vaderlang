@@ -12,16 +12,14 @@ fn 0 tests_snippets_implicit_type_alias__main_vader$classify (ref) -> i32
   if $L0 void
     i32.const 1
     return
-  else
-    local.get 1
-    type_check 3
-    if $L1 void
-      i32.const 2
-      return
-    else
-      unreachable
-    end $L1
   end $L0
+  local.get 1
+  type_check 3
+  if $L1 void
+    i32.const 2
+    return
+  end $L1
+  unreachable
 end
 
 fn 1 tests_snippets_implicit_type_alias__main_vader$main () -> i32

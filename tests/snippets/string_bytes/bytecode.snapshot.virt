@@ -11,6 +11,7 @@ type 8 array 2
 type 9 struct std_string$StringBytes { s:2,cursor:5,length:5 }
 type 10 union 0,6
 type 11 struct std_string_builder$StringBuilder { parts:8 }
+type 12 union 6,0
 string 0 "-- ascii --"
 string 1 "vader"
 string 2 "sum="
@@ -45,7 +46,7 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
   local $call_18 string
   local b u8
   string.const 0
-  call.import 2
+  call 5
   i32.const 0
   local.set 0
   string.const 1
@@ -61,6 +62,7 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
       else
         local.get 2
         struct.get 6 0
+        ref.cast 3
         u8.to_u32
         local.set 3
         local.get 0
@@ -77,16 +79,16 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
   string.const 2
   intrinsic builder.append_str
   local.get 0
-  call.import 0
+  call 3
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call.import 2
+  call 5
   string.const 3
-  call.import 2
+  call 5
   string.const 4
   call 2
   local.set 1
@@ -100,6 +102,7 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
       else
         local.get 2
         struct.get 6 0
+        ref.cast 3
         local.set 6
         intrinsic builder.new
         local.tee 4
@@ -107,7 +110,7 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
         intrinsic builder.append_display
         local.get 4
         intrinsic builder.finish
-        call.import 2
+        call 5
         br $L4
       end $L5
     end $L4
@@ -115,7 +118,7 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
   string.const 5
   local.set 5
   string.const 6
-  call.import 2
+  call 5
   intrinsic builder.new
   local.set 4
   local.get 4
@@ -153,7 +156,7 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 4
   intrinsic builder.finish
-  call.import 2
+  call 5
   intrinsic builder.new
   local.set 4
   local.get 4
@@ -180,9 +183,9 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 4
   intrinsic builder.finish
-  call.import 2
+  call 5
   string.const 13
-  call.import 2
+  call 5
   string.const 14
   call 2
   local.set 1
@@ -194,7 +197,7 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
       if $L8 void
       else
         string.const 15
-        call.import 2
+        call 5
         br $L7
       end $L8
     end $L7
@@ -206,16 +209,15 @@ fn 0 tests_snippets_string_bytes__main_vader$main () -> i32
   intrinsic builder.append_str
   string.const 14
   call.import 3
-  call.import 1
+  call 4
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call.import 2
-  i32.const 0
-  return
+  call 5
+  return.lit i32.const 0
 end
 
 fn 1 std_string$StringBytes$Iterator$next (ref) -> ref
@@ -223,44 +225,42 @@ fn 1 std_string$StringBytes$Iterator$next (ref) -> ref
   local $field_2 usize
   local $field_5 string
   local b u8
-  local.get 0
-  struct.get 9 1
+  local.field 0 9 1
+  ref.cast 5
   local.set 1
-  local.get 0
-  struct.get 9 2
+  local.field 0 9 2
+  ref.cast 5
   local.set 2
   local.get 1
   local.get 2
   usize.ge
   if $L0 void
-    null.const
-    return
-  else
-    local.get 0
-    struct.get 9 0
-    local.set 3
-    local.get 0
-    struct.get 9 1
-    local.set 1
-    local.get 3
-    local.get 1
-    call.import 4
-    local.set 4
-    local.get 0
-    struct.get 9 1
-    local.set 1
-    local.get 1
-    i64.const 1
-    i64.to_usize
-    usize.add
-    local.set 1
-    local.get 0
-    local.get 1
-    struct.set 9 1
-    local.get 4
-    struct.new 6
-    return
+    return.lit null.const
   end $L0
+  local.field 0 9 0
+  ref.cast 2
+  local.set 3
+  local.field 0 9 1
+  ref.cast 5
+  local.set 1
+  local.get 3
+  local.get 1
+  call.import 4
+  local.set 4
+  local.field 0 9 1
+  ref.cast 5
+  local.set 1
+  local.get 1
+  i64.const 1
+  i64.to_usize
+  usize.add
+  local.set 1
+  local.get 0
+  local.get 1
+  struct.set 9 1
+  local.get 4
+  struct.new 6
+  return
 end
 
 fn 2 std_string$bytes (string) -> ref
@@ -273,5 +273,23 @@ fn 2 std_string$bytes (string) -> ref
   i64.to_usize
   local.get 1
   struct.new 9
+  return
+end
+
+fn 3 std_core$u32$Display$to_string$vt (u32) -> string
+  local.get 0
+  call.import 0
+  return
+end
+
+fn 4 std_core$usize$Display$to_string$vt (usize) -> string
+  local.get 0
+  call.import 1
+  return
+end
+
+fn 5 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 2
   return
 end

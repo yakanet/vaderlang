@@ -20,20 +20,20 @@ fn 0 tests_snippets_if_is_field_after_narrow__main_vader$type_id_of (ref) -> i32
   if $L0 void
     local.get 0
     struct.get 4 0
+    ref.cast 5
     return
-  else
-    local.get 0
-    type_check 2
-    if $L1 void
-      local.get 0
-      struct.get 2 0
-      return
-    else
-      i32.const 1
-      i32.neg
-      return
-    end $L1
   end $L0
+  local.get 0
+  type_check 2
+  if $L1 void
+    local.get 0
+    struct.get 2 0
+    ref.cast 5
+    return
+  end $L1
+  i32.const 1
+  i32.neg
+  return
 end
 
 fn 1 tests_snippets_if_is_field_after_narrow__main_vader$first_item (ref) -> i32
@@ -49,11 +49,10 @@ fn 1 tests_snippets_if_is_field_after_narrow__main_vader$first_item (ref) -> i32
     array.get 6
     ref.cast 5
     return
-  else
-    i32.const 1
-    i32.neg
-    return
   end $L0
+  i32.const 1
+  i32.neg
+  return
 end
 
 fn 2 tests_snippets_if_is_field_after_narrow__main_vader$main () -> i32
@@ -94,7 +93,7 @@ fn 2 tests_snippets_if_is_field_after_narrow__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 3
   intrinsic builder.finish
-  call.import 0
+  call 3
   intrinsic builder.new
   local.set 3
   local.get 3
@@ -108,7 +107,7 @@ fn 2 tests_snippets_if_is_field_after_narrow__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 3
   intrinsic builder.finish
-  call.import 0
+  call 3
   intrinsic builder.new
   local.set 3
   local.get 3
@@ -122,7 +121,7 @@ fn 2 tests_snippets_if_is_field_after_narrow__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 3
   intrinsic builder.finish
-  call.import 0
+  call 3
   intrinsic builder.new
   local.set 3
   local.get 3
@@ -136,7 +135,12 @@ fn 2 tests_snippets_if_is_field_after_narrow__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 3
   intrinsic builder.finish
+  call 3
+  return.lit i32.const 0
+end
+
+fn 3 std_io$println$vt (string) -> void
+  local.get 0
   call.import 0
-  i32.const 0
   return
 end

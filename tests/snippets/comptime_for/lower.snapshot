@@ -91,4 +91,5 @@
               @builder.finish :string
                 __sb_3 :?
     return int(0) :i32
-  struct tests_snippets_comptime_for__main_vader$Pair__i32__string { key: i32, value: string }
+  struct tests_snippets_comptime_for__main_vader$Pair__i32__string { key: Any, value: Any }
+  struct tests_snippets_comptime_for__main_vader$Pair__i32__Any__Any { key: Any, value: Any }

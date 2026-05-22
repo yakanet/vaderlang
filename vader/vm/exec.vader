@@ -31,7 +31,7 @@ op :: import "vader/vm/op"
 import "vader/vm/parser" { parse_virt }
 import "vader/vm/value" {
     VmResult, Ok, Trap, zero_value,
-    read_i32, read_f64, read_i64, read_struct, read_array,
+    read_i32, read_f64, read_i64, read_struct, read_struct_field, read_array,
     read_bool, read_char, read_truthy, read_fn, read_builder, read_string,
     describe_value_tag, value_ref_eq, convert_value,
     type_matches, ref_type_matches, trait_implemented_by,
@@ -211,6 +211,70 @@ with_sp_pc :: fn(frame: Frame, sp: usize, pc: i32) -> Frame {
         .sp             = sp,
         .pc             = pc,
     }
+}
+
+/// Materialise a `ConstOp` carried inside a fused op (e.g. `ReturnLit`)
+/// as a runtime `op.Value`. `StringConst` looks the index up in
+/// `module.strings` ; other variants are pure value lifts.
+///
+/// @param c       the literal-producing op to materialise.
+/// @param module  the running module (string pool).
+/// @param pc      pc of the carrier op (recorded in the Trap message).
+/// @return        a freshly-built `op.Value` on success, or a `Trap`.
+/// @error         `StringConst` index out of range.
+const_op_value :: fn(c: op.ConstOp, module: op.Module, pc: i32) -> op.Value | Trap {
+    match c {
+        is op.I32Const  as v -> { return op.I32Val { .value = v.value } }
+        is op.I64Const  as v -> { return op.I64Val { .value = v.value } }
+        is op.F64Const  as v -> { return op.F64Val { .value = v.value } }
+        is op.BoolConst as v -> { return op.BoolVal { .value = v.value } }
+        is op.CharConst as v -> { return op.CharVal { .value = v.value } }
+        is op.NullConst      -> { return op.NullVal {} }
+        is op.StringConst as v -> {
+            if v.index < 0 || usize(v.index) >= module.strings.len() {
+                return Trap { .message = "return.lit string.const index ${v.index} out of range at pc=${pc}" }
+            }
+            return op.StringVal { .value = module.strings[v.index] }
+        }
+    }
+}
+
+/// Tail logic shared by `op.Return` and `op.ReturnLit` : pop the current
+/// frame and either surface an i32 result to the host (when the popped
+/// frame was main) or push the return value onto the caller's stack.
+///
+/// @param return_value  the value to publish (ignored when `has_value`
+///                      is false).
+/// @param has_value     whether the callee has a value to return — `false`
+///                      collapses the main case to "exit with 0" and
+///                      skips the caller push.
+/// @param at_pc         pc of the return op (recorded in the Trap when
+///                      the main-result isn't an i32).
+/// @param frames        the frame stack ; mutated via the caller's slot.
+/// @param frame_count   1-element cursor — `[0]` is the logical top.
+/// @param main_label    short label used in the i32-unwrap Trap (e.g.
+///                      `"return from main"`, `"return.lit from main"`).
+/// @return              `Ok` / `Trap` when the callee was main and the
+///                      executor should stop ; `null` when execution
+///                      should continue with the caller frame.
+/// @error               main returned a non-i32 value.
+finalise_return :: fn(return_value: op.Value, has_value: bool, at_pc: i32, frames: Frame[], frame_count: usize[], main_label: string) -> VmResult | null {
+    pop_frame(frame_count)
+    if frame_count[0] == 0 {
+        if has_value {
+            unwrapped :: read_i32(return_value, at_pc, main_label)
+            if unwrapped is Trap { return unwrapped }
+            return Ok { .value = unwrapped.value }
+        }
+        return Ok { .value = 0 }
+    }
+    if has_value {
+        new_top :: frame_count[0] - 1
+        caller :: frames[new_top]
+        push_value(caller.stack, caller.sp, return_value)
+        frames[new_top] = with_sp_pc(caller, caller.sp + 1, caller.pc)
+    }
+    return null
 }
 
 /// Apply a pure i32-to-i32 binary op (Add/Sub/Mul) on top-of-stack.
@@ -646,8 +710,14 @@ export exec :: fn(module: op.Module) -> VmResult {
                 if frame.sp < usize(instr.parameter_count) {
                     return Trap { .message = "virtual.call '${instr.vtable_key}' needs ${instr.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
-                receiver_index :: frame.sp - usize(instr.parameter_count)
-                receiver :: frame.stack[receiver_index]
+                // UFCS layout: receiver is on TOP of the stack, explicit
+                // args sit below it in source order. To match the callee's
+                // `(self, ...args)` signature we move the receiver to the
+                // bottom of the args region by shifting the explicit args
+                // up one slot.
+                receiver_top :: frame.sp - 1
+                arg_base :: frame.sp - usize(instr.parameter_count)
+                receiver :: frame.stack[receiver_top]
                 receiver_type_id :: receiver_type_id_of(module, receiver)
                 if receiver_type_id < 0 {
                     return Trap { .message = "virtual.call '${instr.vtable_key}' : receiver tag ${describe_value_tag(receiver)} has no type id at pc=${frame.pc}" }
@@ -664,7 +734,13 @@ export exec :: fn(module: op.Module) -> VmResult {
                 if callee.parameter_count != usize(instr.parameter_count) {
                     return Trap { .message = "virtual.call '${instr.vtable_key}' : impl '${callee.name}' expects ${callee.parameter_count} param(s) but call site supplied ${instr.parameter_count} at pc=${frame.pc}" }
                 }
-                dispatched :: dispatch_call_into(frame, top, frames, frame_count, callee, callee_fn, receiver_index, null)
+                shift_index := receiver_top
+                for shift_index > arg_base {
+                    frame.stack[shift_index] = frame.stack[shift_index - 1]
+                    shift_index -= 1
+                }
+                frame.stack[arg_base] = receiver
+                dispatched :: dispatch_call_into(frame, top, frames, frame_count, callee, callee_fn, arg_base, null)
                 if dispatched is Trap { return dispatched }
             }
             is op.CallIndirect -> {
@@ -707,12 +783,9 @@ export exec :: fn(module: op.Module) -> VmResult {
                 if frame.sp == 0 {
                     return Trap { .message = "struct.get on empty stack at pc=${frame.pc}" }
                 }
-                struct_unwrap :: read_struct(frame.stack[frame.sp - 1], frame.pc, "struct.get receiver")
-                if struct_unwrap is Trap { return struct_unwrap }
-                if instr.field_index < 0 || usize(instr.field_index) >= struct_unwrap.fields.len() {
-                    return Trap { .message = "struct.get field ${instr.field_index} out of range (struct has ${struct_unwrap.fields.len()} fields) at pc=${frame.pc}" }
-                }
-                frame.stack[frame.sp - 1] = struct_unwrap.fields[usize(instr.field_index)]
+                field_value :: read_struct_field(frame.stack[frame.sp - 1], instr.field_index, frame.pc, "struct.get")
+                if field_value is Trap { return field_value }
+                frame.stack[frame.sp - 1] = field_value
                 frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
             }
             is op.StructSet -> {
@@ -726,6 +799,15 @@ export exec :: fn(module: op.Module) -> VmResult {
                 }
                 struct_unwrap.fields[usize(instr.field_index)] = frame.stack[frame.sp - 1]
                 frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
+            }
+            is op.LocalField -> {
+                if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
+                    return Trap { .message = "local.field slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
+                }
+                field_value :: read_struct_field(frame.slots[instr.slot], instr.field_index, frame.pc, "local.field")
+                if field_value is Trap { return field_value }
+                push_value(frame.stack, frame.sp, field_value)
+                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
             }
             is op.ArrayNew -> {
                 outcome :: build_array(instr.type_id, instr.length, frame)
@@ -1321,23 +1403,14 @@ export exec :: fn(module: op.Module) -> VmResult {
                 has_value :: frame.sp > 0
                 return_value: op.Value = op.I32Val { .value = 0 }
                 if has_value { return_value = frame.stack[frame.sp - 1] }
-                pop_frame(frame_count)
-                if frame_count[0] == 0 {
-                    // Returning from main — surface the i32 to the host.
-                    if has_value {
-                        unwrapped :: read_i32(return_value, frame.pc, "return from main")
-                        if unwrapped is Trap { return unwrapped }
-                        return Ok { .value = unwrapped.value }
-                    }
-                    return Ok { .value = 0 }
-                }
-                // Push return value onto caller's stack (if any).
-                if has_value {
-                    new_top :: frame_count[0] - 1
-                    caller :: frames[new_top]
-                    push_value(caller.stack, caller.sp, return_value)
-                    frames[new_top] = with_sp_pc(caller, caller.sp + 1, caller.pc)
-                }
+                outcome :: finalise_return(return_value, has_value, frame.pc, frames, frame_count, "return from main")
+                if !(outcome is null) { return outcome }
+            }
+            is op.ReturnLit -> {
+                return_value :: const_op_value(instr.value, module, frame.pc)
+                if return_value is Trap { return return_value }
+                outcome :: finalise_return(return_value, true, frame.pc, frames, frame_count, "return.lit from main")
+                if !(outcome is null) { return outcome }
             }
         }
     }

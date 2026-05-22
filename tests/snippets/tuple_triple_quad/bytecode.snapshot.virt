@@ -26,8 +26,8 @@ fn 0 tests_snippets_tuple_triple_quad__main_vader$main () -> i32
   local.set 0
   intrinsic builder.new
   local.set 1
-  local.get 0
-  struct.get 6 0
+  local.field 0 6 0
+  ref.cast 1
   local.set 2
   local.get 1
   local.get 2
@@ -35,8 +35,8 @@ fn 0 tests_snippets_tuple_triple_quad__main_vader$main () -> i32
   local.get 1
   string.const 1
   intrinsic builder.append_str
-  local.get 0
-  struct.get 6 1
+  local.field 0 6 1
+  ref.cast 2
   local.set 3
   local.get 1
   local.get 3
@@ -44,15 +44,15 @@ fn 0 tests_snippets_tuple_triple_quad__main_vader$main () -> i32
   local.get 1
   string.const 1
   intrinsic builder.append_str
-  local.get 0
-  struct.get 6 2
+  local.field 0 6 2
+  ref.cast 4
   local.set 4
   local.get 1
   local.get 4
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call.import 0
+  call 1
   i32.const 9
   string.const 2
   bool.const false
@@ -61,8 +61,8 @@ fn 0 tests_snippets_tuple_triple_quad__main_vader$main () -> i32
   local.set 0
   intrinsic builder.new
   local.set 1
-  local.get 0
-  struct.get 7 0
+  local.field 0 7 0
+  ref.cast 1
   local.set 2
   local.get 1
   local.get 2
@@ -70,8 +70,8 @@ fn 0 tests_snippets_tuple_triple_quad__main_vader$main () -> i32
   local.get 1
   string.const 1
   intrinsic builder.append_str
-  local.get 0
-  struct.get 7 1
+  local.field 0 7 1
+  ref.cast 2
   local.set 3
   local.get 1
   local.get 3
@@ -79,8 +79,8 @@ fn 0 tests_snippets_tuple_triple_quad__main_vader$main () -> i32
   local.get 1
   string.const 1
   intrinsic builder.append_str
-  local.get 0
-  struct.get 7 2
+  local.field 0 7 2
+  ref.cast 4
   local.set 4
   local.get 1
   local.get 4
@@ -88,15 +88,20 @@ fn 0 tests_snippets_tuple_triple_quad__main_vader$main () -> i32
   local.get 1
   string.const 1
   intrinsic builder.append_str
-  local.get 0
-  struct.get 7 3
+  local.field 0 7 3
+  ref.cast 3
   local.set 5
   local.get 1
   local.get 5
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
+  call 1
+  return.lit i32.const 0
+end
+
+fn 1 std_io$println$vt (string) -> void
+  local.get 0
   call.import 0
-  i32.const 0
   return
 end

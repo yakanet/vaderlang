@@ -10,8 +10,8 @@ import 0 println std_io$println (string) -> void
 impl 1 Into
 
 fn 0 tests_snippets_coerce_into_overload__main_vader$UserId$Into$into (ref) -> i32
-  local.get 0
-  struct.get 1 0
+  local.field 0 1 0
+  ref.cast 2
   return
 end
 
@@ -23,8 +23,7 @@ fn 1 tests_snippets_coerce_into_overload__main_vader$double (i32) -> i32
 end
 
 fn 2 tests_snippets_coerce_into_overload__main_vader$preferred (ref) -> i32
-  i32.const 100
-  return
+  return.lit i32.const 100
 end
 
 fn 3 tests_snippets_coerce_into_overload__main_vader$main () -> i32
@@ -47,7 +46,7 @@ fn 3 tests_snippets_coerce_into_overload__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call.import 0
+  call 4
   local.get 0
   call 2
   local.set 1
@@ -61,7 +60,12 @@ fn 3 tests_snippets_coerce_into_overload__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
+  call 4
+  return.lit i32.const 0
+end
+
+fn 4 std_io$println$vt (string) -> void
+  local.get 0
   call.import 0
-  i32.const 0
   return
 end

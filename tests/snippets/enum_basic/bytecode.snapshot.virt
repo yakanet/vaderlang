@@ -14,42 +14,35 @@ string 7 "Is WEST: "
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_enum_basic__main_vader$describe (i32) -> string
-  local __scrut_0 i32
   local.get 0
-  local.set 1
-  local.get 1
   i32.const 0
   i32.eq
   if $L0 void
     string.const 0
     return
-  else
-    local.get 1
-    i32.const 1
-    i32.eq
-    if $L1 void
-      string.const 1
-      return
-    else
-      local.get 1
-      i32.const 2
-      i32.eq
-      if $L2 void
-        string.const 2
-        return
-      else
-        local.get 1
-        i32.const 3
-        i32.eq
-        if $L3 void
-          string.const 3
-          return
-        else
-          unreachable
-        end $L3
-      end $L2
-    end $L1
   end $L0
+  local.get 0
+  i32.const 1
+  i32.eq
+  if $L1 void
+    string.const 1
+    return
+  end $L1
+  local.get 0
+  i32.const 2
+  i32.eq
+  if $L2 void
+    string.const 2
+    return
+  end $L2
+  local.get 0
+  i32.const 3
+  i32.eq
+  if $L3 void
+    string.const 3
+    return
+  end $L3
+  unreachable
 end
 
 fn 1 tests_snippets_enum_basic__main_vader$main () -> void
@@ -59,16 +52,16 @@ fn 1 tests_snippets_enum_basic__main_vader$main () -> void
   i32.const 2
   local.tee 0
   call 0
-  call.import 0
+  call 2
   i32.const 0
   call 0
-  call.import 0
+  call 2
   local.get 0
   i32.const 2
   i32.eq
   if $L0 void
     string.const 4
-    call.import 0
+    call 2
   else
   end $L0
   local.get 0
@@ -76,7 +69,7 @@ fn 1 tests_snippets_enum_basic__main_vader$main () -> void
   i32.eq
   if $L1 void
     string.const 5
-    call.import 0
+    call 2
   else
   end $L1
   intrinsic builder.new
@@ -93,7 +86,7 @@ fn 1 tests_snippets_enum_basic__main_vader$main () -> void
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call.import 0
+  call 2
   intrinsic builder.new
   local.set 1
   local.get 1
@@ -108,6 +101,12 @@ fn 1 tests_snippets_enum_basic__main_vader$main () -> void
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
+  call 2
+  return
+end
+
+fn 2 std_io$println$vt (string) -> void
+  local.get 0
   call.import 0
   return
 end

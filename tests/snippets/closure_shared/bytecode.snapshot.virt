@@ -39,11 +39,9 @@ end
 fn 1 __lambda_1 (ref) -> void
   local $field_1 any
   local $cell_get_3 i32
-  local.get 0
-  struct.get 2 0
+  local.field 0 2 0
   local.set 1
-  local.get 0
-  struct.get 2 0
+  local.field 0 2 0
   struct.get 6 0
   local.set 2
   local.get 2
@@ -57,8 +55,7 @@ fn 1 __lambda_1 (ref) -> void
 end
 
 fn 2 __lambda_4 (ref) -> i32
-  local.get 0
-  struct.get 4 0
+  local.field 0 4 0
   struct.get 6 0
   return
 end

@@ -1,6 +1,21 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
+type 2 ref _
+type 3 primitive i8
+type 4 primitive string
+type 5 primitive i16
+type 6 primitive i64
+type 7 primitive isize
+type 8 primitive u8
+type 9 primitive u16
+type 10 primitive u32
+type 11 primitive u64
+type 12 primitive usize
+type 13 primitive f32
+type 14 primitive f64
+type 15 primitive bool
+type 16 primitive char
 
 fn 0 tests_snippets_trait_dispatch_eq__main_vader$main () -> i32
   local n1 i32
@@ -29,13 +44,13 @@ fn 0 tests_snippets_trait_dispatch_eq__main_vader$main () -> i32
   return
 end
 
-fn 1 tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq__main_vader$both_equal__i32 (i32,i32,i32) -> i32
+fn 1 tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq__main_vader$both_equal__i32 (ref,ref,ref) -> i32
   local n i32
   i32.const 0
   local.set 3
-  local.get 0
   local.get 1
-  i32.eq
+  local.get 0
+  virtual.call 2 Equals.equals
   if $L0 void
     local.get 3
     i32.const 1
@@ -43,9 +58,9 @@ fn 1 tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_
     local.set 3
   else
   end $L0
-  local.get 0
   local.get 2
-  i32.eq
+  local.get 0
+  virtual.call 2 Equals.equals
   if $L1 void
     local.get 3
     i32.const 10
@@ -53,9 +68,9 @@ fn 1 tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_
     local.set 3
   else
   end $L1
-  local.get 1
   local.get 2
-  i32.eq
+  local.get 1
+  virtual.call 2 Equals.equals
   if $L2 void
     local.get 3
     i32.const 100
@@ -64,5 +79,110 @@ fn 1 tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_
   else
   end $L2
   local.get 3
+  return
+end
+
+fn 2 std_core$i8$Equals$equals$vt (i8,i8) -> bool
+  local.get 0
+  local.get 1
+  i8.eq
+  return
+end
+
+fn 3 std_core$i16$Equals$equals$vt (i16,i16) -> bool
+  local.get 0
+  local.get 1
+  i16.eq
+  return
+end
+
+fn 4 std_core$i32$Equals$equals$vt (i32,i32) -> bool
+  local.get 0
+  local.get 1
+  i32.eq
+  return
+end
+
+fn 5 std_core$i64$Equals$equals$vt (i64,i64) -> bool
+  local.get 0
+  local.get 1
+  i64.eq
+  return
+end
+
+fn 6 std_core$isize$Equals$equals$vt (isize,isize) -> bool
+  local.get 0
+  local.get 1
+  isize.eq
+  return
+end
+
+fn 7 std_core$u8$Equals$equals$vt (u8,u8) -> bool
+  local.get 0
+  local.get 1
+  u8.eq
+  return
+end
+
+fn 8 std_core$u16$Equals$equals$vt (u16,u16) -> bool
+  local.get 0
+  local.get 1
+  u16.eq
+  return
+end
+
+fn 9 std_core$u32$Equals$equals$vt (u32,u32) -> bool
+  local.get 0
+  local.get 1
+  u32.eq
+  return
+end
+
+fn 10 std_core$u64$Equals$equals$vt (u64,u64) -> bool
+  local.get 0
+  local.get 1
+  u64.eq
+  return
+end
+
+fn 11 std_core$usize$Equals$equals$vt (usize,usize) -> bool
+  local.get 0
+  local.get 1
+  usize.eq
+  return
+end
+
+fn 12 std_core$f32$Equals$equals$vt (f32,f32) -> bool
+  local.get 0
+  local.get 1
+  f32.eq
+  return
+end
+
+fn 13 std_core$f64$Equals$equals$vt (f64,f64) -> bool
+  local.get 0
+  local.get 1
+  f64.eq
+  return
+end
+
+fn 14 std_core$bool$Equals$equals$vt (bool,bool) -> bool
+  local.get 0
+  local.get 1
+  bool.eq
+  return
+end
+
+fn 15 std_core$char$Equals$equals$vt (char,char) -> bool
+  local.get 0
+  local.get 1
+  char.eq
+  return
+end
+
+fn 16 std_core$string$Equals$equals$vt (string,string) -> bool
+  local.get 0
+  local.get 1
+  string.eq
   return
 end

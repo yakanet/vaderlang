@@ -15,7 +15,7 @@ import 1 println std_io$println (string) -> void
 fn 0 tests_snippets_multiline_string__main_vader$main () -> i32
   local __sb_0 any
   string.const 0
-  call.import 0
+  call 1
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -29,13 +29,24 @@ fn 0 tests_snippets_multiline_string__main_vader$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call.import 0
+  call 1
   string.const 3
-  call.import 0
+  call 1
   string.const 4
   string.const 5
   string.concat
+  call 2
+  return.lit i32.const 0
+end
+
+fn 1 std_io$print$vt (string) -> void
+  local.get 0
+  call.import 0
+  return
+end
+
+fn 2 std_io$println$vt (string) -> void
+  local.get 0
   call.import 1
-  i32.const 0
   return
 end

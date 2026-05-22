@@ -6,10 +6,6 @@ type 3 primitive i32
 type 4 primitive void
 type 5 array 2
 type 6 array 3
-type 7 struct std_core$ArrayIterator__string { arr:5,cursor:10 }
-type 8 union 0,9
-type 9 struct std_core$Yield__string { value:2 }
-type 10 primitive usize
 string 0 "a"
 string 1 "b"
 string 2 "a="
@@ -19,106 +15,108 @@ string 5 "c"
 import 0 println std_io$println (string) -> void
 impl 1 Index
 impl 1 IndexSet
-impl 7 Iterator
 
 fn 0 tests_snippets_op_overload_index__main_vader$Cell$Index$at (ref,string) -> i32
   local i i32
-  local $field_4 ref
-  local __step_1 ref
+  local __for_arr_0 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
   i32.const 0
   local.set 2
-  local.get 0
-  struct.get 1 0
-  local.set 3
-  local.get 3
+  local.field 0 1 0
+  local.tee 3
+  array.len
+  local.set 4
   i64.const 0
-  i64.to_usize
-  struct.new 7
-  local.set 3
+  local.set 5
   block $L0 void
     loop $L1 void
-      local.get 3
-      call 3
-      local.tee 4
-      type_check 0
+      local.get 5
+      local.get 4
+      usize.lt
       if $L2 void
-        i32.const 0
-        return
-      else
-        local.get 4
-        struct.get 9 0
+        local.get 3
+        local.get 5
+        array.get 5
+        ref.cast 2
         local.get 1
         string.eq
         if $L3 void
-        else
+          local.field 0 1 1
           local.get 2
-          i32.const 1
-          i32.add
-          local.set 2
-          br $L1
+          array.get 6
+          ref.cast 3
+          return
         end $L3
+        local.get 2
+        i32.const 1
+        i32.add
+        local.set 2
+        local.get 5
+        i64.const 1
+        i64.to_usize
+        usize.add
+        local.set 5
+        br $L1
+      else
       end $L2
     end $L1
   end $L0
-  local.get 0
-  struct.get 1 1
-  local.get 2
-  array.get 6
-  ref.cast 3
-  return
+  return.lit i32.const 0
 end
 
 fn 1 tests_snippets_op_overload_index__main_vader$Cell$IndexSet$set_at (ref,string,i32) -> void
   local i i32
-  local $field_5 ref
-  local __step_1 ref
+  local __for_arr_0 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
   i32.const 0
   local.set 3
-  local.get 0
-  struct.get 1 0
-  local.set 4
-  local.get 4
+  local.field 0 1 0
+  local.tee 4
+  array.len
+  local.set 5
   i64.const 0
-  i64.to_usize
-  struct.new 7
-  local.set 4
+  local.set 6
   block $L0 void
     loop $L1 void
-      local.get 4
-      call 3
-      local.tee 5
-      type_check 0
+      local.get 6
+      local.get 5
+      usize.lt
       if $L2 void
-        local.get 0
-        struct.get 1 0
-        local.get 1
-        array.push 2
-        local.get 0
-        struct.get 1 1
-        local.get 2
-        array.push 3
-        return
-      else
-        local.get 5
-        struct.get 9 0
+        local.get 4
+        local.get 6
+        array.get 5
+        ref.cast 2
         local.get 1
         string.eq
         if $L3 void
-        else
+          local.field 0 1 1
           local.get 3
-          i32.const 1
-          i32.add
-          local.set 3
-          br $L1
+          local.get 2
+          array.set 6
+          return
         end $L3
+        local.get 3
+        i32.const 1
+        i32.add
+        local.set 3
+        local.get 6
+        i64.const 1
+        i64.to_usize
+        usize.add
+        local.set 6
+        br $L1
+      else
       end $L2
     end $L1
   end $L0
-  local.get 0
-  struct.get 1 1
-  local.get 3
+  local.field 0 1 0
+  local.get 1
+  array.push 2
+  local.field 0 1 1
   local.get 2
-  array.set 6
+  array.push 3
   return
 end
 
@@ -181,54 +179,12 @@ fn 2 tests_snippets_op_overload_index__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call.import 0
-  i32.const 0
-  return
+  call 3
+  return.lit i32.const 0
 end
 
-fn 3 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
-  local $field_1 usize
-  local $len_3 usize
-  local $field_6 ref
-  local v string
+fn 3 std_io$println$vt (string) -> void
   local.get 0
-  struct.get 7 1
-  local.set 1
-  local.get 0
-  struct.get 7 0
-  array.len
-  local.set 2
-  local.get 1
-  local.get 2
-  usize.ge
-  if $L0 void
-    null.const
-    return
-  else
-    local.get 0
-    struct.get 7 0
-    local.set 3
-    local.get 0
-    struct.get 7 1
-    local.set 1
-    local.get 3
-    local.get 1
-    array.get 5
-    ref.cast 2
-    local.set 4
-    local.get 0
-    struct.get 7 1
-    local.set 1
-    local.get 1
-    i64.const 1
-    i64.to_usize
-    usize.add
-    local.set 1
-    local.get 0
-    local.get 1
-    struct.set 7 1
-    local.get 4
-    struct.new 9
-    return
-  end $L0
+  call.import 0
+  return
 end

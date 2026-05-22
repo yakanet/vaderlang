@@ -1,3 +1,27 @@
 # Comptime
 
+## stdlib/std/core.vader
+
+## stdlib/std/io.vader
+
+## stdlib/std/random.vader
+  @comptime  MASK_U64             = -1_u64
+
 ## tests/snippets/std_random/_main.vader
+
+## generic instances
+  Index(I, T)
+  IndexSet(I, T)
+  Contains(T)
+  Iterator(T)
+  Iterator(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  Into(Target)

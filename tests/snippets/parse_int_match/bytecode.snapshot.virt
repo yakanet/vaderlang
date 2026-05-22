@@ -32,285 +32,245 @@ fn 0 tests_snippets_parse_int_match__main_vader$main () -> i32
   type_check 1
   if $L0 void
     string.const 1
-    call.import 0
+    call 1
     string.const 3
     call.import 1
     local.tee 1
     type_check 1
     if $L1 void
       string.const 1
-      call.import 0
+      call 1
       string.const 4
       call.import 2
       local.tee 2
       type_check 3
       if $L2 void
         string.const 5
-        call.import 0
+        call 1
         string.const 3
         call.import 2
         local.tee 3
         type_check 3
         if $L3 void
           string.const 5
-          call.import 0
-          i32.const 0
-          return
-        else
-          local.get 3
-          type_check 5
-          if $L4 void
-            string.const 6
-            call.import 0
-            i32.const 0
-            return
-          else
-            unreachable
-          end $L4
+          call 1
+          return.lit i32.const 0
         end $L3
-      else
-        local.get 2
+        local.get 3
         type_check 5
-        if $L5 void
+        if $L4 void
           string.const 6
-          call.import 0
-          string.const 3
-          call.import 2
-          local.tee 3
-          type_check 3
-          if $L6 void
-            string.const 5
-            call.import 0
-            i32.const 0
-            return
-          else
-            local.get 3
-            type_check 5
-            if $L7 void
-              string.const 6
-              call.import 0
-              i32.const 0
-              return
-            else
-              unreachable
-            end $L7
-          end $L6
-        else
-          unreachable
-        end $L5
-      end $L2
-    else
-      local.get 1
-      type_check 5
-      if $L8 void
-        string.const 2
-        call.import 0
-        string.const 4
-        call.import 2
-        local.tee 2
-        type_check 3
-        if $L9 void
-          string.const 5
-          call.import 0
-          string.const 3
-          call.import 2
-          local.tee 3
-          type_check 3
-          if $L10 void
-            string.const 5
-            call.import 0
-            i32.const 0
-            return
-          else
-            local.get 3
-            type_check 5
-            if $L11 void
-              string.const 6
-              call.import 0
-              i32.const 0
-              return
-            else
-              unreachable
-            end $L11
-          end $L10
-        else
-          local.get 2
-          type_check 5
-          if $L12 void
-            string.const 6
-            call.import 0
-            string.const 3
-            call.import 2
-            local.tee 3
-            type_check 3
-            if $L13 void
-              string.const 5
-              call.import 0
-              i32.const 0
-              return
-            else
-              local.get 3
-              type_check 5
-              if $L14 void
-                string.const 6
-                call.import 0
-                i32.const 0
-                return
-              else
-                unreachable
-              end $L14
-            end $L13
-          else
-            unreachable
-          end $L12
-        end $L9
-      else
+          call 1
+          return.lit i32.const 0
+        end $L4
         unreachable
-      end $L8
-    end $L1
-  else
-    local.get 0
-    type_check 5
-    if $L15 void
-      string.const 2
-      call.import 0
-      string.const 3
-      call.import 1
-      local.tee 1
-      type_check 1
-      if $L16 void
-        string.const 1
-        call.import 0
-        string.const 4
+      end $L2
+      local.get 2
+      type_check 5
+      if $L5 void
+        string.const 6
+        call 1
+        string.const 3
         call.import 2
-        local.tee 2
+        local.tee 3
         type_check 3
-        if $L17 void
+        if $L6 void
           string.const 5
-          call.import 0
-          string.const 3
-          call.import 2
-          local.tee 3
-          type_check 3
-          if $L18 void
-            string.const 5
-            call.import 0
-            i32.const 0
-            return
-          else
-            local.get 3
-            type_check 5
-            if $L19 void
-              string.const 6
-              call.import 0
-              i32.const 0
-              return
-            else
-              unreachable
-            end $L19
-          end $L18
-        else
-          local.get 2
-          type_check 5
-          if $L20 void
-            string.const 6
-            call.import 0
-            string.const 3
-            call.import 2
-            local.tee 3
-            type_check 3
-            if $L21 void
-              string.const 5
-              call.import 0
-              i32.const 0
-              return
-            else
-              local.get 3
-              type_check 5
-              if $L22 void
-                string.const 6
-                call.import 0
-                i32.const 0
-                return
-              else
-                unreachable
-              end $L22
-            end $L21
-          else
-            unreachable
-          end $L20
-        end $L17
-      else
-        local.get 1
+          call 1
+          return.lit i32.const 0
+        end $L6
+        local.get 3
         type_check 5
-        if $L23 void
-          string.const 2
-          call.import 0
-          string.const 4
-          call.import 2
-          local.tee 2
-          type_check 3
-          if $L24 void
-            string.const 5
-            call.import 0
-            string.const 3
-            call.import 2
-            local.tee 3
-            type_check 3
-            if $L25 void
-              string.const 5
-              call.import 0
-              i32.const 0
-              return
-            else
-              local.get 3
-              type_check 5
-              if $L26 void
-                string.const 6
-                call.import 0
-                i32.const 0
-                return
-              else
-                unreachable
-              end $L26
-            end $L25
-          else
-            local.get 2
-            type_check 5
-            if $L27 void
-              string.const 6
-              call.import 0
-              string.const 3
-              call.import 2
-              local.tee 3
-              type_check 3
-              if $L28 void
-                string.const 5
-                call.import 0
-                i32.const 0
-                return
-              else
-                local.get 3
-                type_check 5
-                if $L29 void
-                  string.const 6
-                  call.import 0
-                  i32.const 0
-                  return
-                else
-                  unreachable
-                end $L29
-              end $L28
-            else
-              unreachable
-            end $L27
-          end $L24
-        else
-          unreachable
-        end $L23
-      end $L16
-    else
+        if $L7 void
+          string.const 6
+          call 1
+          return.lit i32.const 0
+        end $L7
+        unreachable
+      end $L5
       unreachable
-    end $L15
+    end $L1
+    local.get 1
+    type_check 5
+    if $L8 void
+      string.const 2
+      call 1
+      string.const 4
+      call.import 2
+      local.tee 2
+      type_check 3
+      if $L9 void
+        string.const 5
+        call 1
+        string.const 3
+        call.import 2
+        local.tee 3
+        type_check 3
+        if $L10 void
+          string.const 5
+          call 1
+          return.lit i32.const 0
+        end $L10
+        local.get 3
+        type_check 5
+        if $L11 void
+          string.const 6
+          call 1
+          return.lit i32.const 0
+        end $L11
+        unreachable
+      end $L9
+      local.get 2
+      type_check 5
+      if $L12 void
+        string.const 6
+        call 1
+        string.const 3
+        call.import 2
+        local.tee 3
+        type_check 3
+        if $L13 void
+          string.const 5
+          call 1
+          return.lit i32.const 0
+        end $L13
+        local.get 3
+        type_check 5
+        if $L14 void
+          string.const 6
+          call 1
+          return.lit i32.const 0
+        end $L14
+        unreachable
+      end $L12
+      unreachable
+    end $L8
+    unreachable
   end $L0
+  local.get 0
+  type_check 5
+  if $L15 void
+    string.const 2
+    call 1
+    string.const 3
+    call.import 1
+    local.tee 1
+    type_check 1
+    if $L16 void
+      string.const 1
+      call 1
+      string.const 4
+      call.import 2
+      local.tee 2
+      type_check 3
+      if $L17 void
+        string.const 5
+        call 1
+        string.const 3
+        call.import 2
+        local.tee 3
+        type_check 3
+        if $L18 void
+          string.const 5
+          call 1
+          return.lit i32.const 0
+        end $L18
+        local.get 3
+        type_check 5
+        if $L19 void
+          string.const 6
+          call 1
+          return.lit i32.const 0
+        end $L19
+        unreachable
+      end $L17
+      local.get 2
+      type_check 5
+      if $L20 void
+        string.const 6
+        call 1
+        string.const 3
+        call.import 2
+        local.tee 3
+        type_check 3
+        if $L21 void
+          string.const 5
+          call 1
+          return.lit i32.const 0
+        end $L21
+        local.get 3
+        type_check 5
+        if $L22 void
+          string.const 6
+          call 1
+          return.lit i32.const 0
+        end $L22
+        unreachable
+      end $L20
+      unreachable
+    end $L16
+    local.get 1
+    type_check 5
+    if $L23 void
+      string.const 2
+      call 1
+      string.const 4
+      call.import 2
+      local.tee 2
+      type_check 3
+      if $L24 void
+        string.const 5
+        call 1
+        string.const 3
+        call.import 2
+        local.tee 3
+        type_check 3
+        if $L25 void
+          string.const 5
+          call 1
+          return.lit i32.const 0
+        end $L25
+        local.get 3
+        type_check 5
+        if $L26 void
+          string.const 6
+          call 1
+          return.lit i32.const 0
+        end $L26
+        unreachable
+      end $L24
+      local.get 2
+      type_check 5
+      if $L27 void
+        string.const 6
+        call 1
+        string.const 3
+        call.import 2
+        local.tee 3
+        type_check 3
+        if $L28 void
+          string.const 5
+          call 1
+          return.lit i32.const 0
+        end $L28
+        local.get 3
+        type_check 5
+        if $L29 void
+          string.const 6
+          call 1
+          return.lit i32.const 0
+        end $L29
+        unreachable
+      end $L27
+      unreachable
+    end $L23
+    unreachable
+  end $L15
+  unreachable
+end
+
+fn 1 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
+  return
 end

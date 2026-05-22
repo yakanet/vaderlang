@@ -31,6 +31,7 @@ export Op :: I32Const
     | StructNew
     | StructGet
     | StructSet
+    | LocalField
     | ArrayNew
     | ArrayPush
     | ArrayGet
@@ -135,6 +136,7 @@ export Op :: I32Const
     | Branch
     | BranchIf
     | Return
+    | ReturnLit
 
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
@@ -211,6 +213,9 @@ export StructGet :: struct { type_id: i32, field_index: i32 }
 /// back. Mirrors `StructNew` in collapsing the heap/stack variants
 /// (`struct.set` / `struct.set_stack`) into one VM op. Sprint 4 (b1).
 export StructSet :: struct { type_id: i32, field_index: i32 }
+/// Fused `local.get N ; struct.get T F`. Reads `slots[slot]`, expects
+/// a `StructVal`, pushes its `fields[field_index]`.
+export LocalField :: struct { slot: i32, type_id: i32, field_index: i32 }
 
 /// Allocate an `ArrayVal` of type `type_id`. If `length > 0`, pops
 /// `length` initial elements from the value stack (in caller-push
@@ -519,6 +524,42 @@ export BranchIf :: struct {}
 /// (if any) becomes the value pushed onto the caller's stack ;
 /// the executor pops the current `Frame` and resumes the parent.
 export Return :: struct {}
+/// Fused `<T>.const X ; return` — pushes the literal then returns it.
+/// `value` is the inner const op (carried verbatim) so every backend
+/// inlines the right literal form.
+export ReturnLit :: struct { value: ConstOp }
+
+/// Primitive literal-producing op carried by `ReturnLit`. Mirrors the
+/// TS `ConstOp` extracted from `Op`. Each variant produces exactly one
+/// `Value` push.
+export ConstOp ::
+    | I32Const
+    | I64Const
+    | F64Const
+    | BoolConst
+    | CharConst
+    | NullConst
+    | StringConst
+
+/// Narrow an `Op` to a `ConstOp` if it carries one, else `null`.
+/// Used by `ReturnLit`-aware code paths that need the inner literal
+/// without re-matching every callsite.
+///
+/// @param o  the op to inspect.
+/// @return   the same op upcast to `ConstOp`, or `null` when `o` is
+///           not a literal-producing op.
+export const_op_of :: fn(o: Op) -> ConstOp | null {
+    match o {
+        is I32Const    as v -> { return v }
+        is I64Const    as v -> { return v }
+        is F64Const    as v -> { return v }
+        is BoolConst   as v -> { return v }
+        is CharConst   as v -> { return v }
+        is NullConst   as v -> { return v }
+        is StringConst as v -> { return v }
+        _ -> { return null }
+    }
+}
 
 /// Host-side description of a `call.import` target. The `mangled`
 /// name is the key the executor's dispatcher matches on

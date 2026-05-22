@@ -10,6 +10,7 @@ type 7 array 2
 type 8 struct std_string$StringChars { s:2,cursor:3,length:3 }
 type 9 union 0,5
 type 10 struct std_string_builder$StringBuilder { parts:7 }
+type 11 union 5,0
 string 0 "-- ascii --"
 string 1 "vader"
 string 2 "-- multibyte --"
@@ -36,7 +37,7 @@ fn 0 tests_snippets_string_chars__main_vader$main () -> i32
   local n i32
   local $call_45 string
   string.const 0
-  call.import 2
+  call 6
   string.const 1
   call 2
   local.set 0
@@ -50,6 +51,7 @@ fn 0 tests_snippets_string_chars__main_vader$main () -> i32
       else
         local.get 1
         struct.get 5 0
+        ref.cast 4
         local.set 2
         intrinsic builder.new
         local.tee 3
@@ -57,13 +59,13 @@ fn 0 tests_snippets_string_chars__main_vader$main () -> i32
         intrinsic builder.append_display
         local.get 3
         intrinsic builder.finish
-        call.import 2
+        call 6
         br $L1
       end $L2
     end $L1
   end $L0
   string.const 2
-  call.import 2
+  call 6
   string.const 3
   call 2
   local.set 0
@@ -77,6 +79,7 @@ fn 0 tests_snippets_string_chars__main_vader$main () -> i32
       else
         local.get 1
         struct.get 5 0
+        ref.cast 4
         local.set 2
         intrinsic builder.new
         local.tee 3
@@ -84,7 +87,7 @@ fn 0 tests_snippets_string_chars__main_vader$main () -> i32
         intrinsic builder.append_display
         local.get 3
         intrinsic builder.finish
-        call.import 2
+        call 6
         br $L4
       end $L5
     end $L4
@@ -122,16 +125,16 @@ fn 0 tests_snippets_string_chars__main_vader$main () -> i32
   intrinsic builder.append_str
   string.const 4
   call.import 3
-  call.import 0
+  call 4
   local.set 5
   local.get 3
   local.get 5
   intrinsic builder.append_str
   local.get 3
   intrinsic builder.finish
-  call.import 2
+  call 6
   string.const 7
-  call.import 2
+  call 6
   string.const 8
   call 2
   local.set 0
@@ -143,15 +146,14 @@ fn 0 tests_snippets_string_chars__main_vader$main () -> i32
       if $L11 void
       else
         string.const 9
-        call.import 2
+        call 6
         br $L10
       end $L11
     end $L10
   end $L9
   string.const 10
-  call.import 2
-  i32.const 0
-  return
+  call 6
+  return.lit i32.const 0
 end
 
 fn 1 std_string$StringChars$Iterator$next (ref) -> ref
@@ -159,46 +161,44 @@ fn 1 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_2 usize
   local $field_5 string
   local c char
-  local.get 0
-  struct.get 8 1
+  local.field 0 8 1
+  ref.cast 3
   local.set 1
-  local.get 0
-  struct.get 8 2
+  local.field 0 8 2
+  ref.cast 3
   local.set 2
   local.get 1
   local.get 2
   usize.ge
   if $L0 void
-    null.const
-    return
-  else
-    local.get 0
-    struct.get 8 0
-    local.set 3
-    local.get 0
-    struct.get 8 1
-    local.set 1
-    local.get 3
-    local.get 1
-    call.import 1
-    local.set 4
-    local.get 0
-    struct.get 8 1
-    local.set 1
-    local.get 4
-    call 3
-    local.set 2
-    local.get 1
-    local.get 2
-    usize.add
-    local.set 1
-    local.get 0
-    local.get 1
-    struct.set 8 1
-    local.get 4
-    struct.new 5
-    return
+    return.lit null.const
   end $L0
+  local.field 0 8 0
+  ref.cast 2
+  local.set 3
+  local.field 0 8 1
+  ref.cast 3
+  local.set 1
+  local.get 3
+  local.get 1
+  call 5
+  local.set 4
+  local.field 0 8 1
+  ref.cast 3
+  local.set 1
+  local.get 4
+  call 3
+  local.set 2
+  local.get 1
+  local.get 2
+  usize.add
+  local.set 1
+  local.get 0
+  local.get 1
+  struct.set 8 1
+  local.get 4
+  struct.new 5
+  return
 end
 
 fn 2 std_string$chars (string) -> ref
@@ -224,28 +224,40 @@ fn 3 std_utf8$codepoint_byte_len (char) -> usize
   i32.to_u32
   u32.lt
   if $L0 void
-    i64.const 1
-    return
-  else
-    local.get 1
-    i32.const 2048
-    i32.to_u32
-    u32.lt
-    if $L1 void
-      i64.const 2
-      return
-    else
-      local.get 1
-      i32.const 65536
-      i32.to_u32
-      u32.lt
-      if $L2 void
-        i64.const 3
-        return
-      else
-        i64.const 4
-        return
-      end $L2
-    end $L1
+    return.lit i64.const 1
   end $L0
+  local.get 1
+  i32.const 2048
+  i32.to_u32
+  u32.lt
+  if $L1 void
+    return.lit i64.const 2
+  end $L1
+  local.get 1
+  i32.const 65536
+  i32.to_u32
+  u32.lt
+  if $L2 void
+    return.lit i64.const 3
+  end $L2
+  return.lit i64.const 4
+end
+
+fn 4 std_core$usize$Display$to_string$vt (usize) -> string
+  local.get 0
+  call.import 0
+  return
+end
+
+fn 5 std_core$string$Index$at$vt (string,usize) -> char
+  local.get 0
+  local.get 1
+  call.import 1
+  return
+end
+
+fn 6 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 2
+  return
 end

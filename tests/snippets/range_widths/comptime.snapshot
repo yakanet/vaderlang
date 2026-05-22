@@ -1,10 +1,29 @@
 # Comptime
 
+## stdlib/std/core.vader
+
+## stdlib/std/io.vader
+
 ## tests/snippets/range_widths/_main.vader
 
 ## generic instances
+  Index(I, T)
+  IndexSet(I, T)
+  Contains(T)
+  Iterator(T)
+  Iterator(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
   Range(i16)
   Range(i64)
   Range(isize)
   Range(u64)
   Range(u8)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  Into(Target)

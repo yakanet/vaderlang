@@ -9,8 +9,10 @@ type 6 primitive string
 type 7 primitive u32
 type 8 primitive u64
 type 9 primitive void
-type 10 array 1
-type 11 fn () -> 3
+type 10 array 11
+type 11 ref _
+type 12 array 1
+type 13 fn () -> 3
 string 0 "widths: "
 string 1 " "
 string 2 "arith: "
@@ -93,7 +95,7 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   intrinsic builder.append_str
   i32.const 4000000000
   i32.to_u32
-  call.import 0
+  call 3
   local.set 5
   local.get 4
   local.get 5
@@ -102,7 +104,7 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   string.const 1
   intrinsic builder.append_str
   local.get 1
-  call.import 1
+  call 4
   local.set 5
   local.get 4
   local.get 5
@@ -117,14 +119,14 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   string.const 1
   intrinsic builder.append_str
   local.get 3
-  call.import 2
+  call 5
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call.import 3
+  call 6
   local.get 2
   i64.const 1
   i64.to_isize
@@ -156,7 +158,7 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   string.const 1
   intrinsic builder.append_str
   local.get 7
-  call.import 2
+  call 5
   local.set 5
   local.get 4
   local.get 5
@@ -171,14 +173,14 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   string.const 1
   intrinsic builder.append_str
   local.get 1
-  call.import 1
+  call 4
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call.import 3
+  call 6
   i64.const 100
   isize.neg
   local.set 6
@@ -203,7 +205,7 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 4
   intrinsic builder.finish
-  call.import 3
+  call 6
   i64.const 1
   isize.neg
   local.set 6
@@ -217,9 +219,9 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   local.get 4
   string.const 4
   intrinsic builder.append_str
-  local.get 9
-  struct.get 4 0
-  call.import 2
+  local.field 9 4 0
+  ref.cast 3
+  call 5
   local.set 5
   local.get 4
   local.get 5
@@ -227,22 +229,22 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   local.get 4
   string.const 5
   intrinsic builder.append_str
-  local.get 9
-  struct.get 4 1
+  local.field 9 4 1
+  ref.cast 5
   local.set 6
   local.get 4
   local.get 6
   intrinsic builder.append_display
   local.get 4
   intrinsic builder.finish
-  call.import 3
+  call 6
   local.get 3
   i64.const 42
   i64.to_usize
   usize.eq
   if $L0 void
     string.const 6
-    call.import 3
+    call 6
   else
   end $L0
   local.get 2
@@ -251,7 +253,7 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   isize.le
   if $L1 void
     string.const 7
-    call.import 3
+    call 6
   else
   end $L1
   i32.const 10
@@ -259,7 +261,7 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 10 5
+  array.new 12 5
   local.tee 9
   array.len
   local.set 3
@@ -281,16 +283,16 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   intrinsic builder.append_str
   local.get 9
   array.len
-  call.import 2
+  call 5
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call.import 3
+  call 6
   struct.new 2
-  make_closure 1 11
+  make_closure 1 13
   local.set 9
   intrinsic builder.new
   local.set 4
@@ -298,22 +300,20 @@ fn 0 tests_snippets_numeric_context_sensitivity__main_vader$main () -> i32
   string.const 9
   intrinsic builder.append_str
   local.get 9
-  call.indirect 11
-  call.import 2
+  call.indirect 13
+  call 5
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call.import 3
-  i32.const 0
-  return
+  call 6
+  return.lit i32.const 0
 end
 
 fn 1 __lambda_6 (ref) -> usize
-  i64.const 42
-  return
+  return.lit i64.const 42
 end
 
 fn 2 std_iter$std_iter$slice__i32 (ref,usize,usize) -> ref
@@ -321,5 +321,29 @@ fn 2 std_iter$std_iter$slice__i32 (ref,usize,usize) -> ref
   local.get 1
   local.get 2
   array.slice 24
+  return
+end
+
+fn 3 std_core$u32$Display$to_string$vt (u32) -> string
+  local.get 0
+  call.import 0
+  return
+end
+
+fn 4 std_core$u64$Display$to_string$vt (u64) -> string
+  local.get 0
+  call.import 1
+  return
+end
+
+fn 5 std_core$usize$Display$to_string$vt (usize) -> string
+  local.get 0
+  call.import 2
+  return
+end
+
+fn 6 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 3
   return
 end

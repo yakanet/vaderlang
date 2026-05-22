@@ -1,16 +1,32 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 primitive string
+type 2 primitive i8
 type 3 primitive u64
-type 4 primitive usize
-type 5 primitive bool
-type 6 primitive void
-type 7 struct std_collections$MutableMap__string__i32 { buckets:11,size:4 }
-type 8 union 1,0
-type 9 struct std_collections$Entry__string__i32 { key:2,value:1,next:10 }
-type 10 union 9,0
-type 11 array 10
+type 4 primitive i16
+type 5 primitive i64
+type 6 primitive isize
+type 7 primitive u8
+type 8 primitive u16
+type 9 primitive u32
+type 10 primitive usize
+type 11 primitive char
+type 12 primitive string
+type 13 primitive f32
+type 14 primitive f64
+type 15 primitive bool
+type 16 primitive void
+type 17 struct std_collections$MutableMap__Any__Any { buckets:23,size:10 }
+type 18 ref _
+type 19 union 18,0
+type 20 struct std_collections$Entry__Any__Any { key:18,value:18,next:21 }
+type 21 union 20,0
+type 22 struct std_collections$Entry__string__i32 { key:18,value:18,next:21 }
+type 23 array 21
+type 24 struct std_collections$MutableMap__string__i32 { buckets:23,size:10 }
+type 25 array 26
+type 26 union 22,0
+type 27 union 1,0
 string 0 "hello"
 string 1 "world"
 string 2 "vader"
@@ -28,10 +44,14 @@ string 13 "hello updated = "
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 println std_io$println (string) -> void
-impl 7 Index
-impl 7 IndexSet
-impl 7 Contains
-impl 7 Into
+impl 17 Index
+impl 17 IndexSet
+impl 17 Contains
+impl 17 Into
+impl 24 Index
+impl 24 IndexSet
+impl 24 Contains
+impl 24 Into
 
 fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
   local $arr_0 ref
@@ -67,71 +87,71 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
   local __sb_10 any
   local $k_75 string
   local $cast_76 i32
-  array.new 11 0
+  array.new 25 0
   local.set 0
   local.get 0
   i64.const 0
   i64.to_usize
-  struct.new 7
+  struct.new 24
   local.set 0
   local.get 0
   string.const 0
   i32.const 1
-  call 3
+  call 14
   local.get 0
   string.const 1
   i32.const 2
-  call 3
+  call 14
   local.get 0
   string.const 2
   i32.const 42
-  call 3
+  call 14
   intrinsic builder.new
   local.set 1
   local.get 1
   string.const 3
   intrinsic builder.append_str
   local.get 0
-  call 9
-  call.import 0
+  call 20
+  call 21
   local.set 2
   local.get 1
   local.get 2
   intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
-  call.import 2
+  call 38
   local.get 0
   string.const 0
-  call 2
+  call 13
   local.tee 3
   local.tee 4
   type_check 0
   if $L0 void
     string.const 4
-    call.import 2
+    call 38
     string.const 1
     local.set 2
     local.get 0
     local.get 2
-    call 2
+    call 13
     local.tee 6
     local.tee 7
     type_check 0
     if $L1 void
       string.const 6
-      call.import 2
+      call 38
       string.const 2
       local.set 11
       local.get 0
       local.get 11
-      call 2
+      call 13
       local.tee 12
       local.tee 13
       type_check 0
       if $L2 void
         string.const 8
-        call.import 2
+        call 38
         intrinsic builder.new
         local.set 17
         string.const 10
@@ -143,14 +163,14 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
         local.set 19
         local.get 0
         local.get 19
-        call 4
+        call 15
         local.set 20
         local.get 17
         local.get 20
         intrinsic builder.append_display
         local.get 17
         intrinsic builder.finish
-        call.import 2
+        call 38
         intrinsic builder.new
         local.set 21
         string.const 11
@@ -162,14 +182,14 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
         local.set 23
         local.get 0
         local.get 23
-        call 4
+        call 15
         local.set 24
         local.get 21
         local.get 24
         intrinsic builder.append_display
         local.get 21
         intrinsic builder.finish
-        call.import 2
+        call 38
         string.const 0
         local.set 25
         i32.const 99
@@ -177,854 +197,873 @@ fn 0 tests_snippets_mutable_map_string__main_vader$main () -> i32
         local.get 0
         local.get 25
         local.get 26
-        call 3
+        call 14
         string.const 0
         local.set 27
         local.get 0
         local.get 27
-        call 2
+        call 13
         local.tee 28
         local.tee 29
         type_check 0
         if $L3 void
           string.const 4
-          call.import 2
-          i32.const 0
-          return
-        else
-          local.get 29
-          type_check 1
-          if $L4 void
-            intrinsic builder.new
-            local.set 30
-            string.const 13
-            local.set 31
-            local.get 30
-            local.get 31
-            intrinsic builder.append_str
-            local.get 28
-            ref.cast 1
-            local.set 32
-            local.get 30
-            local.get 32
-            intrinsic builder.append_display
-            local.get 30
-            intrinsic builder.finish
-            call.import 2
-            i32.const 0
-            return
-          else
-            unreachable
-          end $L4
+          call 38
+          return.lit i32.const 0
         end $L3
-      else
-        local.get 13
+        local.get 29
         type_check 1
-        if $L5 void
+        if $L4 void
           intrinsic builder.new
-          local.set 14
-          string.const 9
-          local.set 15
-          local.get 14
-          local.get 15
+          local.set 30
+          string.const 13
+          local.set 31
+          local.get 30
+          local.get 31
           intrinsic builder.append_str
-          local.get 12
+          local.get 28
           ref.cast 1
-          local.set 16
-          local.get 14
-          local.get 16
+          local.set 32
+          local.get 30
+          local.get 32
           intrinsic builder.append_display
-          local.get 14
+          local.get 30
           intrinsic builder.finish
-          call.import 2
-          intrinsic builder.new
-          local.set 17
-          string.const 10
-          local.set 18
-          local.get 17
-          local.get 18
-          intrinsic builder.append_str
-          string.const 0
-          local.set 19
-          local.get 0
-          local.get 19
-          call 4
-          local.set 20
-          local.get 17
-          local.get 20
-          intrinsic builder.append_display
-          local.get 17
-          intrinsic builder.finish
-          call.import 2
-          intrinsic builder.new
-          local.set 21
-          string.const 11
-          local.set 22
-          local.get 21
-          local.get 22
-          intrinsic builder.append_str
-          string.const 12
-          local.set 23
-          local.get 0
-          local.get 23
-          call 4
-          local.set 24
-          local.get 21
-          local.get 24
-          intrinsic builder.append_display
-          local.get 21
-          intrinsic builder.finish
-          call.import 2
-          string.const 0
-          local.set 25
-          i32.const 99
-          local.set 26
-          local.get 0
-          local.get 25
-          local.get 26
-          call 3
-          string.const 0
-          local.set 27
-          local.get 0
-          local.get 27
-          call 2
-          local.tee 28
-          local.tee 29
-          type_check 0
-          if $L6 void
-            string.const 4
-            call.import 2
-            i32.const 0
-            return
-          else
-            local.get 29
-            type_check 1
-            if $L7 void
-              intrinsic builder.new
-              local.set 30
-              string.const 13
-              local.set 31
-              local.get 30
-              local.get 31
-              intrinsic builder.append_str
-              local.get 28
-              ref.cast 1
-              local.set 32
-              local.get 30
-              local.get 32
-              intrinsic builder.append_display
-              local.get 30
-              intrinsic builder.finish
-              call.import 2
-              i32.const 0
-              return
-            else
-              unreachable
-            end $L7
-          end $L6
-        else
-          unreachable
-        end $L5
-      end $L2
-    else
-      local.get 7
-      type_check 1
-      if $L8 void
-        intrinsic builder.new
-        local.set 8
-        string.const 7
-        local.set 9
-        local.get 8
-        local.get 9
-        intrinsic builder.append_str
-        local.get 6
-        ref.cast 1
-        local.set 10
-        local.get 8
-        local.get 10
-        intrinsic builder.append_display
-        local.get 8
-        intrinsic builder.finish
-        call.import 2
-        string.const 2
-        local.set 11
-        local.get 0
-        local.get 11
-        call 2
-        local.tee 12
-        local.tee 13
-        type_check 0
-        if $L9 void
-          string.const 8
-          call.import 2
-          intrinsic builder.new
-          local.set 17
-          string.const 10
-          local.set 18
-          local.get 17
-          local.get 18
-          intrinsic builder.append_str
-          string.const 0
-          local.set 19
-          local.get 0
-          local.get 19
-          call 4
-          local.set 20
-          local.get 17
-          local.get 20
-          intrinsic builder.append_display
-          local.get 17
-          intrinsic builder.finish
-          call.import 2
-          intrinsic builder.new
-          local.set 21
-          string.const 11
-          local.set 22
-          local.get 21
-          local.get 22
-          intrinsic builder.append_str
-          string.const 12
-          local.set 23
-          local.get 0
-          local.get 23
-          call 4
-          local.set 24
-          local.get 21
-          local.get 24
-          intrinsic builder.append_display
-          local.get 21
-          intrinsic builder.finish
-          call.import 2
-          string.const 0
-          local.set 25
-          i32.const 99
-          local.set 26
-          local.get 0
-          local.get 25
-          local.get 26
-          call 3
-          string.const 0
-          local.set 27
-          local.get 0
-          local.get 27
-          call 2
-          local.tee 28
-          local.tee 29
-          type_check 0
-          if $L10 void
-            string.const 4
-            call.import 2
-            i32.const 0
-            return
-          else
-            local.get 29
-            type_check 1
-            if $L11 void
-              intrinsic builder.new
-              local.set 30
-              string.const 13
-              local.set 31
-              local.get 30
-              local.get 31
-              intrinsic builder.append_str
-              local.get 28
-              ref.cast 1
-              local.set 32
-              local.get 30
-              local.get 32
-              intrinsic builder.append_display
-              local.get 30
-              intrinsic builder.finish
-              call.import 2
-              i32.const 0
-              return
-            else
-              unreachable
-            end $L11
-          end $L10
-        else
-          local.get 13
-          type_check 1
-          if $L12 void
-            intrinsic builder.new
-            local.set 14
-            string.const 9
-            local.set 15
-            local.get 14
-            local.get 15
-            intrinsic builder.append_str
-            local.get 12
-            ref.cast 1
-            local.set 16
-            local.get 14
-            local.get 16
-            intrinsic builder.append_display
-            local.get 14
-            intrinsic builder.finish
-            call.import 2
-            intrinsic builder.new
-            local.set 17
-            string.const 10
-            local.set 18
-            local.get 17
-            local.get 18
-            intrinsic builder.append_str
-            string.const 0
-            local.set 19
-            local.get 0
-            local.get 19
-            call 4
-            local.set 20
-            local.get 17
-            local.get 20
-            intrinsic builder.append_display
-            local.get 17
-            intrinsic builder.finish
-            call.import 2
-            intrinsic builder.new
-            local.set 21
-            string.const 11
-            local.set 22
-            local.get 21
-            local.get 22
-            intrinsic builder.append_str
-            string.const 12
-            local.set 23
-            local.get 0
-            local.get 23
-            call 4
-            local.set 24
-            local.get 21
-            local.get 24
-            intrinsic builder.append_display
-            local.get 21
-            intrinsic builder.finish
-            call.import 2
-            string.const 0
-            local.set 25
-            i32.const 99
-            local.set 26
-            local.get 0
-            local.get 25
-            local.get 26
-            call 3
-            string.const 0
-            local.set 27
-            local.get 0
-            local.get 27
-            call 2
-            local.tee 28
-            local.tee 29
-            type_check 0
-            if $L13 void
-              string.const 4
-              call.import 2
-              i32.const 0
-              return
-            else
-              local.get 29
-              type_check 1
-              if $L14 void
-                intrinsic builder.new
-                local.set 30
-                string.const 13
-                local.set 31
-                local.get 30
-                local.get 31
-                intrinsic builder.append_str
-                local.get 28
-                ref.cast 1
-                local.set 32
-                local.get 30
-                local.get 32
-                intrinsic builder.append_display
-                local.get 30
-                intrinsic builder.finish
-                call.import 2
-                i32.const 0
-                return
-              else
-                unreachable
-              end $L14
-            end $L13
-          else
-            unreachable
-          end $L12
-        end $L9
-      else
+          call 38
+          return.lit i32.const 0
+        end $L4
         unreachable
-      end $L8
-    end $L1
-  else
-    local.get 4
-    type_check 1
-    if $L15 void
-      intrinsic builder.new
-      local.set 1
-      local.get 1
-      string.const 5
-      intrinsic builder.append_str
-      local.get 3
-      ref.cast 1
-      local.set 5
-      local.get 1
-      local.get 5
-      intrinsic builder.append_display
-      local.get 1
-      intrinsic builder.finish
-      call.import 2
-      string.const 1
-      local.set 2
-      local.get 0
-      local.get 2
-      call 2
-      local.tee 6
-      local.tee 7
-      type_check 0
-      if $L16 void
-        string.const 6
-        call.import 2
-        string.const 2
-        local.set 11
+      end $L2
+      local.get 13
+      type_check 1
+      if $L5 void
+        intrinsic builder.new
+        local.set 14
+        string.const 9
+        local.set 15
+        local.get 14
+        local.get 15
+        intrinsic builder.append_str
+        local.get 12
+        ref.cast 1
+        local.set 16
+        local.get 14
+        local.get 16
+        intrinsic builder.append_display
+        local.get 14
+        intrinsic builder.finish
+        call 38
+        intrinsic builder.new
+        local.set 17
+        string.const 10
+        local.set 18
+        local.get 17
+        local.get 18
+        intrinsic builder.append_str
+        string.const 0
+        local.set 19
         local.get 0
-        local.get 11
-        call 2
-        local.tee 12
-        local.tee 13
+        local.get 19
+        call 15
+        local.set 20
+        local.get 17
+        local.get 20
+        intrinsic builder.append_display
+        local.get 17
+        intrinsic builder.finish
+        call 38
+        intrinsic builder.new
+        local.set 21
+        string.const 11
+        local.set 22
+        local.get 21
+        local.get 22
+        intrinsic builder.append_str
+        string.const 12
+        local.set 23
+        local.get 0
+        local.get 23
+        call 15
+        local.set 24
+        local.get 21
+        local.get 24
+        intrinsic builder.append_display
+        local.get 21
+        intrinsic builder.finish
+        call 38
+        string.const 0
+        local.set 25
+        i32.const 99
+        local.set 26
+        local.get 0
+        local.get 25
+        local.get 26
+        call 14
+        string.const 0
+        local.set 27
+        local.get 0
+        local.get 27
+        call 13
+        local.tee 28
+        local.tee 29
         type_check 0
-        if $L17 void
-          string.const 8
-          call.import 2
-          intrinsic builder.new
-          local.set 17
-          string.const 10
-          local.set 18
-          local.get 17
-          local.get 18
-          intrinsic builder.append_str
-          string.const 0
-          local.set 19
-          local.get 0
-          local.get 19
-          call 4
-          local.set 20
-          local.get 17
-          local.get 20
-          intrinsic builder.append_display
-          local.get 17
-          intrinsic builder.finish
-          call.import 2
-          intrinsic builder.new
-          local.set 21
-          string.const 11
-          local.set 22
-          local.get 21
-          local.get 22
-          intrinsic builder.append_str
-          string.const 12
-          local.set 23
-          local.get 0
-          local.get 23
-          call 4
-          local.set 24
-          local.get 21
-          local.get 24
-          intrinsic builder.append_display
-          local.get 21
-          intrinsic builder.finish
-          call.import 2
-          string.const 0
-          local.set 25
-          i32.const 99
-          local.set 26
-          local.get 0
-          local.get 25
-          local.get 26
-          call 3
-          string.const 0
-          local.set 27
-          local.get 0
-          local.get 27
-          call 2
-          local.tee 28
-          local.tee 29
-          type_check 0
-          if $L18 void
-            string.const 4
-            call.import 2
-            i32.const 0
-            return
-          else
-            local.get 29
-            type_check 1
-            if $L19 void
-              intrinsic builder.new
-              local.set 30
-              string.const 13
-              local.set 31
-              local.get 30
-              local.get 31
-              intrinsic builder.append_str
-              local.get 28
-              ref.cast 1
-              local.set 32
-              local.get 30
-              local.get 32
-              intrinsic builder.append_display
-              local.get 30
-              intrinsic builder.finish
-              call.import 2
-              i32.const 0
-              return
-            else
-              unreachable
-            end $L19
-          end $L18
-        else
-          local.get 13
-          type_check 1
-          if $L20 void
-            intrinsic builder.new
-            local.set 14
-            string.const 9
-            local.set 15
-            local.get 14
-            local.get 15
-            intrinsic builder.append_str
-            local.get 12
-            ref.cast 1
-            local.set 16
-            local.get 14
-            local.get 16
-            intrinsic builder.append_display
-            local.get 14
-            intrinsic builder.finish
-            call.import 2
-            intrinsic builder.new
-            local.set 17
-            string.const 10
-            local.set 18
-            local.get 17
-            local.get 18
-            intrinsic builder.append_str
-            string.const 0
-            local.set 19
-            local.get 0
-            local.get 19
-            call 4
-            local.set 20
-            local.get 17
-            local.get 20
-            intrinsic builder.append_display
-            local.get 17
-            intrinsic builder.finish
-            call.import 2
-            intrinsic builder.new
-            local.set 21
-            string.const 11
-            local.set 22
-            local.get 21
-            local.get 22
-            intrinsic builder.append_str
-            string.const 12
-            local.set 23
-            local.get 0
-            local.get 23
-            call 4
-            local.set 24
-            local.get 21
-            local.get 24
-            intrinsic builder.append_display
-            local.get 21
-            intrinsic builder.finish
-            call.import 2
-            string.const 0
-            local.set 25
-            i32.const 99
-            local.set 26
-            local.get 0
-            local.get 25
-            local.get 26
-            call 3
-            string.const 0
-            local.set 27
-            local.get 0
-            local.get 27
-            call 2
-            local.tee 28
-            local.tee 29
-            type_check 0
-            if $L21 void
-              string.const 4
-              call.import 2
-              i32.const 0
-              return
-            else
-              local.get 29
-              type_check 1
-              if $L22 void
-                intrinsic builder.new
-                local.set 30
-                string.const 13
-                local.set 31
-                local.get 30
-                local.get 31
-                intrinsic builder.append_str
-                local.get 28
-                ref.cast 1
-                local.set 32
-                local.get 30
-                local.get 32
-                intrinsic builder.append_display
-                local.get 30
-                intrinsic builder.finish
-                call.import 2
-                i32.const 0
-                return
-              else
-                unreachable
-              end $L22
-            end $L21
-          else
-            unreachable
-          end $L20
-        end $L17
-      else
-        local.get 7
+        if $L6 void
+          string.const 4
+          call 38
+          return.lit i32.const 0
+        end $L6
+        local.get 29
         type_check 1
-        if $L23 void
+        if $L7 void
           intrinsic builder.new
-          local.set 8
-          string.const 7
-          local.set 9
-          local.get 8
-          local.get 9
+          local.set 30
+          string.const 13
+          local.set 31
+          local.get 30
+          local.get 31
           intrinsic builder.append_str
-          local.get 6
+          local.get 28
           ref.cast 1
-          local.set 10
-          local.get 8
-          local.get 10
+          local.set 32
+          local.get 30
+          local.get 32
           intrinsic builder.append_display
-          local.get 8
+          local.get 30
           intrinsic builder.finish
-          call.import 2
-          string.const 2
-          local.set 11
-          local.get 0
-          local.get 11
-          call 2
-          local.tee 12
-          local.tee 13
-          type_check 0
-          if $L24 void
-            string.const 8
-            call.import 2
-            intrinsic builder.new
-            local.set 17
-            string.const 10
-            local.set 18
-            local.get 17
-            local.get 18
-            intrinsic builder.append_str
-            string.const 0
-            local.set 19
-            local.get 0
-            local.get 19
-            call 4
-            local.set 20
-            local.get 17
-            local.get 20
-            intrinsic builder.append_display
-            local.get 17
-            intrinsic builder.finish
-            call.import 2
-            intrinsic builder.new
-            local.set 21
-            string.const 11
-            local.set 22
-            local.get 21
-            local.get 22
-            intrinsic builder.append_str
-            string.const 12
-            local.set 23
-            local.get 0
-            local.get 23
-            call 4
-            local.set 24
-            local.get 21
-            local.get 24
-            intrinsic builder.append_display
-            local.get 21
-            intrinsic builder.finish
-            call.import 2
-            string.const 0
-            local.set 25
-            i32.const 99
-            local.set 26
-            local.get 0
-            local.get 25
-            local.get 26
-            call 3
-            string.const 0
-            local.set 27
-            local.get 0
-            local.get 27
-            call 2
-            local.tee 28
-            local.tee 29
-            type_check 0
-            if $L25 void
-              string.const 4
-              call.import 2
-              i32.const 0
-              return
-            else
-              local.get 29
-              type_check 1
-              if $L26 void
-                intrinsic builder.new
-                local.set 30
-                string.const 13
-                local.set 31
-                local.get 30
-                local.get 31
-                intrinsic builder.append_str
-                local.get 28
-                ref.cast 1
-                local.set 32
-                local.get 30
-                local.get 32
-                intrinsic builder.append_display
-                local.get 30
-                intrinsic builder.finish
-                call.import 2
-                i32.const 0
-                return
-              else
-                unreachable
-              end $L26
-            end $L25
-          else
-            local.get 13
-            type_check 1
-            if $L27 void
-              intrinsic builder.new
-              local.set 14
-              string.const 9
-              local.set 15
-              local.get 14
-              local.get 15
-              intrinsic builder.append_str
-              local.get 12
-              ref.cast 1
-              local.set 16
-              local.get 14
-              local.get 16
-              intrinsic builder.append_display
-              local.get 14
-              intrinsic builder.finish
-              call.import 2
-              intrinsic builder.new
-              local.set 17
-              string.const 10
-              local.set 18
-              local.get 17
-              local.get 18
-              intrinsic builder.append_str
-              string.const 0
-              local.set 19
-              local.get 0
-              local.get 19
-              call 4
-              local.set 20
-              local.get 17
-              local.get 20
-              intrinsic builder.append_display
-              local.get 17
-              intrinsic builder.finish
-              call.import 2
-              intrinsic builder.new
-              local.set 21
-              string.const 11
-              local.set 22
-              local.get 21
-              local.get 22
-              intrinsic builder.append_str
-              string.const 12
-              local.set 23
-              local.get 0
-              local.get 23
-              call 4
-              local.set 24
-              local.get 21
-              local.get 24
-              intrinsic builder.append_display
-              local.get 21
-              intrinsic builder.finish
-              call.import 2
-              string.const 0
-              local.set 25
-              i32.const 99
-              local.set 26
-              local.get 0
-              local.get 25
-              local.get 26
-              call 3
-              string.const 0
-              local.set 27
-              local.get 0
-              local.get 27
-              call 2
-              local.tee 28
-              local.tee 29
-              type_check 0
-              if $L28 void
-                string.const 4
-                call.import 2
-                i32.const 0
-                return
-              else
-                local.get 29
-                type_check 1
-                if $L29 void
-                  intrinsic builder.new
-                  local.set 30
-                  string.const 13
-                  local.set 31
-                  local.get 30
-                  local.get 31
-                  intrinsic builder.append_str
-                  local.get 28
-                  ref.cast 1
-                  local.set 32
-                  local.get 30
-                  local.get 32
-                  intrinsic builder.append_display
-                  local.get 30
-                  intrinsic builder.finish
-                  call.import 2
-                  i32.const 0
-                  return
-                else
-                  unreachable
-                end $L29
-              end $L28
-            else
-              unreachable
-            end $L27
-          end $L24
-        else
-          unreachable
-        end $L23
-      end $L16
-    else
+          call 38
+          return.lit i32.const 0
+        end $L7
+        unreachable
+      end $L5
       unreachable
-    end $L15
+    end $L1
+    local.get 7
+    type_check 1
+    if $L8 void
+      intrinsic builder.new
+      local.set 8
+      string.const 7
+      local.set 9
+      local.get 8
+      local.get 9
+      intrinsic builder.append_str
+      local.get 6
+      ref.cast 1
+      local.set 10
+      local.get 8
+      local.get 10
+      intrinsic builder.append_display
+      local.get 8
+      intrinsic builder.finish
+      call 38
+      string.const 2
+      local.set 11
+      local.get 0
+      local.get 11
+      call 13
+      local.tee 12
+      local.tee 13
+      type_check 0
+      if $L9 void
+        string.const 8
+        call 38
+        intrinsic builder.new
+        local.set 17
+        string.const 10
+        local.set 18
+        local.get 17
+        local.get 18
+        intrinsic builder.append_str
+        string.const 0
+        local.set 19
+        local.get 0
+        local.get 19
+        call 15
+        local.set 20
+        local.get 17
+        local.get 20
+        intrinsic builder.append_display
+        local.get 17
+        intrinsic builder.finish
+        call 38
+        intrinsic builder.new
+        local.set 21
+        string.const 11
+        local.set 22
+        local.get 21
+        local.get 22
+        intrinsic builder.append_str
+        string.const 12
+        local.set 23
+        local.get 0
+        local.get 23
+        call 15
+        local.set 24
+        local.get 21
+        local.get 24
+        intrinsic builder.append_display
+        local.get 21
+        intrinsic builder.finish
+        call 38
+        string.const 0
+        local.set 25
+        i32.const 99
+        local.set 26
+        local.get 0
+        local.get 25
+        local.get 26
+        call 14
+        string.const 0
+        local.set 27
+        local.get 0
+        local.get 27
+        call 13
+        local.tee 28
+        local.tee 29
+        type_check 0
+        if $L10 void
+          string.const 4
+          call 38
+          return.lit i32.const 0
+        end $L10
+        local.get 29
+        type_check 1
+        if $L11 void
+          intrinsic builder.new
+          local.set 30
+          string.const 13
+          local.set 31
+          local.get 30
+          local.get 31
+          intrinsic builder.append_str
+          local.get 28
+          ref.cast 1
+          local.set 32
+          local.get 30
+          local.get 32
+          intrinsic builder.append_display
+          local.get 30
+          intrinsic builder.finish
+          call 38
+          return.lit i32.const 0
+        end $L11
+        unreachable
+      end $L9
+      local.get 13
+      type_check 1
+      if $L12 void
+        intrinsic builder.new
+        local.set 14
+        string.const 9
+        local.set 15
+        local.get 14
+        local.get 15
+        intrinsic builder.append_str
+        local.get 12
+        ref.cast 1
+        local.set 16
+        local.get 14
+        local.get 16
+        intrinsic builder.append_display
+        local.get 14
+        intrinsic builder.finish
+        call 38
+        intrinsic builder.new
+        local.set 17
+        string.const 10
+        local.set 18
+        local.get 17
+        local.get 18
+        intrinsic builder.append_str
+        string.const 0
+        local.set 19
+        local.get 0
+        local.get 19
+        call 15
+        local.set 20
+        local.get 17
+        local.get 20
+        intrinsic builder.append_display
+        local.get 17
+        intrinsic builder.finish
+        call 38
+        intrinsic builder.new
+        local.set 21
+        string.const 11
+        local.set 22
+        local.get 21
+        local.get 22
+        intrinsic builder.append_str
+        string.const 12
+        local.set 23
+        local.get 0
+        local.get 23
+        call 15
+        local.set 24
+        local.get 21
+        local.get 24
+        intrinsic builder.append_display
+        local.get 21
+        intrinsic builder.finish
+        call 38
+        string.const 0
+        local.set 25
+        i32.const 99
+        local.set 26
+        local.get 0
+        local.get 25
+        local.get 26
+        call 14
+        string.const 0
+        local.set 27
+        local.get 0
+        local.get 27
+        call 13
+        local.tee 28
+        local.tee 29
+        type_check 0
+        if $L13 void
+          string.const 4
+          call 38
+          return.lit i32.const 0
+        end $L13
+        local.get 29
+        type_check 1
+        if $L14 void
+          intrinsic builder.new
+          local.set 30
+          string.const 13
+          local.set 31
+          local.get 30
+          local.get 31
+          intrinsic builder.append_str
+          local.get 28
+          ref.cast 1
+          local.set 32
+          local.get 30
+          local.get 32
+          intrinsic builder.append_display
+          local.get 30
+          intrinsic builder.finish
+          call 38
+          return.lit i32.const 0
+        end $L14
+        unreachable
+      end $L12
+      unreachable
+    end $L8
+    unreachable
   end $L0
+  local.get 4
+  type_check 1
+  if $L15 void
+    intrinsic builder.new
+    local.set 1
+    local.get 1
+    string.const 5
+    intrinsic builder.append_str
+    local.get 3
+    ref.cast 1
+    local.set 5
+    local.get 1
+    local.get 5
+    intrinsic builder.append_display
+    local.get 1
+    intrinsic builder.finish
+    call 38
+    string.const 1
+    local.set 2
+    local.get 0
+    local.get 2
+    call 13
+    local.tee 6
+    local.tee 7
+    type_check 0
+    if $L16 void
+      string.const 6
+      call 38
+      string.const 2
+      local.set 11
+      local.get 0
+      local.get 11
+      call 13
+      local.tee 12
+      local.tee 13
+      type_check 0
+      if $L17 void
+        string.const 8
+        call 38
+        intrinsic builder.new
+        local.set 17
+        string.const 10
+        local.set 18
+        local.get 17
+        local.get 18
+        intrinsic builder.append_str
+        string.const 0
+        local.set 19
+        local.get 0
+        local.get 19
+        call 15
+        local.set 20
+        local.get 17
+        local.get 20
+        intrinsic builder.append_display
+        local.get 17
+        intrinsic builder.finish
+        call 38
+        intrinsic builder.new
+        local.set 21
+        string.const 11
+        local.set 22
+        local.get 21
+        local.get 22
+        intrinsic builder.append_str
+        string.const 12
+        local.set 23
+        local.get 0
+        local.get 23
+        call 15
+        local.set 24
+        local.get 21
+        local.get 24
+        intrinsic builder.append_display
+        local.get 21
+        intrinsic builder.finish
+        call 38
+        string.const 0
+        local.set 25
+        i32.const 99
+        local.set 26
+        local.get 0
+        local.get 25
+        local.get 26
+        call 14
+        string.const 0
+        local.set 27
+        local.get 0
+        local.get 27
+        call 13
+        local.tee 28
+        local.tee 29
+        type_check 0
+        if $L18 void
+          string.const 4
+          call 38
+          return.lit i32.const 0
+        end $L18
+        local.get 29
+        type_check 1
+        if $L19 void
+          intrinsic builder.new
+          local.set 30
+          string.const 13
+          local.set 31
+          local.get 30
+          local.get 31
+          intrinsic builder.append_str
+          local.get 28
+          ref.cast 1
+          local.set 32
+          local.get 30
+          local.get 32
+          intrinsic builder.append_display
+          local.get 30
+          intrinsic builder.finish
+          call 38
+          return.lit i32.const 0
+        end $L19
+        unreachable
+      end $L17
+      local.get 13
+      type_check 1
+      if $L20 void
+        intrinsic builder.new
+        local.set 14
+        string.const 9
+        local.set 15
+        local.get 14
+        local.get 15
+        intrinsic builder.append_str
+        local.get 12
+        ref.cast 1
+        local.set 16
+        local.get 14
+        local.get 16
+        intrinsic builder.append_display
+        local.get 14
+        intrinsic builder.finish
+        call 38
+        intrinsic builder.new
+        local.set 17
+        string.const 10
+        local.set 18
+        local.get 17
+        local.get 18
+        intrinsic builder.append_str
+        string.const 0
+        local.set 19
+        local.get 0
+        local.get 19
+        call 15
+        local.set 20
+        local.get 17
+        local.get 20
+        intrinsic builder.append_display
+        local.get 17
+        intrinsic builder.finish
+        call 38
+        intrinsic builder.new
+        local.set 21
+        string.const 11
+        local.set 22
+        local.get 21
+        local.get 22
+        intrinsic builder.append_str
+        string.const 12
+        local.set 23
+        local.get 0
+        local.get 23
+        call 15
+        local.set 24
+        local.get 21
+        local.get 24
+        intrinsic builder.append_display
+        local.get 21
+        intrinsic builder.finish
+        call 38
+        string.const 0
+        local.set 25
+        i32.const 99
+        local.set 26
+        local.get 0
+        local.get 25
+        local.get 26
+        call 14
+        string.const 0
+        local.set 27
+        local.get 0
+        local.get 27
+        call 13
+        local.tee 28
+        local.tee 29
+        type_check 0
+        if $L21 void
+          string.const 4
+          call 38
+          return.lit i32.const 0
+        end $L21
+        local.get 29
+        type_check 1
+        if $L22 void
+          intrinsic builder.new
+          local.set 30
+          string.const 13
+          local.set 31
+          local.get 30
+          local.get 31
+          intrinsic builder.append_str
+          local.get 28
+          ref.cast 1
+          local.set 32
+          local.get 30
+          local.get 32
+          intrinsic builder.append_display
+          local.get 30
+          intrinsic builder.finish
+          call 38
+          return.lit i32.const 0
+        end $L22
+        unreachable
+      end $L20
+      unreachable
+    end $L16
+    local.get 7
+    type_check 1
+    if $L23 void
+      intrinsic builder.new
+      local.set 8
+      string.const 7
+      local.set 9
+      local.get 8
+      local.get 9
+      intrinsic builder.append_str
+      local.get 6
+      ref.cast 1
+      local.set 10
+      local.get 8
+      local.get 10
+      intrinsic builder.append_display
+      local.get 8
+      intrinsic builder.finish
+      call 38
+      string.const 2
+      local.set 11
+      local.get 0
+      local.get 11
+      call 13
+      local.tee 12
+      local.tee 13
+      type_check 0
+      if $L24 void
+        string.const 8
+        call 38
+        intrinsic builder.new
+        local.set 17
+        string.const 10
+        local.set 18
+        local.get 17
+        local.get 18
+        intrinsic builder.append_str
+        string.const 0
+        local.set 19
+        local.get 0
+        local.get 19
+        call 15
+        local.set 20
+        local.get 17
+        local.get 20
+        intrinsic builder.append_display
+        local.get 17
+        intrinsic builder.finish
+        call 38
+        intrinsic builder.new
+        local.set 21
+        string.const 11
+        local.set 22
+        local.get 21
+        local.get 22
+        intrinsic builder.append_str
+        string.const 12
+        local.set 23
+        local.get 0
+        local.get 23
+        call 15
+        local.set 24
+        local.get 21
+        local.get 24
+        intrinsic builder.append_display
+        local.get 21
+        intrinsic builder.finish
+        call 38
+        string.const 0
+        local.set 25
+        i32.const 99
+        local.set 26
+        local.get 0
+        local.get 25
+        local.get 26
+        call 14
+        string.const 0
+        local.set 27
+        local.get 0
+        local.get 27
+        call 13
+        local.tee 28
+        local.tee 29
+        type_check 0
+        if $L25 void
+          string.const 4
+          call 38
+          return.lit i32.const 0
+        end $L25
+        local.get 29
+        type_check 1
+        if $L26 void
+          intrinsic builder.new
+          local.set 30
+          string.const 13
+          local.set 31
+          local.get 30
+          local.get 31
+          intrinsic builder.append_str
+          local.get 28
+          ref.cast 1
+          local.set 32
+          local.get 30
+          local.get 32
+          intrinsic builder.append_display
+          local.get 30
+          intrinsic builder.finish
+          call 38
+          return.lit i32.const 0
+        end $L26
+        unreachable
+      end $L24
+      local.get 13
+      type_check 1
+      if $L27 void
+        intrinsic builder.new
+        local.set 14
+        string.const 9
+        local.set 15
+        local.get 14
+        local.get 15
+        intrinsic builder.append_str
+        local.get 12
+        ref.cast 1
+        local.set 16
+        local.get 14
+        local.get 16
+        intrinsic builder.append_display
+        local.get 14
+        intrinsic builder.finish
+        call 38
+        intrinsic builder.new
+        local.set 17
+        string.const 10
+        local.set 18
+        local.get 17
+        local.get 18
+        intrinsic builder.append_str
+        string.const 0
+        local.set 19
+        local.get 0
+        local.get 19
+        call 15
+        local.set 20
+        local.get 17
+        local.get 20
+        intrinsic builder.append_display
+        local.get 17
+        intrinsic builder.finish
+        call 38
+        intrinsic builder.new
+        local.set 21
+        string.const 11
+        local.set 22
+        local.get 21
+        local.get 22
+        intrinsic builder.append_str
+        string.const 12
+        local.set 23
+        local.get 0
+        local.get 23
+        call 15
+        local.set 24
+        local.get 21
+        local.get 24
+        intrinsic builder.append_display
+        local.get 21
+        intrinsic builder.finish
+        call 38
+        string.const 0
+        local.set 25
+        i32.const 99
+        local.set 26
+        local.get 0
+        local.get 25
+        local.get 26
+        call 14
+        string.const 0
+        local.set 27
+        local.get 0
+        local.get 27
+        call 13
+        local.tee 28
+        local.tee 29
+        type_check 0
+        if $L28 void
+          string.const 4
+          call 38
+          return.lit i32.const 0
+        end $L28
+        local.get 29
+        type_check 1
+        if $L29 void
+          intrinsic builder.new
+          local.set 30
+          string.const 13
+          local.set 31
+          local.get 30
+          local.get 31
+          intrinsic builder.append_str
+          local.get 28
+          ref.cast 1
+          local.set 32
+          local.get 30
+          local.get 32
+          intrinsic builder.append_display
+          local.get 30
+          intrinsic builder.finish
+          call 38
+          return.lit i32.const 0
+        end $L29
+        unreachable
+      end $L27
+      unreachable
+    end $L23
+    unreachable
+  end $L15
+  unreachable
 end
 
-fn 1 std_collections$bucket_index (u64) -> i32
+fn 1 std_core$i8$Hash$hash (i8) -> u64
+  local.get 0
+  i8.to_u64
+  return
+end
+
+fn 2 std_core$i16$Hash$hash (i16) -> u64
+  local.get 0
+  i16.to_u64
+  return
+end
+
+fn 3 std_core$i32$Hash$hash (i32) -> u64
+  local.get 0
+  i32.to_u64
+  return
+end
+
+fn 4 std_core$i64$Hash$hash (i64) -> u64
+  local.get 0
+  i64.to_u64
+  return
+end
+
+fn 5 std_core$isize$Hash$hash (isize) -> u64
+  local.get 0
+  isize.to_u64
+  return
+end
+
+fn 6 std_core$u8$Hash$hash (u8) -> u64
+  local.get 0
+  u8.to_u64
+  return
+end
+
+fn 7 std_core$u16$Hash$hash (u16) -> u64
+  local.get 0
+  u16.to_u64
+  return
+end
+
+fn 8 std_core$u32$Hash$hash (u32) -> u64
+  local.get 0
+  u32.to_u64
+  return
+end
+
+fn 9 std_core$u64$Hash$hash (u64) -> u64
+  local.get 0
+  return
+end
+
+fn 10 std_core$usize$Hash$hash (usize) -> u64
+  local.get 0
+  usize.to_u64
+  return
+end
+
+fn 11 std_core$char$Hash$hash (char) -> u64
+  local.get 0
+  char.to_u64
+  return
+end
+
+fn 12 std_collections$bucket_index (u64) -> i32
   local $cast_3 u64
   i64.const 16
   usize.to_u64
@@ -1036,34 +1075,33 @@ fn 1 std_collections$bucket_index (u64) -> i32
   return
 end
 
-fn 2 std_collections$MutableMap$Index$at__string__i32 (ref,string) -> ref
+fn 13 std_collections$MutableMap$Index$at__Any__Any (ref,ref) -> ref
   local.get 0
   local.get 1
-  call 7
+  call 18
   return
 end
 
-fn 3 std_collections$MutableMap$IndexSet$set_at__string__i32 (ref,string,i32) -> void
+fn 14 std_collections$MutableMap$IndexSet$set_at__Any__Any (ref,ref,ref) -> void
   local.get 0
   local.get 1
   local.get 2
-  call 6
+  call 17
   return
 end
 
-fn 4 std_collections$MutableMap$Contains$contains__string__i32 (ref,string) -> bool
+fn 15 std_collections$MutableMap$Contains$contains__Any__Any (ref,ref) -> bool
   local.get 0
   local.get 1
-  call 8
+  call 19
   return
 end
 
-fn 5 std_collections$std_collections$ensure_buckets__string__i32 (ref) -> void
+fn 16 std_collections$std_collections$ensure_buckets__Any__Any (ref) -> void
   local $len_2 usize
   local $field_10 ref
   local $k_11 null
-  local.get 0
-  struct.get 7 0
+  local.field 0 17 0
   array.len
   local.set 1
   local.get 1
@@ -1080,8 +1118,7 @@ fn 5 std_collections$std_collections$ensure_buckets__string__i32 (ref) -> void
         i64.to_usize
         usize.lt
         if $L3 void
-          local.get 0
-          struct.get 7 0
+          local.field 0 17 0
           local.set 2
           null.const
           local.set 3
@@ -1103,23 +1140,23 @@ fn 5 std_collections$std_collections$ensure_buckets__string__i32 (ref) -> void
   return
 end
 
-fn 6 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
+fn 17 std_collections$std_collections$put__Any__Any (ref,ref,ref) -> void
   local idx i32
   local cur ref
   local done bool
   local found bool
   local __scrut_0 ref
+  local $field_20 ref
   local $field_32 usize
   local.get 0
-  call 5
+  call 16
   local.get 1
-  call.import 1
-  call 1
+  virtual.call 1 Hash.hash
+  call 12
   local.set 3
-  local.get 0
-  struct.get 7 0
+  local.field 0 17 0
   local.get 3
-  array.get 11
+  array.get 23
   local.set 4
   bool.const false
   local.set 5
@@ -1137,32 +1174,32 @@ fn 6 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
           bool.const true
           local.set 5
           br $L1
-        else
-          local.get 7
-          type_check 9
-          if $L4 void
-            local.get 4
-            struct.get 9 0
-            local.get 1
-            string.eq
-            if $L5 void
-              local.get 4
-              local.get 2
-              struct.set 9 1
-              bool.const true
-              local.set 6
-              bool.const true
-              local.set 5
-            else
-              local.get 4
-              struct.get 9 2
-              local.set 4
-            end $L5
-            br $L1
-          else
-            unreachable
-          end $L4
         end $L3
+        local.get 7
+        type_check 20
+        if $L4 void
+          local.get 4
+          struct.get 20 0
+          local.set 8
+          local.get 1
+          local.get 8
+          virtual.call 2 Equals.equals
+          if $L5 void
+            local.get 4
+            local.get 2
+            struct.set 20 1
+            bool.const true
+            local.set 6
+            bool.const true
+            local.set 5
+          else
+            local.get 4
+            struct.get 20 2
+            local.set 4
+          end $L5
+          br $L1
+        end $L4
+        unreachable
       else
       end $L2
     end $L1
@@ -1170,46 +1207,43 @@ fn 6 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local.get 6
   if $L6 void
     return
-  else
-    local.get 0
-    struct.get 7 0
-    local.get 3
-    array.get 11
-    local.set 4
-    local.get 1
-    local.get 2
-    local.get 4
-    struct.new 9
-    local.set 4
-    local.get 0
-    struct.get 7 0
-    local.get 3
-    local.get 4
-    array.set 11
-    local.get 0
-    struct.get 7 1
-    local.set 8
-    local.get 8
-    i64.const 1
-    i64.to_usize
-    usize.add
-    local.set 8
-    local.get 0
-    local.get 8
-    struct.set 7 1
-    return
   end $L6
+  local.field 0 17 0
+  local.get 3
+  array.get 23
+  local.set 4
+  local.get 1
+  local.get 2
+  local.get 4
+  struct.new 20
+  local.set 4
+  local.field 0 17 0
+  local.get 3
+  local.get 4
+  array.set 23
+  local.field 0 17 1
+  ref.cast 10
+  local.set 9
+  local.get 9
+  i64.const 1
+  i64.to_usize
+  usize.add
+  local.set 9
+  local.get 0
+  local.get 9
+  struct.set 17 1
+  return
 end
 
-fn 7 std_collections$std_collections$get__string__i32 (ref,string) -> ref
+fn 18 std_collections$std_collections$get__Any__Any (ref,ref) -> ref
   local $len_3 usize
   local idx i32
   local cur ref
   local result ref
   local done bool
   local __scrut_0 ref
-  local.get 0
-  struct.get 7 0
+  local $field_24 ref
+  local.field 0 17 0
   array.len
   local.set 2
   local.get 2
@@ -1217,76 +1251,73 @@ fn 7 std_collections$std_collections$get__string__i32 (ref,string) -> ref
   i64.to_usize
   usize.eq
   if $L0 void
-    null.const
-    return
-  else
-    local.get 1
-    call.import 1
-    call 1
-    local.set 3
-    local.get 0
-    struct.get 7 0
-    local.get 3
-    array.get 11
-    local.set 4
-    null.const
-    local.set 5
-    bool.const false
-    local.set 6
-    block $L1 void
-      loop $L2 void
-        local.get 6
-        bool.not
-        if $L3 void
+    return.lit null.const
+  end $L0
+  local.get 1
+  virtual.call 1 Hash.hash
+  call 12
+  local.set 3
+  local.field 0 17 0
+  local.get 3
+  array.get 23
+  local.set 4
+  null.const
+  local.set 5
+  bool.const false
+  local.set 6
+  block $L1 void
+    loop $L2 void
+      local.get 6
+      bool.not
+      if $L3 void
+        local.get 4
+        local.tee 7
+        type_check 0
+        if $L4 void
+          bool.const true
+          local.set 6
+          br $L2
+        end $L4
+        local.get 7
+        type_check 20
+        if $L5 void
           local.get 4
-          local.tee 7
-          type_check 0
-          if $L4 void
+          struct.get 20 0
+          local.set 8
+          local.get 1
+          local.get 8
+          virtual.call 2 Equals.equals
+          if $L6 void
+            local.get 4
+            struct.get 20 1
+            local.set 5
             bool.const true
             local.set 6
-            br $L2
           else
-            local.get 7
-            type_check 9
-            if $L5 void
-              local.get 4
-              struct.get 9 0
-              local.get 1
-              string.eq
-              if $L6 void
-                local.get 4
-                struct.get 9 1
-                local.set 5
-                bool.const true
-                local.set 6
-              else
-                local.get 4
-                struct.get 9 2
-                local.set 4
-              end $L6
-              br $L2
-            else
-              unreachable
-            end $L5
-          end $L4
-        else
-        end $L3
-      end $L2
-    end $L1
-    local.get 5
-    return
-  end $L0
+            local.get 4
+            struct.get 20 2
+            local.set 4
+          end $L6
+          br $L2
+        end $L5
+        unreachable
+      else
+      end $L3
+    end $L2
+  end $L1
+  local.get 5
+  return
 end
 
-fn 8 std_collections$std_collections$contains_key__string__i32 (ref,string) -> bool
+fn 19 std_collections$std_collections$contains_key__Any__Any (ref,ref) -> bool
   local $len_3 usize
   local idx i32
   local cur ref
   local found bool
   local done bool
   local __scrut_0 ref
-  local.get 0
-  struct.get 7 0
+  local $field_24 ref
+  local.field 0 17 0
   array.len
   local.set 2
   local.get 2
@@ -1294,68 +1325,188 @@ fn 8 std_collections$std_collections$contains_key__string__i32 (ref,string) -> b
   i64.to_usize
   usize.eq
   if $L0 void
-    bool.const false
-    return
-  else
-    local.get 1
-    call.import 1
-    call 1
-    local.set 3
-    local.get 0
-    struct.get 7 0
-    local.get 3
-    array.get 11
-    local.set 4
-    bool.const false
-    local.set 5
-    bool.const false
-    local.set 6
-    block $L1 void
-      loop $L2 void
-        local.get 6
-        bool.not
-        if $L3 void
+    return.lit bool.const false
+  end $L0
+  local.get 1
+  virtual.call 1 Hash.hash
+  call 12
+  local.set 3
+  local.field 0 17 0
+  local.get 3
+  array.get 23
+  local.set 4
+  bool.const false
+  local.set 5
+  bool.const false
+  local.set 6
+  block $L1 void
+    loop $L2 void
+      local.get 6
+      bool.not
+      if $L3 void
+        local.get 4
+        local.tee 7
+        type_check 0
+        if $L4 void
+          bool.const true
+          local.set 6
+          br $L2
+        end $L4
+        local.get 7
+        type_check 20
+        if $L5 void
           local.get 4
-          local.tee 7
-          type_check 0
-          if $L4 void
+          struct.get 20 0
+          local.set 8
+          local.get 1
+          local.get 8
+          virtual.call 2 Equals.equals
+          if $L6 void
+            bool.const true
+            local.set 5
             bool.const true
             local.set 6
-            br $L2
           else
-            local.get 7
-            type_check 9
-            if $L5 void
-              local.get 4
-              struct.get 9 0
-              local.get 1
-              string.eq
-              if $L6 void
-                bool.const true
-                local.set 5
-                bool.const true
-                local.set 6
-              else
-                local.get 4
-                struct.get 9 2
-                local.set 4
-              end $L6
-              br $L2
-            else
-              unreachable
-            end $L5
-          end $L4
-        else
-        end $L3
-      end $L2
-    end $L1
-    local.get 5
-    return
-  end $L0
+            local.get 4
+            struct.get 20 2
+            local.set 4
+          end $L6
+          br $L2
+        end $L5
+        unreachable
+      else
+      end $L3
+    end $L2
+  end $L1
+  local.get 5
+  return
 end
 
-fn 9 std_collections$std_collections$len__string__i32 (ref) -> usize
+fn 20 std_collections$std_collections$len__string__i32 (ref) -> usize
+  local.field 0 17 1
+  ref.cast 10
+  return
+end
+
+fn 21 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
-  struct.get 7 1
+  call.import 0
+  return
+end
+
+fn 22 std_core$i8$Equals$equals$vt (i8,i8) -> bool
+  local.get 0
+  local.get 1
+  i8.eq
+  return
+end
+
+fn 23 std_core$i16$Equals$equals$vt (i16,i16) -> bool
+  local.get 0
+  local.get 1
+  i16.eq
+  return
+end
+
+fn 24 std_core$i32$Equals$equals$vt (i32,i32) -> bool
+  local.get 0
+  local.get 1
+  i32.eq
+  return
+end
+
+fn 25 std_core$i64$Equals$equals$vt (i64,i64) -> bool
+  local.get 0
+  local.get 1
+  i64.eq
+  return
+end
+
+fn 26 std_core$isize$Equals$equals$vt (isize,isize) -> bool
+  local.get 0
+  local.get 1
+  isize.eq
+  return
+end
+
+fn 27 std_core$u8$Equals$equals$vt (u8,u8) -> bool
+  local.get 0
+  local.get 1
+  u8.eq
+  return
+end
+
+fn 28 std_core$u16$Equals$equals$vt (u16,u16) -> bool
+  local.get 0
+  local.get 1
+  u16.eq
+  return
+end
+
+fn 29 std_core$u32$Equals$equals$vt (u32,u32) -> bool
+  local.get 0
+  local.get 1
+  u32.eq
+  return
+end
+
+fn 30 std_core$u64$Equals$equals$vt (u64,u64) -> bool
+  local.get 0
+  local.get 1
+  u64.eq
+  return
+end
+
+fn 31 std_core$usize$Equals$equals$vt (usize,usize) -> bool
+  local.get 0
+  local.get 1
+  usize.eq
+  return
+end
+
+fn 32 std_core$f32$Equals$equals$vt (f32,f32) -> bool
+  local.get 0
+  local.get 1
+  f32.eq
+  return
+end
+
+fn 33 std_core$f64$Equals$equals$vt (f64,f64) -> bool
+  local.get 0
+  local.get 1
+  f64.eq
+  return
+end
+
+fn 34 std_core$bool$Equals$equals$vt (bool,bool) -> bool
+  local.get 0
+  local.get 1
+  bool.eq
+  return
+end
+
+fn 35 std_core$char$Equals$equals$vt (char,char) -> bool
+  local.get 0
+  local.get 1
+  char.eq
+  return
+end
+
+fn 36 std_core$string$Equals$equals$vt (string,string) -> bool
+  local.get 0
+  local.get 1
+  string.eq
+  return
+end
+
+fn 37 std_core$string$Hash$hash$vt (string) -> u64
+  local.get 0
+  call.import 1
+  return
+end
+
+fn 38 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 2
   return
 end

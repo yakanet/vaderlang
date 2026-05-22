@@ -19,8 +19,8 @@ fn 0 tests_snippets_match_struct_pattern_binding__main_vader$main () -> i32
   local.tee 0
   type_check 2
   if $L0 void
-    local.get 0
-    struct.get 2 1
+    local.field 0 2 1
+    ref.cast 3
     local.set 1
     intrinsic builder.new
     local.set 2
@@ -32,11 +32,16 @@ fn 0 tests_snippets_match_struct_pattern_binding__main_vader$main () -> i32
     intrinsic builder.append_display
     local.get 2
     intrinsic builder.finish
-    call.import 0
+    call 1
   else
     string.const 2
-    call.import 0
+    call 1
   end $L0
-  i32.const 0
+  return.lit i32.const 0
+end
+
+fn 1 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
   return
 end

@@ -1019,6 +1019,8 @@ parse_op_line :: fn(cleaned: string, head: string) -> op.Op | null {
     if head == "struct.new_stack" { return parse_struct_new_after(cleaned, "struct.new_stack ") }
     if head == "struct.new"       { return parse_struct_new_after(cleaned, "struct.new ") }
     if head == "struct.get"       { return parse_struct_get(cleaned) }
+    if head == "local.field"      { return parse_local_field(cleaned) }
+    if head == "return.lit"       { return parse_return_lit(cleaned) }
     if head == "struct.set_stack" { return parse_struct_set_after(cleaned, "struct.set_stack ") }
     if head == "struct.set"       { return parse_struct_set_after(cleaned, "struct.set ") }
     if head == "array.new"        { return parse_array_new(cleaned) }
@@ -1488,6 +1490,50 @@ parse_struct_get :: fn(line: string) -> op.Op | null {
     if pair is null { return null }
     [tid, fi] :: pair
     return op.StructGet { .type_id = tid, .field_index = fi }
+}
+
+/// Parse `local.field SLOT TYPE FIELD` — three whitespace-separated
+/// non-negative integers after the `local.field ` prefix.
+///
+/// @param line  full line, leading whitespace already stripped.
+/// @return      a `LocalField` op on success, `null` on any parse error
+///              (missing space, non-integer token, …).
+parse_local_field :: fn(line: string) -> op.Op | null {
+    rest :: line.slice("local.field ".byte_len(), line.byte_len()).trim()
+    s1 :: rest.index_of(' ', 0)
+    if s1 < 0 { return null }
+    s2 :: rest.index_of(' ', usize(s1) + 1)
+    if s2 < 0 { return null }
+    slot_str :: rest.slice(0, usize(s1)).trim()
+    type_str :: rest.slice(usize(s1) + 1, usize(s2)).trim()
+    field_str :: rest.slice(usize(s2) + 1, rest.byte_len()).trim()
+    slot :: parse_int_in_base(slot_str, 10)
+    if slot is Error { return null }
+    tid :: parse_int_in_base(type_str, 10)
+    if tid is Error { return null }
+    fi :: parse_int_in_base(field_str, 10)
+    if fi is Error { return null }
+    return op.LocalField { .slot = i32(slot), .type_id = i32(tid), .field_index = i32(fi) }
+}
+
+/// Parse `return.lit <inner-const-op>` — the inner literal is parsed
+/// recursively through `parse_op_line`, then validated to be a const
+/// variant. Examples: `return.lit i32.const 42`, `return.lit bool.const true`,
+/// `return.lit string.const 0`, `return.lit null.const`.
+///
+/// @param line  full line, leading whitespace already stripped.
+/// @return      a `ReturnLit` op on success, `null` when the inner op
+///              isn't a recognised const-producing op.
+parse_return_lit :: fn(line: string) -> op.Op | null {
+    inner_raw :: line.slice("return.lit ".byte_len(), line.byte_len()).trim()
+    space :: inner_raw.index_of(' ', 0)
+    inner_head: string = ""
+    if space < 0 { inner_head = inner_raw } else { inner_head = inner_raw.slice(0, usize(space)) }
+    inner_op :: parse_op_line(inner_raw, inner_head)
+    if inner_op is null { return null }
+    const_inner :: op.const_op_of(inner_op)
+    if const_inner is null { return null }
+    return op.ReturnLit { .value = const_inner }
 }
 
 parse_struct_set_after :: fn(line: string, prefix: string) -> op.Op | null {

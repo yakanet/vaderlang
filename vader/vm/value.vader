@@ -169,6 +169,28 @@ export read_struct :: fn(v: op.Value, at_pc: i32, label: string) -> op.StructVal
     return Trap { .message = "${label} at pc=${at_pc}: expected struct, got ${describe_value_tag(v)}" }
 }
 
+/// Unwrap `v` as a struct then read its `field_index`-th field. Combines
+/// the struct-tag check and the bounds check used by every field-read op
+/// (`struct.get`, `local.field`).
+///
+/// @param v            the candidate `op.Value` (typically off the stack
+///                     or out of `frame.slots`).
+/// @param field_index  index into `StructVal.fields`. Must be `>= 0` and
+///                     `<` the unwrapped struct's field count.
+/// @param at_pc        pc of the op (recorded in the Trap message).
+/// @param label        short label used as the Trap-message prefix
+///                     (e.g. `"struct.get"`, `"local.field"`).
+/// @return             the requested field value on success, or a `Trap`.
+/// @error              `v` isn't a struct, or `field_index` is out of range.
+export read_struct_field :: fn(v: op.Value, field_index: i32, at_pc: i32, label: string) -> op.Value | Trap {
+    struct_unwrap :: read_struct(v, at_pc, "${label} receiver")
+    if struct_unwrap is Trap { return struct_unwrap }
+    if field_index < 0 || usize(field_index) >= struct_unwrap.fields.len() {
+        return Trap { .message = "${label} field ${field_index} out of range (struct has ${struct_unwrap.fields.len()} fields) at pc=${at_pc}" }
+    }
+    return struct_unwrap.fields[usize(field_index)]
+}
+
 /// Unwrap an `op.ArrayVal` from a `op.Value`. Used by the array-op arms
 /// (`array.push` / `array.get` / `array.set` / `array.len`).
 export read_array :: fn(v: op.Value, at_pc: i32, label: string) -> op.ArrayVal | Trap {

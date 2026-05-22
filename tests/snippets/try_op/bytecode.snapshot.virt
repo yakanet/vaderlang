@@ -14,17 +14,16 @@ import 1 read_file std_io$read_file (string) -> ref
 fn 0 tests_snippets_try_op__main_vader$read_or_default (string) -> ref
   local __try_0 ref
   local.get 0
-  call.import 1
+  call 4
   local.tee 1
   type_check 3
   if $L0 void
     local.get 1
     return
-  else
-    local.get 1
-    ref.cast 1
-    return
   end $L0
+  local.get 1
+  ref.cast 1
+  return
 end
 
 fn 1 tests_snippets_try_op__main_vader$show (ref) -> void
@@ -35,19 +34,17 @@ fn 1 tests_snippets_try_op__main_vader$show (ref) -> void
   if $L0 void
     local.get 0
     ref.cast 1
-    call.import 0
+    call 3
     return
-  else
-    local.get 1
-    type_check 3
-    if $L1 void
-      string.const 0
-      call.import 0
-      return
-    else
-      unreachable
-    end $L1
   end $L0
+  local.get 1
+  type_check 3
+  if $L1 void
+    string.const 0
+    call 3
+    return
+  end $L1
+  unreachable
 end
 
 fn 2 tests_snippets_try_op__main_vader$main () -> i32
@@ -57,6 +54,17 @@ fn 2 tests_snippets_try_op__main_vader$main () -> i32
   string.const 2
   call 0
   call 1
-  i32.const 0
+  return.lit i32.const 0
+end
+
+fn 3 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
+  return
+end
+
+fn 4 std_io$read_file$vt (string) -> ref
+  local.get 0
+  call.import 1
   return
 end

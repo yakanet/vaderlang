@@ -62,7 +62,7 @@ fn 3 tests_snippets_lambda_no_fn__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call.import 0
+  call 10
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -80,7 +80,7 @@ fn 3 tests_snippets_lambda_no_fn__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call.import 0
+  call 10
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -98,7 +98,7 @@ fn 3 tests_snippets_lambda_no_fn__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call.import 0
+  call 10
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -117,7 +117,7 @@ fn 3 tests_snippets_lambda_no_fn__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call.import 0
+  call 10
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -132,7 +132,7 @@ fn 3 tests_snippets_lambda_no_fn__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call.import 0
+  call 10
   struct.new 10
   make_closure 9 1
   local.set 1
@@ -150,9 +150,8 @@ fn 3 tests_snippets_lambda_no_fn__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call.import 0
-  i32.const 0
-  return
+  call 10
+  return.lit i32.const 0
 end
 
 fn 4 __lambda_2 (ref,i32) -> i32
@@ -184,8 +183,7 @@ fn 7 __lambda_14 (ref,i32,i32) -> i32
 end
 
 fn 8 __lambda_18 (ref) -> i32
-  i32.const 42
-  return
+  return.lit i32.const 42
 end
 
 fn 9 __lambda_21 (ref,i32) -> i32
@@ -197,5 +195,11 @@ fn 9 __lambda_21 (ref,i32) -> i32
   local.get 2
   i32.const 1
   i32.add
+  return
+end
+
+fn 10 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
   return
 end

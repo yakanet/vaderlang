@@ -1,3 +1,29 @@
 # Comptime
 
+## stdlib/std/core.vader
+
 ## tests/snippets/strings/_main.vader
+  @comptime  escaped              = "a
+b	c"
+  @comptime  multi                = "line one
+line two
+"
+  @comptime  plain                = "hello"
+  @comptime  raw                  = "C:\Users\path"
+
+## generic instances
+  Index(I, T)
+  IndexSet(I, T)
+  Contains(T)
+  Iterator(T)
+  Iterator(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  Into(Target)

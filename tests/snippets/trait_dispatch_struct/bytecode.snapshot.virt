@@ -1,6 +1,7 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
+type 2 ref _
 
 fn 0 tests_snippets_trait_dispatch_struct__main_vader$i32$Tagger$tag (i32) -> i32
   local.get 0
@@ -15,14 +16,14 @@ fn 1 tests_snippets_trait_dispatch_struct__main_vader$main () -> i32
   return
 end
 
-fn 2 tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32 (i32) -> i32
-  local $call_1 i32
-  local $call_2 i32
+fn 2 tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32 (ref) -> i32
+  local $vcall_1 i32
+  local $vcall_2 i32
   local.get 0
-  call 0
+  virtual.call 1 Tagger.tag
   local.set 1
   local.get 0
-  call 0
+  virtual.call 1 Tagger.tag
   local.set 2
   local.get 1
   local.get 2

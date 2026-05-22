@@ -25,15 +25,15 @@ fn 0 tests_snippets_intrinsic_field_access__main_vader$derive_print (ref) -> voi
   local.get 1
   string.const 1
   intrinsic builder.append_str
-  local.get 0
-  struct.get 1 0
+  local.field 0 1 0
+  ref.cast 4
   local.set 2
   local.get 1
   local.get 2
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call.import 0
+  call 2
   intrinsic builder.new
   local.set 1
   local.get 1
@@ -42,15 +42,15 @@ fn 0 tests_snippets_intrinsic_field_access__main_vader$derive_print (ref) -> voi
   local.get 1
   string.const 1
   intrinsic builder.append_str
-  local.get 0
-  struct.get 1 1
+  local.field 0 1 1
+  ref.cast 3
   local.set 3
   local.get 1
   local.get 3
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call.import 0
+  call 2
   return
 end
 
@@ -68,8 +68,8 @@ fn 1 tests_snippets_intrinsic_field_access__main_vader$main () -> i32
   local.get 1
   string.const 4
   intrinsic builder.append_str
-  local.get 0
-  struct.get 1 0
+  local.field 0 1 0
+  ref.cast 4
   local.set 2
   local.get 1
   local.get 2
@@ -77,8 +77,8 @@ fn 1 tests_snippets_intrinsic_field_access__main_vader$main () -> i32
   local.get 1
   string.const 5
   intrinsic builder.append_str
-  local.get 0
-  struct.get 1 1
+  local.field 0 1 1
+  ref.cast 3
   local.set 3
   local.get 1
   local.get 3
@@ -88,9 +88,14 @@ fn 1 tests_snippets_intrinsic_field_access__main_vader$main () -> i32
   intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
-  call.import 0
+  call 2
   local.get 0
   call 0
-  i32.const 0
+  return.lit i32.const 0
+end
+
+fn 2 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
   return
 end

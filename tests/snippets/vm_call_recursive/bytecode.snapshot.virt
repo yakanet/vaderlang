@@ -8,19 +8,17 @@ fn 0 tests_snippets_vm_call_recursive__main_vader$factorial (i32) -> i32
   i32.const 1
   i32.le
   if $L0 void
-    i32.const 1
-    return
-  else
-    local.get 0
-    i32.const 1
-    i32.sub
-    call 0
-    local.set 1
-    local.get 0
-    local.get 1
-    i32.mul
-    return
+    return.lit i32.const 1
   end $L0
+  local.get 0
+  i32.const 1
+  i32.sub
+  call 0
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.mul
+  return
 end
 
 fn 1 tests_snippets_vm_call_recursive__main_vader$main () -> i32

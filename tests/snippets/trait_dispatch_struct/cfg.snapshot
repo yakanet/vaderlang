@@ -21,14 +21,14 @@ fn tests_snippets_trait_dispatch_struct__main_vader$main() -> i32
     %1 = call apply_tag(%0) :i32
     return %1
 
-fn tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32(%0: i32) -> i32
+fn tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32(%0: Any) -> i32
   locals:
-    %0 x: i32 (param x)
-    %1 $call_1: i32
-    %2 $call_2: i32
+    %0 x: Any (param x)
+    %1 $vcall_1: i32
+    %2 $vcall_2: i32
     %3 $add_3: i32
   bb0:
-    %1 = call tag(%0) :i32
-    %2 = call tag(%0) :i32
+    %1 = vcall Tagger.tag(recv=%0) :i32
+    %2 = vcall Tagger.tag(recv=%0) :i32
     %3 = binop add %1 %2 :i32
     return %3

@@ -9,6 +9,7 @@ fn 0 tests_snippets_coerce_into_chain_no__main_vader$main () -> i32
   i32.const 1
   struct.new_stack 2
   struct.get 3 0
+  ref.cast 1
   return
 end
 

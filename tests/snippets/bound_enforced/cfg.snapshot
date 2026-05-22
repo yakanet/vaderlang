@@ -19,16 +19,16 @@ fn tests_snippets_bound_enforced__main_vader$main() -> i32
     %3 = const int(1) :i32
     return %3
 
-fn tests_snippets_bound_enforced__main_vader$tests_snippets_bound_enforced__main_vader$needs_hash__string(%0: string) -> bool
+fn tests_snippets_bound_enforced__main_vader$tests_snippets_bound_enforced__main_vader$needs_hash__string(%0: Any) -> bool
   locals:
-    %0 x: string (param x)
-    %1 $call_1: u64
+    %0 x: Any (param x)
+    %1 $vcall_1: u64
     %2 h: u64 (local h)
     %3 $k_3: u64
     %4 $cast_4: u64
     %5 $gt_5: bool
   bb0:
-    %1 = call hash(%0) :u64
+    %1 = vcall Hash.hash(recv=%0) :u64
     %2 = move %1
     %3 = const int(0) :u64
     %4 = cast %3 :u64

@@ -31,16 +31,17 @@ fn 1 tests_snippets_tuple_destructure_nested__main_vader$main () -> i32
   local active bool
   local __sb_1 any
   call 0
-  local.tee 0
-  struct.get 1 0
+  local.set 0
+  local.field 0 1 0
   struct.get 2 0
+  ref.cast 3
   local.set 1
-  local.get 0
-  struct.get 1 0
+  local.field 0 1 0
   struct.get 2 1
+  ref.cast 4
   local.set 2
-  local.get 0
-  struct.get 1 1
+  local.field 0 1 1
+  ref.cast 5
   local.set 3
   intrinsic builder.new
   local.set 4
@@ -52,7 +53,7 @@ fn 1 tests_snippets_tuple_destructure_nested__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 4
   intrinsic builder.finish
-  call.import 0
+  call 2
   intrinsic builder.new
   local.set 4
   local.get 4
@@ -63,7 +64,7 @@ fn 1 tests_snippets_tuple_destructure_nested__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 4
   intrinsic builder.finish
-  call.import 0
+  call 2
   intrinsic builder.new
   local.set 4
   local.get 4
@@ -74,7 +75,12 @@ fn 1 tests_snippets_tuple_destructure_nested__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 4
   intrinsic builder.finish
+  call 2
+  return.lit i32.const 0
+end
+
+fn 2 std_io$println$vt (string) -> void
+  local.get 0
   call.import 0
-  i32.const 0
   return
 end

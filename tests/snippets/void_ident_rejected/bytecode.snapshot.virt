@@ -13,13 +13,18 @@ fn 0 tests_snippets_void_ident_rejected__main_vader$mk () -> void
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call.import 0
+  call 2
   return
 end
 
 fn 1 tests_snippets_void_ident_rejected__main_vader$main () -> i32
   call 0
-  i32.const 0
+  return.lit i32.const 0
+end
+
+fn 2 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
   return
 end
 

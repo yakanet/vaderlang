@@ -7,10 +7,7 @@ fn 0 tests_snippets_vm_if__main_vader$main () -> i32
   i32.const 3
   i32.gt
   if $L0 void
-    i32.const 1
-    return
-  else
-    i32.const 0
-    return
+    return.lit i32.const 1
   end $L0
+  return.lit i32.const 0
 end

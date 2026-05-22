@@ -21,20 +21,15 @@ fn 0 tests_snippets_null_blockres__main_vader$pick (bool) -> ref
     null.const
     local.set 1
   end $L0
-  local.get 1
-  local.set 1
   null.const
   local.set 2
   local.get 1
   local.get 2
   ref.eq
   if $L1 void
-    string.const 0
-    return
-  else
-    null.const
-    return
+    return.lit string.const 0
   end $L1
+  return.lit null.const
 end
 
 fn 1 tests_snippets_null_blockres__main_vader$main () -> i32
@@ -45,19 +40,21 @@ fn 1 tests_snippets_null_blockres__main_vader$main () -> i32
   type_check 3
   if $L0 void
     string.const 1
-    call.import 0
-    i32.const 0
-    return
-  else
-    local.get 0
-    type_check 0
-    if $L1 void
-      string.const 2
-      call.import 0
-      i32.const 0
-      return
-    else
-      unreachable
-    end $L1
+    call 2
+    return.lit i32.const 0
   end $L0
+  local.get 0
+  type_check 0
+  if $L1 void
+    string.const 2
+    call 2
+    return.lit i32.const 0
+  end $L1
+  unreachable
+end
+
+fn 2 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
+  return
 end

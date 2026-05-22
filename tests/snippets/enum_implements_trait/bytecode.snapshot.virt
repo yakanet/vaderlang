@@ -10,54 +10,52 @@ string 3 "W"
 import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_enum_implements_trait__main_vader$Direction$Display$to_string (i32) -> string
-  local __scrut_0 i32
   local.get 0
-  local.set 1
-  local.get 1
   i32.const 0
   i32.eq
   if $L0 void
     string.const 0
     return
-  else
-    local.get 1
-    i32.const 1
-    i32.eq
-    if $L1 void
-      string.const 1
-      return
-    else
-      local.get 1
-      i32.const 2
-      i32.eq
-      if $L2 void
-        string.const 2
-        return
-      else
-        local.get 1
-        i32.const 3
-        i32.eq
-        if $L3 void
-          string.const 3
-          return
-        else
-          unreachable
-        end $L3
-      end $L2
-    end $L1
   end $L0
+  local.get 0
+  i32.const 1
+  i32.eq
+  if $L1 void
+    string.const 1
+    return
+  end $L1
+  local.get 0
+  i32.const 2
+  i32.eq
+  if $L2 void
+    string.const 2
+    return
+  end $L2
+  local.get 0
+  i32.const 3
+  i32.eq
+  if $L3 void
+    string.const 3
+    return
+  end $L3
+  unreachable
 end
 
 fn 1 tests_snippets_enum_implements_trait__main_vader$main () -> i32
   i32.const 0
   call 0
-  call.import 0
+  call 2
   i32.const 1
   call 0
-  call.import 0
+  call 2
   i32.const 2
   call 0
+  call 2
+  return.lit i32.const 0
+end
+
+fn 2 std_io$println$vt (string) -> void
+  local.get 0
   call.import 0
-  i32.const 0
   return
 end

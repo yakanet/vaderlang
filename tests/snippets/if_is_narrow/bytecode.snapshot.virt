@@ -35,21 +35,7 @@ fn 0 tests_snippets_if_is_narrow__main_vader$direct (ref) -> string
     intrinsic builder.append_str
     local.get 0
     struct.get 2 0
-    local.set 2
-    local.get 1
-    local.get 2
-    intrinsic builder.append_display
-    local.get 1
-    intrinsic builder.finish
-    return
-  else
-    intrinsic builder.new
-    local.set 1
-    local.get 1
-    string.const 1
-    intrinsic builder.append_str
-    local.get 0
-    struct.get 3 0
+    ref.cast 4
     local.set 2
     local.get 1
     local.get 2
@@ -58,6 +44,21 @@ fn 0 tests_snippets_if_is_narrow__main_vader$direct (ref) -> string
     intrinsic builder.finish
     return
   end $L0
+  intrinsic builder.new
+  local.set 1
+  local.get 1
+  string.const 1
+  intrinsic builder.append_str
+  local.get 0
+  struct.get 3 0
+  ref.cast 4
+  local.set 2
+  local.get 1
+  local.get 2
+  intrinsic builder.append_display
+  local.get 1
+  intrinsic builder.finish
+  return
 end
 
 fn 1 tests_snippets_if_is_narrow__main_vader$negated (ref) -> string
@@ -74,21 +75,7 @@ fn 1 tests_snippets_if_is_narrow__main_vader$negated (ref) -> string
     intrinsic builder.append_str
     local.get 0
     struct.get 3 0
-    local.set 2
-    local.get 1
-    local.get 2
-    intrinsic builder.append_display
-    local.get 1
-    intrinsic builder.finish
-    return
-  else
-    intrinsic builder.new
-    local.set 1
-    local.get 1
-    string.const 0
-    intrinsic builder.append_str
-    local.get 0
-    struct.get 2 0
+    ref.cast 4
     local.set 2
     local.get 1
     local.get 2
@@ -97,6 +84,21 @@ fn 1 tests_snippets_if_is_narrow__main_vader$negated (ref) -> string
     intrinsic builder.finish
     return
   end $L0
+  intrinsic builder.new
+  local.set 1
+  local.get 1
+  string.const 0
+  intrinsic builder.append_str
+  local.get 0
+  struct.get 2 0
+  ref.cast 4
+  local.set 2
+  local.get 1
+  local.get 2
+  intrinsic builder.append_display
+  local.get 1
+  intrinsic builder.finish
+  return
 end
 
 fn 2 tests_snippets_if_is_narrow__main_vader$cascade (ref) -> string
@@ -113,6 +115,7 @@ fn 2 tests_snippets_if_is_narrow__main_vader$cascade (ref) -> string
     intrinsic builder.append_str
     local.get 0
     struct.get 2 0
+    ref.cast 4
     local.set 2
     local.get 1
     local.get 2
@@ -120,44 +123,44 @@ fn 2 tests_snippets_if_is_narrow__main_vader$cascade (ref) -> string
     local.get 1
     intrinsic builder.finish
     return
-  else
-    local.get 0
-    type_check 3
-    if $L1 void
-      intrinsic builder.new
-      local.set 1
-      local.get 1
-      string.const 1
-      intrinsic builder.append_str
-      local.get 0
-      struct.get 3 0
-      local.set 2
-      local.get 1
-      local.get 2
-      intrinsic builder.append_display
-      local.get 1
-      intrinsic builder.finish
-      return
-    else
-      intrinsic builder.new
-      local.set 1
-      local.get 1
-      string.const 2
-      intrinsic builder.append_str
-      local.get 0
-      struct.get 6 0
-      local.set 3
-      local.get 1
-      local.get 3
-      intrinsic builder.append_display
-      local.get 1
-      string.const 3
-      intrinsic builder.append_str
-      local.get 1
-      intrinsic builder.finish
-      return
-    end $L1
   end $L0
+  local.get 0
+  type_check 3
+  if $L1 void
+    intrinsic builder.new
+    local.set 1
+    local.get 1
+    string.const 1
+    intrinsic builder.append_str
+    local.get 0
+    struct.get 3 0
+    ref.cast 4
+    local.set 2
+    local.get 1
+    local.get 2
+    intrinsic builder.append_display
+    local.get 1
+    intrinsic builder.finish
+    return
+  end $L1
+  intrinsic builder.new
+  local.set 1
+  local.get 1
+  string.const 2
+  intrinsic builder.append_str
+  local.get 0
+  struct.get 6 0
+  ref.cast 8
+  local.set 3
+  local.get 1
+  local.get 3
+  intrinsic builder.append_display
+  local.get 1
+  string.const 3
+  intrinsic builder.append_str
+  local.get 1
+  intrinsic builder.finish
+  return
 end
 
 fn 3 tests_snippets_if_is_narrow__main_vader$primitive_is (ref) -> string
@@ -181,51 +184,55 @@ fn 3 tests_snippets_if_is_narrow__main_vader$primitive_is (ref) -> string
     local.get 1
     intrinsic builder.finish
     return
-  else
-    intrinsic builder.new
-    local.set 1
-    local.get 1
-    string.const 5
-    intrinsic builder.append_str
-    local.get 0
-    ref.cast 4
-    local.set 3
-    local.get 1
-    local.get 3
-    intrinsic builder.append_display
-    local.get 1
-    intrinsic builder.finish
-    return
   end $L0
+  intrinsic builder.new
+  local.set 1
+  local.get 1
+  string.const 5
+  intrinsic builder.append_str
+  local.get 0
+  ref.cast 4
+  local.set 3
+  local.get 1
+  local.get 3
+  intrinsic builder.append_display
+  local.get 1
+  intrinsic builder.finish
+  return
 end
 
 fn 4 tests_snippets_if_is_narrow__main_vader$main () -> i32
   string.const 6
   struct.new 2
   call 0
-  call.import 0
+  call 5
   string.const 7
   struct.new 3
   call 0
-  call.import 0
+  call 5
   string.const 8
   struct.new 2
   call 1
-  call.import 0
+  call 5
   string.const 9
   struct.new 3
   call 1
-  call.import 0
+  call 5
   i32.const 200
   struct.new 6
   call 2
-  call.import 0
+  call 5
   i32.const 42
   call 3
-  call.import 0
+  call 5
   string.const 10
   call 3
+  call 5
+  return.lit i32.const 0
+end
+
+fn 5 std_io$println$vt (string) -> void
+  local.get 0
   call.import 0
-  i32.const 0
   return
 end

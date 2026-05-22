@@ -21,8 +21,7 @@ end
 fn 1 tests_snippets_if_field_narrow__main_vader$report (ref) -> void
   local __sb_0 any
   local $call_8 i32
-  local.get 0
-  struct.get 3 0
+  local.field 0 3 0
   type_check 0
   bool.not
   if $L0 void
@@ -31,8 +30,7 @@ fn 1 tests_snippets_if_field_narrow__main_vader$report (ref) -> void
     local.get 1
     string.const 0
     intrinsic builder.append_str
-    local.get 0
-    struct.get 3 0
+    local.field 0 3 0
     call 0
     local.set 2
     local.get 1
@@ -40,28 +38,25 @@ fn 1 tests_snippets_if_field_narrow__main_vader$report (ref) -> void
     intrinsic builder.append_display
     local.get 1
     intrinsic builder.finish
-    call.import 0
+    call 4
   else
     string.const 1
-    call.import 0
+    call 4
   end $L0
   return
 end
 
 fn 2 tests_snippets_if_field_narrow__main_vader$total (ref) -> i32
-  local.get 0
-  struct.get 3 0
+  local.field 0 3 0
   type_check 0
   if $L0 void
     i32.const 1
     i32.neg
     return
-  else
-    local.get 0
-    struct.get 3 0
-    call 0
-    return
   end $L0
+  local.field 0 3 0
+  call 0
+  return
 end
 
 fn 3 tests_snippets_if_field_narrow__main_vader$main () -> i32
@@ -95,7 +90,7 @@ fn 3 tests_snippets_if_field_narrow__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call.import 0
+  call 4
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -109,7 +104,12 @@ fn 3 tests_snippets_if_field_narrow__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
+  call 4
+  return.lit i32.const 0
+end
+
+fn 4 std_io$println$vt (string) -> void
+  local.get 0
   call.import 0
-  i32.const 0
   return
 end

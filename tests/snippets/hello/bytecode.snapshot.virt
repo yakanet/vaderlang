@@ -8,7 +8,12 @@ import 0 println std_io$println (string) -> void
 
 fn 0 tests_snippets_hello__main_vader$main () -> i32
   string.const 0
+  call 1
+  return.lit i32.const 0
+end
+
+fn 1 std_io$println$vt (string) -> void
+  local.get 0
   call.import 0
-  i32.const 0
   return
 end

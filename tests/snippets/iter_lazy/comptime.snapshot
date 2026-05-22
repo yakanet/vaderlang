@@ -1,10 +1,61 @@
 # Comptime
 
+## stdlib/std/core.vader
+
+## stdlib/std/io.vader
+
+## stdlib/std/iter.vader
+
 ## tests/snippets/iter_lazy/_main.vader
 
 ## generic instances
+  Index(I, T)
+  IndexSet(I, T)
+  Contains(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Iterator(T)
+  Yield(T)
+  Yield(U)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
   Range(i32)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
   MapIterator(i32, i32)
+  MapIterator(T, U)
+  MapIterator(T, U)
+  MapIterator(T, U)
   FilterIterator(i32)
+  FilterIterator(T)
+  FilterIterator(T)
+  FilterIterator(T)
   TakeIterator(i32)
+  TakeIterator(T)
+  TakeIterator(T)
+  TakeIterator(T)
   SkipIterator(i32)
+  SkipIterator(T)
+  SkipIterator(T)
+  SkipIterator(T)
+  Into(Target)

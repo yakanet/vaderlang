@@ -45,54 +45,28 @@ fn tests_snippets_generic_helper_chain__main_vader$main() -> i32
     %16 = const int(0) :i32
     return %16
 
-fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__i32(%0: i32) -> i32
+fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__Any(%0: Any) -> Any
   locals:
-    %0 x: i32 (param x)
+    %0 x: Any (param x)
   bb0:
     return %0
 
-fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__string(%0: string) -> string
+fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__Any(%0: Any) -> Box(Any)
   locals:
-    %0 x: string (param x)
+    %0 x: Any (param x)
+    %1 $call_1: Any
+    %2 $struct_2: Box(Any)
   bb0:
-    return %0
-
-fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__i32(%0: i32) -> Box(i32)
-  locals:
-    %0 x: i32 (param x)
-    %1 $call_1: i32
-    %2 $struct_2: Box(i32)
-  bb0:
-    %1 = call inner(%0) :i32
-    %2 = struct_new Box(i32)(%1)
+    %1 = call inner(%0) :Any
+    %2 = struct_new Box(Any)(%1)
     return %2
 
-fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__string(%0: string) -> Box(string)
+fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__i32(%0: Any) -> Box(Box(Any))
   locals:
-    %0 x: string (param x)
-    %1 $call_1: string
-    %2 $struct_2: Box(string)
+    %0 x: Any (param x)
+    %1 $call_1: Box(Any)
+    %2 $struct_2: Box(Box(Any))
   bb0:
-    %1 = call inner(%0) :string
-    %2 = struct_new Box(string)(%1)
-    return %2
-
-fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__i32(%0: i32) -> Box(Box(i32))
-  locals:
-    %0 x: i32 (param x)
-    %1 $call_1: Box(i32)
-    %2 $struct_2: Box(Box(i32))
-  bb0:
-    %1 = call middle(%0) :Box(i32)
-    %2 = struct_new Box(Box(i32))(%1)
-    return %2
-
-fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__string(%0: string) -> Box(Box(string))
-  locals:
-    %0 x: string (param x)
-    %1 $call_1: Box(string)
-    %2 $struct_2: Box(Box(string))
-  bb0:
-    %1 = call middle(%0) :Box(string)
-    %2 = struct_new Box(Box(string))(%1)
+    %1 = call middle(%0) :Box(Any)
+    %2 = struct_new Box(Box(Any))(%1)
     return %2

@@ -16,8 +16,8 @@ fn 0 tests_snippets_trait_method_ambig__main_vader$Cat$Greet$greet (ref) -> stri
   local.get 1
   string.const 0
   intrinsic builder.append_str
-  local.get 0
-  struct.get 1 0
+  local.field 0 1 0
+  ref.cast 2
   local.set 2
   local.get 1
   local.get 2
@@ -32,8 +32,7 @@ fn 1 tests_snippets_trait_method_ambig__main_vader$main () -> i32
   struct.new 1
   call 0
   drop
-  i32.const 0
-  return
+  return.lit i32.const 0
 end
 
 # Diagnostics

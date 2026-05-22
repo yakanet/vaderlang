@@ -20,10 +20,10 @@ fn 0 tests_snippets_u32_bitops__main_vader$check (string,bool) -> void
   local.get 1
   if $L0 void
     local.get 0
-    call.import 0
+    call 2
   else
     string.const 0
-    call.import 0
+    call 2
   end $L0
   return
 end
@@ -140,6 +140,11 @@ fn 1 tests_snippets_u32_bitops__main_vader$main () -> i32
   string.const 9
   local.get 3
   call 0
-  i32.const 0
+  return.lit i32.const 0
+end
+
+fn 2 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
   return
 end

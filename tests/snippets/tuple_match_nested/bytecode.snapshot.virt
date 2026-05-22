@@ -25,16 +25,17 @@ fn 0 tests_snippets_tuple_match_nested__main_vader$main () -> i32
   local.get 0
   bool.const true
   struct.new_stack 6
-  local.tee 0
-  struct.get 6 0
+  local.set 0
+  local.field 0 6 0
   struct.get 5 0
+  ref.cast 1
   local.set 1
-  local.get 0
-  struct.get 6 0
+  local.field 0 6 0
   struct.get 5 1
+  ref.cast 2
   local.set 2
-  local.get 0
-  struct.get 6 1
+  local.field 0 6 1
+  ref.cast 3
   local.set 3
   intrinsic builder.new
   local.set 4
@@ -58,7 +59,12 @@ fn 0 tests_snippets_tuple_match_nested__main_vader$main () -> i32
   intrinsic builder.append_display
   local.get 4
   intrinsic builder.finish
+  call 1
+  return.lit i32.const 0
+end
+
+fn 1 std_io$println$vt (string) -> void
+  local.get 0
   call.import 0
-  i32.const 0
   return
 end

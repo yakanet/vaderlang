@@ -35,6 +35,7 @@ fn 0 tests_snippets_if_null_narrow__main_vader$greet (ref) -> string
     intrinsic builder.append_str
     local.get 0
     struct.get 2 0
+    ref.cast 4
     local.set 2
     local.get 1
     local.get 2
@@ -42,10 +43,8 @@ fn 0 tests_snippets_if_null_narrow__main_vader$greet (ref) -> string
     local.get 1
     intrinsic builder.finish
     return
-  else
-    string.const 1
-    return
   end $L0
+  return.lit string.const 1
 end
 
 fn 1 tests_snippets_if_null_narrow__main_vader$greet_v2 (ref) -> string
@@ -54,24 +53,23 @@ fn 1 tests_snippets_if_null_narrow__main_vader$greet_v2 (ref) -> string
   local.get 0
   type_check 0
   if $L0 void
-    string.const 1
-    return
-  else
-    intrinsic builder.new
-    local.set 1
-    local.get 1
-    string.const 2
-    intrinsic builder.append_str
-    local.get 0
-    struct.get 2 0
-    local.set 2
-    local.get 1
-    local.get 2
-    intrinsic builder.append_display
-    local.get 1
-    intrinsic builder.finish
-    return
+    return.lit string.const 1
   end $L0
+  intrinsic builder.new
+  local.set 1
+  local.get 1
+  string.const 2
+  intrinsic builder.append_str
+  local.get 0
+  struct.get 2 0
+  ref.cast 4
+  local.set 2
+  local.get 1
+  local.get 2
+  intrinsic builder.append_display
+  local.get 1
+  intrinsic builder.finish
+  return
 end
 
 fn 2 tests_snippets_if_null_narrow__main_vader$greet_v3 (ref) -> string
@@ -88,6 +86,7 @@ fn 2 tests_snippets_if_null_narrow__main_vader$greet_v3 (ref) -> string
     intrinsic builder.append_str
     local.get 0
     struct.get 2 0
+    ref.cast 4
     local.set 2
     local.get 1
     local.get 2
@@ -95,10 +94,8 @@ fn 2 tests_snippets_if_null_narrow__main_vader$greet_v3 (ref) -> string
     local.get 1
     intrinsic builder.finish
     return
-  else
-    string.const 4
-    return
   end $L0
+  return.lit string.const 4
 end
 
 fn 3 tests_snippets_if_null_narrow__main_vader$greet_v4 (ref) -> string
@@ -115,6 +112,7 @@ fn 3 tests_snippets_if_null_narrow__main_vader$greet_v4 (ref) -> string
     intrinsic builder.append_str
     local.get 0
     struct.get 2 0
+    ref.cast 4
     local.set 2
     local.get 1
     local.get 2
@@ -122,10 +120,8 @@ fn 3 tests_snippets_if_null_narrow__main_vader$greet_v4 (ref) -> string
     local.get 1
     intrinsic builder.finish
     return
-  else
-    string.const 7
-    return
   end $L0
+  return.lit string.const 7
 end
 
 fn 4 tests_snippets_if_null_narrow__main_vader$combine (ref,ref) -> string
@@ -134,37 +130,35 @@ fn 4 tests_snippets_if_null_narrow__main_vader$combine (ref,ref) -> string
   local.get 0
   type_check 0
   if $L0 void
-    string.const 8
-    return
-  else
-    local.get 1
-    type_check 0
-    if $L1 void
-      string.const 9
-      return
-    else
-      intrinsic builder.new
-      local.set 2
-      local.get 0
-      struct.get 2 0
-      local.set 3
-      local.get 2
-      local.get 3
-      intrinsic builder.append_display
-      local.get 2
-      string.const 10
-      intrinsic builder.append_str
-      local.get 1
-      struct.get 2 0
-      local.set 3
-      local.get 2
-      local.get 3
-      intrinsic builder.append_display
-      local.get 2
-      intrinsic builder.finish
-      return
-    end $L1
+    return.lit string.const 8
   end $L0
+  local.get 1
+  type_check 0
+  if $L1 void
+    return.lit string.const 9
+  end $L1
+  intrinsic builder.new
+  local.set 2
+  local.get 0
+  struct.get 2 0
+  ref.cast 4
+  local.set 3
+  local.get 2
+  local.get 3
+  intrinsic builder.append_display
+  local.get 2
+  string.const 10
+  intrinsic builder.append_str
+  local.get 1
+  struct.get 2 0
+  ref.cast 4
+  local.set 3
+  local.get 2
+  local.get 3
+  intrinsic builder.append_display
+  local.get 2
+  intrinsic builder.finish
+  return
 end
 
 fn 5 tests_snippets_if_null_narrow__main_vader$main () -> i32
@@ -183,40 +177,45 @@ fn 5 tests_snippets_if_null_narrow__main_vader$main () -> i32
   local.set 2
   local.get 0
   call 0
-  call.import 0
+  call 6
   local.get 2
   call 0
-  call.import 0
+  call 6
   local.get 0
   call 1
-  call.import 0
+  call 6
   local.get 2
   call 1
-  call.import 0
+  call 6
   local.get 0
   call 2
-  call.import 0
+  call 6
   local.get 2
   call 2
-  call.import 0
+  call 6
   local.get 0
   call 3
-  call.import 0
+  call 6
   local.get 2
   call 3
-  call.import 0
+  call 6
   local.get 0
   local.get 1
   call 4
-  call.import 0
+  call 6
   local.get 2
   local.get 1
   call 4
-  call.import 0
+  call 6
   local.get 0
   local.get 2
   call 4
+  call 6
+  return.lit i32.const 0
+end
+
+fn 6 std_io$println$vt (string) -> void
+  local.get 0
   call.import 0
-  i32.const 0
   return
 end

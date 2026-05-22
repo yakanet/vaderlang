@@ -116,37 +116,35 @@ fn tests_snippets_std_base64__main_vader$main() -> i32
     %50 $k_50: string
     %51 $k_51: string
     %52 $k_52: string
-    %53 inputs: string[] (local inputs)
-    %54 $k_55: usize
-    %55 __iter_6: ArrayIterator(string) (synthetic __iter_6)
-    %56 $call_58: Yield(string) | null
-    %57 __step_7: Yield(string) | null (synthetic __step_7)
-    %58 $type_check_60: bool
-    %59 $cast_61: Yield(string)
-    %60 s: string (binding s)
-    %61 $call_64: string
-    %62 $call_65: Error | string
-    %63 decoded: Error | string (local decoded)
-    %64 __scrut_8: Error | string (synthetic __scrut_8)
-    %65 $type_check_68: bool
-    %66 $intrinsic_69: ?
-    %67 __sb_10: ? (synthetic __sb_10)
-    %68 $k_71: string
-    %69 $k_72: string
-    %70 $cast_73: string
-    %71 $eq_74: bool
-    %72 $intrinsic_75: string
-    %73 $type_check_76: bool
-    %74 $intrinsic_77: ?
-    %75 __sb_9: ? (synthetic __sb_9)
-    %76 $k_79: string
-    %77 $k_80: string
-    %78 $intrinsic_81: string
-    %79 $k_82: string
-    %80 $k_83: string
-    %81 $k_84: string
-    %82 $k_85: string
-    %83 $k_86: i32
+    %53 __for_arr_6: string[] (synthetic __for_arr_6)
+    %54 __for_len_7: usize (synthetic __for_len_7)
+    %55 __for_i_8: usize (synthetic __for_i_8)
+    %56 $lt_60: bool
+    %57 s: string (binding s)
+    %58 $call_63: string
+    %59 $call_64: Error | string
+    %60 decoded: Error | string (local decoded)
+    %61 __scrut_9: Error | string (synthetic __scrut_9)
+    %62 $type_check_67: bool
+    %63 $intrinsic_68: ?
+    %64 __sb_11: ? (synthetic __sb_11)
+    %65 $k_70: string
+    %66 $k_71: string
+    %67 $cast_72: string
+    %68 $eq_73: bool
+    %69 $intrinsic_74: string
+    %70 $type_check_75: bool
+    %71 $intrinsic_76: ?
+    %72 __sb_10: ? (synthetic __sb_10)
+    %73 $k_78: string
+    %74 $k_79: string
+    %75 $intrinsic_80: string
+    %76 $k_81: usize
+    %77 $k_83: string
+    %78 $k_84: string
+    %79 $k_85: string
+    %80 $k_86: string
+    %81 $k_87: i32
   bb0:
     %0 = intrinsic builder.new()
     %1 = move %0
@@ -225,70 +223,63 @@ fn tests_snippets_std_base64__main_vader$main() -> i32
     %50 = const string(#28) :string
     %51 = const string(#29) :string
     %52 = const string(#30) :string
-    %53 = array_new string[][5](%48, %49, %50, %51, %52)
-    %54 = const int(0) :usize
-    %55 = struct_new ArrayIterator(string)(%53, %54)
+    %53 = array_new[stack] string[][5](%48, %49, %50, %51, %52)
+    %54 = array_len %53
+    %55 = const int(0) :usize
     branch -> bb1
   bb1:
-    branch -> bb2
+    %56 = binop lt %55 %54 :bool
+    cond_branch %56 ? bb2 : bb3
   bb2:
-    %56 = call next(%55) :Yield(string) | null
-    %57 = move %56
-    %58 = type_check %57 is null
-    cond_branch %58 ? bb4 : bb5
+    %57 = array_get %53[%55] :string
+    %58 = call encode(%57) :string
+    %59 = call decode(%58) :Error | string
+    %60 = move %59
+    %61 = move %60
+    %62 = type_check %61 is string
+    cond_branch %62 ? bb4 : bb5
   bb3:
-    %79 = const string(#33) :string
-    %80 = const string(#34) :string
+    %77 = const string(#33) :string
+    %78 = const string(#34) :string
+    call show_decode(%77, %78) :void
+    %79 = const string(#35) :string
+    %80 = const string(#36) :string
     call show_decode(%79, %80) :void
-    %81 = const string(#35) :string
-    %82 = const string(#36) :string
-    call show_decode(%81, %82) :void
-    %83 = const int(0) :i32
-    return %83
+    %81 = const int(0) :i32
+    return %81
   bb4:
-    branch -> bb3
-  bb5:
-    %59 = cast %57 :Yield(string)
-    %60 = field_get %59.value :string
-    %61 = call encode(%60) :string
-    %62 = call decode(%61) :Error | string
-    %63 = move %62
+    %63 = intrinsic builder.new()
     %64 = move %63
-    %65 = type_check %64 is string
-    cond_branch %65 ? bb7 : bb8
+    %65 = const string(#31) :string
+    intrinsic builder.append_str(%64, %65)
+    intrinsic builder.append_display(%64, %57)
+    %66 = const string(#0) :string
+    intrinsic builder.append_str(%64, %66)
+    %67 = cast %60 :string
+    %68 = binop eq %67 %57 :bool
+    intrinsic builder.append_display(%64, %68)
+    %69 = intrinsic builder.finish(%64)
+    call println(%69) :void
+    branch -> bb6
+  bb5:
+    %70 = type_check %61 is Error
+    cond_branch %70 ? bb7 : bb8
   bb6:
+    %76 = const int(1) :usize
+    %55 = binop add %55 %76 :usize
     branch -> bb1
   bb7:
-    %66 = intrinsic builder.new()
-    %67 = move %66
-    %68 = const string(#31) :string
-    intrinsic builder.append_str(%67, %68)
-    intrinsic builder.append_display(%67, %60)
-    %69 = const string(#0) :string
-    intrinsic builder.append_str(%67, %69)
-    %70 = cast %63 :string
-    %71 = binop eq %70 %60 :bool
-    intrinsic builder.append_display(%67, %71)
-    %72 = intrinsic builder.finish(%67)
-    call println(%72) :void
+    %71 = intrinsic builder.new()
+    %72 = move %71
+    %73 = const string(#31) :string
+    intrinsic builder.append_str(%72, %73)
+    intrinsic builder.append_display(%72, %57)
+    %74 = const string(#32) :string
+    intrinsic builder.append_str(%72, %74)
+    %75 = intrinsic builder.finish(%72)
+    call println(%75) :void
     branch -> bb9
   bb8:
-    %73 = type_check %64 is Error
-    cond_branch %73 ? bb10 : bb11
+    unreachable ; non-exhaustive match (T3013 should have caught this)
   bb9:
     branch -> bb6
-  bb10:
-    %74 = intrinsic builder.new()
-    %75 = move %74
-    %76 = const string(#31) :string
-    intrinsic builder.append_str(%75, %76)
-    intrinsic builder.append_display(%75, %60)
-    %77 = const string(#32) :string
-    intrinsic builder.append_str(%75, %77)
-    %78 = intrinsic builder.finish(%75)
-    call println(%78) :void
-    branch -> bb12
-  bb11:
-    unreachable ; non-exhaustive match (T3013 should have caught this)
-  bb12:
-    branch -> bb9
