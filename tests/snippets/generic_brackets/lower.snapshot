@@ -32,11 +32,10 @@
         r:
           .first :i32
             p :Pair(i32, i32)
-  struct tests_snippets_generic_brackets__main_vader$Pair__i32__i32 { first: Any, second: Any }
-  fn tests_snippets_generic_brackets__main_vader$tests_snippets_generic_brackets__main_vader$identity__i32(x: Any) -> Any
+  struct tests_snippets_generic_brackets__main_vader$Pair__i32__i32 { first: i32, second: i32 }
+  fn tests_snippets_generic_brackets__main_vader$tests_snippets_generic_brackets__main_vader$identity__i32(x: i32) -> i32
     ~>
-      x :Any
-  fn tests_snippets_generic_brackets__main_vader$tests_snippets_generic_brackets__main_vader$swap__i32__i32(a: Any, b: Any) -> Any
+      x :i32
+  fn tests_snippets_generic_brackets__main_vader$tests_snippets_generic_brackets__main_vader$swap__i32__i32(a: i32, b: i32) -> i32
     ~>
-      b :Any
-  struct tests_snippets_generic_brackets__main_vader$Pair__i32__Any__Any { first: Any, second: Any }
+      b :i32

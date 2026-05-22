@@ -1,26 +1,7 @@
 # Comptime
 
-## stdlib/std/core.vader
-
-## stdlib/std/io.vader
-
 ## tests/snippets/array_slice/_main.vader
 
 ## generic instances
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
   Range(i32)
   Range(usize)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  Into(Target)

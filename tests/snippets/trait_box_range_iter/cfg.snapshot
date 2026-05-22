@@ -69,13 +69,13 @@ fn tests_snippets_trait_box_range_iter__main_vader$main() -> i32
     %22 = binop add %21 %19 :i32
     return %22
 
-fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$count__i32(%0: Iterator(Any)) -> i32
+fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$count__i32(%0: Iterator(i32)) -> i32
   locals:
-    %0 it: Iterator(Any) (param it)
+    %0 it: Iterator(i32) (param it)
     %1 n: i32 (local n)
     %2 cont: bool (local cont)
-    %3 $vcall_5: null | Yield(Any)
-    %4 __scrut_0: null | Yield(Any) (synthetic __scrut_0)
+    %3 $vcall_5: null | Yield(i32)
+    %4 __scrut_0: null | Yield(i32) (synthetic __scrut_0)
     %5 $type_check_7: bool
     %6 $type_check_9: bool
     %7 $k_10: i32
@@ -86,7 +86,7 @@ fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_rang
   bb1:
     cond_branch %2 ? bb2 : bb3
   bb2:
-    %3 = vcall Iterator.next(recv=%0) :null | Yield(Any)
+    %3 = vcall Iterator.next(recv=%0) :null | Yield(i32)
     %4 = move %3
     %5 = type_check %4 is null
     cond_branch %5 ? bb4 : bb5
@@ -96,7 +96,7 @@ fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_rang
     %2 = const bool(false) :bool
     branch -> bb6
   bb5:
-    %6 = type_check %4 is Yield(Any)
+    %6 = type_check %4 is Yield(i32)
     cond_branch %6 ? bb7 : bb8
   bb6:
     branch -> bb1
@@ -109,18 +109,18 @@ fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_rang
   bb9:
     branch -> bb6
 
-fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$invoke__i32(%0: Greeter(Any)) -> Any
+fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$invoke__i32(%0: Greeter(i32)) -> i32
   locals:
-    %0 g: Greeter(Any) (param g)
-    %1 $vcall_1: Any
+    %0 g: Greeter(i32) (param g)
+    %1 $vcall_1: i32
   bb0:
-    %1 = vcall Greeter.greet(recv=%0) :Any
+    %1 = vcall Greeter.greet(recv=%0) :i32
     return %1
 
-fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$twice__i32(%0: Doubler(Any)) -> Any
+fn tests_snippets_trait_box_range_iter__main_vader$tests_snippets_trait_box_range_iter__main_vader$twice__i32(%0: Doubler(i32)) -> i32
   locals:
-    %0 x: Doubler(Any) (param x)
-    %1 $vcall_1: Any
+    %0 x: Doubler(i32) (param x)
+    %1 $vcall_1: i32
   bb0:
-    %1 = vcall Doubler.doubled(recv=%0) :Any
+    %1 = vcall Doubler.doubled(recv=%0) :i32
     return %1

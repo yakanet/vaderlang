@@ -28,40 +28,43 @@
               __sb_0 :?
     let first: bool = true
     block :void
-      let __for_arr_1: string[] = argv :string[]
-      let __for_len_2: usize =
-        LoweredArrayLen
-      let __for_i_3: usize = int(0) :usize
-      loop while (<…>)
-        let s: string =
-          index :string
-            on:
-              __for_arr_1 :string[]
-            ix:
-              __for_i_3 :usize
+      let __iter_1: ArrayIterator(string) =
+        ArrayIterator(string) {
+          arr: argv :string[]
+          cursor: int(0) :usize
+        }
+      loop
+        let __step_2: Yield(string) | null =
+          call :Yield(string) | null
+            callee:
+              next :?
+            arg0:
+              __iter_1 :ArrayIterator(string)
         if :void
           cond:
-            first :bool
+            is null :bool
+              __step_2 :Yield(string) | null
           then:
-            assign
-              target:
-                first :bool
-              value:
-                false
+            break
           else:
-            ~>
-              call :void
-                callee:
-                  println :fn(string) -> void
-                arg0:
-                  s :string
-        assign
-          target:
-            __for_i_3 :usize
-          value:
-            add :usize
-              l:
-                __for_i_3 :usize
-              r:
-                int(1) :usize
+            let s: string =
+              .value :string
+                cast → Yield(string)
+                  __step_2 :Yield(string) | null
+            if :void
+              cond:
+                first :bool
+              then:
+                assign
+                  target:
+                    first :bool
+                  value:
+                    false
+              else:
+                ~>
+                  call :void
+                    callee:
+                      println :fn(string) -> void
+                    arg0:
+                      s :string
     return int(0) :i32

@@ -27,9 +27,17 @@ fn tests_snippets_impl_bounded_typeparam__main_vader$main() -> i32
     %8 = const int(0) :i32
     return %8
 
-fn tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Cat(%0: Wrap(Any)) -> string
+fn tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Cat(%0: Wrap(Cat)) -> string
   locals:
-    %0 self: Wrap(Any) (param self)
+    %0 self: Wrap(Cat) (param self)
+    %1 $k_1: string
+  bb0:
+    %1 = const string(#2) :string
+    return %1
+
+fn tests_snippets_impl_bounded_typeparam__main_vader$Wrap$Display$to_string__Dog(%0: Wrap(Dog)) -> string
+  locals:
+    %0 self: Wrap(Dog) (param self)
     %1 $k_1: string
   bb0:
     %1 = const string(#2) :string

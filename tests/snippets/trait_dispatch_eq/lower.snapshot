@@ -42,15 +42,15 @@
               n2 :i32
         r:
           n3 :i32
-  fn tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq__main_vader$both_equal__i32(a: Any, b: Any, c: Any) -> i32
+  fn tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq__main_vader$both_equal__i32(a: i32, b: i32, c: i32) -> i32
     let n: i32 = int(0) :i32
     if :void
       cond:
-        vcall Equals.equals :bool
-          recv:
-            a :Any
-          arg0:
-            b :Any
+        eq :bool
+          l:
+            a :i32
+          r:
+            b :i32
       then:
         assign
           target:
@@ -63,11 +63,11 @@
                 int(1) :i32
     if :void
       cond:
-        vcall Equals.equals :bool
-          recv:
-            a :Any
-          arg0:
-            c :Any
+        eq :bool
+          l:
+            a :i32
+          r:
+            c :i32
       then:
         assign
           target:
@@ -80,11 +80,11 @@
                 int(10) :i32
     if :void
       cond:
-        vcall Equals.equals :bool
-          recv:
-            b :Any
-          arg0:
-            c :Any
+        eq :bool
+          l:
+            b :i32
+          r:
+            c :i32
       then:
         assign
           target:

@@ -63,5 +63,4 @@
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return int(0) :i32
-  struct tests_snippets_array_of_union__main_vader$Node__i32 { value: Any, next: Node(Any) | null }
-  struct tests_snippets_array_of_union__main_vader$Node__Any { value: Any, next: Node(Any) | null }
+  struct tests_snippets_array_of_union__main_vader$Node__i32 { value: i32, next: Node(i32) | null }

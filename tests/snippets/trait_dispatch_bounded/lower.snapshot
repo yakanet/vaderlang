@@ -56,56 +56,127 @@
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
-  fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__i32(items: Any[], target: Any) -> i32
+  fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__i32(items: i32[], target: i32) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __for_arr_0: Any[] = items :Any[]
-      let __for_len_1: usize =
-        LoweredArrayLen
-      let __for_i_2: usize = int(0) :usize
-      loop while (<…>)
-        let x: Any =
-          index :Any
-            on:
-              __for_arr_0 :Any[]
-            ix:
-              __for_i_2 :usize
+      let __iter_0: ArrayIterator(i32) =
+        ArrayIterator(i32) {
+          arr: items :i32[]
+          cursor: int(0) :usize
+        }
+      loop
+        let __step_1: Yield(i32) | null =
+          call :Yield(i32) | null
+            callee:
+              next :?
+            arg0:
+              __iter_0 :ArrayIterator(i32)
         if :void
           cond:
-            and :bool
-              l:
-                eq :bool
-                  l:
-                    vcall Hash.hash :u64
-                      recv:
-                        x :Any
-                  r:
-                    vcall Hash.hash :u64
-                      recv:
-                        target :Any
-              r:
-                vcall Equals.equals :bool
-                  recv:
-                    x :Any
-                  arg0:
-                    target :Any
+            is null :bool
+              __step_1 :Yield(i32) | null
           then:
-            assign
-              target:
-                n :i32
-              value:
-                add :i32
+            break
+          else:
+            let x: i32 =
+              .value :i32
+                cast → Yield(i32)
+                  __step_1 :Yield(i32) | null
+            if :void
+              cond:
+                and :bool
                   l:
-                    n :i32
+                    eq :bool
+                      l:
+                        call :u64
+                          callee:
+                            hash :u64
+                          arg0:
+                            x :i32
+                      r:
+                        call :u64
+                          callee:
+                            hash :u64
+                          arg0:
+                            target :i32
                   r:
-                    int(1) :i32
-        assign
-          target:
-            __for_i_2 :usize
-          value:
-            add :usize
-              l:
-                __for_i_2 :usize
-              r:
-                int(1) :usize
+                    call :bool
+                      callee:
+                        equals :bool
+                      arg0:
+                        x :i32
+                      arg1:
+                        target :i32
+              then:
+                assign
+                  target:
+                    n :i32
+                  value:
+                    add :i32
+                      l:
+                        n :i32
+                      r:
+                        int(1) :i32
+    return n :i32
+  fn tests_snippets_trait_dispatch_bounded__main_vader$tests_snippets_trait_dispatch_bounded__main_vader$count_matching__string(items: string[], target: string) -> i32
+    let n: i32 = int(0) :i32
+    block :void
+      let __iter_0: ArrayIterator(string) =
+        ArrayIterator(string) {
+          arr: items :string[]
+          cursor: int(0) :usize
+        }
+      loop
+        let __step_1: Yield(string) | null =
+          call :Yield(string) | null
+            callee:
+              next :?
+            arg0:
+              __iter_0 :ArrayIterator(string)
+        if :void
+          cond:
+            is null :bool
+              __step_1 :Yield(string) | null
+          then:
+            break
+          else:
+            let x: string =
+              .value :string
+                cast → Yield(string)
+                  __step_1 :Yield(string) | null
+            if :void
+              cond:
+                and :bool
+                  l:
+                    eq :bool
+                      l:
+                        call :u64
+                          callee:
+                            hash :u64
+                          arg0:
+                            x :string
+                      r:
+                        call :u64
+                          callee:
+                            hash :u64
+                          arg0:
+                            target :string
+                  r:
+                    call :bool
+                      callee:
+                        equals :bool
+                      arg0:
+                        x :string
+                      arg1:
+                        target :string
+              then:
+                assign
+                  target:
+                    n :i32
+                  value:
+                    add :i32
+                      l:
+                        n :i32
+                      r:
+                        int(1) :i32
     return n :i32

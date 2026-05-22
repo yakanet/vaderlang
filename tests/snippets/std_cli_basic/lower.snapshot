@@ -209,42 +209,45 @@
             @builder.finish :string
               __sb_7 :?
     block :void
-      let __for_arr_8: string[] =
-        .errors :string[]
-          bad :ParsedArgs
-      let __for_len_9: usize =
-        LoweredArrayLen
-      let __for_i_10: usize = int(0) :usize
-      loop while (<…>)
-        let e: string =
-          index :string
-            on:
-              __for_arr_8 :string[]
-            ix:
-              __for_i_10 :usize
-        call :void
-          callee:
-            println :fn(string) -> void
-          arg0:
-            block :string
-              let __sb_11: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_11 :?
-                "err=" :string
-              @builder.append_display <for string> :void
-                __sb_11 :?
-                e :string
-              ~>
-                @builder.finish :string
-                  __sb_11 :?
-        assign
-          target:
-            __for_i_10 :usize
-          value:
-            add :usize
-              l:
-                __for_i_10 :usize
-              r:
-                int(1) :usize
+      let __iter_8: ArrayIterator(string) =
+        ArrayIterator(string) {
+          arr:
+            .errors :string[]
+              bad :ParsedArgs
+          cursor: int(0) :usize
+        }
+      loop
+        let __step_9: Yield(string) | null =
+          call :Yield(string) | null
+            callee:
+              next :?
+            arg0:
+              __iter_8 :ArrayIterator(string)
+        if :void
+          cond:
+            is null :bool
+              __step_9 :Yield(string) | null
+          then:
+            break
+          else:
+            let e: string =
+              .value :string
+                cast → Yield(string)
+                  __step_9 :Yield(string) | null
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_10: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_10 :?
+                    "err=" :string
+                  @builder.append_display <for string> :void
+                    __sb_10 :?
+                    e :string
+                  ~>
+                    @builder.finish :string
+                      __sb_10 :?
     return int(0) :i32

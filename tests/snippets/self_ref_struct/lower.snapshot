@@ -35,5 +35,4 @@
             @builder.finish :string
               __sb_0 :?
     return int(0) :i32
-  struct tests_snippets_self_ref_struct__main_vader$Node__i32 { value: Any, next: Node(Any) | null }
-  struct tests_snippets_self_ref_struct__main_vader$Node__Any { value: Any, next: Node(Any) | null }
+  struct tests_snippets_self_ref_struct__main_vader$Node__i32 { value: i32, next: Node(i32) | null }

@@ -1,24 +1,5 @@
 # Comptime
 
-## stdlib/std/core.vader
-
 ## tests/snippets/comptime_const/_main.vader
   @comptime  ANSWER               = 42_i32
   @comptime  GREETING             = "hello, world"
-
-## generic instances
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  Into(Target)

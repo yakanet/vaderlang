@@ -1,34 +1,3 @@
 # Comptime
 
-## stdlib/std/core.vader
-
 ## tests/snippets/numerics/_main.vader
-  @comptime  a                    = 42_i32
-  @comptime  b                    = 1000000_i32
-  @comptime  c                    = 255_i32
-  @comptime  d                    = 65535_i32
-  @comptime  e                    = 10_i32
-  @comptime  f                    = 493_i32
-  @comptime  g                    = 42_i64
-  @comptime  h                    = 100_u32
-  @comptime  i                    = 3.14_f64
-  @comptime  j                    = 1.5e-10_f64
-  @comptime  k                    = 3.14_f32
-  @comptime  l                    = 0.5_f64
-
-## generic instances
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  Into(Target)

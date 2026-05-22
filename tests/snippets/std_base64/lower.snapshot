@@ -242,102 +242,105 @@
         "ab" :string
         "The quick brown fox" :string
     block :void
-      let __for_arr_6: string[] = inputs :string[]
-      let __for_len_7: usize =
-        LoweredArrayLen
-      let __for_i_8: usize = int(0) :usize
-      loop while (<…>)
-        let s: string =
-          index :string
-            on:
-              __for_arr_6 :string[]
-            ix:
-              __for_i_8 :usize
-        let decoded: Error | string =
-          call :Error | string
+      let __iter_6: ArrayIterator(string) =
+        ArrayIterator(string) {
+          arr: inputs :string[]
+          cursor: int(0) :usize
+        }
+      loop
+        let __step_7: Yield(string) | null =
+          call :Yield(string) | null
             callee:
-              decode :fn(string) -> Error | string
+              next :?
             arg0:
-              call :string
+              __iter_6 :ArrayIterator(string)
+        if :void
+          cond:
+            is null :bool
+              __step_7 :Yield(string) | null
+          then:
+            break
+          else:
+            let s: string =
+              .value :string
+                cast → Yield(string)
+                  __step_7 :Yield(string) | null
+            let decoded: Error | string =
+              call :Error | string
                 callee:
-                  encode :fn(string) -> string
+                  decode :fn(string) -> Error | string
                 arg0:
-                  s :string
-        block :void
-          let __scrut_9: Error | string = decoded :Error | string
-          ~>
-            if :void
-              cond:
-                is string :bool
-                  __scrut_9 :Error | string
-              then:
-                ~>
-                  call :void
+                  call :string
                     callee:
-                      println :fn(string) -> void
+                      encode :fn(string) -> string
                     arg0:
-                      block :string
-                        let __sb_11: ? =
-                          @builder.new :?
-                        @builder.append_str :void
-                          __sb_11 :?
-                          "roundtrip-" :string
-                        @builder.append_display <for string> :void
-                          __sb_11 :?
-                          s :string
-                        @builder.append_str :void
-                          __sb_11 :?
-                          "=" :string
-                        @builder.append_display <for bool> :void
-                          __sb_11 :?
-                          eq :bool
-                            l:
-                              cast → string
-                                decoded :Error | string
-                            r:
+                      s :string
+            block :void
+              let __scrut_8: Error | string = decoded :Error | string
+              ~>
+                if :void
+                  cond:
+                    is string :bool
+                      __scrut_8 :Error | string
+                  then:
+                    ~>
+                      call :void
+                        callee:
+                          println :fn(string) -> void
+                        arg0:
+                          block :string
+                            let __sb_10: ? =
+                              @builder.new :?
+                            @builder.append_str :void
+                              __sb_10 :?
+                              "roundtrip-" :string
+                            @builder.append_display <for string> :void
+                              __sb_10 :?
                               s :string
-                        ~>
-                          @builder.finish :string
-                            __sb_11 :?
-              else:
-                ~>
-                  if :void
-                    cond:
-                      is Error :bool
-                        __scrut_9 :Error | string
-                    then:
-                      ~>
-                        call :void
-                          callee:
-                            println :fn(string) -> void
-                          arg0:
-                            block :string
-                              let __sb_10: ? =
-                                @builder.new :?
-                              @builder.append_str :void
+                            @builder.append_str :void
+                              __sb_10 :?
+                              "=" :string
+                            @builder.append_display <for bool> :void
+                              __sb_10 :?
+                              eq :bool
+                                l:
+                                  cast → string
+                                    decoded :Error | string
+                                r:
+                                  s :string
+                            ~>
+                              @builder.finish :string
                                 __sb_10 :?
-                                "roundtrip-" :string
-                              @builder.append_display <for string> :void
-                                __sb_10 :?
-                                s :string
-                              @builder.append_str :void
-                                __sb_10 :?
-                                "=ERR" :string
-                              ~>
-                                @builder.finish :string
-                                  __sb_10 :?
-                    else:
-                      ~>
-                        unreachable("non-exhaustive match (T3013 should have caught this)") :void
-        assign
-          target:
-            __for_i_8 :usize
-          value:
-            add :usize
-              l:
-                __for_i_8 :usize
-              r:
-                int(1) :usize
+                  else:
+                    ~>
+                      if :void
+                        cond:
+                          is Error :bool
+                            __scrut_8 :Error | string
+                        then:
+                          ~>
+                            call :void
+                              callee:
+                                println :fn(string) -> void
+                              arg0:
+                                block :string
+                                  let __sb_9: ? =
+                                    @builder.new :?
+                                  @builder.append_str :void
+                                    __sb_9 :?
+                                    "roundtrip-" :string
+                                  @builder.append_display <for string> :void
+                                    __sb_9 :?
+                                    s :string
+                                  @builder.append_str :void
+                                    __sb_9 :?
+                                    "=ERR" :string
+                                  ~>
+                                    @builder.finish :string
+                                      __sb_9 :?
+                        else:
+                          ~>
+                            unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
         show_decode :fn(string, string) -> void

@@ -41,10 +41,10 @@
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
-  fn tests_snippets_generic_eq__main_vader$tests_snippets_generic_eq__main_vader$are_eq__i32(a: Any, b: Any) -> bool
+  fn tests_snippets_generic_eq__main_vader$tests_snippets_generic_eq__main_vader$are_eq__i32(a: i32, b: i32) -> bool
     return
-      vcall Equals.equals :bool
-        recv:
-          a :Any
-        arg0:
-          b :Any
+      eq :bool
+        l:
+          a :i32
+        r:
+          b :i32

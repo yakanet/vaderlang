@@ -15,14 +15,18 @@
           apply_tag :i32
         arg0:
           int(7) :i32
-  fn tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32(x: Any) -> i32
+  fn tests_snippets_trait_dispatch_struct__main_vader$tests_snippets_trait_dispatch_struct__main_vader$apply_tag__i32(x: i32) -> i32
     return
       add :i32
         l:
-          vcall Tagger.tag :i32
-            recv:
-              x :Any
+          call :i32
+            callee:
+              tag :i32
+            arg0:
+              x :i32
         r:
-          vcall Tagger.tag :i32
-            recv:
-              x :Any
+          call :i32
+            callee:
+              tag :i32
+            arg0:
+              x :i32

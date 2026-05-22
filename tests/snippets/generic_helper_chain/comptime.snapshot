@@ -1,26 +1,8 @@
 # Comptime
 
-## stdlib/std/core.vader
-
-## stdlib/std/io.vader
-
 ## tests/snippets/generic_helper_chain/_main.vader
 
 ## generic instances
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
   Box(i32)
   Box(string)
   Box(Box(i32))
@@ -29,4 +11,3 @@
   Box(T)
   Box(T)
   Box(T)
-  Into(Target)

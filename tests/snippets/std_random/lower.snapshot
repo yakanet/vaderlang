@@ -302,51 +302,54 @@
               __sb_4 :?
     let sum: i32 = int(0) :i32
     block :void
-      let __for_arr_5: i32[] = arr :i32[]
-      let __for_len_6: usize =
-        LoweredArrayLen
-      let __for_i_7: usize = int(0) :usize
-      loop while (<…>)
-        let x: i32 =
-          index :i32
-            on:
-              __for_arr_5 :i32[]
-            ix:
-              __for_i_7 :usize
-        assign
-          target:
-            sum :i32
-          value:
-            add :i32
-              l:
+      let __iter_5: ArrayIterator(i32) =
+        ArrayIterator(i32) {
+          arr: arr :i32[]
+          cursor: int(0) :usize
+        }
+      loop
+        let __step_6: Yield(i32) | null =
+          call :Yield(i32) | null
+            callee:
+              next :?
+            arg0:
+              __iter_5 :ArrayIterator(i32)
+        if :void
+          cond:
+            is null :bool
+              __step_6 :Yield(i32) | null
+          then:
+            break
+          else:
+            let x: i32 =
+              .value :i32
+                cast → Yield(i32)
+                  __step_6 :Yield(i32) | null
+            assign
+              target:
                 sum :i32
-              r:
-                x :i32
-        assign
-          target:
-            __for_i_7 :usize
-          value:
-            add :usize
-              l:
-                __for_i_7 :usize
-              r:
-                int(1) :usize
+              value:
+                add :i32
+                  l:
+                    sum :i32
+                  r:
+                    x :i32
     call :void
       callee:
         println :fn(string) -> void
       arg0:
         block :string
-          let __sb_8: ? =
+          let __sb_7: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_8 :?
+            __sb_7 :?
             "shuffled_sum=" :string
           @builder.append_display <for i32> :void
-            __sb_8 :?
+            __sb_7 :?
             sum :i32
           ~>
             @builder.finish :string
-              __sb_8 :?
+              __sb_7 :?
     let bs: Rng =
       call :Rng
         callee:
@@ -397,13 +400,13 @@
         println :fn(string) -> void
       arg0:
         block :string
-          let __sb_9: ? =
+          let __sb_8: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_9 :?
+            __sb_8 :?
             "bool_both_seen=" :string
           @builder.append_display <for bool> :void
-            __sb_9 :?
+            __sb_8 :?
             and :bool
               l:
                 seen_t :bool
@@ -411,5 +414,5 @@
                 seen_f :bool
           ~>
             @builder.finish :string
-              __sb_9 :?
+              __sb_8 :?
     return int(0) :i32

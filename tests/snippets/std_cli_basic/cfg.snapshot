@@ -76,17 +76,19 @@ fn tests_snippets_std_cli_basic__main_vader$main() -> i32
     %69 $len_71: usize
     %70 $call_72: string
     %71 $intrinsic_73: string
-    %72 __for_arr_8: string[] (synthetic __for_arr_8)
-    %73 __for_len_9: usize (synthetic __for_len_9)
-    %74 __for_i_10: usize (synthetic __for_i_10)
-    %75 $lt_80: bool
-    %76 e: string (binding e)
-    %77 $intrinsic_83: ?
-    %78 __sb_11: ? (synthetic __sb_11)
-    %79 $k_85: string
-    %80 $intrinsic_86: string
-    %81 $k_87: usize
-    %82 $k_89: i32
+    %72 $field_74: string[]
+    %73 $k_75: usize
+    %74 __iter_8: ArrayIterator(string) (synthetic __iter_8)
+    %75 $call_78: Yield(string) | null
+    %76 __step_9: Yield(string) | null (synthetic __step_9)
+    %77 $type_check_80: bool
+    %78 $cast_81: Yield(string)
+    %79 e: string (binding e)
+    %80 $intrinsic_84: ?
+    %81 __sb_10: ? (synthetic __sb_10)
+    %82 $k_86: string
+    %83 $intrinsic_87: string
+    %84 $k_88: i32
   bb0:
     %0 = const string(#0) :string
     %1 = const int(0) :i32
@@ -185,24 +187,31 @@ fn tests_snippets_std_cli_basic__main_vader$main() -> i32
     %71 = intrinsic builder.finish(%66)
     call println(%71) :void
     %72 = field_get %64.errors :string[]
-    %73 = array_len %72
-    %74 = const int(0) :usize
+    %73 = const int(0) :usize
+    %74 = struct_new ArrayIterator(string)(%72, %73)
     branch -> bb1
   bb1:
-    %75 = binop lt %74 %73 :bool
-    cond_branch %75 ? bb2 : bb3
+    branch -> bb2
   bb2:
-    %76 = array_get %72[%74] :string
-    %77 = intrinsic builder.new()
-    %78 = move %77
-    %79 = const string(#19) :string
-    intrinsic builder.append_str(%78, %79)
-    intrinsic builder.append_display(%78, %76)
-    %80 = intrinsic builder.finish(%78)
-    call println(%80) :void
-    %81 = const int(1) :usize
-    %74 = binop add %74 %81 :usize
-    branch -> bb1
+    %75 = call next(%74) :Yield(string) | null
+    %76 = move %75
+    %77 = type_check %76 is null
+    cond_branch %77 ? bb4 : bb5
   bb3:
-    %82 = const int(0) :i32
-    return %82
+    %84 = const int(0) :i32
+    return %84
+  bb4:
+    branch -> bb3
+  bb5:
+    %78 = cast %76 :Yield(string)
+    %79 = field_get %78.value :string
+    %80 = intrinsic builder.new()
+    %81 = move %80
+    %82 = const string(#19) :string
+    intrinsic builder.append_str(%81, %82)
+    intrinsic builder.append_display(%81, %79)
+    %83 = intrinsic builder.finish(%81)
+    call println(%83) :void
+    branch -> bb6
+  bb6:
+    branch -> bb1

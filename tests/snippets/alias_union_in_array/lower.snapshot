@@ -80,35 +80,38 @@
           name: "Rex" :string
         }
     block :void
-      let __for_arr_0: Cat | Dog[] = pets :Cat | Dog[]
-      let __for_len_1: usize =
-        LoweredArrayLen
-      let __for_i_2: usize = int(0) :usize
-      loop while (<…>)
-        let p: Cat | Dog =
-          index :Cat | Dog
-            on:
-              __for_arr_0 :Cat | Dog[]
-            ix:
-              __for_i_2 :usize
-        call :void
-          callee:
-            println :fn(string) -> void
-          arg0:
-            call :string
+      let __iter_0: ArrayIterator(Cat | Dog) =
+        ArrayIterator(Cat | Dog) {
+          arr: pets :Cat | Dog[]
+          cursor: int(0) :usize
+        }
+      loop
+        let __step_1: Yield(Cat | Dog) | null =
+          call :Yield(Cat | Dog) | null
+            callee:
+              next :?
+            arg0:
+              __iter_0 :ArrayIterator(Cat | Dog)
+        if :void
+          cond:
+            is null :bool
+              __step_1 :Yield(Cat | Dog) | null
+          then:
+            break
+          else:
+            let p: Cat | Dog =
+              .value :Cat | Dog
+                cast → Yield(Cat | Dog)
+                  __step_1 :Yield(Cat | Dog) | null
+            call :void
               callee:
-                describe :fn(Cat | Dog) -> string
+                println :fn(string) -> void
               arg0:
-                p :Cat | Dog
-        assign
-          target:
-            __for_i_2 :usize
-          value:
-            add :usize
-              l:
-                __for_i_2 :usize
-              r:
-                int(1) :usize
+                call :string
+                  callee:
+                    describe :fn(Cat | Dog) -> string
+                  arg0:
+                    p :Cat | Dog
     return int(0) :i32
 
 ## tests/snippets/alias_union_in_array/types

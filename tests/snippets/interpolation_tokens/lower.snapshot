@@ -10,9 +10,7 @@
         "hello " :string
       @builder.append_str :void
         __sb_0 :?
-        vcall Display.to_string :string
-          recv:
-            unreachable("unresolved ident name") :?
+        unreachable("unresolved ident name") :?
       ~>
         @builder.finish :string
           __sb_0 :?
@@ -25,13 +23,11 @@
         "result: " :string
       @builder.append_str :void
         __sb_0 :?
-        vcall Display.to_string :string
-          recv:
-            add :?
-              l:
-                unreachable("unresolved ident x") :?
-              r:
-                int(1) :i32
+        add :?
+          l:
+            unreachable("unresolved ident x") :?
+          r:
+            int(1) :i32
       ~>
         @builder.finish :string
           __sb_0 :?
@@ -52,9 +48,7 @@
             "inner " :string
           @builder.append_str :void
             __sb_1 :?
-            vcall Display.to_string :string
-              recv:
-                unreachable("unresolved ident y") :?
+            unreachable("unresolved ident y") :?
           ~>
             @builder.finish :string
               __sb_1 :?

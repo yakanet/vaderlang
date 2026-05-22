@@ -57,67 +57,70 @@
             @builder.finish :string
               __sb_2 :?
     block :void
-      let __for_arr_3: i32[] = rest :i32[]
-      let __for_len_4: usize =
-        LoweredArrayLen
-      let __for_i_5: usize = int(0) :usize
-      loop while (<…>)
-        let x: i32 =
-          index :i32
-            on:
-              __for_arr_3 :i32[]
-            ix:
-              __for_i_5 :usize
-        call :void
-          callee:
-            println :fn(string) -> void
-          arg0:
-            block :string
-              let __sb_6: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_6 :?
-                "  " :string
-              @builder.append_display <for i32> :void
-                __sb_6 :?
-                x :i32
-              ~>
-                @builder.finish :string
-                  __sb_6 :?
-        assign
-          target:
-            __for_i_5 :usize
-          value:
-            add :usize
-              l:
-                __for_i_5 :usize
-              r:
-                int(1) :usize
-    let __tup_7: i32[] = arr :i32[]
+      let __iter_3: ArrayIterator(i32) =
+        ArrayIterator(i32) {
+          arr: rest :i32[]
+          cursor: int(0) :usize
+        }
+      loop
+        let __step_4: Yield(i32) | null =
+          call :Yield(i32) | null
+            callee:
+              next :?
+            arg0:
+              __iter_3 :ArrayIterator(i32)
+        if :void
+          cond:
+            is null :bool
+              __step_4 :Yield(i32) | null
+          then:
+            break
+          else:
+            let x: i32 =
+              .value :i32
+                cast → Yield(i32)
+                  __step_4 :Yield(i32) | null
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_5: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_5 :?
+                    "  " :string
+                  @builder.append_display <for i32> :void
+                    __sb_5 :?
+                    x :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_5 :?
+    let __tup_6: i32[] = arr :i32[]
     let a: i32 =
       index :i32
         on:
-          __tup_7 :i32[]
+          __tup_6 :i32[]
         ix:
           int(0) :usize
     let b: i32 =
       index :i32
         on:
-          __tup_7 :i32[]
+          __tup_6 :i32[]
         ix:
           int(1) :usize
     let tail: i32[] =
       array :i32[]
-    let __i_8: usize = int(2) :usize
+    let __i_7: usize = int(2) :usize
     loop while (<…>)
       LoweredArrayPush
       assign
         target:
-          __i_8 :usize
+          __i_7 :usize
         value:
           add :usize
             l:
-              __i_8 :usize
+              __i_7 :usize
             r:
               int(1) :usize
     call :void
@@ -125,25 +128,25 @@
         println :fn(string) -> void
       arg0:
         block :string
-          let __sb_9: ? =
+          let __sb_8: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_9 :?
+            __sb_8 :?
             "a=" :string
           @builder.append_display <for i32> :void
-            __sb_9 :?
+            __sb_8 :?
             a :i32
           @builder.append_str :void
-            __sb_9 :?
+            __sb_8 :?
             " b=" :string
           @builder.append_display <for i32> :void
-            __sb_9 :?
+            __sb_8 :?
             b :i32
           @builder.append_str :void
-            __sb_9 :?
+            __sb_8 :?
             " tail.len=" :string
           @builder.append_str :void
-            __sb_9 :?
+            __sb_8 :?
             call :string
               callee:
                 to_string :string
@@ -151,20 +154,20 @@
                 LoweredArrayLen
           ~>
             @builder.finish :string
-              __sb_9 :?
-    let __tup_10: i32[] = arr :i32[]
+              __sb_8 :?
+    let __tup_9: i32[] = arr :i32[]
     let short: i32[] =
       array :i32[]
-    let __i_11: usize = int(3) :usize
+    let __i_10: usize = int(3) :usize
     loop while (<…>)
       LoweredArrayPush
       assign
         target:
-          __i_11 :usize
+          __i_10 :usize
         value:
           add :usize
             l:
-              __i_11 :usize
+              __i_10 :usize
             r:
               int(1) :usize
     call :void
@@ -172,13 +175,13 @@
         println :fn(string) -> void
       arg0:
         block :string
-          let __sb_12: ? =
+          let __sb_11: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_12 :?
+            __sb_11 :?
             "short.len=" :string
           @builder.append_str :void
-            __sb_12 :?
+            __sb_11 :?
             call :string
               callee:
                 to_string :string
@@ -186,42 +189,45 @@
                 LoweredArrayLen
           ~>
             @builder.finish :string
-              __sb_12 :?
+              __sb_11 :?
     block :void
-      let __for_arr_13: i32[] = short :i32[]
-      let __for_len_14: usize =
-        LoweredArrayLen
-      let __for_i_15: usize = int(0) :usize
-      loop while (<…>)
-        let x: i32 =
-          index :i32
-            on:
-              __for_arr_13 :i32[]
-            ix:
-              __for_i_15 :usize
-        call :void
-          callee:
-            println :fn(string) -> void
-          arg0:
-            block :string
-              let __sb_16: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_16 :?
-                "  " :string
-              @builder.append_display <for i32> :void
-                __sb_16 :?
-                x :i32
-              ~>
-                @builder.finish :string
-                  __sb_16 :?
-        assign
-          target:
-            __for_i_15 :usize
-          value:
-            add :usize
-              l:
-                __for_i_15 :usize
-              r:
-                int(1) :usize
+      let __iter_12: ArrayIterator(i32) =
+        ArrayIterator(i32) {
+          arr: short :i32[]
+          cursor: int(0) :usize
+        }
+      loop
+        let __step_13: Yield(i32) | null =
+          call :Yield(i32) | null
+            callee:
+              next :?
+            arg0:
+              __iter_12 :ArrayIterator(i32)
+        if :void
+          cond:
+            is null :bool
+              __step_13 :Yield(i32) | null
+          then:
+            break
+          else:
+            let x: i32 =
+              .value :i32
+                cast → Yield(i32)
+                  __step_13 :Yield(i32) | null
+            call :void
+              callee:
+                println :fn(string) -> void
+              arg0:
+                block :string
+                  let __sb_14: ? =
+                    @builder.new :?
+                  @builder.append_str :void
+                    __sb_14 :?
+                    "  " :string
+                  @builder.append_display <for i32> :void
+                    __sb_14 :?
+                    x :i32
+                  ~>
+                    @builder.finish :string
+                      __sb_14 :?
     return int(0) :i32

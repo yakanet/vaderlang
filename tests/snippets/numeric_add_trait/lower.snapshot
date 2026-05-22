@@ -30,21 +30,27 @@
               b :i32
         r:
           c :i32
-  fn tests_snippets_numeric_add_trait__main_vader$tests_snippets_numeric_add_trait__main_vader$double__i32(x: Any) -> Any
+  fn tests_snippets_numeric_add_trait__main_vader$tests_snippets_numeric_add_trait__main_vader$double__i32(x: i32) -> i32
     ~>
-      vcall Add.add :Any
-        recv:
-          x :Any
+      call :i32
+        callee:
+          add :i32
         arg0:
-          x :Any
-  fn tests_snippets_numeric_add_trait__main_vader$tests_snippets_numeric_add_trait__main_vader$triple__i32(x: Any) -> Any
+          x :i32
+        arg1:
+          x :i32
+  fn tests_snippets_numeric_add_trait__main_vader$tests_snippets_numeric_add_trait__main_vader$triple__i32(x: i32) -> i32
     ~>
-      vcall Add.add :Any
-        recv:
-          vcall Add.add :Any
-            recv:
-              x :Any
+      call :i32
+        callee:
+          add :i32
+        arg0:
+          call :i32
+            callee:
+              add :i32
             arg0:
-              x :Any
-        arg0:
-          x :Any
+              x :i32
+            arg1:
+              x :i32
+        arg1:
+          x :i32

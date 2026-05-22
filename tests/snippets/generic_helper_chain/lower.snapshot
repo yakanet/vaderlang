@@ -45,32 +45,51 @@
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
-  struct tests_snippets_generic_helper_chain__main_vader$Box__Any { value: Any }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__i32 { value: Any }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__string { value: Any }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__Box_i32_ { value: Any }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__Box_string_ { value: Any }
-  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__Any(x: Any) -> Any
-    return x :Any
-  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__Any(x: Any) -> Box(Any)
+  struct tests_snippets_generic_helper_chain__main_vader$Box__i32 { value: i32 }
+  struct tests_snippets_generic_helper_chain__main_vader$Box__string { value: string }
+  struct tests_snippets_generic_helper_chain__main_vader$Box__Box_i32_ { value: Box(i32) }
+  struct tests_snippets_generic_helper_chain__main_vader$Box__Box_string_ { value: Box(string) }
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__i32(x: i32) -> i32
+    return x :i32
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$inner__string(x: string) -> string
+    return x :string
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__i32(x: i32) -> Box(i32)
     return
-      Box(Any) {
+      Box(i32) {
         value:
-          call :Any
+          call :i32
             callee:
-              inner :Any
+              inner :i32
             arg0:
-              x :Any
+              x :i32
       }
-  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__i32(x: Any) -> Box(Box(Any))
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$middle__string(x: string) -> Box(string)
     return
-      Box(Box(Any)) {
+      Box(string) {
         value:
-          call :Box(Any)
+          call :string
             callee:
-              middle :Box(Any)
+              inner :string
             arg0:
-              x :Any
+              x :string
       }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__Any { value: Any }
-  struct tests_snippets_generic_helper_chain__main_vader$Box__Box_Any { value: Any }
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__i32(x: i32) -> Box(Box(i32))
+    return
+      Box(Box(i32)) {
+        value:
+          call :Box(i32)
+            callee:
+              middle :Box(i32)
+            arg0:
+              x :i32
+      }
+  fn tests_snippets_generic_helper_chain__main_vader$tests_snippets_generic_helper_chain__main_vader$outer__string(x: string) -> Box(Box(string))
+    return
+      Box(Box(string)) {
+        value:
+          call :Box(string)
+            callee:
+              middle :Box(string)
+            arg0:
+              x :string
+      }

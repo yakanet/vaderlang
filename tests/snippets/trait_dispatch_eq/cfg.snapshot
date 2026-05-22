@@ -41,35 +41,35 @@ fn tests_snippets_trait_dispatch_eq__main_vader$main() -> i32
     %16 = binop add %15 %14 :i32
     return %16
 
-fn tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq__main_vader$both_equal__i32(%0: Any, %1: Any, %2: Any) -> i32
+fn tests_snippets_trait_dispatch_eq__main_vader$tests_snippets_trait_dispatch_eq__main_vader$both_equal__i32(%0: i32, %1: i32, %2: i32) -> i32
   locals:
-    %0 a: Any (param a)
-    %1 b: Any (param b)
-    %2 c: Any (param c)
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 c: i32 (param c)
     %3 n: i32 (local n)
-    %4 $vcall_5: bool
+    %4 $eq_5: bool
     %5 $k_6: i32
-    %6 $vcall_8: bool
+    %6 $eq_8: bool
     %7 $k_9: i32
-    %8 $vcall_11: bool
+    %8 $eq_11: bool
     %9 $k_12: i32
   bb0:
     %3 = const int(0) :i32
-    %4 = vcall Equals.equals(recv=%0, %1) :bool
+    %4 = binop eq %0 %1 :bool
     cond_branch %4 ? bb1 : bb2
   bb1:
     %5 = const int(1) :i32
     %3 = binop add %3 %5 :i32
     branch -> bb2
   bb2:
-    %6 = vcall Equals.equals(recv=%0, %2) :bool
+    %6 = binop eq %0 %2 :bool
     cond_branch %6 ? bb3 : bb4
   bb3:
     %7 = const int(10) :i32
     %3 = binop add %3 %7 :i32
     branch -> bb4
   bb4:
-    %8 = vcall Equals.equals(recv=%1, %2) :bool
+    %8 = binop eq %1 %2 :bool
     cond_branch %8 ? bb5 : bb6
   bb5:
     %9 = const int(100) :i32

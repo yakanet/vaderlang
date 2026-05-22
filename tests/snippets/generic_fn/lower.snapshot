@@ -54,9 +54,9 @@
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
-  fn tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$identity__i32(x: Any) -> Any
-    return x :Any
-  fn tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$first__i32(arr: Any[], fallback: Any) -> Any
+  fn tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$identity__i32(x: i32) -> i32
+    return x :i32
+  fn tests_snippets_generic_fn__main_vader$tests_snippets_generic_fn__main_vader$first__i32(arr: i32[], fallback: i32) -> i32
     if :void
       cond:
         gt :bool
@@ -66,9 +66,9 @@
             int(0) :usize
       then:
         return
-          index :Any
+          index :i32
             on:
-              arr :Any[]
+              arr :i32[]
             ix:
               int(0) :i32
-    return fallback :Any
+    return fallback :i32

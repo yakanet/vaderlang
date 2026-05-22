@@ -90,50 +90,49 @@
             @builder.finish :string
               __sb_2 :?
     return int(0) :i32
-  struct tests_snippets_generic_struct__main_vader$Stack__i32 { data: Any[], size: i32 }
-  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$push__i32(self: Stack(Any), value: Any) -> void
+  struct tests_snippets_generic_struct__main_vader$Stack__i32 { data: i32[], size: i32 }
+  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$push__i32(self: Stack(i32), value: i32) -> void
     LoweredArrayPush
     assign
       target:
         .size :i32
-          self :Stack(Any)
+          self :Stack(i32)
       value:
         add :i32
           l:
             .size :i32
-              self :Stack(Any)
+              self :Stack(i32)
           r:
             int(1) :i32
-  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$pop__i32(self: Stack(Any)) -> Any
+  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$pop__i32(self: Stack(i32)) -> i32
     assign
       target:
         .size :i32
-          self :Stack(Any)
+          self :Stack(i32)
       value:
         sub :i32
           l:
             .size :i32
-              self :Stack(Any)
+              self :Stack(i32)
           r:
             int(1) :i32
     return
-      index :Any
+      index :i32
         on:
-          .data :Any[]
-            self :Stack(Any)
+          .data :i32[]
+            self :Stack(i32)
         ix:
           .size :i32
-            self :Stack(Any)
-  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$len__i32(self: Stack(Any)) -> i32
+            self :Stack(i32)
+  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$len__i32(self: Stack(i32)) -> i32
     return
       .size :i32
-        self :Stack(Any)
-  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$is_empty__i32(self: Stack(Any)) -> bool
+        self :Stack(i32)
+  fn tests_snippets_generic_struct__main_vader$Stack$Stackable$is_empty__i32(self: Stack(i32)) -> bool
     return
       eq :bool
         l:
           .size :i32
-            self :Stack(Any)
+            self :Stack(i32)
         r:
           int(0) :i32
-  struct tests_snippets_generic_struct__main_vader$Stack__Any { data: Any[], size: i32 }

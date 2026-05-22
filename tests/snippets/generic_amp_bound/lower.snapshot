@@ -17,9 +17,9 @@
         arg1:
           int(2) :i32
     return b :i32
-  fn tests_snippets_generic_amp_bound__main_vader$tests_snippets_generic_amp_bound__main_vader$needs_add__string(x: Any) -> Any
+  fn tests_snippets_generic_amp_bound__main_vader$tests_snippets_generic_amp_bound__main_vader$needs_add__string(x: string) -> string
     ~>
-      x :Any
-  fn tests_snippets_generic_amp_bound__main_vader$tests_snippets_generic_amp_bound__main_vader$bar__i32__i32(key: Any, value: Any) -> Any
+      x :string
+  fn tests_snippets_generic_amp_bound__main_vader$tests_snippets_generic_amp_bound__main_vader$bar__i32__i32(key: i32, value: i32) -> i32
     ~>
-      value :Any
+      value :i32

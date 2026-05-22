@@ -13,51 +13,60 @@ fn tests_snippets_tuple_for_destructure__main_vader$main() -> i32
     %6 $k_6: string
     %7 $k_7: i32
     %8 $struct_8: [string, i32]
-    %9 __for_arr_0: [string, i32][] (synthetic __for_arr_0)
-    %10 __for_len_1: usize (synthetic __for_len_1)
-    %11 __for_i_2: usize (synthetic __for_i_2)
-    %12 $lt_16: bool
-    %13 __tup_3: [string, i32] (synthetic __tup_3)
-    %14 k: string (local k)
-    %15 v: i32 (local v)
-    %16 $intrinsic_24: ?
-    %17 __sb_4: ? (synthetic __sb_4)
-    %18 $k_26: string
-    %19 $intrinsic_27: string
-    %20 $k_28: usize
-    %21 $k_30: i32
+    %9 pairs: [string, i32][] (local pairs)
+    %10 $k_11: usize
+    %11 __iter_0: ArrayIterator([string, i32]) (synthetic __iter_0)
+    %12 $call_14: Yield([string, i32]) | null
+    %13 __step_1: Yield([string, i32]) | null (synthetic __step_1)
+    %14 $type_check_16: bool
+    %15 $cast_17: Yield([string, i32])
+    %16 __tup_2: [string, i32] (synthetic __tup_2)
+    %17 k: string (local k)
+    %18 v: i32 (local v)
+    %19 $intrinsic_25: ?
+    %20 __sb_3: ? (synthetic __sb_3)
+    %21 $k_27: string
+    %22 $intrinsic_28: string
+    %23 $k_29: i32
   bb0:
     %0 = const string(#0) :string
     %1 = const int(1) :i32
-    %2 = struct_new[stack] [string, i32](%0, %1)
+    %2 = struct_new [string, i32](%0, %1)
     %3 = const string(#1) :string
     %4 = const int(2) :i32
-    %5 = struct_new[stack] [string, i32](%3, %4)
+    %5 = struct_new [string, i32](%3, %4)
     %6 = const string(#2) :string
     %7 = const int(3) :i32
-    %8 = struct_new[stack] [string, i32](%6, %7)
-    %9 = array_new[stack] [string, i32][][3](%2, %5, %8)
-    %10 = array_len %9
-    %11 = const int(0) :usize
+    %8 = struct_new [string, i32](%6, %7)
+    %9 = array_new [string, i32][][3](%2, %5, %8)
+    %10 = const int(0) :usize
+    %11 = struct_new ArrayIterator([string, i32])(%9, %10)
     branch -> bb1
   bb1:
-    %12 = binop lt %11 %10 :bool
-    cond_branch %12 ? bb2 : bb3
+    branch -> bb2
   bb2:
-    %13 = array_get %9[%11] :[string, i32]
-    %14 = field_get %13._0 :string
-    %15 = field_get %13._1 :i32
-    %16 = intrinsic builder.new()
-    %17 = move %16
-    intrinsic builder.append_display(%17, %14)
-    %18 = const string(#3) :string
-    intrinsic builder.append_str(%17, %18)
-    intrinsic builder.append_display(%17, %15)
-    %19 = intrinsic builder.finish(%17)
-    call println(%19) :void
-    %20 = const int(1) :usize
-    %11 = binop add %11 %20 :usize
-    branch -> bb1
+    %12 = call next(%11) :Yield([string, i32]) | null
+    %13 = move %12
+    %14 = type_check %13 is null
+    cond_branch %14 ? bb4 : bb5
   bb3:
-    %21 = const int(0) :i32
-    return %21
+    %23 = const int(0) :i32
+    return %23
+  bb4:
+    branch -> bb3
+  bb5:
+    %15 = cast %13 :Yield([string, i32])
+    %16 = field_get %15.value :[string, i32]
+    %17 = field_get %16._0 :string
+    %18 = field_get %16._1 :i32
+    %19 = intrinsic builder.new()
+    %20 = move %19
+    intrinsic builder.append_display(%20, %17)
+    %21 = const string(#3) :string
+    intrinsic builder.append_str(%20, %21)
+    intrinsic builder.append_display(%20, %18)
+    %22 = intrinsic builder.finish(%20)
+    call println(%22) :void
+    branch -> bb6
+  bb6:
+    branch -> bb1

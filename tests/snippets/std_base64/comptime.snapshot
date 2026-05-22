@@ -1,27 +1,3 @@
 # Comptime
 
-## stdlib/std/base64.vader
-  @comptime  ALPHABET             = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-
-## stdlib/std/core.vader
-
-## stdlib/std/io.vader
-
 ## tests/snippets/std_base64/_main.vader
-
-## generic instances
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  Into(Target)

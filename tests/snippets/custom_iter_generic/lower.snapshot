@@ -51,50 +51,50 @@
             @builder.finish :string
               __sb_2 :?
     return int(0) :i32
-  struct tests_snippets_custom_iter_generic__main_vader$Repeat__i32 { value: Any, remaining: i32 }
-  fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$next__i32(self: Repeat(Any)) -> null | Yield(Any)
+  struct tests_snippets_custom_iter_generic__main_vader$Repeat__i32 { value: i32, remaining: i32 }
+  fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$next__i32(self: Repeat(i32)) -> null | Yield(i32)
     if :void
       cond:
         lte :bool
           l:
             .remaining :i32
-              self :Repeat(Any)
+              self :Repeat(i32)
           r:
             int(0) :i32
       then:
         return null
-    let v: Any =
-      .value :Any
-        self :Repeat(Any)
+    let v: i32 =
+      .value :i32
+        self :Repeat(i32)
     assign
       target:
         .remaining :i32
-          self :Repeat(Any)
+          self :Repeat(i32)
       value:
         sub :i32
           l:
             .remaining :i32
-              self :Repeat(Any)
+              self :Repeat(i32)
           r:
             int(1) :i32
     return
-      Yield(Any) {
-        value: v :Any
+      Yield(i32) {
+        value: v :i32
       }
-  fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$is_empty__i32(self: Repeat(Any)) -> bool
+  fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$is_empty__i32(self: Repeat(i32)) -> bool
     ~>
       block :bool
-        let __scrut_0: null | Yield(Any) =
-          call :null | Yield(Any)
+        let __scrut_0: null | Yield(i32) =
+          call :null | Yield(i32)
             callee:
-              next :null | Yield(Any)
+              next :null | Yield(i32)
             arg0:
-              self :Repeat(Any)
+              self :Repeat(i32)
         ~>
           if :bool
             cond:
               is null :bool
-                __scrut_0 :null | Yield(Any)
+                __scrut_0 :null | Yield(i32)
             then:
               ~>
                 true
@@ -102,31 +102,31 @@
               ~>
                 if :bool
                   cond:
-                    is Yield(Any) :bool
-                      __scrut_0 :null | Yield(Any)
+                    is Yield(i32) :bool
+                      __scrut_0 :null | Yield(i32)
                   then:
                     ~>
                       false
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :bool
-  fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$count__i32(self: Repeat(Any)) -> usize
+  fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$count__i32(self: Repeat(i32)) -> usize
     let total: usize = int(0) :usize
     let finished: bool = false
     loop while (<…>)
       ~>
         block :void
-          let __scrut_0: null | Yield(Any) =
-            call :null | Yield(Any)
+          let __scrut_0: null | Yield(i32) =
+            call :null | Yield(i32)
               callee:
-                next :null | Yield(Any)
+                next :null | Yield(i32)
               arg0:
-                self :Repeat(Any)
+                self :Repeat(i32)
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield(Any)
+                  __scrut_0 :null | Yield(i32)
               then:
                 ~>
                   block :void
@@ -139,8 +139,8 @@
                 ~>
                   if :void
                     cond:
-                      is Yield(Any) :bool
-                        __scrut_0 :null | Yield(Any)
+                      is Yield(i32) :bool
+                        __scrut_0 :null | Yield(i32)
                     then:
                       ~>
                         block :void
@@ -157,23 +157,23 @@
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return total :usize
-  fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$last__i32(self: Repeat(Any)) -> Any | null
-    let result: Any | null = null
+  fn tests_snippets_custom_iter_generic__main_vader$Repeat$Iterator$last__i32(self: Repeat(i32)) -> i32 | null
+    let result: i32 | null = null
     let finished: bool = false
     loop while (<…>)
       ~>
         block :void
-          let __scrut_0: null | Yield(Any) =
-            call :null | Yield(Any)
+          let __scrut_0: null | Yield(i32) =
+            call :null | Yield(i32)
               callee:
-                next :null | Yield(Any)
+                next :null | Yield(i32)
               arg0:
-                self :Repeat(Any)
+                self :Repeat(i32)
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield(Any)
+                  __scrut_0 :null | Yield(i32)
               then:
                 ~>
                   block :void
@@ -186,22 +186,21 @@
                 ~>
                   if :void
                     cond:
-                      is Yield(Any) :bool
-                        __scrut_0 :null | Yield(Any)
+                      is Yield(i32) :bool
+                        __scrut_0 :null | Yield(i32)
                     then:
-                      let y: Yield(Any) =
-                        cast → Yield(Any)
-                          __scrut_0 :null | Yield(Any)
+                      let y: Yield(i32) =
+                        cast → Yield(i32)
+                          __scrut_0 :null | Yield(i32)
                       ~>
                         block :void
                           assign
                             target:
-                              result :Any | null
+                              result :i32 | null
                             value:
-                              .value :Any
-                                y :Yield(Any)
+                              .value :i32
+                                y :Yield(i32)
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    return result :Any | null
-  struct tests_snippets_custom_iter_generic__main_vader$Repeat__Any { value: Any, remaining: i32 }
+    return result :i32 | null
