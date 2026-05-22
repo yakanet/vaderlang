@@ -13,7 +13,8 @@
 // Move, CondBranch, …) keep the value local. Allocs with no escaping
 // reachable use are marked `stack: true` for downstream codegen.
 
-import "std/collections" { MutableMap, MutableSet, keys, values }
+import "std/collections" { MutableMap, MutableSet, keys, values, add }
+import "std/iter" { slice }
 import "vader/midir/cfg" {
     BasicBlock, BlockId, CFGFunction, CFGModule, CFGProject,
     Instruction, LocalId, Terminator,
@@ -96,7 +97,8 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     for b in fn_.blocks {
         for ins in b.instructions {
             match ins {
-                is InstrStructNew as s -> { alloc_locals.add(s.dst) ; struct_news.push(s.dst) }
+                is InstrStructNew as s -> { alloc_locals.add(s.dst)
+                struct_news.push(s.dst) }
                 is InstrArrayNew  as a -> { alloc_locals.add(a.dst) }
                 _ -> {}
             }
@@ -118,8 +120,9 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
         stack_origin.add(dst)
         worklist.push(dst)
     }
-    while worklist.len() > usize(0) {
-        src :: worklist.pop()
+    for worklist.len() > usize(0) {
+        src :: worklist[worklist.len() - 1]
+        worklist = worklist.slice(0, worklist.len() - 1)
         consumers :: res.alias_from[src]
         match consumers {
             is null -> {}
@@ -132,7 +135,8 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
                         _ -> {
                             all_stack := true
                             for s in sources {
-                                if !stack_origin.contains(s) { all_stack = false ; break }
+                                if !stack_origin.contains(s) { all_stack = false
+                break }
                             }
                             if all_stack {
                                 stack_origin.add(dst)
@@ -154,9 +158,11 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
         for ins in b.instructions {
             match ins {
                 is InstrStructNew as s -> {
-                    if !alloc_locals.contains(s.dst) { new_instrs.push(s) ; continue }
+                    if !alloc_locals.contains(s.dst) { new_instrs.push(s)
+                continue }
                     new_stack :: !res.escaping.contains(s.dst) && !carried.contains(s.dst)
-                    if new_stack == s.stack { new_instrs.push(s) ; continue }
+                    if new_stack == s.stack { new_instrs.push(s)
+                continue }
                     block_mutated = true
                     new_instrs.push(InstrStructNew {
                         .span   = s.span, .dst = s.dst, .type = s.type,
@@ -164,9 +170,11 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
                     })
                 }
                 is InstrArrayNew as a -> {
-                    if !alloc_locals.contains(a.dst) { new_instrs.push(a) ; continue }
+                    if !alloc_locals.contains(a.dst) { new_instrs.push(a)
+                continue }
                     new_stack :: !res.escaping.contains(a.dst) && !carried.contains(a.dst)
-                    if new_stack == a.stack { new_instrs.push(a) ; continue }
+                    if new_stack == a.stack { new_instrs.push(a)
+                continue }
                     block_mutated = true
                     new_instrs.push(InstrArrayNew {
                         .span     = a.span, .dst = a.dst, .type = a.type,
@@ -175,7 +183,8 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
                 }
                 is InstrFieldSet as f -> {
                     barrierless :: stack_origin.contains(f.target)
-                    if barrierless == f.barrierless { new_instrs.push(f) ; continue }
+                    if barrierless == f.barrierless { new_instrs.push(f)
+                continue }
                     block_mutated = true
                     new_instrs.push(InstrFieldSet {
                         .span = f.span, .target = f.target, .field = f.field,
@@ -185,7 +194,8 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
                 _ -> { new_instrs.push(ins) }
             }
         }
-        if !block_mutated { new_blocks.push(b) ; continue }
+        if !block_mutated { new_blocks.push(b)
+                continue }
         mutated = true
         new_blocks.push(BasicBlock {
             .id = b.id, .instructions = new_instrs, .terminator = b.terminator, .span = b.span,
@@ -217,6 +227,7 @@ compute_carried_across_loop_headers :: fn(
     // Seed : intersect liveIn[header] with locals defined in the loop body.
     for header in keys(loops) {
         body :: loops[header]
+        if body is null { continue }
         defs_in_body :: MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } }
         for b_id in keys(body.inner) {
             block :: fn_.blocks[b_id]
@@ -236,8 +247,9 @@ compute_carried_across_loop_headers :: fn(
     // Backward-propagate via alias_of.
     work: LocalId[] = []
     for l in keys(carried.inner) { work.push(l) }
-    while work.len() > usize(0) {
-        cur :: work.pop()
+    for work.len() > usize(0) {
+        cur :: work[work.len() - 1]
+        work = work.slice(0, work.len() - 1)
         producers :: alias_of[cur]
         match producers {
             is null -> {}
@@ -272,16 +284,23 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet(LocalId)) -> E
                 is InstrMove      as m -> { record_alias(alias_of, alias_from, m.dst, m.src) }
                 is InstrCast      as c -> { record_alias(alias_of, alias_from, c.dst, c.value) }
                 is InstrFieldSet  as f -> { escaping.add(f.value) }
-                is InstrArraySet  as a -> { escaping.add(a.value) ; escaping.add(a.target) }
-                is InstrArrayPush as a -> { escaping.add(a.value) ; escaping.add(a.target) }
+                is InstrArraySet  as a -> { escaping.add(a.value)
+                escaping.add(a.target) }
+                is InstrArrayPush as a -> { escaping.add(a.value)
+                escaping.add(a.target) }
                 is InstrArraySlice as s -> {
-                    escaping.add(s.target) ; escaping.add(s.lo) ; escaping.add(s.hi)
+                    escaping.add(s.target)
+                escaping.add(s.lo)
+                escaping.add(s.hi)
                 }
                 is InstrCellNew  as c -> { escaping.add(c.value) }
-                is InstrCellSet  as c -> { escaping.add(c.value) ; escaping.add(c.cell) }
+                is InstrCellSet  as c -> { escaping.add(c.value)
+                escaping.add(c.cell) }
                 is InstrCall          as c -> { for a in c.args { escaping.add(a) } }
-                is InstrCallIndirect  as c -> { escaping.add(c.callee) ; for a in c.args { escaping.add(a) } }
-                is InstrVirtualCall   as c -> { escaping.add(c.receiver) ; for a in c.args { escaping.add(a) } }
+                is InstrCallIndirect  as c -> { escaping.add(c.callee)
+                for a in c.args { escaping.add(a) } }
+                is InstrVirtualCall   as c -> { escaping.add(c.receiver)
+                for a in c.args { escaping.add(a) } }
                 is InstrIntrinsic     as c -> { for a in c.args { escaping.add(a) } }
                 is InstrMakeClosure   as c -> { escaping.add(c.env) }
                 is InstrStructNew     as s -> { for f in s.fields { append_alias(alias_of, s.dst, f) } }
@@ -303,8 +322,9 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet(LocalId)) -> E
     // Backward propagation : if dst escapes and aliases src, src escapes too.
     work: LocalId[] = []
     for l in keys(escaping.inner) { work.push(l) }
-    while work.len() > usize(0) {
-        cur :: work.pop()
+    for work.len() > usize(0) {
+        cur :: work[work.len() - 1]
+        work = work.slice(0, work.len() - 1)
         sources :: alias_of[cur]
         match sources {
             is null -> {}

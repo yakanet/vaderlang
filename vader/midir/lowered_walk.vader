@@ -32,23 +32,30 @@ import "vader/lower/lowered_ast" {
 
 /// Per-symbol-reference callback. DCE accumulates the reachable
 /// symbol set on each visit.
-export RefVisitor :: fn(i32) -> void
+export RefVisitor :: fn(sym_id: i32) -> void
 
 /// Concrete struct-instance callback. Keyed on
 /// `${symbol.id}|${canonical_args_key(args)}` — see `struct_inst_key`.
-export StructInstVisitor :: fn(string) -> void
+export StructInstVisitor :: fn(key: string) -> void
 
 /// Per-LoweredVirtualCall callback. Receives the trait + method names ;
 /// DCE wires them to a `(trait, method) → impl-fn-symbols` index.
-export VirtualCallVisitor :: fn(string, string) -> void
+export VirtualCallVisitor :: fn(trait_name: string, method_name: string) -> void
 
 /// Visitor bundle threaded through the walk. The virtual + struct-inst
 /// channels are optional — DCE uses both ; lighter callers may pass
 /// `null` for either.
+///
+/// NB: the fn-typed fields are spelled inline (rather than reusing the
+/// `RefVisitor` / `StructInstVisitor` / `VirtualCallVisitor` aliases
+/// above) because the Vader self-host typechecker currently mis-infers
+/// `ctx.<aliased-fn-field>(...)` as `? | void` instead of `void`,
+/// which breaks `match`-tail inference in every fn that walks the
+/// bundle. The aliases stay for external call-site signatures.
 export WalkCtx :: struct {
-    visit:             RefVisitor
-    visit_virtual:     VirtualCallVisitor | null
-    visit_struct_inst: StructInstVisitor | null
+    visit:             fn(i32) -> void
+    visit_virtual:     (fn(string, string) -> void) | null
+    visit_struct_inst: (fn(string) -> void) | null
 }
 
 /// Canonical key for a concrete struct instance — shared between
@@ -64,10 +71,8 @@ export for_each_reference :: fn(decl: LoweredDecl, ctx: WalkCtx) -> void {
         is LoweredFnDecl as d -> {
             for p in d.params { walk_type(p.type, ctx) }
             walk_type(d.return_type, ctx)
-            match d.body {
-                is null -> {}
-                _ -> { walk_block(d.body, ctx) }
-            }
+            body :: d.body
+            if body != null { walk_block(body, ctx) }
         }
         is LoweredStructDecl as d -> {
             for f in d.fields { walk_type(f.type, ctx) }
@@ -82,10 +87,8 @@ export for_each_reference :: fn(decl: LoweredDecl, ctx: WalkCtx) -> void {
 walk_block :: fn(b: LoweredBlock, ctx: WalkCtx) -> void {
     walk_type(b.type, ctx)
     for s in b.stmts { walk_stmt(s, ctx) }
-    match b.trailing {
-        is null -> {}
-        _ -> { walk_expr(b.trailing, ctx) }
-    }
+    trailing :: b.trailing
+    if trailing != null { walk_expr(trailing, ctx) }
 }
 
 walk_stmt :: fn(s: LoweredStmt, ctx: WalkCtx) -> void {
@@ -100,16 +103,12 @@ walk_stmt :: fn(s: LoweredStmt, ctx: WalkCtx) -> void {
         }
         is LoweredExprStmt as st -> { walk_expr(st.expr, ctx) }
         is LoweredReturn as st -> {
-            match st.value {
-                is null -> {}
-                _ -> { walk_expr(st.value, ctx) }
-            }
+            value :: st.value
+            if value != null { walk_expr(value, ctx) }
         }
         is LoweredLoop as st -> {
-            match st.cond {
-                is null -> {}
-                _ -> { walk_expr(st.cond, ctx) }
-            }
+            cond :: st.cond
+            if cond != null { walk_expr(cond, ctx) }
             walk_block(st.body, ctx)
         }
         is LoweredBreak    -> {}
@@ -131,10 +130,8 @@ walk_expr :: fn(e: LoweredExpr, ctx: WalkCtx) -> void {
             for a in c.args { walk_expr(a, ctx) }
         }
         is LoweredVirtualCall as v -> {
-            match ctx.visit_virtual {
-                is null -> {}
-                _ -> { ctx.visit_virtual(v.trait_name, v.method) }
-            }
+            visit_virtual :: ctx.visit_virtual
+            if visit_virtual != null { visit_virtual(v.trait_name, v.method) }
             walk_expr(v.receiver, ctx)
             for a in v.args { walk_expr(a, ctx) }
         }
@@ -151,10 +148,8 @@ walk_expr :: fn(e: LoweredExpr, ctx: WalkCtx) -> void {
         is LoweredIf as ie -> {
             walk_expr(ie.cond, ctx)
             walk_block(ie.then_block, ctx)
-            match ie.else_block {
-                is null -> {}
-                _ -> { walk_block(ie.else_block, ctx) }
-            }
+            else_block :: ie.else_block
+            if else_block != null { walk_block(else_block, ctx) }
         }
         is LoweredBlock as bl -> { walk_block(bl, ctx) }
         is LoweredStructLit as sl -> {
@@ -180,10 +175,8 @@ walk_expr :: fn(e: LoweredExpr, ctx: WalkCtx) -> void {
         }
         is LoweredIntrinsicCall as ic -> {
             for a in ic.args { walk_expr(a, ctx) }
-            match ic.display_for {
-                is null -> {}
-                _ -> { walk_type(ic.display_for, ctx) }
-            }
+            display_for :: ic.display_for
+            if display_for != null { walk_type(display_for, ctx) }
         }
         is LoweredCellNew as cn -> {
             walk_expr(cn.value, ctx)
@@ -216,21 +209,24 @@ walk_expr :: fn(e: LoweredExpr, ctx: WalkCtx) -> void {
         is LoweredCharLit      -> {}
         is LoweredStringLit    -> {}
         is LoweredUnreachable  -> {}
+        _ -> {}
     }
 }
 
 walk_type :: fn(t: Type, ctx: WalkCtx) -> void {
-    for_each_type(t, (sub: Type) -> {
-        match sub {
-            is StructType as s -> {
-                ctx.visit(s.symbol.id)
-                match ctx.visit_struct_inst {
-                    is null -> {}
-                    _ -> { ctx.visit_struct_inst(struct_inst_key(s.symbol.id, s.args)) }
-                }
+    for_each_type(t, (sub: Type) -> visit_type_node(sub, ctx))
+}
+
+visit_type_node :: fn(sub: Type, ctx: WalkCtx) -> void {
+    match sub {
+        is StructType as s -> {
+            ctx.visit(s.symbol.id)
+            visit_struct_inst :: ctx.visit_struct_inst
+            if visit_struct_inst != null {
+                visit_struct_inst(struct_inst_key(s.symbol.id, s.args))
             }
-            is TraitType as r -> { ctx.visit(r.symbol.id) }
-            _ -> {}
         }
-    })
+        is TraitType as tt -> { ctx.visit(tt.symbol.id) }
+        _ -> {}
+    }
 }

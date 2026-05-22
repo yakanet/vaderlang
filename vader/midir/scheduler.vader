@@ -22,7 +22,7 @@
 // upper bound on instruction count ; 1 000 000 keeps a 32-bit signed
 // budget for blocks up to ~2 000 with that many instructions each.
 
-import "std/collections" { MutableMap, MutableSet }
+import "std/collections" { MutableMap, MutableSet, add }
 import "vader/midir/cfg" {
     BasicBlock, BlockId, CFGFunction, Instruction, LocalId, Terminator,
     TermBranch, TermCondBranch, TermReturn, TermUnreachable,
@@ -148,9 +148,12 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
         is InstrMove         as i -> { return i.src }
         is InstrBinOp        as i -> { return i.lhs }
         is InstrUnOp         as i -> { return i.operand }
-        is InstrCall         as i -> { if i.args.len() > usize(0) { return i.args[0] } ; return null }
-        is InstrCallIndirect as i -> { if i.args.len() > usize(0) { return i.args[0] } ; return i.callee }
-        is InstrVirtualCall  as i -> { if i.args.len() > usize(0) { return i.args[0] } ; return i.receiver }
+        is InstrCall         as i -> { if i.args.len() > usize(0) { return i.args[0] }
+            return null }
+        is InstrCallIndirect as i -> { if i.args.len() > usize(0) { return i.args[0] }
+            return i.callee }
+        is InstrVirtualCall  as i -> { if i.args.len() > usize(0) { return i.args[0] }
+            return i.receiver }
         is InstrFieldGet     as i -> { return i.target }
         is InstrFieldSet     as i -> { return i.target }
         is InstrArrayGet     as i -> { return i.target }
@@ -158,15 +161,18 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
         is InstrArrayLen     as i -> { return i.target }
         is InstrArrayPush    as i -> { return i.target }
         is InstrArraySlice   as i -> { return i.target }
-        is InstrStructNew    as i -> { if i.fields.len() > usize(0) { return i.fields[0] } ; return null }
-        is InstrArrayNew     as i -> { if i.elements.len() > usize(0) { return i.elements[0] } ; return null }
+        is InstrStructNew    as i -> { if i.fields.len() > usize(0) { return i.fields[0] }
+            return null }
+        is InstrArrayNew     as i -> { if i.elements.len() > usize(0) { return i.elements[0] }
+            return null }
         is InstrTypeCheck    as i -> { return i.value }
         is InstrCast         as i -> { return i.value }
         is InstrCellNew      as i -> { return i.value }
         is InstrCellGet      as i -> { return i.cell }
         is InstrCellSet      as i -> { return i.cell }
         is InstrMakeClosure  as i -> { return i.env }
-        is InstrIntrinsic    as i -> { if i.args.len() > usize(0) { return i.args[0] } ; return null }
+        is InstrIntrinsic    as i -> { if i.args.len() > usize(0) { return i.args[0] }
+            return null }
     }
 }
 

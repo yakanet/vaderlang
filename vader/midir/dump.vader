@@ -7,7 +7,8 @@
 // structure.
 
 import "std/collections" { values }
-import "std/string_builder" { StringBuilder, new_builder }
+import "std/string_builder" { StringBuilder, new_builder, append }
+import "vader/resolver/symbol" { kind_name }
 import "vader/typecheck/types" { display_type }
 import "vader/midir/cfg" {
     BasicBlock, CFGFunction, CFGProject, ConstValue, Instruction, LocalId,
@@ -27,7 +28,7 @@ export DumpCfgOptions :: struct {
     /// When non-null, modules whose `display_path` returns false are
     /// skipped. Snapshot tests use this to elide stdlib so the captured
     /// output stays focused on the user snippet.
-    include_module: fn(string) -> bool | null
+    include_module: (fn(string) -> bool) | null
     /// When false, the project-level string pool is not appended.
     include_strings: bool
 }
@@ -73,7 +74,7 @@ dump_function :: fn(fn_: CFGFunction, sb: StringBuilder) -> void {
         sb.append("    %${i} ${l.name}: ${display_type(l.type)}")
         match l.symbol {
             is null -> {}
-            _ -> { sb.append(" (${l.symbol.kind} ${l.symbol.name})") }
+            _ -> { sb.append(" (${kind_name(l.symbol.kind)} ${l.symbol.name})") }
         }
         sb.append("\n")
     }

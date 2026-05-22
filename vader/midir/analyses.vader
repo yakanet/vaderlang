@@ -11,7 +11,8 @@
 // calls). `instruction_has_side_effect` keeps DCE from dropping ops
 // whose dst is unread but whose execution observably mutates state.
 
-import "std/collections" { MutableMap, MutableSet, keys }
+import "std/collections" { MutableMap, MutableSet, keys, add }
+import "std/iter" { slice }
 import "vader/midir/cfg" {
     BasicBlock, BlockId, CFGFunction, Instruction, LocalId, Terminator,
     TermBranch, TermCondBranch, TermReturn, TermUnreachable,
@@ -73,18 +74,44 @@ export for_each_read_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -
         is InstrConst        -> {}
         is InstrFnRef        -> {}
         is InstrMove         as i -> { visit(i.src) }
-        is InstrBinOp        as i -> { visit(i.lhs); visit(i.rhs) }
+        is InstrBinOp        as i -> {
+            visit(i.lhs)
+            visit(i.rhs)
+        }
         is InstrUnOp         as i -> { visit(i.operand) }
         is InstrCall         as i -> { for a in i.args { visit(a) } }
-        is InstrCallIndirect as i -> { visit(i.callee); for a in i.args { visit(a) } }
-        is InstrVirtualCall  as i -> { visit(i.receiver); for a in i.args { visit(a) } }
+        is InstrCallIndirect as i -> {
+            visit(i.callee)
+            for a in i.args { visit(a) }
+        }
+        is InstrVirtualCall  as i -> {
+            visit(i.receiver)
+            for a in i.args { visit(a) }
+        }
         is InstrFieldGet     as i -> { visit(i.target) }
-        is InstrFieldSet     as i -> { visit(i.target); visit(i.value) }
-        is InstrArrayGet     as i -> { visit(i.target); visit(i.index) }
-        is InstrArraySet     as i -> { visit(i.target); visit(i.index); visit(i.value) }
+        is InstrFieldSet     as i -> {
+            visit(i.target)
+            visit(i.value)
+        }
+        is InstrArrayGet     as i -> {
+            visit(i.target)
+            visit(i.index)
+        }
+        is InstrArraySet     as i -> {
+            visit(i.target)
+            visit(i.index)
+            visit(i.value)
+        }
         is InstrArrayLen     as i -> { visit(i.target) }
-        is InstrArrayPush    as i -> { visit(i.target); visit(i.value) }
-        is InstrArraySlice   as i -> { visit(i.target); visit(i.lo); visit(i.hi) }
+        is InstrArrayPush    as i -> {
+            visit(i.target)
+            visit(i.value)
+        }
+        is InstrArraySlice   as i -> {
+            visit(i.target)
+            visit(i.lo)
+            visit(i.hi)
+        }
         is InstrStructNew    as i -> { for f in i.fields { visit(f) } }
         is InstrArrayNew     as i -> { for e in i.elements { visit(e) } }
         is InstrTypeCheck    as i -> { visit(i.value) }
@@ -93,7 +120,10 @@ export for_each_read_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -
         is InstrCast         as i -> { visit(i.value) }
         is InstrCellNew      as i -> { visit(i.value) }
         is InstrCellGet      as i -> { visit(i.cell) }
-        is InstrCellSet      as i -> { visit(i.cell); visit(i.value) }
+        is InstrCellSet      as i -> {
+            visit(i.cell)
+            visit(i.value)
+        }
         is InstrMakeClosure  as i -> { visit(i.env) }
         is InstrIntrinsic    as i -> { for a in i.args { visit(a) } }
     }
@@ -126,7 +156,7 @@ export natural_loop_bodies :: fn(
 ) -> MutableMap(BlockId, MutableSet(BlockId)) {
     out :: MutableMap(BlockId, MutableSet(BlockId)) { .buckets = [], .size = 0 }
     for h in 0..<fn_.blocks.len() {
-        h_id :: BlockId(h)
+        h_id :: i32(h)
         back_edge_sources: BlockId[] = []
         for p in preds[h] {
             if dominates(idom, h_id, p) { back_edge_sources.push(p) }
@@ -136,8 +166,9 @@ export natural_loop_bodies :: fn(
         body.add(h_id)
         stack: BlockId[] = []
         for s in back_edge_sources { stack.push(s) }
-        while stack.len() > usize(0) {
-            cur :: stack.pop()
+        for stack.len() > usize(0) {
+            cur :: stack[stack.len() - 1]
+            stack = stack.slice(0, stack.len() - 1)
             if body.contains(cur) { continue }
             body.add(cur)
             for p in preds[cur] {
@@ -184,7 +215,7 @@ export reverse_postorder :: fn(fn_: CFGFunction) -> BlockId[] {
     // Reverse in place.
     out: BlockId[] = []
     i := order.len()
-    while i > usize(0) {
+    for i > usize(0) {
         i = i - 1
         out.push(order[i])
     }
@@ -208,7 +239,7 @@ export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
     idom[fn_.entry] = fn_.entry
     rpo :: reverse_postorder(fn_)
     changed := true
-    while changed {
+    for changed {
         changed = false
         for b in rpo {
             if b == fn_.entry { continue }
@@ -238,14 +269,14 @@ export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
 export intersect_dom_tree :: fn(a: BlockId, b: BlockId, idom: i32[]) -> BlockId {
     seen :: MutableSet(i32) { .inner = MutableMap(i32, bool) { .buckets = [], .size = 0 } }
     x := a
-    while x != -1 && !seen.contains(x) {
+    for x != -1 && !seen.contains(x) {
         seen.add(x)
         next :: idom[x]
         if next == x { break }
         x = next
     }
     y := b
-    while y != -1 {
+    for y != -1 {
         if seen.contains(y) { return y }
         next :: idom[y]
         if next == y { break }
@@ -258,7 +289,7 @@ export intersect_dom_tree :: fn(a: BlockId, b: BlockId, idom: i32[]) -> BlockId 
 /// through `a`). Walks `b`'s idom chain.
 export dominates :: fn(idom: i32[], a: BlockId, b: BlockId) -> bool {
     cur := b
-    while cur != -1 {
+    for cur != -1 {
         if cur == a { return true }
         next :: idom[cur]
         if next == cur { return cur == a }
@@ -312,10 +343,10 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     }
 
     changed := true
-    while changed {
+    for changed {
         changed = false
         i := n
-        while i > usize(0) {
+        for i > usize(0) {
             i = i - 1
             out :: MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } }
             for s in succs[i] {
@@ -324,8 +355,14 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
             in_set :: MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } }
             for l in keys(use_[i].inner) { in_set.add(l) }
             for l in keys(out.inner) { if !def_[i].contains(l) { in_set.add(l) } }
-            if !sets_equal(out, live_out[i]) { live_out[i] = out; changed = true }
-            if !sets_equal(in_set, live_in[i]) { live_in[i] = in_set; changed = true }
+            if !sets_equal(out, live_out[i]) {
+                live_out[i] = out
+                changed = true
+            }
+            if !sets_equal(in_set, live_in[i]) {
+                live_in[i] = in_set
+                changed = true
+            }
         }
     }
     return Liveness { .live_in = live_in, .live_out = live_out }
