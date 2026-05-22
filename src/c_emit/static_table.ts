@@ -166,12 +166,26 @@ function detectStaticTable(m: BytecodeModule, fn: BcFunction): StaticTableInfo |
   const isPrimResult = !isStructResult && (PRIMITIVE_VALS.has(resultVal) || resultVal === "string");
   if (!isStructResult && !isPrimResult) return null;
 
-  // 2. Locate the synthetic scrut local.
+  // 2. Locate the scrutinee local. Two shapes :
+  //   - `local.get 0 ; local.set N` — match introduces a synthetic scrut
+  //     copy ; scrut lives in slot N (where N > 0).
+  //   - `local.get 0 ; <const> ...` — `propagateLocalAlias` (peephole
+  //     Rule 7) elided the synthetic copy ; the param itself is the
+  //     scrutinee, so scrut lives in slot 0. Without this branch the
+  //     detector silently skipped every `match` over a param scrutinee
+  //     and the C emit fell back to the deeply-nested if/else cascade.
   const body = fn.body;
   if (body.length < 4) return null;
   if (body[0]!.kind !== "local.get" || body[0]!.slot !== 0) return null;
-  if (body[1]!.kind !== "local.set") return null;
-  const scrutSlot = body[1]!.slot;
+  let scrutSlot: number;
+  let ip: number;
+  if (body[1]!.kind === "local.set") {
+    scrutSlot = body[1]!.slot;
+    ip = 2;
+  } else {
+    scrutSlot = 0;
+    ip = 0;
+  }
 
   // 3. Walk the cascade. Two arm-body shapes are accepted :
   //  - "return" form : arm = `<consts>; (struct.new)?; return` — the fn is
@@ -186,7 +200,6 @@ function detectStaticTable(m: BytecodeModule, fn: BcFunction): StaticTableInfo |
   const cases: Array<{ k: bigint; bodyOps: Op[] }> = [];
   let defaultBodyOps: Op[] | null = null;
   let armShape: "return" | "set" | null = null;
-  let ip = 2;
   let resultStructIdx: number | null = null;
 
   while (true) {

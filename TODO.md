@@ -702,31 +702,67 @@ queries + closure-analysis pass land on the typechecker side.
         `LoweredArraySlice` (zero-copy view).
       - `<namespace>.foo(args)` collapses to direct `foo(args)` call.
 
-#### Deferred until typecheck-side support lands
+- [x] **Phase 5g** — Continued byte-match chantier (2026-05-19) : raised
+      lower.snapshot byte-match rate from 67 / 226 to 181 / 226 over
+      ~25 commits, then settled at **148 / 226** after the typecheck /
+      midir / c-emit perf chantiers reshaped surrounding stages. Major
+      pieces in order :
+      - Iter-chain fusion (`arr.map(f).filter(p)` collapses to a single
+        loop), virtual-call dispatch on trait-typed receivers, free-fn
+        UFCS detection, monomorphizer port + per-call generic instance
+        registration, monomorphized struct decl emission.
+      - Literal context-typing for union annotations, generic-fn
+        unification through tuple types, `@size_of` / `@align_of` /
+        `@type_name` / `@type_kind` static folds, Into coercion at
+        return + struct-lit field sites.
+      - Final 2026-05-19 batch in commit `70a904ef` : `BinaryOp.Mod`
+        routes to the `Rem.rem` trait method, `@satisfies(T, Trait)`
+        folds to a literal bool, TypeMeta-typed idents reify via
+        `alias_types` + `primitive_from_name` to `LoweredTypeConst`,
+        `@type_of` / `@type_args` fold at lower time, runtime
+        `@size_of(x: type)` routes through the dedicated
+        `size_of.type` intrinsic, else-less `if` voidifies the then
+        block (trailing → stmt), `find_free_fn_ufcs` scans aliased
+        imports + cross-module `fn_overloads`, `lower_ident` follows
+        named import-bindings to their target symbol, `type_surface_name`
+        canonicalises array (`[]`) / tuple (`()`) and treats a
+        TypeParam first param as a wildcard receiver, unsigned literal
+        widths print non-negated in the dump.
 
-- [ ] **`Cell(T)` heap promotion** — captured locals need to round
-      through a 1-slot heap box so multiple closures + the enclosing
-      fn observe the same mutable slot. `helpers.vader::lower_cell_init`
-      stub is in place ; wire it into `lower_let` for captured
-      symbols + emit `LoweredCellGet` in `lower_ident` when reading
-      a captured slot. Phase 5d's closure-analysis output already
-      identifies the relevant symbols via `captured_symbols`.
-- [ ] **for-in / Iterator step loop** — `for x in iter` collapses to
-      an Iterator step-loop dispatched through the impl table. Needs
-      `impl_by_trait` / `lookupImplFor` queries on `TypedProject` ;
-      neither is wired on the Vader typechecker yet.
-- [ ] **try** — `expr?` early-return on error variants. Needs
-      `Error`-trait impl queries (same blocker as for-in).
-- [ ] **Display / Into coercion** — non-primitive `${expr}` in string
-      interpolation routes through `<T>.Display.to_string` and
-      blanket `Into(Target)` impls. Same `impl_by_trait` blocker.
+#### Closed by 5g + downstream chantiers
+
+- [x] **for-in / Iterator step loop** — landed in Phase 5e/5g via
+      `vader/lower/lower_for_in.vader` + `impl_by_trait` queries on
+      the entry typed program. Raw-array for-in skips `ArrayIterator`
+      entirely (commit `aa2dc5ce`).
+- [x] **try** — `expr?` lowering in `vader/lower/lower_try.vader`
+      consumes the `Error`-trait impl set via `find_impl_for`.
+- [x] **Display / Into coercion** — non-primitive interpolation
+      segments route through `<T>.Display.to_string` ; Into coercions
+      fire at let / return / struct-lit / call-arg sites
+      (`try_emit_into_coercion` in `lower_expr.vader`).
+
+#### Still open
+
+- [ ] **`Cell(T)` heap promotion** — closure analysis identifies the
+      capture set (`ClosureAnalysis.captured_symbols`) but
+      `lower_let` / `lower_ident` don't yet emit `LoweredCellNew` /
+      `LoweredCellGet` ; mutable closure variables observe stale
+      copies until this lands. Stub `helpers.vader::lower_cell_init`
+      is in place.
 - [ ] **Inline-consts pass** — post-lowering const substitution +
       data-pool routing. No upstream blocker, but lands alongside the
       bytecode-emit chantier where the data pool actually matters.
-- [ ] **Snapshot flip** — `tests/snapshot.test.ts` still consumes
-      TS's `dumpLower`. Flip to a `dumpLowerViaVader` helper when the
-      Vader output is close enough to TS to regenerate the ~226
-      `lower.snapshot` fixtures without massive churn.
+- [ ] **Snapshot flip** — `tests/snapshot.test.ts:22` still consumes
+      TS's `dumpLower`. Current byte-match is 148 / 226 ; the
+      remaining diffs cluster around comptime VM execution
+      (`square_call`, `interp_string_comptime`, `file_decorator`),
+      `let t :: i32` in-fn type aliases (no `let_type_aliases` table
+      ported yet), defer in nested blocks, and a handful of
+      direct-call-overload retypings. Flip when this rate climbs into
+      the 200+ range, regenerate the ~226 `lower.snapshot` fixtures
+      from `dumpLowerViaVader`, and document any TS-correct
+      divergences in the section below.
 
 #### TS divergences (Vader is correct)
 
