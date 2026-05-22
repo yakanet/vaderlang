@@ -830,6 +830,7 @@ import "std/testing" { assert_eq }
         .modules      = MutableMap(string, LoadedModule) { .buckets = [], .size = 0 },
         .factory      = new_factory(),
         .project_root = null,
+        .diags        = [],
     }
     evaluated :: EvaluatedProject {
         .typed        = new_typed_project(),

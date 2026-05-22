@@ -208,8 +208,45 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
     self.auto_bind_for_type_params(d.for_type)
     self.walk_expr(d.for_type)
     for ta in d.trait_args { self.walk_expr(ta) }
+    // R2007 / R2009 on the trait name : the resolver knows whether
+    // `trait_name` resolves to anything and whether what it resolves
+    // to is actually a Trait symbol. Mirrors `src/resolver/resolve.ts:222`.
+    trait_sym :: self.scope.lookup(d.trait_name)
+    match trait_sym {
+        is null -> {
+            self.diags.push(resolver_error(.UnresolvedTypeName, d.trait_name_span,
+                "`${d.trait_name}`"))
+        }
+        is Symbol as s -> {
+            if i32(s.kind) != i32(SymbolKind.Trait) {
+                self.diags.push(resolver_error(.TraitNameNotATrait, d.trait_name_span,
+                    "`${d.trait_name}` is a ${kind_label(s.kind)}"))
+            }
+        }
+    }
     for m in d.members { self.walk_fn_decl(m) }
     self.scope.pop()
+}
+
+/// Short label for a SymbolKind, used in detail strings of R2009.
+/// Wording matches `Symbol.kind` lower-case names so the diagnostic
+/// reads as "Foo is a struct" / "Bar is a fn" / etc.
+kind_label :: fn(k: SymbolKind) -> string = match k {
+    .Fn            -> "fn"
+    .Struct        -> "struct"
+    .Enum          -> "enum"
+    .Trait         -> "trait"
+    .Impl          -> "impl"
+    .TypeAlias     -> "type-alias"
+    .Const         -> "const"
+    .ImportBinding -> "import-binding"
+    .Param         -> "param"
+    .TypeParam     -> "type-param"
+    .Local         -> "local"
+    .Binding       -> "binding"
+    .BuiltinType   -> "builtin-type"
+    .BuiltinFn     -> "builtin-fn"
+    .Synthetic     -> "synthetic"
 }
 
 auto_bind_for_type_params :: fn(self: ResolveState, t: AST.TypeExpr) -> void {
@@ -226,8 +263,24 @@ auto_bind_for_type_params :: fn(self: ResolveState, t: AST.TypeExpr) -> void {
 
 walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
     for d in decs {
+        if !is_known_decorator(d.name) {
+            self.diags.push(resolver_error(.UnknownDecorator, d.span, "`@${d.name}`"))
+        }
         for a in d.args { self.walk_expr(a) }
     }
+}
+
+/// Whitelist mirroring `src/parser/decorators.ts::KNOWN_DECORATORS`.
+/// Update both sides together when SPEC §12 grows a new decorator.
+is_known_decorator :: fn(name: string) -> bool {
+    return name == "comptime" ||
+        name == "extern" ||
+        name == "export" ||
+        name == "test" ||
+        name == "intrinsic" ||
+        name == "deprecated" ||
+        name == "assert" ||
+        name == "specialize"
 }
 
 walk_opt_expr :: fn(self: ResolveState, e: AST.Expr | null) -> void {

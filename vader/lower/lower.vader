@@ -1289,6 +1289,7 @@ import "vader/comptime" { new_evaluated_project }
         .modules      = MutableMap(string, LoadedModule) { .buckets = [], .size = 0 },
         .factory      = factory_for_test(),
         .project_root = null,
+        .diags        = [],
     }
     typed :: new_typed_project()
     evaluated :: new_evaluated_project(typed)

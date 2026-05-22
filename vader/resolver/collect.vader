@@ -5,15 +5,16 @@
 // emits multi-name destructure imports (`import "m" { a, b, c }` → 3
 // `import-binding` symbols) and groups fn overloads.
 //
-// Diagnostics (R2004 duplicate, R2011 import shadow, R2019 reserved name)
-// are TODO — the `ResolverCode` enum doesn't exist yet ; this pass
-// silently first-wins on duplicates today and re-uses parity gating to
-// keep it honest until the diag codes land.
+// Emits R2002 (empty import path), R2004 (duplicate top-level), R2011
+// (duplicate import binding), plus the import-path resolution codes
+// R2001/R2024/R2025/R2028 via `resolve_import_path`. The body walker
+// downstream emits R2006/R2019, and `wire_imports` covers R2003/R2008.
 
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "vader/diagnostics" { Span }
+import "std/string" { starts_with }
+import "vader/diagnostics" { Diagnostic, Span, resolver_error }
 import "vader/parser" {
     Program, Decl, ImportDecl, FnDecl, StructDecl, EnumDecl, TraitDecl,
     ImplDecl, TypeAliasDecl, ConstDecl, AssertDecl, Visibility,
@@ -39,8 +40,17 @@ export CollectedModule :: struct {
 /// Mint top-level symbols for `program`. Order of insertion mirrors source
 /// order so downstream consumers (the body walker, the dump) see a stable
 /// layout independent of MutableMap bucket hashing.
+///
+/// `module_name` is the *declared* module identifier (e.g. `"std/io"`),
+/// not the absolute folder path — used by `resolve_import_path` to
+/// detect self-imports (R2024). `index` is the project-wide module
+/// table built by `discover_modules` ; an empty `MutableMap` (no
+/// loader) disables import-path resolution and is used by mono-file
+/// callers (e.g. legacy `resolve_module` tests).
 export collect_module :: fn(
-    program: Program, module_path: string, factory: SymbolFactory,
+    program: Program, module_path: string, module_name: string,
+    factory: SymbolFactory,
+    index: MutableMap(string, DiscoveredModule), diags: Diagnostic[],
 ) -> CollectedModule {
     out :: CollectedModule {
         .symbols      = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
@@ -49,20 +59,35 @@ export collect_module :: fn(
         .import_paths = [],
     }
     for d in program.decls {
-        out.collect_decl(d, module_path, factory)
+        out.collect_decl(d, module_path, module_name, factory, index, diags)
     }
     return out
 }
 
-collect_decl :: fn(self: CollectedModule, d: Decl, module_path: string, factory: SymbolFactory) -> void {
+/// Mono-file convenience : pre-strict-mode callers that don't have a
+/// module index. Skips import-path resolution (R2001 / R2024 / R2025 /
+/// R2028) and duplicate-binding emission ; still mints symbols.
+export collect_module_no_index :: fn(
+    program: Program, module_path: string, factory: SymbolFactory,
+) -> CollectedModule {
+    empty_index :: MutableMap(string, DiscoveredModule) { .buckets = [], .size = 0 }
+    discard: Diagnostic[] = []
+    return collect_module(program, module_path, module_path, factory, empty_index, discard)
+}
+
+collect_decl :: fn(
+    self: CollectedModule, d: Decl, module_path: string, module_name: string,
+    factory: SymbolFactory,
+    index: MutableMap(string, DiscoveredModule), diags: Diagnostic[],
+) -> void {
     match d {
-        is ImportDecl    as x -> { self.collect_import(x, module_path, factory) }
+        is ImportDecl    as x -> { self.collect_import(x, module_path, module_name, factory, index, diags) }
         is FnDecl        as x -> { self.add_fn(x, module_path, factory) }
-        is StructDecl    as x -> { self.add_named(.Struct,    x.name, x.name_span, x.visibility, module_path, factory) }
-        is EnumDecl      as x -> { self.add_named(.Enum,      x.name, x.name_span, x.visibility, module_path, factory) }
-        is TraitDecl     as x -> { self.add_named(.Trait,     x.name, x.name_span, x.visibility, module_path, factory) }
-        is TypeAliasDecl as x -> { self.add_named(.TypeAlias, x.name, x.name_span, x.visibility, module_path, factory) }
-        is ConstDecl     as x -> { self.add_named(.Const,     x.name, x.name_span, x.visibility, module_path, factory) }
+        is StructDecl    as x -> { self.add_named(.Struct,    x.name, x.name_span, x.visibility, module_path, factory, diags) }
+        is EnumDecl      as x -> { self.add_named(.Enum,      x.name, x.name_span, x.visibility, module_path, factory, diags) }
+        is TraitDecl     as x -> { self.add_named(.Trait,     x.name, x.name_span, x.visibility, module_path, factory, diags) }
+        is TypeAliasDecl as x -> { self.add_named(.TypeAlias, x.name, x.name_span, x.visibility, module_path, factory, diags) }
+        is ConstDecl     as x -> { self.add_named(.Const,     x.name, x.name_span, x.visibility, module_path, factory, diags) }
         is ImplDecl  -> {}   // contributes methods to a type, not new top-level names
         is AssertDecl -> {}  // @assert doesn't introduce a name
     }
@@ -107,11 +132,17 @@ add_fn :: fn(self: CollectedModule, d: FnDecl, module_path: string, factory: Sym
 add_named :: fn(
     self: CollectedModule, kind: SymbolKind, name: string, name_span: Span,
     visibility: Visibility, module_path: string, factory: SymbolFactory,
+    diags: Diagnostic[],
 ) -> void {
-    // First-wins on duplicates ; diagnostic emission is TODO (see file header).
+    // First-wins on duplicates ; later occurrences raise R2004 mirroring
+    // `src/resolver/collect.ts:124`. Non-fn-vs-non-fn collision only ;
+    // fn overload buckets handle the multi-decl case via `add_fn`.
     existing :: self.symbols[name]
     match existing {
-        is Symbol -> {}
+        is Symbol -> {
+            diags.push(resolver_error(.DuplicateTopLevelSymbol, name_span,
+                "`${name}` already declared in this module"))
+        }
         is null   -> {
             sym :: factory.make(kind, name, module_path, visibility, name_span)
             self.symbols[name] = sym
@@ -121,14 +152,28 @@ add_named :: fn(
 
 /// Imports introduce one local-name binding each. Named-namespace imports
 /// yield one (the namespace name) ; destructure imports yield one per
-/// binding (matches TS one-symbol-per-name behaviour).
-collect_import :: fn(self: CollectedModule, d: ImportDecl, module_path: string, factory: SymbolFactory) -> void {
-    self.import_paths.push(d.path)
+/// binding (matches TS one-symbol-per-name behaviour). Empty paths trip
+/// R2002 ; the path itself is run through `diagnose_import_path` for
+/// R2001 / R2024 / R2025 / R2028.
+collect_import :: fn(
+    self: CollectedModule, d: ImportDecl, module_path: string,
+    module_name: string, factory: SymbolFactory,
+    index: MutableMap(string, DiscoveredModule), diags: Diagnostic[],
+) -> void {
+    if d.path == "" {
+        diags.push(resolver_error(.EmptyImportPath, d.span, ""))
+    } else {
+        self.import_paths.push(d.path)
+        // Don't dispatch on the (string | null) result here — its sole
+        // role is to fire the loader-side diagnostics ; the actual
+        // binding still lands in `imports` for the wire pass.
+        _ :: diagnose_import_path(d.path, d.span, module_name, index, diags)
+    }
     b :: d.binding
     match b {
         is NamedNamespaceImport as ns -> {
             // `name :: import "p"` — namespace binding ; imported_name = null.
-            self.bind_import(ns.name, d.span, d.path, null, module_path, factory)
+            self.bind_import(ns.name, d.span, d.path, null, module_path, factory, diags)
         }
         is DestructureImport as de -> {
             for n in de.names {
@@ -138,7 +183,7 @@ collect_import :: fn(self: CollectedModule, d: ImportDecl, module_path: string, 
                 }
                 // `import "p" { foo as bar }` — imported_name is `foo`,
                 // local binding is `bar` (or `foo` if no alias).
-                self.bind_import(local, n.span, d.path, n.name, module_path, factory)
+                self.bind_import(local, n.span, d.path, n.name, module_path, factory, diags)
             }
         }
     }
@@ -148,11 +193,21 @@ bind_import :: fn(
     self: CollectedModule, local: string, span: Span,
     import_path: string, imported_name: string | null,
     module_path: string, factory: SymbolFactory,
+    diags: Diagnostic[],
 ) -> void {
-    // First-wins ; R2011 (import shadow) is TODO.
     existing :: self.symbols[local]
     match existing {
-        is Symbol -> {}
+        is Symbol as e -> {
+            // R2011 fires only when the prior binding is itself an
+            // import (collision import↔import). Local fn-vs-import
+            // collisions are intentional — `add_fn` swaps an import
+            // out of the primary slot so unqualified refs hit the
+            // local fn ; we mustn't flag that legitimate case here.
+            if i32(e.kind) == i32(SymbolKind.ImportBinding) {
+                diags.push(resolver_error(.DuplicateImportBinding, span,
+                    "`${local}`"))
+            }
+        }
         is null   -> {
             sym :: factory.make(.ImportBinding, local, module_path, .Private, span)
             self.symbols[local] = sym
@@ -160,6 +215,41 @@ bind_import :: fn(
                 .path = import_path,
                 .imported_name = imported_name,
             }
+        }
+    }
+}
+
+/// Resolve `import "name"` against the project-wide module index.
+/// Emits R2025 (relative path), R2024 (self-import), R2028 (explicit
+/// `std/core`), R2001 (unknown module) on the respective failure
+/// paths. Returns the resolved folder, or null when the lookup
+/// failed.
+diagnose_import_path :: fn(
+    raw_path: string, span: Span, from_module_name: string,
+    index: MutableMap(string, DiscoveredModule), diags: Diagnostic[],
+) -> string | null {
+    if starts_with(raw_path, "./") || starts_with(raw_path, "../") {
+        diags.push(resolver_error(.RelativeImportRemoved, span, "`${raw_path}`"))
+        return null
+    }
+    if raw_path == from_module_name {
+        diags.push(resolver_error(.SelfImport, span, "`${raw_path}`"))
+        return null
+    }
+    if raw_path == "std/core" && from_module_name != "std/core" {
+        diags.push(resolver_error(.ExplicitCorePreludeImport, span, ""))
+        return null
+    }
+    // Empty index = mono-file caller (no module graph) ; skip the
+    // module-not-found check so legacy single-file tests aren't
+    // flooded with R2001 they never used to see.
+    if index.size == usize(0) { return null }
+    target :: index[raw_path]
+    match target {
+        is DiscoveredModule as dm -> { return dm.folder }
+        is null -> {
+            diags.push(resolver_error(.ModuleNotFound, span, "`${raw_path}`"))
+            return null
         }
     }
 }
@@ -178,7 +268,7 @@ main :: fn() -> i32 { return 0 }
 """
     parsed :: parse_source(src, "test.vader")
     factory :: new_factory()
-    collected :: collect_module(parsed.program, "test", factory)
+    collected :: collect_module_no_index(parsed.program, "test", factory)
     greet :: collected.symbols["greet"]
     match greet {
         is Symbol as s -> {
@@ -201,7 +291,7 @@ import "x" { a, b, c }
 """
     parsed :: parse_source(src, "test.vader")
     factory :: new_factory()
-    collected :: collect_module(parsed.program, "test", factory)
+    collected :: collect_module_no_index(parsed.program, "test", factory)
     for name in ["a", "b", "c"] {
         hit :: collected.symbols[name]
         match hit {
@@ -219,7 +309,7 @@ foo :: fn(x: string) -> string { return x }
 """
     parsed :: parse_source(src, "test.vader")
     factory :: new_factory()
-    collected :: collect_module(parsed.program, "test", factory)
+    collected :: collect_module_no_index(parsed.program, "test", factory)
     bucket :: collected.fn_overloads["foo"]
     match bucket {
         is null -> { assert(false, "foo should be in overload bucket") }

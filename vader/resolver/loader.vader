@@ -17,18 +17,41 @@ module "vader/resolver"
 import "std/collections" { MutableMap, keys }
 import "std/io" { exists, is_dir, read_file }
 import "std/string" { byte_at, byte_len, ends_with, slice, starts_with }
-import "vader/diagnostics" { Diagnostic }
+import "vader/diagnostics" { Diagnostic, Position, Span, resolver_error }
 import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source }
 import "vader/resolver/symbol" { SymbolFactory, new_factory }
+
+/// Synthetic 1:1 span anchored on a file path. Used by R2001 when the
+/// entry folder lies outside every scoped root — there is no source-
+/// level token to point at, so the span just records the file.
+///
+/// TODO consolidate with `vader/lexer/token::empty_span(file)` and
+/// `vader/diagnostics::empty_span()` (no-arg, synthetic file). Same
+/// shape, three callers, no shared definition — Vader's overload
+/// resolution picks the no-arg variant when both are in scope which
+/// blocks naive reuse. Land a single `empty_span(file: string)` in
+/// `vader/diagnostics/` and migrate every caller.
+zero_span :: fn(path: string) -> Span {
+    return Span {
+        .start = Position { .file = path, .offset = usize(0), .line = 1, .column = 1 },
+        .end   = Position { .file = path, .offset = usize(0), .line = 1, .column = 1 },
+    }
+}
 
 /// Output of one project load : the entry module's id, the full set
 /// of modules keyed by id, and the shared symbol factory used to
 /// mint every Symbol across modules (so ids stay globally unique).
+///
+/// `diags` collects loader-time diagnostics : R2020/R2022/R2023 from
+/// discover, R2001/R2024/R2025/R2028 from import-path resolution,
+/// R2002/R2004/R2011 from collect, R2005 from cycle detection. CLI
+/// consumers merge these into their `# Diagnostics` block.
 export LoadedProject :: struct {
     entry:        string
     modules:      MutableMap(string, LoadedModule)
     factory:      SymbolFactory
     project_root: string | null
+    diags:        Diagnostic[]
 }
 
 /// One module after parse + collect (top-level symbols minted but
@@ -47,6 +70,7 @@ export LoadedModule :: struct {
 export load_project :: fn(entry_path: string) -> LoadedProject {
     factory :: new_factory()
     modules :: MutableMap(string, LoadedModule) { .buckets = [], .size = 0 }
+    loader_diags: Diagnostic[] = []
     stdlib_root :: default_stdlib_root()
     project_root :: find_manifest_root(entry_path)
     entry_folder :: entry_folder_of(entry_path)
@@ -67,17 +91,17 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
     }
 
     // Header-only scan : index every module under scope by its
-    // declared name. The parsed Programs are NOT retained — full
-    // parsing happens below, lazily, only for modules the BFS visits.
-    discard_diags: Diagnostic[] = []
-    index: MutableMap(string, DiscoveredModule) = discover_modules(scoped_roots, discard_diags)
+    // declared name. R2020/R2022/R2023 land in `loader_diags`.
+    index: MutableMap(string, DiscoveredModule) = discover_modules(scoped_roots, loader_diags)
 
     entry_module :: find_by_folder(index, entry_folder)
     match entry_module {
         is null -> {
+            loader_diags.push(resolver_error(.ModuleNotFound, zero_span(entry_path),
+                "entry file's containing folder is not in any scanned root"))
             return LoadedProject {
                 .entry = entry_folder, .modules = modules, .factory = factory,
-                .project_root = project_root,
+                .project_root = project_root, .diags = loader_diags,
             }
         }
         is DiscoveredModule as em -> {
@@ -95,7 +119,7 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
                 cursor = cursor + usize(1)
                 id :: m.folder
                 if has_module(modules, id) { continue }
-                ingest_module(m, stdlib_root, modules, factory)
+                ingest_module(m, stdlib_root, modules, factory, index, loader_diags)
                 ingested :: modules[id]
                 match ingested {
                     is null -> {}
@@ -114,7 +138,7 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
             }
             return LoadedProject {
                 .entry = em.folder, .modules = modules, .factory = factory,
-                .project_root = project_root,
+                .project_root = project_root, .diags = loader_diags,
             }
         }
     }
@@ -124,15 +148,17 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
 // `load_one` / `collect_files` path : the header-only index records
 // the file *paths*, so we re-read + re-parse here to produce the
 // SourceFile + CollectedModule the resolver / typechecker downstream
-// expect.
+// expect. `index` lets `collect_files` resolve each import path and
+// emit R2001/R2024/R2025/R2028 with the right span.
 ingest_module :: fn(
     m: DiscoveredModule, stdlib_root: string,
     modules: MutableMap(string, LoadedModule), factory: SymbolFactory,
+    index: MutableMap(string, DiscoveredModule), diags: Diagnostic[],
 ) -> void {
     if m.files.len() == 0 { return }
-    sources :: parse_module_files(m.files)
+    sources :: parse_module_files(m.files, diags)
     if sources.len() == 0 { return }
-    collected :: collect_files(sources, m.folder, factory)
+    collected :: collect_files(sources, m.folder, m.name, factory, index, diags)
     modules[m.folder] = LoadedModule {
         .module = Module {
             .id = m.folder, .display_path = display_path_for(m.folder, stdlib_root),
@@ -143,13 +169,14 @@ ingest_module :: fn(
     }
 }
 
-parse_module_files :: fn(paths: string[]) -> SourceFile[] {
+parse_module_files :: fn(paths: string[], diags: Diagnostic[]) -> SourceFile[] {
     out: SourceFile[] = []
     for path in paths {
         content_opt :: read_file(path)
         content :: match content_opt { is string as s -> s, _ -> "" }
         if content == "" { continue }
         parsed :: parse_source(content, path)
+        for e in parsed.errors { diags.push(e) }
         out.push(SourceFile {
             .path       = path,
             .content    = content,
@@ -198,13 +225,17 @@ has_module :: fn(modules: MutableMap(string, LoadedModule), id: string) -> bool 
     return !(modules[id] is null)
 }
 
-collect_files :: fn(files: SourceFile[], module_id: string, factory: SymbolFactory) -> CollectedModule {
+collect_files :: fn(
+    files: SourceFile[], module_id: string, module_name: string,
+    factory: SymbolFactory,
+    index: MutableMap(string, DiscoveredModule), diags: Diagnostic[],
+) -> CollectedModule {
     // Multi-file collect : merge every file's collected view into one
     // module-wide table. Each file mints fresh Symbol ids through the
     // shared factory, so the maps just need their entries union'd.
-    merged :: collect_module(files[0].program, module_id, factory)
+    merged :: collect_module(files[0].program, module_id, module_name, factory, index, diags)
     for i in 1..<files.len() {
-        per_file :: collect_module(files[i].program, module_id, factory)
+        per_file :: collect_module(files[i].program, module_id, module_name, factory, index, diags)
         merge_collected(merged, per_file)
     }
     return merged

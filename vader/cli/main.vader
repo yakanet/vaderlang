@@ -11,7 +11,7 @@
 module "vader/cli"
 
 import "std/io" { println, eprintln, read_file }
-import "std/collections" { keys }
+import "std/collections" { keys, values }
 import "std/string" { starts_with, ends_with }
 import "std/iter" { slice as slice_arr }
 import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
@@ -20,6 +20,7 @@ import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
 import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
 import "vader/resolver" { ResolvedProject, ResolvedModule, resolve_module }
+import "vader/resolver" { LoadedModule, is_stdlib_module, resolve_module_with_collected }
 import "vader/resolver" { dump_project }
 import "vader/typecheck" { check_module_with_bodies, check_project_with_bodies }
 import "vader/typecheck" { CheckResult }
@@ -379,21 +380,44 @@ run_parser_stage :: fn(file: string) -> i32 {
     return 0
 }
 
-// Resolver dump : per-module symbol summary. MVP output covers top-level
-// decls only — fn bodies, imports cross-module wiring and ref counts are
-// added once the resolver walks them.
+// Resolver dump : per-module symbol summary. Output covers every user
+// module the loader pulled in, plus a `# Diagnostics` block at the end
+// that aggregates loader-time R2xxx (R2020/R2022/R2023 from discover,
+// R2001/R2024/R2025/R2028 from import-path resolution, R2002/R2004/
+// R2011 from collect) and per-module body-walker R2xxx (R2006/R2019).
+// Mirrors the TS `dumpResolver` / `formatResolverDump` shape.
 run_resolver_stage :: fn(file: string) -> i32 {
-    src :: read_source(file)
-    if src is null { return 1 }
-    parsed :: parse_source(src, file)
-    factory :: new_factory()
-    rm :: resolve_module(parsed.program, file, factory)
-    project :: ResolvedProject { .modules = [rm] }
-    println(dump_project(project))
-    if parsed.errors.len() > 0 {
-        println(parsed.errors.dump_diagnostics())
-    }
+    project :: load_project(file)
+    resolved :: resolve_loaded_project(project)
+    println(dump_project(resolved))
+    diags :: collect_resolver_diags(project, resolved)
+    if diags.len() > 0 { println(diags.dump_diagnostics()) }
     return 0
+}
+
+// Resolve every loaded module in place. Stdlib modules stay loaded but
+// aren't surfaced in the dump (matches `formatResolverDump` filtering).
+resolve_loaded_project :: fn(project: LoadedProject) -> ResolvedProject {
+    modules: ResolvedModule[] = []
+    for lm in project.modules.values() {
+        if is_stdlib_module(lm.module.display_path) { continue }
+        rm :: resolve_module_with_collected(
+            lm.module.files[0].program, lm.module.display_path,
+            project.factory, lm.collected,
+        )
+        modules.push(rm)
+    }
+    return ResolvedProject { .modules = modules }
+}
+
+// Merge loader-time and body-walker diagnostics into one ordered list.
+// Body diags carry no global span ordering ; concatenated by module-
+// iteration order, mirroring TS's DiagnosticCollector.
+collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) -> Diagnostic[] {
+    all: Diagnostic[] = []
+    for d in project.diags { all.push(d) }
+    for m in resolved.modules { for d in m.diags { all.push(d) } }
+    return all
 }
 
 // Typecheck dump : per-module decl + expression types. MVP output covers
@@ -405,8 +429,14 @@ run_typecheck_stage :: fn(file: string) -> i32 {
     diags: Diagnostic[] = []
     result :: check_project_with_bodies(project, diags)
     println(dump_program_with_others(result.typed, true, result.others))
-    if diags.len() > 0 {
-        println(diags.dump_diagnostics())
+    // Merge loader-time diagnostics (parse / discover / import-path /
+    // collect) so users see them at the typecheck stage too — TS's
+    // `dumpTypecheck` keeps them in the same DiagnosticCollector.
+    merged: Diagnostic[] = []
+    for d in project.diags { merged.push(d) }
+    for d in diags         { merged.push(d) }
+    if merged.len() > 0 {
+        println(merged.dump_diagnostics())
     }
     return 0
 }
@@ -442,12 +472,16 @@ run_lower_stage :: fn(file: string) -> i32 {
     return 0
 }
 
-// Print the merged typecheck + comptime + caller-supplied diags as a
-// single `# Diagnostics` block, matching `dumpLower` in
-// `tests/snapshot.ts`. `typecheck_diags` already includes the
-// resolver-side forward (`orchestrate.vader:168`).
+// Print the merged loader + typecheck + comptime + caller-supplied
+// diags as a single `# Diagnostics` block, matching `dumpLower` in
+// `tests/snapshot.ts`. Order : loader first (parse / discover /
+// import-path / collect), then typecheck (with resolver-side
+// forwards via orchestrate.vader:168), then comptime, then `extra`
+// (the per-stage tail — currently lower).
 print_pipeline_diags :: fn(pipeline: EvaluatedPipeline, extra: Diagnostic[]) -> void {
     all_diags: Diagnostic[] = []
+    for d in pipeline.loaded.diags    { all_diags.push(d) }
+    for d in pipeline.resolver_diags  { all_diags.push(d) }
     for d in pipeline.typecheck_diags { all_diags.push(d) }
     for d in pipeline.comptime_diags  { all_diags.push(d) }
     for d in extra                    { all_diags.push(d) }
@@ -465,12 +499,19 @@ EvaluatedPipeline :: struct {
     loaded:          LoadedProject
     typed:           TypedProject
     evaluated:       EvaluatedProject
+    /// Body-walker R-codes (R2006 / R2019 / R2010 / R2018 / R2016 /
+    /// R2007 / R2009) — populated by resolve_loaded_project so every
+    /// stage downstream sees the same resolver diagnostics.
+    resolver_diags:  Diagnostic[]
     typecheck_diags: Diagnostic[]
     comptime_diags:  Diagnostic[]
 }
 
 prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
     loaded :: load_project(file)
+    resolved :: resolve_loaded_project(loaded)
+    resolver_diags: Diagnostic[] = []
+    for m in resolved.modules { for d in m.diags { resolver_diags.push(d) } }
     typecheck_diags: Diagnostic[] = []
     result :: check_project_with_bodies(loaded, typecheck_diags)
     typed :: assemble_typed_project(result)
@@ -480,6 +521,7 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
         .loaded          = loaded,
         .typed           = typed,
         .evaluated       = evaluated,
+        .resolver_diags  = resolver_diags,
         .typecheck_diags = typecheck_diags,
         .comptime_diags  = comptime_diags,
     }

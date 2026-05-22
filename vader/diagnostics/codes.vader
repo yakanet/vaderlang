@@ -111,7 +111,24 @@ export ParserCode :: enum(u8) {
 // Mirror of `RESOLVER` in `src/diagnostics/codes.ts`. R-codes belong
 // to the resolver pass (name-binding) ; once shipped, never re-used.
 export ResolverCode :: enum(u8) {
+    ModuleNotFound,                         // R2001
+    EmptyImportPath,                        // R2002
+    ImportedNameNotExported,                // R2003
+    DuplicateTopLevelSymbol,                // R2004
+    ImportCycle,                            // R2005
     UnresolvedIdent,                        // R2006
+    UnresolvedTypeName,                     // R2007
+    SymbolNotExported,                      // R2008
+    TraitNameNotATrait,                     // R2009
+    UnknownDecorator,                       // R2010
+    DuplicateImportBinding,                 // R2011
+    ImportShadowsBuiltin,                   // R2012
+    SelfOutsideFirstParam,                  // R2013
+    ManifestMalformed,                      // R2014
+    ModuleFolderEmpty,                      // R2015
+    ShortImplFormSingleMethod,              // R2016
+    FeatureNotYetImplemented,               // R2017
+    OrphanImplForbidden,                    // R2018
     ReservedName,                           // R2019
     // Module-system strict-mode codes (mirror of src/diagnostics/codes.ts).
     ModuleDeclMissing,                      // R2020
@@ -205,7 +222,24 @@ export parser_info :: fn(c: ParserCode) = match c {
 }
 
 export resolver_info :: fn(c: ResolverCode) = match c {
+    .ModuleNotFound                     -> CodeInfo { .id = "R2001", .message = "module not found" }
+    .EmptyImportPath                    -> CodeInfo { .id = "R2002", .message = "import path is empty" }
+    .ImportedNameNotExported            -> CodeInfo { .id = "R2003", .message = "imported name not exported by module" }
+    .DuplicateTopLevelSymbol            -> CodeInfo { .id = "R2004", .message = "duplicate top-level symbol in module" }
+    .ImportCycle                        -> CodeInfo { .id = "R2005", .message = "import cycle detected" }
     .UnresolvedIdent                    -> CodeInfo { .id = "R2006", .message = "unresolved identifier" }
+    .UnresolvedTypeName                 -> CodeInfo { .id = "R2007", .message = "unresolved type name" }
+    .SymbolNotExported                  -> CodeInfo { .id = "R2008", .message = "symbol is not exported from its module" }
+    .TraitNameNotATrait                 -> CodeInfo { .id = "R2009", .message = "trait name does not refer to a trait" }
+    .UnknownDecorator                   -> CodeInfo { .id = "R2010", .message = "decorator unknown to the compiler" }
+    .DuplicateImportBinding             -> CodeInfo { .id = "R2011", .message = "duplicate import binding" }
+    .ImportShadowsBuiltin               -> CodeInfo { .id = "R2012", .message = "imported symbol shadows a builtin" }
+    .SelfOutsideFirstParam              -> CodeInfo { .id = "R2013", .message = "self only valid as the first parameter of a method" }
+    .ManifestMalformed                  -> CodeInfo { .id = "R2014", .message = "vader.json malformed or unreadable" }
+    .ModuleFolderEmpty                  -> CodeInfo { .id = "R2015", .message = "module folder is empty (no .vader files)" }
+    .ShortImplFormSingleMethod          -> CodeInfo { .id = "R2016", .message = "short impl form requires a trait with exactly one method" }
+    .FeatureNotYetImplemented           -> CodeInfo { .id = "R2017", .message = "feature not yet implemented" }
+    .OrphanImplForbidden                -> CodeInfo { .id = "R2018", .message = "orphan impl forbidden" }
     .ReservedName                       -> CodeInfo { .id = "R2019", .message = "`void` is reserved and cannot be used as an identifier" }
     .ModuleDeclMissing                  -> CodeInfo { .id = "R2020", .message = "module declaration missing on first non-trivial line" }
     .DuplicateModuleDecl                -> CodeInfo { .id = "R2021", .message = "more than one module declaration in the same file" }

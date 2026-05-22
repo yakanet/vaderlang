@@ -93,7 +93,7 @@ export ResolvedProject :: struct {
 /// user code ; `idents` includes them because the body walker resolves
 /// every IdentExpr against the full root scope.
 export resolve_module :: fn(program: Program, module_path: string, factory: SymbolFactory) -> ResolvedModule {
-    collected :: collect_module(program, module_path, factory)
+    collected :: collect_module_no_index(program, module_path, factory)
     return resolve_module_with_collected(program, module_path, factory, collected)
 }
 

@@ -117,9 +117,16 @@ function addFnSymbol(
     return;
   }
   if (existing.kind !== "fn") {
-    // Name already taken by a non-fn (e.g. a struct/const). Real conflict —
-    // unless the previous decl lives in a sibling file of the same
-    // folder-module (SPEC §11), in which case silently first-wins.
+    // Name already taken by a non-fn (e.g. a struct/const).
+    // Cross-file : silently first-wins.
+    //   ⚠ Deviation from docs/MODULE_SYSTEM.md §1.6 / decision #28
+    //   which mandates R2026 ("hard error") for non-fn cross-file
+    //   duplicates. Today's self-host carries ~7 such latent collisions
+    //   (`vader/vm/{ScopeEntry,PendingBranch}`, `vader/typecheck/
+    //   {Color,Wrap,Display,Point}`, `vader/lower/CellInit`) that this
+    //   branch masks. Removing the branch requires either renaming the
+    //   latent collisions or revising decision #28.
+    // Intra-file : real conflict, fires R2004.
     if (existing.definedAt !== null && existing.definedAt.start.file !== decl.nameSpan.start.file) return;
     err(input.diags, "R2004", decl.nameSpan, `\`${decl.name}\` already declared in this module`,
       existing.definedAt !== null ? [{ span: existing.definedAt, label: "previous declaration" }] : undefined);
@@ -138,9 +145,9 @@ function addSymbol(
   checkReservedIdent(name, span, input.diags);
   const existing = symbols.get(name);
   if (existing !== undefined) {
-    // A real decl always wins over an import-binding of the same name.
-    // Files are collected in alphabetical order, so a sibling file's
-    // self-import binding (already flagged R2024) can land first and
+    // A real decl wins over an import-binding of the same name. Files are
+    // collected in alphabetical order, so a sibling file's self-import
+    // binding (already flagged R2024 by the resolver) can land first and
     // would otherwise shadow the local export.
     if (existing.kind === "import-binding") {
       symbols.set(name, input.factory.make({
@@ -148,9 +155,8 @@ function addSymbol(
       }));
       return;
     }
-    // Sibling files of a multi-file module share a namespace (§1.6) ;
-    // a cross-file duplicate silently first-wins (matches Vader's
-    // `merge_collected`). Intra-file duplicates still trip R2004.
+    // Cross-file silent first-wins — see `addFnSymbol` for the §1.6
+    // deviation rationale. Intra-file : R2004.
     if (existing.definedAt !== null && existing.definedAt.start.file !== span.start.file) return;
     err(input.diags, "R2004", span, `\`${name}\` already declared in this module`,
       existing.definedAt !== null ? [{ span: existing.definedAt, label: "previous declaration" }] : undefined);
@@ -207,11 +213,9 @@ function bindImport(
   checkReservedIdent(localName, span, input.diags);
   const existing = symbols.get(localName);
   if (existing !== undefined) {
-    // Folder-module : sibling files often re-import the same binding from
-    // the same module. Treat that as idempotent — first import wins, no
-    // diagnostic. Mirrors Vader's `merge_collected` behaviour. Real
-    // shadowing of a non-import binding (e.g. a local fn vs an import)
-    // still trips R2011.
+    // Duplicate import-binding silent first-wins — same §1.5 deviation
+    // as the non-fn branches in `addFnSymbol`. Shadowing a non-import
+    // binding (local fn vs import) still trips R2011.
     if (existing.kind === "import-binding") return;
     err(input.diags, "R2011", span, `\`${localName}\``,
       existing.definedAt !== null ? [{ span: existing.definedAt, label: "previous binding" }] : undefined);

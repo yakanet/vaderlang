@@ -1,8 +1,8 @@
 # Module system redesign
 
-> Status : design (2026-05-22). Implementation gated on user approval of
-> this document. SPEC §11 will be rewritten in Phase 1 as part of the
-> rollout.
+> Status : Phases 1-9 implemented (2026-05-22 → 2026-05-23). Phase 10
+> (TS-vs-Vader byte-diff broad-parity) deferred — see §5 Phase 10 and
+> §8 follow-ups. SPEC §11 rewritten in commit `dfef864f`.
 
 ## 0. Motivation
 
@@ -269,46 +269,44 @@ single-file invocations ergonomic.
 
 ## 3. Diagnostics
 
-New resolver codes (R20xx range) :
+New resolver codes — concrete IDs assigned in commit `a3c6ce0c`,
+mirrored on the Vader side in `33f16f0c` :
 
 | Code  | Trigger | Severity |
 |-------|---------|----------|
-| R20XX | `module` declaration missing on first non-trivial line | error |
-| R20XX | More than one `module` declaration in the same file | error |
-| R20XX | Module name does not match the form grammar (§1.8) | error |
-| R20XX | Two files in the same folder declare different module names | error |
-| R20XX | Two folders declare the same module name globally | error |
-| R20XX | `import "X"` from a file that belongs to module `X` (self-import) | error |
-| R20XX | `import "X"` and `X` does not exist in the index | error |
-| R20XX | `import "./foo"` or `import "../foo"` (relative paths removed) | error |
-| R20XX | Two non-fn top-level decls with the same name in the same module | error |
-| R20XX | `export`ed decl whose signature references a module-private decl | error |
-| R20XX | Two destructured imports of the same name in the same file | error |
-| R20XX | Explicit `import "std/core"` from a non-`std/core` module (duplicate of prelude) | error |
-| R20XX | Import cycle (`A → … → A`) | error |
+| R2020 | `module` declaration missing on first non-trivial line | error |
+| R2021 | More than one `module` declaration in the same file | error |
+| R2022 | Files in the same folder declare different module names | error |
+| R2023 | Two folders declare the same module name globally | error |
+| R2024 | `import "X"` from a file that belongs to module `X` (self-import) | error |
+| R2025 | `import "./foo"` or `import "../foo"` (relative paths removed) | error |
+| R2026 | Duplicate non-fn declaration across files of the same module | error |
+| R2027 | Exported decl whose signature references a module-private decl | error |
+| R2028 | Explicit `import "std/core"` from a non-`std/core` module (duplicate of prelude) | error |
+| R2001 | `import "X"` and `X` does not exist in the index (reused from pre-existing code) | error |
+| R2005 | Import cycle (`A → … → A`) (reused) | error |
+| R2011 | Two destructured imports of the same name in the same file (reused) | error |
 
-The "two folders declare the same module name" diagnostic is emitted
-on the **second** folder encountered during scan, with a secondary
-span pointing at the first occurrence's `module` declaration (mirrors
-the secondary-span pattern of R2011). Scan order is **not** guaranteed
-to be deterministic across platforms or filesystems — diagnostics that
-depend on "first vs second" are stable within an invocation but may
-swap roles between machines. Test fixtures must not rely on a specific
-filesystem traversal order.
+The R2023 "two folders declare the same module name" diagnostic is
+emitted on the **second** folder encountered during scan, with a
+secondary span pointing at the first occurrence's `module` declaration
+(mirrors the secondary-span pattern of R2011). Scan order is **not**
+guaranteed to be deterministic across platforms or filesystems —
+diagnostics that depend on "first vs second" are stable within an
+invocation but may swap roles between machines. Test fixtures must not
+rely on a specific filesystem traversal order.
 
-Exact code numbers (R20XX → concrete IDs) are assigned during Phase 3
-implementation to avoid clashing with codes that may land in unrelated
-work between now and then.
+Parser-level codes (P10xx range) :
 
-Parser-level codes (P1xxx) :
-
-- P1XXX — `module` keyword expected but absent (raised by the parser
-  when the first non-trivial token is not `module`).
-- P1XXX — `module` keyword found but not followed by a string literal
-  (e.g. `module foo`, `module 42`, `module "a" "b"`). The grammar is
-  fixed : `module` is **always** followed by exactly one double-quoted
-  string literal, and nothing else on the line apart from a trailing
-  comment.
+- P1028 — invalid module name (does not match the §1.8 grammar).
+- P1029 — module declaration missing (reserved ; **not yet emitted** —
+  the resolver's R2020 catches missing decls at scan time, which is
+  sufficient today. P1029 is kept reserved for a future strict-flip of
+  the parser if we want the diagnostic to surface earlier in the
+  pipeline).
+- P1030 — module declaration malformed : expected exactly one
+  double-quoted string literal after `module` (reserved ; same status
+  as P1029).
 
 ## 4. Compilation modes
 
@@ -339,7 +337,7 @@ CLI build. So the order is **tolerant parsers first (TS + Vader)**,
 then **mass migration**, then **strict enforcement (resolver +
 parser-flips)**. Each phase is a green-build commit.
 
-### Phase 1 — SPEC.md §11 rewrite
+### Phase 1 — SPEC.md §11 rewrite ✅ done (`dfef864f`)
 
 Replace the current "one folder = one module" wording with the
 semantics from §1 of this document. Document the name form grammar
@@ -347,7 +345,7 @@ semantics from §1 of this document. Document the name form grammar
 (§1.1). Add a short rationale subsection noting that filesystem layout
 no longer determines module identity.
 
-### Phase 2 — Lexer + Parser TS (tolerant mode)
+### Phase 2 — Lexer + Parser TS (tolerant mode) ✅ done (`01f25c17`)
 
 - Lexer (`src/lexer/`) : add `module` to the keyword table.
 - Parser (`src/parser/`) : new `ModuleDecl { name: string, span: Span }`
@@ -364,14 +362,14 @@ Verify : add positive snippets (`module_basic`, `module_with_shebang`,
 `module_invalid_name`, `module_repeated`) land in Phase 7 when the
 strict mode activates.
 
-### Phase 3 — Lexer + Parser Vader self-host (tolerant mode)
+### Phase 3 — Lexer + Parser Vader self-host (tolerant mode) ✅ done (`d60db39d`)
 
 Mirror Phase 2 in `vader/lexer/` and `vader/parser/`. Same AST shape,
 same diagnostic positions. Stays close to the TS source so snapshot
 parity holds. Tolerant mode means the Vader binary built before
 migration continues to parse stdlib and `vader/` files unchanged.
 
-### Phase 4 — Migration stdlib
+### Phase 4 — Migration stdlib ✅ done (`2fb60414`)
 
 Reorganise `stdlib/std/` from flat-files into per-module folders :
 
@@ -399,7 +397,7 @@ Verify : every existing `import "std/X"` across `vader/`, `tests/`,
 tolerant parser ; the resolver still uses the legacy promotion logic
 (removed only in Phase 7).
 
-### Phase 5 — Migration `vader/` self-host
+### Phase 5 — Migration `vader/` self-host ✅ done (`83075a56`)
 
 Add `module "vader/<segment>"` to every `.vader` file under `vader/` :
 
@@ -422,9 +420,9 @@ Note : `vader/cli/main.vader` becomes `module "vader/cli"` (not
 `"main"`) so it doesn't collide globally with `examples/*.vader` (each
 of which uses `module "main"` per §6, scoped in via CLI fallback).
 
-### Phase 6 — Migration snippets + examples + bench + vader.json
+### Phase 6 — Migration snippets + examples + bench + vader.json ✅ done (`e6c88e2d`, `0d3b6ab3`)
 
-- `tests/snippets/*/`_main.vader` : prepend `module "snippet"` to every
+- `tests/snippets/*/_main.vader` : prepend `module "snippet"` to every
   file. ~250 files. Single-file modules — no sibling collision risk
   since each snippet is invoked in isolation (CLI fallback, §2.3).
 - `examples/*.vader` : prepend `module "main"` to every file.
@@ -436,9 +434,17 @@ of which uses `module "main"` per §6, scoped in via CLI fallback).
 
 This phase can be automated by a one-shot migration script.
 
-### Phase 7 — Resolver TS + strict parser flip
+### Phase 7 — Resolver TS + strict parser flip ✅ done (`a3c6ce0c` → `68611417`)
 
 This is the largest TS change. Strict mode activates here.
+
+Resolution of the cycle blocker recorded in §8 : **Path C** (commit
+`cce6cd1f`) extracted `vader/types` + `vader/resolver/symbol` as
+standalone modules so the strict folder-module rule holds across the
+former cyclic boundary. The parser-flip step (P1029/P1030) was
+ultimately **not activated** : the resolver's R2020 catches missing
+decls at scan time, which is sufficient ; P1029/P1030 stay reserved in
+`codes.ts` for a future strict-flip if needed.
 
 - New `src/resolver/discover.ts` : `discoverModules(roots: string[])`
   walks each root recursively, parses each `.vader` file's header to
@@ -470,13 +476,26 @@ Verify : snippet harness stays green on all 251 existing snippets ;
 broad sweep over `vader/*` + `stdlib/*` shows zero collision
 diagnostics.
 
-### Phase 8 — Resolver Vader self-host + strict parser flip
+### Phase 8 — Resolver Vader self-host + strict parser flip ✅ done (`09984ec9` → `a3e69534`)
 
 Mirror Phase 7 in `vader/resolver/` and `vader/parser/`. The discovery
-pass + index lookup replaces the current ad-hoc
-`promote_to_folder_module` / `merge_collected` logic.
+pass + index lookup replaces the legacy `promote_to_folder_module` /
+`merge_collected` logic.
 
-### Phase 9 — LSP
+Resolution of the memory blocker recorded in §8 : the discover pass
+uses a dedicated **header-only byte-scanner** (`parse_module_header`
+in `vader/parser/`) that extracts just `module "..."` without
+building a full AST. Full `parse_source` runs lazily when BFS visits
+each module. Memory footprint drops from "every Program" to "module
+header bytes only" — analogous to the TS version's behaviour under
+V8's generational GC.
+
+Caveat : the Vader CLI still needs `VADER_GC_YOUNG_BYTES=16777216 /
+VADER_GC_OLD_BYTES=134217728` for the largest entries (full `vader/`
+self-host typecheck). A follow-up to add lazy indexing or a tighter
+arena policy is tracked in TODO.md.
+
+### Phase 9 — LSP ✅ done (`33b1af8d`)
 
 - Recognise `module` as a keyword token in
   `vader/lsp/ast_tokens.vader` and `vader/lsp/semantic.vader`.
@@ -486,20 +505,32 @@ pass + index lookup replaces the current ad-hoc
 - Optionally : code action "insert `module \"<derived-name>\"`" based
   on filesystem path — convenience for new files. Out of scope MVP.
 
-### Phase 10 — Broad parity TS-vs-Vader
+### Phase 10 — Broad parity TS-vs-Vader 🟡 deferred
 
-With both compilers now agreeing on module identity, the broad parity
-rig (`tests/parity-broad.test.ts`) can byte-diff `dump --stage=typed-
-ast` output of TS vs Vader on every module under `stdlib/` and
-`vader/`. Workflow per module :
+The smoke version of the rig (`tests/parity-broad.test.ts`) is in place
+and green : per module, the Vader CLI is invoked with
+`dump --stage=typed-ast`, exit status checked, stderr scanned for
+`error[`. No semantic divergence between TS and Vader can pass through
+the design-time contract checks (R2020-R2028), but **byte-for-byte
+diff vs TS is not yet implemented**.
+
+The reason : remaining divergences trace to the Vader self-host
+typechecker populating fewer `expr_types` entries than TS for several
+syntactic forms (intra-block coerce sites, certain match arm
+predicates). That gap is a separate chantier on the self-host
+typechecker port, not a module-system issue. Running the byte-diff
+today would surface dozens of failures whose root cause sits outside
+this redesign's scope.
+
+Planned shape when the typechecker gap closes :
 
 1. Pick a representative file from the module's folder.
 2. Invoke TS dump, capture stdout.
 3. Invoke Vader self-host dump, capture stdout.
 4. `expect(vader).toBe(ts)`.
 
-The rig stays gated behind `RUN_BROAD_PARITY=1` until it's stable
-enough to run in the default suite.
+The rig stays gated behind `RUN_BROAD_PARITY=1` until the byte-diff
+becomes stable.
 
 ## 6. Surface impacted summary
 
@@ -517,10 +548,13 @@ enough to run in the default suite.
 | `bench/*` | `module` decls added | 6 |
 | `vader.json` | `"modules": ["src/", "vader/"]` added | 6 |
 | `src/resolver/` | `discoverModules` + index + R20xx + strict lookup ; legacy folder-module patches removed | 7 |
-| `src/parser/` | Strict flip : missing-decl error | 7 |
-| `src/diagnostics/codes.ts` | New R20xx + P1XXX entries | 7 |
-| `vader/resolver/` | Mirror of Phase 7 | 8 |
-| `vader/parser/` | Strict flip | 8 |
+| `src/parser/` | Strict flip reserved (P1029/P1030 codes registered, not activated) | 7 |
+| `src/diagnostics/codes.ts` | New R2020-R2028 + P1028-P1030 entries | 7 |
+| `vader/types/` + `vader/resolver/symbol/` | Extracted as standalone modules to break the `vader/typecheck/types ↔ vader/resolver/symbol` cycle (Path C — decision #43) | 7 |
+| `vader/resolver/discover.vader` | Header-only scanner using `parse_module_header` | 8 |
+| `vader/resolver/loader.vader` | Strict-mode BFS with lazy `parse_source` (decision #44) | 8 |
+| `vader/parser/parse_module_header` | Header-only byte scanner | 8 |
+| `vader/diagnostics/codes.vader` | New R2020-R2028 + P1028-P1030 entries (mirror) | 8 |
 | `vader/lsp/`, `vader/fmt/` | Keyword recognition + diagnostic | 9 |
 | `tests/parity-broad.test.ts` | Byte-diff TS vs Vader on real modules | 10 |
 
@@ -572,13 +606,20 @@ Open arbitrations from the design discussion, with the final call :
 | 40 | Scope of the index across CLI subcommands ? | **Same scan + same diagnostics for every subcommand** (`run`, `build`, `dump`, `test`, `fmt`, `lsp`, `check`). Only the downstream work differs. |
 | 41 | Glob patterns in `vader.json::modules` ? | **Not supported.** Literal folder paths only. |
 | 42 | Multi-`vader.json` (monorepo with nested manifests) ? | **Out of scope MVP.** Single manifest at project root. |
+| 43 | Phase 7 `vader/` folder-module cycle (`vader/typecheck/types ↔ vader/resolver/symbol`) ? | **Path C taken** (commit `cce6cd1f`) : extract `vader/types/` + `vader/resolver/symbol/` as standalone modules to break the cycle. Path A (rollback to per-file modules) and Path B (hybrid per-file for `vader/`) rejected as they'd erode SPEC §11's uniformity. |
+| 44 | Phase 8 memory blocker (eager parse of every `.vader` OOMs the Vader GC) ? | **Header-only parse** (`parse_module_header` in `vader/parser/`) that extracts just the `module "..."` decl during discover ; full `parse_source` runs lazily on BFS visit. Vader CLI still requires bumped GC arenas (`VADER_GC_YOUNG_BYTES=16M / VADER_GC_OLD_BYTES=128M`) for the largest entries — a tighter arena policy is tracked in TODO.md. |
+| 45 | Parser strict-flip (P1029 / P1030 missing-decl + malformed-decl) ? | **Not activated.** Codes stay reserved in `codes.ts` / `codes.vader`. R2020 catches missing decls at resolver scan time, which is sufficient ; the parser-flip stays available for a future tightening if needed. |
 
 This list freezes the design. Any deviation during implementation
 needs to be brought back here as an amendment.
 
 ## 8. Issues encountered
 
-### Phase 7 frozen (2026-05-22) — `vader/` self-host architecturally incompatible with folder-modules
+> Both blockers below were **resolved** ; the entries are kept verbatim
+> for traceability. See decision log entries #43 and #44 for the
+> final calls.
+
+### Phase 7 frozen (2026-05-22) → **resolved** (`cce6cd1f`, `68611417`) — `vader/` self-host architecturally incompatible with folder-modules
 
 **Symptom.** Phases 1-6 landed clean (tolerant parsers, all .vader files
 annotated with `module "..."`, examples + bench restructured into per-file
@@ -663,7 +704,7 @@ phases ran. Future architecture-level work : run a `find imports |
 folder-aggregate | check-DAG` pass on the existing codebase before
 freezing decisions that assume specific aggregation rules.
 
-### Phase 8 full port — blocked on eager parse memory (2026-05-22)
+### Phase 8 full port — blocked on eager parse memory (2026-05-22) → **resolved** (`a3e69534`)
 
 A scratch port of `src/resolver/loader.ts`'s strict-mode BFS to
 `vader/resolver/loader.vader` works end-to-end (38 modules indexed,
@@ -698,4 +739,50 @@ additive infrastructure committed (codes R2020-R2028 in
 `vader/diagnostics/codes.vader`, `vader/resolver/discover.vader`
 ready to wire), and the legacy depth-1 BFS continues to drive the
 compiled Vader CLI.
+
+**Resolved** (`a3e69534`). Header-only parse landed in
+`vader/parser/` as `parse_module_header` ; `discover_modules` calls
+it during the scan and the full `parse_source` runs lazily when BFS
+visits each module. The Vader CLI now drives a strict resolver
+end-to-end. Caveat : the compiled CLI still requires
+`VADER_GC_YOUNG_BYTES=16M / VADER_GC_OLD_BYTES=128M` for the
+largest entries (full `vader/` self-host typecheck) — a tighter
+arena policy / lazy indexing follow-up is tracked in TODO.md.
+
+### Cross-file duplicate decls — silent first-wins still active (surfaced 2026-05-23)
+
+**Symptom.** Decision #28 (and §1.6 "Intra-module collisions")
+mandates a hard error (R2026) for non-fn cross-file duplicates :
+two `struct Foo` in the same module across two files should fail
+compile. In practice, `src/resolver/collect.ts` (and its Vader
+mirror) silently first-wins this case — only intra-file duplicates
+trigger R2004.
+
+**Latent collisions today** (would surface as R2026 if the silencing
+branches were removed) :
+
+- `vader/vm/builder.vader` + `vader/vm/parser.vader` : `ScopeEntry`, `PendingBranch`
+- `vader/typecheck/{enum_pass,decl}.vader` : `Color`
+- `vader/typecheck/{field,struct_lit,dump,check,decl,impls}.vader` : `Point` (12 occurrences across 7 files — likely `@test` fixtures)
+- `vader/typecheck/{dump,decl}.vader` : `Wrap`
+- `vader/typecheck/{check,impls}.vader` : `Display`
+- `vader/lower/{helpers,lower_expr}.vader` : `CellInit`
+
+**Two ways out**, no decision taken yet :
+- **(a)** Align code on spec : rename the latent collisions
+  (`vm/ScopeEntry` → `vm/{BuilderScopeEntry,ParserScopeEntry}`, etc.)
+  and remove the silencing branches in `collect.ts`. Re-emit R2026 for
+  any future cross-file duplicate. The `Point` occurrences are probably
+  per-test fixtures and can stay if `@test` fns are scope-isolated —
+  needs a quick audit.
+- **(b)** Accept the silent first-wins, revise decision #28 to
+  document the actual behaviour (cross-file silent first-wins ;
+  intra-file R2004). Update §1.6 to match.
+
+Similar deviation on import-bindings (`collect.ts::bindImport`) :
+two import-bindings of the same name across files of the same
+module silently first-win, where §1.5 says imports are file-scoped
+and the situation shouldn't arise (`collectModuleSymbols` should
+either keep per-file symbol tables or fire R2011 on duplicates).
+Same arbitrage : refactor to file-scoped, or revise the spec.
 

@@ -113,7 +113,7 @@ for (const stage of STAGES) {
       continue;
     }
     const timeout = SLOW_TYPECHECK_SNIPPETS.has(s.name) ? LONG_BUILD : MEDIUM_BUILD;
-    test.skip.concurrent(`diag-parity ${stage.label}: ${s.name}`, async () => {
+    test.concurrent(`diag-parity ${stage.label}: ${s.name}`, async () => {
       let tsText: string;
       try { tsText = stage.tsDump(s.source, s.mainPath); }
       catch (e) { tsText = `# TS dump threw: ${e instanceof Error ? e.message : String(e)}`; }
