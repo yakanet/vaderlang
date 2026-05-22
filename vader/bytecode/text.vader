@@ -52,10 +52,10 @@ export write_virt :: fn(module: op.Module) -> string {
     out :: new_builder()
     out.append("module main\n")
 
-    write_types(out, module.types)
-    write_strings(out, module.strings)
+    write_types_virt(out, module.types)
+    write_strings_virt(out, module.strings)
     write_data_pool(out, module.data_pool)
-    write_imports(out, module.imports)
+    write_imports_virt(out, module.imports)
     write_impls(out, module.impls)
     write_vtables(out, module.vtables)
     out.append("export main ${module.main_index}\n")
@@ -63,7 +63,7 @@ export write_virt :: fn(module: op.Module) -> string {
     fn_index: usize = 0
     for fn_index < module.functions.len() {
         out.append("\n")
-        write_function(out, module.functions[fn_index], i32(fn_index))
+        write_function_virt(out, module.functions[fn_index], i32(fn_index))
         fn_index += 1
     }
 
@@ -72,7 +72,7 @@ export write_virt :: fn(module: op.Module) -> string {
 
 // ---------------------------------------------------------------- headers
 
-write_types :: fn(out: StringBuilder, types: op.TypeDecl[]) -> void {
+write_types_virt :: fn(out: StringBuilder, types: op.TypeDecl[]) -> void {
     i: usize = 0
     for i < types.len() {
         out.append("type ${i} ${format_type(types[i])}\n")
@@ -113,7 +113,7 @@ comma_join_i32 :: fn(items: i32[]) -> string {
     return "${out}"
 }
 
-write_strings :: fn(out: StringBuilder, strings: string[]) -> void {
+write_strings_virt :: fn(out: StringBuilder, strings: string[]) -> void {
     i: usize = 0
     for i < strings.len() {
         out.append("string ${i} ${quote_string(strings[i])}\n")
@@ -262,7 +262,7 @@ bytes_to_hex :: fn(bytes: u8[]) -> string {
     return "${out}"
 }
 
-write_imports :: fn(out: StringBuilder, imports: op.ImportInfo[]) -> void {
+write_imports_virt :: fn(out: StringBuilder, imports: op.ImportInfo[]) -> void {
     i: usize = 0
     for i < imports.len() {
         info :: imports[i]
@@ -304,7 +304,7 @@ write_vtables :: fn(out: StringBuilder, vtables: op.Vtable[]) -> void {
 /// Resolves control-flow labels by walking ops once to assign per-pc
 /// scope labels (`$L0`, `$L1`, …), then a second pass emits each line
 /// with the resolved labels.
-write_function :: fn(out: StringBuilder, function: op.BytecodeFunction, fn_index: i32) -> void {
+write_function_virt :: fn(out: StringBuilder, function: op.BytecodeFunction, fn_index: i32) -> void {
     param_block :: repeat_with_commas("i32", function.parameter_count)
     out.append("fn ${fn_index} ${function.name} (${param_block}) -> i32\n")
 

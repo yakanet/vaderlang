@@ -79,6 +79,17 @@ export function declareType(decl: A.Decl, t: MutableTyped, diags: DiagnosticColl
       if (looksLikeTypeExpression(decl.value, t)) {
         t.globals.constTypeAliases.set(decl, lowerExprAsType(decl.value, t, diags));
         if (decl.type === null) t.globals.declTypes.set(decl, TY.type);
+      } else if (decl.type === null && decl.value.kind === "StructLitExpr") {
+        // Cross-module const-from-struct-literal pinning. Without a type
+        // annotation the const's type is normally inferred in the body
+        // pass, but a consumer module's fn-body checked *before* this
+        // module's body pass would then see `Unresolved`. The struct
+        // literal's type-name is sufficient to recover the concrete
+        // Struct/Primitive type here at declare time.
+        const lit = decl.value;
+        if (lit.typeName.kind === "IdentExpr") {
+          t.globals.declTypes.set(decl, lowerExprAsType(lit.typeName, t, diags));
+        }
       }
       return;
     case "ImportDecl":

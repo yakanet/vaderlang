@@ -94,9 +94,7 @@ export lower_project :: fn(
     return project
 }
 
-is_stdlib_path :: fn(path: string) -> bool {
-    return path.contains("stdlib/std/")
-}
+is_stdlib_path :: fn(path: string) = "stdlib/std/" in path
 
 import "vader/typecheck" { build_impl_registry, ImplEntry }
 
@@ -158,9 +156,7 @@ populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
     }
 }
 
-is_std_iter_module :: fn(module_id: string) -> bool {
-    return module_id.contains("stdlib/std/iter.vader")
-}
+is_std_iter_module :: fn(module_id: string) = "stdlib/std/iter.vader" in module_id
 
 ensure_iter_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap(string, Symbol) {
     match project_ctx.iter_symbols {
