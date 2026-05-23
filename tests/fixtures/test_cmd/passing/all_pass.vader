@@ -1,3 +1,5 @@
+module "test_cmd_passing"
+
 import "std/testing" { assert_eq, assert_lt }
 
 @test test_arith :: fn() -> void {

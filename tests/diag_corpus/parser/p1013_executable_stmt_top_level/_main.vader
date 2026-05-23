@@ -1,0 +1,6 @@
+// Top-level executable statement — P1013.
+module "snippet"
+
+println("hello")
+
+main :: fn() -> i32 { return 0 }

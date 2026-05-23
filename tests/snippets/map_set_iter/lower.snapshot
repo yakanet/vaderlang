@@ -5,7 +5,7 @@
     let m: MutableMap(string, i32) =
       MutableMap(string, i32) {
         buckets:
-          array :Entry(string, i32) | null[]
+          array :(Entry(string, i32) | null)[]
         size: int(0) :usize
       }
     call :void
@@ -38,8 +38,8 @@
     let total: i32 = int(0) :i32
     block :void
       let __iter_src_0: MutableMap(string, i32) = m :MutableMap(string, i32)
-      let __iter_buckets_1: Entry(string, i32) | null[] =
-        .buckets :Entry(string, i32) | null[]
+      let __iter_buckets_1: (Entry(string, i32) | null)[] =
+        .buckets :(Entry(string, i32) | null)[]
           __iter_src_0 :MutableMap(string, i32)
       let __iter_buckets_len_2: usize =
         LoweredArrayLen
@@ -66,7 +66,7 @@
               value:
                 index :Entry(string, i32) | null
                   on:
-                    __iter_buckets_1 :Entry(string, i32) | null[]
+                    __iter_buckets_1 :(Entry(string, i32) | null)[]
                   ix:
                     __iter_bucket_3 :usize
             assign
@@ -120,7 +120,7 @@
         inner:
           MutableMap(i32, bool) {
             buckets:
-              array :Entry(i32, bool) | null[]
+              array :(Entry(i32, bool) | null)[]
             size: int(0) :usize
           }
       }
@@ -148,8 +148,8 @@
     let sum: i32 = int(0) :i32
     block :void
       let __iter_src_7: MutableSet(i32) = s :MutableSet(i32)
-      let __iter_buckets_8: Entry(i32, bool) | null[] =
-        .buckets :Entry(i32, bool) | null[]
+      let __iter_buckets_8: (Entry(i32, bool) | null)[] =
+        .buckets :(Entry(i32, bool) | null)[]
           .inner :MutableMap(i32, bool)
             __iter_src_7 :MutableSet(i32)
       let __iter_buckets_len_9: usize =
@@ -177,7 +177,7 @@
               value:
                 index :Entry(i32, bool) | null
                   on:
-                    __iter_buckets_8 :Entry(i32, bool) | null[]
+                    __iter_buckets_8 :(Entry(i32, bool) | null)[]
                   ix:
                     __iter_bucket_10 :usize
             assign

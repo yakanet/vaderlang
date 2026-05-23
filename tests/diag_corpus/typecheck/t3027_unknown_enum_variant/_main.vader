@@ -1,0 +1,9 @@
+// `.Bogus` doesn't exist on `Color` — T3027.
+module "snippet"
+
+Color :: enum { Red, Green, Blue }
+
+main :: fn() -> i32 {
+    c: Color = .Bogus
+    return 0
+}

@@ -16,8 +16,8 @@
         r:
           int(2) :i32
   fn snippet$main() -> i32
-    let fs: fn(i32) -> i32[] =
-      array :fn(i32) -> i32[]
+    let fs: (fn(i32) -> i32)[] =
+      array :(fn(i32) -> i32)[]
         inc :fn(i32) -> i32
         double :fn(i32) -> i32
     return
@@ -27,7 +27,7 @@
             callee:
               index :fn(i32) -> i32
                 on:
-                  fs :fn(i32) -> i32[]
+                  fs :(fn(i32) -> i32)[]
                 ix:
                   int(0) :i32
             arg0:
@@ -37,7 +37,7 @@
             callee:
               index :fn(i32) -> i32
                 on:
-                  fs :fn(i32) -> i32[]
+                  fs :(fn(i32) -> i32)[]
                 ix:
                   int(1) :i32
             arg0:

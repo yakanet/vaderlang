@@ -1,0 +1,7 @@
+// `+` not defined for `(bool, bool)` — T3017.
+module "snippet"
+
+main :: fn() -> i32 {
+    x :: true + false
+    return 0
+}

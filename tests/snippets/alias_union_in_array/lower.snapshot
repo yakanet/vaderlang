@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$push_pet(arr: Cat | Dog[], p: Cat | Dog) -> void
+  fn snippet$push_pet(arr: (Cat | Dog)[], p: Cat | Dog) -> void
     ~>
       LoweredArrayPush
   fn snippet$describe(p: Cat | Dog) -> string
@@ -59,28 +59,28 @@
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn snippet$main() -> i32
-    let pets: Cat | Dog[] =
-      array :Cat | Dog[]
+    let pets: (Cat | Dog)[] =
+      array :(Cat | Dog)[]
     call :void
       callee:
-        push_pet :fn(Cat | Dog[], Cat | Dog) -> void
+        push_pet :fn((Cat | Dog)[], Cat | Dog) -> void
       arg0:
-        pets :Cat | Dog[]
+        pets :(Cat | Dog)[]
       arg1:
         Cat {
           name: "Whiskers" :string
         }
     call :void
       callee:
-        push_pet :fn(Cat | Dog[], Cat | Dog) -> void
+        push_pet :fn((Cat | Dog)[], Cat | Dog) -> void
       arg0:
-        pets :Cat | Dog[]
+        pets :(Cat | Dog)[]
       arg1:
         Dog {
           name: "Rex" :string
         }
     block :void
-      let __for_arr_0: Cat | Dog[] = pets :Cat | Dog[]
+      let __for_arr_0: (Cat | Dog)[] = pets :(Cat | Dog)[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -88,7 +88,7 @@
         let p: Cat | Dog =
           index :Cat | Dog
             on:
-              __for_arr_0 :Cat | Dog[]
+              __for_arr_0 :(Cat | Dog)[]
             ix:
               __for_i_2 :usize
         call :void

@@ -145,7 +145,7 @@ provided_names :: fn(members: AST.FnDecl[]) -> MutableSet(string) {
     return set
 }
 
-count_sam_synthetics :: fn(members: AST.FnDecl[]) -> usize {
+export count_sam_synthetics :: fn(members: AST.FnDecl[]) -> usize {
     n: usize = 0
     for m in members {
         if m.sam_synthetic { n = n + 1 }
@@ -153,7 +153,7 @@ count_sam_synthetics :: fn(members: AST.FnDecl[]) -> usize {
     return n
 }
 
-required_methods :: fn(members: AST.FnDecl[]) -> AST.FnDecl[] {
+export required_methods :: fn(members: AST.FnDecl[]) -> AST.FnDecl[] {
     out: AST.FnDecl[] = []
     for m in members {
         match m.body {

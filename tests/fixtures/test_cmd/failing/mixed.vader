@@ -1,3 +1,5 @@
+module "test_cmd_failing"
+
 import "std/testing" { assert_eq, fail }
 
 @test test_ok :: fn() -> void {

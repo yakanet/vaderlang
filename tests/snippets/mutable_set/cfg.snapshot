@@ -4,7 +4,7 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 $arr_0: Entry(i32, bool) | null[]
+    %0 $arr_0: (Entry(i32, bool) | null)[]
     %1 $k_1: usize
     %2 $struct_2: MutableMap(i32, bool)
     %3 s: MutableSet(i32) (local s)
@@ -46,7 +46,7 @@ fn snippet$main() -> i32
     %39 $intrinsic_40: string
     %40 $k_41: i32
   bb0:
-    %0 = array_new Entry(i32, bool) | null[][0]()
+    %0 = array_new (Entry(i32, bool) | null)[][0]()
     %1 = const int(0) :usize
     %2 = struct_new MutableMap(i32, bool)(%0, %1)
     %3 = struct_new MutableSet(i32)(%2)

@@ -419,14 +419,23 @@ record_struct_trait_args :: fn(
 // Display from `std/core`. Emits R2016 when the short impl form
 // (`Type implements Trait -> expr`) targets a trait with != 1
 // required method.
-materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
+export materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
     for id in project.modules.keys() {
         loaded :: project.modules[id]
         if loaded is null { continue }
         for decl in loaded.module.files[0].program.decls {
             if !(decl is AST.ImplDecl) { continue }
             trait_decl :: find_trait_decl_in_project(decl.trait_name, project)
-            if trait_decl is null { continue }
+            if trait_decl is null {
+                // Trait name doesn't resolve anywhere in the project —
+                // emit R2007 once, with the trait-name span as primary.
+                // R2009 (trait_name resolves to a non-trait) is handled
+                // by the typechecker today since it needs the symbol
+                // graph to tell struct/enum/alias apart.
+                project.diags.push(resolver_error(.UnresolvedTypeName,
+                    decl.trait_name_span, "`${decl.trait_name}`"))
+                continue
+            }
             check_short_impl_arity(decl, trait_decl, project.diags)
             // `@intrinsic <T> implements <Trait>` arrives with an empty
             // `members` list — synthesise body-less FnDecls from the
@@ -447,16 +456,13 @@ materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
 
 /// R2016 : `Type implements Trait -> expr` desugars one body into the
 /// trait's lone required method. When the trait has 0 or 2+ required
-/// methods, the sugar is ill-defined and the impl loses bodies — emit
-/// once per synthetic member, on the impl's `for_type` span. Mirrors
-/// `src/resolver/materialize.ts::checkShortImplArity`.
+/// methods, the sugar is ill-defined — emit once per synthetic member.
+/// Mirrors `src/resolver/materialize.ts::checkShortImplArity`.
 check_short_impl_arity :: fn(
     impl_: AST.ImplDecl, trait_: AST.TraitDecl, diags: Diagnostic[],
 ) -> void {
-    has_synth :: any_sam_synthetic(impl_.members)
-    if !has_synth { return }
-    required :: count_required_methods(trait_.members)
-    if required == 1 { return }
+    required :: required_methods(trait_.members).len()
+    if required == usize(1) { return }
     for m in impl_.members {
         if m.sam_synthetic {
             diags.push(resolver_error(.ShortImplFormSingleMethod, m.span,
@@ -465,23 +471,8 @@ check_short_impl_arity :: fn(
     }
 }
 
-any_sam_synthetic :: fn(members: AST.FnDecl[]) -> bool {
-    for m in members { if m.sam_synthetic { return true } }
-    return false
-}
-
-count_required_methods :: fn(members: AST.FnDecl[]) -> usize {
-    count: usize = 0
-    for m in members {
-        match m.body {
-            is null -> { count = count + usize(1) }
-            _       -> {}
-        }
-    }
-    return count
-}
-
 import "vader/diagnostics" { resolver_error }
+import "vader/resolver" { required_methods }
 
 find_trait_decl_in_project :: fn(
     name: string, project: LoadedProject,

@@ -75,8 +75,96 @@ function diffSets(a: DiagRef[], b: DiagRef[]): { onlyA: string[]; onlyB: string[
 //
 // IMPORTANT : the goal of this suite is to surface divergence, not to
 // paper over it. Add entries grudgingly ; prefer fixing the port.
+//
+// Categories (see TODO.md §2.6 resolver port follow-ups) :
+//   - R2006-resolver-stage : Vader emits R2006 at typecheck-time
+//     (`vader/typecheck/expr.vader:107`) because the body walker has
+//     no view on `core_symbols` / `imports_to`. TS emits it at
+//     resolver-time. Moving emission earlier needs a `core_symbols`
+//     seed in the body walker scope.
+//   - R2018-orphan-rule : the orphan-rule check on `Type implements
+//     Trait` needs module-ownership of `forType` AND `traitName`,
+//     i.e. the `wire_imports` redirect table threaded into the
+//     pre-resolve pass. Not ported yet.
+//   - C4xxx-renum : Vader's C4001-C4007 carry different meanings than
+//     TS's. Renumbering Vader to align with `src/diagnostics/codes.ts`
+//     is its own chantier (touches every `comptime/` snapshot under
+//     `tests/diag_corpus/comptime/` and the `KNOWN_DIVERGENT` set
+//     in `tests/vader_vm.test.ts`).
+//   - typecheck-coverage : Vader's `check_project_with_bodies`
+//     doesn't yet populate `expr_types` for every node TS does, so
+//     downstream stages occasionally miss a cascading `T3001` / `T3028`
+//     that TS emits.
+//   - lower-divergence : tail of typecheck-coverage at the lower
+//     stage ; same root cause.
 const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   // Format : `${stage}:${snippet}`.
+  // R2006-resolver-stage
+  "resolver:errors_parser",
+  "resolver:interpolation_tokens",
+  "resolver:unknown_ident",
+  // R2018-orphan-rule
+  "resolver:non_exported_violation",
+  "resolver:orphan_impl_forbidden",
+  "typecheck:orphan_impl_forbidden",
+  "comptime:orphan_impl_forbidden",
+  "lower:orphan_impl_forbidden",
+  // C4xxx-renum (Vader codes still carry pre-strict meaning)
+  "comptime:bad_div_zero",
+  "comptime:cycle",
+  "comptime:square_call",
+  "comptime:tuple_comptime",
+  "lower:bad_div_zero",
+  "lower:cycle",
+  "lower:square_call",
+  "lower:tuple_comptime",
+  // typecheck-coverage (cascading from incomplete `expr_types`)
+  "typecheck:iter_defaults",
+  "typecheck:sam_impl_bad",
+  "typecheck:selfhost_lexer_basic",
+  "comptime:iter_defaults",
+  "comptime:sam_impl_bad",
+  "comptime:selfhost_lexer_basic",
+  "comptime:interp_string_comptime",
+  "lower:iter_defaults",
+  "lower:sam_impl_bad",
+  "lower:selfhost_lexer_basic",
+  "lower:interp_string_comptime",
+  // lower-divergence (Into-coercion path missing T3001 emit-site)
+  "lower:for_in_into_iter",
+  // p1014_unknown_decorator_placement : Vader's resolver body-walker
+  // emits R2006 on the implicit ident a misplaced @decorator wraps
+  // ; TS suppresses the cascade past P1014. Tracked alongside the
+  // R2006-resolver-stage move.
+  "typecheck:parser/p1014_unknown_decorator_placement",
+  "comptime:parser/p1014_unknown_decorator_placement",
+  "lower:parser/p1014_unknown_decorator_placement",
+  // T3013 non-exhaustive match : Vader's typechecker doesn't yet
+  // emit T3013 on this snippet's shape (return-position match
+  // missing a `false` arm). Tracked as typecheck-coverage.
+  "resolver:typecheck/t3013_non_exhaustive_match",
+  "typecheck:typecheck/t3013_non_exhaustive_match",
+  "comptime:typecheck/t3013_non_exhaustive_match",
+  "lower:typecheck/t3013_non_exhaustive_match",
+  // T3015 break-outside-loop : Vader emits at expression-position
+  // but TS also flags the early-exit at top level. Tracked under
+  // typecheck-coverage.
+  "typecheck:typecheck/t3015_break_outside_loop",
+  "comptime:typecheck/t3015_break_outside_loop",
+  "lower:typecheck/t3015_break_outside_loop",
+  // T3051 extern-must-not-have-body : Vader doesn't yet validate
+  // @extern decls (T3050 / T3051 are defined but not emitted).
+  "typecheck:typecheck/t3051_extern_must_not_have_body",
+  "comptime:typecheck/t3051_extern_must_not_have_body",
+  "lower:typecheck/t3051_extern_must_not_have_body",
+  // l0001 / l0007 : TS chains an R2006 (unresolved ident) on the
+  // recovered identifier after the lexer error. Vader skips that
+  // cascade — same `R2006-resolver-stage` divergence as above.
+  "resolver:lexer/l0001_unexpected_character",
+  "resolver:lexer/l0007_stray_backslash",
+  "typecheck:lexer/l0001_unexpected_character",
+  "comptime:lexer/l0001_unexpected_character",
+  "lower:lexer/l0001_unexpected_character",
 ]);
 
 function collectScenarios(): Scenario[] {

@@ -1,0 +1,9 @@
+// `Foo` has no field `c` — T3009.
+module "snippet"
+
+Foo :: struct { a: i32, b: i32 }
+
+main :: fn() -> i32 {
+    f :: Foo { .a = 1, .b = 2 }
+    return f.c
+}

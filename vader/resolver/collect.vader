@@ -214,6 +214,7 @@ bind_import :: fn(
             self.imports[sym.id] = ImportInfo {
                 .path = import_path,
                 .imported_name = imported_name,
+                .binding_span = span,
             }
         }
     }

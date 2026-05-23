@@ -14,7 +14,13 @@ import "std/collections" { MutableMap }
 export ImportInfo :: struct {
     path:          string
     imported_name: string | null
+    /// Span of the imported name token (or the whole import decl when
+    /// it's a namespace form). Used as the primary span for R2003 /
+    /// R2008. Avoids re-walking the AST in the wire pass to recover it.
+    binding_span:  Span
 }
+
+import "vader/diagnostics" { Span }
 
 export new_import_table :: fn() -> MutableMap(i32, ImportInfo) {
     return MutableMap(i32, ImportInfo) { .buckets = [], .size = 0 }

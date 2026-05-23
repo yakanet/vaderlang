@@ -1,0 +1,8 @@
+// `@deprecated` on a let-binding inside a fn body — P1014.
+module "snippet"
+
+main :: fn() -> i32 {
+    @deprecated
+    x :: 1
+    return x
+}

@@ -161,8 +161,11 @@ ingest_module :: fn(
     collected :: collect_files(sources, m.folder, m.name, factory, index, diags)
     modules[m.folder] = LoadedModule {
         .module = Module {
-            .id = m.folder, .display_path = display_path_for(m.folder, stdlib_root),
-            .root_dir = m.folder, .files = sources,
+            .id           = m.folder,
+            .display_path = display_path_for(m.folder, stdlib_root),
+            .module_name  = m.name,
+            .root_dir     = m.folder,
+            .files        = sources,
         },
         .collected       = collected,
         .node_id_factory = sources[0].id_factory,

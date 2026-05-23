@@ -1,0 +1,7 @@
+// Assigning a string to an i32 — T3001.
+module "snippet"
+
+main :: fn() -> i32 {
+    x: i32 = "hello"
+    return 0
+}

@@ -1,0 +1,7 @@
+// Calling an i32 — T3007 (expression is not callable).
+module "snippet"
+
+main :: fn() -> i32 {
+    x :: 42
+    return x()
+}

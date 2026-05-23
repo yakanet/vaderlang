@@ -4,7 +4,7 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 arr: Node(i32) | null[] (local arr)
+    %0 arr: (Node(i32) | null)[] (local arr)
     %1 $k_2: null
     %2 $k_3: i32
     %3 $k_4: null
@@ -23,7 +23,7 @@ fn snippet$main() -> i32
     %16 $k_19: string
     %17 $k_20: i32
   bb0:
-    %0 = array_new Node(i32) | null[][0]()
+    %0 = array_new (Node(i32) | null)[][0]()
     %1 = const null :null
     array_push %0, %1
     %2 = const int(42) :i32

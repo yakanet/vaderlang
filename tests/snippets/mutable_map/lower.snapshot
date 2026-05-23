@@ -5,7 +5,7 @@
     let m: MutableMap(i32, i32) =
       MutableMap(i32, i32) {
         buckets:
-          array :Entry(i32, i32) | null[]
+          array :(Entry(i32, i32) | null)[]
         size: int(0) :usize
       }
     call :void

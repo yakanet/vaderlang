@@ -208,45 +208,14 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
     self.auto_bind_for_type_params(d.for_type)
     self.walk_expr(d.for_type)
     for ta in d.trait_args { self.walk_expr(ta) }
-    // R2007 / R2009 on the trait name : the resolver knows whether
-    // `trait_name` resolves to anything and whether what it resolves
-    // to is actually a Trait symbol. Mirrors `src/resolver/resolve.ts:222`.
-    trait_sym :: self.scope.lookup(d.trait_name)
-    match trait_sym {
-        is null -> {
-            self.diags.push(resolver_error(.UnresolvedTypeName, d.trait_name_span,
-                "`${d.trait_name}`"))
-        }
-        is Symbol as s -> {
-            if i32(s.kind) != i32(SymbolKind.Trait) {
-                self.diags.push(resolver_error(.TraitNameNotATrait, d.trait_name_span,
-                    "`${d.trait_name}` is a ${kind_label(s.kind)}"))
-            }
-        }
-    }
+    // R2007 / R2009 on the trait name live in the project-level
+    // orchestrator (`vader/typecheck/orchestrate.vader`) — the body
+    // walker doesn't see core-auto-loaded symbols (Into / Display /
+    // Iterator / Field) so it would over-fire on every snippet that
+    // implements a std/core trait. The orchestrator has the project
+    // view it needs to consult `find_trait_decl_in_project` instead.
     for m in d.members { self.walk_fn_decl(m) }
     self.scope.pop()
-}
-
-/// Short label for a SymbolKind, used in detail strings of R2009.
-/// Wording matches `Symbol.kind` lower-case names so the diagnostic
-/// reads as "Foo is a struct" / "Bar is a fn" / etc.
-kind_label :: fn(k: SymbolKind) -> string = match k {
-    .Fn            -> "fn"
-    .Struct        -> "struct"
-    .Enum          -> "enum"
-    .Trait         -> "trait"
-    .Impl          -> "impl"
-    .TypeAlias     -> "type-alias"
-    .Const         -> "const"
-    .ImportBinding -> "import-binding"
-    .Param         -> "param"
-    .TypeParam     -> "type-param"
-    .Local         -> "local"
-    .Binding       -> "binding"
-    .BuiltinType   -> "builtin-type"
-    .BuiltinFn     -> "builtin-fn"
-    .Synthetic     -> "synthetic"
 }
 
 auto_bind_for_type_params :: fn(self: ResolveState, t: AST.TypeExpr) -> void {

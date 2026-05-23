@@ -1,39 +1,35 @@
 # Typecheck
 
 ## tests/snippets/alias_union_in_array
-  FnDecl         describe             :: fn(?) -> string
+  FnDecl         describe             :: fn(Cat | Dog) -> string
   FnDecl         main                 :: fn() -> i32
-  FnDecl         push_pet             :: fn(?[], ?) -> void
-  expr 18:14    IdentExpr      :: ?
+  FnDecl         push_pet             :: fn((Cat | Dog)[], Cat | Dog) -> void
+  expr 18:14    IdentExpr      :: Cat | Dog
   expr 18:5     CallExpr       :: void
-  expr 18:5     FieldExpr      :: fn(?) -> void
-  expr 18:5     IdentExpr      :: ?[]
+  expr 18:5     FieldExpr      :: fn(Cat | Dog) -> void
+  expr 18:5     IdentExpr      :: (Cat | Dog)[]
   expr 22:12    MatchExpr      :: string
-  expr 22:18    IdentExpr      :: ?
+  expr 22:18    IdentExpr      :: Cat | Dog
   expr 23:24    StringLitExpr  :: string
-  expr 23:31    FieldExpr      :: ?
-  expr 23:31    IdentExpr      :: ?
+  expr 23:31    FieldExpr      :: string
+  expr 23:31    IdentExpr      :: Cat
   expr 24:24    StringLitExpr  :: string
-  expr 24:31    FieldExpr      :: ?
-  expr 24:31    IdentExpr      :: ?
-  expr 29:19    SeqLitExpr     :: ?[]
-  expr 30:14    IdentExpr      :: ?[]
-  expr 30:20    StructLitExpr  :: ?
+  expr 24:31    FieldExpr      :: string
+  expr 24:31    IdentExpr      :: Dog
+  expr 29:19    SeqLitExpr     :: (Cat | Dog)[]
+  expr 30:14    IdentExpr      :: (Cat | Dog)[]
+  expr 30:20    StructLitExpr  :: Cat
   expr 30:34    StringLitExpr  :: string
   expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(?[], ?) -> void
-  expr 31:14    IdentExpr      :: ?[]
-  expr 31:20    StructLitExpr  :: ?
+  expr 30:5     IdentExpr      :: fn((Cat | Dog)[], Cat | Dog) -> void
+  expr 31:14    IdentExpr      :: (Cat | Dog)[]
+  expr 31:20    StructLitExpr  :: Dog
   expr 31:34    StringLitExpr  :: string
   expr 31:5     CallExpr       :: void
-  expr 31:5     IdentExpr      :: fn(?[], ?) -> void
-  expr 32:14    IdentExpr      :: ?[]
+  expr 31:5     IdentExpr      :: fn((Cat | Dog)[], Cat | Dog) -> void
+  expr 32:14    IdentExpr      :: (Cat | Dog)[]
   expr 33:17    CallExpr       :: string
-  expr 33:17    IdentExpr      :: fn(?) -> string
-  expr 33:26    IdentExpr      :: ?
+  expr 33:17    IdentExpr      :: fn(Cat | Dog) -> string
+  expr 33:26    IdentExpr      :: Cat | Dog
   expr 33:9     CallExpr       :: void
   expr 33:9     IdentExpr      :: fn(string) -> void
-
-# Diagnostics
-[30:20] error[T3001] type mismatch: ? is not a struct
-[31:20] error[T3001] type mismatch: ? is not a struct

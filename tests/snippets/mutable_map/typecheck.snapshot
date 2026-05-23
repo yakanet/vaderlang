@@ -55,5 +55,5 @@
   expr 34:30    StringLitExpr  :: string
   expr 34:39    IdentExpr      :: i32
   expr 7:10     StructLitExpr  :: MutableMap(i32, i32)
-  expr 7:44     SeqLitExpr     :: Entry(i32, i32) | null[]
+  expr 7:44     SeqLitExpr     :: (Entry(i32, i32) | null)[]
   expr 9:5      IdentExpr      :: MutableMap(i32, i32)

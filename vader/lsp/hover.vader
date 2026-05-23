@@ -218,7 +218,7 @@ find_binding_rhs_type_at :: fn(
     decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram,
 ) -> Type | null {
     state :: FindBindingState { .line = line, .col = col, .ty = null }
-    for d in decls { binding_walk_decl(d, typed, state) }
+    for d in decls { binding_hv_walk_decl(d, typed, state) }
     return state.ty
 }
 
@@ -228,19 +228,19 @@ FindBindingState :: struct {
     ty:   Type | null
 }
 
-binding_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingState) -> void {
+binding_hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingState) -> void {
     match d {
         is AST.FnDecl as fd -> {
             match fd.body {
                 is null -> {}
-                is AST.BlockExpr as b -> { binding_walk_block(b, typed, st) }
+                is AST.BlockExpr as b -> { binding_hv_walk_block(b, typed, st) }
             }
         }
         is AST.ImplDecl as id -> {
             for m in id.members {
                 match m.body {
                     is null -> {}
-                    is AST.BlockExpr as b -> { binding_walk_block(b, typed, st) }
+                    is AST.BlockExpr as b -> { binding_hv_walk_block(b, typed, st) }
                 }
             }
         }
@@ -248,15 +248,15 @@ binding_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindBindingState) 
     }
 }
 
-binding_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindBindingState) -> void {
-    for s in b.stmts { binding_walk_stmt(s, typed, st) }
+binding_hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindBindingState) -> void {
+    for s in b.stmts { binding_hv_walk_stmt(s, typed, st) }
     match b.trailing {
         is null -> {}
-        _ -> { binding_walk_expr(b.trailing, typed, st) }
+        _ -> { binding_hv_walk_expr(b.trailing, typed, st) }
     }
 }
 
-binding_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingState) -> void {
+binding_hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingState) -> void {
     match s {
         is AST.LetStmt as ls -> {
             match ls.binding {
@@ -269,41 +269,41 @@ binding_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindBindingState) 
                 }
                 _ -> {}
             }
-            binding_walk_expr(ls.value, typed, st)
+            binding_hv_walk_expr(ls.value, typed, st)
         }
-        is AST.ExprStmt as es -> { binding_walk_expr(es.expr, typed, st) }
+        is AST.ExprStmt as es -> { binding_hv_walk_expr(es.expr, typed, st) }
         is AST.ReturnStmt as rs -> {
             match rs.value {
                 is null -> {}
-                _ -> { binding_walk_expr(rs.value, typed, st) }
+                _ -> { binding_hv_walk_expr(rs.value, typed, st) }
             }
         }
-        is AST.ForStmt as fs -> { binding_walk_block(fs.body, typed, st) }
+        is AST.ForStmt as fs -> { binding_hv_walk_block(fs.body, typed, st) }
         is AST.DeferStmt as ds -> {
             match ds.body {
-                is AST.DeferStmtBody  as dsb -> { binding_walk_stmt(dsb.stmt, typed, st) }
-                is AST.DeferBlockBody as dbb -> { binding_walk_block(dbb.block, typed, st) }
+                is AST.DeferStmtBody  as dsb -> { binding_hv_walk_stmt(dsb.stmt, typed, st) }
+                is AST.DeferBlockBody as dbb -> { binding_hv_walk_block(dbb.block, typed, st) }
             }
         }
         _ -> {}
     }
 }
 
-binding_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingState) -> void {
+binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingState) -> void {
     match e {
-        is AST.BlockExpr as b -> { binding_walk_block(b, typed, st) }
+        is AST.BlockExpr as b -> { binding_hv_walk_block(b, typed, st) }
         is AST.IfExpr as ifx -> {
-            binding_walk_block(ifx.then_block, typed, st)
+            binding_hv_walk_block(ifx.then_block, typed, st)
             match ifx.else_branch {
                 is null -> {}
-                is AST.IfElseIf    as ei -> { binding_walk_expr(ei.branch, typed, st) }
-                is AST.IfElseBlock as eb -> { binding_walk_block(eb.block, typed, st) }
+                is AST.IfElseIf    as ei -> { binding_hv_walk_expr(ei.branch, typed, st) }
+                is AST.IfElseBlock as eb -> { binding_hv_walk_block(eb.block, typed, st) }
             }
         }
         is AST.MatchExpr as m -> {
-            for arm in m.arms { binding_walk_expr(arm.body, typed, st) }
+            for arm in m.arms { binding_hv_walk_expr(arm.body, typed, st) }
         }
-        is AST.LambdaExpr as l -> { binding_walk_block(l.body, typed, st) }
+        is AST.LambdaExpr as l -> { binding_hv_walk_block(l.body, typed, st) }
         _ -> {}
     }
 }
@@ -325,7 +325,7 @@ find_expr_at :: fn(
     decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram,
 ) -> AST.Expr | null {
     state :: FindState { .line = line, .col = col, .best = null, .best_size = u64(0) }
-    for d in decls { walk_decl(d, typed, state) }
+    for d in decls { hv_walk_decl(d, typed, state) }
     return state.best
 }
 
@@ -336,130 +336,130 @@ FindState :: struct {
     best_size: u64
 }
 
-walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState) -> void {
+hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState) -> void {
     match d {
         is AST.FnDecl as fd -> {
             match fd.body {
                 is null -> {}
-                is AST.BlockExpr as b -> { walk_block(b, typed, st) }
+                is AST.BlockExpr as b -> { hv_walk_block(b, typed, st) }
             }
         }
         is AST.ImplDecl as id -> {
             for m in id.members {
                 match m.body {
                     is null -> {}
-                    is AST.BlockExpr as b -> { walk_block(b, typed, st) }
+                    is AST.BlockExpr as b -> { hv_walk_block(b, typed, st) }
                 }
             }
         }
-        is AST.ConstDecl as cd -> { walk_expr(cd.value, typed, st) }
+        is AST.ConstDecl as cd -> { hv_walk_expr(cd.value, typed, st) }
         _ -> {}
     }
 }
 
-walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindState) -> void {
-    for s in b.stmts { walk_stmt(s, typed, st) }
+hv_walk_block :: fn(b: AST.BlockExpr, typed: TypedProgram, st: FindState) -> void {
+    for s in b.stmts { hv_walk_stmt(s, typed, st) }
     match b.trailing {
         is null -> {}
-        _ -> { walk_expr(b.trailing, typed, st) }
+        _ -> { hv_walk_expr(b.trailing, typed, st) }
     }
 }
 
-walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState) -> void {
+hv_walk_stmt :: fn(s: AST.Stmt, typed: TypedProgram, st: FindState) -> void {
     match s {
-        is AST.LetStmt as ls -> { walk_expr(ls.value, typed, st) }
-        is AST.ExprStmt as es -> { walk_expr(es.expr, typed, st) }
+        is AST.LetStmt as ls -> { hv_walk_expr(ls.value, typed, st) }
+        is AST.ExprStmt as es -> { hv_walk_expr(es.expr, typed, st) }
         is AST.ReturnStmt as rs -> {
             match rs.value {
                 is null -> {}
-                _ -> { walk_expr(rs.value, typed, st) }
+                _ -> { hv_walk_expr(rs.value, typed, st) }
             }
         }
         is AST.AssignStmt as as_ -> {
-            walk_expr(as_.target, typed, st)
-            walk_expr(as_.value, typed, st)
+            hv_walk_expr(as_.target, typed, st)
+            hv_walk_expr(as_.value, typed, st)
         }
         is AST.ForStmt as fs -> {
             match fs.form {
-                is AST.WhileFor as w -> { walk_expr(w.cond, typed, st) }
-                is AST.InFor    as i -> { walk_expr(i.iter, typed, st) }
+                is AST.WhileFor as w -> { hv_walk_expr(w.cond, typed, st) }
+                is AST.InFor    as i -> { hv_walk_expr(i.iter, typed, st) }
                 is AST.InfiniteFor -> {}
             }
-            walk_block(fs.body, typed, st)
+            hv_walk_block(fs.body, typed, st)
         }
         is AST.BreakStmt -> {}
         is AST.ContinueStmt -> {}
         is AST.DeferStmt as ds -> {
             match ds.body {
-                is AST.DeferStmtBody  as dsb -> { walk_stmt(dsb.stmt, typed, st) }
-                is AST.DeferBlockBody as dbb -> { walk_block(dbb.block, typed, st) }
+                is AST.DeferStmtBody  as dsb -> { hv_walk_stmt(dsb.stmt, typed, st) }
+                is AST.DeferBlockBody as dbb -> { hv_walk_block(dbb.block, typed, st) }
             }
         }
     }
 }
 
-walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
-    consider(e, typed, st)
+hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
+    hv_consider(e, typed, st)
     match e {
         is AST.CallExpr as c -> {
-            walk_expr(c.callee, typed, st)
-            for a in c.args { walk_expr(a.value, typed, st) }
+            hv_walk_expr(c.callee, typed, st)
+            for a in c.args { hv_walk_expr(a.value, typed, st) }
         }
-        is AST.FieldExpr as f -> { walk_expr(f.target, typed, st) }
+        is AST.FieldExpr as f -> { hv_walk_expr(f.target, typed, st) }
         is AST.IndexExpr as ix -> {
-            walk_expr(ix.target, typed, st)
-            walk_expr(ix.index, typed, st)
+            hv_walk_expr(ix.target, typed, st)
+            hv_walk_expr(ix.index, typed, st)
         }
-        is AST.UnaryExpr as u -> { walk_expr(u.operand, typed, st) }
+        is AST.UnaryExpr as u -> { hv_walk_expr(u.operand, typed, st) }
         is AST.BinaryExpr as bn -> {
-            walk_expr(bn.left, typed, st)
-            walk_expr(bn.right, typed, st)
+            hv_walk_expr(bn.left, typed, st)
+            hv_walk_expr(bn.right, typed, st)
         }
         is AST.IfExpr as ifx -> {
-            walk_expr(ifx.cond, typed, st)
-            walk_block(ifx.then_block, typed, st)
+            hv_walk_expr(ifx.cond, typed, st)
+            hv_walk_block(ifx.then_block, typed, st)
             match ifx.else_branch {
                 is null -> {}
-                is AST.IfElseIf    as ei -> { walk_expr(ei.branch, typed, st) }
-                is AST.IfElseBlock as eb -> { walk_block(eb.block, typed, st) }
+                is AST.IfElseIf    as ei -> { hv_walk_expr(ei.branch, typed, st) }
+                is AST.IfElseBlock as eb -> { hv_walk_block(eb.block, typed, st) }
             }
         }
         is AST.MatchExpr as m -> {
-            walk_expr(m.scrutinee, typed, st)
-            for arm in m.arms { walk_expr(arm.body, typed, st) }
+            hv_walk_expr(m.scrutinee, typed, st)
+            for arm in m.arms { hv_walk_expr(arm.body, typed, st) }
         }
-        is AST.BlockExpr as b -> { walk_block(b, typed, st) }
-        is AST.LambdaExpr as l -> { walk_block(l.body, typed, st) }
+        is AST.BlockExpr as b -> { hv_walk_block(b, typed, st) }
+        is AST.LambdaExpr as l -> { hv_walk_block(l.body, typed, st) }
         is AST.StructLitExpr as sl -> {
-            walk_expr(sl.type_name, typed, st)
+            hv_walk_expr(sl.type_name, typed, st)
             for item in sl.items {
                 match item {
-                    is AST.StructLitField  as fld -> { walk_expr(fld.value, typed, st) }
-                    is AST.StructLitSpread as sp  -> { walk_expr(sp.expr, typed, st) }
+                    is AST.StructLitField  as fld -> { hv_walk_expr(fld.value, typed, st) }
+                    is AST.StructLitSpread as sp  -> { hv_walk_expr(sp.expr, typed, st) }
                 }
             }
         }
         is AST.SeqLitExpr as sq -> {
-            for el in sq.elements { walk_expr(el, typed, st) }
+            for el in sq.elements { hv_walk_expr(el, typed, st) }
         }
-        is AST.CastExpr as cx -> { walk_expr(cx.value, typed, st) }
-        is AST.TryExpr as tx -> { walk_expr(tx.inner, typed, st) }
+        is AST.CastExpr as cx -> { hv_walk_expr(cx.value, typed, st) }
+        is AST.TryExpr as tx -> { hv_walk_expr(tx.inner, typed, st) }
         is AST.GenericInstExpr as gi -> {
-            walk_expr(gi.callee, typed, st)
-            for ta in gi.type_args { walk_expr(ta, typed, st) }
+            hv_walk_expr(gi.callee, typed, st)
+            for ta in gi.type_args { hv_walk_expr(ta, typed, st) }
         }
         is AST.IntrinsicCallExpr as ic -> {
-            for a in ic.args { walk_expr(a, typed, st) }
+            for a in ic.args { hv_walk_expr(a, typed, st) }
         }
         // Leaves : IntLit, FloatLit, BoolLit, NullLit, CharLit,
         // StringLit, IdentExpr, RangeExpr, DotVariantExpr, FnTypeExpr,
-        // ArrayTypeExpr — already considered above ; no children with
+        // ArrayTypeExpr — already hv_considered above ; no children with
         // independent expression spans worth recursing into for hover.
         _ -> {}
     }
 }
 
-consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
+hv_consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
     sp :: e.span
     if !span_contains(sp, st.line, st.col) { return }
     // Skip until we have a type entry — no point reporting a node
@@ -481,7 +481,7 @@ span_contains :: fn(s: Span, line: i32, col: i32) -> bool {
 }
 
 // `(end.line - start.line) << 16 | (end.col - start.col)` — coarse
-// proxy for character extent ; smaller wins in `consider`.
+// proxy for character extent ; smaller wins in `hv_consider`.
 span_size :: fn(s: Span) -> u64 {
     line_extent :: u64(s.end.line - s.start.line)
     col_extent  :: u64(s.end.column - s.start.column)

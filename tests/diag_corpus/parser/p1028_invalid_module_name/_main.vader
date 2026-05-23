@@ -1,0 +1,4 @@
+module "Snippet"
+// Module name must match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` — P1028.
+
+main :: fn() -> i32 { return 0 }

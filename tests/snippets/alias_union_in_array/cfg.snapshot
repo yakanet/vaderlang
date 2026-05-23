@@ -2,9 +2,9 @@
 
 ## snippet
 
-fn snippet$push_pet(%0: Cat | Dog[], %1: Cat | Dog) -> void
+fn snippet$push_pet(%0: (Cat | Dog)[], %1: Cat | Dog) -> void
   locals:
-    %0 arr: Cat | Dog[] (param arr)
+    %0 arr: (Cat | Dog)[] (param arr)
     %1 p: Cat | Dog (param p)
   bb0:
     array_push %0, %1
@@ -69,12 +69,12 @@ fn snippet$describe(%0: Cat | Dog) -> string
 
 fn snippet$main() -> i32
   locals:
-    %0 pets: Cat | Dog[] (local pets)
+    %0 pets: (Cat | Dog)[] (local pets)
     %1 $k_2: string
     %2 $struct_3: Cat
     %3 $k_4: string
     %4 $struct_5: Dog
-    %5 __for_arr_0: Cat | Dog[] (synthetic __for_arr_0)
+    %5 __for_arr_0: (Cat | Dog)[] (synthetic __for_arr_0)
     %6 __for_len_1: usize (synthetic __for_len_1)
     %7 __for_i_2: usize (synthetic __for_i_2)
     %8 $lt_11: bool
@@ -83,7 +83,7 @@ fn snippet$main() -> i32
     %11 $k_15: usize
     %12 $k_17: i32
   bb0:
-    %0 = array_new Cat | Dog[][0]()
+    %0 = array_new (Cat | Dog)[][0]()
     %1 = const string(#2) :string
     %2 = struct_new Cat(%1)
     call push_pet(%0, %2) :void

@@ -578,7 +578,14 @@ export function displayType(t: Type): string {
     case "Never":      return "never";
     case "FreeInt":    return "{integer}";
     case "FreeFloat":  return "{float}";
-    case "Array":      return t.immutable ? `const ${displayType(t.element)}[]` : `${displayType(t.element)}[]`;
+    case "Array": {
+      // `(A | B)[]` is unambiguous ; bare `A | B[]` would read as
+      // `A | (B[])` since `[]` binds tighter than `|`. Same for `fn` returns.
+      const inner = displayType(t.element);
+      const needsParens = t.element.kind === "Union" || t.element.kind === "Fn";
+      const wrapped = needsParens ? `(${inner})` : inner;
+      return t.immutable ? `const ${wrapped}[]` : `${wrapped}[]`;
+    }
     case "Tuple":      return `[${t.elements.map(displayType).join(", ")}]`;
     case "Fn": {
       const ps = t.params.map(displayType).join(", ");

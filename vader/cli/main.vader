@@ -395,20 +395,28 @@ run_resolver_stage :: fn(file: string) -> i32 {
     return 0
 }
 
-// Resolve every loaded module in place. Stdlib modules stay loaded but
-// aren't surfaced in the dump (matches `formatResolverDump` filtering).
+// Resolve every loaded module. Stdlib modules stay loaded for import
+// targets but aren't surfaced in the dump — mirrors `formatResolverDump`.
+// `ResolvedModule.path` is the first file's path (matches pre-strict-mode
+// single-file `resolve_module(parsed.program, file, factory)` so existing
+// `resolver.snapshot`s stay byte-identical).
 resolve_loaded_project :: fn(project: LoadedProject) -> ResolvedProject {
+    materialize_all_sams_pre_resolve(project)
     modules: ResolvedModule[] = []
     for lm in project.modules.values() {
         if is_stdlib_module(lm.module.display_path) { continue }
         rm :: resolve_module_with_collected(
-            lm.module.files[0].program, lm.module.display_path,
+            lm.module.files[0].program, lm.module.files[0].path,
             project.factory, lm.collected,
         )
         modules.push(rm)
     }
+    _ :: wire_imports(project)
     return ResolvedProject { .modules = modules }
 }
+
+import "vader/typecheck" { materialize_all_sams_pre_resolve }
+import "vader/resolver" { wire_imports }
 
 // Merge loader-time and body-walker diagnostics into one ordered list.
 // Body diags carry no global span ordering ; concatenated by module-
@@ -499,9 +507,10 @@ EvaluatedPipeline :: struct {
     loaded:          LoadedProject
     typed:           TypedProject
     evaluated:       EvaluatedProject
-    /// Body-walker R-codes (R2006 / R2019 / R2010 / R2018 / R2016 /
-    /// R2007 / R2009) — populated by resolve_loaded_project so every
-    /// stage downstream sees the same resolver diagnostics.
+    /// Body-walker diagnostics harvested from each `ResolvedModule.diags`.
+    /// `check_project_with_bodies` already resolves every module ; this
+    /// pipeline just collects the per-module bag so downstream stages
+    /// surface the same `# Diagnostics` block as the resolver stage.
     resolver_diags:  Diagnostic[]
     typecheck_diags: Diagnostic[]
     comptime_diags:  Diagnostic[]
@@ -509,11 +518,9 @@ EvaluatedPipeline :: struct {
 
 prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
     loaded :: load_project(file)
-    resolved :: resolve_loaded_project(loaded)
-    resolver_diags: Diagnostic[] = []
-    for m in resolved.modules { for d in m.diags { resolver_diags.push(d) } }
     typecheck_diags: Diagnostic[] = []
     result :: check_project_with_bodies(loaded, typecheck_diags)
+    resolver_diags :: collect_body_diags(result)
     typed :: assemble_typed_project(result)
     comptime_diags: Diagnostic[] = []
     evaluated :: evaluate_project(loaded, typed, comptime_diags)
@@ -525,6 +532,23 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
         .typecheck_diags = typecheck_diags,
         .comptime_diags  = comptime_diags,
     }
+}
+
+/// Drain non-entry modules' `resolved.diags` (body-walker output)
+/// into one flat list. The entry module's R-codes are already
+/// forwarded by `check_project_with_bodies` into `typecheck_diags`
+/// (orchestrate.vader:163), so we'd double-fire if we pushed them
+/// here too.
+collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
+    out: Diagnostic[] = []
+    if result.all_modules.size == usize(0) { return out }
+    for module_id in result.all_modules.keys() {
+        if module_id == result.typed.resolved.path { continue }
+        module_typed :: result.all_modules[module_id]
+        if module_typed is null { continue }
+        for d in module_typed.resolved.diags { out.push(d) }
+    }
+    return out
 }
 
 // Bridge the typecheck orchestrator's `CheckResult` (entry + others)

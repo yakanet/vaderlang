@@ -224,7 +224,13 @@ write_type :: fn(sb: StringBuilder, t: Type) -> void {
         is FreeFloatType      -> { sb.append("{float}") }
         is ArrayType as x -> {
             if x.immutable { sb.append("const ") }
+            // `(A | B)[]` is unambiguous ; bare `A | B[]` would read as
+            // `A | (B[])` since `[]` binds tighter than `|`. Same for
+            // bare fn types like `fn() -> A`.
+            needs_parens :: x.element is UnionType || x.element is FnType
+            if needs_parens { sb.append_char('(') }
             sb.write_type(x.element)
+            if needs_parens { sb.append_char(')') }
             sb.append("[]")
         }
         is TupleType as x -> {

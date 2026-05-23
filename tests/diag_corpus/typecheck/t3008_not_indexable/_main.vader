@@ -1,0 +1,7 @@
+// Indexing an i32 — T3008.
+module "snippet"
+
+main :: fn() -> i32 {
+    x :: 42
+    return x[0]
+}

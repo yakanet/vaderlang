@@ -1,0 +1,7 @@
+// `\q` is not a recognised escape — lexer flags L0004.
+module "snippet"
+
+main :: fn() -> i32 {
+    s :: "bad\qescape"
+    return 0
+}

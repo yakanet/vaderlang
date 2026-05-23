@@ -176,7 +176,7 @@ collect_decl :: fn(
     match d {
         is FnDecl as f -> {
             entries.push(top_entry(f.name, .Fn, f.name_span, f.span, f.decorators, source, cmap))
-            walk_fn_body(f, source, entries)
+            ix_walk_fn_body(f, source, entries)
         }
         is StructDecl as s -> {
             entries.push(top_entry(s.name, .Struct, s.name_span, s.span, s.decorators, source, cmap))
@@ -204,7 +204,7 @@ collect_decl :: fn(
             // own params + body bindings.
             for m in ib.members {
                 entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, source, cmap))
-                walk_fn_body(m, source, entries)
+                ix_walk_fn_body(m, source, entries)
             }
         }
         is ImportDecl as i -> { collect_import(i, imports) }
@@ -282,7 +282,7 @@ binding_entry :: fn(
 
 // ---- fn body walk : params + locals + for-in -----------------------------
 
-walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
+ix_walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
     match f.body {
         is null -> {}
         is BlockExpr as body -> {
@@ -296,7 +296,7 @@ walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
                 sig :: param_signature_slice(p.span, p.name, source)
                 entries.push(binding_entry(p.name, .Param, name_span, scope, sig))
             }
-            walk_block(body, source, entries)
+            ix_walk_block(body, source, entries)
         }
     }
 }
@@ -318,17 +318,17 @@ name_span_from :: fn(start: Position, name: string) -> Span {
 // `b` is the block being walked. Locals it declares scope from their
 // declaration point to `b.span.end`. Nested blocks (if/match arms,
 // inner BlockExprs) recurse and get their own narrower scope.
-walk_block :: fn(b: BlockExpr, source: string, entries: DeclEntry[]) -> void {
+ix_walk_block :: fn(b: BlockExpr, source: string, entries: DeclEntry[]) -> void {
     for s in b.stmts {
-        walk_stmt(s, b.span, source, entries)
+        ix_walk_stmt(s, b.span, source, entries)
     }
     match b.trailing {
         is null -> {}
-        e       -> { walk_expr(e, source, entries) }
+        e       -> { ix_walk_expr(e, source, entries) }
     }
 }
 
-walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[]) -> void {
+ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[]) -> void {
     match s {
         is LetStmt as l -> {
             // Local scope : from the let down to the end of the
@@ -337,26 +337,26 @@ walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry[])
             local_scope :: Span { .start = l.span.start, .end = block_span.end }
             type_hint :: local_type_hint(l, source)
             collect_let_binding(l.binding, local_scope, source, type_hint, entries)
-            walk_expr(l.value, source, entries)
+            ix_walk_expr(l.value, source, entries)
         }
         is AssignStmt as a -> {
-            walk_expr(a.target, source, entries)
-            walk_expr(a.value, source, entries)
+            ix_walk_expr(a.target, source, entries)
+            ix_walk_expr(a.value, source, entries)
         }
-        is ExprStmt as e -> { walk_expr(e.expr, source, entries) }
+        is ExprStmt as e -> { ix_walk_expr(e.expr, source, entries) }
         is ReturnStmt as r -> {
             match r.value {
                 is null -> {}
-                e       -> { walk_expr(e, source, entries) }
+                e       -> { ix_walk_expr(e, source, entries) }
             }
         }
-        is ForStmt as f -> { walk_for(f, source, entries) }
+        is ForStmt as f -> { ix_walk_for(f, source, entries) }
         is BreakStmt -> {}
         is ContinueStmt -> {}
         is DeferStmt as d -> {
             match d.body {
-                is DeferStmtBody as ds -> { walk_stmt(ds.stmt, block_span, source, entries) }
-                is DeferBlockBody as db -> { walk_block(db.block, source, entries) }
+                is DeferStmtBody as ds -> { ix_walk_stmt(ds.stmt, block_span, source, entries) }
+                is DeferBlockBody as db -> { ix_walk_block(db.block, source, entries) }
             }
         }
     }
@@ -480,43 +480,43 @@ literal_suffix_type :: fn(e: Expr, _source: string) -> string {
     }
 }
 
-walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
+ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
     match f.form {
         is InfiniteFor -> {}
-        is WhileFor as w -> { walk_expr(w.cond, source, entries) }
+        is WhileFor as w -> { ix_walk_expr(w.cond, source, entries) }
         is InFor as i -> {
             // for-in binding scope = the loop's body block.
             sig :: "for " + i.binding + " in ..."
             entries.push(binding_entry(i.binding, .ForIn, i.binding_span, f.body.span, sig))
-            walk_expr(i.iter, source, entries)
+            ix_walk_expr(i.iter, source, entries)
         }
     }
-    walk_block(f.body, source, entries)
+    ix_walk_block(f.body, source, entries)
 }
 
 // Recurse through expressions to reach nested blocks / matches / ifs /
 // lambdas. Leaf expression variants are no-ops ; container ones recurse
 // into every child that might host a binding.
-walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
+ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
     match e {
-        is BlockExpr as b -> { walk_block(b, source, entries) }
+        is BlockExpr as b -> { ix_walk_block(b, source, entries) }
         is IfExpr as i -> {
-            walk_expr(i.cond, source, entries)
-            walk_block(i.then_block, source, entries)
+            ix_walk_expr(i.cond, source, entries)
+            ix_walk_block(i.then_block, source, entries)
             match i.else_branch {
                 is null -> {}
-                is IfElseIf as ei -> { walk_expr(ei.branch, source, entries) }
-                is IfElseBlock as eb -> { walk_block(eb.block, source, entries) }
+                is IfElseIf as ei -> { ix_walk_expr(ei.branch, source, entries) }
+                is IfElseBlock as eb -> { ix_walk_block(eb.block, source, entries) }
             }
         }
         is MatchExpr as m -> {
-            walk_expr(m.scrutinee, source, entries)
+            ix_walk_expr(m.scrutinee, source, entries)
             for arm in m.arms {
                 match arm.guard {
                     is null -> {}
-                    g       -> { walk_expr(g, source, entries) }
+                    g       -> { ix_walk_expr(g, source, entries) }
                 }
-                walk_expr(arm.body, source, entries)
+                ix_walk_expr(arm.body, source, entries)
             }
         }
         is LambdaExpr as l -> {
@@ -527,48 +527,48 @@ walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
                 sig :: param_signature_slice(p.span, p.name, source)
                 entries.push(binding_entry(p.name, .Param, p.span, scope, sig))
             }
-            walk_block(l.body, source, entries)
+            ix_walk_block(l.body, source, entries)
         }
         is CallExpr as c -> {
-            walk_expr(c.callee, source, entries)
-            for a in c.args { walk_expr(a.value, source, entries) }
+            ix_walk_expr(c.callee, source, entries)
+            for a in c.args { ix_walk_expr(a.value, source, entries) }
         }
-        is FieldExpr as fe -> { walk_expr(fe.target, source, entries) }
+        is FieldExpr as fe -> { ix_walk_expr(fe.target, source, entries) }
         is IndexExpr as ie -> {
-            walk_expr(ie.target, source, entries)
-            walk_expr(ie.index, source, entries)
+            ix_walk_expr(ie.target, source, entries)
+            ix_walk_expr(ie.index, source, entries)
         }
-        is UnaryExpr as u -> { walk_expr(u.operand, source, entries) }
+        is UnaryExpr as u -> { ix_walk_expr(u.operand, source, entries) }
         is BinaryExpr as b -> {
-            walk_expr(b.left, source, entries)
-            walk_expr(b.right, source, entries)
+            ix_walk_expr(b.left, source, entries)
+            ix_walk_expr(b.right, source, entries)
         }
         is StructLitExpr as sl -> {
             for it in sl.items {
                 match it {
-                    is StructLitField as fl -> { walk_expr(fl.value, source, entries) }
-                    is StructLitSpread as sp -> { walk_expr(sp.expr, source, entries) }
+                    is StructLitField as fl -> { ix_walk_expr(fl.value, source, entries) }
+                    is StructLitSpread as sp -> { ix_walk_expr(sp.expr, source, entries) }
                 }
             }
         }
         is SeqLitExpr as sq -> {
-            for elt in sq.elements { walk_expr(elt, source, entries) }
+            for elt in sq.elements { ix_walk_expr(elt, source, entries) }
         }
         is RangeExpr as r -> {
-            walk_expr(r.lower, source, entries)
-            walk_expr(r.upper, source, entries)
+            ix_walk_expr(r.lower, source, entries)
+            ix_walk_expr(r.upper, source, entries)
         }
-        is TryExpr as t -> { walk_expr(t.inner, source, entries) }
-        is CastExpr as cs -> { walk_expr(cs.value, source, entries) }
-        is GenericInstExpr as gi -> { walk_expr(gi.callee, source, entries) }
+        is TryExpr as t -> { ix_walk_expr(t.inner, source, entries) }
+        is CastExpr as cs -> { ix_walk_expr(cs.value, source, entries) }
+        is GenericInstExpr as gi -> { ix_walk_expr(gi.callee, source, entries) }
         is IntrinsicCallExpr as ic -> {
-            for a in ic.args { walk_expr(a, source, entries) }
+            for a in ic.args { ix_walk_expr(a, source, entries) }
         }
         is StringLitExpr as st -> {
             for p in st.parts {
                 match p {
                     is StringLitText -> {}
-                    is StringLitInterp as si -> { walk_expr(si.expr, source, entries) }
+                    is StringLitInterp as si -> { ix_walk_expr(si.expr, source, entries) }
                 }
             }
         }

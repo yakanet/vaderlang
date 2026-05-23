@@ -37,22 +37,30 @@ export new_import_target_table :: fn() -> ImportTargetTable {
     }
 }
 
-/// Wire every ImportBinding across every loaded module. Each
-/// binding looks up its declared module via the project's
-/// path-to-module index, then resolves either to the module itself
-/// (namespace form) or to a named export.
+/// Wire every ImportBinding across every loaded module. Mirrors
+/// `src/resolver/wire.ts::wireImports`. Emits R2003 / R2008 on the
+/// binding's own span into `project.diags`.
 export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
     out :: new_import_target_table()
+    // One name → id map for the whole project ; reused across every
+    // module's import-path resolution. Hoisted out of the inner loop
+    // so it's built once (O(N)) rather than per-module (O(N²)).
+    name_to_id :: MutableMap(string, string) { .buckets = [], .size = 0 }
+    for lm in project.modules.values() {
+        name_to_id[lm.module.module_name] = lm.module.id
+    }
     for module_id in project.modules.keys() {
         loaded :: project.modules[module_id]
         if loaded is null { continue }
-        path_index :: build_path_index(loaded, project)
-        wire_module(loaded, path_index, project, out)
+        wire_module(loaded, name_to_id, project, out)
     }
     return out
 }
 
-import "std/collections" { keys }
+import "vader/diagnostics" { Diagnostic, resolver_error }
+import "vader/parser" { Visibility }
+
+import "std/collections" { keys, values }
 
 wire_module :: fn(
     loaded: LoadedModule, path_index: MutableMap(string, string),
@@ -73,43 +81,28 @@ wire_module :: fn(
         }
         match info.imported_name {
             is null -> { out.namespace_targets[sym_id] = target_id }
-            _ -> {
-                exported :: target_loaded.collected.symbols[info.imported_name]
-                if exported is null { out.missing[sym_id] = true }
-                else { out.symbol_targets[sym_id] = SymbolTarget { .symbol = exported, .module_id = target_id } }
+            is string as imported -> {
+                exported :: target_loaded.collected.symbols[imported]
+                match exported {
+                    is null -> {
+                        out.missing[sym_id] = true
+                        project.diags.push(resolver_error(.ImportedNameNotExported,
+                            info.binding_span, "`${imported}` from `${info.path}`"))
+                    }
+                    is Symbol as e -> {
+                        if i32(e.visibility) == i32(Visibility.Private) {
+                            out.missing[sym_id] = true
+                            project.diags.push(resolver_error(.SymbolNotExported,
+                                info.binding_span, "`${imported}`"))
+                        } else {
+                            out.symbol_targets[sym_id] = SymbolTarget { .symbol = e, .module_id = target_id }
+                        }
+                    }
+                }
             }
         }
     }
 }
-
-/// Build a path→module-id index for one module's imports. The
-/// resulting map sends each raw `import "path"` text to the
-/// canonical id of its resolved target module.
-build_path_index :: fn(
-    loaded: LoadedModule, project: LoadedProject,
-) -> MutableMap(string, string) {
-    index :: MutableMap(string, string) { .buckets = [], .size = 0 }
-    stdlib_root :: stdlib_root_from(project)
-    from_file :: loaded.module.files[0].path
-    for raw in loaded.collected.import_paths {
-        resolved :: try_resolve(raw, from_file, stdlib_root, project.project_root)
-        if resolved is null { continue }
-        if project.modules[resolved] is null { continue }
-        index[raw] = resolved
-    }
-    return index
-}
-
-
-try_resolve :: fn(
-    raw: string, from_file: string, stdlib_root: string, project_root: string | null,
-) -> string | null {
-    target :: resolve_import_path(raw, from_file, stdlib_root, project_root)
-    if target is null { return null }
-    return module_id_from_root(target)
-}
-
-stdlib_root_from :: fn(_: LoadedProject) -> string { return default_stdlib_root() }
 
 /// Follow an ImportBinding `sym` to its concrete export target,
 /// when known. For non-import symbols (or for module-namespace

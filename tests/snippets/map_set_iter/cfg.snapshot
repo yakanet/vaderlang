@@ -4,7 +4,7 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 $arr_0: Entry(string, i32) | null[]
+    %0 $arr_0: (Entry(string, i32) | null)[]
     %1 $k_1: usize
     %2 m: MutableMap(string, i32) (local m)
     %3 $k_4: string
@@ -15,7 +15,7 @@ fn snippet$main() -> i32
     %8 $k_9: i32
     %9 total: i32 (local total)
     %10 __iter_src_0: MutableMap(string, i32) (synthetic __iter_src_0)
-    %11 __iter_buckets_1: Entry(string, i32) | null[] (synthetic __iter_buckets_1)
+    %11 __iter_buckets_1: (Entry(string, i32) | null)[] (synthetic __iter_buckets_1)
     %12 __iter_buckets_len_2: usize (synthetic __iter_buckets_len_2)
     %13 __iter_bucket_3: usize (synthetic __iter_bucket_3)
     %14 __iter_chain_4: Entry(string, i32) | null (synthetic __iter_chain_4)
@@ -29,7 +29,7 @@ fn snippet$main() -> i32
     %22 __sb_6: ? (synthetic __sb_6)
     %23 $k_34: string
     %24 $intrinsic_35: string
-    %25 $arr_36: Entry(i32, bool) | null[]
+    %25 $arr_36: (Entry(i32, bool) | null)[]
     %26 $k_37: usize
     %27 $struct_38: MutableMap(i32, bool)
     %28 s: MutableSet(i32) (local s)
@@ -42,7 +42,7 @@ fn snippet$main() -> i32
     %35 sum: i32 (local sum)
     %36 __iter_src_7: MutableSet(i32) (synthetic __iter_src_7)
     %37 $field_50: MutableMap(i32, bool)
-    %38 __iter_buckets_8: Entry(i32, bool) | null[] (synthetic __iter_buckets_8)
+    %38 __iter_buckets_8: (Entry(i32, bool) | null)[] (synthetic __iter_buckets_8)
     %39 __iter_buckets_len_9: usize (synthetic __iter_buckets_len_9)
     %40 __iter_bucket_10: usize (synthetic __iter_bucket_10)
     %41 __iter_chain_11: Entry(i32, bool) | null (synthetic __iter_chain_11)
@@ -57,7 +57,7 @@ fn snippet$main() -> i32
     %50 $intrinsic_73: string
     %51 $k_74: i32
   bb0:
-    %0 = array_new Entry(string, i32) | null[][0]()
+    %0 = array_new (Entry(string, i32) | null)[][0]()
     %1 = const int(0) :usize
     %2 = struct_new MutableMap(string, i32)(%0, %1)
     %3 = const string(#0) :string
@@ -71,7 +71,7 @@ fn snippet$main() -> i32
     call set_at(%2, %7, %8) :void
     %9 = const int(0) :i32
     %10 = move %2
-    %11 = field_get %10.buckets :Entry(string, i32) | null[]
+    %11 = field_get %10.buckets :(Entry(string, i32) | null)[]
     %12 = array_len %11
     %13 = const int(0) :usize
     %14 = const null :null
@@ -89,7 +89,7 @@ fn snippet$main() -> i32
     intrinsic builder.append_display(%22, %9)
     %24 = intrinsic builder.finish(%22)
     call println(%24) :void
-    %25 = array_new Entry(i32, bool) | null[][0]()
+    %25 = array_new (Entry(i32, bool) | null)[][0]()
     %26 = const int(0) :usize
     %27 = struct_new MutableMap(i32, bool)(%25, %26)
     %28 = struct_new MutableSet(i32)(%27)
@@ -102,7 +102,7 @@ fn snippet$main() -> i32
     %35 = const int(0) :i32
     %36 = move %28
     %37 = field_get %36.inner :MutableMap(i32, bool)
-    %38 = field_get %37.buckets :Entry(i32, bool) | null[]
+    %38 = field_get %37.buckets :(Entry(i32, bool) | null)[]
     %39 = array_len %38
     %40 = const int(0) :usize
     %41 = const null :null

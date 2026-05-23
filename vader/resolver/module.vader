@@ -46,11 +46,14 @@ export SourceFile :: struct {
 }
 
 /// A resolved module : `id` is its canonical absolute root path,
-/// `display_path` is what users see, `files` is every file
-/// participating in the module (one for single-file, N for folders).
+/// `display_path` is what users see in the dump, `module_name` is
+/// the declared `module "..."` identifier used as the key for
+/// `import "..."` lookups, `files` is every file participating in
+/// the module (one for single-file, N for folders).
 export Module :: struct {
     id:           string
     display_path: string
+    module_name:  string
     root_dir:     string
     files:        SourceFile[]
 }

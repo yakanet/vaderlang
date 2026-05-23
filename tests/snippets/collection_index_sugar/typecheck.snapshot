@@ -3,7 +3,7 @@
 ## tests/snippets/collection_index_sugar
   FnDecl         main                 :: fn() -> i32
   expr 11:10    StructLitExpr  :: MutableMap(string, i32)
-  expr 11:47    SeqLitExpr     :: Entry(string, i32) | null[]
+  expr 11:47    SeqLitExpr     :: (Entry(string, i32) | null)[]
   expr 12:5     IdentExpr      :: MutableMap(string, i32)
   expr 12:7     StringLitExpr  :: string
   expr 13:5     IdentExpr      :: MutableMap(string, i32)
@@ -47,7 +47,7 @@
   expr 28:8     StringLitExpr  :: string
   expr 31:10    StructLitExpr  :: MutableSet(i32)
   expr 31:37    StructLitExpr  :: MutableMap(i32, bool)
-  expr 31:72    SeqLitExpr     :: Entry(i32, bool) | null[]
+  expr 31:72    SeqLitExpr     :: (Entry(i32, bool) | null)[]
   expr 32:5     CallExpr       :: bool
   expr 32:5     FieldExpr      :: fn(T) -> bool
   expr 32:5     IdentExpr      :: MutableSet(i32)
