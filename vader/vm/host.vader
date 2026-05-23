@@ -92,8 +92,8 @@ stringbuilder_to_string :: fn(sv: StructVal, at_pc: i32) -> HostCallResult {
     if parts_array is Trap { return parts_array }
     flush :: new_builder()
     i: usize = 0
-    for i < parts_array.elements.len() {
-        piece :: read_string(parts_array.elements[i], at_pc, "StringBuilder.parts[i]")
+    for i < parts_array.length {
+        piece :: read_string(parts_array.elements[parts_array.offset + i], at_pc, "StringBuilder.parts[i]")
         if piece is Trap { return piece }
         flush.append(piece.value)
         i += 1
@@ -193,7 +193,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
             i += 1
         }
         // type_id 0 : bound-checks use elements.len(), not the type table.
-        return HostOk { .value = ArrayVal { .type_id = 0, .elements = elements } }
+        return HostOk { .value = ArrayVal { .type_id = 0, .elements = elements, .offset = usize(0), .length = elements.len() } }
     }
     if info.mangled == r"std_core$string$Index$at" {
         s :: read_string(stack[arg_base    ], at_pc, "string[] receiver")
@@ -358,8 +358,8 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if argv is Trap { return argv }
         argv_strings: string[] = []
         i: usize = 0
-        for i < argv.elements.len() {
-            element :: read_string(argv.elements[i], at_pc, "spawn_run argv element")
+        for i < argv.length {
+            element :: read_string(argv.elements[argv.offset + i], at_pc, "spawn_run argv element")
             if element is Trap { return element }
             argv_strings.push(element.value)
             i += 1

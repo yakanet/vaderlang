@@ -572,7 +572,7 @@ parse_data_decl :: fn(cleaned: string, data_pool: ArrayVal[]) -> void {
     if rest.byte_at(rest.byte_len() - 1) != u8(b'"') { return }
     hex_body :: rest.slice(4, rest.byte_len() - 1)
     elements :: data_entry_elements(kind, hex_body)
-    data_pool.push(ArrayVal { .type_id = 0, .elements = elements })
+    data_pool.push(ArrayVal { .type_id = 0, .elements = elements, .offset = usize(0), .length = elements.len() })
 }
 
 /// Decode the `<kind> hex"…"` payload into a `Value[]`. Each element

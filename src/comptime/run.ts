@@ -227,7 +227,10 @@ function comptimeToValue(v: ComptimeValue): Value {
     case "string": return { tag: "string", n: v.value };
     case "null":   return { tag: "null" };
     case "void":   return { tag: "void" };
-    case "array":  return { tag: "array", typeIndex: -1, elements: v.elements.map(comptimeToValue) };
+    case "array": {
+      const elements = v.elements.map(comptimeToValue);
+      return { tag: "array", typeIndex: -1, elements, offset: 0, length: elements.length };
+    }
     case "struct": return { tag: "struct", typeIndex: -1, fields: [...v.fields.values()].map(comptimeToValue) };
     case "type":
       // The comptime carrier holds the static `Type` directly, not a

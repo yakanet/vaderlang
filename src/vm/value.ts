@@ -35,10 +35,35 @@ export interface StructValue {
   readonly fields: Value[];
 }
 
+/** A7 unified array+view model. `elements` is the shared backing buffer ;
+ *  `offset` and `length` carve out the logical slice. For an owning array,
+ *  `offset === 0` and `length === elements.length`. A view created by
+ *  `arr[r]` keeps `elements` shared and adjusts the bounds.
+ *
+ *  `array.set` deliberately writes through to the shared buffer — Go-style
+ *  aliasing. `array.push` detaches into a fresh `elements` to avoid
+ *  clobbering aliased tail slots ; the user disowns aliasing by calling
+ *  `arr[r].clone()`.
+ *
+ *  Mutable `offset` / `length` because `array.push` updates `length` in
+ *  place after the detach. `elements` becomes a fresh array on push but
+ *  the field itself is rewritten — the ArrayValue identity stays the same
+ *  so `local.tee` / `local.get` see the post-push state. */
 export interface ArrayValue {
   readonly tag: "array";
   readonly typeIndex: number;
-  readonly elements: Value[];
+  elements: Value[];
+  offset: number;
+  length: number;
+}
+
+/** True iff `v` is a view onto a buffer it doesn't own — i.e. `elements`
+ *  is shared with another `ArrayValue`. Non-zero offset is the clear
+ *  case ; same-offset but smaller `length` than `elements.length` means
+ *  a sibling view holds the tail slots. Used by `array.push` to decide
+ *  whether to detach into a fresh buffer. */
+export function isArrayView(v: ArrayValue): boolean {
+  return v.offset !== 0 || v.offset + v.length < v.elements.length;
 }
 
 /** A `type` reified as a runtime value. Pushed by the `type.const N` op ;
@@ -170,7 +195,7 @@ export function displayValue(v: Value): string {
     case "struct":
       return `${v.typeIndex}{ ${v.fields.map(displayValue).join(", ")} }`;
     case "array":
-      return `[${v.elements.map(displayValue).join(", ")}]`;
+      return `[${v.elements.slice(v.offset, v.offset + v.length).map(displayValue).join(", ")}]`;
     case "builder":
       return `<builder len=${v.parts.length}>`;
     case "fn":

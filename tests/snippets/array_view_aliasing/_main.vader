@@ -1,0 +1,39 @@
+// A7 — `arr[r]` is a zero-copy view onto the parent's backing buffer.
+// Writes through the view alias the parent (Go-style). The user opts
+// out by calling `.clone()` to get an owning copy. `push` detaches
+// to avoid clobbering tail slots aliased by sibling views.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    arr := [10, 20, 30, 40, 50]
+    view := arr[1..<4]               // view = [20, 30, 40], aliases arr[1..4]
+    view[1] = 99                     // writes through ; arr now [10, 20, 99, 40, 50]
+
+    println("after view[1]=99")
+    println("arr[0]=${arr[0]}")
+    println("arr[1]=${arr[1]}")
+    println("arr[2]=${arr[2]}")
+    println("arr[3]=${arr[3]}")
+    println("arr[4]=${arr[4]}")
+    println("view[0]=${view[0]}")
+    println("view[1]=${view[1]}")
+    println("view[2]=${view[2]}")
+
+    // `push` on a view detaches into a fresh backing buf — that's what
+    // disowns the aliasing without needing an explicit clone (since
+    // `T[] implements Clone` isn't wired yet ; see std/iter::clone).
+    indep := view
+    indep.push(-1)                   // view -> detached ; arr unchanged
+    indep[0] = -2                    // mutates indep only
+    println("after indep mutations")
+    println("indep[0]=${indep[0]}")
+    println("indep[1]=${indep[1]}")
+    println("indep[2]=${indep[2]}")
+    println("indep[3]=${indep[3]}")
+    println("arr[1]=${arr[1]}")
+    println("view[0]=${view[0]}")
+    return 0
+}

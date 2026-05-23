@@ -157,7 +157,8 @@ export function stdIoBindings(io: HostIO): Record<string, HostFn> {
       try {
         const entries = io.readDir(stringArg(args, 0));
         const arrTypeIdx = findStringArrayTypeIndex(module);
-        return { tag: "array" as const, typeIndex: arrTypeIdx, elements: entries.map(p => str(p)) };
+        const elements = entries.map(p => str(p));
+        return { tag: "array" as const, typeIndex: arrTypeIdx, elements, offset: 0, length: elements.length };
       } catch (e) {
         return err(messageOf(e));
       }
@@ -221,7 +222,8 @@ export function stdStringBindings(): Record<string, HostFn> {
       const s = stringArg(args, 0);
       const sep = stringArg(args, 1);
       const parts = s.split(sep);
-      return { tag: "array" as const, typeIndex: 0, elements: parts.map(p => str(p)) };
+      const elements = parts.map(p => str(p));
+      return { tag: "array" as const, typeIndex: 0, elements, offset: 0, length: elements.length };
     },
     std_string$parse_int:   (args) => {
       const s = stringArg(args, 0);
@@ -267,7 +269,8 @@ export function stdStringBindings(): Record<string, HostFn> {
         throw new Error(`vm: StringBuilder.parts is not an array (got ${partsField?.tag ?? "<missing>"})`);
       }
       let result = "";
-      for (const el of partsField.elements) {
+      for (let i = 0; i < partsField.length; i++) {
+        const el = partsField.elements[partsField.offset + i]!;
         if (el.tag === "string") result += el.n;
       }
       return str(result);
@@ -320,7 +323,11 @@ export function stdProcessBindings(): Record<string, HostFn> {
       if (argv === undefined || argv.tag !== "array") {
         throw new Error(`vm: spawn_run: expected array at arg 0, got ${argv?.tag ?? "<missing>"}`);
       }
-      const cmd = argv.elements.map((e) => e.tag === "string" ? e.n : "");
+      const cmd: string[] = [];
+      for (let i = 0; i < argv.length; i++) {
+        const e = argv.elements[argv.offset + i]!;
+        cmd.push(e.tag === "string" ? e.n : "");
+      }
       if (cmd.length === 0 || cmd[0] === "") return num("i32", -1);
       try {
         const proc = Bun.spawnSync({ cmd, stdout: "pipe", stderr: "pipe" });

@@ -4,7 +4,7 @@
 
 ## stdlib/std/io
 
-## tests/snippets/array_view_cow_isolation
+## tests/snippets/array_view_aliasing
 
 ## generic instances
   Index(I, T)

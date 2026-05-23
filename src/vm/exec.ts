@@ -12,7 +12,8 @@ import type { BcDataEntry, BcType, ValType } from "../bytecode/types.ts";
 import type { HostBindings } from "./host.ts";
 import {
   bool, builder, ch, FALSE, fnRef, i64, NULL, num, str as makeStr, VOID,
-  asArray, asBig, asBool, asBuilder, asChar, asFn, asIndex, asNum, asString, asStruct, asType, displayValue,
+  asArray, asBig, asBool, asBuilder, asChar, asFn, asIndex, asNum, asString, asStruct, asType,
+  displayValue, isArrayView,
 } from "./value.ts";
 import type { ArrayValue, FnValue, NumTag, StringValue, Value } from "./value.ts";
 
@@ -43,8 +44,9 @@ export class VmError extends Error {
 export function runProgram(m: BytecodeModule, opts: RunOptions): RunResult {
   const fnIndex = findEntry(m, opts.entry);
   const fn = m.functions[fnIndex]!;
+  const argvElements = (opts.argv ?? []).map((s) => makeStr(s));
   const args: Value[] = fn.signature.params.length === 1
-    ? [{ tag: "array", typeIndex: 0, elements: (opts.argv ?? []).map((s) => makeStr(s)) }]
+    ? [{ tag: "array", typeIndex: 0, elements: argvElements, offset: 0, length: argvElements.length }]
     : [];
   const result = runFn(m, opts.entry, args, opts);
   if (result.tag === "void") return { exitCode: 0 };
@@ -257,7 +259,7 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       if (arr === undefined) {
         const elements = ctx.dataPoolElements[op.poolIndex];
         if (elements === undefined) throw new VmError(`vm: bad data pool index ${op.poolIndex}`, debugOf(f.fn, f.ip));
-        arr = { tag: "array", typeIndex: op.typeIndex, elements };
+        arr = { tag: "array", typeIndex: op.typeIndex, elements, offset: 0, length: elements.length };
         ctx.dataPool[op.poolIndex] = arr;
       }
       f.stack.push(arr);
@@ -472,49 +474,64 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
     case "array.new": {
       // empty literal must be a fresh array (not the frozen EMPTY_ARGS sentinel) so push works
       const elements: Value[] = op.length === 0 ? [] : popArgs(f, op.length);
-      f.stack.push({ tag: "array", typeIndex: op.typeIndex, elements });
+      f.stack.push({ tag: "array", typeIndex: op.typeIndex, elements, offset: 0, length: elements.length });
       f.ip++; return;
     }
     case "array.get": {
       const idx = asIndex(f.stack.pop()!);
       const v = asArray(f.stack.pop()!);
-      const e = v.elements[idx];
-      if (e === undefined) throw new VmError(`vm: array index ${idx} out of bounds (len=${v.elements.length})`, debugOf(f.fn, f.ip));
-      f.stack.push(e);
+      if (idx >= v.length) throw new VmError(`vm: array index ${idx} out of bounds (len=${v.length})`, debugOf(f.fn, f.ip));
+      f.stack.push(v.elements[v.offset + idx]!);
       f.ip++; return;
     }
     case "array.set": {
+      // A7 unified array+view : writes through a view deliberately mutate
+      // the parent's backing buffer (Go-style aliasing). Users opt out
+      // by materializing a fresh array (via push-detach today ;
+      // `arr[r].clone()` once T[] Clone lands).
       const value = f.stack.pop()!;
       const idx = asIndex(f.stack.pop()!);
       const v = asArray(f.stack.pop()!);
-      v.elements[idx] = value;
+      if (idx >= v.length) throw new VmError(`vm: array index ${idx} out of bounds (len=${v.length})`, debugOf(f.fn, f.ip));
+      v.elements[v.offset + idx] = value;
       f.ip++; return;
     }
     case "array.len": {
       const v = asArray(f.stack.pop()!);
-      f.stack.push(i64("usize", BigInt(v.elements.length)));
+      f.stack.push(i64("usize", BigInt(v.length)));
       f.ip++; return;
     }
     case "array.push": {
       const value = f.stack.pop()!;
       const v = asArray(f.stack.pop()!);
+      // Detach into a fresh backing buffer when `v` is a view. Otherwise
+      // push extends the parent's elements array in place — which would
+      // clobber tail slots held by sibling views.
+      if (isArrayView(v)) {
+        v.elements = v.elements.slice(v.offset, v.offset + v.length);
+        v.offset = 0;
+      }
       v.elements.push(value);
+      v.length += 1;
       f.ip++; return;
     }
     case "array.slice": {
-      // The VM stores elements as a plain `Value[]` ; `slice` copies the
-      // requested range. Shared-buf semantics matter only for the native
-      // target's GC heap ; the VM observes the same outward behaviour
-      // since arrays are mutated through `array.set` only, not via
-      // alias-write-through.
+      // A7 unified view : return a new ArrayValue sharing `elements`,
+      // with adjusted `offset` / `length`. Writes through the view
+      // alias the parent (see array.set).
       const hi = asIndex(f.stack.pop()!);
       const lo = asIndex(f.stack.pop()!);
       const v = asArray(f.stack.pop()!);
       let lo2 = lo, hi2 = hi;
-      if (lo2 > v.elements.length) lo2 = v.elements.length;
-      if (hi2 < lo2)                hi2 = lo2;
-      if (hi2 > v.elements.length) hi2 = v.elements.length;
-      f.stack.push({ tag: "array", typeIndex: op.typeIndex, elements: v.elements.slice(lo2, hi2) });
+      if (lo2 > v.length) lo2 = v.length;
+      if (hi2 < lo2)      hi2 = lo2;
+      if (hi2 > v.length) hi2 = v.length;
+      f.stack.push({
+        tag: "array", typeIndex: op.typeIndex,
+        elements: v.elements,
+        offset: v.offset + lo2,
+        length: hi2 - lo2,
+      });
       f.ip++; return;
     }
 

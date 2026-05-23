@@ -1196,64 +1196,18 @@ vader_box_t vader_array_get(vader_array_t* a, size_t i) {
     return vader_array_load_slot(a->buf, a->offset + i);
 }
 
-/* True iff `a` is a view : its `buf` is shared with another array.
- * Two signs : non-zero offset, OR tail doesn't extend to the buf end
- * (another view aliases the tail slots). An owning array meets neither.
- * Caller must have resolved forwards on `a` and `a->buf` already. */
-static inline bool vader_array_is_view(const vader_array_t* a) {
-    return a->offset != 0 || a->offset + a->length < a->buf->length;
-}
-
-/* Detach `a` from its parent buffer : allocate a fresh `buf` of exactly
- * `a->length` capacity, copy `a->length` slots from `a->buf[a->offset..]`,
- * reset `offset = 0`, set `capacity = length`. Used by `vader_array_set`
- * (and `vader_array_push` inlines a variant that doubles capacity for
- * grow-friendliness).
- *
- * `v` is the value about to be stored ; root it across the allocation so
- * the GC can update its payload if it forwards. */
-static vader_array_t* vader_array_detach(vader_array_t* a, vader_box_t* v_root) {
-    uint32_t tag       = a->header.type_index;
-    uint8_t  kind      = a->buf->element_kind;
-    size_t   elem_size = vader_array_element_size(kind);
-    size_t   src_off   = a->offset;
-    size_t   len       = a->length;
-    vader_box_t a_box; a_box.tag = tag; a_box._pad = 0; a_box.payload.obj = a;
-    /* Root `a` and (optionally) `v_root` across the alloc — both their
-     * payloads may be forwarded by a GC cycle inside the buf alloc. */
-    vader_box_t* roots[2] = { &a_box, v_root };
-    vader_gc_frame_t frame = { vader_gc_top, v_root != NULL ? 2u : 1u, 0u, roots };
-    vader_gc_top = &frame;
-    vader_array_buf_t* fresh = vader_array_buf_alloc(len == 0 ? 1 : len, kind, a->buf->element_tag);
-    a = (vader_array_t*) a_box.payload.obj;
-    vader_array_buf_t* old = a->buf;
-    while (old != NULL && old->header.forward != NULL) {
-        old = (vader_array_buf_t*) old->header.forward;
-    }
-    if (len > 0 && old != NULL) {
-        memcpy(fresh->slots, old->slots + src_off * elem_size, len * elem_size);
-    }
-    fresh->length = len;
-    a->buf        = fresh;
-    a->capacity   = len == 0 ? 1 : len;
-    a->offset     = 0;
-    VADER_WRITE_BARRIER(a);
-    vader_gc_top = frame.prev;
-    return a;
-}
-
 void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
     a = vader_array_resolve(a);
     while (a->buf != NULL && a->buf->header.forward != NULL) {
         a->buf = (vader_array_buf_t*) a->buf->header.forward;
     }
     if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
-    /* A8 unified array+view : writes through a view detach into a fresh
-     * buffer so the parent isn't mutated. Owning arrays (the dominant
-     * case) skip the detach entirely. */
-    if (vader_array_is_view(a)) {
-        a = vader_array_detach(a, &v);
-    }
+    /* A7 unified array+view : `arr[r][i] = v` deliberately writes through
+     * to the parent's backing buffer (Go-style aliasing). Detachment
+     * only happens on `push` (to avoid silently clobbering aliased tail
+     * slots — see vader_array_push). Users opt out of aliasing by
+     * materializing a fresh array — today via push-detach, eventually
+     * `arr[r].clone()` once `T[] implements Clone` is wired. */
     vader_array_store_slot(a->buf, a->offset + i, v);
     /* Mark the card holding `a->buf` if it lives in old: subsequent minors
      * must treat that card as a root since the new slot may point at young. */
@@ -1365,6 +1319,46 @@ vader_string_t vader_string_slice(vader_string_t s, size_t start, size_t end) {
     if (end > s.len) end = s.len;
     if (start >= end) return vader_string_new("", 0);
     return vader_string_new(s.ptr + start, end - start);
+}
+
+/* Walk the UTF-8 buffer counting codepoints ; return the byte offset of
+ * the `cp_index`-th codepoint, clamped to `s.len`. Invalid continuation
+ * bytes count as 1-byte codepoints (mirrors `vader_string_char_at`'s
+ * truncated-UTF-8 handling). O(n) in `cp_index`. */
+static size_t vader_string_codepoint_byte_offset(vader_string_t s, size_t cp_index) {
+    size_t cp = 0;
+    size_t i  = 0;
+    while (i < s.len && cp < cp_index) {
+        uint8_t b = (uint8_t) s.ptr[i];
+        size_t step;
+        if (b < 0x80u)       step = 1;
+        else if (b < 0xC0u)  step = 1;   /* stray continuation byte */
+        else if (b < 0xE0u)  step = 2;
+        else if (b < 0xF0u)  step = 3;
+        else                 step = 4;
+        if (i + step > s.len) step = s.len - i;
+        i  += step;
+        cp += 1;
+    }
+    return i;
+}
+
+/* `string[lo..<hi]` semantic : `lo` and `hi` are codepoint indices.
+ * Zero-copy view ; returns the empty string when the range is empty.
+ * Clamps both bounds to the string's codepoint count. */
+vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, size_t cp_hi) {
+    if (cp_hi < cp_lo) cp_hi = cp_lo;
+    size_t byte_lo = vader_string_codepoint_byte_offset(s, cp_lo);
+    size_t byte_hi = vader_string_codepoint_byte_offset(s, cp_hi);
+    return vader_string_new(s.ptr + byte_lo, byte_hi - byte_lo);
+}
+
+/* `s[i]` semantic — codepoint at codepoint-index `i`. Traps on OOB.
+ * Counterpart to `vader_string_byte_at` for the byte-indexed access. */
+vader_char_t vader_string_codepoint_at(vader_string_t s, size_t cp_index) {
+    size_t byte_off = vader_string_codepoint_byte_offset(s, cp_index);
+    if (byte_off >= s.len) vader_trap("string codepoint index out of bounds");
+    return vader_string_char_at(s, byte_off);
 }
 
 vader_bool_t vader_string_contains(vader_string_t s, vader_string_t sub) {

@@ -1,32 +1,51 @@
-# A7 — Unified `T[]` / `string` with CoW Views
+# A7 — Unified `T[]` / `string` with view aliasing + codepoint string slicing
 
-Status: design frozen — implementation in progress.
+Status: design frozen — Phase 1 (array view aliasing) landed.
 
 ## Goal
 
-Make `arr[r]` and `string[r]` zero-copy by default, without introducing a
-second user-facing type (no `Slice[T]`, no `StringView`). The runtime
-representation supports both *owning* and *view* states transparently ;
-mutations on a view trigger Copy-on-Write detachment so users never see
-aliasing surprises.
+Make `arr[r]` and `string[r]` zero-copy by default, without introducing
+a second user-facing type (no `Slice[T]`, no `StringView`). The runtime
+representation supports both *owning* and *view* states ; views share
+the backing buffer with their parent. Writes through a view alias the
+parent (Go-style) ; `push` detaches into a fresh buffer to avoid
+clobbering tail slots aliased by sibling views.
 
 ## Decisions (frozen)
 
 | Question | Choice | Rationale |
 |----------|--------|-----------|
 | User-facing type for slice result | `T[]` (no `Slice[T]`) | Single type, no migration, no API to learn |
-| `string[r]` indexing unit | **Codepoint** | "Codepoint-first" intent ; impossible to produce malformed UTF-8 by slicing |
+| `string[r]` indexing unit | **Codepoint** | "Codepoint-first" intent ; impossible to produce malformed UTF-8 |
 | `string[i]` single index | **Codepoint** | Same logic ; returns `char` at codepoint index `i` |
 | `string.slice()` (public method) | **Removed** | `s[r]` covers the codepoint case ; byte-level via `s.bytes()[r]` |
-| `string.bytes()` return type | `u8[]` (view on UTF-8 buffer) | Was an iterator, becomes a CoW array view ; iterable + indexable |
+| `string.bytes()` return type | `u8[]` (view on UTF-8 buffer) | Was an iterator, becomes a view ; iterable + indexable |
 | Lifetime tracking | GC anchor via shared backing buf | Simple ; GC scan already follows `buf` pointer |
-| Mutation on a view | **Copy-on-Write (transparent)** | No aliasing footguns ; cost paid on first write only |
-| `Clone` on a view | Same as on owning (returns owning `T[]`) | Clone trait stays canonical (Self → Self) ; CoW makes "view" invisible |
+| **Mutation on a view** | **Go-style aliasing** | `arr[r][i] = v` writes through to the parent. Predictable perf, no hidden allocs. User opts out by copying explicitly. |
+| `push` on a view | **Always detaches** (CoW for grow) | Prevents silent clobbering of tail slots held by sibling views — that's the Go-`append` footgun we explicitly avoid. |
 | Codepoint indexing perf | **O(n) walk** at MVP | Cursor cache optional follow-up if profiling shows it's hot |
-| Array `arr[i] = v` aliasing | **Switch to CoW immediately** | Fail-fast ; aliasing bugs are silent and hard to find |
-| Migration breaking? | **Yes — call sites in stdlib + self-host audited** | One-time pain ; rest of the language stays consistent |
+| Migration breaking? | **Yes — stdlib + self-host audited** | Site count ~131 ; one-time pain, language stays consistent |
 
-## Audit — current state
+## Comparison : aliasing vs CoW (rejected alternative)
+
+The other candidate model was *Copy-on-Write transparent* (every mutation
+on a view detaches before writing). It was rejected because :
+
+1. **Hidden alloc** on the first write to any view ; surprising perf.
+2. **`arr[r][i] = v` doing nothing visible to `arr`** is itself a
+   surprise — users coming from Go / C / Python lists expect either an
+   alias or a compile error, not a silent silent-no-op.
+3. The view representation already requires the offset/length plumbing
+   ; CoW adds a detach hot path on top.
+
+Go-style aliasing is the dominant memory model for slice-like types
+(Go, Rust mut-borrowed slices, C array+length). It's an explicit
+trade-off : **performance + predictability over safety**. Users disown
+the aliasing by allocating a fresh array (today via `arr.push` on a
+view, which detaches ; once `T[] implements Clone` lands,
+`arr[r].clone()` will be the canonical form).
+
+## Audit — current state (pre-A7)
 
 ### Arrays (T[])
 
@@ -34,13 +53,13 @@ Already mostly there :
 
 - `runtime/c/vader.h:243-252` — `vader_array_t = { header, length, capacity, offset, buf }`. The `offset` field is exactly what a view needs.
 - `runtime/c/vader_runtime.c:1213` — `vader_array_slice(a, lo, hi)` returns a fresh `vader_array_t` whose `buf` is shared with `a` and `offset = a.offset + lo`. **Zero-copy already**.
-- `runtime/c/vader_runtime.c:1255` — `vader_array_push` detects a view (`offset != 0 || offset+length < buf->length`) and detaches into a fresh buf. **CoW on grow already**.
+- `runtime/c/vader_runtime.c:1255` — `vader_array_push` detects a view (`offset != 0 || offset+length < buf->length`) and detaches into a fresh buf. **Detach-on-grow already**.
+- `runtime/c/vader_runtime.c:1199` — `vader_array_set` writes through `a->buf` directly with the offset — **Go-style aliasing, already in place**. (My initial Phase 1 added CoW-on-set and the user reverted it.)
 - `src/typecheck/passes/expr.ts:374-386` — `arr[r]` where `r : Range[<int>]` typechecks to `target` (= `T[]`). No `Slice` type involved.
-- Bytecode op `array.slice` exists ; midir `ArraySlice` instr exists ; VM TS handler exists ; C-emit handler exists.
+- Bytecode op `array.slice` exists ; midir `ArraySlice` instr exists ; VM TS handler existed (but copied) ; C-emit handler exists.
 
-The only **gap** for arrays :
-
-- `vader_array_set` (runtime/c/vader_runtime.c:1199) does NOT detach on a view. A write through a view mutates the parent's backing buffer — **Go-style aliasing**, not CoW. This is the only place where the current behavior diverges from the "no surprises" model.
+Gap (closed by A7 P1) :
+- VM TS and Vader VM both **copied** on `array.slice` ; with Go-style aliasing they must share the backing buffer instead. Phase 1 refactors both VMs : `ArrayValue` / `ArrayVal` gains `offset` + `length` ; `array.slice` shares `elements` and adjusts bounds ; `array.set` writes through ; `array.push` detaches on view.
 
 ### Strings
 
@@ -53,9 +72,9 @@ Already zero-copy by construction :
 
 **Gaps for strings** :
 
-- `string[r]` (range index) isn't wired today. `s[i]` returns a char ; there's no `Range[usize]` index variant.
-- The current `s[i]` semantics is byte-indexed ; we want codepoint-indexed.
-- The current `s.slice()` is byte-indexed ; we delete it. `s.bytes()` returns an iterator today ; we change it to return `u8[]` (a CoW view on the UTF-8 buffer).
+- `string[r]` (range index) isn't wired today.
+- `s[i]` semantics is byte-indexed ; we want codepoint-indexed.
+- `s.slice()` is byte-indexed ; we delete it. `s.bytes()` returns an iterator today ; we change it to return `u8[]` view.
 - Migration scope: `grep -rn "\.slice(" stdlib vader` → ~131 sites ; `grep -rn "\.byte_at" stdlib vader` → ~158 sites (already byte-intent, no change).
 
 ## Target semantics
@@ -63,48 +82,53 @@ Already zero-copy by construction :
 ### Arrays
 
 ```vader
-arr := [1, 2, 3, 4, 5]   // owning
-v   := arr[1..<4]        // view : (buf shared, offset=1, len=3, cap=3) — [2,3,4]
+arr := [1, 2, 3, 4, 5]   // owning ; (elements=arr_buf, offset=0, length=5)
+v   := arr[1..<4]        // view ; (elements=arr_buf, offset=1, length=3) — [2,3,4]
 
 println(v[1])            // → 3 — reads parent's buf[2], zero copy
-v[1] = 99                // CoW : v detaches, allocates fresh buf [2,3,4], writes 99
-                         //   → v is now (buf fresh, offset=0, len=3, cap=3) — [2,99,4]
-                         //   arr remains [1,2,3,4,5] — write didn't propagate
-println(arr[2])          // → 3 — parent unchanged
+v[1] = 99                // ALIASES ! Writes parent.buf[2] = 99
+                         //   arr is now [1,2,99,4,5]
+                         //   v is still (parent buf, offset=1, length=3)
+println(arr[2])          // → 99 — visible aliasing
 ```
 
 Push :
 
 ```vader
-v.push(0)                // CoW on grow (already implemented)
-                         // v's buf is fresh ; len=4, cap=6 ; [2,99,4,0]
+v.push(0)                // detach : v allocates a fresh elements buffer
+                         // copying [2,99,4] into it, then pushes 0
+                         //   → v = (fresh_buf, offset=0, length=4) = [2,99,4,0]
+                         //   arr unchanged at [1,2,99,4,5]
 ```
 
-Clone :
+Clone (once `T[] implements Clone` is wired) :
 
 ```vader
-copy := arr[1..<4].clone()   // fresh owning T[] — [2,3,4]
-                              // (clone always materializes ; same Clone trait as today)
+copy := arr[1..<4].clone()   // fresh owning T[] — [2,99,4]
+                              // explicit way to disown the aliasing
 ```
 
-### Strings — codepoint slicing
+Today, before Clone-on-T[] lands, the same effect is achievable via
+`push` (which detaches) but it's a coincidence rather than an idiom.
+
+### Strings — codepoint slicing (Phase 2)
 
 ```vader
 s   := "héllo"           // (5 codepoints, 6 UTF-8 bytes)
 sub := s[0..<2]          // codepoint-range → byte boundaries [0..3) → "hé"
 println(sub)             // → "hé"
 println(sub.byte_len())  // → 3 (the é is 2 bytes)
-println(sub.len())       // → 2 (codepoints — see Phase 4 below)
+println(sub.len())       // → 2 (codepoints — Phase 4 adds `len()`)
 ```
 
-### Strings — single codepoint indexing
+### Strings — single codepoint indexing (Phase 3)
 
 ```vader
 c :: s[1]                // codepoint at codepoint-index 1 → 'é'
                          // (was : byte offset 1 → mid-é, returns U+FFFD)
 ```
 
-### Strings — byte access via `s.bytes()`
+### Strings — byte access via `s.bytes()` (Phase 4)
 
 ```vader
 b :: s.bytes()           // u8[] view on the UTF-8 buffer (zero copy)
@@ -112,11 +136,14 @@ println(b[0])            // → 0x68 ('h')
 println(b[1])            // → 0xC3 (first byte of é)
 println(b.len())         // → 6 (byte count)
 
-// Mutation triggers CoW :
-b[0] = 0x48              // 'H' ; detaches into a fresh buffer, s remains "héllo"
+// Writes through `b` alias the underlying buffer of `s`, but `s` is
+// immutable user-side : mutating `b` is undefined for the user's view
+// of `s`. Phase 4 may choose to either (a) forbid mutating u8 views
+// derived from strings at compile time, or (b) defer detachment via
+// push as the only legal mutation. TBD.
 ```
 
-This makes `s.bytes()` substitute for the missing `s.byte_slice(b1, b2)` :
+This makes `s.bytes()` substitute for the removed `s.byte_slice(b1, b2)` :
 ```vader
 old: s.slice(b1, b2)       // was : returned string from byte range
 new: s.bytes()[b1..<b2]    // returns u8[] (view) — convert to string if needed
@@ -124,41 +151,17 @@ new: s.bytes()[b1..<b2]    // returns u8[] (view) — convert to string if neede
 
 ## Implementation phases
 
-### Phase 1 — Arrays: enforce CoW on `array.set` (1-2 h)
+### Phase 1 — Array view aliasing (LANDED, ~2h)
 
-Mutate `vader_array_set` (and the C-emit path for `array.set`) to
-detect a view and detach before writing :
-
-```c
-void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
-    a = vader_array_resolve(a);
-    // ...existing forward-resolve...
-    if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
-    if (vader_array_is_view(a)) {
-        vader_array_detach(a);   // alloc fresh buf, copy, clear offset
-    }
-    vader_array_store_slot(a->buf, a->offset + i, v);
-    // ...write barrier...
-}
-
-static inline bool vader_array_is_view(const vader_array_t* a) {
-    return a->offset != 0 || a->offset + a->length < a->buf->length;
-}
-```
-
-`vader_array_detach` factors the existing push-detach path so both push
-and set share the logic.
-
-Mirror in the TS VM (`src/vm/exec.ts` array.set handler) and the Vader
-VM (`vader/vm/exec.vader`). Both today mutate the underlying buffer
-directly — they need the same detach check.
-
-**Risk** : performance regression on `arr[i] = v` against an owning
-array if the is-view check is mispredicted. Branch is fully predictable
-in practice (each call site is consistently owning OR view).
-
-**Test** : `tests/snippets/array_view_cow_isolation/` — `arr[r][i] = v`
-should NOT mutate `arr`.
+- `vader_array_set` left as Go-style aliasing (reverted my initial CoW
+  attempt) — the C runtime was already correct.
+- TS VM `ArrayValue` gains `{ elements, offset, length }`. All ops
+  (`get`/`set`/`len`/`push`/`slice`/`data.const`/argv) updated.
+- Vader VM `ArrayVal` same refactor in `vader/vm/op.vader` +
+  `vader/vm/exec.vader`. Host iteration sites updated for
+  offset/length-bounded walks.
+- Snippet `tests/snippets/array_view_aliasing/` validates the
+  aliasing-on-set + detach-on-push contract on all three targets.
 
 ### Phase 2 — Strings: `string[r]` codepoint slice (3-4 h)
 
@@ -181,6 +184,10 @@ vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, siz
 }
 ```
 
+(Already landed in `runtime/c/vader_runtime.c::vader_string_slice_codepoints`
+alongside Phase 1 ; the bytecode plumbing and lower path are what
+remain.)
+
 Out-of-bounds : if `cp_lo > codepoint_count(s)`, clamp ; same for
 `cp_hi`. Mid-buffer codepoint scan is O(n).
 
@@ -193,9 +200,12 @@ interprets `i` as a codepoint index :
 vader_char_t vader_string_codepoint_at(vader_string_t s, size_t cp_index) {
     size_t byte_off = utf8_byte_offset_for_codepoint(s, cp_index);
     if (byte_off >= s.len) vader_trap("string codepoint index out of bounds");
-    return utf8_decode_one(s.ptr + byte_off);
+    return vader_string_char_at(s, byte_off);
 }
 ```
+
+(Already landed in `runtime/c/vader_runtime.c::vader_string_codepoint_at`
+alongside Phase 1 ; the host intrinsic dispatch swap is what remains.)
 
 Existing `byte_at(i: usize) -> u8` stays unchanged and serves the
 byte-offset use case.
@@ -205,7 +215,7 @@ byte-offset use case.
 In `stdlib/std/string/string.vader` :
 
 - Remove `export slice :: fn(s: string, start: usize, end: usize) -> string`.
-- Change `export bytes :: fn(s: string) -> StringBytes` to return `u8[]` (a CoW view on the UTF-8 buffer).
+- Change `export bytes :: fn(s: string) -> StringBytes` to return `u8[]` (a view on the UTF-8 buffer).
 - Delete the `StringBytes` iterator struct (the `u8[]` array already implements `Iterator(u8)` via `T[] implements Into(Iterator(T))`).
 - Add `export len :: fn(s: string) -> usize` that returns the codepoint count (walks UTF-8 ; O(n)).
 
@@ -219,7 +229,7 @@ Sites to flip :
 - **131 `.slice()` callers** — each one needs either :
   - `s[lo..<hi]` if intent is codepoint
   - `s.bytes()[lo..<hi]` if intent is byte (returns u8[], not string)
-  - If the caller needs a `string` from byte range, route through `s.bytes()[lo..<hi]` then a fresh string construction (TBD — see Open question 3 below).
+  - If the caller needs a `string` from byte range, route through `s.bytes()[lo..<hi]` then a fresh string construction (TBD — see Open question 1 below).
 
 - **Audit `s[i]` byte-intent sites** — the `s[i]` semantic shift to codepoint is silent (signature unchanged). Manual review of the self-host lexer (`vader/lexer/lexer.vader`), parser, and any code that does byte-level walks. Recommended pattern : if the intent is byte, refactor to `s.bytes()[i]` ; if the intent is codepoint, leave as-is.
 
@@ -229,9 +239,8 @@ The test suite is the canonical safety net : every snippet that exercised `s.sli
 
 ### Phase 6 — Self-host port (Vader VM) (1-2 h)
 
-Mirror Phase 1 + 2 + 3 in `vader/vm/exec.vader` :
+Mirror Phase 2 + 3 in `vader/vm/exec.vader` :
 
-- `array.set` op handler : detach-on-view (port of vader_array_set).
 - New `string.slice_codepoints` op handler.
 - `s[i]` codepoint semantic shift in the host `string_index` intrinsic.
 
@@ -239,50 +248,31 @@ Plus parser changes for the new bytecode op (vader/vm/parser.vader).
 
 ### Phase 7 — Tests (2-3 h)
 
-- `tests/snippets/array_view_cow_isolation/` : `arr[r][i] = v` doesn't mutate parent.
+- ✅ `tests/snippets/array_view_aliasing/` — Phase 1 landed.
 - `tests/snippets/string_codepoint_slice/` : `"héllo"[0..<2]` → `"hé"`.
 - `tests/snippets/string_codepoint_index/` : `"héllo"[1]` → `'é'`.
-- `tests/snippets/string_bytes_view/` : `s.bytes()[i]` zero-copy reads ; CoW on write.
-- `tests/snippets/array_view_iteration_zero_copy/` : verify no extra alloc on `for x in arr[r] { ... }` via the gc bytes-allocated probe.
+- `tests/snippets/string_bytes_view/` : `s.bytes()[i]` zero-copy reads.
 
 ### Phase 8 — SPEC.md sync (30 min)
 
 Update §4 (type system) — clarify that `T[]` has internal owning / view
-states with CoW. Update §9 (strings) — `string[r]` and `s[i]` are
-codepoint-indexed ; `s.bytes()` returns `u8[]` view ; `s.slice()` is
-gone.
+states with aliasing on write. Update §9 (strings) — `string[r]` and
+`s[i]` are codepoint-indexed ; `s.bytes()` returns `u8[]` view ;
+`s.slice()` is gone.
 
 ## Effort estimate
 
-| Phase | Effort |
-|-------|--------|
-| 1. Arrays CoW on set | 1-2 h |
-| 2. Strings codepoint slice op + lower + emit | 3-4 h |
-| 3. `s[i]` codepoint shift | 1 h |
-| 4. Stdlib (`bytes()` returns u8[], drop `slice()`, add `len()`) | 1-2 h |
-| 5. Migration (131 `.slice()` sites + `s[i]` audit) | 3-5 h |
-| 6. Vader self-host port | 1-2 h |
-| 7. Tests | 2-3 h |
-| 8. SPEC sync | 30 min |
-| **Total** | **12-18 h** |
-
-## Commit-by-commit plan
-
-To keep each commit a green checkpoint :
-
-1. **C1 — Arrays CoW on set** (Phase 1). VM TS + C-emit. Test :
-   `array_view_cow_isolation`.
-2. **C2 — Vader VM array.set CoW** (Phase 6 partial). Self-host green.
-3. **C3 — string[r] codepoint slice** (Phase 2). New bytecode op +
-   runtime helper + lower + VM + C-emit. Test : `string_codepoint_slice`.
-4. **C4 — s[i] codepoint shift + bytes()→u8[] + delete slice()**
-   (Phase 3 + 4). All three together because they're entangled : a
-   single migration round handles them. Stdlib + self-host audit done
-   here. Test : `string_codepoint_index`, `string_bytes_view`.
-5. **C5 — Vader VM port + tests + SPEC** (Phase 6 finish + 7 + 8).
-
-If a commit can't be made green in one session, fold its scope down
-(e.g. C4 can split per migration sub-target : stdlib first, vader/ next).
+| Phase | Status | Effort |
+|-------|--------|--------|
+| 1. Array view aliasing | ✅ done | 2 h |
+| 2. Strings codepoint slice op + lower + emit | pending | 3-4 h |
+| 3. `s[i]` codepoint shift | pending | 1 h |
+| 4. Stdlib (`bytes()` returns u8[], drop `slice()`, add `len()`) | pending | 1-2 h |
+| 5. Migration (131 `.slice()` sites + `s[i]` audit) | pending | 3-5 h |
+| 6. Vader self-host port | pending | 1-2 h |
+| 7. Tests | partial | 2-3 h |
+| 8. SPEC sync | pending | 30 min |
+| **Remaining** | | **11-17 h** |
 
 ## Open questions
 
@@ -294,13 +284,11 @@ If a commit can't be made green in one session, fold its scope down
    Recommendation : MVP avoids this need by ensuring every byte-intent
    slice has a codepoint equivalent in the self-host. If a site genuinely needs `u8[]` → `string`, ship `string::from_bytes` in a follow-up.
 
-2. **Mutation through `s.bytes()`**: CoW transparency means `s.bytes()[i] = v` detaches the u8[] view but doesn't mutate the string. The user might expect either : (a) error (strings are immutable), or (b) silent CoW (my current choice). Going with (b) — consistent with the array CoW model.
+2. **Mutation through `s.bytes()`**: Phase 4 question. If writes through the view alias the underlying string buffer, strings stop being immutable user-side — surprising. Options : (a) compile-time error on `u8[]` writes when the array came from `s.bytes()`, (b) push always detaches (consistent with view semantics elsewhere), (c) document the aliasing and let users discover it. Default plan : (b) consistent with array push detach.
 
 3. **Performance of codepoint walk**: `s[100]` walks 100 codepoints worth
    of UTF-8 bytes. For most uses fine ; a cursor cache or pre-computed
-   offset table is a follow-up if profiling shows it's hot. The
-   self-host lexer doesn't do random codepoint access (it's a streaming
-   walk via `chars()` / `bytes()`), so probably no impact.
+   offset table is a follow-up if profiling shows it's hot.
 
 4. **Range type for `s[r]` / `arr[r]`** : both `Range[usize]` and
    `Range[i32]` ? Today `string implements Index(usize, char)` uses
@@ -308,10 +296,17 @@ If a commit can't be made green in one session, fold its scope down
    default to `usize` in this context via the existing context-typing
    mechanism.
 
+5. **`Clone` on `T[]`**: not wired today (only stdlib free fn `iter::clone`).
+   Wiring `T[] implements Clone` would make `arr[r].clone()` the
+   canonical disown-aliasing idiom — currently users must rely on push
+   detach as the side effect. Worth doing alongside Phase 4 stdlib
+   cleanup.
+
 ## Out of scope
 
 - Borrow checker / static lifetime tracking — GC anchor is sufficient.
-- Mutable string views — strings stay immutable.
-- Mutable explicit `MutableSlice[T]` type — not needed with CoW transparent.
+- Mutable string views — strings stay immutable user-side.
+- Mutable explicit `MutableSlice[T]` type — the unified view model
+  covers the same need.
 - Optimized cursor cache for repeated codepoint access — follow-up.
 - WASM target adjustments — `usize` width question independent of A7.

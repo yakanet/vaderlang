@@ -199,6 +199,13 @@ export read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal | Trap 
     return Trap { .message = "${label} at pc=${at_pc}: expected array, got ${describe_value_tag(v)}" }
 }
 
+/// True iff `a` is a view onto a buffer it doesn't own — `elements` is
+/// shared with another `ArrayVal`. Used by `array.push` to decide
+/// whether to detach into a fresh buffer before extending.
+export is_array_view :: fn(a: ArrayVal) -> bool {
+    return a.offset != usize(0) || a.offset + a.length < a.elements.len()
+}
+
 /// Unwrap a `BoolVal` from a `Value`. Used by the boolean op arms.
 export read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
     if v is BoolVal { return v }

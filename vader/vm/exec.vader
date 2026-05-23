@@ -598,7 +598,7 @@ export exec :: fn(module: Module) -> VmResult {
     if main_function.parameter_count == 1 {
         argv_elements: Value[] = []
         argv_elements.push(StringVal { .value = "<vader-vm>" })
-        main_args.push(ArrayVal { .type_id = 0, .elements = argv_elements })
+        main_args.push(ArrayVal { .type_id = 0, .elements = argv_elements, .offset = usize(0), .length = argv_elements.len() })
     }
     main_frame :: build_callee_frame(module.main_index, main_function, main_args, 0, null)
     push_frame(frames, frame_count, main_frame)
@@ -819,7 +819,21 @@ export exec :: fn(module: Module) -> VmResult {
                 }
                 array_unwrap :: read_array(frame.stack[frame.sp - 2], frame.pc, "array.push receiver")
                 if array_unwrap is Trap { return array_unwrap }
+                // A7 unified view : push on a view detaches into a fresh
+                // backing buffer so tail slots held by sibling views aren't
+                // clobbered. Owning arrays push in place.
+                if is_array_view(array_unwrap) {
+                    fresh: Value[] = []
+                    j: usize = usize(0)
+                    for j < array_unwrap.length {
+                        fresh.push(array_unwrap.elements[array_unwrap.offset + j])
+                        j = j + usize(1)
+                    }
+                    array_unwrap.elements = fresh
+                    array_unwrap.offset = usize(0)
+                }
                 array_unwrap.elements.push(frame.stack[frame.sp - 1])
+                array_unwrap.length = array_unwrap.length + usize(1)
                 frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
             }
             is ArrayGet -> {
@@ -830,10 +844,10 @@ export exec :: fn(module: Module) -> VmResult {
                 if index_unwrap is Trap { return index_unwrap }
                 array_unwrap :: read_array(frame.stack[frame.sp - 2], frame.pc, "array.get receiver")
                 if array_unwrap is Trap { return array_unwrap }
-                if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.elements.len() {
-                    return Trap { .message = "array.get index ${index_unwrap.value} out of bounds (len=${array_unwrap.elements.len()}) at pc=${frame.pc}" }
+                if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.length {
+                    return Trap { .message = "array.get index ${index_unwrap.value} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
                 }
-                frame.stack[frame.sp - 2] = array_unwrap.elements[usize(index_unwrap.value)]
+                frame.stack[frame.sp - 2] = array_unwrap.elements[array_unwrap.offset + usize(index_unwrap.value)]
                 frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
             }
             is ArraySet -> {
@@ -844,10 +858,14 @@ export exec :: fn(module: Module) -> VmResult {
                 if index_unwrap is Trap { return index_unwrap }
                 array_unwrap :: read_array(frame.stack[frame.sp - 3], frame.pc, "array.set receiver")
                 if array_unwrap is Trap { return array_unwrap }
-                if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.elements.len() {
-                    return Trap { .message = "array.set index ${index_unwrap.value} out of bounds (len=${array_unwrap.elements.len()}) at pc=${frame.pc}" }
+                if index_unwrap.value < 0 || usize(index_unwrap.value) >= array_unwrap.length {
+                    return Trap { .message = "array.set index ${index_unwrap.value} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
                 }
-                array_unwrap.elements[usize(index_unwrap.value)] = frame.stack[frame.sp - 1]
+                // A7 deliberate aliasing : writes through a view alias the
+                // parent's backing buffer (Go-style). Users opt out by
+                // materializing a fresh array (via push-detach today ;
+                // `arr[r].clone()` once T[] Clone lands).
+                array_unwrap.elements[array_unwrap.offset + usize(index_unwrap.value)] = frame.stack[frame.sp - 1]
                 frames[top] = with_sp_pc(frame, frame.sp - 3, frame.pc + 1)
             }
             is ArrayLen -> {
@@ -856,7 +874,7 @@ export exec :: fn(module: Module) -> VmResult {
                 }
                 array_unwrap :: read_array(frame.stack[frame.sp - 1], frame.pc, "array.len receiver")
                 if array_unwrap is Trap { return array_unwrap }
-                frame.stack[frame.sp - 1] = I32Val { .value = i32(array_unwrap.elements.len()) }
+                frame.stack[frame.sp - 1] = I32Val { .value = i32(array_unwrap.length) }
                 frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
             }
             is ArraySlice -> {
@@ -869,19 +887,20 @@ export exec :: fn(module: Module) -> VmResult {
                 if lo_unwrap is Trap { return lo_unwrap }
                 array_unwrap :: read_array(frame.stack[frame.sp - 3], frame.pc, "array.slice receiver")
                 if array_unwrap is Trap { return array_unwrap }
-                len :: array_unwrap.elements.len()
+                len :: array_unwrap.length
                 lo_clamped: usize = if lo_unwrap.value < 0 { usize(0) } else { usize(lo_unwrap.value) }
                 if lo_clamped > len { lo_clamped = len }
                 hi_clamped: usize = if hi_unwrap.value < 0 { usize(0) } else { usize(hi_unwrap.value) }
                 if hi_clamped < lo_clamped { hi_clamped = lo_clamped }
                 if hi_clamped > len { hi_clamped = len }
-                copied: Value[] = []
-                idx: usize = lo_clamped
-                for idx < hi_clamped {
-                    copied.push(array_unwrap.elements[idx])
-                    idx = idx + usize(1)
+                // A7 unified view : share `elements`, adjust bounds. Writes
+                // through the view will alias the parent (see ArraySet).
+                frame.stack[frame.sp - 3] = ArrayVal {
+                    .type_id  = instr.type_id,
+                    .elements = array_unwrap.elements,
+                    .offset   = array_unwrap.offset + lo_clamped,
+                    .length   = hi_clamped - lo_clamped,
                 }
-                frame.stack[frame.sp - 3] = ArrayVal { .type_id = instr.type_id, .elements = copied }
                 frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
             }
             is DataConst -> {
@@ -892,7 +911,7 @@ export exec :: fn(module: Module) -> VmResult {
                 // Re-stamp the call-site's type_id onto a fresh header sharing
                 // the pool entry's `elements` ; mirrors `.rodata` sharing in
                 // the native runtime.
-                push_value(frame.stack, frame.sp, ArrayVal { .type_id = instr.type_id, .elements = entry.elements })
+                push_value(frame.stack, frame.sp, ArrayVal { .type_id = instr.type_id, .elements = entry.elements, .offset = usize(0), .length = entry.elements.len() })
                 frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
             }
             is RefCast -> {
@@ -1503,7 +1522,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Frame | Trap {
         elements.push(frame.stack[arg_base + element_index])
         element_index += 1
     }
-    new_array :: ArrayVal { .type_id = type_id, .elements = elements }
+    new_array :: ArrayVal { .type_id = type_id, .elements = elements, .offset = usize(0), .length = elements.len() }
     push_value(frame.stack, arg_base, new_array)
     return with_sp_pc(frame, arg_base + 1, frame.pc + 1)
 }
