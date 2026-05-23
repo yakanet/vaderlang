@@ -538,6 +538,8 @@ write_op_line :: fn(out: StringBuilder, v: op.Op, jump_table: i32[], labels: Sco
         is op.RefCast         -> out.append("ref.cast 0")
         is op.TypeCheck  as c -> out.append("type_check ${c.type_id}")
         is op.TypeConst  as c -> out.append("type.const ${c.type_id}")
+        is op.DeferPush          -> out.append("defer.push")
+        is op.DeferPopExec as c  -> out.append("defer.pop_exec ${c.count}")
         is op.Convert    as c -> out.append(convert_text(c))
         is op.IntToChar       -> out.append("i32.to_char")
         is op.CharToInt       -> out.append("char.to_i32")

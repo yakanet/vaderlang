@@ -44,6 +44,8 @@ export Op :: I32Const
     | Convert
     | TypeCheck
     | TypeConst
+    | DeferPush
+    | DeferPopExec
     | BuilderNew
     | BuilderAppendStr
     | BuilderAppendDisplay
@@ -288,6 +290,20 @@ export TypeCheck :: struct { type_id: i32 }
 /// value. Emitted when a `TypeMeta`-typed ident reaches value position
 /// (`@type_of(x)`, `let m : type = i32`, etc.). Layer 4 §1.19 B.1.
 export TypeConst :: struct { type_id: i32 }
+
+/// Pop a closure (fn ref + env) and append it to the current frame's
+/// defer-stack. Drained later by `DeferPopExec` on normal exits or by
+/// the panic-unwind walker around `exec` when an op traps. A8 single-
+/// track defer model — see TS counterpart at `src/bytecode/ops.ts`
+/// `kind: "defer.push"`.
+export DeferPush :: struct {}
+
+/// Pop and execute the last `count` entries on the current frame's
+/// defer-stack (LIFO). Emitted by the lowerer at every normal exit
+/// (return / break / continue / block fall-through) — the `count`
+/// matches the number of defers introduced in the scopes the exit
+/// transcends.
+export DeferPopExec :: struct { count: i32 }
 
 /// Allocate a fresh empty `BuilderVal` and push it onto the value stack.
 /// Sprint 4 (b3) addition — backs Vader's `"${...}"` string interpolation

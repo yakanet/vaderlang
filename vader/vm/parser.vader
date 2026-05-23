@@ -1123,6 +1123,8 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
     if head == "drop"           { return Drop {} }
     if head == "type_check"     { return parse_type_check(cleaned) }
     if head == "type.const"     { return parse_type_const(cleaned) }
+    if head == "defer.push"     { return DeferPush {} }
+    if head == "defer.pop_exec" { return parse_defer_pop_exec(cleaned) }
     if head == "block"          { return Block {} }
     if head == "loop"           { return Loop {} }
     if head == "if"             { return If {} }
@@ -1515,6 +1517,12 @@ parse_type_const :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "type.const ")
     if parsed is null { return null }
     return TypeConst { .type_id = parsed }
+}
+
+parse_defer_pop_exec :: fn(line: string) -> Op | null {
+    parsed :: parse_int_after_prefix(line, "defer.pop_exec ")
+    if parsed is null { return null }
+    return DeferPopExec { .count = parsed }
 }
 
 parse_local_tee :: fn(line: string) -> Op | null {

@@ -55,6 +55,12 @@ Frame :: struct {
     stack:          Value[]
     sp:             usize
     pc:             i32
+    /// Defer-stack — closures pushed via `DeferPush` op, drained LIFO
+    /// by `DeferPopExec` on normal exits or by the panic-unwind walker
+    /// around `dispatch_op` when an op traps. Grow-only ; semantically
+    /// the live region is `defers[0..defer_count]`.
+    defers:         Value[]
+    defer_count:    usize
 }
 
 /// Push `value` at the cursor position, growing the backing array
@@ -179,6 +185,8 @@ build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_sou
         .stack          = [],
         .sp             = 0,
         .pc             = 0,
+        .defers         = [],
+        .defer_count    = usize(0),
     }
 }
 
@@ -199,6 +207,8 @@ with_sp_pc :: fn(frame: Frame, sp: usize, pc: i32) -> Frame {
         .stack          = frame.stack,
         .sp             = sp,
         .pc             = pc,
+        .defers         = frame.defers,
+        .defer_count    = frame.defer_count,
     }
 }
 
@@ -1340,6 +1350,65 @@ export exec :: fn(module: Module) -> VmResult {
                 }
                 push_value(frame.stack, frame.sp, TypeVal { .type_id = instr.type_id })
                 frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+            }
+            is DeferPush -> {
+                if frame.sp == 0 {
+                    return Trap { .message = "defer.push on empty stack at pc=${frame.pc}" }
+                }
+                closure :: frame.stack[frame.sp - 1]
+                push_value(frame.defers, frame.defer_count, closure)
+                frames[top] = Frame {
+                    .function_index = frame.function_index,
+                    .slots          = frame.slots,
+                    .stack          = frame.stack,
+                    .sp             = frame.sp - 1,
+                    .pc             = frame.pc + 1,
+                    .defers         = frame.defers,
+                    .defer_count    = frame.defer_count + usize(1),
+                }
+            }
+            is DeferPopExec as instr -> {
+                if instr.count <= 0 {
+                    frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                    continue
+                }
+                pop_n :: usize(instr.count)
+                if frame.defer_count < pop_n {
+                    return Trap { .message = "defer.pop_exec underflow (count=${instr.count}, have=${frame.defer_count}) at pc=${frame.pc}" }
+                }
+                new_defer_count :: frame.defer_count - pop_n
+                // Advance the caller frame's pc and shrink its defer-list
+                // BEFORE pushing the callees — the dispatch loop will run
+                // them in LIFO and then resume the caller at pc+1.
+                frames[top] = Frame {
+                    .function_index = frame.function_index,
+                    .slots          = frame.slots,
+                    .stack          = frame.stack,
+                    .sp             = frame.sp,
+                    .pc             = frame.pc + 1,
+                    .defers         = frame.defers,
+                    .defer_count    = new_defer_count,
+                }
+                // Push N callee frames in oldest-first order so the most
+                // recently pushed defer (top of frame stack) executes first.
+                drain_index := new_defer_count
+                for drain_index < frame.defer_count {
+                    closure_val :: frame.defers[drain_index]
+                    fn_unwrap :: read_fn(closure_val, frame.pc, "defer.pop_exec entry")
+                    if fn_unwrap is Trap { return fn_unwrap }
+                    callee_index_check :: validate_fn_index(fn_unwrap.function_index, module, frame.pc, "defer.pop_exec")
+                    if callee_index_check is Trap { return callee_index_check }
+                    callee :: module.functions[usize(fn_unwrap.function_index)]
+                    if callee.parameter_count != usize(1) {
+                        return Trap { .message = "defer thunk '${callee.name}' must take exactly one env param at pc=${frame.pc}" }
+                    }
+                    callee_frame :: build_callee_frame(fn_unwrap.function_index, callee, frame.stack, frame.sp, fn_unwrap.env)
+                    push_frame(frames, frame_count, callee_frame)
+                    if frame_count[0] > usize(MAX_FRAME_DEPTH) {
+                        return Trap { .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${callee.name}' during defer drain" }
+                    }
+                    drain_index += usize(1)
+                }
             }
             is Block -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
             is Loop  -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
