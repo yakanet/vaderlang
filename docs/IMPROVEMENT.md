@@ -81,13 +81,14 @@ later stages (bytecode, native output) — debug-by-bisection. Direct unit
 tests on symbol resolution, narrowing, and overload resolution would
 catch them at the source. Not yet committed by the user.
 
-### 7. Drop the legacy `LoweredAST` path — ⬜ to do
+### 7. Drop the legacy `LoweredAST` path — ✅ done
 
-`src/pipeline.ts` still routes through both `LoweredAST → bytecode` and
-`LoweredAST → CFG → bytecode`. Phase 6 of the mid-IR migration was
-declared complete (commit history), but the legacy emitter is still
-reachable. Removing it deletes a non-trivial amount of duplicated code
-and removes one source of VM ↔ C semantic divergence.
+Verified 2026-05-23 : `src/pipeline.ts` only routes through
+`LoweredAST → CFG → bytecode` (`pipelineBytecode` → `pipelineCfg` →
+`emitBytecodeFromCFG`). `src/bytecode/emit.ts` survives as a helper
+library (`EmitterCtx`, `internType`, `pushOp`, …) consumed by
+`src/midir/emit.ts` only — no `LoweredAST → bytecode` walker remains.
+See [`MID_IR_DESIGN.md`](./MID_IR_DESIGN.md) Phase 6.
 
 ### 8. Bytecode binary header — ℹ️ already in place
 
