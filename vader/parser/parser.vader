@@ -1969,6 +1969,20 @@ parse_for :: fn(p: Parser, label: string | null, is_comptime: bool) -> ForStmt {
     cond :: p.parse_expr(0)
     p.allow_struct_lit = saved_allow
     body :: p.parse_block()
+    // `for <range>` desugars to `for _ in <range>` ; without this
+    // `for 0..<n` would type-error as a while condition. The synth
+    // `binding_span` is zero-width so the formatter can tell sugar
+    // apart from an explicit `for _ in`.
+    if cond is RangeExpr {
+        synth_span :: Span { .start = cond.span.start, .end = cond.span.start }
+        return ForStmt {
+            .span  = Span { .start = start.span.start, .end = body.span.end },
+            .label = label,
+            .form  = InFor { .binding = "_", .binding_span = synth_span, .iter = cond },
+            .body  = body,
+            .is_comptime = is_comptime,
+        }
+    }
     return ForStmt {
         .span  = Span { .start = start.span.start, .end = body.span.end },
         .label = label,
@@ -2287,6 +2301,39 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
                 .op    = .NotIn,
                 .left  = left,
                 .right = right,
+            }
+            last_non_assoc_level = 20
+            continue
+        }
+
+        // `!is` desugars to `Not(BinaryExpr.Is)` ; the narrower already
+        // flips then/else on `Not`, and the formatter restores the
+        // spelling. `as` is rejected because the binding has no live
+        // then-branch when the check is negated.
+        if t.kind == .Bang && p.peek_at(1).kind == .KwIs && 20 >= min_bp {
+            if last_non_assoc_level == 20 {
+                p.error(.NonAssocChained, t.span, "chained `!is`")
+                break
+            }
+            bang_tok :: p.advance()
+            p.advance()  // KwIs
+            right :: p.parse_expr(21)
+            if p.peek().kind == .KwAs {
+                as_tok :: p.advance()
+                if p.peek().kind == .Ident { p.advance() }
+                p.error(.UnexpectedToken, as_tok.span,
+                    "`as` binding not allowed after `!is`: the binding would have no live then-branch since the type-check is negated")
+            }
+            is_expr :: BinaryExpr {
+                .span  = Span { .start = left.span.start, .end = right.span.end },
+                .op    = .Is,
+                .left  = left,
+                .right = right,
+            }
+            left = UnaryExpr {
+                .span    = Span { .start = bang_tok.span.start, .end = right.span.end },
+                .op      = .Not,
+                .operand = is_expr,
             }
             last_non_assoc_level = 20
             continue

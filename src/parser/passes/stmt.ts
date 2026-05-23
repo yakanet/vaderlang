@@ -355,6 +355,20 @@ function parseFor(p: Parser, label: string | null, isComptime: boolean = false):
   const cond = parseExpr(p, 0);
   p.allowStructLit = savedAllow;
   const body = parseBlock(p);
+  // `for <range>` desugars to `for _ in <range>` ; without this `for 0..<n`
+  // would type-error as a while condition. The synth `bindingSpan` is
+  // zero-width so the formatter can tell sugar from an explicit `for _ in`.
+  if (cond.kind === "RangeExpr") {
+    const synthSpan = { start: cond.span.start, end: cond.span.start };
+    return {
+      kind: "ForStmt",
+      id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: body.span.end },
+      label,
+      form: { kind: "in", binding: "_", bindingSpan: synthSpan, iter: cond },
+      body,
+      isComptime,
+    };
+  }
   return {
     kind: "ForStmt",
     id: UNASSIGNED_NODE_ID, span: { start: start.span.start, end: body.span.end },

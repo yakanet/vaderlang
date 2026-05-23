@@ -1,0 +1,42 @@
+// `for <range> { ... }` shorthand — parses to `for __for_<line>_<col> in
+// <RangeExpr> { ... }`. The binding is synthetic and unused inside the body ;
+// downstream stages (resolver / typechecker / lowerer) see a regular for-in.
+// Mirrors what users have been writing as `for _ in 0..<n { body }`.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    // Exclusive range — runs 5 times, no binding access in the body.
+    count := 0
+    for 0..<5 {
+        count = count + 1
+    }
+    println("five : ${count}")
+
+    // Inclusive range — runs 4 times (1..=4).
+    sum := 0
+    for 1..=4 {
+        sum = sum + 1
+    }
+    println("four : ${sum}")
+
+    // Nested ranges — two stacked sugar loops produce a 3×2 grid.
+    cells := 0
+    for 0..<3 {
+        for 0..<2 {
+            cells = cells + 1
+        }
+    }
+    println("six : ${cells}")
+
+    // Sanity check : explicit binding still works alongside the sugar.
+    accum := 0
+    for i in 0..<4 {
+        accum = accum + i
+    }
+    println("six : ${accum}")
+
+    return 0
+}

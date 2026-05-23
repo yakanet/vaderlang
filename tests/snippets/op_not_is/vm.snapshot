@@ -1,0 +1,10 @@
+# stdout
+cat felix
+dog says woof
+int 42
+str hello
+cat garfield
+nothing
+cat is not a dog
+# exit
+0

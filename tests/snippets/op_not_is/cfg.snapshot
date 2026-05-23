@@ -1,0 +1,195 @@
+# CFG
+
+## snippet
+
+fn snippet$describe(%0: Cat | Dog) -> string
+  locals:
+    %0 p: Cat | Dog (param p)
+    %1 $type_check_1: bool
+    %2 $not_2: bool
+    %3 $intrinsic_3: ?
+    %4 __sb_0: ? (synthetic __sb_0)
+    %5 $k_5: string
+    %6 $cast_6: Dog
+    %7 $field_7: string
+    %8 $intrinsic_8: string
+    %9 $intrinsic_9: ?
+    %10 __sb_1: ? (synthetic __sb_1)
+    %11 $k_11: string
+    %12 $cast_12: Cat
+    %13 $field_13: string
+    %14 $intrinsic_14: string
+  bb0:
+    %1 = type_check %0 is Cat
+    %2 = unop not %1 :bool
+    cond_branch %2 ? bb1 : bb2
+  bb1:
+    %3 = intrinsic builder.new()
+    %4 = move %3
+    %5 = const string(#0) :string
+    intrinsic builder.append_str(%4, %5)
+    %6 = cast %0 :Dog
+    %7 = field_get %6.sound :string
+    intrinsic builder.append_display(%4, %7)
+    %8 = intrinsic builder.finish(%4)
+    return %8
+  bb2:
+    %9 = intrinsic builder.new()
+    %10 = move %9
+    %11 = const string(#1) :string
+    intrinsic builder.append_str(%10, %11)
+    %12 = cast %0 :Cat
+    %13 = field_get %12.name :string
+    intrinsic builder.append_display(%10, %13)
+    %14 = intrinsic builder.finish(%10)
+    return %14
+
+fn snippet$stringify(%0: i32 | string) -> string
+  locals:
+    %0 v: i32 | string (param v)
+    %1 $type_check_1: bool
+    %2 $not_2: bool
+    %3 $intrinsic_3: ?
+    %4 __sb_0: ? (synthetic __sb_0)
+    %5 $k_5: string
+    %6 $cast_6: i32
+    %7 $intrinsic_7: string
+    %8 $intrinsic_8: ?
+    %9 __sb_1: ? (synthetic __sb_1)
+    %10 $k_10: string
+    %11 $cast_11: string
+    %12 $intrinsic_12: string
+  bb0:
+    %1 = type_check %0 is string
+    %2 = unop not %1 :bool
+    cond_branch %2 ? bb1 : bb2
+  bb1:
+    %3 = intrinsic builder.new()
+    %4 = move %3
+    %5 = const string(#2) :string
+    intrinsic builder.append_str(%4, %5)
+    %6 = cast %0 :i32
+    intrinsic builder.append_display(%4, %6)
+    %7 = intrinsic builder.finish(%4)
+    return %7
+  bb2:
+    %8 = intrinsic builder.new()
+    %9 = move %8
+    %10 = const string(#3) :string
+    intrinsic builder.append_str(%9, %10)
+    %11 = cast %0 :string
+    intrinsic builder.append_display(%9, %11)
+    %12 = intrinsic builder.finish(%9)
+    return %12
+
+fn snippet$unwrap_or(%0: Cat | null, %1: string) -> string
+  locals:
+    %0 value: Cat | null (param value)
+    %1 fallback: string (param fallback)
+    %2 $type_check_2: bool
+    %3 $not_3: bool
+    %4 $intrinsic_4: ?
+    %5 __sb_0: ? (synthetic __sb_0)
+    %6 $k_6: string
+    %7 $cast_7: Cat
+    %8 $field_8: string
+    %9 $intrinsic_9: string
+  bb0:
+    %2 = type_check %0 is null
+    %3 = unop not %2 :bool
+    cond_branch %3 ? bb1 : bb2
+  bb1:
+    %4 = intrinsic builder.new()
+    %5 = move %4
+    %6 = const string(#1) :string
+    intrinsic builder.append_str(%5, %6)
+    %7 = cast %0 :Cat
+    %8 = field_get %7.name :string
+    intrinsic builder.append_display(%5, %8)
+    %9 = intrinsic builder.finish(%5)
+    return %9
+  bb2:
+    return %1
+
+fn snippet$is_not_dog(%0: Cat | Dog) -> bool
+  locals:
+    %0 p: Cat | Dog (param p)
+    %1 $type_check_1: bool
+    %2 $not_2: bool
+  bb0:
+    %1 = type_check %0 is Dog
+    %2 = unop not %1 :bool
+    return %2
+
+fn snippet$main() -> i32
+  locals:
+    %0 $k_0: string
+    %1 $struct_1: Cat
+    %2 $call_2: string
+    %3 $k_3: string
+    %4 $struct_4: Dog
+    %5 $call_5: string
+    %6 $k_6: i32 | string
+    %7 $call_7: string
+    %8 $k_8: string
+    %9 $call_9: string
+    %10 $k_10: string
+    %11 $struct_11: Cat
+    %12 $k_12: string
+    %13 $call_13: string
+    %14 $k_14: null
+    %15 $k_15: string
+    %16 $call_16: string
+    %17 $k_17: string
+    %18 cat: Cat (local cat)
+    %19 $k_20: string
+    %20 dog: Dog (local dog)
+    %21 $call_23: bool
+    %22 $k_24: string
+    %23 $call_25: bool
+    %24 $k_26: string
+    %25 $k_27: i32
+  bb0:
+    %0 = const string(#4) :string
+    %1 = struct_new Cat(%0)
+    %2 = call describe(%1) :string
+    call println(%2) :void
+    %3 = const string(#5) :string
+    %4 = struct_new Dog(%3)
+    %5 = call describe(%4) :string
+    call println(%5) :void
+    %6 = const int(42) :i32 | string
+    %7 = call stringify(%6) :string
+    call println(%7) :void
+    %8 = const string(#6) :string
+    %9 = call stringify(%8) :string
+    call println(%9) :void
+    %10 = const string(#7) :string
+    %11 = struct_new Cat(%10)
+    %12 = const string(#8) :string
+    %13 = call unwrap_or(%11, %12) :string
+    call println(%13) :void
+    %14 = const null :null
+    %15 = const string(#8) :string
+    %16 = call unwrap_or(%14, %15) :string
+    call println(%16) :void
+    %17 = const string(#4) :string
+    %18 = struct_new Cat(%17)
+    %19 = const string(#5) :string
+    %20 = struct_new Dog(%19)
+    %21 = call is_not_dog(%18) :bool
+    cond_branch %21 ? bb1 : bb2
+  bb1:
+    %22 = const string(#9) :string
+    call println(%22) :void
+    branch -> bb2
+  bb2:
+    %23 = call is_not_dog(%20) :bool
+    cond_branch %23 ? bb3 : bb4
+  bb3:
+    %24 = const string(#10) :string
+    call println(%24) :void
+    branch -> bb4
+  bb4:
+    %25 = const int(0) :i32
+    return %25

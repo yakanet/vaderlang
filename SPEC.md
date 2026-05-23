@@ -292,6 +292,7 @@ Comparison   : == != < <= > >=
 Membership   : in   (sugar for `right.contains(left)`)
               !in   (sugar for `!right.contains(left)`, parsed as `bang` + `kw_in`)
 Type test    : is Type   (in `match` arms and in `if`/`else` conditions ; narrows the scrutinee)
+              !is Type   (negated form, parsed as `bang` + `kw_is` ; desugars to `!(x is Type)`)
 Logical      : && || !
 Assignment   : =
 Declaration  : x :: value           (immutable, type inferred)
@@ -322,12 +323,12 @@ From tightest to loosest. Higher levels bind more tightly. Non-assoc operators f
 | 7     | `^`                                    | left           |
 | 8     | `\|`                                   | left           |
 | 9     | `..<`, `..=`                           | non-assoc      |
-| 10    | `<`, `<=`, `>`, `>=`, `==`, `!=`, `is`, `in`, `!in` | non-assoc      |
+| 10    | `<`, `<=`, `>`, `>=`, `==`, `!=`, `is`, `!is`, `in`, `!in` | non-assoc      |
 | 11    | `&&`                                   | left           |
 | 12    | `\|\|`                                 | left           |
 | 13    | `=` (statement-level only)             | n/a            |
 
-Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. The `is Type` form used in `match` arms binds at the comparison level.
+Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. The `is Type` form used in `match` arms binds at the comparison level. `!is Type` is a parser-level sugar that desugars to `!(x is Type)` ; the flow-narrower handles the wrapping `!` to flip then/else, and `as <ident>` is rejected after `!is` since the binding has no meaningful lifetime when the type check is negated.
 
 ### Statement separators
 

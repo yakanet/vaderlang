@@ -1,0 +1,176 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 primitive string
+type 3 primitive void
+string 0 "five : "
+string 1 "four : "
+string 2 "six : "
+import 0 println std_io$println (string) -> void
+
+fn 0 snippet$main () -> i32
+  local count i32
+  local _ i32
+  local __sb_0 any
+  local _ i32
+  i32.const 0
+  local.set 0
+  i32.const 0
+  local.set 1
+  block $L0 void
+    loop $L1 void
+      local.get 1
+      i32.const 5
+      i32.lt
+      if $L2 void
+        local.get 0
+        i32.const 1
+        i32.add
+        local.set 0
+        local.get 1
+        i32.const 1
+        i32.add
+        local.set 1
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  intrinsic builder.new
+  local.set 2
+  local.get 2
+  string.const 0
+  intrinsic builder.append_str
+  local.get 2
+  local.get 0
+  intrinsic builder.append_display
+  local.get 2
+  intrinsic builder.finish
+  call 1
+  i32.const 0
+  local.set 0
+  i32.const 1
+  local.set 1
+  block $L3 void
+    loop $L4 void
+      local.get 1
+      i32.const 4
+      i32.le
+      if $L5 void
+        local.get 0
+        i32.const 1
+        i32.add
+        local.set 0
+        local.get 1
+        i32.const 1
+        i32.add
+        local.set 1
+        br $L4
+      else
+      end $L5
+    end $L4
+  end $L3
+  intrinsic builder.new
+  local.set 2
+  local.get 2
+  string.const 1
+  intrinsic builder.append_str
+  local.get 2
+  local.get 0
+  intrinsic builder.append_display
+  local.get 2
+  intrinsic builder.finish
+  call 1
+  i32.const 0
+  local.set 0
+  i32.const 0
+  local.set 1
+  block $L6 void
+    loop $L7 void
+      local.get 1
+      i32.const 3
+      i32.lt
+      if $L8 void
+        i32.const 0
+        local.set 3
+        block $L9 void
+          loop $L10 void
+            local.get 3
+            i32.const 2
+            i32.lt
+            if $L11 void
+              local.get 0
+              i32.const 1
+              i32.add
+              local.set 0
+              local.get 3
+              i32.const 1
+              i32.add
+              local.set 3
+              br $L10
+            else
+            end $L11
+          end $L10
+        end $L9
+        local.get 1
+        i32.const 1
+        i32.add
+        local.set 1
+        br $L7
+      else
+      end $L8
+    end $L7
+  end $L6
+  intrinsic builder.new
+  local.set 2
+  local.get 2
+  string.const 2
+  intrinsic builder.append_str
+  local.get 2
+  local.get 0
+  intrinsic builder.append_display
+  local.get 2
+  intrinsic builder.finish
+  call 1
+  i32.const 0
+  local.set 0
+  i32.const 0
+  local.set 1
+  block $L12 void
+    loop $L13 void
+      local.get 1
+      i32.const 4
+      i32.lt
+      if $L14 void
+        local.get 0
+        local.get 1
+        i32.add
+        local.set 0
+        local.get 1
+        i32.const 1
+        i32.add
+        local.set 1
+        br $L13
+      else
+      end $L14
+    end $L13
+  end $L12
+  intrinsic builder.new
+  local.set 2
+  local.get 2
+  string.const 2
+  intrinsic builder.append_str
+  local.get 2
+  local.get 0
+  intrinsic builder.append_display
+  local.get 2
+  intrinsic builder.finish
+  call 1
+  return.lit i32.const 0
+end
+
+fn 1 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
+  return
+end

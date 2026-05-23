@@ -119,6 +119,45 @@ export function parseExpr(p: Parser, minBP: number): A.Expr {
       continue;
     }
 
+    // `!is` desugars to `Not(BinaryExpr.Is)` ; the narrower already flips
+    // then/else on `Not`, and the formatter restores the spelling. `as`
+    // is rejected because the binding has no live then-branch when the
+    // check is negated.
+    if (t.kind === "bang" && p.peek(1).kind === "kw_is" && 20 >= minBP) {
+      if (lastNonAssocLevel === 20) {
+        p.error("P1010", t.span, "chained `!is`");
+        break;
+      }
+      const bangTok = p.advance();
+      p.advance(); // kw_is
+      const right = parseExpr(p, 21);
+      if (p.peek().kind === "kw_as") {
+        const asTok = p.advance();
+        const ident = p.match("ident");
+        const endSpan = ident !== null ? ident.span : asTok.span;
+        p.error("P1001", asTok.span,
+          "`as` binding not allowed after `!is`: the binding would have no live then-branch since the type-check is negated");
+        // Span still ends at `right` ; the consumed `as <ident>` is recovery
+        // glue and shouldn't widen the `!is` expression.
+        void endSpan;
+      }
+      const isExpr: A.BinaryExpr = {
+        kind: "BinaryExpr",
+        id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: right.span.end },
+        op: "is",
+        left,
+        right,
+      };
+      left = {
+        kind: "UnaryExpr",
+        id: UNASSIGNED_NODE_ID, span: { start: bangTok.span.start, end: right.span.end },
+        op: "not",
+        operand: isExpr,
+      };
+      lastNonAssocLevel = 20;
+      continue;
+    }
+
     // Lone postfix `!` — type-mode error-union shorthand absorbed into the
     // main Pratt parser since 1.C. `T!` desugars to `T | Error` (with the
     // void→null special case mirroring the original parseType behaviour).

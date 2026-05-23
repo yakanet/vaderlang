@@ -1,0 +1,206 @@
+# Lower
+
+## snippet
+  struct snippet$Cat { name: string }
+  struct snippet$Dog { sound: string }
+  struct snippet$Pig { weight: i32 }
+  fn snippet$describe(p: Cat | Dog) -> string
+    if :void
+      cond:
+        not :bool
+          is Cat :bool
+            p :Cat | Dog
+      then:
+        return
+          block :string
+            let __sb_0: ? =
+              @builder.new :?
+            @builder.append_str :void
+              __sb_0 :?
+              "dog says " :string
+            @builder.append_display <for string> :void
+              __sb_0 :?
+              .sound :string
+                cast → Dog
+                  p :Cat | Dog
+            ~>
+              @builder.finish :string
+                __sb_0 :?
+    return
+      block :string
+        let __sb_1: ? =
+          @builder.new :?
+        @builder.append_str :void
+          __sb_1 :?
+          "cat " :string
+        @builder.append_display <for string> :void
+          __sb_1 :?
+          .name :string
+            cast → Cat
+              p :Cat | Dog
+        ~>
+          @builder.finish :string
+            __sb_1 :?
+  fn snippet$stringify(v: i32 | string) -> string
+    if :void
+      cond:
+        not :bool
+          is string :bool
+            v :i32 | string
+      then:
+        return
+          block :string
+            let __sb_0: ? =
+              @builder.new :?
+            @builder.append_str :void
+              __sb_0 :?
+              "int " :string
+            @builder.append_display <for i32> :void
+              __sb_0 :?
+              cast → i32
+                v :i32 | string
+            ~>
+              @builder.finish :string
+                __sb_0 :?
+    return
+      block :string
+        let __sb_1: ? =
+          @builder.new :?
+        @builder.append_str :void
+          __sb_1 :?
+          "str " :string
+        @builder.append_display <for string> :void
+          __sb_1 :?
+          cast → string
+            v :i32 | string
+        ~>
+          @builder.finish :string
+            __sb_1 :?
+  fn snippet$unwrap_or(value: Cat | null, fallback: string) -> string
+    if :void
+      cond:
+        not :bool
+          is null :bool
+            value :Cat | null
+      then:
+        return
+          block :string
+            let __sb_0: ? =
+              @builder.new :?
+            @builder.append_str :void
+              __sb_0 :?
+              "cat " :string
+            @builder.append_display <for string> :void
+              __sb_0 :?
+              .name :string
+                cast → Cat
+                  value :Cat | null
+            ~>
+              @builder.finish :string
+                __sb_0 :?
+    return fallback :string
+  fn snippet$is_not_dog(p: Cat | Dog) -> bool
+    return
+      not :bool
+        is Dog :bool
+          p :Cat | Dog
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            describe :fn(Cat | Dog) -> string
+          arg0:
+            Cat {
+              name: "felix" :string
+            }
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            describe :fn(Cat | Dog) -> string
+          arg0:
+            Dog {
+              sound: "woof" :string
+            }
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            stringify :fn(i32 | string) -> string
+          arg0:
+            int(42) :i32 | string
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            stringify :fn(i32 | string) -> string
+          arg0:
+            "hello" :string
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            unwrap_or :fn(Cat | null, string) -> string
+          arg0:
+            Cat {
+              name: "garfield" :string
+            }
+          arg1:
+            "nothing" :string
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            unwrap_or :fn(Cat | null, string) -> string
+          arg0:
+            null
+          arg1:
+            "nothing" :string
+    let cat: Cat =
+      Cat {
+        name: "felix" :string
+      }
+    let dog: Dog =
+      Dog {
+        sound: "woof" :string
+      }
+    if :void
+      cond:
+        call :bool
+          callee:
+            is_not_dog :fn(Cat | Dog) -> bool
+          arg0:
+            cat :Cat
+      then:
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            "cat is not a dog" :string
+    if :void
+      cond:
+        call :bool
+          callee:
+            is_not_dog :fn(Cat | Dog) -> bool
+          arg0:
+            dog :Dog
+      then:
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            "dog is dog (should not print)" :string
+    return int(0) :i32

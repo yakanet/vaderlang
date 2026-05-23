@@ -1051,10 +1051,21 @@ emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
             self.emit_expr(w.cond)
         }
         is p.InFor as f -> {
-            self.write(" ")
-            self.write(f.binding)
-            self.write(" in ")
-            self.emit_expr(f.iter)
+            // Only recover the `for <range>` sugar when the binding was
+            // parser-synthesised : the synth `binding_span` is zero-width
+            // (start == end), so a user-written `for _ in <range>` is
+            // preserved verbatim instead of being silently rewritten.
+            zero_width :: f.binding_span.start.offset == f.binding_span.end.offset
+            is_synth_discard :: f.binding == "_" && f.iter is p.RangeExpr && zero_width
+            if is_synth_discard {
+                self.write(" ")
+                self.emit_expr(f.iter)
+            } else {
+                self.write(" ")
+                self.write(f.binding)
+                self.write(" in ")
+                self.emit_expr(f.iter)
+            }
         }
     }
     self.write(" ")
@@ -1261,6 +1272,22 @@ emit_index :: fn(self: Printer, x: p.IndexExpr) -> void {
 // ---- operators ----
 
 emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
+    // `!is` sugar : parser produces `Not(Is(...))` ; restore the spelling
+    // for round-trip stability. `bind_as != ""` would mean an `is T as x`
+    // wrapped in an outer `Not` — never produced by the sugar path.
+    if x.op == .Not {
+        match x.operand {
+            is p.BinaryExpr as inner -> {
+                if inner.op == .Is && inner.bind_as == "" {
+                    self.emit_binary_operand(inner.left, inner.op, true)
+                    self.write(" !is ")
+                    self.emit_binary_operand(inner.right, inner.op, false)
+                    return
+                }
+            }
+            _ -> {}
+        }
+    }
     self.write(unary_op_symbol(x.op))
     self.emit_expr(x.operand)
 }

@@ -226,7 +226,7 @@ walk_rpo :: fn(fn_: CFGFunction, b: BlockId, visited: bool[], order: BlockId[]) 
 export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
     n :: fn_.blocks.len()
     idom: i32[] = []
-    for _ in 0..<n { idom.push(-1) }
+    for 0..<n { idom.push(-1) }
     idom[fn_.entry] = fn_.entry
     rpo :: reverse_postorder(fn_)
     changed := true
@@ -328,7 +328,7 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
 
     live_in:  MutableSet(LocalId)[] = []
     live_out: MutableSet(LocalId)[] = []
-    for _ in 0..<n {
+    for 0..<n {
         live_in.push(MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } })
         live_out.push(MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } })
     }

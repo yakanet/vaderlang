@@ -1,0 +1,147 @@
+# CFG
+
+## snippet
+
+fn snippet$main() -> i32
+  locals:
+    %0 count: i32 (local count)
+    %1 _: i32 (binding _)
+    %2 $k_4: i32
+    %3 $lt_5: bool
+    %4 $k_6: i32
+    %5 $k_8: i32
+    %6 $intrinsic_10: ?
+    %7 __sb_0: ? (synthetic __sb_0)
+    %8 $k_12: string
+    %9 $intrinsic_13: string
+    %10 sum: i32 (local sum)
+    %11 _: i32 (binding _)
+    %12 $k_18: i32
+    %13 $lte_19: bool
+    %14 $k_20: i32
+    %15 $k_22: i32
+    %16 $intrinsic_24: ?
+    %17 __sb_1: ? (synthetic __sb_1)
+    %18 $k_26: string
+    %19 $intrinsic_27: string
+    %20 cells: i32 (local cells)
+    %21 _: i32 (binding _)
+    %22 $k_32: i32
+    %23 $lt_33: bool
+    %24 _: i32 (binding _)
+    %25 $k_36: i32
+    %26 $lt_37: bool
+    %27 $k_38: i32
+    %28 $k_40: i32
+    %29 $k_42: i32
+    %30 $intrinsic_44: ?
+    %31 __sb_2: ? (synthetic __sb_2)
+    %32 $k_46: string
+    %33 $intrinsic_47: string
+    %34 accum: i32 (local accum)
+    %35 i: i32 (binding i)
+    %36 $k_52: i32
+    %37 $lt_53: bool
+    %38 $k_55: i32
+    %39 $intrinsic_57: ?
+    %40 __sb_3: ? (synthetic __sb_3)
+    %41 $k_59: string
+    %42 $intrinsic_60: string
+    %43 $k_61: i32
+  bb0:
+    %0 = const int(0) :i32
+    %1 = const int(0) :i32
+    branch -> bb1
+  bb1:
+    %2 = const int(5) :i32
+    %3 = binop lt %1 %2 :bool
+    cond_branch %3 ? bb2 : bb3
+  bb2:
+    %4 = const int(1) :i32
+    %0 = binop add %0 %4 :i32
+    %5 = const int(1) :i32
+    %1 = binop add %1 %5 :i32
+    branch -> bb1
+  bb3:
+    %6 = intrinsic builder.new()
+    %7 = move %6
+    %8 = const string(#0) :string
+    intrinsic builder.append_str(%7, %8)
+    intrinsic builder.append_display(%7, %0)
+    %9 = intrinsic builder.finish(%7)
+    call println(%9) :void
+    %10 = const int(0) :i32
+    %11 = const int(1) :i32
+    branch -> bb4
+  bb4:
+    %12 = const int(4) :i32
+    %13 = binop lte %11 %12 :bool
+    cond_branch %13 ? bb5 : bb6
+  bb5:
+    %14 = const int(1) :i32
+    %10 = binop add %10 %14 :i32
+    %15 = const int(1) :i32
+    %11 = binop add %11 %15 :i32
+    branch -> bb4
+  bb6:
+    %16 = intrinsic builder.new()
+    %17 = move %16
+    %18 = const string(#1) :string
+    intrinsic builder.append_str(%17, %18)
+    intrinsic builder.append_display(%17, %10)
+    %19 = intrinsic builder.finish(%17)
+    call println(%19) :void
+    %20 = const int(0) :i32
+    %21 = const int(0) :i32
+    branch -> bb7
+  bb7:
+    %22 = const int(3) :i32
+    %23 = binop lt %21 %22 :bool
+    cond_branch %23 ? bb8 : bb9
+  bb8:
+    %24 = const int(0) :i32
+    branch -> bb10
+  bb9:
+    %30 = intrinsic builder.new()
+    %31 = move %30
+    %32 = const string(#2) :string
+    intrinsic builder.append_str(%31, %32)
+    intrinsic builder.append_display(%31, %20)
+    %33 = intrinsic builder.finish(%31)
+    call println(%33) :void
+    %34 = const int(0) :i32
+    %35 = const int(0) :i32
+    branch -> bb13
+  bb10:
+    %25 = const int(2) :i32
+    %26 = binop lt %24 %25 :bool
+    cond_branch %26 ? bb11 : bb12
+  bb11:
+    %27 = const int(1) :i32
+    %20 = binop add %20 %27 :i32
+    %28 = const int(1) :i32
+    %24 = binop add %24 %28 :i32
+    branch -> bb10
+  bb12:
+    %29 = const int(1) :i32
+    %21 = binop add %21 %29 :i32
+    branch -> bb7
+  bb13:
+    %36 = const int(4) :i32
+    %37 = binop lt %35 %36 :bool
+    cond_branch %37 ? bb14 : bb15
+  bb14:
+    %34 = binop add %34 %35 :i32
+    %38 = const int(1) :i32
+    %35 = binop add %35 %38 :i32
+    branch -> bb13
+  bb15:
+    %39 = intrinsic builder.new()
+    %40 = move %39
+    %41 = const string(#2) :string
+    intrinsic builder.append_str(%40, %41)
+    intrinsic builder.append_display(%40, %34)
+    %42 = intrinsic builder.finish(%40)
+    call println(%42) :void
+    %43 = const int(0) :i32
+    return %43
