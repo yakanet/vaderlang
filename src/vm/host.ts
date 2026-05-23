@@ -212,6 +212,9 @@ export function stdStringBindings(): Record<string, HostFn> {
     },
     // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core,
     // so the host provides the body under the impl-method mangled name.
+    // A7 P3 NOTE : we WILL flip this to codepoint indexing once the
+    // self-host audit (Phase 5) lands ; today it stays byte-indexed
+    // because the lexer / parser / VM-port use `s[i]` with byte intent.
     "std_core$string$Index$at": (args) => {
       const bytes = UTF8_ENC.encode(stringArg(args, 0));
       const i = indexArg(args, 1);

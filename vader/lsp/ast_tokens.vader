@@ -92,7 +92,8 @@ refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken[]) ->
     resolved :: resolve_program(program, seed, uri, factory)
     for i in 0..<out.len() {
         rt :: out[i]
-        key :: "${rt.line + 1}:${rt.col + 1}"
+        // A6 : `idents` is keyed by `span_key` packed i64 = (line << 32) | col.
+        key :: (i64(rt.line + 1) << i64(32)) | i64(rt.col + 1)
         hit :: resolved.idents[key]
         match hit {
             is Symbol as s -> {

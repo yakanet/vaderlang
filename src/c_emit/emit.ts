@@ -790,6 +790,11 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_string$to_lower":    return `${head} { return vader_string_to_lower(a0); }`;
     // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core,
     // so the host provides the body under the impl-method mangled name.
+    // A7 P3 NOTE : we WILL flip this to `vader_string_codepoint_at` once
+    // the self-host stdlib + `vader/` audit lands (Phase 5 of the design
+    // doc). Today it stays byte-indexed because the lexer / parser /
+    // VM-port heavily use `s[i]` with byte intent. Runtime helper
+    // already in place, just not wired here.
     case "std_core$string$Index$at":
       return `${head} { return vader_string_char_at(a0, a1); }`;
     case "std_string$byte_at":
