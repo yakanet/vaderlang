@@ -6,7 +6,7 @@ import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 
-import { err } from "../diag.ts";
+import { err, warn } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
 import type { BinaryOpResolution } from "../typed-ast.ts";
 import type { Type } from "../types.ts";
@@ -36,6 +36,13 @@ export function inferBinary(
     // Mirror to exprTypes for legacy consumers ; new code reads from
     // `binaryIsCheckTypes`.
     t.exprTypes.set(expr.right, checkType);
+    // `is` checks the concrete runtime struct-tag, not a "union tag" — so
+    // `x is Union(A, B, ...)` always returns false at runtime. (Match arms
+    // are checked separately in `match.ts`.)
+    if (checkType.kind === "Union") {
+      warn(diags, "W0003", expr.right.span,
+        `match against each variant of \`${displayType(checkType)}\` instead`);
+    }
     // Soundness check : `x is T` where T can never be a runtime value of
     // x's static type is dead code — e.g. `if p is null` when `p: Pet`
     // and Pet doesn't include null. Suppress for trivial `is Error` on a

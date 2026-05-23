@@ -1,0 +1,28 @@
+# Comptime
+
+## stdlib/std/core
+
+## stdlib/std/io
+
+## tests/snippets/is_union_alias_warn
+
+## generic instances
+  Into(Target)
+  Index(I, T)
+  IndexSet(I, T)
+  Contains(T)
+  Iterator(T)
+  Iterator(T)
+  Yield(T)
+  Yield(T)
+  Yield(T)
+  Range(T)
+  Range(T)
+  Range(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+  ArrayIterator(T)
+
+# Diagnostics
+[24:22] warning[W0003] `is` against a union type always returns false at runtime: match against each variant of `Cat | Dog` instead
+[32:22] warning[W0003] `is` against a union type always returns false at runtime: match against each variant of `i32 | string` instead

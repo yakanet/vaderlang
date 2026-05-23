@@ -298,8 +298,8 @@ emit_call :: fn(call: LoweredCall, state: FnEmitState, ctx: EmitterCtx) -> void 
 /// gates the intrinsic check on the import map for the same reason.
 emit_call_to_symbol :: fn(symbol: Symbol, state: FnEmitState, ctx: EmitterCtx) -> void {
     intrinsic :: intrinsic_op_for_symbol_name(symbol)
-    if intrinsic is Op as op {
-        push_op(state, op)
+    if intrinsic !is null {
+        push_op(state, intrinsic)
         return
     }
     target_index :: ctx.function_index_by_symbol_id[symbol.id]

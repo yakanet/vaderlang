@@ -1,0 +1,40 @@
+# Typecheck
+
+## tests/snippets/is_union_alias_warn
+  StructDecl     Cat                  :: Cat
+  FnDecl         classify             :: fn(Cat | Dog | i32) -> string
+  StructDecl     Dog                  :: Dog
+  FnDecl         inline_check         :: fn(bool | i32 | string) -> bool
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Pet                  :: type
+  expr 24:17    BinaryExpr     :: bool
+  expr 24:17    IdentExpr      :: Cat | Dog | i32
+  expr 24:22    IdentExpr      :: Cat | Dog
+  expr 24:5     IfExpr         :: void
+  expr 24:8     BinaryExpr     :: bool
+  expr 25:16    StringLitExpr  :: string
+  expr 27:12    StringLitExpr  :: string
+  expr 32:17    BinaryExpr     :: bool
+  expr 32:17    IdentExpr      :: bool | i32 | string
+  expr 32:5     IfExpr         :: void
+  expr 32:8     BinaryExpr     :: bool
+  expr 39:13    CallExpr       :: string
+  expr 39:13    IdentExpr      :: fn(Cat | Dog | i32) -> string
+  expr 39:22    StructLitExpr  :: Cat
+  expr 39:36    StringLitExpr  :: string
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(string) -> void
+  expr 40:13    CallExpr       :: string
+  expr 40:13    IdentExpr      :: fn(Cat | Dog | i32) -> string
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(string) -> void
+  expr 41:27    CallExpr       :: void
+  expr 41:27    IdentExpr      :: fn(string) -> void
+  expr 41:35    StringLitExpr  :: string
+  expr 41:5     IfExpr         :: void
+  expr 41:8     CallExpr       :: bool
+  expr 41:8     IdentExpr      :: fn(bool | i32 | string) -> bool
+
+# Diagnostics
+[24:22] warning[W0003] `is` against a union type always returns false at runtime: match against each variant of `Cat | Dog` instead
+[32:22] warning[W0003] `is` against a union type always returns false at runtime: match against each variant of `i32 | string` instead

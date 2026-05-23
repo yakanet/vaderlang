@@ -1,0 +1,68 @@
+# Lower
+
+## snippet
+  struct snippet$Cat { name: string }
+  struct snippet$Dog { sound: string }
+  fn snippet$classify(v: Cat | Dog | i32) -> string
+    if :void
+      cond:
+        and :bool
+          l:
+            false
+          r:
+            is Cat | Dog :bool
+              v :Cat | Dog | i32
+      then:
+        return "unreachable" :string
+    return "checked" :string
+  fn snippet$inline_check(v: bool | i32 | string) -> bool
+    if :void
+      cond:
+        and :bool
+          l:
+            false
+          r:
+            is i32 | string :bool
+              v :bool | i32 | string
+      then:
+        return true
+    return false
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            classify :fn(Cat | Dog | i32) -> string
+          arg0:
+            Cat {
+              name: "felix" :string
+            }
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        call :string
+          callee:
+            classify :fn(Cat | Dog | i32) -> string
+          arg0:
+            int(42) :Cat | Dog | i32
+    if :void
+      cond:
+        call :bool
+          callee:
+            inline_check :fn(bool | i32 | string) -> bool
+          arg0:
+            int(42) :bool | i32 | string
+      then:
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            "matched" :string
+    return int(0) :i32
+
+# Diagnostics
+[24:22] warning[W0003] `is` against a union type always returns false at runtime: match against each variant of `Cat | Dog` instead
+[32:22] warning[W0003] `is` against a union type always returns false at runtime: match against each variant of `i32 | string` instead

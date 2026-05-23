@@ -330,6 +330,8 @@ From tightest to loosest. Higher levels bind more tightly. Non-assoc operators f
 
 Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. The `is Type` form used in `match` arms binds at the comparison level. `!is Type` is a parser-level sugar that desugars to `!(x is Type)` ; the flow-narrower handles the wrapping `!` to flip then/else, and `as <ident>` is rejected after `!is` since the binding has no meaningful lifetime when the type check is negated.
 
+`is` checks the runtime *struct-tag* of the value, not a "union tag" — `x is <UnionType>` therefore always returns false. The typechecker emits `W0003` whenever the RHS of `is` resolves to a union (literal `A | B` or a `MyUnion :: A | B` alias), suggesting the user destructure into individual variants via `match v { is A -> ... is B -> ... }` instead.
+
 ### Statement separators
 
 Inside a block, statements are separated by `NEWLINE` tokens (emitted per the rules below). Vader does **not** accept `;` as a statement separator.

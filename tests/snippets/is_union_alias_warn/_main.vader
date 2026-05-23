@@ -1,0 +1,43 @@
+// W0003 — `is` against a union type always returns false at runtime.
+// The runtime checks the concrete struct-tag, not a "union tag" ; matching
+// against a union type alias is an antipattern. Use `match v { is A -> ...
+// is B -> ... }` against each individual variant instead.
+//
+// This snippet exercises the warning paths only ; the runtime branches are
+// guarded so the snippet doesn't expose the VM-vs-native divergence on
+// `is Union` evaluation.
+
+module "snippet"
+
+import "std/io" { println }
+
+Cat :: struct { name: string }
+Dog :: struct { sound: string }
+
+// Union alias used as the RHS of `is` — fires W0003.
+Pet :: Cat | Dog
+
+// Antipattern : the runtime tag of a Cat or Dog value is `Cat` or `Dog`,
+// never `Pet`. Wrapped in `false &&` so the dead branch is dropped without
+// being evaluated.
+classify :: fn(v: Cat | Dog | i32) -> string {
+    if false && v is Pet {
+        return "unreachable"
+    }
+    return "checked"
+}
+
+// Inline union RHS — same diagnostic fires.
+inline_check :: fn(v: i32 | string | bool) -> bool {
+    if false && v is i32 | string {
+        return true
+    }
+    return false
+}
+
+main :: fn() -> i32 {
+    println(classify(Cat { .name = "felix" }))
+    println(classify(42))
+    if inline_check(42) { println("matched") }
+    return 0
+}

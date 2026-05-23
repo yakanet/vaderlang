@@ -1,0 +1,87 @@
+# CFG
+
+## snippet
+
+fn snippet$classify(%0: Cat | Dog | i32) -> string
+  locals:
+    %0 v: Cat | Dog | i32 (param v)
+    %1 $k_1: bool
+    %2 and_res: bool
+    %3 $k_5: string
+    %4 $k_6: string
+  bb0:
+    %1 = const bool(false) :bool
+    cond_branch %1 ? bb1 : bb2
+  bb1:
+    %2 = type_check %0 is Cat | Dog
+    branch -> bb3
+  bb2:
+    %2 = const bool(false) :bool
+    branch -> bb3
+  bb3:
+    cond_branch %2 ? bb4 : bb5
+  bb4:
+    %3 = const string(#0) :string
+    return %3
+  bb5:
+    %4 = const string(#1) :string
+    return %4
+
+fn snippet$inline_check(%0: bool | i32 | string) -> bool
+  locals:
+    %0 v: bool | i32 | string (param v)
+    %1 $k_1: bool
+    %2 and_res: bool
+    %3 $k_5: bool
+    %4 $k_6: bool
+  bb0:
+    %1 = const bool(false) :bool
+    cond_branch %1 ? bb1 : bb2
+  bb1:
+    %2 = type_check %0 is i32 | string
+    branch -> bb3
+  bb2:
+    %2 = const bool(false) :bool
+    branch -> bb3
+  bb3:
+    cond_branch %2 ? bb4 : bb5
+  bb4:
+    %3 = const bool(true) :bool
+    return %3
+  bb5:
+    %4 = const bool(false) :bool
+    return %4
+
+fn snippet$main() -> i32
+  locals:
+    %0 $k_0: string
+    %1 $struct_1: Cat
+    %2 $call_2: string
+    %3 $k_3: Cat | Dog | i32
+    %4 $call_4: string
+    %5 $k_5: bool | i32 | string
+    %6 $call_6: bool
+    %7 $k_7: string
+    %8 $k_8: i32
+  bb0:
+    %0 = const string(#2) :string
+    %1 = struct_new Cat(%0)
+    %2 = call classify(%1) :string
+    call println(%2) :void
+    %3 = const int(42) :Cat | Dog | i32
+    %4 = call classify(%3) :string
+    call println(%4) :void
+    %5 = const int(42) :bool | i32 | string
+    %6 = call inline_check(%5) :bool
+    cond_branch %6 ? bb1 : bb2
+  bb1:
+    %7 = const string(#3) :string
+    call println(%7) :void
+    branch -> bb2
+  bb2:
+    %8 = const int(0) :i32
+    return %8
+
+# Diagnostics
+[24:22] warning[W0003] `is` against a union type always returns false at runtime: match against each variant of `Cat | Dog` instead
+[32:22] warning[W0003] `is` against a union type always returns false at runtime: match against each variant of `i32 | string` instead

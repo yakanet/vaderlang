@@ -29,7 +29,7 @@ export find_first_in_block :: fn(
 ) -> AST.Expr | null {
     for stmt in b.stmts {
         hit :: find_first_in_stmt(stmt, pred)
-        if hit is AST.Expr { return hit }
+        if hit !is null { return hit }
     }
     t :: b.trailing
     if t is null { return null }
@@ -54,19 +54,19 @@ find_first_in_expr :: fn(
     e: AST.Expr, pred: fn(AST.Expr) -> AST.Expr | null,
 ) -> AST.Expr | null {
     hit :: pred(e)
-    if hit is AST.Expr { return hit }
+    if hit !is null { return hit }
     match e {
         is AST.BinaryExpr as b -> {
             l :: find_first_in_expr(b.left, pred)
-            if l is AST.Expr { return l }
+            if l !is null { return l }
             return find_first_in_expr(b.right, pred)
         }
         is AST.CallExpr as c -> {
             callee :: find_first_in_expr(c.callee, pred)
-            if callee is AST.Expr { return callee }
+            if callee !is null { return callee }
             for a in c.args {
                 arg :: find_first_in_expr(a.value, pred)
-                if arg is AST.Expr { return arg }
+                if arg !is null { return arg }
             }
             return null
         }
@@ -74,9 +74,9 @@ find_first_in_expr :: fn(
         is AST.BlockExpr as bx -> { return find_first_in_block(bx, pred) }
         is AST.IfExpr as ifx -> {
             cond :: find_first_in_expr(ifx.cond, pred)
-            if cond is AST.Expr { return cond }
+            if cond !is null { return cond }
             then :: find_first_in_block(ifx.then_block, pred)
-            if then is AST.Expr { return then }
+            if then !is null { return then }
             match ifx.else_branch {
                 is null -> { return null }
                 is AST.IfElseBlock as eb -> { return find_first_in_block(eb.block, pred) }

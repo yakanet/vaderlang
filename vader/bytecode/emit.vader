@@ -175,8 +175,8 @@ build_intrinsic_wrapper_body :: fn(imp: BcImport, import_index: i32) -> Op[] {
         body.push(LocalGet { .slot = i32(i) })
     }
     intrinsic :: intrinsic_op_for_mangled(imp.mangled_name)
-    if intrinsic is Op as inline_op {
-        body.push(inline_op)
+    if intrinsic !is null {
+        body.push(intrinsic)
     } else {
         body.push(CallImport { .index = import_index })
     }
