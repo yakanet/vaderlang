@@ -28,35 +28,44 @@ export interface Capture {
 
 export interface ClosureAnalysis {
   /** Symbol IDs (param/local/binding) that are captured by at least one
-   *  inner lambda. The lowerer must heap-promote these via `Cell<T>`. */
+   *  inner lambda or `defer` thunk. The lowerer heap-promotes these
+   *  via `Cell<T>` so the captured value tracks updates made after
+   *  the closure / defer was registered. */
   readonly capturedSymbols: ReadonlySet<number>;
   /** Per-LambdaExpr capture list. Field order in the generated env struct
    *  mirrors this order; `make_closure` consumes captures in the same order. */
   readonly lambdaCaptures: ReadonlyMap<A.LambdaExpr, readonly Capture[]>;
+  /** Per-DeferStmt capture list. The defer body lowers to a synthetic
+   *  top-level fn taking an `env` first-param ; the captures form that
+   *  env struct. By-reference semantics through Cell promotion match
+   *  how Go-style `defer` reads the latest local values at unwind. */
+  readonly deferCaptures: ReadonlyMap<A.DeferStmt, readonly Capture[]>;
 }
 
 export function analyzeClosures(project: TypedProject): ClosureAnalysis {
   const captured = new Set<number>();
   const lambdaCaptures = new Map<A.LambdaExpr, Capture[]>();
+  const deferCaptures = new Map<A.DeferStmt, Capture[]>();
 
   for (const program of project.modules.values()) {
-    analyzeProgram(program, captured, lambdaCaptures);
+    analyzeProgram(program, captured, lambdaCaptures, deferCaptures);
   }
 
-  return { capturedSymbols: captured, lambdaCaptures };
+  return { capturedSymbols: captured, lambdaCaptures, deferCaptures };
 }
 
 function analyzeProgram(
   program: TypedProgram,
   captured: Set<number>,
   lambdaCaptures: Map<A.LambdaExpr, Capture[]>,
+  deferCaptures: Map<A.DeferStmt, Capture[]>,
 ): void {
   for (const decl of program.resolved.source.decls) {
     if (decl.kind === "FnDecl" && decl.body !== null) {
-      analyzeFnBody(decl, program, captured, lambdaCaptures);
+      analyzeFnBody(decl, program, captured, lambdaCaptures, deferCaptures);
     } else if (decl.kind === "ImplDecl") {
       for (const member of decl.members) {
-        if (member.body !== null) analyzeFnBody(member, program, captured, lambdaCaptures);
+        if (member.body !== null) analyzeFnBody(member, program, captured, lambdaCaptures, deferCaptures);
       }
     }
   }
@@ -67,13 +76,14 @@ function analyzeFnBody(
   program: TypedProgram,
   captured: Set<number>,
   lambdaCaptures: Map<A.LambdaExpr, Capture[]>,
+  deferCaptures: Map<A.DeferStmt, Capture[]>,
 ): void {
   // Top-level fns / impl members: their body's lambdas capture from the fn's
   // own param + local scope. We pass `outCaptures = null` so the walker only
   // discovers nested lambdas (it doesn't have an enclosing capture set to
   // collect into — top-level fns don't capture).
   const ownedFnScope = collectOwnedScopeForFn(fn, program.resolved);
-  walkBody(fn.body!, ownedFnScope, null, null, { program, captured, lambdaCaptures });
+  walkBody(fn.body!, ownedFnScope, null, null, { program, captured, lambdaCaptures, deferCaptures });
 }
 
 // ---------------------------------------------------------------- owned scope
@@ -108,6 +118,7 @@ interface WalkCtx {
   readonly program: TypedProgram;
   readonly captured: Set<number>;
   readonly lambdaCaptures: Map<A.LambdaExpr, Capture[]>;
+  readonly deferCaptures: Map<A.DeferStmt, Capture[]>;
 }
 
 function walkBody(
@@ -155,8 +166,11 @@ function walkStmt(
     case "ContinueStmt":
       return;
     case "DeferStmt":
-      if (stmt.body.kind === "BlockExpr") walkBody(stmt.body, new Set(scope), outCaptures, outSeen, ctx);
-      else walkStmt(stmt.body, scope, outCaptures, outSeen, ctx);
+      // Defer body is a fresh closure : own scope is empty (no params),
+      // captures = free vars referencing the enclosing fn scope. Same
+      // shape as `processLambda`. By-reference semantics (Cell promotion)
+      // matches Go's defer reading the latest local values at unwind.
+      processDefer(stmt, scope, outCaptures, outSeen, ctx);
       return;
   }
 }
@@ -290,6 +304,34 @@ function processLambda(
 
   // Fold this lambda's captures into the enclosing lambda's, skipping any
   // symbol already defined in the enclosing scope (i.e. shared with us).
+  if (outCaptures !== null && outSeen !== null) {
+    for (const c of captures) {
+      if (!outerScope.has(c.symbol.id)) addCaptureValue(c, outCaptures, outSeen);
+    }
+  }
+}
+
+/** Mirror of `processLambda` for `DeferStmt`. Builds a fresh empty
+ *  scope (defer body has no params), walks the body to collect free
+ *  vars referencing the enclosing fn's locals/params/bindings, marks
+ *  them as captured (so the lowerer heap-promotes them via Cell), and
+ *  records the captures in `ctx.deferCaptures` keyed by the DeferStmt
+ *  node. Captures also fold into an enclosing lambda's outCaptures if
+ *  we're inside one — same propagation as nested lambdas. */
+function processDefer(
+  defer: A.DeferStmt, outerScope: Set<number>,
+  outCaptures: Capture[] | null, outSeen: Set<number> | null,
+  ctx: WalkCtx,
+): void {
+  const ownScope = new Set<number>();
+  const captures: Capture[] = [];
+  const seen = new Set<number>();
+  if (defer.body.kind === "BlockExpr") walkBody(defer.body, ownScope, captures, seen, ctx);
+  else walkStmt(defer.body, ownScope, captures, seen, ctx);
+
+  for (const c of captures) ctx.captured.add(c.symbol.id);
+  ctx.deferCaptures.set(defer, captures);
+
   if (outCaptures !== null && outSeen !== null) {
     for (const c of captures) {
       if (!outerScope.has(c.symbol.id)) addCaptureValue(c, outCaptures, outSeen);

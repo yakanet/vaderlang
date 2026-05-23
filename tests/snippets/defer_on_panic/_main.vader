@@ -1,0 +1,25 @@
+// `defer` runs on panic unwind. Single-track lowering registers each
+// `defer X` as a closure on the frame's defer-stack via `defer.push` ;
+// at every normal exit the lowerer emits a matching `defer.pop_exec`
+// to drain them in LIFO order. When a panic (e.g. integer division by
+// zero) trips during exec, the runtime walks the still-pending defers
+// on the frame before propagating — best-effort cleanup mirroring Go
+// / Zig defer semantics.
+//
+// The VM here surfaces the panic via a `# runtime error` snapshot ; the
+// stdout part captures the cleanup output emitted by the defers as they
+// drained on the unwind path.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    defer println("outer cleanup")
+    defer println("middle cleanup")
+    defer println("inner cleanup")
+    println("starting")
+    boom := 1
+    boom = boom / 0
+    return boom
+}

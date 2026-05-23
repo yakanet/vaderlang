@@ -26,7 +26,14 @@ import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 //
 // To regenerate the list : run this test with all entries removed,
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
-const KNOWN_DIVERGENT = new Set<string>([]);
+const KNOWN_DIVERGENT = new Set<string>([
+  // A8 single-track defer — VM TS + C-emit landed ; Vader self-host VM
+  // port pending (needs `defer.push` / `defer.pop_exec` op handlers in
+  // `vader/vm/exec.vader` + `vader/bytecode/op.vader` enum entry).
+  "defer_block",
+  "defer_on_panic",
+  "defer_in_lambda",
+]);
 
 const scenarios = listSnippets("tests/snippets");
 

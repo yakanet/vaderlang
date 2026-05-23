@@ -90,7 +90,9 @@ export type LoweredStmt =
   | LoweredReturn
   | LoweredLoop
   | LoweredBreak
-  | LoweredContinue;
+  | LoweredContinue
+  | LoweredDeferPush
+  | LoweredDeferPopExec;
 
 export interface LoweredLet {
   readonly kind: "LoweredLet";
@@ -152,6 +154,29 @@ export interface LoweredContinue {
   readonly kind: "LoweredContinue";
   readonly span: Span;
   readonly label: string | null;
+}
+
+/** Push a `defer` thunk onto the current frame's defer-stack. `thunk`
+ *  evaluates to a closure (fn-ref + env capturing the locals the body
+ *  references). The runtime executes it via `defer.pop_exec` on normal
+ *  exits, or via the panic-unwind walker on traps. Single-track: every
+ *  `defer X` lowers to a `LoweredDeferPush` ; there is no inlined-defer
+ *  path. */
+export interface LoweredDeferPush {
+  readonly kind: "LoweredDeferPush";
+  readonly span: Span;
+  readonly thunk: LoweredExpr;
+}
+
+/** Pop and execute `count` entries from the current frame's defer-stack
+ *  (LIFO). Emitted at every normal exit : `count` matches the number of
+ *  defers introduced in the scope being exited (a block fall-through
+ *  drains only its own block ; a `return` drains every pending defer in
+ *  the fn ; `break`/`continue` drain back to the loop boundary). */
+export interface LoweredDeferPopExec {
+  readonly kind: "LoweredDeferPopExec";
+  readonly span: Span;
+  readonly count: number;
 }
 
 // =========================================================================

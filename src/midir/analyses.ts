@@ -36,6 +36,8 @@ export function instructionHasSideEffect(ins: Instruction): boolean {
     case "ArraySet":
     case "ArrayPush":
     case "CellSet":
+    case "DeferPush":
+    case "DeferPopExec":
       return true;
     default:
       return false;
@@ -70,6 +72,8 @@ export function forEachReadLocal(ins: Instruction, visit: (l: LocalId) => void):
     case "CellSet":      visit(ins.cell); visit(ins.value); return;
     case "MakeClosure":  visit(ins.env); return;
     case "Intrinsic":    for (const a of ins.args) visit(a); return;
+    case "DeferPush":    visit(ins.closure); return;
+    case "DeferPopExec": return;
   }
 }
 
@@ -291,6 +295,8 @@ export function dstOf(ins: Instruction): LocalId | null {
     case "ArraySet":
     case "ArrayPush":
     case "CellSet":
+    case "DeferPush":
+    case "DeferPopExec":
       return null;
   }
 }

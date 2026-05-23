@@ -161,7 +161,9 @@ export type Instruction =
   | InstrCellSet
   | InstrMakeClosure
   | InstrIntrinsic
-  | InstrMove;
+  | InstrMove
+  | InstrDeferPush
+  | InstrDeferPopExec;
 
 /** Common header — every instruction has a span for diagnostics. */
 interface InstrBase {
@@ -384,6 +386,25 @@ export interface InstrMakeClosure extends InstrBase {
   readonly fnSymbol: Symbol;
   readonly env: LocalId;
   readonly type: Type;
+}
+
+/** Push a closure onto the current frame's defer-stack. `closure` is the
+ *  fn-ref produced by `MakeClosure` capturing the defer body's free
+ *  variables. Backends emit `defer.push` ; the runtime appends `closure`
+ *  to a per-frame list executed on normal `defer.pop_exec` or when a
+ *  panic unwinds the frame. */
+export interface InstrDeferPush extends InstrBase {
+  readonly kind: "DeferPush";
+  readonly closure: LocalId;
+}
+
+/** Pop and execute `count` entries from the current frame's defer-stack
+ *  (LIFO). Emitted at every normal exit (block fall-through, `return`,
+ *  `break`, `continue`) ; `count` matches the number of defers introduced
+ *  in the scopes the exit transcends. */
+export interface InstrDeferPopExec extends InstrBase {
+  readonly kind: "DeferPopExec";
+  readonly count: number;
 }
 
 /** Compiler/runtime intrinsic call (builder.new, builder.append_*, …). */

@@ -220,6 +220,7 @@ function formatOp(op: Op): string {
     case "type.const":   return `type.const ${op.typeIndex}`;
     case "ref.cast":     return `ref.cast ${op.typeIndex}`;
     case "return.lit":   return `return.lit ${formatOp(op.value)}`;
+    case "defer.pop_exec": return `defer.pop_exec ${op.count}`;
     default:
       // Operand-less ops: their kind string is the whole encoding.
       return op.kind;
@@ -611,6 +612,7 @@ function parseOp(text: string, scopes: { name: string }[], ctx: ParseCtx): Op {
     case "type_check":   return { kind: "type_check", typeIndex: Number(tail) };
     case "type.const":   return { kind: "type.const", typeIndex: Number(tail) };
     case "ref.cast":     return { kind: "ref.cast", typeIndex: Number(tail) };
+    case "defer.pop_exec": return { kind: "defer.pop_exec", count: Number(tail) };
     case "return.lit": {
       // Tail is the inner const op verbatim (e.g. `bool.const true`).
       const inner = parseOp(tail, scopes, ctx);

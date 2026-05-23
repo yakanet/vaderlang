@@ -1,0 +1,118 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let x: ? =
+      LoweredCellNew
+    let f: fn() -> void =
+      LoweredMakeClosure
+    call :void
+      callee:
+        f :fn() -> void
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        "--- now panic case ---" :string
+    let n: ? =
+      LoweredCellNew
+    let do_panic: fn() -> i32 =
+      LoweredMakeClosure
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "result=" :string
+          @builder.append_display <for i32> :void
+            __sb_2 :?
+            call :i32
+              callee:
+                do_panic :fn() -> i32
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    return int(0) :i32
+  struct __defer_env_5 {  }
+  fn __defer_4(__env_0: __defer_env_5) -> void
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        "lambda inner cleanup" :string
+  struct __defer_env_8 { cap_0: ? }
+  fn __defer_7(__env_1: __defer_env_8) -> void
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "uses outer " :string
+          @builder.append_display <for string> :void
+            __sb_0 :?
+            LoweredCellGet
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+  struct __lambda_env_2 { cap_0: ? }
+  fn __lambda_1(__env_0: __lambda_env_2) -> void
+    defer.push
+      LoweredMakeClosure
+    defer.push
+      LoweredMakeClosure
+    let __block_2: void =
+      call :void
+        callee:
+          println :fn(string) -> void
+        arg0:
+          "lambda body" :string
+    defer.pop_exec 2
+    ~>
+      __block_2 :void
+  struct __defer_env_16 { cap_0: ? }
+  fn __defer_15(__env_0: __defer_env_16) -> void
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "panic defer in lambda saw " :string
+          @builder.append_display <for string> :void
+            __sb_0 :?
+            LoweredCellGet
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+  struct __lambda_env_13 { cap_0: ?, cap_1: ? }
+  fn __lambda_12(__env_1: __lambda_env_13) -> i32
+    defer.push
+      LoweredMakeClosure
+    call :void
+      callee:
+        println :fn(string) -> void
+      arg0:
+        "about to boom" :string
+    block :void
+      defer.pop_exec 1
+      return
+        div :i32
+          l:
+            LoweredCellGet
+          r:
+            sub :i32
+              l:
+                LoweredCellGet
+              r:
+                LoweredCellGet

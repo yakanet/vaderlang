@@ -5,7 +5,6 @@
 // is pushed per fn body — it carries the active substitution, return type, and
 // a stack of `BlockCtx` so defers can be replayed at every block exit.
 
-import type * as A from "../parser/ast.ts";
 import type { DiagnosticCollector } from "../diagnostics/collector.ts";
 import type { EvaluatedProject } from "../comptime/evaluated-ast.ts";
 import type { ClosureAnalysis } from "./passes/closures.ts";
@@ -48,8 +47,13 @@ export interface LowerProjectCtx {
 }
 
 export interface BlockCtx {
-  /** Defers registered in this block, in encounter order. Re-emitted in reverse at every exit. */
-  readonly defers: A.Stmt[];
+  /** Number of `defer` statements registered in this block. Single-track
+   *  lowering : each `defer` emits a `LoweredDeferPush` at the introduction
+   *  point ; every exit (fall-through / return / break / continue) emits a
+   *  `LoweredDeferPopExec` whose count drains the defers of the scopes the
+   *  exit transcends. The bodies of the defers are lifted as synthetic fns
+   *  via `lowerDeferStmt` — block.ts only tracks counts here. */
+  deferCount: number;
   readonly isFnRoot: boolean;
   readonly isLoopBody: boolean;
 }

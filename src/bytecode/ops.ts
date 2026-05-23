@@ -150,7 +150,18 @@ export type Op =
   // Pushes a `TypeValue` carrying `typeIndex` so a `t :: TypeMeta` alias
   // used in value position flows through the VM. Round-trips with
   // `ComptimeValue.type`.
-  | { readonly kind: "type.const"; readonly typeIndex: number };
+  | { readonly kind: "type.const"; readonly typeIndex: number }
+
+  // -- Defer (panic-unwinding) -------------------------------------------
+  // `defer.push` pops a closure (fn-ref + env) and appends it to the
+  // current frame's defer-stack. Stack: closure ⇒ . `defer.pop_exec`
+  // pops `count` entries from the frame's defer-stack in LIFO order and
+  // executes each one. On panic, the runtime walks the defer-stack of
+  // every active frame before propagating. Single-track: every exit
+  // (return / break / continue / block fall-through) emits a matching
+  // `defer.pop_exec`.
+  | { readonly kind: "defer.push" }
+  | { readonly kind: "defer.pop_exec"; readonly count: number };
 
 /** Primitive literal-producing ops. Carried by `return.lit` so the
  *  fused op stays self-describing for every backend. */

@@ -100,6 +100,8 @@ function dumpInstr(ins: Instruction): string {
     case "MakeClosure": return `%${ins.dst} = make_closure ${ins.fnSymbol.name} env=%${ins.env} :${displayType(ins.type)}`;
     case "Intrinsic": return `${dst(ins.dst)}intrinsic ${ins.name}(${args(ins.args)})`;
     case "Move":      return `%${ins.dst} = move %${ins.src}`;
+    case "DeferPush": return `defer_push %${ins.closure}`;
+    case "DeferPopExec": return `defer_pop_exec ${ins.count}`;
   }
 }
 

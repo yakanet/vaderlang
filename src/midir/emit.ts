@@ -397,6 +397,8 @@ function emitInstr(ctx: FnEmitCfg, ins: Instruction): void {
     case "CellSet":         return emitCellSet(ctx, ins);
     case "MakeClosure":     return emitMakeClosureInstr(ctx, ins);
     case "Intrinsic":       return emitIntrinsicInstr(ctx, ins);
+    case "DeferPush":       return emitDeferPush(ctx, ins);
+    case "DeferPopExec":    return emitDeferPopExec(ctx, ins);
   }
 }
 
@@ -726,6 +728,18 @@ function emitMakeClosureInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: 
   const typeIndex = internType(ctx.project, ins.type);
   pushOp(ctx.emit, { kind: "make_closure", fnIndex: fnIdx, typeIndex }, ins.span);
   emitInstrResult(ctx, ins, ins.dst, ins.span);
+}
+
+function emitDeferPush(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "DeferPush" }>): void {
+  // The closure is the only operand ; emit it then the op consumes it.
+  // Routes via `emitFirstOperand` so the scheduler's `skipFirstGet` hint
+  // (set when the producer leaves the value on the stack) is honored.
+  emitFirstOperand(ctx, ins, ins.closure, ins.span);
+  pushOp(ctx.emit, { kind: "defer.push" }, ins.span);
+}
+
+function emitDeferPopExec(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "DeferPopExec" }>): void {
+  pushOp(ctx.emit, { kind: "defer.pop_exec", count: ins.count }, ins.span);
 }
 
 function emitIntrinsicInstr(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Intrinsic" }>): void {

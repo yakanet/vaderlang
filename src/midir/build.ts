@@ -324,6 +324,16 @@ function buildStmt(fn: FnCtx, s: L.LoweredStmt): void {
       terminate(fn, { kind: "Branch", target: frame.headerId, span: s.span });
       return;
     }
+    case "LoweredDeferPush": {
+      const closure = buildExpr(fn, s.thunk);
+      if (closure === null) return;
+      emit(fn, { kind: "DeferPush", closure, span: s.span });
+      return;
+    }
+    case "LoweredDeferPopExec": {
+      emit(fn, { kind: "DeferPopExec", count: s.count, span: s.span });
+      return;
+    }
   }
 }
 

@@ -104,6 +104,7 @@ function buildOpKinds(): readonly string[] {
   out.push("string.concat");
   out.push("type_check");
   out.push("type.const");
+  out.push("defer.push", "defer.pop_exec");
   return out;
 }
 
@@ -435,6 +436,8 @@ function writeOp(w: Writer, op: Op): void {
       w.u32(op.typeIndex); return;
     case "return.lit":
       writeOp(w, op.value); return;
+    case "defer.pop_exec":
+      w.u32(op.count); return;
     default:
       // Pure-kind ops (drop, dup, return, end, ..., all arithmetic / cmp /
       // convert) carry no operands beyond the tag.
@@ -783,6 +786,8 @@ function readOp(r: Reader): Op {
       return { kind: "type_check", typeIndex: r.u32() };
     case "type.const":
       return { kind: "type.const", typeIndex: r.u32() };
+    case "defer.pop_exec":
+      return { kind: "defer.pop_exec", count: r.u32() };
     case "return.lit": {
       const inner = readOp(r);
       if (!isConstOp(inner)) r.fail(`return.lit expects a const inner op, got ${inner.kind}`);

@@ -1,0 +1,22 @@
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    x :: "captured-x"
+    f :: () -> {
+        defer println("lambda inner cleanup")
+        defer println("uses outer ${x}")
+        println("lambda body")
+    }
+    f()
+    println("--- now panic case ---")
+    n :: 5
+    do_panic :: fn() -> i32 {
+        defer println("panic defer in lambda saw ${x}")
+        println("about to boom")
+        return n / (n - n)
+    }
+    println("result=${do_panic()}")
+    return 0
+}

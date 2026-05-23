@@ -92,6 +92,11 @@ function walkStmt(s: LoweredStmt, ctx: WalkCtx): void {
       walkExpr(s.value, ctx);
       walkType(s.valueType, ctx);
       return;
+    case "LoweredDeferPush":
+      walkExpr(s.thunk, ctx);
+      return;
+    case "LoweredDeferPopExec":
+      return;
     default: {
       const _exhaustive: never = s;
       void _exhaustive;

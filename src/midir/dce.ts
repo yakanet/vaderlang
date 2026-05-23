@@ -495,6 +495,8 @@ function remapInstr(ins: Instruction, m: readonly LocalId[]): Instruction {
     case "Intrinsic":     return {
       ...ins, dst: ins.dst === null ? null : r(m, ins.dst), args: ins.args.map((a) => r(m, a)),
     };
+    case "DeferPush":     return { ...ins, closure: r(m, ins.closure) };
+    case "DeferPopExec":  return ins;
   }
 }
 

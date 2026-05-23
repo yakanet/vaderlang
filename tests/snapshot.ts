@@ -71,6 +71,20 @@ export function formatRun(stdout: string, stderr: string, exit: number): string 
   return parts.join("");
 }
 
+/** Same shape as `formatRun` but the trailing section is the runtime
+ *  error message instead of an exit code — used by the VM test driver
+ *  when an op trapped mid-execution. Stdout captured before the trap
+ *  (e.g. from defer cleanups that ran during panic unwind) is preserved
+ *  so the snapshot distinguishes "panic-with-cleanup" from "panic-with-
+ *  nothing". */
+export function formatRunWithError(stdout: string, stderr: string, message: string): string {
+  const parts: string[] = [];
+  if (stdout.length > 0) parts.push("# stdout\n" + stdout);
+  if (stderr.length > 0) parts.push("# stderr\n" + stderr);
+  parts.push(`# runtime error\n${message}\n`);
+  return parts.join("");
+}
+
 export function listSnippets(snippetsDir: string): Scenario[] {
   const out: Scenario[] = [];
   let entries: string[];
@@ -365,6 +379,15 @@ function emitStmt(lines: string[], s: LoweredStmt, indent: string): void {
       return;
     case "LoweredContinue":
       lines.push(`${indent}continue${s.label === null ? "" : ` :${s.label}`}`);
+      return;
+    case "LoweredDeferPush": {
+      const inline = exprInline(s.thunk);
+      if (inline !== null) lines.push(`${indent}defer.push ${inline}`);
+      else { lines.push(`${indent}defer.push`); emitExpr(lines, s.thunk, indent + "  "); }
+      return;
+    }
+    case "LoweredDeferPopExec":
+      lines.push(`${indent}defer.pop_exec ${s.count}`);
       return;
   }
 }

@@ -741,6 +741,10 @@ function prependIncBeforeMatchingContinue(
         return { ...s, target: rewriteExpr(s.target, insideNestedLoop), value: rewriteExpr(s.value, insideNestedLoop) };
       case "LoweredBreak":
         return s;
+      case "LoweredDeferPush":
+        return { ...s, thunk: rewriteExpr(s.thunk, insideNestedLoop) };
+      case "LoweredDeferPopExec":
+        return s;
     }
   }
 

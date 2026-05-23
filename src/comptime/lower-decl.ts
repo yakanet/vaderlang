@@ -221,7 +221,7 @@ function newLowerProjectCtx(input: CompileInput): LowerProjectCtx {
     coreSymbols,
     iterSymbols,
     collectionsSymbols,
-    closures: { capturedSymbols: new Set(), lambdaCaptures: new Map() },
+    closures: { capturedSymbols: new Set(), lambdaCaptures: new Map(), deferCaptures: new Map() },
     synthDecls: [],
     nextSyntheticId: 1,
     diags: input.diags,

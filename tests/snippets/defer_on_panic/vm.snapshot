@@ -1,0 +1,7 @@
+# stdout
+starting
+inner cleanup
+middle cleanup
+outer cleanup
+# runtime error
+vm: division by zero (at snippet$main+15 @ tests/snippets/defer_on_panic/_main.vader:23:12)

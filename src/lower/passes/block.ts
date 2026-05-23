@@ -1,6 +1,10 @@
-// Lowers blocks and statements. Threads the defer stack so that every block
-// exit (return, break, continue, fallthrough) replays its registered defers
-// in reverse order.
+// Lowers blocks and statements. Single-track defer model : every `defer X`
+// registers a thunk on the frame's defer-stack via `LoweredDeferPush` ;
+// every normal exit (fall-through, return, break, continue) emits a
+// matching `LoweredDeferPopExec` whose count drains the defers of the
+// scopes the exit transcends. On panic, the runtime walks the defer-stack
+// before propagating. There is no inlined-defer path : the closure-lifted
+// thunk is the single source of truth.
 
 import type * as A from "../../parser/ast.ts";
 import { UNASSIGNED_NODE_ID } from "../../parser/ast.ts";
@@ -13,22 +17,22 @@ import type { LoweredBlock, LoweredExpr, LoweredStmt } from "../lowered-ast.ts";
 import { lowerExpr, lowerIndexTraitCall } from "./expr.ts";
 import { lowerComptimeForIn, lowerForIn } from "./for-in.ts";
 import { freshSyntheticSymbol, lowerCellInit, wrapStmts } from "./helpers.ts";
+import { lowerDeferStmt } from "./defer.ts";
 import type {Span} from "../../diagnostics/diagnostic.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 
 export function lowerBlock(
   ctx: FnLowerCtx, block: A.BlockExpr, isFnRoot: boolean, isLoopBody: boolean,
 ): LoweredBlock {
-  const blockCtx: BlockCtx = { defers: [], isFnRoot, isLoopBody };
+  const blockCtx: BlockCtx = { deferCount: 0, isFnRoot, isLoopBody };
   ctx.blocks.push(blockCtx);
 
   const stmts: LoweredStmt[] = [];
   let diverged = false;
   for (const s of block.stmts) {
     if (s.kind === "DeferStmt") {
-      blockCtx.defers.push(s.body.kind === "BlockExpr"
-        ? { kind: "ExprStmt", id: UNASSIGNED_NODE_ID, span: s.body.span, expr: s.body }
-        : s.body);
+      stmts.push(lowerDeferStmt(ctx, s));
+      blockCtx.deferCount++;
       continue;
     }
     if (diverged) continue;
@@ -48,7 +52,7 @@ export function lowerBlock(
   }
 
   const trailing = block.trailing === null
-    ? emitTrailingDefersOnly(ctx, blockCtx, stmts)
+    ? emitTrailingDefersOnly(blockCtx, block.span, stmts)
     : emitTrailingValueWithDefers(ctx, blockCtx, stmts, block.trailing);
 
   ctx.blocks.pop();
@@ -60,9 +64,9 @@ export function lowerBlock(
 }
 
 function emitTrailingDefersOnly(
-  ctx: FnLowerCtx, blockCtx: BlockCtx, stmts: LoweredStmt[],
+  blockCtx: BlockCtx, blockSpan: Span, stmts: LoweredStmt[],
 ): LoweredExpr | null {
-  emitDefersInto(ctx, blockCtx.defers, stmts);
+  emitPopExec(blockCtx.deferCount, blockSpan, stmts);
   return null;
 }
 
@@ -70,25 +74,23 @@ function emitTrailingValueWithDefers(
   ctx: FnLowerCtx, blockCtx: BlockCtx, stmts: LoweredStmt[], trailing: A.Expr,
 ): LoweredExpr {
   const value = lowerExpr(ctx, trailing);
-  if (blockCtx.defers.length === 0) return value;
+  if (blockCtx.deferCount === 0) return value;
 
-  // Save the trailing value to a temp, run defers, then yield the temp.
+  // Save the trailing value to a temp, drain this block's defers, then yield
+  // the temp. The defers must run BEFORE the trailing value escapes the
+  // block since they may modify captured state visible to the caller.
   const tmpSym = freshSyntheticSymbol(ctx, "block");
   stmts.push({
     kind: "LoweredLet", span: trailing.span, name: tmpSym.name, symbol: tmpSym,
     type: value.type, value,
   });
-  emitDefersInto(ctx, blockCtx.defers, stmts);
+  emitPopExec(blockCtx.deferCount, trailing.span, stmts);
   return { kind: "LoweredIdent", span: trailing.span, type: value.type, symbol: tmpSym };
 }
 
-function emitDefersInto(ctx: FnLowerCtx, defers: readonly A.Stmt[], out: LoweredStmt[]): void {
-  for (let i = defers.length - 1; i >= 0; i--) {
-    const d = lowerStmt(ctx, defers[i]!);
-    if (d === null) continue;
-    if (Array.isArray(d)) out.push(...d);
-    else out.push(d);
-  }
+/** Push a `LoweredDeferPopExec(count)` onto `out` when `count > 0`. */
+function emitPopExec(count: number, span: Span, out: LoweredStmt[]): void {
+  if (count > 0) out.push({ kind: "LoweredDeferPopExec", span, count });
 }
 
 export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | LoweredStmt[] | null {
@@ -186,19 +188,26 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | LoweredS
     case "ExprStmt":
       return { kind: "LoweredExprStmt", span: stmt.span, expr: lowerExpr(ctx, stmt.expr) };
     case "ReturnStmt": {
-      const cleanups = collectDefersUpTo(ctx, /*stopOnLoop*/ false);
+      const count = sumDefersUpTo(ctx, /*stopOnLoop*/ false);
       const value = stmt.value === null ? null : lowerExpr(ctx, stmt.value);
-      return wrapStmts(stmt.span, [...cleanups, { kind: "LoweredReturn", span: stmt.span, value }]);
+      const exit: LoweredStmt = { kind: "LoweredReturn", span: stmt.span, value };
+      return count > 0
+        ? wrapStmts(stmt.span, [popExecStmt(count, stmt.span), exit])
+        : exit;
     }
     case "BreakStmt": {
-      const cleanups = collectDefersUpTo(ctx, /*stopOnLoop*/ true);
-      return wrapStmts(stmt.span, [...cleanups,
-        { kind: "LoweredBreak", span: stmt.span, label: stmt.label }]);
+      const count = sumDefersUpTo(ctx, /*stopOnLoop*/ true);
+      const exit: LoweredStmt = { kind: "LoweredBreak", span: stmt.span, label: stmt.label };
+      return count > 0
+        ? wrapStmts(stmt.span, [popExecStmt(count, stmt.span), exit])
+        : exit;
     }
     case "ContinueStmt": {
-      const cleanups = collectDefersUpTo(ctx, /*stopOnLoop*/ true);
-      return wrapStmts(stmt.span, [...cleanups,
-        { kind: "LoweredContinue", span: stmt.span, label: stmt.label }]);
+      const count = sumDefersUpTo(ctx, /*stopOnLoop*/ true);
+      const exit: LoweredStmt = { kind: "LoweredContinue", span: stmt.span, label: stmt.label };
+      return count > 0
+        ? wrapStmts(stmt.span, [popExecStmt(count, stmt.span), exit])
+        : exit;
     }
     case "ForStmt": {
       if (stmt.isComptime && stmt.form.kind !== "in") {
@@ -233,7 +242,12 @@ export function lowerStmt(ctx: FnLowerCtx, stmt: A.Stmt): LoweredStmt | LoweredS
       return { kind: "LoweredLoop", span: stmt.span, label: stmt.label, cond, body };
     }
     case "DeferStmt":
-      return null;     // registered in lowerBlock, never emitted in place
+      // Defer registration is driven by `lowerBlock`'s per-block walker
+      // so it can increment `blockCtx.deferCount`. Reaching here would
+      // mean a defer escaped the block-level handling — an internal bug.
+      err(ctx.project.diags, "B5001", stmt.span,
+        "internal: DeferStmt reached lowerStmt — should be handled by lowerBlock");
+      return null;
   }
 }
 
@@ -387,14 +401,20 @@ function readLocal(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span): Lowere
   return { kind: "LoweredIdent", span, type, symbol: sym };
 }
 
-/** Collect defers from the current block out to either the fn root (for return)
- *  or the innermost loop body (for break/continue), innermost-first, LIFO. */
-function collectDefersUpTo(ctx: FnLowerCtx, stopOnLoop: boolean): LoweredStmt[] {
-  const out: LoweredStmt[] = [];
+/** Sum the defer counts from the current block out to either the fn root
+ *  (for `return`) or the innermost loop body inclusive (for `break` /
+ *  `continue`). The result is the `count` for a single `LoweredDeferPopExec`
+ *  emitted before the exit op. */
+function sumDefersUpTo(ctx: FnLowerCtx, stopOnLoop: boolean): number {
+  let total = 0;
   for (let i = ctx.blocks.length - 1; i >= 0; i--) {
     const b = ctx.blocks[i]!;
-    emitDefersInto(ctx, b.defers, out);
+    total += b.deferCount;
     if (stopOnLoop && b.isLoopBody) break;
   }
-  return out;
+  return total;
+}
+
+function popExecStmt(count: number, span: Span): LoweredStmt {
+  return { kind: "LoweredDeferPopExec", span, count };
 }

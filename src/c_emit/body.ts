@@ -494,6 +494,16 @@ function emitOp(s: FnState, ip: number, op: Op): void {
       return pushLit(s, "any", `vader_box_obj(${tag}u, (void*)(uintptr_t)${op.typeIndex}u)`);
     }
     case "ref.cast":     return emitRefCast(s, op);
+
+    case "defer.push": {
+      const closure = pop(s);
+      line(s, `vader_defer_push(${closure.name});`);
+      return;
+    }
+    case "defer.pop_exec": {
+      line(s, `vader_defer_pop_exec(${op.count}u);`);
+      return;
+    }
   }
 
   // Templated typed numeric ops: <type>.<verb> or <type>.to_<type>

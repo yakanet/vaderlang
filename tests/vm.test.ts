@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { errMsg, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
+import { errMsg, formatRun, formatRunWithError, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { pipelineBytecode } from "../src/pipeline.ts";
 import { VmError, runProgram, makeBindings, type HostIO } from "../src/vm/index.ts";
@@ -55,15 +55,15 @@ async function dumpVm(mainPath: string): Promise<string> {
   if (errors.length > 0) {
     return stripRoot("# compile errors\n" + errors.map((e) => `[${e.code}] ${e.message}`).join("\n") + "\n");
   }
+  const cap = captureIO();
   try {
-    const cap = captureIO();
     // Pass argv[0] (script path) so snippets that take `main(argv)` see at
     // least one element — mirrors the native binary which always gets argv[0].
     const result = runProgram(r.bytecode, { host: makeBindings(cap.io), opLimit: 1_000_000, argv: [mainPath] });
     return stripRoot(formatRun(cap.out.join(""), cap.err.join(""), result.exitCode));
   } catch (e) {
     if (e instanceof VmError && e.message.startsWith("vm: no main function")) return "# no main function\n";
-    return stripRoot(`# runtime error\n${errMsg(e)}\n`);
+    return stripRoot(formatRunWithError(cap.out.join(""), cap.err.join(""), errMsg(e)));
   }
 }
 

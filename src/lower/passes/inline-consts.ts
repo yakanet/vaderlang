@@ -457,6 +457,10 @@ function rewriteStmt(s: LoweredStmt, ctx: RewriteCtx): LoweredStmt {
     case "LoweredBreak":
     case "LoweredContinue":
       return s;
+    case "LoweredDeferPush":
+      return { ...s, thunk: rewriteExpr(s.thunk, ctx) };
+    case "LoweredDeferPopExec":
+      return s;
     default: {
       const _exhaustive: never = s;
       void _exhaustive;

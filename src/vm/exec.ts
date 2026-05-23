@@ -14,7 +14,7 @@ import {
   bool, builder, ch, FALSE, fnRef, i64, NULL, num, str as makeStr, VOID,
   asArray, asBig, asBool, asBuilder, asChar, asFn, asIndex, asNum, asString, asStruct, asType, displayValue,
 } from "./value.ts";
-import type { ArrayValue, NumTag, StringValue, Value } from "./value.ts";
+import type { ArrayValue, FnValue, NumTag, StringValue, Value } from "./value.ts";
 
 export interface RunOptions {
   readonly host: HostBindings;
@@ -146,6 +146,10 @@ interface Frame {
   readonly stack: Value[];
   ip: number;
   readonly jumps: JumpInfo;
+  /** Defer-stack — closures registered via `defer.push`. Drained in LIFO
+   *  order either by an explicit `defer.pop_exec` (normal exit) or by
+   *  the panic-unwind handler around `invoke`. */
+  readonly defers: FnValue[];
 }
 
 type Label =
@@ -176,29 +180,51 @@ function invoke(ctx: RunCtx, fnIndex: number, args: Value[], opts: RunOptions): 
   const frame: Frame = {
     fn, slots, labels: [], stack: [], ip: 0,
     jumps: getJumps(fn),
+    defers: [],
   };
 
-  const opLimit = opts.opLimit;
-  if (opLimit !== undefined) {
-    let executed = 0;
-    while (frame.ip < fn.body.length) {
-      if (++executed > opLimit) {
-        throw new VmError(`vm: op limit exceeded (${opLimit})`, debugOf(fn, frame.ip - 1));
+  try {
+    const opLimit = opts.opLimit;
+    if (opLimit !== undefined) {
+      let executed = 0;
+      while (frame.ip < fn.body.length) {
+        if (++executed > opLimit) {
+          throw new VmError(`vm: op limit exceeded (${opLimit})`, debugOf(fn, frame.ip - 1));
+        }
+        const r = stepWithDebug(ctx, frame, opts);
+        if (r !== undefined) return r;
       }
-      const r = stepWithDebug(ctx, frame, opts);
-      if (r !== undefined) return r;
+    } else {
+      while (frame.ip < fn.body.length) {
+        const r = stepWithDebug(ctx, frame, opts);
+        if (r !== undefined) return r;
+      }
     }
-  } else {
-    while (frame.ip < fn.body.length) {
-      const r = stepWithDebug(ctx, frame, opts);
-      if (r !== undefined) return r;
+  } catch (e) {
+    if (e instanceof VmError) {
+      // Panic unwind : run pending defers in LIFO before propagating. A defer
+      // that itself throws still lets the original panic propagate (the
+      // first error wins) but we keep running subsequent defers so cleanup
+      // is best-effort even when one of them fails.
+      for (let i = frame.defers.length - 1; i >= 0; i--) {
+        try { invokeDefer(ctx, frame.defers[i]!, opts); } catch { /* swallow */ }
+      }
     }
+    throw e;
   }
 
   // Fall off the end (defensive — the lowerer always emits explicit `return`).
   if (fn.signature.result === "void") return VOID;
   if (frame.stack.length > 0) return frame.stack[frame.stack.length - 1]!;
   return zeroFor(fn.signature.result);
+}
+
+/** Run one defer closure. The lifted fn takes its env struct as the first
+ *  param ; `null` env happens for the rare no-capture case (the lifter
+ *  always emits an env, but a future optimization could elide it). */
+function invokeDefer(ctx: RunCtx, closure: FnValue, opts: RunOptions): void {
+  const args: Value[] = closure.env === null ? [] : [closure.env];
+  invoke(ctx, closure.fnIndex, args, opts);
 }
 
 // ----------------------------------------------------------- step dispatch
@@ -345,6 +371,27 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       // fn's first arg when call.indirect fires.
       const env = f.stack.pop()!;
       f.stack.push(fnRef(op.fnIndex, env));
+      f.ip++; return;
+    }
+    case "defer.push": {
+      const closure = f.stack.pop()!;
+      if (closure.tag !== "fn") {
+        throw new VmError(`vm: defer.push expects a fn ref, got ${closure.tag}`, debugOf(f.fn, f.ip));
+      }
+      f.defers.push(closure);
+      f.ip++; return;
+    }
+    case "defer.pop_exec": {
+      // Drain `count` defers LIFO. Each runs in its own invoke ; a panic in
+      // a defer still propagates (we don't swallow here — that's only for
+      // the panic-unwind path).
+      for (let i = 0; i < op.count; i++) {
+        const c = f.defers.pop();
+        if (c === undefined) {
+          throw new VmError(`vm: defer.pop_exec underflow at count=${op.count}`, debugOf(f.fn, f.ip));
+        }
+        invokeDefer(ctx, c, opts);
+      }
       f.ip++; return;
     }
     case "call.indirect": {

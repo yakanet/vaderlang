@@ -114,6 +114,8 @@ function firstStackOperand(ins: Instruction): LocalId | null {
     case "CellSet":      return ins.cell;
     case "MakeClosure":  return ins.env;
     case "Intrinsic":    return ins.args.length > 0 ? ins.args[0]! : null;
+    case "DeferPush":    return ins.closure;
+    case "DeferPopExec": return null;
   }
 }
 

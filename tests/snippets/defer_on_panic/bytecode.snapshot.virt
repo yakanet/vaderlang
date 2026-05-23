@@ -1,0 +1,62 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 struct __defer_env_2 {  }
+type 3 primitive void
+type 4 struct __defer_env_5 {  }
+type 5 struct __defer_env_8 {  }
+type 6 primitive string
+type 7 ref _
+string 0 "starting"
+string 1 "outer cleanup"
+string 2 "middle cleanup"
+string 3 "inner cleanup"
+import 0 println std_io$println (string) -> void
+
+fn 0 snippet$main () -> i32
+  local boom i32
+  struct.new 2
+  make_closure 1 7
+  defer.push
+  struct.new 4
+  make_closure 2 7
+  defer.push
+  struct.new 5
+  make_closure 3 7
+  defer.push
+  string.const 0
+  call 4
+  i32.const 1
+  local.set 0
+  local.get 0
+  i32.const 0
+  i32.div
+  local.set 0
+  defer.pop_exec 3
+  local.get 0
+  return
+end
+
+fn 1 __defer_1 (ref) -> void
+  string.const 1
+  call 4
+  return
+end
+
+fn 2 __defer_4 (ref) -> void
+  string.const 2
+  call 4
+  return
+end
+
+fn 3 __defer_7 (ref) -> void
+  string.const 3
+  call 4
+  return
+end
+
+fn 4 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
+  return
+end

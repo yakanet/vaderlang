@@ -4,19 +4,43 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 $k_0: string
-    %1 $k_1: string
-    %2 $k_3: string
-    %3 $k_4: string
-    %4 $k_5: i32
+    %0 $struct_0: __defer_env_2
+    %1 $closure_1: ?
+    %2 $k_2: string
+    %3 $struct_3: __defer_env_5
+    %4 $closure_4: ?
+    %5 $k_5: string
+    %6 $k_7: i32
   bb0:
-    %0 = const string(#0) :string
-    call println(%0) :void
-    %1 = const string(#1) :string
-    call println(%1) :void
-    %2 = const string(#2) :string
+    %0 = struct_new __defer_env_2()
+    %1 = make_closure __defer_1 env=%0 :?
+    defer_push %1
+    %2 = const string(#0) :string
     call println(%2) :void
-    %3 = const string(#3) :string
-    call println(%3) :void
-    %4 = const int(0) :i32
-    return %4
+    %3 = struct_new __defer_env_5()
+    %4 = make_closure __defer_4 env=%3 :?
+    defer_push %4
+    %5 = const string(#1) :string
+    call println(%5) :void
+    defer_pop_exec 1
+    defer_pop_exec 1
+    %6 = const int(0) :i32
+    return %6
+
+fn __defer_1(%0: __defer_env_2) -> void
+  locals:
+    %0 __env_0: __defer_env_2 (synthetic __env_0)
+    %1 $k_1: string
+  bb0:
+    %1 = const string(#2) :string
+    call println(%1) :void
+    return
+
+fn __defer_4(%0: __defer_env_5) -> void
+  locals:
+    %0 __env_1: __defer_env_5 (synthetic __env_1)
+    %1 $k_1: string
+  bb0:
+    %1 = const string(#3) :string
+    call println(%1) :void
+    return

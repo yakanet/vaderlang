@@ -507,6 +507,22 @@ typedef struct {
     void*              env;
 } vader_fn_t;
 
+/* ----------------------------------------------------------------- defer
+ *
+ * Single-track defer model — every `defer X` lowers to a `defer.push`
+ * that appends a closure to the global defer-stack, and every normal
+ * exit (return / break / continue / block fall-through) emits a
+ * matching `defer.pop_exec N` that drains and executes the last N
+ * entries in LIFO order. The GC scan treats the stack as a root so
+ * captures stay live between push and pop_exec.
+ *
+ * MVP : panic-unwind is NOT wired on the C target — `vader_trap` skips
+ * the defer-stack and exits the process directly. The VM target (TS
+ * + Vader self-host) does unwind. The discrepancy is tracked alongside
+ * the setjmp/longjmp work in TODO §3.8 "defer unwinds on panic". */
+void vader_defer_push(vader_box_t closure);
+void vader_defer_pop_exec(uint32_t count);
+
 /* ----------------------------------------------------------------- builder */
 
 typedef struct vader_builder_s vader_builder_t;

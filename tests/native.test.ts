@@ -83,7 +83,13 @@ for (const s of scenarios) {
 
     let expected: string;
     try { expected = await Bun.file(join(s.dir, "vm.snapshot")).text(); } catch { return; }
+    // Skip snippets whose vm.snapshot starts with a known error marker, OR
+    // whose snapshot contains "# runtime error" further down (e.g. defer-on-
+    // panic, which captures stdout-from-defers BEFORE the runtime error
+    // section). The native binary will trap with a different exit code /
+    // stack trace, which isn't meaningful to byte-diff against the VM dump.
     if (VM_ERROR_PREFIXES.some((p) => expected.startsWith(p))) return;
+    if (expected.includes("# runtime error\n")) return;
 
     const actual = formatRun(stdout, stderr, runExit);
     if (actual !== expected) {

@@ -45,6 +45,52 @@ extern char** environ;
 __attribute__((weak)) const vader_vtable_t* const vader_vtable_table[1] = { NULL };
 __attribute__((weak)) const size_t                vader_vtable_count    = 0;
 
+/* ----------------------------------------------------------------- defer
+ *
+ * Global LIFO of pending `defer` closures. The C-emit appends to it via
+ * `vader_defer_push` at every `defer X` site, then drains the last N
+ * entries via `vader_defer_pop_exec` at each normal exit (return /
+ * break / continue / block fall-through).
+ *
+ * GC roots — every entry's `payload.obj` is a `vader_fn_t*` whose env
+ * pointer captures heap-promoted cells. The GC's frame-walking scan
+ * also walks the defer stack so captures stay live between push and
+ * exec.
+ *
+ * Panic-unwind status : the VM targets (TS + Vader self-host) drain the
+ * defer stack when an op traps, before propagating the panic. The C
+ * target does NOT — `vader_trap` exits the process directly without
+ * draining. Closing that gap needs setjmp at fn entry + longjmp from
+ * `vader_trap`, tracked in TODO §3.8. */
+static vader_box_t* g_defer_stack = NULL;
+static size_t       g_defer_len   = 0;
+static size_t       g_defer_cap   = 0;
+
+void vader_defer_push(vader_box_t closure) {
+    if (g_defer_len == g_defer_cap) {
+        size_t new_cap = g_defer_cap == 0 ? 16u : g_defer_cap * 2u;
+        vader_box_t* new_stack = (vader_box_t*) realloc(g_defer_stack, new_cap * sizeof(vader_box_t));
+        if (new_stack == NULL) vader_trap("vader_defer_push: realloc failed");
+        g_defer_stack = new_stack;
+        g_defer_cap   = new_cap;
+    }
+    g_defer_stack[g_defer_len++] = closure;
+}
+
+void vader_defer_pop_exec(uint32_t count) {
+    for (uint32_t i = 0; i < count; i++) {
+        if (g_defer_len == 0u) vader_trap("vader_defer_pop_exec: stack underflow");
+        vader_box_t c = g_defer_stack[--g_defer_len];
+        vader_fn_t* fn = (vader_fn_t*) c.payload.obj;
+        /* The defer thunk's lifted fn signature is `fn(env) -> void`. We
+         * cast through a function pointer with the matching ABI ;
+         * `vader_fn_erased_sig_0_t` from the per-module emit lines up
+         * here (it returns vader_box_t, but the thunk's wrapper returns
+         * a `null`-tagged box that we discard). */
+        ((vader_box_t (*)(void*)) fn->code)(fn->env);
+    }
+}
+
 /* ----------------------------------------------------------------- gc arena */
 
 #define VADER_GC_ALIGN 8u
@@ -461,6 +507,12 @@ static void vader_gc_scan_roots(void) {
         for (uint32_t i = 0; i < fr->nrefs; i++) {
             vader_gc_scan_box(fr->ptrs[i]);
         }
+    }
+    /* Defer-stack — every entry's `payload.obj` is a vader_fn_t* whose env
+     * captures heap-promoted cells. Without rooting here, a GC between
+     * defer.push and defer.pop_exec would collect the captures. */
+    for (size_t i = 0; i < g_defer_len; i++) {
+        vader_gc_scan_box(&g_defer_stack[i]);
     }
 }
 
@@ -905,6 +957,12 @@ static void vader_string_gc_collect(void) {
             vader_box_t* bp = fr->ptrs[i];
             if (bp != NULL) vader_string_mark_ptr((const void*) bp->payload.s.ptr);
         }
+    }
+
+    /* 3b. Mark via defer-stack — closures live here between push and exec ;
+     *     their envs / captured strings need to stay alive. */
+    for (size_t i = 0; i < g_defer_len; i++) {
+        vader_string_mark_ptr((const void*) g_defer_stack[i].payload.s.ptr);
     }
 
     /* 4. Mark via Cheney from-spaces — every live object's box slots, in
