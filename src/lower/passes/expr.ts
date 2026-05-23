@@ -303,7 +303,10 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
       const isRangeIndex = expr.index.kind === "RangeExpr"
         || (indexType.kind === "Struct" && indexType.symbol.name === CORE_STRUCTS.Range);
       if (isRangeIndex && exprType.kind === "Array") {
-        return lowerArraySlice(ctx, expr, exprType);
+        return lowerRangeSlice(ctx, expr, exprType, "array");
+      }
+      if (isRangeIndex && exprType.kind === "Primitive" && exprType.name === "string") {
+        return lowerRangeSlice(ctx, expr, exprType, "string");
       }
       return {
         kind: "LoweredIndex", span: expr.span, type: exprType,
@@ -789,62 +792,56 @@ export function lowerIndexTraitCall(
  *     fold `inclusive` to a const bool.
  *   - Range struct value (`let r = 0..<3 ; arr[r]`) → bind the value to a
  *     temp and read `.start` / `.end` / `.inclusive` fields. */
-function lowerArraySlice(
-  ctx: FnLowerCtx, expr: A.IndexExpr, exprType: Type & { kind: "Array" },
+function lowerRangeSlice(
+  ctx: FnLowerCtx, expr: A.IndexExpr, exprType: Type, sliceKind: "array" | "string",
 ): LoweredExpr {
   const span = expr.span;
+  const nodeKind: "LoweredArraySlice" | "LoweredStringSlice" =
+    sliceKind === "array" ? "LoweredArraySlice" : "LoweredStringSlice";
 
   // Extract `(lo, hi, inclusive)` from the index — literal RangeExpr inlines
   // the bounds directly ; a Range-typed value reads its struct fields. Bounds
   // are cast to usize since the runtime takes byte / slot indices in usize.
-  let loValue: LoweredExpr;
-  let hiValue: LoweredExpr;
-  let inclusiveLiteral: boolean | null;
-  let inclusiveValue: LoweredExpr | null = null;
   if (expr.index.kind === "RangeExpr") {
-    loValue = castToUsize(lowerExpr(ctx, expr.index.lower), span);
-    hiValue = castToUsize(lowerExpr(ctx, expr.index.upper), span);
-    inclusiveLiteral = expr.index.inclusive;
-  } else {
-    const rangeSym = freshSyntheticSymbol(ctx, "slice_r");
-    const rangeType = ctx.types.exprType(expr.index);
-    const rangeBinding: LoweredStmt = {
-      kind: "LoweredLet", span, name: rangeSym.name, symbol: rangeSym,
-      type: rangeType, value: lowerExpr(ctx, expr.index),
-    };
-    const rangeRef: LoweredExpr = { kind: "LoweredIdent", span, type: rangeType, symbol: rangeSym };
-    const boundType = rangeType.kind === "Struct" && rangeType.args.length > 0 ? rangeType.args[0]! : TY.usize;
-    loValue  = castToUsize({ kind: "LoweredFieldAccess", span, type: boundType, target: rangeRef, field: "start" }, span);
-    hiValue  = castToUsize({ kind: "LoweredFieldAccess", span, type: boundType, target: rangeRef, field: "end"   }, span);
-    inclusiveLiteral = null;
-    inclusiveValue = { kind: "LoweredFieldAccess", span, type: TY.bool, target: rangeRef, field: "inclusive" };
-    // Bind the range value first so we read its fields in the same block.
-    const sliceCall: LoweredExpr = {
-      kind: "LoweredArraySlice", span, type: exprType,
+    const loValue = castToUsize(lowerExpr(ctx, expr.index.lower), span);
+    const hiValue = castToUsize(lowerExpr(ctx, expr.index.upper), span);
+    const hi = expr.index.inclusive
+      ? {
+          kind: "LoweredBinary" as const, span, type: TY.usize, op: "add" as const,
+          left: hiValue,
+          right: { kind: "LoweredIntLit" as const, span, type: TY.usize, value: 1n },
+        }
+      : hiValue;
+    return {
+      kind: nodeKind, span, type: exprType,
       target: lowerExpr(ctx, expr.target),
       lo: loValue,
-      hi: adjustHiForInclusive(hiValue, inclusiveValue, span),
-    };
-    return {
-      kind: "LoweredBlock", span, type: exprType,
-      stmts: [rangeBinding], trailing: sliceCall,
+      hi,
     };
   }
 
-  // RangeExpr literal path. `..<` keeps `hi` as-is, `..=` adds 1 so the
-  // runtime's half-open `[lo, hi)` covers the inclusive end.
-  const hi = inclusiveLiteral === true
-    ? {
-        kind: "LoweredBinary" as const, span, type: TY.usize, op: "add" as const,
-        left: hiValue,
-        right: { kind: "LoweredIntLit" as const, span, type: TY.usize, value: 1n },
-      }
-    : hiValue;
-  return {
-    kind: "LoweredArraySlice", span, type: exprType,
+  // Range-typed value path : bind it to a temp so `.start` / `.end` /
+  // `.inclusive` field reads share one evaluation.
+  const rangeSym = freshSyntheticSymbol(ctx, "slice_r");
+  const rangeType = ctx.types.exprType(expr.index);
+  const rangeBinding: LoweredStmt = {
+    kind: "LoweredLet", span, name: rangeSym.name, symbol: rangeSym,
+    type: rangeType, value: lowerExpr(ctx, expr.index),
+  };
+  const rangeRef: LoweredExpr = { kind: "LoweredIdent", span, type: rangeType, symbol: rangeSym };
+  const boundType = rangeType.kind === "Struct" && rangeType.args.length > 0 ? rangeType.args[0]! : TY.usize;
+  const loValue  = castToUsize({ kind: "LoweredFieldAccess", span, type: boundType, target: rangeRef, field: "start" }, span);
+  const hiValue  = castToUsize({ kind: "LoweredFieldAccess", span, type: boundType, target: rangeRef, field: "end"   }, span);
+  const inclusiveValue: LoweredExpr = { kind: "LoweredFieldAccess", span, type: TY.bool, target: rangeRef, field: "inclusive" };
+  const sliceCall: LoweredExpr = {
+    kind: nodeKind, span, type: exprType,
     target: lowerExpr(ctx, expr.target),
     lo: loValue,
-    hi,
+    hi: adjustHiForInclusive(hiValue, inclusiveValue, span),
+  };
+  return {
+    kind: "LoweredBlock", span, type: exprType,
+    stmts: [rangeBinding], trailing: sliceCall,
   };
 }
 

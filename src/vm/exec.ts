@@ -278,6 +278,21 @@ function step(ctx: RunCtx, f: Frame, op: Op, opts: RunOptions): Value | undefine
       f.stack.push(makeStr(l + r));
       f.ip++; return;
     }
+    case "string.slice_codepoints": {
+      // `lo` and `hi` are codepoint indices. JS strings index by UTF-16 code
+      // units, not codepoints — use Array.from to materialize the codepoint
+      // sequence, then join the requested range. Bounds clamp to the
+      // codepoint count ; out-of-order ranges produce the empty string.
+      const hi = asIndex(f.stack.pop()!);
+      const lo = asIndex(f.stack.pop()!);
+      const s = asString(f.stack.pop()!);
+      const cps = Array.from(s);
+      const len = cps.length;
+      const loClamped = lo > len ? len : lo;
+      const hiClamped = hi < loClamped ? loClamped : (hi > len ? len : hi);
+      f.stack.push(makeStr(cps.slice(loClamped, hiClamped).join("")));
+      f.ip++; return;
+    }
     case "string.eq":  pushBinop(f, asString, (l, r) => l === r); return;
     case "string.ne":  pushBinop(f, asString, (l, r) => l !== r); return;
     case "char.eq":    pushBinop(f, asChar, (l, r) => l === r); return;

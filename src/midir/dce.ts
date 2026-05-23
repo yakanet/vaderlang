@@ -328,6 +328,7 @@ function withDst(ins: Instruction, dst: LocalId): Instruction {
     case "ArrayGet":    return { ...ins, dst };
     case "ArrayLen":    return { ...ins, dst };
     case "ArraySlice":  return { ...ins, dst };
+    case "StringSlice": return { ...ins, dst };
     case "StructNew":   return { ...ins, dst };
     case "ArrayNew":    return { ...ins, dst };
     case "TypeCheck":   return { ...ins, dst };
@@ -482,6 +483,7 @@ function remapInstr(ins: Instruction, m: readonly LocalId[]): Instruction {
     case "ArrayLen":      return { ...ins, dst: r(m, ins.dst), target: r(m, ins.target) };
     case "ArrayPush":     return { ...ins, target: r(m, ins.target), value: r(m, ins.value) };
     case "ArraySlice":    return { ...ins, dst: r(m, ins.dst), target: r(m, ins.target), lo: r(m, ins.lo), hi: r(m, ins.hi) };
+    case "StringSlice":   return { ...ins, dst: r(m, ins.dst), target: r(m, ins.target), lo: r(m, ins.lo), hi: r(m, ins.hi) };
     case "StructNew":     return { ...ins, dst: r(m, ins.dst), fields: ins.fields.map((f) => r(m, f)) };
     case "ArrayNew":      return { ...ins, dst: r(m, ins.dst), elements: ins.elements.map((e) => r(m, e)) };
     case "DataConst":     return { ...ins, dst: r(m, ins.dst) };

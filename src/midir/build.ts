@@ -460,6 +460,7 @@ function buildExpr(fn: FnCtx, e: L.LoweredExpr): LocalId | null {
     case "LoweredArrayLen":      return buildArrayLen(fn, e);
     case "LoweredArrayPush":     return buildArrayPush(fn, e);
     case "LoweredArraySlice":    return buildArraySlice(fn, e);
+    case "LoweredStringSlice":   return buildStringSlice(fn, e);
     case "LoweredCellNew":       return buildCellNew(fn, e);
     case "LoweredCellGet":       return buildCellGet(fn, e);
     case "LoweredMakeClosure":   return buildMakeClosure(fn, e);
@@ -793,6 +794,16 @@ function buildArraySlice(fn: FnCtx, e: L.LoweredArraySlice): LocalId | null {
   if (target === null || lo === null || hi === null) return null;
   const dst = freshTmp(fn, "slice", e.type);
   emit(fn, { kind: "ArraySlice", dst, type: e.type, target, lo, hi, span: e.span });
+  return dst;
+}
+
+function buildStringSlice(fn: FnCtx, e: L.LoweredStringSlice): LocalId | null {
+  const target = buildExpr(fn, e.target);
+  const lo = buildExpr(fn, e.lo);
+  const hi = buildExpr(fn, e.hi);
+  if (target === null || lo === null || hi === null) return null;
+  const dst = freshTmp(fn, "cp_slice", e.type);
+  emit(fn, { kind: "StringSlice", dst, type: e.type, target, lo, hi, span: e.span });
   return dst;
 }
 

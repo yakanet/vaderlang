@@ -1,0 +1,105 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 primitive string
+type 3 primitive void
+string 0 "héllo"
+string 1 "hello"
+import 0 println std_io$println (string) -> void
+
+fn 0 snippet$main () -> i32
+  local s string
+  local $cast_3 usize
+  local $cast_5 usize
+  string.const 0
+  local.set 0
+  i32.const 0
+  i32.to_usize
+  local.set 1
+  i32.const 2
+  i32.to_usize
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  string.slice_codepoints
+  call 1
+  i32.const 1
+  i32.to_usize
+  local.set 1
+  i32.const 3
+  i32.to_usize
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  string.slice_codepoints
+  call 1
+  i32.const 0
+  i32.to_usize
+  local.set 1
+  i32.const 5
+  i32.to_usize
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  string.slice_codepoints
+  call 1
+  i32.const 2
+  i32.to_usize
+  local.set 1
+  i32.const 4
+  i32.to_usize
+  local.set 2
+  local.get 2
+  i64.const 1
+  i64.to_usize
+  usize.add
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  string.slice_codepoints
+  call 1
+  i32.const 0
+  i32.to_usize
+  local.set 1
+  i32.const 99
+  i32.to_usize
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  string.slice_codepoints
+  call 1
+  i32.const 99
+  i32.to_usize
+  local.set 1
+  i32.const 99
+  i32.to_usize
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  string.slice_codepoints
+  call 1
+  i32.const 1
+  i32.to_usize
+  local.set 1
+  i32.const 4
+  i32.to_usize
+  local.set 2
+  string.const 1
+  local.get 1
+  local.get 2
+  string.slice_codepoints
+  call 1
+  return.lit i32.const 0
+end
+
+fn 1 std_io$println$vt (string) -> void
+  local.get 0
+  call.import 0
+  return
+end

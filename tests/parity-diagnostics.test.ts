@@ -132,6 +132,11 @@ const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   "lower:interp_string_comptime",
   // lower-divergence (Into-coercion path missing T3001 emit-site)
   "lower:for_in_into_iter",
+  // A7 Phase 2 — `string[r]` codepoint slice : TS typecheck accepts
+  // it, Vader self-host typecheck still rejects (port pending).
+  "typecheck:string_codepoint_slice",
+  "comptime:string_codepoint_slice",
+  "lower:string_codepoint_slice",
   // p1014_unknown_decorator_placement : Vader's resolver body-walker
   // emits R2006 on the implicit ident a misplaced @decorator wraps
   // ; TS suppresses the cascade past P1014. Tracked alongside the

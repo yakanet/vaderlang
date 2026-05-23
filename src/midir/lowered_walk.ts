@@ -155,6 +155,7 @@ function walkExpr(e: LoweredExpr, ctx: WalkCtx): void {
       walkExpr(e.value, ctx);
       return;
     case "LoweredArraySlice":
+    case "LoweredStringSlice":
       walkExpr(e.target, ctx);
       walkExpr(e.lo, ctx);
       walkExpr(e.hi, ctx);

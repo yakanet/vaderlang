@@ -101,7 +101,7 @@ function buildOpKinds(): readonly string[] {
   out.push("struct.new", "struct.new_stack", "struct.get", "struct.set", "struct.set_stack", "local.field");
   out.push("array.new", "array.get", "array.set", "array.len", "array.push", "array.slice");
   out.push("data.const");
-  out.push("string.concat");
+  out.push("string.concat", "string.slice_codepoints");
   out.push("type_check");
   out.push("type.const");
   out.push("defer.push", "defer.pop_exec");

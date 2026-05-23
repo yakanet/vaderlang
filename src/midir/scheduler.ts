@@ -105,6 +105,7 @@ function firstStackOperand(ins: Instruction): LocalId | null {
     case "ArrayLen":     return ins.target;
     case "ArrayPush":    return ins.target;
     case "ArraySlice":   return ins.target;
+    case "StringSlice":  return ins.target;
     case "StructNew":    return ins.fields.length > 0 ? ins.fields[0]! : null;
     case "ArrayNew":     return ins.elements.length > 0 ? ins.elements[0]! : null;
     case "TypeCheck":    return ins.value;

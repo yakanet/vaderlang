@@ -143,6 +143,14 @@ export type Op =
   // -- String arithmetic (`string.eq`/`string.ne` live in CmpOpKind above) --
   | { readonly kind: "string.concat" }
 
+  // -- String codepoint slicing : pops `s`, `lo`, `hi` (in stack order)
+  //    and pushes a fresh `string` view whose byte boundaries correspond
+  //    to codepoint indices `[lo, hi)` of `s`. Runtime walks UTF-8 to
+  //    locate the boundaries ; out-of-range bounds are clamped to the
+  //    string's codepoint count. Zero-copy : the result aliases `s`'s
+  //    UTF-8 buffer.
+  | { readonly kind: "string.slice_codepoints" }
+
   // -- Type tag check (returns bool; for `is T` patterns) ----------------
   | { readonly kind: "type_check"; readonly typeIndex: number }
 

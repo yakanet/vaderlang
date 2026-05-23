@@ -419,6 +419,12 @@ function emitOp(s: FnState, ip: number, op: Op): void {
     case "bool.not":   return pushUnop(s, "bool", "!", "bool");
 
     case "string.concat": return pushFnCall2(s, "string", "vader_string_concat");
+    case "string.slice_codepoints": {
+      const hi = pop(s); const lo = pop(s); const str = pop(s);
+      const tmp = newTmp(s, "string");
+      line(s, `${tmp} = vader_string_slice_codepoints(${str.name}, ${lo.name}, ${hi.name});`);
+      return;
+    }
     case "string.eq":  return pushFnCall2(s, "bool", "vader_string_eq");
     case "string.ne": {
       const r = pop(s); const l = pop(s);

@@ -209,6 +209,7 @@ export type LoweredExpr =
   | LoweredArrayLen
   | LoweredArrayPush
   | LoweredArraySlice
+  | LoweredStringSlice
   | LoweredCellNew
   | LoweredCellGet
   | LoweredMakeClosure
@@ -404,6 +405,20 @@ export interface LoweredArrayPush {
  *  lowerer emits this for `arr[r]` so slicing doesn't copy. */
 export interface LoweredArraySlice {
   readonly kind: "LoweredArraySlice";
+  readonly span: Span;
+  readonly type: Type;
+  readonly target: LoweredExpr;
+  readonly lo: LoweredExpr;
+  readonly hi: LoweredExpr;
+}
+
+/** `string[lo..hi)` codepoint-range slice. `lo` and `hi` are codepoint
+ *  indices ; the runtime walks UTF-8 to find the matching byte
+ *  boundaries and produces a zero-copy `string` view aliasing the
+ *  parent's buffer. Lowered for `s[r]` when `s : string` and
+ *  `r : Range[<int>]`. */
+export interface LoweredStringSlice {
+  readonly kind: "LoweredStringSlice";
   readonly span: Span;
   readonly type: Type;
   readonly target: LoweredExpr;

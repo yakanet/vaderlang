@@ -384,6 +384,7 @@ function rewriteExpr(e: LoweredExpr, ctx: RewriteCtx): LoweredExpr {
         value: rewriteExpr(e.value, ctx),
       };
     case "LoweredArraySlice":
+    case "LoweredStringSlice":
       return {
         ...e,
         target: rewriteExpr(e.target, ctx),

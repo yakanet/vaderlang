@@ -386,6 +386,7 @@ function emitInstr(ctx: FnEmitCfg, ins: Instruction): void {
     case "ArrayLen":        return emitArrayLen(ctx, ins);
     case "ArrayPush":       return emitArrayPush(ctx, ins);
     case "ArraySlice":      return emitArraySlice(ctx, ins);
+    case "StringSlice":     return emitStringSlice(ctx, ins);
     case "StructNew":       return emitStructNew(ctx, ins);
     case "ArrayNew":        return emitArrayNew(ctx, ins);
     case "DataConst":       return emitDataConst(ctx, ins);
@@ -643,6 +644,14 @@ function emitArraySlice(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "Array
   emitGet(ctx, ins.lo, ins.span);
   emitGet(ctx, ins.hi, ins.span);
   pushOp(ctx.emit, { kind: "array.slice", typeIndex }, ins.span);
+  emitInstrResult(ctx, ins, ins.dst, ins.span);
+}
+
+function emitStringSlice(ctx: FnEmitCfg, ins: Extract<Instruction, { kind: "StringSlice" }>): void {
+  emitFirstOperand(ctx, ins, ins.target, ins.span);
+  emitGet(ctx, ins.lo, ins.span);
+  emitGet(ctx, ins.hi, ins.span);
+  pushOp(ctx.emit, { kind: "string.slice_codepoints" }, ins.span);
   emitInstrResult(ctx, ins, ins.dst, ins.span);
 }
 

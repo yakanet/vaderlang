@@ -377,7 +377,7 @@ function inferIndex(
   // of Range type held in a local works too (`s :: 0..<3 ; arr[s]`). Any
   // integer-bounded range is accepted ; the lowerer casts to `usize` at
   // the use site since array indexing is usize-typed at the runtime level.
-  if (target.kind === "Array" && isRangeType(indexTy, t)) {
+  if (isRangeType(indexTy, t) && (target.kind === "Array" || (target.kind === "Primitive" && target.name === "string"))) {
     const bound = indexTy.args[0];
     if (bound === undefined || !isInteger(defaultIfFree(bound))) {
       err(diags, "T3001", expr.index.span,

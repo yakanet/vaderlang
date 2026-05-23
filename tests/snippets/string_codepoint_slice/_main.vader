@@ -1,0 +1,28 @@
+// A7 Phase 2 — `string[r]` slices by codepoint indices, not bytes.
+// The runtime walks UTF-8 to find the byte boundaries matching the
+// codepoint indices, then returns a zero-copy `string` view. Slicing
+// at codepoint boundaries can never produce malformed UTF-8.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    // "héllo" has 5 codepoints but 6 UTF-8 bytes (é is 2 bytes).
+    s :: "héllo"
+
+    println(s[0..<2])    // "hé"  (codepoints 0..2)
+    println(s[1..<3])    // "él"  (codepoints 1..3)
+    println(s[0..<5])    // "héllo"
+    println(s[2..=4])    // "llo"
+
+    // Out-of-range clamps to the codepoint count, not the byte count.
+    println(s[0..<99])   // "héllo"
+    println(s[99..<99])  // ""
+
+    // ASCII-only string : codepoint and byte indexing coincide.
+    a :: "hello"
+    println(a[1..<4])    // "ell"
+
+    return 0
+}

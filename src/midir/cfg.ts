@@ -150,6 +150,7 @@ export type Instruction =
   | InstrArrayLen
   | InstrArrayPush
   | InstrArraySlice
+  | InstrStringSlice
   | InstrStructNew
   | InstrArrayNew
   | InstrDataConst
@@ -290,6 +291,18 @@ export interface InstrArraySlice extends InstrBase {
   readonly dst: LocalId;
   /** BcType index of the result — the slice view inherits the parent
    *  array's element type, mangled the same way. */
+  readonly type: Type;
+  readonly target: LocalId;
+  readonly lo: LocalId;
+  readonly hi: LocalId;
+}
+
+/** `string[lo..hi)` codepoint-range view. `lo` and `hi` are codepoint
+ *  indices ; the bytecode `string.slice_codepoints` op walks UTF-8 to
+ *  find the byte boundaries. Result aliases the parent's buffer. */
+export interface InstrStringSlice extends InstrBase {
+  readonly kind: "StringSlice";
+  readonly dst: LocalId;
   readonly type: Type;
   readonly target: LocalId;
   readonly lo: LocalId;

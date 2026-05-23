@@ -1,0 +1,57 @@
+# Typecheck
+
+## tests/snippets/string_codepoint_slice
+  FnDecl         main                 :: fn() -> i32
+  expr 12:10    StringLitExpr  :: string
+  expr 14:13    IdentExpr      :: string
+  expr 14:13    IndexExpr      :: char
+  expr 14:15    RangeExpr      :: Range(i32)
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(string) -> void
+  expr 15:13    IdentExpr      :: string
+  expr 15:13    IndexExpr      :: char
+  expr 15:15    RangeExpr      :: Range(i32)
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 16:13    IdentExpr      :: string
+  expr 16:13    IndexExpr      :: char
+  expr 16:15    RangeExpr      :: Range(i32)
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(string) -> void
+  expr 17:13    IdentExpr      :: string
+  expr 17:13    IndexExpr      :: char
+  expr 17:15    RangeExpr      :: Range(i32)
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(string) -> void
+  expr 20:13    IdentExpr      :: string
+  expr 20:13    IndexExpr      :: char
+  expr 20:15    RangeExpr      :: Range(i32)
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(string) -> void
+  expr 21:13    IdentExpr      :: string
+  expr 21:13    IndexExpr      :: char
+  expr 21:15    RangeExpr      :: Range(i32)
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 24:10    StringLitExpr  :: string
+  expr 25:13    IdentExpr      :: string
+  expr 25:13    IndexExpr      :: char
+  expr 25:15    RangeExpr      :: Range(i32)
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(string) -> void
+
+# Diagnostics
+[14:13] error[T3001] type mismatch: expected string, got char
+[14:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
+[15:13] error[T3001] type mismatch: expected string, got char
+[15:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
+[16:13] error[T3001] type mismatch: expected string, got char
+[16:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
+[17:13] error[T3001] type mismatch: expected string, got char
+[17:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
+[20:13] error[T3001] type mismatch: expected string, got char
+[20:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
+[21:13] error[T3001] type mismatch: expected string, got char
+[21:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
+[25:13] error[T3001] type mismatch: expected string, got char
+[25:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
