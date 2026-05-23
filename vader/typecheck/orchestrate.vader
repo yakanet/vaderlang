@@ -221,7 +221,7 @@ synth_resolved :: fn() -> ResolvedModule {
     return ResolvedModule {
         .path = "",
         .symbols = [],
-        .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .idents = MutableMap(i64, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
         .fn_overloads = MutableMap(string, Symbol[]) { .buckets = [], .size = 0 },
         .core_symbols = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
@@ -520,7 +520,7 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
     typed.expr_kinds = MutableMap(usize, string) { .buckets = [], .size = 0 }
     typed.node_spans = MutableMap(usize, Span) { .buckets = [], .size = 0 }
     typed.ufcs_receiver_types = MutableMap(usize, Type) { .buckets = [], .size = 0 }
-    typed.local_types = MutableMap(string, Type) { .buckets = [], .size = 0 }
+    typed.local_types = MutableMap(i64, Type) { .buckets = [], .size = 0 }
     typed.narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 }
 }
 

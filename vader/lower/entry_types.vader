@@ -120,14 +120,14 @@ export const_decl_type :: fn(self: EntryTypes, decl: ConstDecl) -> Type {
     return apply_or_unresolved(self, self.typed.decl_types[span_key(decl.name_span)])
 }
 
-/// Span-key mirror of `vader/resolver/scope::span_key` — re-exposed on
-/// the lower layer so passes can index span-keyed side-tables without
-/// importing the scope module. Format is `"line:column"` of the
-/// span's start.
+/// Span-key mirror of `vader/resolver/scope::span_key`. Vader has no
+/// re-export syntax, so the impl is duplicated verbatim ; both must
+/// produce the same packed `(line << 32) | column` `i64` for side-tables
+/// to stay coherent across the resolver/lower boundary.
 /// @param span  any AST span.
-/// @return      the `"line:column"` lookup key.
-export span_key :: fn(span: Span) -> string {
-    return "${span.start.line}:${span.start.column}"
+/// @return      the packed `(line << 32) | column` lookup key.
+export span_key :: fn(span: Span) -> i64 {
+    return (i64(span.start.line) << i64(32)) | i64(span.start.column)
 }
 
 // ---- tests ----------------------------------------------------------------

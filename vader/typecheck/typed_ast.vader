@@ -16,9 +16,10 @@ import "vader/resolver" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type }
 
-/// Per-module typechecker output. Every side-table is keyed by a span
-/// string ("line:column") obtained from `scope.span_key(node.span)`.
-/// Consumers walk the resolved AST and look up types by span.
+/// Per-module typechecker output. Every span-keyed side-table uses the
+/// `i64` key produced by `scope.span_key(node.span)` — packed
+/// `(line << 32) | column`. Consumers walk the resolved AST and look
+/// up types by span.
 export TypedProgram :: struct {
     /// The upstream resolver's output for this module.
     resolved: ResolvedModule
@@ -32,22 +33,24 @@ export TypedProgram :: struct {
     expr_types: MutableMap(usize, Type)
 
     /// Type of every `:=` / `::` local binding, keyed by binding span
-    /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt).
-    local_types: MutableMap(string, Type)
+    /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt)
+    /// via `span_key` (packed `(line << 32) | column` `i64`).
+    local_types: MutableMap(i64, Type)
 
     /// Type of every top-level decl (FnDecl, StructDecl, ConstDecl…).
-    /// Keyed by the decl's `name_span`. `ImplDecl` and `AssertDecl`
-    /// don't introduce a name and are absent here.
-    decl_types: MutableMap(string, Type)
+    /// Keyed by the decl's `name_span` via `span_key`. `ImplDecl` and
+    /// `AssertDecl` don't introduce a name and are absent here.
+    decl_types: MutableMap(i64, Type)
 
-    /// Type of every fn / lambda parameter, keyed by `FnParam.span`.
-    param_types: MutableMap(string, Type)
+    /// Type of every fn / lambda parameter, keyed by `FnParam.span`
+    /// via `span_key`.
+    param_types: MutableMap(i64, Type)
 
     /// Type of every type-position expression — `let x: T = …` annotations,
     /// fn signatures, struct field types, etc. Keyed by the expression's
-    /// own span so downstream passes can reuse what `type_from_expr`
-    /// already computed.
-    type_expr_types: MutableMap(string, Type)
+    /// own span via `span_key` so downstream passes can reuse what
+    /// `type_from_expr` already computed.
+    type_expr_types: MutableMap(i64, Type)
 
     /// `StructDecl` keyed by the symbol's id. Populated by `decl.vader`
     /// while it mints struct types ; consumed by `field.vader` so it
@@ -206,10 +209,10 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
     return TypedProgram {
         .resolved        = resolved,
         .expr_types      = MutableMap(usize, Type) { .buckets = [], .size = 0 },
-        .local_types     = MutableMap(string, Type) { .buckets = [], .size = 0 },
-        .decl_types      = MutableMap(string, Type) { .buckets = [], .size = 0 },
-        .param_types     = MutableMap(string, Type) { .buckets = [], .size = 0 },
-        .type_expr_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
+        .local_types     = MutableMap(i64, Type) { .buckets = [], .size = 0 },
+        .decl_types      = MutableMap(i64, Type) { .buckets = [], .size = 0 },
+        .param_types     = MutableMap(i64, Type) { .buckets = [], .size = 0 },
+        .type_expr_types = MutableMap(i64, Type) { .buckets = [], .size = 0 },
         .struct_decls    = MutableMap(i32, StructDecl) { .buckets = [], .size = 0 },
         .trait_decls     = MutableMap(i32, TraitDecl) { .buckets = [], .size = 0 },
         .fn_decls        = MutableMap(i32, FnDecl) { .buckets = [], .size = 0 },
@@ -250,7 +253,7 @@ export empty_typed_program :: fn() -> TypedProgram {
     rm :: ResolvedModule {
         .path = "test",
         .symbols = [],
-        .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .idents = MutableMap(i64, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
         .fn_overloads = MutableMap(string, Symbol[]) { .buckets = [], .size = 0 },
         .core_symbols = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
@@ -274,7 +277,7 @@ fresh_module :: fn() -> ResolvedModule {
     return ResolvedModule {
         .path = "test",
         .symbols = [],
-        .idents = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .idents = MutableMap(i64, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
         .fn_overloads = MutableMap(string, Symbol[]) { .buckets = [], .size = 0 },
         .core_symbols = MutableMap(string, Symbol) { .buckets = [], .size = 0 },

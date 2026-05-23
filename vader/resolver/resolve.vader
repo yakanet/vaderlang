@@ -26,12 +26,13 @@ import "vader/diagnostics" { Diagnostic }
 /// One resolver output entry per source module.
 ///
 /// `symbols` is sorted by name so the dump is stable regardless of decl
-/// order. `idents` is span-keyed (`line:column`) so body-walk consumers
-/// can index per-`IdentExpr` lookups without re-walking the AST.
+/// order. `idents` is span-keyed via `span_key` (packed `(line << 32) |
+/// column` `i64`) so body-walk consumers can index per-`IdentExpr`
+/// lookups without re-walking the AST.
 export ResolvedModule :: struct {
     path:    string
     symbols: Symbol[]
-    idents:  MutableMap(string, Symbol)
+    idents:  MutableMap(i64, Symbol)
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
     /// Consumed by stmt.vader::check_assign to surface T3041.
     immutable_locals: MutableMap(i32, bool)

@@ -70,11 +70,13 @@ export lookup :: fn(self: Scope, name: string) -> Symbol | null {
     return null
 }
 
-/// Stringify a span's start point as `line:column`. Used as the key for
-/// per-`IdentExpr` side-tables — spans are file-local and unique per
-/// node, so this is collision-free within one resolved file.
-export span_key :: fn(s: Span) -> string {
-    return "${s.start.line}:${s.start.column}"
+/// Pack a span's start `(line, column)` into a single `i64` key. Used
+/// as the key for per-`IdentExpr` side-tables — spans are file-local
+/// and unique per node, so this is collision-free within one resolved
+/// file. Packing into i64 (vs the legacy `"line:column"` string) avoids
+/// per-lookup string allocation in hot side-table accesses.
+export span_key :: fn(s: Span) -> i64 {
+    return (i64(s.start.line) << i64(32)) | i64(s.start.column)
 }
 
 /// Stringify a span's start AND end as `lineS:colS-lineE:colE`. Used
@@ -144,10 +146,10 @@ test_scope_lookup_misses_return_null :: fn() -> void {
 }
 
 @test
-test_span_key_formats_line_column :: fn() -> void {
+test_span_key_packs_line_column :: fn() -> void {
     s :: Span {
         .start = Position { .file = "t", .offset = 0, .line = 3, .column = 12 },
         .end   = Position { .file = "t", .offset = 1, .line = 3, .column = 13 },
     }
-    assert_eq(span_key(s), "3:12")
+    assert_eq(span_key(s), (i64(3) << i64(32)) | i64(12))
 }

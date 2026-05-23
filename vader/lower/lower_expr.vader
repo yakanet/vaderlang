@@ -2157,10 +2157,10 @@ export lookup_local_symbol :: fn(
 // the two passes of the previous naive walk.
 ensure_local_symbol_index :: fn(
     project_ctx: LowerProjectCtx, resolved: ResolvedModule,
-) -> MutableMap(string, Symbol) {
+) -> MutableMap(i64, Symbol) {
     cached :: project_ctx.local_symbol_indices[resolved.path]
     if !(cached is null) { return cached }
-    index :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    index :: MutableMap(i64, Symbol) { .buckets = [], .size = 0 }
     // `idents` first — every referenced binding's defined_at lands here.
     for symbol in resolved.idents.values() {
         match symbol.defined_at {
