@@ -1926,23 +1926,39 @@ kind_string_of_type :: fn(t: Type) -> string {
 export lower_block :: fn(
     ctx: FnLowerCtx, block: BlockExpr, is_fn_root: bool, is_loop_body: bool,
 ) -> LoweredBlock {
+    entry_depth :: ctx.blocks.len()
     ctx.blocks.push(new_block_ctx(is_fn_root, is_loop_body))
     stmts: LoweredStmt[] = []
     for stmt in block.stmts {
-        // `lower_stmt_into` pushes 0..N stmts ; tuple-destructure
-        // `let [a, b] := ...` expands to one synthetic `__tup_N` let
-        // + per-leaf `let a = __tup_N._0` etc.
         lower_stmt_into(ctx, stmt, stmts)
     }
     trailing :: lower_trailing(ctx, block.trailing)
     block_type :: trailing_type(trailing)
-    // No frame pop : nothing reads `ctx.blocks` (verified by grep —
-    // only push + len()-for-empty-guard sites exist). The naive rebuild
-    // was O(depth) per exit + a fresh array alloc, which showed up on
-    // the typecheck-port profile as a steady stream of GC pressure
-    // from inside lower_block. Phase 5's defer pass will reintroduce
-    // a proper depth-cursor when block-exit edges start consuming
-    // frames.
+    // Emit `defer.pop_exec N` for any defers pushed in this block.
+    // Mirrors the block-fall-through defer drain in
+    // `src/lower/passes/block.ts:188-202`. The push/pop_exec sits
+    // BEFORE the trailing so a value-yielding block still returns
+    // its trailing result after the defers fire.
+    defer_count :: ctx.blocks[entry_depth].defers.len()
+    // Skip the block-fall-through pop_exec when control flow has
+    // already exited (return / break / continue). The `drain_*`
+    // helpers at those sites already emitted the proper drain count,
+    // so a trailing pop_exec here would be dead code.
+    last_diverges :: stmts.len() > usize(0) && stmt_diverges(stmts[stmts.len() - usize(1)])
+    if defer_count > usize(0) && !last_diverges {
+        stmts.push(LoweredDeferPopExec {
+            .span = block.span, .count = i32(defer_count),
+        })
+    }
+    // Pop the BlockCtx — mirror TS by maintaining the stack depth
+    // invariant so nested blocks see only their own defers.
+    new_blocks: BlockCtx[] = []
+    i := usize(0)
+    for i < entry_depth {
+        new_blocks.push(ctx.blocks[i])
+        i = i + 1
+    }
+    ctx.blocks = new_blocks
     return LoweredBlock {
         .span = block.span, .type = block_type, .stmts = stmts, .trailing = trailing,
     }
@@ -1972,18 +1988,38 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
         is ExprStmt     as expr_stmt     -> {
             out.push(LoweredExprStmt { .span = expr_stmt.span, .expr = lower_expr(ctx, expr_stmt.expr) })
         }
-        is ReturnStmt   as return_stmt   -> { out.push(lower_return(ctx, return_stmt)) }
+        is ReturnStmt   as return_stmt   -> {
+            // Drain every pending defer in the enclosing scopes BEFORE
+            // the actual return op. Mirrors TS `lower-stmt` block-exit
+            // defer replay. Count = sum of `defers` across every open
+            // BlockCtx (the innermost block back up to the fn root).
+            drain_all_defers(ctx, return_stmt.span, out)
+            out.push(lower_return(ctx, return_stmt))
+        }
         is ForStmt      as for_stmt      -> { out.push(lower_for(ctx, for_stmt)) }
         is BreakStmt    as break_stmt    -> {
+            // Drain back to the enclosing loop boundary.
+            drain_defers_to_loop(ctx, break_stmt.span, out)
             out.push(LoweredBreak { .span = break_stmt.span, .label = break_stmt.label })
         }
         is ContinueStmt as continue_stmt -> {
+            drain_defers_to_loop(ctx, continue_stmt.span, out)
             out.push(LoweredContinue { .span = continue_stmt.span, .label = continue_stmt.label })
         }
         is DeferStmt    as defer_stmt    -> {
-            // Defer replay (reverse on every block-exit edge) is Phase 5
-            // territory. Drop the stmt entirely until the dedicated
-            // pass surfaces ; the dump stays predictable.
+            // Lift to a synthetic `__defer_N` fn + emit
+            // `LoweredDeferPush { LoweredMakeClosure }` at the source
+            // site. Block-exit `defer.pop_exec N` emission is handled
+            // by `lower_block` (counts defers via the BlockCtx).
+            push :: lower_defer(ctx, defer_stmt, lower_block)
+            out.push(push)
+            // Track the defer count on the innermost open block ctx
+            // so the matching fall-through / break / continue / return
+            // can drain it with `defer.pop_exec N`.
+            n_blocks :: ctx.blocks.len()
+            if n_blocks > usize(0) {
+                ctx.blocks[n_blocks - usize(1)].defers.push(defer_stmt)
+            }
         }
     }
 }
@@ -2411,6 +2447,44 @@ lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
             }
             return LoweredReturn { .span = return_stmt.span, .value = final }
         }
+    }
+}
+
+// True when `s` will exit its enclosing block (control flow never
+// reaches a subsequent stmt). Used to suppress block-fall-through
+// emissions after a divergent stmt (return / break / continue).
+stmt_diverges :: fn(s: LoweredStmt) -> bool {
+    if s is LoweredReturn   { return true }
+    if s is LoweredBreak    { return true }
+    if s is LoweredContinue { return true }
+    return false
+}
+
+// Sum the `defers` count across every open BlockCtx and emit a
+// single `defer.pop_exec N` ; matches TS's "drain everything to fn
+// root before return" semantics.
+drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]) -> void {
+    total: i32 = 0
+    for b in ctx.blocks { total += i32(b.defers.len()) }
+    if total > 0 {
+        out.push(LoweredDeferPopExec { .span = span, .count = total })
+    }
+}
+
+// Sum defers from the innermost block up to (but not including) the
+// nearest enclosing loop body — break/continue exit only the loop
+// scope, not the fn.
+drain_defers_to_loop :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]) -> void {
+    total: i32 = 0
+    i := i64(ctx.blocks.len()) - i64(1)
+    for i >= 0 {
+        b :: ctx.blocks[usize(i)]
+        total += i32(b.defers.len())
+        if b.is_loop_body { break }
+        i -= 1
+    }
+    if total > 0 {
+        out.push(LoweredDeferPopExec { .span = span, .count = total })
     }
 }
 

@@ -23,6 +23,7 @@ import "vader/types" { Type }
 import "vader/resolver/symbol" { Symbol }
 import "vader/lower" {
     LoweredStmt, LoweredLet, LoweredAssign, LoweredCellSet,
+    LoweredDeferPush, LoweredDeferPopExec,
     LoweredExprStmt, LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
     LoweredExpr, LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
     LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
@@ -81,6 +82,14 @@ emit_stmt :: fn(stmt: LoweredStmt, state: FnEmitState, ctx: EmitterCtx) -> void 
         is LoweredBreak as break_stmt       -> emit_break(break_stmt, state)
         is LoweredContinue as continue_stmt -> emit_continue(continue_stmt, state)
         is LoweredCellSet as cell_set       -> emit_cell_set(cell_set, state, ctx)
+        is LoweredDeferPush as _dp -> {
+            // Defer runtime support (defer.push / defer.pop_exec ops
+            // in the bytecode + VM defer-stack) is wired but this
+            // emit path doesn't synthesise the closure yet — stub.
+        }
+        is LoweredDeferPopExec as _dpe -> {
+            // Same — runtime support exists ; emit not yet wired.
+        }
     }
 }
 

@@ -167,6 +167,13 @@ emit_stmt :: fn(lines: string[], stmt: LoweredStmt, indent: string) -> void {
         is LoweredContinue as continue_stmt -> {
             lines.push("${indent}continue${render_label(continue_stmt.label)}")
         }
+        is LoweredDeferPush as dp -> {
+            lines.push("${indent}defer.push")
+            emit_expr(lines, dp.thunk, "${indent}  ")
+        }
+        is LoweredDeferPopExec as dpe -> {
+            lines.push("${indent}defer.pop_exec ${dpe.count}")
+        }
     }
 }
 

@@ -1,0 +1,240 @@
+// vader/lower/lower_defer — defer-thunk lifting.
+//
+// Mirror of `src/lower/passes/defer.ts`. Each `DeferStmt` becomes :
+//   1. A synthesised top-level fn (the "lifted defer fn") whose only
+//      param is an env struct carrying captured locals.
+//   2. A synthesised env struct decl with one `cap_<N>` field per
+//      capture (from `closure_analysis::defer_captures`).
+//   3. A `LoweredDeferPush` carrying `LoweredMakeClosure { lifted_fn,
+//      env }` at the original `defer` site.
+//
+// Captures come from `ctx.project.closures.defer_captures[span_key]`,
+// populated by `analyze_closures` at project entry. The lifted fn's
+// body is lowered with a `lifted_context` so captured idents route
+// through `env.cap_N`.
+
+module "vader/lower"
+
+import "std/collections" { MutableMap }
+import "vader/diagnostics" { Span, empty_span }
+AST :: import "vader/parser"
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/types" { Type, mk_struct, TY_UNRESOLVED, TY_VOID }
+import "vader/typecheck" { new_substitution }
+import "vader/comptime" { MonoEntry }
+
+/// Lower a `DeferStmt` to a `LoweredDeferPush`. Synthesises the lifted
+/// fn + the env struct, pushes both onto `ctx.project.synth_decls`,
+/// then returns the push node carrying the closure.
+///
+/// @param ctx           the surrounding fn-body context.
+/// @param defer_stmt    the source defer.
+/// @param block_lowerer callback to lower a `BlockExpr` (cycle-breaker).
+/// @return              the lowered defer.push stmt.
+export lower_defer :: fn(
+    ctx: FnLowerCtx, defer_stmt: AST.DeferStmt,
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
+) -> LoweredStmt {
+    captures :: lookup_defer_captures(ctx, defer_stmt)
+    lifted_symbol :: fresh_lifted_defer_symbol(ctx, false)
+    env_symbol    :: fresh_lifted_defer_symbol(ctx, true)
+    env_param_symbol :: fresh_synthetic_symbol(ctx, "env")
+    env_type :: mk_struct(env_symbol, [])
+
+    env_fields :: build_defer_env_fields(captures)
+    capture_fields_map :: build_defer_capture_fields_map(captures)
+
+    env_decl :: LoweredStructDecl {
+        .mangled = env_symbol.name,
+        .fields  = env_fields,
+        .origin  = synth_defer_mono_entry(ctx, env_symbol),
+    }
+
+    lifted_params: LoweredParam[] = []
+    lifted_params.push(LoweredParam {
+        .name = env_param_symbol.name, .symbol = env_param_symbol, .type = env_type,
+    })
+    lifted_entry :: synth_defer_mono_entry(ctx, lifted_symbol)
+
+    // Wrap the body stmt in a synthetic BlockExpr so the existing
+    // block_lowerer can drive it. Mirrors `defer.ts:53-62`.
+    body_block :: synth_body_block(defer_stmt)
+
+    lifted_ctx :: new_fn_lower_ctx(
+        ctx.project, lifted_entry, ctx.typed, ctx.subst, TY_VOID, null,
+    )
+    lifted_ctx.lifted_context = LiftedFnContext {
+        .env_symbol     = env_param_symbol,
+        .env_type       = env_type,
+        .capture_fields = capture_fields_map,
+    }
+    body :: block_lowerer(lifted_ctx, body_block, true, false)
+
+    lifted_decl :: LoweredFnDecl {
+        .mangled     = lifted_symbol.name,
+        .params      = lifted_params,
+        .return_type = TY_VOID,
+        .body        = body,
+        .origin      = lifted_entry,
+    }
+
+    ctx.project.synth_decls.push(env_decl)
+    ctx.project.synth_decls.push(lifted_decl)
+
+    env_lit :: LoweredStructLit {
+        .span = defer_stmt.span, .type = env_type,
+        .fields = build_defer_env_lit_fields(defer_stmt.span, captures),
+    }
+    thunk :: LoweredMakeClosure {
+        .span = defer_stmt.span, .type = TY_UNRESOLVED,
+        .fn_symbol = lifted_symbol, .env = env_lit,
+    }
+    return LoweredDeferPush { .span = defer_stmt.span, .thunk = thunk }
+}
+
+// Closure-analysis side-table lookup. Falls back to empty when the
+// analysis didn't observe this defer (recovery path past an earlier
+// diagnostic, or when the analysis hasn't been extended to defer
+// captures yet — current MVP returns empty list always).
+lookup_defer_captures :: fn(ctx: FnLowerCtx, defer_stmt: AST.DeferStmt) -> Capture[] {
+    // TODO : populate `closures.defer_captures` from closure_analysis
+    // (mirror of TS `closures.deferCaptures.get(stmt)`). Until then,
+    // captures are empty — the lifted fn references outer locals as
+    // plain idents and the C-emit / VM will fail at run-time if the
+    // defer body actually uses them. Dump structure is correct for
+    // capture-free defers (`defer println("oops")`).
+    empty: Capture[] = []
+    return empty
+}
+
+build_defer_env_fields :: fn(captures: Capture[]) -> LoweredStructField[] {
+    fields: LoweredStructField[] = []
+    for i in 0..<captures.len() {
+        fields.push(LoweredStructField {
+            .name = "cap_${i}", .type = TY_UNRESOLVED,
+        })
+    }
+    return fields
+}
+
+build_defer_env_lit_fields :: fn(span: Span, captures: Capture[]) -> LoweredStructLitField[] {
+    fields: LoweredStructLitField[] = []
+    for i in 0..<captures.len() {
+        capture :: captures[i]
+        fields.push(LoweredStructLitField {
+            .name = "cap_${i}",
+            .value = LoweredIdent {
+                .span = span, .type = capture.type, .symbol = capture.symbol,
+            },
+        })
+    }
+    return fields
+}
+
+build_defer_capture_fields_map :: fn(captures: Capture[]) -> MutableMap(i32, string) {
+    map :: MutableMap(i32, string) { .buckets = [], .size = usize(0) }
+    for i in 0..<captures.len() {
+        map[captures[i].symbol.id] = "cap_${i}"
+    }
+    return map
+}
+
+// Wrap the defer body (single Stmt OR BlockExpr) into a BlockExpr the
+// existing block_lowerer can drive.
+synth_body_block :: fn(defer_stmt: AST.DeferStmt) -> AST.BlockExpr {
+    match defer_stmt.body {
+        is AST.DeferBlockBody as bb -> { return bb.block }
+        is AST.DeferStmtBody  as sb -> {
+            stmts: AST.Stmt[] = []
+            stmts.push(sb.stmt)
+            return AST.BlockExpr {
+                .span     = defer_stmt.span,
+                .id       = AST.UNASSIGNED_NODE_ID,
+                .stmts    = stmts,
+                .trailing = null,
+            }
+        }
+    }
+}
+
+fresh_lifted_defer_symbol :: fn(ctx: FnLowerCtx, is_env: bool) -> Symbol {
+    id :: next_defer_synthetic_id(ctx)
+    suffix :: render_defer_id_for_name(id)
+    prefix := "__defer_"
+    kind := SymbolKind.Fn
+    if is_env {
+        prefix = "__defer_env_"
+        kind = SymbolKind.Struct
+    }
+    return Symbol {
+        .id         = id,
+        .kind       = kind,
+        .name       = "${prefix}${suffix}",
+        .module     = ctx.typed.resolved.path,
+        .visibility = AST.Visibility.Private,
+        .defined_at = null,
+    }
+}
+
+next_defer_synthetic_id :: fn(ctx: FnLowerCtx) -> i32 {
+    id :: ctx.project.next_synthetic_id
+    ctx.project.next_synthetic_id = id - i32(1)
+    return id
+}
+
+render_defer_id_for_name :: fn(id: i32) -> string {
+    if id < i32(0) { return "${i32(0) - id}" }
+    return "${id}"
+}
+
+synth_defer_mono_entry :: fn(ctx: FnLowerCtx, symbol: Symbol) -> MonoEntry {
+    return MonoEntry {
+        .id             = next_defer_mono_entry_id(ctx),
+        .is_main        = false,
+        .mangled        = symbol.name,
+        .decl           = stub_defer_decl_for(symbol),
+        .symbol         = symbol,
+        .subst          = new_substitution(),
+        .type_arguments = [],
+        .module         = ctx.typed,
+    }
+}
+
+next_defer_mono_entry_id :: fn(ctx: FnLowerCtx) -> i32 {
+    id :: ctx.project.next_mono_entry_id
+    ctx.project.next_mono_entry_id = id + i32(1)
+    return id
+}
+
+stub_defer_decl_for :: fn(symbol: Symbol) -> AST.Decl {
+    kind_value :: i32(symbol.kind)
+    if kind_value == i32(SymbolKind.Struct) {
+        struct_decl: AST.Decl = AST.StructDecl {
+            .span        = empty_span(),
+            .id          = AST.UNASSIGNED_NODE_ID,
+            .name        = symbol.name,
+            .name_span   = empty_span(),
+            .visibility  = AST.Visibility.Private,
+            .type_params = [],
+            .fields      = [],
+            .decorators  = [],
+        }
+        return struct_decl
+    }
+    fn_decl: AST.Decl = AST.FnDecl {
+        .span                 = empty_span(),
+        .id                   = AST.UNASSIGNED_NODE_ID,
+        .name                 = symbol.name,
+        .name_span            = empty_span(),
+        .visibility           = AST.Visibility.Private,
+        .type_params          = [],
+        .params               = [],
+        .return_type          = null,
+        .body                 = null,
+        .decorators           = [],
+        .sam_synthetic        = false,
+        .is_expression_bodied = false,
+        .materialized         = false,
+    }
+    return fn_decl
+}

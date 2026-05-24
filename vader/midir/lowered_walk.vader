@@ -22,6 +22,7 @@ import "vader/lower" {
     LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
     LoweredLet, LoweredAssign, LoweredExprStmt, LoweredReturn,
     LoweredLoop, LoweredBreak, LoweredContinue, LoweredCellSet,
+    LoweredDeferPush, LoweredDeferPopExec,
     LoweredIdent, LoweredCall, LoweredVirtualCall, LoweredFieldAccess,
     LoweredIndex, LoweredUnary, LoweredBinary, LoweredIf,
     LoweredStructLit, LoweredArrayLit, LoweredArrayLen, LoweredArrayPush,
@@ -120,6 +121,8 @@ walk_stmt :: fn(s: LoweredStmt, ctx: WalkCtx) -> void {
             walk_expr(st.value, ctx)
             walk_type(st.value_type, ctx)
         }
+        is LoweredDeferPush as st -> { walk_expr(st.thunk, ctx) }
+        is LoweredDeferPopExec -> {}
     }
 }
 
