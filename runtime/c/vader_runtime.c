@@ -340,6 +340,12 @@ void* vader_gc_alloc(size_t bytes) {
              * Force a major to age survivors into old and retry. */
             vader_major_collect();
             if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
+                fprintf(stderr,
+                    "vader_gc_alloc: out of memory after collection\n"
+                    "  young arena %zu MB × 2 (raise via VADER_GC_YOUNG_BYTES, bytes per semi-space)\n"
+                    "  old arena   %zu MB × 2 (raise via VADER_GC_OLD_BYTES)\n",
+                    g_young.half_bytes / (1024u * 1024u),
+                    g_old.half_bytes / (1024u * 1024u));
                 vader_trap("vader_gc_alloc: out of memory after collection");
             }
         }

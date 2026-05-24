@@ -490,10 +490,12 @@ each module. Memory footprint drops from "every Program" to "module
 header bytes only" — analogous to the TS version's behaviour under
 V8's generational GC.
 
-Caveat : the Vader CLI still needs `VADER_GC_YOUNG_BYTES=16777216 /
-VADER_GC_OLD_BYTES=134217728` for the largest entries (full `vader/`
-self-host typecheck). A follow-up to add lazy indexing or a tighter
-arena policy is tracked in TODO.md.
+**Update 2026-05-24** : GC defaults bumped to 16 MB young / 64 MB old
+(`runtime/c/vader.h`) so the env-var overrides are no longer required
+for typical self-host workloads. The dual-semi-space arenas commit to
+~160 MB virtual on init but RSS stays proportional to live set
+(`malloc`-backed, not `calloc`-zeroed). Lazy indexing remains a
+follow-up.
 
 ### Phase 9 — LSP ✅ done (`33b1af8d`)
 
@@ -607,7 +609,7 @@ Open arbitrations from the design discussion, with the final call :
 | 41 | Glob patterns in `vader.json::modules` ? | **Not supported.** Literal folder paths only. |
 | 42 | Multi-`vader.json` (monorepo with nested manifests) ? | **Out of scope MVP.** Single manifest at project root. |
 | 43 | Phase 7 `vader/` folder-module cycle (`vader/typecheck/types ↔ vader/resolver/symbol`) ? | **Path C taken** (commit `cce6cd1f`) : extract `vader/types/` + `vader/resolver/symbol/` as standalone modules to break the cycle. Path A (rollback to per-file modules) and Path B (hybrid per-file for `vader/`) rejected as they'd erode SPEC §11's uniformity. |
-| 44 | Phase 8 memory blocker (eager parse of every `.vader` OOMs the Vader GC) ? | **Header-only parse** (`parse_module_header` in `vader/parser/`) that extracts just the `module "..."` decl during discover ; full `parse_source` runs lazily on BFS visit. Vader CLI still requires bumped GC arenas (`VADER_GC_YOUNG_BYTES=16M / VADER_GC_OLD_BYTES=128M`) for the largest entries — a tighter arena policy is tracked in TODO.md. |
+| 44 | Phase 8 memory blocker (eager parse of every `.vader` OOMs the Vader GC) ? | **Header-only parse** (`parse_module_header` in `vader/parser/`) that extracts just the `module "..."` decl during discover ; full `parse_source` runs lazily on BFS visit. GC defaults bumped to 16 MB young / 64 MB old (2026-05-24) so the CLI handles the full `vader/` self-host typecheck out of the box ; lazy indexing remains a follow-up. |
 | 45 | Parser strict-flip (P1029 / P1030 missing-decl + malformed-decl) ? | **Not activated.** Codes stay reserved in `codes.ts` / `codes.vader`. R2020 catches missing decls at resolver scan time, which is sufficient ; the parser-flip stays available for a future tightening if needed. |
 
 This list freezes the design. Any deviation during implementation
@@ -744,10 +746,10 @@ compiled Vader CLI.
 `vader/parser/` as `parse_module_header` ; `discover_modules` calls
 it during the scan and the full `parse_source` runs lazily when BFS
 visits each module. The Vader CLI now drives a strict resolver
-end-to-end. Caveat : the compiled CLI still requires
-`VADER_GC_YOUNG_BYTES=16M / VADER_GC_OLD_BYTES=128M` for the
-largest entries (full `vader/` self-host typecheck) — a tighter
-arena policy / lazy indexing follow-up is tracked in TODO.md.
+end-to-end. **Update 2026-05-24** : GC defaults bumped to 16 MB
+young / 64 MB old (`runtime/c/vader.h`), so the full `vader/` self-
+host typecheck works without env-var overrides. Lazy indexing
+remains a follow-up.
 
 ### Cross-file duplicate decls — silent first-wins still active (surfaced 2026-05-23)
 

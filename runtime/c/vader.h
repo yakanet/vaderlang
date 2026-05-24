@@ -317,10 +317,10 @@ static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
 
 /* Heap sizing — tunable at compile time via `-D` flags. */
 #ifndef VADER_GC_YOUNG_BYTES
-#define VADER_GC_YOUNG_BYTES (4u * 1024u * 1024u)    /* 4 MB per young semi-space */
+#define VADER_GC_YOUNG_BYTES (16u * 1024u * 1024u)   /* 16 MB per young semi-space */
 #endif
 #ifndef VADER_GC_OLD_BYTES
-#define VADER_GC_OLD_BYTES   (16u * 1024u * 1024u)   /* 16 MB per old semi-space */
+#define VADER_GC_OLD_BYTES   (64u * 1024u * 1024u)   /* 64 MB per old semi-space */
 #endif
 #ifndef VADER_TENURE_AGE
 #define VADER_TENURE_AGE     2u                      /* minor cycles before promotion */
