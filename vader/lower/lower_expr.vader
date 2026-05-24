@@ -520,16 +520,20 @@ is_primitive_for_display :: fn(t: Type) -> bool {
     }
 }
 
-// Build a `<T>.Display.to_string(value)` call shape. Lowered as a
-// `LoweredVirtualCall` keyed on `Display.to_string` so the bytecode
-// VM (`virtual.call`) / C-emit (`vader_virtual_dispatch`) pick the
-// per-receiver impl through the vtable rather than a static call —
-// the wide unsigned widths (u32/u64/usize) and generic-T receivers
-// don't have a statically-resolvable target at lower-time. Empty
-// `args` ; the receiver carries the value to display.
+// Build a `<T>.Display.to_string(value)` call shape. Prefers a direct
+// `LoweredCall` to the per-receiver impl member when the impl is
+// statically resolvable (concrete struct / enum types) — mirrors TS
+// `wrapAsDisplay` in `src/lower/passes/display-coerce.ts`. Falls back
+// to `LoweredVirtualCall` for primitives / generic-T receivers where
+// the impl exists per-instantiation but isn't reachable at lower-time.
 build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -> LoweredExpr {
     string_type :: mk_primitive("string")
     no_args: LoweredExpr[] = []
+    direct :: try_direct_display_call(ctx, value, span)
+    match direct {
+        is null -> {}
+        _ -> { return direct }
+    }
     return LoweredVirtualCall {
         .span       = span,
         .type       = string_type,
@@ -538,6 +542,52 @@ build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Sp
         .receiver   = value,
         .args       = no_args,
     }
+}
+
+// Look up `<sourceType>.Display.to_string` statically. Returns a
+// `LoweredCall` whose callee is the impl-member's mangled fn symbol
+// when reachable ; null otherwise. The mangling matches what
+// `lower_impl_members` registers in `lower.vader`.
+try_direct_display_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -> LoweredExpr | null {
+    string_type :: mk_primitive("string")
+    source_type :: type_of(value)
+    target_name :: type_surface_name(source_type)
+    if target_name == "" { return null }
+    // Concrete-receiver-only path : primitive types (i32, string, …) and
+    // generic-T receivers fall through to the vtable. Scan the registry
+    // for `<target_name>.Display { … }` ; mirror `find_via_all`.
+    decl_opt: ImplEntry | null = null
+    for entry in ctx.project.impls.all {
+        if entry.trait_symbol.name != "Display" { continue }
+        if !impl_targets_name(entry.decl.for_type, target_name) { continue }
+        decl_opt = entry
+    }
+    if decl_opt is null { return null }
+    impl_entry :: decl_opt
+    decl :: impl_entry.decl
+    for m in decl.members {
+        if m.name != "to_string" { continue }
+        // Mirror `try_lookup_method_on_type` mangling (lower_expr.vader:1026)
+        // so the call resolves against the synth decl produced by
+        // `lower_impl_members`.
+        mangled :: "${mangle_module_id(ctx.typed.resolved.display_path)}$${target_name}$${decl.trait_name}$${m.name}"
+        sym :: Symbol {
+            .id         = i32(0),
+            .kind       = SymbolKind.Fn,
+            .name       = m.name,
+            .module     = ctx.typed.resolved.path,
+            .visibility = Visibility.Private,
+            .defined_at = null,
+        }
+        call_args: LoweredExpr[] = []
+        call_args.push(value)
+        return LoweredCall {
+            .span = span, .type = string_type,
+            .callee = LoweredIdent { .span = span, .type = string_type, .symbol = sym },
+            .args = call_args,
+        }
+    }
+    return null
 }
 
 has_interp_part :: fn(expr: StringLitExpr) -> bool {

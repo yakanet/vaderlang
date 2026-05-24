@@ -68,6 +68,17 @@ export lower_for_in :: fn(
     iter_lowered_raw :: recurse(ctx, in_form.iter)
     iter_type_raw :: type_of(iter_lowered_raw)
 
+    // Fast path : `for x in arr` over a raw `T[]` lowers to a counter
+    // loop with index lookup. No ArrayIterator allocation, no per-iter
+    // virtual call. Falls through to the slow path when the iter type
+    // isn't a plain array. Mirrors TS `lowerForInRawArray` in
+    // `src/lower/passes/for-in.ts:346`.
+    raw_array :: try_lower_for_in_raw_array(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, recurse, block_lowerer)
+    match raw_array {
+        is null -> {}
+        _ -> { return raw_array }
+    }
+
     // Auto-wrap `T[]` → ArrayIterator(T) so the step-loop can dispatch
     // through the standard Iterator impl. Falls through to the raw
     // value when the array iterator type isn't reachable.
@@ -333,6 +344,101 @@ resolve_binding_or_synth :: fn(ctx: FnLowerCtx, in_form: AST.InFor) -> Symbol {
 }
 
 import "std/collections" { values }
+
+// ---- raw-array fast path --------------------------------------------------
+
+// `for x in arr` over a raw `T[]` lowers to a counter loop with index
+// lookup — no ArrayIterator allocation, no per-iter virtual call.
+// Mirrors TS `lowerForInRawArray` in `src/lower/passes/for-in.ts:346`.
+//
+// Returns null when the iter type isn't a plain array ; caller falls
+// back to the wrap-into-ArrayIterator slow path.
+try_lower_for_in_raw_array :: fn(
+    ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+    iter_lowered: LoweredExpr, iter_type: Type,
+    recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
+    block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
+) -> LoweredStmt | null {
+    array_elem_type: Type = TY_UNRESOLVED
+    if iter_type is ArrayType as arr {
+        array_elem_type = arr.element
+    } else {
+        return null
+    }
+    span :: for_stmt.span
+    binding_symbol :: resolve_binding_or_synth(ctx, in_form)
+    usize_type :: mk_primitive("usize")
+
+    arr_sym :: fresh_synthetic_symbol(ctx, "for_arr")
+    len_sym :: fresh_synthetic_symbol(ctx, "for_len")
+    idx_sym :: fresh_synthetic_symbol(ctx, "for_i")
+
+    arr_let :: LoweredLet {
+        .span = span, .name = arr_sym.name, .symbol = arr_sym,
+        .type = iter_type, .value = iter_lowered,
+    }
+    arr_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = arr_sym }
+    len_let :: LoweredLet {
+        .span = span, .name = len_sym.name, .symbol = len_sym, .type = usize_type,
+        .value = LoweredArrayLen { .span = span, .type = usize_type, .target = arr_ref },
+    }
+    idx_init :: LoweredLet {
+        .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = usize_type,
+        .value = LoweredIntLit { .span = span, .type = usize_type, .value = i64(0) },
+    }
+    idx_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = idx_sym }
+    len_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = len_sym }
+
+    cond :: LoweredBinary {
+        .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Lt,
+        .left = idx_ref, .right = len_ref,
+    }
+    bind_stmt :: LoweredLet {
+        .span = span, .name = in_form.binding, .symbol = binding_symbol,
+        .type = array_elem_type,
+        .value = LoweredIndex {
+            .span = span, .type = array_elem_type,
+            .target = arr_ref, .index = idx_ref,
+        },
+    }
+    inc_stmt :: LoweredAssign {
+        .span = span, .target = idx_ref,
+        .value = LoweredBinary {
+            .span = span, .type = usize_type, .op = LoweredBinaryOp.Add,
+            .left = idx_ref,
+            .right = LoweredIntLit { .span = span, .type = usize_type, .value = i64(1) },
+        },
+    }
+
+    user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    body_stmts: LoweredStmt[] = []
+    body_stmts.push(bind_stmt)
+    for stmt in user_body.stmts { body_stmts.push(stmt) }
+    if !(user_body.trailing is null) {
+        body_stmts.push(LoweredExprStmt { .span = span_of(user_body.trailing), .expr = user_body.trailing })
+    }
+    body_stmts.push(inc_stmt)
+
+    loop_stmt :: LoweredLoop {
+        .span = span, .label = for_stmt.label, .cond = cond,
+        .body = LoweredBlock {
+            .span = span, .type = TY_VOID, .stmts = body_stmts, .trailing = null,
+        },
+    }
+
+    block_stmts: LoweredStmt[] = []
+    block_stmts.push(arr_let)
+    block_stmts.push(len_let)
+    block_stmts.push(idx_init)
+    block_stmts.push(loop_stmt)
+    return LoweredExprStmt {
+        .span = span,
+        .expr = LoweredBlock {
+            .span = span, .type = TY_VOID,
+            .stmts = block_stmts, .trailing = null,
+        },
+    }
+}
 
 // ---- int-range fast path --------------------------------------------------
 
