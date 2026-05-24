@@ -38,7 +38,7 @@
 
 module "vader/bytecode"
 
-import "std/string" { byte_len, byte_at, slice }
+import "std/string" { byte_len, byte_at, byte_slice }
 import "std/string_builder" { StringBuilder, new_builder, append }
 op :: import "vader/vm"
 
@@ -255,8 +255,8 @@ bytes_to_hex :: fn(bytes: u8[]) -> string {
     i: usize = 0
     for i < bytes.len() {
         b :: bytes[i]
-        out.append(HEX_DIGITS.slice(usize(u32(b) >> 0o04), usize(u32(b) >> 0o04) + 1))
-        out.append(HEX_DIGITS.slice(usize(u32(b) & u32(0o17)), usize(u32(b) & u32(0o17)) + 1))
+        out.append(HEX_DIGITS.byte_slice(usize(u32(b) >> 0o04), usize(u32(b) >> 0o04) + 1))
+        out.append(HEX_DIGITS.byte_slice(usize(u32(b) & u32(0o17)), usize(u32(b) & u32(0o17)) + 1))
         i += 1
     }
     return "${out}"

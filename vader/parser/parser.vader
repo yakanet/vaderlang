@@ -5,7 +5,7 @@
 
 module "vader/parser"
 
-import "std/string" { byte_at, byte_len, slice, starts_with, chars, is_digit }
+import "std/string" { byte_at, byte_len, byte_slice, starts_with, chars, is_digit }
 import "vader/lexer" {
     tokenize, Token, TokenKind, Lexer, empty_span, make_token, kind_name,
 }
@@ -117,7 +117,7 @@ export parse_module_header :: fn(source: string, file: string) -> ModuleHeader |
     name_start :: i
     for i < n && source.byte_at(i) != u8(0x22) { i = i + usize(1) }
     if i >= n { return null }                                       // unterminated
-    name :: slice(source, name_start, i)
+    name :: byte_slice(source, name_start, i)
     return ModuleHeader { .name = name, .name_span = empty_span(file) }
 }
 

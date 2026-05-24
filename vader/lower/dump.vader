@@ -20,7 +20,7 @@ module "vader/lower"
 
 import "std/collections" { keys }
 import "std/sort" { sort }
-import "std/string" { compare_ascending, to_lower, ends_with, slice, byte_len }
+import "std/string" { compare_ascending, to_lower, ends_with, byte_slice, byte_len }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/diagnostics" { Span }
 import "vader/resolver" { is_stdlib_module }
@@ -361,7 +361,7 @@ hex_string :: fn(value: u32) -> string {
 format_float :: fn(value: f64) -> string {
     raw :: "${value}"
     if raw.ends_with(".0") {
-        return raw.slice(usize(0), raw.byte_len() - usize(2))
+        return raw.byte_slice(usize(0), raw.byte_len() - usize(2))
     }
     return raw
 }

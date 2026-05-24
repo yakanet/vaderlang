@@ -14,7 +14,7 @@
 module "vader/lsp"
 
 import "std/io" { read_file, read_dir, is_dir }
-import "std/string" { byte_len, byte_at, slice, starts_with }
+import "std/string" { byte_len, byte_at, byte_slice, starts_with }
 
 /// Where a cross-file goto-def landed : a file URI + the target's
 /// `name_span` so the handler can encode an LSP `Location`. Returns
@@ -100,7 +100,7 @@ module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: string)
         if state.vader_root.byte_len() == 0 { return "" }
         // `vader/X` strips the `vader/` prefix because `vader_root`
         // already points at the `vader/` directory.
-        suffix :: raw.slice(6, raw.byte_len())
+        suffix :: raw.byte_slice(6, raw.byte_len())
         return path_join(state.vader_root, suffix)
     }
     if raw.starts_with("./") || raw.starts_with("../") {
@@ -120,7 +120,7 @@ module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: string)
 uri_to_path :: fn(uri: string) -> string {
     prefix :: "file://"
     if uri.starts_with(prefix) {
-        return uri.slice(prefix.byte_len(), uri.byte_len())
+        return uri.byte_slice(prefix.byte_len(), uri.byte_len())
     }
     return ""
 }
@@ -135,7 +135,7 @@ dirname_path :: fn(p: string) -> string {
     for i >= 0 {
         if p.byte_at(usize(i)) == sep {
             if i == 0 { return "/" }
-            return p.slice(0, usize(i))
+            return p.byte_slice(0, usize(i))
         }
         i = i - 1
     }
@@ -152,7 +152,7 @@ path_join :: fn(a: string, b: string) -> string {
     a_ends_sep :: a.byte_at(a.byte_len() - 1) == sep
     b_starts_sep :: b.byte_at(0) == sep
     if a_ends_sep && b_starts_sep {
-        return a + b.slice(1, b.byte_len())
+        return a + b.byte_slice(1, b.byte_len())
     }
     if a_ends_sep || b_starts_sep {
         return a + b

@@ -51,7 +51,7 @@
             "alias": null
           },
           {
-            "name": "slice",
+            "name": "byte_slice",
             "alias": null
           },
           {
@@ -417,7 +417,7 @@
                           }
                         ]
                       },
-                      "field": "slice"
+                      "field": "byte_slice"
                     },
                     "args": [
                       {

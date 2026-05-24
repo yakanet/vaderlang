@@ -16,7 +16,7 @@ import "std/numbers" { parse_int_in_base }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/time" { monotonic_ns, now_unix_ms }
 import "std/string_builder" { new_builder, append }
-import "std/string" { byte_len, byte_at, slice, starts_with, ends_with, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
+import "std/string" { byte_len, byte_at, byte_slice, starts_with, ends_with, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
 
 /// Outcome of a successful host call. `value` is unused when the import
 /// has `has_return == false` — the exec checks the import's signature
@@ -145,14 +145,14 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
     if info.mangled == r"std_string$starts_with" { return host_str_pair_to_bool(stack, arg_base, at_pc, "starts_with", (a, b) -> a.starts_with(b)) }
     if info.mangled == r"std_string$ends_with"   { return host_str_pair_to_bool(stack, arg_base, at_pc, "ends_with",   (a, b) -> a.ends_with(b)) }
     if info.mangled == r"std_string$contains"    { return host_str_pair_to_bool(stack, arg_base, at_pc, "contains",    (a, b) -> a.contains(b)) }
-    if info.mangled == r"std_string$slice" {
-        s     :: read_string(stack[arg_base    ], at_pc, "slice receiver")
-        start :: read_i32   (stack[arg_base + 1], at_pc, "slice start")
-        end   :: read_i32   (stack[arg_base + 2], at_pc, "slice end")
+    if info.mangled == r"std_string$byte_slice" {
+        s     :: read_string(stack[arg_base    ], at_pc, "byte_slice receiver")
+        start :: read_i32   (stack[arg_base + 1], at_pc, "byte_slice start")
+        end   :: read_i32   (stack[arg_base + 2], at_pc, "byte_slice end")
         if s     is Trap { return s }
         if start is Trap { return start }
         if end   is Trap { return end }
-        return HostOk { .value = StringVal { .value = s.value.slice(usize(start.value), usize(end.value)) } }
+        return HostOk { .value = StringVal { .value = s.value.byte_slice(usize(start.value), usize(end.value)) } }
     }
     if info.mangled == r"std_string$trim"     { return host_str_to_str(stack, arg_base, at_pc, "trim",     (s) -> s.trim()) }
     if info.mangled == r"std_string$to_upper" { return host_str_to_str(stack, arg_base, at_pc, "to_upper", (s) -> s.to_upper()) }

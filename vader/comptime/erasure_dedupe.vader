@@ -633,10 +633,10 @@ strip_mangled_tail :: fn(mangled: string) -> string {
         i += 1
     }
     if last_double_underscore < isize(0) { return mangled }
-    return mangled.slice(usize(0), usize(last_double_underscore))
+    return mangled.byte_slice(usize(0), usize(last_double_underscore))
 }
 
-import "std/string" { byte_len, byte_at, slice }
+import "std/string" { byte_len, byte_at, byte_slice }
 
 find_entry_by_id :: fn(entries: MonoEntry[], id: i32) -> MonoEntry | null {
     i: usize = 0

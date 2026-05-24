@@ -781,7 +781,7 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { return vader_read_stdin(a0, ${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
 
     case "std_string$byte_len":    return `${head} { return vader_string_byte_len(a0); }`;
-    case "std_string$slice":       return `${head} { return vader_string_slice(a0, a1, a2); }`;
+    case "std_string$byte_slice":  return `${head} { return vader_string_slice(a0, a1, a2); }`;
     case "std_string$contains":    return `${head} { return vader_string_contains(a0, a1); }`;
     case "std_string$starts_with": return `${head} { return vader_string_starts_with(a0, a1); }`;
     case "std_string$ends_with":   return `${head} { return vader_string_ends_with(a0, a1); }`;

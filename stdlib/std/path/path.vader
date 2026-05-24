@@ -7,7 +7,7 @@
 module "std/path"
 
 import "std/string" {
-    byte_len, is_empty, slice, last_index_of,
+    byte_len, is_empty, byte_slice, last_index_of,
     starts_with as str_starts_with, ends_with as str_ends_with,
 }
 import "std/string_builder" { StringBuilder, new_builder, append }
@@ -73,7 +73,7 @@ export parent :: fn(self: Path) -> Path {
         // Root: keep the leading "/" so parent of "/foo" is "/".
         return Path { .repr = SEP_STR }
     }
-    return Path { .repr = self.repr.slice(0, usize(idx)) }
+    return Path { .repr = self.repr.byte_slice(0, usize(idx)) }
 }
 
 /// Last segment (filename or directory name). For a path with no
@@ -85,7 +85,7 @@ export filename :: fn(self: Path) -> string {
     if idx < 0 {
         return self.repr
     }
-    return self.repr.slice(usize(idx) + 1, self.repr.byte_len())
+    return self.repr.byte_slice(usize(idx) + 1, self.repr.byte_len())
 }
 
 /// File extension without the leading dot. Empty when there's no
@@ -99,7 +99,7 @@ export extension :: fn(self: Path) -> string {
     if idx < 0 {
         return ""
     }
-    return name.slice(usize(idx) + 1, name.byte_len())
+    return name.byte_slice(usize(idx) + 1, name.byte_len())
 }
 
 /// Filename without the extension. For names without an extension,
@@ -112,7 +112,7 @@ export stem :: fn(self: Path) -> string {
     if idx < 0 {
         return name
     }
-    return name.slice(0, usize(idx))
+    return name.byte_slice(0, usize(idx))
 }
 
 // ---- combinators ----------------------------------------------------------
@@ -207,7 +207,7 @@ export normalize :: fn(self: Path) -> Path {
         at_end := i == n
         is_sep := !at_end && self.repr[i] == SEP
         if is_sep || at_end {
-            seg := self.repr.slice(seg_start, i)
+            seg := self.repr.byte_slice(seg_start, i)
             if seg.is_empty() || seg == "." {
                 // skip
             } else if seg == ".." {

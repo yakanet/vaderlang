@@ -15,7 +15,7 @@
 
 module "vader/lexer"
 
-import "std/string" { byte_at, byte_decode_at, byte_len, is_empty, slice, parse_float, is_alpha, is_alnum, is_digit }
+import "std/string" { byte_at, byte_decode_at, byte_len, is_empty, byte_slice, parse_float, is_alpha, is_alnum, is_digit }
 import "std/utf8" { codepoint_byte_len }
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
@@ -293,7 +293,7 @@ lex_ident :: fn(l: Lexer) -> void {
     for !l.at_end() && l.peek().is_ident_continue() {
         l.advance(1)
     }
-    text := l.src.slice(start.offset, l.pos)
+    text := l.src.byte_slice(start.offset, l.pos)
     kw := lookup_keyword(text)
     l.push_simple(kw, text, start)
 }
@@ -310,13 +310,13 @@ read_numeric_suffix :: fn(l: Lexer) -> string {
         for !l.at_end() && l.peek().is_ident_continue() {
             l.advance(1)
         }
-        return l.src.slice(suff_start, l.pos)
+        return l.src.byte_slice(suff_start, l.pos)
     }
     if l.peek().is_ident_start() {
         for !l.at_end() && l.peek().is_ident_continue() {
             l.advance(1)
         }
-        return l.src.slice(start, l.pos)
+        return l.src.byte_slice(start, l.pos)
     }
     return ""
 }
@@ -417,7 +417,7 @@ lex_number :: fn(l: Lexer) -> void {
         l.push_error(.MalformedNumericLiteral, l.error_span(start), "integer suffix \"${suffix}\" on a float literal")
     }
 
-    text := l.src.slice(start.offset, l.pos)
+    text := l.src.byte_slice(start.offset, l.pos)
     span := Span { .start = start, .end = l.position_here() }
     kind: TokenKind = .IntLit
     if is_float {
@@ -533,7 +533,7 @@ lex_byte_lit :: fn(l: Lexer) -> void {
     } else if l.peek() == '\'' || l.peek() == '\n' || l.at_end() {
         l.push_error(.InvalidCharacterLiteral, l.error_span(start),
             "byte literal must contain exactly one ASCII character")
-        text :: l.src.slice(start.offset, l.pos)
+        text :: l.src.byte_slice(start.offset, l.pos)
         t := make_token(.IntLit, text, l.error_span(start))
         t.value = u64(0)
         t.numeric_suffix = "u8"
@@ -557,7 +557,7 @@ lex_byte_lit :: fn(l: Lexer) -> void {
             "byte literal must contain exactly one byte")
     }
 
-    text :: l.src.slice(start.offset, l.pos)
+    text :: l.src.byte_slice(start.offset, l.pos)
     span :: Span { .start = start, .end = l.position_here() }
     t := make_token(.IntLit, text, span)
     t.value = u64(cp & u32(0xFF))
@@ -574,7 +574,7 @@ lex_char :: fn(l: Lexer) -> void {
     if l.peek() == '\'' {
         l.advance(1)
         l.push_error(.InvalidCharacterLiteral, l.error_span(start), "character literal cannot be empty")
-        text :: l.src.slice(start.offset, l.pos)
+        text :: l.src.byte_slice(start.offset, l.pos)
         t := make_token(.CharLit, text, l.error_span(start))
         t.value = u32(0)
         l.emit(t)
@@ -586,7 +586,7 @@ lex_char :: fn(l: Lexer) -> void {
         cp = l.lex_escape()
     } else if l.peek() == '\n' || l.at_end() {
         l.push_error(.InvalidCharacterLiteral, l.error_span(start), "unterminated character literal")
-        text :: l.src.slice(start.offset, l.pos)
+        text :: l.src.byte_slice(start.offset, l.pos)
         t := make_token(.CharLit, text, l.error_span(start))
         t.value = u32(0)
         l.emit(t)
@@ -614,7 +614,7 @@ lex_char :: fn(l: Lexer) -> void {
         l.advance(1)  // consume closing `'`
     }
 
-    text :: l.src.slice(start.offset, l.pos)
+    text :: l.src.byte_slice(start.offset, l.pos)
     t := make_token(.CharLit, text, l.error_span(start))
     t.value = cp
     l.emit(t)
@@ -662,7 +662,7 @@ lex_string :: fn(l: Lexer, raw: bool) -> void {
         }
     }
 
-    text :: l.src.slice(start.offset, l.pos)
+    text :: l.src.byte_slice(start.offset, l.pos)
     span :: Span { .start = start, .end = l.position_here() }
     l.emit(make_token(.StringBegin, text, span))
     l.lex_string_body(triple, raw)

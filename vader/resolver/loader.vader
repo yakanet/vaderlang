@@ -16,7 +16,7 @@ module "vader/resolver"
 
 import "std/collections" { MutableMap, keys }
 import "std/io" { exists, is_dir, read_file }
-import "std/string" { byte_at, byte_len, ends_with, slice, starts_with }
+import "std/string" { byte_at, byte_len, ends_with, byte_slice, starts_with }
 import "vader/diagnostics" { Diagnostic, Position, Span, resolver_error }
 import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source }
 import "vader/resolver/symbol" { SymbolFactory, new_factory }
@@ -220,7 +220,7 @@ is_under_any_root :: fn(folder: string, roots: string[]) -> bool {
 trim_trailing_slash :: fn(s: string) -> string {
     n :: s.byte_len()
     if n == usize(0) { return s }
-    if s.byte_at(n - usize(1)) == u8(0x2F) { return slice(s, usize(0), n - usize(1)) }
+    if s.byte_at(n - usize(1)) == u8(0x2F) { return byte_slice(s, usize(0), n - usize(1)) }
     return s
 }
 
@@ -274,9 +274,9 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule) -> void {
 /// `.vader` extension so `stdlib/std/io` renders as `std/io`.
 display_path_for :: fn(root: string, stdlib_root: string) -> string {
     if root.starts_with("${stdlib_root}/") {
-        rel :: slice(root, stdlib_root.byte_len() + usize(1), root.byte_len())
+        rel :: byte_slice(root, stdlib_root.byte_len() + usize(1), root.byte_len())
         if rel.ends_with(".vader") {
-            return slice(rel, usize(0), rel.byte_len() - usize(6))
+            return byte_slice(rel, usize(0), rel.byte_len() - usize(6))
         }
         return rel
     }

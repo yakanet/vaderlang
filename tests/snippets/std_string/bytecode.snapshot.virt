@@ -23,7 +23,7 @@ import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 at std_core$string$Index$at (string,usize) -> char
 import 2 println std_io$println (string) -> void
 import 3 byte_len std_string$byte_len (string) -> usize
-import 4 slice std_string$slice (string,usize,usize) -> string
+import 4 byte_slice std_string$byte_slice (string,usize,usize) -> string
 import 5 contains std_string$contains (string,string) -> bool
 import 6 starts_with std_string$starts_with (string,string) -> bool
 import 7 ends_with std_string$ends_with (string,string) -> bool

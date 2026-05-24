@@ -19,7 +19,7 @@ module "vader/resolver"
 import "std/io" { exists, is_dir, read_dir, read_file }
 import "std/path" { Path, to_path, as_string, parent }
 import "std/sort" { sort }
-import "std/string" { byte_at, byte_len, compare_ascending, ends_with, slice, starts_with }
+import "std/string" { byte_at, byte_len, compare_ascending, ends_with, byte_slice, starts_with }
 import "vader/parser" { NodeIdFactory, Program, parse_source }
 
 /// `import "std/..."` and stdlib display paths share this prefix.
@@ -190,7 +190,7 @@ export join_path :: fn(base: string, seg: string) -> string {
     // in the typecheck dump and mismatch parity with the TS reference.
     s := seg
     if s.byte_len() >= usize(2) && s.byte_at(0) == u8(0x2E) && s.byte_at(1) == u8(0x2F) {
-        s = s.slice(usize(2), s.byte_len())
+        s = s.byte_slice(usize(2), s.byte_len())
     }
     if base == "" { return s }
     if base.byte_at(base.byte_len() - usize(1)) == u8(0x2F) {

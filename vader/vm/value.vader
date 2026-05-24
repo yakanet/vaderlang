@@ -12,7 +12,7 @@
 
 module "vader/vm"
 
-import "std/string" { starts_with, byte_at, byte_len, slice }
+import "std/string" { starts_with, byte_at, byte_len, byte_slice }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
 /// return value ; `Trap` carries a debug-friendly message so the host
@@ -347,7 +347,7 @@ prefix_before_double_underscore :: fn(s: string) -> string {
     j: usize = start
     for j + 1 < n {
         if s.byte_at(j) == b'_' && s.byte_at(j + 1) == b'_' {
-            return s.slice(0, j)
+            return s.byte_slice(0, j)
         }
         j += 1
     }

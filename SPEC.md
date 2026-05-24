@@ -1781,7 +1781,7 @@ Module identity is **not** derived from the filesystem. The filesystem is the st
 import "std/string"                              // pure namespace import
 str :: import "std/string"                       // named namespace import
 import "std/string" { byte_len }                 // destructured import
-str :: import "std/string" { byte_len, slice }   // scoped namespace import
+str :: import "std/string" { byte_len, byte_slice }   // scoped namespace import
 ```
 
 A namespace import always names its binding explicitly (`name :: import "..."`) — there is no implicit last-segment binding and no `as` suffix. The destructure form (`import "..." { a, b }`) pulls names into the importing module's top-level scope. The combined form (`name :: import "..." { a, b, c }`) is **scoped** : only the listed names are reachable through `name.X` ; the rest of the target module is hidden, and the listed names are NOT also pulled into top-level scope.
@@ -2190,7 +2190,7 @@ Width-based helpers (`pad_start`, `pad_end`) measure bytes, not codepoints.
 // Core access (intrinsics — no body in Vader).
 byte_len    :: fn(s: string) -> usize                  // UTF-8 bytes ; pair with count_chars() for codepoints
 is_empty    :: fn(s: string) -> bool                   // sugar for byte_len() == 0
-slice       :: fn(s: string, start: usize, end: usize) -> string
+byte_slice  :: fn(s: string, start: usize, end: usize) -> string  // byte-indexed substring ; for codepoint slicing use `s[r]`
 contains    :: fn(s: string, sub: string) -> bool
 starts_with :: fn(s: string, prefix: string) -> bool
 ends_with   :: fn(s: string, suffix: string) -> bool
@@ -2210,8 +2210,9 @@ chars            :: fn(s: string) -> StringChars                // StringChars i
 decode_codepoint :: fn(s: string, i: usize) -> [char, usize]    // (codepoint, byte width)
 
 // Byte walkers (raw UTF-8 — for ASCII / binary protocols / BOM detection).
-byte_at :: fn(s: string, i: usize) -> u8
-bytes   :: fn(s: string) -> StringBytes                         // StringBytes implements Iterator[u8]
+byte_at        :: fn(s: string, i: usize) -> u8
+byte_decode_at :: fn(s: string, i: usize) -> char               // decode UTF-8 codepoint at byte offset (for byte-cursor parsers)
+bytes          :: fn(s: string) -> StringBytes                  // StringBytes implements Iterator[u8]
 
 // Indexing helpers. `min_index` / `from` and the result use `isize` so the
 // `-1`-on-miss sentinel stays expressible without a `usize | null`.

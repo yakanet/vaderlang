@@ -116,7 +116,7 @@ fn snippet$main() -> i32
     %29 = const string(#7) :string
     %30 = const int(6) :usize
     %31 = const int(11) :usize
-    %32 = call slice(%29, %30, %31) :string
+    %32 = call byte_slice(%29, %30, %31) :string
     call println(%32) :void
     %33 = intrinsic builder.new()
     %34 = move %33

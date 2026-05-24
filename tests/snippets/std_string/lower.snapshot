@@ -114,7 +114,7 @@
       arg0:
         call :string
           callee:
-            slice :string
+            byte_slice :string
           arg0:
             "hello world" :string
           arg1:

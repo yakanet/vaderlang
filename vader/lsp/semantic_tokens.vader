@@ -16,7 +16,7 @@
 
 module "vader/lsp"
 
-import "std/string" { byte_len, byte_at, byte_decode_at, slice }
+import "std/string" { byte_len, byte_at, byte_decode_at, byte_slice }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
@@ -299,7 +299,7 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
             i = i + 1
             continue
         }
-        tag_name :: text.slice(i + 1, tag_end)
+        tag_name :: text.byte_slice(i + 1, tag_end)
         is_known :: tag_name == "param" || tag_name == "return" || tag_name == "error" || tag_name == "example"
         if !is_known {
             i = tag_end

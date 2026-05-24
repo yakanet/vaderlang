@@ -23,7 +23,7 @@
 
 module "std/regex"
 
-import "std/string" { byte_len, byte_at, slice, is_empty }
+import "std/string" { byte_len, byte_at, byte_slice, is_empty }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 
 // =========================================================================
@@ -644,7 +644,7 @@ export replace_all :: fn(self: Pattern, input: string, repl: string) -> string {
     for i < matches_found.len() {
         m :: matches_found[i]
         // Append the gap before this match.
-        gap :: input.slice(cursor, m.start)
+        gap :: input.byte_slice(cursor, m.start)
         sb.append(gap)
         // Expand backrefs in the replacement.
         expand_replacement(sb, repl, m)
@@ -652,7 +652,7 @@ export replace_all :: fn(self: Pattern, input: string, repl: string) -> string {
         i = i + usize(1)
     }
     if cursor < input.byte_len() {
-        sb.append(input.slice(cursor, input.byte_len()))
+        sb.append(input.byte_slice(cursor, input.byte_len()))
     }
     return sb.to_string()
 }
@@ -858,7 +858,7 @@ captured_groups :: fn(t: Thread, input: string) -> string[] {
         if lo_slot == SLOT_UNSET || hi_slot == SLOT_UNSET {
             out.push("")
         } else {
-            out.push(input.slice(lo_slot, hi_slot))
+            out.push(input.byte_slice(lo_slot, hi_slot))
         }
         i = i + usize(1)
     }

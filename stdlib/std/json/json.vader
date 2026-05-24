@@ -10,7 +10,7 @@
 
 module "std/json"
 
-import "std/string" { byte_at, byte_decode_at, byte_len, slice, parse_float, pad_start, is_digit, is_white_char, chars }
+import "std/string" { byte_at, byte_decode_at, byte_len, byte_slice, parse_float, pad_start, is_digit, is_white_char, chars }
 import "std/iter" { zip }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
 import "std/collections" { MutableMap, len, keys, values }
@@ -207,7 +207,7 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
             advance(p)
         }
     }
-    raw := p.src.slice(start, p.pos)
+    raw := p.src.byte_slice(start, p.pos)
     parsed := raw.parse_float()
     match parsed {
         is f64 -> {
@@ -238,11 +238,11 @@ parse_string :: fn(p: Parser) -> string | JsonError {
         b :: p.src.byte_at(scan)
         if b == b'"' {
             p.pos = scan + usize(1)
-            return p.src.slice(start, scan)
+            return p.src.byte_slice(start, scan)
         }
         if b == b'\\' {
             sb :: new_builder()
-            sb.append(p.src.slice(start, scan))
+            sb.append(p.src.byte_slice(start, scan))
             p.pos = scan
             return parse_string_with_escapes(p, sb)
         }

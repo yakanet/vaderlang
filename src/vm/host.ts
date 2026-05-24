@@ -191,7 +191,7 @@ function fnv1a64(s: string): bigint {
 export function stdStringBindings(): Record<string, HostFn> {
   return {
     std_string$byte_len:    (args) => i64("usize", BigInt(UTF8_ENC.encode(stringArg(args, 0)).length)),
-    std_string$slice:       (args) => {
+    std_string$byte_slice:  (args) => {
       const s = stringArg(args, 0);
       const bytes = UTF8_ENC.encode(s);
       const start = Math.max(0, indexArg(args, 1));

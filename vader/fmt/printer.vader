@@ -9,7 +9,7 @@
 module "vader/fmt"
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
-import "std/string" { byte_len, byte_at, slice as str_slice }
+import "std/string" { byte_len, byte_at, byte_slice as str_slice }
 import "std/io" { eprintln }
 import "vader/diagnostics" { Span, Position }
 p :: import "vader/parser"
