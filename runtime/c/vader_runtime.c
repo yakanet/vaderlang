@@ -204,11 +204,35 @@ static size_t vader_gc_env_bytes(const char* env_name, size_t fallback) {
     return (size_t)v;
 }
 
+/* String-API profile counters (interning analysis, 2026-05-24). Dumped
+ * at process exit when env `VADER_STRING_PROFILE=1`. Defined here so
+ * `vader_gc_init` can register the atexit hook. */
+static size_t g_prof_eq_calls       = 0;
+static size_t g_prof_eq_len_skipped = 0;
+static size_t g_prof_eq_byte_work   = 0;
+static size_t g_prof_eq_matches     = 0;
+static size_t g_prof_alloc_calls    = 0;
+static size_t g_prof_alloc_bytes    = 0;
+/* Alloc-length histogram : buckets [0..=8, 9..=16, 17..=32, 33..=64, 65+]
+ * — tells us SSO eligibility (≤14 bytes fit inline in a 24-byte struct). */
+static size_t g_prof_alloc_buckets[5] = {0};
+
+/* Forward decl so the atexit dump can walk the live-string list
+ * (defined below alongside `g_string_head`). */
+typedef struct vader_string_header vader_string_header_t;
+
+static void vader_string_profile_dump(void);  /* defined below, after the header struct. */
+
 void vader_gc_init(void) {
     if (g_gc_initialized) return;
 
     const char* stress_env = getenv("VADER_GC_STRESS");
     g_gc_stress = (stress_env != NULL && stress_env[0] != '\0' && stress_env[0] != '0');
+
+    const char* prof_env = getenv("VADER_STRING_PROFILE");
+    if (prof_env != NULL && prof_env[0] != '\0' && prof_env[0] != '0') {
+        atexit(vader_string_profile_dump);
+    }
 
     /* Young: one malloc spanning both semi-spaces. */
     size_t young_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t)VADER_GC_YOUNG_BYTES);
@@ -708,6 +732,41 @@ static vader_string_header_t* g_string_head = NULL;
 static size_t                  g_string_total_bytes = 0;
 static size_t                  g_string_total_count = 0;
 
+static void vader_string_profile_dump(void) {
+    fprintf(stderr,
+        "[VADER_STRING_PROFILE]\n"
+        "  eq_calls          = %zu\n"
+        "  eq_len_skipped    = %zu  (%.1f%%)\n"
+        "  eq_byte_work      = %zu  bytes scanned by memcmp\n"
+        "  eq_matches        = %zu  (%.1f%% of memcmp calls)\n"
+        "  alloc_calls       = %zu\n"
+        "  alloc_bytes       = %zu\n"
+        "  alloc_by_size     = [<=8: %zu, <=16: %zu, <=32: %zu, <=64: %zu, >64: %zu]\n",
+        g_prof_eq_calls,
+        g_prof_eq_len_skipped,
+        g_prof_eq_calls ? 100.0 * (double) g_prof_eq_len_skipped / (double) g_prof_eq_calls : 0.0,
+        g_prof_eq_byte_work,
+        g_prof_eq_matches,
+        (g_prof_eq_calls - g_prof_eq_len_skipped)
+            ? 100.0 * (double) g_prof_eq_matches / (double) (g_prof_eq_calls - g_prof_eq_len_skipped)
+            : 0.0,
+        g_prof_alloc_calls,
+        g_prof_alloc_bytes,
+        g_prof_alloc_buckets[0], g_prof_alloc_buckets[1], g_prof_alloc_buckets[2],
+        g_prof_alloc_buckets[3], g_prof_alloc_buckets[4]);
+    /* Walk live-string list, dump every <=8-byte buffer, one per line,
+     * prefixed with `__SMALL__|`. External pipeline can do
+     * `grep __SMALL__ | cut -d'|' -f2 | sort | uniq -c | sort -rn`. */
+    size_t small_live = 0;
+    for (vader_string_header_t* h = g_string_head; h != NULL; h = h->next) {
+        if (h->size > 0 && h->size <= 8) {
+            fprintf(stderr, "__SMALL__|%.*s\n", (int) h->size, (const char*) (h + 1));
+            small_live++;
+        }
+    }
+    fprintf(stderr, "[<=8 live strings at exit: %zu]\n", small_live);
+}
+
 /* Zero-length requests return a process-lifetime sentinel rather than a
  * fresh allocation: the caller never writes (every write site is a `memcpy`
  * of `bytes` bytes, which is a no-op for zero) so const aliasing is safe,
@@ -726,6 +785,13 @@ static void* vader_string_alloc(size_t bytes) {
     g_string_head = hdr;
     g_string_total_bytes += bytes;
     g_string_total_count += 1;
+    g_prof_alloc_calls += 1;
+    g_prof_alloc_bytes += bytes;
+    if      (bytes <= 8)  g_prof_alloc_buckets[0]++;
+    else if (bytes <= 16) g_prof_alloc_buckets[1]++;
+    else if (bytes <= 32) g_prof_alloc_buckets[2]++;
+    else if (bytes <= 64) g_prof_alloc_buckets[3]++;
+    else                  g_prof_alloc_buckets[4]++;
     return (void*)(hdr + 1);
 }
 
@@ -1036,7 +1102,15 @@ vader_string_t vader_string_concat(vader_string_t a, vader_string_t b) {
 }
 
 bool vader_string_eq(vader_string_t a, vader_string_t b) {
-    return a.len == b.len && memcmp(a.ptr, b.ptr, a.len) == 0;
+    g_prof_eq_calls++;
+    if (a.len != b.len) { g_prof_eq_len_skipped++; return false; }
+    /* Pointer-equal short-circuit : interned strings and `.rodata`
+     * literal duplicates skip the memcmp entirely. */
+    if (a.ptr == b.ptr) { g_prof_eq_matches++; return true; }
+    g_prof_eq_byte_work += a.len;
+    bool match = (memcmp(a.ptr, b.ptr, a.len) == 0);
+    if (match) g_prof_eq_matches++;
+    return match;
 }
 
 /* `@extern` ABI bridge : the Vader-side `vader_string_t` is a raw

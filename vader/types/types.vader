@@ -189,7 +189,26 @@ export TY_BOOL       :: PrimitiveType { .name = "bool" }
 /// Render `t` as a human-readable string. Format mirrors
 /// `src/typecheck/types.ts::displayType` byte-for-byte so dumps stay
 /// stable across the TS↔Vader parity harness.
+///
+/// Fast path : leaf types whose display form is a single constant
+/// string skip the builder entirely. Profiling showed `display_type`
+/// was the top source of small-string allocs (`string` 66×, `void`
+/// 20×, every primitive 5–10× per typecheck) because each call went
+/// through `new_builder + append + to_string` even for primitives
+/// whose name was already a canonical `.rodata` literal.
 export display_type :: fn(t: Type) -> string {
+    match t {
+        is PrimitiveType  as p -> { return p.name }
+        is TypeParamType  as p -> { return p.symbol.name }
+        is EnumType       as e -> { return e.symbol.name }
+        is UnresolvedType      -> { return "?" }
+        is NeverType           -> { return "never" }
+        is FreeIntType         -> { return "{integer}" }
+        is FreeFloatType       -> { return "{float}" }
+        is SelfType            -> { return "Self" }
+        is TypeMetaType        -> { return "type" }
+        _ -> {}  // fall through for composite types
+    }
     sb :: new_builder()
     sb.write_type(t)
     return sb.to_string()
