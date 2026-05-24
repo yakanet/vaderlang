@@ -22,7 +22,7 @@ module "vader/bytecode"
 import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType,
     UnionType, FnType, TupleType, TypeParamType, TypeMetaType, SelfType,
-    UnresolvedType, FreeIntType, FreeFloatType, NeverType,
+    UnresolvedType, FreeIntType, FreeFloatType, NeverType, AnyType,
     display_type,
 }
 
@@ -48,6 +48,7 @@ export type_intern_key :: fn(t: Type) -> string = match t {
     is FreeIntType        -> display_type(t)
     is FreeFloatType      -> display_type(t)
     is NeverType          -> display_type(t)
+    is AnyType            -> "Any"
 }
 
 /// Stack-class of a `Type`. Primitive types map by name ; every
@@ -72,6 +73,7 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is FreeIntType        -> ValType.I32
     is FreeFloatType      -> ValType.F64
     is NeverType          -> ValType.Void
+    is AnyType            -> ValType.Any
 }
 
 /// Translate a `Type` to a `BcType`. Phase 1 covers primitives ;

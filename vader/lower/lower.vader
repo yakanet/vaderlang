@@ -1006,11 +1006,18 @@ materialize_struct_instance :: fn(
     if decl is StructDecl as sd {
         if sd.type_params.len() == usize(0) { return }
         mangled :: "${mangle_module_id(owner_typed.resolved.display_path)}$${inst.symbol.name}${args_suffix(inst.args)}"
+        // Erasure : the entry's `subst` keeps the concrete args (for
+        // mangling + downstream consumers that need the source-level
+        // type-args), but the FIELDS get the anySubst applied so every
+        // TypeParam mention lands on `Any`. Identical monos can then
+        // collapse to a single C-emit shape. Mirror of TS `anySubst`
+        // in `src/comptime/specialize.ts:45-54`.
         subst :: build_struct_subst(sd, inst.args, owner_typed)
+        erase :: build_any_subst(sd, owner_typed)
         fields: LoweredStructField[] = []
         for f in sd.fields {
             raw_ty :: resolve_field_type(f.ty, owner_typed, sd, inst.args)
-            field_ty :: substitute(raw_ty, subst)
+            field_ty :: substitute(raw_ty, erase)
             fields.push(LoweredStructField {
                 .name = f.name,
                 .type = field_ty,
@@ -1034,6 +1041,23 @@ materialize_struct_instance :: fn(
         })
     }
 }
+
+/// Build a substitution mapping every type-parameter of `sd` to
+/// `TY_ANY`. Used by the erasure pass to drop type info from
+/// monomorphized struct field types so identical monos share a single
+/// C-emit shape. Mirror of `anySubst` in `src/comptime/specialize.ts:45`.
+build_any_subst :: fn(sd: StructDecl, owner_typed: TypedProgram) -> Substitution {
+    subst :: new_substitution()
+    for tp in sd.type_params {
+        tp_symbol :: find_type_param_in_resolved(owner_typed.resolved, tp.name, tp.span)
+        if !(tp_symbol is null) {
+            subst.type_params[tp_symbol.id] = TY_ANY
+        }
+    }
+    return subst
+}
+
+import "vader/types" { TY_ANY }
 
 resolve_field_type :: fn(
     ty: TypeExpr, owner_typed: TypedProgram, sd: StructDecl, args: Type[],

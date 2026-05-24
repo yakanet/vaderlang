@@ -14,7 +14,7 @@ import "std/sort" { sort }
 import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
     FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
-    UnresolvedType, FreeIntType, FreeFloatType, NeverType,
+    UnresolvedType, FreeIntType, FreeFloatType, NeverType, AnyType,
     TY_NEVER, display_type, mk_primitive, mk_union, type_base_name,
 }
 
@@ -51,6 +51,7 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is NeverType      -> b is NeverType
     is FreeIntType    -> b is FreeIntType
     is FreeFloatType  -> b is FreeFloatType
+    is AnyType        -> b is AnyType
     is PrimitiveType as ax  -> match b { is PrimitiveType  as bx -> ax.name == bx.name              _ -> false }
     is TypeParamType as ax  -> match b { is TypeParamType  as bx -> ax.symbol.id == bx.symbol.id     _ -> false }
     // `StructType(EnumSym)` is the placeholder `type_from_expr` returns

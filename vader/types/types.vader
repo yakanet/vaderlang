@@ -64,6 +64,13 @@ export TypeParamType :: struct {
 export TypeMetaType :: struct {}
 export SelfType :: struct {}
 export UnresolvedType :: struct {}
+
+/// Erased "any" reference — synthesised by the erasure-dedupe pass
+/// for fields of monomorphized generic structs so identical concrete
+/// monos (e.g. `Pair__string__i64` vs `Pair__i32__bool`) can share a
+/// single C-emit shape. Surface name `Any`. Maps to `ValType.Any` at
+/// the bytecode level (same wide-ref representation as Ref).
+export AnyType :: struct {}
 /// Untyped int literal — flexible until placed in a typed context.
 export FreeIntType :: struct {}
 /// Untyped float literal — flexible until placed in a typed context.
@@ -88,6 +95,7 @@ export Type ::
     | FreeIntType
     | FreeFloatType
     | NeverType
+    | AnyType
 
 // ---- name registries ------------------------------------------------------
 
@@ -181,6 +189,7 @@ export TY_UNRESOLVED :: UnresolvedType {}
 export TY_FREE_INT   :: FreeIntType {}
 export TY_FREE_FLOAT :: FreeFloatType {}
 export TY_NEVER      :: NeverType {}
+export TY_ANY        :: AnyType {}
 export TY_VOID       :: PrimitiveType { .name = "void" }
 export TY_BOOL       :: PrimitiveType { .name = "bool" }
 
@@ -207,6 +216,7 @@ export display_type :: fn(t: Type) -> string {
         is FreeFloatType       -> { return "{float}" }
         is SelfType            -> { return "Self" }
         is TypeMetaType        -> { return "type" }
+        is AnyType             -> { return "Any" }
         _ -> {}  // fall through for composite types
     }
     sb :: new_builder()
@@ -264,6 +274,7 @@ write_type :: fn(sb: StringBuilder, t: Type) -> void {
             sb.write_type(x.return_type)
         }
         is UnionType as x -> { sb.write_type_list(x.variants, " | ") }
+        is AnyType            -> { sb.append("Any") }
     }
 }
 
@@ -310,6 +321,7 @@ export canonical_key :: fn(t: Type) -> string {
         is NeverType           -> { return "!" }
         is FreeIntType         -> { return "FI" }
         is FreeFloatType       -> { return "FF" }
+        is AnyType             -> { return "A" }
     }
 }
 
