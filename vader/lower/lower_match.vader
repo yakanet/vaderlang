@@ -319,9 +319,10 @@ walk_pattern_bindings :: fn(
     match pattern {
         is BindingPattern as binding -> {
             symbol :: resolve_pattern_symbol(ctx, binding.span, binding.name)
+            init :: lower_cell_init(ctx, symbol, target, target_type, span)
             out.push(LoweredLet {
                 .span = span, .name = binding.name, .symbol = symbol,
-                .type = target_type, .value = target,
+                .type = init.slot_type, .value = init.value,
             })
         }
         is IsPattern as is_pattern -> {
@@ -331,9 +332,10 @@ walk_pattern_bindings :: fn(
                 is null -> {}
                 is string as alias -> {
                     symbol :: resolve_pattern_symbol(ctx, is_pattern.span, alias)
+                    init :: lower_cell_init(ctx, symbol, narrowed_target, inner_type, span)
                     out.push(LoweredLet {
                         .span = span, .name = alias, .symbol = symbol,
-                        .type = inner_type, .value = narrowed_target,
+                        .type = init.slot_type, .value = init.value,
                     })
                 }
             }
@@ -354,9 +356,10 @@ walk_pattern_bindings :: fn(
                             .target = target, .field = field.name,
                         }
                         symbol :: resolve_pattern_symbol(ctx, binding.span, binding.name)
+                        init :: lower_cell_init(ctx, symbol, field_access, field_type, field.span)
                         out.push(LoweredLet {
                             .span = field.span, .name = binding.name, .symbol = symbol,
-                            .type = field_type, .value = field_access,
+                            .type = init.slot_type, .value = init.value,
                         })
                     }
                     _ -> {}
