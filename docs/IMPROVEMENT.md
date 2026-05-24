@@ -25,20 +25,36 @@ The CLI scaffold and the printer skeleton already exist under
 `vader/fmt/`. Completing the formatter is the next deliverable; no new
 work was committed in this review.
 
-### 2. Constant folding — ⬜ to do
+### 2. Constant folding — ✅ done (2026-05-24)
 
-A `1 + 2` expression currently emits `i32.const 1; i32.const 2; i32.add`.
-The peephole pass (`src/bytecode/peephole.ts`) handles dead-store and
-jump threading but not constant arithmetic. Two options:
+Mid-IR pass in `src/midir/const_fold.ts`. Walks each block, tracks
+`LocalId → ConstValue` from `Const` instructions, replaces `BinOp`
+/ `UnOp` whose operands are all known constants with a fresh
+`Const`. Truncation / sign-extension by result-type width via
+`BigInt.asIntN` / `BigInt.asUintN` so folded values match runtime
+semantics across i8..i64, u8..u64, isize, usize.
 
-- Fold at the mid-IR level (`src/midir/`) on `Instruction.kind === "BinOp"`
-  where both operands trace back to `Const` instructions.
-- Fold in the bytecode peephole as a new rule, fusing
-  `const ; const ; <op>` into a single `const`.
+Folded ops : int / float arith (`add`, `sub`, `mul`, `div`, `mod`
+— div/mod by 0 deliberately left for runtime trap), bitwise (`shl`,
+`shr` skipped when shift count ≥ 64, `bitand`, `bitor`, `bitxor`),
+comparisons (`eq`, `neq`, `lt`, `lte`, `gt`, `gte`) on
+int / float / bool / char, logical (`and`, `or`) on bool, unary
+(`neg`, `not`, `bitnot`).
 
-The mid-IR option is preferred: it composes with copy propagation and
-DCE, and covers branches the bytecode emitter has already linearised
-beyond recognition.
+Wired in `src/pipeline.ts:148` and `src/comptime/lower-decl.ts:103`
+before `eliminateDeadCFG` so its DIE pass collects the
+now-unused producer Consts. Intra-block scope ; SSA-style
+cross-block propagation is a future pass.
+
+Surfaced a latent VM bug in `tests/snippets/u32_bitops` — `~0_u32`
+was returning the wrong runtime value but the snapshot baked in
+the bug. With folding, the comparison resolves correctly ;
+snapshot refreshed.
+
+Follow-ups (not blocking) :
+- Shared `evalBinop(op, ConstValue, ConstValue)` between this pass,
+  `src/vm/exec.ts`, and `src/bytecode/peephole.ts::constFoldArith`.
+- Re-run after `foldMoves` to catch newly-unlocked opportunities.
 
 ### 3. `switch` terminator + jump table for `match` — ⬜ to do
 

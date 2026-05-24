@@ -25,6 +25,7 @@ import { buildImplRegistry } from "./typecheck/impls.ts";
 import { buildCFGProject } from "./midir/build.ts";
 import type { CFGProject } from "./midir/cfg.ts";
 import { eliminateDeadCFG, pruneUnreachable } from "./midir/dce.ts";
+import { constFoldProject } from "./midir/const_fold.ts";
 import { emitBytecodeFromCFG } from "./midir/emit.ts";
 import { annotateEscape } from "./midir/escape.ts";
 
@@ -145,7 +146,10 @@ export async function pipelineCfg(
   const r = await pipelineDced(file, opts);
   // Escape analysis annotates StructNew/ArrayNew with `stack: true` when
   // the value can't be observed past the fn's return.
-  const cfg = annotateEscape(eliminateDeadCFG(buildCFGProject(r.dced))).project;
+  // Constant folding runs BEFORE the dead-code eliminator so that
+  // folded `c = 1 + 2 → c = 3` instructions kill their producer
+  // `1` and `2` consts on the subsequent DIE pass.
+  const cfg = annotateEscape(eliminateDeadCFG(constFoldProject(buildCFGProject(r.dced)))).project;
   return { ...r, cfg };
 }
 
