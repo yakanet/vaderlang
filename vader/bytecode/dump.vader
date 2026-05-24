@@ -25,7 +25,7 @@ import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/vm" {
     Op,
     I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst, NullConst,
-    LocalGet, LocalSet, LocalTee, Return, Drop, Call,
+    LocalGet, LocalSet, LocalTee, Return, ReturnLit, ConstOp, Drop, Call,
     If, Else, End, StructNew, StructGet, StructSet,
     Block, Loop, Branch, BranchIf, BoolNot,
     ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice,
@@ -149,6 +149,7 @@ format_op :: fn(op: Op) -> string = match op {
     is LocalSet as l            -> "local.set ${l.slot}"
     is LocalTee as l            -> "local.tee ${l.slot}"
     is Return                   -> "return"
+    is ReturnLit as r           -> "return.lit ${format_const_op(r.value)}"
     is Drop                     -> "drop"
     is Call as c                -> "call ${c.function_index}"
     is CallImport as c          -> "call.import ${c.index}"
@@ -253,6 +254,19 @@ format_op :: fn(op: Op) -> string = match op {
     is StringConcat             -> "string.concat"
     is StringSliceCodepoints    -> "string.slice_codepoints"
     _                           -> "<op>"
+}
+
+/// Render a `ConstOp` in its native text form (e.g. `i32.const 42`).
+/// Shared with `format_op`'s ReturnLit arm — keep these spellings in
+/// sync with `vader/bytecode/text.vader::write_const_op_text`.
+format_const_op :: fn(c: ConstOp) -> string = match c {
+    is I32Const    as v -> "i32.const ${v.value}"
+    is I64Const    as v -> "i64.const ${v.value}"
+    is F64Const    as v -> "f64.const ${v.value}"
+    is BoolConst   as v -> "bool.const ${v.value}"
+    is CharConst   as v -> "char.const ${u32(v.value)}"
+    is StringConst as v -> "string.const ${v.index}"
+    is NullConst        -> "null.const"
 }
 
 // ---- tests ----------------------------------------------------------------

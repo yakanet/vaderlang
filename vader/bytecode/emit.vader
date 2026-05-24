@@ -51,7 +51,8 @@ import "vader/lower" {
 }
 import "vader/vm" {
     Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
-    NullConst, LocalGet, LocalSet, LocalTee, Return, Drop, Call, CallImport,
+    NullConst, LocalGet, LocalSet, LocalTee, Return, ReturnLit, ConstOp,
+    const_op_of, Drop, Call, CallImport,
     If, Else, End, StructNew, StructGet, StructSet,
     Block, Loop, Branch, BranchIf, BoolNot,
     ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySlice,
@@ -161,6 +162,22 @@ run_bc_peephole :: fn(function: BcFunction) -> void {
                         i += usize(2)
                         continue
                     }
+                }
+            }
+        }
+
+        // Return.lit fold — `<const>.const X ; Return` → `ReturnLit X`.
+        // Mirrors `midir/emit.ts:283-293`. Branches don't target the
+        // collapsed Return op (terminator) so depth-safety holds.
+        if op is Return {
+            out_len :: out.len()
+            if out_len > usize(0) {
+                prev :: out[out_len - usize(1)]
+                cv :: const_op_of(prev)
+                if cv !is null {
+                    out[out_len - usize(1)] = ReturnLit { .value = cv }
+                    i += usize(1)
+                    continue
                 }
             }
         }
