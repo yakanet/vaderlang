@@ -46,7 +46,7 @@ import "vader/comptime" { MonoEntry }
 export lower_project :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject, diags: Diagnostic[],
 ) -> LoweredProject {
-    project_ctx :: new_lower_project_ctx(evaluated)
+    project_ctx :: new_lower_project_ctx(evaluated, loaded)
     // Closure analysis runs once at entry — every lambda's capture set
     // is precomputed so per-decl lowering can read it without re-
     // walking the AST.
