@@ -2455,6 +2455,20 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
             }
         }
         is WhileFor as while_for -> {
+            // `for <iter> { body }` sugar : when the cond evaluates to an
+            // iterable shape (array, range, struct with `Iterator` impl),
+            // route through the for-in lowerer with a synthetic discard
+            // binding `_`. Mirrors TS `whileAsForIn` in
+            // `src/lower/passes/block.ts:233-238`.
+            cond_type :: ctx.types.expr_type(while_for.cond)
+            if cond_type is ArrayType {
+                synth_in :: InFor {
+                    .binding      = "_",
+                    .binding_span = while_for.cond.span,
+                    .iter         = while_for.cond,
+                }
+                return lower_for_in(ctx, for_stmt, synth_in, lower_expr, lower_block)
+            }
             cond :: lower_expr(ctx, while_for.cond)
             body :: lower_block(ctx, for_stmt.body, false, true)
             return LoweredLoop {
