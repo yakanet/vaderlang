@@ -32,5 +32,11 @@ main :: fn() -> i32 {
     }
     println("done bytes=${byte_len("")}")
 
+    // A7 P4c — bytes() now returns u8[], so the array supports random
+    // access and .len() like any other array. Test both surfaces.
+    println("-- u8[] surface --")
+    bs :: "abc".bytes()
+    println("len=${bs.len()} bs[0]=${bs[0]} bs[1]=${bs[1]} bs[2]=${bs[2]}")
+
     return 0
 }

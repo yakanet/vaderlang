@@ -26,6 +26,12 @@ string 13 "-- empty --"
 string 14 ""
 string 15 "never"
 string 16 "done bytes="
+string 17 "-- u8[] surface --"
+string 18 "abc"
+string 19 "len="
+string 20 " bs[0]="
+string 21 " bs[1]="
+string 22 " bs[2]="
 import 0 to_string std_core$u32$Display$to_string (u32) -> string
 import 1 to_string std_core$usize$Display$to_string (usize) -> string
 import 2 println std_io$println (string) -> void
@@ -237,6 +243,59 @@ fn 0 snippet$main () -> i32
   local.get 5
   local.get 6
   intrinsic builder.append_str
+  local.get 5
+  intrinsic builder.finish
+  call 4
+  string.const 17
+  call 4
+  string.const 18
+  call 1
+  local.set 1
+  intrinsic builder.new
+  local.set 5
+  local.get 5
+  string.const 19
+  intrinsic builder.append_str
+  local.get 1
+  array.len
+  call 3
+  local.set 6
+  local.get 5
+  local.get 6
+  intrinsic builder.append_str
+  local.get 5
+  string.const 20
+  intrinsic builder.append_str
+  local.get 1
+  i32.const 0
+  array.get 8
+  ref.cast 3
+  local.set 7
+  local.get 5
+  local.get 7
+  intrinsic builder.append_display
+  local.get 5
+  string.const 21
+  intrinsic builder.append_str
+  local.get 1
+  i32.const 1
+  array.get 8
+  ref.cast 3
+  local.set 7
+  local.get 5
+  local.get 7
+  intrinsic builder.append_display
+  local.get 5
+  string.const 22
+  intrinsic builder.append_str
+  local.get 1
+  i32.const 2
+  array.get 8
+  ref.cast 3
+  local.set 7
+  local.get 5
+  local.get 7
+  intrinsic builder.append_display
   local.get 5
   intrinsic builder.finish
   call 4

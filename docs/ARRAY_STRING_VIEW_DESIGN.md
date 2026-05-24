@@ -266,33 +266,40 @@ offsets for the codepoint indices and clamps out-of-bounds ranges
 `string_codepoint_slice` removed from
 `tests/vader_vm.test.ts::KNOWN_DIVERGENT` ; vader-vm parity passes.
 
-### Phase 7 — Tests (2-3 h)
+### Phase 7 — Tests (LANDED)
 
-- ✅ `tests/snippets/array_view_aliasing/` — Phase 1 landed.
-- `tests/snippets/string_codepoint_slice/` : `"héllo"[0..<2]` → `"hé"`.
-- `tests/snippets/string_codepoint_index/` : `"héllo"[1]` → `'é'`.
-- `tests/snippets/string_bytes_view/` : `s.bytes()[i]` zero-copy reads.
+- ✅ `tests/snippets/array_view_aliasing/` — Phase 1.
+- ✅ `tests/snippets/string_codepoint_slice/` — `"héllo"[0..<2]` → `"hé"` ; clamping, ASCII parity, empty-range cases. Active under both TS VM and Vader VM (Phase 6).
+- ✅ `tests/snippets/std_string/` covers the codepoint `s[i]` form post-P3 (`"你好嗎？"[0]` → `你`).
+- ✅ `tests/snippets/string_bytes/` — exercises `for b in s.bytes()` iteration plus the new `u8[]` surface (`.len()`, random `bs[i]` indexing) introduced by P4c.
+- ✅ `tests/snippets/string_codepoints/` — exercises `len()` (renamed from `count_chars` in P4b).
 
-### Phase 8 — SPEC.md sync (30 min)
+### Phase 8 — SPEC.md sync (LANDED across P3/P4/P5)
 
-Update §4 (type system) — clarify that `T[]` has internal owning / view
-states with aliasing on write. Update §9 (strings) — `string[r]` and
-`s[i]` are codepoint-indexed ; `s.bytes()` returns `u8[]` view ;
-`s.slice()` is gone.
+§4 (type system) and §11 (stdlib listing) updated incrementally with
+each phase :
+- P3 — `s[i]` codepoint-indexed (§4 Strings, §11).
+- P4a — `slice` → `byte_slice` (§4, §11).
+- P4b — `count_chars` → `len` (§4, §11).
+- P4c — `bytes()` returns `u8[]` ; `StringBytes` type removed (§4, §11).
+- P5 — `byte_decode_at` documented alongside `byte_at` (§11).
+
+The array view aliasing model (§4 Arrays) was already in place ;
+no extra prose needed.
 
 ## Effort estimate
 
 | Phase | Status | Effort |
 |-------|--------|--------|
 | 1. Array view aliasing | ✅ done | 2 h |
-| 2. Strings codepoint slice op + lower + emit | pending | 3-4 h |
-| 3. `s[i]` codepoint shift | pending | 1 h |
-| 4. Stdlib (`bytes()` returns u8[], drop `slice()`, add `len()`) | pending | 1-2 h |
-| 5. Migration (131 `.slice()` sites + `s[i]` audit) | pending | 3-5 h |
-| 6. Vader self-host port | pending | 1-2 h |
-| 7. Tests | partial | 2-3 h |
-| 8. SPEC sync | pending | 30 min |
-| **Remaining** | | **11-17 h** |
+| 2. Strings codepoint slice op + lower + emit | ✅ done | 3 h |
+| 3. `s[i]` codepoint shift | ✅ done | 1 h |
+| 4. Stdlib renames + `bytes()` → u8[] (P4a/P4b/P4c) | ✅ done | 3 h |
+| 5. Migration (`s[i]` byte-intent audit) | ✅ done | 3 h |
+| 6. Vader self-host VM port | ✅ done | 1 h |
+| 7. Tests | ✅ done | 2 h |
+| 8. SPEC sync | ✅ done | 30 min |
+| **Status** | | **complete** |
 
 ## Open questions
 

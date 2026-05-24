@@ -73,7 +73,26 @@ fn snippet$main() -> i32
     %66 $call_82: usize
     %67 $call_83: string
     %68 $intrinsic_84: string
-    %69 $k_85: i32
+    %69 $k_85: string
+    %70 $k_86: string
+    %71 $call_87: u8[]
+    %72 bs: u8[] (local bs)
+    %73 $intrinsic_89: ?
+    %74 __sb_14: ? (synthetic __sb_14)
+    %75 $k_91: string
+    %76 $len_92: usize
+    %77 $call_93: string
+    %78 $k_94: string
+    %79 $k_95: i32
+    %80 $idx_96: u8
+    %81 $k_97: string
+    %82 $k_98: i32
+    %83 $idx_99: u8
+    %84 $k_100: string
+    %85 $k_101: i32
+    %86 $idx_102: u8
+    %87 $intrinsic_103: string
+    %88 $k_104: i32
   bb0:
     %0 = const string(#0) :string
     call println(%0) :void
@@ -191,5 +210,34 @@ fn snippet$main() -> i32
     intrinsic builder.append_str(%63, %67)
     %68 = intrinsic builder.finish(%63)
     call println(%68) :void
-    %69 = const int(0) :i32
-    return %69
+    %69 = const string(#17) :string
+    call println(%69) :void
+    %70 = const string(#18) :string
+    %71 = call bytes(%70) :u8[]
+    %72 = move %71
+    %73 = intrinsic builder.new()
+    %74 = move %73
+    %75 = const string(#19) :string
+    intrinsic builder.append_str(%74, %75)
+    %76 = array_len %72
+    %77 = call to_string(%76) :string
+    intrinsic builder.append_str(%74, %77)
+    %78 = const string(#20) :string
+    intrinsic builder.append_str(%74, %78)
+    %79 = const int(0) :i32
+    %80 = array_get %72[%79] :u8
+    intrinsic builder.append_display(%74, %80)
+    %81 = const string(#21) :string
+    intrinsic builder.append_str(%74, %81)
+    %82 = const int(1) :i32
+    %83 = array_get %72[%82] :u8
+    intrinsic builder.append_display(%74, %83)
+    %84 = const string(#22) :string
+    intrinsic builder.append_str(%74, %84)
+    %85 = const int(2) :i32
+    %86 = array_get %72[%85] :u8
+    intrinsic builder.append_display(%74, %86)
+    %87 = intrinsic builder.finish(%74)
+    call println(%87) :void
+    %88 = const int(0) :i32
+    return %88

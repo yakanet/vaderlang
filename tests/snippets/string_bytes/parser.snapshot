@@ -639,6 +639,154 @@
             }
           },
           {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "-- u8[] surface --"
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "bs"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "abc"
+                    }
+                  ]
+                },
+                "field": "bytes"
+              },
+              "args": []
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "len="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "bs"
+                            },
+                            "field": "len"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " bs[0]="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "bs"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "0n",
+                            "suffix": null
+                          }
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " bs[1]="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "bs"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "1n",
+                            "suffix": null
+                          }
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " bs[2]="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IndexExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "bs"
+                          },
+                          "index": {
+                            "kind": "IntLitExpr",
+                            "value": "2n",
+                            "suffix": null
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",

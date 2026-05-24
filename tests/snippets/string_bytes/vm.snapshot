@@ -10,5 +10,7 @@ b0=239 b1=187 b2=191
 after bom: 100=100
 -- empty --
 done bytes=0
+-- u8[] surface --
+len=3 bs[0]=97 bs[1]=98 bs[2]=99
 # exit
 0
