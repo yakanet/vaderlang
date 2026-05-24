@@ -10,7 +10,7 @@
 
 module "vader/cli"
 
-import "std/io" { println, eprintln, read_file }
+import "std/io" { println, eprintln, read_file, print }
 import "std/collections" { keys, values }
 import "std/string" { starts_with, ends_with, byte_len, byte_at, byte_slice as byte_slice_str }
 import "std/iter" { slice as slice_arr }
@@ -470,7 +470,10 @@ run_bytecode_stage :: fn(file: string) -> i32 {
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     module :: emit_project(lowered, module_name_from_file(file), default_emit_options())
-    println(dump_bytecode(module))
+    // `dump_bytecode` already returns a trailing-newline-terminated
+    // string ; use `print` (no auto-newline) to match TS
+    // `process.stdout.write(writeVir(...))` byte-for-byte.
+    print(dump_bytecode(module))
     print_pipeline_diags(pipeline, lower_diags)
     return 0
 }
