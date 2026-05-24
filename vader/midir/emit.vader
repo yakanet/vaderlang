@@ -39,7 +39,7 @@ import "vader/vm" {
     DataConst, TypeConst, TypeCheck, RefCast, Convert,
     MakeClosure,
 }
-import "vader/bytecode" { intern_cell_type }
+import "vader/bytecode" { intern_cell_type, run_bc_peephole, drop_dead_stores }
 import "vader/resolver/symbol" { Symbol }
 
 // ============================================================================
@@ -155,6 +155,18 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         }
     }
 
+    // Pass 3 — bytecode peephole + DCE. Mirrors the post-emit pass
+    // `vader/bytecode/emit.vader::emit_project` runs on the legacy
+    // Lowered→bytecode path. Gated by `opts.optimize`.
+    if opts.optimize {
+        i := usize(0)
+        for i < ctx.functions.len() {
+            run_bc_peephole(ctx.functions[i])
+            drop_dead_stores(ctx.functions[i])
+            i = i + 1
+        }
+    }
+
     return BytecodeModule {
         .name        = module_name,
         .types       = ctx.types,
@@ -172,12 +184,23 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
 // Per-fn structurer
 // ============================================================================
 
-/// Active structured scope. `target` is the BlockId that `br <depth>`
-/// jumps to in source-CFG terms. `kind` distinguishes how the bytecode
-/// `br` semantics map.
+/// Active structured scope. Mirrors `FunctionBuilder::ScopeEntry` but
+/// keyed by source-CFG BlockId instead of label string. `opener_pc` is
+/// the pc of the `Block`/`Loop`/`If` op that opened this scope ; used
+/// to fill `jump_table[opener_pc]` at `end` (block/if) or right away
+/// (loop : target = opener_pc + 1).
 ScopeFrame :: struct {
-    kind:   string          // "block" | "loop" | "if"
-    target: BlockId
+    kind:        string        // "block" | "loop" | "if"
+    target_blk:  BlockId       // source-CFG target for matching br
+    opener_pc:   i32
+}
+
+/// A `Branch` / `BranchIf` op whose target scope hasn't been opened
+/// yet — wait, in a forward jump *out of* a still-open block. Held
+/// in a side list, drained at the matching end.
+PendingBranch :: struct {
+    branch_pc:  i32
+    target_blk: BlockId
 }
 
 /// Per-fn structurer state.
@@ -192,6 +215,7 @@ FnEmitCfg :: struct {
     ipostdom:            i32[]
     loop_exit:           MutableMap(i32, BlockId | null)
     scopes:              ScopeFrame[]
+    pending:             PendingBranch[]
     wrapped_loop_headers: MutableSet(i32)
 }
 
@@ -201,7 +225,10 @@ emit_cfg_function_body :: fn(
     slot :: ctx.functions[usize(fn_idx)]
 
     // Map CFG locals to bytecode slots. Params take slots 0..N-1 ;
-    // additional locals get fresh slots.
+    // additional locals get fresh slots indexed AFTER the params.
+    // (slot.locals only contains the non-param locals — params live
+    // in signature.params — so the surviving slot indices need the
+    // n_params offset added when pushing.)
     local_to_slot: i32[] = []
     n_params :: cfg_fn.params.len()
     i := usize(0)
@@ -209,7 +236,7 @@ emit_cfg_function_body :: fn(
         if i < n_params {
             local_to_slot.push(i32(i))
         } else {
-            slot_idx :: i32(slot.locals.len())
+            slot_idx :: i32(n_params) + i32(slot.locals.len())
             slot.locals.push(BcLocal {
                 .name = cfg_fn.locals[i].name,
                 .val  = val_type_of_type(cfg_fn.locals[i].type),
@@ -235,12 +262,129 @@ emit_cfg_function_body :: fn(
         .ipostdom             = ipostdom,
         .loop_exit            = loop_exit,
         .scopes               = [],
+        .pending              = [],
         .wrapped_loop_headers = MutableSet(i32) {
             .inner = MutableMap(i32, bool) { .buckets = [], .size = 0 },
         },
     }
 
     emit_range(fn_ctx, cfg_fn.entry, -1)
+}
+
+// ============================================================================
+// Scope wiring — mirrors FunctionBuilder::block/loop_/if_/else_/end/br/br_if
+// but indexes scopes by source-CFG BlockId target instead of label string.
+// Maintains `slot.body` and `slot.jump_table` in parallel.
+// ============================================================================
+
+cf_block :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
+    pc :: push_op_with_span(ctx, Block {}, span)
+    ctx.scopes.push(ScopeFrame { .kind = "block", .target_blk = target_blk, .opener_pc = pc })
+}
+
+cf_loop :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
+    pc :: push_op_with_span(ctx, Loop {}, span)
+    ctx.scopes.push(ScopeFrame { .kind = "loop", .target_blk = target_blk, .opener_pc = pc })
+    // Loop target = body start (opener_pc + 1) — known immediately.
+    ctx.slot.jump_table[usize(pc)] = pc + 1
+}
+
+cf_if :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
+    pc :: push_op_with_span(ctx, If {}, span)
+    ctx.scopes.push(ScopeFrame { .kind = "if", .target_blk = target_blk, .opener_pc = pc })
+}
+
+cf_else :: fn(ctx: FnEmitCfg, span: Span) -> void {
+    pc :: push_op_with_span(ctx, Else {}, span)
+    sp :: ctx.scopes.len()
+    if sp == usize(0) { return }
+    top :: ctx.scopes[sp - usize(1)]
+    // The `if` opener jumps past the matching `else` op when its cond
+    // is false ; the matching `end` will set the else opener's target.
+    ctx.slot.jump_table[usize(top.opener_pc)] = pc + 1
+    // Repurpose the same entry as an "else scope".
+    ctx.scopes[sp - usize(1)] = ScopeFrame {
+        .kind = "if", .target_blk = top.target_blk, .opener_pc = pc,
+    }
+}
+
+cf_end :: fn(ctx: FnEmitCfg, span: Span) -> void {
+    pc :: push_op_with_span(ctx, End {}, span)
+    sp :: ctx.scopes.len()
+    if sp == usize(0) { return }
+    top :: ctx.scopes[sp - usize(1)]
+    // Pop top scope.
+    new_scopes: ScopeFrame[] = []
+    j := usize(0)
+    for j < sp - usize(1) {
+        new_scopes.push(ctx.scopes[j])
+        j = j + 1
+    }
+    ctx.scopes = new_scopes
+    // Block/if/else fall-through target = past the end. Loops don't
+    // fall through via the opener — their `table[opener]` already
+    // points at the body start.
+    if top.kind != "loop" {
+        if ctx.slot.jump_table[usize(top.opener_pc)] < 0 {
+            ctx.slot.jump_table[usize(top.opener_pc)] = pc + 1
+        }
+    }
+    // Drain any pending branches whose target matches this scope.
+    drain_pending(ctx, top.target_blk, top.kind == "loop", top.opener_pc, pc)
+}
+
+cf_br :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
+    pc :: push_op_with_span(ctx, Branch {}, span)
+    defer_or_resolve_branch(ctx, target_blk, pc)
+}
+
+cf_br_if :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
+    pc :: push_op_with_span(ctx, BranchIf {}, span)
+    defer_or_resolve_branch(ctx, target_blk, pc)
+}
+
+defer_or_resolve_branch :: fn(ctx: FnEmitCfg, target_blk: BlockId, pc: i32) -> void {
+    // Walk the scope stack top-down for a matching target. Loop scopes
+    // resolve immediately to the loop opener+1 (continue) ; block/if
+    // scopes defer to the matching end.
+    sp :: ctx.scopes.len()
+    i := i64(sp) - i64(1)
+    for i >= 0 {
+        scope :: ctx.scopes[usize(i)]
+        if scope.target_blk == target_blk {
+            if scope.kind == "loop" {
+                ctx.slot.jump_table[usize(pc)] = scope.opener_pc + 1
+            } else {
+                // Defer to end of this scope.
+                ctx.pending.push(PendingBranch { .branch_pc = pc, .target_blk = target_blk })
+            }
+            return
+        }
+        i = i - 1
+    }
+    // No matching scope ; pending (forward jump across scopes).
+    ctx.pending.push(PendingBranch { .branch_pc = pc, .target_blk = target_blk })
+}
+
+drain_pending :: fn(ctx: FnEmitCfg, target_blk: BlockId, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
+    resolved_pc :: if is_loop { opener_pc + 1 } else { end_pc + 1 }
+    kept: PendingBranch[] = []
+    for entry in ctx.pending {
+        if entry.target_blk == target_blk {
+            ctx.slot.jump_table[usize(entry.branch_pc)] = resolved_pc
+        } else {
+            kept.push(entry)
+        }
+    }
+    ctx.pending = kept
+}
+
+push_op_with_span :: fn(ctx: FnEmitCfg, op: Op, span: Span) -> i32 {
+    pc :: i32(ctx.slot.body.len())
+    ctx.slot.body.push(op)
+    ctx.slot.debug.push(null)
+    ctx.slot.jump_table.push(-1)
+    return pc
 }
 
 /// Recursive structurer. Walk blocks from `start` until `until` (or
@@ -251,36 +395,30 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
     for cur != -1 && cur != until {
         block :: ctx.fn_.blocks[usize(cur)]
 
-        // First visit to a loop header → wrap in block + loop.
-        loop_exit_lookup :: ctx.loop_exit[cur]
-        has_loop_exit :: loop_exit_lookup !is null || ctx.loop_exit.size > usize(0)
-        // contains_key surrogate : presence in MutableMap via [] returns
-        // V (here BlockId|null). null is a legitimate value, so we use
-        // a separate set side-table only on the `wrapped_loop_headers`
-        // path. Loop-header detection inlines a body-presence check.
-        is_loop_header :: false && !ctx.wrapped_loop_headers.contains(cur)
+        // First visit to a loop header → wrap in block + loop. Subsequent
+        // visits (back-edges, nested control flow inside the body) see
+        // this header as already wrapped and emit it as a plain block.
+        is_loop_header := false
+        if !ctx.wrapped_loop_headers.contains(cur) {
+            // `loop_exit[cur]` is present iff `cur` is a loop header.
+            // Defaults to null lookup — we treat both "missing" and
+            // "value=null" as "no loop here" to avoid the MutableMap
+            // contains_key surrogate question (null is a legitimate
+            // map value here so plain [] doesn't suffice).
+            if loop_exit_present(ctx, cur) { is_loop_header = true }
+        }
         if is_loop_header {
             exit_opt :: ctx.loop_exit[cur]
             exit_target := i32(-1)
             if exit_opt is BlockId as e { exit_target = e }
-            push_emit(ctx, Block {}, block.span)
-            ctx.scopes.push(ScopeFrame { .kind = "block", .target = exit_target })
-            push_emit(ctx, Loop {}, block.span)
-            ctx.scopes.push(ScopeFrame { .kind = "loop", .target = cur })
+            cf_block(ctx, block.span, exit_target)
+            cf_loop(ctx, block.span, cur)
             ctx.wrapped_loop_headers.add(cur)
             inner_until := i32(-1)
             if exit_opt is BlockId as e { inner_until = e }
             emit_range(ctx, cur, inner_until)
-            // pop wrapped_loop_headers ; Vader has no remove from set, accept O(n) rebuild
-            new_set :: MutableSet(i32) {
-                .inner = MutableMap(i32, bool) { .buckets = [], .size = 0 },
-            }
-            // (Simplified — leaving the header in the set is benign for the
-            // single-loop-per-fn case the MVP handles.)
-            ctx.scopes = pop_scope(ctx.scopes)
-            push_emit(ctx, End {}, block.span)
-            ctx.scopes = pop_scope(ctx.scopes)
-            push_emit(ctx, End {}, block.span)
+            cf_end(ctx, block.span)        // close loop scope
+            cf_end(ctx, block.span)        // close block scope
             if exit_opt is BlockId as e {
                 cur = e
             } else {
@@ -293,14 +431,13 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
     }
 }
 
-pop_scope :: fn(scopes: ScopeFrame[]) -> ScopeFrame[] {
-    out: ScopeFrame[] = []
-    i := usize(0)
-    for i < scopes.len() - usize(1) {
-        out.push(scopes[i])
-        i = i + 1
-    }
-    return out
+// `MutableMap[k]` returns V (here BlockId|null). When the key is absent
+// the lookup also returns null — indistinguishable from a stored null
+// without `contains_key` (which the Vader stdlib MutableMap doesn't
+// surface via direct field access). Walk the keys instead to know.
+loop_exit_present :: fn(ctx: FnEmitCfg, b: BlockId) -> bool {
+    for k in ctx.loop_exit.keys() { if k == b { return true } }
+    return false
 }
 
 /// Emit one block's instructions and dispatch on its terminator.
@@ -340,39 +477,31 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
     }
     if t is TermBranch as b {
         if b.target == until { return -1 }
-        // TODO : Vader's `Branch` op carries no inline depth — it routes
-        // through `BcFunction.jump_table` instead. Until the bytecode
-        // shape is aligned with TS (inline `br depth`), the structurer
-        // can only fall through to the linear next block. Returning
-        // `b.target` makes `emit_range` continue from the branch target
-        // in source-CFG order, which approximates the right thing for
-        // simple straight-line code but breaks for actual loop bodies.
+        // Walk scope stack for matching target. If found → cf_br
+        // resolves to the scope (immediate for loop, deferred for
+        // block/if). Otherwise fall through linearly.
+        if scope_contains_target(ctx, b.target) {
+            cf_br(ctx, b.span, b.target)
+            return -1
+        }
         return b.target
     }
     if t is TermCondBranch as cb {
         merge :: cond_branch_merge(ctx, block_id, until)
         emit_get(ctx, cb.cond, cb.span)
-        push_emit(ctx, If {}, cb.span)
-        ctx.scopes.push(ScopeFrame { .kind = "if", .target = if merge >= 0 { merge } else { -1 } })
+        cf_if(ctx, cb.span, merge)
         if merge < 0 || cb.then_block != merge { emit_range(ctx, cb.then_block, merge) }
-        push_emit(ctx, Else {}, cb.span)
+        cf_else(ctx, cb.span)
         if merge < 0 || cb.else_block != merge { emit_range(ctx, cb.else_block, merge) }
-        ctx.scopes = pop_scope(ctx.scopes)
-        push_emit(ctx, End {}, cb.span)
+        cf_end(ctx, cb.span)
         return merge
     }
     return -1
 }
 
-depth_of_target :: fn(ctx: FnEmitCfg, target: BlockId) -> i32 {
-    i := i64(ctx.scopes.len()) - i64(1)
-    for i >= 0 {
-        if ctx.scopes[usize(i)].target == target {
-            return i32(i64(ctx.scopes.len()) - i64(1) - i)
-        }
-        i = i - 1
-    }
-    return -1
+scope_contains_target :: fn(ctx: FnEmitCfg, target: BlockId) -> bool {
+    for s in ctx.scopes { if s.target_blk == target { return true } }
+    return false
 }
 
 cond_branch_merge :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> BlockId {
@@ -670,4 +799,8 @@ emit_set :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {
 push_emit :: fn(ctx: FnEmitCfg, op: Op, span: Span) -> void {
     ctx.slot.body.push(op)
     ctx.slot.debug.push(null)
+    // jump_table[pc] = -1 for non-branch ops (consumed only by the
+    // br/br_if/block/loop/if/else/end paths via cf_*). Keep the array
+    // parallel to body so per-pc lookups stay bounds-safe.
+    ctx.slot.jump_table.push(-1)
 }

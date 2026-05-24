@@ -142,7 +142,7 @@ export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: Em
 ///   - Rule 4 : `BoolNot ; BoolNot` → ε.
 /// Branch-target safety is preserved because Vader's `br` / `br_if` use
 /// label-stack relative depths.
-run_bc_peephole :: fn(function: BcFunction) -> void {
+export run_bc_peephole :: fn(function: BcFunction) -> void {
     body :: function.body
     n :: body.len()
     out: Op[] = []
@@ -236,7 +236,7 @@ take_prefix :: fn(items: Op[], sp: usize) -> Op[] {
 /// read). Drop those writes and shrink the locals table so the C-emit
 /// (and the dump) stops mentioning slots no one consumes. Mirrors
 /// `dropDeadStores` in `src/bytecode/peephole.ts`.
-drop_dead_stores :: fn(function: BcFunction) -> void {
+export drop_dead_stores :: fn(function: BcFunction) -> void {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()
     reads: i32[] = []
