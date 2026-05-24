@@ -31,6 +31,12 @@ import "vader/diagnostics" { Diagnostic }
 /// lookups without re-walking the AST.
 export ResolvedModule :: struct {
     path:    string
+    /// Module's user-declared name (`module "..."`), mirroring TS's
+    /// `module.displayPath`. Used by the lower / comptime mangling so
+    /// `## snippet` / `snippet$add` dump byte-identical with TS.
+    /// `path` keeps the filesystem identity (folder), since it's the
+    /// stable key for cross-module side-tables.
+    display_path: string
     symbols: Symbol[]
     idents:  MutableMap(i64, Symbol)
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
@@ -95,7 +101,16 @@ export ResolvedProject :: struct {
 /// every IdentExpr against the full root scope.
 export resolve_module :: fn(program: Program, module_path: string, factory: SymbolFactory) -> ResolvedModule {
     collected :: collect_module_no_index(program, module_path, factory)
-    return resolve_module_with_collected(program, module_path, factory, collected)
+    return resolve_module_with_collected_dp(program, module_path, module_path, factory, collected)
+}
+
+/// Variant for callers that have a distinct `display_path` (the
+/// `module "..."` declaration) ; thin wrapper that just threads through.
+export resolve_module_with_display :: fn(
+    program: Program, module_path: string, display_path: string, factory: SymbolFactory,
+) -> ResolvedModule {
+    collected :: collect_module_no_index(program, module_path, factory)
+    return resolve_module_with_collected_dp(program, module_path, display_path, factory, collected)
 }
 
 /// Variant that reuses a pre-built `CollectedModule` so a caller
@@ -105,12 +120,24 @@ export resolve_module_with_collected :: fn(
     program: Program, module_path: string, factory: SymbolFactory,
     collected: CollectedModule,
 ) -> ResolvedModule {
+    // Back-compat thin wrapper : display_path defaults to module_path.
+    return resolve_module_with_collected_dp(program, module_path, module_path, factory, collected)
+}
+
+/// Variant accepting an explicit `display_path` (TS's `module.displayPath`)
+/// alongside the filesystem `module_path`. The orchestrator threads this
+/// from `LoadedModule.module.display_path` so dump + mangling match TS.
+export resolve_module_with_collected_dp :: fn(
+    program: Program, module_path: string, display_path: string, factory: SymbolFactory,
+    collected: CollectedModule,
+) -> ResolvedModule {
     root :: make_builtin_scope(factory)
     user_syms :: collected.symbols.values()
     for sym in user_syms { root[sym.name] = sym }
     file :: resolve_program(program, root, module_path, factory)
     return ResolvedModule {
         .path             = module_path,
+        .display_path     = display_path,
         .symbols          = sort_by_name(user_syms),
         .idents           = file.idents,
         .immutable_locals = file.immutable_locals,

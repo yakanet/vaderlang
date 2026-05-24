@@ -79,7 +79,8 @@ export lower_project :: fn(
         module_loaded :: loaded.modules[module_id]
         if module_loaded is null { continue }
         decls :: module_decls(module_loaded)
-        lowered_module :: lower_module(module_id, module_typed, decls, project_ctx, diags)
+        display_path :: module_loaded.module.display_path
+        lowered_module :: lower_module(module_id, display_path, module_typed, decls, project_ctx, diags)
         project.modules[module_id] = lowered_module
     }
     // After per-module lowering, materialise generic-struct instances +
@@ -201,30 +202,32 @@ populate_impls :: fn(loaded: LoadedProject, typed: TypedProject, project_ctx: Lo
 // into this module's `decls` list — they were spawned while lowering
 // this module's bodies, so they ship alongside the regular decls.
 lower_module :: fn(
-    module_id: string, typed: TypedProgram, decls: Decl[],
+    module_id: string, display_path: string, typed: TypedProgram, decls: Decl[],
     project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredModule {
     out_decls: LoweredDecl[] = []
+    // First pass : every regular decl in source order. Mirrors
+    // `src/lower/lower.ts:64-70` — the TS host appends synth decls
+    // (lambda-lifted fns + their env structs) ONLY after the regular
+    // decls of the originating module have been processed.
+    synth_start :: project_ctx.synth_decls.len()
     for decl in decls {
-        // Each iteration drains the impl-member buffer it generates
-        // before moving on, so impl members land in source order
-        // (right after their parent `ImplDecl`) — matches the TS dump
-        // where `impl Foo: Trait { fn m… }` is followed by every other
-        // top-level decl in textual order.
-        before :: project_ctx.synth_decls.len()
         result :: lower_decl(decl, typed, project_ctx, diags, decls)
         match result {
             is null -> {}
             _       -> { out_decls.push(result) }
         }
-        after :: project_ctx.synth_decls.len()
-        for i in before..<after {
-            out_decls.push(project_ctx.synth_decls[i])
-        }
+    }
+    // Second pass : drain the lambda-lift synth decls accumulated while
+    // walking this module's bodies, in synth order. Matches the TS
+    // distribution loop at `lower.ts:74-78`.
+    synth_end :: project_ctx.synth_decls.len()
+    for i in synth_start..<synth_end {
+        out_decls.push(project_ctx.synth_decls[i])
     }
     return LoweredModule {
         .module_id    = module_id,
-        .display_path = module_id,
+        .display_path = display_path,
         .decls        = out_decls,
     }
 }
@@ -273,7 +276,7 @@ lower_impl_members :: fn(
     if impl_decl.type_params.len() > usize(0) { return }
     if impl_decl.for_type is GenericInstExpr { return }
     self_type :: lower_for_type(impl_decl, typed)
-    base_mangle :: "${mangle_module_id(typed.resolved.path)}$${impl_decl.trait_name}"
+    base_mangle :: "${mangle_module_id(typed.resolved.display_path)}$${impl_decl.trait_name}"
     for member in impl_decl.members {
         if member.type_params.len() > usize(0) { continue }
         subst :: new_substitution()
@@ -340,7 +343,7 @@ impl_member_mangled :: fn(
 ) -> string {
     target_name :: for_type_name(impl_decl.for_type, typed)
     suffix :: impl_member_overload_suffix(member, impl_decl, target_name, decls)
-    return "${mangle_module_id(typed.resolved.path)}$${target_name}$${impl_decl.trait_name}$${member.name}${suffix}"
+    return "${mangle_module_id(typed.resolved.display_path)}$${target_name}$${impl_decl.trait_name}$${member.name}${suffix}"
 }
 
 /// Number of earlier impl members in `decls` that share the same
@@ -626,7 +629,7 @@ return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
 stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
     name :: decl_name(decl)
     suffix :: overload_suffix_for(decl, typed)
-    mangled :: "${mangle_module_id(typed.resolved.path)}$${name}${suffix}"
+    mangled :: "${mangle_module_id(typed.resolved.display_path)}$${name}${suffix}"
     // Propagate the resolver-side `Symbol` so downstream phases (notably
     // the bytecode emit's `function_index_by_symbol_id` index) can route
     // call sites — `LoweredIdent.symbol` holds the same id, so the two
@@ -996,7 +999,7 @@ materialize_struct_instance :: fn(
     if decl is null { return }
     if decl is StructDecl as sd {
         if sd.type_params.len() == usize(0) { return }
-        mangled :: "${mangle_module_id(owner_typed.resolved.path)}$${inst.symbol.name}${args_suffix(inst.args)}"
+        mangled :: "${mangle_module_id(owner_typed.resolved.display_path)}$${inst.symbol.name}${args_suffix(inst.args)}"
         subst :: build_struct_subst(sd, inst.args, owner_typed)
         fields: LoweredStructField[] = []
         for f in sd.fields {
@@ -1097,7 +1100,7 @@ materialize_impl_for_instance :: fn(
     for member in impl_decl.members {
         params :: build_impl_member_params(member, self_type, types, impl_typed, project_ctx)
         return_type :: return_type_of(member, types)
-        mangled :: "${mangle_module_id(owner_typed.resolved.path)}$${inst.symbol.name}$${impl_decl.trait_name}$${member.name}${suffix}"
+        mangled :: "${mangle_module_id(owner_typed.resolved.display_path)}$${inst.symbol.name}$${impl_decl.trait_name}$${member.name}${suffix}"
         entry_decl: Decl = member
         entry :: MonoEntry {
             .id             = i32(0),

@@ -265,6 +265,7 @@ export new_typed_project :: fn() -> TypedProject {
 export empty_typed_program :: fn() -> TypedProgram {
     rm :: ResolvedModule {
         .path = "test",
+        .display_path = "test",
         .symbols = [],
         .idents = MutableMap(i64, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
@@ -289,6 +290,7 @@ import "vader/types" { mk_primitive, PrimitiveType }
 fresh_module :: fn() -> ResolvedModule {
     return ResolvedModule {
         .path = "test",
+        .display_path = "test",
         .symbols = [],
         .idents = MutableMap(i64, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },

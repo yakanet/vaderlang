@@ -16,7 +16,7 @@ import "vader/diagnostics" { Diagnostic, Span }
 AST :: import "vader/parser"
 import "vader/parser" { Program }
 import "vader/resolver" { LoadedProject, LoadedModule }
-import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected }
+import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp }
 import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
 import "vader/resolver" { wire_imports, ImportTargetTable }
@@ -66,8 +66,9 @@ export check_project_with_bodies :: fn(
     // happens here, not after resolve.
     materialize_all_sams_pre_resolve(project)
 
-    entry_rm :: resolve_module_with_collected(
+    entry_rm :: resolve_module_with_collected_dp(
         entry_loaded.module.files[0].program, project.entry,
+        entry_loaded.module.display_path,
         project.factory, entry_loaded.collected,
     )
     entry_typed :: new_typed_program(entry_rm)
@@ -81,8 +82,9 @@ export check_project_with_bodies :: fn(
         if id == project.entry { continue }
         other :: project.modules[id]
         if other is null { continue }
-        rm :: resolve_module_with_collected(
-            other.module.files[0].program, id, project.factory, other.collected,
+        rm :: resolve_module_with_collected_dp(
+            other.module.files[0].program, id, other.module.display_path,
+            project.factory, other.collected,
         )
         preload_core_symbols(rm, project)
         typed :: new_typed_program(rm)
@@ -241,6 +243,7 @@ empty_fallback :: fn(project: LoadedProject) -> TypedProgram {
 synth_resolved :: fn() -> ResolvedModule {
     return ResolvedModule {
         .path = "",
+        .display_path = "",
         .symbols = [],
         .idents = MutableMap(i64, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },

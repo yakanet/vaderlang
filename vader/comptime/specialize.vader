@@ -268,7 +268,7 @@ materialise_struct_instance :: fn(
     struct_entry :: MonoEntry {
         .id              = next_entry_id(state),
         .is_main         = false,
-        .mangled         = uniq(state.seen_mangled, mangle(struct_decl.name, program.resolved.path, inst.args)),
+        .mangled         = uniq(state.seen_mangled, mangle(struct_decl.name, program.resolved.display_path, inst.args)),
         .decl            = struct_decl,
         .symbol          = inst.symbol,
         .subst           = build_subst(struct_decl.type_params, inst.args, program.resolved),
@@ -609,7 +609,7 @@ make_entry :: fn(
     return MonoEntry {
         .id              = next_entry_id(state),
         .is_main         = is_main_decl(decl),
-        .mangled         = uniq(state.seen_mangled, mangle(base_name, module_typed.resolved.path, no_args)),
+        .mangled         = uniq(state.seen_mangled, mangle(base_name, module_typed.resolved.display_path, no_args)),
         .decl            = decl,
         .symbol          = sym,
         .subst           = new_substitution(),
@@ -631,7 +631,7 @@ make_impl_member_entry :: fn(
     return MonoEntry {
         .id              = next_entry_id(state),
         .is_main         = false,     // impl members can't be the entry-point
-        .mangled         = uniq(state.seen_mangled, mangle(base_name, module_typed.resolved.path, type_arguments)),
+        .mangled         = uniq(state.seen_mangled, mangle(base_name, module_typed.resolved.display_path, type_arguments)),
         .decl            = member,
         .symbol          = sym,
         .subst           = subst,

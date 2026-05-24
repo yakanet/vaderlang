@@ -698,7 +698,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
                 // Build the monomorphized mangled name. TS doubles up
                 // the module prefix (`<module>$<module>$<name>__T`).
                 module_id :: ctx.typed.resolved.path
-                mod_mangle :: mangle_module_id_local(module_id)
+                mod_mangle :: mangle_module_id_local(ctx.typed.resolved.display_path)
                 suffix :: mono_suffix(concrete_args)
                 mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
                 // Register the instance for materialisation at the end
@@ -1023,7 +1023,7 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
             // deterministic mangled name during `lower_impl_members`.
             // Synthesise a Fn symbol pointing at it so the call site
             // matches the synth decl.
-            mangled :: "${mangle_module_id(ctx.typed.resolved.path)}$${target_name}$${decl.trait_name}$${m.name}"
+            mangled :: "${mangle_module_id(ctx.typed.resolved.display_path)}$${target_name}$${decl.trait_name}$${m.name}"
             return UfcsMember {
                 .symbol = Symbol {
                     .id         = i32(0),
