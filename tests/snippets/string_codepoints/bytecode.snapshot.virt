@@ -415,7 +415,7 @@ fn 4 std_string$decode_codepoint (string,usize) -> ref
   return
 end
 
-fn 5 std_string$count_chars (string) -> usize
+fn 5 std_string$len (string) -> usize
   local.get 0
   call 3
   call 2

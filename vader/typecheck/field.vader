@@ -530,7 +530,7 @@ dispatch_bounded_method :: fn(
 /// curried signature with `Self → struct_ty`. Trait type-args aren't
 /// recovered (`struct_implemented_traits` only stores trait names),
 /// so methods that reference the trait's `T` come back unsubstituted —
-/// good enough for std/string's `count_chars = s.chars().count()`
+/// good enough for std/string's `len = s.chars().count()`
 /// where `count :: fn(self) -> usize` doesn't mention `T`.
 try_default_trait_method :: fn(
     target_ty: StructType, name: string, typed: TypedProgram,

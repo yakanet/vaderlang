@@ -15,7 +15,7 @@ import "std/utf8" { codepoint_byte_len }
 /// on byte offsets ; `s[i]` and `s[r]` from `std/core` are the
 /// codepoint-indexed forms) — naming this `byte_len` forces the
 /// reader to acknowledge the byte/codepoint
-/// distinction and pick `count_chars` deliberately if they want the
+/// distinction and pick `len()` deliberately if they want the
 /// codepoint count.
 export byte_len :: fn(s: string) -> usize
 
@@ -169,19 +169,19 @@ export decode_codepoint :: fn(s: string, i: usize) -> [char, usize] {
     return [c, codepoint_byte_len(c)]
 }
 
-/// Count the Unicode codepoints in `s` — what `byte_len()` would return
-/// in a codepoint-indexed language. Walks the UTF-8 byte sequence
-/// directly via leading-byte widths ; cheaper than `s.chars().count()`
-/// because it avoids the per-step `Yield(char)` allocation.
+/// Count the Unicode codepoints in `s` — the codepoint counterpart to
+/// `byte_len()`. Walks the UTF-8 byte sequence directly via leading-
+/// byte widths ; cheaper than `s.chars().count()` because it avoids the
+/// per-step `Yield(char)` allocation. O(n) in the byte length.
 ///
 /// Example :
-///   `count_chars("héllo")    // 5  (byte_len() would return 6)`
-///   `count_chars("你好")     // 2  (byte_len() would return 6)`
-///   `count_chars("")         // 0`
+///   `"héllo".len()    // 5  (byte_len() returns 6)`
+///   `"你好".len()      // 2  (byte_len() returns 6)`
+///   `"".len()         // 0`
 ///
 /// @param s  source string.
 /// @return   number of codepoints in `s`.
-export count_chars :: fn(s: string) = s.chars().count()
+export len :: fn(s: string) = s.chars().count()
 
 /// Comparator suitable for `sort(arr, compare_ascending)` : returns `true`
 /// when `a` lexicographically precedes `b` (byte-wise). Mirrors JS
@@ -595,10 +595,10 @@ import "std/testing" { assert, assert_eq, assert_close }
     assert_eq(trim_suffix("no-match", "xxx"), "no-match")
 }
 
-@test test_count_chars :: fn() -> void {
-    assert_eq(count_chars(""), usize(0))
-    assert_eq(count_chars("abc"), usize(3))
-    assert_eq(count_chars("héllo"), usize(5))
+@test test_len :: fn() -> void {
+    assert_eq(len(""), usize(0))
+    assert_eq(len("abc"), usize(3))
+    assert_eq(len("héllo"), usize(5))
 }
 
 @test test_last_index_of :: fn() -> void {

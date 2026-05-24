@@ -514,8 +514,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 - Internals: **fat value** `(ptr: rawptr, len: u32)` — 16 bytes copied on assignment, no shared reference.
 - Immutable. Concatenation allocates.
-- `byte_len()` returns the number of UTF-8 **bytes**. The byte vs. codepoint distinction is forced into the name : there is no plain `len()` on strings, callers pick `byte_len()` for byte arithmetic or `count_chars()` for codepoint arithmetic.
-- `count_chars()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths).
+- `byte_len()` returns the number of UTF-8 **bytes**. `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). The byte vs. codepoint distinction is forced into the name : callers pick `byte_len()` for byte arithmetic and `len()` for codepoint arithmetic.
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator[char]`) ; pair with `for c in s.chars()` for a true Unicode loop.
 - `bytes()` returns an iterator of `u8` (`StringBytes implements Iterator[u8]`) ; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). Strings are deliberately **not** `Iterable` — there's no canonical "default" between bytes and codepoints, so `for x in s` is a compile error and the caller picks `s.bytes()` or `s.chars()` explicitly.
 - `is_empty()` — sugar for `byte_len() == 0` (codepoint count and byte count agree on emptiness).
@@ -2188,7 +2187,7 @@ Width-based helpers (`pad_start`, `pad_end`) measure bytes, not codepoints.
 
 ```vader
 // Core access (intrinsics — no body in Vader).
-byte_len    :: fn(s: string) -> usize                  // UTF-8 bytes ; pair with count_chars() for codepoints
+byte_len    :: fn(s: string) -> usize                  // UTF-8 bytes ; pair with len() for codepoints
 is_empty    :: fn(s: string) -> bool                   // sugar for byte_len() == 0
 byte_slice  :: fn(s: string, start: usize, end: usize) -> string  // byte-indexed substring ; for codepoint slicing use `s[r]`
 contains    :: fn(s: string, sub: string) -> bool
@@ -2205,7 +2204,7 @@ parse_int   :: fn(s: string) -> i32!
 parse_float :: fn(s: string) -> f64!
 
 // Codepoint walkers. `s[i]` (Index impl in std/core) is the primary access form.
-count_chars      :: fn(s: string) -> usize                      // codepoint count, allocation-free
+len              :: fn(s: string) -> usize                      // codepoint count, allocation-free
 chars            :: fn(s: string) -> StringChars                // StringChars implements Iterator[char]
 decode_codepoint :: fn(s: string, i: usize) -> [char, usize]    // (codepoint, byte width)
 
@@ -2264,7 +2263,7 @@ Caller pads via `pad_start` (`n.to_hex().pad_start(8, '0')`).
 
 ### `std/utf8`
 
-UTF-8 byte-width helper that powers `std/string.chars()` and `count_chars`.
+UTF-8 byte-width helper that powers `std/string.chars()` and `len`.
 To append a decoded codepoint to a `StringBuilder`, call
 `sb.append_char(char(cp))` directly — `append_char` UTF-8-encodes the
 codepoint canonically, no `append_codepoint` wrapper needed.

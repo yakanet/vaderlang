@@ -31,7 +31,7 @@
             "alias": null
           },
           {
-            "name": "count_chars",
+            "name": "len",
             "alias": null
           },
           {
@@ -93,7 +93,7 @@
                           "kind": "CallExpr",
                           "callee": {
                             "kind": "IdentExpr",
-                            "name": "count_chars"
+                            "name": "len"
                           },
                           "args": [
                             {
@@ -172,7 +172,7 @@
                           "kind": "CallExpr",
                           "callee": {
                             "kind": "IdentExpr",
-                            "name": "count_chars"
+                            "name": "len"
                           },
                           "args": [
                             {
@@ -251,7 +251,7 @@
                           "kind": "CallExpr",
                           "callee": {
                             "kind": "IdentExpr",
-                            "name": "count_chars"
+                            "name": "len"
                           },
                           "args": [
                             {
@@ -330,7 +330,7 @@
                           "kind": "CallExpr",
                           "callee": {
                             "kind": "IdentExpr",
-                            "name": "count_chars"
+                            "name": "len"
                           },
                           "args": [
                             {
@@ -409,7 +409,7 @@
                           "kind": "CallExpr",
                           "callee": {
                             "kind": "IdentExpr",
-                            "name": "count_chars"
+                            "name": "len"
                           },
                           "args": [
                             {

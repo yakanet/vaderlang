@@ -138,7 +138,7 @@ export check_project_with_bodies :: fn(
     populate_core_symbols(entry_typed, project, per_module)
     // Cross-publish trait_decls (Iterator, Display, …) to every
     // per_module typed program BEFORE settle walks their bodies — so
-    // `s.chars().count()` inside std/string's `count_chars` can find
+    // `s.chars().count()` inside std/string's `len` can find
     // Iterator's default `count` method via `try_default_trait_method`.
     cross_publish_trait_decls(per_module)
     cross_publish_fn_decls(per_module)

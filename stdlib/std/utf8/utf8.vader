@@ -1,8 +1,8 @@
 // std/utf8 — UTF-8 encoding helpers.
 //
 // Exposes the byte-width helper used by `std/string.chars()` and the
-// allocation-free `count_chars` / `decode_codepoint` walkers (those live
-// in `std/string` next to `byte_len`, which they depend on).
+// allocation-free `len` / `decode_codepoint` walkers (those live in
+// `std/string` next to `byte_len`, which they depend on).
 //
 // To append a decoded codepoint to a `StringBuilder`, call `sb.append_char(char(cp))`
 // directly — `append_char` UTF-8-encodes the codepoint canonically.

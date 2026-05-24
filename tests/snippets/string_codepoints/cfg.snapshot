@@ -112,7 +112,7 @@ fn snippet$main() -> i32
     %2 = const string(#0) :string
     intrinsic builder.append_str(%1, %2)
     %3 = const string(#1) :string
-    %4 = call count_chars(%3) :usize
+    %4 = call len(%3) :usize
     %5 = call to_string(%4) :string
     intrinsic builder.append_str(%1, %5)
     %6 = const string(#2) :string
@@ -128,7 +128,7 @@ fn snippet$main() -> i32
     %13 = const string(#3) :string
     intrinsic builder.append_str(%12, %13)
     %14 = const string(#4) :string
-    %15 = call count_chars(%14) :usize
+    %15 = call len(%14) :usize
     %16 = call to_string(%15) :string
     intrinsic builder.append_str(%12, %16)
     %17 = const string(#2) :string
@@ -144,7 +144,7 @@ fn snippet$main() -> i32
     %24 = const string(#5) :string
     intrinsic builder.append_str(%23, %24)
     %25 = const string(#6) :string
-    %26 = call count_chars(%25) :usize
+    %26 = call len(%25) :usize
     %27 = call to_string(%26) :string
     intrinsic builder.append_str(%23, %27)
     %28 = const string(#2) :string
@@ -160,7 +160,7 @@ fn snippet$main() -> i32
     %35 = const string(#7) :string
     intrinsic builder.append_str(%34, %35)
     %36 = const string(#8) :string
-    %37 = call count_chars(%36) :usize
+    %37 = call len(%36) :usize
     %38 = call to_string(%37) :string
     intrinsic builder.append_str(%34, %38)
     %39 = const string(#2) :string
@@ -176,7 +176,7 @@ fn snippet$main() -> i32
     %46 = const string(#9) :string
     intrinsic builder.append_str(%45, %46)
     %47 = const string(#10) :string
-    %48 = call count_chars(%47) :usize
+    %48 = call len(%47) :usize
     %49 = call to_string(%48) :string
     intrinsic builder.append_str(%45, %49)
     %50 = const string(#2) :string

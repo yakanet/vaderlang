@@ -20,7 +20,7 @@
               arg0:
                 call :usize
                   callee:
-                    count_chars :fn(string) -> usize
+                    len :fn(string) -> usize
                   arg0:
                     "vader" :string
           @builder.append_str :void
@@ -58,7 +58,7 @@
               arg0:
                 call :usize
                   callee:
-                    count_chars :fn(string) -> usize
+                    len :fn(string) -> usize
                   arg0:
                     "héllo" :string
           @builder.append_str :void
@@ -96,7 +96,7 @@
               arg0:
                 call :usize
                   callee:
-                    count_chars :fn(string) -> usize
+                    len :fn(string) -> usize
                   arg0:
                     "你好嗎？" :string
           @builder.append_str :void
@@ -134,7 +134,7 @@
               arg0:
                 call :usize
                   callee:
-                    count_chars :fn(string) -> usize
+                    len :fn(string) -> usize
                   arg0:
                     "a😀b" :string
           @builder.append_str :void
@@ -172,7 +172,7 @@
               arg0:
                 call :usize
                   callee:
-                    count_chars :fn(string) -> usize
+                    len :fn(string) -> usize
                   arg0:
                     "" :string
           @builder.append_str :void
