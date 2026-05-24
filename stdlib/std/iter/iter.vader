@@ -36,6 +36,13 @@ export count :: fn[T](arr: T[]) -> usize {
     return arr.len()
 }
 
+/// True when `arr` carries no elements. Cheap one-liner — saves the
+/// `.len() == usize(0)` boilerplate that polluted call sites.
+///
+/// @param arr  source array.
+/// @return     true when `arr.len() == 0`.
+export is_empty :: fn[T](arr: T[]) -> bool = arr.len() == usize(0)
+
 /// Clone `arr` into a fresh allocation. Elements are NOT recursively
 /// cloned — for reference types the new array shares element references
 /// with the input. Symmetric with the future Iterator-driven `collect(it)`.

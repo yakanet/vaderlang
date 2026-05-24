@@ -16,6 +16,7 @@ module "vader/lower"
 
 import "std/collections" { MutableMap, keys, values }
 import "std/sort" { sort }
+import "std/iter" { is_empty }
 import "std/string" { compare_ascending, byte_at, byte_len, byte_slice }
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" {
@@ -1001,13 +1002,13 @@ materialize_representative :: fn(
 /// `src/comptime/erasure-dedupe.ts:86-100`.
 any_leaves_of :: fn(t: Type) -> Type {
     if t is StructType as s {
-        if s.args.len() == usize(0) { return TY_ANY }
+        if s.args.is_empty() { return TY_ANY }
         new_args: Type[] = []
         for a in s.args { new_args.push(any_leaves_of(a)) }
         return mk_struct(s.symbol, new_args)
     }
     if t is TraitType as tt {
-        if tt.args.len() == usize(0) { return TY_ANY }
+        if tt.args.is_empty() { return TY_ANY }
         new_args: Type[] = []
         for a in tt.args { new_args.push(any_leaves_of(a)) }
         return mk_trait(tt.symbol, new_args)
@@ -1031,50 +1032,34 @@ any_leaves_of :: fn(t: Type) -> Type {
 /// Short stable display used when synthesising the representative's
 /// mangled name. Mirrors `displayAnyArg` in
 /// `src/comptime/erasure-dedupe.ts:105-121`.
-display_any_arg :: fn(t: Type) -> string {
-    if t is StructType as s {
-        if s.args.len() == usize(0) { return s.symbol.name }
-        sb :: new_builder()
-        sb.append(s.symbol.name)
-        for a in s.args {
-            sb.append("_")
-            sb.append(display_any_arg(a))
-        }
-        return "${sb}"
+display_any_arg :: fn(t: Type) -> string = match t {
+    is StructType as s -> if s.args.is_empty() { s.symbol.name } else { joined_named(s.symbol.name, s.args, "_") }
+    is TraitType  as t -> if t.args.is_empty() { t.symbol.name } else { joined_named(t.symbol.name, t.args, "_") }
+    is ArrayType  as a -> "${display_any_arg(a.element)}_arr"
+    is UnionType  as u -> joined_unnamed(u.variants, "__")
+    is TupleType  as t -> joined_named("Tup", t.elements, "_")
+    _                  -> "Any"
+}
+
+joined_named :: fn(name: string, args: Type[], sep: string) -> string {
+    sb :: new_builder()
+    sb.append(name)
+    for a in args {
+        sb.append(sep)
+        sb.append(display_any_arg(a))
     }
-    if t is TraitType as tt {
-        if tt.args.len() == usize(0) { return tt.symbol.name }
-        sb :: new_builder()
-        sb.append(tt.symbol.name)
-        for a in tt.args {
-            sb.append("_")
-            sb.append(display_any_arg(a))
-        }
-        return "${sb}"
+    return "${sb}"
+}
+
+joined_unnamed :: fn(args: Type[], sep: string) -> string {
+    sb :: new_builder()
+    first := true
+    for a in args {
+        if !first { sb.append(sep) }
+        first = false
+        sb.append(display_any_arg(a))
     }
-    if t is ArrayType as a { return "${display_any_arg(a.element)}_arr" }
-    if t is UnionType as u {
-        sb :: new_builder()
-        first := true
-        for v in u.variants {
-            if !first { sb.append("__") }
-            first = false
-            sb.append(display_any_arg(v))
-        }
-        return "${sb}"
-    }
-    if t is TupleType as tu {
-        sb :: new_builder()
-        sb.append("Tup_")
-        first := true
-        for el in tu.elements {
-            if !first { sb.append("_") }
-            first = false
-            sb.append(display_any_arg(el))
-        }
-        return "${sb}"
-    }
-    return "Any"
+    return "${sb}"
 }
 
 build_any_args_list :: fn(args: Type[]) -> Type[] {
