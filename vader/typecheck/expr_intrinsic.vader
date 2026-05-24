@@ -36,7 +36,18 @@ export infer_intrinsic :: fn(
         if i < spec.args.len() {
             match spec.args[i] {
                 .Value -> { check_expr_fn(e.args[i], null, typed, diags) }
-                .Type -> { type_from_expr(e.args[i], typed.resolved, diags) }
+                .Type -> {
+                    // Record the resolved Type in `type_expr_types` so
+                    // downstream consumers (the lowerer's intrinsic
+                    // fold, the comptime instance harvester) can recover
+                    // generic instances like `Pair(string, i64)` via
+                    // a span_key lookup. Without this write, the
+                    // `harvest_instances` pass never observes the
+                    // instance and the @fields / @type_args fold falls
+                    // through to LoweredUnreachable.
+                    resolved :: type_from_expr(e.args[i], typed.resolved, diags)
+                    typed.type_expr_types[span_key(e.args[i].span)] = resolved
+                }
             }
         } else {
             check_expr_fn(e.args[i], null, typed, diags)
@@ -87,7 +98,7 @@ static_string_value :: fn(e: AST.StringLitExpr) -> string {
     return out
 }
 
-import "vader/resolver" { span_full_key }
+import "vader/resolver" { span_full_key, span_key }
 import "vader/types" { StructType, UnresolvedType }
 
 
