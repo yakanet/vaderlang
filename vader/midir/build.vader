@@ -1,0 +1,1016 @@
+// vader/midir/build — LoweredAST → CFG converter.
+//
+// Mirror of `src/midir/build.ts`. Walks each `LoweredFnDecl` in the
+// project and produces a `CFGFunction` : expressions become
+// three-address `Instruction` sequences with named tmp locals ;
+// control flow (`LoweredIf`, `LoweredLoop`, `break`, `continue`,
+// `return`) becomes basic blocks with explicit terminators. The
+// result is reducible (the source has no `goto`), which is what the
+// structurer needs to recover WASM-style nesting at emit time.
+//
+// Strings are interned into a project-level pool reused verbatim by
+// the CFG → bytecode emitter ; const decls are inlined at every read
+// site, matching the existing bytecode emitter's policy.
+
+module "vader/midir"
+
+import "std/collections" { MutableMap }
+import "vader/diagnostics" { Span, empty_span }
+import "vader/lower" {
+    LoweredProject, LoweredModule, LoweredDecl, LoweredFnDecl, LoweredStructDecl,
+    LoweredConstDecl,
+    LoweredBlock, LoweredStmt, LoweredLet, LoweredAssign, LoweredExprStmt,
+    LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
+    LoweredCellSet,
+    LoweredExpr, LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
+    LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall, LoweredVirtualCall,
+    LoweredFieldAccess, LoweredIndex, LoweredUnary, LoweredBinary, LoweredIf,
+    LoweredStructLit, LoweredArrayLit, LoweredCast, LoweredTypeCheck,
+    LoweredUnreachable, LoweredIntrinsicCall, LoweredArrayLen, LoweredArrayPush,
+    LoweredArraySlice, LoweredCellNew, LoweredCellGet, LoweredMakeClosure,
+    LoweredDataConst, LoweredTypeConst,
+    LoweredBinaryOp,
+}
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/types" {
+    Type, PrimitiveType, UnionType,
+}
+import "vader/typecheck" { equals_type }
+
+/// Project-level interning context — accumulates strings into a single
+/// pool shared by every fn's CFG. Mirrors `ProjectCtx` in `build.ts`.
+ProjectCtx :: struct {
+    strings:      string[]
+    string_index: MutableMap(string, i32)
+}
+
+new_project_ctx :: fn() -> ProjectCtx {
+    return ProjectCtx {
+        .strings = [],
+        .string_index = MutableMap(string, i32) { .buckets = [], .size = 0 },
+    }
+}
+
+intern_string_pool :: fn(ctx: ProjectCtx, s: string) -> i32 {
+    existing :: ctx.string_index[s]
+    if existing is i32 { return existing }
+    idx :: i32(ctx.strings.len())
+    ctx.strings.push(s)
+    ctx.string_index[s] = idx
+    return idx
+}
+
+/// Mutable block accumulator. The CFG-side `BasicBlock` is immutable ;
+/// during construction we mutate `instructions` (append) and
+/// `terminator` (set once). `freeze_block` converts to the final form.
+MutableBlock :: struct {
+    id:           BlockId
+    instructions: Instruction[]
+    terminator:   Terminator | null
+    span:         Span
+}
+
+/// One enclosing loop's break / continue targets.
+LoopFrame :: struct {
+    label:     string | null
+    header_id: BlockId      // continue target
+    exit_id:   BlockId      // break target
+}
+
+/// Per-function build context. `current` tracks the basic block under
+/// construction ; null means control already left (Return / Unreachable
+/// terminator emitted).
+FnCtx :: struct {
+    project:         ProjectCtx
+    mangled:         string
+    origin:          MonoEntry
+    return_type:     Type
+    params:          CFGParam[]
+    locals:          CFGLocal[]
+    local_by_sym_id: MutableMap(i32, LocalId)
+    blocks:          MutableBlock[]
+    loop_stack:      LoopFrame[]
+    current:         BlockId | null
+}
+
+import "vader/comptime" { MonoEntry }
+
+// ============================================================================
+// Project-level orchestration
+// ============================================================================
+
+/// Top-level entry — walk the lowered project, emit one `CFGModule` per
+/// lowered module. Mirrors `src/midir/build.ts::buildCFGProject`.
+///
+/// @param lp  the lowered project from the lowerer pass.
+/// @return    a fresh `CFGProject` with one entry per non-stdlib module.
+export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
+    ctx :: new_project_ctx()
+    modules :: MutableMap(string, CFGModule) { .buckets = [], .size = 0 }
+    for module_id in lp.modules.keys() {
+        m :: lp.modules[module_id]
+        if m is null { continue }
+        functions: CFGFunction[] = []
+        externs: CFGExternDecl[] = []
+        struct_decls: CFGStructDecl[] = []
+        for d in m.decls {
+            match d {
+                is LoweredFnDecl as fn_decl -> {
+                    if fn_decl.body is null {
+                        externs.push(make_extern_decl(fn_decl))
+                    } else {
+                        cfg_opt :: convert_function(fn_decl, ctx)
+                        if cfg_opt !is null { functions.push(cfg_opt) }
+                    }
+                }
+                is LoweredStructDecl as sd -> { struct_decls.push(make_struct_decl(sd)) }
+                is LoweredConstDecl -> {
+                    // Inlined-out at lowering time ; nothing to carry forward.
+                }
+            }
+        }
+        modules[module_id] = CFGModule {
+            .module_id    = m.module_id,
+            .display_path = m.display_path,
+            .functions    = functions,
+            .externs      = externs,
+            .struct_decls = struct_decls,
+        }
+    }
+    // CFGProject expects `BcDataEntry[]` and `symbol_redirects` which
+    // LoweredProject doesn't carry directly today ; pass empty for now
+    // until those side-tables get plumbed through the lower port.
+    empty_data: BcDataEntry[] = []
+    empty_redirects :: MutableMap(i32, i32) { .buckets = [], .size = 0 }
+    return CFGProject {
+        .modules         = modules,
+        .vtable_entries  = lp.vtable_entries,
+        .strings         = ctx.strings,
+        .data_pool       = empty_data,
+        .symbol_redirects = empty_redirects,
+    }
+}
+
+import "vader/bytecode" { BcDataEntry }
+
+// ============================================================================
+// Function-level conversion
+// ============================================================================
+
+FnMetadata :: struct {
+    extern_name: string
+    is_extern:   bool
+    is_exported: bool
+}
+
+import "vader/parser" { FnDecl, Decl }
+
+/// Extract source-level metadata bytecode-emit needs to route a fn to
+/// imports / exports. Mirrors `fnMetadata` in `build.ts`.
+fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
+    extern_name := d.mangled
+    is_extern := false
+    is_exported := false
+    if d.origin.decl is FnDecl as fn_decl {
+        extern_name = extern_symbol_name(fn_decl)
+        is_extern = decorators_have(fn_decl.decorators, "extern")
+        is_exported = decorators_have(fn_decl.decorators, "export")
+    }
+    return FnMetadata {
+        .extern_name = extern_name,
+        .is_extern   = is_extern,
+        .is_exported = is_exported,
+    }
+}
+
+/// `@extern("c_name")` override reader. Falls back to the source name.
+/// Mirrors `extern_symbol_name` in `src/typecheck/passes/decl.ts`.
+extern_symbol_name :: fn(fn_decl: FnDecl) -> string {
+    for dec in fn_decl.decorators {
+        if dec.name != "extern" { continue }
+        if dec.args.len() == usize(0) { continue }
+        first :: dec.args[0]
+        if first is StringLitExpr as s {
+            // Single-segment string literal carries the C name directly.
+            if s.parts.len() == usize(1) {
+                if s.parts[0] is StringLitText as t { return t.value }
+            }
+        }
+    }
+    return fn_decl.name
+}
+
+decorators_have :: fn(decs: Decorator[], name: string) -> bool {
+    for d in decs { if d.name == name { return true } }
+    return false
+}
+
+import "vader/parser" { Decorator, StringLitExpr, StringLitText }
+
+make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
+    fields: CFGStructField[] = []
+    for f in d.fields {
+        fields.push(CFGStructField { .name = f.name, .type = f.type })
+    }
+    return CFGStructDecl {
+        .mangled = d.mangled,
+        .fields  = fields,
+        .origin  = d.origin,
+    }
+}
+
+make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
+    meta :: fn_metadata(d)
+    params: CFGParam[] = []
+    i: usize = 0
+    for i < d.params.len() {
+        p :: d.params[i]
+        params.push(CFGParam {
+            .name = p.name, .symbol = p.symbol, .type = p.type, .local = i32(i),
+        })
+        i += usize(1)
+    }
+    return CFGExternDecl {
+        .mangled     = d.mangled,
+        .params      = params,
+        .return_type = d.return_type,
+        .origin      = d.origin,
+        .extern_name = meta.extern_name,
+        .is_exported = meta.is_exported,
+        .is_extern   = meta.is_extern,
+    }
+}
+
+/// Convert one body-having `LoweredFnDecl` into a `CFGFunction`.
+/// Returns `null` for bodyless fns (caller routes them through
+/// `make_extern_decl` instead).
+convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | null {
+    if d.body is null { return null }
+    body :: d.body
+
+    params: CFGParam[] = []
+    locals: CFGLocal[] = []
+    local_by_sym_id :: MutableMap(i32, LocalId) { .buckets = [], .size = 0 }
+
+    // Params occupy local slots 0..N-1.
+    for p in d.params {
+        slot :: i32(locals.len())
+        locals.push(CFGLocal { .name = p.name, .type = p.type, .symbol = p.symbol })
+        local_by_sym_id[p.symbol.id] = slot
+        params.push(CFGParam {
+            .name = p.name, .symbol = p.symbol, .type = p.type, .local = slot,
+        })
+    }
+
+    fn_ctx :: FnCtx {
+        .project         = project,
+        .mangled         = d.mangled,
+        .origin          = d.origin,
+        .return_type     = d.return_type,
+        .params          = params,
+        .locals          = locals,
+        .local_by_sym_id = local_by_sym_id,
+        .blocks          = [],
+        .loop_stack      = [],
+        .current         = null,
+    }
+
+    entry :: new_block(fn_ctx, body.span)
+    fn_ctx.current = entry
+
+    trailing :: build_block_body(fn_ctx, body)
+
+    // Implicit return : if the current block still lacks a terminator,
+    // emit one with the trailing expression (or null for void).
+    if fn_ctx.current !is null {
+        cur :: fn_ctx.blocks[usize(fn_ctx.current)]
+        if cur.terminator is null {
+            cur.terminator = TermReturn { .value = trailing, .span = body.span }
+        }
+    }
+
+    meta :: fn_metadata(d)
+    frozen: BasicBlock[] = []
+    for b in fn_ctx.blocks { frozen.push(freeze_block(b)) }
+    return CFGFunction {
+        .mangled     = d.mangled,
+        .params      = params,
+        .return_type = d.return_type,
+        .locals      = fn_ctx.locals,
+        .blocks      = frozen,
+        .entry       = entry,
+        .origin      = d.origin,
+        .extern_name = meta.extern_name,
+        .is_extern   = meta.is_extern,
+        .is_exported = meta.is_exported,
+    }
+}
+
+freeze_block :: fn(b: MutableBlock) -> BasicBlock {
+    if b.terminator is null {
+        // Defensive : a block escaped without a terminator. Emit
+        // Unreachable so downstream passes don't crash.
+        return BasicBlock {
+            .id = b.id, .instructions = b.instructions, .span = b.span,
+            .terminator = TermUnreachable { .reason = "missing terminator", .span = b.span },
+        }
+    }
+    return BasicBlock {
+        .id = b.id, .instructions = b.instructions, .span = b.span,
+        .terminator = b.terminator,
+    }
+}
+
+// ============================================================================
+// Block / statement / expression builders
+// ============================================================================
+
+/// Build a block body. Returns the LocalId carrying the trailing expr's
+/// value (or null when the block is void / control flow ended mid-body).
+build_block_body :: fn(fn_ctx: FnCtx, b: LoweredBlock) -> LocalId | null {
+    for s in b.stmts {
+        if fn_ctx.current is null { return null }
+        build_stmt(fn_ctx, s)
+    }
+    if fn_ctx.current is null { return null }
+    if b.trailing is null { return null }
+    return build_expr(fn_ctx, b.trailing)
+}
+
+build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
+    if s is LoweredLet as let_stmt {
+        value_local :: build_expr(fn_ctx, let_stmt.value)
+        dst :: declare_local(fn_ctx, let_stmt.name, let_stmt.type, let_stmt.symbol)
+        fn_ctx.local_by_sym_id[let_stmt.symbol.id] = dst
+        if value_local !is null {
+            if fn_ctx.current !is null {
+                emit(fn_ctx, InstrMove { .dst = dst, .src = value_local, .span = let_stmt.span })
+            }
+        }
+        return
+    }
+    if s is LoweredAssign as a {
+        build_assign(fn_ctx, a)
+        return
+    }
+    if s is LoweredCellSet as cs {
+        cell :: build_expr(fn_ctx, cs.target)
+        value :: build_expr(fn_ctx, cs.value)
+        if cell !is null {
+            if value !is null {
+                emit(fn_ctx, InstrCellSet {
+                    .cell = cell, .value = value, .value_type = cs.value_type, .span = cs.span,
+                })
+            }
+        }
+        return
+    }
+    if s is LoweredExprStmt as e {
+        // Side-effect only ; the resulting local is discarded.
+        build_expr(fn_ctx, e.expr)
+        return
+    }
+    if s is LoweredReturn as r {
+        value: LocalId | null = null
+        if r.value !is null { value = build_expr(fn_ctx, r.value) }
+        terminate(fn_ctx, TermReturn { .value = value, .span = r.span })
+        return
+    }
+    if s is LoweredLoop as l {
+        build_loop(fn_ctx, l)
+        return
+    }
+    if s is LoweredBreak as br {
+        frame :: resolve_loop_frame(fn_ctx, br.label)
+        if frame is null { return }
+        terminate(fn_ctx, TermBranch { .target = frame.exit_id, .span = br.span })
+        return
+    }
+    if s is LoweredContinue as cont {
+        frame :: resolve_loop_frame(fn_ctx, cont.label)
+        if frame is null { return }
+        terminate(fn_ctx, TermBranch { .target = frame.header_id, .span = cont.span })
+        return
+    }
+}
+
+build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
+    target :: s.target
+    if target is LoweredIdent as ident {
+        slot_opt :: fn_ctx.local_by_sym_id[ident.symbol.id]
+        value :: build_expr(fn_ctx, s.value)
+        if slot_opt is null { return }
+        if value is null { return }
+        emit(fn_ctx, InstrMove { .dst = slot_opt, .src = value, .span = s.span })
+        return
+    }
+    if target is LoweredFieldAccess as fa {
+        tgt :: build_expr(fn_ctx, fa.target)
+        value :: build_expr(fn_ctx, s.value)
+        if tgt is null { return }
+        if value is null { return }
+        emit(fn_ctx, InstrFieldSet {
+            .target = tgt, .field = fa.field, .value = value, .barrierless = false, .span = s.span,
+        })
+        return
+    }
+    if target is LoweredIndex as idx_expr {
+        tgt :: build_expr(fn_ctx, idx_expr.target)
+        idx :: build_expr(fn_ctx, idx_expr.index)
+        value :: build_expr(fn_ctx, s.value)
+        if tgt is null { return }
+        if idx is null { return }
+        if value is null { return }
+        emit(fn_ctx, InstrArraySet {
+            .target = tgt, .index = idx, .value = value, .span = s.span,
+        })
+        return
+    }
+    // Unsupported target : build the value for side effects, discard.
+    build_expr(fn_ctx, s.value)
+    return
+}
+
+build_loop :: fn(fn_ctx: FnCtx, s: LoweredLoop) -> void {
+    header_id :: new_block(fn_ctx, s.span)
+    body_id :: new_block(fn_ctx, s.body.span)
+    exit_id :: new_block(fn_ctx, s.span)
+
+    if fn_ctx.current !is null {
+        terminate(fn_ctx, TermBranch { .target = header_id, .span = s.span })
+    }
+
+    fn_ctx.current = header_id
+    if s.cond !is null {
+        cond_local :: build_expr(fn_ctx, s.cond)
+        if cond_local !is null {
+            terminate(fn_ctx, TermCondBranch {
+                .cond = cond_local, .then_block = body_id, .else_block = exit_id,
+                .span = s.cond.span_of_expr(),
+            })
+        } else {
+            terminate(fn_ctx, TermBranch { .target = exit_id, .span = s.span })
+        }
+    } else {
+        terminate(fn_ctx, TermBranch { .target = body_id, .span = s.span })
+    }
+
+    fn_ctx.loop_stack.push(LoopFrame {
+        .label = s.label, .header_id = header_id, .exit_id = exit_id,
+    })
+    fn_ctx.current = body_id
+    build_block_body(fn_ctx, s.body)
+    if fn_ctx.current !is null {
+        terminate(fn_ctx, TermBranch { .target = header_id, .span = s.span })
+    }
+    // pop loop frame
+    new_stack: LoopFrame[] = []
+    i := usize(0)
+    for i < fn_ctx.loop_stack.len() - usize(1) {
+        new_stack.push(fn_ctx.loop_stack[i])
+        i += usize(1)
+    }
+    fn_ctx.loop_stack = new_stack
+
+    fn_ctx.current = exit_id
+}
+
+resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame | null {
+    if label is null {
+        if fn_ctx.loop_stack.len() == usize(0) { return null }
+        return fn_ctx.loop_stack[fn_ctx.loop_stack.len() - usize(1)]
+    }
+    // Extract the non-null label once — the c-emit's `string | null`
+    // comparison currently mis-boxes when crossing a field vs a param
+    // boundary ; comparing two `string` locals is unambiguous.
+    needle :: label
+    i := i64(fn_ctx.loop_stack.len()) - i64(1)
+    for i >= 0 {
+        frame :: fn_ctx.loop_stack[usize(i)]
+        if frame.label !is null {
+            if frame.label == needle { return frame }
+        }
+        i -= 1
+    }
+    return null
+}
+
+// ============================================================================
+// Expression conversion
+// ============================================================================
+
+build_expr :: fn(fn_ctx: FnCtx, e: LoweredExpr) -> LocalId | null {
+    if fn_ctx.current is null { return null }
+    match e {
+        is LoweredIntLit as v   -> { return emit_const(fn_ctx, v.type, ConstInt { .value = v.value }, v.span) }
+        is LoweredFloatLit as v -> { return emit_const(fn_ctx, v.type, ConstFloat { .value = v.value }, v.span) }
+        is LoweredBoolLit as v  -> { return emit_const(fn_ctx, v.type, ConstBool { .value = v.value }, v.span) }
+        is LoweredNullLit as v  -> { return emit_const(fn_ctx, v.type, ConstNull {}, v.span) }
+        is LoweredCharLit as v  -> { return emit_const(fn_ctx, v.type, ConstChar { .value = i32(u32(v.value)) }, v.span) }
+        is LoweredStringLit as v -> {
+            idx :: intern_string_pool(fn_ctx.project, v.value)
+            return emit_const(fn_ctx, v.type, ConstString { .index = idx }, v.span)
+        }
+        is LoweredIdent as v        -> { return build_ident(fn_ctx, v) }
+        is LoweredCall as v         -> { return build_call(fn_ctx, v) }
+        is LoweredVirtualCall as v  -> { return build_virtual_call(fn_ctx, v) }
+        is LoweredFieldAccess as v  -> { return build_field_access(fn_ctx, v) }
+        is LoweredIndex as v        -> { return build_index(fn_ctx, v) }
+        is LoweredUnary as v        -> { return build_unary(fn_ctx, v) }
+        is LoweredBinary as v       -> { return build_binary(fn_ctx, v) }
+        is LoweredIf as v           -> { return build_if(fn_ctx, v) }
+        is LoweredBlock as v        -> { return build_block_body(fn_ctx, v) }
+        is LoweredStructLit as v    -> { return build_struct_lit(fn_ctx, v) }
+        is LoweredArrayLit as v     -> { return build_array_lit(fn_ctx, v) }
+        is LoweredCast as v         -> { return build_cast(fn_ctx, v) }
+        is LoweredTypeCheck as v    -> { return build_type_check(fn_ctx, v) }
+        is LoweredUnreachable as v  -> { return build_unreachable_type(fn_ctx, v.type, v.span, v.reason) }
+        is LoweredIntrinsicCall as v -> { return build_intrinsic_call(fn_ctx, v) }
+        is LoweredArrayLen as v     -> { return build_array_len(fn_ctx, v) }
+        is LoweredArrayPush as v    -> { return build_array_push(fn_ctx, v) }
+        is LoweredArraySlice as v   -> { return build_array_slice(fn_ctx, v) }
+        is LoweredCellNew as v      -> { return build_cell_new(fn_ctx, v) }
+        is LoweredCellGet as v      -> { return build_cell_get(fn_ctx, v) }
+        is LoweredMakeClosure as v  -> { return build_make_closure(fn_ctx, v) }
+        is LoweredDataConst as v    -> { return build_data_const(fn_ctx, v) }
+        is LoweredTypeConst as v    -> { return build_type_const(fn_ctx, v) }
+    }
+}
+
+build_type_const :: fn(fn_ctx: FnCtx, e: LoweredTypeConst) -> LocalId | null {
+    dst :: fresh_tmp(fn_ctx, "type_const", e.type)
+    emit(fn_ctx, InstrTypeConst { .dst = dst, .type = e.type, .value_type = e.value, .span = e.span })
+    return dst
+}
+
+build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
+    slot_opt :: fn_ctx.local_by_sym_id[e.symbol.id]
+    if slot_opt !is null {
+        // Binding-kind narrowing : the slot's declared type is wider
+        // than the expr's, so emit a Cast to recover the narrowed type
+        // before downstream uses.
+        slot_type :: fn_ctx.locals[usize(slot_opt)].type
+        if slot_type is UnionType {
+            if !equals_type(slot_type, e.type) {
+                dst :: fresh_tmp(fn_ctx, "narrow", e.type)
+                emit(fn_ctx, InstrCast { .dst = dst, .value = slot_opt, .type = e.type, .span = e.span })
+                return dst
+            }
+        }
+        return slot_opt
+    }
+    if i32(e.symbol.kind) == i32(SymbolKind.Fn) {
+        dst :: fresh_tmp(fn_ctx, "fn_ref", e.type)
+        emit(fn_ctx, InstrFnRef {
+            .dst = dst, .fn_symbol = e.symbol, .type = e.type, .span = e.span,
+        })
+        return dst
+    }
+    return build_unreachable_type(fn_ctx, e.type, e.span, "unresolved ident ${e.symbol.name}")
+}
+
+build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
+    if e.callee is LoweredIdent as callee_id {
+        if i32(callee_id.symbol.kind) == i32(SymbolKind.Fn) {
+            args :: build_args(fn_ctx, e.args)
+            if args is null { return null }
+            dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "call", e.type) }
+            emit(fn_ctx, InstrCall {
+                .dst = dst, .callee = callee_id.symbol, .args = args, .type = e.type, .span = e.span,
+            })
+            return dst
+        }
+    }
+    callee :: build_expr(fn_ctx, e.callee)
+    if callee is null { return null }
+    args :: build_args(fn_ctx, e.args)
+    if args is null { return null }
+    dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "call_ind", e.type) }
+    emit(fn_ctx, InstrCallIndirect {
+        .dst = dst, .callee = callee, .args = args,
+        .fn_type = type_of_lowered(e.callee), .type = e.type, .span = e.span,
+    })
+    return dst
+}
+
+build_args :: fn(fn_ctx: FnCtx, args: LoweredExpr[]) -> LocalId[] | null {
+    out: LocalId[] = []
+    for a in args {
+        local :: build_expr(fn_ctx, a)
+        if local is null { return null }
+        out.push(local)
+    }
+    return out
+}
+
+build_virtual_call :: fn(fn_ctx: FnCtx, e: LoweredVirtualCall) -> LocalId | null {
+    receiver :: build_expr(fn_ctx, e.receiver)
+    if receiver is null { return null }
+    args :: build_args(fn_ctx, e.args)
+    if args is null { return null }
+    dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "vcall", e.type) }
+    emit(fn_ctx, InstrVirtualCall {
+        .dst = dst, .trait_name = e.trait_name, .method = e.method,
+        .receiver = receiver, .args = args, .type = e.type, .span = e.span,
+    })
+    return dst
+}
+
+build_field_access :: fn(fn_ctx: FnCtx, e: LoweredFieldAccess) -> LocalId | null {
+    target :: build_expr(fn_ctx, e.target)
+    if target is null { return null }
+    dst :: fresh_tmp(fn_ctx, "field", e.type)
+    emit(fn_ctx, InstrFieldGet {
+        .dst = dst, .target = target, .field = e.field, .type = e.type, .span = e.span,
+    })
+    return dst
+}
+
+build_index :: fn(fn_ctx: FnCtx, e: LoweredIndex) -> LocalId | null {
+    target :: build_expr(fn_ctx, e.target)
+    index :: build_expr(fn_ctx, e.index)
+    if target is null { return null }
+    if index is null { return null }
+    dst :: fresh_tmp(fn_ctx, "idx", e.type)
+    emit(fn_ctx, InstrArrayGet {
+        .dst = dst, .target = target, .index = index, .type = e.type, .span = e.span,
+    })
+    return dst
+}
+
+build_unary :: fn(fn_ctx: FnCtx, e: LoweredUnary) -> LocalId | null {
+    operand :: build_expr(fn_ctx, e.operand)
+    if operand is null { return null }
+    dst :: fresh_tmp(fn_ctx, "unop", e.type)
+    emit(fn_ctx, InstrUnOp {
+        .dst = dst, .op = e.op, .operand = operand, .type = e.type, .span = e.span,
+    })
+    return dst
+}
+
+build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
+    if i32(e.op) == i32(LoweredBinaryOp.And) { return build_short_circuit(fn_ctx, e) }
+    if i32(e.op) == i32(LoweredBinaryOp.Or)  { return build_short_circuit(fn_ctx, e) }
+    lhs :: build_expr(fn_ctx, e.left)
+    if lhs is null { return null }
+    rhs :: build_expr(fn_ctx, e.right)
+    if rhs is null { return null }
+    dst :: fresh_tmp(fn_ctx, "binop", e.type)
+    emit(fn_ctx, InstrBinOp {
+        .dst = dst, .op = e.op, .lhs = lhs, .rhs = rhs, .type = e.type, .span = e.span,
+    })
+    return dst
+}
+
+build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
+    lhs :: build_expr(fn_ctx, e.left)
+    if lhs is null { return null }
+
+    is_and :: i32(e.op) == i32(LoweredBinaryOp.And)
+    result_name :: if is_and { "and_res" } else { "or_res" }
+    result :: declare_local(fn_ctx, result_name, e.type, null)
+
+    then_id :: new_block(fn_ctx, e.right.span_of_expr())
+    else_id :: new_block(fn_ctx, e.right.span_of_expr())
+    join_id :: new_block(fn_ctx, e.span)
+
+    terminate(fn_ctx, TermCondBranch {
+        .cond = lhs, .then_block = then_id, .else_block = else_id, .span = e.span,
+    })
+
+    fn_ctx.current = then_id
+    if is_and {
+        rhs :: build_expr(fn_ctx, e.right)
+        if rhs !is null {
+            if fn_ctx.current !is null {
+                emit(fn_ctx, InstrMove { .dst = result, .src = rhs, .span = e.right.span_of_expr() })
+            }
+        }
+    } else {
+        true_local :: fresh_tmp(fn_ctx, "k", e.type)
+        emit(fn_ctx, InstrConst {
+            .dst = true_local, .value = ConstBool { .value = true },
+            .type = e.type, .span = e.span,
+        })
+        emit(fn_ctx, InstrMove { .dst = result, .src = true_local, .span = e.span })
+    }
+    if fn_ctx.current !is null {
+        terminate(fn_ctx, TermBranch { .target = join_id, .span = e.span })
+    }
+
+    fn_ctx.current = else_id
+    if is_and {
+        false_local :: fresh_tmp(fn_ctx, "k", e.type)
+        emit(fn_ctx, InstrConst {
+            .dst = false_local, .value = ConstBool { .value = false },
+            .type = e.type, .span = e.span,
+        })
+        emit(fn_ctx, InstrMove { .dst = result, .src = false_local, .span = e.span })
+    } else {
+        rhs :: build_expr(fn_ctx, e.right)
+        if rhs !is null {
+            if fn_ctx.current !is null {
+                emit(fn_ctx, InstrMove { .dst = result, .src = rhs, .span = e.right.span_of_expr() })
+            }
+        }
+    }
+    if fn_ctx.current !is null {
+        terminate(fn_ctx, TermBranch { .target = join_id, .span = e.span })
+    }
+
+    fn_ctx.current = join_id
+    return result
+}
+
+build_if :: fn(fn_ctx: FnCtx, e: LoweredIf) -> LocalId | null {
+    cond_local :: build_expr(fn_ctx, e.cond)
+    if cond_local is null { return null }
+
+    result :: if is_void(e.type) { null } else { declare_local(fn_ctx, "if_res", e.type, null) }
+
+    then_id :: new_block(fn_ctx, e.then_block.span)
+    else_id_opt :: if e.else_block is null { null } else { new_block(fn_ctx, e.else_block.span) }
+    join_id :: new_block(fn_ctx, e.span)
+
+    branch_target :: if else_id_opt is null { join_id } else { else_id_opt }
+    terminate(fn_ctx, TermCondBranch {
+        .cond = cond_local, .then_block = then_id, .else_block = branch_target, .span = e.span,
+    })
+
+    fn_ctx.current = then_id
+    then_val :: build_block_body(fn_ctx, e.then_block)
+    if fn_ctx.current !is null {
+        if result !is null {
+            if then_val !is null {
+                emit(fn_ctx, InstrMove { .dst = result, .src = then_val, .span = e.then_block.span })
+            }
+        }
+        terminate(fn_ctx, TermBranch { .target = join_id, .span = e.then_block.span })
+    }
+
+    if else_id_opt !is null {
+        if e.else_block !is null {
+            fn_ctx.current = else_id_opt
+            else_val :: build_block_body(fn_ctx, e.else_block)
+            if fn_ctx.current !is null {
+                if result !is null {
+                    if else_val !is null {
+                        emit(fn_ctx, InstrMove { .dst = result, .src = else_val, .span = e.else_block.span })
+                    }
+                }
+                terminate(fn_ctx, TermBranch { .target = join_id, .span = e.else_block.span })
+            }
+        }
+    }
+
+    fn_ctx.current = join_id
+    return result
+}
+
+build_struct_lit :: fn(fn_ctx: FnCtx, e: LoweredStructLit) -> LocalId | null {
+    field_locals: LocalId[] = []
+    for f in e.fields {
+        local :: build_expr(fn_ctx, f.value)
+        if local is null { return null }
+        field_locals.push(local)
+    }
+    dst :: fresh_tmp(fn_ctx, "struct", e.type)
+    emit(fn_ctx, InstrStructNew {
+        .dst = dst, .type = e.type, .fields = field_locals,
+        .stack = false, .span = e.span,
+    })
+    return dst
+}
+
+build_array_lit :: fn(fn_ctx: FnCtx, e: LoweredArrayLit) -> LocalId | null {
+    elems: LocalId[] = []
+    for el in e.elements {
+        local :: build_expr(fn_ctx, el)
+        if local is null { return null }
+        elems.push(local)
+    }
+    dst :: fresh_tmp(fn_ctx, "arr", e.type)
+    emit(fn_ctx, InstrArrayNew {
+        .dst = dst, .type = e.type, .length = i32(e.elements.len()),
+        .elements = elems, .stack = false, .span = e.span,
+    })
+    return dst
+}
+
+build_cast :: fn(fn_ctx: FnCtx, e: LoweredCast) -> LocalId | null {
+    value :: build_expr(fn_ctx, e.value)
+    if value is null { return null }
+    dst :: fresh_tmp(fn_ctx, "cast", e.type)
+    emit(fn_ctx, InstrCast { .dst = dst, .value = value, .type = e.type, .span = e.span })
+    return dst
+}
+
+build_type_check :: fn(fn_ctx: FnCtx, e: LoweredTypeCheck) -> LocalId | null {
+    value :: build_expr(fn_ctx, e.value)
+    if value is null { return null }
+    dst :: fresh_tmp(fn_ctx, "type_check", e.type)
+    emit(fn_ctx, InstrTypeCheck {
+        .dst = dst, .value = value, .check_type = e.check_type, .span = e.span,
+    })
+    return dst
+}
+
+build_unreachable_type :: fn(fn_ctx: FnCtx, type: Type, span: Span, reason: string) -> LocalId | null {
+    if fn_ctx.current is null { return null }
+    placeholder :: if is_void(type) { null } else { declare_local(fn_ctx, "unreachable", type, null) }
+    terminate(fn_ctx, TermUnreachable { .reason = reason, .span = span })
+    return placeholder
+}
+
+build_intrinsic_call :: fn(fn_ctx: FnCtx, e: LoweredIntrinsicCall) -> LocalId | null {
+    args :: build_args(fn_ctx, e.args)
+    if args is null { return null }
+    dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "intrinsic", e.type) }
+    emit(fn_ctx, InstrIntrinsic {
+        .dst = dst, .name = e.name, .args = args,
+        .display_for = e.display_for, .span = e.span,
+    })
+    return dst
+}
+
+build_array_len :: fn(fn_ctx: FnCtx, e: LoweredArrayLen) -> LocalId | null {
+    target :: build_expr(fn_ctx, e.target)
+    if target is null { return null }
+    dst :: fresh_tmp(fn_ctx, "len", e.type)
+    emit(fn_ctx, InstrArrayLen { .dst = dst, .target = target, .span = e.span })
+    return dst
+}
+
+build_array_push :: fn(fn_ctx: FnCtx, e: LoweredArrayPush) -> LocalId | null {
+    target :: build_expr(fn_ctx, e.target)
+    value :: build_expr(fn_ctx, e.value)
+    if target is null { return null }
+    if value is null { return null }
+    emit(fn_ctx, InstrArrayPush { .target = target, .value = value, .span = e.span })
+    return null
+}
+
+build_array_slice :: fn(fn_ctx: FnCtx, e: LoweredArraySlice) -> LocalId | null {
+    target :: build_expr(fn_ctx, e.target)
+    lo :: build_expr(fn_ctx, e.lo)
+    hi :: build_expr(fn_ctx, e.hi)
+    if target is null { return null }
+    if lo is null { return null }
+    if hi is null { return null }
+    dst :: fresh_tmp(fn_ctx, "slice", e.type)
+    emit(fn_ctx, InstrArraySlice {
+        .dst = dst, .type = e.type, .target = target, .lo = lo, .hi = hi, .span = e.span,
+    })
+    return dst
+}
+
+build_data_const :: fn(fn_ctx: FnCtx, e: LoweredDataConst) -> LocalId | null {
+    dst :: fresh_tmp(fn_ctx, "data_const", e.type)
+    emit(fn_ctx, InstrDataConst {
+        .dst = dst, .type = e.type, .pool_index = i32(e.pool_index), .span = e.span,
+    })
+    return dst
+}
+
+build_cell_new :: fn(fn_ctx: FnCtx, e: LoweredCellNew) -> LocalId | null {
+    value :: build_expr(fn_ctx, e.value)
+    if value is null { return null }
+    dst :: fresh_tmp(fn_ctx, "cell", e.type)
+    emit(fn_ctx, InstrCellNew {
+        .dst = dst, .value = value, .value_type = e.value_type, .span = e.span,
+    })
+    return dst
+}
+
+build_cell_get :: fn(fn_ctx: FnCtx, e: LoweredCellGet) -> LocalId | null {
+    target :: build_expr(fn_ctx, e.target)
+    if target is null { return null }
+    dst :: fresh_tmp(fn_ctx, "cell_get", e.type)
+    emit(fn_ctx, InstrCellGet {
+        .dst = dst, .cell = target, .value_type = e.value_type, .span = e.span,
+    })
+    return dst
+}
+
+build_make_closure :: fn(fn_ctx: FnCtx, e: LoweredMakeClosure) -> LocalId | null {
+    env :: build_expr(fn_ctx, e.env)
+    if env is null { return null }
+    dst :: fresh_tmp(fn_ctx, "closure", e.type)
+    emit(fn_ctx, InstrMakeClosure {
+        .dst = dst, .fn_symbol = e.fn_symbol, .env = env, .type = e.type, .span = e.span,
+    })
+    return dst
+}
+
+// ============================================================================
+// Bookkeeping helpers
+// ============================================================================
+
+emit :: fn(fn_ctx: FnCtx, instr: Instruction) -> void {
+    if fn_ctx.current is null { return }
+    fn_ctx.blocks[usize(fn_ctx.current)].instructions.push(instr)
+}
+
+emit_const :: fn(fn_ctx: FnCtx, type: Type, value: ConstValue, span: Span) -> LocalId {
+    dst :: fresh_tmp(fn_ctx, "k", type)
+    emit(fn_ctx, InstrConst { .dst = dst, .value = value, .type = type, .span = span })
+    return dst
+}
+
+terminate :: fn(fn_ctx: FnCtx, t: Terminator) -> void {
+    if fn_ctx.current is null { return }
+    cur :: fn_ctx.blocks[usize(fn_ctx.current)]
+    if cur.terminator is null { cur.terminator = t }
+    fn_ctx.current = null
+}
+
+new_block :: fn(fn_ctx: FnCtx, span: Span) -> BlockId {
+    id :: i32(fn_ctx.blocks.len())
+    fn_ctx.blocks.push(MutableBlock {
+        .id = id, .instructions = [], .terminator = null, .span = span,
+    })
+    return id
+}
+
+declare_local :: fn(fn_ctx: FnCtx, name: string, type: Type, symbol: Symbol | null) -> LocalId {
+    id :: i32(fn_ctx.locals.len())
+    fn_ctx.locals.push(CFGLocal { .name = name, .type = type, .symbol = symbol })
+    return id
+}
+
+fresh_tmp :: fn(fn_ctx: FnCtx, hint: string, type: Type) -> LocalId {
+    return declare_local(fn_ctx, "\$${hint}_${fn_ctx.locals.len()}", type, null)
+}
+
+is_void :: fn(t: Type) -> bool {
+    if t is PrimitiveType as p { return p.name == "void" }
+    return false
+}
+
+// Helper : extract the span from any LoweredExpr variant.
+type_of_lowered :: fn(e: LoweredExpr) -> Type = match e {
+    is LoweredIntLit as x        -> x.type
+    is LoweredFloatLit as x      -> x.type
+    is LoweredBoolLit as x       -> x.type
+    is LoweredNullLit as x       -> x.type
+    is LoweredCharLit as x       -> x.type
+    is LoweredStringLit as x     -> x.type
+    is LoweredIdent as x         -> x.type
+    is LoweredCall as x          -> x.type
+    is LoweredVirtualCall as x   -> x.type
+    is LoweredFieldAccess as x   -> x.type
+    is LoweredIndex as x         -> x.type
+    is LoweredUnary as x         -> x.type
+    is LoweredBinary as x        -> x.type
+    is LoweredIf as x            -> x.type
+    is LoweredBlock as x         -> x.type
+    is LoweredStructLit as x     -> x.type
+    is LoweredArrayLit as x      -> x.type
+    is LoweredCast as x          -> x.type
+    is LoweredTypeCheck as x     -> x.type
+    is LoweredUnreachable as x   -> x.type
+    is LoweredIntrinsicCall as x -> x.type
+    is LoweredArrayLen as x      -> x.type
+    is LoweredArrayPush as x     -> x.type
+    is LoweredArraySlice as x    -> x.type
+    is LoweredCellNew as x       -> x.type
+    is LoweredCellGet as x       -> x.type
+    is LoweredMakeClosure as x   -> x.type
+    is LoweredDataConst as x     -> x.type
+    is LoweredTypeConst as x     -> x.type
+}
+
+// Extension method on LoweredExpr to extract span — used by short-circuit
+// branches that need the rhs's span for diagnostics. We can't add real
+// methods (no impl block sugar in this file), so define a free fn.
+span_of_expr :: fn(e: LoweredExpr) -> Span = match e {
+    is LoweredIntLit as x        -> x.span
+    is LoweredFloatLit as x      -> x.span
+    is LoweredBoolLit as x       -> x.span
+    is LoweredNullLit as x       -> x.span
+    is LoweredCharLit as x       -> x.span
+    is LoweredStringLit as x     -> x.span
+    is LoweredIdent as x         -> x.span
+    is LoweredCall as x          -> x.span
+    is LoweredVirtualCall as x   -> x.span
+    is LoweredFieldAccess as x   -> x.span
+    is LoweredIndex as x         -> x.span
+    is LoweredUnary as x         -> x.span
+    is LoweredBinary as x        -> x.span
+    is LoweredIf as x            -> x.span
+    is LoweredBlock as x         -> x.span
+    is LoweredStructLit as x     -> x.span
+    is LoweredArrayLit as x      -> x.span
+    is LoweredCast as x          -> x.span
+    is LoweredTypeCheck as x     -> x.span
+    is LoweredUnreachable as x   -> x.span
+    is LoweredIntrinsicCall as x -> x.span
+    is LoweredArrayLen as x      -> x.span
+    is LoweredArrayPush as x     -> x.span
+    is LoweredArraySlice as x    -> x.span
+    is LoweredCellNew as x       -> x.span
+    is LoweredCellGet as x       -> x.span
+    is LoweredMakeClosure as x   -> x.span
+    is LoweredDataConst as x     -> x.span
+    is LoweredTypeConst as x     -> x.span
+}

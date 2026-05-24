@@ -34,6 +34,7 @@ import "vader/lower" { dump_lowered }
 import "vader/bytecode" { emit_project }
 import "vader/bytecode" { default_emit_options }
 import "vader/bytecode" { dump_bytecode }
+import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions }
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
@@ -328,6 +329,9 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if stage == "bytecode" {
         return file.run_bytecode_stage()
     }
+    if stage == "cfg" {
+        return file.run_cfg_stage()
+    }
     if stage == "c" {
         return file.run_c_stage()
     }
@@ -462,6 +466,17 @@ run_comptime_stage :: fn(file: string) -> i32 {
     // resolve + typecheck + comptime into one collector, so the parity
     // snapshots only line up when this stage does the same.
     print_pipeline_diags(pipeline, [])
+    return 0
+}
+
+run_cfg_stage :: fn(file: string) -> i32 {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[] = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    cfg :: build_cfg_project(lowered)
+    opts :: DumpCfgOptions { .include_module = null, .include_strings = true }
+    print(dump_cfg_project(cfg, opts))
+    print_pipeline_diags(pipeline, lower_diags)
     return 0
 }
 
