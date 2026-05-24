@@ -81,10 +81,12 @@ import "vader/vm" {
 /// int literal. Other lowered shapes return empty bodies or trap
 /// (clearly marked TODO).
 ///
-/// @param lowered   the lowered project from the lowerer pass.
-/// @param opts      emit-time switches.
-/// @return          a fresh `BytecodeModule`.
-export emit_project :: fn(lowered: LoweredProject, opts: EmitOptions) -> BytecodeModule {
+/// @param lowered      the lowered project from the lowerer pass.
+/// @param module_name  the BytecodeModule `name` slot (TS uses
+///                     `basename(file, ".vader")`).
+/// @param opts         emit-time switches.
+/// @return             a fresh `BytecodeModule`.
+export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: EmitOptions) -> BytecodeModule {
     ctx :: new_emitter_ctx()
 
     // Pass 1 — reserve every fn / struct.
@@ -116,7 +118,7 @@ export emit_project :: fn(lowered: LoweredProject, opts: EmitOptions) -> Bytecod
         }
     }
 
-    return assemble_module(ctx, opts, lowered)
+    return assemble_module(ctx, module_name, opts, lowered)
 }
 
 /// Walk the import table and synthesise a wrapper fn in `ctx.functions`
@@ -431,12 +433,12 @@ ends_with_return :: fn(body: Op[]) -> bool {
 ///
 /// `_opts` is unused until the peephole pass gates through it —
 /// the leading underscore documents the deferred consumer.
-assemble_module :: fn(ctx: EmitterCtx, _opts: EmitOptions, lowered: LoweredProject) -> BytecodeModule {
+assemble_module :: fn(ctx: EmitterCtx, module_name: string, _opts: EmitOptions, lowered: LoweredProject) -> BytecodeModule {
     impl_table: ImplEntry[] = []
     vtables :: translate_vtables(lowered.vtable_entries, ctx)
     data_pool :: translate_data_pool(lowered.data_pool)
     return BytecodeModule {
-        .name        = "main",
+        .name        = module_name,
         .types       = ctx.types,
         .strings     = ctx.strings,
         .data_pool   = data_pool,

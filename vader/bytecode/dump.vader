@@ -99,13 +99,10 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
 }
 
 write_exports :: fn(sb: StringBuilder, exports: BcExport[], functions: BcFunction[]) -> void {
-    // `export main N` line — surface the entry fn explicitly.
-    for i in 0..<functions.len() {
-        if functions[i].is_main {
-            sb.append("export main ${i}\n")
-            return
-        }
-    }
+    // Mirror TS `writeVir` (`src/bytecode/text.ts:58`) — iterate the
+    // emitted exports list only, no implicit `export main`. The host
+    // recognises the entry via `BcFunction.is_main`, not via an export
+    // directive.
     for i in 0..<exports.len() {
         sb.append("export ${exports[i].extern_name} ${exports[i].fn_index}\n")
     }
@@ -190,7 +187,7 @@ format_op :: fn(op: Op) -> string = match op {
     is I32Sub                   -> "i32.sub"
     is I32Mul                   -> "i32.mul"
     is I32Div                   -> "i32.div"
-    is I32Mod                   -> "i32.mod"
+    is I32Mod                   -> "i32.rem"
     is I32Neg                   -> "i32.neg"
     is I32BitNot                -> "i32.bitnot"
     is I32BitAnd                -> "i32.bitand"
@@ -198,7 +195,7 @@ format_op :: fn(op: Op) -> string = match op {
     is I32BitXor                -> "i32.bitxor"
     is I32Shl                   -> "i32.shl"
     is I32Shr                   -> "i32.shr"
-    is I32ShrU                  -> "i32.shr_u"
+    is I32ShrU                  -> "u32.shr"
     is I32Eq                    -> "i32.eq"
     is I32Ne                    -> "i32.ne"
     is I32Lt                    -> "i32.lt"
@@ -209,7 +206,7 @@ format_op :: fn(op: Op) -> string = match op {
     is I64Sub                   -> "i64.sub"
     is I64Mul                   -> "i64.mul"
     is I64Div                   -> "i64.div"
-    is I64Mod                   -> "i64.mod"
+    is I64Mod                   -> "i64.rem"
     is I64Neg                   -> "i64.neg"
     is I64BitAnd                -> "i64.bitand"
     is I64BitOr                 -> "i64.bitor"
@@ -217,7 +214,7 @@ format_op :: fn(op: Op) -> string = match op {
     is I64BitNot                -> "i64.bitnot"
     is I64Shl                   -> "i64.shl"
     is I64Shr                   -> "i64.shr"
-    is I64ShrU                  -> "i64.shr_u"
+    is I64ShrU                  -> "u64.shr"
     is I64Eq                    -> "i64.eq"
     is I64Ne                    -> "i64.ne"
     is I64Lt                    -> "i64.lt"
@@ -225,13 +222,13 @@ format_op :: fn(op: Op) -> string = match op {
     is I64Gt                    -> "i64.gt"
     is I64Ge                    -> "i64.ge"
     is U32Div                   -> "u32.div"
-    is U32Mod                   -> "u32.mod"
+    is U32Mod                   -> "u32.rem"
     is U32Lt                    -> "u32.lt"
     is U32Le                    -> "u32.le"
     is U32Gt                    -> "u32.gt"
     is U32Ge                    -> "u32.ge"
     is U64Div                   -> "u64.div"
-    is U64Mod                   -> "u64.mod"
+    is U64Mod                   -> "u64.rem"
     is U64Lt                    -> "u64.lt"
     is U64Le                    -> "u64.le"
     is U64Gt                    -> "u64.gt"

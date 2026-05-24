@@ -12,7 +12,7 @@ module "vader/cli"
 
 import "std/io" { println, eprintln, read_file }
 import "std/collections" { keys, values }
-import "std/string" { starts_with, ends_with }
+import "std/string" { starts_with, ends_with, byte_len, byte_at, byte_slice as byte_slice_str }
 import "std/iter" { slice as slice_arr }
 import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
@@ -34,6 +34,7 @@ import "vader/lower" { dump_lowered }
 import "vader/bytecode" { emit_project }
 import "vader/bytecode" { default_emit_options }
 import "vader/bytecode" { dump_bytecode }
+import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
 import "vader/vm" { run_virt }
@@ -327,9 +328,12 @@ cmd_dump :: fn(args: string[]) -> i32 {
     if stage == "bytecode" {
         return file.run_bytecode_stage()
     }
+    if stage == "c" {
+        return file.run_c_stage()
+    }
 
     // Recognised TS stages — we know about them but can't run them yet.
-    if stage == "dced-ast" || stage == "c" || stage == "wasm" {
+    if stage == "dced-ast" || stage == "wasm" {
         eprintln("vader dump: stage \"${stage}\" not yet implemented")
         return 2
     }
@@ -465,10 +469,39 @@ run_bytecode_stage :: fn(file: string) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    module :: emit_project(lowered, default_emit_options())
+    module :: emit_project(lowered, module_name_from_file(file), default_emit_options())
     println(dump_bytecode(module))
     print_pipeline_diags(pipeline, lower_diags)
     return 0
+}
+
+run_c_stage :: fn(file: string) -> i32 {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[] = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    module :: emit_project(lowered, module_name_from_file(file), default_emit_options())
+    println(emit_c(module, default_c_emit_options()))
+    print_pipeline_diags(pipeline, lower_diags)
+    return 0
+}
+
+/// Mirror of TS `moduleNameFromFile` in `src/pipeline.ts:166` — strips
+/// the directory components and the `.vader` extension so a file like
+/// `tests/snippets/arith/_main.vader` becomes the bytecode module name
+/// `_main`.
+module_name_from_file :: fn(file: string) -> string {
+    last_slash: i64 = -1
+    i: i64 = 0
+    n :: i64(file.byte_len())
+    for i < n {
+        if file.byte_at(usize(i)) == u8(0x2F) { last_slash = i }
+        i += 1
+    }
+    base: string = if last_slash < 0 { file } else { byte_slice_str(file, usize(last_slash + 1), usize(n)) }
+    if base.ends_with(".vader") {
+        return byte_slice_str(base, usize(0), base.byte_len() - usize(6))
+    }
+    return base
 }
 
 run_lower_stage :: fn(file: string) -> i32 {
