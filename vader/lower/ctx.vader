@@ -20,6 +20,7 @@ import "vader/typecheck" { Substitution, new_substitution }
 import "vader/comptime" { EvaluatedProject }
 import "vader/comptime" { ComptimeValue }
 import "vader/comptime" { MonoProject, MonoEntry, new_mono_project }
+import "vader/resolver" { LoadedProject }
 
 // ============================================================================
 // Closure analysis output
@@ -64,6 +65,11 @@ export new_closure_analysis :: fn() -> ClosureAnalysis {
 /// mutable side-tables (`synth_decls`, `next_synthetic_id`, `diags`).
 export LowerProjectCtx :: struct {
     evaluated:           EvaluatedProject
+    /// The upstream loaded project — kept on the ctx so passes that
+    /// need the source-level decls (e.g. `@fields(T)` reach-through
+    /// to a foreign StructDecl) don't have to thread `loaded` through
+    /// every signature. Populated by `lower_project` at entry.
+    loaded:              LoadedProject
     mono:                MonoProject
     impls:               ImplRegistry
 
@@ -147,9 +153,10 @@ export GenericFnInstance :: struct {
 /// at least allocate the shape.
 /// @param evaluated  the comptime engine's output for this project.
 /// @return           a fresh project context with empty side-tables.
-export new_lower_project_ctx :: fn(evaluated: EvaluatedProject) -> LowerProjectCtx {
+export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject) -> LowerProjectCtx {
     return LowerProjectCtx {
         .evaluated           = evaluated,
+        .loaded              = loaded,
         .mono                = new_mono_project(),
         .impls               = new_registry(),
         .core_symbols        = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
@@ -287,10 +294,11 @@ export new_fn_lower_ctx :: fn(
 import "std/testing" { assert, assert_eq }
 import "vader/typecheck" { new_typed_project }
 import "vader/comptime" { new_evaluated_project }
+import "vader/resolver" { empty_loaded_project }
 
 @test test_new_lower_project_ctx_is_empty :: fn() -> void {
     evaluated :: new_evaluated_project(new_typed_project())
-    project :: new_lower_project_ctx(evaluated)
+    project :: new_lower_project_ctx(evaluated, empty_loaded_project())
     assert_eq(project.core_symbols.size, usize(0))
     assert_eq(project.synth_decls.len(), usize(0))
     assert_eq(project.next_synthetic_id, i32(-1))

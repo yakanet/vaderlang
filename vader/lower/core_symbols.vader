@@ -111,9 +111,10 @@ import "std/testing" { assert, assert_eq }
 import "vader/types" { display_type }
 import "vader/typecheck" { new_typed_project }
 import "vader/comptime" { new_evaluated_project }
+import "vader/resolver" { empty_loaded_project }
 
 @test test_lookup_core_symbol_missing_returns_null :: fn() -> void {
-    project :: new_lower_project_ctx(new_evaluated_project(new_typed_project()))
+    project :: new_lower_project_ctx(new_evaluated_project(new_typed_project()), empty_loaded_project())
     // No symbols pre-seeded — every lookup should miss.
     assert(find_core_trait(project, "Display") is null, "expected miss to return null")
 }

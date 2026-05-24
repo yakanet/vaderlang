@@ -54,6 +54,18 @@ export LoadedProject :: struct {
     diags:        Diagnostic[]
 }
 
+/// Empty placeholder — used by test fixtures that construct downstream
+/// project contexts without going through `load_project`.
+export empty_loaded_project :: fn() -> LoadedProject {
+    return LoadedProject {
+        .entry        = "",
+        .modules      = MutableMap(string, LoadedModule) { .buckets = [], .size = 0 },
+        .factory      = new_factory(),
+        .project_root = null,
+        .diags        = [],
+    }
+}
+
 /// One module after parse + collect (top-level symbols minted but
 /// body-walker / typecheck haven't run yet). `node_id_factory` is
 /// shared with `materialize.vader` so cloned default-method bodies

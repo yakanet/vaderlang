@@ -46,7 +46,7 @@ import "vader/comptime" { byte_size, byte_align }
 import "vader/typecheck" { type_to_target_symbol, has_user }
 import "vader/resolver" { ImportTargetTable, SymbolTarget }
 import "vader/parser" { ConstDecl, ImplDecl }
-import "vader/types" { display_type }
+import "vader/types" { display_type, STRUCT_FIELD }
 
 // ============================================================================
 // Expression dispatcher
@@ -1760,6 +1760,9 @@ try_fold_static_intrinsic :: fn(
     if name == "type_args" {
         return try_fold_type_args(ctx, intrinsic, type)
     }
+    if name == "fields" {
+        return try_fold_fields(ctx, intrinsic, type)
+    }
     if name != "size_of" && name != "align_of" && name != "type_name" && name != "type_kind" {
         return null
     }
@@ -1822,6 +1825,99 @@ try_fold_type_args :: fn(
         .span = intrinsic.span, .type = type, .elements = elements,
     }
 }
+
+/// Fold `@fields(T)` to an array literal of `Field { name, type }`
+/// struct lits — one entry per field declared on `T`. Generic struct
+/// args flow into each field's type so `@fields(Pair(string, i64))`
+/// reports `value` as `i64`, not the unsubstituted TypeParam. Mirror
+/// of `lowerIntrinsic`'s `case "fields"` in
+/// `src/lower/passes/expr.ts:498-522`.
+///
+/// @param ctx        the fn-body lower context.
+/// @param intrinsic  the `@fields(T)` call site.
+/// @param type       the result type (`Field[]`).
+/// @return           the array lit, or `LoweredUnreachable` when the
+///                   target isn't a struct / Field core type isn't
+///                   reachable / the struct decl can't be found.
+try_fold_fields :: fn(
+    ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
+) -> LoweredExpr | null {
+    if intrinsic.args.len() != usize(1) { return null }
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
+    if arg_or_null is null { return null }
+    target_ty :: arg_ty_or_unresolved(arg_or_null)
+    target_struct: StructType | null = null
+    if target_ty is StructType as st { target_struct = st }
+    if target_struct is null {
+        return LoweredUnreachable {
+            .span = intrinsic.span, .type = type,
+            .reason = "@fields target is not a struct",
+        }
+    }
+    field_type_opt :: find_core_type(ctx, STRUCT_FIELD, [])
+    if field_type_opt is null {
+        return LoweredUnreachable {
+            .span = intrinsic.span, .type = type,
+            .reason = "@fields needs std/core::Field",
+        }
+    }
+    field_type :: field_type_opt
+    // Find the owning module's loaded view + its typed program.
+    owner_module_id :: target_struct.symbol.module
+    owner_loaded_opt :: ctx.project.loaded.modules[owner_module_id]
+    if owner_loaded_opt is null {
+        return LoweredUnreachable {
+            .span = intrinsic.span, .type = type,
+            .reason = "@fields owner module not loaded",
+        }
+    }
+    owner_typed_opt :: ctx.project.evaluated.typed.modules[owner_module_id]
+    if owner_typed_opt is null {
+        return LoweredUnreachable {
+            .span = intrinsic.span, .type = type,
+            .reason = "@fields owner module not typechecked",
+        }
+    }
+    owner_typed :: owner_typed_opt
+    owner_decls :: module_decls(owner_loaded_opt)
+    decl :: find_struct_decl_by_name(owner_decls, target_struct.symbol.name)
+    if decl is null {
+        return LoweredUnreachable {
+            .span = intrinsic.span, .type = type,
+            .reason = "@fields target struct decl not found",
+        }
+    }
+    // Build the type-param → arg substitution using the existing
+    // helper that the generic-instance materialiser uses.
+    subst :: build_struct_subst(decl, target_struct.args, owner_typed)
+    string_type :: mk_primitive("string")
+    elements: LoweredExpr[] = []
+    for f in decl.fields {
+        raw_ty :: resolve_field_type(f.ty, owner_typed, decl, target_struct.args)
+        substituted :: substitute(raw_ty, subst)
+        field_lit_fields: LoweredStructLitField[] = []
+        field_lit_fields.push(LoweredStructLitField {
+            .name = "name",
+            .value = LoweredStringLit {
+                .span = intrinsic.span, .type = string_type, .value = f.name,
+            },
+        })
+        field_lit_fields.push(LoweredStructLitField {
+            .name = "type",
+            .value = LoweredTypeConst {
+                .span = intrinsic.span, .type = TY_TYPE, .value = substituted,
+            },
+        })
+        elements.push(LoweredStructLit {
+            .span = intrinsic.span, .type = field_type, .fields = field_lit_fields,
+        })
+    }
+    return LoweredArrayLit {
+        .span = intrinsic.span, .type = type, .elements = elements,
+    }
+}
+
+import "vader/typecheck" { substitute }
 
 /// Fold `@satisfies(T, Trait)` to a literal bool. True iff a user impl
 /// `T implements Trait` exists in the registry. Mirror of
