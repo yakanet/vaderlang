@@ -134,6 +134,16 @@ export LowerProjectCtx :: struct {
     fn_instances:        MutableMap(string, GenericFnInstance)
     fn_instances_order:  GenericFnInstance[]
 
+    /// Erasure-dedupe of impl-member emissions — keyed by
+    /// `"<impl-decl-span>::<member-name>"`. The first instance of a
+    /// generic struct that lands on a given impl-member emits the
+    /// (erased) body ; later instances see the key and skip emission.
+    /// All call sites end up routing through trait virtual dispatch,
+    /// which picks the single surviving body regardless of the original
+    /// instance's concrete args. Mirror of TS's `replacements` map in
+    /// `src/comptime/erasure-dedupe.ts::erasureDedupe`.
+    materialized_impl_keys: MutableSet(string)
+
     diags:               Diagnostic[]
 }
 
@@ -169,6 +179,9 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .next_mono_entry_id  = i32(1_000_000),
         .fn_instances        = MutableMap(string, GenericFnInstance) { .buckets = [], .size = 0 },
         .fn_instances_order  = [],
+        .materialized_impl_keys = MutableSet(string) {
+            .inner = MutableMap(string, bool) { .buckets = [], .size = usize(0) },
+        },
         .synth_decls         = [],
         .next_synthetic_id   = i32(-1),
         .diags               = [],

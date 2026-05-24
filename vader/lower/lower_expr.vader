@@ -996,6 +996,13 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
                 args: LoweredExpr[] = []
                 args.push(receiver)
                 for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+                // UFCS-on-generic-fn instance harvest : when the target
+                // is `fn[T](x: T) -> T`, register a `GenericFnInstance`
+                // so `materialize_generic_fn_instances` emits an erased
+                // body (mirror of `try_lower_generic_fn_call`'s ident
+                // path). Without this, calls like `42.identity()` route
+                // to the resolver symbol with no monomorphized body.
+                harvest_ufcs_fn_instance(ctx, found_free.symbol, recv_type, call.args)
                 return LoweredCall {
                     .span = call.span, .type = type,
                     .callee = LoweredIdent {
@@ -1081,6 +1088,66 @@ first_param_targets_name :: fn(ctx: FnLowerCtx, sym: Symbol, recv_name: string) 
         }
     }
     return false
+}
+
+/// Register a `GenericFnInstance` for a UFCS-resolved generic free fn.
+/// Mirrors the harvest in `try_lower_generic_fn_call` for the
+/// ident-call path. The receiver type binds the first param ; the
+/// remaining call args bind subsequent params. Idempotent on the
+/// `<symbol.id>::<args_suffix>` key.
+harvest_ufcs_fn_instance :: fn(
+    ctx: FnLowerCtx, fn_sym: Symbol, recv_type: Type, ast_args: CallArg[],
+) -> void {
+    // Locate the fn's FnType — UFCS resolution tolerates fns defined
+    // in foreign modules (e.g. stdlib's `len`).
+    fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
+    if fn_ty is null { return }
+    if fn_ty is FnType as ft {
+        if !type_has_param(ft) { return }
+        if ft.params.len() == usize(0) { return }
+        bindings :: MutableMap(i32, Type) { .buckets = [], .size = 0 }
+        order: i32[] = []
+        unify_params(ft.params[0], default_if_free(recv_type), bindings, order)
+        n :: ft.params.len()
+        for i in 1..<n {
+            ai :: i - 1
+            if ai >= ast_args.len() { break }
+            concrete :: default_if_free(ctx.types.expr_type(ast_args[ai].value))
+            unify_params(ft.params[i], concrete, bindings, order)
+        }
+        concrete_args: Type[] = []
+        for id in order {
+            v :: bindings[id]
+            match v {
+                is null -> { return }
+                _ -> { concrete_args.push(v) }
+            }
+        }
+        if !all_concrete(concrete_args) { return }
+        suffix :: mono_suffix(concrete_args)
+        inst_key :: "${fn_sym.id}::${suffix}"
+        if !(ctx.project.fn_instances[inst_key] is null) { return }
+        owner_module :: fn_sym.module
+        mod_mangle :: mangle_module_id_local(owner_module)
+        mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
+        new_inst :: GenericFnInstance {
+            .fn_symbol    = fn_sym,
+            .type_args    = concrete_args,
+            .mangled      = mangled,
+            .owner_module = owner_module,
+        }
+        ctx.project.fn_instances[inst_key] = new_inst
+        ctx.project.fn_instances_order.push(new_inst)
+    }
+}
+
+lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
+    // `Symbol.module` carries the owning module id — direct lookup
+    // beats walking every evaluated module per UFCS call site.
+    program :: ctx.project.evaluated.modules[sym.module]
+    if program is null { return null }
+    if program is EvaluatedProgram as ep { return ep.typed.decl_types[sym.id] }
+    return null
 }
 
 UfcsMember :: struct {

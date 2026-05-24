@@ -652,9 +652,10 @@ return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
     // top-level decls). They live in `impl_method_decl_types`
     // keyed by name_span via `span_key` — consult that as a
     // fallback so impl-member return types stop falling through
-    // to TY_VOID.
+    // to TY_VOID. Apply the entry's subst so an erasure-flavoured
+    // EntryTypes still produces an erased return type.
     impl_type :: types.typed.impl_method_decl_types[span_key(fn_decl.name_span)]
-    if impl_type is FnType as ft { return ft.return_type }
+    if impl_type is FnType as ft { return types.apply(ft.return_type) }
     return TY_VOID
 }
 
@@ -793,7 +794,13 @@ materialize_generic_fn_instances :: fn(
     // updates for the mangled-name change.
     sorted :: sort(project_ctx.fn_instances_order, fn_instance_less)
     for inst in sorted {
-        if !mono_has_fn_instance_for(project_ctx, inst) { continue }
+        // The comptime harvest (`harvest_instances`) does not observe
+        // generic fn calls today (only types reachable from typed-side
+        // side-tables). The lowerer's own probe — populating
+        // `fn_instances_order` from `try_lower_generic_fn_call` /
+        // `try_lower_ufcs_call` — is authoritative until the comptime
+        // harvest grows fn-call coverage. Gating on the (empty) mono
+        // table would silently skip every observed instance.
         materialize_fn_instance(inst, loaded, typed, project_ctx, project, diags)
     }
 }
@@ -852,7 +859,12 @@ materialize_fn_instance :: fn(
             fn_decl :: find_fn_decl_by_name(decls, inst.fn_symbol.name, inst.type_args.len())
             if fn_decl is null { return }
             if fn_decl is FnDecl as fd {
-                subst :: build_fn_subst(fd, inst.type_args, ot)
+                // Erasure : map every type-param to `TY_ANY` so the
+                // emitted body's signature collapses to `(x: Any) ->
+                // Any`. The mangled name still carries the concrete
+                // args (`identity__i32`) ; only the type slots get
+                // erased.
+                subst :: build_fn_any_subst(fd, ot)
                 types :: make_entry_types(ot, subst)
                 params: LoweredParam[] = []
                 for ast_param in fd.params {
@@ -928,6 +940,20 @@ build_fn_subst :: fn(fd: FnDecl, args: Type[], typed: TypedProgram) -> Substitut
     return subst
 }
 
+/// Erasure variant of `build_fn_subst` — maps every type-parameter
+/// of `fd` to `TY_ANY` so the materialised instance's body / signature
+/// renders with `Any` slots regardless of the concrete call-site type
+/// arguments. The mangled name still embeds the concrete args (handled
+/// by the caller via `inst.mangled`).
+build_fn_any_subst :: fn(fd: FnDecl, typed: TypedProgram) -> Substitution {
+    subst :: new_substitution()
+    for tp in fd.type_params {
+        tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
+        if tp_sym is Symbol as s { subst.type_params[s.id] = TY_ANY }
+    }
+    return subst
+}
+
 materialize_generic_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
@@ -955,9 +981,18 @@ materialize_generic_instances :: fn(
     // these via `build_struct_subst` + `args_suffix`, duplicating the
     // mono work. Blocked on the double-prefix fn-instance mangled-name
     // alignment ; tracked separately.
+    // Representatives must follow every concrete-args struct in the
+    // dump : the two-pass collects instances first, then emits any-args
+    // representatives at the tail. A single interleaved pass would
+    // place the first representative ahead of subsequent instances of
+    // the same generic shape.
+    pending_reps: GenericInstance[] = []
     for inst in project_ctx.evaluated.instances {
         if !mono_has_struct_entry_for(project_ctx, inst) { continue }
         materialize_one_instance(inst, loaded, typed, project_ctx, project, diags)
+        pending_reps.push(inst)
+    }
+    for inst in pending_reps {
         materialize_representative(inst, loaded, typed, project_ctx, project, seen_reps)
     }
 }
@@ -1337,12 +1372,28 @@ materialize_impl_for_instance :: fn(
     impl_typed: TypedProgram, owner_typed: TypedProgram,
     project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
-    self_struct :: StructType { .symbol = inst.symbol, .args = inst.args }
+    // Erasure : self type uses any-leaves args (Stack(Any) instead of
+    // Stack(i32)) and the substitution carried into params / body maps
+    // T → Any. Concrete monos that share the same impl shape post-
+    // erasure can then collapse to a single C-emit body. Mangled name
+    // keeps the concrete args suffix (`__i32`) so identity tags stay
+    // distinct.
+    erased_args: Type[] = []
+    for a in inst.args { erased_args.push(any_leaves_of(a)) }
+    self_struct :: StructType { .symbol = inst.symbol, .args = erased_args }
     self_type: Type = self_struct
     suffix :: args_suffix(inst.args)
-    subst :: build_impl_subst(impl_decl, inst.args, impl_typed, owner_typed)
+    subst :: build_impl_any_subst(impl_decl, impl_typed)
     types :: make_entry_types(impl_typed, subst)
+    impl_key_prefix :: span_key(impl_decl.span)
     for member in impl_decl.members {
+        // Erasure dedupe : every concrete-args instance of the same
+        // (impl_decl, member) collapses to one emission. The first
+        // instance wins ; the call sites land on the survivor via the
+        // trait virtual-dispatch in bytecode emit.
+        dedupe_key :: "${impl_key_prefix}::${member.name}"
+        if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
+        project_ctx.materialized_impl_keys.add(dedupe_key)
         params :: build_impl_member_params(member, self_type, types, impl_typed, project_ctx)
         return_type :: return_type_of(member, types)
         mangled :: "${mangle_module_id(owner_typed.resolved.display_path)}$${inst.symbol.name}$${impl_decl.trait_name}$${member.name}${suffix}"
@@ -1443,6 +1494,55 @@ build_impl_subst :: fn(
         _ -> {}
     }
     return subst
+}
+
+/// Erasure variant of `build_impl_subst` — every type-parameter
+/// reachable from the impl maps to `TY_ANY` instead of the concrete
+/// instance args. Used during `materialize_impl_for_instance` so
+/// impl-member params / return types collapse to the deduped shape
+/// (`value: Any` instead of `value: T` or `value: i32`), letting
+/// distinct concrete monos share a single C-emit body.
+///
+/// Maps by name across every TypeParam symbol the impl module
+/// exposes. The legacy `Stack[T] implements ...` form hoists the
+/// struct's `T` into the impl's scope without giving it a fresh
+/// symbol id ; matching by `(name, kind=TypeParam)` catches it
+/// regardless of whose `defined_at` the use sites carry.
+build_impl_any_subst :: fn(
+    impl_decl: ImplDecl, impl_typed: TypedProgram,
+) -> Substitution {
+    subst :: new_substitution()
+    names :: collect_impl_type_param_names(impl_decl)
+    map_type_params_by_name(subst, impl_typed.resolved.symbols, names)
+    map_type_params_by_name(subst, impl_typed.resolved.idents.values(), names)
+    return subst
+}
+
+collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
+    names: string[] = []
+    for tp in impl_decl.type_params { names.push(tp.name) }
+    match impl_decl.for_type {
+        is GenericInstExpr as gi -> {
+            for ta in gi.type_args {
+                tp_name :: type_expr_simple_name(ta)
+                if tp_name != "" { names.push(tp_name) }
+            }
+        }
+        _ -> {}
+    }
+    return names
+}
+
+map_type_params_by_name :: fn(subst: Substitution, scope: Symbol[], names: string[]) -> void {
+    for s in scope {
+        if i32(s.kind) != i32(SymbolKind.TypeParam) { continue }
+        for nm in names {
+            if s.name == nm {
+                subst.type_params[s.id] = TY_ANY
+                break
+            }
+        }
+    }
 }
 
 type_expr_simple_name :: fn(e: TypeExpr) -> string {
