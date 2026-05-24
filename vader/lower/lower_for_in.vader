@@ -310,7 +310,7 @@ synth_next_symbol :: fn(ctx: FnLowerCtx) -> Symbol {
 // Look up the for-in binding's resolver-minted Symbol — scan
 // `idents.values()` by `defined_at == binding_span`. Mirrors the
 // `lookup_local_symbol` shape used elsewhere.
-lookup_for_binding :: fn(ctx: FnLowerCtx, binding_span: Span) -> Symbol | null {
+export lookup_for_binding :: fn(ctx: FnLowerCtx, binding_span: Span) -> Symbol | null {
     target_key :: span_key(binding_span)
     for symbol in ctx.typed.resolved.idents.values() {
         match symbol.defined_at {

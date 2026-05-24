@@ -163,8 +163,13 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // cell / lifted-env handling for the same symbol.
             // Mirror of `lowerIdent`'s `comptimeBindings` check in
             // `src/lower/passes/expr.ts:542-543`.
-            comptime_val :: ctx.comptime_bindings[resolved.id]
-            if !(comptime_val is null) { return comptime_val }
+            // Size short-circuit : `comptime_bindings` is empty for
+            // every fn that doesn't use `@comptime for`, so skip the
+            // hash probe in the 99% case. Per-ident hot path.
+            if ctx.comptime_bindings.size > usize(0) {
+                comptime_val :: ctx.comptime_bindings[resolved.id]
+                if !(comptime_val is null) { return comptime_val }
+            }
             // TypeMeta-typed ident in value position — reify the
             // underlying Type so the bytecode emit can lower it to
             // `type.const N`. Mirror of `lowerIdent`'s TypeMeta branch in
@@ -2725,7 +2730,7 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
 /// literal via `comptime_bindings`.
 lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) -> LoweredStmt {
     span :: for_stmt.span
-    binding_symbol :: lookup_for_binding_local(ctx, in_form.binding_span)
+    binding_symbol :: lookup_for_binding(ctx, in_form.binding_span)
     if binding_symbol is null {
         return LoweredExprStmt {
             .span = span,
@@ -2785,21 +2790,6 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) 
             .stmts = unrolled, .trailing = null,
         },
     }
-}
-
-/// Look up the binding symbol for `for x in iter` via the resolver's
-/// minted ident at the binding span.
-lookup_for_binding_local :: fn(ctx: FnLowerCtx, binding_span: Span) -> Symbol | null {
-    target_key :: span_key(binding_span)
-    for symbol in ctx.typed.resolved.idents.values() {
-        match symbol.defined_at {
-            is null -> {}
-            is Span as defined -> {
-                if span_key(defined) == target_key { return symbol }
-            }
-        }
-    }
-    return null
 }
 
 // ============================================================================

@@ -47,14 +47,14 @@ export lower_defer :: fn(
     env_decl :: LoweredStructDecl {
         .mangled = env_symbol.name,
         .fields  = env_fields,
-        .origin  = synth_defer_mono_entry(ctx, env_symbol),
+        .origin  = synth_mono_entry(ctx, env_symbol),
     }
 
     lifted_params: LoweredParam[] = []
     lifted_params.push(LoweredParam {
         .name = env_param_symbol.name, .symbol = env_param_symbol, .type = env_type,
     })
-    lifted_entry :: synth_defer_mono_entry(ctx, lifted_symbol)
+    lifted_entry :: synth_mono_entry(ctx, lifted_symbol)
 
     // Wrap the body stmt in a synthetic BlockExpr so the existing
     // block_lowerer can drive it. Mirrors `defer.ts:53-62`.
@@ -158,83 +158,5 @@ synth_body_block :: fn(defer_stmt: AST.DeferStmt) -> AST.BlockExpr {
 }
 
 fresh_lifted_defer_symbol :: fn(ctx: FnLowerCtx, is_env: bool) -> Symbol {
-    id :: next_defer_synthetic_id(ctx)
-    suffix :: render_defer_id_for_name(id)
-    prefix := "__defer_"
-    kind := SymbolKind.Fn
-    if is_env {
-        prefix = "__defer_env_"
-        kind = SymbolKind.Struct
-    }
-    return Symbol {
-        .id         = id,
-        .kind       = kind,
-        .name       = "${prefix}${suffix}",
-        .module     = ctx.typed.resolved.path,
-        .visibility = AST.Visibility.Private,
-        .defined_at = null,
-    }
-}
-
-next_defer_synthetic_id :: fn(ctx: FnLowerCtx) -> i32 {
-    id :: ctx.project.next_synthetic_id
-    ctx.project.next_synthetic_id = id - i32(1)
-    return id
-}
-
-render_defer_id_for_name :: fn(id: i32) -> string {
-    if id < i32(0) { return "${i32(0) - id}" }
-    return "${id}"
-}
-
-synth_defer_mono_entry :: fn(ctx: FnLowerCtx, symbol: Symbol) -> MonoEntry {
-    return MonoEntry {
-        .id             = next_defer_mono_entry_id(ctx),
-        .is_main        = false,
-        .mangled        = symbol.name,
-        .decl           = stub_defer_decl_for(symbol),
-        .symbol         = symbol,
-        .subst          = new_substitution(),
-        .type_arguments = [],
-        .module         = ctx.typed,
-    }
-}
-
-next_defer_mono_entry_id :: fn(ctx: FnLowerCtx) -> i32 {
-    id :: ctx.project.next_mono_entry_id
-    ctx.project.next_mono_entry_id = id + i32(1)
-    return id
-}
-
-stub_defer_decl_for :: fn(symbol: Symbol) -> AST.Decl {
-    kind_value :: i32(symbol.kind)
-    if kind_value == i32(SymbolKind.Struct) {
-        struct_decl: AST.Decl = AST.StructDecl {
-            .span        = empty_span(),
-            .id          = AST.UNASSIGNED_NODE_ID,
-            .name        = symbol.name,
-            .name_span   = empty_span(),
-            .visibility  = AST.Visibility.Private,
-            .type_params = [],
-            .fields      = [],
-            .decorators  = [],
-        }
-        return struct_decl
-    }
-    fn_decl: AST.Decl = AST.FnDecl {
-        .span                 = empty_span(),
-        .id                   = AST.UNASSIGNED_NODE_ID,
-        .name                 = symbol.name,
-        .name_span            = empty_span(),
-        .visibility           = AST.Visibility.Private,
-        .type_params          = [],
-        .params               = [],
-        .return_type          = null,
-        .body                 = null,
-        .decorators           = [],
-        .sam_synthetic        = false,
-        .is_expression_bodied = false,
-        .materialized         = false,
-    }
-    return fn_decl
+    return fresh_lifted_symbol_with_prefix(ctx, is_env, "__defer_", "__defer_env_")
 }

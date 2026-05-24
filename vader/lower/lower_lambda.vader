@@ -176,13 +176,20 @@ lambda_return_type :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Type {
     }
 }
 
-next_synthetic_id :: fn(ctx: FnLowerCtx) -> i32 {
+/// Bump and return the next synthetic Symbol id from the project's
+/// monotonically-decreasing pool. Shared with `lower_defer` so both
+/// lifts pull from a single counter (otherwise `__lambda_N` /
+/// `__defer_N` names would drift apart per fn).
+export next_synthetic_id :: fn(ctx: FnLowerCtx) -> i32 {
     id :: ctx.project.next_synthetic_id
     ctx.project.next_synthetic_id = id - i32(1)
     return id
 }
 
-next_mono_entry_id :: fn(ctx: FnLowerCtx) -> i32 {
+/// Bump and return the next synthetic MonoEntry id. Separate counter
+/// from `next_synthetic_id` so MonoEntry minting doesn't bump the
+/// symbol-id pool the `__lambda_N` / `__defer_N` naming uses.
+export next_mono_entry_id :: fn(ctx: FnLowerCtx) -> i32 {
     id :: ctx.project.next_mono_entry_id
     ctx.project.next_mono_entry_id = id + i32(1)
     return id
@@ -195,12 +202,22 @@ synth_env_param_symbol :: fn(ctx: FnLowerCtx) -> Symbol {
 }
 
 fresh_lifted_symbol :: fn(ctx: FnLowerCtx, is_env: bool) -> Symbol {
+    return fresh_lifted_symbol_with_prefix(ctx, is_env, "__lambda_", "__lambda_env_")
+}
+
+/// Lift helper shared by the lambda and defer passes — both produce
+/// the same Symbol shape, only the `__lambda_*` vs `__defer_*` name
+/// prefixes diverge. Synthetic IDs come from `next_synthetic_id`'s
+/// shared pool so the two passes' naming counters stay consistent.
+export fresh_lifted_symbol_with_prefix :: fn(
+    ctx: FnLowerCtx, is_env: bool, fn_prefix: string, env_prefix: string,
+) -> Symbol {
     id :: next_synthetic_id(ctx)
     suffix :: render_id_for_name(id)
-    prefix := "__lambda_"
+    prefix := fn_prefix
     kind := SymbolKind.Fn
     if is_env {
-        prefix = "__lambda_env_"
+        prefix = env_prefix
         kind = SymbolKind.Struct
     }
     return Symbol {
@@ -213,16 +230,18 @@ fresh_lifted_symbol :: fn(ctx: FnLowerCtx, is_env: bool) -> Symbol {
     }
 }
 
-// Synthetic IDs walk negative ; render as an unsigned magnitude for
-// readability so dumps don't show `-3`-style suffixes.
-render_id_for_name :: fn(id: i32) -> string {
+/// Synthetic IDs walk negative ; render as an unsigned magnitude for
+/// readability so dumps don't show `-3`-style suffixes.
+export render_id_for_name :: fn(id: i32) -> string {
     if id < i32(0) {
         return "${i32(0) - id}"
     }
     return "${id}"
 }
 
-synth_mono_entry :: fn(ctx: FnLowerCtx, symbol: Symbol) -> MonoEntry {
+/// Shared MonoEntry constructor for lambda + defer lifts. Each pass
+/// passes its own `symbol` (already minted via `next_synthetic_id`).
+export synth_mono_entry :: fn(ctx: FnLowerCtx, symbol: Symbol) -> MonoEntry {
     return MonoEntry {
         // Use a private counter (not the project-wide synthetic id pool)
         // so MonoEntry minting doesn't bump the symbol-id counter the
@@ -239,10 +258,13 @@ synth_mono_entry :: fn(ctx: FnLowerCtx, symbol: Symbol) -> MonoEntry {
     }
 }
 
-// Synthetic decls have no real source AST. Pick the right Decl variant
-// so `match` walkers don't trip the wrong arm. Every field gets an
-// explicit initialiser to dodge Vader's default-value codegen path.
-stub_decl_for :: fn(symbol: Symbol) -> AST.Decl {
+/// Stub AST decl for a synthesised symbol — picks the right variant
+/// (StructDecl vs FnDecl) based on `symbol.kind` so downstream
+/// `match` walkers don't trip the wrong arm. Every field gets an
+/// explicit initialiser to dodge Vader's default-value codegen path.
+/// Shared with `lower_defer` since defer-lift synthesises the same
+/// shapes (env struct + lifted fn).
+export stub_decl_for :: fn(symbol: Symbol) -> AST.Decl {
     kind_value :: i32(symbol.kind)
     if kind_value == i32(SymbolKind.Struct) {
         struct_decl: AST.Decl = AST.StructDecl {
