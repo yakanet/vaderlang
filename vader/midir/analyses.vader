@@ -289,6 +289,147 @@ export dominates :: fn(idom: i32[], a: BlockId, b: BlockId) -> bool {
     return false
 }
 
+/// Post-dominator computation : same Cooper-Harvey-Kennedy iterative
+/// algorithm as `compute_dominators`, but on the reverse CFG. A
+/// synthetic exit node sits at index `n` ; every block with no
+/// successors (Return / Unreachable terminator) gets a fake edge to
+/// it so the post-dom walk always reaches a fixed point.
+///
+/// Returns `ipdom[b]` = immediate post-dominator of `b`, or `-1` when
+/// `b`'s every path returns (no proper post-dominator). Mirrors
+/// `src/midir/emit.ts::computePostDominators`.
+///
+/// @param fn_  the CFG function to analyse.
+/// @return     `i32[n]` with one ipdom per block, `-1` when none.
+export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
+    n :: fn_.blocks.len()
+    // Build successors + fake successors / predecessors graphs.
+    succs: BlockId[][] = []
+    for b in fn_.blocks { succs.push(successors_of(b)) }
+    exits: BlockId[] = []
+    i := usize(0)
+    for i < n {
+        if succs[i].len() == usize(0) { exits.push(i32(i)) }
+        i = i + 1
+    }
+    se :: i32(n)            // synthetic exit node index
+    fake_succs: BlockId[][] = []
+    for s in succs { fake_succs.push(s) }
+    empty_se: BlockId[] = []
+    fake_succs.push(empty_se)
+    fake_preds: BlockId[][] = []
+    j := usize(0)
+    for j < n + usize(1) {
+        empty: BlockId[] = []
+        fake_preds.push(empty)
+        j = j + 1
+    }
+    k := usize(0)
+    for k < n {
+        for s in fake_succs[k] { fake_preds[usize(s)].push(i32(k)) }
+        k = k + 1
+    }
+    for e in exits {
+        fake_succs[usize(e)].push(se)
+        fake_preds[usize(se)].push(e)
+    }
+    // RPO on reverse graph from SE.
+    order: BlockId[] = []
+    visited: bool[] = []
+    m := usize(0)
+    for m < n + usize(1) {
+        visited.push(false)
+        m = m + 1
+    }
+    walk_rpo_reverse(fake_preds, se, visited, order)
+    // Iterative post-dominator solve.
+    ipdom: i32[] = []
+    p := usize(0)
+    for p < n + usize(1) {
+        ipdom.push(-1)
+        p = p + 1
+    }
+    ipdom[usize(se)] = se
+    changed := true
+    for changed {
+        changed = false
+        ii := i64(order.len()) - i64(1)
+        for ii >= 0 {
+            b :: order[usize(ii)]
+            ii = ii - 1
+            if b == se { continue }
+            new_pdom := i32(-1)
+            for s in fake_succs[usize(b)] {
+                if ipdom[usize(s)] == -1 { continue }
+                if new_pdom == -1 {
+                    new_pdom = s
+                } else {
+                    new_pdom = intersect_dom_tree(s, new_pdom, ipdom)
+                }
+            }
+            if new_pdom != -1 && ipdom[usize(b)] != new_pdom {
+                ipdom[usize(b)] = new_pdom
+                changed = true
+            }
+        }
+    }
+    // Strip the synthetic SE — translate "ipdom = SE" → -1 for caller.
+    out: i32[] = []
+    q := usize(0)
+    for q < n {
+        v :: ipdom[q]
+        if v == se { out.push(-1) } else { out.push(v) }
+        q = q + 1
+    }
+    return out
+}
+
+walk_rpo_reverse :: fn(preds: BlockId[][], b: BlockId, visited: bool[], order: BlockId[]) -> void {
+    if visited[usize(b)] { return }
+    visited[usize(b)] = true
+    for p in preds[usize(b)] { walk_rpo_reverse(preds, p, visited, order) }
+    order.push(b)
+}
+
+/// For each loop header H, the unique exit block — the first block
+/// reachable from the natural-loop body but outside it. Returns null
+/// when the loop has no natural exit (infinite loop). Mirrors
+/// `src/midir/emit.ts::findLoopExits`.
+///
+/// @param fn_    the CFG function.
+/// @param preds  per-block predecessor lists (from `predecessors_of`).
+/// @param idom   immediate dominators (from `compute_dominators`).
+/// @return       map from header BlockId to exit BlockId | null.
+export find_loop_exits :: fn(
+    fn_: CFGFunction, preds: BlockId[][], idom: i32[],
+) -> MutableMap(i32, BlockId | null) {
+    out :: MutableMap(i32, BlockId | null) { .buckets = [], .size = 0 }
+    loops :: natural_loop_bodies(fn_, preds, idom)
+    for header in loops.keys() {
+        body_opt :: loops[header]
+        if body_opt is null { continue }
+        body :: body_opt
+        // Walk all blocks in the fn ; ask the body-set whether each is
+        // a member. Skips the need to iterate the MutableSet's internal
+        // bucket layout directly.
+        exit: BlockId | null = null
+        b := i32(0)
+        for b < i32(fn_.blocks.len()) {
+            if body.contains(b) {
+                for s in successors_of(fn_.blocks[usize(b)]) {
+                    if !body.contains(s) {
+                        if exit is null { exit = s }
+                    }
+                }
+            }
+            if exit !is null { break }
+            b = b + 1
+        }
+        out[header] = exit
+    }
+    return out
+}
+
 // ---- liveness -------------------------------------------------------------
 
 /// Per-block live-in / live-out sets. Standard backward dataflow on
