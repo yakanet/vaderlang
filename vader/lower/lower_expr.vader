@@ -93,9 +93,21 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
                 is null -> {}
                 _ -> { return shortcut }
             }
+            lowered_target :: lower_expr(ctx, e.target)
+            // Comptime fold : `<LoweredStructLit>.field` resolves to
+            // the field's value when the struct lit was synthesised
+            // at lower time (typically via @comptime for substitution
+            // of `f` to a `Field { name, type }` literal). Mirror of
+            // TS's `LoweredFieldAccess` shortcut in
+            // `src/lower/passes/expr.ts:445-455`.
+            if lowered_target is LoweredStructLit as sl {
+                for f in sl.fields {
+                    if f.name == field_name { return f.value }
+                }
+            }
             return LoweredFieldAccess {
                 .span = e.span, .type = type,
-                .target = lower_expr(ctx, e.target), .field = field_name,
+                .target = lowered_target, .field = field_name,
             }
         }
         is IndexExpr      as e -> { return lower_index(ctx, e, type) }
@@ -144,6 +156,15 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
     match symbol {
         is null -> { return stub(ident.span, type, "unresolved ident `${ident.name}`") }
         is Symbol as resolved -> {
+            // `@comptime for x in arr { ... }` substitution : every
+            // reference to the loop var inside the unrolled body
+            // resolves to the per-iter literal. Checked before the
+            // regular paths so the binding "wins" over any captured-
+            // cell / lifted-env handling for the same symbol.
+            // Mirror of `lowerIdent`'s `comptimeBindings` check in
+            // `src/lower/passes/expr.ts:542-543`.
+            comptime_val :: ctx.comptime_bindings[resolved.id]
+            if !(comptime_val is null) { return comptime_val }
             // TypeMeta-typed ident in value position — reify the
             // underlying Type so the bytecode emit can lower it to
             // `type.const N`. Mirror of `lowerIdent`'s TypeMeta branch in
@@ -1721,6 +1742,14 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
     for arg_expr in intrinsic.args {
         args.push(lower_expr(ctx, arg_expr))
     }
+    // Late-fold path : `@size_of` / `@align_of` / `@type_name` /
+    // `@type_kind` over a single arg that lowered to a
+    // `LoweredTypeConst` (e.g. via `@comptime for` substitution of
+    // `t`). The early `try_fold_static_intrinsic` reads the source
+    // AST so it can't see post-lower substitutions ; this catches
+    // the substituted shape.
+    late_folded :: try_late_fold_type_arg(intrinsic.name, args, intrinsic.span, type)
+    if !(late_folded is null) { return late_folded }
     // `@size_of(x)` over a `type`-valued runtime expression routes
     // through the dedicated `size_of.type` intrinsic so the bytecode
     // emit picks the right opcode. Mirror of the static-fold-failed
@@ -1730,6 +1759,33 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
         .span = intrinsic.span, .type = type, .name = final_name,
         .args = args, .display_for = null,
     }
+}
+
+/// Late fold for the type-introspection intrinsics — fires when the
+/// arg lowered to a `LoweredTypeConst` (which can happen via
+/// `@comptime for` substitution that the early AST-level fold doesn't
+/// see). Returns null when the pattern doesn't match ; caller falls
+/// through to the runtime `LoweredIntrinsicCall`.
+try_late_fold_type_arg :: fn(name: string, args: LoweredExpr[], span: Span, type: Type) -> LoweredExpr | null {
+    if args.len() != usize(1) { return null }
+    arg :: args[0]
+    tc: LoweredTypeConst | null = null
+    if arg is LoweredTypeConst as t { tc = t }
+    if tc is null { return null }
+    ty :: tc.value
+    if name == "size_of" {
+        return LoweredIntLit { .span = span, .type = type, .value = byte_size(ty) }
+    }
+    if name == "align_of" {
+        return LoweredIntLit { .span = span, .type = type, .value = byte_align(ty) }
+    }
+    if name == "type_name" {
+        return LoweredStringLit { .span = span, .type = mk_primitive("string"), .value = display_type(ty) }
+    }
+    if name == "type_kind" {
+        return LoweredStringLit { .span = span, .type = mk_primitive("string"), .value = kind_string_of_type(ty) }
+    }
+    return null
 }
 
 runtime_intrinsic_name :: fn(name: string, args: LoweredExpr[]) -> string {
@@ -2616,6 +2672,16 @@ union_contains_variant :: fn(union: Type, variant: Type) -> bool {
 // Phase 3 covers infinite-for and while-for. for-in collapses to an
 // Iterator step-loop via Phase 5's dedicated module ; emit a stub here.
 lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
+    // `@comptime for x in <arr> { body }` — unroll at lower time when
+    // the iter folds to a `LoweredArrayLit`. Threads the per-iter
+    // substitution through `ctx.comptime_bindings` so `lower_ident`
+    // folds loop-var reads to their literal. Mirror of
+    // `src/lower/passes/for-in.ts::lowerComptimeForIn`.
+    if for_stmt.is_comptime {
+        if for_stmt.form is InFor as in_form {
+            return lower_comptime_for_in(ctx, for_stmt, in_form)
+        }
+    }
     match for_stmt.form {
         is InfiniteFor -> {
             body :: lower_block(ctx, for_stmt.body, false, true)
@@ -2650,6 +2716,90 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
             return lower_for_in(ctx, for_stmt, in_form, lower_expr, lower_block)
         }
     }
+}
+
+/// Unroll a `@comptime for x in <arr> { body }` at lower time.
+/// Mirror of `src/lower/passes/for-in.ts::lowerComptimeForIn`.
+/// Returns a synthetic block whose stmts are the body lowered once
+/// per iter element, with the loop-var symbol bound to the per-iter
+/// literal via `comptime_bindings`.
+lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) -> LoweredStmt {
+    span :: for_stmt.span
+    binding_symbol :: lookup_for_binding_local(ctx, in_form.binding_span)
+    if binding_symbol is null {
+        return LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable {
+                .span = span, .type = TY_VOID,
+                .reason = "@comptime for binding not resolved",
+            },
+        }
+    }
+    iter_lowered :: lower_expr(ctx, in_form.iter)
+    arr_lit: LoweredArrayLit | null = null
+    if iter_lowered is LoweredArrayLit as al { arr_lit = al }
+    if arr_lit is null {
+        return LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable {
+                .span = span, .type = TY_VOID,
+                .reason = "@comptime for requires a compile-time-known array literal",
+            },
+        }
+    }
+    if arr_lit.elements.len() > usize(256) {
+        return LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable {
+                .span = span, .type = TY_VOID,
+                .reason = "@comptime for exceeds the unroll cap (256)",
+            },
+        }
+    }
+    // Save the prior binding so nested `@comptime for` over the same
+    // name doesn't silently clobber an outer scope's substitution.
+    prior :: ctx.comptime_bindings[binding_symbol.id]
+    unrolled: LoweredStmt[] = []
+    for elt in arr_lit.elements {
+        ctx.comptime_bindings[binding_symbol.id] = elt
+        body :: lower_block(ctx, for_stmt.body, false, false)
+        for s in body.stmts { unrolled.push(s) }
+        if body.trailing !is null {
+            unrolled.push(LoweredExprStmt {
+                .span = span_of(body.trailing), .expr = body.trailing,
+            })
+        }
+    }
+    if prior is null {
+        // Erase the binding from the map. MutableMap has no `delete`,
+        // so leave the last per-iter binding in place — any later use
+        // of the same binding symbol would be a recursion bug rather
+        // than expected.
+    } else {
+        ctx.comptime_bindings[binding_symbol.id] = prior
+    }
+    return LoweredExprStmt {
+        .span = span,
+        .expr = LoweredBlock {
+            .span = span, .type = TY_VOID,
+            .stmts = unrolled, .trailing = null,
+        },
+    }
+}
+
+/// Look up the binding symbol for `for x in iter` via the resolver's
+/// minted ident at the binding span.
+lookup_for_binding_local :: fn(ctx: FnLowerCtx, binding_span: Span) -> Symbol | null {
+    target_key :: span_key(binding_span)
+    for symbol in ctx.typed.resolved.idents.values() {
+        match symbol.defined_at {
+            is null -> {}
+            is Span as defined -> {
+                if span_key(defined) == target_key { return symbol }
+            }
+        }
+    }
+    return null
 }
 
 // ============================================================================
