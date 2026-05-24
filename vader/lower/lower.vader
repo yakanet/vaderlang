@@ -16,7 +16,7 @@ module "vader/lower"
 
 import "std/collections" { MutableMap, keys, values }
 import "std/sort" { sort }
-import "std/string" { compare_ascending }
+import "std/string" { compare_ascending, byte_at, byte_len, byte_slice }
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" {
     Decl, FnDecl, StructDecl, ConstDecl,
@@ -900,6 +900,13 @@ materialize_generic_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
 ) -> void {
+    // Dedupe set for the erasure-dedupe representative pass. One entry
+    // per distinct "any-leaves" shape of an instance group ; prevents
+    // emitting the same `Pair__string__Any__Any` twice when both
+    // `Pair(string, i64)` and `Pair(string, f64)` get materialised.
+    seen_reps :: MutableSet(string) {
+        .inner = MutableMap(string, bool) { .buckets = [], .size = 0 },
+    }
     // Drive from `evaluated.mono` — the monomorphizer pass populates
     // one MonoEntry per concrete struct instance (+ its impl members)
     // via `monomorphize_project::run_pass_2`. We still use
@@ -919,8 +926,200 @@ materialize_generic_instances :: fn(
     for inst in project_ctx.evaluated.instances {
         if !mono_has_struct_entry_for(project_ctx, inst) { continue }
         materialize_one_instance(inst, loaded, typed, project_ctx, project, diags)
+        materialize_representative(inst, loaded, typed, project_ctx, project, seen_reps)
     }
 }
+
+/// Emit the second-mono "any-args" representative struct decl for a
+/// concrete generic instance. The representative shares the first
+/// instance's body shape (every field already erased to `Any`) but
+/// carries a distinct mangled name derived from the first.mangled
+/// minus its last `__<seg>` suffix plus the any-leaves args. Mirrors
+/// `src/comptime/erasure-dedupe.ts:217-257`'s extraStructEntries
+/// emission. Deduped on the representative mangle so two concrete
+/// instantiations of the same generic shape only emit one.
+materialize_representative :: fn(
+    inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+    seen_reps: MutableSet(string),
+) -> void {
+    if !all_concrete_args(inst.args) { return }
+    sym :: inst.symbol
+    if i32(sym.kind) != i32(SymbolKind.Struct) { return }
+    owner_module_id :: sym.module
+    if is_stdlib_path(owner_module_id) { return }
+    owner_module :: loaded.modules[owner_module_id]
+    if owner_module is null { return }
+    owner_typed :: typed.modules[owner_module_id]
+    if owner_typed is null { return }
+    if owner_typed is TypedProgram as owner_typed_ok {
+        if owner_module is LoadedModule as owner_loaded {
+            owner_decls :: module_decls(owner_loaded)
+            decl :: find_struct_decl_by_name(owner_decls, sym.name)
+            if decl is null { return }
+            if decl is StructDecl as sd {
+                if sd.type_params.len() == usize(0) { return }
+                first_mangled :: "${mangle_module_id(owner_typed_ok.resolved.display_path)}$${sym.name}${args_suffix(inst.args)}"
+                stripped :: strip_last_suffix(first_mangled)
+                any_args :: build_any_args_list(inst.args)
+                rep_mangled :: "${stripped}__${join_any_displays(any_args)}"
+                if seen_reps.contains(rep_mangled) { return }
+                seen_reps.add(rep_mangled)
+                erase :: build_any_subst(sd, owner_typed_ok)
+                fields: LoweredStructField[] = []
+                for f in sd.fields {
+                    raw_ty :: resolve_field_type(f.ty, owner_typed_ok, sd, inst.args)
+                    fields.push(LoweredStructField {
+                        .name = f.name,
+                        .type = substitute(raw_ty, erase),
+                    })
+                }
+                entry_decl: Decl = sd
+                entry :: MonoEntry {
+                    .id             = i32(0),
+                    .is_main        = false,
+                    .mangled        = rep_mangled,
+                    .decl           = entry_decl,
+                    .symbol         = sym,
+                    .subst          = erase,
+                    .type_arguments = any_args,
+                    .module         = owner_typed_ok,
+                }
+                push_to_module(project, owner_typed_ok.resolved.path, LoweredStructDecl {
+                    .mangled = rep_mangled,
+                    .fields  = fields,
+                    .origin  = entry,
+                })
+            }
+        }
+    }
+}
+
+/// Replace every concrete leaf in a `Type` tree with `Any` while
+/// preserving generic wrappers (Struct / Trait / Array / Union /
+/// Tuple). Mirror of `anyLeavesOf` in
+/// `src/comptime/erasure-dedupe.ts:86-100`.
+any_leaves_of :: fn(t: Type) -> Type {
+    if t is StructType as s {
+        if s.args.len() == usize(0) { return TY_ANY }
+        new_args: Type[] = []
+        for a in s.args { new_args.push(any_leaves_of(a)) }
+        return mk_struct(s.symbol, new_args)
+    }
+    if t is TraitType as tt {
+        if tt.args.len() == usize(0) { return TY_ANY }
+        new_args: Type[] = []
+        for a in tt.args { new_args.push(any_leaves_of(a)) }
+        return mk_trait(tt.symbol, new_args)
+    }
+    if t is ArrayType as a {
+        return mk_array(any_leaves_of(a.element), a.immutable)
+    }
+    if t is UnionType as u {
+        new_vars: Type[] = []
+        for v in u.variants { new_vars.push(any_leaves_of(v)) }
+        return mk_union(new_vars)
+    }
+    if t is TupleType as tu {
+        new_elems: Type[] = []
+        for el in tu.elements { new_elems.push(any_leaves_of(el)) }
+        return mk_tuple(new_elems)
+    }
+    return TY_ANY
+}
+
+/// Short stable display used when synthesising the representative's
+/// mangled name. Mirrors `displayAnyArg` in
+/// `src/comptime/erasure-dedupe.ts:105-121`.
+display_any_arg :: fn(t: Type) -> string {
+    if t is StructType as s {
+        if s.args.len() == usize(0) { return s.symbol.name }
+        sb :: new_builder()
+        sb.append(s.symbol.name)
+        for a in s.args {
+            sb.append("_")
+            sb.append(display_any_arg(a))
+        }
+        return "${sb}"
+    }
+    if t is TraitType as tt {
+        if tt.args.len() == usize(0) { return tt.symbol.name }
+        sb :: new_builder()
+        sb.append(tt.symbol.name)
+        for a in tt.args {
+            sb.append("_")
+            sb.append(display_any_arg(a))
+        }
+        return "${sb}"
+    }
+    if t is ArrayType as a { return "${display_any_arg(a.element)}_arr" }
+    if t is UnionType as u {
+        sb :: new_builder()
+        first := true
+        for v in u.variants {
+            if !first { sb.append("__") }
+            first = false
+            sb.append(display_any_arg(v))
+        }
+        return "${sb}"
+    }
+    if t is TupleType as tu {
+        sb :: new_builder()
+        sb.append("Tup_")
+        first := true
+        for el in tu.elements {
+            if !first { sb.append("_") }
+            first = false
+            sb.append(display_any_arg(el))
+        }
+        return "${sb}"
+    }
+    return "Any"
+}
+
+build_any_args_list :: fn(args: Type[]) -> Type[] {
+    out: Type[] = []
+    for a in args { out.push(any_leaves_of(a)) }
+    return out
+}
+
+join_any_displays :: fn(args: Type[]) -> string {
+    sb :: new_builder()
+    first := true
+    for a in args {
+        if !first { sb.append("__") }
+        first = false
+        sb.append(display_any_arg(a))
+    }
+    return "${sb}"
+}
+
+/// Strip the last `__<seg>(_\d+)?` from `s`. Used by the second-mono
+/// representative mangle to drop the final concrete arg before
+/// appending the any-args suffix. Mirrors the JS regex
+/// `/__[^_]+(_\d+)?$/` (which matches `__<seg>` with optional trailing
+/// `_N` disambiguator from `uniq`).
+strip_last_suffix :: fn(s: string) -> string {
+    n :: s.byte_len()
+    if n < usize(3) { return s }
+    // Walk backward looking for `__`. Stop at the last one that's not
+    // immediately followed by another `__` (i.e. it's a real arg
+    // delimiter, not part of a chained empty arg).
+    i := i64(n) - 2
+    for i >= 0 {
+        if s.byte_at(usize(i)) == 0x5F_u8 {
+            if s.byte_at(usize(i + 1)) == 0x5F_u8 {
+                // Found `__` ; strip from here.
+                return s.byte_slice(usize(0), usize(i))
+            }
+        }
+        i = i - 1
+    }
+    return s
+}
+
+import "vader/types" { mk_trait, mk_array, mk_union, mk_tuple }
+import "std/string_builder" { append_char as sb_append_char }
 
 /// True when `evaluated.mono` carries a StructDecl-kind MonoEntry
 /// whose `symbol.id` matches `inst.symbol.id` and whose
