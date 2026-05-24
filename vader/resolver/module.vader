@@ -117,6 +117,9 @@ export resolve_on_disk :: fn(path: string) -> string | null {
         if is_dir(path) { return path }
         if ends_with(path, ".vader") { return path }
     }
+    // If path already ends in .vader we already probed it above ;
+    // appending another `.vader` would yield `foo.vader.vader` so skip.
+    if ends_with(path, ".vader") { return null }
     with_ext :: "${path}.vader"
     if exists(with_ext) { return with_ext }
     return null

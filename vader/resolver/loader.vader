@@ -273,8 +273,13 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule) -> void {
 /// When `root` lives under `stdlib_root`, strip the prefix and the
 /// `.vader` extension so `stdlib/std/io` renders as `std/io`.
 display_path_for :: fn(root: string, stdlib_root: string) -> string {
-    if root.starts_with("${stdlib_root}/") {
-        rel :: byte_slice(root, stdlib_root.byte_len() + usize(1), root.byte_len())
+    // Avoid the `"${stdlib_root}/"` interpolation alloc on every call —
+    // manual prefix check + slash byte probe.
+    n :: stdlib_root.byte_len()
+    if root.byte_len() > n &&
+       root.starts_with(stdlib_root) &&
+       root.byte_at(n) == u8(0x2F) {
+        rel :: byte_slice(root, n + usize(1), root.byte_len())
         if rel.ends_with(".vader") {
             return byte_slice(rel, usize(0), rel.byte_len() - usize(6))
         }
