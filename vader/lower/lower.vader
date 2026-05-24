@@ -73,6 +73,12 @@ export lower_project :: fn(
         // (`is_stdlib_path` in dump.vader) and lowering them would
         // pollute the per-project synthetic-id counter, breaking
         // `__lambda_1` / `__lambda_env_2` numbering in user fixtures.
+        //
+        // Surfacing only `@intrinsic` / `@extern` signatures here would
+        // populate the bytecode import table — but without whole-program
+        // DCE on imports, every reachable stdlib fn lands in the dump
+        // even when user code calls only `println`. Pair the surfacing
+        // with reachability analysis as a separate chantier.
         if is_stdlib_path(module_id) { continue }
         module_typed :: typed.modules[module_id]
         if module_typed is null { continue }

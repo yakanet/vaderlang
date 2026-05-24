@@ -22,6 +22,7 @@
 module "vader/bytecode"
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string" { byte_at, byte_len }
 import "vader/vm" {
     Op,
     I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst, NullConst,
@@ -76,11 +77,82 @@ write_types :: fn(sb: StringBuilder, types: BcType[]) -> void {
 
 format_bc_type :: fn(t: BcType) -> string = match t {
     is BcPrimitive as p -> "primitive ${val_type_name(p.val)}"
-    is BcStruct as s    -> "struct ${s.name} (${s.fields.len()} fields)"
+    is BcStruct as s    -> "struct ${quote_ident(s.name)} { ${format_fields(s.fields)} }"
     is BcArray as a     -> "array ${a.element}"
-    is BcUnion as u     -> "union (${u.variants.len()} variants)"
-    is BcRef as r       -> "ref ${r.trait_name}"
-    is BcFn as f        -> "fn (${f.params.len()} params) -> ${f.return_type}"
+    is BcUnion as u     -> "union ${format_variants(u.variants)}"
+    is BcRef as r       -> if r.trait_name == "" { "ref _" } else { "ref ${quote_ident(r.trait_name)}" }
+    is BcFn as f        -> "fn (${format_variants(f.params)}) -> ${f.return_type}"
+}
+
+/// `name:idx` joined by `,`. Matches TS `formatType` for struct fields.
+format_fields :: fn(fields: BcField[]) -> string {
+    sb :: new_builder()
+    i: usize = 0
+    for i < fields.len() {
+        if i > 0 { sb.append(",") }
+        sb.append("${fields[i].name}:${fields[i].type_index}")
+        i += usize(1)
+    }
+    return "${sb}"
+}
+
+/// Type-indices joined by `,`. Used by union and fn param/return formats.
+format_variants :: fn(items: i32[]) -> string {
+    sb :: new_builder()
+    i: usize = 0
+    for i < items.len() {
+        if i > 0 { sb.append(",") }
+        sb.append("${items[i]}")
+        i += usize(1)
+    }
+    return "${sb}"
+}
+
+/// Quote `s` when it contains characters outside `[A-Za-z0-9_$.]`.
+/// Mirrors `src/bytecode/text.ts::quoteIdent`. The mangled-name space
+/// uses `$` and `.` ; user-facing extern names can carry anything.
+quote_ident :: fn(s: string) -> string {
+    if is_simple_ident(s) { return s }
+    return "${json_escape(s)}"
+}
+
+is_simple_ident :: fn(s: string) -> bool {
+    n :: s.byte_len()
+    if n == usize(0) { return false }
+    i: usize = 0
+    for i < n {
+        b :: s.byte_at(i)
+        ok := false
+        if b >= 0x41_u8 && b <= 0x5A_u8 { ok = true }     // A-Z
+        if b >= 0x61_u8 && b <= 0x7A_u8 { ok = true }     // a-z
+        if b >= 0x30_u8 && b <= 0x39_u8 { ok = true }     // 0-9
+        if b == 0x5F_u8 { ok = true }                     // _
+        if b == 0x24_u8 { ok = true }                     // $
+        if b == 0x2E_u8 { ok = true }                     // .
+        if !ok { return false }
+        i += usize(1)
+    }
+    return true
+}
+
+/// Minimal JSON-style string escape for the quote_ident fallback path.
+/// Mirrors `JSON.stringify(s)` for the byte ranges relevant to bytecode
+/// dumps (no full Unicode escape — bytecode names stay ASCII-safe in
+/// practice).
+json_escape :: fn(s: string) -> string {
+    sb :: new_builder()
+    sb.append_char('"')
+    n :: s.byte_len()
+    i: usize = 0
+    for i < n {
+        b :: s.byte_at(i)
+        if b == 0x22_u8 { sb.append("\\\"") }
+        else if b == 0x5C_u8 { sb.append("\\\\") }
+        else { sb.append_char(char(u32(b))) }
+        i += usize(1)
+    }
+    sb.append_char('"')
+    return "${sb}"
 }
 
 write_strings :: fn(sb: StringBuilder, strings: string[]) -> void {

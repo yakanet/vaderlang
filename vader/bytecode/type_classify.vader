@@ -88,6 +88,40 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
 /// @return   a `BcType` suitable for the type table.
 export bc_type_of :: fn(t: Type) -> BcType = BcPrimitive { .val = val_type_of_type(t) }
 
+/// Context-aware translation : recursively interns element / param /
+/// return types so the resulting `BcType` carries the right type-table
+/// indices for composite shapes. Mirrors `src/bytecode/emit.ts::bcTypeOf`
+/// — Struct/Trait → `BcRef { trait_name }`, Array → `BcArray { element }`,
+/// Union → `BcUnion { variants }`, Fn → `BcFn { params, return_type }`.
+/// Tuple synthesises an anonymous struct keyed by the caller-provided
+/// slot index ; the caller passes its own table position so the synth
+/// name (`__Tuple_<idx>`) stays stable.
+export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
+    match t {
+        is PrimitiveType as p -> { return BcPrimitive { .val = val_type_of_primitive_name(p.name) } }
+        is EnumType as e      -> { return BcPrimitive { .val = val_type_of_primitive_name(e.repr) } }
+        is StructType as s    -> { return BcRef { .trait_name = s.symbol.name } }
+        is TraitType as tt    -> { return BcRef { .trait_name = tt.symbol.name } }
+        is ArrayType as a     -> { return BcArray { .element = intern_type(a.element, ctx) } }
+        is UnionType as u     -> {
+            variant_indices: i32[] = []
+            for v in u.variants { variant_indices.push(intern_type(v, ctx)) }
+            return BcUnion { .variants = variant_indices }
+        }
+        is FnType as f -> {
+            param_indices: i32[] = []
+            for p in f.params { param_indices.push(intern_type(p, ctx)) }
+            return BcFn {
+                .params = param_indices,
+                .return_type = intern_type(f.return_type, ctx),
+            }
+        }
+        _ -> { return BcRef { .trait_name = "" } }
+    }
+}
+
+import "vader/types" { EnumType, StructType, TraitType, ArrayType, UnionType, FnType }
+
 /// Recover the static `Type` of a `LoweredExpr`. Every variant
 /// carries its result type in a `type` field set by the lowerer —
 /// this helper just dispatches on the variant.

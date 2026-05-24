@@ -104,9 +104,17 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
     key :: type_intern_key(t)
     existing :: ctx.type_key[key]
     if existing is i32 { return existing }
+    // Reserve placeholder so recursive / self types don't loop.
+    // Matches `src/bytecode/emit.ts::internType:356-360` exactly :
+    // push a `BcRef { trait_name = null }` first, register the index,
+    // then overwrite with the proper translation. The placeholder is
+    // visible to any nested `intern_type` call that re-enters with the
+    // same key.
     new_index :: i32(ctx.types.len())
-    ctx.types.push(bc_type_of(t))
+    placeholder: BcType = BcRef { .trait_name = "" }
+    ctx.types.push(placeholder)
     ctx.type_key[key] = new_index
+    ctx.types[usize(new_index)] = bc_type_of_with_ctx(t, ctx)
     return new_index
 }
 
