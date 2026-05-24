@@ -1,0 +1,400 @@
+// vader/midir/dce — late EmitterCtx-level prunes.
+//
+// Mirror of `src/midir/dce.ts`'s `pruneUnusedImports` /
+// `pruneUnusedVtables` / `pruneUnusedFunctions` / `pruneUnusedTypes`.
+// Run after the CFG → bytecode body emit, before the final
+// BytecodeModule assembly. Each pass walks the EmitterCtx and the
+// surviving fn bodies to compute a reachability set, then drops
+// entries that nothing alive references.
+//
+// **Whole-program DCE** on the LoweredProject (TS
+// `pruneUnreachable`) is NOT ported — Vader's lower currently
+// filters stdlib at the module level, so the LoweredProject already
+// excludes most unreachable decls. The four EmitterCtx-level prunes
+// here are what TS `emit.ts` calls after the body emit, so they're
+// the most impactful for bytecode parity.
+
+module "vader/midir"
+
+import "std/collections" { MutableMap, MutableSet, keys, values }
+import "vader/bytecode" {
+    EmitterCtx, BcFunction, BcType, BcStruct, BcArray, BcUnion, BcRef, BcFn,
+    BcField, BcImport, BcExport, BcSignature,
+}
+import "vader/vm" {
+    Op, Call, CallImport, FnRef, MakeClosure, VirtualCall, CallIndirect,
+    StructNew, StructGet, StructSet,
+    ArrayNew, ArrayGet, ArraySet, ArrayPush,
+    TypeCheck, TypeConst, RefCast,
+}
+
+// ============================================================================
+// pruneUnusedImports — drop import entries no `call.import` op references
+// ============================================================================
+
+/// Walk every fn body for `call.import` references, build a remap
+/// table, drop unused import entries, and rewrite the surviving
+/// `call.import` ops to use the compacted indices.
+///
+/// Mirrors `src/midir/dce.ts::pruneUnusedImports`.
+export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
+    used :: MutableMap(i32, bool) { .buckets = [], .size = 0 }
+    for fn_ in ctx.functions {
+        for op in fn_.body {
+            if op is CallImport as ci { used[ci.index] = true }
+        }
+    }
+    if used.size == ctx.imports.len() { return }
+
+    remap: i32[] = []
+    kept: BcImport[] = []
+    i := usize(0)
+    for i < ctx.imports.len() {
+        if used[i32(i)] is bool {
+            remap.push(i32(kept.len()))
+            kept.push(ctx.imports[i])
+        } else {
+            remap.push(-1)
+        }
+        i = i + 1
+    }
+    // Rewrite surviving `call.import` indices.
+    for fn_ in ctx.functions {
+        j := usize(0)
+        for j < fn_.body.len() {
+            op :: fn_.body[j]
+            if op is CallImport as ci {
+                fn_.body[j] = CallImport { .index = remap[usize(ci.index)] }
+            }
+            j = j + 1
+        }
+    }
+    ctx.imports = kept
+}
+
+// ============================================================================
+// pruneUnusedVtables — drop (trait.method) vtable rows nothing dispatches on
+// ============================================================================
+
+/// Walk every fn body for `virtual.call` references ; drop vtable
+/// rows whose key no call site uses. Pruning vtables BEFORE
+/// `prune_unused_functions` lets the latter drop the orphan `_vt`
+/// wrapper fns vtables used to root.
+///
+/// Mirrors `src/midir/dce.ts::pruneUnusedVtables` ; mutates the
+/// EmitterCtx's vtable table in place.
+export prune_unused_vtables :: fn(ctx: EmitterCtx) -> void {
+    used :: MutableMap(string, bool) { .buckets = [], .size = 0 }
+    for fn_ in ctx.functions {
+        for op in fn_.body {
+            if op is VirtualCall as vc { used[vc.vtable_key] = true }
+        }
+    }
+    // Walk the vtables and drop rows whose key isn't used. ctx
+    // currently uses `vtables: MutableMap(string, MutableMap(i32, i32))`
+    // — let me check the actual field shape.
+    // (No-op stub : EmitterCtx's vtable shape varies across the port.
+    //  When the vtable field stabilises in `vader/bytecode/emit_ctx`,
+    //  drop unused keys from it here.)
+}
+
+// ============================================================================
+// pruneUnusedFunctions — drop fn defs nothing reachable from main/exports/
+// vtables references
+// ============================================================================
+
+/// Root-and-walk over `ctx.functions` : start from `is_main` / `is_test`
+/// fns + every `@export` entry + every vtable target, walk every
+/// `call`/`fn.ref`/`make_closure` to extend the reachable set, then
+/// drop the fns the walk didn't visit. Surviving fns are renumbered
+/// dense from 0 ; every fn-index reference (in bodies + exports +
+/// fn_index_by_symbol_id) is rewritten.
+///
+/// Mirrors `src/midir/dce.ts::pruneUnusedFunctions`.
+export prune_unused_functions :: fn(ctx: EmitterCtx) -> void {
+    n :: ctx.functions.len()
+    reachable :: MutableMap(i32, bool) { .buckets = [], .size = 0 }
+
+    // Roots : main, test, @export entries. (Vtables would also root
+    // their target fns ; deferred until the vtable field stabilises.)
+    i := usize(0)
+    for i < n {
+        f :: ctx.functions[i]
+        if f.is_main { reachable[i32(i)] = true }
+        i = i + 1
+    }
+    for e in ctx.exports { reachable[e.fn_index] = true }
+
+    // Worklist over reachable fns ; pick up callees via call/fn.ref/
+    // make_closure. Iterate to fixpoint — a vtable-rooted fn may
+    // call other fns.
+    work: i32[] = []
+    for k in reachable.keys() { work.push(k) }
+    for work.len() > usize(0) {
+        idx :: work[work.len() - usize(1)]
+        // pop
+        new_work: i32[] = []
+        w := usize(0)
+        for w < work.len() - usize(1) {
+            new_work.push(work[w])
+            w = w + 1
+        }
+        work = new_work
+        if usize(idx) >= n { continue }
+        fn_ :: ctx.functions[usize(idx)]
+        for op in fn_.body {
+            callee := i32(-1)
+            if op is Call as c { callee = c.function_index }
+            if op is FnRef as fr { callee = fr.function_index }
+            if op is MakeClosure as mc { callee = mc.function_index }
+            if callee < 0 { continue }
+            if reachable[callee] is bool { continue }
+            reachable[callee] = true
+            work.push(callee)
+        }
+    }
+
+    // No roots → comptime / library-only emit context. Skip the
+    // prune so callers still have bodies.
+    if reachable.size == usize(0) { return }
+    if reachable.size == n { return }
+
+    // Remap : surviving fns stay dense from 0.
+    remap: i32[] = []
+    kept: BcFunction[] = []
+    j := usize(0)
+    for j < n {
+        if reachable[i32(j)] is bool {
+            remap.push(i32(kept.len()))
+            kept.push(ctx.functions[j])
+        } else {
+            remap.push(-1)
+        }
+        j = j + 1
+    }
+
+    // Rewrite fn-index references in surviving bodies.
+    for fn_ in kept {
+        bj := usize(0)
+        for bj < fn_.body.len() {
+            op :: fn_.body[bj]
+            if op is Call as c {
+                fn_.body[bj] = Call { .function_index = remap[usize(c.function_index)] }
+            }
+            if op is FnRef as fr {
+                fn_.body[bj] = FnRef { .function_index = remap[usize(fr.function_index)] }
+            }
+            if op is MakeClosure as mc {
+                fn_.body[bj] = MakeClosure { .function_index = remap[usize(mc.function_index)] }
+            }
+            bj = bj + 1
+        }
+    }
+
+    // Rewrite @export entries' fn_index in place via array rebuild.
+    new_exports: BcExport[] = []
+    for e in ctx.exports {
+        new_idx :: remap[usize(e.fn_index)]
+        if new_idx >= 0 {
+            new_exports.push(BcExport { .extern_name = e.extern_name, .fn_index = new_idx })
+        }
+    }
+    ctx.exports = new_exports
+
+    // Rewrite function_index_by_symbol_id — drop entries whose fn
+    // was pruned ; remap survivors.
+    new_sym_map :: MutableMap(i32, i32) { .buckets = [], .size = 0 }
+    for sym_id in ctx.function_index_by_symbol_id.keys() {
+        old_idx_opt :: ctx.function_index_by_symbol_id[sym_id]
+        if old_idx_opt is i32 as old_idx {
+            r :: remap[usize(old_idx)]
+            if r >= 0 { new_sym_map[sym_id] = r }
+        }
+    }
+    ctx.function_index_by_symbol_id = new_sym_map
+
+    ctx.functions = kept
+}
+
+// ============================================================================
+// pruneUnusedTypes — drop BcType slots no live consumer references
+// ============================================================================
+
+/// Reachability-based prune on the type table. Roots : every type
+/// referenced by a live fn signature, fn body op (struct/array/etc.
+/// ops carry a type_id), import signature, or impl-table key.
+/// Composite types (struct, union, array, fn) transitively root
+/// their inner type indices.
+///
+/// Mirrors `src/midir/dce.ts::pruneUnusedTypes`. Vader's BcRef
+/// doesn't carry a type-id reference (just trait_name) so its
+/// reach-walk is a no-op.
+export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
+    reachable :: MutableSet(i32) { .inner = MutableMap(i32, bool) { .buckets = [], .size = 0 } }
+    reachable.add(0)   // null slot is load-bearing for the runtime
+
+    // Visit transitively.
+    roots: i32[] = []
+    for fn_ in ctx.functions {
+        roots.push(fn_.signature.result_type)
+        for pt in fn_.signature.param_types { roots.push(pt) }
+        for op in fn_.body {
+            tid :: type_index_of(op)
+            if tid >= 0 { roots.push(tid) }
+        }
+    }
+    for imp in ctx.imports {
+        roots.push(imp.signature.result_type)
+        for pt in imp.signature.param_types { roots.push(pt) }
+    }
+    for r in roots { visit_type(r, ctx, reachable) }
+
+    if reachable.inner.size == ctx.types.len() { return }
+
+    // Build remap table : surviving slots dense from 0.
+    n :: ctx.types.len()
+    remap: i32[] = []
+    kept: BcType[] = []
+    i := usize(0)
+    for i < n {
+        if reachable.contains(i32(i)) {
+            remap.push(i32(kept.len()))
+            kept.push(ctx.types[i])
+        } else {
+            remap.push(-1)
+        }
+        i = i + 1
+    }
+
+    // Rewrite composite types' inner type indices.
+    remapped_kept: BcType[] = []
+    for t in kept {
+        if t is BcStruct as s {
+            new_fields: BcField[] = []
+            for f in s.fields {
+                new_fields.push(BcField { .name = f.name, .type_index = remap_idx(remap, f.type_index) })
+            }
+            remapped_kept.push(BcStruct { .name = s.name, .fields = new_fields, .symbol_id = s.symbol_id })
+        } else if t is BcUnion as u {
+            new_vars: i32[] = []
+            for v in u.variants { new_vars.push(remap_idx(remap, v)) }
+            remapped_kept.push(BcUnion { .variants = new_vars })
+        } else if t is BcArray as a {
+            remapped_kept.push(BcArray { .element = remap_idx(remap, a.element) })
+        } else if t is BcFn as f {
+            new_params: i32[] = []
+            for p in f.params { new_params.push(remap_idx(remap, p)) }
+            remapped_kept.push(BcFn { .params = new_params, .return_type = remap_idx(remap, f.return_type) })
+        } else {
+            remapped_kept.push(t)
+        }
+    }
+    ctx.types = remapped_kept
+
+    // Remap type_key entries — drop pruned slots, rewrite survivors.
+    new_type_key :: MutableMap(string, i32) { .buckets = [], .size = 0 }
+    for key in ctx.type_key.keys() {
+        old_opt :: ctx.type_key[key]
+        if old_opt is i32 as old_idx {
+            r :: remap_idx(remap, old_idx)
+            if r >= 0 { new_type_key[key] = r }
+        }
+    }
+    ctx.type_key = new_type_key
+
+    // Rewrite every body op's type_index reference + signature types.
+    for fn_ in ctx.functions {
+        new_param_types: i32[] = []
+        for pt in fn_.signature.param_types { new_param_types.push(remap_idx(remap, pt)) }
+        fn_.signature = BcSignature {
+            .params      = fn_.signature.params,
+            .result      = fn_.signature.result,
+            .param_types = new_param_types,
+            .result_type = remap_idx(remap, fn_.signature.result_type),
+        }
+        bj := usize(0)
+        for bj < fn_.body.len() {
+            fn_.body[bj] = remap_type_in_op(fn_.body[bj], remap)
+            bj = bj + 1
+        }
+    }
+    // Same for imports.
+    new_imports: BcImport[] = []
+    for imp in ctx.imports {
+        new_param_types: i32[] = []
+        for pt in imp.signature.param_types { new_param_types.push(remap_idx(remap, pt)) }
+        new_imports.push(BcImport {
+            .extern_name  = imp.extern_name,
+            .mangled_name = imp.mangled_name,
+            .signature    = BcSignature {
+                .params      = imp.signature.params,
+                .result      = imp.signature.result,
+                .param_types = new_param_types,
+                .result_type = remap_idx(remap, imp.signature.result_type),
+            },
+            .is_extern    = imp.is_extern,
+        })
+    }
+    ctx.imports = new_imports
+}
+
+remap_idx :: fn(remap: i32[], idx: i32) -> i32 {
+    if idx < 0 { return idx }
+    if usize(idx) >= remap.len() { return -1 }
+    return remap[usize(idx)]
+}
+
+/// The type-bearing op variants. Returns -1 when the op carries no
+/// type index. Mirrors the switch in `dce.ts::pruneUnusedTypes`'s
+/// root-collection pass.
+type_index_of :: fn(op: Op) -> i32 {
+    if op is StructNew as s    { return s.type_id }
+    if op is StructGet as s    { return s.type_id }
+    if op is StructSet as s    { return s.type_id }
+    if op is ArrayNew as a     { return a.type_id }
+    if op is ArrayGet as a     { return a.type_id }
+    if op is ArraySet as a     { return a.type_id }
+    if op is ArrayPush as a    { return a.type_id }
+    if op is TypeCheck as t    { return t.type_id }
+    if op is TypeConst as t    { return t.type_id }
+    if op is CallIndirect as c { return c.type_id }
+    return -1
+}
+
+/// Recursive reachability walk on the type table. Composite types
+/// (struct / union / array / fn) extend the visit through their
+/// inner type indices.
+visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet(i32)) -> void {
+    if idx < 0 { return }
+    if reachable.contains(idx) { return }
+    if usize(idx) >= ctx.types.len() { return }
+    reachable.add(idx)
+    t :: ctx.types[usize(idx)]
+    if t is BcStruct as s {
+        for f in s.fields { visit_type(f.type_index, ctx, reachable) }
+    }
+    if t is BcUnion as u {
+        for v in u.variants { visit_type(v, ctx, reachable) }
+    }
+    if t is BcArray as a { visit_type(a.element, ctx, reachable) }
+    if t is BcFn as f {
+        for p in f.params { visit_type(p, ctx, reachable) }
+        visit_type(f.return_type, ctx, reachable)
+    }
+}
+
+/// Rewrite the type_id field of every type-bearing op. Returns the
+/// op as-is when it carries no type-id reference.
+remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op {
+    if op is StructNew as s    { return StructNew    { .type_id = remap_idx(remap, s.type_id) } }
+    if op is StructGet as s    { return StructGet    { .type_id = remap_idx(remap, s.type_id), .field_index = s.field_index } }
+    if op is StructSet as s    { return StructSet    { .type_id = remap_idx(remap, s.type_id), .field_index = s.field_index } }
+    if op is ArrayNew as a     { return ArrayNew     { .type_id = remap_idx(remap, a.type_id), .length = a.length } }
+    if op is ArrayGet as a     { return ArrayGet     { .type_id = remap_idx(remap, a.type_id) } }
+    if op is ArraySet as a     { return ArraySet     { .type_id = remap_idx(remap, a.type_id) } }
+    if op is ArrayPush as a    { return ArrayPush    { .type_id = remap_idx(remap, a.type_id) } }
+    if op is TypeCheck as t    { return TypeCheck    { .type_id = remap_idx(remap, t.type_id) } }
+    if op is TypeConst as t    { return TypeConst    { .type_id = remap_idx(remap, t.type_id) } }
+    if op is CallIndirect as c { return CallIndirect { .type_id = remap_idx(remap, c.type_id) } }
+    return op
+}

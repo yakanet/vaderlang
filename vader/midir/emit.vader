@@ -166,6 +166,14 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             drop_dead_stores(ctx.functions[i])
             i = i + 1
         }
+        // Pass 4 — whole-program prunes on the EmitterCtx. Mirrors
+        // the late-emit prune cascade in `src/midir/emit.ts:125-133`.
+        // Order matters : vtables → functions → imports → types so
+        // each pass's root set reflects the previous pass's drops.
+        prune_unused_vtables(ctx)
+        prune_unused_functions(ctx)
+        prune_unused_imports(ctx)
+        prune_unused_types(ctx)
     }
 
     return BytecodeModule {
