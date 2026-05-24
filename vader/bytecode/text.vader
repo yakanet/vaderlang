@@ -631,9 +631,10 @@ write_op_line :: fn(out: StringBuilder, v: op.Op, jump_table: i32[], labels: Sco
         is op.CharGt -> out.append("char.gt")
         is op.CharGe -> out.append("char.ge")
 
-        is op.StringEq     -> out.append("string.eq")
-        is op.StringNe     -> out.append("string.ne")
-        is op.StringConcat -> out.append("string.concat")
+        is op.StringEq               -> out.append("string.eq")
+        is op.StringNe               -> out.append("string.ne")
+        is op.StringConcat           -> out.append("string.concat")
+        is op.StringSliceCodepoints  -> out.append("string.slice_codepoints")
 
         is op.RefEq -> out.append("ref.eq")
         is op.RefNe -> out.append("ref.ne")

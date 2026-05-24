@@ -126,6 +126,7 @@ export Op :: I32Const
     | StringEq
     | StringNe
     | StringConcat
+    | StringSliceCodepoints
     | IntToChar
     | CharToInt
     | RefEq
@@ -497,6 +498,11 @@ export StringNe :: struct {}
 /// Pop two strings (left, right) ; push their concatenation as a
 /// fresh `StringVal`.
 export StringConcat :: struct {}
+/// Pop a string and two `usize` (lo, hi) ; push the codepoint-indexed
+/// substring as a fresh `StringVal`. Implements the codepoint slice
+/// form `s[r]` where `r : Range[usize]`. Out-of-bounds clamps (no
+/// trap). Walks UTF-8 — O(n) in the byte length.
+export StringSliceCodepoints :: struct {}
 /// Pop a value (`I32Val` or `CharVal`) ; push a `CharVal` carrying the
 /// same codepoint. Emitted for every `<int>.to_char` Convert op so the
 /// downstream `display_value` / `builder.append_display` arm formats

@@ -1118,6 +1118,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
     if head == "string.eq"      { return StringEq {} }
     if head == "string.ne"      { return StringNe {} }
     if head == "string.concat"  { return StringConcat {} }
+    if head == "string.slice_codepoints" { return StringSliceCodepoints {} }
     if head == "ref.eq"         { return RefEq {} }
     if head == "ref.ne"         { return RefNe {} }
     if head == "drop"           { return Drop {} }

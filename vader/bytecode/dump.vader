@@ -45,7 +45,7 @@ import "vader/vm" {
     F64Add, F64Sub, F64Mul, F64Div, F64Neg,
     F64Eq, F64Ne, F64Lt, F64Le, F64Gt, F64Ge,
     BoolEq, BoolNe, BoolAnd, BoolOr,
-    CharEq, StringEq, StringConcat,
+    CharEq, StringEq, StringConcat, StringSliceCodepoints,
 }
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The
@@ -254,6 +254,7 @@ format_op :: fn(op: Op) -> string = match op {
     is CharEq                   -> "char.eq"
     is StringEq                 -> "string.eq"
     is StringConcat             -> "string.concat"
+    is StringSliceCodepoints    -> "string.slice_codepoints"
     _                           -> "<op>"
 }
 

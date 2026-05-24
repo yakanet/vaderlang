@@ -252,14 +252,19 @@ ASCII keyword match) :
 
 The test suite was the canonical safety net : every snippet that exercised `s[i]` byte-intent failed loudly until migrated, then the bytecode snapshots reflected the new dispatch.
 
-### Phase 6 — Self-host port (Vader VM) (1-2 h)
+### Phase 6 — Self-host port (Vader VM) (LANDED, ~1 h)
 
-Mirror Phase 2 + 3 in `vader/vm/exec.vader` :
+New `StringSliceCodepoints` op variant in `vader/vm/op.vader`, with
+handler in `vader/vm/exec.vader` that walks UTF-8 to find the byte
+offsets for the codepoint indices and clamps out-of-bounds ranges
+(matching the TS VM contract). Text-IR encode/decode plumbed through
+`vader/bytecode/text.vader`, `vader/bytecode/dump.vader`, and
+`vader/vm/parser.vader`. The `s[i]` codepoint semantic shift for
+`std_core$string$Index$at` was already covered in Phase 3
+(`vader/vm/host.vader`).
 
-- New `string.slice_codepoints` op handler.
-- `s[i]` codepoint semantic shift in the host `string_index` intrinsic.
-
-Plus parser changes for the new bytecode op (vader/vm/parser.vader).
+`string_codepoint_slice` removed from
+`tests/vader_vm.test.ts::KNOWN_DIVERGENT` ; vader-vm parity passes.
 
 ### Phase 7 — Tests (2-3 h)
 

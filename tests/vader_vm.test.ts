@@ -35,11 +35,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   // a lambda ; same root cause.
   "defer_on_panic",
   "defer_in_lambda",
-  // A7 Phase 2 — `string[r]` codepoint slice. TS pipeline landed
-  // (new bytecode op `string.slice_codepoints` + runtime helper) ;
-  // Vader self-host typechecker/VM not yet updated. Tracked in
-  // docs/ARRAY_STRING_VIEW_DESIGN.md Phase 6.
-  "string_codepoint_slice",
 ]);
 
 const scenarios = listSnippets("tests/snippets");

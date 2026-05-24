@@ -1336,6 +1336,39 @@ export exec :: fn(module: Module) -> VmResult {
                 frame.stack[frame.sp - 2] = StringVal { .value = "${left.value}${right.value}" }
                 frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
             }
+            is StringSliceCodepoints -> {
+                if frame.sp < 3 { return Trap { .message = "string.slice_codepoints needs string + lo + hi on stack at pc=${frame.pc}" } }
+                s_box  :: read_string(frame.stack[frame.sp - 3], frame.pc, "string.slice_codepoints receiver")
+                lo_box :: read_i32   (frame.stack[frame.sp - 2], frame.pc, "string.slice_codepoints lo")
+                hi_box :: read_i32   (frame.stack[frame.sp - 1], frame.pc, "string.slice_codepoints hi")
+                if s_box  is Trap { return s_box  }
+                if lo_box is Trap { return lo_box }
+                if hi_box is Trap { return hi_box }
+                s :: s_box.value
+                // Walk UTF-8 to compute byte offsets for codepoint
+                // indices `lo` and `hi`, clamping to the codepoint
+                // count so out-of-bounds ranges produce a clamped
+                // substring rather than trapping.
+                lo_cp :: usize(lo_box.value)
+                hi_cp :: usize(hi_box.value)
+                n_bytes :: s.byte_len()
+                cursor: usize = 0
+                seen:   usize = 0
+                byte_lo: usize = n_bytes
+                byte_hi: usize = n_bytes
+                for cursor < n_bytes {
+                    if seen == lo_cp { byte_lo = cursor }
+                    if seen == hi_cp { byte_hi = cursor }
+                    [_c, width] :: s.decode_codepoint(cursor)
+                    cursor = cursor + width
+                    seen   = seen + 1
+                }
+                if seen <= lo_cp { byte_lo = n_bytes }
+                if seen <= hi_cp { byte_hi = n_bytes }
+                if byte_hi < byte_lo { byte_hi = byte_lo }
+                frame.stack[frame.sp - 3] = StringVal { .value = s.byte_slice(byte_lo, byte_hi) }
+                frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
+            }
             is RefEq -> {
                 if frame.sp < 2 { return Trap { .message = "ref.eq needs 2 values on stack at pc=${frame.pc}" } }
                 outcome :: value_ref_eq(frame.stack[frame.sp - 2], frame.stack[frame.sp - 1], frame.pc, "ref.eq")
