@@ -1,0 +1,258 @@
+// vader/midir/const_fold — constant folding on the Mid-IR CFG.
+//
+// Mirror of `src/midir/const_fold.ts`. Walks each basic block in
+// order ; tracks `LocalId → ConstValue` for every `Const` instruction
+// seen so far in the block. When a `BinOp` (or `UnOp`) reads two
+// (resp. one) tracked operands and the op is foldable, replaces the
+// operation with a fresh `Const` carrying the computed value. A
+// subsequent DCE pass collects any now-unused producer consts.
+//
+// Intra-block only : tracking across block boundaries would require
+// CFG-wide SSA-style propagation. Most arithmetic expressions in
+// source code lower to a single straight-line block, so intra-block
+// catches the common cases.
+//
+// String concat is NOT folded here — the BinOp signature carries the
+// index into `BcModule.strings`, and stitching two indices into a
+// fresh entry requires a string-pool API the MidIR doesn't expose.
+
+module "vader/midir"
+
+import "std/collections" { MutableMap }
+import "vader/types" { Type, PrimitiveType }
+import "vader/lower" { LoweredBinaryOp, LoweredUnaryOp }
+
+/// Run constant folding on every block of every function in every
+/// module. Returns a fresh `CFGProject` with the rewritten functions ;
+/// unchanged modules are passed through verbatim.
+///
+/// @param p  the CFG project from `build_cfg_project`.
+/// @return   a project with foldable BinOp/UnOp replaced by Const.
+export const_fold_project :: fn(p: CFGProject) -> CFGProject {
+    out :: MutableMap(string, CFGModule) { .buckets = [], .size = 0 }
+    for id in p.modules.keys() {
+        m :: p.modules[id]
+        if m is null { continue }
+        new_fns: CFGFunction[] = []
+        for f in m.functions { new_fns.push(const_fold_function(f)) }
+        out[id] = CFGModule {
+            .module_id    = m.module_id,
+            .display_path = m.display_path,
+            .functions    = new_fns,
+            .externs      = m.externs,
+            .struct_decls = m.struct_decls,
+        }
+    }
+    return CFGProject {
+        .modules         = out,
+        .vtable_entries  = p.vtable_entries,
+        .strings         = p.strings,
+        .data_pool       = p.data_pool,
+        .symbol_redirects = p.symbol_redirects,
+    }
+}
+
+const_fold_function :: fn(fn_: CFGFunction) -> CFGFunction {
+    new_blocks: BasicBlock[] = []
+    for b in fn_.blocks {
+        folded :: const_fold_block(b)
+        new_blocks.push(BasicBlock {
+            .id = b.id,
+            .instructions = folded,
+            .terminator = b.terminator,
+            .span = b.span,
+        })
+    }
+    return CFGFunction {
+        .mangled     = fn_.mangled,
+        .params      = fn_.params,
+        .return_type = fn_.return_type,
+        .locals      = fn_.locals,
+        .blocks      = new_blocks,
+        .entry       = fn_.entry,
+        .origin      = fn_.origin,
+        .extern_name = fn_.extern_name,
+        .is_extern   = fn_.is_extern,
+        .is_exported = fn_.is_exported,
+    }
+}
+
+const_fold_block :: fn(b: BasicBlock) -> Instruction[] {
+    consts :: MutableMap(i32, ConstValue) { .buckets = [], .size = 0 }
+    out: Instruction[] = []
+    for ins in b.instructions {
+        if ins is InstrConst as c {
+            consts[c.dst] = c.value
+            out.push(ins)
+            continue
+        }
+        if ins is InstrBinOp as bop {
+            l_opt :: consts[bop.lhs]
+            r_opt :: consts[bop.rhs]
+            if l_opt !is null {
+                if r_opt !is null {
+                    raw :: fold_bin_op(bop.op, l_opt, r_opt)
+                    if raw !is null {
+                        folded :: truncate_to_type(raw, bop.type)
+                        consts[bop.dst] = folded
+                        out.push(InstrConst {
+                            .dst = bop.dst, .value = folded,
+                            .type = bop.type, .span = bop.span,
+                        })
+                        continue
+                    }
+                }
+            }
+            out.push(ins)
+            continue
+        }
+        if ins is InstrUnOp as uop {
+            v_opt :: consts[uop.operand]
+            if v_opt !is null {
+                raw :: fold_un_op(uop.op, v_opt)
+                if raw !is null {
+                    folded :: truncate_to_type(raw, uop.type)
+                    consts[uop.dst] = folded
+                    out.push(InstrConst {
+                        .dst = uop.dst, .value = folded,
+                        .type = uop.type, .span = uop.span,
+                    })
+                    continue
+                }
+            }
+            out.push(ins)
+            continue
+        }
+        out.push(ins)
+    }
+    return out
+}
+
+// ============================================================================
+// Folding rules
+// ============================================================================
+
+fold_bin_op :: fn(op: LoweredBinaryOp, l: ConstValue, r: ConstValue) -> ConstValue | null {
+    if l is ConstInt as li {
+        if r is ConstInt as ri { return fold_int_bin_op(op, li.value, ri.value) }
+    }
+    if l is ConstFloat as lf {
+        if r is ConstFloat as rf { return fold_float_bin_op(op, lf.value, rf.value) }
+    }
+    if l is ConstBool as lb {
+        if r is ConstBool as rb { return fold_bool_bin_op(op, lb.value, rb.value) }
+    }
+    if l is ConstChar as lc {
+        if r is ConstChar as rc { return fold_char_bin_op(op, lc.value, rc.value) }
+    }
+    return null
+}
+
+fold_int_bin_op :: fn(op: LoweredBinaryOp, l: i64, r: i64) -> ConstValue | null {
+    if i32(op) == i32(LoweredBinaryOp.Add) { return ConstInt { .value = l + r } }
+    if i32(op) == i32(LoweredBinaryOp.Sub) { return ConstInt { .value = l - r } }
+    if i32(op) == i32(LoweredBinaryOp.Mul) { return ConstInt { .value = l * r } }
+    if i32(op) == i32(LoweredBinaryOp.Div) {
+        if r == i64(0) { return null }
+        return ConstInt { .value = l / r }
+    }
+    if i32(op) == i32(LoweredBinaryOp.Mod) {
+        if r == i64(0) { return null }
+        return ConstInt { .value = l - (l / r) * r }
+    }
+    // Shifts ≥ 64 are runtime-defined ; skip so the VM/runtime (which
+    // knows the type width) handles them.
+    if i32(op) == i32(LoweredBinaryOp.Shl) {
+        if r < i64(0) { return null }
+        if r >= i64(64) { return null }
+        return ConstInt { .value = l << r }
+    }
+    if i32(op) == i32(LoweredBinaryOp.Shr) {
+        if r < i64(0) { return null }
+        if r >= i64(64) { return null }
+        return ConstInt { .value = l >> r }
+    }
+    if i32(op) == i32(LoweredBinaryOp.BitAnd) { return ConstInt { .value = l & r } }
+    if i32(op) == i32(LoweredBinaryOp.BitOr)  { return ConstInt { .value = l | r } }
+    if i32(op) == i32(LoweredBinaryOp.BitXor) { return ConstInt { .value = l ^ r } }
+    if i32(op) == i32(LoweredBinaryOp.Eq)  { return ConstBool { .value = l == r } }
+    if i32(op) == i32(LoweredBinaryOp.Neq) { return ConstBool { .value = l != r } }
+    if i32(op) == i32(LoweredBinaryOp.Lt)  { return ConstBool { .value = l <  r } }
+    if i32(op) == i32(LoweredBinaryOp.Lte) { return ConstBool { .value = l <= r } }
+    if i32(op) == i32(LoweredBinaryOp.Gt)  { return ConstBool { .value = l >  r } }
+    if i32(op) == i32(LoweredBinaryOp.Gte) { return ConstBool { .value = l >= r } }
+    return null
+}
+
+fold_float_bin_op :: fn(op: LoweredBinaryOp, l: f64, r: f64) -> ConstValue | null {
+    if i32(op) == i32(LoweredBinaryOp.Add) { return ConstFloat { .value = l + r } }
+    if i32(op) == i32(LoweredBinaryOp.Sub) { return ConstFloat { .value = l - r } }
+    if i32(op) == i32(LoweredBinaryOp.Mul) { return ConstFloat { .value = l * r } }
+    if i32(op) == i32(LoweredBinaryOp.Div) { return ConstFloat { .value = l / r } }
+    if i32(op) == i32(LoweredBinaryOp.Eq)  { return ConstBool  { .value = l == r } }
+    if i32(op) == i32(LoweredBinaryOp.Neq) { return ConstBool  { .value = l != r } }
+    if i32(op) == i32(LoweredBinaryOp.Lt)  { return ConstBool  { .value = l <  r } }
+    if i32(op) == i32(LoweredBinaryOp.Lte) { return ConstBool  { .value = l <= r } }
+    if i32(op) == i32(LoweredBinaryOp.Gt)  { return ConstBool  { .value = l >  r } }
+    if i32(op) == i32(LoweredBinaryOp.Gte) { return ConstBool  { .value = l >= r } }
+    return null
+}
+
+fold_bool_bin_op :: fn(op: LoweredBinaryOp, l: bool, r: bool) -> ConstValue | null {
+    if i32(op) == i32(LoweredBinaryOp.And) { return ConstBool { .value = l && r } }
+    if i32(op) == i32(LoweredBinaryOp.Or)  { return ConstBool { .value = l || r } }
+    if i32(op) == i32(LoweredBinaryOp.Eq)  { return ConstBool { .value = l == r } }
+    if i32(op) == i32(LoweredBinaryOp.Neq) { return ConstBool { .value = l != r } }
+    return null
+}
+
+fold_char_bin_op :: fn(op: LoweredBinaryOp, l: i32, r: i32) -> ConstValue | null {
+    if i32(op) == i32(LoweredBinaryOp.Eq)  { return ConstBool { .value = l == r } }
+    if i32(op) == i32(LoweredBinaryOp.Neq) { return ConstBool { .value = l != r } }
+    if i32(op) == i32(LoweredBinaryOp.Lt)  { return ConstBool { .value = l <  r } }
+    if i32(op) == i32(LoweredBinaryOp.Lte) { return ConstBool { .value = l <= r } }
+    if i32(op) == i32(LoweredBinaryOp.Gt)  { return ConstBool { .value = l >  r } }
+    if i32(op) == i32(LoweredBinaryOp.Gte) { return ConstBool { .value = l >= r } }
+    return null
+}
+
+fold_un_op :: fn(op: LoweredUnaryOp, v: ConstValue) -> ConstValue | null {
+    if i32(op) == i32(LoweredUnaryOp.Neg) {
+        if v is ConstInt as iv   { return ConstInt   { .value = i64(0) - iv.value } }
+        if v is ConstFloat as fv { return ConstFloat { .value = f64(0) - fv.value } }
+        return null
+    }
+    if i32(op) == i32(LoweredUnaryOp.Not) {
+        if v is ConstBool as bv { return ConstBool { .value = !bv.value } }
+        return null
+    }
+    if i32(op) == i32(LoweredUnaryOp.BitNot) {
+        if v is ConstInt as iv { return ConstInt { .value = ~iv.value } }
+        return null
+    }
+    return null
+}
+
+// Truncate / sign-extend an integer ConstValue to its declared type's
+// bit width so the folded value matches what the bytecode interpreter
+// (and the native runtime) would produce after the arithmetic actually
+// ran. Non-int kinds pass through unchanged.
+truncate_to_type :: fn(v: ConstValue, t: Type) -> ConstValue {
+    if v !is ConstInt { return v }
+    if t !is PrimitiveType { return v }
+    if v is ConstInt as iv {
+        if t is PrimitiveType as p {
+            if p.name == "i8"    { return ConstInt { .value = i64(i8(iv.value)) } }
+            if p.name == "i16"   { return ConstInt { .value = i64(i16(iv.value)) } }
+            if p.name == "i32"   { return ConstInt { .value = i64(i32(iv.value)) } }
+            if p.name == "i64"   { return v }
+            if p.name == "isize" { return v }
+            if p.name == "u8"    { return ConstInt { .value = i64(u8(iv.value)) } }
+            if p.name == "u16"   { return ConstInt { .value = i64(u16(iv.value)) } }
+            if p.name == "u32"   { return ConstInt { .value = i64(u32(iv.value)) } }
+            if p.name == "u64"   { return v }
+            if p.name == "usize" { return v }
+        }
+    }
+    return v
+}
