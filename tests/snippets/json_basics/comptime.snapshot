@@ -112,7 +112,6 @@
   Iterator(T)
   Iterator(T)
   Yield(char)
-  Yield(u8)
   Yield(Entry(K, V))
   Yield(T)
   Yield(T)

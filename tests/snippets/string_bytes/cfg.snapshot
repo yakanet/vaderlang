@@ -8,87 +8,93 @@ fn snippet$main() -> i32
     %1 $k_1: u32
     %2 sum: u32 (local sum)
     %3 $k_4: string
-    %4 $call_5: StringBytes
-    %5 __iter_0: StringBytes (synthetic __iter_0)
-    %6 $call_7: Yield(u8) | null
-    %7 __step_1: Yield(u8) | null (synthetic __step_1)
-    %8 $type_check_9: bool
-    %9 $cast_10: Yield(u8)
-    %10 b: u8 (binding b)
-    %11 $cast_13: u32
-    %12 $intrinsic_15: ?
-    %13 __sb_2: ? (synthetic __sb_2)
-    %14 $k_17: string
-    %15 $call_18: string
-    %16 $intrinsic_19: string
-    %17 $k_20: string
-    %18 $k_21: string
-    %19 $call_22: StringBytes
-    %20 __iter_3: StringBytes (synthetic __iter_3)
-    %21 $call_24: Yield(u8) | null
-    %22 __step_4: Yield(u8) | null (synthetic __step_4)
-    %23 $type_check_26: bool
-    %24 $cast_27: Yield(u8)
-    %25 b: u8 (binding b)
-    %26 $intrinsic_30: ?
-    %27 __sb_5: ? (synthetic __sb_5)
-    %28 $intrinsic_32: string
+    %4 $call_5: u8[]
+    %5 __for_arr_0: u8[] (synthetic __for_arr_0)
+    %6 __for_len_1: usize (synthetic __for_len_1)
+    %7 __for_i_2: usize (synthetic __for_i_2)
+    %8 $lt_11: bool
+    %9 b: u8 (binding b)
+    %10 $cast_14: u32
+    %11 $k_16: usize
+    %12 $intrinsic_18: ?
+    %13 __sb_3: ? (synthetic __sb_3)
+    %14 $k_20: string
+    %15 $call_21: string
+    %16 $intrinsic_22: string
+    %17 $k_23: string
+    %18 $k_24: string
+    %19 $call_25: u8[]
+    %20 __for_arr_4: u8[] (synthetic __for_arr_4)
+    %21 __for_len_5: usize (synthetic __for_len_5)
+    %22 __for_i_6: usize (synthetic __for_i_6)
+    %23 $lt_31: bool
+    %24 b: u8 (binding b)
+    %25 $intrinsic_34: ?
+    %26 __sb_7: ? (synthetic __sb_7)
+    %27 $intrinsic_36: string
+    %28 $k_37: usize
     %29 bom: string (local bom)
-    %30 $k_35: string
-    %31 $intrinsic_36: ?
-    %32 __sb_6: ? (synthetic __sb_6)
-    %33 $k_38: string
-    %34 $k_39: usize
-    %35 $call_40: u8
-    %36 $k_41: string
-    %37 $k_42: usize
-    %38 $call_43: u8
-    %39 $k_44: string
-    %40 $k_45: usize
-    %41 $call_46: u8
-    %42 $intrinsic_47: string
-    %43 $intrinsic_48: ?
-    %44 __sb_7: ? (synthetic __sb_7)
-    %45 $k_50: string
-    %46 $k_51: usize
-    %47 $call_52: u8
-    %48 $k_53: string
-    %49 $k_54: string
-    %50 $k_55: usize
-    %51 $call_56: u8
-    %52 $intrinsic_57: string
-    %53 $k_58: string
-    %54 $k_59: string
-    %55 $call_60: StringBytes
-    %56 __iter_8: StringBytes (synthetic __iter_8)
-    %57 $call_62: Yield(u8) | null
-    %58 __step_9: Yield(u8) | null (synthetic __step_9)
-    %59 $type_check_64: bool
-    %60 $k_68: string
-    %61 $intrinsic_69: ?
-    %62 __sb_10: ? (synthetic __sb_10)
-    %63 $k_71: string
-    %64 $k_72: string
-    %65 $call_73: usize
-    %66 $call_74: string
-    %67 $intrinsic_75: string
-    %68 $k_76: i32
+    %30 $k_41: string
+    %31 $intrinsic_42: ?
+    %32 __sb_8: ? (synthetic __sb_8)
+    %33 $k_44: string
+    %34 $k_45: usize
+    %35 $call_46: u8
+    %36 $k_47: string
+    %37 $k_48: usize
+    %38 $call_49: u8
+    %39 $k_50: string
+    %40 $k_51: usize
+    %41 $call_52: u8
+    %42 $intrinsic_53: string
+    %43 $intrinsic_54: ?
+    %44 __sb_9: ? (synthetic __sb_9)
+    %45 $k_56: string
+    %46 $k_57: usize
+    %47 $call_58: u8
+    %48 $k_59: string
+    %49 $k_60: string
+    %50 $k_61: usize
+    %51 $call_62: u8
+    %52 $intrinsic_63: string
+    %53 $k_64: string
+    %54 $k_65: string
+    %55 $call_66: u8[]
+    %56 __for_arr_10: u8[] (synthetic __for_arr_10)
+    %57 __for_len_11: usize (synthetic __for_len_11)
+    %58 __for_i_12: usize (synthetic __for_i_12)
+    %59 $lt_72: bool
+    %60 $k_75: string
+    %61 $k_76: usize
+    %62 $intrinsic_78: ?
+    %63 __sb_13: ? (synthetic __sb_13)
+    %64 $k_80: string
+    %65 $k_81: string
+    %66 $call_82: usize
+    %67 $call_83: string
+    %68 $intrinsic_84: string
+    %69 $k_85: i32
   bb0:
     %0 = const string(#0) :string
     call println(%0) :void
     %1 = const int(0) :u32
     %2 = cast %1 :u32
     %3 = const string(#1) :string
-    %4 = call bytes(%3) :StringBytes
+    %4 = call bytes(%3) :u8[]
     %5 = move %4
+    %6 = array_len %5
+    %7 = const int(0) :usize
     branch -> bb1
   bb1:
-    branch -> bb2
+    %8 = binop lt %7 %6 :bool
+    cond_branch %8 ? bb2 : bb3
   bb2:
-    %6 = call next(%5) :Yield(u8) | null
-    %7 = move %6
-    %8 = type_check %7 is null
-    cond_branch %8 ? bb4 : bb5
+    %9 = array_get %5[%7] :u8
+    %10 = cast %9 :u32
+    %2 = binop add %2 %10 :u32
+    %11 = const int(1) :usize
+    %7 = binop add %7 %11 :usize
+    branch -> bb1
   bb3:
     %12 = intrinsic builder.new()
     %13 = move %12
@@ -101,27 +107,25 @@ fn snippet$main() -> i32
     %17 = const string(#3) :string
     call println(%17) :void
     %18 = const string(#4) :string
-    %19 = call bytes(%18) :StringBytes
+    %19 = call bytes(%18) :u8[]
     %20 = move %19
-    branch -> bb7
+    %21 = array_len %20
+    %22 = const int(0) :usize
+    branch -> bb4
   bb4:
-    branch -> bb3
+    %23 = binop lt %22 %21 :bool
+    cond_branch %23 ? bb5 : bb6
   bb5:
-    %9 = cast %7 :Yield(u8)
-    %10 = field_get %9.value :u8
-    %11 = cast %10 :u32
-    %2 = binop add %2 %11 :u32
-    branch -> bb6
+    %24 = array_get %20[%22] :u8
+    %25 = intrinsic builder.new()
+    %26 = move %25
+    intrinsic builder.append_display(%26, %24)
+    %27 = intrinsic builder.finish(%26)
+    call println(%27) :void
+    %28 = const int(1) :usize
+    %22 = binop add %22 %28 :usize
+    branch -> bb4
   bb6:
-    branch -> bb1
-  bb7:
-    branch -> bb8
-  bb8:
-    %21 = call next(%20) :Yield(u8) | null
-    %22 = move %21
-    %23 = type_check %22 is null
-    cond_branch %23 ? bb10 : bb11
-  bb9:
     %29 = const string(#5) :string
     %30 = const string(#6) :string
     call println(%30) :void
@@ -162,47 +166,30 @@ fn snippet$main() -> i32
     %53 = const string(#13) :string
     call println(%53) :void
     %54 = const string(#14) :string
-    %55 = call bytes(%54) :StringBytes
+    %55 = call bytes(%54) :u8[]
     %56 = move %55
-    branch -> bb13
-  bb10:
-    branch -> bb9
-  bb11:
-    %24 = cast %22 :Yield(u8)
-    %25 = field_get %24.value :u8
-    %26 = intrinsic builder.new()
-    %27 = move %26
-    intrinsic builder.append_display(%27, %25)
-    %28 = intrinsic builder.finish(%27)
-    call println(%28) :void
-    branch -> bb12
-  bb12:
+    %57 = array_len %56
+    %58 = const int(0) :usize
     branch -> bb7
-  bb13:
-    branch -> bb14
-  bb14:
-    %57 = call next(%56) :Yield(u8) | null
-    %58 = move %57
-    %59 = type_check %58 is null
-    cond_branch %59 ? bb16 : bb17
-  bb15:
-    %61 = intrinsic builder.new()
-    %62 = move %61
-    %63 = const string(#16) :string
-    intrinsic builder.append_str(%62, %63)
-    %64 = const string(#14) :string
-    %65 = call byte_len(%64) :usize
-    %66 = call to_string(%65) :string
-    intrinsic builder.append_str(%62, %66)
-    %67 = intrinsic builder.finish(%62)
-    call println(%67) :void
-    %68 = const int(0) :i32
-    return %68
-  bb16:
-    branch -> bb15
-  bb17:
+  bb7:
+    %59 = binop lt %58 %57 :bool
+    cond_branch %59 ? bb8 : bb9
+  bb8:
     %60 = const string(#15) :string
     call println(%60) :void
-    branch -> bb18
-  bb18:
-    branch -> bb13
+    %61 = const int(1) :usize
+    %58 = binop add %58 %61 :usize
+    branch -> bb7
+  bb9:
+    %62 = intrinsic builder.new()
+    %63 = move %62
+    %64 = const string(#16) :string
+    intrinsic builder.append_str(%63, %64)
+    %65 = const string(#14) :string
+    %66 = call byte_len(%65) :usize
+    %67 = call to_string(%66) :string
+    intrinsic builder.append_str(%63, %67)
+    %68 = intrinsic builder.finish(%63)
+    call println(%68) :void
+    %69 = const int(0) :i32
+    return %69

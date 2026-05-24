@@ -214,17 +214,25 @@ decodes the UTF-8 codepoint at byte offset `i` (declared `@intrinsic` in
 `stdlib/std/string/string.vader`, backed by `vader_string_char_at`).
 Existing `byte_at(i: usize) -> u8` stays unchanged.
 
-### Phase 4 — Stdlib: `bytes()` returns `u8[]`, drop `slice()` (1-2 h)
+### Phase 4 — Stdlib renames + `bytes()` returns `u8[]` (LANDED, ~3 h)
 
-In `stdlib/std/string/string.vader` :
+Implemented as three sub-phases (P4a, P4b, P4c) :
 
-- Remove `export slice :: fn(s: string, start: usize, end: usize) -> string`.
-- Change `export bytes :: fn(s: string) -> StringBytes` to return `u8[]` (a view on the UTF-8 buffer).
-- Delete the `StringBytes` iterator struct (the `u8[]` array already implements `Iterator(u8)` via `T[] implements Into(Iterator(T))`).
-- Add `export len :: fn(s: string) -> usize` that returns the codepoint count (walks UTF-8 ; O(n)).
+- **P4a** — Rename `slice` → `byte_slice` (109 callers). Naming
+  consistency with the `byte_at` / `byte_decode_at` family ; semantics
+  unchanged (byte-indexed substring). Callers wanting codepoint
+  slicing already moved to `s[r]` in P2.
+- **P4b** — Rename `count_chars` → `len`. Aligns the codepoint count
+  with `arr.len()`. UFCS overload with `std/collections::len` is
+  disjoint (receiver types `string` vs `MutableMap` / `MutableSet`).
+- **P4c** — `bytes() -> u8[]`. Returns a fresh `u8[]` copy of the
+  UTF-8 bytes (O(n) copy, no aliasing). `StringBytes` struct + its
+  `Iterator(u8)` impl deleted ; iteration goes through the array's
+  built-in iterator. A zero-copy view sharing the string's buffer is
+  a planned optimisation — out of scope for this phase.
 
-`StringChars` (codepoint iterator) stays — useful for explicit codepoint
-walks without materializing all positions.
+`StringChars` (codepoint iterator) stays — useful for explicit
+codepoint walks without materialising all positions.
 
 ### Phase 5 — Migration audit (LANDED, ~3 h — `s[i]` byte-intent portion)
 

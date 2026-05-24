@@ -941,10 +941,10 @@ exact form, only migrating `()` to `[]` in line with §11 Layer 5a :
 
 ```vader
 // Today (pre-Path 2) :
-StringBytes implements Iterator(u8)
+StringChars implements Iterator(char)
 
 // Path 2 :
-StringBytes implements Iterator[u8]
+StringChars implements Iterator[char]
 ```
 
 Natural reading order — « the type implements the trait » — preserved.

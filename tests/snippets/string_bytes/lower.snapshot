@@ -11,52 +11,53 @@
       cast → u32
         int(0) :u32
     block :void
-      let __iter_0: StringBytes =
-        call :StringBytes
+      let __for_arr_0: u8[] =
+        call :u8[]
           callee:
-            bytes :StringBytes
+            bytes :u8[]
           arg0:
             "vader" :string
-      loop
-        let __step_1: Yield(u8) | null =
-          call :Yield(u8) | null
-            callee:
-              next :?
-            arg0:
-              __iter_0 :StringBytes
-        if :void
-          cond:
-            is null :bool
-              __step_1 :Yield(u8) | null
-          then:
-            break
-          else:
-            let b: u8 =
-              .value :u8
-                cast → Yield(u8)
-                  __step_1 :Yield(u8) | null
-            assign
-              target:
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let b: u8 =
+          index :u8
+            on:
+              __for_arr_0 :u8[]
+            ix:
+              __for_i_2 :usize
+        assign
+          target:
+            sum :u32
+          value:
+            add :u32
+              l:
                 sum :u32
-              value:
-                add :u32
-                  l:
-                    sum :u32
-                  r:
-                    cast → u32
-                      b :u8
+              r:
+                cast → u32
+                  b :u8
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
     call :void
       callee:
         println :fn(string) -> void
       arg0:
         block :string
-          let __sb_2: ? =
+          let __sb_3: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_2 :?
+            __sb_3 :?
             "sum=" :string
           @builder.append_str :void
-            __sb_2 :?
+            __sb_3 :?
             call :string
               callee:
                 to_string :string
@@ -64,50 +65,51 @@
                 sum :u32
           ~>
             @builder.finish :string
-              __sb_2 :?
+              __sb_3 :?
     call :void
       callee:
         println :fn(string) -> void
       arg0:
         "-- multibyte --" :string
     block :void
-      let __iter_3: StringBytes =
-        call :StringBytes
+      let __for_arr_4: u8[] =
+        call :u8[]
           callee:
-            bytes :StringBytes
+            bytes :u8[]
           arg0:
             "你" :string
-      loop
-        let __step_4: Yield(u8) | null =
-          call :Yield(u8) | null
-            callee:
-              next :?
-            arg0:
-              __iter_3 :StringBytes
-        if :void
-          cond:
-            is null :bool
-              __step_4 :Yield(u8) | null
-          then:
-            break
-          else:
-            let b: u8 =
-              .value :u8
-                cast → Yield(u8)
-                  __step_4 :Yield(u8) | null
-            call :void
-              callee:
-                println :fn(string) -> void
-              arg0:
-                block :string
-                  let __sb_5: ? =
-                    @builder.new :?
-                  @builder.append_display <for u8> :void
-                    __sb_5 :?
-                    b :u8
-                  ~>
-                    @builder.finish :string
-                      __sb_5 :?
+      let __for_len_5: usize =
+        LoweredArrayLen
+      let __for_i_6: usize = int(0) :usize
+      loop while (<…>)
+        let b: u8 =
+          index :u8
+            on:
+              __for_arr_4 :u8[]
+            ix:
+              __for_i_6 :usize
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            block :string
+              let __sb_7: ? =
+                @builder.new :?
+              @builder.append_display <for u8> :void
+                __sb_7 :?
+                b :u8
+              ~>
+                @builder.finish :string
+                  __sb_7 :?
+        assign
+          target:
+            __for_i_6 :usize
+          value:
+            add :usize
+              l:
+                __for_i_6 :usize
+              r:
+                int(1) :usize
     let bom: string = "﻿data" :string
     call :void
       callee:
@@ -119,13 +121,13 @@
         println :fn(string) -> void
       arg0:
         block :string
-          let __sb_6: ? =
+          let __sb_8: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_6 :?
+            __sb_8 :?
             "b0=" :string
           @builder.append_display <for u8> :void
-            __sb_6 :?
+            __sb_8 :?
             call :u8
               callee:
                 byte_at :u8
@@ -134,10 +136,10 @@
               arg1:
                 int(0) :usize
           @builder.append_str :void
-            __sb_6 :?
+            __sb_8 :?
             " b1=" :string
           @builder.append_display <for u8> :void
-            __sb_6 :?
+            __sb_8 :?
             call :u8
               callee:
                 byte_at :u8
@@ -146,10 +148,10 @@
               arg1:
                 int(1) :usize
           @builder.append_str :void
-            __sb_6 :?
+            __sb_8 :?
             " b2=" :string
           @builder.append_display <for u8> :void
-            __sb_6 :?
+            __sb_8 :?
             call :u8
               callee:
                 byte_at :u8
@@ -159,19 +161,19 @@
                 int(2) :usize
           ~>
             @builder.finish :string
-              __sb_6 :?
+              __sb_8 :?
     call :void
       callee:
         println :fn(string) -> void
       arg0:
         block :string
-          let __sb_7: ? =
+          let __sb_9: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_7 :?
+            __sb_9 :?
             "after bom: " :string
           @builder.append_display <for u8> :void
-            __sb_7 :?
+            __sb_9 :?
             call :u8
               callee:
                 byte_at :u8
@@ -180,10 +182,10 @@
               arg1:
                 int(3) :usize
           @builder.append_str :void
-            __sb_7 :?
+            __sb_9 :?
             "=" :string
           @builder.append_display <for u8> :void
-            __sb_7 :?
+            __sb_9 :?
             call :u8
               callee:
                 byte_at :u8
@@ -193,54 +195,55 @@
                 int(0) :usize
           ~>
             @builder.finish :string
-              __sb_7 :?
+              __sb_9 :?
     call :void
       callee:
         println :fn(string) -> void
       arg0:
         "-- empty --" :string
     block :void
-      let __iter_8: StringBytes =
-        call :StringBytes
+      let __for_arr_10: u8[] =
+        call :u8[]
           callee:
-            bytes :StringBytes
+            bytes :u8[]
           arg0:
             "" :string
-      loop
-        let __step_9: Yield(u8) | null =
-          call :Yield(u8) | null
-            callee:
-              next :?
-            arg0:
-              __iter_8 :StringBytes
-        if :void
-          cond:
-            is null :bool
-              __step_9 :Yield(u8) | null
-          then:
-            break
-          else:
-            let b: u8 =
-              .value :u8
-                cast → Yield(u8)
-                  __step_9 :Yield(u8) | null
-            call :void
-              callee:
-                println :fn(string) -> void
-              arg0:
-                "never" :string
+      let __for_len_11: usize =
+        LoweredArrayLen
+      let __for_i_12: usize = int(0) :usize
+      loop while (<…>)
+        let b: u8 =
+          index :u8
+            on:
+              __for_arr_10 :u8[]
+            ix:
+              __for_i_12 :usize
+        call :void
+          callee:
+            println :fn(string) -> void
+          arg0:
+            "never" :string
+        assign
+          target:
+            __for_i_12 :usize
+          value:
+            add :usize
+              l:
+                __for_i_12 :usize
+              r:
+                int(1) :usize
     call :void
       callee:
         println :fn(string) -> void
       arg0:
         block :string
-          let __sb_10: ? =
+          let __sb_13: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_10 :?
+            __sb_13 :?
             "done bytes=" :string
           @builder.append_str :void
-            __sb_10 :?
+            __sb_13 :?
             call :string
               callee:
                 to_string :string
@@ -252,5 +255,5 @@
                     "" :string
           ~>
             @builder.finish :string
-              __sb_10 :?
+              __sb_13 :?
     return int(0) :i32

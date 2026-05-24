@@ -31,7 +31,6 @@
   Iterator(T)
   Iterator(T)
   Yield(char)
-  Yield(u8)
   Yield(T)
   Yield(T)
   Yield(T)

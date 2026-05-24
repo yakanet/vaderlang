@@ -60,37 +60,30 @@ export byte_at :: fn(s: string, i: usize) -> u8
 /// @param i  byte offset. Traps if `i >= s.byte_len()`.
 export byte_decode_at :: fn(s: string, i: usize) -> char
 
-/// Iterator yielding raw bytes - the UTF-8 byte sequence as-is. Use for
-/// ASCII data, binary protocols carried in strings, or when computing a
-/// byte-level digest. For codepoint iteration use `chars()` instead.
-export StringBytes :: struct {
-    s:      string
-    cursor: usize
-    length: usize
-}
-
-StringBytes implements Iterator(u8) {
-    next :: fn(self) -> Yield(u8) | null {
-        if (self.cursor >= self.length) {
-            return null
-        }
-        b :: self.s.byte_at(self.cursor)
-        self.cursor = self.cursor + 1
-        return Yield(u8) { .value = b }
-    }
-}
-
-/// Iterate `s` byte-by-byte. Pair with `for b in s.bytes()` for raw byte
-/// processing.
+/// Snapshot the UTF-8 byte sequence as `u8[]`. Use for ASCII data,
+/// binary protocols carried in strings, byte-level digests, or random
+/// byte access. Iteration works through the array's built-in
+/// `for b in s.bytes()`. For codepoint iteration use `chars()` instead.
+///
+/// Currently O(n) in `byte_len(s)` — copies the bytes into a fresh
+/// array. A zero-copy view sharing the string's buffer is a planned
+/// optimisation (see A7 docs/ARRAY_STRING_VIEW_DESIGN.md).
 ///
 /// Example :
 ///   `sum: u32 = u32(0)`
 ///   `for b in "vader".bytes() { sum = sum + u32(b) }`
 ///
 /// @param s  source string.
-/// @return   a `StringBytes` iterator over its UTF-8 bytes.
-export bytes :: fn(s: string) -> StringBytes {
-    return StringBytes { .s = s, .cursor = usize(0), .length = s.byte_len() }
+/// @return   a fresh `u8[]` holding the UTF-8 bytes of `s`.
+export bytes :: fn(s: string) -> u8[] {
+    n :: s.byte_len()
+    out: u8[] = []
+    i: usize = 0
+    for i < n {
+        out.push(s.byte_at(i))
+        i = i + 1
+    }
+    return out
 }
 
 /// Iterator yielding Unicode codepoints — one per UTF-8 sequence,
