@@ -120,13 +120,13 @@ export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: Em
     }
 
     // Pass 3 — bytecode peephole. Mirrors `src/bytecode/peephole.ts`
-    // (rules 1, 3, 4, 5). Gated by `opts.optimize` ; CLI exposes
-    // `--no-bytecode-opt` to skip. Rule 2 (cmp-inverse), Rule 6
-    // (single-use const-prop) and Rule 8 (arith fold) remain on the
-    // TODO — they require more invasive slot bookkeeping.
+    // (rules 1, 3, 4, 5, 6). Gated by `opts.optimize` ; CLI exposes
+    // `--no-bytecode-opt` to skip. Rule 2 (cmp-inverse) and Rule 8
+    // (arith fold) remain on the TODO.
     if opts.optimize {
         for i in 0..<ctx.functions.len() {
             run_bc_peephole(ctx.functions[i])
+            propagate_const_single_use(ctx.functions[i])
             drop_dead_stores(ctx.functions[i])
         }
     }
@@ -227,6 +227,141 @@ take_prefix :: fn(items: Op[], sp: usize) -> Op[] {
         i += usize(1)
     }
     return out
+}
+
+/// Rule 6 — propagate a constant op through a single-use primitive local.
+///
+/// Detects:                      Becomes:
+///   <T>.const K                   <ops between>          // const + set both gone
+///   local.set N                   <T>.const K            // pushed at the get site
+///   <ops between>                 <T>.const K
+///   local.get N
+///
+/// Conditions :
+///   - Slot N is a non-param local (params can't be eliminated).
+///   - Slot N has exactly 1 `local.set`, 1 `local.get`, 0 `local.tee`.
+///   - The op immediately preceding the `local.set N` is a const op
+///     whose val type matches the slot's val type.
+///   - The set's IP is strictly before the get's IP.
+///
+/// After this pass the slot has 0 reads and 0 writes ; `drop_dead_stores`
+/// collects it. Mirrors `propagateConstSingleUse` in `src/bytecode/peephole.ts`.
+///
+/// The numeric-narrowing case (TS `canNumericConvert`) — emitting a
+/// `<from>.to_<slot>` convert at the get site when the const's type
+/// differs from the slot's — is not yet ported. Most CFG-emit cases use
+/// matching types, so the MVP covers the common path.
+export propagate_const_single_use :: fn(function: BcFunction) -> void {
+    param_count :: function.signature.params.len()
+    total_slots :: param_count + function.locals.len()
+    if total_slots <= param_count { return }
+
+    // Per-slot stats : how many sets / gets / tees ; index of the (only)
+    // set + (only) get when there's exactly one of each.
+    set_count: i32[] = []
+    get_count: i32[] = []
+    tee_count: i32[] = []
+    set_idx:   i32[] = []
+    get_idx:   i32[] = []
+    s := usize(0)
+    for s < total_slots {
+        set_count.push(0)
+        get_count.push(0)
+        tee_count.push(0)
+        set_idx.push(-1)
+        get_idx.push(-1)
+        s = s + 1
+    }
+    body :: function.body
+    i := usize(0)
+    n :: body.len()
+    for i < n {
+        op :: body[i]
+        if op is LocalSet as ls {
+            slot :: usize(ls.slot)
+            set_count[slot] += 1
+            set_idx[slot] = i32(i)
+        }
+        if op is LocalTee as lt { tee_count[usize(lt.slot)] += 1 }
+        if op is LocalGet as lg {
+            slot :: usize(lg.slot)
+            get_count[slot] += 1
+            get_idx[slot] = i32(i)
+        }
+        i = i + 1
+    }
+
+    // Decide which (set_pc, get_pc) pairs to rewrite.
+    to_delete_set: MutableMap(i32, bool) = MutableMap(i32, bool) { .buckets = [], .size = 0 }
+    replace_with: MutableMap(i32, Op) = MutableMap(i32, Op) { .buckets = [], .size = 0 }
+    k := param_count
+    for k < total_slots {
+        valid := true
+        if tee_count[k] != 0 { valid = false }
+        if set_count[k] != 1 { valid = false }
+        if get_count[k] != 1 { valid = false }
+        si: i32 = -1
+        gi: i32 = -1
+        if valid {
+            si = set_idx[k]
+            gi = get_idx[k]
+            if si <= 0 { valid = false }
+            if gi <= si { valid = false }
+        }
+        if valid {
+            const_op :: body[usize(si - 1)]
+            cv :: const_op_of(const_op)
+            if cv is null {
+                valid = false
+            } else {
+                slot_val :: function.locals[k - param_count].val
+                if const_val_type(cv) != slot_val {
+                    valid = false
+                } else {
+                    to_delete_set[si - 1] = true
+                    to_delete_set[si]     = true
+                    replace_with[gi] = const_op
+                }
+            }
+        }
+        k = k + 1
+    }
+
+    if to_delete_set.size == usize(0) { return }
+
+    // Rewrite the body : skip deleted indices, replace `local.get` sites.
+    new_body: Op[] = []
+    new_debug: (DebugPos | null)[] = []
+    j := usize(0)
+    for j < n {
+        if to_delete_set[i32(j)] is bool {
+            j = j + 1
+            continue
+        }
+        repl :: replace_with[i32(j)]
+        if repl is null {
+            new_body.push(body[j])
+            new_debug.push(function.debug[j])
+        } else {
+            new_body.push(repl)
+            new_debug.push(function.debug[j])
+        }
+        j = j + 1
+    }
+    function.body = new_body
+    function.debug = new_debug
+}
+
+/// ValType for a `ConstOp` carrier — used by `propagate_const_single_use`
+/// to gate the slot-type match before substituting.
+const_val_type :: fn(c: ConstOp) -> ValType = match c {
+    is I32Const    -> ValType.I32
+    is I64Const    -> ValType.I64
+    is F64Const    -> ValType.F64
+    is BoolConst   -> ValType.Bool
+    is CharConst   -> ValType.Char
+    is StringConst -> ValType.String
+    is NullConst   -> ValType.Null
 }
 
 /// Rule 5 — eliminate locals whose only references are writes. After

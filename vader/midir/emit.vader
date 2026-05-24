@@ -39,7 +39,7 @@ import "vader/vm" {
     DataConst, TypeConst, TypeCheck, RefCast, Convert,
     MakeClosure,
 }
-import "vader/bytecode" { intern_cell_type, run_bc_peephole, drop_dead_stores }
+import "vader/bytecode" { intern_cell_type, run_bc_peephole, propagate_const_single_use, drop_dead_stores }
 import "vader/resolver/symbol" { Symbol }
 
 // ============================================================================
@@ -162,6 +162,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         i := usize(0)
         for i < ctx.functions.len() {
             run_bc_peephole(ctx.functions[i])
+            propagate_const_single_use(ctx.functions[i])
             drop_dead_stores(ctx.functions[i])
             i = i + 1
         }
