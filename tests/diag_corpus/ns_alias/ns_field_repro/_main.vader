@@ -1,0 +1,10 @@
+module "snippet"
+
+import "std/io" { println }
+op :: import "vader/vm"
+
+main :: fn() -> i32 {
+    p :: op.PrimitiveType { .kind = "i32" }
+    println(p.kind)
+    return 0
+}

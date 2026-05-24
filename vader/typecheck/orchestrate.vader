@@ -118,6 +118,21 @@ export check_project_with_bodies :: fn(
 
     // Phase B : declare every decl (fn signatures, struct types, etc.).
     declare_module(entry_loaded.module.files[0].program.decls, entry_rm, entry_typed, project.factory, diags)
+    // Multi-file modules : walk sibling files (1..n) for struct + trait
+    // + enum decls so `module.struct_decls[sym.id]` and
+    // `module.struct_field_types[sym.id]` are populated. Required for
+    // namespace-alias struct literals (`alias.Type { .f = … }`) and
+    // cross-module field lookups when the struct lives in a non-first
+    // file of a multi-file module (e.g. `vader/vm/op.vader::PrimitiveType`
+    // — `builder.vader` sorts first alphabetically). FnDecls are NOT
+    // replayed because `decl_types` is span-keyed and two fns at the
+    // same (line, col) in different files would collide (corrupting
+    // the file[0] entry). Fn cross-file requires re-keying decl_types
+    // by Symbol.id ; tracked separately.
+    for i in usize(1)..<entry_loaded.module.files.len() {
+        declare_extra_file_type_decls(entry_loaded.module.files[i].program.decls,
+            entry_rm, entry_typed, project.factory, diags)
+    }
     for id in project.modules.keys() {
         if id == project.entry { continue }
         other :: project.modules[id]
@@ -125,7 +140,13 @@ export check_project_with_bodies :: fn(
         other_typed :: per_module[id]
         match other_typed {
             is null -> {}
-            _ -> { declare_module(other.module.files[0].program.decls, other_typed.resolved, other_typed, project.factory, diags) }
+            _ -> {
+                declare_module(other.module.files[0].program.decls, other_typed.resolved, other_typed, project.factory, diags)
+                for i in usize(1)..<other.module.files.len() {
+                    declare_extra_file_type_decls(other.module.files[i].program.decls,
+                        other_typed.resolved, other_typed, project.factory, diags)
+                }
+            }
         }
     }
 

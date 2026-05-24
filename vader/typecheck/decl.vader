@@ -47,6 +47,63 @@ export declare_module :: fn(
     }
 }
 
+/// Variant for sibling files (1..n) of a multi-file module. Writes
+/// only the Symbol.id-keyed side-tables (`struct_decls`,
+/// `struct_field_types`, `trait_decls`, `trait_decl_owners`, plus
+/// `resolved.alias_types` for type aliases) so namespace-alias
+/// struct literals (`alias.Type { .f = … }`) and cross-module field
+/// lookups can resolve types declared in non-first files. Bypasses
+/// `declare_decl` because the usual path also writes
+/// `decl_types[span_key(name_span)]`, which collides across files at
+/// the same `(line, col)` and would corrupt `files[0]`'s entries.
+///
+/// **Partial : field types resolve only against `files[0]`'s
+/// `resolved.idents`.** A field whose declared type is a sibling-
+/// file ident (e.g. `Convert.target: ConvertTarget` where
+/// `ConvertTarget` lives in the same sibling file) lands as
+/// `TY_UNRESOLVED` because the resolver's body-walk doesn't visit
+/// sibling files. Primitives (`string`, `i32`, …) work via
+/// `primitive_from_name`. Tracked alongside the `decl_types`
+/// Symbol.id-keying refactor.
+///
+/// FnDecls / ConstDecls / EnumDecls are NOT handled here (they would
+/// write to `decl_types`, with the collision risk above).
+export declare_extra_file_type_decls :: fn(
+    program_decls: AST.Decl[], resolved: ResolvedModule,
+    typed: TypedProgram, _factory: SymbolFactory, diags: Diagnostic[],
+) -> void {
+    by_name :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    for s in resolved.symbols { by_name[s.name] = s }
+    for decl in program_decls {
+        match decl {
+            is AST.StructDecl as sd -> {
+                sym :: by_name[sd.name]
+                if sym is Symbol {
+                    typed.struct_decls[sym.id] = sd
+                    fields_map :: MutableMap(string, Type) { .buckets = [], .size = 0 }
+                    for f in sd.fields {
+                        fields_map[f.name] = type_from_expr(f.ty, resolved, diags)
+                    }
+                    typed.struct_field_types[sym.id] = fields_map
+                }
+            }
+            is AST.TraitDecl as td -> {
+                sym :: by_name[td.name]
+                if sym is Symbol {
+                    typed.trait_decls[sym.id] = td
+                    typed.trait_decl_owners[sym.id] = resolved
+                }
+            }
+            // TypeAlias writes to `resolved.alias_types[s.id]` (id-keyed),
+            // so cross-file replay is safe and gives namespace-alias use
+            // sites access to the alias expansion.
+            is AST.TypeAliasDecl as ta -> { declare_type_alias(ta, resolved, typed, diags) }
+            _ -> {}
+        }
+        register_deprecated(decl, by_name, resolved)
+    }
+}
+
 register_deprecated :: fn(
     decl: AST.Decl, by_name: MutableMap(string, Symbol), resolved: ResolvedModule,
 ) -> void {
