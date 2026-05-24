@@ -990,20 +990,16 @@ first_param_targets_name :: fn(ctx: FnLowerCtx, sym: Symbol, recv_name: string) 
         match program {
             is null -> {}
             is EvaluatedProgram as ep -> {
-                defined_at :: sym.defined_at
-                if defined_at is null { continue }
-                if defined_at is Span as def_span {
-                    fn_ty :: ep.typed.decl_types[span_key(def_span)]
-                    match fn_ty {
-                        is null -> {}
-                        is FnType as ft -> {
-                            if ft.params.len() == usize(0) { return false }
-                            first :: ft.params[0]
-                            if first is TypeParamType { return true }
-                            return type_surface_name(first) == recv_name
-                        }
-                        _ -> {}
+                fn_ty :: ep.typed.decl_types[sym.id]
+                match fn_ty {
+                    is null -> {}
+                    is FnType as ft -> {
+                        if ft.params.len() == usize(0) { return false }
+                        first :: ft.params[0]
+                        if first is TypeParamType { return true }
+                        return type_surface_name(first) == recv_name
                     }
+                    _ -> {}
                 }
             }
         }
@@ -1541,15 +1537,10 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
         is EnumType -> { return type }
         is StructType as st -> {
             if i32(st.symbol.kind) != i32(KindForEnum.Enum) { return type }
-            match st.symbol.defined_at {
-                is null -> { return type }
-                is Span as defined -> {
-                    real :: ctx.typed.decl_types[span_key(defined)]
-                    match real {
-                        is EnumType -> { return real }
-                        _ -> { return type }
-                    }
-                }
+            real :: ctx.typed.decl_types[st.symbol.id]
+            match real {
+                is EnumType -> { return real }
+                _ -> { return type }
             }
         }
         _ -> { return type }

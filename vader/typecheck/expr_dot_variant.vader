@@ -67,13 +67,10 @@ lift_enum_placeholder :: fn(t: Type, typed: TypedProgram) -> Type {
     match t {
         is StructType as st -> {
             if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return t }
-            sp :: st.symbol.defined_at
-            if !(sp is null) {
-                real :: typed.decl_types[span_key(sp)]
-                match real {
-                    is EnumType -> { return real }
-                    _ -> {}
-                }
+            real :: typed.decl_types[st.symbol.id]
+            match real {
+                is EnumType -> { return real }
+                _ -> {}
             }
             ext :: typed.external_types[st.symbol.id]
             match ext {

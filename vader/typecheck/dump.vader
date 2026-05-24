@@ -169,9 +169,7 @@ ast_decl_kind :: fn(s: Symbol) -> string = match s.kind {
 }
 
 lookup_decl_type :: fn(typed: TypedProgram, s: Symbol) -> string {
-    sp :: s.defined_at
-    if sp is null { return "?" }
-    ty :: typed.decl_types[span_key(sp)]
+    ty :: typed.decl_types[s.id]
     if ty is null { return "?" }
     return display_type(ty)
 }

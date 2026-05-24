@@ -136,12 +136,45 @@ export check_fn_body :: fn(
 }
 
 patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) -> void {
-    sp :: fn_decl.name_span
-    cur :: typed.decl_types[span_key(sp)]
-    match cur {
-        is FnType as ft -> { typed.decl_types[span_key(sp)] = mk_fn(ft.params, ret) }
-        _ -> {}
+    sym :: lookup_decl_symbol_stmt(typed.resolved, fn_decl)
+    match sym {
+        is Symbol as s -> {
+            cur :: typed.decl_types[s.id]
+            match cur {
+                is FnType as ft -> { typed.decl_types[s.id] = mk_fn(ft.params, ret) }
+                _ -> {}
+            }
+        }
+        is null -> {
+            // Impl method — patch the span-keyed table.
+            sp_key :: span_key(fn_decl.name_span)
+            cur :: typed.impl_method_decl_types[sp_key]
+            match cur {
+                is FnType as ft -> { typed.impl_method_decl_types[sp_key] = mk_fn(ft.params, ret) }
+                _ -> {}
+            }
+        }
     }
+}
+
+lookup_decl_symbol_stmt :: fn(resolved: ResolvedModule, fd: AST.FnDecl) -> Symbol | null {
+    // Match by span to support overloaded fns.
+    bucket :: resolved.fn_overloads[fd.name]
+    match bucket {
+        is null -> {}
+        _ -> {
+            for s in bucket {
+                sp :: s.defined_at
+                if sp is null { continue }
+                if sp.start.line == fd.name_span.start.line &&
+                   sp.start.column == fd.name_span.start.column {
+                    return s
+                }
+            }
+        }
+    }
+    for s in resolved.symbols { if s.name == fd.name { return s } }
+    return null
 }
 
 contains_unresolved :: fn(t: Type) -> bool {
@@ -538,7 +571,11 @@ for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
 
 
 lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
-    decl_ty :: typed.decl_types[span_key(fn_decl.name_span)]
+    sym :: lookup_decl_symbol_stmt(typed.resolved, fn_decl)
+    decl_ty :: match sym {
+        is Symbol as s -> typed.decl_types[s.id]
+        is null        -> typed.impl_method_decl_types[span_key(fn_decl.name_span)]
+    }
     if decl_ty is null { return TY_UNRESOLVED }
     match decl_ty {
         is FnType as f -> { return f.return_type }

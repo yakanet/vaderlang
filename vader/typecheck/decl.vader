@@ -65,41 +65,18 @@ export declare_module :: fn(
 /// sibling files. Primitives (`string`, `i32`, …) work via
 /// `primitive_from_name`. Tracked alongside the `decl_types`
 /// Symbol.id-keying refactor.
-///
-/// FnDecls / ConstDecls / EnumDecls are NOT handled here (they would
-/// write to `decl_types`, with the collision risk above).
 export declare_extra_file_type_decls :: fn(
     program_decls: AST.Decl[], resolved: ResolvedModule,
-    typed: TypedProgram, _factory: SymbolFactory, diags: Diagnostic[],
+    typed: TypedProgram, factory: SymbolFactory, diags: Diagnostic[],
 ) -> void {
     by_name :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
     for s in resolved.symbols { by_name[s.name] = s }
     for decl in program_decls {
-        match decl {
-            is AST.StructDecl as sd -> {
-                sym :: by_name[sd.name]
-                if sym is Symbol {
-                    typed.struct_decls[sym.id] = sd
-                    fields_map :: MutableMap(string, Type) { .buckets = [], .size = 0 }
-                    for f in sd.fields {
-                        fields_map[f.name] = type_from_expr(f.ty, resolved, diags)
-                    }
-                    typed.struct_field_types[sym.id] = fields_map
-                }
-            }
-            is AST.TraitDecl as td -> {
-                sym :: by_name[td.name]
-                if sym is Symbol {
-                    typed.trait_decls[sym.id] = td
-                    typed.trait_decl_owners[sym.id] = resolved
-                }
-            }
-            // TypeAlias writes to `resolved.alias_types[s.id]` (id-keyed),
-            // so cross-file replay is safe and gives namespace-alias use
-            // sites access to the alias expansion.
-            is AST.TypeAliasDecl as ta -> { declare_type_alias(ta, resolved, typed, diags) }
-            _ -> {}
-        }
+        // Now that `decl_types` is Symbol.id-keyed (and impl methods
+        // live in a separate span-keyed table), we can safely replay
+        // every decl kind for sibling files — no cross-file
+        // collisions on Symbol.id.
+        declare_decl(decl, by_name, resolved, typed, factory, diags)
         register_deprecated(decl, by_name, resolved)
     }
 }
@@ -220,7 +197,7 @@ declare_named_with_args :: fn(
         tp_sym :: factory.make(.TypeParam, tp.name, module_path, .Private, tp.span)
         args.push(mk_type_param(tp_sym))
     }
-    typed.decl_types[span_key(name_span)] = mk(sym, args)
+    typed.decl_types[sym.id] = mk(sym, args)
 }
 
 // ---- per-decl declarers ---------------------------------------------------
@@ -234,17 +211,38 @@ declare_fn :: fn(
         params.push(declare_fn_param(p, resolved, typed, diags))
     }
     return_type :: declare_fn_return(decl, resolved, diags)
-    typed.decl_types[span_key(decl.name_span)] = mk_fn(params, return_type)
-    // Index the FnDecl by its Symbol id so call sites can recover the
-    // declared `type_params` (with bounds) for T3006 enforcement.
-    // Resolved.idents only carries usage-site bindings ; the fn-decl's
-    // own Symbol lives in `by_name` (built from `resolved.symbols`).
-    sym :: by_name[decl.name]
+    // For overloaded fns, `by_name[fn_name]` returns only ONE symbol.
+    // Match by span so each overload gets its own decl_types entry.
+    sym :: lookup_fn_symbol_by_span(decl, resolved, by_name)
     match sym {
         is null -> {}
-        is Symbol as s -> { typed.fn_decls[s.id] = decl }
+        is Symbol as s -> {
+            typed.decl_types[s.id] = mk_fn(params, return_type)
+            typed.fn_decls[s.id] = decl
+        }
     }
     if decl.name == "main" { check_main_signature(decl, params, return_type, diags) }
+}
+
+lookup_fn_symbol_by_span :: fn(
+    decl: AST.FnDecl, resolved: ResolvedModule,
+    by_name: MutableMap(string, Symbol),
+) -> Symbol | null {
+    bucket :: resolved.fn_overloads[decl.name]
+    match bucket {
+        is null -> {}
+        _ -> {
+            for s in bucket {
+                sp :: s.defined_at
+                if sp is null { continue }
+                if sp.start.line == decl.name_span.start.line &&
+                   sp.start.column == decl.name_span.start.column {
+                    return s
+                }
+            }
+        }
+    }
+    return by_name[decl.name]
 }
 
 // `main` must return i32 and either take no params or a single
@@ -322,7 +320,7 @@ declare_enum :: fn(
     indices :: resolve_enum_indices(decl, repr, diags)
     match sym {
         is null -> {}
-        is Symbol as s -> { typed.decl_types[span_key(decl.name_span)] = mk_enum(s, repr, indices) }
+        is Symbol as s -> { typed.decl_types[s.id] = mk_enum(s, repr, indices) }
     }
 }
 
@@ -330,11 +328,11 @@ declare_type_alias :: fn(
     decl: AST.TypeAliasDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     aliased :: type_from_expr(decl.aliased, resolved, diags)
-    typed.decl_types[span_key(decl.name_span)] = aliased
-    // Index by alias symbol id so `type_from_expr` can expand
-    // `Maybe(i32)` to `i32 | null` at use sites.
+    // Index by alias symbol id ; `decl_types` and `alias_types` share
+    // the key so use sites get the expanded union.
     for s in resolved.symbols {
         if s.name == decl.name {
+            typed.decl_types[s.id] = aliased
             resolved.alias_types[s.id] = aliased
             resolved.alias_decls[s.id] = decl
         }
@@ -346,24 +344,24 @@ import "vader/parser" { TypeAliasDecl }
 declare_const :: fn(
     decl: AST.ConstDecl, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
+    sym :: lookup_sym_by_name(resolved, decl.name)
+    if sym is null { return }
     annotation :: decl.ty
     match annotation {
         is null -> {
-            // Un-annotated const : may be an implicit type-alias
-            // (`Foo :: i32 | u32`). Detect now so use sites in fn
-            // signatures resolve before bodies run.
             if is_type_position_value(decl.value, resolved) {
                 alias_ty :: type_from_expr(decl.value, resolved, diags)
-                for s in resolved.symbols {
-                    if s.name == decl.name {
-                        resolved.alias_types[s.id] = alias_ty
-                    }
-                }
-                typed.decl_types[span_key(decl.name_span)] = TY_TYPE
+                resolved.alias_types[sym.id] = alias_ty
+                typed.decl_types[sym.id] = TY_TYPE
             }
         }
-        _ -> { typed.decl_types[span_key(decl.name_span)] = type_from_expr(annotation, resolved, diags) }
+        _ -> { typed.decl_types[sym.id] = type_from_expr(annotation, resolved, diags) }
     }
+}
+
+lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
+    for s in resolved.symbols { if s.name == name { return s } }
+    return null
 }
 
 is_type_position_value :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
@@ -437,9 +435,7 @@ declared_type :: fn(src: string, name: string) -> string {
     declare_module(parsed.program.decls, rm, typed, factory, diags)
     for s in rm.symbols {
         if s.name != name { continue }
-        sp :: s.defined_at
-        if sp is null { return "<no span>" }
-        ty :: typed.decl_types[span_key(sp)]
+        ty :: typed.decl_types[s.id]
         if ty is null { return "<missing>" }
         return display_type(ty)
     }

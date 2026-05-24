@@ -77,13 +77,19 @@ export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sy
     _          -> TY_UNRESOLVED
 }
 
-/// Look `sym`'s span up in `table`. Returns `TY_UNRESOLVED` for builtin
-/// symbols (no source span) and for misses — both already errored
-/// upstream or sit in another side-table.
+/// Look `sym`'s span up in a span-keyed table (`param_types` /
+/// `local_types`). Returns `TY_UNRESOLVED` for builtin symbols and misses.
 lookup_in :: fn(sym: Symbol, table: MutableMap(i64, Type)) -> Type {
     sp :: sym.defined_at
     if sp is null { return TY_UNRESOLVED }
     ty :: table[span_key(sp)]
+    if ty is null { return TY_UNRESOLVED }
+    return ty
+}
+
+/// `decl_types` is keyed by `Symbol.id`. Used by `lookup_decl`.
+lookup_decl_in :: fn(sym: Symbol, table: MutableMap(i32, Type)) -> Type {
+    ty :: table[sym.id]
     if ty is null { return TY_UNRESOLVED }
     return ty
 }
@@ -101,7 +107,7 @@ lookup_decl :: fn(sym: Symbol, typed: TypedProgram) -> Type {
         if ext is null { return TY_UNRESOLVED }
         return ext
     }
-    local :: lookup_in(sym, typed.decl_types)
+    local :: lookup_decl_in(sym, typed.decl_types)
     match local {
         is UnresolvedType -> {
             ext :: typed.external_types[sym.id]

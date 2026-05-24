@@ -95,29 +95,46 @@ export type_expr_type :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
     return apply_or_unresolved(self, self.typed.type_expr_types[span_key(type_expr.span)])
 }
 
-/// Per-fn-decl type. Uses `name_span` as the key (matches how
-/// `decl_types` is populated by the typechecker).
-/// @param self  the entry-types view.
-/// @param decl  the fn decl.
-/// @return      the resolved type.
+/// Per-fn-decl type. `decl_types` is Symbol.id-keyed, so we resolve
+/// the matching symbol from `resolved.symbols` first. Overloaded fns
+/// share a name ; match by span via `fn_overloads`.
 export fn_decl_type :: fn(self: EntryTypes, decl: FnDecl) -> Type {
-    return apply_or_unresolved(self, self.typed.decl_types[span_key(decl.name_span)])
+    return fn_decl_type_by_span(self, decl.name, decl.name_span)
 }
 
-/// Per-struct-decl type.
-/// @param self  the entry-types view.
-/// @param decl  the struct decl.
-/// @return      the resolved type.
 export struct_decl_type :: fn(self: EntryTypes, decl: StructDecl) -> Type {
-    return apply_or_unresolved(self, self.typed.decl_types[span_key(decl.name_span)])
+    return decl_type_by_name(self, decl.name)
 }
 
-/// Per-const-decl type.
-/// @param self  the entry-types view.
-/// @param decl  the const decl.
-/// @return      the resolved type.
 export const_decl_type :: fn(self: EntryTypes, decl: ConstDecl) -> Type {
-    return apply_or_unresolved(self, self.typed.decl_types[span_key(decl.name_span)])
+    return decl_type_by_name(self, decl.name)
+}
+
+decl_type_by_name :: fn(self: EntryTypes, name: string) -> Type {
+    for s in self.typed.resolved.symbols {
+        if s.name == name {
+            return apply_or_unresolved(self, self.typed.decl_types[s.id])
+        }
+    }
+    return apply_or_unresolved(self, null)
+}
+
+fn_decl_type_by_span :: fn(self: EntryTypes, name: string, name_span: Span) -> Type {
+    bucket :: self.typed.resolved.fn_overloads[name]
+    match bucket {
+        is null -> {}
+        _ -> {
+            for s in bucket {
+                sp :: s.defined_at
+                if sp is null { continue }
+                if sp.start.line == name_span.start.line &&
+                   sp.start.column == name_span.start.column {
+                    return apply_or_unresolved(self, self.typed.decl_types[s.id])
+                }
+            }
+        }
+    }
+    return decl_type_by_name(self, name)
 }
 
 /// Span-key mirror of `vader/resolver/scope::span_key`. Vader has no

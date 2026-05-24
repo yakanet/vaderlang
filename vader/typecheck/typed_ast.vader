@@ -38,9 +38,21 @@ export TypedProgram :: struct {
     local_types: MutableMap(i64, Type)
 
     /// Type of every top-level decl (FnDecl, StructDecl, ConstDecl…).
-    /// Keyed by the decl's `name_span` via `span_key`. `ImplDecl` and
-    /// `AssertDecl` don't introduce a name and are absent here.
-    decl_types: MutableMap(i64, Type)
+    /// Keyed by `Symbol.id`. Previously span-keyed via
+    /// `span_key(decl.name_span)` but that collided across files in
+    /// multi-file modules (two decls at same `(line, col)` would
+    /// clobber each other). Symbol.id is globally unique within a
+    /// `LoadedProject`.
+    decl_types: MutableMap(i32, Type)
+
+    /// Impl-method types, keyed by the method's `name_span` via
+    /// `span_key`. Impl methods don't have a resolver `Symbol` —
+    /// they live as members of an `ImplDecl` block, not as
+    /// top-level names — so they can't share the `Symbol.id`
+    /// keying used by `decl_types`. Per-file uniqueness is enough
+    /// because an `impl` block lives in one file ; cross-file
+    /// collisions don't apply.
+    impl_method_decl_types: MutableMap(i64, Type)
 
     /// Type of every fn / lambda parameter, keyed by `FnParam.span`
     /// via `span_key`.
@@ -210,7 +222,8 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .resolved        = resolved,
         .expr_types      = MutableMap(usize, Type) { .buckets = [], .size = 0 },
         .local_types     = MutableMap(i64, Type) { .buckets = [], .size = 0 },
-        .decl_types      = MutableMap(i64, Type) { .buckets = [], .size = 0 },
+        .decl_types      = MutableMap(i32, Type) { .buckets = [], .size = 0 },
+        .impl_method_decl_types = MutableMap(i64, Type) { .buckets = [], .size = 0 },
         .param_types     = MutableMap(i64, Type) { .buckets = [], .size = 0 },
         .type_expr_types = MutableMap(i64, Type) { .buckets = [], .size = 0 },
         .struct_decls    = MutableMap(i32, StructDecl) { .buckets = [], .size = 0 },

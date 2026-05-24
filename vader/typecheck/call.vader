@@ -66,9 +66,7 @@ collect_overload_candidates :: fn(name: string, typed: TypedProgram) -> FnType[]
         is null -> {}
         _ -> {
             for sym in bucket {
-                sp :: sym.defined_at
-                if sp is null { continue }
-                ft :: typed.decl_types[span_key(sp)]
+                ft :: typed.decl_types[sym.id]
                 if ft is null { continue }
                 match ft { is FnType as f -> { out.push(f) } _ -> {} }
             }

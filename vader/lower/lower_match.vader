@@ -290,15 +290,10 @@ unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
         is EnumType -> { return target_type }
         is StructType as st -> {
             if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return target_type }
-            match st.symbol.defined_at {
-                is null -> { return target_type }
-                is Span as defined -> {
-                    real :: ctx.typed.decl_types[span_key(defined)]
-                    match real {
-                        is EnumType -> { return real }
-                        _ -> { return target_type }
-                    }
-                }
+            real :: ctx.typed.decl_types[st.symbol.id]
+            match real {
+                is EnumType -> { return real }
+                _ -> { return target_type }
             }
         }
         _ -> { return target_type }

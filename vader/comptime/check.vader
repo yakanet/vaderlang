@@ -97,6 +97,23 @@ harvest_instances :: fn(typed: TypedProject) -> GenericInstance[] {
                 _       -> { observe(registry, t) }
             }
         }
+        // Impl-method types live in `impl_methods` (mangled-name keyed)
+        // and `impl_method_decl_types` (span-keyed), not `decl_types`
+        // (Symbol.id-keyed — impl methods aren't in `resolved.symbols`).
+        for impl_key in module_typed.impl_methods.keys() {
+            t :: module_typed.impl_methods[impl_key]
+            match t {
+                is null -> {}
+                _       -> { observe(registry, t) }
+            }
+        }
+        for impl_span_key in module_typed.impl_method_decl_types.keys() {
+            t :: module_typed.impl_method_decl_types[impl_span_key]
+            match t {
+                is null -> {}
+                _       -> { observe(registry, t) }
+            }
+        }
     }
     return sorted_instances(registry)
 }
