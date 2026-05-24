@@ -213,21 +213,17 @@ lower_module :: fn(
     project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredModule {
     out_decls: LoweredDecl[] = []
-    // First pass : every regular decl in source order. Mirrors
-    // `src/lower/lower.ts:64-70` — the TS host appends synth decls
-    // (lambda-lifted fns + their env structs) ONLY after the regular
-    // decls of the originating module have been processed.
+    // First pass : every regular decl in source order. Impl members
+    // surface as a multi-decl list right after their ImplDecl so the
+    // dump's per-struct grouping matches TS source-order.
     synth_start :: project_ctx.synth_decls.len()
     for decl in decls {
-        result :: lower_decl(decl, typed, project_ctx, diags, decls)
-        match result {
-            is null -> {}
-            _       -> { out_decls.push(result) }
-        }
+        results :: lower_decl_list(decl, typed, project_ctx, diags, decls)
+        for r in results { out_decls.push(r) }
     }
     // Second pass : drain the lambda-lift synth decls accumulated while
-    // walking this module's bodies, in synth order. Matches the TS
-    // distribution loop at `lower.ts:74-78`.
+    // walking this module's bodies (lambdas / defers route through
+    // `synth_decls`). Matches TS `lower.ts:74-78`.
     synth_end :: project_ctx.synth_decls.len()
     for i in synth_start..<synth_end {
         out_decls.push(project_ctx.synth_decls[i])
@@ -237,6 +233,23 @@ lower_module :: fn(
         .display_path = display_path,
         .decls        = out_decls,
     }
+}
+
+/// Per-decl dispatcher returning every LoweredDecl this source decl
+/// expands to. Most decls yield 0 or 1 ; ImplDecl yields one entry
+/// per member so impl methods land inline (right after the impl) in
+/// the dump.
+lower_decl_list :: fn(
+    decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+    diags: Diagnostic[], module_decls: Decl[],
+) -> LoweredDecl[] {
+    if decl is ImplDecl as impl_decl {
+        return lower_impl_member_list(impl_decl, typed, project_ctx, diags, module_decls)
+    }
+    out: LoweredDecl[] = []
+    result :: lower_decl(decl, typed, project_ctx, diags, module_decls)
+    if !(result is null) { out.push(result) }
+    return out
 }
 
 // Per-decl dispatcher. Routes FnDecl / StructDecl / ConstDecl through
@@ -272,16 +285,28 @@ lower_impl_members :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
     module_decls: Decl[],
 ) -> void {
-    // Skip generic impls entirely — they need the mono pass to bind
-    // concrete type args before each member can lower with a known
-    // substitution. Two generic shapes :
-    //   - bounded form : `[T] Wrap[T] implements …` carries explicit
-    //     `type_params` on the impl decl.
-    //   - legacy form : `Wrap[T] implements …` (no impl-level
-    //     `type_params`) — the for-type is a `GenericInstExpr` whose
-    //     args reference the struct's typeParams.
-    if impl_decl.type_params.len() > usize(0) { return }
-    if impl_decl.for_type is GenericInstExpr { return }
+    // Back-compat shape : keep the void-returning entry but route
+    // through the inline emit + push results to `synth_decls` so any
+    // caller still relying on the old "drains at module end" path
+    // keeps working. Modern call sites prefer `lower_impl_member_list`.
+    members :: lower_impl_member_list(impl_decl, typed, project_ctx, diags, module_decls)
+    for m in members { project_ctx.synth_decls.push(m) }
+}
+
+/// Return the lowered fn-decl for each member of `impl_decl`, in
+/// source order. Yielding the list (instead of pushing to
+/// `project_ctx.synth_decls`) lets the caller interleave the members
+/// right after the impl's source position — matching TS's per-mono
+/// drain that emits each member individually.
+lower_impl_member_list :: fn(
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+    module_decls: Decl[],
+) -> LoweredDecl[] {
+    out: LoweredDecl[] = []
+    // Skip generic impls entirely — the mono pass binds them via a
+    // separate path.
+    if impl_decl.type_params.len() > usize(0) { return out }
+    if impl_decl.for_type is GenericInstExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
     base_mangle :: "${mangle_module_id(typed.resolved.display_path)}$${impl_decl.trait_name}"
     for member in impl_decl.members {
@@ -293,7 +318,7 @@ lower_impl_members :: fn(
         mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
         entry :: synth_impl_entry(member, typed, mangled)
         body :: lower_fn_body(member, typed, project_ctx, entry, subst, return_type)
-        project_ctx.synth_decls.push(LoweredFnDecl {
+        out.push(LoweredFnDecl {
             .mangled     = mangled,
             .params      = params,
             .return_type = return_type,
@@ -301,6 +326,7 @@ lower_impl_members :: fn(
             .origin      = entry,
         })
     }
+    return out
 }
 
 build_impl_member_params :: fn(
@@ -621,10 +647,15 @@ lookup_const_symbol :: fn(const_decl: ConstDecl, typed: TypedProgram) -> Symbol 
 // upstream — cascading diagnostics already surfaced).
 return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
     decl_type :: types.fn_decl_type(fn_decl)
-    match decl_type {
-        is FnType as ft -> { return ft.return_type }
-        _ -> { return TY_VOID }
-    }
+    if decl_type is FnType as ft { return ft.return_type }
+    // Impl members aren't in `decl_types` (Symbol.id-keyed for
+    // top-level decls). They live in `impl_method_decl_types`
+    // keyed by name_span via `span_key` — consult that as a
+    // fallback so impl-member return types stop falling through
+    // to TY_VOID.
+    impl_type :: types.typed.impl_method_decl_types[span_key(fn_decl.name_span)]
+    if impl_type is FnType as ft { return ft.return_type }
+    return TY_VOID
 }
 
 // Build a stub `MonoEntry` for a decl. `mangled` follows the TS
