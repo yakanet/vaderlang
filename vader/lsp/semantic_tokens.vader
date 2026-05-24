@@ -16,7 +16,7 @@
 
 module "vader/lsp"
 
-import "std/string" { byte_len, byte_at, slice }
+import "std/string" { byte_len, byte_at, byte_decode_at, slice }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
@@ -288,7 +288,7 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
     // 0 = start of the comment which begins with `///` (3 bytes). For
     // simplicity we use byte offset as column — ASCII-safe.
     for i < n {
-        c :: text[i]
+        c :: text.byte_decode_at(i)
         if c != '@' {
             i = i + 1
             continue
@@ -318,7 +318,7 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
             // Skip whitespace then capture an identifier.
             j: usize = i
             for j < n {
-                bb :: text[j]
+                bb :: text.byte_decode_at(j)
                 if is_ascii_space(bb) { j = j + 1 } else { break }
             }
             name_end :: scan_ident_end(text, j)
@@ -340,7 +340,7 @@ scan_ident_end :: fn(s: string, start: usize) -> usize {
     n :: s.byte_len()
     j := start
     for j < n {
-        if !is_ident_char(s[j]) { break }
+        if !is_ident_char(s.byte_decode_at(j)) { break }
         j = j + 1
     }
     return j

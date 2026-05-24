@@ -210,16 +210,30 @@ export function stdStringBindings(): Record<string, HostFn> {
       if (i < 0 || i >= bytes.length) return num("u8", 0);
       return num("u8", bytes[i]!);
     },
-    // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core,
-    // so the host provides the body under the impl-method mangled name.
-    // A7 P3 NOTE : we WILL flip this to codepoint indexing once the
-    // self-host audit (Phase 5) lands ; today it stays byte-indexed
-    // because the lexer / parser / VM-port use `s[i]` with byte intent.
-    "std_core$string$Index$at": (args) => {
+    // Decode the UTF-8 codepoint at byte offset `i`. Mirrors C
+    // `vader_string_char_at`. Lets parsers keep a byte cursor while
+    // comparing against ASCII char literals.
+    std_string$byte_decode_at: (args) => {
       const bytes = UTF8_ENC.encode(stringArg(args, 0));
       const i = indexArg(args, 1);
       if (i < 0 || i >= bytes.length) return ch(0);
       return ch(UTF8_DEC.decode(bytes.subarray(i, i + 4)).codePointAt(0) ?? 0);
+    },
+    // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core,
+    // so the host provides the body under the impl-method mangled name.
+    // Indexes by codepoint ; for byte access use `byte_at` / `byte_decode_at`.
+    "std_core$string$Index$at": (args) => {
+      const s = stringArg(args, 0);
+      const i = indexArg(args, 1);
+      // JS strings index by UTF-16 code units, so walk via `for...of`
+      // which yields codepoints. The TS VM is the reference impl ; the
+      // native runtime traps on OOB instead of returning 0.
+      let cp = 0;
+      for (const c of s) {
+        if (cp === i) return ch(c.codePointAt(0) ?? 0);
+        cp++;
+      }
+      return ch(0);
     },
     std_string$split: (args) => {
       const s = stringArg(args, 0);

@@ -48,6 +48,15 @@ export ends_with :: fn(s: string, suffix: string) -> bool
 /// `chars()`.
 export byte_at :: fn(s: string, i: usize) -> u8
 
+/// Decode the UTF-8 codepoint at byte offset `i`. The byte boundary
+/// matters : a continuation byte at `i` decodes as `U+FFFD` ; a
+/// truncated multi-byte sequence decodes as `U+0000`. The counterpart
+/// to `s[i]` (which indexes by codepoint) ; use this when you maintain
+/// a byte cursor (lexers, JSON parsers, LSP transport) and need the
+/// decoded character to compare against ASCII literals.
+/// @param i  byte offset. Traps if `i >= s.byte_len()`.
+export byte_decode_at :: fn(s: string, i: usize) -> char
+
 /// Iterator yielding raw bytes - the UTF-8 byte sequence as-is. Use for
 /// ASCII data, binary protocols carried in strings, or when computing a
 /// byte-level digest. For codepoint iteration use `chars()` instead.
@@ -96,8 +105,8 @@ StringChars implements Iterator(char) {
         if (self.cursor >= self.length) {
             return null
         }
-        c :: self.s[self.cursor]
-        self.cursor = self.cursor + codepoint_byte_len(c)
+        [c, width] :: self.s.decode_codepoint(self.cursor)
+        self.cursor = self.cursor + width
         return Yield(char) { .value = c }
     }
 }
@@ -153,7 +162,7 @@ string implements Contains[string] {
 /// @param i  byte offset of a UTF-8 leading byte.
 /// @return   `[codepoint, byte_length]`.
 export decode_codepoint :: fn(s: string, i: usize) -> [char, usize] {
-    c :: s[i]
+    c :: s.byte_decode_at(i)
     return [c, codepoint_byte_len(c)]
 }
 

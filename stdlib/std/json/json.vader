@@ -10,7 +10,7 @@
 
 module "std/json"
 
-import "std/string" { byte_at, byte_len, slice, parse_float, pad_start, is_digit, is_white_char, chars }
+import "std/string" { byte_at, byte_decode_at, byte_len, slice, parse_float, pad_start, is_digit, is_white_char, chars }
 import "std/iter" { zip }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
 import "std/collections" { MutableMap, len, keys, values }
@@ -77,7 +77,7 @@ peek_byte :: fn(p: Parser) -> char {
     if p.pos >= p.eof {
         return '\0'
     }
-    return p.src[p.pos]
+    return p.src.byte_decode_at(p.pos)
 }
 
 advance :: fn(p: Parser) -> void {
@@ -114,8 +114,9 @@ match_keyword :: fn(p: Parser, kw: string) -> bool {
     if p.pos + n > p.eof {
         return false
     }
+    // Byte-level keyword match (JSON keywords `true`/`false`/`null` are ASCII).
     for i in 0..<n {
-        if p.src[p.pos + i] != kw[i] {
+        if p.src.byte_at(p.pos + i) != kw.byte_at(i) {
             return false
         }
     }
@@ -299,7 +300,7 @@ parse_string_with_escapes :: fn(p: Parser, sb: StringBuilder) -> string | JsonEr
                 cp := 0
                 k: usize = 0
                 for k < 4 {
-                    d := hex_digit_value(p.src[p.pos + k])
+                    d := hex_digit_value(p.src.byte_decode_at(p.pos + k))
                     if d < 0 {
                         return fail(p, "invalid hex digit in \\u escape")
                     }

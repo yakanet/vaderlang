@@ -164,6 +164,15 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if i is Trap { return i }
         return HostOk { .value = I32Val { .value = i32(s.value.byte_at(usize(i.value))) } }
     }
+    if info.mangled == r"std_string$byte_decode_at" {
+        s :: read_string(stack[arg_base    ], at_pc, "byte_decode_at receiver")
+        i :: read_i32   (stack[arg_base + 1], at_pc, "byte_decode_at index")
+        if s is Trap { return s }
+        if i is Trap { return i }
+        // Decode the UTF-8 codepoint that starts at byte offset `i`.
+        [cp, _w] :: s.value.decode_codepoint(usize(i.value))
+        return HostOk { .value = CharVal { .value = cp } }
+    }
     if info.mangled == r"std_string$index_of" {
         s    :: read_string(stack[arg_base    ], at_pc, "index_of receiver")
         c    :: read_char  (stack[arg_base + 1], at_pc, "index_of char")
@@ -200,9 +209,21 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         i :: read_i32   (stack[arg_base + 1], at_pc, "string[] index")
         if s is Trap { return s }
         if i is Trap { return i }
+        // Walk UTF-8 until the `i`-th codepoint, then decode it. OOB
+        // returns U+0000 — the Vader VM mirrors the TS host bridge ;
+        // the native runtime traps instead.
         s_str :: s.value
-        [cp, width] :: s_str.decode_codepoint(usize(i.value))
-        return HostOk { .value = CharVal { .value = cp } }
+        target :: usize(i.value)
+        cursor: usize = 0
+        seen:   usize = 0
+        n :: s_str.byte_len()
+        for cursor < n {
+            [cp, width] :: s_str.decode_codepoint(cursor)
+            if seen == target { return HostOk { .value = CharVal { .value = cp } } }
+            cursor = cursor + width
+            seen   = seen + 1
+        }
+        return HostOk { .value = CharVal { .value = char(u32(0)) } }
     }
     if info.mangled == r"std_string$last_index_of" {
         s         :: read_string(stack[arg_base    ], at_pc, "last_index_of receiver")

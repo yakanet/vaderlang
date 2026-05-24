@@ -32,9 +32,9 @@ string 17 "'é' width="
 string 18 "'你' width="
 string 19 "emoji width="
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
-import 1 at std_core$string$Index$at (string,usize) -> char
-import 2 println std_io$println (string) -> void
-import 3 byte_len std_string$byte_len (string) -> usize
+import 1 println std_io$println (string) -> void
+import 2 byte_len std_string$byte_len (string) -> usize
+import 3 byte_decode_at std_string$byte_decode_at (string,usize) -> char
 impl 8 Iterator
 impl 11 Display
 
@@ -64,7 +64,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   intrinsic builder.append_str
   string.const 1
-  call.import 3
+  call.import 2
   call 7
   local.set 1
   local.get 0
@@ -72,7 +72,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 9
+  call 8
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -89,7 +89,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   intrinsic builder.append_str
   string.const 4
-  call.import 3
+  call.import 2
   call 7
   local.set 1
   local.get 0
@@ -97,7 +97,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 9
+  call 8
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -114,7 +114,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   intrinsic builder.append_str
   string.const 6
-  call.import 3
+  call.import 2
   call 7
   local.set 1
   local.get 0
@@ -122,7 +122,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 9
+  call 8
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -139,7 +139,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   intrinsic builder.append_str
   string.const 8
-  call.import 3
+  call.import 2
   call 7
   local.set 1
   local.get 0
@@ -147,7 +147,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 9
+  call 8
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -164,7 +164,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   intrinsic builder.append_str
   string.const 10
-  call.import 3
+  call.import 2
   call 7
   local.set 1
   local.get 0
@@ -172,10 +172,10 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 9
+  call 8
   string.const 11
   local.tee 1
-  call.import 3
+  call.import 2
   local.set 2
   i64.const 0
   local.set 3
@@ -226,7 +226,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_str
         local.get 0
         intrinsic builder.finish
-        call 9
+        call 8
         local.get 3
         local.get 6
         usize.add
@@ -250,7 +250,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 9
+  call 8
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -265,7 +265,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 9
+  call 8
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -280,7 +280,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 9
+  call 8
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -295,7 +295,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 9
+  call 8
   return.lit i32.const 0
 end
 
@@ -303,6 +303,7 @@ fn 1 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 string
+  local __tup_0 ref
   local c char
   local.field 0 8 1
   ref.cast 3
@@ -324,22 +325,23 @@ fn 1 std_string$StringChars$Iterator$next (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  call 8
+  call 4
   local.set 4
-  local.field 0 8 1
+  local.field 4 10 0
+  ref.cast 4
+  local.set 5
+  local.field 4 10 1
   ref.cast 3
   local.set 1
-  local.get 4
-  call 6
-  local.set 2
+  local.field 0 8 1
+  ref.cast 3
   local.get 1
-  local.get 2
   usize.add
   local.set 1
   local.get 0
   local.get 1
   struct.set 8 1
-  local.get 4
+  local.get 5
   struct.new 5
   return
 end
@@ -388,7 +390,7 @@ end
 fn 3 std_string$chars (string) -> ref
   local $call_3 usize
   local.get 0
-  call.import 3
+  call.import 2
   local.set 1
   local.get 0
   i64.const 0
@@ -403,7 +405,7 @@ fn 4 std_string$decode_codepoint (string,usize) -> ref
   local $call_4 usize
   local.get 0
   local.get 1
-  call 8
+  call.import 3
   local.tee 2
   call 6
   local.set 3
@@ -455,15 +457,8 @@ fn 7 std_core$usize$Display$to_string$vt (usize) -> string
   return
 end
 
-fn 8 std_core$string$Index$at$vt (string,usize) -> char
+fn 8 std_io$println$vt (string) -> void
   local.get 0
-  local.get 1
   call.import 1
-  return
-end
-
-fn 9 std_io$println$vt (string) -> void
-  local.get 0
-  call.import 2
   return
 end

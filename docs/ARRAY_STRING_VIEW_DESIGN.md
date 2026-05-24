@@ -191,10 +191,10 @@ remain.)
 Out-of-bounds : if `cp_lo > codepoint_count(s)`, clamp ; same for
 `cp_hi`. Mid-buffer codepoint scan is O(n).
 
-### Phase 3 — Strings: `s[i]` codepoint shift (1 h)
+### Phase 3 — Strings: `s[i]` codepoint shift (LANDED, ~1 h)
 
-Change the `string implements Index(usize, char)` intrinsic so `s[i]`
-interprets `i` as a codepoint index :
+`string implements Index(usize, char)` flipped so `s[i]` interprets `i`
+as a codepoint index :
 
 ```c
 vader_char_t vader_string_codepoint_at(vader_string_t s, size_t cp_index) {
@@ -204,11 +204,15 @@ vader_char_t vader_string_codepoint_at(vader_string_t s, size_t cp_index) {
 }
 ```
 
-(Already landed in `runtime/c/vader_runtime.c::vader_string_codepoint_at`
-alongside Phase 1 ; the host intrinsic dispatch swap is what remains.)
+Host dispatch swap landed in :
+- C emit : `src/c_emit/emit.ts` (`std_core$string$Index$at -> vader_string_codepoint_at`)
+- TS VM bridge : `src/vm/host.ts` (`for...of` codepoint walk)
+- Vader VM host : `vader/vm/host.vader` (UTF-8 walk via `decode_codepoint`)
 
-Existing `byte_at(i: usize) -> u8` stays unchanged and serves the
-byte-offset use case.
+For byte-cursor sites, the new export `byte_decode_at(s, i) -> char`
+decodes the UTF-8 codepoint at byte offset `i` (declared `@intrinsic` in
+`stdlib/std/string/string.vader`, backed by `vader_string_char_at`).
+Existing `byte_at(i: usize) -> u8` stays unchanged.
 
 ### Phase 4 — Stdlib: `bytes()` returns `u8[]`, drop `slice()` (1-2 h)
 
@@ -222,20 +226,23 @@ In `stdlib/std/string/string.vader` :
 `StringChars` (codepoint iterator) stays — useful for explicit codepoint
 walks without materializing all positions.
 
-### Phase 5 — Migration audit (3-5 h)
+### Phase 5 — Migration audit (LANDED, ~3 h — `s[i]` byte-intent portion)
 
-Sites to flip :
+`s[i]` byte-intent audit complete (14 sites + 2 missed-then-found in
+review) — all flipped to `s.byte_decode_at(i)` where the cursor is a
+byte offset and the value is needed as `char`, or to `s.byte_at(i)`
+where the comparison is against a raw byte (lexer BOM check, JSON
+ASCII keyword match) :
 
-- **131 `.slice()` callers** — each one needs either :
-  - `s[lo..<hi]` if intent is codepoint
-  - `s.bytes()[lo..<hi]` if intent is byte (returns u8[], not string)
-  - If the caller needs a `string` from byte range, route through `s.bytes()[lo..<hi]` then a fresh string construction (TBD — see Open question 1 below).
+- `stdlib/std/string/string.vader` — `StringChars.next`, `decode_codepoint`
+- `stdlib/std/json/json.vader` — `peek_byte`, `match_keyword`, hex escape
+- `vader/lexer/lexer.vader` — `peek`, `peek_at`, unicode escape decoder, BOM check
+- `vader/lsp/transport.vader` — `trim_ascii`
+- `vader/lsp/semantic_tokens.vader` — `scan_ident_end`, `collect_doc_line_tokens`, `@param` skip loop
 
-- **Audit `s[i]` byte-intent sites** — the `s[i]` semantic shift to codepoint is silent (signature unchanged). Manual review of the self-host lexer (`vader/lexer/lexer.vader`), parser, and any code that does byte-level walks. Recommended pattern : if the intent is byte, refactor to `s.bytes()[i]` ; if the intent is codepoint, leave as-is.
+`.slice()` callers (131 sites) and `s.bytes()` semantics remain Phase 4.
 
-- Existing `s.byte_at(i)` (158 sites) is already byte-intent ; no change.
-
-The test suite is the canonical safety net : every snippet that exercised `s.slice()` or `s[i]` byte-intent will fail until migrated.
+The test suite was the canonical safety net : every snippet that exercised `s[i]` byte-intent failed loudly until migrated, then the bytecode snapshots reflected the new dispatch.
 
 ### Phase 6 — Self-host port (Vader VM) (1-2 h)
 

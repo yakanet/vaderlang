@@ -591,6 +591,11 @@ vader_box_t    vader_string_parse_int(vader_string_t s, uint32_t ok_tag, uint32_
 vader_box_t    vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag);
 vader_char_t   vader_string_char_at(vader_string_t s, size_t i);
 vader_u8_t     vader_string_byte_at(vader_string_t s, size_t i);
+/* Codepoint-indexed counterparts. `vader_string_codepoint_at` traps
+ * on OOB ; `vader_string_slice_codepoints` clamps. Both walk UTF-8
+ * from the start (O(n) in the target index). */
+vader_char_t   vader_string_codepoint_at(vader_string_t s, size_t cp_index);
+vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, size_t cp_hi);
 vader_u64_t    vader_string_hash(vader_string_t s);
 vader_string_t vader_string_concat_all(vader_array_t* parts);
 vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,

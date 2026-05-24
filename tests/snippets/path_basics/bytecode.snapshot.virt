@@ -63,7 +63,8 @@ import 2 byte_len std_string$byte_len (string) -> usize
 import 3 slice std_string$slice (string,usize,usize) -> string
 import 4 starts_with std_string$starts_with (string,string) -> bool
 import 5 ends_with std_string$ends_with (string,string) -> bool
-import 6 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+import 6 byte_decode_at std_string$byte_decode_at (string,usize) -> char
+import 7 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 11 Display
 
 fn 0 snippet$show_path (string,ref) -> void
@@ -1122,7 +1123,7 @@ fn 16 std_string$decode_codepoint (string,usize) -> ref
   local $call_4 usize
   local.get 0
   local.get 1
-  call 21
+  call.import 6
   local.tee 2
   call 20
   local.set 3
@@ -1254,6 +1255,6 @@ end
 
 fn 23 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
   local.get 0
-  call.import 6
+  call.import 7
   return
 end

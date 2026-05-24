@@ -15,7 +15,7 @@
 
 module "vader/lexer"
 
-import "std/string" { byte_at, byte_len, is_empty, slice, parse_float, is_alpha, is_alnum, is_digit }
+import "std/string" { byte_at, byte_decode_at, byte_len, is_empty, slice, parse_float, is_alpha, is_alnum, is_digit }
 import "std/utf8" { codepoint_byte_len }
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
@@ -142,7 +142,7 @@ peek :: fn(l: Lexer) -> char {
     if l.pos >= l.src.byte_len() {
         return '\0'
     }
-    return l.src[l.pos]
+    return l.src.byte_decode_at(l.pos)
 }
 
 peek_at :: fn(l: Lexer, n: usize) -> char {
@@ -150,7 +150,7 @@ peek_at :: fn(l: Lexer, n: usize) -> char {
     if p >= l.src.byte_len() {
         return '\0'
     }
-    return l.src[p]
+    return l.src.byte_decode_at(p)
 }
 
 position_here :: fn(l: Lexer) =
@@ -506,7 +506,7 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
     }
     cp: u32 = u32(0)
     for i in 0..<hex_len {
-        d :: hex_digit_value(l.src[hex_start + i])
+        d :: hex_digit_value(l.src.byte_decode_at(hex_start + i))
         cp = cp * u32(16) + u32(d)
     }
     if cp > u32(0x10FFFF) {
@@ -990,9 +990,9 @@ export tokenize :: fn(source: string, file: string) -> Lexer {
     l := new_lexer(source, file)
     // UTF-8 BOM (EF BB BF) — if present, must be the very first thing.
     if l.src.byte_len() >= 3 &&
-        l.src[0] == char(u32(0xEF)) &&
-        l.src[1] == char(u32(0xBB)) &&
-        l.src[2] == char(u32(0xBF)) {
+        l.src.byte_at(0) == u8(0xEF) &&
+        l.src.byte_at(1) == u8(0xBB) &&
+        l.src.byte_at(2) == u8(0xBF) {
         l.advance(3)
     }
     // Shebang: only allowed on line 1 and silently dropped.

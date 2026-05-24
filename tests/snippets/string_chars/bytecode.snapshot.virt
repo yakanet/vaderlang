@@ -9,8 +9,9 @@ type 6 primitive void
 type 7 array 2
 type 8 struct std_string$StringChars { s:2,cursor:3,length:3 }
 type 9 union 0,5
-type 10 struct std_string_builder$StringBuilder { parts:7 }
-type 11 union 5,0
+type 10 struct __Tuple_25 { _0:4,_1:3 }
+type 11 struct std_string_builder$StringBuilder { parts:7 }
+type 12 union 5,0
 string 0 "-- ascii --"
 string 1 "vader"
 string 2 "-- multibyte --"
@@ -23,11 +24,11 @@ string 8 ""
 string 9 "never"
 string 10 "done"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
-import 1 at std_core$string$Index$at (string,usize) -> char
-import 2 println std_io$println (string) -> void
-import 3 byte_len std_string$byte_len (string) -> usize
+import 1 println std_io$println (string) -> void
+import 2 byte_len std_string$byte_len (string) -> usize
+import 3 byte_decode_at std_string$byte_decode_at (string,usize) -> char
 impl 8 Iterator
-impl 10 Display
+impl 11 Display
 
 fn 0 snippet$main () -> i32
   local __iter_0 ref
@@ -124,8 +125,8 @@ fn 0 snippet$main () -> i32
   string.const 6
   intrinsic builder.append_str
   string.const 4
-  call.import 3
-  call 4
+  call.import 2
+  call 5
   local.set 5
   local.get 3
   local.get 5
@@ -160,6 +161,7 @@ fn 1 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 string
+  local __tup_0 ref
   local c char
   local.field 0 8 1
   ref.cast 3
@@ -181,22 +183,23 @@ fn 1 std_string$StringChars$Iterator$next (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  call 5
+  call 3
   local.set 4
-  local.field 0 8 1
+  local.field 4 10 0
+  ref.cast 4
+  local.set 5
+  local.field 4 10 1
   ref.cast 3
   local.set 1
-  local.get 4
-  call 3
-  local.set 2
+  local.field 0 8 1
+  ref.cast 3
   local.get 1
-  local.get 2
   usize.add
   local.set 1
   local.get 0
   local.get 1
   struct.set 8 1
-  local.get 4
+  local.get 5
   struct.new 5
   return
 end
@@ -204,7 +207,7 @@ end
 fn 2 std_string$chars (string) -> ref
   local $call_3 usize
   local.get 0
-  call.import 3
+  call.import 2
   local.set 1
   local.get 0
   i64.const 0
@@ -214,7 +217,22 @@ fn 2 std_string$chars (string) -> ref
   return
 end
 
-fn 3 std_utf8$codepoint_byte_len (char) -> usize
+fn 3 std_string$decode_codepoint (string,usize) -> ref
+  local c char
+  local $call_4 usize
+  local.get 0
+  local.get 1
+  call.import 3
+  local.tee 2
+  call 4
+  local.set 3
+  local.get 2
+  local.get 3
+  struct.new 10
+  return
+end
+
+fn 4 std_utf8$codepoint_byte_len (char) -> usize
   local cp u32
   local.get 0
   char.to_u32
@@ -243,21 +261,14 @@ fn 3 std_utf8$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 4 std_core$usize$Display$to_string$vt (usize) -> string
+fn 5 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 5 std_core$string$Index$at$vt (string,usize) -> char
-  local.get 0
-  local.get 1
-  call.import 1
-  return
-end
-
 fn 6 std_io$println$vt (string) -> void
   local.get 0
-  call.import 2
+  call.import 1
   return
 end

@@ -519,7 +519,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator[char]`) ; pair with `for c in s.chars()` for a true Unicode loop.
 - `bytes()` returns an iterator of `u8` (`StringBytes implements Iterator[u8]`) ; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). Strings are deliberately **not** `Iterable` — there's no canonical "default" between bytes and codepoints, so `for x in s` is a compile error and the caller picks `s.bytes()` or `s.chars()` explicitly.
 - `is_empty()` — sugar for `byte_len() == 0` (codepoint count and byte count agree on emptiness).
-- **Subscript** `s[i]` returns the Unicode codepoint at *byte* offset `i` (via `string implements Index[usize, char]` in `std/core`). Indexing into the middle of a multi-byte codepoint returns garbage — for codepoint-safe iteration use `chars()`. There is no `IndexSet` impl ; strings are immutable.
+- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index[usize, char]` in `std/core`). Walking from the start is O(i) ; pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, `byte_at(i) -> u8` returns the raw byte and `byte_decode_at(i) -> char` decodes the UTF-8 codepoint starting at byte offset `i` (used by lexers, JSON parsers, LSP transport). There is no `IndexSet` impl ; strings are immutable.
 - Literals stored in the binary's data section.
 
 ### Arrays

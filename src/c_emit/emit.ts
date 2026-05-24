@@ -788,17 +788,15 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_string$trim":        return `${head} { return vader_string_trim(a0); }`;
     case "std_string$to_upper":    return `${head} { return vader_string_to_upper(a0); }`;
     case "std_string$to_lower":    return `${head} { return vader_string_to_lower(a0); }`;
-    // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core,
-    // so the host provides the body under the impl-method mangled name.
-    // A7 P3 NOTE : we WILL flip this to `vader_string_codepoint_at` once
-    // the self-host stdlib + `vader/` audit lands (Phase 5 of the design
-    // doc). Today it stays byte-indexed because the lexer / parser /
-    // VM-port heavily use `s[i]` with byte intent. Runtime helper
-    // already in place, just not wired here.
+    // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core ;
+    // the host provides the body under the impl-method mangled name.
+    // Indexes by codepoint ; for byte access use `byte_at` / `byte_decode_at`.
     case "std_core$string$Index$at":
-      return `${head} { return vader_string_char_at(a0, a1); }`;
+      return `${head} { return vader_string_codepoint_at(a0, a1); }`;
     case "std_string$byte_at":
       return `${head} { return vader_string_byte_at(a0, a1); }`;
+    case "std_string$byte_decode_at":
+      return `${head} { return vader_string_char_at(a0, a1); }`;
     case "std_string$split": {
       const strIdx = ctx.stringTagIndex;
       if (strIdx < 0) return `${head} { vader_trap("split: no string type"); }`;
