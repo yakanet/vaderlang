@@ -30,7 +30,7 @@ is_free_numeric :: fn(t: Type) -> bool {
 /// Walk `param_type` against `arg_type` and record any TypeParam
 /// binding into `out`. First binding wins (matches TS semantics).
 export unify_type_param :: fn(
-    param_type: Type, arg_type: Type, out: MutableMap(i32, Type),
+    param_type: Type, arg_type: Type, out: MutableMap<i32, Type>,
 ) -> void {
     match param_type {
         is TypeParamType as tp -> {
@@ -138,12 +138,12 @@ any_contains :: fn(ts: Type[]) -> bool {
     return false
 }
 
-unify_args :: fn(p_args: Type[], a_args: Type[], out: MutableMap(i32, Type)) -> void {
+unify_args :: fn(p_args: Type[], a_args: Type[], out: MutableMap<i32, Type>) -> void {
     n :: min(p_args.len(), a_args.len())
     for i in 0..<n { unify_type_param(p_args[i], a_args[i], out) }
 }
 
-unify_unions :: fn(pu: UnionType, au: UnionType, out: MutableMap(i32, Type)) -> void {
+unify_unions :: fn(pu: UnionType, au: UnionType, out: MutableMap<i32, Type>) -> void {
     // Pair off exact-equal variants first (`null`, concrete primitives),
     // then position-match the leftovers. The "concrete first" pass
     // prevents `T | null` from spuriously binding `T = null`.
@@ -178,7 +178,7 @@ import "vader/types" { mk_array, mk_tuple, mk_struct, mk_trait, mk_fn }
 /// this fn from the `Substitution`-arg version exported by
 /// `substitution.vader` — both share the same first-param type so the
 /// resolver's UFCS dispatch can't tell them apart in an overload set.
-export substitute_map :: fn(t: Type, subst: MutableMap(i32, Type)) -> Type {
+export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
     match t {
         is TypeParamType as tp -> {
             repl :: subst[tp.symbol.id]
@@ -197,7 +197,7 @@ export substitute_map :: fn(t: Type, subst: MutableMap(i32, Type)) -> Type {
     }
 }
 
-substitute_each_map :: fn(types: Type[], subst: MutableMap(i32, Type)) -> Type[] {
+substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[] {
     out: Type[] = []
     for t in types { out.push(substitute_map(t, subst)) }
     return out

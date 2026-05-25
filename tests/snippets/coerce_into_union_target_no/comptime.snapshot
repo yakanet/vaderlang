@@ -5,21 +5,21 @@
 ## tests/snippets/coerce_into_union_target_no
 
 ## generic instances
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  Into(Target)
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  Into<Target>
 
 # Diagnostics
 [16:5] error[T3001] type mismatch: expected i32 | string, got Foo

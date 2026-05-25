@@ -11,19 +11,19 @@ module "snippet"
 
 import "std/io" { println }
 
-walk :: fn(it: Iterator(i32)) -> i32 {
+walk :: fn(it: Iterator<i32>) -> i32 {
     sum := 0
     cont := true
     for cont {
         match it.next() {
             is null -> { cont = false }
-            is Yield(i32) as y -> { sum = sum + y.value }
+            is Yield<i32> as y -> { sum = sum + y.value }
         }
     }
     return sum
 }
 
-make_iter :: fn() -> Iterator(i32) {
+make_iter :: fn() -> Iterator<i32> {
     arr := [100, 200, 300]
     return arr   // Array → Iterator return coercion
 }
@@ -33,8 +33,8 @@ main :: fn() -> i32 {
     a := walk([10, 20, 30])
 
     // Let coercion — both binding forms : `:` (immutable) and `=` (mutable).
-    typed_iter_mut: Iterator(i32) = [1, 2, 3, 4]
-    typed_iter_immut: Iterator(i32) : [5, 6, 7]
+    typed_iter_mut: Iterator<i32> = [1, 2, 3, 4]
+    typed_iter_immut: Iterator<i32> : [5, 6, 7]
     b := walk(typed_iter_mut) + walk(typed_iter_immut)
 
     // Return coercion: make_iter wraps its inner array on the way out.

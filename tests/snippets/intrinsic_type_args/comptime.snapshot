@@ -7,20 +7,20 @@
 ## tests/snippets/intrinsic_type_args
 
 ## generic instances
-  Into(Target)
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Pair(string, i64)
-  Pair(K, V)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
+  Into<Target>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Pair<string, i64>
+  Pair<K, V>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

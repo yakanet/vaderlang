@@ -469,7 +469,7 @@ emit_fn_decl :: fn(self: Printer, d: p.FnDecl) -> void {
 
 emit_type_params :: fn(self: Printer, params: p.TypeParam[]) -> void {
     if params.len() == 0 { return }
-    self.write("[")
+    self.write("<")
     i: usize = 0
     for i < params.len() {
         if i > 0 { self.write(", ") }
@@ -478,7 +478,7 @@ emit_type_params :: fn(self: Printer, params: p.TypeParam[]) -> void {
         self.emit_type_expr_with_prefix(": ", tp.bound)
         i = i + 1
     }
-    self.write("]")
+    self.write(">")
 }
 
 emit_fn_params :: fn(self: Printer, params: p.FnParam[]) -> void {
@@ -697,11 +697,11 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
     self.emit_decorators(d.decorators, d.for_type.span.start.line)
     self.emit_type_expr(d.for_type)
     self.write(" implements")
-    // Bounded-generic typeParam list — `Foo[T] implements[T: Bound] Trait`.
-    // `[T]` always follows the keyword that opens its scope (here
-    // `implements`), mirroring `fn[T]` / `struct[T]` / `trait[T]`.
+    // Bounded-generic typeParam list — `Foo<T> implements<T: Bound> Trait`.
+    // The angle list always follows the keyword that opens its scope
+    // (here `implements`), mirroring `fn<T>` / `struct<T>` / `trait<T>`.
     if d.type_params.len() > 0 {
-        self.write("[")
+        self.write("<")
         i: usize = 0
         for i < d.type_params.len() {
             if i > 0 { self.write(", ") }
@@ -716,19 +716,19 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
             }
             i = i + 1
         }
-        self.write("]")
+        self.write(">")
     }
     self.write(" ")
     self.write(d.trait_name)
     if d.trait_args.len() > 0 {
-        self.write("[")
+        self.write("<")
         i: usize = 0
         for i < d.trait_args.len() {
             if i > 0 { self.write(", ") }
             self.emit_type_expr(d.trait_args[i])
             i = i + 1
         }
-        self.write("]")
+        self.write(">")
     }
     if d.members.len() == 0 {
         // `@intrinsic Type implements Trait` (no body) is a valid form
@@ -807,9 +807,10 @@ emit_type_alias :: fn(self: Printer, d: p.TypeAliasDecl) -> void {
     self.emit_decorators(d.decorators, d.name_span.start.line)
     self.emit_visibility(d.visibility)
     self.write(d.name)
-    self.write(" :: type")
+    // Generic type-aliases use the LHS-angle head : `Name<T> :: body`.
+    // Non-generic ones drop the angle list and read as a plain const.
     self.emit_type_params(d.type_params)
-    self.write(" ")
+    self.write(" :: ")
     self.emit_type_expr(d.aliased)
 }
 

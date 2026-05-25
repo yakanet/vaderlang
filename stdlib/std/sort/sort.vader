@@ -24,7 +24,7 @@ import "std/iter" { clone }
 ///                 come strictly before `b` in the result. Reflexivity
 ///                 (`compare(x, x) == false`) is required for stability.
 /// @return         a new array with the same elements in sorted order.
-export sort :: fn[T](arr: T[], compare: fn(T, T) -> bool) -> T[] {
+export sort :: fn<T>(arr: T[], compare: fn(T, T) -> bool) -> T[] {
     n :: arr.len()
     out :: arr.clone()
     if n < 2 { return out }
@@ -41,7 +41,7 @@ INSERTION_CUTOFF :: usize(16)
 // Recursive top-down merge sort over `arr[lo..hi)`. Below INSERTION_CUTOFF
 // we hand off to insertion_sort_range — the constant factor of merge sort
 // loses on tiny sub-arrays.
-merge_sort_range :: fn[T](arr: T[], buf: T[], lo: usize, hi: usize, compare: fn(T, T) -> bool) -> void {
+merge_sort_range :: fn<T>(arr: T[], buf: T[], lo: usize, hi: usize, compare: fn(T, T) -> bool) -> void {
     n :: hi - lo
     if n < 2 { return }
     if n <= INSERTION_CUTOFF {
@@ -82,7 +82,7 @@ merge_sort_range :: fn[T](arr: T[], buf: T[], lo: usize, hi: usize, compare: fn(
     }
 }
 
-insertion_sort_range :: fn[T](arr: T[], lo: usize, hi: usize, compare: fn(T, T) -> bool) -> void {
+insertion_sort_range :: fn<T>(arr: T[], lo: usize, hi: usize, compare: fn(T, T) -> bool) -> void {
     i := lo + 1
     for i < hi {
         x :: arr[i]

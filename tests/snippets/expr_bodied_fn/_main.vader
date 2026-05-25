@@ -16,7 +16,7 @@ export b :: fn(x: i32) = a(x) + 1
 export a :: fn(x: i32) = x * 10
 
 // Generic one-liner.
-export id :: fn[T](x: T) = x
+export id :: fn<T>(x: T) = x
 
 main :: fn() -> i32 {
     println("${square(7)}")

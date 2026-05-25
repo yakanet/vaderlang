@@ -58,7 +58,7 @@ fn snippet$main() -> i32
     %51 $k_62: i32
     %52 $k_63: bool
     %53 $k_64: i32
-    %54 __slice_r_10: Range(i32) (synthetic __slice_r_10)
+    %54 __slice_r_10: Range<i32> (synthetic __slice_r_10)
     %55 $field_68: i32
     %56 $cast_69: usize
     %57 $field_70: i32
@@ -195,7 +195,7 @@ fn snippet$main() -> i32
     %51 = const int(5) :i32
     %52 = const bool(false) :bool
     %53 = const int(2) :i32
-    %54 = struct_new[stack] Range(i32)(%50, %51, %52, %53)
+    %54 = struct_new[stack] Range<i32>(%50, %51, %52, %53)
     %55 = field_get %54.start :i32
     %56 = cast %55 :usize
     %57 = field_get %54.end :i32

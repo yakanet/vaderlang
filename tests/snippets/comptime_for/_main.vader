@@ -7,16 +7,16 @@ module "snippet"
 
 import "std/io" { println }
 
-Pair :: struct[K, V] {
+Pair :: struct<K, V> {
     key:   K
     value: V
 }
 
 main :: fn() -> i32 {
-    @comptime for t in @type_args(Pair(i32, string)) {
+    @comptime for t in @type_args(Pair<i32, string>) {
         println("type-arg size=${@size_of(t)}")
     }
-    @comptime for f in @fields(Pair(i32, string)) {
+    @comptime for f in @fields(Pair<i32, string>) {
         println("${f.name} size=${@size_of(f.type)}")
     }
     return 0

@@ -2,16 +2,16 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let a: Box(Box(i32)) =
-      call :Box(Box(i32))
+    let a: Box<Box<i32>> =
+      call :Box<Box<i32>>
         callee:
-          outer :Box(Box(i32))
+          outer :Box<Box<i32>>
         arg0:
           int(42) :i32
-    let b: Box(Box(string)) =
-      call :Box(Box(string))
+    let b: Box<Box<string>> =
+      call :Box<Box<string>>
         callee:
-          outer :Box(Box(string))
+          outer :Box<Box<string>>
         arg0:
           "ok" :string
     call :void
@@ -24,8 +24,8 @@
           @builder.append_display <for i32> :void
             __sb_0 :?
             .value :i32
-              .value :Box(i32)
-                a :Box(Box(i32))
+              .value :Box<i32>
+                a :Box<Box<i32>>
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -39,8 +39,8 @@
           @builder.append_display <for string> :void
             __sb_1 :?
             .value :string
-              .value :Box(string)
-                b :Box(Box(string))
+              .value :Box<string>
+                b :Box<Box<string>>
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -52,9 +52,9 @@
   struct snippet$Box__Box_string_ { value: Any }
   fn snippet$snippet$inner__Any(x: Any) -> Any
     return x :Any
-  fn snippet$snippet$middle__Any(x: Any) -> Box(Any)
+  fn snippet$snippet$middle__Any(x: Any) -> Box<Any>
     return
-      Box(Any) {
+      Box<Any> {
         value:
           call :Any
             callee:
@@ -62,13 +62,13 @@
             arg0:
               x :Any
       }
-  fn snippet$snippet$outer__i32(x: Any) -> Box(Box(Any))
+  fn snippet$snippet$outer__i32(x: Any) -> Box<Box<Any>>
     return
-      Box(Box(Any)) {
+      Box<Box<Any>> {
         value:
-          call :Box(Any)
+          call :Box<Any>
             callee:
-              middle :Box(Any)
+              middle :Box<Any>
             arg0:
               x :Any
       }

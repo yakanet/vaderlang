@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Countdown { remaining: i32 }
-  fn snippet$Countdown$Iterator$next(self: Countdown) -> null | Yield(i32)
+  fn snippet$Countdown$Iterator$next(self: Countdown) -> null | Yield<i32>
     if :void
       cond:
         lte :bool
@@ -28,23 +28,23 @@
           r:
             int(1) :i32
     return
-      Yield(i32) {
+      Yield<i32> {
         value: v :i32
       }
   fn snippet$Countdown$Iterator$is_empty(self: Countdown) -> bool
     ~>
       block :bool
-        let __scrut_0: null | Yield(i32) =
-          call :null | Yield(i32)
+        let __scrut_0: null | Yield<i32> =
+          call :null | Yield<i32>
             callee:
-              next :null | Yield(i32)
+              next :null | Yield<i32>
             arg0:
               self :Countdown
         ~>
           if :bool
             cond:
               is null :bool
-                __scrut_0 :null | Yield(i32)
+                __scrut_0 :null | Yield<i32>
             then:
               ~>
                 true
@@ -52,8 +52,8 @@
               ~>
                 if :bool
                   cond:
-                    is Yield(i32) :bool
-                      __scrut_0 :null | Yield(i32)
+                    is Yield<i32> :bool
+                      __scrut_0 :null | Yield<i32>
                   then:
                     ~>
                       false
@@ -66,17 +66,17 @@
     loop while (<…>)
       ~>
         block :void
-          let __scrut_0: null | Yield(i32) =
-            call :null | Yield(i32)
+          let __scrut_0: null | Yield<i32> =
+            call :null | Yield<i32>
               callee:
-                next :null | Yield(i32)
+                next :null | Yield<i32>
               arg0:
                 self :Countdown
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield(i32)
+                  __scrut_0 :null | Yield<i32>
               then:
                 ~>
                   block :void
@@ -89,8 +89,8 @@
                 ~>
                   if :void
                     cond:
-                      is Yield(i32) :bool
-                        __scrut_0 :null | Yield(i32)
+                      is Yield<i32> :bool
+                        __scrut_0 :null | Yield<i32>
                     then:
                       ~>
                         block :void
@@ -113,17 +113,17 @@
     loop while (<…>)
       ~>
         block :void
-          let __scrut_0: null | Yield(i32) =
-            call :null | Yield(i32)
+          let __scrut_0: null | Yield<i32> =
+            call :null | Yield<i32>
               callee:
-                next :null | Yield(i32)
+                next :null | Yield<i32>
               arg0:
                 self :Countdown
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield(i32)
+                  __scrut_0 :null | Yield<i32>
               then:
                 ~>
                   block :void
@@ -136,12 +136,12 @@
                 ~>
                   if :void
                     cond:
-                      is Yield(i32) :bool
-                        __scrut_0 :null | Yield(i32)
+                      is Yield<i32> :bool
+                        __scrut_0 :null | Yield<i32>
                     then:
-                      let y: Yield(i32) =
-                        cast → Yield(i32)
-                          __scrut_0 :null | Yield(i32)
+                      let y: Yield<i32> =
+                        cast → Yield<i32>
+                          __scrut_0 :null | Yield<i32>
                       ~>
                         block :void
                           assign
@@ -149,7 +149,7 @@
                               result :i32 | null
                             value:
                               .value :i32
-                                y :Yield(i32)
+                                y :Yield<i32>
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -163,7 +163,7 @@
           callee:
             count :usize
           arg0:
-            Range(i32) {
+            Range<i32> {
               start: int(0) :i32
               end: int(5) :i32
               inclusive: false
@@ -175,7 +175,7 @@
           callee:
             last :i32 | null
           arg0:
-            Range(i32) {
+            Range<i32> {
               start: int(10) :i32
               end: int(15) :i32
               inclusive: true
@@ -220,7 +220,7 @@
           callee:
             is_empty :bool
           arg0:
-            Range(i32) {
+            Range<i32> {
               start: int(0) :i32
               end: int(0) :i32
               inclusive: false
@@ -234,7 +234,7 @@
           callee:
             is_empty :bool
           arg0:
-            Range(i32) {
+            Range<i32> {
               start: int(0) :i32
               end: int(5) :i32
               inclusive: false

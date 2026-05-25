@@ -4,7 +4,7 @@
 
 module "snippet"
 
-export both_equal :: fn[T: Equals](a: T, b: T, c: T) -> i32 {
+export both_equal :: fn<T: Equals>(a: T, b: T, c: T) -> i32 {
     n := 0
     if a == b {
         n = n + 1

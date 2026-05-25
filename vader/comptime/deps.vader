@@ -55,18 +55,18 @@ Nodes :: struct {
     // `ConstDecl.id -> NodeRecord`. Insertion order tracked separately
     // because `MutableMap` iteration order is bucket-dependent and
     // we want stable topo output for snapshot determinism.
-    by_id:   MutableMap(usize, NodeRecord)
+    by_id:   MutableMap<usize, NodeRecord>
     order:   usize[]
     // `Symbol.id -> ConstDecl.id` reverse lookup so the walker can map
     // a resolved IdentExpr back to a participating decl in O(1).
-    by_symbol:  MutableMap(i32, usize)
+    by_symbol:  MutableMap<i32, usize>
 }
 
 collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
     nodes :: Nodes {
-        .by_id  = MutableMap(usize, NodeRecord) { .buckets = [], .size = 0 },
+        .by_id  = MutableMap<usize, NodeRecord> { .buckets = [], .size = 0 },
         .order  = [],
-        .by_symbol = MutableMap(i32, usize) { .buckets = [], .size = 0 },
+        .by_symbol = MutableMap<i32, usize> { .buckets = [], .size = 0 },
     }
     for decl in program_decls {
         match decl {
@@ -104,7 +104,7 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
     for id in nodes.order {
         record :: nodes.by_id[id]
         if record is null { continue }
-        deps_seen :: MutableMap(usize, bool) { .buckets = [], .size = 0 }
+        deps_seen :: MutableMap<usize, bool> { .buckets = [], .size = 0 }
         collect_expr_deps(record.decl.value, typed, nodes, deps_seen, record)
         nodes.by_id[id] = record
     }
@@ -131,8 +131,8 @@ lookup_const_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Symbol | 
 topo_sort :: fn(nodes: Nodes) -> ComptimeOrder {
     order: AST.ConstDecl[] = []
     diags: Diagnostic[] = []
-    color :: MutableMap(usize, i32) { .buckets = [], .size = 0 }
-    cyclic :: MutableMap(usize, bool) { .buckets = [], .size = 0 }
+    color :: MutableMap<usize, i32> { .buckets = [], .size = 0 }
+    cyclic :: MutableMap<usize, bool> { .buckets = [], .size = 0 }
     for id in nodes.order { color[id] = 0 }
     path: usize[] = []
     for id in nodes.order { visit(id, nodes, color, cyclic, path, usize(0), order, diags) }
@@ -144,8 +144,8 @@ topo_sort :: fn(nodes: Nodes) -> ComptimeOrder {
 // reused across siblings. Colour : 0 white, 1 grey, 2 black.
 visit :: fn(
     id: usize, nodes: Nodes,
-    color: MutableMap(usize, i32),
-    cyclic: MutableMap(usize, bool),
+    color: MutableMap<usize, i32>,
+    cyclic: MutableMap<usize, bool>,
     path: usize[], depth: usize,
     order: AST.ConstDecl[],
     diags: Diagnostic[],
@@ -174,7 +174,7 @@ visit :: fn(
 
 emit_cycle :: fn(
     id: usize, path: usize[], depth: usize, nodes: Nodes,
-    cyclic: MutableMap(usize, bool), diags: Diagnostic[],
+    cyclic: MutableMap<usize, bool>, diags: Diagnostic[],
 ) -> void {
     // `path[0..depth]` is the current DFS path. Find `id`'s first
     // occurrence in that prefix — every node from there onward is part
@@ -220,7 +220,7 @@ cycle_names :: fn(start: usize, depth: usize, path: usize[], id: usize, nodes: N
 // subtrees counts once).
 collect_expr_deps :: fn(
     e: AST.Expr, typed: TypedProgram, nodes: Nodes,
-    seen: MutableMap(usize, bool), record: NodeRecord,
+    seen: MutableMap<usize, bool>, record: NodeRecord,
 ) -> void {
     match e {
         is AST.IdentExpr as x -> {
@@ -291,7 +291,7 @@ collect_expr_deps :: fn(
 
 collect_block_deps :: fn(
     b: AST.BlockExpr, typed: TypedProgram, nodes: Nodes,
-    seen: MutableMap(usize, bool), record: NodeRecord,
+    seen: MutableMap<usize, bool>, record: NodeRecord,
 ) -> void {
     for s in b.stmts { collect_stmt_deps(s, typed, nodes, seen, record) }
     match b.trailing {
@@ -302,7 +302,7 @@ collect_block_deps :: fn(
 
 collect_stmt_deps :: fn(
     s: AST.Stmt, typed: TypedProgram, nodes: Nodes,
-    seen: MutableMap(usize, bool), record: NodeRecord,
+    seen: MutableMap<usize, bool>, record: NodeRecord,
 ) -> void {
     match s {
         is AST.LetStmt as x    -> { collect_expr_deps(x.value, typed, nodes, seen, record) }

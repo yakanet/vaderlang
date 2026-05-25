@@ -19,7 +19,7 @@ import "vader/types" {
 /// `self` rebinds `Self` to its concrete carrier inside an impl ;
 /// callers leave it `null` for non-impl entries.
 export Substitution :: struct {
-    type_params: MutableMap(i32, Type)
+    type_params: MutableMap<i32, Type>
     self_type:   Type | null
 }
 
@@ -28,7 +28,7 @@ export Substitution :: struct {
 /// @return  a fresh substitution with no type-param bindings.
 export new_substitution :: fn() -> Substitution {
     return Substitution {
-        .type_params = MutableMap(i32, Type) { .buckets = [], .size = 0 },
+        .type_params = MutableMap<i32, Type> { .buckets = [], .size = 0 },
         .self_type   = null,
     }
 }

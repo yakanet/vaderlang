@@ -10,38 +10,38 @@
 
 module "snippet"
 
-count :: fn[T](it: Iterator(T)) -> i32 {
+count :: fn<T>(it: Iterator<T>) -> i32 {
     n := 0
     cont := true
     for cont {
         match it.next() {
             is null -> { cont = false }
-            is Yield(T) -> { n = n + 1 }
+            is Yield<T> -> { n = n + 1 }
         }
     }
     return n
 }
 
-Greeter :: trait[T] {
+Greeter :: trait<T> {
     greet :: fn(self) -> T
 }
 Hello :: struct {}
-Hello implements Greeter(i32) {
+Hello implements Greeter<i32> {
     greet :: fn(self) -> i32 { return 100 }
 }
 
-Doubler :: trait[T] {
+Doubler :: trait<T> {
     doubled :: fn(self) -> T
 }
-i32 implements Doubler(i32) {
+i32 implements Doubler<i32> {
     doubled :: fn(self) -> i32 { return self + self }
 }
 
-invoke :: fn[T](g: Greeter(T)) -> T {
+invoke :: fn<T>(g: Greeter<T>) -> T {
     return g.greet()
 }
 
-twice :: fn[T](x: Doubler(T)) -> T {
+twice :: fn<T>(x: Doubler<T>) -> T {
     return x.doubled()
 }
 

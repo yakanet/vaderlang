@@ -23,74 +23,74 @@
 ## tests/snippets/std_cli_basic
 
 ## generic instances
-  Into(Target)
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(char)
-  Iterator(Entry(K, V))
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(char)
-  Yield(Entry(K, V))
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  Entry(i32, bool)
-  Entry(string, i32)
-  Entry(K, V)
-  Entry(K, V)
-  Entry(K, V)
-  Entry(K, V)
-  Entry(K, V)
-  Entry(K, V)
-  Entry(K, V)
-  Entry(K, V)
-  Entry(K, V)
-  Entry(T, bool)
-  MutableMap(i32, bool)
-  MutableMap(string, i32)
-  MutableMap(string, string)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(K, V)
-  MutableMap(T, bool)
-  MutableMap(T, bool)
-  MutableMap(T, bool)
-  MutableMap(T, bool)
-  MutableMap(T, bool)
-  MutableMap(T, bool)
-  MapIterator(K, V)
-  MapIterator(K, V)
-  MapIterator(K, V)
-  MutableSet(i32)
-  MutableSet(T)
-  MutableSet(T)
-  MutableSet(T)
-  MutableSet(T)
-  MutableSet(T)
-  MutableSet(T)
-  MutableSet(T)
-  MutableSet(T)
-  SetIterator(T)
-  SetIterator(T)
-  SetIterator(T)
+  Into<Target>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<char>
+  Iterator<Entry<K, V>>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<char>
+  Yield<Entry<K, V>>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  Entry<i32, bool>
+  Entry<string, i32>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<T, bool>
+  MutableMap<i32, bool>
+  MutableMap<string, i32>
+  MutableMap<string, string>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MapIterator<K, V>
+  MapIterator<K, V>
+  MapIterator<K, V>
+  MutableSet<i32>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  SetIterator<T>
+  SetIterator<T>
+  SetIterator<T>

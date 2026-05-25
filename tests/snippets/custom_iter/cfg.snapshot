@@ -2,7 +2,7 @@
 
 ## snippet
 
-fn snippet$Countdown$Iterator$next(%0: Countdown) -> null | Yield(i32)
+fn snippet$Countdown$Iterator$next(%0: Countdown) -> null | Yield<i32>
   locals:
     %0 self: Countdown (param self)
     %1 $field_1: i32
@@ -13,7 +13,7 @@ fn snippet$Countdown$Iterator$next(%0: Countdown) -> null | Yield(i32)
     %6 $field_7: i32
     %7 $k_8: i32
     %8 $sub_9: i32
-    %9 $struct_10: Yield(i32)
+    %9 $struct_10: Yield<i32>
   bb0:
     %1 = field_get %0.current :i32
     %2 = const int(0) :i32
@@ -28,17 +28,17 @@ fn snippet$Countdown$Iterator$next(%0: Countdown) -> null | Yield(i32)
     %7 = const int(1) :i32
     %8 = binop sub %6 %7 :i32
     field_set %0.current = %8
-    %9 = struct_new Yield(i32)(%5)
+    %9 = struct_new Yield<i32>(%5)
     return %9
 
 fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 __iter_0: Countdown (synthetic __iter_0)
-    %2 $call_4: Yield(i32) | null
-    %3 __step_1: Yield(i32) | null (synthetic __step_1)
+    %2 $call_4: Yield<i32> | null
+    %3 __step_1: Yield<i32> | null (synthetic __step_1)
     %4 $type_check_6: bool
-    %5 $cast_7: Yield(i32)
+    %5 $cast_7: Yield<i32>
     %6 x: i32 (binding x)
     %7 $intrinsic_10: ?
     %8 __sb_2: ? (synthetic __sb_2)
@@ -51,7 +51,7 @@ fn snippet$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %2 = call next(%1) :Yield(i32) | null
+    %2 = call next(%1) :Yield<i32> | null
     %3 = move %2
     %4 = type_check %3 is null
     cond_branch %4 ? bb4 : bb5
@@ -61,7 +61,7 @@ fn snippet$main() -> i32
   bb4:
     branch -> bb3
   bb5:
-    %5 = cast %3 :Yield(i32)
+    %5 = cast %3 :Yield<i32>
     %6 = field_get %5.value :i32
     %7 = intrinsic builder.new()
     %8 = move %7

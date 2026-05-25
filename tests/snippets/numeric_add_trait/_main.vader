@@ -7,9 +7,9 @@
 
 module "snippet"
 
-double :: fn[T: Add](x: T) -> T = x.add(x)
+double :: fn<T: Add>(x: T) -> T = x.add(x)
 
-triple :: fn[T: Add](x: T) -> T = x.add(x).add(x)
+triple :: fn<T: Add>(x: T) -> T = x.add(x).add(x)
 
 main :: fn() -> i32 {
     a :: double(7)              // 14

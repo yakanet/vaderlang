@@ -31,7 +31,7 @@ export Globals :: struct {
     /// `Error` / `Iterator` etc. when a trait reference dodges the
     /// module's local imports. Populated by `check_project` once the
     /// core module is resolved ; null pre-MVP / dump-only pipelines.
-    core_symbols: MutableMap(string, Symbol) | null
+    core_symbols: MutableMap<string, Symbol> | null
 }
 
 export new_globals :: fn(factory: SymbolFactory) -> Globals {

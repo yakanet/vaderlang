@@ -18,7 +18,7 @@ import "std/string" { chars }
 
 // Sum every element delivered by a trait-typed iterator. Inside the
 // body, `for x in it` lowers to a `next()` virtual call on `it`.
-sum_iter :: fn(it: Iterator(i32)) -> i32 {
+sum_iter :: fn(it: Iterator<i32>) -> i32 {
     total := 0
     for x in it {
         total = total + x

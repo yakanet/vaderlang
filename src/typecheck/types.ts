@@ -598,7 +598,7 @@ export function displayType(t: Type): string {
 
 function formatNamed(name: string, args: readonly Type[]): string {
   if (args.length === 0) return name;
-  return `${name}(${args.map(displayType).join(", ")})`;
+  return `${name}<${args.map(displayType).join(", ")}>`;
 }
 
 // ---------------------------------------------------------------- equality

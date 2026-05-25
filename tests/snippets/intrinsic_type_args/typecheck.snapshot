@@ -2,7 +2,7 @@
 
 ## tests/snippets/intrinsic_type_args
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Pair                 :: Pair(K, V)
+  StructDecl     Pair                 :: Pair<K, V>
   StructDecl     Wrapper              :: Wrapper
   expr 17:14    IntrinsicCallExpr :: type[]
   expr 18:17    StringLitExpr  :: string

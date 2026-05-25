@@ -260,7 +260,7 @@ substitute_struct_field :: fn(
     field_ty: Type, decl: AST.StructDecl, target: StructType,
 ) -> Type {
     if decl.type_params.len() == 0 { return field_ty }
-    bindings :: MutableMap(i32, Type) { .buckets = [], .size = 0 }
+    bindings :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
     n :: min(decl.type_params.len(), target.args.len())
     for i in 0..<n {
         tp :: decl.type_params[i]
@@ -708,7 +708,7 @@ receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgra
 // Walk `param` against `actual` and record `TypeParam.symbol.id →
 // concrete Type` bindings. Used to specialise UFCS-curried fn types
 // at the receiver type's instantiation.
-unify_typeparam :: fn(param: Type, actual: Type, bindings: MutableMap(i32, Type)) -> void {
+unify_typeparam :: fn(param: Type, actual: Type, bindings: MutableMap<i32, Type>) -> void {
     match param {
         is TypeParamType as tp -> { bindings[tp.symbol.id] = actual }
         is StructType as sp -> {
@@ -726,7 +726,7 @@ unify_typeparam :: fn(param: Type, actual: Type, bindings: MutableMap(i32, Type)
     }
 }
 
-substitute_by_id :: fn(t: Type, bindings: MutableMap(i32, Type)) -> Type {
+substitute_by_id :: fn(t: Type, bindings: MutableMap<i32, Type>) -> Type {
     match t {
         is TypeParamType as tp -> {
             replacement :: bindings[tp.symbol.id]

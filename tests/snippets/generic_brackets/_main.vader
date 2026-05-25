@@ -5,13 +5,13 @@
 // Generic fn, new bracketed form
 module "snippet"
 
-identity :: fn[T](x: T) -> T = x
+identity :: fn<T>(x: T) -> T = x
 
 // Generic fn, multiple type-params, multiple bracketed
-swap :: fn[A, B](a: A, b: B) -> B = b
+swap :: fn<A, B>(a: A, b: B) -> B = b
 
 // Generic struct, bracketed form
-Pair :: struct[A, B] {
+Pair :: struct<A, B> {
     first: A
     second: B
 }
@@ -19,6 +19,6 @@ Pair :: struct[A, B] {
 main :: fn() -> i32 {
     a :: identity(10)
     b :: swap(1, 2)
-    p := Pair(i32, i32) { .first = 30, .second = 0 }
+    p := Pair<i32, i32> { .first = 30, .second = 0 }
     return a + b + p.first
 }

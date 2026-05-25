@@ -44,7 +44,7 @@
           callee:
             contains :bool
           arg0:
-            Range(i32) {
+            Range<i32> {
               start: int(0) :i32
               end: int(10) :i32
               inclusive: false
@@ -65,7 +65,7 @@
             callee:
               contains :bool
             arg0:
-              Range(i32) {
+              Range<i32> {
                 start: int(0) :i32
                 end: int(10) :i32
                 inclusive: false
@@ -85,7 +85,7 @@
           callee:
             contains :bool
           arg0:
-            Range(i32) {
+            Range<i32> {
               start: int(0) :i32
               end: int(10) :i32
               inclusive: true

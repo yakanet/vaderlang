@@ -22,11 +22,11 @@ Dog implements Printable {
 }
 
 // Generic struct whose monomorphisation also implements the trait.
-export Wrapper :: struct[T] {
+export Wrapper :: struct<T> {
     inner: T
 }
 
-Wrapper(i32) implements Printable {
+Wrapper<i32> implements Printable {
     label :: fn(self) -> string { return "wrapped" }
 }
 
@@ -37,7 +37,7 @@ export describe :: fn(items: Dog | Cat) -> i32 {
     }
 }
 
-export describe_wrapper :: fn(w: Wrapper(i32) | Cat) -> i32 {
+export describe_wrapper :: fn(w: Wrapper<i32> | Cat) -> i32 {
     match w {
         is Printable -> 1
         _ -> 0
@@ -47,15 +47,15 @@ export describe_wrapper :: fn(w: Wrapper(i32) | Cat) -> i32 {
 main :: fn() -> i32 {
     d := Dog { .name = "Rex" }
     c := Cat { .name = "Whiskers" }
-    w := Wrapper(i32) { .inner = 42 }
+    w := Wrapper<i32> { .inner = 42 }
 
     dog_result := describe(d)       // Dog implements Printable → 1
     cat_result := describe(c)       // Cat does not → 0
 
-    wc: Wrapper(i32) | Cat = w
+    wc: Wrapper<i32> | Cat = w
     wrap_result := describe_wrapper(wc)  // Wrapper(i32) implements Printable → 1
 
-    cc: Wrapper(i32) | Cat = c
+    cc: Wrapper<i32> | Cat = c
     cat_wrap_result := describe_wrapper(cc)  // Cat does not → 0
 
     // 1 + 0 + 1 + 0 = 2, but encode distinctly: 1*1 + 0*2 + 1*4 + 0*8 = 5

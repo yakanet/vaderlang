@@ -14,7 +14,7 @@
   expr 16:24    IdentExpr      :: Countdown
   expr 16:9     FieldExpr      :: i32
   expr 16:9     IdentExpr      :: Countdown
-  expr 17:16    StructLitExpr  :: Yield(i32)
+  expr 17:16    StructLitExpr  :: Yield<i32>
   expr 17:38    IdentExpr      :: i32
   expr 22:11    StructLitExpr  :: Countdown
   expr 23:14    IdentExpr      :: Countdown

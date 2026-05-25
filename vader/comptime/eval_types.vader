@@ -24,7 +24,7 @@ import "vader/typecheck" { TypedProgram }
 ///                  order.
 export ComptimeContext :: struct {
     typed:    TypedProgram
-    bindings: MutableMap(i32, ComptimeValue)
+    bindings: MutableMap<i32, ComptimeValue>
 }
 
 /// Result of evaluating one expression. Three states :

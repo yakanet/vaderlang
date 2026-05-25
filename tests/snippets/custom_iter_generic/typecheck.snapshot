@@ -2,22 +2,22 @@
 
 ## tests/snippets/custom_iter_generic
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Repeat               :: Repeat(T)
+  StructDecl     Repeat               :: Repeat<T>
   expr 13:13    BinaryExpr     :: bool
   expr 13:13    FieldExpr      :: i32
-  expr 13:13    IdentExpr      :: Repeat(T)
+  expr 13:13    IdentExpr      :: Repeat<T>
   expr 13:9     IfExpr         :: void
   expr 16:14    FieldExpr      :: T
-  expr 16:14    IdentExpr      :: Repeat(T)
+  expr 16:14    IdentExpr      :: Repeat<T>
   expr 17:26    BinaryExpr     :: i32
   expr 17:26    FieldExpr      :: i32
-  expr 17:26    IdentExpr      :: Repeat(T)
+  expr 17:26    IdentExpr      :: Repeat<T>
   expr 17:9     FieldExpr      :: i32
-  expr 17:9     IdentExpr      :: Repeat(T)
-  expr 18:16    StructLitExpr  :: Yield(T)
+  expr 17:9     IdentExpr      :: Repeat<T>
+  expr 18:16    StructLitExpr  :: Yield<T>
   expr 18:36    IdentExpr      :: T
-  expr 24:11    StructLitExpr  :: Repeat(i32)
-  expr 26:14    IdentExpr      :: Repeat(i32)
+  expr 24:11    StructLitExpr  :: Repeat<i32>
+  expr 26:14    IdentExpr      :: Repeat<i32>
   expr 27:15    BinaryExpr     :: i32
   expr 27:15    IdentExpr      :: i32
   expr 27:21    IdentExpr      :: i32

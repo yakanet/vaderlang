@@ -2,20 +2,20 @@ module "snippet"
 
 import "std/io" { println }
 
-export Node :: struct[T] {
+export Node :: struct<T> {
     value: T
-    next:  Node(T) | null
+    next:  Node<T> | null
 }
 
 main :: fn() -> i32 {
-    arr: (Node(i32) | null)[] = []
+    arr: (Node<i32> | null)[] = []
     arr.push(null)
-    arr.push(Node(i32) { .value = 42, .next = null })
+    arr.push(Node<i32> { .value = 42, .next = null })
     println("len = ${arr.len()}")
     cell :: arr[1]
     match cell {
         is null    -> println("none")
-        is Node(i32) -> println("got value")
+        is Node<i32> -> println("got value")
     }
     return 0
 }

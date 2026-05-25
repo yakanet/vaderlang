@@ -9,11 +9,11 @@ import "std/io" { println }
 // snippet `coerce_into_basic/` — same machinery, different syntax.
 UserId :: struct { value: i32 }
 
-UserId implements Into(i32) {
+UserId implements Into<i32> {
     into :: fn(self) -> i32 { return self.value }
 }
 
-UserId implements Into(string) {
+UserId implements Into<string> {
     into :: fn(self) -> string { return "user_${self.value}" }
 }
 

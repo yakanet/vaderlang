@@ -40,8 +40,8 @@ export Capture :: struct {
 /// the per-lambda capture list (field order in the generated env struct
 /// mirrors this order). Both populated by Phase 5's `analyze_closures`.
 export ClosureAnalysis :: struct {
-    captured_symbols: MutableSet(i32)
-    lambda_captures:  MutableMap(usize, Capture[])
+    captured_symbols: MutableSet<i32>
+    lambda_captures:  MutableMap<usize, Capture[]>
 }
 
 /// Construct an empty `ClosureAnalysis`. Lets the phase-2 orchestrator
@@ -49,10 +49,10 @@ export ClosureAnalysis :: struct {
 /// @return  a fresh analysis with no captures recorded.
 export new_closure_analysis :: fn() -> ClosureAnalysis {
     return ClosureAnalysis {
-        .captured_symbols = MutableSet(i32) {
-            .inner = MutableMap(i32, bool) { .buckets = [], .size = usize(0) },
+        .captured_symbols = MutableSet<i32> {
+            .inner = MutableMap<i32, bool> { .buckets = [], .size = usize(0) },
         },
-        .lambda_captures  = MutableMap(usize, Capture[]) { .buckets = [], .size = 0 },
+        .lambda_captures  = MutableMap<usize, Capture[]> { .buckets = [], .size = 0 },
     }
 }
 
@@ -75,34 +75,34 @@ export LowerProjectCtx :: struct {
 
     /// `name -> Symbol` from `std/core` (cached once at construction
     /// so trait / struct lookups don't re-walk the module map).
-    core_symbols:        MutableMap(string, Symbol)
+    core_symbols:        MutableMap<string, Symbol>
 
     /// `name -> Symbol` from `std/iter`. Null when the project doesn't
     /// import `std/iter` (in which case for-in chain fusion never fires).
-    iter_symbols:        MutableMap(string, Symbol) | null
+    iter_symbols:        MutableMap<string, Symbol> | null
 
     /// `name -> Symbol` from `std/collections`. Null when the project
     /// doesn't import `std/collections` (in which case the for-in
     /// `MutableMap` / `MutableSet` inline path never fires).
-    collections_symbols: MutableMap(string, Symbol) | null
+    collections_symbols: MutableMap<string, Symbol> | null
 
     /// Per-trait `Symbol | null` cache — populated lazily on first
     /// `find_core_trait` hit. `null` means "looked up and not found".
-    core_trait_cache:    MutableMap(string, Symbol | null)
+    core_trait_cache:    MutableMap<string, Symbol | null>
 
     /// Global `symbol_id -> ComptimeValue` index over every loaded
     /// module's `evaluated.modules[*].comptime_decls`. Populated once
     /// at the start of `lower_project` so per-ident const-baked lookups
     /// in `lower_expr.vader::lower_ident` run in O(1) instead of
     /// walking every module's map per call.
-    comptime_value_by_symbol_id: MutableMap(i32, ComptimeValue)
+    comptime_value_by_symbol_id: MutableMap<i32, ComptimeValue>
 
     /// Per-module `defined_span_key -> Symbol` cache, lazily populated
     /// by `lookup_local_symbol`. The naive shape walked
     /// `resolved.idents.values()` then `resolved.symbols` per call
     /// (O(idents + symbols) per let / param) ; the index turns each
     /// lookup into a constant-time probe.
-    local_symbol_indices: MutableMap(string, MutableMap(i64, Symbol))
+    local_symbol_indices: MutableMap<string, MutableMap<i64, Symbol>>
 
     /// Free-variable analysis output. Phase 5 populates ; Phase 1-4
     /// callers see an empty analysis (no captures).
@@ -131,7 +131,7 @@ export LowerProjectCtx :: struct {
     /// `lower_project` as one `LoweredFnDecl` per instance.
     /// `fn_instances_order` preserves insertion order so the dump
     /// stays deterministic.
-    fn_instances:        MutableMap(string, GenericFnInstance)
+    fn_instances:        MutableMap<string, GenericFnInstance>
     fn_instances_order:  GenericFnInstance[]
 
     /// Erasure-dedupe of impl-member emissions — keyed by
@@ -142,7 +142,7 @@ export LowerProjectCtx :: struct {
     /// which picks the single surviving body regardless of the original
     /// instance's concrete args. Mirror of TS's `replacements` map in
     /// `src/comptime/erasure-dedupe.ts::erasureDedupe`.
-    materialized_impl_keys: MutableSet(string)
+    materialized_impl_keys: MutableSet<string>
 
     diags:               Diagnostic[]
 }
@@ -169,18 +169,18 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .loaded              = loaded,
         .mono                = new_mono_project(),
         .impls               = new_registry(),
-        .core_symbols        = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
+        .core_symbols        = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
         .iter_symbols        = null,
         .collections_symbols = null,
-        .core_trait_cache    = MutableMap(string, Symbol | null) { .buckets = [], .size = 0 },
-        .comptime_value_by_symbol_id = MutableMap(i32, ComptimeValue) { .buckets = [], .size = 0 },
-        .local_symbol_indices = MutableMap(string, MutableMap(i64, Symbol)) { .buckets = [], .size = 0 },
+        .core_trait_cache    = MutableMap<string, Symbol | null> { .buckets = [], .size = 0 },
+        .comptime_value_by_symbol_id = MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 },
+        .local_symbol_indices = MutableMap<string, MutableMap<i64, Symbol>> { .buckets = [], .size = 0 },
         .closures            = new_closure_analysis(),
         .next_mono_entry_id  = i32(1_000_000),
-        .fn_instances        = MutableMap(string, GenericFnInstance) { .buckets = [], .size = 0 },
+        .fn_instances        = MutableMap<string, GenericFnInstance> { .buckets = [], .size = 0 },
         .fn_instances_order  = [],
-        .materialized_impl_keys = MutableSet(string) {
-            .inner = MutableMap(string, bool) { .buckets = [], .size = usize(0) },
+        .materialized_impl_keys = MutableSet<string> {
+            .inner = MutableMap<string, bool> { .buckets = [], .size = usize(0) },
         },
         .synth_decls         = [],
         .next_synthetic_id   = i32(-1),
@@ -227,7 +227,7 @@ export new_block_ctx :: fn(is_fn_root: bool, is_loop_body: bool) -> BlockCtx {
 export LiftedFnContext :: struct {
     env_symbol:      Symbol
     env_type:        Type
-    capture_fields:  MutableMap(i32, string)
+    capture_fields:  MutableMap<i32, string>
 }
 
 // ============================================================================
@@ -269,7 +269,7 @@ export FnLowerCtx :: struct {
     /// loop-var symbol's id, the value is the per-iter literal that
     /// replaces every reference to `x` in the body. Pushed at unroll
     /// entry, popped at exit ; shape mirrors `narrowed` in typecheck.
-    comptime_bindings:  MutableMap(i32, LoweredExpr)
+    comptime_bindings:  MutableMap<i32, LoweredExpr>
 }
 
 /// Build a fresh `FnLowerCtx` for `entry`'s body. Populates the
@@ -298,7 +298,7 @@ export new_fn_lower_ctx :: fn(
         .blocks            = [],
         .uniq              = i32(0),
         .lifted_context    = null,
-        .comptime_bindings = MutableMap(i32, LoweredExpr) { .buckets = [], .size = 0 },
+        .comptime_bindings = MutableMap<i32, LoweredExpr> { .buckets = [], .size = 0 },
     }
 }
 

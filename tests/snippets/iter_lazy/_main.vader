@@ -6,7 +6,7 @@ import "std/iter" { MapIterator, FilterIterator, TakeIterator, SkipIterator }
 main :: fn() -> i32 {
     // Lazy map : square 0..<5 → 0, 1, 4, 9, 16. Sum via for-in.
     sq :: fn(x: i32) -> i32 { return x * x }
-    mi := MapIterator(i32, i32) { .source = 0..<5, .f = sq }
+    mi := MapIterator<i32, i32> { .source = 0..<5, .f = sq }
     total := 0
     for v in mi {
         total = total + v
@@ -15,7 +15,7 @@ main :: fn() -> i32 {
 
     // Lazy filter : keep evens of 0..<10 → 0, 2, 4, 6, 8.
     is_even :: fn(x: i32) -> bool { return x % 2 == 0 }
-    fi := FilterIterator(i32) { .source = 0..<10, .pred = is_even }
+    fi := FilterIterator<i32> { .source = 0..<10, .pred = is_even }
     even_count := 0
     even_sum := 0
     for v in fi {
@@ -25,7 +25,7 @@ main :: fn() -> i32 {
     println("evens count=${even_count} sum=${even_sum}")
 
     // Lazy take : first 3 of 0..<100 → 0, 1, 2.
-    ti := TakeIterator(i32) { .source = 0..<100, .remaining = usize(3) }
+    ti := TakeIterator<i32> { .source = 0..<100, .remaining = usize(3) }
     take_sum := 0
     for v in ti {
         take_sum = take_sum + v
@@ -33,7 +33,7 @@ main :: fn() -> i32 {
     println("take_sum=${take_sum}")
 
     // Lazy skip : skip 7 of 0..<10 → 7, 8, 9.
-    si := SkipIterator(i32) { .source = 0..<10, .remaining = usize(7) }
+    si := SkipIterator<i32> { .source = 0..<10, .remaining = usize(7) }
     skip_count := 0
     skip_first := -1
     for v in si {

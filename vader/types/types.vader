@@ -28,7 +28,7 @@ export EnumType :: struct {
     /// Backing integer type. Default `"i32"` ; set from `EnumDecl.repr`.
     repr:    string
     /// Variant indices keyed by name. Resolved by `declare_enum`.
-    indices: MutableMap(string, i64)
+    indices: MutableMap<string, i64>
 }
 
 export TraitType :: struct {
@@ -157,7 +157,7 @@ export mk_trait :: fn(symbol: Symbol, args: Type[]) -> Type {
     return TraitType { .symbol = symbol, .args = args }
 }
 
-export mk_enum :: fn(symbol: Symbol, repr: string, indices: MutableMap(string, i64)) -> Type {
+export mk_enum :: fn(symbol: Symbol, repr: string, indices: MutableMap<string, i64>) -> Type {
     return EnumType { .symbol = symbol, .repr = repr, .indices = indices }
 }
 
@@ -281,9 +281,9 @@ write_type :: fn(sb: StringBuilder, t: Type) -> void {
 write_named :: fn(sb: StringBuilder, name: string, args: Type[]) -> void {
     sb.append(name)
     if args.len() == 0 { return }
-    sb.append_char('(')
+    sb.append_char('<')
     sb.write_type_list(args, ", ")
-    sb.append_char(')')
+    sb.append_char('>')
 }
 
 write_type_list :: fn(sb: StringBuilder, items: Type[], sep: string) -> void {
@@ -409,7 +409,7 @@ test_display_struct_with_args :: fn() -> void {
     a0: Type = mk_primitive("string")
     a1: Type = mk_primitive("i32")
     s :: mk_struct(sym, [a0, a1])
-    assert_eq(display_type(s), "MutableMap(string, i32)")
+    assert_eq(display_type(s), "MutableMap<string, i32>")
 }
 
 @test

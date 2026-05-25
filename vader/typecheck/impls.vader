@@ -35,7 +35,7 @@ export ImplRegistry :: struct {
     /// Key : `"${for_symbol.id}::${trait_symbol.id}"`. Concrete-target
     /// entries land here ; primitive-target lookup deferred (see file
     /// header).
-    user_index: MutableMap(string, ImplEntry)
+    user_index: MutableMap<string, ImplEntry>
     /// Every entry the registry has seen — used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
     all:        ImplEntry[]
@@ -43,7 +43,7 @@ export ImplRegistry :: struct {
 
 export new_registry :: fn() -> ImplRegistry {
     return ImplRegistry {
-        .user_index = MutableMap(string, ImplEntry) { .buckets = [], .size = 0 },
+        .user_index = MutableMap<string, ImplEntry> { .buckets = [], .size = 0 },
         .all        = [],
     }
 }
@@ -55,7 +55,7 @@ export build_impl_registry :: fn(
     program_decls: Decl[], resolved: ResolvedModule,
 ) -> ImplRegistry {
     reg :: new_registry()
-    by_name :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    by_name :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     for s in resolved.symbols { by_name[s.name] = s }
     // Auto-imported traits (`Display`, `Iterator`, `Error`, …) live in
     // `core_symbols`, not `symbols`. Fold them in so `impl T implements
@@ -80,7 +80,7 @@ export build_impl_registry :: fn(
 }
 
 collect_impl :: fn(
-    self: ImplRegistry, impl_: ImplDecl, by_name: MutableMap(string, Symbol),
+    self: ImplRegistry, impl_: ImplDecl, by_name: MutableMap<string, Symbol>,
 ) -> void {
     trait_sym :: by_name[impl_.trait_name]
     if trait_sym is null { return }
@@ -101,7 +101,7 @@ collect_impl :: fn(
 /// primitive, an unresolved name, or a shape we don't accept (Array, Fn,
 /// TypeParam, etc.).
 for_type_symbol :: fn(
-    for_type: TypeExpr, by_name: MutableMap(string, Symbol),
+    for_type: TypeExpr, by_name: MutableMap<string, Symbol>,
 ) -> Symbol | null {
     match for_type {
         is IdentExpr as id -> { return resolve_target(id.name, by_name) }
@@ -115,7 +115,7 @@ for_type_symbol :: fn(
     }
 }
 
-resolve_target :: fn(name: string, by_name: MutableMap(string, Symbol)) -> Symbol | null {
+resolve_target :: fn(name: string, by_name: MutableMap<string, Symbol>) -> Symbol | null {
     sym :: by_name[name]
     if sym is null { return null }
     k :: i32(sym.kind)

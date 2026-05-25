@@ -41,7 +41,7 @@ export EvaluatedProgram :: struct {
     /// Phase 4 populates ; phase 3 leaves empty. Symbol-id keying
     /// matches every other declaration-keyed side-table in the
     /// project (`decl_types` switching to id-keyed is tracked in TODO).
-    comptime_decls: MutableMap(i32, ComptimeValue)
+    comptime_decls: MutableMap<i32, ComptimeValue>
 }
 
 /// Project-wide comptime output. Carries the per-module slices plus the
@@ -54,7 +54,7 @@ export EvaluatedProject :: struct {
 
     /// Per-module `EvaluatedProgram`, keyed by canonical module path
     /// (matches `TypedProject.modules` keying).
-    modules: MutableMap(string, EvaluatedProgram)
+    modules: MutableMap<string, EvaluatedProgram>
 
     /// Specialised entries (one per non-generic decl plus one per
     /// generic instance from the registry). Phase 6 fills ; phase 3
@@ -64,7 +64,7 @@ export EvaluatedProject :: struct {
     /// `@file("path")` expression-position calls baked at comptime,
     /// keyed by the IntrinsicCallExpr's AST node id. Lower reads this
     /// to emit a `LoweredStringLit` of the file contents.
-    file_exprs: MutableMap(usize, string)
+    file_exprs: MutableMap<usize, string>
 
     /// Blanket-Into impl members observed at typer coercion sites.
     /// Mono pass consumes this to materialise the members alongside
@@ -86,7 +86,7 @@ export EvaluatedProject :: struct {
 export new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
     return EvaluatedProgram {
         .typed          = typed,
-        .comptime_decls = MutableMap(i32, ComptimeValue) { .buckets = [], .size = 0 },
+        .comptime_decls = MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 },
     }
 }
 
@@ -98,9 +98,9 @@ export new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
 export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
     return EvaluatedProject {
         .typed        = typed,
-        .modules      = MutableMap(string, EvaluatedProgram) { .buckets = [], .size = 0 },
+        .modules      = MutableMap<string, EvaluatedProgram> { .buckets = [], .size = 0 },
         .mono         = new_mono_project(),
-        .file_exprs   = MutableMap(usize, string) { .buckets = [], .size = 0 },
+        .file_exprs   = MutableMap<usize, string> { .buckets = [], .size = 0 },
         .into_members = [],
         .instances    = [],
     }

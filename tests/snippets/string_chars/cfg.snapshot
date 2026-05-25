@@ -8,10 +8,10 @@ fn snippet$main() -> i32
     %1 $k_1: string
     %2 $call_2: StringChars
     %3 __iter_0: StringChars (synthetic __iter_0)
-    %4 $call_4: Yield(char) | null
-    %5 __step_1: Yield(char) | null (synthetic __step_1)
+    %4 $call_4: Yield<char> | null
+    %5 __step_1: Yield<char> | null (synthetic __step_1)
     %6 $type_check_6: bool
-    %7 $cast_7: Yield(char)
+    %7 $cast_7: Yield<char>
     %8 c: char (binding c)
     %9 $intrinsic_10: ?
     %10 __sb_2: ? (synthetic __sb_2)
@@ -20,10 +20,10 @@ fn snippet$main() -> i32
     %13 $k_14: string
     %14 $call_15: StringChars
     %15 __iter_3: StringChars (synthetic __iter_3)
-    %16 $call_17: Yield(char) | null
-    %17 __step_4: Yield(char) | null (synthetic __step_4)
+    %16 $call_17: Yield<char> | null
+    %17 __step_4: Yield<char> | null (synthetic __step_4)
     %18 $type_check_19: bool
-    %19 $cast_20: Yield(char)
+    %19 $cast_20: Yield<char>
     %20 c: char (binding c)
     %21 $intrinsic_23: ?
     %22 __sb_5: ? (synthetic __sb_5)
@@ -32,8 +32,8 @@ fn snippet$main() -> i32
     %25 $k_28: string
     %26 $call_29: StringChars
     %27 __iter_6: StringChars (synthetic __iter_6)
-    %28 $call_31: Yield(char) | null
-    %29 __step_7: Yield(char) | null (synthetic __step_7)
+    %28 $call_31: Yield<char> | null
+    %29 __step_7: Yield<char> | null (synthetic __step_7)
     %30 $type_check_33: bool
     %31 $k_37: i32
     %32 $intrinsic_39: ?
@@ -48,8 +48,8 @@ fn snippet$main() -> i32
     %41 $k_48: string
     %42 $call_49: StringChars
     %43 __iter_9: StringChars (synthetic __iter_9)
-    %44 $call_51: Yield(char) | null
-    %45 __step_10: Yield(char) | null (synthetic __step_10)
+    %44 $call_51: Yield<char> | null
+    %45 __step_10: Yield<char> | null (synthetic __step_10)
     %46 $type_check_53: bool
     %47 $k_57: string
     %48 $k_58: string
@@ -64,7 +64,7 @@ fn snippet$main() -> i32
   bb1:
     branch -> bb2
   bb2:
-    %4 = call next(%3) :Yield(char) | null
+    %4 = call next(%3) :Yield<char> | null
     %5 = move %4
     %6 = type_check %5 is null
     cond_branch %6 ? bb4 : bb5
@@ -78,7 +78,7 @@ fn snippet$main() -> i32
   bb4:
     branch -> bb3
   bb5:
-    %7 = cast %5 :Yield(char)
+    %7 = cast %5 :Yield<char>
     %8 = field_get %7.value :char
     %9 = intrinsic builder.new()
     %10 = move %9
@@ -91,7 +91,7 @@ fn snippet$main() -> i32
   bb7:
     branch -> bb8
   bb8:
-    %16 = call next(%15) :Yield(char) | null
+    %16 = call next(%15) :Yield<char> | null
     %17 = move %16
     %18 = type_check %17 is null
     cond_branch %18 ? bb10 : bb11
@@ -104,7 +104,7 @@ fn snippet$main() -> i32
   bb10:
     branch -> bb9
   bb11:
-    %19 = cast %17 :Yield(char)
+    %19 = cast %17 :Yield<char>
     %20 = field_get %19.value :char
     %21 = intrinsic builder.new()
     %22 = move %21
@@ -117,7 +117,7 @@ fn snippet$main() -> i32
   bb13:
     branch -> bb14
   bb14:
-    %28 = call next(%27) :Yield(char) | null
+    %28 = call next(%27) :Yield<char> | null
     %29 = move %28
     %30 = type_check %29 is null
     cond_branch %30 ? bb16 : bb17
@@ -152,7 +152,7 @@ fn snippet$main() -> i32
   bb19:
     branch -> bb20
   bb20:
-    %44 = call next(%43) :Yield(char) | null
+    %44 = call next(%43) :Yield<char> | null
     %45 = move %44
     %46 = type_check %45 is null
     cond_branch %46 ? bb22 : bb23

@@ -2,7 +2,7 @@
 
 ## tests/snippets/for_range_sugar
   FnDecl         main                 :: fn() -> i32
-  expr 13:9     RangeExpr      :: Range(i32)
+  expr 13:9     RangeExpr      :: Range<i32>
   expr 14:17    BinaryExpr     :: i32
   expr 14:17    IdentExpr      :: i32
   expr 14:9     IdentExpr      :: i32
@@ -10,7 +10,7 @@
   expr 16:23    IdentExpr      :: i32
   expr 16:5     CallExpr       :: void
   expr 16:5     IdentExpr      :: fn(T) -> void
-  expr 20:9     RangeExpr      :: Range(i32)
+  expr 20:9     RangeExpr      :: Range<i32>
   expr 21:15    BinaryExpr     :: i32
   expr 21:15    IdentExpr      :: i32
   expr 21:9     IdentExpr      :: i32
@@ -18,8 +18,8 @@
   expr 23:23    IdentExpr      :: i32
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void
-  expr 27:9     RangeExpr      :: Range(i32)
-  expr 28:13    RangeExpr      :: Range(i32)
+  expr 27:9     RangeExpr      :: Range<i32>
+  expr 28:13    RangeExpr      :: Range<i32>
   expr 29:13    IdentExpr      :: i32
   expr 29:21    BinaryExpr     :: i32
   expr 29:21    IdentExpr      :: i32
@@ -27,7 +27,7 @@
   expr 32:22    IdentExpr      :: i32
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(T) -> void
-  expr 36:14    RangeExpr      :: Range(i32)
+  expr 36:14    RangeExpr      :: Range<i32>
   expr 37:17    BinaryExpr     :: i32
   expr 37:17    IdentExpr      :: i32
   expr 37:25    IdentExpr      :: i32

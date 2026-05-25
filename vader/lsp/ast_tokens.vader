@@ -88,7 +88,7 @@ push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
 /// Phase-1 tokens with the symbol-kind-derived TokenType.
 refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken[]) -> void {
     factory :: new_factory()
-    seed :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    seed :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     resolved :: resolve_program(program, seed, uri, factory)
     for i in 0..<out.len() {
         rt :: out[i]

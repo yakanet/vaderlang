@@ -88,7 +88,7 @@ no_diags :: fn() -> Diagnostic[] { return [] }
 // `fn[T](x: T) -> T` called as `42.identity()`) get their bindings
 // before arg unification.
 seed_ufcs_bindings :: fn(
-    callee: AST.Expr, typed: TypedProgram, bindings: MutableMap(i32, Type),
+    callee: AST.Expr, typed: TypedProgram, bindings: MutableMap<i32, Type>,
 ) -> void {
     if !(callee is AST.FieldExpr) { return }
     receiver_ty :: typed.ufcs_receiver_types[callee.id]
@@ -134,7 +134,7 @@ export infer_call :: fn(
     is_generic :: fn_has_type_params(callee_ty)
     n :: min(c.args.len(), callee_ty.params.len())
     if is_generic {
-        bindings :: MutableMap(i32, Type) { .buckets = [], .size = 0 }
+        bindings :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
         // UFCS dispatch : seed bindings from the receiver's type so
         // type-params bound by the (curried-away) first param
         // (`fn[T](x: T) -> T` called as `42.identity()`) still
@@ -234,7 +234,7 @@ cast_call_target :: fn(
 /// the trait. Skips bounds whose typeParam stays unbound after unify
 /// (no arg pinned it — caller already gets a T3001 in that path).
 check_typeparam_bounds :: fn(
-    c: AST.CallExpr, bindings: MutableMap(i32, Type),
+    c: AST.CallExpr, bindings: MutableMap<i32, Type>,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     fn_decl :: lookup_callee_fn_decl(c.callee, typed)
@@ -298,7 +298,7 @@ redirect_import_typed :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
 /// primitive — e.g. `i32 implements Doubler(i32)`) that implements
 /// that trait, bind `T`, `U`, … from `struct_trait_args`.
 unify_struct_to_trait_args :: fn(
-    param: Type, arg: Type, typed: TypedProgram, out: MutableMap(i32, Type),
+    param: Type, arg: Type, typed: TypedProgram, out: MutableMap<i32, Type>,
 ) -> void {
     if !(param is TraitType) { return }
     arg_name :: dispatch_key(arg)

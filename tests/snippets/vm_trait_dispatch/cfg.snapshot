@@ -21,10 +21,10 @@ fn snippet$describe(%0: Cat | Dog) -> i32
   bb3:
     return %3
 
-fn snippet$describe_wrapper(%0: Cat | Wrapper(i32)) -> i32
+fn snippet$describe_wrapper(%0: Cat | Wrapper<i32>) -> i32
   locals:
-    %0 w: Cat | Wrapper(i32) (param w)
-    %1 __scrut_0: Cat | Wrapper(i32) (synthetic __scrut_0)
+    %0 w: Cat | Wrapper<i32> (param w)
+    %1 __scrut_0: Cat | Wrapper<i32> (synthetic __scrut_0)
     %2 $type_check_2: bool
     %3 if_res: i32
   bb0:
@@ -51,10 +51,10 @@ fn snippet$main() -> i32
     %6 dog_result: i32 (local dog_result)
     %7 $call_11: i32
     %8 cat_result: i32 (local cat_result)
-    %9 wc: Cat | Wrapper(i32) (local wc)
+    %9 wc: Cat | Wrapper<i32> (local wc)
     %10 $call_14: i32
     %11 wrap_result: i32 (local wrap_result)
-    %12 cc: Cat | Wrapper(i32) (local cc)
+    %12 cc: Cat | Wrapper<i32> (local cc)
     %13 $call_17: i32
     %14 cat_wrap_result: i32 (local cat_wrap_result)
     %15 $k_19: i32
@@ -72,7 +72,7 @@ fn snippet$main() -> i32
     %2 = const string(#1) :string
     %3 = struct_new Cat(%2)
     %4 = const int(42) :i32
-    %9 = struct_new Wrapper(i32)(%4)
+    %9 = struct_new Wrapper<i32>(%4)
     %5 = call describe(%1) :i32
     %6 = move %5
     %7 = call describe(%3) :i32

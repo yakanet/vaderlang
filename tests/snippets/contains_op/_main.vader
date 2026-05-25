@@ -7,7 +7,7 @@ export DigitSet :: struct {
     bits: i32   // bit i = digit i present
 }
 
-DigitSet implements Contains(i32) {
+DigitSet implements Contains<i32> {
     contains :: fn(self, value: i32) -> bool {
         if value < 0 || value > 9 {
             return false

@@ -85,7 +85,7 @@ export Clone :: trait {
 /// target must be a concrete type (not a union, type-param or unresolved
 /// type), and `T implements Into(T)` is forbidden (would shadow identity
 /// assignments). See SPEC §11 *Type coercion* for the full rules.
-export Into :: trait[Target] {
+export Into :: trait<Target> {
     into :: fn(self) -> Target
 }
 
@@ -103,11 +103,11 @@ export Rem :: trait { rem :: fn(self, other: Self) -> Self }
 
 /// Indexed read — `a[i]` dispatches through this when `a` isn't a built-in
 /// array. `I` is the index type, `T` the element type.
-export Index :: trait[I, T] {
+export Index :: trait<I, T> {
     at :: fn(self, i: I) -> T
 }
 /// Indexed write — `a[i] = v`. Symmetric with `Index`.
-export IndexSet :: trait[I, T] {
+export IndexSet :: trait<I, T> {
     set_at :: fn(self, i: I, v: T)
 }
 
@@ -115,7 +115,7 @@ export IndexSet :: trait[I, T] {
 /// `x !in coll` desugars to `!coll.contains(x)`. Implemented by `Range`
 /// (for the integer / char ranges), `MutableMap`, `MutableSet`, and any
 /// user type that wants infix `in` support.
-export Contains :: trait[T] {
+export Contains :: trait<T> {
     contains :: fn(self, value: T) -> bool
 }
 
@@ -129,8 +129,8 @@ export Contains :: trait[T] {
 /// `Yield` wrapper distinguishes "an iterator yielded a value" from "this
 /// type is a nullable T at the type level" (relevant when T itself can be
 /// `null`).
-export Iterator :: trait[T] {
-    next :: fn(self) -> Yield(T) | null
+export Iterator :: trait<T> {
+    next :: fn(self) -> Yield<T> | null
 
     // True iff the next `next()` call returns `null`. Drains exactly one
     // step ; a `false` result has *consumed* the first yielded item already
@@ -139,7 +139,7 @@ export Iterator :: trait[T] {
     // buffer.
     is_empty :: fn(self) -> bool = match self.next() {
         is null     -> true
-        is Yield(T) -> false
+        is Yield<T> -> false
     }
 
     // Drain the iterator, returning the count of yielded items. Consumes
@@ -150,7 +150,7 @@ export Iterator :: trait[T] {
         for !finished {
             match self.next() {
                 is null     -> { finished = true }
-                is Yield(T) -> { total = total + 1 }
+                is Yield<T> -> { total = total + 1 }
             }
         }
         return total
@@ -164,7 +164,7 @@ export Iterator :: trait[T] {
         for !finished {
             match self.next() {
                 is null          -> { finished = true }
-                is Yield(T) as y -> { result = y.value }
+                is Yield<T> as y -> { result = y.value }
             }
         }
         return result
@@ -195,7 +195,7 @@ export Error :: trait {
 /// NULL) ; for T = primitive, the value rides in `vader_box_t.payload`
 /// with no wrapper allocation.
 @specialize
-export Yield :: struct[T] { value: T }
+export Yield :: struct<T> { value: T }
 
 /// One field of a struct type as exposed by the `@fields(T)` reflection
 /// intrinsic. `name` is the source-level identifier ; `type` carries the
@@ -209,7 +209,7 @@ export Field :: struct {
 /// bound type so integer ranges (every signed / unsigned width plus
 /// `usize` / `isize`) and char ranges share a single struct. The `cursor`
 /// field is advanced by each `step` call via implicit struct-ref mutation.
-export Range :: struct[T] {
+export Range :: struct<T> {
     start:     T
     end:       T
     inclusive: bool
@@ -225,7 +225,7 @@ export Range :: struct[T] {
 // `Range[T]` instance the program uses ; the lowerer routes each method
 // call to the right primitive impl statically.
 
-Range[T] implements[T: Comparable & Step] Contains[T] {
+Range<T> implements<T: Comparable & Step> Contains<T> {
     contains :: fn(self, value: T) -> bool {
         if value.lt(self.start) { return false }
         if self.inclusive       { return value.lte(self.end) }
@@ -233,44 +233,44 @@ Range[T] implements[T: Comparable & Step] Contains[T] {
     }
 }
 
-Range[T] implements[T: Comparable & Step] Iterator[T] {
-    next :: fn(self) -> Yield(T) | null {
+Range<T> implements<T: Comparable & Step> Iterator<T> {
+    next :: fn(self) -> Yield<T> | null {
         done :: if (self.inclusive) { self.cursor.gt(self.end) }
                 else                 { self.cursor.gte(self.end) }
         if (done) { return null }
         v :: self.cursor
         self.cursor = self.cursor.step()
-        return Yield(T) { .value = v }
+        return Yield<T> { .value = v }
     }
 }
 
 /// Iterator over a `T[]`. The lowerer auto-wraps array exprs flowing into
 /// `for x in arr`, so direct construction is rarely needed.
 @specialize
-export ArrayIterator :: struct[T] {
+export ArrayIterator :: struct<T> {
     arr:    T[]
     cursor: usize
 }
 
-ArrayIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Yield(T) | null {
+ArrayIterator<T> implements Iterator<T> {
+    next :: fn(self) -> Yield<T> | null {
         if (self.cursor >= self.arr.len()) { return null }
         v :: self.arr[self.cursor]
         self.cursor = self.cursor + 1
-        return Yield(T) { .value = v }
+        return Yield<T> { .value = v }
     }
 }
 
 // Blanket Into impls live here so the orphan rule passes — Into is owned
 // by std/core, the source shapes (`T[]`, bounded `T`) aren't.
 
-T[] implements[T] Into(Iterator(T)) {
-    into :: fn(self) -> Iterator(T) {
-        return ArrayIterator(T) { .arr = self, .cursor = usize(0) }
+T[] implements<T> Into<Iterator<T>> {
+    into :: fn(self) -> Iterator<T> {
+        return ArrayIterator<T> { .arr = self, .cursor = usize(0) }
     }
 }
 
-T implements[T: Display] Into(string) {
+T implements<T: Display> Into<string> {
     into :: fn(self) -> string {
         return self.to_string()
     }
@@ -460,4 +460,4 @@ char  implements Step -> char(u32(self) + u32(1))
 // so it can use `std/string_builder`.
 
 @intrinsic string implements Add
-@intrinsic string implements Index(usize, char)
+@intrinsic string implements Index<usize, char>

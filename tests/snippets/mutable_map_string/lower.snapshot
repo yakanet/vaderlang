@@ -2,17 +2,17 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let m: MutableMap(string, i32) =
-      MutableMap(string, i32) {
+    let m: MutableMap<string, i32> =
+      MutableMap<string, i32> {
         buckets:
-          array :(Entry(string, i32) | null)[]
+          array :(Entry<string, i32> | null)[]
         size: int(0) :usize
       }
     call :void
       callee:
         set_at :void
       arg0:
-        m :MutableMap(string, i32)
+        m :MutableMap<string, i32>
       arg1:
         "hello" :string
       arg2:
@@ -21,7 +21,7 @@
       callee:
         set_at :void
       arg0:
-        m :MutableMap(string, i32)
+        m :MutableMap<string, i32>
       arg1:
         "world" :string
       arg2:
@@ -30,7 +30,7 @@
       callee:
         set_at :void
       arg0:
-        m :MutableMap(string, i32)
+        m :MutableMap<string, i32>
       arg1:
         "vader" :string
       arg2:
@@ -55,7 +55,7 @@
                   callee:
                     len :usize
                   arg0:
-                    m :MutableMap(string, i32)
+                    m :MutableMap<string, i32>
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -64,7 +64,7 @@
         callee:
           at :i32 | null
         arg0:
-          m :MutableMap(string, i32)
+          m :MutableMap<string, i32>
         arg1:
           "hello" :string
     block :void
@@ -118,7 +118,7 @@
         callee:
           at :i32 | null
         arg0:
-          m :MutableMap(string, i32)
+          m :MutableMap<string, i32>
         arg1:
           "world" :string
     block :void
@@ -172,7 +172,7 @@
         callee:
           at :i32 | null
         arg0:
-          m :MutableMap(string, i32)
+          m :MutableMap<string, i32>
         arg1:
           "vader" :string
     block :void
@@ -237,7 +237,7 @@
               callee:
                 contains :bool
               arg0:
-                m :MutableMap(string, i32)
+                m :MutableMap<string, i32>
               arg1:
                 "hello" :string
           ~>
@@ -259,7 +259,7 @@
               callee:
                 contains :bool
               arg0:
-                m :MutableMap(string, i32)
+                m :MutableMap<string, i32>
               arg1:
                 "missing" :string
           ~>
@@ -269,7 +269,7 @@
       callee:
         set_at :void
       arg0:
-        m :MutableMap(string, i32)
+        m :MutableMap<string, i32>
       arg1:
         "hello" :string
       arg2:
@@ -279,7 +279,7 @@
         callee:
           at :i32 | null
         arg0:
-          m :MutableMap(string, i32)
+          m :MutableMap<string, i32>
         arg1:
           "hello" :string
     block :void

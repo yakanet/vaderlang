@@ -48,23 +48,23 @@ Stream :: enum {
 /// implementing `Display` — the wrapper renders it via `to_string`
 /// before handing the string to the host.
 @specialize
-export print :: fn[T: Display](msg: T) = write(.Stdout, msg.to_string())
+export print :: fn<T: Display>(msg: T) = write(.Stdout, msg.to_string())
 
 /// Write `msg` to stdout followed by a `\n`. See `print` for the
 /// Display routing rule.
 @specialize
-export println :: fn[T: Display](msg: T) -> void {
+export println :: fn<T: Display>(msg: T) -> void {
     write(.Stdout, msg.to_string())
     write(.Stdout, "\n")
 }
 
 /// Write `msg` to stderr without a trailing newline.
 @specialize
-export eprint :: fn[T: Display](msg: T) = write(.Stderr, msg.to_string())
+export eprint :: fn<T: Display>(msg: T) = write(.Stderr, msg.to_string())
 
 /// Write `msg` to stderr followed by a `\n`.
 @specialize
-export eprintln :: fn[T: Display](msg: T) -> void {
+export eprintln :: fn<T: Display>(msg: T) -> void {
     write(.Stderr, msg.to_string())
     write(.Stderr, "\n")
 }

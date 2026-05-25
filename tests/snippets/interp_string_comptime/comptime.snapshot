@@ -5,21 +5,21 @@
 ## tests/snippets/interp_string_comptime
 
 ## generic instances
-  Into(Target)
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
+  Into<Target>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
 
 # Diagnostics
 [4:20] error[C4002] comptime expression requires VM execution: StringInterp

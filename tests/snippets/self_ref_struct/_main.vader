@@ -2,15 +2,15 @@ module "snippet"
 
 import "std/io" { println }
 
-export Node :: struct[T] {
+export Node :: struct<T> {
     value: T
-    next:  Node(T) | null
+    next:  Node<T> | null
 }
 
 main :: fn() -> i32 {
-    tail :: Node(i32) { .value = 30, .next = null }
-    mid  :: Node(i32) { .value = 20, .next = tail }
-    head :: Node(i32) { .value = 10, .next = mid }
+    tail :: Node<i32> { .value = 30, .next = null }
+    mid  :: Node<i32> { .value = 20, .next = tail }
+    head :: Node<i32> { .value = 10, .next = mid }
     println("head.value = ${head.value}")
     return 0
 }

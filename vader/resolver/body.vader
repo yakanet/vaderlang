@@ -30,18 +30,18 @@ import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory,
 /// the TS-side resolver's job).
 export ResolvedFile :: struct {
     /// Top-level declarations of this file, indexed for downstream use.
-    top_level: MutableMap(string, Symbol)
+    top_level: MutableMap<string, Symbol>
     /// Every `AST.IdentExpr` reached during the body walk, span-keyed
     /// via `span_key` (packed `(line << 32) | column` `i64`).
-    idents:    MutableMap(i64, Symbol)
+    idents:    MutableMap<i64, Symbol>
     /// `Symbol.id` set for every Local minted from a `name :: ...`
     /// binding (`mutable = false`). `name :=` ones don't appear here.
     /// Read by typecheck's check_assign for T3041.
-    immutable_locals: MutableMap(i32, bool)
+    immutable_locals: MutableMap<i32, bool>
     /// `Symbol.id → bound TypeExpr` for every TypeParam minted with
     /// an explicit `T: Trait` clause. Lets downstream consumers
     /// dispatch trait methods on bounded type parameters.
-    type_param_bounds: MutableMap(i32, AST.Expr)
+    type_param_bounds: MutableMap<i32, AST.Expr>
     /// R-code diagnostics emitted during body resolution
     /// (unresolved ident, reserved name, …).
     diags: Diagnostic[]
@@ -53,13 +53,13 @@ export ResolvedFile :: struct {
 /// Caller-owned so multi-module projects can extend the root scope
 /// before walking.
 export resolve_program :: fn(
-    program: AST.Program, top_level_seed: MutableMap(string, Symbol),
+    program: AST.Program, top_level_seed: MutableMap<string, Symbol>,
     module_path: string, factory: SymbolFactory,
 ) -> ResolvedFile {
     state :: ResolveState {
-        .idents = MutableMap(i64, Symbol) { .buckets = [], .size = 0 },
-        .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
-        .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
+        .idents = MutableMap<i64, Symbol> { .buckets = [], .size = 0 },
+        .immutable_locals = MutableMap<i32, bool> { .buckets = [], .size = 0 },
+        .type_param_bounds = MutableMap<i32, AST.Expr> { .buckets = [], .size = 0 },
         .diags = [],
         .scope = new_scope(top_level_seed),
         .module_path = module_path,
@@ -80,9 +80,9 @@ export resolve_program :: fn(
 // ---- internal state -------------------------------------------------------
 
 ResolveState :: struct {
-    idents:           MutableMap(i64, Symbol)
-    immutable_locals: MutableMap(i32, bool)
-    type_param_bounds: MutableMap(i32, AST.Expr)
+    idents:           MutableMap<i64, Symbol>
+    immutable_locals: MutableMap<i32, bool>
+    type_param_bounds: MutableMap<i32, AST.Expr>
     diags:            Diagnostic[]
     scope:            Scope
     module_path:      string
@@ -546,7 +546,7 @@ main :: fn() -> i32 {
 """
     parsed :: parse_source(src, "test.vader")
     factory :: new_factory()
-    seed :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    seed :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     resolved :: resolve_program(parsed.program, seed, "test", factory)
     hit :: resolved.idents[(i64(3) << i64(32)) | i64(12)]
     match hit {
@@ -570,7 +570,7 @@ f :: fn(x: i32) -> i32 {
 """
     parsed :: parse_source(src, "test.vader")
     factory :: new_factory()
-    seed :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    seed :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     resolved :: resolve_program(parsed.program, seed, "test", factory)
     hit :: resolved.idents[(i64(2) << i64(32)) | i64(12)]
     match hit {

@@ -8,13 +8,13 @@ module "snippet"
 
 import "std/io" { println }
 
-export Maybe[T] :: T | null
+export Maybe<T> :: T | null
 
-export Pair[A, B] :: A | B
+export Pair<A, B> :: A | B
 
 main :: fn() -> i32 {
-    x: Maybe[i32] = 42
-    y: Maybe[i32] = null
+    x: Maybe<i32> = 42
+    y: Maybe<i32> = null
 
     match x {
         is null -> println("x is null")
@@ -25,7 +25,7 @@ main :: fn() -> i32 {
         is i32  -> println("y = ${y}")
     }
 
-    p: Pair[i32, string] = "hello"
+    p: Pair<i32, string> = "hello"
     match p {
         is i32    -> println("pair int   = ${p}")
         is string -> println("pair str   = ${p}")

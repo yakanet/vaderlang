@@ -447,7 +447,7 @@ export ConstNull   :: struct {}
 
 /// Collection of CFGFunctions, mirrors LoweredProject's shape.
 export CFGProject :: struct {
-    modules: MutableMap(string, CFGModule)
+    modules: MutableMap<string, CFGModule>
     /// Same vtable entries the LoweredProject carries — bytecode emit
     /// reuses them as-is.
     vtable_entries: VtableEntry[]
@@ -461,7 +461,7 @@ export CFGProject :: struct {
     data_pool: BcDataEntry[]
     /// Forwarded from LoweredProject.symbolRedirects ; consumed by the
     /// bytecode emit (fnIndexBySymId builder).
-    symbol_redirects: MutableMap(i32, i32)
+    symbol_redirects: MutableMap<i32, i32>
 }
 
 export CFGModule :: struct {

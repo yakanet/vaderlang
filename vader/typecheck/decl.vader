@@ -39,7 +39,7 @@ export declare_module :: fn(
     program_decls: AST.Decl[], resolved: ResolvedModule,
     typed: TypedProgram, factory: SymbolFactory, diags: Diagnostic[],
 ) -> void {
-    by_name :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    by_name :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     for s in resolved.symbols { by_name[s.name] = s }
     for decl in program_decls {
         declare_decl(decl, by_name, resolved, typed, factory, diags)
@@ -69,7 +69,7 @@ export declare_extra_file_type_decls :: fn(
     program_decls: AST.Decl[], resolved: ResolvedModule,
     typed: TypedProgram, factory: SymbolFactory, diags: Diagnostic[],
 ) -> void {
-    by_name :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    by_name :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     for s in resolved.symbols { by_name[s.name] = s }
     for decl in program_decls {
         // Now that `decl_types` is Symbol.id-keyed (and impl methods
@@ -82,7 +82,7 @@ export declare_extra_file_type_decls :: fn(
 }
 
 register_deprecated :: fn(
-    decl: AST.Decl, by_name: MutableMap(string, Symbol), resolved: ResolvedModule,
+    decl: AST.Decl, by_name: MutableMap<string, Symbol>, resolved: ResolvedModule,
 ) -> void {
     name :: decorated_decl_name(decl)
     if name == "" { return }
@@ -134,7 +134,7 @@ deprecated_message :: fn(decs: AST.Decorator[]) -> string | null {
 }
 
 declare_decl :: fn(
-    decl: AST.Decl, by_name: MutableMap(string, Symbol),
+    decl: AST.Decl, by_name: MutableMap<string, Symbol>,
     resolved: ResolvedModule, typed: TypedProgram,
     factory: SymbolFactory, diags: Diagnostic[],
 ) -> void {
@@ -152,7 +152,7 @@ declare_decl :: fn(
                 // struct lives in `std/collections` but `entry.value`
                 // is read from main) consult these directly via the
                 // owner module's bindings.
-                fields_map :: MutableMap(string, Type) { .buckets = [], .size = 0 }
+                fields_map :: MutableMap<string, Type> { .buckets = [], .size = 0 }
                 for f in sd.fields {
                     fields_map[f.name] = type_from_expr(f.ty, resolved, diags)
                 }
@@ -186,7 +186,7 @@ declare_decl :: fn(
 /// at the top-level symbol table.
 declare_named_with_args :: fn(
     name: string, name_span: Span, type_params: AST.TypeParam[],
-    by_name: MutableMap(string, Symbol), typed: TypedProgram,
+    by_name: MutableMap<string, Symbol>, typed: TypedProgram,
     module_path: string, factory: SymbolFactory,
     mk: fn(Symbol, Type[]) -> Type,
 ) -> void {
@@ -203,7 +203,7 @@ declare_named_with_args :: fn(
 // ---- per-decl declarers ---------------------------------------------------
 
 declare_fn :: fn(
-    decl: AST.FnDecl, by_name: MutableMap(string, Symbol),
+    decl: AST.FnDecl, by_name: MutableMap<string, Symbol>,
     resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     params: Type[] = []
@@ -226,7 +226,7 @@ declare_fn :: fn(
 
 lookup_fn_symbol_by_span :: fn(
     decl: AST.FnDecl, resolved: ResolvedModule,
-    by_name: MutableMap(string, Symbol),
+    by_name: MutableMap<string, Symbol>,
 ) -> Symbol | null {
     bucket :: resolved.fn_overloads[decl.name]
     match bucket {
@@ -312,7 +312,7 @@ declare_fn_return :: fn(
 }
 
 declare_enum :: fn(
-    decl: AST.EnumDecl, by_name: MutableMap(string, Symbol),
+    decl: AST.EnumDecl, by_name: MutableMap<string, Symbol>,
     resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     sym :: by_name[decl.name]
@@ -469,11 +469,11 @@ Point :: struct {
 @test
 test_declare_generic_struct_records_args :: fn() -> void {
     src :: """
-Wrap :: struct[T] {
+Wrap :: struct<T> {
     value: T
 }
 """
-    assert_eq(declared_type(src, "Wrap"), "Wrap(T)")
+    assert_eq(declared_type(src, "Wrap"), "Wrap<T>")
 }
 
 @test

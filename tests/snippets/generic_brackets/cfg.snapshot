@@ -13,7 +13,7 @@ fn snippet$main() -> i32
     %6 b: i32 (local b)
     %7 $k_7: i32
     %8 $k_8: i32
-    %9 p: Pair(i32, i32) (local p)
+    %9 p: Pair<i32, i32> (local p)
     %10 $add_11: i32
     %11 $field_12: i32
     %12 $add_13: i32
@@ -27,7 +27,7 @@ fn snippet$main() -> i32
     %6 = move %5
     %7 = const int(30) :i32
     %8 = const int(0) :i32
-    %9 = struct_new[stack] Pair(i32, i32)(%7, %8)
+    %9 = struct_new[stack] Pair<i32, i32>(%7, %8)
     %10 = binop add %2 %6 :i32
     %11 = field_get %9.first :i32
     %12 = binop add %10 %11 :i32

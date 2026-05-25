@@ -222,10 +222,10 @@ FnEmitCfg :: struct {
     preds:               BlockId[][]
     idom:                i32[]
     ipostdom:            i32[]
-    loop_exit:           MutableMap(i32, BlockId | null)
+    loop_exit:           MutableMap<i32, BlockId | null>
     scopes:              ScopeFrame[]
     pending:             PendingBranch[]
-    wrapped_loop_headers: MutableSet(i32)
+    wrapped_loop_headers: MutableSet<i32>
 }
 
 emit_cfg_function_body :: fn(
@@ -272,8 +272,8 @@ emit_cfg_function_body :: fn(
         .loop_exit            = loop_exit,
         .scopes               = [],
         .pending              = [],
-        .wrapped_loop_headers = MutableSet(i32) {
-            .inner = MutableMap(i32, bool) { .buckets = [], .size = 0 },
+        .wrapped_loop_headers = MutableSet<i32> {
+            .inner = MutableMap<i32, bool> { .buckets = [], .size = 0 },
         },
     }
 

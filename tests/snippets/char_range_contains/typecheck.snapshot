@@ -7,17 +7,17 @@
   FnDecl         main                 :: fn() -> i32
   expr 13:12    BinaryExpr     :: bool
   expr 13:12    IdentExpr      :: char
-  expr 13:17    RangeExpr      :: Range(char)
+  expr 13:17    RangeExpr      :: Range<char>
   expr 17:12    BinaryExpr     :: bool
   expr 17:12    IdentExpr      :: char
-  expr 17:17    RangeExpr      :: Range(char)
+  expr 17:17    RangeExpr      :: Range<char>
   expr 21:12    BinaryExpr     :: bool
   expr 21:12    BinaryExpr     :: bool
   expr 21:12    IdentExpr      :: char
-  expr 21:17    RangeExpr      :: Range(char)
+  expr 21:17    RangeExpr      :: Range<char>
   expr 21:30    BinaryExpr     :: bool
   expr 21:30    IdentExpr      :: char
-  expr 21:35    RangeExpr      :: Range(char)
+  expr 21:35    RangeExpr      :: Range<char>
   expr 25:26    CallExpr       :: void
   expr 25:26    IdentExpr      :: fn(T) -> void
   expr 25:34    StringLitExpr  :: string
@@ -82,7 +82,7 @@
   expr 36:8     UnaryExpr      :: bool
   expr 36:9     CallExpr       :: bool
   expr 36:9     IdentExpr      :: fn(char) -> bool
-  expr 40:14    RangeExpr      :: Range(char)
+  expr 40:14    RangeExpr      :: Range<char>
   expr 41:13    BinaryExpr     :: i32
   expr 41:13    IdentExpr      :: i32
   expr 41:9     IdentExpr      :: i32
@@ -90,7 +90,7 @@
   expr 43:30    IdentExpr      :: i32
   expr 43:5     CallExpr       :: void
   expr 43:5     IdentExpr      :: fn(T) -> void
-  expr 47:14    RangeExpr      :: Range(char)
+  expr 47:14    RangeExpr      :: Range<char>
   expr 48:13    BinaryExpr     :: i32
   expr 48:13    IdentExpr      :: i32
   expr 48:9     IdentExpr      :: i32

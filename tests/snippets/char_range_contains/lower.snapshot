@@ -7,7 +7,7 @@
         callee:
           contains :bool
         arg0:
-          Range(char) {
+          Range<char> {
             start: char(0x30)
             end: char(0x39)
             inclusive: true
@@ -21,7 +21,7 @@
         callee:
           contains :bool
         arg0:
-          Range(char) {
+          Range<char> {
             start: char(0x61)
             end: char(0x7a)
             inclusive: true
@@ -37,7 +37,7 @@
             callee:
               contains :bool
             arg0:
-              Range(char) {
+              Range<char> {
                 start: char(0x61)
                 end: char(0x7a)
                 inclusive: true
@@ -50,7 +50,7 @@
             callee:
               contains :bool
             arg0:
-              Range(char) {
+              Range<char> {
                 start: char(0x41)
                 end: char(0x5a)
                 inclusive: true
@@ -195,31 +195,31 @@
             "5 is not alpha" :string
     let n: i32 = int(0) :i32
     block :void
-      let __iter_0: Range(char) =
-        Range(char) {
+      let __iter_0: Range<char> =
+        Range<char> {
           start: char(0x61)
           end: char(0x65)
           inclusive: true
           cursor: char(0x61)
         }
       loop
-        let __step_1: Yield(char) | null =
-          call :Yield(char) | null
+        let __step_1: Yield<char> | null =
+          call :Yield<char> | null
             callee:
               next :?
             arg0:
-              __iter_0 :Range(char)
+              __iter_0 :Range<char>
         if :void
           cond:
             is null :bool
-              __step_1 :Yield(char) | null
+              __step_1 :Yield<char> | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yield(char)
-                  __step_1 :Yield(char) | null
+                cast → Yield<char>
+                  __step_1 :Yield<char> | null
             assign
               target:
                 n :i32
@@ -247,31 +247,31 @@
               __sb_2 :?
     let m: i32 = int(0) :i32
     block :void
-      let __iter_3: Range(char) =
-        Range(char) {
+      let __iter_3: Range<char> =
+        Range<char> {
           start: char(0x30)
           end: char(0x35)
           inclusive: false
           cursor: char(0x30)
         }
       loop
-        let __step_4: Yield(char) | null =
-          call :Yield(char) | null
+        let __step_4: Yield<char> | null =
+          call :Yield<char> | null
             callee:
               next :?
             arg0:
-              __iter_3 :Range(char)
+              __iter_3 :Range<char>
         if :void
           cond:
             is null :bool
-              __step_4 :Yield(char) | null
+              __step_4 :Yield<char> | null
           then:
             break
           else:
             let c: char =
               .value :char
-                cast → Yield(char)
-                  __step_4 :Yield(char) | null
+                cast → Yield<char>
+                  __step_4 :Yield<char> | null
             assign
               target:
                 m :i32

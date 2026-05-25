@@ -7,11 +7,11 @@ fn snippet$main() -> i32
     %0 $k_0: i32
     %1 $k_1: i32
     %2 sum: i32 (local sum)
-    %3 __iter_0: Repeat(i32) (synthetic __iter_0)
-    %4 $call_7: Yield(i32) | null
-    %5 __step_1: Yield(i32) | null (synthetic __step_1)
+    %3 __iter_0: Repeat<i32> (synthetic __iter_0)
+    %4 $call_7: Yield<i32> | null
+    %5 __step_1: Yield<i32> | null (synthetic __step_1)
     %6 $type_check_9: bool
-    %7 $cast_10: Yield(i32)
+    %7 $cast_10: Yield<i32>
     %8 x: i32 (binding x)
     %9 $intrinsic_14: ?
     %10 __sb_2: ? (synthetic __sb_2)
@@ -20,13 +20,13 @@ fn snippet$main() -> i32
   bb0:
     %0 = const int(42) :i32
     %1 = const int(3) :i32
-    %3 = struct_new Repeat(i32)(%0, %1)
+    %3 = struct_new Repeat<i32>(%0, %1)
     %2 = const int(0) :i32
     branch -> bb1
   bb1:
     branch -> bb2
   bb2:
-    %4 = call next(%3) :Yield(i32) | null
+    %4 = call next(%3) :Yield<i32> | null
     %5 = move %4
     %6 = type_check %5 is null
     cond_branch %6 ? bb4 : bb5
@@ -41,16 +41,16 @@ fn snippet$main() -> i32
   bb4:
     branch -> bb3
   bb5:
-    %7 = cast %5 :Yield(i32)
+    %7 = cast %5 :Yield<i32>
     %8 = field_get %7.value :i32
     %2 = binop add %2 %8 :i32
     branch -> bb6
   bb6:
     branch -> bb1
 
-fn snippet$Repeat$Iterator$next__i32(%0: Repeat(Any)) -> null | Yield(Any)
+fn snippet$Repeat$Iterator$next__i32(%0: Repeat<Any>) -> null | Yield<Any>
   locals:
-    %0 self: Repeat(Any) (param self)
+    %0 self: Repeat<Any> (param self)
     %1 $field_1: i32
     %2 $k_2: i32
     %3 $lte_3: bool
@@ -59,7 +59,7 @@ fn snippet$Repeat$Iterator$next__i32(%0: Repeat(Any)) -> null | Yield(Any)
     %6 $field_7: i32
     %7 $k_8: i32
     %8 $sub_9: i32
-    %9 $struct_10: Yield(Any)
+    %9 $struct_10: Yield<Any>
   bb0:
     %1 = field_get %0.remaining :i32
     %2 = const int(0) :i32
@@ -74,5 +74,5 @@ fn snippet$Repeat$Iterator$next__i32(%0: Repeat(Any)) -> null | Yield(Any)
     %7 = const int(1) :i32
     %8 = binop sub %6 %7 :i32
     field_set %0.remaining = %8
-    %9 = struct_new Yield(Any)(%5)
+    %9 = struct_new Yield<Any>(%5)
     return %9

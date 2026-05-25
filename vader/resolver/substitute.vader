@@ -24,11 +24,11 @@ AST :: import "vader/parser"
 /// Name → replacement TypeExpr. Built by callers (materialize entry
 /// points) and passed once through the substitution walker.
 export Subst :: struct {
-    entries: MutableMap(string, AST.TypeExpr)
+    entries: MutableMap<string, AST.TypeExpr>
 }
 
 export new_subst :: fn() -> Subst {
-    return Subst { .entries = MutableMap(string, AST.TypeExpr) { .buckets = [], .size = 0 } }
+    return Subst { .entries = MutableMap<string, AST.TypeExpr> { .buckets = [], .size = 0 } }
 }
 
 /// Bind `name` → `replacement`. `replacement` is treated as the

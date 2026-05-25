@@ -25,10 +25,10 @@ import "vader/parser" { EnumDecl, EnumVariant }
 /// downstream phases don't cascade with "unknown variant" noise.
 export resolve_enum_indices :: fn(
     decl: EnumDecl, repr: string, diags: Diagnostic[],
-) -> MutableMap(string, i64) {
-    out :: MutableMap(string, i64) { .buckets = [], .size = 0 }
-    seen_values :: MutableSet(i64) {
-        .inner = MutableMap(i64, bool) { .buckets = [], .size = 0 },
+) -> MutableMap<string, i64> {
+    out :: MutableMap<string, i64> { .buckets = [], .size = 0 }
+    seen_values :: MutableSet<i64> {
+        .inner = MutableMap<i64, bool> { .buckets = [], .size = 0 },
     }
     range :: repr_range(repr)
     cursor: i64 = 0
@@ -59,7 +59,7 @@ export resolve_enum_indices :: fn(
     return out
 }
 
-find_owner :: fn(out: MutableMap(string, i64), target: i64) -> string {
+find_owner :: fn(out: MutableMap<string, i64>, target: i64) -> string {
     for k in out.keys() {
         v :: out[k]
         if v is i64 { if v == target { return k } }
@@ -120,7 +120,7 @@ import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
 import "vader/parser" { Decl }
 
-expect_index :: fn(indices: MutableMap(string, i64), name: string, want: i64) -> void {
+expect_index :: fn(indices: MutableMap<string, i64>, name: string, want: i64) -> void {
     hit :: indices[name]
     match hit {
         is null -> { assert(false, "missing index for ${name}") }

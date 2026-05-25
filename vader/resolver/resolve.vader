@@ -43,53 +43,53 @@ export ResolvedModule :: struct {
     /// `type_from_expr` can't find an ident's span in `idents` (e.g. a
     /// sibling file's fn signature references a type declared in another
     /// sibling file — the resolver's body walker only visits `files[0]`).
-    symbols_by_name: MutableMap(string, Symbol)
-    idents:  MutableMap(i64, Symbol)
+    symbols_by_name: MutableMap<string, Symbol>
+    idents:  MutableMap<i64, Symbol>
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
     /// Consumed by stmt.vader::check_assign to surface T3041.
-    immutable_locals: MutableMap(i32, bool)
+    immutable_locals: MutableMap<i32, bool>
     /// `fn_overloads[name]` carries every Symbol minted for a given
     /// fn name — only one of which lands in `symbols`. The typecheck
     /// dump iterates this to surface every overload.
-    fn_overloads: MutableMap(string, Symbol[])
+    fn_overloads: MutableMap<string, Symbol[]>
     /// Auto-loaded `std/core` symbols (Error, Range, Field, …). Used
     /// as fallback for `type_from_expr` when the local resolver scope
     /// didn't bind the ident (since the resolver doesn't know about
     /// `std/core`'s auto-load). Populated by the typecheck orchestrator.
-    core_symbols: MutableMap(string, Symbol)
+    core_symbols: MutableMap<string, Symbol>
     /// `imports_to[sym.id]` follows an ImportBinding symbol to its
     /// concrete exported counterpart. Lets `type_from_expr` resolve
     /// `ParseError` to the real struct symbol on the std/string side
     /// instead of the local import binding. Populated by the
     /// typecheck orchestrator after `wire_imports`.
-    imports_to: MutableMap(i32, Symbol)
+    imports_to: MutableMap<i32, Symbol>
     /// `alias_types[sym.id]` carries the resolved Type for any
     /// `TypeAlias` symbol (local or imported). Lets `type_from_expr`
     /// expand `Maybe(T)` to `T | null` instead of leaving it as a
     /// placeholder StructType. Populated by the typecheck orchestrator.
-    alias_types: MutableMap(i32, Type)
+    alias_types: MutableMap<i32, Type>
     /// `alias_decls[sym.id]` carries the `TypeAliasDecl` AST node so
     /// `type_from_expr` can substitute the alias's type-params when
     /// instantiated (e.g. `Maybe(i32)` → `i32 | null`).
-    alias_decls: MutableMap(i32, TypeAliasDecl)
+    alias_decls: MutableMap<i32, TypeAliasDecl>
     /// `type_param_bounds[type_param_sym.id]` → bound TypeExpr (e.g.
     /// `fn[T: Add]` records the `Add` ident here). Consumed by
     /// `field.vader` so `x.method()` on a bounded TypeParam can
     /// dispatch to the trait's declared method.
-    type_param_bounds: MutableMap(i32, Expr)
+    type_param_bounds: MutableMap<i32, Expr>
     /// R-code diagnostics emitted during body resolution.
     /// Forwarded to the typecheck CLI's `# Diagnostics` block.
     diags: Diagnostic[]
     /// `Symbol.id → message` for every decl annotated with
     /// `@deprecated("...")`. `expr.vader` reads this when an
     /// IdentExpr references a deprecated decl and emits W0001.
-    deprecated_messages: MutableMap(i32, string)
+    deprecated_messages: MutableMap<i32, string>
     /// `namespace_sym.id → field_name → Type` for every `P :: import
     /// "..."` namespace binding. Lets `type_from_expr`'s FieldExpr
     /// arm resolve `P.Decl` in type position without needing
     /// TypedProgram. Populated by the typecheck orchestrator after
     /// `namespace_exports` builds.
-    namespace_member_types: MutableMap(i32, MutableMap(string, Type))
+    namespace_member_types: MutableMap<i32, MutableMap<string, Type>>
 }
 
 export ResolvedProject :: struct {
@@ -149,14 +149,14 @@ export resolve_module_with_collected_dp :: fn(
         .idents           = file.idents,
         .immutable_locals = file.immutable_locals,
         .fn_overloads     = collected.fn_overloads,
-        .core_symbols     = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
-        .imports_to       = MutableMap(i32, Symbol) { .buckets = [], .size = 0 },
-        .alias_types      = MutableMap(i32, Type) { .buckets = [], .size = 0 },
-        .alias_decls      = MutableMap(i32, TypeAliasDecl) { .buckets = [], .size = 0 },
+        .core_symbols     = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
+        .imports_to       = MutableMap<i32, Symbol> { .buckets = [], .size = 0 },
+        .alias_types      = MutableMap<i32, Type> { .buckets = [], .size = 0 },
+        .alias_decls      = MutableMap<i32, TypeAliasDecl> { .buckets = [], .size = 0 },
         .type_param_bounds = file.type_param_bounds,
         .diags            = file.diags,
-        .deprecated_messages = MutableMap(i32, string) { .buckets = [], .size = 0 },
-        .namespace_member_types = MutableMap(i32, MutableMap(string, Type)) { .buckets = [], .size = 0 },
+        .deprecated_messages = MutableMap<i32, string> { .buckets = [], .size = 0 },
+        .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> { .buckets = [], .size = 0 },
     }
 }
 

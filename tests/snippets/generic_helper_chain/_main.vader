@@ -7,16 +7,16 @@ module "snippet"
 
 import "std/io" { println }
 
-Box :: struct[T] { value: T }
+Box :: struct<T> { value: T }
 
-inner :: fn[T](x: T) -> T { return x }
+inner :: fn<T>(x: T) -> T { return x }
 
-middle :: fn[T](x: T) -> Box(T) {
-    return Box(T) { .value = inner(x) }
+middle :: fn<T>(x: T) -> Box<T> {
+    return Box<T> { .value = inner(x) }
 }
 
-outer :: fn[T](x: T) -> Box(Box(T)) {
-    return Box(Box(T)) { .value = middle(x) }
+outer :: fn<T>(x: T) -> Box<Box<T>> {
+    return Box<Box<T>> { .value = middle(x) }
 }
 
 main :: fn() -> i32 {

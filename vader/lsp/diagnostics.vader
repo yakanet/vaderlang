@@ -60,7 +60,7 @@ publish :: fn(uri: string, diags: Diagnostic[]) -> void {
         if is_unresolved_cascade(d) { continue }
         items.push(encode_diagnostic(d))
     }
-    params :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    params :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
     params["uri"]         = JsonString { .value = uri }
     params["diagnostics"] = JsonArray { .items = items }
     write_frame(encode_notification("textDocument/publishDiagnostics", JsonObject { .entries = params }))
@@ -71,7 +71,7 @@ is_unresolved_cascade :: fn(d: Diagnostic) = "?" in d.detail
 // ---- encoding ------------------------------------------------------------
 
 encode_diagnostic :: fn(d: Diagnostic) -> JsonValue {
-    obj :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
     obj["range"]    = encode_range(d.primary)
     obj["severity"] = JsonNumber { .value = f64(lsp_severity(d.severity)) }
     obj["code"]     = JsonString { .value = d.code.id }
@@ -81,13 +81,13 @@ encode_diagnostic :: fn(d: Diagnostic) -> JsonValue {
 }
 
 encode_range :: fn(s: Span) -> JsonValue {
-    start :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    start :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
     start["line"]      = JsonNumber { .value = f64(s.start.line - i32(1)) }
     start["character"] = JsonNumber { .value = f64(s.start.column - i32(1)) }
-    end :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    end :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
     end["line"]        = JsonNumber { .value = f64(s.end.line - i32(1)) }
     end["character"]   = JsonNumber { .value = f64(s.end.column - i32(1)) }
-    range :: MutableMap(string, JsonValue) { .buckets = [], .size = 0 }
+    range :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
     range["start"] = JsonObject { .entries = start }
     range["end"]   = JsonObject { .entries = end }
     return JsonObject { .entries = range }

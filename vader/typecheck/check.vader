@@ -30,7 +30,7 @@ export CheckResult :: struct {
     /// bytecode emit) read this so std-defined impls
     /// (`MutableMap[K,V] implements IndexSet[K, V]`, etc.) are
     /// reachable. `others` keeps the legacy filter that skips std/.
-    all_modules: MutableMap(string, TypedProgram)
+    all_modules: MutableMap<string, TypedProgram>
 }
 
 /// Type-check `program` (parsed + resolved against `resolved`). Returns
@@ -46,7 +46,7 @@ export check_module :: fn(
     declare_module(program.decls, resolved, typed, factory, diags)
     return CheckResult {
         .typed = typed, .impls = impls, .others = [],
-        .all_modules = MutableMap(string, TypedProgram) { .buckets = [], .size = 0 },
+        .all_modules = MutableMap<string, TypedProgram> { .buckets = [], .size = 0 },
     }
 }
 

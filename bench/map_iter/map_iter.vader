@@ -13,7 +13,7 @@ INNER_KEYS :: 1_000
 OUTER_LOOPS :: 1_000
 
 main :: fn() -> i32 {
-    m := MutableMap(i32, i32) { .buckets = [], .size = 0 }
+    m := MutableMap<i32, i32> { .buckets = [], .size = 0 }
     for i in 0..<INNER_KEYS {
         m[i] = i
     }

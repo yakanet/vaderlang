@@ -8,12 +8,12 @@ import "std/io" { println }
 
 Countdown :: struct { remaining: i32 }
 
-Countdown implements Iterator(i32) {
-    next :: fn(self) -> Yield(i32) | null {
+Countdown implements Iterator<i32> {
+    next :: fn(self) -> Yield<i32> | null {
         if self.remaining <= 0 { return null }
         v :: self.remaining
         self.remaining = self.remaining - 1
-        return Yield(i32) { .value = v }
+        return Yield<i32> { .value = v }
     }
 }
 

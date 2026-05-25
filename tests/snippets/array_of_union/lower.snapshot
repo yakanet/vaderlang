@@ -2,8 +2,8 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let arr: (Node(i32) | null)[] =
-      array :(Node(i32) | null)[]
+    let arr: (Node<i32> | null)[] =
+      array :(Node<i32> | null)[]
     LoweredArrayPush
     LoweredArrayPush
     call :void
@@ -26,19 +26,19 @@
           ~>
             @builder.finish :string
               __sb_0 :?
-    let cell: Node(i32) | null =
-      index :Node(i32) | null
+    let cell: Node<i32> | null =
+      index :Node<i32> | null
         on:
-          arr :(Node(i32) | null)[]
+          arr :(Node<i32> | null)[]
         ix:
           int(1) :i32
     block :void
-      let __scrut_1: Node(i32) | null = cell :Node(i32) | null
+      let __scrut_1: Node<i32> | null = cell :Node<i32> | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_1 :Node(i32) | null
+              __scrut_1 :Node<i32> | null
           then:
             ~>
               call :void
@@ -50,8 +50,8 @@
             ~>
               if :void
                 cond:
-                  is Node(i32) :bool
-                    __scrut_1 :Node(i32) | null
+                  is Node<i32> :bool
+                    __scrut_1 :Node<i32> | null
                 then:
                   ~>
                     call :void
@@ -63,5 +63,5 @@
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return int(0) :i32
-  struct snippet$Node__i32 { value: Any, next: Node(Any) | null }
-  struct snippet$Node__Any { value: Any, next: Node(Any) | null }
+  struct snippet$Node__i32 { value: Any, next: Node<Any> | null }
+  struct snippet$Node__Any { value: Any, next: Node<Any> | null }

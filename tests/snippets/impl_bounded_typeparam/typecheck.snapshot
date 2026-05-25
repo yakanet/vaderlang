@@ -5,25 +5,25 @@
   StructDecl     Dog                  :: Dog
   FnDecl         main                 :: fn() -> i32
   TraitDecl      Tag                  :: Tag
-  StructDecl     Wrap                 :: Wrap(T)
+  StructDecl     Wrap                 :: Wrap<T>
   expr 11:57    FieldExpr      :: string
   expr 11:57    IdentExpr      :: Cat
   expr 14:57    FieldExpr      :: string
   expr 14:57    IdentExpr      :: Dog
   expr 22:16    StringLitExpr  :: string
-  expr 27:10    StructLitExpr  :: Wrap(Cat)
+  expr 27:10    StructLitExpr  :: Wrap<Cat>
   expr 27:31    StructLitExpr  :: Cat
   expr 27:45    StringLitExpr  :: string
-  expr 28:10    StructLitExpr  :: Wrap(Dog)
+  expr 28:10    StructLitExpr  :: Wrap<Dog>
   expr 28:31    StructLitExpr  :: Dog
   expr 28:45    StringLitExpr  :: string
   expr 29:13    CallExpr       :: string
   expr 29:13    FieldExpr      :: fn() -> string
-  expr 29:13    IdentExpr      :: Wrap(Cat)
+  expr 29:13    IdentExpr      :: Wrap<Cat>
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(T) -> void
   expr 30:13    CallExpr       :: string
   expr 30:13    FieldExpr      :: fn() -> string
-  expr 30:13    IdentExpr      :: Wrap(Dog)
+  expr 30:13    IdentExpr      :: Wrap<Dog>
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(T) -> void

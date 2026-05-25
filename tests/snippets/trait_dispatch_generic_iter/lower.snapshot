@@ -1,21 +1,21 @@
 # Lower
 
 ## snippet
-  fn snippet$walk(it: Iterator(i32)) -> i32
+  fn snippet$walk(it: Iterator<i32>) -> i32
     let sum: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
       ~>
         block :void
-          let __scrut_0: null | Yield(i32) =
-            vcall Iterator.next :null | Yield(i32)
+          let __scrut_0: null | Yield<i32> =
+            vcall Iterator.next :null | Yield<i32>
               recv:
-                it :Iterator(i32)
+                it :Iterator<i32>
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield(i32)
+                  __scrut_0 :null | Yield<i32>
               then:
                 ~>
                   block :void
@@ -28,12 +28,12 @@
                 ~>
                   if :void
                     cond:
-                      is Yield(i32) :bool
-                        __scrut_0 :null | Yield(i32)
+                      is Yield<i32> :bool
+                        __scrut_0 :null | Yield<i32>
                     then:
-                      let y: Yield(i32) =
-                        cast → Yield(i32)
-                          __scrut_0 :null | Yield(i32)
+                      let y: Yield<i32> =
+                        cast → Yield<i32>
+                          __scrut_0 :null | Yield<i32>
                       ~>
                         block :void
                           assign
@@ -45,19 +45,19 @@
                                   sum :i32
                                 r:
                                   .value :i32
-                                    y :Yield(i32)
+                                    y :Yield<i32>
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return sum :i32
   fn snippet$main() -> i32
-    let r: Repeat(i32) =
-      Repeat(i32) {
+    let r: Repeat<i32> =
+      Repeat<i32> {
         value: int(7) :i32
         remaining: int(3) :i32
       }
-    let o: Once(i32) =
-      Once(i32) {
+    let o: Once<i32> =
+      Once<i32> {
         value: int(100) :i32
         yielded: false
       }
@@ -75,9 +75,9 @@
             __sb_0 :?
             call :i32
               callee:
-                walk :fn(Iterator(i32)) -> i32
+                walk :fn(Iterator<i32>) -> i32
               arg0:
-                r :Repeat(i32)
+                r :Repeat<i32>
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -95,57 +95,57 @@
             __sb_1 :?
             call :i32
               callee:
-                walk :fn(Iterator(i32)) -> i32
+                walk :fn(Iterator<i32>) -> i32
               arg0:
-                o :Once(i32)
+                o :Once<i32>
           ~>
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
   struct snippet$Repeat__i32 { value: Any, remaining: i32 }
-  fn snippet$Repeat$Iterator$next__i32(self: Repeat(Any)) -> null | Yield(Any)
+  fn snippet$Repeat$Iterator$next__i32(self: Repeat<Any>) -> null | Yield<Any>
     if :void
       cond:
         lte :bool
           l:
             .remaining :i32
-              self :Repeat(Any)
+              self :Repeat<Any>
           r:
             int(0) :i32
       then:
         return null
     let v: Any =
       .value :Any
-        self :Repeat(Any)
+        self :Repeat<Any>
     assign
       target:
         .remaining :i32
-          self :Repeat(Any)
+          self :Repeat<Any>
       value:
         sub :i32
           l:
             .remaining :i32
-              self :Repeat(Any)
+              self :Repeat<Any>
           r:
             int(1) :i32
     return
-      Yield(Any) {
+      Yield<Any> {
         value: v :Any
       }
-  fn snippet$Repeat$Iterator$is_empty__i32(self: Repeat(Any)) -> bool
+  fn snippet$Repeat$Iterator$is_empty__i32(self: Repeat<Any>) -> bool
     ~>
       block :bool
-        let __scrut_0: null | Yield(Any) =
-          call :null | Yield(Any)
+        let __scrut_0: null | Yield<Any> =
+          call :null | Yield<Any>
             callee:
-              next :null | Yield(Any)
+              next :null | Yield<Any>
             arg0:
-              self :Repeat(Any)
+              self :Repeat<Any>
         ~>
           if :bool
             cond:
               is null :bool
-                __scrut_0 :null | Yield(Any)
+                __scrut_0 :null | Yield<Any>
             then:
               ~>
                 true
@@ -153,31 +153,31 @@
               ~>
                 if :bool
                   cond:
-                    is Yield(Any) :bool
-                      __scrut_0 :null | Yield(Any)
+                    is Yield<Any> :bool
+                      __scrut_0 :null | Yield<Any>
                   then:
                     ~>
                       false
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :bool
-  fn snippet$Repeat$Iterator$count__i32(self: Repeat(Any)) -> usize
+  fn snippet$Repeat$Iterator$count__i32(self: Repeat<Any>) -> usize
     let total: usize = int(0) :usize
     let finished: bool = false
     loop while (<…>)
       ~>
         block :void
-          let __scrut_0: null | Yield(Any) =
-            call :null | Yield(Any)
+          let __scrut_0: null | Yield<Any> =
+            call :null | Yield<Any>
               callee:
-                next :null | Yield(Any)
+                next :null | Yield<Any>
               arg0:
-                self :Repeat(Any)
+                self :Repeat<Any>
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield(Any)
+                  __scrut_0 :null | Yield<Any>
               then:
                 ~>
                   block :void
@@ -190,8 +190,8 @@
                 ~>
                   if :void
                     cond:
-                      is Yield(Any) :bool
-                        __scrut_0 :null | Yield(Any)
+                      is Yield<Any> :bool
+                        __scrut_0 :null | Yield<Any>
                     then:
                       ~>
                         block :void
@@ -208,23 +208,23 @@
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return total :usize
-  fn snippet$Repeat$Iterator$last__i32(self: Repeat(Any)) -> Any | null
+  fn snippet$Repeat$Iterator$last__i32(self: Repeat<Any>) -> Any | null
     let result: Any | null = null
     let finished: bool = false
     loop while (<…>)
       ~>
         block :void
-          let __scrut_0: null | Yield(Any) =
-            call :null | Yield(Any)
+          let __scrut_0: null | Yield<Any> =
+            call :null | Yield<Any>
               callee:
-                next :null | Yield(Any)
+                next :null | Yield<Any>
               arg0:
-                self :Repeat(Any)
+                self :Repeat<Any>
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield(Any)
+                  __scrut_0 :null | Yield<Any>
               then:
                 ~>
                   block :void
@@ -237,12 +237,12 @@
                 ~>
                   if :void
                     cond:
-                      is Yield(Any) :bool
-                        __scrut_0 :null | Yield(Any)
+                      is Yield<Any> :bool
+                        __scrut_0 :null | Yield<Any>
                     then:
-                      let y: Yield(Any) =
-                        cast → Yield(Any)
-                          __scrut_0 :null | Yield(Any)
+                      let y: Yield<Any> =
+                        cast → Yield<Any>
+                          __scrut_0 :null | Yield<Any>
                       ~>
                         block :void
                           assign
@@ -250,45 +250,45 @@
                               result :Any | null
                             value:
                               .value :Any
-                                y :Yield(Any)
+                                y :Yield<Any>
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return result :Any | null
   struct snippet$Once__i32 { value: Any, yielded: bool }
-  fn snippet$Once$Iterator$next__i32(self: Once(Any)) -> null | Yield(Any)
+  fn snippet$Once$Iterator$next__i32(self: Once<Any>) -> null | Yield<Any>
     if :void
       cond:
         .yielded :bool
-          self :Once(Any)
+          self :Once<Any>
       then:
         return null
     assign
       target:
         .yielded :bool
-          self :Once(Any)
+          self :Once<Any>
       value:
         true
     return
-      Yield(Any) {
+      Yield<Any> {
         value:
           .value :Any
-            self :Once(Any)
+            self :Once<Any>
       }
-  fn snippet$Once$Iterator$is_empty__i32(self: Once(Any)) -> bool
+  fn snippet$Once$Iterator$is_empty__i32(self: Once<Any>) -> bool
     ~>
       block :bool
-        let __scrut_0: null | Yield(Any) =
-          call :null | Yield(Any)
+        let __scrut_0: null | Yield<Any> =
+          call :null | Yield<Any>
             callee:
-              next :null | Yield(Any)
+              next :null | Yield<Any>
             arg0:
-              self :Once(Any)
+              self :Once<Any>
         ~>
           if :bool
             cond:
               is null :bool
-                __scrut_0 :null | Yield(Any)
+                __scrut_0 :null | Yield<Any>
             then:
               ~>
                 true
@@ -296,31 +296,31 @@
               ~>
                 if :bool
                   cond:
-                    is Yield(Any) :bool
-                      __scrut_0 :null | Yield(Any)
+                    is Yield<Any> :bool
+                      __scrut_0 :null | Yield<Any>
                   then:
                     ~>
                       false
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :bool
-  fn snippet$Once$Iterator$count__i32(self: Once(Any)) -> usize
+  fn snippet$Once$Iterator$count__i32(self: Once<Any>) -> usize
     let total: usize = int(0) :usize
     let finished: bool = false
     loop while (<…>)
       ~>
         block :void
-          let __scrut_0: null | Yield(Any) =
-            call :null | Yield(Any)
+          let __scrut_0: null | Yield<Any> =
+            call :null | Yield<Any>
               callee:
-                next :null | Yield(Any)
+                next :null | Yield<Any>
               arg0:
-                self :Once(Any)
+                self :Once<Any>
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield(Any)
+                  __scrut_0 :null | Yield<Any>
               then:
                 ~>
                   block :void
@@ -333,8 +333,8 @@
                 ~>
                   if :void
                     cond:
-                      is Yield(Any) :bool
-                        __scrut_0 :null | Yield(Any)
+                      is Yield<Any> :bool
+                        __scrut_0 :null | Yield<Any>
                     then:
                       ~>
                         block :void
@@ -351,23 +351,23 @@
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return total :usize
-  fn snippet$Once$Iterator$last__i32(self: Once(Any)) -> Any | null
+  fn snippet$Once$Iterator$last__i32(self: Once<Any>) -> Any | null
     let result: Any | null = null
     let finished: bool = false
     loop while (<…>)
       ~>
         block :void
-          let __scrut_0: null | Yield(Any) =
-            call :null | Yield(Any)
+          let __scrut_0: null | Yield<Any> =
+            call :null | Yield<Any>
               callee:
-                next :null | Yield(Any)
+                next :null | Yield<Any>
               arg0:
-                self :Once(Any)
+                self :Once<Any>
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield(Any)
+                  __scrut_0 :null | Yield<Any>
               then:
                 ~>
                   block :void
@@ -380,12 +380,12 @@
                 ~>
                   if :void
                     cond:
-                      is Yield(Any) :bool
-                        __scrut_0 :null | Yield(Any)
+                      is Yield<Any> :bool
+                        __scrut_0 :null | Yield<Any>
                     then:
-                      let y: Yield(Any) =
-                        cast → Yield(Any)
-                          __scrut_0 :null | Yield(Any)
+                      let y: Yield<Any> =
+                        cast → Yield<Any>
+                          __scrut_0 :null | Yield<Any>
                       ~>
                         block :void
                           assign
@@ -393,7 +393,7 @@
                               result :Any | null
                             value:
                               .value :Any
-                                y :Yield(Any)
+                                y :Yield<Any>
                     else:
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void

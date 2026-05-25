@@ -5,25 +5,25 @@
 ## tests/snippets/trait_box_range_iter
 
 ## generic instances
-  Into(Target)
-  Greeter(T)
-  Greeter(T)
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(i32)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  Doubler(T)
-  Doubler(T)
+  Into<Target>
+  Greeter<T>
+  Greeter<T>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<i32>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  Doubler<T>
+  Doubler<T>

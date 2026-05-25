@@ -43,7 +43,7 @@ export DataPoolEntry :: struct {
 /// Project-wide lowered output. Cross-module shape ; downstream phases
 /// (bytecode emit, C emit, DCE) read this directly.
 export LoweredProject :: struct {
-    modules:        MutableMap(string, LoweredModule)
+    modules:        MutableMap<string, LoweredModule>
     vtable_entries: VtableEntry[]
     data_pool:      DataPoolEntry[]
 }
@@ -515,7 +515,7 @@ export INTRINSIC_SIZE_OF_TYPE           :: "size_of.type"
 /// @return  a fresh project with empty modules + side-tables.
 export new_lowered_project :: fn() -> LoweredProject {
     return LoweredProject {
-        .modules        = MutableMap(string, LoweredModule) { .buckets = [], .size = 0 },
+        .modules        = MutableMap<string, LoweredModule> { .buckets = [], .size = 0 },
         .vtable_entries = [],
         .data_pool      = [],
     }

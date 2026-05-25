@@ -4,7 +4,7 @@ import "std/io" { println }
 import "std/collections" { MutableMap, MutableSet, add, contains, len }
 
 main :: fn() -> i32 {
-    s := MutableSet(i32) { .inner = MutableMap(i32, bool) { .buckets = [], .size = 0 } }
+    s := MutableSet<i32> { .inner = MutableMap<i32, bool> { .buckets = [], .size = 0 } }
     println("new? ${s.add(10)}")
     println("new? ${s.add(20)}")
     println("new? ${s.add(10)}")  // duplicate

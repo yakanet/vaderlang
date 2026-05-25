@@ -147,8 +147,8 @@
                 __for_i_8 :usize
               r:
                 int(1) :usize
-    let r: Range(i32) =
-      Range(i32) {
+    let r: Range<i32> =
+      Range<i32> {
         start: int(2) :i32
         end: int(5) :i32
         inclusive: false
@@ -156,7 +156,7 @@
       }
     let s3: i32[] =
       block :i32[]
-        let __slice_r_10: Range(i32) = r :Range(i32)
+        let __slice_r_10: Range<i32> = r :Range<i32>
         ~>
           slice :i32[]
             on:
@@ -164,18 +164,18 @@
             lo:
               cast → usize
                 .start :i32
-                  __slice_r_10 :Range(i32)
+                  __slice_r_10 :Range<i32>
             hi:
               add :usize
                 l:
                   cast → usize
                     .end :i32
-                      __slice_r_10 :Range(i32)
+                      __slice_r_10 :Range<i32>
                 r:
                   if :usize
                     cond:
                       .inclusive :bool
-                        __slice_r_10 :Range(i32)
+                        __slice_r_10 :Range<i32>
                     then:
                       ~>
                         int(1) :usize

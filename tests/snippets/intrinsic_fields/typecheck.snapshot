@@ -2,7 +2,7 @@
 
 ## tests/snippets/intrinsic_fields
   FnDecl         main                 :: fn() -> i32
-  StructDecl     Pair                 :: Pair(K, V)
+  StructDecl     Pair                 :: Pair<K, V>
   StructDecl     Point                :: Point
   expr 22:14    IntrinsicCallExpr :: Field[]
   expr 23:17    StringLitExpr  :: string

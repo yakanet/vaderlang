@@ -179,7 +179,7 @@ is_generic_for_type :: fn(impl_decl: ImplDecl) -> bool {
 /// type-params resolve to symbols in *that* program, distinct from
 /// the struct's own program).
 GenericImplsByStruct :: struct {
-    by_struct_name: MutableMap(string, GenericImplsBucket)
+    by_struct_name: MutableMap<string, GenericImplsBucket>
 }
 
 GenericImplsBucket :: struct {
@@ -196,7 +196,7 @@ GenericImplEntry :: struct {
 /// name.
 build_generic_impls_by_struct :: fn(loaded: LoadedProject, typed: TypedProject) -> GenericImplsByStruct {
     table :: GenericImplsByStruct {
-        .by_struct_name = MutableMap(string, GenericImplsBucket) { .buckets = [], .size = 0 },
+        .by_struct_name = MutableMap<string, GenericImplsBucket> { .buckets = [], .size = 0 },
     }
     for module_id in typed.modules.keys() {
         module_typed :: typed.modules[module_id]
@@ -519,7 +519,7 @@ find_fn_by_span :: fn(decls: Decl[], sym: Symbol) -> FnDecl | null {
 /// `impl_method_entries` shape so the bytecode emit can resolve
 /// either via one indexed lookup.
 put_fn_instance_entry :: fn(
-    table: MutableMap(string, MonoEntry),
+    table: MutableMap<string, MonoEntry>,
     fn_decl: FnDecl, args: Type[], entry: MonoEntry,
 ) -> void {
     table["${fn_decl.id}::${args_key(args)}"] = entry
@@ -739,14 +739,14 @@ synth_member_symbol :: fn(
 PassState :: struct {
     entry_id: i32
     synth_id: i32
-    seen_mangled: MutableMap(string, bool)
+    seen_mangled: MutableMap<string, bool>
 }
 
 new_state :: fn() -> PassState {
     return PassState {
         .entry_id = 0,
         .synth_id = 1_000_000,
-        .seen_mangled = MutableMap(string, bool) { .buckets = [], .size = 0 },
+        .seen_mangled = MutableMap<string, bool> { .buckets = [], .size = 0 },
     }
 }
 
@@ -767,7 +767,7 @@ push_entry :: fn(project: MonoProject, entry: MonoEntry) -> void {
 /// (`MutableMap(string, MonoEntry)`) rather than the nested-map shape
 /// TS uses (`Map<FnDecl, Map<string, MonoEntry>>`).
 put_impl_entry :: fn(
-    table: MutableMap(string, MonoEntry),
+    table: MutableMap<string, MonoEntry>,
     member: FnDecl, args: Type[], entry: MonoEntry,
 ) -> void {
     outer :: outer_impl_key(member, args)
@@ -827,16 +827,16 @@ import "std/testing" { assert_eq }
     // empty `MonoProject` — Pass 1 has nothing to walk.
     loaded :: LoadedProject {
         .entry        = "",
-        .modules      = MutableMap(string, LoadedModule) { .buckets = [], .size = 0 },
+        .modules      = MutableMap<string, LoadedModule> { .buckets = [], .size = 0 },
         .factory      = new_factory(),
         .project_root = null,
         .diags        = [],
     }
     evaluated :: EvaluatedProject {
         .typed        = new_typed_project(),
-        .modules      = MutableMap(string, EvaluatedProgram) { .buckets = [], .size = 0 },
+        .modules      = MutableMap<string, EvaluatedProgram> { .buckets = [], .size = 0 },
         .mono         = new_mono_project(),
-        .file_exprs   = MutableMap(usize, string) { .buckets = [], .size = 0 },
+        .file_exprs   = MutableMap<usize, string> { .buckets = [], .size = 0 },
         .into_members = [],
         .instances    = [],
     }

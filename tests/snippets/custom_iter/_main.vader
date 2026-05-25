@@ -7,14 +7,14 @@ export Countdown :: struct {
     current: i32
 }
 
-Countdown implements Iterator(i32) {
-    next :: fn(self) -> Yield(i32) | null {
+Countdown implements Iterator<i32> {
+    next :: fn(self) -> Yield<i32> | null {
         if (self.current <= 0) {
             return null
         }
         v :: self.current
         self.current = self.current - 1
-        return Yield(i32) { .value = v }
+        return Yield<i32> { .value = v }
     }
 }
 

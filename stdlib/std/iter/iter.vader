@@ -32,7 +32,7 @@
 /// exposed for symmetry with the future Iterator-driven `count(it)`.
 module "std/iter"
 
-export count :: fn[T](arr: T[]) -> usize {
+export count :: fn<T>(arr: T[]) -> usize {
     return arr.len()
 }
 
@@ -41,14 +41,14 @@ export count :: fn[T](arr: T[]) -> usize {
 ///
 /// @param arr  source array.
 /// @return     true when `arr.len() == 0`.
-export is_empty :: fn[T](arr: T[]) -> bool = arr.len() == usize(0)
+export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == usize(0)
 
 /// Clone `arr` into a fresh allocation. Elements are NOT recursively
 /// cloned — for reference types the new array shares element references
 /// with the input. Symmetric with the future Iterator-driven `collect(it)`.
 /// @param arr  source array.
 /// @return     a fresh array with the same elements in the same order.
-export collect :: fn[T](arr: T[]) -> T[] {
+export collect :: fn<T>(arr: T[]) -> T[] {
     out: T[] = []
     for x in arr {
         out.push(x)
@@ -59,7 +59,7 @@ export collect :: fn[T](arr: T[]) -> T[] {
 /// Drain `it` into a fresh array. Pair with the lazy combinators
 /// (`it.filter(p).map(f).collect()`) when a snapshot is required ;
 /// `for x in it` consumes directly without the intermediate array.
-export collect :: fn[T](it: Iterator(T)) -> T[] {
+export collect :: fn<T>(it: Iterator<T>) -> T[] {
     out: T[] = []
     for x in it {
         out.push(x)
@@ -72,7 +72,7 @@ export collect :: fn[T](it: Iterator(T)) -> T[] {
 /// @param arr  source array.
 /// @param f    mapper applied to each element.
 /// @return     a new array with `f` applied per element.
-export map :: fn[T, U](arr: T[], f: fn(T) -> U) -> U[] {
+export map :: fn<T, U>(arr: T[], f: fn(T) -> U) -> U[] {
     out: U[] = []
     for x in arr {
         out.push(f(x))
@@ -84,7 +84,7 @@ export map :: fn[T, U](arr: T[], f: fn(T) -> U) -> U[] {
 /// @param arr   source array.
 /// @param pred  predicate invoked on each element ; truthy → kept.
 /// @return      a fresh array of the kept elements.
-export filter :: fn[T](arr: T[], pred: fn(T) -> bool) -> T[] {
+export filter :: fn<T>(arr: T[], pred: fn(T) -> bool) -> T[] {
     out: T[] = []
     for x in arr {
         if pred(x) {
@@ -105,7 +105,7 @@ export filter :: fn[T](arr: T[], pred: fn(T) -> bool) -> T[] {
 /// @param f     reducer ; takes the running accumulator and the next
 ///              element.
 /// @return      the accumulator after consuming the entire array.
-export fold :: fn[T, U](arr: T[], init: U, f: fn(U, T) -> U) -> U {
+export fold :: fn<T, U>(arr: T[], init: U, f: fn(U, T) -> U) -> U {
     acc := init
     for x in arr {
         acc = f(acc, x)
@@ -128,7 +128,7 @@ export sum :: fn(arr: i32[]) -> i32 {
 /// the source has fewer than `n` elements.
 /// @param arr  source array.
 /// @param n    upper bound on the result length.
-export take :: fn[T](arr: T[], n: usize) -> T[] {
+export take :: fn<T>(arr: T[], n: usize) -> T[] {
     out: T[] = []
     i: usize = 0
     for x in arr {
@@ -145,7 +145,7 @@ export take :: fn[T](arr: T[], n: usize) -> T[] {
 /// `n >= arr.len()` yields an empty array.
 /// @param arr  source array.
 /// @param n    number of leading items to skip.
-export skip :: fn[T](arr: T[], n: usize) -> T[] {
+export skip :: fn<T>(arr: T[], n: usize) -> T[] {
     out: T[] = []
     i: usize = 0
     for x in arr {
@@ -167,14 +167,14 @@ export skip :: fn[T](arr: T[], n: usize) -> T[] {
 /// @param arr    source array.
 /// @param start  inclusive lower bound (clamped to `[0, len]`).
 /// @param end    exclusive upper bound (clamped to `[start, len]`).
-export slice :: fn[T](arr: T[], start: usize, end: usize) -> T[] {
+export slice :: fn<T>(arr: T[], start: usize, end: usize) -> T[] {
     return arr[start..<end]
 }
 
 /// `const T[]` overload — preserves the const-ness of the input through
 /// the view. The result type is `const T[]` so mutation stays rejected
 /// at typecheck on the slice just as on its parent.
-export slice :: fn[T](arr: const T[], start: usize, end: usize) -> const T[] {
+export slice :: fn<T>(arr: const T[], start: usize, end: usize) -> const T[] {
     return arr[start..<end]
 }
 
@@ -188,7 +188,7 @@ export slice :: fn[T](arr: const T[], start: usize, end: usize) -> const T[] {
 /// Naming overlaps with the `Clone` trait in `std/core` (currently
 /// without implementors). When `T[] implements Clone` lands, this free
 /// fn becomes the impl — `arr.clone()` resolves identically either way.
-export clone :: fn[T](arr: const T[]) -> T[] {
+export clone :: fn<T>(arr: const T[]) -> T[] {
     n :: arr.len()
     out: T[] = []
     i: usize = 0
@@ -205,7 +205,7 @@ export clone :: fn[T](arr: const T[]) -> T[] {
 /// @param a  left source array.
 /// @param b  right source array.
 /// @return   `[a[0], b[0]], [a[1], b[1]], …` capped at `min(len(a), len(b))`.
-export zip :: fn[T, U](a: T[], b: U[]) -> [T, U][] {
+export zip :: fn<T, U>(a: T[], b: U[]) -> [T, U][] {
     out: [T, U][] = []
     n :: a.len()
     m :: b.len()
@@ -221,7 +221,7 @@ export zip :: fn[T, U](a: T[], b: U[]) -> [T, U][] {
 /// @param a  first source array.
 /// @param b  second source array, appended after `a`.
 /// @return   a fresh array of `a.len() + b.len()` elements.
-export chain :: fn[T](a: T[], b: T[]) -> T[] {
+export chain :: fn<T>(a: T[], b: T[]) -> T[] {
     out: T[] = []
     for x in a { out.push(x) }
     for x in b { out.push(x) }
@@ -232,7 +232,7 @@ export chain :: fn[T](a: T[], b: T[]) -> T[] {
 /// tuples so callers can `for [i, x] in arr.enumerate() { … }`.
 /// @param arr  source array.
 /// @return     `[[0, arr[0]], [1, arr[1]], …]`.
-export enumerate :: fn[T](arr: T[]) -> [usize, T][] {
+export enumerate :: fn<T>(arr: T[]) -> [usize, T][] {
     out: [usize, T][] = []
     i: usize = 0
     for x in arr {
@@ -248,7 +248,7 @@ export enumerate :: fn[T](arr: T[]) -> [usize, T][] {
 /// @param arr  source array.
 /// @param f    mapper from one element to an array of outputs.
 /// @return     concatenation of `f(arr[0]) ++ f(arr[1]) ++ …`.
-export flat_map :: fn[T, U](arr: T[], f: fn(T) -> U[]) -> U[] {
+export flat_map :: fn<T, U>(arr: T[], f: fn(T) -> U[]) -> U[] {
     out: U[] = []
     for x in arr {
         for y in f(x) {
@@ -269,7 +269,7 @@ export flat_map :: fn[T, U](arr: T[], f: fn(T) -> U[]) -> U[] {
 /// Short-circuits — `pred` is not invoked past the first match.
 /// @param it    source array or iterator.
 /// @param pred  predicate invoked on each element until one returns `true`.
-export any :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> bool {
+export any :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
     for x in it {
         if pred(x) {
             return true
@@ -282,7 +282,7 @@ export any :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> bool {
 /// first `false`. Returns `true` on an empty source (vacuous truth).
 /// @param it    source array or iterator.
 /// @param pred  predicate invoked on each element until one returns `false`.
-export all :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> bool {
+export all :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> bool {
     for x in it {
         if !pred(x) {
             return false
@@ -295,7 +295,7 @@ export all :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> bool {
 /// Consumers narrow naturally : `match arr.find(p) { is T as hit -> … }`.
 /// @param it    source array or iterator.
 /// @param pred  predicate invoked on each element until one returns `true`.
-export find :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> T | null {
+export find :: fn<T>(it: Iterator<T>, pred: fn(T) -> bool) -> T | null {
     for x in it {
         if pred(x) {
             return x
@@ -310,7 +310,7 @@ export find :: fn[T](it: Iterator(T), pred: fn(T) -> bool) -> T | null {
 /// @param it  source array or iterator.
 /// @param f   mapper that returns `null` to skip the element or a value
 ///            to short-circuit on.
-export find_map :: fn[T, U](it: Iterator(T), f: fn(T) -> U | null) -> U | null {
+export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
     for x in it {
         v :: f(x)
         if v != null {
@@ -340,41 +340,41 @@ export find_map :: fn[T, U](it: Iterator(T), f: fn(T) -> U | null) -> U | null {
 /// Fluent lazy `filter`. Distinct from the eager `T[]`-overload above —
 /// the resolver picks this one when the receiver implements `Iterator(T)`
 /// (Range, ArrayIterator, MutableMap, …).
-export filter :: fn[T](self: Iterator(T), pred: fn(T) -> bool) -> FilterIterator(T) {
-    return FilterIterator(T) { .source = self, .pred = pred }
+export filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> FilterIterator<T> {
+    return FilterIterator<T> { .source = self, .pred = pred }
 }
 
 /// Fluent lazy `map`. Mirror of `filter` for transforms ; element type
 /// can change (`T` → `U`).
-export map :: fn[T, U](self: Iterator(T), f: fn(T) -> U) -> MapIterator(T, U) {
-    return MapIterator(T, U) { .source = self, .f = f }
+export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> MapIterator<T, U> {
+    return MapIterator<T, U> { .source = self, .f = f }
 }
 
 /// Fluent lazy `take`. Yields the first `n` items from `self`, then ends.
-export take :: fn[T](self: Iterator(T), n: usize) -> TakeIterator(T) {
-    return TakeIterator(T) { .source = self, .remaining = n }
+export take :: fn<T>(self: Iterator<T>, n: usize) -> TakeIterator<T> {
+    return TakeIterator<T> { .source = self, .remaining = n }
 }
 
 /// Fluent lazy `skip`. Drops the first `n` items from `self`, then forwards
 /// every subsequent item.
-export skip :: fn[T](self: Iterator(T), n: usize) -> SkipIterator(T) {
-    return SkipIterator(T) { .source = self, .remaining = n }
+export skip :: fn<T>(self: Iterator<T>, n: usize) -> SkipIterator<T> {
+    return SkipIterator<T> { .source = self, .remaining = n }
 }
 
 /// Lazy map. `next()` pulls one item from `source`, transforms it via `f`,
 /// and yields it. Stops when the source is exhausted.
 /// Construct as `MapIterator(T, U) { .source = it, .f = mapper }`.
 @specialize
-export MapIterator :: struct[T, U] {
-    source: Iterator(T)
+export MapIterator :: struct<T, U> {
+    source: Iterator<T>
     f:      fn(T) -> U
 }
 
-MapIterator[T, U] implements Iterator[U] {
-    next :: fn(self) -> Yield(U) | null {
+MapIterator<T, U> implements Iterator<U> {
+    next :: fn(self) -> Yield<U> | null {
         match self.source.next() {
             is null         -> { return null }
-            is Yield(T) as y -> { return Yield(U) { .value = self.f(y.value) } }
+            is Yield<T> as y -> { return Yield<U> { .value = self.f(y.value) } }
         }
     }
 }
@@ -383,20 +383,20 @@ MapIterator[T, U] implements Iterator[U] {
 /// `true` ; that one is yielded, the next call resumes the search.
 /// Construct as `FilterIterator(T) { .source = it, .pred = predicate }`.
 @specialize
-export FilterIterator :: struct[T] {
-    source: Iterator(T)
+export FilterIterator :: struct<T> {
+    source: Iterator<T>
     pred:   fn(T) -> bool
 }
 
-FilterIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Yield(T) | null {
+FilterIterator<T> implements Iterator<T> {
+    next :: fn(self) -> Yield<T> | null {
         finished := false
         for !finished {
             match self.source.next() {
                 is null          -> { finished = true }
-                is Yield(T) as y -> {
+                is Yield<T> as y -> {
                     if self.pred(y.value) {
-                        return Yield(T) { .value = y.value }
+                        return Yield<T> { .value = y.value }
                     }
                 }
             }
@@ -410,19 +410,19 @@ FilterIterator[T] implements Iterator[T] {
 /// iterator returns `null` even if `source` still has items.
 /// Construct as `TakeIterator(T) { .source = it, .remaining = n }`.
 @specialize
-export TakeIterator :: struct[T] {
-    source:    Iterator(T)
+export TakeIterator :: struct<T> {
+    source:    Iterator<T>
     remaining: usize
 }
 
-TakeIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Yield(T) | null {
+TakeIterator<T> implements Iterator<T> {
+    next :: fn(self) -> Yield<T> | null {
         if self.remaining == 0 { return null }
         match self.source.next() {
             is null          -> { return null }
-            is Yield(T) as y -> {
+            is Yield<T> as y -> {
                 self.remaining = self.remaining - 1
-                return Yield(T) { .value = y.value }
+                return Yield<T> { .value = y.value }
             }
         }
     }
@@ -433,27 +433,27 @@ TakeIterator[T] implements Iterator[T] {
 /// consumed `remaining` stays at zero so the steady state is a pass-through.
 /// Construct as `SkipIterator(T) { .source = it, .remaining = n }`.
 @specialize
-export SkipIterator :: struct[T] {
-    source:    Iterator(T)
+export SkipIterator :: struct<T> {
+    source:    Iterator<T>
     remaining: usize
 }
 
-SkipIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Yield(T) | null {
+SkipIterator<T> implements Iterator<T> {
+    next :: fn(self) -> Yield<T> | null {
         for self.remaining > 0 {
             match self.source.next() {
                 is null    -> {
                     self.remaining = 0
                     return null
                 }
-                is Yield(T) -> {
+                is Yield<T> -> {
                     self.remaining = self.remaining - 1
                 }
             }
         }
         match self.source.next() {
             is null          -> { return null }
-            is Yield(T) as y -> { return Yield(T) { .value = y.value } }
+            is Yield<T> as y -> { return Yield<T> { .value = y.value } }
         }
     }
 }

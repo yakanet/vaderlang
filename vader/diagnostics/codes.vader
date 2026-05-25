@@ -318,7 +318,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .ImplMissingRequiredMethod          -> CodeInfo { .id = "T3036", .message = "impl block missing required trait method" }
     .MissingRequiredFieldInStructLit    -> CodeInfo { .id = "T3037", .message = "missing required field in struct literal" }
     .FieldAlreadyProvided               -> CodeInfo { .id = "T3038", .message = "field already provided in struct literal" }
-    .IntoIdentityForbidden              -> CodeInfo { .id = "T3039", .message = "`Into(T)` cannot use `T` as its target (identity coercion is forbidden)" }
+    .IntoIdentityForbidden              -> CodeInfo { .id = "T3039", .message = "`Into<T>` cannot use `T` as its target (identity coercion is forbidden)" }
     .UnreachableIsTest                  -> CodeInfo { .id = "T3040", .message = "test can never match — operands have no overlapping values" }
     .CannotReassignConst                -> CodeInfo { .id = "T3041", .message = "cannot reassign a constant binding" }
     .CannotMutateImmutableArray         -> CodeInfo { .id = "T3042", .message = "cannot mutate an immutable array" }

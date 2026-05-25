@@ -106,7 +106,7 @@ is_ident_byte :: fn(b: u8) -> bool {
 /// @param seen        registry of names already taken.
 /// @param candidate   the preferred name ; returned as-is when free.
 /// @return            a fresh name (either `candidate` or `candidate_N`).
-export uniq :: fn(seen: MutableMap(string, bool), candidate: string) -> string {
+export uniq :: fn(seen: MutableMap<string, bool>, candidate: string) -> string {
     existing :: seen[candidate]
     match existing {
         is bool -> {
@@ -193,14 +193,14 @@ import "vader/diagnostics" { Position, Span }
 }
 
 @test test_uniq_returns_candidate_when_free :: fn() -> void {
-    seen :: MutableMap(string, bool) { .buckets = [], .size = 0 }
+    seen :: MutableMap<string, bool> { .buckets = [], .size = 0 }
     assert_eq(uniq(seen, "foo"), "foo")
     // Subsequent registration should reflect the addition.
     assert_eq(uniq(seen, "foo"), "foo_1")
 }
 
 @test test_uniq_skips_already_taken_suffixes :: fn() -> void {
-    seen :: MutableMap(string, bool) { .buckets = [], .size = 0 }
+    seen :: MutableMap<string, bool> { .buckets = [], .size = 0 }
     seen["foo"] = true
     seen["foo_1"] = true
     assert_eq(uniq(seen, "foo"), "foo_2")

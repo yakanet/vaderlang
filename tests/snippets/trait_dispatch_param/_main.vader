@@ -3,7 +3,7 @@
 
 module "snippet"
 
-export hash_twice :: fn[T: Hash](x: T) -> u64 {
+export hash_twice :: fn<T: Hash>(x: T) -> u64 {
     return x.hash() + x.hash()
 }
 

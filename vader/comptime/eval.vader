@@ -118,6 +118,6 @@ import "vader/diagnostics" { empty_span }
 empty_context :: fn() -> ComptimeContext {
     return ComptimeContext {
         .typed    = empty_typed_program(),
-        .bindings = MutableMap(i32, ComptimeValue) { .buckets = [], .size = 0 },
+        .bindings = MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 },
     }
 }

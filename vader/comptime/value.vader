@@ -70,7 +70,7 @@ export ArrayValue :: struct {
 /// evaluation time goes through `fields[name]`.
 export StructValue :: struct {
     type_name: string
-    fields:    MutableMap(string, ComptimeValue)
+    fields:    MutableMap<string, ComptimeValue>
 }
 
 /// `@comptime t :: i32` — the value of `t` is the Type IR itself. The
@@ -212,7 +212,7 @@ import "std/testing" { assert_eq }
 }
 
 @test test_display_struct :: fn() -> void {
-    fields :: MutableMap(string, ComptimeValue) { .buckets = [], .size = 0 }
+    fields :: MutableMap<string, ComptimeValue> { .buckets = [], .size = 0 }
     fields["x"] = int_val(1)
     fields["y"] = int_val(2)
     struct_value :: StructValue { .type_name = "Point", .fields = fields }

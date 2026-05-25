@@ -126,7 +126,7 @@ export unit_f64 :: fn(self: Rng) -> f64 {
 /// In-place Fisher-Yates shuffle. Visits each element once in O(n) ;
 /// O(1) extra memory (one i32 swap helper). Returns nothing — the
 /// input array is permuted directly.
-export shuffle :: fn[T](self: Rng, arr: T[]) -> void {
+export shuffle :: fn<T>(self: Rng, arr: T[]) -> void {
     n :: arr.len()
     if n <= usize(1) { return }
     i: usize = n - 1

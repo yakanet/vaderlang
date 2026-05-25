@@ -12,9 +12,9 @@
 
 module "snippet"
 
-needs_add :: fn[T: Add](x: T) -> T = x
+needs_add :: fn<T: Add>(x: T) -> T = x
 
-bar :: fn[K: Hash & Equals, V](key: K, value: V) -> V = value
+bar :: fn<K: Hash & Equals, V>(key: K, value: V) -> V = value
 
 main :: fn() -> i32 {
     s :: needs_add("hello")

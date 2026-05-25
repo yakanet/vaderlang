@@ -41,20 +41,20 @@ fn snippet$main() -> i32
     %12 $k_12: string
     %13 $intrinsic_13: string
     %14 $k_14: i32
-    %15 $call_15: Box(i32)
-    %16 b: Box(i32) (local b)
+    %15 $call_15: Box<i32>
+    %16 b: Box<i32> (local b)
     %17 $intrinsic_17: ?
     %18 __sb_2: ? (synthetic __sb_2)
     %19 $k_19: string
     %20 $field_20: i32
     %21 $intrinsic_21: string
     %22 $k_22: i32
-    %23 $call_23: Box(Box(i32))
-    %24 nested: Box(Box(i32)) (local nested)
+    %23 $call_23: Box<Box<i32>>
+    %24 nested: Box<Box<i32>> (local nested)
     %25 $intrinsic_25: ?
     %26 __sb_3: ? (synthetic __sb_3)
     %27 $k_27: string
-    %28 $field_28: Box(i32)
+    %28 $field_28: Box<i32>
     %29 $field_29: i32
     %30 $intrinsic_30: string
     %31 $call_31: bool
@@ -86,7 +86,7 @@ fn snippet$main() -> i32
     %13 = intrinsic builder.finish(%11)
     call println(%13) :void
     %14 = const int(7) :i32
-    %15 = call make_box(%14) :Box(i32)
+    %15 = call make_box(%14) :Box<i32>
     %16 = move %15
     %17 = intrinsic builder.new()
     %18 = move %17
@@ -97,13 +97,13 @@ fn snippet$main() -> i32
     %21 = intrinsic builder.finish(%18)
     call println(%21) :void
     %22 = const int(99) :i32
-    %23 = call make_nested(%22) :Box(Box(i32))
+    %23 = call make_nested(%22) :Box<Box<i32>>
     %24 = move %23
     %25 = intrinsic builder.new()
     %26 = move %25
     %27 = const string(#4) :string
     intrinsic builder.append_str(%26, %27)
-    %28 = field_get %24.value :Box(i32)
+    %28 = field_get %24.value :Box<i32>
     %29 = field_get %28.value :i32
     intrinsic builder.append_display(%26, %29)
     %30 = intrinsic builder.finish(%26)
@@ -126,20 +126,20 @@ fn snippet$snippet$identity__i32(%0: Any) -> Any
   bb0:
     return %0
 
-fn snippet$snippet$make_nested__i32(%0: Any) -> Box(Box(Any))
+fn snippet$snippet$make_nested__i32(%0: Any) -> Box<Box<Any>>
   locals:
     %0 v: Any (param v)
-    %1 inner: Box(Any) (local inner)
-    %2 $struct_3: Box(Box(Any))
+    %1 inner: Box<Any> (local inner)
+    %2 $struct_3: Box<Box<Any>>
   bb0:
-    %1 = struct_new Box(Any)(%0)
-    %2 = struct_new Box(Box(Any))(%1)
+    %1 = struct_new Box<Any>(%0)
+    %2 = struct_new Box<Box<Any>>(%1)
     return %2
 
-fn snippet$snippet$make_box__i32(%0: Any) -> Box(Any)
+fn snippet$snippet$make_box__i32(%0: Any) -> Box<Any>
   locals:
     %0 v: Any (param v)
-    %1 $struct_1: Box(Any)
+    %1 $struct_1: Box<Any>
   bb0:
-    %1 = struct_new Box(Any)(%0)
+    %1 = struct_new Box<Any>(%0)
     return %1

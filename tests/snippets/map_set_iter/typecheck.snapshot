@@ -2,35 +2,35 @@
 
 ## tests/snippets/map_set_iter
   FnDecl         main                 :: fn() -> i32
-  expr 10:5     IdentExpr      :: MutableMap(string, i32)
+  expr 10:5     IdentExpr      :: MutableMap<string, i32>
   expr 10:7     StringLitExpr  :: string
-  expr 11:5     IdentExpr      :: MutableMap(string, i32)
+  expr 11:5     IdentExpr      :: MutableMap<string, i32>
   expr 11:7     StringLitExpr  :: string
-  expr 12:5     IdentExpr      :: MutableMap(string, i32)
+  expr 12:5     IdentExpr      :: MutableMap<string, i32>
   expr 12:7     StringLitExpr  :: string
-  expr 14:18    IdentExpr      :: MutableMap(string, i32)
+  expr 14:18    IdentExpr      :: MutableMap<string, i32>
   expr 15:17    BinaryExpr     :: i32
   expr 15:17    IdentExpr      :: i32
   expr 15:25    FieldExpr      :: i32
-  expr 15:25    IdentExpr      :: Entry(string, i32)
+  expr 15:25    IdentExpr      :: Entry<string, i32>
   expr 15:9     IdentExpr      :: i32
   expr 17:13    StringLitExpr  :: string
   expr 17:24    IdentExpr      :: i32
   expr 17:5     CallExpr       :: void
   expr 17:5     IdentExpr      :: fn(T) -> void
-  expr 20:10    StructLitExpr  :: MutableSet(i32)
-  expr 20:37    StructLitExpr  :: MutableMap(i32, bool)
-  expr 20:72    SeqLitExpr     :: (Entry(i32, bool) | null)[]
+  expr 20:10    StructLitExpr  :: MutableSet<i32>
+  expr 20:37    StructLitExpr  :: MutableMap<i32, bool>
+  expr 20:72    SeqLitExpr     :: (Entry<i32, bool> | null)[]
   expr 21:5     CallExpr       :: bool
   expr 21:5     FieldExpr      :: fn(T) -> bool
-  expr 21:5     IdentExpr      :: MutableSet(i32)
+  expr 21:5     IdentExpr      :: MutableSet<i32>
   expr 22:5     CallExpr       :: bool
   expr 22:5     FieldExpr      :: fn(T) -> bool
-  expr 22:5     IdentExpr      :: MutableSet(i32)
+  expr 22:5     IdentExpr      :: MutableSet<i32>
   expr 23:5     CallExpr       :: bool
   expr 23:5     FieldExpr      :: fn(T) -> bool
-  expr 23:5     IdentExpr      :: MutableSet(i32)
-  expr 25:14    IdentExpr      :: MutableSet(i32)
+  expr 23:5     IdentExpr      :: MutableSet<i32>
+  expr 25:14    IdentExpr      :: MutableSet<i32>
   expr 26:15    BinaryExpr     :: i32
   expr 26:15    IdentExpr      :: i32
   expr 26:21    IdentExpr      :: i32
@@ -39,5 +39,5 @@
   expr 28:24    IdentExpr      :: i32
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(T) -> void
-  expr 9:10     StructLitExpr  :: MutableMap(string, i32)
-  expr 9:47     SeqLitExpr     :: (Entry(string, i32) | null)[]
+  expr 9:10     StructLitExpr  :: MutableMap<string, i32>
+  expr 9:47     SeqLitExpr     :: (Entry<string, i32> | null)[]

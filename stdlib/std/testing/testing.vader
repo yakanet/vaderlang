@@ -34,42 +34,42 @@ export fail :: fn(msg: string) -> void {
 }
 
 /// Assert `actual == expected`. Failure message includes both values.
-export assert_eq :: fn[T: Display & Equals](actual: T, expected: T) -> void {
+export assert_eq :: fn<T: Display & Equals>(actual: T, expected: T) -> void {
     if actual != expected {
         panic("assert_eq failed: expected ${expected}, got ${actual}")
     }
 }
 
 /// Assert `actual != unexpected`. Failure message names the value.
-export assert_ne :: fn[T: Display & Equals](actual: T, unexpected: T) -> void {
+export assert_ne :: fn<T: Display & Equals>(actual: T, unexpected: T) -> void {
     if actual == unexpected {
         panic("assert_ne failed: did not expect ${unexpected}")
     }
 }
 
 /// Assert `actual < bound`. Uses the `Comparable.lt` default method.
-export assert_lt :: fn[T: Display & Comparable](actual: T, bound: T) -> void {
+export assert_lt :: fn<T: Display & Comparable>(actual: T, bound: T) -> void {
     if !actual.lt(bound) {
         panic("assert_lt failed: expected ${actual} < ${bound}")
     }
 }
 
 /// Assert `actual <= bound`.
-export assert_lte :: fn[T: Display & Comparable](actual: T, bound: T) -> void {
+export assert_lte :: fn<T: Display & Comparable>(actual: T, bound: T) -> void {
     if !actual.lte(bound) {
         panic("assert_lte failed: expected ${actual} <= ${bound}")
     }
 }
 
 /// Assert `actual > bound`.
-export assert_gt :: fn[T: Display & Comparable](actual: T, bound: T) -> void {
+export assert_gt :: fn<T: Display & Comparable>(actual: T, bound: T) -> void {
     if !actual.gt(bound) {
         panic("assert_gt failed: expected ${actual} > ${bound}")
     }
 }
 
 /// Assert `actual >= bound`.
-export assert_gte :: fn[T: Display & Comparable](actual: T, bound: T) -> void {
+export assert_gte :: fn<T: Display & Comparable>(actual: T, bound: T) -> void {
     if !actual.gte(bound) {
         panic("assert_gte failed: expected ${actual} >= ${bound}")
     }

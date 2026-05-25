@@ -62,10 +62,10 @@
           ~>
             @builder.finish :string
               __sb_1 :?
-    let b: Box(i32) =
-      call :Box(i32)
+    let b: Box<i32> =
+      call :Box<i32>
         callee:
-          make_box :Box(i32)
+          make_box :Box<i32>
         arg0:
           int(7) :i32
     call :void
@@ -81,14 +81,14 @@
           @builder.append_display <for i32> :void
             __sb_2 :?
             .value :i32
-              b :Box(i32)
+              b :Box<i32>
           ~>
             @builder.finish :string
               __sb_2 :?
-    let nested: Box(Box(i32)) =
-      call :Box(Box(i32))
+    let nested: Box<Box<i32>> =
+      call :Box<Box<i32>>
         callee:
-          make_nested :Box(Box(i32))
+          make_nested :Box<Box<i32>>
         arg0:
           int(99) :i32
     call :void
@@ -104,8 +104,8 @@
           @builder.append_display <for i32> :void
             __sb_3 :?
             .value :i32
-              .value :Box(i32)
-                nested :Box(Box(i32))
+              .value :Box<i32>
+                nested :Box<Box<i32>>
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -134,18 +134,18 @@
   struct snippet$Box__Box_i32_ { value: Any }
   fn snippet$snippet$identity__i32(x: Any) -> Any
     return x :Any
-  fn snippet$snippet$make_nested__i32(v: Any) -> Box(Box(Any))
-    let inner: Box(Any) =
-      Box(Any) {
+  fn snippet$snippet$make_nested__i32(v: Any) -> Box<Box<Any>>
+    let inner: Box<Any> =
+      Box<Any> {
         value: v :Any
       }
     return
-      Box(Box(Any)) {
-        value: inner :Box(Any)
+      Box<Box<Any>> {
+        value: inner :Box<Any>
       }
-  fn snippet$snippet$make_box__i32(v: Any) -> Box(Any)
+  fn snippet$snippet$make_box__i32(v: Any) -> Box<Any>
     return
-      Box(Any) {
+      Box<Any> {
         value: v :Any
       }
   struct snippet$Box__Any { value: Any }

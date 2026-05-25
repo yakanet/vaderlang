@@ -8,11 +8,11 @@ A :: struct { value: i32 }
 B :: struct { value: i32 }
 C :: struct { value: i32 }
 
-A implements Into(B) {
+A implements Into<B> {
     into :: fn(self) -> B { return B { .value = self.value } }
 }
 
-B implements Into(C) {
+B implements Into<C> {
     into :: fn(self) -> C { return C { .value = self.value } }
 }
 

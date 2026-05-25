@@ -8,7 +8,7 @@ import "std/io" { println }
 // candidates still beat Into-fallback ones (no shadowing of native fits).
 
 UserId :: struct { value: i32 }
-UserId implements Into(i32) {
+UserId implements Into<i32> {
     into :: fn(self) -> i32 { return self.value }
 }
 

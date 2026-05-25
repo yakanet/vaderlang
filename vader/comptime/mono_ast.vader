@@ -56,7 +56,7 @@ export MonoProject :: struct {
     /// (the one built by `instances.build_display_key`). Used to map
     /// a `GenericInstance` back to its specialised entry. Populated
     /// during the struct-instance pass.
-    lookup_by_instance: MutableMap(string, MonoEntry)
+    lookup_by_instance: MutableMap<string, MonoEntry>
 
     /// `"\${trait_method.symbol.id}::\${args_key}" -> MonoEntry` —
     /// indexed lookup the lowerer uses to recover the specialised
@@ -67,12 +67,12 @@ export MonoProject :: struct {
     /// resolves to its representative ; the representative is also
     /// indexed under [[ERASED_KEY]] so callers that miss the
     /// per-args lookup can fall back.
-    impl_method_entries: MutableMap(string, MonoEntry)
+    impl_method_entries: MutableMap<string, MonoEntry>
 
     /// `"\${fn_symbol.id}::\${args_key}" -> MonoEntry` — direct lookup
     /// for explicit-typearg call sites (`foo(T)(args)`). Same dedupe
     /// behaviour as `impl_method_entries`.
-    fn_instance_entries: MutableMap(string, MonoEntry)
+    fn_instance_entries: MutableMap<string, MonoEntry>
 
     /// `old_symbol_id -> representative_symbol_id` — populated by
     /// [[erasure_dedupe]] when entries collapse under post-typecheck
@@ -80,7 +80,7 @@ export MonoProject :: struct {
     /// builder so a `LoweredCall` carrying an old symbol id still
     /// resolves to the representative's fn index. Empty when erasure
     /// is disabled or no collapse happened.
-    symbol_redirects: MutableMap(i32, i32)
+    symbol_redirects: MutableMap<i32, i32>
 }
 
 /// One specialised decl. Carries every field downstream phases need to
@@ -132,10 +132,10 @@ export MonoEntry :: struct {
 export new_mono_project :: fn() -> MonoProject {
     return MonoProject {
         .entries             = [],
-        .lookup_by_instance  = MutableMap(string, MonoEntry) { .buckets = [], .size = 0 },
-        .impl_method_entries = MutableMap(string, MonoEntry) { .buckets = [], .size = 0 },
-        .fn_instance_entries = MutableMap(string, MonoEntry) { .buckets = [], .size = 0 },
-        .symbol_redirects    = MutableMap(i32, i32) { .buckets = [], .size = 0 },
+        .lookup_by_instance  = MutableMap<string, MonoEntry> { .buckets = [], .size = 0 },
+        .impl_method_entries = MutableMap<string, MonoEntry> { .buckets = [], .size = 0 },
+        .fn_instance_entries = MutableMap<string, MonoEntry> { .buckets = [], .size = 0 },
+        .symbol_redirects    = MutableMap<i32, i32> { .buckets = [], .size = 0 },
     }
 }
 

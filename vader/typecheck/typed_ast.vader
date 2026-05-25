@@ -30,12 +30,12 @@ export TypedProgram :: struct {
     /// dump emit multiple entries for cloned nodes that share the same
     /// source span — needed for byte-for-byte parity with TS, whose
     /// `exprTypes: WeakMap<Expr, Type>` keys on JS object identity.
-    expr_types: MutableMap(usize, Type)
+    expr_types: MutableMap<usize, Type>
 
     /// Type of every `:=` / `::` local binding, keyed by binding span
     /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt)
     /// via `span_key` (packed `(line << 32) | column` `i64`).
-    local_types: MutableMap(i64, Type)
+    local_types: MutableMap<i64, Type>
 
     /// Type of every top-level decl (FnDecl, StructDecl, ConstDecl…).
     /// Keyed by `Symbol.id`. Previously span-keyed via
@@ -43,7 +43,7 @@ export TypedProgram :: struct {
     /// multi-file modules (two decls at same `(line, col)` would
     /// clobber each other). Symbol.id is globally unique within a
     /// `LoadedProject`.
-    decl_types: MutableMap(i32, Type)
+    decl_types: MutableMap<i32, Type>
 
     /// Impl-method types, keyed by the method's `name_span` via
     /// `span_key`. Impl methods don't have a resolver `Symbol` —
@@ -52,45 +52,45 @@ export TypedProgram :: struct {
     /// keying used by `decl_types`. Per-file uniqueness is enough
     /// because an `impl` block lives in one file ; cross-file
     /// collisions don't apply.
-    impl_method_decl_types: MutableMap(i64, Type)
+    impl_method_decl_types: MutableMap<i64, Type>
 
     /// Type of every fn / lambda parameter, keyed by `FnParam.span`
     /// via `span_key`.
-    param_types: MutableMap(i64, Type)
+    param_types: MutableMap<i64, Type>
 
     /// Type of every type-position expression — `let x: T = …` annotations,
     /// fn signatures, struct field types, etc. Keyed by the expression's
     /// own span via `span_key` so downstream passes can reuse what
     /// `type_from_expr` already computed.
-    type_expr_types: MutableMap(i64, Type)
+    type_expr_types: MutableMap<i64, Type>
 
     /// `StructDecl` keyed by the symbol's id. Populated by `decl.vader`
     /// while it mints struct types ; consumed by `field.vader` so it
     /// can walk a struct's field list to type `obj.f` accesses without
     /// re-walking the program AST.
-    struct_decls: MutableMap(i32, StructDecl)
+    struct_decls: MutableMap<i32, StructDecl>
 
     /// `TraitDecl` keyed by the symbol's id. Same shape as
     /// `struct_decls` ; consumed by orchestrate's T3036 check.
-    trait_decls: MutableMap(i32, TraitDecl)
+    trait_decls: MutableMap<i32, TraitDecl>
 
     /// `Symbol.id → FnDecl` for every top-level fn (and impl method).
     /// Lets call-site code reach the fn's `type_params` (with bounds)
     /// without re-walking the AST. Populated at `declare_module` time.
-    fn_decls: MutableMap(i32, FnDecl)
+    fn_decls: MutableMap<i32, FnDecl>
 
     /// Owner module of each trait — used when resolving trait method
     /// signatures so cross-module `Iterator(T).next` types `T` against
     /// std/core's resolved.idents, not the entry's. Keyed by the
     /// trait's Symbol id, populated alongside `trait_decls`.
-    trait_decl_owners: MutableMap(i32, ResolvedModule)
+    trait_decl_owners: MutableMap<i32, ResolvedModule>
 
     /// `for_type_display::method_name → FnType` (UFCS-bound, without
     /// the `self` param). Populated by `walk_bodies` as it visits
     /// each `ImplDecl` ; consumed by `field.vader::infer_field` for
     /// the `x.method()` dispatch path when `x` is not a struct
     /// with a member named `method`.
-    impl_methods: MutableMap(string, Type)
+    impl_methods: MutableMap<string, Type>
 
     /// Per-binding narrowed type stack (`Symbol.id → narrowed Type`).
     /// `narrow.vader` writes when a flow-sensitive narrowing is active
@@ -99,20 +99,20 @@ export TypedProgram :: struct {
     /// type when no narrowing is in effect. MVP : not populated yet
     /// (resolver doesn't thread `bind_as` symbols for `is T as a`
     /// inside if-exprs).
-    narrowed_bindings: MutableMap(i32, Type)
+    narrowed_bindings: MutableMap<i32, Type>
 
     /// Per-field narrowed type stack, keyed by `"${receiver_sym_id}.${field_name}"`.
     /// Mirrors `narrowed_bindings` but for `expr.field` chains : when
     /// `if b.items != null { ... }` activates a flow narrowing in the
     /// then-branch, `field.vader::infer_field` reads this side-table
     /// to return `i32[]` instead of `i32[] | null`.
-    narrowed_fields: MutableMap(string, Type)
+    narrowed_fields: MutableMap<string, Type>
 
     /// AST kind label for each entry in `expr_types`, keyed by the
     /// same `Expr.id`. Populated alongside `expr_types` from
     /// `check_expr` ; consumed by `dump.vader` so the typed-ast dump
     /// can label each expression line without re-walking the AST.
-    expr_kinds: MutableMap(usize, string)
+    expr_kinds: MutableMap<usize, string>
 
     /// Per-ImportBinding redirect table : `Symbol.id → ImportTarget`.
     /// Populated by `vader/resolver/wire.vader::wire_imports` ; null
@@ -127,37 +127,37 @@ export TypedProgram :: struct {
     /// module's decls. `type_of_symbol` falls back to this when the
     /// per-module `decl_types[span_key(sym.defined_at)]` misses (the
     /// symbol's `defined_at` is in another module).
-    external_types: MutableMap(i32, Type)
+    external_types: MutableMap<i32, Type>
 
     /// Per-namespace export tables : `module_id → field_name → Type`.
     /// Populated alongside `external_types` for every namespace
     /// `name :: import "p"` binding. Consumed by `field.vader` so
     /// `mod.foo` accesses can resolve to the export's concrete type.
-    namespace_exports: MutableMap(string, MutableMap(string, Type))
+    namespace_exports: MutableMap<string, MutableMap<string, Type>>
 
     /// `std/core` exported symbols indexed by name. Populated by
     /// the orchestrator after loading core, consumed by passes that
     /// need to refer to core types (Range, Field, Display, Error,
     /// Iterator, …) without going through a user-side import.
-    core_symbols: MutableMap(string, Symbol)
+    core_symbols: MutableMap<string, Symbol>
 
     /// Imported fn overloads indexed by simple name. Populated by
     /// the orchestrator after wiring imports. Consumed by
     /// `field.vader::try_free_fn_ufcs` so `x.method()` can dispatch
     /// to a fn imported from another module without requiring the
     /// method body to live in the entry module.
-    imported_fn_overloads: MutableMap(string, FnType[])
+    imported_fn_overloads: MutableMap<string, FnType[]>
 
     /// `display_type(for_ty) → element` for every `X implements
     /// Iterator(T)` impl reached during type-checking. Consumed by
     /// `stmt.vader::for_in_element` so `for c in some_iter` binds
     /// `c` to T.
-    iter_element_types: MutableMap(string, Type)
+    iter_element_types: MutableMap<string, Type>
 
     /// `display_type(for_ty) → T` for every `X implements Index[I, T]`
     /// impl. Consumed by `expr_index.vader` so `m[k]` returns T when
     /// `m` is a user struct with an Index impl.
-    index_target_types: MutableMap(string, Type)
+    index_target_types: MutableMap<string, Type>
 
     /// `FieldExpr.id → original first-param type` for every
     /// UFCS-dispatched field access (i.e. the param that got
@@ -165,32 +165,32 @@ export TypedProgram :: struct {
     /// type to harvest type-param bindings before substituting the
     /// return type — the curried fn keeps the un-substituted
     /// signature for display.
-    ufcs_receiver_types: MutableMap(usize, Type)
+    ufcs_receiver_types: MutableMap<usize, Type>
 
     /// `"${TypeBaseName}::${methodName}" → trait names that all
     /// provide the same method on the same receiver. When the list
     /// has 2+ entries, an unqualified `x.method()` is ambiguous —
     /// `field.vader` emits T3032.
-    impl_method_traits: MutableMap(string, string[])
+    impl_method_traits: MutableMap<string, string[]>
 
     /// `Struct.symbol.id → field_name → resolved Type`. Pre-resolved
     /// at declare-time using the OWNING module's resolved.idents so
     /// cross-module field lookups (`entry.value` where `entry`'s
     /// struct lives in another module) get the right TypeParams /
     /// nominal references.
-    struct_field_types: MutableMap(i32, MutableMap(string, Type))
+    struct_field_types: MutableMap<i32, MutableMap<string, Type>>
 
     /// `"${TypeBaseName}" → trait names` for every `X implements
     /// Trait` impl. Consumed by `type_ops.vader::is_assignable` for
     /// trait-widening (`Cat → Animal` when `Cat implements Animal`).
-    struct_implemented_traits: MutableMap(string, string[])
+    struct_implemented_traits: MutableMap<string, string[]>
 
     /// Per-impl trait args, keyed by `${struct_name}` then `${trait_name}`.
     /// `Hello implements Greeter(i32)` records
     /// `struct_trait_args["Hello"]["Greeter"] = [i32]`. Consumed by
     /// `unify.vader::unify_type_param` so a generic fn parametrised by
     /// `fn[T](g: Greeter(T))` called as `f(Hello {})` can bind T → i32.
-    struct_trait_args: MutableMap(string, MutableMap(string, Type[]))
+    struct_trait_args: MutableMap<string, MutableMap<string, Type[]>>
 
     /// Enclosing fn-body context, pushed by `check_fn_body` and
     /// popped when it returns. Lets `check_return` (called via the
@@ -202,7 +202,7 @@ export TypedProgram :: struct {
     /// to `expr_types` / `expr_kinds`. Lets the dump still render
     /// `line:col` (or `undefined:undefined` for materialised spans)
     /// once expression side-tables flip from span-keyed to id-keyed.
-    node_spans: MutableMap(usize, Span)
+    node_spans: MutableMap<usize, Span>
 }
 
 import "vader/diagnostics" { Span }
@@ -212,7 +212,7 @@ import "vader/resolver" { ImportTargetTable }
 /// Across the whole project — multi-module aggregation. Populated by
 /// the orchestrator (`check.vader`).
 export TypedProject :: struct {
-    modules: MutableMap(string, TypedProgram)
+    modules: MutableMap<string, TypedProgram>
 }
 
 /// Create an empty `TypedProgram` bound to `resolved`. All side-tables
@@ -220,34 +220,34 @@ export TypedProject :: struct {
 export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
     return TypedProgram {
         .resolved        = resolved,
-        .expr_types      = MutableMap(usize, Type) { .buckets = [], .size = 0 },
-        .local_types     = MutableMap(i64, Type) { .buckets = [], .size = 0 },
-        .decl_types      = MutableMap(i32, Type) { .buckets = [], .size = 0 },
-        .impl_method_decl_types = MutableMap(i64, Type) { .buckets = [], .size = 0 },
-        .param_types     = MutableMap(i64, Type) { .buckets = [], .size = 0 },
-        .type_expr_types = MutableMap(i64, Type) { .buckets = [], .size = 0 },
-        .struct_decls    = MutableMap(i32, StructDecl) { .buckets = [], .size = 0 },
-        .trait_decls     = MutableMap(i32, TraitDecl) { .buckets = [], .size = 0 },
-        .fn_decls        = MutableMap(i32, FnDecl) { .buckets = [], .size = 0 },
-        .trait_decl_owners = MutableMap(i32, ResolvedModule) { .buckets = [], .size = 0 },
-        .impl_methods    = MutableMap(string, Type) { .buckets = [], .size = 0 },
-        .narrowed_bindings = MutableMap(i32, Type) { .buckets = [], .size = 0 },
-        .narrowed_fields = MutableMap(string, Type) { .buckets = [], .size = 0 },
-        .expr_kinds      = MutableMap(usize, string) { .buckets = [], .size = 0 },
+        .expr_types      = MutableMap<usize, Type> { .buckets = [], .size = 0 },
+        .local_types     = MutableMap<i64, Type> { .buckets = [], .size = 0 },
+        .decl_types      = MutableMap<i32, Type> { .buckets = [], .size = 0 },
+        .impl_method_decl_types = MutableMap<i64, Type> { .buckets = [], .size = 0 },
+        .param_types     = MutableMap<i64, Type> { .buckets = [], .size = 0 },
+        .type_expr_types = MutableMap<i64, Type> { .buckets = [], .size = 0 },
+        .struct_decls    = MutableMap<i32, StructDecl> { .buckets = [], .size = 0 },
+        .trait_decls     = MutableMap<i32, TraitDecl> { .buckets = [], .size = 0 },
+        .fn_decls        = MutableMap<i32, FnDecl> { .buckets = [], .size = 0 },
+        .trait_decl_owners = MutableMap<i32, ResolvedModule> { .buckets = [], .size = 0 },
+        .impl_methods    = MutableMap<string, Type> { .buckets = [], .size = 0 },
+        .narrowed_bindings = MutableMap<i32, Type> { .buckets = [], .size = 0 },
+        .narrowed_fields = MutableMap<string, Type> { .buckets = [], .size = 0 },
+        .expr_kinds      = MutableMap<usize, string> { .buckets = [], .size = 0 },
         .import_targets  = null,
-        .external_types  = MutableMap(i32, Type) { .buckets = [], .size = 0 },
-        .namespace_exports = MutableMap(string, MutableMap(string, Type)) { .buckets = [], .size = 0 },
-        .core_symbols    = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
-        .imported_fn_overloads = MutableMap(string, FnType[]) { .buckets = [], .size = 0 },
-        .iter_element_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
-        .index_target_types = MutableMap(string, Type) { .buckets = [], .size = 0 },
-        .ufcs_receiver_types = MutableMap(usize, Type) { .buckets = [], .size = 0 },
-        .impl_method_traits = MutableMap(string, string[]) { .buckets = [], .size = 0 },
-        .struct_field_types = MutableMap(i32, MutableMap(string, Type)) { .buckets = [], .size = 0 },
-        .struct_implemented_traits = MutableMap(string, string[]) { .buckets = [], .size = 0 },
-        .struct_trait_args = MutableMap(string, MutableMap(string, Type[])) { .buckets = [], .size = 0 },
+        .external_types  = MutableMap<i32, Type> { .buckets = [], .size = 0 },
+        .namespace_exports = MutableMap<string, MutableMap<string, Type>> { .buckets = [], .size = 0 },
+        .core_symbols    = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
+        .imported_fn_overloads = MutableMap<string, FnType[]> { .buckets = [], .size = 0 },
+        .iter_element_types = MutableMap<string, Type> { .buckets = [], .size = 0 },
+        .index_target_types = MutableMap<string, Type> { .buckets = [], .size = 0 },
+        .ufcs_receiver_types = MutableMap<usize, Type> { .buckets = [], .size = 0 },
+        .impl_method_traits = MutableMap<string, string[]> { .buckets = [], .size = 0 },
+        .struct_field_types = MutableMap<i32, MutableMap<string, Type>> { .buckets = [], .size = 0 },
+        .struct_implemented_traits = MutableMap<string, string[]> { .buckets = [], .size = 0 },
+        .struct_trait_args = MutableMap<string, MutableMap<string, Type[]>> { .buckets = [], .size = 0 },
         .current_fn_ctx  = null,
-        .node_spans      = MutableMap(usize, Span) { .buckets = [], .size = 0 },
+        .node_spans      = MutableMap<usize, Span> { .buckets = [], .size = 0 },
     }
 }
 
@@ -255,7 +255,7 @@ import "vader/types" { FnType }
 
 export new_typed_project :: fn() -> TypedProject {
     return TypedProject {
-        .modules = MutableMap(string, TypedProgram) { .buckets = [], .size = 0 },
+        .modules = MutableMap<string, TypedProgram> { .buckets = [], .size = 0 },
     }
 }
 
@@ -267,18 +267,18 @@ export empty_typed_program :: fn() -> TypedProgram {
         .path = "test",
         .display_path = "test",
         .symbols = [],
-        .symbols_by_name = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
-        .idents = MutableMap(i64, Symbol) { .buckets = [], .size = 0 },
-        .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
-        .fn_overloads = MutableMap(string, Symbol[]) { .buckets = [], .size = 0 },
-        .core_symbols = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
-        .imports_to = MutableMap(i32, Symbol) { .buckets = [], .size = 0 },
-        .alias_types = MutableMap(i32, Type) { .buckets = [], .size = 0 },
-        .alias_decls = MutableMap(i32, TypeAliasDecl) { .buckets = [], .size = 0 },
-        .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
+        .symbols_by_name = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
+        .idents = MutableMap<i64, Symbol> { .buckets = [], .size = 0 },
+        .immutable_locals = MutableMap<i32, bool> { .buckets = [], .size = 0 },
+        .fn_overloads = MutableMap<string, Symbol[]> { .buckets = [], .size = 0 },
+        .core_symbols = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
+        .imports_to = MutableMap<i32, Symbol> { .buckets = [], .size = 0 },
+        .alias_types = MutableMap<i32, Type> { .buckets = [], .size = 0 },
+        .alias_decls = MutableMap<i32, TypeAliasDecl> { .buckets = [], .size = 0 },
+        .type_param_bounds = MutableMap<i32, AST.Expr> { .buckets = [], .size = 0 },
         .diags = [],
-        .deprecated_messages = MutableMap(i32, string) { .buckets = [], .size = 0 },
-        .namespace_member_types = MutableMap(i32, MutableMap(string, Type)) { .buckets = [], .size = 0 },
+        .deprecated_messages = MutableMap<i32, string> { .buckets = [], .size = 0 },
+        .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> { .buckets = [], .size = 0 },
     }
     return new_typed_program(rm)
 }
@@ -293,18 +293,18 @@ fresh_module :: fn() -> ResolvedModule {
         .path = "test",
         .display_path = "test",
         .symbols = [],
-        .symbols_by_name = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
-        .idents = MutableMap(i64, Symbol) { .buckets = [], .size = 0 },
-        .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
-        .fn_overloads = MutableMap(string, Symbol[]) { .buckets = [], .size = 0 },
-        .core_symbols = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
-        .imports_to = MutableMap(i32, Symbol) { .buckets = [], .size = 0 },
-        .alias_types = MutableMap(i32, Type) { .buckets = [], .size = 0 },
-        .alias_decls = MutableMap(i32, TypeAliasDecl) { .buckets = [], .size = 0 },
-        .type_param_bounds = MutableMap(i32, AST.Expr) { .buckets = [], .size = 0 },
+        .symbols_by_name = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
+        .idents = MutableMap<i64, Symbol> { .buckets = [], .size = 0 },
+        .immutable_locals = MutableMap<i32, bool> { .buckets = [], .size = 0 },
+        .fn_overloads = MutableMap<string, Symbol[]> { .buckets = [], .size = 0 },
+        .core_symbols = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
+        .imports_to = MutableMap<i32, Symbol> { .buckets = [], .size = 0 },
+        .alias_types = MutableMap<i32, Type> { .buckets = [], .size = 0 },
+        .alias_decls = MutableMap<i32, TypeAliasDecl> { .buckets = [], .size = 0 },
+        .type_param_bounds = MutableMap<i32, AST.Expr> { .buckets = [], .size = 0 },
         .diags = [],
-        .deprecated_messages = MutableMap(i32, string) { .buckets = [], .size = 0 },
-        .namespace_member_types = MutableMap(i32, MutableMap(string, Type)) { .buckets = [], .size = 0 },
+        .deprecated_messages = MutableMap<i32, string> { .buckets = [], .size = 0 },
+        .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> { .buckets = [], .size = 0 },
     }
 }
 

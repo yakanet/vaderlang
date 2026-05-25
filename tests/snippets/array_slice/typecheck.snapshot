@@ -5,7 +5,7 @@
   expr 13:18    SeqLitExpr     :: i32[]
   expr 16:11    IdentExpr      :: i32[]
   expr 16:11    IndexExpr      :: i32[]
-  expr 16:15    RangeExpr      :: Range(i32)
+  expr 16:15    RangeExpr      :: Range<i32>
   expr 17:13    StringLitExpr  :: string
   expr 17:25    CallExpr       :: usize
   expr 17:25    FieldExpr      :: fn() -> usize
@@ -19,7 +19,7 @@
   expr 18:32    IdentExpr      :: i32
   expr 21:11    IdentExpr      :: i32[]
   expr 21:11    IndexExpr      :: i32[]
-  expr 21:15    RangeExpr      :: Range(i32)
+  expr 21:15    RangeExpr      :: Range<i32>
   expr 22:13    StringLitExpr  :: string
   expr 22:25    CallExpr       :: usize
   expr 22:25    FieldExpr      :: fn() -> usize
@@ -31,10 +31,10 @@
   expr 23:19    IdentExpr      :: fn(T) -> void
   expr 23:27    StringLitExpr  :: string
   expr 23:32    IdentExpr      :: i32
-  expr 26:10    RangeExpr      :: Range(i32)
+  expr 26:10    RangeExpr      :: Range<i32>
   expr 27:11    IdentExpr      :: i32[]
   expr 27:11    IndexExpr      :: i32[]
-  expr 27:15    IdentExpr      :: Range(i32)
+  expr 27:15    IdentExpr      :: Range<i32>
   expr 28:13    StringLitExpr  :: string
   expr 28:25    CallExpr       :: usize
   expr 28:25    FieldExpr      :: fn() -> usize
@@ -48,7 +48,7 @@
   expr 29:32    IdentExpr      :: i32
   expr 33:11    IdentExpr      :: i32[]
   expr 33:11    IndexExpr      :: i32[]
-  expr 33:15    RangeExpr      :: Range(usize)
+  expr 33:15    RangeExpr      :: Range<usize>
   expr 33:19    IdentExpr      :: usize
   expr 34:13    StringLitExpr  :: string
   expr 34:25    CallExpr       :: usize
@@ -63,7 +63,7 @@
   expr 35:32    IdentExpr      :: i32
   expr 38:11    IdentExpr      :: i32[]
   expr 38:11    IndexExpr      :: i32[]
-  expr 38:15    RangeExpr      :: Range(i32)
+  expr 38:15    RangeExpr      :: Range<i32>
   expr 39:13    StringLitExpr  :: string
   expr 39:25    CallExpr       :: usize
   expr 39:25    FieldExpr      :: fn() -> usize

@@ -2,12 +2,12 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let s: MutableSet(i32) =
-      MutableSet(i32) {
+    let s: MutableSet<i32> =
+      MutableSet<i32> {
         inner:
-          MutableMap(i32, bool) {
+          MutableMap<i32, bool> {
             buckets:
-              array :(Entry(i32, bool) | null)[]
+              array :(Entry<i32, bool> | null)[]
             size: int(0) :usize
           }
       }
@@ -27,7 +27,7 @@
               callee:
                 add :bool
               arg0:
-                s :MutableSet(i32)
+                s :MutableSet<i32>
               arg1:
                 int(10) :i32
           ~>
@@ -49,7 +49,7 @@
               callee:
                 add :bool
               arg0:
-                s :MutableSet(i32)
+                s :MutableSet<i32>
               arg1:
                 int(20) :i32
           ~>
@@ -71,7 +71,7 @@
               callee:
                 add :bool
               arg0:
-                s :MutableSet(i32)
+                s :MutableSet<i32>
               arg1:
                 int(10) :i32
           ~>
@@ -97,7 +97,7 @@
                   callee:
                     len :usize
                   arg0:
-                    s :MutableSet(i32)
+                    s :MutableSet<i32>
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -117,7 +117,7 @@
               callee:
                 contains :bool
               arg0:
-                s :MutableSet(i32)
+                s :MutableSet<i32>
               arg1:
                 int(10) :i32
           ~>
@@ -139,7 +139,7 @@
               callee:
                 contains :bool
               arg0:
-                s :MutableSet(i32)
+                s :MutableSet<i32>
               arg1:
                 int(30) :i32
           ~>

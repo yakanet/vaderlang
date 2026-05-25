@@ -5,7 +5,7 @@
   expr 11:12    SeqLitExpr     :: i32[]
   expr 12:13    IdentExpr      :: i32[]
   expr 12:13    IndexExpr      :: i32[]
-  expr 12:17    RangeExpr      :: Range(i32)
+  expr 12:17    RangeExpr      :: Range<i32>
   expr 13:5     IdentExpr      :: i32[]
   expr 13:5     IndexExpr      :: i32
   expr 15:13    StringLitExpr  :: string

@@ -5,7 +5,7 @@ import "std/io" { println }
 // Generic inference through a tuple parameter. The unifier and the
 // "expected type contains type-param" check both recurse into Tuple slots
 // so `$T` and `$U` bind from the literal `[1, "one"]`.
-swap :: fn[T, U](p: [T, U]) -> [U, T] {
+swap :: fn<T, U>(p: [T, U]) -> [U, T] {
     return [p.1, p.0]
 }
 

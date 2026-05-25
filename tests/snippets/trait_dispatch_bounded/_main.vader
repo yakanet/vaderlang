@@ -6,7 +6,7 @@ module "snippet"
 
 import "std/io" { println }
 
-export count_matching :: fn[T: Hash & Equals](items: T[], target: T) -> i32 {
+export count_matching :: fn<T: Hash & Equals>(items: T[], target: T) -> i32 {
     n := 0
     for x in items {
         if x.hash() == target.hash() && x.equals(target) {

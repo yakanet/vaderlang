@@ -7,28 +7,28 @@
 ## tests/snippets/string_codepoint_slice
 
 ## generic instances
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(i32)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  Into(Target)
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<i32>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  Into<Target>
 
 # Diagnostics
-[14:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[15:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[16:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[17:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[20:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[21:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[25:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
+[14:15] error[T3001] type mismatch: string index must be an integer, got Range<i32>
+[15:15] error[T3001] type mismatch: string index must be an integer, got Range<i32>
+[16:15] error[T3001] type mismatch: string index must be an integer, got Range<i32>
+[17:15] error[T3001] type mismatch: string index must be an integer, got Range<i32>
+[20:15] error[T3001] type mismatch: string index must be an integer, got Range<i32>
+[21:15] error[T3001] type mismatch: string index must be an integer, got Range<i32>
+[25:15] error[T3001] type mismatch: string index must be an integer, got Range<i32>

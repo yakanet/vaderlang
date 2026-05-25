@@ -7,26 +7,26 @@
 ## tests/snippets/generic_helper_chain
 
 ## generic instances
-  Into(Target)
-  Index(I, T)
-  Box(i32)
-  Box(string)
-  Box(Box(i32))
-  Box(Box(string))
-  Box(Box(T))
-  Box(T)
-  Box(T)
-  Box(T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
+  Into<Target>
+  Index<I, T>
+  Box<i32>
+  Box<string>
+  Box<Box<i32>>
+  Box<Box<string>>
+  Box<Box<T>>
+  Box<T>
+  Box<T>
+  Box<T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

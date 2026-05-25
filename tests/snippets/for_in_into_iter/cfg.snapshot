@@ -19,48 +19,48 @@ fn snippet$main() -> i32
     %12 __sb_3: ? (synthetic __sb_3)
     %13 $k_21: string
     %14 $intrinsic_22: string
-    %15 $arr_23: (Entry(string, i32) | null)[]
+    %15 $arr_23: (Entry<string, i32> | null)[]
     %16 $k_24: usize
-    %17 m: MutableMap(string, i32) (local m)
+    %17 m: MutableMap<string, i32> (local m)
     %18 $k_27: string
     %19 $k_28: i32
     %20 $k_29: string
     %21 $k_30: i32
     %22 map_total: i32 (local map_total)
-    %23 __iter_src_4: MutableMap(string, i32) (synthetic __iter_src_4)
-    %24 __iter_buckets_5: (Entry(string, i32) | null)[] (synthetic __iter_buckets_5)
+    %23 __iter_src_4: MutableMap<string, i32> (synthetic __iter_src_4)
+    %24 __iter_buckets_5: (Entry<string, i32> | null)[] (synthetic __iter_buckets_5)
     %25 __iter_buckets_len_6: usize (synthetic __iter_buckets_len_6)
     %26 __iter_bucket_7: usize (synthetic __iter_bucket_7)
-    %27 __iter_chain_8: Entry(string, i32) | null (synthetic __iter_chain_8)
+    %27 __iter_chain_8: Entry<string, i32> | null (synthetic __iter_chain_8)
     %28 $type_check_42: bool
     %29 $gte_43: bool
     %30 $k_45: usize
-    %31 __iter_entry_9: Entry(string, i32) (synthetic __iter_entry_9)
-    %32 entry: Entry(string, i32) (binding entry)
+    %31 __iter_entry_9: Entry<string, i32> (synthetic __iter_entry_9)
+    %32 entry: Entry<string, i32> (binding entry)
     %33 $field_51: i32
     %34 $intrinsic_53: ?
     %35 __sb_10: ? (synthetic __sb_10)
     %36 $k_55: string
     %37 $intrinsic_56: string
-    %38 $arr_57: (Entry(i32, bool) | null)[]
+    %38 $arr_57: (Entry<i32, bool> | null)[]
     %39 $k_58: usize
-    %40 $struct_59: MutableMap(i32, bool)
-    %41 s: MutableSet(i32) (local s)
+    %40 $struct_59: MutableMap<i32, bool>
+    %41 s: MutableSet<i32> (local s)
     %42 $k_62: i32
     %43 $call_63: bool
     %44 $k_64: i32
     %45 $call_65: bool
     %46 set_total: i32 (local set_total)
-    %47 __iter_src_11: MutableSet(i32) (synthetic __iter_src_11)
-    %48 $field_69: MutableMap(i32, bool)
-    %49 __iter_buckets_12: (Entry(i32, bool) | null)[] (synthetic __iter_buckets_12)
+    %47 __iter_src_11: MutableSet<i32> (synthetic __iter_src_11)
+    %48 $field_69: MutableMap<i32, bool>
+    %49 __iter_buckets_12: (Entry<i32, bool> | null)[] (synthetic __iter_buckets_12)
     %50 __iter_buckets_len_13: usize (synthetic __iter_buckets_len_13)
     %51 __iter_bucket_14: usize (synthetic __iter_bucket_14)
-    %52 __iter_chain_15: Entry(i32, bool) | null (synthetic __iter_chain_15)
+    %52 __iter_chain_15: Entry<i32, bool> | null (synthetic __iter_chain_15)
     %53 $type_check_78: bool
     %54 $gte_79: bool
     %55 $k_81: usize
-    %56 __iter_entry_16: Entry(i32, bool) (synthetic __iter_entry_16)
+    %56 __iter_entry_16: Entry<i32, bool> (synthetic __iter_entry_16)
     %57 v: i32 (binding v)
     %58 $intrinsic_89: ?
     %59 __sb_17: ? (synthetic __sb_17)
@@ -93,9 +93,9 @@ fn snippet$main() -> i32
     intrinsic builder.append_display(%12, %4)
     %14 = intrinsic builder.finish(%12)
     call println(%14) :void
-    %15 = array_new (Entry(string, i32) | null)[][0]()
+    %15 = array_new (Entry<string, i32> | null)[][0]()
     %16 = const int(0) :usize
-    %17 = struct_new MutableMap(string, i32)(%15, %16)
+    %17 = struct_new MutableMap<string, i32>(%15, %16)
     %18 = const string(#1) :string
     %19 = const int(1) :i32
     call set_at(%17, %18, %19) :void
@@ -104,7 +104,7 @@ fn snippet$main() -> i32
     call set_at(%17, %20, %21) :void
     %22 = const int(0) :i32
     %23 = move %17
-    %24 = field_get %23.buckets :(Entry(string, i32) | null)[]
+    %24 = field_get %23.buckets :(Entry<string, i32> | null)[]
     %25 = array_len %24
     %26 = const int(0) :usize
     %27 = const null :null
@@ -122,18 +122,18 @@ fn snippet$main() -> i32
     intrinsic builder.append_display(%35, %22)
     %37 = intrinsic builder.finish(%35)
     call println(%37) :void
-    %38 = array_new (Entry(i32, bool) | null)[][0]()
+    %38 = array_new (Entry<i32, bool> | null)[][0]()
     %39 = const int(0) :usize
-    %40 = struct_new MutableMap(i32, bool)(%38, %39)
-    %41 = struct_new MutableSet(i32)(%40)
+    %40 = struct_new MutableMap<i32, bool>(%38, %39)
+    %41 = struct_new MutableSet<i32>(%40)
     %42 = const int(7) :i32
     %43 = call add(%41, %42) :bool
     %44 = const int(11) :i32
     %45 = call add(%41, %44) :bool
     %46 = const int(0) :i32
     %47 = move %41
-    %48 = field_get %47.inner :MutableMap(i32, bool)
-    %49 = field_get %48.buckets :(Entry(i32, bool) | null)[]
+    %48 = field_get %47.inner :MutableMap<i32, bool>
+    %49 = field_get %48.buckets :(Entry<i32, bool> | null)[]
     %50 = array_len %49
     %51 = const int(0) :usize
     %52 = const null :null
@@ -142,8 +142,8 @@ fn snippet$main() -> i32
     %29 = binop gte %26 %25 :bool
     cond_branch %29 ? bb10 : bb11
   bb8:
-    %31 = cast %27 :Entry(string, i32)
-    %27 = field_get %31.next :Entry(string, i32) | null
+    %31 = cast %27 :Entry<string, i32>
+    %27 = field_get %31.next :Entry<string, i32> | null
     %32 = move %31
     %33 = field_get %32.value :i32
     %22 = binop add %22 %33 :i32
@@ -153,7 +153,7 @@ fn snippet$main() -> i32
   bb10:
     branch -> bb6
   bb11:
-    %27 = array_get %24[%26] :Entry(string, i32) | null
+    %27 = array_get %24[%26] :Entry<string, i32> | null
     %30 = const int(1) :usize
     %26 = binop add %26 %30 :usize
     branch -> bb9
@@ -175,8 +175,8 @@ fn snippet$main() -> i32
     %54 = binop gte %51 %50 :bool
     cond_branch %54 ? bb18 : bb19
   bb16:
-    %56 = cast %52 :Entry(i32, bool)
-    %52 = field_get %56.next :Entry(i32, bool) | null
+    %56 = cast %52 :Entry<i32, bool>
+    %52 = field_get %56.next :Entry<i32, bool> | null
     %57 = field_get %56.key :i32
     %46 = binop add %46 %57 :i32
     branch -> bb17
@@ -185,7 +185,7 @@ fn snippet$main() -> i32
   bb18:
     branch -> bb14
   bb19:
-    %52 = array_get %49[%51] :Entry(i32, bool) | null
+    %52 = array_get %49[%51] :Entry<i32, bool> | null
     %55 = const int(1) :usize
     %51 = binop add %51 %55 :usize
     branch -> bb17

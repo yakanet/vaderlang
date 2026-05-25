@@ -12,15 +12,15 @@
       .name :string
         self :Dog
   fn snippet$main() -> i32
-    let a: Wrap(Cat) =
-      Wrap(Cat) {
+    let a: Wrap<Cat> =
+      Wrap<Cat> {
         value:
           Cat {
             name: "Mira" :string
           }
       }
-    let b: Wrap(Dog) =
-      Wrap(Dog) {
+    let b: Wrap<Dog> =
+      Wrap<Dog> {
         value:
           Dog {
             name: "Rex" :string
@@ -34,7 +34,7 @@
           callee:
             to_string :string
           arg0:
-            a :Wrap(Cat)
+            a :Wrap<Cat>
     call :void
       callee:
         println :void
@@ -43,10 +43,10 @@
           callee:
             to_string :string
           arg0:
-            b :Wrap(Dog)
+            b :Wrap<Dog>
     return int(0) :i32
   struct snippet$Wrap__Cat { value: Any }
-  fn snippet$Wrap$Display$to_string__Cat(self: Wrap(Any)) -> string
+  fn snippet$Wrap$Display$to_string__Cat(self: Wrap<Any>) -> string
     return "wrapped" :string
   struct snippet$Wrap__Dog { value: Any }
   struct snippet$Wrap__Any { value: Any }

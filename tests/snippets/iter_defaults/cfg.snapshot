@@ -2,7 +2,7 @@
 
 ## snippet
 
-fn snippet$Countdown$Iterator$next(%0: Countdown) -> null | Yield(i32)
+fn snippet$Countdown$Iterator$next(%0: Countdown) -> null | Yield<i32>
   locals:
     %0 self: Countdown (param self)
     %1 $field_1: i32
@@ -13,7 +13,7 @@ fn snippet$Countdown$Iterator$next(%0: Countdown) -> null | Yield(i32)
     %6 $field_7: i32
     %7 $k_8: i32
     %8 $sub_9: i32
-    %9 $struct_10: Yield(i32)
+    %9 $struct_10: Yield<i32>
   bb0:
     %1 = field_get %0.remaining :i32
     %2 = const int(0) :i32
@@ -28,7 +28,7 @@ fn snippet$Countdown$Iterator$next(%0: Countdown) -> null | Yield(i32)
     %7 = const int(1) :i32
     %8 = binop sub %6 %7 :i32
     field_set %0.remaining = %8
-    %9 = struct_new Yield(i32)(%5)
+    %9 = struct_new Yield<i32>(%5)
     return %9
 
 fn snippet$Countdown$Iterator$count(%0: Countdown) -> usize
@@ -37,8 +37,8 @@ fn snippet$Countdown$Iterator$count(%0: Countdown) -> usize
     %1 total: usize (local total)
     %2 finished: bool (local finished)
     %3 $not_5: bool
-    %4 $call_6: null | Yield(i32)
-    %5 __scrut_0: null | Yield(i32) (synthetic __scrut_0)
+    %4 $call_6: null | Yield<i32>
+    %5 __scrut_0: null | Yield<i32> (synthetic __scrut_0)
     %6 $type_check_8: bool
     %7 $type_check_10: bool
     %8 $k_11: usize
@@ -50,7 +50,7 @@ fn snippet$Countdown$Iterator$count(%0: Countdown) -> usize
     %3 = unop not %2 :bool
     cond_branch %3 ? bb2 : bb3
   bb2:
-    %4 = call next(%0) :null | Yield(i32)
+    %4 = call next(%0) :null | Yield<i32>
     %5 = move %4
     %6 = type_check %5 is null
     cond_branch %6 ? bb4 : bb5
@@ -60,7 +60,7 @@ fn snippet$Countdown$Iterator$count(%0: Countdown) -> usize
     %2 = const bool(true) :bool
     branch -> bb6
   bb5:
-    %7 = type_check %5 is Yield(i32)
+    %7 = type_check %5 is Yield<i32>
     cond_branch %7 ? bb7 : bb8
   bb6:
     branch -> bb1
@@ -79,13 +79,13 @@ fn snippet$main() -> i32
     %1 $k_1: i32
     %2 $k_2: bool
     %3 $k_3: i32
-    %4 $struct_4: Range(i32)
+    %4 $struct_4: Range<i32>
     %5 $call_5: usize
     %6 $k_6: i32
     %7 $k_7: i32
     %8 $k_8: bool
     %9 $k_9: i32
-    %10 $struct_10: Range(i32)
+    %10 $struct_10: Range<i32>
     %11 $call_11: i32 | null
     %12 __scrut_0: i32 | null (synthetic __scrut_0)
     %13 $type_check_13: bool
@@ -96,13 +96,13 @@ fn snippet$main() -> i32
     %18 $k_19: i32
     %19 $k_20: bool
     %20 $k_21: i32
-    %21 $struct_22: Range(i32)
+    %21 $struct_22: Range<i32>
     %22 $call_23: bool
     %23 $k_24: i32
     %24 $k_25: i32
     %25 $k_26: bool
     %26 $k_27: i32
-    %27 $struct_28: Range(i32)
+    %27 $struct_28: Range<i32>
     %28 $call_29: bool
     %29 $k_30: i32
     %30 $struct_31: Countdown
@@ -113,14 +113,14 @@ fn snippet$main() -> i32
     %1 = const int(5) :i32
     %2 = const bool(false) :bool
     %3 = const int(0) :i32
-    %4 = struct_new Range(i32)(%0, %1, %2, %3)
+    %4 = struct_new Range<i32>(%0, %1, %2, %3)
     %5 = call count(%4) :usize
     call println(%5) :void
     %6 = const int(10) :i32
     %7 = const int(15) :i32
     %8 = const bool(true) :bool
     %9 = const int(10) :i32
-    %10 = struct_new Range(i32)(%6, %7, %8, %9)
+    %10 = struct_new Range<i32>(%6, %7, %8, %9)
     %11 = call last(%10) :i32 | null
     %12 = move %11
     %13 = type_check %12 is i32
@@ -137,14 +137,14 @@ fn snippet$main() -> i32
     %18 = const int(0) :i32
     %19 = const bool(false) :bool
     %20 = const int(0) :i32
-    %21 = struct_new Range(i32)(%17, %18, %19, %20)
+    %21 = struct_new Range<i32>(%17, %18, %19, %20)
     %22 = call is_empty(%21) :bool
     call println(%22) :void
     %23 = const int(0) :i32
     %24 = const int(5) :i32
     %25 = const bool(false) :bool
     %26 = const int(0) :i32
-    %27 = struct_new Range(i32)(%23, %24, %25, %26)
+    %27 = struct_new Range<i32>(%23, %24, %25, %26)
     %28 = call is_empty(%27) :bool
     call println(%28) :void
     %29 = const int(3) :i32

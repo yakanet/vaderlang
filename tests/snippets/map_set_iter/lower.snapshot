@@ -2,17 +2,17 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let m: MutableMap(string, i32) =
-      MutableMap(string, i32) {
+    let m: MutableMap<string, i32> =
+      MutableMap<string, i32> {
         buckets:
-          array :(Entry(string, i32) | null)[]
+          array :(Entry<string, i32> | null)[]
         size: int(0) :usize
       }
     call :void
       callee:
         set_at :void
       arg0:
-        m :MutableMap(string, i32)
+        m :MutableMap<string, i32>
       arg1:
         "a" :string
       arg2:
@@ -21,7 +21,7 @@
       callee:
         set_at :void
       arg0:
-        m :MutableMap(string, i32)
+        m :MutableMap<string, i32>
       arg1:
         "b" :string
       arg2:
@@ -30,26 +30,26 @@
       callee:
         set_at :void
       arg0:
-        m :MutableMap(string, i32)
+        m :MutableMap<string, i32>
       arg1:
         "c" :string
       arg2:
         int(3) :i32
     let total: i32 = int(0) :i32
     block :void
-      let __iter_src_0: MutableMap(string, i32) = m :MutableMap(string, i32)
-      let __iter_buckets_1: (Entry(string, i32) | null)[] =
-        .buckets :(Entry(string, i32) | null)[]
-          __iter_src_0 :MutableMap(string, i32)
+      let __iter_src_0: MutableMap<string, i32> = m :MutableMap<string, i32>
+      let __iter_buckets_1: (Entry<string, i32> | null)[] =
+        .buckets :(Entry<string, i32> | null)[]
+          __iter_src_0 :MutableMap<string, i32>
       let __iter_buckets_len_2: usize =
         LoweredArrayLen
       let __iter_bucket_3: usize = int(0) :usize
-      let __iter_chain_4: Entry(string, i32) | null = null
+      let __iter_chain_4: Entry<string, i32> | null = null
       loop
         if :void
           cond:
             is null :bool
-              __iter_chain_4 :Entry(string, i32) | null
+              __iter_chain_4 :Entry<string, i32> | null
           then:
             if :void
               cond:
@@ -62,11 +62,11 @@
                 break
             assign
               target:
-                __iter_chain_4 :Entry(string, i32) | null
+                __iter_chain_4 :Entry<string, i32> | null
               value:
-                index :Entry(string, i32) | null
+                index :Entry<string, i32> | null
                   on:
-                    __iter_buckets_1 :(Entry(string, i32) | null)[]
+                    __iter_buckets_1 :(Entry<string, i32> | null)[]
                   ix:
                     __iter_bucket_3 :usize
             assign
@@ -79,16 +79,16 @@
                   r:
                     int(1) :usize
           else:
-            let __iter_entry_5: Entry(string, i32) =
-              cast → Entry(string, i32)
-                __iter_chain_4 :Entry(string, i32) | null
+            let __iter_entry_5: Entry<string, i32> =
+              cast → Entry<string, i32>
+                __iter_chain_4 :Entry<string, i32> | null
             assign
               target:
-                __iter_chain_4 :Entry(string, i32) | null
+                __iter_chain_4 :Entry<string, i32> | null
               value:
-                .next :Entry(string, i32) | null
-                  __iter_entry_5 :Entry(string, i32)
-            let entry: Entry(string, i32) = __iter_entry_5 :Entry(string, i32)
+                .next :Entry<string, i32> | null
+                  __iter_entry_5 :Entry<string, i32>
+            let entry: Entry<string, i32> = __iter_entry_5 :Entry<string, i32>
             assign
               target:
                 total :i32
@@ -98,7 +98,7 @@
                     total :i32
                   r:
                     .value :i32
-                      entry :Entry(string, i32)
+                      entry :Entry<string, i32>
     call :void
       callee:
         println :void
@@ -115,12 +115,12 @@
           ~>
             @builder.finish :string
               __sb_6 :?
-    let s: MutableSet(i32) =
-      MutableSet(i32) {
+    let s: MutableSet<i32> =
+      MutableSet<i32> {
         inner:
-          MutableMap(i32, bool) {
+          MutableMap<i32, bool> {
             buckets:
-              array :(Entry(i32, bool) | null)[]
+              array :(Entry<i32, bool> | null)[]
             size: int(0) :usize
           }
       }
@@ -128,39 +128,39 @@
       callee:
         add :bool
       arg0:
-        s :MutableSet(i32)
+        s :MutableSet<i32>
       arg1:
         int(10) :i32
     call :bool
       callee:
         add :bool
       arg0:
-        s :MutableSet(i32)
+        s :MutableSet<i32>
       arg1:
         int(20) :i32
     call :bool
       callee:
         add :bool
       arg0:
-        s :MutableSet(i32)
+        s :MutableSet<i32>
       arg1:
         int(30) :i32
     let sum: i32 = int(0) :i32
     block :void
-      let __iter_src_7: MutableSet(i32) = s :MutableSet(i32)
-      let __iter_buckets_8: (Entry(i32, bool) | null)[] =
-        .buckets :(Entry(i32, bool) | null)[]
-          .inner :MutableMap(i32, bool)
-            __iter_src_7 :MutableSet(i32)
+      let __iter_src_7: MutableSet<i32> = s :MutableSet<i32>
+      let __iter_buckets_8: (Entry<i32, bool> | null)[] =
+        .buckets :(Entry<i32, bool> | null)[]
+          .inner :MutableMap<i32, bool>
+            __iter_src_7 :MutableSet<i32>
       let __iter_buckets_len_9: usize =
         LoweredArrayLen
       let __iter_bucket_10: usize = int(0) :usize
-      let __iter_chain_11: Entry(i32, bool) | null = null
+      let __iter_chain_11: Entry<i32, bool> | null = null
       loop
         if :void
           cond:
             is null :bool
-              __iter_chain_11 :Entry(i32, bool) | null
+              __iter_chain_11 :Entry<i32, bool> | null
           then:
             if :void
               cond:
@@ -173,11 +173,11 @@
                 break
             assign
               target:
-                __iter_chain_11 :Entry(i32, bool) | null
+                __iter_chain_11 :Entry<i32, bool> | null
               value:
-                index :Entry(i32, bool) | null
+                index :Entry<i32, bool> | null
                   on:
-                    __iter_buckets_8 :(Entry(i32, bool) | null)[]
+                    __iter_buckets_8 :(Entry<i32, bool> | null)[]
                   ix:
                     __iter_bucket_10 :usize
             assign
@@ -190,18 +190,18 @@
                   r:
                     int(1) :usize
           else:
-            let __iter_entry_12: Entry(i32, bool) =
-              cast → Entry(i32, bool)
-                __iter_chain_11 :Entry(i32, bool) | null
+            let __iter_entry_12: Entry<i32, bool> =
+              cast → Entry<i32, bool>
+                __iter_chain_11 :Entry<i32, bool> | null
             assign
               target:
-                __iter_chain_11 :Entry(i32, bool) | null
+                __iter_chain_11 :Entry<i32, bool> | null
               value:
-                .next :Entry(i32, bool) | null
-                  __iter_entry_12 :Entry(i32, bool)
+                .next :Entry<i32, bool> | null
+                  __iter_entry_12 :Entry<i32, bool>
             let v: i32 =
               .key :i32
-                __iter_entry_12 :Entry(i32, bool)
+                __iter_entry_12 :Entry<i32, bool>
             assign
               target:
                 sum :i32

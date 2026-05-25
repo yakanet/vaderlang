@@ -96,14 +96,14 @@ export StringChars :: struct {
     length: usize
 }
 
-StringChars implements Iterator(char) {
-    next :: fn(self) -> Yield(char) | null {
+StringChars implements Iterator<char> {
+    next :: fn(self) -> Yield<char> | null {
         if (self.cursor >= self.length) {
             return null
         }
         [c, width] :: self.s.decode_codepoint(self.cursor)
         self.cursor = self.cursor + width
-        return Yield(char) { .value = c }
+        return Yield<char> { .value = c }
     }
 }
 
@@ -124,8 +124,8 @@ export chars :: fn(s: string) -> StringChars {
 
 // `for c in s` desugars to `for c in s.into()` via this impl — codepoints
 // are the default unit. Byte iteration stays opt-in via `s.bytes()`.
-string implements Into(Iterator(char)) {
-    into :: fn(self) -> Iterator(char) {
+string implements Into<Iterator<char>> {
+    into :: fn(self) -> Iterator<char> {
         return StringChars { .s = self, .cursor = usize(0), .length = self.byte_len() }
     }
 }
@@ -135,7 +135,7 @@ string implements Into(Iterator(char)) {
 /// this impl `in` on string falls back to "language feature unsupported"
 /// at the lower stage. The trait method body delegates to the free
 /// `contains` fn above (a byte-wise scan implemented by the runtime).
-string implements Contains[string] {
+string implements Contains<string> {
     contains :: fn(self, sub: string) -> bool { return contains(self, sub) }
 }
 

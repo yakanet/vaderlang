@@ -2,20 +2,20 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let tail: Node(i32) =
-      Node(i32) {
+    let tail: Node<i32> =
+      Node<i32> {
         value: int(30) :i32
         next: null
       }
-    let mid: Node(i32) =
-      Node(i32) {
+    let mid: Node<i32> =
+      Node<i32> {
         value: int(20) :i32
-        next: tail :Node(i32)
+        next: tail :Node<i32>
       }
-    let head: Node(i32) =
-      Node(i32) {
+    let head: Node<i32> =
+      Node<i32> {
         value: int(10) :i32
-        next: mid :Node(i32)
+        next: mid :Node<i32>
       }
     call :void
       callee:
@@ -30,10 +30,10 @@
           @builder.append_display <for i32> :void
             __sb_0 :?
             .value :i32
-              head :Node(i32)
+              head :Node<i32>
           ~>
             @builder.finish :string
               __sb_0 :?
     return int(0) :i32
-  struct snippet$Node__i32 { value: Any, next: Node(Any) | null }
-  struct snippet$Node__Any { value: Any, next: Node(Any) | null }
+  struct snippet$Node__i32 { value: Any, next: Node<Any> | null }
+  struct snippet$Node__Any { value: Any, next: Node<Any> | null }

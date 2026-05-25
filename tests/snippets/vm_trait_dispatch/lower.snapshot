@@ -22,15 +22,15 @@
             else:
               ~>
                 int(0) :i32
-  fn snippet$describe_wrapper(w: Cat | Wrapper(i32)) -> i32
+  fn snippet$describe_wrapper(w: Cat | Wrapper<i32>) -> i32
     ~>
       block :i32
-        let __scrut_0: Cat | Wrapper(i32) = w :Cat | Wrapper(i32)
+        let __scrut_0: Cat | Wrapper<i32> = w :Cat | Wrapper<i32>
         ~>
           if :i32
             cond:
               is Printable :bool
-                __scrut_0 :Cat | Wrapper(i32)
+                __scrut_0 :Cat | Wrapper<i32>
             then:
               ~>
                 int(1) :i32
@@ -46,8 +46,8 @@
       Cat {
         name: "Whiskers" :string
       }
-    let w: Wrapper(i32) =
-      Wrapper(i32) {
+    let w: Wrapper<i32> =
+      Wrapper<i32> {
         inner: int(42) :i32
       }
     let dog_result: i32 =
@@ -62,20 +62,20 @@
           describe :fn(Cat | Dog) -> i32
         arg0:
           c :Cat
-    let wc: Cat | Wrapper(i32) = w :Wrapper(i32)
+    let wc: Cat | Wrapper<i32> = w :Wrapper<i32>
     let wrap_result: i32 =
       call :i32
         callee:
-          describe_wrapper :fn(Cat | Wrapper(i32)) -> i32
+          describe_wrapper :fn(Cat | Wrapper<i32>) -> i32
         arg0:
-          wc :Cat | Wrapper(i32)
-    let cc: Cat | Wrapper(i32) = c :Cat
+          wc :Cat | Wrapper<i32>
+    let cc: Cat | Wrapper<i32> = c :Cat
     let cat_wrap_result: i32 =
       call :i32
         callee:
-          describe_wrapper :fn(Cat | Wrapper(i32)) -> i32
+          describe_wrapper :fn(Cat | Wrapper<i32>) -> i32
         arg0:
-          cc :Cat | Wrapper(i32)
+          cc :Cat | Wrapper<i32>
     return
       add :i32
         l:
@@ -103,6 +103,6 @@
             r:
               int(8) :i32
   struct snippet$Wrapper__i32 { inner: Any }
-  fn snippet$Wrapper$Printable$label__i32(self: Wrapper(i32)) -> string
+  fn snippet$Wrapper$Printable$label__i32(self: Wrapper<i32>) -> string
     return "wrapped" :string
   struct snippet$Wrapper__Any { inner: Any }

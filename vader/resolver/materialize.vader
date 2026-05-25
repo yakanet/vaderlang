@@ -137,9 +137,9 @@ any_has_body :: fn(members: AST.FnDecl[]) -> bool {
     return false
 }
 
-provided_names :: fn(members: AST.FnDecl[]) -> MutableSet(string) {
-    set :: MutableSet(string) {
-        .inner = MutableMap(string, bool) { .buckets = [], .size = 0 },
+provided_names :: fn(members: AST.FnDecl[]) -> MutableSet<string> {
+    set :: MutableSet<string> {
+        .inner = MutableMap<string, bool> { .buckets = [], .size = 0 },
     }
     for m in members { set.add(m.name) }
     return set

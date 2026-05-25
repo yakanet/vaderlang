@@ -4,7 +4,7 @@ module "snippet"
 
 import "std/io" { println }
 
-Pair :: struct[K, V] {
+Pair :: struct<K, V> {
     key:   K
     value: V
 }
@@ -14,7 +14,7 @@ Wrapper :: struct {
 }
 
 main :: fn() -> i32 {
-    for t in @type_args(Pair(string, i64)) {
+    for t in @type_args(Pair<string, i64>) {
         println("pair-arg size=${@size_of(t)}")
     }
     args :: @type_args(Wrapper)

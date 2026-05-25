@@ -17,7 +17,7 @@
         callee:
           count :i32
         arg0:
-          Range(i32) {
+          Range<i32> {
             start: int(0) :i32
             end: int(5) :i32
             inclusive: false
@@ -28,9 +28,9 @@
         callee:
           count :i32
         arg0:
-          call :ArrayIterator(i32)
+          call :ArrayIterator<i32>
             callee:
-              into :ArrayIterator(i32)
+              into :ArrayIterator<i32>
             arg0:
               array :i32[]
                 int(10) :i32
@@ -48,7 +48,7 @@
         callee:
           twice :i32
         arg0:
-          int(7) :Doubler(i32)
+          int(7) :Doubler<i32>
     return
       add :i32
         l:
@@ -63,21 +63,21 @@
               c :i32
         r:
           d :i32
-  fn snippet$snippet$count__i32(it: Iterator(Any)) -> i32
+  fn snippet$snippet$count__i32(it: Iterator<Any>) -> i32
     let n: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
       ~>
         block :void
-          let __scrut_0: null | Yield(Any) =
-            vcall Iterator.next :null | Yield(Any)
+          let __scrut_0: null | Yield<Any> =
+            vcall Iterator.next :null | Yield<Any>
               recv:
-                it :Iterator(Any)
+                it :Iterator<Any>
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_0 :null | Yield(Any)
+                  __scrut_0 :null | Yield<Any>
               then:
                 ~>
                   block :void
@@ -90,8 +90,8 @@
                 ~>
                   if :void
                     cond:
-                      is Yield(Any) :bool
-                        __scrut_0 :null | Yield(Any)
+                      is Yield<Any> :bool
+                        __scrut_0 :null | Yield<Any>
                     then:
                       ~>
                         block :void
@@ -108,13 +108,13 @@
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return n :i32
-  fn snippet$snippet$invoke__i32(g: Greeter(Any)) -> Any
+  fn snippet$snippet$invoke__i32(g: Greeter<Any>) -> Any
     return
       vcall Greeter.greet :Any
         recv:
-          g :Greeter(Any)
-  fn snippet$snippet$twice__i32(x: Doubler(Any)) -> Any
+          g :Greeter<Any>
+  fn snippet$snippet$twice__i32(x: Doubler<Any>) -> Any
     return
       vcall Doubler.doubled :Any
         recv:
-          x :Doubler(Any)
+          x :Doubler<Any>

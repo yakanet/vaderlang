@@ -5,7 +5,7 @@ export Point :: struct {
     y: f64
 }
 
-export List :: struct[T] {
+export List :: struct<T> {
     items: T[]
     len: u32
 }

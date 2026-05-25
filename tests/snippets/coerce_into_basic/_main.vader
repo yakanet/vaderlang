@@ -6,11 +6,11 @@ import "std/io" { println }
 // sites : call arg with a typed parameter, struct field, typed let, return.
 UserId :: struct { value: i32 }
 
-UserId implements Into(i32) {
+UserId implements Into<i32> {
     into :: fn(self) -> i32 { return self.value }
 }
 
-UserId implements Into(string) {
+UserId implements Into<string> {
     into :: fn(self) -> string { return "user_${self.value}" }
 }
 

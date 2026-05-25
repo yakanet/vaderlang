@@ -5,7 +5,7 @@
 
 module "snippet"
 
-needs_hash :: fn[T: Hash](x: T) -> bool {
+needs_hash :: fn<T: Hash>(x: T) -> bool {
     h :: x.hash()
     return h > u64(0)
 }

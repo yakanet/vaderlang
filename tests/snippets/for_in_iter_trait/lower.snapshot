@@ -1,26 +1,26 @@
 # Lower
 
 ## snippet
-  fn snippet$sum_iter(it: Iterator(i32)) -> i32
+  fn snippet$sum_iter(it: Iterator<i32>) -> i32
     let total: i32 = int(0) :i32
     block :void
-      let __iter_0: Iterator(i32) = it :Iterator(i32)
+      let __iter_0: Iterator<i32> = it :Iterator<i32>
       loop
-        let __step_1: Yield(i32) | null =
-          vcall Iterator.next :Yield(i32) | null
+        let __step_1: Yield<i32> | null =
+          vcall Iterator.next :Yield<i32> | null
             recv:
-              __iter_0 :Iterator(i32)
+              __iter_0 :Iterator<i32>
         if :void
           cond:
             is null :bool
-              __step_1 :Yield(i32) | null
+              __step_1 :Yield<i32> | null
           then:
             break
           else:
             let x: i32 =
               .value :i32
-                cast → Yield(i32)
-                  __step_1 :Yield(i32) | null
+                cast → Yield<i32>
+                  __step_1 :Yield<i32> | null
             assign
               target:
                 total :i32
@@ -44,9 +44,9 @@
         callee:
           count :usize
         arg0:
-          call :FilterIterator(char)
+          call :FilterIterator<char>
             callee:
-              filter :FilterIterator(char)
+              filter :FilterIterator<char>
             arg0:
               call :StringChars
                 callee:
@@ -59,9 +59,9 @@
     let a: i32 =
       call :i32
         callee:
-          sum_iter :fn(Iterator(i32)) -> i32
+          sum_iter :fn(Iterator<i32>) -> i32
         arg0:
-          Range(i32) {
+          Range<i32> {
             start: int(0) :i32
             end: int(5) :i32
             inclusive: false
@@ -70,11 +70,11 @@
     let b: i32 =
       call :i32
         callee:
-          sum_iter :fn(Iterator(i32)) -> i32
+          sum_iter :fn(Iterator<i32>) -> i32
         arg0:
-          call :ArrayIterator(i32)
+          call :ArrayIterator<i32>
             callee:
-              into :ArrayIterator(i32)
+              into :ArrayIterator<i32>
             arg0:
               array :i32[]
                 int(10) :i32

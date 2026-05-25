@@ -292,8 +292,8 @@ export propagate_const_single_use :: fn(function: BcFunction) -> void {
     }
 
     // Decide which (set_pc, get_pc) pairs to rewrite.
-    to_delete_set: MutableMap(i32, bool) = MutableMap(i32, bool) { .buckets = [], .size = 0 }
-    replace_with: MutableMap(i32, Op) = MutableMap(i32, Op) { .buckets = [], .size = 0 }
+    to_delete_set: MutableMap<i32, bool> = MutableMap<i32, bool> { .buckets = [], .size = 0 }
+    replace_with: MutableMap<i32, Op> = MutableMap<i32, Op> { .buckets = [], .size = 0 }
     k := param_count
     for k < total_slots {
         valid := true
@@ -801,7 +801,7 @@ assemble_module :: fn(ctx: EmitterCtx, module_name: string, _opts: EmitOptions, 
 /// @return         one `VtableRow` per distinct (trait, method) pair.
 translate_vtables :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> VtableRow[] {
     out: VtableRow[] = []
-    row_index_by_key :: MutableMap(string, i32) { .buckets = [], .size = 0 }
+    row_index_by_key :: MutableMap<string, i32> { .buckets = [], .size = 0 }
     for entry in entries {
         fn_index :: ctx.function_index_by_symbol_id[entry.fn_symbol.id]
         if fn_index is i32 as fi {

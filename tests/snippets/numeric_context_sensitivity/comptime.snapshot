@@ -11,48 +11,48 @@
 ## tests/snippets/numeric_context_sensitivity
 
 ## generic instances
-  Into(Target)
-  Index(I, T)
-  IndexSet(I, T)
-  Contains(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Iterator(T)
-  Yield(T)
-  Yield(U)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Yield(T)
-  Range(T)
-  Range(T)
-  Range(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  ArrayIterator(T)
-  MapIterator(T, U)
-  MapIterator(T, U)
-  MapIterator(T, U)
-  FilterIterator(T)
-  FilterIterator(T)
-  FilterIterator(T)
-  TakeIterator(T)
-  TakeIterator(T)
-  TakeIterator(T)
-  SkipIterator(T)
-  SkipIterator(T)
-  SkipIterator(T)
+  Into<Target>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<U>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  MapIterator<T, U>
+  MapIterator<T, U>
+  MapIterator<T, U>
+  FilterIterator<T>
+  FilterIterator<T>
+  FilterIterator<T>
+  TakeIterator<T>
+  TakeIterator<T>
+  TakeIterator<T>
+  SkipIterator<T>
+  SkipIterator<T>
+  SkipIterator<T>

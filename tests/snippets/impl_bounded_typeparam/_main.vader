@@ -13,19 +13,19 @@ Cat implements Tag { tag :: fn(self) -> string { return self.name } }
 Dog :: struct { name: string }
 Dog implements Tag { tag :: fn(self) -> string { return self.name } }
 
-Wrap :: struct[T] { value: T }
+Wrap :: struct<T> { value: T }
 
 // Bounded generic impl. The body does NOT call any T method — we just
 // verify the syntax parses + resolves + monomorphises.
-Wrap[T] implements[T: Tag] Display {
+Wrap<T> implements<T: Tag> Display {
     to_string :: fn(self) -> string {
         return "wrapped"
     }
 }
 
 main :: fn() -> i32 {
-    a :: Wrap(Cat) { .value = Cat { .name = "Mira" } }
-    b :: Wrap(Dog) { .value = Dog { .name = "Rex" } }
+    a :: Wrap<Cat> { .value = Cat { .name = "Mira" } }
+    b :: Wrap<Dog> { .value = Dog { .name = "Rex" } }
     println(a.to_string())
     println(b.to_string())
     return 0

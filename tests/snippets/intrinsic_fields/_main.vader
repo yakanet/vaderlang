@@ -13,7 +13,7 @@ Point :: struct {
     label: string
 }
 
-Pair :: struct[K, V] {
+Pair :: struct<K, V> {
     key:   K
     value: V
 }
@@ -22,7 +22,7 @@ main :: fn() -> i32 {
     for f in @fields(Point) {
         println("${f.name} size=${@size_of(f.type)}")
     }
-    for f in @fields(Pair(string, i64)) {
+    for f in @fields(Pair<string, i64>) {
         println("pair.${f.name} size=${@size_of(f.type)}")
     }
     return 0

@@ -144,8 +144,8 @@ export for_each_read_in_terminator :: fn(t: Terminator, visit: fn(LocalId) -> vo
 /// + idom they already computed.
 export natural_loop_bodies :: fn(
     fn_: CFGFunction, preds: BlockId[][], idom: i32[],
-) -> MutableMap(BlockId, MutableSet(BlockId)) {
-    out :: MutableMap(BlockId, MutableSet(BlockId)) { .buckets = [], .size = 0 }
+) -> MutableMap<BlockId, MutableSet<BlockId>> {
+    out :: MutableMap<BlockId, MutableSet<BlockId>> { .buckets = [], .size = 0 }
     for h in 0..<fn_.blocks.len() {
         h_id :: i32(h)
         back_edge_sources: BlockId[] = []
@@ -153,7 +153,7 @@ export natural_loop_bodies :: fn(
             if dominates(idom, h_id, p) { back_edge_sources.push(p) }
         }
         if back_edge_sources.len() == usize(0) { continue }
-        body :: MutableSet(BlockId) { .inner = MutableMap(BlockId, bool) { .buckets = [], .size = 0 } }
+        body :: MutableSet<BlockId> { .inner = MutableMap<BlockId, bool> { .buckets = [], .size = 0 } }
         body.add(h_id)
         stack: BlockId[] = []
         for s in back_edge_sources { stack.push(s) }
@@ -176,8 +176,8 @@ export natural_loop_bodies :: fn(
 /// Per-LocalId read count across the whole fn body. Every read in an
 /// instruction or terminator counts once. Used by copy folding, the
 /// stack scheduler, and any pass that needs use-counts.
-export count_uses :: fn(fn_: CFGFunction) -> MutableMap(LocalId, i32) {
-    counts :: MutableMap(LocalId, i32) { .buckets = [], .size = 0 }
+export count_uses :: fn(fn_: CFGFunction) -> MutableMap<LocalId, i32> {
+    counts :: MutableMap<LocalId, i32> { .buckets = [], .size = 0 }
     bump :: (l: LocalId) -> {
         existing :: counts[l]
         match existing {
@@ -258,7 +258,7 @@ export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
 /// don't follow RPO order after CFG construction (block IDs reflect
 /// creation order in the converter, not RPO).
 export intersect_dom_tree :: fn(a: BlockId, b: BlockId, idom: i32[]) -> BlockId {
-    seen :: MutableSet(i32) { .inner = MutableMap(i32, bool) { .buckets = [], .size = 0 } }
+    seen :: MutableSet<i32> { .inner = MutableMap<i32, bool> { .buckets = [], .size = 0 } }
     x := a
     for x != -1 && !seen.contains(x) {
         seen.add(x)
@@ -402,8 +402,8 @@ walk_rpo_reverse :: fn(preds: BlockId[][], b: BlockId, visited: bool[], order: B
 /// @return       map from header BlockId to exit BlockId | null.
 export find_loop_exits :: fn(
     fn_: CFGFunction, preds: BlockId[][], idom: i32[],
-) -> MutableMap(i32, BlockId | null) {
-    out :: MutableMap(i32, BlockId | null) { .buckets = [], .size = 0 }
+) -> MutableMap<i32, BlockId | null> {
+    out :: MutableMap<i32, BlockId | null> { .buckets = [], .size = 0 }
     loops :: natural_loop_bodies(fn_, preds, idom)
     for header in loops.keys() {
         body_opt :: loops[header]
@@ -435,18 +435,18 @@ export find_loop_exits :: fn(
 /// Per-block live-in / live-out sets. Standard backward dataflow on
 /// the use/def of each block. Used by DCE (kill-dead-stores).
 export Liveness :: struct {
-    live_in:  MutableSet(LocalId)[]
-    live_out: MutableSet(LocalId)[]
+    live_in:  MutableSet<LocalId>[]
+    live_out: MutableSet<LocalId>[]
 }
 
 export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     n :: fn_.blocks.len()
-    use_: MutableSet(LocalId)[] = []
-    def_: MutableSet(LocalId)[] = []
+    use_: MutableSet<LocalId>[] = []
+    def_: MutableSet<LocalId>[] = []
     for i in 0..<n {
         b :: fn_.blocks[i]
-        u :: MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } }
-        d :: MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } }
+        u :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> { .buckets = [], .size = 0 } }
+        d :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> { .buckets = [], .size = 0 } }
         for ins in b.instructions {
             for_each_read_local(ins, (l: LocalId) -> {
                 if !d.contains(l) { u.add(l) }
@@ -467,11 +467,11 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     succs: BlockId[][] = []
     for b in fn_.blocks { succs.push(successors_of(b)) }
 
-    live_in:  MutableSet(LocalId)[] = []
-    live_out: MutableSet(LocalId)[] = []
+    live_in:  MutableSet<LocalId>[] = []
+    live_out: MutableSet<LocalId>[] = []
     for 0..<n {
-        live_in.push(MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } })
-        live_out.push(MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } })
+        live_in.push(MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> { .buckets = [], .size = 0 } })
+        live_out.push(MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> { .buckets = [], .size = 0 } })
     }
 
     changed := true
@@ -480,11 +480,11 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
         i := n
         for i > usize(0) {
             i = i - 1
-            out :: MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } }
+            out :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> { .buckets = [], .size = 0 } }
             for s in succs[i] {
                 for l in keys(live_in[s].inner) { out.add(l) }
             }
-            in_set :: MutableSet(LocalId) { .inner = MutableMap(LocalId, bool) { .buckets = [], .size = 0 } }
+            in_set :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> { .buckets = [], .size = 0 } }
             for l in keys(use_[i].inner) { in_set.add(l) }
             for l in keys(out.inner) { if !def_[i].contains(l) { in_set.add(l) } }
             if !sets_equal(out, live_out[i]) {
@@ -500,7 +500,7 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     return Liveness { .live_in = live_in, .live_out = live_out }
 }
 
-sets_equal :: fn(a: MutableSet(LocalId), b: MutableSet(LocalId)) -> bool {
+sets_equal :: fn(a: MutableSet<LocalId>, b: MutableSet<LocalId>) -> bool {
     if a.inner.size != b.inner.size { return false }
     for x in keys(a.inner) { if !b.contains(x) { return false } }
     return true

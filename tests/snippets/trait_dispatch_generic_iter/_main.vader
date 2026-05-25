@@ -14,48 +14,48 @@ module "snippet"
 
 import "std/io" { println }
 
-export Repeat :: struct[T] {
+export Repeat :: struct<T> {
     value: T
     remaining: i32
 }
 
-Repeat[T] implements Iterator[T] {
-    next :: fn(self) -> Yield(T) | null {
+Repeat<T> implements Iterator<T> {
+    next :: fn(self) -> Yield<T> | null {
         if self.remaining <= 0 { return null }
         v :: self.value
         self.remaining = self.remaining - 1
-        return Yield(T) { .value = v }
+        return Yield<T> { .value = v }
     }
 }
 
-export Once :: struct[T] {
+export Once :: struct<T> {
     value: T
     yielded: bool
 }
 
-Once[T] implements Iterator[T] {
-    next :: fn(self) -> Yield(T) | null {
+Once<T> implements Iterator<T> {
+    next :: fn(self) -> Yield<T> | null {
         if self.yielded { return null }
         self.yielded = true
-        return Yield(T) { .value = self.value }
+        return Yield<T> { .value = self.value }
     }
 }
 
-walk :: fn(it: Iterator(i32)) -> i32 {
+walk :: fn(it: Iterator<i32>) -> i32 {
     sum := 0
     cont := true
     for cont {
         match it.next() {
             is null -> { cont = false }
-            is Yield(i32) as y -> { sum = sum + y.value }
+            is Yield<i32> as y -> { sum = sum + y.value }
         }
     }
     return sum
 }
 
 main :: fn() -> i32 {
-    r := Repeat(i32) { .value = 7, .remaining = 3 }
-    o := Once(i32)   { .value = 100, .yielded = false }
+    r := Repeat<i32> { .value = 7, .remaining = 3 }
+    o := Once<i32>   { .value = 100, .yielded = false }
     println("repeat=${walk(r)}")
     println("once=${walk(o)}")
     return 0

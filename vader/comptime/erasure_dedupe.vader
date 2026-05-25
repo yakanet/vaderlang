@@ -53,11 +53,11 @@ import "vader/resolver/symbol" { Symbol }
 DedupeCtx :: struct {
     /// `member_fn_decl.id → owning ImplDecl`. Linear scan during
     /// build ; O(1) per `should_erase` query afterwards.
-    member_to_impl: MutableMap(i32, ImplDecl)
+    member_to_impl: MutableMap<i32, ImplDecl>
     /// `struct_name → StructDecl`. Indexed by the user-facing name
     /// so `resolve_host_struct` can recover the host from
     /// `impl.for_type`.
-    struct_by_name: MutableMap(string, StructDecl)
+    struct_by_name: MutableMap<string, StructDecl>
 }
 
 /// Build the per-project `DedupeCtx`. Walks every loaded module's
@@ -74,8 +74,8 @@ build_dedupe_ctx :: fn(
     project: TypedProject, decls_of: fn(string) -> Decl[] | null,
 ) -> DedupeCtx {
     ctx :: DedupeCtx {
-        .member_to_impl = MutableMap(i32, ImplDecl) { .buckets = [], .size = 0 },
-        .struct_by_name = MutableMap(string, StructDecl) { .buckets = [], .size = 0 },
+        .member_to_impl = MutableMap<i32, ImplDecl> { .buckets = [], .size = 0 },
+        .struct_by_name = MutableMap<string, StructDecl> { .buckets = [], .size = 0 },
     }
     for module_id in project.modules.keys() {
         decls_opt :: decls_of(module_id)
@@ -269,12 +269,12 @@ RedirectedEntry :: struct {
 /// during the group walk ; consumed by `redirect_inner` to rewrite
 /// the three lookup maps and by the entry-list projection.
 ReplacementMap :: struct {
-    by_id: MutableMap(i32, MonoEntry)
+    by_id: MutableMap<i32, MonoEntry>
 }
 
 new_replacement_map :: fn() -> ReplacementMap {
     return ReplacementMap {
-        .by_id = MutableMap(i32, MonoEntry) { .buckets = [], .size = 0 },
+        .by_id = MutableMap<i32, MonoEntry> { .buckets = [], .size = 0 },
     }
 }
 
@@ -313,10 +313,10 @@ make_representative :: fn(first: MonoEntry) -> MonoEntry {
 ///
 /// Mirrors `redirectInner` in `src/comptime/erasure-dedupe.ts:166`.
 redirect_inner :: fn(
-    src: MutableMap(string, MonoEntry),
+    src: MutableMap<string, MonoEntry>,
     replacements: ReplacementMap,
-) -> MutableMap(string, MonoEntry) {
-    out :: MutableMap(string, MonoEntry) { .buckets = [], .size = 0 }
+) -> MutableMap<string, MonoEntry> {
+    out :: MutableMap<string, MonoEntry> { .buckets = [], .size = 0 }
     representative_for_dest: MonoEntry | null = null
     for key in src.keys() {
         entry_opt :: src[key]
@@ -386,7 +386,7 @@ export erasure_dedupe :: fn(
 
     // For each erasable group, decide struct vs fn handling.
     replacements :: new_replacement_map()
-    struct_rewrites :: MutableMap(i32, MonoEntry) { .buckets = [], .size = 0 }
+    struct_rewrites :: MutableMap<i32, MonoEntry> { .buckets = [], .size = 0 }
     extra_struct_entries: MonoEntry[] = []
     for decl_id in groups.keys() {
         group_opt :: groups[decl_id]
@@ -415,7 +415,7 @@ export erasure_dedupe :: fn(
     // `replacements` ; struct entries swap for their rewrite ; non-
     // erasable entries pass through unchanged. Append extra
     // Any-flavoured struct entries at the end.
-    seen_id :: MutableMap(i32, bool) { .buckets = [], .size = 0 }
+    seen_id :: MutableMap<i32, bool> { .buckets = [], .size = 0 }
     j: usize = 0
     for j < mono.entries.len() {
         entry :: mono.entries[j]
@@ -487,15 +487,15 @@ export erasure_dedupe :: fn(
 /// minted by `assign_node_ids` and stable across the pipeline so the
 /// grouping doesn't drift between passes.
 DeclGroups :: struct {
-    by_decl_id: MutableMap(i32, DeclGroup)
+    by_decl_id: MutableMap<i32, DeclGroup>
 }
 
 DeclGroup :: struct {
     entries: MonoEntry[]
 }
 
-group_by_decl :: fn(entries: MonoEntry[]) -> MutableMap(i32, DeclGroup) {
-    out :: MutableMap(i32, DeclGroup) { .buckets = [], .size = 0 }
+group_by_decl :: fn(entries: MonoEntry[]) -> MutableMap<i32, DeclGroup> {
+    out :: MutableMap<i32, DeclGroup> { .buckets = [], .size = 0 }
     i: usize = 0
     for i < entries.len() {
         entry :: entries[i]
@@ -556,7 +556,7 @@ pick_seed_with_bound_subst :: fn(entries: MonoEntry[]) -> MonoEntry {
 pick_redirect_target :: fn(
     entry: MonoEntry,
     replacements: ReplacementMap,
-    struct_rewrites: MutableMap(i32, MonoEntry),
+    struct_rewrites: MutableMap<i32, MonoEntry>,
 ) -> MonoEntry {
     repl :: replacements.by_id[entry.id]
     if repl is MonoEntry { return repl }
@@ -571,7 +571,7 @@ pick_redirect_target :: fn(
 /// extra entry per shape (mangled with `display_any_arg`).
 rewrite_struct_group :: fn(
     group: DeclGroup,
-    struct_rewrites: MutableMap(i32, MonoEntry),
+    struct_rewrites: MutableMap<i32, MonoEntry>,
     extra_struct_entries: MonoEntry[],
     ctx: DedupeCtx,
 ) -> void {
@@ -594,7 +594,7 @@ rewrite_struct_group :: fn(
         i += 1
     }
     first :: group.entries[0]
-    seen_extra :: MutableMap(string, bool) { .buckets = [], .size = 0 }
+    seen_extra :: MutableMap<string, bool> { .buckets = [], .size = 0 }
     j: usize = 0
     for j < group.entries.len() {
         entry :: group.entries[j]

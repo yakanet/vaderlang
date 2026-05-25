@@ -17,19 +17,19 @@ import "vader/resolver/symbol" { Symbol }
 
 /// LIFO stack of binding frames — innermost at the end, root at index 0.
 export Scope :: struct {
-    frames: MutableMap(string, Symbol)[]
+    frames: MutableMap<string, Symbol>[]
 }
 
 /// Build a scope whose root frame is `root`. The caller keeps ownership ;
 /// downstream `bind` calls write to push-introduced frames, not the seed.
-export new_scope :: fn(root: MutableMap(string, Symbol)) -> Scope {
+export new_scope :: fn(root: MutableMap<string, Symbol>) -> Scope {
     return Scope { .frames = [root] }
 }
 
 /// Open a fresh inner scope. Subsequent `bind` calls land here until the
 /// matching `pop`.
 export push :: fn(self: Scope) -> void {
-    self.frames.push(MutableMap(string, Symbol) { .buckets = [], .size = 0 })
+    self.frames.push(MutableMap<string, Symbol> { .buckets = [], .size = 0 })
 }
 
 /// Drop the innermost scope. No-op on an empty stack — the body walker
@@ -38,7 +38,7 @@ export pop :: fn(self: Scope) -> void {
     n :: self.frames.len()
     if n == 0 { return }
     // Arrays don't have `pop` yet, so slice everything but the last entry.
-    new_frames: MutableMap(string, Symbol)[] = []
+    new_frames: MutableMap<string, Symbol>[] = []
     for i in 0..<usize(n - 1) {
         new_frames.push(self.frames[i])
     }
@@ -99,7 +99,7 @@ import "vader/diagnostics" { Position }
 test_scope_lookup_finds_root_binding :: fn() -> void {
     factory :: new_factory()
     sym :: factory.make(.Local, "x", "test", .Private, null)
-    root :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    root :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     root["x"] = sym
     scope :: new_scope(root)
     hit :: scope.lookup("x")
@@ -114,7 +114,7 @@ test_scope_push_pop_restores_outer :: fn() -> void {
     factory :: new_factory()
     outer :: factory.make(.Local, "x", "test", .Private, null)
     inner :: factory.make(.Local, "x", "test", .Private, null)
-    root :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    root :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     root["x"] = outer
     scope :: new_scope(root)
     scope.push()
@@ -136,7 +136,7 @@ test_scope_push_pop_restores_outer :: fn() -> void {
 
 @test
 test_scope_lookup_misses_return_null :: fn() -> void {
-    root :: MutableMap(string, Symbol) { .buckets = [], .size = 0 }
+    root :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     scope :: new_scope(root)
     miss :: scope.lookup("nope")
     match miss {

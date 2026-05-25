@@ -32,7 +32,7 @@ export GenericInstance :: struct {
 /// preserves insertion order so callers can iterate deterministically
 /// before the final sort.
 export InstanceRegistry :: struct {
-    by_key: MutableMap(string, GenericInstance)
+    by_key: MutableMap<string, GenericInstance>
     order:  GenericInstance[]
 }
 
@@ -40,7 +40,7 @@ export InstanceRegistry :: struct {
 /// @return  a fresh registry with no instances.
 export new_registry :: fn() -> InstanceRegistry {
     return InstanceRegistry {
-        .by_key = MutableMap(string, GenericInstance) { .buckets = [], .size = 0 },
+        .by_key = MutableMap<string, GenericInstance> { .buckets = [], .size = 0 },
         .order  = [],
     }
 }
@@ -184,7 +184,7 @@ export render_instance :: fn(instance: GenericInstance) -> string {
         if i > usize(0) { parts = "${parts}, " }
         parts = "${parts}${display_type(instance.args[i])}"
     }
-    return "${instance.symbol.name}(${parts})"
+    return "${instance.symbol.name}<${parts}>"
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -211,7 +211,7 @@ import "vader/parser" { Visibility }
     list_type :: mk_struct(sym, args)
     registry.observe(list_type)
     assert_eq(registry.order.len(), usize(1))
-    assert_eq(render_instance(registry.order[0]), "List(i32)")
+    assert_eq(render_instance(registry.order[0]), "List<i32>")
 }
 
 dummy_struct_symbol :: fn(name: string) -> Symbol {

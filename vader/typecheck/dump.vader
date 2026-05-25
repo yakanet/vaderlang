@@ -223,10 +223,10 @@ Point :: struct {
 @test
 test_dump_renders_generic_struct :: fn() -> void {
     src :: """
-Wrap :: struct[T] {
+Wrap :: struct<T> {
     value: T
 }
 """
-    expected :: "# Typecheck\n\n## t\n  StructDecl     Wrap                 :: Wrap(T)"
+    expected :: "# Typecheck\n\n## t\n  StructDecl     Wrap                 :: Wrap<T>"
     assert_eq(dump_test(src), expected)
 }

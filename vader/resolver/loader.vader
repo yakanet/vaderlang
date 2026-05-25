@@ -48,7 +48,7 @@ zero_span :: fn(path: string) -> Span {
 /// consumers merge these into their `# Diagnostics` block.
 export LoadedProject :: struct {
     entry:        string
-    modules:      MutableMap(string, LoadedModule)
+    modules:      MutableMap<string, LoadedModule>
     factory:      SymbolFactory
     project_root: string | null
     diags:        Diagnostic[]
@@ -59,7 +59,7 @@ export LoadedProject :: struct {
 export empty_loaded_project :: fn() -> LoadedProject {
     return LoadedProject {
         .entry        = "",
-        .modules      = MutableMap(string, LoadedModule) { .buckets = [], .size = 0 },
+        .modules      = MutableMap<string, LoadedModule> { .buckets = [], .size = 0 },
         .factory      = new_factory(),
         .project_root = null,
         .diags        = [],
@@ -81,7 +81,7 @@ export LoadedModule :: struct {
 /// project ; callers feed it to `resolve_project` / `check_project`.
 export load_project :: fn(entry_path: string) -> LoadedProject {
     factory :: new_factory()
-    modules :: MutableMap(string, LoadedModule) { .buckets = [], .size = 0 }
+    modules :: MutableMap<string, LoadedModule> { .buckets = [], .size = 0 }
     loader_diags: Diagnostic[] = []
     stdlib_root :: default_stdlib_root()
     project_root :: find_manifest_root(entry_path)
@@ -104,7 +104,7 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
 
     // Header-only scan : index every module under scope by its
     // declared name. R2020/R2022/R2023 land in `loader_diags`.
-    index: MutableMap(string, DiscoveredModule) = discover_modules(scoped_roots, loader_diags)
+    index: MutableMap<string, DiscoveredModule> = discover_modules(scoped_roots, loader_diags)
 
     entry_module :: find_by_folder(index, entry_folder)
     match entry_module {
@@ -164,8 +164,8 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
 // emit R2001/R2024/R2025/R2028 with the right span.
 ingest_module :: fn(
     m: DiscoveredModule, stdlib_root: string,
-    modules: MutableMap(string, LoadedModule), factory: SymbolFactory,
-    index: MutableMap(string, DiscoveredModule), diags: Diagnostic[],
+    modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
+    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
 ) -> void {
     if m.files.len() == 0 { return }
     sources :: parse_module_files(m.files, diags)
@@ -206,7 +206,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]) -> SourceFile[] {
     return out
 }
 
-find_by_folder :: fn(index: MutableMap(string, DiscoveredModule), folder: string) -> DiscoveredModule | null {
+find_by_folder :: fn(index: MutableMap<string, DiscoveredModule>, folder: string) -> DiscoveredModule | null {
     for name in index.keys() {
         m :: index[name]
         match m {
@@ -240,14 +240,14 @@ trim_trailing_slash :: fn(s: string) -> string {
     return s
 }
 
-has_module :: fn(modules: MutableMap(string, LoadedModule), id: string) -> bool {
+has_module :: fn(modules: MutableMap<string, LoadedModule>, id: string) -> bool {
     return !(modules[id] is null)
 }
 
 collect_files :: fn(
     files: SourceFile[], module_id: string, module_name: string,
     factory: SymbolFactory,
-    index: MutableMap(string, DiscoveredModule), diags: Diagnostic[],
+    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
 ) -> CollectedModule {
     // Multi-file collect : merge every file's collected view into one
     // module-wide table. Each file mints fresh Symbol ids through the

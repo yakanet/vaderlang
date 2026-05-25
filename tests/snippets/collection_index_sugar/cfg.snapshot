@@ -4,9 +4,9 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 $arr_0: (Entry(string, i32) | null)[]
+    %0 $arr_0: (Entry<string, i32> | null)[]
     %1 $k_1: usize
-    %2 m: MutableMap(string, i32) (local m)
+    %2 m: MutableMap<string, i32> (local m)
     %3 $k_4: string
     %4 $k_5: i32
     %5 $k_6: string
@@ -38,10 +38,10 @@ fn snippet$main() -> i32
     %31 $call_33: bool
     %32 $not_34: bool
     %33 $k_35: string
-    %34 $arr_36: (Entry(i32, bool) | null)[]
+    %34 $arr_36: (Entry<i32, bool> | null)[]
     %35 $k_37: usize
-    %36 $struct_38: MutableMap(i32, bool)
-    %37 s: MutableSet(i32) (local s)
+    %36 $struct_38: MutableMap<i32, bool>
+    %37 s: MutableSet<i32> (local s)
     %38 $k_41: i32
     %39 $call_42: bool
     %40 $k_43: i32
@@ -55,9 +55,9 @@ fn snippet$main() -> i32
     %48 $k_51: string
     %49 $k_52: i32
   bb0:
-    %0 = array_new (Entry(string, i32) | null)[][0]()
+    %0 = array_new (Entry<string, i32> | null)[][0]()
     %1 = const int(0) :usize
-    %2 = struct_new MutableMap(string, i32)(%0, %1)
+    %2 = struct_new MutableMap<string, i32>(%0, %1)
     %3 = const string(#0) :string
     %4 = const int(10) :i32
     call set_at(%2, %3, %4) :void
@@ -132,10 +132,10 @@ fn snippet$main() -> i32
     call println(%33) :void
     branch -> bb16
   bb16:
-    %34 = array_new (Entry(i32, bool) | null)[][0]()
+    %34 = array_new (Entry<i32, bool> | null)[][0]()
     %35 = const int(0) :usize
-    %36 = struct_new MutableMap(i32, bool)(%34, %35)
-    %37 = struct_new MutableSet(i32)(%36)
+    %36 = struct_new MutableMap<i32, bool>(%34, %35)
+    %37 = struct_new MutableSet<i32>(%36)
     %38 = const int(1) :i32
     %39 = call add(%37, %38) :bool
     %40 = const int(2) :i32

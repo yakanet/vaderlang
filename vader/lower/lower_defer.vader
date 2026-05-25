@@ -131,8 +131,8 @@ build_defer_env_lit_fields :: fn(span: Span, captures: Capture[]) -> LoweredStru
     return fields
 }
 
-build_defer_capture_fields_map :: fn(captures: Capture[]) -> MutableMap(i32, string) {
-    map :: MutableMap(i32, string) { .buckets = [], .size = usize(0) }
+build_defer_capture_fields_map :: fn(captures: Capture[]) -> MutableMap<i32, string> {
+    map :: MutableMap<i32, string> { .buckets = [], .size = usize(0) }
     for i in 0..<captures.len() {
         map[captures[i].symbol.id] = "cap_${i}"
     }

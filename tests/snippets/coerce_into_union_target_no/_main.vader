@@ -7,7 +7,7 @@ module "snippet"
 
 Foo :: struct { value: i32 }
 
-Foo implements Into(i32) {
+Foo implements Into<i32> {
     into :: fn(self) -> i32 { return self.value }
 }
 

@@ -4,8 +4,8 @@
   FnDecl         count_ls             :: fn(string) -> usize
   FnDecl         is_l                 :: fn(char) -> bool
   FnDecl         main                 :: fn() -> i32
-  FnDecl         sum_iter             :: fn(Iterator(i32)) -> i32
-  expr 23:14    IdentExpr      :: Iterator(i32)
+  FnDecl         sum_iter             :: fn(Iterator<i32>) -> i32
+  expr 23:14    IdentExpr      :: Iterator<i32>
   expr 24:17    BinaryExpr     :: ?
   expr 24:17    IdentExpr      :: i32
   expr 24:25    IdentExpr      :: ?
@@ -13,19 +13,19 @@
   expr 26:12    IdentExpr      :: i32
   expr 33:38    BinaryExpr     :: bool
   expr 33:38    IdentExpr      :: char
-  expr 35:12    CallExpr       :: FilterIterator(char)
+  expr 35:12    CallExpr       :: FilterIterator<char>
   expr 35:12    CallExpr       :: StringChars
   expr 35:12    CallExpr       :: usize
   expr 35:12    FieldExpr      :: fn() -> StringChars
   expr 35:12    FieldExpr      :: fn() -> usize
-  expr 35:12    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator(T)
+  expr 35:12    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator<T>
   expr 35:12    IdentExpr      :: string
   expr 35:29    IdentExpr      :: fn(char) -> bool
   expr 39:10    CallExpr       :: i32
-  expr 39:10    IdentExpr      :: fn(Iterator(i32)) -> i32
-  expr 39:19    RangeExpr      :: Range(i32)
+  expr 39:10    IdentExpr      :: fn(Iterator<i32>) -> i32
+  expr 39:19    RangeExpr      :: Range<i32>
   expr 40:10    CallExpr       :: i32
-  expr 40:10    IdentExpr      :: fn(Iterator(i32)) -> i32
+  expr 40:10    IdentExpr      :: fn(Iterator<i32>) -> i32
   expr 40:19    SeqLitExpr     :: i32[]
   expr 41:13    StringLitExpr  :: string
   expr 41:29    IdentExpr      :: i32

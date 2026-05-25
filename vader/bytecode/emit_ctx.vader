@@ -35,12 +35,12 @@ export EmitterCtx :: struct {
     types: BcType[]
     /// `type_intern_key(t)` → index into `types`. Pre-loaded with
     /// `"null"` at index 0 by `new_emitter_ctx`.
-    type_key: MutableMap(string, i32)
+    type_key: MutableMap<string, i32>
 
     /// String literal pool. Deduplicated by content via `string_key`.
     strings: string[]
     /// `string content` → index into `strings`.
-    string_key: MutableMap(string, i32)
+    string_key: MutableMap<string, i32>
 
     /// Function table. Each entry mirrors a top-level `LoweredFnDecl`
     /// (regular fns) ; `is_extern`-flagged decls route to `imports`
@@ -49,7 +49,7 @@ export EmitterCtx :: struct {
     /// `MonoEntry.symbol.id` → index into `functions`. Lets call sites
     /// resolve target fn slots through the symbol id rather than the
     /// mangled name.
-    function_index_by_symbol_id: MutableMap(i32, i32)
+    function_index_by_symbol_id: MutableMap<i32, i32>
 
     /// Host-side import table (`@extern` user decls + stdlib
     /// `@intrinsic` shims). Each entry's `signature` mirrors what the
@@ -57,7 +57,7 @@ export EmitterCtx :: struct {
     imports: BcImport[]
     /// `MonoEntry.symbol.id` → index into `imports`. Same role as
     /// `function_index_by_symbol_id` for the import side.
-    import_index_by_symbol_id: MutableMap(i32, i32)
+    import_index_by_symbol_id: MutableMap<i32, i32>
 
     /// `@export` decls — exposed to the host linker. C-emit's `main`
     /// shim consults this to pick the program entry point.
@@ -71,17 +71,17 @@ export EmitterCtx :: struct {
 export new_emitter_ctx :: fn() -> EmitterCtx {
     types: BcType[] = []
     types.push(BcPrimitive { .val = ValType.Null })
-    type_key :: MutableMap(string, i32) { .buckets = [], .size = 0 }
+    type_key :: MutableMap<string, i32> { .buckets = [], .size = 0 }
     type_key["null"] = i32(0)
     return EmitterCtx {
         .types                       = types,
         .type_key                    = type_key,
         .strings                     = [],
-        .string_key                  = MutableMap(string, i32) { .buckets = [], .size = 0 },
+        .string_key                  = MutableMap<string, i32> { .buckets = [], .size = 0 },
         .functions                   = [],
-        .function_index_by_symbol_id = MutableMap(i32, i32) { .buckets = [], .size = 0 },
+        .function_index_by_symbol_id = MutableMap<i32, i32> { .buckets = [], .size = 0 },
         .imports                     = [],
-        .import_index_by_symbol_id   = MutableMap(i32, i32) { .buckets = [], .size = 0 },
+        .import_index_by_symbol_id   = MutableMap<i32, i32> { .buckets = [], .size = 0 },
         .exports                     = [],
     }
 }

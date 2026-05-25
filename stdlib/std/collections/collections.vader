@@ -36,10 +36,10 @@ module "std/collections"
 
 BUCKET_COUNT :: usize(16)
 
-Entry :: struct[K, V] {
+Entry :: struct<K, V> {
     key:   K
     value: V
-    next:  Entry(K, V) | null
+    next:  Entry<K, V> | null
 }
 
 /// Chaining hash map keyed by any `K` that implements `Hash & Equals`.
@@ -47,8 +47,8 @@ Entry :: struct[K, V] {
 /// MVP doesn't resize, so the load factor is bounded above by the chain
 /// length. `K`'s `hash()` is queried on insert / lookup, `equals()` on
 /// chain walks.
-export MutableMap :: struct[K: Hash & Equals, V] {
-    buckets: (Entry(K, V) | null)[]
+export MutableMap :: struct<K: Hash & Equals, V> {
+    buckets: (Entry<K, V> | null)[]
     size:    usize
 }
 
@@ -66,7 +66,7 @@ bucket_index :: fn(h: u64) -> i32 {
 /// buckets have already been allocated, so it's cheap to call from every
 /// mutating entry point.
 /// @param self  the map receiver whose buckets get materialised.
-ensure_buckets :: fn[K, V](self: MutableMap(K, V)) -> void {
+ensure_buckets :: fn<K, V>(self: MutableMap<K, V>) -> void {
     if self.buckets.len() == 0 {
         for 0..<BUCKET_COUNT {
             self.buckets.push(null)
@@ -80,19 +80,19 @@ ensure_buckets :: fn[K, V](self: MutableMap(K, V)) -> void {
 /// @param self   the map receiver.
 /// @param key    key with which `value` is associated.
 /// @param value  the new value.
-put :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K, value: V) -> void {
+put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> void {
     self.ensure_buckets()
     h :: key.hash()
     idx :: bucket_index(h)
 
     // Walk the chain — update in place if the key already exists.
-    cur: Entry(K, V) | null = self.buckets[idx]
+    cur: Entry<K, V> | null = self.buckets[idx]
     done := false
     found := false
     for !done {
         match cur {
             is null -> { done = true }
-            is Entry(K, V) -> {
+            is Entry<K, V> -> {
                 if cur.key.equals(key) {
                     cur.value = value
                     found = true
@@ -108,7 +108,7 @@ put :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K, value: V) -> void
     }
 
     // Prepend a fresh entry — chain head becomes the new node.
-    new_entry :: Entry(K, V) { .key = key, .value = value, .next = self.buckets[idx] }
+    new_entry :: Entry<K, V> { .key = key, .value = value, .next = self.buckets[idx] }
     self.buckets[idx] = new_entry
     self.size = self.size + 1
 }
@@ -117,19 +117,19 @@ put :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K, value: V) -> void
 /// @param self  the map receiver.
 /// @param key   key to look up.
 /// @return      `V` when present, `null` otherwise.
-get :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K) -> V | null {
+get :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> V | null {
     if self.buckets.len() == 0 {
         return null
     }
     h :: key.hash()
     idx :: bucket_index(h)
-    cur: Entry(K, V) | null = self.buckets[idx]
+    cur: Entry<K, V> | null = self.buckets[idx]
     result: V | null = null
     done := false
     for !done {
         match cur {
             is null -> { done = true }
-            is Entry(K, V) -> {
+            is Entry<K, V> -> {
                 if cur.key.equals(key) {
                     result = cur.value
                     done = true
@@ -146,19 +146,19 @@ get :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K) -> V | null {
 /// "key maps to a null-typed value" — `get` collapses both to `null`.
 /// @param self  the map receiver.
 /// @param key   key to test.
-contains_key :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K) -> bool {
+contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool {
     if self.buckets.len() == 0 {
         return false
     }
     h :: key.hash()
     idx :: bucket_index(h)
-    cur: Entry(K, V) | null = self.buckets[idx]
+    cur: Entry<K, V> | null = self.buckets[idx]
     found := false
     done := false
     for !done {
         match cur {
             is null -> { done = true }
-            is Entry(K, V) -> {
+            is Entry<K, V> -> {
                 if cur.key.equals(key) {
                     found = true
                     done = true
@@ -172,24 +172,24 @@ contains_key :: fn[K: Hash & Equals, V](self: MutableMap(K, V), key: K) -> bool 
 }
 
 /// Number of `(key, value)` entries currently stored in `self`. O(1).
-export len :: fn[K, V](self: MutableMap(K, V)) -> usize { return self.size }
+export len :: fn<K, V>(self: MutableMap<K, V>) -> usize { return self.size }
 
 /// True iff no entries have been inserted (or all were removed). O(1).
-export is_empty :: fn[K, V](self: MutableMap(K, V)) -> bool { return self.size == 0 }
+export is_empty :: fn<K, V>(self: MutableMap<K, V>) -> bool { return self.size == 0 }
 
 // Operator sugar — `m[key]` reads via Index, `m[key] = v` writes via
 // IndexSet, `key in m` dispatches via Contains. K's `Hash & Equals` bound is
 // auto-inherited from the struct decl ; the impl bodies reuse `get` / `put`
 // / `contains_key` so all the dispatch machinery is shared.
-MutableMap[K, V] implements Index[K, V | null] {
+MutableMap<K, V> implements Index<K, V | null> {
     at :: fn(self, key: K) -> V | null { return self.get(key) }
 }
 
-MutableMap[K, V] implements IndexSet[K, V] {
+MutableMap<K, V> implements IndexSet<K, V> {
     set_at :: fn(self, key: K, v: V) { self.put(key, v) }
 }
 
-MutableMap[K, V] implements Contains[K] {
+MutableMap<K, V> implements Contains<K> {
     contains :: fn(self, key: K) -> bool { return self.contains_key(key) }
 }
 
@@ -197,15 +197,15 @@ MutableMap[K, V] implements Contains[K] {
 /// hash distributes them across buckets). Allocates a fresh `[K]`.
 /// @param self  the map receiver.
 /// @return      a new array of every stored key.
-export keys :: fn[K, V](self: MutableMap(K, V)) -> K[] {
+export keys :: fn<K, V>(self: MutableMap<K, V>) -> K[] {
     out: K[] = []
     for bucket in self.buckets {
-        cur: Entry(K, V) | null = bucket
+        cur: Entry<K, V> | null = bucket
         done := false
         for !done {
             match cur {
                 is null -> { done = true }
-                is Entry(K, V) -> {
+                is Entry<K, V> -> {
                     out.push(cur.key)
                     cur = cur.next
                 }
@@ -220,15 +220,15 @@ export keys :: fn[K, V](self: MutableMap(K, V)) -> K[] {
 /// view of the map's contents.
 /// @param self  the map receiver.
 /// @return      a new array of every stored value.
-export values :: fn[K, V](self: MutableMap(K, V)) -> V[] {
+export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
     out: V[] = []
     for bucket in self.buckets {
-        cur: Entry(K, V) | null = bucket
+        cur: Entry<K, V> | null = bucket
         done := false
         for !done {
             match cur {
                 is null -> { done = true }
-                is Entry(K, V) -> {
+                is Entry<K, V> -> {
                     out.push(cur.value)
                     cur = cur.next
                 }
@@ -243,23 +243,23 @@ export values :: fn[K, V](self: MutableMap(K, V)) -> V[] {
 /// Iteration order follows the hash distribution, not insertion. Mutating
 /// `self` while a `MapIterator` is live yields undefined behaviour.
 @specialize
-export MapIterator :: struct[K: Hash & Equals, V] {
-    map:           MutableMap(K, V)
+export MapIterator :: struct<K: Hash & Equals, V> {
+    map:           MutableMap<K, V>
     bucket_cursor: usize
-    chain_cursor:  Entry(K, V) | null
+    chain_cursor:  Entry<K, V> | null
 }
 
 // `for entry in m` works directly thanks to the `Into(Iterator(...))`
 // impl below — no explicit `.iter()` call needed.
 
-MutableMap[K, V] implements[K, V] Into(Iterator(Entry(K, V))) {
-    into :: fn(self) -> Iterator(Entry(K, V)) {
-        return MapIterator(K, V) { .map = self, .bucket_cursor = 0, .chain_cursor = null }
+MutableMap<K, V> implements<K, V> Into<Iterator<Entry<K, V>>> {
+    into :: fn(self) -> Iterator<Entry<K, V>> {
+        return MapIterator<K, V> { .map = self, .bucket_cursor = 0, .chain_cursor = null }
     }
 }
 
-MapIterator[K, V] implements Iterator[Entry(K, V)] {
-    next :: fn(self) -> Yield(Entry(K, V)) | null {
+MapIterator<K, V> implements Iterator<Entry<K, V>> {
+    next :: fn(self) -> Yield<Entry<K, V>> | null {
         finished := false
         for !finished {
             // Bind the chain cursor to a local so match narrowing applies —
@@ -267,9 +267,9 @@ MapIterator[K, V] implements Iterator[Entry(K, V)] {
             // only on plain identifiers.
             cur :: self.chain_cursor
             match cur {
-                is Entry(K, V) -> {
+                is Entry<K, V> -> {
                     self.chain_cursor = cur.next
-                    return Yield(Entry(K, V)) { .value = cur }
+                    return Yield<Entry<K, V>> { .value = cur }
                 }
                 is null -> {
                     if self.bucket_cursor >= self.map.buckets.len() {
@@ -294,8 +294,8 @@ MapIterator[K, V] implements Iterator[Entry(K, V)] {
 /// Hash set keyed by any `T` that implements `Hash & Equals`. Backed by a
 /// `MutableMap(T, bool)` — every member is stored as a `(T → true)` entry,
 /// so lookups inherit the chained-bucket O(1)-average behaviour.
-export MutableSet :: struct[T: Hash & Equals] {
-    inner: MutableMap(T, bool)
+export MutableSet :: struct<T: Hash & Equals> {
+    inner: MutableMap<T, bool>
 }
 
 /// Insert `value`. Returns `true` if `value` was newly added, `false` if it
@@ -303,7 +303,7 @@ export MutableSet :: struct[T: Hash & Equals] {
 /// @param self   the set receiver.
 /// @param value  the element to add.
 /// @return       `true` on insertion, `false` on duplicate.
-export add :: fn[T](self: MutableSet(T), value: T) -> bool {
+export add :: fn<T>(self: MutableSet<T>, value: T) -> bool {
     if value in self.inner { return false }
     self.inner[value] = true
     return true
@@ -311,20 +311,20 @@ export add :: fn[T](self: MutableSet(T), value: T) -> bool {
 
 /// True iff `value` is a member of the set. Same dispatch path as the
 /// `value in set` infix operator (which lowers to this method).
-export contains :: fn[T](self: MutableSet(T), value: T) -> bool {
+export contains :: fn<T>(self: MutableSet<T>, value: T) -> bool {
     return value in self.inner
 }
 
 /// Number of members in the set. O(1).
-export len :: fn[T](self: MutableSet(T)) -> usize { return self.inner.size }
+export len :: fn<T>(self: MutableSet<T>) -> usize { return self.inner.size }
 
 /// True iff no members have been added (or all were removed). O(1).
-export is_empty :: fn[T](self: MutableSet(T)) -> bool { return self.inner.size == 0 }
+export is_empty :: fn<T>(self: MutableSet<T>) -> bool { return self.inner.size == 0 }
 
 // `value in set` / `value !in set` dispatch through Contains. No
 // Index/IndexSet impl — sets have no value-at-key semantics, and `s.add(v)`
 // reads more clearly than a hypothetical `s[v] = true`.
-MutableSet[T] implements Contains[T] {
+MutableSet<T> implements Contains<T> {
     contains :: fn(self, value: T) -> bool { return value in self.inner }
 }
 
@@ -335,32 +335,32 @@ MutableSet[T] implements Contains[T] {
 /// doesn't drill into yet. Same undefined-behaviour caveat as `MapIterator` on
 /// concurrent mutation.
 @specialize
-export SetIterator :: struct[T: Hash & Equals] {
-    set:           MutableSet(T)
+export SetIterator :: struct<T: Hash & Equals> {
+    set:           MutableSet<T>
     bucket_cursor: usize
-    chain_cursor:  Entry(T, bool) | null
+    chain_cursor:  Entry<T, bool> | null
 }
 
 // `for v in s` works directly via the `Into(Iterator(...))` impl below —
 // same pattern as `MutableMap`.
 
-MutableSet[T] implements[T] Into(Iterator(T)) {
-    into :: fn(self) -> Iterator(T) {
-        return SetIterator(T) { .set = self, .bucket_cursor = 0, .chain_cursor = null }
+MutableSet<T> implements<T> Into<Iterator<T>> {
+    into :: fn(self) -> Iterator<T> {
+        return SetIterator<T> { .set = self, .bucket_cursor = 0, .chain_cursor = null }
     }
 }
 
-SetIterator[T] implements Iterator[T] {
-    next :: fn(self) -> Yield(T) | null {
+SetIterator<T> implements Iterator<T> {
+    next :: fn(self) -> Yield<T> | null {
         finished := false
         for !finished {
             // Mirror MapIterator's narrowing dance — match needs a local binding,
             // not a field access, for `is Entry / is null` to narrow.
             cur :: self.chain_cursor
             match cur {
-                is Entry(T, bool) -> {
+                is Entry<T, bool> -> {
                     self.chain_cursor = cur.next
-                    return Yield(T) { .value = cur.key }
+                    return Yield<T> { .value = cur.key }
                 }
                 is null -> {
                     if self.bucket_cursor >= self.set.inner.buckets.len() {
@@ -381,7 +381,7 @@ SetIterator[T] implements Iterator[T] {
 import "std/testing" { assert, assert_eq }
 
 @test test_map_put_get :: fn() -> void {
-    m := MutableMap(string, i32) { .buckets = [], .size = usize(0) }
+    m := MutableMap<string, i32> { .buckets = [], .size = usize(0) }
     m["one"] = 1
     m["two"] = 2
     m["three"] = 3
@@ -397,7 +397,7 @@ import "std/testing" { assert, assert_eq }
 }
 
 @test test_map_overwrite :: fn() -> void {
-    m := MutableMap(string, i32) { .buckets = [], .size = usize(0) }
+    m := MutableMap<string, i32> { .buckets = [], .size = usize(0) }
     m["k"] = 1
     m["k"] = 99
     assert_eq(m.len(), usize(1))
@@ -408,21 +408,21 @@ import "std/testing" { assert, assert_eq }
 }
 
 @test test_map_contains_key :: fn() -> void {
-    m := MutableMap(string, i32) { .buckets = [], .size = usize(0) }
+    m := MutableMap<string, i32> { .buckets = [], .size = usize(0) }
     m["k"] = 1
     assert(m.contains_key("k"), "should contain k")
     assert(!m.contains_key("nope"), "should not contain nope")
 }
 
 @test test_map_is_empty :: fn() -> void {
-    m := MutableMap(string, i32) { .buckets = [], .size = usize(0) }
+    m := MutableMap<string, i32> { .buckets = [], .size = usize(0) }
     assert(m.is_empty(), "fresh map is empty")
     m["x"] = 1
     assert(!m.is_empty(), "after put no longer empty")
 }
 
 @test test_set_add_contains :: fn() -> void {
-    s := MutableSet(i32) { .inner = MutableMap(i32, bool) { .buckets = [], .size = usize(0) } }
+    s := MutableSet<i32> { .inner = MutableMap<i32, bool> { .buckets = [], .size = usize(0) } }
     s.add(10)
     s.add(20)
     s.add(10)
