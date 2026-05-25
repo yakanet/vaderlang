@@ -37,7 +37,7 @@ for (const s of scenarios) {
   const config = loadConfig(s.dir);
   const activePhases = config.phases ? PHASES.filter((p) => config.phases!.includes(p.name)) : PHASES;
   for (const p of activePhases) {
-    test(`${p.name}: ${s.name}`, () => {
+    test.concurrent(`${p.name}: ${s.name}`, () => {
       const file = p.usePath ? s.mainPath : MAIN_FILE;
       let actual: string;
       try {
