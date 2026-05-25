@@ -1,0 +1,34 @@
+# Typecheck
+
+## tests/snippets/generic_angle_decl
+  StructDecl     Box                  :: Box
+  FnDecl         identity             :: fn() -> ?
+  FnDecl         make_nested          :: fn() -> Box
+  expr 7:12     IdentExpr      :: ?
+
+# Diagnostics
+[6:22] error[P1002] expected token: expected `(` after function name (got `<`)
+[6:22] error[P1002] expected token: expected parameter name (got `<`)
+[7:12] error[R2006] unresolved identifier: `x`
+[11:21] error[P1002] expected token: expected `{` to open struct body (got `<`)
+[11:21] error[P1002] expected token: expected field name (got `<`)
+[11:21] error[P1002] expected token: expected `:` after field name (got `<`)
+[11:21] error[P1005] expected a type: got `<`
+[11:23] error[P1002] expected token: expected `:` after field name (got `>`)
+[11:23] error[P1005] expected a type: got `>`
+[11:25] error[P1002] expected token: expected field name (got `{`)
+[11:25] error[P1002] expected token: expected `:` after field name (got `{`)
+[11:25] error[P1005] expected a type: got `{`
+[17:18] error[P1002] expected token: expected `(` after function name (got `<`)
+[17:18] error[P1002] expected token: expected parameter name (got `<`)
+[17:34] error[P1006] expected a declaration: got `<`
+[18:11] error[P1006] expected a declaration: got `::`
+[23:25] error[P1006] expected a declaration: got `::`
+[24:7] error[P1006] expected a declaration: got `::`
+[28:12] error[P1006] expected a declaration: got `::`
+[32:6] error[P1006] expected a declaration: got `::`
+[33:7] error[P1006] expected a declaration: got `::`
+[36:7] error[P1006] expected a declaration: got `::`
+[39:12] error[P1006] expected a declaration: got `::`
+[42:7] error[P1006] expected a declaration: got `::`
+[48:10] error[P1006] expected a declaration: got `::`

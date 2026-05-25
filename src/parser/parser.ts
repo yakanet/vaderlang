@@ -49,6 +49,13 @@ export class Parser {
   // True except inside the immediate condition expression of if/for/match/while
   allowStructLit = true;
 
+  // When non-null, the lexer's `>>` token has been split : its first `>` was
+  // already consumed (and `pos` advanced past it), and this field holds a
+  // synthetic `gt` exposing the second `>`. The next `consumeClosingAngle`
+  // returns it without touching `pos`. Lets `Box<Box<T>>` close two angle
+  // levels with the single `shr` token the lexer emits.
+  private shrPendingHalf: Token | null = null;
+
   constructor(tokens: readonly Token[], file: string, diags: DiagnosticCollector) {
     this.tokens = tokens;
     this.file = file;
@@ -58,6 +65,7 @@ export class Parser {
   // ----------------------------------------------------------- token helpers
 
   peek(offset = 0): Token {
+    if (offset === 0 && this.shrPendingHalf !== null) return this.shrPendingHalf;
     return this.tokens[this.pos + offset] ?? this.tokens[this.tokens.length - 1]!;
   }
 
@@ -69,7 +77,7 @@ export class Parser {
   match(kind: TokenKind): Token | null {
     if (this.check(kind)) {
       const t = this.peek();
-      this.pos++;
+      this.advance();
       return t;
     }
     return null;
@@ -77,7 +85,13 @@ export class Parser {
 
   advance(): Token {
     const t = this.peek();
-    if (this.pos < this.tokens.length - 1) this.pos++;
+    if (this.shrPendingHalf !== null) {
+      // The synthetic `gt` is consumed ; `pos` was already advanced past
+      // the underlying `shr` when we split it.
+      this.shrPendingHalf = null;
+    } else if (this.pos < this.tokens.length - 1) {
+      this.pos++;
+    }
     return t;
   }
 
@@ -87,6 +101,43 @@ export class Parser {
     const t = this.peek();
     this.error("P1002", t.span, `expected ${what} (got ${describeToken(t)})`);
     return t; // synthetic — caller may use the span
+  }
+
+  /** True when the current position holds a closing `>` (real `gt`, fresh
+   *  `shr`, or the synthetic second half of an already-split `shr`). */
+  checkClosingAngle(): boolean {
+    if (this.shrPendingHalf !== null) return true;
+    const k = this.tokens[this.pos]?.kind;
+    return k === "gt" || k === "shr";
+  }
+
+  /** Consume one closing `>`. Handles three cases :
+   *    - real `gt`               : advance past it.
+   *    - second half of a `shr`  : return the pending synthetic gt.
+   *    - fresh `shr`             : split — advance past the `shr` and stash
+   *                                the synthetic second half for the next
+   *                                caller. `pos` advances on the FIRST half
+   *                                so `peek(-1)` gives the right span anchor.
+   *  If the current token isn't a closer, the caller is responsible for the
+   *  diagnostic. */
+  consumeClosingAngle(): Token {
+    if (this.shrPendingHalf !== null) {
+      const t = this.shrPendingHalf;
+      this.shrPendingHalf = null;
+      return t;
+    }
+    const cur = this.tokens[this.pos] ?? this.tokens[this.tokens.length - 1]!;
+    if (cur.kind === "gt") {
+      if (this.pos < this.tokens.length - 1) this.pos++;
+      return cur;
+    }
+    if (cur.kind === "shr") {
+      const synth: Token = { kind: "gt", text: ">", span: cur.span };
+      this.shrPendingHalf = synth;
+      if (this.pos < this.tokens.length - 1) this.pos++;
+      return synth;
+    }
+    return cur;
   }
 
   skipNewlines(): void {

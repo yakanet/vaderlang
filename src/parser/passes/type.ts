@@ -245,31 +245,53 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
   return { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: t.span, name: "?" };
 }
 
-/** Parse a comma-separated `(...)` or `[...]` list of type expressions, used
- *  for both `Foo(args)` / `Foo[args]` generic instantiation and for the
- *  trait-arg list of `... implements Trait(args)` / `... implements Trait[args]`.
+/** Parse a comma-separated generic-argument list, used for both
+ *  `Foo<args>` / `Foo[args]` / `Foo(args)` generic instantiation and for
+ *  the trait-arg list of `... implements Trait<args>` etc. Three opener
+ *  shapes coexist during the migration to `<T>` :
+ *
+ *    `<...>`  canonical (Java/C# style)
+ *    `[...]`  legacy Layer-4-sugar form
+ *    `(...)`  legacy paren form
+ *
  *  Returns null when no opening delimiter is present (caller treats the
- *  reference as un-instantiated). */
+ *  reference as un-instantiated). The angle form uses
+ *  `Parser.consumeClosingAngle` so that nested `Vec<V>>` closes cleanly
+ *  through the lexer's single `shr` token. */
 export function parseGenericArgList(
   p: Parser, what: string,
 ): { items: A.TypeExpr[] } | null {
-  const open = p.check("lbracket") ? "lbracket" : p.check("lparen") ? "lparen" : null;
+  const open: "lt" | "lbracket" | "lparen" | null =
+    p.check("lt") ? "lt"
+    : p.check("lbracket") ? "lbracket"
+    : p.check("lparen") ? "lparen"
+    : null;
   if (open === null) return null;
-  const close = open === "lbracket" ? "rbracket" : "rparen";
-  const closeText = open === "lbracket" ? "`]`" : "`)`";
   p.advance();
   const items: A.TypeExpr[] = [];
   p.skipNewlines();
-  if (!p.check(close)) {
+  const atClose = (): boolean => {
+    if (open === "lt") return p.checkClosingAngle();
+    if (open === "lbracket") return p.check("rbracket");
+    return p.check("rparen");
+  };
+  if (!atClose()) {
     while (true) {
       p.skipNewlines();
-      if (p.check(close)) break;
+      if (atClose()) break;
       items.push(parseType(p));
       p.skipNewlines();
       if (p.match("comma") === null) break;
     }
   }
-  p.expect(close, `${closeText} to close ${what}`);
+  if (open === "lt") {
+    if (p.checkClosingAngle()) p.consumeClosingAngle();
+    else p.expect("gt", `\`>\` to close ${what}`);
+  } else if (open === "lbracket") {
+    p.expect("rbracket", `\`]\` to close ${what}`);
+  } else {
+    p.expect("rparen", `\`)\` to close ${what}`);
+  }
   return { items };
 }
 

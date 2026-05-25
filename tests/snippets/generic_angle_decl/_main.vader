@@ -1,0 +1,50 @@
+module "snippet"
+
+import "std/io" { println }
+
+// fn declaration (angle form)
+export identity :: fn<T>(x: T) -> T {
+    return x
+}
+
+// struct declaration (angle form)
+export Box :: struct<T> {
+    value: T
+}
+
+// Type position with angle form ; nested `Box<Box<T>>` exercises the lexer
+// `>>` -> `> >` split-on-demand path.
+make_nested :: fn<T>(v: T) -> Box<Box<T>> {
+    inner :: Box<T> { .value = v }
+    return Box<Box<T>> { .value = inner }
+}
+
+// Comparison in argument list — must NOT trigger generic parse
+demo_comparison_in_args :: fn() -> bool {
+    v :: 10
+    return assert_cmp(v < 20, "ok")
+}
+
+assert_cmp :: fn(cond: bool, msg: string) -> bool {
+    return cond
+}
+
+main :: fn() -> i32 {
+    n :: 42.identity()
+    println("n = ${n}")
+
+    b :: 7.make_box()
+    println("b = ${b.value}")
+
+    nested :: 99.make_nested()
+    println("nested = ${nested.value.value}")
+
+    c :: demo_comparison_in_args()
+    println("c = ${c}")
+
+    return 0
+}
+
+make_box :: fn<T>(v: T) -> Box<T> {
+    return Box<T> { .value = v }
+}

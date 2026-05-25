@@ -58,13 +58,17 @@ export function parseDecl(p: Parser): A.Decl | null {
     return parseImplDecl(p, decorators);
   }
 
-  // `name[T] :: <type-expr>` — generic type alias with LHS-bracketed
-  // type-params. Detected before the regular `name ::` path since the
-  // `[...]` between name and `::` is unambiguous (no other decl form
-  // puts brackets there). Body is parsed as a regular expression and
-  // typechecked as a type at use time, matching the non-generic
+  // `name<T> :: <type-expr>` (canonical) or `name[T] :: <type-expr>` (legacy)
+  // — generic type alias with LHS-bracketed type-params. Detected before
+  // the regular `name ::` path since the `<...>` / `[...]` between name
+  // and `::` is unambiguous in this position (no other decl form puts
+  // angles or brackets there). Body is parsed as a regular expression
+  // and typechecked as a type at use time, matching the non-generic
   // implicit-alias path.
-  if (p.check("ident") && p.check("lbracket", 1) && peekLhsGenericAliasHead(p)) {
+  if (
+    p.check("ident") && (p.check("lt", 1) || p.check("lbracket", 1))
+    && peekLhsGenericAliasHead(p)
+  ) {
     return parseLhsGenericAliasDecl(p, decorators, visibility);
   }
 
@@ -223,26 +227,51 @@ export function expectStringLiteral(p: Parser, what: string): { text: string; sp
 }
 
 /** Lookahead : starting at `p.pos` (currently on the leading ident), is the
- *  shape `ident [ ... ] ::` ? Walks a balanced bracket pair and checks the
- *  next token is `decl_const`. Lets us dispatch to the generic-alias path
- *  without committing — the regular const-decl path handles everything
- *  else. */
+ *  shape `ident <...> ::` (canonical) or `ident [ ... ] ::` (legacy) ?
+ *  Walks a balanced delimiter pair and checks the next token is
+ *  `decl_const`. Lets us dispatch to the generic-alias path without
+ *  committing — the regular const-decl path handles everything else.
+ *
+ *  Angle tracking : `<` and `>` adjust an `angleDepth` counter ; `shr`
+ *  (the lexer's `>>`) closes TWO levels at once because the user wrote
+ *  two `>` characters that were merged into one token. The outer paren
+ *  / bracket / brace depth is tracked separately to bail out cleanly. */
 function peekLhsGenericAliasHead(p: Parser): boolean {
-  // `p.pos` is on the ident ; ident + `[` already verified by the caller.
-  let i = p.pos + 2;     // skip ident, skip `[`
-  let depth = 1;
+  // `p.pos` is on the ident ; ident + opener already verified by caller.
+  const opener = p.tokens[p.pos + 1]?.kind;
+  const isAngle = opener === "lt";
+  let i = p.pos + 2;     // skip ident, skip opener
+  let depth = 1;           // depth of the SAME-kind delimiter we opened
+  let otherDepth = 0;      // any other paren/bracket/brace nesting
   while (i < p.tokens.length) {
     const t = p.tokens[i]!;
     if (t.kind === "eof" || t.kind === "newline") return false;
-    if (t.kind === "lbracket") depth++;
-    else if (t.kind === "rbracket") {
-      depth--;
-      if (depth === 0) {
-        return p.tokens[i + 1]?.kind === "decl_const";
+    if (isAngle) {
+      if (t.kind === "lt" && otherDepth === 0) depth++;
+      else if (t.kind === "gt" && otherDepth === 0) {
+        depth--;
+        if (depth === 0) return p.tokens[i + 1]?.kind === "decl_const";
+      } else if (t.kind === "shr" && otherDepth === 0) {
+        depth -= 2;
+        if (depth === 0) return p.tokens[i + 1]?.kind === "decl_const";
+        if (depth < 0) return false;
+      } else if (t.kind === "lparen" || t.kind === "lbracket" || t.kind === "lbrace") otherDepth++;
+      else if (t.kind === "rparen" || t.kind === "rbracket" || t.kind === "rbrace") {
+        otherDepth--;
+        if (otherDepth < 0) return false;
       }
-    } else if (t.kind === "lparen" || t.kind === "lbrace") depth++;
-    else if (t.kind === "rparen" || t.kind === "rbrace") depth--;
-    if (depth < 0) return false;
+    } else {
+      if (t.kind === "lbracket") depth++;
+      else if (t.kind === "rbracket") {
+        depth--;
+        if (depth === 0) return p.tokens[i + 1]?.kind === "decl_const";
+        if (depth < 0) return false;
+      } else if (t.kind === "lparen" || t.kind === "lbrace") otherDepth++;
+      else if (t.kind === "rparen" || t.kind === "rbrace") {
+        otherDepth--;
+        if (otherDepth < 0) return false;
+      }
+    }
     i++;
   }
   return false;
@@ -287,11 +316,12 @@ function parseImplDecl(p: Parser, decorators: readonly A.Decorator[]): A.ImplDec
   const forType = parseType(p);
   p.expect("kw_implements", "`implements` keyword");
   // Optional bounded-generic typeParam list immediately after `implements` :
-  // `Foo[T] implements[T: Bound] Trait[T] { … }`. Mirrors the `fn[T]` /
-  // `struct[T]` / `trait[T]` pattern — `[T]` always follows the keyword
-  // that introduces a typeParam scope. References inside `forType` /
-  // `traitArgs` / member bodies resolve against the bound symbols.
-  const typeParams: readonly A.TypeParam[] = p.check("lbracket")
+  // `Foo<T> implements<T: Bound> Trait<T> { … }`. Mirrors the `fn<T>` /
+  // `struct<T>` / `trait<T>` pattern — the angle list follows the
+  // keyword that introduces a typeParam scope. References inside
+  // `forType` / `traitArgs` / member bodies resolve against the bound
+  // symbols. Legacy `[T]` form still accepted during the migration.
+  const typeParams: readonly A.TypeParam[] = (p.check("lt") || p.check("lbracket"))
     ? parseBracketedTypeParams(p)
     : [];
   const traitTok = p.expect("ident", "trait name");
@@ -690,25 +720,29 @@ function mergeTypeParams(
   return out;
 }
 
-/** Bracketed type-param list `[T, U: Bound, ...]` — the Layer 4-sugar form
- *  (DESIGN_TYPE_FIRST.md §11). Each entry is `name` or `name: bound`. The
- *  bound is parsed as a type expression (so `[T: Numeric]` works) ; future
- *  work allows trait composition via `&` and arbitrary comptime predicates.
- *  Returns an empty list and consumes nothing if the next token is not `[`. */
+/** Type-param list head — `<T, U: Bound, ...>` (canonical) or `[T, U, ...]`
+ *  (legacy bracketed form, kept during the migration to `<T>`). Each entry
+ *  is `name` or `name: bound`. The bound is parsed as a type expression
+ *  (so `<T: Numeric>` works) ; trait composition via `&` and arbitrary
+ *  comptime predicates compose naturally. Returns an empty list and
+ *  consumes nothing if neither `<` nor `[` opens the head. */
 function parseBracketedTypeParams(p: Parser): A.TypeParam[] {
-  if (!p.check("lbracket")) return [];
-  p.advance(); // [
+  const openIsAngle = p.check("lt");
+  const openIsBracket = !openIsAngle && p.check("lbracket");
+  if (!openIsAngle && !openIsBracket) return [];
+  p.advance(); // < or [
   const out: A.TypeParam[] = [];
   p.skipNewlines();
-  if (!p.check("rbracket")) {
+  const atClose = (): boolean => openIsAngle ? p.checkClosingAngle() : p.check("rbracket");
+  if (!atClose()) {
     let first = true;
     while (true) {
       p.skipNewlines();
-      if (p.check("rbracket") || p.check("eof")) break;
+      if (atClose() || p.check("eof")) break;
       if (!first) {
         if (p.match("comma") === null) break;
         p.skipNewlines();
-        if (p.check("rbracket")) break;
+        if (atClose()) break;
       }
       first = false;
       const start = p.peek();
@@ -722,22 +756,27 @@ function parseBracketedTypeParams(p: Parser): A.TypeParam[] {
         id: UNASSIGNED_NODE_ID, span: p.spanOf(start, p.peek(-1)),
         name: nameTok.text,
         bound,
-        // Bracketed type-params are always type-params, never comptime
+        // Layer 4-sugar type-params are always type-params, never comptime
         // *value* params. Comptime values keep the legacy `($N: i32)` form
         // for now ; a future round may unify the two.
         isComptimeValue: false,
       });
     }
   }
-  p.expect("rbracket", "`]` to close type-param list");
+  if (openIsAngle) {
+    if (p.checkClosingAngle()) p.consumeClosingAngle();
+    else p.expect("gt", "`>` to close type-param list");
+  } else {
+    p.expect("rbracket", "`]` to close type-param list");
+  }
   return out;
 }
 
 function parseStructTypeParamList(p: Parser): A.TypeParam[] {
-  // Layer 4-sugar bracketed form takes precedence ; falls back to the
-  // legacy `($T)` paren form when no `[` is present. Both shapes coexist
-  // through the migration window.
-  if (p.check("lbracket")) return parseBracketedTypeParams(p);
+  // Canonical `<T>` form first ; legacy bracketed `[T]` form next ; the
+  // older paren `($T)` form last. All three coexist through the
+  // migration to `<T>`-only.
+  if (p.check("lt") || p.check("lbracket")) return parseBracketedTypeParams(p);
   if (!p.match("lparen")) return [];
   const out: A.TypeParam[] = [];
   if (!p.check("rparen")) {

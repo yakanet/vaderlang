@@ -1,0 +1,130 @@
+# Lower
+
+## snippet
+  fn snippet$demo_comparison_in_args() -> bool
+    let v: i32 = int(10) :i32
+    return
+      call :bool
+        callee:
+          assert_cmp :fn(bool, string) -> bool
+        arg0:
+          lt :bool
+            l:
+              v :i32
+            r:
+              int(20) :i32
+        arg1:
+          "ok" :string
+  fn snippet$assert_cmp(cond: bool, msg: string) -> bool
+    return cond :bool
+  fn snippet$main() -> i32
+    let n: i32 =
+      call :i32
+        callee:
+          identity :i32
+        arg0:
+          int(42) :i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "n = " :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            n :i32
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    let b: Box(i32) =
+      call :Box(i32)
+        callee:
+          make_box :Box(i32)
+        arg0:
+          int(7) :i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "b = " :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            .value :i32
+              b :Box(i32)
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    let nested: Box(Box(i32)) =
+      call :Box(Box(i32))
+        callee:
+          make_nested :Box(Box(i32))
+        arg0:
+          int(99) :i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "nested = " :string
+          @builder.append_display <for i32> :void
+            __sb_2 :?
+            .value :i32
+              .value :Box(i32)
+                nested :Box(Box(i32))
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    let c: bool =
+      call :bool
+        callee:
+          demo_comparison_in_args :fn() -> bool
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "c = " :string
+          @builder.append_display <for bool> :void
+            __sb_3 :?
+            c :bool
+          ~>
+            @builder.finish :string
+              __sb_3 :?
+    return int(0) :i32
+  struct snippet$Box__i32 { value: Any }
+  struct snippet$Box__Box_i32_ { value: Any }
+  fn snippet$snippet$identity__i32(x: Any) -> Any
+    return x :Any
+  fn snippet$snippet$make_nested__i32(v: Any) -> Box(Box(Any))
+    let inner: Box(Any) =
+      Box(Any) {
+        value: v :Any
+      }
+    return
+      Box(Box(Any)) {
+        value: inner :Box(Any)
+      }
+  fn snippet$snippet$make_box__i32(v: Any) -> Box(Any)
+    return
+      Box(Any) {
+        value: v :Any
+      }
+  struct snippet$Box__Any { value: Any }
+  struct snippet$Box__Box_Any { value: Any }

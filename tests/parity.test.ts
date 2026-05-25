@@ -28,20 +28,29 @@ interface Stage {
   dumpStage: string;
   snapshotFile: string;
   // Snippet names exempt from parity. Reintroduce an entry here when a
-  // regression surfaces ; both sets are intentionally empty today.
+  // regression surfaces.
   skip: Set<string>;
 }
+
+// Snippets that exercise the `<T>` angle-bracket generic syntax. The TS
+// parser already supports them ; the Vader self-host parser still parses
+// the legacy `[T]` form, so parity is intentionally skipped until Phase B
+// updates `vader/parser/`. Remove these from the skip lists once the
+// self-host port is green.
+const ANGLE_GENERIC_SNIPPETS: ReadonlySet<string> = new Set([
+  "generic_angle_decl",
+]);
 
 // `dumpStage` is the CLI flag value ; `label` is what appears in test
 // names. Both stages map 1:1 onto a snapshot file produced by `tests/
 // snapshot.ts`. The label / dumpStage divergence (`parser` vs `ast`)
 // preserves the historical snapshot filename.
 const STAGES: Stage[] = [
-  { label: "lexer", dumpStage: "lexer", snapshotFile: "lexer.snapshot", skip: new Set() },
-  { label: "parser", dumpStage: "ast", snapshotFile: "parser.snapshot", skip: new Set() },
-  { label: "resolver", dumpStage: "resolved-ast", snapshotFile: "resolver.snapshot", skip: new Set() },
-  { label: "typecheck", dumpStage: "typed-ast", snapshotFile: "typecheck.snapshot", skip: new Set() },
-  { label: "comptime", dumpStage: "evaluated-ast", snapshotFile: "comptime.snapshot", skip: new Set() },
+  { label: "lexer", dumpStage: "lexer", snapshotFile: "lexer.snapshot", skip: new Set(ANGLE_GENERIC_SNIPPETS) },
+  { label: "parser", dumpStage: "ast", snapshotFile: "parser.snapshot", skip: new Set(ANGLE_GENERIC_SNIPPETS) },
+  { label: "resolver", dumpStage: "resolved-ast", snapshotFile: "resolver.snapshot", skip: new Set(ANGLE_GENERIC_SNIPPETS) },
+  { label: "typecheck", dumpStage: "typed-ast", snapshotFile: "typecheck.snapshot", skip: new Set(ANGLE_GENERIC_SNIPPETS) },
+  { label: "comptime", dumpStage: "evaluated-ast", snapshotFile: "comptime.snapshot", skip: new Set(ANGLE_GENERIC_SNIPPETS) },
 ];
 
 const scenarios = listSnippets("tests/snippets");

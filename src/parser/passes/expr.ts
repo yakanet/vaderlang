@@ -13,7 +13,7 @@ import { describeToken, looksLikeStructLitBody } from "../parser.ts";
 import { parseBlock } from "./stmt.ts";
 import { parseIfExpr, parseLambda, parseMatchExpr } from "./control.ts";
 import { parseFnSignatureParams } from "./decl.ts";
-import { parseType } from "./type.ts";
+import { parseGenericArgList, parseType } from "./type.ts";
 import { intrinsicSpec } from "../intrinsics.ts";
 
 // (leftBP, rightBP) — higher = tighter. Left-assoc: rightBP = leftBP + 1.
@@ -509,10 +509,52 @@ function parseCallArgs(p: Parser): A.CallArg[] {
 function parseIdentOrStructLit(p: Parser): A.Expr {
   const t = p.advance();
 
-  // Generic struct literal: `Ident(typeArgs) { .field = … }`. Detect by
-  // scanning past balanced parens to confirm a `{` struct-lit body follows
-  // before committing to the parse. Otherwise let postfix handle `(args)`
-  // as a regular call expression.
+  // Angle-bracket generic in expression position. Two shapes :
+  //   `Ident<T, ...>(args)`        → generic call ; build a CallExpr whose
+  //                                  callee is GenericInstExpr.
+  //   `Ident<T, ...> { .f = ... }` → generic struct literal.
+  //
+  // Hard precedence rule (SPEC §3) : commit to the generic interpretation
+  // iff the speculative scan finds a matching `>` whose IMMEDIATELY-NEXT
+  // token is `(` or `{`. Otherwise leave the `<` for Pratt as a `lt`
+  // comparison operator. The scan handles nested `<...>` and the lexer's
+  // single `shr` token (counts as two closes).
+  const angleScan = p.check("lt") ? scanAngleGeneric(p, p.pos) : null;
+  if (angleScan !== null && angleScan.ok) {
+    const argList = parseGenericArgList(p, "generic argument list");
+    const genericInst: A.GenericInstExpr = {
+      kind: "GenericInstExpr",
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(t, p.peek(-1)),
+      callee: { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: t.span, name: t.text },
+      typeArgs: argList?.items ?? [],
+    };
+    if (p.allowStructLit && p.check("lbrace")) {
+      p.advance(); // {
+      const items = parseStructLitFields(p);
+      const rb = p.expect("rbrace", "`}` to close struct literal");
+      return {
+        kind: "StructLitExpr",
+        id: UNASSIGNED_NODE_ID, span: p.spanOf(t, rb),
+        typeName: genericInst,
+        items,
+      };
+    }
+    // Must be a call — the speculative scan only commits on `(` or `{`.
+    p.expect("lparen", "`(` after generic argument list");
+    const callArgs = parseCallArgs(p);
+    const rp = p.expect("rparen", "`)` to close argument list");
+    return {
+      kind: "CallExpr",
+      id: UNASSIGNED_NODE_ID, span: p.spanOf(t, rp),
+      callee: genericInst,
+      args: callArgs,
+    };
+  }
+
+  // Generic struct literal (legacy paren form): `Ident(typeArgs) { .field = … }`.
+  // Detect by scanning past balanced parens to confirm a `{` struct-lit body
+  // follows before committing to the parse. Otherwise let postfix handle
+  // `(args)` as a regular call expression.
   if (p.allowStructLit && peekGenericStructLit(p)) {
     p.advance();        // consume `(`
     const args: A.TypeExpr[] = [];
@@ -555,6 +597,71 @@ function parseIdentOrStructLit(p: Parser): A.Expr {
     };
   }
   return { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: t.span, name: t.text };
+}
+
+/** Tokens that cannot appear inside a type expression at the OUTERMOST level
+ *  of a generic argument list ; seeing one of these aborts the speculative
+ *  scan early, before it walks into an enclosing block. Without this guard,
+ *  `if x < y { stmt }` would scan past the `{ stmt }` body before bailing
+ *  on EOF — quadratic in pathological cases. */
+const SCAN_GENERIC_BAILOUT: ReadonlySet<TokenKind> = new Set<TokenKind>([
+  "lbrace",
+  "decl_const", "decl_var", "assign",
+  "plus_assign", "minus_assign", "star_assign", "slash_assign", "percent_assign",
+  "gte", "lte", "eq", "neq",
+  "kw_if", "kw_else", "kw_match", "kw_is", "kw_for", "kw_in",
+  "kw_return", "kw_defer", "kw_break", "kw_continue",
+  "kw_struct", "kw_trait", "kw_implements", "kw_enum",
+  "kw_import", "kw_export", "kw_self",
+]);
+
+/** Speculative scan for `Ident < args > ( | {` in expression position.
+ *  Starts at the `<` token. Commits to the generic interpretation only
+ *  when a matching `>` (or the first half of a `shr`) is found at angle
+ *  depth zero AND the immediately-following token is `lparen` or `lbrace`.
+ *  Any other follower leaves the `<` to Pratt as a comparison. */
+function scanAngleGeneric(p: Parser, ltPos: number): { ok: boolean } {
+  if (p.tokens[ltPos]?.kind !== "lt") return { ok: false };
+  let angleDepth = 1;
+  let parenDepth = 0;
+  let bracketDepth = 0;
+  let i = ltPos + 1;
+  while (i < p.tokens.length) {
+    const t = p.tokens[i]!;
+    if (t.kind === "eof") return { ok: false };
+    const atOuter = parenDepth === 0 && bracketDepth === 0;
+    if (t.kind === "newline" && atOuter) return { ok: false };
+    if (atOuter && SCAN_GENERIC_BAILOUT.has(t.kind)) return { ok: false };
+    if (atOuter) {
+      if (t.kind === "lt") {
+        angleDepth++;
+      } else if (t.kind === "gt") {
+        angleDepth--;
+        if (angleDepth === 0) {
+          const next = p.tokens[i + 1];
+          return { ok: next !== undefined && (next.kind === "lparen" || next.kind === "lbrace") };
+        }
+      } else if (t.kind === "shr") {
+        angleDepth -= 2;
+        if (angleDepth === 0) {
+          const next = p.tokens[i + 1];
+          return { ok: next !== undefined && (next.kind === "lparen" || next.kind === "lbrace") };
+        }
+        if (angleDepth < 0) return { ok: false };
+      }
+    }
+    if (t.kind === "lparen") parenDepth++;
+    else if (t.kind === "rparen") {
+      if (parenDepth === 0) return { ok: false };
+      parenDepth--;
+    } else if (t.kind === "lbracket") bracketDepth++;
+    else if (t.kind === "rbracket") {
+      if (bracketDepth === 0) return { ok: false };
+      bracketDepth--;
+    }
+    i++;
+  }
+  return { ok: false };
 }
 
 /** Lookahead: are the upcoming tokens shaped like a generic struct lit
