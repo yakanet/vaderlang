@@ -35,6 +35,9 @@ jobs:
       - name: Typecheck
         run: bun run typecheck
 
+      - name: Build Vader CLI (used by tests)
+        run: bun run build:cli
+
       - name: Test
         run: bun run test
 
