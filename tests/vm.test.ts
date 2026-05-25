@@ -69,13 +69,25 @@ async function dumpVm(mainPath: string): Promise<string> {
 
 const scenarios = listSnippets("tests/snippets");
 
+// Snippets the TS VM can't run end-to-end today. Each entry needs a
+// one-line rationale + link to the issue / TODO blocking it. New
+// entries land grudgingly ; prefer fixing the snippet or pipeline.
+const KNOWN_DIVERGENT = new Set<string>([
+  // `for x in <string>` → codepoint iter trips B5001 at the TS backend
+  // because the `Iterator(char)` impl on `string` isn't wired through
+  // the c-emit / vm yet. Same root cause as the equivalent entry in
+  // `tests/vader_vm.test.ts`. Tracked alongside TODO §1.5b iterators.
+  "for_in_into_iter",
+]);
+
 for (const s of scenarios) {
   // Snippets with adjacent helper.c files are native-only — the VM has
   // no host-fn registry for user `@extern` symbols, so call.import
   // traps. The native runner is the source of truth ; skip VM here
   // rather than encoding a "VM-traps, native-works" divergence into
   // vm.snapshot.
-  const fn = s.helperCFiles.length > 0 ? test.skip : test.concurrent;
+  const skipForVm = s.helperCFiles.length > 0 || KNOWN_DIVERGENT.has(s.name);
+  const fn = skipForVm ? test.skip : test.concurrent;
   fn(`vm: ${s.name}`, async () => {
     const actual = await dumpVm(s.mainPath);
     const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);

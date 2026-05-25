@@ -95,10 +95,14 @@ export function listSnippets(snippetsDir: string): Scenario[] {
     const mainPath = join(dir, MAIN_FILE);
     let source: string;
     try { source = readFileSync(mainPath, "utf8"); } catch { continue; }
-    // `native.c` is the c-emit output ; everything else `.c` in the
-    // snippet directory is a user helper that defines `@extern` symbols.
+    // `native.c` is the c-emit output written by `tests/native.test.ts` ;
+    // `_main.c` is the c-emit output written by a `vader build` invocation
+    // on the snippet (left behind when a dev ran the CLI directly on a
+    // snippet). Neither defines `@extern` symbols, so neither should
+    // count as a host-fn helper — anything else `.c` in the snippet
+    // directory is a user helper for an `@extern` test.
     const helperCFiles = readdirSync(dir)
-      .filter((f) => f.endsWith(".c") && f !== "native.c")
+      .filter((f) => f.endsWith(".c") && f !== "native.c" && f !== "_main.c")
       .map((f) => join(dir, f))
       .sort();
     out.push({ name, dir, mainPath, source, helperCFiles });

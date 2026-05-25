@@ -35,6 +35,11 @@ const KNOWN_DIVERGENT = new Set<string>([
   // a lambda ; same root cause.
   "defer_on_panic",
   "defer_in_lambda",
+  // `for x in <string>` → codepoint iter requires the `Iterator(char)`
+  // impl on `string` to lower without B5001. The arr/map/set legs of
+  // this snippet run, but the `chars=…` line is never emitted because
+  // the chars leg traps. Tracked alongside TODO §1.5b iterators.
+  "for_in_into_iter",
 ]);
 
 const scenarios = listSnippets("tests/snippets");

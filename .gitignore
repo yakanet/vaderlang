@@ -38,3 +38,13 @@ bench/poc_erasure/*/*.c
 bench/*_go
 bench/*.class
 *.dSYM/
+
+# Snippet artefacts — left behind when a dev runs `vader build` directly on
+# a `tests/snippets/<name>/_main.vader` to inspect the native output. The
+# C emitter writes `_main.c` next to the source and the linker emits a
+# `_main` binary ; `tests/native.test.ts` uses `native.c` / `native[.exe]`
+# for its own runs and those are listed separately just below.
+tests/snippets/*/_main
+tests/snippets/*/_main.c
+tests/snippets/*/native
+tests/snippets/*/native.c
