@@ -1125,7 +1125,7 @@ const C_RESERVED: ReadonlySet<string> = new Set([
   "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned",
   "void", "volatile", "while", "_Alignas", "_Alignof", "_Atomic", "_Bool",
   "_Complex", "_Generic", "_Imaginary", "_Noreturn", "_Static_assert",
-  "_Thread_local",
+  "_Thread_local", "main",
 ]);
 
 export function sanitise(raw: string): string {
