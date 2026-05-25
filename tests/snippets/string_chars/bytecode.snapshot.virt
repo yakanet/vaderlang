@@ -1,29 +1,17 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 primitive i8
-type 3 primitive string
-type 4 primitive i16
-type 5 primitive i64
-type 6 primitive isize
-type 7 primitive u8
-type 8 primitive u16
-type 9 primitive u32
-type 10 primitive u64
-type 11 primitive usize
-type 12 primitive f32
-type 13 primitive f64
-type 14 primitive bool
-type 15 primitive char
-type 16 struct std_core$Yield__char { value:15 }
-type 17 ref _
-type 18 primitive void
-type 19 array 3
-type 20 struct std_string$StringChars { s:3,cursor:11,length:11 }
-type 21 union 0,16
-type 22 struct __Tuple_26 { _0:15,_1:11 }
-type 23 struct std_string_builder$StringBuilder { parts:19 }
-type 24 union 16,0
+type 2 primitive string
+type 3 primitive usize
+type 4 primitive char
+type 5 struct std_core$Yield__char { value:4 }
+type 6 primitive void
+type 7 array 2
+type 8 struct std_string$StringChars { s:2,cursor:3,length:3 }
+type 9 union 0,5
+type 10 struct __Tuple_25 { _0:4,_1:3 }
+type 11 struct std_string_builder$StringBuilder { parts:7 }
+type 12 union 5,0
 string 0 "-- ascii --"
 string 1 "vader"
 string 2 "-- multibyte --"
@@ -36,43 +24,13 @@ string 8 ""
 string 9 "never"
 string 10 "done"
 string 11 "\n"
-import 0 to_string std_core$i8$Display$to_string (i8) -> string
-import 1 to_string std_core$i16$Display$to_string (i16) -> string
-import 2 to_string std_core$i32$Display$to_string (i32) -> string
-import 3 to_string std_core$i64$Display$to_string (i64) -> string
-import 4 to_string std_core$isize$Display$to_string (isize) -> string
-import 5 to_string std_core$u8$Display$to_string (u8) -> string
-import 6 to_string std_core$u16$Display$to_string (u16) -> string
-import 7 to_string std_core$u32$Display$to_string (u32) -> string
-import 8 to_string std_core$u64$Display$to_string (u64) -> string
-import 9 to_string std_core$usize$Display$to_string (usize) -> string
-import 10 to_string std_core$f32$Display$to_string (f32) -> string
-import 11 to_string std_core$f64$Display$to_string (f64) -> string
-import 12 to_string std_core$bool$Display$to_string (bool) -> string
-import 13 to_string std_core$char$Display$to_string (char) -> string
-import 14 to_string std_core$string$Display$to_string (string) -> string
-import 15 write std_io$write (i32,string) -> void
-import 16 byte_len std_string$byte_len (string) -> usize
-import 17 byte_decode_at std_string$byte_decode_at (string,usize) -> char
-import 18 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
-impl 20 Iterator
-impl 23 Display
-vtable Display.to_string 1 8
-vtable Display.to_string 2 6
-vtable Display.to_string 3 20
-vtable Display.to_string 4 7
-vtable Display.to_string 5 9
-vtable Display.to_string 6 10
-vtable Display.to_string 7 11
-vtable Display.to_string 8 12
-vtable Display.to_string 9 13
-vtable Display.to_string 10 14
-vtable Display.to_string 11 15
-vtable Display.to_string 12 16
-vtable Display.to_string 13 17
-vtable Display.to_string 14 18
-vtable Display.to_string 15 19
-vtable Display.to_string 23 22
+import 0 to_string std_core$usize$Display$to_string (usize) -> string
+import 1 to_string std_core$string$Display$to_string (string) -> string
+import 2 write std_io$write (i32,string) -> void
+import 3 byte_len std_string$byte_len (string) -> usize
+import 4 byte_decode_at std_string$byte_decode_at (string,usize) -> char
+impl 8 Iterator
+impl 11 Display
 
 fn 0 snippet$main () -> i32
   local __iter_0 ref
@@ -95,8 +53,8 @@ fn 0 snippet$main () -> i32
       if $L2 void
       else
         local.get 1
-        struct.get 16 0
-        ref.cast 15
+        struct.get 5 0
+        ref.cast 4
         local.set 2
         intrinsic builder.new
         local.tee 3
@@ -123,8 +81,8 @@ fn 0 snippet$main () -> i32
       if $L5 void
       else
         local.get 1
-        struct.get 16 0
-        ref.cast 15
+        struct.get 5 0
+        ref.cast 4
         local.set 2
         intrinsic builder.new
         local.tee 3
@@ -169,8 +127,8 @@ fn 0 snippet$main () -> i32
   string.const 6
   intrinsic builder.append_str
   string.const 4
-  call.import 16
-  call 15
+  call.import 3
+  call 6
   local.set 5
   local.get 3
   local.get 5
@@ -201,17 +159,17 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 std_io$std_io$println__string (ref) -> void
-  local $vcall_2 string
+fn 1 std_io$std_io$println__string (string) -> void
+  local $call_2 string
   local.get 0
-  virtual.call 1 Display.to_string
+  call 7
   local.set 1
   i32.const 0
   local.get 1
-  call 21
+  call 8
   i32.const 0
   string.const 11
-  call 21
+  call 8
   return
 end
 
@@ -221,11 +179,11 @@ fn 2 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_5 string
   local __tup_0 ref
   local c char
-  local.field 0 20 1
-  ref.cast 11
+  local.field 0 8 1
+  ref.cast 3
   local.set 1
-  local.field 0 20 2
-  ref.cast 11
+  local.field 0 8 2
+  ref.cast 3
   local.set 2
   local.get 1
   local.get 2
@@ -233,45 +191,45 @@ fn 2 std_string$StringChars$Iterator$next (ref) -> ref
   if $L0 void
     return.lit null.const
   end $L0
-  local.field 0 20 0
-  ref.cast 3
+  local.field 0 8 0
+  ref.cast 2
   local.set 3
-  local.field 0 20 1
-  ref.cast 11
+  local.field 0 8 1
+  ref.cast 3
   local.set 1
   local.get 3
   local.get 1
   call 4
   local.set 4
-  local.field 4 22 0
-  ref.cast 15
+  local.field 4 10 0
+  ref.cast 4
   local.set 5
-  local.field 4 22 1
-  ref.cast 11
+  local.field 4 10 1
+  ref.cast 3
   local.set 1
-  local.field 0 20 1
-  ref.cast 11
+  local.field 0 8 1
+  ref.cast 3
   local.get 1
   usize.add
   local.set 1
   local.get 0
   local.get 1
-  struct.set 20 1
+  struct.set 8 1
   local.get 5
-  struct.new 16
+  struct.new 5
   return
 end
 
 fn 3 std_string$chars (string) -> ref
   local $call_3 usize
   local.get 0
-  call.import 16
+  call.import 3
   local.set 1
   local.get 0
   i64.const 0
   i64.to_usize
   local.get 1
-  struct.new 20
+  struct.new 8
   return
 end
 
@@ -280,13 +238,13 @@ fn 4 std_string$decode_codepoint (string,usize) -> ref
   local $call_4 usize
   local.get 0
   local.get 1
-  call.import 17
+  call.import 4
   local.tee 2
   call 5
   local.set 3
   local.get 2
   local.get 3
-  struct.new 22
+  struct.new 10
   return
 end
 
@@ -319,105 +277,21 @@ fn 5 std_utf8$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 6 std_core$i8$Display$to_string$vt (i8) -> string
+fn 6 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 7 std_core$i16$Display$to_string$vt (i16) -> string
+fn 7 std_core$string$Display$to_string$vt (string) -> string
   local.get 0
   call.import 1
   return
 end
 
-fn 8 std_core$i32$Display$to_string$vt (i32) -> string
-  local.get 0
-  call.import 2
-  return
-end
-
-fn 9 std_core$i64$Display$to_string$vt (i64) -> string
-  local.get 0
-  call.import 3
-  return
-end
-
-fn 10 std_core$isize$Display$to_string$vt (isize) -> string
-  local.get 0
-  call.import 4
-  return
-end
-
-fn 11 std_core$u8$Display$to_string$vt (u8) -> string
-  local.get 0
-  call.import 5
-  return
-end
-
-fn 12 std_core$u16$Display$to_string$vt (u16) -> string
-  local.get 0
-  call.import 6
-  return
-end
-
-fn 13 std_core$u32$Display$to_string$vt (u32) -> string
-  local.get 0
-  call.import 7
-  return
-end
-
-fn 14 std_core$u64$Display$to_string$vt (u64) -> string
-  local.get 0
-  call.import 8
-  return
-end
-
-fn 15 std_core$usize$Display$to_string$vt (usize) -> string
-  local.get 0
-  call.import 9
-  return
-end
-
-fn 16 std_core$f32$Display$to_string$vt (f32) -> string
-  local.get 0
-  call.import 10
-  return
-end
-
-fn 17 std_core$f64$Display$to_string$vt (f64) -> string
-  local.get 0
-  call.import 11
-  return
-end
-
-fn 18 std_core$bool$Display$to_string$vt (bool) -> string
-  local.get 0
-  call.import 12
-  return
-end
-
-fn 19 std_core$char$Display$to_string$vt (char) -> string
-  local.get 0
-  call.import 13
-  return
-end
-
-fn 20 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
-  call.import 14
-  return
-end
-
-fn 21 std_io$write$vt (i32,string) -> void
+fn 8 std_io$write$vt (i32,string) -> void
   local.get 0
   local.get 1
-  call.import 15
-  return
-end
-
-fn 22 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
-  local.get 0
-  call.import 18
+  call.import 2
   return
 end
