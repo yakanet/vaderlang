@@ -11,6 +11,7 @@
   Index(I, T)
   IndexSet(I, T)
   Contains(T)
+  Pair(string, i64)
   Pair(K, V)
   Iterator(T)
   Iterator(T)

@@ -19,9 +19,10 @@ string 7 "hello world"
 string 8 "你好嗎？"
 string 9 "a,b,c"
 string 10 ","
+string 11 "\n"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 at std_core$string$Index$at (string,usize) -> char
-import 2 println std_io$println (string) -> void
+import 2 write std_io$write (i32,string) -> void
 import 3 byte_len std_string$byte_len (string) -> usize
 import 4 byte_slice std_string$byte_slice (string,usize,usize) -> string
 import 5 contains std_string$contains (string,string) -> bool
@@ -46,35 +47,35 @@ fn 0 snippet$main () -> i32
   local.set 1
   local.get 0
   call.import 3
-  call 2
+  call 3
   local.set 2
   local.get 1
   local.get 2
   intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 1
   local.get 0
   call.import 9
-  call 4
+  call 1
   string.const 1
   call.import 10
-  call 4
+  call 1
   string.const 2
   call.import 11
-  call 4
+  call 1
   intrinsic builder.new
   local.set 1
   string.const 3
   string.const 4
-  call 1
+  call 2
   local.set 3
   local.get 1
   local.get 3
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 1
   intrinsic builder.new
   local.set 1
   string.const 3
@@ -86,7 +87,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 1
   intrinsic builder.new
   local.set 1
   string.const 3
@@ -98,62 +99,62 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 1
   string.const 7
   i64.const 6
   i64.to_usize
   i64.const 11
   i64.to_usize
   call.import 4
-  call 4
+  call 1
   intrinsic builder.new
   local.set 1
   string.const 1
   i32.const 1
-  call 3
+  call 4
   local.set 4
   local.get 1
   local.get 4
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 1
   intrinsic builder.new
   local.set 1
   string.const 8
   i32.const 0
-  call 3
+  call 4
   local.set 4
   local.get 1
   local.get 4
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 1
   intrinsic builder.new
   local.set 1
   string.const 8
   i32.const 1
-  call 3
+  call 4
   local.set 4
   local.get 1
   local.get 4
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 1
   intrinsic builder.new
   local.set 1
   string.const 8
   i32.const 3
-  call 3
+  call 4
   local.set 4
   local.get 1
   local.get 4
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 1
   string.const 9
   string.const 10
   call.import 8
@@ -162,42 +163,53 @@ fn 0 snippet$main () -> i32
   i32.const 0
   array.get 7
   ref.cast 2
-  call 4
+  call 1
   local.get 5
   i32.const 1
   array.get 7
   ref.cast 2
-  call 4
+  call 1
   local.get 5
   i32.const 2
   array.get 7
   ref.cast 2
-  call 4
+  call 1
   return.lit i32.const 0
 end
 
-fn 1 std_string$string$Contains$contains (string,string) -> bool
+fn 1 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 5
+  i32.const 0
+  string.const 11
+  call 5
+  return
+end
+
+fn 2 std_string$string$Contains$contains (string,string) -> bool
   local.get 0
   local.get 1
   call.import 5
   return
 end
 
-fn 2 std_core$usize$Display$to_string$vt (usize) -> string
+fn 3 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 3 std_core$string$Index$at$vt (string,usize) -> char
+fn 4 std_core$string$Index$at$vt (string,usize) -> char
   local.get 0
   local.get 1
   call.import 1
   return
 end
 
-fn 4 std_io$println$vt (string) -> void
+fn 5 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 2
   return
 end

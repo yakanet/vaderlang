@@ -629,8 +629,8 @@ fn_has_decorator :: fn(function_decl: LoweredFnDecl, name: string) -> bool {
     }
 }
 
-/// Extract the user-facing bare name (`println` rather than the
-/// mangled `std_io$println`). The C-emit uses this as the external
+/// Extract the user-facing bare name (`write` rather than the
+/// mangled `std_io$write`). The C-emit uses this as the external
 /// symbol name for `@extern` user decls — the mangled form keys
 /// the call-site lookup tables.
 bare_name_for :: fn(function_decl: LoweredFnDecl) -> string = match function_decl.origin.decl {

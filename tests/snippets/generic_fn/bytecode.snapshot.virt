@@ -8,7 +8,8 @@ type 5 primitive void
 type 6 array 1
 string 0 "n = "
 string 1 "v = "
-import 0 println std_io$println (string) -> void
+string 2 "\n"
+import 0 write std_io$write (i32,string) -> void
 
 fn 0 snippet$main () -> i32
   local n i32
@@ -75,8 +76,19 @@ fn 2 snippet$snippet$first__i32 (ref,ref) -> ref
   return
 end
 
-fn 3 std_io$println$vt (string) -> void
+fn 3 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 4
+  i32.const 0
+  string.const 2
+  call 4
+  return
+end
+
+fn 4 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

@@ -16,7 +16,8 @@ string 3 "nope"
 string 4 "3.14"
 string 5 "float ok"
 string 6 "float err"
-import 0 println std_io$println (string) -> void
+string 7 "\n"
+import 0 write std_io$write (i32,string) -> void
 import 1 parse_int std_string$parse_int (string) -> ref
 import 2 parse_float std_string$parse_float (string) -> ref
 impl 9 Display
@@ -269,8 +270,19 @@ fn 0 snippet$main () -> i32
   unreachable
 end
 
-fn 1 std_io$println$vt (string) -> void
+fn 1 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 2
+  i32.const 0
+  string.const 7
+  call 2
+  return
+end
+
+fn 2 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

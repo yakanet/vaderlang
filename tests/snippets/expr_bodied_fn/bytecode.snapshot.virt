@@ -6,7 +6,8 @@ type 3 ref _
 type 4 primitive string
 type 5 primitive void
 string 0 "hello"
-import 0 println std_io$println (string) -> void
+string 1 "\n"
+import 0 write std_io$write (i32,string) -> void
 
 fn 0 snippet$square (i32) -> i32
   local.get 0
@@ -132,8 +133,19 @@ fn 5 snippet$snippet$id__f64 (ref) -> ref
   return
 end
 
-fn 6 std_io$println$vt (string) -> void
+fn 6 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 7
+  i32.const 0
+  string.const 1
+  call 7
+  return
+end
+
+fn 7 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

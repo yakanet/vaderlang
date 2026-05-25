@@ -32,9 +32,10 @@ string 19 "len="
 string 20 " bs[0]="
 string 21 " bs[1]="
 string 22 " bs[2]="
+string 23 "\n"
 import 0 to_string std_core$u32$Display$to_string (u32) -> string
 import 1 to_string std_core$usize$Display$to_string (usize) -> string
-import 2 println std_io$println (string) -> void
+import 2 write std_io$write (i32,string) -> void
 import 3 byte_len std_string$byte_len (string) -> usize
 import 4 byte_at std_string$byte_at (string,usize) -> u8
 impl 9 Display
@@ -49,11 +50,11 @@ fn 0 snippet$main () -> i32
   local $call_21 string
   local b u8
   string.const 0
-  call 4
+  call 1
   i32.const 0
   local.set 0
   string.const 1
-  call 1
+  call 2
   local.tee 1
   array.len
   local.set 2
@@ -91,18 +92,18 @@ fn 0 snippet$main () -> i32
   string.const 2
   intrinsic builder.append_str
   local.get 0
-  call 2
+  call 3
   local.set 6
   local.get 5
   local.get 6
   intrinsic builder.append_str
   local.get 5
   intrinsic builder.finish
-  call 4
-  string.const 3
-  call 4
-  string.const 4
   call 1
+  string.const 3
+  call 1
+  string.const 4
+  call 2
   local.tee 1
   array.len
   local.set 2
@@ -125,7 +126,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 5
         intrinsic builder.finish
-        call 4
+        call 1
         local.get 3
         i64.const 1
         i64.to_usize
@@ -139,7 +140,7 @@ fn 0 snippet$main () -> i32
   string.const 5
   local.set 6
   string.const 6
-  call 4
+  call 1
   intrinsic builder.new
   local.set 5
   local.get 5
@@ -177,7 +178,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 5
   intrinsic builder.finish
-  call 4
+  call 1
   intrinsic builder.new
   local.set 5
   local.get 5
@@ -204,11 +205,11 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 5
   intrinsic builder.finish
-  call 4
-  string.const 13
-  call 4
-  string.const 14
   call 1
+  string.const 13
+  call 1
+  string.const 14
+  call 2
   array.len
   local.set 2
   i64.const 0
@@ -220,7 +221,7 @@ fn 0 snippet$main () -> i32
       usize.lt
       if $L8 void
         string.const 15
-        call 4
+        call 1
         local.get 3
         i64.const 1
         i64.to_usize
@@ -238,18 +239,18 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   string.const 14
   call.import 3
-  call 3
+  call 4
   local.set 6
   local.get 5
   local.get 6
   intrinsic builder.append_str
   local.get 5
   intrinsic builder.finish
-  call 4
-  string.const 17
-  call 4
-  string.const 18
   call 1
+  string.const 17
+  call 1
+  string.const 18
+  call 2
   local.set 1
   intrinsic builder.new
   local.set 5
@@ -258,7 +259,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 1
   array.len
-  call 3
+  call 4
   local.set 6
   local.get 5
   local.get 6
@@ -298,11 +299,21 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 5
   intrinsic builder.finish
-  call 4
+  call 1
   return.lit i32.const 0
 end
 
-fn 1 std_string$bytes (string) -> ref
+fn 1 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 5
+  i32.const 0
+  string.const 23
+  call 5
+  return
+end
+
+fn 2 std_string$bytes (string) -> ref
   local n usize
   local out ref
   local i usize
@@ -341,20 +352,21 @@ fn 1 std_string$bytes (string) -> ref
   return
 end
 
-fn 2 std_core$u32$Display$to_string$vt (u32) -> string
+fn 3 std_core$u32$Display$to_string$vt (u32) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 3 std_core$usize$Display$to_string$vt (usize) -> string
+fn 4 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 1
   return
 end
 
-fn 4 std_io$println$vt (string) -> void
+fn 5 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 2
   return
 end

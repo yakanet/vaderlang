@@ -13,7 +13,7 @@
 //
 // What the synthesised module does : a `compute(a, b)` function returns
 // `(a + b) * 2` ; `main` calls it with `(40, 1)` and prints the result
-// through a `std_io$println` host import — exercising int const / arith
+// through a `std_io$write` host import — exercising int const / arith
 // ops, locals, direct calls between functions, string-builder + display
 // intrinsics for the printed integer, and an import dispatch.
 
@@ -38,7 +38,10 @@ import "vader/bytecode" { write_virt }
 build_test_module :: fn() -> op.Module {
     module_builder :: new_module_builder()
     module_builder.add_type(op.PrimitiveType { .kind = "i32" })
-    println_import :: module_builder.add_import("println", r"std_io$println", 1, false)
+    // `write(stream_tag, msg)` — std/io's sole host import. The
+    // stream tag matches `std/io::Stream` (0 = Stdout, 1 = Stderr).
+    write_import :: module_builder.add_import("write", r"std_io$write", 2, false)
+    newline_str :: module_builder.intern_string("\n")
 
     // compute(a, b) -> i32 = (a + b) * 2
     compute :: new_function_builder("compute", 2, 0)
@@ -53,7 +56,7 @@ build_test_module :: fn() -> op.Module {
     // main() -> i32 :
     //   result := compute(40, 1)             // → 82
     //   builder := new ; append_display result ; finish
-    //   println(builder_string)
+    //   write(stdout, builder_string)
     //   return result
     main_fn :: new_function_builder("main", 0, 2)
     // slot 0 = result (i32)
@@ -68,9 +71,17 @@ build_test_module :: fn() -> op.Module {
     main_fn.local_get(1)
     main_fn.local_get(0)
     main_fn.builder_append_display()
+    main_fn.i32_const(0)            // Stream.Stdout
     main_fn.local_get(1)
     main_fn.builder_finish()
-    main_fn.call_import(println_import)
+    main_fn.call_import(write_import)
+    // Trailing newline — emulates the old `println` behaviour now that
+    // the public `println` is a Vader wrapper that issues two `write`
+    // calls (msg + "\n"). The host bytecode test builds the call shape
+    // by hand, so we reproduce the second `write` here.
+    main_fn.i32_const(0)
+    main_fn.string_const(newline_str)
+    main_fn.call_import(write_import)
 
     main_fn.local_get(0)
     main_fn.return_op()

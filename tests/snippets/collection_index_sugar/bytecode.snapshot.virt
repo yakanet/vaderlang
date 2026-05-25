@@ -46,8 +46,9 @@ string 8 "z"
 string 9 "z not in m"
 string 10 "1 in s"
 string 11 "3 not in s"
+string 12 "\n"
 import 0 hash std_core$string$Hash$hash (string) -> u64
-import 1 println std_io$println (string) -> void
+import 1 write std_io$write (i32,string) -> void
 impl 17 Index
 impl 17 IndexSet
 impl 17 Contains
@@ -68,21 +69,21 @@ impl 28 Contains
 impl 28 Into
 impl 29 Contains
 impl 29 Into
-vtable Equals.equals 1 24
-vtable Equals.equals 2 22
-vtable Equals.equals 3 30
-vtable Equals.equals 4 23
-vtable Equals.equals 5 25
-vtable Equals.equals 6 26
-vtable Equals.equals 7 27
-vtable Equals.equals 8 28
-vtable Equals.equals 9 29
-vtable Equals.equals 10 31
-vtable Equals.equals 11 35
-vtable Equals.equals 12 36
-vtable Equals.equals 13 32
-vtable Equals.equals 14 33
-vtable Equals.equals 15 34
+vtable Equals.equals 1 25
+vtable Equals.equals 2 23
+vtable Equals.equals 3 31
+vtable Equals.equals 4 24
+vtable Equals.equals 5 26
+vtable Equals.equals 6 27
+vtable Equals.equals 7 28
+vtable Equals.equals 8 29
+vtable Equals.equals 9 30
+vtable Equals.equals 10 32
+vtable Equals.equals 11 36
+vtable Equals.equals 12 37
+vtable Equals.equals 13 33
+vtable Equals.equals 14 34
+vtable Equals.equals 15 35
 vtable Hash.hash 1 3
 vtable Hash.hash 2 1
 vtable Hash.hash 3 9
@@ -94,7 +95,7 @@ vtable Hash.hash 8 7
 vtable Hash.hash 9 8
 vtable Hash.hash 10 10
 vtable Hash.hash 11 11
-vtable Hash.hash 12 37
+vtable Hash.hash 12 38
 
 fn 0 snippet$main () -> i32
   local $arr_0 ref
@@ -121,18 +122,18 @@ fn 0 snippet$main () -> i32
   local.get 0
   string.const 0
   i32.const 10
-  call 14
+  call 15
   local.get 0
   string.const 1
   i32.const 20
-  call 14
+  call 15
   local.get 0
   string.const 0
   i32.const 99
-  call 14
+  call 15
   local.get 0
   string.const 0
-  call 13
+  call 14
   local.tee 1
   type_check 1
   if $L0 void
@@ -149,36 +150,36 @@ fn 0 snippet$main () -> i32
     intrinsic builder.append_display
     local.get 3
     intrinsic builder.finish
-    call 38
+    call 12
     string.const 4
     local.set 4
     local.get 0
     local.get 4
-    call 13
+    call 14
     local.tee 5
     type_check 1
     if $L1 void
       string.const 5
-      call 38
+      call 12
       string.const 0
       local.set 6
       local.get 0
       local.get 6
-      call 15
+      call 16
       if $L2 void
         string.const 7
-        call 38
+        call 12
       else
       end $L2
       string.const 8
       local.set 7
       local.get 0
       local.get 7
-      call 15
+      call 16
       bool.not
       if $L3 void
         string.const 9
-        call 38
+        call 12
       else
       end $L3
       array.new 33 0
@@ -194,33 +195,33 @@ fn 0 snippet$main () -> i32
       local.set 2
       local.get 10
       local.get 2
-      call 21
+      call 22
       drop
       i32.const 2
       local.set 11
       local.get 10
       local.get 11
-      call 21
+      call 22
       drop
       i32.const 1
       local.set 12
       local.get 10
       local.get 12
-      call 16
+      call 17
       if $L4 void
         string.const 10
-        call 38
+        call 12
       else
       end $L4
       i32.const 3
       local.set 13
       local.get 10
       local.get 13
-      call 16
+      call 17
       bool.not
       if $L5 void
         string.const 11
-        call 38
+        call 12
       else
       end $L5
       return.lit i32.const 0
@@ -229,26 +230,26 @@ fn 0 snippet$main () -> i32
     type_check 0
     if $L6 void
       string.const 6
-      call 38
+      call 12
       string.const 0
       local.set 6
       local.get 0
       local.get 6
-      call 15
+      call 16
       if $L7 void
         string.const 7
-        call 38
+        call 12
       else
       end $L7
       string.const 8
       local.set 7
       local.get 0
       local.get 7
-      call 15
+      call 16
       bool.not
       if $L8 void
         string.const 9
-        call 38
+        call 12
       else
       end $L8
       array.new 33 0
@@ -264,33 +265,33 @@ fn 0 snippet$main () -> i32
       local.set 2
       local.get 10
       local.get 2
-      call 21
+      call 22
       drop
       i32.const 2
       local.set 11
       local.get 10
       local.get 11
-      call 21
+      call 22
       drop
       i32.const 1
       local.set 12
       local.get 10
       local.get 12
-      call 16
+      call 17
       if $L9 void
         string.const 10
-        call 38
+        call 12
       else
       end $L9
       i32.const 3
       local.set 13
       local.get 10
       local.get 13
-      call 16
+      call 17
       bool.not
       if $L10 void
         string.const 11
-        call 38
+        call 12
       else
       end $L10
       return.lit i32.const 0
@@ -301,36 +302,36 @@ fn 0 snippet$main () -> i32
   type_check 0
   if $L11 void
     string.const 3
-    call 38
+    call 12
     string.const 4
     local.set 4
     local.get 0
     local.get 4
-    call 13
+    call 14
     local.tee 5
     type_check 1
     if $L12 void
       string.const 5
-      call 38
+      call 12
       string.const 0
       local.set 6
       local.get 0
       local.get 6
-      call 15
+      call 16
       if $L13 void
         string.const 7
-        call 38
+        call 12
       else
       end $L13
       string.const 8
       local.set 7
       local.get 0
       local.get 7
-      call 15
+      call 16
       bool.not
       if $L14 void
         string.const 9
-        call 38
+        call 12
       else
       end $L14
       array.new 33 0
@@ -346,33 +347,33 @@ fn 0 snippet$main () -> i32
       local.set 2
       local.get 10
       local.get 2
-      call 21
+      call 22
       drop
       i32.const 2
       local.set 11
       local.get 10
       local.get 11
-      call 21
+      call 22
       drop
       i32.const 1
       local.set 12
       local.get 10
       local.get 12
-      call 16
+      call 17
       if $L15 void
         string.const 10
-        call 38
+        call 12
       else
       end $L15
       i32.const 3
       local.set 13
       local.get 10
       local.get 13
-      call 16
+      call 17
       bool.not
       if $L16 void
         string.const 11
-        call 38
+        call 12
       else
       end $L16
       return.lit i32.const 0
@@ -381,26 +382,26 @@ fn 0 snippet$main () -> i32
     type_check 0
     if $L17 void
       string.const 6
-      call 38
+      call 12
       string.const 0
       local.set 6
       local.get 0
       local.get 6
-      call 15
+      call 16
       if $L18 void
         string.const 7
-        call 38
+        call 12
       else
       end $L18
       string.const 8
       local.set 7
       local.get 0
       local.get 7
-      call 15
+      call 16
       bool.not
       if $L19 void
         string.const 9
-        call 38
+        call 12
       else
       end $L19
       array.new 33 0
@@ -416,33 +417,33 @@ fn 0 snippet$main () -> i32
       local.set 2
       local.get 10
       local.get 2
-      call 21
+      call 22
       drop
       i32.const 2
       local.set 11
       local.get 10
       local.get 11
-      call 21
+      call 22
       drop
       i32.const 1
       local.set 12
       local.get 10
       local.get 12
-      call 16
+      call 17
       if $L20 void
         string.const 10
-        call 38
+        call 12
       else
       end $L20
       i32.const 3
       local.set 13
       local.get 10
       local.get 13
-      call 16
+      call 17
       bool.not
       if $L21 void
         string.const 11
-        call 38
+        call 12
       else
       end $L21
       return.lit i32.const 0
@@ -517,7 +518,17 @@ fn 11 std_core$char$Hash$hash (char) -> u64
   return
 end
 
-fn 12 std_collections$bucket_index (u64) -> i32
+fn 12 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 39
+  i32.const 0
+  string.const 12
+  call 39
+  return
+end
+
+fn 13 std_collections$bucket_index (u64) -> i32
   local $cast_3 u64
   i64.const 16
   usize.to_u64
@@ -529,36 +540,36 @@ fn 12 std_collections$bucket_index (u64) -> i32
   return
 end
 
-fn 13 std_collections$MutableMap$Index$at__Any__Any (ref,ref) -> ref
-  local.get 0
-  local.get 1
-  call 19
-  return
-end
-
-fn 14 std_collections$MutableMap$IndexSet$set_at__Any__Any (ref,ref,ref) -> void
-  local.get 0
-  local.get 1
-  local.get 2
-  call 18
-  return
-end
-
-fn 15 std_collections$MutableMap$Contains$contains__Any__Any (ref,ref) -> bool
+fn 14 std_collections$MutableMap$Index$at__Any__Any (ref,ref) -> ref
   local.get 0
   local.get 1
   call 20
   return
 end
 
-fn 16 std_collections$MutableSet$Contains$contains__Any (ref,ref) -> bool
-  local.field 0 20 0
+fn 15 std_collections$MutableMap$IndexSet$set_at__Any__Any (ref,ref,ref) -> void
+  local.get 0
   local.get 1
-  call 15
+  local.get 2
+  call 19
   return
 end
 
-fn 17 std_collections$std_collections$ensure_buckets__Any__Any (ref) -> void
+fn 16 std_collections$MutableMap$Contains$contains__Any__Any (ref,ref) -> bool
+  local.get 0
+  local.get 1
+  call 21
+  return
+end
+
+fn 17 std_collections$MutableSet$Contains$contains__Any (ref,ref) -> bool
+  local.field 0 20 0
+  local.get 1
+  call 16
+  return
+end
+
+fn 18 std_collections$std_collections$ensure_buckets__Any__Any (ref) -> void
   local $len_2 usize
   local $field_10 ref
   local $k_11 null
@@ -601,7 +612,7 @@ fn 17 std_collections$std_collections$ensure_buckets__Any__Any (ref) -> void
   return
 end
 
-fn 18 std_collections$std_collections$put__Any__Any (ref,ref,ref) -> void
+fn 19 std_collections$std_collections$put__Any__Any (ref,ref,ref) -> void
   local idx i32
   local cur ref
   local done bool
@@ -610,10 +621,10 @@ fn 18 std_collections$std_collections$put__Any__Any (ref,ref,ref) -> void
   local $field_20 ref
   local $field_32 usize
   local.get 0
-  call 17
+  call 18
   local.get 1
   virtual.call 1 Hash.hash
-  call 12
+  call 13
   local.set 3
   local.field 0 17 0
   local.get 3
@@ -696,7 +707,7 @@ fn 18 std_collections$std_collections$put__Any__Any (ref,ref,ref) -> void
   return
 end
 
-fn 19 std_collections$std_collections$get__Any__Any (ref,ref) -> ref
+fn 20 std_collections$std_collections$get__Any__Any (ref,ref) -> ref
   local $len_3 usize
   local idx i32
   local cur ref
@@ -716,7 +727,7 @@ fn 19 std_collections$std_collections$get__Any__Any (ref,ref) -> ref
   end $L0
   local.get 1
   virtual.call 1 Hash.hash
-  call 12
+  call 13
   local.set 3
   local.field 0 17 0
   local.get 3
@@ -770,7 +781,7 @@ fn 19 std_collections$std_collections$get__Any__Any (ref,ref) -> ref
   return
 end
 
-fn 20 std_collections$std_collections$contains_key__Any__Any (ref,ref) -> bool
+fn 21 std_collections$std_collections$contains_key__Any__Any (ref,ref) -> bool
   local $len_3 usize
   local idx i32
   local cur ref
@@ -790,7 +801,7 @@ fn 20 std_collections$std_collections$contains_key__Any__Any (ref,ref) -> bool
   end $L0
   local.get 1
   virtual.call 1 Hash.hash
-  call 12
+  call 13
   local.set 3
   local.field 0 17 0
   local.get 3
@@ -843,11 +854,11 @@ fn 20 std_collections$std_collections$contains_key__Any__Any (ref,ref) -> bool
   return
 end
 
-fn 21 std_collections$std_collections$add__i32 (ref,ref) -> bool
+fn 22 std_collections$std_collections$add__i32 (ref,ref) -> bool
   local $field_5 ref
   local.field 0 20 0
   local.get 1
-  call 15
+  call 16
   if $L0 void
     return.lit bool.const false
   end $L0
@@ -856,123 +867,124 @@ fn 21 std_collections$std_collections$add__i32 (ref,ref) -> bool
   local.get 2
   local.get 1
   bool.const true
-  call 14
+  call 15
   return.lit bool.const true
 end
 
-fn 22 std_core$i8$Equals$equals$vt (i8,i8) -> bool
+fn 23 std_core$i8$Equals$equals$vt (i8,i8) -> bool
   local.get 0
   local.get 1
   i8.eq
   return
 end
 
-fn 23 std_core$i16$Equals$equals$vt (i16,i16) -> bool
+fn 24 std_core$i16$Equals$equals$vt (i16,i16) -> bool
   local.get 0
   local.get 1
   i16.eq
   return
 end
 
-fn 24 std_core$i32$Equals$equals$vt (i32,i32) -> bool
+fn 25 std_core$i32$Equals$equals$vt (i32,i32) -> bool
   local.get 0
   local.get 1
   i32.eq
   return
 end
 
-fn 25 std_core$i64$Equals$equals$vt (i64,i64) -> bool
+fn 26 std_core$i64$Equals$equals$vt (i64,i64) -> bool
   local.get 0
   local.get 1
   i64.eq
   return
 end
 
-fn 26 std_core$isize$Equals$equals$vt (isize,isize) -> bool
+fn 27 std_core$isize$Equals$equals$vt (isize,isize) -> bool
   local.get 0
   local.get 1
   isize.eq
   return
 end
 
-fn 27 std_core$u8$Equals$equals$vt (u8,u8) -> bool
+fn 28 std_core$u8$Equals$equals$vt (u8,u8) -> bool
   local.get 0
   local.get 1
   u8.eq
   return
 end
 
-fn 28 std_core$u16$Equals$equals$vt (u16,u16) -> bool
+fn 29 std_core$u16$Equals$equals$vt (u16,u16) -> bool
   local.get 0
   local.get 1
   u16.eq
   return
 end
 
-fn 29 std_core$u32$Equals$equals$vt (u32,u32) -> bool
+fn 30 std_core$u32$Equals$equals$vt (u32,u32) -> bool
   local.get 0
   local.get 1
   u32.eq
   return
 end
 
-fn 30 std_core$u64$Equals$equals$vt (u64,u64) -> bool
+fn 31 std_core$u64$Equals$equals$vt (u64,u64) -> bool
   local.get 0
   local.get 1
   u64.eq
   return
 end
 
-fn 31 std_core$usize$Equals$equals$vt (usize,usize) -> bool
+fn 32 std_core$usize$Equals$equals$vt (usize,usize) -> bool
   local.get 0
   local.get 1
   usize.eq
   return
 end
 
-fn 32 std_core$f32$Equals$equals$vt (f32,f32) -> bool
+fn 33 std_core$f32$Equals$equals$vt (f32,f32) -> bool
   local.get 0
   local.get 1
   f32.eq
   return
 end
 
-fn 33 std_core$f64$Equals$equals$vt (f64,f64) -> bool
+fn 34 std_core$f64$Equals$equals$vt (f64,f64) -> bool
   local.get 0
   local.get 1
   f64.eq
   return
 end
 
-fn 34 std_core$bool$Equals$equals$vt (bool,bool) -> bool
+fn 35 std_core$bool$Equals$equals$vt (bool,bool) -> bool
   local.get 0
   local.get 1
   bool.eq
   return
 end
 
-fn 35 std_core$char$Equals$equals$vt (char,char) -> bool
+fn 36 std_core$char$Equals$equals$vt (char,char) -> bool
   local.get 0
   local.get 1
   char.eq
   return
 end
 
-fn 36 std_core$string$Equals$equals$vt (string,string) -> bool
+fn 37 std_core$string$Equals$equals$vt (string,string) -> bool
   local.get 0
   local.get 1
   string.eq
   return
 end
 
-fn 37 std_core$string$Hash$hash$vt (string) -> u64
+fn 38 std_core$string$Hash$hash$vt (string) -> u64
   local.get 0
   call.import 0
   return
 end
 
-fn 38 std_io$println$vt (string) -> void
+fn 39 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 1
   return
 end

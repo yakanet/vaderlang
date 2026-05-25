@@ -61,6 +61,6 @@ fn snippet_mod_b$make_b() -> Box
     %0 $k_0: string
     %1 $struct_1: Box
   bb0:
-    %0 = const string(#2) :string
+    %0 = const string(#3) :string
     %1 = struct_new Box(%0)
     return %1

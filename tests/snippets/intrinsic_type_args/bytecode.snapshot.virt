@@ -9,8 +9,9 @@ type 6 array 7
 type 7 ref _
 string 0 "pair-arg size="
 string 1 "wrapper-arg count="
+string 2 "\n"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
-import 1 println std_io$println (string) -> void
+import 1 write std_io$write (i32,string) -> void
 
 fn 0 snippet$main () -> i32
   local $type_const_0 ref
@@ -48,14 +49,14 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_str
         local.get 1
         intrinsic size_of.type
-        call 1
+        call 2
         local.set 5
         local.get 4
         local.get 5
         intrinsic builder.append_str
         local.get 4
         intrinsic builder.finish
-        call 2
+        call 1
         local.get 3
         i64.const 1
         i64.to_usize
@@ -75,25 +76,36 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   array.len
-  call 1
+  call 2
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call 2
+  call 1
   return.lit i32.const 0
 end
 
-fn 1 std_core$usize$Display$to_string$vt (usize) -> string
+fn 1 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 3
+  i32.const 0
+  string.const 2
+  call 3
+  return
+end
+
+fn 2 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 2 std_io$println$vt (string) -> void
+fn 3 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 1
   return
 end

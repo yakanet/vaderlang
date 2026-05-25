@@ -7,10 +7,11 @@ type 4 primitive void
 string 0 "hello, world"
 string 1 "add="
 string 2 " strlen="
+string 3 "\n"
 import 0 extern add_i32 snippet$add_i32 (i32,i32) -> i32
 import 1 extern strlen snippet$c_strlen (string) -> usize
 import 2 to_string std_core$usize$Display$to_string (usize) -> string
-import 3 println std_io$println (string) -> void
+import 3 write std_io$write (i32,string) -> void
 
 fn 0 snippet$main () -> i32
   local sum i32
@@ -36,25 +37,36 @@ fn 0 snippet$main () -> i32
   string.const 2
   intrinsic builder.append_str
   local.get 1
-  call 1
+  call 2
   local.set 3
   local.get 2
   local.get 3
   intrinsic builder.append_str
   local.get 2
   intrinsic builder.finish
-  call 2
+  call 1
   return.lit i32.const 0
 end
 
-fn 1 std_core$usize$Display$to_string$vt (usize) -> string
+fn 1 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 3
+  i32.const 0
+  string.const 3
+  call 3
+  return
+end
+
+fn 2 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 2
   return
 end
 
-fn 2 std_io$println$vt (string) -> void
+fn 3 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 3
   return
 end

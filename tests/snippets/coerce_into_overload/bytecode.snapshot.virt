@@ -6,7 +6,8 @@ type 3 primitive string
 type 4 primitive void
 string 0 "a="
 string 1 "b="
-import 0 println std_io$println (string) -> void
+string 2 "\n"
+import 0 write std_io$write (i32,string) -> void
 impl 1 Into
 
 fn 0 snippet$UserId$Into$into (ref) -> i32
@@ -64,8 +65,19 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 std_io$println$vt (string) -> void
+fn 4 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 5
+  i32.const 0
+  string.const 2
+  call 5
+  return
+end
+
+fn 5 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

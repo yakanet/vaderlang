@@ -7,8 +7,9 @@ type 4 struct snippet_mod_a$Box { id:1 }
 type 5 struct snippet_mod_b$Box { label:2 }
 string 0 "a.id = "
 string 1 "b.label = "
-string 2 "hello"
-import 0 println std_io$println (string) -> void
+string 2 "\n"
+string 3 "hello"
+import 0 write std_io$write (i32,string) -> void
 
 fn 0 snippet$main () -> i32
   local a ref
@@ -16,9 +17,9 @@ fn 0 snippet$main () -> i32
   local __sb_0 any
   local $field_7 i32
   local $field_12 string
-  call 1
-  local.set 0
   call 2
+  local.set 0
+  call 3
   local.set 1
   intrinsic builder.new
   local.set 2
@@ -33,7 +34,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 3
+  call 1
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -47,24 +48,35 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 3
+  call 1
   return.lit i32.const 0
 end
 
-fn 1 snippet_mod_a$make_a () -> ref
+fn 1 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 4
+  i32.const 0
+  string.const 2
+  call 4
+  return
+end
+
+fn 2 snippet_mod_a$make_a () -> ref
   i32.const 42
   struct.new 4
   return
 end
 
-fn 2 snippet_mod_b$make_b () -> ref
-  string.const 2
+fn 3 snippet_mod_b$make_b () -> ref
+  string.const 3
   struct.new 5
   return
 end
 
-fn 3 std_io$println$vt (string) -> void
+fn 4 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 0
   return
 end

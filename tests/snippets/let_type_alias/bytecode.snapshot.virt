@@ -8,8 +8,9 @@ string 0 "size i32      = "
 string 1 "size i64      = "
 string 2 "size union    = "
 string 3 "size array    = "
+string 4 "\n"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
-import 1 println std_io$println (string) -> void
+import 1 write std_io$write (i32,string) -> void
 
 fn 0 snippet$main () -> i32
   local __sb_0 any
@@ -20,67 +21,78 @@ fn 0 snippet$main () -> i32
   string.const 0
   intrinsic builder.append_str
   i64.const 4
-  call 1
+  call 2
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 2
+  call 1
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 1
   intrinsic builder.append_str
   i64.const 8
-  call 1
+  call 2
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 2
+  call 1
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 2
   intrinsic builder.append_str
   i64.const 16
-  call 1
+  call 2
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 2
+  call 1
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 3
   intrinsic builder.append_str
   i64.const 16
-  call 1
+  call 2
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 2
+  call 1
   return.lit i32.const 0
 end
 
-fn 1 std_core$usize$Display$to_string$vt (usize) -> string
+fn 1 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 3
+  i32.const 0
+  string.const 4
+  call 3
+  return
+end
+
+fn 2 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 2 std_io$println$vt (string) -> void
+fn 3 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 1
   return
 end

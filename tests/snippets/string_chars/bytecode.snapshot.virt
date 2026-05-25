@@ -23,8 +23,9 @@ string 7 "-- empty --"
 string 8 ""
 string 9 "never"
 string 10 "done"
+string 11 "\n"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
-import 1 println std_io$println (string) -> void
+import 1 write std_io$write (i32,string) -> void
 import 2 byte_len std_string$byte_len (string) -> usize
 import 3 byte_decode_at std_string$byte_decode_at (string,usize) -> char
 impl 8 Iterator
@@ -38,14 +39,14 @@ fn 0 snippet$main () -> i32
   local n i32
   local $call_45 string
   string.const 0
-  call 6
+  call 1
   string.const 1
-  call 2
+  call 3
   local.set 0
   block $L0 void
     loop $L1 void
       local.get 0
-      call 1
+      call 2
       local.tee 1
       type_check 0
       if $L2 void
@@ -60,20 +61,20 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 3
         intrinsic builder.finish
-        call 6
+        call 1
         br $L1
       end $L2
     end $L1
   end $L0
   string.const 2
-  call 6
+  call 1
   string.const 3
-  call 2
+  call 3
   local.set 0
   block $L3 void
     loop $L4 void
       local.get 0
-      call 1
+      call 2
       local.tee 1
       type_check 0
       if $L5 void
@@ -88,7 +89,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 3
         intrinsic builder.finish
-        call 6
+        call 1
         br $L4
       end $L5
     end $L4
@@ -96,12 +97,12 @@ fn 0 snippet$main () -> i32
   i32.const 0
   local.set 4
   string.const 4
-  call 2
+  call 3
   local.set 0
   block $L6 void
     loop $L7 void
       local.get 0
-      call 1
+      call 2
       type_check 0
       if $L8 void
       else
@@ -126,38 +127,48 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   string.const 4
   call.import 2
-  call 5
+  call 6
   local.set 5
   local.get 3
   local.get 5
   intrinsic builder.append_str
   local.get 3
   intrinsic builder.finish
-  call 6
+  call 1
   string.const 7
-  call 6
+  call 1
   string.const 8
-  call 2
+  call 3
   local.set 0
   block $L9 void
     loop $L10 void
       local.get 0
-      call 1
+      call 2
       type_check 0
       if $L11 void
       else
         string.const 9
-        call 6
+        call 1
         br $L10
       end $L11
     end $L10
   end $L9
   string.const 10
-  call 6
+  call 1
   return.lit i32.const 0
 end
 
-fn 1 std_string$StringChars$Iterator$next (ref) -> ref
+fn 1 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 7
+  i32.const 0
+  string.const 11
+  call 7
+  return
+end
+
+fn 2 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 string
@@ -183,7 +194,7 @@ fn 1 std_string$StringChars$Iterator$next (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  call 3
+  call 4
   local.set 4
   local.field 4 10 0
   ref.cast 4
@@ -204,7 +215,7 @@ fn 1 std_string$StringChars$Iterator$next (ref) -> ref
   return
 end
 
-fn 2 std_string$chars (string) -> ref
+fn 3 std_string$chars (string) -> ref
   local $call_3 usize
   local.get 0
   call.import 2
@@ -217,14 +228,14 @@ fn 2 std_string$chars (string) -> ref
   return
 end
 
-fn 3 std_string$decode_codepoint (string,usize) -> ref
+fn 4 std_string$decode_codepoint (string,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0
   local.get 1
   call.import 3
   local.tee 2
-  call 4
+  call 5
   local.set 3
   local.get 2
   local.get 3
@@ -232,7 +243,7 @@ fn 3 std_string$decode_codepoint (string,usize) -> ref
   return
 end
 
-fn 4 std_utf8$codepoint_byte_len (char) -> usize
+fn 5 std_utf8$codepoint_byte_len (char) -> usize
   local cp u32
   local.get 0
   char.to_u32
@@ -261,14 +272,15 @@ fn 4 std_utf8$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 5 std_core$usize$Display$to_string$vt (usize) -> string
+fn 6 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 6 std_io$println$vt (string) -> void
+fn 7 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 1
   return
 end

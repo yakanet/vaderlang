@@ -586,7 +586,7 @@ export const_op_of :: fn(o: Op) -> ConstOp | null {
 
 /// Host-side description of a `call.import` target. The `mangled`
 /// name is the key the executor's dispatcher matches on
-/// (`std_io$println` etc.) ; `parameter_count` tells it how many
+/// (`std_io$write` etc.) ; `parameter_count` tells it how many
 /// values to pop from the caller's stack before the host call ;
 /// `has_return` controls whether a value gets pushed back afterwards.
 export ImportInfo :: struct {

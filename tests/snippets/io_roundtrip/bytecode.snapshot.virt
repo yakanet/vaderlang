@@ -12,7 +12,8 @@ string 1 "hello from vader"
 string 2 "exists: "
 string 3 "read: "
 string 4 "read failed"
-import 0 println std_io$println (string) -> void
+string 5 "\n"
+import 0 write std_io$write (i32,string) -> void
 import 1 read_file std_io$read_file (string) -> ref
 import 2 write_file std_io$write_file (string,string) -> ref
 import 3 exists std_io$exists (string) -> bool
@@ -27,7 +28,7 @@ fn 0 snippet$main () -> i32
   local.set 0
   local.get 0
   string.const 1
-  call 3
+  call 4
   drop
   intrinsic builder.new
   local.set 1
@@ -35,7 +36,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   intrinsic builder.append_str
   local.get 0
-  call 4
+  call 5
   local.set 2
   local.get 1
   local.get 2
@@ -44,7 +45,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.finish
   call 1
   local.get 0
-  call 2
+  call 3
   local.tee 3
   local.tee 4
   type_check 2
@@ -75,26 +76,37 @@ fn 0 snippet$main () -> i32
   unreachable
 end
 
-fn 1 std_io$println$vt (string) -> void
+fn 1 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 2
+  i32.const 0
+  string.const 5
+  call 2
+  return
+end
+
+fn 2 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end
 
-fn 2 std_io$read_file$vt (string) -> ref
+fn 3 std_io$read_file$vt (string) -> ref
   local.get 0
   call.import 1
   return
 end
 
-fn 3 std_io$write_file$vt (string,string) -> ref
+fn 4 std_io$write_file$vt (string,string) -> ref
   local.get 0
   local.get 1
   call.import 2
   return
 end
 
-fn 4 std_io$exists$vt (string) -> bool
+fn 5 std_io$exists$vt (string) -> bool
   local.get 0
   call.import 3
   return

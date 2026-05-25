@@ -8,10 +8,10 @@
 //
 // Vader-VM coverage grows sprint by sprint (docs/SELFHOST_VM.md) ; ops
 // that the Vader VM doesn't yet implement (`bool.*`, `null.const`,
-// `virtual.call`, `type_check`, host imports beyond `std_io$println` /
-// `print` / `eprintln`, etc.) cause snippets to trap or diverge. Those
-// are listed in `KNOWN_DIVERGENT` and skipped — entries should be
-// removed as Sprint 5+ lands.
+// `virtual.call`, `type_check`, host imports beyond `std_io$write`,
+// etc.) cause snippets to trap or diverge. Those are listed in
+// `KNOWN_DIVERGENT` and skipped — entries should be removed as Sprint
+// 5+ lands.
 
 import { test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";

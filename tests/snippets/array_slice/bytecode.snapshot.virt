@@ -14,8 +14,9 @@ string 2 "s2.len = "
 string 3 "s3.len = "
 string 4 "s4.len = "
 string 5 "s5.len = "
+string 6 "\n"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
-import 1 println std_io$println (string) -> void
+import 1 write std_io$write (i32,string) -> void
 impl 5 Contains
 impl 5 Iterator
 
@@ -53,14 +54,14 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 3
   array.len
-  call 1
+  call 2
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call 2
+  call 1
   local.get 3
   local.tee 3
   array.len
@@ -88,7 +89,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 4
         intrinsic builder.finish
-        call 2
+        call 1
         local.get 2
         i64.const 1
         i64.to_usize
@@ -122,14 +123,14 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 3
   array.len
-  call 1
+  call 2
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call 2
+  call 1
   local.get 3
   local.tee 3
   array.len
@@ -157,7 +158,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 4
         intrinsic builder.finish
-        call 2
+        call 1
         local.get 2
         i64.const 1
         i64.to_usize
@@ -207,14 +208,14 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 3
   array.len
-  call 1
+  call 2
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call 2
+  call 1
   local.get 3
   local.tee 3
   array.len
@@ -242,7 +243,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 4
         intrinsic builder.finish
-        call 2
+        call 1
         local.get 2
         i64.const 1
         i64.to_usize
@@ -267,14 +268,14 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 3
   array.len
-  call 1
+  call 2
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call 2
+  call 1
   local.get 3
   local.tee 3
   array.len
@@ -302,7 +303,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 4
         intrinsic builder.finish
-        call 2
+        call 1
         local.get 2
         i64.const 1
         i64.to_usize
@@ -331,25 +332,36 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   array.len
-  call 1
+  call 2
   local.set 5
   local.get 4
   local.get 5
   intrinsic builder.append_str
   local.get 4
   intrinsic builder.finish
-  call 2
+  call 1
   return.lit i32.const 0
 end
 
-fn 1 std_core$usize$Display$to_string$vt (usize) -> string
+fn 1 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 3
+  i32.const 0
+  string.const 6
+  call 3
+  return
+end
+
+fn 2 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 2 std_io$println$vt (string) -> void
+fn 3 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 1
   return
 end

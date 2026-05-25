@@ -13,6 +13,7 @@
   Contains(T)
   Iterator(T)
   Iterator(T)
+  Pair(i32, string)
   Pair(K, V)
   Yield(T)
   Yield(T)

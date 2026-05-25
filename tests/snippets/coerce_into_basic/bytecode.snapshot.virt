@@ -11,7 +11,8 @@ string 2 "let "
 string 3 "ret "
 string 4 "field tag="
 string 5 " n="
-import 0 println std_io$println (string) -> void
+string 6 "\n"
+import 0 write std_io$write (i32,string) -> void
 impl 1 Into
 impl 1 Into
 
@@ -140,8 +141,19 @@ fn 4 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 5 std_io$println$vt (string) -> void
+fn 5 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 6
+  i32.const 0
+  string.const 6
+  call 6
+  return
+end
+
+fn 6 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

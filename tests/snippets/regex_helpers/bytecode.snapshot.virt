@@ -24,8 +24,9 @@ string 6 "std::io.print!"
 string 7 "_"
 string 8 "  hello  world\tfoo\n bar  "
 string 9 "count="
+string 10 "\n"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
-import 1 println std_io$println (string) -> void
+import 1 write std_io$write (i32,string) -> void
 import 2 byte_len std_string$byte_len (string) -> usize
 import 3 byte_slice std_string$byte_slice (string,usize,usize) -> string
 import 4 starts_with std_string$starts_with (string,string) -> bool
@@ -102,32 +103,32 @@ fn 1 snippet$main () -> i32
   local i usize
   string.const 0
   string.const 1
-  call 6
-  call 15
+  call 7
+  call 2
   string.const 2
   string.const 1
-  call 6
-  call 15
+  call 7
+  call 2
   string.const 3
   string.const 4
-  call 7
-  call 15
+  call 8
+  call 2
   string.const 5
   string.const 4
-  call 7
-  call 15
+  call 8
+  call 2
   fn.ref 0 12
   local.set 0
   string.const 6
   local.get 0
   string.const 7
-  call 8
-  call 15
-  fn.ref 5 12
+  call 9
+  call 2
+  fn.ref 6 12
   local.set 0
   string.const 8
   local.get 0
-  call 9
+  call 10
   local.set 0
   intrinsic builder.new
   local.set 1
@@ -136,14 +137,14 @@ fn 1 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   array.len
-  call 14
+  call 15
   local.set 2
   local.get 1
   local.get 2
   intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
-  call 15
+  call 2
   local.get 0
   array.len
   local.set 3
@@ -159,7 +160,7 @@ fn 1 snippet$main () -> i32
         local.get 4
         array.get 8
         ref.cast 4
-        call 15
+        call 2
         local.get 4
         i64.const 1
         i64.to_usize
@@ -173,7 +174,17 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 std_string$StringChars$Iterator$next (ref) -> ref
+fn 2 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 16
+  i32.const 0
+  string.const 10
+  call 16
+  return
+end
+
+fn 3 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 string
@@ -199,7 +210,7 @@ fn 2 std_string$StringChars$Iterator$next (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  call 4
+  call 5
   local.set 4
   local.field 4 11 0
   ref.cast 1
@@ -220,7 +231,7 @@ fn 2 std_string$StringChars$Iterator$next (ref) -> ref
   return
 end
 
-fn 3 std_string$chars (string) -> ref
+fn 4 std_string$chars (string) -> ref
   local $call_3 usize
   local.get 0
   call.import 2
@@ -233,14 +244,14 @@ fn 3 std_string$chars (string) -> ref
   return
 end
 
-fn 4 std_string$decode_codepoint (string,usize) -> ref
+fn 5 std_string$decode_codepoint (string,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0
   local.get 1
   call.import 6
   local.tee 2
-  call 13
+  call 14
   local.set 3
   local.get 2
   local.get 3
@@ -248,7 +259,7 @@ fn 4 std_string$decode_codepoint (string,usize) -> ref
   return
 end
 
-fn 5 std_string$is_white_char (char) -> bool
+fn 6 std_string$is_white_char (char) -> bool
   local or_res bool
   local.get 0
   char.const 32
@@ -286,7 +297,7 @@ fn 5 std_string$is_white_char (char) -> bool
   return
 end
 
-fn 6 std_string$trim_suffix (string,string) -> string
+fn 7 std_string$trim_suffix (string,string) -> string
   local $call_4 usize
   local $call_5 usize
   local.get 0
@@ -314,7 +325,7 @@ fn 6 std_string$trim_suffix (string,string) -> string
   return
 end
 
-fn 7 std_string$trim_prefix (string,string) -> string
+fn 8 std_string$trim_prefix (string,string) -> string
   local $call_3 usize
   local $call_4 usize
   local.get 0
@@ -337,20 +348,20 @@ fn 7 std_string$trim_prefix (string,string) -> string
   return
 end
 
-fn 8 std_string$replace_chars_where (string,ref,string) -> string
+fn 9 std_string$replace_chars_where (string,ref,string) -> string
   local sb ref
   local __iter_0 ref
   local __step_1 ref
   local c char
-  call 10
+  call 11
   local.set 3
   local.get 0
-  call 3
+  call 4
   local.set 4
   block $L0 void
     loop $L1 void
       local.get 4
-      call 2
+      call 3
       local.tee 5
       type_check 0
       if $L2 void
@@ -364,22 +375,22 @@ fn 8 std_string$replace_chars_where (string,ref,string) -> string
         if $L3 void
           local.get 3
           local.get 2
-          call 11
+          call 12
         else
           local.get 3
           local.get 6
-          call 12
+          call 13
         end $L3
         br $L1
       end $L2
     end $L1
   end $L0
   local.get 3
-  call 16
+  call 17
   return
 end
 
-fn 9 std_string$split_where (string,ref) -> ref
+fn 10 std_string$split_where (string,ref) -> ref
   local out ref
   local sb ref
   local has_pending bool
@@ -389,17 +400,17 @@ fn 9 std_string$split_where (string,ref) -> ref
   local $call_17 string
   array.new 8 0
   local.set 2
-  call 10
+  call 11
   local.set 3
   bool.const false
   local.set 4
   local.get 0
-  call 3
+  call 4
   local.set 5
   block $L0 void
     loop $L1 void
       local.get 5
-      call 2
+      call 3
       local.tee 6
       type_check 0
       if $L2 void
@@ -414,12 +425,12 @@ fn 9 std_string$split_where (string,ref) -> ref
           local.get 4
           if $L4 void
             local.get 3
-            call 16
+            call 17
             local.set 8
             local.get 2
             local.get 8
             array.push 4
-            call 10
+            call 11
             local.set 3
             bool.const false
             local.set 4
@@ -428,7 +439,7 @@ fn 9 std_string$split_where (string,ref) -> ref
         else
           local.get 3
           local.get 7
-          call 12
+          call 13
           bool.const true
           local.set 4
         end $L3
@@ -439,7 +450,7 @@ fn 9 std_string$split_where (string,ref) -> ref
   local.get 4
   if $L5 void
     local.get 3
-    call 16
+    call 17
     local.set 8
     local.get 2
     local.get 8
@@ -450,20 +461,20 @@ fn 9 std_string$split_where (string,ref) -> ref
   return
 end
 
-fn 10 std_string_builder$new_builder () -> ref
+fn 11 std_string_builder$new_builder () -> ref
   array.new 8 0
   struct.new 13
   return
 end
 
-fn 11 std_string_builder$append (ref,string) -> void
+fn 12 std_string_builder$append (ref,string) -> void
   local.field 0 13 0
   local.get 1
   array.push 4
   return
 end
 
-fn 12 std_string_builder$append_char (ref,char) -> void
+fn 13 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local __sb_0 any
   local $intrinsic_5 string
@@ -482,7 +493,7 @@ fn 12 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 13 std_utf8$codepoint_byte_len (char) -> usize
+fn 14 std_utf8$codepoint_byte_len (char) -> usize
   local cp u32
   local.get 0
   char.to_u32
@@ -511,19 +522,20 @@ fn 13 std_utf8$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 14 std_core$usize$Display$to_string$vt (usize) -> string
+fn 15 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 15 std_io$println$vt (string) -> void
+fn 16 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 1
   return
 end
 
-fn 16 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
+fn 17 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
   local.get 0
   call.import 7
   return

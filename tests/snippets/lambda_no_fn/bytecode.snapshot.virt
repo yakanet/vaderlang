@@ -18,7 +18,8 @@ string 2 "sqr(5) = "
 string 3 "add(3, 4) = "
 string 4 "forty_two() = "
 string 5 "block(3) = "
-import 0 println std_io$println (string) -> void
+string 6 "\n"
+import 0 write std_io$write (i32,string) -> void
 
 fn 0 snippet$call_it (ref,i32) -> i32
   local.get 1
@@ -198,8 +199,19 @@ fn 9 __lambda_21 (ref,i32) -> i32
   return
 end
 
-fn 10 std_io$println$vt (string) -> void
+fn 10 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 11
+  i32.const 0
+  string.const 6
+  call 11
+  return
+end
+
+fn 11 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

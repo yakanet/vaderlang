@@ -9,7 +9,8 @@ string 0 "Whiskers"
 string 1 "name = "
 string 2 "age  = "
 string 3 "Rex"
-import 0 println std_io$println (string) -> void
+string 4 "\n"
+import 0 write std_io$write (i32,string) -> void
 
 fn 0 snippet$main () -> i32
   local a ref
@@ -87,8 +88,19 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 std_io$println$vt (string) -> void
+fn 1 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 2
+  i32.const 0
+  string.const 4
+  call 2
+  return
+end
+
+fn 2 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

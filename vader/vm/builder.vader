@@ -107,7 +107,7 @@ export add_type :: fn(self: ModuleBuilder, type_decl: TypeDecl) -> i32 {
 }
 
 /// Register a host-import descriptor and return its `call.import` key.
-/// `mangled` is the dispatcher key (e.g. `std_io$print`) ; `parameter_count`
+/// `mangled` is the dispatcher key (e.g. `std_io$write`) ; `parameter_count`
 /// is the number of values the executor pops from the caller stack ;
 /// `has_return` is `true` when the import pushes one value back.
 ///

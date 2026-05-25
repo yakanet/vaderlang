@@ -32,8 +32,9 @@ string 9 "banana"
 string 10 "cherry"
 string 11 ": "
 string 12 "b="
+string 13 "\n"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
-import 1 println std_io$println (string) -> void
+import 1 write std_io$write (i32,string) -> void
 
 fn 0 snippet$main () -> i32
   local nums ref
@@ -56,17 +57,17 @@ fn 0 snippet$main () -> i32
   string.const 0
   intrinsic builder.append_str
   local.get 0
-  call 2
-  call 8
+  call 3
+  call 9
   local.set 2
   local.get 1
   local.get 2
   intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
-  call 9
+  call 2
   local.get 0
-  call 3
+  call 4
   local.set 0
   intrinsic builder.new
   local.set 1
@@ -83,7 +84,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 9
+  call 2
   string.const 2
   string.const 3
   string.const 4
@@ -97,7 +98,7 @@ fn 0 snippet$main () -> i32
   local.set 4
   local.get 0
   local.get 4
-  call 4
+  call 5
   local.tee 0
   array.len
   local.set 5
@@ -131,7 +132,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 1
         intrinsic builder.finish
-        call 9
+        call 2
         local.get 6
         i64.const 1
         i64.to_usize
@@ -153,7 +154,7 @@ fn 0 snippet$main () -> i32
   local.set 4
   local.get 0
   local.get 4
-  call 5
+  call 6
   local.tee 0
   array.len
   local.set 5
@@ -180,7 +181,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 1
         intrinsic builder.finish
-        call 9
+        call 2
         local.get 6
         i64.const 1
         i64.to_usize
@@ -195,7 +196,7 @@ fn 0 snippet$main () -> i32
   string.const 9
   string.const 10
   array.new 7 3
-  call 6
+  call 7
   local.tee 0
   array.len
   local.set 5
@@ -220,7 +221,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.new
         local.set 1
         local.get 7
-        call 8
+        call 9
         local.set 8
         local.get 1
         local.get 8
@@ -233,7 +234,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 1
         intrinsic builder.finish
-        call 9
+        call 2
         local.get 6
         i64.const 1
         i64.to_usize
@@ -254,7 +255,7 @@ fn 0 snippet$main () -> i32
   local.set 4
   local.get 0
   local.get 4
-  call 7
+  call 8
   local.tee 0
   array.len
   local.set 5
@@ -281,7 +282,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 1
         intrinsic builder.finish
-        call 9
+        call 2
         local.get 6
         i64.const 1
         i64.to_usize
@@ -307,13 +308,23 @@ fn 1 __lambda_17 (ref,i32) -> ref
   return
 end
 
-fn 2 std_iter$std_iter$count__i32 (ref) -> usize
+fn 2 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 10
+  i32.const 0
+  string.const 13
+  call 10
+  return
+end
+
+fn 3 std_iter$std_iter$count__i32 (ref) -> usize
   local.get 0
   array.len
   return
 end
 
-fn 3 std_iter$std_iter$collect__i32 (ref) -> ref
+fn 4 std_iter$std_iter$collect__i32 (ref) -> ref
   local out ref
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -354,7 +365,7 @@ fn 3 std_iter$std_iter$collect__i32 (ref) -> ref
   return
 end
 
-fn 4 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
+fn 5 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
   local out ref
   local n usize
   local m usize
@@ -416,7 +427,7 @@ fn 4 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
   return
 end
 
-fn 5 std_iter$std_iter$chain__i32 (ref,ref) -> ref
+fn 6 std_iter$std_iter$chain__i32 (ref,ref) -> ref
   local out ref
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -486,7 +497,7 @@ fn 5 std_iter$std_iter$chain__i32 (ref,ref) -> ref
   return
 end
 
-fn 6 std_iter$std_iter$enumerate__string (ref) -> ref
+fn 7 std_iter$std_iter$enumerate__string (ref) -> ref
   local out ref
   local i usize
   local __for_arr_0 ref
@@ -540,7 +551,7 @@ fn 6 std_iter$std_iter$enumerate__string (ref) -> ref
   return
 end
 
-fn 7 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
+fn 8 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
   local out ref
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -610,14 +621,15 @@ fn 7 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
   return
 end
 
-fn 8 std_core$usize$Display$to_string$vt (usize) -> string
+fn 9 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 9 std_io$println$vt (string) -> void
+fn 10 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 1
   return
 end

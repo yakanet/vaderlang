@@ -1940,16 +1940,20 @@ vader_string_t vader_string_concat_all(vader_array_t* parts) {
 
 /* ----------------------------------------------------------------- I/O */
 
-static inline void print_atom(FILE* stream, vader_string_t s, int newline) {
-    fwrite(vader_atom_data(s), 1, vader_atom_len(s), stream);
-    if (newline) fputc('\n', stream);
-    fflush(stream);
-}
+/* `stream_tag` mirrors `std/io::Stream` ; anything outside {Stdout, Stderr}
+ * traps. The `println` / `eprintln` newline emission lives in the Vader-side
+ * wrappers, not here. */
+#define VADER_STREAM_STDOUT ((int32_t) 0)
+#define VADER_STREAM_STDERR ((int32_t) 1)
 
-void vader_print(vader_string_t s)    { print_atom(stdout, s, 0); }
-void vader_println(vader_string_t s)  { print_atom(stdout, s, 1); }
-void vader_eprint(vader_string_t s)   { print_atom(stderr, s, 0); }
-void vader_eprintln(vader_string_t s) { print_atom(stderr, s, 1); }
+void vader_write(int32_t stream_tag, vader_string_t s) {
+    FILE* f;
+    if      (stream_tag == VADER_STREAM_STDOUT) f = stdout;
+    else if (stream_tag == VADER_STREAM_STDERR) f = stderr;
+    else    vader_trap("vader_write: invalid stream tag");
+    fwrite(vader_atom_data(s), 1, vader_atom_len(s), f);
+    fflush(f);
+}
 
 /* Tag-aware variants — the emitter passes the BcType indices for the success
  * and error variants. Caller-side boxing keeps the runtime tag-agnostic. */

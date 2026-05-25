@@ -131,10 +131,17 @@ export function defaultHostIO(): HostIO {
 
 export function stdIoBindings(io: HostIO): Record<string, HostFn> {
   return {
-    std_io$print:    (args) => { io.write(stringArg(args, 0));        return VOID; },
-    std_io$println:  (args) => { io.write(stringArg(args, 0) + "\n"); return VOID; },
-    std_io$eprint:   (args) => { io.writeError(stringArg(args, 0));        return VOID; },
-    std_io$eprintln: (args) => { io.writeError(stringArg(args, 0) + "\n"); return VOID; },
+    std_io$write: (args) => {
+      // Mirrors `std/io::Stream`.
+      const STDOUT = 0;
+      const STDERR = 1;
+      const tag = indexArg(args, 0);
+      const msg = stringArg(args, 1);
+      if      (tag === STDOUT) io.write(msg);
+      else if (tag === STDERR) io.writeError(msg);
+      else throw new Error(`vm: invalid Stream tag ${tag}`);
+      return VOID;
+    },
     std_io$read_line:  ()     => {
       const line = io.readLine();
       return line === null ? err("EOF") : str(line);

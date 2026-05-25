@@ -12,7 +12,8 @@ string 0 "type_id(s)="
 string 1 "type_id(a)="
 string 2 "type_id(i)="
 string 3 "first(a)="
-import 0 println std_io$println (string) -> void
+string 4 "\n"
+import 0 write std_io$write (i32,string) -> void
 
 fn 0 snippet$type_id_of (ref) -> i32
   local.get 0
@@ -139,8 +140,19 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 std_io$println$vt (string) -> void
+fn 3 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 4
+  i32.const 0
+  string.const 4
+  call 4
+  return
+end
+
+fn 4 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

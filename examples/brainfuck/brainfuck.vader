@@ -202,7 +202,11 @@ compile_brainfuck :: fn(source: string) -> op.Module {
     module_builder :: new_module_builder()
     primitive_i32_type_id :: module_builder.add_type(op.PrimitiveType { .kind = "i32" })
     cells_type_id :: module_builder.add_type(op.ArrayType { .element_type_id = primitive_i32_type_id })
-    print_import_index :: module_builder.add_import("print", r"std_io$print", 1, false)
+    // `write(stream_tag, msg)` is std/io's sole host import — the
+    // print / println / eprint / eprintln wrappers in stdlib all route
+    // through it. The stream tag matches `std/io::Stream`
+    // (0 = Stdout, 1 = Stderr) ; we pin Stdout here.
+    write_import_index :: module_builder.add_import("write", r"std_io$write", 2, false)
 
     // ---- fn print_byte(byte: i32) -> void --------------------------------
     print_byte :: new_function_builder("print_byte", 1, 1)
@@ -212,9 +216,10 @@ compile_brainfuck :: fn(source: string) -> op.Module {
     print_byte.local_get(0)
     print_byte.int_to_char()
     print_byte.builder_append_display()
+    print_byte.i32_const(0)        // Stream.Stdout
     print_byte.local_get(1)
     print_byte.builder_finish()
-    print_byte.call_import(print_import_index)
+    print_byte.call_import(write_import_index)
     print_byte.return_op()
     print_byte_index :: module_builder.add_function(print_byte)
 

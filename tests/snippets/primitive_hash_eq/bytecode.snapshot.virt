@@ -9,8 +9,9 @@ string 0 "hash(a) = "
 string 1 "a == b : "
 string 2 "a == c : "
 string 3 "hash(n) = "
+string 4 "\n"
 import 0 to_string std_core$u64$Display$to_string (u64) -> string
-import 1 println std_io$println (string) -> void
+import 1 write std_io$write (i32,string) -> void
 
 fn 0 snippet$main () -> i32
   local a i32
@@ -26,14 +27,14 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   call 1
-  call 3
+  call 4
   local.set 2
   local.get 1
   local.get 2
   intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 3
   intrinsic builder.new
   local.set 1
   local.get 1
@@ -48,7 +49,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 3
   intrinsic builder.new
   local.set 1
   local.get 1
@@ -63,7 +64,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 3
   intrinsic builder.new
   local.set 1
   local.get 1
@@ -72,14 +73,14 @@ fn 0 snippet$main () -> i32
   i64.const 100
   i64.to_usize
   call 2
-  call 3
+  call 4
   local.set 2
   local.get 1
   local.get 2
   intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
-  call 4
+  call 3
   return.lit i32.const 0
 end
 
@@ -95,14 +96,25 @@ fn 2 std_core$usize$Hash$hash (usize) -> u64
   return
 end
 
-fn 3 std_core$u64$Display$to_string$vt (u64) -> string
+fn 3 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 5
+  i32.const 0
+  string.const 4
+  call 5
+  return
+end
+
+fn 4 std_core$u64$Display$to_string$vt (u64) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 4 std_io$println$vt (string) -> void
+fn 5 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 1
   return
 end

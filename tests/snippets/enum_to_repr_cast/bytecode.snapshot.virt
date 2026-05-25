@@ -6,9 +6,10 @@ type 3 primitive u32
 type 4 primitive u64
 type 5 primitive void
 string 0 " "
+string 1 "\n"
 import 0 to_string std_core$u32$Display$to_string (u32) -> string
 import 1 to_string std_core$u64$Display$to_string (u64) -> string
-import 2 println std_io$println (string) -> void
+import 2 write std_io$write (i32,string) -> void
 
 fn 0 snippet$main () -> i32
   local c i32
@@ -35,7 +36,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   i32.const 4000000000
   i32.to_u32
-  call 1
+  call 2
   local.set 4
   local.get 3
   local.get 4
@@ -56,7 +57,7 @@ fn 0 snippet$main () -> i32
   string.const 0
   intrinsic builder.append_str
   local.get 1
-  call 2
+  call 3
   local.set 4
   local.get 3
   local.get 4
@@ -69,24 +70,35 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 3
   intrinsic builder.finish
-  call 3
+  call 1
   return.lit i32.const 0
 end
 
-fn 1 std_core$u32$Display$to_string$vt (u32) -> string
+fn 1 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 4
+  i32.const 0
+  string.const 1
+  call 4
+  return
+end
+
+fn 2 std_core$u32$Display$to_string$vt (u32) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 2 std_core$u64$Display$to_string$vt (u64) -> string
+fn 3 std_core$u64$Display$to_string$vt (u64) -> string
   local.get 0
   call.import 1
   return
 end
 
-fn 3 std_io$println$vt (string) -> void
+fn 4 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 2
   return
 end

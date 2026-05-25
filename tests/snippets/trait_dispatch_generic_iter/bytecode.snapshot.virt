@@ -16,7 +16,8 @@ type 13 primitive void
 type 14 union 0,12
 string 0 "repeat="
 string 1 "once="
-import 0 println std_io$println (string) -> void
+string 2 "\n"
+import 0 write std_io$write (i32,string) -> void
 impl 3 Iterator
 impl 6 Iterator
 impl 7 Iterator
@@ -157,8 +158,19 @@ fn 3 snippet$Once$Iterator$next__i32 (ref) -> ref
   return
 end
 
-fn 4 std_io$println$vt (string) -> void
+fn 4 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 5
+  i32.const 0
+  string.const 2
+  call 5
+  return
+end
+
+fn 5 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

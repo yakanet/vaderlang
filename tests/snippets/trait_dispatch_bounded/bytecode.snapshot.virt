@@ -23,23 +23,24 @@ type 20 array 1
 string 0 "foo"
 string 1 "bar"
 string 2 "baz"
+string 3 "\n"
 import 0 hash std_core$string$Hash$hash (string) -> u64
-import 1 println std_io$println (string) -> void
-vtable Equals.equals 1 15
-vtable Equals.equals 4 13
-vtable Equals.equals 5 21
-vtable Equals.equals 6 14
-vtable Equals.equals 7 16
-vtable Equals.equals 8 17
-vtable Equals.equals 9 18
-vtable Equals.equals 10 19
-vtable Equals.equals 11 20
-vtable Equals.equals 12 22
-vtable Equals.equals 13 26
-vtable Equals.equals 14 27
-vtable Equals.equals 15 23
-vtable Equals.equals 16 24
-vtable Equals.equals 17 25
+import 1 write std_io$write (i32,string) -> void
+vtable Equals.equals 1 16
+vtable Equals.equals 4 14
+vtable Equals.equals 5 22
+vtable Equals.equals 6 15
+vtable Equals.equals 7 17
+vtable Equals.equals 8 18
+vtable Equals.equals 9 19
+vtable Equals.equals 10 20
+vtable Equals.equals 11 21
+vtable Equals.equals 12 23
+vtable Equals.equals 13 27
+vtable Equals.equals 14 28
+vtable Equals.equals 15 24
+vtable Equals.equals 16 25
+vtable Equals.equals 17 26
 vtable Hash.hash 1 4
 vtable Hash.hash 4 2
 vtable Hash.hash 5 10
@@ -51,7 +52,7 @@ vtable Hash.hash 10 8
 vtable Hash.hash 11 9
 vtable Hash.hash 12 11
 vtable Hash.hash 13 12
-vtable Hash.hash 14 28
+vtable Hash.hash 14 29
 
 fn 0 snippet$main () -> i32
   local nums ref
@@ -76,7 +77,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 29
+  call 13
   string.const 0
   string.const 1
   string.const 0
@@ -95,7 +96,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 1
   intrinsic builder.finish
-  call 29
+  call 13
   return.lit i32.const 0
 end
 
@@ -230,119 +231,130 @@ fn 12 std_core$char$Hash$hash (char) -> u64
   return
 end
 
-fn 13 std_core$i8$Equals$equals$vt (i8,i8) -> bool
+fn 13 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 30
+  i32.const 0
+  string.const 3
+  call 30
+  return
+end
+
+fn 14 std_core$i8$Equals$equals$vt (i8,i8) -> bool
   local.get 0
   local.get 1
   i8.eq
   return
 end
 
-fn 14 std_core$i16$Equals$equals$vt (i16,i16) -> bool
+fn 15 std_core$i16$Equals$equals$vt (i16,i16) -> bool
   local.get 0
   local.get 1
   i16.eq
   return
 end
 
-fn 15 std_core$i32$Equals$equals$vt (i32,i32) -> bool
+fn 16 std_core$i32$Equals$equals$vt (i32,i32) -> bool
   local.get 0
   local.get 1
   i32.eq
   return
 end
 
-fn 16 std_core$i64$Equals$equals$vt (i64,i64) -> bool
+fn 17 std_core$i64$Equals$equals$vt (i64,i64) -> bool
   local.get 0
   local.get 1
   i64.eq
   return
 end
 
-fn 17 std_core$isize$Equals$equals$vt (isize,isize) -> bool
+fn 18 std_core$isize$Equals$equals$vt (isize,isize) -> bool
   local.get 0
   local.get 1
   isize.eq
   return
 end
 
-fn 18 std_core$u8$Equals$equals$vt (u8,u8) -> bool
+fn 19 std_core$u8$Equals$equals$vt (u8,u8) -> bool
   local.get 0
   local.get 1
   u8.eq
   return
 end
 
-fn 19 std_core$u16$Equals$equals$vt (u16,u16) -> bool
+fn 20 std_core$u16$Equals$equals$vt (u16,u16) -> bool
   local.get 0
   local.get 1
   u16.eq
   return
 end
 
-fn 20 std_core$u32$Equals$equals$vt (u32,u32) -> bool
+fn 21 std_core$u32$Equals$equals$vt (u32,u32) -> bool
   local.get 0
   local.get 1
   u32.eq
   return
 end
 
-fn 21 std_core$u64$Equals$equals$vt (u64,u64) -> bool
+fn 22 std_core$u64$Equals$equals$vt (u64,u64) -> bool
   local.get 0
   local.get 1
   u64.eq
   return
 end
 
-fn 22 std_core$usize$Equals$equals$vt (usize,usize) -> bool
+fn 23 std_core$usize$Equals$equals$vt (usize,usize) -> bool
   local.get 0
   local.get 1
   usize.eq
   return
 end
 
-fn 23 std_core$f32$Equals$equals$vt (f32,f32) -> bool
+fn 24 std_core$f32$Equals$equals$vt (f32,f32) -> bool
   local.get 0
   local.get 1
   f32.eq
   return
 end
 
-fn 24 std_core$f64$Equals$equals$vt (f64,f64) -> bool
+fn 25 std_core$f64$Equals$equals$vt (f64,f64) -> bool
   local.get 0
   local.get 1
   f64.eq
   return
 end
 
-fn 25 std_core$bool$Equals$equals$vt (bool,bool) -> bool
+fn 26 std_core$bool$Equals$equals$vt (bool,bool) -> bool
   local.get 0
   local.get 1
   bool.eq
   return
 end
 
-fn 26 std_core$char$Equals$equals$vt (char,char) -> bool
+fn 27 std_core$char$Equals$equals$vt (char,char) -> bool
   local.get 0
   local.get 1
   char.eq
   return
 end
 
-fn 27 std_core$string$Equals$equals$vt (string,string) -> bool
+fn 28 std_core$string$Equals$equals$vt (string,string) -> bool
   local.get 0
   local.get 1
   string.eq
   return
 end
 
-fn 28 std_core$string$Hash$hash$vt (string) -> u64
+fn 29 std_core$string$Hash$hash$vt (string) -> u64
   local.get 0
   call.import 0
   return
 end
 
-fn 29 std_io$println$vt (string) -> void
+fn 30 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 1
   return
 end

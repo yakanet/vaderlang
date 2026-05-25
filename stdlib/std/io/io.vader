@@ -15,25 +15,40 @@ IOError implements Error {
     message :: fn(self) -> string { return self.msg }
 }
 
-/// Write `msg` to stdout without a trailing newline. Any value whose
-/// type implements `Display` flows in through the blanket
-/// `T implements[T: Display] Into(string)` coercion declared in
-/// `std/core`, so the host sees a flat UTF-8 string.
-/// @param msg  the string to write (or any `Display` value).
-@intrinsic export print :: fn(msg: string) -> void
+// Module-private target stream picked by the four `print` / `println` /
+// `eprint` / `eprintln` wrappers below. Kept unexported : the only
+// supported user-facing API is the wrappers.
+Stream :: enum {
+    Stdout,
+    Stderr,
+}
 
-/// Write `msg` to stdout followed by a `\n`. Same `Into(string)`
-/// coercion as `print`.
+// Sole host-provided I/O write primitive — appends `msg` to `out` without a
+// trailing newline. Display values flow in through the blanket
+// `T implements[T: Display] Into(string)` coercion declared in `std/core`.
+@intrinsic write :: fn(out: Stream, msg: string) -> void
+
+/// Write `msg` to stdout without a trailing newline.
 /// @param msg  the string to write (or any `Display` value).
-@intrinsic export println :: fn(msg: string) -> void
+export print :: fn(msg: string) = write(.Stdout, msg)
+
+/// Write `msg` to stdout followed by a `\n`.
+/// @param msg  the string to write (or any `Display` value).
+export println :: fn(msg: string) -> void {
+    write(.Stdout, msg)
+    write(.Stdout, "\n")
+}
 
 /// Write `msg` to stderr without a trailing newline.
 /// @param msg  the string to write (or any `Display` value).
-@intrinsic export eprint :: fn(msg: string) -> void
+export eprint :: fn(msg: string) = write(.Stderr, msg)
 
 /// Write `msg` to stderr followed by a `\n`.
 /// @param msg  the string to write (or any `Display` value).
-@intrinsic export eprintln :: fn(msg: string) -> void
+export eprintln :: fn(msg: string) -> void {
+    write(.Stderr, msg)
+    write(.Stderr, "\n")
+}
 
 /// Read one line from stdin, blocking until a newline arrives. The
 /// returned string does NOT include the trailing `\n`.

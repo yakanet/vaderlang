@@ -90,10 +90,8 @@
 [18:28-18:29] rparen         ")"
 [19:1-19:1  ] newline        "\n"
 [19:5-19:6  ] ident          "b"
-[19:6-19:7  ] colon          ":"
-[19:8-19:10 ] ident          "u8"
-[19:11-19:12] assign         "="
-[19:13-19:17] int_literal    "b'='" =61n :u8
+[19:7-19:9  ] decl_var       ":="
+[19:10-19:14] int_literal    "b'='" =61n :u8
 [20:1-20:1  ] newline        "\n"
 [20:5-20:12 ] ident          "println"
 [20:12-20:13] lparen         "("

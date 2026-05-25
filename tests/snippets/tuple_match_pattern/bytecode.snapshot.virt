@@ -7,7 +7,8 @@ type 4 struct __Tuple_22 { _0:1,_1:2 }
 string 0 "match"
 string 1 "n="
 string 2 " s="
-import 0 println std_io$println (string) -> void
+string 3 "\n"
+import 0 write std_io$write (i32,string) -> void
 
 fn 0 snippet$main () -> i32
   local __scrut_0 ref
@@ -44,8 +45,19 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 std_io$println$vt (string) -> void
+fn 1 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 2
+  i32.const 0
+  string.const 3
+  call 2
+  return
+end
+
+fn 2 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

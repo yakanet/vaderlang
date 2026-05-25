@@ -20,8 +20,9 @@ string 2 "banana"
 string 3 "apple"
 string 4 "cherry"
 string 5 "date"
+string 6 "\n"
 import 0 at std_core$string$Index$at (string,usize) -> char
-import 1 println std_io$println (string) -> void
+import 1 write std_io$write (i32,string) -> void
 import 2 byte_len std_string$byte_len (string) -> usize
 impl 12 Display
 
@@ -110,7 +111,7 @@ fn 2 snippet$print_ints (ref) -> void
     end $L1
   end $L0
   local.get 1
-  call 12
+  call 5
   return
 end
 
@@ -185,7 +186,7 @@ fn 3 snippet$print_strings (ref) -> void
     end $L1
   end $L0
   local.get 1
-  call 12
+  call 5
   return
 end
 
@@ -199,7 +200,7 @@ fn 4 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 5
+  call 6
   call 2
   i32.const 1
   i32.const 2
@@ -212,7 +213,7 @@ fn 4 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 5
+  call 6
   call 2
   i32.const 5
   i32.const 4
@@ -225,7 +226,7 @@ fn 4 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 5
+  call 6
   call 2
   i32.const 3
   i32.const 1
@@ -244,7 +245,7 @@ fn 4 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 5
+  call 6
   call 2
   i32.const 1
   i32.const 2
@@ -257,7 +258,7 @@ fn 4 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 5
+  call 6
   call 2
   i32.const 10
   i32.const 20
@@ -295,7 +296,7 @@ fn 4 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 5
+  call 6
   call 2
   string.const 2
   string.const 3
@@ -303,11 +304,11 @@ fn 4 snippet$main () -> i32
   string.const 5
   array.new 5 4
   local.set 0
-  fn.ref 8 14
+  fn.ref 9 14
   local.set 1
   local.get 0
   local.get 1
-  call 5
+  call 6
   call 3
   i32.const 3
   i32.const 1
@@ -318,7 +319,7 @@ fn 4 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 5
+  call 6
   local.set 1
   local.get 0
   call 2
@@ -327,7 +328,17 @@ fn 4 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 5 std_sort$std_sort$sort__i32 (ref,ref) -> ref
+fn 5 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 13
+  i32.const 0
+  string.const 6
+  call 13
+  return
+end
+
+fn 6 std_sort$std_sort$sort__i32 (ref,ref) -> ref
   local n usize
   local out ref
   local buf ref
@@ -335,7 +346,7 @@ fn 5 std_sort$std_sort$sort__i32 (ref,ref) -> ref
   array.len
   local.set 2
   local.get 0
-  call 9
+  call 10
   local.set 3
   local.get 2
   i64.const 2
@@ -346,7 +357,7 @@ fn 5 std_sort$std_sort$sort__i32 (ref,ref) -> ref
     return
   end $L0
   local.get 0
-  call 9
+  call 10
   local.set 4
   local.get 3
   local.get 4
@@ -354,12 +365,12 @@ fn 5 std_sort$std_sort$sort__i32 (ref,ref) -> ref
   i64.to_usize
   local.get 2
   local.get 1
-  call 6
+  call 7
   local.get 3
   return
 end
 
-fn 6 std_sort$std_sort$merge_sort_range__Any (ref,ref,usize,usize,ref) -> void
+fn 7 std_sort$std_sort$merge_sort_range__Any (ref,ref,usize,usize,ref) -> void
   local n usize
   local i usize
   local $idx_18 ref
@@ -390,7 +401,7 @@ fn 6 std_sort$std_sort$merge_sort_range__Any (ref,ref,usize,usize,ref) -> void
     local.get 2
     local.get 3
     local.get 4
-    call 7
+    call 8
     return
   end $L1
   local.get 5
@@ -407,13 +418,13 @@ fn 6 std_sort$std_sort$merge_sort_range__Any (ref,ref,usize,usize,ref) -> void
   local.get 2
   local.get 5
   local.get 4
-  call 6
+  call 7
   local.get 0
   local.get 1
   local.get 5
   local.get 3
   local.get 4
-  call 6
+  call 7
   local.get 2
   local.set 6
   block $L2 void
@@ -544,7 +555,7 @@ fn 6 std_sort$std_sort$merge_sort_range__Any (ref,ref,usize,usize,ref) -> void
   return
 end
 
-fn 7 std_sort$std_sort$insertion_sort_range__Any (ref,usize,usize,ref) -> void
+fn 8 std_sort$std_sort$insertion_sort_range__Any (ref,usize,usize,ref) -> void
   local i usize
   local x ref
   local j usize
@@ -636,7 +647,7 @@ fn 7 std_sort$std_sort$insertion_sort_range__Any (ref,usize,usize,ref) -> void
   return
 end
 
-fn 8 std_string$compare_ascending (string,string) -> bool
+fn 9 std_string$compare_ascending (string,string) -> bool
   local la usize
   local lb usize
   local n usize
@@ -651,7 +662,7 @@ fn 8 std_string$compare_ascending (string,string) -> bool
   local.set 3
   local.get 2
   local.get 3
-  call 10
+  call 11
   local.set 4
   i64.const 0
   local.set 5
@@ -663,11 +674,11 @@ fn 8 std_string$compare_ascending (string,string) -> bool
       if $L2 void
         local.get 0
         local.get 5
-        call 11
+        call 12
         local.set 6
         local.get 1
         local.get 5
-        call 11
+        call 12
         local.set 7
         local.get 6
         local.get 7
@@ -697,7 +708,7 @@ fn 8 std_string$compare_ascending (string,string) -> bool
   return
 end
 
-fn 9 std_iter$std_iter$clone__Any (ref) -> ref
+fn 10 std_iter$std_iter$clone__Any (ref) -> ref
   local n usize
   local out ref
   local i usize
@@ -736,7 +747,7 @@ fn 9 std_iter$std_iter$clone__Any (ref) -> ref
   return
 end
 
-fn 10 std_math$min_2 (usize,usize) -> usize
+fn 11 std_math$min_2 (usize,usize) -> usize
   local if_res usize
   local.get 0
   local.get 1
@@ -752,15 +763,16 @@ fn 10 std_math$min_2 (usize,usize) -> usize
   return
 end
 
-fn 11 std_core$string$Index$at$vt (string,usize) -> char
+fn 12 std_core$string$Index$at$vt (string,usize) -> char
   local.get 0
   local.get 1
   call.import 0
   return
 end
 
-fn 12 std_io$println$vt (string) -> void
+fn 13 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 1
   return
 end

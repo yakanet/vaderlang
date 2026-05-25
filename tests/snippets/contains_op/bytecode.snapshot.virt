@@ -24,7 +24,8 @@ string 2 "range incl yes"
 string 3 "set has 4"
 string 4 "set lacks 5"
 string 5 "set has 7"
-import 0 println std_io$println (string) -> void
+string 6 "\n"
+import 0 write std_io$write (i32,string) -> void
 impl 1 Contains
 impl 14 Contains
 impl 14 Iterator
@@ -776,8 +777,19 @@ fn 35 std_core$Range$Contains$contains__i32 (ref,ref) -> bool
   return
 end
 
-fn 36 std_io$println$vt (string) -> void
+fn 36 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 37
+  i32.const 0
+  string.const 6
+  call 37
+  return
+end
+
+fn 37 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

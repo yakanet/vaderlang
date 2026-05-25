@@ -18,7 +18,8 @@ type 15 primitive void
 string 0 "a="
 string 1 " b="
 string 2 " c="
-import 0 println std_io$println (string) -> void
+string 3 "\n"
+import 0 write std_io$write (i32,string) -> void
 impl 6 Iterator
 impl 9 Iterator
 vtable Iterator.next 6 4
@@ -235,8 +236,19 @@ fn 5 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   return
 end
 
-fn 6 std_io$println$vt (string) -> void
+fn 6 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 7
+  i32.const 0
+  string.const 3
+  call 7
+  return
+end
+
+fn 7 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

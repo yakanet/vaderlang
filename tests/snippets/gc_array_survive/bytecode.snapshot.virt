@@ -8,7 +8,8 @@ string 0 "expected 1 collection, got "
 string 1 "sum mismatch: got "
 string 2 ", expected "
 string 3 "ok: 200 array elements survived GC; sum="
-import 0 println std_io$println (string) -> void
+string 4 "\n"
+import 0 write std_io$write (i32,string) -> void
 import 1 collect std_runtime$collect () -> void
 import 2 collections std_runtime$collections () -> i32
 
@@ -40,10 +41,10 @@ fn 0 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  call 3
+  call 4
   local.set 1
-  call 2
   call 3
+  call 4
   local.get 1
   i32.sub
   local.set 1
@@ -135,18 +136,29 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 std_io$println$vt (string) -> void
+fn 1 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 2
+  i32.const 0
+  string.const 4
+  call 2
+  return
+end
+
+fn 2 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end
 
-fn 2 std_runtime$collect$vt () -> void
+fn 3 std_runtime$collect$vt () -> void
   call.import 1
   return
 end
 
-fn 3 std_runtime$collections$vt () -> i32
+fn 4 std_runtime$collections$vt () -> i32
   call.import 2
   return
 end

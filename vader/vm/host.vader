@@ -10,7 +10,7 @@
 
 module "vader/vm"
 
-import "std/io" { read_file, write_file, exists, eprintln, println, print }
+import "std/io" { read_file, write_file, exists, print, eprint }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/numbers" { parse_int_in_base }
 import "std/math" { sqrt, pow, floor, ceil, round }
@@ -118,22 +118,21 @@ stringbuilder_to_string :: fn(sv: StructVal, at_pc: i32) -> HostCallResult {
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
 ///                  import, malformed arg, or host-level failure.
 export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32) -> HostCallResult {
-    if info.mangled == r"std_io$println" {
-        arg :: read_string(stack[arg_base], at_pc, "println")
-        if arg is Trap { return arg }
-        println(arg.value)
-        return HostOk { .value = zero_value() }
-    }
-    if info.mangled == r"std_io$print" {
-        arg :: read_string(stack[arg_base], at_pc, "print")
-        if arg is Trap { return arg }
-        print(arg.value)
-        return HostOk { .value = zero_value() }
-    }
-    if info.mangled == r"std_io$eprintln" {
-        arg :: read_string(stack[arg_base], at_pc, "eprintln")
-        if arg is Trap { return arg }
-        eprintln(arg.value)
+    if info.mangled == r"std_io$write" {
+        // arg_base + 0 : Stream tag ; arg_base + 1 : the string payload.
+        STDOUT :: i32(0)
+        STDERR :: i32(1)
+        tag :: read_i32(stack[arg_base], at_pc, "write stream")
+        if tag is Trap { return tag }
+        msg :: read_string(stack[arg_base + 1], at_pc, "write msg")
+        if msg is Trap { return msg }
+        if tag.value == STDOUT {
+            print(msg.value)
+        } else if tag.value == STDERR {
+            eprint(msg.value)
+        } else {
+            return Trap { .message = "write at pc=${at_pc}: invalid Stream tag ${tag.value}" }
+        }
         return HostOk { .value = zero_value() }
     }
     // ---- std/string family ----------------------------------------------

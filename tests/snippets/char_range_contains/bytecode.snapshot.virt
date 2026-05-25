@@ -33,7 +33,8 @@ string 8 "Z is alpha"
 string 9 "5 is not alpha"
 string 10 "a..=e count = "
 string 11 "0..<5 count = "
-import 0 println std_io$println (string) -> void
+string 12 "\n"
+import 0 write std_io$write (i32,string) -> void
 impl 13 Contains
 impl 13 Iterator
 impl 19 Contains
@@ -1277,8 +1278,19 @@ fn 71 std_core$Range$Iterator$next__char (ref) -> ref
   return
 end
 
-fn 72 std_io$println$vt (string) -> void
+fn 72 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 73
+  i32.const 0
+  string.const 12
+  call 73
+  return
+end
+
+fn 73 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

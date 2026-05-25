@@ -48,20 +48,21 @@ string 33 "bad-length"
 string 34 "abc"
 string 35 "bad-char"
 string 36 "ab!d"
-string 37 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-string 38 "base64: input length must be a multiple of 4"
-string 39 "base64: invalid character at offset "
-string 40 "base64: invalid character in final quad"
-string 41 "base64: invalid character before padding"
+string 37 "\n"
+string 38 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+string 39 "base64: input length must be a multiple of 4"
+string 40 "base64: invalid character at offset "
+string 41 "base64: invalid character in final quad"
+string 42 "base64: invalid character before padding"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 at std_core$string$Index$at (string,usize) -> char
-import 2 println std_io$println (string) -> void
+import 2 write std_io$write (i32,string) -> void
 import 3 byte_len std_string$byte_len (string) -> usize
 import 4 byte_at std_string$byte_at (string,usize) -> u8
 import 5 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 10 Error
 impl 11 Display
-vtable Error.message 10 3
+vtable Error.message 10 4
 
 fn 0 snippet$show_decode (string,string) -> void
   local out ref
@@ -69,7 +70,7 @@ fn 0 snippet$show_decode (string,string) -> void
   local __sb_2 any
   local $cast_9 string
   local.get 1
-  call 5
+  call 6
   local.tee 2
   local.tee 3
   type_check 1
@@ -89,7 +90,7 @@ fn 0 snippet$show_decode (string,string) -> void
     intrinsic builder.append_display
     local.get 4
     intrinsic builder.finish
-    call 10
+    call 2
     return
   end $L0
   local.get 3
@@ -110,7 +111,7 @@ fn 0 snippet$show_decode (string,string) -> void
     intrinsic builder.append_display
     local.get 4
     intrinsic builder.finish
-    call 10
+    call 2
     return
   end $L1
   unreachable
@@ -133,84 +134,84 @@ fn 1 snippet$main () -> i32
   string.const 2
   intrinsic builder.append_str
   string.const 3
-  call 2
+  call 3
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call 10
+  call 2
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 4
   intrinsic builder.append_str
   string.const 5
-  call 2
+  call 3
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call 10
+  call 2
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 6
   intrinsic builder.append_str
   string.const 7
-  call 2
+  call 3
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call 10
+  call 2
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 8
   intrinsic builder.append_str
   string.const 9
-  call 2
+  call 3
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call 10
+  call 2
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 10
   intrinsic builder.append_str
   string.const 11
-  call 2
+  call 3
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call 10
+  call 2
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 12
   intrinsic builder.append_str
   string.const 13
-  call 2
+  call 3
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call 10
+  call 2
   string.const 14
   string.const 15
   call 0
@@ -251,8 +252,8 @@ fn 1 snippet$main () -> i32
         array.get 9
         ref.cast 1
         local.tee 1
-        call 2
-        call 5
+        call 3
+        call 6
         local.tee 5
         local.tee 6
         type_check 1
@@ -278,7 +279,7 @@ fn 1 snippet$main () -> i32
           intrinsic builder.append_display
           local.get 0
           intrinsic builder.finish
-          call 10
+          call 2
           i64.const 1
           local.set 9
           local.get 4
@@ -303,7 +304,7 @@ fn 1 snippet$main () -> i32
           intrinsic builder.append_str
           local.get 8
           intrinsic builder.finish
-          call 10
+          call 2
           i64.const 1
           local.set 9
           local.get 4
@@ -326,7 +327,17 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 std_base64$encode (string) -> string
+fn 2 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 11
+  i32.const 0
+  string.const 37
+  call 11
+  return
+end
+
+fn 3 std_base64$encode (string) -> string
   local n usize
   local sb ref
   local i usize
@@ -352,7 +363,7 @@ fn 2 std_base64$encode (string) -> string
   local.get 0
   call.import 3
   local.set 1
-  call 6
+  call 7
   local.set 2
   i64.const 0
   local.set 3
@@ -417,13 +428,13 @@ fn 2 std_base64$encode (string) -> string
         u32.bitand
         u32.to_usize
         local.set 13
-        string.const 37
+        string.const 38
         local.get 13
-        call 9
+        call 10
         local.set 14
         local.get 2
         local.get 14
-        call 7
+        call 8
         local.get 11
         i32.const 12
         i32.to_u32
@@ -435,13 +446,13 @@ fn 2 std_base64$encode (string) -> string
         u32.bitand
         u32.to_usize
         local.set 16
-        string.const 37
+        string.const 38
         local.get 16
-        call 9
+        call 10
         local.set 17
         local.get 2
         local.get 17
-        call 7
+        call 8
         local.get 11
         i32.const 6
         i32.to_u32
@@ -453,26 +464,26 @@ fn 2 std_base64$encode (string) -> string
         u32.bitand
         u32.to_usize
         local.set 19
-        string.const 37
+        string.const 38
         local.get 19
-        call 9
+        call 10
         local.set 20
         local.get 2
         local.get 20
-        call 7
+        call 8
         local.get 11
         i32.const 63
         i32.to_u32
         u32.bitand
         u32.to_usize
         local.set 21
-        string.const 37
+        string.const 38
         local.get 21
-        call 9
+        call 10
         local.set 22
         local.get 2
         local.get 22
-        call 7
+        call 8
         local.get 3
         i64.const 3
         i64.to_usize
@@ -513,13 +524,13 @@ fn 2 std_base64$encode (string) -> string
     u32.bitand
     u32.to_usize
     local.set 5
-    string.const 37
+    string.const 38
     local.get 5
-    call 9
+    call 10
     local.set 14
     local.get 2
     local.get 14
-    call 7
+    call 8
     local.get 4
     i32.const 12
     i32.to_u32
@@ -531,19 +542,19 @@ fn 2 std_base64$encode (string) -> string
     u32.bitand
     u32.to_usize
     local.set 5
-    string.const 37
+    string.const 38
     local.get 5
-    call 9
+    call 10
     local.set 14
     local.get 2
     local.get 14
-    call 7
+    call 8
     local.get 2
     char.const 61
-    call 7
+    call 8
     local.get 2
     char.const 61
-    call 7
+    call 8
   else
     local.get 1
     i64.const 2
@@ -590,13 +601,13 @@ fn 2 std_base64$encode (string) -> string
       u32.bitand
       u32.to_usize
       local.set 1
-      string.const 37
+      string.const 38
       local.get 1
-      call 9
+      call 10
       local.set 14
       local.get 2
       local.get 14
-      call 7
+      call 8
       local.get 4
       i32.const 12
       i32.to_u32
@@ -608,13 +619,13 @@ fn 2 std_base64$encode (string) -> string
       u32.bitand
       u32.to_usize
       local.set 1
-      string.const 37
+      string.const 38
       local.get 1
-      call 9
+      call 10
       local.set 14
       local.get 2
       local.get 14
-      call 7
+      call 8
       local.get 4
       i32.const 6
       i32.to_u32
@@ -626,31 +637,31 @@ fn 2 std_base64$encode (string) -> string
       u32.bitand
       u32.to_usize
       local.set 1
-      string.const 37
+      string.const 38
       local.get 1
-      call 9
+      call 10
       local.set 14
       local.get 2
       local.get 14
-      call 7
+      call 8
       local.get 2
       char.const 61
-      call 7
+      call 8
     else
     end $L4
   end $L3
   local.get 2
-  call 11
+  call 12
   return
 end
 
-fn 3 std_base64$Base64Error$Error$message (ref) -> string
+fn 4 std_base64$Base64Error$Error$message (ref) -> string
   local.field 0 10 0
   ref.cast 1
   return
 end
 
-fn 4 std_base64$decode_byte (u8) -> i32
+fn 5 std_base64$decode_byte (u8) -> i32
   local and_res bool
   local $cast_18 i32
   local.get 0
@@ -749,7 +760,7 @@ fn 4 std_base64$decode_byte (u8) -> i32
   return
 end
 
-fn 5 std_base64$decode (string) -> ref
+fn 6 std_base64$decode (string) -> ref
   local n usize
   local $mod_9 usize
   local $sub_19 usize
@@ -802,7 +813,7 @@ fn 5 std_base64$decode (string) -> ref
   i64.to_usize
   usize.ne
   if $L1 void
-    string.const 38
+    string.const 39
     struct.new 10
     return
   end $L1
@@ -844,7 +855,7 @@ fn 5 std_base64$decode (string) -> ref
     local.set 2
   else
   end $L3
-  call 6
+  call 7
   local.set 5
   i64.const 0
   local.set 3
@@ -862,7 +873,7 @@ fn 5 std_base64$decode (string) -> ref
         local.get 0
         local.get 3
         call.import 4
-        call 4
+        call 5
         local.set 6
         local.get 3
         i64.const 1
@@ -872,7 +883,7 @@ fn 5 std_base64$decode (string) -> ref
         local.get 0
         local.get 7
         call.import 4
-        call 4
+        call 5
         local.set 8
         local.get 3
         i64.const 2
@@ -882,7 +893,7 @@ fn 5 std_base64$decode (string) -> ref
         local.get 0
         local.get 9
         call.import 4
-        call 4
+        call 5
         local.set 10
         local.get 3
         i64.const 3
@@ -892,7 +903,7 @@ fn 5 std_base64$decode (string) -> ref
         local.get 0
         local.get 11
         call.import 4
-        call 4
+        call 5
         local.set 12
         local.get 6
         i32.const 0
@@ -931,10 +942,10 @@ fn 5 std_base64$decode (string) -> ref
           intrinsic builder.new
           local.set 16
           local.get 16
-          string.const 39
+          string.const 40
           intrinsic builder.append_str
           local.get 3
-          call 8
+          call 9
           local.set 17
           local.get 16
           local.get 17
@@ -996,7 +1007,7 @@ fn 5 std_base64$decode (string) -> ref
         local.set 29
         local.get 5
         local.get 29
-        call 7
+        call 8
         local.get 27
         i32.const 8
         i32.to_u32
@@ -1010,7 +1021,7 @@ fn 5 std_base64$decode (string) -> ref
         local.set 31
         local.get 5
         local.get 31
-        call 7
+        call 8
         local.get 27
         i32.const 255
         i32.to_u32
@@ -1019,7 +1030,7 @@ fn 5 std_base64$decode (string) -> ref
         local.set 32
         local.get 5
         local.get 32
-        call 7
+        call 8
         local.get 3
         i64.const 4
         i64.to_usize
@@ -1033,7 +1044,7 @@ fn 5 std_base64$decode (string) -> ref
   local.get 0
   local.get 3
   call.import 4
-  call 4
+  call 5
   local.set 6
   local.get 3
   i64.const 1
@@ -1043,7 +1054,7 @@ fn 5 std_base64$decode (string) -> ref
   local.get 0
   local.get 1
   call.import 4
-  call 4
+  call 5
   local.set 8
   local.get 6
   i32.const 0
@@ -1059,7 +1070,7 @@ fn 5 std_base64$decode (string) -> ref
   end $L11
   local.get 13
   if $L12 void
-    string.const 40
+    string.const 41
     struct.new 10
     return
   end $L12
@@ -1096,7 +1107,7 @@ fn 5 std_base64$decode (string) -> ref
   local.set 29
   local.get 5
   local.get 29
-  call 7
+  call 8
   local.get 2
   i64.const 0
   i64.to_usize
@@ -1110,7 +1121,7 @@ fn 5 std_base64$decode (string) -> ref
     local.get 0
     local.get 1
     call.import 4
-    call 4
+    call 5
     local.set 6
     local.get 3
     i64.const 3
@@ -1120,7 +1131,7 @@ fn 5 std_base64$decode (string) -> ref
     local.get 0
     local.get 1
     call.import 4
-    call 4
+    call 5
     local.set 8
     local.get 6
     i32.const 0
@@ -1136,7 +1147,7 @@ fn 5 std_base64$decode (string) -> ref
     end $L14
     local.get 13
     if $L15 void
-      string.const 40
+      string.const 41
       struct.new 10
       return
     end $L15
@@ -1172,7 +1183,7 @@ fn 5 std_base64$decode (string) -> ref
     local.set 29
     local.get 5
     local.get 29
-    call 7
+    call 8
     local.get 19
     i32.const 255
     i32.to_u32
@@ -1181,9 +1192,9 @@ fn 5 std_base64$decode (string) -> ref
     local.set 29
     local.get 5
     local.get 29
-    call 7
+    call 8
     local.get 5
-    call 11
+    call 12
     return
   end $L13
   local.get 2
@@ -1199,13 +1210,13 @@ fn 5 std_base64$decode (string) -> ref
     local.get 0
     local.get 1
     call.import 4
-    call 4
+    call 5
     local.set 6
     local.get 6
     i32.const 0
     i32.lt
     if $L17 void
-      string.const 41
+      string.const 42
       struct.new 10
       return
     end $L17
@@ -1234,23 +1245,23 @@ fn 5 std_base64$decode (string) -> ref
     local.set 29
     local.get 5
     local.get 29
-    call 7
+    call 8
     local.get 5
-    call 11
+    call 12
     return
   end $L16
   local.get 5
-  call 11
+  call 12
   return
 end
 
-fn 6 std_string_builder$new_builder () -> ref
+fn 7 std_string_builder$new_builder () -> ref
   array.new 9 0
   struct.new 11
   return
 end
 
-fn 7 std_string_builder$append_char (ref,char) -> void
+fn 8 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local __sb_0 any
   local $intrinsic_5 string
@@ -1269,26 +1280,27 @@ fn 7 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 8 std_core$usize$Display$to_string$vt (usize) -> string
+fn 9 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 9 std_core$string$Index$at$vt (string,usize) -> char
+fn 10 std_core$string$Index$at$vt (string,usize) -> char
   local.get 0
   local.get 1
   call.import 1
   return
 end
 
-fn 10 std_io$println$vt (string) -> void
+fn 11 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 2
   return
 end
 
-fn 11 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
+fn 12 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
   local.get 0
   call.import 5
   return

@@ -8,15 +8,15 @@
   expr 25:23    IdentExpr      :: ?
 
 ## vader/parser
-  FnDecl         advance              :: fn(?) -> ?
+  FnDecl         advance              :: fn(Parser) -> Token
   FnDecl         append_bitor_variants :: fn(?, ?[]) -> void
   StructDecl     ArrayTypeExpr        :: ArrayTypeExpr
   StructDecl     AssertDecl           :: AssertDecl
   FnDecl         assign_block_ids     :: fn(BlockExpr, NodeIdFactory) -> void
   FnDecl         assign_program_ids   :: fn(Program, NodeIdFactory) -> void
   StructDecl     AssignStmt           :: AssignStmt
-  FnDecl         at_top_level_start   :: fn(?) -> bool
-  FnDecl         binary_op_name       :: fn(?) -> ?
+  FnDecl         at_top_level_start   :: fn(Parser) -> bool
+  FnDecl         binary_op_name       :: fn(BinaryOp) -> ?
   StructDecl     BinaryExpr           :: BinaryExpr
   EnumDecl       BinaryOp             :: BinaryOp
   StructDecl     BindingPattern       :: BindingPattern
@@ -27,14 +27,14 @@
   StructDecl     CallExpr             :: CallExpr
   StructDecl     CastExpr             :: CastExpr
   StructDecl     CharLitExpr          :: CharLitExpr
-  FnDecl         check                :: fn(?, ?) -> bool
-  FnDecl         check_at             :: fn(?, ?, i32) -> bool
-  FnDecl         close_arr            :: fn(?, i32) -> void
-  FnDecl         close_arr_empty      :: fn(?) -> void
-  FnDecl         close_obj            :: fn(?, i32) -> void
+  FnDecl         check                :: fn(Parser, TokenKind) -> bool
+  FnDecl         check_at             :: fn(Parser, TokenKind, i32) -> bool
+  FnDecl         close_arr            :: fn(StringBuilder, i32) -> void
+  FnDecl         close_arr_empty      :: fn(StringBuilder) -> void
+  FnDecl         close_obj            :: fn(StringBuilder, i32) -> void
   FnDecl         collect_bitor_variants :: fn(?) -> ?[]
-  FnDecl         collect_type_params  :: fn(? | null, ?[]) -> void
-  FnDecl         compound_op          :: fn(?) -> ?
+  FnDecl         collect_type_params  :: fn(? | null, TypeParam[]) -> void
+  FnDecl         compound_op          :: fn(TokenKind) -> ?
   StructDecl     CompoundOpResult     :: CompoundOpResult
   StructDecl     ConstDecl            :: ConstDecl
   StructDecl     ContinueStmt         :: ContinueStmt
@@ -44,18 +44,18 @@
   ConstDecl      DeferBody            :: ?
   StructDecl     DeferStmt            :: DeferStmt
   StructDecl     DeferStmtBody        :: DeferStmtBody
-  FnDecl         describe_token       :: fn(?) -> string
+  FnDecl         describe_token       :: fn(Token) -> string
   StructDecl     DestructureImport    :: DestructureImport
   StructDecl     DotVariantExpr       :: DotVariantExpr
-  FnDecl         dump_program         :: fn(?) -> string
+  FnDecl         dump_program         :: fn(Program) -> string
   FnDecl         empty_token          :: fn() -> ?
-  FnDecl         entry                :: fn(?, bool, i32, string) -> void
+  FnDecl         entry                :: fn(StringBuilder, bool, i32, string) -> void
   StructDecl     EnumDecl             :: EnumDecl
   StructDecl     EnumVariant          :: EnumVariant
   StructDecl     EnumVariantPattern   :: EnumVariantPattern
-  FnDecl         error                :: fn(?, ?, ?, string) -> void
-  FnDecl         expect               :: fn(?, ?, string) -> ?
-  FnDecl         expect_string_literal :: fn(?, string) -> ?
+  FnDecl         error                :: fn(Parser, ParserCode, Span, string) -> void
+  FnDecl         expect               :: fn(Parser, TokenKind, string) -> Token
+  FnDecl         expect_string_literal :: fn(Parser, string) -> StringLitInfo
   ConstDecl      Expr                 :: ?
   StructDecl     ExprStmt             :: ExprStmt
   StructDecl     FieldExpr            :: FieldExpr
@@ -69,7 +69,7 @@
   StructDecl     ForStmt              :: ForStmt
   StructDecl     GenericInstExpr      :: GenericInstExpr
   FnDecl         header_budget        :: fn(usize) -> usize
-  FnDecl         ident_expr           :: fn(?, string) -> ?
+  FnDecl         ident_expr           :: fn(Span, string) -> IdentExpr
   StructDecl     IdentExpr            :: IdentExpr
   ConstDecl      IfElse               :: ?
   StructDecl     IfElseBlock          :: IfElseBlock
@@ -79,121 +79,121 @@
   ConstDecl      ImportBinding        :: ?
   StructDecl     ImportDecl           :: ImportDecl
   StructDecl     ImportName           :: ImportName
-  FnDecl         indent               :: fn(?, i32) -> void
+  FnDecl         indent               :: fn(StringBuilder, i32) -> void
   StructDecl     IndexExpr            :: IndexExpr
   StructDecl     InfiniteFor          :: InfiniteFor
-  FnDecl         infix_for            :: fn(?) -> ?
+  FnDecl         infix_for            :: fn(TokenKind) -> ?
   StructDecl     InfixOpDescr         :: InfixOpDescr
   StructDecl     InFor                :: InFor
   StructDecl     IntLitExpr           :: IntLitExpr
-  FnDecl         intrinsic_spec       :: fn(string) -> ? | null
+  FnDecl         intrinsic_spec       :: fn(string) -> IntrinsicSpec | null
   EnumDecl       IntrinsicArgKind     :: IntrinsicArgKind
   StructDecl     IntrinsicCallExpr    :: IntrinsicCallExpr
   ConstDecl      INTRINSICS           :: ?
   StructDecl     IntrinsicSpec        :: IntrinsicSpec
-  FnDecl         is_impl_decl         :: fn(?) -> bool
-  FnDecl         is_literal_start     :: fn(?) -> bool
+  FnDecl         is_impl_decl         :: fn(Parser) -> bool
+  FnDecl         is_literal_start     :: fn(Token) -> bool
   FnDecl         is_module_segment_continue :: fn(char) -> ?
   FnDecl         is_module_segment_start :: fn(char) -> ?
   FnDecl         is_valid_module_name :: fn(string) -> bool
   StructDecl     IsPattern            :: IsPattern
-  FnDecl         kind_entry           :: fn(?, i32, string) -> void
+  FnDecl         kind_entry           :: fn(StringBuilder, i32, string) -> void
   StructDecl     LambdaExpr           :: LambdaExpr
   ConstDecl      LetBinding           :: ?
   StructDecl     LetStmt              :: LetStmt
   StructDecl     LiteralPattern       :: LiteralPattern
-  FnDecl         looks_like_for_destructure :: fn(?) -> bool
-  FnDecl         looks_like_struct_lit_body :: fn(?[], i32) -> bool
-  FnDecl         match_kind           :: fn(?, ?) -> ? | null
-  FnDecl         match_or_peek        :: fn(?, ?) -> ?
+  FnDecl         looks_like_for_destructure :: fn(Parser) -> bool
+  FnDecl         looks_like_struct_lit_body :: fn(Token[], i32) -> bool
+  FnDecl         match_kind           :: fn(Parser, TokenKind) -> null | Token
+  FnDecl         match_or_peek        :: fn(Parser, TokenKind) -> Token
   StructDecl     MatchArm             :: MatchArm
   StructDecl     MatchExpr            :: MatchExpr
-  FnDecl         merge_type_params    :: fn(?[], ?[]) -> ?[]
+  FnDecl         merge_type_params    :: fn(TypeParam[], TypeParam[]) -> TypeParam[]
   FnDecl         mint                 :: fn(NodeIdFactory) -> usize
   StructDecl     ModuleDecl           :: ModuleDecl
   StructDecl     ModuleHeader         :: ModuleHeader
   StructDecl     NamedNamespaceImport :: NamedNamespaceImport
   FnDecl         new_node_id_factory  :: fn() -> NodeIdFactory
-  FnDecl         new_parser           :: fn(?[], string) -> ?
+  FnDecl         new_parser           :: fn(Token[], string) -> ?
   FnDecl         no_infix             :: fn() -> ?
   StructDecl     NodeIdFactory        :: NodeIdFactory
   StructDecl     NullLitExpr          :: NullLitExpr
   FnDecl         open_arr             :: fn(null) -> void
-  FnDecl         open_obj             :: fn(?) -> void
-  FnDecl         parse_block          :: fn(?) -> ?
-  FnDecl         parse_bracketed_type_params :: fn(?) -> ?[]
-  FnDecl         parse_break          :: fn(?) -> ?
-  FnDecl         parse_call_args      :: fn(?) -> ?[]
-  FnDecl         parse_const_decl     :: fn(?, ?[], ?, ?) -> ?
-  FnDecl         parse_continue       :: fn(?) -> ?
-  FnDecl         parse_decl           :: fn(?) -> ? | null
-  FnDecl         parse_decorators     :: fn(?) -> ?[]
-  FnDecl         parse_defer          :: fn(?) -> ?
-  FnDecl         parse_enum_decl      :: fn(?, ?[], ?, ?) -> ?
-  FnDecl         parse_expr           :: fn(?, i32) -> ?
-  FnDecl         parse_fn_body_tail   :: fn(?, ? | null) -> ?
-  FnDecl         parse_fn_decl        :: fn(?, ?[], ?, ?) -> ?
-  FnDecl         parse_fn_decl_inside_trait :: fn(?) -> ? | null
-  FnDecl         parse_fn_signature_params :: fn(?) -> ?
-  FnDecl         parse_fn_type        :: fn(?) -> ?
-  FnDecl         parse_for            :: fn(?, null | string, bool) -> ?
-  FnDecl         parse_ident_or_struct_lit :: fn(?) -> ?
-  FnDecl         parse_if_expr        :: fn(?) -> ?
-  FnDecl         parse_impl_decl      :: fn(?, ?[]) -> ?
-  FnDecl         parse_import_decl    :: fn(?, ?[]) -> ?
-  FnDecl         parse_import_name_list_rest :: fn(?) -> ?[]
-  FnDecl         parse_lambda         :: fn(?) -> ?
-  FnDecl         parse_lambda_without_fn :: fn(?) -> ?
-  FnDecl         parse_let            :: fn(?) -> ?
-  FnDecl         parse_let_binding    :: fn(?) -> ?
-  FnDecl         parse_lhs_generic_alias_decl :: fn(?, ?[], ?) -> ?
-  FnDecl         parse_match_arm      :: fn(?) -> ?
-  FnDecl         parse_match_expr     :: fn(?, bool) -> ?
-  FnDecl         parse_module_header  :: fn(string, string) -> ? | null
-  FnDecl         parse_named_decl     :: fn(?, ?[], ?) -> ?
-  FnDecl         parse_named_import_decl :: fn(?, ?[], ?) -> ?
-  FnDecl         parse_optional_module_decl :: fn(?) -> ? | null
-  FnDecl         parse_paren          :: fn(?) -> ?
-  FnDecl         parse_pattern        :: fn(?) -> ?
-  FnDecl         parse_postfix        :: fn(?, ?, ?) -> ?
-  FnDecl         parse_prefix         :: fn(?) -> ?
-  FnDecl         parse_program        :: fn(?) -> ?
-  FnDecl         parse_return         :: fn(?) -> ?
-  FnDecl         parse_sam_arrow_member :: fn(?) -> ?
-  FnDecl         parse_sam_block_member :: fn(?) -> ?
-  FnDecl         parse_seq_lit        :: fn(?) -> ?
-  FnDecl         parse_single_param_lambda_tail :: fn(?, ?) -> ?
-  FnDecl         parse_source         :: fn(string, string) -> ?
-  FnDecl         parse_stmt           :: fn(?) -> ? | null
-  FnDecl         parse_string_lit     :: fn(?) -> ?
-  FnDecl         parse_struct_decl    :: fn(?, ?[], ?, ?) -> ?
-  FnDecl         parse_struct_lit_fields :: fn(?) -> ?[]
-  FnDecl         parse_struct_pattern :: fn(?) -> ?
-  FnDecl         parse_struct_type_param_list :: fn(?) -> ?[]
-  FnDecl         parse_trait_decl     :: fn(?, ?[], ?, ?) -> ?
-  FnDecl         parse_tuple_let      :: fn(?) -> ?
-  FnDecl         parse_tuple_pattern  :: fn(?) -> ?
-  FnDecl         parse_type           :: fn(?) -> ?
-  FnDecl         parse_type_intersection :: fn(?) -> ?
-  FnDecl         parse_type_list_until :: fn(?, ?) -> ?[]
-  FnDecl         parse_type_postfix   :: fn(?) -> ?
-  FnDecl         parse_type_primary   :: fn(?) -> ?
-  FnDecl         parse_typed_const_decl :: fn(?, ?[], ?) -> ?
-  FnDecl         parse_typed_let      :: fn(?) -> ?
+  FnDecl         open_obj             :: fn(StringBuilder) -> void
+  FnDecl         parse_block          :: fn(Parser) -> BlockExpr
+  FnDecl         parse_bracketed_type_params :: fn(Parser) -> TypeParam[]
+  FnDecl         parse_break          :: fn(Parser) -> BreakStmt
+  FnDecl         parse_call_args      :: fn(Parser) -> CallArg[]
+  FnDecl         parse_const_decl     :: fn(Parser, Decorator[], Visibility, Token) -> ConstDecl
+  FnDecl         parse_continue       :: fn(Parser) -> ContinueStmt
+  FnDecl         parse_decl           :: fn(Parser) -> ? | null
+  FnDecl         parse_decorators     :: fn(Parser) -> Decorator[]
+  FnDecl         parse_defer          :: fn(Parser) -> DeferStmt
+  FnDecl         parse_enum_decl      :: fn(Parser, Decorator[], Visibility, Token) -> EnumDecl
+  FnDecl         parse_expr           :: fn(Parser, i32) -> ?
+  FnDecl         parse_fn_body_tail   :: fn(Parser, ? | null) -> FnBodyTail
+  FnDecl         parse_fn_decl        :: fn(Parser, Decorator[], Visibility, Token) -> FnDecl
+  FnDecl         parse_fn_decl_inside_trait :: fn(Parser) -> FnDecl | null
+  FnDecl         parse_fn_signature_params :: fn(Parser) -> FnSignature
+  FnDecl         parse_fn_type        :: fn(Parser) -> FnTypeExpr
+  FnDecl         parse_for            :: fn(Parser, null | string, bool) -> ForStmt
+  FnDecl         parse_ident_or_struct_lit :: fn(Parser) -> ?
+  FnDecl         parse_if_expr        :: fn(Parser) -> IfExpr
+  FnDecl         parse_impl_decl      :: fn(Parser, Decorator[]) -> ImplDecl
+  FnDecl         parse_import_decl    :: fn(Parser, Decorator[]) -> ImportDecl
+  FnDecl         parse_import_name_list_rest :: fn(Parser) -> ImportName[]
+  FnDecl         parse_lambda         :: fn(Parser) -> LambdaExpr
+  FnDecl         parse_lambda_without_fn :: fn(Parser) -> LambdaExpr
+  FnDecl         parse_let            :: fn(Parser) -> LetStmt
+  FnDecl         parse_let_binding    :: fn(Parser) -> ?
+  FnDecl         parse_lhs_generic_alias_decl :: fn(Parser, Decorator[], Visibility) -> TypeAliasDecl
+  FnDecl         parse_match_arm      :: fn(Parser) -> MatchArm
+  FnDecl         parse_match_expr     :: fn(Parser, bool) -> MatchExpr
+  FnDecl         parse_module_header  :: fn(string, string) -> ModuleHeader | null
+  FnDecl         parse_named_decl     :: fn(Parser, Decorator[], Visibility) -> ?
+  FnDecl         parse_named_import_decl :: fn(Parser, Decorator[], Token) -> ImportDecl
+  FnDecl         parse_optional_module_decl :: fn(Parser) -> ModuleDecl | null
+  FnDecl         parse_paren          :: fn(Parser) -> ?
+  FnDecl         parse_pattern        :: fn(Parser) -> ?
+  FnDecl         parse_postfix        :: fn(Parser, ?, Token) -> ?
+  FnDecl         parse_prefix         :: fn(Parser) -> ?
+  FnDecl         parse_program        :: fn(Parser) -> Program
+  FnDecl         parse_return         :: fn(Parser) -> ReturnStmt
+  FnDecl         parse_sam_arrow_member :: fn(Parser) -> FnDecl
+  FnDecl         parse_sam_block_member :: fn(Parser) -> FnDecl
+  FnDecl         parse_seq_lit        :: fn(Parser) -> SeqLitExpr
+  FnDecl         parse_single_param_lambda_tail :: fn(Parser, IdentExpr) -> LambdaExpr
+  FnDecl         parse_source         :: fn(string, string) -> ParsedSource
+  FnDecl         parse_stmt           :: fn(Parser) -> ? | null
+  FnDecl         parse_string_lit     :: fn(Parser) -> StringLitExpr
+  FnDecl         parse_struct_decl    :: fn(Parser, Decorator[], Visibility, Token) -> StructDecl
+  FnDecl         parse_struct_lit_fields :: fn(Parser) -> (StructLitField | StructLitSpread)[]
+  FnDecl         parse_struct_pattern :: fn(Parser) -> StructPattern
+  FnDecl         parse_struct_type_param_list :: fn(Parser) -> TypeParam[]
+  FnDecl         parse_trait_decl     :: fn(Parser, Decorator[], Visibility, Token) -> TraitDecl
+  FnDecl         parse_tuple_let      :: fn(Parser) -> LetStmt
+  FnDecl         parse_tuple_pattern  :: fn(Parser) -> TuplePattern
+  FnDecl         parse_type           :: fn(Parser) -> ?
+  FnDecl         parse_type_intersection :: fn(Parser) -> ?
+  FnDecl         parse_type_list_until :: fn(Parser, TokenKind) -> ?[]
+  FnDecl         parse_type_postfix   :: fn(Parser) -> ?
+  FnDecl         parse_type_primary   :: fn(Parser) -> ?
+  FnDecl         parse_typed_const_decl :: fn(Parser, Decorator[], Visibility) -> ConstDecl
+  FnDecl         parse_typed_let      :: fn(Parser) -> LetStmt
   StructDecl     ParsedSource         :: ParsedSource
   StructDecl     Parser               :: Parser
   ConstDecl      Pattern              :: ?
   StructDecl     PatternBinding       :: PatternBinding
   ConstDecl      PatternFieldValue    :: ?
   StructDecl     PatternLiteral       :: PatternLiteral
-  FnDecl         peek                 :: fn(?) -> ?
-  FnDecl         peek_at              :: fn(?, i32) -> ?
-  FnDecl         peek_is_classic_impl_body :: fn(?) -> bool
-  FnDecl         peek_is_generic_struct_lit :: fn(?) -> bool
-  FnDecl         peek_is_lhs_generic_alias_head :: fn(?) -> bool
-  FnDecl         peek_lambda_without_fn :: fn(?) -> bool
-  FnDecl         peek_tuple_let_start :: fn(?) -> bool
-  FnDecl         postfix_bp           :: fn(?) -> ?
+  FnDecl         peek                 :: fn(Parser) -> Token
+  FnDecl         peek_at              :: fn(Parser, i32) -> Token
+  FnDecl         peek_is_classic_impl_body :: fn(Parser) -> bool
+  FnDecl         peek_is_generic_struct_lit :: fn(Parser) -> bool
+  FnDecl         peek_is_lhs_generic_alias_head :: fn(Parser) -> bool
+  FnDecl         peek_lambda_without_fn :: fn(Parser) -> bool
+  FnDecl         peek_tuple_let_start :: fn(Parser) -> bool
+  FnDecl         postfix_bp           :: fn(TokenKind) -> ?
   StructDecl     Program              :: Program
   StructDecl     RangeExpr            :: RangeExpr
   StructDecl     RestBinding          :: RestBinding
@@ -201,9 +201,9 @@
   StructDecl     SeqLitExpr           :: SeqLitExpr
   StructDecl     SimpleBinding        :: SimpleBinding
   FnDecl         skip_block_comment   :: fn(string, usize, usize) -> usize
-  FnDecl         skip_newlines        :: fn(?) -> void
+  FnDecl         skip_newlines        :: fn(Parser) -> void
   FnDecl         skip_to_eol          :: fn(string, usize, usize) -> usize
-  FnDecl         span_of              :: fn(?, ?, ?) -> ?
+  FnDecl         span_of              :: fn(Parser, Token, Token) -> Span
   ConstDecl      Stmt                 :: ?
   StructDecl     StringLitExpr        :: StringLitExpr
   StructDecl     StringLitInfo        :: StringLitInfo
@@ -218,7 +218,7 @@
   StructDecl     StructLitSpread      :: StructLitSpread
   StructDecl     StructPattern        :: StructPattern
   StructDecl     StructPatternField   :: StructPatternField
-  FnDecl         sync_to_top_level    :: fn(?) -> void
+  FnDecl         sync_to_top_level    :: fn(Parser) -> void
   FnDecl         test_assign_program_ids_stamps_decls_and_exprs :: fn() -> void
   FnDecl         test_mint_starts_at_one_and_increments :: fn() -> void
   StructDecl     TraitDecl            :: TraitDecl
@@ -228,7 +228,7 @@
   StructDecl     TypeAliasDecl        :: TypeAliasDecl
   ConstDecl      TypeExpr             :: ?
   StructDecl     TypeParam            :: TypeParam
-  FnDecl         unary_op_name        :: fn(?) -> ?
+  FnDecl         unary_op_name        :: fn(UnaryOp) -> ?
   StructDecl     UnaryExpr            :: UnaryExpr
   EnumDecl       UnaryOp              :: UnaryOp
   ConstDecl      UNASSIGNED_NODE_ID   :: ?
@@ -248,54 +248,54 @@
   StructDecl     WhileFor             :: WhileFor
   StructDecl     WildcardBinding      :: WildcardBinding
   StructDecl     WildcardPattern      :: WildcardPattern
-  FnDecl         wrap_as_block        :: fn(?) -> ?
-  FnDecl         write_assert_decl    :: fn(?, ?, i32) -> void
-  FnDecl         write_bigint         :: fn(?, u64) -> void
-  FnDecl         write_block_expr     :: fn(?, ?, i32) -> void
-  FnDecl         write_bool           :: fn(?, bool) -> void
-  FnDecl         write_call_args      :: fn(?, ?[], i32) -> void
-  FnDecl         write_const_decl     :: fn(?, ?, i32) -> void
-  FnDecl         write_decl           :: fn(?, ?, i32) -> void
-  FnDecl         write_decls          :: fn(?, ?[], i32) -> void
-  FnDecl         write_decorators     :: fn(?, ?[], i32) -> void
-  FnDecl         write_enum_decl      :: fn(?, ?, i32) -> void
-  FnDecl         write_expr           :: fn(?, ? | null, i32) -> void
-  FnDecl         write_exprs          :: fn(?, ?[], i32) -> void
-  FnDecl         write_f64            :: fn(?, f64) -> void
-  FnDecl         write_fn_decl        :: fn(?, ?, i32) -> void
-  FnDecl         write_fn_decls       :: fn(?, ?[], i32) -> void
-  FnDecl         write_fn_param       :: fn(?, ?, i32) -> void
-  FnDecl         write_fn_params      :: fn(?, ?[], i32) -> void
-  FnDecl         write_for_form       :: fn(?, ?, i32) -> void
-  FnDecl         write_impl_decl      :: fn(?, ?, i32) -> void
-  FnDecl         write_import_binding :: fn(?, ?, i32) -> void
-  FnDecl         write_import_decl    :: fn(?, ?, i32) -> void
-  FnDecl         write_import_names   :: fn(?, ?[], i32) -> void
-  FnDecl         write_let_binding    :: fn(?, ?, i32) -> void
-  FnDecl         write_let_bindings   :: fn(?, ?[], i32) -> void
-  FnDecl         write_match_arms     :: fn(?, ?[], i32) -> void
-  FnDecl         write_module_decl    :: fn(?, ?, i32) -> void
-  FnDecl         write_null           :: fn(?) -> void
-  FnDecl         write_optional_expr  :: fn(?, ? | null, i32) -> void
-  FnDecl         write_optional_type  :: fn(?, ? | null, i32) -> void
-  FnDecl         write_pattern        :: fn(?, ?, i32) -> void
-  FnDecl         write_patterns       :: fn(?, ?[], i32) -> void
-  FnDecl         write_program        :: fn(?, ?, i32) -> void
-  FnDecl         write_signed_bigint  :: fn(?, i64) -> void
-  FnDecl         write_stmt           :: fn(?, ?, i32) -> void
-  FnDecl         write_stmts          :: fn(?, ?[], i32) -> void
-  FnDecl         write_string         :: fn(?, string) -> void
-  FnDecl         write_string_parts   :: fn(?, ?[], i32) -> void
-  FnDecl         write_struct_decl    :: fn(?, ?, i32) -> void
-  FnDecl         write_struct_fields  :: fn(?, ?[], i32) -> void
-  FnDecl         write_struct_lit_items :: fn(?, ?[], i32) -> void
-  FnDecl         write_struct_pattern_fields :: fn(?, ?[], i32) -> void
-  FnDecl         write_trait_decl     :: fn(?, ?, i32) -> void
-  FnDecl         write_type           :: fn(?, ?, i32) -> void
-  FnDecl         write_type_alias_decl :: fn(?, ?, i32) -> void
-  FnDecl         write_type_params    :: fn(?, ?[], i32) -> void
-  FnDecl         write_types          :: fn(?, ?[], i32) -> void
-  FnDecl         write_visibility     :: fn(?, ?) -> void
+  FnDecl         wrap_as_block        :: fn(?) -> BlockExpr
+  FnDecl         write_assert_decl    :: fn(StringBuilder, AssertDecl, i32) -> void
+  FnDecl         write_bigint         :: fn(StringBuilder, u64) -> void
+  FnDecl         write_block_expr     :: fn(StringBuilder, BlockExpr, i32) -> void
+  FnDecl         write_bool           :: fn(StringBuilder, bool) -> void
+  FnDecl         write_call_args      :: fn(StringBuilder, CallArg[], i32) -> void
+  FnDecl         write_const_decl     :: fn(StringBuilder, ConstDecl, i32) -> void
+  FnDecl         write_decl           :: fn(StringBuilder, ?, i32) -> void
+  FnDecl         write_decls          :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_decorators     :: fn(StringBuilder, Decorator[], i32) -> void
+  FnDecl         write_enum_decl      :: fn(StringBuilder, EnumDecl, i32) -> void
+  FnDecl         write_expr           :: fn(StringBuilder, ? | null, i32) -> void
+  FnDecl         write_exprs          :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_f64            :: fn(StringBuilder, f64) -> void
+  FnDecl         write_fn_decl        :: fn(StringBuilder, FnDecl, i32) -> void
+  FnDecl         write_fn_decls       :: fn(StringBuilder, FnDecl[], i32) -> void
+  FnDecl         write_fn_param       :: fn(StringBuilder, FnParam, i32) -> void
+  FnDecl         write_fn_params      :: fn(StringBuilder, FnParam[], i32) -> void
+  FnDecl         write_for_form       :: fn(StringBuilder, ?, i32) -> void
+  FnDecl         write_impl_decl      :: fn(StringBuilder, ImplDecl, i32) -> void
+  FnDecl         write_import_binding :: fn(StringBuilder, ?, i32) -> void
+  FnDecl         write_import_decl    :: fn(StringBuilder, ImportDecl, i32) -> void
+  FnDecl         write_import_names   :: fn(StringBuilder, ImportName[], i32) -> void
+  FnDecl         write_let_binding    :: fn(StringBuilder, ?, i32) -> void
+  FnDecl         write_let_bindings   :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_match_arms     :: fn(StringBuilder, MatchArm[], i32) -> void
+  FnDecl         write_module_decl    :: fn(StringBuilder, ModuleDecl, i32) -> void
+  FnDecl         write_null           :: fn(StringBuilder) -> void
+  FnDecl         write_optional_expr  :: fn(StringBuilder, ? | null, i32) -> void
+  FnDecl         write_optional_type  :: fn(StringBuilder, ? | null, i32) -> void
+  FnDecl         write_pattern        :: fn(StringBuilder, ?, i32) -> void
+  FnDecl         write_patterns       :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_program        :: fn(StringBuilder, Program, i32) -> void
+  FnDecl         write_signed_bigint  :: fn(StringBuilder, i64) -> void
+  FnDecl         write_stmt           :: fn(StringBuilder, ?, i32) -> void
+  FnDecl         write_stmts          :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_string         :: fn(StringBuilder, string) -> void
+  FnDecl         write_string_parts   :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_struct_decl    :: fn(StringBuilder, StructDecl, i32) -> void
+  FnDecl         write_struct_fields  :: fn(StringBuilder, StructField[], i32) -> void
+  FnDecl         write_struct_lit_items :: fn(StringBuilder, (StructLitField | StructLitSpread)[], i32) -> void
+  FnDecl         write_struct_pattern_fields :: fn(StringBuilder, StructPatternField[], i32) -> void
+  FnDecl         write_trait_decl     :: fn(StringBuilder, TraitDecl, i32) -> void
+  FnDecl         write_type           :: fn(StringBuilder, ?, i32) -> void
+  FnDecl         write_type_alias_decl :: fn(StringBuilder, TypeAliasDecl, i32) -> void
+  FnDecl         write_type_params    :: fn(StringBuilder, TypeParam[], i32) -> void
+  FnDecl         write_types          :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_visibility     :: fn(StringBuilder, Visibility) -> void
   expr 100:13   CallExpr       :: void
   expr 100:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 100:23   FieldExpr      :: ?
@@ -307,39 +307,39 @@
   expr 101:38   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 101:48   IdentExpr      :: ?
   expr 101:52   IdentExpr      :: NodeIdFactory
-  expr 102:22   FieldExpr      :: ?[]
+  expr 102:22   FieldExpr      :: FnDecl[]
   expr 102:22   IdentExpr      :: ImplDecl
   expr 102:34   CallExpr       :: void
   expr 102:34   IdentExpr      :: fn(FnDecl, NodeIdFactory) -> void
-  expr 102:47   IdentExpr      :: ?
+  expr 102:47   IdentExpr      :: FnDecl
   expr 102:50   IdentExpr      :: NodeIdFactory
-  expr 103:24   FieldExpr      :: ?[]
+  expr 103:24   FieldExpr      :: Decorator[]
   expr 103:24   IdentExpr      :: ImplDecl
   expr 103:39   CallExpr       :: void
   expr 103:39   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 103:54   IdentExpr      :: ?
+  expr 103:54   IdentExpr      :: Decorator
   expr 103:59   IdentExpr      :: NodeIdFactory
   expr 106:13   FieldExpr      :: usize
   expr 106:13   IdentExpr      :: TypeAliasDecl
   expr 106:20   CallExpr       :: usize
   expr 106:20   FieldExpr      :: fn() -> usize
   expr 106:20   IdentExpr      :: NodeIdFactory
-  expr 107:23   FieldExpr      :: ?[]
+  expr 107:23   FieldExpr      :: TypeParam[]
   expr 107:23   IdentExpr      :: TypeAliasDecl
   expr 107:39   CallExpr       :: void
   expr 107:39   IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
-  expr 107:55   IdentExpr      :: ?
+  expr 107:55   IdentExpr      :: TypeParam
   expr 107:59   IdentExpr      :: NodeIdFactory
   expr 108:13   CallExpr       :: void
   expr 108:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 108:23   FieldExpr      :: ?
   expr 108:23   IdentExpr      :: TypeAliasDecl
   expr 108:34   IdentExpr      :: NodeIdFactory
-  expr 109:24   FieldExpr      :: ?[]
+  expr 109:24   FieldExpr      :: Decorator[]
   expr 109:24   IdentExpr      :: TypeAliasDecl
   expr 109:39   CallExpr       :: void
   expr 109:39   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 109:54   IdentExpr      :: ?
+  expr 109:54   IdentExpr      :: Decorator
   expr 109:59   IdentExpr      :: NodeIdFactory
   expr 112:13   FieldExpr      :: usize
   expr 112:13   IdentExpr      :: ConstDecl
@@ -359,11 +359,11 @@
   expr 117:23   FieldExpr      :: ?
   expr 117:23   IdentExpr      :: ConstDecl
   expr 117:32   IdentExpr      :: NodeIdFactory
-  expr 118:24   FieldExpr      :: ?[]
+  expr 118:24   FieldExpr      :: Decorator[]
   expr 118:24   IdentExpr      :: ConstDecl
   expr 118:39   CallExpr       :: void
   expr 118:39   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 118:54   IdentExpr      :: ?
+  expr 118:54   IdentExpr      :: Decorator
   expr 118:59   IdentExpr      :: NodeIdFactory
   expr 121:13   FieldExpr      :: usize
   expr 121:13   IdentExpr      :: AssertDecl
@@ -375,34 +375,34 @@
   expr 122:23   FieldExpr      :: ?
   expr 122:23   IdentExpr      :: AssertDecl
   expr 122:36   IdentExpr      :: NodeIdFactory
-  expr 123:24   FieldExpr      :: ?[]
+  expr 123:24   FieldExpr      :: Decorator[]
   expr 123:24   IdentExpr      :: AssertDecl
   expr 123:39   CallExpr       :: void
   expr 123:39   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 123:54   IdentExpr      :: ?
+  expr 123:54   IdentExpr      :: Decorator
   expr 123:59   IdentExpr      :: NodeIdFactory
   expr 129:12   CallExpr       :: usize
   expr 129:12   FieldExpr      :: fn() -> usize
   expr 129:12   IdentExpr      :: NodeIdFactory
   expr 129:5    FieldExpr      :: usize
   expr 129:5    IdentExpr      :: FnDecl
-  expr 130:16   FieldExpr      :: ?[]
+  expr 130:16   FieldExpr      :: Decorator[]
   expr 130:16   IdentExpr      :: FnDecl
   expr 130:31   CallExpr       :: void
   expr 130:31   IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 130:46   IdentExpr      :: ?
+  expr 130:46   IdentExpr      :: Decorator
   expr 130:51   IdentExpr      :: NodeIdFactory
-  expr 131:15   FieldExpr      :: ?[]
+  expr 131:15   FieldExpr      :: TypeParam[]
   expr 131:15   IdentExpr      :: FnDecl
   expr 131:31   CallExpr       :: void
   expr 131:31   IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
-  expr 131:47   IdentExpr      :: ?
+  expr 131:47   IdentExpr      :: TypeParam
   expr 131:51   IdentExpr      :: NodeIdFactory
-  expr 132:14   FieldExpr      :: ?[]
+  expr 132:14   FieldExpr      :: FnParam[]
   expr 132:14   IdentExpr      :: FnDecl
   expr 132:25   CallExpr       :: void
   expr 132:25   IdentExpr      :: fn(FnParam, NodeIdFactory) -> void
-  expr 132:39   IdentExpr      :: ?
+  expr 132:39   IdentExpr      :: FnParam
   expr 132:42   IdentExpr      :: NodeIdFactory
   expr 133:11   FieldExpr      :: ? | null
   expr 133:11   IdentExpr      :: FnDecl
@@ -412,12 +412,12 @@
   expr 135:26   FieldExpr      :: ?
   expr 135:26   IdentExpr      :: FnDecl
   expr 135:41   IdentExpr      :: NodeIdFactory
-  expr 137:11   FieldExpr      :: ? | null
+  expr 137:11   FieldExpr      :: BlockExpr | null
   expr 137:11   IdentExpr      :: FnDecl
   expr 137:5    MatchExpr      :: void
   expr 139:16   CallExpr       :: void
   expr 139:16   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 139:27   FieldExpr      :: ?
+  expr 139:27   FieldExpr      :: BlockExpr
   expr 139:27   IdentExpr      :: FnDecl
   expr 139:35   IdentExpr      :: NodeIdFactory
   expr 144:12   CallExpr       :: usize
@@ -468,19 +468,19 @@
   expr 169:11   IdentExpr      :: ?
   expr 169:5    MatchExpr      :: void
   expr 171:13   MatchExpr      :: void
-  expr 171:19   FieldExpr      :: ?[] | null
+  expr 171:19   FieldExpr      :: ImportName[] | null
   expr 171:19   IdentExpr      :: NamedNamespaceImport
-  expr 173:33   FieldExpr      :: ?[]
+  expr 173:33   FieldExpr      :: ImportName[]
   expr 173:33   IdentExpr      :: NamedNamespaceImport
-  expr 173:49   FieldExpr      :: ?
-  expr 173:49   IdentExpr      :: ?
+  expr 173:49   FieldExpr      :: usize
+  expr 173:49   IdentExpr      :: ImportName
   expr 173:56   CallExpr       :: usize
   expr 173:56   FieldExpr      :: fn() -> usize
   expr 173:56   IdentExpr      :: NodeIdFactory
-  expr 177:22   FieldExpr      :: ?[]
+  expr 177:22   FieldExpr      :: ImportName[]
   expr 177:22   IdentExpr      :: DestructureImport
-  expr 177:32   FieldExpr      :: ?
-  expr 177:32   IdentExpr      :: ?
+  expr 177:32   FieldExpr      :: usize
+  expr 177:32   IdentExpr      :: ImportName
   expr 177:39   CallExpr       :: usize
   expr 177:39   FieldExpr      :: fn() -> usize
   expr 177:39   IdentExpr      :: NodeIdFactory
@@ -550,17 +550,17 @@
   expr 206:23   FieldExpr      :: ?
   expr 206:23   IdentExpr      :: CallExpr
   expr 206:33   IdentExpr      :: NodeIdFactory
-  expr 207:22   FieldExpr      :: ?[]
+  expr 207:22   FieldExpr      :: CallArg[]
   expr 207:22   IdentExpr      :: CallExpr
-  expr 208:17   FieldExpr      :: ?
-  expr 208:17   IdentExpr      :: ?
+  expr 208:17   FieldExpr      :: usize
+  expr 208:17   IdentExpr      :: CallArg
   expr 208:24   CallExpr       :: usize
   expr 208:24   FieldExpr      :: fn() -> usize
   expr 208:24   IdentExpr      :: NodeIdFactory
   expr 209:17   CallExpr       :: void
   expr 209:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 209:27   FieldExpr      :: ?
-  expr 209:27   IdentExpr      :: ?
+  expr 209:27   IdentExpr      :: CallArg
   expr 209:36   IdentExpr      :: NodeIdFactory
   expr 213:13   FieldExpr      :: usize
   expr 213:13   IdentExpr      :: FieldExpr
@@ -624,7 +624,7 @@
   expr 232:31   IdentExpr      :: NodeIdFactory
   expr 233:13   CallExpr       :: void
   expr 233:13   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 233:24   FieldExpr      :: ?
+  expr 233:24   FieldExpr      :: BlockExpr
   expr 233:24   IdentExpr      :: IfExpr
   expr 233:38   IdentExpr      :: NodeIdFactory
   expr 234:13   MatchExpr      :: void
@@ -632,12 +632,12 @@
   expr 234:19   IdentExpr      :: IfExpr
   expr 236:43   CallExpr       :: void
   expr 236:43   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 236:53   FieldExpr      :: ?
+  expr 236:53   FieldExpr      :: IfExpr
   expr 236:53   IdentExpr      :: IfElseIf
   expr 236:64   IdentExpr      :: NodeIdFactory
   expr 237:43   CallExpr       :: void
   expr 237:43   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 237:54   FieldExpr      :: ?
+  expr 237:54   FieldExpr      :: BlockExpr
   expr 237:54   IdentExpr      :: IfElseBlock
   expr 237:64   IdentExpr      :: NodeIdFactory
   expr 241:13   FieldExpr      :: usize
@@ -650,25 +650,25 @@
   expr 242:23   FieldExpr      :: ?
   expr 242:23   IdentExpr      :: MatchExpr
   expr 242:36   IdentExpr      :: NodeIdFactory
-  expr 243:22   FieldExpr      :: ?[]
+  expr 243:22   FieldExpr      :: MatchArm[]
   expr 243:22   IdentExpr      :: MatchExpr
-  expr 244:17   FieldExpr      :: ?
-  expr 244:17   IdentExpr      :: ?
+  expr 244:17   FieldExpr      :: usize
+  expr 244:17   IdentExpr      :: MatchArm
   expr 244:24   CallExpr       :: usize
   expr 244:24   FieldExpr      :: fn() -> usize
   expr 244:24   IdentExpr      :: NodeIdFactory
   expr 245:17   CallExpr       :: void
   expr 245:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 245:30   FieldExpr      :: ?
-  expr 245:30   IdentExpr      :: ?
+  expr 245:30   IdentExpr      :: MatchArm
   expr 245:41   IdentExpr      :: NodeIdFactory
   expr 246:17   MatchExpr      :: void
-  expr 246:23   FieldExpr      :: ?
-  expr 246:23   IdentExpr      :: ?
+  expr 246:23   FieldExpr      :: ? | null
+  expr 246:23   IdentExpr      :: MatchArm
   expr 248:28   CallExpr       :: void
   expr 248:28   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 248:38   FieldExpr      :: ?
-  expr 248:38   IdentExpr      :: ?
+  expr 248:38   IdentExpr      :: MatchArm
   expr 248:47   IdentExpr      :: NodeIdFactory
   expr 24:12    StructLitExpr  :: NodeIdFactory
   expr 24:36    CallExpr       :: usize
@@ -676,7 +676,7 @@
   expr 250:17   CallExpr       :: void
   expr 250:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 250:27   FieldExpr      :: ?
-  expr 250:27   IdentExpr      :: ?
+  expr 250:27   IdentExpr      :: MatchArm
   expr 250:35   IdentExpr      :: NodeIdFactory
   expr 253:32   CallExpr       :: void
   expr 253:32   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
@@ -687,11 +687,11 @@
   expr 255:20   CallExpr       :: usize
   expr 255:20   FieldExpr      :: fn() -> usize
   expr 255:20   IdentExpr      :: NodeIdFactory
-  expr 256:22   FieldExpr      :: ?[]
+  expr 256:22   FieldExpr      :: FnParam[]
   expr 256:22   IdentExpr      :: LambdaExpr
   expr 256:33   CallExpr       :: void
   expr 256:33   IdentExpr      :: fn(FnParam, NodeIdFactory) -> void
-  expr 256:47   IdentExpr      :: ?
+  expr 256:47   IdentExpr      :: FnParam
   expr 256:50   IdentExpr      :: NodeIdFactory
   expr 257:13   MatchExpr      :: void
   expr 257:19   FieldExpr      :: ? | null
@@ -703,7 +703,7 @@
   expr 259:49   IdentExpr      :: NodeIdFactory
   expr 261:13   CallExpr       :: void
   expr 261:13   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 261:24   FieldExpr      :: ?
+  expr 261:24   FieldExpr      :: BlockExpr
   expr 261:24   IdentExpr      :: LambdaExpr
   expr 261:32   IdentExpr      :: NodeIdFactory
   expr 264:13   FieldExpr      :: usize
@@ -716,10 +716,10 @@
   expr 265:23   FieldExpr      :: ?
   expr 265:23   IdentExpr      :: StructLitExpr
   expr 265:36   IdentExpr      :: NodeIdFactory
-  expr 266:25   FieldExpr      :: ?[]
+  expr 266:25   FieldExpr      :: (StructLitField | StructLitSpread)[]
   expr 266:25   IdentExpr      :: StructLitExpr
   expr 267:17   MatchExpr      :: void
-  expr 267:23   IdentExpr      :: ?
+  expr 267:23   IdentExpr      :: StructLitField | StructLitSpread
   expr 269:25   FieldExpr      :: usize
   expr 269:25   IdentExpr      :: StructLitField
   expr 269:34   CallExpr       :: usize
@@ -983,7 +983,7 @@
   expr 370:65   IdentExpr      :: NodeIdFactory
   expr 371:46   CallExpr       :: void
   expr 371:46   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 371:57   FieldExpr      :: ?
+  expr 371:57   FieldExpr      :: BlockExpr
   expr 371:57   IdentExpr      :: DeferBlockBody
   expr 371:67   IdentExpr      :: NodeIdFactory
   expr 378:11   IdentExpr      :: ?
@@ -1056,19 +1056,19 @@
   expr 408:20   CallExpr       :: usize
   expr 408:20   FieldExpr      :: fn() -> usize
   expr 408:20   IdentExpr      :: NodeIdFactory
-  expr 409:24   FieldExpr      :: ?[]
+  expr 409:24   FieldExpr      :: StructPatternField[]
   expr 409:24   IdentExpr      :: StructPattern
-  expr 40:11    FieldExpr      :: ? | null
+  expr 40:11    FieldExpr      :: ModuleDecl | null
   expr 40:11    IdentExpr      :: Program
   expr 40:5     MatchExpr      :: void
-  expr 410:17   FieldExpr      :: ?
-  expr 410:17   IdentExpr      :: ?
+  expr 410:17   FieldExpr      :: usize
+  expr 410:17   IdentExpr      :: StructPatternField
   expr 410:26   CallExpr       :: usize
   expr 410:26   FieldExpr      :: fn() -> usize
   expr 410:26   IdentExpr      :: NodeIdFactory
   expr 411:17   MatchExpr      :: void
   expr 411:23   FieldExpr      :: ?
-  expr 411:23   IdentExpr      :: ?
+  expr 411:23   IdentExpr      :: StructPatternField
   expr 412:50   FieldExpr      :: usize
   expr 412:50   IdentExpr      :: PatternBinding
   expr 412:58   CallExpr       :: usize
@@ -1144,8 +1144,8 @@
   expr 440:25   IdentExpr      :: type
   expr 440:5    CallExpr       :: ?
   expr 440:5    IdentExpr      :: ?
-  expr 445:15   CallExpr       :: ?
-  expr 445:15   IdentExpr      :: fn(string, string) -> ?
+  expr 445:15   CallExpr       :: ParsedSource
+  expr 445:15   IdentExpr      :: fn(string, string) -> ParsedSource
   expr 445:28   StringLitExpr  :: string
   expr 44:14    FieldExpr      :: ?[]
   expr 44:14    IdentExpr      :: Program
@@ -1155,16 +1155,16 @@
   expr 44:37    IdentExpr      :: NodeIdFactory
   expr 450:6    StringLitExpr  :: string
   expr 453:12   BinaryExpr     :: bool
-  expr 453:12   FieldExpr      :: ?
-  expr 453:12   FieldExpr      :: ?
-  expr 453:12   IdentExpr      :: ?
+  expr 453:12   FieldExpr      :: Program
+  expr 453:12   FieldExpr      :: usize
+  expr 453:12   IdentExpr      :: ParsedSource
   expr 453:33   IdentExpr      :: ?
   expr 453:5    CallExpr       :: ?
   expr 453:5    IdentExpr      :: ?
   expr 453:53   StringLitExpr  :: string
-  expr 454:14   FieldExpr      :: ?
-  expr 454:14   FieldExpr      :: ?
-  expr 454:14   IdentExpr      :: ?
+  expr 454:14   FieldExpr      :: ?[]
+  expr 454:14   FieldExpr      :: Program
+  expr 454:14   IdentExpr      :: ParsedSource
   expr 455:15   IdentExpr      :: ?
   expr 455:9    MatchExpr      :: void
   expr 457:17   CallExpr       :: ?
@@ -1174,13 +1174,13 @@
   expr 457:24   IdentExpr      :: FnDecl
   expr 457:33   IdentExpr      :: ?
   expr 457:53   StringLitExpr  :: string
-  expr 458:26   FieldExpr      :: ?[]
+  expr 458:26   FieldExpr      :: FnParam[]
   expr 458:26   IdentExpr      :: FnDecl
   expr 459:21   CallExpr       :: ?
   expr 459:21   IdentExpr      :: ?
   expr 459:28   BinaryExpr     :: bool
-  expr 459:28   FieldExpr      :: ?
-  expr 459:28   IdentExpr      :: ?
+  expr 459:28   FieldExpr      :: usize
+  expr 459:28   IdentExpr      :: FnParam
   expr 459:36   IdentExpr      :: ?
   expr 459:56   StringLitExpr  :: string
   expr 52:16    IdentExpr      :: BlockExpr
@@ -1199,11 +1199,11 @@
   expr 61:33    FieldExpr      :: ?
   expr 61:33    IdentExpr      :: ImportDecl
   expr 61:44    IdentExpr      :: NodeIdFactory
-  expr 62:24    FieldExpr      :: ?[]
+  expr 62:24    FieldExpr      :: Decorator[]
   expr 62:24    IdentExpr      :: ImportDecl
   expr 62:39    CallExpr       :: void
   expr 62:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 62:54    IdentExpr      :: ?
+  expr 62:54    IdentExpr      :: Decorator
   expr 62:59    IdentExpr      :: NodeIdFactory
   expr 64:29    CallExpr       :: void
   expr 64:29    IdentExpr      :: fn(FnDecl, NodeIdFactory) -> void
@@ -1214,37 +1214,37 @@
   expr 66:20    CallExpr       :: usize
   expr 66:20    FieldExpr      :: fn() -> usize
   expr 66:20    IdentExpr      :: NodeIdFactory
-  expr 67:23    FieldExpr      :: ?[]
+  expr 67:23    FieldExpr      :: TypeParam[]
   expr 67:23    IdentExpr      :: StructDecl
   expr 67:39    CallExpr       :: void
   expr 67:39    IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
-  expr 67:55    IdentExpr      :: ?
+  expr 67:55    IdentExpr      :: TypeParam
   expr 67:59    IdentExpr      :: NodeIdFactory
-  expr 68:24    FieldExpr      :: ?[]
+  expr 68:24    FieldExpr      :: StructField[]
   expr 68:24    IdentExpr      :: StructDecl
-  expr 69:17    FieldExpr      :: ?
-  expr 69:17    IdentExpr      :: ?
+  expr 69:17    FieldExpr      :: usize
+  expr 69:17    IdentExpr      :: StructField
   expr 69:26    CallExpr       :: usize
   expr 69:26    FieldExpr      :: fn() -> usize
   expr 69:26    IdentExpr      :: NodeIdFactory
   expr 70:17    CallExpr       :: void
   expr 70:17    IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 70:27    FieldExpr      :: ?
-  expr 70:27    IdentExpr      :: ?
+  expr 70:27    IdentExpr      :: StructField
   expr 70:35    IdentExpr      :: NodeIdFactory
   expr 71:17    MatchExpr      :: void
-  expr 71:23    FieldExpr      :: ?
-  expr 71:23    IdentExpr      :: ?
+  expr 71:23    FieldExpr      :: ? | null
+  expr 71:23    IdentExpr      :: StructField
   expr 73:28    CallExpr       :: void
   expr 73:28    IdentExpr      :: fn(?, NodeIdFactory) -> void
   expr 73:38    FieldExpr      :: ?
-  expr 73:38    IdentExpr      :: ?
+  expr 73:38    IdentExpr      :: StructField
   expr 73:51    IdentExpr      :: NodeIdFactory
-  expr 76:24    FieldExpr      :: ?[]
+  expr 76:24    FieldExpr      :: Decorator[]
   expr 76:24    IdentExpr      :: StructDecl
   expr 76:39    CallExpr       :: void
   expr 76:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 76:54    IdentExpr      :: ?
+  expr 76:54    IdentExpr      :: Decorator
   expr 76:59    IdentExpr      :: NodeIdFactory
   expr 79:13    FieldExpr      :: usize
   expr 79:13    IdentExpr      :: EnumDecl
@@ -1259,29 +1259,29 @@
   expr 82:34    FieldExpr      :: ?
   expr 82:34    IdentExpr      :: EnumDecl
   expr 82:42    IdentExpr      :: NodeIdFactory
-  expr 84:22    FieldExpr      :: ?[]
+  expr 84:22    FieldExpr      :: EnumVariant[]
   expr 84:22    IdentExpr      :: EnumDecl
-  expr 84:35    FieldExpr      :: ?
-  expr 84:35    IdentExpr      :: ?
+  expr 84:35    FieldExpr      :: usize
+  expr 84:35    IdentExpr      :: EnumVariant
   expr 84:42    CallExpr       :: usize
   expr 84:42    FieldExpr      :: fn() -> usize
   expr 84:42    IdentExpr      :: NodeIdFactory
-  expr 85:24    FieldExpr      :: ?[]
+  expr 85:24    FieldExpr      :: Decorator[]
   expr 85:24    IdentExpr      :: EnumDecl
   expr 85:39    CallExpr       :: void
   expr 85:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 85:54    IdentExpr      :: ?
+  expr 85:54    IdentExpr      :: Decorator
   expr 85:59    IdentExpr      :: NodeIdFactory
   expr 88:13    FieldExpr      :: usize
   expr 88:13    IdentExpr      :: TraitDecl
   expr 88:20    CallExpr       :: usize
   expr 88:20    FieldExpr      :: fn() -> usize
   expr 88:20    IdentExpr      :: NodeIdFactory
-  expr 89:23    FieldExpr      :: ?[]
+  expr 89:23    FieldExpr      :: TypeParam[]
   expr 89:23    IdentExpr      :: TraitDecl
   expr 89:39    CallExpr       :: void
   expr 89:39    IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
-  expr 89:55    IdentExpr      :: ?
+  expr 89:55    IdentExpr      :: TypeParam
   expr 89:59    IdentExpr      :: NodeIdFactory
   expr 90:13    MatchExpr      :: void
   expr 90:19    FieldExpr      :: ? | null
@@ -1291,26 +1291,26 @@
   expr 92:34    FieldExpr      :: ?
   expr 92:34    IdentExpr      :: TraitDecl
   expr 92:46    IdentExpr      :: NodeIdFactory
-  expr 94:22    FieldExpr      :: ?[]
+  expr 94:22    FieldExpr      :: FnDecl[]
   expr 94:22    IdentExpr      :: TraitDecl
   expr 94:34    CallExpr       :: void
   expr 94:34    IdentExpr      :: fn(FnDecl, NodeIdFactory) -> void
-  expr 94:47    IdentExpr      :: ?
+  expr 94:47    IdentExpr      :: FnDecl
   expr 94:50    IdentExpr      :: NodeIdFactory
-  expr 95:24    FieldExpr      :: ?[]
+  expr 95:24    FieldExpr      :: Decorator[]
   expr 95:24    IdentExpr      :: TraitDecl
   expr 95:39    CallExpr       :: void
   expr 95:39    IdentExpr      :: fn(Decorator, NodeIdFactory) -> void
-  expr 95:54    IdentExpr      :: ?
+  expr 95:54    IdentExpr      :: Decorator
   expr 95:59    IdentExpr      :: NodeIdFactory
   expr 98:13    FieldExpr      :: usize
   expr 98:13    IdentExpr      :: ImplDecl
   expr 98:20    CallExpr       :: usize
   expr 98:20    FieldExpr      :: fn() -> usize
   expr 98:20    IdentExpr      :: NodeIdFactory
-  expr 99:23    FieldExpr      :: ?[]
+  expr 99:23    FieldExpr      :: TypeParam[]
   expr 99:23    IdentExpr      :: ImplDecl
   expr 99:39    CallExpr       :: void
   expr 99:39    IdentExpr      :: fn(TypeParam, NodeIdFactory) -> void
-  expr 99:55    IdentExpr      :: ?
+  expr 99:55    IdentExpr      :: TypeParam
   expr 99:59    IdentExpr      :: NodeIdFactory

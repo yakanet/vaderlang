@@ -276,10 +276,7 @@
               "kind": "SimpleBinding",
               "name": "b"
             },
-            "type": {
-              "kind": "IdentExpr",
-              "name": "u8"
-            },
+            "type": null,
             "value": {
               "kind": "IntLitExpr",
               "value": "61n",

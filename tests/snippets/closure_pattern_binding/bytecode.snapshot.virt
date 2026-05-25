@@ -16,7 +16,8 @@ string 0 "again "
 string 1 "twice = "
 string 2 "world"
 string 3 "HELLO "
-import 0 println std_io$println (string) -> void
+string 4 "\n"
+import 0 write std_io$write (i32,string) -> void
 
 fn 0 snippet$greet (ref) -> void
   local __scrut_0 ref
@@ -124,8 +125,19 @@ fn 3 __lambda_6 (ref) -> string
   return
 end
 
-fn 4 std_io$println$vt (string) -> void
+fn 4 std_io$println (string) -> void
+  i32.const 0
   local.get 0
+  call 5
+  i32.const 0
+  string.const 4
+  call 5
+  return
+end
+
+fn 5 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

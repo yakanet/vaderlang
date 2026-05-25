@@ -16,7 +16,8 @@ string 6 "abs(-7)       = "
 string 7 "abs(-7.5)     = "
 string 8 "clamp(15, 0, 10)      = "
 string 9 "clamp(1.5, 0.0, 1.0)  = "
-import 0 println std_io$println (string) -> void
+string 10 "\n"
+import 0 write std_io$write (i32,string) -> void
 
 fn 0 snippet$describe (ref) -> string
   local __sb_0 any
@@ -70,16 +71,16 @@ fn 2 snippet$main () -> i32
   local.set 1
   local.get 0
   call 0
-  call 11
+  call 3
   local.get 1
   call 1
-  call 11
+  call 3
   local.get 0
   call 0
-  call 11
+  call 3
   local.get 1
   call 1
-  call 11
+  call 3
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -87,14 +88,14 @@ fn 2 snippet$main () -> i32
   intrinsic builder.append_str
   i32.const 3
   i32.const 5
-  call 4
+  call 5
   local.set 3
   local.get 2
   local.get 3
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 11
+  call 3
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -102,14 +103,14 @@ fn 2 snippet$main () -> i32
   intrinsic builder.append_str
   f64.const 3.5
   f64.const 5.0
-  call 3
+  call 4
   local.set 4
   local.get 2
   local.get 4
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 11
+  call 3
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -120,14 +121,14 @@ fn 2 snippet$main () -> i32
   local.set 3
   local.get 3
   i32.const 8
-  call 6
+  call 7
   local.set 3
   local.get 2
   local.get 3
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 11
+  call 3
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -135,14 +136,14 @@ fn 2 snippet$main () -> i32
   intrinsic builder.append_str
   i32.const 7
   i32.neg
-  call 8
+  call 9
   local.set 3
   local.get 2
   local.get 3
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 11
+  call 3
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -150,14 +151,14 @@ fn 2 snippet$main () -> i32
   intrinsic builder.append_str
   f64.const 7.5
   f64.neg
-  call 7
+  call 8
   local.set 4
   local.get 2
   local.get 4
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 11
+  call 3
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -166,14 +167,14 @@ fn 2 snippet$main () -> i32
   i32.const 15
   i32.const 0
   i32.const 10
-  call 10
+  call 11
   local.set 3
   local.get 2
   local.get 3
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 11
+  call 3
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -182,18 +183,28 @@ fn 2 snippet$main () -> i32
   f64.const 1.5
   f64.const 0.0
   f64.const 1.0
-  call 9
+  call 10
   local.set 4
   local.get 2
   local.get 4
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 11
+  call 3
   return.lit i32.const 0
 end
 
-fn 3 std_math$min (f64,f64) -> f64
+fn 3 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 12
+  i32.const 0
+  string.const 10
+  call 12
+  return
+end
+
+fn 4 std_math$min (f64,f64) -> f64
   local if_res f64
   local.get 0
   local.get 1
@@ -209,7 +220,7 @@ fn 3 std_math$min (f64,f64) -> f64
   return
 end
 
-fn 4 std_math$min_1 (i32,i32) -> i32
+fn 5 std_math$min_1 (i32,i32) -> i32
   local if_res i32
   local.get 0
   local.get 1
@@ -225,7 +236,7 @@ fn 4 std_math$min_1 (i32,i32) -> i32
   return
 end
 
-fn 5 std_math$max (f64,f64) -> f64
+fn 6 std_math$max (f64,f64) -> f64
   local if_res f64
   local.get 0
   local.get 1
@@ -241,7 +252,7 @@ fn 5 std_math$max (f64,f64) -> f64
   return
 end
 
-fn 6 std_math$max_1 (i32,i32) -> i32
+fn 7 std_math$max_1 (i32,i32) -> i32
   local if_res i32
   local.get 0
   local.get 1
@@ -257,7 +268,7 @@ fn 6 std_math$max_1 (i32,i32) -> i32
   return
 end
 
-fn 7 std_math$abs (f64) -> f64
+fn 8 std_math$abs (f64) -> f64
   local if_res f64
   local.get 0
   f64.const 0.0
@@ -274,7 +285,7 @@ fn 7 std_math$abs (f64) -> f64
   return
 end
 
-fn 8 std_math$abs_1 (i32) -> i32
+fn 9 std_math$abs_1 (i32) -> i32
   local if_res i32
   local.get 0
   i32.const 0
@@ -291,16 +302,7 @@ fn 8 std_math$abs_1 (i32) -> i32
   return
 end
 
-fn 9 std_math$clamp (f64,f64,f64) -> f64
-  local.get 0
-  local.get 1
-  call 5
-  local.get 2
-  call 3
-  return
-end
-
-fn 10 std_math$clamp_1 (i32,i32,i32) -> i32
+fn 10 std_math$clamp (f64,f64,f64) -> f64
   local.get 0
   local.get 1
   call 6
@@ -309,8 +311,18 @@ fn 10 std_math$clamp_1 (i32,i32,i32) -> i32
   return
 end
 
-fn 11 std_io$println$vt (string) -> void
+fn 11 std_math$clamp_1 (i32,i32,i32) -> i32
   local.get 0
+  local.get 1
+  call 7
+  local.get 2
+  call 5
+  return
+end
+
+fn 12 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
   call.import 0
   return
 end

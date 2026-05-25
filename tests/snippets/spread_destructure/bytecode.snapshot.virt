@@ -12,8 +12,9 @@ string 3 "a="
 string 4 " b="
 string 5 " tail.len="
 string 6 "short.len="
+string 7 "\n"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
-import 1 println std_io$println (string) -> void
+import 1 write std_io$write (i32,string) -> void
 
 fn 0 snippet$main () -> i32
   local arr ref
@@ -84,14 +85,14 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 3
   array.len
-  call 1
+  call 2
   local.set 8
   local.get 7
   local.get 8
   intrinsic builder.append_str
   local.get 7
   intrinsic builder.finish
-  call 2
+  call 1
   local.get 3
   local.tee 1
   array.len
@@ -119,7 +120,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 7
         intrinsic builder.finish
-        call 2
+        call 1
         local.get 5
         i64.const 1
         i64.to_usize
@@ -192,14 +193,14 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 1
   array.len
-  call 1
+  call 2
   local.set 8
   local.get 7
   local.get 8
   intrinsic builder.append_str
   local.get 7
   intrinsic builder.finish
-  call 2
+  call 1
   array.new 5 0
   local.set 1
   i64.const 3
@@ -238,14 +239,14 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 1
   array.len
-  call 1
+  call 2
   local.set 8
   local.get 7
   local.get 8
   intrinsic builder.append_str
   local.get 7
   intrinsic builder.finish
-  call 2
+  call 1
   local.get 1
   local.tee 0
   array.len
@@ -273,7 +274,7 @@ fn 0 snippet$main () -> i32
         intrinsic builder.append_display
         local.get 7
         intrinsic builder.finish
-        call 2
+        call 1
         local.get 5
         i64.const 1
         i64.to_usize
@@ -287,14 +288,25 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 std_core$usize$Display$to_string$vt (usize) -> string
+fn 1 std_io$println (string) -> void
+  i32.const 0
+  local.get 0
+  call 3
+  i32.const 0
+  string.const 7
+  call 3
+  return
+end
+
+fn 2 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 2 std_io$println$vt (string) -> void
+fn 3 std_io$write$vt (i32,string) -> void
   local.get 0
+  local.get 1
   call.import 1
   return
 end
