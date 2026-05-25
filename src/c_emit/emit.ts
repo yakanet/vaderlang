@@ -337,7 +337,76 @@ function emitTypeDecls(ctx: EmitCtx, out: string[]): void {
   }
   out.push(``);
 
+  emitAtomComptimeTable(ctx, out);
+
   emitDataPool(ctx, out);
+}
+
+// =========================================================================
+// Compile-time atom table — see docs/ATOM_INTERNING.md.
+//
+// Every string literal in the bytecode pool is serialised as a PERM atom
+// in the binary's `.rodata`. The emitted `main` hands this table to
+// `vader_atom_init_with_comptime` at startup ; the runtime memcpys it
+// into the live atom table at indices `1 .. N` (index 0 is reserved for
+// VADER_ATOM_EMPTY) and rebuilds the intern hash over it.
+//
+// The `ATOM_LIT_<i>` macros expose each literal's runtime atom id as a
+// C compile-time constant — usable in `case ATOM_LIT_X:` once Phase 1
+// flips `vader_string_t = u32` and the codegen emits literals as bare
+// atom ids instead of `vader_str_<i>` fat-ptrs.
+// =========================================================================
+
+function emitAtomComptimeTable(ctx: EmitCtx, out: string[]): void {
+  out.push(`/* Compile-time atom table — see docs/ATOM_INTERNING.md. */`);
+  const strings = ctx.module.strings;
+  if (strings.length === 0) {
+    // Empty modules still emit a 1-entry placeholder so callers can take
+    // `&vader_atom_comptime_table[0]` without UB ; the count of 0 tells
+    // the runtime to ignore it.
+    out.push(`static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };`);
+    out.push(`#define VADER_COMPTIME_ATOM_COUNT 0u`);
+    out.push(``);
+    return;
+  }
+
+  // Blob : every literal's bytes followed by an inline NUL ("\0"
+  // sentinel after each literal, so `data[len]` reads NUL for owners).
+  // C concatenates the adjacent string literals into one `.rodata` array.
+  const enc = new TextEncoder();
+  const offsets: number[] = [];
+  const lens: number[] = [];
+  let offset = 0;
+  const blobLines: string[] = [];
+  for (let i = 0; i < strings.length; i++) {
+    const bytes = enc.encode(strings[i]!);
+    blobLines.push(`    ${cStringLitFromBytes(bytes)} "\\0"`);
+    offsets.push(offset);
+    lens.push(bytes.length);
+    offset += bytes.length + 1;
+  }
+  out.push(`static const char vader_atom_blob[] =`);
+  for (const line of blobLines) out.push(line);
+  out.push(`;`);
+  out.push(``);
+
+  // Entry table — one PERM owner per literal, pointing into the blob.
+  // Field order : { parent, parent_offset, len, flags, _pad, data }.
+  out.push(`static const vader_atom_entry_t vader_atom_comptime_table[] = {`);
+  for (let i = 0; i < strings.length; i++) {
+    out.push(`    { 0u, 0u, ${lens[i]}u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[${offsets[i]}] },`);
+  }
+  out.push(`};`);
+  out.push(``);
+
+  // Macros : `ATOM_LIT_<i>` is the runtime atom id for the i-th literal
+  // in `ctx.module.strings`. +1 because the runtime installs the empty
+  // atom at index 0 before the comptime block.
+  for (let i = 0; i < strings.length; i++) {
+    out.push(`#define ATOM_LIT_${i} ${i + 1}u`);
+  }
+  out.push(`#define VADER_COMPTIME_ATOM_COUNT ${strings.length}u`);
+  out.push(``);
 }
 
 // =========================================================================
@@ -989,6 +1058,13 @@ function emitMain(ctx: EmitCtx, out: string[]): void {
   // Typechecker (T3033) guarantees the signature is `()` or `([string])` → i32.
   const takesArgv = fn.signature.params.length === 1;
   out.push(`int main(int argc, char** argv) {`);
+  // Atom table init — must come before any code that interns or looks up
+  // string atoms. Phase 0.d wires the comptime literals only ; Phase 1
+  // will start consuming them once `vader_string_t` flips to `u32`.
+  // `atexit(vader_atom_shutdown)` runs after `vader_gc_shutdown` thanks
+  // to the LIFO ordering of atexit handlers.
+  out.push(`    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);`);
+  out.push(`    atexit(vader_atom_shutdown);`);
   // Register the GC arena release at exit. Process death frees on Unix, but
   // an explicit shutdown is correct for embedded / atexit-aware tooling and
   // gives sanitisers a clean baseline.

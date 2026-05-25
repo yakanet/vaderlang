@@ -86,6 +86,105 @@ bool           vader_string_eq(vader_string_t a, vader_string_t b);
 const char*    vader_string_to_cstr(vader_string_t s);
 void           vader_cstr_free(const char* p);
 
+/* ------------------------------------------------------------------ atom */
+
+/* Atom-based string interning — see `docs/ATOM_INTERNING.md`.
+ *
+ * An atom is a `u32` index into a global table whose entries carry the
+ * canonical bytes for the string. Identical byte sequences hash to the
+ * same atom — equality and hashing on atoms are O(1) integer ops.
+ *
+ * Phase 0 introduces the table and API while `vader_string_t` keeps its
+ * fat-ptr layout ; Phase 1 will redefine `vader_string_t = u32`. The two
+ * representations cohabit during the migration. */
+
+typedef vader_u32_t vader_atom_t;
+
+/* Reserved atom id : the empty string. Always installed at index 0 by
+ * `vader_atom_init` and flagged PERM. Tests can compare directly against
+ * this constant rather than interning `""`. */
+#define VADER_ATOM_EMPTY  ((vader_atom_t) 0u)
+
+/* Entry flags — packed into `vader_atom_entry_t.flags`. */
+#define VADER_ATOM_FLAG_PERM  ((vader_u16_t) 0x0001u)  /* never collected */
+#define VADER_ATOM_FLAG_MARK  ((vader_u16_t) 0x0002u)  /* transient GC bit */
+
+/* Layout : 24 bytes on 64-bit (4 + 4 + 4 + 2 + 2 + 8). The `data` field
+ * is materialised at insert time — for an owner atom it points at a
+ * dedicated malloc'd buffer ; for a slice atom it points into the parent's
+ * buffer at `parent_offset`. Owner buffers carry an inline NUL at
+ * `data[len]` so `vader_atom_to_cstr` can return `data` directly without
+ * a dup ; slice atoms do not provide that guarantee. */
+typedef struct {
+    vader_u32_t parent;          /* 0 if owner, else parent atom id */
+    vader_u32_t parent_offset;   /* byte offset within parent.data (slice only) */
+    vader_u32_t len;             /* string length in bytes */
+    vader_u16_t flags;           /* VADER_ATOM_FLAG_* */
+    vader_u16_t _pad;
+    const char* data;            /* materialised pointer (owner buf or parent.data + offset) */
+} vader_atom_entry_t;
+
+/* Lookup helpers — inline, hot path. Bounds-checking on the atom id is
+ * the caller's responsibility ; an invalid id reads garbage. */
+const vader_atom_entry_t* vader_atom_entry(vader_atom_t a);
+const char*               vader_atom_data(vader_atom_t a);
+size_t                    vader_atom_len(vader_atom_t a);
+
+/* Intern canonical bytes — returns the atom whose bytes equal `data[0..len]`.
+ * On a hash miss, copies the bytes into a fresh owner buffer.
+ *
+ * `_take` variant : on miss, transfers ownership of the passed buffer
+ *  into the new entry (no extra copy). The buffer MUST be malloc'd with
+ *  `len + 1` bytes ; the runtime writes `buf[len] = '\0'` for the inline
+ *  NUL contract. On hit, `_take` frees the passed buffer and returns the
+ *  canonical atom. Phase 0 stubs return VADER_ATOM_EMPTY until the
+ *  intern table is implemented in 0.b. */
+vader_atom_t vader_atom_intern(const char* data, size_t len);
+vader_atom_t vader_atom_intern_take(char* buf, size_t len);
+
+/* Slice — installs (or finds) an atom whose bytes equal
+ * `entry(parent).data[offset..offset+len]`. Dedupe runs against the
+ * existing hash bucket ; on a hit, returns the canonical atom regardless
+ * of its ownership (which may itself be an owner). Phase 0 stub. */
+vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len);
+
+/* FFI helper — returns a NUL-terminated `const char*` view of the atom's
+ * bytes. Owners return their `data` directly (no allocation). Slices
+ * allocate a duplicated NUL-terminated copy ; pair every slice call with
+ * `vader_atom_cstr_free`. The owner path returns a stable pointer that
+ * remains valid until the atom is collected. */
+const char* vader_atom_to_cstr(vader_atom_t a);
+void        vader_atom_cstr_free(const char* p);
+
+/* Lifecycle — `vader_atom_init` installs `VADER_ATOM_EMPTY` and prepares
+ * an empty dynamic table. `vader_atom_init_with_comptime` additionally
+ * copies a codegen-emitted block of compile-time atoms (typically the
+ * module's string literal pool) into the table and rehashes them. The
+ * codegen wires the latter into the emitted `main` ; tests / tools that
+ * don't care about comptime atoms call the bare `_init`.
+ *
+ * `comptime_table` is a constant array of `count` entries — typically a
+ * `.rodata` static emitted at the top of the user `.c`. The runtime
+ * memcpys into its own dynamic storage so the user-side array does not
+ * have to outlive program startup ; the byte buffers each entry points
+ * at do need to remain valid for the program lifetime (the codegen
+ * emits them as `.rodata` next to the entry array).
+ *
+ * `vader_atom_shutdown` releases owner buffers allocated *after* init
+ * — comptime-supplied buffers are NOT freed (they live in `.rodata`).
+ * Intended for tests / tools wanting a clean teardown ; the normal
+ * program exit path leaks freely. */
+void vader_atom_init(void);
+void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table, vader_u32_t count);
+void vader_atom_shutdown(void);
+
+/* Profiling — emitted to stderr when `VADER_ATOM_PROFILE=1` is set in
+ * the environment at program start. Reports atom count, byte total
+ * (owner buffers), bucket load factor, and the top-N most-referenced
+ * atoms. Called automatically at exit via `atexit` when the env var is
+ * set ; can also be called manually from tests. */
+void vader_atom_profile_dump(void);
+
 /* ----------------------------------------------------------------- box */
 
 /* Tag values shared with `BcType` indices from the bytecode module. The C

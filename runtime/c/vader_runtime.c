@@ -223,6 +223,437 @@ typedef struct vader_string_header vader_string_header_t;
 
 static void vader_string_profile_dump(void);  /* defined below, after the header struct. */
 
+
+/* ============================================================
+ * Atom-based string interning — see `docs/ATOM_INTERNING.md`.
+ *
+ * Phase 0.a wires the table + API into the runtime alongside the
+ * legacy `vader_string_t` machinery. The intern hash, slice-share,
+ * and GC integration are stubbed and ship in 0.b / 0.c / Phase 4.
+ *
+ * The table is grow-only in indices : atoms minted at runtime can be
+ * collected (their bytes freed, slot tombstoned) but the `entries[]`
+ * array never shrinks — every `vader_atom_t` value ever observed in
+ * a live slot stays a valid lookup target, just possibly with reused
+ * content. Comptime atoms are PERM-flagged and never collected.
+ * ============================================================ */
+
+typedef struct {
+    vader_atom_entry_t* entries;
+    vader_u32_t         count;
+    vader_u32_t         capacity;
+
+    /* Open-addressing hash : intern lookup. `buckets[i]` holds the atom
+     * id installed at hash slot `i`, or 0 (== VADER_ATOM_EMPTY) for an
+     * empty slot. Slot 0 cannot collide with a real atom because we
+     * pre-install the empty atom and skip it in probes. */
+    vader_u32_t* buckets;
+    vader_u32_t  bucket_capacity;
+    vader_u32_t  bucket_count;     /* occupied slots — for load factor check */
+
+    /* Free list of tombstone indices (atoms freed by GC). Reused by the
+     * next owner-style intern before growing `entries[]`. */
+    vader_u32_t* free_list;
+    vader_u32_t  free_count;
+    vader_u32_t  free_capacity;
+
+    /* Total bytes held by owner atoms — for profiling. */
+    size_t       owner_bytes;
+} vader_atom_table_t;
+
+static vader_atom_table_t g_atoms = {0};
+static int  g_atoms_initialized = 0;
+static int  g_atom_profile = 0;
+
+/* Initial table capacity — 256 covers the keyword + primitive pre-intern
+ * with room for early dynamic atoms. Grows by doubling. Phase 0.d will
+ * size this from the comptime atom count emitted by codegen. */
+#define VADER_ATOM_INITIAL_CAPACITY    256u
+#define VADER_ATOM_INITIAL_BUCKETS     1024u   /* must be power of two */
+
+/* Forward decls — implementations below cluster by concern. */
+static void        vader_atom_install_empty(void);
+static vader_u32_t vader_atom_hash(const char* data, size_t len);
+static void        vader_atom_bucket_install(vader_atom_t a, vader_u32_t hash);
+
+void vader_atom_init(void) {
+    vader_atom_init_with_comptime(NULL, 0u);
+}
+
+void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
+                                   vader_u32_t count) {
+    if (g_atoms_initialized) return;
+    g_atoms_initialized = 1;
+
+    const char* prof_env = getenv("VADER_ATOM_PROFILE");
+    if (prof_env != NULL && prof_env[0] != '\0' && prof_env[0] != '0') {
+        g_atom_profile = 1;
+        atexit(vader_atom_profile_dump);
+    }
+
+    /* Pick a capacity that absorbs the comptime atoms plus headroom for
+     * the first wave of dynamic interns without an immediate grow.
+     * Doubling the comptime size matches the markdown plan (decision §8). */
+    vader_u32_t initial_cap = VADER_ATOM_INITIAL_CAPACITY;
+    if (count > 0u) {
+        /* count + 1 for the empty sentinel at index 0, then ×2 for
+         * runtime headroom. Round up to the existing initial capacity
+         * so very small modules still get a usable starting bucket
+         * table. */
+        vader_u32_t want = (count + 1u) * 2u;
+        if (want > initial_cap) initial_cap = want;
+    }
+    g_atoms.entries = (vader_atom_entry_t*)
+        malloc(initial_cap * sizeof(vader_atom_entry_t));
+    if (g_atoms.entries == NULL) vader_trap("vader_atom_init: entries malloc failed");
+    g_atoms.capacity = initial_cap;
+    g_atoms.count    = 0;
+
+    /* Bucket capacity scales with comptime count for the same reason —
+     * a freshly initialised table should not immediately rehash on the
+     * first user interns. Round up to a power of two ≥ 4 × (count+1). */
+    vader_u32_t want_buckets = VADER_ATOM_INITIAL_BUCKETS;
+    if (count > 0u) {
+        vader_u32_t target = (count + 1u) * 4u;
+        while (want_buckets < target) want_buckets *= 2u;
+    }
+    g_atoms.buckets = (vader_u32_t*)
+        calloc(want_buckets, sizeof(vader_u32_t));
+    if (g_atoms.buckets == NULL) vader_trap("vader_atom_init: buckets calloc failed");
+    g_atoms.bucket_capacity = want_buckets;
+    g_atoms.bucket_count    = 0;
+
+    g_atoms.free_list     = NULL;
+    g_atoms.free_count    = 0;
+    g_atoms.free_capacity = 0;
+    g_atoms.owner_bytes   = 0;
+
+    vader_atom_install_empty();
+
+    /* Comptime atoms come in PERM — never freed, rodata-backed. Their
+     * `data` pointer is owned by the binary's `.rodata` section, so the
+     * shutdown path must skip the `free(data)` step on these entries. */
+    if (count > 0u && comptime_table != NULL) {
+        memcpy(&g_atoms.entries[1], comptime_table,
+               count * sizeof(vader_atom_entry_t));
+        g_atoms.count = 1u + count;
+        /* Force PERM on every comptime entry — the codegen-emitted
+         * table sets it too, but enforcing here keeps the runtime
+         * invariant local. */
+        for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
+            g_atoms.entries[i].flags |= VADER_ATOM_FLAG_PERM;
+        }
+        /* Build the bucket index over the comptime atoms in a single
+         * pass — cheaper than running through `vader_atom_intern` and
+         * its hash-lookup-then-install dance for each one. */
+        for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
+            const vader_atom_entry_t* e = &g_atoms.entries[i];
+            vader_u32_t h = vader_atom_hash(e->data, e->len);
+            vader_atom_bucket_install(i, h);
+        }
+    }
+}
+
+/* Install VADER_ATOM_EMPTY at index 0 with PERM flag. No bucket entry —
+ * the empty string is reached by direct `a == 0` checks, never via hash
+ * probe (it would collide with the "empty slot" sentinel). */
+static void vader_atom_install_empty(void) {
+    vader_atom_entry_t* e = &g_atoms.entries[0];
+    e->parent        = 0;
+    e->parent_offset = 0;
+    e->len           = 0;
+    e->flags         = VADER_ATOM_FLAG_PERM;
+    e->_pad          = 0;
+    e->data          = "";
+    g_atoms.count    = 1;
+}
+
+void vader_atom_shutdown(void) {
+    if (!g_atoms_initialized) return;
+    for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
+        vader_atom_entry_t* e = &g_atoms.entries[i];
+        /* Free owner buffers from dynamic intern only — PERM entries
+         * carry rodata pointers we must NOT free. Slice atoms borrow
+         * from their parent ; no free either. The static empty-string
+         * at index 0 is excluded by the loop bound. */
+        if (e->parent == 0 && e->data != NULL && e->len > 0
+            && (e->flags & VADER_ATOM_FLAG_PERM) == 0) {
+            free((void*) e->data);
+        }
+    }
+    free(g_atoms.entries);
+    free(g_atoms.buckets);
+    free(g_atoms.free_list);
+    g_atoms.entries         = NULL;
+    g_atoms.buckets         = NULL;
+    g_atoms.free_list       = NULL;
+    g_atoms.count           = 0;
+    g_atoms.capacity        = 0;
+    g_atoms.bucket_capacity = 0;
+    g_atoms.bucket_count    = 0;
+    g_atoms.free_count      = 0;
+    g_atoms.free_capacity   = 0;
+    g_atoms.owner_bytes     = 0;
+    g_atoms_initialized     = 0;
+}
+
+const vader_atom_entry_t* vader_atom_entry(vader_atom_t a) {
+    return &g_atoms.entries[a];
+}
+
+const char* vader_atom_data(vader_atom_t a) {
+    return g_atoms.entries[a].data;
+}
+
+size_t vader_atom_len(vader_atom_t a) {
+    return (size_t) g_atoms.entries[a].len;
+}
+
+/* ---- intern internals ---- */
+
+/* FNV1a 32-bit — fine distribution on short ASCII identifiers, no SIMD
+ * dependency, simple to reason about. Revisit if the Phase 5 profile
+ * shows heavy bucket collisions on real corpora. */
+static vader_u32_t vader_atom_hash(const char* data, size_t len) {
+    vader_u32_t h = 2166136261u;
+    for (size_t i = 0; i < len; ++i) {
+        h ^= (vader_u8_t) data[i];
+        h *= 16777619u;
+    }
+    return h;
+}
+
+/* Bucket probe — returns the matching atom id or VADER_ATOM_EMPTY (0)
+ * on miss. The empty-slot sentinel in `buckets[]` is also 0 ; callers
+ * short-circuit len==0 before reaching this so the sentinel can never
+ * collide with a real hit. `bucket_capacity` is a power of two — mask
+ * trick replaces a modulo. */
+static vader_atom_t vader_atom_lookup(const char* data, size_t len, vader_u32_t hash) {
+    const vader_u32_t mask = g_atoms.bucket_capacity - 1u;
+    vader_u32_t idx = hash & mask;
+    for (;;) {
+        vader_atom_t a = g_atoms.buckets[idx];
+        if (a == VADER_ATOM_EMPTY) return VADER_ATOM_EMPTY;
+        const vader_atom_entry_t* e = &g_atoms.entries[a];
+        if (e->len == len && memcmp(e->data, data, len) == 0) {
+            return a;
+        }
+        idx = (idx + 1u) & mask;
+    }
+}
+
+/* Install an atom id at its canonical bucket slot. Assumes free room —
+ * the load-factor check in the intern entrypoint grows buckets before
+ * any insert that would push it past the 0.75 threshold. */
+static void vader_atom_bucket_install(vader_atom_t a, vader_u32_t hash) {
+    const vader_u32_t mask = g_atoms.bucket_capacity - 1u;
+    vader_u32_t idx = hash & mask;
+    while (g_atoms.buckets[idx] != VADER_ATOM_EMPTY) {
+        idx = (idx + 1u) & mask;
+    }
+    g_atoms.buckets[idx] = a;
+    g_atoms.bucket_count++;
+}
+
+/* Bucket grow — double capacity, rehash every live atom. Called when
+ * the load factor would exceed 0.75 after the most recent install. */
+static void vader_atom_grow_buckets(void) {
+    free(g_atoms.buckets);
+    g_atoms.bucket_capacity *= 2u;
+    g_atoms.buckets = (vader_u32_t*)
+        calloc(g_atoms.bucket_capacity, sizeof(vader_u32_t));
+    if (g_atoms.buckets == NULL) vader_trap("vader_atom_grow_buckets: calloc failed");
+    g_atoms.bucket_count = 0;
+    /* Reinsert every live atom except the empty sentinel at index 0.
+     * Phase 4 will skip tombstones here too ; for now no tombstones
+     * exist. */
+    for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
+        const vader_atom_entry_t* e = &g_atoms.entries[i];
+        vader_u32_t h = vader_atom_hash(e->data, e->len);
+        vader_atom_bucket_install(i, h);
+    }
+}
+
+/* Entries grow — double capacity, realloc in place. Pointers into the
+ * array are NOT stable across calls ; every reader rederefs through
+ * `g_atoms.entries`, so a realloc that relocates the array is safe. */
+static void vader_atom_grow_entries(void) {
+    g_atoms.capacity *= 2u;
+    vader_atom_entry_t* p = (vader_atom_entry_t*)
+        realloc(g_atoms.entries, g_atoms.capacity * sizeof(vader_atom_entry_t));
+    if (p == NULL) vader_trap("vader_atom_grow_entries: realloc failed");
+    g_atoms.entries = p;
+}
+
+/* Allocate a fresh atom slot — reuses a tombstoned id from the free
+ * list (Phase 4) when available, else grows `entries[]`. The entry is
+ * left uninitialised ; the caller fills the fields. */
+static vader_atom_t vader_atom_alloc_slot(void) {
+    if (g_atoms.free_count > 0) {
+        return g_atoms.free_list[--g_atoms.free_count];
+    }
+    if (g_atoms.count >= g_atoms.capacity) {
+        vader_atom_grow_entries();
+    }
+    return g_atoms.count++;
+}
+
+/* Miss-path install : claim a slot, point it at `buf` (caller-owned heap
+ * buffer with inline NUL at `buf[len]` already written), bucket-install,
+ * grow buckets if load factor crossed. The caller is responsible for
+ * ensuring `buf` is the canonical bytes for `hash` (i.e. they already
+ * lost a lookup race). */
+static vader_atom_t vader_atom_install_owner(char* buf, size_t len, vader_u32_t hash) {
+    vader_atom_t a = vader_atom_alloc_slot();
+    vader_atom_entry_t* e = &g_atoms.entries[a];
+    e->parent        = 0;
+    e->parent_offset = 0;
+    e->len           = (vader_u32_t) len;
+    e->flags         = 0;
+    e->_pad          = 0;
+    e->data          = buf;
+    g_atoms.owner_bytes += len;
+
+    vader_atom_bucket_install(a, hash);
+
+    /* Grow if past 0.75. Done after install so the just-inserted atom
+     * rehashes with the rest into the new table. */
+    if (g_atoms.bucket_count * 4u > g_atoms.bucket_capacity * 3u) {
+        vader_atom_grow_buckets();
+    }
+    return a;
+}
+
+/* ---- public intern API ---- */
+
+vader_atom_t vader_atom_intern(const char* data, size_t len) {
+    if (len == 0) return VADER_ATOM_EMPTY;
+
+    vader_u32_t hash = vader_atom_hash(data, len);
+    vader_atom_t found = vader_atom_lookup(data, len, hash);
+    if (found != VADER_ATOM_EMPTY) return found;
+
+    char* buf = (char*) malloc(len + 1u);
+    if (buf == NULL) vader_trap("vader_atom_intern: buffer malloc failed");
+    memcpy(buf, data, len);
+    buf[len] = '\0';
+    return vader_atom_install_owner(buf, len, hash);
+}
+
+vader_atom_t vader_atom_intern_take(char* buf, size_t len) {
+    if (len == 0) {
+        free(buf);
+        return VADER_ATOM_EMPTY;
+    }
+
+    vader_u32_t hash = vader_atom_hash(buf, len);
+    vader_atom_t found = vader_atom_lookup(buf, len, hash);
+    if (found != VADER_ATOM_EMPTY) {
+        free(buf);
+        return found;
+    }
+
+    /* Caller MUST have allocated `buf` with `malloc(len + 1)` so the
+     * inline NUL fits. */
+    buf[len] = '\0';
+    return vader_atom_install_owner(buf, len, hash);
+}
+
+vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
+    if (len == 0) return VADER_ATOM_EMPTY;
+
+    /* Bounds validation against the parent's logical bytes. Invalid
+     * arguments are a runtime contract violation — trap rather than
+     * silently produce a corrupted slice. */
+    if (parent >= g_atoms.count) {
+        vader_trap("vader_atom_slice: parent atom id out of range");
+    }
+    const vader_atom_entry_t* pe = &g_atoms.entries[parent];
+    if (offset > pe->len || len > pe->len - offset) {
+        vader_trap("vader_atom_slice: range overflows parent length");
+    }
+
+    /* Flatten one hop : every slice atom enforces `parent.parent == 0`
+     * at insert time (we never link a slice to another slice), so the
+     * deepest chain we ever see is parent → owner. Keeps the GC mark
+     * trivial (one hop, never recursive). */
+    vader_atom_t root        = parent;
+    size_t       root_offset = offset;
+    if (g_atoms.entries[root].parent != 0) {
+        root_offset += g_atoms.entries[root].parent_offset;
+        root         = g_atoms.entries[root].parent;
+    }
+
+    /* Hash on the candidate bytes ; dedupe regardless of where the
+     * canonical representative lives (might be owner, might be slice
+     * sharing different bytes that happen to compare equal). */
+    const char* candidate = g_atoms.entries[root].data + root_offset;
+    vader_u32_t hash      = vader_atom_hash(candidate, len);
+    vader_atom_t found    = vader_atom_lookup(candidate, len, hash);
+    if (found != VADER_ATOM_EMPTY) return found;
+
+    /* Miss — install as slice atom borrowing from the root owner. No
+     * allocation. NUL-term at data[len] is NOT guaranteed (the byte
+     * past the slice belongs to the parent buffer and may be any
+     * value) — `vader_atom_to_cstr` handles slice atoms by duplicating
+     * to a heap NUL-term copy. */
+    vader_atom_t a = vader_atom_alloc_slot();
+    vader_atom_entry_t* e = &g_atoms.entries[a];
+    e->parent        = root;
+    e->parent_offset = (vader_u32_t) root_offset;
+    e->len           = (vader_u32_t) len;
+    e->flags         = 0;
+    e->_pad          = 0;
+    e->data          = candidate;
+
+    vader_atom_bucket_install(a, hash);
+
+    if (g_atoms.bucket_count * 4u > g_atoms.bucket_capacity * 3u) {
+        vader_atom_grow_buckets();
+    }
+
+    return a;
+}
+
+const char* vader_atom_to_cstr(vader_atom_t a) {
+    const vader_atom_entry_t* e = &g_atoms.entries[a];
+    if (e->parent == 0) {
+        return e->data;     /* owner : NUL-term inline at data[len] */
+    }
+    /* Slice : duplicate for NUL termination. Caller frees via
+     * `vader_atom_cstr_free`. */
+    char* dup = (char*) malloc(e->len + 1u);
+    if (dup == NULL) vader_trap("vader_atom_to_cstr: dup malloc failed");
+    memcpy(dup, e->data, e->len);
+    dup[e->len] = '\0';
+    return dup;
+}
+
+void vader_atom_cstr_free(const char* p) {
+    if (p == NULL) return;
+    /* Distinguish owner-data (stable pointer into the table) from slice
+     * dups (heap-allocated by `_to_cstr`). The owner path returns a
+     * pointer into our own table — we can't `free` it. We detect by
+     * scanning the table, which is O(N) but only matters for FFI
+     * boundaries (cold). A faster discriminator (e.g. a header bit on
+     * dup'd buffers) is a Phase 1 optimisation. */
+    for (vader_u32_t i = 0; i < g_atoms.count; ++i) {
+        if (g_atoms.entries[i].parent == 0 && g_atoms.entries[i].data == p) {
+            return;  /* owner data — owned by table */
+        }
+    }
+    free((void*) p);
+}
+
+void vader_atom_profile_dump(void) {
+    fprintf(stderr, "[atom-profile] count=%u capacity=%u bucket_load=%.2f%% "
+                    "owner_bytes=%zu free_count=%u\n",
+            g_atoms.count, g_atoms.capacity,
+            g_atoms.bucket_capacity == 0 ? 0.0
+                : 100.0 * (double) g_atoms.bucket_count / (double) g_atoms.bucket_capacity,
+            g_atoms.owner_bytes, g_atoms.free_count);
+}
+
 void vader_gc_init(void) {
     if (g_gc_initialized) return;
 
