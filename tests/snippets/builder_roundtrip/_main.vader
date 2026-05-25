@@ -24,8 +24,8 @@ op :: import "vader/vm"
 import "vader/vm" {
     ModuleBuilder, FunctionBuilder,
     new_module_builder, new_function_builder,
-    add_type, add_import, add_function, set_main, finish,
-    i32_const, i32_add, i32_mul, local_get, local_set,
+    add_type, add_import, add_function, set_main, finish, intern_string,
+    i32_const, i32_add, i32_mul, local_get, local_set, string_const,
     call, call_import, return_op,
     builder_new, builder_append_display, builder_finish,
     int_to_char,

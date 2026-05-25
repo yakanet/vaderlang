@@ -122,8 +122,6 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
     }
 }
 
-import "vader/types" { EnumType, StructType, TraitType, ArrayType, UnionType, FnType }
-
 import "vader/lower" { type_of, LoweredIntLit }
 
 /// Map a primitive name to its `ValType`. Unknown names degrade to

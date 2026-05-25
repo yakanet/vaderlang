@@ -120,7 +120,7 @@ fn snippet$Direction$Turnable$turn_right(%0: Direction) -> Direction
     %10 = move %13
     branch -> bb9
 
-fn snippet$Direction$Display$to_string(%0: Direction) -> ?
+fn snippet$Direction$Display$to_string(%0: Direction) -> string
   locals:
     %0 self: Direction (param self)
     %1 __scrut_0: Direction (synthetic __scrut_0)
@@ -182,21 +182,21 @@ fn snippet$Direction$Display$to_string(%0: Direction) -> ?
 fn snippet$main() -> i32
   locals:
     %0 d: Direction (local d)
-    %1 $call_2: ?
+    %1 $call_2: string
     %2 $call_3: Direction
-    %3 $call_4: ?
+    %3 $call_4: string
     %4 $call_5: Direction
-    %5 $call_6: ?
+    %5 $call_6: string
     %6 $k_7: i32
   bb0:
     %0 = const int(0) :i32
-    %1 = call to_string(%0) :?
+    %1 = call to_string(%0) :string
     call println(%1) :void
     %2 = call turn_left(%0) :Direction
-    %3 = call to_string(%2) :?
+    %3 = call to_string(%2) :string
     call println(%3) :void
     %4 = call turn_right(%0) :Direction
-    %5 = call to_string(%4) :?
+    %5 = call to_string(%4) :string
     call println(%5) :void
     %6 = const int(0) :i32
     return %6

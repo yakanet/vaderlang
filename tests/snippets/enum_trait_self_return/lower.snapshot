@@ -109,7 +109,7 @@
                               else:
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :Direction
-  fn snippet$Direction$Display$to_string(self: Direction) -> ?
+  fn snippet$Direction$Display$to_string(self: Direction) -> string
     ~>
       block :string
         let __scrut_0: Direction = self :Direction
@@ -167,20 +167,20 @@
     let d: Direction = int(0) :i32
     call :void
       callee:
-        println :fn(T) -> void
+        println :void
       arg0:
-        call :?
+        call :string
           callee:
-            to_string :?
+            to_string :string
           arg0:
             d :Direction
     call :void
       callee:
-        println :fn(T) -> void
+        println :void
       arg0:
-        call :?
+        call :string
           callee:
-            to_string :?
+            to_string :string
           arg0:
             call :Direction
               callee:
@@ -189,11 +189,11 @@
                 d :Direction
     call :void
       callee:
-        println :fn(T) -> void
+        println :void
       arg0:
-        call :?
+        call :string
           callee:
-            to_string :?
+            to_string :string
           arg0:
             call :Direction
               callee:

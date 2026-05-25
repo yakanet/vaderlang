@@ -210,16 +210,37 @@ export function inferExprBodiedReturns(
   programs: ReadonlyMap<string, ResolvedProgram>,
   globals: Globals, impls: ImplRegistry, diags: DiagnosticCollector,
 ): void {
-  const pending: Array<{ program: ResolvedProgram; decl: A.FnDecl }> = [];
+  const pending: Array<{ program: ResolvedProgram; decl: A.FnDecl; selfType: Type | null }> = [];
   for (const program of programs.values()) {
     for (const decl of program.source.decls) {
-      if (decl.kind !== "FnDecl") continue;
-      if (decl.isExpressionBodied !== true || decl.body === null) continue;
-      // An explicit `-> T` annotation already pinned the return type in
-      // `declareFn` ; the body is regular-checked in `checkProgram` against
-      // the annotated type, no inference needed.
-      if (decl.returnType !== null) continue;
-      pending.push({ program, decl });
+      if (decl.kind === "FnDecl") {
+        if (decl.isExpressionBodied !== true || decl.body === null) continue;
+        // An explicit `-> T` annotation already pinned the return type in
+        // `declareFn` ; the body is regular-checked in `checkProgram` against
+        // the annotated type, no inference needed.
+        if (decl.returnType !== null) continue;
+        pending.push({ program, decl, selfType: null });
+      } else if (decl.kind === "ImplDecl") {
+        // Impl members aren't reached by the top-level FnDecl walk above ;
+        // without this branch their expression-bodied return type stays
+        // `Unresolved`, which then breaks any caller that needs the result
+        // type to resolve a generic instance (e.g. `println[T](msg: T)` over
+        // `to_string(self)`).
+        //
+        // Skip members whose return type was already inherited from the trait
+        // method by `declareImpl` (`Direction.turn_left` inherits `-> Self`
+        // → `Direction`). Re-inferring those would loop forever : their body
+        // (a match returning dot-shorthand variants) needs the return type
+        // as expected-type context, which the inference loop doesn't carry.
+        const selfType = globals.typeExprTypes.get(decl.forType) ?? null;
+        for (const member of decl.members) {
+          if (member.isExpressionBodied !== true || member.body === null) continue;
+          if (member.returnType !== null) continue;
+          const implFnType = globals.declTypes.get(member);
+          if (implFnType?.kind === "Fn" && implFnType.returnType.kind !== "Unresolved") continue;
+          pending.push({ program, decl: member, selfType });
+        }
+      }
     }
   }
 
@@ -248,7 +269,7 @@ export function inferExprBodiedReturns(
     externSymbols: new Map(),
       };
       const inferred = checkBlock(item.decl.body!, null, t, impls, scratch,
-        { returnType: TY.unresolved, selfType: null, loopDepth: 0 });
+        { returnType: TY.unresolved, selfType: item.selfType, loopDepth: 0 });
       if (containsUnresolved(inferred)) {
         next.push(item);
         continue;
