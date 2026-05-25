@@ -30,6 +30,7 @@ import "vader/lower" {
     LoweredArraySlice, LoweredCellNew, LoweredCellGet, LoweredMakeClosure,
     LoweredDataConst, LoweredTypeConst,
     LoweredBinaryOp,
+    type_of, span_of,
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
@@ -446,7 +447,7 @@ build_loop :: fn(fn_ctx: FnCtx, s: LoweredLoop) -> void {
         if cond_local !is null {
             terminate(fn_ctx, TermCondBranch {
                 .cond = cond_local, .then_block = body_id, .else_block = exit_id,
-                .span = s.cond.span_of_expr(),
+                .span = s.cond.span_of(),
             })
         } else {
             terminate(fn_ctx, TermBranch { .target = exit_id, .span = s.span })
@@ -588,7 +589,7 @@ build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
     dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "call_ind", e.type) }
     emit(fn_ctx, InstrCallIndirect {
         .dst = dst, .callee = callee, .args = args,
-        .fn_type = type_of_lowered(e.callee), .type = e.type, .span = e.span,
+        .fn_type = type_of(e.callee), .type = e.type, .span = e.span,
     })
     return dst
 }
@@ -670,8 +671,8 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     result_name :: if is_and { "and_res" } else { "or_res" }
     result :: declare_local(fn_ctx, result_name, e.type, null)
 
-    then_id :: new_block(fn_ctx, e.right.span_of_expr())
-    else_id :: new_block(fn_ctx, e.right.span_of_expr())
+    then_id :: new_block(fn_ctx, e.right.span_of())
+    else_id :: new_block(fn_ctx, e.right.span_of())
     join_id :: new_block(fn_ctx, e.span)
 
     terminate(fn_ctx, TermCondBranch {
@@ -683,7 +684,7 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
         rhs :: build_expr(fn_ctx, e.right)
         if rhs !is null {
             if fn_ctx.current !is null {
-                emit(fn_ctx, InstrMove { .dst = result, .src = rhs, .span = e.right.span_of_expr() })
+                emit(fn_ctx, InstrMove { .dst = result, .src = rhs, .span = e.right.span_of() })
             }
         }
     } else {
@@ -710,7 +711,7 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
         rhs :: build_expr(fn_ctx, e.right)
         if rhs !is null {
             if fn_ctx.current !is null {
-                emit(fn_ctx, InstrMove { .dst = result, .src = rhs, .span = e.right.span_of_expr() })
+                emit(fn_ctx, InstrMove { .dst = result, .src = rhs, .span = e.right.span_of() })
             }
         }
     }
@@ -947,70 +948,3 @@ is_void :: fn(t: Type) -> bool {
     return false
 }
 
-// Helper : extract the span from any LoweredExpr variant.
-type_of_lowered :: fn(e: LoweredExpr) -> Type = match e {
-    is LoweredIntLit as x        -> x.type
-    is LoweredFloatLit as x      -> x.type
-    is LoweredBoolLit as x       -> x.type
-    is LoweredNullLit as x       -> x.type
-    is LoweredCharLit as x       -> x.type
-    is LoweredStringLit as x     -> x.type
-    is LoweredIdent as x         -> x.type
-    is LoweredCall as x          -> x.type
-    is LoweredVirtualCall as x   -> x.type
-    is LoweredFieldAccess as x   -> x.type
-    is LoweredIndex as x         -> x.type
-    is LoweredUnary as x         -> x.type
-    is LoweredBinary as x        -> x.type
-    is LoweredIf as x            -> x.type
-    is LoweredBlock as x         -> x.type
-    is LoweredStructLit as x     -> x.type
-    is LoweredArrayLit as x      -> x.type
-    is LoweredCast as x          -> x.type
-    is LoweredTypeCheck as x     -> x.type
-    is LoweredUnreachable as x   -> x.type
-    is LoweredIntrinsicCall as x -> x.type
-    is LoweredArrayLen as x      -> x.type
-    is LoweredArrayPush as x     -> x.type
-    is LoweredArraySlice as x    -> x.type
-    is LoweredCellNew as x       -> x.type
-    is LoweredCellGet as x       -> x.type
-    is LoweredMakeClosure as x   -> x.type
-    is LoweredDataConst as x     -> x.type
-    is LoweredTypeConst as x     -> x.type
-}
-
-// Extension method on LoweredExpr to extract span — used by short-circuit
-// branches that need the rhs's span for diagnostics. We can't add real
-// methods (no impl block sugar in this file), so define a free fn.
-span_of_expr :: fn(e: LoweredExpr) -> Span = match e {
-    is LoweredIntLit as x        -> x.span
-    is LoweredFloatLit as x      -> x.span
-    is LoweredBoolLit as x       -> x.span
-    is LoweredNullLit as x       -> x.span
-    is LoweredCharLit as x       -> x.span
-    is LoweredStringLit as x     -> x.span
-    is LoweredIdent as x         -> x.span
-    is LoweredCall as x          -> x.span
-    is LoweredVirtualCall as x   -> x.span
-    is LoweredFieldAccess as x   -> x.span
-    is LoweredIndex as x         -> x.span
-    is LoweredUnary as x         -> x.span
-    is LoweredBinary as x        -> x.span
-    is LoweredIf as x            -> x.span
-    is LoweredBlock as x         -> x.span
-    is LoweredStructLit as x     -> x.span
-    is LoweredArrayLit as x      -> x.span
-    is LoweredCast as x          -> x.span
-    is LoweredTypeCheck as x     -> x.span
-    is LoweredUnreachable as x   -> x.span
-    is LoweredIntrinsicCall as x -> x.span
-    is LoweredArrayLen as x      -> x.span
-    is LoweredArrayPush as x     -> x.span
-    is LoweredArraySlice as x    -> x.span
-    is LoweredCellNew as x       -> x.span
-    is LoweredCellGet as x       -> x.span
-    is LoweredMakeClosure as x   -> x.span
-    is LoweredDataConst as x     -> x.span
-    is LoweredTypeConst as x     -> x.span
-}

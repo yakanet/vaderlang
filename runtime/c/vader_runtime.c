@@ -199,14 +199,6 @@ static size_t vader_gc_env_bytes(const char* env_name, size_t fallback) {
     return (size_t)v;
 }
 
-/* String-API profile counters. After the atom flip the only meaningful
- * counters left are the two equality buckets — every `vader_string_eq`
- * is now a single `u32 ==` so there's no per-call byte work to count.
- * The legacy `_len_skipped` / `_byte_work` / `_alloc_*` counters were
- * removed alongside the byte-comparing implementation. */
-static size_t g_prof_eq_calls   = 0;
-static size_t g_prof_eq_matches = 0;
-
 static int g_gc_profile = 0;
 void vader_gc_profile_dump(void);
 
@@ -1189,7 +1181,6 @@ void vader_minor_collect(void) {
      * mark-sweep that used to run here was removed when `vader_string_t`
      * flipped to `u32` ; atoms are POD now and the conservative scan
      * naturally ignores them. */
-    (void) saved;
 }
 
 void vader_major_collect(void) {
@@ -1272,9 +1263,7 @@ vader_string_t vader_string_concat(vader_string_t a, vader_string_t b) {
 }
 
 bool vader_string_eq(vader_string_t a, vader_string_t b) {
-    g_prof_eq_calls++;
-    if (a == b) { g_prof_eq_matches++; return true; }
-    return false;
+    return a == b;
 }
 
 const char* vader_string_to_cstr(vader_string_t s) {
@@ -1951,10 +1940,16 @@ vader_string_t vader_string_concat_all(vader_array_t* parts) {
 
 /* ----------------------------------------------------------------- I/O */
 
-void vader_print(vader_string_t s)    { fwrite(vader_atom_data(s), 1, vader_atom_len(s), stdout); fflush(stdout); }
-void vader_println(vader_string_t s)  { fwrite(vader_atom_data(s), 1, vader_atom_len(s), stdout); fputc('\n', stdout); fflush(stdout); }
-void vader_eprint(vader_string_t s)   { fwrite(vader_atom_data(s), 1, vader_atom_len(s), stderr); fflush(stderr); }
-void vader_eprintln(vader_string_t s) { fwrite(vader_atom_data(s), 1, vader_atom_len(s), stderr); fputc('\n', stderr); fflush(stderr); }
+static inline void print_atom(FILE* stream, vader_string_t s, int newline) {
+    fwrite(vader_atom_data(s), 1, vader_atom_len(s), stream);
+    if (newline) fputc('\n', stream);
+    fflush(stream);
+}
+
+void vader_print(vader_string_t s)    { print_atom(stdout, s, 0); }
+void vader_println(vader_string_t s)  { print_atom(stdout, s, 1); }
+void vader_eprint(vader_string_t s)   { print_atom(stderr, s, 0); }
+void vader_eprintln(vader_string_t s) { print_atom(stderr, s, 1); }
 
 /* Tag-aware variants — the emitter passes the BcType indices for the success
  * and error variants. Caller-side boxing keeps the runtime tag-agnostic. */
@@ -2073,33 +2068,37 @@ vader_bool_t vader_exists(vader_string_t path) {
 }
 
 /* `is_dir` / `read_dir` — directory traversal split across POSIX (`dirent.h`,
- * `sys/stat.h`) and Windows (`FindFirstFileA` / `GetFileAttributesA`).
- * Scratch buffers for NUL-terminating the path use plain `malloc`/`free`;
- * the per-entry strings escape and go through `vader_string_alloc`. */
+ * `sys/stat.h`) and Windows (`FindFirstFileA` / `GetFileAttributesA`). Path
+ * arguments come as atom IDs ; we materialise a NUL-terminated C string via
+ * `vader_atom_to_cstr` and intern dirent names back through `vader_string_new`. */
 
 #if defined(_WIN32)
 
 vader_bool_t vader_is_dir(vader_string_t path) {
-    char* p = (char*) malloc(path.len + 1);
-    if (p == NULL) vader_trap("is_dir: malloc failed");
-    memcpy(p, path.ptr, path.len); p[path.len] = '\0';
+    const char* p = vader_atom_to_cstr(path);
     DWORD attr = GetFileAttributesA(p);
-    free(p);
+    vader_atom_cstr_free(p);
     return attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY);
 }
 
 vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
                            uint32_t str_type, uint32_t err_tag) {
     /* FindFirstFileA expects a glob — append "\\*". */
-    char* pat = (char*) malloc(path.len + 3);
-    if (pat == NULL) vader_trap("read_dir: malloc failed");
-    memcpy(pat, path.ptr, path.len);
-    size_t pat_len = path.len;
+    const char* p = vader_atom_to_cstr(path);
+    size_t plen = vader_atom_len(path);
+    char* pat = (char*) malloc(plen + 3);
+    if (pat == NULL) {
+        vader_atom_cstr_free(p);
+        vader_trap("read_dir: malloc failed");
+    }
+    memcpy(pat, p, plen);
+    size_t pat_len = plen;
     if (pat_len > 0 && pat[pat_len - 1] != '\\' && pat[pat_len - 1] != '/') {
         pat[pat_len++] = '\\';
     }
     pat[pat_len++] = '*';
     pat[pat_len] = '\0';
+    vader_atom_cstr_free(p);
 
     WIN32_FIND_DATAA fd;
     HANDLE h = FindFirstFileA(pat, &fd);
@@ -2115,12 +2114,10 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
         if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) continue;
         size_t n = strlen(name);
         /* `fd.cFileName` lives on the stack and is overwritten by the
-         * next FindNextFileA — copy into a GC-tracked allocation so
-         * the resulting string survives. */
-        char* copy = (char*) vader_string_alloc(n);
-        if (n > 0) memcpy(copy, name, n);
+         * next FindNextFileA — intern via `vader_string_new` to copy the
+         * bytes into the atom table before the next iteration. */
         vader_array_push((vader_array_t*) arr_box.payload.obj,
-                         vader_box_string(str_type, vader_string_new(copy, n)));
+                         vader_box_string(str_type, vader_string_new(name, n)));
     } while (FindNextFileA(h, &fd));
     FindClose(h);
     vader_box_t result = arr_box;

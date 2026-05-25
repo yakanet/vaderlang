@@ -37,6 +37,7 @@ import "vader/lower" {
     INTRINSIC_BUILDER_NEW, INTRINSIC_BUILDER_APPEND_STR,
     INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
     INTRINSIC_SIZE_OF_TYPE,
+    type_of,
 }
 import "vader/vm" {
     Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
@@ -194,7 +195,7 @@ emit_expr :: fn(expr: LoweredExpr, state: FnEmitState, ctx: EmitterCtx) -> void 
 emit_binary :: fn(binary: LoweredBinary, state: FnEmitState, ctx: EmitterCtx) -> void {
     emit_expr(binary.left, state, ctx)
     emit_expr(binary.right, state, ctx)
-    lhs_val :: val_type_of_type(lowered_expr_type(binary.left))
+    lhs_val :: val_type_of_type(type_of(binary.left))
     push_op(state, binary_op_for(binary.op, lhs_val))
 }
 
@@ -206,7 +207,7 @@ emit_binary :: fn(binary: LoweredBinary, state: FnEmitState, ctx: EmitterCtx) ->
 /// @param ctx    the emitter context.
 emit_unary :: fn(unary: LoweredUnary, state: FnEmitState, ctx: EmitterCtx) -> void {
     emit_expr(unary.operand, state, ctx)
-    operand_val :: val_type_of_type(lowered_expr_type(unary.operand))
+    operand_val :: val_type_of_type(type_of(unary.operand))
     push_op(state, unary_op_for(unary.op, operand_val))
 }
 
@@ -280,7 +281,7 @@ emit_call :: fn(call: LoweredCall, state: FnEmitState, ctx: EmitterCtx) -> void 
         }
         _ -> {
             emit_expr(call.callee, state, ctx)
-            callee_type_id :: intern_type(lowered_expr_type(call.callee), ctx)
+            callee_type_id :: intern_type(type_of(call.callee), ctx)
             push_op(state, CallIndirect { .type_id = callee_type_id })
         }
     }
@@ -370,7 +371,7 @@ emit_struct_lit :: fn(struct_lit: LoweredStructLit, state: FnEmitState, ctx: Emi
 /// produced a field access before the type's first concrete use)
 /// we intern it first.
 emit_field_access :: fn(field_access: LoweredFieldAccess, state: FnEmitState, ctx: EmitterCtx) -> void {
-    target_type_id :: intern_type(lowered_expr_type(field_access.target), ctx)
+    target_type_id :: intern_type(type_of(field_access.target), ctx)
     emit_expr(field_access.target, state, ctx)
     field_index :: lookup_field_index(ctx, target_type_id, field_access.field)
     push_op(state, StructGet {
@@ -418,7 +419,7 @@ emit_array_len :: fn(array_len: LoweredArrayLen, state: FnEmitState, ctx: Emitte
 /// Emit `array.push` : push the target array, then the value, then
 /// `ArrayPush { type_id }`. Statement-form — no value pushed back.
 emit_array_push :: fn(array_push: LoweredArrayPush, state: FnEmitState, ctx: EmitterCtx) -> void {
-    array_type_id :: intern_type(lowered_expr_type(array_push.target), ctx)
+    array_type_id :: intern_type(type_of(array_push.target), ctx)
     emit_expr(array_push.target, state, ctx)
     emit_expr(array_push.value, state, ctx)
     push_op(state, ArrayPush { .type_id = array_type_id })
@@ -440,7 +441,7 @@ emit_array_slice :: fn(array_slice: LoweredArraySlice, state: FnEmitState, ctx: 
 /// element's) — the VM dereferences through the array header to
 /// reach the element-kind discriminator.
 emit_index :: fn(index_get: LoweredIndex, state: FnEmitState, ctx: EmitterCtx) -> void {
-    array_type_id :: intern_type(lowered_expr_type(index_get.target), ctx)
+    array_type_id :: intern_type(type_of(index_get.target), ctx)
     emit_expr(index_get.target, state, ctx)
     emit_expr(index_get.index, state, ctx)
     push_op(state, ArrayGet { .type_id = array_type_id })

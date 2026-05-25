@@ -124,57 +124,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
 
 import "vader/types" { EnumType, StructType, TraitType, ArrayType, UnionType, FnType }
 
-/// Recover the static `Type` of a `LoweredExpr`. Every variant
-/// carries its result type in a `type` field set by the lowerer —
-/// this helper just dispatches on the variant.
-///
-/// Used by `emit_field_access` (target type → struct id intern) and
-/// by future passes that need the type of an arbitrary sub-expression
-/// without re-traversing the typed AST.
-///
-/// @param expr  the lowered expression.
-/// @return      its static result type.
-export lowered_expr_type :: fn(expr: LoweredExpr) -> Type = match expr {
-    is LoweredIntLit as e        -> e.type
-    is LoweredFloatLit as e      -> e.type
-    is LoweredBoolLit as e       -> e.type
-    is LoweredNullLit as e       -> e.type
-    is LoweredCharLit as e       -> e.type
-    is LoweredStringLit as e     -> e.type
-    is LoweredIdent as e         -> e.type
-    is LoweredCall as e          -> e.type
-    is LoweredVirtualCall as e   -> e.type
-    is LoweredFieldAccess as e   -> e.type
-    is LoweredIndex as e         -> e.type
-    is LoweredUnary as e         -> e.type
-    is LoweredBinary as e        -> e.type
-    is LoweredIf as e            -> e.type
-    is LoweredBlock as e         -> e.type
-    is LoweredStructLit as e     -> e.type
-    is LoweredArrayLit as e      -> e.type
-    is LoweredDataConst as e     -> e.type
-    is LoweredCast as e          -> e.type
-    is LoweredTypeCheck as e     -> e.type
-    is LoweredUnreachable as e   -> e.type
-    is LoweredIntrinsicCall as e -> e.type
-    is LoweredArrayLen as e      -> e.type
-    is LoweredArrayPush as e     -> e.type
-    is LoweredArraySlice as e    -> e.type
-    is LoweredCellNew as e       -> e.type
-    is LoweredCellGet as e       -> e.type
-    is LoweredMakeClosure as e   -> e.type
-    is LoweredTypeConst as e     -> e.type
-}
-
-import "vader/lower" {
-    LoweredExpr, LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
-    LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
-    LoweredVirtualCall, LoweredFieldAccess, LoweredIndex, LoweredUnary,
-    LoweredBinary, LoweredIf, LoweredBlock, LoweredStructLit, LoweredArrayLit,
-    LoweredDataConst, LoweredCast, LoweredTypeCheck, LoweredUnreachable,
-    LoweredIntrinsicCall, LoweredArrayLen, LoweredArrayPush, LoweredArraySlice,
-    LoweredCellNew, LoweredCellGet, LoweredMakeClosure, LoweredTypeConst,
-}
+import "vader/lower" { type_of, LoweredIntLit }
 
 /// Map a primitive name to its `ValType`. Unknown names degrade to
 /// `Any` so the upstream typechecker has the only say in rejecting
@@ -216,11 +166,11 @@ import "vader/types" { mk_primitive }
 
 import "vader/diagnostics" { Position, Span }
 
-@test test_lowered_expr_type_int_literal :: fn() -> void {
+@test test_type_of_int_literal :: fn() -> void {
     p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }
     sp :: Span { .start = p, .end = p }
     lit :: LoweredIntLit { .span = sp, .type = mk_primitive("i32"), .value = i64(42) }
-    t :: lowered_expr_type(lit)
+    t :: type_of(lit)
     match t {
         is PrimitiveType as prim -> assert_eq(prim.name, "i32")
         _ -> assert_eq("expected primitive", "")
