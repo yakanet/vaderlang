@@ -13,7 +13,6 @@
 #include "vader.h"
 
 #include <ctype.h>
-#include <setjmp.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -151,15 +150,11 @@ static size_t g_card_count = 0;
  * precise roots. */
 vader_gc_frame_t* vader_gc_top = NULL;
 
-/* String mark-sweep — defined further down (it needs the type info table
- * + the spawn globals it scans as roots). Forward-declared here because
- * vader_gc_collect calls it at the end of every cycle. */
-static void vader_string_gc_collect(void);
-
-/* Builder layout + active-list head are declared up here so the string
- * mark-sweep (which walks `g_builder_head` to keep partial buffers live)
- * can see the struct's `next` chain. The op implementations themselves
- * live alongside the rest of the builder helpers further down. */
+/* Builder layout + active-list head are declared up here so any pass
+ * walking `g_builder_head` to keep partial buffers live (currently none
+ * — atoms are tracked separately) can see the struct's `next` chain.
+ * The op implementations themselves live alongside the rest of the
+ * builder helpers further down. */
 struct vader_builder_s {
     char*  buf;
     size_t len;
@@ -204,25 +199,13 @@ static size_t vader_gc_env_bytes(const char* env_name, size_t fallback) {
     return (size_t)v;
 }
 
-/* String-API profile counters (interning analysis, 2026-05-24). Dumped
- * at process exit when env `VADER_STRING_PROFILE=1`. Defined here so
- * `vader_gc_init` can register the atexit hook. */
-static size_t g_prof_eq_calls       = 0;
-static size_t g_prof_eq_len_skipped = 0;
-static size_t g_prof_eq_byte_work   = 0;
-static size_t g_prof_eq_matches     = 0;
-static size_t g_prof_alloc_calls    = 0;
-static size_t g_prof_alloc_bytes    = 0;
-/* Alloc-length histogram : buckets [0..=8, 9..=16, 17..=32, 33..=64, 65+]
- * — tells us SSO eligibility (≤14 bytes fit inline in a 24-byte struct). */
-static size_t g_prof_alloc_buckets[5] = {0};
-
-/* Forward decl so the atexit dump can walk the live-string list
- * (defined below alongside `g_string_head`). */
-typedef struct vader_string_header vader_string_header_t;
-
-static void vader_string_profile_dump(void);  /* defined below, after the header struct. */
-
+/* String-API profile counters. After the atom flip the only meaningful
+ * counters left are the two equality buckets — every `vader_string_eq`
+ * is now a single `u32 ==` so there's no per-call byte work to count.
+ * The legacy `_len_skipped` / `_byte_work` / `_alloc_*` counters were
+ * removed alongside the byte-comparing implementation. */
+static size_t g_prof_eq_calls   = 0;
+static size_t g_prof_eq_matches = 0;
 
 /* ============================================================
  * Atom-based string interning — see `docs/ATOM_INTERNING.md`.
@@ -660,11 +643,6 @@ void vader_gc_init(void) {
     const char* stress_env = getenv("VADER_GC_STRESS");
     g_gc_stress = (stress_env != NULL && stress_env[0] != '\0' && stress_env[0] != '0');
 
-    const char* prof_env = getenv("VADER_STRING_PROFILE");
-    if (prof_env != NULL && prof_env[0] != '\0' && prof_env[0] != '0') {
-        atexit(vader_string_profile_dump);
-    }
-
     /* Young: one malloc spanning both semi-spaces. */
     size_t young_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t)VADER_GC_YOUNG_BYTES);
     g_young.block = (char*) malloc(young_bytes * 2u);
@@ -720,31 +698,6 @@ void vader_gc_shutdown(void) {
     g_gc_initialized  = 0;
 }
 
-/* Adaptive trigger for the string sweep. Starts at 1 MB ; after each
- * collect, retargets to 2× the surviving live set (floor 1 MB). This
- * matches Go's classic "heap target = 2× live" pacing — programs holding
- * lots of strings collect rarely, programs that churn through transient
- * strings collect often, neither pays a worst-case cost. */
-#ifndef VADER_STRING_GC_THRESHOLD_FLOOR
-#define VADER_STRING_GC_THRESHOLD_FLOOR (1u * 1024u * 1024u)
-#endif
-static size_t g_string_gc_threshold = VADER_STRING_GC_THRESHOLD_FLOOR;
-
-static size_t g_string_total_bytes;  /* tentative def — see string arena */
-
-/* Throttle the string mark-sweep across minor collects. With the O(log N)
- * mark in place, sweep cost is dominated by the qsort that rebuilds the
- * sorted index — ~50 % of total runtime on the typechecker bootstrap.
- * Skipping every Nth sweep cuts that proportionally. Strings unreachable
- * during the skipped cycles stay live a bit longer, but the adaptive
- * `g_string_gc_threshold` trigger (`bytes > 2 × live`) always overrides
- * the throttle so unbounded retention is impossible. Major collects
- * skip the throttle entirely — they sweep on their own path. */
-#ifndef VADER_STRING_SWEEP_MINOR_INTERVAL
-#define VADER_STRING_SWEEP_MINOR_INTERVAL 8u
-#endif
-static unsigned g_minor_since_string_sweep = 0u;
-
 /* Internal bump in the young from-space. Caller must have ensured capacity. */
 static void* vader_gc_alloc_young_unchecked(size_t aligned) {
     void* p = g_young.from.cur;
@@ -762,8 +715,7 @@ void* vader_gc_alloc(size_t bytes) {
         vader_trap("vader_gc_alloc: requested size exceeds young semi-space");
     }
     int young_full = (g_young.from.cur + aligned > g_young.from.end);
-    int strings_hot = (g_string_total_bytes > g_string_gc_threshold);
-    if (VADER_UNLIKELY(young_full || strings_hot || g_gc_stress)) {
+    if (VADER_UNLIKELY(young_full || g_gc_stress)) {
         vader_minor_collect();
         if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
             /* Minor didn't free enough — young is overcommitted by long-
@@ -1061,19 +1013,11 @@ void vader_minor_collect(void) {
     if (saved == VADER_CYCLE_NONE) g_total_collections++;
     g_cycle = saved;
 
-    /* String mark-sweep runs after the swap so it walks the freshly
-     * compacted survivor set. Throttled : skip on minors triggered by
-     * young-space pressure when string churn hasn't crossed the adaptive
-     * threshold. `MAJOR_DRAIN` skips unconditionally — the enclosing
-     * `vader_major_collect` will sweep after its own old-Cheney pass. */
-    g_minor_since_string_sweep++;
-    int inside_major  = (saved == VADER_CYCLE_MAJOR_DRAIN);
-    int strings_hot   = (g_string_total_bytes > g_string_gc_threshold);
-    int counter_hit   = (g_minor_since_string_sweep >= VADER_STRING_SWEEP_MINOR_INTERVAL);
-    if (!inside_major && (strings_hot || counter_hit)) {
-        vader_string_gc_collect();
-        g_minor_since_string_sweep = 0u;
-    }
+    /* Atom-table GC integration lands in Phase 4. The legacy string
+     * mark-sweep that used to run here was removed when `vader_string_t`
+     * flipped to `u32` ; atoms are POD now and the conservative scan
+     * naturally ignores them. */
+    (void) saved;
 }
 
 void vader_major_collect(void) {
@@ -1106,8 +1050,7 @@ void vader_major_collect(void) {
 
     g_cycle = VADER_CYCLE_NONE;
     g_total_collections++;
-    vader_string_gc_collect();
-    g_minor_since_string_sweep = 0u;
+    /* Atom-table sweep will hook here in Phase 4. */
 }
 
 /* Public alias. `runtime.collect()` in Vader maps here; tests rely on it
@@ -1131,449 +1074,56 @@ vader_gc_stats_t vader_gc_get_stats(void) {
     return s;
 }
 
-/* ----------------------------------------------------------------- string arena
- *
- * Strings are immutable value types `{ptr, len}` passed by copy. The buffer
- * behind `ptr` lives in a dedicated mark-sweep arena (non-moving — so the
- * fat-ptr's address stays stable across collections), separate from the
- * Cheney heap that holds structs/arrays/fns.
- *
- * Tracking: each allocation carries a `vader_string_header_t` immediately
- * before the user-visible payload. Headers are chained through `next` so the
- * collector can walk all live buffers; `mark` is the per-cycle reachability
- * bit. `size` is the payload byte count (used by stats + sweep).
- *
- * Collection: triggered exclusively from `vader_gc_collect` so that the
- * standard "any vader_gc_alloc may collect" safepoint contract covers
- * strings too. Never triggered from inside `vader_string_alloc` itself —
- * that would create unsafe collection points mid-runtime call where freshly
- * minted buffers aren't yet reachable from any root.
- *
- * Roots:
- *   - shadow stack `vader_box_t*` (payload union read conservatively)
- *   - Cheney from-space — each live object's pointer-bearing slots
- *   - module globals (`g_spawn_*`)
- *   - the C stack between `g_stack_bottom` and the collector's frame
- *     (conservative — any word that looks like a string ptr keeps the
- *     buffer alive). Covers `vader_string_t` raw values transiting in
- *     local variables or callee-saved registers during a runtime call. */
-
-typedef struct vader_string_header {
-    struct vader_string_header* next;
-    size_t  size;
-    uint8_t mark;
-    uint8_t _pad[7];
-} vader_string_header_t;
-
-static vader_string_header_t* g_string_head = NULL;
-static size_t                  g_string_total_bytes = 0;
-static size_t                  g_string_total_count = 0;
-
-static void vader_string_profile_dump(void) {
-    fprintf(stderr,
-        "[VADER_STRING_PROFILE]\n"
-        "  eq_calls          = %zu\n"
-        "  eq_len_skipped    = %zu  (%.1f%%)\n"
-        "  eq_byte_work      = %zu  bytes scanned by memcmp\n"
-        "  eq_matches        = %zu  (%.1f%% of memcmp calls)\n"
-        "  alloc_calls       = %zu\n"
-        "  alloc_bytes       = %zu\n"
-        "  alloc_by_size     = [<=8: %zu, <=16: %zu, <=32: %zu, <=64: %zu, >64: %zu]\n",
-        g_prof_eq_calls,
-        g_prof_eq_len_skipped,
-        g_prof_eq_calls ? 100.0 * (double) g_prof_eq_len_skipped / (double) g_prof_eq_calls : 0.0,
-        g_prof_eq_byte_work,
-        g_prof_eq_matches,
-        (g_prof_eq_calls - g_prof_eq_len_skipped)
-            ? 100.0 * (double) g_prof_eq_matches / (double) (g_prof_eq_calls - g_prof_eq_len_skipped)
-            : 0.0,
-        g_prof_alloc_calls,
-        g_prof_alloc_bytes,
-        g_prof_alloc_buckets[0], g_prof_alloc_buckets[1], g_prof_alloc_buckets[2],
-        g_prof_alloc_buckets[3], g_prof_alloc_buckets[4]);
-    /* Walk live-string list, dump every <=8-byte buffer, one per line,
-     * prefixed with `__SMALL__|`. External pipeline can do
-     * `grep __SMALL__ | cut -d'|' -f2 | sort | uniq -c | sort -rn`. */
-    size_t small_live = 0;
-    for (vader_string_header_t* h = g_string_head; h != NULL; h = h->next) {
-        if (h->size > 0 && h->size <= 8) {
-            fprintf(stderr, "__SMALL__|%.*s\n", (int) h->size, (const char*) (h + 1));
-            small_live++;
-        }
-    }
-    fprintf(stderr, "[<=8 live strings at exit: %zu]\n", small_live);
-}
-
-/* Zero-length requests return a process-lifetime sentinel rather than a
- * fresh allocation: the caller never writes (every write site is a `memcpy`
- * of `bytes` bytes, which is a no-op for zero) so const aliasing is safe,
- * we save one malloc per empty-string operation, and the sentinel sits
- * outside the arena so the sweep can skip it via a NULL-header probe. */
-static char vader_string_empty_sentinel[1] = { 0 };
-
-static void* vader_string_alloc(size_t bytes) {
-    if (bytes == 0) return vader_string_empty_sentinel;
-    vader_string_header_t* hdr =
-        (vader_string_header_t*) malloc(sizeof(*hdr) + bytes);
-    if (hdr == NULL) vader_trap("vader_string_alloc: malloc failed");
-    hdr->next = g_string_head;
-    hdr->size = bytes;
-    hdr->mark = 0;
-    g_string_head = hdr;
-    g_string_total_bytes += bytes;
-    g_string_total_count += 1;
-    g_prof_alloc_calls += 1;
-    g_prof_alloc_bytes += bytes;
-    if      (bytes <= 8)  g_prof_alloc_buckets[0]++;
-    else if (bytes <= 16) g_prof_alloc_buckets[1]++;
-    else if (bytes <= 32) g_prof_alloc_buckets[2]++;
-    else if (bytes <= 64) g_prof_alloc_buckets[3]++;
-    else                  g_prof_alloc_buckets[4]++;
-    return (void*)(hdr + 1);
-}
-
-/* Free a tracked buffer explicitly — used by runtime helpers that own a
- * buffer privately and replace it before any alias can escape (the builder
- * growing its backing buffer, the spawn capture replacing an unconsumed
- * previous result). NULL and the empty sentinel are both no-ops, which
- * matches the discipline of standard `free`. */
-static void vader_string_free(void* p) {
-    if (p == NULL || p == vader_string_empty_sentinel) return;
-    vader_string_header_t* hdr = ((vader_string_header_t*) p) - 1;
-    /* Unlink — O(n) walk of the live list. This path only fires from the
-     * runtime helpers above (a handful of sites), and the list stays short
-     * because the collector compacts it; not worth a doubly-linked list
-     * for the savings. */
-    vader_string_header_t** cursor = &g_string_head;
-    while (*cursor != NULL && *cursor != hdr) {
-        cursor = &(*cursor)->next;
-    }
-    if (*cursor == NULL) {
-        vader_trap("vader_string_free: pointer not in arena");
-    }
-    *cursor = hdr->next;
-    g_string_total_bytes -= hdr->size;
-    g_string_total_count -= 1;
-    free(hdr);
-}
-
-/* ---------- string mark-sweep collector ---------- */
-
-/* Forward declarations for module globals defined further down (in the
- * spawn section) ; the string GC scans them as additional roots. C allows
- * a tentative definition (no initializer) followed by a real definition
- * elsewhere, so the actual initializers remain co-located with their use. */
-static char* g_spawn_stdout_buf;
-static char* g_spawn_stderr_buf;
-
-/* Bottom of the C stack (the HIGH address, since stacks grow down on every
- * platform we target). Captured lazily on first collection — calling main()
- * before this point isn't required, the pthread/Win32 query is self-sufficient. */
-static const void* g_stack_bottom = NULL;
-
-static void vader_string_gc_capture_stack_bottom(void) {
-    if (g_stack_bottom != NULL) return;
-#if defined(_WIN32)
-    ULONG_PTR low = 0, high = 0;
-    GetCurrentThreadStackLimits(&low, &high);
-    g_stack_bottom = (const void*) high;
-#elif defined(__APPLE__)
-    g_stack_bottom = pthread_get_stackaddr_np(pthread_self());
-#else
-    /* glibc / musl path : query the attr block, then add the stack size to
-     * the low address. pthread_get_stackaddr_np is BSD/macOS only. */
-    pthread_attr_t attr;
-    if (pthread_getattr_np(pthread_self(), &attr) == 0) {
-        void*  base = NULL;
-        size_t size = 0;
-        if (pthread_attr_getstack(&attr, &base, &size) == 0) {
-            g_stack_bottom = (const char*) base + size;
-        }
-        pthread_attr_destroy(&attr);
-    }
-#endif
-}
-
-/* Sorted index over the live string headers, keyed by start pointer.
- * Built once at the top of each `vader_string_gc_collect` ; consumed by
- * `vader_string_mark_ptr` for an O(log N) lookup instead of the O(N)
- * walk of `g_string_head`. With tens of thousands of live strings
- * (typechecker bootstrap territory) the naive walk dominates runtime
- * — `vader_string_mark_ptr` accounts for ~54 % of total time on a
- * self-host eval_types.vader run. */
-static vader_string_header_t** g_string_sorted_index          = NULL;
-static size_t                  g_string_sorted_index_capacity = 0;
-
-static int vader_string_header_start_cmp(const void* a, const void* b) {
-    const vader_string_header_t* ha = *(const vader_string_header_t* const*) a;
-    const vader_string_header_t* hb = *(const vader_string_header_t* const*) b;
-    const char* sa = (const char*) (ha + 1);
-    const char* sb = (const char*) (hb + 1);
-    if (sa < sb) return -1;
-    if (sa > sb) return 1;
-    return 0;
-}
-
-/* Build the sorted index AND reset all marks in a single linked-list
- * walk. Folding the two passes saves one full traversal of `g_string_head`
- * per sweep (the previous shape walked the list once here, once again as
- * step 1 of `vader_string_gc_collect`). */
-static void vader_string_prepare_marks(void) {
-    if (g_string_total_count > g_string_sorted_index_capacity) {
-        size_t new_cap = g_string_sorted_index_capacity == 0u ? 256u
-                                                              : g_string_sorted_index_capacity * 2u;
-        while (new_cap < g_string_total_count) new_cap *= 2u;
-        free(g_string_sorted_index);
-        g_string_sorted_index = (vader_string_header_t**) malloc(new_cap * sizeof(*g_string_sorted_index));
-        if (g_string_sorted_index == NULL) vader_trap("vader_string_prepare_marks: malloc failed");
-        g_string_sorted_index_capacity = new_cap;
-    }
-    size_t i = 0u;
-    for (vader_string_header_t* h = g_string_head; h != NULL; h = h->next) {
-        h->mark = 0;
-        g_string_sorted_index[i++] = h;
-    }
-    qsort(g_string_sorted_index, g_string_total_count, sizeof(*g_string_sorted_index),
-          vader_string_header_start_cmp);
-}
-
-/* Mark the buffer that contains `p` (if any). Interior pointers are
- * supported — `vader_string_slice` returns `s.ptr + start`, so any byte
- * inside a live buffer is a valid root. Uses the sorted index built by
- * `vader_string_prepare_marks` for an O(log N) range lookup. */
-static void vader_string_mark_ptr(const void* p) {
-    if (p == NULL || p == vader_string_empty_sentinel) return;
-    if (g_string_total_count == 0u) return;
-    /* upper_bound : largest index `lo` where start(headers[lo-1]) <= p. */
-    size_t lo = 0u;
-    size_t hi = g_string_total_count;
-    while (lo < hi) {
-        size_t mid = lo + (hi - lo) / 2u;
-        const char* mid_start = (const char*) (g_string_sorted_index[mid] + 1);
-        if (mid_start <= (const char*) p) {
-            lo = mid + 1u;
-        } else {
-            hi = mid;
-        }
-    }
-    if (lo == 0u) return;
-    vader_string_header_t* h = g_string_sorted_index[lo - 1u];
-    const char* start = (const char*) (h + 1);
-    const char* end   = start + h->size;
-    if ((const char*) p >= start && (const char*) p < end) {
-        h->mark = 1;
-    }
-}
-
-/* Conservatively read every 8-byte aligned word in [lo, hi) and mark whatever
- * each word points at. Used for the C-stack scan and the saved-register
- * dump from setjmp. Hi-low inversion safely no-ops.
- *
- * AddressSanitizer poisons redzones between stack locals and reports the
- * conservative reads here as stack-buffer-underflow. They aren't bugs: the
- * scan is by design walking memory it doesn't formally own. Suppress the
- * check on this function so ASan builds stay quiet without losing coverage
- * on the rest of the runtime. Same rationale for MemorySanitizer — words
- * read out of uninitialised slots are intentionally interpreted as opaque
- * bit patterns. */
-#if defined(__clang__) || defined(__GNUC__)
-__attribute__((no_sanitize("address", "memory")))
-#endif
-static void vader_string_scan_words(const void* lo, const void* hi) {
-    if (lo == NULL || hi == NULL || lo >= hi) return;
-    uintptr_t s = ((uintptr_t) lo + (sizeof(void*) - 1u)) & ~(uintptr_t)(sizeof(void*) - 1u);
-    uintptr_t e = (uintptr_t) hi & ~(uintptr_t)(sizeof(void*) - 1u);
-    const void* const* start = (const void* const*) s;
-    const void* const* end   = (const void* const*) e;
-    for (const void* const* w = start; w < end; w++) {
-        vader_string_mark_ptr(*w);
-    }
-}
-
-/* Walk a Cheney from-space object's pointer-bearing slots, marking any
- * string buffer reachable via embedded `vader_box_t` payloads. Mirrors the
- * Cheney scan's slot iteration but for marks only, not forwards. */
-static void vader_string_mark_obj(char* scan, uint32_t type_index) {
-    if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
-        vader_array_buf_t* buf = (vader_array_buf_t*) scan;
-        if (buf->element_kind != VADER_ARRAY_KIND_BOXED) return;
-        vader_box_t* slots = vader_array_box_slots(buf);
-        for (size_t i = 0; i < buf->length; i++) {
-            /* payload.s.ptr aliases payload.obj / payload.i — same 8 bytes.
-             * Reading it conservatively works for every tag. */
-            vader_string_mark_ptr((const void*) slots[i].payload.s.ptr);
-        }
-        return;
-    }
-    if (type_index >= vader_type_info_count) return;
-    const vader_type_info_t* info = &vader_type_info_table[type_index];
-    if (info->kind == VADER_TYPE_KIND_FN || info->kind == VADER_TYPE_KIND_ARRAY) {
-        /* FN/ARRAY kinds have raw void* slots, not boxes — they hold no
-         * string pointers themselves. The strings live inside the boxes
-         * carried by the object they point to, which Cheney will scan in
-         * its own pass through this loop. Raw `vader_string_t` struct
-         * fields are listed separately in `string_offsets` (handled below)
-         * — FN/ARRAY have none, so skip. */
-        return;
-    }
-    for (uint16_t i = 0; i < info->ptr_count; i++) {
-        vader_box_t* bp = (vader_box_t*) (scan + info->ptr_offsets[i]);
-        vader_string_mark_ptr((const void*) bp->payload.s.ptr);
-    }
-    /* Raw `vader_string_t` fields (primitive `string` typed in the source).
-     * These are stored inline as a fat ptr+len rather than a box, so the
-     * box-aliased read above misses them. The emitter materialises a
-     * dedicated `string_offsets[]` array for each struct that has at least
-     * one such field. */
-    for (uint16_t i = 0; i < info->string_count; i++) {
-        vader_string_t* sp = (vader_string_t*) (scan + info->string_offsets[i]);
-        vader_string_mark_ptr((const void*) sp->ptr);
-    }
-}
-
-/* Full mark-sweep cycle. Runs after Cheney has compacted from-space, so the
- * arena walk hits exactly the live struct/array/fn set. */
-static void vader_string_gc_collect(void) {
-    if (g_string_head == NULL) return;
-
-    /* 1. Build the sorted index used by `vader_string_mark_ptr` AND
-     *    reset all marks in one walk. The sorted index buys O(log N)
-     *    per mark instead of the previous O(N) (== O(N²) total). */
-    vader_string_prepare_marks();
-
-    /* 2. Mark via module globals. */
-    vader_string_mark_ptr(g_spawn_stdout_buf);
-    vader_string_mark_ptr(g_spawn_stderr_buf);
-
-    /* 2b. Active builders' growing buffers. A Vader-side allocation between
-     * two `vader_builder_append_*` calls (e.g. an interpolation argument
-     * that calls into stringify) can trigger a collection while `b->buf`
-     * is the sole reference to a partial buffer in the arena. */
-    for (vader_builder_t* b = g_builder_head; b != NULL; b = b->next) {
-        vader_string_mark_ptr(b->buf);
-    }
-
-    /* 3. Mark via shadow stack — each frame's vader_box_t* roots. */
-    for (vader_gc_frame_t* fr = vader_gc_top; fr != NULL; fr = fr->prev) {
-        if (fr->ptrs == NULL) continue;
-        for (uint32_t i = 0; i < fr->nrefs; i++) {
-            vader_box_t* bp = fr->ptrs[i];
-            if (bp != NULL) vader_string_mark_ptr((const void*) bp->payload.s.ptr);
-        }
-    }
-
-    /* 3b. Mark via defer-stack — closures live here between push and exec ;
-     *     their envs / captured strings need to stay alive. */
-    for (size_t i = 0; i < g_defer_len; i++) {
-        vader_string_mark_ptr((const void*) g_defer_stack[i].payload.s.ptr);
-    }
-
-    /* 4. Mark via Cheney from-spaces — every live object's box slots, in
-     *    both young and old. After a minor cycle young.from holds the
-     *    survivor set; after a major both halves are freshly compacted. */
-    const vader_arena_t* gens[2] = { &g_young.from, &g_old.from };
-    for (int g = 0; g < 2; g++) {
-        char* scan = gens[g]->base;
-        while (scan < gens[g]->cur) {
-            vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
-            uint32_t type_index = hdr->type_index;
-            size_t bytes = vader_gc_obj_size(scan, type_index);
-            if (bytes == 0) break;            /* corrupt header — bail */
-            vader_string_mark_obj(scan, type_index);
-            scan += vader_gc_align(bytes);
-        }
-    }
-
-    /* 5. Conservative C-stack scan. setjmp dumps callee-saved registers
-     *    that might still hold raw `vader_string_t` payloads from the user
-     *    frame the GC was triggered out of ; the stack scan picks up
-     *    everything spilled to memory between this frame and the bottom. */
-    vader_string_gc_capture_stack_bottom();
-    if (g_stack_bottom != NULL) {
-        jmp_buf jb;
-        (void) setjmp(jb);
-        vader_string_scan_words(&jb, (const char*) &jb + sizeof(jb));
-        const void* top = __builtin_frame_address(0);
-        if (top != NULL && top < g_stack_bottom) {
-            vader_string_scan_words(top, g_stack_bottom);
-        }
-    }
-
-    /* 6. Sweep — free every unmarked buffer. */
-    vader_string_header_t** cursor = &g_string_head;
-    while (*cursor != NULL) {
-        if ((*cursor)->mark == 0) {
-            vader_string_header_t* dead = *cursor;
-            *cursor = dead->next;
-            g_string_total_bytes -= dead->size;
-            g_string_total_count -= 1;
-            free(dead);
-        } else {
-            cursor = &(*cursor)->next;
-        }
-    }
-
-    /* 7. Retarget the next sweep — 2× the live set, floored. Programs that
-     *    persistently hold ~N bytes of strings will sweep when usage doubles,
-     *    so the running-time bound stays O(live + transient) per cycle. */
-    size_t target = g_string_total_bytes * 2u;
-    g_string_gc_threshold = target > VADER_STRING_GC_THRESHOLD_FLOOR
-        ? target
-        : VADER_STRING_GC_THRESHOLD_FLOOR;
-}
-
 /* ----------------------------------------------------------------- string */
 
+vader_string_t vader_string_new(const char* p, size_t n) {
+    return vader_atom_intern(p, n);
+}
+
 vader_string_t vader_string_concat(vader_string_t a, vader_string_t b) {
-    /* Catch `size_t` overflow before it wraps into a tiny allocation followed
-     * by two huge memcpys — user-controllable lengths reaching gigabytes can
-     * realistically hit this on 32-bit and is a hard upper bound on 64-bit. */
-    if (a.len > SIZE_MAX - b.len) vader_trap("vader_string_concat: length overflow");
-    size_t total = a.len + b.len;
-    char* buf = (char*) vader_string_alloc(total);
-    /* `memcpy(_, NULL, 0)` is UB per strict C; zero-init `vader_string_t`
-     * carries `ptr == NULL`. Guard both halves. */
-    if (a.len > 0) memcpy(buf,         a.ptr, a.len);
-    if (b.len > 0) memcpy(buf + a.len, b.ptr, b.len);
-    return vader_string_new(buf, total);
+    if (a == VADER_ATOM_EMPTY) return b;
+    if (b == VADER_ATOM_EMPTY) return a;
+    size_t la = vader_atom_len(a);
+    size_t lb = vader_atom_len(b);
+    /* Two-pass overflow check : the sum must fit, AND leave room for the
+     * inline NUL byte. Splitting the conditions yields a precise trap
+     * message rather than the ambiguous "length overflow" of the
+     * combined `> SIZE_MAX - lb - 1` check. */
+    if (la > SIZE_MAX - lb)     vader_trap("vader_string_concat: total length overflow");
+    size_t total = la + lb;
+    if (total > SIZE_MAX - 1u)  vader_trap("vader_string_concat: no room for NUL terminator");
+    char* buf = (char*) malloc(total + 1u);
+    if (buf == NULL) vader_trap("vader_string_concat: malloc failed");
+    memcpy(buf,      vader_atom_data(a), la);
+    memcpy(buf + la, vader_atom_data(b), lb);
+    return vader_atom_intern_take(buf, total);
 }
 
 bool vader_string_eq(vader_string_t a, vader_string_t b) {
     g_prof_eq_calls++;
-    if (a.len != b.len) { g_prof_eq_len_skipped++; return false; }
-    /* Pointer-equal short-circuit : interned strings and `.rodata`
-     * literal duplicates skip the memcmp entirely. */
-    if (a.ptr == b.ptr) { g_prof_eq_matches++; return true; }
-    g_prof_eq_byte_work += a.len;
-    bool match = (memcmp(a.ptr, b.ptr, a.len) == 0);
-    if (match) g_prof_eq_matches++;
-    return match;
+    if (a == b) { g_prof_eq_matches++; return true; }
+    return false;
 }
 
-/* `@extern` ABI bridge : the Vader-side `vader_string_t` is a raw
- * pointer + length, NOT NUL-terminated. User foreign symbols expecting
- * `const char*` need a NUL-terminated copy ; the shim that c-emit
- * generates pairs every call with a matching `vader_cstr_free` so the
- * lifetime is exactly one extern call. malloc/free is fine here — the
- * extern path is not the hot path, and the per-call overhead is the
- * cost of the foreign boundary. */
 const char* vader_string_to_cstr(vader_string_t s) {
-    char* buf = (char*) malloc(s.len + 1);
-    if (buf == NULL) vader_trap("vader_string_to_cstr: malloc failed");
-    if (s.len > 0) memcpy(buf, s.ptr, s.len);
-    buf[s.len] = '\0';
-    return buf;
+    return vader_atom_to_cstr(s);
 }
 
 void vader_cstr_free(const char* p) {
-    free((void*) p);
+    vader_atom_cstr_free(p);
 }
 
-/* FNV-1a 64-bit hash over the raw UTF-8 bytes of the string. */
+/* FNV-1a 64-bit hash over the raw UTF-8 bytes of the string. Keeps
+ * legacy iteration order for `MutableMap` buckets — atom ids are
+ * monotonic, so using them directly as the hash would cluster low bits
+ * and reshuffle every `for-in` snapshot. The byte-level hash matches
+ * what the pre-atom runtime emitted and what the VM hash uses. */
 vader_u64_t vader_string_hash(vader_string_t s) {
+    const vader_atom_entry_t* e = vader_atom_entry(s);
+    const uint8_t* p   = (const uint8_t*) e->data;
+    size_t         len = e->len;
     uint64_t h = UINT64_C(14695981039346656037);
-    const uint8_t* p = (const uint8_t*) s.ptr;
-    for (size_t i = 0; i < s.len; i++) {
+    for (size_t i = 0; i < len; i++) {
         h ^= (uint64_t) p[i];
         h *= UINT64_C(1099511628211);
     }
@@ -1823,31 +1373,34 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
 /* ----------------------------------------------------------------- std/string */
 
 size_t vader_string_byte_len(vader_string_t s) {
-    return s.len;
+    return vader_atom_len(s);
 }
 
 vader_string_t vader_string_slice(vader_string_t s, size_t start, size_t end) {
-    if (end > s.len) end = s.len;
-    if (start >= end) return vader_string_new("", 0);
-    return vader_string_new(s.ptr + start, end - start);
+    size_t l = vader_atom_len(s);
+    if (end > l) end = l;
+    if (start >= end) return VADER_ATOM_EMPTY;
+    return vader_atom_slice(s, start, end - start);
 }
 
 /* Walk the UTF-8 buffer counting codepoints ; return the byte offset of
- * the `cp_index`-th codepoint, clamped to `s.len`. Invalid continuation
- * bytes count as 1-byte codepoints (mirrors `vader_string_char_at`'s
- * truncated-UTF-8 handling). O(n) in `cp_index`. */
+ * the `cp_index`-th codepoint, clamped to the atom's length. Invalid
+ * continuation bytes count as 1-byte codepoints (mirrors
+ * `vader_string_char_at`'s truncated-UTF-8 handling). O(n) in `cp_index`. */
 static size_t vader_string_codepoint_byte_offset(vader_string_t s, size_t cp_index) {
+    const char* data = vader_atom_data(s);
+    size_t len = vader_atom_len(s);
     size_t cp = 0;
     size_t i  = 0;
-    while (i < s.len && cp < cp_index) {
-        uint8_t b = (uint8_t) s.ptr[i];
+    while (i < len && cp < cp_index) {
+        uint8_t b = (uint8_t) data[i];
         size_t step;
         if (b < 0x80u)       step = 1;
         else if (b < 0xC0u)  step = 1;   /* stray continuation byte */
         else if (b < 0xE0u)  step = 2;
         else if (b < 0xF0u)  step = 3;
         else                 step = 4;
-        if (i + step > s.len) step = s.len - i;
+        if (i + step > len) step = len - i;
         i  += step;
         cp += 1;
     }
@@ -1855,73 +1408,93 @@ static size_t vader_string_codepoint_byte_offset(vader_string_t s, size_t cp_ind
 }
 
 /* `string[lo..<hi]` semantic : `lo` and `hi` are codepoint indices.
- * Zero-copy view ; returns the empty string when the range is empty.
- * Clamps both bounds to the string's codepoint count. */
+ * Returns the canonical atom for the byte range (intern-deduped or
+ * fresh slice atom borrowing into the parent buffer). */
 vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, size_t cp_hi) {
     if (cp_hi < cp_lo) cp_hi = cp_lo;
     size_t byte_lo = vader_string_codepoint_byte_offset(s, cp_lo);
     size_t byte_hi = vader_string_codepoint_byte_offset(s, cp_hi);
-    return vader_string_new(s.ptr + byte_lo, byte_hi - byte_lo);
+    if (byte_hi <= byte_lo) return VADER_ATOM_EMPTY;
+    return vader_atom_slice(s, byte_lo, byte_hi - byte_lo);
 }
 
 /* `s[i]` semantic — codepoint at codepoint-index `i`. Traps on OOB.
  * Counterpart to `vader_string_byte_at` for the byte-indexed access. */
 vader_char_t vader_string_codepoint_at(vader_string_t s, size_t cp_index) {
     size_t byte_off = vader_string_codepoint_byte_offset(s, cp_index);
-    if (byte_off >= s.len) vader_trap("string codepoint index out of bounds");
+    if (byte_off >= vader_atom_len(s)) vader_trap("string codepoint index out of bounds");
     return vader_string_char_at(s, byte_off);
 }
 
 vader_bool_t vader_string_contains(vader_string_t s, vader_string_t sub) {
-    if (sub.len == 0) return true;
-    if (sub.len > s.len) return false;
-    for (size_t i = 0; i <= s.len - sub.len; i++) {
-        if (memcmp(s.ptr + i, sub.ptr, sub.len) == 0) return true;
+    size_t subl = vader_atom_len(sub);
+    if (subl == 0) return true;
+    size_t sl = vader_atom_len(s);
+    if (subl > sl) return false;
+    const char* sd   = vader_atom_data(s);
+    const char* subd = vader_atom_data(sub);
+    for (size_t i = 0; i + subl <= sl; i++) {
+        if (memcmp(sd + i, subd, subl) == 0) return true;
     }
     return false;
 }
 
 vader_bool_t vader_string_starts_with(vader_string_t s, vader_string_t prefix) {
-    if (prefix.len > s.len) return false;
-    return memcmp(s.ptr, prefix.ptr, prefix.len) == 0;
+    const vader_atom_entry_t* es = vader_atom_entry(s);
+    const vader_atom_entry_t* ep = vader_atom_entry(prefix);
+    if (ep->len > es->len) return false;
+    return memcmp(es->data, ep->data, ep->len) == 0;
 }
 
 vader_bool_t vader_string_ends_with(vader_string_t s, vader_string_t suffix) {
-    if (suffix.len > s.len) return false;
-    return memcmp(s.ptr + s.len - suffix.len, suffix.ptr, suffix.len) == 0;
+    const vader_atom_entry_t* es = vader_atom_entry(s);
+    const vader_atom_entry_t* ef = vader_atom_entry(suffix);
+    if (ef->len > es->len) return false;
+    return memcmp(es->data + (es->len - ef->len), ef->data, ef->len) == 0;
 }
 
 vader_string_t vader_string_trim(vader_string_t s) {
-    const char* p = s.ptr;
-    size_t n = s.len;
-    while (n > 0 && isspace((unsigned char) *p))    { p++; n--; }
-    while (n > 0 && isspace((unsigned char) p[n-1])) { n--; }
-    return vader_string_new(p, n);
+    const vader_atom_entry_t* e = vader_atom_entry(s);
+    const char* d   = e->data;
+    size_t initial_n = e->len;
+    size_t n  = initial_n;
+    size_t lo = 0;
+    while (lo < n && isspace((unsigned char) d[lo]))    { lo++; }
+    while (n > lo && isspace((unsigned char) d[n - 1])) { n--; }
+    if (n == lo) return VADER_ATOM_EMPTY;
+    if (lo == 0 && n == initial_n) return s;
+    return vader_atom_slice(s, lo, n - lo);
 }
 
 vader_string_t vader_string_to_upper(vader_string_t s) {
-    char* buf = (char*) vader_string_alloc(s.len);
-    for (size_t i = 0; i < s.len; i++) buf[i] = (char) toupper((unsigned char) s.ptr[i]);
-    return vader_string_new(buf, s.len);
+    size_t n = vader_atom_len(s);
+    if (n == 0) return VADER_ATOM_EMPTY;
+    const char* sd = vader_atom_data(s);
+    char* buf = (char*) malloc(n + 1u);
+    if (buf == NULL) vader_trap("vader_string_to_upper: malloc failed");
+    for (size_t i = 0; i < n; i++) buf[i] = (char) toupper((unsigned char) sd[i]);
+    return vader_atom_intern_take(buf, n);
 }
 
 vader_string_t vader_string_to_lower(vader_string_t s) {
-    char* buf = (char*) vader_string_alloc(s.len);
-    for (size_t i = 0; i < s.len; i++) buf[i] = (char) tolower((unsigned char) s.ptr[i]);
-    return vader_string_new(buf, s.len);
+    size_t n = vader_atom_len(s);
+    if (n == 0) return VADER_ATOM_EMPTY;
+    const char* sd = vader_atom_data(s);
+    char* buf = (char*) malloc(n + 1u);
+    if (buf == NULL) vader_trap("vader_string_to_lower: malloc failed");
+    for (size_t i = 0; i < n; i++) buf[i] = (char) tolower((unsigned char) sd[i]);
+    return vader_atom_intern_take(buf, n);
 }
 
 vader_box_t vader_string_parse_int(vader_string_t s, uint32_t ok_tag, uint32_t err_tag) {
-    /* The NUL-terminated copy is a scratch buffer consumed before strtol
-     * returns — plain `malloc`/`free` is enough; the tracked string arena is
-     * for buffers whose pointer escapes the function. */
-    char* p = (char*) malloc(s.len + 1);
-    if (p == NULL) vader_trap("parse_int: malloc failed");
-    memcpy(p, s.ptr, s.len); p[s.len] = '\0';
+    /* `vader_atom_to_cstr` returns a NUL-term view ; for owner atoms
+     * it's a pointer into the atom table (no allocation), for slice
+     * atoms a heap dup that we must pair with `vader_atom_cstr_free`. */
+    const char* p = vader_atom_to_cstr(s);
     char* end;
     long v = strtol(p, &end, 10);
     int ok = (end != p && *end == '\0');
-    free(p);
+    vader_atom_cstr_free(p);
     if (!ok) {
         return vader_box_string(err_tag, vader_string_new("invalid integer", 15));
     }
@@ -1929,13 +1502,11 @@ vader_box_t vader_string_parse_int(vader_string_t s, uint32_t ok_tag, uint32_t e
 }
 
 vader_box_t vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag) {
-    char* p = (char*) malloc(s.len + 1);
-    if (p == NULL) vader_trap("parse_float: malloc failed");
-    memcpy(p, s.ptr, s.len); p[s.len] = '\0';
+    const char* p = vader_atom_to_cstr(s);
     char* end;
     double v = strtod(p, &end);
     int ok = (end != p && *end == '\0');
-    free(p);
+    vader_atom_cstr_free(p);
     if (!ok) {
         return vader_box_string(err_tag, vader_string_new("invalid float", 13));
     }
@@ -1947,9 +1518,10 @@ vader_char_t vader_string_char_at(vader_string_t s, size_t i) {
      * 0 made callers confuse "real NUL byte" with "out of bounds". The
      * truncated-UTF-8 returns below stay as `0` / `0xFFFD` because they
      * surface mid-codepoint encoding errors, not access violations. */
-    if (i >= s.len) vader_trap("string index out of bounds");
-    const uint8_t* p = (const uint8_t*)(s.ptr + i);
-    size_t rem = s.len - i;
+    size_t len = vader_atom_len(s);
+    if (i >= len) vader_trap("string index out of bounds");
+    const uint8_t* p = (const uint8_t*)(vader_atom_data(s) + i);
+    size_t rem = len - i;
     uint8_t b = *p;
     if (b < 0x80) return b;
     if (b < 0xC0) return 0xFFFDu;  /* continuation byte as lead: invalid UTF-8 */
@@ -1966,8 +1538,8 @@ vader_char_t vader_string_char_at(vader_string_t s, size_t i) {
 }
 
 vader_u8_t vader_string_byte_at(vader_string_t s, size_t i) {
-    if (i >= s.len) vader_trap("string index out of bounds");
-    return (vader_u8_t)(uint8_t) s.ptr[i];
+    if (i >= vader_atom_len(s)) vader_trap("string index out of bounds");
+    return (vader_u8_t)(uint8_t) vader_atom_data(s)[i];
 }
 
 /* Box the host argv into a `[string]` Vader array. Called from emitted main
@@ -1995,28 +1567,32 @@ vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,
                                   uint32_t arr_type, uint32_t str_type) {
     vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED, str_type));
     VADER_GC_PUSH1(arr_box);
-    if (sep.len == 0) {
-        for (size_t i = 0; i < s.len; i++) {
+    const char* sdata = vader_atom_data(s);
+    size_t      slen  = vader_atom_len(s);
+    const char* sepd  = vader_atom_data(sep);
+    size_t      sepl  = vader_atom_len(sep);
+    if (sepl == 0) {
+        for (size_t i = 0; i < slen; i++) {
             vader_array_push((vader_array_t*) arr_box.payload.obj,
-                             vader_box_string(str_type, vader_string_new(s.ptr + i, 1)));
+                             vader_box_string(str_type, vader_string_new(sdata + i, 1)));
         }
     } else {
-        const char* p   = s.ptr;
-        const char* end = s.ptr + s.len;
+        const char* p   = sdata;
+        const char* end = sdata + slen;
         for (;;) {
             const char* found = NULL;
-            if (sep.len == 1) {
-                found = (const char*)memchr(p, (unsigned char)sep.ptr[0], (size_t)(end - p));
+            if (sepl == 1) {
+                found = (const char*)memchr(p, (unsigned char)sepd[0], (size_t)(end - p));
             } else {
-                for (const char* q = p; q + sep.len <= end; q++) {
-                    if (memcmp(q, sep.ptr, sep.len) == 0) { found = q; break; }
+                for (const char* q = p; q + sepl <= end; q++) {
+                    if (memcmp(q, sepd, sepl) == 0) { found = q; break; }
                 }
             }
             size_t piece_len = found ? (size_t)(found - p) : (size_t)(end - p);
             vader_array_push((vader_array_t*) arr_box.payload.obj,
                              vader_box_string(str_type, vader_string_new(p, piece_len)));
             if (found == NULL) break;
-            p = found + sep.len;
+            p = found + sepl;
         }
     }
     vader_array_t* result = (vader_array_t*) arr_box.payload.obj;
@@ -2030,23 +1606,18 @@ static void builder_reserve(vader_builder_t* b, size_t extra) {
     if (b->len + extra <= b->cap) return;
     size_t cap = b->cap == 0 ? 64 : b->cap;
     while (cap < b->len + extra) cap *= 2;
-    /* The buf is handed out as a vader_string_t by `vader_builder_finish`, so
-     * it lives in the tracked string arena. The previous buf is private until
-     * finish — no Vader-visible aliases — so we can free it explicitly via
-     * `vader_string_free` once the contents have been copied to the fresh
-     * allocation, instead of waiting for the next sweep to reclaim it. */
-    char* fresh = (char*) vader_string_alloc(cap);
+    /* Plain malloc/free — the buf is private to the builder until
+     * `vader_builder_finish` hands it to `vader_atom_intern_take`, which
+     * either adopts the buffer (on miss) or frees it (on hit). */
+    char* fresh = (char*) malloc(cap + 1u);
+    if (fresh == NULL) vader_trap("builder_reserve: malloc failed");
     if (b->len > 0) memcpy(fresh, b->buf, b->len);
-    vader_string_free(b->buf);
+    free(b->buf);
     b->buf = fresh;
     b->cap = cap;
 }
 
 vader_builder_t* vader_builder_new(void) {
-    /* The builder struct is purely transient — allocated, populated, then
-     * `vader_builder_finish` lends out the payload buf and the struct itself
-     * goes unused. Using `malloc` (not `vader_string_alloc`) lets us `free`
-     * it at finish without leaking the 24-byte header. */
     vader_builder_t* b = (vader_builder_t*) malloc(sizeof(vader_builder_t));
     if (b == NULL) vader_trap("vader_builder_new: malloc failed");
     b->buf = NULL; b->len = 0; b->cap = 0;
@@ -2057,8 +1628,7 @@ vader_builder_t* vader_builder_new(void) {
 
 /* Unlink a builder from the active-list. O(n) walk over currently-active
  * builders ; that list is short (one entry per nested interpolation in
- * flight), so a doubly-linked variant would be wasted complexity. Trap
- * on missing — matches `vader_string_free`'s discipline. */
+ * flight), so a doubly-linked variant would be wasted complexity. */
 static void vader_builder_unlink(vader_builder_t* b) {
     vader_builder_t** cursor = &g_builder_head;
     while (*cursor != NULL && *cursor != b) cursor = &(*cursor)->next;
@@ -2067,9 +1637,11 @@ static void vader_builder_unlink(vader_builder_t* b) {
 }
 
 void vader_builder_append_str(vader_builder_t* b, vader_string_t s) {
-    builder_reserve(b, s.len);
-    memcpy(b->buf + b->len, s.ptr, s.len);
-    b->len += s.len;
+    size_t n = vader_atom_len(s);
+    if (n == 0) return;
+    builder_reserve(b, n);
+    memcpy(b->buf + b->len, vader_atom_data(s), n);
+    b->len += n;
 }
 
 static void builder_append_fmt(vader_builder_t* b, const char* fmt, ...) {
@@ -2165,51 +1737,59 @@ void vader_builder_append_display_string(vader_builder_t* b, vader_string_t v) {
 }
 
 vader_string_t vader_builder_finish(vader_builder_t* b) {
-    /* Lend the buffer (still owned by the string-arena leak budget — see
-     * `vader_string_alloc`'s comment) and free the builder struct itself,
-     * which has no other use after finish. */
-    vader_string_t out = vader_string_new(b->buf, b->len);
+    /* Hand the buffer to `vader_atom_intern_take` — on miss it adopts
+     * the buffer as the atom's owner data ; on hit it frees the buffer
+     * and returns the canonical atom. The builder struct itself has no
+     * use after finish. */
+    size_t len = b->len;
+    char* buf  = b->buf;
     vader_builder_unlink(b);
     free(b);
-    return out;
+    if (len == 0) {
+        if (buf != NULL) free(buf);
+        return VADER_ATOM_EMPTY;
+    }
+    if (buf == NULL) return VADER_ATOM_EMPTY;
+    return vader_atom_intern_take(buf, len);
 }
 
 /* Flatten an array of strings into a single string in one allocation. Used
  * by std/string_builder StringBuilder.to_string to avoid the O(N²) of repeated `+`. */
 vader_string_t vader_string_concat_all(vader_array_t* parts) {
-    if (parts->length == 0) {
-        return vader_string_new("", 0);
-    }
+    if (parts->length == 0) return VADER_ATOM_EMPTY;
     vader_box_t* slots = vader_array_box_slots(parts->buf) + parts->offset;
     size_t total = 0;
     for (size_t i = 0; i < parts->length; i++) {
-        total += slots[i].payload.s.len;
+        total += vader_atom_len((vader_string_t) slots[i].payload.s);
     }
-    char* buf = (char*) vader_string_alloc(total);
+    if (total == 0) return VADER_ATOM_EMPTY;
+    char* buf = (char*) malloc(total + 1u);
+    if (buf == NULL) vader_trap("vader_string_concat_all: malloc failed");
     size_t pos = 0;
     for (size_t i = 0; i < parts->length; i++) {
-        vader_string_t s = slots[i].payload.s;
-        memcpy(buf + pos, s.ptr, s.len);
-        pos += s.len;
+        vader_string_t s = (vader_string_t) slots[i].payload.s;
+        size_t n = vader_atom_len(s);
+        if (n > 0) {
+            memcpy(buf + pos, vader_atom_data(s), n);
+            pos += n;
+        }
     }
-    return vader_string_new(buf, total);
+    return vader_atom_intern_take(buf, total);
 }
 
 /* ----------------------------------------------------------------- I/O */
 
-void vader_print(vader_string_t s)    { fwrite(s.ptr, 1, s.len, stdout); fflush(stdout); }
-void vader_println(vader_string_t s)  { fwrite(s.ptr, 1, s.len, stdout); fputc('\n', stdout); fflush(stdout); }
-void vader_eprint(vader_string_t s)   { fwrite(s.ptr, 1, s.len, stderr); fflush(stderr); }
-void vader_eprintln(vader_string_t s) { fwrite(s.ptr, 1, s.len, stderr); fputc('\n', stderr); fflush(stderr); }
+void vader_print(vader_string_t s)    { fwrite(vader_atom_data(s), 1, vader_atom_len(s), stdout); fflush(stdout); }
+void vader_println(vader_string_t s)  { fwrite(vader_atom_data(s), 1, vader_atom_len(s), stdout); fputc('\n', stdout); fflush(stdout); }
+void vader_eprint(vader_string_t s)   { fwrite(vader_atom_data(s), 1, vader_atom_len(s), stderr); fflush(stderr); }
+void vader_eprintln(vader_string_t s) { fwrite(vader_atom_data(s), 1, vader_atom_len(s), stderr); fputc('\n', stderr); fflush(stderr); }
 
 /* Tag-aware variants — the emitter passes the BcType indices for the success
  * and error variants. Caller-side boxing keeps the runtime tag-agnostic. */
 vader_box_t vader_read_file(vader_string_t path, uint32_t ok_tag, uint32_t err_tag) {
-    char* p = (char*) malloc(path.len + 1);
-    if (p == NULL) vader_trap("read_file: malloc failed");
-    memcpy(p, path.ptr, path.len); p[path.len] = '\0';
+    const char* p = vader_atom_to_cstr(path);
     FILE* f = fopen(p, "rb");
-    free(p);
+    vader_atom_cstr_free(p);
     if (f == NULL) return vader_box_string(err_tag, vader_string_new("file not found", 14));
 
     if (fseek(f, 0, SEEK_END) != 0) {
@@ -2227,30 +1807,27 @@ vader_box_t vader_read_file(vader_string_t path, uint32_t ok_tag, uint32_t err_t
         fclose(f); return vader_box_string(err_tag, vader_string_new("fseek failed", 12));
     }
 
-    char* buf = (char*) vader_string_alloc((size_t) size);
+    char* buf = (char*) malloc((size_t) size + 1u);
+    if (buf == NULL) { fclose(f); vader_trap("read_file: malloc failed"); }
     size_t n = fread(buf, 1, (size_t) size, f);
     fclose(f);
     if (n != (size_t) size) {
-        /* Short read — return error and release the partial buffer; the
-         * tracked arena would eventually sweep it but explicit free keeps
-         * the live-list short. */
-        vader_string_free(buf);
+        free(buf);
         return vader_box_string(err_tag, vader_string_new("short read", 10));
     }
-    return vader_box_string(ok_tag, vader_string_new(buf, (size_t) size));
+    return vader_box_string(ok_tag, vader_atom_intern_take(buf, (size_t) size));
 }
 
 vader_box_t vader_write_file(vader_string_t path, vader_string_t content,
                              uint32_t ok_tag, uint32_t err_tag) {
-    char* p = (char*) malloc(path.len + 1);
-    if (p == NULL) vader_trap("write_file: malloc failed");
-    memcpy(p, path.ptr, path.len); p[path.len] = '\0';
+    const char* p = vader_atom_to_cstr(path);
     FILE* f = fopen(p, "wb");
-    free(p);
+    vader_atom_cstr_free(p);
     if (f == NULL) return vader_box_string(err_tag, vader_string_new("open failed", 11));
-    size_t n = fwrite(content.ptr, 1, content.len, f);
+    size_t clen = vader_atom_len(content);
+    size_t n = fwrite(vader_atom_data(content), 1, clen, f);
     fclose(f);
-    if (n != content.len) return vader_box_string(err_tag, vader_string_new("short write", 11));
+    if (n != clen) return vader_box_string(err_tag, vader_string_new("short write", 11));
     /* `void!` returns null on success per stdlib convention. */
     (void) ok_tag;
     return vader_box_null();
@@ -2263,9 +1840,7 @@ vader_box_t vader_read_line(uint32_t ok_tag, uint32_t err_tag) {
     }
     size_t n = strlen(buf);
     if (n > 0 && buf[n - 1] == '\n') n--;
-    char* copy = (char*) vader_string_alloc(n);
-    memcpy(copy, buf, n);
-    return vader_box_string(ok_tag, vader_string_new(copy, n));
+    return vader_box_string(ok_tag, vader_string_new(buf, n));
 }
 
 /* Switch stdin/stdout to binary mode on Windows. The CRT default is
@@ -2294,15 +1869,18 @@ vader_box_t vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag) {
     if (n == 0) {
         return vader_box_string(ok_tag, vader_string_new("", 0));
     }
-    char* buf = (char*) vader_string_alloc(n);
+    char* buf = (char*) malloc(n + 1u);
+    if (buf == NULL) vader_trap("read_stdin: malloc failed");
     size_t got = 0;
     while (got < n) {
         size_t r = fread(buf + got, 1, n - got, stdin);
         if (r == 0) {
             if (feof(stdin)) {
+                free(buf);
                 return vader_box_string(err_tag, vader_string_new("EOF", 3));
             }
             if (ferror(stdin)) {
+                free(buf);
                 return vader_box_string(err_tag, vader_string_new("stdin read error", 16));
             }
             /* No data, no EOF, no error — interrupted read. Retry. */
@@ -2310,15 +1888,13 @@ vader_box_t vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag) {
         }
         got += r;
     }
-    return vader_box_string(ok_tag, vader_string_new(buf, n));
+    return vader_box_string(ok_tag, vader_atom_intern_take(buf, n));
 }
 
 vader_bool_t vader_exists(vader_string_t path) {
-    char* p = (char*) malloc(path.len + 1);
-    if (p == NULL) vader_trap("exists: malloc failed");
-    memcpy(p, path.ptr, path.len); p[path.len] = '\0';
+    const char* p = vader_atom_to_cstr(path);
     FILE* f = fopen(p, "rb");
-    free(p);
+    vader_atom_cstr_free(p);
     if (f == NULL) return false;
     fclose(f);
     return true;
@@ -2386,22 +1962,18 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
 #include <sys/stat.h>
 
 vader_bool_t vader_is_dir(vader_string_t path) {
-    char* p = (char*) malloc(path.len + 1);
-    if (p == NULL) vader_trap("is_dir: malloc failed");
-    memcpy(p, path.ptr, path.len); p[path.len] = '\0';
+    const char* p = vader_atom_to_cstr(path);
     struct stat st;
     int rc = stat(p, &st);
-    free(p);
+    vader_atom_cstr_free(p);
     return rc == 0 && S_ISDIR(st.st_mode);
 }
 
 vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
                            uint32_t str_type, uint32_t err_tag) {
-    char* p = (char*) malloc(path.len + 1);
-    if (p == NULL) vader_trap("read_dir: malloc failed");
-    memcpy(p, path.ptr, path.len); p[path.len] = '\0';
+    const char* p = vader_atom_to_cstr(path);
     DIR* d = opendir(p);
-    free(p);
+    vader_atom_cstr_free(p);
     if (d == NULL) {
         return vader_box_string(err_tag, vader_string_new("read_dir failed", 15));
     }
@@ -2413,13 +1985,11 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
         const char* name = ent->d_name;
         if (name[0] == '.' && (name[1] == '\0' || (name[1] == '.' && name[2] == '\0'))) continue;
         size_t n = strlen(name);
-        /* `ent->d_name` lives in the DIR* buffer and is reused on the
-         * next readdir / freed by closedir — copy into a GC-tracked
-         * allocation so the resulting string survives. */
-        char* copy = (char*) vader_string_alloc(n);
-        if (n > 0) memcpy(copy, name, n);
+        /* Intern the dirent name directly — the buffer is reused on the
+         * next readdir, so the atom dedupe/copy is the correct ownership
+         * transfer. */
         vader_array_push((vader_array_t*) arr_box.payload.obj,
-                         vader_box_string(str_type, vader_string_new(copy, n)));
+                         vader_box_string(str_type, vader_string_new(name, n)));
     }
     closedir(d);
     vader_box_t result = arr_box;
@@ -2464,9 +2034,11 @@ static void capture_spawn_output(char** dst_buf, size_t* dst_len, char* src, siz
     /* Reclaim the previous capture if the caller never consumed it.
      * Safe because a consumer (`vader_spawn_last_stdout` / `_stderr`)
      * clears the slot to NULL on extraction — a non-NULL `*dst_buf` here
-     * is guaranteed to be the unique reference. */
+     * is guaranteed to be the unique reference. The captured buffer is
+     * a plain malloc heap owned by this module (not an atom — atoms are
+     * the canonical view ; this is the transit buffer). */
     if (*dst_buf != NULL) {
-        vader_string_free(*dst_buf);
+        free(*dst_buf);
         *dst_buf = NULL;
         *dst_len = 0;
     }
@@ -2474,10 +2046,7 @@ static void capture_spawn_output(char** dst_buf, size_t* dst_len, char* src, siz
         if (src != NULL) free(src);
         return;
     }
-    char* copy = (char*) vader_string_alloc(src_len);
-    memcpy(copy, src, src_len);
-    free(src);
-    *dst_buf = copy;
+    *dst_buf = src;
     *dst_len = src_len;
 }
 
@@ -2706,14 +2275,15 @@ vader_i32_t vader_spawn_run(vader_array_t* argv) {
     if (cargv == NULL) return VADER_SPAWN_LAUNCH_FAIL;
     for (size_t i = 0; i < n; i++) {
         vader_box_t b = vader_array_get(argv, i);
-        vader_string_t s = b.payload.s;
-        char* z = (char*) malloc(s.len + 1);
+        vader_string_t s = (vader_string_t) b.payload.s;
+        size_t slen = vader_atom_len(s);
+        char* z = (char*) malloc(slen + 1);
         if (z == NULL) {
             for (size_t j = 0; j < i; j++) free(cargv[j]);
             free(cargv);
             return VADER_SPAWN_LAUNCH_FAIL;
         }
-        memcpy(z, s.ptr, s.len); z[s.len] = '\0';
+        memcpy(z, vader_atom_data(s), slen); z[slen] = '\0';
         cargv[i] = z;
     }
 
@@ -2824,6 +2394,6 @@ void vader_trap(const char* msg) {
 }
 
 void vader_panic(vader_string_t msg) {
-    fprintf(stderr, "vader: panic — %.*s\n", (int) msg.len, msg.ptr);
+    fprintf(stderr, "vader: panic — %.*s\n", (int) vader_atom_len(msg), vader_atom_data(msg));
     abort();
 }

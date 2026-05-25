@@ -65,40 +65,42 @@ typedef double   vader_f64_t;
 typedef bool     vader_bool_t;
 typedef uint32_t vader_char_t;          /* Unicode codepoint */
 
+/* Atom type — forward-declared here so `vader_string_t` (defined below
+ * as an alias) doesn't depend on the full atom-API section further down.
+ * The struct + function declarations for the table follow after the
+ * box / array sections. See `docs/ATOM_INTERNING.md`. */
+typedef vader_u32_t vader_atom_t;
+
 /* ----------------------------------------------------------------- string */
 
-typedef struct {
-    const char* ptr;
-    size_t      len;
-} vader_string_t;
+/* `vader_string_t` *is* an atom id — `==` is `u32 ==`, hash is identity,
+ * `data` and `len` go through `vader_atom_data` / `vader_atom_len`. The
+ * legacy {ptr, len} fat-ptr layout is gone ; the runtime mark-sweep
+ * arena that backed it has been removed alongside.
+ *
+ * The bytes behind a string atom live in the global `vader_atom_table_t`
+ * (see further down). Comptime literals are PERM-flagged and never
+ * collected ; runtime-minted atoms (concat, format, read_file) are
+ * tracked by the Cheney major cycle's atom mark phase. */
+typedef vader_atom_t vader_string_t;
 
-static inline vader_string_t vader_string_new(const char* p, size_t n) {
-    vader_string_t s; s.ptr = p; s.len = n; return s;
-}
-
+vader_string_t vader_string_new(const char* p, size_t n);
 vader_string_t vader_string_concat(vader_string_t a, vader_string_t b);
 bool           vader_string_eq(vader_string_t a, vader_string_t b);
 
-/* `@extern` ABI helpers — allocate a NUL-terminated copy of `s` (heap)
- * so a user foreign C symbol can consume it as `const char*`. The
- * caller pairs every `_to_cstr` with a `_cstr_free` after the call. The
- * Vader-side `vader_string_t` is NOT NUL-terminated by construction. */
+/* `@extern` ABI helpers — return a NUL-terminated `const char*` view of
+ * the atom's bytes. For owner atoms the runtime returns `data` directly
+ * (no allocation) ; for slice atoms a heap dup is returned. Caller
+ * pairs every `_to_cstr` with a `_cstr_free` — the latter no-ops on
+ * owner pointers and frees the dup otherwise. */
 const char*    vader_string_to_cstr(vader_string_t s);
 void           vader_cstr_free(const char* p);
 
 /* ------------------------------------------------------------------ atom */
 
-/* Atom-based string interning — see `docs/ATOM_INTERNING.md`.
- *
- * An atom is a `u32` index into a global table whose entries carry the
- * canonical bytes for the string. Identical byte sequences hash to the
- * same atom — equality and hashing on atoms are O(1) integer ops.
- *
- * Phase 0 introduces the table and API while `vader_string_t` keeps its
- * fat-ptr layout ; Phase 1 will redefine `vader_string_t = u32`. The two
- * representations cohabit during the migration. */
-
-typedef vader_u32_t vader_atom_t;
+/* Atom-based string interning — see `docs/ATOM_INTERNING.md`. The
+ * `vader_atom_t` typedef is declared at the top of this file because
+ * `vader_string_t` is its alias ; the struct + API live here. */
 
 /* Reserved atom id : the empty string. Always installed at index 0 by
  * `vader_atom_init` and flagged PERM. Tests can compare directly against
@@ -226,7 +228,10 @@ static inline vader_box_t vader_box_bool(uint32_t tag, vader_bool_t v) {
     vader_box_t bx; bx.tag = tag; bx._pad = 0; bx.payload.b = v; return bx;
 }
 static inline vader_box_t vader_box_string(uint32_t tag, vader_string_t v) {
-    vader_box_t bx; bx.tag = tag; bx._pad = 0; bx.payload.s = v; return bx;
+    /* Zero the 8-byte obj alias first so `vader_box_eq`'s `payload.obj ==`
+     * compare doesn't read garbage from the upper 4 bytes — `vader_string_t`
+     * is a u32 atom and only writes the low 4. */
+    vader_box_t bx; bx.tag = tag; bx._pad = 0; bx.payload.obj = NULL; bx.payload.s = v; return bx;
 }
 static inline vader_box_t vader_box_obj(uint32_t tag, void* v) {
     vader_box_t bx; bx.tag = tag; bx._pad = 0; bx.payload.obj = v; return bx;

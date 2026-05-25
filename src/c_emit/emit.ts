@@ -325,19 +325,19 @@ function emitTypeDecls(ctx: EmitCtx, out: string[]): void {
   }
   out.push(``);
 
-  // String literals as named struct constants — one decl per pool entry,
-  // pre-sized to the UTF-8 byte length. The C compiler interns the data
-  // array regardless ; folding the pointer + length into one
-  // `vader_string_t` static lets `string.const` resolve to a bare name
-  // instead of a `vader_string_new(_data, _len)` call.
+  // The comptime atom table defines the `ATOM_LIT_<i>` u32 macros that
+  // the per-literal `vader_str_<i>` aliases below resolve through, so
+  // emit it first.
+  emitAtomComptimeTable(ctx, out);
+
+  // String literal aliases — each `vader_str_<i>` is now a `u32` (atom
+  // id) initialised from the matching `ATOM_LIT_<i>` macro. body.ts and
+  // static_table.ts still reference `vader_str_<i>` ; keeping the alias
+  // means no rewriter pass is needed across the per-op emit logic.
   for (let i = 0; i < ctx.module.strings.length; i++) {
-    const s = ctx.module.strings[i]!;
-    const bytes = new TextEncoder().encode(s);
-    out.push(`static const vader_string_t vader_str_${i} = { ${cStringLitFromBytes(bytes)}, ${bytes.length} };`);
+    out.push(`static const vader_string_t vader_str_${i} = ATOM_LIT_${i};`);
   }
   out.push(``);
-
-  emitAtomComptimeTable(ctx, out);
 
   emitDataPool(ctx, out);
 }
