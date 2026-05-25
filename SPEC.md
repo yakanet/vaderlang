@@ -29,7 +29,11 @@ Vader is a **general-purpose application language**, **strongly typed with type 
 ### Philosophy
 
 - **Simplicity over exotic features** — no feature for the feature's sake.
-- **Reading > writing** — syntax must read top to bottom, with no ambiguous `<`.
+- **Reading > writing** — syntax must read top to bottom. Generics use the
+  familiar `<T>` form (Java/C# style) ; the parser keeps the `<` →
+  generic-instantiation decision local with a hard-precedence rule
+  (commits to generic only when `<…>` closes with `(` or `{`), so
+  comparison `<` stays unambiguous in expression position.
 - **Compile-time errors > runtime errors** — string interpolation is type-checked at compile time.
 - **Rich diagnostics** — every phase emits structured diagnostics (severity, message, span, notes, hints), continues after errors when possible, and produces messages that read well both in the terminal and through an LSP. The LSP itself is a post-MVP target, but the diagnostic plumbing is built in from day one.
 - **Evolvability** — the pipeline must be easy to extend, every intermediate IR dumpable.
@@ -418,15 +422,15 @@ These are **built-in** aliases recognised by the resolver and type-checker; they
 
 User-defined type aliases use the same `Foo :: <type-expr>` syntax as a regular const declaration — `type` is not a keyword in Vader. The typechecker recognises a const whose value is structurally a type expression (built from type-name references and the type operators `|` / `&` / `[]` / `fn(...) -> ...`) and promotes it to a type alias : no runtime slot is allocated and the name is usable in any type-demanding slot.
 
-Generic type aliases use the LHS-bracketed head `Foo[T] :: <body>` — the `[...]` between the ident and `::` is unambiguous (no other decl form puts brackets there), so the parser dispatches without a form-selector keyword.
+Generic type aliases use the LHS-angle head `Foo<T> :: <body>` — the `<...>` between the ident and `::` is unambiguous (no other decl form puts angles there), so the parser dispatches without a form-selector keyword. The legacy `Foo[T] :: <body>` bracket form is still accepted during the migration to `<T>`.
 
 ```vader
 // Non-generic implicit alias — just a const whose value is a type
 Mixed :: i32 | string
 
-// Generic alias via LHS-bracketed type-params
-Maybe[T] :: T | null
-Pair[A, B] :: A | B
+// Generic alias via LHS-angle type-params
+Maybe<T> :: T | null
+Pair<A, B> :: A | B
 
 // Used like any named type
 fits :: fn(x: Mixed) -> bool {
@@ -948,12 +952,16 @@ n: i32 | Error = parse_int("42")
 
 ### Generics
 
-Type parameters are introduced with the bracketed `[T]` form at the declaration site. They compile to a `TypeParam[]` slot on the underlying `FnDecl` / `StructDecl` ; later references in the same scope are plain `IdentExpr` nodes that the resolver rebinds to the type-param symbol.
+Type parameters are introduced with the angle-bracket `<T>` form at the declaration site (Java/C# style). They compile to a `TypeParam[]` slot on the underlying `FnDecl` / `StructDecl` ; later references in the same scope are plain `IdentExpr` nodes that the resolver rebinds to the type-param symbol. The legacy bracket form `[T]` and legacy paren form `(T)` are still accepted during the migration to `<T>`.
+
+**Disambiguation rule (expression position).** Because `<` and `>` are also comparison operators, the parser uses a hard-precedence rule : after an `Ident`, a `<` opens a generic argument list **iff** the matching `>` is immediately followed by `(` (call) or `{` (struct literal). Any other follower leaves the `<` to Pratt as comparison. This is unambiguous in practice — `assert(v < 20, "msg")` reads as comparison because the `>` candidate is followed by `)`, not `(` or `{`.
+
+For nested generics like `Box<Box<T>>`, the lexer's fused `>>` token is split on demand at the parser level — the first `>` closes the inner level, the second the outer.
 
 **Generic functions**:
 
 ```vader
-map :: fn[T, U](items: T[], f: fn(T) -> U) -> U[] {
+map :: fn<T, U>(items: T[], f: fn(T) -> U) -> U[] {
     result: U[] = []
     for x in items {
         result.push(f(x))
@@ -965,22 +973,22 @@ map :: fn[T, U](items: T[], f: fn(T) -> U) -> U[] {
 **Generic structs**:
 
 ```vader
-List :: struct[T] {
+List :: struct<T> {
     items: T[]
     len: u32
 }
 
-list := List[i32] { .items = [1, 2, 3], .len = 3 }
+list := List<i32> { .items = [1, 2, 3], .len = 3 }
 ```
 
-**Constraints**. Inline bracketed bounds with `&` for trait intersection (« satisfies both ») :
+**Constraints**. Inline bounds with `&` for trait intersection (« satisfies both ») :
 
 ```vader
-sort :: fn[T: Comparable](items: T[]) {
+sort :: fn<T: Comparable>(items: T[]) {
     // ...
 }
 
-put :: fn[K: Hash & Equals, V](self: MutableMap[K, V], key: K, value: V) {
+put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) {
     // ...
 }
 ```
