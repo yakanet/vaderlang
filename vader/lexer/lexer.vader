@@ -976,12 +976,25 @@ lex_one :: fn(l: Lexer) -> void {
     // Backslash outside a string / char literal — Vader has no line
     // continuation. Emit L0007 instead of the generic L0001.
     start := l.position_here()
-    l.advance(1)
     if c == '\\' {
+        l.advance(1)
         l.push_error(.StrayBackslash, l.error_span(start), "")
         return
     }
+    // Consume the full codepoint (1..4 bytes) so a multi-byte char
+    // like `§` (UTF-8 0xC2 0xA7) fires L0001 once, not once per byte.
+    l.advance(utf8_lead_byte_len(l.src.byte_at(l.pos)))
     l.push_error(.UnexpectedCharacter, l.error_span(start), "")
+}
+
+// UTF-8 leading-byte → encoded length in bytes (1, 2, 3, or 4).
+// Continuation / invalid bytes fall back to 1 (best-effort recovery).
+utf8_lead_byte_len :: fn(b: u8) -> usize {
+    if u32(b) < u32(0x80)    { return usize(1) }    // 0xxxxxxx
+    if u32(b) < u32(0xC0)    { return usize(1) }    // continuation — invalid lead
+    if u32(b) < u32(0xE0)    { return usize(2) }    // 110xxxxx
+    if u32(b) < u32(0xF0)    { return usize(3) }    // 1110xxxx
+    return usize(4)                                 // 11110xxx
 }
 
 // ---- public entry ---------------------------------------------------------

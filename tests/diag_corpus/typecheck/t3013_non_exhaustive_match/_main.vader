@@ -4,6 +4,6 @@ module "snippet"
 main :: fn() -> i32 {
     b :: true
     return match b {
-        is true -> 1
+        true -> 1
     }
 }

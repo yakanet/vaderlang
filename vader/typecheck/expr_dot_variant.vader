@@ -63,7 +63,7 @@ export infer_dot_variant :: fn(
 // placeholder back to the real EnumType when one is available, falling
 // back to the cross-module `external_types` cache so enums defined in
 // other modules (e.g. `FlagKind` from std/cli) still lift.
-lift_enum_placeholder :: fn(t: Type, typed: TypedProgram) -> Type {
+export lift_enum_placeholder :: fn(t: Type, typed: TypedProgram) -> Type {
     match t {
         is StructType as st -> {
             if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return t }

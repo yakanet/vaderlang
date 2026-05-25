@@ -131,20 +131,6 @@ const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   "lower:interp_string_comptime",
   // lower-divergence (Into-coercion path missing T3001 emit-site)
   "lower:for_in_into_iter",
-  // T3013 non-exhaustive match : Vader's typechecker doesn't yet
-  // emit T3013 on this snippet's shape (return-position match
-  // missing a `false` arm). Tracked as typecheck-coverage.
-  "resolver:typecheck/t3013_non_exhaustive_match",
-  "typecheck:typecheck/t3013_non_exhaustive_match",
-  "comptime:typecheck/t3013_non_exhaustive_match",
-  "lower:typecheck/t3013_non_exhaustive_match",
-  // l0001_unexpected_character : Vader emits two L0001s (one per
-  // unrecognised byte) ; TS emits one. Unrelated to R2006 — lexer
-  // recovery shape divergence ; tracked separately.
-  "resolver:lexer/l0001_unexpected_character",
-  "typecheck:lexer/l0001_unexpected_character",
-  "comptime:lexer/l0001_unexpected_character",
-  "lower:lexer/l0001_unexpected_character",
 ]);
 
 function collectScenarios(): Scenario[] {

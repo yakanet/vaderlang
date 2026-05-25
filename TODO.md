@@ -28,14 +28,16 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
   - **Parser P1029 / P1030** [x] : redirected — TS already defines them but currently emits the lookalike R2020 / R2022 at resolver-stage. Vader follows the same convention ; no separate parser-stage check needed for now.
   - **`string[r]` codepoint slice** [x] : `expr_index.vader` now accepts `Range` indices on `string` and returns `string` (slice).
 
-  Remaining open (tracked by `tests/parity-diagnostics.test.ts::KNOWN_DIVERGENCES`, 26 entries) :
-  - `sam_impl_bad` cascades : Vader emits more T3036 / R2006 / T3020 entries than TS for SAM-impl errors. Needs cascade suppression once R2016 fires.
-  - `iter_defaults` / `selfhost_lexer_basic` / `interp_string_comptime` typecheck-coverage : Vader's typechecker doesn't populate `expr_types` for as many nodes as TS, so downstream stages miss cascading diagnostics. Diffuse fix per arm of `walk_expr`.
-  - `square_call` / `tuple_comptime` comptime-coverage : tree-walker comptime evaluator can't handle `CallExpr` / `SeqLitExpr` (Vader emits C4001 cannot-evaluate ; TS routes through VM).
-  - `for_in_into_iter` : TS emits B5001 (backend) on the missing string-iterator impl ; Vader has no equivalent lower-stage emission yet — needs M5004 (`IntoCoercionFailed`) wired in `vader/lower/`.
-  - `non_exported_violation` resolver : cross-module visibility diagnostic path differs.
-  - `lexer/l0001_unexpected_character` : Vader emits L0001 twice (per unrecognised byte) where TS emits once. Lexer recovery shape divergence.
-  - `t3013_non_exhaustive_match` : snippet needs rewrite (current `match b { is true -> 1 }` triggers parser error before typecheck) + Enum-scrutinee exhaustiveness tracking in `match_expr.vader`.
+  Lot 4c closed items (2026-05-26) :
+  - **T3013 Enum + non-Union scrutinee** [x] : `match_expr.vader::infer_match` now tracks `has_wildcard` + `covered_enum_variants`, lifts placeholder enums via `lift_enum_placeholder`, and emits T3013 for Union (missing variant), Enum (missing variant by name), and non-Union/non-Enum/non-Unresolved (wildcard arm required). Irrefutable tuple patterns (`[n, s]`) count as wildcards. Snippet rewritten.
+  - **L0001 single emit** [x] : lexer now consumes the full UTF-8 codepoint (1..4 bytes via `utf8_lead_byte_len`) before emitting L0001, so `§` fires once instead of twice.
+
+  Remaining open (tracked by `tests/parity-diagnostics.test.ts::KNOWN_DIVERGENCES`, 18 entries — full suite 4988 pass / 24 skip / 0 fail) :
+  - `sam_impl_bad` cascades : Vader emits more T3036 / R2006 / T3020 entries than TS for SAM-impl errors. Needs cascade suppression once R2016 fires — touches `walk_impl_decl` + `declare_module`.
+  - `iter_defaults` / `selfhost_lexer_basic` / `interp_string_comptime` typecheck-coverage : Vader's typechecker doesn't populate `expr_types` for as many nodes as TS (visible as `?` in fn signatures of the dump). Diffuse fix per arm of `walk_expr` ; needs an audit pass to enumerate the missing writes.
+  - `square_call` / `tuple_comptime` comptime-coverage : tree-walker comptime evaluator can't handle `CallExpr` / `SeqLitExpr` (Vader emits C4001 cannot-evaluate ; TS routes through VM). Adding a tree-walk fn-body interpreter is a sub-chantier of its own.
+  - `for_in_into_iter` : TS emits B5001 (backend) on the missing string-iterator impl ; Vader has no equivalent lower-stage emission yet — needs M5004 (`IntoCoercionFailed`) wired in `vader/lower/passes/for_in.vader` after porting the TS `for-in.ts` emit-sites.
+  - `non_exported_violation` resolver : cross-module visibility diagnostic path differs ; needs the wire_imports redirect threaded through R2008 check.
 
 - [ ] **Resolver lazy index** — the strict resolver's `discoverModules` currently scans every `.vader` file under the scoped roots up-front (stdlib + `vader.json::modules` + entry's folder via CLI fallback). For a tiny snippet like `arith` that only imports `std/io`, the Vader CLI walks ~170 file headers per invocation — ~660 ms per `dump` call vs. ~100 ms under the legacy depth-1 BFS. The full scan only earns its keep on cross-module entries (`namespace_alias_dedupe`, broad-parity). **Idea** : lazy discovery — start with an empty index, populate stdlib + the entry's folder eagerly, then on `index.get(name)` miss, expand the search by walking the next scoped root. Same final state, but small snippets pay only for what they actually import. ~2-3 h of carefully-staged rewrite of `vader/resolver/loader.vader` + `vader/resolver/discover.vader` ; the TS counterpart in `src/resolver/loader.ts` likely benefits too. Affects every `bun test` that touches the snapshot pipeline (which spawns the Vader CLI ~250 × per stage).
 

@@ -9,7 +9,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/resolver" { span_key }
-import "vader/types" { Type, UnionType, display_type, TY_BOOL }
+import "vader/types" { Type, UnionType, EnumType, display_type, TY_BOOL }
 AST :: import "vader/parser"
 
 /// Type-check a `MatchExpr`. `expected` flows into every arm body so
@@ -21,11 +21,14 @@ export infer_match :: fn(
     ctx: FnContext | null,
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    scrut_ty :: check_expr_fn(e.scrutinee, null, typed, diags)
+    raw_scrut :: check_expr_fn(e.scrutinee, null, typed, diags)
+    scrut_ty :: lift_enum_placeholder(raw_scrut, typed)
     scrut_sym_id :: scrutinee_sym_id(e.scrutinee, typed)
     scrut_field_key :: scrutinee_field_key(e.scrutinee, typed)
     arm_types: Type[] = []
     remaining := scrut_ty
+    has_wildcard := false
+    covered_enum_variants: string[] = []
     for arm in e.arms {
         match arm.pattern {
             is AST.LiteralPattern as lp -> { check_expr_fn(lp.value, null, typed, diags) }
@@ -90,25 +93,86 @@ export infer_match :: fn(
                 }
                 remaining = subtract_type(remaining, matched)
             }
+            is AST.EnumVariantPattern as ev -> {
+                covered_enum_variants.push(ev.variant)
+            }
             is AST.TuplePattern as tp -> {
                 // Subtract any TupleType variant whose arity matches.
                 tup_ty :: pick_tuple_variant(remaining, tp.elements.len())
                 if !(tup_ty is null) { remaining = subtract_type(remaining, tup_ty) }
+                // Irrefutable tuple (all bindings / wildcards) matches every
+                // tuple of that arity ; counts as a wildcard for exhaustiveness.
+                if is_irrefutable_tuple_pattern(tp) {
+                    has_wildcard = true
+                }
             }
-            is AST.WildcardPattern -> { remaining = TY_NEVER }
-            is AST.BindingPattern  -> { remaining = TY_NEVER }
+            is AST.WildcardPattern -> {
+                has_wildcard = true
+                remaining = TY_NEVER
+            }
+            is AST.BindingPattern -> {
+                has_wildcard = true
+                remaining = TY_NEVER
+            }
             _ -> {}
         }
     }
-    // T3013 : non-exhaustive match on a Union scrutinee. Only Union
-    // scrutinees get the check here — enum-variant exhaustiveness
-    // needs a richer tracker (matched dot-variant set) than the
-    // type-subtraction we maintain for unions.
-    if scrut_ty is UnionType && !is_never(remaining) && e.arms.len() > 0 {
-        diags.push(typecheck_error(.NonExhaustiveMatch, e.span,
-            "variant ${display_type(remaining)} of ${display_type(scrut_ty)} is not covered"))
+    // T3013 — non-exhaustive match. `@partial` opts out.
+    if !has_wildcard && !e.partial && e.arms.len() > 0 {
+        if scrut_ty is UnionType {
+            if !is_never(remaining) {
+                diags.push(typecheck_error(.NonExhaustiveMatch, e.span,
+                    "variant ${display_type(remaining)} of ${display_type(scrut_ty)} is not covered"))
+            }
+        } else if scrut_ty is EnumType {
+            missing_variant :: missing_enum_variant_name(scrut_ty, typed, covered_enum_variants)
+            if missing_variant != "" {
+                diags.push(typecheck_error(.NonExhaustiveMatch, e.span,
+                    "variant .${missing_variant} of ${display_type(scrut_ty)} is not covered"))
+            }
+        } else if scrut_ty is UnresolvedType {
+            // skip — upstream error already surfaced.
+        } else {
+            diags.push(typecheck_error(.NonExhaustiveMatch, e.span,
+                "match on non-union ${display_type(scrut_ty)} requires a wildcard arm"))
+        }
     }
     return union_of(arm_types)
+}
+
+// First enum variant name absent from `covered`. Uses the EnumType's
+// `indices` map (populated at declare-time) so we don't need to walk
+// the program AST a second time.
+// True iff every leaf of `tp` is a binding / wildcard — i.e. matches
+// every tuple of that arity by construction. Mirrors TS's
+// `isIrrefutableTuple`.
+is_irrefutable_tuple_pattern :: fn(tp: AST.TuplePattern) -> bool {
+    for el in tp.elements {
+        if el is AST.WildcardPattern { continue }
+        if el is AST.BindingPattern  { continue }
+        if el is AST.TuplePattern as nested {
+            if !is_irrefutable_tuple_pattern(nested) { return false }
+            continue
+        }
+        return false
+    }
+    return true
+}
+
+missing_enum_variant_name :: fn(
+    en: EnumType, typed: TypedProgram, covered: string[],
+) -> string {
+    for name in en.indices.keys() {
+        found := false
+        for c in covered {
+            if c == name {
+                found = true
+                break
+            }
+        }
+        if !found { return name }
+    }
+    return ""
 }
 
 is_never :: fn(t: Type) -> bool {
