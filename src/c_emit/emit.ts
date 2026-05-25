@@ -177,6 +177,20 @@ function groupStructsByShape(m: BytecodeModule): Map<string | number, number[]> 
   return groups;
 }
 
+function fieldsConvertible(m: BytecodeModule, iA: number, iB: number): boolean {
+  const a = m.types[iA] as BcStruct;
+  const b = m.types[iB] as BcStruct;
+  if (a.fields.length !== b.fields.length) return false;
+  for (let k = 0; k < a.fields.length; k++) {
+    const va = valTypeOfBcType(m.types[a.fields[k]!.typeIndex]!);
+    const vb = valTypeOfBcType(m.types[b.fields[k]!.typeIndex]!);
+    if (va === vb) continue;
+    if (va === "ref" || va === "any" || vb === "ref" || vb === "any") continue;
+    return false;
+  }
+  return true;
+}
+
 function computeErasureGroups(m: BytecodeModule): {
   anyCounterpartOf: Map<number, number>;
   siblingLayoutsOf: Map<number, readonly number[]>;
@@ -186,9 +200,18 @@ function computeErasureGroups(m: BytecodeModule): {
   const siblingLayoutsOf = new Map<number, readonly number[]>();
   for (const indices of groups.values()) {
     if (indices.length < 2) continue;
-    // Siblings : every other entry in the group, for the multi-tag
-    // dispatch in `emitHeapStructReshape`.
-    for (const i of indices) siblingLayoutsOf.set(i, indices.filter((j) => j !== i));
+    // Siblings : every other entry in the group whose fields are
+    // pairwise convertible to ours. Anonymous-tuple grouping keys on
+    // arity alone, so `[char, usize]` and `[string, ref]` land in the
+    // same group ; reshape only makes sense when each field position
+    // is either same-ValType or one side is ref/any (the
+    // boxing/unboxing branches in `emitHeapStructReshapeForSibling`
+    // cover those — anything else would emit an invalid C cast like
+    // `(vader_string_t) some_uint32`).
+    for (const i of indices) {
+      const peers = indices.filter((j) => j !== i && fieldsConvertible(m, i, j));
+      siblingLayoutsOf.set(i, peers);
+    }
     // Any-counterpart : the entry whose fields are all heap refs (the
     // post-erasure shared shape). Concrete entries have at least one
     // primitive / typed field ; skip the group when no canonical

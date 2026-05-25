@@ -19,12 +19,13 @@ import "std/collections" { MutableMap }
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool }
 import "std/string" { byte_len, byte_slice, starts_with }
 import "vader/diagnostics" { Diagnostic, Span }
-import "vader/resolver" { load_project }
+import "vader/resolver" { load_project, ResolvedModule }
 import "vader/resolver" { span_key }
+import "vader/resolver/symbol" { Symbol }
 import "vader/typecheck" { check_project_with_bodies }
 import "vader/typecheck" { CheckResult }
 import "vader/typecheck" { TypedProgram }
-import "vader/types" { Type, UnresolvedType, FreeIntType, FreeFloatType, display_type }
+import "vader/types" { Type, UnresolvedType, FreeIntType, FreeFloatType, TypeMetaType, display_type }
 AST :: import "vader/parser"
 
 /// Build the inlay-hint array for the document carried in `params`.
@@ -65,6 +66,13 @@ collect_from_decl :: fn(d: AST.Decl, typed: TypedProgram, out: JsonValue[]) -> v
                     is null -> {}
                     is AST.BlockExpr as b -> { collect_from_block(b, typed, out) }
                 }
+            }
+        }
+        is AST.ConstDecl as cd -> {
+            // Skip when the user already annotated the type.
+            match cd.ty {
+                is null -> { emit_const_hint(cd, typed, out) }
+                _       -> {}
             }
         }
         _ -> {}
@@ -141,10 +149,16 @@ collect_from_expr :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]) -> v
 
 // ---- hint emission -------------------------------------------------------
 
-/// Emit a `: <type>` hint after the binding name. Currently handles the
-/// `SimpleBinding` case ; tuple-destructuring bindings are skipped
-/// (each leaf would need its own hint, and the static type isn't always
-/// useful on the destructure itself).
+/// Emit a `<type>` hint between the two characters of the `::` or `:=`
+/// operator. With canonical formatting (`name` + single space + operator),
+/// the rendered line reads `a :u8 : b'{'` for `::` or `a :u8 = b'='` for
+/// `:=` — the first char of the original operator visually reads as the
+/// type-annotation colon, the second char as the (now-bare) decl
+/// separator. Mirrors where a hand-typed `: T` annotation would go.
+///
+/// Currently handles the `SimpleBinding` case ; tuple-destructuring
+/// bindings are skipped (each leaf would need its own hint, and the
+/// static type isn't always useful on the destructure itself).
 emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out: JsonValue[]) -> void {
     match ls.binding {
         is AST.SimpleBinding as sb -> {
@@ -153,15 +167,43 @@ emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out: JsonValue[]) -> v
             if ty is UnresolvedType { return }
             if ty is FreeIntType { return }
             if ty is FreeFloatType { return }
-            label :: ": ${display_type(ty)}"
-            // LSP positions are 0-based ; place the hint immediately
-            // after the binding name (end column - 1).
+            label :: display_type(ty)
+            // Position : LSP 0-based, between the two chars of `::` /
+            // `:=`. Source layout under canonical formatting is
+            // `<name> <op>` with exactly one space ; the slot between
+            // the op's first and second char sits at `end.column + 1`
+            // (`end.column` is 1-based and exclusive, so `+ 1` after
+            // the implicit `- 1` to 0-base nets to `+ 1`).
             line :: sb.name_span.end.line - i32(1)
-            col  :: sb.name_span.end.column - i32(1)
+            col  :: sb.name_span.end.column + i32(1)
             out.push(build_hint(line, col, label))
         }
         _ -> {}
     }
+}
+
+/// Same shape as `emit_let_hint`, but for top-level `ConstDecl`. The
+/// type comes from `decl_types[sym.id]` — that's the final defaulted
+/// form (`FreeInt`→`i32`, `FreeFloat`→`f64`), whereas `expr_types`
+/// keeps the un-defaulted free type. Type-alias constants (`Type ::
+/// i32 | string`) get `TY_TYPE` ; we skip those — they're already
+/// self-describing.
+emit_const_hint :: fn(cd: AST.ConstDecl, typed: TypedProgram, out: JsonValue[]) -> void {
+    sym :: lookup_const_sym(typed.resolved, cd.name)
+    if sym is null { return }
+    ty :: typed.decl_types[sym.id]
+    if ty is null { return }
+    if ty is UnresolvedType { return }
+    if ty is TypeMetaType { return }
+    label :: display_type(ty)
+    line :: cd.name_span.end.line - i32(1)
+    col  :: cd.name_span.end.column + i32(1)
+    out.push(build_hint(line, col, label))
+}
+
+lookup_const_sym :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
+    for s in resolved.symbols { if s.name == name { return s } }
+    return null
 }
 
 build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
@@ -174,8 +216,11 @@ build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
     hint["label"]        = JsonString { .value = label }
     // InlayHintKind.Type = 1 (LSP §3.17.21).
     hint["kind"]         = JsonNumber { .value = f64(1) }
+    // No leading space — the hint sits flush against the first `:` of
+    // the operator, so the colon reads as the type-annotation colon.
+    // Trailing space separates the hint from the second op char.
     hint["paddingLeft"]  = JsonBool { .value = false }
-    hint["paddingRight"] = JsonBool { .value = false }
+    hint["paddingRight"] = JsonBool { .value = true }
     return JsonObject { .entries = hint }
 }
 

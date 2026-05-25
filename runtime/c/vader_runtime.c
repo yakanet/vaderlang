@@ -207,6 +207,9 @@ static size_t vader_gc_env_bytes(const char* env_name, size_t fallback) {
 static size_t g_prof_eq_calls   = 0;
 static size_t g_prof_eq_matches = 0;
 
+static int g_gc_profile = 0;
+void vader_gc_profile_dump(void);
+
 /* ============================================================
  * Atom-based string interning — see `docs/ATOM_INTERNING.md`.
  *
@@ -798,6 +801,16 @@ void vader_gc_init(void) {
     const char* stress_env = getenv("VADER_GC_STRESS");
     g_gc_stress = (stress_env != NULL && stress_env[0] != '\0' && stress_env[0] != '0');
 
+    /* VADER_GC_PROFILE : at exit, walk both arenas and dump the live set
+     * bucketed by type_index — sorted by total bytes, top-20. Useful to
+     * answer "what's filling my GC arena?". OOM paths abort() so atexit
+     * doesn't fire ; the OOM trap dumps inline before aborting. */
+    const char* gc_prof_env = getenv("VADER_GC_PROFILE");
+    if (gc_prof_env != NULL && gc_prof_env[0] != '\0' && gc_prof_env[0] != '0') {
+        g_gc_profile = 1;
+        atexit(vader_gc_profile_dump);
+    }
+
     /* Young: one malloc spanning both semi-spaces. */
     size_t young_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t)VADER_GC_YOUNG_BYTES);
     g_young.block = (char*) malloc(young_bytes * 2u);
@@ -884,6 +897,10 @@ void* vader_gc_alloc(size_t bytes) {
                     "  old arena   %zu MB × 2 (raise via VADER_GC_OLD_BYTES)\n",
                     g_young.half_bytes / (1024u * 1024u),
                     g_old.half_bytes / (1024u * 1024u));
+                /* abort() skips atexit handlers — dump the live set inline so
+                 * VADER_GC_PROFILE works on OOM cases (the very ones we want
+                 * to diagnose). */
+                if (g_gc_profile) vader_gc_profile_dump();
                 vader_trap("vader_gc_alloc: out of memory after collection");
             }
         }
@@ -2541,6 +2558,93 @@ vader_string_t vader_spawn_last_stderr(void) {
 void vader_unreachable(const char* where) {
     fprintf(stderr, "vader: reached unreachable at %s\n", where);
     abort();
+}
+
+/* ---------- VADER_GC_PROFILE — live-set breakdown by type ---------- */
+
+typedef struct {
+    uint32_t type_index;
+    uint64_t count;
+    uint64_t bytes;
+} vader_gc_prof_entry_t;
+
+static int vader_gc_prof_cmp(const void* a, const void* b) {
+    uint64_t bb = ((const vader_gc_prof_entry_t*) b)->bytes;
+    uint64_t ba = ((const vader_gc_prof_entry_t*) a)->bytes;
+    if (bb > ba) return 1;
+    if (bb < ba) return -1;
+    return 0;
+}
+
+/* Walk both arenas' from-spaces and tally objects bucketed by type_index.
+ * Sort by total bytes, print top-20. Called via atexit when
+ * VADER_GC_PROFILE is set, and inline from the OOM trap (abort() skips
+ * atexit). */
+void vader_gc_profile_dump(void) {
+    if (!g_gc_initialized) return;
+    /* +1 for the ARRAY_BUF sentinel bucket. */
+    size_t nbuckets = vader_type_info_count + 1u;
+    vader_gc_prof_entry_t* tally = (vader_gc_prof_entry_t*) calloc(nbuckets, sizeof(vader_gc_prof_entry_t));
+    if (tally == NULL) return;
+    for (size_t i = 0; i < nbuckets; i++) tally[i].type_index = (uint32_t) i;
+
+    const vader_arena_t* gens[2] = { &g_young.from, &g_old.from };
+    size_t totals[2] = { 0, 0 };
+    for (int g = 0; g < 2; g++) {
+        char* scan = gens[g]->base;
+        while (scan < gens[g]->cur) {
+            vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
+            uint32_t type_index = hdr->type_index;
+            size_t bytes = vader_gc_obj_size(scan, type_index);
+            if (bytes == 0) break;
+            size_t bucket = (type_index == VADER_TYPE_INDEX_ARRAY_BUF)
+                ? vader_type_info_count
+                : (type_index < vader_type_info_count ? type_index : 0);
+            tally[bucket].count += 1u;
+            tally[bucket].bytes += bytes;
+            totals[g] += bytes;
+            scan += vader_gc_align(bytes);
+        }
+    }
+    qsort(tally, nbuckets, sizeof(vader_gc_prof_entry_t), vader_gc_prof_cmp);
+
+    fprintf(stderr, "\n=== vader_gc_profile : live-set breakdown ===\n");
+    fprintf(stderr, "young from-space : %.2f MB live (of %zu MB arena)\n",
+            (double) totals[0] / (1024.0 * 1024.0),
+            g_young.half_bytes / (1024u * 1024u));
+    fprintf(stderr, "old   from-space : %.2f MB live (of %zu MB arena)\n",
+            (double) totals[1] / (1024.0 * 1024.0),
+            g_old.half_bytes / (1024u * 1024u));
+    fprintf(stderr, "top-20 buckets (by bytes) :\n");
+    fprintf(stderr, "  %-12s %-10s %-12s %-12s %s\n",
+            "type_index", "kind", "obj_size", "count", "total_bytes");
+    size_t shown = 0;
+    for (size_t i = 0; i < nbuckets && shown < 20u; i++) {
+        if (tally[i].bytes == 0) break;
+        uint32_t ti = tally[i].type_index;
+        const char* kind_name = "?";
+        size_t obj_size = 0;
+        if (ti == VADER_TYPE_INDEX_ARRAY_BUF) {
+            kind_name = "ARRAY_BUF";
+            obj_size = 0;
+        } else if (ti < vader_type_info_count) {
+            const vader_type_info_t* info = &vader_type_info_table[ti];
+            switch (info->kind) {
+                case VADER_TYPE_KIND_NONE:       kind_name = "NONE"; break;
+                case VADER_TYPE_KIND_STRUCT:     kind_name = "STRUCT"; break;
+                case VADER_TYPE_KIND_ARRAY:      kind_name = "ARRAY"; break;
+                case VADER_TYPE_KIND_FN:         kind_name = "FN"; break;
+                case VADER_TYPE_KIND_INLINE_REF: kind_name = "INLINE_REF"; break;
+            }
+            obj_size = info->size;
+        }
+        fprintf(stderr, "  %-12u %-10s %-12zu %-12llu %llu\n",
+                ti, kind_name, obj_size,
+                (unsigned long long) tally[i].count,
+                (unsigned long long) tally[i].bytes);
+        shown++;
+    }
+    free(tally);
 }
 
 void vader_trap(const char* msg) {

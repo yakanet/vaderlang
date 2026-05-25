@@ -39,6 +39,7 @@ import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_option
 import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
 import "vader/vm" { run_virt }
+import "vader/lsp" { run_server }
 
 // Byte-for-byte copy of `HELP` in `src/cli.ts`. Triple-quoted strings drop
 // the newline immediately after the opening `"""`, so the body starts at
@@ -223,12 +224,7 @@ cmd_fmt :: fn(args: string[]) -> i32 {
 }
 
 cmd_lsp :: fn(args: string[]) -> i32 {
-    // Unified CLI doesn't bundle the LSP server — keeps the binary small
-    // and dodges a C-emit issue when LSP + every other tool's structs
-    // land in the same translation unit. Editors spawn `vader-lsp`
-    // (compiled separately from `vader/lsp/main_entry.vader`) directly.
-    eprintln("vader lsp: spawn `vader-lsp` directly (see editors/{vscode,intellij}/)")
-    return 2
+    return run_server(args)
 }
 
 cmd_test :: fn(args: string[]) -> i32 {

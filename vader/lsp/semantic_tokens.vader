@@ -242,14 +242,14 @@ comment_to_raw :: fn(c: Comment, source: string) -> RawToken[] {
     // Base case : non-doc comments emit a single comment-typed token.
     match c.kind {
         .Line -> {
-            out.push(make_comment_token(c, i32(0)))
+            out.push(make_comment_token(c, source, i32(0)))
             return out
         }
         .Block -> {
             // Multi-line block comments need one token per line so the
             // delta-encoding works cleanly ; emit the whole span as a
             // single token and let the client re-wrap.
-            out.push(make_comment_token(c, i32(0)))
+            out.push(make_comment_token(c, source, i32(0)))
             return out
         }
         .DocLine -> {
@@ -259,10 +259,11 @@ comment_to_raw :: fn(c: Comment, source: string) -> RawToken[] {
     }
 }
 
-make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
+make_comment_token :: fn(c: Comment, source: string, modifiers: i32) -> RawToken {
+    line_start :: line_start_offset(source, c.offset)
     return RawToken {
         .line      = c.line - 1,
-        .col       = i32(0),     // approximation : doc comments span whole lines
+        .col       = i32(c.offset - line_start),
         .length    = i32(c.end_offset - c.offset),
         .tok_type  = i32(TokenType.Comment),
         .modifiers = modifiers,
