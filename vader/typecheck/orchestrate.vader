@@ -23,7 +23,8 @@ import "vader/resolver" { wire_imports, ImportTargetTable }
 import "vader/types" { display_type, type_base_name }
 import "vader/diagnostics" { typecheck_error }
 import "vader/types" {
-    Type, ArrayType, FnType, SelfType, StructType, TupleType, UnionType,
+    Type, ArrayType, EnumType, FnType, SelfType, StructType, TraitType,
+    TupleType, UnionType,
     mk_array, mk_fn, mk_struct, mk_tuple, mk_union,
     TY_UNRESOLVED, TY_TYPE, TY_VOID,
 }
@@ -245,6 +246,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .path = "",
         .display_path = "",
         .symbols = [],
+        .symbols_by_name = MutableMap(string, Symbol) { .buckets = [], .size = 0 },
         .idents = MutableMap(i64, Symbol) { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap(i32, bool) { .buckets = [], .size = 0 },
         .fn_overloads = MutableMap(string, Symbol[]) { .buckets = [], .size = 0 },
@@ -727,8 +729,74 @@ merge_struct_decls :: fn(
             fmap :: other.struct_field_types[sym_id]
             if fmap is null { continue }
             entry_typed.struct_field_types[sym_id] = fmap
+            // Walk every field type for transitively-referenced named
+            // types (Enum / Struct / Trait declared in other modules
+            // but not directly imported by the entry). Pull their real
+            // `decl_types` entries into `external_types` so passes that
+            // lift placeholders (e.g. `lift_enum_placeholder` in
+            // `expr_dot_variant.vader`) can find them. Without this,
+            // `FlagSpec { .kind = .Str }` rejects `.Str` because
+            // `FlagKind` (only reached transitively via the struct
+            // field) never lands in any lookup table.
+            for fname in fmap.keys() {
+                ft :: fmap[fname]
+                if ft is null { continue }
+                pull_referenced_external_types(ft, entry_typed, per_module)
+            }
         }
     }
+}
+
+/// Walk `t` and, for every named-type symbol (Struct / Enum / Trait)
+/// declared in a non-entry module, copy its real declared type from
+/// the owning module's `decl_types` into `entry.external_types`. The
+/// `external_types[id]` presence check inside `register_external`
+/// both memoizes and breaks Struct ↔ Struct cycles.
+///
+/// Spells out the variant arms instead of routing through
+/// `for_each_type` so the recursion stays a plain call graph — a
+/// closure capturing the two-field context tripped the self-host
+/// codegen at the time of writing.
+pull_referenced_external_types :: fn(
+    t: Type, entry: TypedProgram, per_module: MutableMap(string, TypedProgram),
+) -> void {
+    match t {
+        is StructType as st -> {
+            register_external(st.symbol, entry, per_module)
+            for a in st.args { pull_referenced_external_types(a, entry, per_module) }
+        }
+        is TraitType as tr -> {
+            register_external(tr.symbol, entry, per_module)
+            for a in tr.args { pull_referenced_external_types(a, entry, per_module) }
+        }
+        is EnumType as en -> { register_external(en.symbol, entry, per_module) }
+        is ArrayType as a -> { pull_referenced_external_types(a.element, entry, per_module) }
+        is TupleType as p -> {
+            for el in p.elements { pull_referenced_external_types(el, entry, per_module) }
+        }
+        is UnionType as u -> {
+            for v in u.variants { pull_referenced_external_types(v, entry, per_module) }
+        }
+        is FnType as f -> {
+            for p in f.params { pull_referenced_external_types(p, entry, per_module) }
+            pull_referenced_external_types(f.return_type, entry, per_module)
+        }
+        _ -> {}
+    }
+}
+
+register_external :: fn(
+    sym: Symbol, entry: TypedProgram, per_module: MutableMap(string, TypedProgram),
+) -> void {
+    if !(entry.external_types[sym.id] is null) { return }
+    if sym.module == entry.resolved.path { return }
+    owner :: per_module[sym.module]
+    if owner is null { return }
+    declared :: owner.decl_types[sym.id]
+    if declared is null { return }
+    entry.external_types[sym.id] = declared
+    // Chained references — `Foo { bar: Bar }` where `Bar { baz: Baz }`.
+    pull_referenced_external_types(declared, entry, per_module)
 }
 
 // Build a name → FnType[] index of every imported free fn so

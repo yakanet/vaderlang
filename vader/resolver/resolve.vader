@@ -38,6 +38,12 @@ export ResolvedModule :: struct {
     /// stable key for cross-module side-tables.
     display_path: string
     symbols: Symbol[]
+    /// Module-wide top-level lookup, including symbols declared in every
+    /// file of a multi-file module. Used as the name-based fallback when
+    /// `type_from_expr` can't find an ident's span in `idents` (e.g. a
+    /// sibling file's fn signature references a type declared in another
+    /// sibling file — the resolver's body walker only visits `files[0]`).
+    symbols_by_name: MutableMap(string, Symbol)
     idents:  MutableMap(i64, Symbol)
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
     /// Consumed by stmt.vader::check_assign to surface T3041.
@@ -139,6 +145,7 @@ export resolve_module_with_collected_dp :: fn(
         .path             = module_path,
         .display_path     = display_path,
         .symbols          = sort_by_name(user_syms),
+        .symbols_by_name  = collected.symbols,
         .idents           = file.idents,
         .immutable_locals = file.immutable_locals,
         .fn_overloads     = collected.fn_overloads,

@@ -92,22 +92,32 @@ lower_ident :: fn(e: AST.IdentExpr, resolved: ResolvedModule) -> Type {
         _ -> { return builtin }
     }
     bound :: resolved.idents[span_key(e.span)]
-    if !(bound is null) {
-        sym :: redirect_import(bound, resolved)
-        // TypeAlias expansion : `Maybe :: T | null` should render
-        // as `T | null` at use sites instead of as a placeholder.
-        aliased :: resolved.alias_types[sym.id]
-        if !(aliased is null) { return aliased }
-        return type_from_symbol(sym, [])
-    }
-    // Fallback : auto-loaded core types (Error, Range, …) the
-    // resolver doesn't bind in `idents`. Populated by the typecheck
-    // orchestrator after `wire_imports`.
+    if !(bound is null) { return resolve_named_type(bound, resolved) }
+    // Multi-file module fallback : the resolver's body walker only
+    // visits `files[0]`, so a type ident in a sibling file's fn
+    // signature (e.g. `parse_source : fn(...) -> ParsedSource` in
+    // `vader/parser/parser.vader` where the walker started in
+    // `assign_ids.vader`) misses the span-keyed `idents` table. Look
+    // up by name against the module-wide collected symbols instead.
+    by_name :: resolved.symbols_by_name[e.name]
+    if !(by_name is null) { return resolve_named_type(by_name, resolved) }
+    // Auto-loaded core types (Error, Range, …) the resolver doesn't
+    // bind in `idents`. Populated by the typecheck orchestrator after
+    // `wire_imports`.
     core :: resolved.core_symbols[e.name]
-    match core {
-        is null -> { return TY_UNRESOLVED }
-        is Symbol as s -> { return type_from_symbol(s, []) }
-    }
+    if !(core is null) { return resolve_named_type(core, resolved) }
+    return TY_UNRESOLVED
+}
+
+/// Map a symbol to its value-as-type form : follow ImportBinding
+/// redirects, expand TypeAlias bodies, then fall back to a fresh
+/// constructor via `type_from_symbol`. Shared by `lower_ident`'s
+/// three lookup branches and `lower_generic_inst`'s callee resolution.
+resolve_named_type :: fn(sym: Symbol, resolved: ResolvedModule) -> Type {
+    redirected :: redirect_import(sym, resolved)
+    aliased :: resolved.alias_types[redirected.id]
+    if !(aliased is null) { return aliased }
+    return type_from_symbol(redirected, [])
 }
 
 // Substitute an alias's type-params with the call-site's args.
@@ -232,16 +242,18 @@ lower_generic_inst :: fn(
 
 /// Resolve a type-position ident to its Symbol : prefer the
 /// scope-bound binding from `resolved.idents`, fall back to
+/// `resolved.symbols_by_name` (the module-wide lookup that covers
+/// sibling-file decls the body walker didn't visit), then to
 /// `resolved.core_symbols` for auto-imported core types (`Iterator`,
-/// `Range`, `Error`, …). Mirrors the fallback in `lower_ident`.
+/// `Range`, `Error`, …). Mirrors the lookup chain in `lower_ident`.
 lookup_type_name :: fn(id: AST.IdentExpr, resolved: ResolvedModule) -> Symbol | null {
     bound :: resolved.idents[span_key(id.span)]
     if !(bound is null) { return redirect_import(bound, resolved) }
+    by_name :: resolved.symbols_by_name[id.name]
+    if !(by_name is null) { return redirect_import(by_name, resolved) }
     core :: resolved.core_symbols[id.name]
-    match core {
-        is null -> { return null }
-        is Symbol as s -> { return s }
-    }
+    if !(core is null) { return core }
+    return null
 }
 
 lower_binary :: fn(
