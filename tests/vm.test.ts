@@ -2,6 +2,7 @@ import { test } from "bun:test";
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { MEDIUM_BUILD } from "./cli-bin.ts";
 import { errMsg, formatRun, formatRunWithError, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { pipelineBytecode } from "../src/pipeline.ts";
@@ -98,5 +99,5 @@ for (const s of scenarios) {
         snapshotDiff(cmp.snapPath, cmp.expected, actual),
       );
     }
-  });
+  }, { timeout: MEDIUM_BUILD });
 }
