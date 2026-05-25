@@ -99,6 +99,10 @@ export lower_project :: fn(
     // body inherits the source fn-decl but lowered against a typeParam
     // substitution that binds T → arg[i].
     materialize_generic_fn_instances(loaded, typed, project_ctx, project, diags)
+    // Drain per-fn lower diagnostics pushed to `project_ctx.diags`
+    // (e.g. M5001 from `lower_for_in`) into the caller-owned sink so
+    // they reach `# Diagnostics` in the CLI dump.
+    for d in project_ctx.diags { diags.push(d) }
     return project
 }
 

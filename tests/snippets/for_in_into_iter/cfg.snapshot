@@ -191,4 +191,4 @@ fn snippet$main() -> i32
     branch -> bb17
 
 # Diagnostics
-[48:5] error[B5001] language feature not yet supported by the backend: `for x in iter` requires Iterator impl on string (deferred — see TODO §1.5b iterators)
+[48:5] error[M5001] for-in receiver has no `Iterator` impl: `for x in iter` requires an Iterator impl on string

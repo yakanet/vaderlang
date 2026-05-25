@@ -129,8 +129,6 @@ const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   "lower:sam_impl_bad",
   "lower:selfhost_lexer_basic",
   "lower:interp_string_comptime",
-  // lower-divergence (Into-coercion path missing T3001 emit-site)
-  "lower:for_in_into_iter",
 ]);
 
 function collectScenarios(): Scenario[] {

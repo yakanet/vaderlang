@@ -175,8 +175,8 @@ export function lowerForIn(
     : null;
   const stepInfo = traitTypedElement === null ? findIteratorStepImpl(ctx, iterType) : null;
   if (traitTypedElement === null && stepInfo === null) {
-    err(ctx.project.diags, "B5001", span,
-      `\`for x in iter\` requires Iterator impl on ${displayType(iterType)} (deferred — see TODO §1.5b iterators)`);
+    err(ctx.project.diags, "M5001", span,
+      `\`for x in iter\` requires an Iterator impl on ${displayType(iterType)}`);
     return { kind: "LoweredExprStmt", span, expr: {
       kind: "LoweredUnreachable", span, type: TY.void,
       reason: `no Iterator impl on ${displayType(iterType)}`,

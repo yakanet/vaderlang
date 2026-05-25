@@ -20,11 +20,12 @@
 
 module "vader/lower"
 
-import "vader/diagnostics" { Span }
+import "vader/diagnostics" { Span, lower_error }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
     Type, ArrayType, StructType, TraitType, EnumType, PrimitiveType,
+    UnresolvedType,
     mk_struct, mk_array, mk_union, mk_primitive, display_type,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED,
     STRUCT_ARRAY_ITERATOR, STRUCT_YIELD, TRAIT_ITERATOR,
@@ -87,6 +88,15 @@ export lower_for_in :: fn(
     iter_type :: wrap_result.iter_type
     element_type :: resolve_element_type(ctx, iter_type_raw, iter_type)
 
+    // M5001 — `for x in iter` needs an Iterator impl on `iter`. When
+    // wrapping leaves the iter as a primitive (string / numeric / …),
+    // no Iterator dispatch is reachable from the lower step-loop. Mirrors
+    // TS `src/lower/passes/for-in.ts:178` which emits B5001 ; Vader uses
+    // M5001 (IteratorImplMissing) instead.
+    if iter_type is PrimitiveType {
+        ctx.project.diags.push(lower_error(.IteratorImplMissing, span,
+            "`for x in iter` requires an Iterator impl on ${display_type(iter_type)}"))
+    }
     yield_type_opt :: find_core_type(ctx, STRUCT_YIELD, build_one(element_type))
     if yield_type_opt is null {
         return LoweredExprStmt {
