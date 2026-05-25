@@ -225,7 +225,25 @@ Patterns counted on the existing Vader code that paid an outsized boilerplate co
 - [x] `if x is T as binding { ... }` — mirrors match-arm shape ; binding scoped to then-block.
 - [x] Drop `fn` keyword on lambda expressions — new form `(params) -> body` or `x -> body`. Decls still use `name :: fn(...) -> R { ... }`.
 - [ ] **`for <range> { ... }` shorthand** — desugar `for <expr> { body }` where `<expr>` types as `Range(T)` into `for _ in <expr> { body }` at parse or typecheck time. Neither parser supports it today, both go down the `while-cond` path and the typechecker emits T3019 (`Range(i32)` is not `bool`). Surfaced 2026-05-18 in `stdlib/std/string_builder.vader::append_repeated` and `stdlib/std/collections.vader:69` — both currently fixed by hand-adding `_ in`. Once the sugar lands, those `_ in` can go away.
-- [ ] **Normalise generic-argument bracket syntax across stdlib + self-host** — surfaced 2026-05-20 during SPEC sweep. Parser accepts both `Foo[T]` (brackets) and `Foo(T)` (parens) in type positions but SPEC standardises on brackets. Today's code mixes both shapes (e.g. `core.vader` : `Iterator :: trait[T]` at decl, `Yield(T)` at instantiation ; `collections.vader` : `MutableMap(K, V)` throughout). Decide whether to keep parens as accepted syntax (then document them in SPEC §3 / §4) or sweep stdlib + `vader/` to brackets-only and tighten the parser. Touches every `(T)` and `(T, U)` occurrence in the codebase — likely best paired with a `vader fmt` rule that rewrites the form chosen.
+- [ ] **Normalise generic syntax to `<T>` across stdlib + self-host** — superseded
+  2026-05-25 by the Java/C#-style migration. TS parser now accepts `<T>`
+  (canonical), `[T]` (legacy bracket), and `(T)` (legacy paren) in all
+  three positions ; SPEC §10 leads with `<T>`. Remaining work :
+  - **Phase B** : port the Vader self-host parser (`vader/parser/parser.vader`,
+    `vader/lexer/lexer.vader`) to mirror the TS changes — `<T>` opener,
+    `shr` split-on-demand for nested generics, hard-precedence scan in
+    expression position.
+  - **Migration** : rewrite every `[T]` / `(T)` generic site under
+    `stdlib/`, `vader/`, `tests/`, `examples/` to `<T>`. Best done with a
+    parser-aware AST walker that locates the exact `[/]` / `(/)`
+    delimiters around each typeParam list and generic-inst args. The
+    `vader fmt` rewrite is a separate chantier — fmt today still emits
+    `[T]`, so a fmt pass post-migration would revert the change unless
+    fmt is updated first (or in parallel).
+  - **Drop legacy parser paths** : once everything is migrated, remove
+    the `[T]` and `(T)` openers from `parse_bracketed_type_params` /
+    `parse_struct_type_param_list` / `parse_generic_arg_list` in both
+    parsers. Pre-MVP, no back-compat (CLAUDE.md).
 
 ### 1.14 Snapshot test infrastructure — done
 - [x] Single-source-per-test layout in `tests/snippets/{name}/_main.vader` + `{phase}.snapshot` files. Driver runs every pipeline phase. `UPDATE_SNAPSHOTS=1 bun test` for refresh. 80+ snippets covering generics, traits, comptime, error propagation, GC stress, closures, iter combinators.
