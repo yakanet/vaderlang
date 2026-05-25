@@ -22,6 +22,7 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap, MutableSet, add, contains }
+import "std/iter" { is_empty }
 import "std/math" { min }
 import "std/testing" { assert, assert_eq }
 import "vader/diagnostics" { Span }
@@ -101,7 +102,12 @@ export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl)
     syn_count :: count_sam_synthetics(impl_.members)
     if syn_count == 0 { return }
     required :: required_methods(trait_.members)
-    if required.len() != 1 { return }
+    if required.is_empty() { return }
+    // Pick the first required method as the SAM target. When the trait
+    // has >1 required method, R2016 already fired ; renaming under the
+    // first one still lets the T3036 "missing method" loop find at
+    // least the SAM-named method instead of flagging both as missing
+    // (mirrors TS's surface).
     method :: required[0]
     subst :: build_subst(impl_, trait_)
     for i in 0..<impl_.members.len() {

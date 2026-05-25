@@ -497,6 +497,12 @@ export materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
             // trait's methods so the rest of the pipeline (declare /
             // ufcs / walk_fn_body) sees them.
             materialize_intrinsic_members(decl, trait_decl)
+            // Always materialise the SAM rename — `check_short_impl_arity`
+            // already marked invalid synthetics as `materialized=true` so
+            // body-walk + body-typecheck skip them, but the rename still
+            // lets the T3036 "missing method" loop credit the SAM-named
+            // slot. Without the rename, both required methods would be
+            // flagged missing instead of just the unprovided one.
             materialize_sam_members(decl, trait_decl)
             // Default-bodied trait methods get cloned into the impl
             // (body + signature substituted). Bodies carry the
@@ -515,15 +521,24 @@ export materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
 /// Mirrors `src/resolver/materialize.ts::checkShortImplArity`.
 check_short_impl_arity :: fn(
     impl_: AST.ImplDecl, trait_: AST.TraitDecl, diags: Diagnostic[],
-) -> void {
+) -> bool {
     required :: required_methods(trait_.members).len()
-    if required == usize(1) { return }
-    for m in impl_.members {
+    if required == usize(1) { return true }
+    fired := false
+    for i in 0..<impl_.members.len() {
+        m :: impl_.members[i]
         if m.sam_synthetic {
             diags.push(resolver_error(.ShortImplFormSingleMethod, m.span,
                 "trait `${impl_.trait_name}` has ${required} required methods"))
+            // Mark the synthetic body as already-typechecked so the
+            // walker skips it — otherwise T3020 / R2006 on `self` cascade
+            // out of a body the user can't fix without restructuring the
+            // impl. Same `materialized` flag default-method clones use.
+            impl_.members[i].materialized = true
+            fired = true
         }
     }
+    return !fired
 }
 
 import "vader/diagnostics" { resolver_error }

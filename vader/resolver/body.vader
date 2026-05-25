@@ -215,7 +215,13 @@ walk_impl_decl :: fn(self: ResolveState, d: AST.ImplDecl) -> void {
     // Iterator / Field) so it would over-fire on every snippet that
     // implements a std/core trait. The orchestrator has the project
     // view it needs to consult `find_trait_decl_in_project` instead.
-    for m in d.members { self.walk_fn_decl(m) }
+    // Skip members the SAM-arity check marked materialized — their body
+    // is the user's short-impl expression and walking it would cascade
+    // R2006 on `self` (the SAM params never got minted on these).
+    for m in d.members {
+        if m.materialized { continue }
+        self.walk_fn_decl(m)
+    }
     self.scope.pop()
 }
 

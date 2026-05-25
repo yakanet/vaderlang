@@ -99,16 +99,6 @@ function diffSets(a: DiagRef[], b: DiagRef[]): { onlyA: string[]; onlyB: string[
 //     stage ; same root cause.
 const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   // Format : `${stage}:${snippet}`.
-  // R2006 cascade past R2016 : `i32 implements TwoFns { self + 1 }`
-  // — TwoFns has 2 methods so SAM materialization skips, leaving
-  // `self` unresolved at the body-walker. TS suppresses the cascade.
-  // Tracked alongside the typecheck-coverage audit (Lot 4c).
-  "resolver:sam_impl_bad",
-  // R2018 cascade in cross-module visibility — non_exported_violation
-  // imports Foo from a sibling module without `export` ; TS surfaces
-  // the misuse via R2008. Vader's import path differs ; tracked
-  // separately from the orphan-rule check itself.
-  "resolver:non_exported_violation",
   // comptime-coverage : Vader's tree-walker comptime evaluator
   // doesn't yet handle `CallExpr` / `SeqLitExpr` ; TS routes them
   // through the bytecode VM and evaluates them cleanly. Lifted by
@@ -119,14 +109,11 @@ const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   "lower:tuple_comptime",
   // typecheck-coverage (cascading from incomplete `expr_types`)
   "typecheck:iter_defaults",
-  "typecheck:sam_impl_bad",
   "typecheck:selfhost_lexer_basic",
   "comptime:iter_defaults",
-  "comptime:sam_impl_bad",
   "comptime:selfhost_lexer_basic",
   "comptime:interp_string_comptime",
   "lower:iter_defaults",
-  "lower:sam_impl_bad",
   "lower:selfhost_lexer_basic",
   "lower:interp_string_comptime",
 ]);
