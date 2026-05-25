@@ -40,6 +40,28 @@
           ~>
             @builder.finish :string
               __sb_0 :?
+    let e: i32 =
+      call :i32
+        callee:
+          identity :i32
+        arg0:
+          int(42) :i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "e = " :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            e :i32
+          ~>
+            @builder.finish :string
+              __sb_1 :?
     let b: Box(i32) =
       call :Box(i32)
         callee:
@@ -51,18 +73,18 @@
         println :void
       arg0:
         block :string
-          let __sb_1: ? =
+          let __sb_2: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_1 :?
+            __sb_2 :?
             "b = " :string
           @builder.append_display <for i32> :void
-            __sb_1 :?
+            __sb_2 :?
             .value :i32
               b :Box(i32)
           ~>
             @builder.finish :string
-              __sb_1 :?
+              __sb_2 :?
     let nested: Box(Box(i32)) =
       call :Box(Box(i32))
         callee:
@@ -74,19 +96,19 @@
         println :void
       arg0:
         block :string
-          let __sb_2: ? =
+          let __sb_3: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_2 :?
+            __sb_3 :?
             "nested = " :string
           @builder.append_display <for i32> :void
-            __sb_2 :?
+            __sb_3 :?
             .value :i32
               .value :Box(i32)
                 nested :Box(Box(i32))
           ~>
             @builder.finish :string
-              __sb_2 :?
+              __sb_3 :?
     let c: bool =
       call :bool
         callee:
@@ -96,17 +118,17 @@
         println :void
       arg0:
         block :string
-          let __sb_3: ? =
+          let __sb_4: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_3 :?
+            __sb_4 :?
             "c = " :string
           @builder.append_display <for bool> :void
-            __sb_3 :?
+            __sb_4 :?
             c :bool
           ~>
             @builder.finish :string
-              __sb_3 :?
+              __sb_4 :?
     return int(0) :i32
   struct snippet$Box__i32 { value: Any }
   struct snippet$Box__Box_i32_ { value: Any }

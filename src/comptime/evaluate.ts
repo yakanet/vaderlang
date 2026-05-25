@@ -460,6 +460,12 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry, dia
             registry.observeFnCall(fieldRef.symbol, typeArgs);
           }
         }
+      } else if (callExpr.callee.kind === "GenericInstExpr" && callExpr.callee.callee.kind === "IdentExpr") {
+        // Explicit-args generic call : `foo<T1, T2>(args)`. The inner
+        // IdentExpr carries the symbol binding (`recordGenericCallSite`
+        // ran via `recordExplicitGenericCallSite` in typecheck).
+        const sym = typed.resolved.idents.get(callExpr.callee.callee);
+        if (sym !== undefined) registry.observeFnCall(sym, typeArgs);
       }
     }
   }
@@ -670,6 +676,8 @@ function walkImplBodyForCalls(
       } else if (callExpr.callee.kind === "FieldExpr") {
         const fr = typed.fieldResolutions.get(callExpr.callee);
         calleeSym = fr?.kind === "ufcs-free" ? fr.symbol : undefined;
+      } else if (callExpr.callee.kind === "GenericInstExpr" && callExpr.callee.callee.kind === "IdentExpr") {
+        calleeSym = typed.resolved.idents.get(callExpr.callee.callee);
       }
       if (calleeSym !== undefined) registry.observeFnCall(calleeSym, sub);
     },
@@ -708,6 +716,8 @@ function observeFnBody(
       } else if (callExpr.callee.kind === "FieldExpr") {
         const fr = typed.fieldResolutions.get(callExpr.callee);
         calleeSym = fr?.kind === "ufcs-free" ? fr.symbol : undefined;
+      } else if (callExpr.callee.kind === "GenericInstExpr" && callExpr.callee.callee.kind === "IdentExpr") {
+        calleeSym = typed.resolved.idents.get(callExpr.callee.callee);
       }
       if (calleeSym !== undefined) registry.observeFnCall(calleeSym, sub);
     },

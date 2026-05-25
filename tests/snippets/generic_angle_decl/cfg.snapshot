@@ -34,29 +34,36 @@ fn snippet$main() -> i32
     %5 $k_5: string
     %6 $intrinsic_6: string
     %7 $k_7: i32
-    %8 $call_8: Box(i32)
-    %9 b: Box(i32) (local b)
+    %8 $call_8: i32
+    %9 e: i32 (local e)
     %10 $intrinsic_10: ?
     %11 __sb_1: ? (synthetic __sb_1)
     %12 $k_12: string
-    %13 $field_13: i32
-    %14 $intrinsic_14: string
-    %15 $k_15: i32
-    %16 $call_16: Box(Box(i32))
-    %17 nested: Box(Box(i32)) (local nested)
-    %18 $intrinsic_18: ?
-    %19 __sb_2: ? (synthetic __sb_2)
-    %20 $k_20: string
-    %21 $field_21: Box(i32)
-    %22 $field_22: i32
-    %23 $intrinsic_23: string
-    %24 $call_24: bool
-    %25 c: bool (local c)
-    %26 $intrinsic_26: ?
-    %27 __sb_3: ? (synthetic __sb_3)
-    %28 $k_28: string
-    %29 $intrinsic_29: string
-    %30 $k_30: i32
+    %13 $intrinsic_13: string
+    %14 $k_14: i32
+    %15 $call_15: Box(i32)
+    %16 b: Box(i32) (local b)
+    %17 $intrinsic_17: ?
+    %18 __sb_2: ? (synthetic __sb_2)
+    %19 $k_19: string
+    %20 $field_20: i32
+    %21 $intrinsic_21: string
+    %22 $k_22: i32
+    %23 $call_23: Box(Box(i32))
+    %24 nested: Box(Box(i32)) (local nested)
+    %25 $intrinsic_25: ?
+    %26 __sb_3: ? (synthetic __sb_3)
+    %27 $k_27: string
+    %28 $field_28: Box(i32)
+    %29 $field_29: i32
+    %30 $intrinsic_30: string
+    %31 $call_31: bool
+    %32 c: bool (local c)
+    %33 $intrinsic_33: ?
+    %34 __sb_4: ? (synthetic __sb_4)
+    %35 $k_35: string
+    %36 $intrinsic_36: string
+    %37 $k_37: i32
   bb0:
     %0 = const int(42) :i32
     %1 = call identity(%0) :i32
@@ -68,40 +75,50 @@ fn snippet$main() -> i32
     intrinsic builder.append_display(%4, %2)
     %6 = intrinsic builder.finish(%4)
     call println(%6) :void
-    %7 = const int(7) :i32
-    %8 = call make_box(%7) :Box(i32)
+    %7 = const int(42) :i32
+    %8 = call identity(%7) :i32
     %9 = move %8
     %10 = intrinsic builder.new()
     %11 = move %10
     %12 = const string(#2) :string
     intrinsic builder.append_str(%11, %12)
-    %13 = field_get %9.value :i32
-    intrinsic builder.append_display(%11, %13)
-    %14 = intrinsic builder.finish(%11)
-    call println(%14) :void
-    %15 = const int(99) :i32
-    %16 = call make_nested(%15) :Box(Box(i32))
-    %17 = move %16
-    %18 = intrinsic builder.new()
-    %19 = move %18
-    %20 = const string(#3) :string
-    intrinsic builder.append_str(%19, %20)
-    %21 = field_get %17.value :Box(i32)
-    %22 = field_get %21.value :i32
-    intrinsic builder.append_display(%19, %22)
-    %23 = intrinsic builder.finish(%19)
-    call println(%23) :void
-    %24 = call demo_comparison_in_args() :bool
-    %25 = move %24
-    %26 = intrinsic builder.new()
-    %27 = move %26
-    %28 = const string(#4) :string
-    intrinsic builder.append_str(%27, %28)
-    intrinsic builder.append_display(%27, %25)
-    %29 = intrinsic builder.finish(%27)
-    call println(%29) :void
-    %30 = const int(0) :i32
-    return %30
+    intrinsic builder.append_display(%11, %9)
+    %13 = intrinsic builder.finish(%11)
+    call println(%13) :void
+    %14 = const int(7) :i32
+    %15 = call make_box(%14) :Box(i32)
+    %16 = move %15
+    %17 = intrinsic builder.new()
+    %18 = move %17
+    %19 = const string(#3) :string
+    intrinsic builder.append_str(%18, %19)
+    %20 = field_get %16.value :i32
+    intrinsic builder.append_display(%18, %20)
+    %21 = intrinsic builder.finish(%18)
+    call println(%21) :void
+    %22 = const int(99) :i32
+    %23 = call make_nested(%22) :Box(Box(i32))
+    %24 = move %23
+    %25 = intrinsic builder.new()
+    %26 = move %25
+    %27 = const string(#4) :string
+    intrinsic builder.append_str(%26, %27)
+    %28 = field_get %24.value :Box(i32)
+    %29 = field_get %28.value :i32
+    intrinsic builder.append_display(%26, %29)
+    %30 = intrinsic builder.finish(%26)
+    call println(%30) :void
+    %31 = call demo_comparison_in_args() :bool
+    %32 = move %31
+    %33 = intrinsic builder.new()
+    %34 = move %33
+    %35 = const string(#5) :string
+    intrinsic builder.append_str(%34, %35)
+    intrinsic builder.append_display(%34, %32)
+    %36 = intrinsic builder.finish(%34)
+    call println(%36) :void
+    %37 = const int(0) :i32
+    return %37
 
 fn snippet$snippet$identity__i32(%0: Any) -> Any
   locals:

@@ -116,12 +116,41 @@ export function inferCall(
       }
     }
   }
+  // Explicit-args generic call : `foo<T1, T2>(args)` parses as
+  // CallExpr(callee=GenericInstExpr(IdentExpr, typeArgs)). `chooseCalleeType`
+  // already substituted the explicit args into `calleeType`, so the arg
+  // check above ran against concrete param types. The specialize pass
+  // still needs the call site recorded with bindings so it monomorphises
+  // the callee — the inference path above misses it because the substituted
+  // calleeType is no longer generic.
+  recordExplicitGenericCallSite(expr, t, impls, diags);
   // `arr.push(x)` against an array whose element type wasn't pinned by an
   // annotation or earlier elements: lift the local's type from `[?]` to
   // `[typeof x]` so subsequent reads (`arr[i]`, `${arr[i]}`, …) see a
   // concrete element type instead of falling back to a boxed `any`.
   refineArrayLocalFromPush(expr, t);
   return calleeType.returnType;
+}
+
+function recordExplicitGenericCallSite(
+  expr: A.CallExpr, t: MutableTyped, impls: ImplRegistry,
+  diags: DiagnosticCollector,
+): void {
+  if (expr.callee.kind !== "GenericInstExpr") return;
+  if (expr.callee.callee.kind !== "IdentExpr") return;
+  const inst = expr.callee;
+  const inner = inst.callee as A.IdentExpr;
+  const innerSym = t.resolved.idents.get(inner);
+  if (innerSym === undefined) return;
+  const fnDecl = declOf(innerSym);
+  if (fnDecl === null || fnDecl.kind !== "FnDecl" || fnDecl.typeParams.length === 0) return;
+  const bindings = new Map<number, Type>();
+  for (let i = 0; i < fnDecl.typeParams.length && i < inst.typeArgs.length; i++) {
+    const tpSym = t.globals.typeParamSymbols.get(fnDecl.typeParams[i]!);
+    const concrete = t.globals.typeExprTypes.get(inst.typeArgs[i]!);
+    if (tpSym !== undefined && concrete !== undefined) bindings.set(tpSym.id, concrete);
+  }
+  recordGenericCallSite(expr, fnDecl, bindings, t, impls, diags);
 }
 
 function refineArrayLocalFromPush(expr: A.CallExpr, t: MutableTyped): void {

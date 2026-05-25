@@ -40,12 +40,13 @@
 [17:18] error[P1002] expected token: expected parameter name (got `<`)
 [17:34] error[P1006] expected a declaration: got `<`
 [18:11] error[P1006] expected a declaration: got `::`
-[23:25] error[P1006] expected a declaration: got `::`
-[24:7] error[P1006] expected a declaration: got `::`
-[28:12] error[P1006] expected a declaration: got `::`
-[32:6] error[P1006] expected a declaration: got `::`
-[33:7] error[P1006] expected a declaration: got `::`
-[36:7] error[P1006] expected a declaration: got `::`
-[39:12] error[P1006] expected a declaration: got `::`
-[42:7] error[P1006] expected a declaration: got `::`
-[48:10] error[P1006] expected a declaration: got `::`
+[22:10] error[P1006] expected a declaration: got `::`
+[27:25] error[P1006] expected a declaration: got `::`
+[28:7] error[P1006] expected a declaration: got `::`
+[32:12] error[P1006] expected a declaration: got `::`
+[36:6] error[P1006] expected a declaration: got `::`
+[37:7] error[P1006] expected a declaration: got `::`
+[41:7] error[P1006] expected a declaration: got `::`
+[44:7] error[P1006] expected a declaration: got `::`
+[47:12] error[P1006] expected a declaration: got `::`
+[50:7] error[P1006] expected a declaration: got `::`
