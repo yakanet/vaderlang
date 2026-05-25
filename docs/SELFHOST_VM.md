@@ -1,5 +1,17 @@
 # Self-host VM — incremental port plan
 
+> **Status**: essentially done. Sprints 1 through 12 all shipped (see
+> the ✅ markers in the table below). Acceptance rates : 176/179 = 98 %
+> (sprint 12, impl-table + spawn host) and 172/179 = 96 %
+> (sprint 11, ErrorVal + I/O). Files live at `vader/vm/{builder,exec,
+> host,op,parser,value}.vader` (~4 750 LoC total).
+>
+> Remaining items, all explicit non-goals or deferred sprints :
+> - Sprint 6 — binary `.vir` loader (alternative to `.virt` text).
+>   *"Cosmetic until ship-size matters"* per the doc preamble.
+> - Sprint 7 — file split inside `vader/vm/` if/when the single-file
+>   layout becomes unwieldy. Already partially done (6 files exist).
+
 The `src/vm/` interpreter is the next compiler component scheduled for
 self-host port (TODO §2.4). This document tracks the **incremental
 strategy** — instead of porting the whole 1300-LoC TS VM (plus the

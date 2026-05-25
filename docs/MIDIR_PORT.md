@@ -1,29 +1,31 @@
 # Midir port to Vader self-host
 
-> **Status** : in progress (2026-05-22). 6 / 10 phases shipped, 4 heavy
-> phases remaining (M.4 / M.6 / M.8 / M.10). Cumulative : ~1 850 LoC
-> Vader produced for ~1 393 LoC TS ported. Files isolated — nothing
-> wired into the pipeline yet (M.10 does the wiring).
+> **Status** : done (2026-05-26). All 10 phases shipped, pipeline wired
+> end-to-end. `vader/midir/` carries 10 files / ~4 350 LoC Vader for
+> the original ~4 084 LoC TS. The shortcut in
+> `vader/bytecode/emit.vader` is replaced ; CFG → bytecode is the live
+> path (commit `510b6494`).
 >
-> Shipped (commits 33498d9e → 73343ae0) :
-> - M.1 cfg.vader (476 LoC) — types
-> - M.2 lowered_walk.vader (236 LoC) — RefVisitor walks
-> - M.3 analyses.vader (373 LoC) — dom / liveness / loops
-> - M.5 escape.vader (343 LoC) — escape analysis
-> - M.7 scheduler.vader (212 LoC) — stack-pass-through hints
-> - M.9 dump.vader (196 LoC) — CFG pretty-printer
+> Shipped phases :
+> - M.1 cfg.vader (478 LoC) — types
+> - M.2 lowered_walk.vader (237 LoC) — RefVisitor walks
+> - M.3 analyses.vader (542 LoC) — dom / liveness / loops + post-dom +
+>   find_loop_exits (commit `5e8c7093`)
+> - M.4 build.vader (950 LoC) — LoweredAST → CFG (commit `9575198c`)
+> - M.5 escape.vader (349 LoC) — escape analysis
+> - M.6 dce.vader (400 LoC) — pruneUnreachable + eliminateDeadCFG
+>   (commit `7b0b58bf`)
+> - M.7 scheduler.vader (176 LoC) — stack-pass-through hints
+> - M.8 emit.vader (815 LoC) — CFG → bytecode with flatten + 7.f/7.c/
+>   7.e/7.d fusion (commits `60b7d2a5` → `862e222d` for the 25
+>   Instruction arms, `510b6494` for the jump_table wiring)
+> - M.9 dump.vader (161 LoC) — CFG pretty-printer
+> - M.10 wiring — replaces the shortcut, CFG → bytecode end-to-end
+>   (commit `510b6494`)
 >
-> Remaining (heavy, ~3 000 LoC) :
-> - M.4 build.vader — 865 LoC TS, ~37 fns. LoweredAST → CFG. Largest
->   single file, will need split.
-> - M.6 dce.vader — 750 LoC TS. pruneUnreachable + eliminateDeadCFG.
-> - M.8 emit.vader — 876 LoC TS. CFG → bytecode. **Contains flatten +
->   fusion 7.f/7.c/7.e/7.d** — the whole point of this port.
-> - M.10 wiring — small, replaces shortcut in `vader/bytecode/emit.vader`.
->
-> Each remaining phase needs a dedicated session to port correctly
-> without subtle bugs (no wiring = no integration validation until
-> M.10 lands).
+> Extra : const_fold.vader (258 LoC) shipped on the side (commit
+> `49576f58`) — intra-block constant folding ported from
+> `src/midir/const_fold.ts`, not in the original 10-phase plan.
 
 ## 0. Why now
 

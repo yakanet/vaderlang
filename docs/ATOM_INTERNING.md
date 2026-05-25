@@ -7,8 +7,22 @@ everywhere, `==` and hash become O(1) integer ops, the per-allocation
 `vader_box_t` payload shrinks 24 B → 16 B (collateral gain on every
 tagged union in the runtime).
 
-**Status** — designed and validated (2026-05-25), not yet implemented.
-Architectural decisions are frozen ; phases pick up sequentially.
+**Status** — shipped (2026-05-25). All phases landed in a single-day
+push :
+- Phase 0 — AtomTable runtime + serializer codegen (commit `8723ad69`)
+- Phase 1 — `vader_string_t = u32` flip + runtime ops rewritten against
+  the atom API (commit `7eb041a8`, absorbed the originally-scoped
+  Phase 2 in the same patch)
+- Phase 3 — codegen `ATOM_LIT_*` macros + inline `u32 ==` for string
+  equality (commit `85545241`)
+- Phase 4 — GC scan-based atom sweep integrated into the Cheney major
+  cycle (commit `ad189eae`)
+- Phase 5 — `VADER_GC_PROFILE` + lessons learned (commit `965798d6`)
+- Follow-up — runtime audit simplifications (commit `3d7db4d9`)
+
+Architectural decisions in §"Decisions frozen (2026-05-25)" below were
+the contract honored by the implementation. See §"Issues encountered"
+for the per-phase lessons.
 
 ## Why
 

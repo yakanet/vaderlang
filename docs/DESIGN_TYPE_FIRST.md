@@ -35,6 +35,66 @@ document.
 
 ---
 
+## 0.5. État réel — refresh 2026-05-26
+
+The original session ran on 2026-05-09 and the doc had not been
+revisited since. Several decisions affecting the type-first framing
+landed in the interval ; this section captures them so the rest of
+the doc reads against the current codebase rather than the pre-session
+one.
+
+**Type-param syntax converged on `<T>`.** The doc proposes `[T]`
+brackets (§11 L4 sugar / L5a). The actual migration ran
+`$T → [T] → (T) → <T>` (commits `d1966f14` → `020be07d` → `9180e9ff`
+→ `dbae05fc`). Reasoning : alignment with Rust / C++ / Kotlin / Java
+(all of which use `<T>`, contrary to the §11 L5a claim about a
+"`[]`/`()` Rust/Kotlin/Java convention"), lexer monomorphism. `$T`
+is gone — Path 2's "no more phantoms" half-decision was taken de
+facto. **Read every `[T]` in §11-14 as `<T>` against the current
+codebase.**
+
+**Reflection intrinsics partially shipped.** `@type_of` and runtime
+`@size_of` landed via `9f44e281` (originally tagged "Layer 4 §1.19
+B.2"). `@fields(T)` landed via `58b4fdfa` as an intrinsic fold in
+the lowerer. Dynamic `@field(T, name)` and
+`@comptime for f in @fields(T)` from §12 are NOT shipped. The
+reflection row of §1's table ("Reflection : None") is therefore out
+of date.
+
+**Erasure as the runtime answer to mono.** Phases 0/1/2 (path γ) of
+`STDLIB_GENERIC_COLLAPSE.md` shipped : the lowered IR sees a single
+non-generic body per generic, with auto-boxing at generic sites and
+auto-cast at returns. The monomorphisation pass survives but only
+specialises decorated decls (`@specialize`). This is a **different
+answer** to the question Path 2 Layer 2 was solving ("types live
+exclusively at comptime ; mono survives but moves into the comptime
+engine") — Vader's answer is "types are erased at runtime via `Any`
++ vtable, not reified". It discharges the same need without exposing
+`type` to users.
+
+**AST mirror, not fusion.** Layer 3 calls for fusing `Expr` and
+`TypeExpr` into a single family. The implementation kept them split
+but mirrored the structure in `vader/parser/ast.vader` (commit
+`7b92f011`). The dual-resolver walk still exists.
+
+**Runtime carrier collateral.** Atom interning
+(`vader_string_t = u32`) shipped 2026-05-25 (see `ATOM_INTERNING.md`).
+Not type-first by itself but reshapes §9's perf-cost analysis :
+`vader_box_t` shrank 24 B → 16 B, every type-tagged union is cheaper
+than the doc assumed.
+
+**What did NOT change.** The `Default` trait need (`arr.sum()`
+ergonomics, §0 motivation) remains open — `TODO.md` §1.5b still
+tracks it unchecked. The ground-truth list of §1 ("`T` cannot be
+assigned to a variable, passed as a function argument, compared,
+inspected, constructed from") is still mostly true at the user
+surface : `@type_of` enables some inspection from the lowerer, but
+no user-level code can write `let U: type = T`.
+
+See §10bis for the actual decision-point this state surfaces.
+
+---
+
 ## 1. Current state — types in Vader
 
 Vader's type system is **TypeScript / Java / Kotlin** in spirit :
@@ -535,6 +595,73 @@ type system is the right tool for the language you want to build.
 
 ---
 
+## 10bis. Décision implicite — Path 3 partiel (refresh 2026-05-26)
+
+§10 closed on *"don't decide today"* in 2026-05-09. In the year since,
+decisions were made through implementation rather than through a
+returning conversation. Here is what the project effectively committed
+to, what it didn't, and the actual open question.
+
+### Taken from Path 2 (de facto)
+
+- **`$T` phantom retired.** Migration ran `$T → [T] → (T) → <T>` in
+  four steps. Path 2's "type-params are explicit, not sigils" half-
+  decision is in.
+- **Reflection intrinsics partial surface.** `@type_of`, `@size_of`,
+  `@fields(T)` shipped. Path 2 Layer 6 partial.
+- **AST mirrored.** `vader/parser/ast.vader` mirrors the unified `Expr`
+  family used internally. Doesn't fully fuse like Layer 3 proposes,
+  but moves toward it.
+- **Erasure as the runtime answer.** Path γ erasure (`Any` IR type,
+  vtable runtime, auto-box / auto-cast) ships in
+  `STDLIB_GENERIC_COLLAPSE.md`. Vader's answer to the "types at
+  runtime" question : types are erased, not reified. More
+  conservative than Layer 1 ("hybrid : opaque + intrinsic access")
+  but discharges the need without exposing `type` to users.
+
+### NOT taken from Path 2
+
+- **Layer 1 user-facing `type`.** No `let T: type = i32`, no `T` as
+  argument or return type at the user level. The compiler internally
+  has a `Type` union and an `AnyType` IR kind, but user code cannot
+  mention them.
+- **Layer 3 AST fusion.** Mirrored, not fused. The dual-resolver walk
+  for type position vs. value position is still in place.
+- **Layer 4 purity + memoisation contract.** No formal language-level
+  contract that type-producing expressions are deterministic and
+  memoised. The current generic engine memoises by `(decl, type-args)`
+  tuple but there's no user-relyable guarantee.
+- **Layer 7 trait desugar.** `where T: Foo` stays as-is, not desugared
+  to `@satisfies(T, Foo)`. No `&`-composition surface for bounds yet.
+- **Layer 8 impl coherence + orphan rule.** Coherence is enforced by
+  the resolver but not specified in SPEC ; no explicit orphan rule.
+
+### The real decision now
+
+Not *"Path 1 vs Path 2 vs Path 3"* — the project **is in** Path 3
+partial. The decision is :
+
+**Do we finish Path 3, or freeze the current surface as the
+destination ?**
+
+- *Finish Path 3* means : commit to Layer 7 (`where` desugar +
+  `&`-composition for bounds), Layer 8 (orphan rule spec), and the
+  remaining Layer 6 reflection items (`@field` dynamic, `@comptime
+  for`). Probably 2-3 chantiers de 1-2 semaines.
+- *Freeze* means : declare `<T>` + (`@fields`/`@type_of`/`@size_of`)
+  + path-γ erasure as the canonical Vader type model. SPEC.md gets
+  the lock. Address `Default` ergonomics with a bandage
+  (`zero<T>()` intrinsic or trait) rather than as a milestone on the
+  way to type-first.
+
+The question is whether the remaining Path 3 layers buy something a
+hobby pre-MVP language actually needs, or whether they are
+perfectionism. The §0 motivation (`arr.sum()` blocked by missing
+`Default`) is still open and small enough that either path resolves
+it ; that ergonomic question alone doesn't force either decision.
+
+---
+
 ## 11. Path 2 — design sketch (working draft)
 
 > **Status**: design notes from the 2026-05-09 session exploring what
@@ -599,15 +726,23 @@ Without purity, memoisation is ill-defined.
 
 ### Layer 4 (sugar) — surface syntax
 
-Type-params are declared in `[]` brackets at the declaration site
+> *Refresh 2026-05-26 :* the 2026-05-09 draft chose `[T]` brackets.
+> Implementation landed on `<T>` chevrons (see §0.5). The substance
+> below — locality, `&` composes, fn-form only when logic is needed
+> — is unchanged ; only the bracket style is corrected. The
+> Rust/C++/Kotlin/Java rationale for chevrons is the lexer
+> monomorphism Path 2 was already aiming for, and the alignment
+> bonus against those languages.
+
+Type-params are declared in `<>` chevrons at the declaration site
 (locality : the bound sits with its param). The `&` operator composes
 constraints — same operator as Vader's existing type-intersection,
 which is sound because composing trait bounds *is* an intersection of
 satisfaction sets.
 
 ```vader
-MutableMap :: struct[K: Hash & Eq, V] {
-    buckets: (Entry[K, V] | null)[]
+MutableMap :: struct<K: Hash & Eq, V> {
+    buckets: (Entry<K, V> | null)[]
     size: usize
 }
 ```
@@ -615,18 +750,18 @@ MutableMap :: struct[K: Hash & Eq, V] {
 Computed type aliases (existing `TypeAliasDecl`, slightly extended) :
 
 ```vader
-type Maybe[T] = T | null
-type Pair[A, B] = struct { first: A, second: B }
+type Maybe<T> = T | null
+type Pair<A, B> = struct { first: A, second: B }
 ```
 
 Fn-form, only when logic is required :
 
 ```vader
-boxed :: fn[T]() = if size_of(T) > 16 { Heap[T] } else { Stack[T] }
-derive_eq :: fn[T]() = impl_block { fn equals(a: T, b: T) -> bool { ... } }
+boxed :: fn<T>() = if size_of(T) > 16 { Heap<T> } else { Stack<T> }
+derive_eq :: fn<T>() = impl_block { fn equals(a: T, b: T) -> bool { ... } }
 ```
 
-Return-type inference eliminates `-> type`. The bracketed type-param
+Return-type inference eliminates `-> type`. The chevron type-param
 position implies `comptime`. Side-by-side with Zig :
 
 ```zig
@@ -637,33 +772,32 @@ fn ArrayList(comptime T: type) type {
 ```
 
 ```vader
-// Vader Path 2
-ArrayList :: struct[T] { items: T[], len: usize }
+// Vader Path 2 (with chevrons as actually shipped)
+ArrayList :: struct<T> { items: T[], len: usize }
 ```
 
 Same semantics. One line. No `comptime`, no `type` return, no
 `return`, no `fn` ceremony.
 
-The previous Vader `$T` phantom syntax does **not** survive Path 2 —
-all type-params are explicit in `[]`. This is a real source-level
-break for current Vader code, accounted for in the migration cost
-(see §6).
+The previous Vader `$T` phantom syntax does **not** survive — all
+type-params are explicit in `<>`. The migration cost was paid in
+2026 via the `$T → [T] → (T) → <T>` chain documented in §0.5.
 
-### Layer 5a — uniform `[]` for type-args
+### Layer 5a — uniform `<>` for type-args
 
-Single regime : type-args always go in `[]`, both at declaration and
+Single regime : type-args always go in `<>`, both at declaration and
 at call site. No second slot to remember.
 
-- **Type generators** : `MutableMap[i32, string]`, `Maybe[i32]`,
-  `Pair[i32, string]`.
+- **Type generators** : `MutableMap<i32, string>`, `Maybe<i32>`,
+  `Pair<i32, string>`.
 - **Mixed-param fns** : inference covers ~95 % of call sites. When it
-  fails, the override stays `[]` : `sum[i64](arr)`.
+  fails, the override stays `<>` : `sum<i64>(arr)`.
 
-The `[]`/`()` split mirrors the Rust/Kotlin/Java convention : brackets
-for type-arg positions, parens for value-arg positions. The single
-rule applies uniformly to declarations and call sites — no asymmetry
-between defining `MutableMap[K, V]` and instantiating it as
-`MutableMap[i32, string]`.
+The `<>`/`()` split mirrors the Rust / C++ / Kotlin / Java convention :
+chevrons for type-arg positions, parens for value-arg positions. The
+single rule applies uniformly to declarations and call sites — no
+asymmetry between defining `MutableMap<K, V>` and instantiating it as
+`MutableMap<i32, string>`.
 
 ### Layer 5b — comptime contagion
 

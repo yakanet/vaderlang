@@ -1,11 +1,20 @@
 # Post-Typecheck Generic Type Erasure
 
-> **Status**: prospective. This document plans an **erasure pass between
-> typecheck and lower** that removes generic type parameters from the lowered
-> IR — mirroring Java / Kotlin / Scala's model. The user-facing language and
-> the stdlib source remain unchanged. The lowered IR sees a single
-> non-generic body per generic declaration, with auto-boxing at generic call
-> sites and auto-cast at generic returns.
+> **Status**: shipped (2026-05-20). Phases 0, 1, and 2 (path γ) all closed.
+> Erasure infrastructure is live with `erasureDedupe` enabled by default ;
+> native suite 252/252, VM suite 251/251 (4 skip). See child plans :
+> [`STDLIB_GENERIC_COLLAPSE_PHASE0.md`](./STDLIB_GENERIC_COLLAPSE_PHASE0.md),
+> [`STDLIB_GENERIC_COLLAPSE_PHASE1.md`](./STDLIB_GENERIC_COLLAPSE_PHASE1.md),
+> [`STDLIB_GENERIC_COLLAPSE_PHASE2.md`](./STDLIB_GENERIC_COLLAPSE_PHASE2.md).
+> Phase 6 (`Any` user exposure) remains deferred indefinitely — revisit only
+> if FFI or reflection demands it.
+>
+> This document plans an **erasure pass between typecheck and lower** that
+> removes generic type parameters from the lowered IR — mirroring
+> Java / Kotlin / Scala's model. The user-facing language and the stdlib
+> source remain unchanged. The lowered IR sees a single non-generic body
+> per generic declaration, with auto-boxing at generic call sites and
+> auto-cast at generic returns.
 >
 > An earlier draft proposed a manual stdlib Core/Shell pattern around an
 > `Any` primitive; that approach is recorded in §7 as the alternative

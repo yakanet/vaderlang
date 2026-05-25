@@ -1,5 +1,22 @@
 # Struct literals : `{}` → `()` — évaluation et plan de migration
 
+> *État 2026-05-26* — document récent (commit `fe0d5b69`,
+> 2026-05-25). Évaluation terminée, **décision pending**. Le plan
+> reste valide en l'état ; aucune des trois portes du §9 (GO
+> évaluation seule / GO Phase A / GO A+B+C) n'a été franchie. Voir
+> aussi :
+>
+> - Recommandation de la revue (§10.6) : avant tout GO Phase A,
+>   exiger évaluation explicite des alternatives C et D, stratégie
+>   de recovery diagnostics, politique nommé-only pour le migration
+>   script Phase B.
+> - Bloquant potentiel sur `LSP_CODE_ACTIONS.md` (le code-action
+>   `match`-pattern destructuring devra suivre la syntaxe retenue
+>   ici) — cf. refresh de ce doc.
+> - Sites dépendants : `vader/lsp/` (16+ références `StructLitExpr`,
+>   §10.3), `vader/fmt/printer.vader::emit_struct_lit`, 70 snapshots
+>   parser.
+
 ## Contexte
 
 L'idée est née d'une discussion sur les **field defaults de struct**, déjà supportés

@@ -77,18 +77,19 @@ return a type value falls back to a synthetic alias path
 Unblocking this is required before the comptime layer can be used for
 real meta-programming on generics.
 
-### 5. Refactor `src/typecheck/passes/call.ts` — ⬜ to do
+### 5. Refactor `src/typecheck/passes/call.ts` — ❌ rejected
 
 886 lines, mixing direct-call resolution, UFCS, generic instantiation,
-overload resolution, and method dispatch. Suggested split:
+overload resolution, and method dispatch. Originally a candidate for a
+4-file split (`call-direct` / `call-ufcs` / `call-method` /
+`call-generic`).
 
-- `call-direct.ts` — direct fn calls + overload tie-break
-- `call-ufcs.ts` — receiver-style dispatch + free-fn lookup
-- `call-method.ts` — trait method resolution + impl table lookup
-- `call-generic.ts` — monomorphisation registry + bound checking
-
-To be done before the file accumulates more passes; the longer it stays
-monolithic, the harder the bisection of overload bugs becomes.
+Decision (2026-05-25): not worth the churn. The TS compiler is
+scheduled for deletion once the Vader self-host port ships
+(`docs/BOOTSTRAP.md`) ; the file-organisation cost is paid on the
+Vader side from day one. The Vader port will split call resolution
+along the same axes natively — see `vader/typecheck/expr.vader` and
+siblings, which already follow the 1-file-1-responsibility rule.
 
 ### 6. Unit tests for resolver / typecheck — ⬜ to do (suggestion)
 
@@ -121,27 +122,22 @@ avoid uncaught JS stack overflows. The user does not see a need for
 this in current usage. Filed here for the record; can be revisited if a
 real case appears.
 
-### 10. Non-trivial generic example — ⬜ to do
+### 10. Non-trivial generic example — ✅ done
 
-The `examples/` directory leans on `mowitnow.vader` for breadth.
-Missing: a program that exercises generic functions, generic structs,
-and trait bounds in one piece. Five candidates were considered (see
-*Out-of-scope ideas* below); the retained one is **Iterator pipeline**.
+Covered by the `bench/` corpus rather than `examples/`. The Iterator
+pipeline showcase landed as `bench/iter_chain/iter_chain.vader` —
+`Range.filter(is_even).map(square_i64)` driven by a `for-in` accumulator
+over N=1 000 000, dispatching through `std/iter`'s `filter` / `map`
+free fns via UFCS. `bench/map_iter/` exercises the simpler
+single-stage `Range.map(...)` chain on the same N. Both compile
+through the lowerer's iter-chain fusion path (no `Yielded(T)` heap
+allocs, no `Iterator.next()` vtable hops), validating end-to-end the
+`Iterator(T)` virtual dispatch landed 2026-05-08 (TODO §3.8) and
+the auto-`.iter()` `for-in` integration.
 
-**Sketch** — `examples/iterator_pipeline.vader`:
-
-- A user-defined `Iterator(T)` source (e.g. `Range`).
-- Generic combinators built on the `Iterator` trait:
-  `map(it: Iterator(A), f: fn(A) -> B) -> Iterator(B)`,
-  `filter(it: Iterator(T), pred: fn(T) -> bool) -> Iterator(T)`,
-  `fold(it: Iterator(T), seed: U, f: fn(U, T) -> U) -> U`.
-- A composed pipeline: e.g. `Range(1, 100) |> filter(is_prime) |> map(square) |> fold(0, add)`.
-- Output a small summary to demonstrate the result.
-
-Side benefit: this is a forcing function for completing the deferred
-`Iterable($T)` trait + auto-`.iter()` in `for-in` (TODO §3.8) and gives
-a real consumer for the existing `Iterator(T)` virtual dispatch already
-landed (TODO §3.8, 2026-05-08 entry).
+A dedicated `examples/iterator_pipeline.vader` is no longer planned —
+the benches already serve the demonstration role, and adding a third
+copy of the same chain would just be churn.
 
 ## Out-of-scope ideas
 

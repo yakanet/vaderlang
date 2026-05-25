@@ -3,13 +3,37 @@
 The Vader LSP (`vader/lsp/`) currently ships read-only language services :
 semanticTokens, definition, hover, inlayHint, signatureHelp. There is no
 `textDocument/codeAction` handler and no `codeActionProvider` capability
-declared in `vader/lsp/lifecycle.vader:81-113`. This note captures the
+declared in `vader/lsp/lifecycle.vader`. This note captures the
 design for adding a **general code-actions framework**, with `match ↔ if`
 conversion as the first concrete action.
 
 **Status** — backlog, post-MVP. Documented now so the work is ready to
 pick up cleanly once the self-host port closes. No compiler / LSP code
 gets touched until then.
+
+> *Refresh 2026-05-26* — trigger conditions have shifted :
+>
+> - **Self-host VM port closed.** `SELFHOST_VM.md` is essentially done
+>   (sprints 1-12 shipped, 98 % acceptance). The "post self-host port"
+>   trigger that gated this work is closer than when the note was
+>   written. Open question : is the LSP code-action framework now next
+>   in line, or does `BOOTSTRAP.md` (still blocked) take precedence ?
+> - **LSP file structure evolved.** Recent commits (`97696909`,
+>   `33b1af8d`) touched `ast_tokens.vader` and `semantic_tokens.vader`.
+>   The line references in §"Current LSP state" (`hover.vader:320-475`,
+>   `parser/ast.vader:532-561`, `fmt/printer.vader:1380-1429`,
+>   `lifecycle.vader:81-113`) are likely stale — re-verify before
+>   acting on them.
+> - **`StructLitExpr` grammar may shift.** `STRUCT_LIT_PAREN_GRAMMAR.md`
+>   proposes `Foo(x = 1)` replacing `Foo { .x = 1 }`. If that lands,
+>   `expr_at.vader` and the `match`-pattern destructuring action will
+>   need to handle `Foo(a, b)` patterns instead of `Foo { a, b }`.
+>   Sequence this work *after* a struct-lit decision is taken to avoid
+>   redoing the printer/parser plumbing.
+>
+> Design itself unchanged : the registry + `expr_at` walker + printer
+> adapter shape is still the right shape. The §"Open architectural
+> questions" still need user input when implementation starts.
 
 ## Why a framework, not a one-off
 

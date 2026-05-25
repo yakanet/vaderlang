@@ -8,6 +8,27 @@ the build chain, the hand-written runtime in `runtime/c/`, the C emitter in
 Decision: **deferred**. This document records the cost so a later decision
 has a baseline. Nothing is changed by this doc.
 
+> *Refresh 2026-05-26* — the analysis below still stands. Two changes
+> since 2026-05-12 worth noting :
+>
+> - **Runtime grew but stayed C99-compatible.** `runtime/c/vader.h` is now
+>   802 LOC (was 451) and `vader_runtime.c` is 2659 LOC (was 1848), most
+>   of the growth from atom interning (`ATOM_INTERNING.md`, 2026-05-25)
+>   and the GC/erasure infrastructure. Re-audit confirmed : no
+>   `_Generic`, `_Atomic`, `_Static_assert`, `_Alignas`, anonymous union,
+>   or `<stdatomic.h>` use added. The runtime stays C99 + GCC extensions
+>   on the new code paths, so the §"Surface concerned" verdict ("project
+>   is already running below the C11 floor, label is essentially free to
+>   change") still holds.
+> - **The label-noise priority is still untouched.** The 2352
+>   `-Wunused-label` warnings on the §"Trigger" section are still
+>   emitted. The §"Recommendation" Priority 1 (patch `end_NN:;` labels
+>   with `__attribute__((unused))` or post-pass elision) remains the
+>   highest-yield-per-hour action ; nothing else has subsumed it.
+>
+> Decision unchanged : C23 bump still deferrable, no urgency. The doc
+> reads as a cost baseline.
+
 ## Trigger
 
 Compiling the Vader-emitted C with `cc -Wall -Wextra` (Apple clang 21 / clang

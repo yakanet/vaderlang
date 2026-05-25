@@ -2,7 +2,7 @@
 
 > **Status**: prospective. Plans a v2 of the JSON layer that reuses the v1
 > tree parser + StringBuilder, and adds a thin generic wrapper —
-> `jason.encode[T]` / `jason.decode[T]` — implemented as `@comptime` functions
+> `jason.encode<T>` / `jason.decode<T>` — implemented as `@comptime` functions
 > whose bodies are auto-specialised per type via `@fields(T)`. No
 > `@derive(Json)` decorator, no compiler-side synthesis, no quasi-quotation.
 > The implementation is ~300 LoC of pure Vader living in
@@ -15,8 +15,66 @@
 > (`@comptime fn` deferred); `docs/DESIGN_TYPE_FIRST.md` §12 Layer 6
 > sketches the same `@comptime for f in @fields(T)` pattern as the
 > canonical motivating example for type-first comptime — read
-> alongside ; `docs/STDLIB_GENERIC_COLLAPSE.md` proposes a generic
-> erasure pass whose interaction with this plan matters (see §9).
+> alongside ; `docs/STDLIB_GENERIC_COLLAPSE.md` ships the generic
+> erasure pass referenced in §9.
+
+---
+
+## Refresh 2026-05-26 — prerequisites landscape moved
+
+Several §2 prerequisites are now shipped or partially shipped. The doc
+below was written assuming all of them were prospective.
+
+**Type-arg syntax converged on `<T>`.** Every `[T]` below should be read
+as `<T>` (e.g. `jason.encode<User>`). The `$T → [T] → (T) → <T>`
+migration ran while this doc waited (see
+`docs/DESIGN_TYPE_FIRST.md` §0.5). Substance unchanged.
+
+**Reflection intrinsics partially shipped** :
+
+| §2 prereq | Status | Evidence |
+|---|---|---|
+| `@size_of(T)` | ✅ shipped | `9f44e281`, `src/parser/intrinsics.ts:32` |
+| `@type_of(x)` | ✅ shipped | `9f44e281` (runtime case) |
+| `@type_name(T)` | ✅ shipped | `vader/comptime/intrinsic.vader:3` |
+| `@align_of(T)` | ✅ shipped | `vader/comptime/intrinsic.vader:3` |
+| `@fields(T)` | ✅ shipped | `58b4fdfa`, returns `Field[]`, intrinsic fold |
+| `@is_struct(T)`, `@is_integer(T)`, `@is_array(T)`, … | ❌ not shipped | predicate family from §2.2 absent |
+| `@field(value, name)` (dynamic field) | ❌ not shipped | §2.3 |
+| `@field_type(T, name)` | ❌ not shipped | §2.4 |
+| `@construct(T, slots)` | ❌ not shipped | §2.7 |
+| `@compile_error(msg)` | ❌ not shipped | §2.6 |
+| Identifier interpolation `${...}` | ❌ not shipped | §2.5 |
+
+**`@comptime fn` subsystem (§2.1, Phase 1) still not started.**
+`vader/comptime/check.vader` and `deps.vader` still key on
+*"@comptime const decls"* exclusively. The dep graph, evaluator,
+specialisation cache, and dependency-tracked statement elimination
+that §2.1 specs (~2-3 weeks of work) all remain to do. **This is
+still the dominant cost in the plan.**
+
+**Erasure interaction (§9) is now real, not hypothetical.** Path γ
+of `STDLIB_GENERIC_COLLAPSE.md` shipped 2026-05-20 — erasure runs
+by default with `erasureDedupe` enabled. §9's settlement choice
+**must be made before §2.1 lands**, not in parallel with it :
+- Path (a) — specialise-then-erase ordering — is now the operational
+  default the new pipeline must respect.
+- Path (b) — exempt `@comptime fn` from erasure — needs a
+  side-table flag the erasure pass already in production must learn
+  to read.
+
+The §9 *"document and `STDLIB_GENERIC_COLLAPSE.md` should land that
+section together"* requirement is **partially due** — erasure is
+shipped, so the next move on this doc must include the erasure
+ordering decision, not park it.
+
+**Net effect on the plan.** §2.2 partial credit (~2 days), §2.3-2.7
+unchanged, §2.1 unchanged (~2-3 weeks dominant), §6 phase total ~4-5
+weeks → roughly ~3-4 weeks now that the reflection intrinsics piece
+shipped piecemeal. Decision still gated on whether the project wants
+to commit to `@comptime fn` as a subsystem (see
+`DESIGN_TYPE_FIRST.md` §10bis — finish-Path-3 vs freeze decision
+relevant here).
 
 ---
 

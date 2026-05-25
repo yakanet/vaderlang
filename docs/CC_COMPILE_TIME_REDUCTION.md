@@ -1,14 +1,34 @@
 # C compile-time reduction
 
-> **Status**: in progress (2026-05-21). Pistes 5.a / 1 / 5.c / 5.d /
-> structurer flatten landed → 222 k lines (-33.7 % vs baseline), 6.08 s
-> `cc -O0` (-78 %), 21 s `cc -O3` (-86 %). Piste 7 engaged in
-> **bytecode-fused form** because emit_wasm is on the short-to-mid-term
-> roadmap (lands after the Vader port completes) and a c-emit-only
-> peephole would force a duplicate peephole in the wasm backend later.
-> 7.a / 7.b cancelled (0 survivors measured). 7.c / 7.f / 7.e / 7.d
-> engaged. Option B sequencing : TS first, the in-flight Vader port
-> absorbs the new ops as it progresses.
+> **Status**: essentially done (2026-05-21). Sprints 1, 2, and 3 all
+> shipped. Cumulative since pre-piste-5 baseline : **335 k → 117 k
+> lines (−65 %)**, **27.6 s → 1.67 s `cc -O0` (−94 %)**,
+> **154.94 s → 9.62 s `cc -O3` (−94 %)**.
+>
+> **Shipped** :
+> - **Sprint 1** — pistes 5.a (local-ref inlining), 1 (tmp recycle),
+>   5.c (expr-kind type_check), 5.d (expr-kind pure binops), structurer
+>   flatten. TS-side ; Vader port absorbs into the in-flight bytecode /
+>   c_emit port (option B).
+> - **Sprint 2** — piste 7 in bytecode-fused form : 7.f (return.lit),
+>   7.c (local.field), 7.e (local.alias), 7.d (field.chain). TS-side ;
+>   Vader port absorbs as above. 7.a / 7.b cancelled (0 surviving sites
+>   measured). Bytecode-fused rather than c-emit-only because emit_wasm
+>   is on the short-to-mid-term roadmap and a c-emit peephole would
+>   need duplicating in the wasm backend later.
+> - **Sprint 3** — piste 6 Phase B (`is_assignable` split) + Phase C
+>   (`infer_field` split). Pure Vader rewrite, best ROI in the plan
+>   (~280 LoC source for −92 k lines of generated C).
+>
+> **Optional remaining work, all gated on benchmark evidence** — current
+> `cc -O0` is 1.67 s, so none is currently worth its risk profile :
+> - Piste 2 (gc_roots pruning via op-level liveness) — highest
+>   correctness risk in the plan, revisit only if cc time becomes a
+>   constraint again.
+> - Piste 4 (`match_tag` + `br_table`) — defer until a benchmark shows
+>   chained-if dispatch dominates.
+> - `vm.exec` split (same pattern as Phase B/C) — only if VM dispatch
+>   cost surfaces as a bottleneck.
 
 ## 0. Motivation
 

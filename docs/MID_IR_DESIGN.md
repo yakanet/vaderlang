@@ -1,7 +1,15 @@
 # Mid-IR (CFG) — Design Document
 
-Sprint 3.10 phase 1 — *foundation only*, no migration of the lowering /
-emit pipeline yet.
+> **Status**: shipped. All 6 phases listed in the §"Phase plan" table
+> below are ✅ done. CFG is the single substrate (legacy LoweredAST →
+> bytecode path dropped at Phase 6, ref. `IMPROVEMENT.md` §7). The
+> Vader self-host port of `src/midir/*` is also complete — see
+> `MIDIR_PORT.md`.
+
+This document captures the design that was implemented. Originally a
+Sprint 3.10 phase 1 *foundation only* doc ; the implementation
+proceeded through phases 2-6 over the following months and the doc
+stayed accurate as the contract.
 
 ## Motivation
 

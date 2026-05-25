@@ -1,9 +1,11 @@
 # POC: hand-written erased `MutableMap`
 
-> **Status**: prospective. Gates the whole erasure effort planned in
-> `docs/STDLIB_GENERIC_COLLAPSE.md`. Until the 5 success criteria of
-> §5 pass on the hand-written POC, no work starts on Phase 0 (vtable),
-> Phase 1 (inline-box generalisation), or Phase 2 (erasure pass).
+> **Status**: superseded (2026-05-20). The POC gate was passed and Phases 0,
+> 1, and 2 (path γ) all shipped — see
+> [`STDLIB_GENERIC_COLLAPSE.md`](./STDLIB_GENERIC_COLLAPSE.md) for the final
+> state. Bench artefacts in `bench/poc_erasure/` (Makefile `verify` and
+> `verify_packed` targets) remain wired as regression checks for the vtable
+> emit and the packed-inline-box payload.
 >
 > **Cross-refs**: `docs/STDLIB_GENERIC_COLLAPSE.md` (parent plan,
 > Decision log entry "2026-05-19 — A POC precedes Phase 0").
