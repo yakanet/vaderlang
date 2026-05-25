@@ -40,16 +40,16 @@
   expr 36:23    IdentExpr      :: fn(Node | null) -> i32
   expr 36:30    IdentExpr      :: Node | null
   expr 36:5     CallExpr       :: void
-  expr 36:5     IdentExpr      :: fn(string) -> void
+  expr 36:5     IdentExpr      :: fn(T) -> void
   expr 37:11    CallExpr       :: Node | null
   expr 37:11    IdentExpr      :: fn(Node | null, i32) -> Node | null
   expr 37:16    IdentExpr      :: Node | null
   expr 37:5     MatchExpr      :: void
   expr 38:27    CallExpr       :: void
-  expr 38:27    IdentExpr      :: fn(string) -> void
+  expr 38:27    IdentExpr      :: fn(T) -> void
   expr 38:35    StringLitExpr  :: string
   expr 39:27    CallExpr       :: void
-  expr 39:27    IdentExpr      :: fn(string) -> void
+  expr 39:27    IdentExpr      :: fn(T) -> void
   expr 39:35    StringLitExpr  :: string
   expr 39:44    FieldExpr      :: i32
   expr 39:44    IdentExpr      :: Node
@@ -58,10 +58,10 @@
   expr 41:16    IdentExpr      :: Node | null
   expr 41:5     MatchExpr      :: void
   expr 42:27    CallExpr       :: void
-  expr 42:27    IdentExpr      :: fn(string) -> void
+  expr 42:27    IdentExpr      :: fn(T) -> void
   expr 42:35    StringLitExpr  :: string
   expr 43:27    CallExpr       :: void
-  expr 43:27    IdentExpr      :: fn(string) -> void
+  expr 43:27    IdentExpr      :: fn(T) -> void
   expr 43:35    StringLitExpr  :: string
   expr 43:44    FieldExpr      :: i32
   expr 43:44    IdentExpr      :: Node

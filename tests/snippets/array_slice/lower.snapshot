@@ -21,7 +21,7 @@
             int(4) :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -53,7 +53,7 @@
               __for_i_3 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_4: ? =
@@ -92,7 +92,7 @@
               int(1) :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_5: ? =
@@ -124,7 +124,7 @@
               __for_i_8 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_9: ? =
@@ -184,7 +184,7 @@
                         int(0) :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_11: ? =
@@ -216,7 +216,7 @@
               __for_i_14 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_15: ? =
@@ -250,7 +250,7 @@
           n :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_16: ? =
@@ -282,7 +282,7 @@
               __for_i_19 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_20: ? =
@@ -317,7 +317,7 @@
             int(2) :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_21: ? =

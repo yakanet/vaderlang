@@ -17,10 +17,12 @@ type 14 ref _
 type 15 union 0,16
 type 16 struct std_core$Yield__Any { value:14 }
 type 17 primitive string
-type 18 struct std_core$Yield__char { value:1 }
-type 19 struct std_core$Range__char { start:14,end:14,inclusive:2,cursor:14 }
-type 20 primitive void
-type 21 union 18,0
+type 18 primitive f32
+type 19 primitive f64
+type 20 struct std_core$Yield__char { value:1 }
+type 21 struct std_core$Range__char { start:14,end:14,inclusive:2,cursor:14 }
+type 22 primitive void
+type 23 union 20,0
 string 0 "5 is digit"
 string 1 "a is not digit"
 string 2 "0 is digit"
@@ -34,11 +36,26 @@ string 9 "5 is not alpha"
 string 10 "a..=e count = "
 string 11 "0..<5 count = "
 string 12 "\n"
-import 0 write std_io$write (i32,string) -> void
+import 0 to_string std_core$i8$Display$to_string (i8) -> string
+import 1 to_string std_core$i16$Display$to_string (i16) -> string
+import 2 to_string std_core$i32$Display$to_string (i32) -> string
+import 3 to_string std_core$i64$Display$to_string (i64) -> string
+import 4 to_string std_core$isize$Display$to_string (isize) -> string
+import 5 to_string std_core$u8$Display$to_string (u8) -> string
+import 6 to_string std_core$u16$Display$to_string (u16) -> string
+import 7 to_string std_core$u32$Display$to_string (u32) -> string
+import 8 to_string std_core$u64$Display$to_string (u64) -> string
+import 9 to_string std_core$usize$Display$to_string (usize) -> string
+import 10 to_string std_core$f32$Display$to_string (f32) -> string
+import 11 to_string std_core$f64$Display$to_string (f64) -> string
+import 12 to_string std_core$bool$Display$to_string (bool) -> string
+import 13 to_string std_core$char$Display$to_string (char) -> string
+import 14 to_string std_core$string$Display$to_string (string) -> string
+import 15 write std_io$write (i32,string) -> void
 impl 13 Contains
 impl 13 Iterator
-impl 19 Contains
-impl 19 Iterator
+impl 21 Contains
+impl 21 Iterator
 vtable Comparable.gt 1 57
 vtable Comparable.gt 3 17
 vtable Comparable.gt 4 7
@@ -83,6 +100,21 @@ vtable Comparable.lte 9 36
 vtable Comparable.lte 10 41
 vtable Comparable.lte 11 46
 vtable Comparable.lte 12 51
+vtable Display.to_string 1 86
+vtable Display.to_string 2 85
+vtable Display.to_string 3 75
+vtable Display.to_string 4 73
+vtable Display.to_string 5 74
+vtable Display.to_string 6 76
+vtable Display.to_string 7 77
+vtable Display.to_string 8 78
+vtable Display.to_string 9 79
+vtable Display.to_string 10 80
+vtable Display.to_string 11 81
+vtable Display.to_string 12 82
+vtable Display.to_string 17 87
+vtable Display.to_string 18 83
+vtable Display.to_string 19 84
 vtable Step.step 1 69
 vtable Step.step 3 61
 vtable Step.step 4 59
@@ -100,7 +132,7 @@ fn 0 snippet$is_digit (char) -> bool
   char.const 57
   bool.const true
   char.const 48
-  struct.new 19
+  struct.new 21
   local.get 0
   call 70
   return
@@ -111,7 +143,7 @@ fn 1 snippet$is_lower (char) -> bool
   char.const 122
   bool.const true
   char.const 97
-  struct.new 19
+  struct.new 21
   local.get 0
   call 70
   return
@@ -123,7 +155,7 @@ fn 2 snippet$is_alpha (char) -> bool
   char.const 122
   bool.const true
   char.const 97
-  struct.new 19
+  struct.new 21
   local.get 0
   call 70
   if $L0 void
@@ -134,7 +166,7 @@ fn 2 snippet$is_alpha (char) -> bool
     char.const 90
     bool.const true
     char.const 65
-    struct.new 19
+    struct.new 21
     local.get 0
     call 70
     local.set 1
@@ -227,7 +259,7 @@ fn 3 snippet$main () -> i32
   char.const 101
   bool.const true
   char.const 97
-  struct.new 19
+  struct.new 21
   local.set 1
   block $L10 void
     loop $L11 void
@@ -261,7 +293,7 @@ fn 3 snippet$main () -> i32
   char.const 53
   bool.const false
   char.const 48
-  struct.new 19
+  struct.new 21
   local.set 1
   block $L13 void
     loop $L14 void
@@ -1278,19 +1310,113 @@ fn 71 std_core$Range$Iterator$next__char (ref) -> ref
   return
 end
 
-fn 72 std_io$println (string) -> void
-  i32.const 0
+fn 72 std_io$std_io$println__string (ref) -> void
+  local $vcall_2 string
   local.get 0
-  call 73
+  virtual.call 1 Display.to_string
+  local.set 1
+  i32.const 0
+  local.get 1
+  call 88
   i32.const 0
   string.const 12
-  call 73
+  call 88
   return
 end
 
-fn 73 std_io$write$vt (i32,string) -> void
+fn 73 std_core$i8$Display$to_string$vt (i8) -> string
+  local.get 0
+  call.import 0
+  return
+end
+
+fn 74 std_core$i16$Display$to_string$vt (i16) -> string
+  local.get 0
+  call.import 1
+  return
+end
+
+fn 75 std_core$i32$Display$to_string$vt (i32) -> string
+  local.get 0
+  call.import 2
+  return
+end
+
+fn 76 std_core$i64$Display$to_string$vt (i64) -> string
+  local.get 0
+  call.import 3
+  return
+end
+
+fn 77 std_core$isize$Display$to_string$vt (isize) -> string
+  local.get 0
+  call.import 4
+  return
+end
+
+fn 78 std_core$u8$Display$to_string$vt (u8) -> string
+  local.get 0
+  call.import 5
+  return
+end
+
+fn 79 std_core$u16$Display$to_string$vt (u16) -> string
+  local.get 0
+  call.import 6
+  return
+end
+
+fn 80 std_core$u32$Display$to_string$vt (u32) -> string
+  local.get 0
+  call.import 7
+  return
+end
+
+fn 81 std_core$u64$Display$to_string$vt (u64) -> string
+  local.get 0
+  call.import 8
+  return
+end
+
+fn 82 std_core$usize$Display$to_string$vt (usize) -> string
+  local.get 0
+  call.import 9
+  return
+end
+
+fn 83 std_core$f32$Display$to_string$vt (f32) -> string
+  local.get 0
+  call.import 10
+  return
+end
+
+fn 84 std_core$f64$Display$to_string$vt (f64) -> string
+  local.get 0
+  call.import 11
+  return
+end
+
+fn 85 std_core$bool$Display$to_string$vt (bool) -> string
+  local.get 0
+  call.import 12
+  return
+end
+
+fn 86 std_core$char$Display$to_string$vt (char) -> string
+  local.get 0
+  call.import 13
+  return
+end
+
+fn 87 std_core$string$Display$to_string$vt (string) -> string
+  local.get 0
+  call.import 14
+  return
+end
+
+fn 88 std_io$write$vt (i32,string) -> void
   local.get 0
   local.get 1
-  call.import 0
+  call.import 15
   return
 end

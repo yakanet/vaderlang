@@ -32,7 +32,7 @@
               int(1) :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -70,7 +70,7 @@
               __for_i_5 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_6: ? =
@@ -122,7 +122,7 @@
               int(1) :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_9: ? =
@@ -169,7 +169,7 @@
               int(1) :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_12: ? =
@@ -201,7 +201,7 @@
               __for_i_15 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_16: ? =

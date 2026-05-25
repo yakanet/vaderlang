@@ -91,7 +91,7 @@
     ~>
       call :void
         callee:
-          println :fn(string) -> void
+          println :void
         arg0:
           sb :string
   fn snippet$print_strings(arr: string[]) -> void
@@ -170,7 +170,7 @@
     ~>
       call :void
         callee:
-          println :fn(string) -> void
+          println :void
         arg0:
           sb :string
   fn snippet$main() -> i32

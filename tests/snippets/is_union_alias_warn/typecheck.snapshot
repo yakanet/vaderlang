@@ -23,13 +23,13 @@
   expr 39:22    StructLitExpr  :: Cat
   expr 39:36    StringLitExpr  :: string
   expr 39:5     CallExpr       :: void
-  expr 39:5     IdentExpr      :: fn(string) -> void
+  expr 39:5     IdentExpr      :: fn(T) -> void
   expr 40:13    CallExpr       :: string
   expr 40:13    IdentExpr      :: fn(Cat | Dog | i32) -> string
   expr 40:5     CallExpr       :: void
-  expr 40:5     IdentExpr      :: fn(string) -> void
+  expr 40:5     IdentExpr      :: fn(T) -> void
   expr 41:27    CallExpr       :: void
-  expr 41:27    IdentExpr      :: fn(string) -> void
+  expr 41:27    IdentExpr      :: fn(T) -> void
   expr 41:35    StringLitExpr  :: string
   expr 41:5     IfExpr         :: void
   expr 41:8     CallExpr       :: bool

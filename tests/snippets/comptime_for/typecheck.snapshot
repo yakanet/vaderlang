@@ -8,7 +8,7 @@
   expr 17:34    IntrinsicCallExpr :: usize
   expr 17:43    IdentExpr      :: type
   expr 17:9     CallExpr       :: void
-  expr 17:9     IdentExpr      :: fn(string) -> void
+  expr 17:9     IdentExpr      :: fn(T) -> void
   expr 19:24    IntrinsicCallExpr :: Field[]
   expr 20:17    StringLitExpr  :: string
   expr 20:20    FieldExpr      :: string
@@ -17,4 +17,4 @@
   expr 20:44    FieldExpr      :: type
   expr 20:44    IdentExpr      :: Field
   expr 20:9     CallExpr       :: void
-  expr 20:9     IdentExpr      :: fn(string) -> void
+  expr 20:9     IdentExpr      :: fn(T) -> void

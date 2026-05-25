@@ -207,6 +207,15 @@ function inferGenericFnCall(
   if (expr.callee.kind === "IdentExpr") {
     const sym = t.resolved.idents.get(expr.callee);
     if (sym !== undefined) recordGenericCallSite(expr, declOf(sym), bindings, t, impls, diags);
+  } else if (expr.callee.kind === "FieldExpr") {
+    // Namespace-aliased call : `fs.println(...)` after `fs :: import "std/io"`.
+    // The resolver records the exported symbol on `fieldRefs` ; without
+    // wiring it through `recordGenericCallSite` the lowerer's
+    // `lookupFnInstance` misses and emits `unreachable`.
+    const fieldRef = t.resolved.fieldRefs.get(expr.callee);
+    if (fieldRef?.kind === "namespace") {
+      recordGenericCallSite(expr, declOf(fieldRef.symbol), bindings, t, impls, diags);
+    }
   }
 
   return substitute(calleeType.returnType, subst);

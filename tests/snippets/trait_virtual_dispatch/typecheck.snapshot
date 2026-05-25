@@ -19,10 +19,10 @@
   expr 24:20    StructLitExpr  :: ParseErr
   expr 24:38    StringLitExpr  :: string
   expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 24:5     IdentExpr      :: fn(T) -> void
   expr 25:13    CallExpr       :: string
   expr 25:13    IdentExpr      :: fn(Error) -> string
   expr 25:20    StructLitExpr  :: NetErr
   expr 25:41    StringLitExpr  :: string
   expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 25:5     IdentExpr      :: fn(T) -> void

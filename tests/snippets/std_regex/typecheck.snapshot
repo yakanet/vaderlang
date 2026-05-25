@@ -18,7 +18,7 @@
   expr 102:48   StringLitExpr  :: string
   expr 102:61   StringLitExpr  :: string
   expr 102:9    CallExpr       :: void
-  expr 102:9    IdentExpr      :: fn(string) -> void
+  expr 102:9    IdentExpr      :: fn(T) -> void
   expr 106:12   CallExpr       :: Error | Pattern
   expr 106:12   IdentExpr      :: fn(string) -> Error | Pattern
   expr 106:20   StringLitExpr  :: string
@@ -28,7 +28,7 @@
   expr 107:8    IdentExpr      :: Error | Pattern
   expr 108:17   StringLitExpr  :: string
   expr 108:9    CallExpr       :: void
-  expr 108:9    IdentExpr      :: fn(string) -> void
+  expr 108:9    IdentExpr      :: fn(T) -> void
   expr 15:13    StringLitExpr  :: string
   expr 15:16    IdentExpr      :: string
   expr 15:25    CallExpr       :: bool
@@ -36,7 +36,7 @@
   expr 15:25    IdentExpr      :: Pattern
   expr 15:35    IdentExpr      :: string
   expr 15:5     CallExpr       :: void
-  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 15:5     IdentExpr      :: fn(T) -> void
   expr 19:10    CallExpr       :: Match | null
   expr 19:10    FieldExpr      :: fn(string) -> Match | null
   expr 19:10    IdentExpr      :: Pattern
@@ -55,11 +55,11 @@
   expr 21:50    IdentExpr      :: Match
   expr 21:50    IndexExpr      :: string
   expr 21:9     CallExpr       :: void
-  expr 21:9     IdentExpr      :: fn(string) -> void
+  expr 21:9     IdentExpr      :: fn(T) -> void
   expr 23:17    StringLitExpr  :: string
   expr 23:20    IdentExpr      :: string
   expr 23:9     CallExpr       :: void
-  expr 23:9     IdentExpr      :: fn(string) -> void
+  expr 23:9     IdentExpr      :: fn(T) -> void
   expr 29:14    CallExpr       :: Error | Pattern
   expr 29:14    IdentExpr      :: fn(string) -> Error | Pattern
   expr 29:22    StringLitExpr  :: string
@@ -115,14 +115,14 @@
   expr 47:31    FieldExpr      :: fn() -> usize
   expr 47:31    IdentExpr      :: Match[]
   expr 47:9     CallExpr       :: void
-  expr 47:9     IdentExpr      :: fn(string) -> void
+  expr 47:9     IdentExpr      :: fn(T) -> void
   expr 49:13    BinaryExpr     :: bool
   expr 49:13    IdentExpr      :: usize
   expr 49:17    CallExpr       :: usize
   expr 49:17    FieldExpr      :: fn() -> usize
   expr 49:17    IdentExpr      :: Match[]
   expr 50:13    CallExpr       :: void
-  expr 50:13    IdentExpr      :: fn(string) -> void
+  expr 50:13    IdentExpr      :: fn(T) -> void
   expr 50:21    StringLitExpr  :: string
   expr 50:29    IdentExpr      :: usize
   expr 50:35    FieldExpr      :: string[]
@@ -168,25 +168,25 @@
   expr 66:17    IdentExpr      :: Match
   expr 66:9     IfExpr         :: void
   expr 67:13    CallExpr       :: void
-  expr 67:13    IdentExpr      :: fn(string) -> void
+  expr 67:13    IdentExpr      :: fn(T) -> void
   expr 67:21    StringLitExpr  :: string
   expr 67:36    FieldExpr      :: string[]
   expr 67:36    IdentExpr      :: Match
   expr 67:36    IndexExpr      :: string
   expr 68:13    CallExpr       :: void
-  expr 68:13    IdentExpr      :: fn(string) -> void
+  expr 68:13    IdentExpr      :: fn(T) -> void
   expr 68:21    StringLitExpr  :: string
   expr 68:35    FieldExpr      :: string[]
   expr 68:35    IdentExpr      :: Match
   expr 68:35    IndexExpr      :: string
   expr 69:13    CallExpr       :: void
-  expr 69:13    IdentExpr      :: fn(string) -> void
+  expr 69:13    IdentExpr      :: fn(T) -> void
   expr 69:21    StringLitExpr  :: string
   expr 69:35    FieldExpr      :: string[]
   expr 69:35    IdentExpr      :: Match
   expr 69:35    IndexExpr      :: string
   expr 70:13    CallExpr       :: void
-  expr 70:13    IdentExpr      :: fn(string) -> void
+  expr 70:13    IdentExpr      :: fn(T) -> void
   expr 70:21    StringLitExpr  :: string
   expr 70:34    FieldExpr      :: string[]
   expr 70:34    IdentExpr      :: Match
@@ -271,4 +271,4 @@
   expr 98:44    StringLitExpr  :: string
   expr 98:63    StringLitExpr  :: string
   expr 98:9     CallExpr       :: void
-  expr 98:9     IdentExpr      :: fn(string) -> void
+  expr 98:9     IdentExpr      :: fn(T) -> void

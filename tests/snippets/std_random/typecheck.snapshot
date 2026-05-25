@@ -27,7 +27,7 @@
   expr 27:13    StringLitExpr  :: string
   expr 27:30    IdentExpr      :: bool
   expr 27:5     CallExpr       :: void
-  expr 27:5     IdentExpr      :: fn(string) -> void
+  expr 27:5     IdentExpr      :: fn(T) -> void
   expr 30:10    CallExpr       :: Rng
   expr 30:10    IdentExpr      :: fn(u64) -> Rng
   expr 30:21    CallExpr       :: u64
@@ -48,7 +48,7 @@
   expr 37:13    StringLitExpr  :: string
   expr 37:34    IdentExpr      :: bool
   expr 37:5     CallExpr       :: void
-  expr 37:5     IdentExpr      :: fn(string) -> void
+  expr 37:5     IdentExpr      :: fn(T) -> void
   expr 40:10    CallExpr       :: Rng
   expr 40:10    IdentExpr      :: fn(u64) -> Rng
   expr 40:21    CallExpr       :: u64
@@ -72,7 +72,7 @@
   expr 49:13    StringLitExpr  :: string
   expr 49:36    IdentExpr      :: bool
   expr 49:5     CallExpr       :: void
-  expr 49:5     IdentExpr      :: fn(string) -> void
+  expr 49:5     IdentExpr      :: fn(T) -> void
   expr 52:10    CallExpr       :: Rng
   expr 52:10    IdentExpr      :: fn(u64) -> Rng
   expr 52:21    CallExpr       :: u64
@@ -96,7 +96,7 @@
   expr 61:13    StringLitExpr  :: string
   expr 61:35    IdentExpr      :: bool
   expr 61:5     CallExpr       :: void
-  expr 61:5     IdentExpr      :: fn(string) -> void
+  expr 61:5     IdentExpr      :: fn(T) -> void
   expr 64:10    CallExpr       :: Rng
   expr 64:10    IdentExpr      :: fn(u64) -> Rng
   expr 64:21    CallExpr       :: u64
@@ -111,7 +111,7 @@
   expr 67:29    FieldExpr      :: fn() -> usize
   expr 67:29    IdentExpr      :: i32[]
   expr 67:5     CallExpr       :: void
-  expr 67:5     IdentExpr      :: fn(string) -> void
+  expr 67:5     IdentExpr      :: fn(T) -> void
   expr 69:14    IdentExpr      :: i32[]
   expr 70:15    BinaryExpr     :: i32
   expr 70:15    IdentExpr      :: i32
@@ -120,7 +120,7 @@
   expr 72:13    StringLitExpr  :: string
   expr 72:29    IdentExpr      :: i32
   expr 72:5     CallExpr       :: void
-  expr 72:5     IdentExpr      :: fn(string) -> void
+  expr 72:5     IdentExpr      :: fn(T) -> void
   expr 75:11    CallExpr       :: Rng
   expr 75:11    IdentExpr      :: fn(u64) -> Rng
   expr 75:22    CallExpr       :: u64
@@ -145,4 +145,4 @@
   expr 85:31    IdentExpr      :: bool
   expr 85:41    IdentExpr      :: bool
   expr 85:5     CallExpr       :: void
-  expr 85:5     IdentExpr      :: fn(string) -> void
+  expr 85:5     IdentExpr      :: fn(T) -> void

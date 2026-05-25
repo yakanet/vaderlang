@@ -32,4 +32,4 @@
   expr 15:43    CallExpr       :: i32
   expr 15:43    IdentExpr      :: fn(i32) -> i32
   expr 15:5     CallExpr       :: void
-  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 15:5     IdentExpr      :: fn(T) -> void

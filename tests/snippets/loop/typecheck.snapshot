@@ -8,7 +8,7 @@
   expr 12:13    StringLitExpr  :: string
   expr 12:27    IdentExpr      :: i32
   expr 12:5     CallExpr       :: void
-  expr 12:5     IdentExpr      :: fn(string) -> void
+  expr 12:5     IdentExpr      :: fn(T) -> void
   expr 8:9      BinaryExpr     :: bool
   expr 8:9      IdentExpr      :: i32
   expr 9:15     BinaryExpr     :: i32

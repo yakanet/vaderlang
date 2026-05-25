@@ -157,22 +157,18 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
-        call :string
+        call :usize
           callee:
-            into :string
+            count :usize
           arg0:
-            call :usize
-              callee:
-                count :usize
-              arg0:
-                Range(i32) {
-                  start: int(0) :i32
-                  end: int(5) :i32
-                  inclusive: false
-                  cursor: int(0) :i32
-                }
+            Range(i32) {
+              start: int(0) :i32
+              end: int(5) :i32
+              inclusive: false
+              cursor: int(0) :i32
+            }
     block :void
       let __scrut_0: i32 | null =
         call :i32 | null
@@ -197,13 +193,9 @@
             ~>
               call :void
                 callee:
-                  println :fn(string) -> void
+                  println :void
                 arg0:
-                  call :string
-                    callee:
-                      into :string
-                    arg0:
-                      v :i32
+                  v :i32
           else:
             ~>
               if :void
@@ -214,7 +206,7 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(string) -> void
+                        println :void
                       arg0:
                         "none" :string
                 else:
@@ -222,53 +214,41 @@
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
-        call :string
+        call :bool
           callee:
-            into :string
+            is_empty :bool
           arg0:
-            call :bool
-              callee:
-                is_empty :bool
-              arg0:
-                Range(i32) {
-                  start: int(0) :i32
-                  end: int(0) :i32
-                  inclusive: false
-                  cursor: int(0) :i32
-                }
+            Range(i32) {
+              start: int(0) :i32
+              end: int(0) :i32
+              inclusive: false
+              cursor: int(0) :i32
+            }
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
-        call :string
+        call :bool
           callee:
-            into :string
+            is_empty :bool
           arg0:
-            call :bool
-              callee:
-                is_empty :bool
-              arg0:
-                Range(i32) {
-                  start: int(0) :i32
-                  end: int(5) :i32
-                  inclusive: false
-                  cursor: int(0) :i32
-                }
+            Range(i32) {
+              start: int(0) :i32
+              end: int(5) :i32
+              inclusive: false
+              cursor: int(0) :i32
+            }
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
-        call :string
+        call :usize
           callee:
-            into :string
+            count :usize
           arg0:
-            call :usize
-              callee:
-                count :usize
-              arg0:
-                Countdown {
-                  remaining: int(3) :i32
-                }
+            Countdown {
+              remaining: int(3) :i32
+            }
     return int(0) :i32

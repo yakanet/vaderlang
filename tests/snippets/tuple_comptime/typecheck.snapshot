@@ -13,14 +13,14 @@
   expr 19:29    FieldExpr      :: i32
   expr 19:29    IdentExpr      :: [i32, i32]
   expr 19:5     CallExpr       :: void
-  expr 19:5     IdentExpr      :: fn(string) -> void
+  expr 19:5     IdentExpr      :: fn(T) -> void
   expr 20:13    StringLitExpr  :: string
   expr 20:24    FieldExpr      :: f64
   expr 20:24    IdentExpr      :: [f64, f64, string]
   expr 20:37    FieldExpr      :: f64
   expr 20:37    IdentExpr      :: [f64, f64, string]
   expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(string) -> void
+  expr 20:5     IdentExpr      :: fn(T) -> void
   expr 20:52    FieldExpr      :: string
   expr 20:52    IdentExpr      :: [f64, f64, string]
   expr 21:12    FieldExpr      :: i32

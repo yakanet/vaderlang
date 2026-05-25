@@ -7,29 +7,29 @@
   expr 19:11    IdentExpr      :: i32 | null
   expr 19:5     MatchExpr      :: void
   expr 20:20    CallExpr       :: void
-  expr 20:20    IdentExpr      :: fn(string) -> void
+  expr 20:20    IdentExpr      :: fn(T) -> void
   expr 20:28    StringLitExpr  :: string
   expr 21:20    CallExpr       :: void
-  expr 21:20    IdentExpr      :: fn(string) -> void
+  expr 21:20    IdentExpr      :: fn(T) -> void
   expr 21:28    StringLitExpr  :: string
   expr 21:35    IdentExpr      :: i32
   expr 23:11    IdentExpr      :: i32 | null
   expr 23:5     MatchExpr      :: void
   expr 24:20    CallExpr       :: void
-  expr 24:20    IdentExpr      :: fn(string) -> void
+  expr 24:20    IdentExpr      :: fn(T) -> void
   expr 24:28    StringLitExpr  :: string
   expr 25:20    CallExpr       :: void
-  expr 25:20    IdentExpr      :: fn(string) -> void
+  expr 25:20    IdentExpr      :: fn(T) -> void
   expr 25:28    StringLitExpr  :: string
   expr 25:35    IdentExpr      :: i32
   expr 28:28    StringLitExpr  :: string
   expr 29:11    IdentExpr      :: i32 | string
   expr 29:5     MatchExpr      :: void
   expr 30:22    CallExpr       :: void
-  expr 30:22    IdentExpr      :: fn(string) -> void
+  expr 30:22    IdentExpr      :: fn(T) -> void
   expr 30:30    StringLitExpr  :: string
   expr 30:46    IdentExpr      :: i32
   expr 31:22    CallExpr       :: void
-  expr 31:22    IdentExpr      :: fn(string) -> void
+  expr 31:22    IdentExpr      :: fn(T) -> void
   expr 31:30    StringLitExpr  :: string
   expr 31:46    IdentExpr      :: string

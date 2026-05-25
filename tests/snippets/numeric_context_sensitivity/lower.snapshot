@@ -17,7 +17,7 @@
     let usz: usize = int(42) :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -123,7 +123,7 @@
           int(1) :u64
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -174,7 +174,7 @@
           int(1) :isize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -203,7 +203,7 @@
       }
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -239,7 +239,7 @@
       then:
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             "eq ok" :string
     if :void
@@ -252,7 +252,7 @@
       then:
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             "isz_neg ok" :string
     let arr: i32[] =
@@ -280,7 +280,7 @@
               int(1) :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -302,7 +302,7 @@
       LoweredMakeClosure
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_6: ? =

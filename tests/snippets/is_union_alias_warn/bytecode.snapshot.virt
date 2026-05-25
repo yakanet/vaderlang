@@ -7,22 +7,65 @@ type 4 primitive i32
 type 5 primitive string
 type 6 union 7,4,5
 type 7 primitive bool
-type 8 primitive void
-type 9 union 2,3
-type 10 union 4,5
+type 8 primitive i8
+type 9 primitive i16
+type 10 primitive i64
+type 11 primitive isize
+type 12 primitive u8
+type 13 primitive u16
+type 14 primitive u32
+type 15 primitive u64
+type 16 primitive usize
+type 17 primitive f32
+type 18 primitive f64
+type 19 primitive char
+type 20 ref _
+type 21 primitive void
+type 22 union 2,3
+type 23 union 4,5
 string 0 "unreachable"
 string 1 "checked"
 string 2 "felix"
 string 3 "matched"
 string 4 "\n"
-import 0 write std_io$write (i32,string) -> void
+import 0 to_string std_core$i8$Display$to_string (i8) -> string
+import 1 to_string std_core$i16$Display$to_string (i16) -> string
+import 2 to_string std_core$i32$Display$to_string (i32) -> string
+import 3 to_string std_core$i64$Display$to_string (i64) -> string
+import 4 to_string std_core$isize$Display$to_string (isize) -> string
+import 5 to_string std_core$u8$Display$to_string (u8) -> string
+import 6 to_string std_core$u16$Display$to_string (u16) -> string
+import 7 to_string std_core$u32$Display$to_string (u32) -> string
+import 8 to_string std_core$u64$Display$to_string (u64) -> string
+import 9 to_string std_core$usize$Display$to_string (usize) -> string
+import 10 to_string std_core$f32$Display$to_string (f32) -> string
+import 11 to_string std_core$f64$Display$to_string (f64) -> string
+import 12 to_string std_core$bool$Display$to_string (bool) -> string
+import 13 to_string std_core$char$Display$to_string (char) -> string
+import 14 to_string std_core$string$Display$to_string (string) -> string
+import 15 write std_io$write (i32,string) -> void
+vtable Display.to_string 4 6
+vtable Display.to_string 5 18
+vtable Display.to_string 7 16
+vtable Display.to_string 8 4
+vtable Display.to_string 9 5
+vtable Display.to_string 10 7
+vtable Display.to_string 11 8
+vtable Display.to_string 12 9
+vtable Display.to_string 13 10
+vtable Display.to_string 14 11
+vtable Display.to_string 15 12
+vtable Display.to_string 16 13
+vtable Display.to_string 17 14
+vtable Display.to_string 18 15
+vtable Display.to_string 19 17
 
 fn 0 snippet$classify (ref) -> string
   local and_res bool
   bool.const false
   if $L0 void
     local.get 0
-    type_check 9
+    type_check 22
     local.set 1
   else
     bool.const false
@@ -40,7 +83,7 @@ fn 1 snippet$inline_check (ref) -> bool
   bool.const false
   if $L0 void
     local.get 0
-    type_check 10
+    type_check 23
     local.set 1
   else
     bool.const false
@@ -71,20 +114,114 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 std_io$println (string) -> void
-  i32.const 0
+fn 3 std_io$std_io$println__string (ref) -> void
+  local $vcall_2 string
   local.get 0
-  call 4
+  virtual.call 1 Display.to_string
+  local.set 1
+  i32.const 0
+  local.get 1
+  call 19
   i32.const 0
   string.const 4
-  call 4
+  call 19
   return
 end
 
-fn 4 std_io$write$vt (i32,string) -> void
+fn 4 std_core$i8$Display$to_string$vt (i8) -> string
+  local.get 0
+  call.import 0
+  return
+end
+
+fn 5 std_core$i16$Display$to_string$vt (i16) -> string
+  local.get 0
+  call.import 1
+  return
+end
+
+fn 6 std_core$i32$Display$to_string$vt (i32) -> string
+  local.get 0
+  call.import 2
+  return
+end
+
+fn 7 std_core$i64$Display$to_string$vt (i64) -> string
+  local.get 0
+  call.import 3
+  return
+end
+
+fn 8 std_core$isize$Display$to_string$vt (isize) -> string
+  local.get 0
+  call.import 4
+  return
+end
+
+fn 9 std_core$u8$Display$to_string$vt (u8) -> string
+  local.get 0
+  call.import 5
+  return
+end
+
+fn 10 std_core$u16$Display$to_string$vt (u16) -> string
+  local.get 0
+  call.import 6
+  return
+end
+
+fn 11 std_core$u32$Display$to_string$vt (u32) -> string
+  local.get 0
+  call.import 7
+  return
+end
+
+fn 12 std_core$u64$Display$to_string$vt (u64) -> string
+  local.get 0
+  call.import 8
+  return
+end
+
+fn 13 std_core$usize$Display$to_string$vt (usize) -> string
+  local.get 0
+  call.import 9
+  return
+end
+
+fn 14 std_core$f32$Display$to_string$vt (f32) -> string
+  local.get 0
+  call.import 10
+  return
+end
+
+fn 15 std_core$f64$Display$to_string$vt (f64) -> string
+  local.get 0
+  call.import 11
+  return
+end
+
+fn 16 std_core$bool$Display$to_string$vt (bool) -> string
+  local.get 0
+  call.import 12
+  return
+end
+
+fn 17 std_core$char$Display$to_string$vt (char) -> string
+  local.get 0
+  call.import 13
+  return
+end
+
+fn 18 std_core$string$Display$to_string$vt (string) -> string
+  local.get 0
+  call.import 14
+  return
+end
+
+fn 19 std_io$write$vt (i32,string) -> void
   local.get 0
   local.get 1
-  call.import 0
+  call.import 15
   return
 end
 

@@ -21,9 +21,9 @@
   expr 29:13    FieldExpr      :: fn() -> string
   expr 29:13    IdentExpr      :: Wrap(Cat)
   expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(string) -> void
+  expr 29:5     IdentExpr      :: fn(T) -> void
   expr 30:13    CallExpr       :: string
   expr 30:13    FieldExpr      :: fn() -> string
   expr 30:13    IdentExpr      :: Wrap(Dog)
   expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(string) -> void
+  expr 30:5     IdentExpr      :: fn(T) -> void

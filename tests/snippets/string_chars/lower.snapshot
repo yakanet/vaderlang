@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "-- ascii --" :string
     block :void
@@ -34,7 +34,7 @@
                   __step_1 :Yield(char) | null
             call :void
               callee:
-                println :fn(string) -> void
+                println :void
               arg0:
                 block :string
                   let __sb_2: ? =
@@ -47,7 +47,7 @@
                       __sb_2 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "-- multibyte --" :string
     block :void
@@ -77,7 +77,7 @@
                   __step_4 :Yield(char) | null
             call :void
               callee:
-                println :fn(string) -> void
+                println :void
               arg0:
                 block :string
                   let __sb_5: ? =
@@ -125,7 +125,7 @@
                     int(1) :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_8: ? =
@@ -155,7 +155,7 @@
               __sb_8 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "-- empty --" :string
     block :void
@@ -185,12 +185,12 @@
                   __step_10 :Yield(char) | null
             call :void
               callee:
-                println :fn(string) -> void
+                println :void
               arg0:
                 "never" :string
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "done" :string
     return int(0) :i32

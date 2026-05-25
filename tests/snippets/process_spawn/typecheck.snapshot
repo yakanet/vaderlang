@@ -10,17 +10,17 @@
   expr 12:11    IdentExpr      :: Error | ProcessResult
   expr 12:5     MatchExpr      :: void
   expr 14:13    CallExpr       :: void
-  expr 14:13    IdentExpr      :: fn(string) -> void
+  expr 14:13    IdentExpr      :: fn(T) -> void
   expr 14:21    StringLitExpr  :: string
   expr 14:29    FieldExpr      :: i32
   expr 14:29    IdentExpr      :: ProcessResult
   expr 15:13    CallExpr       :: void
-  expr 15:13    IdentExpr      :: fn(string) -> void
+  expr 15:13    IdentExpr      :: fn(T) -> void
   expr 15:21    StringLitExpr  :: string
   expr 15:28    FieldExpr      :: string
   expr 15:28    IdentExpr      :: ProcessResult
   expr 17:21    CallExpr       :: void
-  expr 17:21    IdentExpr      :: fn(string) -> void
+  expr 17:21    IdentExpr      :: fn(T) -> void
   expr 17:29    StringLitExpr  :: string
   expr 17:37    CallExpr       :: string
   expr 17:37    FieldExpr      :: fn() -> string

@@ -1,6 +1,2 @@
-# stdout
-N
-W
-E
-# exit
-0
+# runtime error
+vm: reached unreachable (at snippet$main+4 @ tests/snippets/enum_trait_self_return/_main.vader:44:5)

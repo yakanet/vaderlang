@@ -7,7 +7,7 @@
     let c: i32 = int(7) :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -31,7 +31,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -53,7 +53,7 @@
               __sb_1 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -76,7 +76,7 @@
     let n: usize = int(100) :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_3: ? =

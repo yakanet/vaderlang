@@ -9,11 +9,11 @@
   expr 18:34    IntrinsicCallExpr :: usize
   expr 18:43    IdentExpr      :: type
   expr 18:9     CallExpr       :: void
-  expr 18:9     IdentExpr      :: fn(string) -> void
+  expr 18:9     IdentExpr      :: fn(T) -> void
   expr 20:13    IntrinsicCallExpr :: type[]
   expr 21:13    StringLitExpr  :: string
   expr 21:34    CallExpr       :: usize
   expr 21:34    FieldExpr      :: fn() -> usize
   expr 21:34    IdentExpr      :: type[]
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 21:5     IdentExpr      :: fn(T) -> void

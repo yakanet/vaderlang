@@ -11,11 +11,11 @@
   expr 17:48    FieldExpr      :: string
   expr 17:48    IdentExpr      :: P
   expr 18:13    CallExpr       :: void
-  expr 18:13    IdentExpr      :: fn(string) -> void
+  expr 18:13    IdentExpr      :: fn(T) -> void
   expr 18:21    CallExpr       :: string
   expr 18:21    IdentExpr      :: fn() -> string
   expr 19:13    CallExpr       :: void
-  expr 19:13    IdentExpr      :: fn(string) -> void
+  expr 19:13    IdentExpr      :: fn(T) -> void
   expr 19:21    StringLitExpr  :: string
   expr 19:30    CallExpr       :: string
   expr 19:30    IdentExpr      :: fn() -> string
@@ -24,7 +24,7 @@
   expr 22:38    IdentExpr      :: i32
   expr 22:42    IdentExpr      :: i32
   expr 23:13    CallExpr       :: void
-  expr 23:13    IdentExpr      :: fn(string) -> void
+  expr 23:13    IdentExpr      :: fn(T) -> void
   expr 23:21    StringLitExpr  :: string
   expr 23:32    CallExpr       :: i32
   expr 23:32    IdentExpr      :: fn() -> i32

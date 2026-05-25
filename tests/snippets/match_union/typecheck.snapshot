@@ -6,16 +6,16 @@
   expr 14:13    CallExpr       :: string
   expr 14:13    IdentExpr      :: fn(i32 | null | string) -> string
   expr 14:5     CallExpr       :: void
-  expr 14:5     IdentExpr      :: fn(string) -> void
+  expr 14:5     IdentExpr      :: fn(T) -> void
   expr 15:13    CallExpr       :: string
   expr 15:13    IdentExpr      :: fn(i32 | null | string) -> string
   expr 15:22    StringLitExpr  :: string
   expr 15:5     CallExpr       :: void
-  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 15:5     IdentExpr      :: fn(T) -> void
   expr 16:13    CallExpr       :: string
   expr 16:13    IdentExpr      :: fn(i32 | null | string) -> string
   expr 16:5     CallExpr       :: void
-  expr 16:5     IdentExpr      :: fn(string) -> void
+  expr 16:5     IdentExpr      :: fn(T) -> void
   expr 6:12     MatchExpr      :: string
   expr 6:18     IdentExpr      :: i32 | null | string
   expr 7:22     StringLitExpr  :: string

@@ -18,7 +18,7 @@
             ~>
               call :void
                 callee:
-                  println :fn(string) -> void
+                  println :void
                 arg0:
                   "int ok" :string
           else:
@@ -31,7 +31,7 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(string) -> void
+                        println :void
                       arg0:
                         "int err" :string
                 else:
@@ -53,7 +53,7 @@
             ~>
               call :void
                 callee:
-                  println :fn(string) -> void
+                  println :void
                 arg0:
                   "int ok" :string
           else:
@@ -66,7 +66,7 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(string) -> void
+                        println :void
                       arg0:
                         "int err" :string
                 else:
@@ -88,7 +88,7 @@
             ~>
               call :void
                 callee:
-                  println :fn(string) -> void
+                  println :void
                 arg0:
                   "float ok" :string
           else:
@@ -101,7 +101,7 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(string) -> void
+                        println :void
                       arg0:
                         "float err" :string
                 else:
@@ -123,7 +123,7 @@
             ~>
               call :void
                 callee:
-                  println :fn(string) -> void
+                  println :void
                 arg0:
                   "float ok" :string
           else:
@@ -136,7 +136,7 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(string) -> void
+                        println :void
                       arg0:
                         "float err" :string
                 else:

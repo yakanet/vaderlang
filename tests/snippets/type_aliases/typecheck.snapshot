@@ -12,15 +12,15 @@
   expr 20:16    IdentExpr      :: fn(i32, i32) -> i32
   expr 20:20    IdentExpr      :: i32
   expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(string) -> void
+  expr 20:5     IdentExpr      :: fn(T) -> void
   expr 21:13    StringLitExpr  :: string
   expr 21:16    IdentExpr      :: i64
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 21:5     IdentExpr      :: fn(T) -> void
   expr 22:13    StringLitExpr  :: string
   expr 22:16    IdentExpr      :: u8
   expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(string) -> void
+  expr 22:5     IdentExpr      :: fn(T) -> void
   expr 6:5      BinaryExpr     :: i32
   expr 6:5      IdentExpr      :: i32
   expr 6:9      IdentExpr      :: i32

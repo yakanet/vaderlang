@@ -25,17 +25,10 @@
   Into(Target)
 
 # Diagnostics
-[14:13] error[T3001] type mismatch: expected string, got char
 [14:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[15:13] error[T3001] type mismatch: expected string, got char
 [15:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[16:13] error[T3001] type mismatch: expected string, got char
 [16:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[17:13] error[T3001] type mismatch: expected string, got char
 [17:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[20:13] error[T3001] type mismatch: expected string, got char
 [20:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[21:13] error[T3001] type mismatch: expected string, got char
 [21:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)
-[25:13] error[T3001] type mismatch: expected string, got char
 [25:15] error[T3001] type mismatch: string index must be an integer, got Range(i32)

@@ -11,7 +11,7 @@
   expr 21:13    StringLitExpr  :: string
   expr 21:20    IdentExpr      :: i32
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 21:5     IdentExpr      :: fn(T) -> void
   expr 24:10    StructLitExpr  :: MutableMap(string, i32)
   expr 24:47    SeqLitExpr     :: (Entry(string, i32) | null)[]
   expr 25:5     IdentExpr      :: MutableMap(string, i32)
@@ -27,7 +27,7 @@
   expr 31:13    StringLitExpr  :: string
   expr 31:20    IdentExpr      :: i32
   expr 31:5     CallExpr       :: void
-  expr 31:5     IdentExpr      :: fn(string) -> void
+  expr 31:5     IdentExpr      :: fn(T) -> void
   expr 34:10    StructLitExpr  :: MutableSet(i32)
   expr 34:37    StructLitExpr  :: MutableMap(i32, bool)
   expr 34:72    SeqLitExpr     :: (Entry(i32, bool) | null)[]
@@ -45,7 +45,7 @@
   expr 41:13    StringLitExpr  :: string
   expr 41:20    IdentExpr      :: i32
   expr 41:5     CallExpr       :: void
-  expr 41:5     IdentExpr      :: fn(string) -> void
+  expr 41:5     IdentExpr      :: fn(T) -> void
   expr 48:15    StringLitExpr  :: string
   expr 49:17    BinaryExpr     :: i32
   expr 49:17    IdentExpr      :: i32
@@ -53,4 +53,4 @@
   expr 51:13    StringLitExpr  :: string
   expr 51:22    IdentExpr      :: i32
   expr 51:5     CallExpr       :: void
-  expr 51:5     IdentExpr      :: fn(string) -> void
+  expr 51:5     IdentExpr      :: fn(T) -> void

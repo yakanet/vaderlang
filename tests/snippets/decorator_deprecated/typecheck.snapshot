@@ -21,7 +21,7 @@
   expr 24:21    IdentExpr      :: i32
   expr 24:26    IdentExpr      :: i32
   expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 24:5     IdentExpr      :: fn(T) -> void
 
 # Diagnostics
 [21:10] warning[W0001] use of deprecated declaration: `old_helper`: use new_helper instead

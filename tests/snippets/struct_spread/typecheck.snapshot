@@ -14,7 +14,7 @@
   expr 14:48    FieldExpr      :: i32
   expr 14:48    IdentExpr      :: P
   expr 14:5     CallExpr       :: void
-  expr 14:5     IdentExpr      :: fn(string) -> void
+  expr 14:5     IdentExpr      :: fn(T) -> void
   expr 15:13    StringLitExpr  :: string
   expr 15:24    FieldExpr      :: i32
   expr 15:24    IdentExpr      :: P
@@ -23,7 +23,7 @@
   expr 15:46    FieldExpr      :: i32
   expr 15:46    IdentExpr      :: P
   expr 15:5     CallExpr       :: void
-  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 15:5     IdentExpr      :: fn(T) -> void
   expr 18:14    StructLitExpr  :: P
   expr 19:15    StructLitExpr  :: P
   expr 19:22    IdentExpr      :: P
@@ -34,6 +34,6 @@
   expr 20:40    FieldExpr      :: i32
   expr 20:40    IdentExpr      :: P
   expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(string) -> void
+  expr 20:5     IdentExpr      :: fn(T) -> void
   expr 20:54    FieldExpr      :: i32
   expr 20:54    IdentExpr      :: P

@@ -37,4 +37,4 @@
   expr 29:36    IdentExpr      :: u64
   expr 29:41    IdentExpr      :: i32
   expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(string) -> void
+  expr 29:5     IdentExpr      :: fn(T) -> void

@@ -12,19 +12,19 @@
   expr 22:32    IntrinsicCallExpr :: usize
   expr 22:41    IdentExpr      :: type
   expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(string) -> void
+  expr 22:5     IdentExpr      :: fn(T) -> void
   expr 23:13    StringLitExpr  :: string
   expr 23:32    IntrinsicCallExpr :: usize
   expr 23:41    IdentExpr      :: type
   expr 23:5     CallExpr       :: void
-  expr 23:5     IdentExpr      :: fn(string) -> void
+  expr 23:5     IdentExpr      :: fn(T) -> void
   expr 24:13    StringLitExpr  :: string
   expr 24:32    IntrinsicCallExpr :: usize
   expr 24:41    IdentExpr      :: type
   expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 24:5     IdentExpr      :: fn(T) -> void
   expr 25:13    StringLitExpr  :: string
   expr 25:32    IntrinsicCallExpr :: usize
   expr 25:41    IdentExpr      :: type
   expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 25:5     IdentExpr      :: fn(T) -> void

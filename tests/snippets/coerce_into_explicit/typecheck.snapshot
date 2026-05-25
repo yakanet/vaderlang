@@ -15,11 +15,11 @@
   expr 24:13    StringLitExpr  :: string
   expr 24:18    IdentExpr      :: i32
   expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 24:5     IdentExpr      :: fn(T) -> void
   expr 26:10    CallExpr       :: string
   expr 26:10    IdentExpr      :: type
   expr 26:17    IdentExpr      :: UserId
   expr 27:13    StringLitExpr  :: string
   expr 27:18    IdentExpr      :: string
   expr 27:5     CallExpr       :: void
-  expr 27:5     IdentExpr      :: fn(string) -> void
+  expr 27:5     IdentExpr      :: fn(T) -> void

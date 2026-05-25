@@ -24,7 +24,7 @@
           }
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -55,7 +55,7 @@
               __sb_1 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -106,7 +106,7 @@
           }
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_5: ? =

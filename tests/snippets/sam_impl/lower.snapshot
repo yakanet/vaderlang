@@ -39,7 +39,7 @@
     let y: i64 = int(7) :i64
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -48,7 +48,7 @@
             x :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -57,7 +57,7 @@
             y :i64
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =

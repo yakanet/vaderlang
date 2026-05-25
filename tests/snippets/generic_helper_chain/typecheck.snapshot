@@ -25,10 +25,10 @@
   expr 25:16    FieldExpr      :: i32
   expr 25:16    IdentExpr      :: Box(Box(i32))
   expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 25:5     IdentExpr      :: fn(T) -> void
   expr 26:13    StringLitExpr  :: string
   expr 26:16    FieldExpr      :: Box(string)
   expr 26:16    FieldExpr      :: string
   expr 26:16    IdentExpr      :: Box(Box(string))
   expr 26:5     CallExpr       :: void
-  expr 26:5     IdentExpr      :: fn(string) -> void
+  expr 26:5     IdentExpr      :: fn(T) -> void

@@ -69,7 +69,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -80,7 +80,7 @@
             }
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -91,7 +91,7 @@
             }
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:

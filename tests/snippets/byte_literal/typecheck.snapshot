@@ -7,27 +7,27 @@
   expr 15:18    IdentExpr      :: type
   expr 15:22    IdentExpr      :: u8
   expr 15:5     CallExpr       :: void
-  expr 15:5     IdentExpr      :: fn(string) -> void
+  expr 15:5     IdentExpr      :: fn(T) -> void
   expr 16:13    StringLitExpr  :: string
   expr 16:19    CallExpr       :: i32
   expr 16:19    IdentExpr      :: type
   expr 16:23    IdentExpr      :: u8
   expr 16:5     CallExpr       :: void
-  expr 16:5     IdentExpr      :: fn(string) -> void
+  expr 16:5     IdentExpr      :: fn(T) -> void
   expr 17:13    StringLitExpr  :: string
   expr 17:19    CallExpr       :: i32
   expr 17:19    IdentExpr      :: type
   expr 17:23    IdentExpr      :: u8
   expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(string) -> void
+  expr 17:5     IdentExpr      :: fn(T) -> void
   expr 18:13    StringLitExpr  :: string
   expr 18:19    CallExpr       :: i32
   expr 18:19    IdentExpr      :: type
   expr 18:23    IdentExpr      :: u8
   expr 18:5     CallExpr       :: void
-  expr 18:5     IdentExpr      :: fn(string) -> void
+  expr 18:5     IdentExpr      :: fn(T) -> void
   expr 20:13    StringLitExpr  :: string
   expr 20:19    BinaryExpr     :: bool
   expr 20:19    IdentExpr      :: u8
   expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(string) -> void
+  expr 20:5     IdentExpr      :: fn(T) -> void

@@ -34,7 +34,7 @@
               ~>
                 call :void
                   callee:
-                    println :fn(string) -> void
+                    println :void
                   arg0:
                     cast → string
                       res :Error | string
@@ -48,7 +48,7 @@
                     ~>
                       call :void
                         callee:
-                          println :fn(string) -> void
+                          println :void
                         arg0:
                           "err: this file does not exists" :string
                   else:

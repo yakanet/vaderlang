@@ -23,30 +23,30 @@
   expr 17:25    StringLitExpr  :: string
   expr 17:38    StringLitExpr  :: string
   expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(string) -> void
+  expr 17:5     IdentExpr      :: fn(T) -> void
   expr 18:13    CallExpr       :: string
   expr 18:13    IdentExpr      :: fn(string, string) -> string
   expr 18:25    StringLitExpr  :: string
   expr 18:36    StringLitExpr  :: string
   expr 18:5     CallExpr       :: void
-  expr 18:5     IdentExpr      :: fn(string) -> void
+  expr 18:5     IdentExpr      :: fn(T) -> void
   expr 19:13    CallExpr       :: string
   expr 19:13    IdentExpr      :: fn(string, string) -> string
   expr 19:25    StringLitExpr  :: string
   expr 19:35    StringLitExpr  :: string
   expr 19:5     CallExpr       :: void
-  expr 19:5     IdentExpr      :: fn(string) -> void
+  expr 19:5     IdentExpr      :: fn(T) -> void
   expr 20:13    CallExpr       :: string
   expr 20:13    IdentExpr      :: fn(string, string) -> string
   expr 20:25    StringLitExpr  :: string
   expr 20:32    StringLitExpr  :: string
   expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(string) -> void
+  expr 20:5     IdentExpr      :: fn(T) -> void
   expr 22:13    CallExpr       :: string
   expr 22:13    IdentExpr      :: fn(string, fn(char) -> bool, string) -> string
   expr 22:33    StringLitExpr  :: string
   expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(string) -> void
+  expr 22:5     IdentExpr      :: fn(T) -> void
   expr 22:51    IdentExpr      :: fn(char) -> bool
   expr 22:62    StringLitExpr  :: string
   expr 24:14    CallExpr       :: string[]
@@ -58,7 +58,7 @@
   expr 25:22    FieldExpr      :: fn() -> usize
   expr 25:22    IdentExpr      :: string[]
   expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 25:5     IdentExpr      :: fn(T) -> void
   expr 26:10    CallExpr       :: usize
   expr 26:10    FieldExpr      :: fn() -> usize
   expr 26:10    IdentExpr      :: string[]
@@ -69,7 +69,7 @@
   expr 29:17    IndexExpr      :: string
   expr 29:23    IdentExpr      :: usize
   expr 29:9     CallExpr       :: void
-  expr 29:9     IdentExpr      :: fn(string) -> void
+  expr 29:9     IdentExpr      :: fn(T) -> void
   expr 30:13    BinaryExpr     :: usize
   expr 30:13    IdentExpr      :: usize
   expr 30:9     IdentExpr      :: usize

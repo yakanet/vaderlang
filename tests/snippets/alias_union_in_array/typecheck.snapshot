@@ -32,4 +32,4 @@
   expr 33:17    IdentExpr      :: fn(Cat | Dog) -> string
   expr 33:26    IdentExpr      :: Cat | Dog
   expr 33:9     CallExpr       :: void
-  expr 33:9     IdentExpr      :: fn(string) -> void
+  expr 33:9     IdentExpr      :: fn(T) -> void

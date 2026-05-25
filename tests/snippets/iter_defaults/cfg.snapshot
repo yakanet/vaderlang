@@ -81,38 +81,33 @@ fn snippet$main() -> i32
     %3 $k_3: i32
     %4 $struct_4: Range(i32)
     %5 $call_5: usize
-    %6 $call_6: string
+    %6 $k_6: i32
     %7 $k_7: i32
-    %8 $k_8: i32
-    %9 $k_9: bool
-    %10 $k_10: i32
-    %11 $struct_11: Range(i32)
-    %12 $call_12: i32 | null
-    %13 __scrut_0: i32 | null (synthetic __scrut_0)
-    %14 $type_check_14: bool
-    %15 v: i32 (binding v)
-    %16 $call_17: string
-    %17 $type_check_18: bool
-    %18 $k_19: string
-    %19 $k_20: i32
+    %8 $k_8: bool
+    %9 $k_9: i32
+    %10 $struct_10: Range(i32)
+    %11 $call_11: i32 | null
+    %12 __scrut_0: i32 | null (synthetic __scrut_0)
+    %13 $type_check_13: bool
+    %14 v: i32 (binding v)
+    %15 $type_check_16: bool
+    %16 $k_17: string
+    %17 $k_18: i32
+    %18 $k_19: i32
+    %19 $k_20: bool
     %20 $k_21: i32
-    %21 $k_22: bool
-    %22 $k_23: i32
-    %23 $struct_24: Range(i32)
-    %24 $call_25: bool
-    %25 $call_26: string
+    %21 $struct_22: Range(i32)
+    %22 $call_23: bool
+    %23 $k_24: i32
+    %24 $k_25: i32
+    %25 $k_26: bool
     %26 $k_27: i32
-    %27 $k_28: i32
-    %28 $k_29: bool
+    %27 $struct_28: Range(i32)
+    %28 $call_29: bool
     %29 $k_30: i32
-    %30 $struct_31: Range(i32)
-    %31 $call_32: bool
-    %32 $call_33: string
-    %33 $k_34: i32
-    %34 $struct_35: Countdown
-    %35 $call_36: usize
-    %36 $call_37: string
-    %37 $k_38: i32
+    %30 $struct_31: Countdown
+    %31 $call_32: usize
+    %32 $k_33: i32
   bb0:
     %0 = const int(0) :i32
     %1 = const int(5) :i32
@@ -120,52 +115,47 @@ fn snippet$main() -> i32
     %3 = const int(0) :i32
     %4 = struct_new Range(i32)(%0, %1, %2, %3)
     %5 = call count(%4) :usize
-    %6 = call into(%5) :string
-    call println(%6) :void
-    %7 = const int(10) :i32
-    %8 = const int(15) :i32
-    %9 = const bool(true) :bool
-    %10 = const int(10) :i32
-    %11 = struct_new Range(i32)(%7, %8, %9, %10)
-    %12 = call last(%11) :i32 | null
-    %13 = move %12
-    %14 = type_check %13 is i32
-    cond_branch %14 ? bb1 : bb2
+    call println(%5) :void
+    %6 = const int(10) :i32
+    %7 = const int(15) :i32
+    %8 = const bool(true) :bool
+    %9 = const int(10) :i32
+    %10 = struct_new Range(i32)(%6, %7, %8, %9)
+    %11 = call last(%10) :i32 | null
+    %12 = move %11
+    %13 = type_check %12 is i32
+    cond_branch %13 ? bb1 : bb2
   bb1:
-    %15 = cast %13 :i32
-    %16 = call into(%15) :string
-    call println(%16) :void
+    %14 = cast %12 :i32
+    call println(%14) :void
     branch -> bb3
   bb2:
-    %17 = type_check %13 is null
-    cond_branch %17 ? bb4 : bb5
+    %15 = type_check %12 is null
+    cond_branch %15 ? bb4 : bb5
   bb3:
-    %19 = const int(0) :i32
+    %17 = const int(0) :i32
+    %18 = const int(0) :i32
+    %19 = const bool(false) :bool
     %20 = const int(0) :i32
-    %21 = const bool(false) :bool
-    %22 = const int(0) :i32
-    %23 = struct_new Range(i32)(%19, %20, %21, %22)
-    %24 = call is_empty(%23) :bool
-    %25 = call into(%24) :string
-    call println(%25) :void
+    %21 = struct_new Range(i32)(%17, %18, %19, %20)
+    %22 = call is_empty(%21) :bool
+    call println(%22) :void
+    %23 = const int(0) :i32
+    %24 = const int(5) :i32
+    %25 = const bool(false) :bool
     %26 = const int(0) :i32
-    %27 = const int(5) :i32
-    %28 = const bool(false) :bool
-    %29 = const int(0) :i32
-    %30 = struct_new Range(i32)(%26, %27, %28, %29)
-    %31 = call is_empty(%30) :bool
-    %32 = call into(%31) :string
-    call println(%32) :void
-    %33 = const int(3) :i32
-    %34 = struct_new Countdown(%33)
-    %35 = call count(%34) :usize
-    %36 = call into(%35) :string
-    call println(%36) :void
-    %37 = const int(0) :i32
-    return %37
+    %27 = struct_new Range(i32)(%23, %24, %25, %26)
+    %28 = call is_empty(%27) :bool
+    call println(%28) :void
+    %29 = const int(3) :i32
+    %30 = struct_new Countdown(%29)
+    %31 = call count(%30) :usize
+    call println(%31) :void
+    %32 = const int(0) :i32
+    return %32
   bb4:
-    %18 = const string(#0) :string
-    call println(%18) :void
+    %16 = const string(#0) :string
+    call println(%16) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)

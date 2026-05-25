@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "Hello, World!" :string
     return int(0) :i32

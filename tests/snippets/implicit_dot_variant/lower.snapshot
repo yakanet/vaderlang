@@ -49,7 +49,7 @@
     let a: Day = int(0) :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -74,7 +74,7 @@
               __for_i_2 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             call :string
               callee:
@@ -105,7 +105,7 @@
             ~>
               call :void
                 callee:
-                  println :fn(string) -> void
+                  println :void
                 arg0:
                   block :string
                     let __sb_4: ? =
@@ -131,7 +131,7 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(string) -> void
+                        println :void
                       arg0:
                         "nothing" :string
                 else:
@@ -151,7 +151,7 @@
             ~>
               call :void
                 callee:
-                  println :fn(string) -> void
+                  println :void
                 arg0:
                   block :string
                     let __sb_6: ? =
@@ -177,7 +177,7 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(string) -> void
+                        println :void
                       arg0:
                         "nothing" :string
                 else:

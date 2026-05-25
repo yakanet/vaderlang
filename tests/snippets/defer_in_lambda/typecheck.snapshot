@@ -4,20 +4,20 @@
   FnDecl         main                 :: fn() -> i32
   expr 10:17    StringLitExpr  :: string
   expr 10:9     CallExpr       :: void
-  expr 10:9     IdentExpr      :: fn(string) -> void
+  expr 10:9     IdentExpr      :: fn(T) -> void
   expr 12:5     CallExpr       :: void
   expr 12:5     IdentExpr      :: fn() -> void
   expr 13:13    StringLitExpr  :: string
   expr 13:5     CallExpr       :: void
-  expr 13:5     IdentExpr      :: fn(string) -> void
+  expr 13:5     IdentExpr      :: fn(T) -> void
   expr 15:17    LambdaExpr     :: fn() -> i32
   expr 16:15    CallExpr       :: void
-  expr 16:15    IdentExpr      :: fn(string) -> void
+  expr 16:15    IdentExpr      :: fn(T) -> void
   expr 16:23    StringLitExpr  :: string
   expr 16:52    IdentExpr      :: string
   expr 17:17    StringLitExpr  :: string
   expr 17:9     CallExpr       :: void
-  expr 17:9     IdentExpr      :: fn(string) -> void
+  expr 17:9     IdentExpr      :: fn(T) -> void
   expr 18:16    BinaryExpr     :: i32
   expr 18:16    IdentExpr      :: i32
   expr 18:21    BinaryExpr     :: i32
@@ -27,13 +27,13 @@
   expr 20:23    CallExpr       :: i32
   expr 20:23    IdentExpr      :: fn() -> i32
   expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(string) -> void
+  expr 20:5     IdentExpr      :: fn(T) -> void
   expr 6:10     StringLitExpr  :: string
   expr 7:10     LambdaExpr     :: fn() -> void
   expr 8:15     CallExpr       :: void
-  expr 8:15     IdentExpr      :: fn(string) -> void
+  expr 8:15     IdentExpr      :: fn(T) -> void
   expr 8:23     StringLitExpr  :: string
   expr 9:15     CallExpr       :: void
-  expr 9:15     IdentExpr      :: fn(string) -> void
+  expr 9:15     IdentExpr      :: fn(T) -> void
   expr 9:23     StringLitExpr  :: string
   expr 9:37     IdentExpr      :: string

@@ -10,14 +10,14 @@
           ~>
             call :void
               callee:
-                println :fn(string) -> void
+                println :void
               arg0:
                 name :string
         else:
           ~>
             call :void
               callee:
-                println :fn(string) -> void
+                println :void
               arg0:
                 "BAD" :string
   fn snippet$main() -> i32

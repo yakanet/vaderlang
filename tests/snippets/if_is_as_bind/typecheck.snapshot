@@ -36,22 +36,22 @@
   expr 32:34    IdentExpr      :: fn(V01 | V02) -> i32
   expr 32:41    StructLitExpr  :: V01
   expr 32:5     CallExpr       :: void
-  expr 32:5     IdentExpr      :: fn(string) -> void
+  expr 32:5     IdentExpr      :: fn(T) -> void
   expr 33:13    StringLitExpr  :: string
   expr 33:34    CallExpr       :: i32
   expr 33:34    IdentExpr      :: fn(V01 | V02) -> i32
   expr 33:41    StructLitExpr  :: V02
   expr 33:5     CallExpr       :: void
-  expr 33:5     IdentExpr      :: fn(string) -> void
+  expr 33:5     IdentExpr      :: fn(T) -> void
   expr 34:13    StringLitExpr  :: string
   expr 34:34    CallExpr       :: i32
   expr 34:34    IdentExpr      :: fn(V01 | V02) -> i32
   expr 34:46    StructLitExpr  :: V01
   expr 34:5     CallExpr       :: void
-  expr 34:5     IdentExpr      :: fn(string) -> void
+  expr 34:5     IdentExpr      :: fn(T) -> void
   expr 35:13    StringLitExpr  :: string
   expr 35:34    CallExpr       :: i32
   expr 35:34    IdentExpr      :: fn(V01 | V02) -> i32
   expr 35:46    StructLitExpr  :: V02
   expr 35:5     CallExpr       :: void
-  expr 35:5     IdentExpr      :: fn(string) -> void
+  expr 35:5     IdentExpr      :: fn(T) -> void

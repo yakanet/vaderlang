@@ -46,48 +46,48 @@
   expr 48:22    StructLitExpr  :: Cat
   expr 48:36    StringLitExpr  :: string
   expr 48:5     CallExpr       :: void
-  expr 48:5     IdentExpr      :: fn(string) -> void
+  expr 48:5     IdentExpr      :: fn(T) -> void
   expr 49:13    CallExpr       :: string
   expr 49:13    IdentExpr      :: fn(Cat | Dog) -> string
   expr 49:22    StructLitExpr  :: Dog
   expr 49:37    StringLitExpr  :: string
   expr 49:5     CallExpr       :: void
-  expr 49:5     IdentExpr      :: fn(string) -> void
+  expr 49:5     IdentExpr      :: fn(T) -> void
   expr 50:13    CallExpr       :: string
   expr 50:13    IdentExpr      :: fn(i32 | string) -> string
   expr 50:5     CallExpr       :: void
-  expr 50:5     IdentExpr      :: fn(string) -> void
+  expr 50:5     IdentExpr      :: fn(T) -> void
   expr 51:13    CallExpr       :: string
   expr 51:13    IdentExpr      :: fn(i32 | string) -> string
   expr 51:23    StringLitExpr  :: string
   expr 51:5     CallExpr       :: void
-  expr 51:5     IdentExpr      :: fn(string) -> void
+  expr 51:5     IdentExpr      :: fn(T) -> void
   expr 52:13    CallExpr       :: string
   expr 52:13    IdentExpr      :: fn(Cat | null, string) -> string
   expr 52:23    StructLitExpr  :: Cat
   expr 52:37    StringLitExpr  :: string
   expr 52:5     CallExpr       :: void
-  expr 52:5     IdentExpr      :: fn(string) -> void
+  expr 52:5     IdentExpr      :: fn(T) -> void
   expr 52:51    StringLitExpr  :: string
   expr 53:13    CallExpr       :: string
   expr 53:13    IdentExpr      :: fn(Cat | null, string) -> string
   expr 53:29    StringLitExpr  :: string
   expr 53:5     CallExpr       :: void
-  expr 53:5     IdentExpr      :: fn(string) -> void
+  expr 53:5     IdentExpr      :: fn(T) -> void
   expr 54:12    StructLitExpr  :: Cat
   expr 54:26    StringLitExpr  :: string
   expr 55:12    StructLitExpr  :: Dog
   expr 55:27    StringLitExpr  :: string
   expr 56:19    IdentExpr      :: Cat
   expr 56:26    CallExpr       :: void
-  expr 56:26    IdentExpr      :: fn(string) -> void
+  expr 56:26    IdentExpr      :: fn(T) -> void
   expr 56:34    StringLitExpr  :: string
   expr 56:5     IfExpr         :: void
   expr 56:8     CallExpr       :: bool
   expr 56:8     IdentExpr      :: fn(Cat | Dog) -> bool
   expr 57:19    IdentExpr      :: Dog
   expr 57:26    CallExpr       :: void
-  expr 57:26    IdentExpr      :: fn(string) -> void
+  expr 57:26    IdentExpr      :: fn(T) -> void
   expr 57:34    StringLitExpr  :: string
   expr 57:5     IfExpr         :: void
   expr 57:8     CallExpr       :: bool

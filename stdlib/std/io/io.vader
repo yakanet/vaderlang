@@ -23,30 +23,33 @@ Stream :: enum {
     Stderr,
 }
 
-// Sole host-provided I/O write primitive — appends `msg` to `out` without a
-// trailing newline. Display values flow in through the blanket
-// `T implements[T: Display] Into(string)` coercion declared in `std/core`.
+// Sole host-provided I/O write primitive — appends raw UTF-8 bytes to `out`.
+// The Display-ergonomic surface lives in the four wrappers below ; `write`
+// itself stays string-typed so the runtime / VM dispatch stays tiny.
 @intrinsic write :: fn(out: Stream, msg: string) -> void
 
-/// Write `msg` to stdout without a trailing newline.
-/// @param msg  the string to write (or any `Display` value).
-export print :: fn(msg: string) = write(.Stdout, msg)
+/// Write `msg` to stdout without a trailing newline. Accepts any type
+/// implementing `Display` — the wrapper renders it via `to_string`
+/// before handing the string to the host.
+/// @param msg  any `Display` value.
+export print :: fn[T: Display](msg: T) = write(.Stdout, msg.to_string())
 
-/// Write `msg` to stdout followed by a `\n`.
-/// @param msg  the string to write (or any `Display` value).
-export println :: fn(msg: string) -> void {
-    write(.Stdout, msg)
+/// Write `msg` to stdout followed by a `\n`. See `print` for the
+/// Display routing rule.
+/// @param msg  any `Display` value.
+export println :: fn[T: Display](msg: T) -> void {
+    write(.Stdout, msg.to_string())
     write(.Stdout, "\n")
 }
 
 /// Write `msg` to stderr without a trailing newline.
-/// @param msg  the string to write (or any `Display` value).
-export eprint :: fn(msg: string) = write(.Stderr, msg)
+/// @param msg  any `Display` value.
+export eprint :: fn[T: Display](msg: T) = write(.Stderr, msg.to_string())
 
 /// Write `msg` to stderr followed by a `\n`.
-/// @param msg  the string to write (or any `Display` value).
-export eprintln :: fn(msg: string) -> void {
-    write(.Stderr, msg)
+/// @param msg  any `Display` value.
+export eprintln :: fn[T: Display](msg: T) -> void {
+    write(.Stderr, msg.to_string())
     write(.Stderr, "\n")
 }
 

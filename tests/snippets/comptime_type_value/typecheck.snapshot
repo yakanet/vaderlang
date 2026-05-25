@@ -19,4 +19,4 @@
   expr 16:5     IdentExpr      :: fn(type) -> void
   expr 17:13    StringLitExpr  :: string
   expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(string) -> void
+  expr 17:5     IdentExpr      :: fn(T) -> void

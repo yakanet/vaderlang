@@ -9,48 +9,48 @@
   expr 11:11    IdentExpr      :: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
   expr 11:5     MatchExpr      :: void
   expr 12:27    CallExpr       :: void
-  expr 12:27    IdentExpr      :: fn(string) -> void
+  expr 12:27    IdentExpr      :: fn(T) -> void
   expr 12:35    StringLitExpr  :: string
   expr 12:38    IdentExpr      :: string
   expr 12:55    FieldExpr      :: string
   expr 12:55    IdentExpr      :: JsonError
   expr 13:28    CallExpr       :: void
-  expr 13:28    IdentExpr      :: fn(string) -> void
+  expr 13:28    IdentExpr      :: fn(T) -> void
   expr 13:36    StringLitExpr  :: string
   expr 13:39    IdentExpr      :: string
   expr 13:49    CallExpr       :: string
   expr 13:49    IdentExpr      :: fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
   expr 13:59    IdentExpr      :: JsonString
   expr 14:28    CallExpr       :: void
-  expr 14:28    IdentExpr      :: fn(string) -> void
+  expr 14:28    IdentExpr      :: fn(T) -> void
   expr 14:36    StringLitExpr  :: string
   expr 14:39    IdentExpr      :: string
   expr 14:49    CallExpr       :: string
   expr 14:49    IdentExpr      :: fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
   expr 14:59    IdentExpr      :: JsonNumber
   expr 15:28    CallExpr       :: void
-  expr 15:28    IdentExpr      :: fn(string) -> void
+  expr 15:28    IdentExpr      :: fn(T) -> void
   expr 15:36    StringLitExpr  :: string
   expr 15:39    IdentExpr      :: string
   expr 15:49    CallExpr       :: string
   expr 15:49    IdentExpr      :: fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
   expr 15:59    IdentExpr      :: JsonBool
   expr 16:28    CallExpr       :: void
-  expr 16:28    IdentExpr      :: fn(string) -> void
+  expr 16:28    IdentExpr      :: fn(T) -> void
   expr 16:36    StringLitExpr  :: string
   expr 16:39    IdentExpr      :: string
   expr 16:49    CallExpr       :: string
   expr 16:49    IdentExpr      :: fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
   expr 16:59    IdentExpr      :: JsonNull
   expr 17:28    CallExpr       :: void
-  expr 17:28    IdentExpr      :: fn(string) -> void
+  expr 17:28    IdentExpr      :: fn(T) -> void
   expr 17:36    StringLitExpr  :: string
   expr 17:39    IdentExpr      :: string
   expr 17:49    CallExpr       :: string
   expr 17:49    IdentExpr      :: fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
   expr 17:59    IdentExpr      :: JsonArray
   expr 18:28    CallExpr       :: void
-  expr 18:28    IdentExpr      :: fn(string) -> void
+  expr 18:28    IdentExpr      :: fn(T) -> void
   expr 18:36    StringLitExpr  :: string
   expr 18:39    IdentExpr      :: string
   expr 18:49    CallExpr       :: string

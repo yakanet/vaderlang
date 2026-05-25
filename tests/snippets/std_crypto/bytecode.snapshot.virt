@@ -1,17 +1,27 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 primitive string
-type 3 primitive u8
-type 4 primitive u32
-type 5 primitive usize
-type 6 primitive char
-type 7 primitive void
-type 8 array 2
-type 9 struct std_string_builder$StringBuilder { parts:8 }
-type 10 array 3
-type 11 array 4
-type 12 ref _
+type 2 primitive i8
+type 3 primitive string
+type 4 primitive i16
+type 5 primitive i64
+type 6 primitive isize
+type 7 primitive u8
+type 8 primitive u16
+type 9 primitive u32
+type 10 primitive u64
+type 11 primitive usize
+type 12 primitive f32
+type 13 primitive f64
+type 14 primitive bool
+type 15 primitive char
+type 16 ref _
+type 17 primitive void
+type 18 array 3
+type 19 struct std_string_builder$StringBuilder { parts:18 }
+type 20 array 7
+type 21 array 9
+type 22 ref _
 string 0 "sha256-empty="
 string 1 ""
 string 2 "sha256-abc="
@@ -27,11 +37,42 @@ string 11 "\n"
 data 0 u32 hex"982f8a4291443771cffbc0b5a5dbb5e95bc25639f111f159a4823f92d55e1cab98aa07d8015b8312be853124c37d0c55745dbe72feb1de80a706dc9b74f19bc1c1699be48647beefc69dc10fcca10c246f2ce92daa84744adca9b05cda88f97652513e986dc631a8c82703b0c77f59bff30be0c64791a7d55163ca0667292914850ab72738211b2efc6d2c4d130d385354730a65bb0a6a762ec9c281852c7292a1e8bfa24b661aa8708b4bc2a3516cc719e892d1240699d685350ef470a06a1016c1a419086c371e4c774827b5bcb034b30c1c394aaad84e4fca9c5bf36f2e68ee828f746f63a5781478c8840802c78cfaffbe90eb6c50a4f7a3f9bef27871c6"
 data 1 u32 hex"070000000c0000001100000016000000070000000c0000001100000016000000070000000c0000001100000016000000070000000c000000110000001600000005000000090000000e0000001400000005000000090000000e0000001400000005000000090000000e0000001400000005000000090000000e00000014000000040000000b0000001000000017000000040000000b0000001000000017000000040000000b0000001000000017000000040000000b0000001000000017000000060000000a0000000f00000015000000060000000a0000000f00000015000000060000000a0000000f00000015000000060000000a0000000f00000015000000"
 data 2 u32 hex"78a46ad756b7c7e8db702024eecebdc1af0f7cf52ac68747134630a8019546fdd8988069aff7448bb15bffffbed75c892211906b937198fd8e4379a62108b44962251ef640b340c0515a5e26aac7b6e95d102fd65314440281e6a1d8c8fbd3e7e6cde121d60737c3870dd5f4ed145a4505e9e3a9f8a3effcd9026f678a4c2a8d4239faff81f6718722619d6d0c38e5fd44eabea4a9cfde4b604bbbf670bcbfbec67e9b28fa27a1ea8530efd4051d880439d0d4d9e599dbe6f87ca21f6556acc4442229f497ff2a43a72394ab39a093fcc3595b6592cc0c8f7df4efffd15d84854f7ea86fe0e62cfe144301a3a111084e827e53f735f23abdbbd2d72a91d386eb"
-import 0 write std_io$write (i32,string) -> void
-import 1 byte_len std_string$byte_len (string) -> usize
-import 2 byte_at std_string$byte_at (string,usize) -> u8
-import 3 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
-impl 9 Display
+import 0 to_string std_core$i8$Display$to_string (i8) -> string
+import 1 to_string std_core$i16$Display$to_string (i16) -> string
+import 2 to_string std_core$i32$Display$to_string (i32) -> string
+import 3 to_string std_core$i64$Display$to_string (i64) -> string
+import 4 to_string std_core$isize$Display$to_string (isize) -> string
+import 5 to_string std_core$u8$Display$to_string (u8) -> string
+import 6 to_string std_core$u16$Display$to_string (u16) -> string
+import 7 to_string std_core$u32$Display$to_string (u32) -> string
+import 8 to_string std_core$u64$Display$to_string (u64) -> string
+import 9 to_string std_core$usize$Display$to_string (usize) -> string
+import 10 to_string std_core$f32$Display$to_string (f32) -> string
+import 11 to_string std_core$f64$Display$to_string (f64) -> string
+import 12 to_string std_core$bool$Display$to_string (bool) -> string
+import 13 to_string std_core$char$Display$to_string (char) -> string
+import 14 to_string std_core$string$Display$to_string (string) -> string
+import 15 write std_io$write (i32,string) -> void
+import 16 byte_len std_string$byte_len (string) -> usize
+import 17 byte_at std_string$byte_at (string,usize) -> u8
+import 18 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+impl 19 Display
+vtable Display.to_string 1 17
+vtable Display.to_string 2 15
+vtable Display.to_string 3 29
+vtable Display.to_string 4 16
+vtable Display.to_string 5 18
+vtable Display.to_string 6 19
+vtable Display.to_string 7 20
+vtable Display.to_string 8 21
+vtable Display.to_string 9 22
+vtable Display.to_string 10 23
+vtable Display.to_string 11 24
+vtable Display.to_string 12 25
+vtable Display.to_string 13 26
+vtable Display.to_string 14 27
+vtable Display.to_string 15 28
+vtable Display.to_string 19 31
 
 fn 0 snippet$main () -> i32
   local __sb_0 any
@@ -137,13 +178,17 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 std_io$println (string) -> void
-  i32.const 0
+fn 1 std_io$std_io$println__string (ref) -> void
+  local $vcall_2 string
   local.get 0
-  call 15
+  virtual.call 1 Display.to_string
+  local.set 1
+  i32.const 0
+  local.get 1
+  call 30
   i32.const 0
   string.const 11
-  call 15
+  call 30
   return
 end
 
@@ -410,7 +455,7 @@ fn 7 std_crypto$sha256 (string) -> string
         i64.to_usize
         usize.mul
         local.set 12
-        array.new 11 0
+        array.new 21 0
         local.set 13
         i64.const 0
         local.set 14
@@ -437,8 +482,8 @@ fn 7 std_crypto$sha256 (string) -> string
               local.set 17
               local.get 9
               local.get 17
-              array.get 10
-              ref.cast 3
+              array.get 20
+              ref.cast 7
               u8.to_u32
               local.set 18
               local.get 14
@@ -457,8 +502,8 @@ fn 7 std_crypto$sha256 (string) -> string
               local.set 21
               local.get 9
               local.get 21
-              array.get 10
-              ref.cast 3
+              array.get 20
+              ref.cast 7
               u8.to_u32
               local.set 22
               local.get 14
@@ -477,8 +522,8 @@ fn 7 std_crypto$sha256 (string) -> string
               local.set 25
               local.get 9
               local.get 25
-              array.get 10
-              ref.cast 3
+              array.get 20
+              ref.cast 7
               u8.to_u32
               local.set 26
               local.get 14
@@ -497,8 +542,8 @@ fn 7 std_crypto$sha256 (string) -> string
               local.set 29
               local.get 9
               local.get 29
-              array.get 10
-              ref.cast 3
+              array.get 20
+              ref.cast 7
               u8.to_u32
               local.set 30
               local.get 18
@@ -529,7 +574,7 @@ fn 7 std_crypto$sha256 (string) -> string
               local.set 35
               local.get 13
               local.get 35
-              array.push 4
+              array.push 9
               local.get 14
               i64.const 1
               i64.to_usize
@@ -556,8 +601,8 @@ fn 7 std_crypto$sha256 (string) -> string
               local.set 37
               local.get 13
               local.get 37
-              array.get 11
-              ref.cast 4
+              array.get 21
+              ref.cast 9
               local.set 38
               local.get 36
               i64.const 2
@@ -566,8 +611,8 @@ fn 7 std_crypto$sha256 (string) -> string
               local.set 39
               local.get 13
               local.get 39
-              array.get 11
-              ref.cast 4
+              array.get 21
+              ref.cast 9
               local.set 40
               local.get 38
               i32.const 7
@@ -622,8 +667,8 @@ fn 7 std_crypto$sha256 (string) -> string
               local.set 51
               local.get 13
               local.get 51
-              array.get 11
-              ref.cast 4
+              array.get 21
+              ref.cast 9
               local.get 45
               u32.add
               local.set 52
@@ -634,8 +679,8 @@ fn 7 std_crypto$sha256 (string) -> string
               local.set 53
               local.get 13
               local.get 53
-              array.get 11
-              ref.cast 4
+              array.get 21
+              ref.cast 9
               local.set 54
               local.get 52
               local.get 54
@@ -646,7 +691,7 @@ fn 7 std_crypto$sha256 (string) -> string
               local.set 55
               local.get 13
               local.get 55
-              array.push 4
+              array.push 9
               local.get 36
               i64.const 1
               i64.to_usize
@@ -725,9 +770,9 @@ fn 7 std_crypto$sha256 (string) -> string
               local.get 72
               u32.add
               local.set 73
-              data.const 0 26
+              data.const 0 27
               local.get 64
-              array.get 11
+              array.get 21
               local.set 74
               local.get 73
               local.get 74
@@ -735,8 +780,8 @@ fn 7 std_crypto$sha256 (string) -> string
               local.set 75
               local.get 13
               local.get 64
-              array.get 11
-              ref.cast 4
+              array.get 21
+              ref.cast 9
               local.set 76
               local.get 75
               local.get 76
@@ -899,7 +944,7 @@ fn 7 std_crypto$sha256 (string) -> string
   local.get 8
   call 5
   local.get 9
-  call 16
+  call 31
   return
 end
 
@@ -913,7 +958,7 @@ fn 8 std_crypto$pad_sha256 (string) -> ref
   local $cast_34 u64
   local $shr_35 u64
   local.get 0
-  call.import 1
+  call.import 16
   local.tee 1
   usize.to_u64
   local.set 2
@@ -922,7 +967,7 @@ fn 8 std_crypto$pad_sha256 (string) -> ref
   i64.to_u64
   u64.mul
   local.set 2
-  array.new 10 0
+  array.new 20 0
   local.set 3
   i64.const 0
   local.set 4
@@ -934,11 +979,11 @@ fn 8 std_crypto$pad_sha256 (string) -> ref
       if $L2 void
         local.get 0
         local.get 4
-        call.import 2
+        call.import 17
         local.set 5
         local.get 3
         local.get 5
-        array.push 3
+        array.push 7
         local.get 4
         i64.const 1
         i64.to_usize
@@ -952,7 +997,7 @@ fn 8 std_crypto$pad_sha256 (string) -> ref
   local.get 3
   i32.const 128
   i32.to_u8
-  array.push 3
+  array.push 7
   block $L3 void
     loop $L4 void
       local.get 3
@@ -971,7 +1016,7 @@ fn 8 std_crypto$pad_sha256 (string) -> ref
         local.get 3
         i32.const 0
         i32.to_u8
-        array.push 3
+        array.push 7
         br $L4
       else
       end $L5
@@ -1002,7 +1047,7 @@ fn 8 std_crypto$pad_sha256 (string) -> ref
         local.set 5
         local.get 3
         local.get 5
-        array.push 3
+        array.push 7
         local.get 6
         i32.const 1
         i32.sub
@@ -1105,7 +1150,7 @@ fn 9 std_crypto$md5 (string) -> string
         i64.to_usize
         usize.mul
         local.set 8
-        array.new 11 0
+        array.new 21 0
         local.set 9
         i64.const 0
         local.set 10
@@ -1132,8 +1177,8 @@ fn 9 std_crypto$md5 (string) -> string
               local.set 13
               local.get 5
               local.get 13
-              array.get 10
-              ref.cast 3
+              array.get 20
+              ref.cast 7
               u8.to_u32
               local.set 14
               local.get 10
@@ -1152,8 +1197,8 @@ fn 9 std_crypto$md5 (string) -> string
               local.set 17
               local.get 5
               local.get 17
-              array.get 10
-              ref.cast 3
+              array.get 20
+              ref.cast 7
               u8.to_u32
               local.set 18
               local.get 10
@@ -1172,8 +1217,8 @@ fn 9 std_crypto$md5 (string) -> string
               local.set 21
               local.get 5
               local.get 21
-              array.get 10
-              ref.cast 3
+              array.get 20
+              ref.cast 7
               u8.to_u32
               local.set 22
               local.get 10
@@ -1192,8 +1237,8 @@ fn 9 std_crypto$md5 (string) -> string
               local.set 25
               local.get 5
               local.get 25
-              array.get 10
-              ref.cast 3
+              array.get 20
+              ref.cast 7
               u8.to_u32
               local.set 26
               local.get 18
@@ -1226,7 +1271,7 @@ fn 9 std_crypto$md5 (string) -> string
               local.set 32
               local.get 9
               local.get 32
-              array.push 4
+              array.push 9
               local.get 10
               i64.const 1
               i64.to_usize
@@ -1364,9 +1409,9 @@ fn 9 std_crypto$md5 (string) -> string
               local.get 38
               u32.add
               local.set 51
-              data.const 2 26
+              data.const 2 27
               local.get 37
-              array.get 11
+              array.get 21
               local.set 52
               local.get 51
               local.get 52
@@ -1374,8 +1419,8 @@ fn 9 std_crypto$md5 (string) -> string
               local.set 53
               local.get 9
               local.get 39
-              array.get 11
-              ref.cast 4
+              array.get 21
+              ref.cast 9
               local.set 54
               local.get 53
               local.get 54
@@ -1388,9 +1433,9 @@ fn 9 std_crypto$md5 (string) -> string
               local.set 36
               local.get 34
               local.set 35
-              data.const 1 26
+              data.const 1 27
               local.get 37
-              array.get 11
+              array.get 21
               local.set 56
               local.get 55
               local.get 56
@@ -1455,7 +1500,7 @@ fn 9 std_crypto$md5 (string) -> string
   local.get 4
   call 11
   local.get 5
-  call 16
+  call 31
   return
 end
 
@@ -1534,7 +1579,7 @@ fn 12 std_crypto$pad_md5 (string) -> ref
   local $cast_34 u64
   local $shr_35 u64
   local.get 0
-  call.import 1
+  call.import 16
   local.tee 1
   usize.to_u64
   local.set 2
@@ -1543,7 +1588,7 @@ fn 12 std_crypto$pad_md5 (string) -> ref
   i64.to_u64
   u64.mul
   local.set 2
-  array.new 10 0
+  array.new 20 0
   local.set 3
   i64.const 0
   local.set 4
@@ -1555,11 +1600,11 @@ fn 12 std_crypto$pad_md5 (string) -> ref
       if $L2 void
         local.get 0
         local.get 4
-        call.import 2
+        call.import 17
         local.set 5
         local.get 3
         local.get 5
-        array.push 3
+        array.push 7
         local.get 4
         i64.const 1
         i64.to_usize
@@ -1573,7 +1618,7 @@ fn 12 std_crypto$pad_md5 (string) -> ref
   local.get 3
   i32.const 128
   i32.to_u8
-  array.push 3
+  array.push 7
   block $L3 void
     loop $L4 void
       local.get 3
@@ -1592,7 +1637,7 @@ fn 12 std_crypto$pad_md5 (string) -> ref
         local.get 3
         i32.const 0
         i32.to_u8
-        array.push 3
+        array.push 7
         br $L4
       else
       end $L5
@@ -1623,7 +1668,7 @@ fn 12 std_crypto$pad_md5 (string) -> ref
         local.set 5
         local.get 3
         local.get 5
-        array.push 3
+        array.push 7
         local.get 6
         i32.const 1
         i32.add
@@ -1638,8 +1683,8 @@ fn 12 std_crypto$pad_md5 (string) -> ref
 end
 
 fn 13 std_string_builder$new_builder () -> ref
-  array.new 8 0
-  struct.new 9
+  array.new 18 0
+  struct.new 19
   return
 end
 
@@ -1647,7 +1692,7 @@ fn 14 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local __sb_0 any
   local $intrinsic_5 string
-  local.field 0 9 0
+  local.field 0 19 0
   local.set 2
   intrinsic builder.new
   local.tee 3
@@ -1658,19 +1703,109 @@ fn 14 std_string_builder$append_char (ref,char) -> void
   local.set 4
   local.get 2
   local.get 4
-  array.push 2
+  array.push 3
   return
 end
 
-fn 15 std_io$write$vt (i32,string) -> void
+fn 15 std_core$i8$Display$to_string$vt (i8) -> string
   local.get 0
-  local.get 1
   call.import 0
   return
 end
 
-fn 16 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
+fn 16 std_core$i16$Display$to_string$vt (i16) -> string
+  local.get 0
+  call.import 1
+  return
+end
+
+fn 17 std_core$i32$Display$to_string$vt (i32) -> string
+  local.get 0
+  call.import 2
+  return
+end
+
+fn 18 std_core$i64$Display$to_string$vt (i64) -> string
   local.get 0
   call.import 3
+  return
+end
+
+fn 19 std_core$isize$Display$to_string$vt (isize) -> string
+  local.get 0
+  call.import 4
+  return
+end
+
+fn 20 std_core$u8$Display$to_string$vt (u8) -> string
+  local.get 0
+  call.import 5
+  return
+end
+
+fn 21 std_core$u16$Display$to_string$vt (u16) -> string
+  local.get 0
+  call.import 6
+  return
+end
+
+fn 22 std_core$u32$Display$to_string$vt (u32) -> string
+  local.get 0
+  call.import 7
+  return
+end
+
+fn 23 std_core$u64$Display$to_string$vt (u64) -> string
+  local.get 0
+  call.import 8
+  return
+end
+
+fn 24 std_core$usize$Display$to_string$vt (usize) -> string
+  local.get 0
+  call.import 9
+  return
+end
+
+fn 25 std_core$f32$Display$to_string$vt (f32) -> string
+  local.get 0
+  call.import 10
+  return
+end
+
+fn 26 std_core$f64$Display$to_string$vt (f64) -> string
+  local.get 0
+  call.import 11
+  return
+end
+
+fn 27 std_core$bool$Display$to_string$vt (bool) -> string
+  local.get 0
+  call.import 12
+  return
+end
+
+fn 28 std_core$char$Display$to_string$vt (char) -> string
+  local.get 0
+  call.import 13
+  return
+end
+
+fn 29 std_core$string$Display$to_string$vt (string) -> string
+  local.get 0
+  call.import 14
+  return
+end
+
+fn 30 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
+  call.import 15
+  return
+end
+
+fn 31 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
+  local.get 0
+  call.import 18
   return
 end

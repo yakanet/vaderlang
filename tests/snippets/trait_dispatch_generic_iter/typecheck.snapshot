@@ -45,10 +45,10 @@
   expr 59:23    IdentExpr      :: fn(Iterator(i32)) -> i32
   expr 59:28    IdentExpr      :: Repeat(i32)
   expr 59:5     CallExpr       :: void
-  expr 59:5     IdentExpr      :: fn(string) -> void
+  expr 59:5     IdentExpr      :: fn(T) -> void
   expr 60:13    StringLitExpr  :: string
   expr 60:21    CallExpr       :: i32
   expr 60:21    IdentExpr      :: fn(Iterator(i32)) -> i32
   expr 60:26    IdentExpr      :: Once(i32)
   expr 60:5     CallExpr       :: void
-  expr 60:5     IdentExpr      :: fn(string) -> void
+  expr 60:5     IdentExpr      :: fn(T) -> void

@@ -17,9 +17,9 @@
   expr 24:13    IdentExpr      :: fn(Day) -> string
   expr 24:26    DotVariantExpr :: Day
   expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 24:5     IdentExpr      :: fn(T) -> void
   expr 25:13    CallExpr       :: string
   expr 25:13    IdentExpr      :: fn(Day) -> string
   expr 25:26    DotVariantExpr :: Day
   expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 25:5     IdentExpr      :: fn(T) -> void

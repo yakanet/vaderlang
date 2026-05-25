@@ -33,7 +33,7 @@
       then:
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             "not matched" :string
     return int(0) :i32

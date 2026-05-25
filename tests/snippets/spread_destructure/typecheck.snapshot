@@ -4,7 +4,7 @@
   FnDecl         main                 :: fn() -> i32
   expr 10:14    IdentExpr      :: i32[]
   expr 10:21    CallExpr       :: void
-  expr 10:21    IdentExpr      :: fn(string) -> void
+  expr 10:21    IdentExpr      :: fn(T) -> void
   expr 10:29    StringLitExpr  :: string
   expr 10:34    IdentExpr      :: i32
   expr 12:24    IdentExpr      :: i32[]
@@ -15,17 +15,17 @@
   expr 13:39    FieldExpr      :: fn() -> usize
   expr 13:39    IdentExpr      :: i32[]
   expr 13:5     CallExpr       :: void
-  expr 13:5     IdentExpr      :: fn(string) -> void
+  expr 13:5     IdentExpr      :: fn(T) -> void
   expr 16:28    IdentExpr      :: i32[]
   expr 17:13    StringLitExpr  :: string
   expr 17:26    CallExpr       :: usize
   expr 17:26    FieldExpr      :: fn() -> usize
   expr 17:26    IdentExpr      :: i32[]
   expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(string) -> void
+  expr 17:5     IdentExpr      :: fn(T) -> void
   expr 18:14    IdentExpr      :: i32[]
   expr 18:22    CallExpr       :: void
-  expr 18:22    IdentExpr      :: fn(string) -> void
+  expr 18:22    IdentExpr      :: fn(T) -> void
   expr 18:30    StringLitExpr  :: string
   expr 18:35    IdentExpr      :: i32
   expr 6:12     SeqLitExpr     :: i32[]
@@ -36,4 +36,4 @@
   expr 9:40     FieldExpr      :: fn() -> usize
   expr 9:40     IdentExpr      :: i32[]
   expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn(string) -> void
+  expr 9:5      IdentExpr      :: fn(T) -> void

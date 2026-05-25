@@ -20,18 +20,18 @@
   expr 31:21    IdentExpr      :: fn(i32) -> i32
   expr 31:30    IdentExpr      :: UserId
   expr 31:5     CallExpr       :: void
-  expr 31:5     IdentExpr      :: fn(string) -> void
+  expr 31:5     IdentExpr      :: fn(T) -> void
   expr 34:14    IdentExpr      :: UserId
   expr 35:13    StringLitExpr  :: string
   expr 35:20    IdentExpr      :: i32
   expr 35:5     CallExpr       :: void
-  expr 35:5     IdentExpr      :: fn(string) -> void
+  expr 35:5     IdentExpr      :: fn(T) -> void
   expr 38:13    StringLitExpr  :: string
   expr 38:20    CallExpr       :: i32
   expr 38:20    IdentExpr      :: fn(UserId) -> i32
   expr 38:27    IdentExpr      :: UserId
   expr 38:5     CallExpr       :: void
-  expr 38:5     IdentExpr      :: fn(string) -> void
+  expr 38:5     IdentExpr      :: fn(T) -> void
   expr 41:10    StructLitExpr  :: Pair
   expr 41:24    IdentExpr      :: UserId
   expr 41:32    IdentExpr      :: UserId
@@ -41,4 +41,4 @@
   expr 42:37    FieldExpr      :: i32
   expr 42:37    IdentExpr      :: Pair
   expr 42:5     CallExpr       :: void
-  expr 42:5     IdentExpr      :: fn(string) -> void
+  expr 42:5     IdentExpr      :: fn(T) -> void

@@ -13,4 +13,4 @@
   expr 17:20    IdentExpr      :: i32
   expr 17:34    IdentExpr      :: usize
   expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(string) -> void
+  expr 17:5     IdentExpr      :: fn(T) -> void

@@ -15,10 +15,10 @@
   expr 20:11    IdentExpr      :: Bag
   expr 20:5     MatchExpr      :: void
   expr 21:22    CallExpr       :: void
-  expr 21:22    IdentExpr      :: fn(string) -> void
+  expr 21:22    IdentExpr      :: fn(T) -> void
   expr 21:30    StringLitExpr  :: string
   expr 22:22    CallExpr       :: void
-  expr 22:22    IdentExpr      :: fn(string) -> void
+  expr 22:22    IdentExpr      :: fn(T) -> void
   expr 22:30    StringLitExpr  :: string
   expr 22:39    CallExpr       :: i32
   expr 22:39    IdentExpr      :: fn(i32[]) -> i32
@@ -29,10 +29,10 @@
   expr 25:11    IdentExpr      :: Bag
   expr 25:5     MatchExpr      :: void
   expr 26:22    CallExpr       :: void
-  expr 26:22    IdentExpr      :: fn(string) -> void
+  expr 26:22    IdentExpr      :: fn(T) -> void
   expr 26:30    StringLitExpr  :: string
   expr 27:22    CallExpr       :: void
-  expr 27:22    IdentExpr      :: fn(string) -> void
+  expr 27:22    IdentExpr      :: fn(T) -> void
   expr 27:30    StringLitExpr  :: string
   expr 27:39    CallExpr       :: i32
   expr 27:39    IdentExpr      :: fn(i32[]) -> i32

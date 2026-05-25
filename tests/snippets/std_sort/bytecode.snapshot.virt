@@ -6,14 +6,24 @@ type 3 array 1
 type 4 primitive void
 type 5 array 6
 type 6 primitive string
-type 7 primitive usize
-type 8 primitive char
-type 9 array 10
-type 10 ref _
-type 11 fn (10,10) -> 2
-type 12 struct std_string_builder$StringBuilder { parts:5 }
-type 13 fn (1,1) -> 2
-type 14 fn (6,6) -> 2
+type 7 primitive i8
+type 8 primitive i16
+type 9 primitive i64
+type 10 primitive isize
+type 11 primitive u8
+type 12 primitive u16
+type 13 primitive u32
+type 14 primitive u64
+type 15 primitive usize
+type 16 primitive f32
+type 17 primitive f64
+type 18 primitive char
+type 19 ref _
+type 20 array 19
+type 21 fn (19,19) -> 2
+type 22 struct std_string_builder$StringBuilder { parts:5 }
+type 23 fn (1,1) -> 2
+type 24 fn (6,6) -> 2
 string 0 ""
 string 1 ", "
 string 2 "banana"
@@ -21,10 +31,42 @@ string 3 "apple"
 string 4 "cherry"
 string 5 "date"
 string 6 "\n"
-import 0 at std_core$string$Index$at (string,usize) -> char
-import 1 write std_io$write (i32,string) -> void
-import 2 byte_len std_string$byte_len (string) -> usize
-impl 12 Display
+import 0 to_string std_core$i8$Display$to_string (i8) -> string
+import 1 to_string std_core$i16$Display$to_string (i16) -> string
+import 2 to_string std_core$i32$Display$to_string (i32) -> string
+import 3 to_string std_core$i64$Display$to_string (i64) -> string
+import 4 to_string std_core$isize$Display$to_string (isize) -> string
+import 5 to_string std_core$u8$Display$to_string (u8) -> string
+import 6 to_string std_core$u16$Display$to_string (u16) -> string
+import 7 to_string std_core$u32$Display$to_string (u32) -> string
+import 8 to_string std_core$u64$Display$to_string (u64) -> string
+import 9 to_string std_core$usize$Display$to_string (usize) -> string
+import 10 to_string std_core$f32$Display$to_string (f32) -> string
+import 11 to_string std_core$f64$Display$to_string (f64) -> string
+import 12 to_string std_core$bool$Display$to_string (bool) -> string
+import 13 to_string std_core$char$Display$to_string (char) -> string
+import 14 to_string std_core$string$Display$to_string (string) -> string
+import 15 at std_core$string$Index$at (string,usize) -> char
+import 16 write std_io$write (i32,string) -> void
+import 17 byte_len std_string$byte_len (string) -> usize
+import 18 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+impl 22 Display
+vtable Display.to_string 1 14
+vtable Display.to_string 2 24
+vtable Display.to_string 6 26
+vtable Display.to_string 7 12
+vtable Display.to_string 8 13
+vtable Display.to_string 9 15
+vtable Display.to_string 10 16
+vtable Display.to_string 11 17
+vtable Display.to_string 12 18
+vtable Display.to_string 13 19
+vtable Display.to_string 14 20
+vtable Display.to_string 15 21
+vtable Display.to_string 16 22
+vtable Display.to_string 17 23
+vtable Display.to_string 18 25
+vtable Display.to_string 22 29
 
 fn 0 snippet$i32_lt (i32,i32) -> bool
   local.get 0
@@ -196,7 +238,7 @@ fn 4 snippet$main () -> i32
   i32.const 42
   array.new 3 1
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 23
   local.set 1
   local.get 0
   local.get 1
@@ -209,7 +251,7 @@ fn 4 snippet$main () -> i32
   i32.const 5
   array.new 3 5
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 23
   local.set 1
   local.get 0
   local.get 1
@@ -222,7 +264,7 @@ fn 4 snippet$main () -> i32
   i32.const 1
   array.new 3 5
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 23
   local.set 1
   local.get 0
   local.get 1
@@ -241,7 +283,7 @@ fn 4 snippet$main () -> i32
   i32.const 5
   array.new 3 11
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 23
   local.set 1
   local.get 0
   local.get 1
@@ -254,7 +296,7 @@ fn 4 snippet$main () -> i32
   i32.const 5
   array.new 3 5
   local.set 0
-  fn.ref 1 13
+  fn.ref 1 23
   local.set 1
   local.get 0
   local.get 1
@@ -292,7 +334,7 @@ fn 4 snippet$main () -> i32
   i32.const 29
   array.new 3 30
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 23
   local.set 1
   local.get 0
   local.get 1
@@ -304,7 +346,7 @@ fn 4 snippet$main () -> i32
   string.const 5
   array.new 5 4
   local.set 0
-  fn.ref 9 14
+  fn.ref 9 24
   local.set 1
   local.get 0
   local.get 1
@@ -315,7 +357,7 @@ fn 4 snippet$main () -> i32
   i32.const 2
   array.new 3 3
   local.set 0
-  fn.ref 0 13
+  fn.ref 0 23
   local.set 1
   local.get 0
   local.get 1
@@ -328,13 +370,17 @@ fn 4 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 5 std_io$println (string) -> void
-  i32.const 0
+fn 5 std_io$std_io$println__string (ref) -> void
+  local $vcall_2 string
   local.get 0
-  call 13
+  virtual.call 1 Display.to_string
+  local.set 1
+  i32.const 0
+  local.get 1
+  call 28
   i32.const 0
   string.const 6
-  call 13
+  call 28
   return
 end
 
@@ -435,12 +481,12 @@ fn 7 std_sort$std_sort$merge_sort_range__Any (ref,ref,usize,usize,ref) -> void
       if $L4 void
         local.get 0
         local.get 6
-        array.get 9
+        array.get 20
         local.set 7
         local.get 1
         local.get 6
         local.get 7
-        array.set 9
+        array.set 20
         local.get 6
         i64.const 1
         i64.to_usize
@@ -469,12 +515,12 @@ fn 7 std_sort$std_sort$merge_sort_range__Any (ref,ref,usize,usize,ref) -> void
         if $L8 void
           local.get 1
           local.get 8
-          array.get 9
+          array.get 20
           local.set 7
           local.get 0
           local.get 9
           local.get 7
-          array.set 9
+          array.set 20
           local.get 8
           i64.const 1
           i64.to_usize
@@ -487,12 +533,12 @@ fn 7 std_sort$std_sort$merge_sort_range__Any (ref,ref,usize,usize,ref) -> void
           if $L9 void
             local.get 1
             local.get 6
-            array.get 9
+            array.get 20
             local.set 10
             local.get 0
             local.get 9
             local.get 10
-            array.set 9
+            array.set 20
             local.get 6
             i64.const 1
             i64.to_usize
@@ -501,25 +547,25 @@ fn 7 std_sort$std_sort$merge_sort_range__Any (ref,ref,usize,usize,ref) -> void
           else
             local.get 1
             local.get 8
-            array.get 9
+            array.get 20
             local.set 11
             local.get 1
             local.get 6
-            array.get 9
+            array.get 20
             local.set 12
             local.get 11
             local.get 12
             local.get 4
-            call.indirect 11
+            call.indirect 21
             if $L10 void
               local.get 1
               local.get 8
-              array.get 9
+              array.get 20
               local.set 13
               local.get 0
               local.get 9
               local.get 13
-              array.set 9
+              array.set 20
               local.get 8
               i64.const 1
               i64.to_usize
@@ -528,12 +574,12 @@ fn 7 std_sort$std_sort$merge_sort_range__Any (ref,ref,usize,usize,ref) -> void
             else
               local.get 1
               local.get 6
-              array.get 9
+              array.get 20
               local.set 14
               local.get 0
               local.get 9
               local.get 14
-              array.set 9
+              array.set 20
               local.get 6
               i64.const 1
               i64.to_usize
@@ -577,7 +623,7 @@ fn 8 std_sort$std_sort$insertion_sort_range__Any (ref,usize,usize,ref) -> void
       if $L2 void
         local.get 0
         local.get 4
-        array.get 9
+        array.get 20
         local.set 5
         local.get 4
         local.set 6
@@ -594,12 +640,12 @@ fn 8 std_sort$std_sort$insertion_sort_range__Any (ref,usize,usize,ref) -> void
               local.set 8
               local.get 0
               local.get 8
-              array.get 9
+              array.get 20
               local.set 9
               local.get 5
               local.get 9
               local.get 3
-              call.indirect 11
+              call.indirect 21
               local.set 7
             else
               bool.const false
@@ -614,12 +660,12 @@ fn 8 std_sort$std_sort$insertion_sort_range__Any (ref,usize,usize,ref) -> void
               local.set 10
               local.get 0
               local.get 10
-              array.get 9
+              array.get 20
               local.set 11
               local.get 0
               local.get 6
               local.get 11
-              array.set 9
+              array.set 20
               local.get 6
               i64.const 1
               i64.to_usize
@@ -633,7 +679,7 @@ fn 8 std_sort$std_sort$insertion_sort_range__Any (ref,usize,usize,ref) -> void
         local.get 0
         local.get 6
         local.get 5
-        array.set 9
+        array.set 20
         local.get 4
         i64.const 1
         i64.to_usize
@@ -655,10 +701,10 @@ fn 9 std_string$compare_ascending (string,string) -> bool
   local ca char
   local cb char
   local.get 0
-  call.import 2
+  call.import 17
   local.set 2
   local.get 1
-  call.import 2
+  call.import 17
   local.set 3
   local.get 2
   local.get 3
@@ -674,11 +720,11 @@ fn 9 std_string$compare_ascending (string,string) -> bool
       if $L2 void
         local.get 0
         local.get 5
-        call 12
+        call 27
         local.set 6
         local.get 1
         local.get 5
-        call 12
+        call 27
         local.set 7
         local.get 6
         local.get 7
@@ -716,7 +762,7 @@ fn 10 std_iter$std_iter$clone__Any (ref) -> ref
   local.get 0
   array.len
   local.set 1
-  array.new 9 0
+  array.new 20 0
   local.set 2
   i64.const 0
   local.set 3
@@ -728,11 +774,11 @@ fn 10 std_iter$std_iter$clone__Any (ref) -> ref
       if $L2 void
         local.get 0
         local.get 3
-        array.get 9
+        array.get 20
         local.set 4
         local.get 2
         local.get 4
-        array.push 10
+        array.push 19
         local.get 3
         i64.const 1
         i64.to_usize
@@ -763,16 +809,112 @@ fn 11 std_math$min_2 (usize,usize) -> usize
   return
 end
 
-fn 12 std_core$string$Index$at$vt (string,usize) -> char
+fn 12 std_core$i8$Display$to_string$vt (i8) -> string
   local.get 0
-  local.get 1
   call.import 0
   return
 end
 
-fn 13 std_io$write$vt (i32,string) -> void
+fn 13 std_core$i16$Display$to_string$vt (i16) -> string
+  local.get 0
+  call.import 1
+  return
+end
+
+fn 14 std_core$i32$Display$to_string$vt (i32) -> string
+  local.get 0
+  call.import 2
+  return
+end
+
+fn 15 std_core$i64$Display$to_string$vt (i64) -> string
+  local.get 0
+  call.import 3
+  return
+end
+
+fn 16 std_core$isize$Display$to_string$vt (isize) -> string
+  local.get 0
+  call.import 4
+  return
+end
+
+fn 17 std_core$u8$Display$to_string$vt (u8) -> string
+  local.get 0
+  call.import 5
+  return
+end
+
+fn 18 std_core$u16$Display$to_string$vt (u16) -> string
+  local.get 0
+  call.import 6
+  return
+end
+
+fn 19 std_core$u32$Display$to_string$vt (u32) -> string
+  local.get 0
+  call.import 7
+  return
+end
+
+fn 20 std_core$u64$Display$to_string$vt (u64) -> string
+  local.get 0
+  call.import 8
+  return
+end
+
+fn 21 std_core$usize$Display$to_string$vt (usize) -> string
+  local.get 0
+  call.import 9
+  return
+end
+
+fn 22 std_core$f32$Display$to_string$vt (f32) -> string
+  local.get 0
+  call.import 10
+  return
+end
+
+fn 23 std_core$f64$Display$to_string$vt (f64) -> string
+  local.get 0
+  call.import 11
+  return
+end
+
+fn 24 std_core$bool$Display$to_string$vt (bool) -> string
+  local.get 0
+  call.import 12
+  return
+end
+
+fn 25 std_core$char$Display$to_string$vt (char) -> string
+  local.get 0
+  call.import 13
+  return
+end
+
+fn 26 std_core$string$Display$to_string$vt (string) -> string
+  local.get 0
+  call.import 14
+  return
+end
+
+fn 27 std_core$string$Index$at$vt (string,usize) -> char
   local.get 0
   local.get 1
-  call.import 1
+  call.import 15
+  return
+end
+
+fn 28 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
+  call.import 16
+  return
+end
+
+fn 29 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
+  local.get 0
+  call.import 18
   return
 end

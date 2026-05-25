@@ -21,10 +21,10 @@
   expr 21:32    FieldExpr      :: i32[]
   expr 21:32    IdentExpr      :: Bag
   expr 21:9     CallExpr       :: void
-  expr 21:9     IdentExpr      :: fn(string) -> void
+  expr 21:9     IdentExpr      :: fn(T) -> void
   expr 23:17    StringLitExpr  :: string
   expr 23:9     CallExpr       :: void
-  expr 23:9     IdentExpr      :: fn(string) -> void
+  expr 23:9     IdentExpr      :: fn(T) -> void
   expr 29:33    UnaryExpr      :: i32
   expr 29:5     IfExpr         :: void
   expr 29:8     BinaryExpr     :: bool
@@ -48,10 +48,10 @@
   expr 38:22    IdentExpr      :: fn(Bag) -> i32
   expr 38:28    IdentExpr      :: Bag
   expr 38:5     CallExpr       :: void
-  expr 38:5     IdentExpr      :: fn(string) -> void
+  expr 38:5     IdentExpr      :: fn(T) -> void
   expr 39:13    StringLitExpr  :: string
   expr 39:22    CallExpr       :: i32
   expr 39:22    IdentExpr      :: fn(Bag) -> i32
   expr 39:28    IdentExpr      :: Bag
   expr 39:5     CallExpr       :: void
-  expr 39:5     IdentExpr      :: fn(string) -> void
+  expr 39:5     IdentExpr      :: fn(T) -> void

@@ -39,22 +39,22 @@
   expr 46:27    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
   expr 46:38    IdentExpr      :: ArrayVal | IntVal | StructVal
   expr 46:5     CallExpr       :: void
-  expr 46:5     IdentExpr      :: fn(string) -> void
+  expr 46:5     IdentExpr      :: fn(T) -> void
   expr 47:13    StringLitExpr  :: string
   expr 47:27    CallExpr       :: i32
   expr 47:27    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
   expr 47:38    IdentExpr      :: ArrayVal | IntVal | StructVal
   expr 47:5     CallExpr       :: void
-  expr 47:5     IdentExpr      :: fn(string) -> void
+  expr 47:5     IdentExpr      :: fn(T) -> void
   expr 48:13    StringLitExpr  :: string
   expr 48:27    CallExpr       :: i32
   expr 48:27    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
   expr 48:38    IdentExpr      :: ArrayVal | IntVal | StructVal
   expr 48:5     CallExpr       :: void
-  expr 48:5     IdentExpr      :: fn(string) -> void
+  expr 48:5     IdentExpr      :: fn(T) -> void
   expr 49:13    StringLitExpr  :: string
   expr 49:25    CallExpr       :: i32
   expr 49:25    IdentExpr      :: fn(ArrayVal | IntVal | StructVal) -> i32
   expr 49:36    IdentExpr      :: ArrayVal | IntVal | StructVal
   expr 49:5     CallExpr       :: void
-  expr 49:5     IdentExpr      :: fn(string) -> void
+  expr 49:5     IdentExpr      :: fn(T) -> void

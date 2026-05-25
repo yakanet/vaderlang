@@ -34,21 +34,21 @@
   expr 33:13    FieldExpr      :: fn() -> string
   expr 33:13    IdentExpr      :: Circle | Square
   expr 33:5     CallExpr       :: void
-  expr 33:5     IdentExpr      :: fn(string) -> void
+  expr 33:5     IdentExpr      :: fn(T) -> void
   expr 34:13    CallExpr       :: string
   expr 34:13    FieldExpr      :: fn() -> string
   expr 34:13    IdentExpr      :: Circle | Square
   expr 34:5     CallExpr       :: void
-  expr 34:5     IdentExpr      :: fn(string) -> void
+  expr 34:5     IdentExpr      :: fn(T) -> void
   expr 35:13    StringLitExpr  :: string
   expr 35:25    CallExpr       :: i32
   expr 35:25    FieldExpr      :: fn() -> i32
   expr 35:25    IdentExpr      :: Circle | Square
   expr 35:5     CallExpr       :: void
-  expr 35:5     IdentExpr      :: fn(string) -> void
+  expr 35:5     IdentExpr      :: fn(T) -> void
   expr 36:13    StringLitExpr  :: string
   expr 36:25    CallExpr       :: i32
   expr 36:25    FieldExpr      :: fn() -> i32
   expr 36:25    IdentExpr      :: Circle | Square
   expr 36:5     CallExpr       :: void
-  expr 36:5     IdentExpr      :: fn(string) -> void
+  expr 36:5     IdentExpr      :: fn(T) -> void

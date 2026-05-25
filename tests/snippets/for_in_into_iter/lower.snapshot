@@ -41,7 +41,7 @@
                 int(1) :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -145,7 +145,7 @@
                       entry :Entry(string, i32)
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_10: ? =
@@ -250,7 +250,7 @@
                     v :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_17: ? =
@@ -268,7 +268,7 @@
     unreachable("no Iterator impl on string") :void
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_18: ? =

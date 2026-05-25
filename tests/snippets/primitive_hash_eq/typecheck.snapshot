@@ -8,23 +8,23 @@
   expr 10:25    IdentExpr      :: i32
   expr 10:34    IdentExpr      :: i32
   expr 10:5     CallExpr       :: void
-  expr 10:5     IdentExpr      :: fn(string) -> void
+  expr 10:5     IdentExpr      :: fn(T) -> void
   expr 11:13    StringLitExpr  :: string
   expr 11:25    CallExpr       :: bool
   expr 11:25    FieldExpr      :: fn(i32) -> bool
   expr 11:25    IdentExpr      :: i32
   expr 11:34    IdentExpr      :: i32
   expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn(string) -> void
+  expr 11:5     IdentExpr      :: fn(T) -> void
   expr 14:13    StringLitExpr  :: string
   expr 14:26    CallExpr       :: u64
   expr 14:26    FieldExpr      :: fn() -> u64
   expr 14:26    IdentExpr      :: usize
   expr 14:5     CallExpr       :: void
-  expr 14:5     IdentExpr      :: fn(string) -> void
+  expr 14:5     IdentExpr      :: fn(T) -> void
   expr 9:13     StringLitExpr  :: string
   expr 9:26     CallExpr       :: u64
   expr 9:26     FieldExpr      :: fn() -> u64
   expr 9:26     IdentExpr      :: i32
   expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn(string) -> void
+  expr 9:5      IdentExpr      :: fn(T) -> void

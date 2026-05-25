@@ -11,7 +11,7 @@
         f :fn() -> void
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "--- now panic case ---" :string
     let n: ? =
@@ -20,7 +20,7 @@
       LoweredMakeClosure
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -41,14 +41,14 @@
   fn __defer_4(__env_0: __defer_env_5) -> void
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "lambda inner cleanup" :string
   struct __defer_env_8 { cap_0: ? }
   fn __defer_7(__env_1: __defer_env_8) -> void
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -71,7 +71,7 @@
     let __block_2: void =
       call :void
         callee:
-          println :fn(string) -> void
+          println :void
         arg0:
           "lambda body" :string
     defer.pop_exec 2
@@ -81,7 +81,7 @@
   fn __defer_15(__env_0: __defer_env_16) -> void
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -101,7 +101,7 @@
       LoweredMakeClosure
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "about to boom" :string
     block :void

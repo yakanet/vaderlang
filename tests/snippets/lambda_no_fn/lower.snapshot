@@ -25,7 +25,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -47,7 +47,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -69,7 +69,7 @@
               __sb_2 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -91,7 +91,7 @@
               __sb_4 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_6: ? =
@@ -115,7 +115,7 @@
               __sb_6 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_8: ? =
@@ -143,7 +143,7 @@
           int(3) :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_11: ? =

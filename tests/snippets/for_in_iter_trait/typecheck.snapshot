@@ -30,15 +30,15 @@
   expr 41:13    StringLitExpr  :: string
   expr 41:29    IdentExpr      :: i32
   expr 41:5     CallExpr       :: void
-  expr 41:5     IdentExpr      :: fn(string) -> void
+  expr 41:5     IdentExpr      :: fn(T) -> void
   expr 42:13    StringLitExpr  :: string
   expr 42:29    IdentExpr      :: i32
   expr 42:5     CallExpr       :: void
-  expr 42:5     IdentExpr      :: fn(string) -> void
+  expr 42:5     IdentExpr      :: fn(T) -> void
   expr 44:10    CallExpr       :: usize
   expr 44:10    IdentExpr      :: fn(string) -> usize
   expr 44:19    StringLitExpr  :: string
   expr 45:13    StringLitExpr  :: string
   expr 45:29    IdentExpr      :: usize
   expr 45:5     CallExpr       :: void
-  expr 45:5     IdentExpr      :: fn(string) -> void
+  expr 45:5     IdentExpr      :: fn(T) -> void

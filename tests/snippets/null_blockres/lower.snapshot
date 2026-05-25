@@ -39,7 +39,7 @@
             ~>
               call :void
                 callee:
-                  println :fn(string) -> void
+                  println :void
                 arg0:
                   "got string" :string
           else:
@@ -52,7 +52,7 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(string) -> void
+                        println :void
                       arg0:
                         "nothing" :string
                 else:

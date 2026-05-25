@@ -9,7 +9,7 @@
         int(30) :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -39,7 +39,7 @@
           nums :i32[]
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -97,7 +97,7 @@
             __tup_5 :[string, i32]
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_6: ? =
@@ -154,7 +154,7 @@
               __for_i_9 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_10: ? =
@@ -208,7 +208,7 @@
             __tup_14 :[usize, string]
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_15: ? =
@@ -263,7 +263,7 @@
               __for_i_19 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_20: ? =

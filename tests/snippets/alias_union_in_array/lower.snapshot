@@ -93,7 +93,7 @@
               __for_i_2 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             call :string
               callee:

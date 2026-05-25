@@ -37,7 +37,7 @@
         int(42) :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -80,7 +80,7 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(string) -> void
+                      println :void
                     arg0:
                       "hello: missing" :string
           else:
@@ -95,7 +95,7 @@
                       ~>
                         call :void
                           callee:
-                            println :fn(string) -> void
+                            println :void
                           arg0:
                             block :string
                               let __sb_2: ? =
@@ -134,7 +134,7 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(string) -> void
+                      println :void
                     arg0:
                       "world: missing" :string
           else:
@@ -149,7 +149,7 @@
                       ~>
                         call :void
                           callee:
-                            println :fn(string) -> void
+                            println :void
                           arg0:
                             block :string
                               let __sb_4: ? =
@@ -188,7 +188,7 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(string) -> void
+                      println :void
                     arg0:
                       "vader: missing" :string
           else:
@@ -203,7 +203,7 @@
                       ~>
                         call :void
                           callee:
-                            println :fn(string) -> void
+                            println :void
                           arg0:
                             block :string
                               let __sb_6: ? =
@@ -223,7 +223,7 @@
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_7: ? =
@@ -245,7 +245,7 @@
               __sb_7 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_8: ? =
@@ -295,7 +295,7 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(string) -> void
+                      println :void
                     arg0:
                       "hello: missing" :string
           else:
@@ -310,7 +310,7 @@
                       ~>
                         call :void
                           callee:
-                            println :fn(string) -> void
+                            println :void
                           arg0:
                             block :string
                               let __sb_10: ? =

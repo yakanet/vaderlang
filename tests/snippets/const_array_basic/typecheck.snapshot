@@ -9,6 +9,6 @@
   expr 11:22    IdentExpr      :: fn(const i32[]) -> i32
   expr 11:33    IdentExpr      :: i32[]
   expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn(string) -> void
+  expr 11:5     IdentExpr      :: fn(T) -> void
   expr 6:12     IdentExpr      :: const i32[]
   expr 6:12     IndexExpr      :: i32

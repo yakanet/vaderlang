@@ -66,7 +66,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -77,7 +77,7 @@
             ".vader" :string
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -88,7 +88,7 @@
             ".vader" :string
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -99,7 +99,7 @@
             "std/" :string
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -110,7 +110,7 @@
             "std/" :string
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -131,7 +131,7 @@
           is_white_char :fn(char) -> bool
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -155,7 +155,7 @@
     loop while (<…>)
       call :void
         callee:
-          println :fn(string) -> void
+          println :void
         arg0:
           index :string
             on:

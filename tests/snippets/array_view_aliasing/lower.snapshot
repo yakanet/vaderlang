@@ -30,12 +30,12 @@
         int(99) :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "after view[1]=99" :string
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -55,7 +55,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -75,7 +75,7 @@
               __sb_1 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -95,7 +95,7 @@
               __sb_2 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -115,7 +115,7 @@
               __sb_3 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -135,7 +135,7 @@
               __sb_4 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_5: ? =
@@ -155,7 +155,7 @@
               __sb_5 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_6: ? =
@@ -175,7 +175,7 @@
               __sb_6 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_7: ? =
@@ -207,12 +207,12 @@
           int(2) :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "after indep mutations" :string
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_8: ? =
@@ -232,7 +232,7 @@
               __sb_8 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_9: ? =
@@ -252,7 +252,7 @@
               __sb_9 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_10: ? =
@@ -272,7 +272,7 @@
               __sb_10 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_11: ? =
@@ -292,7 +292,7 @@
               __sb_11 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_12: ? =
@@ -312,7 +312,7 @@
               __sb_12 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_13: ? =

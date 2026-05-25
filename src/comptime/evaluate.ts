@@ -451,6 +451,15 @@ function collectInstances(project: TypedProject, registry: InstanceRegistry, dia
         const fr = typed.fieldResolutions.get(callExpr.callee);
         const sym = fr?.kind === "ufcs-free" ? fr.symbol : undefined;
         if (sym !== undefined) registry.observeFnCall(sym, typeArgs);
+        else {
+          // Namespace-aliased generic call (`fs.println(...)` after
+          // `fs :: import "std/io"`) : the resolver records the
+          // exported symbol on `fieldRefs`, not `fieldResolutions`.
+          const fieldRef = typed.resolved.fieldRefs.get(callExpr.callee);
+          if (fieldRef?.kind === "namespace") {
+            registry.observeFnCall(fieldRef.symbol, typeArgs);
+          }
+        }
       }
     }
   }

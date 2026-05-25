@@ -10,4 +10,4 @@
   expr 6:22     IdentExpr      :: string
   expr 9:13     IdentExpr      :: string
   expr 9:5      CallExpr       :: void
-  expr 9:5      IdentExpr      :: fn(string) -> void
+  expr 9:5      IdentExpr      :: fn(T) -> void

@@ -4,21 +4,21 @@
   FnDecl         main                 :: fn() -> i32
   expr 11:11    IdentExpr      :: string
   expr 11:5     CallExpr       :: void
-  expr 11:5     IdentExpr      :: fn(string) -> void
+  expr 11:5     IdentExpr      :: fn(T) -> void
   expr 15:12    StringLitExpr  :: string
   expr 16:10    IdentExpr      :: i32
   expr 19:11    IdentExpr      :: string
   expr 19:5     CallExpr       :: void
-  expr 19:5     IdentExpr      :: fn(string) -> void
+  expr 19:5     IdentExpr      :: fn(T) -> void
   expr 22:16    StringLitExpr  :: string
   expr 25:11    IdentExpr      :: string
   expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 25:5     IdentExpr      :: fn(T) -> void
   expr 28:15    StringLitExpr  :: string
   expr 29:17    BinaryExpr     :: string
   expr 29:17    IdentExpr      :: string
   expr 29:26    StringLitExpr  :: string
   expr 32:13    IdentExpr      :: string
   expr 32:5     CallExpr       :: void
-  expr 32:5     IdentExpr      :: fn(string) -> void
+  expr 32:5     IdentExpr      :: fn(T) -> void
   expr 7:10     StringLitExpr  :: string

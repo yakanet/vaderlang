@@ -28,7 +28,7 @@
       }
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -37,7 +37,7 @@
             a :Wrap(Cat)
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:

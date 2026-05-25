@@ -9,7 +9,7 @@
   expr 21:19    CallExpr       :: i64
   expr 21:19    IdentExpr      :: type
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 21:5     IdentExpr      :: fn(T) -> void
   expr 22:13    CallExpr       :: Duration
   expr 22:13    CallExpr       :: string
   expr 22:13    FieldExpr      :: fn() -> string
@@ -17,7 +17,7 @@
   expr 22:19    CallExpr       :: i64
   expr 22:19    IdentExpr      :: type
   expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(string) -> void
+  expr 22:5     IdentExpr      :: fn(T) -> void
   expr 23:13    CallExpr       :: Duration
   expr 23:13    CallExpr       :: string
   expr 23:13    FieldExpr      :: fn() -> string
@@ -25,7 +25,7 @@
   expr 23:20    CallExpr       :: i64
   expr 23:20    IdentExpr      :: type
   expr 23:5     CallExpr       :: void
-  expr 23:5     IdentExpr      :: fn(string) -> void
+  expr 23:5     IdentExpr      :: fn(T) -> void
   expr 24:13    CallExpr       :: Duration
   expr 24:13    CallExpr       :: string
   expr 24:13    FieldExpr      :: fn() -> string
@@ -33,7 +33,7 @@
   expr 24:20    CallExpr       :: i64
   expr 24:20    IdentExpr      :: type
   expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 24:5     IdentExpr      :: fn(T) -> void
   expr 25:13    CallExpr       :: Duration
   expr 25:13    CallExpr       :: string
   expr 25:13    FieldExpr      :: fn() -> string
@@ -41,7 +41,7 @@
   expr 25:21    CallExpr       :: i64
   expr 25:21    IdentExpr      :: type
   expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(string) -> void
+  expr 25:5     IdentExpr      :: fn(T) -> void
   expr 26:13    CallExpr       :: Duration
   expr 26:13    CallExpr       :: string
   expr 26:13    FieldExpr      :: fn() -> string
@@ -50,7 +50,7 @@
   expr 26:19    IdentExpr      :: type
   expr 26:23    UnaryExpr      :: i64
   expr 26:5     CallExpr       :: void
-  expr 26:5     IdentExpr      :: fn(string) -> void
+  expr 26:5     IdentExpr      :: fn(T) -> void
   expr 29:10    CallExpr       :: Duration
   expr 29:10    IdentExpr      :: fn(i64) -> Duration
   expr 29:17    CallExpr       :: i64
@@ -67,7 +67,7 @@
   expr 31:21    IdentExpr      :: Duration
   expr 31:28    IdentExpr      :: Duration
   expr 31:5     CallExpr       :: void
-  expr 31:5     IdentExpr      :: fn(string) -> void
+  expr 31:5     IdentExpr      :: fn(T) -> void
   expr 32:13    StringLitExpr  :: string
   expr 32:22    CallExpr       :: Duration
   expr 32:22    CallExpr       :: string
@@ -76,7 +76,7 @@
   expr 32:22    IdentExpr      :: Duration
   expr 32:30    IdentExpr      :: Duration
   expr 32:5     CallExpr       :: void
-  expr 32:5     IdentExpr      :: fn(string) -> void
+  expr 32:5     IdentExpr      :: fn(T) -> void
   expr 35:14    StructLitExpr  :: Instant
   expr 35:42    CallExpr       :: i64
   expr 35:42    IdentExpr      :: type
@@ -96,12 +96,12 @@
   expr 38:22    FieldExpr      :: fn() -> string
   expr 38:22    IdentExpr      :: Duration
   expr 38:5     CallExpr       :: void
-  expr 38:5     IdentExpr      :: fn(string) -> void
+  expr 38:5     IdentExpr      :: fn(T) -> void
   expr 41:13    CallExpr       :: string
   expr 41:13    IdentExpr      :: fn(Instant) -> string
   expr 41:28    IdentExpr      :: Instant
   expr 41:5     CallExpr       :: void
-  expr 41:5     IdentExpr      :: fn(string) -> void
+  expr 41:5     IdentExpr      :: fn(T) -> void
   expr 43:12    StringLitExpr  :: string
   expr 44:15    CallExpr       :: Error | Instant
   expr 44:15    IdentExpr      :: fn(string) -> Error | Instant
@@ -109,12 +109,12 @@
   expr 45:11    IdentExpr      :: Error | Instant
   expr 45:5     MatchExpr      :: void
   expr 46:23    CallExpr       :: void
-  expr 46:23    IdentExpr      :: fn(string) -> void
+  expr 46:23    IdentExpr      :: fn(T) -> void
   expr 46:31    CallExpr       :: string
   expr 46:31    IdentExpr      :: fn(Instant) -> string
   expr 46:46    IdentExpr      :: Instant
   expr 47:23    CallExpr       :: void
-  expr 47:23    IdentExpr      :: fn(string) -> void
+  expr 47:23    IdentExpr      :: fn(T) -> void
   expr 47:31    StringLitExpr  :: string
   expr 51:12    CallExpr       :: Error | Instant
   expr 51:12    IdentExpr      :: fn(string) -> Error | Instant
@@ -122,12 +122,12 @@
   expr 52:11    IdentExpr      :: Error | Instant
   expr 52:5     MatchExpr      :: void
   expr 53:23    CallExpr       :: void
-  expr 53:23    IdentExpr      :: fn(string) -> void
+  expr 53:23    IdentExpr      :: fn(T) -> void
   expr 53:31    CallExpr       :: string
   expr 53:31    IdentExpr      :: fn(Instant) -> string
   expr 53:46    IdentExpr      :: Instant
   expr 54:23    CallExpr       :: void
-  expr 54:23    IdentExpr      :: fn(string) -> void
+  expr 54:23    IdentExpr      :: fn(T) -> void
   expr 54:31    StringLitExpr  :: string
   expr 58:12    CallExpr       :: Error | Instant
   expr 58:12    IdentExpr      :: fn(string) -> Error | Instant
@@ -135,10 +135,10 @@
   expr 59:11    IdentExpr      :: Error | Instant
   expr 59:5     MatchExpr      :: void
   expr 60:23    CallExpr       :: void
-  expr 60:23    IdentExpr      :: fn(string) -> void
+  expr 60:23    IdentExpr      :: fn(T) -> void
   expr 60:31    StringLitExpr  :: string
   expr 61:23    CallExpr       :: void
-  expr 61:23    IdentExpr      :: fn(string) -> void
+  expr 61:23    IdentExpr      :: fn(T) -> void
   expr 61:31    StringLitExpr  :: string
   expr 66:14    CallExpr       :: Monotonic
   expr 66:14    IdentExpr      :: fn() -> Monotonic
@@ -157,4 +157,4 @@
   expr 72:37    CallExpr       :: i64
   expr 72:37    IdentExpr      :: type
   expr 72:5     CallExpr       :: void
-  expr 72:5     IdentExpr      :: fn(string) -> void
+  expr 72:5     IdentExpr      :: fn(T) -> void

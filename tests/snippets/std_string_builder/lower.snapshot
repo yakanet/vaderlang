@@ -36,7 +36,7 @@
         char(0x21)
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -70,7 +70,7 @@
         "baz" :string
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -83,7 +83,7 @@
           new_builder :fn() -> StringBuilder
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -124,7 +124,7 @@
         char(0x29)
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:
@@ -160,7 +160,7 @@
               __sb_1 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         call :string
           callee:

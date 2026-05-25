@@ -4,10 +4,10 @@
   FnDecl         check                :: fn(string, bool) -> void
   FnDecl         main                 :: fn() -> i32
   expr 12:13    CallExpr       :: void
-  expr 12:13    IdentExpr      :: fn(string) -> void
+  expr 12:13    IdentExpr      :: fn(T) -> void
   expr 12:21    IdentExpr      :: string
   expr 12:36    CallExpr       :: void
-  expr 12:36    IdentExpr      :: fn(string) -> void
+  expr 12:36    IdentExpr      :: fn(T) -> void
   expr 12:44    StringLitExpr  :: string
   expr 12:5     IfExpr         :: void
   expr 12:8     IdentExpr      :: bool

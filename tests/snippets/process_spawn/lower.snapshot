@@ -22,7 +22,7 @@
               block :void
                 call :void
                   callee:
-                    println :fn(string) -> void
+                    println :void
                   arg0:
                     block :string
                       let __sb_2: ? =
@@ -41,7 +41,7 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(string) -> void
+                      println :void
                     arg0:
                       block :string
                         let __sb_3: ? =
@@ -67,7 +67,7 @@
                   ~>
                     call :void
                       callee:
-                        println :fn(string) -> void
+                        println :void
                       arg0:
                         block :string
                           let __sb_1: ? =

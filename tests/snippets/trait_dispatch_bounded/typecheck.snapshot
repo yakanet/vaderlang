@@ -27,7 +27,7 @@
   expr 21:16    IdentExpr      :: fn(T[], T) -> i32
   expr 21:31    IdentExpr      :: i32[]
   expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(string) -> void
+  expr 21:5     IdentExpr      :: fn(T) -> void
   expr 23:14    SeqLitExpr     :: string[]
   expr 23:15    StringLitExpr  :: string
   expr 23:22    StringLitExpr  :: string
@@ -40,4 +40,4 @@
   expr 24:31    IdentExpr      :: string[]
   expr 24:38    StringLitExpr  :: string
   expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(string) -> void
+  expr 24:5     IdentExpr      :: fn(T) -> void

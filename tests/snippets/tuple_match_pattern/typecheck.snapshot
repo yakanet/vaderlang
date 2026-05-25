@@ -7,7 +7,7 @@
   expr 7:11     IdentExpr      :: [i32, string]
   expr 7:5      MatchExpr      :: void
   expr 8:19     CallExpr       :: void
-  expr 8:19     IdentExpr      :: fn(string) -> void
+  expr 8:19     IdentExpr      :: fn(T) -> void
   expr 8:27     StringLitExpr  :: string
   expr 8:32     IdentExpr      :: i32
   expr 8:39     IdentExpr      :: string

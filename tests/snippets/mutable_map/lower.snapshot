@@ -37,7 +37,7 @@
         int(170) :i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -80,7 +80,7 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(string) -> void
+                      println :void
                     arg0:
                       "v1: missing" :string
           else:
@@ -95,7 +95,7 @@
                       ~>
                         call :void
                           callee:
-                            println :fn(string) -> void
+                            println :void
                           arg0:
                             block :string
                               let __sb_2: ? =
@@ -134,7 +134,7 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(string) -> void
+                      println :void
                     arg0:
                       "v17: missing" :string
           else:
@@ -149,7 +149,7 @@
                       ~>
                         call :void
                           callee:
-                            println :fn(string) -> void
+                            println :void
                           arg0:
                             block :string
                               let __sb_4: ? =
@@ -169,7 +169,7 @@
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_5: ? =
@@ -191,7 +191,7 @@
               __sb_5 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_6: ? =
@@ -241,7 +241,7 @@
                 ~>
                   call :void
                     callee:
-                      println :fn(string) -> void
+                      println :void
                     arg0:
                       "v1b: missing" :string
           else:
@@ -256,7 +256,7 @@
                       ~>
                         call :void
                           callee:
-                            println :fn(string) -> void
+                            println :void
                           arg0:
                             block :string
                               let __sb_8: ? =

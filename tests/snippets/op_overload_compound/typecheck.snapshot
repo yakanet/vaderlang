@@ -49,4 +49,4 @@
   expr 28:34    FieldExpr      :: i32
   expr 28:34    IdentExpr      :: Vec
   expr 28:5     CallExpr       :: void
-  expr 28:5     IdentExpr      :: fn(string) -> void
+  expr 28:5     IdentExpr      :: fn(T) -> void

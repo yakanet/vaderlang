@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "-- ascii --" :string
     let sum: u32 =
@@ -48,7 +48,7 @@
                 int(1) :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -68,7 +68,7 @@
               __sb_3 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "-- multibyte --" :string
     block :void
@@ -90,7 +90,7 @@
               __for_i_6 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_7: ? =
@@ -113,12 +113,12 @@
     let bom: string = "﻿data" :string
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "-- bom --" :string
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_8: ? =
@@ -164,7 +164,7 @@
               __sb_8 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_9: ? =
@@ -198,7 +198,7 @@
               __sb_9 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "-- empty --" :string
     block :void
@@ -220,7 +220,7 @@
               __for_i_12 :usize
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             "never" :string
         assign
@@ -234,7 +234,7 @@
                 int(1) :usize
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_13: ? =
@@ -258,7 +258,7 @@
               __sb_13 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         "-- u8[] surface --" :string
     let bs: u8[] =
@@ -269,7 +269,7 @@
           "abc" :string
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_14: ? =

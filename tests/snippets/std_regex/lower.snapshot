@@ -5,7 +5,7 @@
     ~>
       call :void
         callee:
-          println :fn(string) -> void
+          println :void
         arg0:
           block :string
             let __sb_0: ? =
@@ -46,7 +46,7 @@
           ~>
             call :void
               callee:
-                println :fn(string) -> void
+                println :void
               arg0:
                 block :string
                   let __sb_0: ? =
@@ -97,7 +97,7 @@
           ~>
             call :void
               callee:
-                println :fn(string) -> void
+                println :void
               arg0:
                 block :string
                   let __sb_1: ? =
@@ -206,7 +206,7 @@
               "abc def ghi" :string
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_0: ? =
@@ -228,7 +228,7 @@
         loop while (<…>)
           call :void
             callee:
-              println :fn(string) -> void
+              println :void
             arg0:
               block :string
                 let __sb_1: ? =
@@ -329,7 +329,7 @@
           then:
             call :void
               callee:
-                println :fn(string) -> void
+                println :void
               arg0:
                 block :string
                   let __sb_2: ? =
@@ -351,7 +351,7 @@
                       __sb_2 :?
             call :void
               callee:
-                println :fn(string) -> void
+                println :void
               arg0:
                 block :string
                   let __sb_3: ? =
@@ -373,7 +373,7 @@
                       __sb_3 :?
             call :void
               callee:
-                println :fn(string) -> void
+                println :void
               arg0:
                 block :string
                   let __sb_4: ? =
@@ -395,7 +395,7 @@
                       __sb_4 :?
             call :void
               callee:
-                println :fn(string) -> void
+                println :void
               arg0:
                 block :string
                   let __sb_5: ? =
@@ -551,7 +551,7 @@
       then:
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_6: ? =
@@ -587,7 +587,7 @@
       then:
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             block :string
               let __sb_7: ? =
@@ -623,7 +623,7 @@
       then:
         call :void
           callee:
-            println :fn(string) -> void
+            println :void
           arg0:
             "bad-compile=caught" :string
     return int(0) :i32

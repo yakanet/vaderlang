@@ -92,7 +92,7 @@
           rest :i32[]
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -112,7 +112,7 @@
               __sb_3 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -132,7 +132,7 @@
               __sb_4 :?
     call :void
       callee:
-        println :fn(string) -> void
+        println :void
       arg0:
         block :string
           let __sb_5: ? =

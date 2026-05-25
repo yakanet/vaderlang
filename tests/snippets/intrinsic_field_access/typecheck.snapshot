@@ -13,7 +13,7 @@
   expr 19:44    FieldExpr      :: string
   expr 19:44    IdentExpr      :: Field
   expr 19:9     CallExpr       :: void
-  expr 19:9     IdentExpr      :: fn(string) -> void
+  expr 19:9     IdentExpr      :: fn(T) -> void
   expr 24:10    StructLitExpr  :: User
   expr 24:25    StringLitExpr  :: string
   expr 26:13    StringLitExpr  :: string
@@ -22,7 +22,7 @@
   expr 26:34    StringLitExpr  :: string
   expr 26:46    IntrinsicCallExpr :: i32
   expr 26:5     CallExpr       :: void
-  expr 26:5     IdentExpr      :: fn(string) -> void
+  expr 26:5     IdentExpr      :: fn(T) -> void
   expr 26:53    IdentExpr      :: User
   expr 26:56    StringLitExpr  :: string
   expr 29:18    IdentExpr      :: User
