@@ -637,6 +637,154 @@ void vader_atom_profile_dump(void) {
             g_atoms.owner_bytes, g_atoms.free_count);
 }
 
+/* Forward decl for the heap-mark walker — defined further down. */
+static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
+
+/* ---- atom GC mark + sweep (Phase 4) ----
+ *
+ * Integrates with the Cheney major cycle. Reachable atoms are found
+ * through three channels :
+ *   - shadow stack `vader_box_t**` roots (conservative : the lower 4
+ *     bytes of every box payload are treated as a candidate atom id)
+ *   - heap objects, via `vader_type_info.string_offsets[]` (precise)
+ *     plus a conservative pass over `ptr_offsets[]` boxes
+ *   - defer stack
+ * Unmarked non-PERM atoms have their data buffer freed and the slot
+ * tombstoned ; the bucket index is rebuilt in one pass. */
+
+static void vader_atom_mark(vader_atom_t a) {
+    if (a == VADER_ATOM_EMPTY || a >= g_atoms.count) return;
+    vader_atom_entry_t* e = &g_atoms.entries[a];
+    if (e->flags & (VADER_ATOM_FLAG_PERM | VADER_ATOM_FLAG_MARK)) return;
+    e->flags |= VADER_ATOM_FLAG_MARK;
+    /* Slice → owner : keep the parent alive too. Chain depth is at
+     * most 1 (the slice ctor flattens), so no recursion needed. */
+    if (e->parent != 0 && e->parent < g_atoms.count) {
+        vader_atom_entry_t* p = &g_atoms.entries[e->parent];
+        if ((p->flags & VADER_ATOM_FLAG_PERM) == 0) {
+            p->flags |= VADER_ATOM_FLAG_MARK;
+        }
+    }
+}
+
+static void vader_atom_mark_box(const vader_box_t* bp) {
+    if (bp == NULL) return;
+    /* Conservatively treat the lower 4 bytes of `payload.s` as an atom
+     * id. False positives keep extra atoms alive ; no correctness
+     * impact. The 8-byte `payload.i` alias is read once to avoid
+     * union-field type-punning warnings. */
+    vader_atom_mark((vader_atom_t) (uint32_t) bp->payload.i);
+}
+
+static void vader_atom_mark_roots(void) {
+    for (vader_gc_frame_t* fr = vader_gc_top; fr != NULL; fr = fr->prev) {
+        if (fr->ptrs == NULL) continue;
+        for (uint32_t i = 0; i < fr->nrefs; i++) {
+            vader_atom_mark_box(fr->ptrs[i]);
+        }
+    }
+    for (size_t i = 0; i < g_defer_len; i++) {
+        vader_atom_mark_box(&g_defer_stack[i]);
+    }
+}
+
+static void vader_atom_mark_heap(void) {
+    const vader_arena_t* arenas[2] = { &g_young.from, &g_old.from };
+    for (int g = 0; g < 2; g++) {
+        char* scan = arenas[g]->base;
+        while (scan < arenas[g]->cur) {
+            vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
+            uint32_t type_index = hdr->type_index;
+            size_t bytes = vader_gc_obj_size(scan, type_index);
+            if (bytes == 0) break;
+            if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
+                vader_array_buf_t* buf = (vader_array_buf_t*) scan;
+                if (buf->element_kind == VADER_ARRAY_KIND_BOXED) {
+                    vader_box_t* slots = vader_array_box_slots(buf);
+                    for (size_t i = 0; i < buf->length; i++) {
+                        vader_atom_mark_box(&slots[i]);
+                    }
+                }
+            } else if (type_index < vader_type_info_count) {
+                const vader_type_info_t* info = &vader_type_info_table[type_index];
+                /* Precise : string fields from the type_info table. */
+                for (uint16_t i = 0; i < info->string_count; i++) {
+                    vader_string_t* sp = (vader_string_t*) (scan + info->string_offsets[i]);
+                    vader_atom_mark(*sp);
+                }
+                /* Conservative : box fields. The payload's lower 4 bytes
+                 * may be an atom (for string-tagged variants) or any
+                 * other primitive ; conservativeness keeps the latter
+                 * from accidentally collecting a live atom. */
+                if (info->kind != VADER_TYPE_KIND_FN
+                    && info->kind != VADER_TYPE_KIND_ARRAY) {
+                    for (uint16_t i = 0; i < info->ptr_count; i++) {
+                        vader_atom_mark_box((vader_box_t*) (scan + info->ptr_offsets[i]));
+                    }
+                }
+            }
+            scan += vader_gc_align(bytes);
+        }
+    }
+}
+
+static void vader_atom_free_list_push(vader_u32_t id) {
+    if (g_atoms.free_count >= g_atoms.free_capacity) {
+        size_t new_cap = g_atoms.free_capacity == 0 ? 64u : (size_t) g_atoms.free_capacity * 2u;
+        vader_u32_t* p = (vader_u32_t*) realloc(g_atoms.free_list, new_cap * sizeof(vader_u32_t));
+        if (p == NULL) vader_trap("vader_atom_free_list_push: realloc failed");
+        g_atoms.free_list = p;
+        g_atoms.free_capacity = (vader_u32_t) new_cap;
+    }
+    g_atoms.free_list[g_atoms.free_count++] = id;
+}
+
+static void vader_atom_sweep(void) {
+    size_t freed_bytes = 0;
+    for (vader_u32_t i = 1; i < g_atoms.count; i++) {
+        vader_atom_entry_t* e = &g_atoms.entries[i];
+        if (e->flags & VADER_ATOM_FLAG_PERM) continue;
+        /* Skip already-tombstoned slots (data NULL means reclaimed in a
+         * previous sweep ; they live in the free list). */
+        if (e->data == NULL && e->len == 0 && e->parent == 0) continue;
+        if (e->flags & VADER_ATOM_FLAG_MARK) {
+            e->flags &= ~VADER_ATOM_FLAG_MARK;
+            continue;
+        }
+        if (e->parent == 0 && e->data != NULL && e->len > 0) {
+            freed_bytes += e->len;
+            free((void*) e->data);
+        }
+        e->parent        = 0;
+        e->parent_offset = 0;
+        e->len           = 0;
+        e->flags         = 0;
+        e->data          = NULL;
+        vader_atom_free_list_push(i);
+    }
+    if (freed_bytes > g_atoms.owner_bytes) g_atoms.owner_bytes = 0;
+    else g_atoms.owner_bytes -= freed_bytes;
+
+    /* Rebuild the hash index. Bucket clears + linear reinsert keeps the
+     * implementation simple ; incremental updates would need to track
+     * each tombstone's original hash to clear specifically. */
+    memset(g_atoms.buckets, 0, g_atoms.bucket_capacity * sizeof(vader_u32_t));
+    g_atoms.bucket_count = 0;
+    for (vader_u32_t i = 1; i < g_atoms.count; i++) {
+        const vader_atom_entry_t* e = &g_atoms.entries[i];
+        if (e->data == NULL) continue;
+        vader_u32_t h = vader_atom_hash(e->data, e->len);
+        vader_atom_bucket_install(i, h);
+    }
+}
+
+void vader_atom_gc_collect(void) {
+    if (!g_atoms_initialized) return;
+    vader_atom_mark_roots();
+    vader_atom_mark_heap();
+    vader_atom_sweep();
+}
+
 void vader_gc_init(void) {
     if (g_gc_initialized) return;
 
@@ -1050,7 +1198,7 @@ void vader_major_collect(void) {
 
     g_cycle = VADER_CYCLE_NONE;
     g_total_collections++;
-    /* Atom-table sweep will hook here in Phase 4. */
+    vader_atom_gc_collect();
 }
 
 /* Public alias. `runtime.collect()` in Vader maps here; tests rely on it

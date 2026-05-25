@@ -187,6 +187,14 @@ void vader_atom_shutdown(void);
  * set ; can also be called manually from tests. */
 void vader_atom_profile_dump(void);
 
+/* GC hook — invoked by the major Cheney cycle. Marks atoms reachable
+ * from the shadow stack, defer stack, and live heap objects (using
+ * `vader_type_info.string_offsets[]` for precision and a conservative
+ * pass over `ptr_offsets[]` boxes), then sweeps unmarked non-PERM
+ * atoms : frees their owner buffer and tombstones the slot for reuse
+ * by the next `vader_atom_intern`. */
+void vader_atom_gc_collect(void);
+
 /* ----------------------------------------------------------------- box */
 
 /* Tag values shared with `BcType` indices from the bytecode module. The C
