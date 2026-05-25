@@ -271,7 +271,9 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
     const char* prof_env = getenv("VADER_ATOM_PROFILE");
     if (prof_env != NULL && prof_env[0] != '\0' && prof_env[0] != '0') {
         g_atom_profile = 1;
-        atexit(vader_atom_profile_dump);
+        /* `vader_atom_shutdown` dumps the profile before tearing down,
+         * so no atexit hook is needed here — atexit's LIFO order would
+         * fire the dump *after* shutdown has zeroed the table. */
     }
 
     /* Pick a capacity that absorbs the comptime atoms plus headroom for
@@ -353,6 +355,11 @@ static void vader_atom_install_empty(void) {
 
 void vader_atom_shutdown(void) {
     if (!g_atoms_initialized) return;
+    /* Dump the profile *before* tearing down — atexit LIFO ordering
+     * runs shutdown ahead of the profile-dump handler registered in
+     * `_init_with_comptime`, so the deferred dump would see a zeroed
+     * table. Calling it inline here lets us read the live state. */
+    if (g_atom_profile) vader_atom_profile_dump();
     for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
         vader_atom_entry_t* e = &g_atoms.entries[i];
         /* Free owner buffers from dynamic intern only — PERM entries

@@ -571,5 +571,56 @@ GC stress tests (`VADER_GC_STRESS=1`) catch missing marks.
 
 ## Issues encountered
 
-*(empty — populate as phases hit non-trivial snags ; format per
-.claude/CLAUDE.md §8 "Record non-trivial issues in the phase plan")*
+### Phase 1 (2026-05-25)
+
+- **`vader_string_hash` distribution.** First pass returned the atom id
+  directly as the u64 hash — atoms are monotonically assigned, so the
+  resulting hash clusters in the low bits and `MutableMap` iteration
+  order changes vs the legacy FNV1a-on-bytes implementation. Snapshot
+  test `json_basics` failed with reordered object keys. Restored
+  FNV1a-64 over the atom's data bytes (1 atom-table lookup + the
+  standard loop). The atom id alone makes for a fine *equality* hash
+  but a poor *bucket-distribution* hash. Vader port note : keep the
+  byte-level FNV1a — it matches the VM-side hash, so `MutableMap` is
+  bucket-stable across runtimes.
+
+- **Box payload upper bytes.** `vader_box_string(tag, v)` used to
+  write 16 B (the legacy `{ptr,len}`) into `payload.s`. With atoms
+  it writes only 4 B at offset 0. `vader_box_eq`'s 8-byte
+  `payload.obj` compare would then read 4 bytes of atom + 4 bytes of
+  whatever was in the union before. Fix : zero `payload.obj = NULL`
+  before writing `payload.s`. The lower 4 bytes get the atom id,
+  upper 4 stay zero, and equality works correctly.
+
+- **Builder buffer ownership.** Legacy builder used
+  `vader_string_alloc` for its buf (tracked by the string sweep).
+  Post-flip, plain malloc + `vader_atom_intern_take` at finish lets
+  the table either adopt the buffer (miss) or free it (hit) — no
+  separate tracking needed.
+
+### Phase 4 (2026-05-25)
+
+- **atexit LIFO ordering.** `vader_atom_init_with_comptime` initially
+  registered `atexit(vader_atom_profile_dump)`. The emitted `main`
+  then registered `atexit(vader_atom_shutdown)`. atexit runs LIFO →
+  shutdown ran first, then profile-dump on a zeroed table (count=0).
+  Fix : drop the atexit hook ; call `vader_atom_profile_dump` inline
+  at the top of `vader_atom_shutdown` when the env flag is set.
+
+- **GC-stress baseline failures.** Under `VADER_GC_STRESS=1` the two
+  snippet tests `iter_zip_chain` and `json_basics` fail (output
+  reshuffling indicating lost heap-object state). The failures
+  predate Phase 4 — they surface after Phase 1's removal of the
+  conservative string-buffer scan and are NOT caused by the atom
+  GC. Investigation deferred to a separate change.
+
+## Baselines (2026-05-25)
+
+`VADER_ATOM_PROFILE=1 tests/snippets/json_basics/native` :
+```
+[atom-profile] count=124 capacity=256 bucket_load=12.01% owner_bytes=503 free_count=0
+```
+124 distinct atoms after running a JSON-heavy stdlib test ; 503 bytes
+total in owner buffers ; bucket load well below the 0.75 grow
+threshold. Slice atoms (zero-byte owners) are not visible in the
+bytes total — they share parent buffers.
