@@ -16,10 +16,10 @@ import "vader/diagnostics" { Diagnostic, Span }
 AST :: import "vader/parser"
 import "vader/parser" { Program }
 import "vader/resolver" { LoadedProject, LoadedModule }
-import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp }
+import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp, resolve_module_with_collected_dp_seeded, build_core_seed, find_core_module_id }
 import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
-import "vader/resolver" { wire_imports, ImportTargetTable }
+import "vader/resolver" { wire_imports, ImportTargetTable, run_orphan_rule_check_for_module }
 import "vader/types" { display_type, type_base_name }
 import "vader/diagnostics" { typecheck_error }
 import "vader/types" {
@@ -67,10 +67,15 @@ export check_project_with_bodies :: fn(
     // happens here, not after resolve.
     materialize_all_sams_pre_resolve(project)
 
-    entry_rm :: resolve_module_with_collected_dp(
+    // Build the core_symbols seed once — every per-module resolve gets
+    // the same map so the body-walker can fire R2006 unconditionally on
+    // unresolved idents instead of deferring to typecheck.
+    core_seed :: build_core_seed(project)
+
+    entry_rm :: resolve_module_with_collected_dp_seeded(
         entry_loaded.module.files[0].program, project.entry,
         entry_loaded.module.display_path,
-        project.factory, entry_loaded.collected,
+        project.factory, entry_loaded.collected, core_seed,
     )
     entry_typed :: new_typed_program(entry_rm)
     preload_core_symbols(entry_rm, project)
@@ -83,9 +88,9 @@ export check_project_with_bodies :: fn(
         if id == project.entry { continue }
         other :: project.modules[id]
         if other is null { continue }
-        rm :: resolve_module_with_collected_dp(
+        rm :: resolve_module_with_collected_dp_seeded(
             other.module.files[0].program, id, other.module.display_path,
-            project.factory, other.collected,
+            project.factory, other.collected, core_seed,
         )
         preload_core_symbols(rm, project)
         typed :: new_typed_program(rm)
@@ -109,9 +114,31 @@ export check_project_with_bodies :: fn(
     // Wire imports + resolver-side imports_to early so cross-module
     // alias lookups (`Pet` from `./types`) follow ImportBinding to
     // the real symbol during fn-signature lowering below.
-    entry_typed.import_targets = wire_imports(project)
+    wire_targets :: wire_imports(project)
+    entry_typed.import_targets = wire_targets
     populate_resolver_imports(entry_typed)
     populate_resolver_imports_for_others(entry_typed, project, per_module)
+    // R2018 orphan-rule pre-resolve check (project-level — needs the
+    // wire_imports redirect table to resolve ImportBinding to the
+    // concrete owner). Diagnostics fold into each module's resolved
+    // diags bucket so the CLI / typecheck dumpers surface them in
+    // their usual place.
+    run_orphan_rule_check_for_module(entry_loaded, project.entry,
+        entry_rm.idents, wire_targets, entry_rm.diags)
+    for id in project.modules.keys() {
+        if id == project.entry { continue }
+        other :: project.modules[id]
+        if other is null { continue }
+        other_typed :: per_module[id]
+        match other_typed {
+            is null -> {}
+            _ -> {
+                run_orphan_rule_check_for_module(other, id,
+                    other_typed.resolved.idents, wire_targets,
+                    other_typed.resolved.diags)
+            }
+        }
+    }
     // Pre-populate `namespace_member_types` from each target module's
     // exported types so `type_from_expr`'s FieldExpr arm can resolve
     // `P.Decl` in fn-signature type positions (which run during
@@ -451,17 +478,19 @@ export materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
         if loaded is null { continue }
         for decl in loaded.module.files[0].program.decls {
             if !(decl is AST.ImplDecl) { continue }
-            trait_decl :: find_trait_decl_in_project(decl.trait_name, project)
-            if trait_decl is null {
-                // Trait name doesn't resolve anywhere in the project —
-                // emit R2007 once, with the trait-name span as primary.
-                // R2009 (trait_name resolves to a non-trait) is handled
-                // by the typechecker today since it needs the symbol
-                // graph to tell struct/enum/alias apart.
-                project.diags.push(resolver_error(.UnresolvedTypeName,
-                    decl.trait_name_span, "`${decl.trait_name}`"))
+            found :: find_named_decl_in_project(decl.trait_name, project)
+            if found.trait_decl is null {
+                if found.other_kind != "" {
+                    project.diags.push(resolver_error(.TraitNameNotATrait,
+                        decl.trait_name_span,
+                        "`${decl.trait_name}` is a ${found.other_kind}"))
+                } else {
+                    project.diags.push(resolver_error(.UnresolvedTypeName,
+                        decl.trait_name_span, "`${decl.trait_name}`"))
+                }
                 continue
             }
+            trait_decl :: found.trait_decl
             check_short_impl_arity(decl, trait_decl, project.diags)
             // `@intrinsic <T> implements <Trait>` arrives with an empty
             // `members` list — synthesise body-less FnDecls from the
@@ -500,19 +529,44 @@ check_short_impl_arity :: fn(
 import "vader/diagnostics" { resolver_error }
 import "vader/resolver" { required_methods }
 
-find_trait_decl_in_project :: fn(
+/// Project-wide trait-name lookup. Single walk discriminates
+/// "found as trait" from "found as non-trait" so the impl-resolution
+/// path can emit R2007 vs R2009 without a second traversal.
+NamedDeclLookup :: struct {
+    trait_decl: AST.TraitDecl | null
+    /// Empty when no decl named `name` was found ; otherwise one of
+    /// `"struct"` / `"enum"` / `"alias"`. Only meaningful when
+    /// `trait_decl is null` ; the trait branch wins.
+    other_kind: string
+}
+
+find_named_decl_in_project :: fn(
     name: string, project: LoadedProject,
-) -> AST.TraitDecl | null {
+) -> NamedDeclLookup {
+    other: string = ""
     for id in project.modules.keys() {
         loaded :: project.modules[id]
         if loaded is null { continue }
         for decl in loaded.module.files[0].program.decls {
             if decl is AST.TraitDecl {
-                if decl.name == name { return decl }
+                if decl.name == name { return NamedDeclLookup { .trait_decl = decl, .other_kind = "" } }
+            }
+            if other == "" {
+                if decl is AST.StructDecl    { if decl.name == name { other = "struct" } }
+                if decl is AST.EnumDecl      { if decl.name == name { other = "enum" } }
+                if decl is AST.TypeAliasDecl { if decl.name == name { other = "alias" } }
             }
         }
     }
-    return null
+    return NamedDeclLookup { .trait_decl = null, .other_kind = other }
+}
+
+// Back-compat shim — kept for the bytecode emit + other consumers
+// that only need the trait branch.
+find_trait_decl_in_project :: fn(
+    name: string, project: LoadedProject,
+) -> AST.TraitDecl | null {
+    return find_named_decl_in_project(name, project).trait_decl
 }
 
 import "vader/resolver" {
@@ -943,7 +997,7 @@ populate_resolver_imports_for_others :: fn(
 }
 
 preload_core_symbols :: fn(rm: ResolvedModule, project: LoadedProject) -> void {
-    core_id :: stdlib_core_id(project)
+    core_id :: find_core_module_id(project)
     if core_id is null { return }
     core_loaded :: project.modules[core_id]
     if core_loaded is null { return }
@@ -958,7 +1012,7 @@ populate_core_symbols :: fn(
     entry_typed: TypedProgram, project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
-    core_id :: stdlib_core_id(project)
+    core_id :: find_core_module_id(project)
     if core_id is null { return }
     core_loaded :: project.modules[core_id]
     if core_loaded is null { return }
@@ -987,17 +1041,6 @@ populate_core_symbols :: fn(
     }
 }
 
-
-stdlib_core_id :: fn(project: LoadedProject) -> string | null {
-    for id in project.modules.keys() {
-        // Conservative match : any module whose path ends with
-        // `std/core.vader` or `std/core` is core.
-        if id.ends_with("std/core.vader") || id.ends_with("std/core") {
-            return id
-        }
-    }
-    return null
-}
 
 build_namespace_exports :: fn(
     mod_id: string, project: LoadedProject,

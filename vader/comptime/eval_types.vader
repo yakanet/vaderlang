@@ -48,9 +48,9 @@ export fail :: fn(diag: Diagnostic) -> EvalResult {
     return EvalResult { .value = null, .diag = diag }
 }
 
-/// Build a `C4002 vm-required` diagnostic at `span` with `kind_label`
+/// Build a `C4001 cannot-evaluate` diagnostic at `span` with `kind_label`
 /// describing the unsupported expression. Standardised helper so every
 /// "needs the VM" call site uses the same wording.
 export vm_required :: fn(span: Span, kind_label: string) -> EvalResult {
-    return fail(comptime_error(.VmRequired, span, kind_label))
+    return fail(comptime_error(.CannotEvaluate, span, kind_label))
 }

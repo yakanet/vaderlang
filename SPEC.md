@@ -2707,9 +2707,18 @@ Diagnostic plumbing is **MVP-mandatory** and consumed by both the CLI rendering 
 - `R2xxx` resolver
 - `T3xxx` type-checker
 - `C4xxx` comptime engine
-- `B5xxx` backend
+- `M5xxx` MIR lowering (AST → Lowered IR)
+- `B5xxx` backend (per-target codegen)
+- `W0xxx` warnings (non-fatal)
 
-A registry of codes lives in `src/diagnostics/codes.ts` (TypeScript) / `compiler/diagnostics/codes.vader` (after self-host) — every code is documented with a short description and an example.
+A registry of codes lives in `src/diagnostics/codes.ts` (TypeScript) and `vader/diagnostics/codes.vader` (self-host). The two registries are kept in lockstep — same IDs, same wording, same enum order.
+
+Notable cross-pass placement rules :
+- **`R2006`** (unresolved identifier) and **`R2009`** (trait name does not refer to a trait) are emitted at the resolver stage by the body-walker / project pre-resolve pass, not by the typechecker.
+- **`R2018`** (orphan impl forbidden) runs in a project-level pre-resolve pass after `wireImports` so cross-module ImportBinding redirects resolve correctly.
+- **`T3050`** / **`T3051`** validate `@extern` decls (ABI shape + body-absent) — emitted during fn-decl typing.
+- **`W0002`** (unreachable code) fires once per block on the first stmt past a divergent guard (`return` / `break` / `continue`).
+- **`M5xxx`** lowering codes use the `M` prefix (Middle-IR) rather than `L` to avoid collision with `L0xxx` lexer codes — same reasoning as `B5xxx` for backend.
 
 ---
 

@@ -3,7 +3,7 @@
 // Mirror of `src/comptime/deps.ts`. Builds a per-module adjacency map
 // from each `@comptime const` decl to the other `@comptime const` decls
 // its RHS references, then DFS-topo-sorts so evaluation lands deps-first.
-// Cycles surface as C4001 ; decls inside a cycle drop out of the order.
+// Cycles surface as C4009 ; decls inside a cycle drop out of the order.
 
 module "vader/comptime"
 
@@ -29,7 +29,7 @@ export ComptimeOrder :: struct {
 /// Build the evaluation order for the `@comptime const` decls in
 /// `program_decls`. Walks each decl's RHS to discover IdentExprs that
 /// resolve (via `resolved.idents`) to another `@comptime const` in the
-/// same module ; emits C4001 with the cycle path when DFS revisits a
+/// same module ; emits C4009 with the cycle path when DFS revisits a
 /// grey node.
 /// @param program_decls  top-level decls of the module.
 /// @param typed          owning typed program — used to resolve idents.

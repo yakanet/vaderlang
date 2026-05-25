@@ -25,8 +25,10 @@ export infer_index :: fn(
     index :: check_expr_fn(e.index, null, typed, diags)
     if target is UnresolvedType { return TY_UNRESOLVED }
     // `"hello"[1]` — codepoint indexing on string returns char.
+    // `"hello"[r]` where `r: Range(T)` — codepoint slice returning string.
     if target is PrimitiveType {
         if target.name == "string" {
+            if is_range_type(index) { return mk_primitive("string") }
             if !is_integer_index(index) {
                 diags.push(typecheck_error(.TypeMismatch, e.index.span,
                     "string index must be an integer, got ${display_type(index)}"))

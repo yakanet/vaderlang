@@ -1,0 +1,46 @@
+// vader/resolver/core_seed — std/core symbol seed for body-walker scopes.
+//
+// The body-walker (`body.vader`) fires R2006 (unresolved identifier) at
+// resolve time. Auto-imported `std/core` names (`Range`, `Display`,
+// `Iterator`, `Hash`, …) aren't in any per-module scope unless seeded
+// up-front — without this helper, every reference to `Hash` in a generic
+// bound would over-fire R2006.
+//
+// Callers (typecheck orchestrator + CLI resolver-stage) build the seed
+// once per project, then pass it to
+// `resolve_module_with_collected_dp_seeded` for every module's resolve.
+
+module "vader/resolver"
+
+import "std/collections" { MutableMap }
+import "vader/resolver/symbol" { Symbol }
+
+/// Build the std/core symbol seed once per project. Returns an empty map
+/// when std/core isn't part of the load (single-file snippets without
+/// stdlib). The seed is merged into the root scope on a "don't shadow
+/// user symbols" basis — see `resolve_module_with_collected_dp_seeded`.
+export build_core_seed :: fn(project: LoadedProject) -> MutableMap<string, Symbol> {
+    out :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+    core_id :: find_core_module_id(project)
+    if core_id is null { return out }
+    core_loaded :: project.modules[core_id]
+    if core_loaded is null { return out }
+    for name in core_loaded.collected.symbols.keys() {
+        sym :: core_loaded.collected.symbols[name]
+        if sym is null { continue }
+        out[name] = sym
+    }
+    return out
+}
+
+/// Locate `std/core` in the loaded project. Conservative ends-with match
+/// so both single-file (`std/core.vader`) and folder-module
+/// (`std/core/`) layouts resolve.
+export find_core_module_id :: fn(project: LoadedProject) -> string | null {
+    for id in project.modules.keys() {
+        if id.ends_with("std/core.vader") || id.ends_with("std/core") {
+            return id
+        }
+    }
+    return null
+}

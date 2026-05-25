@@ -11,7 +11,7 @@
 module "vader/cli"
 
 import "std/io" { println, eprintln, read_file, print }
-import "std/collections" { keys, values }
+import "std/collections" { keys, values, MutableMap }
 import "std/string" { starts_with, ends_with, byte_len, byte_at, byte_slice as byte_slice_str }
 import "std/iter" { slice as slice_arr }
 import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
@@ -20,7 +20,7 @@ import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
 import "vader/parser" { parse_source, dump_program }
 import "vader/resolver/symbol" { new_factory }
 import "vader/resolver" { ResolvedProject, ResolvedModule, resolve_module }
-import "vader/resolver" { LoadedModule, is_stdlib_module, resolve_module_with_collected }
+import "vader/resolver" { LoadedModule, is_stdlib_module, resolve_module_with_collected, resolve_module_with_collected_dp_seeded, build_core_seed }
 import "vader/resolver" { dump_project }
 import "vader/typecheck" { check_module_with_bodies, check_project_with_bodies }
 import "vader/typecheck" { CheckResult }
@@ -409,21 +409,35 @@ run_resolver_stage :: fn(file: string) -> i32 {
 // `resolver.snapshot`s stay byte-identical).
 resolve_loaded_project :: fn(project: LoadedProject) -> ResolvedProject {
     materialize_all_sams_pre_resolve(project)
+    core_seed :: build_core_seed(project)
     modules: ResolvedModule[] = []
-    for lm in project.modules.values() {
+    resolved_by_id :: MutableMap<string, ResolvedModule> { .buckets = [], .size = 0 }
+    for id in project.modules.keys() {
+        lm :: project.modules[id]
+        if lm is null { continue }
         if is_stdlib_module(lm.module.display_path) { continue }
-        rm :: resolve_module_with_collected(
+        rm :: resolve_module_with_collected_dp_seeded(
             lm.module.files[0].program, lm.module.files[0].path,
-            project.factory, lm.collected,
+            lm.module.display_path, project.factory, lm.collected, core_seed,
         )
         modules.push(rm)
+        resolved_by_id[id] = rm
     }
-    _ :: wire_imports(project)
+    wire_targets :: wire_imports(project)
+    // R2018 orphan-rule pre-resolve check. Runs after wire_imports so
+    // ImportBinding redirects resolve to the concrete owner module.
+    for id in project.modules.keys() {
+        lm :: project.modules[id]
+        if lm is null { continue }
+        rm :: resolved_by_id[id]
+        if rm is null { continue }
+        run_orphan_rule_check_for_module(lm, id, rm.idents, wire_targets, rm.diags)
+    }
     return ResolvedProject { .modules = modules }
 }
 
 import "vader/typecheck" { materialize_all_sams_pre_resolve }
-import "vader/resolver" { wire_imports }
+import "vader/resolver" { wire_imports, run_orphan_rule_check_for_module }
 
 // Merge loader-time and body-walker diagnostics into one ordered list.
 // Body diags carry no global span ordering ; concatenated by module-

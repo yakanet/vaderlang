@@ -25,7 +25,8 @@ import "vader/resolver" { span_key }
 AST :: import "vader/parser"
 import "vader/parser" { Visibility }
 import "vader/types" {
-    Type, ArrayType, PrimitiveType, mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
+    Type, ArrayType, PrimitiveType, UnresolvedType, display_type,
+    mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
     TY_UNRESOLVED, TY_VOID,
 }
 
@@ -222,6 +223,109 @@ declare_fn :: fn(
         }
     }
     if decl.name == "main" { check_main_signature(decl, params, return_type, diags) }
+    if has_extern_decorator(decl.decorators) {
+        validate_extern(decl, params, return_type, typed, diags)
+    }
+}
+
+// ---- @extern ABI validation -----------------------------------------------
+
+validate_extern :: fn(
+    decl: AST.FnDecl, params: Type[], return_type: Type,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    if !(decl.body is null) {
+        diags.push(typecheck_error(.ExternMustNotHaveBody, decl.body.span,
+            "`@extern` fn `${decl.name}` cannot have a body — drop the `= ...` / `{ ... }`"))
+    }
+    args :: extern_decorator_args(decl.decorators)
+    if args.len() > usize(2) {
+        diags.push(typecheck_error(.InvalidExternDecl, decl.span,
+            "`@extern` accepts 0, 1, or 2 string arguments — got ${args.len()}"))
+        return
+    }
+    for a in args {
+        if !is_plain_string_literal(a) {
+            diags.push(typecheck_error(.InvalidExternDecl, a.span,
+                "`@extern` arguments must be plain string literals (no interpolation)"))
+        }
+    }
+    for i in 0..<decl.params.len() {
+        pt :: params[i]
+        if !is_extern_abi_type(pt, false) {
+            diags.push(typecheck_error(.InvalidExternDecl, decl.params[i].span,
+                "`@extern` parameter type must be a primitive or `string`, got `${display_type(pt)}`"))
+        }
+    }
+    if !is_extern_abi_type(return_type, true) {
+        ret_span: Span = decl.span
+        if !(decl.return_type is null) { ret_span = decl.return_type.span }
+        diags.push(typecheck_error(.InvalidExternDecl, ret_span,
+            "`@extern` return type must be a primitive, `string`, or `void`, got `${display_type(return_type)}`"))
+    }
+    sym_name :: extern_symbol_name_for(decl)
+    prior :: typed.extern_symbols[sym_name]
+    if prior is AST.FnDecl as p {
+        if p.id != decl.id {
+            diags.push(typecheck_error(.InvalidExternDecl, decl.span,
+                "duplicate `@extern` C symbol `${sym_name}` — already declared on `${p.name}`"))
+        }
+    } else {
+        typed.extern_symbols[sym_name] = decl
+    }
+}
+
+has_extern_decorator :: fn(decs: AST.Decorator[]) -> bool {
+    for d in decs { if d.name == "extern" { return true } }
+    return false
+}
+
+extern_decorator_args :: fn(decs: AST.Decorator[]) -> AST.Expr[] {
+    for d in decs { if d.name == "extern" { return d.args } }
+    return []
+}
+
+is_plain_string_literal :: fn(e: AST.Expr) -> bool {
+    if !(e is AST.StringLitExpr) { return false }
+    if e.parts.len() != usize(1) { return false }
+    return e.parts[0] is AST.StringLitText
+}
+
+/// `@extern("c_name")` override reader — falls back to the source fn
+/// name. Last string arg is the C symbol (2-arg form reserves the
+/// first slot for a future WASM module hint).
+///
+/// Distinct from `vader/midir/build.vader::extern_symbol_name` (which
+/// reads the **first** arg) : that helper runs post-lowering on the
+/// `LoweredFnDecl` shape and predates the 2-arg form ; both should
+/// converge on this last-arg convention once midir is rebased.
+extern_symbol_name_for :: fn(decl: AST.FnDecl) -> string {
+    for d in decl.decorators {
+        if d.name != "extern" { continue }
+        if d.args.len() == usize(0) { continue }
+        last :: d.args[d.args.len() - usize(1)]
+        if last is AST.StringLitExpr as s {
+            if s.parts.len() == usize(1) {
+                if s.parts[0] is AST.StringLitText as t { return t.value }
+            }
+        }
+    }
+    return decl.name
+}
+
+/// C-ABI type whitelist : primitives + `string`. `void` allowed only in
+/// return position (the caller passes `allow_void = true` for return types).
+/// `null` is rejected everywhere — it's not a marshallable value.
+is_extern_abi_type :: fn(t: Type, allow_void: bool) -> bool {
+    match t {
+        is UnresolvedType -> { return true }       // upstream error, don't pile on
+        is PrimitiveType as p -> {
+            if p.name == "void" { return allow_void }
+            if p.name == "null" { return false }
+            return true
+        }
+        _ -> { return false }
+    }
 }
 
 lookup_fn_symbol_by_span :: fn(
@@ -421,7 +525,6 @@ import "std/testing" { assert, assert_eq }
 import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
-import "vader/types" { display_type }
 
 // Resolve `src`, declare-types, then look up the type of the decl
 // named `name` by rendering its `display_type`. Returns `<missing>` if

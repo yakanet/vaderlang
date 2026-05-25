@@ -99,24 +99,23 @@ function diffSets(a: DiagRef[], b: DiagRef[]): { onlyA: string[]; onlyB: string[
 //     stage ; same root cause.
 const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   // Format : `${stage}:${snippet}`.
-  // R2006-resolver-stage
-  "resolver:errors_parser",
-  "resolver:interpolation_tokens",
-  "resolver:unknown_ident",
-  // R2018-orphan-rule
+  // R2006 cascade past R2016 : `i32 implements TwoFns { self + 1 }`
+  // — TwoFns has 2 methods so SAM materialization skips, leaving
+  // `self` unresolved at the body-walker. TS suppresses the cascade.
+  // Tracked alongside the typecheck-coverage audit (Lot 4c).
+  "resolver:sam_impl_bad",
+  // R2018 cascade in cross-module visibility — non_exported_violation
+  // imports Foo from a sibling module without `export` ; TS surfaces
+  // the misuse via R2008. Vader's import path differs ; tracked
+  // separately from the orphan-rule check itself.
   "resolver:non_exported_violation",
-  "resolver:orphan_impl_forbidden",
-  "typecheck:orphan_impl_forbidden",
-  "comptime:orphan_impl_forbidden",
-  "lower:orphan_impl_forbidden",
-  // C4xxx-renum (Vader codes still carry pre-strict meaning)
-  "comptime:bad_div_zero",
-  "comptime:cycle",
+  // comptime-coverage : Vader's tree-walker comptime evaluator
+  // doesn't yet handle `CallExpr` / `SeqLitExpr` ; TS routes them
+  // through the bytecode VM and evaluates them cleanly. Lifted by
+  // Lot 4c (typecheck/comptime coverage audit).
   "comptime:square_call",
-  "comptime:tuple_comptime",
-  "lower:bad_div_zero",
-  "lower:cycle",
   "lower:square_call",
+  "comptime:tuple_comptime",
   "lower:tuple_comptime",
   // typecheck-coverage (cascading from incomplete `expr_types`)
   "typecheck:iter_defaults",
@@ -132,18 +131,6 @@ const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   "lower:interp_string_comptime",
   // lower-divergence (Into-coercion path missing T3001 emit-site)
   "lower:for_in_into_iter",
-  // A7 Phase 2 — `string[r]` codepoint slice : TS typecheck accepts
-  // it, Vader self-host typecheck still rejects (port pending).
-  "typecheck:string_codepoint_slice",
-  "comptime:string_codepoint_slice",
-  "lower:string_codepoint_slice",
-  // p1014_unknown_decorator_placement : Vader's resolver body-walker
-  // emits R2006 on the implicit ident a misplaced @decorator wraps
-  // ; TS suppresses the cascade past P1014. Tracked alongside the
-  // R2006-resolver-stage move.
-  "typecheck:parser/p1014_unknown_decorator_placement",
-  "comptime:parser/p1014_unknown_decorator_placement",
-  "lower:parser/p1014_unknown_decorator_placement",
   // T3013 non-exhaustive match : Vader's typechecker doesn't yet
   // emit T3013 on this snippet's shape (return-position match
   // missing a `false` arm). Tracked as typecheck-coverage.
@@ -151,22 +138,10 @@ const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   "typecheck:typecheck/t3013_non_exhaustive_match",
   "comptime:typecheck/t3013_non_exhaustive_match",
   "lower:typecheck/t3013_non_exhaustive_match",
-  // T3015 break-outside-loop : Vader emits at expression-position
-  // but TS also flags the early-exit at top level. Tracked under
-  // typecheck-coverage.
-  "typecheck:typecheck/t3015_break_outside_loop",
-  "comptime:typecheck/t3015_break_outside_loop",
-  "lower:typecheck/t3015_break_outside_loop",
-  // T3051 extern-must-not-have-body : Vader doesn't yet validate
-  // @extern decls (T3050 / T3051 are defined but not emitted).
-  "typecheck:typecheck/t3051_extern_must_not_have_body",
-  "comptime:typecheck/t3051_extern_must_not_have_body",
-  "lower:typecheck/t3051_extern_must_not_have_body",
-  // l0001 / l0007 : TS chains an R2006 (unresolved ident) on the
-  // recovered identifier after the lexer error. Vader skips that
-  // cascade — same `R2006-resolver-stage` divergence as above.
+  // l0001_unexpected_character : Vader emits two L0001s (one per
+  // unrecognised byte) ; TS emits one. Unrelated to R2006 — lexer
+  // recovery shape divergence ; tracked separately.
   "resolver:lexer/l0001_unexpected_character",
-  "resolver:lexer/l0007_stray_backslash",
   "typecheck:lexer/l0001_unexpected_character",
   "comptime:lexer/l0001_unexpected_character",
   "lower:lexer/l0001_unexpected_character",

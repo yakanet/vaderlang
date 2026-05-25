@@ -363,11 +363,13 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
             v :: self.scope.lookup(x.name)
             match v {
                 is Symbol -> { self.idents[span_key(x.span)] = v }
-                // R2006 fires at typecheck time, after `core_symbols`
-                // and `imports_to` are populated — the resolver
-                // doesn't have the project view to know if a missing
-                // ident really is unresolved or just deferred.
-                is null   -> {}
+                // R2006 — caller must seed `core_symbols` via
+                // `resolve_module_with_collected_dp_seeded` ; otherwise
+                // bare references to `Range`, `Display`, `Iterator`, …
+                // would over-fire here.
+                is null   -> {
+                    self.diags.push(resolver_error(.UnresolvedIdent, x.span, "`${x.name}`"))
+                }
             }
         }
         is AST.CallExpr as x -> {

@@ -203,6 +203,13 @@ export TypedProgram :: struct {
     /// `line:col` (or `undefined:undefined` for materialised spans)
     /// once expression side-tables flip from span-keyed to id-keyed.
     node_spans: MutableMap<usize, Span>
+
+    /// C symbol name → first `@extern`-decorated FnDecl that claimed it.
+    /// Lets `validate_extern` (decl.vader) emit T3050 on the second
+    /// declaration of the same C symbol — the linker would otherwise
+    /// silently bind both call sites to one prototype, producing UB at
+    /// mismatched ABIs. Mirrors `src/typecheck/ctx.ts::externSymbols`.
+    extern_symbols: MutableMap<string, FnDecl>
 }
 
 import "vader/diagnostics" { Span }
@@ -248,6 +255,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .struct_trait_args = MutableMap<string, MutableMap<string, Type[]>> { .buckets = [], .size = 0 },
         .current_fn_ctx  = null,
         .node_spans      = MutableMap<usize, Span> { .buckets = [], .size = 0 },
+        .extern_symbols  = MutableMap<string, FnDecl> { .buckets = [], .size = 0 },
     }
 }
 

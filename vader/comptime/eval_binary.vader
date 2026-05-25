@@ -2,8 +2,8 @@
 //
 // Per-operator dispatch over `BinaryOp` / `UnaryOp` for the operand
 // shapes the tree-walk MVP supports (Int, Float, Bool, String for `+`
-// concat). Type mismatches surface as `C4006` ; the operators the VM
-// would otherwise handle (`Is`, `In`, `NotIn`) fall back to `C4002`.
+// concat). Type mismatches surface as `C4007` ; the operators the VM
+// would otherwise handle (`Is`, `In`, `NotIn`) fall back to `C4001`.
 
 module "vader/comptime"
 
@@ -14,7 +14,7 @@ AST :: import "vader/parser"
 /// Evaluate a `BinaryExpr`. Recurses into both operands ; combines
 /// per `op`. Short-circuits on operand failure (the operand's error
 /// propagates up). `Is` / `In` / `NotIn` need the typechecker's
-/// narrowing tables — fall back to C4002.
+/// narrowing tables — fall back to C4001.
 /// @param expr        the binary expression node.
 /// @param context     the evaluator context.
 /// @param recurse     dispatcher callback (`eval.evaluate_expr`) ;
@@ -78,7 +78,7 @@ export evaluate_unary_expr :: fn(
 
 // `Add` accepts strings (concat) in addition to numeric pairs, hence
 // the dedicated wrapper. Other arith ops go through `arithmetic` which
-// rejects strings with `C4006`.
+// rejects strings with `C4007`.
 arithmetic_or_concat :: fn(
     expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
     int_op: fn(i64, i64) -> i64,

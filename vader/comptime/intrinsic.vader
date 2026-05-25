@@ -1,7 +1,7 @@
 // vader/comptime/intrinsic — comptime evaluator for `@<name>(args)` calls.
 //
 // Minimal Phase 5 scope : `@size_of`, `@align_of`, `@type_name`,
-// `@type_kind`. Every other intrinsic falls back to `C4002` ; richer
+// `@type_kind`. Every other intrinsic falls back to `C4001` ; richer
 // coverage (`@field`, `@fields`, `@file`, `@env`, …) lands when the
 // downstream consumer (lowerer / bytecode emit) is ported and the
 // missing infrastructure can be validated end-to-end.
@@ -80,7 +80,7 @@ intrinsic_type_kind :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
 
 // Resolve `expr` (a type-position expression like `i32` or `MutableMap(K, V)`)
 // to a `Type`. Returns null when resolution fails — the caller surfaces
-// C4005 with a friendly message.
+// C4011 with a friendly message.
 resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null {
     raw :: type_from_expr(expr, context.typed.resolved, diag_sink())
     match raw {
@@ -143,12 +143,12 @@ type_kind_label :: fn(t: Type) -> string = match t {
 }
 
 arg_count_error :: fn(expr: AST.IntrinsicCallExpr, name: string, expected: usize) -> EvalResult {
-    return fail(comptime_error(.IntrinsicArg, expr.span,
+    return fail(comptime_error(.FeatureNotSupported, expr.span,
         "@${name} expects ${expected} argument(s), got ${expr.args.len()}"))
 }
 
 arg_error :: fn(expr: AST.IntrinsicCallExpr, detail: string) -> EvalResult {
-    return fail(comptime_error(.IntrinsicArg, expr.span, detail))
+    return fail(comptime_error(.FeatureNotSupported, expr.span, detail))
 }
 
 // ---- tests ----------------------------------------------------------------

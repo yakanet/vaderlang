@@ -22,4 +22,4 @@
   ArrayIterator<T>
 
 # Diagnostics
-[8:16] error[C4002] comptime expression requires VM execution: CallExpr
+[8:16] error[C4001] expression cannot be evaluated at compile time: CallExpr

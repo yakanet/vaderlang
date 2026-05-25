@@ -7,6 +7,7 @@
  *   R = resolver    (R2xxx)
  *   T = type-check  (T3xxx)
  *   C = comptime    (C4xxx)
+ *   M = MIR lower   (M5xxx)
  *   B = backend     (B5xxx)
  *
  * Once published, codes are NEVER reused for a different meaning.
@@ -162,6 +163,22 @@ export const COMPTIME = {
 } as const;
 
 export type ComptimeCode = keyof typeof COMPTIME;
+
+/**
+ * MIR / lowering diagnostics. Emitted by `src/lower/passes/*.ts` (and
+ * the Vader-side `vader/lower/`). Distinct from `BACKEND` (B5xxx)
+ * because lower runs before the per-target codegen.
+ */
+export const MIR_LOWER = {
+  M5001: "for-in receiver has no `Iterator` impl",
+  M5002: "lambda capture not yet supported for this binding kind",
+  M5003: "match arm is unreachable after lowering",
+  M5004: "`Into` coercion cannot be lowered",
+  M5005: "intrinsic not implemented by the lowerer",
+  M5006: "method call lacks a resolvable `self` receiver",
+} as const;
+
+export type MirLowerCode = keyof typeof MIR_LOWER;
 
 export const BACKEND = {
   B5001: "language feature not yet supported by the backend",

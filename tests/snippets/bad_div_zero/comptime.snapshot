@@ -22,4 +22,4 @@
   Into<Target>
 
 # Diagnostics
-[4:16] error[C4007] comptime division by zero: /
+[4:16] error[C4005] comptime division by zero: /

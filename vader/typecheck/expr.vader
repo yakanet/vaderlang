@@ -19,7 +19,7 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, resolver_error, warning }
+import "vader/diagnostics" { Diagnostic, warning }
 import "vader/resolver" { span_full_key, span_key }
 AST :: import "vader/parser"
 import "vader/types" { Type, FreeIntType, FreeFloatType, TY_UNRESOLVED }
@@ -101,13 +101,7 @@ infer_expr :: fn(
         }
         is AST.IdentExpr     as e -> {
             sym :: typed.resolved.idents[span_key(e.span)]
-            if sym is null {
-                if primitive_from_name(e.name) is null {
-                    if typed.resolved.core_symbols[e.name] is null {
-                        diags.push(resolver_error(.UnresolvedIdent, e.span, "`${e.name}`"))
-                    }
-                }
-            } else {
+            if !(sym is null) {
                 // W0001 : reference to a `@deprecated` decl.
                 msg :: typed.resolved.deprecated_messages[sym.id]
                 if !(msg is null) {

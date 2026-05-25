@@ -4,7 +4,7 @@
 // dedicated evaluator (`eval_lit`, `eval_binary`, `eval_ident`).
 // Replaces TS's `lower-decl.ts` + `run.ts` + VM round-trip for the
 // subset of comptime expressions the lowerer + bytecode emitter port
-// haven't unlocked yet. Anything outside that subset surfaces `C4002`.
+// haven't unlocked yet. Anything outside that subset surfaces `C4001`.
 
 module "vader/comptime"
 
@@ -12,7 +12,7 @@ import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 
 /// Tree-walk dispatcher. Returns whatever the per-variant helper
-/// reports ; unrecognised variants surface as C4002.
+/// reports ; unrecognised variants surface as C4001.
 /// @param expr     the expression to evaluate.
 /// @param context  the comptime evaluator context.
 /// @return         the evaluation result.
@@ -62,9 +62,9 @@ export span_of :: fn(expr: AST.Expr) -> Span = match expr {
     is AST.ArrayTypeExpr     as x -> x.span
 }
 
-// Human-readable label for unsupported variants. Surfaces in the C4002
-// detail so the user sees `comptime expression requires VM execution :
-// MatchExpr` rather than a generic catch-all message.
+// Human-readable label for unsupported variants. Surfaces in the C4001
+// detail so the user sees `expression cannot be evaluated at compile time
+// : MatchExpr` rather than a generic catch-all message.
 expr_kind_label :: fn(expr: AST.Expr) -> string = match expr {
     is AST.CallExpr          -> "CallExpr"
     is AST.FieldExpr         -> "FieldExpr"
@@ -103,14 +103,14 @@ import "vader/diagnostics" { empty_span }
     }
 }
 
-@test test_evaluate_unsupported_emits_c4002 :: fn() -> void {
+@test test_evaluate_unsupported_emits_c4001 :: fn() -> void {
     // `CallExpr` falls through to vm_required at this MVP.
     callee :: AST.IdentExpr { .span = empty_span(), .id = usize(0), .name = "f", .implicit_dot = false, .is_type_param_intro = false }
     expr :: AST.CallExpr { .span = empty_span(), .id = usize(0), .callee = callee, .args = [] }
     context :: empty_context()
     result :: evaluate_expr(expr, context)
     match result.diag {
-        is null -> { assert_eq("expected C4002 diag", "got null") }
+        is null -> { assert_eq("expected C4001 diag", "got null") }
         _       -> {}
     }
 }

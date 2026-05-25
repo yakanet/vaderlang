@@ -2558,7 +2558,11 @@ parse_prefix :: fn(p: Parser) -> Expr {
                     for !p.check(.RParen) && !p.check(.Eof) { p.advance() }
                     if p.check(.RParen) { p.advance() }
                 }
-                return ident_expr(p.span_of(at_tok, name_tok), name_tok.text)
+                // Placeholder is a NullLitExpr (mirror of TS's
+                // `placeholderExpr`) so downstream stages don't try to
+                // resolve a synthetic ident named after the bad decorator
+                // — which would cascade an R2006 the user can't act on.
+                return NullLitExpr { .span = p.span_of(at_tok, name_tok) }
             }
             is IntrinsicSpec as sp -> {
                 p.expect(.LParen, "`(` after `@${sp.name}`")

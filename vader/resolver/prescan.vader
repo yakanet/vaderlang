@@ -1,0 +1,112 @@
+// vader/resolver/prescan — project-level pre-resolve checks.
+//
+// Runs after `wire_imports` (so the redirect table is available) and
+// before the typechecker walks bodies. Today the pass owns the R2018
+// orphan-rule check : `Type implements Trait[Args]` is legal only when
+// the current module owns `Type` *or* `Trait` (primitives exempt).
+//
+// Mirror of `src/resolver/resolve.ts` lines 230-244 ; lives in its
+// own file so future project-level checks (e.g. cross-module dup-decl)
+// have a clear home.
+
+module "vader/resolver"
+
+import "std/collections" { MutableMap }
+import "vader/diagnostics" { Diagnostic, resolver_error }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+AST :: import "vader/parser"
+
+/// Walk every ImplDecl in `loaded.module.files` and push R2018 when
+/// neither the for-type nor the trait is owned by `module_id`.
+/// Symbols come from `collected.symbols` (for the trait name lookup —
+/// the body-walker doesn't visit `trait_name_span`) and from `idents`
+/// (for the for-type, which IS walked through `walk_expr`). Both
+/// resolve through `wire_imports`' redirect table to follow
+/// ImportBinding to the concrete owner.
+///
+/// Diagnostics are pushed into `diags` so the caller decides where
+/// they land (resolver-stage CLI surfaces, typecheck orchestrator
+/// folds them into its main bucket).
+///
+/// @param loaded         loaded module (we walk files[*].program.decls).
+/// @param module_id      module id used as the owner reference.
+/// @param idents         body-walker `idents` table for this module
+///                       (`ResolvedModule.idents`). Used for `for_type`.
+/// @param wire_targets   import-redirect table from `wire_imports` ;
+///                       lets us follow ImportBinding to the concrete
+///                       export.
+/// @param diags          diagnostics sink ; R2018s appended here.
+export run_orphan_rule_check_for_module :: fn(
+    loaded: LoadedModule, module_id: string,
+    idents: MutableMap<i64, Symbol>, wire_targets: ImportTargetTable,
+    diags: Diagnostic[],
+) -> void {
+    for file in loaded.module.files {
+        for decl in file.program.decls {
+            if decl is AST.ImplDecl as imp {
+                check_orphan_rule(imp, module_id, loaded.collected.symbols,
+                    idents, wire_targets, diags)
+            }
+        }
+    }
+}
+
+check_orphan_rule :: fn(
+    decl: AST.ImplDecl, module_id: string,
+    module_symbols: MutableMap<string, Symbol>,
+    idents: MutableMap<i64, Symbol>, wire_targets: ImportTargetTable,
+    diags: Diagnostic[],
+) -> void {
+    trait_sym :: lookup_trait_sym(decl, module_symbols, wire_targets)
+    if trait_sym is null { return }
+    if i32(trait_sym.kind) != i32(SymbolKind.Trait) { return }
+    for_sym :: for_type_owner_sym(decl.for_type, idents, wire_targets)
+    for_is_primitive := false
+    for_is_local := false
+    if for_sym is Symbol as fs {
+        for_is_primitive = i32(fs.kind) == i32(SymbolKind.BuiltinType)
+        for_is_local = fs.module == module_id
+    }
+    trait_is_local :: trait_sym.module == module_id
+    if !for_is_primitive && !for_is_local && !trait_is_local {
+        diags.push(resolver_error(.OrphanImplForbidden, decl.span,
+            "${decl.trait_name} for ${for_type_display_name(decl.for_type)} — neither type nor trait is owned by this module"))
+    }
+}
+
+lookup_trait_sym :: fn(
+    decl: AST.ImplDecl,
+    module_symbols: MutableMap<string, Symbol>,
+    wire_targets: ImportTargetTable,
+) -> Symbol | null {
+    raw :: module_symbols[decl.trait_name]
+    if raw is null { return null }
+    return resolve_import_redirect(raw, wire_targets)
+}
+
+for_type_owner_sym :: fn(
+    t: AST.TypeExpr,
+    idents: MutableMap<i64, Symbol>, wire_targets: ImportTargetTable,
+) -> Symbol | null {
+    if t is AST.IdentExpr as i {
+        raw :: idents[span_key(i.span)]
+        if raw is null { return null }
+        return resolve_import_redirect(raw, wire_targets)
+    }
+    if t is AST.GenericInstExpr as g {
+        if g.callee is AST.IdentExpr as i {
+            raw :: idents[span_key(i.span)]
+            if raw is null { return null }
+            return resolve_import_redirect(raw, wire_targets)
+        }
+    }
+    return null
+}
+
+for_type_display_name :: fn(t: AST.TypeExpr) -> string {
+    if t is AST.IdentExpr as i { return i.name }
+    if t is AST.GenericInstExpr as g {
+        if g.callee is AST.IdentExpr as i { return i.name }
+    }
+    return "?"
+}

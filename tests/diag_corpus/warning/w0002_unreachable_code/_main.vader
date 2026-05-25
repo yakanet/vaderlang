@@ -1,7 +1,8 @@
-// Code after a divergent statement (`return`) — TS emits W0002
-// (unreachable code) as a non-fatal warning. Vader's codes.vader
-// doesn't define W0002 yet (only W0001), so the warning stays
-// TS-only until the port catches up.
+// Code after a divergent statement (`return`) — both TS and Vader
+// emit W0002 (unreachable code) at the first dead stmt.
+
+module "snippet"
+
 main :: fn() -> i32 {
     return 0
     x :: 42

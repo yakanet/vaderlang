@@ -1,5 +1,8 @@
 // `NotATrait` is a struct, not a trait — `MyType implements NotATrait`
 // should trigger R2009 (`trait name does not refer to a trait`).
+
+module "snippet"
+
 NotATrait :: struct { x: i32 }
 
 MyType :: struct { y: i32 }

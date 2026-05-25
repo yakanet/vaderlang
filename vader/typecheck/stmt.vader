@@ -9,7 +9,7 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
+import "vader/diagnostics" { Diagnostic, Span, typecheck_error, warning }
 import "vader/resolver" { span_full_key, span_key }
 AST :: import "vader/parser"
 import "vader/types" {
@@ -32,9 +32,24 @@ export check_block :: fn(
     // Each entry holds the binding's sym_id + the static type to
     // restore on block exit (mirrors `pop_narrow` semantics).
     divergent_narrows: DivergentNarrow[] = []
+    // W0002 — track the first stmt past a divergent guard so we can
+    // warn once per block (mirrors TS's surface).
+    first_unreachable_span: Span | null = null
+    diverged := false
     for stmt in block.stmts {
+        if diverged && first_unreachable_span is null {
+            first_unreachable_span = stmt_span(stmt)
+        }
         check_stmt(stmt, typed, diags, ctx, check_expr_fn)
+        if !diverged && is_divergent_stmt(stmt) { diverged = true }
         push_divergent_narrow_if(stmt, typed, divergent_narrows)
+    }
+    if diverged && first_unreachable_span is null {
+        if block.trailing !is null { first_unreachable_span = block.trailing.span }
+    }
+    if first_unreachable_span !is null {
+        diags.push(warning(.UnreachableCode, first_unreachable_span,
+            "code after a divergent statement"))
     }
     result: Type = TY_VOID
     match block.trailing {
@@ -450,6 +465,19 @@ is_divergent_stmt :: fn(s: AST.Stmt) -> bool {
     if s is AST.BreakStmt { return true }
     if s is AST.ContinueStmt { return true }
     return false
+}
+
+stmt_span :: fn(s: AST.Stmt) -> Span {
+    match s {
+        is AST.LetStmt      as x -> { return x.span }
+        is AST.AssignStmt   as x -> { return x.span }
+        is AST.ExprStmt     as x -> { return x.span }
+        is AST.ReturnStmt   as x -> { return x.span }
+        is AST.ForStmt      as x -> { return x.span }
+        is AST.BreakStmt    as x -> { return x.span }
+        is AST.ContinueStmt as x -> { return x.span }
+        is AST.DeferStmt    as x -> { return x.span }
+    }
 }
 
 BlockNarrow :: struct {

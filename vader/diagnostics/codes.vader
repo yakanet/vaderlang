@@ -144,25 +144,38 @@ export ResolverCode :: enum(u8) {
 
 // Mirror of `COMPTIME` in `src/diagnostics/codes.ts`. C-codes belong to
 // the comptime evaluator + monomorphizer ; once shipped, never re-used.
+// Order + numbering match TS exactly so cross-language diagnostic parity
+// holds out of the box.
 export ComptimeCode :: enum(u8) {
-    DependencyCycle,                        // C4001
-    VmRequired,                             // C4002
-    SandboxViolation,                       // C4003
-    AssertFailed,                           // C4004
-    IntrinsicArg,                           // C4005
-    TypeMismatch,                           // C4006
-    DivisionByZero,                         // C4007
+    CannotEvaluate,                         // C4001
+    EvaluationPanic,                        // C4002
+    NotCallable,                            // C4003
+    StackOverflow,                          // C4004
+    DivisionByZero,                         // C4005
+    FileNotReadable,                        // C4006
+    TypeMismatch,                           // C4007
+    EnvRequiresFlag,                        // C4008
+    DependencyCycle,                        // C4009
+    IndexOutOfBounds,                       // C4010
+    FeatureNotSupported,                    // C4011
+    FileSingleArg,                          // C4012
+    DecoratorArgsStringLit,                 // C4013
+    InstanceDiscoveryDidNotConverge,        // C4014
+    AssertFailed,                           // C4015
 }
 
-// Mirror of `LOWER` in `src/diagnostics/codes.ts`. L-codes belong to
-// the lowering pass (AST -> Lowered IR) ; once shipped, never re-used.
+// Mirror of `LOWER` in `src/diagnostics/codes.ts`. M-codes belong to
+// the MIR-lowering pass (AST -> Lowered IR) ; once shipped, never
+// re-used. The `M` prefix avoids ambiguity with `L0xxx` (Lexer) and
+// `B5001` (Backend) ; mirrors the `src/midir/` module name on the
+// Vader side.
 export LowerCode :: enum(u8) {
-    IteratorImplMissing,                    // L5001
-    LambdaCaptureUnsupported,               // L5002
-    UnreachableMatchPath,                   // L5003
-    IntoCoercionFailed,                     // L5004
-    IntrinsicUnsupported,                   // L5005
-    SelfReceiverMissing,                    // L5006
+    IteratorImplMissing,                    // M5001
+    LambdaCaptureUnsupported,               // M5002
+    UnreachableMatchPath,                   // M5003
+    IntoCoercionFailed,                     // M5004
+    IntrinsicUnsupported,                   // M5005
+    SelfReceiverMissing,                    // M5006
 }
 
 // `WARNING` — non-fatal diagnostics. New entries appended ; never reused.
@@ -261,22 +274,30 @@ export warning_info :: fn(c: WarningCode) = match c {
 }
 
 export comptime_info :: fn(c: ComptimeCode) = match c {
-    .DependencyCycle                    -> CodeInfo { .id = "C4001", .message = "`@comptime` decls form a dependency cycle" }
-    .VmRequired                         -> CodeInfo { .id = "C4002", .message = "comptime expression requires VM execution" }
-    .SandboxViolation                   -> CodeInfo { .id = "C4003", .message = "comptime host intrinsic refused by sandbox" }
-    .AssertFailed                       -> CodeInfo { .id = "C4004", .message = "`@assert` failed at comptime" }
-    .IntrinsicArg                       -> CodeInfo { .id = "C4005", .message = "invalid argument to comptime intrinsic" }
-    .TypeMismatch                       -> CodeInfo { .id = "C4006", .message = "type mismatch during comptime evaluation" }
-    .DivisionByZero                     -> CodeInfo { .id = "C4007", .message = "comptime division by zero" }
+    .CannotEvaluate                     -> CodeInfo { .id = "C4001", .message = "expression cannot be evaluated at compile time" }
+    .EvaluationPanic                    -> CodeInfo { .id = "C4002", .message = "comptime evaluation panicked" }
+    .NotCallable                        -> CodeInfo { .id = "C4003", .message = "function is not callable in comptime context" }
+    .StackOverflow                      -> CodeInfo { .id = "C4004", .message = "comptime call stack overflow" }
+    .DivisionByZero                     -> CodeInfo { .id = "C4005", .message = "comptime division by zero" }
+    .FileNotReadable                    -> CodeInfo { .id = "C4006", .message = "@file path could not be read" }
+    .TypeMismatch                       -> CodeInfo { .id = "C4007", .message = "comptime value has incompatible type" }
+    .EnvRequiresFlag                    -> CodeInfo { .id = "C4008", .message = "ENV access requires `--allow-env`" }
+    .DependencyCycle                    -> CodeInfo { .id = "C4009", .message = "comptime evaluation depends on itself" }
+    .IndexOutOfBounds                   -> CodeInfo { .id = "C4010", .message = "comptime index out of bounds" }
+    .FeatureNotSupported                -> CodeInfo { .id = "C4011", .message = "comptime feature not yet supported" }
+    .FileSingleArg                      -> CodeInfo { .id = "C4012", .message = "@file expects a single string-literal argument" }
+    .DecoratorArgsStringLit             -> CodeInfo { .id = "C4013", .message = "decorator arguments must be string literals at comptime" }
+    .InstanceDiscoveryDidNotConverge    -> CodeInfo { .id = "C4014", .message = "generic instance discovery did not converge" }
+    .AssertFailed                       -> CodeInfo { .id = "C4015", .message = "compile-time assertion failed" }
 }
 
 export lower_info :: fn(c: LowerCode) = match c {
-    .IteratorImplMissing                -> CodeInfo { .id = "L5001", .message = "for-in receiver has no `Iterator` impl" }
-    .LambdaCaptureUnsupported           -> CodeInfo { .id = "L5002", .message = "lambda capture not yet supported for this binding kind" }
-    .UnreachableMatchPath               -> CodeInfo { .id = "L5003", .message = "match arm is unreachable after lowering" }
-    .IntoCoercionFailed                 -> CodeInfo { .id = "L5004", .message = "`Into` coercion cannot be lowered" }
-    .IntrinsicUnsupported               -> CodeInfo { .id = "L5005", .message = "intrinsic not implemented by the lowerer" }
-    .SelfReceiverMissing                -> CodeInfo { .id = "L5006", .message = "method call lacks a resolvable `self` receiver" }
+    .IteratorImplMissing                -> CodeInfo { .id = "M5001", .message = "for-in receiver has no `Iterator` impl" }
+    .LambdaCaptureUnsupported           -> CodeInfo { .id = "M5002", .message = "lambda capture not yet supported for this binding kind" }
+    .UnreachableMatchPath               -> CodeInfo { .id = "M5003", .message = "match arm is unreachable after lowering" }
+    .IntoCoercionFailed                 -> CodeInfo { .id = "M5004", .message = "`Into` coercion cannot be lowered" }
+    .IntrinsicUnsupported               -> CodeInfo { .id = "M5005", .message = "intrinsic not implemented by the lowerer" }
+    .SelfReceiverMissing                -> CodeInfo { .id = "M5006", .message = "method call lacks a resolvable `self` receiver" }
 }
 
 export typecheck_info :: fn(c: TypecheckCode) = match c {

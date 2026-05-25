@@ -3,10 +3,10 @@
 // Mirror of TS's per-`AssertDecl` walker in
 // `src/comptime/evaluate.ts` (lines 86-110). Each top-level `@assert`
 // has its `condition` evaluated through the same tree-walker the
-// `@comptime const` decls use ; a `Bool(false)` result fires `C4004`.
-// Asserts that fall back to `C4002` (need-VM) are skipped silently —
-// the build can't validate them yet but the diagnostic surfaces at
-// the call site of `evaluate_expr` for visibility.
+// `@comptime const` decls use ; a `Bool(false)` result fires `C4015`.
+// Asserts that fall back to `C4001` (cannot-evaluate, needs VM) are
+// skipped silently — the build can't validate them yet but the
+// diagnostic surfaces at the call site of `evaluate_expr` for visibility.
 
 module "vader/comptime"
 
@@ -17,7 +17,7 @@ import "std/collections" { MutableMap }
 AST :: import "vader/parser"
 
 /// Walk `decls` for `AssertDecl`s, evaluate each via the tree-walker,
-/// and emit `C4004` when the condition is statically `false`. Used by
+/// and emit `C4015` when the condition is statically `false`. Used by
 /// `evaluate_project` after every module's `@comptime const`s have
 /// been baked so assert conditions can reference them.
 /// @param decls    the module's top-level decls.
@@ -34,14 +34,14 @@ export evaluate_assert_decls :: fn(
         match decl {
             is AST.AssertDecl as assert_decl -> {
                 result :: evaluate_expr(assert_decl.condition, context)
-                // Skip C4002 (need-VM) silently — asserts that fall back
-                // to the VM-execution placeholder are expected to silently
-                // succeed at the dump layer. The compiler-emit chantier
-                // will run them through the VM properly.
+                // Skip C4001 (cannot-evaluate, needs VM) silently — asserts
+                // that fall back to the VM-execution placeholder are expected
+                // to silently succeed at the dump layer. The compiler-emit
+                // chantier will run them through the VM properly.
                 match result.diag {
                     is null -> {}
                     is Diagnostic as d -> {
-                        if d.code.id != "C4002" { diags.push(d) }
+                        if d.code.id != "C4001" { diags.push(d) }
                     }
                 }
                 match result.value {

@@ -137,9 +137,36 @@ export resolve_module_with_collected_dp :: fn(
     program: Program, module_path: string, display_path: string, factory: SymbolFactory,
     collected: CollectedModule,
 ) -> ResolvedModule {
+    empty_seed :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+    return resolve_module_with_collected_dp_seeded(
+        program, module_path, display_path, factory, collected, empty_seed,
+    )
+}
+
+/// `resolve_module_with_collected_dp` + `core_seed` for R2006 emission
+/// at the body-walker stage. The seed is folded into the root scope under
+/// the same shadow-by-insertion-order rule as user symbols : builtin <
+/// user < core_seed (in practice user symbols already shadow core_seed
+/// names like `Range` / `Display` when both are present). With the seed
+/// populated, the resolver body-walker can fire R2006 unconditionally on
+/// any unresolved IdentExpr instead of deferring to the typechecker.
+export resolve_module_with_collected_dp_seeded :: fn(
+    program: Program, module_path: string, display_path: string, factory: SymbolFactory,
+    collected: CollectedModule, core_seed: MutableMap<string, Symbol>,
+) -> ResolvedModule {
     root :: make_builtin_scope(factory)
     user_syms :: collected.symbols.values()
     for sym in user_syms { root[sym.name] = sym }
+    // Core symbols seed — only fills slots not already taken by the
+    // module's own decls. User code can still shadow `Range` / `Display`
+    // by declaring its own.
+    for name in core_seed.keys() {
+        existing :: root[name]
+        if existing is null {
+            core_sym :: core_seed[name]
+            if core_sym is Symbol as cs { root[name] = cs }
+        }
+    }
     file :: resolve_program(program, root, module_path, factory)
     return ResolvedModule {
         .path             = module_path,

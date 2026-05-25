@@ -1,0 +1,9 @@
+// `@extern` with a non-ABI param type (struct) — T3050.
+module "snippet"
+
+User :: struct { name: string }
+
+@extern("c_send_user")
+send_user :: fn(u: User) -> i32
+
+main :: fn() -> i32 { return 0 }
