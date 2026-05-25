@@ -425,13 +425,8 @@ function emitOp(s: FnState, ip: number, op: Op): void {
       line(s, `${tmp} = vader_string_slice_codepoints(${str.name}, ${lo.name}, ${hi.name});`);
       return;
     }
-    case "string.eq":  return pushFnCall2(s, "bool", "vader_string_eq");
-    case "string.ne": {
-      const r = pop(s); const l = pop(s);
-      const t = newTmp(s, "bool");
-      line(s, `${t} = !vader_string_eq(${l.name}, ${r.name});`);
-      return;
-    }
+    case "string.eq":  return pushBinop(s, "string", "==", "bool");
+    case "string.ne":  return pushBinop(s, "string", "!=", "bool");
     case "char.eq":    return pushBinop(s, "char", "==", "bool");
     case "char.ne":    return pushBinop(s, "char", "!=", "bool");
     case "char.lt":    return pushBinop(s, "char", "<",  "bool");
