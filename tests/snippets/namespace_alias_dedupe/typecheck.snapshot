@@ -123,8 +123,8 @@
   StructDecl     NullLitExpr          :: NullLitExpr
   FnDecl         open_arr             :: fn(null) -> void
   FnDecl         open_obj             :: fn(StringBuilder) -> void
+  FnDecl         parse_angle_type_params :: fn(Parser) -> TypeParam[]
   FnDecl         parse_block          :: fn(Parser) -> BlockExpr
-  FnDecl         parse_bracketed_type_params :: fn(Parser) -> TypeParam[]
   FnDecl         parse_break          :: fn(Parser) -> BreakStmt
   FnDecl         parse_call_args      :: fn(Parser) -> CallArg[]
   FnDecl         parse_const_decl     :: fn(Parser, Decorator[], Visibility, Token) -> ConstDecl
@@ -193,7 +193,6 @@
   FnDecl         peek                 :: fn(Parser) -> Token
   FnDecl         peek_at              :: fn(Parser, i32) -> Token
   FnDecl         peek_is_classic_impl_body :: fn(Parser) -> bool
-  FnDecl         peek_is_generic_struct_lit :: fn(Parser) -> bool
   FnDecl         peek_is_lhs_generic_alias_head :: fn(Parser) -> bool
   FnDecl         peek_lambda_without_fn :: fn(Parser) -> bool
   FnDecl         peek_tuple_let_start :: fn(Parser) -> bool

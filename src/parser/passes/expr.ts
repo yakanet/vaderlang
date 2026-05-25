@@ -551,40 +551,6 @@ function parseIdentOrStructLit(p: Parser): A.Expr {
     };
   }
 
-  // Generic struct literal (legacy paren form): `Ident(typeArgs) { .field = … }`.
-  // Detect by scanning past balanced parens to confirm a `{` struct-lit body
-  // follows before committing to the parse. Otherwise let postfix handle
-  // `(args)` as a regular call expression.
-  if (p.allowStructLit && peekGenericStructLit(p)) {
-    p.advance();        // consume `(`
-    const args: A.TypeExpr[] = [];
-    p.skipNewlines();
-    if (!p.check("rparen")) {
-      while (true) {
-        p.skipNewlines();
-        if (p.check("rparen")) break;
-        args.push(parseType(p));
-        p.skipNewlines();
-        if (p.match("comma") === null) break;
-      }
-    }
-    const rp = p.expect("rparen", "`)` to close generic argument list");
-    p.expect("lbrace", "`{` to open generic struct literal");
-    const items = parseStructLitFields(p);
-    const rb = p.expect("rbrace", "`}` to close struct literal");
-    return {
-      kind: "StructLitExpr",
-      id: UNASSIGNED_NODE_ID, span: p.spanOf(t, rb),
-      typeName: {
-        kind: "GenericInstExpr",
-        id: UNASSIGNED_NODE_ID, span: p.spanOf(t, rp),
-        callee: { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: t.span, name: t.text },
-        typeArgs: args,
-      },
-      items,
-    };
-  }
-
   if (p.allowStructLit && p.check("lbrace") && looksLikeStructLitBody(p.tokens, p.pos)) {
     p.advance();
     const items = parseStructLitFields(p);
@@ -662,16 +628,6 @@ function scanAngleGeneric(p: Parser, ltPos: number): { ok: boolean } {
     i++;
   }
   return { ok: false };
-}
-
-/** Lookahead: are the upcoming tokens shaped like a generic struct lit
- *  head — `( <stuff> ) {` followed by a `.<field>` struct-lit body? Used to
- *  disambiguate `Foo(T) { … }` (struct lit) from `Foo(T)` (call expr).  */
-function peekGenericStructLit(p: Parser): boolean {
-  if (p.tokens[p.pos]?.kind !== "lparen") return false;
-  const k = peekTokenIdxAfterBalanced(p, "lparen", "rparen");
-  if (k < 0 || p.tokens[k]?.kind !== "lbrace") return false;
-  return looksLikeStructLitBody(p.tokens, k);
 }
 
 /** Scan past a balanced `open ... close` group starting at the current

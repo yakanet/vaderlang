@@ -150,12 +150,10 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
     return inner;
   }
   if (t.kind === "lbracket") {
-    // Bracketed type form. Three readings :
+    // Bracketed type form :
     //   `[T1, T2, ...]`  → tuple type (≥ 2 elements)
-    //   `[T,]`           → 1-tuple — forbidden (P1011)
-    //   `[T]`            → legacy array alias (deprecated ; phases A-C only).
-    //                      In phase D this becomes a hard error directing
-    //                      users to the postfix `T[]` form.
+    //   `[T,]` / `[T]`   → 1-tuple shape : forbidden (P1021) ; recovered
+    //                      as `T[]` to keep downstream phases moving.
     // Empty `[]` is a parse error (no zero-tuples).
     const start = p.advance();
     const elements: A.TypeExpr[] = [];
@@ -223,14 +221,9 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
         fieldSpan: field.span,
       };
     }
-    // Generic instantiation : two forms during the Layer 4-sugar migration —
-    //   `Foo(i32, U)`   (legacy paren form, still accepted)
-    //   `Foo[i32, U]`   (Layer 4-sugar bracketed form, canonical)
-    // The leading-`[` bracketed form takes precedence ; the postfix array
-    // syntax `T[]` requires *empty* brackets and is handled later in the
-    // postfix loop, so a non-empty `Foo[...]` is unambiguously generic-inst.
-    // `Foo[]` (empty) skips through to let the outer postfix loop see it.
-    if (p.check("lbracket") && p.check("rbracket", 1)) return head;
+    // Generic instantiation : `Foo<i32, U>`. Returns the bare ident
+    // when no `<` follows ; the outer postfix loop then picks up `T[]`
+    // arrays / `T!` error-unions.
     const args = parseGenericArgList(p, "generic argument list");
     if (args === null) return head;
     return {
@@ -245,53 +238,30 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
   return { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: t.span, name: "?" };
 }
 
-/** Parse a comma-separated generic-argument list, used for both
- *  `Foo<args>` / `Foo[args]` / `Foo(args)` generic instantiation and for
- *  the trait-arg list of `... implements Trait<args>` etc. Three opener
- *  shapes coexist during the migration to `<T>` :
- *
- *    `<...>`  canonical (Java/C# style)
- *    `[...]`  legacy Layer-4-sugar form
- *    `(...)`  legacy paren form
- *
- *  Returns null when no opening delimiter is present (caller treats the
- *  reference as un-instantiated). The angle form uses
- *  `Parser.consumeClosingAngle` so that nested `Vec<V>>` closes cleanly
- *  through the lexer's single `shr` token. */
+/** Parse a comma-separated angle-bracket generic-argument list — used
+ *  for `Foo<args>` instantiation and for trait-arg lists like `...
+ *  implements Trait<args>`. Returns null when no `<` opens the list
+ *  (caller treats the reference as un-instantiated). `consumeClosingAngle`
+ *  handles the `shr` split so `Vec<V>>` closes cleanly across the lexer's
+ *  fused `>>` token. */
 export function parseGenericArgList(
   p: Parser, what: string,
 ): { items: A.TypeExpr[] } | null {
-  const open: "lt" | "lbracket" | "lparen" | null =
-    p.check("lt") ? "lt"
-    : p.check("lbracket") ? "lbracket"
-    : p.check("lparen") ? "lparen"
-    : null;
-  if (open === null) return null;
+  if (!p.check("lt")) return null;
   p.advance();
   const items: A.TypeExpr[] = [];
   p.skipNewlines();
-  const atClose = (): boolean => {
-    if (open === "lt") return p.checkClosingAngle();
-    if (open === "lbracket") return p.check("rbracket");
-    return p.check("rparen");
-  };
-  if (!atClose()) {
+  if (!p.checkClosingAngle()) {
     while (true) {
       p.skipNewlines();
-      if (atClose()) break;
+      if (p.checkClosingAngle()) break;
       items.push(parseType(p));
       p.skipNewlines();
       if (p.match("comma") === null) break;
     }
   }
-  if (open === "lt") {
-    if (p.checkClosingAngle()) p.consumeClosingAngle();
-    else p.expect("gt", `\`>\` to close ${what}`);
-  } else if (open === "lbracket") {
-    p.expect("rbracket", `\`]\` to close ${what}`);
-  } else {
-    p.expect("rparen", `\`)\` to close ${what}`);
-  }
+  if (p.checkClosingAngle()) p.consumeClosingAngle();
+  else p.expect("gt", `\`>\` to close ${what}`);
   return { items };
 }
 

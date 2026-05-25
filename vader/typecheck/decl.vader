@@ -490,10 +490,10 @@ Color :: enum {
 
 @test
 test_declare_type_alias_records_aliased :: fn() -> void {
-    // Resolver now binds the alias's `[T]` type-params before walking
-    // the body, so `T` resolves to its TypeParam symbol. The
+    // Resolver binds the alias's `<T>` type-params before walking the
+    // body, so `T` resolves to its TypeParam symbol. The
     // canonical-union sort puts `null` before `T` alphabetically.
-    assert_eq(declared_type("Maybe[T] :: T | null", "Maybe"), "null | T")
+    assert_eq(declared_type("Maybe<T> :: T | null", "Maybe"), "null | T")
 }
 
 @test

@@ -490,12 +490,10 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     if p.is_impl_decl() {
         return p.parse_impl_decl(decorators)
     }
-    // Generic type alias : `Name<T> :: <body>` (canonical) or `Name[T] ::
-    // <body>` (legacy). The angle / bracket pair between ident and `::`
-    // is unambiguous in this position (no other decl form puts angles or
-    // brackets there).
-    has_alias_opener :: p.check(.Ident) && (p.check_at(.Lt, 1) || p.check_at(.LBracket, 1))
-    if has_alias_opener && p.peek_is_lhs_generic_alias_head() {
+    // Generic type alias : `Name<T> :: <body>`. The angle pair between
+    // ident and `::` is unambiguous in this position (no other decl
+    // form puts angles there).
+    if p.check(.Ident) && p.check_at(.Lt, 1) && p.peek_is_lhs_generic_alias_head() {
         return p.parse_lhs_generic_alias_decl(decorators, visibility)
     }
     if p.check(.Ident) && p.check_at(.DeclConst, 1) {
@@ -671,60 +669,40 @@ is_impl_decl :: fn(p: Parser) -> bool {
     return false
 }
 
-// Lookahead : starting on the leading ident, is the shape `ident <...> ::`
-// (canonical) or `ident [...] ::` (legacy) ? Walks a balanced same-kind
-// pair and checks the next token is `::`. Lets the dispatcher pick the
-// generic-alias path without committing.
+// Lookahead : starting on the leading ident, is the shape `ident <...> ::` ?
+// Walks a balanced angle pair and checks the next token is `::`. The
+// lexer's `Shr` (`>>`) closes two angle levels at once because the user
+// wrote two `>` characters that were fused. Outer paren / bracket /
+// brace depth is tracked separately to bail out cleanly.
 peek_is_lhs_generic_alias_head :: fn(p: Parser) -> bool {
     n :: i32(p.tokens.len())
-    if p.pos + 1 >= n { return false }
-    opener :: p.tokens[usize(p.pos + 1)].kind
-    is_angle :: opener == .Lt
-    // Caller already verified ident + (`<` or `[`).
-    i := p.pos + 2     // skip ident, skip opener
-    depth := 1         // same-kind delimiter we opened
+    // Caller already verified ident + `<`.
+    i := p.pos + 2     // skip ident, skip `<`
+    depth := 1         // open angle count
     other_depth := 0   // any other paren/bracket/brace nesting
     for i < n {
         t :: p.tokens[usize(i)]
         if t.kind == .Eof || t.kind == .Newline { return false }
-        if is_angle {
-            if t.kind == .Lt && other_depth == 0 {
-                depth = depth + 1
-            } else if t.kind == .Gt && other_depth == 0 {
-                depth = depth - 1
-                if depth == 0 {
-                    if i + 1 < n { return p.tokens[usize(i + 1)].kind == .DeclConst }
-                    return false
-                }
-            } else if t.kind == .Shr && other_depth == 0 {
-                depth = depth - 2
-                if depth == 0 {
-                    if i + 1 < n { return p.tokens[usize(i + 1)].kind == .DeclConst }
-                    return false
-                }
-                if depth < 0 { return false }
-            } else if t.kind == .LParen || t.kind == .LBracket || t.kind == .LBrace {
-                other_depth = other_depth + 1
-            } else if t.kind == .RParen || t.kind == .RBracket || t.kind == .RBrace {
-                other_depth = other_depth - 1
-                if other_depth < 0 { return false }
+        if t.kind == .Lt && other_depth == 0 {
+            depth = depth + 1
+        } else if t.kind == .Gt && other_depth == 0 {
+            depth = depth - 1
+            if depth == 0 {
+                if i + 1 < n { return p.tokens[usize(i + 1)].kind == .DeclConst }
+                return false
             }
-        } else {
-            if t.kind == .LBracket {
-                depth = depth + 1
-            } else if t.kind == .RBracket {
-                depth = depth - 1
-                if depth == 0 {
-                    if i + 1 < n { return p.tokens[usize(i + 1)].kind == .DeclConst }
-                    return false
-                }
-                if depth < 0 { return false }
-            } else if t.kind == .LParen || t.kind == .LBrace {
-                other_depth = other_depth + 1
-            } else if t.kind == .RParen || t.kind == .RBrace {
-                other_depth = other_depth - 1
-                if other_depth < 0 { return false }
+        } else if t.kind == .Shr && other_depth == 0 {
+            depth = depth - 2
+            if depth == 0 {
+                if i + 1 < n { return p.tokens[usize(i + 1)].kind == .DeclConst }
+                return false
             }
+            if depth < 0 { return false }
+        } else if t.kind == .LParen || t.kind == .LBracket || t.kind == .LBrace {
+            other_depth = other_depth + 1
+        } else if t.kind == .RParen || t.kind == .RBracket || t.kind == .RBrace {
+            other_depth = other_depth - 1
+            if other_depth < 0 { return false }
         }
         i = i + 1
     }
@@ -733,7 +711,7 @@ peek_is_lhs_generic_alias_head :: fn(p: Parser) -> bool {
 
 parse_lhs_generic_alias_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility) -> TypeAliasDecl {
     name_tok :: p.advance()  // ident
-    type_params :: p.parse_bracketed_type_params()
+    type_params :: p.parse_angle_type_params()
     p.advance()  // `::`
     aliased :: p.parse_expr(0)
     return TypeAliasDecl {
@@ -754,24 +732,17 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     // Optional bounded-generic typeParam list immediately after `implements` :
     // `Foo<T> implements<T: Bound> Trait<T> { … }`. Mirrors the TS parser ;
     // the angle list follows the keyword that introduces a typeParam scope
-    // (`fn<T>`, `struct<T>`, `trait<T>`, `implements<T>`). Legacy `[T]`
-    // bracket form still accepted during migration.
+    // (`fn<T>`, `struct<T>`, `trait<T>`, `implements<T>`).
     type_params: TypeParam[] = []
-    if p.check(.Lt) || p.check(.LBracket) {
-        type_params = p.parse_bracketed_type_params()
+    if p.check(.Lt) {
+        type_params = p.parse_angle_type_params()
     }
     trait_tok :: p.expect(.Ident, "trait name")
 
-    // Trait-args — `Iterator<T>` (canonical), `Iterator[T]`, `Iterator(T)` accepted.
+    // Trait-args — `Iterator<T>`.
     trait_args: TypeExpr[] = []
     if p.match_kind(.Lt) != null {
         trait_args = p.parse_type_list_until_angle()
-    } else if p.match_kind(.LBracket) != null {
-        trait_args = p.parse_type_list_until(.RBracket)
-        p.expect(.RBracket, "`]` to close trait argument list")
-    } else if p.match_kind(.LParen) != null {
-        trait_args = p.parse_type_list_until(.RParen)
-        p.expect(.RParen, "`)` to close trait argument list")
     }
 
     // `@intrinsic Type implements Trait` (no body) — resolver synthesises
@@ -911,11 +882,11 @@ parse_named_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
 
 parse_fn_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token) -> FnDecl {
     p.advance()  // `fn`
-    // Bracketed type-params `fn[T: Bound](...)` are merged with legacy
+    // Angle type-params `fn<T: Bound>(...)` are merged with the legacy
     // dollar-prefixed introductions collected from the value-arg types.
-    bracketed :: p.parse_bracketed_type_params()
+    angle_params :: p.parse_angle_type_params()
     sig :: p.parse_fn_signature_params()
-    type_params :: merge_type_params(bracketed, sig.type_params)
+    type_params :: merge_type_params(angle_params, sig.type_params)
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     tail :: p.parse_fn_body_tail(return_type)
@@ -979,9 +950,9 @@ parse_fn_decl_inside_trait :: fn(p: Parser) -> FnDecl | null {
     name_tok :: p.advance()  // ident
     p.advance()              // `::`
     p.advance()              // `fn`
-    bracketed :: p.parse_bracketed_type_params()
+    angle_params :: p.parse_angle_type_params()
     sig :: p.parse_fn_signature_params()
-    type_params :: merge_type_params(bracketed, sig.type_params)
+    type_params :: merge_type_params(angle_params, sig.type_params)
     return_type: TypeExpr | null = null
     if p.match_kind(.Arrow) != null { return_type = p.parse_type() }
     tail :: p.parse_fn_body_tail(return_type)
@@ -1055,7 +1026,7 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
             }
 
             // Legacy dollar-prefixed types are auto-promoted to type
-            // parameters (the canonical surface is bracketed `fn[T](...)`).
+            // parameters (the canonical surface is `fn<T>(...)`).
             collect_type_params(ty, type_params)
 
             params.push(FnParam {
@@ -1116,9 +1087,11 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
 }
 
 parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
-    // Canonical `<T>` form first ; legacy bracketed `[T]` next ; legacy
-    // paren `($T, $N: i32)` last (still needed for comptime-value heads).
-    if p.check(.Lt) || p.check(.LBracket) { return p.parse_bracketed_type_params() }
+    // `<T>` canonical type-params first. The `($T, $N: i32)` paren form
+    // is reserved for comptime-value heads (the angle list has no
+    // type-ascription slot today) — kept until comptime-value params get
+    // their own unified surface.
+    if p.check(.Lt) { return p.parse_angle_type_params() }
     if p.match_kind(.LParen) == null { return [] }
     out: TypeParam[] = []
     p.skip_newlines()
@@ -1173,26 +1146,22 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
     return out
 }
 
-// Bracketed type-param list `[T, U: Bound, ...]`. Each entry is `name`
-// or `name: bound`. The bound parses as a type expression so trait bounds
-// (`[T: Hash & Eq]`) work via the same parser. Always returns
-// non-comptime-value entries — comptime-value params keep the legacy
-// paren form `(N: i32)` for now.
-parse_bracketed_type_params :: fn(p: Parser) -> TypeParam[] {
-    open_is_angle :: p.check(.Lt)
-    open_is_bracket :: !open_is_angle && p.check(.LBracket)
-    if !open_is_angle && !open_is_bracket { return [] }
-    p.advance()  // `<` or `[`
+// Angle type-param list `<T, U: Bound, ...>`. Each entry is `name` or
+// `name: bound` ; the bound parses as a type expression so trait bounds
+// (`<T: Hash & Eq>`) work via the same parser. Always returns
+// non-comptime-value entries — comptime-value params keep the paren
+// form `(N: i32)`.
+parse_angle_type_params :: fn(p: Parser) -> TypeParam[] {
+    if !p.check(.Lt) { return [] }
+    p.advance()  // `<`
     out: TypeParam[] = []
     p.skip_newlines()
     for !p.check(.Eof) {
-        at_close := if open_is_angle { p.check_closing_angle() } else { p.check(.RBracket) }
-        if at_close { break }
+        if p.check_closing_angle() { break }
         if out.len() > 0 {
             if p.match_kind(.Comma) == null { break }
             p.skip_newlines()
-            at_close = if open_is_angle { p.check_closing_angle() } else { p.check(.RBracket) }
-            if at_close { break }
+            if p.check_closing_angle() { break }
         }
         start :: p.peek()
         name :: p.expect(.Ident, "type-param name")
@@ -1208,24 +1177,20 @@ parse_bracketed_type_params :: fn(p: Parser) -> TypeParam[] {
             .is_comptime_value = false,
         })
     }
-    if open_is_angle {
-        if p.check_closing_angle() { p.consume_closing_angle() }
-        else { p.expect(.Gt, "`>` to close type-param list") }
-    } else {
-        p.expect(.RBracket, "`]` to close type-param list")
-    }
+    if p.check_closing_angle() { p.consume_closing_angle() }
+    else { p.expect(.Gt, "`>` to close type-param list") }
     return out
 }
 
-// Combine bracketed type-params with inline introductions collected from
-// the value-arg types (legacy dollar-prefixed form). The bracketed list
-// takes precedence — a name already declared explicitly is not re-added
-// from the inline list.
-merge_type_params :: fn(bracketed: TypeParam[], inlined: TypeParam[]) -> TypeParam[] {
-    if bracketed.len() == 0 { return inlined }
-    if inlined.len() == 0   { return bracketed }
+// Combine angle-declared type-params with inline introductions
+// collected from the value-arg types (legacy dollar-prefixed form).
+// The angle list takes precedence — a name already declared explicitly
+// is not re-added from the inline list.
+merge_type_params :: fn(angle: TypeParam[], inlined: TypeParam[]) -> TypeParam[] {
+    if angle.len() == 0 { return inlined }
+    if inlined.len() == 0   { return angle }
     merged: TypeParam[] = []
-    for bracketed_param in bracketed { merged.push(bracketed_param) }
+    for angle_param in angle { merged.push(angle_param) }
     for inline_param in inlined {
         already_present := false
         for existing in merged {
@@ -1243,8 +1208,8 @@ parse_trait_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     p.advance()  // `trait`
     type_params :: p.parse_struct_type_param_list()
     // Trait composition. Two forms :
-    //   `Foo :: trait[T] = A & B`            (alias, no own methods)
-    //   `Foo :: trait[T] : A & B { ... }`    (composes A & B + own methods)
+    //   `Foo :: trait<T> = A & B`            (alias, no own methods)
+    //   `Foo :: trait<T> : A & B { ... }`    (composes A & B + own methods)
     requires: TypeExpr | null = null
     members: FnDecl[] = []
     if p.match_kind(.Assign) != null {
@@ -1583,35 +1548,14 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
                 .is_numeric = false,
             }
         }
-        // Generic instantiation in type position. Three forms during the
-        // migration : `Foo<i32>` (canonical), `Foo[i32]` (legacy bracket),
-        // `Foo(i32)` (legacy paren). `Foo[]` (empty brackets) is the
-        // postfix array shape, handled by the outer postfix loop — fall
-        // through. No `Foo<>` ambiguity in type position : `<` is never
-        // a comparison here.
+        // Generic instantiation in type position : `Foo<i32>`. `Foo[]`
+        // empty brackets fall through to the outer postfix loop for
+        // `T[]` array. No `Foo<>` ambiguity in type position : `<` is
+        // never a comparison here.
         if p.match_kind(.Lt) != null {
             args :: p.parse_type_list_until_angle()
             return GenericInstExpr {
                 .span      = p.span_of(name, p.peek_at(-1)),
-                .callee    = head,
-                .type_args = args,
-            }
-        }
-        if p.check(.LBracket) && p.check_at(.RBracket, 1) { return head }
-        if p.match_kind(.LBracket) != null {
-            args :: p.parse_type_list_until(.RBracket)
-            end :: p.expect(.RBracket, "`]` to close generic argument list")
-            return GenericInstExpr {
-                .span      = p.span_of(name, end),
-                .callee    = head,
-                .type_args = args,
-            }
-        }
-        if p.match_kind(.LParen) != null {
-            args :: p.parse_type_list_until(.RParen)
-            end :: p.expect(.RParen, "`)` to close generic argument list")
-            return GenericInstExpr {
-                .span      = p.span_of(name, end),
                 .callee    = head,
                 .type_args = args,
             }
@@ -2817,35 +2761,6 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
         }
     }
 
-    // Generic struct literal `Foo(T) { .field = ... }` (legacy paren).
-    if p.allow_struct_lit && p.peek_is_generic_struct_lit() {
-        p.advance()  // `(`
-        args: TypeExpr[] = []
-        p.skip_newlines()
-        if !p.check(.RParen) {
-            for {
-                p.skip_newlines()
-                if p.check(.RParen) { break }
-                args.push(p.parse_type())
-                p.skip_newlines()
-                if p.match_kind(.Comma) == null { break }
-            }
-        }
-        rp :: p.expect(.RParen, "`)` to close generic argument list")
-        p.expect(.LBrace, "`{` to open generic struct literal")
-        items :: p.parse_struct_lit_fields()
-        rb :: p.expect(.RBrace, "`}` to close struct literal")
-        return StructLitExpr {
-            .span      = p.span_of(t, rb),
-            .type_name = GenericInstExpr {
-                .span      = p.span_of(t, rp),
-                .callee    = ident_expr(t.span, t.text),
-                .type_args = args,
-            },
-            .items     = items,
-        }
-    }
-
     if p.allow_struct_lit && p.check(.LBrace) && looks_like_struct_lit_body(p.tokens, p.pos) {
         p.advance()
         items :: p.parse_struct_lit_fields()
@@ -2929,34 +2844,6 @@ is_angle_scan_bailout :: fn(k: TokenKind) -> bool {
     if k == .KwStruct || k == .KwTrait || k == .KwImplements || k == .KwEnum { return true }
     if k == .KwImport || k == .KwExport || k == .KwSelf { return true }
     return false
-}
-
-// Lookahead : `( <bal> ) {` followed by a `.<field>` struct-lit body?
-peek_is_generic_struct_lit :: fn(p: Parser) -> bool {
-    n :: i32(p.tokens.len())
-    if p.pos >= n { return false }
-    if p.tokens[usize(p.pos)].kind != .LParen { return false }
-    depth := 1
-    j := p.pos + 1
-    closing := -1
-    for j < n && depth > 0 {
-        t :: p.tokens[usize(j)]
-        if t.kind == .Eof { return false }
-        if t.kind == .LParen { depth = depth + 1 }
-        else if t.kind == .RParen {
-            depth = depth - 1
-            if depth == 0 {
-                closing = j
-                break
-            }
-        }
-        j = j + 1
-    }
-    if closing < 0 || depth != 0 { return false }
-    k := closing + 1
-    for k < n && p.tokens[usize(k)].kind == .Newline { k = k + 1 }
-    if k >= n || p.tokens[usize(k)].kind != .LBrace { return false }
-    return looks_like_struct_lit_body(p.tokens, k)
 }
 
 looks_like_struct_lit_body :: fn(tokens: Token[], pos_at_lbrace: i32) -> bool {

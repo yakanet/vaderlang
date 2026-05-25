@@ -214,8 +214,8 @@ export EnumVariant :: struct {
 // ---- Trait ----------------------------------------------------------------
 
 // `requires` carries the trait composition expression for either form :
-//   `Numeric :: trait[T] = Add & Sub`        (alias form, members empty)
-//   `Hashable :: trait[T] : Hash & Eq { ... }` (declared methods + composition)
+//   `Numeric :: trait<T> = Add & Sub`        (alias form, members empty)
+//   `Hashable :: trait<T> : Hash & Eq { ... }` (declared methods + composition)
 // Stored as a parsed type expression — typically a `BinaryExpr(.BitAnd)` chain
 // over trait names but a single trait reference is also valid. `null` for a
 // plain `trait { ... }` declaration without composition.
