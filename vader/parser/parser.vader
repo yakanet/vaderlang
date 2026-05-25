@@ -169,6 +169,12 @@ export Parser :: struct {
     errors: Diagnostic[]
     // True except inside the immediate condition expression of if/for/match.
     allow_struct_lit: bool
+    // When non-null, the lexer's `>>` token has been split : its first `>`
+    // was already consumed (and `pos` advanced past it), and this field
+    // holds a synthetic `Gt` exposing the second `>`. The next
+    // `consume_closing_angle` returns it without touching `pos`. Lets
+    // `Box<Box<T>>` close two angle levels with the single `Shr` token.
+    shr_pending_half: Token | null
 }
 
 new_parser :: fn(tokens: Token[], file: string) = Parser {
@@ -177,11 +183,14 @@ new_parser :: fn(tokens: Token[], file: string) = Parser {
     .pos              = 0,
     .errors           = [],
     .allow_struct_lit = true,
+    .shr_pending_half = null,
 }
 
 // ----------------------------------------------------------- token helpers
 
 peek :: fn(p: Parser) -> Token {
+    pending :: p.shr_pending_half
+    if pending != null { return pending }
     n :: i32(p.tokens.len())
     if p.pos < n { return p.tokens[usize(p.pos)] }
     return p.tokens[usize(n - 1)]
@@ -205,10 +214,57 @@ check_at :: fn(p: Parser, kind: TokenKind, offset: i32) -> bool {
 
 advance :: fn(p: Parser) -> Token {
     t :: p.peek()
-    if p.pos < i32(p.tokens.len()) - 1 {
+    if p.shr_pending_half != null {
+        // The synthetic Gt is consumed ; `pos` was already advanced past
+        // the underlying `Shr` when we split it.
+        p.shr_pending_half = null
+    } else if p.pos < i32(p.tokens.len()) - 1 {
         p.pos = p.pos + 1
     }
     return t
+}
+
+/// True when the current position holds a closing `>` (real `Gt`, fresh
+/// `Shr`, or the synthetic second half of an already-split `Shr`).
+check_closing_angle :: fn(p: Parser) -> bool {
+    if p.shr_pending_half != null { return true }
+    k :: p.peek().kind
+    return k == .Gt || k == .Shr
+}
+
+/// Consume one closing `>`. Handles three cases :
+///   - real `Gt`               : advance past it.
+///   - second half of a `Shr`  : return the pending synthetic gt.
+///   - fresh `Shr`             : split — advance past the `Shr` and stash
+///                               the synthetic second half for the next
+///                               caller. `pos` advances on the FIRST half
+///                               so `peek_at(-1)` gives the right span anchor.
+/// If the current token isn't a closer, the caller is responsible for the
+/// diagnostic.
+consume_closing_angle :: fn(p: Parser) -> Token {
+    pending :: p.shr_pending_half
+    if pending != null {
+        p.shr_pending_half = null
+        return pending
+    }
+    cur :: p.peek()
+    if cur.kind == .Gt {
+        if p.pos < i32(p.tokens.len()) - 1 { p.pos = p.pos + 1 }
+        return cur
+    }
+    if cur.kind == .Shr {
+        synth :: Token {
+            .kind = .Gt,
+            .text = ">",
+            .span = cur.span,
+            .value = null,
+            .numeric_suffix = "",
+        }
+        p.shr_pending_half = synth
+        if p.pos < i32(p.tokens.len()) - 1 { p.pos = p.pos + 1 }
+        return synth
+    }
+    return cur
 }
 
 /// Consume if matches ; return the consumed token or `null`. Callers
@@ -434,9 +490,12 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     if p.is_impl_decl() {
         return p.parse_impl_decl(decorators)
     }
-    // Generic type alias : `Name[T] :: <body>`. The `[...]` between ident
-    // and `::` is unambiguous (no other decl form puts brackets there).
-    if p.check(.Ident) && p.check_at(.LBracket, 1) && p.peek_is_lhs_generic_alias_head() {
+    // Generic type alias : `Name<T> :: <body>` (canonical) or `Name[T] ::
+    // <body>` (legacy). The angle / bracket pair between ident and `::`
+    // is unambiguous in this position (no other decl form puts angles or
+    // brackets there).
+    has_alias_opener :: p.check(.Ident) && (p.check_at(.Lt, 1) || p.check_at(.LBracket, 1))
+    if has_alias_opener && p.peek_is_lhs_generic_alias_head() {
         return p.parse_lhs_generic_alias_decl(decorators, visibility)
     }
     if p.check(.Ident) && p.check_at(.DeclConst, 1) {
@@ -612,33 +671,61 @@ is_impl_decl :: fn(p: Parser) -> bool {
     return false
 }
 
-// Lookahead : starting on the leading ident, is the shape `ident [ ... ] ::` ?
-// Walks a balanced bracket pair and checks the next token is `::`. Lets the
-// dispatcher pick the generic-alias path without committing.
+// Lookahead : starting on the leading ident, is the shape `ident <...> ::`
+// (canonical) or `ident [...] ::` (legacy) ? Walks a balanced same-kind
+// pair and checks the next token is `::`. Lets the dispatcher pick the
+// generic-alias path without committing.
 peek_is_lhs_generic_alias_head :: fn(p: Parser) -> bool {
-    // Caller already verified ident + `[`.
-    i := p.pos + 2     // skip ident, skip `[`
-    depth := 1
     n :: i32(p.tokens.len())
+    if p.pos + 1 >= n { return false }
+    opener :: p.tokens[usize(p.pos + 1)].kind
+    is_angle :: opener == .Lt
+    // Caller already verified ident + (`<` or `[`).
+    i := p.pos + 2     // skip ident, skip opener
+    depth := 1         // same-kind delimiter we opened
+    other_depth := 0   // any other paren/bracket/brace nesting
     for i < n {
         t :: p.tokens[usize(i)]
         if t.kind == .Eof || t.kind == .Newline { return false }
-        if t.kind == .LBracket {
-            depth = depth + 1
-        } else if t.kind == .RBracket {
-            depth = depth - 1
-            if depth == 0 {
-                if i + 1 < n {
-                    return p.tokens[usize(i + 1)].kind == .DeclConst
+        if is_angle {
+            if t.kind == .Lt && other_depth == 0 {
+                depth = depth + 1
+            } else if t.kind == .Gt && other_depth == 0 {
+                depth = depth - 1
+                if depth == 0 {
+                    if i + 1 < n { return p.tokens[usize(i + 1)].kind == .DeclConst }
+                    return false
                 }
-                return false
+            } else if t.kind == .Shr && other_depth == 0 {
+                depth = depth - 2
+                if depth == 0 {
+                    if i + 1 < n { return p.tokens[usize(i + 1)].kind == .DeclConst }
+                    return false
+                }
+                if depth < 0 { return false }
+            } else if t.kind == .LParen || t.kind == .LBracket || t.kind == .LBrace {
+                other_depth = other_depth + 1
+            } else if t.kind == .RParen || t.kind == .RBracket || t.kind == .RBrace {
+                other_depth = other_depth - 1
+                if other_depth < 0 { return false }
             }
-        } else if t.kind == .LParen || t.kind == .LBrace {
-            depth = depth + 1
-        } else if t.kind == .RParen || t.kind == .RBrace {
-            depth = depth - 1
+        } else {
+            if t.kind == .LBracket {
+                depth = depth + 1
+            } else if t.kind == .RBracket {
+                depth = depth - 1
+                if depth == 0 {
+                    if i + 1 < n { return p.tokens[usize(i + 1)].kind == .DeclConst }
+                    return false
+                }
+                if depth < 0 { return false }
+            } else if t.kind == .LParen || t.kind == .LBrace {
+                other_depth = other_depth + 1
+            } else if t.kind == .RParen || t.kind == .RBrace {
+                other_depth = other_depth - 1
+                if other_depth < 0 { return false }
+            }
         }
-        if depth < 0 { return false }
         i = i + 1
     }
     return false
@@ -665,18 +752,21 @@ parse_impl_decl :: fn(p: Parser, decorators: Decorator[]) -> ImplDecl {
     for_type :: p.parse_type()
     p.expect(.KwImplements, "`implements` keyword")
     // Optional bounded-generic typeParam list immediately after `implements` :
-    // `Foo[T] implements[T: Bound] Trait[T] { … }`. Mirrors the TS parser ;
-    // [T] always follows the keyword that introduces a typeParam scope
-    // (`fn[T]`, `struct[T]`, `trait[T]`, `implements[T]`).
+    // `Foo<T> implements<T: Bound> Trait<T> { … }`. Mirrors the TS parser ;
+    // the angle list follows the keyword that introduces a typeParam scope
+    // (`fn<T>`, `struct<T>`, `trait<T>`, `implements<T>`). Legacy `[T]`
+    // bracket form still accepted during migration.
     type_params: TypeParam[] = []
-    if p.check(.LBracket) {
+    if p.check(.Lt) || p.check(.LBracket) {
         type_params = p.parse_bracketed_type_params()
     }
     trait_tok :: p.expect(.Ident, "trait name")
 
-    // Trait-args — `Iterator(T)` and `Iterator[T]` both accepted.
+    // Trait-args — `Iterator<T>` (canonical), `Iterator[T]`, `Iterator(T)` accepted.
     trait_args: TypeExpr[] = []
-    if p.match_kind(.LBracket) != null {
+    if p.match_kind(.Lt) != null {
+        trait_args = p.parse_type_list_until_angle()
+    } else if p.match_kind(.LBracket) != null {
         trait_args = p.parse_type_list_until(.RBracket)
         p.expect(.RBracket, "`]` to close trait argument list")
     } else if p.match_kind(.LParen) != null {
@@ -1026,10 +1116,9 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
 }
 
 parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
-    // Bracketed `[T, U: Bound]` is canonical ; falls back to the legacy
-    // paren form when no `[` is present (still needed for the comptime-
-    // value head shape `(N: i32)` which the bracketed form doesn't express).
-    if p.check(.LBracket) { return p.parse_bracketed_type_params() }
+    // Canonical `<T>` form first ; legacy bracketed `[T]` next ; legacy
+    // paren `($T, $N: i32)` last (still needed for comptime-value heads).
+    if p.check(.Lt) || p.check(.LBracket) { return p.parse_bracketed_type_params() }
     if p.match_kind(.LParen) == null { return [] }
     out: TypeParam[] = []
     p.skip_newlines()
@@ -1090,14 +1179,20 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
 // non-comptime-value entries — comptime-value params keep the legacy
 // paren form `(N: i32)` for now.
 parse_bracketed_type_params :: fn(p: Parser) -> TypeParam[] {
-    if p.match_kind(.LBracket) == null { return [] }
+    open_is_angle :: p.check(.Lt)
+    open_is_bracket :: !open_is_angle && p.check(.LBracket)
+    if !open_is_angle && !open_is_bracket { return [] }
+    p.advance()  // `<` or `[`
     out: TypeParam[] = []
     p.skip_newlines()
-    for !p.check(.RBracket) && !p.check(.Eof) {
+    for !p.check(.Eof) {
+        at_close := if open_is_angle { p.check_closing_angle() } else { p.check(.RBracket) }
+        if at_close { break }
         if out.len() > 0 {
             if p.match_kind(.Comma) == null { break }
             p.skip_newlines()
-            if p.check(.RBracket) { break }
+            at_close = if open_is_angle { p.check_closing_angle() } else { p.check(.RBracket) }
+            if at_close { break }
         }
         start :: p.peek()
         name :: p.expect(.Ident, "type-param name")
@@ -1113,7 +1208,12 @@ parse_bracketed_type_params :: fn(p: Parser) -> TypeParam[] {
             .is_comptime_value = false,
         })
     }
-    p.expect(.RBracket, "`]` to close type-param list")
+    if open_is_angle {
+        if p.check_closing_angle() { p.consume_closing_angle() }
+        else { p.expect(.Gt, "`>` to close type-param list") }
+    } else {
+        p.expect(.RBracket, "`]` to close type-param list")
+    }
     return out
 }
 
@@ -1483,9 +1583,20 @@ parse_type_primary :: fn(p: Parser) -> TypeExpr {
                 .is_numeric = false,
             }
         }
-        // Generic instantiation : `Foo[i32]` (canonical) or `Foo(i32)`
-        // (legacy paren). `Foo[]` (empty brackets) is the postfix array
-        // shape, handled by the outer postfix loop — fall through.
+        // Generic instantiation in type position. Three forms during the
+        // migration : `Foo<i32>` (canonical), `Foo[i32]` (legacy bracket),
+        // `Foo(i32)` (legacy paren). `Foo[]` (empty brackets) is the
+        // postfix array shape, handled by the outer postfix loop — fall
+        // through. No `Foo<>` ambiguity in type position : `<` is never
+        // a comparison here.
+        if p.match_kind(.Lt) != null {
+            args :: p.parse_type_list_until_angle()
+            return GenericInstExpr {
+                .span      = p.span_of(name, p.peek_at(-1)),
+                .callee    = head,
+                .type_args = args,
+            }
+        }
         if p.check(.LBracket) && p.check_at(.RBracket, 1) { return head }
         if p.match_kind(.LBracket) != null {
             args :: p.parse_type_list_until(.RBracket)
@@ -1540,6 +1651,30 @@ parse_type_list_until :: fn(p: Parser, close: TokenKind) -> TypeExpr[] {
         p.skip_newlines()
         if p.match_kind(.Comma) == null { break }
     }
+    return out
+}
+
+// Variant for `<...>` angle-bracket generic argument lists. Handles `>>`
+// split-on-demand (nested generics like `Box<Box<T>>` close with a single
+// `Shr` token that the parser splits via `consume_closing_angle`). The
+// opening `<` must already have been consumed by the caller ; the closing
+// `>` (or first half of a `Shr`) is consumed before returning.
+parse_type_list_until_angle :: fn(p: Parser) -> TypeExpr[] {
+    out: TypeExpr[] = []
+    p.skip_newlines()
+    if p.check_closing_angle() {
+        p.consume_closing_angle()
+        return out
+    }
+    for {
+        p.skip_newlines()
+        if p.check_closing_angle() { break }
+        out.push(p.parse_type())
+        p.skip_newlines()
+        if p.match_kind(.Comma) == null { break }
+    }
+    if p.check_closing_angle() { p.consume_closing_angle() }
+    else { p.expect(.Gt, "`>` to close generic argument list") }
     return out
 }
 
@@ -2645,7 +2780,44 @@ parse_call_args :: fn(p: Parser) -> CallArg[] {
 
 parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
     t :: p.advance()
-    // Generic struct literal `Foo(T) { .field = ... }`.
+    // Angle-bracket generic in expression position. Two shapes :
+    //   `Ident<T, ...>(args)`        — generic call ; build a CallExpr whose
+    //                                  callee is GenericInstExpr.
+    //   `Ident<T, ...> { .f = ... }` — generic struct literal.
+    // Hard precedence rule (SPEC §3) : commit only when the scan finds a
+    // matching `>` whose IMMEDIATELY-NEXT token is `(` or `{`. Otherwise
+    // leave the `<` to Pratt as a comparison.
+    if p.check(.Lt) && scan_angle_generic(p, p.pos) {
+        p.advance()  // `<`
+        args :: p.parse_type_list_until_angle()
+        callee :: ident_expr(t.span, t.text)
+        generic_inst :: GenericInstExpr {
+            .span      = p.span_of(t, p.peek_at(-1)),
+            .callee    = callee,
+            .type_args = args,
+        }
+        if p.allow_struct_lit && p.check(.LBrace) {
+            p.advance()
+            items :: p.parse_struct_lit_fields()
+            rb :: p.expect(.RBrace, "`}` to close struct literal")
+            return StructLitExpr {
+                .span      = p.span_of(t, rb),
+                .type_name = generic_inst,
+                .items     = items,
+            }
+        }
+        // Must be a call — the scan only commits on `(` or `{`.
+        p.expect(.LParen, "`(` after generic argument list")
+        call_args :: p.parse_call_args()
+        rp :: p.expect(.RParen, "`)` to close argument list")
+        return CallExpr {
+            .span   = p.span_of(t, rp),
+            .callee = generic_inst,
+            .args   = call_args,
+        }
+    }
+
+    // Generic struct literal `Foo(T) { .field = ... }` (legacy paren).
     if p.allow_struct_lit && p.peek_is_generic_struct_lit() {
         p.advance()  // `(`
         args: TypeExpr[] = []
@@ -2685,6 +2857,78 @@ parse_ident_or_struct_lit :: fn(p: Parser) -> Expr {
         }
     }
     return ident_expr(t.span, t.text)
+}
+
+/// Speculative scan for `Ident < args > ( | {` in expression position.
+/// Starts at the `<` token's position. Returns true only when a matching
+/// `>` (or the first half of a `Shr`) is found at angle depth zero AND
+/// the immediately-following token is `LParen` or `LBrace`.
+///
+/// Bails early on tokens that can't appear inside a type expression
+/// (`LBrace`, `DeclConst`, statement keywords, assignment ops, ...) so
+/// `if x < y { stmt }` doesn't scan into the body.
+scan_angle_generic :: fn(p: Parser, lt_pos: i32) -> bool {
+    n :: i32(p.tokens.len())
+    if lt_pos >= n || p.tokens[usize(lt_pos)].kind != .Lt { return false }
+    angle_depth := 1
+    paren_depth := 0
+    bracket_depth := 0
+    i := lt_pos + 1
+    for i < n {
+        t :: p.tokens[usize(i)]
+        if t.kind == .Eof { return false }
+        at_outer :: paren_depth == 0 && bracket_depth == 0
+        if t.kind == .Newline && at_outer { return false }
+        if at_outer && is_angle_scan_bailout(t.kind) { return false }
+        if at_outer {
+            if t.kind == .Lt {
+                angle_depth = angle_depth + 1
+            } else if t.kind == .Gt {
+                angle_depth = angle_depth - 1
+                if angle_depth == 0 {
+                    if i + 1 >= n { return false }
+                    next :: p.tokens[usize(i + 1)].kind
+                    return next == .LParen || next == .LBrace
+                }
+            } else if t.kind == .Shr {
+                angle_depth = angle_depth - 2
+                if angle_depth == 0 {
+                    if i + 1 >= n { return false }
+                    next :: p.tokens[usize(i + 1)].kind
+                    return next == .LParen || next == .LBrace
+                }
+                if angle_depth < 0 { return false }
+            }
+        }
+        if t.kind == .LParen {
+            paren_depth = paren_depth + 1
+        } else if t.kind == .RParen {
+            if paren_depth == 0 { return false }
+            paren_depth = paren_depth - 1
+        } else if t.kind == .LBracket {
+            bracket_depth = bracket_depth + 1
+        } else if t.kind == .RBracket {
+            if bracket_depth == 0 { return false }
+            bracket_depth = bracket_depth - 1
+        }
+        i = i + 1
+    }
+    return false
+}
+
+is_angle_scan_bailout :: fn(k: TokenKind) -> bool {
+    if k == .LBrace { return true }
+    if k == .DeclConst || k == .DeclVar { return true }
+    if k == .Assign { return true }
+    if k == .PlusAssign || k == .MinusAssign { return true }
+    if k == .StarAssign || k == .SlashAssign || k == .PercentAssign { return true }
+    if k == .Gte || k == .Lte || k == .Eq || k == .Neq { return true }
+    if k == .KwIf || k == .KwElse || k == .KwMatch || k == .KwIs { return true }
+    if k == .KwFor || k == .KwIn { return true }
+    if k == .KwReturn || k == .KwDefer || k == .KwBreak || k == .KwContinue { return true }
+    if k == .KwStruct || k == .KwTrait || k == .KwImplements || k == .KwEnum { return true }
+    if k == .KwImport || k == .KwExport || k == .KwSelf { return true }
+    return false
 }
 
 // Lookahead : `( <bal> ) {` followed by a `.<field>` struct-lit body?

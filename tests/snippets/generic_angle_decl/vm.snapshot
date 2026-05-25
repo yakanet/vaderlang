@@ -1,0 +1,8 @@
+# stdout
+n = 42
+e = 42
+b = 7
+nested = 99
+c = true
+# exit
+0

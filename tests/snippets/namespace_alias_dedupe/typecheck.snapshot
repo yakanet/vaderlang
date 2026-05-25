@@ -29,6 +29,7 @@
   StructDecl     CharLitExpr          :: CharLitExpr
   FnDecl         check                :: fn(Parser, TokenKind) -> bool
   FnDecl         check_at             :: fn(Parser, TokenKind, i32) -> bool
+  FnDecl         check_closing_angle  :: fn(Parser) -> bool
   FnDecl         close_arr            :: fn(StringBuilder, i32) -> void
   FnDecl         close_arr_empty      :: fn(StringBuilder) -> void
   FnDecl         close_obj            :: fn(StringBuilder, i32) -> void
@@ -37,6 +38,7 @@
   FnDecl         compound_op          :: fn(TokenKind) -> ?
   StructDecl     CompoundOpResult     :: CompoundOpResult
   StructDecl     ConstDecl            :: ConstDecl
+  FnDecl         consume_closing_angle :: fn(Parser) -> Token
   StructDecl     ContinueStmt         :: ContinueStmt
   ConstDecl      Decl                 :: ?
   StructDecl     Decorator            :: Decorator
@@ -91,6 +93,7 @@
   StructDecl     IntrinsicCallExpr    :: IntrinsicCallExpr
   ConstDecl      INTRINSICS           :: ?
   StructDecl     IntrinsicSpec        :: IntrinsicSpec
+  FnDecl         is_angle_scan_bailout :: fn(TokenKind) -> bool
   FnDecl         is_impl_decl         :: fn(Parser) -> bool
   FnDecl         is_literal_start     :: fn(Token) -> bool
   FnDecl         is_module_segment_continue :: fn(char) -> ?
@@ -104,7 +107,7 @@
   StructDecl     LiteralPattern       :: LiteralPattern
   FnDecl         looks_like_for_destructure :: fn(Parser) -> bool
   FnDecl         looks_like_struct_lit_body :: fn(Token[], i32) -> bool
-  FnDecl         match_kind           :: fn(Parser, TokenKind) -> null | Token
+  FnDecl         match_kind           :: fn(Parser, ?) -> null | Token
   FnDecl         match_or_peek        :: fn(Parser, TokenKind) -> Token
   StructDecl     MatchArm             :: MatchArm
   StructDecl     MatchExpr            :: MatchExpr
@@ -176,6 +179,7 @@
   FnDecl         parse_type           :: fn(Parser) -> ?
   FnDecl         parse_type_intersection :: fn(Parser) -> ?
   FnDecl         parse_type_list_until :: fn(Parser, TokenKind) -> ?[]
+  FnDecl         parse_type_list_until_angle :: fn(Parser) -> ?[]
   FnDecl         parse_type_postfix   :: fn(Parser) -> ?
   FnDecl         parse_type_primary   :: fn(Parser) -> ?
   FnDecl         parse_typed_const_decl :: fn(Parser, Decorator[], Visibility) -> ConstDecl
@@ -198,6 +202,7 @@
   StructDecl     RangeExpr            :: RangeExpr
   StructDecl     RestBinding          :: RestBinding
   StructDecl     ReturnStmt           :: ReturnStmt
+  FnDecl         scan_angle_generic   :: fn(Parser, i32) -> bool
   StructDecl     SeqLitExpr           :: SeqLitExpr
   StructDecl     SimpleBinding        :: SimpleBinding
   FnDecl         skip_block_comment   :: fn(string, usize, usize) -> usize

@@ -35,11 +35,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   // a lambda ; same root cause.
   "defer_on_panic",
   "defer_in_lambda",
-  // generic_angle_decl : exercises the `<T>` angle-bracket generic syntax.
-  // TS parser supports it ; Vader self-host parser is still on the legacy
-  // `[T]` form, so it can't parse the snippet. Re-enable after Phase B
-  // (vader/parser/ port).
-  "generic_angle_decl",
 ]);
 
 const scenarios = listSnippets("tests/snippets");

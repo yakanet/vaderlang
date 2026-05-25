@@ -32,14 +32,10 @@ interface Stage {
   skip: Set<string>;
 }
 
-// Snippets that exercise the `<T>` angle-bracket generic syntax. The TS
-// parser already supports them ; the Vader self-host parser still parses
-// the legacy `[T]` form, so parity is intentionally skipped until Phase B
-// updates `vader/parser/`. Remove these from the skip lists once the
-// self-host port is green.
-const ANGLE_GENERIC_SNIPPETS: ReadonlySet<string> = new Set([
-  "generic_angle_decl",
-]);
+// Snippets that exercise the `<T>` angle-bracket generic syntax. Now
+// supported by both parsers ; kept here as an explicit anchor in case
+// the angle form ever needs targeted skips during cleanup. Empty today.
+const ANGLE_GENERIC_SNIPPETS: ReadonlySet<string> = new Set<string>([]);
 
 // `dumpStage` is the CLI flag value ; `label` is what appears in test
 // names. Both stages map 1:1 onto a snapshot file produced by `tests/

@@ -1,35 +1,57 @@
 # Typecheck
 
 ## tests/snippets/generic_angle_decl
-  StructDecl     Box                  :: Box
-  FnDecl         identity             :: fn() -> ?
-  FnDecl         make_nested          :: fn() -> Box
-  expr 7:12     IdentExpr      :: ?
-
-# Diagnostics
-[6:22] error[P1002] expected token: expected `(` after function name (got `<`)
-[6:22] error[P1002] expected token: expected parameter name (got `<`)
-[7:12] error[R2006] unresolved identifier: `x`
-[11:21] error[P1002] expected token: expected `{` to open struct body (got `<`)
-[11:21] error[P1002] expected token: expected field name (got `<`)
-[11:21] error[P1002] expected token: expected `:` after field name (got `<`)
-[11:21] error[P1005] expected a type: got `<`
-[11:23] error[P1002] expected token: expected `:` after field name (got `>`)
-[11:23] error[P1005] expected a type: got `>`
-[11:25] error[P1002] expected token: expected field name (got `{`)
-[11:25] error[P1002] expected token: expected `:` after field name (got `{`)
-[11:25] error[P1005] expected a type: got `{`
-[17:18] error[P1002] expected token: expected `(` after function name (got `<`)
-[17:18] error[P1002] expected token: expected parameter name (got `<`)
-[17:34] error[P1006] expected a declaration: got `<`
-[18:11] error[P1006] expected a declaration: got `::`
-[22:10] error[P1006] expected a declaration: got `::`
-[27:25] error[P1006] expected a declaration: got `::`
-[28:7] error[P1006] expected a declaration: got `::`
-[32:12] error[P1006] expected a declaration: got `::`
-[36:6] error[P1006] expected a declaration: got `::`
-[37:7] error[P1006] expected a declaration: got `::`
-[41:7] error[P1006] expected a declaration: got `::`
-[44:7] error[P1006] expected a declaration: got `::`
-[47:12] error[P1006] expected a declaration: got `::`
-[50:7] error[P1006] expected a declaration: got `::`
+  FnDecl         assert_cmp           :: fn(bool, string) -> bool
+  StructDecl     Box                  :: Box(T)
+  FnDecl         demo_comparison_in_args :: fn() -> bool
+  FnDecl         identity             :: fn(T) -> T
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         make_box             :: fn(T) -> Box(T)
+  FnDecl         make_nested          :: fn(T) -> Box(Box(T))
+  expr 18:14    StructLitExpr  :: Box(T)
+  expr 18:32    IdentExpr      :: T
+  expr 19:12    StructLitExpr  :: Box(Box(T))
+  expr 19:35    IdentExpr      :: Box(T)
+  expr 23:12    StructLitExpr  :: Box(T)
+  expr 23:30    IdentExpr      :: T
+  expr 29:12    CallExpr       :: bool
+  expr 29:12    IdentExpr      :: fn(bool, string) -> bool
+  expr 29:23    BinaryExpr     :: bool
+  expr 29:23    IdentExpr      :: i32
+  expr 29:31    StringLitExpr  :: string
+  expr 33:12    IdentExpr      :: bool
+  expr 37:10    CallExpr       :: i32
+  expr 37:10    FieldExpr      :: fn() -> T
+  expr 38:13    StringLitExpr  :: string
+  expr 38:20    IdentExpr      :: i32
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 41:10    CallExpr       :: i32
+  expr 41:10    GenericInstExpr :: fn(T) -> T
+  expr 41:10    IdentExpr      :: fn(T) -> T
+  expr 42:13    StringLitExpr  :: string
+  expr 42:20    IdentExpr      :: i32
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void
+  expr 44:10    CallExpr       :: Box(i32)
+  expr 44:10    FieldExpr      :: fn() -> Box(T)
+  expr 45:13    StringLitExpr  :: string
+  expr 45:20    FieldExpr      :: i32
+  expr 45:20    IdentExpr      :: Box(i32)
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(T) -> void
+  expr 47:15    CallExpr       :: Box(Box(i32))
+  expr 47:15    FieldExpr      :: fn() -> Box(Box(T))
+  expr 48:13    StringLitExpr  :: string
+  expr 48:25    FieldExpr      :: Box(i32)
+  expr 48:25    FieldExpr      :: i32
+  expr 48:25    IdentExpr      :: Box(Box(i32))
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 50:10    CallExpr       :: bool
+  expr 50:10    IdentExpr      :: fn() -> bool
+  expr 51:13    StringLitExpr  :: string
+  expr 51:20    IdentExpr      :: bool
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 7:12     IdentExpr      :: T

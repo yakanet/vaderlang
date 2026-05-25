@@ -22,31 +22,9 @@
   ArrayIterator(T)
   ArrayIterator(T)
   ArrayIterator(T)
-
-# Diagnostics
-[6:22] error[P1002] expected token: expected `(` after function name (got `<`)
-[6:22] error[P1002] expected token: expected parameter name (got `<`)
-[7:12] error[R2006] unresolved identifier: `x`
-[11:21] error[P1002] expected token: expected `{` to open struct body (got `<`)
-[11:21] error[P1002] expected token: expected field name (got `<`)
-[11:21] error[P1002] expected token: expected `:` after field name (got `<`)
-[11:21] error[P1005] expected a type: got `<`
-[11:23] error[P1002] expected token: expected `:` after field name (got `>`)
-[11:23] error[P1005] expected a type: got `>`
-[11:25] error[P1002] expected token: expected field name (got `{`)
-[11:25] error[P1002] expected token: expected `:` after field name (got `{`)
-[11:25] error[P1005] expected a type: got `{`
-[17:18] error[P1002] expected token: expected `(` after function name (got `<`)
-[17:18] error[P1002] expected token: expected parameter name (got `<`)
-[17:34] error[P1006] expected a declaration: got `<`
-[18:11] error[P1006] expected a declaration: got `::`
-[22:10] error[P1006] expected a declaration: got `::`
-[27:25] error[P1006] expected a declaration: got `::`
-[28:7] error[P1006] expected a declaration: got `::`
-[32:12] error[P1006] expected a declaration: got `::`
-[36:6] error[P1006] expected a declaration: got `::`
-[37:7] error[P1006] expected a declaration: got `::`
-[41:7] error[P1006] expected a declaration: got `::`
-[44:7] error[P1006] expected a declaration: got `::`
-[47:12] error[P1006] expected a declaration: got `::`
-[50:7] error[P1006] expected a declaration: got `::`
+  Box(i32)
+  Box(Box(i32))
+  Box(Box(T))
+  Box(T)
+  Box(T)
+  Box(T)

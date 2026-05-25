@@ -170,15 +170,6 @@ const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   "typecheck:lexer/l0001_unexpected_character",
   "comptime:lexer/l0001_unexpected_character",
   "lower:lexer/l0001_unexpected_character",
-  // generic_angle_decl : TS parser supports the new `<T>` angle-bracket
-  // generic syntax ; Vader self-host parser still consumes the legacy
-  // `[T]` form, so it emits a cascade of P1002 / P1006 / R2006 codes
-  // that the TS parser doesn't produce. Tracked under Phase B (Vader
-  // self-host port). Remove once `vader/parser/` accepts `<T>`.
-  "resolver:generic_angle_decl",
-  "typecheck:generic_angle_decl",
-  "comptime:generic_angle_decl",
-  "lower:generic_angle_decl",
 ]);
 
 function collectScenarios(): Scenario[] {
