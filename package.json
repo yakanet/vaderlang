@@ -6,7 +6,7 @@
   "module": "src/index.ts",
   "scripts": {
     "vader": "bun src/index.ts",
-    "test": "bun test --preload ./tests/setup.ts",
+    "test": "bun test --preload ./tests/setup.ts --parallel",
     "test:update": "UPDATE_SNAPSHOTS=1 bun test --update-snapshots --preload ./tests/setup.ts",
     "test:leak": "bun run ./tests/leaks_check.ts",
     "build": "bun build src/index.ts --target=bun --outdir=dist",

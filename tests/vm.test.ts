@@ -75,7 +75,7 @@ for (const s of scenarios) {
   // traps. The native runner is the source of truth ; skip VM here
   // rather than encoding a "VM-traps, native-works" divergence into
   // vm.snapshot.
-  const fn = s.helperCFiles.length > 0 ? test.skip : test;
+  const fn = s.helperCFiles.length > 0 ? test.skip : test.concurrent;
   fn(`vm: ${s.name}`, async () => {
     const actual = await dumpVm(s.mainPath);
     const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);

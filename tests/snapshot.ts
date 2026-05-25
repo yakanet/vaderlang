@@ -530,22 +530,26 @@ export function dumpTypecheck(_source: string, entryPath: string): string {
  *  the place where TS divergences from Vader surface. */
 // Bumped GC arenas — under the strict resolver the typecheck stage
 // loads the full transitive closure of every visited module, which
-// the default 4M / 16M young / old can't hold for non-trivial entries
-// (e.g. anything pulling in `vader/parser` or `vader/typecheck`).
-const VADER_TYPECHECK_ENV = {
-  ...process.env,
+// the default 4M / 16M young / old can't hold for the heaviest
+// cross-module entry (`namespace_alias_dedupe` walks the full
+// `vader/parser` closure). Other snippets fit in the default arenas ;
+// scope the bump to the one snippet that actually needs it so we don't
+// pay the GC cost (and OOM risk under `--parallel`) on every spawn.
+// Mirror of `tests/parity.test.ts:24`'s `SLOW_TYPECHECK_SNIPPETS`.
+const SLOW_TYPECHECK_SNIPPETS = new Set(["namespace_alias_dedupe"]);
+const SLOW_TYPECHECK_ENV: Record<string, string> = {
+  ...process.env as Record<string, string>,
   VADER_GC_YOUNG_BYTES: String(16 * 1024 * 1024),
   VADER_GC_OLD_BYTES:   String(128 * 1024 * 1024),
 };
 
-export function dumpTypecheckViaVader(_source: string, entryPath: string): string {
-  const result = Bun.spawnSync(["./build/vader", "dump", "--stage=typed-ast", entryPath], { env: VADER_TYPECHECK_ENV });
-  const stdout = new TextDecoder().decode(result.stdout);
-  const stderr = new TextDecoder().decode(result.stderr);
-  // Surface CLI failures inline so snapshot diffs are debuggable rather
-  // than mysteriously empty.
-  if (result.exitCode !== 0) return `# vader CLI failed (exit ${result.exitCode})\n${stderr}${stdout}`;
-  return stdout;
+function envForSnippet(entryPath: string): Record<string, string> {
+  const name = entryPath.split("/").slice(-2, -1)[0] ?? "";
+  return SLOW_TYPECHECK_SNIPPETS.has(name) ? SLOW_TYPECHECK_ENV : process.env as Record<string, string>;
+}
+
+export async function dumpTypecheckViaVader(_source: string, entryPath: string): Promise<string> {
+  return runVaderDump("typed-ast", entryPath);
 }
 
 /** Same shape as `dumpTypecheckViaVader` but for the comptime stage.
@@ -555,11 +559,27 @@ export function dumpTypecheckViaVader(_source: string, entryPath: string): strin
  *  `@assert` ; fn-instance harvest is deferred to the lowerer port.
  *  Snippets relying on the deferred features will see their `## generic
  *  instances` lists shrink. */
-export function dumpComptimeViaVader(_source: string, entryPath: string): string {
-  const result = Bun.spawnSync(["./build/vader", "dump", "--stage=evaluated-ast", entryPath], { env: VADER_TYPECHECK_ENV });
-  const stdout = new TextDecoder().decode(result.stdout);
-  const stderr = new TextDecoder().decode(result.stderr);
-  if (result.exitCode !== 0) return `# vader CLI failed (exit ${result.exitCode})\n${stderr}${stdout}`;
+export async function dumpComptimeViaVader(_source: string, entryPath: string): Promise<string> {
+  return runVaderDump("evaluated-ast", entryPath);
+}
+
+// Async wrapper around `./build/vader dump --stage=<S> <file>`. `Bun.spawn`
+// here (not `spawnSync`) — the test runner drives multiple snippets in
+// parallel via `test.concurrent`, and a sync spawn would block the event
+// loop, defeating the concurrency.
+async function runVaderDump(stage: string, entryPath: string): Promise<string> {
+  const env = envForSnippet(entryPath);
+  const proc = Bun.spawn(["./build/vader", "dump", `--stage=${stage}`, entryPath], {
+    env, stdout: "pipe", stderr: "pipe",
+  });
+  const [stdout, stderr, exit] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ]);
+  // Surface CLI failures inline so snapshot diffs are debuggable rather
+  // than mysteriously empty.
+  if (exit !== 0) return `# vader CLI failed (exit ${exit})\n${stderr}${stdout}`;
   return stdout;
 }
 

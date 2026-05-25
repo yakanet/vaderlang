@@ -37,11 +37,11 @@ for (const s of scenarios) {
   const config = loadConfig(s.dir);
   const activePhases = config.phases ? PHASES.filter((p) => config.phases!.includes(p.name)) : PHASES;
   for (const p of activePhases) {
-    test.concurrent(`${p.name}: ${s.name}`, () => {
+    test.concurrent(`${p.name}: ${s.name}`, async () => {
       const file = p.usePath ? s.mainPath : MAIN_FILE;
       let actual: string;
       try {
-        actual = p.dump(s.source, file);
+        actual = await p.dump(s.source, file);
       } catch (e) {
         actual = `# internal error\n${errMsg(e)}\n`;
       }
