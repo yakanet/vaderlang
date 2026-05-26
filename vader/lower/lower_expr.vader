@@ -2143,24 +2143,44 @@ export lower_block :: fn(
     for stmt in block.stmts {
         lower_stmt_into(ctx, stmt, stmts)
     }
-    trailing :: lower_trailing(ctx, block.trailing)
-    block_type :: trailing_type(trailing)
-    // Emit `defer.pop_exec N` for any defers pushed in this block.
-    // Mirrors the block-fall-through defer drain in
-    // `src/lower/passes/block.ts:188-202`. The push/pop_exec sits
-    // BEFORE the trailing so a value-yielding block still returns
-    // its trailing result after the defers fire.
+    raw_trailing :: lower_trailing(ctx, block.trailing)
     defer_count :: ctx.blocks[entry_depth].defers.len()
     // Skip the block-fall-through pop_exec when control flow has
     // already exited (return / break / continue). The `drain_*`
     // helpers at those sites already emitted the proper drain count,
     // so a trailing pop_exec here would be dead code.
     last_diverges :: stmts.len() > usize(0) && stmt_diverges(stmts[stmts.len() - usize(1)])
+    // Sequence the block-fall-through defer drain so it runs AFTER
+    // the trailing expression has computed its value. The trailing's
+    // side-effects must land before any defer fires (their thunks
+    // may observe / mutate state visible to the parent block), and
+    // the drain must run before the value escapes the block. The
+    // only way to achieve both is to bind the trailing to a
+    // `__block_N` synthetic local, push `pop_exec`, then return an
+    // ident-ref as the new trailing. Mirror of
+    // `src/lower/passes/block.ts::emitTrailingValueWithDefers`.
+    trailing := raw_trailing
     if defer_count > usize(0) && !last_diverges {
-        stmts.push(LoweredDeferPopExec {
-            .span = block.span, .count = i32(defer_count),
-        })
+        if trailing == null {
+            stmts.push(LoweredDeferPopExec {
+                .span = block.span, .count = i32(defer_count),
+            })
+        } else {
+            value_type :: type_of(trailing)
+            tmp_sym :: fresh_synthetic_symbol(ctx, "block")
+            stmts.push(LoweredLet {
+                .span = trailing.span, .name = tmp_sym.name,
+                .symbol = tmp_sym, .type = value_type, .value = trailing,
+            })
+            stmts.push(LoweredDeferPopExec {
+                .span = trailing.span, .count = i32(defer_count),
+            })
+            trailing = LoweredIdent {
+                .span = trailing.span, .type = value_type, .symbol = tmp_sym,
+            }
+        }
     }
+    block_type :: trailing_type(trailing)
     // Pop the BlockCtx — mirror TS by maintaining the stack depth
     // invariant so nested blocks see only their own defers.
     new_blocks: BlockCtx[] = []
@@ -2204,18 +2224,42 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             // the actual return op. Mirrors TS `lower-stmt` block-exit
             // defer replay. Count = sum of `defers` across every open
             // BlockCtx (the innermost block back up to the fn root).
-            drain_all_defers(ctx, return_stmt.span, out)
-            out.push(lower_return(ctx, return_stmt))
+            // When the drain emits anything, bundle drain + exit into
+            // a single statement via `wrap_stmts` so the dump matches
+            // TS's `(block (pop_exec N) (return …))` shape rather
+            // than two flat sibling stmts.
+            drain: LoweredStmt[] = []
+            drain_all_defers(ctx, return_stmt.span, drain)
+            exit :: lower_return(ctx, return_stmt)
+            if drain.len() > usize(0) {
+                drain.push(exit)
+                out.push(wrap_stmts(return_stmt.span, drain))
+            } else {
+                out.push(exit)
+            }
         }
         is ForStmt      as for_stmt      -> { out.push(lower_for(ctx, for_stmt)) }
         is BreakStmt    as break_stmt    -> {
-            // Drain back to the enclosing loop boundary.
-            drain_defers_to_loop(ctx, break_stmt.span, out)
-            out.push(LoweredBreak { .span = break_stmt.span, .label = break_stmt.label })
+            drain: LoweredStmt[] = []
+            drain_defers_to_loop(ctx, break_stmt.span, drain)
+            exit :: LoweredBreak { .span = break_stmt.span, .label = break_stmt.label }
+            if drain.len() > usize(0) {
+                drain.push(exit)
+                out.push(wrap_stmts(break_stmt.span, drain))
+            } else {
+                out.push(exit)
+            }
         }
         is ContinueStmt as continue_stmt -> {
-            drain_defers_to_loop(ctx, continue_stmt.span, out)
-            out.push(LoweredContinue { .span = continue_stmt.span, .label = continue_stmt.label })
+            drain: LoweredStmt[] = []
+            drain_defers_to_loop(ctx, continue_stmt.span, drain)
+            exit :: LoweredContinue { .span = continue_stmt.span, .label = continue_stmt.label }
+            if drain.len() > usize(0) {
+                drain.push(exit)
+                out.push(wrap_stmts(continue_stmt.span, drain))
+            } else {
+                out.push(exit)
+            }
         }
         is DeferStmt    as defer_stmt    -> {
             // Lift to a synthetic `__defer_N` fn + emit
@@ -2668,6 +2712,18 @@ stmt_diverges :: fn(s: LoweredStmt) -> bool {
     if s is LoweredReturn   { return true }
     if s is LoweredBreak    { return true }
     if s is LoweredContinue { return true }
+    // `wrap_stmts(span, [pop_exec, return])` produces a
+    // `LoweredExprStmt { expr = LoweredBlock { stmts, trailing = null } }`
+    // whose inner block's last stmt is the actual return / break /
+    // continue. Peek through one level so the enclosing block's
+    // fall-through drain doesn't emit a duplicate pop_exec after a
+    // wrapped exit.
+    if s is LoweredExprStmt as es {
+        if es.expr is LoweredBlock as lb {
+            n :: lb.stmts.len()
+            if n > usize(0) { return stmt_diverges(lb.stmts[n - usize(1)]) }
+        }
+    }
     return false
 }
 
