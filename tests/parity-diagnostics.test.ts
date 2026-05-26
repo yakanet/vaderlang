@@ -100,11 +100,7 @@ function diffSets(a: DiagRef[], b: DiagRef[]): { onlyA: string[]; onlyB: string[
 const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   // Format : `${stage}:${snippet}`.
   // comptime-coverage : Vader's tree-walker comptime evaluator
-  // doesn't yet handle `CallExpr` / `SeqLitExpr` ; TS routes them
-  // through the bytecode VM and evaluates them cleanly. Lifted by
-  // Lot 4c (typecheck/comptime coverage audit).
-  "comptime:square_call",
-  "lower:square_call",
+  // doesn't yet handle `SeqLitExpr` ; TS routes through the VM.
   "comptime:tuple_comptime",
   "lower:tuple_comptime",
   // typecheck-coverage (cascading from incomplete `expr_types`)
@@ -112,10 +108,8 @@ const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   "typecheck:selfhost_lexer_basic",
   "comptime:iter_defaults",
   "comptime:selfhost_lexer_basic",
-  "comptime:interp_string_comptime",
   "lower:iter_defaults",
   "lower:selfhost_lexer_basic",
-  "lower:interp_string_comptime",
 ]);
 
 function collectScenarios(): Scenario[] {

@@ -145,6 +145,11 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
         self.walk_opt_expr(p.default_value)
         sym :: self.mint_local(.Param, p.name, p.span)
         self.scope.bind(p.name, sym)
+        // Persist the param's minted Symbol in `idents` keyed by the
+        // param's own span so downstream passes (e.g. comptime fn-body
+        // interpreter) can recover the Symbol.id without re-walking
+        // the body to find a use-site.
+        self.idents[span_key(p.span)] = sym
     }
     self.walk_opt_expr(d.return_type)
     match d.body {

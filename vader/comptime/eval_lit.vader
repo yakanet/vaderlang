@@ -52,23 +52,45 @@ export evaluate_char_lit :: fn(literal: AST.CharLitExpr) -> EvalResult {
 }
 
 /// Evaluate a `StringLitExpr`. Plain text segments concat directly ;
-/// any interpolation segment falls back to `C4001` (the evaluator
-/// can't recursively walk through string parts without a circular
-/// import on the dispatcher — interpolations land alongside
-/// `CallExpr` support in a future phase).
+/// interpolation segments recurse through `evaluate_expr` and render
+/// via `display_value`. Falls back to `C4001` when an interp segment
+/// itself doesn't reduce to a concrete value.
 /// @param literal  the literal node.
-/// @param context  the evaluator context — unused at this MVP.
-/// @return         the concatenated string value, or C4001 if any
-///                 segment is an interpolation.
-export evaluate_string_lit :: fn(literal: AST.StringLitExpr, _: ComptimeContext) -> EvalResult {
+/// @param context  the evaluator context.
+/// @param recurse  dispatcher callback ; passed in to avoid the
+///                 eval ↔ eval_lit import cycle.
+/// @return         the concatenated string value, or C4001 when an
+///                 interpolation segment can't be evaluated.
+export evaluate_string_lit :: fn(
+    literal: AST.StringLitExpr, context: ComptimeContext,
+    recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
+) -> EvalResult {
     sb := new_builder()
     for part in literal.parts {
         match part {
             is AST.StringLitText as text -> { sb.append(text.value) }
-            is AST.StringLitInterp -> {
-                return fail(comptime_error(.CannotEvaluate, literal.span, "StringInterp"))
+            is AST.StringLitInterp as interp -> {
+                inner :: recurse(interp.expr, context)
+                if inner.value is null { return inner }
+                sb.append(interp_value(inner.value))
             }
         }
     }
     return ok(string_val(sb.to_string()))
 }
+
+// Render a comptime value as the user-facing `Display` form would —
+// strings stay quote-less, integers drop the `_i32` suffix. Used by
+// string-interpolation segments so `"x=${42}"` resolves to `"x=42"`
+// rather than `"x=42_i32"`.
+interp_value :: fn(v: ComptimeValue) -> string = match v {
+    is IntValue    as x -> "${x.value}"
+    is FloatValue  as x -> "${x.value}"
+    is BoolValue   as x -> "${x.value}"
+    is StringValue as x -> x.value
+    is CharValue   as x -> "${x.value}"
+    is NullValue        -> "null"
+    is VoidValue        -> ""
+    _                   -> display_value(v)
+}
+

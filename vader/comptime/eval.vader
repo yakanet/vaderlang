@@ -22,11 +22,12 @@ export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResu
     is AST.BoolLitExpr   as x -> evaluate_bool_lit(x)
     is AST.CharLitExpr   as x -> evaluate_char_lit(x)
     is AST.NullLitExpr   as x -> evaluate_null_lit(x)
-    is AST.StringLitExpr as x -> evaluate_string_lit(x, context)
+    is AST.StringLitExpr as x -> evaluate_string_lit(x, context, evaluate_expr)
     is AST.IdentExpr     as x -> evaluate_ident(x, context)
     is AST.BinaryExpr        as x -> evaluate_binary_expr(x, context, evaluate_expr)
     is AST.UnaryExpr         as x -> evaluate_unary_expr(x, context, evaluate_expr)
     is AST.IntrinsicCallExpr as x -> evaluate_intrinsic_call(x, context)
+    is AST.CallExpr          as x -> evaluate_call_expr(x, context)
     _                             -> vm_required(span_of(expr), expr_kind_label(expr))
 }
 

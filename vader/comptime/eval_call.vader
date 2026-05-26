@@ -1,0 +1,86 @@
+// vader/comptime/eval_call — tree-walk interpreter for `simple_fn(args)`
+// calls at comptime.
+//
+// Mirrors the subset of TS `src/comptime/run.ts::executeComptime` that
+// covers `@comptime X :: simple_fn(...)` patterns. The interpreter looks
+// up the callee's `FnDecl` via `typed.fn_decls`, evaluates each arg in
+// the caller's context, binds args to the callee's param Symbols (made
+// addressable by `vader/resolver/body.vader::walk_fn_decl`'s
+// `idents[span_key(p.span)] = sym` write), then evaluates the callee's
+// body in a fresh `ComptimeContext` carrying the bindings.
+//
+// Out of scope for now : recursion bound, side effects, `if` / `match`
+// in the body. The body must be a single `return <expr>` statement or
+// a trailing-expr block. Anything else falls back to C4001.
+
+module "vader/comptime"
+
+import "std/collections" { MutableMap }
+import "vader/diagnostics" { Span, comptime_error }
+import "vader/diagnostics" { ComptimeCode }
+import "vader/resolver" { span_key }
+import "vader/resolver/symbol" { Symbol }
+AST :: import "vader/parser"
+
+/// Evaluate `callee(args)` at comptime when both sides are simple
+/// enough : callee resolves to a top-level `FnDecl`, args reduce to
+/// concrete `ComptimeValue`s, and the body is a single trailing
+/// expression or `return <expr>`.
+export evaluate_call_expr :: fn(
+    expr: AST.CallExpr, context: ComptimeContext,
+) -> EvalResult {
+    if !(expr.callee is AST.IdentExpr) {
+        return vm_required(expr.span, "CallExpr (non-ident callee)")
+    }
+    callee :: expr.callee
+    callee_sym :: context.typed.resolved.idents[span_key(callee.span)]
+    if callee_sym is null {
+        return vm_required(expr.span, "CallExpr (callee unresolved)")
+    }
+    fn_decl :: context.typed.fn_decls[callee_sym.id]
+    if fn_decl is null {
+        return vm_required(expr.span, "CallExpr (no FnDecl for callee)")
+    }
+    if fn_decl.params.len() != expr.args.len() {
+        return vm_required(expr.span, "CallExpr (arity mismatch)")
+    }
+    bindings :: MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 }
+    for k in context.bindings.keys() {
+        bound :: context.bindings[k]
+        if !(bound is null) { bindings[k] = bound }
+    }
+    for i in 0..<expr.args.len() {
+        arg_result :: evaluate_expr(expr.args[i].value, context)
+        if arg_result.value is null { return arg_result }
+        param :: fn_decl.params[i]
+        param_sym :: context.typed.resolved.idents[span_key(param.span)]
+        if param_sym is null {
+            return vm_required(expr.span, "CallExpr (param sym unresolved)")
+        }
+        bindings[param_sym.id] = arg_result.value
+    }
+    call_context :: ComptimeContext { .typed = context.typed, .bindings = bindings }
+    return evaluate_fn_body(fn_decl, call_context, expr.span)
+}
+
+evaluate_fn_body :: fn(
+    fn_decl: AST.FnDecl, context: ComptimeContext, call_span: Span,
+) -> EvalResult {
+    if fn_decl.body is null {
+        return vm_required(call_span, "CallExpr (callee has no body)")
+    }
+    body :: fn_decl.body
+    if !(body.trailing is null) {
+        return evaluate_expr(body.trailing, context)
+    }
+    // Block with statements only — accept a single `return <expr>`.
+    if body.stmts.len() == 1 {
+        s :: body.stmts[0]
+        if s is AST.ReturnStmt as ret {
+            if !(ret.value is null) {
+                return evaluate_expr(ret.value, context)
+            }
+        }
+    }
+    return vm_required(call_span, "CallExpr (body too complex)")
+}

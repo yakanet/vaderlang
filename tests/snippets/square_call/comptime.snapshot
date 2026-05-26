@@ -3,6 +3,7 @@
 ## stdlib/std/core
 
 ## tests/snippets/square_call
+  @comptime  NINE                 = 9_i32
 
 ## generic instances
   Into<Target>
@@ -20,6 +21,3 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-
-# Diagnostics
-[8:16] error[C4001] expression cannot be evaluated at compile time: CallExpr
