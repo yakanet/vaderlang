@@ -1,2 +1,2 @@
 # compile errors
-[T3039] `Into<T>` cannot use `T` as its target (identity coercion is forbidden): `Foo implements Into(Foo)` — source and target must differ
+[T3039] `Into<T>` cannot use `T` as its target (identity coercion is forbidden): `Foo implements Into<Foo>` — source and target must differ
