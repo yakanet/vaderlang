@@ -28,6 +28,7 @@ export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResu
     is AST.UnaryExpr         as x -> evaluate_unary_expr(x, context, evaluate_expr)
     is AST.IntrinsicCallExpr as x -> evaluate_intrinsic_call(x, context)
     is AST.CallExpr          as x -> evaluate_call_expr(x, context)
+    is AST.SeqLitExpr        as x -> evaluate_seq_lit(x, context, evaluate_expr)
     _                             -> vm_required(span_of(expr), expr_kind_label(expr))
 }
 

@@ -1,0 +1,37 @@
+// vader/comptime/eval_seq_lit — `[e0, e1, …]` literal evaluator.
+//
+// Tuples (typed `[T0, T1, …]`) materialise as `StructValue` with
+// synthetic `_0`, `_1`, … field names — mirrors the TS VM's tuple
+// representation (`src/typecheck/types.ts:125`). Arrays (typed `T[]`)
+// materialise as `ArrayValue`. The discriminator is the type-checker's
+// `expr_types[expr.id]` ; both shapes recurse through the dispatcher
+// to evaluate elements.
+
+module "vader/comptime"
+
+import "std/collections" { MutableMap }
+import "vader/types" { Type, TupleType, ArrayType, display_type }
+AST :: import "vader/parser"
+
+export evaluate_seq_lit :: fn(
+    expr: AST.SeqLitExpr, context: ComptimeContext,
+    recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
+) -> EvalResult {
+    elements: ComptimeValue[] = []
+    for el in expr.elements {
+        r :: recurse(el, context)
+        if r.value is null { return r }
+        elements.push(r.value)
+    }
+    inferred :: context.typed.expr_types[expr.id]
+    if inferred is TupleType {
+        fields :: MutableMap<string, ComptimeValue> { .buckets = [], .size = 0 }
+        for i in 0..<elements.len() {
+            fields["_${i}"] = elements[i]
+        }
+        return ok(StructValue { .type_name = display_type(inferred), .fields = fields })
+    }
+    element_type_name: string = ""
+    if inferred is ArrayType { element_type_name = display_type(inferred.element) }
+    return ok(ArrayValue { .elements = elements, .element_type_name = element_type_name })
+}

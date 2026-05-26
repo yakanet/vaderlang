@@ -5,6 +5,8 @@
 ## stdlib/std/io
 
 ## tests/snippets/tuple_comptime
+  @comptime  DIM                  = [i32, i32] { ._0 = 10_i32, ._1 = 20_i32 }
+  @comptime  ORIGIN               = [f64, f64, string] { ._0 = 0.0_f64, ._1 = 0.0_f64, ._2 = "origin" }
 
 ## generic instances
   Into<Target>
@@ -22,7 +24,3 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-
-# Diagnostics
-[13:20] error[C4001] expression cannot be evaluated at compile time: SeqLitExpr
-[16:31] error[C4001] expression cannot be evaluated at compile time: SeqLitExpr

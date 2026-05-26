@@ -883,13 +883,22 @@ settle_external_expr_bodied_returns :: fn(
     project: LoadedProject, per_module: MutableMap<string, TypedProgram>,
 ) -> void {
     entry_path :: project.entry
-    for id in project.modules.keys() {
-        if id == entry_path { continue }
-        loaded :: project.modules[id]
-        if loaded is null { continue }
-        other_typed :: per_module[id]
-        if other_typed is null { continue }
-        walk_bodies(loaded.module.files[0].program.decls, other_typed, diag_sink())
+    // Two-pass : expression-bodied fns whose body calls other expr-bodied
+    // fns in the same module need the callees' return types patched
+    // before the caller's inference sees them. A second walk picks up
+    // the now-resolved return types so chains like
+    // `lexer_error(...) = new_diagnostic(...)` (where new_diagnostic
+    // is itself expr-bodied) settle to the concrete return type
+    // instead of `?`.
+    for pass in 0..<2 {
+        for id in project.modules.keys() {
+            if id == entry_path { continue }
+            loaded :: project.modules[id]
+            if loaded is null { continue }
+            other_typed :: per_module[id]
+            if other_typed is null { continue }
+            walk_bodies(loaded.module.files[0].program.decls, other_typed, diag_sink())
+        }
     }
 }
 

@@ -99,17 +99,7 @@ function diffSets(a: DiagRef[], b: DiagRef[]): { onlyA: string[]; onlyB: string[
 //     stage ; same root cause.
 const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   // Format : `${stage}:${snippet}`.
-  // comptime-coverage : Vader's tree-walker comptime evaluator
-  // doesn't yet handle `SeqLitExpr` ; TS routes through the VM.
-  "comptime:tuple_comptime",
-  "lower:tuple_comptime",
   // typecheck-coverage (cascading from incomplete `expr_types`)
-  "typecheck:iter_defaults",
-  "typecheck:selfhost_lexer_basic",
-  "comptime:iter_defaults",
-  "comptime:selfhost_lexer_basic",
-  "lower:iter_defaults",
-  "lower:selfhost_lexer_basic",
 ]);
 
 function collectScenarios(): Scenario[] {
