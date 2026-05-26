@@ -15,6 +15,46 @@
 
 ---
 
+## Sprint progress
+
+### S1 — Resolver hygiene + typecheck cleanups (closed 2026-05-26, commit `fc8e5c49`)
+
+- **C.5 Test process leak** ✅ — kill-timer 60-90 s sur `runCli`,
+  `runVaderDump`, `runProc`. Plus de zombies pinning a CPU sur
+  bun:test bailout.
+- **C.4 settle_external scope-down** ✅ — pass 1 du re-walk skipé
+  pour modules sans expr-bodied fn. -14 % warm typecheck dump.
+- **C.2 `!is` operator** ✅ already shipped (commit `03525c1f`).
+  TODO entry mis à jour.
+- **B.1 R2026 activation + 3 collisions consolidées** ✅ — 
+  `vader/vm/{ScopeEntry, PendingBranch}` kept in builder.vader ;
+  `vader/lower/CellInit` + helpers kept in helpers.vader.
+- **B.2 Resolver lazy index** ⚠️ reverted — perf win mesurée (660 ms
+  → ~30 ms sur `arith`) mais `diagnose_import_path` fires R2001
+  depuis l'intérieur de `collect_module` avant que le BFS puisse
+  lazy-expand. Documenté pour fix futur (1 jour vs ~2-3 h prévu).
+- **C.1 `is_assignable` split** ✅ already shipped via Phase B de
+  `CC_COMPILE_TIME_REDUCTION` (80 lignes C vs 51 k pré-split).
+
+### S2 — Default-method materialize + Cell(T) (closed before this session)
+
+- **D Default-method materialize** ✅ — landed via `5e4c1b84` +
+  `2b8ddab4` + `cded9837` + `d9303880`. Walker `substitute_expr_full`
+  (291 LoC) dans `vader/resolver/substitute_body.vader`. Tous les
+  5 snippets bloqués passent : `custom_iter`, `custom_iter_generic`,
+  `iter_defaults`, `trait_dispatch_generic_iter`, `for_in_iter_trait`.
+- **E `Cell(T)` heap promotion** ✅ — déjà wiré end-to-end.
+  `lower_let`, `lower_match` bindings, `lower_ident` captured-read,
+  `try_lower_cell_set_assign` toutes émittent `LoweredCellNew` /
+  `LoweredCellGet` / `LoweredCellSet`. `vm_closure_mutating` run
+  cleanly.
+
+**S2 était stale dans le plan — les TODO entries n'avaient pas été
+mises à jour à la livraison. Verification 2026-05-26 surfaceé les
+deux comme done. Save : ~2-3 semaines de travail évitées.**
+
+---
+
 ## 1. Inventaire par pass
 
 ### 1.1 Resolver
@@ -219,33 +259,55 @@
 Trois sessions logiques. Chaque sprint expose un livrable validable
 isolément.
 
-### Sprint S1 — Hygiène resolver + typecheck cleanups (1 semaine)
+### Sprint S1 — Hygiène resolver + typecheck cleanups (DONE 2026-05-26)
 
-B + C.1 + C.2 + C.4 + C.5. Pas de dépendance, peut commencer
-immédiatement. Sort un compilateur plus rapide, plus fidèle, et qui
-ne pille pas la machine en process zombies.
+Closed in commit `fc8e5c49`. See §"Sprint progress" above.
 
-**Exit** : pas de regression, tests verts, `vader/cli/main.vader`
-dump cross-file fidèle.
+### Sprint S2 — Default-method + Cell(T) (DONE pre-2026-05-26)
 
-### Sprint S2 — Default-method + Cell(T) (2-3 semaines)
+Already shipped. See §"Sprint progress" above.
 
-D + E. Le plus gros sprint. D unblock 5 snippets bloqués depuis 2026-05
-sur le self-host typecheck ; E unblock les closures sur mutables et
-le segfault repro 2026-05-25.
+### Sprint S3 — Finitions lower + comptime walkers + midir DCE (1-2 semaines, **next up**)
 
-**Exit** : `custom_iter`, `iter_defaults`, `trait_dispatch_generic_iter`
-passent ; `for_each_type` lambda à 2 captures ne SIGSEGV plus.
+Open work :
 
-### Sprint S3 — Finitions lower + comptime walkers + midir DCE (1-2 semaines)
+- **Lower byte-match flip** : currently 183/234 (78 %), need ≥ 200/226
+  pour `tests/snapshot.test.ts:22` flip de `dumpLower` → `dumpLowerViaVader`.
+  51 divergent snippets clustering around :
+  - **let-bound type aliases** (`let_type_alias`, `type_valued_local_rejected`)
+    — `@size_of(t)` where `t` is a let-typed alias doesn't fold to
+    `int(N)` ; Vader emits the runtime intrinsic call.
+  - **defer in nested blocks** (`defer_block`, `defer_in_lambda`,
+    `defer_on_panic`) — block-scope wrapping differs vs TS.
+  - **generic dispatch / trait routing** (`generic_*`, `trait_dispatch_*`,
+    `iter_*`, `custom_iter*`, `transitive_mono`) — assorted small
+    drifts.
+  - **operator overload** (`op_overload_*`, `contains_op`, `range_widths`).
+  - **specifics** (`enum_trait_self_return`, `numeric_add_trait`,
+    `string_codepoint_slice`, `interpolation_tokens`, `tuple_comptime`,
+    `file_decorator`, `spread_destructure`, `struct_spread`,
+    `ufcs_union_receiver`, `vm_trait_dispatch`).
+- **G — Comptime walkers** : `generic_fn_calls` side-table population,
+  `for-in ArrayIterator` detection, `Into`-coercion materialisation,
+  transitive closure (`closeOverGenericImpls`-equivalent).
+  See TODO §2.5b "Deferred until lowerer + bytecode emit port".
+- **H — Midir DCE primitive-aware** : `usedPrimitives` tracking in
+  `pruneUnreachable` + primitive-aware gate in `pendingVirtual`. Stop-gap
+  `@specialize` on `std/io` wrappers landed 2026-05-25 ; proper fix
+  earns the win on every generic `[T: Display]`. TODO line 844.
+- **I — Bytecode emit stdlib surface** : drop `is_stdlib_path` skip vs
+  add `enumerate-stdlib-externs` pass ; reconcile `format_op`/`write_op_line`
+  spellings before byte-diff `.virt`. TODO line 542-567.
+- **M5004 `IntoCoercionFailed` emit** : wire in
+  `vader/lower/lower_for_in.vader` after porting TS for-in emit sites.
+  Currently missing — Vader has no equivalent of TS's B5001 backend diag.
 
-F + G + H + I (+ J si temps). Le but est de remonter le byte-match
-lower à ≥ 200/226 pour autoriser le snapshot flip, et de fermer les
-side-tables comptime manquants.
+**Exit** : ≥ 200/234 byte-match → flip snapshot.test.ts ;
+`generic_fn_calls` populated ; DCE primitive-aware reduces
+`vader.c` by another N% ; bytecode `.virt` byte-diffs Vader vs TS.
 
-**Exit** : `tests/snapshot.test.ts` peut basculer sur `dumpLowerViaVader`.
+### Sprint S4 (optionnel) — `@comptime fn` subsystem (~2-3 semaines)
 
-**Sprint S4 (optionnel)** — `@comptime fn` subsystem (~2-3 semaines).
 À décider après S3, en fonction de la décision finir-Path-3 (cf §3
 item 6).
 

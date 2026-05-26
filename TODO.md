@@ -799,12 +799,19 @@ queries + closure-analysis pass land on the typechecker side.
 
 #### Still open
 
-- [ ] **`Cell(T)` heap promotion** — closure analysis identifies the
-      capture set (`ClosureAnalysis.captured_symbols`) but
-      `lower_let` / `lower_ident` don't yet emit `LoweredCellNew` /
-      `LoweredCellGet` ; mutable closure variables observe stale
-      copies until this lands. Stub `helpers.vader::lower_cell_init`
-      is in place.
+- [x] **`Cell(T)` heap promotion** (verified 2026-05-26). Already
+      wired end-to-end :
+      - `lower_let` (`lower_expr.vader:2262`) wraps the initialiser via
+        `lower_cell_init` ; ditto `lower_match.vader` pattern bindings
+        (lines 322 / 335 / 359).
+      - `lower_ident` (`lower_expr.vader:196-204`) emits
+        `LoweredCellGet` on captured-symbol reads ; lifted-lambda body
+        routes through `env.cap_N` via `try_route_through_env`
+        (`lower_expr.vader:380-398`).
+      - Assignment through a captured slot lands as `LoweredCellSet`
+        via `try_lower_cell_set_assign` (`lower_expr.vader:2496-2517`).
+      `vm_closure_mutating` runs cleanly through the Vader VM ;
+      snapshot bytecode shows the cell ops.
 - [ ] **Inline-consts pass** — post-lowering const substitution +
       data-pool routing. No upstream blocker, but lands alongside the
       bytecode-emit chantier where the data pool actually matters.
@@ -847,7 +854,7 @@ queries + closure-analysis pass land on the typechecker side.
 - [x] **Generic trait method substitution** (2026-05-17) — landed via `trait_decl_owners` side-table + `substitute_by_name` over `Yield(T)` etc. `try_default_trait_method` for inherited Iterator defaults landed too. Unblocked iter_coerce_array (with `try_array_to_iter` in coerce.vader), iter_combinators, iter_zip_chain, trait_box_range_iter, string_codepoints. Still blocked on default-method *materialize-into-impl-with-original-line:col* (separate item below).
 - [x] **Generic fn-call argument inference back-propagation** (2026-05-17) — `call.vader::infer_call` now substitutes bindings into each param BEFORE typing it (so lambda's expected fn-type reflects already-bound type-params), and `unify_type_param` tightens Free* bindings when a later arg pins the same TypeParam to a concrete numeric. `expr_lambda.vader::pick_final_return` falls back to body's defaulted type when expected is TypeParam-bearing.
 
-- [ ] **Default-method materialize into impls with original line:col** — TS materialises trait default-bodied methods (`Iterator.is_empty`, `Iterator.count`, …) INTO each implementing struct's impl, preserving the std/core line:col in the dump but with `Self → struct_ty` + `T → trait_arg` substituted. Blocks `custom_iter`, `custom_iter_generic`, `iter_defaults`, `trait_dispatch_generic_iter`, `for_in_iter_trait`. Heavy : needs a body-walk pass that types the trait method's AST under a substituting context AND writes to entry's typed program at the trait method's original spans. Blocker for the substitution part : no `substitute_expr` walker exists in `vader/resolver/substitute.vader` — only `substitute_type_expr` for type-position exprs. Adding the full expression walker is the big lift.
+- [x] **Default-method materialize into impls with original line:col** (verified 2026-05-26). Landed via commit `5e4c1b84` (`feat(resolver): default-method body materialization`) with follow-ups `2b8ddab4` (substitute_by_name walks TraitType args), `cded9837` (skip walk_fn_body for materialized clones), `d9303880` (chain struct→trait→receiver substitution). The full expression walker lives in `vader/resolver/substitute_body.vader::substitute_expr_full` (291 LoC), called from `vader/resolver/materialize.vader::materialize_default_members`. All 5 previously blocked snippets pass parity : `custom_iter`, `custom_iter_generic`, `iter_defaults`, `trait_dispatch_generic_iter`, `for_in_iter_trait`.
 - [x] **T3006 (trait bound not satisfied) at call sites** (2026-05-17) — landed via `fn_decls: i32 → FnDecl` side-table (cross-published across modules), idents-write on type-param decl sites in the resolver, and `check_typeparam_bounds` post-pass in `call.vader::infer_call`. Closed `conformance_explicit`.
 - [ ] **`a == b` on user structs → `a.equals(b)` lowering at typecheck** — TS records the synthesised CallExpr / FieldExpr in `expr_types` at the BinaryExpr's span so the dump shows `bool` / `fn(Money) -> bool` / `Money` entries even though the source is just `a == b`. Self-host returns plain `bool` without the synth entries. Blocks `op_overload_eq_ord` parity.
 - [x] **Namespace-alias struct-literal field resolution + multi-file cross-file decls** (landed 2026-05-24). Root cause : `decl_types` was span-keyed (`(line << 32) | column`), which collided across files in multi-file modules (e.g. `vader/vm/builder.vader::drop` at `(575, 8)` clobbered `vader/vm/exec.vader::exec` at `(575, 8)`). Fix : re-keyed `decl_types` to `MutableMap(i32, Type)` using `Symbol.id` (globally unique per `LoadedProject`). Touched ~30 read/write sites across `vader/typecheck` (decl, orchestrate, expr_ident, stmt, field, dump, call, expr_dot_variant), `vader/lower` (entry_types, lower_expr, lower_match), and `vader/comptime/check`. Impl-method types — which have no resolver Symbol — moved to a separate `impl_method_decl_types: MutableMap(i64, Type)` (still span-keyed but per-file is enough). `harvest_instances` now also walks `impl_methods` + `impl_method_decl_types` so generic instances surfacing only through impl-method signatures (e.g. `Iterator(T)` via `MapIterator implements Iterator[U]`) aren't lost. `declare_extra_file_type_decls` now calls full `declare_decl` for every kind in sibling files. `builder_roundtrip` + `peephole_rules` + the `op.PrimitiveType { .kind = "i32" }` repro all typecheck cleanly ; removed from `KNOWN_DIVERGENCES`.
