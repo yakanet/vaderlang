@@ -2954,11 +2954,72 @@ try_lower_array_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
                 .target = target_lowered, .lo = lo_value, .hi = hi_value,
             }
         }
-        _ -> { return null }
+        _ -> {}
+    }
+    // Range-typed *value* index (`let r = 0..<n ; arr[r]`) — bind the
+    // range to a temp so the three field reads (`.start`, `.end`,
+    // `.inclusive`) share one evaluation, then emit the slice. Mirrors
+    // TS' `lowerRangeSlice` second branch (`src/lower/passes/expr.ts`).
+    idx_type :: ctx.types.expr_type(expr.index)
+    if idx_type is StructType as st {
+        if st.symbol.name != "Range" { return null }
+        span :: expr.span
+        range_sym :: fresh_synthetic_symbol(ctx, "slice_r")
+        range_binding :: LoweredLet {
+            .span = span, .name = range_sym.name, .symbol = range_sym,
+            .type = idx_type, .value = lower_expr(ctx, expr.index),
+        }
+        range_ref :: LoweredIdent { .span = span, .type = idx_type, .symbol = range_sym }
+        bound_type :: if st.args.len() > usize(0) { st.args[0] } else { mk_primitive("usize") }
+        lo_value :: cast_to_usize(LoweredFieldAccess {
+            .span = span, .type = bound_type, .target = range_ref, .field = "start",
+        }, span)
+        hi_raw :: cast_to_usize(LoweredFieldAccess {
+            .span = span, .type = bound_type, .target = range_ref, .field = "end",
+        }, span)
+        hi_value :: adjust_hi_inclusive_dynamic(hi_raw, LoweredFieldAccess {
+            .span = span, .type = TY_BOOL, .target = range_ref, .field = "inclusive",
+        }, span)
+        stmts: LoweredStmt[] = []
+        stmts.push(range_binding)
+        return LoweredBlock {
+            .span = span, .type = type, .stmts = stmts,
+            .trailing = LoweredArraySlice {
+                .span = span, .type = type,
+                .target = lower_expr(ctx, expr.target),
+                .lo = lo_value, .hi = hi_value,
+            },
+        }
+    }
+    return null
+}
+
+adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span: Span) -> LoweredExpr {
+    usize_ty :: mk_primitive("usize")
+    delta :: LoweredIf {
+        .span = span, .type = usize_ty, .cond = inclusive,
+        .then_block = LoweredBlock {
+            .span = span, .type = usize_ty, .stmts = [],
+            .trailing = LoweredIntLit { .span = span, .type = usize_ty, .value = i64(1) },
+        },
+        .else_block = LoweredBlock {
+            .span = span, .type = usize_ty, .stmts = [],
+            .trailing = LoweredIntLit { .span = span, .type = usize_ty, .value = i64(0) },
+        },
+    }
+    return LoweredBinary {
+        .span = span, .type = usize_ty, .op = LoweredBinaryOp.Add,
+        .left = hi, .right = delta,
     }
 }
 
 cast_to_usize :: fn(value: LoweredExpr, span: Span) -> LoweredExpr {
+    // No-op when already usize — mirrors TS' `castToUsize`
+    // (`src/lower/passes/expr.ts:864`).
+    vt :: type_of(value)
+    if vt is PrimitiveType as p {
+        if p.name == "usize" { return value }
+    }
     return LoweredCast { .span = span, .type = mk_primitive("usize"), .value = value }
 }
 
