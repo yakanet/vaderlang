@@ -277,8 +277,15 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
             return LoweredArrayLit { .span = span, .type = type_hint, .elements = elements }
         }
         is StructValue as sv -> {
+            // `sv.fields.keys()` iterates in MutableMap hash-bucket
+            // order, which doesn't match the field declaration order
+            // tuples / structs rely on for dump parity. Sort the
+            // names alphabetically — for tuples (`_0`, `_1`, `_2`)
+            // that matches the positional order ; for named structs
+            // the same ordering is what TS' dump uses.
+            sorted_names :: sort(sv.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
             fields: LoweredStructLitField[] = []
-            for name in sv.fields.keys() {
+            for name in sorted_names {
                 val :: sv.fields[name]
                 match val {
                     is null -> {}
@@ -311,6 +318,15 @@ is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
         is CharValue   -> { return true }
         is StringValue -> { return true }
         is NullValue   -> { return true }
+        // Small tuple / struct values inline at use sites — TS'
+        // `inlineConsts` pass keeps these as `LoweredStructLit` /
+        // `LoweredArrayLit` at every reference. Vader doesn't have a
+        // size gate yet (TS' data-pool / fn-wrap split kicks in at
+        // ≥ 4 elements) ; small tuple consts are the dominant pattern
+        // that hits this path so blind inlining matches the snapshot
+        // shape. Revisit when data-pool / fn-wrap lands.
+        is StructValue -> { return true }
+        is ArrayValue  -> { return true }
         _              -> { return false }
     }
 }
@@ -1326,6 +1342,8 @@ mangle_module_id :: fn(module_id: string) -> string {
 }
 
 import "std/string_builder" { new_builder as new_builder_for_mangle, append_char, append }
+import "std/sort" { sort }
+import "std/string" { compare_ascending }
 
 /// `T(value)` cast-call detector. Returns a `LoweredCast` when the callee
 /// is a type-shaped symbol (builtin primitive, struct, or type alias) with
