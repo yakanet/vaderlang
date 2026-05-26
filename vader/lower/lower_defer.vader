@@ -92,17 +92,14 @@ export lower_defer :: fn(
     return LoweredDeferPush { .span = defer_stmt.span, .thunk = thunk }
 }
 
-// Closure-analysis side-table lookup. Falls back to empty when the
-// analysis didn't observe this defer (recovery path past an earlier
-// diagnostic, or when the analysis hasn't been extended to defer
-// captures yet — current MVP returns empty list always).
+// Closure-analysis side-table lookup. The analysis recorded each
+// defer body's capture list under its DeferStmt.id (mirror of TS
+// `closures.deferCaptures.get(stmt)`) ; we read the matching entry
+// and fall back to an empty list when the analysis didn't observe
+// this defer (recovery path past an earlier diagnostic).
 lookup_defer_captures :: fn(ctx: FnLowerCtx, defer_stmt: AST.DeferStmt) -> Capture[] {
-    // TODO : populate `closures.defer_captures` from closure_analysis
-    // (mirror of TS `closures.deferCaptures.get(stmt)`). Until then,
-    // captures are empty — the lifted fn references outer locals as
-    // plain idents and the C-emit / VM will fail at run-time if the
-    // defer body actually uses them. Dump structure is correct for
-    // capture-free defers (`defer println("oops")`).
+    found :: ctx.project.closures.defer_captures[defer_stmt.id]
+    if found is Capture[] as caps { return caps }
     empty: Capture[] = []
     return empty
 }

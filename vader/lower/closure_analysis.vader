@@ -198,9 +198,38 @@ walk_stmt :: fn(
         is AST.BreakStmt -> {}
         is AST.ContinueStmt -> {}
         is AST.DeferStmt as defer_stmt -> {
+            // The defer body lifts to a synthetic fn with its own env
+            // struct, so it has a distinct capture set from the
+            // enclosing fn. Walk into the body with FRESH `captures`
+            // + `seen` slots so any outer ident the body references
+            // lands on the defer's own capture list. Then merge the
+            // collected captures into the parent's capture set
+            // (closures captured by an outer fn through a defer body
+            // still need heap-promotion). Mirrors the per-lambda
+            // shape at line 499.
+            defer_captures: Capture[] = []
+            defer_seen :: MutableSet<i32> {
+                .inner = MutableMap<i32, bool> { .buckets = [], .size = usize(0) },
+            }
             match defer_stmt.body {
-                is AST.DeferStmtBody as dsb -> { walk_stmt(dsb.stmt, scope, out_captures, out_seen, ctx) }
-                is AST.DeferBlockBody as dbb -> { walk_body(dbb.block, scope, out_captures, out_seen, ctx) }
+                is AST.DeferStmtBody as dsb -> { walk_stmt(dsb.stmt, scope, defer_captures, defer_seen, ctx) }
+                is AST.DeferBlockBody as dbb -> { walk_body(dbb.block, scope, defer_captures, defer_seen, ctx) }
+            }
+            ctx.analysis.defer_captures[defer_stmt.id] = defer_captures
+            // Bubble each captured symbol into the parent's lists so
+            // the enclosing fn sees them (it needs to read the cell
+            // value to materialise the env at defer-push time).
+            if out_captures != null {
+                if out_seen != null {
+                    for cap in defer_captures {
+                        if out_seen.inner.contains(cap.symbol.id) { continue }
+                        out_seen.inner[cap.symbol.id] = true
+                        out_captures.push(cap)
+                    }
+                }
+            }
+            for cap in defer_captures {
+                ctx.analysis.captured_symbols.inner[cap.symbol.id] = true
             }
         }
     }

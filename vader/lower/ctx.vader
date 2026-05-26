@@ -38,10 +38,14 @@ export Capture :: struct {
 /// Free-variable analysis output. `captured_symbols` lists every symbol
 /// ID that needs heap-promotion via `Cell(T)` ; `lambda_captures` keys
 /// the per-lambda capture list (field order in the generated env struct
-/// mirrors this order). Both populated by Phase 5's `analyze_closures`.
+/// mirrors this order). `defer_captures` plays the same role for
+/// `defer body` thunks — the body lifts to a synthetic fn carrying its
+/// captured outer symbols through a `__defer_env_N` struct. Both
+/// populated by Phase 5's `analyze_closures`.
 export ClosureAnalysis :: struct {
     captured_symbols: MutableSet<i32>
     lambda_captures:  MutableMap<usize, Capture[]>
+    defer_captures:   MutableMap<usize, Capture[]>
 }
 
 /// Construct an empty `ClosureAnalysis`. Lets the phase-2 orchestrator
@@ -53,6 +57,7 @@ export new_closure_analysis :: fn() -> ClosureAnalysis {
             .inner = MutableMap<i32, bool> { .buckets = [], .size = usize(0) },
         },
         .lambda_captures  = MutableMap<usize, Capture[]> { .buckets = [], .size = 0 },
+        .defer_captures   = MutableMap<usize, Capture[]> { .buckets = [], .size = 0 },
     }
 }
 
