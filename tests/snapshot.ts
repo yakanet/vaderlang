@@ -571,20 +571,33 @@ export async function dumpComptimeViaVader(_source: string, entryPath: string): 
 // here (not `spawnSync`) — the test runner drives multiple snippets in
 // parallel via `test.concurrent`, and a sync spawn would block the event
 // loop, defeating the concurrency.
+//
+// Hard wall-clock budget mirrors `tests/cli-bin.ts::runCli` : Bun's test
+// driver doesn't cancel in-flight spawns on test timeout, so a looping
+// CLI (e.g. a regressed typechecker on a pathological snippet) can pin a
+// CPU for hours. 90 s is generous enough for cold-cache invocations on
+// large self-host modules.
+const VADER_DUMP_TIMEOUT_MS = 90_000;
+
 async function runVaderDump(stage: string, entryPath: string): Promise<string> {
   const env = envForSnippet(entryPath);
   const proc = Bun.spawn(["./build/vader", "dump", `--stage=${stage}`, entryPath], {
     env, stdout: "pipe", stderr: "pipe",
   });
-  const [stdout, stderr, exit] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ]);
-  // Surface CLI failures inline so snapshot diffs are debuggable rather
-  // than mysteriously empty.
-  if (exit !== 0) return `# vader CLI failed (exit ${exit})\n${stderr}${stdout}`;
-  return stdout;
+  const killTimer = setTimeout(() => proc.kill("SIGKILL"), VADER_DUMP_TIMEOUT_MS);
+  try {
+    const [stdout, stderr, exit] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ]);
+    // Surface CLI failures inline so snapshot diffs are debuggable rather
+    // than mysteriously empty.
+    if (exit !== 0) return `# vader CLI failed (exit ${exit})\n${stderr}${stdout}`;
+    return stdout;
+  } finally {
+    clearTimeout(killTimer);
+  }
 }
 
 const SPAN_KEYS = new Set<string>([

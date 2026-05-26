@@ -245,29 +245,9 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
     }
 }
 
-CellInit :: struct {
-    value:     LoweredExpr
-    slot_type: Type
-}
-
-/// When `symbol` is captured by an inner lambda, wrap the let-initialiser
-/// in `LoweredCellNew` so the slot stores a cell ref. Reads must then go
-/// through `LoweredCellGet`. Mirror of `lowerCellInit` in
-/// `src/lower/passes/helpers.ts:95-105`.
-cell_wrap_init :: fn(
-    ctx: FnLowerCtx, symbol: Symbol, value: LoweredExpr, value_type: Type, span: Span,
-) -> CellInit {
-    if !ctx.project.closures.captured_symbols.contains(symbol.id) {
-        return CellInit { .value = value, .slot_type = value_type }
-    }
-    return CellInit {
-        .value = LoweredCellNew {
-            .span = span, .type = TY_UNRESOLVED,
-            .value = value, .value_type = value_type,
-        },
-        .slot_type = TY_UNRESOLVED,
-    }
-}
+// `CellInit` and the cell-init wrapper now live in `vader/lower/helpers.vader`
+// (single source of truth — same module, same shape). Callers below
+// reach for `lower_cell_init` directly.
 
 lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue | null {
     // The const symbol may live in this module or in an imported one.
@@ -2279,7 +2259,7 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
                 is null -> widened
                 _ -> coerced
             }
-            init :: cell_wrap_init(ctx, symbol, value, binding_type, let_stmt.span)
+            init :: lower_cell_init(ctx, symbol, value, binding_type, let_stmt.span)
             out.push(LoweredLet {
                 .span = let_stmt.span, .name = simple.name,
                 .symbol = symbol, .type = init.slot_type,

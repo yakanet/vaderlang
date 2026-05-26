@@ -19,7 +19,7 @@ import "std/io" { exists, is_dir, read_file }
 import "std/string" { byte_at, byte_len, ends_with, byte_slice, starts_with }
 import "vader/diagnostics" { Diagnostic, Position, Span, resolver_error }
 import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source }
-import "vader/resolver/symbol" { SymbolFactory, new_factory }
+import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory }
 
 /// Synthetic 1:1 span anchored on a file path. Used by R2001 when the
 /// entry folder lies outside every scoped root — there is no source-
@@ -104,6 +104,18 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
 
     // Header-only scan : index every module under scope by its
     // declared name. R2020/R2022/R2023 land in `loader_diags`.
+    //
+    // Lazy-discovery (deferring manifest roots until a name miss
+    // surfaces) was attempted 2026-05-26 — perf win was real (660 ms
+    // → ~30 ms on `arith`) but `diagnose_import_path` is called from
+    // inside `collect_module` and fires R2001 the moment it can't
+    // find a target in the current index, which precedes any lazy
+    // expansion the loader BFS could do. Wiring lazy expansion all
+    // the way through the collect call chain (or pre-scanning the
+    // entry's source for `import "..."` lines to seed expansion)
+    // is the real fix ; tracked separately. Sticking with eager
+    // up-front discovery so import errors don't get reported before
+    // their target had a chance to load.
     index: MutableMap<string, DiscoveredModule> = discover_modules(scoped_roots, loader_diags)
 
     entry_module :: find_by_folder(index, entry_folder)
@@ -255,16 +267,53 @@ collect_files :: fn(
     merged :: collect_module(files[0].program, module_id, module_name, factory, index, diags)
     for i in 1..<files.len() {
         per_file :: collect_module(files[i].program, module_id, module_name, factory, index, diags)
-        merge_collected(merged, per_file)
+        merge_collected(merged, per_file, diags)
     }
     return merged
 }
 
-merge_collected :: fn(dst: CollectedModule, src: CollectedModule) -> void {
+merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnostic[]) -> void {
     for name in src.symbols.keys() {
         sym :: src.symbols[name]
         if sym is null { continue }
-        dst.symbols[name] = sym
+        existing :: dst.symbols[name]
+        match existing {
+            is null -> { dst.symbols[name] = sym }
+            is Symbol as e -> {
+                // Fn-vs-fn collisions are handled by `fn_overloads`
+                // below — the primary slot keeps its first-wins binding
+                // (mirrors `add_fn_symbol`'s policy) while every
+                // overload still lands in the bucket.
+                //
+                // ImportBinding-vs-ImportBinding (same name imported in
+                // multiple sibling files) is normal Vader usage : two
+                // files of the same module can independently import
+                // `MutableMap` from `std/collections`. Per-file scope
+                // is what `bind_import` already checks ; the merged
+                // module-wide table only needs one slot to carry the
+                // binding through to the wire pass.
+                //
+                // Cross-file duplicates of any other non-fn kind
+                // (struct / enum / trait / const / type-alias) violate
+                // the module-system invariant that one module owns one
+                // declaration of a given name ; fire R2026 per
+                // decision #28 of the module redesign.
+                fn_kind :: i32(SymbolKind.Fn)
+                import_kind :: i32(SymbolKind.ImportBinding)
+                e_kind :: i32(e.kind)
+                s_kind :: i32(sym.kind)
+                fn_pair     :: e_kind == fn_kind && s_kind == fn_kind
+                import_pair :: e_kind == import_kind && s_kind == import_kind
+                if !fn_pair && !import_pair {
+                    span :: match sym.defined_at {
+                        is Span as s -> s
+                        is null      -> zero_span("")
+                    }
+                    diags.push(resolver_error(.DuplicateNonFnDeclInModule, span,
+                        "`${name}` already declared in a sibling file of this module"))
+                }
+            }
+        }
     }
     for name in src.fn_overloads.keys() {
         bucket :: src.fn_overloads[name]

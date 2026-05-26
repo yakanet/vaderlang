@@ -17,24 +17,11 @@ module "vader/vm"
 import "std/string" { byte_len, byte_at, byte_slice, starts_with, ends_with, trim, split, index_of, decode_escapes }
 import "std/numbers" { hex_digit_value, parse_int_in_base, parse_uint_in_base }
 
-/// A scope entry built when we see `block`/`loop`/`if`. `is_loop` is
-/// true for back-edges (br jumps to opener+1) ; anything else jumps
-/// past the matching `end`. `label` is the textual `$LN` ; an
-/// `end LABEL` line closes the matching entry (the formatter
-/// guarantees uniqueness within a function body).
-ScopeEntry :: struct {
-    label:     string
-    is_loop:   bool
-    opener_pc: i32
-}
-
-/// A `br`/`br_if` we couldn't resolve yet because its target scope
-/// hasn't closed. Held in a side list, drained when the matching end
-/// pops the target scope.
-PendingBranch :: struct {
-    branch_pc:    i32
-    target_label: string
-}
+// `ScopeEntry` and `PendingBranch` live in `vader/vm/builder.vader` —
+// same module, same shape, single source of truth. The parser threads
+// them through `ParserState` below for label resolution while reading
+// `.virt` text ; the builder uses them to wire control-flow at
+// programmatic build time.
 
 /// Per-function parser state bundle. Carries the six structures that
 /// `wire_control_flow` / `defer_or_resolve_branch` / `drain_pending`

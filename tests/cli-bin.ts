@@ -69,18 +69,40 @@ export interface CliResult {
   exit: number;
 }
 
+// Hard wall-clock budget that survives Bun test-driver bailouts. When a
+// `test()` exceeds its declared timeout the driver marks it failed but
+// does NOT cancel the in-flight spawn, so a looping `build/vader run`
+// can pin a CPU indefinitely (seen at 33+ h on a stuck custom_iter VM
+// loop). The kill timer below makes the wrapper self-cleaning regardless
+// of what the test driver does : when the budget expires we SIGKILL the
+// child, its `exited` promise resolves, and the test returns.
+//
+// 90 s default ; the parity suites declare a 30 s test timeout so this
+// is a generous margin for cold rebuilds without giving stuck VM loops
+// a free pass.
+const DEFAULT_CLI_TIMEOUT_MS = 90_000;
+
 // Both pipes are drained concurrently — leaving stderr unread can deadlock
 // the child once the 64 KB pipe buffer fills on a verbose trap.
-export async function runCli(args: string[], env?: Record<string, string>): Promise<CliResult> {
+export async function runCli(
+  args: string[],
+  env?: Record<string, string>,
+  timeoutMs: number = DEFAULT_CLI_TIMEOUT_MS,
+): Promise<CliResult> {
   const proc = Bun.spawn([CLI_BIN, ...args], {
     stdout: "pipe",
     stderr: "pipe",
     env: { ...process.env, ...(env ?? {}) },
   });
-  const [stdout, stderr, exit] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ]);
-  return { stdout, stderr, exit };
+  const killTimer = setTimeout(() => proc.kill("SIGKILL"), timeoutMs);
+  try {
+    const [stdout, stderr, exit] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ]);
+    return { stdout, stderr, exit };
+  } finally {
+    clearTimeout(killTimer);
+  }
 }

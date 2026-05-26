@@ -890,6 +890,16 @@ settle_external_expr_bodied_returns :: fn(
     // `lexer_error(...) = new_diagnostic(...)` (where new_diagnostic
     // is itself expr-bodied) settle to the concrete return type
     // instead of `?`.
+    //
+    // Pass 0 always runs on every module — that's the only place
+    // per-module `expr_types` / `expr_kinds` get populated for the
+    // typecheck dump's `## <path>` sections.
+    //
+    // Pass 1 is the re-walk that picks up settled returns ; it's
+    // pure waste on modules without expression-bodied fns since
+    // there's nothing to re-settle. Gate it so std/iter et al. don't
+    // pay for a double-walk just because a sibling module needed
+    // settling.
     for pass in 0..<2 {
         for id in project.modules.keys() {
             if id == entry_path { continue }
@@ -897,6 +907,7 @@ settle_external_expr_bodied_returns :: fn(
             if loaded is null { continue }
             other_typed :: per_module[id]
             if other_typed is null { continue }
+            if pass == 1 && !has_expr_bodied_fn(loaded.module.files[0].program.decls) { continue }
             walk_bodies(loaded.module.files[0].program.decls, other_typed, diag_sink())
         }
     }

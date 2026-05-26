@@ -77,9 +77,19 @@ for (const s of scenarios) {
       cwd: process.cwd(),
       stdout: "pipe", stderr: "pipe",
     });
-    const stdout = await new Response(runProc.stdout).text();
-    const stderr = await new Response(runProc.stderr).text();
-    const runExit = await runProc.exited;
+    // Hard wall-clock budget — Bun's test driver doesn't cancel
+    // in-flight spawns on test timeout, so a regressed compiler emitting
+    // an infinite-loop binary can pin a CPU for hours. SIGKILL after
+    // 60 s ; comfortable margin over the 30 s parity test budget.
+    const killTimer = setTimeout(() => runProc.kill("SIGKILL"), 60_000);
+    let stdout: string, stderr: string, runExit: number;
+    try {
+      stdout = await new Response(runProc.stdout).text();
+      stderr = await new Response(runProc.stderr).text();
+      runExit = await runProc.exited;
+    } finally {
+      clearTimeout(killTimer);
+    }
 
     let expected: string;
     try { expected = await Bun.file(join(s.dir, "vm.snapshot")).text(); } catch { return; }
