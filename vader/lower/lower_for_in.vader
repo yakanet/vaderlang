@@ -464,18 +464,51 @@ try_lower_for_in_int_range :: fn(
 ) -> LoweredStmt | null {
     range :: extract_range(in_form.iter)
     if range is null { return null }
-    raw_bound :: ctx.types.expr_type(range.lower)
-    if !is_integer_type(raw_bound) { return null }
-    // FreeInt → i32 default — matches TS's `defaultIfFree` call site.
-    bound_type :: default_if_free(raw_bound)
+    raw_lower :: ctx.types.expr_type(range.lower)
+    raw_upper :: ctx.types.expr_type(range.upper)
+    if !is_integer_type(raw_lower) { return null }
+    // Pick the counter's width from whichever bound is concrete : a
+    // FreeInt literal on either side adopts the other's width. When
+    // both bounds are concrete, the lower side wins (matches the
+    // typer's left-to-right inference). When both are FreeInt, fall
+    // back to the i32 default via `default_if_free`. Mirror of TS'
+    // for-in counter typing where the Range's element type is
+    // already settled by the bidirectional infer.
+    bound_type :: if raw_lower is FreeIntType {
+        if is_integer_type(raw_upper) { default_if_free(raw_upper) } else { default_if_free(raw_lower) }
+    } else {
+        default_if_free(raw_lower)
+    }
     // For-in bindings that the body never references don't surface
     // in `resolved.idents` (the use-site map). Synthesize a placeholder
     // when the lookup misses so the dump still renders ; matches the
     // shape TS produces via its dedicated `resolved.forIns` table.
     binding_symbol :: resolve_binding_or_synth(ctx, in_form)
     span :: for_stmt.span
-    lo :: recurse(ctx, range.lower)
-    hi :: recurse(ctx, range.upper)
+    // Re-type FreeInt literals on either bound to the resolved
+    // `bound_type` so `let i: u64 = int(0) :u64` doesn't dump as
+    // `int(0) :i32`. The counter's declared slot already widens to
+    // bound_type, but the literal's own type carries the i32 default
+    // unless the typer narrowed it ; rewrite the LoweredIntLit here.
+    lo :: widen_int_lit(recurse(ctx, range.lower), bound_type)
+    hi_raw :: widen_int_lit(recurse(ctx, range.upper), bound_type)
+
+    // Hoist non-trivial upper bounds (calls, casts, …) into a
+    // `__for_hi_N` synthetic let so the loop condition reads a
+    // single slot per iteration instead of re-evaluating the
+    // expression. Cheap shapes (Ident / FieldAccess / IntLit /
+    // CharLit) skip the hoist. Mirror of TS' `isCheapInvariant`
+    // gate (`src/lower/passes/for-in.ts:694-699`).
+    hoist_stmts: LoweredStmt[] = []
+    hi: LoweredExpr = hi_raw
+    if !is_cheap_invariant(hi_raw) {
+        hi_sym :: fresh_synthetic_symbol(ctx, "for_hi")
+        hoist_stmts.push(LoweredLet {
+            .span = span, .name = hi_sym.name, .symbol = hi_sym,
+            .type = bound_type, .value = hi_raw,
+        })
+        hi = LoweredIdent { .span = span, .type = bound_type, .symbol = hi_sym }
+    }
 
     counter_init :: LoweredLet {
         .span = span, .name = in_form.binding, .symbol = binding_symbol,
@@ -510,6 +543,7 @@ try_lower_for_in_int_range :: fn(
     }
 
     block_stmts: LoweredStmt[] = []
+    for hs in hoist_stmts { block_stmts.push(hs) }
     block_stmts.push(counter_init)
     block_stmts.push(loop_stmt)
     return LoweredExprStmt {
@@ -526,6 +560,29 @@ extract_range :: fn(iter: AST.Expr) -> AST.RangeExpr | null {
         is AST.RangeExpr as r -> { return r }
         _ -> { return null }
     }
+}
+
+// When a Range bound is a bare integer literal (e.g. `0` in
+// `0..<nu` where `nu: u64`), the typer left it at i32 / FreeInt
+// default. Rewrite the LoweredIntLit's type to the loop counter's
+// width so the dump shows `int(0) :u64` instead of `int(0) :i32`.
+widen_int_lit :: fn(e: LoweredExpr, t: Type) -> LoweredExpr {
+    if e is LoweredIntLit as lit {
+        return LoweredIntLit { .span = lit.span, .type = t, .value = lit.value }
+    }
+    return e
+}
+
+// True for expressions cheap enough to re-read every loop iteration —
+// the loop bound stays inline rather than getting hoisted into a
+// `__for_hi_N` synthetic let. Mirror of `isCheapInvariant` in
+// `src/lower/passes/for-in.ts:694-699`.
+is_cheap_invariant :: fn(e: LoweredExpr) -> bool {
+    if e is LoweredIdent       { return true }
+    if e is LoweredFieldAccess { return true }
+    if e is LoweredIntLit      { return true }
+    if e is LoweredCharLit     { return true }
+    return false
 }
 
 is_integer_type :: fn(t: Type) -> bool {
