@@ -210,6 +210,15 @@ export TypedProgram :: struct {
     /// silently bind both call sites to one prototype, producing UB at
     /// mismatched ABIs. Mirrors `src/typecheck/ctx.ts::externSymbols`.
     extern_symbols: MutableMap<string, FnDecl>
+
+    /// In-fn type aliases : `t :: i32` inside a fn body. Keyed by the
+    /// binding's `Symbol.id` (resolver-minted Local), value is the
+    /// resolved underlying `Type`. Populated by `check_let` when the
+    /// RHS is a structural type expression and the binding is
+    /// immutable. Consumed at use sites — `@size_of(t)` and friends
+    /// fold to a literal when the ident resolves to a key here.
+    /// Mirrors `globals.letTypeAliases` in `src/typecheck/ctx.ts`.
+    let_type_aliases: MutableMap<i32, Type>
 }
 
 import "vader/diagnostics" { Span }
@@ -256,6 +265,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .current_fn_ctx  = null,
         .node_spans      = MutableMap<usize, Span> { .buckets = [], .size = 0 },
         .extern_symbols  = MutableMap<string, FnDecl> { .buckets = [], .size = 0 },
+        .let_type_aliases = MutableMap<i32, Type> { .buckets = [], .size = 0 },
     }
 }
 

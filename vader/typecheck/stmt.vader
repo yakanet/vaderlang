@@ -253,11 +253,33 @@ check_let :: fn(
             }
         }
     }
-    // T3035 : `name := <type-expr>` (mutable) where the inferred
-    // type is `type` is rejected — Layer 4 milestone B.1 doesn't
-    // ship a runtime Type value. The immutable form (`name :: ...`)
-    // is fine since it lowers as a const-as-type-alias.
-    if s.mutable && declared is TypeMetaType {
+    // Layer 5b — `t :: <type-expr>` inside a fn body is an in-fn type
+    // alias : pre-resolve the underlying Type and stash it in
+    // `typed.let_type_aliases` keyed by the binding's Symbol.id.
+    // Downstream type-position references (e.g. `@size_of(t)`) read
+    // through this map at lower time. Detection mirrors the
+    // top-level `register_alias_const` path. Mirrors TS
+    // `letTypeAliases` in `src/typecheck/passes/stmt.ts:237-247`.
+    is_let_type_alias := false
+    if !s.mutable && declared is TypeMetaType {
+        if s.binding is AST.SimpleBinding as sb {
+            if is_alias_value_expr(s.value, typed.resolved) {
+                sym_or_null :: typed.resolved.idents[span_key(sb.name_span)]
+                if sym_or_null is Symbol as sym {
+                    resolved_type :: type_from_expr(s.value, typed.resolved, diag_sink_stmt())
+                    typed.let_type_aliases[sym.id] = resolved_type
+                    is_let_type_alias = true
+                }
+            }
+        }
+    }
+    // T3035 : reject `type`-valued slots that aren't in-fn type aliases.
+    // The mutable form (`name := <type-expr>`) always fails since
+    // it implies a runtime Type value — Layer 4 milestone B.1 doesn't
+    // ship those yet. The immutable form fails only when the RHS
+    // isn't a structural type expression (e.g. a fn call returning
+    // type), since we can't pre-resolve it without VM execution.
+    if declared is TypeMetaType && !is_let_type_alias {
         diags.push(typecheck_error(.TypeValuedSlotNotYetSupported, s.span,
             "`type`-valued locals are not yet supported (Layer 4 milestone B.1) ; use the immutable form `name :: <type-expr>` for an in-fn type alias, or a top-level alias `Name :: type[T] ...`"))
     }
@@ -265,6 +287,7 @@ check_let :: fn(
 }
 
 import "vader/types" { TypeMetaType }
+import "vader/resolver/symbol" { Symbol }
 
 check_assign :: fn(
     s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[],

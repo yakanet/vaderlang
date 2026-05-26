@@ -336,6 +336,13 @@ bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding) -> void {
         is AST.SimpleBinding as x -> {
             sym :: self.mint_local(.Local, x.name, x.name_span)
             self.scope.bind(x.name, sym)
+            // Park the Symbol against the binding's name_span so
+            // downstream passes (typecheck → let_type_aliases stash,
+            // lower → ident-to-binding lookup) can recover the
+            // local's Symbol.id without re-walking the body's scope.
+            // Mirrors the Param / TypeParam pattern at the top of
+            // this file (mint then index into `idents`).
+            self.idents[span_key(x.name_span)] = sym
         }
         is AST.TupleBinding as x -> {
             for e in x.elements { self.bind_let_binding(e) }
@@ -344,6 +351,7 @@ bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding) -> void {
         is AST.RestBinding as x -> {
             sym :: self.mint_local(.Local, x.name, x.span)
             self.scope.bind(x.name, sym)
+            self.idents[span_key(x.span)] = sym
         }
     }
 }

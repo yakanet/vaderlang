@@ -11,7 +11,7 @@ module "vader/comptime"
 import "vader/typecheck" { type_from_expr }
 import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
-    FnType, TypeParamType, UnionType, UnresolvedType, display_type,
+    FnType, TypeParamType, UnionType, UnresolvedType, AnyType, display_type,
 }
 import "vader/diagnostics" { Diagnostic, comptime_error }
 import "vader/diagnostics" { ComptimeCode }
@@ -92,17 +92,36 @@ resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null 
 diag_sink :: fn() -> Diagnostic[] { return [] }
 
 // Primitive byte sizes match `intrinsic_assert`'s expectations
-// (`@size_of(i32) == 4`, `@size_of(string) == 16`, …). Composite types
-// (struct / array / tuple) fall back to a placeholder until the
-// lowerer port lands and ABI-accurate sizing becomes meaningful.
+// (`@size_of(i32) == 4`, `@size_of(string) == 16`, …). Composite
+// reference types (struct / enum / array / tuple / union / trait /
+// fn / any) report as `vader_box_t` width (16 bytes — tag + payload).
+// Comptime-only / unsized types (TypeMeta / TypeParam / Self /
+// Unresolved / Free* / Never / void) report 0.
+// Mirrors `sizeOfType` in `src/typecheck/types.ts:429-464`.
 export byte_size :: fn(t: Type) -> i64 = match t {
     is PrimitiveType as p -> primitive_size(p.name)
-    _                     -> 0
+    is StructType  -> 16
+    is EnumType    -> 16
+    is ArrayType   -> 16
+    is TupleType   -> 16
+    is UnionType   -> 16
+    is TraitType   -> 16
+    is FnType      -> 16
+    is AnyType     -> 16
+    _              -> 0
 }
 
 export byte_align :: fn(t: Type) -> i64 = match t {
     is PrimitiveType as p -> primitive_align(p.name)
-    _                     -> 0
+    is StructType  -> 8
+    is EnumType    -> 8
+    is ArrayType   -> 8
+    is TupleType   -> 8
+    is UnionType   -> 8
+    is TraitType   -> 8
+    is FnType      -> 8
+    is AnyType     -> 8
+    _              -> 0
 }
 
 primitive_size :: fn(name: string) -> i64 {

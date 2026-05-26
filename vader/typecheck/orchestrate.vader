@@ -655,7 +655,7 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
     return true
 }
 
-is_alias_value_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
+export is_alias_value_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.IdentExpr {
         if is_primitive_name(e.name) { return true }
         sym :: resolved.idents[span_key(e.span)]

@@ -2083,12 +2083,19 @@ resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
     scratch: Diagnostic[] = []
     via_type_expr :: type_from_expr(arg, ctx.typed.resolved, scratch)
     if !(via_type_expr is UnresolvedType) { return via_type_expr }
-    // Last resort : if arg is an IdentExpr resolving to a comptime const
-    // whose value is a TypeValue, lift it out of `comptime_decls`.
+    // Fall-throughs for IdentExpr args that resolve to a Symbol :
+    //   (a) Layer 5b in-fn alias : `t :: i32` inside a fn body. The
+    //       typer stashed the resolved underlying Type in
+    //       `let_type_aliases` keyed by the local's Symbol.id.
+    //   (b) Comptime const carrying a `TypeValue`. Recovered from
+    //       `comptime_value_by_symbol_id` so dotted refs to a `::`
+    //       alias still fold.
     if arg is IdentExpr as id {
         sym :: ctx.typed.resolved.idents[span_key(id.span)]
         if sym is null { return via_type_expr }
         if sym is Symbol as s {
+            aliased :: ctx.typed.let_type_aliases[s.id]
+            if !(aliased is null) { return aliased }
             v :: ctx.project.comptime_value_by_symbol_id[s.id]
             match v {
                 is null -> {}
