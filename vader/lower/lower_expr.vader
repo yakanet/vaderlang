@@ -33,7 +33,7 @@ import "vader/typecheck" { type_from_expr, primitive_from_name }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
-    TypeParamType, ArrayType, TupleType, TypeMetaType,
+    TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive,
 }
 import "vader/typecheck" { default_if_free, equals_type }
@@ -700,6 +700,24 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
                 .span = call.span, .type = type,
                 .trait_name = tt.symbol.name, .method = field_expr.field,
                 .receiver = receiver, .args = args,
+            }
+        }
+        // TypeParam-bounded receiver erased to Any : typer recorded
+        // the resolving trait name in `bounded_dispatch_trait` ; route
+        // through the runtime vtable so the boxed value's tag picks
+        // the right impl at runtime. Mirror of TS' `lowerVirtualDispatch`
+        // path on `concreteRecv.kind === "Any"`
+        // (`src/lower/passes/expr.ts:199-204`).
+        if type_of(receiver) is AnyType {
+            trait_name :: ctx.typed.bounded_dispatch_trait[field_expr.id]
+            if trait_name is string as tname {
+                args: LoweredExpr[] = []
+                for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+                return LoweredVirtualCall {
+                    .span = call.span, .type = type,
+                    .trait_name = tname, .method = field_expr.field,
+                    .receiver = receiver, .args = args,
+                }
             }
         }
     }
@@ -1443,6 +1461,17 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
     if info is null { return null }
     if info is OpTraitInfo as oti {
         left_ty :: ctx.types.expr_type(binary.left)
+        // TypeParam-bound + erased Any receivers route through
+        // virtual dispatch — the boxed value's tag picks the right
+        // impl at runtime. Same shape as the FieldExpr path in
+        // `try_lower_virtual_call`, just driven from a BinaryOp.
+        // For Eq, the call's value IS the bool result. For Neq we
+        // wrap in `not`. For Lt/Lte/Gt/Gte, we keep the outer
+        // BinaryOp with the call as left + `0` as right (compare
+        // returns i32).
+        if left_ty is TypeParamType || left_ty is AnyType {
+            return lower_op_overload_via_vcall(ctx, binary, type, oti)
+        }
         left_name :: type_surface_name(left_ty)
         if left_name == "" { return null }
         // Primitive operands stay on the built-in path — primitives
@@ -1505,6 +1534,42 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
         return null
     }
     return null
+}
+
+// Emit `a op b` as a virtual call (the receiver is TypeParam-bound or
+// erased to Any). Shape mirrors the field-expr vcall path : Eq /
+// Comparable share the dispatch + outer-op patterns from `op_trait_method`.
+lower_op_overload_via_vcall :: fn(
+    ctx: FnLowerCtx, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
+) -> LoweredExpr | null {
+    lowered_left  :: lower_expr(ctx, binary.left)
+    lowered_right :: lower_expr(ctx, binary.right)
+    args: LoweredExpr[] = []
+    args.push(lowered_right)
+    call :: LoweredVirtualCall {
+        .span = binary.span,
+        .type = if i32(oti.shape) == i32(OpShape.CompareCmp) { mk_primitive("i32") } else { TY_BOOL },
+        .trait_name = oti.trait_name, .method = oti.method_name,
+        .receiver = lowered_left, .args = args,
+    }
+    if i32(oti.shape) == i32(OpShape.DirectCall) {
+        return call
+    }
+    if i32(oti.shape) == i32(OpShape.NotCall) {
+        return LoweredUnary {
+            .span = binary.span, .type = TY_BOOL,
+            .op = LoweredUnaryOp.Not, .operand = call,
+        }
+    }
+    // CompareCmp : preserve the BinaryOp on (compare-call, 0).
+    return LoweredBinary {
+        .span = binary.span, .type = TY_BOOL,
+        .op    = lower_binary_op(binary.op),
+        .left  = call,
+        .right = LoweredIntLit {
+            .span = binary.span, .type = mk_primitive("i32"), .value = i64(0),
+        },
+    }
 }
 
 // True iff some impl entry targets `for_name` with `trait_name` AND

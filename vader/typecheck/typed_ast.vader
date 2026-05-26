@@ -219,6 +219,15 @@ export TypedProgram :: struct {
     /// fold to a literal when the ident resolves to a key here.
     /// Mirrors `globals.letTypeAliases` in `src/typecheck/ctx.ts`.
     let_type_aliases: MutableMap<i32, Type>
+
+    /// FieldExpr.id → resolved trait name. Populated when a
+    /// `x.method()` call dispatches via a TypeParam bound (`T: Hash`
+    /// resolves `.hash` through the Hash trait). The lower consumes
+    /// this to emit `vcall Hash.hash` on erased-to-Any receivers
+    /// instead of a direct field-call to an unresolved member.
+    /// Mirrors TS' FieldResolution.trait carried in
+    /// `t.fieldResolutions` for `kind = "trait-method"` entries.
+    bounded_dispatch_trait: MutableMap<usize, string>
 }
 
 import "vader/diagnostics" { Span }
@@ -266,6 +275,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .node_spans      = MutableMap<usize, Span> { .buckets = [], .size = 0 },
         .extern_symbols  = MutableMap<string, FnDecl> { .buckets = [], .size = 0 },
         .let_type_aliases = MutableMap<i32, Type> { .buckets = [], .size = 0 },
+        .bounded_dispatch_trait = MutableMap<usize, string> { .buckets = [], .size = 0 },
     }
 }
 

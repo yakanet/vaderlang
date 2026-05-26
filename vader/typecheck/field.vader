@@ -120,9 +120,35 @@ try_typeparam_bound_method :: fn(
     if !(target_ty is TypeParamType) { return null }
     bound :: typed.resolved.type_param_bounds[target_ty.symbol.id]
     if bound is null { return null }
+    // Find the trait carrying `e.field` AND record its name so the
+    // lower can emit `vcall Trait.method` once the receiver gets
+    // erased to Any post-monomorphization.
+    trait_name :: dispatch_bounded_method_trait(bound, e.field, typed)
+    if trait_name == "" { return null }
+    typed.bounded_dispatch_trait[e.id] = trait_name
     tm :: dispatch_bounded_method(bound, e.field, typed)
     if tm is null { return null }
     return substitute_self(tm, target_ty)
+}
+
+// Variant of `dispatch_bounded_method` that returns the trait NAME
+// instead of the method type. Same walk over `A & B` intersections.
+dispatch_bounded_method_trait :: fn(
+    bound: AST.Expr, name: string, typed: TypedProgram,
+) -> string {
+    if bound is AST.BinaryExpr {
+        if i32(bound.op) == i32(AST.BinaryOp.BitAnd) {
+            l :: dispatch_bounded_method_trait(bound.left, name, typed)
+            if l != "" { return l }
+            return dispatch_bounded_method_trait(bound.right, name, typed)
+        }
+    }
+    bound_ty :: type_from_expr(bound, typed.resolved, [])
+    if bound_ty is TraitType as tt {
+        if try_trait_method(bound_ty, name, typed) is null { return "" }
+        return tt.symbol.name
+    }
+    return ""
 }
 
 // `x.foo()` dispatching to a free fn `foo` whose first param accepts
