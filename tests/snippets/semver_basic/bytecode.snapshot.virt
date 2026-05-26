@@ -873,14 +873,14 @@ fn 37 std_semver$parse (string) -> ref
   local k usize
   local __scrut_0 ref
   local iv i32
-  local $cast_90 usize
+  local $cast_87 usize
   local __sb_1 any
-  local $vcall_97 string
-  local $k_105 usize
-  local $k_158 i32
-  local $idx_159 i32
-  local $k_160 i32
-  local $idx_161 i32
+  local $vcall_94 string
+  local $k_101 usize
+  local $k_153 i32
+  local $idx_154 i32
+  local $k_155 i32
+  local $idx_156 i32
   local.get 0
   call 73
   if $L0 void
@@ -1162,8 +1162,7 @@ fn 37 std_semver$parse (string) -> ref
     ref.cast 1
     local.set 5
     local.get 12
-    i64.const 2
-    i64.to_usize
+    i32.const 2
     local.get 5
     array.set 39
     local.get 3
@@ -1496,7 +1495,7 @@ end
 fn 40 std_semver$parse_numeric_id (string) -> ref
   local $call_8 usize
   local and_res bool
-  local $call_15 u8
+  local $call_13 u8
   local __scrut_0 ref
   local.get 0
   call 73
@@ -1569,7 +1568,7 @@ fn 41 std_semver$validate_prerelease_id (string) -> string
   local and_res bool
   local $call_24 usize
   local and_res bool
-  local $call_32 u8
+  local $call_30 u8
   local.get 0
   call 73
   if $L0 void
@@ -1662,7 +1661,7 @@ fn 42 std_semver$validate_prerelease (string) -> string
   local i usize
   local $call_8 u8
   local err string
-  local $k_20 usize
+  local $k_19 usize
   local.get 0
   call.import 2
   local.set 1
@@ -1782,7 +1781,7 @@ fn 44 std_semver$validate_build (string) -> string
   local i usize
   local $call_8 u8
   local err string
-  local $k_20 usize
+  local $k_19 usize
   local.get 0
   call.import 2
   local.set 1
@@ -2305,11 +2304,11 @@ fn 49 std_semver$split_or (string) -> ref
   local start usize
   local __for_hi_0 usize
   local i usize
-  local $call_17 u8
+  local $call_15 u8
   local and_res bool
-  local $add_23 usize
-  local $call_24 u8
-  local $call_28 string
+  local $add_20 usize
+  local $call_21 u8
+  local $call_25 string
   array.new 25 0
   local.set 1
   local.get 0
@@ -2492,14 +2491,9 @@ end
 fn 51 std_semver$is_x_token (string) -> bool
   local or_res bool
   local.get 0
-  call 73
-  if $L0 void
-    return.lit bool.const false
-  end $L0
-  local.get 0
   string.const 26
   string.eq
-  if $L1 void
+  if $L0 void
     bool.const true
     local.set 1
   else
@@ -2507,9 +2501,9 @@ fn 51 std_semver$is_x_token (string) -> bool
     string.const 27
     string.eq
     local.set 1
-  end $L1
+  end $L0
   local.get 1
-  if $L2 void
+  if $L1 void
     bool.const true
     local.set 1
   else
@@ -2517,25 +2511,22 @@ fn 51 std_semver$is_x_token (string) -> bool
     string.const 28
     string.eq
     local.set 1
-  end $L2
+  end $L1
   local.get 1
-  if $L3 void
-    return.lit bool.const true
-  end $L3
-  return.lit bool.const false
+  return
 end
 
 fn 52 std_semver$parse_partial (string) -> ref
-  local or_res bool
-  local $neg_15 i32
-  local $neg_17 i32
-  local $neg_19 i32
+  local $neg_6 i32
+  local $neg_8 i32
+  local $neg_10 i32
   local n usize
   local plus_pos usize
   local i usize
-  local $call_29 u8
+  local $call_20 u8
   local j usize
-  local $k_52 usize
+  local and_res bool
+  local $k_43 usize
   local core string
   local if_res string
   local if_res string
@@ -2546,16 +2537,16 @@ fn 52 std_semver$parse_partial (string) -> ref
   local __scrut_2 ref
   local e ref
   local __sb_3 any
-  local $k_146 string
-  local $vcall_147 string
-  local $k_154 i32
-  local $k_158 i32
+  local $k_130 string
+  local $vcall_131 string
+  local $k_137 i32
+  local $k_141 i32
   local __scrut_4 ref
   local v i32
   local e ref
   local __sb_5 any
-  local $k_170 string
-  local $vcall_171 string
+  local $k_153 string
+  local $vcall_154 string
   local e1 string
   local e2 string
   local.get 0
@@ -2566,182 +2557,143 @@ fn 52 std_semver$parse_partial (string) -> ref
     return
   end $L0
   local.get 0
-  string.const 28
-  string.eq
+  call 51
   if $L1 void
-    bool.const true
+    i32.const 1
+    i32.neg
     local.set 1
-  else
-    local.get 0
-    string.const 26
-    string.eq
-    local.set 1
-  end $L1
-  local.get 1
-  if $L2 void
-    bool.const true
-    local.set 1
-  else
-    local.get 0
-    string.const 27
-    string.eq
-    local.set 1
-  end $L2
-  local.get 1
-  if $L3 void
     i32.const 1
     i32.neg
     local.set 2
     i32.const 1
     i32.neg
     local.set 3
-    i32.const 1
-    i32.neg
-    local.set 4
+    local.get 1
     local.get 2
     local.get 3
-    local.get 4
     string.const 8
     string.const 8
     struct.new 27
     return
-  end $L3
+  end $L1
   local.get 0
   call.import 2
-  local.tee 5
-  local.set 6
+  local.tee 4
+  local.set 5
   i64.const 0
-  local.set 7
-  block $L4 void
-    loop $L5 void
-      local.get 7
-      local.get 5
+  local.set 6
+  block $L2 void
+    loop $L3 void
+      local.get 6
+      local.get 4
       usize.lt
-      if $L6 void
+      if $L4 void
         local.get 0
-        local.get 7
+        local.get 6
         call.import 4
-        local.set 8
-        local.get 8
+        local.set 7
+        local.get 7
         i32.const 43
         i32.to_u8
         u8.eq
-        if $L7 void
-          local.get 7
-          local.set 6
+        if $L5 void
+          local.get 6
+          local.set 5
         else
-        end $L7
-        local.get 7
+        end $L5
+        local.get 6
         i64.const 1
         i64.to_usize
         usize.add
-        local.set 7
-        br $L5
+        local.set 6
+        br $L3
       else
-      end $L6
-    end $L5
-  end $L4
-  local.get 6
-  local.set 7
+      end $L4
+    end $L3
+  end $L2
+  local.get 5
+  local.set 6
   i32.const 0
-  local.set 2
+  local.set 1
   i64.const 0
-  local.set 9
-  block $L8 void
-    loop $L9 void
-      local.get 9
-      local.get 6
+  local.set 8
+  block $L6 void
+    loop $L7 void
+      local.get 8
+      local.get 5
       usize.lt
-      if $L10 void
+      if $L8 void
         local.get 0
-        local.get 9
-        call.import 4
-        local.set 8
         local.get 8
+        call.import 4
+        local.set 7
+        local.get 7
         i32.const 46
         i32.to_u8
         u8.eq
-        if $L11 void
-          local.get 2
+        if $L9 void
+          local.get 1
           i32.const 1
           i32.add
-          local.set 2
+          local.set 1
           i64.const 1
           local.set 10
-          local.get 9
+          local.get 8
           local.get 10
           usize.add
-          local.set 9
-          br $L9
-        end $L11
-        local.get 8
+          local.set 8
+          br $L7
+        end $L9
+        local.get 7
         i32.const 45
         i32.to_u8
         u8.eq
-        if $L12 void
-          local.get 2
+        if $L10 void
+          local.get 1
           i32.const 2
           i32.ge
-          local.set 1
+          local.set 9
         else
           bool.const false
-          local.set 1
-        end $L12
-        local.get 1
-        if $L13 void
-          local.get 9
-          local.set 7
+          local.set 9
+        end $L10
+        local.get 9
+        if $L11 void
+          local.get 8
+          local.set 6
         else
           i64.const 1
           local.set 10
-          local.get 9
+          local.get 8
           local.get 10
           usize.add
-          local.set 9
-          br $L9
-        end $L13
+          local.set 8
+          br $L7
+        end $L11
       else
-      end $L10
-    end $L9
-  end $L8
-  local.get 7
-  local.get 6
-  usize.lt
-  if $L14 void
-    local.get 7
-    local.set 9
-  else
-    local.get 6
-    local.set 9
-  end $L14
-  local.get 0
-  i64.const 0
-  i64.to_usize
-  local.get 9
-  call.import 3
-  local.set 11
-  local.get 7
-  local.get 6
-  usize.lt
-  if $L15 void
-    local.get 7
-    i64.const 1
-    i64.to_usize
-    usize.add
-    local.set 7
-    local.get 0
-    local.get 7
-    local.get 6
-    call.import 3
-    local.set 12
-  else
-    string.const 8
-    local.set 12
-  end $L15
+      end $L8
+    end $L7
+  end $L6
   local.get 6
   local.get 5
   usize.lt
-  if $L16 void
+  if $L12 void
+    local.get 6
+    local.set 8
+  else
+    local.get 5
+    local.set 8
+  end $L12
+  local.get 0
+  i64.const 0
+  i64.to_usize
+  local.get 8
+  call.import 3
+  local.set 11
+  local.get 6
+  local.get 5
+  usize.lt
+  if $L13 void
     local.get 6
     i64.const 1
     i64.to_usize
@@ -2751,71 +2703,89 @@ fn 52 std_semver$parse_partial (string) -> ref
     local.get 6
     local.get 5
     call.import 3
+    local.set 12
+  else
+    string.const 8
+    local.set 12
+  end $L13
+  local.get 5
+  local.get 4
+  usize.lt
+  if $L14 void
+    local.get 5
+    i64.const 1
+    i64.to_usize
+    usize.add
+    local.set 5
+    local.get 0
+    local.get 5
+    local.get 4
+    call.import 3
     local.set 13
   else
     string.const 8
     local.set 13
-  end $L16
+  end $L14
   local.get 11
   string.const 25
   call.import 6
   local.tee 14
   array.len
-  local.set 5
-  local.get 5
+  local.set 4
+  local.get 4
   i64.const 0
   i64.to_usize
   usize.eq
-  if $L17 void
+  if $L15 void
     bool.const true
-    local.set 1
+    local.set 9
   else
     local.get 14
     array.len
-    local.set 5
-    local.get 5
+    local.set 4
+    local.get 4
     i64.const 3
     i64.to_usize
     usize.gt
-    local.set 1
-  end $L17
-  local.get 1
-  if $L18 void
+    local.set 9
+  end $L15
+  local.get 9
+  if $L16 void
     string.const 30
     struct.new 19
     return
-  end $L18
+  end $L16
+  i32.const 1
+  i32.neg
+  local.set 1
   i32.const 1
   i32.neg
   local.set 2
   i32.const 1
   i32.neg
   local.set 3
-  i32.const 1
-  i32.neg
-  local.set 4
+  local.get 1
   local.get 2
   local.get 3
-  local.get 4
   string.const 8
   string.const 8
   struct.new 27
   local.set 15
   local.get 14
   array.len
-  local.set 5
-  local.get 5
+  local.set 4
+  local.get 4
   i64.const 1
   i64.to_usize
   usize.ge
-  if $L19 void
+  if $L17 void
     local.get 14
     i32.const 0
     array.get 25
     ref.cast 2
     call 51
     bool.not
-    if $L20 void
+    if $L18 void
       local.get 14
       i32.const 0
       array.get 25
@@ -2823,56 +2793,56 @@ fn 52 std_semver$parse_partial (string) -> ref
       call 40
       local.tee 16
       type_check 1
-      if $L21 void
+      if $L19 void
         local.get 16
         ref.cast 1
-        local.set 2
+        local.set 1
         local.get 15
-        local.get 2
+        local.get 1
         struct.set 27 0
         local.get 14
         array.len
-        local.set 5
+        local.set 4
         i64.const 2
-        local.set 6
+        local.set 5
+        local.get 4
         local.get 5
-        local.get 6
         usize.ge
-        if $L22 void
+        if $L20 void
           i32.const 1
-          local.set 2
+          local.set 1
           local.get 14
-          local.get 2
+          local.get 1
           array.get 25
           ref.cast 2
           call 51
           bool.not
-          if $L23 void
+          if $L21 void
             i32.const 1
-            local.set 3
+            local.set 2
             local.get 14
-            local.get 3
+            local.get 2
             array.get 25
             ref.cast 2
             call 40
             local.tee 18
             type_check 1
-            if $L24 void
+            if $L22 void
               local.get 18
               ref.cast 1
-              local.set 4
+              local.set 3
               local.get 15
-              local.get 4
+              local.get 3
               struct.set 27 1
               local.get 14
               array.len
-              local.set 7
+              local.set 6
               i64.const 3
-              local.set 9
-              local.get 7
-              local.get 9
+              local.set 8
+              local.get 6
+              local.get 8
               usize.ge
-              if $L25 void
+              if $L23 void
                 i32.const 2
                 local.set 23
                 local.get 14
@@ -2881,7 +2851,7 @@ fn 52 std_semver$parse_partial (string) -> ref
                 ref.cast 2
                 call 51
                 bool.not
-                if $L26 void
+                if $L24 void
                   i32.const 2
                   local.set 24
                   local.get 14
@@ -2891,7 +2861,7 @@ fn 52 std_semver$parse_partial (string) -> ref
                   call 40
                   local.tee 25
                   type_check 1
-                  if $L27 void
+                  if $L25 void
                     local.get 25
                     ref.cast 1
                     local.set 26
@@ -2901,69 +2871,69 @@ fn 52 std_semver$parse_partial (string) -> ref
                     local.get 12
                     call 73
                     bool.not
-                    if $L28 void
+                    if $L26 void
                       local.get 12
                       call 42
                       local.tee 31
                       call 73
                       bool.not
-                      if $L29 void
+                      if $L27 void
                         local.get 31
                         struct.new 19
                         return
-                      end $L29
+                      end $L27
                       local.get 15
                       local.get 12
                       struct.set 27 3
                       local.get 13
                       call 73
                       bool.not
-                      if $L30 void
+                      if $L28 void
                         local.get 13
                         call 44
                         local.tee 32
                         call 73
                         bool.not
-                        if $L31 void
+                        if $L29 void
                           local.get 32
                           struct.new 19
                           return
-                        end $L31
+                        end $L29
                         local.get 15
                         local.get 13
                         struct.set 27 4
                         local.get 15
                         return
-                      end $L30
+                      end $L28
                       local.get 15
                       return
-                    end $L28
+                    end $L26
                     local.get 13
                     call 73
                     bool.not
-                    if $L32 void
+                    if $L30 void
                       local.get 13
                       call 44
                       local.tee 32
                       call 73
                       bool.not
-                      if $L33 void
+                      if $L31 void
                         local.get 32
                         struct.new 19
                         return
-                      end $L33
+                      end $L31
                       local.get 15
                       local.get 13
                       struct.set 27 4
                       local.get 15
                       return
-                    end $L32
+                    end $L30
                     local.get 15
                     return
-                  end $L27
+                  end $L25
                   local.get 25
                   type_check 21
-                  if $L34 void
+                  if $L32 void
                     local.get 25
                     local.set 27
                     intrinsic builder.new
@@ -2983,138 +2953,138 @@ fn 52 std_semver$parse_partial (string) -> ref
                     intrinsic builder.finish
                     struct.new 19
                     return
-                  end $L34
+                  end $L32
                   unreachable
-                end $L26
+                end $L24
                 local.get 12
                 call 73
                 bool.not
-                if $L35 void
+                if $L33 void
                   local.get 12
                   call 42
                   local.tee 31
                   call 73
                   bool.not
-                  if $L36 void
+                  if $L34 void
                     local.get 31
                     struct.new 19
                     return
-                  end $L36
+                  end $L34
                   local.get 15
                   local.get 12
                   struct.set 27 3
                   local.get 13
                   call 73
                   bool.not
-                  if $L37 void
+                  if $L35 void
                     local.get 13
                     call 44
                     local.tee 32
                     call 73
                     bool.not
-                    if $L38 void
+                    if $L36 void
                       local.get 32
                       struct.new 19
                       return
-                    end $L38
+                    end $L36
                     local.get 15
                     local.get 13
                     struct.set 27 4
                     local.get 15
                     return
-                  end $L37
+                  end $L35
                   local.get 15
                   return
-                end $L35
+                end $L33
                 local.get 13
                 call 73
                 bool.not
-                if $L39 void
+                if $L37 void
                   local.get 13
                   call 44
                   local.tee 32
                   call 73
                   bool.not
-                  if $L40 void
+                  if $L38 void
                     local.get 32
                     struct.new 19
                     return
-                  end $L40
+                  end $L38
                   local.get 15
                   local.get 13
                   struct.set 27 4
                   local.get 15
                   return
-                end $L39
+                end $L37
                 local.get 15
                 return
-              end $L25
+              end $L23
               local.get 12
               call 73
               bool.not
-              if $L41 void
+              if $L39 void
                 local.get 12
                 call 42
                 local.tee 31
                 call 73
                 bool.not
-                if $L42 void
+                if $L40 void
                   local.get 31
                   struct.new 19
                   return
-                end $L42
+                end $L40
                 local.get 15
                 local.get 12
                 struct.set 27 3
                 local.get 13
                 call 73
                 bool.not
-                if $L43 void
+                if $L41 void
                   local.get 13
                   call 44
                   local.tee 32
                   call 73
                   bool.not
-                  if $L44 void
+                  if $L42 void
                     local.get 32
                     struct.new 19
                     return
-                  end $L44
+                  end $L42
                   local.get 15
                   local.get 13
                   struct.set 27 4
                   local.get 15
                   return
-                end $L43
+                end $L41
                 local.get 15
                 return
-              end $L41
+              end $L39
               local.get 13
               call 73
               bool.not
-              if $L45 void
+              if $L43 void
                 local.get 13
                 call 44
                 local.tee 32
                 call 73
                 bool.not
-                if $L46 void
+                if $L44 void
                   local.get 32
                   struct.new 19
                   return
-                end $L46
+                end $L44
                 local.get 15
                 local.get 13
                 struct.set 27 4
                 local.get 15
                 return
-              end $L45
+              end $L43
               local.get 15
               return
-            end $L24
+            end $L22
             local.get 18
             type_check 21
-            if $L47 void
+            if $L45 void
               local.get 18
               local.set 19
               intrinsic builder.new
@@ -3134,18 +3104,18 @@ fn 52 std_semver$parse_partial (string) -> ref
               intrinsic builder.finish
               struct.new 19
               return
-            end $L47
+            end $L45
             unreachable
-          end $L23
+          end $L21
           local.get 14
           array.len
-          local.set 7
+          local.set 6
           i64.const 3
-          local.set 9
-          local.get 7
-          local.get 9
+          local.set 8
+          local.get 6
+          local.get 8
           usize.ge
-          if $L48 void
+          if $L46 void
             i32.const 2
             local.set 23
             local.get 14
@@ -3154,7 +3124,7 @@ fn 52 std_semver$parse_partial (string) -> ref
             ref.cast 2
             call 51
             bool.not
-            if $L49 void
+            if $L47 void
               i32.const 2
               local.set 24
               local.get 14
@@ -3164,7 +3134,7 @@ fn 52 std_semver$parse_partial (string) -> ref
               call 40
               local.tee 25
               type_check 1
-              if $L50 void
+              if $L48 void
                 local.get 25
                 ref.cast 1
                 local.set 26
@@ -3174,69 +3144,69 @@ fn 52 std_semver$parse_partial (string) -> ref
                 local.get 12
                 call 73
                 bool.not
-                if $L51 void
+                if $L49 void
                   local.get 12
                   call 42
                   local.tee 31
                   call 73
                   bool.not
-                  if $L52 void
+                  if $L50 void
                     local.get 31
                     struct.new 19
                     return
-                  end $L52
+                  end $L50
                   local.get 15
                   local.get 12
                   struct.set 27 3
                   local.get 13
                   call 73
                   bool.not
-                  if $L53 void
+                  if $L51 void
                     local.get 13
                     call 44
                     local.tee 32
                     call 73
                     bool.not
-                    if $L54 void
+                    if $L52 void
                       local.get 32
                       struct.new 19
                       return
-                    end $L54
+                    end $L52
                     local.get 15
                     local.get 13
                     struct.set 27 4
                     local.get 15
                     return
-                  end $L53
+                  end $L51
                   local.get 15
                   return
-                end $L51
+                end $L49
                 local.get 13
                 call 73
                 bool.not
-                if $L55 void
+                if $L53 void
                   local.get 13
                   call 44
                   local.tee 32
                   call 73
                   bool.not
-                  if $L56 void
+                  if $L54 void
                     local.get 32
                     struct.new 19
                     return
-                  end $L56
+                  end $L54
                   local.get 15
                   local.get 13
                   struct.set 27 4
                   local.get 15
                   return
-                end $L55
+                end $L53
                 local.get 15
                 return
-              end $L50
+              end $L48
               local.get 25
               type_check 21
-              if $L57 void
+              if $L55 void
                 local.get 25
                 local.set 27
                 intrinsic builder.new
@@ -3256,144 +3226,144 @@ fn 52 std_semver$parse_partial (string) -> ref
                 intrinsic builder.finish
                 struct.new 19
                 return
-              end $L57
+              end $L55
               unreachable
-            end $L49
+            end $L47
             local.get 12
             call 73
             bool.not
-            if $L58 void
+            if $L56 void
               local.get 12
               call 42
               local.tee 31
               call 73
               bool.not
-              if $L59 void
+              if $L57 void
                 local.get 31
                 struct.new 19
                 return
-              end $L59
+              end $L57
               local.get 15
               local.get 12
               struct.set 27 3
               local.get 13
               call 73
               bool.not
-              if $L60 void
+              if $L58 void
                 local.get 13
                 call 44
                 local.tee 32
                 call 73
                 bool.not
-                if $L61 void
+                if $L59 void
                   local.get 32
                   struct.new 19
                   return
-                end $L61
+                end $L59
                 local.get 15
                 local.get 13
                 struct.set 27 4
                 local.get 15
                 return
-              end $L60
+              end $L58
               local.get 15
               return
-            end $L58
+            end $L56
             local.get 13
             call 73
             bool.not
-            if $L62 void
+            if $L60 void
               local.get 13
               call 44
               local.tee 32
               call 73
               bool.not
-              if $L63 void
+              if $L61 void
                 local.get 32
                 struct.new 19
                 return
-              end $L63
+              end $L61
               local.get 15
               local.get 13
               struct.set 27 4
               local.get 15
               return
-            end $L62
+            end $L60
             local.get 15
             return
-          end $L48
+          end $L46
           local.get 12
           call 73
           bool.not
-          if $L64 void
+          if $L62 void
             local.get 12
             call 42
             local.tee 31
             call 73
             bool.not
-            if $L65 void
+            if $L63 void
               local.get 31
               struct.new 19
               return
-            end $L65
+            end $L63
             local.get 15
             local.get 12
             struct.set 27 3
             local.get 13
             call 73
             bool.not
-            if $L66 void
+            if $L64 void
               local.get 13
               call 44
               local.tee 32
               call 73
               bool.not
-              if $L67 void
+              if $L65 void
                 local.get 32
                 struct.new 19
                 return
-              end $L67
+              end $L65
               local.get 15
               local.get 13
               struct.set 27 4
               local.get 15
               return
-            end $L66
+            end $L64
             local.get 15
             return
-          end $L64
+          end $L62
           local.get 13
           call 73
           bool.not
-          if $L68 void
+          if $L66 void
             local.get 13
             call 44
             local.tee 32
             call 73
             bool.not
-            if $L69 void
+            if $L67 void
               local.get 32
               struct.new 19
               return
-            end $L69
+            end $L67
             local.get 15
             local.get 13
             struct.set 27 4
             local.get 15
             return
-          end $L68
+          end $L66
           local.get 15
           return
-        end $L22
+        end $L20
         local.get 14
         array.len
-        local.set 7
+        local.set 6
         i64.const 3
-        local.set 9
-        local.get 7
-        local.get 9
+        local.set 8
+        local.get 6
+        local.get 8
         usize.ge
-        if $L70 void
+        if $L68 void
           i32.const 2
           local.set 23
           local.get 14
@@ -3402,7 +3372,7 @@ fn 52 std_semver$parse_partial (string) -> ref
           ref.cast 2
           call 51
           bool.not
-          if $L71 void
+          if $L69 void
             i32.const 2
             local.set 24
             local.get 14
@@ -3412,7 +3382,7 @@ fn 52 std_semver$parse_partial (string) -> ref
             call 40
             local.tee 25
             type_check 1
-            if $L72 void
+            if $L70 void
               local.get 25
               ref.cast 1
               local.set 26
@@ -3422,69 +3392,69 @@ fn 52 std_semver$parse_partial (string) -> ref
               local.get 12
               call 73
               bool.not
-              if $L73 void
+              if $L71 void
                 local.get 12
                 call 42
                 local.tee 31
                 call 73
                 bool.not
-                if $L74 void
+                if $L72 void
                   local.get 31
                   struct.new 19
                   return
-                end $L74
+                end $L72
                 local.get 15
                 local.get 12
                 struct.set 27 3
                 local.get 13
                 call 73
                 bool.not
-                if $L75 void
+                if $L73 void
                   local.get 13
                   call 44
                   local.tee 32
                   call 73
                   bool.not
-                  if $L76 void
+                  if $L74 void
                     local.get 32
                     struct.new 19
                     return
-                  end $L76
+                  end $L74
                   local.get 15
                   local.get 13
                   struct.set 27 4
                   local.get 15
                   return
-                end $L75
+                end $L73
                 local.get 15
                 return
-              end $L73
+              end $L71
               local.get 13
               call 73
               bool.not
-              if $L77 void
+              if $L75 void
                 local.get 13
                 call 44
                 local.tee 32
                 call 73
                 bool.not
-                if $L78 void
+                if $L76 void
                   local.get 32
                   struct.new 19
                   return
-                end $L78
+                end $L76
                 local.get 15
                 local.get 13
                 struct.set 27 4
                 local.get 15
                 return
-              end $L77
+              end $L75
               local.get 15
               return
-            end $L72
+            end $L70
             local.get 25
             type_check 21
-            if $L79 void
+            if $L77 void
               local.get 25
               local.set 27
               intrinsic builder.new
@@ -3504,138 +3474,138 @@ fn 52 std_semver$parse_partial (string) -> ref
               intrinsic builder.finish
               struct.new 19
               return
-            end $L79
+            end $L77
             unreachable
-          end $L71
+          end $L69
           local.get 12
           call 73
           bool.not
-          if $L80 void
+          if $L78 void
             local.get 12
             call 42
             local.tee 31
             call 73
             bool.not
-            if $L81 void
+            if $L79 void
               local.get 31
               struct.new 19
               return
-            end $L81
+            end $L79
             local.get 15
             local.get 12
             struct.set 27 3
             local.get 13
             call 73
             bool.not
-            if $L82 void
+            if $L80 void
               local.get 13
               call 44
               local.tee 32
               call 73
               bool.not
-              if $L83 void
+              if $L81 void
                 local.get 32
                 struct.new 19
                 return
-              end $L83
+              end $L81
               local.get 15
               local.get 13
               struct.set 27 4
               local.get 15
               return
-            end $L82
+            end $L80
             local.get 15
             return
-          end $L80
+          end $L78
           local.get 13
           call 73
           bool.not
-          if $L84 void
+          if $L82 void
             local.get 13
             call 44
             local.tee 32
             call 73
             bool.not
-            if $L85 void
+            if $L83 void
               local.get 32
               struct.new 19
               return
-            end $L85
+            end $L83
             local.get 15
             local.get 13
             struct.set 27 4
             local.get 15
             return
-          end $L84
+          end $L82
           local.get 15
           return
-        end $L70
+        end $L68
         local.get 12
         call 73
         bool.not
-        if $L86 void
+        if $L84 void
           local.get 12
           call 42
           local.tee 31
           call 73
           bool.not
-          if $L87 void
+          if $L85 void
             local.get 31
             struct.new 19
             return
-          end $L87
+          end $L85
           local.get 15
           local.get 12
           struct.set 27 3
           local.get 13
           call 73
           bool.not
-          if $L88 void
+          if $L86 void
             local.get 13
             call 44
             local.tee 32
             call 73
             bool.not
-            if $L89 void
+            if $L87 void
               local.get 32
               struct.new 19
               return
-            end $L89
+            end $L87
             local.get 15
             local.get 13
             struct.set 27 4
             local.get 15
             return
-          end $L88
+          end $L86
           local.get 15
           return
-        end $L86
+        end $L84
         local.get 13
         call 73
         bool.not
-        if $L90 void
+        if $L88 void
           local.get 13
           call 44
           local.tee 32
           call 73
           bool.not
-          if $L91 void
+          if $L89 void
             local.get 32
             struct.new 19
             return
-          end $L91
+          end $L89
           local.get 15
           local.get 13
           struct.set 27 4
           local.get 15
           return
-        end $L90
+        end $L88
         local.get 15
         return
-      end $L21
+      end $L19
       local.get 16
       type_check 21
-      if $L92 void
+      if $L90 void
         intrinsic builder.new
         local.set 17
         local.get 17
@@ -3651,52 +3621,52 @@ fn 52 std_semver$parse_partial (string) -> ref
         intrinsic builder.finish
         struct.new 19
         return
-      end $L92
+      end $L90
       unreachable
-    end $L20
+    end $L18
     local.get 14
     array.len
-    local.set 5
+    local.set 4
     i64.const 2
-    local.set 6
+    local.set 5
+    local.get 4
     local.get 5
-    local.get 6
     usize.ge
-    if $L93 void
+    if $L91 void
       i32.const 1
-      local.set 2
+      local.set 1
       local.get 14
-      local.get 2
+      local.get 1
       array.get 25
       ref.cast 2
       call 51
       bool.not
-      if $L94 void
+      if $L92 void
         i32.const 1
-        local.set 3
+        local.set 2
         local.get 14
-        local.get 3
+        local.get 2
         array.get 25
         ref.cast 2
         call 40
         local.tee 18
         type_check 1
-        if $L95 void
+        if $L93 void
           local.get 18
           ref.cast 1
-          local.set 4
+          local.set 3
           local.get 15
-          local.get 4
+          local.get 3
           struct.set 27 1
           local.get 14
           array.len
-          local.set 7
+          local.set 6
           i64.const 3
-          local.set 9
-          local.get 7
-          local.get 9
+          local.set 8
+          local.get 6
+          local.get 8
           usize.ge
-          if $L96 void
+          if $L94 void
             i32.const 2
             local.set 23
             local.get 14
@@ -3705,7 +3675,7 @@ fn 52 std_semver$parse_partial (string) -> ref
             ref.cast 2
             call 51
             bool.not
-            if $L97 void
+            if $L95 void
               i32.const 2
               local.set 24
               local.get 14
@@ -3715,7 +3685,7 @@ fn 52 std_semver$parse_partial (string) -> ref
               call 40
               local.tee 25
               type_check 1
-              if $L98 void
+              if $L96 void
                 local.get 25
                 ref.cast 1
                 local.set 26
@@ -3725,69 +3695,69 @@ fn 52 std_semver$parse_partial (string) -> ref
                 local.get 12
                 call 73
                 bool.not
-                if $L99 void
+                if $L97 void
                   local.get 12
                   call 42
                   local.tee 31
                   call 73
                   bool.not
-                  if $L100 void
+                  if $L98 void
                     local.get 31
                     struct.new 19
                     return
-                  end $L100
+                  end $L98
                   local.get 15
                   local.get 12
                   struct.set 27 3
                   local.get 13
                   call 73
                   bool.not
-                  if $L101 void
+                  if $L99 void
                     local.get 13
                     call 44
                     local.tee 32
                     call 73
                     bool.not
-                    if $L102 void
+                    if $L100 void
                       local.get 32
                       struct.new 19
                       return
-                    end $L102
+                    end $L100
                     local.get 15
                     local.get 13
                     struct.set 27 4
                     local.get 15
                     return
-                  end $L101
+                  end $L99
                   local.get 15
                   return
-                end $L99
+                end $L97
                 local.get 13
                 call 73
                 bool.not
-                if $L103 void
+                if $L101 void
                   local.get 13
                   call 44
                   local.tee 32
                   call 73
                   bool.not
-                  if $L104 void
+                  if $L102 void
                     local.get 32
                     struct.new 19
                     return
-                  end $L104
+                  end $L102
                   local.get 15
                   local.get 13
                   struct.set 27 4
                   local.get 15
                   return
-                end $L103
+                end $L101
                 local.get 15
                 return
-              end $L98
+              end $L96
               local.get 25
               type_check 21
-              if $L105 void
+              if $L103 void
                 local.get 25
                 local.set 27
                 intrinsic builder.new
@@ -3807,138 +3777,138 @@ fn 52 std_semver$parse_partial (string) -> ref
                 intrinsic builder.finish
                 struct.new 19
                 return
-              end $L105
+              end $L103
               unreachable
-            end $L97
+            end $L95
             local.get 12
             call 73
             bool.not
-            if $L106 void
+            if $L104 void
               local.get 12
               call 42
               local.tee 31
               call 73
               bool.not
-              if $L107 void
+              if $L105 void
                 local.get 31
                 struct.new 19
                 return
-              end $L107
+              end $L105
               local.get 15
               local.get 12
               struct.set 27 3
               local.get 13
               call 73
               bool.not
-              if $L108 void
+              if $L106 void
                 local.get 13
                 call 44
                 local.tee 32
                 call 73
                 bool.not
-                if $L109 void
+                if $L107 void
                   local.get 32
                   struct.new 19
                   return
-                end $L109
+                end $L107
                 local.get 15
                 local.get 13
                 struct.set 27 4
                 local.get 15
                 return
-              end $L108
+              end $L106
               local.get 15
               return
-            end $L106
+            end $L104
             local.get 13
             call 73
             bool.not
-            if $L110 void
+            if $L108 void
               local.get 13
               call 44
               local.tee 32
               call 73
               bool.not
-              if $L111 void
+              if $L109 void
                 local.get 32
                 struct.new 19
                 return
-              end $L111
+              end $L109
               local.get 15
               local.get 13
               struct.set 27 4
               local.get 15
               return
-            end $L110
+            end $L108
             local.get 15
             return
-          end $L96
+          end $L94
           local.get 12
           call 73
           bool.not
-          if $L112 void
+          if $L110 void
             local.get 12
             call 42
             local.tee 31
             call 73
             bool.not
-            if $L113 void
+            if $L111 void
               local.get 31
               struct.new 19
               return
-            end $L113
+            end $L111
             local.get 15
             local.get 12
             struct.set 27 3
             local.get 13
             call 73
             bool.not
-            if $L114 void
+            if $L112 void
               local.get 13
               call 44
               local.tee 32
               call 73
               bool.not
-              if $L115 void
+              if $L113 void
                 local.get 32
                 struct.new 19
                 return
-              end $L115
+              end $L113
               local.get 15
               local.get 13
               struct.set 27 4
               local.get 15
               return
-            end $L114
+            end $L112
             local.get 15
             return
-          end $L112
+          end $L110
           local.get 13
           call 73
           bool.not
-          if $L116 void
+          if $L114 void
             local.get 13
             call 44
             local.tee 32
             call 73
             bool.not
-            if $L117 void
+            if $L115 void
               local.get 32
               struct.new 19
               return
-            end $L117
+            end $L115
             local.get 15
             local.get 13
             struct.set 27 4
             local.get 15
             return
-          end $L116
+          end $L114
           local.get 15
           return
-        end $L95
+        end $L93
         local.get 18
         type_check 21
-        if $L118 void
+        if $L116 void
           local.get 18
           local.set 19
           intrinsic builder.new
@@ -3958,18 +3928,18 @@ fn 52 std_semver$parse_partial (string) -> ref
           intrinsic builder.finish
           struct.new 19
           return
-        end $L118
+        end $L116
         unreachable
-      end $L94
+      end $L92
       local.get 14
       array.len
-      local.set 7
+      local.set 6
       i64.const 3
-      local.set 9
-      local.get 7
-      local.get 9
+      local.set 8
+      local.get 6
+      local.get 8
       usize.ge
-      if $L119 void
+      if $L117 void
         i32.const 2
         local.set 23
         local.get 14
@@ -3978,7 +3948,7 @@ fn 52 std_semver$parse_partial (string) -> ref
         ref.cast 2
         call 51
         bool.not
-        if $L120 void
+        if $L118 void
           i32.const 2
           local.set 24
           local.get 14
@@ -3988,7 +3958,7 @@ fn 52 std_semver$parse_partial (string) -> ref
           call 40
           local.tee 25
           type_check 1
-          if $L121 void
+          if $L119 void
             local.get 25
             ref.cast 1
             local.set 26
@@ -3998,69 +3968,69 @@ fn 52 std_semver$parse_partial (string) -> ref
             local.get 12
             call 73
             bool.not
-            if $L122 void
+            if $L120 void
               local.get 12
               call 42
               local.tee 31
               call 73
               bool.not
-              if $L123 void
+              if $L121 void
                 local.get 31
                 struct.new 19
                 return
-              end $L123
+              end $L121
               local.get 15
               local.get 12
               struct.set 27 3
               local.get 13
               call 73
               bool.not
-              if $L124 void
+              if $L122 void
                 local.get 13
                 call 44
                 local.tee 32
                 call 73
                 bool.not
-                if $L125 void
+                if $L123 void
                   local.get 32
                   struct.new 19
                   return
-                end $L125
+                end $L123
                 local.get 15
                 local.get 13
                 struct.set 27 4
                 local.get 15
                 return
-              end $L124
+              end $L122
               local.get 15
               return
-            end $L122
+            end $L120
             local.get 13
             call 73
             bool.not
-            if $L126 void
+            if $L124 void
               local.get 13
               call 44
               local.tee 32
               call 73
               bool.not
-              if $L127 void
+              if $L125 void
                 local.get 32
                 struct.new 19
                 return
-              end $L127
+              end $L125
               local.get 15
               local.get 13
               struct.set 27 4
               local.get 15
               return
-            end $L126
+            end $L124
             local.get 15
             return
-          end $L121
+          end $L119
           local.get 25
           type_check 21
-          if $L128 void
+          if $L126 void
             local.get 25
             local.set 27
             intrinsic builder.new
@@ -4080,144 +4050,144 @@ fn 52 std_semver$parse_partial (string) -> ref
             intrinsic builder.finish
             struct.new 19
             return
-          end $L128
+          end $L126
           unreachable
-        end $L120
+        end $L118
         local.get 12
         call 73
         bool.not
-        if $L129 void
+        if $L127 void
           local.get 12
           call 42
           local.tee 31
           call 73
           bool.not
-          if $L130 void
+          if $L128 void
             local.get 31
             struct.new 19
             return
-          end $L130
+          end $L128
           local.get 15
           local.get 12
           struct.set 27 3
           local.get 13
           call 73
           bool.not
-          if $L131 void
+          if $L129 void
             local.get 13
             call 44
             local.tee 32
             call 73
             bool.not
-            if $L132 void
+            if $L130 void
               local.get 32
               struct.new 19
               return
-            end $L132
+            end $L130
             local.get 15
             local.get 13
             struct.set 27 4
             local.get 15
             return
-          end $L131
+          end $L129
           local.get 15
           return
-        end $L129
+        end $L127
         local.get 13
         call 73
         bool.not
-        if $L133 void
+        if $L131 void
           local.get 13
           call 44
           local.tee 32
           call 73
           bool.not
-          if $L134 void
+          if $L132 void
             local.get 32
             struct.new 19
             return
-          end $L134
+          end $L132
           local.get 15
           local.get 13
           struct.set 27 4
           local.get 15
           return
-        end $L133
+        end $L131
         local.get 15
         return
-      end $L119
+      end $L117
       local.get 12
       call 73
       bool.not
-      if $L135 void
+      if $L133 void
         local.get 12
         call 42
         local.tee 31
         call 73
         bool.not
-        if $L136 void
+        if $L134 void
           local.get 31
           struct.new 19
           return
-        end $L136
+        end $L134
         local.get 15
         local.get 12
         struct.set 27 3
         local.get 13
         call 73
         bool.not
-        if $L137 void
+        if $L135 void
           local.get 13
           call 44
           local.tee 32
           call 73
           bool.not
-          if $L138 void
+          if $L136 void
             local.get 32
             struct.new 19
             return
-          end $L138
+          end $L136
           local.get 15
           local.get 13
           struct.set 27 4
           local.get 15
           return
-        end $L137
+        end $L135
         local.get 15
         return
-      end $L135
+      end $L133
       local.get 13
       call 73
       bool.not
-      if $L139 void
+      if $L137 void
         local.get 13
         call 44
         local.tee 32
         call 73
         bool.not
-        if $L140 void
+        if $L138 void
           local.get 32
           struct.new 19
           return
-        end $L140
+        end $L138
         local.get 15
         local.get 13
         struct.set 27 4
         local.get 15
         return
-      end $L139
+      end $L137
       local.get 15
       return
-    end $L93
+    end $L91
     local.get 14
     array.len
-    local.set 7
+    local.set 6
     i64.const 3
-    local.set 9
-    local.get 7
-    local.get 9
+    local.set 8
+    local.get 6
+    local.get 8
     usize.ge
-    if $L141 void
+    if $L139 void
       i32.const 2
       local.set 23
       local.get 14
@@ -4226,7 +4196,7 @@ fn 52 std_semver$parse_partial (string) -> ref
       ref.cast 2
       call 51
       bool.not
-      if $L142 void
+      if $L140 void
         i32.const 2
         local.set 24
         local.get 14
@@ -4236,7 +4206,7 @@ fn 52 std_semver$parse_partial (string) -> ref
         call 40
         local.tee 25
         type_check 1
-        if $L143 void
+        if $L141 void
           local.get 25
           ref.cast 1
           local.set 26
@@ -4246,69 +4216,69 @@ fn 52 std_semver$parse_partial (string) -> ref
           local.get 12
           call 73
           bool.not
-          if $L144 void
+          if $L142 void
             local.get 12
             call 42
             local.tee 31
             call 73
             bool.not
-            if $L145 void
+            if $L143 void
               local.get 31
               struct.new 19
               return
-            end $L145
+            end $L143
             local.get 15
             local.get 12
             struct.set 27 3
             local.get 13
             call 73
             bool.not
-            if $L146 void
+            if $L144 void
               local.get 13
               call 44
               local.tee 32
               call 73
               bool.not
-              if $L147 void
+              if $L145 void
                 local.get 32
                 struct.new 19
                 return
-              end $L147
+              end $L145
               local.get 15
               local.get 13
               struct.set 27 4
               local.get 15
               return
-            end $L146
+            end $L144
             local.get 15
             return
-          end $L144
+          end $L142
           local.get 13
           call 73
           bool.not
-          if $L148 void
+          if $L146 void
             local.get 13
             call 44
             local.tee 32
             call 73
             bool.not
-            if $L149 void
+            if $L147 void
               local.get 32
               struct.new 19
               return
-            end $L149
+            end $L147
             local.get 15
             local.get 13
             struct.set 27 4
             local.get 15
             return
-          end $L148
+          end $L146
           local.get 15
           return
-        end $L143
+        end $L141
         local.get 25
         type_check 21
-        if $L150 void
+        if $L148 void
           local.get 25
           local.set 27
           intrinsic builder.new
@@ -4328,178 +4298,178 @@ fn 52 std_semver$parse_partial (string) -> ref
           intrinsic builder.finish
           struct.new 19
           return
-        end $L150
+        end $L148
         unreachable
-      end $L142
+      end $L140
       local.get 12
       call 73
       bool.not
-      if $L151 void
+      if $L149 void
         local.get 12
         call 42
         local.tee 31
         call 73
         bool.not
-        if $L152 void
+        if $L150 void
           local.get 31
           struct.new 19
           return
-        end $L152
+        end $L150
         local.get 15
         local.get 12
         struct.set 27 3
         local.get 13
         call 73
         bool.not
-        if $L153 void
+        if $L151 void
           local.get 13
           call 44
           local.tee 32
           call 73
           bool.not
-          if $L154 void
+          if $L152 void
             local.get 32
             struct.new 19
             return
-          end $L154
+          end $L152
           local.get 15
           local.get 13
           struct.set 27 4
           local.get 15
           return
-        end $L153
+        end $L151
         local.get 15
         return
-      end $L151
+      end $L149
       local.get 13
       call 73
       bool.not
-      if $L155 void
+      if $L153 void
         local.get 13
         call 44
         local.tee 32
         call 73
         bool.not
-        if $L156 void
+        if $L154 void
           local.get 32
           struct.new 19
           return
-        end $L156
+        end $L154
         local.get 15
         local.get 13
         struct.set 27 4
         local.get 15
         return
-      end $L155
+      end $L153
       local.get 15
       return
-    end $L141
+    end $L139
     local.get 12
     call 73
     bool.not
-    if $L157 void
+    if $L155 void
       local.get 12
       call 42
       local.tee 31
       call 73
       bool.not
-      if $L158 void
+      if $L156 void
         local.get 31
         struct.new 19
         return
-      end $L158
+      end $L156
       local.get 15
       local.get 12
       struct.set 27 3
       local.get 13
       call 73
       bool.not
-      if $L159 void
+      if $L157 void
         local.get 13
         call 44
         local.tee 32
         call 73
         bool.not
-        if $L160 void
+        if $L158 void
           local.get 32
           struct.new 19
           return
-        end $L160
+        end $L158
         local.get 15
         local.get 13
         struct.set 27 4
         local.get 15
         return
-      end $L159
+      end $L157
       local.get 15
       return
-    end $L157
+    end $L155
     local.get 13
     call 73
     bool.not
-    if $L161 void
+    if $L159 void
       local.get 13
       call 44
       local.tee 32
       call 73
       bool.not
-      if $L162 void
+      if $L160 void
         local.get 32
         struct.new 19
         return
-      end $L162
+      end $L160
       local.get 15
       local.get 13
       struct.set 27 4
       local.get 15
       return
-    end $L161
+    end $L159
     local.get 15
     return
-  end $L19
+  end $L17
   local.get 14
   array.len
-  local.set 5
+  local.set 4
   i64.const 2
-  local.set 6
+  local.set 5
+  local.get 4
   local.get 5
-  local.get 6
   usize.ge
-  if $L163 void
+  if $L161 void
     i32.const 1
-    local.set 2
+    local.set 1
     local.get 14
-    local.get 2
+    local.get 1
     array.get 25
     ref.cast 2
     call 51
     bool.not
-    if $L164 void
+    if $L162 void
       i32.const 1
-      local.set 3
+      local.set 2
       local.get 14
-      local.get 3
+      local.get 2
       array.get 25
       ref.cast 2
       call 40
       local.tee 18
       type_check 1
-      if $L165 void
+      if $L163 void
         local.get 18
         ref.cast 1
-        local.set 4
+        local.set 3
         local.get 15
-        local.get 4
+        local.get 3
         struct.set 27 1
         local.get 14
         array.len
-        local.set 7
+        local.set 6
         i64.const 3
-        local.set 9
-        local.get 7
-        local.get 9
+        local.set 8
+        local.get 6
+        local.get 8
         usize.ge
-        if $L166 void
+        if $L164 void
           i32.const 2
           local.set 23
           local.get 14
@@ -4508,7 +4478,7 @@ fn 52 std_semver$parse_partial (string) -> ref
           ref.cast 2
           call 51
           bool.not
-          if $L167 void
+          if $L165 void
             i32.const 2
             local.set 24
             local.get 14
@@ -4518,7 +4488,7 @@ fn 52 std_semver$parse_partial (string) -> ref
             call 40
             local.tee 25
             type_check 1
-            if $L168 void
+            if $L166 void
               local.get 25
               ref.cast 1
               local.set 26
@@ -4528,69 +4498,69 @@ fn 52 std_semver$parse_partial (string) -> ref
               local.get 12
               call 73
               bool.not
-              if $L169 void
+              if $L167 void
                 local.get 12
                 call 42
                 local.tee 31
                 call 73
                 bool.not
-                if $L170 void
+                if $L168 void
                   local.get 31
                   struct.new 19
                   return
-                end $L170
+                end $L168
                 local.get 15
                 local.get 12
                 struct.set 27 3
                 local.get 13
                 call 73
                 bool.not
-                if $L171 void
+                if $L169 void
                   local.get 13
                   call 44
                   local.tee 32
                   call 73
                   bool.not
-                  if $L172 void
+                  if $L170 void
                     local.get 32
                     struct.new 19
                     return
-                  end $L172
+                  end $L170
                   local.get 15
                   local.get 13
                   struct.set 27 4
                   local.get 15
                   return
-                end $L171
+                end $L169
                 local.get 15
                 return
-              end $L169
+              end $L167
               local.get 13
               call 73
               bool.not
-              if $L173 void
+              if $L171 void
                 local.get 13
                 call 44
                 local.tee 32
                 call 73
                 bool.not
-                if $L174 void
+                if $L172 void
                   local.get 32
                   struct.new 19
                   return
-                end $L174
+                end $L172
                 local.get 15
                 local.get 13
                 struct.set 27 4
                 local.get 15
                 return
-              end $L173
+              end $L171
               local.get 15
               return
-            end $L168
+            end $L166
             local.get 25
             type_check 21
-            if $L175 void
+            if $L173 void
               local.get 25
               local.set 27
               intrinsic builder.new
@@ -4610,138 +4580,138 @@ fn 52 std_semver$parse_partial (string) -> ref
               intrinsic builder.finish
               struct.new 19
               return
-            end $L175
+            end $L173
             unreachable
-          end $L167
+          end $L165
           local.get 12
           call 73
           bool.not
-          if $L176 void
+          if $L174 void
             local.get 12
             call 42
             local.tee 31
             call 73
             bool.not
-            if $L177 void
+            if $L175 void
               local.get 31
               struct.new 19
               return
-            end $L177
+            end $L175
             local.get 15
             local.get 12
             struct.set 27 3
             local.get 13
             call 73
             bool.not
-            if $L178 void
+            if $L176 void
               local.get 13
               call 44
               local.tee 32
               call 73
               bool.not
-              if $L179 void
+              if $L177 void
                 local.get 32
                 struct.new 19
                 return
-              end $L179
+              end $L177
               local.get 15
               local.get 13
               struct.set 27 4
               local.get 15
               return
-            end $L178
+            end $L176
             local.get 15
             return
-          end $L176
+          end $L174
           local.get 13
           call 73
           bool.not
-          if $L180 void
+          if $L178 void
             local.get 13
             call 44
             local.tee 32
             call 73
             bool.not
-            if $L181 void
+            if $L179 void
               local.get 32
               struct.new 19
               return
-            end $L181
+            end $L179
             local.get 15
             local.get 13
             struct.set 27 4
             local.get 15
             return
-          end $L180
+          end $L178
           local.get 15
           return
-        end $L166
+        end $L164
         local.get 12
         call 73
         bool.not
-        if $L182 void
+        if $L180 void
           local.get 12
           call 42
           local.tee 31
           call 73
           bool.not
-          if $L183 void
+          if $L181 void
             local.get 31
             struct.new 19
             return
-          end $L183
+          end $L181
           local.get 15
           local.get 12
           struct.set 27 3
           local.get 13
           call 73
           bool.not
-          if $L184 void
+          if $L182 void
             local.get 13
             call 44
             local.tee 32
             call 73
             bool.not
-            if $L185 void
+            if $L183 void
               local.get 32
               struct.new 19
               return
-            end $L185
+            end $L183
             local.get 15
             local.get 13
             struct.set 27 4
             local.get 15
             return
-          end $L184
+          end $L182
           local.get 15
           return
-        end $L182
+        end $L180
         local.get 13
         call 73
         bool.not
-        if $L186 void
+        if $L184 void
           local.get 13
           call 44
           local.tee 32
           call 73
           bool.not
-          if $L187 void
+          if $L185 void
             local.get 32
             struct.new 19
             return
-          end $L187
+          end $L185
           local.get 15
           local.get 13
           struct.set 27 4
           local.get 15
           return
-        end $L186
+        end $L184
         local.get 15
         return
-      end $L165
+      end $L163
       local.get 18
       type_check 21
-      if $L188 void
+      if $L186 void
         local.get 18
         local.set 19
         intrinsic builder.new
@@ -4761,18 +4731,18 @@ fn 52 std_semver$parse_partial (string) -> ref
         intrinsic builder.finish
         struct.new 19
         return
-      end $L188
+      end $L186
       unreachable
-    end $L164
+    end $L162
     local.get 14
     array.len
-    local.set 7
+    local.set 6
     i64.const 3
-    local.set 9
-    local.get 7
-    local.get 9
+    local.set 8
+    local.get 6
+    local.get 8
     usize.ge
-    if $L189 void
+    if $L187 void
       i32.const 2
       local.set 23
       local.get 14
@@ -4781,7 +4751,7 @@ fn 52 std_semver$parse_partial (string) -> ref
       ref.cast 2
       call 51
       bool.not
-      if $L190 void
+      if $L188 void
         i32.const 2
         local.set 24
         local.get 14
@@ -4791,7 +4761,7 @@ fn 52 std_semver$parse_partial (string) -> ref
         call 40
         local.tee 25
         type_check 1
-        if $L191 void
+        if $L189 void
           local.get 25
           ref.cast 1
           local.set 26
@@ -4801,69 +4771,69 @@ fn 52 std_semver$parse_partial (string) -> ref
           local.get 12
           call 73
           bool.not
-          if $L192 void
+          if $L190 void
             local.get 12
             call 42
             local.tee 31
             call 73
             bool.not
-            if $L193 void
+            if $L191 void
               local.get 31
               struct.new 19
               return
-            end $L193
+            end $L191
             local.get 15
             local.get 12
             struct.set 27 3
             local.get 13
             call 73
             bool.not
-            if $L194 void
+            if $L192 void
               local.get 13
               call 44
               local.tee 32
               call 73
               bool.not
-              if $L195 void
+              if $L193 void
                 local.get 32
                 struct.new 19
                 return
-              end $L195
+              end $L193
               local.get 15
               local.get 13
               struct.set 27 4
               local.get 15
               return
-            end $L194
+            end $L192
             local.get 15
             return
-          end $L192
+          end $L190
           local.get 13
           call 73
           bool.not
-          if $L196 void
+          if $L194 void
             local.get 13
             call 44
             local.tee 32
             call 73
             bool.not
-            if $L197 void
+            if $L195 void
               local.get 32
               struct.new 19
               return
-            end $L197
+            end $L195
             local.get 15
             local.get 13
             struct.set 27 4
             local.get 15
             return
-          end $L196
+          end $L194
           local.get 15
           return
-        end $L191
+        end $L189
         local.get 25
         type_check 21
-        if $L198 void
+        if $L196 void
           local.get 25
           local.set 27
           intrinsic builder.new
@@ -4883,144 +4853,144 @@ fn 52 std_semver$parse_partial (string) -> ref
           intrinsic builder.finish
           struct.new 19
           return
-        end $L198
+        end $L196
         unreachable
-      end $L190
+      end $L188
       local.get 12
       call 73
       bool.not
-      if $L199 void
+      if $L197 void
         local.get 12
         call 42
         local.tee 31
         call 73
         bool.not
-        if $L200 void
+        if $L198 void
           local.get 31
           struct.new 19
           return
-        end $L200
+        end $L198
         local.get 15
         local.get 12
         struct.set 27 3
         local.get 13
         call 73
         bool.not
-        if $L201 void
+        if $L199 void
           local.get 13
           call 44
           local.tee 32
           call 73
           bool.not
-          if $L202 void
+          if $L200 void
             local.get 32
             struct.new 19
             return
-          end $L202
+          end $L200
           local.get 15
           local.get 13
           struct.set 27 4
           local.get 15
           return
-        end $L201
+        end $L199
         local.get 15
         return
-      end $L199
+      end $L197
       local.get 13
       call 73
       bool.not
-      if $L203 void
+      if $L201 void
         local.get 13
         call 44
         local.tee 32
         call 73
         bool.not
-        if $L204 void
+        if $L202 void
           local.get 32
           struct.new 19
           return
-        end $L204
+        end $L202
         local.get 15
         local.get 13
         struct.set 27 4
         local.get 15
         return
-      end $L203
+      end $L201
       local.get 15
       return
-    end $L189
+    end $L187
     local.get 12
     call 73
     bool.not
-    if $L205 void
+    if $L203 void
       local.get 12
       call 42
       local.tee 31
       call 73
       bool.not
-      if $L206 void
+      if $L204 void
         local.get 31
         struct.new 19
         return
-      end $L206
+      end $L204
       local.get 15
       local.get 12
       struct.set 27 3
       local.get 13
       call 73
       bool.not
-      if $L207 void
+      if $L205 void
         local.get 13
         call 44
         local.tee 32
         call 73
         bool.not
-        if $L208 void
+        if $L206 void
           local.get 32
           struct.new 19
           return
-        end $L208
+        end $L206
         local.get 15
         local.get 13
         struct.set 27 4
         local.get 15
         return
-      end $L207
+      end $L205
       local.get 15
       return
-    end $L205
+    end $L203
     local.get 13
     call 73
     bool.not
-    if $L209 void
+    if $L207 void
       local.get 13
       call 44
       local.tee 32
       call 73
       bool.not
-      if $L210 void
+      if $L208 void
         local.get 32
         struct.new 19
         return
-      end $L210
+      end $L208
       local.get 15
       local.get 13
       struct.set 27 4
       local.get 15
       return
-    end $L209
+    end $L207
     local.get 15
     return
-  end $L163
+  end $L161
   local.get 14
   array.len
-  local.set 7
+  local.set 6
   i64.const 3
-  local.set 9
-  local.get 7
-  local.get 9
+  local.set 8
+  local.get 6
+  local.get 8
   usize.ge
-  if $L211 void
+  if $L209 void
     i32.const 2
     local.set 23
     local.get 14
@@ -5029,7 +4999,7 @@ fn 52 std_semver$parse_partial (string) -> ref
     ref.cast 2
     call 51
     bool.not
-    if $L212 void
+    if $L210 void
       i32.const 2
       local.set 24
       local.get 14
@@ -5039,7 +5009,7 @@ fn 52 std_semver$parse_partial (string) -> ref
       call 40
       local.tee 25
       type_check 1
-      if $L213 void
+      if $L211 void
         local.get 25
         ref.cast 1
         local.set 26
@@ -5049,69 +5019,69 @@ fn 52 std_semver$parse_partial (string) -> ref
         local.get 12
         call 73
         bool.not
-        if $L214 void
+        if $L212 void
           local.get 12
           call 42
           local.tee 31
           call 73
           bool.not
-          if $L215 void
+          if $L213 void
             local.get 31
             struct.new 19
             return
-          end $L215
+          end $L213
           local.get 15
           local.get 12
           struct.set 27 3
           local.get 13
           call 73
           bool.not
-          if $L216 void
+          if $L214 void
             local.get 13
             call 44
             local.tee 32
             call 73
             bool.not
-            if $L217 void
+            if $L215 void
               local.get 32
               struct.new 19
               return
-            end $L217
+            end $L215
             local.get 15
             local.get 13
             struct.set 27 4
             local.get 15
             return
-          end $L216
+          end $L214
           local.get 15
           return
-        end $L214
+        end $L212
         local.get 13
         call 73
         bool.not
-        if $L218 void
+        if $L216 void
           local.get 13
           call 44
           local.tee 32
           call 73
           bool.not
-          if $L219 void
+          if $L217 void
             local.get 32
             struct.new 19
             return
-          end $L219
+          end $L217
           local.get 15
           local.get 13
           struct.set 27 4
           local.get 15
           return
-        end $L218
+        end $L216
         local.get 15
         return
-      end $L213
+      end $L211
       local.get 25
       type_check 21
-      if $L220 void
+      if $L218 void
         local.get 25
         local.set 27
         intrinsic builder.new
@@ -5131,132 +5101,132 @@ fn 52 std_semver$parse_partial (string) -> ref
         intrinsic builder.finish
         struct.new 19
         return
-      end $L220
+      end $L218
       unreachable
-    end $L212
+    end $L210
     local.get 12
     call 73
     bool.not
-    if $L221 void
+    if $L219 void
       local.get 12
       call 42
       local.tee 31
       call 73
       bool.not
-      if $L222 void
+      if $L220 void
         local.get 31
         struct.new 19
         return
-      end $L222
+      end $L220
       local.get 15
       local.get 12
       struct.set 27 3
       local.get 13
       call 73
       bool.not
-      if $L223 void
+      if $L221 void
         local.get 13
         call 44
         local.tee 32
         call 73
         bool.not
-        if $L224 void
+        if $L222 void
           local.get 32
           struct.new 19
           return
-        end $L224
+        end $L222
         local.get 15
         local.get 13
         struct.set 27 4
         local.get 15
         return
-      end $L223
+      end $L221
       local.get 15
       return
-    end $L221
+    end $L219
     local.get 13
     call 73
     bool.not
-    if $L225 void
+    if $L223 void
       local.get 13
       call 44
       local.tee 32
       call 73
       bool.not
-      if $L226 void
+      if $L224 void
         local.get 32
         struct.new 19
         return
-      end $L226
+      end $L224
       local.get 15
       local.get 13
       struct.set 27 4
       local.get 15
       return
-    end $L225
+    end $L223
     local.get 15
     return
-  end $L211
+  end $L209
   local.get 12
   call 73
   bool.not
-  if $L227 void
+  if $L225 void
     local.get 12
     call 42
     local.tee 31
     call 73
     bool.not
-    if $L228 void
+    if $L226 void
       local.get 31
       struct.new 19
       return
-    end $L228
+    end $L226
     local.get 15
     local.get 12
     struct.set 27 3
     local.get 13
     call 73
     bool.not
-    if $L229 void
+    if $L227 void
       local.get 13
       call 44
       local.tee 32
       call 73
       bool.not
-      if $L230 void
+      if $L228 void
         local.get 32
         struct.new 19
         return
-      end $L230
+      end $L228
       local.get 15
       local.get 13
       struct.set 27 4
       local.get 15
       return
-    end $L229
+    end $L227
     local.get 15
     return
-  end $L227
+  end $L225
   local.get 13
   call 73
   bool.not
-  if $L231 void
+  if $L229 void
     local.get 13
     call 44
     local.tee 32
     call 73
     bool.not
-    if $L232 void
+    if $L230 void
       local.get 32
       struct.new 19
       return
-    end $L232
+    end $L230
     local.get 15
     local.get 13
     struct.set 27 4
     local.get 15
     return
-  end $L231
+  end $L229
   local.get 15
   return
 end
@@ -5755,17 +5725,17 @@ fn 60 std_semver$parse_comparator_token (i32,string) -> ref
 end
 
 fn 61 std_semver$parse_token (string) -> ref
-  local or_res bool
-  local $neg_15 i32
-  local $neg_17 i32
-  local $neg_19 i32
+  local $neg_6 i32
+  local $neg_8 i32
+  local $neg_10 i32
   local n usize
-  local $call_32 u8
-  local $call_46 string
+  local and_res bool
+  local $call_21 u8
+  local $call_33 string
   local __scrut_0 ref
   local __sb_1 any
-  local $field_170 string
-  local $struct_171 ref
+  local $vcall_87 string
+  local $struct_136 ref
   local.get 0
   call 73
   if $L0 void
@@ -5774,55 +5744,34 @@ fn 61 std_semver$parse_token (string) -> ref
     return
   end $L0
   local.get 0
-  string.const 28
-  string.eq
+  call 51
   if $L1 void
-    bool.const true
+    i32.const 1
+    i32.neg
     local.set 1
-  else
-    local.get 0
-    string.const 26
-    string.eq
-    local.set 1
-  end $L1
-  local.get 1
-  if $L2 void
-    bool.const true
-    local.set 1
-  else
-    local.get 0
-    string.const 27
-    string.eq
-    local.set 1
-  end $L2
-  local.get 1
-  if $L3 void
     i32.const 1
     i32.neg
     local.set 2
     i32.const 1
     i32.neg
     local.set 3
-    i32.const 1
-    i32.neg
-    local.set 4
+    local.get 1
     local.get 2
     local.get 3
-    local.get 4
     string.const 8
     string.const 8
     struct.new 27
     call 58
     return
-  end $L3
+  end $L1
   local.get 0
   call.import 2
-  local.set 5
-  local.get 5
+  local.set 4
+  local.get 4
   i64.const 2
   i64.to_usize
   usize.ge
-  if $L4 void
+  if $L2 void
     local.get 0
     i64.const 0
     i64.to_usize
@@ -5832,13 +5781,13 @@ fn 61 std_semver$parse_token (string) -> ref
     i32.const 62
     i32.to_u8
     u8.eq
-    local.set 1
+    local.set 5
   else
     bool.const false
-    local.set 1
-  end $L4
-  local.get 1
-  if $L5 void
+    local.set 5
+  end $L2
+  local.get 5
+  if $L3 void
     local.get 0
     i64.const 1
     i64.to_usize
@@ -5848,29 +5797,29 @@ fn 61 std_semver$parse_token (string) -> ref
     i32.const 61
     i32.to_u8
     u8.eq
-    local.set 1
+    local.set 5
   else
     bool.const false
-    local.set 1
-  end $L5
-  local.get 1
-  if $L6 void
+    local.set 5
+  end $L3
+  local.get 5
+  if $L4 void
     local.get 0
     i64.const 2
     i64.to_usize
-    local.get 5
+    local.get 4
     call.import 3
     local.set 7
     i32.const 4
     local.get 7
     call 60
     return
-  end $L6
-  local.get 5
+  end $L4
+  local.get 4
   i64.const 2
   i64.to_usize
   usize.ge
-  if $L7 void
+  if $L5 void
     local.get 0
     i64.const 0
     i64.to_usize
@@ -5880,13 +5829,13 @@ fn 61 std_semver$parse_token (string) -> ref
     i32.const 60
     i32.to_u8
     u8.eq
-    local.set 1
+    local.set 5
   else
     bool.const false
-    local.set 1
-  end $L7
-  local.get 1
-  if $L8 void
+    local.set 5
+  end $L5
+  local.get 5
+  if $L6 void
     local.get 0
     i64.const 1
     i64.to_usize
@@ -5896,110 +5845,82 @@ fn 61 std_semver$parse_token (string) -> ref
     i32.const 61
     i32.to_u8
     u8.eq
-    local.set 1
+    local.set 5
   else
     bool.const false
-    local.set 1
-  end $L8
-  local.get 1
-  if $L9 void
+    local.set 5
+  end $L6
+  local.get 5
+  if $L7 void
     local.get 0
     i64.const 2
     i64.to_usize
-    local.get 5
+    local.get 4
     call.import 3
     local.set 7
     i32.const 2
     local.get 7
     call 60
     return
-  end $L9
+  end $L7
   local.get 0
   i64.const 0
   i64.to_usize
   call.import 4
   local.set 6
+  local.get 0
+  i64.const 1
+  i64.to_usize
+  local.get 4
+  call.import 3
+  local.set 7
   local.get 6
   i32.const 62
   i32.to_u8
   u8.eq
-  if $L10 void
-    local.get 0
-    call.import 2
-    local.set 5
-    local.get 0
-    i64.const 1
-    i64.to_usize
-    local.get 5
-    call.import 3
-    local.set 7
+  if $L8 void
     i32.const 3
+    local.get 7
+    call 60
+    return
+  end $L8
+  local.get 6
+  i32.const 60
+  i32.to_u8
+  u8.eq
+  if $L9 void
+    i32.const 1
+    local.get 7
+    call 60
+    return
+  end $L9
+  local.get 6
+  i32.const 61
+  i32.to_u8
+  u8.eq
+  if $L10 void
+    i32.const 0
     local.get 7
     call 60
     return
   end $L10
   local.get 6
-  i32.const 60
-  i32.to_u8
-  u8.eq
-  if $L11 void
-    local.get 0
-    call.import 2
-    local.set 5
-    local.get 0
-    i64.const 1
-    i64.to_usize
-    local.get 5
-    call.import 3
-    local.set 7
-    i32.const 1
-    local.get 7
-    call 60
-    return
-  end $L11
-  local.get 6
-  i32.const 61
-  i32.to_u8
-  u8.eq
-  if $L12 void
-    local.get 0
-    call.import 2
-    local.set 5
-    local.get 0
-    i64.const 1
-    i64.to_usize
-    local.get 5
-    call.import 3
-    local.set 7
-    i32.const 0
-    local.get 7
-    call 60
-    return
-  end $L12
-  local.get 6
   i32.const 94
   i32.to_u8
   u8.eq
-  if $L13 void
-    local.get 0
-    call.import 2
-    local.set 5
-    local.get 0
-    i64.const 1
-    i64.to_usize
-    local.get 5
-    call.import 3
+  if $L11 void
+    local.get 7
     call 52
     local.tee 8
     type_check 27
-    if $L14 void
+    if $L12 void
       local.get 8
       call 55
       return
-    end $L14
+    end $L12
     local.get 8
     type_check 21
-    if $L15 void
+    if $L13 void
       intrinsic builder.new
       local.set 9
       local.get 9
@@ -6007,41 +5928,34 @@ fn 61 std_semver$parse_token (string) -> ref
       intrinsic builder.append_str
       local.get 8
       virtual.call 1 Error.message
-      local.set 7
+      local.set 10
       local.get 9
-      local.get 7
+      local.get 10
       intrinsic builder.append_display
       local.get 9
       intrinsic builder.finish
       struct.new 19
       return
-    end $L15
+    end $L13
     unreachable
-  end $L13
+  end $L11
   local.get 6
   i32.const 126
   i32.to_u8
   u8.eq
-  if $L16 void
-    local.get 0
-    call.import 2
-    local.set 5
-    local.get 0
-    i64.const 1
-    i64.to_usize
-    local.get 5
-    call.import 3
+  if $L14 void
+    local.get 7
     call 52
     local.tee 8
     type_check 27
-    if $L17 void
+    if $L15 void
       local.get 8
       call 57
       return
-    end $L17
+    end $L15
     local.get 8
     type_check 21
-    if $L18 void
+    if $L16 void
       intrinsic builder.new
       local.set 9
       local.get 9
@@ -6057,65 +5971,65 @@ fn 61 std_semver$parse_token (string) -> ref
       intrinsic builder.finish
       struct.new 19
       return
-    end $L18
+    end $L16
     unreachable
-  end $L16
+  end $L14
   local.get 0
   call 52
   local.tee 8
   type_check 27
-  if $L19 void
+  if $L17 void
     local.field 8 27 0
     ref.cast 1
-    local.set 2
-    local.get 2
+    local.set 1
+    local.get 1
     i32.const 0
     i32.ge
-    if $L20 void
+    if $L18 void
       local.field 8 27 1
       ref.cast 1
-      local.set 2
-      local.get 2
+      local.set 1
+      local.get 1
       i32.const 0
       i32.ge
-      local.set 1
+      local.set 5
     else
       bool.const false
-      local.set 1
-    end $L20
-    local.get 1
-    if $L21 void
+      local.set 5
+    end $L18
+    local.get 5
+    if $L19 void
       local.field 8 27 2
       ref.cast 1
-      local.set 2
-      local.get 2
+      local.set 1
+      local.get 1
       i32.const 0
       i32.ge
-      local.set 1
+      local.set 5
     else
       bool.const false
-      local.set 1
-    end $L21
-    local.get 1
-    if $L22 void
+      local.set 5
+    end $L19
+    local.get 5
+    if $L20 void
       local.field 8 27 0
       ref.cast 1
-      local.set 2
+      local.set 1
       local.field 8 27 1
       ref.cast 1
-      local.set 3
+      local.set 2
       local.field 8 27 2
       ref.cast 1
-      local.set 4
+      local.set 3
       local.field 8 27 3
       ref.cast 2
       local.set 7
       local.field 8 27 4
       ref.cast 2
       local.set 10
+      local.get 1
       local.get 2
       local.get 3
-      local.get 4
       local.get 7
       local.get 10
       struct.new 3
@@ -6125,14 +6039,14 @@ fn 61 std_semver$parse_token (string) -> ref
       struct.new 30
       array.new 29 1
       return
-    end $L22
+    end $L20
     local.get 8
     call 58
     return
-  end $L19
+  end $L17
   local.get 8
   type_check 21
-  if $L23 void
+  if $L21 void
     intrinsic builder.new
     local.set 9
     local.get 9
@@ -6148,7 +6062,7 @@ fn 61 std_semver$parse_token (string) -> ref
     intrinsic builder.finish
     struct.new 19
     return
-  end $L23
+  end $L21
   unreachable
 end
 
@@ -6158,9 +6072,9 @@ fn 62 std_semver$parse_clause (string) -> ref
   local terms ref
   local i usize
   local and_res bool
-  local $add_23 usize
-  local $idx_24 string
-  local $add_33 usize
+  local $add_20 usize
+  local $idx_21 string
+  local $add_29 usize
   local hi_part ref
   local __scrut_0 ref
   local __scrut_2 ref
@@ -6169,9 +6083,9 @@ fn 62 std_semver$parse_clause (string) -> ref
   local __for_i_6 usize
   local t ref
   local __sb_3 any
-  local $vcall_68 string
+  local $vcall_63 string
   local __sb_1 any
-  local $vcall_79 string
+  local $vcall_74 string
   local __scrut_7 ref
   local __for_arr_8 ref
   local __for_len_9 usize
