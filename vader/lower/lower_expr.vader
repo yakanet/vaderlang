@@ -154,7 +154,7 @@ stub :: fn(span: Span, type: Type, reason: string) -> LoweredExpr {
 lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr {
     symbol :: ctx.typed.resolved.idents[span_key(ident.span)]
     match symbol {
-        is null -> { return stub(ident.span, type, "unresolved ident `${ident.name}`") }
+        is null -> { return stub(ident.span, type, "unresolved ident ${ident.name}") }
         is Symbol as resolved -> {
             // `@comptime for x in arr { ... }` substitution : every
             // reference to the loop var inside the unrolled body
