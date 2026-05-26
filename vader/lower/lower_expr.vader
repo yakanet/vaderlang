@@ -1380,6 +1380,34 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         }
     }
     if i32(binary.op) == i32(BinaryOp.In) || i32(binary.op) == i32(BinaryOp.NotIn) {
+        // `x in coll` → `coll.contains(x)`. `x !in coll` → `!coll.contains(x)`.
+        // The Contains impl on `coll`'s type provides the `contains`
+        // member ; the existing `find_impl_member_for` UFCS lookup
+        // covers struct receivers (`MutableMap`, `MutableSet`, …) and
+        // primitive ones (`Range<T> implements Contains<T>` via the
+        // intrinsic decl in std/core). Mirror of TS' `lowerInOp`
+        // (`src/lower/passes/expr.ts:927`).
+        coll_type :: ctx.types.expr_type(binary.right)
+        member :: find_impl_member_for(ctx, coll_type, "contains")
+        if member is UfcsMember as found {
+            args: LoweredExpr[] = []
+            args.push(lower_expr(ctx, binary.right))
+            args.push(lower_expr(ctx, binary.left))
+            call :: LoweredCall {
+                .span = binary.span, .type = TY_BOOL,
+                .callee = LoweredIdent {
+                    .span = binary.span, .type = TY_BOOL, .symbol = found.symbol,
+                },
+                .args = args,
+            }
+            if i32(binary.op) == i32(BinaryOp.NotIn) {
+                return LoweredUnary {
+                    .span = binary.span, .type = TY_BOOL,
+                    .op = LoweredUnaryOp.Not, .operand = call,
+                }
+            }
+            return call
+        }
         return stub(binary.span, type, "`in` / `not in` lowering deferred")
     }
     // `<union>` `==` / `!=` `null` reduces to a tag-only `LoweredTypeCheck`.
@@ -2603,11 +2631,40 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
         }
         _ -> {}
     }
+    // Index trait routing : `s[i]` on a `string` / user struct with an
+    // `Index<I, T>` impl rewrites to a direct `at(s, i)` call. Mirror of
+    // TS' `indexResolutions` consumed by `lowerIndexTraitCall`
+    // (`src/lower/passes/expr.ts:295`). Skip for ArrayType (built-in
+    // path above) and for Range-typed indices (slicing — array case
+    // handled above ; string-range slicing falls through to the
+    // generic `LoweredIndex` until `LoweredStringSlice` ports).
+    if !(target_type is ArrayType) && !index_is_range(ctx, expr.index) {
+        member :: find_impl_member_for(ctx, target_type, "at")
+        if member is UfcsMember as found {
+            args: LoweredExpr[] = []
+            args.push(lower_expr(ctx, expr.target))
+            args.push(lower_expr(ctx, expr.index))
+            return LoweredCall {
+                .span = expr.span, .type = type,
+                .callee = LoweredIdent {
+                    .span = expr.span, .type = type, .symbol = found.symbol,
+                },
+                .args = args,
+            }
+        }
+    }
     return LoweredIndex {
         .span = expr.span, .type = type,
         .target = lower_expr(ctx, expr.target),
         .index  = lower_expr(ctx, expr.index),
     }
+}
+
+index_is_range :: fn(ctx: FnLowerCtx, index_expr: Expr) -> bool {
+    if index_expr is RangeExpr { return true }
+    idx_type :: ctx.types.expr_type(index_expr)
+    if idx_type is StructType as st { return st.symbol.name == "Range" }
+    return false
 }
 
 try_lower_array_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr | null {
