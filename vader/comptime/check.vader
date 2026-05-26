@@ -40,6 +40,7 @@ export evaluate_project :: fn(
             _       -> {
                 evaluate_module_decls(decls, module_typed, program, diags)
                 evaluate_assert_decls(decls, module_typed, diags)
+                bake_file_exprs(decls, module_typed, project, program, diags)
             }
         }
         project.modules[module_id] = program
@@ -179,6 +180,207 @@ has_comptime_decorator :: fn(decl: AST.ConstDecl) -> bool {
         if d.name == "comptime" { return true }
     }
     return false
+}
+
+// Walk every decl in `decls`, find `@file("path")` IntrinsicCallExpr
+// occurrences, evaluate the path arg as a comptime string, read the
+// referenced file's content (resolved relative to the source file's
+// directory), and store the content under `project.file_exprs[id]`
+// so `lower_intrinsic`'s `@file` arm can substitute the materialised
+// literal. Mirror of `evalFileExpr` in
+// `src/comptime/evaluate.ts:225-257`.
+bake_file_exprs :: fn(
+    decls: AST.Decl[], typed: TypedProgram,
+    project: EvaluatedProject, program: EvaluatedProgram, diags: Diagnostic[],
+) -> void {
+    // Two-step : collect every `@file(arg)` IntrinsicCallExpr first,
+    // then evaluate + bake. Avoids closures over the call-time
+    // context (Vader's closure-capture analysis isn't robust enough
+    // for the multi-field capture this would need).
+    found: AST.IntrinsicCallExpr[] = []
+    for decl in decls {
+        collect_file_intrinsics(decl, found)
+    }
+    context :: ComptimeContext {
+        .typed    = typed,
+        .bindings = program.comptime_decls,
+    }
+    for ic in found {
+        bake_one_file_expr(ic, context, typed, project, diags)
+    }
+    // Third pass : for every ConstDecl whose RHS is a bare `@file(...)`
+    // call, propagate the baked file content into `file_baked_consts`
+    // keyed by the const's Symbol id. The lower aggregates this with
+    // `comptime_decls` into `comptime_value_by_symbol_id` so use
+    // sites of these consts inline the literal. Kept OUT of
+    // `comptime_decls` itself because TS' comptime dump filters
+    // `@file`-baked consts out of the `@comptime` listing (the const
+    // wasn't user-marked `@comptime`).
+    for decl in decls {
+        match decl {
+            is AST.ConstDecl as cd -> {
+                if cd.value is AST.IntrinsicCallExpr as ic {
+                    if ic.name == "file" {
+                        baked :: project.file_exprs[ic.id]
+                        if baked is string as content {
+                            symbol :: lookup_decl_symbol(cd, typed)
+                            if symbol is Symbol as s {
+                                project.file_baked_consts[s.id] = string_val(content)
+                            }
+                        }
+                    }
+                }
+            }
+            _ -> {}
+        }
+    }
+}
+
+bake_one_file_expr :: fn(
+    ic: AST.IntrinsicCallExpr, context: ComptimeContext, typed: TypedProgram,
+    project: EvaluatedProject, diags: Diagnostic[],
+) -> void {
+    arg_result :: evaluate_expr(ic.args[0], context)
+    match arg_result.value {
+        is null -> {}
+        is StringValue as sv -> {
+            content_opt :: read_relative_file(sv.value, typed.resolved.path)
+            match content_opt {
+                is null -> {}
+                is string as content -> {
+                    project.file_exprs[ic.id] = content
+                }
+            }
+        }
+        _ -> {}
+    }
+}
+
+// Resolve a `@file("path")` arg : absolute paths pass through ;
+// relative paths join against `source_dir` which the caller passes
+// as the module's source directory (`typed.resolved.path` in the
+// resolver — already a folder, not a file).
+read_relative_file :: fn(raw_path: string, source_dir: string) -> string | null {
+    abs :: if starts_with(raw_path, "/") {
+        raw_path
+    } else if source_dir == "" {
+        raw_path
+    } else {
+        "${source_dir}/${raw_path}"
+    }
+    result :: read_file(abs)
+    if result is string as s { return s }
+    return null
+}
+
+import "std/io" { read_file }
+import "std/string" { starts_with }
+
+// Recursive expression walker that collects every IntrinsicCallExpr
+// named "file" reachable from a decl's bodies (FnDecl body, ImplDecl
+// members' bodies, ConstDecl value, AssertDecl condition). Avoids
+// closures for portability — `out` accumulates the matches.
+collect_file_intrinsics :: fn(decl: AST.Decl, out: AST.IntrinsicCallExpr[]) -> void {
+    match decl {
+        is AST.FnDecl as fd -> {
+            match fd.body {
+                is null -> {}
+                is AST.BlockExpr as b -> { collect_in_block(b, out) }
+            }
+        }
+        is AST.ImplDecl as id -> {
+            for m in id.members {
+                match m.body {
+                    is null -> {}
+                    is AST.BlockExpr as b -> { collect_in_block(b, out) }
+                }
+            }
+        }
+        is AST.ConstDecl as cd -> { collect_in_expr(cd.value, out) }
+        is AST.AssertDecl as ad -> { collect_in_expr(ad.condition, out) }
+        _ -> {}
+    }
+}
+
+collect_in_block :: fn(b: AST.BlockExpr, out: AST.IntrinsicCallExpr[]) -> void {
+    for s in b.stmts { collect_in_stmt(s, out) }
+    match b.trailing {
+        is null -> {}
+        _ -> { collect_in_expr(b.trailing, out) }
+    }
+}
+
+collect_in_stmt :: fn(s: AST.Stmt, out: AST.IntrinsicCallExpr[]) -> void {
+    match s {
+        is AST.LetStmt as let_s -> { collect_in_expr(let_s.value, out) }
+        is AST.AssignStmt as as_s -> {
+            collect_in_expr(as_s.target, out)
+            collect_in_expr(as_s.value, out)
+        }
+        is AST.ExprStmt as es -> { collect_in_expr(es.expr, out) }
+        is AST.ReturnStmt as rs -> {
+            match rs.value {
+                is null -> {}
+                _ -> { collect_in_expr(rs.value, out) }
+            }
+        }
+        is AST.ForStmt as fs -> {
+            match fs.form {
+                is AST.WhileFor as wf -> { collect_in_expr(wf.cond, out) }
+                is AST.InFor as inf -> { collect_in_expr(inf.iter, out) }
+                _ -> {}
+            }
+            collect_in_block(fs.body, out)
+        }
+        is AST.DeferStmt as ds -> {
+            match ds.body {
+                is AST.DeferStmtBody as dsb -> { collect_in_stmt(dsb.stmt, out) }
+                is AST.DeferBlockBody as dbb -> { collect_in_block(dbb.block, out) }
+            }
+        }
+        _ -> {}
+    }
+}
+
+collect_in_expr :: fn(e: AST.Expr, out: AST.IntrinsicCallExpr[]) -> void {
+    if e is AST.IntrinsicCallExpr as ic {
+        if ic.name == "file" && ic.args.len() == usize(1) { out.push(ic) }
+    }
+    match e {
+        is AST.BlockExpr as b -> { collect_in_block(b, out) }
+        is AST.CallExpr as c -> {
+            collect_in_expr(c.callee, out)
+            for arg in c.args { collect_in_expr(arg.value, out) }
+        }
+        is AST.FieldExpr as f -> { collect_in_expr(f.target, out) }
+        is AST.IndexExpr as ix -> {
+            collect_in_expr(ix.target, out)
+            collect_in_expr(ix.index, out)
+        }
+        is AST.UnaryExpr as u -> { collect_in_expr(u.operand, out) }
+        is AST.BinaryExpr as bn -> {
+            collect_in_expr(bn.left, out)
+            collect_in_expr(bn.right, out)
+        }
+        is AST.IfExpr as ifx -> {
+            collect_in_expr(ifx.cond, out)
+            collect_in_block(ifx.then_block, out)
+            match ifx.else_branch {
+                is null -> {}
+                is AST.IfElseBlock as eb -> { collect_in_block(eb.block, out) }
+                is AST.IfElseIf as ei -> { collect_in_expr(ei.branch, out) }
+            }
+        }
+        is AST.IntrinsicCallExpr as ic -> {
+            for arg in ic.args { collect_in_expr(arg, out) }
+        }
+        is AST.StringLitExpr as sle -> {
+            for part in sle.parts {
+                if part is AST.StringLitInterp as interp { collect_in_expr(interp.expr, out) }
+            }
+        }
+        _ -> {}
+    }
 }
 
 // Same lookup as `deps.vader::lookup_const_symbol` — resolver doesn't

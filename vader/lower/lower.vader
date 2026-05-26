@@ -169,6 +169,17 @@ populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
             }
         }
     }
+    // Merge `@file`-baked const values from the project-level table.
+    // Kept separate from per-module `comptime_decls` so the comptime
+    // dump doesn't show these as `@comptime`-decorated, but the lower
+    // still inlines them at use sites.
+    for symbol_id in project_ctx.evaluated.file_baked_consts.keys() {
+        v :: project_ctx.evaluated.file_baked_consts[symbol_id]
+        match v {
+            is null -> {}
+            _ -> { project_ctx.comptime_value_by_symbol_id[symbol_id] = v }
+        }
+    }
 }
 
 is_std_iter_module :: fn(module_id: string) = "stdlib/std/iter.vader" in module_id

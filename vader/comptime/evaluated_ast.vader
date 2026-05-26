@@ -61,6 +61,14 @@ export EvaluatedProject :: struct {
     /// leaves empty via `new_mono_project()`.
     mono: MonoProject
 
+    /// `@file`-baked const values keyed by the const's Symbol id.
+    /// Populated alongside `file_exprs` ; the lower merges these
+    /// into `comptime_value_by_symbol_id` so use sites inline the
+    /// literal. Kept SEPARATE from per-module `comptime_decls` so
+    /// the comptime dump's `@comptime` listing only shows user-
+    /// marked decls (matches TS' filter behaviour).
+    file_baked_consts: MutableMap<i32, ComptimeValue>
+
     /// `@file("path")` expression-position calls baked at comptime,
     /// keyed by the IntrinsicCallExpr's AST node id. Lower reads this
     /// to emit a `LoweredStringLit` of the file contents.
@@ -97,12 +105,13 @@ export new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
 /// @return       a fresh evaluated project with empty side-tables.
 export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
     return EvaluatedProject {
-        .typed        = typed,
-        .modules      = MutableMap<string, EvaluatedProgram> { .buckets = [], .size = 0 },
-        .mono         = new_mono_project(),
-        .file_exprs   = MutableMap<usize, string> { .buckets = [], .size = 0 },
-        .into_members = [],
-        .instances    = [],
+        .typed             = typed,
+        .modules           = MutableMap<string, EvaluatedProgram> { .buckets = [], .size = 0 },
+        .mono              = new_mono_project(),
+        .file_exprs        = MutableMap<usize, string> { .buckets = [], .size = 0 },
+        .file_baked_consts = MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 },
+        .into_members      = [],
+        .instances         = [],
     }
 }
 

@@ -833,12 +833,13 @@ import "std/testing" { assert_eq }
         .diags        = [],
     }
     evaluated :: EvaluatedProject {
-        .typed        = new_typed_project(),
-        .modules      = MutableMap<string, EvaluatedProgram> { .buckets = [], .size = 0 },
-        .mono         = new_mono_project(),
-        .file_exprs   = MutableMap<usize, string> { .buckets = [], .size = 0 },
-        .into_members = [],
-        .instances    = [],
+        .typed             = new_typed_project(),
+        .modules           = MutableMap<string, EvaluatedProgram> { .buckets = [], .size = 0 },
+        .mono              = new_mono_project(),
+        .file_exprs        = MutableMap<usize, string> { .buckets = [], .size = 0 },
+        .file_baked_consts = MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 },
+        .into_members      = [],
+        .instances         = [],
     }
     project :: monomorphize_project(loaded, evaluated)
     assert_eq(project.entries.len(), usize(0))
