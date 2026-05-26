@@ -1,0 +1,29 @@
+// Diag snippet: a fn takes a struct as a param before the struct's
+// `reserve_struct` runs (struct is declared later in the same module).
+//
+// Expected (TS): `type N struct snippet$Box { v: 1 }` interned, the
+// `handle` fn signature references slot N.
+//
+// Actual (Vader self-emit): `intern_type` is called from `build_signature`
+// on the `Box` param BEFORE `reserve_struct(Box, ctx)` is reached in the
+// Pass-1 dispatcher (the per-module decl loop visits in source order in
+// `vader/bytecode/emit.vader:97`). `intern_type` mints a placeholder
+// `BcRef { trait_name = "Box" }` and caches it under
+// `type_intern_key(Box)`. Later, `reserve_struct` pushes a *fresh*
+// `BcStruct` slot keyed under `struct_decl.mangled` (= "snippet$Box")
+// — a different key — so the two never dedupe. Result: the signature
+// still points at the `ref` slot ; the `BcStruct` slot is orphaned.
+//
+// Diff against TS bytecode shows `type N ref Box` instead of
+// `type N struct snippet$Box { v: 1 }`. Same class of bug as ~all
+// non-stdlib struct types in `dump --stage=bytecode vader/cli/main.vader`.
+
+module "snippet"
+
+handle :: fn(b: Box) -> i32 { return b.v }
+
+Box :: struct { v: i32 }
+
+main :: fn() -> i32 {
+    return handle(Box { .v = 7 })
+}

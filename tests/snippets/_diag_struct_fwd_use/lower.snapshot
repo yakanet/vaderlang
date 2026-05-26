@@ -1,0 +1,17 @@
+# Lower
+
+## snippet
+  fn snippet$handle(b: Box) -> i32
+    return
+      .v :i32
+        b :Box
+  struct snippet$Box { v: i32 }
+  fn snippet$main() -> i32
+    return
+      call :i32
+        callee:
+          handle :fn(Box) -> i32
+        arg0:
+          Box {
+            v: int(7) :i32
+          }

@@ -1,0 +1,119 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "handle",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "b",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "Box"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "FieldExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "b"
+              },
+              "field": "v"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Box",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "v",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "visibility": "private",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "handle"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StructLitExpr",
+                    "typeName": {
+                      "kind": "IdentExpr",
+                      "name": "Box"
+                    },
+                    "items": [
+                      {
+                        "kind": "field",
+                        "name": "v",
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "7n",
+                          "suffix": null
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

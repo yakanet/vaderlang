@@ -1,0 +1,17 @@
+module _main
+type 0 primitive null
+type 1 struct snippet$Box { v:2 }
+type 2 primitive i32
+
+fn 0 snippet$handle (ref) -> i32
+  local.field 0 1 0
+  ref.cast 2
+  return
+end
+
+fn 1 snippet$main () -> i32
+  i32.const 7
+  struct.new 1
+  call 0
+  return
+end

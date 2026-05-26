@@ -1,0 +1,11 @@
+# Typecheck
+
+## tests/snippets/_diag_struct_fwd_use
+  StructDecl     Box                  :: Box
+  FnDecl         handle               :: fn(Box) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 23:38    FieldExpr      :: i32
+  expr 23:38    IdentExpr      :: Box
+  expr 28:12    CallExpr       :: i32
+  expr 28:12    IdentExpr      :: fn(Box) -> i32
+  expr 28:19    StructLitExpr  :: Box

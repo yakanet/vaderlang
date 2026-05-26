@@ -1,0 +1,21 @@
+// Diag snippet: in-module string const printed via `println`.
+// Expected: prints "hello" and exits 0 (TS-built compiler matches).
+// Actual via Vader self-emitted bytecode: the bytecode emitter drops
+// the `call <println>` entirely — only `string.const 0 ; drop` is
+// emitted, so the program exits 0 silently with no output.
+//
+// Root cause hypothesis: `LoweredConstDecl` is a Phase-1 stub in
+// `vader/bytecode/emit.vader:556` (`/* not yet emitted */`). When the
+// const's value is folded at the use site, the surrounding println
+// call site loses its callee resolution and downgrades to `drop`.
+
+module "snippet"
+
+import "std/io" { println }
+
+MSG :: "hello"
+
+main :: fn() -> i32 {
+    println(MSG)
+    return 0
+}

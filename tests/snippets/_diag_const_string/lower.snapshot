@@ -1,0 +1,12 @@
+# Lower
+
+## snippet
+  const snippet$MSG: string =
+    "hello" :string
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        "hello" :string
+    return int(0) :i32
