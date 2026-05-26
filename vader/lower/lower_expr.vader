@@ -749,6 +749,34 @@ follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
 }
 
 try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+    // Explicit-args generic call : `identity<i32>(42)`. The callee
+    // is a GenericInstExpr whose inner callee is the fn IdentExpr.
+    // Type args come from the GenericInstExpr's type_args slot,
+    // bypassing the inference step the bare-ident path uses. Mirror
+    // of TS' `expr.callee.kind === "GenericInstExpr"` handling
+    // (`src/lower/passes/expr.ts:110-127`).
+    if call.callee is GenericInstExpr as gi {
+        if gi.callee is IdentExpr as inner_id {
+            sym_or_null :: ctx.typed.resolved.idents[span_key(inner_id.span)]
+            if sym_or_null is Symbol as raw_sym {
+                fn_sym :: follow_import_binding(ctx, raw_sym)
+                if i32(fn_sym.kind) == i32(SymbolKind.Fn) {
+                    type_args: Type[] = []
+                    for ta in gi.type_args {
+                        resolved :: ctx.types.type_expr_type(ta)
+                        if resolved is UnresolvedType {
+                            type_args.push(type_from_expr(ta, ctx.typed.resolved, []))
+                        } else {
+                            type_args.push(resolved)
+                        }
+                    }
+                    if all_concrete(type_args) {
+                        return register_and_emit_generic_call(ctx, call, type, fn_sym, type_args, inner_id.span)
+                    }
+                }
+            }
+        }
+    }
     callee_ident :: as_ident(call.callee)
     if callee_ident is null { return null }
     if callee_ident is IdentExpr as id {
@@ -814,6 +842,47 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
         }
     }
     return null
+}
+
+// Shared emit for both bare-ident generic calls and explicit-args
+// `fn<T>(args)` GenericInstExpr calls. Registers the GenericFnInstance
+// and emits the LoweredCall pointing at the monomorphic mangled symbol.
+register_and_emit_generic_call :: fn(
+    ctx: FnLowerCtx, call: CallExpr, type: Type,
+    fn_sym: Symbol, concrete_args: Type[], callee_span: Span,
+) -> LoweredExpr {
+    module_id :: ctx.typed.resolved.path
+    mod_mangle :: mangle_module_id_local(ctx.typed.resolved.display_path)
+    suffix :: mono_suffix(concrete_args)
+    mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
+    inst_key :: "${fn_sym.id}::${suffix}"
+    if ctx.project.fn_instances[inst_key] is null {
+        new_inst :: GenericFnInstance {
+            .fn_symbol    = fn_sym,
+            .type_args    = concrete_args,
+            .mangled      = mangled,
+            .owner_module = module_id,
+        }
+        ctx.project.fn_instances[inst_key] = new_inst
+        ctx.project.fn_instances_order.push(new_inst)
+    }
+    lowered_args: LoweredExpr[] = []
+    for ca in call.args { lowered_args.push(lower_expr(ctx, ca.value)) }
+    mono_sym :: Symbol {
+        .id         = i32(0),
+        .kind       = SymbolKind.Fn,
+        .name       = fn_sym.name,
+        .module     = module_id,
+        .visibility = Visibility.Private,
+        .defined_at = null,
+    }
+    return LoweredCall {
+        .span = call.span, .type = type,
+        .callee = LoweredIdent {
+            .span = callee_span, .type = type, .symbol = mono_sym,
+        },
+        .args = lowered_args,
+    }
 }
 
 infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
