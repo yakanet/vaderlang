@@ -24,22 +24,22 @@
   expr 38:19    StringLitExpr  :: string
   expr 43:10    FieldExpr      :: Direction
   expr 43:10    IdentExpr      :: Direction
-  expr 44:13    CallExpr       :: ?
-  expr 44:13    FieldExpr      :: fn() -> ?
+  expr 44:13    CallExpr       :: string
+  expr 44:13    FieldExpr      :: fn() -> string
   expr 44:13    IdentExpr      :: Direction
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(T) -> void
-  expr 45:13    CallExpr       :: ?
   expr 45:13    CallExpr       :: Direction
-  expr 45:13    FieldExpr      :: fn() -> ?
+  expr 45:13    CallExpr       :: string
   expr 45:13    FieldExpr      :: fn() -> Direction
+  expr 45:13    FieldExpr      :: fn() -> string
   expr 45:13    IdentExpr      :: Direction
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(T) -> void
-  expr 46:13    CallExpr       :: ?
   expr 46:13    CallExpr       :: Direction
-  expr 46:13    FieldExpr      :: fn() -> ?
+  expr 46:13    CallExpr       :: string
   expr 46:13    FieldExpr      :: fn() -> Direction
+  expr 46:13    FieldExpr      :: fn() -> string
   expr 46:13    IdentExpr      :: Direction
   expr 46:5     CallExpr       :: void
   expr 46:5     IdentExpr      :: fn(T) -> void

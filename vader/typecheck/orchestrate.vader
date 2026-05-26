@@ -1317,13 +1317,21 @@ lookup_trait_method :: fn(td: AST.TraitDecl | null, name: string) -> AST.FnDecl 
 
 lookup_trait_decl :: fn(name: string, typed: TypedProgram) -> AST.TraitDecl | null {
     for sym in typed.resolved.symbols {
-        if sym.name == name {
-            td :: typed.trait_decls[sym.id]
-            match td {
-                is null -> {}
-                _ -> { return td }
-            }
-        }
+        if sym.name != name { continue }
+        td :: typed.trait_decls[sym.id]
+        if td != null { return td }
+    }
+    // Cross-module fallback : `Direction implements Display { … }`
+    // references `Display` without an explicit import binding, so the
+    // local-symbol walk above misses it. `cross_publish_trait_decls`
+    // already copies every trait decl into every typed program's
+    // `trait_decls` map ; scan it directly by name. Mirror of TS'
+    // `sourceTraitDecl(sym)` which reads the canonical decl off the
+    // symbol's `source` pointer.
+    for sym_id in typed.trait_decls.keys() {
+        d :: typed.trait_decls[sym_id]
+        if d is null { continue }
+        if d.name == name { return d }
     }
     return null
 }
