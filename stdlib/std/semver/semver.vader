@@ -134,16 +134,16 @@ export parse :: fn(s: string) -> Version! {
     // Core must be M.N.P with exactly three numeric identifiers,
     // each free of leading zeros.
     triple := [i32(0), i32(0), i32(0)]
-    fill: i32 = 0
-    cn :: core.byte_len()
+    fill: usize = 0
     start: usize = 0
+    cn :: core.byte_len()
     for k in 0..<cn {
         if core.byte_at(k) == b'.' {
             if fill >= 3 { return ParseError { .msg = "too many '.' in version core" } }
             piece :: core.byte_slice(start, k)
             v :: parse_numeric_id(piece)
             match v {
-                is i32 as iv  -> { triple[usize(fill)] = iv }
+                is i32 as iv  -> { triple[fill] = iv }
                 is Error as e -> { return ParseError { .msg = "version core: ${e.message()}" } }
             }
             fill += 1
