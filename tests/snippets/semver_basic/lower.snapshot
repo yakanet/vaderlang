@@ -1,0 +1,215 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    block :void
+      let __scrut_0: Error | Version =
+        call :Error | Version
+          callee:
+            parse :fn(string) -> Error | Version
+          arg0:
+            "1.2.3-rc.1" :string
+      ~>
+        if :void
+          cond:
+            is Version :bool
+              __scrut_0 :Error | Version
+          then:
+            let ver: Version =
+              cast → Version
+                __scrut_0 :Error | Version
+            ~>
+              block :void
+                call :void
+                  callee:
+                    println :void
+                  arg0:
+                    block :string
+                      let __sb_2: ? =
+                        @builder.new :?
+                      @builder.append_str :void
+                        __sb_2 :?
+                        call :string
+                          callee:
+                            to_string :string
+                          arg0:
+                            ver :Version
+                      ~>
+                        @builder.finish :string
+                          __sb_2 :?
+                let base: Version =
+                  call :Version
+                    callee:
+                      parse_one :fn(string) -> Version
+                    arg0:
+                      "1.0.0" :string
+                if :void
+                  cond:
+                    gt :bool
+                      l:
+                        call :i32
+                          callee:
+                            compare :i32
+                          arg0:
+                            ver :Version
+                          arg1:
+                            base :Version
+                      r:
+                        int(0) :i32
+                  then:
+                    call :void
+                      callee:
+                        println :void
+                      arg0:
+                        "after 1.0.0" :string
+                ~>
+                  block :void
+                    let __scrut_3: Error | VersionRange =
+                      call :Error | VersionRange
+                        callee:
+                          parse_range :fn(string) -> Error | VersionRange
+                        arg0:
+                          "^1.0.0" :string
+                    ~>
+                      if :void
+                        cond:
+                          is VersionRange :bool
+                            __scrut_3 :Error | VersionRange
+                        then:
+                          let rg: VersionRange =
+                            cast → VersionRange
+                              __scrut_3 :Error | VersionRange
+                          ~>
+                            block :void
+                              let target: Version =
+                                call :Version
+                                  callee:
+                                    parse_one :fn(string) -> Version
+                                  arg0:
+                                    "1.5.0" :string
+                              ~>
+                                if :void
+                                  cond:
+                                    call :bool
+                                      callee:
+                                        contains :bool
+                                      arg0:
+                                        rg :VersionRange
+                                      arg1:
+                                        target :Version
+                                  then:
+                                    call :void
+                                      callee:
+                                        println :void
+                                      arg0:
+                                        "1.5.0 in ^1.0.0" :string
+                        else:
+                          ~>
+                            if :void
+                              cond:
+                                is Error :bool
+                                  __scrut_3 :Error | VersionRange
+                              then:
+                                let e: Error =
+                                  cast → Error
+                                    __scrut_3 :Error | VersionRange
+                                ~>
+                                  block :void
+                                    call :void
+                                      callee:
+                                        eprintln :void
+                                      arg0:
+                                        block :string
+                                          let __sb_4: ? =
+                                            @builder.new :?
+                                          @builder.append_str :void
+                                            __sb_4 :?
+                                            "range err: " :string
+                                          @builder.append_display <for string> :void
+                                            __sb_4 :?
+                                            vcall Error.message :string
+                                              recv:
+                                                e :Error
+                                          ~>
+                                            @builder.finish :string
+                                              __sb_4 :?
+                                    return int(1) :i32
+                              else:
+                                ~>
+                                  unreachable("non-exhaustive match (T3013 should have caught this)") :void
+          else:
+            ~>
+              if :void
+                cond:
+                  is Error :bool
+                    __scrut_0 :Error | Version
+                then:
+                  let e: Error =
+                    cast → Error
+                      __scrut_0 :Error | Version
+                  ~>
+                    block :void
+                      call :void
+                        callee:
+                          eprintln :void
+                        arg0:
+                          block :string
+                            let __sb_1: ? =
+                              @builder.new :?
+                            @builder.append_str :void
+                              __sb_1 :?
+                              "err: " :string
+                            @builder.append_display <for string> :void
+                              __sb_1 :?
+                              vcall Error.message :string
+                                recv:
+                                  e :Error
+                            ~>
+                              @builder.finish :string
+                                __sb_1 :?
+                      return int(1) :i32
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    return int(0) :i32
+  fn snippet$parse_one(s: string) -> Version
+    ~>
+      block :never
+        let __scrut_0: Error | Version =
+          call :Error | Version
+            callee:
+              parse :fn(string) -> Error | Version
+            arg0:
+              s :string
+        ~>
+          if :never
+            cond:
+              is Version :bool
+                __scrut_0 :Error | Version
+            then:
+              let v: Version =
+                cast → Version
+                  __scrut_0 :Error | Version
+              ~>
+                block :void
+                  return v :Version
+            else:
+              ~>
+                if :never
+                  cond:
+                    is Error :bool
+                      __scrut_0 :Error | Version
+                  then:
+                    ~>
+                      block :void
+                        return
+                          Version {
+                            major: int(0) :i32
+                            minor: int(0) :i32
+                            patch: int(0) :i32
+                            prerelease: "" :string
+                            build: "" :string
+                          }
+                  else:
+                    ~>
+                      unreachable("non-exhaustive match (T3013 should have caught this)") :never

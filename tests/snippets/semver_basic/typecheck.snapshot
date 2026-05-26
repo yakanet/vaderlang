@@ -1,0 +1,55 @@
+# Typecheck
+
+## tests/snippets/semver_basic
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         parse_one            :: fn(string) -> Version
+  expr 11:11    CallExpr       :: Error | Version
+  expr 11:11    IdentExpr      :: fn(string) -> Error | Version
+  expr 11:17    StringLitExpr  :: string
+  expr 11:5     MatchExpr      :: void
+  expr 13:13    CallExpr       :: void
+  expr 13:13    IdentExpr      :: fn(T) -> void
+  expr 13:21    StringLitExpr  :: string
+  expr 13:24    IdentExpr      :: Version
+  expr 14:21    CallExpr       :: Version
+  expr 14:21    IdentExpr      :: fn(string) -> Version
+  expr 14:31    StringLitExpr  :: string
+  expr 15:13    IfExpr         :: void
+  expr 15:16    BinaryExpr     :: bool
+  expr 15:16    IdentExpr      :: Version
+  expr 15:22    IdentExpr      :: Version
+  expr 15:29    CallExpr       :: void
+  expr 15:29    IdentExpr      :: fn(T) -> void
+  expr 15:37    StringLitExpr  :: string
+  expr 16:13    MatchExpr      :: void
+  expr 16:19    CallExpr       :: Error | VersionRange
+  expr 16:19    IdentExpr      :: fn(string) -> Error | VersionRange
+  expr 16:31    StringLitExpr  :: string
+  expr 18:31    CallExpr       :: Version
+  expr 18:31    IdentExpr      :: fn(string) -> Version
+  expr 18:41    StringLitExpr  :: string
+  expr 19:21    IfExpr         :: void
+  expr 19:24    BinaryExpr     :: bool
+  expr 19:24    IdentExpr      :: Version
+  expr 19:34    IdentExpr      :: VersionRange
+  expr 19:39    CallExpr       :: void
+  expr 19:39    IdentExpr      :: fn(T) -> void
+  expr 19:47    StringLitExpr  :: string
+  expr 22:21    CallExpr       :: void
+  expr 22:21    IdentExpr      :: fn(T) -> void
+  expr 22:30    StringLitExpr  :: string
+  expr 22:44    CallExpr       :: string
+  expr 22:44    FieldExpr      :: fn() -> string
+  expr 22:44    IdentExpr      :: Error
+  expr 28:13    CallExpr       :: void
+  expr 28:13    IdentExpr      :: fn(T) -> void
+  expr 28:22    StringLitExpr  :: string
+  expr 28:30    CallExpr       :: string
+  expr 28:30    FieldExpr      :: fn() -> string
+  expr 28:30    IdentExpr      :: Error
+  expr 36:11    CallExpr       :: Error | Version
+  expr 36:11    IdentExpr      :: fn(string) -> Error | Version
+  expr 36:17    IdentExpr      :: string
+  expr 36:5     MatchExpr      :: never
+  expr 37:37    IdentExpr      :: Version
+  expr 39:20    StructLitExpr  :: Version

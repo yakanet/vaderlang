@@ -1,0 +1,42 @@
+// Smoke snippet for std/semver — exercises `parse`, `parse_range`,
+// Display via `${v}` interpolation, `Comparable.lt` via UFCS, and
+// the infix `in` operator dispatched through `Contains<Version>`.
+
+module "snippet"
+
+import "std/semver" { parse, parse_range, Version, VersionRange }
+import "std/io"     { println, eprintln }
+
+main :: fn() -> i32 {
+    match parse("1.2.3-rc.1") {
+        is Version as ver -> {
+            println("${ver}")
+            base :: parse_one("1.0.0")
+            if ver > base { println("after 1.0.0") }
+            match parse_range("^1.0.0") {
+                is VersionRange as rg -> {
+                    target :: parse_one("1.5.0")
+                    if target in rg { println("1.5.0 in ^1.0.0") }
+                }
+                is Error as e -> {
+                    eprintln("range err: ${e.message()}")
+                    return 1
+                }
+            }
+        }
+        is Error as e -> {
+            eprintln("err: ${e.message()}")
+            return 1
+        }
+    }
+    return 0
+}
+
+parse_one :: fn(s: string) -> Version {
+    match parse(s) {
+        is Version as v -> { return v }
+        is Error -> {
+            return Version { .major = 0, .minor = 0, .patch = 0 }
+        }
+    }
+}
