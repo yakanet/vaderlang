@@ -93,12 +93,15 @@ export lower_project :: fn(
     // After per-module lowering, materialise generic-struct instances +
     // their matching generic-impl members. Each `evaluated.instances`
     // entry yields a `StructDecl<Concrete>` + per-impl `__T` member fns.
-    materialize_generic_instances(loaded, typed, project_ctx, project, diags)
+    rep_seen :: materialize_concrete_struct_instances(loaded, typed, project_ctx, project, diags)
     // Generic-fn instances observed at call sites get one
     // monomorphized `LoweredFnDecl` per `(fn_symbol, args)` tuple. The
     // body inherits the source fn-decl but lowered against a typeParam
     // substitution that binds T → arg[i].
     materialize_generic_fn_instances(loaded, typed, project_ctx, project, diags)
+    // Representative "any-args" structs come AFTER fn instances —
+    // matches TS' emission order so generic_brackets etc. byte-match.
+    materialize_representatives(loaded, typed, project_ctx, project, rep_seen)
     // Drain per-fn lower diagnostics pushed to `project_ctx.diags`
     // (e.g. M5001 from `lower_for_in`) into the caller-owned sink so
     // they reach `# Diagnostics` in the CLI dump.
@@ -958,45 +961,34 @@ build_fn_any_subst :: fn(fd: FnDecl, typed: TypedProgram) -> Substitution {
     return subst
 }
 
-materialize_generic_instances :: fn(
+// Phase 1 of the two-pass instance materialisation : concrete struct
+// decls only. Returns the dedupe set so the representatives pass
+// (Phase 2, called after fn-instances) can resume with the same
+// state. `pending_reps` is rebuilt inside the second pass from
+// `evaluated.instances` since they're stored on the project ctx.
+materialize_concrete_struct_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
-) -> void {
-    // Dedupe set for the erasure-dedupe representative pass. One entry
-    // per distinct "any-leaves" shape of an instance group ; prevents
-    // emitting the same `Pair__string__Any__Any` twice when both
-    // `Pair(string, i64)` and `Pair(string, f64)` get materialised.
+) -> MutableSet<string> {
     seen_reps :: MutableSet<string> {
         .inner = MutableMap<string, bool> { .buckets = [], .size = 0 },
     }
-    // Drive from `evaluated.mono` — the monomorphizer pass populates
-    // one MonoEntry per concrete struct instance (+ its impl members)
-    // via `monomorphize_project::run_pass_2`. We still use
-    // `project_ctx.evaluated.instances` as the data source for the
-    // per-instance materialisation (to keep the existing helpers
-    // unchanged + match the existing mangled-name convention) ; the
-    // mono walk only confirms which instances actually have a Pass 2
-    // entry. This shaves the legacy "walk every typer-observed
-    // instance" path so out-of-scope instances (TypeParam-only,
-    // stdlib-owned) get filtered earlier.
-    //
-    // TODO: full migration to read `entry.subst` / `entry.mangled` /
-    // `entry.symbol` directly — currently the legacy helpers re-derive
-    // these via `build_struct_subst` + `args_suffix`, duplicating the
-    // mono work. Blocked on the double-prefix fn-instance mangled-name
-    // alignment ; tracked separately.
-    // Representatives must follow every concrete-args struct in the
-    // dump : the two-pass collects instances first, then emits any-args
-    // representatives at the tail. A single interleaved pass would
-    // place the first representative ahead of subsequent instances of
-    // the same generic shape.
-    pending_reps: GenericInstance[] = []
     for inst in project_ctx.evaluated.instances {
         if !mono_has_struct_entry_for(project_ctx, inst) { continue }
         materialize_one_instance(inst, loaded, typed, project_ctx, project, diags)
-        pending_reps.push(inst)
     }
-    for inst in pending_reps {
+    return seen_reps
+}
+
+// Phase 2 : emit the "any-args" representative struct decls AFTER
+// the fn-instance pass has run, so the dump order is :
+//   concrete structs ; fn instances ; representative structs.
+materialize_representatives :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    project: LoweredProject, seen_reps: MutableSet<string>,
+) -> void {
+    for inst in project_ctx.evaluated.instances {
+        if !mono_has_struct_entry_for(project_ctx, inst) { continue }
         materialize_representative(inst, loaded, typed, project_ctx, project, seen_reps)
     }
 }
