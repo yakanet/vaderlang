@@ -45,7 +45,8 @@ import "vader/comptime" { EvaluatedProgram }
 import "vader/comptime" { byte_size, byte_align }
 import "vader/typecheck" { type_to_target_symbol, has_user }
 import "vader/resolver" { ImportTargetTable, SymbolTarget }
-import "vader/parser" { ConstDecl, ImplDecl }
+import "vader/parser" { ConstDecl, ImplDecl, StructDecl }
+import "vader/typecheck" { substitute_by_name }
 import "vader/types" { display_type, STRUCT_FIELD }
 
 // ============================================================================
@@ -1155,6 +1156,28 @@ lookup_module_display_path :: fn(ctx: FnLowerCtx, module_id: string) -> string {
     return ""
 }
 
+// Find a field's static type on a struct receiver. Used by the
+// `@field(target, "name")` fold to refine the result type when the
+// typer left it Unresolved (`@comptime for f in @fields(T)` paths
+// where the field name is only known post-substitution). Walks the
+// receiver's struct decl, applies the struct's type-arg substitution
+// to the field's TypeExpr.
+resolve_field_type :: fn(ctx: FnLowerCtx, target_arg: Expr, field_name: string) -> Type {
+    recv_ty :: ctx.types.expr_type(target_arg)
+    if recv_ty is StructType as st {
+        decl :: ctx.typed.struct_decls[st.symbol.id]
+        if decl is null { return TY_UNRESOLVED }
+        if decl is StructDecl as sd {
+            for f in sd.fields {
+                if f.name != field_name { continue }
+                raw :: type_from_expr(f.ty, ctx.typed.resolved, [])
+                return substitute_by_name(raw, sd.type_params, st.args)
+            }
+        }
+    }
+    return TY_UNRESOLVED
+}
+
 lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
     // `Symbol.module` carries the owning module id — direct lookup
     // beats walking every evaluated module per UFCS call site.
@@ -1950,6 +1973,28 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
                 return LoweredStringLit {
                     .span = intrinsic.span, .type = mk_primitive("string"), .value = text,
                 }
+            }
+        }
+    }
+    // `@field(target, "name")` folds to `target.name` when the name
+    // arg is a static string literal. Mirror of `lowerIntrinsic`'s
+    // `case "field"` (`src/lower/passes/expr.ts:453-487`). Comptime-for
+    // unrolling can substitute the name slot with a LoweredStringLit
+    // — we lower the args here so post-substitution literals get
+    // picked up. When the typer left the result type unresolved,
+    // refine from the receiver's struct decl + field name pair.
+    if intrinsic.name == "field" && intrinsic.args.len() == usize(2) {
+        target :: lower_expr(ctx, intrinsic.args[0])
+        name_arg :: lower_expr(ctx, intrinsic.args[1])
+        if name_arg is LoweredStringLit as name_lit {
+            field_type := type
+            if field_type is UnresolvedType {
+                refined :: resolve_field_type(ctx, intrinsic.args[0], name_lit.value)
+                if !(refined is UnresolvedType) { field_type = refined }
+            }
+            return LoweredFieldAccess {
+                .span = intrinsic.span, .type = field_type,
+                .target = target, .field = name_lit.value,
             }
         }
     }
