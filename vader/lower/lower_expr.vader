@@ -1126,7 +1126,13 @@ harvest_ufcs_fn_instance :: fn(
         inst_key :: "${fn_sym.id}::${suffix}"
         if !(ctx.project.fn_instances[inst_key] is null) { return }
         owner_module :: fn_sym.module
-        mod_mangle :: mangle_module_id_local(owner_module)
+        // Use the owning module's *display* path (the declared
+        // `module "..."` name) for the mangle, not its filesystem
+        // id. Matches the direct-call path at line 775 and TS'
+        // `program.module.displayPath` in `src/comptime/specialize.ts:384`.
+        // Falls back to fn_sym.module when the lookup misses (defensive).
+        display :: lookup_module_display_path(ctx, owner_module)
+        mod_mangle :: mangle_module_id_local(if display != "" { display } else { owner_module })
         mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
         new_inst :: GenericFnInstance {
             .fn_symbol    = fn_sym,
@@ -1137,6 +1143,16 @@ harvest_ufcs_fn_instance :: fn(
         ctx.project.fn_instances[inst_key] = new_inst
         ctx.project.fn_instances_order.push(new_inst)
     }
+}
+
+// Look up an evaluated module's `display_path` (the declared
+// `module "..."` name) from its module id. Falls back to "" when
+// the module isn't in the evaluated project — callers default to
+// the raw module id in that case.
+lookup_module_display_path :: fn(ctx: FnLowerCtx, module_id: string) -> string {
+    program :: ctx.project.evaluated.modules[module_id]
+    if program is EvaluatedProgram as ep { return ep.typed.resolved.display_path }
+    return ""
 }
 
 lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
