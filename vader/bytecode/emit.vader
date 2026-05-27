@@ -590,6 +590,7 @@ reserve_fn :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
         is Symbol as symbol -> { ctx.function_index_by_symbol_id[symbol.id] = function_index }
         _ -> {}
     }
+    ctx.function_index_by_mangle[function_decl.mangled] = function_index
 }
 
 /// Register a bodyless fn in the import table. `is_extern = true`

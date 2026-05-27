@@ -907,10 +907,17 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
                         if coerced == null { lowered_args.push(arg_lowered) } else { lowered_args.push(coerced) }
                     }
                 }
+                // The callee must carry `fn_sym.id` : the materialised
+                // instance registers in `function_index_by_symbol_id` under
+                // its origin symbol (= `fn_sym`), so a call keyed on a
+                // placeholder id (`0`) misses and the call is silently
+                // dropped. (Single-instance resolution ; multi-instance of
+                // the same generic still collapses to the last-registered
+                // instance — needs per-instance keying, separate.)
                 mono_sym :: Symbol {
-                    .id         = i32(0),
+                    .id         = fn_sym.id,
                     .kind       = SymbolKind.Fn,
-                    .name       = fn_sym.name,
+                    .name       = mangled,
                     .module     = module_id,
                     .visibility = Visibility.Private,
                     .defined_at = null,

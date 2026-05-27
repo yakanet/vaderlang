@@ -313,6 +313,16 @@ emit_call_to_symbol :: fn(symbol: Symbol, state: FnEmitState, ctx: EmitterCtx) -
         push_op(state, intrinsic)
         return
     }
+    // Generic-instance calls carry the instance MANGLE as the callee
+    // symbol's name (set in `register_and_emit_generic_call`). Resolve by
+    // mangle first : the symbol-id path collapses sibling instances of one
+    // generic onto whichever registered last. A non-generic call's bare
+    // name never matches a full mangle, so it falls through to the id path.
+    mangle_index :: ctx.function_index_by_mangle[symbol.name]
+    if mangle_index is i32 as midx {
+        push_op(state, Call { .function_index = midx })
+        return
+    }
     target_index :: ctx.function_index_by_symbol_id[symbol.id]
     if target_index is i32 as index {
         push_op(state, Call { .function_index = index })

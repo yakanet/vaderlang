@@ -51,6 +51,12 @@ export EmitterCtx :: struct {
     /// mangled name.
     function_index_by_symbol_id: MutableMap<i32, i32>
 
+    /// Mangled fn name → index into `functions`. Generic-instance call
+    /// sites resolve by mangle : multiple instances of one generic share
+    /// the generic's `symbol.id`, so `function_index_by_symbol_id` can't
+    /// distinguish them — the per-instance mangle can.
+    function_index_by_mangle: MutableMap<string, i32>
+
     /// Host-side import table (`@extern` user decls + stdlib
     /// `@intrinsic` shims). Each entry's `signature` mirrors what the
     /// host expects at the C-ABI boundary.
@@ -80,6 +86,7 @@ export new_emitter_ctx :: fn() -> EmitterCtx {
         .string_key                  = MutableMap<string, i32> { .buckets = [], .size = 0 },
         .functions                   = [],
         .function_index_by_symbol_id = MutableMap<i32, i32> { .buckets = [], .size = 0 },
+        .function_index_by_mangle    = MutableMap<string, i32> { .buckets = [], .size = 0 },
         .imports                     = [],
         .import_index_by_symbol_id   = MutableMap<i32, i32> { .buckets = [], .size = 0 },
         .exports                     = [],
