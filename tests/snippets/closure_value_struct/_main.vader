@@ -1,0 +1,17 @@
+// A capturing closure (not just a named fn) stored in a struct field and
+// invoked via struct.get + call.indirect. The closure's captured
+// environment (`base`) must survive being boxed into the field and be
+// restored on the indirect call. Complements `fn_value_struct` /
+// `vm_fn_value_struct`, which only store a plain non-capturing named fn.
+
+module "snippet"
+
+Adder :: struct {
+    f: fn(i32) -> i32
+}
+
+main :: fn() -> i32 {
+    base :: 50
+    a :: Adder { .f = (x: i32) -> base + x }
+    return a.f(3)
+}

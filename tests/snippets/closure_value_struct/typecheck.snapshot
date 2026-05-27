@@ -1,0 +1,13 @@
+# Typecheck
+
+## tests/snippets/closure_value_struct
+  StructDecl     Adder                :: Adder
+  FnDecl         main                 :: fn() -> i32
+  expr 15:10    StructLitExpr  :: Adder
+  expr 15:23    LambdaExpr     :: fn(i32) -> i32
+  expr 15:35    BinaryExpr     :: i32
+  expr 15:35    IdentExpr      :: i32
+  expr 15:42    IdentExpr      :: i32
+  expr 16:12    CallExpr       :: i32
+  expr 16:12    FieldExpr      :: fn(i32) -> i32
+  expr 16:12    IdentExpr      :: Adder

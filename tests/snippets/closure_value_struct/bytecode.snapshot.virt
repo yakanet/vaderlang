@@ -1,0 +1,31 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 struct __lambda_env_2 { cap_0:5 }
+type 3 struct snippet$Adder { f:4 }
+type 4 fn (1) -> 1
+type 5 ref _
+type 6 struct $Cell_20 { value:1 }
+
+fn 0 snippet$main () -> i32
+  local $field_7 ref
+  i32.const 50
+  struct.new 6
+  struct.new 2
+  make_closure 1 4
+  struct.new_stack 3
+  struct.get 3 0
+  local.set 0
+  i32.const 3
+  local.get 0
+  call.indirect 4
+  return
+end
+
+fn 1 __lambda_1 (ref,i32) -> i32
+  local.field 0 2 0
+  struct.get 6 0
+  local.get 1
+  i32.add
+  return
+end
