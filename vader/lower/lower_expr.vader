@@ -1183,6 +1183,13 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
         first :: ft.params[0]
         if first is TypeParamType { return true }
         if recv_type is UnionType { return is_assignable(recv_type, first, null) }
+        // Trait-typed first param (`filter(it: Iterator<T>, …)`) matches a
+        // concrete receiver that implements the trait (`StringChars`
+        // implements `Iterator<char>`). Consult the project-wide impl
+        // registry so cross-module stdlib impls are reachable.
+        if first is TraitType as tt {
+            return find_impl_for(ctx.project, recv_type, tt.symbol.name) != null
+        }
         return type_surface_name(first) == type_surface_name(recv_type)
     }
     return false
