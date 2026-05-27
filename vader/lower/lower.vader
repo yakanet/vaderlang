@@ -24,7 +24,7 @@ import "vader/parser" {
 }
 import "vader/resolver" { LoadedProject, LoadedModule }
 import "vader/typecheck" { TypedProject, TypedProgram }
-import "vader/typecheck" { Substitution, new_substitution, substitute }
+import "vader/typecheck" { Substitution, new_substitution, substitute, is_empty_substitution }
 import "vader/types" { UnresolvedType }
 import "vader/types" {
     Type, FnType, StructType, TypeMetaType, TypeParamType, ArrayType, mk_struct, mk_primitive,
@@ -1433,12 +1433,21 @@ materialize_impl_for_instance :: fn(
     // erasure can then collapse to a single C-emit body. Mangled name
     // keeps the concrete args suffix (`__i32`) so identity tags stay
     // distinct.
+    subst :: build_impl_any_subst(impl_decl, impl_typed)
+    // A concrete-instantiation impl (`Wrapper<i32> implements …`) has no
+    // type params, so the substitution is empty — keep the concrete
+    // instance args (self stays `Wrapper<i32>`). Only a genuinely
+    // generic impl (`Repeat<T> implements …`) erases its args to `Any`
+    // for the shared post-erasure C-emit body.
     erased_args: Type[] = []
-    for a in inst.args { erased_args.push(any_leaves_of(a)) }
+    if is_empty_substitution(subst) {
+        for a in inst.args { erased_args.push(a) }
+    } else {
+        for a in inst.args { erased_args.push(any_leaves_of(a)) }
+    }
     self_struct :: StructType { .symbol = inst.symbol, .args = erased_args }
     self_type: Type = self_struct
     suffix :: args_suffix(inst.args)
-    subst :: build_impl_any_subst(impl_decl, impl_typed)
     types :: make_entry_types(impl_typed, subst)
     impl_key_prefix :: span_key(impl_decl.span)
     for member in impl_decl.members {
