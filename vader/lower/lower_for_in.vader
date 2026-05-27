@@ -217,29 +217,22 @@ try_wrap_array_iter :: fn(
 ) -> WrapResult {
     match iter_type {
         is ArrayType as arr -> {
-            array_iter_symbol :: lookup_core_symbol(ctx, STRUCT_ARRAY_ITERATOR)
-            match array_iter_symbol {
-                is null -> { return WrapResult { .iter = iter, .iter_type = iter_type } }
-                is Symbol as resolved -> {
-                    args: Type[] = []
-                    args.push(arr.element)
-                    wrapped_type :: mk_struct(resolved, args)
-                    fields: LoweredStructLitField[] = []
-                    fields.push(LoweredStructLitField {
-                        .name = "arr", .value = iter,
-                    })
-                    fields.push(LoweredStructLitField {
-                        .name = "cursor",
-                        .value = LoweredIntLit {
-                            .span = span, .type = mk_primitive("usize"), .value = i64(0),
-                        },
-                    })
-                    wrapped :: LoweredStructLit {
-                        .span = span, .type = wrapped_type, .fields = fields,
-                    }
-                    return WrapResult { .iter = wrapped, .iter_type = wrapped_type }
-                }
+            wrapped_type :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element])
+            if wrapped_type is null { return WrapResult { .iter = iter, .iter_type = iter_type } }
+            fields: LoweredStructLitField[] = []
+            fields.push(LoweredStructLitField {
+                .name = "arr", .value = iter,
+            })
+            fields.push(LoweredStructLitField {
+                .name = "cursor",
+                .value = LoweredIntLit {
+                    .span = span, .type = mk_primitive("usize"), .value = i64(0),
+                },
+            })
+            wrapped :: LoweredStructLit {
+                .span = span, .type = wrapped_type, .fields = fields,
             }
+            return WrapResult { .iter = wrapped, .iter_type = wrapped_type }
         }
         _ -> { return WrapResult { .iter = iter, .iter_type = iter_type } }
     }

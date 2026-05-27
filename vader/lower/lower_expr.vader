@@ -50,6 +50,7 @@ import "vader/parser" { ConstDecl, ImplDecl, StructDecl }
 import "vader/typecheck" { substitute_by_name }
 import "vader/typecheck" { substitute }
 import "vader/types" { display_type, STRUCT_FIELD }
+import "vader/types" { STRUCT_ARRAY_ITERATOR }
 
 // ============================================================================
 // Expression dispatcher
@@ -1403,12 +1404,54 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     return inner
 }
 
+// Build a `into(arg)` call whose callee is the synthetic `into`
+// fn-symbol. Shared by the array→Iterator coercion and the user-`Into`
+// impl path ; they differ only in the result `type` and the arg.
+mk_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, span: Span) -> LoweredCall {
+    return LoweredCall {
+        .span = span, .type = result_type,
+        .callee = LoweredIdent {
+            .span = span, .type = result_type,
+            .symbol = Symbol {
+                .id = i32(0), .kind = SymbolKind.Fn, .name = "into",
+                .module = ctx.typed.resolved.path,
+                .visibility = Visibility.Private, .defined_at = null,
+            },
+        },
+        .args = [arg],
+    }
+}
+
+// `T[] -> Iterator<T>` value-slot coercion. Returns `into(arr)` typed
+// `ArrayIterator<T>`, or null when the shapes don't match / ArrayIterator
+// isn't loaded. The `into` symbol routes to std/core's blanket
+// `T[] implements Into<Iterator<T>>` member at codegen. The for-in path
+// inlines an `ArrayIterator` struct lit instead ; value slots take this
+// call shape (mirror of TS' arrayIter coercion).
+try_array_iter_coercion :: fn(
+    ctx: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
+) -> LoweredExpr | null {
+    if arg_type is ArrayType as arr {
+        if target_type is TraitType as tt {
+            if tt.symbol.name != "Iterator" { return null }
+            if tt.args.len() != usize(1) { return null }
+            result_type :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element])
+            if result_type != null { return mk_into_call(ctx, arg, result_type, span) }
+        }
+    }
+    return null
+}
+
 /// `Target(value)` where `value : Source` and `Source implements Into[Target]`
 /// emits `LoweredCall { callee: into, args: [value] }`. Mirror of the typer's
 /// `tryInto` coercion path in TS.
 try_emit_into_coercion :: fn(
     ctx: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
 ) -> LoweredExpr | null {
+    // Built-in array→Iterator coercion ; arrays have no nominal surface
+    // name, so it must precede the name-keyed impl scan below.
+    array_iter :: try_array_iter_coercion(ctx, arg, arg_type, target_type, span)
+    if array_iter != null { return array_iter }
     src_name :: type_surface_name(arg_type)
     if src_name == "" { return null }
     // Find `Source implements Into[Target] { into }`. The decl carries
@@ -1426,18 +1469,7 @@ try_emit_into_coercion :: fn(
         if !impl_trait_first_arg_is(decl, target_name) { continue }
         for m in decl.members {
             if m.name != "into" { continue }
-            return LoweredCall {
-                .span = span, .type = target_type,
-                .callee = LoweredIdent {
-                    .span = span, .type = target_type,
-                    .symbol = Symbol {
-                        .id = i32(0), .kind = SymbolKind.Fn, .name = "into",
-                        .module = ctx.typed.resolved.path,
-                        .visibility = Visibility.Private, .defined_at = null,
-                    },
-                },
-                .args = [arg],
-            }
+            return mk_into_call(ctx, arg, target_type, span)
         }
     }
     return null
