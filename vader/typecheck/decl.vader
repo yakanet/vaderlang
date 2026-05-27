@@ -424,7 +424,18 @@ declare_enum :: fn(
     indices :: resolve_enum_indices(decl, repr, diags)
     match sym {
         is null -> {}
-        is Symbol as s -> { typed.decl_types[s.id] = mk_enum(s, repr, indices) }
+        is Symbol as s -> {
+            enum_type :: mk_enum(s, repr, indices)
+            typed.decl_types[s.id] = enum_type
+            // Also expose the `EnumType` on the resolver's type side-table so
+            // a type-position reference (`d: Direction`) resolves to the enum
+            // — `resolve_named_type` reads `alias_types` before falling to the
+            // `type_from_symbol` `.Enum -> mk_struct` placeholder, and
+            // `merge_external_alias_types` propagates it cross-module. Without
+            // this an enum slot stays a `StructType` and the bytecode emit
+            // mints a `ref` instead of collapsing to the `repr` ordinal.
+            resolved.alias_types[s.id] = enum_type
+        }
     }
 }
 
