@@ -31,6 +31,7 @@ import "vader/comptime" { evaluate_project }
 import "vader/comptime" { dump_evaluated }
 import "vader/lower" { lower_project }
 import "vader/lower" { dump_lowered }
+import "vader/lower" { prune_unreachable_fns }
 import "vader/bytecode" { emit_project }
 import "vader/bytecode" { default_emit_options }
 import "vader/bytecode" { dump_bytecode }
@@ -335,8 +336,12 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return file.run_c_stage()
     }
 
+    if stage == "dced-ast" {
+        return file.run_dced_stage()
+    }
+
     // Recognised TS stages — we know about them but can't run them yet.
-    if stage == "dced-ast" || stage == "wasm" {
+    if stage == "wasm" {
         eprintln("vader dump: stage \"${stage}\" not yet implemented")
         return 2
     }
@@ -552,6 +557,20 @@ run_lower_stage :: fn(file: string) -> i32 {
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     println(dump_lowered(lowered))
+    print_pipeline_diags(pipeline, lower_diags)
+    return 0
+}
+
+// Lowered tree after whole-program dead-function elimination. Roots are
+// `main` + `@export` / `@extern` (tests dropped — this is the run/build
+// view, not the test-runner view). Validates the call-graph reachability
+// walk before it's wired into the emit paths.
+run_dced_stage :: fn(file: string) -> i32 {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[] = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    pruned :: prune_unreachable_fns(lowered, false)
+    println(dump_lowered(pruned))
     print_pipeline_diags(pipeline, lower_diags)
     return 0
 }
