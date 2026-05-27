@@ -25,7 +25,7 @@ import "vader/diagnostics" { typecheck_error }
 import "vader/types" {
     Type, ArrayType, EnumType, FnType, SelfType, StructType, TraitType,
     TupleType, UnionType,
-    mk_array, mk_fn, mk_struct, mk_tuple, mk_union,
+    mk_array, mk_fn, mk_struct, mk_tuple, mk_union, mk_enum,
     TY_UNRESOLVED, TY_TYPE, TY_VOID,
 }
 
@@ -111,6 +111,11 @@ export check_project_with_bodies :: fn(
         }
     }
     merge_external_alias_types(entry_typed, per_module)
+    // Make every module's enums resolvable cross-module before any fn
+    // signature is lowered — so a `d: parser.Visibility` param resolves to
+    // the `EnumType` (→ `repr` ordinal at bytecode emit) instead of the
+    // struct placeholder.
+    broadcast_enum_types(per_module, project)
     // Wire imports + resolver-side imports_to early so cross-module
     // alias lookups (`Pet` from `./types`) follow ImportBinding to
     // the real symbol during fn-signature lowering below.
@@ -640,6 +645,47 @@ register_aliases :: fn(typed: TypedProgram, decls: AST.Decl[]) -> void {
                 if cd.ty is null && register_alias_const(cd, typed) {}
             }
             _ -> {}
+        }
+    }
+}
+
+// Compute every enum's `EnumType` across all files of all modules (Phase A)
+// and broadcast it into every module's `alias_types`, keyed by the enum
+// symbol's global id. A fn signature or struct field then resolves an enum
+// reference — same-module, cross-module, or in a sibling file of a
+// multi-file module — to its `EnumType` rather than the `type_from_symbol`
+// `.Enum -> mk_struct` placeholder, so the bytecode emit collapses the enum
+// to its `repr` ordinal. Enum-only — type aliases keep their entry-merge
+// scope. Keyed by global symbol id, so no cross-module name collisions.
+// Must run before `declare_module` lowers any signature.
+broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram>, project: LoadedProject) -> void {
+    collected :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
+    for id in per_module.keys() {
+        typed :: per_module[id]
+        if typed is null { continue }
+        loaded :: project.modules[id]
+        if loaded is null { continue }
+        by_name :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+        for s in typed.resolved.symbols { by_name[s.name] = s }
+        for file in loaded.module.files {
+            for decl in file.program.decls {
+                if decl is AST.EnumDecl as ed {
+                    sym :: by_name[ed.name]
+                    if sym is null { continue }
+                    repr :: resolve_repr(ed.repr, typed.resolved, diag_sink())
+                    indices :: resolve_enum_indices(ed, repr, diag_sink())
+                    collected[sym.id] = mk_enum(sym, repr, indices)
+                }
+            }
+        }
+    }
+    for id in per_module.keys() {
+        typed :: per_module[id]
+        if typed is null { continue }
+        for sid in collected.keys() {
+            t :: collected[sid]
+            if t is null { continue }
+            typed.resolved.alias_types[sid] = t
         }
     }
 }
