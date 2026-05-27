@@ -26,7 +26,7 @@ module "vader/bytecode"
 
 import "std/collections" { MutableMap, keys }
 import "vader/diagnostics" { Span }
-import "vader/types" { Type }
+import "vader/types" { Type, mk_struct }
 import "vader/resolver/symbol" { Symbol }
 import "vader/parser" { Decl, FnDecl, Decorator }
 import "vader/lower" {
@@ -649,6 +649,27 @@ bare_name_for :: fn(function_decl: LoweredFnDecl) -> string = match function_dec
 /// C-emit boundary dedup match struct instances by source-decl
 /// identity.
 reserve_struct :: fn(struct_decl: LoweredStructDecl, ctx: EmitterCtx) -> void {
+    struct_symbol :: struct_decl.origin.symbol
+    if struct_symbol is null { return }
+    // Key on the struct *type*'s source-position identity — the same key
+    // `intern_type` derives for a `StructType`, so a referenced instance
+    // dedupes with this reserved definition. Mirror of TS `internStructDecl`
+    // (emit.ts:418).
+    struct_type :: mk_struct(struct_symbol, struct_decl.origin.type_arguments)
+    key :: type_intern_key(struct_type)
+    cached :: ctx.type_key[key]
+    // Reuse the `ref` placeholder `intern_type` may have minted under this
+    // key (self / forward references), else allocate a fresh slot and
+    // reserve the key before recursing into field types so a
+    // self-referential struct terminates.
+    idx := i32(ctx.types.len())
+    if cached is i32 as existing {
+        if ctx.types[usize(existing)] is BcStruct { return }
+        idx = existing
+    } else {
+        ctx.type_key[key] = idx
+        ctx.types.push(BcRef { .trait_name = struct_decl.mangled })
+    }
     fields: BcField[] = []
     for i in 0..<struct_decl.fields.len() {
         field :: struct_decl.fields[i]
@@ -657,17 +678,11 @@ reserve_struct :: fn(struct_decl: LoweredStructDecl, ctx: EmitterCtx) -> void {
             .type_index = intern_type(field.type, ctx),
         })
     }
-    symbol_id :: match struct_decl.origin.symbol {
-        is Symbol as symbol -> symbol.id
-        _ -> i32(-1)
-    }
-    new_index :: i32(ctx.types.len())
-    ctx.types.push(BcStruct {
+    ctx.types[usize(idx)] = BcStruct {
         .name      = struct_decl.mangled,
         .fields    = fields,
-        .symbol_id = symbol_id,
-    })
-    ctx.type_key[struct_decl.mangled] = new_index
+        .symbol_id = struct_symbol.id,
+    }
 }
 
 /// Build a `BcSignature` from the lowered fn params + return type.

@@ -25,6 +25,8 @@ import "vader/types" {
     UnresolvedType, FreeIntType, FreeFloatType, NeverType, AnyType,
     display_type,
 }
+import "vader/resolver/symbol" { Symbol }
+import "vader/diagnostics" { Span }
 
 /// Cache key for `intern_type`. Primitives skip the `display_type`
 /// allocation by keying directly on the primitive name (already a
@@ -34,13 +36,20 @@ import "vader/types" {
 /// @return   the key string ; pass to `MutableMap(string, i32)`.
 export type_intern_key :: fn(t: Type) -> string = match t {
     is PrimitiveType as p -> p.name
-    is StructType         -> display_type(t)
-    is EnumType           -> display_type(t)
-    is TraitType          -> display_type(t)
-    is ArrayType          -> display_type(t)
-    is UnionType          -> display_type(t)
-    is FnType             -> display_type(t)
-    is TupleType          -> display_type(t)
+    // Key structs / traits by source position (`symbol_key`) + recursive
+    // arg keys, NOT by `display_type` (bare name). Two import shapes of the
+    // same decl resolve to distinct symbols but share a source position, so
+    // they collapse to one slot — and `reserve_struct` keys identically, so
+    // a referenced struct dedupes with its reserved definition instead of
+    // minting an orphan `ref`. Mirror of TS `typeInternKey` (emit.ts:328).
+    is StructType as s    -> "Struct#${symbol_key(s.symbol)}<${type_key_join(s.args, "|")}>"
+    is TraitType as tr    -> "Trait#${symbol_key(tr.symbol)}<${type_key_join(tr.args, "|")}>"
+    // Enums lower to their `repr` primitive — share the bare primitive's slot.
+    is EnumType as e      -> e.repr
+    is ArrayType as a     -> "Array<${type_intern_key(a.element)}>"
+    is UnionType as u     -> "Union<${type_key_join(u.variants, "|")}>"
+    is TupleType as p     -> "Tuple<${type_key_join(p.elements, "|")}>"
+    is FnType as f        -> "Fn(${type_key_join(f.params, ",")})->${type_intern_key(f.return_type)}"
     is TypeParamType      -> display_type(t)
     is TypeMetaType       -> display_type(t)
     is SelfType           -> display_type(t)
@@ -49,6 +58,24 @@ export type_intern_key :: fn(t: Type) -> string = match t {
     is FreeFloatType      -> display_type(t)
     is NeverType          -> display_type(t)
     is AnyType            -> "Any"
+}
+
+// Source-position identity for a symbol — file:offset when the decl has a
+// span, else a synthetic `id` fallback. Mirror of TS `symbolKey`.
+symbol_key :: fn(sym: Symbol) -> string = match sym.defined_at {
+    is null       -> "id${sym.id}"
+    is Span as at -> "${at.start.file}:${at.start.offset}"
+}
+
+// Join each type's intern key with `sep`. Recurses through `type_intern_key`
+// so a struct nested in an arg / variant carries its source-position key.
+type_key_join :: fn(args: Type[], sep: string) -> string {
+    out := ""
+    for i in 0..<args.len() {
+        prefix :: if i > usize(0) { sep } else { "" }
+        out = "${out}${prefix}${type_intern_key(args[i])}"
+    }
+    return out
 }
 
 /// Stack-class of a `Type`. Primitive types map by name ; every
