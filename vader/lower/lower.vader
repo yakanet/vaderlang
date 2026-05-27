@@ -1345,7 +1345,11 @@ materialize_struct_instance :: fn(
     decl :: find_struct_decl_by_name(owner_decls, inst.symbol.name)
     if decl is null { return [] }
     if decl is StructDecl as sd {
-        if sd.type_params.len() == usize(0) { return [] }
+        // Non-generic structs fall through safely : empty `type_params`
+        // ⇒ identity substs and `args_suffix([]) == ""`, so fields are
+        // unchanged and the mangle is the bare `<module>$<Name>`. Lets the
+        // closure pass materialise referenced stdlib structs
+        // (`StringBuilder`, `JsonObject`, …) whose bodies are never lowered.
         mangled :: mangle_struct_instance(owner_typed.resolved.display_path, inst.symbol.name, inst.args)
         // Erasure : the entry's `subst` keeps the concrete args (for
         // mangling + downstream consumers that need the source-level
@@ -1407,7 +1411,7 @@ close_over_field_shapes :: fn(
     materialized :: new_string_set()
     seen_pushed :: new_string_set()
     worklist: StructType[] = []
-    collect :: (sub: Type) -> push_generic_shape(sub, worklist, seen_pushed)
+    collect :: (sub: Type) -> push_struct_shape(sub, worklist, seen_pushed)
     for module_id in project.modules.keys() {
         m :: project.modules[module_id]
         if m is LoweredModule as mod {
@@ -1446,14 +1450,16 @@ close_over_field_shapes :: fn(
 /// Matches TS' `MAX_INSTANCES` (`src/comptime/evaluate.ts`).
 MAX_FIELD_SHAPES :: 4096
 
-/// `for_each_type` visitor : push a concrete generic-struct shape onto
-/// `out` the first time it's seen. Dedup by `(symbol.id, display)` keeps
-/// the worklist to one entry per distinct shape — the same shape recurs
-/// across hundreds of field / signature slots otherwise. TypeParam-
-/// bearing shapes (a generic decl's own self-reference) are skipped.
-push_generic_shape :: fn(t: Type, out: StructType[], seen: MutableSet<string>) -> void {
+/// `for_each_type` visitor : push a struct shape onto `out` the first
+/// time it's seen — both concrete generic instances (`MutableMap(Any,
+/// bool)`) and plain non-generic structs (`StringBuilder`), since either
+/// can be referenced without a materialised decl. Dedup by `(symbol.id,
+/// display)` keeps the worklist to one entry per distinct shape — the
+/// same shape recurs across hundreds of field / signature slots
+/// otherwise. TypeParam-bearing shapes (a generic decl's own
+/// self-reference) are skipped.
+push_struct_shape :: fn(t: Type, out: StructType[], seen: MutableSet<string>) -> void {
     if t is StructType as s {
-        if s.args.is_empty() { return }
         if has_type_param(s) { return }
         key :: "${s.symbol.id}|${display_type(s)}"
         if seen.contains(key) { return }
