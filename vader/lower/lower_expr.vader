@@ -36,7 +36,7 @@ import "vader/types" {
     TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive,
 }
-import "vader/typecheck" { default_if_free, equals_type }
+import "vader/typecheck" { default_if_free, equals_type, is_assignable }
 import "vader/comptime" {
     ComptimeValue, IntValue, FloatValue, BoolValue, CharValue, StringValue,
     NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
@@ -1121,12 +1121,17 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
 }
 
 find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsMember | null {
+    // Unions have no nominal surface name ; they still dispatch UFCS to a
+    // free fn whose first param is the same union (`shape.describe()` ->
+    // `describe(shape: Shape)`). `first_param_matches` handles both the
+    // name and the structural-union case, so don't bail on empty name
+    // unless the receiver is neither nominal nor a union.
     recv_name :: type_surface_name(recv_type)
-    if recv_name == "" { return null }
+    if recv_name == "" && !(recv_type is UnionType) { return null }
     overloads :: ctx.typed.resolved.fn_overloads[name]
     if overloads is Symbol[] as symbols {
         for sym in symbols {
-            if first_param_targets_name(ctx, sym, recv_name) {
+            if first_param_matches(ctx, sym, recv_type) {
                 return UfcsMember { .symbol = sym }
             }
         }
@@ -1139,7 +1144,7 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
         if i32(candidate.kind) != i32(SymbolKind.ImportBinding) { continue }
         target :: follow_import_binding(ctx, candidate)
         if i32(target.kind) == i32(SymbolKind.Fn) {
-            if first_param_targets_name(ctx, target, recv_name) {
+            if first_param_matches(ctx, target, recv_type) {
                 return UfcsMember { .symbol = target }
             }
         }
@@ -1156,7 +1161,7 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
             bucket :: ep.typed.resolved.fn_overloads[name]
             if bucket is Symbol[] as bucket_syms {
                 for sym in bucket_syms {
-                    if first_param_targets_name(ctx, sym, recv_name) {
+                    if first_param_matches(ctx, sym, recv_type) {
                         return UfcsMember { .symbol = sym }
                     }
                 }
@@ -1166,30 +1171,19 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
     return null
 }
 
-first_param_targets_name :: fn(ctx: FnLowerCtx, sym: Symbol, recv_name: string) -> bool {
-    // Look up the fn's FnType via the decl_types table, then match the
-    // first param's surface name. Walks every loaded typed module since
-    // the fn may live in an imported namespace. A `TypeParam` first
-    // param matches any receiver — generic fns like `identity[T](x: T)`
-    // accept a primitive or struct receiver through UFCS.
-    for module_id in ctx.project.evaluated.modules.keys() {
-        program :: ctx.project.evaluated.modules[module_id]
-        match program {
-            is null -> {}
-            is EvaluatedProgram as ep -> {
-                fn_ty :: ep.typed.decl_types[sym.id]
-                match fn_ty {
-                    is null -> {}
-                    is FnType as ft -> {
-                        if ft.params.len() == usize(0) { return false }
-                        first :: ft.params[0]
-                        if first is TypeParamType { return true }
-                        return type_surface_name(first) == recv_name
-                    }
-                    _ -> {}
-                }
-            }
-        }
+first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool {
+    // Match the fn's first param against the receiver. A `TypeParam`
+    // first param matches any receiver (`identity[T](x: T)`) ; a union
+    // receiver matches via `is_assignable` (mirrors the typer's
+    // `receiver_fits_first_param`, so lower agrees with what typecheck
+    // accepted) ; otherwise match by nominal surface name.
+    fn_ty :: lookup_fn_type_anywhere(ctx, sym)
+    if fn_ty is FnType as ft {
+        if ft.params.len() == usize(0) { return false }
+        first :: ft.params[0]
+        if first is TypeParamType { return true }
+        if recv_type is UnionType { return is_assignable(recv_type, first, null) }
+        return type_surface_name(first) == type_surface_name(recv_type)
     }
     return false
 }
