@@ -147,6 +147,28 @@ populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -
                 iter_table[entry.name] = entry
             }
         }
+        // `std/collections`'s top-level symbols : copy under
+        // `collections_symbols` so the for-in MutableMap / MutableSet
+        // inliner can recognise the map/set/Entry structs by symbol id.
+        if is_std_collections_module(module_id) {
+            coll_table :: ensure_collections_table(project_ctx)
+            for entry in module_typed.resolved.symbols {
+                coll_table[entry.name] = entry
+            }
+        }
+    }
+}
+
+is_std_collections_module :: fn(module_id: string) = "stdlib/std/collections" in module_id
+
+ensure_collections_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Symbol> {
+    match project_ctx.collections_symbols {
+        is null -> {
+            table :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+            project_ctx.collections_symbols = table
+            return table
+        }
+        is MutableMap<string, Symbol> as existing -> { return existing }
     }
 }
 
