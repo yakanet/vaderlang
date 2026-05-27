@@ -43,10 +43,12 @@ import "vader/comptime" {
 }
 import "vader/comptime" { EvaluatedProgram }
 import "vader/comptime" { byte_size, byte_align }
+import "vader/comptime" { mangle_type_arg }
 import "vader/typecheck" { type_to_target_symbol, has_user }
 import "vader/resolver" { ImportTargetTable, SymbolTarget }
 import "vader/parser" { ConstDecl, ImplDecl, StructDecl }
 import "vader/typecheck" { substitute_by_name }
+import "vader/typecheck" { substitute }
 import "vader/types" { display_type, STRUCT_FIELD }
 
 // ============================================================================
@@ -940,7 +942,13 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
         v :: bindings[id]
         match v {
             is null -> {}
-            _ -> { out.push(v) }
+            // Apply the enclosing fn's substitution so a transitive
+            // call inside an erased generic body (`outer<T>` calling
+            // `inner_count(arr)`) resolves the inner type-arg through
+            // `T -> Any`, yielding `inner_count__Any` rather than a
+            // dangling `inner_count__T`. Mirror of TS' transitive mono
+            // which substitutes call-site args under the outer subst.
+            _ -> { out.push(substitute(v, ctx.subst)) }
         }
     }
     return out
@@ -1029,18 +1037,9 @@ mono_suffix :: fn(args: Type[]) -> string {
     sb := new_builder_for_mangle()
     for a in args {
         sb.append("__")
-        sb.append(surface_for_mangle(a))
+        sb.append(mangle_type_arg(a))
     }
     return sb.to_string()
-}
-
-surface_for_mangle :: fn(t: Type) -> string {
-    match t {
-        is PrimitiveType as p -> { return p.name }
-        is StructType    as s -> { return s.symbol.name }
-        is EnumType      as e -> { return e.symbol.name }
-        _ -> { return "T" }
-    }
 }
 
 mangle_module_id_local :: fn(module_id: string) -> string {

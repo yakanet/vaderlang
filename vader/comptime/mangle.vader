@@ -58,11 +58,18 @@ export mangle :: fn(decl_name: string, module_path: string, type_arguments: Type
     i: usize = 0
     for i < type_arguments.len() {
         if i > 0 { sb.append("__") }
-        sb.append(sanitise_ident(display_type(type_arguments[i])))
+        sb.append(mangle_type_arg(type_arguments[i]))
         i += 1
     }
     return "${sb}"
 }
+
+/// Mangle segment for a single type argument : `sanitise_ident(display_
+/// type(t))`. Shared by `mangle` and the lowerer's fn-instance /
+/// struct-instance suffixes so erased args render `Any` and nested
+/// generics survive (`Box<Box<i32>>` → `Box_i32_`). A bare type-name
+/// fallback collapses `Any`/nested args and breaks dedup parity.
+export mangle_type_arg :: fn(t: Type) -> string = sanitise_ident(display_type(t))
 
 /// Replace every byte outside `[A-Za-z0-9_]` with `_`. Distinct from
 /// `vader/c_emit/body.sanitise` — the C-emit variant additionally

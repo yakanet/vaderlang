@@ -37,7 +37,7 @@ import "vader/comptime" {
     NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
 }
 import "vader/comptime" { MonoEntry }
-import "vader/comptime" { sanitise_ident }
+import "vader/comptime" { mangle_type_arg }
 
 /// Lower every module's top-level decls into a `LoweredProject`.
 /// @param loaded     the loaded project (for source decls per module).
@@ -811,18 +811,67 @@ materialize_generic_fn_instances :: fn(
     // TODO: drop `project_ctx.fn_instances_order` and read entirely
     // from `evaluated.mono.fn_instance_entries`. Blocked on snapshot
     // updates for the mangled-name change.
-    sorted :: sort(project_ctx.fn_instances_order, fn_instance_less)
-    for inst in sorted {
+    // Transitive monomorphisation : lowering an instance body can
+    // register *new* instances (e.g. `outer<T>` calling `inner<T>`),
+    // appending to `fn_instances_order` mid-loop. Iterate to a fixpoint
+    // over a `processed` set so transitively-discovered instances also
+    // materialise. Bodies are built into `collected` first, then sorted
+    // by `<fn_symbol.id>::<args>` and pushed — so `inner` (lower symbol
+    // id) emits before `outer` regardless of discovery order. Mirror of
+    // TS' mono registry, which collects every instance transitively
+    // before emit (`src/comptime/specialize.ts` run_pass_3).
+    processed: MutableMap<string, bool> = MutableMap<string, bool> { .buckets = [], .size = 0 }
+    collected: PendingFnInstance[] = []
+    // `fn_instances_order` is append-only here — `build_fn_instance_decl`
+    // only ever pushes newly-discovered instances. A growing-array
+    // cursor that re-reads `len()` each step therefore visits every
+    // transitive instance in one pass ; `processed` dedups duplicate
+    // `(symbol, args)` discoveries. Re-indexing by position is safe
+    // across reallocs.
+    i: usize = 0
+    for i < project_ctx.fn_instances_order.len() {
+        inst :: project_ctx.fn_instances_order[i]
+        i += 1
+        key :: fn_instance_key(inst)
+        if processed[key] != null { continue }
+        processed[key] = true
         // The comptime harvest (`harvest_instances`) does not observe
-        // generic fn calls today (only types reachable from typed-side
-        // side-tables). The lowerer's own probe — populating
-        // `fn_instances_order` from `try_lower_generic_fn_call` /
-        // `try_lower_ufcs_call` — is authoritative until the comptime
-        // harvest grows fn-call coverage. Gating on the (empty) mono
-        // table would silently skip every observed instance.
-        materialize_fn_instance(inst, loaded, typed, project_ctx, project, diags)
+        // generic fn calls today ; the lowerer's own probe is
+        // authoritative, so we don't gate on the mono table.
+        built :: build_fn_instance_decl(inst, key, loaded, typed, project_ctx, diags)
+        match built {
+            is null -> {}
+            is PendingFnInstance as p -> { collected.push(p) }
+        }
+    }
+    // Erasure-dedupe : every instance of a (non-`@specialize`) free
+    // generic fn erases to the same Any-typed body, so collapse a fn's
+    // group to a single decl keyed by `fn_symbol.id`, keeping the first
+    // by sort order (`outer<i32>` + `outer<string>` -> one `outer__i32`).
+    // Mirror of TS' `erasureDedupe` collapsing each fn group to one
+    // representative (`src/comptime/erasure-dedupe.ts`). Impl-member
+    // instances never reach `fn_instances` (they route through the mono
+    // / vtable path), so this only collapses free generic fns.
+    sorted_pending :: sort(collected, pending_fn_instance_less)
+    emitted_fns: MutableMap<i32, bool> = MutableMap<i32, bool> { .buckets = [], .size = 0 }
+    for p in sorted_pending {
+        if emitted_fns[p.fn_symbol_id] != null { continue }
+        emitted_fns[p.fn_symbol_id] = true
+        push_to_module(project, p.module_id, p.decl)
     }
 }
+
+// One materialised fn instance awaiting emission, carrying its routing
+// key so the final push order matches the `<symbol.id>::<args>` sort,
+// plus the source fn's symbol id for erasure-dedupe grouping.
+PendingFnInstance :: struct {
+    module_id:    string
+    key:          string
+    fn_symbol_id: i32
+    decl:         LoweredFnDecl
+}
+
+pending_fn_instance_less :: fn(a: PendingFnInstance, b: PendingFnInstance) = compare_ascending(a.key, b.key)
 
 /// True when `evaluated.mono` carries a FnDecl-kind MonoEntry whose
 /// symbol id matches `inst.fn_symbol.id` and whose `type_arguments`
@@ -849,10 +898,6 @@ mono_has_fn_instance_for :: fn(project_ctx: LowerProjectCtx, inst: GenericFnInst
     return false
 }
 
-fn_instance_less :: fn(a: GenericFnInstance, b: GenericFnInstance) -> bool {
-    return compare_ascending(fn_instance_key(a), fn_instance_key(b))
-}
-
 fn_instance_key :: fn(inst: GenericFnInstance) -> string {
     sb := new_builder()
     sb.append("${inst.fn_symbol.id}::")
@@ -863,59 +908,61 @@ fn_instance_key :: fn(inst: GenericFnInstance) -> string {
     return sb.to_string()
 }
 
-materialize_fn_instance :: fn(
-    inst: GenericFnInstance, loaded: LoadedProject, typed: TypedProject,
-    project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
-) -> void {
+// Build (but don't push) the monomorphized `LoweredFnDecl` for `inst`.
+// Lowering the body here can register transitive fn instances into
+// `project_ctx.fn_instances_order` — the caller's fixpoint loop picks
+// those up. Returns null when the owner module / source decl is
+// missing.
+build_fn_instance_decl :: fn(
+    inst: GenericFnInstance, key: string, loaded: LoadedProject, typed: TypedProject,
+    project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> PendingFnInstance | null {
     owner_module_id :: inst.owner_module
     owner_module :: loaded.modules[owner_module_id]
-    if owner_module is null { return }
     owner_typed :: typed.modules[owner_module_id]
-    if owner_typed is null { return }
-    if owner_typed is TypedProgram as ot {
-        if owner_module is LoadedModule as ol {
-            decls :: module_decls(ol)
-            fn_decl :: find_fn_decl_by_name(decls, inst.fn_symbol.name, inst.type_args.len())
-            if fn_decl is null { return }
-            if fn_decl is FnDecl as fd {
-                // Erasure : map every type-param to `TY_ANY` so the
-                // emitted body's signature collapses to `(x: Any) ->
-                // Any`. The mangled name still carries the concrete
-                // args (`identity__i32`) ; only the type slots get
-                // erased.
-                subst :: build_fn_any_subst(fd, ot)
-                types :: make_entry_types(ot, subst)
-                params: LoweredParam[] = []
-                for ast_param in fd.params {
-                    symbol_or_null :: lookup_local_symbol(project_ctx, ot.resolved, ast_param.span)
-                    sym :: synth_param_or(symbol_or_null, ast_param.name, ot)
-                    raw_ty :: types.param_type(ast_param)
-                    params.push(LoweredParam {
-                        .name = ast_param.name, .symbol = sym, .type = raw_ty,
-                    })
-                }
-                return_type :: substitute(return_type_of(fd, types), subst)
-                entry_decl: Decl = fd
-                entry :: MonoEntry {
-                    .id             = i32(0),
-                    .is_main        = false,
-                    .mangled        = inst.mangled,
-                    .decl           = entry_decl,
-                    .symbol         = inst.fn_symbol,
-                    .subst          = subst,
-                    .type_arguments = inst.type_args,
-                    .module         = ot,
-                }
-                body :: lower_fn_body(fd, ot, project_ctx, entry, subst, return_type)
-                push_to_module(project, owner_module_id, LoweredFnDecl {
-                    .mangled     = inst.mangled,
-                    .params      = params,
-                    .return_type = return_type,
-                    .body        = body,
-                    .origin      = entry,
-                })
-            }
-        }
+    if owner_typed is null { return null }
+    if owner_module is null { return null }
+    fn_decl :: find_fn_decl_by_name(module_decls(owner_module), inst.fn_symbol.name, inst.type_args.len())
+    if fn_decl is null { return null }
+    // Erasure : map every type-param to `TY_ANY` so the emitted body's
+    // signature collapses to `(x: Any) -> Any`. The mangled name still
+    // carries the concrete args (`identity__i32`) ; only the type slots
+    // get erased.
+    subst :: build_fn_any_subst(fn_decl, owner_typed)
+    types :: make_entry_types(owner_typed, subst)
+    params: LoweredParam[] = []
+    for ast_param in fn_decl.params {
+        symbol_or_null :: lookup_local_symbol(project_ctx, owner_typed.resolved, ast_param.span)
+        sym :: synth_param_or(symbol_or_null, ast_param.name, owner_typed)
+        raw_ty :: types.param_type(ast_param)
+        params.push(LoweredParam {
+            .name = ast_param.name, .symbol = sym, .type = raw_ty,
+        })
+    }
+    return_type :: substitute(return_type_of(fn_decl, types), subst)
+    entry_decl: Decl = fn_decl
+    entry :: MonoEntry {
+        .id             = i32(0),
+        .is_main        = false,
+        .mangled        = inst.mangled,
+        .decl           = entry_decl,
+        .symbol         = inst.fn_symbol,
+        .subst          = subst,
+        .type_arguments = inst.type_args,
+        .module         = owner_typed,
+    }
+    body :: lower_fn_body(fn_decl, owner_typed, project_ctx, entry, subst, return_type)
+    return PendingFnInstance {
+        .module_id    = owner_module_id,
+        .key          = key,
+        .fn_symbol_id = inst.fn_symbol.id,
+        .decl         = LoweredFnDecl {
+            .mangled     = inst.mangled,
+            .params      = params,
+            .return_type = return_type,
+            .body        = body,
+            .origin      = entry,
+        },
     }
 }
 
@@ -1595,17 +1642,10 @@ args_suffix :: fn(args: Type[]) -> string {
     sb := new_builder()
     for a in args {
         sb.append("__")
-        sb.append(type_surface_for_mangle(a))
+        sb.append(mangle_type_arg(a))
     }
     return sb.to_string()
 }
-
-// Per-arg mangle segment. Must match the comptime mono pass'
-// `mangle` (`vader/comptime/mangle.vader`) which uses
-// `sanitise_ident(display_type(arg))` so nested generic args survive :
-// `Box<Box<i32>>` → `Box_i32_`, not bare `Box`. A free TypeParam
-// renders as `T` via `display_type`.
-type_surface_for_mangle :: fn(t: Type) -> string = sanitise_ident(display_type(t))
 
 push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDecl) -> void {
     m :: project.modules[module_id]
