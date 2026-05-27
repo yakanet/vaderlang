@@ -360,8 +360,18 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
     defined_at :: symbol.defined_at
     if defined_at is null { return null }
     key :: span_key(defined_at)
-    if i32(symbol.kind) == i32(SymbolKind.Param) { return ctx.typed.param_types[key] }
-    return ctx.typed.local_types[key]
+    // Apply the entry substitution so the narrowing comparison sees the
+    // erased declared type (`Any | null`), matching the erased read-site
+    // type — otherwise an unerased `T | null` declared type spuriously
+    // differs from the read type and injects a redundant cast in
+    // generic-impl default-method bodies.
+    raw :: if i32(symbol.kind) == i32(SymbolKind.Param) {
+        ctx.typed.param_types[key]
+    } else {
+        ctx.typed.local_types[key]
+    }
+    if raw is null { return null }
+    return ctx.types.apply(raw)
 }
 
 try_lower_common_union_field :: fn(
