@@ -28,6 +28,7 @@ import "vader/diagnostics" { Diagnostic, typecheck_error }
 AST :: import "vader/parser"
 import "vader/types" {
     ArrayType, Type, FnType, StructType, TraitType, TypeMetaType, UnresolvedType,
+    FreeIntType, FreeFloatType,
     display_type, mk_array, TY_UNRESOLVED,
 }
 import "vader/resolver" { span_full_key, span_key }
@@ -207,6 +208,23 @@ export infer_call :: fn(
             if v is null { continue }
             bindings[k] = default_if_free(v)
         }
+        // Box a Free* numeric arg into a trait-typed param : when `7`
+        // flows into `Doubler(T)` and `i32 implements Doubler(i32)`,
+        // record the substituted trait type on the arg expr so the
+        // lowerer emits `int(7) :Doubler(i32)` (the boxed trait-object)
+        // rather than a bare `i32`. Mirror of TS `pinFreeNumericArg` ;
+        // scoped to trait targets since the numeric→numeric case already
+        // defaults to the same concrete primitive downstream.
+        for i in 0..<n {
+            got :: arg_types[i]
+            if !(got is FreeIntType) && !(got is FreeFloatType) { continue }
+            expected :: substitute_map(callee_ty.params[i], bindings)
+            if expected is TraitType as et {
+                if struct_implements_trait(default_if_free(got), et.symbol.name, typed) {
+                    typed.expr_types[c.args[i].value.id] = expected
+                }
+            }
+        }
         // T3006 : enforce `T: Trait` bounds on the callee's fn-decl
         // type-params against the bindings we ended up with.
         check_typeparam_bounds(c, bindings, typed, diags)
@@ -339,11 +357,7 @@ unify_struct_to_trait_args :: fn(
     param: Type, arg: Type, typed: TypedProgram, out: MutableMap<i32, Type>,
 ) -> void {
     if !(param is TraitType) { return }
-    arg_name :: dispatch_key(arg)
-    if arg_name == "" { return }
-    per_struct :: typed.struct_trait_args[arg_name]
-    if per_struct is null { return }
-    impl_args :: per_struct[param.symbol.name]
+    impl_args :: lookup_struct_trait_args(arg, param.symbol.name, typed)
     if impl_args is null { return }
     n :: min(param.args.len(), impl_args.len())
     for i in 0..<n {

@@ -36,7 +36,7 @@ import "vader/types" {
     TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive,
 }
-import "vader/typecheck" { default_if_free, equals_type, is_assignable }
+import "vader/typecheck" { default_if_free, equals_type, is_assignable, lookup_struct_trait_args }
 import "vader/comptime" {
     ComptimeValue, IntValue, FloatValue, BoolValue, CharValue, StringValue,
     NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
@@ -104,9 +104,18 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // of `f` to a `Field { name, type }` literal). Mirror of
             // TS's `LoweredFieldAccess` shortcut in
             // `src/lower/passes/expr.ts:445-455`.
+            //
+            // Skip the fold when the target is a *comptime const* baked
+            // to a compound struct/array : TS defers that struct-lit
+            // substitution to its `inlineConsts` pass, so the fold guard
+            // never sees it and `DIM.0` keeps a real `LoweredFieldAccess`
+            // over the re-materialised tuple lit (`._0 :i32`). Only
+            // `@comptime`-substituted loop-var lits fold.
             if lowered_target is LoweredStructLit as sl {
-                for f in sl.fields {
-                    if f.name == field_name { return f.value }
+                if !field_target_is_comptime_const(ctx, e.target) {
+                    for f in sl.fields {
+                        if f.name == field_name { return f.value }
+                    }
                 }
             }
             return LoweredFieldAccess {
@@ -252,6 +261,22 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
 // `CellInit` and the cell-init wrapper now live in `vader/lower/helpers.vader`
 // (single source of truth — same module, same shape). Callers below
 // reach for `lower_cell_init` directly.
+
+// True when `target` is a bare ident resolving to a `@comptime` const
+// whose baked value is a compound struct / array. Such references keep
+// a real field access at the use site (the tuple lit rides as the
+// access target) rather than folding to the projected element — mirror
+// of TS deferring const substitution to `inlineConsts`.
+field_target_is_comptime_const :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
+    if target is IdentExpr as id {
+        symbol :: ctx.typed.resolved.idents[span_key(id.span)]
+        if symbol is Symbol as resolved {
+            baked :: lookup_const_baked_value(ctx, resolved)
+            return baked is StructValue || baked is ArrayValue
+        }
+    }
+    return false
+}
 
 lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue | null {
     // The const symbol may live in this module or in an imported one.
@@ -869,9 +894,19 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
                     ctx.project.fn_instances_order.push(new_inst)
                 }
                 // Build args first ; the callee's mangled symbol is the
-                // monomorphic instance.
+                // monomorphic instance. A raw array flowing into an
+                // `Iterator(T)` param coerces through `into` (→
+                // `ArrayIterator(T)`), mirroring the non-generic arg path.
                 lowered_args: LoweredExpr[] = []
-                for ca in call.args { lowered_args.push(lower_expr(ctx, ca.value)) }
+                for i in 0..<call.args.len() {
+                    arg_lowered :: lower_expr(ctx, call.args[i].value)
+                    if i >= ft.params.len() {
+                        lowered_args.push(arg_lowered)
+                    } else {
+                        coerced :: try_emit_into_coercion(ctx, arg_lowered, type_of(arg_lowered), ft.params[i], call.args[i].value.span)
+                        if coerced == null { lowered_args.push(arg_lowered) } else { lowered_args.push(coerced) }
+                    }
+                }
                 mono_sym :: Symbol {
                     .id         = i32(0),
                     .kind       = SymbolKind.Fn,
@@ -946,7 +981,7 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
     for i in 0..<n {
         pattern :: ft.params[i]
         concrete :: default_if_free(ctx.types.expr_type(call.args[i].value))
-        unify_params(pattern, concrete, bindings, order)
+        unify_params(pattern, concrete, bindings, order, ctx)
     }
     out: Type[] = []
     for id in order {
@@ -965,7 +1000,7 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
     return out
 }
 
-unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type>, order: i32[]) -> void {
+unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type>, order: i32[], ctx: FnLowerCtx) -> void {
     if pattern is TypeParamType as tp {
         existing :: bindings[tp.symbol.id]
         match existing {
@@ -982,13 +1017,29 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
             n :: ps.args.len()
             for i in 0..<n {
                 if i >= cs.args.len() { break }
-                unify_params(ps.args[i], cs.args[i], bindings, order)
+                unify_params(ps.args[i], cs.args[i], bindings, order, ctx)
+            }
+        }
+    }
+    // Trait param vs concrete arg : recover the trait's generic args by
+    // walking the impl table, then unify them with the pattern's args.
+    // Mirror of TS `unifyTraitParamWithConcrete` (`unify.ts:101`). Drives
+    // monomorphisation of `fn[T](it: Iterator(T))` etc. from any arg that
+    // implements the trait (struct, primitive, raw array, or a value
+    // already boxed into the trait type).
+    if pattern is TraitType as ptr {
+        trait_args :: trait_concrete_args(ptr, concrete, ctx)
+        if trait_args != null {
+            n :: ptr.args.len()
+            for i in 0..<n {
+                if i >= trait_args.len() { break }
+                unify_params(ptr.args[i], trait_args[i], bindings, order, ctx)
             }
         }
     }
     if pattern is ArrayType as pa {
         if concrete is ArrayType as ca {
-            unify_params(pa.element, ca.element, bindings, order)
+            unify_params(pa.element, ca.element, bindings, order, ctx)
         }
     }
     if pattern is FnType as pft {
@@ -996,9 +1047,9 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
             n :: pft.params.len()
             for i in 0..<n {
                 if i >= cft.params.len() { break }
-                unify_params(pft.params[i], cft.params[i], bindings, order)
+                unify_params(pft.params[i], cft.params[i], bindings, order, ctx)
             }
-            unify_params(pft.return_type, cft.return_type, bindings, order)
+            unify_params(pft.return_type, cft.return_type, bindings, order, ctx)
         }
     }
     if pattern is TupleType as ptup {
@@ -1006,10 +1057,40 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
             n :: ptup.elements.len()
             for i in 0..<n {
                 if i >= ctup.elements.len() { break }
-                unify_params(ptup.elements[i], ctup.elements[i], bindings, order)
+                unify_params(ptup.elements[i], ctup.elements[i], bindings, order, ctx)
             }
         }
     }
+}
+
+// Recover the concrete trait args for `concrete` viewed as `tt` (the
+// trait pattern). Three sources, in order :
+//   1. `concrete` is already the same trait (a boxed value) → its args.
+//   2. A concrete `implements` recorded in `struct_trait_args`
+//      (`Hello implements Greeter(i32)`, `i32 implements Doubler(i32)`).
+//   3. The builtin `Iterator(T)` element : the first type-arg of a struct
+//      iterator (`Range(i32)`, `ArrayIterator(i32)`) or a raw array's
+//      element — covers generic impls whose recorded args are still
+//      type-params, plus the `T[] → Iterator(T)` coercion that has no
+//      impl decl. Returns `null` when no source resolves.
+trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Type[] | null {
+    if concrete is TraitType as ct {
+        if ct.symbol.name == tt.symbol.name { return ct.args }
+        return null
+    }
+    recorded :: lookup_struct_trait_args(concrete, tt.symbol.name, ctx.typed)
+    if recorded != null {
+        if all_concrete(recorded) { return recorded }
+    }
+    if tt.symbol.name == "Iterator" && tt.args.len() == usize(1) {
+        if concrete is StructType as st {
+            if st.args.len() > usize(0) { return [st.args[0]] }
+        }
+        if concrete is ArrayType as ar {
+            return [ar.element]
+        }
+    }
+    return null
 }
 
 type_has_param :: fn(ft: FnType) -> bool {
@@ -1024,6 +1105,10 @@ type_contains_param :: fn(t: Type) -> bool {
         is TypeParamType -> { return true }
         is StructType as s -> {
             for a in s.args { if type_contains_param(a) { return true } }
+            return false
+        }
+        is TraitType as tr -> {
+            for a in tr.args { if type_contains_param(a) { return true } }
             return false
         }
         is ArrayType as ar -> { return type_contains_param(ar.element) }
@@ -1222,13 +1307,13 @@ harvest_ufcs_fn_instance :: fn(
         if ft.params.len() == usize(0) { return }
         bindings :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
         order: i32[] = []
-        unify_params(ft.params[0], default_if_free(recv_type), bindings, order)
+        unify_params(ft.params[0], default_if_free(recv_type), bindings, order, ctx)
         n :: ft.params.len()
         for i in 1..<n {
             ai :: i - 1
             if ai >= ast_args.len() { break }
             concrete :: default_if_free(ctx.types.expr_type(ast_args[ai].value))
-            unify_params(ft.params[i], concrete, bindings, order)
+            unify_params(ft.params[i], concrete, bindings, order, ctx)
         }
         concrete_args: Type[] = []
         for id in order {
@@ -3129,24 +3214,29 @@ import "vader/typecheck" { ImplEntry }
 
 lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
     target_type :: ctx.types.expr_type(expr.target)
-    match target_type {
-        is ArrayType -> {
-            sliced :: try_lower_array_slice(ctx, expr, type)
-            match sliced {
-                is null -> {}
-                _ -> { return sliced }
+    is_range :: index_is_range(ctx, expr.index)
+    if is_range {
+        // `arr[r]` → zero-copy `LoweredArraySlice` ; `s[r]` (string) →
+        // codepoint-range `LoweredStringSlice`. Mirror of TS' two
+        // `lowerRangeSlice(..., "array" | "string")` dispatch arms
+        // (`src/lower/passes/expr.ts:305`).
+        if target_type is ArrayType {
+            sliced :: try_lower_range_slice(ctx, expr, type, false)
+            if sliced != null { return sliced }
+        }
+        if target_type is PrimitiveType as prim {
+            if prim.name == "string" {
+                sliced :: try_lower_range_slice(ctx, expr, type, true)
+                if sliced != null { return sliced }
             }
         }
-        _ -> {}
     }
     // Index trait routing : `s[i]` on a `string` / user struct with an
     // `Index<I, T>` impl rewrites to a direct `at(s, i)` call. Mirror of
     // TS' `indexResolutions` consumed by `lowerIndexTraitCall`
     // (`src/lower/passes/expr.ts:295`). Skip for ArrayType (built-in
-    // path above) and for Range-typed indices (slicing — array case
-    // handled above ; string-range slicing falls through to the
-    // generic `LoweredIndex` until `LoweredStringSlice` ports).
-    if !(target_type is ArrayType) && !index_is_range(ctx, expr.index) {
+    // path above) and for Range-typed indices (slicing handled above).
+    if !(target_type is ArrayType) && !is_range {
         member :: find_impl_member_for(ctx, target_type, "at")
         if member is UfcsMember as found {
             args: LoweredExpr[] = []
@@ -3175,17 +3265,28 @@ index_is_range :: fn(ctx: FnLowerCtx, index_expr: Expr) -> bool {
     return false
 }
 
-try_lower_array_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr | null {
+// Build the slice node — `LoweredStringSlice` for codepoint-range string
+// slicing, `LoweredArraySlice` for the zero-copy array view. The two
+// share an identical shape ; only the runtime op downstream differs.
+mk_slice_node :: fn(as_string: bool, span: Span, type: Type, target: LoweredExpr, lo: LoweredExpr, hi: LoweredExpr) -> LoweredExpr {
+    if as_string {
+        return LoweredStringSlice {
+            .span = span, .type = type, .target = target, .lo = lo, .hi = hi,
+        }
+    }
+    return LoweredArraySlice {
+        .span = span, .type = type, .target = target, .lo = lo, .hi = hi,
+    }
+}
+
+try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type, as_string: bool) -> LoweredExpr | null {
     match expr.index {
         is RangeExpr as range_lit -> {
             target_lowered :: lower_expr(ctx, expr.target)
             lo_value :: cast_to_usize(lower_expr(ctx, range_lit.lower), range_lit.span)
             hi_raw   :: cast_to_usize(lower_expr(ctx, range_lit.upper), range_lit.span)
             hi_value :: adjust_hi_inclusive(hi_raw, range_lit.inclusive, range_lit.span)
-            return LoweredArraySlice {
-                .span = expr.span, .type = type,
-                .target = target_lowered, .lo = lo_value, .hi = hi_value,
-            }
+            return mk_slice_node(as_string, expr.span, type, target_lowered, lo_value, hi_value)
         }
         _ -> {}
     }
@@ -3217,11 +3318,9 @@ try_lower_array_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
         stmts.push(range_binding)
         return LoweredBlock {
             .span = span, .type = type, .stmts = stmts,
-            .trailing = LoweredArraySlice {
-                .span = span, .type = type,
-                .target = lower_expr(ctx, expr.target),
-                .lo = lo_value, .hi = hi_value,
-            },
+            .trailing = mk_slice_node(
+                as_string, span, type, lower_expr(ctx, expr.target), lo_value, hi_value,
+            ),
         }
     }
     return null

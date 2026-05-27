@@ -200,6 +200,7 @@ export type_of :: fn(expr: LoweredExpr) -> Type = match expr {
     is LoweredArrayLen       as x -> x.type
     is LoweredArrayPush      as x -> x.type
     is LoweredArraySlice     as x -> x.type
+    is LoweredStringSlice    as x -> x.type
     is LoweredCellNew        as x -> x.type
     is LoweredCellGet        as x -> x.type
     is LoweredMakeClosure    as x -> x.type
@@ -235,6 +236,7 @@ export span_of :: fn(expr: LoweredExpr) -> Span = match expr {
     is LoweredArrayLen       as x -> x.span
     is LoweredArrayPush      as x -> x.span
     is LoweredArraySlice     as x -> x.span
+    is LoweredStringSlice    as x -> x.span
     is LoweredCellNew        as x -> x.span
     is LoweredCellGet        as x -> x.span
     is LoweredMakeClosure    as x -> x.span

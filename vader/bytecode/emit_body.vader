@@ -29,7 +29,7 @@ import "vader/lower" {
     LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
     LoweredBlock, LoweredIf, LoweredStructLit, LoweredStructLitField,
     LoweredFieldAccess, LoweredArrayLit, LoweredArrayLen, LoweredArrayPush,
-    LoweredArraySlice, LoweredIndex, LoweredCast, LoweredTypeCheck,
+    LoweredArraySlice, LoweredStringSlice, LoweredIndex, LoweredCast, LoweredTypeCheck,
     LoweredTypeConst, LoweredDataConst, LoweredUnreachable,
     LoweredMakeClosure, LoweredVirtualCall, LoweredIntrinsicCall,
     LoweredCellNew, LoweredCellGet,
@@ -45,7 +45,7 @@ import "vader/vm" {
     FnRef,
     If, Else, End, StructNew, StructGet, StructSet,
     Block, Loop, Branch, BranchIf, BoolNot,
-    ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice,
+    ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice, StringSliceCodepoints,
     DataConst, TypeConst, TypeCheck,
     Convert, ConvertTarget,
     MakeClosure, VirtualCall,
@@ -167,6 +167,7 @@ emit_expr :: fn(expr: LoweredExpr, state: FnEmitState, ctx: EmitterCtx) -> void 
         is LoweredArrayLen as array_len     -> emit_array_len(array_len, state, ctx)
         is LoweredArrayPush as array_push   -> emit_array_push(array_push, state, ctx)
         is LoweredArraySlice as array_slice -> emit_array_slice(array_slice, state, ctx)
+        is LoweredStringSlice as str_slice  -> emit_string_slice(str_slice, state, ctx)
         is LoweredIndex as index_get        -> emit_index(index_get, state, ctx)
         is LoweredCast as cast              -> emit_cast(cast, state, ctx)
         is LoweredTypeCheck as type_check   -> emit_type_check(type_check, state, ctx)
@@ -434,6 +435,16 @@ emit_array_slice :: fn(array_slice: LoweredArraySlice, state: FnEmitState, ctx: 
     emit_expr(array_slice.lo, state, ctx)
     emit_expr(array_slice.hi, state, ctx)
     push_op(state, ArraySlice { .type_id = type_id })
+}
+
+/// Emit `string.slice_codepoints` : push target / lo / hi codepoint
+/// indices, then the nullary op. The runtime walks UTF-8 to the matching
+/// byte boundaries and returns a zero-copy `string` view.
+emit_string_slice :: fn(str_slice: LoweredStringSlice, state: FnEmitState, ctx: EmitterCtx) -> void {
+    emit_expr(str_slice.target, state, ctx)
+    emit_expr(str_slice.lo, state, ctx)
+    emit_expr(str_slice.hi, state, ctx)
+    push_op(state, StringSliceCodepoints {})
 }
 
 /// Emit an array index get : push the target array + index, then

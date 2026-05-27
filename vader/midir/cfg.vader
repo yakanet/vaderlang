@@ -172,6 +172,7 @@ export Instruction ::
     | InstrArrayLen
     | InstrArrayPush
     | InstrArraySlice
+    | InstrStringSlice
     | InstrStructNew
     | InstrArrayNew
     | InstrDataConst
@@ -307,6 +308,18 @@ export InstrArraySlice :: struct {
     dst:  LocalId
     /// BcType index of the result — the slice view inherits the parent
     /// array's element type, mangled the same way.
+    type:   Type
+    target: LocalId
+    lo:     LocalId
+    hi:     LocalId
+}
+
+/// `string[lo..hi)` codepoint-range view. `lo` and `hi` are codepoint
+/// indices ; the `string.slice_codepoints` op walks UTF-8 to find the
+/// byte boundaries. Result aliases the parent's buffer.
+export InstrStringSlice :: struct {
+    span:   Span
+    dst:    LocalId
     type:   Type
     target: LocalId
     lo:     LocalId

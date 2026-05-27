@@ -103,6 +103,11 @@ export for_each_read_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -
             visit(i.lo)
             visit(i.hi)
         }
+        is InstrStringSlice  as i -> {
+            visit(i.target)
+            visit(i.lo)
+            visit(i.hi)
+        }
         is InstrStructNew    as i -> { for f in i.fields { visit(f) } }
         is InstrArrayNew     as i -> { for e in i.elements { visit(e) } }
         is InstrTypeCheck    as i -> { visit(i.value) }
@@ -520,6 +525,7 @@ export dst_of :: fn(ins: Instruction) -> LocalId | null {
         is InstrArrayGet     as i -> { return i.dst }
         is InstrArrayLen     as i -> { return i.dst }
         is InstrArraySlice   as i -> { return i.dst }
+        is InstrStringSlice  as i -> { return i.dst }
         is InstrStructNew    as i -> { return i.dst }
         is InstrArrayNew     as i -> { return i.dst }
         is InstrTypeCheck    as i -> { return i.dst }

@@ -430,6 +430,7 @@ render_display_for :: fn(display_for: Type | null) -> string {
 expr_kind_label :: fn(expr: LoweredExpr) -> string = match expr {
     is LoweredArrayLen     -> "LoweredArrayLen"
     is LoweredArrayPush    -> "LoweredArrayPush"
+    is LoweredStringSlice  -> "LoweredStringSlice"
     is LoweredCellNew      -> "LoweredCellNew"
     is LoweredCellGet      -> "LoweredCellGet"
     is LoweredMakeClosure  -> "LoweredMakeClosure"

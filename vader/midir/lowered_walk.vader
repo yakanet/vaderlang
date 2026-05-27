@@ -26,7 +26,7 @@ import "vader/lower" {
     LoweredIdent, LoweredCall, LoweredVirtualCall, LoweredFieldAccess,
     LoweredIndex, LoweredUnary, LoweredBinary, LoweredIf,
     LoweredStructLit, LoweredArrayLit, LoweredArrayLen, LoweredArrayPush,
-    LoweredArraySlice, LoweredCast, LoweredTypeCheck, LoweredIntrinsicCall,
+    LoweredArraySlice, LoweredStringSlice, LoweredCast, LoweredTypeCheck, LoweredIntrinsicCall,
     LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
     LoweredCharLit, LoweredStringLit, LoweredUnreachable,
     LoweredCellNew, LoweredCellGet, LoweredMakeClosure,
@@ -172,6 +172,11 @@ walk_expr :: fn(e: LoweredExpr, ctx: WalkCtx) -> void {
             walk_expr(asl.target, ctx)
             walk_expr(asl.lo, ctx)
             walk_expr(asl.hi, ctx)
+        }
+        is LoweredStringSlice as ssl -> {
+            walk_expr(ssl.target, ctx)
+            walk_expr(ssl.lo, ctx)
+            walk_expr(ssl.hi, ctx)
         }
         is LoweredCast as cs -> { walk_expr(cs.value, ctx) }
         is LoweredTypeCheck as tc -> {

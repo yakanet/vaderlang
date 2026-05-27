@@ -211,6 +211,7 @@ export LoweredExpr ::
     | LoweredArrayLen
     | LoweredArrayPush
     | LoweredArraySlice
+    | LoweredStringSlice
     | LoweredCellNew
     | LoweredCellGet
     | LoweredMakeClosure
@@ -415,6 +416,19 @@ export LoweredArrayPush :: struct {
 /// Zero-copy `target[lo..hi)` view. The result is a fresh array header
 /// sharing the parent's buf ; pushing into it detaches at runtime.
 export LoweredArraySlice :: struct {
+    span:   Span
+    type:   Type
+    target: LoweredExpr
+    lo:     LoweredExpr
+    hi:     LoweredExpr
+}
+
+/// `string[lo..hi)` codepoint-range slice. `lo` and `hi` are codepoint
+/// indices ; the runtime walks UTF-8 to find the matching byte
+/// boundaries and produces a zero-copy `string` view aliasing the
+/// parent's buffer. Lowered for `s[r]` when `s : string` and the index
+/// is a `Range`.
+export LoweredStringSlice :: struct {
     span:   Span
     type:   Type
     target: LoweredExpr

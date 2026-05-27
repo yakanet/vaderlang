@@ -35,7 +35,7 @@ import "vader/vm" {
     const_op_of, Drop, Call, CallImport, CallIndirect, FnRef, VirtualCall,
     If, Else, End, Block, Loop, Branch, BranchIf, BoolNot,
     StructNew, StructGet, StructSet,
-    ArrayNew, ArrayGet, ArraySet, ArrayLen, ArrayPush, ArraySlice,
+    ArrayNew, ArrayGet, ArraySet, ArrayLen, ArrayPush, ArraySlice, StringSliceCodepoints,
     DataConst, TypeConst, TypeCheck, RefCast, Convert,
     MakeClosure,
 }
@@ -662,6 +662,14 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
         emit_get(ctx, als.hi, als.span)
         push_emit(ctx, ArraySlice { .type_id = type_index }, als.span)
         emit_set(ctx, als.dst, als.span)
+        return
+    }
+    if ins is InstrStringSlice as sls {
+        emit_get(ctx, sls.target, sls.span)
+        emit_get(ctx, sls.lo, sls.span)
+        emit_get(ctx, sls.hi, sls.span)
+        push_emit(ctx, StringSliceCodepoints {}, sls.span)
+        emit_set(ctx, sls.dst, sls.span)
         return
     }
     if ins is InstrStructNew as sn {

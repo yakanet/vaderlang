@@ -173,6 +173,19 @@ export struct_implements_trait :: fn(t: Type, trait_name: string, typed: TypedPr
     return false
 }
 
+/// The trait args recorded for `t implements <trait_name>` in
+/// `struct_trait_args` (`Hello implements Greeter(i32)` →
+/// `[i32]`), or `null` when no concrete impl is registered for `t`'s
+/// nominal carrier. Shared by the typecheck's `unify_struct_to_trait_args`
+/// and the lowerer's trait-param monomorphisation.
+export lookup_struct_trait_args :: fn(t: Type, trait_name: string, typed: TypedProgram) -> Type[] | null {
+    name :: dispatch_key(t)
+    if name == "" { return null }
+    per_struct :: typed.struct_trait_args[name]
+    if per_struct is null { return null }
+    return per_struct[trait_name]
+}
+
 
 /// Bidirectional narrowing : when a Free* literal flows into a slot that
 /// wants a concrete numeric of the matching family, fold the literal to
