@@ -37,6 +37,7 @@ import "vader/comptime" {
     NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
 }
 import "vader/comptime" { MonoEntry }
+import "vader/comptime" { sanitise_ident }
 
 /// Lower every module's top-level decls into a `LoweredProject`.
 /// @param loaded     the loaded project (for source decls per module).
@@ -1599,14 +1600,12 @@ args_suffix :: fn(args: Type[]) -> string {
     return sb.to_string()
 }
 
-type_surface_for_mangle :: fn(t: Type) -> string {
-    match t {
-        is PrimitiveType as p -> { return p.name }
-        is StructType    as s -> { return s.symbol.name }
-        is EnumType      as e -> { return e.symbol.name }
-        _ -> { return "T" }
-    }
-}
+// Per-arg mangle segment. Must match the comptime mono pass'
+// `mangle` (`vader/comptime/mangle.vader`) which uses
+// `sanitise_ident(display_type(arg))` so nested generic args survive :
+// `Box<Box<i32>>` → `Box_i32_`, not bare `Box`. A free TypeParam
+// renders as `T` via `display_type`.
+type_surface_for_mangle :: fn(t: Type) -> string = sanitise_ident(display_type(t))
 
 push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDecl) -> void {
     m :: project.modules[module_id]
