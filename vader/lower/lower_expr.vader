@@ -665,12 +665,14 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
         is null -> {}
         _ -> { return generic_form }
     }
-    callee :: lower_expr(ctx, call.callee)
+    raw_callee :: lower_expr(ctx, call.callee)
     // Widen literal args to the matching param's union type so the dump
     // shows `int(42) :i32 | null` for `describe(42)` against
     // `describe(x: i32 | null)`. Mirror of the TS typer's
     // context-propagation that records the wide type at the literal.
-    param_types :: param_types_of(type_of(callee))
+    // Widening reads the picked overload's fn-type, so take params off
+    // `raw_callee` before any result-type retype below.
+    param_types :: param_types_of(type_of(raw_callee))
     args: LoweredExpr[] = []
     for i in 0..<call.args.len() {
         arg :: lower_expr(ctx, call.args[i].value)
@@ -685,7 +687,25 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
             args.push(arg)
         }
     }
+    callee :: retype_overload_callee(ctx, call.callee, raw_callee, type)
     return LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
+}
+
+// Non-primary overload picks display the call's *result* type on the
+// callee ident (TS `calleeSym !== resolverSym`,
+// `src/lower/passes/expr.ts:101`). The typer flagged these in
+// `overload_result_callees` ; rebuild the lowered ident with the
+// result type. Non-flagged callees keep their fn-type display.
+retype_overload_callee :: fn(
+    ctx: FnLowerCtx, callee_ast: Expr, lowered: LoweredExpr, result_type: Type,
+) -> LoweredExpr {
+    if callee_ast is IdentExpr as id {
+        if ctx.typed.overload_result_callees[id.id] is null { return lowered }
+        if lowered is LoweredIdent as li {
+            return LoweredIdent { .span = li.span, .type = result_type, .symbol = li.symbol }
+        }
+    }
+    return lowered
 }
 
 param_types_of :: fn(callee_type: Type) -> Type[] {

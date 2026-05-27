@@ -47,16 +47,54 @@ pick_overload :: fn(
     if candidates.len() < 2 { return initial }
     if c.args.len() == 0 { return initial }
     arg0_ty :: check_expr_fn(c.args[0].value, null, typed, no_diags())
+    // The resolver bound `c.callee` to a primary overload ; its
+    // signature is what a non-overloaded display would show.
+    primary_ft :: primary_overload_ft(c.callee, typed)
     for ft in candidates {
         if ft.params.len() == 0 { continue }
         if is_assignable(arg0_ty, ft.params[0], null) {
             // Patch the callee's IdentExpr type so the dump shows
             // the picked overload's signature instead of the primary.
             typed.expr_types[c.callee.id] = ft
+            // Mark non-primary picks so the lowerer emits the call's
+            // result type on the callee ident — mirrors TS' branch on
+            // `calleeSym !== resolverSym` (src/lower/passes/expr.ts:101).
+            // Imported overloads have no local primary signature
+            // (`primary_ft == null`) and are always non-primary.
+            if is_nonprimary_pick(ft, primary_ft) {
+                typed.overload_result_callees[c.callee.id] = true
+            }
             return ft
         }
     }
     return initial
+}
+
+// True when `picked` differs from the resolver-bound primary. An
+// imported overload (`primary == null`) is always non-primary.
+is_nonprimary_pick :: fn(picked: FnType, primary: Type | null) -> bool {
+    if primary is null { return true }
+    return !equals_type(picked, primary)
+}
+
+// Signature of the overload the resolver bound `callee` to. For a
+// local overload that's the symbol the resolver picked (first declared
+// by convention). For an imported overload the binding carries no
+// fn-type, so fall back to the first entry of `imported_fn_overloads`
+// — declaration order is preserved, so `[0]` is the primary the bare
+// import name resolves to. Returns null only when nothing is found.
+primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null {
+    if !(callee is AST.IdentExpr) { return null }
+    sym :: typed.resolved.idents[span_key(callee.span)]
+    if sym != null {
+        ft :: typed.decl_types[sym.id]
+        if ft is FnType { return ft }
+    }
+    imported :: typed.imported_fn_overloads[callee.name]
+    if imported is FnType[] as fts {
+        if fts.len() > usize(0) { return fts[0] }
+    }
+    return null
 }
 
 collect_overload_candidates :: fn(name: string, typed: TypedProgram) -> FnType[] {

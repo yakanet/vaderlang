@@ -228,6 +228,15 @@ export TypedProgram :: struct {
     /// Mirrors TS' FieldResolution.trait carried in
     /// `t.fieldResolutions` for `kind = "trait-method"` entries.
     bounded_dispatch_trait: MutableMap<usize, string>
+
+    /// Callee `IdentExpr.id` → true when overload resolution picked a
+    /// non-primary overload for a direct call (`describe(b)` choosing
+    /// the `Bag` overload while the resolver bound the `Box` primary).
+    /// The lowerer emits the call's *result* type on the callee ident
+    /// for these, matching TS' `calleeSym !== resolverSym` branch
+    /// (`src/lower/passes/expr.ts:101`). Direct calls to the primary
+    /// (or non-overloaded names) keep the fn-type display.
+    overload_result_callees: MutableMap<usize, bool>
 }
 
 import "vader/diagnostics" { Span }
@@ -276,6 +285,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .extern_symbols  = MutableMap<string, FnDecl> { .buckets = [], .size = 0 },
         .let_type_aliases = MutableMap<i32, Type> { .buckets = [], .size = 0 },
         .bounded_dispatch_trait = MutableMap<usize, string> { .buckets = [], .size = 0 },
+        .overload_result_callees = MutableMap<usize, bool> { .buckets = [], .size = 0 },
     }
 }
 
