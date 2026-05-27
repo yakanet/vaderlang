@@ -1,0 +1,22 @@
+# Typecheck
+
+## tests/snippets/_diag_generic_map_param
+  FnDecl         bump                 :: fn(MutableMap<K, V>, K, V) -> void
+  StructDecl     Counter              :: Counter
+  FnDecl         main                 :: fn() -> i32
+  expr 25:12    IdentExpr      :: V
+  expr 25:5     IdentExpr      :: MutableMap<K, V>
+  expr 25:7     IdentExpr      :: K
+  expr 29:10    StructLitExpr  :: Counter
+  expr 29:30    StructLitExpr  :: MutableMap<string, i32>
+  expr 29:67    SeqLitExpr     :: (Entry<string, i32> | null)[]
+  expr 30:10    FieldExpr      :: MutableMap<string, i32>
+  expr 30:10    IdentExpr      :: Counter
+  expr 30:20    StringLitExpr  :: string
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(MutableMap<K, V>, K, V) -> void
+  expr 31:12    CallExpr       :: i32
+  expr 31:12    IdentExpr      :: type
+  expr 31:16    FieldExpr      :: MutableMap<string, i32>
+  expr 31:16    FieldExpr      :: usize
+  expr 31:16    IdentExpr      :: Counter

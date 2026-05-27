@@ -1,0 +1,32 @@
+// _diag_generic_map_param — a generic fn whose parameter is typed with a
+// stdlib generic struct (`MutableMap(K, V)`) must erase that type-reference
+// to the all-Any representative (`MutableMap(Any, Any)`) so it dedupes onto
+// the representative slot. Vader instead keeps the unsubstituted type-params
+// in the instantiated fn's signature, so the bytecode interner mints an
+// orphan `ref MutableMap` slot per reference instead of pointing at the
+// representative.
+//
+// Captures the §9 self-host audit Class A residual: the representative
+// struct DECL now materialises correctly (see _diag_stdlib_struct_instance),
+// but generic-body / signature type-references to that struct are not erased
+// to all-Any, so they don't resolve onto the representative slot. The struct
+// field on `Counter` keeps the concrete `MutableMap(string, i32)` shape alive
+// (matching TS), so the orphan `ref MutableMap` is the isolated divergence.
+
+module "snippet"
+
+import "std/collections" { MutableMap }
+
+Counter :: struct {
+    counts: MutableMap<string, i32>
+}
+
+bump :: fn<K, V>(m: MutableMap<K, V>, k: K, v: V) -> void {
+    m[k] = v
+}
+
+main :: fn() -> i32 {
+    c :: Counter { .counts = MutableMap<string, i32> { .buckets = [], .size = 0 } }
+    bump(c.counts, "a", 1)
+    return i32(c.counts.size)
+}

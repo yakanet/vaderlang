@@ -1,0 +1,296 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/collections",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "MutableMap",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "StructDecl",
+      "name": "Counter",
+      "visibility": "private",
+      "typeParams": [],
+      "fields": [
+        {
+          "name": "counts",
+          "type": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "MutableMap"
+            },
+            "typeArgs": [
+              {
+                "kind": "IdentExpr",
+                "name": "string"
+              },
+              {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            ]
+          },
+          "visibility": "private",
+          "default": null
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "bump",
+      "visibility": "private",
+      "typeParams": [
+        {
+          "name": "K",
+          "bound": null,
+          "isComptimeValue": false
+        },
+        {
+          "name": "V",
+          "bound": null,
+          "isComptimeValue": false
+        }
+      ],
+      "params": [
+        {
+          "name": "m",
+          "type": {
+            "kind": "GenericInstExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "MutableMap"
+            },
+            "typeArgs": [
+              {
+                "kind": "IdentExpr",
+                "name": "K"
+              },
+              {
+                "kind": "IdentExpr",
+                "name": "V"
+              }
+            ]
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "k",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "K"
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "v",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "V"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "void"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "AssignStmt",
+            "target": {
+              "kind": "IndexExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "m"
+              },
+              "index": {
+                "kind": "IdentExpr",
+                "name": "k"
+              }
+            },
+            "value": {
+              "kind": "IdentExpr",
+              "name": "v"
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "c"
+            },
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "Counter"
+              },
+              "items": [
+                {
+                  "kind": "field",
+                  "name": "counts",
+                  "value": {
+                    "kind": "StructLitExpr",
+                    "typeName": {
+                      "kind": "GenericInstExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "MutableMap"
+                      },
+                      "typeArgs": [
+                        {
+                          "kind": "IdentExpr",
+                          "name": "string"
+                        },
+                        {
+                          "kind": "IdentExpr",
+                          "name": "i32"
+                        }
+                      ]
+                    },
+                    "items": [
+                      {
+                        "kind": "field",
+                        "name": "buckets",
+                        "value": {
+                          "kind": "SeqLitExpr",
+                          "elements": []
+                        }
+                      },
+                      {
+                        "kind": "field",
+                        "name": "size",
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "0n",
+                          "suffix": null
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "bump"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "c"
+                    },
+                    "field": "counts"
+                  },
+                  "spread": false
+                },
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "a"
+                      }
+                    ]
+                  },
+                  "spread": false
+                },
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "IntLitExpr",
+                    "value": "1n",
+                    "suffix": null
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "c"
+                      },
+                      "field": "counts"
+                    },
+                    "field": "size"
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

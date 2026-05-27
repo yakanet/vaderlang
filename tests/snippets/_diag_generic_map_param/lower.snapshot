@@ -1,0 +1,39 @@
+# Lower
+
+## snippet
+  struct snippet$Counter { counts: MutableMap<string, i32> }
+  fn snippet$main() -> i32
+    let c: Counter =
+      Counter {
+        counts:
+          MutableMap<string, i32> {
+            buckets:
+              array :(Entry<string, i32> | null)[]
+            size: int(0) :usize
+          }
+      }
+    call :void
+      callee:
+        bump :void
+      arg0:
+        .counts :MutableMap<string, i32>
+          c :Counter
+      arg1:
+        "a" :string
+      arg2:
+        int(1) :i32
+    return
+      cast → i32
+        .size :usize
+          .counts :MutableMap<string, i32>
+            c :Counter
+  fn snippet$snippet$bump__string__i32(m: MutableMap<Any, Any>, k: Any, v: Any) -> void
+    call :void
+      callee:
+        set_at :void
+      arg0:
+        m :MutableMap<Any, Any>
+      arg1:
+        k :Any
+      arg2:
+        v :Any

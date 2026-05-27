@@ -1093,11 +1093,10 @@ materialize_representatives :: fn(
 /// Emit the second-mono "any-args" representative struct decl for a
 /// concrete generic instance. The representative shares the first
 /// instance's body shape (every field already erased to `Any`) but
-/// carries a distinct mangled name derived from the first.mangled
-/// minus its last `__<seg>` suffix plus the any-leaves args. Mirrors
-/// `src/comptime/erasure-dedupe.ts:217-257`'s extraStructEntries
-/// emission. Deduped on the representative mangle so two concrete
-/// instantiations of the same generic shape only emit one.
+/// carries a distinct mangled name: the bare struct mangle plus the
+/// any-leaves args. Mirrors `src/comptime/erasure-dedupe.ts:217-257`'s
+/// extraStructEntries emission. Deduped on the representative mangle so
+/// two concrete instantiations of the same generic shape only emit one.
 materialize_representative :: fn(
     inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
     project_ctx: LowerProjectCtx, project: LoweredProject,
@@ -1107,29 +1106,27 @@ materialize_representative :: fn(
     sym :: inst.symbol
     if i32(sym.kind) != i32(SymbolKind.Struct) { return }
     owner_module_id :: sym.module
-    // The any-args representative mangle logic (`strip_last_suffix` +
-    // `build_any_args_list`) doesn't hold for stdlib generic structs —
-    // re-enabling it produced malformed 3-segment mangles like
-    // `MutableMap__i32__Any__Any`. Keep stdlib representatives skipped ;
-    // the concrete instances (materialized in `materialize_one_instance`)
-    // cover the type-table refs.
-    if is_stdlib_path(owner_module_id) { return }
     owner_module :: loaded.modules[owner_module_id]
     if owner_module is null { return }
     owner_typed :: typed.modules[owner_module_id]
     if owner_typed is null { return }
     if owner_typed is TypedProgram as owner_typed_ok {
+        // `join_any_displays` already renders nested wrappers with `_`
+        // (`Box(Box(i32))` → `Box_Any`), so one top-level `__` join keeps
+        // nesting intact. TS extraStructEntries uses the empty-typeArgs
+        // template, so its `first.mangled` likewise has no `__<arg>` segment.
+        bare_mangled :: "${mangle_module_id(owner_typed_ok.resolved.display_path)}$${sym.name}"
+        any_args :: build_any_args_list(inst.args)
+        rep_mangled :: "${bare_mangled}__${join_any_displays(any_args)}"
+        // Dedup before the struct-decl lookup so a repeated instance of an
+        // already-emitted shape skips the linear `find_struct_decl_by_name`.
+        if seen_reps.contains(rep_mangled) { return }
         if owner_module is LoadedModule as owner_loaded {
             owner_decls :: module_decls(owner_loaded)
             decl :: find_struct_decl_by_name(owner_decls, sym.name)
             if decl is null { return }
             if decl is StructDecl as sd {
                 if sd.type_params.len() == usize(0) { return }
-                first_mangled :: "${mangle_module_id(owner_typed_ok.resolved.display_path)}$${sym.name}${args_suffix(inst.args)}"
-                stripped :: strip_last_suffix(first_mangled)
-                any_args :: build_any_args_list(inst.args)
-                rep_mangled :: "${stripped}__${join_any_displays(any_args)}"
-                if seen_reps.contains(rep_mangled) { return }
                 seen_reps.add(rep_mangled)
                 erase :: build_any_subst(sd, owner_typed_ok)
                 fields: LoweredStructField[] = []
@@ -1242,30 +1239,6 @@ join_any_displays :: fn(args: Type[]) -> string {
         sb.append(display_any_arg(a))
     }
     return "${sb}"
-}
-
-/// Strip the last `__<seg>(_\d+)?` from `s`. Used by the second-mono
-/// representative mangle to drop the final concrete arg before
-/// appending the any-args suffix. Mirrors the JS regex
-/// `/__[^_]+(_\d+)?$/` (which matches `__<seg>` with optional trailing
-/// `_N` disambiguator from `uniq`).
-strip_last_suffix :: fn(s: string) -> string {
-    n :: s.byte_len()
-    if n < usize(3) { return s }
-    // Walk backward looking for `__`. Stop at the last one that's not
-    // immediately followed by another `__` (i.e. it's a real arg
-    // delimiter, not part of a chained empty arg).
-    i := i64(n) - 2
-    for i >= 0 {
-        if s.byte_at(usize(i)) == 0x5F_u8 {
-            if s.byte_at(usize(i + 1)) == 0x5F_u8 {
-                // Found `__` ; strip from here.
-                return s.byte_slice(usize(0), usize(i))
-            }
-        }
-        i = i - 1
-    }
-    return s
 }
 
 import "vader/types" { mk_trait, mk_array, mk_union, mk_tuple }
