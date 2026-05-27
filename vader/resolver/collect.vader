@@ -198,12 +198,11 @@ bind_import :: fn(
     existing :: self.symbols[local]
     match existing {
         is Symbol as e -> {
-            // R2011 fires only when the prior binding is itself an
-            // import (collision import↔import). Local fn-vs-import
-            // collisions are intentional — `add_fn` swaps an import
-            // out of the primary slot so unqualified refs hit the
-            // local fn ; we mustn't flag that legitimate case here.
-            if i32(e.kind) == i32(SymbolKind.ImportBinding) {
+            // Import↔import collision is silent first-wins (matches TS
+            // `collect.ts:219` — same §1.5 deviation as `add_fn`'s non-fn
+            // branches). R2011 fires only when the import shadows a
+            // *non-import* binding ; that's a genuine duplicate.
+            if i32(e.kind) != i32(SymbolKind.ImportBinding) {
                 diags.push(resolver_error(.DuplicateImportBinding, span,
                     "`${local}`"))
             }

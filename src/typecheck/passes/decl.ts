@@ -300,7 +300,7 @@ function declareImpl(decl: A.ImplDecl, t: MutableTyped, diags: DiagnosticCollect
         && forType.kind !== "Unresolved" && targetType.kind !== "Unresolved"
         && equalsType(forType, targetType)) {
       err(diags, "T3039", decl.span,
-        `\`${displayType(forType)} implements Into(${displayType(targetType)})\` — source and target must differ`);
+        `\`${displayType(forType)} implements Into<${displayType(targetType)}>\` — source and target must differ`);
     }
   }
 
