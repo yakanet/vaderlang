@@ -726,6 +726,13 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
         }
     }
     callee :: retype_overload_callee(ctx, call.callee, raw_callee, type)
+    // Direct calls to non-generic stdlib free fns (`new_builder()`,
+    // `byte_len(s)`) : harvest so `materialize_nongeneric_stdlib_fns`
+    // emits the body — the UFCS path harvests its own, this covers the
+    // bare-ident-callee form.
+    if callee is LoweredIdent as direct_callee {
+        register_nongeneric_stdlib_fn(ctx, direct_callee.symbol)
+    }
     return LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
 }
 
@@ -1297,6 +1304,22 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
     return false
 }
 
+/// Record a non-generic stdlib free fn for end-of-project
+/// materialization. No-op for user-module fns (already lowered) and for
+/// fns already harvested. Dedup by `fn_symbol.id`.
+register_nongeneric_stdlib_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
+    if i32(fn_sym.kind) != i32(SymbolKind.Fn) { return }
+    if !is_stdlib_path(fn_sym.module) { return }
+    if ctx.project.nongeneric_stdlib_fns[fn_sym.id] != null { return }
+    // Generic fns route through the GenericFnInstance harvest instead.
+    fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
+    if fn_ty is FnType as ft {
+        if type_has_param(ft) { return }
+    }
+    ctx.project.nongeneric_stdlib_fns[fn_sym.id] = true
+    ctx.project.nongeneric_stdlib_order.push(fn_sym)
+}
+
 /// Register a `GenericFnInstance` for a UFCS-resolved generic free fn.
 /// Mirrors the harvest in `try_lower_generic_fn_call` for the
 /// ident-call path. The receiver type binds the first param ; the
@@ -1310,7 +1333,15 @@ harvest_ufcs_fn_instance :: fn(
     fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
     if fn_ty is null { return }
     if fn_ty is FnType as ft {
-        if !type_has_param(ft) { return }
+        if !type_has_param(ft) {
+            // Non-generic free fn. User-module ones are lowered by
+            // `lower_module` already ; stdlib ones have their bodies
+            // skipped (`is_stdlib_path`), so harvest them for
+            // `materialize_nongeneric_stdlib_fns` — otherwise the call
+            // is dropped (no fn-table entry).
+            register_nongeneric_stdlib_fn(ctx, fn_sym)
+            return
+        }
         if ft.params.len() == usize(0) { return }
         bindings :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
         order: i32[] = []

@@ -116,6 +116,11 @@ export lower_project :: fn(
     // body inherits the source fn-decl but lowered against a typeParam
     // substitution that binds T → arg[i].
     materialize_generic_fn_instances(loaded, typed, project_ctx, project, diags)
+    // Non-generic stdlib free fns harvested during call lowering
+    // (`append`, `byte_len`, `new_builder`, …). Runs after generic
+    // instances since both share the harvest ; its own bodies may
+    // harvest further non-generic stdlib fns (cursor-iterated).
+    materialize_nongeneric_stdlib_fns(loaded, typed, project_ctx, project, diags)
     // Representative "any-args" structs come AFTER fn instances —
     // matches TS' emission order so generic_brackets etc. byte-match.
     materialize_representatives(loaded, typed, project_ctx, project, rep_seen)
@@ -1022,6 +1027,51 @@ find_fn_decl_by_name :: fn(decls: Decl[], name: string, arity: usize) -> FnDecl 
         }
     }
     return null
+}
+
+// First non-generic FnDecl named `name` in `decls`. Stdlib fn names are
+// effectively unique within a module ; on the rare overload, the first
+// match wins (refine to arity-keyed if a real collision surfaces).
+find_nongeneric_fn_decl_by_name :: fn(decls: Decl[], name: string) -> FnDecl | null {
+    for d in decls {
+        if d is FnDecl as f {
+            if f.name == name && f.type_params.len() == usize(0) { return f }
+        }
+    }
+    return null
+}
+
+// Materialise the non-generic stdlib free fns harvested at call sites
+// (`register_nongeneric_stdlib_fn`). Each is lowered once via the normal
+// `lower_fn_decl` path — with-body fns land as real fns, `@extern` ones
+// as `body = null` decls the bytecode emitter routes to the import table.
+// Without this, calls to `append` / `byte_len` / `new_builder` and other
+// non-generic stdlib fns are dropped (their module bodies are skipped by
+// `is_stdlib_path`, and only GENERIC instances are otherwise harvested).
+materialize_nongeneric_stdlib_fns :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    project: LoweredProject, diags: Diagnostic[],
+) -> void {
+    // Cursor over a growing array : lowering one stdlib body can harvest
+    // further non-generic stdlib fns it calls, appending mid-loop.
+    i: usize = 0
+    for i < project_ctx.nongeneric_stdlib_order.len() {
+        fn_sym :: project_ctx.nongeneric_stdlib_order[i]
+        i += usize(1)
+        module_typed :: typed.modules[fn_sym.module]
+        if module_typed is null { continue }
+        module_loaded :: loaded.modules[fn_sym.module]
+        if module_loaded is null { continue }
+        if module_typed is TypedProgram as mt {
+            if module_loaded is LoadedModule as ml {
+                fn_decl :: find_nongeneric_fn_decl_by_name(module_decls(ml), fn_sym.name)
+                if fn_decl is FnDecl as fd {
+                    lowered :: lower_fn_decl(fd, mt, project_ctx, diags)
+                    if lowered != null { push_to_module(project, fn_sym.module, lowered) }
+                }
+            }
+        }
+    }
 }
 
 build_fn_subst :: fn(fd: FnDecl, args: Type[], typed: TypedProgram) -> Substitution {

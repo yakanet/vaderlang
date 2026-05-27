@@ -139,6 +139,17 @@ export LowerProjectCtx :: struct {
     fn_instances:        MutableMap<string, GenericFnInstance>
     fn_instances_order:  GenericFnInstance[]
 
+    /// NON-generic stdlib free fns observed at call sites (UFCS or
+    /// direct). Their module bodies are skipped by the lowerer
+    /// (`is_stdlib_path`), so unless harvested here they never reach the
+    /// bytecode emitter's `reserve_function` and every call to them is
+    /// dropped (with-body fns) or left unresolved. `materialize_nongeneric_stdlib_fns`
+    /// emits one `LoweredFnDecl` per harvested symbol (body lowered, or
+    /// `null` for `@extern` → import table). Keyed by `fn_symbol.id` for
+    /// dedup ; `_order` preserves discovery order for a deterministic dump.
+    nongeneric_stdlib_fns:   MutableMap<i32, bool>
+    nongeneric_stdlib_order: Symbol[]
+
     /// Erasure-dedupe of impl-member emissions — keyed by
     /// `"<impl-decl-span>::<member-name>"`. The first instance of a
     /// generic struct that lands on a given impl-member emits the
@@ -184,6 +195,8 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .next_mono_entry_id  = i32(1_000_000),
         .fn_instances        = MutableMap<string, GenericFnInstance> { .buckets = [], .size = 0 },
         .fn_instances_order  = [],
+        .nongeneric_stdlib_fns   = MutableMap<i32, bool> { .buckets = [], .size = 0 },
+        .nongeneric_stdlib_order = [],
         .materialized_impl_keys = MutableSet<string> {
             .inner = MutableMap<string, bool> { .buckets = [], .size = usize(0) },
         },
