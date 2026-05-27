@@ -1870,14 +1870,34 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     // canonical field ordering even when the source literal reorders
     // fields or omits ones with defaults.
     provided: MutableMap<string, Expr> = MutableMap<string, Expr> { .buckets = [], .size = 0 }
+    // Bind each `...spread` source to a synthetic temp so it's
+    // evaluated exactly once even when several fields inherit from it.
+    // Later spreads win, so `spread_sym` tracks the LAST source —
+    // omitted fields read from it. Mirror of TS' `lowerStructLit`
+    // (`src/lower/passes/expr.ts:1181`).
+    spread_stmts: LoweredStmt[] = []
+    spread_sym: Symbol | null = null
     for item in lit.items {
         match item {
             is StructLitField as field -> { provided[field.name] = field.value }
-            is StructLitSpread -> {}
+            is StructLitSpread as sp -> {
+                value :: lower_expr(ctx, sp.expr)
+                sym :: fresh_synthetic_symbol(ctx, "spread")
+                spread_sym = sym
+                spread_stmts.push(LoweredLet {
+                    .span = sp.span, .name = sym.name, .symbol = sym,
+                    .type = type, .value = value,
+                })
+            }
         }
     }
-    fields :: build_struct_lit_fields(ctx, type, provided, lit)
-    return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
+    fields :: build_struct_lit_fields(ctx, type, provided, lit, spread_sym)
+    struct_lit :: LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
+    if spread_stmts.len() == usize(0) { return struct_lit }
+    return LoweredBlock {
+        .span = lit.span, .type = type,
+        .stmts = spread_stmts, .trailing = struct_lit,
+    }
 }
 
 import "vader/types" { StructType, EnumType }
@@ -1954,6 +1974,7 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
 build_struct_lit_fields :: fn(
     ctx: FnLowerCtx, type: Type,
     provided: MutableMap<string, Expr>, lit: StructLitExpr,
+    spread_sym: Symbol | null,
 ) -> LoweredStructLitField[] {
     out: LoweredStructLitField[] = []
     match type {
@@ -1967,37 +1988,53 @@ build_struct_lit_fields :: fn(
                 field_type :: resolve_pattern_type(ctx, field_decl.ty)
                 user_value :: provided[field_decl.name]
                 if user_value is null {
-                    match field_decl.default {
-                        is null -> {}
-                        _ -> {
-                            lowered :: lower_expr(ctx, field_decl.default)
-                            widened :: widen_literal_to_context(lowered, field_type)
-                            coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), field_type, field_decl.span)
-                            final_val :: match coerced {
-                                is null -> widened
-                                _ -> coerced
-                            }
-                            out.push(LoweredStructLitField {
-                                .name = field_decl.name, .value = final_val,
-                            })
-                        }
+                    // Omitted field : inherit from the last `...spread`
+                    // source via a field access, else fall back to the
+                    // declared default. Matches TS' `lowerStructLit`.
+                    if spread_sym is Symbol as sym {
+                        out.push(LoweredStructLitField {
+                            .name = field_decl.name,
+                            .value = LoweredFieldAccess {
+                                .span = lit.span, .type = field_type,
+                                .target = LoweredIdent {
+                                    .span = lit.span, .type = type, .symbol = sym,
+                                },
+                                .field = field_decl.name,
+                            },
+                        })
+                        continue
+                    }
+                    if field_decl.default != null {
+                        out.push(LoweredStructLitField {
+                            .name = field_decl.name,
+                            .value = lower_field_value(ctx, field_decl.default, field_type, field_decl.span),
+                        })
                     }
                 } else {
-                    lowered :: lower_expr(ctx, user_value)
-                    widened :: widen_literal_to_context(lowered, field_type)
-                    coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), field_type, user_value.span)
-                    final_val :: match coerced {
-                        is null -> widened
-                        _ -> coerced
-                    }
                     out.push(LoweredStructLitField {
-                        .name = field_decl.name, .value = final_val,
+                        .name = field_decl.name,
+                        .value = lower_field_value(ctx, user_value, field_type, user_value.span),
                     })
                 }
             }
             return out
         }
         _ -> { return fallback_provided_order(ctx, lit) }
+    }
+}
+
+// Lower a struct-lit field value (provided or defaulted) against its
+// declared type : widen free literals to the field's union context,
+// then apply an `Into` coercion when the field type calls for one.
+lower_field_value :: fn(
+    ctx: FnLowerCtx, value: Expr, field_type: Type, span: Span,
+) -> LoweredExpr {
+    lowered :: lower_expr(ctx, value)
+    widened :: widen_literal_to_context(lowered, field_type)
+    coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), field_type, span)
+    match coerced {
+        is null -> { return widened }
+        _ -> { return coerced }
     }
 }
 
