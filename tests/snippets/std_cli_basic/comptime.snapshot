@@ -54,8 +54,8 @@
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
-  Entry<T, bool>
   Entry<K, V>
+  Entry<T, bool>
   MutableMap<i32, bool>
   MutableMap<string, i32>
   MutableMap<string, string>
@@ -72,13 +72,13 @@
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
   MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
   MapIterator<K, V>
   MapIterator<K, V>
   MapIterator<K, V>

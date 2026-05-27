@@ -63,24 +63,33 @@ export materialize_default_members :: fn(
                 if provided.contains(method.name) { continue }
                 no_decorators: AST.Decorator[] = []
                 cloned :: substitute_block_materialized(b, subst, host_factory)
-                impl_.members.push(synth_with_body(method, impl_.trait_name_span, subst, no_decorators, cloned))
+                impl_.members.push(synth_with_body(method, subst, no_decorators, cloned))
             }
         }
     }
 }
 
 synth_with_body :: fn(
-    method: AST.FnDecl, name_span: Span, subst: Subst,
+    method: AST.FnDecl, subst: Subst,
     decorators: AST.Decorator[], body: AST.BlockExpr,
 ) -> AST.FnDecl {
     return AST.FnDecl {
         .span = method.span,
         .id = AST.UNASSIGNED_NODE_ID,
         .name = method.name,
-        .name_span = name_span,
+        // Key the clone on the trait method's name span (distinct per
+        // default method), not the shared `impl_.trait_name_span` —
+        // `impl_method_decl_types` is name-span-keyed, so a shared span
+        // would collapse is_empty / count / last onto one return type.
+        .name_span = method.name_span,
         .visibility = .Public,
         .type_params = [],
-        .params = substitute_params(method.params, subst),
+        // Re-key params onto the same distinct span so each clone's
+        // `self` mints a separate Symbol in the resolver's span-keyed
+        // ident map (mirrors `materialize_sam_members`). The resolver
+        // walks these clones — they're `materialized` but not
+        // `sam_synthetic` — so `self` / `self.next()` resolve.
+        .params = substitute_params_with_span(method.params, subst, method.name_span),
         .return_type = substitute_opt_type(method.return_type, subst),
         .body = body,
         .decorators = decorators,
