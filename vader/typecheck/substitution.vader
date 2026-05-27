@@ -83,7 +83,12 @@ export substitute :: fn(t: Type, subst: Substitution) -> Type {
             return mk_fn(substitute_each(fty.params, subst), substitute(fty.return_type, subst))
         }
         is UnionType as un -> {
-            return UnionType { .variants = substitute_each(un.variants, subst) }
+            // Re-normalise through `union_of` (dedup + sort) after
+            // substituting — matches TS' `unionOf(...map(substitute))`.
+            // `T | null` erased to `Any | null` must re-sort by the
+            // substituted display ("Any" < "null"), not keep the
+            // pre-substitution order ("null" < "T").
+            return union_of(substitute_each(un.variants, subst))
         }
         _ -> { return t }
     }

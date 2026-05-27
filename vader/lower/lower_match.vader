@@ -440,8 +440,13 @@ import "vader/parser" { TypeExpr }
 export resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type {
     from_table :: ctx.types.type_expr_type(type_expr)
     if from_table is UnresolvedType {
+        // The type-expr table missed (common for materialised default-
+        // method clones, whose pattern type-exprs aren't span-recorded).
+        // Resolve fresh from the AST, then apply the entry's substitution
+        // so an erased generic-impl instance turns `is Yield<T>` into
+        // `is Yield<Any>` instead of leaking the impl's TypeParam.
         scratch: Diagnostic[] = []
-        return type_from_expr(type_expr, ctx.typed.resolved, scratch)
+        return ctx.types.apply(type_from_expr(type_expr, ctx.typed.resolved, scratch))
     }
     return from_table
 }
