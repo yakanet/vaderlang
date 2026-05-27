@@ -81,7 +81,23 @@ export lower_project :: fn(
         // DCE on imports, every reachable stdlib fn lands in the dump
         // even when user code calls only `println`. Pair the surfacing
         // with reachability analysis as a separate chantier.
-        if is_stdlib_path(module_id) { continue }
+        if is_stdlib_path(module_id) {
+            // Don't lower stdlib fn bodies (the bloat reason above), but DO
+            // create an empty lowered module so materialised generic-struct
+            // instances (`MutableMap(usize, Span)`, `Entry`, …) defined in
+            // stdlib have somewhere to land and reach the bytecode reserve
+            // pass. The lower dump filters stdlib modules, so these stay
+            // invisible to the lower-snapshot byte-match.
+            stdlib_loaded :: loaded.modules[module_id]
+            if stdlib_loaded is LoadedModule as sl {
+                project.modules[module_id] = LoweredModule {
+                    .module_id    = module_id,
+                    .display_path = sl.module.display_path,
+                    .decls        = [],
+                }
+            }
+            continue
+        }
         module_typed :: typed.modules[module_id]
         if module_typed is null { continue }
         module_loaded :: loaded.modules[module_id]
@@ -1091,6 +1107,12 @@ materialize_representative :: fn(
     sym :: inst.symbol
     if i32(sym.kind) != i32(SymbolKind.Struct) { return }
     owner_module_id :: sym.module
+    // The any-args representative mangle logic (`strip_last_suffix` +
+    // `build_any_args_list`) doesn't hold for stdlib generic structs —
+    // re-enabling it produced malformed 3-segment mangles like
+    // `MutableMap__i32__Any__Any`. Keep stdlib representatives skipped ;
+    // the concrete instances (materialized in `materialize_one_instance`)
+    // cover the type-table refs.
     if is_stdlib_path(owner_module_id) { return }
     owner_module :: loaded.modules[owner_module_id]
     if owner_module is null { return }
@@ -1285,7 +1307,6 @@ materialize_one_instance :: fn(
     if !all_concrete_args(inst.args) { return }
     sym :: inst.symbol
     owner_module_id :: sym.module
-    if is_stdlib_path(owner_module_id) { return }
     owner_module :: loaded.modules[owner_module_id]
     if owner_module is null { return }
     owner_typed :: typed.modules[owner_module_id]
@@ -1294,12 +1315,21 @@ materialize_one_instance :: fn(
         if owner_module is LoadedModule as owner_loaded {
             owner_decls :: module_decls(owner_loaded)
             // (1) Find the StructDecl for this instance ; emit a
-            // monomorphized struct decl.
+            // monomorphized struct decl. Emitted even for stdlib structs
+            // (`MutableMap(usize, Span)`, `Entry`, …) — pushed into the
+            // empty stdlib lowered module created above so the bytecode
+            // type table carries the concrete shape instead of an orphan
+            // `ref`. (Filtered from the lower dump, so byte-match is safe.)
             if i32(sym.kind) == i32(SymbolKind.Struct) {
                 materialize_struct_instance(inst, owner_decls, owner_typed_ok, project_ctx, project)
                 // (2) For every generic impl whose for_type targets the
-                // same struct symbol, materialize each member.
-                materialize_impl_members_for(inst, owner_decls, owner_typed_ok, project_ctx, project, loaded, typed, diags)
+                // same struct symbol, materialize each member. Skipped for
+                // stdlib structs — their method bodies stay out of the dump
+                // until whole-program import DCE lands ; the struct decl
+                // above already gives the type table its concrete shape.
+                if !is_stdlib_path(owner_module_id) {
+                    materialize_impl_members_for(inst, owner_decls, owner_typed_ok, project_ctx, project, loaded, typed, diags)
+                }
             }
         }
     }

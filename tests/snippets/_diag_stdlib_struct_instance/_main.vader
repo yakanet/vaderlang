@@ -1,0 +1,25 @@
+// _diag_stdlib_struct_instance — a stdlib generic struct used as a field /
+// local type must materialise a concrete `MutableMap(string, i32)` (and its
+// `Entry(string, i32)`) in the bytecode type table, NOT collapse to an
+// orphan `ref MutableMap`. Captures the §9 self-host audit Class A
+// divergence: stdlib generic-struct instances were dropped by the lowerer
+// (pushed to a skipped stdlib module), so the bytecode type table carried a
+// `ref` placeholder instead of the concrete struct shape.
+
+module "snippet"
+
+import "std/collections" { MutableMap }
+import "std/io" { println }
+
+Counts :: struct {
+    by_name: MutableMap<string, i32>
+}
+
+main :: fn() -> i32 {
+    c :: Counts { .by_name = MutableMap<string, i32> { .buckets = [], .size = 0 } }
+    c.by_name["x"] = 7
+    v :: c.by_name["x"]
+    if v == null { return 1 }
+    println("v=${v}")
+    return v
+}

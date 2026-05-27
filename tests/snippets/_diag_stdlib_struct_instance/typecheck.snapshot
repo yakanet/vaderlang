@@ -1,0 +1,23 @@
+# Typecheck
+
+## tests/snippets/_diag_stdlib_struct_instance
+  StructDecl     Counts               :: Counts
+  FnDecl         main                 :: fn() -> i32
+  expr 19:10    StructLitExpr  :: Counts
+  expr 19:30    StructLitExpr  :: MutableMap<string, i32>
+  expr 19:67    SeqLitExpr     :: (Entry<string, i32> | null)[]
+  expr 20:15    StringLitExpr  :: string
+  expr 20:5     FieldExpr      :: MutableMap<string, i32>
+  expr 20:5     IdentExpr      :: Counts
+  expr 21:10    FieldExpr      :: MutableMap<string, i32>
+  expr 21:10    IdentExpr      :: Counts
+  expr 21:10    IndexExpr      :: i32 | null
+  expr 21:20    StringLitExpr  :: string
+  expr 22:5     IfExpr         :: void
+  expr 22:8     BinaryExpr     :: bool
+  expr 22:8     IdentExpr      :: i32 | null
+  expr 23:13    StringLitExpr  :: string
+  expr 23:18    IdentExpr      :: i32
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:12    IdentExpr      :: i32
