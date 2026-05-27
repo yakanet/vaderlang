@@ -960,9 +960,9 @@ register_and_emit_generic_call :: fn(
     lowered_args: LoweredExpr[] = []
     for ca in call.args { lowered_args.push(lower_expr(ctx, ca.value)) }
     mono_sym :: Symbol {
-        .id         = i32(0),
+        .id         = fn_sym.id,
         .kind       = SymbolKind.Fn,
-        .name       = fn_sym.name,
+        .name       = mangled,
         .module     = module_id,
         .visibility = Visibility.Private,
         .defined_at = null,
