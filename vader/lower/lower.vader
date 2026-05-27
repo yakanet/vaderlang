@@ -28,7 +28,7 @@ import "vader/typecheck" { Substitution, new_substitution, substitute, is_empty_
 import "vader/types" { UnresolvedType }
 import "vader/types" {
     Type, FnType, StructType, TypeMetaType, TypeParamType, ArrayType, mk_struct, mk_primitive,
-    display_type, TY_BOOL, TY_UNRESOLVED, TY_VOID,
+    display_type, for_each_type, TY_BOOL, TY_UNRESOLVED, TY_VOID,
 }
 import "vader/typecheck" { default_if_free }
 import "vader/comptime" { EvaluatedProject, EvaluatedProgram }
@@ -119,6 +119,11 @@ export lower_project :: fn(
     // Representative "any-args" structs come AFTER fn instances —
     // matches TS' emission order so generic_brackets etc. byte-match.
     materialize_representatives(loaded, typed, project_ctx, project, rep_seen)
+    // Transitively materialise generic-struct shapes referenced by the
+    // fields of the structs emitted above (concrete + representative),
+    // e.g. `MutableSet(i32)`'s erased `inner: MutableMap(Any, bool)` —
+    // otherwise the bytecode interner mints an orphan `ref` for them.
+    close_over_field_shapes(loaded, typed, project_ctx, project)
     // Drain per-fn lower diagnostics pushed to `project_ctx.diags`
     // (e.g. M5001 from `lower_for_in`) into the caller-owned sink so
     // they reach `# Diagnostics` in the CLI dump.
@@ -1067,9 +1072,7 @@ materialize_concrete_struct_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
 ) -> MutableSet<string> {
-    seen_reps :: MutableSet<string> {
-        .inner = MutableMap<string, bool> { .buckets = [], .size = 0 },
-    }
+    seen_reps :: new_string_set()
     for inst in project_ctx.evaluated.instances {
         if !mono_has_struct_entry_for(project_ctx, inst) { continue }
         materialize_one_instance(inst, loaded, typed, project_ctx, project, diags)
@@ -1327,15 +1330,23 @@ has_type_param :: fn(t: Type) -> bool {
     }
 }
 
+/// Monomorphized struct mangle : `<module>$<Name>__<arg>__<arg>…`.
+/// The single source of the concrete-instance naming scheme — both
+/// `materialize_struct_instance` and `shape_mangle` build their name
+/// here so the closure pass dedups field-referenced shapes against
+/// emitted decls by name.
+mangle_struct_instance :: fn(display_path: string, name: string, args: Type[]) =
+    "${mangle_module_id(display_path)}$${name}${args_suffix(args)}"
+
 materialize_struct_instance :: fn(
     inst: GenericInstance, owner_decls: Decl[], owner_typed: TypedProgram,
     project_ctx: LowerProjectCtx, project: LoweredProject,
-) -> void {
+) -> LoweredStructField[] {
     decl :: find_struct_decl_by_name(owner_decls, inst.symbol.name)
-    if decl is null { return }
+    if decl is null { return [] }
     if decl is StructDecl as sd {
-        if sd.type_params.len() == usize(0) { return }
-        mangled :: "${mangle_module_id(owner_typed.resolved.display_path)}$${inst.symbol.name}${args_suffix(inst.args)}"
+        if sd.type_params.len() == usize(0) { return [] }
+        mangled :: mangle_struct_instance(owner_typed.resolved.display_path, inst.symbol.name, inst.args)
         // Erasure : the entry's `subst` keeps the concrete args (for
         // mangling + downstream consumers that need the source-level
         // type-args), but the FIELDS get the anySubst applied so every
@@ -1369,7 +1380,122 @@ materialize_struct_instance :: fn(
             .fields  = fields,
             .origin  = entry,
         })
+        return fields
     }
+    return []
+}
+
+/// Transitively materialise generic-struct shapes referenced by the
+/// fields of already-emitted struct decls. A struct instance's fields
+/// are erased to `Any` for the instance's own type-params, but a field
+/// whose type names another generic struct keeps that struct's concrete
+/// (or partially-erased) args — e.g. `MutableSet(i32)`'s erased field
+/// `inner: MutableMap(Any, bool)`. Such a shape is neither a directly
+/// instantiated generic nor an all-Any representative, so nothing else
+/// materialises it and the bytecode interner mints an orphan `ref
+/// MutableMap`. This pass walks every emitted struct decl's fields,
+/// materialises each referenced generic-struct shape that has no decl
+/// yet (keyed by mangled name), and drains to a fixpoint over the
+/// shapes the newly-emitted decls reference in turn. Mirrors the shapes
+/// TS' mono pass produces when substituting a representative body's
+/// type-params. Bounded by `MAX_FIELD_SHAPES` against a pathological
+/// ever-growing generic.
+close_over_field_shapes :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    project: LoweredProject,
+) -> void {
+    materialized :: new_string_set()
+    seen_pushed :: new_string_set()
+    worklist: StructType[] = []
+    collect :: (sub: Type) -> push_generic_shape(sub, worklist, seen_pushed)
+    for module_id in project.modules.keys() {
+        m :: project.modules[module_id]
+        if m is LoweredModule as mod {
+            for decl in mod.decls {
+                if decl is LoweredStructDecl as sd {
+                    materialized.add(sd.mangled)
+                    for f in sd.fields { for_each_type(f.type, collect) }
+                } else if decl is LoweredFnDecl as fd {
+                    // Fn signatures reference generic-struct shapes too
+                    // (a param / return typed `MutableMap(K, V)`), reachable
+                    // only through the signature when no field names them.
+                    for p in fd.params { for_each_type(p.type, collect) }
+                    for_each_type(fd.return_type, collect)
+                }
+            }
+        }
+    }
+    i: usize = 0
+    count := 0
+    for i < worklist.len() {
+        if count >= MAX_FIELD_SHAPES { break }
+        shape :: worklist[i]
+        i += 1
+        mangled :: shape_mangle(shape, typed)
+        if mangled is null { continue }
+        if materialized.contains(mangled) { continue }
+        materialized.add(mangled)
+        count += 1
+        new_fields :: materialize_shape(shape.symbol, shape.args, loaded, typed, project_ctx, project)
+        for f in new_fields { for_each_type(f.type, collect) }
+    }
+}
+
+/// Cap on representative field shapes materialised per project — guards
+/// against a pathological generic that grows its type at each level.
+/// Matches TS' `MAX_INSTANCES` (`src/comptime/evaluate.ts`).
+MAX_FIELD_SHAPES :: 4096
+
+/// `for_each_type` visitor : push a concrete generic-struct shape onto
+/// `out` the first time it's seen. Dedup by `(symbol.id, display)` keeps
+/// the worklist to one entry per distinct shape — the same shape recurs
+/// across hundreds of field / signature slots otherwise. TypeParam-
+/// bearing shapes (a generic decl's own self-reference) are skipped.
+push_generic_shape :: fn(t: Type, out: StructType[], seen: MutableSet<string>) -> void {
+    if t is StructType as s {
+        if s.args.is_empty() { return }
+        if has_type_param(s) { return }
+        key :: "${s.symbol.id}|${display_type(s)}"
+        if seen.contains(key) { return }
+        seen.add(key)
+        out.push(s)
+    }
+}
+
+new_string_set :: fn() = MutableSet<string> {
+    .inner = MutableMap<string, bool> { .buckets = [], .size = 0 },
+}
+
+/// Mangled name a `materialize_shape` call would emit for `s`, or null
+/// when the struct's owning module has no `TypedProgram`. Matches
+/// `materialize_struct_instance`'s mangle so dedup against already-
+/// emitted decls works by name.
+shape_mangle :: fn(s: StructType, typed: TypedProject) -> string | null {
+    owner_typed :: typed.modules[s.symbol.module]
+    if owner_typed is TypedProgram as ot {
+        return mangle_struct_instance(ot.resolved.display_path, s.symbol.name, s.args)
+    }
+    return null
+}
+
+/// Materialise the struct decl for `(sym, args)` and return its lowered
+/// fields. Thin wrapper over `materialize_struct_instance` that resolves
+/// the owning module's decls + typed view from a bare symbol + args.
+materialize_shape :: fn(
+    sym: Symbol, args: Type[], loaded: LoadedProject, typed: TypedProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+) -> LoweredStructField[] {
+    owner_module :: loaded.modules[sym.module]
+    owner_typed :: typed.modules[sym.module]
+    if owner_module is null { return [] }
+    if owner_typed is null { return [] }
+    if owner_typed is TypedProgram as ot {
+        if owner_module is LoadedModule as ol {
+            inst :: GenericInstance { .symbol = sym, .args = args, .display_key = "" }
+            return materialize_struct_instance(inst, module_decls(ol), ot, project_ctx, project)
+        }
+    }
+    return []
 }
 
 /// Build a substitution mapping every type-parameter of `sd` to
