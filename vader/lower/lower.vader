@@ -1416,16 +1416,11 @@ close_over_field_shapes :: fn(
         m :: project.modules[module_id]
         if m is LoweredModule as mod {
             for decl in mod.decls {
-                if decl is LoweredStructDecl as sd {
-                    materialized.add(sd.mangled)
-                    for f in sd.fields { for_each_type(f.type, collect) }
-                } else if decl is LoweredFnDecl as fd {
-                    // Fn signatures reference generic-struct shapes too
-                    // (a param / return typed `MutableMap(K, V)`), reachable
-                    // only through the signature when no field names them.
-                    for p in fd.params { for_each_type(p.type, collect) }
-                    for_each_type(fd.return_type, collect)
-                }
+                if decl is LoweredStructDecl as sd { materialized.add(sd.mangled) }
+                // Walk fields, signature AND body so a shape reachable only
+                // through a body local / expr type (e.g. a `ParsedArgs`
+                // local) is harvested alongside field / signature shapes.
+                for_each_lowered_type(decl, collect)
             }
         }
     }
@@ -1470,6 +1465,142 @@ push_struct_shape :: fn(t: Type, out: StructType[], seen: MutableSet<string>) ->
 
 new_string_set :: fn() = MutableSet<string> {
     .inner = MutableMap<string, bool> { .buckets = [], .size = 0 },
+}
+
+/// Visit every `Type` node referenced by `decl` — fields (struct),
+/// signature + body (fn), type + value (const). `visit` is passed as a
+/// direct fn argument (threaded through the recursion), never stored on a
+/// struct, so it stays on the working closure-call path.
+for_each_lowered_type :: fn(decl: LoweredDecl, visit: fn(Type) -> void) -> void {
+    match decl {
+        is LoweredFnDecl as d -> {
+            for p in d.params { for_each_type(p.type, visit) }
+            for_each_type(d.return_type, visit)
+            body :: d.body
+            if body != null { for_each_lowered_block(body, visit) }
+        }
+        is LoweredStructDecl as d -> { for f in d.fields { for_each_type(f.type, visit) } }
+        is LoweredConstDecl as d -> {
+            for_each_type(d.type, visit)
+            for_each_lowered_expr(d.value, visit)
+        }
+    }
+}
+
+for_each_lowered_block :: fn(b: LoweredBlock, visit: fn(Type) -> void) -> void {
+    for_each_type(b.type, visit)
+    for s in b.stmts { for_each_lowered_stmt(s, visit) }
+    trailing :: b.trailing
+    if trailing != null { for_each_lowered_expr(trailing, visit) }
+}
+
+for_each_lowered_stmt :: fn(s: LoweredStmt, visit: fn(Type) -> void) -> void {
+    match s {
+        is LoweredLet as st -> {
+            for_each_type(st.type, visit)
+            for_each_lowered_expr(st.value, visit)
+        }
+        is LoweredAssign as st -> {
+            for_each_lowered_expr(st.target, visit)
+            for_each_lowered_expr(st.value, visit)
+        }
+        is LoweredExprStmt as st -> { for_each_lowered_expr(st.expr, visit) }
+        is LoweredReturn as st -> {
+            value :: st.value
+            if value != null { for_each_lowered_expr(value, visit) }
+        }
+        is LoweredLoop as st -> {
+            cond :: st.cond
+            if cond != null { for_each_lowered_expr(cond, visit) }
+            for_each_lowered_block(st.body, visit)
+        }
+        is LoweredBreak    -> {}
+        is LoweredContinue -> {}
+        is LoweredCellSet as st -> {
+            for_each_lowered_expr(st.target, visit)
+            for_each_lowered_expr(st.value, visit)
+            for_each_type(st.value_type, visit)
+        }
+        is LoweredDeferPush as st -> { for_each_lowered_expr(st.thunk, visit) }
+        is LoweredDeferPopExec -> {}
+    }
+}
+
+for_each_lowered_expr :: fn(e: LoweredExpr, visit: fn(Type) -> void) -> void {
+    for_each_type(e.type, visit)
+    match e {
+        is LoweredIdent -> {}
+        is LoweredCall as c -> {
+            for_each_lowered_expr(c.callee, visit)
+            for a in c.args { for_each_lowered_expr(a, visit) }
+        }
+        is LoweredVirtualCall as v -> {
+            for_each_lowered_expr(v.receiver, visit)
+            for a in v.args { for_each_lowered_expr(a, visit) }
+        }
+        is LoweredFieldAccess as fa -> { for_each_lowered_expr(fa.target, visit) }
+        is LoweredIndex as ix -> {
+            for_each_lowered_expr(ix.target, visit)
+            for_each_lowered_expr(ix.index, visit)
+        }
+        is LoweredUnary as u -> { for_each_lowered_expr(u.operand, visit) }
+        is LoweredBinary as b -> {
+            for_each_lowered_expr(b.left, visit)
+            for_each_lowered_expr(b.right, visit)
+        }
+        is LoweredIf as ie -> {
+            for_each_lowered_expr(ie.cond, visit)
+            for_each_lowered_block(ie.then_block, visit)
+            else_block :: ie.else_block
+            if else_block != null { for_each_lowered_block(else_block, visit) }
+        }
+        is LoweredBlock as bl -> { for_each_lowered_block(bl, visit) }
+        is LoweredStructLit as sl -> { for f in sl.fields { for_each_lowered_expr(f.value, visit) } }
+        is LoweredArrayLit as al -> { for el in al.elements { for_each_lowered_expr(el, visit) } }
+        is LoweredArrayLen as al -> { for_each_lowered_expr(al.target, visit) }
+        is LoweredArrayPush as ap -> {
+            for_each_lowered_expr(ap.target, visit)
+            for_each_lowered_expr(ap.value, visit)
+        }
+        is LoweredArraySlice as asl -> {
+            for_each_lowered_expr(asl.target, visit)
+            for_each_lowered_expr(asl.lo, visit)
+            for_each_lowered_expr(asl.hi, visit)
+        }
+        is LoweredStringSlice as ssl -> {
+            for_each_lowered_expr(ssl.target, visit)
+            for_each_lowered_expr(ssl.lo, visit)
+            for_each_lowered_expr(ssl.hi, visit)
+        }
+        is LoweredCast as cs -> { for_each_lowered_expr(cs.value, visit) }
+        is LoweredTypeCheck as tc -> {
+            for_each_lowered_expr(tc.value, visit)
+            for_each_type(tc.check_type, visit)
+        }
+        is LoweredIntrinsicCall as ic -> {
+            for a in ic.args { for_each_lowered_expr(a, visit) }
+            display_for :: ic.display_for
+            if display_for != null { for_each_type(display_for, visit) }
+        }
+        is LoweredCellNew as cn -> {
+            for_each_lowered_expr(cn.value, visit)
+            for_each_type(cn.value_type, visit)
+        }
+        is LoweredCellGet as cg -> {
+            for_each_lowered_expr(cg.target, visit)
+            for_each_type(cg.value_type, visit)
+        }
+        is LoweredMakeClosure as mc -> { for_each_lowered_expr(mc.env, visit) }
+        is LoweredDataConst as dc -> { for_each_type(dc.type, visit) }
+        is LoweredTypeConst as tcst -> {
+            for_each_type(tcst.type, visit)
+            for_each_type(tcst.value, visit)
+        }
+        // Remaining variants are leaf literals (Int/Float/Bool/Null/Char/
+        // String/Unreachable) carrying no nested expr. A future variant that
+        // nests an expr/type must be added above, else its shapes are missed.
+        _ -> {}
+    }
 }
 
 /// Mangled name a `materialize_shape` call would emit for `s`, or null
