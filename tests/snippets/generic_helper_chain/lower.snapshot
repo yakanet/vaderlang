@@ -45,7 +45,6 @@
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
-  struct snippet$Box__Any { value: Any }
   struct snippet$Box__i32 { value: Any }
   struct snippet$Box__string { value: Any }
   struct snippet$Box__Box_i32_ { value: Any }

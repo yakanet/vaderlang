@@ -61,12 +61,27 @@ export function lowerProject(
   };
 
   const byModule = new Map<string, LoweredDecl[]>();
-  for (const entry of mono.entries) {
+  // Erasure collapses several generic struct instances onto one Any
+  // representative ; two mono entries can therefore carry the same
+  // mangled struct name (e.g. a `Box<i32>`/`Box<string>` rep and a
+  // transitively-discovered `Box<Any>` both mangle to `Box__Any`).
+  // Emitting both produces a duplicate `BcType` — dedupe struct decls
+  // by mangled name, keeping the LAST occurrence so the surviving
+  // struct sits after the concrete instances (matches the self-host
+  // lowerer's phase order). Fn / const entries never collide this way.
+  const lastStructIdx = new Map<string, number>();
+  mono.entries.forEach((e, i) => {
+    if (e.decl.kind === "StructDecl") lastStructIdx.set(e.mangled, i);
+  });
+  for (let i = 0; i < mono.entries.length; i++) {
+    const entry = mono.entries[i]!;
     const mid = entry.module.module.id;
     let bucket = byModule.get(mid);
     if (bucket === undefined) { bucket = []; byModule.set(mid, bucket); }
     const decl = lowerEntry(entry, ctx);
-    if (decl !== null) bucket.push(decl);
+    if (decl === null) continue;
+    if (decl.kind === "LoweredStructDecl" && lastStructIdx.get(decl.mangled) !== i) continue;
+    bucket.push(decl);
   }
 
   // Distribute lambda-lifting synthDecls — they piggy-back on the module
