@@ -39,11 +39,7 @@ export Span :: struct {
 /// the legacy `span_key` it backs is start-keyed ; `Equals` (start AND
 /// end) still distinguishes an envelope expr from its child in a hash
 /// bucket, so the start-only hash is a valid over-approximation.
-Span implements Hash {
-    hash :: fn(self) -> u64 {
-        return self.start.file.hash() * u64(1000003) + (u64(self.start.line) << u64(32)) + u64(self.start.column)
-    }
-}
+Span implements Hash -> self.start.file.hash() * u64(1000003) + (u64(self.start.line) << u64(32)) + u64(self.start.column)
 
 /// Structural equality over `(file, line, column)` of both ends — the
 /// full key the typed-ast side-tables need to tell an envelope expr
@@ -61,11 +57,7 @@ Span implements Equals {
 /// `lineS:colS-lineE:colE` — human-readable form for diagnostics and
 /// for keying side-tables that need an envelope expr to stay disjoint
 /// from a child sharing its start position.
-Span implements Display {
-    to_string :: fn(self) -> string {
-        return "${self.start.line}:${self.start.column}-${self.end.line}:${self.end.column}"
-    }
-}
+Span implements Display -> "${self.start.line}:${self.start.column}-${self.end.line}:${self.end.column}"
 
 /// Synthetic `Span` for AST nodes minted by the compiler (test fixtures,
 /// materialised trait methods, intrinsic stubs). Points to a dummy 1:1
