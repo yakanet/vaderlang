@@ -71,29 +71,43 @@ export lower_project :: fn(
 
     module_ids :: typed.modules.keys()
     for module_id in module_ids {
-        // Skip stdlib bodies — they're filtered from the dump anyway
-        // (`is_stdlib_path` in dump.vader) and lowering them would
-        // pollute the per-project synthetic-id counter, breaking
-        // `__lambda_1` / `__lambda_env_2` numbering in user fixtures.
-        //
-        // Surfacing only `@intrinsic` / `@extern` signatures here would
-        // populate the bytecode import table — but without whole-program
-        // DCE on imports, every reachable stdlib fn lands in the dump
-        // even when user code calls only `println`. Pair the surfacing
-        // with reachability analysis as a separate chantier.
+        // Stdlib modules: don't lower with-body fns up front (would bloat
+        // the project + pollute the synthetic-id counter), but DO surface
+        // every bodyless fn signature (`@extern` / intrinsic / declared-
+        // only) so the bytecode emitter registers them in the import
+        // table. Without this, calls to `byte_len` / `println` / … fall
+        // through `emit_call_to_symbol` without hitting the CallImport
+        // branch and silently drop. The now-wired whole-program DCE
+        // (`prune_unreachable_fns`) culls anything the user never reaches,
+        // so over-surfacing is safe.
         if is_stdlib_path(module_id) {
-            // Don't lower stdlib fn bodies (the bloat reason above), but DO
-            // create an empty lowered module so materialised generic-struct
-            // instances (`MutableMap(usize, Span)`, `Entry`, …) defined in
-            // stdlib have somewhere to land and reach the bytecode reserve
-            // pass. The lower dump filters stdlib modules, so these stay
-            // invisible to the lower-snapshot byte-match.
             stdlib_loaded :: loaded.modules[module_id]
+            stdlib_typed_opt :: typed.modules[module_id]
+            stdlib_decls: LoweredDecl[] = []
             if stdlib_loaded is LoadedModule as sl {
+                if stdlib_typed_opt is TypedProgram as stdlib_typed {
+                    for d in module_decls(sl) {
+                        if d is FnDecl as fd {
+                            if fd.body is null && fd.type_params.len() == usize(0) {
+                                lowered :: lower_fn_decl(fd, stdlib_typed, project_ctx, diags)
+                                if lowered != null {
+                                    stdlib_decls.push(lowered)
+                                    // Pre-seed the call-site harvest's seen-set so
+                                    // `materialize_nongeneric_stdlib_fns` doesn't
+                                    // emit a duplicate decl for the same symbol.
+                                    sym :: sl.collected.symbols[fd.name]
+                                    if sym is Symbol as s {
+                                        project_ctx.nongeneric_stdlib_fns[s.id] = true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 project.modules[module_id] = LoweredModule {
                     .module_id    = module_id,
                     .display_path = sl.module.display_path,
-                    .decls        = [],
+                    .decls        = stdlib_decls,
                 }
             }
             continue
@@ -1066,6 +1080,10 @@ materialize_nongeneric_stdlib_fns :: fn(
             if module_loaded is LoadedModule as ml {
                 fn_decl :: find_nongeneric_fn_decl_by_name(module_decls(ml), fn_sym.name)
                 if fn_decl is FnDecl as fd {
+                    // Bodyless externs are surfaced up front in
+                    // `lower_project`'s stdlib branch — skip to avoid a
+                    // duplicate import entry for the same symbol.
+                    if fd.body is null { continue }
                     lowered :: lower_fn_decl(fd, mt, project_ctx, diags)
                     if lowered != null { push_to_module(project, fn_sym.module, lowered) }
                 }

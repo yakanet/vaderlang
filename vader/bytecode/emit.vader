@@ -479,12 +479,16 @@ synthesise_intrinsic_wrappers :: fn(ctx: EmitterCtx) -> void {
         imp :: ctx.imports[usize(import_index)]
         i += 1
         if imp.is_extern { continue }
+        // Only wrap imports that map to a dedicated bytecode op. For
+        // those, the wrapper inlines the op so virtual / fn-value
+        // dispatch can land on a real fn-index. Non-intrinsic imports
+        // (regular bodyless stdlib fns like `byte_len`) need no wrapper
+        // — call sites hit `emit_call_to_symbol`'s import branch and
+        // emit `call.import` directly.
+        if intrinsic_op_for_mangled(imp.mangled_name) is null { continue }
         // Already in fn-table — either a Vader-side fn shadowing the
         // import (shouldn't happen for intrinsics) or a prior synth
         // pass ran (idempotency guard).
-        // The import-side keyed `import_index_by_symbol_id` ; the
-        // fn-side keyed `function_index_by_symbol_id` — so we need
-        // to know which Symbol id this import was registered under.
         symbol_id :: lookup_symbol_id_for_import(ctx, import_index)
         if symbol_id < 0 { continue }
         if ctx.function_index_by_symbol_id[symbol_id] is i32 { continue }
