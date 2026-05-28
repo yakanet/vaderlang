@@ -48,40 +48,6 @@ export declare_module :: fn(
     }
 }
 
-/// Variant for sibling files (1..n) of a multi-file module. Writes
-/// only the Symbol.id-keyed side-tables (`struct_decls`,
-/// `struct_field_types`, `trait_decls`, `trait_decl_owners`, plus
-/// `resolved.alias_types` for type aliases) so namespace-alias
-/// struct literals (`alias.Type { .f = … }`) and cross-module field
-/// lookups can resolve types declared in non-first files. Bypasses
-/// `declare_decl` because the usual path also writes
-/// `decl_types[span_key(name_span)]`, which collides across files at
-/// the same `(line, col)` and would corrupt `files[0]`'s entries.
-///
-/// **Partial : field types resolve only against `files[0]`'s
-/// `resolved.idents`.** A field whose declared type is a sibling-
-/// file ident (e.g. `Convert.target: ConvertTarget` where
-/// `ConvertTarget` lives in the same sibling file) lands as
-/// `TY_UNRESOLVED` because the resolver's body-walk doesn't visit
-/// sibling files. Primitives (`string`, `i32`, …) work via
-/// `primitive_from_name`. Tracked alongside the `decl_types`
-/// Symbol.id-keying refactor.
-export declare_extra_file_type_decls :: fn(
-    program_decls: AST.Decl[], resolved: ResolvedModule,
-    typed: TypedProgram, factory: SymbolFactory, diags: Diagnostic[],
-) -> void {
-    by_name :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
-    for s in resolved.symbols { by_name[s.name] = s }
-    for decl in program_decls {
-        // Now that `decl_types` is Symbol.id-keyed (and impl methods
-        // live in a separate span-keyed table), we can safely replay
-        // every decl kind for sibling files — no cross-file
-        // collisions on Symbol.id.
-        declare_decl(decl, by_name, resolved, typed, factory, diags)
-        register_deprecated(decl, by_name, resolved)
-    }
-}
-
 register_deprecated :: fn(
     decl: AST.Decl, by_name: MutableMap<string, Symbol>, resolved: ResolvedModule,
 ) -> void {

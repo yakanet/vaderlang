@@ -18,7 +18,7 @@ import "std/collections" { MutableMap, keys }
 import "std/io" { exists, is_dir, read_file }
 import "std/string" { byte_at, byte_len, ends_with, byte_slice, starts_with }
 import "vader/diagnostics" { Diagnostic, Position, Span, resolver_error }
-import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source }
+import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source, assign_program_ids }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory }
 
 /// Synthetic 1:1 span anchored on a file path. Used by R2001 when the
@@ -201,6 +201,15 @@ ingest_module :: fn(
 }
 
 parse_module_files :: fn(paths: string[], diags: Diagnostic[]) -> SourceFile[] {
+    // One factory shared across every file of the module, so AST node ids
+    // are unique within the MODULE (not just within each file). The
+    // per-module typed side-tables that key by node id (`expr_types`, …)
+    // would otherwise collide once the resolver / typechecker walk all
+    // files merged into one program (`merge_module_program`). Single-file
+    // modules are unaffected (ids still start at 1). The shared factory's
+    // final state becomes the module's `node_id_factory` (sources[0]),
+    // so later materialised-body mints continue past the module-global max.
+    shared :: new_node_id_factory()
     out: SourceFile[] = []
     for path in paths {
         content_opt :: read_file(path)
@@ -208,11 +217,12 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]) -> SourceFile[] {
         if content == "" { continue }
         parsed :: parse_source(content, path)
         for e in parsed.errors { diags.push(e) }
+        assign_program_ids(parsed.program, shared)
         out.push(SourceFile {
             .path       = path,
             .content    = content,
             .program    = parsed.program,
-            .id_factory = parsed.id_factory,
+            .id_factory = shared,
         })
     }
     return out

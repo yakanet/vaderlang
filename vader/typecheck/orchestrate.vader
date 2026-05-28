@@ -117,7 +117,7 @@ export check_project_with_bodies :: fn(
     // Phase A : register every type alias project-wide. Cross-
     // module aliases (`Pet` imported from `./types`) need to land
     // before any fn signature consults them.
-    register_aliases(entry_typed, entry_loaded.module.files[0].program.decls)
+    register_aliases(entry_typed, merge_module_program(entry_loaded.module.files).decls)
     for id in project.modules.keys() {
         if id == project.entry { continue }
         other :: project.modules[id]
@@ -125,7 +125,7 @@ export check_project_with_bodies :: fn(
         other_typed :: per_module[id]
         match other_typed {
             is null -> {}
-            _ -> { register_aliases(other_typed, other.module.files[0].program.decls) }
+            _ -> { register_aliases(other_typed, merge_module_program(other.module.files).decls) }
         }
     }
     merge_external_alias_types(entry_typed, per_module)
@@ -169,23 +169,13 @@ export check_project_with_bodies :: fn(
     // builds `namespace_exports`).
     prepopulate_namespace_member_types(entry_typed, project, per_module)
 
-    // Phase B : declare every decl (fn signatures, struct types, etc.).
-    declare_module(entry_loaded.module.files[0].program.decls, entry_rm, entry_typed, project.factory, diags)
-    // Multi-file modules : walk sibling files (1..n) for struct + trait
-    // + enum decls so `module.struct_decls[sym.id]` and
-    // `module.struct_field_types[sym.id]` are populated. Required for
-    // namespace-alias struct literals (`alias.Type { .f = … }`) and
-    // cross-module field lookups when the struct lives in a non-first
-    // file of a multi-file module (e.g. `vader/vm/op.vader::PrimitiveType`
-    // — `builder.vader` sorts first alphabetically). FnDecls are NOT
-    // replayed because `decl_types` is span-keyed and two fns at the
-    // same (line, col) in different files would collide (corrupting
-    // the file[0] entry). Fn cross-file requires re-keying decl_types
-    // by Symbol.id ; tracked separately.
-    for i in usize(1)..<entry_loaded.module.files.len() {
-        declare_extra_file_type_decls(entry_loaded.module.files[i].program.decls,
-            entry_rm, entry_typed, project.factory, diags)
-    }
+    // Phase B : declare every decl (fn signatures, struct types, etc.)
+    // across ALL files of the module. decl_types is Symbol.id-keyed and
+    // the span-keyed tables (param_types / type_expr_types) are now
+    // file-aware, so merging sibling files no longer collides — fn
+    // signatures in non-first files get declared too (was the source of
+    // `?` types on multi-file modules).
+    declare_module(merge_module_program(entry_loaded.module.files).decls, entry_rm, entry_typed, project.factory, diags)
     for id in project.modules.keys() {
         if id == project.entry { continue }
         other :: project.modules[id]
@@ -194,11 +184,7 @@ export check_project_with_bodies :: fn(
         match other_typed {
             is null -> {}
             _ -> {
-                declare_module(other.module.files[0].program.decls, other_typed.resolved, other_typed, project.factory, diags)
-                for i in usize(1)..<other.module.files.len() {
-                    declare_extra_file_type_decls(other.module.files[i].program.decls,
-                        other_typed.resolved, other_typed, project.factory, diags)
-                }
+                declare_module(merge_module_program(other.module.files).decls, other_typed.resolved, other_typed, project.factory, diags)
             }
         }
     }
@@ -226,17 +212,17 @@ export check_project_with_bodies :: fn(
     // return types (forward-reference safe) ; second pass re-types
     // bodies with all returns settled. Diags are captured only on
     // the second pass — the first one is a throwaway sink.
-    if has_expr_bodied_fn(entry_loaded.module.files[0].program.decls) {
-        walk_bodies(entry_loaded.module.files[0].program.decls, entry_typed, diag_sink())
+    if has_expr_bodied_fn(merge_module_program(entry_loaded.module.files).decls) {
+        walk_bodies(merge_module_program(entry_loaded.module.files).decls, entry_typed, diag_sink())
         reset_expr_tables(entry_typed)
     }
-    walk_bodies(entry_loaded.module.files[0].program.decls, entry_typed, diags)
+    walk_bodies(merge_module_program(entry_loaded.module.files).decls, entry_typed, diags)
 
     // Forward resolver-side R-codes (unresolved-ident, reserved-name, …)
     // so the CLI's `# Diagnostics` block surfaces them next to T-codes.
     for d in entry_typed.resolved.diags { diags.push(d) }
 
-    impls :: build_impl_registry(entry_loaded.module.files[0].program.decls, entry_typed.resolved)
+    impls :: build_impl_registry(merge_module_program(entry_loaded.module.files).decls, entry_typed.resolved)
     // Every directly-imported non-stdlib module gets its own `## <path>`
     // section in the dump.
     others: TypedProgram[] = collect_direct_imports(entry_loaded, project, per_module)
@@ -370,7 +356,7 @@ merge_external_impl_methods :: fn(
         if other.resolved.path == entry_path { continue }
         loaded :: project.modules[id]
         if loaded is null { continue }
-        for decl in loaded.module.files[0].program.decls {
+        for decl in merge_module_program(loaded.module.files).decls {
             match decl {
                 is AST.ImplDecl as id_decl -> {
                     for_ty :: type_from_expr(id_decl.for_type, other.resolved, diag_sink())
@@ -499,7 +485,7 @@ export materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
     for id in project.modules.keys() {
         loaded :: project.modules[id]
         if loaded is null { continue }
-        for decl in loaded.module.files[0].program.decls {
+        for decl in merge_module_program(loaded.module.files).decls {
             if !(decl is AST.ImplDecl) { continue }
             found :: find_named_decl_in_project(decl.trait_name, project)
             if found.trait_decl is null {
@@ -585,7 +571,7 @@ find_named_decl_in_project :: fn(
     for id in project.modules.keys() {
         loaded :: project.modules[id]
         if loaded is null { continue }
-        for decl in loaded.module.files[0].program.decls {
+        for decl in merge_module_program(loaded.module.files).decls {
             if decl is AST.TraitDecl {
                 if decl.name == name { return NamedDeclLookup { .trait_decl = decl, .other_kind = "" } }
             }
@@ -971,8 +957,8 @@ settle_external_expr_bodied_returns :: fn(
             if loaded is null { continue }
             other_typed :: per_module[id]
             if other_typed is null { continue }
-            if pass == 1 && !has_expr_bodied_fn(loaded.module.files[0].program.decls) { continue }
-            walk_bodies(loaded.module.files[0].program.decls, other_typed, diag_sink())
+            if pass == 1 && !has_expr_bodied_fn(merge_module_program(loaded.module.files).decls) { continue }
+            walk_bodies(merge_module_program(loaded.module.files).decls, other_typed, diag_sink())
         }
     }
 }
