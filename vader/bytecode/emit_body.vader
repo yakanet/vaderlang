@@ -19,7 +19,7 @@
 module "vader/bytecode"
 
 import "std/collections" { MutableMap }
-import "vader/types" { Type }
+import "vader/types" { Type, PrimitiveType, NeverType }
 import "vader/resolver/symbol" { Symbol }
 import "vader/lower" {
     LoweredStmt, LoweredLet, LoweredAssign, LoweredCellSet,
@@ -75,7 +75,13 @@ emit_stmt :: fn(stmt: LoweredStmt, state: FnEmitState, ctx: EmitterCtx) -> void 
         is LoweredReturn as return_stmt     -> emit_return(return_stmt, state, ctx)
         is LoweredExprStmt as expr_stmt     -> {
             emit_expr(expr_stmt.expr, state, ctx)
-            push_op(state, Drop {})
+            // Skip the Drop when the expression leaves nothing on the
+            // stack — void returns and `never`-typed exprs (calls that
+            // diverge) have no value to discard. Mirrors TS, which only
+            // emits drop when the expr's static type carries a value.
+            if !expr_leaves_no_value(type_of(expr_stmt.expr)) {
+                push_op(state, Drop {})
+            }
         }
         is LoweredLet as let_stmt           -> emit_let(let_stmt, state, ctx)
         is LoweredAssign as assign_stmt     -> emit_assign(assign_stmt, state, ctx)
@@ -92,6 +98,16 @@ emit_stmt :: fn(stmt: LoweredStmt, state: FnEmitState, ctx: EmitterCtx) -> void 
             // Same — runtime support exists ; emit not yet wired.
         }
     }
+}
+
+// True when an expression's static type carries no runtime value :
+// `void` (no value at all) or `never` (diverging call). The ExprStmt
+// emitter uses this to suppress the `drop` that would otherwise try
+// to pop a non-existent value from the operand stack.
+expr_leaves_no_value :: fn(t: Type) -> bool {
+    if t is PrimitiveType as p { return p.name == "void" }
+    if t is NeverType { return true }
+    return false
 }
 
 /// Emit a `return` statement. Pushes the value expression (if any)
