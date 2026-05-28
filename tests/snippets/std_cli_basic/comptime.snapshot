@@ -46,6 +46,7 @@
   ArrayIterator<T>
   Entry<i32, bool>
   Entry<string, i32>
+  Entry<string, string>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>

@@ -41,6 +41,7 @@
   SkipIterator<T>
   Into<Target>
   Entry<i32, bool>
+  Entry<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
   Entry<string, i32>
   Entry<K, V>
   Entry<K, V>

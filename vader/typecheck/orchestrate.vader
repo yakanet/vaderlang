@@ -187,6 +187,8 @@ export check_project_with_bodies :: fn(
             }
         }
     }
+    // Cross-module struct visibility — see `broadcast_struct_decls`.
+    broadcast_struct_decls(per_module)
 
     // Wire was done before declare ; now populate the remaining
     // typecheck-side tables that depend on per-module decl types.
@@ -661,6 +663,48 @@ register_aliases :: fn(typed: TypedProgram, decls: AST.Decl[]) -> void {
 // to its `repr` ordinal. Enum-only — type aliases keep their entry-merge
 // scope. Keyed by global symbol id, so no cross-module name collisions.
 // Must run before `declare_module` lowers any signature.
+// Cross-module struct visibility : each module's `declare_module` only
+// populates its OWN `struct_decls` / `struct_field_types`. Field access
+// on a local variable typed as a struct from another module (e.g.
+// `block: LoweredBlock` in main.vader, with LoweredBlock from
+// vader/lower) lookups `typed.struct_decls[sym.id]` on the CURRENT
+// module's view — misses → `?` → cascading. Merge every module's
+// struct tables into every other module's view so the lookup hits
+// regardless of where the struct was declared. Symbol.id is the global
+// key, so a flat merge is enough. Mirror of `broadcast_enum_types`.
+broadcast_struct_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
+    all_decls :: MutableMap<i32, AST.StructDecl> { .buckets = [], .size = 0 }
+    all_fields :: MutableMap<i32, MutableMap<string, Type>> { .buckets = [], .size = 0 }
+    for id in per_module.keys() {
+        typed :: per_module[id]
+        if typed == null { continue }
+        for sid in typed.struct_decls.keys() {
+            d :: typed.struct_decls[sid]
+            if d != null { all_decls[sid] = d }
+        }
+        for sid in typed.struct_field_types.keys() {
+            f :: typed.struct_field_types[sid]
+            if f != null { all_fields[sid] = f }
+        }
+    }
+    for id in per_module.keys() {
+        typed :: per_module[id]
+        if typed == null { continue }
+        for sid in all_decls.keys() {
+            d :: all_decls[sid]
+            if d != null && typed.struct_decls[sid] == null {
+                typed.struct_decls[sid] = d
+            }
+        }
+        for sid in all_fields.keys() {
+            f :: all_fields[sid]
+            if f != null && typed.struct_field_types[sid] == null {
+                typed.struct_field_types[sid] = f
+            }
+        }
+    }
+}
+
 broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram>, project: LoadedProject) -> void {
     collected :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
     for id in per_module.keys() {

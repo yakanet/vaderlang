@@ -389,7 +389,7 @@
   expr 1013:17  FieldExpr      :: fn(ParserCode, Span, string) -> void
   expr 1013:17  IdentExpr      :: Parser
   expr 1013:25  DotVariantExpr :: ParserCode
-  expr 1013:41  FieldExpr      :: ?
+  expr 1013:41  FieldExpr      :: Span
   expr 1013:41  IdentExpr      :: Token
   expr 1013:49  StringLitExpr  :: string
   expr 1013:81  CallExpr       :: string
@@ -548,7 +548,7 @@
   expr 1034:17  IdentExpr      :: StringBuilder
   expr 1034:31  BinaryExpr     :: i32
   expr 1034:31  IdentExpr      :: i32
-  expr 1034:34  FieldExpr      :: ?
+  expr 1034:34  FieldExpr      :: string
   expr 1034:34  IdentExpr      :: Token
   expr 1034:42  StringLitExpr  :: string
   expr 1035:17  CallExpr       :: void
@@ -778,7 +778,7 @@
   expr 1066:9   IdentExpr      :: StringBuilder
   expr 1067:23  FieldExpr      :: bool
   expr 1067:23  IdentExpr      :: CallArg
-  expr 1067:27  FieldExpr      :: ?
+  expr 1067:27  FieldExpr      :: string
   expr 1067:27  IdentExpr      :: Token
   expr 1067:9   CallExpr       :: void
   expr 1067:9   FieldExpr      :: fn(bool) -> void
@@ -853,14 +853,14 @@
   expr 107:9    BinaryExpr     :: bool
   expr 107:9    IdentExpr      :: usize
   expr 1080:15  IdentExpr      :: (StructLitField | StructLitSpread)[]
-  expr 1080:26  FieldExpr      :: ?
+  expr 1080:26  FieldExpr      :: string
   expr 1080:26  IdentExpr      :: Token
   expr 1081:12  UnaryExpr      :: bool
   expr 1081:13  IdentExpr      :: bool
   expr 1081:21  CallExpr       :: ?
   expr 1081:21  FieldExpr      :: ?
   expr 1081:21  IdentExpr      :: StringBuilder
-  expr 1081:26  FieldExpr      :: ?
+  expr 1081:26  FieldExpr      :: Span
   expr 1081:26  IdentExpr      :: Token
   expr 1081:9   IfExpr         :: ?
   expr 1082:26  IdentExpr      :: Visibility
@@ -1081,9 +1081,9 @@
   expr 1118:24  IdentExpr      :: i32
   expr 1118:32  StringLitExpr  :: string
   expr 1118:35  StringLitExpr  :: string
-  expr 1118:36  FieldExpr      :: ?
+  expr 1118:36  FieldExpr      :: string
   expr 1118:36  IdentExpr      :: Token
-  expr 1118:69  FieldExpr      :: ?
+  expr 1118:69  FieldExpr      :: string
   expr 1118:69  IdentExpr      :: Token
   expr 1118:9   CallExpr       :: void
   expr 1118:9   FieldExpr      :: fn(bool, i32, string) -> void
@@ -1091,7 +1091,7 @@
   expr 1119:26  FieldExpr      :: BindingPattern | EnumVariantPattern | IsPattern | LiteralPattern | StructPattern | TuplePattern | WildcardPattern
   expr 1119:26  IdentExpr      :: MatchArm
   expr 1119:32  StringLitExpr  :: string
-  expr 1119:36  FieldExpr      :: ?
+  expr 1119:36  FieldExpr      :: string
   expr 1119:36  IdentExpr      :: Token
   expr 1119:37  BinaryExpr     :: i32
   expr 1119:37  IdentExpr      :: i32
@@ -1182,7 +1182,7 @@
   expr 112:5    IdentExpr      :: StringBuilder
   expr 1130:11  IdentExpr      :: RestBinding | SimpleBinding | TupleBinding | WildcardBinding
   expr 1130:33  StringLitExpr  :: string
-  expr 1130:37  FieldExpr      :: ?
+  expr 1130:37  FieldExpr      :: string
   expr 1130:37  IdentExpr      :: Token
   expr 1130:5   MatchExpr      :: void
   expr 1131:29  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
@@ -1235,7 +1235,7 @@
   expr 1140:13  IdentExpr      :: StringBuilder
   expr 1140:27  BinaryExpr     :: i32
   expr 1140:27  IdentExpr      :: i32
-  expr 1140:34  FieldExpr      :: ?
+  expr 1140:34  FieldExpr      :: string
   expr 1140:34  IdentExpr      :: Token
   expr 1140:38  StringLitExpr  :: string
   expr 1141:13  CallExpr       :: void
@@ -1433,7 +1433,7 @@
   expr 1174:51  FieldExpr      :: fn(i32) -> Token
   expr 1174:51  IdentExpr      :: Parser
   expr 1174:61  UnaryExpr      :: i32
-  expr 1175:34  FieldExpr      :: ?
+  expr 1175:34  FieldExpr      :: string
   expr 1175:34  IdentExpr      :: Token
   expr 1176:34  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1178:5   IfExpr         :: void
@@ -1679,7 +1679,7 @@
   expr 1218:48  FieldExpr      :: fn(i32) -> Token
   expr 1218:48  IdentExpr      :: Parser
   expr 1218:58  UnaryExpr      :: i32
-  expr 1219:28  FieldExpr      :: ?
+  expr 1219:28  FieldExpr      :: string
   expr 1219:28  IdentExpr      :: Token
   expr 1219:32  CallExpr       :: void
   expr 1219:32  FieldExpr      :: fn(string) -> void
@@ -1701,7 +1701,7 @@
   expr 121:54   CallExpr       :: ?
   expr 121:54   IdentExpr      :: ?
   expr 121:65   IdentExpr      :: string
-  expr 1220:28  FieldExpr      :: ?
+  expr 1220:28  FieldExpr      :: Span
   expr 1220:28  IdentExpr      :: Token
   expr 1221:13  CallExpr       :: void
   expr 1221:13  FieldExpr      :: fn(i32) -> void
@@ -1846,7 +1846,7 @@
   expr 1244:13  CallExpr       :: void
   expr 1244:13  FieldExpr      :: fn(i32, string) -> void
   expr 1244:13  IdentExpr      :: StringBuilder
-  expr 1244:24  FieldExpr      :: ?
+  expr 1244:24  FieldExpr      :: string
   expr 1244:24  IdentExpr      :: Token
   expr 1244:27  BinaryExpr     :: i32
   expr 1244:27  IdentExpr      :: i32
@@ -1854,7 +1854,7 @@
   expr 1245:13  CallExpr       :: void
   expr 1245:13  FieldExpr      :: fn(bool, i32, string) -> void
   expr 1245:13  IdentExpr      :: StringBuilder
-  expr 1245:24  FieldExpr      :: ?
+  expr 1245:24  FieldExpr      :: Span
   expr 1245:24  IdentExpr      :: Token
   expr 1245:29  BinaryExpr     :: i32
   expr 1245:29  IdentExpr      :: i32
@@ -1988,7 +1988,7 @@
   expr 1269:24  IdentExpr      :: Parser
   expr 1269:33  DotVariantExpr :: TokenKind
   expr 1269:42  StringLitExpr  :: string
-  expr 1270:20  FieldExpr      :: ?
+  expr 1270:20  FieldExpr      :: f64 | i64 | null | string | u32 | u64
   expr 1270:20  IdentExpr      :: Token
   expr 1271:5   CallExpr       :: void
   expr 1271:5   FieldExpr      :: fn() -> void
@@ -2001,7 +2001,7 @@
   expr 1274:21  IdentExpr      :: StringBuilder
   expr 1274:9   IfExpr         :: ?
   expr 1275:13  MatchExpr      :: void
-  expr 1275:19  IdentExpr      :: ?
+  expr 1275:19  IdentExpr      :: f64 | i64 | null | string | u32 | u64
   expr 1275:9   IdentExpr      :: bool
   expr 1276:29  IdentExpr      :: i64 | null
   expr 1276:37  CallExpr       :: i64
@@ -2022,7 +2022,7 @@
   expr 1279:13  IdentExpr      :: null | Span
   expr 1279:24  BinaryExpr     :: i32
   expr 1279:24  IdentExpr      :: i32
-  expr 1279:26  FieldExpr      :: ?
+  expr 1279:26  FieldExpr      :: Span
   expr 1279:26  IdentExpr      :: Token
   expr 1279:35  StringLitExpr  :: string
   expr 1279:9   CallExpr       :: void
@@ -2046,9 +2046,9 @@
   expr 1281:9   IdentExpr      :: StringBuilder
   expr 1282:15  FieldExpr      :: PatternBinding | PatternLiteral
   expr 1282:15  IdentExpr      :: StructPatternField
-  expr 1282:27  FieldExpr      :: ?
+  expr 1282:27  FieldExpr      :: Span
   expr 1282:27  IdentExpr      :: Token
-  expr 1283:27  FieldExpr      :: ?
+  expr 1283:27  FieldExpr      :: string
   expr 1283:27  IdentExpr      :: Token
   expr 1284:15  IdentExpr      :: PatternBinding | PatternLiteral
   expr 1284:27  IdentExpr      :: i64 | null
@@ -2108,12 +2108,12 @@
   expr 1293:17  CallExpr       :: void
   expr 1293:17  FieldExpr      :: fn() -> void
   expr 1293:17  IdentExpr      :: StringBuilder
-  expr 1293:23  FieldExpr      :: ?
+  expr 1293:23  FieldExpr      :: string
   expr 1293:23  IdentExpr      :: Token
   expr 1294:17  CallExpr       :: void
   expr 1294:17  FieldExpr      :: fn(i32, string) -> void
   expr 1294:17  IdentExpr      :: StringBuilder
-  expr 1294:23  FieldExpr      :: ?
+  expr 1294:23  FieldExpr      :: Span
   expr 1294:23  IdentExpr      :: Token
   expr 1294:31  BinaryExpr     :: i32
   expr 1294:31  IdentExpr      :: i32
@@ -2203,10 +2203,10 @@
   expr 1317:43  IdentExpr      :: Parser
   expr 1317:53  UnaryExpr      :: i32
   expr 1318:16  StringLitExpr  :: string
-  expr 1318:23  FieldExpr      :: ?
+  expr 1318:23  FieldExpr      :: string
   expr 1318:23  IdentExpr      :: Token
   expr 1319:16  StringLitExpr  :: string
-  expr 1319:23  FieldExpr      :: ?
+  expr 1319:23  FieldExpr      :: Span
   expr 1319:23  IdentExpr      :: Token
   expr 131:15   FieldExpr      :: TypeParam[]
   expr 131:15   IdentExpr      :: FnDecl
@@ -2268,9 +2268,9 @@
   expr 1336:43  FieldExpr      :: fn(i32) -> Token
   expr 1336:43  IdentExpr      :: Parser
   expr 1336:53  UnaryExpr      :: i32
-  expr 1337:23  FieldExpr      :: ?
+  expr 1337:23  FieldExpr      :: string
   expr 1337:23  IdentExpr      :: Token
-  expr 1338:23  FieldExpr      :: ?
+  expr 1338:23  FieldExpr      :: Span
   expr 1338:23  IdentExpr      :: Token
   expr 1339:23  IdentExpr      :: Visibility
   expr 133:11   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
@@ -2347,10 +2347,10 @@
   expr 1375:13  IdentExpr      :: ArrayTypeExpr
   expr 1375:20  StructLitExpr  :: ArrayTypeExpr
   expr 1376:30  StructLitExpr  :: Span
-  expr 1376:46  FieldExpr      :: ?
-  expr 1376:46  FieldExpr      :: ?
+  expr 1376:46  FieldExpr      :: Position
+  expr 1376:46  FieldExpr      :: Span
   expr 1376:46  IdentExpr      :: Token
-  expr 1376:75  FieldExpr      :: ?
+  expr 1376:75  FieldExpr      :: Position
   expr 1376:75  IdentExpr      :: Span
   expr 1377:30  FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1377:30  IdentExpr      :: ArrayTypeExpr
@@ -2363,7 +2363,7 @@
   expr 1381:13  FieldExpr      :: fn(ParserCode, Span, string) -> void
   expr 1381:13  IdentExpr      :: Parser
   expr 1381:21  DotVariantExpr :: ParserCode
-  expr 1381:54  FieldExpr      :: ?
+  expr 1381:54  FieldExpr      :: Span
   expr 1381:54  IdentExpr      :: Token
   expr 1381:70  StringLitExpr  :: string
   expr 1385:16  DotVariantExpr :: TokenKind
@@ -2389,9 +2389,9 @@
   expr 1390:13  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1390:20  StructLitExpr  :: BinaryExpr
   expr 1391:26  StructLitExpr  :: Span
-  expr 1391:42  FieldExpr      :: ?
+  expr 1391:42  FieldExpr      :: Position
   expr 1391:42  IdentExpr      :: Span
-  expr 1391:66  FieldExpr      :: ?
+  expr 1391:66  FieldExpr      :: Position
   expr 1391:66  IdentExpr      :: Span
   expr 1392:26  DotVariantExpr :: BinaryOp
   expr 1393:26  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
@@ -2437,9 +2437,9 @@
   expr 1411:13  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1411:20  StructLitExpr  :: BinaryExpr
   expr 1412:26  StructLitExpr  :: Span
-  expr 1412:42  FieldExpr      :: ?
+  expr 1412:42  FieldExpr      :: Position
   expr 1412:42  IdentExpr      :: Span
-  expr 1412:66  FieldExpr      :: ?
+  expr 1412:66  FieldExpr      :: Position
   expr 1412:66  IdentExpr      :: Span
   expr 1413:26  DotVariantExpr :: BinaryOp
   expr 1414:26  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
@@ -2478,10 +2478,10 @@
   expr 1431:16  StructLitExpr  :: ArrayTypeExpr
   expr 1431:9   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1432:24  StructLitExpr  :: Span
-  expr 1432:40  FieldExpr      :: ?
+  expr 1432:40  FieldExpr      :: Position
   expr 1432:40  IdentExpr      :: Span
-  expr 1432:64  FieldExpr      :: ?
-  expr 1432:64  FieldExpr      :: ?
+  expr 1432:64  FieldExpr      :: Position
+  expr 1432:64  FieldExpr      :: Span
   expr 1432:64  IdentExpr      :: Token
   expr 1433:24  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1437:21  DotVariantExpr :: TokenKind
@@ -2491,8 +2491,8 @@
   expr 1437:8   FieldExpr      :: fn(TokenKind) -> null | Token
   expr 1437:8   IdentExpr      :: Parser
   expr 1438:21  CallExpr       :: Token
-  expr 1438:21  FieldExpr      :: ?
-  expr 1438:21  FieldExpr      :: ?
+  expr 1438:21  FieldExpr      :: Position
+  expr 1438:21  FieldExpr      :: Span
   expr 1438:21  FieldExpr      :: fn(i32) -> Token
   expr 1438:21  IdentExpr      :: Parser
   expr 1438:31  UnaryExpr      :: i32
@@ -2522,8 +2522,8 @@
   expr 1445:18  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1447:24  StructLitExpr  :: IdentExpr
   expr 1448:21  StructLitExpr  :: Span
-  expr 1448:37  IdentExpr      :: ?
-  expr 1448:54  IdentExpr      :: ?
+  expr 1448:37  IdentExpr      :: Position
+  expr 1448:54  IdentExpr      :: Position
   expr 1449:21  StringLitExpr  :: string
   expr 144:12   CallExpr       :: usize
   expr 144:12   FieldExpr      :: fn() -> usize
@@ -2537,9 +2537,9 @@
   expr 1453:16  StructLitExpr  :: BinaryExpr
   expr 1453:9   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1454:22  StructLitExpr  :: Span
-  expr 1454:38  FieldExpr      :: ?
+  expr 1454:38  FieldExpr      :: Position
   expr 1454:38  IdentExpr      :: Span
-  expr 1454:62  IdentExpr      :: ?
+  expr 1454:62  IdentExpr      :: Position
   expr 1455:22  DotVariantExpr :: BinaryOp
   expr 1456:22  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1457:22  IdentExpr      :: IdentExpr
@@ -2557,10 +2557,10 @@
   expr 1464:10  CallExpr       :: Token
   expr 1464:10  FieldExpr      :: fn() -> Token
   expr 1464:10  IdentExpr      :: Parser
-  expr 1465:18  DotVariantExpr :: ?
+  expr 1465:18  DotVariantExpr :: TokenKind
   expr 1465:5   IfExpr         :: void
   expr 1465:8   BinaryExpr     :: bool
-  expr 1465:8   FieldExpr      :: ?
+  expr 1465:8   FieldExpr      :: TokenKind
   expr 1465:8   IdentExpr      :: Token
   expr 1466:9   CallExpr       :: Token
   expr 1466:9   FieldExpr      :: fn() -> Token
@@ -2591,12 +2591,12 @@
   expr 146:8    FieldExpr      :: fn() -> usize
   expr 146:8    IdentExpr      :: (AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl)[]
   expr 146:9    IfExpr         :: void
-  expr 1470:36  FieldExpr      :: ?
+  expr 1470:36  FieldExpr      :: string
   expr 1470:36  IdentExpr      :: Token
-  expr 1475:18  DotVariantExpr :: ?
+  expr 1475:18  DotVariantExpr :: TokenKind
   expr 1475:5   IfExpr         :: void
   expr 1475:8   BinaryExpr     :: bool
-  expr 1475:8   FieldExpr      :: ?
+  expr 1475:8   FieldExpr      :: TokenKind
   expr 1475:8   IdentExpr      :: Token
   expr 1476:16  CallExpr       :: FnTypeExpr
   expr 1476:16  FieldExpr      :: fn() -> FnTypeExpr
@@ -2612,10 +2612,10 @@
   expr 147:9    CallExpr       :: void
   expr 147:9    FieldExpr      :: fn() -> void
   expr 147:9    IdentExpr      :: StringBuilder
-  expr 1480:18  DotVariantExpr :: ?
+  expr 1480:18  DotVariantExpr :: TokenKind
   expr 1480:5   IfExpr         :: void
   expr 1480:8   BinaryExpr     :: bool
-  expr 1480:8   FieldExpr      :: ?
+  expr 1480:8   FieldExpr      :: TokenKind
   expr 1480:8   IdentExpr      :: Token
   expr 1481:9   CallExpr       :: Token
   expr 1481:9   FieldExpr      :: fn() -> Token
@@ -2635,10 +2635,10 @@
   expr 1485:9   FieldExpr      :: fn(TokenKind, string) -> Token
   expr 1485:9   IdentExpr      :: Parser
   expr 1486:16  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 1488:18  DotVariantExpr :: ?
+  expr 1488:18  DotVariantExpr :: TokenKind
   expr 1488:5   IfExpr         :: void
   expr 1488:8   BinaryExpr     :: bool
-  expr 1488:8   FieldExpr      :: ?
+  expr 1488:8   FieldExpr      :: TokenKind
   expr 1488:8   IdentExpr      :: Token
   expr 148:13   IdentExpr      :: usize
   expr 148:17   BinaryExpr     :: usize
@@ -2661,7 +2661,7 @@
   expr 1498:13  FieldExpr      :: fn(ParserCode, Span, string) -> void
   expr 1498:13  IdentExpr      :: Parser
   expr 1498:21  DotVariantExpr :: ParserCode
-  expr 1498:36  FieldExpr      :: ?
+  expr 1498:36  FieldExpr      :: Span
   expr 1498:36  IdentExpr      :: Token
   expr 1498:44  StringLitExpr  :: string
   expr 1499:20  CallExpr       :: Token
@@ -2761,36 +2761,36 @@
   expr 1523:35  IdentExpr      :: Token
   expr 1523:42  IdentExpr      :: Token
   expr 1524:25  IdentExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
-  expr 1527:18  DotVariantExpr :: ?
+  expr 1527:18  DotVariantExpr :: TokenKind
   expr 1527:5   IfExpr         :: void
   expr 1527:8   BinaryExpr     :: bool
-  expr 1527:8   FieldExpr      :: ?
+  expr 1527:8   FieldExpr      :: TokenKind
   expr 1527:8   IdentExpr      :: Token
   expr 1528:9   CallExpr       :: Token
   expr 1528:9   FieldExpr      :: fn() -> Token
   expr 1528:9   IdentExpr      :: Parser
   expr 1529:16  CallExpr       :: IdentExpr
   expr 1529:16  IdentExpr      :: fn(Span, string) -> IdentExpr
-  expr 1529:27  FieldExpr      :: ?
+  expr 1529:27  FieldExpr      :: Span
   expr 1529:27  IdentExpr      :: Token
   expr 1529:35  StringLitExpr  :: string
   expr 152:13   IdentExpr      :: i32
   expr 152:14   IdentExpr      :: (AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl)[]
   expr 152:21   BinaryExpr     :: i32
   expr 152:21   IdentExpr      :: i32
-  expr 1531:18  DotVariantExpr :: ?
+  expr 1531:18  DotVariantExpr :: TokenKind
   expr 1531:5   IfExpr         :: void
   expr 1531:8   BinaryExpr     :: bool
-  expr 1531:8   FieldExpr      :: ?
+  expr 1531:8   FieldExpr      :: TokenKind
   expr 1531:8   IdentExpr      :: Token
   expr 1532:17  CallExpr       :: Token
   expr 1532:17  FieldExpr      :: fn() -> Token
   expr 1532:17  IdentExpr      :: Parser
   expr 1533:22  CallExpr       :: IdentExpr
   expr 1533:22  IdentExpr      :: fn(Span, string) -> IdentExpr
-  expr 1533:33  FieldExpr      :: ?
+  expr 1533:33  FieldExpr      :: Span
   expr 1533:33  IdentExpr      :: Token
-  expr 1533:44  FieldExpr      :: ?
+  expr 1533:44  FieldExpr      :: string
   expr 1533:44  IdentExpr      :: Token
   expr 153:12   UnaryExpr      :: bool
   expr 153:13   IdentExpr      :: bool
@@ -2818,16 +2818,16 @@
   expr 1543:13  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1543:20  StructLitExpr  :: FieldExpr
   expr 1544:31  StructLitExpr  :: Span
-  expr 1544:47  FieldExpr      :: ?
+  expr 1544:47  FieldExpr      :: Position
   expr 1544:47  FieldExpr      :: Span
   expr 1544:47  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 1544:71  FieldExpr      :: ?
-  expr 1544:71  FieldExpr      :: ?
+  expr 1544:71  FieldExpr      :: Position
+  expr 1544:71  FieldExpr      :: Span
   expr 1544:71  IdentExpr      :: Token
   expr 1545:31  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 1546:31  FieldExpr      :: ?
+  expr 1546:31  FieldExpr      :: string
   expr 1546:31  IdentExpr      :: Token
-  expr 1547:31  FieldExpr      :: ?
+  expr 1547:31  FieldExpr      :: Span
   expr 1547:31  IdentExpr      :: Token
   expr 154:9    IdentExpr      :: bool
   expr 1555:12  BinaryExpr     :: bool
@@ -2855,7 +2855,7 @@
   expr 1560:30  IdentExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
   expr 1563:16  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1565:13  DotVariantExpr :: ParserCode
-  expr 1565:28  FieldExpr      :: ?
+  expr 1565:28  FieldExpr      :: Span
   expr 1565:28  IdentExpr      :: Token
   expr 1565:36  StringLitExpr  :: string
   expr 1565:43  CallExpr       :: string
@@ -2869,7 +2869,7 @@
   expr 1566:5   IdentExpr      :: Parser
   expr 1567:12  CallExpr       :: IdentExpr
   expr 1567:12  IdentExpr      :: fn(Span, string) -> IdentExpr
-  expr 1567:23  FieldExpr      :: ?
+  expr 1567:23  FieldExpr      :: Span
   expr 1567:23  IdentExpr      :: Token
   expr 1567:31  StringLitExpr  :: string
   expr 156:13   BinaryExpr     :: usize
@@ -3289,15 +3289,15 @@
   expr 1743:16  DotVariantExpr :: TokenKind
   expr 1743:24  BinaryExpr     :: bool
   expr 1743:24  CallExpr       :: Token
-  expr 1743:24  FieldExpr      :: ?
+  expr 1743:24  FieldExpr      :: TokenKind
   expr 1743:24  FieldExpr      :: fn(i32) -> Token
   expr 1743:24  IdentExpr      :: Parser
-  expr 1743:45  DotVariantExpr :: ?
+  expr 1743:45  DotVariantExpr :: TokenKind
   expr 1743:5   IfExpr         :: void
   expr 1743:55  BinaryExpr     :: bool
   expr 1743:55  CallExpr       :: Token
-  expr 1743:55  FieldExpr      :: ?
   expr 1743:55  FieldExpr      :: fn(i32) -> Token
+  expr 1743:55  FieldExpr      :: string
   expr 1743:55  IdentExpr      :: Parser
   expr 1743:76  StringLitExpr  :: string
   expr 1743:8   BinaryExpr     :: bool
@@ -3366,7 +3366,7 @@
   expr 1755:16  CallExpr       :: ForStmt
   expr 1755:16  FieldExpr      :: fn(null | string, bool) -> ForStmt
   expr 1755:16  IdentExpr      :: Parser
-  expr 1755:28  FieldExpr      :: ?
+  expr 1755:28  FieldExpr      :: string
   expr 1755:28  IdentExpr      :: Token
   expr 1760:16  DotVariantExpr :: TokenKind
   expr 1760:30  CallExpr       :: bool
@@ -3444,15 +3444,15 @@
   expr 177:39   CallExpr       :: usize
   expr 177:39   FieldExpr      :: fn() -> usize
   expr 177:39   IdentExpr      :: NodeIdFactory
-  expr 1783:17  CallExpr       :: ?
+  expr 1783:17  CallExpr       :: CompoundOpResult
   expr 1783:17  CallExpr       :: Token
-  expr 1783:17  FieldExpr      :: ?
-  expr 1783:17  FieldExpr      :: ?
+  expr 1783:17  FieldExpr      :: TokenKind
+  expr 1783:17  FieldExpr      :: fn() -> CompoundOpResult
   expr 1783:17  FieldExpr      :: fn() -> Token
   expr 1783:17  IdentExpr      :: Parser
   expr 1784:5   IfExpr         :: void
-  expr 1784:8   FieldExpr      :: ?
-  expr 1784:8   IdentExpr      :: ?
+  expr 1784:8   FieldExpr      :: bool
+  expr 1784:8   IdentExpr      :: CompoundOpResult
   expr 1785:9   CallExpr       :: Token
   expr 1785:9   FieldExpr      :: fn() -> Token
   expr 1785:9   IdentExpr      :: Parser
@@ -3472,8 +3472,8 @@
   expr 1790:23  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1791:23  StructLitExpr  :: BinaryExpr
   expr 1791:44  IdentExpr      :: Span
-  expr 1791:54  FieldExpr      :: ?
-  expr 1791:54  IdentExpr      :: ?
+  expr 1791:54  FieldExpr      :: BinaryOp
+  expr 1791:54  IdentExpr      :: CompoundOpResult
   expr 1791:75  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1791:90  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1794:12  StructLitExpr  :: ExprStmt
@@ -3518,10 +3518,10 @@
   expr 1816:12  CallExpr       :: Token
   expr 1816:12  FieldExpr      :: fn() -> Token
   expr 1816:12  IdentExpr      :: Parser
-  expr 1818:20  DotVariantExpr :: ?
+  expr 1818:20  DotVariantExpr :: TokenKind
   expr 1818:5   IfExpr         :: Token | void
   expr 1818:8   BinaryExpr     :: bool
-  expr 1818:8   FieldExpr      :: ?
+  expr 1818:8   FieldExpr      :: TokenKind
   expr 1818:8   IdentExpr      :: Token
   expr 1819:9   CallExpr       :: Token
   expr 1819:9   FieldExpr      :: fn() -> Token
@@ -3544,11 +3544,11 @@
   expr 1824:14  FieldExpr      :: fn(i32) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1824:14  IdentExpr      :: Parser
   expr 1825:16  StructLitExpr  :: SimpleBinding
-  expr 1826:22  FieldExpr      :: ?
+  expr 1826:22  FieldExpr      :: Span
   expr 1826:22  IdentExpr      :: Token
-  expr 1827:22  FieldExpr      :: ?
+  expr 1827:22  FieldExpr      :: string
   expr 1827:22  IdentExpr      :: Token
-  expr 1828:22  FieldExpr      :: ?
+  expr 1828:22  FieldExpr      :: Span
   expr 1828:22  IdentExpr      :: Token
   expr 182:21   FieldExpr      :: string
   expr 182:21   IdentExpr      :: ImportDecl
@@ -3582,18 +3582,18 @@
   expr 1841:17  FieldExpr      :: fn() -> Token
   expr 1841:17  IdentExpr      :: Parser
   expr 1842:16  BinaryExpr     :: bool
-  expr 1842:16  FieldExpr      :: ?
+  expr 1842:16  FieldExpr      :: TokenKind
   expr 1842:16  IdentExpr      :: Token
-  expr 1842:33  DotVariantExpr :: ?
+  expr 1842:33  DotVariantExpr :: TokenKind
   expr 1843:14  CallExpr       :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1843:14  FieldExpr      :: fn(i32) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 1843:14  IdentExpr      :: Parser
   expr 1844:16  StructLitExpr  :: SimpleBinding
-  expr 1845:22  FieldExpr      :: ?
+  expr 1845:22  FieldExpr      :: Span
   expr 1845:22  IdentExpr      :: Token
-  expr 1846:22  FieldExpr      :: ?
+  expr 1846:22  FieldExpr      :: string
   expr 1846:22  IdentExpr      :: Token
-  expr 1847:22  FieldExpr      :: ?
+  expr 1847:22  FieldExpr      :: Span
   expr 1847:22  IdentExpr      :: Token
   expr 1849:12  StructLitExpr  :: LetStmt
   expr 184:25   SeqLitExpr     :: Diagnostic[]
@@ -3638,7 +3638,7 @@
   expr 1865:9   BinaryExpr     :: bool
   expr 1865:9   BinaryExpr     :: bool
   expr 1865:9   IdentExpr      :: i32
-  expr 1866:14  FieldExpr      :: ?
+  expr 1866:14  FieldExpr      :: TokenKind
   expr 1866:14  FieldExpr      :: Token[]
   expr 1866:14  IdentExpr      :: Parser
   expr 1866:14  IndexExpr      :: Token
@@ -3646,20 +3646,20 @@
   expr 1866:23  IdentExpr      :: type
   expr 1866:29  IdentExpr      :: i32
   expr 1867:12  BinaryExpr     :: bool
-  expr 1867:12  IdentExpr      :: ?
-  expr 1867:17  DotVariantExpr :: ?
+  expr 1867:12  IdentExpr      :: TokenKind
+  expr 1867:17  DotVariantExpr :: TokenKind
   expr 1867:9   IfExpr         :: void
   expr 1868:12  BinaryExpr     :: bool
-  expr 1868:12  IdentExpr      :: ?
-  expr 1868:17  DotVariantExpr :: ?
+  expr 1868:12  IdentExpr      :: TokenKind
+  expr 1868:17  DotVariantExpr :: TokenKind
   expr 1868:29  IdentExpr      :: i32
   expr 1868:37  BinaryExpr     :: i32
   expr 1868:37  IdentExpr      :: i32
   expr 1868:9   IfExpr         :: void
   expr 1869:14  IfExpr         :: void
   expr 1869:17  BinaryExpr     :: bool
-  expr 1869:17  IdentExpr      :: ?
-  expr 1869:22  DotVariantExpr :: ?
+  expr 1869:17  IdentExpr      :: TokenKind
+  expr 1869:22  DotVariantExpr :: TokenKind
   expr 186:25   FieldExpr      :: Decorator[]
   expr 186:25   IdentExpr      :: ImportDecl
   expr 186:36   FieldExpr      :: usize
@@ -3688,14 +3688,14 @@
   expr 1876:10  IdentExpr      :: i32
   expr 1877:13  IdentExpr      :: i32
   expr 1877:18  BinaryExpr     :: bool
-  expr 1877:18  FieldExpr      :: ?
+  expr 1877:18  FieldExpr      :: TokenKind
   expr 1877:18  FieldExpr      :: Token[]
   expr 1877:18  IdentExpr      :: Parser
   expr 1877:18  IndexExpr      :: Token
   expr 1877:27  CallExpr       :: usize
   expr 1877:27  IdentExpr      :: type
   expr 1877:33  IdentExpr      :: i32
-  expr 1877:45  DotVariantExpr :: ?
+  expr 1877:45  DotVariantExpr :: TokenKind
   expr 1877:56  IdentExpr      :: i32
   expr 1877:60  BinaryExpr     :: i32
   expr 1877:60  IdentExpr      :: i32
@@ -3706,7 +3706,7 @@
   expr 1878:5   IfExpr         :: void
   expr 1878:8   BinaryExpr     :: bool
   expr 1878:8   IdentExpr      :: i32
-  expr 1879:13  FieldExpr      :: ?
+  expr 1879:13  FieldExpr      :: TokenKind
   expr 1879:13  FieldExpr      :: Token[]
   expr 1879:13  IdentExpr      :: Parser
   expr 1879:13  IndexExpr      :: Token
@@ -3725,14 +3725,14 @@
   expr 1880:12  BinaryExpr     :: bool
   expr 1880:12  BinaryExpr     :: bool
   expr 1880:12  BinaryExpr     :: bool
-  expr 1880:12  IdentExpr      :: ?
-  expr 1880:20  DotVariantExpr :: ?
+  expr 1880:12  IdentExpr      :: TokenKind
+  expr 1880:20  DotVariantExpr :: TokenKind
   expr 1880:34  BinaryExpr     :: bool
-  expr 1880:34  IdentExpr      :: ?
-  expr 1880:42  DotVariantExpr :: ?
+  expr 1880:34  IdentExpr      :: TokenKind
+  expr 1880:42  DotVariantExpr :: TokenKind
   expr 1880:54  BinaryExpr     :: bool
-  expr 1880:54  IdentExpr      :: ?
-  expr 1880:62  DotVariantExpr :: ?
+  expr 1880:54  IdentExpr      :: TokenKind
+  expr 1880:62  DotVariantExpr :: TokenKind
   expr 1884:14  CallExpr       :: Token
   expr 1884:14  FieldExpr      :: fn() -> Token
   expr 1884:14  IdentExpr      :: Parser
@@ -3760,9 +3760,9 @@
   expr 1891:16  FieldExpr      :: fn() -> Token
   expr 1891:16  IdentExpr      :: Parser
   expr 1892:12  BinaryExpr     :: bool
-  expr 1892:12  FieldExpr      :: ?
+  expr 1892:12  FieldExpr      :: TokenKind
   expr 1892:12  IdentExpr      :: Token
-  expr 1892:24  DotVariantExpr :: ?
+  expr 1892:24  DotVariantExpr :: TokenKind
   expr 1892:9   IfExpr         :: Token | void
   expr 1893:13  CallExpr       :: Token
   expr 1893:13  FieldExpr      :: fn() -> Token
@@ -3787,22 +3787,22 @@
   expr 18:5     IdentExpr      :: ?
   expr 1900:12  BinaryExpr     :: bool
   expr 1900:12  BinaryExpr     :: bool
-  expr 1900:12  FieldExpr      :: ?
+  expr 1900:12  FieldExpr      :: TokenKind
   expr 1900:12  IdentExpr      :: Token
-  expr 1900:29  DotVariantExpr :: ?
+  expr 1900:29  DotVariantExpr :: TokenKind
   expr 1900:43  BinaryExpr     :: bool
-  expr 1900:43  FieldExpr      :: ?
+  expr 1900:43  FieldExpr      :: TokenKind
   expr 1900:43  IdentExpr      :: Token
-  expr 1900:60  DotVariantExpr :: ?
+  expr 1900:60  DotVariantExpr :: TokenKind
   expr 1900:9   IfExpr         :: Token | void
   expr 1901:13  CallExpr       :: Token
   expr 1901:13  FieldExpr      :: fn() -> Token
   expr 1901:13  IdentExpr      :: Parser
   expr 1902:13  IdentExpr      :: bool
   expr 1902:23  BinaryExpr     :: bool
-  expr 1902:23  FieldExpr      :: ?
+  expr 1902:23  FieldExpr      :: TokenKind
   expr 1902:23  IdentExpr      :: Token
-  expr 1902:40  DotVariantExpr :: ?
+  expr 1902:40  DotVariantExpr :: TokenKind
   expr 1904:13  CallExpr       :: Token
   expr 1904:13  FieldExpr      :: fn(TokenKind, string) -> Token
   expr 1904:13  IdentExpr      :: Parser
@@ -3890,9 +3890,9 @@
   expr 1930:38  IdentExpr      :: Parser
   expr 1930:48  IdentExpr      :: Token
   expr 1930:59  IdentExpr      :: Token
-  expr 1931:38  FieldExpr      :: ?
+  expr 1931:38  FieldExpr      :: string
   expr 1931:38  IdentExpr      :: Token
-  expr 1932:38  FieldExpr      :: ?
+  expr 1932:38  FieldExpr      :: Span
   expr 1932:38  IdentExpr      :: Token
   expr 1935:21  CallExpr       :: void
   expr 1935:21  FieldExpr      :: fn(RestBinding | SimpleBinding | TupleBinding | WildcardBinding) -> void
@@ -3963,8 +3963,8 @@
   expr 1951:16  DotVariantExpr :: TokenKind
   expr 1951:27  BinaryExpr     :: bool
   expr 1951:27  CallExpr       :: Token
-  expr 1951:27  FieldExpr      :: ?
   expr 1951:27  FieldExpr      :: fn() -> Token
+  expr 1951:27  FieldExpr      :: string
   expr 1951:27  IdentExpr      :: Parser
   expr 1951:44  StringLitExpr  :: string
   expr 1951:5   IfExpr         :: void
@@ -3976,7 +3976,7 @@
   expr 1952:16  FieldExpr      :: fn() -> Token
   expr 1952:16  IdentExpr      :: Parser
   expr 1953:16  StructLitExpr  :: WildcardBinding
-  expr 1953:42  FieldExpr      :: ?
+  expr 1953:42  FieldExpr      :: Span
   expr 1953:42  IdentExpr      :: Token
   expr 1955:12  CallExpr       :: Token
   expr 1955:12  FieldExpr      :: fn(TokenKind, string) -> Token
@@ -3984,11 +3984,11 @@
   expr 1955:21  DotVariantExpr :: TokenKind
   expr 1955:29  StringLitExpr  :: string
   expr 1956:12  StructLitExpr  :: SimpleBinding
-  expr 1957:22  FieldExpr      :: ?
+  expr 1957:22  FieldExpr      :: Span
   expr 1957:22  IdentExpr      :: Token
-  expr 1958:22  FieldExpr      :: ?
+  expr 1958:22  FieldExpr      :: string
   expr 1958:22  IdentExpr      :: Token
-  expr 1959:22  FieldExpr      :: ?
+  expr 1959:22  FieldExpr      :: Span
   expr 1959:22  IdentExpr      :: Token
   expr 195:13   CallExpr       :: void
   expr 195:13   FieldExpr      :: fn(bool, i32, string) -> void
@@ -4084,10 +4084,10 @@
   expr 197:40   StringLitExpr  :: string
   expr 1980:16  StructLitExpr  :: ForStmt
   expr 1981:22  StructLitExpr  :: Span
-  expr 1981:38  FieldExpr      :: ?
-  expr 1981:38  FieldExpr      :: ?
+  expr 1981:38  FieldExpr      :: Position
+  expr 1981:38  FieldExpr      :: Span
   expr 1981:38  IdentExpr      :: Token
-  expr 1981:63  FieldExpr      :: ?
+  expr 1981:63  FieldExpr      :: Position
   expr 1981:63  FieldExpr      :: Span
   expr 1981:63  IdentExpr      :: BlockExpr
   expr 1982:22  IdentExpr      :: null | string
@@ -4133,10 +4133,10 @@
   expr 1997:17  IdentExpr      :: Parser
   expr 1998:16  StructLitExpr  :: ForStmt
   expr 1999:22  StructLitExpr  :: Span
-  expr 1999:38  FieldExpr      :: ?
-  expr 1999:38  FieldExpr      :: ?
+  expr 1999:38  FieldExpr      :: Position
+  expr 1999:38  FieldExpr      :: Span
   expr 1999:38  IdentExpr      :: Token
-  expr 1999:63  FieldExpr      :: ?
+  expr 1999:63  FieldExpr      :: Position
   expr 1999:63  FieldExpr      :: Span
   expr 1999:63  IdentExpr      :: BlockExpr
   expr 199:30   CallExpr       :: ?
@@ -4151,9 +4151,9 @@
   expr 19:5     IdentExpr      :: ?
   expr 2000:22  IdentExpr      :: null | string
   expr 2001:22  StructLitExpr  :: InFor
-  expr 2001:41  FieldExpr      :: ?
+  expr 2001:41  FieldExpr      :: string
   expr 2001:41  IdentExpr      :: Token
-  expr 2001:72  FieldExpr      :: ?
+  expr 2001:72  FieldExpr      :: Span
   expr 2001:72  IdentExpr      :: Token
   expr 2001:95  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2002:22  IdentExpr      :: BlockExpr
@@ -4199,13 +4199,13 @@
   expr 201:10   IdentExpr      :: Parser
   expr 201:18   IdentExpr      :: i32
   expr 2022:18  StringLitExpr  :: string
-  expr 2022:27  FieldExpr      :: ?
-  expr 2022:27  FieldExpr      :: ?
-  expr 2022:27  FieldExpr      :: ?
+  expr 2022:27  FieldExpr      :: Position
+  expr 2022:27  FieldExpr      :: Span
+  expr 2022:27  FieldExpr      :: i32
   expr 2022:27  IdentExpr      :: Token
-  expr 2022:52  FieldExpr      :: ?
-  expr 2022:52  FieldExpr      :: ?
-  expr 2022:52  FieldExpr      :: ?
+  expr 2022:52  FieldExpr      :: Position
+  expr 2022:52  FieldExpr      :: Span
+  expr 2022:52  FieldExpr      :: i32
   expr 2022:52  IdentExpr      :: Token
   expr 2023:24  CallExpr       :: IdentExpr
   expr 2023:24  IdentExpr      :: fn(Span, string) -> IdentExpr
@@ -4255,10 +4255,10 @@
   expr 203:8    BinaryExpr     :: bool
   expr 203:8    IdentExpr      :: i32
   expr 2040:22  StructLitExpr  :: Span
-  expr 2040:38  FieldExpr      :: ?
-  expr 2040:38  FieldExpr      :: ?
+  expr 2040:38  FieldExpr      :: Position
+  expr 2040:38  FieldExpr      :: Span
   expr 2040:38  IdentExpr      :: Token
-  expr 2040:63  FieldExpr      :: ?
+  expr 2040:63  FieldExpr      :: Position
   expr 2040:63  FieldExpr      :: Span
   expr 2040:63  IdentExpr      :: BlockExpr
   expr 2041:22  IdentExpr      :: null | string
@@ -4295,18 +4295,18 @@
   expr 2055:8   BinaryExpr     :: bool
   expr 2055:8   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2056:23  StructLitExpr  :: Span
-  expr 2056:39  FieldExpr      :: ?
+  expr 2056:39  FieldExpr      :: Position
   expr 2056:39  FieldExpr      :: Span
   expr 2056:39  IdentExpr      :: RangeExpr
-  expr 2056:63  FieldExpr      :: ?
+  expr 2056:63  FieldExpr      :: Position
   expr 2056:63  FieldExpr      :: Span
   expr 2056:63  IdentExpr      :: RangeExpr
   expr 2057:16  StructLitExpr  :: ForStmt
   expr 2058:22  StructLitExpr  :: Span
-  expr 2058:38  FieldExpr      :: ?
-  expr 2058:38  FieldExpr      :: ?
+  expr 2058:38  FieldExpr      :: Position
+  expr 2058:38  FieldExpr      :: Span
   expr 2058:38  IdentExpr      :: Token
-  expr 2058:63  FieldExpr      :: ?
+  expr 2058:63  FieldExpr      :: Position
   expr 2058:63  FieldExpr      :: Span
   expr 2058:63  IdentExpr      :: BlockExpr
   expr 2059:22  IdentExpr      :: null | string
@@ -4330,10 +4330,10 @@
   expr 2062:28  IdentExpr      :: bool
   expr 2065:12  StructLitExpr  :: ForStmt
   expr 2066:18  StructLitExpr  :: Span
-  expr 2066:34  FieldExpr      :: ?
-  expr 2066:34  FieldExpr      :: ?
+  expr 2066:34  FieldExpr      :: Position
+  expr 2066:34  FieldExpr      :: Span
   expr 2066:34  IdentExpr      :: Token
-  expr 2066:59  FieldExpr      :: ?
+  expr 2066:59  FieldExpr      :: Position
   expr 2066:59  FieldExpr      :: Span
   expr 2066:59  IdentExpr      :: BlockExpr
   expr 2067:18  IdentExpr      :: null | string
@@ -4369,23 +4369,23 @@
   expr 2083:14  IdentExpr      :: Parser
   expr 2083:24  IdentExpr      :: i32
   expr 2084:12  BinaryExpr     :: bool
-  expr 2084:12  FieldExpr      :: ?
+  expr 2084:12  FieldExpr      :: TokenKind
   expr 2084:12  IdentExpr      :: Token
-  expr 2084:22  DotVariantExpr :: ?
+  expr 2084:22  DotVariantExpr :: TokenKind
   expr 2084:9   IfExpr         :: void
   expr 2085:12  BinaryExpr     :: bool
-  expr 2085:12  FieldExpr      :: ?
+  expr 2085:12  FieldExpr      :: TokenKind
   expr 2085:12  IdentExpr      :: Token
-  expr 2085:22  DotVariantExpr :: ?
+  expr 2085:22  DotVariantExpr :: TokenKind
   expr 2085:34  IdentExpr      :: i32
   expr 2085:42  BinaryExpr     :: i32
   expr 2085:42  IdentExpr      :: i32
   expr 2085:9   IfExpr         :: void
   expr 2086:14  IfExpr         :: void
   expr 2086:17  BinaryExpr     :: bool
-  expr 2086:17  FieldExpr      :: ?
+  expr 2086:17  FieldExpr      :: TokenKind
   expr 2086:17  IdentExpr      :: Token
-  expr 2086:27  DotVariantExpr :: ?
+  expr 2086:27  DotVariantExpr :: TokenKind
   expr 2087:13  IdentExpr      :: i32
   expr 2087:21  BinaryExpr     :: i32
   expr 2087:21  IdentExpr      :: i32
@@ -4400,7 +4400,7 @@
   expr 2089:42  IdentExpr      :: i32
   expr 208:12   BinaryExpr     :: bool
   expr 208:12   CallExpr       :: Token
-  expr 208:12   FieldExpr      :: ?
+  expr 208:12   FieldExpr      :: TokenKind
   expr 208:12   FieldExpr      :: fn() -> Token
   expr 208:12   IdentExpr      :: Parser
   expr 208:17   FieldExpr      :: usize
@@ -4430,8 +4430,8 @@
   expr 209:5    FieldExpr      :: fn(i32) -> void
   expr 209:5    IdentExpr      :: StringBuilder
   expr 2100:17  CallExpr       :: Token
-  expr 2100:17  FieldExpr      :: ?
   expr 2100:17  FieldExpr      :: fn() -> Token
+  expr 2100:17  FieldExpr      :: string
   expr 2100:17  IdentExpr      :: Parser
   expr 2100:9   IdentExpr      :: null | string
   expr 2102:12  StructLitExpr  :: BreakStmt
@@ -4453,8 +4453,8 @@
   expr 2111:8   FieldExpr      :: fn(TokenKind) -> bool
   expr 2111:8   IdentExpr      :: Parser
   expr 2112:17  CallExpr       :: Token
-  expr 2112:17  FieldExpr      :: ?
   expr 2112:17  FieldExpr      :: fn() -> Token
+  expr 2112:17  FieldExpr      :: string
   expr 2112:17  IdentExpr      :: Parser
   expr 2112:9   IdentExpr      :: null | string
   expr 2114:12  StructLitExpr  :: ContinueStmt
@@ -4470,11 +4470,11 @@
   expr 2121:14  CallExpr       :: Token
   expr 2121:14  FieldExpr      :: fn() -> Token
   expr 2121:14  IdentExpr      :: Parser
-  expr 2122:108 FieldExpr      :: ?
+  expr 2122:108 FieldExpr      :: Span
   expr 2122:108 IdentExpr      :: Token
   expr 2122:23  StructLitExpr  :: DeferStmtBody
   expr 2122:47  StructLitExpr  :: ExprStmt
-  expr 2122:66  FieldExpr      :: ?
+  expr 2122:66  FieldExpr      :: Span
   expr 2122:66  IdentExpr      :: Token
   expr 2122:86  StructLitExpr  :: NullLitExpr
   expr 2123:16  DotVariantExpr :: TokenKind
@@ -4498,7 +4498,7 @@
   expr 2128:44  IdentExpr      :: AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt
   expr 212:12   BinaryExpr     :: bool
   expr 212:12   CallExpr       :: Token
-  expr 212:12   FieldExpr      :: ?
+  expr 212:12   FieldExpr      :: TokenKind
   expr 212:12   FieldExpr      :: fn(i32) -> Token
   expr 212:12   IdentExpr      :: Parser
   expr 212:22   IdentExpr      :: i32
@@ -4513,10 +4513,10 @@
   expr 2133:30  IdentExpr      :: DeferBlockBody
   expr 2135:12  StructLitExpr  :: DeferStmt
   expr 2136:17  StructLitExpr  :: Span
-  expr 2136:33  FieldExpr      :: ?
-  expr 2136:33  FieldExpr      :: ?
+  expr 2136:33  FieldExpr      :: Position
+  expr 2136:33  FieldExpr      :: Span
   expr 2136:33  IdentExpr      :: Token
-  expr 2136:58  FieldExpr      :: ?
+  expr 2136:58  FieldExpr      :: Position
   expr 2136:58  IdentExpr      :: Span
   expr 2137:17  IdentExpr      :: DeferBlockBody | DeferStmtBody
   expr 213:13   FieldExpr      :: usize
@@ -4881,7 +4881,7 @@
   expr 2318:22  UnaryExpr      :: i32
   expr 2319:22  UnaryExpr      :: i32
   expr 231:10   CallExpr       :: Token
-  expr 231:10   FieldExpr      :: ?
+  expr 231:10   FieldExpr      :: TokenKind
   expr 231:10   FieldExpr      :: fn() -> Token
   expr 231:10   IdentExpr      :: Parser
   expr 231:13   FieldExpr      :: usize
@@ -4904,15 +4904,15 @@
   expr 2329:22  UnaryExpr      :: i32
   expr 232:12   BinaryExpr     :: bool
   expr 232:12   BinaryExpr     :: bool
-  expr 232:12   IdentExpr      :: ?
+  expr 232:12   IdentExpr      :: TokenKind
   expr 232:13   CallExpr       :: void
   expr 232:13   IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, NodeIdFactory) -> void
-  expr 232:17   DotVariantExpr :: ?
+  expr 232:17   DotVariantExpr :: TokenKind
   expr 232:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 232:23   IdentExpr      :: IfExpr
   expr 232:24   BinaryExpr     :: bool
-  expr 232:24   IdentExpr      :: ?
-  expr 232:29   DotVariantExpr :: ?
+  expr 232:24   IdentExpr      :: TokenKind
+  expr 232:29   DotVariantExpr :: TokenKind
   expr 232:31   CallExpr       :: void
   expr 232:31   FieldExpr      :: fn(string) -> void
   expr 232:31   IdentExpr      :: NodeIdFactory
@@ -4952,7 +4952,7 @@
   expr 2351:14  IdentExpr      :: Parser
   expr 2352:16  CallExpr       :: i32
   expr 2352:16  IdentExpr      :: fn(TokenKind) -> i32
-  expr 2352:27  FieldExpr      :: ?
+  expr 2352:27  FieldExpr      :: TokenKind
   expr 2352:27  IdentExpr      :: Token
   expr 2353:12  BinaryExpr     :: bool
   expr 2353:12  BinaryExpr     :: bool
@@ -4963,13 +4963,13 @@
   expr 2353:9   IfExpr         :: void
   expr 2362:27  BinaryExpr     :: bool
   expr 2362:27  BinaryExpr     :: bool
-  expr 2362:27  FieldExpr      :: ?
+  expr 2362:27  FieldExpr      :: TokenKind
   expr 2362:27  IdentExpr      :: Token
-  expr 2362:37  DotVariantExpr :: ?
+  expr 2362:37  DotVariantExpr :: TokenKind
   expr 2362:50  BinaryExpr     :: bool
-  expr 2362:50  FieldExpr      :: ?
+  expr 2362:50  FieldExpr      :: TokenKind
   expr 2362:50  IdentExpr      :: Token
-  expr 2362:60  DotVariantExpr :: ?
+  expr 2362:60  DotVariantExpr :: TokenKind
   expr 2363:13  IfExpr         :: void
   expr 2363:16  BinaryExpr     :: bool
   expr 2363:16  IdentExpr      :: bool
@@ -5004,15 +5004,15 @@
   expr 2370:12  BinaryExpr     :: bool
   expr 2370:12  BinaryExpr     :: bool
   expr 2370:12  BinaryExpr     :: bool
-  expr 2370:12  FieldExpr      :: ?
+  expr 2370:12  FieldExpr      :: TokenKind
   expr 2370:12  IdentExpr      :: Token
-  expr 2370:22  DotVariantExpr :: ?
+  expr 2370:22  DotVariantExpr :: TokenKind
   expr 2370:31  BinaryExpr     :: bool
   expr 2370:31  CallExpr       :: Token
-  expr 2370:31  FieldExpr      :: ?
+  expr 2370:31  FieldExpr      :: TokenKind
   expr 2370:31  FieldExpr      :: fn(i32) -> Token
   expr 2370:31  IdentExpr      :: Parser
-  expr 2370:52  DotVariantExpr :: ?
+  expr 2370:52  DotVariantExpr :: TokenKind
   expr 2370:61  BinaryExpr     :: bool
   expr 2370:67  IdentExpr      :: i32
   expr 2370:9   IfExpr         :: void
@@ -5023,7 +5023,7 @@
   expr 2372:17  FieldExpr      :: fn(ParserCode, Span, string) -> void
   expr 2372:17  IdentExpr      :: Parser
   expr 2372:25  DotVariantExpr :: ParserCode
-  expr 2372:43  FieldExpr      :: ?
+  expr 2372:43  FieldExpr      :: Span
   expr 2372:43  IdentExpr      :: Token
   expr 2372:51  StringLitExpr  :: string
   expr 2375:13  CallExpr       :: Token
@@ -5038,10 +5038,10 @@
   expr 2378:13  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2378:20  StructLitExpr  :: BinaryExpr
   expr 2379:26  StructLitExpr  :: Span
-  expr 2379:42  FieldExpr      :: ?
+  expr 2379:42  FieldExpr      :: Position
   expr 2379:42  FieldExpr      :: Span
   expr 2379:42  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2379:66  FieldExpr      :: ?
+  expr 2379:66  FieldExpr      :: Position
   expr 2379:66  FieldExpr      :: Span
   expr 2379:66  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 237:43   CallExpr       :: void
@@ -5057,15 +5057,15 @@
   expr 2392:12  BinaryExpr     :: bool
   expr 2392:12  BinaryExpr     :: bool
   expr 2392:12  BinaryExpr     :: bool
-  expr 2392:12  FieldExpr      :: ?
+  expr 2392:12  FieldExpr      :: TokenKind
   expr 2392:12  IdentExpr      :: Token
-  expr 2392:22  DotVariantExpr :: ?
+  expr 2392:22  DotVariantExpr :: TokenKind
   expr 2392:31  BinaryExpr     :: bool
   expr 2392:31  CallExpr       :: Token
-  expr 2392:31  FieldExpr      :: ?
+  expr 2392:31  FieldExpr      :: TokenKind
   expr 2392:31  FieldExpr      :: fn(i32) -> Token
   expr 2392:31  IdentExpr      :: Parser
-  expr 2392:52  DotVariantExpr :: ?
+  expr 2392:52  DotVariantExpr :: TokenKind
   expr 2392:61  BinaryExpr     :: bool
   expr 2392:67  IdentExpr      :: i32
   expr 2392:9   IfExpr         :: void
@@ -5076,7 +5076,7 @@
   expr 2394:17  FieldExpr      :: fn(ParserCode, Span, string) -> void
   expr 2394:17  IdentExpr      :: Parser
   expr 2394:25  DotVariantExpr :: ParserCode
-  expr 2394:43  FieldExpr      :: ?
+  expr 2394:43  FieldExpr      :: Span
   expr 2394:43  IdentExpr      :: Token
   expr 2394:51  StringLitExpr  :: string
   expr 2397:25  CallExpr       :: Token
@@ -5094,20 +5094,20 @@
   expr 2400:13  IfExpr         :: void
   expr 2400:16  BinaryExpr     :: bool
   expr 2400:16  CallExpr       :: Token
-  expr 2400:16  FieldExpr      :: ?
+  expr 2400:16  FieldExpr      :: TokenKind
   expr 2400:16  FieldExpr      :: fn() -> Token
   expr 2400:16  IdentExpr      :: Parser
-  expr 2400:33  DotVariantExpr :: ?
+  expr 2400:33  DotVariantExpr :: TokenKind
   expr 2401:27  CallExpr       :: Token
   expr 2401:27  FieldExpr      :: fn() -> Token
   expr 2401:27  IdentExpr      :: Parser
   expr 2402:17  IfExpr         :: Token | void
   expr 2402:20  BinaryExpr     :: bool
   expr 2402:20  CallExpr       :: Token
-  expr 2402:20  FieldExpr      :: ?
+  expr 2402:20  FieldExpr      :: TokenKind
   expr 2402:20  FieldExpr      :: fn() -> Token
   expr 2402:20  IdentExpr      :: Parser
-  expr 2402:37  DotVariantExpr :: ?
+  expr 2402:37  DotVariantExpr :: TokenKind
   expr 2402:46  CallExpr       :: Token
   expr 2402:46  FieldExpr      :: fn() -> Token
   expr 2402:46  IdentExpr      :: Parser
@@ -5115,15 +5115,15 @@
   expr 2403:17  FieldExpr      :: fn(ParserCode, Span, string) -> void
   expr 2403:17  IdentExpr      :: Parser
   expr 2403:25  DotVariantExpr :: ParserCode
-  expr 2403:43  FieldExpr      :: ?
+  expr 2403:43  FieldExpr      :: Span
   expr 2403:43  IdentExpr      :: Token
   expr 2404:21  StringLitExpr  :: string
   expr 2406:24  StructLitExpr  :: BinaryExpr
   expr 2407:26  StructLitExpr  :: Span
-  expr 2407:42  FieldExpr      :: ?
+  expr 2407:42  FieldExpr      :: Position
   expr 2407:42  FieldExpr      :: Span
   expr 2407:42  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2407:66  FieldExpr      :: ?
+  expr 2407:66  FieldExpr      :: Position
   expr 2407:66  FieldExpr      :: Span
   expr 2407:66  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2408:26  DotVariantExpr :: BinaryOp
@@ -5132,10 +5132,10 @@
   expr 2412:13  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2412:20  StructLitExpr  :: UnaryExpr
   expr 2413:28  StructLitExpr  :: Span
-  expr 2413:44  FieldExpr      :: ?
-  expr 2413:44  FieldExpr      :: ?
+  expr 2413:44  FieldExpr      :: Position
+  expr 2413:44  FieldExpr      :: Span
   expr 2413:44  IdentExpr      :: Token
-  expr 2413:72  FieldExpr      :: ?
+  expr 2413:72  FieldExpr      :: Position
   expr 2413:72  FieldExpr      :: Span
   expr 2413:72  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2414:28  DotVariantExpr :: UnaryOp
@@ -5148,7 +5148,7 @@
   expr 241:20   IdentExpr      :: NodeIdFactory
   expr 2421:18  CallExpr       :: InfixOpDescr
   expr 2421:18  IdentExpr      :: fn(TokenKind) -> InfixOpDescr
-  expr 2421:28  FieldExpr      :: ?
+  expr 2421:28  FieldExpr      :: TokenKind
   expr 2421:28  IdentExpr      :: Token
   expr 2422:12  BinaryExpr     :: bool
   expr 2422:12  FieldExpr      :: bool
@@ -5170,7 +5170,7 @@
   expr 2424:17  FieldExpr      :: fn(ParserCode, Span, string) -> void
   expr 2424:17  IdentExpr      :: Parser
   expr 2424:25  DotVariantExpr :: ParserCode
-  expr 2424:43  FieldExpr      :: ?
+  expr 2424:43  FieldExpr      :: Span
   expr 2424:43  IdentExpr      :: Token
   expr 2424:51  StringLitExpr  :: string
   expr 2424:63  CallExpr       :: string
@@ -5202,26 +5202,26 @@
   expr 2430:13  IfExpr         :: void
   expr 2430:16  BinaryExpr     :: bool
   expr 2430:16  BinaryExpr     :: bool
-  expr 2430:16  FieldExpr      :: ?
+  expr 2430:16  FieldExpr      :: TokenKind
   expr 2430:16  IdentExpr      :: Token
-  expr 2430:26  DotVariantExpr :: ?
+  expr 2430:26  DotVariantExpr :: TokenKind
   expr 2430:40  BinaryExpr     :: bool
-  expr 2430:40  FieldExpr      :: ?
+  expr 2430:40  FieldExpr      :: TokenKind
   expr 2430:40  IdentExpr      :: Token
-  expr 2430:50  DotVariantExpr :: ?
+  expr 2430:50  DotVariantExpr :: TokenKind
   expr 2431:17  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2431:24  StructLitExpr  :: RangeExpr
   expr 2432:34  StructLitExpr  :: Span
-  expr 2432:50  FieldExpr      :: ?
+  expr 2432:50  FieldExpr      :: Position
   expr 2432:50  FieldExpr      :: Span
   expr 2432:50  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2432:74  FieldExpr      :: ?
+  expr 2432:74  FieldExpr      :: Position
   expr 2432:74  FieldExpr      :: Span
   expr 2432:74  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2433:34  BinaryExpr     :: bool
-  expr 2433:34  FieldExpr      :: ?
+  expr 2433:34  FieldExpr      :: TokenKind
   expr 2433:34  IdentExpr      :: Token
-  expr 2433:44  DotVariantExpr :: ?
+  expr 2433:44  DotVariantExpr :: TokenKind
   expr 2434:34  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2435:34  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 243:19   BinaryExpr     :: i32
@@ -5233,7 +5233,7 @@
   expr 243:5    FieldExpr      :: fn(i32, string) -> void
   expr 243:5    IdentExpr      :: StringBuilder
   expr 2441:28  StringLitExpr  :: string
-  expr 2442:28  FieldExpr      :: ?
+  expr 2442:28  FieldExpr      :: Position
   expr 2442:28  FieldExpr      :: Span
   expr 2442:28  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2443:17  IfExpr         :: void
@@ -5244,10 +5244,10 @@
   expr 2443:32  DotVariantExpr :: BinaryOp
   expr 2443:39  BinaryExpr     :: bool
   expr 2443:39  CallExpr       :: Token
-  expr 2443:39  FieldExpr      :: ?
+  expr 2443:39  FieldExpr      :: TokenKind
   expr 2443:39  FieldExpr      :: fn() -> Token
   expr 2443:39  IdentExpr      :: Parser
-  expr 2443:56  DotVariantExpr :: ?
+  expr 2443:56  DotVariantExpr :: TokenKind
   expr 2444:21  CallExpr       :: Token
   expr 2444:21  FieldExpr      :: fn() -> Token
   expr 2444:21  IdentExpr      :: Parser
@@ -5257,11 +5257,11 @@
   expr 2445:42  DotVariantExpr :: TokenKind
   expr 2445:50  StringLitExpr  :: string
   expr 2446:21  IdentExpr      :: string
-  expr 2446:31  FieldExpr      :: ?
+  expr 2446:31  FieldExpr      :: string
   expr 2446:31  IdentExpr      :: Token
-  expr 2447:21  IdentExpr      :: ?
-  expr 2447:31  FieldExpr      :: ?
-  expr 2447:31  FieldExpr      :: ?
+  expr 2447:21  IdentExpr      :: Position
+  expr 2447:31  FieldExpr      :: Position
+  expr 2447:31  FieldExpr      :: Span
   expr 2447:31  IdentExpr      :: Token
   expr 2449:17  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2449:24  StructLitExpr  :: BinaryExpr
@@ -5277,10 +5277,10 @@
   expr 244:5    FieldExpr      :: fn(bool, i32, string) -> void
   expr 244:5    IdentExpr      :: StringBuilder
   expr 2450:32  StructLitExpr  :: Span
-  expr 2450:48  FieldExpr      :: ?
+  expr 2450:48  FieldExpr      :: Position
   expr 2450:48  FieldExpr      :: Span
   expr 2450:48  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2450:72  IdentExpr      :: ?
+  expr 2450:72  IdentExpr      :: Position
   expr 2451:32  FieldExpr      :: BinaryOp
   expr 2451:32  IdentExpr      :: InfixOpDescr
   expr 2452:32  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
@@ -5309,10 +5309,10 @@
   expr 2468:10  CallExpr       :: Token
   expr 2468:10  FieldExpr      :: fn() -> Token
   expr 2468:10  IdentExpr      :: Parser
-  expr 2469:18  DotVariantExpr :: ?
+  expr 2469:18  DotVariantExpr :: TokenKind
   expr 2469:5   IfExpr         :: void
   expr 2469:8   BinaryExpr     :: bool
-  expr 2469:8   FieldExpr      :: ?
+  expr 2469:8   FieldExpr      :: TokenKind
   expr 2469:8   IdentExpr      :: Token
   expr 246:17   MatchExpr      :: void
   expr 246:21   BinaryExpr     :: i32
@@ -5331,31 +5331,31 @@
   expr 2470:9   IdentExpr      :: Parser
   expr 2471:18  CallExpr       :: u64
   expr 2471:18  IdentExpr      :: type
-  expr 2472:16  FieldExpr      :: ?
+  expr 2472:16  FieldExpr      :: f64 | i64 | null | string | u32 | u64
   expr 2472:16  IdentExpr      :: Token
   expr 2473:12  BinaryExpr     :: bool
-  expr 2473:12  IdentExpr      :: ?
+  expr 2473:12  IdentExpr      :: f64 | i64 | null | string | u32 | u64
   expr 2473:19  IdentExpr      :: u64
   expr 2473:25  IdentExpr      :: u64
   expr 2473:29  IdentExpr      :: u64
   expr 2473:9   IfExpr         :: void
-  expr 2474:33  IfExpr         :: ?
-  expr 2474:36  UnaryExpr      :: ?
-  expr 2474:37  CallExpr       :: ?
-  expr 2474:37  FieldExpr      :: ?
-  expr 2474:37  FieldExpr      :: ?
+  expr 2474:33  IfExpr         :: null | string
+  expr 2474:36  UnaryExpr      :: bool
+  expr 2474:37  CallExpr       :: bool
+  expr 2474:37  FieldExpr      :: fn() -> bool
+  expr 2474:37  FieldExpr      :: string
   expr 2474:37  IdentExpr      :: Token
-  expr 2474:67  FieldExpr      :: ?
+  expr 2474:67  FieldExpr      :: string
   expr 2474:67  IdentExpr      :: Token
   expr 2475:16  StructLitExpr  :: IntLitExpr
-  expr 2475:37  FieldExpr      :: ?
+  expr 2475:37  FieldExpr      :: Span
   expr 2475:37  IdentExpr      :: Token
   expr 2475:54  IdentExpr      :: u64
   expr 2475:67  IdentExpr      :: null | string
-  expr 2477:18  DotVariantExpr :: ?
+  expr 2477:18  DotVariantExpr :: TokenKind
   expr 2477:5   IfExpr         :: void
   expr 2477:8   BinaryExpr     :: bool
-  expr 2477:8   FieldExpr      :: ?
+  expr 2477:8   FieldExpr      :: TokenKind
   expr 2477:8   IdentExpr      :: Token
   expr 2478:9   CallExpr       :: Token
   expr 2478:9   FieldExpr      :: fn() -> Token
@@ -5367,39 +5367,39 @@
   expr 247:5    IdentExpr      :: StringBuilder
   expr 247:9    FieldExpr      :: null | Token
   expr 247:9    IdentExpr      :: Parser
-  expr 2480:16  FieldExpr      :: ?
+  expr 2480:16  FieldExpr      :: f64 | i64 | null | string | u32 | u64
   expr 2480:16  IdentExpr      :: Token
   expr 2481:12  BinaryExpr     :: bool
-  expr 2481:12  IdentExpr      :: ?
+  expr 2481:12  IdentExpr      :: f64 | i64 | null | string | u32 | u64
   expr 2481:19  IdentExpr      :: f64
   expr 2481:25  IdentExpr      :: f64
   expr 2481:29  IdentExpr      :: f64
   expr 2481:9   IfExpr         :: void
-  expr 2482:33  IfExpr         :: ?
-  expr 2482:36  UnaryExpr      :: ?
-  expr 2482:37  CallExpr       :: ?
-  expr 2482:37  FieldExpr      :: ?
-  expr 2482:37  FieldExpr      :: ?
+  expr 2482:33  IfExpr         :: null | string
+  expr 2482:36  UnaryExpr      :: bool
+  expr 2482:37  CallExpr       :: bool
+  expr 2482:37  FieldExpr      :: fn() -> bool
+  expr 2482:37  FieldExpr      :: string
   expr 2482:37  IdentExpr      :: Token
-  expr 2482:67  FieldExpr      :: ?
+  expr 2482:67  FieldExpr      :: string
   expr 2482:67  IdentExpr      :: Token
   expr 2483:16  StructLitExpr  :: FloatLitExpr
-  expr 2483:39  FieldExpr      :: ?
+  expr 2483:39  FieldExpr      :: Span
   expr 2483:39  IdentExpr      :: Token
   expr 2483:56  IdentExpr      :: f64
   expr 2483:69  IdentExpr      :: null | string
-  expr 2485:18  DotVariantExpr :: ?
+  expr 2485:18  DotVariantExpr :: TokenKind
   expr 2485:5   IfExpr         :: void
   expr 2485:8   BinaryExpr     :: bool
-  expr 2485:8   FieldExpr      :: ?
+  expr 2485:8   FieldExpr      :: TokenKind
   expr 2485:8   IdentExpr      :: Token
   expr 2486:9   CallExpr       :: Token
   expr 2486:9   FieldExpr      :: fn() -> Token
   expr 2486:9   IdentExpr      :: Parser
-  expr 2488:16  FieldExpr      :: ?
+  expr 2488:16  FieldExpr      :: f64 | i64 | null | string | u32 | u64
   expr 2488:16  IdentExpr      :: Token
   expr 2489:12  BinaryExpr     :: bool
-  expr 2489:12  IdentExpr      :: ?
+  expr 2489:12  IdentExpr      :: f64 | i64 | null | string | u32 | u64
   expr 2489:19  IdentExpr      :: u32
   expr 2489:25  IdentExpr      :: u32
   expr 2489:29  IdentExpr      :: u32
@@ -5417,30 +5417,30 @@
   expr 248:5    FieldExpr      :: fn(bool, i32, string) -> void
   expr 248:5    IdentExpr      :: StringBuilder
   expr 2490:16  StructLitExpr  :: CharLitExpr
-  expr 2490:38  FieldExpr      :: ?
+  expr 2490:38  FieldExpr      :: Span
   expr 2490:38  IdentExpr      :: Token
   expr 2490:55  IdentExpr      :: u32
-  expr 2492:18  DotVariantExpr :: ?
+  expr 2492:18  DotVariantExpr :: TokenKind
   expr 2492:5   IfExpr         :: void
   expr 2492:8   BinaryExpr     :: bool
-  expr 2492:8   FieldExpr      :: ?
+  expr 2492:8   FieldExpr      :: TokenKind
   expr 2492:8   IdentExpr      :: Token
   expr 2493:9   CallExpr       :: Token
   expr 2493:9   FieldExpr      :: fn() -> Token
   expr 2493:9   IdentExpr      :: Parser
   expr 2494:16  StructLitExpr  :: BoolLitExpr
-  expr 2494:38  FieldExpr      :: ?
+  expr 2494:38  FieldExpr      :: Span
   expr 2494:38  IdentExpr      :: Token
-  expr 2496:18  DotVariantExpr :: ?
+  expr 2496:18  DotVariantExpr :: TokenKind
   expr 2496:5   IfExpr         :: void
   expr 2496:8   BinaryExpr     :: bool
-  expr 2496:8   FieldExpr      :: ?
+  expr 2496:8   FieldExpr      :: TokenKind
   expr 2496:8   IdentExpr      :: Token
   expr 2497:9   CallExpr       :: Token
   expr 2497:9   FieldExpr      :: fn() -> Token
   expr 2497:9   IdentExpr      :: Parser
   expr 2498:16  StructLitExpr  :: BoolLitExpr
-  expr 2498:38  FieldExpr      :: ?
+  expr 2498:38  FieldExpr      :: Span
   expr 2498:38  IdentExpr      :: Token
   expr 249:26   FieldExpr      :: TypeParam[]
   expr 249:26   IdentExpr      :: FnDecl
@@ -5452,37 +5452,37 @@
   expr 24:12    StructLitExpr  :: NodeIdFactory
   expr 24:36    CallExpr       :: usize
   expr 24:36    IdentExpr      :: type
-  expr 2500:18  DotVariantExpr :: ?
+  expr 2500:18  DotVariantExpr :: TokenKind
   expr 2500:5   IfExpr         :: void
   expr 2500:8   BinaryExpr     :: bool
-  expr 2500:8   FieldExpr      :: ?
+  expr 2500:8   FieldExpr      :: TokenKind
   expr 2500:8   IdentExpr      :: Token
   expr 2501:9   CallExpr       :: Token
   expr 2501:9   FieldExpr      :: fn() -> Token
   expr 2501:9   IdentExpr      :: Parser
   expr 2502:16  StructLitExpr  :: NullLitExpr
-  expr 2502:38  FieldExpr      :: ?
+  expr 2502:38  FieldExpr      :: Span
   expr 2502:38  IdentExpr      :: Token
-  expr 2504:18  DotVariantExpr :: ?
+  expr 2504:18  DotVariantExpr :: TokenKind
   expr 2504:40  CallExpr       :: StringLitExpr
   expr 2504:40  FieldExpr      :: fn() -> StringLitExpr
   expr 2504:40  IdentExpr      :: Parser
   expr 2504:5   IfExpr         :: void
   expr 2504:8   BinaryExpr     :: bool
-  expr 2504:8   FieldExpr      :: ?
+  expr 2504:8   FieldExpr      :: TokenKind
   expr 2504:8   IdentExpr      :: Token
-  expr 2505:18  DotVariantExpr :: ?
+  expr 2505:18  DotVariantExpr :: TokenKind
   expr 2505:40  CallExpr       :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2505:40  FieldExpr      :: fn() -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2505:40  IdentExpr      :: Parser
   expr 2505:5   IfExpr         :: void
   expr 2505:8   BinaryExpr     :: bool
-  expr 2505:8   FieldExpr      :: ?
+  expr 2505:8   FieldExpr      :: TokenKind
   expr 2505:8   IdentExpr      :: Token
-  expr 2506:18  DotVariantExpr :: ?
+  expr 2506:18  DotVariantExpr :: TokenKind
   expr 2506:5   IfExpr         :: void
   expr 2506:8   BinaryExpr     :: bool
-  expr 2506:8   FieldExpr      :: ?
+  expr 2506:8   FieldExpr      :: TokenKind
   expr 2506:8   IdentExpr      :: Token
   expr 2507:12  CallExpr       :: bool
   expr 2507:12  FieldExpr      :: fn() -> bool
@@ -5508,52 +5508,52 @@
   expr 250:5    CallExpr       :: void
   expr 250:5    FieldExpr      :: fn(bool, i32, string) -> void
   expr 250:5    IdentExpr      :: StringBuilder
-  expr 2510:18  DotVariantExpr :: ?
+  expr 2510:18  DotVariantExpr :: TokenKind
   expr 2510:40  CallExpr       :: SeqLitExpr
   expr 2510:40  FieldExpr      :: fn() -> SeqLitExpr
   expr 2510:40  IdentExpr      :: Parser
   expr 2510:5   IfExpr         :: void
   expr 2510:8   BinaryExpr     :: bool
-  expr 2510:8   FieldExpr      :: ?
+  expr 2510:8   FieldExpr      :: TokenKind
   expr 2510:8   IdentExpr      :: Token
-  expr 2511:18  DotVariantExpr :: ?
+  expr 2511:18  DotVariantExpr :: TokenKind
   expr 2511:40  CallExpr       :: BlockExpr
   expr 2511:40  FieldExpr      :: fn() -> BlockExpr
   expr 2511:40  IdentExpr      :: Parser
   expr 2511:5   IfExpr         :: void
   expr 2511:8   BinaryExpr     :: bool
-  expr 2511:8   FieldExpr      :: ?
+  expr 2511:8   FieldExpr      :: TokenKind
   expr 2511:8   IdentExpr      :: Token
-  expr 2512:18  DotVariantExpr :: ?
+  expr 2512:18  DotVariantExpr :: TokenKind
   expr 2512:28  BinaryExpr     :: bool
-  expr 2512:28  FieldExpr      :: ?
+  expr 2512:28  FieldExpr      :: TokenKind
   expr 2512:28  IdentExpr      :: Token
-  expr 2512:38  DotVariantExpr :: ?
+  expr 2512:38  DotVariantExpr :: TokenKind
   expr 2512:47  BinaryExpr     :: bool
-  expr 2512:47  FieldExpr      :: ?
+  expr 2512:47  FieldExpr      :: TokenKind
   expr 2512:47  IdentExpr      :: Token
   expr 2512:5   IfExpr         :: void
-  expr 2512:57  DotVariantExpr :: ?
+  expr 2512:57  DotVariantExpr :: TokenKind
   expr 2512:8   BinaryExpr     :: bool
   expr 2512:8   BinaryExpr     :: bool
   expr 2512:8   BinaryExpr     :: bool
-  expr 2512:8   FieldExpr      :: ?
+  expr 2512:8   FieldExpr      :: TokenKind
   expr 2512:8   IdentExpr      :: Token
   expr 2513:9   CallExpr       :: Token
   expr 2513:9   FieldExpr      :: fn() -> Token
   expr 2513:9   IdentExpr      :: Parser
   expr 2514:23  DotVariantExpr :: UnaryOp
   expr 2515:12  BinaryExpr     :: bool
-  expr 2515:12  FieldExpr      :: ?
+  expr 2515:12  FieldExpr      :: TokenKind
   expr 2515:12  IdentExpr      :: Token
-  expr 2515:22  DotVariantExpr :: ?
+  expr 2515:22  DotVariantExpr :: TokenKind
   expr 2515:31  IdentExpr      :: UnaryOp
   expr 2515:36  DotVariantExpr :: UnaryOp
   expr 2515:9   IfExpr         :: void
   expr 2516:12  BinaryExpr     :: bool
-  expr 2516:12  FieldExpr      :: ?
+  expr 2516:12  FieldExpr      :: TokenKind
   expr 2516:12  IdentExpr      :: Token
-  expr 2516:22  DotVariantExpr :: ?
+  expr 2516:22  DotVariantExpr :: TokenKind
   expr 2516:31  IdentExpr      :: UnaryOp
   expr 2516:36  DotVariantExpr :: UnaryOp
   expr 2516:9   IfExpr         :: void
@@ -5562,13 +5562,13 @@
   expr 2517:20  IdentExpr      :: Parser
   expr 2518:16  StructLitExpr  :: UnaryExpr
   expr 2519:24  StructLitExpr  :: Span
-  expr 2519:40  FieldExpr      :: ?
-  expr 2519:40  FieldExpr      :: ?
+  expr 2519:40  FieldExpr      :: Position
+  expr 2519:40  FieldExpr      :: Span
   expr 2519:40  IdentExpr      :: Token
-  expr 2519:61  FieldExpr      :: ?
+  expr 2519:61  FieldExpr      :: Position
   expr 2519:61  FieldExpr      :: Span
   expr 2519:61  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 251:20   DotVariantExpr :: ?
+  expr 251:20   DotVariantExpr :: TokenKind
   expr 251:24   FieldExpr      :: FnParam[]
   expr 251:24   IdentExpr      :: FnDecl
   expr 251:34   BinaryExpr     :: i32
@@ -5578,45 +5578,45 @@
   expr 251:5    IdentExpr      :: StringBuilder
   expr 251:5    IfExpr         :: void
   expr 251:8    BinaryExpr     :: bool
-  expr 251:8    FieldExpr      :: ?
+  expr 251:8    FieldExpr      :: TokenKind
   expr 251:8    IdentExpr      :: Token
   expr 2520:24  IdentExpr      :: UnaryOp
   expr 2521:24  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2524:18  DotVariantExpr :: ?
+  expr 2524:18  DotVariantExpr :: TokenKind
   expr 2524:36  CallExpr       :: IfExpr
   expr 2524:36  FieldExpr      :: fn() -> IfExpr
   expr 2524:36  IdentExpr      :: Parser
   expr 2524:5   IfExpr         :: void
   expr 2524:8   BinaryExpr     :: bool
-  expr 2524:8   FieldExpr      :: ?
+  expr 2524:8   FieldExpr      :: TokenKind
   expr 2524:8   IdentExpr      :: Token
-  expr 2525:18  DotVariantExpr :: ?
+  expr 2525:18  DotVariantExpr :: TokenKind
   expr 2525:36  CallExpr       :: MatchExpr
   expr 2525:36  FieldExpr      :: fn(bool) -> MatchExpr
   expr 2525:36  IdentExpr      :: Parser
   expr 2525:5   IfExpr         :: void
   expr 2525:8   BinaryExpr     :: bool
-  expr 2525:8   FieldExpr      :: ?
+  expr 2525:8   FieldExpr      :: TokenKind
   expr 2525:8   IdentExpr      :: Token
-  expr 2526:18  DotVariantExpr :: ?
+  expr 2526:18  DotVariantExpr :: TokenKind
   expr 2526:36  CallExpr       :: LambdaExpr
   expr 2526:36  FieldExpr      :: fn() -> LambdaExpr
   expr 2526:36  IdentExpr      :: Parser
   expr 2526:5   IfExpr         :: void
   expr 2526:8   BinaryExpr     :: bool
-  expr 2526:8   FieldExpr      :: ?
+  expr 2526:8   FieldExpr      :: TokenKind
   expr 2526:8   IdentExpr      :: Token
-  expr 2527:18  DotVariantExpr :: ?
+  expr 2527:18  DotVariantExpr :: TokenKind
   expr 2527:5   IfExpr         :: void
   expr 2527:8   BinaryExpr     :: bool
-  expr 2527:8   FieldExpr      :: ?
+  expr 2527:8   FieldExpr      :: TokenKind
   expr 2527:8   IdentExpr      :: Token
   expr 2528:9   CallExpr       :: Token
   expr 2528:9   FieldExpr      :: fn() -> Token
   expr 2528:9   IdentExpr      :: Parser
   expr 2529:16  CallExpr       :: IdentExpr
   expr 2529:16  IdentExpr      :: fn(Span, string) -> IdentExpr
-  expr 2529:27  FieldExpr      :: ?
+  expr 2529:27  FieldExpr      :: Span
   expr 2529:27  IdentExpr      :: Token
   expr 2529:35  StringLitExpr  :: string
   expr 252:12   BinaryExpr     :: bool
@@ -5642,10 +5642,10 @@
   expr 252:54   FieldExpr      :: i32
   expr 252:54   IdentExpr      :: Parser
   expr 252:9    IfExpr         :: void
-  expr 2538:18  DotVariantExpr :: ?
+  expr 2538:18  DotVariantExpr :: TokenKind
   expr 2538:5   IfExpr         :: void
   expr 2538:8   BinaryExpr     :: bool
-  expr 2538:8   FieldExpr      :: ?
+  expr 2538:8   FieldExpr      :: TokenKind
   expr 2538:8   IdentExpr      :: Token
   expr 2539:19  CallExpr       :: Token
   expr 2539:19  FieldExpr      :: fn() -> Token
@@ -5668,7 +5668,7 @@
   expr 2540:30  DotVariantExpr :: TokenKind
   expr 2540:38  StringLitExpr  :: string
   expr 2541:12  BinaryExpr     :: bool
-  expr 2541:12  FieldExpr      :: ?
+  expr 2541:12  FieldExpr      :: string
   expr 2541:12  IdentExpr      :: Token
   expr 2541:29  StringLitExpr  :: string
   expr 2541:9   IfExpr         :: void
@@ -5682,17 +5682,17 @@
   expr 2543:17  FieldExpr      :: fn(ParserCode, Span, string) -> void
   expr 2543:17  IdentExpr      :: Parser
   expr 2543:25  DotVariantExpr :: ParserCode
-  expr 2543:53  FieldExpr      :: ?
+  expr 2543:53  FieldExpr      :: Span
   expr 2543:53  IdentExpr      :: Token
   expr 2544:21  StringLitExpr  :: string
-  expr 2544:26  FieldExpr      :: ?
+  expr 2544:26  FieldExpr      :: string
   expr 2544:26  IdentExpr      :: Token
   expr 2546:20  CallExpr       :: MatchExpr
   expr 2546:20  FieldExpr      :: fn(bool) -> MatchExpr
   expr 2546:20  IdentExpr      :: Parser
   expr 2548:17  CallExpr       :: IntrinsicSpec | null
   expr 2548:17  IdentExpr      :: fn(string) -> IntrinsicSpec | null
-  expr 2548:32  FieldExpr      :: ?
+  expr 2548:32  FieldExpr      :: string
   expr 2548:32  IdentExpr      :: Token
   expr 2549:15  IdentExpr      :: IntrinsicSpec | null
   expr 2549:9   MatchExpr      :: never
@@ -5712,7 +5712,7 @@
   expr 2552:31  IdentExpr      :: Token
   expr 2552:39  IdentExpr      :: Token
   expr 2553:21  StringLitExpr  :: string
-  expr 2553:26  FieldExpr      :: ?
+  expr 2553:26  FieldExpr      :: string
   expr 2553:26  IdentExpr      :: Token
   expr 2556:17  IfExpr         :: Token | void
   expr 2556:20  CallExpr       :: bool
@@ -5749,12 +5749,12 @@
   expr 255:13   IdentExpr      :: FnDecl
   expr 255:13   IdentExpr      :: LambdaExpr
   expr 255:20   CallExpr       :: usize
-  expr 255:20   DotVariantExpr :: ?
+  expr 255:20   DotVariantExpr :: TokenKind
   expr 255:20   FieldExpr      :: fn() -> usize
   expr 255:20   IdentExpr      :: NodeIdFactory
   expr 255:5    IfExpr         :: void
   expr 255:8    BinaryExpr     :: bool
-  expr 255:8    FieldExpr      :: ?
+  expr 255:8    FieldExpr      :: TokenKind
   expr 255:8    IdentExpr      :: Token
   expr 2565:24  StructLitExpr  :: NullLitExpr
   expr 2565:46  CallExpr       :: Span
@@ -5802,7 +5802,7 @@
   expr 257:13   MatchExpr      :: void
   expr 257:19   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 257:19   IdentExpr      :: LambdaExpr
-  expr 257:21   DotVariantExpr :: ?
+  expr 257:21   DotVariantExpr :: TokenKind
   expr 257:27   CallExpr       :: void
   expr 257:27   FieldExpr      :: fn() -> void
   expr 257:27   IdentExpr      :: StringBuilder
@@ -5867,20 +5867,20 @@
   expr 2595:52  IdentExpr      :: Token
   expr 2596:34  FieldExpr      :: string
   expr 2596:34  IdentExpr      :: IntrinsicSpec
-  expr 2597:34  FieldExpr      :: ?
+  expr 2597:34  FieldExpr      :: Span
   expr 2597:34  IdentExpr      :: Token
   expr 2598:34  IdentExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
-  expr 259:21   FieldExpr      :: ?
+  expr 259:21   FieldExpr      :: Span
   expr 259:21   IdentExpr      :: Token
   expr 259:24   CallExpr       :: void
   expr 259:24   IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, NodeIdFactory) -> void
   expr 259:34   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 259:34   IdentExpr      :: LambdaExpr
   expr 259:49   IdentExpr      :: NodeIdFactory
-  expr 2603:18  DotVariantExpr :: ?
+  expr 2603:18  DotVariantExpr :: TokenKind
   expr 2603:5   IfExpr         :: void
   expr 2603:8   BinaryExpr     :: bool
-  expr 2603:8   FieldExpr      :: ?
+  expr 2603:8   FieldExpr      :: TokenKind
   expr 2603:8   IdentExpr      :: Token
   expr 2604:9   CallExpr       :: Token
   expr 2604:9   FieldExpr      :: fn() -> Token
@@ -5892,15 +5892,15 @@
   expr 2605:35  StringLitExpr  :: string
   expr 2606:16  StructLitExpr  :: DotVariantExpr
   expr 2607:29  StructLitExpr  :: Span
-  expr 2607:45  FieldExpr      :: ?
-  expr 2607:45  FieldExpr      :: ?
+  expr 2607:45  FieldExpr      :: Position
+  expr 2607:45  FieldExpr      :: Span
   expr 2607:45  IdentExpr      :: Token
-  expr 2607:66  FieldExpr      :: ?
-  expr 2607:66  FieldExpr      :: ?
+  expr 2607:66  FieldExpr      :: Position
+  expr 2607:66  FieldExpr      :: Span
   expr 2607:66  IdentExpr      :: Token
-  expr 2608:29  FieldExpr      :: ?
+  expr 2608:29  FieldExpr      :: string
   expr 2608:29  IdentExpr      :: Token
-  expr 2609:29  FieldExpr      :: ?
+  expr 2609:29  FieldExpr      :: Span
   expr 2609:29  IdentExpr      :: Token
   expr 260:21   BinaryExpr     :: i32
   expr 260:21   IdentExpr      :: i32
@@ -5909,7 +5909,7 @@
   expr 260:5    FieldExpr      :: fn(bool, i32, string) -> void
   expr 260:5    IdentExpr      :: StringBuilder
   expr 2612:13  DotVariantExpr :: ParserCode
-  expr 2612:34  FieldExpr      :: ?
+  expr 2612:34  FieldExpr      :: Span
   expr 2612:34  IdentExpr      :: Token
   expr 2612:42  StringLitExpr  :: string
   expr 2612:49  CallExpr       :: string
@@ -5922,12 +5922,12 @@
   expr 2613:5   FieldExpr      :: fn() -> Token
   expr 2613:5   IdentExpr      :: Parser
   expr 2614:12  StructLitExpr  :: NullLitExpr
-  expr 2614:34  FieldExpr      :: ?
+  expr 2614:34  FieldExpr      :: Span
   expr 2614:34  IdentExpr      :: Token
-  expr 2618:18  DotVariantExpr :: ?
+  expr 2618:18  DotVariantExpr :: TokenKind
   expr 2618:5   IfExpr         :: void
   expr 2618:8   BinaryExpr     :: bool
-  expr 2618:8   FieldExpr      :: ?
+  expr 2618:8   FieldExpr      :: TokenKind
   expr 2618:8   IdentExpr      :: Token
   expr 2619:9   CallExpr       :: Token
   expr 2619:9   FieldExpr      :: fn() -> Token
@@ -5947,17 +5947,17 @@
   expr 261:5    IdentExpr      :: StringBuilder
   expr 2620:16  StructLitExpr  :: TryExpr
   expr 2621:22  StructLitExpr  :: Span
-  expr 2621:38  FieldExpr      :: ?
+  expr 2621:38  FieldExpr      :: Position
   expr 2621:38  FieldExpr      :: Span
   expr 2621:38  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2621:62  FieldExpr      :: ?
-  expr 2621:62  FieldExpr      :: ?
+  expr 2621:62  FieldExpr      :: Position
+  expr 2621:62  FieldExpr      :: Span
   expr 2621:62  IdentExpr      :: Token
   expr 2622:22  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2625:18  DotVariantExpr :: ?
+  expr 2625:18  DotVariantExpr :: TokenKind
   expr 2625:5   IfExpr         :: void
   expr 2625:8   BinaryExpr     :: bool
-  expr 2625:8   FieldExpr      :: ?
+  expr 2625:8   FieldExpr      :: TokenKind
   expr 2625:8   IdentExpr      :: Token
   expr 2626:9   CallExpr       :: Token
   expr 2626:9   FieldExpr      :: fn() -> Token
@@ -5975,16 +5975,16 @@
   expr 2630:24  IdentExpr      :: Parser
   expr 2631:20  StructLitExpr  :: FieldExpr
   expr 2632:31  StructLitExpr  :: Span
-  expr 2632:47  FieldExpr      :: ?
+  expr 2632:47  FieldExpr      :: Position
   expr 2632:47  FieldExpr      :: Span
   expr 2632:47  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2632:71  FieldExpr      :: ?
-  expr 2632:71  FieldExpr      :: ?
+  expr 2632:71  FieldExpr      :: Position
+  expr 2632:71  FieldExpr      :: Span
   expr 2632:71  IdentExpr      :: Token
   expr 2633:31  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2634:31  FieldExpr      :: ?
+  expr 2634:31  FieldExpr      :: string
   expr 2634:31  IdentExpr      :: Token
-  expr 2635:31  FieldExpr      :: ?
+  expr 2635:31  FieldExpr      :: Span
   expr 2635:31  IdentExpr      :: Token
   expr 2639:17  CallExpr       :: Token
   expr 2639:17  FieldExpr      :: fn(TokenKind, string) -> Token
@@ -6002,16 +6002,16 @@
   expr 263:9    IdentExpr      :: StringBuilder
   expr 2640:23  StructLitExpr  :: FieldExpr
   expr 2641:27  StructLitExpr  :: Span
-  expr 2641:43  FieldExpr      :: ?
+  expr 2641:43  FieldExpr      :: Position
   expr 2641:43  FieldExpr      :: Span
   expr 2641:43  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2641:67  FieldExpr      :: ?
-  expr 2641:67  FieldExpr      :: ?
+  expr 2641:67  FieldExpr      :: Position
+  expr 2641:67  FieldExpr      :: Span
   expr 2641:67  IdentExpr      :: Token
   expr 2642:27  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2643:27  FieldExpr      :: ?
+  expr 2643:27  FieldExpr      :: string
   expr 2643:27  IdentExpr      :: Token
-  expr 2644:27  FieldExpr      :: ?
+  expr 2644:27  FieldExpr      :: Span
   expr 2644:27  IdentExpr      :: Token
   expr 264:12   BinaryExpr     :: bool
   expr 264:12   FieldExpr      :: i32
@@ -6065,11 +6065,11 @@
   expr 2655:37  StringLitExpr  :: string
   expr 2656:20  StructLitExpr  :: StructLitExpr
   expr 2657:30  StructLitExpr  :: Span
-  expr 2657:46  FieldExpr      :: ?
+  expr 2657:46  FieldExpr      :: Position
   expr 2657:46  FieldExpr      :: Span
   expr 2657:46  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2657:70  FieldExpr      :: ?
-  expr 2657:70  FieldExpr      :: ?
+  expr 2657:70  FieldExpr      :: Position
+  expr 2657:70  FieldExpr      :: Span
   expr 2657:70  IdentExpr      :: Token
   expr 2658:30  IdentExpr      :: FieldExpr
   expr 2659:30  IdentExpr      :: (StructLitField | StructLitSpread)[]
@@ -6081,10 +6081,10 @@
   expr 265:23   IdentExpr      :: usize
   expr 265:36   IdentExpr      :: NodeIdFactory
   expr 2662:16  IdentExpr      :: FieldExpr
-  expr 2664:18  DotVariantExpr :: ?
+  expr 2664:18  DotVariantExpr :: TokenKind
   expr 2664:5   IfExpr         :: void
   expr 2664:8   BinaryExpr     :: bool
-  expr 2664:8   FieldExpr      :: ?
+  expr 2664:8   FieldExpr      :: TokenKind
   expr 2664:8   IdentExpr      :: Token
   expr 2665:9   CallExpr       :: Token
   expr 2665:9   FieldExpr      :: fn() -> Token
@@ -6099,12 +6099,12 @@
   expr 2667:9   IdentExpr      :: Parser
   expr 2668:16  StructLitExpr  :: CallExpr
   expr 2669:23  StructLitExpr  :: Span
-  expr 2669:39  FieldExpr      :: ?
+  expr 2669:39  FieldExpr      :: Position
   expr 2669:39  FieldExpr      :: Span
   expr 2669:39  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2669:63  CallExpr       :: Token
-  expr 2669:63  FieldExpr      :: ?
-  expr 2669:63  FieldExpr      :: ?
+  expr 2669:63  FieldExpr      :: Position
+  expr 2669:63  FieldExpr      :: Span
   expr 2669:63  FieldExpr      :: fn(i32) -> Token
   expr 2669:63  IdentExpr      :: Parser
   expr 2669:73  UnaryExpr      :: i32
@@ -6137,11 +6137,11 @@
   expr 2680:15  IdentExpr      :: Parser
   expr 2681:16  StructLitExpr  :: ArrayTypeExpr
   expr 2682:24  StructLitExpr  :: Span
-  expr 2682:40  FieldExpr      :: ?
+  expr 2682:40  FieldExpr      :: Position
   expr 2682:40  FieldExpr      :: Span
   expr 2682:40  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 2682:64  FieldExpr      :: ?
-  expr 2682:64  FieldExpr      :: ?
+  expr 2682:64  FieldExpr      :: Position
+  expr 2682:64  FieldExpr      :: Span
   expr 2682:64  IdentExpr      :: Token
   expr 2683:24  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2686:5   CallExpr       :: Token
@@ -6160,12 +6160,12 @@
   expr 268:9    FieldExpr      :: fn(bool) -> void
   expr 268:9    IdentExpr      :: StringBuilder
   expr 2690:19  StructLitExpr  :: Span
-  expr 2690:35  FieldExpr      :: ?
+  expr 2690:35  FieldExpr      :: Position
   expr 2690:35  FieldExpr      :: Span
   expr 2690:35  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2690:59  CallExpr       :: Token
-  expr 2690:59  FieldExpr      :: ?
-  expr 2690:59  FieldExpr      :: ?
+  expr 2690:59  FieldExpr      :: Position
+  expr 2690:59  FieldExpr      :: Span
   expr 2690:59  FieldExpr      :: fn(i32) -> Token
   expr 2690:59  IdentExpr      :: Parser
   expr 2690:69  UnaryExpr      :: i32
@@ -6238,7 +6238,7 @@
   expr 270:5    CallExpr       :: void
   expr 270:5    FieldExpr      :: fn(i32) -> void
   expr 270:5    IdentExpr      :: StringBuilder
-  expr 2710:27  FieldExpr      :: ?
+  expr 2710:27  FieldExpr      :: string
   expr 2710:27  IdentExpr      :: Token
   expr 2711:27  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2715:22  CallExpr       :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
@@ -6288,9 +6288,9 @@
   expr 2740:17  IdentExpr      :: Parser
   expr 2741:19  CallExpr       :: IdentExpr
   expr 2741:19  IdentExpr      :: fn(Span, string) -> IdentExpr
-  expr 2741:30  FieldExpr      :: ?
+  expr 2741:30  FieldExpr      :: Span
   expr 2741:30  IdentExpr      :: Token
-  expr 2741:38  FieldExpr      :: ?
+  expr 2741:38  FieldExpr      :: string
   expr 2741:38  IdentExpr      :: Token
   expr 2742:25  StructLitExpr  :: GenericInstExpr
   expr 2743:26  CallExpr       :: Span
@@ -6406,16 +6406,16 @@
   expr 2773:39  IdentExpr      :: Token
   expr 2774:26  CallExpr       :: IdentExpr
   expr 2774:26  IdentExpr      :: fn(Span, string) -> IdentExpr
-  expr 2774:37  FieldExpr      :: ?
+  expr 2774:37  FieldExpr      :: Span
   expr 2774:37  IdentExpr      :: Token
-  expr 2774:45  FieldExpr      :: ?
+  expr 2774:45  FieldExpr      :: string
   expr 2774:45  IdentExpr      :: Token
   expr 2775:26  IdentExpr      :: (StructLitField | StructLitSpread)[]
   expr 2778:12  CallExpr       :: IdentExpr
   expr 2778:12  IdentExpr      :: fn(Span, string) -> IdentExpr
-  expr 2778:23  FieldExpr      :: ?
+  expr 2778:23  FieldExpr      :: Span
   expr 2778:23  IdentExpr      :: Token
-  expr 2778:31  FieldExpr      :: ?
+  expr 2778:31  FieldExpr      :: string
   expr 2778:31  IdentExpr      :: Token
   expr 278:5    CallExpr       :: void
   expr 278:5    FieldExpr      :: fn() -> void
@@ -6428,7 +6428,7 @@
   expr 2790:14  IdentExpr      :: Parser
   expr 2791:18  IdentExpr      :: i32
   expr 2791:23  BinaryExpr     :: bool
-  expr 2791:23  FieldExpr      :: ?
+  expr 2791:23  FieldExpr      :: TokenKind
   expr 2791:23  FieldExpr      :: Token[]
   expr 2791:23  IdentExpr      :: Parser
   expr 2791:23  IndexExpr      :: Token
@@ -6436,7 +6436,7 @@
   expr 2791:32  IdentExpr      :: type
   expr 2791:38  IdentExpr      :: i32
   expr 2791:5   IfExpr         :: void
-  expr 2791:55  DotVariantExpr :: ?
+  expr 2791:55  DotVariantExpr :: TokenKind
   expr 2791:8   BinaryExpr     :: bool
   expr 2791:8   BinaryExpr     :: bool
   expr 2791:8   IdentExpr      :: i32
@@ -6452,9 +6452,9 @@
   expr 2797:23  IdentExpr      :: type
   expr 2797:29  IdentExpr      :: i32
   expr 2798:12  BinaryExpr     :: bool
-  expr 2798:12  FieldExpr      :: ?
+  expr 2798:12  FieldExpr      :: TokenKind
   expr 2798:12  IdentExpr      :: Token
-  expr 2798:22  DotVariantExpr :: ?
+  expr 2798:22  DotVariantExpr :: TokenKind
   expr 2798:9   IfExpr         :: void
   expr 2799:21  BinaryExpr     :: bool
   expr 2799:21  BinaryExpr     :: bool
@@ -6464,33 +6464,33 @@
   expr 279:23   IdentExpr      :: usize
   expr 2800:12  BinaryExpr     :: bool
   expr 2800:12  BinaryExpr     :: bool
-  expr 2800:12  FieldExpr      :: ?
+  expr 2800:12  FieldExpr      :: TokenKind
   expr 2800:12  IdentExpr      :: Token
-  expr 2800:22  DotVariantExpr :: ?
+  expr 2800:22  DotVariantExpr :: TokenKind
   expr 2800:34  IdentExpr      :: bool
   expr 2800:9   IfExpr         :: void
   expr 2801:12  BinaryExpr     :: bool
   expr 2801:12  IdentExpr      :: bool
   expr 2801:24  CallExpr       :: bool
   expr 2801:24  IdentExpr      :: fn(TokenKind) -> bool
-  expr 2801:46  FieldExpr      :: ?
+  expr 2801:46  FieldExpr      :: TokenKind
   expr 2801:46  IdentExpr      :: Token
   expr 2801:9   IfExpr         :: void
   expr 2802:12  IdentExpr      :: bool
   expr 2802:9   IfExpr         :: void
   expr 2803:13  IfExpr         :: void
   expr 2803:16  BinaryExpr     :: bool
-  expr 2803:16  FieldExpr      :: ?
+  expr 2803:16  FieldExpr      :: TokenKind
   expr 2803:16  IdentExpr      :: Token
-  expr 2803:26  DotVariantExpr :: ?
+  expr 2803:26  DotVariantExpr :: TokenKind
   expr 2804:17  IdentExpr      :: i32
   expr 2804:31  BinaryExpr     :: i32
   expr 2804:31  IdentExpr      :: i32
   expr 2805:20  IfExpr         :: void
   expr 2805:23  BinaryExpr     :: bool
-  expr 2805:23  FieldExpr      :: ?
+  expr 2805:23  FieldExpr      :: TokenKind
   expr 2805:23  IdentExpr      :: Token
-  expr 2805:33  DotVariantExpr :: ?
+  expr 2805:33  DotVariantExpr :: TokenKind
   expr 2806:17  IdentExpr      :: i32
   expr 2806:31  BinaryExpr     :: i32
   expr 2806:31  IdentExpr      :: i32
@@ -6502,7 +6502,7 @@
   expr 2808:24  BinaryExpr     :: i32
   expr 2808:24  IdentExpr      :: i32
   expr 2808:33  IdentExpr      :: i32
-  expr 2809:29  FieldExpr      :: ?
+  expr 2809:29  FieldExpr      :: TokenKind
   expr 2809:29  FieldExpr      :: Token[]
   expr 2809:29  IdentExpr      :: Parser
   expr 2809:29  IndexExpr      :: Token
@@ -6518,16 +6518,16 @@
   expr 280:20   IdentExpr      :: NodeIdFactory
   expr 2810:28  BinaryExpr     :: bool
   expr 2810:28  BinaryExpr     :: bool
-  expr 2810:28  IdentExpr      :: ?
-  expr 2810:36  DotVariantExpr :: ?
+  expr 2810:28  IdentExpr      :: TokenKind
+  expr 2810:36  DotVariantExpr :: TokenKind
   expr 2810:47  BinaryExpr     :: bool
-  expr 2810:47  IdentExpr      :: ?
-  expr 2810:55  DotVariantExpr :: ?
+  expr 2810:47  IdentExpr      :: TokenKind
+  expr 2810:55  DotVariantExpr :: TokenKind
   expr 2812:20  IfExpr         :: void
   expr 2812:23  BinaryExpr     :: bool
-  expr 2812:23  FieldExpr      :: ?
+  expr 2812:23  FieldExpr      :: TokenKind
   expr 2812:23  IdentExpr      :: Token
-  expr 2812:33  DotVariantExpr :: ?
+  expr 2812:33  DotVariantExpr :: TokenKind
   expr 2813:17  IdentExpr      :: i32
   expr 2813:31  BinaryExpr     :: i32
   expr 2813:31  IdentExpr      :: i32
@@ -6539,7 +6539,7 @@
   expr 2815:24  BinaryExpr     :: i32
   expr 2815:24  IdentExpr      :: i32
   expr 2815:33  IdentExpr      :: i32
-  expr 2816:29  FieldExpr      :: ?
+  expr 2816:29  FieldExpr      :: TokenKind
   expr 2816:29  FieldExpr      :: Token[]
   expr 2816:29  IdentExpr      :: Parser
   expr 2816:29  IndexExpr      :: Token
@@ -6549,11 +6549,11 @@
   expr 2816:44  IdentExpr      :: i32
   expr 2817:28  BinaryExpr     :: bool
   expr 2817:28  BinaryExpr     :: bool
-  expr 2817:28  IdentExpr      :: ?
-  expr 2817:36  DotVariantExpr :: ?
+  expr 2817:28  IdentExpr      :: TokenKind
+  expr 2817:36  DotVariantExpr :: TokenKind
   expr 2817:47  BinaryExpr     :: bool
-  expr 2817:47  IdentExpr      :: ?
-  expr 2817:55  DotVariantExpr :: ?
+  expr 2817:47  IdentExpr      :: TokenKind
+  expr 2817:55  DotVariantExpr :: TokenKind
   expr 2819:17  IfExpr         :: void
   expr 2819:20  BinaryExpr     :: bool
   expr 2819:20  IdentExpr      :: i32
@@ -6570,18 +6570,18 @@
   expr 281:50   IdentExpr      :: NodeIdFactory
   expr 281:9    IfExpr         :: ?
   expr 2822:12  BinaryExpr     :: bool
-  expr 2822:12  FieldExpr      :: ?
+  expr 2822:12  FieldExpr      :: TokenKind
   expr 2822:12  IdentExpr      :: Token
-  expr 2822:22  DotVariantExpr :: ?
+  expr 2822:22  DotVariantExpr :: TokenKind
   expr 2822:9   IfExpr         :: void
   expr 2823:13  IdentExpr      :: i32
   expr 2823:27  BinaryExpr     :: i32
   expr 2823:27  IdentExpr      :: i32
   expr 2824:16  IfExpr         :: void
   expr 2824:19  BinaryExpr     :: bool
-  expr 2824:19  FieldExpr      :: ?
+  expr 2824:19  FieldExpr      :: TokenKind
   expr 2824:19  IdentExpr      :: Token
-  expr 2824:29  DotVariantExpr :: ?
+  expr 2824:29  DotVariantExpr :: TokenKind
   expr 2825:13  IfExpr         :: void
   expr 2825:16  BinaryExpr     :: bool
   expr 2825:16  IdentExpr      :: i32
@@ -6590,17 +6590,17 @@
   expr 2826:27  IdentExpr      :: i32
   expr 2827:16  IfExpr         :: void
   expr 2827:19  BinaryExpr     :: bool
-  expr 2827:19  FieldExpr      :: ?
+  expr 2827:19  FieldExpr      :: TokenKind
   expr 2827:19  IdentExpr      :: Token
-  expr 2827:29  DotVariantExpr :: ?
+  expr 2827:29  DotVariantExpr :: TokenKind
   expr 2828:13  IdentExpr      :: i32
   expr 2828:29  BinaryExpr     :: i32
   expr 2828:29  IdentExpr      :: i32
   expr 2829:16  IfExpr         :: void
   expr 2829:19  BinaryExpr     :: bool
-  expr 2829:19  FieldExpr      :: ?
+  expr 2829:19  FieldExpr      :: TokenKind
   expr 2829:19  IdentExpr      :: Token
-  expr 2829:29  DotVariantExpr :: ?
+  expr 2829:29  DotVariantExpr :: TokenKind
   expr 282:9    IdentExpr      :: bool
   expr 2830:13  IfExpr         :: void
   expr 2830:16  BinaryExpr     :: bool
@@ -6764,9 +6764,9 @@
   expr 2857:21  IdentExpr      :: type
   expr 2857:27  IdentExpr      :: i32
   expr 2858:12  BinaryExpr     :: bool
-  expr 2858:12  FieldExpr      :: ?
+  expr 2858:12  FieldExpr      :: TokenKind
   expr 2858:12  IdentExpr      :: Token
-  expr 2858:22  DotVariantExpr :: ?
+  expr 2858:22  DotVariantExpr :: TokenKind
   expr 2858:9   IfExpr         :: void
   expr 2859:13  IdentExpr      :: i32
   expr 2859:17  BinaryExpr     :: i32
@@ -6789,17 +6789,17 @@
   expr 2862:16  BinaryExpr     :: bool
   expr 2862:16  BinaryExpr     :: bool
   expr 2862:16  BinaryExpr     :: bool
-  expr 2862:16  FieldExpr      :: ?
+  expr 2862:16  FieldExpr      :: TokenKind
   expr 2862:16  IdentExpr      :: Token
-  expr 2862:26  DotVariantExpr :: ?
+  expr 2862:26  DotVariantExpr :: TokenKind
   expr 2862:34  BinaryExpr     :: bool
-  expr 2862:34  FieldExpr      :: ?
+  expr 2862:34  FieldExpr      :: TokenKind
   expr 2862:34  IdentExpr      :: Token
-  expr 2862:44  DotVariantExpr :: ?
+  expr 2862:44  DotVariantExpr :: TokenKind
   expr 2862:58  BinaryExpr     :: bool
-  expr 2862:58  FieldExpr      :: ?
+  expr 2862:58  FieldExpr      :: TokenKind
   expr 2862:58  IdentExpr      :: Token
-  expr 2862:68  DotVariantExpr :: ?
+  expr 2862:68  DotVariantExpr :: TokenKind
   expr 2868:49  SeqLitExpr     :: (StructLitField | StructLitSpread)[]
   expr 2869:5   CallExpr       :: void
   expr 2869:5   FieldExpr      :: fn() -> void
@@ -6882,9 +6882,9 @@
   expr 2884:47  FieldExpr      :: fn(i32) -> Token
   expr 2884:47  IdentExpr      :: Parser
   expr 2884:57  UnaryExpr      :: i32
-  expr 2885:30  FieldExpr      :: ?
+  expr 2885:30  FieldExpr      :: string
   expr 2885:30  IdentExpr      :: Token
-  expr 2886:30  FieldExpr      :: ?
+  expr 2886:30  FieldExpr      :: Span
   expr 2886:30  IdentExpr      :: Token
   expr 2887:30  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2890:9   CallExpr       :: void
@@ -6938,27 +6938,27 @@
   expr 290:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 290:23   IdentExpr      :: TryExpr
   expr 290:32   IdentExpr      :: NodeIdFactory
-  expr 2913:25  DotVariantExpr :: ?
+  expr 2913:25  DotVariantExpr :: TokenKind
   expr 2913:5   IfExpr         :: void
   expr 2913:8   BinaryExpr     :: bool
   expr 2913:8   CallExpr       :: Token
-  expr 2913:8   FieldExpr      :: ?
+  expr 2913:8   FieldExpr      :: TokenKind
   expr 2913:8   FieldExpr      :: fn() -> Token
   expr 2913:8   IdentExpr      :: Parser
   expr 2916:9   BinaryExpr     :: bool
   expr 2916:9   IdentExpr      :: i32
   expr 2917:14  CallExpr       :: Token
-  expr 2917:14  FieldExpr      :: ?
+  expr 2917:14  FieldExpr      :: TokenKind
   expr 2917:14  FieldExpr      :: fn(i32) -> Token
   expr 2917:14  IdentExpr      :: Parser
   expr 2917:24  IdentExpr      :: i32
   expr 2918:12  BinaryExpr     :: bool
-  expr 2918:12  IdentExpr      :: ?
-  expr 2918:17  DotVariantExpr :: ?
+  expr 2918:12  IdentExpr      :: TokenKind
+  expr 2918:17  DotVariantExpr :: TokenKind
   expr 2918:9   IfExpr         :: void
   expr 2919:12  BinaryExpr     :: bool
-  expr 2919:12  IdentExpr      :: ?
-  expr 2919:17  DotVariantExpr :: ?
+  expr 2919:12  IdentExpr      :: TokenKind
+  expr 2919:17  DotVariantExpr :: TokenKind
   expr 2919:27  IdentExpr      :: i32
   expr 2919:35  BinaryExpr     :: i32
   expr 2919:35  IdentExpr      :: i32
@@ -6977,8 +6977,8 @@
   expr 291:8    IdentExpr      :: Parser
   expr 2920:14  IfExpr         :: void
   expr 2920:17  BinaryExpr     :: bool
-  expr 2920:17  IdentExpr      :: ?
-  expr 2920:22  DotVariantExpr :: ?
+  expr 2920:17  IdentExpr      :: TokenKind
+  expr 2920:22  DotVariantExpr :: TokenKind
   expr 2921:13  IdentExpr      :: i32
   expr 2921:21  BinaryExpr     :: i32
   expr 2921:21  IdentExpr      :: i32
@@ -6992,22 +6992,22 @@
   expr 2927:9   BinaryExpr     :: i32
   expr 2927:9   IdentExpr      :: i32
   expr 2928:19  IdentExpr      :: i32
-  expr 2928:30  DotVariantExpr :: ?
+  expr 2928:30  DotVariantExpr :: TokenKind
   expr 2928:41  IdentExpr      :: i32
   expr 2928:45  BinaryExpr     :: i32
   expr 2928:45  IdentExpr      :: i32
   expr 2928:9   BinaryExpr     :: bool
   expr 2928:9   CallExpr       :: Token
-  expr 2928:9   FieldExpr      :: ?
+  expr 2928:9   FieldExpr      :: TokenKind
   expr 2928:9   FieldExpr      :: fn(i32) -> Token
   expr 2928:9   IdentExpr      :: Parser
   expr 2929:12  BinaryExpr     :: bool
   expr 2929:12  CallExpr       :: Token
-  expr 2929:12  FieldExpr      :: ?
+  expr 2929:12  FieldExpr      :: TokenKind
   expr 2929:12  FieldExpr      :: fn(i32) -> Token
   expr 2929:12  IdentExpr      :: Parser
   expr 2929:22  IdentExpr      :: i32
-  expr 2929:33  DotVariantExpr :: ?
+  expr 2929:33  DotVariantExpr :: TokenKind
   expr 292:10   CallExpr       :: Token
   expr 292:10   FieldExpr      :: fn() -> Token
   expr 292:10   IdentExpr      :: Parser
@@ -7042,7 +7042,7 @@
   expr 293:20   IdentExpr      :: NodeIdFactory
   expr 293:21   FieldExpr      :: string
   expr 293:21   IdentExpr      :: FnParam
-  expr 293:29   FieldExpr      :: ?
+  expr 293:29   FieldExpr      :: Span
   expr 293:29   IdentExpr      :: Token
   expr 293:37   StringLitExpr  :: string
   expr 293:49   IdentExpr      :: string
@@ -7057,10 +7057,10 @@
   expr 293:77   IdentExpr      :: Token
   expr 2940:12  StructLitExpr  :: LambdaExpr
   expr 2941:24  StructLitExpr  :: Span
-  expr 2941:40  FieldExpr      :: ?
-  expr 2941:40  FieldExpr      :: ?
+  expr 2941:40  FieldExpr      :: Position
+  expr 2941:40  FieldExpr      :: Span
   expr 2941:40  IdentExpr      :: Token
-  expr 2941:65  FieldExpr      :: ?
+  expr 2941:65  FieldExpr      :: Position
   expr 2941:65  FieldExpr      :: Span
   expr 2941:65  IdentExpr      :: BlockExpr
   expr 2942:24  FieldExpr      :: FnParam[]
@@ -7106,10 +7106,10 @@
   expr 2960:27  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 2961:12  StructLitExpr  :: LambdaExpr
   expr 2962:24  StructLitExpr  :: Span
-  expr 2962:40  FieldExpr      :: ?
+  expr 2962:40  FieldExpr      :: Position
   expr 2962:40  FieldExpr      :: Span
   expr 2962:40  IdentExpr      :: IdentExpr
-  expr 2962:71  FieldExpr      :: ?
+  expr 2962:71  FieldExpr      :: Position
   expr 2962:71  FieldExpr      :: Span
   expr 2962:71  IdentExpr      :: BlockExpr
   expr 2963:24  SeqLitExpr     :: FnParam[]
@@ -7240,14 +7240,14 @@
   expr 3006:14  FieldExpr      :: fn() -> Token
   expr 3006:14  IdentExpr      :: Parser
   expr 3007:12  BinaryExpr     :: bool
-  expr 3007:12  FieldExpr      :: ?
+  expr 3007:12  FieldExpr      :: TokenKind
   expr 3007:12  IdentExpr      :: Token
-  expr 3007:22  DotVariantExpr :: ?
+  expr 3007:22  DotVariantExpr :: TokenKind
   expr 3007:9   IfExpr         :: void
   expr 3008:13  CallExpr       :: Token
   expr 3008:13  FieldExpr      :: fn() -> Token
   expr 3008:13  IdentExpr      :: Parser
-  expr 3009:28  FieldExpr      :: ?
+  expr 3009:28  FieldExpr      :: string
   expr 3009:28  IdentExpr      :: Token
   expr 300:18   IdentExpr      :: i32
   expr 300:23   FieldExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
@@ -7259,10 +7259,10 @@
   expr 300:5    FieldExpr      :: fn(i32) -> void
   expr 300:5    IdentExpr      :: StringBuilder
   expr 300:51   IdentExpr      :: NodeIdFactory
-  expr 3010:20  FieldExpr      :: ?
+  expr 3010:20  FieldExpr      :: f64 | i64 | null | string | u32 | u64
   expr 3010:20  IdentExpr      :: Token
   expr 3011:13  MatchExpr      :: void
-  expr 3011:19  IdentExpr      :: ?
+  expr 3011:19  IdentExpr      :: f64 | i64 | null | string | u32 | u64
   expr 3012:32  IdentExpr      :: string
   expr 3012:39  IdentExpr      :: string
   expr 3015:13  CallExpr       :: void
@@ -7270,12 +7270,12 @@
   expr 3015:13  IdentExpr      :: (StringLitInterp | StringLitText)[]
   expr 3015:24  StructLitExpr  :: StringLitText
   expr 3015:49  IdentExpr      :: string
-  expr 3015:63  FieldExpr      :: ?
+  expr 3015:63  FieldExpr      :: Span
   expr 3015:63  IdentExpr      :: Token
   expr 3018:12  BinaryExpr     :: bool
-  expr 3018:12  FieldExpr      :: ?
+  expr 3018:12  FieldExpr      :: TokenKind
   expr 3018:12  IdentExpr      :: Token
-  expr 3018:22  DotVariantExpr :: ?
+  expr 3018:22  DotVariantExpr :: TokenKind
   expr 3018:9   IfExpr         :: void
   expr 3019:29  CallExpr       :: Token
   expr 3019:29  FieldExpr      :: fn() -> Token
@@ -7287,10 +7287,10 @@
   expr 3021:28  FieldExpr      :: fn(TokenKind) -> null | Token
   expr 3021:28  IdentExpr      :: Parser
   expr 3021:41  DotVariantExpr :: TokenKind
-  expr 3022:27  IfExpr         :: ?
+  expr 3022:27  IfExpr         :: Span
   expr 3022:30  BinaryExpr     :: bool
   expr 3022:30  IdentExpr      :: null | Token
-  expr 3022:52  FieldExpr      :: ?
+  expr 3022:52  FieldExpr      :: Span
   expr 3022:52  IdentExpr      :: Token
   expr 3022:78  FieldExpr      :: Span
   expr 3022:78  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
@@ -7300,13 +7300,13 @@
   expr 3023:24  StructLitExpr  :: StringLitInterp
   expr 3024:25  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 3025:25  StructLitExpr  :: Span
-  expr 3025:41  FieldExpr      :: ?
-  expr 3025:41  FieldExpr      :: ?
+  expr 3025:41  FieldExpr      :: Position
+  expr 3025:41  FieldExpr      :: Span
   expr 3025:41  IdentExpr      :: Token
-  expr 3025:73  FieldExpr      :: ?
-  expr 3025:73  IdentExpr      :: ?
+  expr 3025:73  FieldExpr      :: Position
+  expr 3025:73  IdentExpr      :: Span
   expr 3029:17  DotVariantExpr :: ParserCode
-  expr 3029:35  FieldExpr      :: ?
+  expr 3029:35  FieldExpr      :: Span
   expr 3029:35  IdentExpr      :: Token
   expr 3029:43  StringLitExpr  :: string
   expr 3029:9   CallExpr       :: void
@@ -7343,7 +7343,7 @@
   expr 3042:5   FieldExpr      :: bool
   expr 3042:5   IdentExpr      :: Parser
   expr 3044:18  StructLitExpr  :: NullLitExpr
-  expr 3044:40  FieldExpr      :: ?
+  expr 3044:40  FieldExpr      :: Span
   expr 3044:40  IdentExpr      :: Token
   expr 3045:21  DotVariantExpr :: TokenKind
   expr 3045:5   IfExpr         :: Token | void
@@ -7362,21 +7362,21 @@
   expr 3048:9   CallExpr       :: Token
   expr 3048:9   FieldExpr      :: fn(TokenKind, string) -> Token
   expr 3048:9   IdentExpr      :: Parser
-  expr 304:18   DotVariantExpr :: ?
+  expr 304:18   DotVariantExpr :: TokenKind
   expr 304:22   FieldExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
   expr 304:22   IdentExpr      :: IntrinsicCallExpr
   expr 304:31   BinaryExpr     :: bool
   expr 304:31   CallExpr       :: void
-  expr 304:31   FieldExpr      :: ?
+  expr 304:31   FieldExpr      :: TokenKind
   expr 304:31   IdentExpr      :: Token
   expr 304:31   IdentExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, NodeIdFactory) -> void
-  expr 304:41   DotVariantExpr :: ?
+  expr 304:41   DotVariantExpr :: TokenKind
   expr 304:41   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 304:44   IdentExpr      :: NodeIdFactory
   expr 304:5    IfExpr         :: void
   expr 304:8    BinaryExpr     :: bool
   expr 304:8    BinaryExpr     :: bool
-  expr 304:8    FieldExpr      :: ?
+  expr 304:8    FieldExpr      :: TokenKind
   expr 304:8    IdentExpr      :: Token
   expr 3050:16  CallExpr       :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 3050:16  FieldExpr      :: fn(i32) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
@@ -7405,10 +7405,10 @@
   expr 3059:12  IdentExpr      :: Parser
   expr 3059:20  DotVariantExpr :: TokenKind
   expr 3059:9   IfExpr         :: void
-  expr 305:18   DotVariantExpr :: ?
+  expr 305:18   DotVariantExpr :: TokenKind
   expr 305:5    IfExpr         :: void
   expr 305:8    BinaryExpr     :: bool
-  expr 305:8    FieldExpr      :: ?
+  expr 305:8    FieldExpr      :: TokenKind
   expr 305:8    IdentExpr      :: Token
   expr 3060:13  IdentExpr      :: IfElseBlock | IfElseIf | null
   expr 3060:27  StructLitExpr  :: IfElseIf
@@ -7443,10 +7443,10 @@
   expr 306:5    IdentExpr      :: StringBuilder
   expr 3070:12  StructLitExpr  :: IfExpr
   expr 3071:24  StructLitExpr  :: Span
-  expr 3071:40  FieldExpr      :: ?
-  expr 3071:40  FieldExpr      :: ?
+  expr 3071:40  FieldExpr      :: Position
+  expr 3071:40  FieldExpr      :: Span
   expr 3071:40  IdentExpr      :: Token
-  expr 3071:65  FieldExpr      :: ?
+  expr 3071:65  FieldExpr      :: Position
   expr 3071:65  IdentExpr      :: Span
   expr 3072:24  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 3073:24  IdentExpr      :: BlockExpr
@@ -7456,19 +7456,19 @@
   expr 3079:14  IdentExpr      :: Parser
   expr 307:12   BinaryExpr     :: bool
   expr 307:12   BinaryExpr     :: bool
-  expr 307:12   FieldExpr      :: ?
+  expr 307:12   FieldExpr      :: TokenKind
   expr 307:12   IdentExpr      :: Token
   expr 307:19   BinaryExpr     :: i32
   expr 307:19   IdentExpr      :: i32
-  expr 307:25   DotVariantExpr :: ?
+  expr 307:25   DotVariantExpr :: TokenKind
   expr 307:30   StringLitExpr  :: string
   expr 307:39   BinaryExpr     :: bool
-  expr 307:39   FieldExpr      :: ?
+  expr 307:39   FieldExpr      :: TokenKind
   expr 307:39   IdentExpr      :: Token
   expr 307:5    CallExpr       :: void
   expr 307:5    FieldExpr      :: fn(i32, string) -> void
   expr 307:5    IdentExpr      :: StringBuilder
-  expr 307:52   DotVariantExpr :: ?
+  expr 307:52   DotVariantExpr :: TokenKind
   expr 307:9    IfExpr         :: void
   expr 3080:20  FieldExpr      :: bool
   expr 3080:20  IdentExpr      :: Parser
@@ -7536,16 +7536,16 @@
   expr 3093:30  StringLitExpr  :: string
   expr 3094:12  StructLitExpr  :: MatchExpr
   expr 3095:22  StructLitExpr  :: Span
-  expr 3095:38  FieldExpr      :: ?
-  expr 3095:38  FieldExpr      :: ?
+  expr 3095:38  FieldExpr      :: Position
+  expr 3095:38  FieldExpr      :: Span
   expr 3095:38  IdentExpr      :: Token
-  expr 3095:63  FieldExpr      :: ?
-  expr 3095:63  FieldExpr      :: ?
+  expr 3095:63  FieldExpr      :: Position
+  expr 3095:63  FieldExpr      :: Span
   expr 3095:63  IdentExpr      :: Token
   expr 3096:22  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 3097:22  IdentExpr      :: MatchArm[]
   expr 3098:22  IdentExpr      :: bool
-  expr 309:18   DotVariantExpr :: ?
+  expr 309:18   DotVariantExpr :: TokenKind
   expr 309:21   FieldExpr      :: string
   expr 309:21   IdentExpr      :: StructDecl
   expr 309:22   FieldExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
@@ -7559,7 +7559,7 @@
   expr 309:5    IdentExpr      :: StringBuilder
   expr 309:5    IfExpr         :: void
   expr 309:8    BinaryExpr     :: bool
-  expr 309:8    FieldExpr      :: ?
+  expr 309:8    FieldExpr      :: TokenKind
   expr 309:8    IdentExpr      :: Token
   expr 30:10    CallExpr       :: ?
   expr 30:10    IdentExpr      :: ?
@@ -7614,10 +7614,10 @@
   expr 3113:13  IdentExpr      :: Parser
   expr 3114:12  StructLitExpr  :: MatchArm
   expr 3115:20  StructLitExpr  :: Span
-  expr 3115:36  FieldExpr      :: ?
-  expr 3115:36  FieldExpr      :: ?
+  expr 3115:36  FieldExpr      :: Position
+  expr 3115:36  FieldExpr      :: Span
   expr 3115:36  IdentExpr      :: Token
-  expr 3115:61  FieldExpr      :: ?
+  expr 3115:61  FieldExpr      :: Position
   expr 3115:61  FieldExpr      :: Span
   expr 3115:61  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 3116:20  IdentExpr      :: BindingPattern | EnumVariantPattern | IsPattern | LiteralPattern | StructPattern | TuplePattern | WildcardPattern
@@ -7649,10 +7649,10 @@
   expr 3127:13  IdentExpr      :: Parser
   expr 3128:12  StructLitExpr  :: LambdaExpr
   expr 3129:24  StructLitExpr  :: Span
-  expr 3129:40  FieldExpr      :: ?
-  expr 3129:40  FieldExpr      :: ?
+  expr 3129:40  FieldExpr      :: Position
+  expr 3129:40  FieldExpr      :: Span
   expr 3129:40  IdentExpr      :: Token
-  expr 3129:65  FieldExpr      :: ?
+  expr 3129:65  FieldExpr      :: Position
   expr 3129:65  FieldExpr      :: Span
   expr 3129:65  IdentExpr      :: BlockExpr
   expr 312:21   BinaryExpr     :: i32
@@ -7680,10 +7680,10 @@
   expr 3141:10  CallExpr       :: Token
   expr 3141:10  FieldExpr      :: fn() -> Token
   expr 3141:10  IdentExpr      :: Parser
-  expr 3142:18  DotVariantExpr :: ?
+  expr 3142:18  DotVariantExpr :: TokenKind
   expr 3142:5   IfExpr         :: void
   expr 3142:8   BinaryExpr     :: bool
-  expr 3142:8   FieldExpr      :: ?
+  expr 3142:8   FieldExpr      :: TokenKind
   expr 3142:8   IdentExpr      :: Token
   expr 3143:9   CallExpr       :: Token
   expr 3143:9   FieldExpr      :: fn() -> Token
@@ -7695,17 +7695,17 @@
   expr 3144:35  StringLitExpr  :: string
   expr 3145:16  StructLitExpr  :: EnumVariantPattern
   expr 3146:24  StructLitExpr  :: Span
-  expr 3146:40  FieldExpr      :: ?
-  expr 3146:40  FieldExpr      :: ?
+  expr 3146:40  FieldExpr      :: Position
+  expr 3146:40  FieldExpr      :: Span
   expr 3146:40  IdentExpr      :: Token
-  expr 3146:61  FieldExpr      :: ?
-  expr 3146:61  FieldExpr      :: ?
+  expr 3146:61  FieldExpr      :: Position
+  expr 3146:61  FieldExpr      :: Span
   expr 3146:61  IdentExpr      :: Token
-  expr 3147:24  FieldExpr      :: ?
+  expr 3147:24  FieldExpr      :: string
   expr 3147:24  IdentExpr      :: Token
   expr 314:21   BinaryExpr     :: i32
   expr 314:21   IdentExpr      :: i32
-  expr 314:26   DotVariantExpr :: ?
+  expr 314:26   DotVariantExpr :: TokenKind
   expr 314:32   StringLitExpr  :: string
   expr 314:34   UnaryExpr      :: bool
   expr 314:35   CallExpr       :: bool
@@ -7717,13 +7717,13 @@
   expr 314:9    BinaryExpr     :: bool
   expr 314:9    BinaryExpr     :: bool
   expr 314:9    CallExpr       :: Token
-  expr 314:9    FieldExpr      :: ?
+  expr 314:9    FieldExpr      :: TokenKind
   expr 314:9    FieldExpr      :: fn() -> Token
   expr 314:9    IdentExpr      :: Parser
-  expr 3150:18  DotVariantExpr :: ?
+  expr 3150:18  DotVariantExpr :: TokenKind
   expr 3150:5   IfExpr         :: void
   expr 3150:8   BinaryExpr     :: bool
-  expr 3150:8   FieldExpr      :: ?
+  expr 3150:8   FieldExpr      :: TokenKind
   expr 3150:8   IdentExpr      :: Token
   expr 3151:9   CallExpr       :: Token
   expr 3151:9   FieldExpr      :: fn() -> Token
@@ -7757,7 +7757,7 @@
   expr 3160:40  IdentExpr      :: Parser
   expr 3160:50  IdentExpr      :: Token
   expr 3160:59  IdentExpr      :: Token
-  expr 3161:40  FieldExpr      :: ?
+  expr 3161:40  FieldExpr      :: string
   expr 3161:40  IdentExpr      :: Token
   expr 3166:13  CallExpr       :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 3166:13  FieldExpr      :: fn() -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
@@ -7791,8 +7791,8 @@
   expr 3173:9   IfExpr         :: void
   expr 3174:13  IdentExpr      :: null | string
   expr 3174:23  CallExpr       :: Token
-  expr 3174:23  FieldExpr      :: ?
   expr 3174:23  FieldExpr      :: fn(TokenKind, string) -> Token
+  expr 3174:23  FieldExpr      :: string
   expr 3174:23  IdentExpr      :: Parser
   expr 3174:32  DotVariantExpr :: TokenKind
   expr 3174:40  StringLitExpr  :: string
@@ -7820,43 +7820,43 @@
   expr 317:5    FieldExpr      :: fn(Decorator[], i32) -> void
   expr 317:5    IdentExpr      :: StringBuilder
   expr 3180:24  IdentExpr      :: null | string
-  expr 3183:18  DotVariantExpr :: ?
+  expr 3183:18  DotVariantExpr :: TokenKind
   expr 3183:28  BinaryExpr     :: bool
-  expr 3183:28  FieldExpr      :: ?
+  expr 3183:28  FieldExpr      :: string
   expr 3183:28  IdentExpr      :: Token
   expr 3183:38  StringLitExpr  :: string
   expr 3183:5   IfExpr         :: void
   expr 3183:8   BinaryExpr     :: bool
   expr 3183:8   BinaryExpr     :: bool
-  expr 3183:8   FieldExpr      :: ?
+  expr 3183:8   FieldExpr      :: TokenKind
   expr 3183:8   IdentExpr      :: Token
   expr 3184:9   CallExpr       :: Token
   expr 3184:9   FieldExpr      :: fn() -> Token
   expr 3184:9   IdentExpr      :: Parser
   expr 3185:16  StructLitExpr  :: WildcardPattern
-  expr 3185:42  FieldExpr      :: ?
+  expr 3185:42  FieldExpr      :: Span
   expr 3185:42  IdentExpr      :: Token
-  expr 3187:18  DotVariantExpr :: ?
+  expr 3187:18  DotVariantExpr :: TokenKind
   expr 3187:5   IfExpr         :: void
   expr 3187:8   BinaryExpr     :: bool
-  expr 3187:8   FieldExpr      :: ?
+  expr 3187:8   FieldExpr      :: TokenKind
   expr 3187:8   IdentExpr      :: Token
   expr 3188:9   CallExpr       :: Token
   expr 3188:9   FieldExpr      :: fn() -> Token
   expr 3188:9   IdentExpr      :: Parser
   expr 3189:16  StructLitExpr  :: BindingPattern
-  expr 3189:41  FieldExpr      :: ?
+  expr 3189:41  FieldExpr      :: Span
   expr 3189:41  IdentExpr      :: Token
-  expr 3189:57  FieldExpr      :: ?
+  expr 3189:57  FieldExpr      :: string
   expr 3189:57  IdentExpr      :: Token
   expr 318:18   IdentExpr      :: i32
   expr 318:5    CallExpr       :: void
   expr 318:5    FieldExpr      :: fn(i32) -> void
   expr 318:5    IdentExpr      :: StringBuilder
-  expr 3191:18  DotVariantExpr :: ?
+  expr 3191:18  DotVariantExpr :: TokenKind
   expr 3191:5   IfExpr         :: void
   expr 3191:8   BinaryExpr     :: bool
-  expr 3191:8   FieldExpr      :: ?
+  expr 3191:8   FieldExpr      :: TokenKind
   expr 3191:8   IdentExpr      :: Token
   expr 3192:16  CallExpr       :: TuplePattern
   expr 3192:16  FieldExpr      :: fn() -> TuplePattern
@@ -7890,7 +7890,7 @@
   expr 3202:45  UnaryExpr      :: i32
   expr 3203:22  IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 3206:13  DotVariantExpr :: ParserCode
-  expr 3206:31  FieldExpr      :: ?
+  expr 3206:31  FieldExpr      :: Span
   expr 3206:31  IdentExpr      :: Token
   expr 3206:39  StringLitExpr  :: string
   expr 3206:46  CallExpr       :: string
@@ -7903,7 +7903,7 @@
   expr 3207:5   FieldExpr      :: fn() -> Token
   expr 3207:5   IdentExpr      :: Parser
   expr 3208:12  StructLitExpr  :: WildcardPattern
-  expr 3208:38  FieldExpr      :: ?
+  expr 3208:38  FieldExpr      :: Span
   expr 3208:38  IdentExpr      :: Token
   expr 3212:14  CallExpr       :: Token
   expr 3212:14  FieldExpr      :: fn() -> Token
@@ -8017,9 +8017,9 @@
   expr 3241:26  DotVariantExpr :: TokenKind
   expr 3241:34  StringLitExpr  :: string
   expr 3242:36  StructLitExpr  :: PatternBinding
-  expr 3242:61  FieldExpr      :: ?
+  expr 3242:61  FieldExpr      :: string
   expr 3242:61  IdentExpr      :: Token
-  expr 3242:80  FieldExpr      :: ?
+  expr 3242:80  FieldExpr      :: Span
   expr 3242:80  IdentExpr      :: Token
   expr 3243:12  BinaryExpr     :: bool
   expr 3243:12  CallExpr       :: null | Token
@@ -8044,9 +8044,9 @@
   expr 3246:29  IdentExpr      :: Parser
   expr 3247:17  IdentExpr      :: PatternBinding | PatternLiteral
   expr 3247:25  StructLitExpr  :: PatternBinding
-  expr 3247:50  FieldExpr      :: ?
+  expr 3247:50  FieldExpr      :: string
   expr 3247:50  IdentExpr      :: Token
-  expr 3247:73  FieldExpr      :: ?
+  expr 3247:73  FieldExpr      :: Span
   expr 3247:73  IdentExpr      :: Token
   expr 3249:17  IdentExpr      :: PatternBinding | PatternLiteral
   expr 3249:25  StructLitExpr  :: PatternLiteral
@@ -8066,9 +8066,9 @@
   expr 3253:45  FieldExpr      :: fn(i32) -> Token
   expr 3253:45  IdentExpr      :: Parser
   expr 3253:55  UnaryExpr      :: i32
-  expr 3254:26  FieldExpr      :: ?
+  expr 3254:26  FieldExpr      :: string
   expr 3254:26  IdentExpr      :: Token
-  expr 3255:26  FieldExpr      :: ?
+  expr 3255:26  FieldExpr      :: Span
   expr 3255:26  IdentExpr      :: Token
   expr 3256:26  IdentExpr      :: PatternBinding | PatternLiteral
   expr 3258:9   CallExpr       :: void
@@ -8095,11 +8095,11 @@
   expr 3262:30  StringLitExpr  :: string
   expr 3263:12  StructLitExpr  :: StructPattern
   expr 3264:19  StructLitExpr  :: Span
-  expr 3264:35  FieldExpr      :: ?
-  expr 3264:35  FieldExpr      :: ?
+  expr 3264:35  FieldExpr      :: Position
+  expr 3264:35  FieldExpr      :: Span
   expr 3264:35  IdentExpr      :: Token
-  expr 3264:60  FieldExpr      :: ?
-  expr 3264:60  FieldExpr      :: ?
+  expr 3264:60  FieldExpr      :: Position
+  expr 3264:60  FieldExpr      :: Span
   expr 3264:60  IdentExpr      :: Token
   expr 3265:19  IdentExpr      :: StructPatternField[]
   expr 326:12   StructLitExpr  :: Span
@@ -8107,21 +8107,21 @@
   expr 326:14   IdentExpr      :: BlockExpr
   expr 326:24   CallExpr       :: void
   expr 326:24   IdentExpr      :: fn(AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt, NodeIdFactory) -> void
-  expr 326:28   FieldExpr      :: ?
-  expr 326:28   FieldExpr      :: ?
+  expr 326:28   FieldExpr      :: Position
+  expr 326:28   FieldExpr      :: Span
   expr 326:28   IdentExpr      :: Token
   expr 326:34   IdentExpr      :: AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt
   expr 326:37   IdentExpr      :: NodeIdFactory
   expr 326:5    CallExpr       :: void
   expr 326:5    FieldExpr      :: fn() -> void
   expr 326:5    IdentExpr      :: StringBuilder
-  expr 326:53   FieldExpr      :: ?
-  expr 326:53   FieldExpr      :: ?
+  expr 326:53   FieldExpr      :: Position
+  expr 326:53   FieldExpr      :: Span
   expr 326:53   IdentExpr      :: Token
   expr 3270:113 BinaryExpr     :: bool
-  expr 3270:113 FieldExpr      :: ?
+  expr 3270:113 FieldExpr      :: TokenKind
   expr 3270:113 IdentExpr      :: Token
-  expr 3270:123 DotVariantExpr :: ?
+  expr 3270:123 DotVariantExpr :: TokenKind
   expr 3270:13  BinaryExpr     :: bool
   expr 3270:13  BinaryExpr     :: bool
   expr 3270:13  BinaryExpr     :: bool
@@ -8130,33 +8130,33 @@
   expr 3270:13  BinaryExpr     :: bool
   expr 3270:13  BinaryExpr     :: bool
   expr 3270:13  BinaryExpr     :: bool
-  expr 3270:13  FieldExpr      :: ?
+  expr 3270:13  FieldExpr      :: TokenKind
   expr 3270:13  IdentExpr      :: Token
   expr 3270:136 BinaryExpr     :: bool
-  expr 3270:136 FieldExpr      :: ?
+  expr 3270:136 FieldExpr      :: TokenKind
   expr 3270:136 IdentExpr      :: Token
-  expr 3270:146 DotVariantExpr :: ?
+  expr 3270:146 DotVariantExpr :: TokenKind
   expr 3270:160 BinaryExpr     :: bool
-  expr 3270:160 FieldExpr      :: ?
+  expr 3270:160 FieldExpr      :: TokenKind
   expr 3270:160 IdentExpr      :: Token
-  expr 3270:170 DotVariantExpr :: ?
+  expr 3270:170 DotVariantExpr :: TokenKind
   expr 3270:183 BinaryExpr     :: bool
-  expr 3270:183 FieldExpr      :: ?
+  expr 3270:183 FieldExpr      :: TokenKind
   expr 3270:183 IdentExpr      :: Token
-  expr 3270:193 DotVariantExpr :: ?
-  expr 3270:23  DotVariantExpr :: ?
+  expr 3270:193 DotVariantExpr :: TokenKind
+  expr 3270:23  DotVariantExpr :: TokenKind
   expr 3270:36  BinaryExpr     :: bool
-  expr 3270:36  FieldExpr      :: ?
+  expr 3270:36  FieldExpr      :: TokenKind
   expr 3270:36  IdentExpr      :: Token
-  expr 3270:46  DotVariantExpr :: ?
+  expr 3270:46  DotVariantExpr :: TokenKind
   expr 3270:61  BinaryExpr     :: bool
-  expr 3270:61  FieldExpr      :: ?
+  expr 3270:61  FieldExpr      :: TokenKind
   expr 3270:61  IdentExpr      :: Token
-  expr 3270:71  DotVariantExpr :: ?
+  expr 3270:71  DotVariantExpr :: TokenKind
   expr 3270:85  BinaryExpr     :: bool
-  expr 3270:85  FieldExpr      :: ?
+  expr 3270:85  FieldExpr      :: TokenKind
   expr 3270:85  IdentExpr      :: Token
-  expr 3270:95  DotVariantExpr :: ?
+  expr 3270:95  DotVariantExpr :: TokenKind
   expr 327:11   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 327:11   IdentExpr      :: BlockExpr
   expr 327:5    MatchExpr      :: void
@@ -8182,36 +8182,36 @@
   expr 331:9    CallExpr       :: ?
   expr 331:9    FieldExpr      :: ?
   expr 331:9    IdentExpr      :: StringBuilder
-  expr 332:18   DotVariantExpr :: ?
+  expr 332:18   DotVariantExpr :: TokenKind
   expr 332:19   BinaryExpr     :: i32
   expr 332:19   IdentExpr      :: i32
   expr 332:34   StringLitExpr  :: string
-  expr 332:38   FieldExpr      :: ?
+  expr 332:38   FieldExpr      :: string
   expr 332:38   IdentExpr      :: Token
   expr 332:5    IfExpr         :: void
   expr 332:8    BinaryExpr     :: bool
-  expr 332:8    FieldExpr      :: ?
+  expr 332:8    FieldExpr      :: TokenKind
   expr 332:8    IdentExpr      :: Token
   expr 332:9    CallExpr       :: void
   expr 332:9    FieldExpr      :: fn(i32) -> void
   expr 332:9    IdentExpr      :: StringBuilder
-  expr 333:18   DotVariantExpr :: ?
+  expr 333:18   DotVariantExpr :: TokenKind
   expr 333:29   BinaryExpr     :: bool
-  expr 333:29   FieldExpr      :: ?
+  expr 333:29   FieldExpr      :: TokenKind
   expr 333:29   IdentExpr      :: Token
-  expr 333:39   DotVariantExpr :: ?
+  expr 333:39   DotVariantExpr :: TokenKind
   expr 333:5    IfExpr         :: void
-  expr 333:58   FieldExpr      :: ?
+  expr 333:58   FieldExpr      :: string
   expr 333:58   IdentExpr      :: Token
   expr 333:8    BinaryExpr     :: bool
   expr 333:8    BinaryExpr     :: bool
-  expr 333:8    FieldExpr      :: ?
+  expr 333:8    FieldExpr      :: TokenKind
   expr 333:8    IdentExpr      :: Token
   expr 333:9    CallExpr       :: void
   expr 333:9    FieldExpr      :: fn() -> void
   expr 333:9    IdentExpr      :: StringBuilder
   expr 334:11   IdentExpr      :: AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt
-  expr 334:18   DotVariantExpr :: ?
+  expr 334:18   DotVariantExpr :: TokenKind
   expr 334:24   BinaryExpr     :: i32
   expr 334:24   IdentExpr      :: i32
   expr 334:35   StringLitExpr  :: string
@@ -8219,18 +8219,18 @@
   expr 334:5    IfExpr         :: void
   expr 334:5    MatchExpr      :: void
   expr 334:8    BinaryExpr     :: bool
-  expr 334:8    FieldExpr      :: ?
+  expr 334:8    FieldExpr      :: TokenKind
   expr 334:8    IdentExpr      :: Token
   expr 334:9    CallExpr       :: void
   expr 334:9    FieldExpr      :: fn(bool, i32, string) -> void
   expr 334:9    IdentExpr      :: StringBuilder
-  expr 335:18   DotVariantExpr :: ?
+  expr 335:18   DotVariantExpr :: TokenKind
   expr 335:25   FieldExpr      :: string
   expr 335:25   IdentExpr      :: StructField
   expr 335:32   StringLitExpr  :: string
   expr 335:5    IfExpr         :: void
   expr 335:8    BinaryExpr     :: bool
-  expr 335:8    FieldExpr      :: ?
+  expr 335:8    FieldExpr      :: TokenKind
   expr 335:8    IdentExpr      :: Token
   expr 335:9    CallExpr       :: void
   expr 335:9    FieldExpr      :: fn(string) -> void
@@ -8244,22 +8244,22 @@
   expr 336:25   IdentExpr      :: i32
   expr 336:36   StringLitExpr  :: string
   expr 336:36   StringLitExpr  :: string
-  expr 336:40   FieldExpr      :: ?
+  expr 336:40   FieldExpr      :: string
   expr 336:40   IdentExpr      :: Token
   expr 336:5    IfExpr         :: void
-  expr 336:8    UnaryExpr      :: ?
-  expr 336:9    CallExpr       :: ?
+  expr 336:8    UnaryExpr      :: bool
+  expr 336:9    CallExpr       :: bool
   expr 336:9    CallExpr       :: void
-  expr 336:9    FieldExpr      :: ?
-  expr 336:9    FieldExpr      :: ?
+  expr 336:9    FieldExpr      :: fn() -> bool
   expr 336:9    FieldExpr      :: fn(bool, i32, string) -> void
+  expr 336:9    FieldExpr      :: string
   expr 336:9    IdentExpr      :: StringBuilder
   expr 336:9    IdentExpr      :: Token
   expr 337:12   CallExpr       :: ?
   expr 337:12   IdentExpr      :: ?
   expr 337:13   CallExpr       :: void
   expr 337:13   IdentExpr      :: fn(RestBinding | SimpleBinding | TupleBinding | WildcardBinding, NodeIdFactory) -> void
-  expr 337:22   FieldExpr      :: ?
+  expr 337:22   FieldExpr      :: TokenKind
   expr 337:22   IdentExpr      :: Token
   expr 337:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 337:23   IdentExpr      :: StructField
@@ -8581,12 +8581,12 @@
   expr 369:19   StructLitExpr  :: Span
   expr 369:28   BinaryExpr     :: i32
   expr 369:28   IdentExpr      :: i32
-  expr 369:35   FieldExpr      :: ?
-  expr 369:35   FieldExpr      :: ?
+  expr 369:35   FieldExpr      :: Position
+  expr 369:35   FieldExpr      :: Span
   expr 369:35   IdentExpr      :: Token
   expr 369:39   StringLitExpr  :: string
-  expr 369:64   FieldExpr      :: ?
-  expr 369:64   FieldExpr      :: ?
+  expr 369:64   FieldExpr      :: Position
+  expr 369:64   FieldExpr      :: Span
   expr 369:64   IdentExpr      :: Token
   expr 36:29    StringLitExpr  :: string
   expr 36:5     StructLitExpr  :: IntrinsicSpec
@@ -8660,7 +8660,7 @@
   expr 381:38   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 381:38   IdentExpr      :: InFor
   expr 381:46   IdentExpr      :: NodeIdFactory
-  expr 382:18   DotVariantExpr :: ?
+  expr 382:18   DotVariantExpr :: TokenKind
   expr 382:21   BinaryExpr     :: i32
   expr 382:21   IdentExpr      :: i32
   expr 382:32   StringLitExpr  :: string
@@ -8669,7 +8669,7 @@
   expr 382:5    IdentExpr      :: StringBuilder
   expr 382:5    IfExpr         :: void
   expr 382:8    BinaryExpr     :: bool
-  expr 382:8    FieldExpr      :: ?
+  expr 382:8    FieldExpr      :: TokenKind
   expr 382:8    IdentExpr      :: Token
   expr 383:18   StringLitExpr  :: string
   expr 383:25   FieldExpr      :: Decorator[]
@@ -8681,7 +8681,7 @@
   expr 383:5    IdentExpr      :: StringBuilder
   expr 383:5    IfExpr         :: void
   expr 383:8    BinaryExpr     :: bool
-  expr 383:8    FieldExpr      :: ?
+  expr 383:8    FieldExpr      :: string
   expr 383:8    IdentExpr      :: Token
   expr 384:18   IdentExpr      :: i32
   expr 384:20   DotVariantExpr :: TokenKind
@@ -9654,7 +9654,7 @@
   expr 507:21   CallExpr       :: ?
   expr 507:21   FieldExpr      :: ?
   expr 507:21   IdentExpr      :: StringBuilder
-  expr 507:35   FieldExpr      :: ?
+  expr 507:35   FieldExpr      :: Span
   expr 507:35   IdentExpr      :: Token
   expr 507:43   StringLitExpr  :: string
   expr 507:5    CallExpr       :: void
@@ -9833,7 +9833,7 @@
   expr 533:9    CallExpr       :: void
   expr 533:9    FieldExpr      :: fn() -> void
   expr 533:9    IdentExpr      :: StringBuilder
-  expr 534:21   FieldExpr      :: ?
+  expr 534:21   FieldExpr      :: string
   expr 534:21   IdentExpr      :: Token
   expr 534:24   BinaryExpr     :: i32
   expr 534:24   IdentExpr      :: i32
@@ -9911,7 +9911,7 @@
   expr 550:8    FieldExpr      :: fn() -> usize
   expr 550:8    IdentExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
   expr 551:17   DotVariantExpr :: ParserCode
-  expr 551:39   FieldExpr      :: ?
+  expr 551:39   FieldExpr      :: Span
   expr 551:39   IdentExpr      :: Token
   expr 551:9    CallExpr       :: void
   expr 551:9    CallExpr       :: void
@@ -9952,7 +9952,7 @@
   expr 558:9    IdentExpr      :: bool
   expr 559:17   DotVariantExpr :: ParserCode
   expr 559:39   CallExpr       :: Token
-  expr 559:39   FieldExpr      :: ?
+  expr 559:39   FieldExpr      :: Span
   expr 559:39   FieldExpr      :: fn() -> Token
   expr 559:39   IdentExpr      :: Parser
   expr 559:9    CallExpr       :: ?
@@ -10058,7 +10058,7 @@
   expr 586:23   IdentExpr      :: StringLitInfo
   expr 587:14   IdentExpr      :: (AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt)[]
   expr 587:23   StructLitExpr  :: NamedNamespaceImport
-  expr 587:54   FieldExpr      :: ?
+  expr 587:54   FieldExpr      :: string
   expr 587:54   IdentExpr      :: Token
   expr 587:83   IdentExpr      :: ImportName[] | null
   expr 588:12   UnaryExpr      :: bool
@@ -10192,8 +10192,8 @@
   expr 609:27   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 609:27   IdentExpr      :: LetStmt
   expr 609:29   CallExpr       :: Token
-  expr 609:29   FieldExpr      :: ?
   expr 609:29   FieldExpr      :: fn(TokenKind, string) -> Token
+  expr 609:29   FieldExpr      :: string
   expr 609:29   IdentExpr      :: Parser
   expr 609:36   BinaryExpr     :: i32
   expr 609:36   IdentExpr      :: i32
@@ -10212,7 +10212,7 @@
   expr 611:13   FieldExpr      :: fn(ImportName) -> void
   expr 611:13   IdentExpr      :: ImportName[]
   expr 611:24   StructLitExpr  :: ImportName
-  expr 612:26   FieldExpr      :: ?
+  expr 612:26   FieldExpr      :: string
   expr 612:26   IdentExpr      :: Token
   expr 613:13   CallExpr       :: void
   expr 613:13   FieldExpr      :: fn() -> void
@@ -10320,7 +10320,7 @@
   expr 629:13   FieldExpr      :: fn() -> void
   expr 629:13   IdentExpr      :: StringBuilder
   expr 629:17   DotVariantExpr :: ParserCode
-  expr 629:33   FieldExpr      :: ?
+  expr 629:33   FieldExpr      :: Span
   expr 629:33   IdentExpr      :: Token
   expr 629:41   StringLitExpr  :: string
   expr 629:53   IdentExpr      :: string
@@ -10346,7 +10346,7 @@
   expr 630:27   IdentExpr      :: i32
   expr 630:38   StringLitExpr  :: string
   expr 630:40   StringLitExpr  :: string
-  expr 630:52   FieldExpr      :: ?
+  expr 630:52   FieldExpr      :: Span
   expr 630:52   IdentExpr      :: Token
   expr 631:13   CallExpr       :: void
   expr 631:13   FieldExpr      :: fn(bool, i32, string) -> void
@@ -10385,12 +10385,12 @@
   expr 635:14   FieldExpr      :: fn() -> Token
   expr 635:14   IdentExpr      :: Parser
   expr 636:12   BinaryExpr     :: bool
-  expr 636:12   FieldExpr      :: ?
+  expr 636:12   FieldExpr      :: TokenKind
   expr 636:12   IdentExpr      :: Token
   expr 636:13   CallExpr       :: void
   expr 636:13   FieldExpr      :: fn() -> void
   expr 636:13   IdentExpr      :: StringBuilder
-  expr 636:22   DotVariantExpr :: ?
+  expr 636:22   DotVariantExpr :: TokenKind
   expr 636:9    IfExpr         :: ?
   expr 637:13   CallExpr       :: void
   expr 637:13   FieldExpr      :: fn(i32, string) -> void
@@ -10414,11 +10414,11 @@
   expr 63:36    IdentExpr      :: IntrinsicSpec
   expr 63:9     IfExpr         :: void
   expr 641:13   MatchExpr      :: void
-  expr 641:18   FieldExpr      :: ?
+  expr 641:18   FieldExpr      :: f64 | i64 | null | string | u32 | u64
   expr 641:18   IdentExpr      :: Token
   expr 641:19   IdentExpr      :: null | string
   expr 642:13   MatchExpr      :: ?
-  expr 642:19   IdentExpr      :: ?
+  expr 642:19   IdentExpr      :: f64 | i64 | null | string | u32 | u64
   expr 642:37   CallExpr       :: void
   expr 642:37   FieldExpr      :: fn() -> void
   expr 642:37   IdentExpr      :: StringBuilder
@@ -10433,7 +10433,7 @@
   expr 644:32   CallExpr       :: ?
   expr 644:32   FieldExpr      :: ?
   expr 644:32   IdentExpr      :: ?
-  expr 644:42   FieldExpr      :: ?
+  expr 644:42   FieldExpr      :: string
   expr 644:42   IdentExpr      :: Token
   expr 645:13   CallExpr       :: void
   expr 645:13   FieldExpr      :: fn(bool, i32, string) -> void
@@ -10449,12 +10449,12 @@
   expr 646:39   BinaryExpr     :: i32
   expr 646:39   IdentExpr      :: i32
   expr 647:12   BinaryExpr     :: bool
-  expr 647:12   FieldExpr      :: ?
+  expr 647:12   FieldExpr      :: TokenKind
   expr 647:12   IdentExpr      :: Token
   expr 647:13   CallExpr       :: void
   expr 647:13   FieldExpr      :: fn(bool, i32, string) -> void
   expr 647:13   IdentExpr      :: StringBuilder
-  expr 647:22   DotVariantExpr :: ?
+  expr 647:22   DotVariantExpr :: TokenKind
   expr 647:29   BinaryExpr     :: i32
   expr 647:29   IdentExpr      :: i32
   expr 647:40   StringLitExpr  :: string
@@ -10468,7 +10468,7 @@
   expr 648:21   DotVariantExpr :: ParserCode
   expr 648:33   FieldExpr      :: BlockExpr
   expr 648:33   IdentExpr      :: ForStmt
-  expr 648:39   FieldExpr      :: ?
+  expr 648:39   FieldExpr      :: Span
   expr 648:39   IdentExpr      :: Token
   expr 648:41   BinaryExpr     :: i32
   expr 648:41   IdentExpr      :: i32
@@ -10572,22 +10572,22 @@
   expr 661:48   IdentExpr      :: string
   expr 662:12   BinaryExpr     :: bool
   expr 662:12   BinaryExpr     :: bool
-  expr 662:12   FieldExpr      :: ?
+  expr 662:12   FieldExpr      :: TokenKind
   expr 662:12   IdentExpr      :: Token
-  expr 662:22   DotVariantExpr :: ?
+  expr 662:22   DotVariantExpr :: TokenKind
   expr 662:30   BinaryExpr     :: bool
-  expr 662:30   FieldExpr      :: ?
+  expr 662:30   FieldExpr      :: TokenKind
   expr 662:30   IdentExpr      :: Token
-  expr 662:40   DotVariantExpr :: ?
+  expr 662:40   DotVariantExpr :: TokenKind
   expr 662:9    IfExpr         :: void
   expr 663:12   BinaryExpr     :: bool
   expr 663:12   BinaryExpr     :: bool
-  expr 663:12   FieldExpr      :: ?
+  expr 663:12   FieldExpr      :: TokenKind
   expr 663:12   IdentExpr      :: Token
   expr 663:13   CallExpr       :: void
   expr 663:13   FieldExpr      :: fn(i32) -> void
   expr 663:13   IdentExpr      :: StringBuilder
-  expr 663:22   DotVariantExpr :: ?
+  expr 663:22   DotVariantExpr :: TokenKind
   expr 663:26   IdentExpr      :: i32
   expr 663:39   BinaryExpr     :: bool
   expr 663:39   IdentExpr      :: i32
@@ -10595,17 +10595,17 @@
   expr 664:12   BinaryExpr     :: bool
   expr 664:12   BinaryExpr     :: bool
   expr 664:12   BinaryExpr     :: bool
-  expr 664:12   FieldExpr      :: ?
+  expr 664:12   FieldExpr      :: TokenKind
   expr 664:12   IdentExpr      :: Token
-  expr 664:22   DotVariantExpr :: ?
+  expr 664:22   DotVariantExpr :: TokenKind
   expr 664:33   BinaryExpr     :: bool
-  expr 664:33   FieldExpr      :: ?
+  expr 664:33   FieldExpr      :: TokenKind
   expr 664:33   IdentExpr      :: Token
-  expr 664:43   DotVariantExpr :: ?
+  expr 664:43   DotVariantExpr :: TokenKind
   expr 664:56   BinaryExpr     :: bool
-  expr 664:56   FieldExpr      :: ?
+  expr 664:56   FieldExpr      :: TokenKind
   expr 664:56   IdentExpr      :: Token
-  expr 664:66   DotVariantExpr :: ?
+  expr 664:66   DotVariantExpr :: TokenKind
   expr 664:76   IdentExpr      :: i32
   expr 664:84   BinaryExpr     :: i32
   expr 664:84   IdentExpr      :: i32
@@ -10613,17 +10613,17 @@
   expr 665:12   BinaryExpr     :: bool
   expr 665:12   BinaryExpr     :: bool
   expr 665:12   BinaryExpr     :: bool
-  expr 665:12   FieldExpr      :: ?
+  expr 665:12   FieldExpr      :: TokenKind
   expr 665:12   IdentExpr      :: Token
-  expr 665:22   DotVariantExpr :: ?
+  expr 665:22   DotVariantExpr :: TokenKind
   expr 665:33   BinaryExpr     :: bool
-  expr 665:33   FieldExpr      :: ?
+  expr 665:33   FieldExpr      :: TokenKind
   expr 665:33   IdentExpr      :: Token
-  expr 665:43   DotVariantExpr :: ?
+  expr 665:43   DotVariantExpr :: TokenKind
   expr 665:56   BinaryExpr     :: bool
-  expr 665:56   FieldExpr      :: ?
+  expr 665:56   FieldExpr      :: TokenKind
   expr 665:56   IdentExpr      :: Token
-  expr 665:66   DotVariantExpr :: ?
+  expr 665:66   DotVariantExpr :: TokenKind
   expr 665:76   IdentExpr      :: i32
   expr 665:84   BinaryExpr     :: i32
   expr 665:84   IdentExpr      :: i32
@@ -10727,14 +10727,14 @@
   expr 684:64   IdentExpr      :: i32
   expr 685:12   BinaryExpr     :: bool
   expr 685:12   BinaryExpr     :: bool
-  expr 685:12   FieldExpr      :: ?
+  expr 685:12   FieldExpr      :: TokenKind
   expr 685:12   IdentExpr      :: Token
-  expr 685:22   DotVariantExpr :: ?
+  expr 685:22   DotVariantExpr :: TokenKind
   expr 685:30   BinaryExpr     :: bool
-  expr 685:30   FieldExpr      :: ?
+  expr 685:30   FieldExpr      :: TokenKind
   expr 685:30   IdentExpr      :: Token
   expr 685:40   CallExpr       :: void
-  expr 685:40   DotVariantExpr :: ?
+  expr 685:40   DotVariantExpr :: TokenKind
   expr 685:40   FieldExpr      :: fn(BlockExpr, i32) -> void
   expr 685:40   IdentExpr      :: StringBuilder
   expr 685:60   FieldExpr      :: BlockExpr
@@ -10744,9 +10744,9 @@
   expr 685:9    IfExpr         :: void
   expr 686:12   BinaryExpr     :: bool
   expr 686:12   BinaryExpr     :: bool
-  expr 686:12   FieldExpr      :: ?
+  expr 686:12   FieldExpr      :: TokenKind
   expr 686:12   IdentExpr      :: Token
-  expr 686:22   DotVariantExpr :: ?
+  expr 686:22   DotVariantExpr :: TokenKind
   expr 686:29   BinaryExpr     :: bool
   expr 686:29   IdentExpr      :: i32
   expr 686:9    IfExpr         :: void
@@ -10760,9 +10760,9 @@
   expr 688:16   IfExpr         :: void
   expr 688:19   BinaryExpr     :: bool
   expr 688:19   BinaryExpr     :: bool
-  expr 688:19   FieldExpr      :: ?
+  expr 688:19   FieldExpr      :: TokenKind
   expr 688:19   IdentExpr      :: Token
-  expr 688:29   DotVariantExpr :: ?
+  expr 688:29   DotVariantExpr :: TokenKind
   expr 688:36   BinaryExpr     :: bool
   expr 688:36   IdentExpr      :: i32
   expr 689:13   IdentExpr      :: i32
@@ -10780,7 +10780,7 @@
   expr 691:20   IdentExpr      :: i32
   expr 691:28   IdentExpr      :: i32
   expr 691:39   BinaryExpr     :: bool
-  expr 691:39   FieldExpr      :: ?
+  expr 691:39   FieldExpr      :: TokenKind
   expr 691:39   FieldExpr      :: Token[]
   expr 691:39   IdentExpr      :: Parser
   expr 691:39   IndexExpr      :: Token
@@ -10788,7 +10788,7 @@
   expr 691:48   IdentExpr      :: type
   expr 691:54   BinaryExpr     :: i32
   expr 691:54   IdentExpr      :: i32
-  expr 691:70   DotVariantExpr :: ?
+  expr 691:70   DotVariantExpr :: TokenKind
   expr 693:5    CallExpr       :: void
   expr 693:5    FieldExpr      :: fn() -> void
   expr 693:5    IdentExpr      :: StringBuilder
@@ -10796,9 +10796,9 @@
   expr 694:16   IfExpr         :: void
   expr 694:19   BinaryExpr     :: bool
   expr 694:19   BinaryExpr     :: bool
-  expr 694:19   FieldExpr      :: ?
+  expr 694:19   FieldExpr      :: TokenKind
   expr 694:19   IdentExpr      :: Token
-  expr 694:29   DotVariantExpr :: ?
+  expr 694:29   DotVariantExpr :: TokenKind
   expr 694:37   BinaryExpr     :: bool
   expr 694:37   IdentExpr      :: i32
   expr 694:5    MatchExpr      :: void
@@ -10827,7 +10827,7 @@
   expr 697:28   IdentExpr      :: i32
   expr 697:38   StringLitExpr  :: string
   expr 697:39   BinaryExpr     :: bool
-  expr 697:39   FieldExpr      :: ?
+  expr 697:39   FieldExpr      :: TokenKind
   expr 697:39   FieldExpr      :: Token[]
   expr 697:39   IdentExpr      :: Parser
   expr 697:39   IndexExpr      :: Token
@@ -10835,7 +10835,7 @@
   expr 697:48   IdentExpr      :: type
   expr 697:54   BinaryExpr     :: i32
   expr 697:54   IdentExpr      :: i32
-  expr 697:70   DotVariantExpr :: ?
+  expr 697:70   DotVariantExpr :: TokenKind
   expr 698:13   CallExpr       :: void
   expr 698:13   FieldExpr      :: fn(bool, i32, string) -> void
   expr 698:13   IdentExpr      :: StringBuilder
@@ -10867,17 +10867,17 @@
   expr 701:19   BinaryExpr     :: bool
   expr 701:19   BinaryExpr     :: bool
   expr 701:19   BinaryExpr     :: bool
-  expr 701:19   FieldExpr      :: ?
+  expr 701:19   FieldExpr      :: TokenKind
   expr 701:19   IdentExpr      :: Token
-  expr 701:29   DotVariantExpr :: ?
+  expr 701:29   DotVariantExpr :: TokenKind
   expr 701:40   BinaryExpr     :: bool
-  expr 701:40   FieldExpr      :: ?
+  expr 701:40   FieldExpr      :: TokenKind
   expr 701:40   IdentExpr      :: Token
-  expr 701:50   DotVariantExpr :: ?
+  expr 701:50   DotVariantExpr :: TokenKind
   expr 701:63   BinaryExpr     :: bool
-  expr 701:63   FieldExpr      :: ?
+  expr 701:63   FieldExpr      :: TokenKind
   expr 701:63   IdentExpr      :: Token
-  expr 701:73   DotVariantExpr :: ?
+  expr 701:73   DotVariantExpr :: TokenKind
   expr 702:13   CallExpr       :: void
   expr 702:13   FieldExpr      :: fn(i32, string) -> void
   expr 702:13   IdentExpr      :: StringBuilder
@@ -10895,20 +10895,20 @@
   expr 703:19   BinaryExpr     :: bool
   expr 703:19   BinaryExpr     :: bool
   expr 703:19   BinaryExpr     :: bool
-  expr 703:19   FieldExpr      :: ?
+  expr 703:19   FieldExpr      :: TokenKind
   expr 703:19   IdentExpr      :: Token
   expr 703:29   BinaryExpr     :: i32
-  expr 703:29   DotVariantExpr :: ?
+  expr 703:29   DotVariantExpr :: TokenKind
   expr 703:29   IdentExpr      :: i32
   expr 703:40   BinaryExpr     :: bool
-  expr 703:40   FieldExpr      :: ?
+  expr 703:40   FieldExpr      :: TokenKind
   expr 703:40   IdentExpr      :: Token
   expr 703:40   StringLitExpr  :: string
-  expr 703:50   DotVariantExpr :: ?
+  expr 703:50   DotVariantExpr :: TokenKind
   expr 703:63   BinaryExpr     :: bool
-  expr 703:63   FieldExpr      :: ?
+  expr 703:63   FieldExpr      :: TokenKind
   expr 703:63   IdentExpr      :: Token
-  expr 703:73   DotVariantExpr :: ?
+  expr 703:73   DotVariantExpr :: TokenKind
   expr 704:13   CallExpr       :: void
   expr 704:13   FieldExpr      :: fn(string) -> void
   expr 704:13   IdentExpr      :: StringBuilder
@@ -10999,7 +10999,7 @@
   expr 718:44   FieldExpr      :: fn(i32) -> Token
   expr 718:44   IdentExpr      :: Parser
   expr 718:54   UnaryExpr      :: i32
-  expr 719:24   FieldExpr      :: ?
+  expr 719:24   FieldExpr      :: string
   expr 719:24   IdentExpr      :: Token
   expr 71:13    CallExpr       :: usize
   expr 71:13    IdentExpr      :: fn(string, usize, usize) -> usize
@@ -11010,7 +11010,7 @@
   expr 71:33    IdentExpr      :: usize
   expr 71:36    IdentExpr      :: usize
   expr 71:9     IdentExpr      :: usize
-  expr 720:24   FieldExpr      :: ?
+  expr 720:24   FieldExpr      :: Span
   expr 720:24   IdentExpr      :: Token
   expr 721:24   IdentExpr      :: Visibility
   expr 721:5    IfExpr         :: void
@@ -11364,7 +11364,7 @@
   expr 778:26   IdentExpr      :: i32
   expr 779:113  IdentExpr      :: Token
   expr 779:17   DotVariantExpr :: ParserCode
-  expr 779:39   FieldExpr      :: ?
+  expr 779:39   FieldExpr      :: Span
   expr 779:39   IdentExpr      :: Token
   expr 779:47   StringLitExpr  :: string
   expr 779:9    CallExpr       :: void
@@ -11411,9 +11411,9 @@
   expr 785:13   IdentExpr      :: StringBuilder
   expr 785:26   IdentExpr      :: i32
   expr 785:28   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 786:28   FieldExpr      :: ?
+  expr 786:28   FieldExpr      :: string
   expr 786:28   IdentExpr      :: Token
-  expr 787:28   FieldExpr      :: ?
+  expr 787:28   FieldExpr      :: Span
   expr 787:28   IdentExpr      :: Token
   expr 788:13   CallExpr       :: void
   expr 788:13   FieldExpr      :: fn() -> void
@@ -11473,13 +11473,13 @@
   expr 798:19   IdentExpr      :: i32
   expr 798:29   FieldExpr      :: string
   expr 798:29   IdentExpr      :: IdentExpr
-  expr 798:30   DotVariantExpr :: ?
+  expr 798:30   DotVariantExpr :: TokenKind
   expr 798:41   IdentExpr      :: i32
   expr 798:45   BinaryExpr     :: i32
   expr 798:45   IdentExpr      :: i32
   expr 798:9    BinaryExpr     :: bool
   expr 798:9    CallExpr       :: Token
-  expr 798:9    FieldExpr      :: ?
+  expr 798:9    FieldExpr      :: TokenKind
   expr 798:9    FieldExpr      :: fn(i32) -> Token
   expr 798:9    IdentExpr      :: Parser
   expr 79:12    BinaryExpr     :: bool
@@ -11509,16 +11509,16 @@
   expr 79:9     IfExpr         :: void
   expr 800:9    IdentExpr      :: bool
   expr 801:15   CallExpr       :: Token
-  expr 801:15   FieldExpr      :: ?
+  expr 801:15   FieldExpr      :: TokenKind
   expr 801:15   FieldExpr      :: fn(i32) -> Token
   expr 801:15   IdentExpr      :: Parser
   expr 801:25   IdentExpr      :: i32
   expr 802:12   BinaryExpr     :: bool
-  expr 802:12   IdentExpr      :: ?
+  expr 802:12   IdentExpr      :: TokenKind
   expr 802:13   IfExpr         :: ?
   expr 802:16   FieldExpr      :: bool
   expr 802:16   IdentExpr      :: IdentExpr
-  expr 802:18   DotVariantExpr :: ?
+  expr 802:18   DotVariantExpr :: TokenKind
   expr 802:9    IfExpr         :: void
   expr 803:13   IdentExpr      :: i32
   expr 803:17   BinaryExpr     :: i32
@@ -11532,7 +11532,7 @@
   expr 804:13   IfExpr         :: void
   expr 804:16   BinaryExpr     :: bool
   expr 804:16   CallExpr       :: Token
-  expr 804:16   FieldExpr      :: ?
+  expr 804:16   FieldExpr      :: TokenKind
   expr 804:16   FieldExpr      :: fn(i32) -> Token
   expr 804:16   IdentExpr      :: Parser
   expr 804:17   CallExpr       :: ?
@@ -11540,18 +11540,18 @@
   expr 804:17   IdentExpr      :: StringBuilder
   expr 804:26   IdentExpr      :: i32
   expr 804:27   StringLitExpr  :: string
-  expr 804:37   DotVariantExpr :: ?
+  expr 804:37   DotVariantExpr :: TokenKind
   expr 804:46   IdentExpr      :: i32
   expr 804:50   BinaryExpr     :: i32
   expr 804:50   IdentExpr      :: i32
   expr 805:13   IfExpr         :: void
   expr 805:16   BinaryExpr     :: bool
   expr 805:16   CallExpr       :: Token
-  expr 805:16   FieldExpr      :: ?
+  expr 805:16   FieldExpr      :: TokenKind
   expr 805:16   FieldExpr      :: fn(i32) -> Token
   expr 805:16   IdentExpr      :: Parser
   expr 805:26   IdentExpr      :: i32
-  expr 805:37   DotVariantExpr :: ?
+  expr 805:37   DotVariantExpr :: TokenKind
   expr 806:13   IfExpr         :: ?
   expr 806:16   FieldExpr      :: bool
   expr 806:16   IdentExpr      :: IdentExpr
@@ -11573,13 +11573,13 @@
   expr 808:27   StringLitExpr  :: string
   expr 808:34   BinaryExpr     :: bool
   expr 808:34   CallExpr       :: Token
-  expr 808:34   FieldExpr      :: ?
+  expr 808:34   FieldExpr      :: TokenKind
   expr 808:34   FieldExpr      :: fn(i32) -> Token
   expr 808:34   IdentExpr      :: Parser
   expr 808:44   IdentExpr      :: i32
-  expr 808:55   DotVariantExpr :: ?
+  expr 808:55   DotVariantExpr :: TokenKind
   expr 809:26   CallExpr       :: Token
-  expr 809:26   FieldExpr      :: ?
+  expr 809:26   FieldExpr      :: TokenKind
   expr 809:26   FieldExpr      :: fn(i32) -> Token
   expr 809:26   IdentExpr      :: Parser
   expr 809:36   IdentExpr      :: i32
@@ -11606,16 +11606,16 @@
   expr 810:13   IdentExpr      :: StringBuilder
   expr 810:21   IfExpr         :: void
   expr 810:24   BinaryExpr     :: bool
-  expr 810:24   IdentExpr      :: ?
+  expr 810:24   IdentExpr      :: TokenKind
   expr 810:26   IdentExpr      :: i32
-  expr 810:29   DotVariantExpr :: ?
+  expr 810:29   DotVariantExpr :: TokenKind
   expr 810:39   IdentExpr      :: i32
   expr 810:47   BinaryExpr     :: i32
   expr 810:47   IdentExpr      :: i32
   expr 811:21   IfExpr         :: void
   expr 811:24   BinaryExpr     :: bool
-  expr 811:24   IdentExpr      :: ?
-  expr 811:29   DotVariantExpr :: ?
+  expr 811:24   IdentExpr      :: TokenKind
+  expr 811:29   DotVariantExpr :: TokenKind
   expr 811:39   IdentExpr      :: i32
   expr 811:47   BinaryExpr     :: i32
   expr 811:47   IdentExpr      :: i32
@@ -11636,13 +11636,13 @@
   expr 815:13   IdentExpr      :: StringBuilder
   expr 815:17   BinaryExpr     :: bool
   expr 815:17   CallExpr       :: Token
-  expr 815:17   FieldExpr      :: ?
+  expr 815:17   FieldExpr      :: TokenKind
   expr 815:17   FieldExpr      :: fn(i32) -> Token
   expr 815:17   IdentExpr      :: Parser
   expr 815:27   IdentExpr      :: i32
   expr 815:29   BinaryExpr     :: i32
   expr 815:29   IdentExpr      :: i32
-  expr 815:38   DotVariantExpr :: ?
+  expr 815:38   DotVariantExpr :: TokenKind
   expr 815:40   StringLitExpr  :: string
   expr 815:49   IdentExpr      :: i32
   expr 815:53   BinaryExpr     :: i32
@@ -11659,8 +11659,8 @@
   expr 817:13   IdentExpr      :: StringBuilder
   expr 817:13   IfExpr         :: void
   expr 817:16   BinaryExpr     :: bool
-  expr 817:16   IdentExpr      :: ?
-  expr 817:22   DotVariantExpr :: ?
+  expr 817:16   IdentExpr      :: TokenKind
+  expr 817:22   DotVariantExpr :: TokenKind
   expr 817:29   BinaryExpr     :: i32
   expr 817:29   IdentExpr      :: i32
   expr 817:40   StringLitExpr  :: string
@@ -11679,12 +11679,12 @@
   expr 819:13   IdentExpr      :: StringBuilder
   expr 819:21   BinaryExpr     :: bool
   expr 819:21   CallExpr       :: Token
-  expr 819:21   FieldExpr      :: ?
+  expr 819:21   FieldExpr      :: TokenKind
   expr 819:21   FieldExpr      :: fn(i32) -> Token
   expr 819:21   IdentExpr      :: Parser
   expr 819:26   IdentExpr      :: i32
   expr 819:31   IdentExpr      :: i32
-  expr 819:42   DotVariantExpr :: ?
+  expr 819:42   DotVariantExpr :: TokenKind
   expr 819:53   IdentExpr      :: i32
   expr 819:57   BinaryExpr     :: i32
   expr 819:57   IdentExpr      :: i32
@@ -11704,12 +11704,12 @@
   expr 824:29   BinaryExpr     :: i32
   expr 824:29   IdentExpr      :: i32
   expr 824:40   StringLitExpr  :: string
-  expr 825:107  DotVariantExpr :: ?
+  expr 825:107  DotVariantExpr :: TokenKind
   expr 825:12   BinaryExpr     :: bool
   expr 825:12   BinaryExpr     :: bool
   expr 825:12   BinaryExpr     :: bool
   expr 825:12   CallExpr       :: Token
-  expr 825:12   FieldExpr      :: ?
+  expr 825:12   FieldExpr      :: TokenKind
   expr 825:12   FieldExpr      :: fn(i32) -> Token
   expr 825:12   IdentExpr      :: Parser
   expr 825:13   CallExpr       :: void
@@ -11718,20 +11718,20 @@
   expr 825:22   IdentExpr      :: i32
   expr 825:27   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 825:27   IdentExpr      :: FieldExpr
-  expr 825:33   DotVariantExpr :: ?
+  expr 825:33   DotVariantExpr :: TokenKind
   expr 825:37   BinaryExpr     :: i32
   expr 825:37   IdentExpr      :: i32
   expr 825:43   BinaryExpr     :: bool
   expr 825:43   CallExpr       :: Token
-  expr 825:43   FieldExpr      :: ?
+  expr 825:43   FieldExpr      :: TokenKind
   expr 825:43   FieldExpr      :: fn(i32) -> Token
   expr 825:43   IdentExpr      :: Parser
   expr 825:53   BinaryExpr     :: i32
   expr 825:53   IdentExpr      :: i32
-  expr 825:68   DotVariantExpr :: ?
+  expr 825:68   DotVariantExpr :: TokenKind
   expr 825:82   BinaryExpr     :: bool
   expr 825:82   CallExpr       :: Token
-  expr 825:82   FieldExpr      :: ?
+  expr 825:82   FieldExpr      :: TokenKind
   expr 825:82   FieldExpr      :: fn(i32) -> Token
   expr 825:82   IdentExpr      :: Parser
   expr 825:92   BinaryExpr     :: i32
@@ -11811,7 +11811,7 @@
   expr 840:13   IdentExpr      :: StringBuilder
   expr 840:27   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 840:27   IdentExpr      :: IndexExpr
-  expr 840:33   FieldExpr      :: ?
+  expr 840:33   FieldExpr      :: Span
   expr 840:33   IdentExpr      :: Token
   expr 840:37   BinaryExpr     :: i32
   expr 840:37   IdentExpr      :: i32
@@ -12226,13 +12226,13 @@
   expr 895:13   IfExpr         :: ?
   expr 895:16   FieldExpr      :: bool
   expr 895:16   IdentExpr      :: MatchExpr
-  expr 895:33   FieldExpr      :: ?
+  expr 895:33   FieldExpr      :: string
   expr 895:33   IdentExpr      :: Token
   expr 896:17   CallExpr       :: void
   expr 896:17   FieldExpr      :: fn(bool, i32, string) -> void
   expr 896:17   IdentExpr      :: StringBuilder
   expr 896:33   BinaryExpr     :: i32
-  expr 896:33   FieldExpr      :: ?
+  expr 896:33   FieldExpr      :: Span
   expr 896:33   IdentExpr      :: Token
   expr 896:33   IdentExpr      :: i32
   expr 896:44   StringLitExpr  :: string
@@ -12515,17 +12515,17 @@
   expr 936:29   IdentExpr      :: i32
   expr 936:37   BinaryExpr     :: bool
   expr 936:37   CallExpr       :: Token
-  expr 936:37   FieldExpr      :: ?
+  expr 936:37   FieldExpr      :: TokenKind
   expr 936:37   FieldExpr      :: fn(i32) -> Token
   expr 936:37   IdentExpr      :: Parser
   expr 936:40   StringLitExpr  :: string
-  expr 936:58   DotVariantExpr :: ?
+  expr 936:58   DotVariantExpr :: TokenKind
   expr 936:72   BinaryExpr     :: bool
   expr 936:72   CallExpr       :: Token
-  expr 936:72   FieldExpr      :: ?
+  expr 936:72   FieldExpr      :: TokenKind
   expr 936:72   FieldExpr      :: fn(i32) -> Token
   expr 936:72   IdentExpr      :: Parser
-  expr 936:93   DotVariantExpr :: ?
+  expr 936:93   DotVariantExpr :: TokenKind
   expr 937:13   CallExpr       :: void
   expr 937:13   FieldExpr      :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, i32) -> void
   expr 937:13   IdentExpr      :: StringBuilder
@@ -12544,15 +12544,15 @@
   expr 938:14   IdentExpr      :: Parser
   expr 938:26   IdentExpr      :: i32
   expr 939:12   BinaryExpr     :: bool
-  expr 939:12   FieldExpr      :: ?
+  expr 939:12   FieldExpr      :: TokenKind
   expr 939:12   IdentExpr      :: Token
-  expr 939:22   DotVariantExpr :: ?
+  expr 939:22   DotVariantExpr :: TokenKind
   expr 939:9    IfExpr         :: void
   expr 940:13   CallExpr       :: void
   expr 940:13   FieldExpr      :: fn(ParserCode, Span, string) -> void
   expr 940:13   IdentExpr      :: Parser
   expr 940:21   DotVariantExpr :: ParserCode
-  expr 940:43   FieldExpr      :: ?
+  expr 940:43   FieldExpr      :: Span
   expr 940:43   IdentExpr      :: Token
   expr 940:51   StringLitExpr  :: string
   expr 941:13   CallExpr       :: void
@@ -12571,7 +12571,7 @@
   expr 942:27   BinaryExpr     :: i32
   expr 942:27   IdentExpr      :: i32
   expr 942:38   StringLitExpr  :: string
-  expr 942:43   FieldExpr      :: ?
+  expr 942:43   FieldExpr      :: Span
   expr 942:43   IdentExpr      :: Token
   expr 942:51   StringLitExpr  :: string
   expr 943:13   CallExpr       :: void
@@ -12611,16 +12611,16 @@
   expr 945:26   IdentExpr      :: i32
   expr 945:35   BinaryExpr     :: bool
   expr 945:35   CallExpr       :: Token
-  expr 945:35   FieldExpr      :: ?
+  expr 945:35   FieldExpr      :: TokenKind
   expr 945:35   FieldExpr      :: fn(i32) -> Token
   expr 945:35   IdentExpr      :: Parser
-  expr 945:56   DotVariantExpr :: ?
+  expr 945:56   DotVariantExpr :: TokenKind
   expr 945:70   BinaryExpr     :: bool
   expr 945:70   CallExpr       :: Token
-  expr 945:70   FieldExpr      :: ?
+  expr 945:70   FieldExpr      :: TokenKind
   expr 945:70   FieldExpr      :: fn(i32) -> Token
   expr 945:70   IdentExpr      :: Parser
-  expr 945:91   DotVariantExpr :: ?
+  expr 945:91   DotVariantExpr :: TokenKind
   expr 946:13   CallExpr       :: Token
   expr 946:13   FieldExpr      :: fn() -> Token
   expr 946:13   IdentExpr      :: Parser
@@ -12752,7 +12752,7 @@
   expr 961:13   IdentExpr      :: StringBuilder
   expr 961:29   BinaryExpr     :: i32
   expr 961:29   IdentExpr      :: i32
-  expr 961:33   FieldExpr      :: ?
+  expr 961:33   FieldExpr      :: string
   expr 961:33   IdentExpr      :: Token
   expr 961:40   StringLitExpr  :: string
   expr 962:13   CallExpr       :: void
@@ -12760,7 +12760,7 @@
   expr 962:13   IdentExpr      :: StringBuilder
   expr 962:28   FieldExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
   expr 962:28   IdentExpr      :: GenericInstExpr
-  expr 962:33   FieldExpr      :: ?
+  expr 962:33   FieldExpr      :: Span
   expr 962:33   IdentExpr      :: Token
   expr 962:41   BinaryExpr     :: i32
   expr 962:41   IdentExpr      :: i32
