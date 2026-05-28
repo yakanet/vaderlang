@@ -26,7 +26,7 @@ import "std/string" { byte_at, byte_len }
 import "vader/vm" {
     Op,
     I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst, NullConst,
-    LocalGet, LocalSet, LocalTee, Return, ReturnLit, ConstOp, Drop, Call,
+    LocalGet, LocalSet, LocalTee, LocalField, Return, ReturnLit, ConstOp, Drop, Call,
     If, Else, End, StructNew, StructGet, StructSet,
     Block, Loop, Branch, BranchIf, BoolNot,
     ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice,
@@ -196,7 +196,7 @@ write_function :: fn(sb: StringBuilder, function_decl: BcFunction, function_inde
     sb.append("\n")
     for i in 0..<function_decl.locals.len() {
         local :: function_decl.locals[i]
-        sb.append("  local \"${local.name}\" ${val_type_name(local.val)}\n")
+        sb.append("  local ${local.name} ${val_type_name(local.val)}\n")
     }
     for i in 0..<function_decl.body.len() {
         sb.append("  ")
@@ -220,6 +220,7 @@ format_op :: fn(op: Op) -> string = match op {
     is LocalGet as l            -> "local.get ${l.slot}"
     is LocalSet as l            -> "local.set ${l.slot}"
     is LocalTee as l            -> "local.tee ${l.slot}"
+    is LocalField as l          -> "local.field ${l.slot} ${l.type_id} ${l.field_index}"
     is Return                   -> "return"
     is ReturnLit as r           -> "return.lit ${format_const_op(r.value)}"
     is Drop                     -> "drop"
@@ -228,7 +229,7 @@ format_op :: fn(op: Op) -> string = match op {
     is CallIndirect as c        -> "call.indirect ${c.type_id}"
     is VirtualCall as v         -> "virtual.call ${v.parameter_count} ${v.vtable_key}"
     is FnRef as f               -> "fn.ref ${f.function_index}"
-    is MakeClosure as m         -> "make_closure ${m.function_index}"
+    is MakeClosure as m         -> "make_closure ${m.function_index} ${m.env_type_id}"
     is If                       -> "if"
     is Else                     -> "else"
     is End                      -> "end"

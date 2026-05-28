@@ -31,7 +31,7 @@ import "vader/bytecode" {
 }
 import "vader/vm" {
     Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
-    NullConst, LocalGet, LocalSet, LocalTee, Return, ReturnLit, ConstOp,
+    NullConst, LocalGet, LocalSet, LocalTee, LocalField, Return, ReturnLit, ConstOp,
     const_op_of, Drop, Call, CallImport, CallIndirect, FnRef, VirtualCall,
     If, Else, End, Block, Loop, Branch, BranchIf, BoolNot,
     StructNew, StructGet, StructSet,
@@ -606,7 +606,13 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
             push_emit(ctx, Return {}, fg.span)
             return
         }
-        push_emit(ctx, StructGet { .type_id = type_index, .field_index = field_index }, fg.span)
+        // Fuse `local.get N ; struct.get T F` → `local.field N T F`
+        // when the just-emitted op is the receiver's slot read. Mirrors
+        // the TS midir emit (src/midir/emit.ts:552).
+        fused :: try_fuse_local_field(ctx, type_index, field_index)
+        if !fused {
+            push_emit(ctx, StructGet { .type_id = type_index, .field_index = field_index }, fg.span)
+        }
         emit_set(ctx, fg.dst, fg.span)
         return
     }
@@ -731,7 +737,10 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
     if ins is InstrCellGet as cg {
         cell_type_idx :: intern_cell_type(cg.value_type, ctx.project)
         emit_get(ctx, cg.cell, cg.span)
-        push_emit(ctx, StructGet { .type_id = cell_type_idx, .field_index = i32(0) }, cg.span)
+        fused :: try_fuse_local_field(ctx, cell_type_idx, i32(0))
+        if !fused {
+            push_emit(ctx, StructGet { .type_id = cell_type_idx, .field_index = i32(0) }, cg.span)
+        }
         emit_set(ctx, cg.dst, cg.span)
         return
     }
@@ -744,9 +753,10 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
     }
     if ins is InstrMakeClosure as mc {
         emit_get(ctx, mc.env, mc.span)
+        env_type_id :: intern_type(mc.env_type, ctx.project)
         fn_idx_opt :: ctx.project.function_index_by_symbol_id[mc.fn_symbol.id]
         if fn_idx_opt is i32 as fn_idx {
-            push_emit(ctx, MakeClosure { .function_index = fn_idx }, mc.span)
+            push_emit(ctx, MakeClosure { .function_index = fn_idx, .env_type_id = env_type_id }, mc.span)
         } else {
             push_emit(ctx, Return {}, mc.span)
             return
@@ -806,6 +816,22 @@ emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst) -> void {
 emit_get :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {
     slot :: ctx.local_to_slot[usize(local_id)]
     push_emit(ctx, LocalGet { .slot = slot }, span)
+}
+
+// Pop the trailing `local.get N` from the body and replace with a fused
+// `local.field N type_id field_index`. Returns true iff fusion fired.
+try_fuse_local_field :: fn(
+    ctx: FnEmitCfg, type_id: i32, field_index: i32,
+) -> bool {
+    n :: ctx.slot.body.len()
+    if n == usize(0) { return false }
+    last :: ctx.slot.body[n - usize(1)]
+    if !(last is LocalGet) { return false }
+    slot :: last.slot
+    ctx.slot.body[n - usize(1)] = LocalField {
+        .slot = slot, .type_id = type_id, .field_index = field_index,
+    }
+    return true
 }
 
 emit_set :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {

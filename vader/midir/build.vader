@@ -913,7 +913,8 @@ build_make_closure :: fn(fn_ctx: FnCtx, e: LoweredMakeClosure) -> LocalId | null
     if env is null { return null }
     dst :: fresh_tmp(fn_ctx, "closure", e.type)
     emit(fn_ctx, InstrMakeClosure {
-        .dst = dst, .fn_symbol = e.fn_symbol, .env = env, .type = e.type, .span = e.span,
+        .dst = dst, .fn_symbol = e.fn_symbol, .env = env,
+        .env_type = type_of(e.env), .type = e.type, .span = e.span,
     })
     return dst
 }

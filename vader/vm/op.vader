@@ -180,7 +180,7 @@ export FnRef :: struct { function_index: i32 }
 /// `CallIndirect` prepends `env` as `slot 0` when invoking. `type_id`
 /// is informational (mirrors `fn.ref`'s static-type hint). Sprint 4 (b5)
 /// addition.
-export MakeClosure :: struct { function_index: i32 }
+export MakeClosure :: struct { function_index: i32, env_type_id: i32 }
 
 /// Invoke a function through a `FnVal` on top of the value stack.
 /// `type_id` indexes into `module.types` and resolves to a `FnType`

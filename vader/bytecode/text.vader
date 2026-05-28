@@ -310,7 +310,7 @@ write_function_virt :: fn(out: StringBuilder, function: op.BytecodeFunction, fn_
 
     local_index: usize = 0
     for local_index < function.local_count {
-        out.append("  local \"_\" i32\n")
+        out.append("  local _ i32\n")
         local_index += 1
     }
 
@@ -520,7 +520,7 @@ write_op_line :: fn(out: StringBuilder, v: op.Op, jump_table: i32[], labels: Sco
         is op.CallIndirect as c -> out.append("call.indirect ${c.type_id}")
         is op.VirtualCall  as c -> out.append("virtual.call ${c.parameter_count} ${c.vtable_key}")
         is op.FnRef        as c -> out.append("fn.ref ${c.function_index} 0")
-        is op.MakeClosure  as c -> out.append("make_closure ${c.function_index} 0")
+        is op.MakeClosure  as c -> out.append("make_closure ${c.function_index} ${c.env_type_id}")
 
         is op.StructNew as c -> out.append("struct.new ${c.type_id}")
         is op.StructGet as c -> out.append("struct.get ${c.type_id} ${c.field_index}")

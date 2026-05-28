@@ -41,7 +41,7 @@ import "vader/lower" {
 }
 import "vader/vm" {
     Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
-    NullConst, LocalGet, LocalSet, Return, Drop, Call, CallImport, CallIndirect,
+    NullConst, LocalGet, LocalSet, LocalField, Return, Drop, Call, CallImport, CallIndirect,
     FnRef,
     If, Else, End, StructNew, StructGet, StructSet,
     Block, Loop, Branch, BranchIf, BoolNot,
@@ -401,10 +401,26 @@ emit_field_access :: fn(field_access: LoweredFieldAccess, state: FnEmitState, ct
     target_type_id :: intern_type(type_of(field_access.target), ctx)
     emit_expr(field_access.target, state, ctx)
     field_index :: lookup_field_index(ctx, target_type_id, field_access.field)
+    // Fuse `local.get N ; struct.get T F` → `local.field N T F`
+    // (mirrors `src/midir/emit.ts::emitStructGet`'s in-place fold).
+    if try_fuse_local_field(state, target_type_id, field_index) { return }
     push_op(state, StructGet {
         .type_id     = target_type_id,
         .field_index = field_index,
     })
+}
+
+// Pop the trailing `LocalGet` from `state.body` and replace with a fused
+// `LocalField`. Returns true iff fusion fired.
+try_fuse_local_field :: fn(state: FnEmitState, type_id: i32, field_index: i32) -> bool {
+    n :: state.body.len()
+    if n == usize(0) { return false }
+    last :: state.body[n - usize(1)]
+    if !(last is LocalGet) { return false }
+    state.body[n - usize(1)] = LocalField {
+        .slot = last.slot, .type_id = type_id, .field_index = field_index,
+    }
+    return true
 }
 
 /// Look up a struct field's index by name within the BcStruct
@@ -557,9 +573,13 @@ emit_data_const :: fn(data_const: LoweredDataConst, state: FnEmitState, ctx: Emi
 /// resolves the lifted lambda fn's slot.
 emit_make_closure :: fn(closure: LoweredMakeClosure, state: FnEmitState, ctx: EmitterCtx) -> void {
     emit_expr(closure.env, state, ctx)
+    env_type_id :: intern_type(type_of(closure.env), ctx)
     target :: ctx.function_index_by_symbol_id[closure.fn_symbol.id]
     match target {
-        is i32 as function_index -> push_op(state, MakeClosure { .function_index = function_index })
+        is i32 as function_index -> push_op(state, MakeClosure {
+            .function_index = function_index,
+            .env_type_id    = env_type_id,
+        })
         _ -> {
             // Lifted fn not registered — Phase 7 will route through
             // the import table for `@extern` fn-valued imports.
@@ -637,6 +657,7 @@ emit_cell_new :: fn(cell_new: LoweredCellNew, state: FnEmitState, ctx: EmitterCt
 emit_cell_get :: fn(cell_get: LoweredCellGet, state: FnEmitState, ctx: EmitterCtx) -> void {
     cell_type_id :: intern_cell_type(cell_get.value_type, ctx)
     emit_expr(cell_get.target, state, ctx)
+    if try_fuse_local_field(state, cell_type_id, i32(0)) { return }
     push_op(state, StructGet { .type_id = cell_type_id, .field_index = i32(0) })
 }
 

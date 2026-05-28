@@ -51,7 +51,7 @@ import "vader/lower" {
 }
 import "vader/vm" {
     Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
-    NullConst, LocalGet, LocalSet, LocalTee, Return, ReturnLit, ConstOp,
+    NullConst, LocalGet, LocalSet, LocalTee, LocalField, Return, ReturnLit, ConstOp,
     const_op_of, Drop, Call, CallImport,
     If, Else, End, StructNew, StructGet, StructSet,
     Block, Loop, Branch, BranchIf, BoolNot,
@@ -380,11 +380,14 @@ export drop_dead_stores :: fn(function: BcFunction) -> void {
         reads.push(0)
         s += usize(1)
     }
-    // Count slot reads. Vader-emit only emits `local.get` as a slot
-    // reader (no fused `local.field`).
+    // Count slot reads — `local.get` plus the fused composite
+    // `local.field` (midir/emit.vader::try_fuse_local_field).
     for op in function.body {
         if op is LocalGet as g {
             reads[usize(g.slot)] += 1
+        }
+        if op is LocalField as lf {
+            reads[usize(lf.slot)] += 1
         }
     }
     // Mark dead = non-param local slots with zero reads.
@@ -444,6 +447,14 @@ export drop_dead_stores :: fn(function: BcFunction) -> void {
         }
         if op is LocalGet as lg {
             out.push(LocalGet { .slot = remap[usize(lg.slot)] })
+            continue
+        }
+        if op is LocalField as lf {
+            out.push(LocalField {
+                .slot = remap[usize(lf.slot)],
+                .type_id = lf.type_id,
+                .field_index = lf.field_index,
+            })
             continue
         }
         out.push(op)

@@ -1483,16 +1483,16 @@ parse_fn_ref :: fn(line: string) -> Op | null {
     return FnRef { .function_index = fn_idx }
 }
 
-/// Parse `make_closure FN_INDEX TYPE_ID` — same shape as `fn.ref`. The
-/// TYPE_ID is again static-only (consumed for validation, not stored).
+/// Parse `make_closure FN_INDEX ENV_TYPE_ID` — same shape as `fn.ref`,
+/// trailing ENV_TYPE_ID is the captured-env struct's type-table index.
 ///
 /// @param line  the .virt line (comment-stripped).
-/// @return      `MakeClosure { function_index }`, or `null` on malformed input.
+/// @return      `MakeClosure { function_index, env_type_id }`, or `null` on malformed input.
 parse_make_closure :: fn(line: string) -> Op | null {
     pair :: parse_int_pair_after_prefix(line, "make_closure ")
     if pair is null { return null }
-    [fn_idx, _] :: pair
-    return MakeClosure { .function_index = fn_idx }
+    [fn_idx, env_type_id] :: pair
+    return MakeClosure { .function_index = fn_idx, .env_type_id = env_type_id }
 }
 
 parse_type_check :: fn(line: string) -> Op | null {

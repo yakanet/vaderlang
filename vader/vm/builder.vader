@@ -445,7 +445,7 @@ export call_import :: fn(self: FunctionBuilder, index: i32) -> void = push_op(se
 export call_indirect :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, CallIndirect { .type_id = type_id })
 export virtual_call :: fn(self: FunctionBuilder, parameter_count: i32, vtable_key: string) -> void = push_op(self, VirtualCall { .parameter_count = parameter_count, .vtable_key = vtable_key })
 export fn_ref :: fn(self: FunctionBuilder, function_index: i32) -> void = push_op(self, FnRef { .function_index = function_index })
-export make_closure :: fn(self: FunctionBuilder, function_index: i32) -> void = push_op(self, MakeClosure { .function_index = function_index })
+export make_closure :: fn(self: FunctionBuilder, function_index: i32, env_type_id: i32) -> void = push_op(self, MakeClosure { .function_index = function_index, .env_type_id = env_type_id })
 
 // ---- struct / array / data ----------------------------------------------
 

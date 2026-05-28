@@ -414,6 +414,9 @@ export InstrMakeClosure :: struct {
     dst:       LocalId
     fn_symbol: Symbol
     env:       LocalId
+    /// Concrete type of the captured-env struct, interned by the
+    /// bytecode emit as the trailing operand of `make_closure`.
+    env_type:  Type
     type:      Type
 }
 

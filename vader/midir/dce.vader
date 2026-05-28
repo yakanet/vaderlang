@@ -185,7 +185,10 @@ export prune_unused_functions :: fn(ctx: EmitterCtx) -> void {
                 fn_.body[bj] = FnRef { .function_index = remap[usize(fr.function_index)] }
             }
             if op is MakeClosure as mc {
-                fn_.body[bj] = MakeClosure { .function_index = remap[usize(mc.function_index)] }
+                fn_.body[bj] = MakeClosure {
+                    .function_index = remap[usize(mc.function_index)],
+                    .env_type_id    = mc.env_type_id,
+                }
             }
             bj = bj + 1
         }
