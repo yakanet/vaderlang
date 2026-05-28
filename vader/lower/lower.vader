@@ -626,19 +626,16 @@ lower_struct_decl :: fn(
 import "vader/parser" { StructField }
 
 // Recover the field-type-by-name table the typecheck wrote alongside
-// `struct_decls`. Returns `null` when the typer hasn't surfaced one
-// for this decl (e.g. cascading-diagnostic recovery).
+// `struct_decls`. Match by SYMBOL ID, not name — two modules can both
+// declare a `PrimitiveType` struct (vader/types and vader/vm both do),
+// and a name-only lookup picks whichever module's decl iterates first,
+// returning a field table for a different struct entirely.
 lookup_struct_field_table :: fn(
     struct_decl: StructDecl, typed: TypedProgram,
 ) -> MutableMap<string, Type> | null {
-    for symbol_id in typed.struct_decls.keys() {
-        candidate :: typed.struct_decls[symbol_id]
-        if candidate is null { continue }
-        if candidate.name == struct_decl.name {
-            return typed.struct_field_types[symbol_id]
-        }
-    }
-    return null
+    sym :: symbol_for_decl(struct_decl, typed)
+    if sym is null { return null }
+    return typed.struct_field_types[sym.id]
 }
 
 // Pick the most-resolved type available : the typecheck-written
