@@ -514,7 +514,8 @@ run_bytecode_stage :: fn(file: string) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    module :: emit_project(lowered, module_name_from_file(file), default_emit_options())
+    pruned :: prune_unreachable_fns(lowered, false)
+    module :: emit_project(pruned, module_name_from_file(file), default_emit_options())
     // `dump_bytecode` already returns a trailing-newline-terminated
     // string ; use `print` (no auto-newline) to match TS
     // `process.stdout.write(writeVir(...))` byte-for-byte.
@@ -527,7 +528,8 @@ run_c_stage :: fn(file: string) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    module :: emit_project(lowered, module_name_from_file(file), default_emit_options())
+    pruned :: prune_unreachable_fns(lowered, false)
+    module :: emit_project(pruned, module_name_from_file(file), default_emit_options())
     println(emit_c(module, default_c_emit_options()))
     print_pipeline_diags(pipeline, lower_diags)
     return 0
