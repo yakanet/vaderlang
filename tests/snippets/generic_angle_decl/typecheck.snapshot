@@ -21,7 +21,7 @@
   expr 29:31    StringLitExpr  :: string
   expr 33:12    IdentExpr      :: bool
   expr 37:10    CallExpr       :: i32
-  expr 37:10    FieldExpr      :: fn() -> T
+  expr 37:10    FieldExpr      :: fn() -> i32
   expr 38:13    StringLitExpr  :: string
   expr 38:20    IdentExpr      :: i32
   expr 38:5     CallExpr       :: void
@@ -34,14 +34,14 @@
   expr 42:5     CallExpr       :: void
   expr 42:5     IdentExpr      :: fn(T) -> void
   expr 44:10    CallExpr       :: Box<i32>
-  expr 44:10    FieldExpr      :: fn() -> Box<T>
+  expr 44:10    FieldExpr      :: fn() -> Box<i32>
   expr 45:13    StringLitExpr  :: string
   expr 45:20    FieldExpr      :: i32
   expr 45:20    IdentExpr      :: Box<i32>
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(T) -> void
   expr 47:15    CallExpr       :: Box<Box<i32>>
-  expr 47:15    FieldExpr      :: fn() -> Box<Box<T>>
+  expr 47:15    FieldExpr      :: fn() -> Box<Box<i32>>
   expr 48:13    StringLitExpr  :: string
   expr 48:25    FieldExpr      :: Box<i32>
   expr 48:25    FieldExpr      :: i32

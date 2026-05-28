@@ -707,10 +707,31 @@ try_free_fn_ufcs_with_first :: fn(
 
 try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Type | null {
     if ft.params.len() == 0 { return null }
-    if !receiver_fits_first_param(target_ty, ft.params[0], typed) { return null }
+    // Non-generic fast path : skip the unify+substitute walk for
+    // overloads whose first param has no TypeParam (the vast majority
+    // of stdlib fns), since `try_free_fn_ufcs_with_first` calls this
+    // for every overload in the bucket on every UFCS site.
+    if !type_contains_type_param(ft.params[0]) {
+        if !receiver_fits_first_param(target_ty, ft.params[0], typed) { return null }
+        rest: Type[] = []
+        for i in 1..<ft.params.len() { rest.push(ft.params[i]) }
+        return mk_fn(rest, ft.return_type)
+    }
+    bindings :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
+    unify_type_param(ft.params[0], target_ty, bindings)
+    // Default Free* bindings so the curried return type comes back as
+    // `i32`/`f64` instead of `{integer}`/`{float}` — same pattern as
+    // `infer_call`'s `pinFreeNumericArg` (call.vader:208).
+    for k in bindings.keys() {
+        v :: bindings[k]
+        if v is null { continue }
+        bindings[k] = default_if_free(v)
+    }
+    fitted_first :: substitute_map(ft.params[0], bindings)
+    if !receiver_fits_first_param(target_ty, fitted_first, typed) { return null }
     rest: Type[] = []
-    for i in 1..<ft.params.len() { rest.push(ft.params[i]) }
-    return mk_fn(rest, ft.return_type)
+    for i in 1..<ft.params.len() { rest.push(substitute_map(ft.params[i], bindings)) }
+    return mk_fn(rest, substitute_map(ft.return_type, bindings))
 }
 
 // A receiver fits a UFCS first-param when (a) direct assignability holds,
@@ -728,62 +749,6 @@ receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgra
     }
     return false
 }
-
-// Walk `param` against `actual` and record `TypeParam.symbol.id →
-// concrete Type` bindings. Used to specialise UFCS-curried fn types
-// at the receiver type's instantiation.
-unify_typeparam :: fn(param: Type, actual: Type, bindings: MutableMap<i32, Type>) -> void {
-    match param {
-        is TypeParamType as tp -> { bindings[tp.symbol.id] = actual }
-        is StructType as sp -> {
-            if !(actual is StructType) { return }
-            asp :: actual
-            if sp.symbol.id != asp.symbol.id { return }
-            n :: min(sp.args.len(), asp.args.len())
-            for i in 0..<n { unify_typeparam(sp.args[i], asp.args[i], bindings) }
-        }
-        is ArrayType as ap -> {
-            if !(actual is ArrayType) { return }
-            unify_typeparam(ap.element, actual.element, bindings)
-        }
-        _ -> {}
-    }
-}
-
-substitute_by_id :: fn(t: Type, bindings: MutableMap<i32, Type>) -> Type {
-    match t {
-        is TypeParamType as tp -> {
-            replacement :: bindings[tp.symbol.id]
-            match replacement {
-                is null -> { return t }
-                _ -> { return replacement }
-            }
-        }
-        is ArrayType as a -> { return mk_array(substitute_by_id(a.element, bindings), a.immutable) }
-        is StructType as s -> {
-            args: Type[] = []
-            for a in s.args { args.push(substitute_by_id(a, bindings)) }
-            return mk_struct(s.symbol, args)
-        }
-        is FnType as f -> {
-            ps: Type[] = []
-            for p in f.params { ps.push(substitute_by_id(p, bindings)) }
-            return mk_fn(ps, substitute_by_id(f.return_type, bindings))
-        }
-        is UnionType as u -> {
-            vs: Type[] = []
-            for v in u.variants { vs.push(substitute_by_id(v, bindings)) }
-            return union_of(vs)
-        }
-        is TupleType as t2 -> {
-            els: Type[] = []
-            for el in t2.elements { els.push(substitute_by_id(el, bindings)) }
-            return mk_tuple(els)
-        }
-        _ -> { return t }
-    }
-}
-
 
 // Parse `0`, `1`, … from a tuple `.N` field name. Returns -1 when
 // the name isn't a non-negative integer literal — `.foo` on a tuple

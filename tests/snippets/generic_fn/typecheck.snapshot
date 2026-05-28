@@ -13,14 +13,14 @@
   expr 11:16    IndexExpr      :: T
   expr 13:12    IdentExpr      :: T
   expr 17:10    CallExpr       :: i32
-  expr 17:10    FieldExpr      :: fn() -> T
+  expr 17:10    FieldExpr      :: fn() -> i32
   expr 18:13    StringLitExpr  :: string
   expr 18:20    IdentExpr      :: i32
   expr 18:5     CallExpr       :: void
   expr 18:5     IdentExpr      :: fn(T) -> void
   expr 20:12    SeqLitExpr     :: i32[]
   expr 21:10    CallExpr       :: i32
-  expr 21:10    FieldExpr      :: fn(T) -> T
+  expr 21:10    FieldExpr      :: fn(i32) -> i32
   expr 21:10    IdentExpr      :: i32[]
   expr 22:13    StringLitExpr  :: string
   expr 22:20    IdentExpr      :: i32

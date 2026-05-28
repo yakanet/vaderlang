@@ -4,7 +4,7 @@
   FnDecl         main                 :: fn() -> i32
   expr 10:13    StringLitExpr  :: string
   expr 10:21    CallExpr       :: bool
-  expr 10:21    FieldExpr      :: fn(T) -> bool
+  expr 10:21    FieldExpr      :: fn(i32) -> bool
   expr 10:21    IdentExpr      :: MutableSet<i32>
   expr 10:5     CallExpr       :: void
   expr 10:5     IdentExpr      :: fn(T) -> void
@@ -31,13 +31,13 @@
   expr 7:72     SeqLitExpr     :: (Entry<i32, bool> | null)[]
   expr 8:13     StringLitExpr  :: string
   expr 8:21     CallExpr       :: bool
-  expr 8:21     FieldExpr      :: fn(T) -> bool
+  expr 8:21     FieldExpr      :: fn(i32) -> bool
   expr 8:21     IdentExpr      :: MutableSet<i32>
   expr 8:5      CallExpr       :: void
   expr 8:5      IdentExpr      :: fn(T) -> void
   expr 9:13     StringLitExpr  :: string
   expr 9:21     CallExpr       :: bool
-  expr 9:21     FieldExpr      :: fn(T) -> bool
+  expr 9:21     FieldExpr      :: fn(i32) -> bool
   expr 9:21     IdentExpr      :: MutableSet<i32>
   expr 9:5      CallExpr       :: void
   expr 9:5      IdentExpr      :: fn(T) -> void

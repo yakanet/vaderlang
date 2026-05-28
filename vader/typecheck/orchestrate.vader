@@ -203,6 +203,18 @@ export check_project_with_bodies :: fn(
     // Iterator's default `count` method via `try_default_trait_method`.
     cross_publish_trait_decls(per_module)
     cross_publish_fn_decls(per_module)
+    // Populate `imported_fn_overloads` for every NON-ENTRY module BEFORE
+    // `settle_external_expr_bodied_returns` walks their bodies — otherwise
+    // UFCS dispatch inside an external expr-bodied fn (e.g. `s.chars()
+    // .count()` inside std/string::len) doesn't see cross-module overloads.
+    // The entry's overload table is populated AFTER settle so it picks up
+    // the resolved return types of expr-bodied externals.
+    for id in per_module.keys() {
+        if id == project.entry { continue }
+        other_typed :: per_module[id]
+        if other_typed is null { continue }
+        populate_imported_fn_overloads(other_typed, per_module)
+    }
     settle_external_expr_bodied_returns(project, per_module)
     populate_external_types(entry_typed, project, per_module)
     populate_imported_fn_overloads(entry_typed, per_module)

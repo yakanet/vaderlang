@@ -43,7 +43,7 @@
   expr 30:25    StringLitExpr  :: string
   expr 30:35    StringLitExpr  :: string
   expr 31:19    CallExpr       :: [usize, string][]
-  expr 31:19    FieldExpr      :: fn() -> [usize, T][]
+  expr 31:19    FieldExpr      :: fn() -> [usize, string][]
   expr 31:19    IdentExpr      :: string[]
   expr 31:9     IdentExpr      :: [usize, string]
   expr 32:17    StringLitExpr  :: string
