@@ -37,6 +37,77 @@ interface Stage {
 // the angle form ever needs targeted skips during cleanup. Empty today.
 const ANGLE_GENERIC_SNIPPETS: ReadonlySet<string> = new Set<string>([]);
 
+// §9 audit baseline — snippets where Vader's self-emitted bytecode
+// currently diverges from the TS snapshot. Each entry is a known gap
+// in the lower/emit pipeline (most commonly type-erasure to `ref _`
+// for cross-module generics, see `project_selfhost_bytecode_audit.md`
+// in memory). Remove a name from this set as its fix lands so the
+// parity test catches future regressions. Goal : empty set ⇒ §9 done.
+const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
+  "_diag_const_string", "_diag_generic_map_param", "_diag_stdlib_struct_instance",
+  "_diag_struct_fwd_use", "alias_import", "alias_union_in_array", "array_iter",
+  "array_of_union", "array_push", "array_slice", "array_view_aliasing",
+  "b1_fn_boundary", "bound_enforced", "byte_literal", "cast_test",
+  "char_range_contains", "closure_callback", "closure_counter",
+  "closure_pattern_binding", "closure_shared", "closure_simple",
+  "closure_value_struct", "coerce_into_basic", "coerce_into_chain_no",
+  "coerce_into_explicit", "coerce_into_identity_rejected", "coerce_into_overload",
+  "coerce_into_union_target_no", "collection_index_sugar", "comptime_for",
+  "comptime_type_alias", "comptime_type_value", "const_array_bad",
+  "const_array_basic", "contains_op", "custom_iter", "custom_iter_generic",
+  "decorator_deprecated", "decorators_ok", "defer_block", "defer_in_lambda",
+  "defer_on_panic", "dot_variant_in_union", "enum_basic", "enum_implements_trait",
+  "enum_match", "enum_to_repr_cast", "enum_trait_self_return", "enum_typed",
+  "expr_bodied_fn", "expr_bodied_recursive_fn", "expr_bodied_recursive_typed",
+  "expressions", "extern_native_basic", "file_decorator", "fn_decl",
+  "fn_value_arg", "fn_value_array", "fn_value_local", "fn_value_struct",
+  "for_in_into_iter", "for_in_iter_trait", "for_loop", "for_range",
+  "for_range_sugar", "format_helpers", "gc_array_survive", "gc_chain_survive",
+  "gc_multi_collect", "generic_amp_bound", "generic_angle_decl",
+  "generic_brackets", "generic_eq", "generic_fn", "generic_helper_chain",
+  "generic_struct", "generic_type_alias", "hello", "if_branches",
+  "if_field_narrow", "if_is_as_bind", "if_is_field_after_narrow", "if_is_narrow",
+  "if_null_narrow", "if_without_else_stmt", "impl_bounded_typeparam",
+  "implicit_dot_variant", "implicit_type_alias", "interp_display",
+  "interp_string", "interpolation", "interpolation_tokens", "intrinsic_counts",
+  "intrinsic_field_access", "intrinsic_field_index", "intrinsic_fields",
+  "intrinsic_satisfies", "intrinsic_size_of", "intrinsic_type_args",
+  "intrinsic_type_kind", "io_roundtrip", "is_union_alias_warn",
+  "iter_coerce_array", "iter_combinators", "iter_defaults", "iter_lazy",
+  "iter_zip_chain", "json_basics", "lambda_no_fn", "let_type_alias", "loop",
+  "map_set_iter", "match_expr", "match_field_narrow", "match_is_as_binding",
+  "match_is_unreachable_negative", "match_literal_patterns", "match_partial",
+  "match_struct_pattern_binding", "match_struct_pattern_in_union", "match_union",
+  "match_wildcard_narrow", "multiline_string", "mutable_map", "mutable_map_string",
+  "mutable_set", "namespace_import", "nested_field_narrow", "null_blockres",
+  "numeric_add_trait", "numeric_context_sensitivity", "numerics", "op_not_is",
+  "op_overload_arith", "op_overload_compound", "op_overload_eq_ord",
+  "op_overload_index", "overload_first_param", "parse_int_match", "path_basics",
+  "primitive_hash_eq", "primitive_impl", "process_spawn", "range_widths",
+  "regex_helpers", "runtime_argv", "sam_impl", "self_ref_struct", "semver_basic",
+  "seq_lit_inference", "spread_destructure", "squares", "std_base64",
+  "std_cli_basic", "std_crypto", "std_math", "std_random", "std_regex",
+  "std_sort", "std_string", "std_string_builder", "std_time", "string_bytes",
+  "string_chars", "string_codepoint_slice", "string_codepoints", "strings",
+  "struct_decl", "struct_defaults", "struct_lit_field_order",
+  "struct_name_collision", "struct_spread", "trait_box_range_iter",
+  "trait_dispatch_bounded", "trait_dispatch_eq", "trait_dispatch_generic_iter",
+  "trait_dispatch_param", "trait_dispatch_struct", "trait_impl",
+  "trait_method_ambig", "trait_virtual_dispatch", "transitive_mono", "try_op",
+  "tuple_comptime", "tuple_destructure_after_narrow", "tuple_destructure_let",
+  "tuple_destructure_nested", "tuple_destructure_wildcard", "tuple_for_destructure",
+  "tuple_generic_swap", "tuple_in_array", "tuple_match_nested",
+  "tuple_match_pattern", "tuple_match_union", "tuple_pair_return",
+  "tuple_struct_field", "tuple_triple_quad", "type_aliases", "u32_bitops",
+  "ufcs_overload", "ufcs_union_receiver", "union_common_field", "usize_arith",
+  "usize_basic", "vm_arith", "vm_array_basic", "vm_array_mutate",
+  "vm_array_push_len", "vm_call_chain", "vm_call_recursive", "vm_closure_as_arg",
+  "vm_closure_capture", "vm_closure_mutating", "vm_fn_value_callback",
+  "vm_fn_value_local", "vm_fn_value_struct", "vm_for", "vm_hello", "vm_if",
+  "vm_interp_basic", "vm_interp_loop", "vm_interp_mixed", "vm_struct_mutate",
+  "vm_struct_nested", "vm_struct_point", "vm_trait_dispatch", "void_ident_rejected",
+]);
+
 // `dumpStage` is the CLI flag value ; `label` is what appears in test
 // names. Both stages map 1:1 onto a snapshot file produced by `tests/
 // snapshot.ts`. The label / dumpStage divergence (`parser` vs `ast`)
@@ -47,6 +118,7 @@ const STAGES: Stage[] = [
   { label: "resolver", dumpStage: "resolved-ast", snapshotFile: "resolver.snapshot", skip: new Set(ANGLE_GENERIC_SNIPPETS) },
   { label: "typecheck", dumpStage: "typed-ast", snapshotFile: "typecheck.snapshot", skip: new Set(ANGLE_GENERIC_SNIPPETS) },
   { label: "comptime", dumpStage: "evaluated-ast", snapshotFile: "comptime.snapshot", skip: new Set(ANGLE_GENERIC_SNIPPETS) },
+  { label: "bytecode", dumpStage: "bytecode", snapshotFile: "bytecode.snapshot.virt", skip: new Set(BYTECODE_DIVERGENT_SNIPPETS) },
 ];
 
 const scenarios = listSnippets("tests/snippets");
