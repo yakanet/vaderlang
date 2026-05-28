@@ -12,7 +12,6 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/resolver" { span_key }
 import "vader/types" { Type, FnType, mk_fn, TY_UNRESOLVED }
 AST :: import "vader/parser"
 
@@ -54,14 +53,14 @@ infer_param :: fn(
         is null -> {}
         _ -> {
             t :: type_from_expr(p.ty, typed.resolved, diags)
-            typed.param_types[span_key(p.span)] = t
+            typed.param_types[p.span.hash()] = t
             return t
         }
     }
     match expected_fn {
         is FnType as f -> {
             if idx < f.params.len() {
-                typed.param_types[span_key(p.span)] = f.params[idx]
+                typed.param_types[p.span.hash()] = f.params[idx]
                 return f.params[idx]
             }
         }
@@ -69,7 +68,7 @@ infer_param :: fn(
     }
     diags.push(typecheck_error(.FnSignatureMustBeAnnotated, p.span,
         "lambda parameter `${p.name}` cannot be inferred"))
-    typed.param_types[span_key(p.span)] = TY_UNRESOLVED
+    typed.param_types[p.span.hash()] = TY_UNRESOLVED
     return TY_UNRESOLVED
 }
 

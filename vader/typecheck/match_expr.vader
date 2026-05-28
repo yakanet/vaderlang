@@ -8,7 +8,6 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/resolver" { span_key }
 import "vader/types" { Type, UnionType, EnumType, display_type, TY_BOOL }
 AST :: import "vader/parser"
 
@@ -205,7 +204,7 @@ import "vader/types" { TraitType, TypeMetaType, TypeParamType, UnresolvedType }
 
 scrutinee_sym_id :: fn(scrut: AST.Expr, typed: TypedProgram) -> i32 {
     if !(scrut is AST.IdentExpr) { return -1 }
-    sym :: typed.resolved.idents[span_key(scrut.span)]
+    sym :: typed.resolved.idents[scrut.span.hash()]
     if sym is null { return -1 }
     return sym.id
 }
@@ -238,7 +237,7 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram) -> vo
             }
         }
         is AST.BindingPattern as bp -> {
-            typed.local_types[span_key(bp.span)] = scrut
+            typed.local_types[bp.span.hash()] = scrut
         }
         is AST.IsPattern as ip -> {
             // `is T as a` binds `a` to T (the narrowed type). The
@@ -247,7 +246,7 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram) -> vo
             narrowed :: type_from_expr(ip.ty, typed.resolved, scratch_diags())
             match ip.bind_as {
                 is null -> {}
-                _ -> { typed.local_types[span_key(ip.span)] = narrowed }
+                _ -> { typed.local_types[ip.span.hash()] = narrowed }
             }
             // Nested pattern (e.g. `is T as a { x, y }`) — recurse
             // with the narrowed type so inner StructPattern bindings
@@ -275,7 +274,7 @@ bind_struct_pattern :: fn(
                         ft :: find_struct_field_type(decl, field.name, typed.resolved, scratch_diags())
                         match ft {
                             is null -> {}
-                            _ -> { typed.local_types[span_key(pb.span)] = ft }
+                            _ -> { typed.local_types[pb.span.hash()] = ft }
                         }
                     }
                     _ -> {}

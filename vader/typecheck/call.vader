@@ -31,7 +31,6 @@ import "vader/types" {
     FreeIntType, FreeFloatType,
     display_type, mk_array, TY_UNRESOLVED,
 }
-import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { SymbolKind }
 
 // Inspect the callee : when it's a bare ident whose `fn_overloads`
@@ -86,7 +85,7 @@ is_nonprimary_pick :: fn(picked: FnType, primary: Type | null) -> bool {
 // import name resolves to. Returns null only when nothing is found.
 primary_overload_ft :: fn(callee: AST.Expr, typed: TypedProgram) -> Type | null {
     if !(callee is AST.IdentExpr) { return null }
-    sym :: typed.resolved.idents[span_key(callee.span)]
+    sym :: typed.resolved.idents[callee.span.hash()]
     if sym != null {
         ft :: typed.decl_types[sym.id]
         if ft is FnType { return ft }
@@ -255,12 +254,12 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     if c.args.len() == 0 { return }
     if !(field_callee.target is AST.IdentExpr) { return }
     target_ident :: field_callee.target
-    symbol :: typed.resolved.idents[span_key(target_ident.span)]
+    symbol :: typed.resolved.idents[target_ident.span.hash()]
     if symbol is null { return }
     if i32(symbol.kind) != i32(SymbolKind.Local) { return }
     binding_span :: symbol.defined_at
     if binding_span is null { return }
-    binding_key :: span_key(binding_span)
+    binding_key :: binding_span.hash()
     current :: typed.local_types[binding_key]
     if !(current is ArrayType) { return }
     if !(current.element is UnresolvedType) { return }
@@ -297,7 +296,7 @@ check_typeparam_bounds :: fn(
     if fn_decl is null { return }
     for tp in fn_decl.type_params {
         if tp.bound is null { continue }
-        sym :: typed.resolved.idents[span_key(tp.span)]
+        sym :: typed.resolved.idents[tp.span.hash()]
         if sym is null { continue }
         bound_ty :: bindings[sym.id]
         if bound_ty is null { continue }
@@ -325,7 +324,7 @@ satisfies_trait :: fn(t: Type, trait_ty: TraitType, typed: TypedProgram) -> bool
 
 lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
     if !(callee is AST.IdentExpr) { return null }
-    sym :: typed.resolved.idents[span_key(callee.span)]
+    sym :: typed.resolved.idents[callee.span.hash()]
     if sym is null { return null }
     redirected :: redirect_import_typed(sym, typed)
     decl :: typed.fn_decls[redirected.id]

@@ -336,12 +336,12 @@ synth_next_symbol :: fn(ctx: FnLowerCtx) -> Symbol {
 // `idents.values()` by `defined_at == binding_span`. Mirrors the
 // `lookup_local_symbol` shape used elsewhere.
 export lookup_for_binding :: fn(ctx: FnLowerCtx, binding_span: Span) -> Symbol | null {
-    target_key :: span_key(binding_span)
+    target_key :: binding_span.hash()
     for symbol in ctx.typed.resolved.idents.values() {
         match symbol.defined_at {
             is null -> {}
             is Span as defined -> {
-                if span_key(defined) == target_key { return symbol }
+                if defined.hash() == target_key { return symbol }
             }
         }
     }

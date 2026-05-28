@@ -38,7 +38,7 @@ AST :: import "vader/parser"
 /// @param diags          diagnostics sink ; R2018s appended here.
 export run_orphan_rule_check_for_module :: fn(
     loaded: LoadedModule, module_id: string,
-    idents: MutableMap<i64, Symbol>, wire_targets: ImportTargetTable,
+    idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
     diags: Diagnostic[],
 ) -> void {
     for file in loaded.module.files {
@@ -54,7 +54,7 @@ export run_orphan_rule_check_for_module :: fn(
 check_orphan_rule :: fn(
     decl: AST.ImplDecl, module_id: string,
     module_symbols: MutableMap<string, Symbol>,
-    idents: MutableMap<i64, Symbol>, wire_targets: ImportTargetTable,
+    idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
     diags: Diagnostic[],
 ) -> void {
     trait_sym :: lookup_trait_sym(decl, module_symbols, wire_targets)
@@ -86,16 +86,16 @@ lookup_trait_sym :: fn(
 
 for_type_owner_sym :: fn(
     t: AST.TypeExpr,
-    idents: MutableMap<i64, Symbol>, wire_targets: ImportTargetTable,
+    idents: MutableMap<u64, Symbol>, wire_targets: ImportTargetTable,
 ) -> Symbol | null {
     if t is AST.IdentExpr as i {
-        raw :: idents[span_key(i.span)]
+        raw :: idents[i.span.hash()]
         if raw is null { return null }
         return resolve_import_redirect(raw, wire_targets)
     }
     if t is AST.GenericInstExpr as g {
         if g.callee is AST.IdentExpr as i {
-            raw :: idents[span_key(i.span)]
+            raw :: idents[i.span.hash()]
             if raw is null { return null }
             return resolve_import_redirect(raw, wire_targets)
         }

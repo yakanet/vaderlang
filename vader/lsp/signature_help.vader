@@ -18,7 +18,6 @@ import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, Jso
 import "std/string" { byte_len, byte_slice, starts_with }
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/resolver" { load_project }
-import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck" { check_project_with_bodies }
 import "vader/typecheck" { TypedProgram }
@@ -246,7 +245,7 @@ build_signature :: fn(call: AST.CallExpr, typed: TypedProgram) -> JsonValue | nu
 lookup_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
     match callee {
         is AST.IdentExpr as id -> {
-            sym :: typed.resolved.idents[span_key(id.span)]
+            sym :: typed.resolved.idents[id.span.hash()]
             if sym is null { return null }
             return typed.fn_decls[sym.id]
         }

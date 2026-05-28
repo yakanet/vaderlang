@@ -452,12 +452,12 @@ struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) 
 // pattern's name_span. Synthesise a fresh symbol when the resolver
 // didn't write one — defensive against cascading diagnostics.
 resolve_pattern_symbol :: fn(ctx: FnLowerCtx, name_span: Span, name: string) -> Symbol {
-    target_key :: span_key(name_span)
+    target_key :: name_span.hash()
     for symbol in ctx.typed.resolved.idents.values() {
         match symbol.defined_at {
             is null -> {}
             is Span as defined -> {
-                if span_key(defined) == target_key { return symbol }
+                if defined.hash() == target_key { return symbol }
             }
         }
     }

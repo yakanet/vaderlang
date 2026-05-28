@@ -10,7 +10,6 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, Span, typecheck_error, warning }
-import "vader/resolver" { span_key }
 AST :: import "vader/parser"
 import "vader/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
@@ -162,7 +161,7 @@ patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) 
         }
         is null -> {
             // Impl method — patch the span-keyed table.
-            sp_key :: span_key(fn_decl.name_span)
+            sp_key :: fn_decl.name_span.hash()
             cur :: typed.impl_method_decl_types[sp_key]
             match cur {
                 is FnType as ft -> { typed.impl_method_decl_types[sp_key] = mk_fn(ft.params, ret) }
@@ -264,7 +263,7 @@ check_let :: fn(
     if !s.mutable && declared is TypeMetaType {
         if s.binding is AST.SimpleBinding as sb {
             if is_alias_value_expr(s.value, typed.resolved) {
-                sym_or_null :: typed.resolved.idents[span_key(sb.name_span)]
+                sym_or_null :: typed.resolved.idents[sb.name_span.hash()]
                 if sym_or_null is Symbol as sym {
                     resolved_type :: type_from_expr(s.value, typed.resolved, diag_sink_stmt())
                     typed.let_type_aliases[sym.id] = resolved_type
@@ -333,7 +332,7 @@ check_assign :: fn(
 }
 
 is_const_reassign :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> bool {
-    sym :: typed.resolved.idents[span_key(ident.span)]
+    sym :: typed.resolved.idents[ident.span.hash()]
     if sym is null { return false }
     return !(typed.resolved.immutable_locals[sym.id] is null)
 }
@@ -393,7 +392,7 @@ check_for :: fn(
         is AST.InFor as f -> {
             iter_ty :: check_expr_fn(f.iter, null, typed, diags)
             elem :: for_in_element(iter_ty, typed)
-            typed.local_types[span_key(f.binding_span)] = elem
+            typed.local_types[f.binding_span.hash()] = elem
         }
     }
     inner_ctx :: bump_loop_depth(ctx)
@@ -532,7 +531,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     if i32(cond.op) == i32(AST.BinaryOp.Eq) || i32(cond.op) == i32(AST.BinaryOp.Neq) {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
         if !(ident_side is null) {
-            sym :: typed.resolved.idents[span_key(ident_side.span)]
+            sym :: typed.resolved.idents[ident_side.span.hash()]
             if sym is null { return null }
             base :: type_of_symbol(sym, typed)
             current :: narrow_for_binding(typed, sym.id, base)
@@ -572,7 +571,7 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     }
     if i32(cond.op) != i32(AST.BinaryOp.Is) { return null }
     if !(cond.left is AST.IdentExpr) { return null }
-    sym :: typed.resolved.idents[span_key(cond.left.span)]
+    sym :: typed.resolved.idents[cond.left.span.hash()]
     if sym is null { return null }
     base :: type_of_symbol(sym, typed)
     current :: narrow_for_binding(typed, sym.id, base)
@@ -625,7 +624,7 @@ lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
     sym :: lookup_decl_symbol_stmt(typed.resolved, fn_decl)
     decl_ty :: match sym {
         is Symbol as s -> typed.decl_types[s.id]
-        is null        -> typed.impl_method_decl_types[span_key(fn_decl.name_span)]
+        is null        -> typed.impl_method_decl_types[fn_decl.name_span.hash()]
     }
     if decl_ty is null { return TY_UNRESOLVED }
     match decl_ty {
@@ -642,8 +641,8 @@ export assign_binding_types :: fn(
     b: AST.LetBinding, declared: Type, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     match b {
-        is AST.SimpleBinding   as sb -> { typed.local_types[span_key(sb.name_span)] = declared }
-        is AST.RestBinding     as rb -> { typed.local_types[span_key(rb.span)] = declared }
+        is AST.SimpleBinding   as sb -> { typed.local_types[sb.name_span.hash()] = declared }
+        is AST.RestBinding     as rb -> { typed.local_types[rb.span.hash()] = declared }
         is AST.WildcardBinding       -> {}
         is AST.TupleBinding    as tb -> { assign_tuple(tb, declared, typed, diags) }
     }
@@ -742,7 +741,7 @@ test_let_simple_binding_records_local_type :: fn() -> void {
     out :: stub_check_module(src)
     sb :: first_simple_binding(src)
     if sb is null { assert(false, "expected SimpleBinding") return }
-    ty :: out.typed.local_types[span_key(sb.name_span)]
+    ty :: out.typed.local_types[sb.name_span.hash()]
     if ty is null { assert(false, "binding should have a type") return }
     // Bare `42` defaults to i32 via `default_if_free`.
     assert_eq(display_type(ty), "i32")
@@ -754,7 +753,7 @@ test_let_with_annotation_narrows_free_int :: fn() -> void {
     out :: stub_check_module(src)
     sb :: first_simple_binding(src)
     if sb is null { assert(false, "expected SimpleBinding") return }
-    ty :: out.typed.local_types[span_key(sb.name_span)]
+    ty :: out.typed.local_types[sb.name_span.hash()]
     if ty is null { assert(false, "binding should have a type") return }
     assert_eq(display_type(ty), "i64")
 }
@@ -783,7 +782,7 @@ test_for_in_array_narrows_binding :: fn() -> void {
     out :: stub_check_module(src)
     sp :: first_for_in_binding_span(src)
     if sp is null { assert(false, "expected a for-in") return }
-    ty :: out.typed.local_types[span_key(sp)]
+    ty :: out.typed.local_types[sp.hash()]
     if ty is null { assert(false, "for-in binding should have a type") return }
     assert_eq(display_type(ty), "i32")
 }

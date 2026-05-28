@@ -46,7 +46,7 @@ export infer_intrinsic :: fn(
                     // instance and the @fields / @type_args fold falls
                     // through to LoweredUnreachable.
                     resolved :: type_from_expr(e.args[i], typed.resolved, diags)
-                    typed.type_expr_types[span_key(e.args[i].span)] = resolved
+                    typed.type_expr_types[e.args[i].span.hash()] = resolved
                 }
             }
         } else {
@@ -98,7 +98,6 @@ static_string_value :: fn(e: AST.StringLitExpr) -> string {
     return out
 }
 
-import "vader/resolver" { span_key }
 import "vader/types" { StructType, UnresolvedType }
 
 

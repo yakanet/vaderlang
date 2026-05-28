@@ -29,7 +29,6 @@ import "std/collections" { keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, compare_ascending_ci, pad_end, split }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
-import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" { display_type }
 

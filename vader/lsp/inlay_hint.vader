@@ -20,7 +20,6 @@ import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, Jso
 import "std/string" { byte_len, byte_slice, starts_with }
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/resolver" { load_project, ResolvedModule }
-import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol }
 import "vader/typecheck" { check_project_with_bodies }
 import "vader/typecheck" { CheckResult }
@@ -162,7 +161,7 @@ collect_from_expr :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]) -> v
 emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out: JsonValue[]) -> void {
     match ls.binding {
         is AST.SimpleBinding as sb -> {
-            ty :: typed.local_types[span_key(sb.name_span)]
+            ty :: typed.local_types[sb.name_span.hash()]
             if ty is null { return }
             if ty is UnresolvedType { return }
             if ty is FreeIntType { return }

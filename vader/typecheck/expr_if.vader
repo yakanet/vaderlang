@@ -10,7 +10,6 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/resolver" { span_key }
 import "vader/types" { Type, UnresolvedType, display_type, mk_primitive, TY_BOOL, TY_VOID, TY_UNRESOLVED }
 AST :: import "vader/parser"
 
@@ -153,7 +152,7 @@ detect_is_narrow :: fn(
     if i32(cond.op) == i32(AST.BinaryOp.Eq) || i32(cond.op) == i32(AST.BinaryOp.Neq) {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
         if !(ident_side is null) {
-            sym :: typed.resolved.idents[span_key(ident_side.span)]
+            sym :: typed.resolved.idents[ident_side.span.hash()]
             if sym is null { return null }
             base :: type_of_symbol(sym, typed)
             null_ty :: mk_primitive("null")
@@ -188,14 +187,14 @@ detect_is_narrow :: fn(
     }
     if i32(cond.op) != i32(AST.BinaryOp.Is) { return null }
     if !(cond.left is AST.IdentExpr) { return null }
-    sym :: typed.resolved.idents[span_key(cond.left.span)]
+    sym :: typed.resolved.idents[cond.left.span.hash()]
     if sym is null { return null }
     base :: type_of_symbol(sym, typed)
     narrowed :: type_from_expr(cond.right, typed.resolved, diags)
     // `if x is T as a { … }` — write the bind's type into `local_types`
     // so `IdentExpr` lookups inside the then-block resolve `a` to T.
     if cond.bind_as != "" {
-        typed.local_types[span_key(cond.right.span)] = narrowed
+        typed.local_types[cond.right.span.hash()] = narrowed
     }
     return IsNarrow {
         .sym_id    = sym.id,

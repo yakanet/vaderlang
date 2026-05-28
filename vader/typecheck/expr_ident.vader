@@ -21,7 +21,6 @@
 
 module "vader/typecheck"
 
-import "vader/resolver" { span_key }
 import "std/collections" { MutableMap }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 AST :: import "vader/parser"
@@ -34,7 +33,7 @@ import "vader/types" {
 /// resolver already emitted R2006) or when the symbol's kind doesn't
 /// carry a typecheck-time type yet.
 export infer_ident :: fn(e: AST.IdentExpr, typed: TypedProgram) -> Type {
-    sym :: typed.resolved.idents[span_key(e.span)]
+    sym :: typed.resolved.idents[e.span.hash()]
     if sym is null { return TY_UNRESOLVED }
     redirected :: redirect(sym, typed)
     static_ty :: type_of_symbol(redirected, typed)
@@ -79,10 +78,10 @@ export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sy
 
 /// Look `sym`'s span up in a span-keyed table (`param_types` /
 /// `local_types`). Returns `TY_UNRESOLVED` for builtin symbols and misses.
-lookup_in :: fn(sym: Symbol, table: MutableMap<i64, Type>) -> Type {
+lookup_in :: fn(sym: Symbol, table: MutableMap<u64, Type>) -> Type {
     sp :: sym.defined_at
     if sp is null { return TY_UNRESOLVED }
-    ty :: table[span_key(sp)]
+    ty :: table[sp.hash()]
     if ty is null { return TY_UNRESOLVED }
     return ty
 }

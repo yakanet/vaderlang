@@ -8,7 +8,6 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { SymbolKind }
 import "vader/types" {
     Type, EnumType, StructType, UnionType, display_type, TY_UNRESOLVED,

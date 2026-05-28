@@ -14,7 +14,6 @@
 
 module "vader/typecheck"
 
-import "vader/resolver" { span_key }
 import "vader/types" { Type }
 AST :: import "vader/parser"
 
@@ -127,7 +126,7 @@ export field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
         }
     }
     if !(cur is AST.IdentExpr) { return "" }
-    sym :: typed.resolved.idents[span_key(cur.span)]
+    sym :: typed.resolved.idents[cur.span.hash()]
     if sym is null { return "" }
     fields: string[] = []
     i := i32(parts_leaf_first.len()) - 1

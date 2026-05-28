@@ -20,7 +20,6 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, warning }
-import "vader/resolver" { span_key }
 AST :: import "vader/parser"
 import "vader/types" { Type, FreeIntType, FreeFloatType, TY_UNRESOLVED }
 
@@ -100,7 +99,7 @@ infer_expr :: fn(
             return infer_string_lit(e)
         }
         is AST.IdentExpr     as e -> {
-            sym :: typed.resolved.idents[span_key(e.span)]
+            sym :: typed.resolved.idents[e.span.hash()]
             if !(sym is null) {
                 // W0001 : reference to a `@deprecated` decl.
                 msg :: typed.resolved.deprecated_messages[sym.id]

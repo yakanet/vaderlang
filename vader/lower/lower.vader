@@ -721,7 +721,7 @@ return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
     // fallback so impl-member return types stop falling through
     // to TY_VOID. Apply the entry's subst so an erasure-flavoured
     // EntryTypes still produces an erased return type.
-    impl_type :: types.typed.impl_method_decl_types[span_key(fn_decl.name_span)]
+    impl_type :: types.typed.impl_method_decl_types[fn_decl.name_span.hash()]
     if impl_type is FnType as ft { return types.apply(ft.return_type) }
     return TY_VOID
 }
@@ -771,7 +771,7 @@ overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
                 match symbols[i].defined_at {
                     is null -> {}
                     is Span as defined -> {
-                        if span_key(defined) == span_key(name_span) {
+                        if defined.hash() == name_span.hash() {
                             if i == usize(0) { return "" }
                             return "_${i}"
                         }
@@ -1079,7 +1079,7 @@ build_fn_subst :: fn(fd: FnDecl, args: Type[], typed: TypedProgram) -> Substitut
     for i in 0..<fd.type_params.len() {
         if i >= args.len() { break }
         tp_span :: fd.type_params[i].span
-        target_key :: span_key(tp_span)
+        target_key :: tp_span.hash()
         // Span-precise lookup : the resolver minted the TypeParam symbol
         // with `defined_at = tp.span`. Scan `idents.values()` for the
         // matching slot.
@@ -1087,7 +1087,7 @@ build_fn_subst :: fn(fd: FnDecl, args: Type[], typed: TypedProgram) -> Substitut
             match s.defined_at {
                 is null -> {}
                 is Span as def -> {
-                    if span_key(def) == target_key {
+                    if def.hash() == target_key {
                         if i32(s.kind) == i32(SymbolKind.TypeParam) {
                             subst.type_params[s.id] = args[i]
                         }
@@ -1836,7 +1836,7 @@ resolve_field_type :: fn(
 ) -> Type {
     // Prefer the typer's recorded type ; fall back to `type_from_expr`
     // resolving fresh against the struct's typeParam-shadowed scope.
-    raw :: owner_typed.type_expr_types[span_key(ty.span)]
+    raw :: owner_typed.type_expr_types[ty.span.hash()]
     if !(raw is null) {
         // `raw is Type as t` would always be false — `Type` is the union
         // alias and the runtime tag carries the concrete variant, not the
@@ -1916,7 +1916,7 @@ materialize_impl_for_instance :: fn(
     self_type: Type = self_struct
     suffix :: args_suffix(inst.args)
     types :: make_entry_types(impl_typed, subst)
-    impl_key_prefix :: span_key(impl_decl.span)
+    impl_key_prefix :: impl_decl.span.hash()
     for member in impl_decl.members {
         // Erasure dedupe : every concrete-args instance of the same
         // (impl_decl, member) collapses to one emission. The first
@@ -1966,7 +1966,7 @@ build_struct_subst :: fn(decl: StructDecl, args: Type[], typed: TypedProgram) ->
 }
 
 find_type_param_in_resolved :: fn(resolved: ResolvedModule, name: string, def_span: Span) -> Symbol | null {
-    target_key :: span_key(def_span)
+    target_key :: def_span.hash()
     // Use-site lookup : every use of `T` inside the struct's fields /
     // impl body lands in `idents` ; the value's `defined_at` points
     // back at the TypeParam's source span.
@@ -1976,7 +1976,7 @@ find_type_param_in_resolved :: fn(resolved: ResolvedModule, name: string, def_sp
         match s.defined_at {
             is null -> {}
             is Span as def -> {
-                if span_key(def) == target_key { return s }
+                if def.hash() == target_key { return s }
             }
         }
     }
@@ -2094,12 +2094,12 @@ find_struct_decl_by_name :: fn(decls: Decl[], name: string) -> StructDecl | null
 }
 
 lookup_type_param_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Symbol | null {
-    target_key :: span_key(name_span)
+    target_key :: name_span.hash()
     for s in resolved.symbols {
         match s.defined_at {
             is null -> {}
             is Span as def -> {
-                if span_key(def) == target_key { return s }
+                if def.hash() == target_key { return s }
             }
         }
     }
@@ -2107,7 +2107,7 @@ lookup_type_param_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Sym
         match s.defined_at {
             is null -> {}
             is Span as def -> {
-                if span_key(def) == target_key { return s }
+                if def.hash() == target_key { return s }
             }
         }
     }

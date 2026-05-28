@@ -68,7 +68,7 @@ export expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
 /// @param binding  the `SimpleBinding` AST node.
 /// @return         the resolved type.
 export local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
-    return apply_or_unresolved(self, self.typed.local_types[span_key(binding.span)])
+    return apply_or_unresolved(self, self.typed.local_types[binding.span.hash()])
 }
 
 /// Per-rest-binding type (rest pattern in destructure).
@@ -76,7 +76,7 @@ export local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
 /// @param binding  the `RestBinding` AST node.
 /// @return         the resolved type.
 export rest_local_type :: fn(self: EntryTypes, binding: RestBinding) -> Type {
-    return apply_or_unresolved(self, self.typed.local_types[span_key(binding.span)])
+    return apply_or_unresolved(self, self.typed.local_types[binding.span.hash()])
 }
 
 /// Per-fn-param type.
@@ -84,7 +84,7 @@ export rest_local_type :: fn(self: EntryTypes, binding: RestBinding) -> Type {
 /// @param param  the `FnParam` AST node.
 /// @return       the resolved type.
 export param_type :: fn(self: EntryTypes, param: FnParam) -> Type {
-    return apply_or_unresolved(self, self.typed.param_types[span_key(param.span)])
+    return apply_or_unresolved(self, self.typed.param_types[param.span.hash()])
 }
 
 /// Per-type-expression type.
@@ -92,7 +92,7 @@ export param_type :: fn(self: EntryTypes, param: FnParam) -> Type {
 /// @param type_expr  the `TypeExpr` AST node.
 /// @return           the resolved type.
 export type_expr_type :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
-    return apply_or_unresolved(self, self.typed.type_expr_types[span_key(type_expr.span)])
+    return apply_or_unresolved(self, self.typed.type_expr_types[type_expr.span.hash()])
 }
 
 /// Per-fn-decl type. `decl_types` is Symbol.id-keyed, so we resolve
@@ -137,15 +137,6 @@ fn_decl_type_by_span :: fn(self: EntryTypes, name: string, name_span: Span) -> T
     return decl_type_by_name(self, name)
 }
 
-/// Span-key mirror of `vader/resolver/scope::span_key`. Vader has no
-/// re-export syntax, so the impl is duplicated verbatim ; both must
-/// produce the SAME file-aware `i64` (folds `start.file`'s hash with
-/// line/column) for side-tables to stay coherent across the
-/// resolver/lower boundary — including idents merged from sibling files
-/// of a multi-file module.
-/// @param span  any AST span.
-/// @return      the file-aware position key.
-export span_key :: fn(span: Span) = i64(span.hash())
 
 // ---- tests ----------------------------------------------------------------
 

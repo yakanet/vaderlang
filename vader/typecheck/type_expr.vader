@@ -20,7 +20,6 @@ module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 import "vader/resolver" { ResolvedModule }
-import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 AST :: import "vader/parser"
 import "vader/types" {
@@ -74,7 +73,7 @@ export type_from_expr :: fn(
 /// target isn't a namespace ImportBinding or the field isn't exported.
 namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule) -> Type {
     if !(e.target is AST.IdentExpr) { return TY_UNRESOLVED }
-    target_sym :: resolved.idents[span_key(e.target.span)]
+    target_sym :: resolved.idents[e.target.span.hash()]
     if target_sym is null { return TY_UNRESOLVED }
     members :: resolved.namespace_member_types[target_sym.id]
     if members is null { return TY_UNRESOLVED }
@@ -91,7 +90,7 @@ lower_ident :: fn(e: AST.IdentExpr, resolved: ResolvedModule) -> Type {
         is null -> {}
         _ -> { return builtin }
     }
-    bound :: resolved.idents[span_key(e.span)]
+    bound :: resolved.idents[e.span.hash()]
     if !(bound is null) { return resolve_named_type(bound, resolved) }
     // Multi-file module fallback : the resolver's body walker only
     // visits `files[0]`, so a type ident in a sibling file's fn
@@ -247,7 +246,7 @@ lower_generic_inst :: fn(
 /// `resolved.core_symbols` for auto-imported core types (`Iterator`,
 /// `Range`, `Error`, …). Mirrors the lookup chain in `lower_ident`.
 lookup_type_name :: fn(id: AST.IdentExpr, resolved: ResolvedModule) -> Symbol | null {
-    bound :: resolved.idents[span_key(id.span)]
+    bound :: resolved.idents[id.span.hash()]
     if !(bound is null) { return redirect_import(bound, resolved) }
     by_name :: resolved.symbols_by_name[id.name]
     if !(by_name is null) { return redirect_import(by_name, resolved) }

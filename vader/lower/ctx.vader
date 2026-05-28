@@ -107,7 +107,7 @@ export LowerProjectCtx :: struct {
     /// `resolved.idents.values()` then `resolved.symbols` per call
     /// (O(idents + symbols) per let / param) ; the index turns each
     /// lookup into a constant-time probe.
-    local_symbol_indices: MutableMap<string, MutableMap<i64, Symbol>>
+    local_symbol_indices: MutableMap<string, MutableMap<u64, Symbol>>
 
     /// Free-variable analysis output. Phase 5 populates ; Phase 1-4
     /// callers see an empty analysis (no captures).
@@ -190,7 +190,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .collections_symbols = null,
         .core_trait_cache    = MutableMap<string, Symbol | null> { .buckets = [], .size = 0 },
         .comptime_value_by_symbol_id = MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 },
-        .local_symbol_indices = MutableMap<string, MutableMap<i64, Symbol>> { .buckets = [], .size = 0 },
+        .local_symbol_indices = MutableMap<string, MutableMap<u64, Symbol>> { .buckets = [], .size = 0 },
         .closures            = new_closure_analysis(),
         .next_mono_entry_id  = i32(1_000_000),
         .fn_instances        = MutableMap<string, GenericFnInstance> { .buckets = [], .size = 0 },

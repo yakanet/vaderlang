@@ -44,7 +44,7 @@ export ResolvedModule :: struct {
     /// sibling file's fn signature references a type declared in another
     /// sibling file — the resolver's body walker only visits `files[0]`).
     symbols_by_name: MutableMap<string, Symbol>
-    idents:  MutableMap<i64, Symbol>
+    idents:  MutableMap<u64, Symbol>
     /// Local Symbol ids minted from `name :: ...` bindings (no `:=`).
     /// Consumed by stmt.vader::check_assign to surface T3041.
     immutable_locals: MutableMap<i32, bool>

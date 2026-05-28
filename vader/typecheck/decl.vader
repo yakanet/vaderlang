@@ -21,7 +21,6 @@ import "std/collections" { MutableMap }
 import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
 import "vader/resolver" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol, SymbolFactory, make }
-import "vader/resolver" { span_key }
 AST :: import "vader/parser"
 import "vader/parser" { Visibility }
 import "vader/types" {
@@ -360,7 +359,7 @@ declare_fn_param :: fn(
         }
         _ -> {
             resolved_ty :: type_from_expr(ty, resolved, diags)
-            typed.param_types[span_key(p.span)] = resolved_ty
+            typed.param_types[p.span.hash()] = resolved_ty
             return resolved_ty
         }
     }
@@ -448,7 +447,7 @@ lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | nul
 is_type_position_value :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.IdentExpr {
         if !(primitive_from_name(e.name) is null) { return true }
-        sym :: resolved.idents[span_key(e.span)]
+        sym :: resolved.idents[e.span.hash()]
         if sym is null { return false }
         match sym.kind {
             .Struct -> { return true }

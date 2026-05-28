@@ -165,7 +165,7 @@ stub :: fn(span: Span, type: Type, reason: string) -> LoweredExpr {
 // ============================================================================
 
 lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr {
-    symbol :: ctx.typed.resolved.idents[span_key(ident.span)]
+    symbol :: ctx.typed.resolved.idents[ident.span.hash()]
     match symbol {
         is null -> { return stub(ident.span, type, "unresolved ident ${ident.name}") }
         is Symbol as resolved -> {
@@ -269,7 +269,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
 // of TS deferring const substitution to `inlineConsts`.
 field_target_is_comptime_const :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
     if target is IdentExpr as id {
-        symbol :: ctx.typed.resolved.idents[span_key(id.span)]
+        symbol :: ctx.typed.resolved.idents[id.span.hash()]
         if symbol is Symbol as resolved {
             baked :: lookup_const_baked_value(ctx, resolved)
             return baked is StructValue || baked is ArrayValue
@@ -384,7 +384,7 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
     }
     defined_at :: symbol.defined_at
     if defined_at is null { return null }
-    key :: span_key(defined_at)
+    key :: defined_at.hash()
     // Apply the entry substitution so the narrowing comparison sees the
     // erased declared type (`Any | null`), matching the erased read-site
     // type — otherwise an unerased `T | null` declared type spuriously
@@ -838,7 +838,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
     // (`src/lower/passes/expr.ts:110-127`).
     if call.callee is GenericInstExpr as gi {
         if gi.callee is IdentExpr as inner_id {
-            sym_or_null :: ctx.typed.resolved.idents[span_key(inner_id.span)]
+            sym_or_null :: ctx.typed.resolved.idents[inner_id.span.hash()]
             if sym_or_null is Symbol as raw_sym {
                 fn_sym :: follow_import_binding(ctx, raw_sym)
                 if i32(fn_sym.kind) == i32(SymbolKind.Fn) {
@@ -861,7 +861,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
     callee_ident :: as_ident(call.callee)
     if callee_ident is null { return null }
     if callee_ident is IdentExpr as id {
-        raw_sym :: ctx.typed.resolved.idents[span_key(id.span)]
+        raw_sym :: ctx.typed.resolved.idents[id.span.hash()]
         if raw_sym is null { return null }
         if raw_sym is Symbol as raw_resolved {
             fn_sym :: follow_import_binding(ctx, raw_resolved)
@@ -1508,7 +1508,7 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     if call.args.len() != usize(1) { return null }
     callee_ident :: as_ident(call.callee)
     if callee_ident is null { return null }
-    callee_symbol :: ctx.typed.resolved.idents[span_key(callee_ident.span)]
+    callee_symbol :: ctx.typed.resolved.idents[callee_ident.span.hash()]
     if callee_symbol is null { return null }
     is_type_shaped :: match callee_symbol.kind {
         .BuiltinType -> true
@@ -1626,7 +1626,7 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         is FieldExpr as field_expr -> {
             target_ident :: as_ident(field_expr.target)
             if target_ident is null { return null }
-            namespace_symbol :: ctx.typed.resolved.idents[span_key(target_ident.span)]
+            namespace_symbol :: ctx.typed.resolved.idents[target_ident.span.hash()]
             if namespace_symbol is null { return null }
             if i32(namespace_symbol.kind) != i32(SymbolKind.ImportBinding) { return null }
             member_symbol :: synth_namespace_member(ctx, field_expr.field, type)
@@ -2616,7 +2616,7 @@ resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
     //       `comptime_value_by_symbol_id` so dotted refs to a `::`
     //       alias still fold.
     if arg is IdentExpr as id {
-        sym :: ctx.typed.resolved.idents[span_key(id.span)]
+        sym :: ctx.typed.resolved.idents[id.span.hash()]
         if sym is null { return via_type_expr }
         if sym is Symbol as s {
             aliased :: ctx.typed.let_type_aliases[s.id]
@@ -3137,7 +3137,7 @@ export lookup_local_symbol :: fn(
     project_ctx: LowerProjectCtx, resolved: ResolvedModule, name_span: Span,
 ) -> Symbol | null {
     index :: ensure_local_symbol_index(project_ctx, resolved)
-    return index[span_key(name_span)]
+    return index[name_span.hash()]
 }
 
 // Build (or fetch) the per-module `defined_span_key -> Symbol` index.
@@ -3148,15 +3148,15 @@ export lookup_local_symbol :: fn(
 // the two passes of the previous naive walk.
 ensure_local_symbol_index :: fn(
     project_ctx: LowerProjectCtx, resolved: ResolvedModule,
-) -> MutableMap<i64, Symbol> {
+) -> MutableMap<u64, Symbol> {
     cached :: project_ctx.local_symbol_indices[resolved.path]
     if !(cached is null) { return cached }
-    index :: MutableMap<i64, Symbol> { .buckets = [], .size = 0 }
+    index :: MutableMap<u64, Symbol> { .buckets = [], .size = 0 }
     // `idents` first — every referenced binding's defined_at lands here.
     for symbol in resolved.idents.values() {
         match symbol.defined_at {
             is null -> {}
-            is Span as defined -> { index[span_key(defined)] = symbol }
+            is Span as defined -> { index[defined.hash()] = symbol }
         }
     }
     // Flat symbol list catches definitions with zero use-sites (shadowed
@@ -3166,7 +3166,7 @@ ensure_local_symbol_index :: fn(
         match symbol.defined_at {
             is null -> {}
             is Span as defined -> {
-                key :: span_key(defined)
+                key :: defined.hash()
                 existing :: index[key]
                 if existing is null { index[key] = symbol }
             }
@@ -3207,7 +3207,7 @@ try_lower_cell_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> Low
     target_ident :: as_ident(assign_stmt.target)
     if target_ident is null { return null }
     if target_ident is IdentExpr as ident {
-        symbol :: ctx.typed.resolved.idents[span_key(ident.span)]
+        symbol :: ctx.typed.resolved.idents[ident.span.hash()]
         if symbol is null { return null }
         if symbol is Symbol as resolved {
             if !ctx.project.closures.captured_symbols.contains(resolved.id) { return null }
@@ -3233,7 +3233,7 @@ try_lower_cell_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> Low
 /// `src/lower/passes/block.ts:177-179`.
 lower_assign_target :: fn(ctx: FnLowerCtx, target: Expr) -> LoweredExpr {
     if target is IdentExpr as ident {
-        symbol :: ctx.typed.resolved.idents[span_key(ident.span)]
+        symbol :: ctx.typed.resolved.idents[ident.span.hash()]
         if symbol is Symbol as resolved {
             return LoweredIdent {
                 .span = ident.span, .type = ctx.types.expr_type(ident), .symbol = resolved,

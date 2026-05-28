@@ -20,7 +20,6 @@ import "std/string" { byte_at, byte_len }
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 AST :: import "vader/parser"
 import "vader/resolver" { ResolvedModule }
-import "vader/resolver" { span_key }
 import "vader/types" {
     Type, ArrayType, EnumType, PrimitiveType, StructType, TraitType, TupleType, UnionType, UnresolvedType,
     display_type, type_base_name, TY_UNRESOLVED,
@@ -804,7 +803,7 @@ parse_tuple_index :: fn(s: string) -> i32 {
 try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram) -> Type | null {
     target :: e.target
     if !(target is AST.IdentExpr) { return null }
-    sym :: typed.resolved.idents[span_key(target.span)]
+    sym :: typed.resolved.idents[target.span.hash()]
     if sym is null { return null }
     if i32(sym.kind) != i32(import_binding_kind()) { return null }
     targets :: typed.import_targets

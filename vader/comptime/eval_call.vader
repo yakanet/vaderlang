@@ -6,7 +6,7 @@
 // up the callee's `FnDecl` via `typed.fn_decls`, evaluates each arg in
 // the caller's context, binds args to the callee's param Symbols (made
 // addressable by `vader/resolver/body.vader::walk_fn_decl`'s
-// `idents[span_key(p.span)] = sym` write), then evaluates the callee's
+// `idents[p.span.hash()] = sym` write), then evaluates the callee's
 // body in a fresh `ComptimeContext` carrying the bindings.
 //
 // Out of scope for now : recursion bound, side effects, `if` / `match`
@@ -18,7 +18,6 @@ module "vader/comptime"
 import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span, comptime_error }
 import "vader/diagnostics" { ComptimeCode }
-import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol }
 AST :: import "vader/parser"
 
@@ -33,7 +32,7 @@ export evaluate_call_expr :: fn(
         return vm_required(expr.span, "CallExpr (non-ident callee)")
     }
     callee :: expr.callee
-    callee_sym :: context.typed.resolved.idents[span_key(callee.span)]
+    callee_sym :: context.typed.resolved.idents[callee.span.hash()]
     if callee_sym is null {
         return vm_required(expr.span, "CallExpr (callee unresolved)")
     }
@@ -53,7 +52,7 @@ export evaluate_call_expr :: fn(
         arg_result :: evaluate_expr(expr.args[i].value, context)
         if arg_result.value is null { return arg_result }
         param :: fn_decl.params[i]
-        param_sym :: context.typed.resolved.idents[span_key(param.span)]
+        param_sym :: context.typed.resolved.idents[param.span.hash()]
         if param_sym is null {
             return vm_required(expr.span, "CallExpr (param sym unresolved)")
         }

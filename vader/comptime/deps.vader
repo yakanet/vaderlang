@@ -10,7 +10,6 @@ module "vader/comptime"
 import "std/collections" { MutableMap, keys }
 import "vader/diagnostics" { Diagnostic, comptime_error }
 import "vader/diagnostics" { ComptimeCode }
-import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck" { TypedProgram }
 AST :: import "vader/parser"
@@ -224,7 +223,7 @@ collect_expr_deps :: fn(
 ) -> void {
     match e {
         is AST.IdentExpr as x -> {
-            symbol :: typed.resolved.idents[span_key(x.span)]
+            symbol :: typed.resolved.idents[x.span.hash()]
             if symbol is null { return }
             if i32(symbol.kind) != i32(SymbolKind.Const) { return }
             dependency_id :: nodes.by_symbol[symbol.id]

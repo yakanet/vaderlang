@@ -33,7 +33,7 @@ export ResolvedFile :: struct {
     top_level: MutableMap<string, Symbol>
     /// Every `AST.IdentExpr` reached during the body walk, span-keyed
     /// via `span_key` (packed `(line << 32) | column` `i64`).
-    idents:    MutableMap<i64, Symbol>
+    idents:    MutableMap<u64, Symbol>
     /// `Symbol.id` set for every Local minted from a `name :: ...`
     /// binding (`mutable = false`). `name :=` ones don't appear here.
     /// Read by typecheck's check_assign for T3041.
@@ -57,7 +57,7 @@ export resolve_program :: fn(
     module_path: string, factory: SymbolFactory,
 ) -> ResolvedFile {
     state :: ResolveState {
-        .idents = MutableMap<i64, Symbol> { .buckets = [], .size = 0 },
+        .idents = MutableMap<u64, Symbol> { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap<i32, bool> { .buckets = [], .size = 0 },
         .type_param_bounds = MutableMap<i32, AST.Expr> { .buckets = [], .size = 0 },
         .diags = [],
@@ -80,7 +80,7 @@ export resolve_program :: fn(
 // ---- internal state -------------------------------------------------------
 
 ResolveState :: struct {
-    idents:           MutableMap<i64, Symbol>
+    idents:           MutableMap<u64, Symbol>
     immutable_locals: MutableMap<i32, bool>
     type_param_bounds: MutableMap<i32, AST.Expr>
     diags:            Diagnostic[]
@@ -133,7 +133,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
         self.scope.bind(tp.name, sym)
         // Record the decl site → Symbol in idents so call.vader can
         // recover this type-param's Symbol id when enforcing T3006.
-        self.idents[span_key(tp.span)] = sym
+        self.idents[tp.span.hash()] = sym
         self.walk_opt_expr(tp.bound)
         match tp.bound {
             is null -> {}
@@ -149,7 +149,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
         // param's own span so downstream passes (e.g. comptime fn-body
         // interpreter) can recover the Symbol.id without re-walking
         // the body to find a use-site.
-        self.idents[span_key(p.span)] = sym
+        self.idents[p.span.hash()] = sym
     }
     self.walk_opt_expr(d.return_type)
     match d.body {
@@ -344,7 +344,7 @@ bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding) -> void {
             // local's Symbol.id without re-walking the body's scope.
             // Mirrors the Param / TypeParam pattern at the top of
             // this file (mint then index into `idents`).
-            self.idents[span_key(x.name_span)] = sym
+            self.idents[x.name_span.hash()] = sym
         }
         is AST.TupleBinding as x -> {
             for e in x.elements { self.bind_let_binding(e) }
@@ -353,7 +353,7 @@ bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding) -> void {
         is AST.RestBinding as x -> {
             sym :: self.mint_local(.Local, x.name, x.span)
             self.scope.bind(x.name, sym)
-            self.idents[span_key(x.span)] = sym
+            self.idents[x.span.hash()] = sym
         }
     }
 }
@@ -383,7 +383,7 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
         is AST.IdentExpr as x -> {
             v :: self.scope.lookup(x.name)
             match v {
-                is Symbol -> { self.idents[span_key(x.span)] = v }
+                is Symbol -> { self.idents[x.span.hash()] = v }
                 // R2006 — caller must seed `core_symbols` via
                 // `resolve_module_with_collected_dp_seeded` ; otherwise
                 // bare references to `Range`, `Display`, `Iterator`, …
@@ -578,7 +578,7 @@ main :: fn() -> i32 {
     factory :: new_factory()
     seed :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     resolved :: resolve_program(parsed.program, seed, "test", factory)
-    hit :: resolved.idents[span_key(span_at("test.vader", 3, 12))]
+    hit :: resolved.idents[span_at("test.vader", 3, 12).hash()]
     match hit {
         is Symbol as s -> {
             assert_eq(s.name, "x")
@@ -602,7 +602,7 @@ f :: fn(x: i32) -> i32 {
     factory :: new_factory()
     seed :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     resolved :: resolve_program(parsed.program, seed, "test", factory)
-    hit :: resolved.idents[span_key(span_at("test.vader", 2, 12))]
+    hit :: resolved.idents[span_at("test.vader", 2, 12).hash()]
     match hit {
         is Symbol as s -> {
             assert(i32(s.kind) == i32(SymbolKind.Param), "should resolve to a Param")

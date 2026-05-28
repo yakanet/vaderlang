@@ -17,7 +17,6 @@ AST :: import "vader/parser"
 import "vader/parser" { Program }
 import "vader/resolver" { LoadedProject, LoadedModule, SourceFile }
 import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp, resolve_module_with_collected_dp_seeded, build_core_seed, find_core_module_id }
-import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
 import "vader/resolver" { wire_imports, ImportTargetTable, run_orphan_rule_check_for_module }
 import "vader/types" { display_type, type_base_name }
@@ -283,7 +282,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .display_path = "",
         .symbols = [],
         .symbols_by_name = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
-        .idents = MutableMap<i64, Symbol> { .buckets = [], .size = 0 },
+        .idents = MutableMap<u64, Symbol> { .buckets = [], .size = 0 },
         .immutable_locals = MutableMap<i32, bool> { .buckets = [], .size = 0 },
         .fn_overloads = MutableMap<string, Symbol[]> { .buckets = [], .size = 0 },
         .core_symbols = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
@@ -624,7 +623,7 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
     typed.expr_kinds = MutableMap<usize, string> { .buckets = [], .size = 0 }
     typed.node_spans = MutableMap<usize, Span> { .buckets = [], .size = 0 }
     typed.ufcs_receiver_types = MutableMap<usize, Type> { .buckets = [], .size = 0 }
-    typed.local_types = MutableMap<i64, Type> { .buckets = [], .size = 0 }
+    typed.local_types = MutableMap<u64, Type> { .buckets = [], .size = 0 }
     typed.narrowed_bindings = MutableMap<i32, Type> { .buckets = [], .size = 0 }
 }
 
@@ -708,7 +707,7 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
 export is_alias_value_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.IdentExpr {
         if is_primitive_name(e.name) { return true }
-        sym :: resolved.idents[span_key(e.span)]
+        sym :: resolved.idents[e.span.hash()]
         if sym is null { return false }
         match sym.kind {
             .Struct -> { return true }
@@ -1415,14 +1414,14 @@ declare_impl_method_for_trait :: fn(
     params: Type[] = []
     for p in fd.params {
         pt :: param_type(p, for_ty, typed, diags)
-        typed.param_types[span_key(p.span)] = pt
+        typed.param_types[p.span.hash()] = pt
         params.push(pt)
     }
     ret :: declare_impl_return(fd, for_ty, trait_method, typed, diags)
     // Impl methods aren't in `resolved.symbols` (they're members of
     // an ImplDecl, not top-level names) — use the dedicated span-keyed
     // table.
-    typed.impl_method_decl_types[span_key(fd.name_span)] = mk_fn(params, ret)
+    typed.impl_method_decl_types[fd.name_span.hash()] = mk_fn(params, ret)
 }
 
 declare_impl_return :: fn(
@@ -1516,7 +1515,7 @@ lookup_sym_by_name_orch :: fn(resolved: ResolvedModule, name: string) -> Symbol 
 is_type_value_expr :: fn(e: AST.Expr, typed: TypedProgram) -> bool {
     if e is AST.IdentExpr {
         if !(primitive_from_name(e.name) is null) { return true }
-        sym :: typed.resolved.idents[span_key(e.span)]
+        sym :: typed.resolved.idents[e.span.hash()]
         if sym is null { return false }
         return is_type_kind(sym.kind)
     }
