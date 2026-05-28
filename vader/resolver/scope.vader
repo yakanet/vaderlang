@@ -70,13 +70,16 @@ export lookup :: fn(self: Scope, name: string) -> Symbol | null {
     return null
 }
 
-/// Pack a span's start `(line, column)` into a single `i64` key. Used
-/// as the key for per-`IdentExpr` side-tables — spans are file-local
-/// and unique per node, so this is collision-free within one resolved
-/// file. Packing into i64 (vs the legacy `"line:column"` string) avoids
-/// per-lookup string allocation in hot side-table accesses.
+/// Pack a span's start `(file, line, column)` into a single `i64` key.
+/// Used as the key for per-`IdentExpr` side-tables. Folds the source
+/// file (via its FNV hash) so idents at the same `(line, column)` in
+/// DIFFERENT files of a multi-file module don't collide when those
+/// files merge into one per-module map — the multi-file resolution
+/// invariant. Single-file modules: the file term is constant, so keys
+/// stay unique per position. i64 (vs a `"file:line:column"` string)
+/// avoids per-lookup string allocation in hot side-table accesses.
 export span_key :: fn(s: Span) -> i64 {
-    return (i64(s.start.line) << i64(32)) | i64(s.start.column)
+    return i64(s.start.file.hash()) * i64(1000003) + (i64(s.start.line) << i64(32)) + i64(s.start.column)
 }
 
 /// Stringify a span's start AND end as `lineS:colS-lineE:colE`. Used
@@ -146,10 +149,19 @@ test_scope_lookup_misses_return_null :: fn() -> void {
 }
 
 @test
-test_span_key_packs_line_column :: fn() -> void {
-    s :: Span {
-        .start = Position { .file = "t", .offset = 0, .line = 3, .column = 12 },
-        .end   = Position { .file = "t", .offset = 1, .line = 3, .column = 13 },
+test_span_key_is_file_aware :: fn() -> void {
+    at :: fn(file: string, line: i32, col: i32) -> Span {
+        p :: Position { .file = file, .offset = 0, .line = line, .column = col }
+        return Span { .start = p, .end = p }
     }
-    assert_eq(span_key(s), (i64(3) << i64(32)) | i64(12))
+    // Same file + position → same key (deterministic).
+    assert_eq(span_key(at("a", 3, 12)), span_key(at("a", 3, 12)))
+    // Same (line, col) in DIFFERENT files → different keys. This is the
+    // multi-file-module invariant : a per-module idents map merging files
+    // must not collide two distinct idents at the same line/column.
+    assert(span_key(at("a", 3, 12)) != span_key(at("b", 3, 12)),
+        "span_key must disambiguate by file")
+    // Different positions in the same file → different keys.
+    assert(span_key(at("a", 3, 12)) != span_key(at("a", 3, 13)),
+        "span_key must disambiguate by column")
 }

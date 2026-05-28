@@ -17,7 +17,7 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "vader/diagnostics" { Diagnostic, Span, resolver_error }
+import "vader/diagnostics" { Diagnostic, Span, Position, resolver_error }
 AST :: import "vader/parser"
 import "vader/parser" { parse_source }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory, make }
@@ -559,6 +559,13 @@ walk_struct_lit :: fn(self: ResolveState, s: AST.StructLitExpr) -> void {
 
 import "std/testing" { assert, assert_eq }
 
+// A zero-width span at `(line, column)` in `file` — enough for `span_key`,
+// which reads only `start.file` / `start.line` / `start.column`.
+span_at :: fn(file: string, line: i32, column: i32) -> Span {
+    pos :: Position { .file = file, .offset = usize(0), .line = line, .column = column }
+    return Span { .start = pos, .end = pos }
+}
+
 @test
 test_resolver_resolves_local :: fn() -> void {
     src :: """
@@ -571,7 +578,7 @@ main :: fn() -> i32 {
     factory :: new_factory()
     seed :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     resolved :: resolve_program(parsed.program, seed, "test", factory)
-    hit :: resolved.idents[(i64(3) << i64(32)) | i64(12)]
+    hit :: resolved.idents[span_key(span_at("test.vader", 3, 12))]
     match hit {
         is Symbol as s -> {
             assert_eq(s.name, "x")
@@ -595,7 +602,7 @@ f :: fn(x: i32) -> i32 {
     factory :: new_factory()
     seed :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
     resolved :: resolve_program(parsed.program, seed, "test", factory)
-    hit :: resolved.idents[(i64(2) << i64(32)) | i64(12)]
+    hit :: resolved.idents[span_key(span_at("test.vader", 2, 12))]
     match hit {
         is Symbol as s -> {
             assert(i32(s.kind) == i32(SymbolKind.Param), "should resolve to a Param")

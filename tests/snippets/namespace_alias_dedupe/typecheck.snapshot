@@ -9,7 +9,7 @@
 
 ## vader/parser
   FnDecl         advance              :: fn(Parser) -> Token
-  FnDecl         append_bitor_variants :: fn(?, ?[]) -> void
+  FnDecl         append_bitor_variants :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]) -> void
   StructDecl     ArrayTypeExpr        :: ArrayTypeExpr
   StructDecl     AssertDecl           :: AssertDecl
   FnDecl         assign_block_ids     :: fn(BlockExpr, NodeIdFactory) -> void
@@ -33,17 +33,17 @@
   FnDecl         close_arr            :: fn(StringBuilder, i32) -> void
   FnDecl         close_arr_empty      :: fn(StringBuilder) -> void
   FnDecl         close_obj            :: fn(StringBuilder, i32) -> void
-  FnDecl         collect_bitor_variants :: fn(?) -> ?[]
-  FnDecl         collect_type_params  :: fn(? | null, TypeParam[]) -> void
+  FnDecl         collect_bitor_variants :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr) -> (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
+  FnDecl         collect_type_params  :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, TypeParam[]) -> void
   FnDecl         compound_op          :: fn(TokenKind) -> ?
   StructDecl     CompoundOpResult     :: CompoundOpResult
   StructDecl     ConstDecl            :: ConstDecl
   FnDecl         consume_closing_angle :: fn(Parser) -> Token
   StructDecl     ContinueStmt         :: ContinueStmt
-  ConstDecl      Decl                 :: ?
+  ConstDecl      Decl                 :: type
   StructDecl     Decorator            :: Decorator
   StructDecl     DeferBlockBody       :: DeferBlockBody
-  ConstDecl      DeferBody            :: ?
+  ConstDecl      DeferBody            :: type
   StructDecl     DeferStmt            :: DeferStmt
   StructDecl     DeferStmtBody        :: DeferStmtBody
   FnDecl         describe_token       :: fn(Token) -> string
@@ -58,7 +58,7 @@
   FnDecl         error                :: fn(Parser, ParserCode, Span, string) -> void
   FnDecl         expect               :: fn(Parser, TokenKind, string) -> Token
   FnDecl         expect_string_literal :: fn(Parser, string) -> StringLitInfo
-  ConstDecl      Expr                 :: ?
+  ConstDecl      Expr                 :: type
   StructDecl     ExprStmt             :: ExprStmt
   StructDecl     FieldExpr            :: FieldExpr
   StructDecl     FloatLitExpr         :: FloatLitExpr
@@ -67,18 +67,18 @@
   StructDecl     FnParam              :: FnParam
   StructDecl     FnSignature          :: FnSignature
   StructDecl     FnTypeExpr           :: FnTypeExpr
-  ConstDecl      ForForm              :: ?
+  ConstDecl      ForForm              :: type
   StructDecl     ForStmt              :: ForStmt
   StructDecl     GenericInstExpr      :: GenericInstExpr
   FnDecl         header_budget        :: fn(usize) -> usize
   FnDecl         ident_expr           :: fn(Span, string) -> IdentExpr
   StructDecl     IdentExpr            :: IdentExpr
-  ConstDecl      IfElse               :: ?
+  ConstDecl      IfElse               :: type
   StructDecl     IfElseBlock          :: IfElseBlock
   StructDecl     IfElseIf             :: IfElseIf
   StructDecl     IfExpr               :: IfExpr
   StructDecl     ImplDecl             :: ImplDecl
-  ConstDecl      ImportBinding        :: ?
+  ConstDecl      ImportBinding        :: type
   StructDecl     ImportDecl           :: ImportDecl
   StructDecl     ImportName           :: ImportName
   FnDecl         indent               :: fn(StringBuilder, i32) -> void
@@ -102,12 +102,12 @@
   StructDecl     IsPattern            :: IsPattern
   FnDecl         kind_entry           :: fn(StringBuilder, i32, string) -> void
   StructDecl     LambdaExpr           :: LambdaExpr
-  ConstDecl      LetBinding           :: ?
+  ConstDecl      LetBinding           :: type
   StructDecl     LetStmt              :: LetStmt
   StructDecl     LiteralPattern       :: LiteralPattern
   FnDecl         looks_like_for_destructure :: fn(Parser) -> bool
   FnDecl         looks_like_struct_lit_body :: fn(Token[], i32) -> bool
-  FnDecl         match_kind           :: fn(Parser, ?) -> null | Token
+  FnDecl         match_kind           :: fn(Parser, TokenKind) -> null | Token
   FnDecl         match_or_peek        :: fn(Parser, TokenKind) -> Token
   StructDecl     MatchArm             :: MatchArm
   StructDecl     MatchExpr            :: MatchExpr
@@ -121,7 +121,7 @@
   FnDecl         no_infix             :: fn() -> ?
   StructDecl     NodeIdFactory        :: NodeIdFactory
   StructDecl     NullLitExpr          :: NullLitExpr
-  FnDecl         open_arr             :: fn(null) -> void
+  FnDecl         open_arr             :: fn(StringBuilder) -> void
   FnDecl         open_obj             :: fn(StringBuilder) -> void
   FnDecl         parse_angle_type_params :: fn(Parser) -> TypeParam[]
   FnDecl         parse_block          :: fn(Parser) -> BlockExpr
@@ -129,18 +129,18 @@
   FnDecl         parse_call_args      :: fn(Parser) -> CallArg[]
   FnDecl         parse_const_decl     :: fn(Parser, Decorator[], Visibility, Token) -> ConstDecl
   FnDecl         parse_continue       :: fn(Parser) -> ContinueStmt
-  FnDecl         parse_decl           :: fn(Parser) -> ? | null
+  FnDecl         parse_decl           :: fn(Parser) -> AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | null | StructDecl | TraitDecl | TypeAliasDecl
   FnDecl         parse_decorators     :: fn(Parser) -> Decorator[]
   FnDecl         parse_defer          :: fn(Parser) -> DeferStmt
   FnDecl         parse_enum_decl      :: fn(Parser, Decorator[], Visibility, Token) -> EnumDecl
-  FnDecl         parse_expr           :: fn(Parser, i32) -> ?
-  FnDecl         parse_fn_body_tail   :: fn(Parser, ? | null) -> FnBodyTail
+  FnDecl         parse_expr           :: fn(Parser, i32) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  FnDecl         parse_fn_body_tail   :: fn(Parser, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr) -> FnBodyTail
   FnDecl         parse_fn_decl        :: fn(Parser, Decorator[], Visibility, Token) -> FnDecl
   FnDecl         parse_fn_decl_inside_trait :: fn(Parser) -> FnDecl | null
   FnDecl         parse_fn_signature_params :: fn(Parser) -> FnSignature
   FnDecl         parse_fn_type        :: fn(Parser) -> FnTypeExpr
   FnDecl         parse_for            :: fn(Parser, null | string, bool) -> ForStmt
-  FnDecl         parse_ident_or_struct_lit :: fn(Parser) -> ?
+  FnDecl         parse_ident_or_struct_lit :: fn(Parser) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   FnDecl         parse_if_expr        :: fn(Parser) -> IfExpr
   FnDecl         parse_impl_decl      :: fn(Parser, Decorator[]) -> ImplDecl
   FnDecl         parse_import_decl    :: fn(Parser, Decorator[]) -> ImportDecl
@@ -148,18 +148,18 @@
   FnDecl         parse_lambda         :: fn(Parser) -> LambdaExpr
   FnDecl         parse_lambda_without_fn :: fn(Parser) -> LambdaExpr
   FnDecl         parse_let            :: fn(Parser) -> LetStmt
-  FnDecl         parse_let_binding    :: fn(Parser) -> ?
+  FnDecl         parse_let_binding    :: fn(Parser) -> RestBinding | SimpleBinding | TupleBinding | WildcardBinding
   FnDecl         parse_lhs_generic_alias_decl :: fn(Parser, Decorator[], Visibility) -> TypeAliasDecl
   FnDecl         parse_match_arm      :: fn(Parser) -> MatchArm
   FnDecl         parse_match_expr     :: fn(Parser, bool) -> MatchExpr
   FnDecl         parse_module_header  :: fn(string, string) -> ModuleHeader | null
-  FnDecl         parse_named_decl     :: fn(Parser, Decorator[], Visibility) -> ?
+  FnDecl         parse_named_decl     :: fn(Parser, Decorator[], Visibility) -> AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl
   FnDecl         parse_named_import_decl :: fn(Parser, Decorator[], Token) -> ImportDecl
   FnDecl         parse_optional_module_decl :: fn(Parser) -> ModuleDecl | null
-  FnDecl         parse_paren          :: fn(Parser) -> ?
-  FnDecl         parse_pattern        :: fn(Parser) -> ?
-  FnDecl         parse_postfix        :: fn(Parser, ?, Token) -> ?
-  FnDecl         parse_prefix         :: fn(Parser) -> ?
+  FnDecl         parse_paren          :: fn(Parser) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  FnDecl         parse_pattern        :: fn(Parser) -> BindingPattern | EnumVariantPattern | IsPattern | LiteralPattern | StructPattern | TuplePattern | WildcardPattern
+  FnDecl         parse_postfix        :: fn(Parser, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, Token) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  FnDecl         parse_prefix         :: fn(Parser) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   FnDecl         parse_program        :: fn(Parser) -> Program
   FnDecl         parse_return         :: fn(Parser) -> ReturnStmt
   FnDecl         parse_sam_arrow_member :: fn(Parser) -> FnDecl
@@ -167,7 +167,7 @@
   FnDecl         parse_seq_lit        :: fn(Parser) -> SeqLitExpr
   FnDecl         parse_single_param_lambda_tail :: fn(Parser, IdentExpr) -> LambdaExpr
   FnDecl         parse_source         :: fn(string, string) -> ParsedSource
-  FnDecl         parse_stmt           :: fn(Parser) -> ? | null
+  FnDecl         parse_stmt           :: fn(Parser) -> AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | null | ReturnStmt
   FnDecl         parse_string_lit     :: fn(Parser) -> StringLitExpr
   FnDecl         parse_struct_decl    :: fn(Parser, Decorator[], Visibility, Token) -> StructDecl
   FnDecl         parse_struct_lit_fields :: fn(Parser) -> (StructLitField | StructLitSpread)[]
@@ -176,19 +176,19 @@
   FnDecl         parse_trait_decl     :: fn(Parser, Decorator[], Visibility, Token) -> TraitDecl
   FnDecl         parse_tuple_let      :: fn(Parser) -> LetStmt
   FnDecl         parse_tuple_pattern  :: fn(Parser) -> TuplePattern
-  FnDecl         parse_type           :: fn(Parser) -> ?
-  FnDecl         parse_type_intersection :: fn(Parser) -> ?
-  FnDecl         parse_type_list_until :: fn(Parser, TokenKind) -> ?[]
-  FnDecl         parse_type_list_until_angle :: fn(Parser) -> ?[]
-  FnDecl         parse_type_postfix   :: fn(Parser) -> ?
-  FnDecl         parse_type_primary   :: fn(Parser) -> ?
+  FnDecl         parse_type           :: fn(Parser) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  FnDecl         parse_type_intersection :: fn(Parser) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  FnDecl         parse_type_list_until :: fn(Parser, TokenKind) -> (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
+  FnDecl         parse_type_list_until_angle :: fn(Parser) -> (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
+  FnDecl         parse_type_postfix   :: fn(Parser) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  FnDecl         parse_type_primary   :: fn(Parser) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   FnDecl         parse_typed_const_decl :: fn(Parser, Decorator[], Visibility) -> ConstDecl
   FnDecl         parse_typed_let      :: fn(Parser) -> LetStmt
   StructDecl     ParsedSource         :: ParsedSource
   StructDecl     Parser               :: Parser
-  ConstDecl      Pattern              :: ?
+  ConstDecl      Pattern              :: type
   StructDecl     PatternBinding       :: PatternBinding
-  ConstDecl      PatternFieldValue    :: ?
+  ConstDecl      PatternFieldValue    :: type
   StructDecl     PatternLiteral       :: PatternLiteral
   FnDecl         peek                 :: fn(Parser) -> Token
   FnDecl         peek_at              :: fn(Parser, i32) -> Token
@@ -208,17 +208,17 @@
   FnDecl         skip_newlines        :: fn(Parser) -> void
   FnDecl         skip_to_eol          :: fn(string, usize, usize) -> usize
   FnDecl         span_of              :: fn(Parser, Token, Token) -> Span
-  ConstDecl      Stmt                 :: ?
+  ConstDecl      Stmt                 :: type
   StructDecl     StringLitExpr        :: StringLitExpr
   StructDecl     StringLitInfo        :: StringLitInfo
   StructDecl     StringLitInterp      :: StringLitInterp
-  ConstDecl      StringLitPart        :: ?
+  ConstDecl      StringLitPart        :: type
   StructDecl     StringLitText        :: StringLitText
   StructDecl     StructDecl           :: StructDecl
   StructDecl     StructField          :: StructField
   StructDecl     StructLitExpr        :: StructLitExpr
   StructDecl     StructLitField       :: StructLitField
-  ConstDecl      StructLitItem        :: ?
+  ConstDecl      StructLitItem        :: type
   StructDecl     StructLitSpread      :: StructLitSpread
   StructDecl     StructPattern        :: StructPattern
   StructDecl     StructPatternField   :: StructPatternField
@@ -230,7 +230,7 @@
   StructDecl     TupleBinding         :: TupleBinding
   StructDecl     TuplePattern         :: TuplePattern
   StructDecl     TypeAliasDecl        :: TypeAliasDecl
-  ConstDecl      TypeExpr             :: ?
+  ConstDecl      TypeExpr             :: type
   StructDecl     TypeParam            :: TypeParam
   FnDecl         unary_op_name        :: fn(UnaryOp) -> ?
   StructDecl     UnaryExpr            :: UnaryExpr
@@ -252,64 +252,64 @@
   StructDecl     WhileFor             :: WhileFor
   StructDecl     WildcardBinding      :: WildcardBinding
   StructDecl     WildcardPattern      :: WildcardPattern
-  FnDecl         wrap_as_block        :: fn(?) -> BlockExpr
+  FnDecl         wrap_as_block        :: fn(ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr) -> BlockExpr
   FnDecl         write_assert_decl    :: fn(StringBuilder, AssertDecl, i32) -> void
   FnDecl         write_bigint         :: fn(StringBuilder, u64) -> void
   FnDecl         write_block_expr     :: fn(StringBuilder, BlockExpr, i32) -> void
   FnDecl         write_bool           :: fn(StringBuilder, bool) -> void
   FnDecl         write_call_args      :: fn(StringBuilder, CallArg[], i32) -> void
   FnDecl         write_const_decl     :: fn(StringBuilder, ConstDecl, i32) -> void
-  FnDecl         write_decl           :: fn(StringBuilder, ?, i32) -> void
-  FnDecl         write_decls          :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_decl           :: fn(StringBuilder, AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl, i32) -> void
+  FnDecl         write_decls          :: fn(StringBuilder, (AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl)[], i32) -> void
   FnDecl         write_decorators     :: fn(StringBuilder, Decorator[], i32) -> void
   FnDecl         write_enum_decl      :: fn(StringBuilder, EnumDecl, i32) -> void
-  FnDecl         write_expr           :: fn(StringBuilder, ? | null, i32) -> void
-  FnDecl         write_exprs          :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_expr           :: fn(StringBuilder, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, i32) -> void
+  FnDecl         write_exprs          :: fn(StringBuilder, (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[], i32) -> void
   FnDecl         write_f64            :: fn(StringBuilder, f64) -> void
   FnDecl         write_fn_decl        :: fn(StringBuilder, FnDecl, i32) -> void
   FnDecl         write_fn_decls       :: fn(StringBuilder, FnDecl[], i32) -> void
   FnDecl         write_fn_param       :: fn(StringBuilder, FnParam, i32) -> void
   FnDecl         write_fn_params      :: fn(StringBuilder, FnParam[], i32) -> void
-  FnDecl         write_for_form       :: fn(StringBuilder, ?, i32) -> void
+  FnDecl         write_for_form       :: fn(StringBuilder, InfiniteFor | InFor | WhileFor, i32) -> void
   FnDecl         write_impl_decl      :: fn(StringBuilder, ImplDecl, i32) -> void
-  FnDecl         write_import_binding :: fn(StringBuilder, ?, i32) -> void
+  FnDecl         write_import_binding :: fn(StringBuilder, DestructureImport | NamedNamespaceImport, i32) -> void
   FnDecl         write_import_decl    :: fn(StringBuilder, ImportDecl, i32) -> void
   FnDecl         write_import_names   :: fn(StringBuilder, ImportName[], i32) -> void
-  FnDecl         write_let_binding    :: fn(StringBuilder, ?, i32) -> void
-  FnDecl         write_let_bindings   :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_let_binding    :: fn(StringBuilder, RestBinding | SimpleBinding | TupleBinding | WildcardBinding, i32) -> void
+  FnDecl         write_let_bindings   :: fn(StringBuilder, (RestBinding | SimpleBinding | TupleBinding | WildcardBinding)[], i32) -> void
   FnDecl         write_match_arms     :: fn(StringBuilder, MatchArm[], i32) -> void
   FnDecl         write_module_decl    :: fn(StringBuilder, ModuleDecl, i32) -> void
   FnDecl         write_null           :: fn(StringBuilder) -> void
-  FnDecl         write_optional_expr  :: fn(StringBuilder, ? | null, i32) -> void
-  FnDecl         write_optional_type  :: fn(StringBuilder, ? | null, i32) -> void
-  FnDecl         write_pattern        :: fn(StringBuilder, ?, i32) -> void
-  FnDecl         write_patterns       :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_optional_expr  :: fn(StringBuilder, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, i32) -> void
+  FnDecl         write_optional_type  :: fn(StringBuilder, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, i32) -> void
+  FnDecl         write_pattern        :: fn(StringBuilder, BindingPattern | EnumVariantPattern | IsPattern | LiteralPattern | StructPattern | TuplePattern | WildcardPattern, i32) -> void
+  FnDecl         write_patterns       :: fn(StringBuilder, (BindingPattern | EnumVariantPattern | IsPattern | LiteralPattern | StructPattern | TuplePattern | WildcardPattern)[], i32) -> void
   FnDecl         write_program        :: fn(StringBuilder, Program, i32) -> void
   FnDecl         write_signed_bigint  :: fn(StringBuilder, i64) -> void
-  FnDecl         write_stmt           :: fn(StringBuilder, ?, i32) -> void
-  FnDecl         write_stmts          :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_stmt           :: fn(StringBuilder, AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt, i32) -> void
+  FnDecl         write_stmts          :: fn(StringBuilder, (AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt)[], i32) -> void
   FnDecl         write_string         :: fn(StringBuilder, string) -> void
-  FnDecl         write_string_parts   :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_string_parts   :: fn(StringBuilder, (StringLitInterp | StringLitText)[], i32) -> void
   FnDecl         write_struct_decl    :: fn(StringBuilder, StructDecl, i32) -> void
   FnDecl         write_struct_fields  :: fn(StringBuilder, StructField[], i32) -> void
   FnDecl         write_struct_lit_items :: fn(StringBuilder, (StructLitField | StructLitSpread)[], i32) -> void
   FnDecl         write_struct_pattern_fields :: fn(StringBuilder, StructPatternField[], i32) -> void
   FnDecl         write_trait_decl     :: fn(StringBuilder, TraitDecl, i32) -> void
-  FnDecl         write_type           :: fn(StringBuilder, ?, i32) -> void
+  FnDecl         write_type           :: fn(StringBuilder, ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr, i32) -> void
   FnDecl         write_type_alias_decl :: fn(StringBuilder, TypeAliasDecl, i32) -> void
   FnDecl         write_type_params    :: fn(StringBuilder, TypeParam[], i32) -> void
-  FnDecl         write_types          :: fn(StringBuilder, ?[], i32) -> void
+  FnDecl         write_types          :: fn(StringBuilder, (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[], i32) -> void
   FnDecl         write_visibility     :: fn(StringBuilder, Visibility) -> void
   expr 100:13   CallExpr       :: void
   expr 100:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 100:23   FieldExpr      :: ?
+  expr 100:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 100:23   IdentExpr      :: ImplDecl
   expr 100:35   IdentExpr      :: NodeIdFactory
-  expr 101:23   FieldExpr      :: ?[]
+  expr 101:23   FieldExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
   expr 101:23   IdentExpr      :: ImplDecl
   expr 101:38   CallExpr       :: void
   expr 101:38   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 101:48   IdentExpr      :: ?
+  expr 101:48   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 101:52   IdentExpr      :: NodeIdFactory
   expr 102:22   FieldExpr      :: FnDecl[]
   expr 102:22   IdentExpr      :: ImplDecl
@@ -336,7 +336,7 @@
   expr 107:59   IdentExpr      :: NodeIdFactory
   expr 108:13   CallExpr       :: void
   expr 108:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 108:23   FieldExpr      :: ?
+  expr 108:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 108:23   IdentExpr      :: TypeAliasDecl
   expr 108:34   IdentExpr      :: NodeIdFactory
   expr 109:24   FieldExpr      :: Decorator[]
@@ -351,16 +351,16 @@
   expr 112:20   FieldExpr      :: fn() -> usize
   expr 112:20   IdentExpr      :: NodeIdFactory
   expr 113:13   MatchExpr      :: void
-  expr 113:19   FieldExpr      :: ? | null
+  expr 113:19   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 113:19   IdentExpr      :: ConstDecl
   expr 115:24   CallExpr       :: void
   expr 115:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 115:34   FieldExpr      :: ?
+  expr 115:34   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 115:34   IdentExpr      :: ConstDecl
   expr 115:40   IdentExpr      :: NodeIdFactory
   expr 117:13   CallExpr       :: void
   expr 117:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 117:23   FieldExpr      :: ?
+  expr 117:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 117:23   IdentExpr      :: ConstDecl
   expr 117:32   IdentExpr      :: NodeIdFactory
   expr 118:24   FieldExpr      :: Decorator[]
@@ -376,7 +376,7 @@
   expr 121:20   IdentExpr      :: NodeIdFactory
   expr 122:13   CallExpr       :: void
   expr 122:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 122:23   FieldExpr      :: ?
+  expr 122:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 122:23   IdentExpr      :: AssertDecl
   expr 122:36   IdentExpr      :: NodeIdFactory
   expr 123:24   FieldExpr      :: Decorator[]
@@ -408,12 +408,12 @@
   expr 132:25   IdentExpr      :: fn(FnParam, NodeIdFactory) -> void
   expr 132:39   IdentExpr      :: FnParam
   expr 132:42   IdentExpr      :: NodeIdFactory
-  expr 133:11   FieldExpr      :: ? | null
+  expr 133:11   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 133:11   IdentExpr      :: FnDecl
   expr 133:5    MatchExpr      :: void
   expr 135:16   CallExpr       :: void
   expr 135:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 135:26   FieldExpr      :: ?
+  expr 135:26   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 135:26   IdentExpr      :: FnDecl
   expr 135:41   IdentExpr      :: NodeIdFactory
   expr 137:11   FieldExpr      :: BlockExpr | null
@@ -429,20 +429,20 @@
   expr 144:12   IdentExpr      :: NodeIdFactory
   expr 144:5    FieldExpr      :: usize
   expr 144:5    IdentExpr      :: FnParam
-  expr 145:11   FieldExpr      :: ? | null
+  expr 145:11   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 145:11   IdentExpr      :: FnParam
   expr 145:5    MatchExpr      :: void
   expr 147:16   CallExpr       :: void
   expr 147:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 147:26   FieldExpr      :: ?
+  expr 147:26   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 147:26   IdentExpr      :: FnParam
   expr 147:32   IdentExpr      :: NodeIdFactory
-  expr 149:11   FieldExpr      :: ? | null
+  expr 149:11   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 149:11   IdentExpr      :: FnParam
   expr 149:5    MatchExpr      :: void
   expr 151:16   CallExpr       :: void
   expr 151:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 151:26   FieldExpr      :: ?
+  expr 151:26   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 151:26   IdentExpr      :: FnParam
   expr 151:43   IdentExpr      :: NodeIdFactory
   expr 156:13   CallExpr       :: usize
@@ -450,12 +450,12 @@
   expr 156:13   IdentExpr      :: NodeIdFactory
   expr 156:5    FieldExpr      :: usize
   expr 156:5    IdentExpr      :: TypeParam
-  expr 157:11   FieldExpr      :: ? | null
+  expr 157:11   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 157:11   IdentExpr      :: TypeParam
   expr 157:5    MatchExpr      :: void
   expr 159:16   CallExpr       :: void
   expr 159:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 159:26   FieldExpr      :: ?
+  expr 159:26   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 159:26   IdentExpr      :: TypeParam
   expr 159:36   IdentExpr      :: NodeIdFactory
   expr 164:12   CallExpr       :: usize
@@ -463,11 +463,11 @@
   expr 164:12   IdentExpr      :: NodeIdFactory
   expr 164:5    FieldExpr      :: usize
   expr 164:5    IdentExpr      :: Decorator
-  expr 165:14   FieldExpr      :: ?[]
+  expr 165:14   FieldExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
   expr 165:14   IdentExpr      :: Decorator
   expr 165:23   CallExpr       :: void
   expr 165:23   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 165:33   IdentExpr      :: ?
+  expr 165:33   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 165:36   IdentExpr      :: NodeIdFactory
   expr 169:11   IdentExpr      :: ?
   expr 169:5    MatchExpr      :: void
@@ -520,10 +520,10 @@
   expr 192:20   CallExpr       :: usize
   expr 192:20   FieldExpr      :: fn() -> usize
   expr 192:20   IdentExpr      :: NodeIdFactory
-  expr 193:22   FieldExpr      :: ?[]
+  expr 193:22   FieldExpr      :: (StringLitInterp | StringLitText)[]
   expr 193:22   IdentExpr      :: StringLitExpr
   expr 194:17   MatchExpr      :: void
-  expr 194:23   IdentExpr      :: ?
+  expr 194:23   IdentExpr      :: StringLitInterp | StringLitText
   expr 195:50   FieldExpr      :: usize
   expr 195:50   IdentExpr      :: StringLitText
   expr 195:57   CallExpr       :: usize
@@ -536,7 +536,7 @@
   expr 197:32   IdentExpr      :: NodeIdFactory
   expr 198:25   CallExpr       :: void
   expr 198:25   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 198:35   FieldExpr      :: ?
+  expr 198:35   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 198:35   IdentExpr      :: StringLitInterp
   expr 198:43   IdentExpr      :: NodeIdFactory
   expr 203:32   FieldExpr      :: usize
@@ -551,7 +551,7 @@
   expr 205:20   IdentExpr      :: NodeIdFactory
   expr 206:13   CallExpr       :: void
   expr 206:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 206:23   FieldExpr      :: ?
+  expr 206:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 206:23   IdentExpr      :: CallExpr
   expr 206:33   IdentExpr      :: NodeIdFactory
   expr 207:22   FieldExpr      :: CallArg[]
@@ -563,7 +563,7 @@
   expr 208:24   IdentExpr      :: NodeIdFactory
   expr 209:17   CallExpr       :: void
   expr 209:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 209:27   FieldExpr      :: ?
+  expr 209:27   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 209:27   IdentExpr      :: CallArg
   expr 209:36   IdentExpr      :: NodeIdFactory
   expr 213:13   FieldExpr      :: usize
@@ -573,7 +573,7 @@
   expr 213:20   IdentExpr      :: NodeIdFactory
   expr 214:13   CallExpr       :: void
   expr 214:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 214:23   FieldExpr      :: ?
+  expr 214:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 214:23   IdentExpr      :: FieldExpr
   expr 214:33   IdentExpr      :: NodeIdFactory
   expr 217:13   FieldExpr      :: usize
@@ -583,12 +583,12 @@
   expr 217:20   IdentExpr      :: NodeIdFactory
   expr 218:13   CallExpr       :: void
   expr 218:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 218:23   FieldExpr      :: ?
+  expr 218:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 218:23   IdentExpr      :: IndexExpr
   expr 218:33   IdentExpr      :: NodeIdFactory
   expr 219:13   CallExpr       :: void
   expr 219:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 219:23   FieldExpr      :: ?
+  expr 219:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 219:23   IdentExpr      :: IndexExpr
   expr 219:32   IdentExpr      :: NodeIdFactory
   expr 222:13   FieldExpr      :: usize
@@ -598,7 +598,7 @@
   expr 222:20   IdentExpr      :: NodeIdFactory
   expr 223:13   CallExpr       :: void
   expr 223:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 223:23   FieldExpr      :: ?
+  expr 223:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 223:23   IdentExpr      :: UnaryExpr
   expr 223:34   IdentExpr      :: NodeIdFactory
   expr 226:13   FieldExpr      :: usize
@@ -608,12 +608,12 @@
   expr 226:20   IdentExpr      :: NodeIdFactory
   expr 227:13   CallExpr       :: void
   expr 227:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 227:23   FieldExpr      :: ?
+  expr 227:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 227:23   IdentExpr      :: BinaryExpr
   expr 227:31   IdentExpr      :: NodeIdFactory
   expr 228:13   CallExpr       :: void
   expr 228:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 228:23   FieldExpr      :: ?
+  expr 228:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 228:23   IdentExpr      :: BinaryExpr
   expr 228:32   IdentExpr      :: NodeIdFactory
   expr 231:13   FieldExpr      :: usize
@@ -623,7 +623,7 @@
   expr 231:20   IdentExpr      :: NodeIdFactory
   expr 232:13   CallExpr       :: void
   expr 232:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 232:23   FieldExpr      :: ?
+  expr 232:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 232:23   IdentExpr      :: IfExpr
   expr 232:31   IdentExpr      :: NodeIdFactory
   expr 233:13   CallExpr       :: void
@@ -632,7 +632,7 @@
   expr 233:24   IdentExpr      :: IfExpr
   expr 233:38   IdentExpr      :: NodeIdFactory
   expr 234:13   MatchExpr      :: void
-  expr 234:19   FieldExpr      :: ? | null
+  expr 234:19   FieldExpr      :: IfElseBlock | IfElseIf | null
   expr 234:19   IdentExpr      :: IfExpr
   expr 236:43   CallExpr       :: void
   expr 236:43   IdentExpr      :: fn(?, NodeIdFactory) -> void
@@ -651,7 +651,7 @@
   expr 241:20   IdentExpr      :: NodeIdFactory
   expr 242:13   CallExpr       :: void
   expr 242:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 242:23   FieldExpr      :: ?
+  expr 242:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 242:23   IdentExpr      :: MatchExpr
   expr 242:36   IdentExpr      :: NodeIdFactory
   expr 243:22   FieldExpr      :: MatchArm[]
@@ -663,15 +663,15 @@
   expr 244:24   IdentExpr      :: NodeIdFactory
   expr 245:17   CallExpr       :: void
   expr 245:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 245:30   FieldExpr      :: ?
+  expr 245:30   FieldExpr      :: BindingPattern | EnumVariantPattern | IsPattern | LiteralPattern | StructPattern | TuplePattern | WildcardPattern
   expr 245:30   IdentExpr      :: MatchArm
   expr 245:41   IdentExpr      :: NodeIdFactory
   expr 246:17   MatchExpr      :: void
-  expr 246:23   FieldExpr      :: ? | null
+  expr 246:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 246:23   IdentExpr      :: MatchArm
   expr 248:28   CallExpr       :: void
   expr 248:28   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 248:38   FieldExpr      :: ?
+  expr 248:38   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 248:38   IdentExpr      :: MatchArm
   expr 248:47   IdentExpr      :: NodeIdFactory
   expr 24:12    StructLitExpr  :: NodeIdFactory
@@ -679,7 +679,7 @@
   expr 24:36    IdentExpr      :: type
   expr 250:17   CallExpr       :: void
   expr 250:17   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 250:27   FieldExpr      :: ?
+  expr 250:27   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 250:27   IdentExpr      :: MatchArm
   expr 250:35   IdentExpr      :: NodeIdFactory
   expr 253:32   CallExpr       :: void
@@ -698,11 +698,11 @@
   expr 256:47   IdentExpr      :: FnParam
   expr 256:50   IdentExpr      :: NodeIdFactory
   expr 257:13   MatchExpr      :: void
-  expr 257:19   FieldExpr      :: ? | null
+  expr 257:19   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 257:19   IdentExpr      :: LambdaExpr
   expr 259:24   CallExpr       :: void
   expr 259:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 259:34   FieldExpr      :: ?
+  expr 259:34   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 259:34   IdentExpr      :: LambdaExpr
   expr 259:49   IdentExpr      :: NodeIdFactory
   expr 261:13   CallExpr       :: void
@@ -717,7 +717,7 @@
   expr 264:20   IdentExpr      :: NodeIdFactory
   expr 265:13   CallExpr       :: void
   expr 265:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 265:23   FieldExpr      :: ?
+  expr 265:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 265:23   IdentExpr      :: StructLitExpr
   expr 265:36   IdentExpr      :: NodeIdFactory
   expr 266:25   FieldExpr      :: (StructLitField | StructLitSpread)[]
@@ -731,7 +731,7 @@
   expr 269:34   IdentExpr      :: NodeIdFactory
   expr 270:25   CallExpr       :: void
   expr 270:25   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 270:35   FieldExpr      :: ?
+  expr 270:35   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 270:35   IdentExpr      :: StructLitField
   expr 270:46   IdentExpr      :: NodeIdFactory
   expr 273:25   FieldExpr      :: usize
@@ -741,7 +741,7 @@
   expr 273:33   IdentExpr      :: NodeIdFactory
   expr 274:25   CallExpr       :: void
   expr 274:25   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 274:35   FieldExpr      :: ?
+  expr 274:35   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 274:35   IdentExpr      :: StructLitSpread
   expr 274:44   IdentExpr      :: NodeIdFactory
   expr 280:13   FieldExpr      :: usize
@@ -749,11 +749,11 @@
   expr 280:20   CallExpr       :: usize
   expr 280:20   FieldExpr      :: fn() -> usize
   expr 280:20   IdentExpr      :: NodeIdFactory
-  expr 281:23   FieldExpr      :: ?[]
+  expr 281:23   FieldExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
   expr 281:23   IdentExpr      :: SeqLitExpr
   expr 281:36   CallExpr       :: void
   expr 281:36   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 281:46   IdentExpr      :: ?
+  expr 281:46   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 281:50   IdentExpr      :: NodeIdFactory
   expr 284:13   FieldExpr      :: usize
   expr 284:13   IdentExpr      :: RangeExpr
@@ -762,12 +762,12 @@
   expr 284:20   IdentExpr      :: NodeIdFactory
   expr 285:13   CallExpr       :: void
   expr 285:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 285:23   FieldExpr      :: ?
+  expr 285:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 285:23   IdentExpr      :: RangeExpr
   expr 285:32   IdentExpr      :: NodeIdFactory
   expr 286:13   CallExpr       :: void
   expr 286:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 286:23   FieldExpr      :: ?
+  expr 286:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 286:23   IdentExpr      :: RangeExpr
   expr 286:32   IdentExpr      :: NodeIdFactory
   expr 289:13   FieldExpr      :: usize
@@ -777,7 +777,7 @@
   expr 289:20   IdentExpr      :: NodeIdFactory
   expr 290:13   CallExpr       :: void
   expr 290:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 290:23   FieldExpr      :: ?
+  expr 290:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 290:23   IdentExpr      :: TryExpr
   expr 290:32   IdentExpr      :: NodeIdFactory
   expr 293:13   FieldExpr      :: usize
@@ -787,12 +787,12 @@
   expr 293:20   IdentExpr      :: NodeIdFactory
   expr 294:13   CallExpr       :: void
   expr 294:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 294:23   FieldExpr      :: ?
+  expr 294:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 294:23   IdentExpr      :: CastExpr
   expr 294:33   IdentExpr      :: NodeIdFactory
   expr 295:13   CallExpr       :: void
   expr 295:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 295:23   FieldExpr      :: ?
+  expr 295:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 295:23   IdentExpr      :: CastExpr
   expr 295:32   IdentExpr      :: NodeIdFactory
   expr 298:13   FieldExpr      :: usize
@@ -802,27 +802,27 @@
   expr 298:20   IdentExpr      :: NodeIdFactory
   expr 299:13   CallExpr       :: void
   expr 299:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 299:23   FieldExpr      :: ?
+  expr 299:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 299:23   IdentExpr      :: GenericInstExpr
   expr 299:33   IdentExpr      :: NodeIdFactory
   expr 29:11    FieldExpr      :: usize
   expr 29:11    IdentExpr      :: NodeIdFactory
-  expr 300:23   FieldExpr      :: ?[]
+  expr 300:23   FieldExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
   expr 300:23   IdentExpr      :: GenericInstExpr
   expr 300:37   CallExpr       :: void
   expr 300:37   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 300:47   IdentExpr      :: ?
+  expr 300:47   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 300:51   IdentExpr      :: NodeIdFactory
   expr 303:13   FieldExpr      :: usize
   expr 303:13   IdentExpr      :: IntrinsicCallExpr
   expr 303:20   CallExpr       :: usize
   expr 303:20   FieldExpr      :: fn() -> usize
   expr 303:20   IdentExpr      :: NodeIdFactory
-  expr 304:22   FieldExpr      :: ?[]
+  expr 304:22   FieldExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
   expr 304:22   IdentExpr      :: IntrinsicCallExpr
   expr 304:31   CallExpr       :: void
   expr 304:31   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 304:41   IdentExpr      :: ?
+  expr 304:41   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 304:44   IdentExpr      :: NodeIdFactory
   expr 306:37   FieldExpr      :: usize
   expr 306:37   IdentExpr      :: DotVariantExpr
@@ -834,11 +834,11 @@
   expr 308:20   CallExpr       :: usize
   expr 308:20   FieldExpr      :: fn() -> usize
   expr 308:20   IdentExpr      :: NodeIdFactory
-  expr 309:22   FieldExpr      :: ?[]
+  expr 309:22   FieldExpr      :: (ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr)[]
   expr 309:22   IdentExpr      :: FnTypeExpr
   expr 309:33   CallExpr       :: void
   expr 309:33   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 309:43   IdentExpr      :: ?
+  expr 309:43   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 309:46   IdentExpr      :: NodeIdFactory
   expr 30:17    BinaryExpr     :: usize
   expr 30:17    IdentExpr      :: usize
@@ -847,11 +847,11 @@
   expr 30:5     FieldExpr      :: usize
   expr 30:5     IdentExpr      :: NodeIdFactory
   expr 310:13   MatchExpr      :: void
-  expr 310:19   FieldExpr      :: ? | null
+  expr 310:19   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 310:19   IdentExpr      :: FnTypeExpr
   expr 312:24   CallExpr       :: void
   expr 312:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 312:34   FieldExpr      :: ?
+  expr 312:34   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 312:34   IdentExpr      :: FnTypeExpr
   expr 312:49   IdentExpr      :: NodeIdFactory
   expr 316:13   FieldExpr      :: usize
@@ -861,7 +861,7 @@
   expr 316:20   IdentExpr      :: NodeIdFactory
   expr 317:13   CallExpr       :: void
   expr 317:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 317:23   FieldExpr      :: ?
+  expr 317:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 317:23   IdentExpr      :: ArrayTypeExpr
   expr 317:34   IdentExpr      :: NodeIdFactory
   expr 31:12    IdentExpr      :: usize
@@ -870,18 +870,18 @@
   expr 325:12   IdentExpr      :: NodeIdFactory
   expr 325:5    FieldExpr      :: usize
   expr 325:5    IdentExpr      :: BlockExpr
-  expr 326:14   FieldExpr      :: ?[]
+  expr 326:14   FieldExpr      :: (AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt)[]
   expr 326:14   IdentExpr      :: BlockExpr
   expr 326:24   CallExpr       :: void
   expr 326:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 326:34   IdentExpr      :: ?
+  expr 326:34   IdentExpr      :: AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt
   expr 326:37   IdentExpr      :: NodeIdFactory
-  expr 327:11   FieldExpr      :: ? | null
+  expr 327:11   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 327:11   IdentExpr      :: BlockExpr
   expr 327:5    MatchExpr      :: void
   expr 329:16   CallExpr       :: void
   expr 329:16   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 329:26   FieldExpr      :: ?
+  expr 329:26   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 329:26   IdentExpr      :: BlockExpr
   expr 329:38   IdentExpr      :: NodeIdFactory
   expr 334:11   IdentExpr      :: ?
@@ -893,20 +893,20 @@
   expr 336:20   IdentExpr      :: NodeIdFactory
   expr 337:13   CallExpr       :: void
   expr 337:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 337:30   FieldExpr      :: ?
+  expr 337:30   FieldExpr      :: RestBinding | SimpleBinding | TupleBinding | WildcardBinding
   expr 337:30   IdentExpr      :: LetStmt
   expr 337:41   IdentExpr      :: NodeIdFactory
   expr 338:13   MatchExpr      :: void
-  expr 338:19   FieldExpr      :: ? | null
+  expr 338:19   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 338:19   IdentExpr      :: LetStmt
   expr 340:24   CallExpr       :: void
   expr 340:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 340:34   FieldExpr      :: ?
+  expr 340:34   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 340:34   IdentExpr      :: LetStmt
   expr 340:40   IdentExpr      :: NodeIdFactory
   expr 342:13   CallExpr       :: void
   expr 342:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 342:23   FieldExpr      :: ?
+  expr 342:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 342:23   IdentExpr      :: LetStmt
   expr 342:32   IdentExpr      :: NodeIdFactory
   expr 345:13   FieldExpr      :: usize
@@ -916,12 +916,12 @@
   expr 345:20   IdentExpr      :: NodeIdFactory
   expr 346:13   CallExpr       :: void
   expr 346:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 346:23   FieldExpr      :: ?
+  expr 346:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 346:23   IdentExpr      :: AssignStmt
   expr 346:33   IdentExpr      :: NodeIdFactory
   expr 347:13   CallExpr       :: void
   expr 347:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 347:23   FieldExpr      :: ?
+  expr 347:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 347:23   IdentExpr      :: AssignStmt
   expr 347:32   IdentExpr      :: NodeIdFactory
   expr 350:13   FieldExpr      :: usize
@@ -931,7 +931,7 @@
   expr 350:20   IdentExpr      :: NodeIdFactory
   expr 351:13   CallExpr       :: void
   expr 351:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 351:23   FieldExpr      :: ?
+  expr 351:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 351:23   IdentExpr      :: ExprStmt
   expr 351:31   IdentExpr      :: NodeIdFactory
   expr 354:13   FieldExpr      :: usize
@@ -940,11 +940,11 @@
   expr 354:20   FieldExpr      :: fn() -> usize
   expr 354:20   IdentExpr      :: NodeIdFactory
   expr 355:13   MatchExpr      :: void
-  expr 355:19   FieldExpr      :: ? | null
+  expr 355:19   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 355:19   IdentExpr      :: ReturnStmt
   expr 357:24   CallExpr       :: void
   expr 357:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 357:34   FieldExpr      :: ?
+  expr 357:34   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 357:34   IdentExpr      :: ReturnStmt
   expr 357:43   IdentExpr      :: NodeIdFactory
   expr 361:13   FieldExpr      :: usize
@@ -954,12 +954,12 @@
   expr 361:20   IdentExpr      :: NodeIdFactory
   expr 362:13   CallExpr       :: void
   expr 362:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 362:27   FieldExpr      :: ?
+  expr 362:27   FieldExpr      :: InfiniteFor | InFor | WhileFor
   expr 362:27   IdentExpr      :: ForStmt
   expr 362:35   IdentExpr      :: NodeIdFactory
   expr 363:13   CallExpr       :: void
   expr 363:13   IdentExpr      :: fn(BlockExpr, NodeIdFactory) -> void
-  expr 363:24   FieldExpr      :: ReturnStmt
+  expr 363:24   FieldExpr      :: BlockExpr
   expr 363:24   IdentExpr      :: ForStmt
   expr 363:32   IdentExpr      :: NodeIdFactory
   expr 365:32   FieldExpr      :: usize
@@ -994,12 +994,12 @@
   expr 378:5    MatchExpr      :: void
   expr 380:31   CallExpr       :: void
   expr 380:31   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 380:41   FieldExpr      :: ?
+  expr 380:41   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 380:41   IdentExpr      :: WhileFor
   expr 380:49   IdentExpr      :: NodeIdFactory
   expr 381:28   CallExpr       :: void
   expr 381:28   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 381:38   FieldExpr      :: ?
+  expr 381:38   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 381:38   IdentExpr      :: InFor
   expr 381:46   IdentExpr      :: NodeIdFactory
   expr 386:11   IdentExpr      :: ?
@@ -1024,11 +1024,11 @@
   expr 391:20   CallExpr       :: usize
   expr 391:20   FieldExpr      :: fn() -> usize
   expr 391:20   IdentExpr      :: NodeIdFactory
-  expr 392:23   FieldExpr      :: ?[]
+  expr 392:23   FieldExpr      :: (RestBinding | SimpleBinding | TupleBinding | WildcardBinding)[]
   expr 392:23   IdentExpr      :: TupleBinding
   expr 392:36   CallExpr       :: void
   expr 392:36   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 392:53   IdentExpr      :: ?
+  expr 392:53   IdentExpr      :: RestBinding | SimpleBinding | TupleBinding | WildcardBinding
   expr 392:57   IdentExpr      :: NodeIdFactory
   expr 398:11   IdentExpr      :: ?
   expr 398:5    MatchExpr      :: void
@@ -1044,15 +1044,15 @@
   expr 400:20   IdentExpr      :: NodeIdFactory
   expr 401:13   CallExpr       :: void
   expr 401:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 401:23   FieldExpr      :: ?
+  expr 401:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 401:23   IdentExpr      :: IsPattern
   expr 401:29   IdentExpr      :: NodeIdFactory
   expr 402:13   MatchExpr      :: void
-  expr 402:19   FieldExpr      :: ? | null
+  expr 402:19   FieldExpr      :: BindingPattern | EnumVariantPattern | IsPattern | LiteralPattern | null | StructPattern | TuplePattern | WildcardPattern
   expr 402:19   IdentExpr      :: IsPattern
   expr 404:24   CallExpr       :: void
   expr 404:24   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 404:37   FieldExpr      :: ?
+  expr 404:37   FieldExpr      :: BindingPattern | EnumVariantPattern | IsPattern | LiteralPattern | StructPattern | TuplePattern | WildcardPattern
   expr 404:37   IdentExpr      :: IsPattern
   expr 404:46   IdentExpr      :: NodeIdFactory
   expr 408:13   FieldExpr      :: usize
@@ -1071,7 +1071,7 @@
   expr 410:26   FieldExpr      :: fn() -> usize
   expr 410:26   IdentExpr      :: NodeIdFactory
   expr 411:17   MatchExpr      :: void
-  expr 411:23   FieldExpr      :: ?
+  expr 411:23   FieldExpr      :: PatternBinding | PatternLiteral
   expr 411:23   IdentExpr      :: StructPatternField
   expr 412:50   FieldExpr      :: usize
   expr 412:50   IdentExpr      :: PatternBinding
@@ -1080,7 +1080,7 @@
   expr 412:58   IdentExpr      :: NodeIdFactory
   expr 413:50   CallExpr       :: void
   expr 413:50   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 413:60   FieldExpr      :: ?
+  expr 413:60   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 413:60   IdentExpr      :: PatternLiteral
   expr 413:70   IdentExpr      :: NodeIdFactory
   expr 418:13   FieldExpr      :: usize
@@ -1088,11 +1088,11 @@
   expr 418:20   CallExpr       :: usize
   expr 418:20   FieldExpr      :: fn() -> usize
   expr 418:20   IdentExpr      :: NodeIdFactory
-  expr 419:23   FieldExpr      :: ?[]
+  expr 419:23   FieldExpr      :: (BindingPattern | EnumVariantPattern | IsPattern | LiteralPattern | StructPattern | TuplePattern | WildcardPattern)[]
   expr 419:23   IdentExpr      :: TuplePattern
   expr 419:36   CallExpr       :: void
   expr 419:36   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 419:49   IdentExpr      :: ?
+  expr 419:49   IdentExpr      :: BindingPattern | EnumVariantPattern | IsPattern | LiteralPattern | StructPattern | TuplePattern | WildcardPattern
   expr 419:53   IdentExpr      :: NodeIdFactory
   expr 421:41   FieldExpr      :: usize
   expr 421:41   IdentExpr      :: WildcardPattern
@@ -1116,7 +1116,7 @@
   expr 425:20   IdentExpr      :: NodeIdFactory
   expr 426:13   CallExpr       :: void
   expr 426:13   IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 426:23   FieldExpr      :: ?
+  expr 426:23   FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 426:23   IdentExpr      :: LiteralPattern
   expr 426:32   IdentExpr      :: NodeIdFactory
   expr 42:28    FieldExpr      :: ModuleDecl
@@ -1151,11 +1151,11 @@
   expr 445:15   CallExpr       :: ParsedSource
   expr 445:15   IdentExpr      :: fn(string, string) -> ParsedSource
   expr 445:28   StringLitExpr  :: string
-  expr 44:14    FieldExpr      :: ?[]
+  expr 44:14    FieldExpr      :: (AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl)[]
   expr 44:14    IdentExpr      :: Program
   expr 44:24    CallExpr       :: void
   expr 44:24    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 44:34    IdentExpr      :: ?
+  expr 44:34    IdentExpr      :: AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl
   expr 44:37    IdentExpr      :: NodeIdFactory
   expr 450:6    StringLitExpr  :: string
   expr 453:12   BinaryExpr     :: bool
@@ -1166,10 +1166,10 @@
   expr 453:5    CallExpr       :: ?
   expr 453:5    IdentExpr      :: ?
   expr 453:53   StringLitExpr  :: string
-  expr 454:14   FieldExpr      :: ?[]
+  expr 454:14   FieldExpr      :: (AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl)[]
   expr 454:14   FieldExpr      :: Program
   expr 454:14   IdentExpr      :: ParsedSource
-  expr 455:15   IdentExpr      :: ?
+  expr 455:15   IdentExpr      :: AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl
   expr 455:9    MatchExpr      :: void
   expr 457:17   CallExpr       :: ?
   expr 457:17   IdentExpr      :: ?
@@ -1200,7 +1200,7 @@
   expr 60:20    IdentExpr      :: NodeIdFactory
   expr 61:13    CallExpr       :: void
   expr 61:13    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 61:33    FieldExpr      :: ?
+  expr 61:33    FieldExpr      :: DestructureImport | NamedNamespaceImport
   expr 61:33    IdentExpr      :: ImportDecl
   expr 61:44    IdentExpr      :: NodeIdFactory
   expr 62:24    FieldExpr      :: Decorator[]
@@ -1233,15 +1233,15 @@
   expr 69:26    IdentExpr      :: NodeIdFactory
   expr 70:17    CallExpr       :: void
   expr 70:17    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 70:27    FieldExpr      :: ?
+  expr 70:27    FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 70:27    IdentExpr      :: StructField
   expr 70:35    IdentExpr      :: NodeIdFactory
   expr 71:17    MatchExpr      :: void
-  expr 71:23    FieldExpr      :: ? | null
+  expr 71:23    FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 71:23    IdentExpr      :: StructField
   expr 73:28    CallExpr       :: void
   expr 73:28    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 73:38    FieldExpr      :: ?
+  expr 73:38    FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 73:38    IdentExpr      :: StructField
   expr 73:51    IdentExpr      :: NodeIdFactory
   expr 76:24    FieldExpr      :: Decorator[]
@@ -1256,11 +1256,11 @@
   expr 79:20    FieldExpr      :: fn() -> usize
   expr 79:20    IdentExpr      :: NodeIdFactory
   expr 80:13    MatchExpr      :: void
-  expr 80:19    FieldExpr      :: ? | null
+  expr 80:19    FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 80:19    IdentExpr      :: EnumDecl
   expr 82:24    CallExpr       :: void
   expr 82:24    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 82:34    FieldExpr      :: ?
+  expr 82:34    FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 82:34    IdentExpr      :: EnumDecl
   expr 82:42    IdentExpr      :: NodeIdFactory
   expr 84:22    FieldExpr      :: EnumVariant[]
@@ -1288,11 +1288,11 @@
   expr 89:55    IdentExpr      :: TypeParam
   expr 89:59    IdentExpr      :: NodeIdFactory
   expr 90:13    MatchExpr      :: void
-  expr 90:19    FieldExpr      :: ? | null
+  expr 90:19    FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | null | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 90:19    IdentExpr      :: TraitDecl
   expr 92:24    CallExpr       :: void
   expr 92:24    IdentExpr      :: fn(?, NodeIdFactory) -> void
-  expr 92:34    FieldExpr      :: ?
+  expr 92:34    FieldExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
   expr 92:34    IdentExpr      :: TraitDecl
   expr 92:46    IdentExpr      :: NodeIdFactory
   expr 94:22    FieldExpr      :: FnDecl[]
