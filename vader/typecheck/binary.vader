@@ -18,7 +18,6 @@ module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 AST :: import "vader/parser"
-import "vader/resolver" { span_full_key }
 import "vader/resolver/symbol" { SymbolKind }
 import "vader/types" {
     Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,

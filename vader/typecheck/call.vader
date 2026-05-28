@@ -31,7 +31,7 @@ import "vader/types" {
     FreeIntType, FreeFloatType,
     display_type, mk_array, TY_UNRESOLVED,
 }
-import "vader/resolver" { span_full_key, span_key }
+import "vader/resolver" { span_key }
 import "vader/resolver/symbol" { SymbolKind }
 
 // Inspect the callee : when it's a bare ident whose `fn_overloads`

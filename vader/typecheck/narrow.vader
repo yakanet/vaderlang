@@ -107,7 +107,6 @@ export resolve_field_chain_static :: fn(
     return FieldChainStatic { .field_key = key, .static_ty = static_ty }
 }
 
-import "vader/resolver" { span_full_key }
 import "vader/types" { UnresolvedType }
 
 /// Walk a FieldExpr down to its root `IdentExpr` and return the

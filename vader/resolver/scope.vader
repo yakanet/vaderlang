@@ -78,18 +78,8 @@ export lookup :: fn(self: Scope, name: string) -> Symbol | null {
 /// invariant. Single-file modules: the file term is constant, so keys
 /// stay unique per position. i64 (vs a `"file:line:column"` string)
 /// avoids per-lookup string allocation in hot side-table accesses.
-export span_key :: fn(s: Span) -> i64 {
-    return i64(s.start.file.hash()) * i64(1000003) + (i64(s.start.line) << i64(32)) + i64(s.start.column)
-}
+export span_key :: fn(s: Span) = i64(s.hash())
 
-/// Stringify a span's start AND end as `lineS:colS-lineE:colE`. Used
-/// by the typed-ast side-tables that index expressions — `a + b`
-/// where both the BinaryExpr (envelope) and its left-IdentExpr `a`
-/// start at the same `line:column` need disjoint keys for
-/// `expr_types` lookup.
-export span_full_key :: fn(s: Span) -> string {
-    return "${s.start.line}:${s.start.column}-${s.end.line}:${s.end.column}"
-}
 
 // ---- tests ----------------------------------------------------------------
 

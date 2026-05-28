@@ -10,7 +10,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, Span, typecheck_error, warning }
-import "vader/resolver" { span_full_key, span_key }
+import "vader/resolver" { span_key }
 AST :: import "vader/parser"
 import "vader/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,

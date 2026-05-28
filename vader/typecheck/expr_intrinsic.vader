@@ -98,7 +98,7 @@ static_string_value :: fn(e: AST.StringLitExpr) -> string {
     return out
 }
 
-import "vader/resolver" { span_full_key, span_key }
+import "vader/resolver" { span_key }
 import "vader/types" { StructType, UnresolvedType }
 
 

@@ -431,7 +431,6 @@ primitive_method_type :: fn(prim: string, name: string) -> Type | null {
     return null
 }
 
-import "vader/resolver" { span_full_key }
 import "vader/resolver/symbol" { Symbol }
 
 /// When `e.target` is an `IdentExpr` resolving to a namespace

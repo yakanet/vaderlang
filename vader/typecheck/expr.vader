@@ -20,7 +20,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, warning }
-import "vader/resolver" { span_full_key, span_key }
+import "vader/resolver" { span_key }
 AST :: import "vader/parser"
 import "vader/types" { Type, FreeIntType, FreeFloatType, TY_UNRESOLVED }
 
