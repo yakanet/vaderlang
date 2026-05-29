@@ -68,6 +68,14 @@ export EmitterCtx :: struct {
     /// `@export` decls — exposed to the host linker. C-emit's `main`
     /// shim consults this to pick the program entry point.
     exports: BcExport[]
+
+    /// Type indices that aren't directly referenced by any op or fn
+    /// signature but must survive `prune_unused_types`. Filled by the
+    /// midir Call emit so each arg's static type (which TS carries on
+    /// `op.argTypeIndices`) keeps its type-table slot even when no
+    /// other site references it. Mirror of TS `pruneUnusedTypes`'s
+    /// `op.argTypeIndices` root traversal (dce.ts:609).
+    pinned_types: i32[]
 }
 
 /// Construct a fresh `EmitterCtx`. Reserves type-table slot 0 for the
@@ -90,6 +98,7 @@ export new_emitter_ctx :: fn() -> EmitterCtx {
         .imports                     = [],
         .import_index_by_symbol_id   = MutableMap<i32, i32> { .buckets = [], .size = 0 },
         .exports                     = [],
+        .pinned_types                = [],
     }
 }
 

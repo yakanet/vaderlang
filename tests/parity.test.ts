@@ -62,7 +62,7 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "expressions", "extern_native_basic", "file_decorator",
   "for_in_into_iter", "for_in_iter_trait", "for_range",
   "for_range_sugar", "format_helpers", "gc_array_survive", "gc_chain_survive",
-  "gc_multi_collect", "generic_amp_bound", "generic_angle_decl",
+  "gc_multi_collect", "generic_angle_decl",
   "generic_eq", "generic_fn", "generic_helper_chain",
   "generic_struct", "generic_type_alias", "hello",
   "if_field_narrow", "if_is_as_bind", "if_is_field_after_narrow", "if_is_narrow",

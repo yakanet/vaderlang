@@ -246,6 +246,10 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
         roots.push(imp.signature.result_type)
         for pt in imp.signature.param_types { roots.push(pt) }
     }
+    // Pinned types : arg/result type indices that Call ops would have
+    // carried as `argTypeIndices` in TS. Without these, prune drops
+    // type-table slots for `needs_add__string`'s `string` arg etc.
+    for p in ctx.pinned_types { roots.push(p) }
     for r in roots { visit_type(r, ctx, reachable) }
 
     if reachable.inner.size == ctx.types.len() { return }

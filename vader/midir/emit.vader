@@ -738,6 +738,18 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrCall as c {
+        // Intern each arg's static type + the result type so the type
+        // table mirrors TS (`expectedResultType` / `argTypeIndices` on
+        // every Call). Vader's Call op doesn't carry these indices yet,
+        // so we pin them in the EmitterCtx so `prune_unused_types`
+        // doesn't drop them. Mirror of `src/midir/emit.ts:473-478` +
+        // `dce.ts:609` which visits `op.argTypeIndices` as a root.
+        for a in c.args {
+            ctx.project.pinned_types.push(intern_type(ctx.fn_.locals[usize(a)].type, ctx.project))
+        }
+        if c.dst is LocalId as cdst {
+            ctx.project.pinned_types.push(intern_type(ctx.fn_.locals[usize(cdst)].type, ctx.project))
+        }
         for ai in 0..<c.args.len() {
             if ai == usize(0) { emit_first_get(ctx, pos, c.args[ai], c.span) }
             else              { emit_get(ctx, c.args[ai], c.span) }
