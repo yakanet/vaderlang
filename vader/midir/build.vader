@@ -184,15 +184,16 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     }
 }
 
-/// `@extern("c_name")` override reader. Falls back to the source name.
-/// Mirrors `extern_symbol_name` in `src/typecheck/passes/decl.ts`.
+/// `@extern("module", "c_name")` reader — returns the trailing string-lit
+/// arg (the host symbol). Falls back to the source name when the decorator
+/// is absent or carries fewer than 2 args. Mirrors the legacy bytecode
+/// emit's `extern_name_arg` (`vader/bytecode/emit.vader`).
 extern_symbol_name :: fn(fn_decl: FnDecl) -> string {
     for dec in fn_decl.decorators {
         if dec.name != "extern" { continue }
-        if dec.args.len() == usize(0) { continue }
-        first :: dec.args[0]
-        if first is StringLitExpr as s {
-            // Single-segment string literal carries the C name directly.
+        if dec.args.len() < usize(2) { continue }
+        last :: dec.args[dec.args.len() - usize(1)]
+        if last is StringLitExpr as s {
             if s.parts.len() == usize(1) {
                 if s.parts[0] is StringLitText as t { return t.value }
             }

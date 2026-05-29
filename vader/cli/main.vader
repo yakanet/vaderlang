@@ -35,7 +35,7 @@ import "vader/lower" { prune_unreachable_fns }
 import "vader/bytecode" { emit_project }
 import "vader/bytecode" { default_emit_options }
 import "vader/bytecode" { dump_bytecode }
-import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project }
+import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project, annotate_escape }
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
@@ -515,7 +515,15 @@ run_bytecode_stage :: fn(file: string) -> i32 {
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     pruned :: prune_unreachable_fns(lowered, false)
-    module :: emit_project(pruned, module_name_from_file(file), default_emit_options())
+    // Route through the CFG midir → bytecode emit path. The CFG path
+    // materialises 3-address `local.set / local.get` temps around call
+    // results and intermediate expressions byte-for-byte with TS ; the
+    // legacy lowered→bytecode tree-walker (`emit_project`) elides them
+    // and diverges on ~150 parity snippets.
+    cfg :: build_cfg_project(pruned)
+    folded :: const_fold_project(cfg)
+    escaped :: annotate_escape(folded).project
+    module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
     // `dump_bytecode` already returns a trailing-newline-terminated
     // string ; use `print` (no auto-newline) to match TS
     // `process.stdout.write(writeVir(...))` byte-for-byte.

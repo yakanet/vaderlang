@@ -150,9 +150,22 @@ export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: Em
     // (arith fold) remain on the TODO.
     if opts.optimize {
         for i in 0..<ctx.functions.len() {
-            run_bc_peephole(ctx.functions[i])
+            new_body :: run_bc_peephole(ctx.functions[i])
+            f :: ctx.functions[i]
+            ctx.functions[i] = BcFunction {
+                .name = f.name, .is_main = f.is_main, .signature = f.signature,
+                .locals = f.locals, .body = new_body, .debug = f.debug,
+                .jump_table = f.jump_table,
+            }
             propagate_const_single_use(ctx.functions[i])
-            drop_dead_stores(ctx.functions[i])
+            ctx.functions[i] = drop_dead_stores(ctx.functions[i])
+            second_body :: run_bc_peephole(ctx.functions[i])
+            g :: ctx.functions[i]
+            ctx.functions[i] = BcFunction {
+                .name = g.name, .is_main = g.is_main, .signature = g.signature,
+                .locals = g.locals, .body = second_body, .debug = g.debug,
+                .jump_table = g.jump_table,
+            }
         }
         // Whole-program prunes : vtables → functions → imports → types
         // so each pass's root set reflects the previous pass's drops.
@@ -176,7 +189,7 @@ export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: Em
 ///   - Rule 4 : `BoolNot ; BoolNot` → ε.
 /// Branch-target safety is preserved because Vader's `br` / `br_if` use
 /// label-stack relative depths.
-export run_bc_peephole :: fn(function: BcFunction) -> void {
+export run_bc_peephole :: fn(function: BcFunction) -> Op[] {
     body :: function.body
     n :: body.len()
     out: Op[] = []
@@ -238,7 +251,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> void {
         out_len += usize(1)
         i += usize(1)
     }
-    function.body = take_prefix(out, out_len)
+    return take_prefix(out, out_len)
 }
 
 /// Append `value` when the cursor is at the end ; overwrite in place
@@ -405,7 +418,7 @@ const_val_type :: fn(c: ConstOp) -> ValType = match c {
 /// read). Drop those writes and shrink the locals table so the C-emit
 /// (and the dump) stops mentioning slots no one consumes. Mirrors
 /// `dropDeadStores` in `src/bytecode/peephole.ts`.
-export drop_dead_stores :: fn(function: BcFunction) -> void {
+export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()
     reads: i32[] = []
@@ -440,7 +453,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> void {
         }
         k += usize(1)
     }
-    if !has_dead { return }
+    if !has_dead { return function }
 
     // Build slot remap : surviving slots stay dense from 0 upward.
     remap: i32[] = []
@@ -493,8 +506,6 @@ export drop_dead_stores :: fn(function: BcFunction) -> void {
         }
         out.push(op)
     }
-    function.body = out
-
     // Compact the locals list. Param slots aren't in `function.locals`
     // (they live in `signature.params`), so we only filter the per-fn
     // locals tail.
@@ -504,7 +515,11 @@ export drop_dead_stores :: fn(function: BcFunction) -> void {
         if !dead[q] { new_locals.push(function.locals[q - param_count]) }
         q += usize(1)
     }
-    function.locals = new_locals
+    return BcFunction {
+        .name = function.name, .is_main = function.is_main,
+        .signature = function.signature, .locals = new_locals,
+        .body = out, .debug = function.debug, .jump_table = function.jump_table,
+    }
 }
 
 /// Walk the import table and synthesise a wrapper fn in `ctx.functions`

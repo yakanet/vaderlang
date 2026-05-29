@@ -21,10 +21,10 @@ module "vader/midir"
 
 import "std/collections" { MutableMap, MutableSet }
 import "vader/diagnostics" { Span }
-import "vader/types" { Type, PrimitiveType }
+import "vader/types" { Type, PrimitiveType, mk_struct }
 import "vader/bytecode" {
     EmitterCtx, BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport,
-    BcField, BcStruct, BcDataEntry, DebugPos,
+    BcField, BcStruct, BcRef, BcDataEntry, DebugPos,
     new_emitter_ctx, intern_type, intern_string,
     val_type_of_type, ValType,
     binary_op_for, unary_op_for, default_emit_options, EmitOptions,
@@ -42,6 +42,7 @@ import "vader/vm" {
 import "vader/bytecode" {
     intern_cell_type, run_bc_peephole, propagate_const_single_use, drop_dead_stores,
     prune_unused_vtables, prune_unused_functions, prune_unused_imports, prune_unused_types,
+    type_intern_key,
 }
 import "vader/resolver/symbol" { Symbol }
 
@@ -94,6 +95,31 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
     }
     sym_id := i32(-1)
     if s.origin.symbol is Symbol as sym { sym_id = sym.id }
+    // Key on the struct *type*'s intern key (display_type), not the
+    // mangled name — `intern_type` for a `StructType` derives the same
+    // key, so a referenced instance dedupes with this reserved
+    // definition. Mirror of `src/bytecode/emit.ts::internStructDecl`.
+    // Without this, a `ref` placeholder minted earlier under the
+    // intern key stays orphaned and downstream `intern_type` calls see
+    // a `ref` slot instead of the populated `BcStruct`.
+    if s.origin.symbol is Symbol as sym {
+        struct_type :: mk_struct(sym, s.origin.type_arguments)
+        key :: type_intern_key(struct_type)
+        cached :: ctx.type_key[key]
+        idx := i32(ctx.types.len())
+        if cached is i32 as existing {
+            if ctx.types[usize(existing)] is BcStruct { return }
+            idx = existing
+        } else {
+            ctx.type_key[key] = idx
+            ctx.types.push(BcRef { .trait_name = s.mangled })
+        }
+        ctx.types[usize(idx)] = BcStruct { .name = s.mangled, .fields = fields, .symbol_id = sym_id }
+        return
+    }
+    // Origin sans symbol (synth env structs, lifted closures) keys on
+    // the mangled name directly — no `Type` shape exists for them so
+    // the display-type round-trip isn't applicable.
     new_index :: i32(ctx.types.len())
     ctx.types.push(BcStruct { .name = s.mangled, .fields = fields, .symbol_id = sym_id })
     ctx.type_key[s.mangled] = new_index
@@ -164,9 +190,35 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     if opts.optimize {
         i := usize(0)
         for i < ctx.functions.len() {
-            run_bc_peephole(ctx.functions[i])
+            // First-pass peephole : LocalSet+LocalGet → LocalTee, const+Return
+            // → ReturnLit, BoolNot folds. Returns the rewritten body — Vader
+            // structs pass by value so `function.body = X` inside the helper
+            // doesn't propagate back.
+            // Peephole passes work in-place on `function.body` but Vader
+            // structs are by-value, so the in-helper `function.body = X`
+            // assignments don't propagate ; each helper now returns the
+            // rewritten body / fn and the caller threads it back into
+            // `ctx.functions[i]`.
+            new_body :: run_bc_peephole(ctx.functions[i])
+            f :: ctx.functions[i]
+            ctx.functions[i] = BcFunction {
+                .name = f.name, .is_main = f.is_main, .signature = f.signature,
+                .locals = f.locals, .body = new_body, .debug = f.debug,
+                .jump_table = f.jump_table,
+            }
             propagate_const_single_use(ctx.functions[i])
-            drop_dead_stores(ctx.functions[i])
+            ctx.functions[i] = drop_dead_stores(ctx.functions[i])
+            // Second-pass peephole : drop_dead_stores removed dead `local.tee`s
+            // so a `<const> ; local.tee dead-slot ; return` now reads as
+            // `<const> ; return` — pick up the Rule 5 fold the first pass
+            // couldn't see.
+            second_body :: run_bc_peephole(ctx.functions[i])
+            g :: ctx.functions[i]
+            ctx.functions[i] = BcFunction {
+                .name = g.name, .is_main = g.is_main, .signature = g.signature,
+                .locals = g.locals, .body = second_body, .debug = g.debug,
+                .jump_table = g.jump_table,
+            }
             i = i + 1
         }
         // Pass 4 — whole-program prunes on the EmitterCtx. Mirrors
@@ -547,18 +599,21 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
     }
     if ins is InstrCall as c {
         for a in c.args { emit_get(ctx, a, c.span) }
-        // Look up the fn-index for the callee. Per-instr emit covers
-        // direct calls only — extern / intrinsic dispatch goes through
-        // the import path which the current MVP stubs.
+        // Direct fn call → `Call` ; @extern/@intrinsic import → `CallImport`.
+        // Without the import-path branch, an `@extern` callee falls through
+        // to the defensive `Return` arm and the program loses the call
+        // (caused the closure / decorators / interp parity gaps).
         fn_idx_opt :: ctx.project.function_index_by_symbol_id[c.callee.id]
         if fn_idx_opt is i32 as fn_idx {
             push_emit(ctx, Call { .function_index = fn_idx }, c.span)
         } else {
-            // Stub : call into the import path or emit a Return as a
-            // defensive fallback. Full extern/intrinsic dispatch lives
-            // in `emit.ts::emitCallInstr` — TODO port.
-            push_emit(ctx, Return {}, c.span)
-            return
+            imp_idx_opt :: ctx.project.import_index_by_symbol_id[c.callee.id]
+            if imp_idx_opt is i32 as imp_idx {
+                push_emit(ctx, CallImport { .index = imp_idx }, c.span)
+            } else {
+                push_emit(ctx, Return {}, c.span)
+                return
+            }
         }
         if c.dst !is null { emit_set(ctx, c.dst, c.span) }
         return
@@ -615,6 +670,13 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
         fused :: try_fuse_local_field(ctx, type_index, field_index)
         if !fused {
             push_emit(ctx, StructGet { .type_id = type_index, .field_index = field_index }, fg.span)
+        }
+        // Unboxing cast : the BcStruct field stores a boxed `ref`
+        // (vader_box_t) ; downstream typed ops expect the unboxed
+        // primitive. Skip when the static field type is itself a ref-
+        // class (ref/any/void). Mirrors `src/midir/emit.ts::emitStructGet`.
+        if needs_ref_cast(fg.type) {
+            push_emit(ctx, RefCast { .type_id = intern_type(fg.type, ctx.project) }, fg.span)
         }
         emit_set(ctx, fg.dst, fg.span)
         return
@@ -822,6 +884,15 @@ emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst) -> void {
 emit_get :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {
     slot :: ctx.local_to_slot[usize(local_id)]
     push_emit(ctx, LocalGet { .slot = slot }, span)
+}
+
+// True when a struct.get / array.get / cell-deref result needs an
+// unboxing `ref.cast` to recover its static primitive type. Skips
+// ref-class statics (ref/any/void) where no narrowing is meaningful.
+// Mirror of TS `valTypeOf(t) !== "ref" && !== "any" && !== "void"`.
+needs_ref_cast :: fn(t: Type) -> bool {
+    if !(t is PrimitiveType) { return false }
+    return t.name != "void"
 }
 
 // Pop the trailing `local.get N` from the body and replace with a fused

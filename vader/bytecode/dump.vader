@@ -233,7 +233,7 @@ write_body_with_scopes :: fn(sb: StringBuilder, body: Op[]) -> void {
         }
         if op is Else {
             write_indent(sb, depth - 1)
-            sb.append("else ${peek_label(label_stack)}\n")
+            sb.append("else\n")
             continue
         }
         if op is If {

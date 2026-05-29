@@ -111,6 +111,23 @@ apply_local_rules :: fn(self: vmop.BytecodeFunction) -> void {
             }
         }
 
+        // Rule 5 — `<ConstOp> ; Return` → `ReturnLit { value: ConstOp }`.
+        // Folds the trailing literal-return pair into a single op so the
+        // VM / C-emit avoid the temporary push then pop. Matches TS
+        // `src/bytecode/peephole.ts`'s identical rule.
+        if current is vmop.Return {
+            if out_sp > 0 {
+                top_idx :: out_sp - 1
+                previous :: out[top_idx]
+                cv :: vmop.const_op_of(previous)
+                if !(cv is null) {
+                    out[top_idx] = vmop.ReturnLit { .value = cv }
+                    i += 1
+                    continue
+                }
+            }
+        }
+
         push_op_at(out, out_sp, current)
         out_sp += 1
         i += 1
