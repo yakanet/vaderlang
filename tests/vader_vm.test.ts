@@ -60,6 +60,17 @@ const VADER_SELF_EMIT = new Set<string>([
   "vm_for",
   "vm_if",
   "if_is_narrow",
+  "match_literal_patterns",
+  "match_partial",
+  "if_null_narrow",
+  "nested_field_narrow",
+  "match_wildcard_narrow",
+  "match_field_narrow",
+  "byte_literal",
+  "struct_defaults",
+  "op_not_is",
+  "match_is_as_binding",
+  "match_struct_pattern_binding",
 ]);
 
 // Snippets that the self-host VM can't yet run end-to-end. New entries
