@@ -39,6 +39,13 @@ const VADER_SELF_EMIT = new Set<string>([
   // the Vader VM dispatches it via `host.vader`. Vader self-emit prints
   // "Hello, World!" where the erased TS path can't.
   "hello",
+  // Same GATE A+B path (concrete Display dispatch on primitives / interp) —
+  // Vader self-emit runs these to their vm.snapshot oracle where the erased
+  // TS bytecode diverges. Each verified: dump-with-Vader → run → matches.
+  "squares",
+  "vm_hello",
+  "interpolation",
+  "vm_interp_basic",
 ]);
 
 // Snippets that the self-host VM can't yet run end-to-end. New entries
