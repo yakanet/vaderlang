@@ -162,8 +162,13 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
     field :: BcField { .name = "value", .type_index = slot_index }
     fields: BcField[] = []
     fields.push(field)
+    // Name keys on the inner type's intern key, not the (volatile) post-
+    // DCE slot — so a closure capturing the same T always materialises
+    // with the same `$Cell_<T>` name across re-emits and across the TS /
+    // Vader pipelines. The slot id approach froze whatever slot the cell
+    // happened to land in before DCE remapped it.
     ctx.types.push(BcStruct {
-        .name      = "\$Cell_${new_index}",
+        .name      = "\$Cell_${type_intern_key(slot_type)}",
         .fields    = fields,
         .symbol_id = i32(-1),
     })

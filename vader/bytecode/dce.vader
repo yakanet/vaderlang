@@ -1,4 +1,4 @@
-// vader/midir/dce — late EmitterCtx-level prunes.
+// vader/bytecode/dce — late EmitterCtx-level prunes.
 //
 // Mirror of `src/midir/dce.ts`'s `pruneUnusedImports` /
 // `pruneUnusedVtables` / `pruneUnusedFunctions` / `pruneUnusedTypes`.
@@ -14,13 +14,9 @@
 // here are what TS `emit.ts` calls after the body emit, so they're
 // the most impactful for bytecode parity.
 
-module "vader/midir"
+module "vader/bytecode"
 
-import "std/collections" { MutableMap, MutableSet, keys, values }
-import "vader/bytecode" {
-    EmitterCtx, BcFunction, BcType, BcStruct, BcArray, BcUnion, BcRef, BcFn,
-    BcField, BcImport, BcExport, BcSignature,
-}
+import "std/collections" { MutableMap, MutableSet, keys, values, add, contains }
 import "vader/vm" {
     Op, Call, CallImport, FnRef, MakeClosure, VirtualCall, CallIndirect,
     StructNew, StructGet, StructSet,

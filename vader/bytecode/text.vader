@@ -535,7 +535,7 @@ write_op_line :: fn(out: StringBuilder, v: op.Op, jump_table: i32[], labels: Sco
         is op.ArraySlice as c -> out.append("array.slice ${c.type_id}")
         is op.DataConst  as c -> out.append("data.const ${c.pool_index} ${c.type_id}")
 
-        is op.RefCast         -> out.append("ref.cast 0")
+        is op.RefCast    as c -> out.append("ref.cast ${c.type_id}")
         is op.TypeCheck  as c -> out.append("type_check ${c.type_id}")
         is op.TypeConst  as c -> out.append("type.const ${c.type_id}")
         is op.DeferPush          -> out.append("defer.push")

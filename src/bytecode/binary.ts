@@ -721,7 +721,7 @@ function readFunctions(r: Reader, debugFiles: readonly string[]): BcFunction[] {
     // `isTest` is consumed during midir DCE before serialization, so any
     // function that survived into the bytecode is already retained — default
     // to false here until the format gains a per-fn flags byte.
-    out.push({ name, isMain, isTest: false, signature, locals, body, debug });
+    out.push({ name, isMain, isTest: false, isSynthesised: false, signature, locals, body, debug });
   }
   return out;
 }

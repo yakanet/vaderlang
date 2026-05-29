@@ -93,14 +93,17 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is UnionType          -> ValType.Ref
     is FnType             -> ValType.Ref
     is TupleType          -> ValType.Ref
-    is TypeParamType      -> ValType.Any
-    is TypeMetaType       -> ValType.Any
+    // TypeParam / TypeMeta / Any land as a boxed `ref` at the stack
+    // boundary — mirrors `src/bytecode/emit.ts::valTypeOf`. Previously
+    // these returned `any`, which the bytecode parity check rejected.
+    is TypeParamType      -> ValType.Ref
+    is TypeMetaType       -> ValType.Ref
     is SelfType           -> ValType.Ref
     is UnresolvedType     -> ValType.Any
     is FreeIntType        -> ValType.I32
     is FreeFloatType      -> ValType.F64
     is NeverType          -> ValType.Void
-    is AnyType            -> ValType.Any
+    is AnyType            -> ValType.Ref
 }
 
 /// Translate a `Type` to a `BcType`. Phase 1 covers primitives ;

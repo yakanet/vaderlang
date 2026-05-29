@@ -488,7 +488,10 @@ function parseFn(headerLine: string, m: MutableModule, ctx: ParseCtx): void {
   // `isTest` is consumed during midir DCE before serialization, so any
   // function that survived into the textual dump is already retained —
   // default to false until the format gains an explicit marker.
-  m.functions[idx] = { name, isMain, isTest: false, signature: sig, locals, body, debug };
+  // `isSynthesised` is consumed during midir DCE before serialization, so
+  // any function that survived into the textual dump is already kept —
+  // default to false until the format gains an explicit marker.
+  m.functions[idx] = { name, isMain, isTest: false, isSynthesised: false, signature: sig, locals, body, debug };
 }
 
 function parseOpLine(raw: string, scopes: { name: string }[], ctx: ParseCtx): { op: Op; dbg: DebugPos | null } {

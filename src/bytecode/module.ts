@@ -40,6 +40,12 @@ export interface BcFunction {
    *  test runner can still resolve it by mangled name even though no
    *  static call site references it. */
   readonly isTest: boolean;
+  /** True when `synthesiseIntrinsicWrappers` minted this `$vt` wrapper to
+   *  bridge vtable dispatch to a stdlib `@intrinsic`. Used by
+   *  `pruneUnusedFunctions`'s library-emit fallback to distinguish
+   *  user-authored decls (kept as roots when no `main` / `@export`) from
+   *  synthesised glue (DCE-eligible whenever no real dispatch reaches it). */
+  readonly isSynthesised: boolean;
   readonly signature: BcSignature;
   /** Locals declared in addition to the params. Slot index = `params.length + i`. */
   readonly locals: readonly BcLocal[];

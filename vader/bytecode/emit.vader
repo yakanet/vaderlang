@@ -28,7 +28,7 @@ import "std/collections" { MutableMap, keys }
 import "vader/diagnostics" { Span }
 import "vader/types" { Type, mk_struct }
 import "vader/resolver/symbol" { Symbol }
-import "vader/parser" { Decl, FnDecl, Decorator }
+import "vader/parser" { Decl, FnDecl, Decorator, StringLitExpr, StringLitText }
 import "vader/lower" {
     LoweredProject, LoweredModule, LoweredDecl,
     LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
@@ -90,12 +90,37 @@ import "vader/vm" {
 export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: EmitOptions) -> BytecodeModule {
     ctx :: new_emitter_ctx()
 
-    // Pass 1 — reserve every fn / struct.
+    // Pass 1 — reserve in TS order : Vader-side fns first (signatures
+    // intern their return / param types into the low slots), then externs,
+    // then structs. Mirrors `src/midir/emit.ts::emitBytecodeFromCFG`'s
+    // `reserveCFGFunction → reserveCFGExtern → reserveCFGStruct` cascade
+    // so the post-DCE type-table layout matches across compilers.
     for module_id in lowered.modules.keys() {
         m :: lowered.modules[module_id]
         if m is null { continue }
         for i in 0..<m.decls.len() {
-            reserve_decl(m.decls[i], ctx)
+            d :: m.decls[i]
+            if d is LoweredFnDecl as fd {
+                if !(fd.body is null) { reserve_decl(d, ctx) }
+            }
+        }
+    }
+    for module_id in lowered.modules.keys() {
+        m :: lowered.modules[module_id]
+        if m is null { continue }
+        for i in 0..<m.decls.len() {
+            d :: m.decls[i]
+            if d is LoweredFnDecl as fd {
+                if fd.body is null { reserve_decl(d, ctx) }
+            }
+        }
+    }
+    for module_id in lowered.modules.keys() {
+        m :: lowered.modules[module_id]
+        if m is null { continue }
+        for i in 0..<m.decls.len() {
+            d :: m.decls[i]
+            if !(d is LoweredFnDecl) { reserve_decl(d, ctx) }
         }
     }
 
@@ -129,6 +154,15 @@ export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: Em
             propagate_const_single_use(ctx.functions[i])
             drop_dead_stores(ctx.functions[i])
         }
+        // Whole-program prunes : vtables → functions → imports → types
+        // so each pass's root set reflects the previous pass's drops.
+        // Mirror of the late-emit cascade in `vader/midir/emit.vader:173`
+        // (and `src/midir/emit.ts:125-133`). Without these, the bytecode
+        // dump keeps every unreachable extern / unused struct slot.
+        prune_unused_vtables(ctx)
+        prune_unused_functions(ctx)
+        prune_unused_imports(ctx)
+        prune_unused_types(ctx)
     }
 
     return assemble_module(ctx, module_name, opts, lowered)
@@ -648,10 +682,41 @@ fn_has_decorator :: fn(function_decl: LoweredFnDecl, name: string) -> bool {
 /// Extract the user-facing bare name (`write` rather than the
 /// mangled `std_io$write`). The C-emit uses this as the external
 /// symbol name for `@extern` user decls — the mangled form keys
-/// the call-site lookup tables.
+/// User-facing import name. For an `@extern("module", "name")` decl the
+/// import line surfaces the *external* name (`name` arg) so the C linker
+/// can find the foreign symbol ; for `@intrinsic` shims the bare AST
+/// name suffices (the runtime keys vtable thunks off the mangled name).
 bare_name_for :: fn(function_decl: LoweredFnDecl) -> string = match function_decl.origin.decl {
-    is FnDecl as fn_ast -> fn_ast.name
-    _                   -> function_decl.mangled
+    is FnDecl as fn_ast -> {
+        extern_arg :: extern_name_arg(fn_ast.decorators)
+        if extern_arg != "" { return extern_arg }
+        return fn_ast.name
+    }
+    _ -> function_decl.mangled
+}
+
+// Walk `decorators` for an `@extern("module", "name")` and return the
+// trailing string-literal arg. Empty string ⇒ either no `@extern` or no
+// explicit name (the user keeps the source ident).
+extern_name_arg :: fn(decorators: Decorator[]) -> string {
+    for d in decorators {
+        if d.name != "extern" { continue }
+        if d.args.len() < usize(2) { continue }
+        last :: d.args[d.args.len() - usize(1)]
+        if last is StringLitExpr as sl { return string_lit_text(sl) }
+    }
+    return ""
+}
+
+// Concatenate every plain `StringLitText` segment in a string lit. Skips
+// interpolation segments — decorator args parse them as constant text so
+// any non-text part is a user error the typer would have already flagged.
+string_lit_text :: fn(sl: StringLitExpr) -> string {
+    out := ""
+    for part in sl.parts {
+        if part is StringLitText as t { out = out + t.value }
+    }
+    return out
 }
 
 /// Intern a struct decl into the type table. Field types are
@@ -806,7 +871,7 @@ ends_with_return :: fn(body: Op[]) -> bool {
 /// `_opts` is unused until the peephole pass gates through it —
 /// the leading underscore documents the deferred consumer.
 assemble_module :: fn(ctx: EmitterCtx, module_name: string, _opts: EmitOptions, lowered: LoweredProject) -> BytecodeModule {
-    impl_table: ImplEntry[] = []
+    impl_table :: build_impl_table(lowered.vtable_entries, ctx)
     vtables :: translate_vtables(lowered.vtable_entries, ctx)
     data_pool :: translate_data_pool(lowered.data_pool)
     return BytecodeModule {
@@ -820,6 +885,27 @@ assemble_module :: fn(ctx: EmitterCtx, module_name: string, _opts: EmitOptions, 
         .impl_table  = impl_table,
         .vtables     = vtables,
     }
+}
+
+// Collect `(struct_type_index, trait_name)` pairs from the lowered vtable
+// entries — one row per pair, dedup'd. The `.virt` dump materialises these
+// as `impl TYPE_ID TRAIT_NAME` directives the VM consults for `is Trait`
+// patterns. Skips entries whose struct type was DCE'd out of the type
+// table (intern_type would mint a fresh slot the dump wouldn't recognise).
+build_impl_table :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> ImplEntry[] {
+    out: ImplEntry[] = []
+    seen :: MutableMap<string, bool> { .buckets = [], .size = 0 }
+    for entry in entries {
+        type_index :: intern_type(entry.struct_type, ctx)
+        key :: "${type_index}|${entry.trait_name}"
+        if seen[key] is bool { continue }
+        seen[key] = true
+        out.push(ImplEntry {
+            .struct_type_index = type_index,
+            .trait_name        = entry.trait_name,
+        })
+    }
+    return out
 }
 
 /// Group `VtableEntry`s by `(trait, method)` and translate each into

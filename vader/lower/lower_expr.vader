@@ -439,8 +439,12 @@ try_route_through_env :: fn(
             env_ident :: LoweredIdent {
                 .span = span, .type = lifted.env_type, .symbol = lifted.env_symbol,
             }
+            // The env slot stores a `Cell<T>` ref, not a `T` ; type the
+            // field access as `Unresolved` (≡ ref ValType) so downstream
+            // bytecode emit doesn't synthesise a primitive-typed
+            // `ref.cast` over what is in fact an opaque cell pointer.
             cell_ref :: LoweredFieldAccess {
-                .span = span, .type = type, .target = env_ident, .field = name,
+                .span = span, .type = TY_UNRESOLVED, .target = env_ident, .field = name,
             }
             // The env-struct slot holds a cell ref ; unwrap via
             // `LoweredCellGet` to materialise the value. Mirror of

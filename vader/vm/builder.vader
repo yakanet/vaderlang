@@ -462,7 +462,7 @@ export data_const :: fn(self: FunctionBuilder, pool_index: i32, type_id: i32) ->
 
 // ---- conversions / type checks / casts ----------------------------------
 
-export ref_cast :: fn(self: FunctionBuilder) -> void = push_op(self, RefCast {})
+export ref_cast :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, RefCast { .type_id = type_id })
 export type_check :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, TypeCheck { .type_id = type_id })
 export convert :: fn(self: FunctionBuilder, target: ConvertTarget) -> void = push_op(self, Convert { .target = target })
 export int_to_char :: fn(self: FunctionBuilder) -> void = push_op(self, IntToChar {})

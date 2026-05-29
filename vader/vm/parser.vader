@@ -1079,7 +1079,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
     if head == "array.len"        { return ArrayLen {} }
     if head == "array.slice"      { return parse_array_slice(cleaned) }
     if head == "data.const"       { return parse_data_const(cleaned) }
-    if head == "ref.cast"         { return RefCast {} }
+    if head == "ref.cast"         { return parse_ref_cast(cleaned) }
     if head == "intrinsic" {
         if cleaned == "intrinsic builder.new"             { return BuilderNew {} }
         if cleaned == "intrinsic builder.append_str"      { return BuilderAppendStr {} }
@@ -1499,6 +1499,12 @@ parse_type_check :: fn(line: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, "type_check ")
     if parsed is null { return null }
     return TypeCheck { .type_id = parsed }
+}
+
+parse_ref_cast :: fn(line: string) -> Op | null {
+    parsed :: parse_int_after_prefix(line, "ref.cast ")
+    if parsed is null { return null }
+    return RefCast { .type_id = parsed }
 }
 
 parse_type_const :: fn(line: string) -> Op | null {

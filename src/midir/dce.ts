@@ -803,10 +803,23 @@ export function pruneUnusedFunctions(
   for (const table of vtables.values()) {
     for (const fnIdx of table.values()) reachable.add(fnIdx);
   }
+  // Library-emit fallback : when no main / no @export / no virtual.call
+  // anchors a root, treat user-authored fns (anything NOT a synthesised
+  // `$vt` wrapper) as potentially-entry. The wrappers come from
+  // `synthesiseIntrinsicWrappers` and are dead unless reached via a real
+  // dispatch ; without this distinction, library-mode emit would either
+  // skip DCE entirely (and ship ~80 stdlib wrappers per snippet) or
+  // prune the user's own decls.
+  if (reachable.size === 0) {
+    for (let i = 0; i < n; i++) {
+      const f = ctx.functions[i]!;
+      if (!f.isSynthesised) reachable.add(i);
+    }
+  }
 
   // Worklist : walk every reachable fn's body and pick up callees / fn-refs
-  // / closure-fns. Iterate to a fixpoint — a vtable-rooted fn may itself
-  // call other fns.
+  // / closure-fns. Iterate to a fixpoint — a vtable-rooted (or library-root)
+  // fn may itself call other fns or wrappers.
   const work = [...reachable];
   while (work.length > 0) {
     const i = work.pop()!;

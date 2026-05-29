@@ -130,6 +130,13 @@ interface MutableFn {
    *  runner build's DCE roots: `pruneUnusedFunctions` keeps these even
    *  though nothing else statically references them. */
   readonly isTest: boolean;
+  /** True when `synthesiseIntrinsicWrappers` minted this `$vt` wrapper for
+   *  vtable dispatch on a stdlib `@intrinsic`. Differentiates synthesised
+   *  glue from user-authored decls : `pruneUnusedFunctions`'s library-
+   *  emit fallback roots every non-synthesised fn so a snippet without a
+   *  `main` (or `@export`) still gets its user decls kept while the dead
+   *  wrappers fall away. */
+  readonly isSynthesised: boolean;
   readonly signature: BcSignature;
   locals: BcLocal[];
   body: Op[];
@@ -190,7 +197,8 @@ export function reserveCFGFunction(fn: CFGFunction, ctx: EmitterCtx): void {
   const srcDecl = fn.origin.decl;
   const isTest = srcDecl.kind === "FnDecl" && hasDecorator(srcDecl.decorators ?? [], DEC.test);
   ctx.functions.push({
-    name: fn.mangled, isMain: fn.origin.isMain, isTest, signature: sig, locals: [], body: [], debug: [],
+    name: fn.mangled, isMain: fn.origin.isMain, isTest, isSynthesised: false,
+    signature: sig, locals: [], body: [], debug: [],
   });
   if (fn.isExported) {
     ctx.exports.push({ externName: fn.externName, fnIndex });
@@ -255,8 +263,8 @@ export function synthesiseIntrinsicWrappers(ctx: EmitterCtx, cfg: CFGProject): v
       const fnIndex = ctx.functions.length;
       ctx.fnIndexBySymId.set(ext.origin.symbol.id, fnIndex);
       ctx.functions.push({
-        name: `${ext.mangled}$vt`, isMain: false, isTest: false, signature: sig, locals: [],
-        body, debug: body.map(() => null),
+        name: `${ext.mangled}$vt`, isMain: false, isTest: false, isSynthesised: true,
+        signature: sig, locals: [], body, debug: body.map(() => null),
       });
     }
   }
@@ -407,9 +415,14 @@ export function internCellType(ctx: EmitterCtx, slotType: Type): number {
   if (cached !== undefined) return cached;
   const idx = ctx.types.length;
   ctx.typeKey.set(key, idx);
+  // Name keys on the inner type's intern key, not the (volatile) post-DCE
+  // slot — so a closure capturing the same T always materialises with the
+  // same `$Cell_<T>` name across re-emits and across the TS / Vader
+  // pipelines. Earlier we used the slot index, which froze whatever slot
+  // the cell happened to land in before DCE remapped it.
   ctx.types.push({
     kind: "struct",
-    name: `$Cell_${idx}`,
+    name: `$Cell_${typeInternKey(slotType)}`,
     fields: [{ name: "value", typeIndex: slotIdx }],
   });
   return idx;

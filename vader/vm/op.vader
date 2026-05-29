@@ -262,7 +262,7 @@ export DataConst :: struct { pool_index: i32, type_id: i32 }
 /// their concrete tag, so the cast is purely informational ; the op's
 /// type_id operand is intentionally dropped at parse time. Sprint 4
 /// (b2) addition (mirrors `src/vm/exec.ts` which also bumps pc).
-export RefCast :: struct {}
+export RefCast :: struct { type_id: i32 }
 
 /// Numeric width conversion. The .virt format emits `<from>.to_<to>`
 /// at every cast site ; `target` carries enough info to re-tag the

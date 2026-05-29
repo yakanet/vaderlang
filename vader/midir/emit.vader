@@ -39,7 +39,10 @@ import "vader/vm" {
     DataConst, TypeConst, TypeCheck, RefCast, Convert,
     MakeClosure,
 }
-import "vader/bytecode" { intern_cell_type, run_bc_peephole, propagate_const_single_use, drop_dead_stores }
+import "vader/bytecode" {
+    intern_cell_type, run_bc_peephole, propagate_const_single_use, drop_dead_stores,
+    prune_unused_vtables, prune_unused_functions, prune_unused_imports, prune_unused_types,
+}
 import "vader/resolver/symbol" { Symbol }
 
 // ============================================================================
@@ -722,7 +725,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
             // The MVP routes everything through ref.cast — Convert's
             // ConvertTarget enum needs a per-pair lookup that mirrors
             // op_select's `convert_op_for` (not yet exposed). TODO.
-            push_emit(ctx, RefCast {}, cs.span)
+            push_emit(ctx, RefCast { .type_id = intern_type(cs.type, ctx.project) }, cs.span)
         }
         emit_set(ctx, cs.dst, cs.span)
         return
@@ -753,10 +756,13 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
     }
     if ins is InstrMakeClosure as mc {
         emit_get(ctx, mc.env, mc.span)
-        env_type_id :: intern_type(mc.env_type, ctx.project)
+        // Operand is the CLOSURE's own type id (fn type), not the env
+        // struct's — matches `src/midir/emit.ts::emitMakeClosureInstr`'s
+        // `internType(ctx.project, ins.type)`.
+        closure_type_id :: intern_type(mc.type, ctx.project)
         fn_idx_opt :: ctx.project.function_index_by_symbol_id[mc.fn_symbol.id]
         if fn_idx_opt is i32 as fn_idx {
-            push_emit(ctx, MakeClosure { .function_index = fn_idx, .env_type_id = env_type_id }, mc.span)
+            push_emit(ctx, MakeClosure { .function_index = fn_idx, .env_type_id = closure_type_id }, mc.span)
         } else {
             push_emit(ctx, Return {}, mc.span)
             return

@@ -38,28 +38,28 @@ interface Stage {
 const ANGLE_GENERIC_SNIPPETS: ReadonlySet<string> = new Set<string>([]);
 
 // §9 audit baseline — snippets where Vader's self-emitted bytecode
-// currently diverges from the TS snapshot. Each entry is a known gap
-// in the lower/emit pipeline (most commonly type-erasure to `ref _`
-// for cross-module generics, see `project_selfhost_bytecode_audit.md`
-// in memory). Remove a name from this set as its fix lands so the
-// parity test catches future regressions. Goal : empty set ⇒ §9 done.
+// currently diverges from the TS snapshot. Each remaining entry is a
+// known gap in Vader's lower/emit pipeline (see
+// `project_selfhost_bytecode_audit.md` in memory). Remove a name as
+// its fix lands so the parity test catches future regressions.
+// Goal : empty set ⇒ §9 done.
 const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "_diag_const_string", "_diag_generic_map_param", "_diag_stdlib_struct_instance",
-  "_diag_struct_fwd_use", "alias_import", "alias_union_in_array", "array_iter",
+  "alias_import", "alias_union_in_array", "array_iter",
   "array_of_union", "array_push", "array_slice", "array_view_aliasing",
   "b1_fn_boundary", "bound_enforced", "byte_literal", "cast_test",
   "char_range_contains", "closure_callback", "closure_counter",
-  "closure_pattern_binding", "closure_shared", "closure_simple",
+  "closure_pattern_binding", "closure_shared",
   "closure_value_struct", "coerce_into_basic", "coerce_into_chain_no",
-  "coerce_into_explicit", "coerce_into_identity_rejected", "coerce_into_overload",
+  "coerce_into_explicit", "coerce_into_overload",
   "coerce_into_union_target_no", "collection_index_sugar", "comptime_for",
   "comptime_type_alias", "comptime_type_value", "const_array_bad",
   "const_array_basic", "contains_op", "custom_iter", "custom_iter_generic",
-  "decorator_deprecated", "decorators_ok", "defer_block", "defer_in_lambda",
+  "decorator_deprecated", "defer_block", "defer_in_lambda",
   "defer_on_panic", "dot_variant_in_union", "enum_basic", "enum_implements_trait",
   "enum_match", "enum_to_repr_cast", "enum_trait_self_return", "enum_typed",
   "expr_bodied_fn", "expr_bodied_recursive_fn", "expr_bodied_recursive_typed",
-  "expressions", "extern_native_basic", "file_decorator", "fn_decl",
+  "expressions", "extern_native_basic", "file_decorator",
   "fn_value_arg", "fn_value_array", "fn_value_local", "fn_value_struct",
   "for_in_into_iter", "for_in_iter_trait", "for_loop", "for_range",
   "for_range_sugar", "format_helpers", "gc_array_survive", "gc_chain_survive",
@@ -69,14 +69,14 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "if_field_narrow", "if_is_as_bind", "if_is_field_after_narrow", "if_is_narrow",
   "if_null_narrow", "if_without_else_stmt", "impl_bounded_typeparam",
   "implicit_dot_variant", "implicit_type_alias", "interp_display",
-  "interp_string", "interpolation", "interpolation_tokens", "intrinsic_counts",
-  "intrinsic_field_access", "intrinsic_field_index", "intrinsic_fields",
-  "intrinsic_satisfies", "intrinsic_size_of", "intrinsic_type_args",
+  "interp_string", "interpolation", "interpolation_tokens",
+  "intrinsic_field_access", "intrinsic_fields",
+  "intrinsic_size_of", "intrinsic_type_args",
   "intrinsic_type_kind", "io_roundtrip", "is_union_alias_warn",
   "iter_coerce_array", "iter_combinators", "iter_defaults", "iter_lazy",
   "iter_zip_chain", "json_basics", "lambda_no_fn", "let_type_alias", "loop",
   "map_set_iter", "match_expr", "match_field_narrow", "match_is_as_binding",
-  "match_is_unreachable_negative", "match_literal_patterns", "match_partial",
+  "match_literal_patterns", "match_partial",
   "match_struct_pattern_binding", "match_struct_pattern_in_union", "match_union",
   "match_wildcard_narrow", "multiline_string", "mutable_map", "mutable_map_string",
   "mutable_set", "namespace_import", "nested_field_narrow", "null_blockres",
@@ -102,8 +102,8 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "ufcs_overload", "ufcs_union_receiver", "union_common_field", "usize_arith",
   "usize_basic", "vm_arith", "vm_array_basic", "vm_array_mutate",
   "vm_array_push_len", "vm_call_chain", "vm_call_recursive", "vm_closure_as_arg",
-  "vm_closure_capture", "vm_closure_mutating", "vm_fn_value_callback",
-  "vm_fn_value_local", "vm_fn_value_struct", "vm_for", "vm_hello", "vm_if",
+  "vm_closure_mutating", "vm_fn_value_callback",
+  "vm_fn_value_local", "vm_fn_value_struct", "vm_for", "vm_hello",
   "vm_interp_basic", "vm_interp_loop", "vm_interp_mixed", "vm_struct_mutate",
   "vm_struct_nested", "vm_struct_point", "vm_trait_dispatch", "void_ident_rejected",
 ]);

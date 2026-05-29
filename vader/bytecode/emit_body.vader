@@ -403,11 +403,29 @@ emit_field_access :: fn(field_access: LoweredFieldAccess, state: FnEmitState, ct
     field_index :: lookup_field_index(ctx, target_type_id, field_access.field)
     // Fuse `local.get N ; struct.get T F` → `local.field N T F`
     // (mirrors `src/midir/emit.ts::emitStructGet`'s in-place fold).
-    if try_fuse_local_field(state, target_type_id, field_index) { return }
-    push_op(state, StructGet {
-        .type_id     = target_type_id,
-        .field_index = field_index,
-    })
+    fused :: try_fuse_local_field(state, target_type_id, field_index)
+    if !fused {
+        push_op(state, StructGet {
+            .type_id     = target_type_id,
+            .field_index = field_index,
+        })
+    }
+    // The field's BcType slot is stored as a boxed `ref` (vader_box_t at
+    // runtime) when the BcStruct field's type_index points at a ref-shaped
+    // entry — `struct.get` / `local.field` push that boxed value, so
+    // downstream typed ops (`i32.add`, `f64.eq`, …) need an unboxing
+    // `ref.cast` to recover the primitive ValType. Skip when the static
+    // type is itself a ref-class (`ref`/`any`/`void`) — no narrowing
+    // needed. Mirrors `src/midir/emit.ts::emitStructGet`'s gate.
+    field_type :: type_of(field_access)
+    if needs_ref_cast(field_type) {
+        push_op(state, RefCast { .type_id = intern_type(field_type, ctx) })
+    }
+}
+
+needs_ref_cast :: fn(t: Type) -> bool {
+    if !(t is PrimitiveType) { return false }
+    return t.name != "void"
 }
 
 // Pop the trailing `LocalGet` from `state.body` and replace with a fused
@@ -573,12 +591,14 @@ emit_data_const :: fn(data_const: LoweredDataConst, state: FnEmitState, ctx: Emi
 /// resolves the lifted lambda fn's slot.
 emit_make_closure :: fn(closure: LoweredMakeClosure, state: FnEmitState, ctx: EmitterCtx) -> void {
     emit_expr(closure.env, state, ctx)
-    env_type_id :: intern_type(type_of(closure.env), ctx)
+    // Operand is the closure's own type (fn type), not the env struct's —
+    // matches `src/midir/emit.ts::emitMakeClosureInstr`'s `internType(ins.type)`.
+    closure_type_id :: intern_type(closure.type, ctx)
     target :: ctx.function_index_by_symbol_id[closure.fn_symbol.id]
     match target {
         is i32 as function_index -> push_op(state, MakeClosure {
             .function_index = function_index,
-            .env_type_id    = env_type_id,
+            .env_type_id    = closure_type_id,
         })
         _ -> {
             // Lifted fn not registered — Phase 7 will route through

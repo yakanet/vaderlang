@@ -61,6 +61,7 @@ export dump_bytecode :: fn(module: BytecodeModule) -> string {
     write_types(sb, module.types)
     write_strings(sb, module.strings)
     write_imports(sb, module.imports)
+    write_impl_table(sb, module.impl_table)
     write_exports(sb, module.exports, module.functions)
     for i in 0..<module.functions.len() {
         sb.append("\n")
@@ -164,9 +165,17 @@ write_strings :: fn(sb: StringBuilder, strings: string[]) -> void {
 write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
     for i in 0..<imports.len() {
         imp :: imports[i]
-        sb.append("import ${i} ${imp.extern_name} ${imp.mangled_name} ")
+        prefix :: if imp.is_extern { "extern " } else { "" }
+        sb.append("import ${i} ${prefix}${imp.extern_name} ${imp.mangled_name} ")
         write_signature(sb, imp.signature)
         sb.append("\n")
+    }
+}
+
+write_impl_table :: fn(sb: StringBuilder, impls: ImplEntry[]) -> void {
+    for i in 0..<impls.len() {
+        row :: impls[i]
+        sb.append("impl ${row.struct_type_index} ${row.trait_name}\n")
     }
 }
 
@@ -198,12 +207,105 @@ write_function :: fn(sb: StringBuilder, function_decl: BcFunction, function_inde
         local :: function_decl.locals[i]
         sb.append("  local ${local.name} ${val_type_name(local.val)}\n")
     }
-    for i in 0..<function_decl.body.len() {
-        sb.append("  ")
-        sb.append(format_op(function_decl.body[i]))
+    write_body_with_scopes(sb, function_decl.body)
+    sb.append("end\n")
+}
+
+// Walk the linear op stream and emit each line with the indent that the
+// structured-control nesting demands. `if` / `block` / `loop` open a fresh
+// `$L<N>` label and indent two more spaces ; `end` closes the innermost
+// scope ; `else` lives at the parent indent. `br` / `br_if` rewrite their
+// integer depth into the matching `$L<N>` label by walking the label
+// stack from the top. Mirrors `src/bytecode/text.ts::writeBodyLines`.
+write_body_with_scopes :: fn(sb: StringBuilder, body: Op[]) -> void {
+    label_stack: string[] = []
+    next_label: i32 = 0
+    depth: i32 = 1
+    for i in 0..<body.len() {
+        op :: body[i]
+        if op is End {
+            depth = depth - 1
+            [label, shrunk] :: peek_and_drop_label(label_stack)
+            label_stack = shrunk
+            write_indent(sb, depth)
+            sb.append("end ${label}\n")
+            continue
+        }
+        if op is Else {
+            write_indent(sb, depth - 1)
+            sb.append("else ${peek_label(label_stack)}\n")
+            continue
+        }
+        if op is If {
+            label :: "\$L${next_label}"
+            next_label = next_label + 1
+            write_indent(sb, depth)
+            sb.append("if ${label} void\n")
+            label_stack.push(label)
+            depth = depth + 1
+            continue
+        }
+        if op is Block {
+            label :: "\$L${next_label}"
+            next_label = next_label + 1
+            write_indent(sb, depth)
+            sb.append("block ${label} void\n")
+            label_stack.push(label)
+            depth = depth + 1
+            continue
+        }
+        if op is Loop {
+            label :: "\$L${next_label}"
+            next_label = next_label + 1
+            write_indent(sb, depth)
+            sb.append("loop ${label} void\n")
+            label_stack.push(label)
+            depth = depth + 1
+            continue
+        }
+        if op is Branch {
+            write_indent(sb, depth)
+            sb.append("br ${peek_label(label_stack)}\n")
+            continue
+        }
+        if op is BranchIf {
+            write_indent(sb, depth)
+            sb.append("br_if ${peek_label(label_stack)}\n")
+            continue
+        }
+        write_indent(sb, depth)
+        sb.append(format_op(op))
         sb.append_char('\n')
     }
-    sb.append("end\n")
+}
+
+write_indent :: fn(sb: StringBuilder, depth: i32) -> void {
+    d := depth
+    for d > 0 { sb.append("  ")  d = d - 1 }
+}
+
+peek_and_drop_label :: fn(stack: string[]) -> [string, string[]] {
+    n :: stack.len()
+    if n == usize(0) { return ["", stack] }
+    label :: stack[n - usize(1)]
+    shrunk: string[] = []
+    for i in 0..<(n - usize(1)) { shrunk.push(stack[i]) }
+    return [label, shrunk]
+}
+
+peek_label :: fn(stack: string[]) -> string {
+    n :: stack.len()
+    if n == usize(0) { return "" }
+    return stack[n - usize(1)]
+}
+
+// `br N` / `br_if N` carry a wasm-style outward depth — 0 = innermost
+// enclosing scope. Translate to the label that scope opened with.
+label_at_depth :: fn(stack: string[], depth: i32) -> string {
+    n :: stack.len()
+    idx :: i32(n) - depth - 1
+    if idx < 0 || idx >= i32(n) { return "" }
+    return stack[usize(idx)]
 }
 
 /// Render an op as its `.virt`-style name + operands (when any).
@@ -250,7 +352,7 @@ format_op :: fn(op: Op) -> string = match op {
     is DataConst as d           -> "data.const ${d.pool_index} ${d.type_id}"
     is TypeConst as t           -> "type.const ${t.type_id}"
     is TypeCheck as t           -> "type_check ${t.type_id}"
-    is RefCast                  -> "ref.cast"
+    is RefCast as r             -> "ref.cast ${r.type_id}"
     is Convert                  -> "convert"
     is BuilderNew               -> "builder.new"
     is BuilderAppendStr         -> "builder.append_str"
