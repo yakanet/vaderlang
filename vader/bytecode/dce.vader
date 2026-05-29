@@ -385,9 +385,9 @@ visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet<i32>) -> void 
 /// Rewrite the type_id field of every type-bearing op. Returns the
 /// op as-is when it carries no type-id reference.
 remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op {
-    if op is StructNew as s    { return StructNew    { .type_id = remap_idx(remap, s.type_id) } }
+    if op is StructNew as s    { return StructNew    { .type_id = remap_idx(remap, s.type_id), .stack = s.stack } }
     if op is StructGet as s    { return StructGet    { .type_id = remap_idx(remap, s.type_id), .field_index = s.field_index } }
-    if op is StructSet as s    { return StructSet    { .type_id = remap_idx(remap, s.type_id), .field_index = s.field_index } }
+    if op is StructSet as s    { return StructSet    { .type_id = remap_idx(remap, s.type_id), .field_index = s.field_index, .stack = s.stack } }
     if op is ArrayNew as a     { return ArrayNew     { .type_id = remap_idx(remap, a.type_id), .length = a.length } }
     if op is ArrayGet as a     { return ArrayGet     { .type_id = remap_idx(remap, a.type_id) } }
     if op is ArraySet as a     { return ArraySet     { .type_id = remap_idx(remap, a.type_id) } }

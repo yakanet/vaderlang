@@ -522,9 +522,9 @@ write_op_line :: fn(out: StringBuilder, v: op.Op, jump_table: i32[], labels: Sco
         is op.FnRef        as c -> out.append("fn.ref ${c.function_index} 0")
         is op.MakeClosure  as c -> out.append("make_closure ${c.function_index} ${c.env_type_id}")
 
-        is op.StructNew as c -> out.append("struct.new ${c.type_id}")
+        is op.StructNew as c -> if c.stack { out.append("struct.new_stack ${c.type_id}") } else { out.append("struct.new ${c.type_id}") }
         is op.StructGet as c -> out.append("struct.get ${c.type_id} ${c.field_index}")
-        is op.StructSet as c -> out.append("struct.set ${c.type_id} ${c.field_index}")
+        is op.StructSet as c -> if c.stack { out.append("struct.set_stack ${c.type_id} ${c.field_index}") } else { out.append("struct.set ${c.type_id} ${c.field_index}") }
         is op.LocalField as c -> out.append("local.field ${c.slot} ${c.type_id} ${c.field_index}")
 
         is op.ArrayNew   as c -> out.append("array.new ${c.type_id} ${c.length}")

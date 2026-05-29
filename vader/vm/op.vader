@@ -207,7 +207,7 @@ export VirtualCall :: struct { parameter_count: i32, vtable_key: string }
 /// and `struct.new_stack` — that share this VM op : the heap/stack
 /// distinction is a codegen concern, not a runtime one (TS VM
 /// `src/vm/exec.ts` collapses both cases too). Sprint 4 (b1) addition.
-export StructNew :: struct { type_id: i32 }
+export StructNew :: struct { type_id: i32, stack: bool }
 /// Pop a `StructVal`, push `struct.fields[field_index]`. `type_id` is
 /// kept for diagnostics (the executor traps if the popped value's
 /// tag doesn't match). Sprint 4 (b1) addition.
@@ -216,7 +216,7 @@ export StructGet :: struct { type_id: i32, field_index: i32 }
 /// field_index]` to the new value. Statement-form — no value pushed
 /// back. Mirrors `StructNew` in collapsing the heap/stack variants
 /// (`struct.set` / `struct.set_stack`) into one VM op. Sprint 4 (b1).
-export StructSet :: struct { type_id: i32, field_index: i32 }
+export StructSet :: struct { type_id: i32, field_index: i32, stack: bool }
 /// Fused `local.get N ; struct.get T F`. Reads `slots[slot]`, expects
 /// a `StructVal`, pushes its `fields[field_index]`.
 export LocalField :: struct { slot: i32, type_id: i32, field_index: i32 }

@@ -106,7 +106,7 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "vm_closure_capture", "vm_closure_mutating", "vm_fn_value_callback",
   "vm_fn_value_local", "vm_fn_value_struct", "vm_for", "vm_hello", "vm_if",
   "vm_interp_basic", "vm_interp_loop", "vm_interp_mixed", "vm_struct_mutate",
-  "vm_struct_nested", "vm_struct_point", "vm_trait_dispatch", "void_ident_rejected",
+  "vm_struct_nested", "vm_trait_dispatch", "void_ident_rejected",
 ]);
 
 // `dumpStage` is the CLI flag value ; `label` is what appears in test

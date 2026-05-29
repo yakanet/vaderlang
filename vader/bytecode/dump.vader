@@ -340,9 +340,9 @@ format_op :: fn(op: Op) -> string = match op {
     is Branch                   -> "br"
     is BranchIf                 -> "br_if"
     is BoolNot                  -> "bool.not"
-    is StructNew as s           -> "struct.new ${s.type_id}"
+    is StructNew as s           -> if s.stack { "struct.new_stack ${s.type_id}" } else { "struct.new ${s.type_id}" }
     is StructGet as s           -> "struct.get ${s.type_id} ${s.field_index}"
-    is StructSet as s           -> "struct.set ${s.type_id} ${s.field_index}"
+    is StructSet as s           -> if s.stack { "struct.set_stack ${s.type_id} ${s.field_index}" } else { "struct.set ${s.type_id} ${s.field_index}" }
     is ArrayNew as a            -> "array.new ${a.type_id} ${a.length}"
     is ArrayLen                 -> "array.len"
     is ArrayPush as a           -> "array.push ${a.type_id}"

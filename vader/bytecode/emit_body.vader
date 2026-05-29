@@ -388,7 +388,7 @@ emit_struct_lit :: fn(struct_lit: LoweredStructLit, state: FnEmitState, ctx: Emi
     for i in 0..<struct_lit.fields.len() {
         emit_expr(struct_lit.fields[i].value, state, ctx)
     }
-    push_op(state, StructNew { .type_id = type_id })
+    push_op(state, StructNew { .type_id = type_id, .stack = false })
 }
 
 /// Emit a field access : target struct emit then
@@ -668,7 +668,7 @@ emit_intrinsic_call :: fn(intrinsic: LoweredIntrinsicCall, state: FnEmitState, c
 emit_cell_new :: fn(cell_new: LoweredCellNew, state: FnEmitState, ctx: EmitterCtx) -> void {
     cell_type_id :: intern_cell_type(cell_new.value_type, ctx)
     emit_expr(cell_new.value, state, ctx)
-    push_op(state, StructNew { .type_id = cell_type_id })
+    push_op(state, StructNew { .type_id = cell_type_id, .stack = false })
 }
 
 /// Read a closure cell's contents : emit the cell target, then
@@ -688,7 +688,7 @@ emit_cell_set :: fn(cell_set: LoweredCellSet, state: FnEmitState, ctx: EmitterCt
     cell_type_id :: intern_cell_type(cell_set.value_type, ctx)
     emit_expr(cell_set.target, state, ctx)
     emit_expr(cell_set.value, state, ctx)
-    push_op(state, StructSet { .type_id = cell_type_id, .field_index = i32(0) })
+    push_op(state, StructSet { .type_id = cell_type_id, .field_index = i32(0), .stack = false })
 }
 
 

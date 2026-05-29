@@ -1528,7 +1528,8 @@ parse_local_tee :: fn(line: string) -> Op | null {
 parse_struct_new_after :: fn(line: string, prefix: string) -> Op | null {
     parsed :: parse_int_after_prefix(line, prefix)
     if parsed is null { return null }
-    return StructNew { .type_id = parsed }
+    stack :: prefix == "struct.new_stack "
+    return StructNew { .type_id = parsed, .stack = stack }
 }
 
 /// Parse two space-separated base-10 ints after `prefix`. Used by
@@ -1604,7 +1605,8 @@ parse_struct_set_after :: fn(line: string, prefix: string) -> Op | null {
     pair :: parse_int_pair_after_prefix(line, prefix)
     if pair is null { return null }
     [tid, fi] :: pair
-    return StructSet { .type_id = tid, .field_index = fi }
+    stack :: prefix == "struct.set_stack "
+    return StructSet { .type_id = tid, .field_index = fi, .stack = stack }
 }
 
 parse_array_new :: fn(line: string) -> Op | null {

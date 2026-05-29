@@ -692,7 +692,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
             push_emit(ctx, Drop {}, fs.span)
             return
         }
-        push_emit(ctx, StructSet { .type_id = type_index, .field_index = field_index }, fs.span)
+        push_emit(ctx, StructSet { .type_id = type_index, .field_index = field_index, .stack = fs.barrierless }, fs.span)
         return
     }
     if ins is InstrArrayGet as ag {
@@ -746,7 +746,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
     if ins is InstrStructNew as sn {
         type_index :: intern_type(sn.type, ctx.project)
         for f in sn.fields { emit_get(ctx, f, sn.span) }
-        push_emit(ctx, StructNew { .type_id = type_index }, sn.span)
+        push_emit(ctx, StructNew { .type_id = type_index, .stack = sn.stack }, sn.span)
         emit_set(ctx, sn.dst, sn.span)
         return
     }
@@ -795,7 +795,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
     if ins is InstrCellNew as cn {
         cell_type_idx :: intern_cell_type(cn.value_type, ctx.project)
         emit_get(ctx, cn.value, cn.span)
-        push_emit(ctx, StructNew { .type_id = cell_type_idx }, cn.span)
+        push_emit(ctx, StructNew { .type_id = cell_type_idx, .stack = false }, cn.span)
         emit_set(ctx, cn.dst, cn.span)
         return
     }
@@ -813,7 +813,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
         cell_type_idx :: intern_cell_type(cse.value_type, ctx.project)
         emit_get(ctx, cse.cell, cse.span)
         emit_get(ctx, cse.value, cse.span)
-        push_emit(ctx, StructSet { .type_id = cell_type_idx, .field_index = i32(0) }, cse.span)
+        push_emit(ctx, StructSet { .type_id = cell_type_idx, .field_index = i32(0), .stack = false }, cse.span)
         return
     }
     if ins is InstrMakeClosure as mc {

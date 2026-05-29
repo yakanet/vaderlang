@@ -449,9 +449,9 @@ export make_closure :: fn(self: FunctionBuilder, function_index: i32, env_type_i
 
 // ---- struct / array / data ----------------------------------------------
 
-export struct_new :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, StructNew { .type_id = type_id })
+export struct_new :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, StructNew { .type_id = type_id, .stack = false })
 export struct_get :: fn(self: FunctionBuilder, type_id: i32, field_index: i32) -> void = push_op(self, StructGet { .type_id = type_id, .field_index = field_index })
-export struct_set :: fn(self: FunctionBuilder, type_id: i32, field_index: i32) -> void = push_op(self, StructSet { .type_id = type_id, .field_index = field_index })
+export struct_set :: fn(self: FunctionBuilder, type_id: i32, field_index: i32) -> void = push_op(self, StructSet { .type_id = type_id, .field_index = field_index, .stack = false })
 export array_new :: fn(self: FunctionBuilder, type_id: i32, length: i32) -> void = push_op(self, ArrayNew { .type_id = type_id, .length = length })
 export array_push :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, ArrayPush { .type_id = type_id })
 export array_get :: fn(self: FunctionBuilder, type_id: i32) -> void = push_op(self, ArrayGet { .type_id = type_id })
