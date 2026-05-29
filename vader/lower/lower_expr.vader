@@ -883,10 +883,14 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
                 // entry to `concrete_args` in source-declared order.
                 concrete_args :: infer_type_args(ft, call, ctx)
                 if !all_concrete(concrete_args) { return null }
-                // Build the monomorphized mangled name. TS doubles up
-                // the module prefix (`<module>$<module>$<name>__T`).
-                module_id :: ctx.typed.resolved.path
-                mod_mangle :: mangle_module_id_local(ctx.typed.resolved.display_path)
+                // `owner_module` is the fn's defining module, NOT the
+                // caller's (see `register_and_emit_generic_call` for the
+                // rationale). Cross-module generic calls (snippet's
+                // `main` invoking `println` from std/io) need the fn's
+                // module so `build_fn_instance_decl` finds the AST decl.
+                module_id :: fn_sym.module
+                display :: lookup_module_display_path(ctx, module_id)
+                mod_mangle :: mangle_module_id_local(if display != "" { display } else { module_id })
                 suffix :: mono_suffix(concrete_args)
                 mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
                 // Register the instance for materialisation at the end
@@ -953,8 +957,16 @@ register_and_emit_generic_call :: fn(
     ctx: FnLowerCtx, call: CallExpr, type: Type,
     fn_sym: Symbol, concrete_args: Type[], callee_span: Span,
 ) -> LoweredExpr {
-    module_id :: ctx.typed.resolved.path
-    mod_mangle :: mangle_module_id_local(ctx.typed.resolved.display_path)
+    // `owner_module` is the fn's defining module, NOT the caller's —
+    // `build_fn_instance_decl` looks up the AST decl in
+    // `loaded.modules[owner_module]`, so picking the caller's module
+    // for cross-module generic calls (`println` from a snippet's
+    // `main`) sends the lookup to the wrong module → returns null →
+    // instance never materialises → `emit_call_to_symbol` misses and
+    // the call drops. Mirrors the harvest path at line 1372.
+    module_id :: fn_sym.module
+    display :: lookup_module_display_path(ctx, module_id)
+    mod_mangle :: mangle_module_id_local(if display != "" { display } else { module_id })
     suffix :: mono_suffix(concrete_args)
     mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
     inst_key :: "${fn_sym.id}::${suffix}"
