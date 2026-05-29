@@ -831,19 +831,30 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             else              { emit_get(ctx, c.args[ai], c.span) }
         }
         // Direct fn call → `Call` ; @extern/@intrinsic import → `CallImport`.
-        // Without the import-path branch, an `@extern` callee falls through
-        // to the defensive `Return` arm and the program loses the call
-        // (caused the closure / decorators / interp parity gaps).
-        fn_idx_opt :: ctx.project.function_index_by_symbol_id[c.callee.id]
-        if fn_idx_opt is i32 as fn_idx {
-            push_emit(ctx, Call { .function_index = fn_idx }, c.span)
+        // Resolve the callee by mangle FIRST : impl-member calls carry the
+        // member's deterministic mangle as the callee name (set in
+        // `find_impl_member_for`) with a synthetic `id = 0`, so the
+        // symbol-id path would miss (or collide on slot 0). Generic-instance
+        // calls likewise carry the instance mangle. A bare-name free-fn
+        // callee never matches a module-prefixed mangle, so the mangle probe
+        // is safe to run unconditionally — mirror of `emit_call_to_symbol`.
+        // Without a resolution path the callee falls through to the defensive
+        // `Return` arm and the program silently loses the call.
+        mangle_idx_opt :: ctx.project.function_index_by_mangle[c.callee.name]
+        if mangle_idx_opt is i32 as mangle_idx {
+            push_emit(ctx, Call { .function_index = mangle_idx }, c.span)
         } else {
-            imp_idx_opt :: ctx.project.import_index_by_symbol_id[c.callee.id]
-            if imp_idx_opt is i32 as imp_idx {
-                push_emit(ctx, CallImport { .index = imp_idx }, c.span)
+            fn_idx_opt :: ctx.project.function_index_by_symbol_id[c.callee.id]
+            if fn_idx_opt is i32 as fn_idx {
+                push_emit(ctx, Call { .function_index = fn_idx }, c.span)
             } else {
-                push_emit(ctx, Return {}, c.span)
-                return
+                imp_idx_opt :: ctx.project.import_index_by_symbol_id[c.callee.id]
+                if imp_idx_opt is i32 as imp_idx {
+                    push_emit(ctx, CallImport { .index = imp_idx }, c.span)
+                } else {
+                    push_emit(ctx, Return {}, c.span)
+                    return
+                }
             }
         }
         emit_result_if_any(ctx, pos, c.dst, c.span)
