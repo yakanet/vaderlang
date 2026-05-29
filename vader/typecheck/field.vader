@@ -125,6 +125,11 @@ try_typeparam_bound_method :: fn(
     trait_name :: dispatch_bounded_method_trait(bound, e.field, typed)
     if trait_name == "" { return null }
     typed.bounded_dispatch_trait[e.id] = trait_name
+    // Attribute the dispatch to the enclosing fn so the lowerer keeps its
+    // generic instances concrete (no Any-erasure) — see `fn_trait_dispatches`.
+    if typed.current_fn_ctx is FnContext as fctx {
+        if fctx.fn_id != usize(0) { typed.fn_trait_dispatches[fctx.fn_id] = true }
+    }
     tm :: dispatch_bounded_method(bound, e.field, typed)
     if tm is null { return null }
     return substitute_self(tm, target_ty)

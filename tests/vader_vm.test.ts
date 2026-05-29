@@ -6,19 +6,35 @@
 // stderr + exit are formatted via `formatRun` and compared to the same
 // `vm.snapshot` the TS VM is checked against — both VMs share one oracle.
 //
-// Vader-VM coverage grows sprint by sprint (docs/SELFHOST_VM.md) ; ops
-// that the Vader VM doesn't yet implement (`bool.*`, `null.const`,
-// `virtual.call`, `type_check`, host imports beyond `std_io$write`,
-// etc.) cause snippets to trap or diverge. Those are listed in
-// `KNOWN_DIVERGENT` and skipped — entries should be removed as Sprint
-// 5+ lands.
+// Vader-VM coverage grows sprint by sprint (docs/SELFHOST_VM.md). The VM
+// implements `bool.*`, `null.const`, `virtual.call`, `type_check` (verified
+// in `vader/vm/exec.vader`) ; snippets still trap or diverge for narrower
+// reasons — host imports beyond `std_io$write` (no host-fn registry),
+// panic-unwind defers, and `virtual.call` whose receiver is an *erased*
+// type (`ref _`) for which the vtable lookup finds no impl (the mode-a
+// erasure gap — fixed by monomorphising/devirtualising in the Vader emit,
+// tracked in the §9 audit). Those are listed in `KNOWN_DIVERGENT` and
+// skipped — entries should be removed as the gaps close.
 
 import { test } from "bun:test";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import { formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
+
+// Snippets where Vader's self-emitted bytecode INTENTIONALLY diverges from
+// the TS snapshot (mode-a GATE A : concrete devirt instead of erased
+// `virtual.call`) AND is more correct — TS's erased form returns the wrong
+// result on the VM. For these we don't run the committed (TS) `.virt` ;
+// instead we dump Vader's OWN bytecode and run that against `vm.snapshot`.
+// This is the real self-host oracle (Vader compiles → Vader VM runs →
+// correct output) and the validation that will let TS be removed.
+const VADER_SELF_EMIT = new Set<string>([
+  "trait_dispatch_struct",
+]);
 
 // Snippets that the self-host VM can't yet run end-to-end. New entries
 // should carry a one-line explanation + a link to the issue / commit
@@ -47,6 +63,26 @@ const scenarios = listSnippets("tests/snippets");
 for (const s of scenarios) {
   if (KNOWN_DIVERGENT.has(s.name)) {
     test.skip(`vader-vm: ${s.name}`, () => {});
+    continue;
+  }
+  // Self-emit snippets : compile with Vader, run Vader's OWN bytecode (not
+  // the committed TS `.virt`), and compare to the same `vm.snapshot` oracle.
+  if (VADER_SELF_EMIT.has(s.name)) {
+    test.concurrent(`vader-vm-self: ${s.name}`, async () => {
+      const dump = await runCli(["dump", "--stage=bytecode", s.mainPath]);
+      const tmp = join(tmpdir(), `vader-self-${s.name}.virt`);
+      writeFileSync(tmp, dump.stdout);
+      const { stdout, stderr, exit } = await runCli(["run", tmp]);
+      const actual = formatRun(stdout, stderr, exit);
+      const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
+      if (!cmp.ok) {
+        throw new Error(
+          `vader-vm-self mismatch: ${s.name}\n` +
+          `  snap: ${cmp.snapPath}\n\n` +
+          snapshotDiff(cmp.snapPath, cmp.expected, actual),
+        );
+      }
+    }, { timeout: MEDIUM_BUILD });
     continue;
   }
   // Native-only snippets — `@extern` user imports trap in the Vader VM

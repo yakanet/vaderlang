@@ -51,6 +51,12 @@ export FnContext :: struct {
     self_type:  Type | null
     /// Loop depth — `break` / `continue` legal only when > 0.
     loop_depth: i32
+    /// AST node id of the fn whose body is being checked. Lets deep
+    /// expression checks (e.g. bounded trait-method dispatch in
+    /// `field.vader`) attribute a finding back to the enclosing fn via
+    /// `fn_trait_dispatches`. Keyed by id (not name) so overloaded fns
+    /// don't collide. `0` for lambdas / synthetic contexts.
+    fn_id: usize = 0
 }
 
 export new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext {

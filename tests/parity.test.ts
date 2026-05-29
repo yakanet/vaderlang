@@ -92,6 +92,14 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "struct_name_collision", "struct_spread", "trait_box_range_iter",
   "trait_dispatch_bounded", "trait_dispatch_eq", "trait_dispatch_generic_iter",
   "trait_dispatch_param",
+  // INTENTIONAL divergence (mode-a GATE A) : Vader now keeps trait-dispatching
+  // generic instances CONCRETE (`apply_tag__i32 (i32)` + direct `call`) instead
+  // of erasing to `(ref)` + `virtual.call`. Vader's form runs to the correct
+  // result on the VM (vm.snapshot = 140) ; the TS snapshot's erased
+  // `virtual.call` on a `ref _` primitive receiver returns 0 (wrong on the VM —
+  // TS only works via native devirt). Verified instead by `vader_vm.test.ts`'s
+  // VADER_SELF_EMIT path, which runs Vader's OWN bytecode against vm.snapshot.
+  "trait_dispatch_struct",
   "trait_method_ambig", "trait_virtual_dispatch", "transitive_mono", "try_op",
   "tuple_comptime", "tuple_destructure_after_narrow", "tuple_destructure_let",
   "tuple_destructure_nested", "tuple_destructure_wildcard", "tuple_for_destructure",

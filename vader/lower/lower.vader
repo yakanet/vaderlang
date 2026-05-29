@@ -1072,11 +1072,19 @@ build_fn_instance_decl :: fn(
     if owner_module is null { return null }
     fn_decl :: find_fn_decl_by_name(module_decls(owner_module), inst.fn_symbol.name, inst.type_args.len())
     if fn_decl is null { return null }
-    // Erasure : map every type-param to `TY_ANY` so the emitted body's
-    // signature collapses to `(x: Any) -> Any`. The mangled name still
-    // carries the concrete args (`identity__i32`) ; only the type slots
-    // get erased.
-    subst :: build_fn_any_subst(fn_decl, owner_typed)
+    // Erasure vs concrete subst (GATE A) : a generic fn whose body
+    // trait-dispatches on a type-param (e.g. `println<T: Display>` calling
+    // `msg.to_string()`) must stay CONCRETE per instance — erasing `T` to
+    // `Any` lowers the dispatch to `virtual.call` on a `ref _` receiver
+    // that no vtable resolves (the mode-a gap). Typecheck flags these in
+    // `fn_trait_dispatches`. Everything else still erases to `Any` (TS does
+    // the same — concrete-everywhere regresses non-dispatching generics).
+    dispatches :: owner_typed.fn_trait_dispatches[fn_decl.id] is bool
+    subst :: if dispatches {
+        build_fn_concrete_subst(fn_decl, owner_typed, inst.type_args)
+    } else {
+        build_fn_any_subst(fn_decl, owner_typed)
+    }
     types :: make_entry_types(owner_typed, subst)
     params: LoweredParam[] = []
     for ast_param in fn_decl.params {
@@ -1213,6 +1221,22 @@ build_fn_any_subst :: fn(fd: FnDecl, typed: TypedProgram) -> Substitution {
     for tp in fd.type_params {
         tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
         if tp_sym is Symbol as s { subst.type_params[s.id] = TY_ANY }
+    }
+    return subst
+}
+
+// Concrete per-instance subst (GATE A) : map each type-param to its
+// concrete arg instead of `Any`. Mirror of `build_fn_any_subst`'s symbol
+// resolution (same `find_type_param_in_resolved`, which `build_subst`'s
+// span-offset finder doesn't match here) — only the mapped value differs.
+build_fn_concrete_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -> Substitution {
+    subst :: new_substitution()
+    i: usize = 0
+    for tp in fd.type_params {
+        if i >= type_args.len() { break }
+        tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
+        if tp_sym is Symbol as s { subst.type_params[s.id] = type_args[i] }
+        i += 1
     }
     return subst
 }

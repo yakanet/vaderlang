@@ -229,6 +229,17 @@ export TypedProgram :: struct {
     /// `t.fieldResolutions` for `kind = "trait-method"` entries.
     bounded_dispatch_trait: MutableMap<usize, string>
 
+    /// Generic fn AST-node id → true when its body trait-dispatches on a
+    /// type-param (i.e. records at least one `bounded_dispatch_trait`
+    /// entry while checking that fn). The lowerer's
+    /// `build_fn_instance_decl` reads this to keep such instances
+    /// CONCRETE (per-instance subst) instead of erasing every type-param
+    /// to `Any` — erasure would lower the dispatch to `virtual.call` on a
+    /// `ref _` receiver that no vtable resolves. Keyed by node id (not
+    /// name) so overloaded generics don't collide. Functional mirror of
+    /// TS' `shouldErase` exception for trait-dispatching instances.
+    fn_trait_dispatches: MutableMap<usize, bool>
+
     /// Callee `IdentExpr.id` → true when overload resolution picked a
     /// non-primary overload for a direct call (`describe(b)` choosing
     /// the `Bag` overload while the resolver bound the `Box` primary).
@@ -285,6 +296,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .extern_symbols  = MutableMap<string, FnDecl> { .buckets = [], .size = 0 },
         .let_type_aliases = MutableMap<i32, Type> { .buckets = [], .size = 0 },
         .bounded_dispatch_trait = MutableMap<usize, string> { .buckets = [], .size = 0 },
+        .fn_trait_dispatches = MutableMap<usize, bool> { .buckets = [], .size = 0 },
         .overload_result_callees = MutableMap<usize, bool> { .buckets = [], .size = 0 },
     }
 }

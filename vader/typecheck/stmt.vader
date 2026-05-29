@@ -122,7 +122,10 @@ export check_fn_body :: fn(
     inferred_return :: fn_decl.is_expression_bodied && (return_type is UnresolvedType)
     expected: Type | null = return_type
     if inferred_return { expected = null }
-    ctx :: new_fn_context(return_type, null)
+    ctx :: FnContext {
+        .return_type = return_type, .self_type = null, .loop_depth = 0,
+        .fn_id = fn_decl.id,
+    }
     prev :: typed.current_fn_ctx
     typed.current_fn_ctx = ctx
     got :: check_block(body, expected, typed, diags, ctx, check_expr_fn)
@@ -428,6 +431,7 @@ bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
         .return_type = ctx.return_type,
         .self_type   = ctx.self_type,
         .loop_depth  = ctx.loop_depth + 1,
+        .fn_id       = ctx.fn_id,
     }
 }
 
