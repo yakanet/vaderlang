@@ -1281,8 +1281,9 @@ parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
 /// @return         the `Convert` op carrying the target tag.
 parse_convert :: fn(cleaned: string) -> Op {
     dot :: cleaned.index_of('.', 0)
+    prefix :: cleaned.byte_slice(usize(0), usize(dot))
     suffix :: cleaned.byte_slice(usize(dot) + 1 + usize(3), cleaned.byte_len())
-    return Convert { .target = convert_target_of(suffix) }
+    return Convert { .from_name = prefix, .target = convert_target_of(suffix) }
 }
 
 /// Collapse a target width to its `ConvertTarget` storage class. Every

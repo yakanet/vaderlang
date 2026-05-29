@@ -641,11 +641,14 @@ write_op_line :: fn(out: StringBuilder, v: op.Op, jump_table: i32[], labels: Sco
     }
 }
 
-convert_text :: fn(c: op.Convert) -> string = match c.target {
-    .I32  -> "i64.to_i32"
-    .I64  -> "i32.to_i64"
-    .F64  -> "i32.to_f64"
-    .Char -> "i32.to_char"
+convert_text :: fn(c: op.Convert) -> string {
+    to_name :: match c.target {
+        .I32  -> "i32"
+        .I64  -> "i64"
+        .F64  -> "f64"
+        .Char -> "char"
+    }
+    return "${c.from_name}.to_${to_name}"
 }
 
 /// Render a `ConstOp` in its native text form (e.g. `i32.const 42`,

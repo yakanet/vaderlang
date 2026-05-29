@@ -265,11 +265,20 @@ export DataConst :: struct { pool_index: i32, type_id: i32 }
 export RefCast :: struct { type_id: i32 }
 
 /// Numeric width conversion. The .virt format emits `<from>.to_<to>`
-/// at every cast site ; `target` carries enough info to re-tag the
-/// stack value to the right storage class (I32Val / I64Val / F64Val /
-/// CharVal) so downstream typed ops (`f64.div`, `u32.shl`, …) find a
-/// matching tag.
-export Convert :: struct { target: ConvertTarget }
+/// at every cast site. `target` re-tags the stack value to the
+/// destination storage class (I32Val / I64Val / F64Val / CharVal) so
+/// downstream typed ops (`f64.div`, `u32.shl`, …) find a matching tag.
+///
+/// `from_name` carries the SOURCE width as its source-level name
+/// (`usize` / `u32` / `i16` / …) — used purely by the dump format so
+/// every `.virt` round-trip preserves the exact `<from>.to_<to>`
+/// spelling. ValType lives in `vader/bytecode` which can't be
+/// imported here (vm sits below bytecode in the layering) ; a string
+/// avoids the cycle.
+export Convert :: struct {
+    from_name: string
+    target:    ConvertTarget
+}
 
 /// Storage class for a numeric conversion target. Mirrors the VM's
 /// runtime tagging : every 8/16/32-bit integer collapses to `I32Val`,

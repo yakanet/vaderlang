@@ -37,7 +37,7 @@ import "vader/vm" {
     If, Else, End, Block, Loop, Branch, BranchIf, BoolNot,
     StructNew, StructGet, StructSet,
     ArrayNew, ArrayGet, ArraySet, ArrayLen, ArrayPush, ArraySlice, StringSliceCodepoints,
-    DataConst, TypeConst, TypeCheck, RefCast, Convert,
+    DataConst, TypeConst, TypeCheck, RefCast, Convert, ConvertTarget,
     MakeClosure,
     BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, SizeOfType,
 }
@@ -46,7 +46,7 @@ import "vader/bytecode" {
     run_bc_const_fold_arith,
     propagate_const_single_use, drop_dead_stores, coalesce_slots,
     prune_unused_vtables, prune_unused_functions, prune_unused_imports, prune_unused_types,
-    type_intern_key,
+    type_intern_key, val_type_name, convert_target_of,
 }
 import "vader/resolver/symbol" { Symbol }
 
@@ -957,12 +957,18 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         from_val :: val_type_of_type(from_type)
         to_val :: val_type_of_type(cs.type)
         if i32(from_val) != i32(to_val) {
-            // Heap-shaped → primitive (or v.v.) routes through `ref.cast`.
-            // Numeric ↔ numeric routes through `Convert { target }`.
-            // The MVP routes everything through ref.cast — Convert's
-            // ConvertTarget enum needs a per-pair lookup that mirrors
-            // op_select's `convert_op_for` (not yet exposed). TODO.
-            push_emit(ctx, RefCast { .type_id = intern_type(cs.type, ctx.project) }, cs.span)
+            // Numeric / char ↔ numeric / char routes through Convert,
+            // carrying the source width as a string so the dump emits
+            // `<from>.to_<to>` (e.g. `usize.to_i32`). Anything else
+            // (heap-shaped → primitive, etc.) falls through to ref.cast.
+            target_opt :: convert_target_of(to_val)
+            if target_opt == null {
+                push_emit(ctx, RefCast { .type_id = intern_type(cs.type, ctx.project) }, cs.span)
+            } else if convert_eligible(from_val) {
+                push_emit(ctx, Convert { .from_name = val_type_name(from_val), .target = target_opt }, cs.span)
+            } else {
+                push_emit(ctx, RefCast { .type_id = intern_type(cs.type, ctx.project) }, cs.span)
+            }
         }
         emit_result(ctx, pos, cs.dst, cs.span)
         return
@@ -1036,6 +1042,19 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     // matches TS but Vader's lower doesn't generate them. When defer
     // lowering lands (TODO §5), add InstrDeferPush + InstrDeferPopExec
     // to vader/midir/cfg.vader and re-add the arms here.
+}
+
+/// True when `v` is a numeric / char ValType that can flow through
+/// a `Convert` op. Anything else (ref / any / void / null / bool /
+/// string) routes through `ref.cast` instead.
+convert_eligible :: fn(v: ValType) -> bool {
+    if i32(v) == i32(ValType.Ref)    { return false }
+    if i32(v) == i32(ValType.Any)    { return false }
+    if i32(v) == i32(ValType.Void)   { return false }
+    if i32(v) == i32(ValType.Null)   { return false }
+    if i32(v) == i32(ValType.Bool)   { return false }
+    if i32(v) == i32(ValType.String) { return false }
+    return true
 }
 
 /// Map an InstrIntrinsic's canonical name onto its dedicated Op.

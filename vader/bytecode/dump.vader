@@ -30,7 +30,7 @@ import "vader/vm" {
     If, Else, End, StructNew, StructGet, StructSet,
     Block, Loop, Branch, BranchIf, BoolNot,
     ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice,
-    DataConst, TypeConst, TypeCheck, RefCast, Convert,
+    DataConst, TypeConst, TypeCheck, RefCast, Convert, ConvertTarget,
     MakeClosure, CallIndirect, VirtualCall, CallImport,
     BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
     SizeOfType, FnRef,
@@ -404,6 +404,13 @@ label_at_depth :: fn(stack: string[], depth: i32) -> string {
 /// Render an op as its `.virt`-style name + operands (when any).
 /// Not yet byte-for-byte aligned with the TS `writeVir` rendering ;
 /// good enough for human-readable debug output of the bytecode.
+convert_target_name :: fn(t: ConvertTarget) -> string = match t {
+    .I32  -> "i32"
+    .I64  -> "i64"
+    .F64  -> "f64"
+    .Char -> "char"
+}
+
 format_op :: fn(op: Op) -> string = match op {
     is I32Const as c            -> "i32.const ${c.value}"
     is I64Const as c            -> "i64.const ${c.value}"
@@ -446,7 +453,7 @@ format_op :: fn(op: Op) -> string = match op {
     is TypeConst as t           -> "type.const ${t.type_id}"
     is TypeCheck as t           -> "type_check ${t.type_id}"
     is RefCast as r             -> "ref.cast ${r.type_id}"
-    is Convert                  -> "convert"
+    is Convert as c             -> "${c.from_name}.to_${convert_target_name(c.target)}"
     is BuilderNew               -> "intrinsic builder.new"
     is BuilderAppendStr         -> "intrinsic builder.append_str"
     is BuilderAppendDisplay     -> "intrinsic builder.append_display"

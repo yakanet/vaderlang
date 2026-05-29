@@ -527,9 +527,10 @@ emit_index :: fn(index_get: LoweredIndex, state: FnEmitState, ctx: EmitterCtx) -
 /// unchanged.
 emit_cast :: fn(cast: LoweredCast, state: FnEmitState, ctx: EmitterCtx) -> void {
     emit_expr(cast.value, state, ctx)
+    from_val :: val_type_of_type(type_of(cast.value))
     target :: convert_target_of(val_type_of_type(cast.type))
     match target {
-        is ConvertTarget as t -> push_op(state, Convert { .target = t })
+        is ConvertTarget as t -> push_op(state, Convert { .from_name = val_type_name(from_val), .target = t })
         _ -> {}     // Non-numeric cast : no convert op needed.
     }
 }
