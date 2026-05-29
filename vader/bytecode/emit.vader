@@ -174,7 +174,11 @@ export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: Em
         // (and `src/midir/emit.ts:125-133`). Without these, the bytecode
         // dump keeps every unreachable extern / unused struct slot.
         prune_unused_vtables(ctx)
-        prune_unused_functions(ctx)
+        // Legacy emit path doesn't carry CFG vtable_entries ; pass an
+        // empty roots list. Vtables would be added here once this
+        // path threads them through (TODO).
+        legacy_vtable_roots: i32[] = []
+        prune_unused_functions(ctx, legacy_vtable_roots)
         prune_unused_imports(ctx)
         prune_unused_types(ctx)
     }

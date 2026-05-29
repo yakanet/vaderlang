@@ -62,6 +62,7 @@ export dump_bytecode :: fn(module: BytecodeModule) -> string {
     write_strings(sb, module.strings)
     write_imports(sb, module.imports)
     write_impl_table(sb, module.impl_table)
+    write_vtable_rows(sb, module.vtables)
     write_exports(sb, module.exports, module.functions)
     for i in 0..<module.functions.len() {
         sb.append("\n")
@@ -176,6 +177,14 @@ write_impl_table :: fn(sb: StringBuilder, impls: ImplEntry[]) -> void {
     for i in 0..<impls.len() {
         row :: impls[i]
         sb.append("impl ${row.struct_type_index} ${row.trait_name}\n")
+    }
+}
+
+write_vtable_rows :: fn(sb: StringBuilder, vtables: VtableRow[]) -> void {
+    for row in vtables {
+        for e in row.entries {
+            sb.append("vtable ${row.key} ${e.receiver_type_index} ${e.fn_index}\n")
+        }
     }
 }
 

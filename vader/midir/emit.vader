@@ -26,6 +26,7 @@ import "vader/lower" { VtableEntry as LoweredVtableEntry }
 import "vader/bytecode" {
     EmitterCtx, BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport,
     BcField, BcStruct, BcRef, BcDataEntry, DebugPos, ImplEntry,
+    VtableRow, VtableEntry as BcVtableEntry,
     new_emitter_ctx, intern_type, intern_string,
     val_type_of_type, ValType,
     binary_op_for, unary_op_for, default_emit_options, EmitOptions,
@@ -295,7 +296,32 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         // Order matters : vtables → functions → imports → types so
         // each pass's root set reflects the previous pass's drops.
         prune_unused_vtables(ctx)
-        prune_unused_functions(ctx)
+        // Collect vtable-target fn indices as roots — every
+        // `T implements Trait { method }` member that's actually
+        // dispatched on (a `virtual.call <trait>.<method>` exists)
+        // must survive the prune so the call lands on a real fn
+        // slot. Impl members for traits no one dispatches on (error
+        // snippets, dead traits) drop. Mirror of TS dce.ts +
+        // pruneUnusedVtables.
+        used_vt_keys: MutableMap<string, bool> = MutableMap<string, bool> { .buckets = [], .size = 0 }
+        for f in ctx.functions {
+            for op in f.body {
+                if op is VirtualCall as v { used_vt_keys[v.vtable_key] = true }
+            }
+        }
+        vtable_roots: i32[] = []
+        for ve in cfg.vtable_entries {
+            key :: "${ve.trait_name}.${ve.method_name}"
+            if !(used_vt_keys[key] is bool) { continue }
+            fi_opt :: ctx.function_index_by_symbol_id[ve.fn_symbol.id]
+            if fi_opt is i32 as fi {
+                vtable_roots.push(fi)
+            } else {
+                fi_mangle_opt :: ctx.function_index_by_mangle[ve.fn_symbol.name]
+                if fi_mangle_opt is i32 as fi2 { vtable_roots.push(fi2) }
+            }
+        }
+        prune_unused_functions(ctx, vtable_roots)
         prune_unused_imports(ctx)
         prune_unused_types(ctx)
     }
@@ -309,8 +335,54 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         .imports     = ctx.imports,
         .exports     = ctx.exports,
         .impl_table  = build_impl_table_from_vtable(cfg.vtable_entries, ctx),
-        .vtables     = [],
+        .vtables     = build_vtables_from_entries(cfg.vtable_entries, ctx),
     }
+}
+
+/// Build per-(trait, method) vtable rows from the CFG vtable entries.
+/// Each entry maps a `(receiver type-index, fn-index)` ; the rows
+/// group by `<trait>.<method>` for the `virtual.call` op's vtable-key
+/// lookup. Entries whose fn target was pruned drop silently. Rows
+/// whose `<trait>.<method>` key isn't referenced by any `VirtualCall`
+/// op also drop — mirror of TS `pruneUnusedVtables`.
+build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> VtableRow[] {
+    // Collect every `(trait, method)` key referenced by a surviving
+    // VirtualCall — only rows in this set survive.
+    used_keys: MutableMap<string, bool> = MutableMap<string, bool> { .buckets = [], .size = 0 }
+    for f in ctx.functions {
+        for op in f.body {
+            if op is VirtualCall as v { used_keys[v.vtable_key] = true }
+        }
+    }
+    rows_by_key: MutableMap<string, usize> = MutableMap<string, usize> { .buckets = [], .size = 0 }
+    out: VtableRow[] = []
+    for ve in entries {
+        key :: "${ve.trait_name}.${ve.method_name}"
+        if !(used_keys[key] is bool) { continue }
+        fi_opt :: ctx.function_index_by_symbol_id[ve.fn_symbol.id]
+        fn_idx: i32 = -1
+        if fi_opt is i32 as fi {
+            fn_idx = fi
+        } else {
+            fi_mangle_opt :: ctx.function_index_by_mangle[ve.fn_symbol.name]
+            if fi_mangle_opt is i32 as fi2 { fn_idx = fi2 }
+        }
+        if fn_idx < 0 { continue }
+        receiver_idx :: intern_type(ve.struct_type, ctx)
+        existing :: rows_by_key[key]
+        if existing is usize as ei {
+            out[ei].entries.push(BcVtableEntry {
+                .receiver_type_index = receiver_idx, .fn_index = fn_idx,
+            })
+        } else {
+            new_idx :: out.len()
+            entries_arr: BcVtableEntry[] = []
+            entries_arr.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
+            out.push(VtableRow { .key = key, .entries = entries_arr })
+            rows_by_key[key] = new_idx
+        }
+    }
+    return out
 }
 
 // Local equivalent of `build_impl_table` (vader/bytecode/emit.vader),

@@ -107,12 +107,11 @@ export prune_unused_vtables :: fn(ctx: EmitterCtx) -> void {
 /// fn_index_by_symbol_id) is rewritten.
 ///
 /// Mirrors `src/midir/dce.ts::pruneUnusedFunctions`.
-export prune_unused_functions :: fn(ctx: EmitterCtx) -> void {
+export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[]) -> void {
     n :: ctx.functions.len()
     reachable :: MutableMap<i32, bool> { .buckets = [], .size = 0 }
 
-    // Roots : main, test, @export entries. (Vtables would also root
-    // their target fns ; deferred until the vtable field stabilises.)
+    // Roots : main, test, @export entries, vtable-target fns.
     i := usize(0)
     for i < n {
         f :: ctx.functions[i]
@@ -120,6 +119,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx) -> void {
         i = i + 1
     }
     for e in ctx.exports { reachable[e.fn_index] = true }
+    for vt in vtable_roots { if vt >= 0 && vt < i32(n) { reachable[vt] = true } }
 
     // Worklist over reachable fns ; pick up callees via call/fn.ref/
     // make_closure. Iterate to fixpoint — a vtable-rooted fn may

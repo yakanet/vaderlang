@@ -91,7 +91,7 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "struct_decl", "struct_defaults", "struct_lit_field_order",
   "struct_name_collision", "struct_spread", "trait_box_range_iter",
   "trait_dispatch_bounded", "trait_dispatch_eq", "trait_dispatch_generic_iter",
-  "trait_dispatch_param", "trait_dispatch_struct",
+  "trait_dispatch_param",
   "trait_method_ambig", "trait_virtual_dispatch", "transitive_mono", "try_op",
   "tuple_comptime", "tuple_destructure_after_narrow", "tuple_destructure_let",
   "tuple_destructure_nested", "tuple_destructure_wildcard", "tuple_for_destructure",
