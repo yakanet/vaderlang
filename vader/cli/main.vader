@@ -35,7 +35,7 @@ import "vader/lower" { prune_unreachable_fns }
 import "vader/bytecode" { emit_project }
 import "vader/bytecode" { default_emit_options }
 import "vader/bytecode" { dump_bytecode }
-import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project, annotate_escape }
+import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project, annotate_escape, eliminate_dead_cfg }
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
@@ -521,8 +521,12 @@ run_bytecode_stage :: fn(file: string) -> i32 {
     // legacy lowered→bytecode tree-walker (`emit_project`) elides them
     // and diverges on ~150 parity snippets.
     cfg :: build_cfg_project(pruned)
-    folded :: const_fold_project(cfg)
-    escaped :: annotate_escape(folded).project
+    // CFG-level DCE first (foldMoves + future DIE / compact). Const-
+    // fold deliberately NOT run on the bytecode path : TS's
+    // `dumpBytecode` (tests/snapshot.ts) also skips it, so any
+    // arith collapse here would over-shrink vs the parity snapshot.
+    dced :: eliminate_dead_cfg(cfg)
+    escaped :: annotate_escape(dced).project
     module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
     // `dump_bytecode` already returns a trailing-newline-terminated
     // string ; use `print` (no auto-newline) to match TS

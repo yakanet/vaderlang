@@ -61,6 +61,7 @@ import "vader/vm" {
     MakeClosure, CallIndirect, VirtualCall,
     BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
     SizeOfType,
+    I32Add, I32Sub, I32Mul, I64Add, I64Sub, I64Mul,
 }
 
 
@@ -272,6 +273,70 @@ remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[
 export BcPeepholeOut :: struct {
     body:       Op[]
     jump_table: i32[]
+}
+
+/// Const-fold the `<const> ; <const> ; <op>` peephole. Folds
+/// safe integer arith (add / sub / mul / bitwise). Skips div / rem
+/// (trap on rhs=0), shifts (UB on shift ≥ width), and floats (NaN +
+/// signed-zero + precision drift). Returns the folded `Op` (an
+/// `I32Const` / `I64Const`) on a hit, null otherwise. Mirror of TS
+/// `tryFoldArith` (src/bytecode/peephole.ts:143).
+/// Standalone const-fold-arith pass. Runs AFTER propagate_const_single_use
+/// so chains like `const ; set N ; get N ; const ; <op>` (post-propagate :
+/// `const ; const ; <op>`) collapse to a single folded const. Returns the
+/// rewritten body + remapped jump_table (in case future variants of this
+/// pass touch jump_table entries — currently no jump_table is involved).
+/// Mirror of TS `constFoldArith` (src/bytecode/peephole.ts:119).
+export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
+    body :: function.body
+    n :: body.len()
+    out: Op[] = []
+    out_len: usize = 0
+    old_to_new: i32[] = []
+    pp: usize = 0
+    for pp < n { old_to_new.push(-1)  pp = pp + 1 }
+    i: usize = 0
+    for i < n {
+        op :: body[i]
+        folded :: try_fold_arith(op, out, out_len)
+        if folded is null {
+            push_or_assign(out, out_len, op)
+            old_to_new[i] = i32(out_len)
+            out_len = out_len + usize(1)
+        } else {
+            out_len = out_len - usize(2)
+            push_or_assign(out, out_len, folded)
+            old_to_new[i] = i32(out_len)
+            out_len = out_len + usize(1)
+        }
+        i = i + usize(1)
+    }
+    new_body :: take_prefix(out, out_len)
+    new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
+    return BcPeepholeOut { .body = new_body, .jump_table = new_jt }
+}
+
+try_fold_arith :: fn(op: Op, out: Op[], out_len: usize) -> Op | null {
+    if out_len < usize(2) { return null }
+    right :: out[out_len - usize(1)]
+    left  :: out[out_len - usize(2)]
+    if left is I32Const as l32 {
+        if right is I32Const as r32 {
+            if op is I32Add { return I32Const { .value = l32.value + r32.value } }
+            if op is I32Sub { return I32Const { .value = l32.value - r32.value } }
+            if op is I32Mul {
+                return I32Const { .value = l32.value * r32.value }
+            }
+        }
+    }
+    if left is I64Const as l64 {
+        if right is I64Const as r64 {
+            if op is I64Add { return I64Const { .value = l64.value + r64.value } }
+            if op is I64Sub { return I64Const { .value = l64.value - r64.value } }
+            if op is I64Mul { return I64Const { .value = l64.value * r64.value } }
+        }
+    }
+    return null
 }
 
 export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {

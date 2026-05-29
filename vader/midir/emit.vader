@@ -39,9 +39,11 @@ import "vader/vm" {
     ArrayNew, ArrayGet, ArraySet, ArrayLen, ArrayPush, ArraySlice, StringSliceCodepoints,
     DataConst, TypeConst, TypeCheck, RefCast, Convert,
     MakeClosure,
+    BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, SizeOfType,
 }
 import "vader/bytecode" {
     intern_cell_type, run_bc_peephole, run_bc_return_lit_fold,
+    run_bc_const_fold_arith,
     propagate_const_single_use, drop_dead_stores, coalesce_slots,
     prune_unused_vtables, prune_unused_functions, prune_unused_imports, prune_unused_types,
     type_intern_key,
@@ -255,6 +257,17 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
             ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
             ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
+            // Const-fold-arith runs AFTER propagate so chains like
+            // `const ; set N ; get N ; const ; mul` (post-propagate :
+            // `const ; const ; mul`) collapse. Mirror of TS pipeline
+            // (src/bytecode/peephole.ts:54-67).
+            cfa :: run_bc_const_fold_arith(ctx.functions[i])
+            cf :: ctx.functions[i]
+            ctx.functions[i] = BcFunction {
+                .name = cf.name, .is_main = cf.is_main, .signature = cf.signature,
+                .locals = cf.locals, .body = cfa.body, .debug = cf.debug,
+                .jump_table = cfa.jump_table,
+            }
             ctx.functions[i] = drop_dead_stores(ctx.functions[i])
             // Second-pass : ONLY the Rule 5 (`<Const> ; Return` → ReturnLit)
             // fold. drop_dead_stores opens new const-before-return windows
@@ -1001,21 +1014,49 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrIntrinsic as i {
-        // Vader has no generic Intrinsic Op — every intrinsic resolves
-        // to a dedicated op via `intrinsic_op_for_mangled` in the
-        // existing emit_body. For midir parity we'd need the same
-        // table here ; the MVP drops to Return as a defensive stub.
+        // Resolve the intrinsic name to its dedicated Op. Vader has no
+        // generic Intrinsic Op — every name maps to one. Args push in
+        // order ; the per-name Op handles its own stack discipline.
         for ai in 0..<i.args.len() {
             if ai == usize(0) { emit_first_get(ctx, pos, i.args[ai], i.span) }
             else              { emit_get(ctx, i.args[ai], i.span) }
         }
-        push_emit(ctx, Return {}, i.span)
+        op_opt :: intrinsic_op_for_name(i.name)
+        if op_opt is null {
+            push_emit(ctx, Return {}, i.span)
+        } else {
+            push_emit(ctx, op_opt, i.span)
+            if !is_void_intrinsic(i.name) {
+                emit_result_if_any(ctx, pos, i.dst, i.span)
+            }
+        }
         return
     }
     // InstrDeferPush / InstrDeferPopExec not yet on Vader CFG side —
     // matches TS but Vader's lower doesn't generate them. When defer
     // lowering lands (TODO §5), add InstrDeferPush + InstrDeferPopExec
     // to vader/midir/cfg.vader and re-add the arms here.
+}
+
+/// Map an InstrIntrinsic's canonical name onto its dedicated Op.
+/// Mirror of TS `INTRINSIC_TABLE` (src/bytecode/ops.ts:242). Returns
+/// null when the name doesn't map to a known intrinsic ; callers fall
+/// back to the defensive Return stub.
+intrinsic_op_for_name :: fn(name: string) -> Op | null {
+    if name == "builder.new"             { return BuilderNew {} }
+    if name == "builder.append_str"      { return BuilderAppendStr {} }
+    if name == "builder.append_display"  { return BuilderAppendDisplay {} }
+    if name == "builder.finish"          { return BuilderFinish {} }
+    if name == "size_of.type"            { return SizeOfType {} }
+    return null
+}
+
+/// True when the intrinsic has no result (void return) — used to gate
+/// the trailing emit_result_if_any.
+is_void_intrinsic :: fn(name: string) -> bool {
+    if name == "builder.append_str"     { return true }
+    if name == "builder.append_display" { return true }
+    return false
 }
 
 /// Look up a field index by name on a struct type. Returns -1 when the

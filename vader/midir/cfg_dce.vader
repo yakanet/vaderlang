@@ -1,0 +1,197 @@
+// vader/midir/cfg_dce — CFG-level dead-code elimination.
+//
+// Mirror of `src/midir/dce.ts`'s `optimiseFunction` pipeline.
+// Runs intra-procedurally on each `CFGFunction` :
+//
+//   Pass 0 — `fold_moves` : copy-fold `producer.dst=X ; Move dst=Y src=X`
+//            where X is single-use, so the producer writes directly into
+//            Y and the Move drops. Unlocks const-folding through let-
+//            bindings (`a :: 7 ; b :: 5 ; a*b` would otherwise stall at
+//            the moves).
+//
+// Future passes (mirror TS) :
+//   Pass 1 — `die_once` (dead instruction elimination via per-store
+//            liveness). Runs to fixpoint, max 8 iters.
+//   Pass 2 — `compact_locals` (drop unreferenced locals, renumber).
+//
+// Pass 0 is enough to align Vader's CFG with TS for the simple-arith
+// snippets that motivated the port ; the deeper passes come incremental.
+
+module "vader/midir"
+
+import "std/collections" { MutableMap, MutableSet }
+
+/// Top-level entry — apply all CFG-level optimisations to every fn in
+/// the project. Pure : returns a fresh CFGProject sharing unchanged
+/// modules with the input. Mirror of TS `eliminateDeadCFG`.
+export eliminate_dead_cfg :: fn(p: CFGProject) -> CFGProject {
+    new_modules :: MutableMap<string, CFGModule> { .buckets = [], .size = 0 }
+    for module_id in p.modules.keys() {
+        m :: p.modules[module_id]
+        if m is null { continue }
+        new_fns: CFGFunction[] = []
+        for f in m.functions { new_fns.push(optimise_function(f)) }
+        new_modules[module_id] = CFGModule {
+            .module_id    = m.module_id,
+            .display_path = m.display_path,
+            .functions    = new_fns,
+            .externs      = m.externs,
+            .struct_decls = m.struct_decls,
+        }
+    }
+    return CFGProject {
+        .modules         = new_modules,
+        .vtable_entries  = p.vtable_entries,
+        .strings         = p.strings,
+        .data_pool       = p.data_pool,
+        .symbol_redirects = p.symbol_redirects,
+    }
+}
+
+optimise_function :: fn(f: CFGFunction) -> CFGFunction {
+    return fold_moves(f)
+}
+
+// ============================================================================
+// Pass 0 — fold_moves : copy-fold producer → Move chains
+// ============================================================================
+
+fold_moves :: fn(f: CFGFunction) -> CFGFunction {
+    use_count :: count_uses(f)
+    param_locals: MutableSet<LocalId> = MutableSet<LocalId> {
+        .inner = MutableMap<LocalId, bool> { .buckets = [], .size = usize(0) },
+    }
+    for p in f.params { param_locals.inner[p.local] = true }
+
+    new_blocks: BasicBlock[] = []
+    for b in f.blocks {
+        new_blocks.push(BasicBlock {
+            .id           = b.id,
+            .instructions = fold_moves_in_block(b, use_count, param_locals),
+            .terminator   = b.terminator,
+            .span         = b.span,
+        })
+    }
+    return CFGFunction {
+        .mangled      = f.mangled,
+        .params       = f.params,
+        .return_type  = f.return_type,
+        .locals       = f.locals,
+        .blocks       = new_blocks,
+        .entry        = f.entry,
+        .origin       = f.origin,
+        .is_extern    = f.is_extern,
+        .is_exported  = f.is_exported,
+        .extern_name  = f.extern_name,
+    }
+}
+
+fold_moves_in_block :: fn(
+    b: BasicBlock, use_count: MutableMap<LocalId, i32>, param_locals: MutableSet<LocalId>,
+) -> Instruction[] {
+    folded: Instruction[] = []
+    for i in 0..<b.instructions.len() {
+        ins :: b.instructions[i]
+        if !(ins is InstrMove) { folded.push(ins)  continue }
+        if ins is InstrMove as m {
+            if param_locals.contains(m.src) { folded.push(ins)  continue }
+            count_opt :: use_count[m.src]
+            count :: if count_opt is i32 as c { c } else { i32(0) }
+            if count != 1 { folded.push(ins)  continue }
+            // Walk back through folded to find the producer of `m.src`.
+            // Bail if a later (intervening) instr also wrote `m.dst`
+            // (we'd resurrect a stale value).
+            producer_idx: i64 = -1
+            j: i64 = i64(folded.len()) - 1
+            for j >= 0 {
+                cand :: folded[usize(j)]
+                cdst_opt :: dst_of(cand)
+                if cdst_opt is LocalId as cdst {
+                    if cdst == m.dst && cdst != m.src { break }
+                    if cdst == m.src { producer_idx = j  break }
+                }
+                j = j - 1
+            }
+            if producer_idx < 0 { folded.push(ins)  continue }
+            producer :: folded[usize(producer_idx)]
+            if instruction_has_side_effect(producer) { folded.push(ins)  continue }
+            rewritten :: with_dst(producer, m.dst)
+            folded[usize(producer_idx)] = rewritten
+            // Move drops — don't push it. continue the outer loop.
+        }
+    }
+    return folded
+}
+
+/// Rebuild an instruction with its `dst` changed to `new_dst`. Pure
+/// producers only — callers must check `instruction_has_side_effect`
+/// first. Returns the input unchanged when the variant has no dst.
+with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction {
+    if ins is InstrConst as c {
+        return InstrConst { .span = c.span, .dst = new_dst, .value = c.value, .type = c.type }
+    }
+    if ins is InstrMove as m {
+        return InstrMove { .span = m.span, .dst = new_dst, .src = m.src }
+    }
+    if ins is InstrBinOp as b {
+        return InstrBinOp { .span = b.span, .dst = new_dst, .op = b.op, .lhs = b.lhs, .rhs = b.rhs, .type = b.type }
+    }
+    if ins is InstrUnOp as u {
+        return InstrUnOp { .span = u.span, .dst = new_dst, .op = u.op, .operand = u.operand, .type = u.type }
+    }
+    if ins is InstrFieldGet as fg {
+        return InstrFieldGet { .span = fg.span, .dst = new_dst, .target = fg.target, .field = fg.field, .type = fg.type }
+    }
+    if ins is InstrArrayGet as ag {
+        return InstrArrayGet { .span = ag.span, .dst = new_dst, .target = ag.target, .index = ag.index, .type = ag.type }
+    }
+    if ins is InstrArrayLen as al {
+        return InstrArrayLen { .span = al.span, .dst = new_dst, .target = al.target }
+    }
+    if ins is InstrArraySlice as als {
+        return InstrArraySlice { .span = als.span, .dst = new_dst, .target = als.target, .lo = als.lo, .hi = als.hi, .type = als.type }
+    }
+    if ins is InstrStringSlice as sls {
+        return InstrStringSlice {
+            .span = sls.span, .dst = new_dst, .type = sls.type,
+            .target = sls.target, .lo = sls.lo, .hi = sls.hi,
+        }
+    }
+    if ins is InstrStructNew as sn {
+        return InstrStructNew { .span = sn.span, .dst = new_dst, .type = sn.type, .fields = sn.fields, .stack = sn.stack }
+    }
+    if ins is InstrArrayNew as an {
+        return InstrArrayNew {
+            .span = an.span, .dst = new_dst, .type = an.type,
+            .elements = an.elements, .length = an.length, .stack = an.stack,
+        }
+    }
+    if ins is InstrDataConst as dc {
+        return InstrDataConst { .span = dc.span, .dst = new_dst, .pool_index = dc.pool_index, .type = dc.type }
+    }
+    if ins is InstrTypeCheck as tc {
+        return InstrTypeCheck { .span = tc.span, .dst = new_dst, .value = tc.value, .check_type = tc.check_type }
+    }
+    if ins is InstrTypeConst as tcc {
+        return InstrTypeConst { .span = tcc.span, .dst = new_dst, .value_type = tcc.value_type, .type = tcc.type }
+    }
+    if ins is InstrCast as cs {
+        return InstrCast { .span = cs.span, .dst = new_dst, .value = cs.value, .type = cs.type }
+    }
+    if ins is InstrCellNew as cn {
+        return InstrCellNew { .span = cn.span, .dst = new_dst, .value = cn.value, .value_type = cn.value_type }
+    }
+    if ins is InstrCellGet as cg {
+        return InstrCellGet { .span = cg.span, .dst = new_dst, .cell = cg.cell, .value_type = cg.value_type }
+    }
+    if ins is InstrMakeClosure as mc {
+        return InstrMakeClosure {
+            .span = mc.span, .dst = new_dst, .fn_symbol = mc.fn_symbol,
+            .env = mc.env, .env_type = mc.env_type, .type = mc.type,
+        }
+    }
+    if ins is InstrFnRef as fr {
+        return InstrFnRef { .span = fr.span, .dst = new_dst, .fn_symbol = fr.fn_symbol, .type = fr.type }
+    }
+    return ins
+}
