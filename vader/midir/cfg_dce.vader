@@ -59,7 +59,7 @@ optimise_function :: fn(f: CFGFunction) -> CFGFunction {
         cur = next
         iter = iter + 1
     }
-    return cur
+    return compact_locals(cur)
 }
 
 changed_blocks :: fn(a: CFGFunction, b: CFGFunction) -> bool {
@@ -228,6 +228,275 @@ fold_moves_in_block :: fn(
         }
     }
     return folded
+}
+
+// ============================================================================
+// Pass 2 — compact_locals : drop unreferenced locals + renumber survivors
+//
+// Walks every instruction + terminator collecting referenced locals.
+// Params + side-effecting dsts always count (the slot must exist for
+// `local.set` to land even when the value goes unread). Builds a new
+// `locals[]` containing only referenced entries, renumbers every read
+// + write to the compact index space. Pure instructions whose dst
+// renumbered to -1 (unused) drop entirely. Mirror of TS `compactLocals`
+// (dce.ts:393).
+// ============================================================================
+
+compact_locals :: fn(f: CFGFunction) -> CFGFunction {
+    n :: f.locals.len()
+    referenced: bool[] = []
+    for _ in 0..<n { referenced.push(false) }
+    // Params keep their slots regardless.
+    for p in f.params { if usize(p.local) < n { referenced[usize(p.local)] = true } }
+
+    for b in f.blocks {
+        for ins in b.instructions {
+            for_each_read_local(ins, (l: LocalId) -> {
+                if usize(l) < n { referenced[usize(l)] = true }
+            })
+            // Side-effecting dst must keep its slot.
+            if instruction_has_side_effect(ins) {
+                d :: dst_of(ins)
+                if d is LocalId as dd {
+                    if usize(dd) < n { referenced[usize(dd)] = true }
+                }
+            }
+        }
+        for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
+            if usize(l) < n { referenced[usize(l)] = true }
+        })
+    }
+
+    // Short-circuit when nothing drops.
+    dropped_any := false
+    pc := f.params.len()
+    for pc < n { if !referenced[pc] { dropped_any = true  break }  pc = pc + 1 }
+    if !dropped_any { return f }
+
+    // Build remap + new locals.
+    remap: i32[] = []
+    new_locals: CFGLocal[] = []
+    for i in 0..<n {
+        if !referenced[i] { remap.push(-1)  continue }
+        remap.push(i32(new_locals.len()))
+        new_locals.push(f.locals[i])
+    }
+
+    // Remap params via the same map.
+    new_params: CFGParam[] = []
+    for p in f.params {
+        new_params.push(CFGParam {
+            .name = p.name, .symbol = p.symbol, .type = p.type,
+            .local = remap[usize(p.local)],
+        })
+    }
+
+    // Drop pure instructions whose dst → -1 ; remap survivors.
+    new_blocks: BasicBlock[] = []
+    for b in f.blocks {
+        out: Instruction[] = []
+        for ins in b.instructions {
+            d :: dst_of(ins)
+            if d is LocalId as dd {
+                if usize(dd) < remap.len() && remap[usize(dd)] < 0 {
+                    if !instruction_has_side_effect(ins) { continue }
+                }
+            }
+            out.push(remap_instr(ins, remap))
+        }
+        new_blocks.push(BasicBlock {
+            .id           = b.id,
+            .instructions = out,
+            .terminator   = remap_terminator(b.terminator, remap),
+            .span         = b.span,
+        })
+    }
+    return CFGFunction {
+        .mangled     = f.mangled,
+        .params      = new_params,
+        .return_type = f.return_type,
+        .locals      = new_locals,
+        .blocks      = new_blocks,
+        .entry       = f.entry,
+        .origin      = f.origin,
+        .is_extern   = f.is_extern,
+        .is_exported = f.is_exported,
+        .extern_name = f.extern_name,
+    }
+}
+
+remap_local :: fn(m: i32[], l: LocalId) -> LocalId {
+    if usize(l) < m.len() { return m[usize(l)] }
+    return l
+}
+
+remap_local_opt :: fn(m: i32[], l: LocalId | null) -> LocalId | null {
+    if l is null { return null }
+    if l is LocalId as ll { return remap_local(m, ll) }
+    return null
+}
+
+remap_locals :: fn(m: i32[], ls: LocalId[]) -> LocalId[] {
+    out: LocalId[] = []
+    for l in ls { out.push(remap_local(m, l)) }
+    return out
+}
+
+remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
+    if ins is InstrConst as c {
+        return InstrConst { .span = c.span, .dst = remap_local(m, c.dst), .value = c.value, .type = c.type }
+    }
+    if ins is InstrMove as mv {
+        return InstrMove { .span = mv.span, .dst = remap_local(m, mv.dst), .src = remap_local(m, mv.src) }
+    }
+    if ins is InstrBinOp as b {
+        return InstrBinOp {
+            .span = b.span, .dst = remap_local(m, b.dst), .op = b.op,
+            .lhs = remap_local(m, b.lhs), .rhs = remap_local(m, b.rhs), .type = b.type,
+        }
+    }
+    if ins is InstrUnOp as u {
+        return InstrUnOp {
+            .span = u.span, .dst = remap_local(m, u.dst), .op = u.op,
+            .operand = remap_local(m, u.operand), .type = u.type,
+        }
+    }
+    if ins is InstrCall as c {
+        return InstrCall {
+            .span = c.span, .dst = remap_local_opt(m, c.dst), .callee = c.callee,
+            .args = remap_locals(m, c.args), .type = c.type,
+        }
+    }
+    if ins is InstrCallIndirect as ci {
+        return InstrCallIndirect {
+            .span = ci.span, .dst = remap_local_opt(m, ci.dst),
+            .callee = remap_local(m, ci.callee), .args = remap_locals(m, ci.args),
+            .fn_type = ci.fn_type, .type = ci.type,
+        }
+    }
+    if ins is InstrVirtualCall as vc {
+        return InstrVirtualCall {
+            .span = vc.span, .dst = remap_local_opt(m, vc.dst),
+            .trait_name = vc.trait_name, .method = vc.method,
+            .receiver = remap_local(m, vc.receiver), .args = remap_locals(m, vc.args),
+            .type = vc.type,
+        }
+    }
+    if ins is InstrFnRef as fr {
+        return InstrFnRef { .span = fr.span, .dst = remap_local(m, fr.dst), .fn_symbol = fr.fn_symbol, .type = fr.type }
+    }
+    if ins is InstrFieldGet as fg {
+        return InstrFieldGet {
+            .span = fg.span, .dst = remap_local(m, fg.dst),
+            .target = remap_local(m, fg.target), .field = fg.field, .type = fg.type,
+        }
+    }
+    if ins is InstrFieldSet as fs {
+        return InstrFieldSet {
+            .span = fs.span, .target = remap_local(m, fs.target),
+            .field = fs.field, .value = remap_local(m, fs.value), .barrierless = fs.barrierless,
+        }
+    }
+    if ins is InstrArrayGet as ag {
+        return InstrArrayGet {
+            .span = ag.span, .dst = remap_local(m, ag.dst),
+            .target = remap_local(m, ag.target), .index = remap_local(m, ag.index), .type = ag.type,
+        }
+    }
+    if ins is InstrArraySet as ase {
+        return InstrArraySet {
+            .span = ase.span, .target = remap_local(m, ase.target),
+            .index = remap_local(m, ase.index), .value = remap_local(m, ase.value),
+        }
+    }
+    if ins is InstrArrayLen as al {
+        return InstrArrayLen { .span = al.span, .dst = remap_local(m, al.dst), .target = remap_local(m, al.target) }
+    }
+    if ins is InstrArrayPush as ap {
+        return InstrArrayPush { .span = ap.span, .target = remap_local(m, ap.target), .value = remap_local(m, ap.value) }
+    }
+    if ins is InstrArraySlice as als {
+        return InstrArraySlice {
+            .span = als.span, .dst = remap_local(m, als.dst), .type = als.type,
+            .target = remap_local(m, als.target), .lo = remap_local(m, als.lo), .hi = remap_local(m, als.hi),
+        }
+    }
+    if ins is InstrStringSlice as sls {
+        return InstrStringSlice {
+            .span = sls.span, .dst = remap_local(m, sls.dst), .type = sls.type,
+            .target = remap_local(m, sls.target), .lo = remap_local(m, sls.lo), .hi = remap_local(m, sls.hi),
+        }
+    }
+    if ins is InstrStructNew as sn {
+        return InstrStructNew {
+            .span = sn.span, .dst = remap_local(m, sn.dst), .type = sn.type,
+            .fields = remap_locals(m, sn.fields), .stack = sn.stack,
+        }
+    }
+    if ins is InstrArrayNew as an {
+        return InstrArrayNew {
+            .span = an.span, .dst = remap_local(m, an.dst), .type = an.type,
+            .length = an.length, .elements = remap_locals(m, an.elements), .stack = an.stack,
+        }
+    }
+    if ins is InstrDataConst as dc {
+        return InstrDataConst { .span = dc.span, .dst = remap_local(m, dc.dst), .pool_index = dc.pool_index, .type = dc.type }
+    }
+    if ins is InstrTypeCheck as tc {
+        return InstrTypeCheck {
+            .span = tc.span, .dst = remap_local(m, tc.dst),
+            .value = remap_local(m, tc.value), .check_type = tc.check_type,
+        }
+    }
+    if ins is InstrTypeConst as tcc {
+        return InstrTypeConst { .span = tcc.span, .dst = remap_local(m, tcc.dst), .value_type = tcc.value_type, .type = tcc.type }
+    }
+    if ins is InstrCast as cs {
+        return InstrCast {
+            .span = cs.span, .dst = remap_local(m, cs.dst),
+            .value = remap_local(m, cs.value), .type = cs.type,
+        }
+    }
+    if ins is InstrCellNew as cn {
+        return InstrCellNew {
+            .span = cn.span, .dst = remap_local(m, cn.dst),
+            .value = remap_local(m, cn.value), .value_type = cn.value_type,
+        }
+    }
+    if ins is InstrCellGet as cg {
+        return InstrCellGet {
+            .span = cg.span, .dst = remap_local(m, cg.dst),
+            .cell = remap_local(m, cg.cell), .value_type = cg.value_type,
+        }
+    }
+    if ins is InstrCellSet as cse {
+        return InstrCellSet {
+            .span = cse.span, .cell = remap_local(m, cse.cell),
+            .value = remap_local(m, cse.value), .value_type = cse.value_type,
+        }
+    }
+    if ins is InstrMakeClosure as mc {
+        return InstrMakeClosure {
+            .span = mc.span, .dst = remap_local(m, mc.dst), .fn_symbol = mc.fn_symbol,
+            .env = remap_local(m, mc.env), .env_type = mc.env_type, .type = mc.type,
+        }
+    }
+    if ins is InstrIntrinsic as it {
+        return InstrIntrinsic {
+            .span = it.span, .dst = remap_local_opt(m, it.dst),
+            .name = it.name, .args = remap_locals(m, it.args),
+            .display_for = it.display_for,
+        }
+    }
+    return ins
+}
+
+remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
+    if t is TermBranch          { return t }
+    if t is TermUnreachable     { return t }
+    if t is TermCondBranch as c { return TermCondBranch { .cond = remap_local(m, c.cond), .then_block = c.then_block, .else_block = c.else_block, .span = c.span } }
+    if t is TermReturn as r     { return TermReturn { .value = remap_local_opt(m, r.value), .span = r.span } }
+    return t
 }
 
 /// Rebuild an instruction with its `dst` changed to `new_dst`. Pure
