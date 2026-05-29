@@ -46,6 +46,11 @@ const VADER_SELF_EMIT = new Set<string>([
   "vm_hello",
   "interpolation",
   "vm_interp_basic",
+  "vm_arith",
+  "for_range",
+  "loop",
+  "vm_interp_mixed",
+  "vm_interp_loop",
 ]);
 
 // Snippets that the self-host VM can't yet run end-to-end. New entries
