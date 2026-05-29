@@ -40,7 +40,8 @@ import "vader/vm" {
     MakeClosure,
 }
 import "vader/bytecode" {
-    intern_cell_type, run_bc_peephole, propagate_const_single_use, drop_dead_stores,
+    intern_cell_type, run_bc_peephole, run_bc_return_lit_fold,
+    propagate_const_single_use, drop_dead_stores,
     prune_unused_vtables, prune_unused_functions, prune_unused_imports, prune_unused_types,
     type_intern_key,
 }
@@ -199,6 +200,14 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // assignments don't propagate ; each helper now returns the
             // rewritten body / fn and the caller threads it back into
             // `ctx.functions[i]`.
+            //
+            // Order mirrors TS (`src/bytecode/peephole.ts::runPeepholes`) :
+            // applyLocalRules → propagateConstSingleUse → dropDeadStores.
+            // Running propagate AFTER Rule 1 leaves slots Rule 1 didn't
+            // fold (non-adjacent set+get because the CFG interleaves
+            // sibling operand-sets) for propagate to inline. Reversing
+            // the order causes Rule 1 to fold the now-adjacent set+get
+            // post-propagate and over-folds compared to TS.
             new_body :: run_bc_peephole(ctx.functions[i])
             f :: ctx.functions[i]
             ctx.functions[i] = BcFunction {
@@ -208,11 +217,13 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             }
             propagate_const_single_use(ctx.functions[i])
             ctx.functions[i] = drop_dead_stores(ctx.functions[i])
-            // Second-pass peephole : drop_dead_stores removed dead `local.tee`s
-            // so a `<const> ; local.tee dead-slot ; return` now reads as
-            // `<const> ; return` — pick up the Rule 5 fold the first pass
-            // couldn't see.
-            second_body :: run_bc_peephole(ctx.functions[i])
+            // Second-pass : ONLY the Rule 5 (`<Const> ; Return` → ReturnLit)
+            // fold. drop_dead_stores opens new const-before-return windows
+            // by removing dead tees / sets ; re-running the full
+            // `run_bc_peephole` here would also re-fold set+get pairs that
+            // slot-renumbering made adjacent, over-folding compared to TS
+            // (whose applyLocalRules runs once on the original adjacency).
+            second_body :: run_bc_return_lit_fold(ctx.functions[i])
             g :: ctx.functions[i]
             ctx.functions[i] = BcFunction {
                 .name = g.name, .is_main = g.is_main, .signature = g.signature,
@@ -555,6 +566,25 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
         emit_get(ctx, cb.cond, cb.span)
         cf_if(ctx, cb.span, merge)
         if merge < 0 || cb.then_block != merge { emit_range(ctx, cb.then_block, merge) }
+        // Early-return flattening : when the then-branch's last op is a
+        // genuine exit (Return / ReturnLit / Branch / unreachable-equivalent),
+        // the else-body becomes the post-`end` continuation instead of
+        // an `else` arm — mirrors `src/midir/emit.ts:325-333`. Without
+        // this, `if c { return X } y()` would emit an `else` wrapping
+        // the trailing `y()` even though it's reachable on both paths.
+        body :: ctx.slot.body
+        body_len :: body.len()
+        then_exits := false
+        if body_len > usize(0) {
+            last :: body[body_len - usize(1)]
+            if last is Return                  { then_exits = true }
+            if last is ReturnLit               { then_exits = true }
+            if last is Branch                  { then_exits = true }
+        }
+        if then_exits && cb.else_block != merge {
+            cf_end(ctx, cb.span)
+            return cb.else_block
+        }
         cf_else(ctx, cb.span)
         if merge < 0 || cb.else_block != merge { emit_range(ctx, cb.else_block, merge) }
         cf_end(ctx, cb.span)
@@ -636,7 +666,8 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
     if ins is InstrFnRef as fr {
         fn_idx_opt :: ctx.project.function_index_by_symbol_id[fr.fn_symbol.id]
         if fn_idx_opt is i32 as fn_idx {
-            push_emit(ctx, FnRef { .function_index = fn_idx }, fr.span)
+            type_index :: intern_type(fr.type, ctx.project)
+            push_emit(ctx, FnRef { .function_index = fn_idx, .type_id = type_index }, fr.span)
         } else {
             push_emit(ctx, Return {}, fr.span)
             return
@@ -701,6 +732,9 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
         emit_get(ctx, ag.target, ag.span)
         emit_get(ctx, ag.index, ag.span)
         push_emit(ctx, ArrayGet { .type_id = type_index }, ag.span)
+        if needs_ref_cast(ag.type) {
+            push_emit(ctx, RefCast { .type_id = intern_type(ag.type, ctx.project) }, ag.span)
+        }
         emit_set(ctx, ag.dst, ag.span)
         return
     }

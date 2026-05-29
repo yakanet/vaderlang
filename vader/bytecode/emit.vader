@@ -159,7 +159,7 @@ export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: Em
             }
             propagate_const_single_use(ctx.functions[i])
             ctx.functions[i] = drop_dead_stores(ctx.functions[i])
-            second_body :: run_bc_peephole(ctx.functions[i])
+            second_body :: run_bc_return_lit_fold(ctx.functions[i])
             g :: ctx.functions[i]
             ctx.functions[i] = BcFunction {
                 .name = g.name, .is_main = g.is_main, .signature = g.signature,
@@ -189,7 +189,14 @@ export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: Em
 ///   - Rule 4 : `BoolNot ; BoolNot` → ε.
 /// Branch-target safety is preserved because Vader's `br` / `br_if` use
 /// label-stack relative depths.
-export run_bc_peephole :: fn(function: BcFunction) -> Op[] {
+/// Rule-5-only pass : `<Const> ; Return` → `ReturnLit { value }`. Used
+/// by the second peephole pass (after drop_dead_stores) — re-running
+/// the full `run_bc_peephole` there would re-fold set+get pairs that
+/// drop_dead just slot-coalesced into adjacency, diverging from TS
+/// which folds Rule 1 only on the *original* (pre-propagate-pre-DCE)
+/// adjacency. Returning the rewritten body keeps the by-value rebuild
+/// contract identical to `run_bc_peephole`.
+export run_bc_return_lit_fold :: fn(function: BcFunction) -> Op[] {
     body :: function.body
     n :: body.len()
     out: Op[] = []
@@ -197,13 +204,58 @@ export run_bc_peephole :: fn(function: BcFunction) -> Op[] {
     i: usize = 0
     for i < n {
         op :: body[i]
+        if op is Return {
+            cur_len :: out.len()
+            if cur_len > usize(0) {
+                prev :: out[cur_len - usize(1)]
+                cv :: const_op_of(prev)
+                if cv !is null {
+                    out[cur_len - usize(1)] = ReturnLit { .value = cv }
+                    i += usize(1)
+                    continue
+                }
+            }
+        }
+        push_or_assign(out, out_len, op)
+        out_len += usize(1)
+        i += usize(1)
+    }
+    return take_prefix(out, out_len)
+}
 
-        // Rule 1 — `LocalSet N ; LocalGet N` → `LocalTee N`.
+export run_bc_peephole :: fn(function: BcFunction) -> Op[] {
+    body :: function.body
+    n :: body.len()
+    // Pre-compute per-slot read count (LocalGet + LocalField). Rule 1 only
+    // fires on single-use slots — TS's emit emits set+get NON-adjacent for
+    // multi-use slots (the 3-address scheduler interleaves other instrs'
+    // sets between the set and the first get), so applyLocalRules over there
+    // never sees a foldable pair ; Vader's emit produces them adjacent
+    // unconditionally so we have to gate the fold on the use-count to
+    // avoid diverging from the snapshot on every multi-use slot.
+    param_count :: function.signature.params.len()
+    total_slots :: param_count + function.locals.len()
+    slot_reads: i32[] = []
+    rs: usize = 0
+    for rs < total_slots { slot_reads.push(0)  rs += usize(1) }
+    for op in body {
+        if op is LocalGet as g   { slot_reads[usize(g.slot)] += 1 }
+        if op is LocalField as f { slot_reads[usize(f.slot)] += 1 }
+    }
+    out: Op[] = []
+    out_len: usize = 0
+    i: usize = 0
+    for i < n {
+        op :: body[i]
+
+        // Rule 1 — `LocalSet N ; LocalGet N` → `LocalTee N`. Gated on
+        // single-use slot (see slot_reads pre-pass) so multi-use slots
+        // round-trip through set+get instead of tee — matches TS.
         if op is LocalSet as ls {
             if i + usize(1) < n {
                 next :: body[i + usize(1)]
                 if next is LocalGet as lg {
-                    if lg.slot == ls.slot {
+                    if lg.slot == ls.slot && slot_reads[usize(ls.slot)] == 1 {
                         push_or_assign(out, out_len, LocalTee { .slot = ls.slot })
                         out_len += usize(1)
                         i += usize(2)

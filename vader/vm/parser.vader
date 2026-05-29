@@ -1479,8 +1479,8 @@ parse_virtual_call :: fn(line: string) -> Op | null {
 parse_fn_ref :: fn(line: string) -> Op | null {
     pair :: parse_int_pair_after_prefix(line, "fn.ref ")
     if pair is null { return null }
-    [fn_idx, _] :: pair
-    return FnRef { .function_index = fn_idx }
+    [fn_idx, type_id] :: pair
+    return FnRef { .function_index = fn_idx, .type_id = type_id }
 }
 
 /// Parse `make_closure FN_INDEX ENV_TYPE_ID` — same shape as `fn.ref`,

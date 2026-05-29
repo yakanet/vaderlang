@@ -172,7 +172,7 @@ export Call :: struct { function_index: i32 }
 /// a fn is stored in a struct field, passed as an argument, or bound to
 /// a local. Sprint 4 (b4) addition ; the resulting `FnVal.env` is
 /// always `null` — closures with captured state come from `MakeClosure`.
-export FnRef :: struct { function_index: i32 }
+export FnRef :: struct { function_index: i32, type_id: i32 }
 
 /// Build a closure : pop an `env` value (typically a `StructVal`
 /// carrying the captured cells) and push a `FnVal { function_index, env }`.

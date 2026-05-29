@@ -254,7 +254,7 @@ emit_ident :: fn(ident: LoweredIdent, state: FnEmitState, ctx: EmitterCtx) -> vo
     }
     fn_index :: ctx.function_index_by_symbol_id[ident.symbol.id]
     if fn_index is i32 as fi {
-        push_op(state, FnRef { .function_index = fi })
+        push_op(state, FnRef { .function_index = fi, .type_id = intern_type(ident.type, ctx) })
         return
     }
     // Symbol resolves to neither slot nor fn-table entry. Lowerer bug —

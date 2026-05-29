@@ -1793,6 +1793,17 @@ ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual:
             visit_fn(mc.fn_symbol.id, mc.fn_symbol.name)
             ref_expr(mc.env, visit_fn, visit_virtual)
         }
+        // A bare `LoweredIdent` whose symbol resolves to a `Fn` is a
+        // fn-value reference (e.g. `let f = add`) — visit the target
+        // so DCE keeps it alive. Without this, `add` (or any fn passed
+        // by value but not directly called) gets pruned and the
+        // bytecode emit hits the defensive `Return` stub when it
+        // tries to resolve the fn-index. Mirror of TS's same walk.
+        is LoweredIdent as ident -> {
+            if i32(ident.symbol.kind) == i32(SymbolKind.Fn) {
+                visit_fn(ident.symbol.id, ident.symbol.name)
+            }
+        }
         _ -> {}
     }
 }

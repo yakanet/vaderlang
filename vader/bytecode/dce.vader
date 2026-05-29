@@ -178,7 +178,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx) -> void {
                 fn_.body[bj] = Call { .function_index = remap[usize(c.function_index)] }
             }
             if op is FnRef as fr {
-                fn_.body[bj] = FnRef { .function_index = remap[usize(fr.function_index)] }
+                fn_.body[bj] = FnRef { .function_index = remap[usize(fr.function_index)], .type_id = fr.type_id }
             }
             if op is MakeClosure as mc {
                 fn_.body[bj] = MakeClosure {

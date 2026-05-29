@@ -330,7 +330,7 @@ format_op :: fn(op: Op) -> string = match op {
     is CallImport as c          -> "call.import ${c.index}"
     is CallIndirect as c        -> "call.indirect ${c.type_id}"
     is VirtualCall as v         -> "virtual.call ${v.parameter_count} ${v.vtable_key}"
-    is FnRef as f               -> "fn.ref ${f.function_index}"
+    is FnRef as f               -> "fn.ref ${f.function_index} ${f.type_id}"
     is MakeClosure as m         -> "make_closure ${m.function_index} ${m.env_type_id}"
     is If                       -> "if"
     is Else                     -> "else"
