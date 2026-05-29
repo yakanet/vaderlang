@@ -8,7 +8,7 @@ type 5 struct __lambda_env_3 { cap_0:8 }
 type 6 struct __lambda_env_7 { cap_0:8 }
 type 7 primitive string
 type 8 ref _
-type 9 struct "$Cell_Struct#/Users/mbroutin/Developments/default/vaderlang2/tests/snippets/closure_pattern_binding/_main.vader:47<>" { value:3 }
+type 9 struct "$Cell_Struct#tests/snippets/closure_pattern_binding/_main.vader:47<>" { value:3 }
 type 10 fn () -> 7
 type 11 struct $Cell_i32 { value:2 }
 type 12 fn () -> 2

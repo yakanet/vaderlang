@@ -96,11 +96,6 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
 }
 
 reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
-    fields: BcField[] = []
-    for f in s.fields {
-        type_index :: intern_type(f.type, ctx)
-        fields.push(BcField { .name = f.name, .type_index = type_index })
-    }
     sym_id := i32(-1)
     if s.origin.symbol is Symbol as sym { sym_id = sym.id }
     // Key on the struct *type*'s intern key (display_type), not the
@@ -110,6 +105,12 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
     // Without this, a `ref` placeholder minted earlier under the
     // intern key stays orphaned and downstream `intern_type` calls see
     // a `ref` slot instead of the populated `BcStruct`.
+    //
+    // Slot order: reserve the struct's slot BEFORE recursing into
+    // field types so self-referential structs (linked-list nodes etc.)
+    // terminate AND the struct's slot lands at the lower index — TS
+    // does the same (internStructDecl, emit.ts:456-466) ; reversing
+    // the order produces a fn/struct slot swap on fn-typed fields.
     if s.origin.symbol is Symbol as sym {
         struct_type :: mk_struct(sym, s.origin.type_arguments)
         key :: type_intern_key(struct_type)
@@ -122,14 +123,26 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
             ctx.type_key[key] = idx
             ctx.types.push(BcRef { .trait_name = s.mangled })
         }
+        fields: BcField[] = []
+        for f in s.fields {
+            type_index :: intern_type(f.type, ctx)
+            fields.push(BcField { .name = f.name, .type_index = type_index })
+        }
         ctx.types[usize(idx)] = BcStruct { .name = s.mangled, .fields = fields, .symbol_id = sym_id }
         return
     }
     // Origin sans symbol (synth env structs, lifted closures) keys on
     // the mangled name directly — no `Type` shape exists for them so
-    // the display-type round-trip isn't applicable.
+    // the display-type round-trip isn't applicable. Same reserve-before-
+    // intern dance for symmetry with the symbol-bearing branch.
     new_index :: i32(ctx.types.len())
-    ctx.types.push(BcStruct { .name = s.mangled, .fields = fields, .symbol_id = sym_id })
+    ctx.types.push(BcRef { .trait_name = s.mangled })
+    fields: BcField[] = []
+    for f in s.fields {
+        type_index :: intern_type(f.type, ctx)
+        fields.push(BcField { .name = f.name, .type_index = type_index })
+    }
+    ctx.types[usize(new_index)] = BcStruct { .name = s.mangled, .fields = fields, .symbol_id = sym_id }
     ctx.type_key[s.mangled] = new_index
 }
 
@@ -348,6 +361,12 @@ FnEmitCfg :: struct {
     scopes:              ScopeFrame[]
     pending:             PendingBranch[]
     wrapped_loop_headers: MutableSet<i32>
+    /// Stack-pass-through hints — see vader/midir/scheduler. Queried by
+    /// emit_get / emit_set / TermReturn to elide the local.set + local.get
+    /// pair when an instruction's single-use result flows directly to the
+    /// next consumer. Mirrors TS's `scheduler.skipSet / skipFirstGet /
+    /// skipTerminatorGet`.
+    hints:               ScheduleHints
 }
 
 emit_cfg_function_body :: fn(
@@ -382,6 +401,8 @@ emit_cfg_function_body :: fn(
     ipostdom :: compute_post_dominators(cfg_fn)
     loop_exit :: find_loop_exits(cfg_fn, preds, idom)
 
+    hints :: schedule_stack(cfg_fn)
+
     fn_ctx :: FnEmitCfg {
         .fn_                  = cfg_fn,
         .slot                 = slot,
@@ -397,6 +418,7 @@ emit_cfg_function_body :: fn(
         .wrapped_loop_headers = MutableSet<i32> {
             .inner = MutableMap<i32, bool> { .buckets = [], .size = 0 },
         },
+        .hints                = hints,
     }
 
     emit_range(fn_ctx, cfg_fn.entry, -1)
@@ -475,25 +497,33 @@ cf_br_if :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
 }
 
 defer_or_resolve_branch :: fn(ctx: FnEmitCfg, target_blk: BlockId, pc: i32) -> void {
-    // Walk the scope stack top-down for a matching target. Loop scopes
-    // resolve immediately to the loop opener+1 (continue) ; block/if
-    // scopes defer to the matching end.
+    // Walk the scope stack for a matching target. CRITICAL : LOOP scopes
+    // are preferred over enclosing IF/BLOCK scopes whose `target_blk`
+    // happens to equal the loop's — without this, a body's
+    // `br loop_header` lands on the wrapping if's End label instead of
+    // the loop's opener. TS doesn't hit this because its IF scope's
+    // target is `merge ?? -1` (never coincidental with a loop's real
+    // target), but Vader's `cond_branch_merge` can return the loop's
+    // own header for back-edge-only branches.
     sp :: ctx.scopes.len()
+    iL := i64(sp) - i64(1)
+    for iL >= 0 {
+        scope :: ctx.scopes[usize(iL)]
+        if scope.kind == "loop" && scope.target_blk == target_blk {
+            ctx.slot.jump_table[usize(pc)] = scope.opener_pc + 1
+            return
+        }
+        iL = iL - 1
+    }
     i := i64(sp) - i64(1)
     for i >= 0 {
         scope :: ctx.scopes[usize(i)]
         if scope.target_blk == target_blk {
-            if scope.kind == "loop" {
-                ctx.slot.jump_table[usize(pc)] = scope.opener_pc + 1
-            } else {
-                // Defer to end of this scope.
-                ctx.pending.push(PendingBranch { .branch_pc = pc, .target_blk = target_blk })
-            }
+            ctx.pending.push(PendingBranch { .branch_pc = pc, .target_blk = target_blk })
             return
         }
         i = i - 1
     }
-    // No matching scope ; pending (forward jump across scopes).
     ctx.pending.push(PendingBranch { .branch_pc = pc, .target_blk = target_blk })
 }
 
@@ -576,14 +606,16 @@ loop_exit_present :: fn(ctx: FnEmitCfg, b: BlockId) -> bool {
 /// when the terminator already left the current scope.
 emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> BlockId {
     block :: ctx.fn_.blocks[usize(block_id)]
-    for ins in block.instructions {
-        emit_instr(ctx, ins)
+    for i in 0..<block.instructions.len() {
+        emit_instr(ctx, block.instructions[i], pos_key(block_id, i))
     }
 
     t :: block.terminator
     if t is TermReturn as r {
         if r.value !is null {
-            emit_get(ctx, r.value, r.span)
+            if !ctx.hints.skip_terminator_get.contains(block_id) {
+                emit_get(ctx, r.value, r.span)
+            }
         }
         // Fuse `<const> + Return → ReturnLit X` post-emit. Mirrors
         // `midir/emit.ts:283-293`.
@@ -619,7 +651,9 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
     }
     if t is TermCondBranch as cb {
         merge :: cond_branch_merge(ctx, block_id, until)
-        emit_get(ctx, cb.cond, cb.span)
+        if !ctx.hints.skip_terminator_get.contains(block_id) {
+            emit_get(ctx, cb.cond, cb.span)
+        }
         cf_if(ctx, cb.span, merge)
         if merge < 0 || cb.then_block != merge { emit_range(ctx, cb.then_block, merge) }
         // Early-return flattening : when the then-branch's last op is a
@@ -665,26 +699,29 @@ cond_branch_merge :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> Bl
 // Per-instr emit (minimal subset — Const, Move, BinOp, Call cover arith)
 // ============================================================================
 
-emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
+emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     if ins is InstrConst as c {
-        emit_const_instr(ctx, c)
+        emit_const_instr(ctx, c, pos)
         return
     }
     if ins is InstrMove as m {
-        emit_get(ctx, m.src, m.span)
-        emit_set(ctx, m.dst, m.span)
+        emit_first_get(ctx, pos, m.src, m.span)
+        emit_result(ctx, pos, m.dst, m.span)
         return
     }
     if ins is InstrBinOp as b {
-        emit_get(ctx, b.lhs, b.span)
+        emit_first_get(ctx, pos, b.lhs, b.span)
         emit_get(ctx, b.rhs, b.span)
         lhs_type :: ctx.fn_.locals[usize(b.lhs)].type
         push_emit(ctx, binary_op_for(b.op, val_type_of_type(lhs_type)), b.span)
-        emit_set(ctx, b.dst, b.span)
+        emit_result(ctx, pos, b.dst, b.span)
         return
     }
     if ins is InstrCall as c {
-        for a in c.args { emit_get(ctx, a, c.span) }
+        for ai in 0..<c.args.len() {
+            if ai == usize(0) { emit_first_get(ctx, pos, c.args[ai], c.span) }
+            else              { emit_get(ctx, c.args[ai], c.span) }
+        }
         // Direct fn call → `Call` ; @extern/@intrinsic import → `CallImport`.
         // Without the import-path branch, an `@extern` callee falls through
         // to the defensive `Return` arm and the program loses the call
@@ -701,22 +738,29 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
                 return
             }
         }
-        if c.dst !is null { emit_set(ctx, c.dst, c.span) }
+        emit_result_if_any(ctx, pos, c.dst, c.span)
         return
     }
     if ins is InstrUnOp as u {
-        emit_get(ctx, u.operand, u.span)
+        emit_first_get(ctx, pos, u.operand, u.span)
         operand_val :: val_type_of_type(ctx.fn_.locals[usize(u.operand)].type)
         push_emit(ctx, unary_op_for(u.op, operand_val), u.span)
-        emit_set(ctx, u.dst, u.span)
+        emit_result(ctx, pos, u.dst, u.span)
         return
     }
     if ins is InstrCallIndirect as ci {
-        for a in ci.args { emit_get(ctx, a, ci.span) }
-        emit_get(ctx, ci.callee, ci.span)
+        for ai in 0..<ci.args.len() {
+            if ai == usize(0) { emit_first_get(ctx, pos, ci.args[ai], ci.span) }
+            else              { emit_get(ctx, ci.args[ai], ci.span) }
+        }
+        if ci.args.len() == usize(0) {
+            emit_first_get(ctx, pos, ci.callee, ci.span)
+        } else {
+            emit_get(ctx, ci.callee, ci.span)
+        }
         type_index :: intern_type(ci.fn_type, ctx.project)
         push_emit(ctx, CallIndirect { .type_id = type_index }, ci.span)
-        if ci.dst !is null { emit_set(ctx, ci.dst, ci.span) }
+        emit_result_if_any(ctx, pos, ci.dst, ci.span)
         return
     }
     if ins is InstrFnRef as fr {
@@ -728,23 +772,35 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
             push_emit(ctx, Return {}, fr.span)
             return
         }
-        emit_set(ctx, fr.dst, fr.span)
+        emit_result(ctx, pos, fr.dst, fr.span)
         return
     }
     if ins is InstrVirtualCall as vc {
-        for a in vc.args { emit_get(ctx, a, vc.span) }
-        emit_get(ctx, vc.receiver, vc.span)
+        for ai in 0..<vc.args.len() {
+            if ai == usize(0) { emit_first_get(ctx, pos, vc.args[ai], vc.span) }
+            else              { emit_get(ctx, vc.args[ai], vc.span) }
+        }
+        if vc.args.len() == usize(0) {
+            emit_first_get(ctx, pos, vc.receiver, vc.span)
+        } else {
+            emit_get(ctx, vc.receiver, vc.span)
+        }
         push_emit(ctx, VirtualCall {
             .vtable_key = "${vc.trait_name}.${vc.method}",
             .parameter_count = i32(vc.args.len() + usize(1)),
         }, vc.span)
-        if vc.dst !is null { emit_set(ctx, vc.dst, vc.span) }
+        emit_result_if_any(ctx, pos, vc.dst, vc.span)
         return
     }
     if ins is InstrFieldGet as fg {
         target_type :: ctx.fn_.locals[usize(fg.target)].type
         type_index :: intern_type(target_type, ctx.project)
-        emit_get(ctx, fg.target, fg.span)
+        // Remember whether the scheduler elided our receiver get BEFORE
+        // emitting it ; if it did, the tail op belongs to the producer
+        // instruction, not us, and `try_fuse_local_field` would corrupt
+        // it. Mirrors TS `skippedReceiverGet` (src/midir/emit.ts:556).
+        skipped_receiver_get :: ctx.hints.skip_first_get.contains(pos)
+        emit_first_get(ctx, pos, fg.target, fg.span)
         field_index :: find_struct_field_index(ctx.project, type_index, fg.field)
         if field_index < 0 {
             push_emit(ctx, Drop {}, fg.span)
@@ -754,7 +810,10 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
         // Fuse `local.get N ; struct.get T F` → `local.field N T F`
         // when the just-emitted op is the receiver's slot read. Mirrors
         // the TS midir emit (src/midir/emit.ts:552).
-        fused :: try_fuse_local_field(ctx, type_index, field_index)
+        fused := false
+        if !skipped_receiver_get {
+            fused = try_fuse_local_field(ctx, type_index, field_index)
+        }
         if !fused {
             push_emit(ctx, StructGet { .type_id = type_index, .field_index = field_index }, fg.span)
         }
@@ -765,13 +824,13 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
         if needs_ref_cast(fg.type) {
             push_emit(ctx, RefCast { .type_id = intern_type(fg.type, ctx.project) }, fg.span)
         }
-        emit_set(ctx, fg.dst, fg.span)
+        emit_result(ctx, pos, fg.dst, fg.span)
         return
     }
     if ins is InstrFieldSet as fs {
         target_type :: ctx.fn_.locals[usize(fs.target)].type
         type_index :: intern_type(target_type, ctx.project)
-        emit_get(ctx, fs.target, fs.span)
+        emit_first_get(ctx, pos, fs.target, fs.span)
         emit_get(ctx, fs.value, fs.span)
         field_index :: find_struct_field_index(ctx.project, type_index, fs.field)
         if field_index < 0 {
@@ -785,89 +844,95 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
     if ins is InstrArrayGet as ag {
         target_type :: ctx.fn_.locals[usize(ag.target)].type
         type_index :: intern_type(target_type, ctx.project)
-        emit_get(ctx, ag.target, ag.span)
+        emit_first_get(ctx, pos, ag.target, ag.span)
         emit_get(ctx, ag.index, ag.span)
         push_emit(ctx, ArrayGet { .type_id = type_index }, ag.span)
         if needs_ref_cast(ag.type) {
             push_emit(ctx, RefCast { .type_id = intern_type(ag.type, ctx.project) }, ag.span)
         }
-        emit_set(ctx, ag.dst, ag.span)
+        emit_result(ctx, pos, ag.dst, ag.span)
         return
     }
     if ins is InstrArraySet as ase {
         target_type :: ctx.fn_.locals[usize(ase.target)].type
         type_index :: intern_type(target_type, ctx.project)
-        emit_get(ctx, ase.target, ase.span)
+        emit_first_get(ctx, pos, ase.target, ase.span)
         emit_get(ctx, ase.index, ase.span)
         emit_get(ctx, ase.value, ase.span)
         push_emit(ctx, ArraySet { .type_id = type_index }, ase.span)
         return
     }
     if ins is InstrArrayLen as al {
-        emit_get(ctx, al.target, al.span)
+        emit_first_get(ctx, pos, al.target, al.span)
         push_emit(ctx, ArrayLen {}, al.span)
-        emit_set(ctx, al.dst, al.span)
+        emit_result(ctx, pos, al.dst, al.span)
         return
     }
     if ins is InstrArrayPush as ap {
         value_type :: ctx.fn_.locals[usize(ap.value)].type
-        emit_get(ctx, ap.target, ap.span)
+        emit_first_get(ctx, pos, ap.target, ap.span)
         emit_get(ctx, ap.value, ap.span)
         push_emit(ctx, ArrayPush { .type_id = intern_type(value_type, ctx.project) }, ap.span)
         return
     }
     if ins is InstrArraySlice as als {
         type_index :: intern_type(als.type, ctx.project)
-        emit_get(ctx, als.target, als.span)
+        emit_first_get(ctx, pos, als.target, als.span)
         emit_get(ctx, als.lo, als.span)
         emit_get(ctx, als.hi, als.span)
         push_emit(ctx, ArraySlice { .type_id = type_index }, als.span)
-        emit_set(ctx, als.dst, als.span)
+        emit_result(ctx, pos, als.dst, als.span)
         return
     }
     if ins is InstrStringSlice as sls {
-        emit_get(ctx, sls.target, sls.span)
+        emit_first_get(ctx, pos, sls.target, sls.span)
         emit_get(ctx, sls.lo, sls.span)
         emit_get(ctx, sls.hi, sls.span)
         push_emit(ctx, StringSliceCodepoints {}, sls.span)
-        emit_set(ctx, sls.dst, sls.span)
+        emit_result(ctx, pos, sls.dst, sls.span)
         return
     }
     if ins is InstrStructNew as sn {
         type_index :: intern_type(sn.type, ctx.project)
-        for f in sn.fields { emit_get(ctx, f, sn.span) }
+        for fi in 0..<sn.fields.len() {
+            if fi == usize(0) { emit_first_get(ctx, pos, sn.fields[fi], sn.span) }
+            else              { emit_get(ctx, sn.fields[fi], sn.span) }
+        }
         push_emit(ctx, StructNew { .type_id = type_index, .stack = sn.stack }, sn.span)
-        emit_set(ctx, sn.dst, sn.span)
+        emit_result(ctx, pos, sn.dst, sn.span)
         return
     }
     if ins is InstrArrayNew as an {
         type_index :: intern_type(an.type, ctx.project)
-        for e in an.elements { emit_get(ctx, e, an.span) }
+        for ei in 0..<an.elements.len() {
+            if ei == usize(0) { emit_first_get(ctx, pos, an.elements[ei], an.span) }
+            else              { emit_get(ctx, an.elements[ei], an.span) }
+        }
         push_emit(ctx, ArrayNew { .type_id = type_index, .length = an.length }, an.span)
-        emit_set(ctx, an.dst, an.span)
+        emit_result(ctx, pos, an.dst, an.span)
         return
     }
     if ins is InstrDataConst as dc {
         type_index :: intern_type(dc.type, ctx.project)
         push_emit(ctx, DataConst { .pool_index = dc.pool_index, .type_id = type_index }, dc.span)
-        emit_set(ctx, dc.dst, dc.span)
+        emit_result(ctx, pos, dc.dst, dc.span)
         return
     }
     if ins is InstrTypeCheck as tc {
-        emit_get(ctx, tc.value, tc.span)
+        emit_first_get(ctx, pos, tc.value, tc.span)
         type_index :: intern_type(tc.check_type, ctx.project)
         push_emit(ctx, TypeCheck { .type_id = type_index }, tc.span)
-        emit_set(ctx, tc.dst, tc.span)
+        emit_result(ctx, pos, tc.dst, tc.span)
         return
     }
     if ins is InstrTypeConst as tcc {
         type_index :: intern_type(tcc.value_type, ctx.project)
         push_emit(ctx, TypeConst { .type_id = type_index }, tcc.span)
-        emit_set(ctx, tcc.dst, tcc.span)
+        emit_result(ctx, pos, tcc.dst, tcc.span)
         return
     }
     if ins is InstrCast as cs {
-        emit_get(ctx, cs.value, cs.span)
+        emit_first_get(ctx, pos, cs.value, cs.span)
         from_type :: ctx.fn_.locals[usize(cs.value)].type
         from_val :: val_type_of_type(from_type)
         to_val :: val_type_of_type(cs.type)
@@ -879,35 +944,41 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
             // op_select's `convert_op_for` (not yet exposed). TODO.
             push_emit(ctx, RefCast { .type_id = intern_type(cs.type, ctx.project) }, cs.span)
         }
-        emit_set(ctx, cs.dst, cs.span)
+        emit_result(ctx, pos, cs.dst, cs.span)
         return
     }
     if ins is InstrCellNew as cn {
         cell_type_idx :: intern_cell_type(cn.value_type, ctx.project)
-        emit_get(ctx, cn.value, cn.span)
+        emit_first_get(ctx, pos, cn.value, cn.span)
         push_emit(ctx, StructNew { .type_id = cell_type_idx, .stack = false }, cn.span)
-        emit_set(ctx, cn.dst, cn.span)
+        emit_result(ctx, pos, cn.dst, cn.span)
         return
     }
     if ins is InstrCellGet as cg {
         cell_type_idx :: intern_cell_type(cg.value_type, ctx.project)
-        emit_get(ctx, cg.cell, cg.span)
-        fused :: try_fuse_local_field(ctx, cell_type_idx, i32(0))
+        // See InstrFieldGet for the rationale on the `skipped_receiver_get`
+        // gate guarding the local.field fuse.
+        skipped_receiver_get :: ctx.hints.skip_first_get.contains(pos)
+        emit_first_get(ctx, pos, cg.cell, cg.span)
+        fused := false
+        if !skipped_receiver_get {
+            fused = try_fuse_local_field(ctx, cell_type_idx, i32(0))
+        }
         if !fused {
             push_emit(ctx, StructGet { .type_id = cell_type_idx, .field_index = i32(0) }, cg.span)
         }
-        emit_set(ctx, cg.dst, cg.span)
+        emit_result(ctx, pos, cg.dst, cg.span)
         return
     }
     if ins is InstrCellSet as cse {
         cell_type_idx :: intern_cell_type(cse.value_type, ctx.project)
-        emit_get(ctx, cse.cell, cse.span)
+        emit_first_get(ctx, pos, cse.cell, cse.span)
         emit_get(ctx, cse.value, cse.span)
         push_emit(ctx, StructSet { .type_id = cell_type_idx, .field_index = i32(0), .stack = false }, cse.span)
         return
     }
     if ins is InstrMakeClosure as mc {
-        emit_get(ctx, mc.env, mc.span)
+        emit_first_get(ctx, pos, mc.env, mc.span)
         // Operand is the CLOSURE's own type id (fn type), not the env
         // struct's — matches `src/midir/emit.ts::emitMakeClosureInstr`'s
         // `internType(ctx.project, ins.type)`.
@@ -919,7 +990,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
             push_emit(ctx, Return {}, mc.span)
             return
         }
-        emit_set(ctx, mc.dst, mc.span)
+        emit_result(ctx, pos, mc.dst, mc.span)
         return
     }
     if ins is InstrIntrinsic as i {
@@ -927,7 +998,10 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction) -> void {
         // to a dedicated op via `intrinsic_op_for_mangled` in the
         // existing emit_body. For midir parity we'd need the same
         // table here ; the MVP drops to Return as a defensive stub.
-        for a in i.args { emit_get(ctx, a, i.span) }
+        for ai in 0..<i.args.len() {
+            if ai == usize(0) { emit_first_get(ctx, pos, i.args[ai], i.span) }
+            else              { emit_get(ctx, i.args[ai], i.span) }
+        }
         push_emit(ctx, Return {}, i.span)
         return
     }
@@ -951,7 +1025,7 @@ find_struct_field_index :: fn(ctx: EmitterCtx, type_index: i32, field_name: stri
     return -1
 }
 
-emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst) -> void {
+emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst, pos: i64) -> void {
     v :: c.value
     if v is ConstInt as iv {
         push_emit(ctx, I32Const { .value = i32(iv.value) }, c.span)
@@ -968,12 +1042,37 @@ emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst) -> void {
         pool_idx :: ctx.string_index_map[usize(sv.index)]
         push_emit(ctx, StringConst { .index = pool_idx }, c.span)
     }
-    emit_set(ctx, c.dst, c.span)
+    emit_result(ctx, pos, c.dst, c.span)
 }
 
 emit_get :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {
     slot :: ctx.local_to_slot[usize(local_id)]
     push_emit(ctx, LocalGet { .slot = slot }, span)
+}
+
+/// First stack-pushed operand of an instruction. When the scheduler
+/// flagged `pos` as `skip_first_get`, the previous instruction's result
+/// is already on the stack — no `local.get` needed. Mirrors TS
+/// `emitFirstOperand`. `pos` is `pos_key(block, idx)`.
+emit_first_get :: fn(ctx: FnEmitCfg, pos: i64, local_id: LocalId, span: Span) -> void {
+    if ctx.hints.skip_first_get.contains(pos) { return }
+    emit_get(ctx, local_id, span)
+}
+
+/// Final write for an instruction's result. When the scheduler flagged
+/// `pos` as `skip_set`, the value stays on the stack for the next
+/// instruction's first operand — no `local.set` needed. Mirrors TS
+/// `emitInstrResult`.
+emit_result :: fn(ctx: FnEmitCfg, pos: i64, dst: LocalId, span: Span) -> void {
+    if ctx.hints.skip_set.contains(pos) { return }
+    emit_set(ctx, dst, span)
+}
+
+/// `emit_result` variant for Call / CallIndirect / VirtualCall /
+/// Intrinsic whose `dst` may be null (void-returning callee).
+emit_result_if_any :: fn(ctx: FnEmitCfg, pos: i64, dst: LocalId | null, span: Span) -> void {
+    if dst == null { return }
+    emit_result(ctx, pos, dst, span)
 }
 
 // True when a struct.get / array.get / cell-deref result needs an

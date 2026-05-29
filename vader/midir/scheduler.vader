@@ -18,42 +18,54 @@
 // Vader-specific design : `Set<Instruction>` keyed by object identity
 // (TS Map default) doesn't translate ; we use position-encoded keys
 // instead. `pos_key(block, idx) = block × POS_STRIDE + idx`. Consumers
-// compute the same key when querying. POS_STRIDE picks a per-block
-// upper bound on instruction count ; 1 000 000 keeps a 32-bit signed
-// budget for blocks up to ~2 000 with that many instructions each.
+// query via `skip_set_at` / `skip_first_get_at` so the key encoding
+// stays an implementation detail. POS_STRIDE × max(blocks) must fit
+// in i64 ; with 1 000 000 we get headroom for ~9 × 10¹² blocks.
 
 module "vader/midir"
 
 import "std/collections" { MutableMap, MutableSet, add }
 
-export POS_STRIDE :: i32(1000000)
+export POS_STRIDE :: i64(1000000)
 
-/// Encode a (block, instruction-index) position as a single i32 key.
-/// Used by both producer (scheduler) and consumers (emit) to query
-/// the hint sets.
-export pos_key :: fn(block: BlockId, idx: usize) -> i32 {
-    return block * POS_STRIDE + i32(idx)
+/// Encode a (block, instruction-index) position as a single i64 key.
+/// Used internally by the scheduler producer ; consumers should call
+/// `skip_set_at` / `skip_first_get_at` instead of computing keys.
+export pos_key :: fn(block: BlockId, idx: usize) -> i64 {
+    return i64(block) * POS_STRIDE + i64(idx)
 }
 
 /// Stack-pass-through hints for one fn.
 export ScheduleHints :: struct {
     /// Instructions whose result should be left on the stack
     /// (no `local.set`). Keys = `pos_key(block, instr_idx)`.
-    skip_set: MutableSet<i32>
+    skip_set: MutableSet<i64>
     /// Instructions whose first stack-pushed operand should be read
     /// from the stack (no `local.get`). Same key scheme as skip_set.
-    skip_first_get: MutableSet<i32>
+    skip_first_get: MutableSet<i64>
     /// Block IDs whose terminator's first read should come from the
     /// stack.
     skip_terminator_get: MutableSet<BlockId>
+}
+
+/// Predicate — should the (block, idx) instruction's result stay on the
+/// stack rather than being stored via `local.set` ?
+export skip_set_at :: fn(h: ScheduleHints, block: BlockId, idx: usize) -> bool {
+    return h.skip_set.contains(pos_key(block, idx))
+}
+
+/// Predicate — should the (block, idx) instruction's first operand be
+/// read off the stack rather than via `local.get` ?
+export skip_first_get_at :: fn(h: ScheduleHints, block: BlockId, idx: usize) -> bool {
+    return h.skip_first_get.contains(pos_key(block, idx))
 }
 
 /// Empty hints — `scheduleStack` callers that disable scheduling get
 /// this sentinel. Every `.contains()` query returns false.
 export no_hints :: fn() -> ScheduleHints {
     return ScheduleHints {
-        .skip_set            = MutableSet<i32> { .inner = MutableMap<i32, bool> { .buckets = [], .size = 0 } },
-        .skip_first_get      = MutableSet<i32> { .inner = MutableMap<i32, bool> { .buckets = [], .size = 0 } },
+        .skip_set            = MutableSet<i64> { .inner = MutableMap<i64, bool> { .buckets = [], .size = 0 } },
+        .skip_first_get      = MutableSet<i64> { .inner = MutableMap<i64, bool> { .buckets = [], .size = 0 } },
         .skip_terminator_get = MutableSet<BlockId> { .inner = MutableMap<BlockId, bool> { .buckets = [], .size = 0 } },
     }
 }

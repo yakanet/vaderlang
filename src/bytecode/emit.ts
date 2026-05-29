@@ -2,6 +2,8 @@
 // context) used by `midir/emit.ts` (the project-level entry point) and the
 // per-instruction emitters in `midir/emit.ts`. See SPEC §17 (canonical IR).
 
+import { relative } from "node:path";
+
 import type { Span } from "../diagnostics/diagnostic.ts";
 import type * as L from "../lower/lowered-ast.ts";
 import type { CFGExternDecl, CFGFunction, CFGProject, CFGStructDecl } from "../midir/cfg.ts";
@@ -330,7 +332,13 @@ export function declareLocal(fn: FnEmitCtx, name: string, val: ValType): number 
 function symbolKey(sym: { id: number; definedAt: Span | null }): string {
   const at = sym.definedAt;
   if (at === null) return `id${sym.id}`;
-  return `${at.start.file}:${at.start.offset}`;
+  // Relativise so TS (which absolutises the entry path at load time) and
+  // Vader (which keeps the on-disk path) produce identical keys for the
+  // same source position — otherwise `$Cell_Struct#<path>:N` slot names
+  // drift between the two pipelines, breaking parity snapshots.
+  const f = at.start.file;
+  const rel = f.startsWith("/") ? relative(process.cwd(), f) : f;
+  return `${rel}:${at.start.offset}`;
 }
 
 function typeInternKey(t: Type): string {
