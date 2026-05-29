@@ -296,12 +296,9 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         // Order matters : vtables → functions → imports → types so
         // each pass's root set reflects the previous pass's drops.
         prune_unused_vtables(ctx)
-        // Collect vtable-target fn indices as roots — every
-        // `T implements Trait { method }` member that's actually
-        // dispatched on (a `virtual.call <trait>.<method>` exists)
-        // must survive the prune so the call lands on a real fn
-        // slot. Impl members for traits no one dispatches on (error
-        // snippets, dead traits) drop. Mirror of TS dce.ts +
+        // Collect (trait, method) keys actually dispatched on so the
+        // vtable-target rooting AND the impl-table type pinning below
+        // can both gate on real virtual.call sites. Mirror of TS
         // pruneUnusedVtables.
         used_vt_keys: MutableMap<string, bool> = MutableMap<string, bool> { .buckets = [], .size = 0 }
         for f in ctx.functions {
@@ -313,6 +310,13 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         for ve in cfg.vtable_entries {
             key :: "${ve.trait_name}.${ve.method_name}"
             if !(used_vt_keys[key] is bool) { continue }
+            // Pin the receiver struct type — TS roots impl_table keys
+            // in pruneUnusedTypes (dce.ts:623), so structs only kept
+            // through an impl row survive when the row's trait is
+            // actually dispatched on.
+            key_str :: type_intern_key(ve.struct_type)
+            existing_t :: ctx.type_key[key_str]
+            if existing_t is i32 as ti { ctx.pinned_types.push(ti) }
             fi_opt :: ctx.function_index_by_symbol_id[ve.fn_symbol.id]
             if fi_opt is i32 as fi {
                 vtable_roots.push(fi)

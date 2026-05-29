@@ -49,7 +49,114 @@ export eliminate_dead_cfg :: fn(p: CFGProject) -> CFGProject {
 }
 
 optimise_function :: fn(f: CFGFunction) -> CFGFunction {
-    return fold_moves(f)
+    cur := fold_moves(f)
+    // Run dieOnce to fixpoint (capped) — each iteration may unblock
+    // more by shrinking the live set.
+    iter: i32 = 0
+    for iter < 8 {
+        next :: die_once(cur)
+        if !changed_blocks(cur, next) { break }
+        cur = next
+        iter = iter + 1
+    }
+    return cur
+}
+
+changed_blocks :: fn(a: CFGFunction, b: CFGFunction) -> bool {
+    if a.blocks.len() != b.blocks.len() { return true }
+    for i in 0..<a.blocks.len() {
+        if a.blocks[i].instructions.len() != b.blocks[i].instructions.len() { return true }
+    }
+    return false
+}
+
+// ============================================================================
+// Pass 1 — die_once : per-store liveness DIE
+//
+// Walk each block backward ; drop pure instructions whose `dst` isn't
+// in the live set at that point. Mirror of TS `dieOnce` (dce.ts:348).
+// ============================================================================
+
+die_once :: fn(f: CFGFunction) -> CFGFunction {
+    liveness :: compute_liveness(f)
+    new_blocks: BasicBlock[] = []
+    for b in f.blocks {
+        kept :: prune_block(b, liveness.live_out[usize(b.id)])
+        new_blocks.push(BasicBlock {
+            .id           = b.id,
+            .instructions = kept,
+            .terminator   = b.terminator,
+            .span         = b.span,
+        })
+    }
+    return CFGFunction {
+        .mangled     = f.mangled,
+        .params      = f.params,
+        .return_type = f.return_type,
+        .locals      = f.locals,
+        .blocks      = new_blocks,
+        .entry       = f.entry,
+        .origin      = f.origin,
+        .is_extern   = f.is_extern,
+        .is_exported = f.is_exported,
+        .extern_name = f.extern_name,
+    }
+}
+
+prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>) -> Instruction[] {
+    // bool-array indexed by LocalId for O(1) toggle without a remove
+    // primitive on MutableMap. Length covers every local that might be
+    // referenced — pick a generous upper bound (params + the max id
+    // seen in any read/write touched below ; we don't have a quick
+    // upper bound in scope, so we use a growing array).
+    live: bool[] = []
+    grow_live_to :: (id: LocalId) -> {
+        while_idx := live.len()
+        for while_idx <= usize(id) { live.push(false)  while_idx = while_idx + 1 }
+    }
+    for k in live_out.inner.keys() {
+        grow_live_to(k)
+        live[usize(k)] = true
+    }
+    // Terminator reads always alive.
+    for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
+        grow_live_to(l)
+        live[usize(l)] = true
+    })
+
+    n :: b.instructions.len()
+    keep: bool[] = []
+    for _ in 0..<n { keep.push(false) }
+    i: i64 = i64(n) - i64(1)
+    for i >= 0 {
+        ins :: b.instructions[usize(i)]
+        dst_opt :: dst_of(ins)
+        dst_live := true
+        if dst_opt is LocalId as d {
+            grow_live_to(d)
+            dst_live = live[usize(d)]
+        }
+        is_dead :: !instruction_has_side_effect(ins) && !dst_live
+        if is_dead {
+            keep[usize(i)] = false
+        } else {
+            keep[usize(i)] = true
+            if dst_opt is LocalId as d2 {
+                grow_live_to(d2)
+                live[usize(d2)] = false
+            }
+            for_each_read_local(ins, (l: LocalId) -> {
+                grow_live_to(l)
+                live[usize(l)] = true
+            })
+        }
+        i = i - 1
+    }
+    out: Instruction[] = []
+    for j in 0..<n {
+        if keep[j] { out.push(b.instructions[j]) }
+    }
+    return out
 }
 
 // ============================================================================
