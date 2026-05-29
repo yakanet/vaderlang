@@ -60,7 +60,7 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "enum_match", "enum_to_repr_cast", "enum_trait_self_return", "enum_typed",
   "expr_bodied_fn", "expr_bodied_recursive_typed",
   "expressions", "extern_native_basic", "file_decorator",
-  "for_in_into_iter", "for_in_iter_trait", "for_loop", "for_range",
+  "for_in_into_iter", "for_in_iter_trait", "for_range",
   "for_range_sugar", "format_helpers", "gc_array_survive", "gc_chain_survive",
   "gc_multi_collect", "generic_amp_bound", "generic_angle_decl",
   "generic_eq", "generic_fn", "generic_helper_chain",
@@ -101,7 +101,7 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "ufcs_overload", "ufcs_union_receiver", "union_common_field", "usize_arith",
   "usize_basic", "vm_arith",
   "vm_array_push_len",
-  "vm_for", "vm_hello",
+  "vm_hello",
   "vm_interp_basic", "vm_interp_loop", "vm_interp_mixed",
   "vm_trait_dispatch", "void_ident_rejected",
 ]);

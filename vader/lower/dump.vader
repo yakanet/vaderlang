@@ -397,7 +397,7 @@ unary_op_name :: fn(op: LoweredUnaryOp) -> string = match op {
     .BitNot -> "bitnot"
 }
 
-binary_op_name :: fn(op: LoweredBinaryOp) -> string = match op {
+export binary_op_name :: fn(op: LoweredBinaryOp) -> string = match op {
     .Add    -> "add"
     .Sub    -> "sub"
     .Mul    -> "mul"

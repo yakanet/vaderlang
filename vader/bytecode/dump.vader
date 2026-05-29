@@ -207,7 +207,7 @@ write_function :: fn(sb: StringBuilder, function_decl: BcFunction, function_inde
         local :: function_decl.locals[i]
         sb.append("  local ${local.name} ${val_type_name(local.val)}\n")
     }
-    write_body_with_scopes(sb, function_decl.body)
+    write_body_with_scopes(sb, function_decl.body, function_decl.jump_table)
     sb.append("end\n")
 }
 
@@ -217,21 +217,57 @@ write_function :: fn(sb: StringBuilder, function_decl: BcFunction, function_inde
 // scope ; `else` lives at the parent indent. `br` / `br_if` rewrite their
 // integer depth into the matching `$L<N>` label by walking the label
 // stack from the top. Mirrors `src/bytecode/text.ts::writeBodyLines`.
-write_body_with_scopes :: fn(sb: StringBuilder, body: Op[]) -> void {
-    label_stack: string[] = []
+write_body_with_scopes :: fn(sb: StringBuilder, body: Op[], jump_table: i32[]) -> void {
+    // Per-active-scope stacks. Grow-only with `sp` cursor for the
+    // logical top so closing a scope is a cheap decrement.
+    stack_labels:    string[] = []
+    stack_opener_pc: i32[]    = []
+    stack_is_loop:   bool[]   = []
+    sp: usize = 0
+    // Pending Branch/BranchIf whose target scope hasn't closed yet
+    // (block / if / else falls through to its End). Drained when the
+    // matching End is seen ; `branch_target_label[pc]` carries the
+    // resolved label string.
+    pending_pc:    i32[]    = []
+    pending_label: string[] = []
+    psp: usize = 0
+    // pc → resolved label string (filled lazily for Branch/BranchIf).
+    branch_target_label: string[] = []
+    init_label: usize = 0
+    n :: body.len()
+    for init_label < n { branch_target_label.push("")  init_label = init_label + 1 }
+
     next_label: i32 = 0
     depth: i32 = 1
-    for i in 0..<body.len() {
-        op :: body[i]
+    for pc in 0..<n {
+        op :: body[pc]
         if op is End {
             depth = depth - 1
-            [label, shrunk] :: peek_and_drop_label(label_stack)
-            label_stack = shrunk
+            label :: stack_labels[sp - usize(1)]
+            // Resolve any pending branches whose target scope is this
+            // one — they branch to the End's label.
+            new_psp: usize = 0
+            j: usize = 0
+            for j < psp {
+                if pending_label[j] == label {
+                    branch_target_label[usize(pending_pc[j])] = label
+                } else {
+                    pending_pc[new_psp]    = pending_pc[j]
+                    pending_label[new_psp] = pending_label[j]
+                    new_psp = new_psp + 1
+                }
+                j = j + 1
+            }
+            psp = new_psp
+            sp = sp - usize(1)
             write_indent(sb, depth)
             sb.append("end ${label}\n")
             continue
         }
         if op is Else {
+            // `else` shares the parent if's label but its opener_pc
+            // advances so the matching End knows where the else opened.
+            stack_opener_pc[sp - usize(1)] = i32(pc)
             write_indent(sb, depth - 1)
             sb.append("else\n")
             continue
@@ -241,7 +277,8 @@ write_body_with_scopes :: fn(sb: StringBuilder, body: Op[]) -> void {
             next_label = next_label + 1
             write_indent(sb, depth)
             sb.append("if ${label} void\n")
-            label_stack.push(label)
+            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), false)
+            sp = sp + usize(1)
             depth = depth + 1
             continue
         }
@@ -250,7 +287,8 @@ write_body_with_scopes :: fn(sb: StringBuilder, body: Op[]) -> void {
             next_label = next_label + 1
             write_indent(sb, depth)
             sb.append("block ${label} void\n")
-            label_stack.push(label)
+            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), false)
+            sp = sp + usize(1)
             depth = depth + 1
             continue
         }
@@ -259,24 +297,79 @@ write_body_with_scopes :: fn(sb: StringBuilder, body: Op[]) -> void {
             next_label = next_label + 1
             write_indent(sb, depth)
             sb.append("loop ${label} void\n")
-            label_stack.push(label)
+            push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), true)
+            sp = sp + usize(1)
             depth = depth + 1
             continue
         }
-        if op is Branch {
+        if op is Branch || op is BranchIf {
+            target_pc :: jump_table[pc]
+            // Loop target : `opener_pc + 1` of some loop on the stack.
+            target_label :: find_loop_label_local(stack_labels, stack_opener_pc, stack_is_loop, sp, target_pc)
+            resolved := target_label
+            if target_label == "" {
+                // Block / if / else : defer to the matching End.
+                fallback :: top_non_loop_label_local(stack_labels, stack_is_loop, sp)
+                if fallback != "" {
+                    if psp == pending_pc.len() {
+                        pending_pc.push(i32(pc))
+                        pending_label.push(fallback)
+                    } else {
+                        pending_pc[psp]    = i32(pc)
+                        pending_label[psp] = fallback
+                    }
+                    psp = psp + 1
+                    resolved = fallback
+                }
+            }
             write_indent(sb, depth)
-            sb.append("br ${peek_label(label_stack)}\n")
-            continue
-        }
-        if op is BranchIf {
-            write_indent(sb, depth)
-            sb.append("br_if ${peek_label(label_stack)}\n")
+            if op is BranchIf { sb.append("br_if ${resolved}\n") }
+            else              { sb.append("br ${resolved}\n") }
             continue
         }
         write_indent(sb, depth)
         sb.append(format_op(op))
         sb.append_char('\n')
     }
+}
+
+push_scope_entry :: fn(
+    labels: string[], opener_pc: i32[], is_loop: bool[],
+    sp: usize, label: string, pc: i32, loop_flag: bool,
+) -> void {
+    if sp == labels.len() {
+        labels.push(label)
+        opener_pc.push(pc)
+        is_loop.push(loop_flag)
+    } else {
+        labels[sp]    = label
+        opener_pc[sp] = pc
+        is_loop[sp]   = loop_flag
+    }
+}
+
+find_loop_label_local :: fn(
+    labels: string[], opener_pc: i32[], is_loop: bool[], sp: usize, target_pc: i32,
+) -> string {
+    i: i32 = i32(sp) - 1
+    for i >= 0 {
+        if is_loop[usize(i)] && opener_pc[usize(i)] + 1 == target_pc {
+            return labels[usize(i)]
+        }
+        i -= 1
+    }
+    return ""
+}
+
+top_non_loop_label_local :: fn(
+    labels: string[], is_loop: bool[], sp: usize,
+) -> string {
+    i: i32 = i32(sp) - 1
+    for i >= 0 {
+        if !is_loop[usize(i)] { return labels[usize(i)] }
+        i -= 1
+    }
+    return ""
 }
 
 write_indent :: fn(sb: StringBuilder, depth: i32) -> void {

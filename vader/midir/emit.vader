@@ -237,12 +237,12 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // sibling operand-sets) for propagate to inline. Reversing
             // the order causes Rule 1 to fold the now-adjacent set+get
             // post-propagate and over-folds compared to TS.
-            new_body :: run_bc_peephole(ctx.functions[i])
+            phr :: run_bc_peephole(ctx.functions[i])
             f :: ctx.functions[i]
             ctx.functions[i] = BcFunction {
                 .name = f.name, .is_main = f.is_main, .signature = f.signature,
-                .locals = f.locals, .body = new_body, .debug = f.debug,
-                .jump_table = f.jump_table,
+                .locals = f.locals, .body = phr.body, .debug = f.debug,
+                .jump_table = phr.jump_table,
             }
             // Iterate propagate to fixpoint : inlining slot N's const may
             // expose slot M (whose set was preceded by `LocalGet N`, now
@@ -261,12 +261,12 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // by removing dead tees / sets ; re-running the full
             // `run_bc_peephole` here would also re-fold set+get pairs that
             // slot-renumbering made adjacent, over-folding compared to TS.
-            second_body :: run_bc_return_lit_fold(ctx.functions[i])
+            rlf :: run_bc_return_lit_fold(ctx.functions[i])
             g :: ctx.functions[i]
             ctx.functions[i] = BcFunction {
                 .name = g.name, .is_main = g.is_main, .signature = g.signature,
-                .locals = g.locals, .body = second_body, .debug = g.debug,
-                .jump_table = g.jump_table,
+                .locals = g.locals, .body = rlf.body, .debug = g.debug,
+                .jump_table = rlf.jump_table,
             }
             // Final pass — same-ValType non-overlapping live ranges
             // coalesce onto shared physical slots. Mirror of TS

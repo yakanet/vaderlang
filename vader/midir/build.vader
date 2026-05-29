@@ -29,7 +29,7 @@ import "vader/lower" {
     LoweredUnreachable, LoweredIntrinsicCall, LoweredArrayLen, LoweredArrayPush,
     LoweredArraySlice, LoweredStringSlice, LoweredCellNew, LoweredCellGet, LoweredMakeClosure,
     LoweredDataConst, LoweredTypeConst,
-    LoweredBinaryOp,
+    LoweredBinaryOp, binary_op_name,
     type_of, span_of,
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -658,7 +658,7 @@ build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     if lhs is null { return null }
     rhs :: build_expr(fn_ctx, e.right)
     if rhs is null { return null }
-    dst :: fresh_tmp(fn_ctx, "binop", e.type)
+    dst :: fresh_tmp(fn_ctx, binary_op_name(e.op), e.type)
     emit(fn_ctx, InstrBinOp {
         .dst = dst, .op = e.op, .lhs = lhs, .rhs = rhs, .type = e.type, .span = e.span,
     })
