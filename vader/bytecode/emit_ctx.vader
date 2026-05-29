@@ -64,6 +64,11 @@ export EmitterCtx :: struct {
     /// `MonoEntry.symbol.id` → index into `imports`. Same role as
     /// `function_index_by_symbol_id` for the import side.
     import_index_by_symbol_id: MutableMap<i32, i32>
+    /// Import mangled-name → index into `imports`. Lets a call whose
+    /// callee carries only a mangle (synthetic `id = 0`, e.g. an
+    /// intrinsic impl-member call surfaced as a bodyless extern) resolve
+    /// to a `CallImport`. Mirror of `function_index_by_mangle` for imports.
+    import_index_by_mangle: MutableMap<string, i32>
 
     /// `@export` decls — exposed to the host linker. C-emit's `main`
     /// shim consults this to pick the program entry point.
@@ -97,6 +102,7 @@ export new_emitter_ctx :: fn() -> EmitterCtx {
         .function_index_by_mangle    = MutableMap<string, i32> { .buckets = [], .size = 0 },
         .imports                     = [],
         .import_index_by_symbol_id   = MutableMap<i32, i32> { .buckets = [], .size = 0 },
+        .import_index_by_mangle      = MutableMap<string, i32> { .buckets = [], .size = 0 },
         .exports                     = [],
         .pinned_types                = [],
     }

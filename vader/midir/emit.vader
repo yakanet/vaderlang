@@ -96,6 +96,10 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     if ext.origin.symbol is Symbol as sym {
         ctx.import_index_by_symbol_id[sym.id] = import_index
     }
+    // Index by mangle too : intrinsic impl-member calls carry the member's
+    // mangle with a synthetic `id = 0`, so the symbol-id path can't resolve
+    // them — the InstrCall emit falls back to this map → `CallImport`.
+    ctx.import_index_by_mangle[ext.mangled] = import_index
 }
 
 reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
@@ -852,8 +856,16 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
                 if imp_idx_opt is i32 as imp_idx {
                     push_emit(ctx, CallImport { .index = imp_idx }, c.span)
                 } else {
-                    push_emit(ctx, Return {}, c.span)
-                    return
+                    // Intrinsic impl-member call : the callee carries the
+                    // member's mangle (synthetic id 0) and was surfaced as a
+                    // bodyless extern → import. Resolve by mangle → CallImport.
+                    imp_mangle_opt :: ctx.project.import_index_by_mangle[c.callee.name]
+                    if imp_mangle_opt is i32 as imp_m {
+                        push_emit(ctx, CallImport { .index = imp_m }, c.span)
+                    } else {
+                        push_emit(ctx, Return {}, c.span)
+                        return
+                    }
                 }
             }
         }

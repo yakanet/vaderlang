@@ -135,6 +135,13 @@ export lower_project :: fn(
     // instances since both share the harvest ; its own bodies may
     // harvest further non-generic stdlib fns (cursor-iterated).
     materialize_nongeneric_stdlib_fns(loaded, typed, project_ctx, project, diags)
+    // Surface the stdlib intrinsic impl members actually referenced by a
+    // concrete `recv.method()` call (GATE B) as bodyless externs → imports,
+    // so the call resolves to a `CallImport` the Vader VM dispatches via
+    // `host.vader`. Runs AFTER all body + instance lowering so
+    // `referenced_impl_mangles` is fully populated ; surfaces only referenced
+    // members so unrelated snippets don't gain unused imports / shifted types.
+    surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)
     // Representative "any-args" structs come AFTER fn instances —
     // matches TS' emission order so generic_brackets etc. byte-match.
     materialize_representatives(loaded, typed, project_ctx, project, rep_seen)
@@ -488,6 +495,81 @@ lower_impl_member_list :: fn(
             .params      = params,
             .return_type = return_type,
             .body        = body,
+            .origin      = entry,
+        })
+    }
+    return out
+}
+
+/// Post-lowering pass : surface the referenced stdlib intrinsic impl
+/// members as bodyless externs, appended to their owning stdlib module's
+/// lowered decls (so the bytecode emit reserves them as imports). Gated by
+/// `referenced_impl_mangles` so only members an actual call hit are
+/// surfaced — see `surface_stdlib_impl_externs`.
+surface_referenced_intrinsic_externs :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
+) -> void {
+    for module_id in typed.modules.keys() {
+        if !is_stdlib_path(module_id) { continue }
+        module_loaded :: loaded.modules[module_id]
+        if module_loaded is null { continue }
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        decls_list :: module_decls(module_loaded)
+        extra: LoweredDecl[] = []
+        for d in decls_list {
+            if d is ImplDecl as impl_ {
+                for ext in surface_stdlib_impl_externs(impl_, module_typed, project_ctx, decls_list) {
+                    extra.push(ext)
+                }
+            }
+        }
+        if extra.len() == usize(0) { continue }
+        existing :: project.modules[module_id]
+        if existing is null { continue }
+        merged :: existing.decls
+        for e in extra { merged.push(e) }
+        project.modules[module_id] = LoweredModule {
+            .module_id    = existing.module_id,
+            .display_path = existing.display_path,
+            .decls        = merged,
+        }
+    }
+}
+
+/// Surface a stdlib impl's BODYLESS members (referenced by a concrete call)
+/// as bodyless `LoweredFnDecl`s (extern signatures). They flow through
+/// `make_extern_decl` → CFG import so a concrete `recv.method()` call on an
+/// intrinsic impl (e.g. `string implements Display { to_string }`) resolves
+/// to a `CallImport` the Vader VM dispatches via `host.vader`. Mangle
+/// matches `find_impl_member_for`'s call-site mangle (both via the impl's
+/// owning module). With-body members are skipped — surfacing them as
+/// externs would lose their behaviour, and lowering their bodies up front
+/// is the thing the stdlib-skip is meant to avoid.
+surface_stdlib_impl_externs :: fn(
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, module_decls: Decl[],
+) -> LoweredDecl[] {
+    out: LoweredDecl[] = []
+    if impl_decl.type_params.len() > usize(0) { return out }
+    if impl_decl.for_type is GenericInstExpr { return out }
+    self_type :: lower_for_type(impl_decl, typed)
+    for member in impl_decl.members {
+        if !(member.body is null) { continue }
+        if member.type_params.len() > usize(0) { continue }
+        mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
+        // Only surface members an actual call referenced — surfacing every
+        // stdlib impl member would intern unused signature types and shift
+        // the type table for unrelated snippets.
+        if !project_ctx.referenced_impl_mangles.contains(mangled) { continue }
+        types :: make_entry_types(typed, new_substitution())
+        params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
+        return_type :: return_type_of(member, types)
+        entry :: synth_impl_entry(member, typed, mangled)
+        out.push(LoweredFnDecl {
+            .mangled     = mangled,
+            .params      = params,
+            .return_type = return_type,
+            .body        = null,
             .origin      = entry,
         })
     }

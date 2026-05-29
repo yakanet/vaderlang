@@ -34,6 +34,11 @@ import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 // correct output) and the validation that will let TS be removed.
 const VADER_SELF_EMIT = new Set<string>([
   "trait_dispatch_struct",
+  // GATE B : `println<string>` keeps `msg` concrete (GATE A), `msg.to_string()`
+  // resolves to the intrinsic `string` Display impl surfaced as an import, and
+  // the Vader VM dispatches it via `host.vader`. Vader self-emit prints
+  // "Hello, World!" where the erased TS path can't.
+  "hello",
 ]);
 
 // Snippets that the self-host VM can't yet run end-to-end. New entries

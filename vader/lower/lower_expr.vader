@@ -1472,6 +1472,9 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
             // multiple impls of the same trait/method on one type. Calls to
             // such overloaded impl members would miss — see audit follow-up.
             mangled :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}$${m.name}"
+            // Record the call so the post-lowering intrinsic-surfacing pass
+            // surfaces ONLY referenced stdlib impl members as imports (GATE B).
+            ctx.project.referenced_impl_mangles.add(mangled)
             return UfcsMember {
                 .symbol = Symbol {
                     .id         = i32(0),

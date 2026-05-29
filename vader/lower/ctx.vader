@@ -160,6 +160,14 @@ export LowerProjectCtx :: struct {
     /// `src/comptime/erasure-dedupe.ts::erasureDedupe`.
     materialized_impl_keys: MutableSet<string>
 
+    /// Mangles of impl-member calls actually resolved during lowering
+    /// (recorded by `find_impl_member_for`). The post-lowering
+    /// intrinsic-surfacing pass consults this so it surfaces ONLY the
+    /// stdlib impl members a concrete call references — surfacing ALL of
+    /// them would intern unused signature types and shift the type table
+    /// for unrelated snippets.
+    referenced_impl_mangles: MutableSet<string>
+
     diags:               Diagnostic[]
 }
 
@@ -198,6 +206,9 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .nongeneric_stdlib_fns   = MutableMap<i32, bool> { .buckets = [], .size = 0 },
         .nongeneric_stdlib_order = [],
         .materialized_impl_keys = MutableSet<string> {
+            .inner = MutableMap<string, bool> { .buckets = [], .size = usize(0) },
+        },
+        .referenced_impl_mangles = MutableSet<string> {
             .inner = MutableMap<string, bool> { .buckets = [], .size = usize(0) },
         },
         .synth_decls         = [],
