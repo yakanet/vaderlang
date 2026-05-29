@@ -71,6 +71,13 @@ const VADER_SELF_EMIT = new Set<string>([
   "op_not_is",
   "match_is_as_binding",
   "match_struct_pattern_binding",
+  "op_overload_arith",
+  "op_overload_compound",
+  "primitive_impl",
+  "self_ref_struct",
+  "struct_spread",
+  "intrinsic_field_access",
+  "comptime_const",
 ]);
 
 // Snippets that the self-host VM can't yet run end-to-end. New entries
