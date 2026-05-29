@@ -1460,11 +1460,18 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
             // call emit). The `id = 0` placeholder is harmless : the mangle
             // path resolves before the symbol-id lookup ever runs.
             //
+            // The module prefix is the IMPL's owning module (`entry.module`),
+            // NOT the caller's (`ctx`). For an intrinsic like `string
+            // implements Display` reached from `println` in std/io, the
+            // mangle must read `std_core$…`, matching where the impl is
+            // declared / its surfaced decl is registered (GATE B). Same-module
+            // user impls are unaffected (entry.module == ctx's module).
+            //
             // NOTE : this mangle omits the overload `${suffix}` that
             // `impl_member_mangled` (lower.vader) appends to disambiguate
             // multiple impls of the same trait/method on one type. Calls to
             // such overloaded impl members would miss — see audit follow-up.
-            mangled :: "${mangle_module_id(ctx.typed.resolved.display_path)}$${target_name}$${decl.trait_name}$${m.name}"
+            mangled :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}$${m.name}"
             return UfcsMember {
                 .symbol = Symbol {
                     .id         = i32(0),

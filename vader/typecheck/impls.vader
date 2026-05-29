@@ -27,6 +27,12 @@ export ImplEntry :: struct {
     decl:         ImplDecl
     trait_symbol: Symbol         // SymbolKind.Trait
     for_symbol:   Symbol | null  // null when the target is a primitive
+    /// Display path of the module that DECLARES this impl block (e.g.
+    /// `"std/core"` for the intrinsic `string implements Display`).
+    /// Distinct from the caller's module — the impl-member mangle must
+    /// use the owning module so cross-module calls resolve to the same
+    /// mangle the impl's lowered/surfaced decl is registered under.
+    module:       string = ""
 }
 
 /// Project-wide registry. Built once by `build_impl_registry` ; queried
@@ -72,7 +78,7 @@ export build_impl_registry :: fn(
     }
     for d in program_decls {
         match d {
-            is ImplDecl as impl_ -> { reg.collect_impl(impl_, by_name) }
+            is ImplDecl as impl_ -> { reg.collect_impl(impl_, by_name, resolved.display_path) }
             _ -> {}
         }
     }
@@ -80,7 +86,7 @@ export build_impl_registry :: fn(
 }
 
 collect_impl :: fn(
-    self: ImplRegistry, impl_: ImplDecl, by_name: MutableMap<string, Symbol>,
+    self: ImplRegistry, impl_: ImplDecl, by_name: MutableMap<string, Symbol>, module: string,
 ) -> void {
     trait_sym :: by_name[impl_.trait_name]
     if trait_sym is null { return }
@@ -90,6 +96,7 @@ collect_impl :: fn(
         .decl = impl_,
         .trait_symbol = trait_sym,
         .for_symbol = for_sym,
+        .module = module,
     }
     if for_sym is Symbol {
         self.user_index["${for_sym.id}::${trait_sym.id}"] = entry
