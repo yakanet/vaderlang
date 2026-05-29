@@ -51,6 +51,15 @@ const VADER_SELF_EMIT = new Set<string>([
   "loop",
   "vm_interp_mixed",
   "vm_interp_loop",
+  "enum_typed",
+  "enum_match",
+  "match_union",
+  "if_field_narrow",
+  "vm_struct_nested",
+  "vm_array_mutate",
+  "vm_for",
+  "vm_if",
+  "if_is_narrow",
 ]);
 
 // Snippets that the self-host VM can't yet run end-to-end. New entries
