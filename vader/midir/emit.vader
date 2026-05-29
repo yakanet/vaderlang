@@ -42,7 +42,7 @@ import "vader/vm" {
 }
 import "vader/bytecode" {
     intern_cell_type, run_bc_peephole, run_bc_return_lit_fold,
-    propagate_const_single_use, drop_dead_stores,
+    propagate_const_single_use, drop_dead_stores, coalesce_slots,
     prune_unused_vtables, prune_unused_functions, prune_unused_imports, prune_unused_types,
     type_intern_key,
 }
@@ -252,9 +252,9 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // but Vader's emit pattern produces chained moves (`%2 =
             // move %1 = move %0 = const`) that need at least two
             // iterations to unwind.
-            propagate_const_single_use(ctx.functions[i])
-            propagate_const_single_use(ctx.functions[i])
-            propagate_const_single_use(ctx.functions[i])
+            ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
+            ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
+            ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
             ctx.functions[i] = drop_dead_stores(ctx.functions[i])
             // Second-pass : ONLY the Rule 5 (`<Const> ; Return` → ReturnLit)
             // fold. drop_dead_stores opens new const-before-return windows
@@ -268,6 +268,13 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
                 .locals = g.locals, .body = second_body, .debug = g.debug,
                 .jump_table = g.jump_table,
             }
+            // Final pass — same-ValType non-overlapping live ranges
+            // coalesce onto shared physical slots. Mirror of TS
+            // `coalesceSlots` (src/midir/emit.ts:109). Runs LAST so the
+            // peephole / propagate / DCE passes see the original slot
+            // identities ; their gates depend on per-slot set/get
+            // counts which coalescing would corrupt.
+            ctx.functions[i] = coalesce_slots(ctx.functions[i])
             i = i + 1
         }
         // Pass 4 — whole-program prunes on the EmitterCtx. Mirrors

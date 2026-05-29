@@ -1,0 +1,269 @@
+// vader/bytecode/slot_coalesce — coalesce non-overlapping live ranges
+// onto shared physical slots. Mirror of `src/bytecode/slot-coalesce.ts`.
+//
+// Runs AFTER peephole + propagate + drop_dead_stores so the per-slot
+// (set, get) gates that pass needs still fire on the original slot
+// identities. Two slots whose linear live ranges don't overlap AND
+// share a ValType collapse into the same physical slot — same-ValType
+// only, since the VM's slot-type invariants depend on the tag.
+//
+// Loops : a slot last-used at op N inside a loop body can still feed a
+// read on the next iteration (back-edge jumps from `end` back to
+// `loop`), so any range touching a loop covers its whole body.
+
+module "vader/bytecode"
+
+import "vader/vm" {
+    Op, LocalGet, LocalSet, LocalTee, LocalField,
+    Block, Loop, If, End,
+}
+
+/// Slot touched by `op` (read OR write), or -1 when the op doesn't
+/// touch a local slot. Mirror of TS `slotTouched`.
+slot_touched :: fn(op: Op) -> i32 {
+    if op is LocalGet as g    { return g.slot }
+    if op is LocalSet as s    { return s.slot }
+    if op is LocalTee as t    { return t.slot }
+    if op is LocalField as lf { return lf.slot }
+    return -1
+}
+
+/// Rewrite `op`'s slot reference to `new_slot`. Returns `op` unchanged
+/// when it carries no slot.
+with_remapped_slot :: fn(op: Op, new_slot: i32) -> Op {
+    if op is LocalGet           { return LocalGet { .slot = new_slot } }
+    if op is LocalSet           { return LocalSet { .slot = new_slot } }
+    if op is LocalTee           { return LocalTee { .slot = new_slot } }
+    if op is LocalField as lf {
+        return LocalField {
+            .slot = new_slot, .type_id = lf.type_id, .field_index = lf.field_index,
+        }
+    }
+    return op
+}
+
+/// Per-slot live range over the body's linear PC order. `first = -1`
+/// means the slot was never referenced (defensive sentinel — every
+/// surviving slot after drop_dead_stores should have a range).
+SlotRange :: struct {
+    first: i32
+    last:  i32
+}
+
+/// Coalesce same-ValType non-overlapping slots in `function`. Returns
+/// a rewritten BcFunction ; when no coalescing fires the body / locals
+/// are unchanged (caller can drop the result with no cost). Mirrors
+/// TS `coalesceSlots`.
+export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
+    param_count :: function.signature.params.len()
+    total_slots :: param_count + function.locals.len()
+    if total_slots <= param_count { return function }
+
+    body :: function.body
+    body_len :: body.len()
+
+    // Pass 1 — per-slot first/last touch.
+    ranges: SlotRange[] = []
+    has_range: bool[] = []
+    s := usize(0)
+    for s < total_slots {
+        ranges.push(SlotRange { .first = -1, .last = -1 })
+        has_range.push(false)
+        s = s + 1
+    }
+    i: usize = 0
+    for i < body_len {
+        slot :: slot_touched(body[i])
+        if slot >= 0 {
+            us :: usize(slot)
+            if !has_range[us] {
+                ranges[us] = SlotRange { .first = i32(i), .last = i32(i) }
+                has_range[us] = true
+            } else {
+                ranges[us] = SlotRange { .first = ranges[us].first, .last = i32(i) }
+            }
+        }
+        i = i + 1
+    }
+
+    // Pass 1b — extend ranges through loop bodies. Iterate to fixpoint
+    // so nested / sibling loops settle.
+    loops :: find_loop_ranges(body)
+    if loops.len() > usize(0) {
+        changed := true
+        for changed {
+            changed = extend_into_loops(ranges, has_range, total_slots, loops)
+        }
+    }
+
+    // Params live the whole call frame — pin so they never accept a
+    // coalesced peer.
+    p: usize = 0
+    for p < param_count {
+        ranges[p] = SlotRange { .first = 0, .last = i32(body_len) }
+        has_range[p] = true
+        p = p + 1
+    }
+
+    // Pass 2 — assign each non-param slot to a compatible physical
+    // slot. Same-ValType only ; first non-overlapping wins.
+    new_locals: BcLocal[] = []
+    remap: i32[] = []
+    rem_init: usize = 0
+    for rem_init < total_slots {
+        remap.push(-1)
+        rem_init = rem_init + 1
+    }
+    pp: usize = 0
+    for pp < param_count {
+        remap[pp] = i32(pp)
+        pp = pp + 1
+    }
+
+    // `phys_ranges` tracks the union of live ranges currently mapped
+    // onto each physical slot. Same layout as TS : the param-slot
+    // prefix carries the original param ranges ; the tail grows as
+    // new non-param physical slots are minted.
+    phys_ranges: SlotRange[] = []
+    phys_init: usize = 0
+    for phys_init < param_count {
+        phys_ranges.push(ranges[phys_init])
+        phys_init = phys_init + 1
+    }
+
+    src := param_count
+    for src < total_slots {
+        if !has_range[src] {
+            remap[src] = -1
+            src = src + 1
+            continue
+        }
+        range :: ranges[src]
+        want :: function.locals[src - param_count].val
+        chosen: i32 = -1
+        phys := param_count
+        for phys < phys_ranges.len() {
+            // Non-param phys slots map 1:1 onto `new_locals` ; index
+            // adjusts by `- param_count`.
+            cand :: new_locals[phys - param_count]
+            if i32(cand.val) == i32(want) {
+                if !ranges_overlap(phys_ranges[phys], range) {
+                    chosen = i32(phys)
+                    break
+                }
+            }
+            phys = phys + 1
+        }
+        if chosen < 0 {
+            chosen = i32(phys_ranges.len())
+            phys_ranges.push(range)
+            new_locals.push(function.locals[src - param_count])
+        } else {
+            cur :: phys_ranges[usize(chosen)]
+            new_first :: if range.first < cur.first { range.first } else { cur.first }
+            new_last  :: if range.last  > cur.last  { range.last  } else { cur.last  }
+            phys_ranges[usize(chosen)] = SlotRange { .first = new_first, .last = new_last }
+        }
+        remap[src] = chosen
+        src = src + 1
+    }
+
+    // Identity check : if every non-param slot mapped to itself the
+    // body rewrite is a no-op. Return the original to skip work.
+    identity := true
+    id_chk := param_count
+    for id_chk < total_slots {
+        if remap[id_chk] != i32(id_chk) { identity = false  break }
+        id_chk = id_chk + 1
+    }
+    if identity { return function }
+
+    // Pass 3 — rewrite body slot refs.
+    new_body: Op[] = []
+    j: usize = 0
+    for j < body_len {
+        op :: body[j]
+        slot :: slot_touched(op)
+        if slot >= 0 {
+            ns :: remap[usize(slot)]
+            if ns >= 0 {
+                new_body.push(with_remapped_slot(op, ns))
+            } else {
+                new_body.push(op)
+            }
+        } else {
+            new_body.push(op)
+        }
+        j = j + 1
+    }
+
+    return BcFunction {
+        .name = function.name, .is_main = function.is_main,
+        .signature = function.signature, .locals = new_locals,
+        .body = new_body, .debug = function.debug,
+        .jump_table = function.jump_table,
+    }
+}
+
+ranges_overlap :: fn(a: SlotRange, b: SlotRange) -> bool {
+    return a.first <= b.last && b.first <= a.last
+}
+
+extend_into_loops :: fn(
+    ranges: SlotRange[], has_range: bool[], total_slots: usize, loops: SlotRange[],
+) -> bool {
+    changed := false
+    s := usize(0)
+    for s < total_slots {
+        if has_range[s] {
+            r := ranges[s]
+            for lp in loops {
+                if r.first <= lp.last && r.last >= lp.first {
+                    if r.first > lp.first { r = SlotRange { .first = lp.first, .last = r.last }  changed = true }
+                    if r.last  < lp.last  { r = SlotRange { .first = r.first, .last = lp.last  }  changed = true }
+                }
+            }
+            ranges[s] = r
+        }
+        s = s + 1
+    }
+    return changed
+}
+
+/// Linear scan to collect `(loop_pc, end_pc)` pairs. Pushes onto a
+/// stack on `Block` / `Loop` / `If` ; pops on `End` and records when
+/// the popped scope was a loop. Mirror of TS `findLoopRanges`.
+find_loop_ranges :: fn(body: Op[]) -> SlotRange[] {
+    out: SlotRange[] = []
+    kinds: string[] = []
+    starts: i32[] = []
+    sp: usize = 0
+    pc: usize = 0
+    n :: body.len()
+    for pc < n {
+        op :: body[pc]
+        if op is Block { push_scope(kinds, starts, sp, "block", i32(pc))  sp = sp + 1 }
+        else if op is Loop { push_scope(kinds, starts, sp, "loop", i32(pc))  sp = sp + 1 }
+        else if op is If   { push_scope(kinds, starts, sp, "if",   i32(pc))  sp = sp + 1 }
+        else if op is End  {
+            if sp > usize(0) {
+                sp = sp - 1
+                if kinds[sp] == "loop" {
+                    out.push(SlotRange { .first = starts[sp], .last = i32(pc) })
+                }
+            }
+        }
+        pc = pc + 1
+    }
+    return out
+}
+
+push_scope :: fn(kinds: string[], starts: i32[], sp: usize, kind: string, start_pc: i32) -> void {
+    if sp == kinds.len() {
+        kinds.push(kind)
+        starts.push(start_pc)
+    } else {
+        kinds[sp] = kind
+        starts[sp] = start_pc
+    }
+}

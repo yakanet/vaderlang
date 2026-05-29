@@ -346,10 +346,10 @@ take_prefix :: fn(items: Op[], sp: usize) -> Op[] {
 /// `<from>.to_<slot>` convert at the get site when the const's type
 /// differs from the slot's — is not yet ported. Most CFG-emit cases use
 /// matching types, so the MVP covers the common path.
-export propagate_const_single_use :: fn(function: BcFunction) -> void {
+export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()
-    if total_slots <= param_count { return }
+    if total_slots <= param_count { return function }
 
     // Per-slot stats : how many sets / gets / tees ; index of the (only)
     // set + (only) get when there's exactly one of each.
@@ -422,7 +422,7 @@ export propagate_const_single_use :: fn(function: BcFunction) -> void {
         k = k + 1
     }
 
-    if to_delete_set.size == usize(0) { return }
+    if to_delete_set.size == usize(0) { return function }
 
     // Rewrite the body : skip deleted indices, replace `local.get` sites.
     new_body: Op[] = []
@@ -443,8 +443,12 @@ export propagate_const_single_use :: fn(function: BcFunction) -> void {
         }
         j = j + 1
     }
-    function.body = new_body
-    function.debug = new_debug
+    return BcFunction {
+        .name = function.name, .is_main = function.is_main,
+        .signature = function.signature, .locals = function.locals,
+        .body = new_body, .debug = new_debug,
+        .jump_table = function.jump_table,
+    }
 }
 
 /// ValType for a `ConstOp` carrier — used by `propagate_const_single_use`
