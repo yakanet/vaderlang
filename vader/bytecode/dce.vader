@@ -19,9 +19,9 @@ module "vader/bytecode"
 import "std/collections" { MutableMap, MutableSet, keys, values, add, contains }
 import "vader/vm" {
     Op, Call, CallImport, FnRef, MakeClosure, VirtualCall, CallIndirect,
-    StructNew, StructGet, StructSet,
-    ArrayNew, ArrayGet, ArraySet, ArrayPush,
-    TypeCheck, TypeConst, RefCast,
+    StructNew, StructGet, StructSet, LocalField,
+    ArrayNew, ArrayGet, ArraySet, ArrayPush, ArraySlice,
+    TypeCheck, TypeConst, RefCast, DataConst,
 }
 
 // ============================================================================
@@ -361,6 +361,12 @@ type_index_of :: fn(op: Op) -> i32 {
     if op is TypeCheck as t    { return t.type_id }
     if op is TypeConst as t    { return t.type_id }
     if op is CallIndirect as c { return c.type_id }
+    if op is MakeClosure as m  { return m.env_type_id }
+    if op is FnRef as f        { return f.type_id }
+    if op is LocalField as l   { return l.type_id }
+    if op is ArraySlice as a   { return a.type_id }
+    if op is RefCast as r      { return r.type_id }
+    if op is DataConst as d    { return d.type_id }
     return -1
 }
 
@@ -399,5 +405,11 @@ remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op {
     if op is TypeCheck as t    { return TypeCheck    { .type_id = remap_idx(remap, t.type_id) } }
     if op is TypeConst as t    { return TypeConst    { .type_id = remap_idx(remap, t.type_id) } }
     if op is CallIndirect as c { return CallIndirect { .type_id = remap_idx(remap, c.type_id) } }
+    if op is MakeClosure as m  { return MakeClosure  { .function_index = m.function_index, .env_type_id = remap_idx(remap, m.env_type_id) } }
+    if op is FnRef as f        { return FnRef        { .function_index = f.function_index, .type_id = remap_idx(remap, f.type_id) } }
+    if op is LocalField as l   { return LocalField   { .slot = l.slot, .type_id = remap_idx(remap, l.type_id), .field_index = l.field_index } }
+    if op is ArraySlice as a   { return ArraySlice   { .type_id = remap_idx(remap, a.type_id) } }
+    if op is RefCast as r      { return RefCast      { .type_id = remap_idx(remap, r.type_id) } }
+    if op is DataConst as d    { return DataConst    { .pool_index = d.pool_index, .type_id = remap_idx(remap, d.type_id) } }
     return op
 }
