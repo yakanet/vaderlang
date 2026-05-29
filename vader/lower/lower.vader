@@ -147,7 +147,91 @@ export lower_project :: fn(
     // (e.g. M5001 from `lower_for_in`) into the caller-owned sink so
     // they reach `# Diagnostics` in the CLI dump.
     for d in project_ctx.diags { diags.push(d) }
+    // Collect vtable entries from impl members. Mirrors TS's
+    // `collectVtableEntries`. Without this, `BcModule.impl_table` is
+    // always empty and `impl TYPE_ID TRAIT_NAME` directives never land
+    // in the .virt — the runtime falls back to mangle-keyed dispatch
+    // but the parity dump diverges.
+    project.vtable_entries = collect_vtable_entries(project, loaded, typed)
     return project
+}
+
+// Walk every module's impl decls × surviving impl-member fns and yield
+// one `VtableEntry` per `(trait, method, receiver type, impl fn)`.
+// Mirror of `src/lower/lower.ts::collectVtableEntries`.
+collect_vtable_entries :: fn(
+    project: LoweredProject, loaded: LoadedProject, typed: TypedProject,
+) -> VtableEntry[] {
+    out: VtableEntry[] = []
+    for module_id in project.modules.keys() {
+        m :: project.modules[module_id]
+        if m is null { continue }
+        for d in m.decls {
+            if d is LoweredFnDecl as fd {
+                trait_method :: impl_trait_method_from_mangled(fd.mangled)
+                if trait_method is null { continue }
+                receiver_ty :: impl_receiver_type_from_decl(fd, typed)
+                if receiver_ty is null { continue }
+                // fn_symbol is informational here — build_impl_table only
+                // keys on (struct_type, trait_name). Use a synth Symbol
+                // when the impl-member resolver lookup returned null so
+                // the entry still lands in the table.
+                sym :: fd.origin.symbol
+                fn_sym :: if sym is Symbol { sym } else {
+                    Symbol {
+                        .id = i32(0), .kind = SymbolKind.Fn, .name = fd.mangled,
+                        .module = "", .visibility = Visibility.Private, .defined_at = null,
+                    }
+                }
+                out.push(VtableEntry {
+                    .trait_name  = trait_method.trait_name,
+                    .method_name = trait_method.method,
+                    .struct_type = receiver_ty,
+                    .fn_symbol   = fn_sym,
+                })
+            }
+        }
+    }
+    return out
+}
+
+ImplTraitMethod :: struct { trait_name: string, method: string }
+
+// Decode `<module>$<Receiver>$<Trait>$<method>` mangled name into trait
+// + method. The lowerer's `impl_member_mangled` emits this shape ;
+// non-impl fns return null. We can't pull the trait/method directly
+// from the FnDecl because impl members ship as plain LoweredFnDecls
+// (TS keeps a richer ImplRegistry through emit, Vader's mangle
+// round-trip is the cheap substitute).
+impl_trait_method_from_mangled :: fn(mangled: string) -> ImplTraitMethod | null {
+    parts :: split_dollar(mangled)
+    if parts.len() < usize(4) { return null }
+    return ImplTraitMethod {
+        .trait_name = parts[parts.len() - usize(2)],
+        .method     = parts[parts.len() - usize(1)],
+    }
+}
+
+split_dollar :: fn(s: string) -> string[] {
+    out: string[] = []
+    cur := ""
+    for i in usize(0)..<s.byte_len() {
+        b :: s.byte_at(i)
+        if b == u8(0x24) { out.push(cur)  cur = "" }
+        else { cur = "${cur}${char(u32(b))}" }
+    }
+    out.push(cur)
+    return out
+}
+
+// Receiver type from the impl-member's first param (`self`). For
+// `Point implements Display { to_string :: fn(self) -> string }`,
+// the param's type is `Point`, which becomes the vtable's receiver-type
+// key. Returns null when params are empty (defensive — impl members
+// always carry self).
+impl_receiver_type_from_decl :: fn(fd: LoweredFnDecl, _typed: TypedProject) -> Type | null {
+    if fd.params.len() == usize(0) { return null }
+    return fd.params[0].type
 }
 
 is_stdlib_path :: fn(path: string) = "stdlib/std/" in path
@@ -533,12 +617,17 @@ lower_for_type :: fn(impl_decl: ImplDecl, typed: TypedProgram) -> Type {
 }
 
 synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string) -> MonoEntry {
+    // Hand the resolver symbol down so downstream phases (DCE,
+    // fn-table indexing, vtable_entries) can route by symbol id.
+    // Was `null` previously, which left the bytecode emit unable to
+    // resolve the impl-member's fn-table slot and the impl directive
+    // unable to land in `BcModule.impl_table`.
     return MonoEntry {
         .id             = i32(0),
         .is_main        = false,
         .mangled        = mangled,
         .decl           = member,
-        .symbol         = null,
+        .symbol         = symbol_for_decl(member, typed),
         .subst          = new_substitution(),
         .type_arguments = [],
         .module         = typed,

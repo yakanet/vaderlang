@@ -22,9 +22,10 @@ module "vader/midir"
 import "std/collections" { MutableMap, MutableSet }
 import "vader/diagnostics" { Span }
 import "vader/types" { Type, PrimitiveType, mk_struct }
+import "vader/lower" { VtableEntry as LoweredVtableEntry }
 import "vader/bytecode" {
     EmitterCtx, BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport,
-    BcField, BcStruct, BcRef, BcDataEntry, DebugPos,
+    BcField, BcStruct, BcRef, BcDataEntry, DebugPos, ImplEntry,
     new_emitter_ctx, intern_type, intern_string,
     val_type_of_type, ValType,
     binary_op_for, unary_op_for, default_emit_options, EmitOptions,
@@ -72,6 +73,12 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
     if cfg_fn.origin.symbol is Symbol as sym {
         ctx.function_index_by_symbol_id[sym.id] = function_index
     }
+    // Always index by mangle too — impl members & other synth fns set
+    // `origin.symbol = null`, so without the mangle index the body-emit
+    // pass can't find the reserved slot and the fn ships with an empty
+    // body. Same fallback the legacy `vader/bytecode/emit.vader::reserve_fn`
+    // already maintains.
+    ctx.function_index_by_mangle[cfg_fn.mangled] = function_index
 }
 
 reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
@@ -176,11 +183,20 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         if m is null { continue }
         for cfg_fn in m.functions {
             if cfg_fn.is_extern { continue }
+            // Resolve the reserved fn-table slot. Prefer the symbol-id
+            // map ; fall back to mangle for synth fns (impl members,
+            // lifted lambdas) whose `origin.symbol` is null.
+            fn_idx := i32(-1)
             if cfg_fn.origin.symbol is Symbol as sym {
-                fn_idx_opt :: ctx.function_index_by_symbol_id[sym.id]
-                if fn_idx_opt is i32 as fn_idx {
-                    emit_cfg_function_body(cfg_fn, fn_idx, ctx, string_index_map)
-                }
+                idx_opt :: ctx.function_index_by_symbol_id[sym.id]
+                if idx_opt is i32 as i { fn_idx = i }
+            }
+            if fn_idx < 0 {
+                idx_opt :: ctx.function_index_by_mangle[cfg_fn.mangled]
+                if idx_opt is i32 as i { fn_idx = i }
+            }
+            if fn_idx >= 0 {
+                emit_cfg_function_body(cfg_fn, fn_idx, ctx, string_index_map)
             }
         }
     }
@@ -215,14 +231,23 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
                 .locals = f.locals, .body = new_body, .debug = f.debug,
                 .jump_table = f.jump_table,
             }
+            // Iterate propagate to fixpoint : inlining slot N's const may
+            // expose slot M (whose set was preceded by `LocalGet N`, now
+            // an inlined const) as the next propagateable slot. Mirrors
+            // TS's behaviour : applyLocalRules + propagate together
+            // converge on a single sweep when adjacency already holds,
+            // but Vader's emit pattern produces chained moves (`%2 =
+            // move %1 = move %0 = const`) that need at least two
+            // iterations to unwind.
+            propagate_const_single_use(ctx.functions[i])
+            propagate_const_single_use(ctx.functions[i])
             propagate_const_single_use(ctx.functions[i])
             ctx.functions[i] = drop_dead_stores(ctx.functions[i])
             // Second-pass : ONLY the Rule 5 (`<Const> ; Return` → ReturnLit)
             // fold. drop_dead_stores opens new const-before-return windows
             // by removing dead tees / sets ; re-running the full
             // `run_bc_peephole` here would also re-fold set+get pairs that
-            // slot-renumbering made adjacent, over-folding compared to TS
-            // (whose applyLocalRules runs once on the original adjacency).
+            // slot-renumbering made adjacent, over-folding compared to TS.
             second_body :: run_bc_return_lit_fold(ctx.functions[i])
             g :: ctx.functions[i]
             ctx.functions[i] = BcFunction {
@@ -250,9 +275,40 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         .functions   = ctx.functions,
         .imports     = ctx.imports,
         .exports     = ctx.exports,
-        .impl_table  = [],
+        .impl_table  = build_impl_table_from_vtable(cfg.vtable_entries, ctx),
         .vtables     = [],
     }
+}
+
+// Local equivalent of `build_impl_table` (vader/bytecode/emit.vader),
+// duplicated here so the CFG emit path doesn't need to reach the
+// legacy assemble_module. Yields one ImplEntry per (struct_type_index,
+// trait_name) seen in the vtable entries.
+build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> ImplEntry[] {
+    out: ImplEntry[] = []
+    seen :: MutableMap<string, bool> { .buckets = [], .size = 0 }
+    for entry in entries {
+        // Only honour vtable entries whose receiver struct is *already*
+        // interned (i.e. some real call site referenced it). intern_type
+        // here would otherwise mint a fresh `ref` placeholder for a
+        // struct that's been DCE'd everywhere else (`Foo implements
+        // Into<Foo>` rejected by typecheck — TS drops Foo entirely).
+        key_str :: type_intern_key(entry.struct_type)
+        existing :: ctx.type_key[key_str]
+        if !(existing is i32) { continue }
+        type_index :: existing
+        if usize(type_index) < ctx.types.len() {
+            if !(ctx.types[usize(type_index)] is BcStruct) { continue }
+        }
+        key :: "${type_index}|${entry.trait_name}"
+        if seen[key] is bool { continue }
+        seen[key] = true
+        out.push(ImplEntry {
+            .struct_type_index = type_index,
+            .trait_name        = entry.trait_name,
+        })
+    }
+    return out
 }
 
 // ============================================================================
