@@ -87,7 +87,9 @@ type_key_join :: fn(args: Type[], sep: string) -> string {
 export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is PrimitiveType as p -> val_type_of_primitive_name(p.name)
     is StructType         -> ValType.Ref
-    is EnumType           -> ValType.Ref
+    // Enums ride the operand stack as their backing integer repr, not a boxed
+    // ref — mirrors `src/bytecode/emit.ts::valTypeOf`'s `case "Enum"`.
+    is EnumType      as e -> val_type_of_primitive_name(e.repr)
     is TraitType          -> ValType.Ref
     is ArrayType          -> ValType.Ref
     is UnionType          -> ValType.Ref
