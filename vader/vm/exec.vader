@@ -568,11 +568,11 @@ apply_cmp_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: strin
 /// @param parameter_count  the entry fn's declared parameter count.
 /// @param host_argv        forwarded CLI argv, or empty for the synthetic path.
 /// @return                 the `Value[]` to seed the main frame's slots.
-build_main_args :: fn(parameter_count: usize, host_argv: string[]) -> Value[] {
+build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_type_id: i32) -> Value[] {
     out: Value[] = []
     if parameter_count != 1 { return out }
     argv :: if host_argv.len() == 0 { ["<vader-vm>"] } else { host_argv }
-    out.push(string_array_to_value(argv))
+    out.push(string_array_to_value(argv, string_array_type_id))
     return out
 }
 
@@ -607,13 +607,19 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
     // implied. Snippet tests check `after - before == N` within one run.
     gc_state: usize[] = [0]
 
+    // The `string[]` ArrayType index — stamped onto every host-produced
+    // string array (argv, `read_dir`, `split`) so `is string[]` narrows
+    // (type_matches does exact-type_id equality on arrays). Computed once;
+    // the scan is linear in the type table.
+    string_array_type_id :: find_string_array_type_id(module)
+
     main_function :: module.functions[usize(module.main_index)]
     // If `main` is declared `fn(argv: string[]) -> i32`, supply its argv.
     // Built in a helper because inlining it pushed `exec` (the giant op-
     // dispatch fn) past the bytecode emitter's per-function buffer limit —
     // a latent emit bug (array-index-OOB in emit at scale). The split is also
     // cleaner; the underlying limit still needs a real fix.
-    main_args :: build_main_args(main_function.parameter_count, host_argv)
+    main_args :: build_main_args(main_function.parameter_count, host_argv, string_array_type_id)
     main_frame :: build_callee_frame(module.main_index, main_function, main_args, 0, null)
     push_frame(frames, frame_count, main_frame)
 
@@ -681,7 +687,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     return Trap { .message = "call.import '${info.mangled}' needs ${info.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
                 arg_base :: frame.sp - info.parameter_count
-                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc)
+                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id)
                 if dispatch_outcome is Trap {
                     return dispatch_outcome
                 }

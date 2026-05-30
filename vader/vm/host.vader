@@ -115,9 +115,13 @@ stringbuilder_to_string :: fn(sv: StructVal, at_pc: i32) -> HostCallResult {
 ///                  reads it.
 /// @param at_pc     pc of the calling `call.import` op, used for Trap
 ///                  diagnostics only.
+/// @param string_array_type_id  the module's `string[]` ArrayType index
+///                  (see `find_string_array_type_id`), stamped onto the
+///                  arrays returned by `split` / `read_dir` so they narrow
+///                  to `is string[]` in their `string[]!` union return.
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
 ///                  import, malformed arg, or host-level failure.
-export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32) -> HostCallResult {
+export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32) -> HostCallResult {
     if info.mangled == r"std_io$write" {
         // arg_base + 0 : Stream tag ; arg_base + 1 : the string payload.
         STDOUT :: i32(0)
@@ -192,7 +196,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if s   is Trap { return s }
         if sep is Trap { return sep }
         parts :: s.value.split(sep.value)
-        return HostOk { .value = string_array_to_value(parts) }
+        return HostOk { .value = string_array_to_value(parts, string_array_type_id) }
     }
     if info.mangled == r"std_core$string$Index$at" {
         s :: read_string(stack[arg_base    ], at_pc, "string[] receiver")
@@ -379,7 +383,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if result is Error {
             return HostOk { .value = ErrorVal { .message = "read_dir failed: ${path.value}" } }
         }
-        return HostOk { .value = string_array_to_value(result) }
+        return HostOk { .value = string_array_to_value(result, string_array_type_id) }
     }
     // ---- std/process spawn ----------------------------------------------
     if info.mangled == r"std_process$spawn_run" {

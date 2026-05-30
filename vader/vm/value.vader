@@ -24,15 +24,49 @@ export Trap :: struct { message: string }
 /// Default-zero `Value`, used to size each frame's locals at fn entry.
 export zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 
-/// Box a `string[]` as an `ArrayVal` of `StringVal`. `type_id` is 0 —
-/// bound-checks use `elements.len()`, not the type table — matching the
-/// convention every host-dispatch arm uses for a returned string array.
-/// @param items  the strings to box.
-/// @return       an `ArrayVal` whose elements are `StringVal`s of `items`.
-export string_array_to_value :: fn(items: string[]) -> ArrayVal {
+/// Box a `string[]` as an `ArrayVal` of `StringVal`.
+///
+/// `type_id` must be the module's `string[]` `ArrayType` index (see
+/// `find_string_array_type_id`) — `type_matches` does an exact `type_id`
+/// equality check on arrays (value.vader:298), so a host-built array
+/// tagged 0 never narrows to `is string[]` in a union (e.g. the
+/// `string[]!` return of `read_dir` / `split`). Bound-checks still use
+/// `elements.len()`, not the type table.
+/// @param items    the strings to box.
+/// @param type_id  the module's `string[]` ArrayType index, or 0 when the
+///                 module has no such entry (the value is then never
+///                 matched against `string[]` so the tag is moot).
+/// @return         an `ArrayVal` whose elements are `StringVal`s of `items`.
+export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
     elements: Value[] = []
     for s in items { elements.push(StringVal { .value = s }) }
-    return ArrayVal { .type_id = 0, .elements = elements, .offset = usize(0), .length = elements.len() }
+    return ArrayVal { .type_id = type_id, .elements = elements, .offset = usize(0), .length = elements.len() }
+}
+
+/// Locate the module's `string[]` `ArrayType` index — the type id a
+/// host-produced string array must carry so `is string[]` narrows.
+/// Mirrors `findStringArrayTypeIndex` in `src/vm/host.ts`. Returns 0 when
+/// no `string` primitive or no `string[]` array entry exists (the caller's
+/// `type_check` then fails loudly rather than masking the miss). Compute
+/// once per run — the scan is linear in the type-table size.
+/// @param module  the running module.
+/// @return        the `string[]` ArrayType index, or 0 when absent.
+export find_string_array_type_id :: fn(module: Module) -> i32 {
+    string_idx: i32 = -1
+    for i in 0..<module.types.len() {
+        t :: module.types[i]
+        if t is PrimitiveType as p {
+            if p.kind == "string" { string_idx = i32(i) }
+        }
+    }
+    if string_idx < 0 { return 0 }
+    for j in 0..<module.types.len() {
+        t :: module.types[j]
+        if t is ArrayType as a {
+            if a.element_type_id == string_idx { return i32(j) }
+        }
+    }
+    return 0
 }
 
 /// Size in bytes of an `TypeDecl` — backs `@size_of(t)` runtime path.
