@@ -428,11 +428,16 @@ static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
  * additional roots instead of the entire old space. */
 
 /* Heap sizing — tunable at compile time via `-D` flags. */
+/* Defaults sized so the compiler self-compiles (`dump --stage=bytecode
+ * vader/cli/main.vader`) without manual VADER_GC_* overrides — its peak
+ * live-set is ~69 MB (whole-program bytecode held at once). Arenas are
+ * malloc'd in full but bump-allocated, so untouched pages never commit:
+ * a small program pays RSS only for what it touches, not the reservation. */
 #ifndef VADER_GC_YOUNG_BYTES
-#define VADER_GC_YOUNG_BYTES (16u * 1024u * 1024u)   /* 16 MB per young semi-space */
+#define VADER_GC_YOUNG_BYTES (32u * 1024u * 1024u)   /* 32 MB per young semi-space */
 #endif
 #ifndef VADER_GC_OLD_BYTES
-#define VADER_GC_OLD_BYTES   (64u * 1024u * 1024u)   /* 64 MB per old semi-space */
+#define VADER_GC_OLD_BYTES   (256u * 1024u * 1024u)  /* 256 MB per old semi-space */
 #endif
 #ifndef VADER_TENURE_AGE
 #define VADER_TENURE_AGE     2u                      /* minor cycles before promotion */
