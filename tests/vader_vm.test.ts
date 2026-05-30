@@ -78,6 +78,11 @@ const VADER_SELF_EMIT = new Set<string>([
   "struct_spread",
   "intrinsic_field_access",
   "comptime_const",
+  // mode-b : `for x in it` over a concrete (generic) struct iterator now
+  // resolves `it.next()` to the impl-member instance mangle.
+  "custom_iter_generic",
+  "custom_iter",
+  "array_iter",
 ]);
 
 // Snippets that the self-host VM can't yet run end-to-end. New entries

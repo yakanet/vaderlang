@@ -309,7 +309,22 @@ build_step_call :: fn(
         }
         _ -> {}
     }
-    next_symbol :: synth_next_symbol(ctx)
+    // Concrete struct iter (e.g. `Repeat<i32>`) : the impl-member `next`
+    // instance is mangled `<module>$<Struct>$Iterator$next<args-suffix>`
+    // (mirror of the generic-impl instance materialisation, lower.vader).
+    // Carry that mangle so the CFG call emit resolves it via
+    // `function_index_by_mangle` instead of dropping a bare-name callee.
+    // For multi-instantiation the erasure-dedupe keeps one body under the
+    // first instance's suffix ; single-instantiation (the common case)
+    // matches exactly. Cross-module user generic-impls would need the
+    // impl's owning module (see GATE B1) — caller-module here covers the
+    // colocated-struct case.
+    method_next :: "next"
+    next_name := method_next
+    if iter_type is StructType as st {
+        next_name = "${mangle_module_id(ctx.typed.resolved.display_path)}$${st.symbol.name}$${TRAIT_ITERATOR}$${method_next}${args_suffix(st.args)}"
+    }
+    next_symbol :: synth_next_symbol(ctx, next_name)
     args: LoweredExpr[] = []
     args.push(iter_ref)
     return LoweredCall {
@@ -321,11 +336,11 @@ build_step_call :: fn(
     }
 }
 
-synth_next_symbol :: fn(ctx: FnLowerCtx) -> Symbol {
+synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
     return Symbol {
         .id         = i32(0),
         .kind       = SymbolKind.Fn,
-        .name       = "next",
+        .name       = name,
         .module     = ctx.typed.resolved.path,
         .visibility = AST.Visibility.Private,
         .defined_at = null,
