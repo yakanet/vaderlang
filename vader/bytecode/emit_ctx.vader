@@ -136,7 +136,7 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
     placeholder: BcType = BcRef { .trait_name = "" }
     ctx.types.push(placeholder)
     ctx.type_key[key] = new_index
-    ctx.types[usize(new_index)] = bc_type_of_with_ctx(t, ctx)
+    ctx.types[usize(new_index)] = bc_type_of_with_ctx(t, ctx, new_index)
     return new_index
 }
 

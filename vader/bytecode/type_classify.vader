@@ -128,7 +128,22 @@ export bc_type_of :: fn(t: Type) -> BcType = BcPrimitive { .val = val_type_of_ty
 /// Tuple synthesises an anonymous struct keyed by the caller-provided
 /// slot index ; the caller passes its own table position so the synth
 /// name (`__Tuple_<idx>`) stays stable.
-export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
+///
+/// Exhaustive over `Type` by design (no `_` fall-through) : the bare
+/// types that have no first-class bytecode shape (type-params, meta,
+/// self, unresolved, free numerics, never) collapse to an opaque
+/// `BcRef { "" }` — mirrors TS `bcTypeOf`'s `default` arm — but listing
+/// them keeps the match honest, so adding a new `Type` variant trips
+/// T3013 here instead of silently degrading to `ref` (the failure mode
+/// that hid the missing `Tuple` case).
+///
+/// @param t           the type to translate.
+/// @param ctx         the emit context — nested types intern through it.
+/// @param slot_index  this type's own table position, reserved by the
+///                    caller. Used only to name synthesised tuple
+///                    structs (`__Tuple_<slot_index>`) stably.
+/// @return            the `BcType` for the type table.
+export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> BcType {
     match t {
         is PrimitiveType as p -> { return BcPrimitive { .val = val_type_of_primitive_name(p.name) } }
         is EnumType as e      -> { return BcPrimitive { .val = val_type_of_primitive_name(e.repr) } }
@@ -148,9 +163,40 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
                 .return_type = intern_type(f.return_type, ctx),
             }
         }
-        _ -> { return BcRef { .trait_name = "" } }
+        // Anonymous struct `__Tuple_<slot>` with positional fields `_0`,
+        // `_1`, … . The slot index disambiguates same-arity shapes so
+        // `[i32, string]` and `[bool, string]` emit distinct C structs.
+        // Mirror of TS `bcTypeOf`'s `case "Tuple"`.
+        is TupleType as p -> {
+            fields: BcField[] = []
+            for i in 0..<p.elements.len() {
+                fields.push(BcField {
+                    .name       = "_${i}",
+                    .type_index = intern_type(p.elements[i], ctx),
+                })
+            }
+            return BcStruct {
+                .name      = "__Tuple_${slot_index}",
+                .fields    = fields,
+                .symbol_id = i32(-1),
+            }
+        }
+        // No first-class bytecode shape — opaque `ref`. Listed explicitly
+        // (not a `_` catch-all) so a new `Type` variant trips T3013.
+        is TypeParamType  -> { return OPAQUE_REF }
+        is TypeMetaType   -> { return OPAQUE_REF }
+        is SelfType       -> { return OPAQUE_REF }
+        is UnresolvedType -> { return OPAQUE_REF }
+        is FreeIntType    -> { return OPAQUE_REF }
+        is FreeFloatType  -> { return OPAQUE_REF }
+        is NeverType      -> { return OPAQUE_REF }
+        is AnyType        -> { return OPAQUE_REF }
     }
 }
+
+/// Opaque `ref` for a `Type` with no first-class bytecode shape. Mirrors the
+/// `trait_name = null` placeholder TS `bcTypeOf` returns from its `default` arm.
+OPAQUE_REF :: BcRef { .trait_name = "" }
 
 import "vader/lower" { type_of, LoweredIntLit }
 
