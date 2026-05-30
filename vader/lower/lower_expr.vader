@@ -618,43 +618,24 @@ build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Sp
 try_direct_display_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -> LoweredExpr | null {
     string_type :: mk_primitive("string")
     source_type :: type_of(value)
-    target_name :: type_surface_name(source_type)
-    if target_name == "" { return null }
-    // Concrete-receiver-only path : primitive types (i32, string, …) and
-    // generic-T receivers fall through to the vtable. Scan the registry
-    // for `<target_name>.Display { … }` ; mirror `find_via_all`.
-    decl_opt: ImplEntry | null = null
-    for entry in ctx.project.impls.all {
-        if entry.trait_symbol.name != "Display" { continue }
-        if !impl_targets_name(entry.decl.for_type, target_name) { continue }
-        decl_opt = entry
+    // Resolve `<T>.Display.to_string` through the canonical UFCS path. This
+    // mangles via the IMPL's owning module (`std_core$usize$Display$to_string`,
+    // not the caller's) AND records the mangle in `referenced_impl_mangles`, so
+    // the post-lowering pass surfaces the bodyless intrinsic member as an import
+    // and the call resolves to its `$vt` wrapper. A previous hand-rolled scan
+    // here emitted a bare `to_string` callee with no recorded reference, so the
+    // call fell through to the emit's defensive `Return` (e.g. every `${usize}`
+    // interpolation silently mis-compiled). `null` (no concrete Display impl:
+    // generic-T / trait receiver) falls back to a `LoweredVirtualCall`.
+    member :: find_impl_member_for(ctx, source_type, "to_string")
+    if member is null { return null }
+    call_args: LoweredExpr[] = []
+    call_args.push(value)
+    return LoweredCall {
+        .span = span, .type = string_type,
+        .callee = LoweredIdent { .span = span, .type = string_type, .symbol = member.symbol },
+        .args = call_args,
     }
-    if decl_opt is null { return null }
-    impl_entry :: decl_opt
-    decl :: impl_entry.decl
-    for m in decl.members {
-        if m.name != "to_string" { continue }
-        // Mirror `try_lookup_method_on_type` mangling (lower_expr.vader:1026)
-        // so the call resolves against the synth decl produced by
-        // `lower_impl_members`.
-        mangled :: "${mangle_module_id(ctx.typed.resolved.display_path)}$${target_name}$${decl.trait_name}$${m.name}"
-        sym :: Symbol {
-            .id         = i32(0),
-            .kind       = SymbolKind.Fn,
-            .name       = m.name,
-            .module     = ctx.typed.resolved.path,
-            .visibility = Visibility.Private,
-            .defined_at = null,
-        }
-        call_args: LoweredExpr[] = []
-        call_args.push(value)
-        return LoweredCall {
-            .span = span, .type = string_type,
-            .callee = LoweredIdent { .span = span, .type = string_type, .symbol = sym },
-            .args = call_args,
-        }
-    }
-    return null
 }
 
 has_interp_part :: fn(expr: StringLitExpr) -> bool {
