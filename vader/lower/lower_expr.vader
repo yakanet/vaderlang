@@ -873,7 +873,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
                 // module so `build_fn_instance_decl` finds the AST decl.
                 module_id :: fn_sym.module
                 display :: lookup_module_display_path(ctx, module_id)
-                mod_mangle :: mangle_module_id_local(if display != "" { display } else { module_id })
+                mod_mangle :: mangle_module_id_local(if display == null { module_id } else { display })
                 suffix :: mono_suffix(concrete_args)
                 mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
                 // Register the instance for materialisation at the end
@@ -949,7 +949,7 @@ register_and_emit_generic_call :: fn(
     // the call drops. Mirrors the harvest path at line 1372.
     module_id :: fn_sym.module
     display :: lookup_module_display_path(ctx, module_id)
-    mod_mangle :: mangle_module_id_local(if display != "" { display } else { module_id })
+    mod_mangle :: mangle_module_id_local(if display == null { module_id } else { display })
     suffix :: mono_suffix(concrete_args)
     mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
     inst_key :: "${fn_sym.id}::${suffix}"
@@ -1386,7 +1386,7 @@ harvest_ufcs_fn_instance :: fn(
         // `program.module.displayPath` in `src/comptime/specialize.ts:384`.
         // Falls back to fn_sym.module when the lookup misses (defensive).
         display :: lookup_module_display_path(ctx, owner_module)
-        mod_mangle :: mangle_module_id_local(if display != "" { display } else { owner_module })
+        mod_mangle :: mangle_module_id_local(if display == null { owner_module } else { display })
         mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
         // Record the instance once ; return the mangle on every call so the
         // call site can target it even when a sibling call already harvested.
@@ -1406,13 +1406,13 @@ harvest_ufcs_fn_instance :: fn(
 }
 
 // Look up an evaluated module's `display_path` (the declared
-// `module "..."` name) from its module id. Falls back to "" when
-// the module isn't in the evaluated project — callers default to
-// the raw module id in that case.
-lookup_module_display_path :: fn(ctx: FnLowerCtx, module_id: string) -> string {
+// `module "..."` name) from its module id. Returns null when the
+// module isn't in the evaluated project — callers default to the
+// raw module id in that case.
+lookup_module_display_path :: fn(ctx: FnLowerCtx, module_id: string) -> string | null {
     program :: ctx.project.evaluated.modules[module_id]
     if program is EvaluatedProgram as ep { return ep.typed.resolved.display_path }
-    return ""
+    return null
 }
 
 // Find a field's static type on a struct receiver. Used by the
