@@ -13,6 +13,7 @@ import "vader/diagnostics" { Diagnostic, Span, typecheck_error, warning }
 AST :: import "vader/parser"
 import "vader/types" {
     Type, ArrayType, FnType, StructType, TupleType, TypeParamType, UnresolvedType, display_type,
+    NeverType,
     TY_BOOL, TY_NEVER, TY_VOID, TY_UNRESOLVED,
 }
 
@@ -40,7 +41,7 @@ export check_block :: fn(
             first_unreachable_span = stmt_span(stmt)
         }
         check_stmt(stmt, typed, diags, ctx, check_expr_fn)
-        if !diverged && is_divergent_stmt(stmt) { diverged = true }
+        if !diverged && is_divergent_stmt(stmt, typed) { diverged = true }
         push_divergent_narrow_if(stmt, typed, divergent_narrows)
     }
     if diverged && first_unreachable_span is null {
@@ -58,7 +59,7 @@ export check_block :: fn(
             // `infer_match`) collapse the union arm cleanly.
             if block.stmts.len() > 0 {
                 last :: block.stmts[block.stmts.len() - 1]
-                if is_divergent_stmt(last) { result = TY_NEVER }
+                if is_divergent_stmt(last, typed) { result = TY_NEVER }
             }
         }
         _ -> { result = check_expr_fn(block.trailing, expected, typed, diags) }
@@ -460,7 +461,7 @@ push_divergent_narrow_if :: fn(
     if !(stmt.expr is AST.IfExpr) { return }
     if_expr :: stmt.expr
     if !(if_expr.else_branch is null) { return }
-    if !then_is_divergent(if_expr.then_block) { return }
+    if !then_is_divergent(if_expr.then_block, typed) { return }
     narrowing :: detect_is_narrow_for_block(if_expr.cond, typed)
     if narrowing is null { return }
     if narrowing.field_key == "" {
@@ -481,15 +482,22 @@ push_divergent_narrow_if :: fn(
     }
 }
 
-then_is_divergent :: fn(b: AST.BlockExpr) -> bool {
+then_is_divergent :: fn(b: AST.BlockExpr, typed: TypedProgram) -> bool {
     if b.stmts.len() == 0 { return false }
-    return is_divergent_stmt(b.stmts[b.stmts.len() - 1])
+    return is_divergent_stmt(b.stmts[b.stmts.len() - 1], typed)
 }
 
-is_divergent_stmt :: fn(s: AST.Stmt) -> bool {
+is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
     if s is AST.ReturnStmt { return true }
     if s is AST.BreakStmt { return true }
     if s is AST.ContinueStmt { return true }
+    // An expression statement that evaluates to `never` (a call to a
+    // `@no_return` fn — `panic` / `todo` / `unreachable`) terminates the
+    // flow : code after it is unreachable, and it discharges a non-`void`
+    // fn's return obligation.
+    if s is AST.ExprStmt as e {
+        if typed.expr_types[e.expr.id] is NeverType { return true }
+    }
     return false
 }
 

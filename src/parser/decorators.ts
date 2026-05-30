@@ -9,7 +9,8 @@ export type DecoratorName =
   | "intrinsic"
   | "deprecated"
   | "assert"
-  | "specialize";
+  | "specialize"
+  | "no_return";
 
 export const DEC = {
   comptime:   "comptime",
@@ -20,11 +21,12 @@ export const DEC = {
   deprecated: "deprecated",
   assert:     "assert",
   specialize: "specialize",
+  no_return:  "no_return",
 } as const satisfies Record<DecoratorName, DecoratorName>;
 
 export const KNOWN_DECORATORS: ReadonlySet<DecoratorName> = new Set([
   DEC.comptime, DEC.extern, DEC.export, DEC.test, DEC.intrinsic,
-  DEC.deprecated, DEC.assert, DEC.specialize,
+  DEC.deprecated, DEC.assert, DEC.specialize, DEC.no_return,
 ]);
 
 export function isKnownDecorator(name: string): name is DecoratorName {

@@ -846,7 +846,7 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       // `out: Stream` — defaults to i32 repr ; runtime traps on any tag
       // outside {Stdout=0, Stderr=1}.
       return `${head} { vader_write(a0, a1); }`;
-    case "std_testing$panic":
+    case "std_abort$panic":
       return `${head} { vader_panic(a0); }`;
     case "std_io$exists":
       return `${head} { return vader_exists(a0); }`;

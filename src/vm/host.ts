@@ -369,16 +369,16 @@ export function stdProcessBindings(): Record<string, HostFn> {
   };
 }
 
-export function stdTestingBindings(): Record<string, HostFn> {
+export function stdAbortBindings(): Record<string, HostFn> {
   return {
-    std_testing$panic: (args) => {
+    std_abort$panic: (args) => {
       throw new VmError(`vader: panic — ${stringArg(args, 0)}`);
     },
   };
 }
 
 export function makeBindings(io: HostIO): HostBindings {
-  const all = { ...stdIoBindings(io), ...stdStringBindings(), ...stdTimeBindings(), ...stdMathBindings(), ...stdRuntimeBindings(), ...stdProcessBindings(), ...stdTestingBindings() };
+  const all = { ...stdIoBindings(io), ...stdStringBindings(), ...stdTimeBindings(), ...stdMathBindings(), ...stdRuntimeBindings(), ...stdProcessBindings(), ...stdAbortBindings() };
   return {
     get(mangledName, externName) {
       return all[mangledName] ?? all[externName] ?? null;

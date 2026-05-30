@@ -263,7 +263,8 @@ is_known_decorator :: fn(name: string) -> bool {
         name == "intrinsic" ||
         name == "deprecated" ||
         name == "assert" ||
-        name == "specialize"
+        name == "specialize" ||
+        name == "no_return"
 }
 
 walk_opt_expr :: fn(self: ResolveState, e: AST.Expr | null) -> void {

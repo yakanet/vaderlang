@@ -89,7 +89,13 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "std_sort", "std_string", "std_string_builder", "std_time", "string_bytes",
   "string_chars", "string_codepoint_slice", "string_codepoints", "strings",
   "struct_decl", "struct_defaults", "struct_lit_field_order",
-  "struct_name_collision", "struct_spread", "trait_box_range_iter",
+  "struct_name_collision", "struct_spread",
+  // Standard string-pool / import interning-order divergence (the dominant
+  // §9 class), not a `todo`-specific gap — todo_stub uses `println` + string
+  // interpolation like dozens of entries above. Its committed bytecode.snapshot
+  // still validates the `todo` → `std_abort$panic` wiring.
+  "todo_stub",
+  "trait_box_range_iter",
   "trait_dispatch_bounded", "trait_dispatch_eq", "trait_dispatch_generic_iter",
   "trait_dispatch_param",
   // INTENTIONAL divergence (mode-a GATE A) : Vader now keeps trait-dispatching

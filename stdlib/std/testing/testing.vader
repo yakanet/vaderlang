@@ -1,6 +1,6 @@
 // std/testing — runtime assertions for `@test` functions.
 //
-// Each helper panics via the (private) host intrinsic `panic` on failure,
+// Each helper panics via the `std/abort` host intrinsic `panic` on failure,
 // with a self-explanatory message that names the expected/actual values.
 // The `vader test` runner intercepts those panics and reports the offending
 // arm as a failed test.
@@ -9,12 +9,9 @@
 // actually traps). `@assert` is a comptime-only top-level decorator and is
 // *not* what these run-time assertions hook into.
 
-/// Trap the current execution with `msg`. Surface for the VM is a thrown
-/// `VmError`; on native, the process aborts after printing to stderr.
-/// Kept private — external callers should reach for `fail(msg)` instead.
 module "std/testing"
 
-@intrinsic panic :: fn(msg: string) -> void
+import "std/abort" { panic }
 
 /// Local f64-abs — kept inline to avoid a `std/math` import, which would
 /// create a cycle the moment any `std/math` test imports back into here.

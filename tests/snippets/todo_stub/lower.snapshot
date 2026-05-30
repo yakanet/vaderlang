@@ -1,0 +1,42 @@
+# Lower
+
+## snippet
+  fn snippet$run_mode(mode: string) -> void
+    if :void
+      cond:
+        eq :bool
+          l:
+            mode :string
+          r:
+            "list" :string
+      then:
+        call :void
+          callee:
+            println :void
+          arg0:
+            "listing entries" :string
+        return
+    ~>
+      call :void
+        callee:
+          todo :fn(string) -> void
+        arg0:
+          block :string
+            let __sb_0: ? =
+              @builder.new :?
+            @builder.append_display <for string> :void
+              __sb_0 :?
+              mode :string
+            @builder.append_str :void
+              __sb_0 :?
+              " mode dispatch" :string
+            ~>
+              @builder.finish :string
+                __sb_0 :?
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        run_mode :fn(string) -> void
+      arg0:
+        "list" :string
+    return int(0) :i32

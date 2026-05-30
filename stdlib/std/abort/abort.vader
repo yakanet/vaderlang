@@ -1,0 +1,37 @@
+// std/abort — divergence primitives : panic, todo, unreachable.
+//
+// Not part of the auto-imported prelude (std/core) on purpose : a free-fn
+// `@intrinsic` in the prelude perturbs every program's type / string interning
+// order (`panic`'s `string -> void` interns `void` earlier), which both bloats
+// no-main fixtures with the synthesised `$vt` wrapper and shifts the
+// TS↔Vader bytecode-parity baseline. Living in its own module means only the
+// callers that actually `import "std/abort"` pay that cost.
+//
+// `std/testing` builds its `assert` / `fail` helpers on `panic` from here.
+
+module "std/abort"
+
+/// Trap execution unconditionally with `msg`. Host-provided : the VM raises a
+/// `VmError`, native aborts after printing to stderr. `@no_return` — the call
+/// diverges, so it fills any typed slot and discharges a non-`void` fn's
+/// return obligation.
+///
+/// @param msg  the failure message surfaced to the host.
+@no_return @intrinsic export panic :: fn(msg: string) -> void
+
+/// Placeholder for a code path that isn't implemented yet. Panics with
+/// `not yet implemented: ${msg}`. Use in place of a silent degraded default
+/// while a branch is still a stub — the gap then fails loudly at runtime
+/// instead of mis-compiling silently (see the match-exhaustiveness convention
+/// in `.claude/CLAUDE.md` §6).
+///
+/// @param msg  what is missing — names the unwritten path in the trap message.
+@no_return export todo :: fn(msg: string) = panic("not yet implemented: ${msg}")
+
+/// Assert a code path is logically impossible. Panics with
+/// `entered unreachable code: ${msg}` if it is ever reached — turns a
+/// "can't happen" assumption into a loud failure rather than undefined
+/// behaviour.
+///
+/// @param msg  why the path is believed unreachable.
+@no_return export unreachable :: fn(msg: string) = panic("entered unreachable code: ${msg}")

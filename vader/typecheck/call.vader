@@ -29,7 +29,7 @@ AST :: import "vader/parser"
 import "vader/types" {
     ArrayType, Type, FnType, StructType, TraitType, TypeMetaType, UnresolvedType,
     FreeIntType, FreeFloatType,
-    display_type, mk_array, TY_UNRESOLVED,
+    display_type, mk_array, TY_UNRESOLVED, TY_NEVER,
 }
 import "vader/resolver/symbol" { SymbolKind }
 
@@ -169,6 +169,10 @@ export infer_call :: fn(
         diags.push(typecheck_error(.WrongArgCount, c.span,
             "expected ${callee_ty.params.len()}, got ${c.args.len()}"))
     }
+    // `@no_return` callees (`panic` / `todo` / `unreachable`) yield `never`.
+    // Resolved once here, applied at each return below — args are still
+    // type-checked first so a bad argument to `todo(...)` is still flagged.
+    diverges :: callee_is_no_return(c.callee, typed)
     is_generic :: fn_has_type_params(callee_ty)
     n :: min(c.args.len(), callee_ty.params.len())
     if is_generic {
@@ -227,6 +231,7 @@ export infer_call :: fn(
         // T3006 : enforce `T: Trait` bounds on the callee's fn-decl
         // type-params against the bindings we ended up with.
         check_typeparam_bounds(c, bindings, typed, diags)
+        if diverges { return TY_NEVER }
         return substitute_map(callee_ty.return_type, bindings)
     }
     for i in 0..<n {
@@ -238,6 +243,7 @@ export infer_call :: fn(
             "expected ${display_type(param_ty)}, got ${display_type(arg_ty)}"))
     }
     widen_empty_array_on_push(c, typed)
+    if diverges { return TY_NEVER }
     return callee_ty.return_type
 }
 
@@ -330,6 +336,18 @@ lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl
     decl :: typed.fn_decls[redirected.id]
     if decl is null { return null }
     return decl
+}
+
+// True when the callee fn carries `@no_return` (`panic` / `todo` /
+// `unreachable`). Such a call diverges, so its expression type is `never` —
+// assignable into any slot and flow-terminating (see `is_divergent_stmt`).
+callee_is_no_return :: fn(callee: AST.Expr, typed: TypedProgram) -> bool {
+    decl :: lookup_callee_fn_decl(callee, typed)
+    if decl is null { return false }
+    for d in decl.decorators {
+        if d.name == "no_return" { return true }
+    }
+    return false
 }
 
 callee_name :: fn(callee: AST.Expr) -> string {

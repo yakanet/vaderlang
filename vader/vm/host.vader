@@ -393,8 +393,8 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
     if info.mangled == r"std_process$spawn_last_stderr" {
         return HostOk { .value = StringVal { .value = spawn_last_stderr() } }
     }
-    // ---- std/testing -----------------------------------------------------
-    if info.mangled == r"std_testing$panic" {
+    // ---- std/abort -------------------------------------------------------
+    if info.mangled == r"std_abort$panic" {
         message :: read_string(stack[arg_base], at_pc, "panic")
         if message is Trap { return message }
         return Trap { .message = "vader: panic — ${message.value}" }

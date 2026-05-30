@@ -1,0 +1,23 @@
+module "snippet"
+
+import "std/io" { println }
+import "std/abort" { todo }
+
+// A command dispatcher where the `compact` mode isn't built yet : its branch
+// calls `todo` (a `@no_return` primitive from std/abort) rather than returning
+// a silently-wrong result. `todo` types as `never`, so it satisfies the
+// `void` body without a trailing `return` — the loud-stub pattern the
+// match-exhaustiveness convention recommends. This run only exercises the
+// implemented `list` mode, so the stub stays a compile-time placeholder here.
+run_mode :: fn(mode: string) -> void {
+    if mode == "list" {
+        println("listing entries")
+        return
+    }
+    todo("${mode} mode dispatch")
+}
+
+main :: fn() -> i32 {
+    run_mode("list")
+    return 0
+}
