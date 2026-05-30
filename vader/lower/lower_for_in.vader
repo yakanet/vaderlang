@@ -491,11 +491,12 @@ try_lower_for_in_raw_array :: fn(
     }
 
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    advanced :: prepend_inc_before_matching_continue(user_body, inc_stmt, for_stmt.label)
     body_stmts: LoweredStmt[] = []
     body_stmts.push(bind_stmt)
-    for stmt in user_body.stmts { body_stmts.push(stmt) }
-    if !(user_body.trailing is null) {
-        body_stmts.push(LoweredExprStmt { .span = span_of(user_body.trailing), .expr = user_body.trailing })
+    for stmt in advanced.stmts { body_stmts.push(stmt) }
+    if !(advanced.trailing is null) {
+        body_stmts.push(LoweredExprStmt { .span = span_of(advanced.trailing), .expr = advanced.trailing })
     }
     body_stmts.push(inc_stmt)
 
@@ -604,7 +605,7 @@ try_lower_for_in_int_range :: fn(
     }
 
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
-    loop_stmts :: build_int_range_body(user_body, inc_stmt)
+    loop_stmts :: build_int_range_body(user_body, inc_stmt, for_stmt.label)
     loop_stmt :: LoweredLoop {
         .span = span, .label = for_stmt.label, .cond = cond,
         .body = LoweredBlock {
@@ -684,14 +685,131 @@ cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {
     return LoweredBinaryOp.Lt
 }
 
-build_int_range_body :: fn(user_body: LoweredBlock, inc_stmt: LoweredStmt) -> LoweredStmt[] {
+build_int_range_body :: fn(user_body: LoweredBlock, inc_stmt: LoweredStmt, loop_label: string | null) -> LoweredStmt[] {
+    advanced :: prepend_inc_before_matching_continue(user_body, inc_stmt, loop_label)
     out: LoweredStmt[] = []
-    for stmt in user_body.stmts { out.push(stmt) }
-    if !(user_body.trailing is null) {
-        out.push(LoweredExprStmt { .span = span_of(user_body.trailing), .expr = user_body.trailing })
+    for stmt in advanced.stmts { out.push(stmt) }
+    trailing :: advanced.trailing
+    if !(trailing is null) {
+        out.push(LoweredExprStmt { .span = span_of(trailing), .expr = trailing })
     }
     out.push(inc_stmt)
     return out
+}
+
+// ---- continue / counter-increment reconciliation -------------------------
+
+// The counter-based for-in fast paths (int-range, raw-array) place the
+// counter increment at the BOTTOM of the loop body. A `continue` lowers to
+// a back-edge to the loop header and would skip that increment, spinning
+// forever on the same counter value. Rewrite each `continue` that targets
+// this loop into `{ inc ; continue }` so every back-edge advances the
+// counter. Mirrors `prependIncBeforeMatchingContinue` in
+// `src/lower/passes/for-in.ts:707`.
+//
+// @param block       the lowered user body to rewrite.
+// @param inc         the counter-increment stmt to splice before each
+//                    matching `continue`.
+// @param loop_label  this loop's label, or null. An unlabeled `continue`
+//                    only matches when it isn't intercepted by an inner
+//                    loop (so we stop recursing into nested loops unless a
+//                    label could still target us through them).
+prepend_inc_before_matching_continue :: fn(block: LoweredBlock, inc: LoweredStmt, loop_label: string | null) -> LoweredBlock =
+    rewrite_continue_block(block, false, inc, loop_label)
+
+// True when a `continue cLabel` targets the loop we're emitting. Unlabeled
+// continues match only the innermost loop (so not when nested) and only
+// when this loop is itself unlabeled ; labeled continues match by label.
+continue_targets_loop :: fn(c_label: string | null, inside_nested_loop: bool, loop_label: string | null) -> bool {
+    if c_label == null { return !inside_nested_loop && loop_label == null }
+    if loop_label == null { return false }
+    return c_label == loop_label
+}
+
+rewrite_continue_block :: fn(b: LoweredBlock, inside_nested_loop: bool, inc: LoweredStmt, loop_label: string | null) -> LoweredBlock {
+    new_stmts: LoweredStmt[] = []
+    for s in b.stmts { new_stmts.push(rewrite_continue_stmt(s, inside_nested_loop, inc, loop_label)) }
+    t :: b.trailing
+    new_trailing :: if t == null { null } else { rewrite_continue_expr(t, inside_nested_loop, inc, loop_label) }
+    return LoweredBlock { .span = b.span, .type = b.type, .stmts = new_stmts, .trailing = new_trailing }
+}
+
+rewrite_continue_stmt :: fn(s: LoweredStmt, inside_nested_loop: bool, inc: LoweredStmt, loop_label: string | null) -> LoweredStmt = match s {
+    is LoweredContinue as c -> {
+        if continue_targets_loop(c.label, inside_nested_loop, loop_label) {
+            LoweredExprStmt {
+                .span = c.span,
+                .expr = LoweredBlock {
+                    .span = c.span, .type = TY_VOID, .stmts = [inc, c], .trailing = null,
+                },
+            }
+        } else {
+            c
+        }
+    }
+    is LoweredLoop as lp -> {
+        // An inner loop intercepts unlabeled continues, so only recurse
+        // into it when we carry a label a `continue label` could still
+        // reach through it.
+        if loop_label == null {
+            lp
+        } else {
+            LoweredLoop {
+                .span = lp.span, .label = lp.label, .cond = lp.cond,
+                .body = rewrite_continue_block(lp.body, true, inc, loop_label),
+            }
+        }
+    }
+    is LoweredExprStmt as es -> LoweredExprStmt {
+        .span = es.span, .expr = rewrite_continue_expr(es.expr, inside_nested_loop, inc, loop_label),
+    }
+    is LoweredLet as lt -> LoweredLet {
+        .span = lt.span, .name = lt.name, .symbol = lt.symbol, .type = lt.type,
+        .value = rewrite_continue_expr(lt.value, inside_nested_loop, inc, loop_label),
+    }
+    is LoweredAssign as a -> LoweredAssign {
+        .span = a.span,
+        .target = rewrite_continue_expr(a.target, inside_nested_loop, inc, loop_label),
+        .value = rewrite_continue_expr(a.value, inside_nested_loop, inc, loop_label),
+    }
+    is LoweredCellSet as cs -> LoweredCellSet {
+        .span = cs.span,
+        .target = rewrite_continue_expr(cs.target, inside_nested_loop, inc, loop_label),
+        .value = rewrite_continue_expr(cs.value, inside_nested_loop, inc, loop_label),
+        .value_type = cs.value_type,
+    }
+    is LoweredReturn as r -> {
+        rv :: r.value
+        if rv == null {
+            r
+        } else {
+            LoweredReturn { .span = r.span, .value = rewrite_continue_expr(rv, inside_nested_loop, inc, loop_label) }
+        }
+    }
+    is LoweredDeferPush as d -> LoweredDeferPush {
+        .span = d.span, .thunk = rewrite_continue_expr(d.thunk, inside_nested_loop, inc, loop_label),
+    }
+    is LoweredBreak       as br -> br
+    is LoweredDeferPopExec as dp -> dp
+}
+
+// Only `LoweredBlock` / `LoweredIf` carry nested statements that can hold a
+// `continue` ; every other expression kind is a leaf w.r.t. statements, so
+// it's returned unchanged.
+rewrite_continue_expr :: fn(e: LoweredExpr, inside_nested_loop: bool, inc: LoweredStmt, loop_label: string | null) -> LoweredExpr {
+    if e is LoweredBlock as b {
+        return rewrite_continue_block(b, inside_nested_loop, inc, loop_label)
+    }
+    if e is LoweredIf as f {
+        eb :: f.else_block
+        new_else :: if eb == null { null } else { rewrite_continue_block(eb, inside_nested_loop, inc, loop_label) }
+        return LoweredIf {
+            .span = f.span, .type = f.type, .cond = f.cond,
+            .then_block = rewrite_continue_block(f.then_block, inside_nested_loop, inc, loop_label),
+            .else_block = new_else,
+        }
+    }
+    return e
 }
 
 // ---- chain fusion ---------------------------------------------------------
@@ -1033,7 +1151,7 @@ emit_fused_range :: fn(
         },
     }
 
-    body_stmts :: build_int_range_body(template.user_body, inc_stmt)
+    body_stmts :: build_int_range_body(template.user_body, inc_stmt, loop_label)
     loop_stmt :: LoweredLoop {
         .span = outer_span, .label = loop_label, .cond = cond,
         .body = LoweredBlock {
