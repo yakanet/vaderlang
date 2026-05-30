@@ -39,7 +39,7 @@ import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
-import "vader/vm" { run_virt }
+import "vader/vm" { run_virt, parse_virt, exec, Ok, Trap }
 import "vader/lsp" { run_server }
 
 // Byte-for-byte copy of `HELP` in `src/cli.ts`. Triple-quoted strings drop
@@ -209,15 +209,36 @@ cmd_run :: fn(args: string[]) -> i32 {
         return 1
     }
     path :: args[0]
-    // Sprint 1 of the self-host VM (docs/SELFHOST_VM.md): only `.virt`
-    // text bytecode is supported today, with the trivial op set
-    // (`i32.const` + `return`). Source `.vader` files and `.vir` binary
-    // bytecode still route to the TS host.
+    // `.virt` text bytecode runs directly through the VM. A `.vader`
+    // source (or any other extension) is compiled through the full
+    // pipeline to a `BytecodeModule`, then executed.
     if path.ends_with(".virt") {
         return run_virt(path)
     }
-    eprintln("vader run: not yet implemented (only .virt for now)")
-    return 2
+    return run_source(path)
+}
+
+// Compile a `.vader` source through load → typecheck → comptime → lower →
+// CFG → bytecode (the same path as `dump --stage=bytecode`), then execute
+// the result on the VM. The VM consumes the textual `.virt` form, so the
+// emitted `BytecodeModule` round-trips through `dump_bytecode` / `parse_virt`
+// — the in-memory equivalent of `vader dump --stage=bytecode … | vader run`.
+run_source :: fn(file: string) -> i32 {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[] = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    pruned :: prune_unreachable_fns(lowered, false)
+    cfg :: build_cfg_project(pruned)
+    dced :: eliminate_dead_cfg(cfg)
+    escaped :: annotate_escape(dced).project
+    module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
+    return match exec(parse_virt(dump_bytecode(module))) {
+        is Ok   as o -> o.value
+        is Trap as t -> {
+            eprintln("vader vm: ${t.message}")
+            1
+        }
+    }
 }
 
 cmd_fmt :: fn(args: string[]) -> i32 {
