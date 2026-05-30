@@ -224,16 +224,14 @@ cmd_run :: fn(args: string[]) -> i32 {
 }
 
 // Build the executed program's argv from the `run` args. argv[0] is `path`
-// (the program path, which the program skips via `argv.slice_arr(1, ...)`);
-// the remaining elements are whatever followed a `--` separator. With no
-// `--` the program sees just `[path]` (no args → its own REPL / usage).
+// (`args[0]`, the program path, which the program skips via
+// `argv.slice_arr(1, ...)`); everything after it is forwarded as the program's
+// own args. A `--` separator is optional — `parse_known` already strips it
+// while keeping the trailing tokens as positionals, so the args land here
+// either way:  vader run prog.virt -- dump --stage=bytecode main.vader
 forwarded_argv :: fn(path: string, args: string[]) -> string[] {
     out: string[] = [path]
-    seen_sep := false
-    for a in args {
-        if seen_sep        { out.push(a) }
-        else if a == "--"  { seen_sep = true }
-    }
+    for i in 1..<args.len() { out.push(args[i]) }
     return out
 }
 
