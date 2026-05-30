@@ -51,6 +51,7 @@ export function declareModule(
     indexResolutions: new Map(),
     whileAsForIn: new Map(),
     externSymbols: new Map(),
+    isEntryModule: false,
   };
   for (const decl of program.source.decls) {
     if (phase === "enums" && decl.kind !== "EnumDecl") continue;
@@ -78,6 +79,7 @@ export function checkProgram(
   globals: Globals,
   impls: ImplRegistry,
   diags: DiagnosticCollector,
+  isEntryModule: boolean = true,
 ): TypedProgram {
   const t: MutableTyped = {
     resolved: program, globals,
@@ -91,6 +93,7 @@ export function checkProgram(
     indexResolutions: new Map(),
     whileAsForIn: new Map(),
     externSymbols: new Map(),
+    isEntryModule,
   };
 
   for (const decl of program.source.decls) {
@@ -266,7 +269,8 @@ export function inferExprBodiedReturns(
         binaryIsCheckTypes: new Map(),
         indexResolutions: new Map(),
         whileAsForIn: new Map(),
-    externSymbols: new Map(),
+        externSymbols: new Map(),
+        isEntryModule: false,
       };
       const inferred = checkBlock(item.decl.body!, null, t, impls, scratch,
         { returnType: TY.unresolved, selfType: item.selfType, loopDepth: 0 });

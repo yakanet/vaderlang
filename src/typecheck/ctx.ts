@@ -122,6 +122,11 @@ export interface MutableTyped {
    *  reject two different externs colliding on the same linker symbol —
    *  the second one would mismatch ABIs at the call site otherwise. */
   readonly externSymbols: Map<string, A.FnDecl>;
+  /** True when this module is the project's entry (the code under
+   *  compilation, not an imported library). Scopes user-facing body
+   *  diagnostics (W0004) to the entry — matches Vader, which only
+   *  body-checks the entry module. */
+  readonly isEntryModule: boolean;
 }
 
 /** Find the std/core module's exported symbol map. Used by the impl registry

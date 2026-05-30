@@ -73,6 +73,11 @@ export interface LoadedProject {
   readonly layout: ProjectLayout;
   readonly modules: ReadonlyMap<ModuleId, Module>;
   readonly factory: SymbolFactory;        // shared across passes; one ID space
+  /** Module id of the entry file's module — the code under compilation, as
+   *  opposed to imported libraries. `null` when the entry couldn't be located.
+   *  Threaded to typecheck so user-facing body diagnostics (e.g. W0004) fire
+   *  only for the entry module. */
+  readonly entryModuleId: ModuleId | null;
 }
 
 // ---------------------------------------------------------------- path setup

@@ -183,6 +183,7 @@ export WarningCode :: enum(u8) {
     UseOfDeprecated,                        // W0001
     UnreachableCode,                        // W0002
     IsAgainstUnion,                         // W0003
+    AmbiguousLoopJump,                      // W0004
 }
 
 // `(id, message)` for a code, in one shot. The wire ID stays aligned with
@@ -271,6 +272,7 @@ export warning_info :: fn(c: WarningCode) = match c {
     .UseOfDeprecated                    -> CodeInfo { .id = "W0001", .message = "use of deprecated declaration" }
     .UnreachableCode                    -> CodeInfo { .id = "W0002", .message = "unreachable code" }
     .IsAgainstUnion                     -> CodeInfo { .id = "W0003", .message = "`is` against a union type always returns false at runtime" }
+    .AmbiguousLoopJump                  -> CodeInfo { .id = "W0004", .message = "unlabeled `break` / `continue` inside nested loops targets the innermost loop ; add a label to make the target explicit" }
 }
 
 export comptime_info :: fn(c: ComptimeCode) = match c {

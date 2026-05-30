@@ -53,7 +53,7 @@ export function checkProject(project: ResolvedProject, diags: DiagnosticCollecto
   // Pass 2: check expression bodies.
   const modules = new Map<string, TypedProgram>();
   for (const [id, resolved] of project.modules) {
-    modules.set(id, checkProgram(resolved, globals, impls, diags));
+    modules.set(id, checkProgram(resolved, globals, impls, diags, id === project.entryModuleId));
   }
 
   // Pass 3: validate struct-level bounds at every instantiation site.

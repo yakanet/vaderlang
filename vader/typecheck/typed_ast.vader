@@ -248,6 +248,14 @@ export TypedProgram :: struct {
     /// (`src/lower/passes/expr.ts:101`). Direct calls to the primary
     /// (or non-overloaded names) keep the fn-type display.
     overload_result_callees: MutableMap<usize, bool>
+
+    /// Walk-global loop-nesting counter, bumped around each loop body by
+    /// `check_for`. Unlike `FnContext.loop_depth` (not threaded through the
+    /// expression checker, so lost inside `if`/`match` branch blocks), this
+    /// survives arbitrary expression nesting — `check_loop_jump` reads it for
+    /// W0004 so `for { for { if c { continue } } }` is flagged. Mirrors TS,
+    /// whose `FnContext.loopDepth` is threaded through `checkExpr`.
+    loop_depth: i32 = 0
 }
 
 import "vader/diagnostics" { Span }

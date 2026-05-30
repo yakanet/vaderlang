@@ -66,7 +66,7 @@ export function loadProject(opts: LoadOptions): LoadedProject {
   if (entryModule === null) {
     err(opts.diags, "R2001", zeroSpan(entryAbs),
       `entry file's containing folder is not in any scanned root`);
-    return { layout, modules, factory };
+    return { layout, modules, factory, entryModuleId: null };
   }
 
   const queue: DiscoveredModule[] = [entryModule];
@@ -112,7 +112,7 @@ export function loadProject(opts: LoadOptions): LoadedProject {
   detectCycles(modules, opts.diags);
   computeModuleFingerprints(modules);
 
-  return { layout, modules, factory };
+  return { layout, modules, factory, entryModuleId: moduleIdFromDiscovered(entryModule) };
 }
 
 /** Resolved folder path as the canonical module identifier — downstream

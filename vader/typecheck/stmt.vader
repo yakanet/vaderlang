@@ -99,8 +99,8 @@ export check_stmt :: fn(
         is AST.ExprStmt     as s -> { check_expr_fn(s.expr, null, typed, diags) }
         is AST.ReturnStmt   as s -> { check_return(s, typed, diags, ctx, check_expr_fn) }
         is AST.ForStmt      as s -> { check_for(s, typed, diags, ctx, check_expr_fn) }
-        is AST.BreakStmt    as s -> { check_loop_jump(s.span, ctx, diags) }
-        is AST.ContinueStmt as s -> { check_loop_jump(s.span, ctx, diags) }
+        is AST.BreakStmt    as s -> { check_loop_jump(s.span, s.label, typed, ctx, diags) }
+        is AST.ContinueStmt as s -> { check_loop_jump(s.span, s.label, typed, ctx, diags) }
         is AST.DeferStmt    as s -> { check_defer(s, typed, diags, ctx, check_expr_fn) }
     }
     return
@@ -400,11 +400,34 @@ check_for :: fn(
         }
     }
     inner_ctx :: bump_loop_depth(ctx)
+    // Walk-global loop-nesting counter — survives the `if`/`match` blocks the
+    // expression checker doesn't thread `ctx` through, so a `continue` buried
+    // in a nested if still sees the right depth for W0004. Balanced inc/dec.
+    typed.loop_depth = typed.loop_depth + 1
     check_block(s.body, null, typed, diags, inner_ctx, check_expr_fn)
+    typed.loop_depth = typed.loop_depth - 1
     return
 }
 
-check_loop_jump :: fn(span: Span, ctx: FnContext | null, diags: Diagnostic[]) -> void {
+check_loop_jump :: fn(span: Span, label: string | null, typed: TypedProgram, ctx: FnContext | null, diags: Diagnostic[]) -> void {
+    // W0004 — an unlabeled jump inside 2+ nested loops silently targets the
+    // innermost ; which loop it means is non-obvious to the reader. Read the
+    // walk-global `typed.loop_depth` (not `ctx.loop_depth`) so the warning
+    // survives `if`/`match`-block nesting — `for { for { if c { continue } } }`
+    // is flagged. Matches TS, whose `fn.loopDepth` is threaded through
+    // expressions. A single enclosing loop is unambiguous, hence `>= 2`.
+    // Naturally scoped to the code under compilation : `check_project_with_bodies`
+    // only walks the entry module's fn bodies (imported modules contribute
+    // signatures + cross-published decls, not body diagnostics), so this is
+    // never reached for a jump in stdlib / the `vader/` tree. The TS mirror
+    // gates explicitly on the entry module to match (it does body-check imports).
+    if label is null && typed.loop_depth >= 2 {
+        diags.push(warning(.AmbiguousLoopJump, span,
+            "add a label and use `break <label>` / `continue <label>`"))
+    }
+    // T3015 — `break`/`continue` outside any loop. Kept on `ctx.loop_depth`
+    // (unchanged behaviour) ; null ctx means we're inside an expression-nested
+    // block where ctx isn't threaded — the loop-membership check defers.
     if ctx is null { return }
     if ctx.loop_depth == 0 {
         diags.push(typecheck_error(.BreakContinueOutsideLoop, span,

@@ -71,7 +71,7 @@ export function resolveLoadedProject(project: LoadedProject, diags: DiagnosticCo
     const merged = mergeFilePrograms(programs);
     if (merged !== null) resolved.set(id, merged);
   }
-  return { modules: resolved, importTargets, typeParamSymbols, typeParamBounds, factory: project.factory };
+  return { modules: resolved, importTargets, typeParamSymbols, typeParamBounds, factory: project.factory, entryModuleId: project.entryModuleId };
 }
 
 /** Walk every module's `fnOverloads` map and replace any import-binding

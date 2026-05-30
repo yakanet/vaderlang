@@ -197,6 +197,7 @@ export const WARNING = {
   W0001: "use of deprecated declaration",
   W0002: "unreachable code",
   W0003: "`is` against a union type always returns false at runtime",
+  W0004: "unlabeled `break` / `continue` inside nested loops targets the innermost loop ; add a label to make the target explicit",
 } as const;
 
 export type WarningCode = keyof typeof WARNING;

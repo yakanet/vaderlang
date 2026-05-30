@@ -345,7 +345,17 @@ function checkStmt(
       return;
     case "BreakStmt":
     case "ContinueStmt":
-      if (fn === null || fn.loopDepth === 0) err(diags, "T3015", stmt.span);
+      if (fn === null || fn.loopDepth === 0) {
+        err(diags, "T3015", stmt.span);
+      } else if (stmt.label === null && fn.loopDepth >= 2 && t.isEntryModule) {
+        // W0004 — unlabeled break/continue inside 2+ nested loops silently
+        // targets the innermost ; suggest a label. `fn.loopDepth` is threaded
+        // through `checkExpr` here, so it survives `if`/`match` nesting (the
+        // `for { for { if c { continue } } }` case is caught). Scoped to the
+        // entry module (`t.isEntryModule`) : don't warn about imported library
+        // internals, and match Vader, which only body-checks the entry module.
+        warn(diags, "W0004", stmt.span, "add a label and use `break <label>` / `continue <label>`");
+      }
       return;
     case "DeferStmt":
       if (stmt.body.kind === "BlockExpr") checkBlock(stmt.body, null, t, impls, diags, fn);

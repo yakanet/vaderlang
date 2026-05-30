@@ -78,6 +78,10 @@ export type FieldRef =
 export interface ResolvedProject {
   readonly modules: ReadonlyMap<string, ResolvedProgram>;     // keyed by ModuleId
   readonly importTargets: ImportTargetTable;
+  /** Entry module id (the code under compilation, not imported libraries),
+   *  carried from the loader. Used by typecheck to scope user-facing body
+   *  diagnostics (W0004) to the entry. `null` when the entry wasn't located. */
+  readonly entryModuleId: string | null;
   /** Shared symbol id allocator — downstream phases that mint synthetic
    *  symbols (typecheck, lower) must use this so ids stay globally unique. */
   readonly factory: SymbolFactory;
