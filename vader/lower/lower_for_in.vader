@@ -403,8 +403,16 @@ resolve_binding_or_synth :: fn(ctx: FnLowerCtx, in_form: AST.InFor) -> Symbol {
     match found {
         is Symbol as s -> { return s }
         is null -> {
+            // Unused for-binding (never referenced in the body, so absent
+            // from `resolved.idents`). Mint a FRESH unique id rather than a
+            // shared `0` : the counter is still a real local that drives the
+            // loop's increment/condition, and bytecode slots are keyed by
+            // symbol id — two nested unused-binding loops both at id 0 would
+            // alias one slot, so the outer increment writes the inner's
+            // counter and the outer loop never terminates (infinite loop).
+            fresh :: fresh_synthetic_symbol(ctx, in_form.binding)
             return Symbol {
-                .id         = i32(0),
+                .id         = fresh.id,
                 .kind       = SymbolKind.Local,
                 .name       = in_form.binding,
                 .module     = ctx.typed.resolved.path,

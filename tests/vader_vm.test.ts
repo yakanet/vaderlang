@@ -88,6 +88,23 @@ const VADER_SELF_EMIT = new Set<string>([
   // impls are materialised, the vtable carries the primitive rows, and the
   // cloned bodies get deterministic spans so resolve↔lower agree.
   "iter_defaults",
+  // Promoted 2026-05-30 : Vader self-emitted bytecode runs to the same
+  // vm.snapshot oracle as the TS path (verified by full-suite run). Bytecode
+  // may still diverge from TS at the .virt level (tracked separately in
+  // parity's BYTECODE_DIVERGENT_SNIPPETS) — this only asserts the self-host
+  // VM produces correct OUTPUT.
+  "_diag_const_string", "alias_union_in_array", "array_view_aliasing",
+  "for_range_sugar", "b1_fn_boundary", "closure_pattern_binding", "comptime_type_value",
+  "const_array_basic", "contains_op", "decorator_deprecated",
+  "enum_trait_self_return", "expr_bodied_fn", "expr_bodied_recursive_typed",
+  "file_decorator", "gc_array_survive", "gc_chain_survive", "gc_multi_collect",
+  "generic_helper_chain", "generic_struct", "generic_type_alias",
+  "if_is_field_after_narrow", "if_without_else_stmt", "impl_bounded_typeparam",
+  "implicit_dot_variant", "io_roundtrip", "is_union_alias_warn", "lambda_no_fn",
+  "match_struct_pattern_in_union", "multiline_string", "op_overload_eq_ord",
+  "parse_int_match", "std_math", "std_string_builder", "struct_lit_field_order",
+  "struct_name_collision", "trait_virtual_dispatch", "transitive_mono",
+  "try_op", "ufcs_overload", "ufcs_union_receiver", "union_common_field",
 ]);
 
 // Snippets that the self-host VM can't yet run end-to-end. New entries
