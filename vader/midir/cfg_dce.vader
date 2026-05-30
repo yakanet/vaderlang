@@ -81,7 +81,7 @@ die_once :: fn(f: CFGFunction) -> CFGFunction {
     liveness :: compute_liveness(f)
     new_blocks: BasicBlock[] = []
     for b in f.blocks {
-        kept :: prune_block(b, liveness.live_out[usize(b.id)])
+        kept :: prune_block(b, liveness.live_out[usize(b.id)], f.params.len() + f.locals.len())
         new_blocks.push(BasicBlock {
             .id           = b.id,
             .instructions = kept,
@@ -103,13 +103,17 @@ die_once :: fn(f: CFGFunction) -> CFGFunction {
     }
 }
 
-prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>) -> Instruction[] {
+prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>, local_count: usize) -> Instruction[] {
     // bool-array indexed by LocalId for O(1) toggle without a remove
-    // primitive on MutableMap. Length covers every local that might be
-    // referenced — pick a generous upper bound (params + the max id
-    // seen in any read/write touched below ; we don't have a quick
-    // upper bound in scope, so we use a growing array).
+    // primitive on MutableMap. Pre-sized to `local_count` (params + locals,
+    // the full LocalId space) so `grow_live_to` never has to `push`. That
+    // matters because the grows below run inside closures passed to
+    // `for_each_read_*`: a closure-captured array that reallocs on `push`
+    // does not propagate the new backing buffer back, so a grow from inside
+    // a closure would silently no-op and the next `live[id]` index OOBs.
+    // Pre-sizing keeps the buffer stable, so every closure shares it.
     live: bool[] = []
+    for _ in 0..<local_count { live.push(false) }
     grow_live_to :: (id: LocalId) -> {
         while_idx := live.len()
         for while_idx <= usize(id) { live.push(false)  while_idx = while_idx + 1 }
