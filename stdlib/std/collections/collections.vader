@@ -12,10 +12,10 @@
 //
 // Construction examples :
 //
-//   m := MutableMap(string, i32) { .buckets = [], .size = 0 }
+//   m := MutableMap(string, i32) {}
 //   m.put("answer", 42)
 //
-//   s := MutableSet(i32) { .data = [], .size = 0 }
+//   s := MutableSet(i32) {}
 //   s.add(10)
 //
 // `MutableMap` is a chaining HashMap with fixed bucket count ; `MutableSet`
@@ -48,8 +48,10 @@ Entry :: struct<K, V> {
 /// length. `K`'s `hash()` is queried on insert / lookup, `equals()` on
 /// chain walks.
 export MutableMap :: struct<K: Hash & Equals, V> {
-    buckets: (Entry<K, V> | null)[]
-    size:    usize
+    /// Bucket array, lazily widened to `BUCKET_COUNT` by `ensure_buckets` on
+    /// first insert. Defaults empty so `MutableMap(K, V) {}` is a valid literal.
+    buckets: (Entry<K, V> | null)[] = []
+    size:    usize = 0
 }
 
 // Method signatures below declare just `[K, V]` (no bound repetition) — the
@@ -169,6 +171,46 @@ contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool 
         }
     }
     return found
+}
+
+/// Remove the entry for `key`, if present. Walks the bucket chain and unlinks
+/// the matching node, decrementing `size`. A no-op when the key is absent.
+/// @param self  the map receiver.
+/// @param key   key whose entry to drop.
+/// @return      `true` when an entry was removed, `false` when `key` was absent.
+export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool {
+    if self.buckets.len() == 0 {
+        return false
+    }
+    h :: key.hash()
+    idx :: bucket_index(h)
+
+    // Walk the chain, tracking the predecessor so the match can be unlinked.
+    prev: Entry<K, V> | null = null
+    cur:  Entry<K, V> | null = self.buckets[idx]
+    removed := false
+    done := false
+    for !done {
+        match cur {
+            is null -> { done = true }
+            is Entry<K, V> -> {
+                if cur.key.equals(key) {
+                    if prev == null {
+                        self.buckets[idx] = cur.next
+                    } else {
+                        prev.next = cur.next
+                    }
+                    self.size = self.size - 1
+                    removed = true
+                    done = true
+                } else {
+                    prev = cur
+                    cur = cur.next
+                }
+            }
+        }
+    }
+    return removed
 }
 
 /// Number of `(key, value)` entries currently stored in `self`. O(1).
@@ -295,7 +337,8 @@ MapIterator<K, V> implements Iterator<Entry<K, V>> {
 /// `MutableMap(T, bool)` — every member is stored as a `(T → true)` entry,
 /// so lookups inherit the chained-bucket O(1)-average behaviour.
 export MutableSet :: struct<T: Hash & Equals> {
-    inner: MutableMap<T, bool>
+    /// Backing map. Defaults empty so `MutableSet(T) {}` is a valid literal.
+    inner: MutableMap<T, bool> = MutableMap<T, bool> {}
 }
 
 /// Insert `value`. Returns `true` if `value` was newly added, `false` if it
@@ -313,6 +356,15 @@ export add :: fn<T>(self: MutableSet<T>, value: T) -> bool {
 /// `value in set` infix operator (which lowers to this method).
 export contains :: fn<T>(self: MutableSet<T>, value: T) -> bool {
     return value in self.inner
+}
+
+/// Remove `value` from the set, if present. Delegates to the backing map's
+/// `remove`. A no-op when `value` is not a member.
+/// @param self   the set receiver.
+/// @param value  the element to drop.
+/// @return       `true` when `value` was removed, `false` when it was absent.
+export remove :: fn<T>(self: MutableSet<T>, value: T) -> bool {
+    return self.inner.remove(value)
 }
 
 /// Number of members in the set. O(1).
@@ -381,7 +433,7 @@ SetIterator<T> implements Iterator<T> {
 import "std/testing" { assert, assert_eq }
 
 @test test_map_put_get :: fn() -> void {
-    m := MutableMap<string, i32> { .buckets = [], .size = usize(0) }
+    m := MutableMap<string, i32> {}
     m["one"] = 1
     m["two"] = 2
     m["three"] = 3
@@ -397,7 +449,7 @@ import "std/testing" { assert, assert_eq }
 }
 
 @test test_map_overwrite :: fn() -> void {
-    m := MutableMap<string, i32> { .buckets = [], .size = usize(0) }
+    m := MutableMap<string, i32> {}
     m["k"] = 1
     m["k"] = 99
     assert_eq(m.len(), usize(1))
@@ -408,25 +460,48 @@ import "std/testing" { assert, assert_eq }
 }
 
 @test test_map_contains_key :: fn() -> void {
-    m := MutableMap<string, i32> { .buckets = [], .size = usize(0) }
+    m := MutableMap<string, i32> {}
     m["k"] = 1
     assert(m.contains_key("k"), "should contain k")
     assert(!m.contains_key("nope"), "should not contain nope")
 }
 
 @test test_map_is_empty :: fn() -> void {
-    m := MutableMap<string, i32> { .buckets = [], .size = usize(0) }
+    m := MutableMap<string, i32> {}
     assert(m.is_empty(), "fresh map is empty")
     m["x"] = 1
     assert(!m.is_empty(), "after put no longer empty")
 }
 
 @test test_set_add_contains :: fn() -> void {
-    s := MutableSet<i32> { .inner = MutableMap<i32, bool> { .buckets = [], .size = usize(0) } }
+    s := MutableSet<i32> {}
     s.add(10)
     s.add(20)
     s.add(10)
     assert_eq(s.len(), usize(2))
     assert(s.contains(10), "should contain 10")
     assert(!s.contains(99), "should not contain 99")
+}
+
+@test test_map_remove :: fn() -> void {
+    m := MutableMap<string, i32> {}
+    m["a"] = 1
+    m["b"] = 2
+    assert(m.remove("a"), "removing present key returns true")
+    assert_eq(m.len(), usize(1))
+    assert(!m.contains_key("a"), "removed key gone")
+    assert(m.contains_key("b"), "untouched key stays")
+    assert(!m.remove("a"), "removing absent key returns false")
+    assert_eq(m.len(), usize(1))
+}
+
+@test test_set_remove :: fn() -> void {
+    s := MutableSet<i32> {}
+    s.add(10)
+    s.add(20)
+    assert(s.remove(10), "removing present member returns true")
+    assert_eq(s.len(), usize(1))
+    assert(!s.contains(10), "removed member gone")
+    assert(s.contains(20), "untouched member stays")
+    assert(!s.remove(10), "removing absent member returns false")
 }

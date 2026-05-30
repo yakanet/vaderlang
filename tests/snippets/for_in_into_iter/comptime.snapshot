@@ -42,6 +42,8 @@
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
   Entry<T, bool>
   Entry<K, V>
   MutableMap<i32, bool>
@@ -59,6 +61,9 @@
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<T, bool>
@@ -70,6 +75,7 @@
   MapIterator<K, V>
   MapIterator<K, V>
   MutableSet<i32>
+  MutableSet<T>
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>

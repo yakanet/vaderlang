@@ -42,9 +42,9 @@
   SkipIterator<T>
   SkipIterator<T>
   Into<Target>
-  Entry<i32, bool>
   Entry<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
-  Entry<string, i32>
+  Entry<K, V>
+  Entry<K, V>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
@@ -55,7 +55,6 @@
   Entry<K, V>
   Entry<K, V>
   Entry<T, bool>
-  MutableMap<i32, bool>
   MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
   MutableMap<string, i32>
   MutableMap<K, V>
@@ -71,6 +70,9 @@
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<T, bool>
@@ -81,6 +83,7 @@
   MapIterator<K, V>
   MapIterator<K, V>
   MutableSet<i32>
+  MutableSet<T>
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>

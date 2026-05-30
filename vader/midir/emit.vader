@@ -19,7 +19,7 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap, MutableSet }
+import "std/collections" { MutableMap, MutableSet, remove }
 import "vader/diagnostics" { Span }
 import "vader/types" { Type, PrimitiveType, mk_struct }
 import "vader/lower" { VtableEntry as LoweredVtableEntry }
@@ -681,6 +681,12 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
             inner_until := i32(-1)
             if exit_opt is BlockId as e { inner_until = e }
             emit_range(ctx, cur, inner_until)
+            // Unmark on the way out so a sibling loop that reuses this block
+            // id (or a later structural pass) sees it as a fresh header again.
+            // Without this the header stays marked forever — re-encountered
+            // back-edges then emit inline with no loop scope and the structurer
+            // recurses without bound (mirror of TS `wrappedLoopHeaders.delete`).
+            ctx.wrapped_loop_headers.remove(cur)
             cf_end(ctx, block.span)        // close loop scope
             cf_end(ctx, block.span)        // close block scope
             if exit_opt is BlockId as e {
