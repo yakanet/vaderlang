@@ -558,6 +558,24 @@ apply_cmp_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: strin
     return null
 }
 
+/// Build the argv argument for a `fn(argv: string[]) -> i32` entry point.
+/// `host_argv` carries the forwarded CLI args (argv[0] = program path, then
+/// the program's own args) — set by `run_virt` from the `--` separator so the
+/// compiler can run itself through the VM. When empty, fall back to a single
+/// synthetic path element (matches the TS VM). Returns an empty arg list when
+/// `main` takes no parameters.
+///
+/// @param parameter_count  the entry fn's declared parameter count.
+/// @param host_argv        forwarded CLI argv, or empty for the synthetic path.
+/// @return                 the `Value[]` to seed the main frame's slots.
+build_main_args :: fn(parameter_count: usize, host_argv: string[]) -> Value[] {
+    out: Value[] = []
+    if parameter_count != 1 { return out }
+    argv :: if host_argv.len() == 0 { ["<vader-vm>"] } else { host_argv }
+    out.push(string_array_to_value(argv))
+    return out
+}
+
 /// Stack-machine interpreter, frame-based to support direct Vader-side
 /// calls. One outer-loop iteration dispatches one op on the top frame ;
 /// the op's effect mutates the top frame's stack / slots / sp / pc and
@@ -572,7 +590,7 @@ apply_cmp_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: strin
 ///                in any op ; div / mod by zero ; unknown host import ;
 ///                call to a non-existent function index ; call stack
 ///                deeper than `MAX_FRAME_DEPTH`.
-export exec :: fn(module: Module) -> VmResult {
+export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
     if module.main_index < 0 || usize(module.main_index) >= module.functions.len() {
         return Trap { .message = "module has no entry function (main_index=${module.main_index})" }
     }
@@ -590,16 +608,12 @@ export exec :: fn(module: Module) -> VmResult {
     gc_state: usize[] = [0]
 
     main_function :: module.functions[usize(module.main_index)]
-    // If `main` is declared `fn(argv: string[]) -> i32`, supply a single-
-    // element array carrying the synthetic program path. The TS VM does
-    // the same — concrete CLI argv passthrough lives in the native build,
-    // not the VM.
-    main_args: Value[] = []
-    if main_function.parameter_count == 1 {
-        argv_elements: Value[] = []
-        argv_elements.push(StringVal { .value = "<vader-vm>" })
-        main_args.push(ArrayVal { .type_id = 0, .elements = argv_elements, .offset = usize(0), .length = argv_elements.len() })
-    }
+    // If `main` is declared `fn(argv: string[]) -> i32`, supply its argv.
+    // Built in a helper because inlining it pushed `exec` (the giant op-
+    // dispatch fn) past the bytecode emitter's per-function buffer limit —
+    // a latent emit bug (array-index-OOB in emit at scale). The split is also
+    // cleaner; the underlying limit still needs a real fix.
+    main_args :: build_main_args(main_function.parameter_count, host_argv)
     main_frame :: build_callee_frame(module.main_index, main_function, main_args, 0, null)
     push_frame(frames, frame_count, main_frame)
 
@@ -1609,13 +1623,13 @@ build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Frame | Trap {
 ///              the file can't be read or the VM trapped — the error
 ///              message goes to stderr in both cases.
 /// @error       missing file ; any VM trap surfaced by `exec`.
-export run_virt :: fn(path: string) -> i32 {
+export run_virt :: fn(path: string, host_argv: string[]) -> i32 {
     source :: read_file(path)
     if source is Error {
         eprintln("vader run: cannot read ${path}")
         return 1
     }
-    return match exec(parse_virt(source)) {
+    return match exec(parse_virt(source), host_argv) {
         is Ok   as o -> o.value
         is Trap as t -> {
             eprintln("vader vm: ${t.message}")

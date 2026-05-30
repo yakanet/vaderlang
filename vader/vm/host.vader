@@ -10,7 +10,7 @@
 
 module "vader/vm"
 
-import "std/io" { read_file, write_file, exists, print, eprint }
+import "std/io" { read_file, write_file, exists, is_dir, read_dir, print, eprint }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/numbers" { parse_int_in_base }
 import "std/math" { sqrt, pow, floor, ceil, round }
@@ -191,17 +191,8 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         sep :: read_string(stack[arg_base + 1], at_pc, "split sep")
         if s   is Trap { return s }
         if sep is Trap { return sep }
-        s_str   :: s.value
-        sep_str :: sep.value
-        parts :: s_str.split(sep_str)
-        elements: Value[] = []
-        i: usize = 0
-        for i < parts.len() {
-            elements.push(StringVal { .value = parts[i] })
-            i += 1
-        }
-        // type_id 0 : bound-checks use elements.len(), not the type table.
-        return HostOk { .value = ArrayVal { .type_id = 0, .elements = elements, .offset = usize(0), .length = elements.len() } }
+        parts :: s.value.split(sep.value)
+        return HostOk { .value = string_array_to_value(parts) }
     }
     if info.mangled == r"std_core$string$Index$at" {
         s :: read_string(stack[arg_base    ], at_pc, "string[] receiver")
@@ -371,6 +362,24 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         path :: read_string(stack[arg_base], at_pc, "exists")
         if path is Trap { return path }
         return HostOk { .value = BoolVal { .value = exists(path.value) } }
+    }
+    if info.mangled == r"std_io$is_dir" {
+        path :: read_string(stack[arg_base], at_pc, "is_dir")
+        if path is Trap { return path }
+        return HostOk { .value = BoolVal { .value = is_dir(path.value) } }
+    }
+    if info.mangled == r"std_io$read_dir" {
+        path :: read_string(stack[arg_base], at_pc, "read_dir")
+        if path is Trap { return path }
+        // `read_dir` returns `string[]!` (string[] | Error). The early-return
+        // guard narrows `result` to the array on the success path. Needed by
+        // the resolver's module discovery (vader/resolver/discover.vader) when
+        // the compiler runs itself through the VM.
+        result :: read_dir(path.value)
+        if result is Error {
+            return HostOk { .value = ErrorVal { .message = "read_dir failed: ${path.value}" } }
+        }
+        return HostOk { .value = string_array_to_value(result) }
     }
     // ---- std/process spawn ----------------------------------------------
     if info.mangled == r"std_process$spawn_run" {

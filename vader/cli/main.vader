@@ -209,13 +209,31 @@ cmd_run :: fn(args: string[]) -> i32 {
         return 1
     }
     path :: args[0]
+    // Args after a `--` separator become the executed program's argv, with
+    // `path` as argv[0]. This lets the compiler run itself from bytecode:
+    //   vader run compiler.virt -- dump --stage=bytecode vader/cli/main.vader
+    forward :: forwarded_argv(path, args)
     // `.virt` text bytecode runs directly through the VM. A `.vader`
     // source (or any other extension) is compiled through the full
     // pipeline to a `BytecodeModule`, then executed.
     if path.ends_with(".virt") {
-        return run_virt(path)
+        return run_virt(path, forward)
     }
-    return run_source(path)
+    return run_source(path, forward)
+}
+
+// Build the executed program's argv from the `run` args. argv[0] is `path`
+// (the program path, which the program skips via `argv.slice_arr(1, ...)`);
+// the remaining elements are whatever followed a `--` separator. With no
+// `--` the program sees just `[path]` (no args → its own REPL / usage).
+forwarded_argv :: fn(path: string, args: string[]) -> string[] {
+    out: string[] = [path]
+    seen_sep := false
+    for a in args {
+        if seen_sep        { out.push(a) }
+        else if a == "--"  { seen_sep = true }
+    }
+    return out
 }
 
 // Compile a `.vader` source through load → typecheck → comptime → lower →
@@ -223,7 +241,7 @@ cmd_run :: fn(args: string[]) -> i32 {
 // the result on the VM. The VM consumes the textual `.virt` form, so the
 // emitted `BytecodeModule` round-trips through `dump_bytecode` / `parse_virt`
 // — the in-memory equivalent of `vader dump --stage=bytecode … | vader run`.
-run_source :: fn(file: string) -> i32 {
+run_source :: fn(file: string, host_argv: string[]) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
@@ -232,7 +250,7 @@ run_source :: fn(file: string) -> i32 {
     dced :: eliminate_dead_cfg(cfg)
     escaped :: annotate_escape(dced).project
     module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
-    return match exec(parse_virt(dump_bytecode(module))) {
+    return match exec(parse_virt(dump_bytecode(module)), host_argv) {
         is Ok   as o -> o.value
         is Trap as t -> {
             eprintln("vader vm: ${t.message}")

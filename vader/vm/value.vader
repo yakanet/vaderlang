@@ -24,6 +24,17 @@ export Trap :: struct { message: string }
 /// Default-zero `Value`, used to size each frame's locals at fn entry.
 export zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 
+/// Box a `string[]` as an `ArrayVal` of `StringVal`. `type_id` is 0 —
+/// bound-checks use `elements.len()`, not the type table — matching the
+/// convention every host-dispatch arm uses for a returned string array.
+/// @param items  the strings to box.
+/// @return       an `ArrayVal` whose elements are `StringVal`s of `items`.
+export string_array_to_value :: fn(items: string[]) -> ArrayVal {
+    elements: Value[] = []
+    for s in items { elements.push(StringVal { .value = s }) }
+    return ArrayVal { .type_id = 0, .elements = elements, .offset = usize(0), .length = elements.len() }
+}
+
 /// Size in bytes of an `TypeDecl` — backs `@size_of(t)` runtime path.
 /// Primitives use their native widths ; everything else fits in a 16-byte
 /// box at the typed boundary (struct/array/fn refs, unions, opaque refs).
