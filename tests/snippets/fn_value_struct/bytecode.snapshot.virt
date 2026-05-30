@@ -3,6 +3,7 @@ type 0 primitive null
 type 1 primitive i32
 type 2 struct snippet$Op { op:3 }
 type 3 fn (1,1) -> 1
+export main 1
 
 fn 0 snippet$mul (i32,i32) -> i32
   local.get 0

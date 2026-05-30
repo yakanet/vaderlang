@@ -17,6 +17,7 @@ impl 1 Error
 impl 3 Error
 vtable Error.message 1 0
 vtable Error.message 3 1
+export main 3
 
 fn 0 snippet$ParseErr$Error$message (ref) -> string
   local __sb_0 any

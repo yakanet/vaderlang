@@ -17,6 +17,7 @@ import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
 impl 1 Index
 impl 1 IndexSet
+export main 2
 
 fn 0 snippet$Cell$Index$at (ref,string) -> i32
   local i i32

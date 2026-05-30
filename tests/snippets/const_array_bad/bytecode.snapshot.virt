@@ -3,6 +3,7 @@ type 0 primitive null
 type 1 array 2
 type 2 primitive i32
 type 3 primitive void
+export main 1
 
 fn 0 snippet$write_first (ref) -> void
   local $k_2 any

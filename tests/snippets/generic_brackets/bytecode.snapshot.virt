@@ -3,6 +3,7 @@ type 0 primitive null
 type 1 primitive i32
 type 2 ref _
 type 3 struct snippet$Pair__i32__i32 { first:2,second:2 }
+export main 0
 
 fn 0 snippet$main () -> i32
   local a i32

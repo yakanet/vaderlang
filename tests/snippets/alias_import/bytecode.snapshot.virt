@@ -7,6 +7,7 @@ string 0 "aliased"
 string 1 "\n"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
+export main 0
 
 fn 0 snippet$main () -> i32
   string.const 0

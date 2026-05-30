@@ -13,6 +13,7 @@ import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
 impl 1 Add
 impl 1 Sub
+export main 2
 
 fn 0 snippet$Vec$Add$add (ref,ref) -> ref
   local $field_2 i32

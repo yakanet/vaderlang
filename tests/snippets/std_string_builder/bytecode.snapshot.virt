@@ -20,6 +20,7 @@ import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
 import 2 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 6 Display
+export main 0
 
 fn 0 snippet$main () -> i32
   local sb ref

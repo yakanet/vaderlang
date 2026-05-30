@@ -26,6 +26,7 @@ import 1 at std_core$string$Index$at (string,usize) -> char
 import 2 write std_io$write (i32,string) -> void
 import 3 byte_len std_string$byte_len (string) -> usize
 impl 12 Display
+export main 4
 
 fn 0 snippet$i32_lt (i32,i32) -> bool
   local.get 0

@@ -5,6 +5,7 @@ string 0 "primitive"
 string 1 "struct"
 string 2 "array"
 string 3 "tuple"
+export main 0
 
 fn 0 snippet$main () -> i32
   local and_res bool

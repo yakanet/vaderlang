@@ -154,6 +154,7 @@ vtable Comparable.lte 12 26
 vtable Comparable.lte 13 29
 vtable Comparable.lte 14 32
 vtable Comparable.lte 15 35
+export main 2
 
 fn 0 snippet$run_match (string,ref,string) -> void
   local __sb_0 any

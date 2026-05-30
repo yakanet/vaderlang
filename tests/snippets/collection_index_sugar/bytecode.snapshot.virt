@@ -97,6 +97,7 @@ vtable Hash.hash 9 8
 vtable Hash.hash 10 10
 vtable Hash.hash 11 11
 vtable Hash.hash 12 39
+export main 0
 
 fn 0 snippet$main () -> i32
   local $arr_0 ref

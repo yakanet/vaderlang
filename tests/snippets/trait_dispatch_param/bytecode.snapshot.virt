@@ -26,6 +26,7 @@ vtable Hash.hash 10 9
 vtable Hash.hash 11 11
 vtable Hash.hash 12 12
 vtable Hash.hash 13 13
+export main 0
 
 fn 0 snippet$main () -> i32
   i32.const 7

@@ -68,6 +68,7 @@ import 6 ends_with std_string$ends_with (string,string) -> bool
 import 7 byte_decode_at std_string$byte_decode_at (string,usize) -> char
 import 8 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 11 Display
+export main 1
 
 fn 0 snippet$show_path (string,ref) -> void
   local __sb_0 any

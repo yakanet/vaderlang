@@ -55,7 +55,7 @@ import "vader/vm" {
 ///
 /// @param module  the bytecode module to render.
 /// @return        the textual dump.
-export dump_bytecode :: fn(module: BytecodeModule) -> string {
+export dump_bytecode :: fn(module: BytecodeModule, entry_mangled: string) -> string {
     sb :: new_builder()
     sb.append("module ${module.name}\n")
     write_types(sb, module.types)
@@ -64,6 +64,7 @@ export dump_bytecode :: fn(module: BytecodeModule) -> string {
     write_impl_table(sb, module.impl_table)
     write_vtable_rows(sb, module.vtables)
     write_exports(sb, module.exports, module.functions)
+    write_entry_main(sb, module.functions, entry_mangled)
     for i in 0..<module.functions.len() {
         sb.append("\n")
         write_function(sb, module.functions[i], i32(i))
@@ -186,6 +187,22 @@ write_vtable_rows :: fn(sb: StringBuilder, vtables: VtableRow[]) -> void {
             sb.append("vtable ${row.key} ${e.receiver_type_index} ${e.fn_index}\n")
         }
     }
+}
+
+// Emit `export main <index>` for the entry function, identified by its
+// mangled name (`<entry-module>$main`). The textual `.virt` carries no
+// `is_main` flag, so the VM's `parse_virt` recovers the entry from this
+// directive — without it, it falls back to "first `$main`-suffixed fn",
+// which is emission-order-dependent and picks the wrong module's `main`
+// when several modules declare one (e.g. `vader_lsp$main` before
+// `vader_cli$main`). `entry_mangled == ""` (no known entry) emits nothing.
+write_entry_main :: fn(sb: StringBuilder, functions: BcFunction[], entry_mangled: string) -> void {
+    if entry_mangled == "" { return }
+    entry_idx := i32(-1)
+    for i in 0..<functions.len() {
+        if entry_idx < 0 && functions[i].name == entry_mangled { entry_idx = i32(i) }
+    }
+    if entry_idx >= 0 { sb.append("export main ${entry_idx}\n") }
 }
 
 write_exports :: fn(sb: StringBuilder, exports: BcExport[], functions: BcFunction[]) -> void {
@@ -577,6 +594,6 @@ import "std/testing" { assert_eq }
         .impl_table  = impl_table,
         .vtables     = vtables,
     }
-    out :: dump_bytecode(module)
+    out :: dump_bytecode(module, "")
     assert_eq(out, "module test\n")
 }

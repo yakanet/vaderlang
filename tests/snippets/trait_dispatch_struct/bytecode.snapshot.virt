@@ -3,6 +3,7 @@ type 0 primitive null
 type 1 primitive i32
 type 2 ref _
 vtable Tagger.tag 1 0
+export main 1
 
 fn 0 snippet$i32$Tagger$tag (i32) -> i32
   local.get 0

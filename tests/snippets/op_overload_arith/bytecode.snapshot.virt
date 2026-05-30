@@ -19,6 +19,7 @@ impl 1 Sub
 impl 1 Mul
 impl 1 Div
 impl 1 Rem
+export main 5
 
 fn 0 snippet$Vec$Add$add (ref,ref) -> ref
   local $field_2 i32

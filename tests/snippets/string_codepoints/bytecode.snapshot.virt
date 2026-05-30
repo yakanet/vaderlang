@@ -39,6 +39,7 @@ import 3 byte_len std_string$byte_len (string) -> usize
 import 4 byte_decode_at std_string$byte_decode_at (string,usize) -> char
 impl 8 Iterator
 impl 11 Display
+export main 0
 
 fn 0 snippet$main () -> i32
   local __sb_0 any

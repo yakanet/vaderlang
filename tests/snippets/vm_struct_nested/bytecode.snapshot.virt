@@ -3,6 +3,7 @@ type 0 primitive null
 type 1 primitive i32
 type 2 struct snippet$Inner { v:1 }
 type 3 struct snippet$Outer { lhs:2,rhs:2 }
+export main 0
 
 fn 0 snippet$main () -> i32
   local $struct_1 ref

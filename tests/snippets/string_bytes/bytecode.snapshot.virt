@@ -40,6 +40,7 @@ import 3 write std_io$write (i32,string) -> void
 import 4 byte_len std_string$byte_len (string) -> usize
 import 5 byte_at std_string$byte_at (string,usize) -> u8
 impl 9 Display
+export main 0
 
 fn 0 snippet$main () -> i32
   local sum u32

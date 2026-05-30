@@ -26,6 +26,7 @@ import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 to_string std_core$string$Display$to_string (string) -> string
 import 2 write std_io$write (i32,string) -> void
 impl 13 Display
+export main 0
 
 fn 0 snippet$main () -> i32
   local a ref

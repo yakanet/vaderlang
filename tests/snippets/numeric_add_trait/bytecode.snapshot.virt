@@ -27,6 +27,7 @@ vtable Add.add 11 11
 vtable Add.add 12 12
 vtable Add.add 13 13
 vtable Add.add 14 14
+export main 0
 
 fn 0 snippet$main () -> i32
   local a i32

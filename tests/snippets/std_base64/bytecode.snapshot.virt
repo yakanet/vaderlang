@@ -64,6 +64,7 @@ import 6 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> s
 impl 10 Error
 impl 11 Display
 vtable Error.message 10 4
+export main 1
 
 fn 0 snippet$show_decode (string,string) -> void
   local out ref

@@ -16,6 +16,7 @@ import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
 impl 1 Equals
 impl 1 Comparable
+export main 2
 
 fn 0 snippet$Money$Equals$equals (ref,ref) -> bool
   local $field_2 i32

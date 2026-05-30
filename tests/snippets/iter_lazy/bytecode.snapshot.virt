@@ -104,6 +104,7 @@ vtable Step.step 11 43
 vtable Step.step 12 44
 vtable Step.step 13 45
 vtable Step.step 14 46
+export main 0
 
 fn 0 snippet$main () -> i32
   local sq ref

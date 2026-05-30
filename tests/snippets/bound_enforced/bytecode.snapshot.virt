@@ -28,6 +28,7 @@ vtable Hash.hash 11 9
 vtable Hash.hash 12 11
 vtable Hash.hash 13 12
 vtable Hash.hash 14 13
+export main 0
 
 fn 0 snippet$main () -> i32
   string.const 0

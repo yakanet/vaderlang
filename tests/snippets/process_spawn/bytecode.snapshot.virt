@@ -26,6 +26,7 @@ import 3 spawn_last_stdout std_process$spawn_last_stdout () -> string
 import 4 spawn_last_stderr std_process$spawn_last_stderr () -> string
 impl 6 Error
 vtable Error.message 6 2
+export main 0
 
 fn 0 snippet$main () -> i32
   local r ref

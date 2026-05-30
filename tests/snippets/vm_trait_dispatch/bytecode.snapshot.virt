@@ -13,6 +13,7 @@ string 0 "Rex"
 string 1 "Whiskers"
 impl 3 Printable
 impl 6 Printable
+export main 2
 
 fn 0 snippet$describe (ref) -> i32
   local if_res i32

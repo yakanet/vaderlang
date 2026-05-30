@@ -4,6 +4,7 @@ type 1 primitive i32
 type 2 struct snippet$A { value:1 }
 type 3 struct snippet$C { value:1 }
 impl 2 Into
+export main 0
 
 fn 0 snippet$main () -> i32
   i32.const 1

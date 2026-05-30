@@ -55,6 +55,7 @@ import 4 byte_at std_string$byte_at (string,usize) -> u8
 import 5 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 17 Error
 impl 18 Display
+export main 0
 
 fn 0 snippet$main () -> i32
   local a ref

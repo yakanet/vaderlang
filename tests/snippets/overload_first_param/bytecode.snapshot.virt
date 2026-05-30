@@ -19,6 +19,7 @@ string 9 "clamp(1.5, 0.0, 1.0)  = "
 string 10 "\n"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
+export main 2
 
 fn 0 snippet$describe (ref) -> string
   local __sb_0 any

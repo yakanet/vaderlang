@@ -14,6 +14,7 @@ import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
 import 2 collect std_runtime$collect () -> void
 import 3 collections std_runtime$collections () -> i32
+export main 0
 
 fn 0 snippet$main () -> i32
   local $k_1 null

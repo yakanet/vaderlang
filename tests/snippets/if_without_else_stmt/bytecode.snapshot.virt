@@ -9,6 +9,7 @@ string 2 "not matched"
 string 3 "\n"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
+export main 1
 
 fn 0 snippet$expect_lparen (string) -> string
   local __sb_0 any

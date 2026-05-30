@@ -15,6 +15,7 @@ import 0 to_string std_core$u32$Display$to_string (u32) -> string
 import 1 to_string std_core$u64$Display$to_string (u64) -> string
 import 2 to_string std_core$string$Display$to_string (string) -> string
 import 3 write std_io$write (i32,string) -> void
+export main 0
 
 fn 0 snippet$main () -> i32
   local su u64

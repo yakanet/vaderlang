@@ -12,6 +12,7 @@ string 3 "\n"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
 import 2 read_file std_io$read_file (string) -> ref
+export main 2
 
 fn 0 snippet$read_or_default (string) -> ref
   local __try_0 ref

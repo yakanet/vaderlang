@@ -134,6 +134,7 @@ vtable Comparable.lte 12 28
 vtable Comparable.lte 13 31
 vtable Comparable.lte 14 34
 vtable Error.message 19 36
+export main 0
 
 fn 0 snippet$main () -> i32
   local __scrut_0 ref

@@ -12,6 +12,7 @@ import 3 pow std_math$pow (f64,f64) -> f64
 import 4 floor std_math$floor (f64) -> f64
 import 5 ceil std_math$ceil (f64) -> f64
 import 6 round std_math$round (f64) -> f64
+export main 0
 
 fn 0 snippet$main () -> i32
   local __sb_0 any

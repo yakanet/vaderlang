@@ -69,6 +69,7 @@ vtable Step.step 12 42
 vtable Step.step 13 43
 vtable Step.step 14 44
 vtable Step.step 15 46
+export main 2
 
 fn 0 snippet$Countdown$Iterator$next (ref) -> ref
   local $field_1 i32

@@ -122,6 +122,7 @@ vtable Step.step 14 43
 vtable Step.step 15 44
 vtable Step.step 16 45
 vtable Step.step 17 46
+export main 3
 
 fn 0 snippet$sum_iter (ref) -> i32
   local total i32

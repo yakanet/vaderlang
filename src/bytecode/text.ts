@@ -56,6 +56,13 @@ export function writeVir(m: BytecodeModule, opts: WriteVirOptions = {}): string 
     }
   }
   for (const e of m.exports) out.push(`export ${quoteIdent(e.externName)} ${e.fnIndex}`);
+  // `export main <index>` so the VM's parse_virt recovers the entry without
+  // the order-dependent "first `$main`-suffixed fn" fallback (which picks the
+  // wrong module's `main` when several declare one). Mirrors Vader's
+  // dump_bytecode::write_entry_main; index is the first non-empty `isMain` fn
+  // (same selection as the C-emit `main` shim).
+  const mainIdx = m.functions.findIndex((f) => f.isMain && f.body.length > 0);
+  if (mainIdx >= 0) out.push(`export main ${mainIdx}`);
 
   for (let i = 0; i < m.functions.length; i++) {
     out.push("");
@@ -336,6 +343,11 @@ function parseHeaderLine(line: string, m: MutableModule, ctx: ParseCtx): void {
     }
     case "export": {
       const [externName, fnIdxStr] = rest.split(/\s+/);
+      // `export main <index>` is the entry-point directive, not a real export.
+      // The entry is recovered from the `isMain` name-suffix heuristic on
+      // re-parse, so skip it here (mirrors Vader's parse_export_main_index) —
+      // otherwise it would re-emit doubled on round-trip.
+      if (externName === "main") return;
       m.exports.push({
         externName: unquoteIdent(externName ?? ""),
         fnIndex: Number(fnIdxStr),

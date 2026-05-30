@@ -23,6 +23,7 @@ string 10 "hello"
 string 11 "\n"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
+export main 4
 
 fn 0 snippet$direct (ref) -> string
   local __sb_0 any

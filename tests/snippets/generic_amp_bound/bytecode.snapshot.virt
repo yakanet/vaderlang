@@ -4,6 +4,7 @@ type 1 primitive i32
 type 2 ref _
 type 3 primitive string
 string 0 "hello"
+export main 0
 
 fn 0 snippet$main () -> i32
   string.const 0

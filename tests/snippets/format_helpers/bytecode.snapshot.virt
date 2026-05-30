@@ -28,6 +28,7 @@ import 1 write std_io$write (i32,string) -> void
 import 2 byte_len std_string$byte_len (string) -> usize
 import 3 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 9 Display
+export main 0
 
 fn 0 snippet$main () -> i32
   local __sb_0 any

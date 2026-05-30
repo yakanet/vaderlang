@@ -20,6 +20,7 @@ impl 4 Tag
 impl 5 Tag
 impl 6 Display
 impl 8 Display
+export main 0
 
 fn 0 snippet$main () -> i32
   local a ref

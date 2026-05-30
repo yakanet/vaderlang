@@ -12,6 +12,7 @@ string 4 "not yet implemented: "
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
 import 2 panic std_abort$panic (string) -> void
+export main 1
 
 fn 0 snippet$run_mode (string) -> void
   local __sb_0 any

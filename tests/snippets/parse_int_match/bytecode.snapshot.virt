@@ -22,6 +22,7 @@ import 1 write std_io$write (i32,string) -> void
 import 2 parse_int std_string$parse_int (string) -> ref
 import 3 parse_float std_string$parse_float (string) -> ref
 impl 9 Display
+export main 0
 
 fn 0 snippet$main () -> i32
   local __scrut_0 ref

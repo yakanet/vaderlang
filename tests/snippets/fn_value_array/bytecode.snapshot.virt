@@ -3,6 +3,7 @@ type 0 primitive null
 type 1 primitive i32
 type 2 fn (1) -> 1
 type 3 array 2
+export main 2
 
 fn 0 snippet$inc (i32) -> i32
   local.get 0

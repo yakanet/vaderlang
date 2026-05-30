@@ -95,6 +95,7 @@ vtable Step.step 9 65
 vtable Step.step 10 66
 vtable Step.step 11 67
 vtable Step.step 12 68
+export main 3
 
 fn 0 snippet$is_digit (char) -> bool
   char.const 48

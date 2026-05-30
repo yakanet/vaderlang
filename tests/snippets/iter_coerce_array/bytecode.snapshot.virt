@@ -25,6 +25,7 @@ impl 6 Iterator
 impl 9 Iterator
 vtable Iterator.next 6 4
 vtable Iterator.next 9 5
+export main 2
 
 fn 0 snippet$walk (ref) -> i32
   local sum i32

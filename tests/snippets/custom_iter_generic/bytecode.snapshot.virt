@@ -15,6 +15,7 @@ import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
 impl 2 Iterator
 impl 5 Iterator
+export main 0
 
 fn 0 snippet$main () -> i32
   local sum i32

@@ -18,6 +18,7 @@ string 5 "c = "
 string 6 "\n"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
+export main 2
 
 fn 0 snippet$demo_comparison_in_args () -> bool
   local $lt_3 bool

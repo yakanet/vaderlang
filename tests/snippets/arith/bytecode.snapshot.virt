@@ -1,6 +1,7 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
+export main 1
 
 fn 0 snippet$add (i32,i32) -> i32
   local.get 0

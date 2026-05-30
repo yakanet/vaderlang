@@ -5,6 +5,7 @@ type 2 primitive i32
 type 3 struct __lambda_env_2 { cap_0:4 }
 type 4 ref _
 type 5 struct $Cell_i32 { value:2 }
+export main 1
 
 fn 0 snippet$apply (ref,i32) -> i32
   local.get 1

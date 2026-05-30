@@ -7,6 +7,7 @@ string 0 "the answer is "
 string 1 "\n"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
+export main 1
 
 fn 0 snippet$i32$Display$to_string (i32) -> string
   local __sb_0 any

@@ -74,6 +74,7 @@ vtable Step.step 15 47
 vtable Step.step 16 48
 vtable Step.step 17 49
 vtable Step.step 18 50
+export main 2
 
 fn 0 snippet$Hello$Greeter$greet (ref) -> i32
   return.lit i32.const 100

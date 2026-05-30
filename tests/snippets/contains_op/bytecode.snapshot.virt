@@ -54,6 +54,7 @@ vtable Comparable.lte 10 25
 vtable Comparable.lte 11 28
 vtable Comparable.lte 12 31
 vtable Comparable.lte 13 34
+export main 1
 
 fn 0 snippet$DigitSet$Contains$contains (ref,i32) -> bool
   local or_res bool

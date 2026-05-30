@@ -13,6 +13,7 @@ string 3 "post_narrow V02 : "
 string 4 "\n"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
+export main 2
 
 fn 0 snippet$direct (ref) -> i32
   local $field_4 i32

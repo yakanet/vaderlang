@@ -13,6 +13,7 @@ module "vader/cli"
 import "std/io" { println, eprintln, read_file, print }
 import "std/collections" { keys, values, MutableMap }
 import "std/string" { starts_with, ends_with, byte_len, byte_at, byte_slice as byte_slice_str }
+import "std/string_builder" { new_builder, append_char, append }
 import "std/iter" { slice as slice_arr }
 import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
@@ -250,7 +251,7 @@ run_source :: fn(file: string, host_argv: string[]) -> i32 {
     dced :: eliminate_dead_cfg(cfg)
     escaped :: annotate_escape(dced).project
     module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
-    return match exec(parse_virt(dump_bytecode(module)), host_argv) {
+    return match exec(parse_virt(dump_bytecode(module, entry_main_name(pipeline.typed, pipeline.loaded.entry))), host_argv) {
         is Ok   as o -> o.value
         is Trap as t -> {
             eprintln("vader vm: ${t.message}")
@@ -544,7 +545,7 @@ run_bytecode_cfg_stage :: fn(file: string) -> i32 {
     cfg :: build_cfg_project(lowered)
     folded :: const_fold_project(cfg)
     module :: emit_bytecode_from_cfg(folded, module_name_from_file(file), default_emit_options())
-    print(dump_bytecode(module))
+    print(dump_bytecode(module, entry_main_name(pipeline.typed, pipeline.loaded.entry)))
     print_pipeline_diags(pipeline, lower_diags)
     return 0
 }
@@ -570,7 +571,7 @@ run_bytecode_stage :: fn(file: string) -> i32 {
     // `dump_bytecode` already returns a trailing-newline-terminated
     // string ; use `print` (no auto-newline) to match TS
     // `process.stdout.write(writeVir(...))` byte-for-byte.
-    print(dump_bytecode(module))
+    print(dump_bytecode(module, entry_main_name(pipeline.typed, pipeline.loaded.entry)))
     print_pipeline_diags(pipeline, lower_diags)
     return 0
 }
@@ -590,6 +591,27 @@ run_c_stage :: fn(file: string) -> i32 {
 /// the directory components and the `.vader` extension so a file like
 /// `tests/snippets/arith/_main.vader` becomes the bytecode module name
 /// `_main`.
+// Mangled name of the entry module's `main` (e.g. `vader_cli$main`), used to
+// emit the `export main <index>` directive so the VM picks the right entry
+// among several modules' `main` fns. The entry module is keyed in
+// `typed.modules` by the entry id (`loaded.entry`) ; mangling its
+// `resolved.display_path` (`/` and `.` → `_`) reproduces exactly the name the
+// lowerer minted for that module's `main`. Returns "" when the entry module
+// isn't resolvable, which suppresses the directive.
+entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
+    tp :: typed.modules[entry]
+    if tp == null { return "" }
+    sb :: new_builder()
+    for c in tp.resolved.display_path {
+        if c == '/'      { sb.append_char('_') }
+        else if c == '.' { sb.append_char('_') }
+        else             { sb.append_char(c) }
+    }
+    sb.append_char('$')
+    sb.append("main")
+    return "${sb}"
+}
+
 module_name_from_file :: fn(file: string) -> string {
     last_slash: i64 = -1
     i: i64 = 0

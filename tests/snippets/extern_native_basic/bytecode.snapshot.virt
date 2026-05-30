@@ -13,6 +13,7 @@ import 1 extern strlen snippet$c_strlen (string) -> usize
 import 2 to_string std_core$usize$Display$to_string (usize) -> string
 import 3 to_string std_core$string$Display$to_string (string) -> string
 import 4 write std_io$write (i32,string) -> void
+export main 0
 
 fn 0 snippet$main () -> i32
   local sum i32

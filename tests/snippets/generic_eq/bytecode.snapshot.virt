@@ -35,6 +35,7 @@ vtable Equals.equals 13 13
 vtable Equals.equals 14 14
 vtable Equals.equals 15 15
 vtable Equals.equals 16 17
+export main 0
 
 fn 0 snippet$main () -> i32
   local __sb_0 any

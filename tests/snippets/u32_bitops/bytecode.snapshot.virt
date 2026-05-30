@@ -17,6 +17,7 @@ string 9 "not_top"
 string 10 "\n"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
+export main 1
 
 fn 0 snippet$check (string,bool) -> void
   local.get 1

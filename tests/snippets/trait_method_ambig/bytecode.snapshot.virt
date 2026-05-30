@@ -7,6 +7,7 @@ string 0 "G:"
 string 1 "x"
 impl 1 Greet
 impl 1 Annot
+export main 1
 
 fn 0 snippet$Cat$Greet$greet (ref) -> string
   local __sb_0 any

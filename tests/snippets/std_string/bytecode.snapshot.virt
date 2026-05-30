@@ -34,6 +34,7 @@ import 10 trim std_string$trim (string) -> string
 import 11 to_upper std_string$to_upper (string) -> string
 import 12 to_lower std_string$to_lower (string) -> string
 impl 8 Display
+export main 0
 
 fn 0 snippet$main () -> i32
   local s string
