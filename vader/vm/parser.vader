@@ -1211,13 +1211,27 @@ int_op_for :: fn(width: string, suffix: string) -> Op | null {
 /// without wraparound. Downstream `read_i32` truncates the i64 back to
 /// i32 when an i32 consumer wants it.
 parse_int_const_text :: fn(rest: string) -> Op | null {
-    // The .virt only ever emits non-negative `<width>.const N` (the
-    // bytecode lowers a negative literal as `const |N|` + `<width>.neg`),
-    // so parse as `u64` to catch the full unsigned range — i.e. literals
-    // up to `u64.MAX`. Values that don't fit signed-i64 still round-trip
-    // by reinterpreting the bit pattern when we drop into `I64Const`,
-    // and the host display arms pick the right signedness from the op
-    // sequence that surrounds the const.
+    // Negative literals : both emitters print `<width>.const -N` directly
+    // (signed widths only — unsigned widths never carry a sign), so a
+    // leading `-` strips to the magnitude, which we parse unsigned and
+    // negate. The fit-check then routes to I32Const / I64Const exactly
+    // like the positive path ; `read_i64` sign-extends an I32Val(-N) back
+    // to the right i64, so an `i64.const -1` that collapses to I32Const is
+    // read correctly downstream.
+    if rest.starts_with("-") {
+        mag :: parse_uint_in_base(rest.byte_slice(1, rest.byte_len()), 10)
+        if mag is Error { return null }
+        signed :: i64(0) - i64(mag)
+        if signed >= i64(-0x80000000) && signed <= i64(0x7fffffff) {
+            return I32Const { .value = i32(signed) }
+        }
+        return I64Const { .value = signed }
+    }
+    // Non-negative path : parse as `u64` to catch the full unsigned range
+    // — i.e. literals up to `u64.MAX`. Values that don't fit signed-i64
+    // still round-trip by reinterpreting the bit pattern when we drop into
+    // `I64Const`, and the host display arms pick the right signedness from
+    // the op sequence that surrounds the const.
     parsed :: parse_uint_in_base(rest, 10)
     if parsed is Error { return null }
     if parsed <= u64(0x7fffffff) {
