@@ -17,9 +17,9 @@
             "listing entries" :string
         return
     ~>
-      call :void
+      call :never
         callee:
-          todo :fn(string) -> void
+          todo :fn(string) -> never
         arg0:
           block :string
             let __sb_0: ? =

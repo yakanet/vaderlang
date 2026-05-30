@@ -423,27 +423,28 @@ walk_pattern_bindings :: fn(
     }
 }
 
+// Only a union target needs the narrowing cast ; any other shape is already
+// its concrete self and passes through. Single-case `if`, not `match` + `_`.
 narrow_target :: fn(target: LoweredExpr, target_type: Type, inner_type: Type, span: Span) -> LoweredExpr {
-    match target_type {
-        is UnionType -> { return LoweredCast { .span = span, .type = inner_type, .value = target } }
-        _ -> { return target }
-    }
+    if target_type is UnionType { return LoweredCast { .span = span, .type = inner_type, .value = target } }
+    return target
 }
 
+// Field type of `target_type.field_name`, or `unresolved` when the target
+// isn't a struct (a non-struct in a struct-field pattern is an upstream
+// typecheck error) or the field/decl is missing. Single-case `if`.
 struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) -> Type {
-    match target_type {
-        is StructType as st -> {
-            decl :: ctx.typed.struct_decls[st.symbol.id]
-            if decl is null { return TY_UNRESOLVED }
-            for field in decl.fields {
-                if field.name == field_name {
-                    return resolve_pattern_type(ctx, field.ty)
-                }
+    if target_type is StructType as st {
+        decl :: ctx.typed.struct_decls[st.symbol.id]
+        if decl is null { return TY_UNRESOLVED }
+        for field in decl.fields {
+            if field.name == field_name {
+                return resolve_pattern_type(ctx, field.ty)
             }
-            return TY_UNRESOLVED
         }
-        _ -> { return TY_UNRESOLVED }
+        return TY_UNRESOLVED
     }
+    return TY_UNRESOLVED
 }
 
 // Pattern-introduced bindings : `resolved.idents.values()` exposes

@@ -33,7 +33,7 @@ import "vader/typecheck" { type_from_expr, primitive_from_name }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
-    TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType,
+    TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive,
 }
 import "vader/typecheck" { default_if_free, equals_type, is_assignable, lookup_struct_trait_args }
@@ -331,11 +331,13 @@ export comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: 
     }
 }
 
+// Element type of an array, or `unresolved` when `t` isn't a concrete array
+// (an un-hinted comptime array literal hits this with a `?` hint — the
+// elements then resolve from their own values). Single-case `if`, not a
+// `match` with a `_ ->` degraded arm.
 array_element_type :: fn(t: Type) -> Type {
-    match t {
-        is ArrayType as at -> { return at.element }
-        _ -> { return TY_UNRESOLVED }
-    }
+    if t is ArrayType as at { return at.element }
+    return TY_UNRESOLVED
 }
 
 is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
@@ -1510,17 +1512,31 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
     return null
 }
 
-type_surface_name :: fn(t: Type) -> string {
-    match t {
-        is PrimitiveType as p -> { return p.name }
-        is StructType    as s -> { return s.symbol.name }
-        is EnumType      as e -> { return e.symbol.name }
-        // Generic-shape pattern + concrete receiver agree on a canonical
-        // token : `T[]` and `i32[]` both surface as `[]` for UFCS lookup.
-        is ArrayType          -> { return "[]" }
-        is TupleType          -> { return "()" }
-        _ -> { return "" }
-    }
+// Nominal token a receiver type registers UFCS impls under. Exhaustive over
+// `Type` (no `_`) : the non-nominal shapes (fn / union / trait / type-param /
+// meta / self / unresolved / free-numeric / never / any) have no single
+// surface name and resolve through other paths, so they map to "" explicitly —
+// listing them trips T3013 if a new *nominal* Type variant is added that ought
+// to carry a UFCS surface.
+type_surface_name :: fn(t: Type) -> string = match t {
+    is PrimitiveType as p -> p.name
+    is StructType    as s -> s.symbol.name
+    is EnumType      as e -> e.symbol.name
+    // Generic-shape pattern + concrete receiver agree on a canonical token :
+    // `T[]` and `i32[]` both surface as `[]` for UFCS lookup.
+    is ArrayType          -> "[]"
+    is TupleType          -> "()"
+    is FnType             -> ""
+    is UnionType          -> ""
+    is TraitType          -> ""
+    is TypeParamType      -> ""
+    is TypeMetaType       -> ""
+    is SelfType           -> ""
+    is UnresolvedType     -> ""
+    is FreeIntType        -> ""
+    is FreeFloatType      -> ""
+    is NeverType          -> ""
+    is AnyType            -> ""
 }
 
 
@@ -2684,19 +2700,27 @@ resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
     return via_type_expr
 }
 
-kind_string_of_type :: fn(t: Type) -> string {
-    match t {
-        is PrimitiveType -> { return "primitive" }
-        is StructType    -> { return "struct" }
-        is EnumType      -> { return "enum" }
-        is TraitType     -> { return "trait" }
-        is ArrayType     -> { return "array" }
-        is TupleType     -> { return "tuple" }
-        is FnType        -> { return "fn" }
-        is UnionType     -> { return "union" }
-        is TypeParamType -> { return "type-param" }
-        _ -> { return "unknown" }
-    }
+// `@type_kind(T)` stable discriminator. Exhaustive over `Type` (no `_`) and
+// kept in lock-step with `src/typecheck/types.ts::kindStringOfType` — the bare
+// types that have no user-facing kind collapse to "unknown", `Any` is "any",
+// `TypeMeta` is "type". Listing every variant trips T3013 on a new Type kind.
+kind_string_of_type :: fn(t: Type) -> string = match t {
+    is PrimitiveType  -> "primitive"
+    is StructType     -> "struct"
+    is EnumType       -> "enum"
+    is UnionType      -> "union"
+    is ArrayType      -> "array"
+    is TupleType      -> "tuple"
+    is FnType         -> "fn"
+    is TraitType      -> "trait"
+    is TypeMetaType   -> "type"
+    is TypeParamType  -> "unknown"
+    is SelfType       -> "unknown"
+    is UnresolvedType -> "unknown"
+    is FreeIntType    -> "unknown"
+    is FreeFloatType  -> "unknown"
+    is NeverType      -> "unknown"
+    is AnyType        -> "any"
 }
 
 // ============================================================================

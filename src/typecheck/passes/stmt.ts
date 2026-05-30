@@ -84,7 +84,7 @@ export function checkBlock(
   for (const stmt of block.stmts) {
     if (diverged && firstUnreachable === null) firstUnreachable = stmt;
     checkStmt(stmt, t, impls, diags, fn);
-    if (!diverged && divergesStmt(stmt)) diverged = true;
+    if (!diverged && divergesStmt(stmt, t)) diverged = true;
     const post = postStmtNarrowing(stmt, t);
     if (post !== null) {
       const split: NarrowingScope = { symId: post.symId, path: post.path };
@@ -100,7 +100,7 @@ export function checkBlock(
   let result: Type = TY.void;
   if (block.trailing !== null) {
     result = checkExpr(block.trailing, expected, t, impls, diags, fn);
-  } else if (block.stmts.some(divergesStmt)) {
+  } else if (block.stmts.some((s) => divergesStmt(s, t))) {
     // No trailing AND some statement diverges (return / break / continue
     // on every path, or a divergent nested match / if). The block never
     // produces a value — its type is `never`, which is assignable to any
@@ -120,28 +120,33 @@ export function checkBlock(
  *  through it terminates via `return` / `break` / `continue` instead of
  *  yielding a value. Used by `checkBlock` to type a trailing-less block
  *  as `never` when its last statements never fall through. */
-export function divergesExpr(expr: A.Expr): boolean {
+export function divergesExpr(expr: A.Expr, t: MutableTyped): boolean {
   switch (expr.kind) {
-    case "BlockExpr":  return divergesBlock(expr);
+    case "BlockExpr":  return divergesBlock(expr, t);
     case "IfExpr":     return expr.else !== null
-      && divergesBlock(expr.then) && divergesExpr(expr.else);
+      && divergesBlock(expr.then, t) && divergesExpr(expr.else, t);
     case "MatchExpr":  return expr.arms.length > 0
-      && expr.arms.every((a) => divergesExpr(a.body));
+      && expr.arms.every((a) => divergesExpr(a.body, t));
+    // A call to a `@no_return` fn (`panic` / `todo` / `unreachable`) types as
+    // `never` (see `calleeIsNoReturn` in ./call.ts) ; treat it as diverging so
+    // a fn body ending in `todo(...)` discharges its return obligation. Mirror
+    // of the ExprStmt-`never` branch in vader/typecheck/stmt.vader.
+    case "CallExpr":   return t.exprTypes.get(expr)?.kind === "Never";
     default:           return false;
   }
 }
 
-export function divergesBlock(block: A.BlockExpr): boolean {
-  if (block.trailing !== null) return divergesExpr(block.trailing);
-  return block.stmts.some(divergesStmt);
+export function divergesBlock(block: A.BlockExpr, t: MutableTyped): boolean {
+  if (block.trailing !== null) return divergesExpr(block.trailing, t);
+  return block.stmts.some((s) => divergesStmt(s, t));
 }
 
-export function divergesStmt(stmt: A.Stmt): boolean {
+export function divergesStmt(stmt: A.Stmt, t: MutableTyped): boolean {
   switch (stmt.kind) {
     case "ReturnStmt":
     case "BreakStmt":
     case "ContinueStmt": return true;
-    case "ExprStmt":     return divergesExpr(stmt.expr);
+    case "ExprStmt":     return divergesExpr(stmt.expr, t);
     case "ForStmt":      return divergesForStmt(stmt);
     default:             return false;
   }

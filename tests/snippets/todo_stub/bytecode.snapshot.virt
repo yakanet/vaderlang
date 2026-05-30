@@ -3,6 +3,7 @@ type 0 primitive null
 type 1 primitive string
 type 2 primitive void
 type 3 primitive i32
+type 4 ref _
 string 0 "list"
 string 1 "listing entries"
 string 2 " mode dispatch"

@@ -15,6 +15,7 @@ import type { DiagnosticCollector } from "../../diagnostics/collector.ts";
 import type * as A from "../../parser/ast.ts";
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf } from "../../resolver/symbol.ts";
+import { DEC, hasDecorator } from "../../parser/decorators.ts";
 
 import { err } from "../diag.ts";
 import type { ImplRegistry } from "../impls.ts";
@@ -34,6 +35,19 @@ import {
   recordGenericCallSite,
 } from "./field.ts";
 import { typeContainsTypeParam, unifyTypeParam } from "./unify.ts";
+
+/** True when the call targets a `@no_return` fn (`panic` / `todo` /
+ *  `unreachable`). Such a call yields `never` — it fills any typed slot and
+ *  diverges. The resolver redirects imported callee idents to the concrete
+ *  export in `idents` (resolve.ts), so this also sees `@no_return` fns pulled
+ *  in via `import`. Mirror of `callee_is_no_return` in vader/typecheck/call.vader. */
+function calleeIsNoReturn(expr: A.CallExpr, t: MutableTyped): boolean {
+  if (expr.callee.kind !== "IdentExpr") return false;
+  const sym = t.resolved.idents.get(expr.callee);
+  if (sym === undefined || sym.kind !== "fn") return false;
+  const decl = declOf(sym);
+  return decl !== null && decl.kind === "FnDecl" && hasDecorator(decl.decorators, DEC.no_return);
+}
 
 export function inferCall(
   expr: A.CallExpr, t: MutableTyped, impls: ImplRegistry,
@@ -129,6 +143,7 @@ export function inferCall(
   // `[typeof x]` so subsequent reads (`arr[i]`, `${arr[i]}`, …) see a
   // concrete element type instead of falling back to a boxed `any`.
   refineArrayLocalFromPush(expr, t);
+  if (calleeIsNoReturn(expr, t)) return TY.never;
   return calleeType.returnType;
 }
 
@@ -247,6 +262,7 @@ function inferGenericFnCall(
     }
   }
 
+  if (calleeIsNoReturn(expr, t)) return TY.never;
   return substitute(calleeType.returnType, subst);
 }
 
