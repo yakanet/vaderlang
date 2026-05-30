@@ -212,6 +212,20 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[]) -> voi
     }
     ctx.function_index_by_symbol_id = new_sym_map
 
+    // Rewrite function_index_by_mangle the same way. `build_vtables_from_entries`
+    // runs AFTER this prune and resolves vtable targets by mangle for entries
+    // carrying a synthetic `fn_symbol.id = 0` (materialised impl members). A
+    // stale pre-prune index here would point those vtable rows at the wrong fn.
+    new_mangle_map :: MutableMap<string, i32> { .buckets = [], .size = 0 }
+    for mangle in ctx.function_index_by_mangle.keys() {
+        old_idx_opt :: ctx.function_index_by_mangle[mangle]
+        if old_idx_opt is i32 as old_idx {
+            r :: remap[usize(old_idx)]
+            if r >= 0 { new_mangle_map[mangle] = r }
+        }
+    }
+    ctx.function_index_by_mangle = new_mangle_map
+
     ctx.functions = kept
 }
 

@@ -321,13 +321,8 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             key_str :: type_intern_key(ve.struct_type)
             existing_t :: ctx.type_key[key_str]
             if existing_t is i32 as ti { ctx.pinned_types.push(ti) }
-            fi_opt :: ctx.function_index_by_symbol_id[ve.fn_symbol.id]
-            if fi_opt is i32 as fi {
-                vtable_roots.push(fi)
-            } else {
-                fi_mangle_opt :: ctx.function_index_by_mangle[ve.fn_symbol.name]
-                if fi_mangle_opt is i32 as fi2 { vtable_roots.push(fi2) }
-            }
+            root_idx :: resolve_vtable_fn_index(ve.fn_symbol, ctx)
+            if root_idx >= 0 { vtable_roots.push(root_idx) }
         }
         prune_unused_functions(ctx, vtable_roots)
         prune_unused_imports(ctx)
@@ -345,6 +340,21 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         .impl_table  = build_impl_table_from_vtable(cfg.vtable_entries, ctx),
         .vtables     = build_vtables_from_entries(cfg.vtable_entries, ctx),
     }
+}
+
+/// Resolve a vtable entry's target fn symbol to its (post-prune) function
+/// index, or `-1` when it didn't survive. MANGLE-first : materialised
+/// impl-member entries carry a synthetic `fn_symbol.id = 0`, so the
+/// symbol-id path would collide on slot 0 — the mangle is the reliable key
+/// (and `prune_unused_functions` remaps `function_index_by_mangle`). A
+/// real-symbol entry's name isn't a registered mangle, so it falls through
+/// to the id path. Mirror of `emit_call`'s InstrCall resolution order.
+resolve_vtable_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 {
+    fi_mangle_opt :: ctx.function_index_by_mangle[fn_symbol.name]
+    if fi_mangle_opt is i32 as fi { return fi }
+    fi_opt :: ctx.function_index_by_symbol_id[fn_symbol.id]
+    if fi_opt is i32 as fi2 { return fi2 }
+    return -1
 }
 
 /// Build per-(trait, method) vtable rows from the CFG vtable entries.
@@ -367,14 +377,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
     for ve in entries {
         key :: "${ve.trait_name}.${ve.method_name}"
         if !(used_keys[key] is bool) { continue }
-        fi_opt :: ctx.function_index_by_symbol_id[ve.fn_symbol.id]
-        fn_idx: i32 = -1
-        if fi_opt is i32 as fi {
-            fn_idx = fi
-        } else {
-            fi_mangle_opt :: ctx.function_index_by_mangle[ve.fn_symbol.name]
-            if fi_mangle_opt is i32 as fi2 { fn_idx = fi2 }
-        }
+        fn_idx :: resolve_vtable_fn_index(ve.fn_symbol, ctx)
         if fn_idx < 0 { continue }
         receiver_idx :: intern_type(ve.struct_type, ctx)
         existing :: rows_by_key[key]
