@@ -525,7 +525,7 @@ export materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
             // lets the T3036 "missing method" loop credit the SAM-named
             // slot. Without the rename, both required methods would be
             // flagged missing instead of just the unprovided one.
-            materialize_sam_members(decl, trait_decl)
+            materialize_sam_members(decl, trait_decl, loaded.node_id_factory)
             // Default-bodied trait methods get cloned into the impl
             // (body + signature substituted). Bodies carry the
             // materialised-span marker + IDs minted from the host

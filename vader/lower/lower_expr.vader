@@ -1471,7 +1471,27 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
             // `impl_member_mangled` (lower.vader) appends to disambiguate
             // multiple impls of the same trait/method on one type. Calls to
             // such overloaded impl members would miss — see audit follow-up.
-            mangled :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}$${m.name}"
+            //
+            // Suffix : a generic-struct receiver picks up the materialised
+            // member's instance suffix. The materialiser erases the args to
+            // `Any` for generic impls (`Range<i32>` → `count__Any`) so the
+            // shared erased body's sibling self-calls resolve to one name ;
+            // concrete-instantiation impls keep the concrete suffix
+            // (`Wrapper<i32>` → `count__i32`). Primitive receivers
+            // (`string implements Display`) have no args → empty suffix.
+            recv_suffix :: match target_type {
+                is StructType as s -> {
+                    if entry.is_generic {
+                        erased: Type[] = []
+                        for a in s.args { erased.push(any_leaves_of(a)) }
+                        args_suffix(erased)
+                    } else {
+                        args_suffix(s.args)
+                    }
+                }
+                _ -> ""
+            }
+            mangled :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}$${m.name}${recv_suffix}"
             // Record the call so the post-lowering intrinsic-surfacing pass
             // surfaces ONLY referenced stdlib impl members as imports (GATE B).
             ctx.project.referenced_impl_mangles.add(mangled)

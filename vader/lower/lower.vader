@@ -1559,13 +1559,15 @@ materialize_one_instance :: fn(
             if i32(sym.kind) == i32(SymbolKind.Struct) {
                 materialize_struct_instance(inst, owner_decls, owner_typed_ok, project_ctx, project)
                 // (2) For every generic impl whose for_type targets the
-                // same struct symbol, materialize each member. Skipped for
-                // stdlib structs — their method bodies stay out of the dump
-                // until whole-program import DCE lands ; the struct decl
-                // above already gives the type table its concrete shape.
-                if !is_stdlib_path(owner_module_id) {
-                    materialize_impl_members_for(inst, owner_decls, owner_typed_ok, project_ctx, project, loaded, typed, diags)
-                }
+                // same struct symbol, materialize each member — including
+                // stdlib structs (`Range<i32>`, `MutableMap<…>`). Trait
+                // default methods (`Range.count()` / `.last()` /
+                // `.is_empty()`) need a real body to dispatch through ;
+                // skipping stdlib here dropped them onto the defensive
+                // `Return` arm in the CFG emit. Whole-program DCE
+                // (`prune_unreachable_fns`) culls anything the user never
+                // reaches, so over-materialising is safe.
+                materialize_impl_members_for(inst, owner_decls, owner_typed_ok, project_ctx, project, loaded, typed, diags)
             }
         }
     }
@@ -2089,6 +2091,14 @@ materialize_impl_members_for :: fn(
                             materialize_impl_for_instance(
                                 impl_decl, inst, mt, owner_typed, project_ctx, project,
                             )
+                            // The impl body virtual-calls the bound traits'
+                            // methods on the type-param (`cursor.gte(...)` /
+                            // `cursor.step()` in `Range.next`). Materialise
+                            // those bound-trait impls for the concrete args so
+                            // the vtable carries the matching entries.
+                            materialize_bound_trait_impls(
+                                impl_decl, inst, project_ctx, project, loaded, typed, diags,
+                            )
                         }
                         _ -> {}
                     }
@@ -2135,7 +2145,14 @@ materialize_impl_for_instance :: fn(
     }
     self_struct :: StructType { .symbol = inst.symbol, .args = erased_args }
     self_type: Type = self_struct
-    suffix :: args_suffix(inst.args)
+    // Suffix from the ERASED args : a generic impl mangles `count__Any`
+    // (not `count__i32`) so the shared erased body's sibling self-calls
+    // (`self.next()` in the `count` default) and every concrete-arg call
+    // site resolve to one name. `find_impl_member_for` / `lower_for_in`
+    // erase the receiver args the same way (gated on `ImplEntry.is_generic`).
+    // Concrete-instantiation impls keep `erased_args == inst.args`, so their
+    // suffix stays concrete.
+    suffix :: args_suffix(erased_args)
     types :: make_entry_types(impl_typed, subst)
     impl_key_prefix :: impl_decl.span.hash()
     for member in impl_decl.members {
@@ -2168,6 +2185,96 @@ materialize_impl_for_instance :: fn(
             .body        = body,
             .origin      = entry,
         })
+    }
+}
+
+import "vader/parser" { BinaryExpr, BinaryOp }
+
+/// For each bounded type param of `impl_decl` (`Range<T> implements<T:
+/// Comparable & Step>`), materialise the bound traits' impls for the
+/// matching concrete instance arg. The generic-impl body dispatches a
+/// type-param method (`cursor.gte(...)`) through a `virtual.call`, so the
+/// vtable needs the concrete type's `(trait, method)` rows — which
+/// `collect_vtable_entries` builds from the materialised member fns.
+/// Deduped per `(type, trait)` ; no-op for unbounded type params.
+materialize_bound_trait_impls :: fn(
+    impl_decl: ImplDecl, inst: GenericInstance,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+    loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
+) -> void {
+    for i in 0..<impl_decl.type_params.len() {
+        if i >= inst.args.len() { break }
+        bound :: impl_decl.type_params[i].bound
+        if bound == null { continue }
+        type_name :: type_surface_name(inst.args[i])
+        if type_name == "" { continue }
+        trait_names: string[] = []
+        flatten_trait_bound(bound, trait_names)
+        for trait_name in trait_names {
+            materialize_bound_impl(type_name, trait_name, project_ctx, project, loaded, typed, diags)
+        }
+    }
+}
+
+// Flatten a type-param bound expression into the list of trait names it
+// names. `Comparable & Step` is a `BinaryExpr(BitAnd, ...)` ; a single
+// bound is a bare `IdentExpr` ; a generic bound (`Iterator<T>`) takes the
+// callee name.
+flatten_trait_bound :: fn(bound: TypeExpr, out: string[]) -> void {
+    match bound {
+        is IdentExpr as id -> { out.push(id.name) }
+        is BinaryExpr as b -> {
+            if i32(b.op) == i32(BinaryOp.BitAnd) {
+                flatten_trait_bound(b.left, out)
+                flatten_trait_bound(b.right, out)
+            }
+        }
+        is GenericInstExpr as gi -> {
+            match gi.callee {
+                is IdentExpr as cid -> { out.push(cid.name) }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
+}
+
+// Find the non-generic `<type_name> implements <trait_name>` impl across
+// loaded modules and lower its members (SAM + default bodies) so the
+// vtable picks them up. Deduped per `(type_name, trait_name)`.
+materialize_bound_impl :: fn(
+    type_name: string, trait_name: string,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+    loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
+) -> void {
+    dedupe_key :: "boundimpl::${type_name}::${trait_name}"
+    if project_ctx.materialized_impl_keys.contains(dedupe_key) { return }
+    for module_id in typed.modules.keys() {
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        if module_typed is TypedProgram as mt {
+            module_loaded :: loaded.modules[module_id]
+            if module_loaded is null { continue }
+            if module_loaded is LoadedModule as ml {
+                decls :: module_decls(ml)
+                for d in decls {
+                    if d is ImplDecl as impl_ {
+                        if impl_.trait_name != trait_name { continue }
+                        if !impl_targets_name(impl_.for_type, type_name) { continue }
+                        // Generic / concrete-instantiation impls go through the
+                        // struct-instance path ; this targets the non-generic
+                        // primitive (or plain struct) impls.
+                        if impl_.type_params.len() > usize(0) { continue }
+                        if impl_.for_type is GenericInstExpr { continue }
+                        project_ctx.materialized_impl_keys.add(dedupe_key)
+                        for m in lower_impl_member_list(impl_, mt, project_ctx, diags, decls) {
+                            push_to_module(project, mt.resolved.path, m)
+                        }
+                        return
+                    }
+                }
+            }
+        }
     }
 }
 

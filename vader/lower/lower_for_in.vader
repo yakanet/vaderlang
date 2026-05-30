@@ -322,7 +322,18 @@ build_step_call :: fn(
     method_next :: "next"
     next_name := method_next
     if iter_type is StructType as st {
-        next_name = "${mangle_module_id(ctx.typed.resolved.display_path)}$${st.symbol.name}$${TRAIT_ITERATOR}$${method_next}${args_suffix(st.args)}"
+        // Erase the receiver args (`__Any`) when the struct's Iterator impl
+        // is generic, matching the suffix `materialize_impl_for_instance`
+        // emits for the materialised `next` body. Concrete-instantiation
+        // iterators keep the concrete suffix.
+        suffix :: if struct_iter_impl_is_generic(ctx, st.symbol.name) {
+            erased: Type[] = []
+            for a in st.args { erased.push(any_leaves_of(a)) }
+            args_suffix(erased)
+        } else {
+            args_suffix(st.args)
+        }
+        next_name = "${mangle_module_id(ctx.typed.resolved.display_path)}$${st.symbol.name}$${TRAIT_ITERATOR}$${method_next}${suffix}"
     }
     next_symbol :: synth_next_symbol(ctx, next_name)
     args: LoweredExpr[] = []
@@ -334,6 +345,27 @@ build_step_call :: fn(
         },
         .args = args,
     }
+}
+
+// True when `struct_name`'s `Iterator` impl references a type parameter
+// (`Range<T>` / `ArrayIterator<T>` / `Repeat<T>`). Drives the same
+// arg-erasure the materialiser applies to the `next` body's mangle so
+// both sides agree on the instance name. Mirror of `ImplEntry.is_generic`.
+struct_iter_impl_is_generic :: fn(ctx: FnLowerCtx, struct_name: string) -> bool {
+    for entry in ctx.project.impls.all {
+        if entry.decl.trait_name != TRAIT_ITERATOR { continue }
+        match entry.decl.for_type {
+            is AST.IdentExpr as id -> { if id.name == struct_name { return entry.is_generic } }
+            is AST.GenericInstExpr as gi -> {
+                match gi.callee {
+                    is AST.IdentExpr as cid -> { if cid.name == struct_name { return entry.is_generic } }
+                    _ -> {}
+                }
+            }
+            _ -> {}
+        }
+    }
+    return false
 }
 
 synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {

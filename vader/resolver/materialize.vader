@@ -25,8 +25,8 @@ import "std/collections" { MutableMap, MutableSet, add, contains }
 import "std/iter" { is_empty }
 import "std/math" { min }
 import "std/testing" { assert, assert_eq }
-import "vader/diagnostics" { Span }
-import "vader/parser" { parse_source }
+import "vader/diagnostics" { Span, Position }
+import "vader/parser" { parse_source, mint }
 AST :: import "vader/parser"
 
 /// `@intrinsic impl ... {}` carries an empty body : fill it with one
@@ -55,6 +55,21 @@ export materialize_default_members :: fn(
     if !any_has_body(trait_.members) { return }
     provided :: provided_names(impl_.members)
     subst :: build_subst(impl_, trait_)
+    // One deterministic span allocator per impl : `base_line` = the impl's
+    // source line (stable + unique per impl), `counter` accumulates across
+    // every cloned member so each node gets a distinct `<clone>` span. The
+    // determinism is load-bearing — std/core's bodies are materialised twice
+    // (typecheck + lower phases, distinct ImplDecl copies) and node ids
+    // differ between the two, so the clone spans must NOT depend on them or
+    // the resolver's span-keyed `idents` records and the lower-phase reads
+    // land on different keys. Same source + same traversal ⇒ same spans.
+    // `base_line` keys the `<clone>` spans to THIS impl. Fold in the column
+    // so two impls on the same source line (rare, but not forbidden) don't
+    // share a base and collide their cloned-node spans. `line * 1024 + column`
+    // is collision-free for realistic positions (columns « 1024) and stable
+    // across the typecheck/lower materialisation generations.
+    impl_pos :: impl_.trait_name_span.start
+    stamp :: StampCtx { .base_line = impl_pos.line * 1024 + impl_pos.column, .counter = 0 }
     for method in trait_.members {
         body :: method.body
         match body {
@@ -62,8 +77,8 @@ export materialize_default_members :: fn(
             is AST.BlockExpr as b -> {
                 if provided.contains(method.name) { continue }
                 no_decorators: AST.Decorator[] = []
-                cloned :: substitute_block_materialized(b, subst, host_factory)
-                impl_.members.push(synth_with_body(method, subst, no_decorators, cloned))
+                cloned :: substitute_block_materialized(b, subst, host_factory, stamp)
+                impl_.members.push(synth_with_body(method, subst, no_decorators, cloned, stamp))
             }
         }
     }
@@ -71,7 +86,7 @@ export materialize_default_members :: fn(
 
 synth_with_body :: fn(
     method: AST.FnDecl, subst: Subst,
-    decorators: AST.Decorator[], body: AST.BlockExpr,
+    decorators: AST.Decorator[], body: AST.BlockExpr, stamp: StampCtx,
 ) -> AST.FnDecl {
     return AST.FnDecl {
         .span = method.span,
@@ -84,12 +99,19 @@ synth_with_body :: fn(
         .name_span = method.name_span,
         .visibility = .Public,
         .type_params = [],
-        // Re-key params onto the same distinct span so each clone's
-        // `self` mints a separate Symbol in the resolver's span-keyed
-        // ident map (mirrors `materialize_sam_members`). The resolver
-        // walks these clones — they're `materialized` but not
-        // `sam_synthetic` — so `self` / `self.next()` resolve.
-        .params = substitute_params_with_span(method.params, subst, method.name_span),
+        // EVERY param (including `self`) gets a deterministic `<clone>` span
+        // from the SAME `StampCtx` as the body. This is load-bearing : the
+        // resolver mints the param's Symbol at the param span AND records the
+        // body's `self`/`other` use-sites' Symbols by name, so `build_impl_
+        // member_params` (lower, span-keyed `idents` lookup) and the body's
+        // idents must agree on the param span. The trait method's
+        // `name_span` is SHARED across the N primitive impls of one trait
+        // (i8 … char `Comparable`), so anchoring `self` there made
+        // `build_impl_member_params` read the LAST impl's `self` Symbol — the
+        // body's `self` resolved to the right one → CFG-build failed with
+        // `unresolved ident self`. Deterministic per-impl spans fix both the
+        // cross-impl collision and the param↔body Symbol agreement.
+        .params = substitute_params_stamped(method.params, subst, stamp),
         .return_type = substitute_opt_type(method.return_type, subst),
         .body = body,
         .decorators = decorators,
@@ -99,7 +121,57 @@ synth_with_body :: fn(
     }
 }
 
-import "vader/parser" { NodeIdFactory }
+/// Substitute params, anchoring each at a deterministic `<clone>` span from
+/// `stamp` (shared with the cloned body). Used for default-method clones so
+/// the param Symbols agree with the body's span-keyed `idents` entries.
+substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: StampCtx) -> AST.FnParam[] {
+    out: AST.FnParam[] = []
+    for p in params {
+        out.push(AST.FnParam {
+            .span = next_clone_span(stamp),
+            .id = AST.UNASSIGNED_NODE_ID,
+            .name = p.name,
+            .ty = substitute_opt_type(p.ty, subst),
+            .default_value = p.default_value,
+            .variadic = p.variadic,
+        })
+    }
+    return out
+}
+
+/// Mint a fresh, globally-unique synthetic span for a materialised clone's
+/// non-self param (or body node). `line = 0` keeps it clear of any real
+/// source span (real spans are 1-based) ; the minted factory id rides in
+/// `column` so each call yields a distinct `Span.hash()`.
+synth_clone_span :: fn(factory: NodeIdFactory) -> Span {
+    pos :: Position { .file = "", .offset = usize(0), .line = 0, .column = i32(factory.mint()) }
+    return Span { .start = pos, .end = pos }
+}
+
+/// `substitute_params` but `self` re-anchors at `self_span` (its type is
+/// contextual, so a shared span is fine) while every non-self param gets a
+/// fresh minted span — so a two-arg default (`Comparable.gt(self, other:
+/// Self)`) doesn't collide `other` across sibling impls in the span-keyed
+/// `param_types` table.
+substitute_params_disambiguated :: fn(
+    params: AST.FnParam[], subst: Subst, self_span: Span, factory: NodeIdFactory,
+) -> AST.FnParam[] {
+    out: AST.FnParam[] = []
+    for p in params {
+        span :: if p.name == "self" { self_span } else { synth_clone_span(factory) }
+        out.push(AST.FnParam {
+            .span = span,
+            .id = AST.UNASSIGNED_NODE_ID,
+            .name = p.name,
+            .ty = substitute_opt_type(p.ty, subst),
+            .default_value = p.default_value,
+            .variadic = p.variadic,
+        })
+    }
+    return out
+}
+
+import "vader/parser" { NodeIdFactory, new_node_id_factory }
 
 /// SAM-synthetic members come out of the parser with a placeholder
 /// name and an empty param list ; the trait's lone required method
@@ -107,7 +179,7 @@ import "vader/parser" { NodeIdFactory }
 /// member in place. *Doesn't emit R2016 yet* — diagnostics for SAM
 /// shape mismatches surface from the TS resolver until `ResolverCode`
 /// is ported.
-export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> void {
+export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl, factory: NodeIdFactory) -> void {
     syn_count :: count_sam_synthetics(impl_.members)
     if syn_count == 0 { return }
     required :: required_methods(trait_.members)
@@ -123,12 +195,11 @@ export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl)
         m :: impl_.members[i]
         if !m.sam_synthetic { continue }
         m.name = method.name
-        // Re-key each synthesised param onto the impl's own span so
-        // multiple impls sharing the same trait method don't all mint
-        // their `self` Symbol at the trait's param span — that would
-        // collide in the resolver's ident map and clobber typing of
-        // every `self` usage but one.
-        m.params = substitute_params_with_span(method.params, subst, m.name_span)
+        // `self` re-anchors at the synthetic member's own span (unique per
+        // impl) ; non-self params get fresh minted spans so a two-arg SAM
+        // method (`Comparable.compare(self, other: Self)`) doesn't collide
+        // `self` / `other` on one span-keyed `param_types` slot.
+        m.params = substitute_params_disambiguated(method.params, subst, m.name_span, factory)
         m.return_type = substitute_opt_type(method.return_type, subst)
     }
 }
@@ -224,26 +295,6 @@ substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[] {
     return out
 }
 
-/// `substitute_params` but every output param re-anchors at `host_span`,
-/// so SAM impls sharing the same trait method don't collide in the
-/// resolver's span-keyed ident map.
-substitute_params_with_span :: fn(
-    params: AST.FnParam[], subst: Subst, host_span: Span,
-) -> AST.FnParam[] {
-    out: AST.FnParam[] = []
-    for p in params {
-        out.push(AST.FnParam {
-            .span = host_span,
-            .id = AST.UNASSIGNED_NODE_ID,
-            .name = p.name,
-            .ty = substitute_opt_type(p.ty, subst),
-            .default_value = p.default_value,
-            .variadic = p.variadic,
-        })
-    }
-    return out
-}
-
 substitute_opt_type :: fn(t: AST.TypeExpr | null, subst: Subst) -> AST.TypeExpr | null {
     match t {
         is null -> { return null }
@@ -280,7 +331,7 @@ Point implements Equals -> true
             match impl_decl {
                 is null -> { assert(false, "Point implements Equals should be parsed") }
                 is AST.ImplDecl as im -> {
-                    materialize_sam_members(im, t)
+                    materialize_sam_members(im, t, new_node_id_factory())
                     found := false
                     for m in im.members {
                         if m.name == "equals" { found = true }

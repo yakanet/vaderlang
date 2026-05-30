@@ -20,6 +20,7 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
+import "vader/diagnostics" { Span, Position }
 AST :: import "vader/parser"
 
 /// Clone a BlockExpr, recursively substituting TypeParam idents.
@@ -180,7 +181,11 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
             return AST.LetStmt {
                 .span = ls.span, .id = AST.UNASSIGNED_NODE_ID,
                 .mutable = ls.mutable,
-                .binding = ls.binding,
+                // Clone the binding (don't reuse the trait node) so its
+                // span/name_span can be stamped per-clone — the resolver keys
+                // the local Symbol on `binding.name_span`, which must agree
+                // with the body's stamped use-site idents.
+                .binding = clone_let_binding(ls.binding),
                 .ty = new_ty,
                 .value = substitute_expr_full(ls.value, subst),
             }
@@ -239,6 +244,33 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
     }
 }
 
+/// Clone a `let` binding so a materialised body owns it (the resolver keys
+/// the local Symbol on `binding.name_span` ; sharing the trait node would
+/// collide across impls/generations). Spans are carried over and re-stamped
+/// by `stamp_binding_spans`.
+clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding {
+    match b {
+        is AST.SimpleBinding as x -> {
+            return AST.SimpleBinding {
+                .span = x.span, .id = AST.UNASSIGNED_NODE_ID, .name = x.name, .name_span = x.name_span,
+            }
+        }
+        is AST.TupleBinding as x -> {
+            new_elems: AST.LetBinding[] = []
+            for e in x.elements { new_elems.push(clone_let_binding(e)) }
+            return AST.TupleBinding { .span = x.span, .id = AST.UNASSIGNED_NODE_ID, .elements = new_elems }
+        }
+        is AST.WildcardBinding as x -> {
+            return AST.WildcardBinding { .span = x.span, .id = AST.UNASSIGNED_NODE_ID }
+        }
+        is AST.RestBinding as x -> {
+            return AST.RestBinding {
+                .span = x.span, .id = AST.UNASSIGNED_NODE_ID, .name = x.name, .name_span = x.name_span,
+            }
+        }
+    }
+}
+
 /// Clone a Pattern, substituting TypeExprs inside `is T` patterns.
 export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
     match p {
@@ -282,10 +314,190 @@ import "vader/parser" { NodeIdFactory, assign_block_ids }
 /// (`custom_iter`, `custom_iter_generic`, `iter_defaults`,
 /// `trait_dispatch_generic_iter`, `for_in_iter_trait`).
 export substitute_block_materialized :: fn(
-    b: AST.BlockExpr, subst: Subst, factory: NodeIdFactory,
+    b: AST.BlockExpr, subst: Subst, factory: NodeIdFactory, stamp: StampCtx,
 ) -> AST.BlockExpr {
     cloned :: substitute_block(b, subst)
     assign_block_ids(cloned, factory)
+    stamp_block_spans(cloned, stamp)
     return cloned
+}
+
+// ---- span uniquification for materialised clones --------------------------
+//
+// Rewrite every cloned node's span to a unique synthetic span. The
+// resolver's `idents` map is SPAN-keyed, so cloned body nodes that kept the
+// trait method's source spans collide across the N impls sharing one default
+// method (i8 … char `Comparable`), leaving `other` unresolved in the `gt` /
+// `gte` / … bodies. (`expr_types` is id-keyed, so it was already safe — this
+// only fixes the span-keyed `idents` lookups.)
+//
+// The span MUST be DETERMINISTIC, not derived from the per-clone node id :
+// std/core's default-method bodies are materialised TWICE (once for the
+// typecheck phase, once for the lower phase, on distinct ImplDecl copies),
+// and node ids differ between the two generations — so an id-derived span
+// would record `idents` under one span at resolve time and read a different
+// span at lower time → miss. Instead the span is `<clone>:(base_line):(N)`
+// where `base_line` is the impl's source line (stable + unique per impl) and
+// `N` is a traversal counter that accumulates across all the impl's cloned
+// members. Identical tree structure → identical counter per node across both
+// generations → resolve and lower agree. `file = "<clone>"` keeps these clear
+// of every real source span. Coverage mirrors `substitute_block` /
+// `substitute_expr_full`.
+
+/// Deterministic span allocator for one impl's materialised clones. `base_line`
+/// = the impl's source line ; `counter` accumulates across the impl's members
+/// (created once per impl, threaded through every member clone).
+export StampCtx :: struct { base_line: i32, counter: i32 }
+
+export next_clone_span :: fn(stamp: StampCtx) -> Span {
+    col :: stamp.counter
+    stamp.counter = stamp.counter + 1
+    pos :: Position { .file = "<clone>", .offset = usize(0), .line = stamp.base_line, .column = col }
+    return Span { .start = pos, .end = pos }
+}
+
+stamp_block_spans :: fn(b: AST.BlockExpr, stamp: StampCtx) -> void {
+    b.span = next_clone_span(stamp)
+    for s in b.stmts { stamp_stmt_spans(s, stamp) }
+    match b.trailing {
+        is null -> {}
+        _ -> { stamp_expr_spans(b.trailing, stamp) }
+    }
+}
+
+stamp_stmt_spans :: fn(s: AST.Stmt, stamp: StampCtx) -> void {
+    match s {
+        is AST.LetStmt as ls -> {
+            ls.span = next_clone_span(stamp)
+            stamp_binding_spans(ls.binding, stamp)
+            match ls.ty {
+                is null -> {}
+                _ -> { stamp_expr_spans(ls.ty, stamp) }
+            }
+            stamp_expr_spans(ls.value, stamp)
+        }
+        is AST.ExprStmt as es -> {
+            es.span = next_clone_span(stamp)
+            stamp_expr_spans(es.expr, stamp)
+        }
+        is AST.ReturnStmt as rs -> {
+            rs.span = next_clone_span(stamp)
+            match rs.value {
+                is null -> {}
+                _ -> { stamp_expr_spans(rs.value, stamp) }
+            }
+        }
+        is AST.AssignStmt as as_ -> {
+            as_.span = next_clone_span(stamp)
+            stamp_expr_spans(as_.target, stamp)
+            stamp_expr_spans(as_.value, stamp)
+        }
+        is AST.ForStmt as fs -> {
+            fs.span = next_clone_span(stamp)
+            match fs.form {
+                is AST.WhileFor as w -> { stamp_expr_spans(w.cond, stamp) }
+                is AST.InFor as inf -> {
+                    inf.binding_span = next_clone_span(stamp)
+                    stamp_expr_spans(inf.iter, stamp)
+                }
+                is AST.InfiniteFor -> {}
+            }
+            stamp_block_spans(fs.body, stamp)
+        }
+        _ -> {}
+    }
+}
+
+stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
+    match e {
+        is AST.IntLitExpr   as x -> { x.span = next_clone_span(stamp) }
+        is AST.FloatLitExpr as x -> { x.span = next_clone_span(stamp) }
+        is AST.BoolLitExpr  as x -> { x.span = next_clone_span(stamp) }
+        is AST.NullLitExpr  as x -> { x.span = next_clone_span(stamp) }
+        is AST.CharLitExpr  as x -> { x.span = next_clone_span(stamp) }
+        is AST.IdentExpr    as x -> { x.span = next_clone_span(stamp) }
+        is AST.CallExpr as c -> {
+            c.span = next_clone_span(stamp)
+            stamp_expr_spans(c.callee, stamp)
+            for a in c.args {
+                a.span = next_clone_span(stamp)
+                stamp_expr_spans(a.value, stamp)
+            }
+        }
+        is AST.FieldExpr as f -> {
+            f.span = next_clone_span(stamp)
+            stamp_expr_spans(f.target, stamp)
+        }
+        is AST.IndexExpr as ix -> {
+            ix.span = next_clone_span(stamp)
+            stamp_expr_spans(ix.target, stamp)
+            stamp_expr_spans(ix.index, stamp)
+        }
+        is AST.UnaryExpr as u -> {
+            u.span = next_clone_span(stamp)
+            stamp_expr_spans(u.operand, stamp)
+        }
+        is AST.BinaryExpr as bn -> {
+            bn.span = next_clone_span(stamp)
+            stamp_expr_spans(bn.left, stamp)
+            stamp_expr_spans(bn.right, stamp)
+        }
+        is AST.IfExpr as ifx -> {
+            ifx.span = next_clone_span(stamp)
+            stamp_expr_spans(ifx.cond, stamp)
+            stamp_block_spans(ifx.then_block, stamp)
+            match ifx.else_branch {
+                is null -> {}
+                is AST.IfElseBlock as eb -> { stamp_block_spans(eb.block, stamp) }
+                is AST.IfElseIf as ei -> { stamp_expr_spans(ei.branch, stamp) }
+            }
+        }
+        is AST.MatchExpr as m -> {
+            m.span = next_clone_span(stamp)
+            stamp_expr_spans(m.scrutinee, stamp)
+            for a in m.arms {
+                a.span = next_clone_span(stamp)
+                stamp_pattern_spans(a.pattern, stamp)
+                match a.guard {
+                    is null -> {}
+                    _ -> { stamp_expr_spans(a.guard, stamp) }
+                }
+                stamp_expr_spans(a.body, stamp)
+            }
+        }
+        is AST.BlockExpr as b -> { stamp_block_spans(b, stamp) }
+        _ -> {}
+    }
+}
+
+stamp_binding_spans :: fn(b: AST.LetBinding, stamp: StampCtx) -> void {
+    match b {
+        is AST.SimpleBinding as x -> {
+            x.span = next_clone_span(stamp)
+            x.name_span = next_clone_span(stamp)
+        }
+        is AST.TupleBinding as x -> {
+            x.span = next_clone_span(stamp)
+            for e in x.elements { stamp_binding_spans(e, stamp) }
+        }
+        is AST.WildcardBinding as x -> { x.span = next_clone_span(stamp) }
+        is AST.RestBinding as x -> {
+            x.span = next_clone_span(stamp)
+            x.name_span = next_clone_span(stamp)
+        }
+    }
+}
+
+stamp_pattern_spans :: fn(p: AST.Pattern, stamp: StampCtx) -> void {
+    match p {
+        is AST.IsPattern as ip -> {
+            ip.span = next_clone_span(stamp)
+            match ip.inner {
+                is null -> {}
+                _ -> { stamp_pattern_spans(ip.inner, stamp) }
+            }
+        }
+        _ -> {}
+    }
 }
 

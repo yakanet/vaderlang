@@ -3,45 +3,45 @@
 ## tests/snippets/iter_defaults
   StructDecl     Countdown            :: Countdown
   FnDecl         main                 :: fn() -> i32
+  expr 11286:1  MatchExpr      :: bool
+  expr 11286:2  CallExpr       :: null | Yield<i32>
+  expr 11286:23 UnaryExpr      :: bool
+  expr 11286:24 IdentExpr      :: bool
+  expr 11286:26 MatchExpr      :: void
+  expr 11286:27 CallExpr       :: null | Yield<i32>
+  expr 11286:28 FieldExpr      :: fn() -> null | Yield<i32>
+  expr 11286:29 IdentExpr      :: Countdown
+  expr 11286:3  FieldExpr      :: fn() -> null | Yield<i32>
+  expr 11286:34 IdentExpr      :: bool
+  expr 11286:4  IdentExpr      :: Countdown
+  expr 11286:40 IdentExpr      :: usize
+  expr 11286:41 BinaryExpr     :: usize
+  expr 11286:42 IdentExpr      :: usize
+  expr 11286:45 IdentExpr      :: usize
+  expr 11286:60 UnaryExpr      :: bool
+  expr 11286:61 IdentExpr      :: bool
+  expr 11286:63 MatchExpr      :: void
+  expr 11286:64 CallExpr       :: null | Yield<i32>
+  expr 11286:65 FieldExpr      :: fn() -> null | Yield<i32>
+  expr 11286:66 IdentExpr      :: Countdown
+  expr 11286:71 IdentExpr      :: bool
+  expr 11286:77 IdentExpr      :: i32 | null
+  expr 11286:78 FieldExpr      :: i32
+  expr 11286:79 IdentExpr      :: Yield<i32>
+  expr 11286:81 IdentExpr      :: i32 | null
   expr 13:12    BinaryExpr     :: bool
   expr 13:12    FieldExpr      :: i32
   expr 13:12    IdentExpr      :: Countdown
   expr 13:9     IfExpr         :: void
-  expr 140:36   MatchExpr      :: bool
-  expr 140:42   CallExpr       :: null | Yield<i32>
-  expr 140:42   FieldExpr      :: fn() -> null | Yield<i32>
-  expr 140:42   IdentExpr      :: Countdown
   expr 14:14    FieldExpr      :: i32
   expr 14:14    IdentExpr      :: Countdown
-  expr 150:13   UnaryExpr      :: bool
-  expr 150:14   IdentExpr      :: bool
-  expr 151:13   MatchExpr      :: void
-  expr 151:19   CallExpr       :: null | Yield<i32>
-  expr 151:19   FieldExpr      :: fn() -> null | Yield<i32>
-  expr 151:19   IdentExpr      :: Countdown
-  expr 152:34   IdentExpr      :: bool
-  expr 153:34   IdentExpr      :: usize
-  expr 153:42   BinaryExpr     :: usize
-  expr 153:42   IdentExpr      :: usize
-  expr 156:16   IdentExpr      :: usize
   expr 15:26    BinaryExpr     :: i32
   expr 15:26    FieldExpr      :: i32
   expr 15:26    IdentExpr      :: Countdown
   expr 15:9     FieldExpr      :: i32
   expr 15:9     IdentExpr      :: Countdown
-  expr 164:13   UnaryExpr      :: bool
-  expr 164:14   IdentExpr      :: bool
-  expr 165:13   MatchExpr      :: void
-  expr 165:19   CallExpr       :: null | Yield<i32>
-  expr 165:19   FieldExpr      :: fn() -> null | Yield<i32>
-  expr 165:19   IdentExpr      :: Countdown
-  expr 166:39   IdentExpr      :: bool
-  expr 167:39   IdentExpr      :: i32 | null
-  expr 167:48   FieldExpr      :: i32
-  expr 167:48   IdentExpr      :: Yield<i32>
   expr 16:16    StructLitExpr  :: Yield<i32>
   expr 16:38    IdentExpr      :: i32
-  expr 170:16   IdentExpr      :: i32 | null
   expr 22:14    CallExpr       :: usize
   expr 22:14    FieldExpr      :: fn() -> usize
   expr 22:14    RangeExpr      :: Range<i32>

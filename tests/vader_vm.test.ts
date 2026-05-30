@@ -83,6 +83,11 @@ const VADER_SELF_EMIT = new Set<string>([
   "custom_iter_generic",
   "custom_iter",
   "array_iter",
+  // Iterator default methods (`count` / `last` / `is_empty`) now self-host :
+  // the generic-impl default bodies + the bound primitive `Comparable` / `Step`
+  // impls are materialised, the vtable carries the primitive rows, and the
+  // cloned bodies get deterministic spans so resolve↔lower agree.
+  "iter_defaults",
 ]);
 
 // Snippets that the self-host VM can't yet run end-to-end. New entries

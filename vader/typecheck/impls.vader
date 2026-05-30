@@ -16,7 +16,7 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap, keys, values }
 import "vader/parser" { ImplDecl, Decl, IdentExpr, GenericInstExpr, TypeExpr }
 import "vader/resolver" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -33,6 +33,15 @@ export ImplEntry :: struct {
     /// use the owning module so cross-module calls resolve to the same
     /// mangle the impl's lowered/surfaced decl is registered under.
     module:       string = ""
+    /// True when the impl references ≥1 type parameter (`Range<T>
+    /// implements<T> …`, `ArrayIterator<T> implements …`). Mirrors
+    /// `is_empty_substitution(build_impl_any_subst(...))` in the lowerer :
+    /// generic impls erase their instance args to `Any` when mangling
+    /// materialised members (`__Any` suffix), so call-site resolution
+    /// (`find_impl_member_for`, `lower_for_in`) must erase the same way.
+    /// Concrete-instantiation impls (`Wrapper<i32> implements …`) keep
+    /// the concrete suffix.
+    is_generic:   bool = false
 }
 
 /// Project-wide registry. Built once by `build_impl_registry` ; queried
@@ -78,7 +87,7 @@ export build_impl_registry :: fn(
     }
     for d in program_decls {
         match d {
-            is ImplDecl as impl_ -> { reg.collect_impl(impl_, by_name, resolved.display_path) }
+            is ImplDecl as impl_ -> { reg.collect_impl(impl_, by_name, resolved) }
             _ -> {}
         }
     }
@@ -86,7 +95,7 @@ export build_impl_registry :: fn(
 }
 
 collect_impl :: fn(
-    self: ImplRegistry, impl_: ImplDecl, by_name: MutableMap<string, Symbol>, module: string,
+    self: ImplRegistry, impl_: ImplDecl, by_name: MutableMap<string, Symbol>, resolved: ResolvedModule,
 ) -> void {
     trait_sym :: by_name[impl_.trait_name]
     if trait_sym is null { return }
@@ -96,12 +105,48 @@ collect_impl :: fn(
         .decl = impl_,
         .trait_symbol = trait_sym,
         .for_symbol = for_sym,
-        .module = module,
+        .module = resolved.display_path,
+        .is_generic = impl_is_generic(impl_, resolved),
     }
     if for_sym is Symbol {
         self.user_index["${for_sym.id}::${trait_sym.id}"] = entry
     }
     self.all.push(entry)
+}
+
+/// True when the impl references ≥1 type parameter. Mirrors the
+/// discriminator the lowerer's `build_impl_any_subst` computes : the
+/// `implements<T>` form (`impl_.type_params` non-empty) and the legacy
+/// `Foo<T> implements …` form (a `for_type` arg ident that resolves to a
+/// `TypeParam` symbol) both count. Concrete instantiations
+/// (`Wrapper<i32> implements …`) resolve their for-type args to non-
+/// TypeParam symbols and return false.
+impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
+    if impl_.type_params.len() > usize(0) { return true }
+    match impl_.for_type {
+        is GenericInstExpr as gi -> {
+            for ta in gi.type_args {
+                match ta {
+                    is IdentExpr as id -> {
+                        if name_is_type_param(resolved, id.name) { return true }
+                    }
+                    _ -> {}
+                }
+            }
+        }
+        _ -> {}
+    }
+    return false
+}
+
+name_is_type_param :: fn(resolved: ResolvedModule, name: string) -> bool {
+    for s in resolved.symbols {
+        if s.name == name && i32(s.kind) == i32(SymbolKind.TypeParam) { return true }
+    }
+    for s in resolved.idents.values() {
+        if s.name == name && i32(s.kind) == i32(SymbolKind.TypeParam) { return true }
+    }
+    return false
 }
 
 /// Resolve the target type's nominal symbol — null when the target is a
